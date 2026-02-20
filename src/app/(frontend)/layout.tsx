@@ -7,6 +7,7 @@ import { cn } from '@/lib/cn'
 import { ToastContainer } from 'react-toastify'
 import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
 import { Navigation } from '@/components/nav/navigation'
+import { AppFooter } from '@/components/nav/app-footer'
 import { Loader } from '@/components/ui/loader/loader'
 
 export default function FrontendLayout({ children }: { children: React.ReactNode }) {
@@ -34,6 +35,7 @@ async function AuthenticatedShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen flex-col">
       <Navigation user={user} />
       <main className="flex-1 overflow-y-auto">{children}</main>
+      <AppFooter user={{ name: user.name, role: user.role }} />
     </div>
   )
 }

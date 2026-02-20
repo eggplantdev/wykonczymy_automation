@@ -3,25 +3,21 @@
 import { useMemo } from 'react'
 import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
-import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
+import { useAppForm } from '@/components/forms/hooks/form-hooks'
 import { toastMessage } from '@/components/toasts'
 import {
-  DEPOSIT_UI_TYPES,
-  TRANSFER_TYPE_LABELS,
   PAYMENT_METHODS,
   PAYMENT_METHOD_LABELS,
-  requiresInvestment,
-  type TransferTypeT,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
 import { createTransferAction } from '@/lib/actions/transfers'
-import { depositFormSchema } from '@/components/forms/deposit-form/deposit-schema'
+import { registerTransferFormSchema } from '@/components/forms/register-transfer-form/register-transfer-schema'
 import type { CreateTransferFormT } from '@/components/forms/transfer-form/transfer-schema'
 import type { ReferenceDataT } from '@/components/dialogs/form-dialog'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
 
-type DepositFormPropsT = {
+type RegisterTransferFormPropsT = {
   referenceData: ReferenceDataT
   userCashRegisterIds?: number[]
   onSuccess: () => void
@@ -31,15 +27,18 @@ type FormValuesT = {
   description: string
   amount: string
   date: string
-  type: string
   paymentMethod: string
   cashRegister: string
-  investment: string
+  targetRegister: string
 }
 
 const today = () => new Date().toISOString().split('T')[0]
 
-export function DepositForm({ referenceData, userCashRegisterIds, onSuccess }: DepositFormPropsT) {
+export function RegisterTransferForm({
+  referenceData,
+  userCashRegisterIds,
+  onSuccess,
+}: RegisterTransferFormPropsT) {
   const ownedRegisterSet = useMemo(
     () => (userCashRegisterIds ? new Set(userCashRegisterIds) : undefined),
     [userCashRegisterIds],
@@ -50,29 +49,28 @@ export function DepositForm({ referenceData, userCashRegisterIds, onSuccess }: D
       description: '',
       amount: '',
       date: today(),
-      type: 'INVESTOR_DEPOSIT',
       paymentMethod: 'CASH',
       cashRegister: userCashRegisterIds?.length === 1 ? String(userCashRegisterIds[0]) : '',
-      investment: '',
+      targetRegister: '',
     } as FormValuesT,
     validators: {
-      onSubmit: depositFormSchema,
+      onSubmit: registerTransferFormSchema,
     },
     onSubmit: async ({ value }) => {
       const data: CreateTransferFormT = {
         description: value.description,
         amount: Number(value.amount),
         date: value.date,
-        type: value.type as TransferTypeT,
+        type: 'REGISTER_TRANSFER',
         paymentMethod: value.paymentMethod as PaymentMethodT,
-        cashRegister: value.cashRegister ? Number(value.cashRegister) : undefined,
-        investment: value.investment ? Number(value.investment) : undefined,
+        cashRegister: Number(value.cashRegister),
+        targetRegister: Number(value.targetRegister),
       }
 
       const result = await createTransferAction(data, null)
 
       if (result.success) {
-        toastMessage('Wpłata dodana', 'success')
+        toastMessage('Transfer między kasami dodany', 'success')
         onSuccess()
       } else {
         toastMessage(result.error, 'error')
@@ -84,8 +82,6 @@ export function DepositForm({ referenceData, userCashRegisterIds, onSuccess }: D
 
   useCheckFormErrors(form)
 
-  const currentType = useStore(form.store, (s) => s.values.type)
-
   return (
     <form.AppForm>
       <form
@@ -95,23 +91,31 @@ export function DepositForm({ referenceData, userCashRegisterIds, onSuccess }: D
         }}
       >
         <FieldGroup>
-          {/* Type — 3 deposit types */}
-          <form.AppField name="type" listeners={{ onChange: () => form.resetField('investment') }}>
+          {/* Source cash register — filtered to owned registers for non-ADMIN */}
+          <form.AppField name="cashRegister">
             {(field) => (
-              <field.Select label="Typ wpłaty" showError>
-                {DEPOSIT_UI_TYPES.map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {TRANSFER_TYPE_LABELS[t]}
-                  </SelectItem>
-                ))}
+              <field.Select label="Kasa źródłowa" placeholder="Wybierz kasę" showError>
+                {referenceData.cashRegisters
+                  .filter((cr) => !ownedRegisterSet || ownedRegisterSet.has(cr.id))
+                  .map((cr) => (
+                    <SelectItem key={cr.id} value={String(cr.id)}>
+                      {cr.name}
+                    </SelectItem>
+                  ))}
               </field.Select>
             )}
           </form.AppField>
 
-          {/* Description — optional */}
-          <form.AppField name="description">
+          {/* Target cash register — all registers */}
+          <form.AppField name="targetRegister">
             {(field) => (
-              <field.Input label="Opis (opcjonalnie)" placeholder="Opis wpłaty" showError />
+              <field.Select label="Kasa docelowa" placeholder="Wybierz kasę docelową" showError>
+                {referenceData.cashRegisters.map((cr) => (
+                  <SelectItem key={cr.id} value={String(cr.id)}>
+                    {cr.name}
+                  </SelectItem>
+                ))}
+              </field.Select>
             )}
           </form.AppField>
 
@@ -140,35 +144,12 @@ export function DepositForm({ referenceData, userCashRegisterIds, onSuccess }: D
             )}
           </form.AppField>
 
-          {/* Cash register — filtered to owned registers for non-ADMIN */}
-          <form.AppField name="cashRegister">
+          {/* Description — optional */}
+          <form.AppField name="description">
             {(field) => (
-              <field.Select label="Kasa" placeholder="Wybierz kasę" showError>
-                {referenceData.cashRegisters
-                  .filter((cr) => !ownedRegisterSet || ownedRegisterSet.has(cr.id))
-                  .map((cr) => (
-                    <SelectItem key={cr.id} value={String(cr.id)}>
-                      {cr.name}
-                    </SelectItem>
-                  ))}
-              </field.Select>
+              <field.Input label="Opis (opcjonalnie)" placeholder="Opis transferu" showError />
             )}
           </form.AppField>
-
-          {/* Conditional: Investment — for INVESTOR_DEPOSIT and STAGE_SETTLEMENT */}
-          {requiresInvestment(currentType) && (
-            <form.AppField name="investment">
-              {(field) => (
-                <field.Select label="Inwestycja" placeholder="Wybierz inwestycję" showError>
-                  {referenceData.investments.map((inv) => (
-                    <SelectItem key={inv.id} value={String(inv.id)}>
-                      {inv.name}
-                    </SelectItem>
-                  ))}
-                </field.Select>
-              )}
-            </form.AppField>
-          )}
         </FieldGroup>
 
         <div className="mt-6">

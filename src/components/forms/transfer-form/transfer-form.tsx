@@ -25,7 +25,7 @@ import {
   transferFormSchema,
   type CreateTransferFormT,
 } from '@/components/forms/transfer-form/transfer-schema'
-import type { ReferenceDataT } from '@/components/dialogs/add-transfer-dialog'
+import type { ReferenceDataT } from '@/components/dialogs/form-dialog'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
 
@@ -157,11 +157,13 @@ export function TransferForm({
           <form.AppField name="type" listeners={{ onChange: resetConditionalFields }}>
             {(field) => (
               <field.Select label="Typ transferu" showError>
-                {TRANSFER_TYPES.filter((t) => !isDepositType(t)).map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {TRANSFER_TYPE_LABELS[t]}
-                  </SelectItem>
-                ))}
+                {TRANSFER_TYPES.filter((t) => !isDepositType(t) && t !== 'REGISTER_TRANSFER').map(
+                  (t) => (
+                    <SelectItem key={t} value={t}>
+                      {TRANSFER_TYPE_LABELS[t]}
+                    </SelectItem>
+                  ),
+                )}
               </field.Select>
             )}
           </form.AppField>

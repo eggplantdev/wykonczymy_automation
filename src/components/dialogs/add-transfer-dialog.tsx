@@ -1,18 +1,10 @@
 'use client'
 
-import { useState } from 'react'
 import { Plus } from 'lucide-react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import dynamic from 'next/dynamic'
 import { Loader } from '../ui/loader/loader'
+import { FormDialog, type ReferenceDataT } from '@/components/dialogs/form-dialog'
 
 const TransferForm = dynamic(
   () =>
@@ -22,60 +14,32 @@ const TransferForm = dynamic(
   { loading: () => <Loader loading />, ssr: false },
 )
 
-export type ReferenceItemT = { id: number; name: string; type?: string }
-
-export type ReferenceDataT = {
-  cashRegisters: ReferenceItemT[]
-  investments: ReferenceItemT[]
-  workers: ReferenceItemT[]
-  otherCategories: ReferenceItemT[]
-}
-
 type AddTransferDialogPropsT = {
   referenceData: ReferenceDataT | undefined
   userCashRegisterIds?: number[]
-  variant?: 'default' | 'icon'
 }
 
 export function AddTransferDialog({ referenceData, userCashRegisterIds }: AddTransferDialogPropsT) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [keepOpen, setKeepOpen] = useState(false)
-
   if (!referenceData) return <></>
 
-  function handleSuccess() {
-    if (!keepOpen) setIsOpen(false)
-  }
-
   return (
-    <>
-      <Button variant="default" size="sm" className="gap-2" onClick={() => setIsOpen(true)}>
-        <Plus className="size-4" />
-        <span className="hidden lg:block">Transfer</span>
-      </Button>
-
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="h-auto overflow-y-auto sm:max-w-2xl">
-          <DialogHeader className={`p-4`}>
-            <DialogTitle>Nowy transfer</DialogTitle>
-            <DialogDescription>Wypełnij formularz, aby dodać nowy transfer.</DialogDescription>
-          </DialogHeader>
-          <div className="pr-1">
-            <TransferForm
-              referenceData={referenceData}
-              userCashRegisterIds={userCashRegisterIds}
-              onSuccess={handleSuccess}
-            />
-          </div>
-          <label className="flex cursor-pointer items-center gap-2 pb-4 text-sm select-none">
-            <Checkbox
-              checked={keepOpen}
-              onCheckedChange={(checked) => setKeepOpen(checked === true)}
-            />
-            Nie zamykaj po zapisaniu
-          </label>
-        </DialogContent>
-      </Dialog>
-    </>
+    <FormDialog
+      trigger={
+        <Button variant="default" size="sm" className="gap-2">
+          <Plus className="size-4" />
+          <span className="hidden lg:block">Transfer</span>
+        </Button>
+      }
+      title="Nowy transfer"
+      description="Wypełnij formularz, aby dodać nowy transfer."
+    >
+      {(onSuccess) => (
+        <TransferForm
+          referenceData={referenceData}
+          userCashRegisterIds={userCashRegisterIds}
+          onSuccess={onSuccess}
+        />
+      )}
+    </FormDialog>
   )
 }

@@ -21,5 +21,5 @@ export async function Navigation({ user }: NavigationPropsT) {
     getUserCashRegisterIds(user.id, user.role),
   ])
 
-  return <TopNav referenceData={referenceData} userCashRegisterIds={userRegisterIds} user={user} />
+  return <TopNav referenceData={referenceData} userCashRegisterIds={userRegisterIds} />
 }
