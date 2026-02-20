@@ -153,11 +153,11 @@ export function TransferForm({
         }}
       >
         <FieldGroup>
-          {/* Type — OTHER_DEPOSIT hidden (use COMPANY_FUNDING or OTHER instead) */}
+          {/* Type — deposit types moved to separate deposit dialog */}
           <form.AppField name="type" listeners={{ onChange: resetConditionalFields }}>
             {(field) => (
               <field.Select label="Typ transferu" showError>
-                {TRANSFER_TYPES.filter((t) => t !== 'OTHER_DEPOSIT').map((t) => (
+                {TRANSFER_TYPES.filter((t) => !isDepositType(t)).map((t) => (
                   <SelectItem key={t} value={t}>
                     {TRANSFER_TYPE_LABELS[t]}
                   </SelectItem>

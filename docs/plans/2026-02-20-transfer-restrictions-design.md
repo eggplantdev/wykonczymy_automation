@@ -66,21 +66,22 @@
 - **Added:** 4 new tests in `transfer-table.test.ts` for `createdByName` resolution in `mapTransferRow`
 - **Status:** Done (221 tests passing)
 
-## Changes Pending (Next Session)
-
 ### 9. Separate deposit dialog
 
 - **Rule:** Split 3 deposit types (`INVESTOR_DEPOSIT`, `STAGE_SETTLEMENT`, `COMPANY_FUNDING`) into their own dialog. Remove these types from the main transfer dialog.
 - **Rationale:** Deposits (adding money) are conceptually different from expenses/transfers (spending money). Separate UX flows reduce confusion.
-- **Implementation approach:**
-  - Create `AddDepositDialog` component (similar structure to `AddTransferDialog`)
-  - Create `DepositForm` component with only deposit-relevant fields (no invoice, no worker, no target register)
-  - Filter `TRANSFER_TYPES` in main transfer form to exclude deposit types
-  - Add deposit dialog button to `TopNav` alongside existing transfer button
-  - Reuse `createTransferAction` server action (deposit types go through same pipeline)
-- **Status:** Not started
+- **Files changed:**
+  - `src/lib/constants/transfers.ts` — added `DEPOSIT_UI_TYPES` constant (3 visible deposit types, excludes `OTHER_DEPOSIT`)
+  - `src/components/forms/deposit-form/deposit-schema.ts` — new Zod schema for deposit validation (type, amount, date, cashRegister required; investment conditional)
+  - `src/components/forms/deposit-form/deposit-form.tsx` — new form with 7 fields: type, description, amount, date, payment method, cash register, investment (conditional). No invoice/worker/target register/other category.
+  - `src/components/dialogs/add-deposit-dialog.tsx` — new dialog with green "Wpłata" button, title "Nowa wpłata". Reuses `createTransferAction`.
+  - `src/components/forms/transfer-form/transfer-form.tsx` — type filter changed from `t !== 'OTHER_DEPOSIT'` to `!isDepositType(t)` to exclude all deposit types
+  - `src/components/nav/top-nav.tsx` — added `AddDepositDialog` button (order: Wpłata, Rozliczenie, Transfer)
+- **Status:** Done
 
-### 10. Additional tests for next session
+## Changes Pending
+
+### 10. Additional tests
 
 - **`getUserCashRegisterIds`**: test that OWNER returns owned IDs (was previously returning `undefined`)
 - **`createTransferAction` ownership check**: test rejection when non-ADMIN uses non-owned register
@@ -89,26 +90,28 @@
 - **`buildTransferFilters` with `createdBy` URL param**: test that param is parsed correctly
 - **Status:** Not started
 
-## Summary of all files changed this session
+## Summary of all files changed
 
-| File                                                    | Change                                              |
-| ------------------------------------------------------- | --------------------------------------------------- |
-| `src/lib/auth/roles.ts`                                 | Majster → Manager                                   |
-| `src/lib/auth/get-user-cash-registers.ts`               | OWNER+MANAGER return owned IDs                      |
-| `src/lib/actions/transfers.ts`                          | Ownership check + negative saldo check              |
-| `src/lib/queries/transfers.ts`                          | `createdBy` filter + `onlyOwnTransfers`             |
-| `src/lib/queries/dashboard.ts`                          | `managementUsers` + `currentUserId`                 |
-| `src/lib/tables/transfers.tsx`                          | `createdByName` field + column                      |
-| `src/lib/constants/transfers.ts`                        | (no change — referenced only)                       |
-| `src/components/nav/navigation.tsx`                     | Pass all registers + `userCashRegisterIds` + `user` |
-| `src/components/nav/top-nav.tsx`                        | User info display + prop rename                     |
-| `src/components/dialogs/add-transfer-dialog.tsx`        | Prop rename                                         |
-| `src/components/forms/transfer-form/transfer-form.tsx`  | Source filtered by ownership                        |
-| `src/components/transfers/transfer-filters.tsx`         | "Dodane przez" filter                               |
-| `src/components/transfers/transfer-data-table.tsx`      | `users` in FilterConfigT                            |
-| `src/components/transfers/transfer-table-server.tsx`    | `users` in FilterConfigT                            |
-| `src/components/dashboard/manager-dashboard.tsx`        | Own transactions + filter users                     |
-| `src/__tests__/transfer-constants.test.ts`              | Fix pre-existing failure                            |
-| `src/__tests__/transfer-table.test.ts`                  | New test file (4 tests)                             |
-| `vitest.config.ts`                                      | (no change — reverted)                              |
-| `docs/plans/2026-02-20-transfer-restrictions-design.md` | This file                                           |
+| File                                                    | Change                                               |
+| ------------------------------------------------------- | ---------------------------------------------------- |
+| `src/lib/auth/roles.ts`                                 | Majster → Manager                                    |
+| `src/lib/auth/get-user-cash-registers.ts`               | OWNER+MANAGER return owned IDs                       |
+| `src/lib/actions/transfers.ts`                          | Ownership check + negative saldo check               |
+| `src/lib/queries/transfers.ts`                          | `createdBy` filter + `onlyOwnTransfers`              |
+| `src/lib/queries/dashboard.ts`                          | `managementUsers` + `currentUserId`                  |
+| `src/lib/tables/transfers.tsx`                          | `createdByName` field + column                       |
+| `src/lib/constants/transfers.ts`                        | Added `DEPOSIT_UI_TYPES`                             |
+| `src/components/nav/navigation.tsx`                     | Pass all registers + `userCashRegisterIds` + `user`  |
+| `src/components/nav/top-nav.tsx`                        | User info + deposit dialog + prop rename             |
+| `src/components/dialogs/add-transfer-dialog.tsx`        | Prop rename                                          |
+| `src/components/dialogs/add-deposit-dialog.tsx`         | New: deposit dialog with green button                |
+| `src/components/forms/deposit-form/deposit-schema.ts`   | New: Zod schema for deposits                         |
+| `src/components/forms/deposit-form/deposit-form.tsx`    | New: deposit form (7 fields)                         |
+| `src/components/forms/transfer-form/transfer-form.tsx`  | Source filtered by ownership + exclude deposit types |
+| `src/components/transfers/transfer-filters.tsx`         | "Dodane przez" filter                                |
+| `src/components/transfers/transfer-data-table.tsx`      | `users` in FilterConfigT                             |
+| `src/components/transfers/transfer-table-server.tsx`    | `users` in FilterConfigT                             |
+| `src/components/dashboard/manager-dashboard.tsx`        | Own transactions + filter users                      |
+| `src/__tests__/transfer-constants.test.ts`              | Fix pre-existing failure                             |
+| `src/__tests__/transfer-table.test.ts`                  | New test file (4 tests)                              |
+| `docs/plans/2026-02-20-transfer-restrictions-design.md` | This file                                            |

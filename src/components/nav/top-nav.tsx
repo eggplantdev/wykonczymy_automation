@@ -16,6 +16,12 @@ const AddTransferDialog = dynamic(() =>
   })),
 )
 
+const AddDepositDialog = dynamic(() =>
+  import('@/components/dialogs/add-deposit-dialog').then((m) => ({
+    default: m.AddDepositDialog,
+  })),
+)
+
 const AddSettlementDialog = dynamic(() =>
   import('@/components/dialogs/add-settlement-dialog').then((m) => ({
     default: m.AddSettlementDialog,
@@ -51,6 +57,10 @@ export function TopNav({ referenceData, userCashRegisterIds, user }: TopNavProps
       <div className="flex flex-wrap items-center gap-2">
         {referenceData && (
           <>
+            <AddDepositDialog
+              referenceData={referenceData}
+              userCashRegisterIds={userCashRegisterIds}
+            />
             <AddSettlementDialog referenceData={referenceData} />
             <AddTransferDialog
               referenceData={referenceData}

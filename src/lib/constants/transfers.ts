@@ -30,6 +30,13 @@ export const DEPOSIT_TYPES: TransferTypeT[] = [
   'OTHER_DEPOSIT',
 ]
 
+// Deposit types visible in the deposit dialog (OTHER_DEPOSIT is internal-only)
+export const DEPOSIT_UI_TYPES: TransferTypeT[] = [
+  'INVESTOR_DEPOSIT',
+  'STAGE_SETTLEMENT',
+  'COMPANY_FUNDING',
+]
+
 export const PAYMENT_METHODS = ['CASH', 'BLIK', 'TRANSFER', 'CARD'] as const
 export type PaymentMethodT = (typeof PAYMENT_METHODS)[number]
 
