@@ -16,28 +16,10 @@ type NavigationPropsT = {
 export async function Navigation({ user }: NavigationPropsT) {
   const isManager = isManagementRole(user.role)
 
-  const [referenceData, managerRegisterIds] = await Promise.all([
+  const [referenceData, userRegisterIds] = await Promise.all([
     isManager ? fetchReferenceData() : undefined,
     getUserCashRegisterIds(user.id, user.role),
   ])
 
-  const managerCashRegisterId = managerRegisterIds?.[0]
-
-  const filteredRefData = referenceData
-    ? {
-        ...referenceData,
-        cashRegisters:
-          user.role === 'ADMIN' || user.role === 'OWNER'
-            ? referenceData.cashRegisters
-            : referenceData.cashRegisters.filter((cr) => cr.type === 'AUXILIARY'),
-      }
-    : undefined
-
-  return (
-    <TopNav
-      referenceData={filteredRefData}
-      managerCashRegisterId={managerCashRegisterId}
-      user={user}
-    />
-  )
+  return <TopNav referenceData={referenceData} userCashRegisterIds={userRegisterIds} user={user} />
 }

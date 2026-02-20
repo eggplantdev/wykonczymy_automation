@@ -99,6 +99,7 @@ type SearchParamsT = Record<string, string | string[] | undefined>
 type UserContextT = {
   readonly id: number
   readonly isManager: boolean
+  readonly onlyOwnTransfers?: boolean
 }
 
 export function buildTransferFilters(
@@ -110,6 +111,11 @@ export function buildTransferFilters(
   // EMPLOYEE: always filter by own worker ID
   if (!userContext.isManager) {
     where.worker = { equals: userContext.id }
+  }
+
+  // Manager scoped to own transactions (dashboard only)
+  if (userContext.onlyOwnTransfers) {
+    where.createdBy = { equals: userContext.id }
   }
 
   // Type filter
@@ -130,6 +136,13 @@ export function buildTransferFilters(
     typeof searchParams.investment === 'string' ? searchParams.investment : undefined
   if (investmentParam) {
     where.investment = { equals: Number(investmentParam) }
+  }
+
+  // Created by filter
+  const createdByParam =
+    typeof searchParams.createdBy === 'string' ? searchParams.createdBy : undefined
+  if (createdByParam) {
+    where.createdBy = { equals: Number(createdByParam) }
   }
 
   // Date range

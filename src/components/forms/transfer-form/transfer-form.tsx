@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { SelectItem } from '@/components/ui/select'
 import { FileInput } from '@/components/ui/file-input'
 import { FieldGroup } from '@/components/ui/field'
@@ -31,7 +31,7 @@ import FormFooter from '../form-components/form-footer'
 
 type TransferFormPropsT = {
   referenceData: ReferenceDataT
-  managerCashRegisterId?: number
+  userCashRegisterIds?: number[]
   onSuccess: () => void
 }
 
@@ -56,11 +56,15 @@ const today = () => new Date().toISOString().split('T')[0]
 
 export function TransferForm({
   referenceData,
-  managerCashRegisterId,
+  userCashRegisterIds,
   onSuccess,
 }: TransferFormPropsT) {
   const invoiceRef = useRef<HTMLInputElement>(null)
-  const isRegisterLocked = managerCashRegisterId !== undefined
+  const isSourceRestricted = userCashRegisterIds !== undefined
+  const ownedRegisterSet = useMemo(
+    () => (userCashRegisterIds ? new Set(userCashRegisterIds) : undefined),
+    [userCashRegisterIds],
+  )
   const [expenseTarget, setExpenseTarget] = useState<'investment' | 'other'>('investment')
 
   const form = useAppForm({
@@ -70,7 +74,7 @@ export function TransferForm({
       date: today(),
       type: 'INVESTMENT_EXPENSE',
       paymentMethod: 'CASH',
-      cashRegister: isRegisterLocked ? String(managerCashRegisterId) : '',
+      cashRegister: userCashRegisterIds?.length === 1 ? String(userCashRegisterIds[0]) : '',
       targetRegister: '',
       investment: '',
       worker: '',
@@ -135,7 +139,8 @@ export function TransferForm({
 
   function resetConditionalFields() {
     conditionalFields.forEach((field) => form.resetField(field))
-    if (!isRegisterLocked) form.resetField('cashRegister')
+    if (!isSourceRestricted || (userCashRegisterIds && userCashRegisterIds.length > 1))
+      form.resetField('cashRegister')
     setExpenseTarget('investment')
   }
 
@@ -255,21 +260,18 @@ export function TransferForm({
             )}
           </form.AppField>
 
-          {/* Cash register — hidden for EMPLOYEE_EXPENSE */}
+          {/* Cash register — hidden for EMPLOYEE_EXPENSE, filtered to owned registers for non-ADMIN */}
           {needsCashRegister(currentType) && (
             <form.AppField name="cashRegister">
               {(field) => (
-                <field.Select
-                  label="Kasa"
-                  placeholder="Wybierz kasę"
-                  showError
-                  disabled={isRegisterLocked}
-                >
-                  {referenceData.cashRegisters.map((cr) => (
-                    <SelectItem key={cr.id} value={String(cr.id)}>
-                      {cr.name}
-                    </SelectItem>
-                  ))}
+                <field.Select label="Kasa" placeholder="Wybierz kasę" showError>
+                  {referenceData.cashRegisters
+                    .filter((cr) => !ownedRegisterSet || ownedRegisterSet.has(cr.id))
+                    .map((cr) => (
+                      <SelectItem key={cr.id} value={String(cr.id)}>
+                        {cr.name}
+                      </SelectItem>
+                    ))}
                 </field.Select>
               )}
             </form.AppField>

@@ -24,7 +24,7 @@ const AddSettlementDialog = dynamic(() =>
 
 type TopNavPropsT = {
   referenceData?: ReferenceDataT
-  managerCashRegisterId?: number
+  userCashRegisterIds?: number[]
   user: {
     id: number
     name: string
@@ -33,7 +33,7 @@ type TopNavPropsT = {
   }
 }
 
-export function TopNav({ referenceData, managerCashRegisterId, user }: TopNavPropsT) {
+export function TopNav({ referenceData, userCashRegisterIds, user }: TopNavPropsT) {
   const [isPending, startTransition] = useTransition()
 
   const handleLogout = () => {
@@ -54,7 +54,7 @@ export function TopNav({ referenceData, managerCashRegisterId, user }: TopNavPro
             <AddSettlementDialog referenceData={referenceData} />
             <AddTransferDialog
               referenceData={referenceData}
-              managerCashRegisterId={managerCashRegisterId}
+              userCashRegisterIds={userCashRegisterIds}
             />
           </>
         )}

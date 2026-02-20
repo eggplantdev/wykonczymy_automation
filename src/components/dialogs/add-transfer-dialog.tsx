@@ -33,14 +33,11 @@ export type ReferenceDataT = {
 
 type AddTransferDialogPropsT = {
   referenceData: ReferenceDataT | undefined
-  managerCashRegisterId?: number
+  userCashRegisterIds?: number[]
   variant?: 'default' | 'icon'
 }
 
-export function AddTransferDialog({
-  referenceData,
-  managerCashRegisterId,
-}: AddTransferDialogPropsT) {
+export function AddTransferDialog({ referenceData, userCashRegisterIds }: AddTransferDialogPropsT) {
   const [isOpen, setIsOpen] = useState(false)
   const [keepOpen, setKeepOpen] = useState(false)
 
@@ -66,7 +63,7 @@ export function AddTransferDialog({
           <div className="pr-1">
             <TransferForm
               referenceData={referenceData}
-              managerCashRegisterId={managerCashRegisterId}
+              userCashRegisterIds={userCashRegisterIds}
               onSuccess={handleSuccess}
             />
           </div>

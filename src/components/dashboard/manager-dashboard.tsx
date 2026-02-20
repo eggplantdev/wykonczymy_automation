@@ -22,9 +22,11 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
     activeInvestments,
     allInvestments,
     users,
+    managementUsers,
     recentCount,
     totalBalance,
     isAdminOrOwner,
+    currentUserId,
   } = await fetchManagerDashboardData()
 
   return (
@@ -58,13 +60,18 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
         <div className="mt-4">
           <Suspense fallback={<TransferTableSkeleton />}>
             <TransferTableServer
-              where={buildTransferFilters(searchParams, { id: 0, isManager: true })}
+              where={buildTransferFilters(searchParams, {
+                id: currentUserId,
+                isManager: true,
+                onlyOwnTransfers: !isAdminOrOwner,
+              })}
               page={page}
               limit={limit}
               baseUrl="/"
               filters={{
                 cashRegisters: visibleRegisters.map((c) => ({ id: c.id, name: c.name })),
                 investments: activeInvestments.map((i) => ({ id: i.id, name: i.name })),
+                users: managementUsers,
               }}
             />
           </Suspense>

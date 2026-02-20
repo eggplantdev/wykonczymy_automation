@@ -4,6 +4,6 @@ export type RoleT = (typeof ROLES)[number]
 export const ROLE_LABELS: Record<RoleT, { en: string; pl: string }> = {
   ADMIN: { en: 'Admin', pl: 'Admin' },
   OWNER: { en: 'Owner', pl: 'Właściciel' },
-  MANAGER: { en: 'Manager', pl: 'Majster' },
+  MANAGER: { en: 'Manager', pl: 'Manager' },
   EMPLOYEE: { en: 'Employee', pl: 'Pracownik' },
 }

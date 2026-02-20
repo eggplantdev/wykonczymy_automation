@@ -7,18 +7,19 @@ import type { RoleT } from '@/lib/auth/roles'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 
 /**
- * Returns the cash register ids owned by the given user if they are a MANAGER.
- * Returns `undefined` for ADMIN/OWNER (meaning "no restriction — all registers").
+ * Returns the cash register ids owned by the given user.
+ * Returns `undefined` for ADMIN (meaning "no restriction — all registers").
+ * OWNER and MANAGER are restricted to their own registers as transfer source.
  */
 export async function getUserCashRegisterIds(
   userId: number,
   role: RoleT,
 ): Promise<number[] | undefined> {
-  if (role !== 'MANAGER') return undefined
-  return getCachedManagerRegisterIds(userId)
+  if (role === 'ADMIN') return undefined
+  return getCachedUserRegisterIds(userId)
 }
 
-async function getCachedManagerRegisterIds(userId: number) {
+async function getCachedUserRegisterIds(userId: number) {
   'use cache'
   cacheLife('max')
   cacheTag(CACHE_TAGS.cashRegisters)

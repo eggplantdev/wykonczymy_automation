@@ -11,6 +11,7 @@ import { cn } from '../../lib/cn'
 type FilterConfigT = {
   readonly cashRegisters?: { id: number; name: string }[]
   readonly investments?: { id: number; name: string }[]
+  readonly users?: { id: number; name: string }[]
   readonly showTypeFilter?: boolean
 }
 
@@ -39,6 +40,7 @@ export function TransferDataTable({
         <TransferFilters
           cashRegisters={filters.cashRegisters}
           investments={filters.investments}
+          users={filters.users}
           showTypeFilter={filters.showTypeFilter}
           baseUrl={baseUrl}
         />

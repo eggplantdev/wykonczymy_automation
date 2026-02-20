@@ -32,13 +32,19 @@ export async function fetchManagerDashboardData() {
 
   const totalBalance = visibleRegisters.reduce((sum, cr) => sum + cr.balance, 0)
 
+  const managementUsers = refData.workers
+    .filter((w) => w.type === 'ADMIN' || w.type === 'OWNER' || w.type === 'MANAGER')
+    .map((w) => ({ id: w.id, name: w.name }))
+
   return {
     visibleRegisters,
     activeInvestments,
     allInvestments,
     users,
+    managementUsers,
     recentCount,
     totalBalance,
     isAdminOrOwner,
+    currentUserId: user!.id,
   }
 }

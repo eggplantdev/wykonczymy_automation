@@ -42,7 +42,7 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
   },
   needsOtherCategory: {
     fn: needsOtherCategory,
-    trueFor: ['OTHER'],
+    trueFor: ['OTHER', 'EMPLOYEE_EXPENSE'],
   },
 }
 

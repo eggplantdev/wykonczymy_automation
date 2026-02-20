@@ -22,6 +22,7 @@ type ReferenceItemT = { id: number; name: string }
 type TransferFiltersPropsT = {
   cashRegisters?: ReferenceItemT[]
   investments?: ReferenceItemT[]
+  users?: ReferenceItemT[]
   showTypeFilter?: boolean
   baseUrl: string
   className?: string
@@ -30,6 +31,7 @@ type TransferFiltersPropsT = {
 export function TransferFilters({
   cashRegisters,
   investments,
+  users,
   showTypeFilter = true,
   baseUrl,
   className,
@@ -40,6 +42,7 @@ export function TransferFilters({
   const currentType = searchParams.get('type') ?? ''
   const currentCashRegister = searchParams.get('cashRegister') ?? ''
   const currentInvestment = searchParams.get('investment') ?? ''
+  const currentCreatedBy = searchParams.get('createdBy') ?? ''
   const currentFrom = searchParams.get('from') ?? ''
   const currentTo = searchParams.get('to') ?? ''
 
@@ -78,13 +81,19 @@ export function TransferFilters({
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i)
 
   const hasFilters =
-    currentType || currentCashRegister || currentInvestment || currentFrom || currentTo
+    currentType ||
+    currentCashRegister ||
+    currentInvestment ||
+    currentCreatedBy ||
+    currentFrom ||
+    currentTo
 
   return (
     <div className={cn('flex flex-col gap-3', className)}>
       {(showTypeFilter ||
         (cashRegisters && cashRegisters.length > 0) ||
-        (investments && investments.length > 0)) && (
+        (investments && investments.length > 0) ||
+        (users && users.length > 0)) && (
         <div className="flex flex-wrap gap-3">
           {showTypeFilter && (
             <FilterField label="Typ">
@@ -115,6 +124,16 @@ export function TransferFilters({
                 value={currentInvestment}
                 onValueChange={(v) => updateParam('investment', v)}
                 options={investments.map((i) => ({ value: String(i.id), label: i.name }))}
+              />
+            </FilterField>
+          )}
+
+          {users && users.length > 0 && (
+            <FilterField label="Dodane przez">
+              <FilterSelect
+                value={currentCreatedBy}
+                onValueChange={(v) => updateParam('createdBy', v)}
+                options={users.map((u) => ({ value: String(u.id), label: u.name }))}
               />
             </FilterField>
           )}

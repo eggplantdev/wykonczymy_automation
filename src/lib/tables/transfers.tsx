@@ -23,6 +23,7 @@ export type TransferRowT = {
   readonly investmentName: string
   readonly workerName: string
   readonly otherCategoryName: string
+  readonly createdByName: string
   readonly invoiceUrl: string | null
   readonly invoiceFilename: string | null
   readonly invoiceMimeType: string | null
@@ -81,6 +82,7 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
       investmentName: lookupName(lookups.investments, doc.investment),
       workerName: lookupName(lookups.workers, doc.worker),
       otherCategoryName: lookupName(lookups.otherCategories, doc.otherCategory),
+      createdByName: lookupName(lookups.workers, doc.createdBy),
       invoiceUrl: media?.url ?? null,
       invoiceFilename: media?.filename ?? null,
       invoiceMimeType: media?.mimeType ?? null,
@@ -100,6 +102,7 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
     investmentName: getRelationName(doc.investment),
     workerName: getRelationName(doc.worker),
     otherCategoryName: getRelationName(doc.otherCategory),
+    createdByName: getRelationName(doc.createdBy),
     invoiceUrl: getMediaField(doc.invoice, 'url'),
     invoiceFilename: getMediaField(doc.invoice, 'filename'),
     invoiceMimeType: getMediaField(doc.invoice, 'mimeType'),
@@ -236,6 +239,12 @@ const allColumns = [
     header: 'Metoda',
     meta: { label: 'Metoda' },
     cell: (info) => PAYMENT_METHOD_LABELS[info.getValue() as PaymentMethodT] ?? info.getValue(),
+  }),
+  col.accessor('createdByName', {
+    id: 'createdBy',
+    header: 'Dodane przez',
+    meta: { label: 'Dodane przez' },
+    cell: (info) => info.getValue(),
   }),
 ]
 

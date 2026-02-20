@@ -6,6 +6,8 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
 import { isManagementRole } from '@/lib/auth/permissions'
+import { getUserCashRegisterIds } from '@/lib/auth/get-user-cash-registers'
+import { isDepositType } from '@/lib/constants/transfers'
 import {
   createTransferSchema,
   type CreateTransferFormT,
@@ -45,11 +47,32 @@ export async function createTransferAction(
     return { success: false, error: firstError }
   }
 
+  // Non-ADMIN users can only transfer from their own registers
+  if (user.role !== 'ADMIN' && parsed.data.cashRegister) {
+    const ownedIds = await getUserCashRegisterIds(user.id, user.role)
+    if (ownedIds && !ownedIds.includes(parsed.data.cashRegister)) {
+      return { success: false, error: 'Nie masz uprawnień do tej kasy' }
+    }
+  }
+
   const invoiceFile = invoiceFormData?.get('invoice') as File | null
   const hasInvoice = invoiceFile && invoiceFile.size > 0
 
   try {
     const payload = await perf('createTransfer.getPayload', () => getPayload({ config }))
+
+    // Reject if transfer would cause negative balance on source register
+    if (!isDepositType(parsed.data.type) && parsed.data.cashRegister) {
+      const currentBalance = await perf('createTransfer.balanceCheck', () =>
+        sumRegisterBalance(payload, parsed.data.cashRegister!),
+      )
+      if (currentBalance < parsed.data.amount) {
+        return {
+          success: false,
+          error: `Niewystarczające saldo kasy (${currentBalance.toFixed(2)} zł). Najpierw dodaj środki.`,
+        }
+      }
+    }
 
     // Upload invoice file if provided
     let mediaId: number | undefined
