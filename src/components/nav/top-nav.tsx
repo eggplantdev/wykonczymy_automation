@@ -45,6 +45,7 @@ export function TopNav({ referenceData, userCashRegisterIds }: TopNavPropsT) {
       <div className="flex flex-wrap items-center gap-2">
         {referenceData && (
           <>
+            <AddSettlementDialog referenceData={referenceData} />
             <AddDepositDialog
               referenceData={referenceData}
               userCashRegisterIds={userCashRegisterIds}
@@ -53,7 +54,6 @@ export function TopNav({ referenceData, userCashRegisterIds }: TopNavPropsT) {
               referenceData={referenceData}
               userCashRegisterIds={userCashRegisterIds}
             />
-            <AddSettlementDialog referenceData={referenceData} />
             <AddTransferDialog
               referenceData={referenceData}
               userCashRegisterIds={userCashRegisterIds}

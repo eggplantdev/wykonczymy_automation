@@ -26,7 +26,6 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
     recentCount,
     totalBalance,
     isAdminOrOwner,
-    currentUserId,
   } = await fetchManagerDashboardData()
 
   return (
@@ -60,11 +59,7 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
         <div className="mt-4">
           <Suspense fallback={<TransferTableSkeleton />}>
             <TransferTableServer
-              where={buildTransferFilters(searchParams, {
-                id: currentUserId,
-                isManager: true,
-                onlyOwnTransfers: !isAdminOrOwner,
-              })}
+              where={buildTransferFilters(searchParams, { id: 0, isManager: true })}
               page={page}
               limit={limit}
               baseUrl="/"
