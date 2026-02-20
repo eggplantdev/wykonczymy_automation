@@ -26,7 +26,9 @@ export async function findUsersWithSaldos({ page, limit }: PaginationParamsT) {
       limit,
       page,
       overrideAccess: true,
-      where: { role: { not_in: ['ADMIN', 'OWNER', 'MANAGER'] } },
+      where: {
+        and: [{ role: { not_in: ['ADMIN', 'OWNER', 'MANAGER'] } }, { active: { equals: true } }],
+      },
     }),
     sumAllWorkerSaldos(payload).then((map) => Object.fromEntries(map)),
   ])
@@ -59,7 +61,9 @@ export async function findAllUsersWithSaldos() {
       sort: 'name',
       pagination: false,
       overrideAccess: true,
-      where: { role: { not_in: ['ADMIN', 'OWNER', 'MANAGER'] } },
+      where: {
+        and: [{ role: { not_in: ['ADMIN', 'OWNER', 'MANAGER'] } }, { active: { equals: true } }],
+      },
     }),
     sumAllWorkerSaldos(payload).then((map) => Object.fromEntries(map)),
   ])

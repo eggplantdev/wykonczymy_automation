@@ -59,5 +59,15 @@ export const Users: CollectionConfig = {
         update: isAdminOrOwnerField,
       },
     },
+    {
+      name: 'active',
+      type: 'checkbox',
+      defaultValue: true,
+      label: { en: 'Active', pl: 'Aktywny' },
+      access: {
+        create: isAdminOrOwnerField,
+        update: isAdminOrOwnerField,
+      },
+    },
   ],
 }

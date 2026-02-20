@@ -34,7 +34,7 @@ export async function fetchReferenceData(): Promise<ReferenceDataT> {
     UNION ALL
     SELECT 'investments' AS collection, id, name, NULL AS type FROM investments WHERE status = 'active'
     UNION ALL
-    SELECT 'workers' AS collection, id, name, role::text AS type FROM users
+    SELECT 'workers' AS collection, id, name, role::text AS type FROM users WHERE active = true
     UNION ALL
     SELECT 'otherCategories' AS collection, id, name, NULL AS type FROM other_categories
   `)
