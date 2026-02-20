@@ -52,23 +52,25 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
   return (
     <PageWrapper title="Kokpit">
       {/* Stat cards + cash registers */}
-      <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <div>
-          <CashRegistersTable data={visibleRegisters} />
-          {isAdminOrOwner && (
-            <div className="mt-4 flex justify-end">
-              <SyncBalancesButton />
+      <CollapsibleSection title="Kasy" className="mt-6">
+        <div className="mt-4 grid grid-cols-1 gap-8 lg:grid-cols-2">
+          <div>
+            <CashRegistersTable data={visibleRegisters} />
+            {isAdminOrOwner && (
+              <div className="mt-4 flex justify-end">
+                <SyncBalancesButton />
+              </div>
+            )}
+          </div>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-1">
+              <StatCard label="Saldo kas" value={formatPLN(totalBalance)} />
+              <StatCard label="Aktywne inwestycje" value={String(activeInvestments.length)} />
+              <StatCard label="Transfery (30 dni)" value={String(recentCount)} />
             </div>
-          )}
-        </div>
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-1">
-            <StatCard label="Saldo kas" value={formatPLN(totalBalance)} />
-            <StatCard label="Aktywne inwestycje" value={String(activeInvestments.length)} />
-            <StatCard label="Transfery (30 dni)" value={String(recentCount)} />
           </div>
         </div>
-      </div>
+      </CollapsibleSection>
 
       {/* Users & Investments — full width */}
       <DashboardTables investments={allInvestments} users={users} />

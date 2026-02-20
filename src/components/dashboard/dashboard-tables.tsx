@@ -15,16 +15,12 @@ type CashRegistersTablePropsT = {
 
 export function CashRegistersTable({ data }: CashRegistersTablePropsT) {
   return (
-    <CollapsibleSection title="Kasy">
-      <div className="mt-4">
-        <DataTable
-          data={data}
-          columns={cashRegisterColumns}
-          emptyMessage="Brak kas"
-          getRowHref={(row) => `/kasa/${row.id}`}
-        />
-      </div>
-    </CollapsibleSection>
+    <DataTable
+      data={data}
+      columns={cashRegisterColumns}
+      emptyMessage="Brak kas"
+      getRowHref={(row) => `/kasa/${row.id}`}
+    />
   )
 }
 
