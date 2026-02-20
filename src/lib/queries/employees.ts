@@ -1,11 +1,13 @@
 'use server'
 
+import { getPayload } from 'payload'
+import config from '@payload-config'
 import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
 import { isManagementRole } from '@/lib/auth/permissions'
 import { DEFAULT_LIMIT } from '@/lib/pagination'
 import type { TransferRowT } from '@/lib/tables/transfers'
 import type { PaginationMetaT } from '@/lib/pagination'
-import type { DateRangeT } from '@/lib/db/sum-transfers'
+import { sumEmployeeSaldo, type DateRangeT } from '@/lib/db/sum-transfers'
 import { getCachedEmployeeSaldo, getCachedMonthlyData } from '@/lib/queries/employee-data'
 
 export type MonthlyDataT = {
@@ -40,6 +42,9 @@ export async function getManagementEmployeeSaldo(workerId: number): Promise<{ sa
     throw new Error('Brak uprawnień')
   }
 
-  const saldo = await getCachedEmployeeSaldo(workerId)
+  // Bypass cache — this is an on-demand fetch from the settlement dialog
+  // and must always return fresh data.
+  const payload = await getPayload({ config })
+  const saldo = await sumEmployeeSaldo(payload, workerId)
   return { saldo }
 }

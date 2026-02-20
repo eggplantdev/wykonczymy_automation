@@ -158,16 +158,14 @@ const allColumns = [
   col.accessor('description', {
     id: 'description',
     header: 'Opis',
-    meta: { canHide: false, label: 'Opis' },
+    meta: { label: 'Opis' },
     cell: (info) => info.getValue(),
   }),
   col.accessor('amount', {
     id: 'amount',
-    header: () => <span className="block text-right">Kwota</span>,
+    header: () => <span className="block">Kwota</span>,
     meta: { label: 'Kwota' },
-    cell: (info) => (
-      <span className="block text-right font-medium">{formatPLN(info.getValue())}</span>
-    ),
+    cell: (info) => <span className="block font-medium">{formatPLN(info.getValue())}</span>,
   }),
   col.accessor('type', {
     id: 'type',

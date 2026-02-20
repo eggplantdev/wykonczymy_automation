@@ -28,9 +28,7 @@ export const userColumns = [
   }),
   col.accessor('saldo', {
     id: 'saldo',
-    header: () => <span className="block text-right">Saldo</span>,
-    cell: (info) => (
-      <span className="block text-right font-medium">{formatPLN(info.getValue())}</span>
-    ),
+    header: () => <span className="block">Saldo</span>,
+    cell: (info) => <span className="block font-medium">{formatPLN(info.getValue())}</span>,
   }),
 ]
