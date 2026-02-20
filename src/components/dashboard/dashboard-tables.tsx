@@ -2,9 +2,9 @@
 
 import { DataTable } from '@/components/ui/data-table'
 import { cashRegisterColumns } from '@/lib/tables/cash-registers'
-import { investmentColumns } from '@/lib/tables/investments'
 import { userColumns } from '@/lib/tables/users'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
+import { InvestmentDataTable } from '@/components/investments/investment-data-table'
 import type { CashRegisterRowT } from '@/lib/tables/cash-registers'
 import type { InvestmentRowT } from '@/lib/tables/investments'
 import type { UserRowT } from '@/lib/tables/users'
@@ -44,12 +44,7 @@ export function DashboardTables({ investments, users }: DashboardTablesPropsT) {
       </CollapsibleSection>
       <CollapsibleSection title="Inwestycje">
         <div className="mt-4">
-          <DataTable
-            data={investments}
-            columns={investmentColumns}
-            emptyMessage="Brak inwestycji"
-            getRowHref={(row) => `/inwestycje/${row.id}`}
-          />
+          <InvestmentDataTable data={investments} />
         </div>
       </CollapsibleSection>
     </div>
