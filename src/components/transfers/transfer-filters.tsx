@@ -47,46 +47,57 @@ export function TransferFilters({
   const currentTo = searchParams.get('to') ?? ''
 
   const now = new Date()
-  const pickerMonth = currentFrom
-    ? new Date(currentFrom + 'T00:00:00').getMonth() + 1
-    : now.getMonth() + 1
-  const pickerYear = currentFrom
-    ? new Date(currentFrom + 'T00:00:00').getFullYear()
-    : now.getFullYear()
+  const pickerMonth = currentFrom ? String(new Date(currentFrom + 'T00:00:00').getMonth() + 1) : ''
+  const pickerYear = currentFrom ? String(new Date(currentFrom + 'T00:00:00').getFullYear()) : ''
 
   function updateParam(key: string, value: string) {
-    // Reset to page 1 when changing filters
-    router.push(buildUrlWithParams(baseUrl, searchParams.toString(), { [key]: value, page: '' }))
+    router.replace(
+      buildUrlWithParams(baseUrl, searchParams.toString(), { [key]: value, page: '' }),
+      { scroll: false },
+    )
   }
 
   function updateMultipleParams(overrides: Record<string, string>) {
-    router.push(buildUrlWithParams(baseUrl, searchParams.toString(), { ...overrides, page: '' }))
+    router.replace(
+      buildUrlWithParams(baseUrl, searchParams.toString(), { ...overrides, page: '' }),
+      { scroll: false },
+    )
   }
 
-  function clearFilters() {
-    router.push(baseUrl)
-  }
-
-  function handleMonthChange(month: number) {
-    const { from, to } = getMonthDateRange(month, pickerYear)
+  function handleMonthChange(value: string) {
+    if (!value) {
+      updateMultipleParams({ from: '', to: '' })
+      return
+    }
+    const year = pickerYear ? Number(pickerYear) : now.getFullYear()
+    const { from, to } = getMonthDateRange(Number(value), year)
     updateMultipleParams({ from, to })
   }
 
-  function handleYearChange(year: number) {
-    const { from, to } = getMonthDateRange(pickerMonth, year)
+  function handleYearChange(value: string) {
+    if (!value) {
+      updateMultipleParams({ from: '', to: '' })
+      return
+    }
+    const month = pickerMonth ? Number(pickerMonth) : now.getMonth() + 1
+    const { from, to } = getMonthDateRange(month, Number(value))
     updateMultipleParams({ from, to })
   }
 
   const currentYear = now.getFullYear()
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i)
 
-  const hasFilters =
-    currentType ||
-    currentCashRegister ||
-    currentInvestment ||
-    currentCreatedBy ||
-    currentFrom ||
-    currentTo
+  const hasEntityFilters =
+    currentType || currentCashRegister || currentInvestment || currentCreatedBy
+  const hasDateFilters = currentFrom || currentTo
+
+  function clearEntityFilters() {
+    updateMultipleParams({ type: '', cashRegister: '', investment: '', createdBy: '' })
+  }
+
+  function clearDateFilters() {
+    updateMultipleParams({ from: '', to: '' })
+  }
 
   return (
     <div className={cn('flex flex-col gap-3', className)}>
@@ -137,24 +148,28 @@ export function TransferFilters({
               />
             </FilterField>
           )}
+
+          {hasEntityFilters && (
+            <Button variant="ghost" size="sm" className="self-end" onClick={clearEntityFilters}>
+              Wyczyść filtry
+            </Button>
+          )}
         </div>
       )}
       <div className="flex flex-wrap items-end gap-3">
         <FilterField label="Rok">
           <FilterSelect
-            value={String(pickerYear)}
-            onValueChange={(v) => handleYearChange(Number(v))}
+            value={pickerYear}
+            onValueChange={handleYearChange}
             options={years.map((y) => ({ value: String(y), label: String(y) }))}
-            showAllOption={false}
           />
         </FilterField>
 
         <FilterField label="Miesiąc">
           <FilterSelect
-            value={String(pickerMonth)}
-            onValueChange={(v) => handleMonthChange(Number(v))}
+            value={pickerMonth}
+            onValueChange={handleMonthChange}
             options={MONTHS.map((label, i) => ({ value: String(i + 1), label }))}
-            showAllOption={false}
           />
         </FilterField>
 
@@ -177,9 +192,9 @@ export function TransferFilters({
           />
         </FilterField>
 
-        {hasFilters && (
-          <Button variant="ghost" size="sm" onClick={clearFilters}>
-            Wyczyść filtry
+        {hasDateFilters && (
+          <Button variant="ghost" size="sm" className="self-end" onClick={clearDateFilters}>
+            Wyczyść daty
           </Button>
         )}
       </div>

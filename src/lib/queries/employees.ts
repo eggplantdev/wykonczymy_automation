@@ -5,6 +5,7 @@ import { isManagementRole } from '@/lib/auth/permissions'
 import { DEFAULT_LIMIT } from '@/lib/pagination'
 import type { TransferRowT } from '@/lib/tables/transfers'
 import type { PaginationMetaT } from '@/lib/pagination'
+import type { DateRangeT } from '@/lib/db/sum-transfers'
 import { getCachedEmployeeSaldo, getCachedMonthlyData } from '@/lib/queries/employee-data'
 
 export type MonthlyDataT = {
@@ -13,8 +14,8 @@ export type MonthlyDataT = {
   monthlySaldo: number
 }
 
-export async function getEmployeeSaldo(userId: number): Promise<number> {
-  return getCachedEmployeeSaldo(userId)
+export async function getEmployeeSaldo(userId: number, dateRange?: DateRangeT): Promise<number> {
+  return getCachedEmployeeSaldo(userId, dateRange)
 }
 
 export async function getEmployeeMonthlyData({

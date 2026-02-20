@@ -3,7 +3,6 @@ import { isManagementRole } from '@/lib/auth/permissions'
 import { ManagerDashboard } from '@/components/dashboard/manager-dashboard'
 import { EmployeeDashboardServer } from '@/components/dashboard/employee-dashboard-server'
 import { redirect } from 'next/navigation'
-import { getMonthDateRange } from '@/lib/helpers'
 
 type PagePropsT = {
   searchParams: Promise<Record<string, string | string[] | undefined>>
@@ -15,14 +14,6 @@ export default async function DashboardPage({ searchParams }: PagePropsT) {
   const params = await searchParams
 
   if (isManagementRole(user.role)) return <ManagerDashboard searchParams={params} />
-
-  // Employee dashboard always shows a month — redirect to add default date range
-  if (!params.from || !params.to) {
-    const now = new Date()
-    const { from, to } = getMonthDateRange(now.getMonth() + 1, now.getFullYear())
-    const qs = new URLSearchParams({ ...(params as Record<string, string>), from, to }).toString()
-    redirect(`/?${qs}`)
-  }
 
   return <EmployeeDashboardServer userId={user.id} searchParams={params} />
 }

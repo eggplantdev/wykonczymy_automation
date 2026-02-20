@@ -1,21 +1,21 @@
 import { cacheLife, cacheTag } from 'next/cache'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { sumEmployeeSaldo } from '@/lib/db/sum-transfers'
+import { sumEmployeeSaldo, type DateRangeT } from '@/lib/db/sum-transfers'
 import { mapTransferRow, extractInvoiceIds, buildTransferLookups } from '@/lib/tables/transfers'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { fetchMediaByIds } from '@/lib/queries/media'
 import { buildPaginationMeta, DEFAULT_LIMIT, ALLOWED_LIMITS } from '@/lib/pagination'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 
-export async function getCachedEmployeeSaldo(userId: number) {
+export async function getCachedEmployeeSaldo(userId: number, dateRange?: DateRangeT) {
   'use cache'
   cacheLife('max')
   cacheTag(CACHE_TAGS.transfers)
 
   const start = performance.now()
   const payload = await getPayload({ config })
-  const result = await sumEmployeeSaldo(payload, userId)
+  const result = await sumEmployeeSaldo(payload, userId, dateRange)
   console.log(
     `[PERF] query.getCachedEmployeeSaldo(${userId}) ${(performance.now() - start).toFixed(1)}ms`,
   )

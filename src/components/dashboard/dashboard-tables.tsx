@@ -31,22 +31,24 @@ type DashboardTablesPropsT = {
 
 export function DashboardTables({ investments, users }: DashboardTablesPropsT) {
   return (
-    <div className="mt-8 space-y-8">
-      <CollapsibleSection title="Współpracownicy">
-        <div className="mt-4">
-          <DataTable
-            data={users}
-            columns={userColumns}
-            emptyMessage="Brak współpracowników"
-            getRowHref={(row) => `/uzytkownicy/${row.id}`}
-          />
-        </div>
-      </CollapsibleSection>
-      <CollapsibleSection title="Inwestycje">
-        <div className="mt-4">
-          <InvestmentDataTable data={investments} />
-        </div>
-      </CollapsibleSection>
-    </div>
+    <>
+      <div className="mt-8 space-y-8">
+        <CollapsibleSection title="Współpracownicy">
+          <div className="mt-4">
+            <DataTable
+              data={users}
+              columns={userColumns}
+              emptyMessage="Brak współpracowników"
+              getRowHref={(row) => `/uzytkownicy/${row.id}`}
+            />
+          </div>
+        </CollapsibleSection>
+        <CollapsibleSection title="Inwestycje">
+          <div className="mt-4">
+            <InvestmentDataTable data={investments} />
+          </div>
+        </CollapsibleSection>
+      </div>
+    </>
   )
 }

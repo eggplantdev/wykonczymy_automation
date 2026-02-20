@@ -1,7 +1,7 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { Payload, PayloadRequest } from 'payload'
 
-type DateRangeT = { start: string; end: string }
+export type DateRangeT = { start: string; end: string }
 
 /**
  * Returns the transaction-scoped Drizzle instance when inside a hook

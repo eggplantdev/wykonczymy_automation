@@ -41,12 +41,10 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
               </div>
             )}
           </div>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-1">
-              <StatCard label="Saldo kas" value={formatPLN(totalBalance)} />
-              <StatCard label="Aktywne inwestycje" value={String(activeInvestments.length)} />
-              <StatCard label="Transfery (30 dni)" value={String(recentCount)} />
-            </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-1">
+            <StatCard label="Saldo kas" value={formatPLN(totalBalance)} />
+            <StatCard label="Aktywne inwestycje" value={String(activeInvestments.length)} />
+            <StatCard label="Transfery (30 dni)" value={String(recentCount)} />
           </div>
         </div>
       </CollapsibleSection>
@@ -56,21 +54,20 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
 
       {/* Recent transactions */}
       <CollapsibleSection title="Ostatnie transfery" className="mt-8">
-        <div className="mt-4">
-          <Suspense fallback={<TransferTableSkeleton />}>
-            <TransferTableServer
-              where={buildTransferFilters(searchParams, { id: 0, isManager: true })}
-              page={page}
-              limit={limit}
-              baseUrl="/"
-              filters={{
-                cashRegisters: visibleRegisters.map((c) => ({ id: c.id, name: c.name })),
-                investments: activeInvestments.map((i) => ({ id: i.id, name: i.name })),
-                users: managementUsers,
-              }}
-            />
-          </Suspense>
-        </div>
+        <Suspense fallback={<TransferTableSkeleton />}>
+          <TransferTableServer
+            className={`mt-4`}
+            where={buildTransferFilters(searchParams, { id: 0, isManager: true })}
+            page={page}
+            limit={limit}
+            baseUrl="/"
+            filters={{
+              cashRegisters: visibleRegisters.map((c) => ({ id: c.id, name: c.name })),
+              investments: activeInvestments.map((i) => ({ id: i.id, name: i.name })),
+              users: managementUsers,
+            }}
+          />
+        </Suspense>
       </CollapsibleSection>
     </PageWrapper>
   )
