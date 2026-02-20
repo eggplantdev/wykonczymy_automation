@@ -46,21 +46,23 @@ export function FormDialog({
       <span onClick={() => setIsOpen(true)}>{trigger}</span>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="h-auto overflow-y-auto sm:max-w-2xl">
-          <DialogHeader className="">
-            <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>{description}</DialogDescription>
-          </DialogHeader>
-          <div className="pr-1">{children(handleSuccess)}</div>
-          {showKeepOpen && (
-            <label className="flex cursor-pointer items-center gap-2 pb-4 text-sm select-none">
-              <Checkbox
-                checked={keepOpen}
-                onCheckedChange={(checked) => setKeepOpen(checked === true)}
-              />
-              Nie zamykaj po zapisaniu
-            </label>
-          )}
+        <DialogContent className="h-fit max-h-[80vh] sm:max-w-2xl">
+          <div className="h-auto">
+            <DialogHeader className="">
+              <DialogTitle>{title}</DialogTitle>
+              <DialogDescription>{description}</DialogDescription>
+            </DialogHeader>
+            <div className="pr-1">{children(handleSuccess)}</div>
+            {showKeepOpen && (
+              <label className="flex cursor-pointer items-center gap-2 py-4 text-sm select-none">
+                <Checkbox
+                  checked={keepOpen}
+                  onCheckedChange={(checked) => setKeepOpen(checked === true)}
+                />
+                Nie zamykaj po zapisaniu
+              </label>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </>
