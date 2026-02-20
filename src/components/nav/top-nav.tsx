@@ -1,11 +1,14 @@
 'use client'
 
 import type { ReferenceDataT } from '@/components/dialogs/add-transfer-dialog'
+import type { RoleT } from '@/lib/auth/roles'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { useTransition } from 'react'
 import { LogOut } from 'lucide-react'
 import { logoutAction } from '@/lib/actions/auth'
+import { ROLE_LABELS } from '@/lib/auth/roles'
+import { Button } from '../ui/button'
 
 const AddTransferDialog = dynamic(() =>
   import('@/components/dialogs/add-transfer-dialog').then((m) => ({
@@ -22,9 +25,15 @@ const AddSettlementDialog = dynamic(() =>
 type TopNavPropsT = {
   referenceData?: ReferenceDataT
   managerCashRegisterId?: number
+  user: {
+    id: number
+    name: string
+    email: string
+    role: RoleT
+  }
 }
 
-export function TopNav({ referenceData, managerCashRegisterId }: TopNavPropsT) {
+export function TopNav({ referenceData, managerCashRegisterId, user }: TopNavPropsT) {
   const [isPending, startTransition] = useTransition()
 
   const handleLogout = () => {
@@ -39,7 +48,7 @@ export function TopNav({ referenceData, managerCashRegisterId }: TopNavPropsT) {
       </Link>
 
       {/* Right: action buttons + logout */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {referenceData && (
           <>
             <AddSettlementDialog referenceData={referenceData} />
@@ -49,14 +58,15 @@ export function TopNav({ referenceData, managerCashRegisterId }: TopNavPropsT) {
             />
           </>
         )}
-        <button
-          onClick={handleLogout}
-          disabled={isPending}
-          className="text-muted-foreground hover:bg-accent hover:text-foreground shrink-0 rounded-md p-1.5 transition-colors disabled:opacity-50"
-          aria-label="Wyloguj"
-        >
+        <div className="border-border hidden items-center gap-2 border-l pl-2 lg:flex">
+          <span className="text-foreground text-sm font-medium">{user.name}</span>
+          <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
+            {ROLE_LABELS[user.role].pl}
+          </span>
+        </div>
+        <Button variant="outline" onClick={handleLogout} disabled={isPending} aria-label="Wyloguj">
           <LogOut className="size-4" />
-        </button>
+        </Button>
       </div>
     </header>
   )

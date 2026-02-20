@@ -12,17 +12,14 @@ import {
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import dynamic from 'next/dynamic'
+import { Loader } from '../ui/loader/loader'
 
 const TransferForm = dynamic(
   () =>
     import('@/components/forms/transfer-form/transfer-form').then((m) => ({
       default: m.TransferForm,
     })),
-  {
-    loading: () => (
-      <p className="text-muted-foreground p-8 text-center text-sm">Ładowanie formularza...</p>
-    ),
-  },
+  { loading: () => <Loader loading />, ssr: false },
 )
 
 export type ReferenceItemT = { id: number; name: string; type?: string }
@@ -57,7 +54,7 @@ export function AddTransferDialog({
     <>
       <Button variant="default" size="sm" className="gap-2" onClick={() => setIsOpen(true)}>
         <Plus className="size-4" />
-        Nowy transfer
+        <span className="hidden lg:block">Transfer</span>
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>

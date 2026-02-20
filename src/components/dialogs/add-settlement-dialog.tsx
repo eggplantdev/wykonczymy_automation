@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button'
 import dynamic from 'next/dynamic'
 import type { ReferenceDataT } from '@/components/dialogs/add-transfer-dialog'
+import { Loader } from '../ui/loader/loader'
 
 const SettlementForm = dynamic(
   () =>
@@ -19,9 +20,8 @@ const SettlementForm = dynamic(
       default: m.SettlementForm,
     })),
   {
-    loading: () => (
-      <p className="text-muted-foreground p-8 text-center text-sm">Ładowanie formularza...</p>
-    ),
+    loading: () => <Loader loading />,
+    ssr: false,
   },
 )
 
@@ -45,11 +45,11 @@ export function AddSettlementDialog({ referenceData }: AddSettlementDialogPropsT
     <>
       <Button variant="outline" size="sm" className="gap-2" onClick={() => setIsOpen(true)}>
         <Receipt className="size-4" />
-        Rozliczenie
+        <span className="hidden lg:block">Rozliczenie</span>
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="overflow-y-auto sm:max-w-2xl">
           <DialogHeader className="p-4">
             <DialogTitle>Rozliczenie pracownika</DialogTitle>
             <DialogDescription>
@@ -57,7 +57,7 @@ export function AddSettlementDialog({ referenceData }: AddSettlementDialogPropsT
               pracowniczy&quot;.
             </DialogDescription>
           </DialogHeader>
-          <div className="overflow-y-auto pr-1">
+          <div className="pr-1">
             <SettlementForm
               referenceData={settlementReferenceData}
               onSuccess={() => setIsOpen(false)}

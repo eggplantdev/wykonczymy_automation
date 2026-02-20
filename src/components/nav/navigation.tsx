@@ -33,5 +33,11 @@ export async function Navigation({ user }: NavigationPropsT) {
       }
     : undefined
 
-  return <TopNav referenceData={filteredRefData} managerCashRegisterId={managerCashRegisterId} />
+  return (
+    <TopNav
+      referenceData={filteredRefData}
+      managerCashRegisterId={managerCashRegisterId}
+      user={user}
+    />
+  )
 }
