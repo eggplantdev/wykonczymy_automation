@@ -9,6 +9,7 @@ export type CashRegisterRowT = {
   readonly ownerName: string
   readonly balance: number
   readonly type: 'MAIN' | 'AUXILIARY'
+  readonly active: boolean
 }
 
 const col = createColumnHelper<CashRegisterRowT>()
@@ -26,8 +27,6 @@ export const cashRegisterColumns = [
   col.accessor('balance', {
     id: 'balance',
     header: () => <span className="block text-right">Saldo</span>,
-    cell: (info) => (
-      <span className="block text-right font-medium">{formatPLN(info.getValue())}</span>
-    ),
+    cell: (info) => <span className="block font-medium">{formatPLN(info.getValue())}</span>,
   }),
 ]

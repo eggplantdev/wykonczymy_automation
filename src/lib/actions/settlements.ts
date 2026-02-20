@@ -8,16 +8,13 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 
 import { getDb, sumInvestmentCosts, sumInvestmentIncome } from '@/lib/db/sum-transfers'
 import { revalidateCollections } from '@/lib/cache/revalidate'
+import { uploadInvoiceFile } from '@/lib/media/upload-invoice'
 import { perf, perfStart } from '@/lib/perf'
 import {
   CreateSettlementFormT,
   createSettlementSchema,
 } from '@/components/forms/settlement-form/settlement-schema'
-import {
-  ZeroSaldoFormT,
-  zeroSaldoSchema,
-} from '@/components/forms/settlement-form/settlement-schema'
-type ActionResultT = { success: true; count?: number } | { success: false; error: string }
+import { type ActionResultT, getErrorMessage } from './utils'
 
 export async function createSettlementAction(
   data: CreateSettlementFormT,
@@ -49,20 +46,7 @@ export async function createSettlementAction(
         Promise.all(
           parsed.data.lineItems.map(async (_, i) => {
             const file = invoiceFormData?.get(`invoice-${i}`) as File | null
-            if (file && file.size > 0) {
-              const buffer = Buffer.from(await file.arrayBuffer())
-              const media = await payload.create({
-                collection: 'media',
-                file: {
-                  data: buffer,
-                  mimetype: file.type,
-                  name: file.name,
-                  size: file.size,
-                },
-                data: {},
-              })
-              return media.id
-            }
+            if (file && file.size > 0) return uploadInvoiceFile(payload, file)
             return undefined
           }),
         ),
@@ -120,56 +104,8 @@ export async function createSettlementAction(
 
     console.log(`[PERF] createSettlementAction TOTAL ${elapsed()}ms (${created} transactions)`)
 
-    return { success: true, count: created }
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Wystąpił błąd'
-    return { success: false, error: message }
-  }
-}
-
-export async function zeroSaldoAction(data: ZeroSaldoFormT): Promise<ActionResultT> {
-  const elapsed = perfStart()
-  console.log(`[PERF] zeroSaldoAction START worker=${data.worker}`)
-
-  const user = await perf('zeroSaldo.getCurrentUser', () => getCurrentUserJwt())
-  if (!user || !isManagementRole(user.role)) {
-    return { success: false, error: 'Brak uprawnień' }
-  }
-
-  // Validate with server schema
-  const parsed = zeroSaldoSchema.safeParse(data)
-  if (!parsed.success) {
-    const firstError = parsed.error.issues[0]?.message ?? 'Nieprawidłowe dane'
-    return { success: false, error: firstError }
-  }
-
-  try {
-    const payload = await perf('zeroSaldo.getPayload', () => getPayload({ config }))
-
-    await perf('zeroSaldo.payloadCreate (includes hooks)', () =>
-      payload.create({
-        collection: 'transactions',
-        data: {
-          description: 'Zerowanie salda pracownika',
-          amount: parsed.data.amount,
-          date: new Date().toISOString(),
-          type: 'EMPLOYEE_EXPENSE',
-          paymentMethod: parsed.data.paymentMethod,
-          investment: parsed.data.investment,
-          worker: parsed.data.worker,
-          invoiceNote: 'Zerowanie salda pracownika',
-          createdBy: user.id,
-        },
-      }),
-    )
-
-    // Hook already calls revalidateCollections — no duplicate needed
-
-    console.log(`[PERF] zeroSaldoAction TOTAL ${elapsed()}ms`)
-
     return { success: true }
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Wystąpił błąd'
-    return { success: false, error: message }
+    return { success: false, error: getErrorMessage(err) }
   }
 }

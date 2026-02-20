@@ -76,7 +76,7 @@ export const investmentColumns = [
         <span
           className={
             isActive
-              ? 'rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-200'
+              ? 'rounded-full border border-green-600 px-2 py-0.5 text-xs font-medium text-green-600'
               : 'bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs font-medium'
           }
         >

@@ -30,7 +30,7 @@ export async function fetchReferenceData(): Promise<ReferenceDataT> {
   const db = await getDb(payload)
 
   const result = await db.execute(sql`
-    SELECT 'cashRegisters' AS collection, id, name, type::text FROM cash_registers
+    SELECT 'cashRegisters' AS collection, id, name, type::text FROM cash_registers WHERE active = true
     UNION ALL
     SELECT 'investments' AS collection, id, name, NULL AS type FROM investments WHERE status = 'active'
     UNION ALL

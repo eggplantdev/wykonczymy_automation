@@ -2,17 +2,8 @@
 
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import dynamic from 'next/dynamic'
-import { Loader } from '../ui/loader/loader'
 import { FormDialog, type ReferenceDataT } from '@/components/dialogs/form-dialog'
-
-const DepositForm = dynamic(
-  () =>
-    import('@/components/forms/deposit-form/deposit-form').then((m) => ({
-      default: m.DepositForm,
-    })),
-  { loading: () => <Loader loading />, ssr: false },
-)
+import { DepositForm } from '@/components/forms/deposit-form/deposit-form'
 
 type AddDepositDialogPropsT = {
   referenceData: ReferenceDataT | undefined

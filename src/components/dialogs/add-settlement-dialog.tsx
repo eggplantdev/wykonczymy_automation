@@ -2,17 +2,8 @@
 
 import { Receipt } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import dynamic from 'next/dynamic'
-import { Loader } from '../ui/loader/loader'
 import { FormDialog, type ReferenceDataT } from '@/components/dialogs/form-dialog'
-
-const SettlementForm = dynamic(
-  () =>
-    import('@/components/forms/settlement-form/settlement-form').then((m) => ({
-      default: m.SettlementForm,
-    })),
-  { loading: () => <Loader loading />, ssr: false },
-)
+import { SettlementForm } from '@/components/forms/settlement-form/settlement-form'
 
 type AddSettlementDialogPropsT = {
   referenceData: ReferenceDataT | undefined

@@ -79,13 +79,6 @@ export const settlementFormSchema = z
             path: ['lineItems', index, 'category'],
           })
         }
-        if (!item.note?.trim()) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'Notatka jest wymagana',
-            path: ['lineItems', index, 'note'],
-          })
-        }
       }
     })
   })
@@ -133,33 +126,3 @@ export const createSettlementSchema = z
   })
 
 export type CreateSettlementFormT = z.infer<typeof createSettlementSchema>
-
-// ---------------------------------------------------------------------------
-// Zero-saldo
-// ---------------------------------------------------------------------------
-
-/** Client-side schema — string values from HTML selects. */
-export const zeroSaldoFormSchema = z
-  .object({
-    investment: z.string(),
-    paymentMethod: z.string(),
-  })
-  .superRefine((data, ctx) => {
-    if (!data.investment) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Inwestycja jest wymagana',
-        path: ['investment'],
-      })
-    }
-  })
-
-/** Server-side schema — typed values. */
-export const zeroSaldoSchema = z.object({
-  worker: z.number({ error: 'Pracownik jest wymagany' }).positive('Pracownik jest wymagany'),
-  investment: z.number({ error: 'Inwestycja jest wymagana' }).positive('Inwestycja jest wymagana'),
-  paymentMethod: z.enum(PAYMENT_METHODS),
-  amount: z.number().positive('Kwota musi być większa niż 0'),
-})
-
-export type ZeroSaldoFormT = z.infer<typeof zeroSaldoSchema>

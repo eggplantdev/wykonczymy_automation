@@ -96,7 +96,7 @@ export function SettlementForm({ referenceData, className, onSuccess }: Settleme
       const result = await createSettlementAction(data, invoiceFormData)
 
       if (result.success) {
-        toastMessage(`Utworzono ${result.count} transakcji`, 'success')
+        toastMessage(`Dodano`, 'success')
         if (onSuccess) onSuccess()
         else router.push('/')
       } else {
@@ -359,7 +359,7 @@ export function SettlementForm({ referenceData, className, onSuccess }: Settleme
           {/* Submit */}
           <footer className="mt-6">
             <Button disabled={isSubmitting} type="submit">
-              {isSubmitting ? 'Przetwarzanie...' : `Rozlicz (${lineItems.length} pozycji)`}
+              {isSubmitting ? 'Przetwarzanie...' : `Rozlicz (${lineItems.length} pozycji`}
             </Button>
             {isInvalid && (
               <p className="text-destructive mt-2 text-sm font-medium">Formularz zawiera błędy</p>

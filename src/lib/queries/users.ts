@@ -40,6 +40,7 @@ export async function findUsersWithSaldos({ page, limit }: PaginationParamsT) {
     email: u.email,
     role: u.role as RoleT,
     saldo: saldoRecord[String(u.id)] ?? 0,
+    active: (u.active ?? true) as boolean,
   }))
 
   return {
@@ -62,7 +63,7 @@ export async function findAllUsersWithSaldos() {
       pagination: false,
       overrideAccess: true,
       where: {
-        and: [{ role: { not_in: ['ADMIN', 'OWNER', 'MANAGER'] } }, { active: { equals: true } }],
+        role: { not_in: ['ADMIN', 'OWNER', 'MANAGER'] },
       },
     }),
     sumAllWorkerSaldos(payload).then((map) => Object.fromEntries(map)),
@@ -75,6 +76,7 @@ export async function findAllUsersWithSaldos() {
     email: u.email,
     role: u.role as RoleT,
     saldo: saldoRecord[String(u.id)] ?? 0,
+    active: (u.active ?? true) as boolean,
   }))
 }
 

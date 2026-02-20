@@ -11,6 +11,7 @@ import * as migration_20260218_rename_advance_to_account_funding from './2026021
 import * as migration_20260218_seed_other_category_inne from './20260218_seed_other_category_inne'
 import * as migration_20260218_transaction_type_overhaul from './20260218_transaction_type_overhaul'
 import * as migration_20260219_192300_add_active_field_to_users from './20260219_192300_add_active_field_to_users'
+import * as migration_20260220_add_active_field_to_cash_registers from './20260220_add_active_field_to_cash_registers'
 
 export const migrations = [
   {
@@ -77,5 +78,10 @@ export const migrations = [
     up: migration_20260219_192300_add_active_field_to_users.up,
     down: migration_20260219_192300_add_active_field_to_users.down,
     name: '20260219_192300_add_active_field_to_users',
+  },
+  {
+    up: migration_20260220_add_active_field_to_cash_registers.up,
+    down: migration_20260220_add_active_field_to_cash_registers.down,
+    name: '20260220_add_active_field_to_cash_registers',
   },
 ]

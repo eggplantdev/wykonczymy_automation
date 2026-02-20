@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
+import { isAdminOrOwner, isAdminOrOwnerField, isAdminOrOwnerOrManager } from '@/access'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 
 export const CashRegisters: CollectionConfig = {
@@ -67,6 +67,16 @@ export const CashRegisters: CollectionConfig = {
       access: {
         // Derived field — only writable via raw SQL in recalculation hooks
         update: () => false,
+      },
+    },
+    {
+      name: 'active',
+      type: 'checkbox',
+      defaultValue: true,
+      label: { en: 'Active', pl: 'Aktywna' },
+      access: {
+        create: isAdminOrOwnerField,
+        update: isAdminOrOwnerField,
       },
     },
   ],

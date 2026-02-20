@@ -8,6 +8,7 @@ export type UserRowT = {
   readonly email: string
   readonly role: RoleT
   readonly saldo: number
+  readonly active: boolean
 }
 
 const col = createColumnHelper<UserRowT>()

@@ -46,6 +46,7 @@ type DataTablePropsT<TData> = {
   readonly virtualContainerHeight?: number
   readonly storageKey?: string
   readonly getRowHref?: (row: TData) => string | undefined
+  readonly getRowClassName?: (row: TData) => string
   readonly toolbar?: (table: Table<TData>) => React.ReactNode
   readonly className?: string
 }
@@ -59,6 +60,7 @@ export function DataTable<TData>({
   virtualContainerHeight = 600,
   storageKey,
   getRowHref,
+  getRowClassName,
   toolbar,
   className,
 }: DataTablePropsT<TData>) {
@@ -117,6 +119,7 @@ export function DataTable<TData>({
         className={cn(
           'border-border border-b last:border-b-0',
           href && 'hover:bg-muted cursor-pointer transition-colors',
+          getRowClassName?.(row.original),
         )}
         onClick={href ? (e) => handleRowClick(e, href) : undefined}
       >

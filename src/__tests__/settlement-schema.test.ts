@@ -2,8 +2,6 @@ import { describe, it, expect } from 'vitest'
 import {
   settlementFormSchema,
   createSettlementSchema,
-  zeroSaldoFormSchema,
-  zeroSaldoSchema,
 } from '@/components/forms/settlement-form/settlement-schema'
 
 // ── Helpers ─────────────────────────────────────────────────────────────
@@ -367,101 +365,6 @@ describe('settlement schema parity', () => {
     const clientResult = settlementFormSchema.safeParse(clientPayload)
     const serverResult = createSettlementSchema.safeParse(serverPayload)
 
-    expect(clientResult.success).toBe(false)
-    expect(serverResult.success).toBe(false)
-  })
-})
-
-// ═══════════════════════════════════════════════════════════════════════
-// 3d: Zero-Saldo Schemas
-// ═══════════════════════════════════════════════════════════════════════
-
-describe('zeroSaldoFormSchema (client)', () => {
-  it('valid payload → passes', () => {
-    const result = zeroSaldoFormSchema.safeParse({
-      investment: '1',
-      paymentMethod: 'CASH',
-    })
-    expect(result.success).toBe(true)
-  })
-
-  it('missing investment → error on investment', () => {
-    const result = zeroSaldoFormSchema.safeParse({
-      investment: '',
-      paymentMethod: 'CASH',
-    })
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('investment')
-  })
-})
-
-describe('zeroSaldoSchema (server)', () => {
-  const validZeroSaldo = {
-    worker: 1,
-    investment: 1,
-    paymentMethod: 'CASH' as const,
-    amount: 500,
-  }
-
-  it('valid payload → passes', () => {
-    const result = zeroSaldoSchema.safeParse(validZeroSaldo)
-    expect(result.success).toBe(true)
-  })
-
-  it('missing worker → fails', () => {
-    const { worker, ...rest } = validZeroSaldo
-    const result = zeroSaldoSchema.safeParse(rest)
-    expect(result.success).toBe(false)
-  })
-
-  it('missing investment → fails', () => {
-    const { investment, ...rest } = validZeroSaldo
-    const result = zeroSaldoSchema.safeParse(rest)
-    expect(result.success).toBe(false)
-  })
-
-  it('amount = 0 → fails', () => {
-    const result = zeroSaldoSchema.safeParse({ ...validZeroSaldo, amount: 0 })
-    expect(result.success).toBe(false)
-  })
-
-  it('amount negative → fails', () => {
-    const result = zeroSaldoSchema.safeParse({ ...validZeroSaldo, amount: -1 })
-    expect(result.success).toBe(false)
-  })
-
-  it('invalid paymentMethod → fails', () => {
-    const result = zeroSaldoSchema.safeParse({ ...validZeroSaldo, paymentMethod: 'BITCOIN' })
-    expect(result.success).toBe(false)
-  })
-})
-
-describe('zero-saldo parity', () => {
-  it('valid payloads → both pass', () => {
-    const clientResult = zeroSaldoFormSchema.safeParse({
-      investment: '1',
-      paymentMethod: 'CASH',
-    })
-    const serverResult = zeroSaldoSchema.safeParse({
-      worker: 1,
-      investment: 1,
-      paymentMethod: 'CASH',
-      amount: 500,
-    })
-    expect(clientResult.success).toBe(true)
-    expect(serverResult.success).toBe(true)
-  })
-
-  it('missing investment → both reject', () => {
-    const clientResult = zeroSaldoFormSchema.safeParse({
-      investment: '',
-      paymentMethod: 'CASH',
-    })
-    const serverResult = zeroSaldoSchema.safeParse({
-      worker: 1,
-      paymentMethod: 'CASH',
-      amount: 500,
-    })
     expect(clientResult.success).toBe(false)
     expect(serverResult.success).toBe(false)
   })

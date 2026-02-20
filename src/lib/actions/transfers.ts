@@ -13,9 +13,9 @@ import {
   type CreateTransferFormT,
 } from '@/components/forms/transfer-form/transfer-schema'
 import { sumRegisterBalance, sumInvestmentCosts } from '@/lib/db/sum-transfers'
+import { uploadInvoiceFile } from '@/lib/media/upload-invoice'
 import { perf, perfStart } from '@/lib/perf'
-
-type ActionResultT = { success: true } | { success: false; error: string }
+import { type ActionResultT, getErrorMessage } from './utils'
 
 type RecalculateResultT =
   | {
@@ -77,20 +77,9 @@ export async function createTransferAction(
     // Upload invoice file if provided
     let mediaId: number | undefined
     if (hasInvoice) {
-      const buffer = Buffer.from(await invoiceFile.arrayBuffer())
-      const media = await perf('createTransfer.uploadMedia', () =>
-        payload.create({
-          collection: 'media',
-          file: {
-            data: buffer,
-            mimetype: invoiceFile.type,
-            name: invoiceFile.name,
-            size: invoiceFile.size,
-          },
-          data: {},
-        }),
+      mediaId = await perf('createTransfer.uploadMedia', () =>
+        uploadInvoiceFile(payload, invoiceFile),
       )
-      mediaId = media.id
     }
 
     // Create the transfer (hooks fire inside this call)
@@ -116,9 +105,8 @@ export async function createTransferAction(
 
     return { success: true }
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Wystąpił błąd'
-    console.log('[createTransferAction] Error:', message)
-    return { success: false, error: message }
+    console.log('[createTransferAction] Error:', getErrorMessage(err))
+    return { success: false, error: getErrorMessage(err) }
   }
 }
 
@@ -197,8 +185,7 @@ export async function updateTransferNoteAction(
 
     return { success: true }
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Wystąpił błąd'
-    return { success: false, error: message }
+    return { success: false, error: getErrorMessage(err) }
   }
 }
 
@@ -219,29 +206,18 @@ export async function updateTransferInvoiceAction(
   try {
     const payload = await getPayload({ config })
 
-    const buffer = Buffer.from(await invoiceFile.arrayBuffer())
-    const media = await payload.create({
-      collection: 'media',
-      file: {
-        data: buffer,
-        mimetype: invoiceFile.type,
-        name: invoiceFile.name,
-        size: invoiceFile.size,
-      },
-      data: {},
-    })
+    const mediaId = await uploadInvoiceFile(payload, invoiceFile)
 
     await payload.update({
       collection: 'transactions',
       id: transferId,
-      data: { invoice: media.id },
+      data: { invoice: mediaId },
     })
 
     revalidateCollections(['transfers'])
 
     return { success: true }
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Wystąpił błąd'
-    return { success: false, error: message }
+    return { success: false, error: getErrorMessage(err) }
   }
 }

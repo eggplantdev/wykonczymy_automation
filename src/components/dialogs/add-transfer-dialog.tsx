@@ -2,17 +2,8 @@
 
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import dynamic from 'next/dynamic'
-import { Loader } from '../ui/loader/loader'
 import { FormDialog, type ReferenceDataT } from '@/components/dialogs/form-dialog'
-
-const TransferForm = dynamic(
-  () =>
-    import('@/components/forms/transfer-form/transfer-form').then((m) => ({
-      default: m.TransferForm,
-    })),
-  { loading: () => <Loader loading />, ssr: false },
-)
+import { TransferForm } from '@/components/forms/transfer-form/transfer-form'
 
 type AddTransferDialogPropsT = {
   referenceData: ReferenceDataT | undefined

@@ -2,17 +2,8 @@
 
 import { ArrowLeftRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import dynamic from 'next/dynamic'
-import { Loader } from '../ui/loader/loader'
 import { FormDialog, type ReferenceDataT } from '@/components/dialogs/form-dialog'
-
-const RegisterTransferForm = dynamic(
-  () =>
-    import('@/components/forms/register-transfer-form/register-transfer-form').then((m) => ({
-      default: m.RegisterTransferForm,
-    })),
-  { loading: () => <Loader loading />, ssr: false },
-)
+import { RegisterTransferForm } from '@/components/forms/register-transfer-form/register-transfer-form'
 
 type AddRegisterTransferDialogPropsT = {
   referenceData: ReferenceDataT | undefined
