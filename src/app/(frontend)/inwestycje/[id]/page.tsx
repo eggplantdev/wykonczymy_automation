@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
+import { isAdminOrOwnerRole, MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/pagination'
 import { getInvestment } from '@/lib/queries/investments'
 import { buildTransferFilters } from '@/lib/queries/transfers'
@@ -18,7 +18,6 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) redirect('/zaloguj')
   const { user } = session
-  const isOwnerOrAdmin = user.role === 'ADMIN' || user.role === 'OWNER'
 
   const { id } = await params
   const sp = await searchParams
@@ -41,11 +40,12 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   ]
 
   return (
-    <PageWrapper title={investment.name} backHref="/" backLabel="Kokpit">
-      <InfoList items={infoFields.filter((f) => f.value)} className="mt-6" />
+    <PageWrapper title={investment.name} backHref="/" backLabel="Kokpit" className={`grid gap-6`}>
+      <InfoList items={infoFields.filter((f) => f.value)} />
 
-      {isOwnerOrAdmin && (
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {isAdminOrOwnerRole(user.role) && (
+        // do not show these stats to managers =
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Koszty inwestycji" value={formatPLN(investment.totalCosts ?? 0)} />
           <StatCard label="Wpłaty od inwestora" value={formatPLN(investment.totalIncome ?? 0)} />
           <StatCard label="Koszty robocizny" value={formatPLN(investment.laborCosts ?? 0)} />
@@ -61,19 +61,18 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
       )}
 
       {/* Transactions table */}
-      <CollapsibleSection title="Transfery" className="mt-8">
-        <div className="mt-4">
-          <Suspense fallback={<TransferTableSkeleton />}>
-            <TransferTableServer
-              where={transferWhere}
-              page={page}
-              limit={limit}
-              excludeColumns={['investment']}
-              baseUrl={`/inwestycje/${id}`}
-              filters={{}}
-            />
-          </Suspense>
-        </div>
+      <CollapsibleSection title="Transfery">
+        <Suspense fallback={<TransferTableSkeleton />}>
+          <TransferTableServer
+            where={transferWhere}
+            page={page}
+            limit={limit}
+            excludeColumns={['investment']}
+            baseUrl={`/inwestycje/${id}`}
+            filters={{}}
+            className="mt-4"
+          />
+        </Suspense>
       </CollapsibleSection>
     </PageWrapper>
   )

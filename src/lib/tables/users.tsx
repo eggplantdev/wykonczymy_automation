@@ -1,6 +1,10 @@
+'use client'
+
 import { createColumnHelper } from '@tanstack/react-table'
 import { formatPLN } from '@/lib/format-currency'
 import { ROLE_LABELS, type RoleT } from '@/lib/auth/roles'
+import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
+import { toggleUserActive } from '@/lib/actions/toggle-active'
 
 export type UserRowT = {
   readonly id: number
@@ -31,5 +35,19 @@ export const userColumns = [
     id: 'saldo',
     header: () => <span className="block">Saldo</span>,
     cell: (info) => <span className="block font-medium">{formatPLN(info.getValue())}</span>,
+  }),
+  col.accessor('active', {
+    id: 'active',
+    header: 'Status',
+    enableSorting: false,
+    cell: (info) => (
+      <ActiveToggleBadge
+        id={info.row.original.id}
+        isActive={info.getValue()}
+        onToggle={toggleUserActive}
+        activeLabel="Aktywny"
+        inactiveLabel="Nieaktywny"
+      />
+    ),
   }),
 ]

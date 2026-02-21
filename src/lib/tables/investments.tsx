@@ -2,6 +2,8 @@
 
 import { createColumnHelper } from '@tanstack/react-table'
 import { formatPLN } from '@/lib/format-currency'
+import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
+import { toggleInvestmentStatus } from '@/lib/actions/toggle-active'
 
 export type InvestmentRowT = {
   readonly id: number
@@ -70,19 +72,15 @@ export const investmentColumns = [
     id: 'status',
     header: 'Status',
     meta: { label: 'Status' },
-    cell: (info) => {
-      const isActive = info.getValue() === 'active'
-      return (
-        <span
-          className={
-            isActive
-              ? 'rounded-full border border-green-600 px-2 py-0.5 text-xs font-medium text-green-600'
-              : 'bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs font-medium'
-          }
-        >
-          {isActive ? 'Aktywna' : 'Zakończona'}
-        </span>
-      )
-    },
+    enableSorting: false,
+    cell: (info) => (
+      <ActiveToggleBadge
+        id={info.row.original.id}
+        isActive={info.getValue() === 'active'}
+        onToggle={toggleInvestmentStatus}
+        activeLabel="Aktywna"
+        inactiveLabel="Zakończona"
+      />
+    ),
   }),
 ]
