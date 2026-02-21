@@ -27,6 +27,7 @@ import {
 } from '@/components/forms/transfer-form/transfer-schema'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { today } from '@/lib/date-utils'
+import { AmountField, DateField, DescriptionField } from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
 
@@ -230,23 +231,13 @@ export function TransferForm({
             )}
 
           {/* Description — optional for all types */}
-          <form.AppField name="description">
-            {(field) => (
-              <field.Input label="Opis (opcjonalnie)" placeholder="Opis transferu" showError />
-            )}
-          </form.AppField>
+          <DescriptionField form={form} />
 
           {/* Amount */}
-          <form.AppField name="amount">
-            {(field) => (
-              <field.Input label="Kwota (PLN)" placeholder="0.00" type="number" showError />
-            )}
-          </form.AppField>
+          <AmountField form={form} />
 
           {/* Date */}
-          <form.AppField name="date">
-            {(field) => <field.Input label="Data" type="date" showError />}
-          </form.AppField>
+          <DateField form={form} />
 
           {/* Payment method */}
           <form.AppField name="paymentMethod">
