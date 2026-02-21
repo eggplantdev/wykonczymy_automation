@@ -10,6 +10,7 @@ import { TransferTableServer } from '@/components/transfers/transfer-table-serve
 import { TransferTableSkeleton } from '@/components/transfers/transfer-table-skeleton'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
+import { InfoList } from '@/components/ui/info-list'
 import { StatCard } from '@/components/ui/stat-card'
 
 type PagePropsT = {
@@ -45,17 +46,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Pag
 
   return (
     <PageWrapper title={investment.name} backHref="/" backLabel="Kokpit">
-      {/* Info section */}
-      <dl className="mt-6 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-        {infoFields
-          .filter((f) => f.value)
-          .map((f) => (
-            <div key={f.label} className="contents">
-              <dt className="text-muted-foreground font-medium">{f.label}</dt>
-              <dd className="text-foreground">{f.value}</dd>
-            </div>
-          ))}
-      </dl>
+      <InfoList items={infoFields.filter((f) => f.value)} className="mt-6" />
 
       {isOwnerOrAdmin && (
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

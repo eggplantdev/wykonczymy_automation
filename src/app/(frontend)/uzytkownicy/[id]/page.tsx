@@ -1,24 +1,22 @@
-import { Suspense } from 'react'
-import { redirect, notFound } from 'next/navigation'
-import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
-import { isManagementRole } from '@/lib/auth/roles'
-import { parsePagination } from '@/lib/pagination'
-import { getUser, getUserSaldo, getWorkerPeriodBreakdown } from '@/lib/queries/users'
-import { buildTransferFilters } from '@/lib/queries/transfers'
-import { findActiveInvestments } from '@/lib/queries/investments'
-import { findAllCashRegistersRaw, mapCashRegisterRows } from '@/lib/queries/cash-registers'
-import { fetchReferenceData } from '@/lib/queries/reference-data'
-import { formatPLN } from '@/lib/format-currency'
-import { ROLE_LABELS, type RoleT } from '@/lib/auth/roles'
 import { TransferTableServer } from '@/components/transfers/transfer-table-server'
 import { TransferTableSkeleton } from '@/components/transfers/transfer-table-skeleton'
+import { ROLE_LABELS, type RoleT } from '@/lib/auth/roles'
+import { formatPLN } from '@/lib/format-currency'
+import { parsePagination } from '@/lib/pagination'
+import { buildTransferFilters } from '@/lib/queries/transfers'
+import { getUserDetail } from '@/lib/queries/users'
+import { notFound, redirect } from 'next/navigation'
+import { Suspense } from 'react'
 
-import { StatCard } from '@/components/ui/stat-card'
-import { PageWrapper } from '@/components/ui/page-wrapper'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
+import { InfoList } from '@/components/ui/info-list'
+import { PageWrapper } from '@/components/ui/page-wrapper'
 import { PrintButton } from '@/components/ui/print-button'
+import { StatCard } from '@/components/ui/stat-card'
+import { requireAuth } from '@/lib/auth/require-auth'
+import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 
-const EXCLUDE_COLUMNS = ['investment', 'worker', 'otherCategory', 'invoice']
+const EXCLUDE_COLUMNS = ['worker', 'otherCategory', 'invoice']
 
 type PagePropsT = {
   params: Promise<{ id: string }>
@@ -26,9 +24,8 @@ type PagePropsT = {
 }
 
 export default async function UserDetailPage({ params, searchParams }: PagePropsT) {
-  const user = await getCurrentUserJwt()
-  if (!user) redirect('/zaloguj')
-  if (!isManagementRole(user.role)) redirect('/')
+  const session = await requireAuth(MANAGEMENT_ROLES)
+  if (!session.success) redirect('/zaloguj')
 
   const { id } = await params
   const sp = await searchParams
@@ -37,38 +34,26 @@ export default async function UserDetailPage({ params, searchParams }: PageProps
   const baseFilters = buildTransferFilters(sp, { id: Number(id), isManager: false })
   const fromParam = typeof sp.from === 'string' ? sp.from : undefined
   const toParam = typeof sp.to === 'string' ? sp.to : undefined
-  const hasDateRange = fromParam && toParam
+  const dateRange = fromParam && toParam ? { from: fromParam, to: toParam } : undefined
 
-  const [targetUser, saldo, periodBreakdown, activeInvestments, rawCashRegisters, refData] =
-    await Promise.all([
-      getUser(id),
-      getUserSaldo(id),
-      hasDateRange ? getWorkerPeriodBreakdown(id, fromParam, toParam) : Promise.resolve(undefined),
-      findActiveInvestments(),
-      findAllCashRegistersRaw(),
-      fetchReferenceData(),
-    ])
+  const userDetail = await getUserDetail(id, dateRange)
+  if (!userDetail) notFound()
 
-  if (!targetUser) notFound()
-
-  const workersMap = new Map(refData.workers.map((w) => [w.id, w.name]))
-  const cashRegisters = mapCashRegisterRows(rawCashRegisters, workersMap)
+  const { periodBreakdown } = userDetail
 
   return (
-    <PageWrapper title={targetUser.name} backHref="/" backLabel="Kokpit">
-      {/* Info section */}
-      <dl className="mt-6 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground font-medium">Email</dt>
-        <dd className="text-foreground">{targetUser.email}</dd>
-        <dt className="text-muted-foreground font-medium">Rola</dt>
-        <dd className="text-foreground">
-          {ROLE_LABELS[targetUser.role as RoleT]?.pl ?? targetUser.role}
-        </dd>
-      </dl>
+    <PageWrapper title={userDetail.name} backHref="/" backLabel="Kokpit">
+      <InfoList
+        items={[
+          { label: 'Email', value: userDetail.email },
+          { label: 'Rola', value: ROLE_LABELS[userDetail.role as RoleT]?.pl ?? userDetail.role },
+        ]}
+        className="mt-6"
+      />
 
       {/* Saldo + print */}
       <div className="mt-6 flex items-end justify-between">
-        <StatCard label="Saldo" value={formatPLN(saldo)} />
+        <StatCard label="Saldo" value={formatPLN(userDetail.saldo)} />
         <PrintButton />
       </div>
 
@@ -90,10 +75,6 @@ export default async function UserDetailPage({ params, searchParams }: PageProps
             limit={limit}
             excludeColumns={EXCLUDE_COLUMNS}
             baseUrl={`/uzytkownicy/${id}`}
-            filters={{
-              cashRegisters: cashRegisters.map((c) => ({ id: c.id, name: c.name })),
-              investments: activeInvestments.map((i) => ({ id: i.id, name: i.name })),
-            }}
             className="mt-4"
           />
         </Suspense>

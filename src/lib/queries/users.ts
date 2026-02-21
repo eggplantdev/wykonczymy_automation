@@ -1,13 +1,12 @@
 import { cacheLife, cacheTag } from 'next/cache'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { buildPaginationMeta, type PaginationParamsT } from '@/lib/pagination'
 import {
   sumAllWorkerSaldos,
   sumEmployeeSaldo,
   sumWorkerPeriodBreakdown,
-  type WorkerPeriodBreakdownT,
 } from '@/lib/db/sum-transfers'
+import type { UserDetailT } from '@/types/users'
 import type { UserRowT } from '@/lib/tables/users'
 import type { RoleT } from '@/lib/auth/roles'
 import { CACHE_TAGS, entityTag } from '@/lib/cache/tags'
@@ -25,34 +24,6 @@ function mapUserRow(u: any, saldoRecord: Record<string, number>): UserRowT {
   }
 }
 
-export async function findUsersWithSaldos({ page, limit }: PaginationParamsT) {
-  'use cache'
-  cacheLife('max')
-  cacheTag(CACHE_TAGS.transfers, CACHE_TAGS.users)
-
-  const elapsed = perfStart()
-  const payload = await getPayload({ config })
-  const [users, saldoRecord] = await Promise.all([
-    payload.find({
-      collection: 'users',
-      sort: 'name',
-      limit,
-      page,
-      overrideAccess: true,
-      where: {
-        and: [{ role: { not_in: ['ADMIN', 'OWNER', 'MANAGER'] } }, { active: { equals: true } }],
-      },
-    }),
-    sumAllWorkerSaldos(payload).then((map) => Object.fromEntries(map)),
-  ])
-  console.log(`[PERF] query.findUsersWithSaldos ${elapsed()}ms`)
-
-  return {
-    rows: users.docs.map((u) => mapUserRow(u, saldoRecord)),
-    paginationMeta: buildPaginationMeta(users, limit),
-  }
-}
-
 export async function findAllUsersWithSaldos() {
   'use cache'
   cacheLife('max')
@@ -66,9 +37,7 @@ export async function findAllUsersWithSaldos() {
       sort: 'name',
       pagination: false,
       overrideAccess: true,
-      where: {
-        role: { not_in: ['ADMIN', 'OWNER', 'MANAGER'] },
-      },
+      where: { role: { equals: 'EMPLOYEE' } },
     }),
     sumAllWorkerSaldos(payload).then((map) => Object.fromEntries(map)),
   ])
@@ -77,59 +46,38 @@ export async function findAllUsersWithSaldos() {
   return users.docs.map((u) => mapUserRow(u, saldoRecord))
 }
 
-export async function getUser(id: string) {
+export async function getUserDetail(
+  id: string,
+  dateRange?: { from: string; to: string },
+): Promise<UserDetailT | null> {
   'use cache'
   cacheLife('max')
-  cacheTag(CACHE_TAGS.users, entityTag('user', id))
+  cacheTag(CACHE_TAGS.users, CACHE_TAGS.transfers, entityTag('user', id))
 
   const payload = await getPayload({ config })
+
+  let user
   try {
-    const user = await payload.findByID({ collection: 'users', id, overrideAccess: true })
-    return user ?? null
+    user = await payload.findByID({ collection: 'users', id, overrideAccess: true })
   } catch {
     return null
   }
-}
-
-export async function getUserSaldo(userId: string) {
-  'use cache'
-  cacheLife('max')
-  cacheTag(CACHE_TAGS.transfers)
+  if (!user) return null
 
   const elapsed = perfStart()
-  const payload = await getPayload({ config })
-  const result = await sumEmployeeSaldo(payload, Number(userId))
-  console.log(`[PERF] query.getUserSaldo(${userId}) ${elapsed()}ms`)
-  return result
-}
+  const [saldo, periodBreakdown] = await Promise.all([
+    sumEmployeeSaldo(payload, Number(id)),
+    dateRange
+      ? sumWorkerPeriodBreakdown(payload, Number(id), { start: dateRange.from, end: dateRange.to })
+      : Promise.resolve(undefined),
+  ])
+  console.log(`[PERF] query.getUserDetail(${id}) ${elapsed()}ms`)
 
-export async function getWorkerPeriodBreakdown(
-  workerId: string,
-  from: string,
-  to: string,
-): Promise<WorkerPeriodBreakdownT> {
-  'use cache'
-  cacheLife('max')
-  cacheTag(CACHE_TAGS.transfers)
-
-  const payload = await getPayload({ config })
-  return sumWorkerPeriodBreakdown(payload, Number(workerId), { start: from, end: to })
-}
-
-export async function findAllUsers() {
-  'use cache'
-  cacheLife('max')
-  cacheTag(CACHE_TAGS.users)
-
-  const payload = await getPayload({ config })
-  const result = await payload.find({
-    collection: 'users',
-    limit: 100,
-    depth: 0,
-    overrideAccess: true,
-  })
-  return result.docs.map((u) => ({
-    id: u.id as number,
-    name: u.name as string,
-  }))
+  return {
+    name: user.name as string,
+    email: user.email as string,
+    role: user.role as string,
+    saldo,
+    periodBreakdown,
+  }
 }

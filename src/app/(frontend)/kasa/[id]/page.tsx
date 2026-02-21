@@ -10,6 +10,7 @@ import { TransferTableServer } from '@/components/transfers/transfer-table-serve
 import { TransferTableSkeleton } from '@/components/transfers/transfer-table-skeleton'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
+import { InfoList } from '@/components/ui/info-list'
 import { StatCard } from '@/components/ui/stat-card'
 
 type PagePropsT = {
@@ -40,11 +41,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: P
 
   return (
     <PageWrapper title={register.name} backHref="/" backLabel="Kokpit">
-      {/* Info section */}
-      <dl className="mt-6 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-        <dt className="text-muted-foreground font-medium">Właściciel</dt>
-        <dd className="text-foreground">{ownerName}</dd>
-      </dl>
+      <InfoList items={[{ label: 'Właściciel', value: ownerName }]} className="mt-6" />
 
       <StatCard label="Saldo" value={formatPLN(register.balance ?? 0)} className="mt-6" />
 
