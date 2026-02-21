@@ -1,5 +1,6 @@
 'use server'
 
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { login, logout } from '@payloadcms/next/auth'
 import config from '@payload-config'
@@ -29,5 +30,7 @@ export async function loginAction(data: {
 
 export async function logoutAction(): Promise<never> {
   await logout({ config })
+  const cookieStore = await cookies()
+  cookieStore.delete('payload-token')
   redirect('/zaloguj')
 }

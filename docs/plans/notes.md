@@ -45,3 +45,7 @@ Transakcja na poczet wynagrodzenia
 Investment view
 
 Also select with typ of transaction
+
+Metody płatności można póki schować
+
+wpłaty się nie aktualizują
