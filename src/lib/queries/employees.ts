@@ -3,7 +3,7 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
-import { isManagementRole } from '@/lib/auth/permissions'
+import { isManagementRole } from '@/lib/auth/roles'
 import { DEFAULT_LIMIT } from '@/lib/pagination'
 import type { TransferRowT } from '@/lib/tables/transfers'
 import type { PaginationMetaT } from '@/lib/pagination'

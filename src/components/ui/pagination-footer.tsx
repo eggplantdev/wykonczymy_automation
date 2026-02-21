@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { UrlPagination } from './url-pagination'
-import { buildUrlWithParams } from '@/lib/helpers'
+import { buildUrlWithParams } from '@/lib/build-url-with-params'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select'
 import type { PaginationMetaT } from '@/lib/pagination'
 import { cn } from '../../lib/cn'

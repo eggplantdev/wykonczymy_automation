@@ -1,5 +1,5 @@
 import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
-import { isManagementRole } from '@/lib/auth/permissions'
+import { isManagementRole } from '@/lib/auth/roles'
 import { ManagerDashboard } from '@/components/dashboard/manager-dashboard'
 import { EmployeeDashboardServer } from '@/components/dashboard/employee-dashboard-server'
 import { redirect } from 'next/navigation'

@@ -28,7 +28,7 @@ async function getCachedUserRegisterIds(userId: number) {
   const { docs } = await payload.find({
     collection: 'cash-registers',
     where: { owner: { equals: userId } },
-    limit: 100,
+    pagination: false,
     depth: 0,
   })
   return docs.map((doc) => doc.id as number)

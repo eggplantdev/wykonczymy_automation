@@ -3,12 +3,12 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { MANAGEMENT_ROLES } from '@/lib/auth/permissions'
+import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { sql } from '@payloadcms/db-vercel-postgres'
 
 import { getDb, sumInvestmentCosts, sumInvestmentIncome } from '@/lib/db/sum-transfers'
 import { revalidateCollections } from '@/lib/cache/revalidate'
-import { uploadInvoiceFile } from '@/lib/media/upload-invoice'
+import { uploadInvoiceFile } from '@/lib/upload-invoice'
 import { perf, perfStart } from '@/lib/perf'
 import {
   CreateSettlementFormT,

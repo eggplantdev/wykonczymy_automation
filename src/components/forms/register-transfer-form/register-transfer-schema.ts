@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { PAYMENT_METHODS } from '@/lib/constants/transfers'
-import { refineAmount, refineDate } from '@/lib/validation/shared-refinements'
+import { refineAmount, refineDate } from '@/lib/validation-utils'
 
 export const createRegisterTransferSchema = z
   .object({

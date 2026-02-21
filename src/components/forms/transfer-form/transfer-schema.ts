@@ -7,7 +7,7 @@ import {
   needsWorker,
   needsTargetRegister,
 } from '@/lib/constants/transfers'
-import { refineAmount, refineDate } from '@/lib/validation/shared-refinements'
+import { refineAmount, refineDate } from '@/lib/validation-utils'
 
 // Shared type-dependent validation used by both server and client schemas.
 // Works with both number and string values — checks truthiness only.

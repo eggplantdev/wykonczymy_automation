@@ -11,7 +11,7 @@ import {
   PaginationNext,
 } from './pagination/pagination'
 import { getWindowedPages } from './pagination/get-windowed-pages'
-import { buildUrlWithParams } from '@/lib/helpers'
+import { buildUrlWithParams } from '@/lib/build-url-with-params'
 import { cn } from '@/lib/cn'
 
 type UrlPaginationPropsT = {

@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { redirect, notFound } from 'next/navigation'
 import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
-import { isManagementRole } from '@/lib/auth/permissions'
+import { isManagementRole } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/pagination'
 import { getCashRegister } from '@/lib/queries/cash-registers'
 import { buildTransferFilters } from '@/lib/queries/transfers'

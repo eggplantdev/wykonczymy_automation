@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { PAYMENT_METHODS } from '@/lib/constants/transfers'
-import { refineAmount, refineDate } from '@/lib/validation/shared-refinements'
+import { refineAmount, refineDate } from '@/lib/validation-utils'
 
 // Deposit types allowed in the UI
 const DEPOSIT_TYPES_ENUM = ['INVESTOR_DEPOSIT', 'STAGE_SETTLEMENT', 'COMPANY_FUNDING'] as const

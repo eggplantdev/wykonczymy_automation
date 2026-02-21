@@ -5,7 +5,7 @@ import { revalidateCollections } from '@/lib/cache/revalidate'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { MANAGEMENT_ROLES } from '@/lib/auth/permissions'
+import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { getUserCashRegisterIds } from '@/lib/auth/get-user-cash-registers'
 import { isDepositType } from '@/lib/constants/transfers'
 import {
@@ -13,7 +13,7 @@ import {
   type CreateTransferFormT,
 } from '@/components/forms/transfer-form/transfer-schema'
 import { sumRegisterBalance, sumInvestmentCosts } from '@/lib/db/sum-transfers'
-import { uploadInvoiceFile } from '@/lib/media/upload-invoice'
+import { uploadInvoiceFile } from '@/lib/upload-invoice'
 import { perf, perfStart } from '@/lib/perf'
 import { type ActionResultT, getErrorMessage, validateAction } from './utils'
 

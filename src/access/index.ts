@@ -1,3 +1,8 @@
+/**
+ * Payload CMS access control functions.
+ * Used in collection/global configs to restrict CRUD operations and field visibility.
+ * For app-level role checks (server actions, components), see `@/lib/auth/roles.ts`.
+ */
 import type { Access, FieldAccess, PayloadRequest } from 'payload'
 import type { RoleT } from '@/lib/auth/roles'
 
