@@ -25,10 +25,7 @@ export function TopNav({ referenceData, userCashRegisterIds }: TopNavPropsT) {
         {referenceData && (
           <>
             <AddSettlementDialog referenceData={referenceData} />
-            <AddDepositDialog
-              referenceData={referenceData}
-              userCashRegisterIds={userCashRegisterIds}
-            />
+            <AddDepositDialog referenceData={referenceData} />
             <AddRegisterTransferDialog
               referenceData={referenceData}
               userCashRegisterIds={userCashRegisterIds}

@@ -8,10 +8,9 @@ import { DepositForm } from '@/components/forms/deposit-form/deposit-form'
 
 type AddDepositDialogPropsT = {
   referenceData: ReferenceDataT | undefined
-  userCashRegisterIds?: number[]
 }
 
-export function AddDepositDialog({ referenceData, userCashRegisterIds }: AddDepositDialogPropsT) {
+export function AddDepositDialog({ referenceData }: AddDepositDialogPropsT) {
   if (!referenceData) return <></>
 
   return (
@@ -29,13 +28,7 @@ export function AddDepositDialog({ referenceData, userCashRegisterIds }: AddDepo
       title="Nowa wpłata"
       description="Dodaj wpłatę do kasy."
     >
-      {(onSuccess) => (
-        <DepositForm
-          referenceData={referenceData}
-          userCashRegisterIds={userCashRegisterIds}
-          onSuccess={onSuccess}
-        />
-      )}
+      {(onSuccess) => <DepositForm referenceData={referenceData} onSuccess={onSuccess} />}
     </FormDialog>
   )
 }

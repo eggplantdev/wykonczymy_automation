@@ -16,7 +16,7 @@ type UserWithRole =
 
 const hasRole = (user: UserWithRole, role: RoleT): boolean => user?.role === role
 
-const hasAnyRole = (user: UserWithRole, ...roles: RoleT[]): boolean =>
+export const hasAnyRole = (user: UserWithRole, ...roles: RoleT[]): boolean =>
   roles.some((role) => hasRole(user, role))
 
 // --- Boolean-only access (for `admin`, `unlock`, field-level) ---
@@ -27,6 +27,8 @@ export const isAdminBoolean: BooleanAccess = ({ req: { user } }) => hasRole(user
 
 export const isAdminOrOwnerOrManagerBoolean: BooleanAccess = ({ req: { user } }) =>
   hasAnyRole(user, 'ADMIN', 'OWNER', 'MANAGER')
+
+export const isManager: BooleanAccess = ({ req: { user } }) => hasRole(user, 'MANAGER')
 
 // --- Collection-level access (can return boolean | Where) ---
 
