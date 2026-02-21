@@ -21,6 +21,7 @@ import {
   CashRegisterField,
   DateField,
   DescriptionField,
+  InvestmentField,
   PaymentMethodField,
 } from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
@@ -127,17 +128,7 @@ export function DepositForm({ referenceData, userCashRegisterIds, onSuccess }: D
 
           {/* Conditional: Investment — for INVESTOR_DEPOSIT and STAGE_SETTLEMENT */}
           {requiresInvestment(currentType) && (
-            <form.AppField name="investment">
-              {(field) => (
-                <field.Select label="Inwestycja" placeholder="Wybierz inwestycję" showError>
-                  {referenceData.investments.map((inv) => (
-                    <SelectItem key={inv.id} value={String(inv.id)}>
-                      {inv.name}
-                    </SelectItem>
-                  ))}
-                </field.Select>
-              )}
-            </form.AppField>
+            <InvestmentField form={form} investments={referenceData.investments} />
           )}
         </FieldGroup>
 

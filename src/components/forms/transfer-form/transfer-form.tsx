@@ -30,7 +30,9 @@ import {
   CashRegisterField,
   DateField,
   DescriptionField,
+  InvestmentField,
   PaymentMethodField,
+  WorkerField,
 } from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
@@ -269,35 +271,11 @@ export function TransferForm({
           {/* Conditional: Investment — radio-gated for EMPLOYEE_EXPENSE */}
           {showsInvestment(currentType) &&
             (currentType !== 'EMPLOYEE_EXPENSE' || expenseTarget === 'investment') && (
-              <form.AppField name="investment">
-                {(field) => (
-                  <field.Select label="Inwestycja" placeholder="Wybierz inwestycję" showError>
-                    {referenceData.investments.map((inv) => (
-                      <SelectItem key={inv.id} value={String(inv.id)}>
-                        {inv.name}
-                      </SelectItem>
-                    ))}
-                  </field.Select>
-                )}
-              </form.AppField>
+              <InvestmentField form={form} investments={referenceData.investments} />
             )}
 
           {/* Conditional: Worker */}
-          {needsWorker(currentType) && (
-            <form.AppField name="worker">
-              {(field) => (
-                <field.Select label="Pracownik" placeholder="Wybierz pracownika" showError>
-                  {referenceData.workers
-                    .filter((w) => w.type !== 'ADMIN' && w.type !== 'OWNER')
-                    .map((w) => (
-                      <SelectItem key={w.id} value={String(w.id)}>
-                        {w.name}
-                      </SelectItem>
-                    ))}
-                </field.Select>
-              )}
-            </form.AppField>
-          )}
+          {needsWorker(currentType) && <WorkerField form={form} workers={referenceData.workers} />}
 
           {/* Invoice file — not bound to form state, read via ref on submit */}
           {!isDepositType(currentType) && currentType !== 'ACCOUNT_FUNDING' && (

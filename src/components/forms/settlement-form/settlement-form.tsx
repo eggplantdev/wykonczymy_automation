@@ -13,15 +13,12 @@ import useCheckFormErrors from '@/components/forms/hooks/use-check-form-errors'
 import { Loader } from '@/components/ui/loader/loader'
 import { toastMessage } from '@/components/toasts'
 import { formatPLN } from '@/lib/format-currency'
-import {
-  PAYMENT_METHODS,
-  PAYMENT_METHOD_LABELS,
-  type PaymentMethodT,
-} from '@/lib/constants/transfers'
+import { type PaymentMethodT } from '@/lib/constants/transfers'
 import { getManagementEmployeeSaldo } from '@/lib/queries/employees'
 import { createSettlementAction } from '@/lib/actions/settlements'
 import { cn } from '@/lib/cn'
 import { today } from '@/lib/date-utils'
+import { InvestmentField, PaymentMethodField, WorkerField } from '@/components/forms/form-fields'
 import { settlementFormSchema, type CreateSettlementFormT } from './settlement-schema'
 import type { ReferenceItemT } from '@/types/reference-data'
 
@@ -157,24 +154,16 @@ export function SettlementForm({ referenceData, className, onSuccess }: Settleme
         >
           <FieldGroup>
             {/* Employee selector */}
-            <form.AppField
-              name="worker"
+            <WorkerField
+              form={form}
+              workers={referenceData.users}
+              filterByRole={false}
               listeners={{
-                onChange: ({ value }) => {
+                onChange: ({ value }: { value: string }) => {
                   fetchSaldo(value)
                 },
               }}
-            >
-              {(field) => (
-                <field.Select label="Pracownik" placeholder="Wybierz pracownika" showError>
-                  {referenceData.users.map((u) => (
-                    <SelectItem key={u.id} value={String(u.id)}>
-                      {u.name}
-                    </SelectItem>
-                  ))}
-                </field.Select>
-              )}
-            </form.AppField>
+            />
 
             {isSaldoLoading && <p className="text-muted-foreground text-sm">Ładowanie salda...</p>}
             {saldo !== null && !isSaldoLoading && (
@@ -214,34 +203,14 @@ export function SettlementForm({ referenceData, className, onSuccess }: Settleme
             {/* Shared metadata */}
             <div className="grid gap-4 md:grid-cols-2">
               {mode === 'investment' && (
-                <form.AppField name="investment">
-                  {(field) => (
-                    <field.Select label="Inwestycja" placeholder="Wybierz inwestycję" showError>
-                      {referenceData.investments.map((inv) => (
-                        <SelectItem key={inv.id} value={String(inv.id)}>
-                          {inv.name}
-                        </SelectItem>
-                      ))}
-                    </field.Select>
-                  )}
-                </form.AppField>
+                <InvestmentField form={form} investments={referenceData.investments} />
               )}
 
               <form.AppField name="date">
                 {(field) => <field.Input label="Data" type="date" showError />}
               </form.AppField>
 
-              <form.AppField name="paymentMethod">
-                {(field) => (
-                  <field.Select label="Metoda płatności" showError>
-                    {PAYMENT_METHODS.map((method) => (
-                      <SelectItem key={method} value={method}>
-                        {PAYMENT_METHOD_LABELS[method as PaymentMethodT]}
-                      </SelectItem>
-                    ))}
-                  </field.Select>
-                )}
-              </form.AppField>
+              <PaymentMethodField form={form} />
             </div>
 
             {/* Line items */}
