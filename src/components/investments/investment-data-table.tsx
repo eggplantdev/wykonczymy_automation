@@ -23,7 +23,7 @@ export function InvestmentDataTable({ data }: InvestmentDataTablePropsT) {
       storageKey="investments"
       getRowHref={(row) => `/inwestycje/${row.id}`}
       getRowClassName={(row) => (row.status === 'completed' ? 'opacity-50' : '')}
-      toolbar={(table) => (
+      toolbar={(table, cv) => (
         <>
           <ActiveFilterButton
             isActive={showOnlyActive}
@@ -31,7 +31,7 @@ export function InvestmentDataTable({ data }: InvestmentDataTablePropsT) {
             activeLabel="Aktywne"
             allLabel="Wszystkie"
           />
-          <ColumnToggle table={table} />
+          <ColumnToggle table={table} columnVisibility={cv} />
         </>
       )}
     />

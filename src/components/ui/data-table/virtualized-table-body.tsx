@@ -18,6 +18,7 @@ type VirtualizedTableBodyPropsT<TData> = {
   readonly rows: Row<TData>[]
   readonly virtualizer: ReturnType<typeof useVirtualizer<HTMLDivElement, Element>>
   readonly colCount: number
+  readonly visibleColumnIds: ReadonlySet<string>
   readonly emptyMessage: string
   readonly getRowHref?: (row: TData) => string | undefined
   readonly getRowClassName?: (row: TData) => string
@@ -30,6 +31,7 @@ export function VirtualizedTableBody<TData>({
   rows,
   virtualizer,
   colCount,
+  visibleColumnIds,
   emptyMessage,
   getRowHref,
   getRowClassName,
@@ -58,6 +60,7 @@ export function VirtualizedTableBody<TData>({
                   <DataTableRow
                     key={row.id}
                     row={row}
+                    visibleColumnIds={visibleColumnIds}
                     getRowHref={getRowHref}
                     getRowClassName={getRowClassName}
                   />
