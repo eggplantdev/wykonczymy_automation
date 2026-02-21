@@ -9,11 +9,11 @@ const nextConfig: NextConfig = {
   // causing a full server round-trip + loader on every navigation.
   // Server Actions automatically clear the cache, so own mutations
   // always show fresh data. Staleness only affects other users' changes.
-  experimental: {
-    staleTimes: {
-      dynamic: 300,
-    },
-  },
+  // experimental: {
+  // staleTimes: {
+  // dynamic: 300,
+  // },
+  // },
   serverExternalPackages: ['payload', 'pino', 'pino-pretty', 'thread-stream'],
   images: {
     remotePatterns: [

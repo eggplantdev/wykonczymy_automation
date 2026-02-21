@@ -21,9 +21,7 @@ export function ActiveFilterButton({
       variant="outline"
       size="sm"
       className={
-        isActive
-          ? 'border-primary text-primary hover:bg-primary hover:text-primary-foreground'
-          : undefined
+        isActive ? 'border-green-600 text-green-600 hover:bg-green-600 hover:text-white' : undefined
       }
       onClick={() => onChange(!isActive)}
     >
