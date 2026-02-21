@@ -22,8 +22,7 @@ export function AddTransferDialog({ referenceData, userCashRegisterIds }: AddTra
           <span className="hidden lg:block">Transakcja</span>
         </Button>
       }
-      title="Nowy transfer"
-      description="Wypełnij formularz, aby dodać nowy transfer."
+      title="Nowa transakcja"
     >
       {(onSuccess) => (
         <TransferForm

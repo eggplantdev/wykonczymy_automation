@@ -29,12 +29,14 @@ export async function fetchManagerDashboardData() {
   const workersMap = new Map(refData.workers.map((w) => [w.id, w.name]))
   const cashRegisters = mapCashRegisterRows(rawCashRegisters, workersMap)
 
-  // admin can see all, manager can see only auxiliary registers
+  // admin can see all, manager can see auxiliary and virtual registers
   const visibleRegisters = isAdminOrOwner
     ? cashRegisters
-    : cashRegisters.filter((cr) => cr.type === 'AUXILIARY')
+    : cashRegisters.filter((cr) => cr.type !== 'MAIN')
 
-  const totalBalance = visibleRegisters.reduce((sum, cr) => sum + cr.balance, 0)
+  const totalBalance = visibleRegisters
+    .filter((cr) => cr.type !== 'VIRTUAL')
+    .reduce((sum, cr) => sum + cr.balance, 0)
 
   const managementUsers = refData.workers
     .filter((w) => isManagementRole(w.type as RoleT))

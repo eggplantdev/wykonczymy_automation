@@ -13,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 type FormDialogPropsT = {
   trigger: React.ReactNode
   title: string
-  description: string
+  description?: string
   showKeepOpen?: boolean
   children: (onSuccess: () => void) => React.ReactNode
 }

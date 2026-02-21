@@ -10,7 +10,7 @@ export type CashRegisterRowT = {
   readonly name: string
   readonly ownerName: string
   readonly balance: number
-  readonly type: 'MAIN' | 'AUXILIARY'
+  readonly type: 'MAIN' | 'AUXILIARY' | 'VIRTUAL'
   readonly active: boolean
 }
 

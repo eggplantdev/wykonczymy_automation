@@ -107,14 +107,11 @@ export function DepositForm({ referenceData, userCashRegisterIds, onSuccess }: D
             )}
           </form.AppField>
 
-          {/* Description — optional */}
           <DescriptionField form={form} placeholder="Opis wpłaty" />
 
-          {/* Amount */}
           <AmountField form={form} />
 
-          {/* Date */}
-          <DateField form={form} />
+          {/* <DateField form={form} /> */}
 
           {/* Payment method — temporarily hidden, always CASH */}
           {/* <PaymentMethodField form={form} /> */}

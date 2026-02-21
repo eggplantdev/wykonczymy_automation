@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { FormDialog } from '@/components/dialogs/form-dialog'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { SettlementForm } from '@/components/forms/settlement-form/settlement-form'
+import { MANAGEMENT_ROLES, RoleT } from '@/lib/auth/roles'
 
 type AddSettlementDialogPropsT = {
   referenceData: ReferenceDataT | undefined
@@ -15,10 +16,10 @@ export function AddSettlementDialog({ referenceData }: AddSettlementDialogPropsT
 
   // Settlement form expects `users` — filter out admins/owners from worker dropdown
   const settlementReferenceData = {
-    users: referenceData.workers.filter((w) => w.type !== 'ADMIN' && w.type !== 'OWNER'),
+    users: referenceData.workers.filter((w) => !MANAGEMENT_ROLES.includes(w.type as RoleT)),
     investments: referenceData.investments,
     otherCategories: referenceData.otherCategories,
-    cashRegisters: referenceData.cashRegisters,
+    cashRegisters: referenceData.cashRegisters.filter((cr) => cr.type !== 'VIRTUAL'),
   }
 
   return (
@@ -30,7 +31,6 @@ export function AddSettlementDialog({ referenceData }: AddSettlementDialogPropsT
         </Button>
       }
       title="Rozliczenie pracownika"
-      description='Dodaj pozycje z faktury — każda stanie się osobnym transferem typu "Wydatek pracowniczy".'
       showKeepOpen={false}
     >
       {(onSuccess) => (

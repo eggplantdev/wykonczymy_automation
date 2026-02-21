@@ -28,7 +28,6 @@ import { today } from '@/lib/date-utils'
 import {
   AmountField,
   CashRegisterField,
-  DateField,
   DescriptionField,
   InvestmentField,
   // PaymentMethodField,
@@ -233,14 +232,11 @@ export function TransferForm({
               </>
             )}
 
-          {/* Description — optional for all types */}
           <DescriptionField form={form} />
 
-          {/* Amount */}
           <AmountField form={form} />
 
-          {/* Date */}
-          <DateField form={form} />
+          {/* <DateField form={form} /> */}
 
           {/* Payment method — temporarily hidden, always CASH */}
           {/* <PaymentMethodField form={form} /> */}

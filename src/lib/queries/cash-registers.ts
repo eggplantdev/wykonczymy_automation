@@ -62,7 +62,7 @@ export function mapCashRegisterRows(
     ownerName:
       typeof cr.owner === 'number' ? (workersMap.get(cr.owner) ?? '—') : getRelationName(cr.owner),
     balance: (cr.balance ?? 0) as number,
-    type: (cr.type as 'MAIN' | 'AUXILIARY') ?? 'AUXILIARY',
+    type: (cr.type as 'MAIN' | 'AUXILIARY' | 'VIRTUAL') ?? 'AUXILIARY',
     active: (cr.active ?? true) as boolean,
   }))
 }

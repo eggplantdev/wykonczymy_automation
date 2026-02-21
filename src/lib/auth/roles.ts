@@ -10,6 +10,7 @@ export const ROLE_LABELS: Record<RoleT, { en: string; pl: string }> = {
 
 export const MANAGEMENT_ROLES: readonly RoleT[] = ['ADMIN', 'OWNER', 'MANAGER'] as const
 export const ADMIN_OR_OWNER_ROLES: readonly RoleT[] = ['ADMIN', 'OWNER'] as const
+export const ADMIN_OR_OWNER_MANAGER_ROLES: readonly RoleT[] = ['ADMIN', 'OWNER', 'MANAGER'] as const
 
 export const isManagementRole = (role: RoleT): boolean =>
   (MANAGEMENT_ROLES as readonly string[]).includes(role)

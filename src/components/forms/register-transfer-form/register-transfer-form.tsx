@@ -107,7 +107,7 @@ export function RegisterTransferForm({
           <AmountField form={form} />
 
           {/* Date */}
-          <DateField form={form} />
+          {/* <DateField form={form} /> */}
 
           {/* Payment method — temporarily hidden, always CASH */}
           {/* <PaymentMethodField form={form} /> */}
