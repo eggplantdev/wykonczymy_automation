@@ -7,6 +7,7 @@ import {
   needsWorker,
   needsTargetRegister,
 } from '@/lib/constants/transfers'
+import { refineAmount, refineDate } from '@/lib/validation/shared-refinements'
 
 // Shared type-dependent validation used by both server and client schemas.
 // Works with both number and string values — checks truthiness only.
@@ -111,21 +112,7 @@ export const transferFormSchema = z
     invoiceNote: z.string(),
   })
   .superRefine((data, ctx) => {
-    if (!data.amount || Number(data.amount) <= 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Kwota musi być większa niż 0',
-        path: ['amount'],
-      })
-    }
-
-    if (!data.date) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Data jest wymagana',
-        path: ['date'],
-      })
-    }
-
+    refineAmount(data, ctx)
+    refineDate(data, ctx)
     validateTransferFields(data, ctx)
   })

@@ -6,6 +6,7 @@ import type { Where } from 'payload'
 import { buildPaginationMeta, type PaginationParamsT } from '@/lib/pagination'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/sum-transfers'
+import { perfStart } from '@/lib/perf'
 
 type FindTransfersOptsT = PaginationParamsT & {
   readonly where?: Where
@@ -25,7 +26,7 @@ export async function findTransfersRaw({
   cacheLife('max')
   cacheTag(CACHE_TAGS.transfers)
 
-  const start = performance.now()
+  const elapsed = perfStart()
   const payload = await getPayload({ config })
   const result = await payload.find({
     collection: 'transactions',
@@ -37,7 +38,7 @@ export async function findTransfersRaw({
     overrideAccess: true,
   })
   console.log(
-    `[PERF] query.findTransfersRaw ${(performance.now() - start).toFixed(1)}ms (${result.docs.length} docs, page=${page})`,
+    `[PERF] query.findTransfersRaw ${elapsed()}ms (${result.docs.length} docs, page=${page})`,
   )
 
   return {
@@ -57,7 +58,7 @@ export async function findAllTransfersRaw({
   cacheLife('max')
   cacheTag(CACHE_TAGS.transfers)
 
-  const start = performance.now()
+  const elapsed = perfStart()
   const payload = await getPayload({ config })
   const result = await payload.find({
     collection: 'transactions',
@@ -67,9 +68,7 @@ export async function findAllTransfersRaw({
     depth: 0,
     overrideAccess: true,
   })
-  console.log(
-    `[PERF] query.findAllTransfersRaw ${(performance.now() - start).toFixed(1)}ms (${result.docs.length} docs)`,
-  )
+  console.log(`[PERF] query.findAllTransfersRaw ${elapsed()}ms (${result.docs.length} docs)`)
 
   return result.docs as RawTransferDocT[]
 }
@@ -79,7 +78,7 @@ export async function countRecentTransfers(sinceDate: string) {
   cacheLife('max')
   cacheTag(CACHE_TAGS.transfers)
 
-  const start = performance.now()
+  const elapsed = perfStart()
   const payload = await getPayload({ config })
   const db = await getDb(payload)
 
@@ -87,9 +86,7 @@ export async function countRecentTransfers(sinceDate: string) {
     sql`SELECT COUNT(*) AS count FROM transactions WHERE date >= ${sinceDate}`,
   )
   const count = Number(result.rows[0].count)
-  console.log(
-    `[PERF] query.countRecentTransfers ${(performance.now() - start).toFixed(1)}ms (${count} total)`,
-  )
+  console.log(`[PERF] query.countRecentTransfers ${elapsed()}ms (${count} total)`)
 
   return count
 }

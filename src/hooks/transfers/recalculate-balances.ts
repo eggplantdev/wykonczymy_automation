@@ -14,11 +14,8 @@ import {
 import { revalidateTag } from 'next/cache'
 import { revalidateCollections } from '@/lib/cache/revalidate'
 import { entityTag } from '@/lib/cache/tags'
-import { perf } from '@/lib/perf'
-
-const COST_TYPES = ['INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE'] as const
-const INCOME_TYPES = ['INVESTOR_DEPOSIT', 'STAGE_SETTLEMENT'] as const
-const INVESTMENT_TYPES = [...COST_TYPES, ...INCOME_TYPES] as const
+import { INVESTMENT_TYPES } from '@/lib/constants/transfers'
+import { perf, perfStart } from '@/lib/perf'
 
 /**
  * Recalculate a cash register's balance via SQL SUM + direct UPDATE.
@@ -94,7 +91,7 @@ export const recalcAfterChange: CollectionAfterChangeHook = async ({
   req,
   context,
 }) => {
-  const hookStart = performance.now()
+  const elapsed = perfStart()
   console.log(`[PERF] recalcAfterChange START id=${doc.id} type=${doc.type}`)
 
   if (context.skipBalanceRecalc) {
@@ -150,7 +147,7 @@ export const recalcAfterChange: CollectionAfterChangeHook = async ({
 
   revalidateCollections(['transfers', 'cashRegisters', 'investments'])
 
-  console.log(`[PERF] recalcAfterChange TOTAL ${(performance.now() - hookStart).toFixed(1)}ms`)
+  console.log(`[PERF] recalcAfterChange TOTAL ${elapsed()}ms`)
 
   return doc
 }
@@ -160,7 +157,7 @@ export const recalcAfterChange: CollectionAfterChangeHook = async ({
  * after a transaction is deleted.
  */
 export const recalcAfterDelete: CollectionAfterDeleteHook = async ({ doc, req }) => {
-  const hookStart = performance.now()
+  const elapsed = perfStart()
   console.log(`[PERF] recalcAfterDelete START id=${doc.id} type=${doc.type}`)
 
   const registerId = resolveId(doc.cashRegister)
@@ -188,7 +185,7 @@ export const recalcAfterDelete: CollectionAfterDeleteHook = async ({ doc, req })
 
   revalidateCollections(['transfers', 'cashRegisters', 'investments'])
 
-  console.log(`[PERF] recalcAfterDelete TOTAL ${(performance.now() - hookStart).toFixed(1)}ms`)
+  console.log(`[PERF] recalcAfterDelete TOTAL ${elapsed()}ms`)
 
   return doc
 }

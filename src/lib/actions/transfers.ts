@@ -15,7 +15,7 @@ import {
 import { sumRegisterBalance, sumInvestmentCosts } from '@/lib/db/sum-transfers'
 import { uploadInvoiceFile } from '@/lib/media/upload-invoice'
 import { perf, perfStart } from '@/lib/perf'
-import { type ActionResultT, getErrorMessage } from './utils'
+import { type ActionResultT, getErrorMessage, validateAction } from './utils'
 
 type RecalculateResultT =
   | {
@@ -40,11 +40,8 @@ export async function createTransferAction(
   const { user } = session
 
   // Validate
-  const parsed = createTransferSchema.safeParse(data)
-  if (!parsed.success) {
-    const firstError = parsed.error.issues[0]?.message ?? 'Nieprawidłowe dane'
-    return { success: false, error: firstError }
-  }
+  const parsed = validateAction(createTransferSchema, data)
+  if (!parsed.success) return parsed
 
   // Non-ADMIN users can only transfer from their own registers
   if (user.role !== 'ADMIN' && parsed.data.cashRegister) {

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { PAYMENT_METHODS } from '@/lib/constants/transfers'
+import { refineAmount, refineDate } from '@/lib/validation/shared-refinements'
 
 // Deposit types allowed in the UI
 const DEPOSIT_TYPES_ENUM = ['INVESTOR_DEPOSIT', 'STAGE_SETTLEMENT', 'COMPANY_FUNDING'] as const
@@ -44,21 +45,8 @@ export const depositFormSchema = z
     investment: z.string(),
   })
   .superRefine((data, ctx) => {
-    if (!data.amount || Number(data.amount) <= 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Kwota musi być większa niż 0',
-        path: ['amount'],
-      })
-    }
-
-    if (!data.date) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Data jest wymagana',
-        path: ['date'],
-      })
-    }
+    refineAmount(data, ctx)
+    refineDate(data, ctx)
 
     if (!data.cashRegister) {
       ctx.addIssue({

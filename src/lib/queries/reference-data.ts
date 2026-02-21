@@ -4,6 +4,7 @@ import config from '@payload-config'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/sum-transfers'
+import { perfStart } from '@/lib/perf'
 
 type RefItemT = { readonly id: number; readonly name: string }
 type TypedRefItemT = RefItemT & { readonly type: string }
@@ -25,7 +26,7 @@ export async function fetchReferenceData(): Promise<ReferenceDataT> {
     CACHE_TAGS.otherCategories,
   )
 
-  const start = performance.now()
+  const elapsed = perfStart()
   const payload = await getPayload({ config })
   const db = await getDb(payload)
 
@@ -38,9 +39,7 @@ export async function fetchReferenceData(): Promise<ReferenceDataT> {
     UNION ALL
     SELECT 'otherCategories' AS collection, id, name, NULL AS type FROM other_categories
   `)
-  console.log(
-    `[PERF] query.fetchReferenceData ${(performance.now() - start).toFixed(1)}ms (1 SQL, ${result.rows.length} rows)`,
-  )
+  console.log(`[PERF] query.fetchReferenceData ${elapsed()}ms (1 SQL, ${result.rows.length} rows)`)
 
   const cashRegisters: TypedRefItemT[] = []
   const investments: RefItemT[] = []

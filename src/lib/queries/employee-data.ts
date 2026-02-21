@@ -7,18 +7,17 @@ import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { fetchMediaByIds } from '@/lib/queries/media'
 import { buildPaginationMeta, DEFAULT_LIMIT, ALLOWED_LIMITS } from '@/lib/pagination'
 import { CACHE_TAGS } from '@/lib/cache/tags'
+import { perfStart } from '@/lib/perf'
 
 export async function getCachedEmployeeSaldo(userId: number, dateRange?: DateRangeT) {
   'use cache'
   cacheLife('max')
   cacheTag(CACHE_TAGS.transfers)
 
-  const start = performance.now()
+  const elapsed = perfStart()
   const payload = await getPayload({ config })
   const result = await sumEmployeeSaldo(payload, userId, dateRange)
-  console.log(
-    `[PERF] query.getCachedEmployeeSaldo(${userId}) ${(performance.now() - start).toFixed(1)}ms`,
-  )
+  console.log(`[PERF] query.getCachedEmployeeSaldo(${userId}) ${elapsed()}ms`)
   return result
 }
 
@@ -33,7 +32,7 @@ export async function getCachedMonthlyData(
   cacheLife('max')
   cacheTag(CACHE_TAGS.transfers)
 
-  const start = performance.now()
+  const elapsed = perfStart()
   const payload = await getPayload({ config })
 
   const safeLimit = ALLOWED_LIMITS.includes(limit) ? limit : DEFAULT_LIMIT
@@ -64,7 +63,7 @@ export async function getCachedMonthlyData(
     fetchReferenceData(),
   ])
   console.log(
-    `[PERF] query.getCachedMonthlyData(user=${userId}, ${month}/${year}) ${(performance.now() - start).toFixed(1)}ms (${transactions.docs.length} docs)`,
+    `[PERF] query.getCachedMonthlyData(user=${userId}, ${month}/${year}) ${elapsed()}ms (${transactions.docs.length} docs)`,
   )
 
   const invoiceIds = extractInvoiceIds(transactions.docs)

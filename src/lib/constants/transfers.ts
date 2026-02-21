@@ -47,11 +47,11 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethodT, string> = {
   CARD: 'Karta',
 }
 
-export const isDepositType = (type: string) =>
-  type === 'INVESTOR_DEPOSIT' ||
-  type === 'STAGE_SETTLEMENT' ||
-  type === 'COMPANY_FUNDING' ||
-  type === 'OTHER_DEPOSIT'
+export const COST_TYPES: TransferTypeT[] = ['INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE']
+export const INCOME_TYPES: TransferTypeT[] = ['INVESTOR_DEPOSIT', 'STAGE_SETTLEMENT']
+export const INVESTMENT_TYPES: TransferTypeT[] = [...COST_TYPES, ...INCOME_TYPES]
+
+export const isDepositType = (type: string) => (DEPOSIT_TYPES as readonly string[]).includes(type)
 
 export const needsCashRegister = (type: string) => type !== 'EMPLOYEE_EXPENSE'
 

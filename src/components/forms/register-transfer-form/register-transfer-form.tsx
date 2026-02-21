@@ -14,6 +14,7 @@ import { createTransferAction } from '@/lib/actions/transfers'
 import { registerTransferFormSchema } from '@/components/forms/register-transfer-form/register-transfer-schema'
 import type { CreateTransferFormT } from '@/components/forms/transfer-form/transfer-schema'
 import type { ReferenceDataT } from '@/components/dialogs/form-dialog'
+import { today } from '@/lib/date-utils'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
 
@@ -31,8 +32,6 @@ type FormValuesT = {
   cashRegister: string
   targetRegister: string
 }
-
-const today = () => new Date().toISOString().split('T')[0]
 
 export function RegisterTransferForm({
   referenceData,

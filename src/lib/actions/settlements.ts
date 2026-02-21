@@ -14,7 +14,7 @@ import {
   CreateSettlementFormT,
   createSettlementSchema,
 } from '@/components/forms/settlement-form/settlement-schema'
-import { type ActionResultT, getErrorMessage } from './utils'
+import { type ActionResultT, getErrorMessage, validateAction } from './utils'
 
 export async function createSettlementAction(
   data: CreateSettlementFormT,
@@ -29,11 +29,8 @@ export async function createSettlementAction(
   const { user } = session
 
   // Validate with server schema
-  const parsed = createSettlementSchema.safeParse(data)
-  if (!parsed.success) {
-    const firstError = parsed.error.issues[0]?.message ?? 'Nieprawidłowe dane'
-    return { success: false, error: firstError }
-  }
+  const parsed = validateAction(createSettlementSchema, data)
+  if (!parsed.success) return parsed
 
   try {
     const payload = await perf('settlement.getPayload', () => getPayload({ config }))

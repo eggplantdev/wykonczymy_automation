@@ -167,22 +167,20 @@ describe('settlementFormSchema (client)', () => {
       expect(errorPaths(result)).toContain('lineItems.0.category')
     })
 
-    it('missing note per line item → error on lineItems.0.note', () => {
+    it('missing note per line item → passes (note is optional)', () => {
       const result = settlementFormSchema.safeParse({
         ...validClientCategory,
         lineItems: [{ description: 'Test', amount: '50', category: '1', note: '' }],
       })
-      expect(result.success).toBe(false)
-      expect(errorPaths(result)).toContain('lineItems.0.note')
+      expect(result.success).toBe(true)
     })
 
-    it('whitespace-only note per line item → error on lineItems.0.note', () => {
+    it('whitespace-only note per line item → passes (note is optional)', () => {
       const result = settlementFormSchema.safeParse({
         ...validClientCategory,
         lineItems: [{ description: 'Test', amount: '50', category: '1', note: '   ' }],
       })
-      expect(result.success).toBe(false)
-      expect(errorPaths(result)).toContain('lineItems.0.note')
+      expect(result.success).toBe(true)
     })
 
     it('investment NOT required in category mode', () => {

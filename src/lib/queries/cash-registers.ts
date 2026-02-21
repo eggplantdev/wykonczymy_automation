@@ -2,6 +2,7 @@ import { cacheLife, cacheTag } from 'next/cache'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { CACHE_TAGS, entityTag } from '@/lib/cache/tags'
+import { perfStart } from '@/lib/perf'
 import type { CashRegisterRowT } from '@/lib/tables/cash-registers'
 
 export async function getCashRegister(id: string) {
@@ -9,7 +10,7 @@ export async function getCashRegister(id: string) {
   cacheLife('max')
   cacheTag(CACHE_TAGS.cashRegisters, entityTag('cash-register', id))
 
-  const start = performance.now()
+  const elapsed = perfStart()
   const payload = await getPayload({ config })
   try {
     const register = await payload.findByID({
@@ -18,7 +19,7 @@ export async function getCashRegister(id: string) {
       depth: 1,
       overrideAccess: true,
     })
-    console.log(`[PERF] query.getCashRegister(${id}) ${(performance.now() - start).toFixed(1)}ms`)
+    console.log(`[PERF] query.getCashRegister(${id}) ${elapsed()}ms`)
     return register ?? null
   } catch {
     return null
@@ -33,7 +34,7 @@ export async function findAllCashRegistersRaw() {
   cacheLife('max')
   cacheTag(CACHE_TAGS.cashRegisters)
 
-  const start = performance.now()
+  const elapsed = perfStart()
   const payload = await getPayload({ config })
   const result = await payload.find({
     collection: 'cash-registers',
@@ -42,9 +43,7 @@ export async function findAllCashRegistersRaw() {
     depth: 0,
     overrideAccess: true,
   })
-  console.log(
-    `[PERF] query.findAllCashRegistersRaw ${(performance.now() - start).toFixed(1)}ms (${result.docs.length} docs)`,
-  )
+  console.log(`[PERF] query.findAllCashRegistersRaw ${elapsed()}ms (${result.docs.length} docs)`)
 
   return result.docs as RawCashRegisterDocT[]
 }

@@ -11,13 +11,26 @@ import {
 import type { UserRowT } from '@/lib/tables/users'
 import type { RoleT } from '@/lib/auth/roles'
 import { CACHE_TAGS, entityTag } from '@/lib/cache/tags'
+import { perfStart } from '@/lib/perf'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Payload doc type varies by query
+function mapUserRow(u: any, saldoRecord: Record<string, number>): UserRowT {
+  return {
+    id: u.id,
+    name: u.name,
+    email: u.email,
+    role: u.role as RoleT,
+    saldo: saldoRecord[String(u.id)] ?? 0,
+    active: (u.active ?? true) as boolean,
+  }
+}
 
 export async function findUsersWithSaldos({ page, limit }: PaginationParamsT) {
   'use cache'
   cacheLife('max')
   cacheTag(CACHE_TAGS.transfers, CACHE_TAGS.users)
 
-  const start = performance.now()
+  const elapsed = perfStart()
   const payload = await getPayload({ config })
   const [users, saldoRecord] = await Promise.all([
     payload.find({
@@ -32,19 +45,10 @@ export async function findUsersWithSaldos({ page, limit }: PaginationParamsT) {
     }),
     sumAllWorkerSaldos(payload).then((map) => Object.fromEntries(map)),
   ])
-  console.log(`[PERF] query.findUsersWithSaldos ${(performance.now() - start).toFixed(1)}ms`)
-
-  const rows: UserRowT[] = users.docs.map((u) => ({
-    id: u.id,
-    name: u.name,
-    email: u.email,
-    role: u.role as RoleT,
-    saldo: saldoRecord[String(u.id)] ?? 0,
-    active: (u.active ?? true) as boolean,
-  }))
+  console.log(`[PERF] query.findUsersWithSaldos ${elapsed()}ms`)
 
   return {
-    rows,
+    rows: users.docs.map((u) => mapUserRow(u, saldoRecord)),
     paginationMeta: buildPaginationMeta(users, limit),
   }
 }
@@ -54,7 +58,7 @@ export async function findAllUsersWithSaldos() {
   cacheLife('max')
   cacheTag(CACHE_TAGS.transfers, CACHE_TAGS.users)
 
-  const start = performance.now()
+  const elapsed = perfStart()
   const payload = await getPayload({ config })
   const [users, saldoRecord] = await Promise.all([
     payload.find({
@@ -68,16 +72,9 @@ export async function findAllUsersWithSaldos() {
     }),
     sumAllWorkerSaldos(payload).then((map) => Object.fromEntries(map)),
   ])
-  console.log(`[PERF] query.findAllUsersWithSaldos ${(performance.now() - start).toFixed(1)}ms`)
+  console.log(`[PERF] query.findAllUsersWithSaldos ${elapsed()}ms`)
 
-  return users.docs.map((u) => ({
-    id: u.id,
-    name: u.name,
-    email: u.email,
-    role: u.role as RoleT,
-    saldo: saldoRecord[String(u.id)] ?? 0,
-    active: (u.active ?? true) as boolean,
-  }))
+  return users.docs.map((u) => mapUserRow(u, saldoRecord))
 }
 
 export async function getUser(id: string) {
@@ -99,10 +96,10 @@ export async function getUserSaldo(userId: string) {
   cacheLife('max')
   cacheTag(CACHE_TAGS.transfers)
 
-  const start = performance.now()
+  const elapsed = perfStart()
   const payload = await getPayload({ config })
   const result = await sumEmployeeSaldo(payload, Number(userId))
-  console.log(`[PERF] query.getUserSaldo(${userId}) ${(performance.now() - start).toFixed(1)}ms`)
+  console.log(`[PERF] query.getUserSaldo(${userId}) ${elapsed()}ms`)
   return result
 }
 
