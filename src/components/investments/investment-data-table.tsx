@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { DataTable } from '@/components/ui/data-table'
+import { DataTable } from '@/components/ui/data-table/data-table'
 import { ColumnToggle } from '@/components/ui/column-toggle'
 import { ActiveFilterButton } from '@/components/ui/active-filter-button'
 import { investmentColumns, type InvestmentRowT } from '@/lib/tables/investments'
