@@ -23,7 +23,7 @@ export function ActiveToggleBadge({
   const [optimisticActive, setOptimisticActive] = useState(isActive)
   const [isPending, setIsPending] = useState(false)
 
-  const variant = isPending ? 'badgePending' : optimisticActive ? 'badgeActive' : 'badgeInactive'
+  const variant = optimisticActive ? 'badgeActive' : 'badgeInactive'
 
   async function handleClick(e: React.MouseEvent) {
     e.stopPropagation()
