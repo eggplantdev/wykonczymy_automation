@@ -18,6 +18,7 @@ const TRANSFER_TYPES = [
     label: { en: 'Register Transfer', pl: 'Transfer między kasami' },
     value: 'REGISTER_TRANSFER',
   },
+  { label: { en: 'Payout', pl: 'Wypłata' }, value: 'PAYOUT' },
   { label: { en: 'Other', pl: 'Inne' }, value: 'OTHER' },
 ] as const
 
