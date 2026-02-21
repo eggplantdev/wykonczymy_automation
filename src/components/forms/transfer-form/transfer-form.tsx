@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { SelectItem } from '@/components/ui/select'
 import { FileInput } from '@/components/ui/file-input'
 import { FieldGroup } from '@/components/ui/field'
@@ -9,8 +9,6 @@ import { toastMessage } from '@/components/toasts'
 import {
   TRANSFER_TYPES,
   TRANSFER_TYPE_LABELS,
-  PAYMENT_METHODS,
-  PAYMENT_METHOD_LABELS,
   isDepositType,
   needsCashRegister,
   showsInvestment,
@@ -27,7 +25,13 @@ import {
 } from '@/components/forms/transfer-form/transfer-schema'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { today } from '@/lib/date-utils'
-import { AmountField, DateField, DescriptionField } from '@/components/forms/form-fields'
+import {
+  AmountField,
+  CashRegisterField,
+  DateField,
+  DescriptionField,
+  PaymentMethodField,
+} from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
 
@@ -61,10 +65,6 @@ export function TransferForm({
 }: TransferFormPropsT) {
   const invoiceRef = useRef<HTMLInputElement>(null)
   const isSourceRestricted = userCashRegisterIds !== undefined
-  const ownedRegisterSet = useMemo(
-    () => (userCashRegisterIds ? new Set(userCashRegisterIds) : undefined),
-    [userCashRegisterIds],
-  )
   const [expenseTarget, setExpenseTarget] = useState<'investment' | 'other'>('investment')
 
   const form = useAppForm({
@@ -240,33 +240,15 @@ export function TransferForm({
           <DateField form={form} />
 
           {/* Payment method */}
-          <form.AppField name="paymentMethod">
-            {(field) => (
-              <field.Select label="Metoda płatności" showError>
-                {PAYMENT_METHODS.map((m) => (
-                  <SelectItem key={m} value={m}>
-                    {PAYMENT_METHOD_LABELS[m]}
-                  </SelectItem>
-                ))}
-              </field.Select>
-            )}
-          </form.AppField>
+          <PaymentMethodField form={form} />
 
           {/* Cash register — hidden for EMPLOYEE_EXPENSE, filtered to owned registers for non-ADMIN */}
           {needsCashRegister(currentType) && (
-            <form.AppField name="cashRegister">
-              {(field) => (
-                <field.Select label="Kasa" placeholder="Wybierz kasę" showError>
-                  {referenceData.cashRegisters
-                    .filter((cr) => !ownedRegisterSet || ownedRegisterSet.has(cr.id))
-                    .map((cr) => (
-                      <SelectItem key={cr.id} value={String(cr.id)}>
-                        {cr.name}
-                      </SelectItem>
-                    ))}
-                </field.Select>
-              )}
-            </form.AppField>
+            <CashRegisterField
+              form={form}
+              cashRegisters={referenceData.cashRegisters}
+              userCashRegisterIds={userCashRegisterIds}
+            />
           )}
 
           {/* Conditional: Target register (REGISTER_TRANSFER only) */}

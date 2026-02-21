@@ -1,3 +1,5 @@
 export { AmountField } from './amount-field'
+export { CashRegisterField } from './cash-register-field'
 export { DateField } from './date-field'
 export { DescriptionField } from './description-field'
+export { PaymentMethodField } from './payment-method-field'

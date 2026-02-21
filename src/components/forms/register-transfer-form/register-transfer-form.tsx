@@ -1,21 +1,21 @@
 'use client'
 
-import { useMemo } from 'react'
-import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm } from '@/components/forms/hooks/form-hooks'
 import { toastMessage } from '@/components/toasts'
-import {
-  PAYMENT_METHODS,
-  PAYMENT_METHOD_LABELS,
-  type PaymentMethodT,
-} from '@/lib/constants/transfers'
+import { type PaymentMethodT } from '@/lib/constants/transfers'
 import { createTransferAction } from '@/lib/actions/transfers'
 import { registerTransferFormSchema } from '@/components/forms/register-transfer-form/register-transfer-schema'
 import type { CreateTransferFormT } from '@/components/forms/transfer-form/transfer-schema'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { today } from '@/lib/date-utils'
-import { AmountField, DateField, DescriptionField } from '@/components/forms/form-fields'
+import {
+  AmountField,
+  CashRegisterField,
+  DateField,
+  DescriptionField,
+  PaymentMethodField,
+} from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
 
@@ -39,11 +39,6 @@ export function RegisterTransferForm({
   userCashRegisterIds,
   onSuccess,
 }: RegisterTransferFormPropsT) {
-  const ownedRegisterSet = useMemo(
-    () => (userCashRegisterIds ? new Set(userCashRegisterIds) : undefined),
-    [userCashRegisterIds],
-  )
-
   const form = useAppForm({
     defaultValues: {
       description: '',
@@ -92,32 +87,21 @@ export function RegisterTransferForm({
       >
         <FieldGroup>
           {/* Source cash register — filtered to owned registers for non-ADMIN */}
-          <form.AppField name="cashRegister">
-            {(field) => (
-              <field.Select label="Kasa źródłowa" placeholder="Wybierz kasę" showError>
-                {referenceData.cashRegisters
-                  .filter((cr) => !ownedRegisterSet || ownedRegisterSet.has(cr.id))
-                  .map((cr) => (
-                    <SelectItem key={cr.id} value={String(cr.id)}>
-                      {cr.name}
-                    </SelectItem>
-                  ))}
-              </field.Select>
-            )}
-          </form.AppField>
+          <CashRegisterField
+            form={form}
+            label="Kasa źródłowa"
+            cashRegisters={referenceData.cashRegisters}
+            userCashRegisterIds={userCashRegisterIds}
+          />
 
           {/* Target cash register — all registers */}
-          <form.AppField name="targetRegister">
-            {(field) => (
-              <field.Select label="Kasa docelowa" placeholder="Wybierz kasę docelową" showError>
-                {referenceData.cashRegisters.map((cr) => (
-                  <SelectItem key={cr.id} value={String(cr.id)}>
-                    {cr.name}
-                  </SelectItem>
-                ))}
-              </field.Select>
-            )}
-          </form.AppField>
+          <CashRegisterField
+            form={form}
+            name="targetRegister"
+            label="Kasa docelowa"
+            placeholder="Wybierz kasę docelową"
+            cashRegisters={referenceData.cashRegisters}
+          />
 
           {/* Amount */}
           <AmountField form={form} />
@@ -126,17 +110,7 @@ export function RegisterTransferForm({
           <DateField form={form} />
 
           {/* Payment method */}
-          <form.AppField name="paymentMethod">
-            {(field) => (
-              <field.Select label="Metoda płatności" showError>
-                {PAYMENT_METHODS.map((m) => (
-                  <SelectItem key={m} value={m}>
-                    {PAYMENT_METHOD_LABELS[m]}
-                  </SelectItem>
-                ))}
-              </field.Select>
-            )}
-          </form.AppField>
+          <PaymentMethodField form={form} />
 
           {/* Description — optional */}
           <DescriptionField form={form} />
