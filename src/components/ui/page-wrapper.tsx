@@ -27,7 +27,7 @@ export function PageWrapper({
         </Link>
       )}
 
-      <h1 className={`text-foreground text-2xl font-semibold${backHref ? 'mt-2' : ''}`}>{title}</h1>
+      <h1 className={cn('text-foreground text-2xl font-semibold', backHref && 'mt-2')}>{title}</h1>
 
       {description && <p className="text-muted-foreground mt-1 text-sm">{description}</p>}
 

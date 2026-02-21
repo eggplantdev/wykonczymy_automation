@@ -1,5 +1,6 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import { formatPLN } from '@/lib/format-currency'
+import { getRelationName } from '@/lib/get-relation-name'
 import { InvoiceCell } from '@/components/transfers/invoice-cell'
 import { NoteCell } from '@/components/dialogs/note-dialog'
 import {
@@ -125,13 +126,6 @@ export function extractInvoiceIds(docs: any[]): number[] {
 function lookupName(map: NameMapT, field: unknown): string {
   if (typeof field === 'number') return map.get(field) ?? '—'
   return getRelationName(field)
-}
-
-function getRelationName(field: unknown): string {
-  if (typeof field === 'object' && field !== null && 'name' in field) {
-    return (field as { name: string }).name
-  }
-  return '—'
 }
 
 function getMediaField(field: unknown, key: string): string | null {
