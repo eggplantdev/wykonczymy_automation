@@ -102,5 +102,3 @@ export default function Tag({
     </span>
   )
 }
-
-export { tagVariants }

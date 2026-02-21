@@ -7,13 +7,7 @@ import { TransferFilters } from '@/components/transfers/transfer-filters'
 import { getTransferColumns, type TransferRowT } from '@/lib/tables/transfers'
 import type { PaginationMetaT } from '@/lib/pagination'
 import { cn } from '../../lib/cn'
-
-type FilterConfigT = {
-  readonly cashRegisters?: { id: number; name: string }[]
-  readonly investments?: { id: number; name: string }[]
-  readonly users?: { id: number; name: string }[]
-  readonly showTypeFilter?: boolean
-}
+import type { FilterConfigT } from '@/types/filters'
 
 type TransferDataTablePropsT = {
   readonly data: readonly TransferRowT[]

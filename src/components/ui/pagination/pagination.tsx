@@ -2,7 +2,6 @@ import * as React from 'react'
 
 import { cn } from '@/lib/cn'
 import Icon from '../icons/icon'
-import { getVisiblePages } from './get-visible-pages'
 
 // --- Styling primitives (no navigation logic) ---
 
@@ -113,73 +112,6 @@ function PaginationEllipsis({
   )
 }
 
-// --- Shared page calculation ---
-
-// --- Client-side pagination (onClick, no URL changes) ---
-
-type SimplePaginationPropsT = {
-  currentPage: number
-  totalPages: number
-  onPageChange: (page: number) => void
-  labels?: PaginationLabelsT
-  className?: string
-  maxVisiblePages?: number
-}
-
-function SimplePagination({
-  currentPage,
-  totalPages,
-  onPageChange,
-  labels,
-  className,
-  maxVisiblePages = 4,
-}: SimplePaginationPropsT) {
-  const visiblePages = getVisiblePages(currentPage, totalPages, maxVisiblePages)
-  const isFirstPage = currentPage <= 1
-  const isLastPage = currentPage >= totalPages
-
-  return (
-    <Pagination className={className} aria-label={labels?.paginationLabel}>
-      <PaginationContent>
-        <PaginationItem>
-          <button
-            type="button"
-            disabled={isFirstPage}
-            onClick={() => onPageChange(currentPage - 1)}
-          >
-            <PaginationPrevious isDisabled={isFirstPage} label={labels?.goToPreviousPage} />
-          </button>
-        </PaginationItem>
-
-        {visiblePages.map((page, index) =>
-          page === 'ellipsis' ? (
-            <PaginationItem key={`ellipsis-${index}`}>
-              <PaginationEllipsis srLabel={labels?.morePages} />
-            </PaginationItem>
-          ) : (
-            <PaginationItem key={page}>
-              <button type="button" onClick={() => onPageChange(page)}>
-                <PaginationLink
-                  isActive={page === currentPage}
-                  aria-label={`${labels?.page ?? 'Page'} ${page}`}
-                >
-                  {page}
-                </PaginationLink>
-              </button>
-            </PaginationItem>
-          ),
-        )}
-
-        <PaginationItem>
-          <button type="button" disabled={isLastPage} onClick={() => onPageChange(currentPage + 1)}>
-            <PaginationNext isDisabled={isLastPage} label={labels?.goToNextPage} />
-          </button>
-        </PaginationItem>
-      </PaginationContent>
-    </Pagination>
-  )
-}
-
 export type { PaginationLabelsT }
 export {
   Pagination,
@@ -189,6 +121,4 @@ export {
   PaginationPrevious,
   PaginationNext,
   PaginationEllipsis,
-  getVisiblePages,
-  SimplePagination,
 }

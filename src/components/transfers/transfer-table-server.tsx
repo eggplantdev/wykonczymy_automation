@@ -4,13 +4,7 @@ import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { fetchMediaByIds } from '@/lib/queries/media'
 import { mapTransferRow, extractInvoiceIds, buildTransferLookups } from '@/lib/tables/transfers'
 import { TransferDataTable } from '@/components/transfers/transfer-data-table'
-
-type FilterConfigT = {
-  readonly cashRegisters?: { id: number; name: string }[]
-  readonly investments?: { id: number; name: string }[]
-  readonly users?: { id: number; name: string }[]
-  readonly showTypeFilter?: boolean
-}
+import type { FilterConfigT } from '@/types/filters'
 
 type TransferTableServerPropsT = {
   readonly where: Where
