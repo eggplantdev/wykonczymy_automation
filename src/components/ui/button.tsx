@@ -16,12 +16,16 @@ const buttonVariants = cva(
         ghost: 'hover:bg-accent hover:text-accent-foreground',
         destructive: 'bg-destructive text-white hover:bg-destructive/90',
         link: 'text-primary underline-offset-4 hover:underline',
+        badgeActive: 'border border-green-600 text-green-600 hover:bg-green-600 hover:text-white',
+        badgePending: 'border border-amber-500 text-amber-500 opacity-50',
+        badgeInactive: 'bg-muted text-muted-foreground hover:bg-muted-foreground/20',
       },
       size: {
         default: 'h-9 px-4 py-2',
         sm: 'h-8 rounded-md gap-1.5 px-3 text-xs',
         lg: 'h-10 rounded-md px-6',
         icon: 'size-9',
+        badge: 'rounded-full px-2 py-0.5 text-xs',
       },
     },
     defaultVariants: {
