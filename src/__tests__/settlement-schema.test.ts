@@ -20,6 +20,9 @@ const validClientInvestment = {
   worker: '1',
   mode: 'investment' as const,
   investment: '1',
+  cashRegister: '',
+  amount: '',
+  description: '',
   date: '2026-02-19',
   paymentMethod: 'CASH',
   invoiceNote: '',
@@ -30,6 +33,9 @@ const validClientCategory = {
   worker: '1',
   mode: 'category' as const,
   investment: '',
+  cashRegister: '',
+  amount: '',
+  description: '',
   date: '2026-02-19',
   paymentMethod: 'CASH',
   invoiceNote: '',
@@ -46,6 +52,19 @@ const validServerInvestment = {
   lineItems: [{ description: 'Materiały', amount: 100 }],
 }
 
+const validClientRegister = {
+  worker: '1',
+  mode: 'register' as const,
+  investment: '',
+  cashRegister: '1',
+  amount: '200',
+  description: 'Zwrot gotówki',
+  date: '2026-02-19',
+  paymentMethod: 'CASH',
+  invoiceNote: '',
+  lineItems: [],
+}
+
 const validServerCategory = {
   worker: 1,
   mode: 'category' as const,
@@ -53,6 +72,16 @@ const validServerCategory = {
   paymentMethod: 'CASH' as const,
   invoiceNote: '',
   lineItems: [{ description: 'Paliwo', amount: 50, category: 1, note: 'Paragon' }],
+}
+
+const validServerRegister = {
+  worker: 1,
+  mode: 'register' as const,
+  cashRegister: 1,
+  amount: 200,
+  description: 'Zwrot gotówki',
+  date: '2026-02-19',
+  paymentMethod: 'CASH' as const,
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -192,6 +221,68 @@ describe('settlementFormSchema (client)', () => {
     })
   })
 
+  // ── Register mode ─────────────────────────────────────────────────
+
+  describe('register mode', () => {
+    it('valid payload → passes', () => {
+      const result = settlementFormSchema.safeParse(validClientRegister)
+      expect(result.success).toBe(true)
+    })
+
+    it('missing cashRegister → error on cashRegister', () => {
+      const result = settlementFormSchema.safeParse({
+        ...validClientRegister,
+        cashRegister: '',
+      })
+      expect(result.success).toBe(false)
+      expect(errorPaths(result)).toContain('cashRegister')
+    })
+
+    it('missing amount → error on amount', () => {
+      const result = settlementFormSchema.safeParse({
+        ...validClientRegister,
+        amount: '',
+      })
+      expect(result.success).toBe(false)
+      expect(errorPaths(result)).toContain('amount')
+    })
+
+    it('amount = 0 → error on amount', () => {
+      const result = settlementFormSchema.safeParse({
+        ...validClientRegister,
+        amount: '0',
+      })
+      expect(result.success).toBe(false)
+      expect(errorPaths(result)).toContain('amount')
+    })
+
+    it('empty lineItems → passes (not required for register mode)', () => {
+      const result = settlementFormSchema.safeParse({
+        ...validClientRegister,
+        lineItems: [],
+      })
+      expect(result.success).toBe(true)
+    })
+
+    it('missing worker → error on worker', () => {
+      const result = settlementFormSchema.safeParse({
+        ...validClientRegister,
+        worker: '',
+      })
+      expect(result.success).toBe(false)
+      expect(errorPaths(result)).toContain('worker')
+    })
+
+    it('missing date → error on date', () => {
+      const result = settlementFormSchema.safeParse({
+        ...validClientRegister,
+        date: '',
+      })
+      expect(result.success).toBe(false)
+      expect(errorPaths(result)).toContain('date')
+    })
+  })
+
   // ── Multiple line items ─────────────────────────────────────────────
 
   describe('multiple line items', () => {
@@ -228,6 +319,11 @@ describe('createSettlementSchema (server)', () => {
 
     it('category mode → passes', () => {
       const result = createSettlementSchema.safeParse(validServerCategory)
+      expect(result.success).toBe(true)
+    })
+
+    it('register mode → passes', () => {
+      const result = createSettlementSchema.safeParse(validServerRegister)
       expect(result.success).toBe(true)
     })
   })
@@ -325,6 +421,28 @@ describe('createSettlementSchema (server)', () => {
       expect(errorPaths(result)).toContain('lineItems.0.category')
     })
 
+    it('mode=register without cashRegister → fails', () => {
+      const { cashRegister, ...rest } = validServerRegister
+      const result = createSettlementSchema.safeParse(rest)
+      expect(result.success).toBe(false)
+      expect(errorPaths(result)).toContain('cashRegister')
+    })
+
+    it('mode=register without amount → fails', () => {
+      const { amount, ...rest } = validServerRegister
+      const result = createSettlementSchema.safeParse(rest)
+      expect(result.success).toBe(false)
+      expect(errorPaths(result)).toContain('amount')
+    })
+
+    it('mode=register with empty lineItems → passes', () => {
+      const result = createSettlementSchema.safeParse({
+        ...validServerRegister,
+        lineItems: [],
+      })
+      expect(result.success).toBe(true)
+    })
+
     it('mode=category without note per line item → passes (note is optional at server level)', () => {
       const result = createSettlementSchema.safeParse({
         ...validServerCategory,
@@ -353,6 +471,25 @@ describe('settlement schema parity', () => {
     const serverResult = createSettlementSchema.safeParse(validServerCategory)
     expect(clientResult.success).toBe(true)
     expect(serverResult.success).toBe(true)
+  })
+
+  it('register mode — valid payloads → both pass', () => {
+    const clientResult = settlementFormSchema.safeParse(validClientRegister)
+    const serverResult = createSettlementSchema.safeParse(validServerRegister)
+    expect(clientResult.success).toBe(true)
+    expect(serverResult.success).toBe(true)
+  })
+
+  it('mode=register without cashRegister — both reject', () => {
+    const clientPayload = { ...validClientRegister, cashRegister: '' }
+    const serverPayload = { ...validServerRegister }
+    delete (serverPayload as Record<string, unknown>).cashRegister
+
+    const clientResult = settlementFormSchema.safeParse(clientPayload)
+    const serverResult = createSettlementSchema.safeParse(serverPayload)
+
+    expect(clientResult.success).toBe(false)
+    expect(serverResult.success).toBe(false)
   })
 
   it('mode=investment without investment — both reject', () => {

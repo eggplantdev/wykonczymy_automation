@@ -19,6 +19,7 @@ type FormBasePropsT = FormControlPropsT & {
 export default function FormBase({
   children,
   label,
+  labelExtra,
   description,
   controlFirst,
   horizontal,
@@ -28,20 +29,31 @@ export default function FormBase({
   const isInvalid = field.state.meta.errors.length > 0
   const errorElem = showError && isInvalid && <FieldError errors={field.state.meta.errors} />
 
+  const labelElem =
+    label &&
+    (labelExtra ? (
+      <div className="flex items-center justify-between">
+        <FieldLabel htmlFor={field.name}>{label}</FieldLabel>
+        {labelExtra}
+      </div>
+    ) : (
+      <FieldLabel htmlFor={field.name}>{label}</FieldLabel>
+    ))
+
   return (
     <Field data-invalid={isInvalid} orientation={horizontal ? 'horizontal' : undefined}>
       {controlFirst ? (
         <>
           {children}
           <FieldContent>
-            {label && <FieldLabel htmlFor={field.name}>{label}</FieldLabel>}
+            {labelElem}
             {description && <FieldDescription>{description}</FieldDescription>}
             {errorElem}
           </FieldContent>
         </>
       ) : (
         <>
-          {label && <FieldLabel htmlFor={field.name}>{label}</FieldLabel>}
+          {labelElem}
           {children}
           {description && <FieldDescription>{description}</FieldDescription>}
           {errorElem}

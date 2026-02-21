@@ -19,6 +19,9 @@ import { createSettlementAction } from '@/lib/actions/settlements'
 import { cn } from '@/lib/cn'
 import { today } from '@/lib/date-utils'
 import {
+  AmountField,
+  CashRegisterField,
+  DescriptionField,
   InvestmentField,
   /* PaymentMethodField, */ WorkerField,
 } from '@/components/forms/form-fields'
@@ -29,6 +32,7 @@ type SettlementReferenceDataT = {
   users: ReferenceItemT[]
   investments: ReferenceItemT[]
   otherCategories: ReferenceItemT[]
+  cashRegisters: ReferenceItemT[]
 }
 
 type SettlementFormPropsT = {
@@ -39,8 +43,11 @@ type SettlementFormPropsT = {
 
 type FormValuesT = {
   worker: string
-  mode: 'investment' | 'category'
+  mode: 'investment' | 'category' | 'register'
   investment?: string
+  cashRegister: string
+  amount: string
+  description: string
   date: string
   paymentMethod: string
   invoiceNote: string
@@ -60,6 +67,9 @@ export function SettlementForm({ referenceData, className, onSuccess }: Settleme
       worker: '',
       mode: 'investment' as const,
       investment: '',
+      cashRegister: '',
+      amount: '',
+      description: '',
       date: today(),
       paymentMethod: 'CASH',
       invoiceNote: '',
@@ -73,15 +83,21 @@ export function SettlementForm({ referenceData, className, onSuccess }: Settleme
         worker: Number(value.worker),
         mode: value.mode,
         investment: value.mode === 'investment' ? Number(value.investment) : undefined,
+        cashRegister: value.mode === 'register' ? Number(value.cashRegister) : undefined,
+        amount: value.mode === 'register' ? Number(value.amount) : undefined,
+        description: value.mode === 'register' ? value.description || undefined : undefined,
         date: value.date,
         paymentMethod: value.paymentMethod as PaymentMethodT,
         invoiceNote: value.invoiceNote || undefined,
-        lineItems: value.lineItems.map((item) => ({
-          description: item.description,
-          amount: Number(item.amount),
-          category: value.mode === 'category' ? Number(item.category) : undefined,
-          note: value.mode === 'category' ? item.note : undefined,
-        })),
+        lineItems:
+          value.mode === 'register'
+            ? []
+            : value.lineItems.map((item) => ({
+                description: item.description,
+                amount: Number(item.amount),
+                category: value.mode === 'category' ? Number(item.category) : undefined,
+                note: value.mode === 'category' ? item.note : undefined,
+              })),
       }
 
       let invoiceFormData: FormData | null = null
@@ -109,8 +125,12 @@ export function SettlementForm({ referenceData, className, onSuccess }: Settleme
   useCheckFormErrors(form)
 
   const lineItems = useStore(form.store, (s) => s.values.lineItems)
-  const total = lineItems.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
   const mode = useStore(form.store, (s) => s.values.mode)
+  const registerAmount = useStore(form.store, (s) => s.values.amount)
+  const total =
+    mode === 'register'
+      ? Number(registerAmount) || 0
+      : lineItems.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
 
   const { isInvalid, isSubmitting } = useFormStatus(form)
 
@@ -199,6 +219,16 @@ export function SettlementForm({ referenceData, className, onSuccess }: Settleme
                     />
                     Inne (kategoria)
                   </label>
+                  <label className="flex items-center gap-2 text-sm font-medium">
+                    <input
+                      type="radio"
+                      name="settlementMode"
+                      value="register"
+                      checked={field.state.value === 'register'}
+                      onChange={() => field.handleChange('register')}
+                    />
+                    Transfer do kasy
+                  </label>
                 </div>
               )}
             </form.AppField>
@@ -209,107 +239,125 @@ export function SettlementForm({ referenceData, className, onSuccess }: Settleme
                 <InvestmentField form={form} investments={referenceData.investments} />
               )}
 
-              <form.AppField name="date">
+              {mode === 'register' && (
+                <CashRegisterField form={form} cashRegisters={referenceData.cashRegisters} />
+              )}
+
+              {/* <form.AppField name="date">
                 {(field) => <field.Input label="Data" type="date" showError />}
-              </form.AppField>
+              </form.AppField> */}
 
               {/* PaymentMethodField — temporarily hidden, always CASH */}
               {/* <PaymentMethodField form={form} /> */}
             </div>
 
-            {/* Line items */}
-            <form.Field name="lineItems" mode="array">
-              {(lineItemsField) => (
-                <div className="space-y-4">
-                  <p className="text-foreground text-sm font-medium">Pozycje faktury</p>
-                  {lineItemsField.state.value.map((_, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-start gap-2">
-                        <div className="flex-1">
-                          <form.AppField name={`lineItems[${index}].description`}>
-                            {(field) => <field.Input placeholder="Opis pozycji" showError />}
-                          </form.AppField>
-                        </div>
-                        <div className="w-36">
-                          <form.AppField name={`lineItems[${index}].amount`}>
-                            {(field) => <field.Input placeholder="Kwota" type="number" showError />}
-                          </form.AppField>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleRemoveLineItem(index, lineItemsField.removeValue)}
-                          disabled={lineItemsField.state.value.length === 1}
-                          aria-label="Usuń pozycję"
-                        >
-                          <X className="size-4" />
-                        </Button>
-                      </div>
-                      <FileInput
-                        accept="image/*,application/pdf"
-                        onChange={(e) => handleFileChange(index, e)}
-                      />
-                      {mode === 'category' && (
-                        <div className="grid gap-2 md:grid-cols-2">
-                          <form.AppField name={`lineItems[${index}].category`}>
-                            {(field) => (
-                              <field.Select
-                                label="Kategoria"
-                                placeholder="Wybierz kategorię"
-                                showError
-                              >
-                                {referenceData.otherCategories.map((cat) => (
-                                  <SelectItem key={cat.id} value={String(cat.id)}>
-                                    {cat.name}
-                                  </SelectItem>
-                                ))}
-                              </field.Select>
-                            )}
-                          </form.AppField>
-                          <form.AppField name={`lineItems[${index}].note`}>
-                            {(field) => (
-                              <field.Input
-                                label="Notatka"
-                                placeholder="Notatka do pozycji"
-                                showError
-                              />
-                            )}
-                          </form.AppField>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      lineItemsField.pushValue({
-                        description: '',
-                        amount: '',
-                        category: '',
-                        note: '',
-                      })
-                    }
-                  >
-                    Dodaj pozycję
-                  </Button>
-                  <p className="text-foreground text-sm font-medium">Suma: {formatPLN(total)}</p>
-                </div>
-              )}
-            </form.Field>
+            {/* Register mode: single amount + description */}
+            {mode === 'register' && (
+              <>
+                <AmountField form={form} />
+                <DescriptionField form={form} placeholder="Opis zwrotu (opcjonalnie)" />
+              </>
+            )}
 
-            {/* Invoice note */}
-            <form.AppField name="invoiceNote">
-              {(field) => (
-                <field.Textarea
-                  label="Notatka do faktury"
-                  placeholder="Wymagane dla pozycji bez faktury"
-                  showError
-                />
-              )}
-            </form.AppField>
+            {/* Line items (investment + category modes only) */}
+            {mode !== 'register' && (
+              <form.Field name="lineItems" mode="array">
+                {(lineItemsField) => (
+                  <div className="space-y-4">
+                    <p className="text-foreground text-sm font-medium">Pozycje faktury</p>
+                    {lineItemsField.state.value.map((_, index) => (
+                      <div key={index} className="space-y-2">
+                        <div className="flex items-start gap-2">
+                          <div className="flex-1">
+                            <form.AppField name={`lineItems[${index}].description`}>
+                              {(field) => <field.Input placeholder="Opis pozycji" showError />}
+                            </form.AppField>
+                          </div>
+                          <div className="w-36">
+                            <form.AppField name={`lineItems[${index}].amount`}>
+                              {(field) => (
+                                <field.Input placeholder="Kwota" type="number" showError />
+                              )}
+                            </form.AppField>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRemoveLineItem(index, lineItemsField.removeValue)}
+                            disabled={lineItemsField.state.value.length === 1}
+                            aria-label="Usuń pozycję"
+                          >
+                            <X className="size-4" />
+                          </Button>
+                        </div>
+                        <FileInput
+                          accept="image/*,application/pdf"
+                          onChange={(e) => handleFileChange(index, e)}
+                        />
+                        {mode === 'category' && (
+                          <div className="grid gap-2 md:grid-cols-2">
+                            <form.AppField name={`lineItems[${index}].category`}>
+                              {(field) => (
+                                <field.Select
+                                  label="Kategoria"
+                                  placeholder="Wybierz kategorię"
+                                  showError
+                                >
+                                  {referenceData.otherCategories.map((cat) => (
+                                    <SelectItem key={cat.id} value={String(cat.id)}>
+                                      {cat.name}
+                                    </SelectItem>
+                                  ))}
+                                </field.Select>
+                              )}
+                            </form.AppField>
+                            <form.AppField name={`lineItems[${index}].note`}>
+                              {(field) => (
+                                <field.Input
+                                  label="Notatka"
+                                  placeholder="Notatka do pozycji"
+                                  showError
+                                />
+                              )}
+                            </form.AppField>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        lineItemsField.pushValue({
+                          description: '',
+                          amount: '',
+                          category: '',
+                          note: '',
+                        })
+                      }
+                    >
+                      Dodaj pozycję
+                    </Button>
+                    <p className="text-foreground text-sm font-medium">Suma: {formatPLN(total)}</p>
+                  </div>
+                )}
+              </form.Field>
+            )}
+
+            {/* Invoice note (investment + category modes only) */}
+            {mode !== 'register' && (
+              <form.AppField name="invoiceNote">
+                {(field) => (
+                  <field.Textarea
+                    label="Notatka do faktury"
+                    placeholder="Wymagane dla pozycji bez faktury"
+                    showError
+                  />
+                )}
+              </form.AppField>
+            )}
           </FieldGroup>
 
           {/* Summary */}
@@ -331,7 +379,11 @@ export function SettlementForm({ referenceData, className, onSuccess }: Settleme
           {/* Submit */}
           <footer className="mt-6">
             <Button disabled={isSubmitting} type="submit">
-              {isSubmitting ? 'Przetwarzanie...' : `Rozlicz (${lineItems.length} pozycji`}
+              {isSubmitting
+                ? 'Przetwarzanie...'
+                : mode === 'register'
+                  ? 'Zwrot do kasy'
+                  : `Rozlicz (${lineItems.length} pozycji`}
             </Button>
             {isInvalid && (
               <p className="text-destructive mt-2 text-sm font-medium">Formularz zawiera błędy</p>

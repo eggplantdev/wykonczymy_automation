@@ -6,7 +6,12 @@ import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { sql } from '@payloadcms/db-vercel-postgres'
 
-import { getDb, sumInvestmentCosts, sumInvestmentIncome } from '@/lib/db/sum-transfers'
+import {
+  getDb,
+  sumInvestmentCosts,
+  sumInvestmentIncome,
+  sumRegisterBalance,
+} from '@/lib/db/sum-transfers'
 import { revalidateCollections } from '@/lib/cache/revalidate'
 import { uploadInvoiceFile } from '@/lib/upload-invoice'
 import { perf, perfStart } from '@/lib/perf'
@@ -34,6 +39,42 @@ export async function createSettlementAction(
 
   try {
     const payload = await perf('settlement.getPayload', () => getPayload({ config }))
+
+    if (parsed.data.mode === 'register') {
+      // Register refund: single EMPLOYEE_EXPENSE with cashRegister
+      await perf('settlement.createRegisterRefund', () =>
+        payload.create({
+          collection: 'transactions',
+          data: {
+            description: parsed.data.description || 'Zwrot do kasy',
+            amount: parsed.data.amount!,
+            date: parsed.data.date,
+            type: 'EMPLOYEE_EXPENSE',
+            paymentMethod: parsed.data.paymentMethod,
+            cashRegister: parsed.data.cashRegister,
+            worker: parsed.data.worker,
+            createdBy: user.id,
+          },
+          context: { skipBalanceRecalc: true },
+        }),
+      )
+
+      // Recalculate register balance
+      await perf('settlement.recalcRegisterBalance', async () => {
+        const registerId = parsed.data.cashRegister!
+        const balance = await sumRegisterBalance(payload, registerId)
+        const db = await getDb(payload)
+        await db.execute(sql`
+          UPDATE cash_registers SET balance = ${balance}, updated_at = NOW() WHERE id = ${registerId}
+        `)
+      })
+
+      revalidateCollections(['transfers', 'cashRegisters'])
+      console.log(`[PERF] createSettlementAction TOTAL ${elapsed()}ms (register refund)`)
+      return { success: true }
+    }
+
+    // Investment/category modes: per-line-item EMPLOYEE_EXPENSE transactions
 
     // Upload invoice files in parallel
     const mediaIds = await perf(

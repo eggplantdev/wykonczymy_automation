@@ -24,6 +24,7 @@ export function WorkerField({ form, workers, filterByRole = true, listeners }: W
                 !filterByRole ||
                 !EXCLUDED_ROLES.includes(w.type as (typeof EXCLUDED_ROLES)[number]),
             )
+            .toSorted((a, b) => a.name.localeCompare(b.name, 'pl'))
             .map((w) => (
               <SelectItem key={w.id} value={String(w.id)}>
                 {w.name}
