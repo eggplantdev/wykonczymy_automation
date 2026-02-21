@@ -1,22 +1,19 @@
 'use client'
 
-import { useMemo, useState } from 'react'
 import { DataTable } from '@/components/ui/data-table/data-table'
 import { ColumnToggle } from '@/components/ui/column-toggle'
 import { ActiveFilterButton } from '@/components/ui/active-filter-button'
 import { investmentColumns, type InvestmentRowT } from '@/lib/tables/investments'
+import { useActiveFilter } from '@/hooks/use-active-filter'
+
+const isActive = (row: InvestmentRowT) => row.status === 'active'
 
 type InvestmentDataTablePropsT = {
   readonly data: readonly InvestmentRowT[]
 }
 
 export function InvestmentDataTable({ data }: InvestmentDataTablePropsT) {
-  const [showOnlyActive, setShowOnlyActive] = useState(true)
-
-  const filteredData = useMemo(
-    () => (showOnlyActive ? data.filter((row) => row.status === 'active') : data),
-    [data, showOnlyActive],
-  )
+  const { filteredData, showOnlyActive, setShowOnlyActive } = useActiveFilter(data, isActive)
 
   return (
     <DataTable

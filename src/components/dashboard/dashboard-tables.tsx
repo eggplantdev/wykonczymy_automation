@@ -1,26 +1,27 @@
 'use client'
 
-import { useMemo, useState } from 'react'
 import { DataTable } from '@/components/ui/data-table/data-table'
 import { ActiveFilterButton } from '@/components/ui/active-filter-button'
 import { cashRegisterColumns } from '@/lib/tables/cash-registers'
 import { userColumns } from '@/lib/tables/users'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { InvestmentDataTable } from '@/components/investments/investment-data-table'
+import { useActiveFilter } from '@/hooks/use-active-filter'
 import type { CashRegisterRowT } from '@/lib/tables/cash-registers'
 import type { InvestmentRowT } from '@/lib/tables/investments'
 import type { UserRowT } from '@/lib/tables/users'
+
+const isCashRegisterActive = (row: CashRegisterRowT) => row.active
+const isUserActive = (row: UserRowT) => row.active
 
 type CashRegistersTablePropsT = {
   readonly data: readonly CashRegisterRowT[]
 }
 
 export function CashRegistersTable({ data }: CashRegistersTablePropsT) {
-  const [showOnlyActive, setShowOnlyActive] = useState(true)
-
-  const filteredData = useMemo(
-    () => (showOnlyActive ? data.filter((r) => r.active) : data),
-    [data, showOnlyActive],
+  const { filteredData, showOnlyActive, setShowOnlyActive } = useActiveFilter(
+    data,
+    isCashRegisterActive,
   )
 
   return (
@@ -69,12 +70,7 @@ type UsersTablePropsT = {
 }
 
 function UsersTable({ data }: UsersTablePropsT) {
-  const [showOnlyActive, setShowOnlyActive] = useState(true)
-
-  const filteredData = useMemo(
-    () => (showOnlyActive ? data.filter((r) => r.active) : data),
-    [data, showOnlyActive],
-  )
+  const { filteredData, showOnlyActive, setShowOnlyActive } = useActiveFilter(data, isUserActive)
 
   return (
     <DataTable
