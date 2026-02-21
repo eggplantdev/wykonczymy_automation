@@ -36,7 +36,7 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
           <div>
             <CashRegistersTable data={visibleRegisters} />
             {isAdminOrOwner && (
-              <div className="mt-4 flex justify-end">
+              <div className="mt-2 flex justify-end">
                 <SyncBalancesButton />
               </div>
             )}

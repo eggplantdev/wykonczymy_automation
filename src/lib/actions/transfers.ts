@@ -4,8 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { revalidateCollections } from '@/lib/cache/revalidate'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
-import { isManagementRole } from '@/lib/auth/permissions'
+import { requireAuth } from '@/lib/auth/require-auth'
+import { MANAGEMENT_ROLES } from '@/lib/auth/permissions'
 import { getUserCashRegisterIds } from '@/lib/auth/get-user-cash-registers'
 import { isDepositType } from '@/lib/constants/transfers'
 import {
@@ -35,10 +35,9 @@ export async function createTransferAction(
   const elapsed = perfStart()
   console.log(`[PERF] createTransferAction START type=${data.type} amount=${data.amount}`)
 
-  const user = await perf('createTransfer.getCurrentUser', () => getCurrentUserJwt())
-  if (!user || !isManagementRole(user.role)) {
-    return { success: false, error: 'Brak uprawnień' }
-  }
+  const session = await perf('createTransfer.requireAuth', () => requireAuth(MANAGEMENT_ROLES))
+  if (!session.success) return session
+  const { user } = session
 
   // Validate
   const parsed = createTransferSchema.safeParse(data)
@@ -66,6 +65,7 @@ export async function createTransferAction(
       const currentBalance = await perf('createTransfer.balanceCheck', () =>
         sumRegisterBalance(payload, parsed.data.cashRegister!),
       )
+
       if (currentBalance < parsed.data.amount) {
         return {
           success: false,
@@ -111,10 +111,8 @@ export async function createTransferAction(
 }
 
 export async function recalculateBalancesAction(): Promise<RecalculateResultT> {
-  const user = await getCurrentUserJwt()
-  if (!user || (user.role !== 'ADMIN' && user.role !== 'OWNER')) {
-    return { success: false, error: 'Brak uprawnień' }
-  }
+  const session = await requireAuth(['ADMIN', 'OWNER'])
+  if (!session.success) return session
 
   const payload = await getPayload({ config })
   const results = {
@@ -169,10 +167,8 @@ export async function updateTransferNoteAction(
   transferId: number,
   note: string,
 ): Promise<ActionResultT> {
-  const user = await getCurrentUserJwt()
-  if (!user || !isManagementRole(user.role)) {
-    return { success: false, error: 'Brak uprawnień' }
-  }
+  const session = await requireAuth(MANAGEMENT_ROLES)
+  if (!session.success) return session
 
   try {
     const payload = await getPayload({ config })
@@ -193,10 +189,8 @@ export async function updateTransferInvoiceAction(
   transferId: number,
   invoiceFormData: FormData,
 ): Promise<ActionResultT> {
-  const user = await getCurrentUserJwt()
-  if (!user || !isManagementRole(user.role)) {
-    return { success: false, error: 'Brak uprawnień' }
-  }
+  const session = await requireAuth(MANAGEMENT_ROLES)
+  if (!session.success) return session
 
   const invoiceFile = invoiceFormData.get('invoice') as File | null
   if (!invoiceFile || invoiceFile.size === 0) {

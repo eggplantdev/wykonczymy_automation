@@ -1,9 +1,8 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Check } from 'lucide-react'
 import { DataTable } from '@/components/ui/data-table'
-import { Button } from '@/components/ui/button'
+import { ActiveFilterButton } from '@/components/ui/active-filter-button'
 import { cashRegisterColumns } from '@/lib/tables/cash-registers'
 import { userColumns } from '@/lib/tables/users'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
@@ -32,19 +31,12 @@ export function CashRegistersTable({ data }: CashRegistersTablePropsT) {
       getRowHref={(row) => `/kasa/${row.id}`}
       getRowClassName={(row) => (!row.active ? 'opacity-50' : '')}
       toolbar={() => (
-        <Button
-          variant="outline"
-          size="sm"
-          className={
-            showOnlyActive
-              ? 'border-green-600 text-green-600 hover:bg-green-600 hover:text-white'
-              : undefined
-          }
-          onClick={() => setShowOnlyActive((prev) => !prev)}
-        >
-          {showOnlyActive && <Check className="size-3.5" />}
-          {showOnlyActive ? 'Aktywne' : 'Wszystkie'}
-        </Button>
+        <ActiveFilterButton
+          isActive={showOnlyActive}
+          onChange={setShowOnlyActive}
+          activeLabel="Aktywne"
+          allLabel="Wszystkie"
+        />
       )}
     />
   )
@@ -92,19 +84,12 @@ function UsersTable({ data }: UsersTablePropsT) {
       getRowHref={(row) => `/uzytkownicy/${row.id}`}
       getRowClassName={(row) => (!row.active ? 'opacity-50' : '')}
       toolbar={() => (
-        <Button
-          variant="outline"
-          size="sm"
-          className={
-            showOnlyActive
-              ? 'border-green-600 text-green-600 hover:bg-green-600 hover:text-white'
-              : undefined
-          }
-          onClick={() => setShowOnlyActive((prev) => !prev)}
-        >
-          {showOnlyActive && <Check className="size-3.5" />}
-          {showOnlyActive ? 'Aktywni' : 'Wszyscy'}
-        </Button>
+        <ActiveFilterButton
+          isActive={showOnlyActive}
+          onChange={setShowOnlyActive}
+          activeLabel="Aktywni"
+          allLabel="Wszyscy"
+        />
       )}
     />
   )

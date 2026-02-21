@@ -2,8 +2,8 @@
 
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
-import { isManagementRole } from '@/lib/auth/permissions'
+import { requireAuth } from '@/lib/auth/require-auth'
+import { MANAGEMENT_ROLES } from '@/lib/auth/permissions'
 import { sql } from '@payloadcms/db-vercel-postgres'
 
 import { getDb, sumInvestmentCosts, sumInvestmentIncome } from '@/lib/db/sum-transfers'
@@ -24,10 +24,9 @@ export async function createSettlementAction(
   const lineCount = data.lineItems?.length ?? 0
   console.log(`[PERF] createSettlementAction START lineItems=${lineCount}`)
 
-  const user = await perf('settlement.getCurrentUser', () => getCurrentUserJwt())
-  if (!user || !isManagementRole(user.role)) {
-    return { success: false, error: 'Brak uprawnień' }
-  }
+  const session = await perf('settlement.requireAuth', () => requireAuth(MANAGEMENT_ROLES))
+  if (!session.success) return session
+  const { user } = session
 
   // Validate with server schema
   const parsed = createSettlementSchema.safeParse(data)
