@@ -17,7 +17,7 @@ type HelperFn = (type: string) => boolean
 const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
   isDepositType: {
     fn: isDepositType,
-    trueFor: ['INVESTOR_DEPOSIT', 'STAGE_SETTLEMENT', 'COMPANY_FUNDING', 'OTHER_DEPOSIT'],
+    trueFor: ['INVESTOR_DEPOSIT', 'COMPANY_FUNDING', 'OTHER_DEPOSIT'],
   },
   needsCashRegister: {
     fn: needsCashRegister,
@@ -26,11 +26,11 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
   },
   showsInvestment: {
     fn: showsInvestment,
-    trueFor: ['INVESTOR_DEPOSIT', 'STAGE_SETTLEMENT', 'INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE'],
+    trueFor: ['INVESTOR_DEPOSIT', 'INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE'],
   },
   requiresInvestment: {
     fn: requiresInvestment,
-    trueFor: ['INVESTOR_DEPOSIT', 'STAGE_SETTLEMENT', 'INVESTMENT_EXPENSE'],
+    trueFor: ['INVESTOR_DEPOSIT', 'INVESTMENT_EXPENSE'],
   },
   needsWorker: {
     fn: needsWorker,

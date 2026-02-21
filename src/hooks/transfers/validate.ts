@@ -37,7 +37,7 @@ export const validateTransfer: CollectionBeforeValidateHook = ({ data, req, oper
     d.cashRegister = null
   }
 
-  // investment — required for INVESTOR_DEPOSIT, STAGE_SETTLEMENT, INVESTMENT_EXPENSE
+  // investment — required for INVESTOR_DEPOSIT, INVESTMENT_EXPENSE
   if (requiresInvestment(type) && !d.investment) {
     errors.push('Investment is required for this transfer type.')
   }

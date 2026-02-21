@@ -29,7 +29,6 @@ const base = {
 
 const VALID_DATA: Record<string, Record<string, unknown>> = {
   INVESTOR_DEPOSIT: { ...base, type: 'INVESTOR_DEPOSIT', cashRegister: 1, investment: 1 },
-  STAGE_SETTLEMENT: { ...base, type: 'STAGE_SETTLEMENT', cashRegister: 1, investment: 1 },
   COMPANY_FUNDING: { ...base, type: 'COMPANY_FUNDING', cashRegister: 1 },
   OTHER_DEPOSIT: { ...base, type: 'OTHER_DEPOSIT', cashRegister: 1 },
   INVESTMENT_EXPENSE: { ...base, type: 'INVESTMENT_EXPENSE', cashRegister: 1, investment: 1 },
@@ -63,16 +62,6 @@ describe('validateTransfer — missing required fields', () => {
 
   it('INVESTOR_DEPOSIT without investment → throws', () => {
     const { investment, ...data } = VALID_DATA.INVESTOR_DEPOSIT
-    expect(() => validateTransfer(hookArgs(data))).toThrow(/[Ii]nvestment/)
-  })
-
-  it('STAGE_SETTLEMENT without cashRegister → throws', () => {
-    const { cashRegister, ...data } = VALID_DATA.STAGE_SETTLEMENT
-    expect(() => validateTransfer(hookArgs(data))).toThrow(/[Cc]ash register/)
-  })
-
-  it('STAGE_SETTLEMENT without investment → throws', () => {
-    const { investment, ...data } = VALID_DATA.STAGE_SETTLEMENT
     expect(() => validateTransfer(hookArgs(data))).toThrow(/[Ii]nvestment/)
   })
 
