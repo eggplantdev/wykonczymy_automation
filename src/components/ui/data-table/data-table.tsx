@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   useReactTable,
   getCoreRowModel,
@@ -30,7 +30,7 @@ type DataTablePropsT<TData> = {
   /** Makes the row clickable — navigates to the returned URL */
   readonly getRowHref?: (row: TData) => string | undefined
   readonly getRowClassName?: (row: TData) => string
-  readonly toolbar?: (table: Table<TData>) => React.ReactNode
+  readonly toolbar?: (table: Table<TData>, columnVisibility: VisibilityState) => React.ReactNode
   readonly className?: string
 }
 
@@ -48,9 +48,12 @@ export function DataTable<TData>({
   className,
 }: DataTablePropsT<TData>) {
   const [sorting, setSorting] = useState<SortingState>([])
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() =>
-    storageKey ? readVisibility(storageKey) : {},
-  )
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+
+  // Apply persisted visibility after hydration to avoid server/client mismatch
+  useEffect(() => {
+    if (storageKey) setColumnVisibility(readVisibility(storageKey))
+  }, [storageKey])
 
   const table = useReactTable({
     data: data as TData[],
@@ -81,10 +84,13 @@ export function DataTable<TData>({
   })
 
   const headerGroups = table.getHeaderGroups()
+  const visibleLeafColumns = table.getVisibleLeafColumns()
+  const visibleColCount = visibleLeafColumns.length
+  const visibleColumnIds = new Set(visibleLeafColumns.map((col) => col.id))
 
   return (
     <div className={cn('space-y-2', className)}>
-      {toolbar && <div className="flex items-center">{toolbar(table)}</div>}
+      {toolbar && <div className="flex items-center">{toolbar(table, columnVisibility)}</div>}
       <div className="border-border overflow-x-auto rounded-lg border">
         {enableVirtualization ? (
           <VirtualizedTableBody
@@ -93,7 +99,8 @@ export function DataTable<TData>({
             headerGroups={headerGroups}
             rows={rows}
             virtualizer={virtualizer}
-            colCount={columns.length}
+            colCount={visibleColCount}
+            visibleColumnIds={visibleColumnIds}
             emptyMessage={emptyMessage}
             getRowHref={getRowHref}
             getRowClassName={getRowClassName}
@@ -103,12 +110,13 @@ export function DataTable<TData>({
             <TableHeader headerGroups={headerGroups} />
             <tbody>
               {rows.length === 0 ? (
-                <EmptyRow colSpan={columns.length} message={emptyMessage} />
+                <EmptyRow colSpan={visibleColCount} message={emptyMessage} />
               ) : (
                 rows.map((row) => (
                   <DataTableRow
                     key={row.id}
                     row={row}
+                    visibleColumnIds={visibleColumnIds}
                     getRowHref={getRowHref}
                     getRowClassName={getRowClassName}
                   />

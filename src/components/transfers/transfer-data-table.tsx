@@ -44,7 +44,7 @@ export function TransferDataTable({
         columns={columns}
         emptyMessage="Brak transferów"
         storageKey="transfers"
-        toolbar={(table) => <ColumnToggle table={table} />}
+        toolbar={(table, cv) => <ColumnToggle table={table} columnVisibility={cv} />}
       />
       <PaginationFooter paginationMeta={paginationMeta} baseUrl={baseUrl} />
     </div>

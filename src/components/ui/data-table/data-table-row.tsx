@@ -12,12 +12,14 @@ import { cn } from '@/lib/cn'
 
 type DataTableRowPropsT<TData> = {
   readonly row: Row<TData>
+  readonly visibleColumnIds: ReadonlySet<string>
   readonly getRowHref?: (row: TData) => string | undefined
   readonly getRowClassName?: (row: TData) => string
 }
 
 export function DataTableRow<TData>({
   row,
+  visibleColumnIds,
   getRowHref,
   getRowClassName,
 }: DataTableRowPropsT<TData>) {
@@ -48,11 +50,14 @@ export function DataTableRow<TData>({
       )}
       onClick={handleClick}
     >
-      {row.getVisibleCells().map((cell) => (
-        <td key={cell.id} className="text-foreground px-4 py-3">
-          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-        </td>
-      ))}
+      {row
+        .getAllCells()
+        .filter((cell) => visibleColumnIds.has(cell.column.id))
+        .map((cell) => (
+          <td key={cell.id} className="text-foreground px-4 py-3">
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </td>
+        ))}
     </tr>
   )
 }

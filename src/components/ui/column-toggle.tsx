@@ -1,7 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import { type Table } from '@tanstack/react-table'
+import { type Table, type VisibilityState } from '@tanstack/react-table'
 import { CheckIcon, Settings2 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -16,30 +15,15 @@ import { cn } from '@/lib/cn'
 
 type ColumnTogglePropsT<TData> = {
   readonly table: Table<TData>
+  readonly columnVisibility: VisibilityState
 }
 
-export function ColumnToggle<TData>({ table }: ColumnTogglePropsT<TData>) {
+export function ColumnToggle<TData>({ table, columnVisibility }: ColumnTogglePropsT<TData>) {
   const toggleableColumns = table
     .getAllColumns()
     .filter((col) => col.getCanHide() && col.columnDef.meta?.canHide !== false)
 
-  const [visibility, setVisibility] = useState<Record<string, boolean>>(() => {
-    const state: Record<string, boolean> = {}
-    for (const col of toggleableColumns) {
-      state[col.id] = col.getIsVisible()
-    }
-    return state
-  })
-
   if (toggleableColumns.length === 0) return null
-
-  function handleToggle(colId: string) {
-    const col = table.getColumn(colId)
-    if (!col) return
-    const next = !col.getIsVisible()
-    col.toggleVisibility(next)
-    setVisibility((prev) => ({ ...prev, [colId]: next }))
-  }
 
   return (
     <DropdownMenu>
@@ -56,9 +40,11 @@ export function ColumnToggle<TData>({ table }: ColumnTogglePropsT<TData>) {
           <DropdownMenuItem
             key={col.id}
             onSelect={(e) => e.preventDefault()}
-            onClick={() => handleToggle(col.id)}
+            onClick={() => col.toggleVisibility()}
           >
-            <CheckIcon className={cn('size-4', !(visibility[col.id] ?? true) && 'opacity-0')} />
+            <CheckIcon
+              className={cn('size-4', columnVisibility[col.id] === false && 'opacity-0')}
+            />
             {col.columnDef.meta?.label ?? col.id}
           </DropdownMenuItem>
         ))}
