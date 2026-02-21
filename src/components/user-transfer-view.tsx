@@ -53,7 +53,14 @@ export async function UserTransferView({
       {showInfo && (
         <InfoList
           items={[
-            { label: 'Email', value: userDetail.email },
+            {
+              label: 'Email',
+              value: (
+                <a href={`mailto:${userDetail.email}`} className="text-primary hover:underline">
+                  {userDetail.email}
+                </a>
+              ),
+            },
             { label: 'Rola', value: ROLE_LABELS[userDetail.role as RoleT]?.pl ?? userDetail.role },
           ]}
         />

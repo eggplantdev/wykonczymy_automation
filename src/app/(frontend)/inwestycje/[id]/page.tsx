@@ -29,8 +29,22 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
 
   const infoFields = [
     { label: 'Adres', value: investment.address },
-    { label: 'Telefon', value: investment.phone },
-    { label: 'Email', value: investment.email },
+    {
+      label: 'Telefon',
+      value: investment.phone ? (
+        <a href={`tel:${investment.phone}`} className="text-primary hover:underline">
+          {investment.phone}
+        </a>
+      ) : undefined,
+    },
+    {
+      label: 'Email',
+      value: investment.email ? (
+        <a href={`mailto:${investment.email}`} className="text-primary hover:underline">
+          {investment.email}
+        </a>
+      ) : undefined,
+    },
     { label: 'Osoba kontaktowa', value: investment.contactPerson },
     { label: 'Notatki', value: investment.notes },
     { label: 'Status', value: investment.status === 'active' ? 'Aktywna' : 'Zakończona' },
