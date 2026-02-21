@@ -126,7 +126,7 @@ export function DepositForm({ referenceData, userCashRegisterIds, onSuccess }: D
             userCashRegisterIds={userCashRegisterIds}
           />
 
-          {/* Conditional: Investment — for INVESTOR_DEPOSIT and STAGE_SETTLEMENT */}
+          {/* Conditional: Investment — for INVESTOR_DEPOSIT */}
           {requiresInvestment(currentType) && (
             <InvestmentField form={form} investments={referenceData.investments} />
           )}

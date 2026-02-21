@@ -3,7 +3,7 @@ import { PAYMENT_METHODS } from '@/lib/constants/transfers'
 import { refineAmount, refineDate } from '@/lib/validation-utils'
 
 // Deposit types allowed in the UI
-const DEPOSIT_TYPES_ENUM = ['INVESTOR_DEPOSIT', 'STAGE_SETTLEMENT', 'COMPANY_FUNDING'] as const
+const DEPOSIT_TYPES_ENUM = ['INVESTOR_DEPOSIT', 'COMPANY_FUNDING', 'OTHER_DEPOSIT'] as const
 
 export const createDepositSchema = z
   .object({
@@ -16,10 +16,7 @@ export const createDepositSchema = z
     investment: z.number().optional(),
   })
   .superRefine((data, ctx) => {
-    if (
-      (data.type === 'INVESTOR_DEPOSIT' || data.type === 'STAGE_SETTLEMENT') &&
-      !data.investment
-    ) {
+    if (data.type === 'INVESTOR_DEPOSIT' && !data.investment) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Inwestycja jest wymagana dla tego typu wpłaty',
@@ -56,10 +53,7 @@ export const depositFormSchema = z
       })
     }
 
-    if (
-      (data.type === 'INVESTOR_DEPOSIT' || data.type === 'STAGE_SETTLEMENT') &&
-      !data.investment
-    ) {
+    if (data.type === 'INVESTOR_DEPOSIT' && !data.investment) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Inwestycja jest wymagana dla tego typu wpłaty',

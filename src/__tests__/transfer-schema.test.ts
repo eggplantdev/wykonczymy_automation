@@ -16,7 +16,6 @@ const base = {
 /** Valid server payloads for each transfer type. */
 const VALID_SERVER_PAYLOADS: Record<string, Record<string, unknown>> = {
   INVESTOR_DEPOSIT: { ...base, type: 'INVESTOR_DEPOSIT', cashRegister: 1, investment: 1 },
-  STAGE_SETTLEMENT: { ...base, type: 'STAGE_SETTLEMENT', cashRegister: 1, investment: 1 },
   COMPANY_FUNDING: { ...base, type: 'COMPANY_FUNDING', cashRegister: 1 },
   OTHER_DEPOSIT: { ...base, type: 'OTHER_DEPOSIT', cashRegister: 1 },
   INVESTMENT_EXPENSE: { ...base, type: 'INVESTMENT_EXPENSE', cashRegister: 1, investment: 1 },
@@ -88,20 +87,6 @@ describe('createTransferSchema — missing required fields', () => {
 
   it('INVESTOR_DEPOSIT without investment → error on investment', () => {
     const { investment, ...rest } = VALID_SERVER_PAYLOADS.INVESTOR_DEPOSIT
-    const result = createTransferSchema.safeParse(rest)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('investment')
-  })
-
-  it('STAGE_SETTLEMENT without cashRegister → error on cashRegister', () => {
-    const { cashRegister, ...rest } = VALID_SERVER_PAYLOADS.STAGE_SETTLEMENT
-    const result = createTransferSchema.safeParse(rest)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('cashRegister')
-  })
-
-  it('STAGE_SETTLEMENT without investment → error on investment', () => {
-    const { investment, ...rest } = VALID_SERVER_PAYLOADS.STAGE_SETTLEMENT
     const result = createTransferSchema.safeParse(rest)
     expect(result.success).toBe(false)
     expect(errorPaths(result)).toContain('investment')

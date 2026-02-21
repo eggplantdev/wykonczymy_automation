@@ -34,7 +34,6 @@ const showCashRegister = (data: Record<string, unknown>) => data?.type !== 'EMPL
 /** Show investment field for types that use it (required or optional) */
 const showInvestment = (data: Record<string, unknown>) =>
   data?.type === 'INVESTOR_DEPOSIT' ||
-  data?.type === 'STAGE_SETTLEMENT' ||
   data?.type === 'INVESTMENT_EXPENSE' ||
   data?.type === 'EMPLOYEE_EXPENSE'
 
