@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { redirect, notFound } from 'next/navigation'
-import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
-import { isManagementRole } from '@/lib/auth/roles'
+import { requireAuth } from '@/lib/auth/require-auth'
+import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/pagination'
 import { getCashRegister } from '@/lib/queries/cash-registers'
 import { buildTransferFilters } from '@/lib/queries/transfers'
@@ -15,9 +15,9 @@ import { StatCard } from '@/components/ui/stat-card'
 import type { DynamicPagePropsT } from '@/types/page'
 
 export default async function CashRegisterDetailPage({ params, searchParams }: DynamicPagePropsT) {
-  const user = await getCurrentUserJwt()
-  if (!user) redirect('/zaloguj')
-  if (!isManagementRole(user.role)) redirect('/')
+  const session = await requireAuth(MANAGEMENT_ROLES)
+  if (!session.success) redirect('/zaloguj')
+  const { user } = session
 
   const { id } = await params
   const sp = await searchParams
