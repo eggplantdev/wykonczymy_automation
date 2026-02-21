@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
+import { EmptyState } from '@/components/ui/empty-state'
 
 export default function Error({
   error,
@@ -16,11 +17,10 @@ export default function Error({
   }, [error])
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-4 p-8">
-      <h2 className="text-foreground text-lg font-semibold">Coś poszło nie tak</h2>
+    <EmptyState title="Coś poszło nie tak">
       <Button variant="outline" onClick={() => reset()}>
         Spróbuj ponownie
       </Button>
-    </div>
+    </EmptyState>
   )
 }
