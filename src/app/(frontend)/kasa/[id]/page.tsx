@@ -1,9 +1,10 @@
 import { Suspense } from 'react'
 import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
+import { isAdminOrOwnerRole, MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/pagination'
 import { getCashRegister } from '@/lib/queries/cash-registers'
+import { getRelationName } from '@/lib/get-relation-name'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { formatPLN } from '@/lib/format-currency'
 import { TransferTableServer } from '@/components/transfers/transfer-table-server'
@@ -26,35 +27,33 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
   const register = await getCashRegister(id)
   if (!register) notFound()
 
-  // Block MANAGER from viewing MAIN registers
-  if (user.role === 'MANAGER' && register.type === 'MAIN') notFound()
+  // only admin or owner can view MAIN registers
+  if (!isAdminOrOwnerRole(user.role) && register.type === 'MAIN') notFound()
 
+  const registerId = Number(id)
   const urlFilters = buildTransferFilters(sp, { id: user.id, isManager: true })
-  const transferWhere = { ...urlFilters, cashRegister: { equals: id } }
+  const transferWhere = { ...urlFilters, cashRegister: { equals: registerId } }
 
-  const ownerName =
-    typeof register.owner === 'object' && register.owner !== null ? register.owner.name : '—'
+  const ownerName = getRelationName(register.owner)
 
   return (
-    <PageWrapper title={register.name} backHref="/" backLabel="Kokpit">
-      <InfoList items={[{ label: 'Właściciel', value: ownerName }]} className="mt-6" />
-
-      <StatCard label="Saldo" value={formatPLN(register.balance ?? 0)} className="mt-6" />
+    <PageWrapper title={register.name} backHref="/" backLabel="Kokpit" className={`grid gap-6`}>
+      <InfoList items={[{ label: 'Właściciel', value: ownerName }]} />
+      <StatCard label="Saldo" value={formatPLN(register.balance ?? 0)} />
 
       {/* Transactions table */}
-      <CollapsibleSection title="Transfery" className="mt-8">
-        <div className="mt-4">
-          <Suspense fallback={<TransferTableSkeleton />}>
-            <TransferTableServer
-              where={transferWhere}
-              page={page}
-              limit={limit}
-              excludeColumns={['cashRegister']}
-              baseUrl={`/kasa/${id}`}
-              filters={{}}
-            />
-          </Suspense>
-        </div>
+      <CollapsibleSection title="Transfery">
+        <Suspense fallback={<TransferTableSkeleton />}>
+          <TransferTableServer
+            where={transferWhere}
+            page={page}
+            limit={limit}
+            excludeColumns={['cashRegister']}
+            baseUrl={`/kasa/${id}`}
+            filters={{}}
+            className="mt-4"
+          />
+        </Suspense>
       </CollapsibleSection>
     </PageWrapper>
   )

@@ -2,6 +2,7 @@ import { cacheLife, cacheTag } from 'next/cache'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { CACHE_TAGS, entityTag } from '@/lib/cache/tags'
+import { getRelationName } from '@/lib/get-relation-name'
 import { perfStart } from '@/lib/perf'
 import type { CashRegisterRowT } from '@/lib/tables/cash-registers'
 
@@ -59,16 +60,9 @@ export function mapCashRegisterRows(
     id: cr.id as number,
     name: cr.name as string,
     ownerName:
-      typeof cr.owner === 'number' ? (workersMap.get(cr.owner) ?? '—') : getOwnerName(cr.owner),
+      typeof cr.owner === 'number' ? (workersMap.get(cr.owner) ?? '—') : getRelationName(cr.owner),
     balance: (cr.balance ?? 0) as number,
     type: (cr.type as 'MAIN' | 'AUXILIARY') ?? 'AUXILIARY',
     active: (cr.active ?? true) as boolean,
   }))
-}
-
-function getOwnerName(field: unknown): string {
-  if (typeof field === 'object' && field !== null && 'name' in field) {
-    return (field as { name: string }).name
-  }
-  return '—'
 }
