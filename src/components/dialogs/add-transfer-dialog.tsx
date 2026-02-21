@@ -19,7 +19,7 @@ export function AddTransferDialog({ referenceData, userCashRegisterIds }: AddTra
       trigger={
         <Button variant="default" size="sm" className="gap-2">
           <Plus className="size-4" />
-          <span className="hidden lg:block">Transfer</span>
+          <span className="hidden lg:block">Transakcja</span>
         </Button>
       }
       title="Nowy transfer"

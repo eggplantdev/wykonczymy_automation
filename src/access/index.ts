@@ -39,7 +39,7 @@ export const isAdminOrOwnerOrManager: Access = ({ req: { user } }) =>
 
 export const isAuthenticated: Access = ({ req: { user } }) => Boolean(user)
 
-export const isAdminOrSelf: Access = ({ req: { user }, id }) => {
+export const isAdminOrOwnerOrSelf: Access = ({ req: { user }, id }) => {
   if (hasAnyRole(user, 'ADMIN', 'OWNER')) return true
   return user?.id === id
 }

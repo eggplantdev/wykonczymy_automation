@@ -43,7 +43,7 @@ export function FormDialog({
               <DialogTitle>{title}</DialogTitle>
               <DialogDescription>{description}</DialogDescription>
             </DialogHeader>
-            <div className="pr-1">{children(handleSuccess)}</div>
+            <div className="mt-2 pr-1">{children(handleSuccess)}</div>
             {showKeepOpen && (
               <label className="flex cursor-pointer items-center gap-2 py-4 text-sm select-none">
                 <Checkbox
