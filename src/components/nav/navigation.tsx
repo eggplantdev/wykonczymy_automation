@@ -1,7 +1,7 @@
 import type { RoleT } from '@/lib/auth/roles'
 import { isManagementRole } from '@/lib/auth/roles'
-import { getUserCashRegisterIds } from '@/lib/auth/get-user-cash-registers'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
+import type { ReferenceDataT } from '@/types/reference-data'
 import { TopNav } from '@/components/nav/top-nav'
 
 type NavigationPropsT = {
@@ -16,10 +16,11 @@ type NavigationPropsT = {
 export async function Navigation({ user }: NavigationPropsT) {
   const isManager = isManagementRole(user.role)
 
-  const [referenceData, userRegisterIds] = await Promise.all([
-    isManager ? fetchReferenceData() : undefined,
-    getUserCashRegisterIds(user.id, user.role),
-  ])
+  let referenceData: ReferenceDataT | undefined
+  if (isManager) {
+    const base = await fetchReferenceData()
+    referenceData = { ...base, currentUserId: user.id, currentUserRole: user.role }
+  }
 
-  return <TopNav referenceData={referenceData} userCashRegisterIds={userRegisterIds} />
+  return <TopNav referenceData={referenceData} />
 }

@@ -8,11 +8,13 @@ import { SettlementForm } from '@/components/forms/settlement-form/settlement-fo
 import { MANAGEMENT_ROLES, RoleT } from '@/lib/auth/roles'
 
 type AddSettlementDialogPropsT = {
-  referenceData: ReferenceDataT | undefined
+  referenceData: ReferenceDataT
 }
 
 export function AddSettlementDialog({ referenceData }: AddSettlementDialogPropsT) {
-  if (!referenceData) return <></>
+  const defaultCashRegisterId = referenceData.workers.find(
+    (w) => w.id === referenceData.currentUserId,
+  )?.defaultCashRegisterId
 
   // Settlement form expects `users` — filter out admins/owners from worker dropdown
   const settlementReferenceData = {
@@ -20,6 +22,7 @@ export function AddSettlementDialog({ referenceData }: AddSettlementDialogPropsT
     investments: referenceData.investments,
     otherCategories: referenceData.otherCategories,
     cashRegisters: referenceData.cashRegisters.filter((cr) => cr.type !== 'VIRTUAL'),
+    defaultCashRegisterId,
   }
 
   return (

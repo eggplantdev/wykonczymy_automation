@@ -7,12 +7,10 @@ import type { ReferenceDataT } from '@/types/reference-data'
 import { DepositForm } from '@/components/forms/deposit-form/deposit-form'
 
 type AddDepositDialogPropsT = {
-  referenceData: ReferenceDataT | undefined
+  referenceData: ReferenceDataT
 }
 
 export function AddDepositDialog({ referenceData }: AddDepositDialogPropsT) {
-  if (!referenceData) return <></>
-
   return (
     <FormDialog
       trigger={

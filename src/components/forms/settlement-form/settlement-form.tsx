@@ -33,6 +33,7 @@ type SettlementReferenceDataT = {
   investments: ReferenceItemT[]
   otherCategories: ReferenceItemT[]
   cashRegisters: ReferenceItemT[]
+  defaultCashRegisterId?: number
 }
 
 type SettlementFormPropsT = {
@@ -67,7 +68,9 @@ export function SettlementForm({ referenceData, className, onSuccess }: Settleme
       worker: '',
       mode: 'investment' as const,
       investment: '',
-      cashRegister: '',
+      cashRegister: referenceData.defaultCashRegisterId
+        ? String(referenceData.defaultCashRegisterId)
+        : '',
       amount: '',
       description: '',
       date: today(),

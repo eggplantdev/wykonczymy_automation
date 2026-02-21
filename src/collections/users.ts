@@ -69,5 +69,11 @@ export const Users: CollectionConfig = {
         update: isAdminOrOwnerField,
       },
     },
+    {
+      name: 'defaultCashRegister',
+      type: 'relationship',
+      relationTo: 'cash-registers',
+      label: { en: 'Default Cash Register', pl: 'Domyślna kasa' },
+    },
   ],
 }

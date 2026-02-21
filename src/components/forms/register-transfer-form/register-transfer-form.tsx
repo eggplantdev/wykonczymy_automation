@@ -8,11 +8,11 @@ import { createTransferAction } from '@/lib/actions/transfers'
 import { registerTransferFormSchema } from '@/components/forms/register-transfer-form/register-transfer-schema'
 import type { CreateTransferFormT } from '@/components/forms/transfer-form/transfer-schema'
 import type { ReferenceDataT } from '@/types/reference-data'
+import { getDefaultCashRegister, getUserCashRegisterIds } from '@/lib/utils/default-cash-register'
 import { today } from '@/lib/date-utils'
 import {
   AmountField,
   CashRegisterField,
-  DateField,
   DescriptionField,
   // PaymentMethodField,
 } from '@/components/forms/form-fields'
@@ -21,7 +21,6 @@ import FormFooter from '../form-components/form-footer'
 
 type RegisterTransferFormPropsT = {
   referenceData: ReferenceDataT
-  userCashRegisterIds?: number[]
   onSuccess: () => void
 }
 
@@ -34,18 +33,15 @@ type FormValuesT = {
   targetRegister: string
 }
 
-export function RegisterTransferForm({
-  referenceData,
-  userCashRegisterIds,
-  onSuccess,
-}: RegisterTransferFormPropsT) {
+export function RegisterTransferForm({ referenceData, onSuccess }: RegisterTransferFormPropsT) {
+  const userCashRegisterIds = getUserCashRegisterIds(referenceData)
   const form = useAppForm({
     defaultValues: {
       description: '',
       amount: '',
       date: today(),
       paymentMethod: 'CASH',
-      cashRegister: userCashRegisterIds?.length === 1 ? String(userCashRegisterIds[0]) : '',
+      cashRegister: getDefaultCashRegister(referenceData),
       targetRegister: '',
     } as FormValuesT,
     validators: {

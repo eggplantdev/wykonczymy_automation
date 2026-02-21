@@ -42,7 +42,7 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-1">
             <StatCard label="Saldo kas" value={formatPLN(totalBalance)} />
             <StatCard label="Aktywne inwestycje" value={String(activeInvestments.length)} />
-            <StatCard label="Transfery (30 dni)" value={String(recentCount)} />
+            <StatCard label="Trasnsakcje (30 dni)" value={String(recentCount)} />
           </div>
         </div>
       </CollapsibleSection>
@@ -52,7 +52,7 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
 
       {/* Recent transactions */}
       <TransfersSection
-        title="Ostatnie transfery"
+        title="Ostatnie transakcje"
         className="mt-8"
         where={buildTransferFilters(searchParams, { id: 0, isManager: true })}
         page={page}
