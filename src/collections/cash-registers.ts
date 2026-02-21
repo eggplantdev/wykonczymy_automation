@@ -1,6 +1,12 @@
-import type { CollectionConfig } from 'payload'
-import { isAdminOrOwner, isAdminOrOwnerField, isAdminOrOwnerOrManager } from '@/access'
+import type { CollectionConfig, CollectionBeforeValidateHook } from 'payload'
+import { isAdminOrOwner, isAdminOrOwnerField, isAdminOrOwnerOrManager, isManager } from '@/access'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
+
+/** Managers can only create AUXILIARY registers — force the type. */
+const enforceAuxiliaryForManager: CollectionBeforeValidateHook = ({ data, req }) => {
+  if (isManager({ req })) return { ...data, type: 'AUXILIARY' }
+  return data
+}
 
 export const CashRegisters: CollectionConfig = {
   slug: 'cash-registers',
@@ -14,13 +20,14 @@ export const CashRegisters: CollectionConfig = {
     group: { en: 'Finance', pl: 'Finanse' },
   },
   hooks: {
+    beforeValidate: [enforceAuxiliaryForManager],
     afterChange: [makeRevalidateAfterChange('cashRegisters')],
     afterDelete: [makeRevalidateAfterDelete('cashRegisters')],
   },
   access: {
-    // ADMIN/OWNER: full CRUD. MANAGER: read all.
+    // ADMIN/OWNER: full CRUD. MANAGER: create auxiliary only, read all.
     read: isAdminOrOwnerOrManager,
-    create: isAdminOrOwner,
+    create: isAdminOrOwnerOrManager,
     update: isAdminOrOwner,
     delete: () => false,
   },
