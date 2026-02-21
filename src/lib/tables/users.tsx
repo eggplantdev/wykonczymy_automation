@@ -25,6 +25,14 @@ export const userColumns = [
   col.accessor('email', {
     id: 'email',
     header: 'Email',
+    cell: (info) => {
+      const value = info.getValue()
+      return (
+        <a href={`mailto:${value}`} className="text-primary hover:underline">
+          {value}
+        </a>
+      )
+    },
   }),
   col.accessor('role', {
     id: 'role',

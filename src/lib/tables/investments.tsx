@@ -54,13 +54,31 @@ export const investmentColumns = [
     id: 'phone',
     header: 'Telefon',
     meta: { label: 'Telefon' },
-    cell: (info) => info.getValue() || '—',
+    cell: (info) => {
+      const value = info.getValue()
+      return value ? (
+        <a href={`tel:${value}`} className="text-primary hover:underline">
+          {value}
+        </a>
+      ) : (
+        '—'
+      )
+    },
   }),
   col.accessor('email', {
     id: 'email',
     header: 'Email',
     meta: { label: 'Email' },
-    cell: (info) => info.getValue() || '—',
+    cell: (info) => {
+      const value = info.getValue()
+      return value ? (
+        <a href={`mailto:${value}`} className="text-primary hover:underline">
+          {value}
+        </a>
+      ) : (
+        '—'
+      )
+    },
   }),
   col.accessor('contactPerson', {
     id: 'contactPerson',

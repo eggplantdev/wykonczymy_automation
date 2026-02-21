@@ -51,7 +51,7 @@ type DashboardTablesPropsT = {
 export function DashboardTables({ investments, users }: DashboardTablesPropsT) {
   return (
     <div className="mt-8 space-y-8">
-      <CollapsibleSection title="Pra">
+      <CollapsibleSection title="Pracownicy">
         <div className="mt-4">
           <UsersTable data={users} />
         </div>
@@ -76,7 +76,7 @@ function UsersTable({ data }: UsersTablePropsT) {
     <DataTable
       data={filteredData}
       columns={userColumns}
-      emptyMessage="Brak współpracowników"
+      emptyMessage="Brak pracownikiów"
       getRowHref={(row) => `/uzytkownicy/${row.id}`}
       getRowClassName={(row) => (!row.active ? 'opacity-50' : '')}
       toolbar={() => (
