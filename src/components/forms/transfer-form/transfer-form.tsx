@@ -7,7 +7,7 @@ import { FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
 import { toastMessage } from '@/components/toasts'
 import {
-  TRANSFER_TYPES,
+  TRANSACTION_TRANSFER_TYPES,
   TRANSFER_TYPE_LABELS,
   isDepositType,
   needsCashRegister,
@@ -160,13 +160,11 @@ export function TransferForm({
           <form.AppField name="type" listeners={{ onChange: resetConditionalFields }}>
             {(field) => (
               <field.Select label="Typ transferu" showError>
-                {TRANSFER_TYPES.filter((t) => !isDepositType(t) && t !== 'REGISTER_TRANSFER').map(
-                  (t) => (
-                    <SelectItem key={t} value={t}>
-                      {TRANSFER_TYPE_LABELS[t]}
-                    </SelectItem>
-                  ),
-                )}
+                {TRANSACTION_TRANSFER_TYPES.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {TRANSFER_TYPE_LABELS[t]}
+                  </SelectItem>
+                ))}
               </field.Select>
             )}
           </form.AppField>

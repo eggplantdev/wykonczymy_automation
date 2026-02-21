@@ -5,6 +5,7 @@ export const TRANSFER_TYPES = [
   'INVESTMENT_EXPENSE',
   'ACCOUNT_FUNDING',
   'EMPLOYEE_EXPENSE',
+  'PAYOUT',
   'REGISTER_TRANSFER',
   'OTHER',
 ] as const
@@ -17,6 +18,7 @@ export const TRANSFER_TYPE_LABELS: Record<TransferTypeT, string> = {
   INVESTMENT_EXPENSE: 'Wydatek inwestycyjny',
   ACCOUNT_FUNDING: 'Zasilenie konta współpracownika',
   EMPLOYEE_EXPENSE: 'Wydatek pracowniczy',
+  PAYOUT: 'Wypłata',
   REGISTER_TRANSFER: 'Transfer między kasami',
   OTHER: 'Inne',
 }
@@ -32,6 +34,14 @@ export const DEPOSIT_UI_TYPES: TransferTypeT[] = [
   'INVESTOR_DEPOSIT',
   'COMPANY_FUNDING',
   'OTHER_DEPOSIT',
+]
+
+// Transfer types visible in the transaction transfer dialog
+export const TRANSACTION_TRANSFER_TYPES: TransferTypeT[] = [
+  'INVESTMENT_EXPENSE',
+  'ACCOUNT_FUNDING',
+  'PAYOUT',
+  'OTHER',
 ]
 
 export const PAYMENT_METHODS = [

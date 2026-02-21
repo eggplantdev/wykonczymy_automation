@@ -27,6 +27,7 @@ const VALID_SERVER_PAYLOADS: Record<string, Record<string, unknown>> = {
     cashRegister: 1,
     targetRegister: 2,
   },
+  PAYOUT: { ...base, type: 'PAYOUT', cashRegister: 1 },
   OTHER: { ...base, type: 'OTHER', cashRegister: 1, otherCategory: 1 },
 }
 
@@ -165,6 +166,13 @@ describe('createTransferSchema — missing required fields', () => {
     expect(errorPaths(result)).toContain('cashRegister')
   })
 
+  it('PAYOUT without cashRegister → error on cashRegister', () => {
+    const { cashRegister, ...rest } = VALID_SERVER_PAYLOADS.PAYOUT
+    const result = createTransferSchema.safeParse(rest)
+    expect(result.success).toBe(false)
+    expect(errorPaths(result)).toContain('cashRegister')
+  })
+
   it('OTHER without otherCategory → error on otherCategory', () => {
     const { otherCategory, ...rest } = VALID_SERVER_PAYLOADS.OTHER
     const result = createTransferSchema.safeParse(rest)
@@ -295,6 +303,14 @@ describe('transferFormSchema — missing required fields', () => {
     const result = transferFormSchema.safeParse(payload)
     expect(result.success).toBe(false)
     expect(errorPaths(result)).toContain('targetRegister')
+  })
+
+  it('PAYOUT without cashRegister → error on cashRegister', () => {
+    const payload = toClientPayload(VALID_SERVER_PAYLOADS.PAYOUT)
+    payload.cashRegister = ''
+    const result = transferFormSchema.safeParse(payload)
+    expect(result.success).toBe(false)
+    expect(errorPaths(result)).toContain('cashRegister')
   })
 
   it('OTHER without otherCategory → error on otherCategory', () => {

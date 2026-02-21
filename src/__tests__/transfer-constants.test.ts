@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import {
   TRANSFER_TYPES,
+  TRANSACTION_TRANSFER_TYPES,
+  DEPOSIT_TYPES,
   isDepositType,
   needsCashRegister,
   showsInvestment,
@@ -57,6 +59,37 @@ describe('transfer constants — helper truth table', () => {
       }
     })
   }
+})
+
+describe('TRANSACTION_TRANSFER_TYPES', () => {
+  it('contains exactly the expected types', () => {
+    expect(TRANSACTION_TRANSFER_TYPES).toEqual([
+      'INVESTMENT_EXPENSE',
+      'ACCOUNT_FUNDING',
+      'PAYOUT',
+      'OTHER',
+    ])
+  })
+
+  it('excludes all deposit types', () => {
+    for (const depositType of DEPOSIT_TYPES) {
+      expect(TRANSACTION_TRANSFER_TYPES).not.toContain(depositType)
+    }
+  })
+
+  it('excludes REGISTER_TRANSFER', () => {
+    expect(TRANSACTION_TRANSFER_TYPES).not.toContain('REGISTER_TRANSFER')
+  })
+
+  it('excludes EMPLOYEE_EXPENSE', () => {
+    expect(TRANSACTION_TRANSFER_TYPES).not.toContain('EMPLOYEE_EXPENSE')
+  })
+
+  it('every entry is a valid TransferTypeT', () => {
+    for (const t of TRANSACTION_TRANSFER_TYPES) {
+      expect(TRANSFER_TYPES).toContain(t)
+    }
+  })
 })
 
 describe('transfer constants — edge cases', () => {
