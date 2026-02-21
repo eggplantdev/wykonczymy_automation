@@ -57,13 +57,23 @@ export async function createTransferAction(
   try {
     const payload = await perf('createTransfer.getPayload', () => getPayload({ config }))
 
-    // Reject if transfer would cause negative balance on source register
+    // Reject if transfer would cause negative balance on source register (skip for VIRTUAL)
     if (!isDepositType(parsed.data.type) && parsed.data.cashRegister) {
+      const register = await perf('createTransfer.fetchRegisterType', () =>
+        payload.findByID({
+          collection: 'cash-registers',
+          id: parsed.data.cashRegister!,
+          select: { type: true },
+          overrideAccess: true,
+        }),
+      )
+
       const currentBalance = await perf('createTransfer.balanceCheck', () =>
         sumRegisterBalance(payload, parsed.data.cashRegister!),
       )
 
-      if (currentBalance < parsed.data.amount) {
+      // Skip balance check for VIRTUAL register
+      if (currentBalance < parsed.data.amount && register?.type !== 'VIRTUAL') {
         return {
           success: false,
           error: `Niewystarczające saldo kasy (${currentBalance.toFixed(2)} zł). Najpierw dodaj środki.`,
