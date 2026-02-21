@@ -51,7 +51,7 @@ type DashboardTablesPropsT = {
 export function DashboardTables({ investments, users }: DashboardTablesPropsT) {
   return (
     <div className="mt-8 space-y-8">
-      <CollapsibleSection title="Współpracownicy">
+      <CollapsibleSection title="Pracownicy">
         <div className="mt-4">
           <UsersTable data={users} />
         </div>

@@ -31,7 +31,7 @@ import {
   DateField,
   DescriptionField,
   InvestmentField,
-  PaymentMethodField,
+  // PaymentMethodField,
   WorkerField,
 } from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
@@ -149,6 +149,7 @@ export function TransferForm({
   return (
     <form.AppForm>
       <form
+        className={``}
         onSubmit={(e) => {
           e.preventDefault()
           form.handleSubmit()
@@ -241,8 +242,8 @@ export function TransferForm({
           {/* Date */}
           <DateField form={form} />
 
-          {/* Payment method */}
-          <PaymentMethodField form={form} />
+          {/* Payment method — temporarily hidden, always CASH */}
+          {/* <PaymentMethodField form={form} /> */}
 
           {/* Cash register — hidden for EMPLOYEE_EXPENSE, filtered to owned registers for non-ADMIN */}
           {needsCashRegister(currentType) && (

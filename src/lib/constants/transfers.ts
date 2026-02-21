@@ -37,14 +37,19 @@ export const DEPOSIT_UI_TYPES: TransferTypeT[] = [
   'COMPANY_FUNDING',
 ]
 
-export const PAYMENT_METHODS = ['CASH', 'BLIK', 'TRANSFER', 'CARD'] as const
+export const PAYMENT_METHODS = [
+  'CASH',
+  // 'BLIK',
+  // 'TRANSFER',
+  // 'CARD',
+] as const
 export type PaymentMethodT = (typeof PAYMENT_METHODS)[number]
 
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethodT, string> = {
   CASH: 'Gotówka',
-  BLIK: 'BLIK',
-  TRANSFER: 'Przelew',
-  CARD: 'Karta',
+  // BLIK: 'BLIK',
+  // TRANSFER: 'Przelew',
+  // CARD: 'Karta',
 }
 
 export const COST_TYPES: TransferTypeT[] = ['INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE']

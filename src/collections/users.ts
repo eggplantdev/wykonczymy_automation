@@ -1,8 +1,8 @@
 import {
-  isAdminOrOwner,
   isAdminOrOwnerOrManagerBoolean,
   isAdminOrOwnerField,
   isAdminOrOwnerOrManager,
+  isAdminOrOwnerOrSelf,
 } from '@/access'
 import type { CollectionConfig } from 'payload'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
@@ -18,8 +18,8 @@ export const Users: CollectionConfig = {
     afterDelete: [makeRevalidateAfterDelete('users')],
   },
   labels: {
-    singular: { en: 'User', pl: 'Użytkownik' },
-    plural: { en: 'Users', pl: 'Użytkownicy' },
+    singular: { en: 'Employee', pl: 'Pracownik' },
+    plural: { en: 'Employees', pl: 'Pracownicy' },
   },
   admin: {
     useAsTitle: 'name',
@@ -29,8 +29,8 @@ export const Users: CollectionConfig = {
   access: {
     read: isAdminOrOwnerOrManager,
     create: isAdminOrOwnerOrManager,
-    update: isAdminOrOwner,
-    delete: isAdminOrOwner,
+    update: isAdminOrOwnerOrSelf,
+    delete: isAdminOrOwnerOrSelf,
     admin: isAdminOrOwnerOrManagerBoolean,
   },
   fields: [

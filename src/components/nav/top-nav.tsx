@@ -2,31 +2,10 @@
 
 import type { ReferenceDataT } from '@/types/reference-data'
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
-
-const AddTransferDialog = dynamic(() =>
-  import('@/components/dialogs/add-transfer-dialog').then((m) => ({
-    default: m.AddTransferDialog,
-  })),
-)
-
-const AddDepositDialog = dynamic(() =>
-  import('@/components/dialogs/add-deposit-dialog').then((m) => ({
-    default: m.AddDepositDialog,
-  })),
-)
-
-const AddRegisterTransferDialog = dynamic(() =>
-  import('@/components/dialogs/add-register-transfer-dialog').then((m) => ({
-    default: m.AddRegisterTransferDialog,
-  })),
-)
-
-const AddSettlementDialog = dynamic(() =>
-  import('@/components/dialogs/add-settlement-dialog').then((m) => ({
-    default: m.AddSettlementDialog,
-  })),
-)
+import { AddSettlementDialog } from '@/components/dialogs/add-settlement-dialog'
+import { AddDepositDialog } from '@/components/dialogs/add-deposit-dialog'
+import { AddRegisterTransferDialog } from '@/components/dialogs/add-register-transfer-dialog'
+import { AddTransferDialog } from '@/components/dialogs/add-transfer-dialog'
 
 type TopNavPropsT = {
   referenceData?: ReferenceDataT

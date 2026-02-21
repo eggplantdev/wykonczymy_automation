@@ -3,9 +3,15 @@ import { findAllCashRegistersRaw, mapCashRegisterRows } from '@/lib/queries/cash
 import { findActiveInvestments, findAllInvestments } from '@/lib/queries/investments'
 import { findAllUsersWithSaldos } from '@/lib/queries/users'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
-import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
+import { isAdminOrOwnerRole, isManagementRole, MANAGEMENT_ROLES, RoleT } from '../auth/roles'
+import { requireAuth } from '../auth/require-auth'
 
 export async function fetchManagerDashboardData() {
+  const { user } = await requireAuth(MANAGEMENT_ROLES)
+  if (!user) throw new Error('Nie jesteś zalogowany')
+
+  const isAdminOrOwner = isAdminOrOwnerRole(user.role)
+
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
   const sinceDate = thirtyDaysAgo.toISOString().split('T')[0]
@@ -23,9 +29,7 @@ export async function fetchManagerDashboardData() {
   const workersMap = new Map(refData.workers.map((w) => [w.id, w.name]))
   const cashRegisters = mapCashRegisterRows(rawCashRegisters, workersMap)
 
-  const user = await getCurrentUserJwt()
-  const isAdminOrOwner = user?.role === 'ADMIN' || user?.role === 'OWNER'
-
+  // admin can see all, manager can see only auxiliary registers
   const visibleRegisters = isAdminOrOwner
     ? cashRegisters
     : cashRegisters.filter((cr) => cr.type === 'AUXILIARY')
@@ -33,7 +37,7 @@ export async function fetchManagerDashboardData() {
   const totalBalance = visibleRegisters.reduce((sum, cr) => sum + cr.balance, 0)
 
   const managementUsers = refData.workers
-    .filter((w) => w.type === 'ADMIN' || w.type === 'OWNER' || w.type === 'MANAGER')
+    .filter((w) => isManagementRole(w.type as RoleT))
     .map((w) => ({ id: w.id, name: w.name }))
 
   return {

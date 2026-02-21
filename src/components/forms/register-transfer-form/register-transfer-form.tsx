@@ -14,7 +14,7 @@ import {
   CashRegisterField,
   DateField,
   DescriptionField,
-  PaymentMethodField,
+  // PaymentMethodField,
 } from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
@@ -109,8 +109,8 @@ export function RegisterTransferForm({
           {/* Date */}
           <DateField form={form} />
 
-          {/* Payment method */}
-          <PaymentMethodField form={form} />
+          {/* Payment method — temporarily hidden, always CASH */}
+          {/* <PaymentMethodField form={form} /> */}
 
           {/* Description — optional */}
           <DescriptionField form={form} />

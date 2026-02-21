@@ -18,7 +18,10 @@ import { getManagementEmployeeSaldo } from '@/lib/queries/employees'
 import { createSettlementAction } from '@/lib/actions/settlements'
 import { cn } from '@/lib/cn'
 import { today } from '@/lib/date-utils'
-import { InvestmentField, PaymentMethodField, WorkerField } from '@/components/forms/form-fields'
+import {
+  InvestmentField,
+  /* PaymentMethodField, */ WorkerField,
+} from '@/components/forms/form-fields'
 import { settlementFormSchema, type CreateSettlementFormT } from './settlement-schema'
 import type { ReferenceItemT } from '@/types/reference-data'
 
@@ -210,7 +213,8 @@ export function SettlementForm({ referenceData, className, onSuccess }: Settleme
                 {(field) => <field.Input label="Data" type="date" showError />}
               </form.AppField>
 
-              <PaymentMethodField form={form} />
+              {/* PaymentMethodField — temporarily hidden, always CASH */}
+              {/* <PaymentMethodField form={form} /> */}
             </div>
 
             {/* Line items */}
