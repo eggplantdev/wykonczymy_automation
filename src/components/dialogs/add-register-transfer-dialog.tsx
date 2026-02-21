@@ -2,7 +2,8 @@
 
 import { ArrowLeftRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { FormDialog, type ReferenceDataT } from '@/components/dialogs/form-dialog'
+import { FormDialog } from '@/components/dialogs/form-dialog'
+import type { ReferenceDataT } from '@/types/reference-data'
 import { RegisterTransferForm } from '@/components/forms/register-transfer-form/register-transfer-form'
 
 type AddRegisterTransferDialogPropsT = {

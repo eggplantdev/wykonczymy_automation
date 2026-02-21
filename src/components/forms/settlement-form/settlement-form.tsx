@@ -23,16 +23,16 @@ import { createSettlementAction } from '@/lib/actions/settlements'
 import { cn } from '@/lib/cn'
 import { today } from '@/lib/date-utils'
 import { settlementFormSchema, type CreateSettlementFormT } from './settlement-schema'
-type ReferenceItemT = { id: number; name: string }
+import type { ReferenceItemT } from '@/types/reference-data'
 
-type ReferenceDataT = {
+type SettlementReferenceDataT = {
   users: ReferenceItemT[]
   investments: ReferenceItemT[]
   otherCategories: ReferenceItemT[]
 }
 
 type SettlementFormPropsT = {
-  referenceData: ReferenceDataT
+  referenceData: SettlementReferenceDataT
   className?: string
   onSuccess?: () => void
 }

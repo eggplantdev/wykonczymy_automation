@@ -1,6 +1,7 @@
 import 'server-only'
 
-import { getCurrentUserJwt, type SessionUserT } from '@/lib/auth/get-current-user-jwt'
+import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
+import type { SessionUserT } from '@/types/auth'
 import type { RoleT } from '@/lib/auth/roles'
 
 type AuthResultT = { success: true; user: SessionUserT } | { success: false; error: string }

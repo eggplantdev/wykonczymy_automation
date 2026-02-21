@@ -2,7 +2,8 @@
 
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { FormDialog, type ReferenceDataT } from '@/components/dialogs/form-dialog'
+import { FormDialog } from '@/components/dialogs/form-dialog'
+import type { ReferenceDataT } from '@/types/reference-data'
 import { DepositForm } from '@/components/forms/deposit-form/deposit-form'
 
 type AddDepositDialogPropsT = {

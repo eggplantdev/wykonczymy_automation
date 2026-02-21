@@ -16,8 +16,7 @@ import { MONTHS } from '@/lib/constants/months'
 import { getMonthDateRange } from '@/lib/helpers'
 import { buildUrlWithParams } from '@/lib/helpers'
 import { cn } from '@/lib/cn'
-
-type ReferenceItemT = { id: number; name: string }
+import type { ReferenceItemT } from '@/types/reference-data'
 
 type TransferFiltersPropsT = {
   cashRegisters?: ReferenceItemT[]

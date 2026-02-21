@@ -17,7 +17,7 @@ import {
 import { createTransferAction } from '@/lib/actions/transfers'
 import { depositFormSchema } from '@/components/forms/deposit-form/deposit-schema'
 import type { CreateTransferFormT } from '@/components/forms/transfer-form/transfer-schema'
-import type { ReferenceDataT } from '@/components/dialogs/form-dialog'
+import type { ReferenceDataT } from '@/types/reference-data'
 import { today } from '@/lib/date-utils'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'

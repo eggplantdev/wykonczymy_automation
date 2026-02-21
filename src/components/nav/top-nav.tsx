@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReferenceDataT } from '@/components/dialogs/form-dialog'
+import type { ReferenceDataT } from '@/types/reference-data'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 

@@ -7,8 +7,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import type { RoleT } from '@/lib/auth/roles'
 import { ROLES } from '@/lib/auth/roles'
-import type { SessionUserT } from './get-current-user'
-export type { SessionUserT } from './get-current-user'
+import type { SessionUserT } from '@/types/auth'
 
 let cachedSecretKey: Uint8Array | undefined
 

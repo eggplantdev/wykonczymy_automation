@@ -10,15 +10,6 @@ import {
 } from '@/components/ui/dialog'
 import { Checkbox } from '@/components/ui/checkbox'
 
-export type ReferenceItemT = { id: number; name: string; type?: string }
-
-export type ReferenceDataT = {
-  cashRegisters: ReferenceItemT[]
-  investments: ReferenceItemT[]
-  workers: ReferenceItemT[]
-  otherCategories: ReferenceItemT[]
-}
-
 type FormDialogPropsT = {
   trigger: React.ReactNode
   title: string

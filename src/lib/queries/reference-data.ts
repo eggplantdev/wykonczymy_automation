@@ -6,15 +6,7 @@ import { CACHE_TAGS } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/sum-transfers'
 import { perfStart } from '@/lib/perf'
 
-type RefItemT = { readonly id: number; readonly name: string }
-type TypedRefItemT = RefItemT & { readonly type: string }
-
-export type ReferenceDataT = {
-  readonly cashRegisters: TypedRefItemT[]
-  readonly investments: RefItemT[]
-  readonly workers: TypedRefItemT[]
-  readonly otherCategories: RefItemT[]
-}
+import type { ReferenceItemT, ReferenceDataT } from '@/types/reference-data'
 
 export async function fetchReferenceData(): Promise<ReferenceDataT> {
   'use cache'
@@ -41,10 +33,10 @@ export async function fetchReferenceData(): Promise<ReferenceDataT> {
   `)
   console.log(`[PERF] query.fetchReferenceData ${elapsed()}ms (1 SQL, ${result.rows.length} rows)`)
 
-  const cashRegisters: TypedRefItemT[] = []
-  const investments: RefItemT[] = []
-  const workers: TypedRefItemT[] = []
-  const otherCategories: RefItemT[] = []
+  const cashRegisters: ReferenceItemT[] = []
+  const investments: ReferenceItemT[] = []
+  const workers: ReferenceItemT[] = []
+  const otherCategories: ReferenceItemT[] = []
 
   for (const row of result.rows) {
     const collection = row.collection as string
