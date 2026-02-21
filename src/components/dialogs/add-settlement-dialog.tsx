@@ -18,6 +18,7 @@ export function AddSettlementDialog({ referenceData }: AddSettlementDialogPropsT
     users: referenceData.workers.filter((w) => w.type !== 'ADMIN' && w.type !== 'OWNER'),
     investments: referenceData.investments,
     otherCategories: referenceData.otherCategories,
+    cashRegisters: referenceData.cashRegisters,
   }
 
   return (

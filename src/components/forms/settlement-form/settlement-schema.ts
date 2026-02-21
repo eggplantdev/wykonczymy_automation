@@ -12,12 +12,18 @@ const lineItemClientSchema = z.object({
   note: z.string().optional(),
 })
 
+export const SETTLEMENT_MODES = ['investment', 'category', 'register'] as const
+export type SettlementModeT = (typeof SETTLEMENT_MODES)[number]
+
 /** Client-side schema — works with string values from HTML inputs. */
 export const settlementFormSchema = z
   .object({
     worker: z.string(),
-    mode: z.enum(['investment', 'category']),
-    investment: z.string().optional(),
+    mode: z.enum(SETTLEMENT_MODES),
+    investment: z.string(),
+    cashRegister: z.string(),
+    amount: z.string(),
+    description: z.string(),
     date: z.string(),
     paymentMethod: z.string(),
     invoiceNote: z.string(),
@@ -32,14 +38,6 @@ export const settlementFormSchema = z
       })
     }
 
-    if (data.mode === 'investment' && !data.investment) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Inwestycja jest wymagana',
-        path: ['investment'],
-      })
-    }
-
     if (!data.date) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -48,6 +46,33 @@ export const settlementFormSchema = z
       })
     }
 
+    if (data.mode === 'investment' && !data.investment) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Inwestycja jest wymagana',
+        path: ['investment'],
+      })
+    }
+
+    if (data.mode === 'register') {
+      if (!data.cashRegister) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Kasa jest wymagana',
+          path: ['cashRegister'],
+        })
+      }
+      if (!data.amount || Number(data.amount) <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Kwota musi być większa niż 0',
+          path: ['amount'],
+        })
+      }
+      return
+    }
+
+    // Line item validation (investment + category modes only)
     if (data.lineItems.length === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -87,8 +112,11 @@ export const settlementFormSchema = z
 export const createSettlementSchema = z
   .object({
     worker: z.number({ error: 'Pracownik jest wymagany' }).positive('Pracownik jest wymagany'),
-    mode: z.enum(['investment', 'category']),
+    mode: z.enum(SETTLEMENT_MODES),
     investment: z.number().positive().optional(),
+    cashRegister: z.number().positive().optional(),
+    amount: z.number().positive('Kwota musi być większa niż 0').optional(),
+    description: z.string().optional(),
     date: z.string().min(1, 'Data jest wymagana'),
     paymentMethod: z.enum(PAYMENT_METHODS),
     invoiceNote: z.string().optional(),
@@ -101,7 +129,7 @@ export const createSettlementSchema = z
           note: z.string().optional(),
         }),
       )
-      .min(1, 'Dodaj co najmniej jedną pozycję'),
+      .default([]),
   })
   .superRefine((data, ctx) => {
     if (data.mode === 'investment' && !data.investment) {
@@ -109,6 +137,33 @@ export const createSettlementSchema = z
         code: z.ZodIssueCode.custom,
         message: 'Inwestycja jest wymagana',
         path: ['investment'],
+      })
+    }
+
+    if (data.mode === 'register') {
+      if (!data.cashRegister) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Kasa jest wymagana',
+          path: ['cashRegister'],
+        })
+      }
+      if (!data.amount || data.amount <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Kwota musi być większa niż 0',
+          path: ['amount'],
+        })
+      }
+      return
+    }
+
+    // Line item validation (investment + category modes only)
+    if (data.lineItems.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Dodaj co najmniej jedną pozycję',
+        path: ['lineItems'],
       })
     }
 

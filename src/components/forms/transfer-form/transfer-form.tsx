@@ -214,11 +214,13 @@ export function TransferForm({
                 <form.AppField name="otherCategory">
                   {(field) => (
                     <field.Select label="Kategoria" placeholder="Wybierz kategorię" showError>
-                      {referenceData.otherCategories.map((cat) => (
-                        <SelectItem key={cat.id} value={String(cat.id)}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
+                      {referenceData.otherCategories
+                        .toSorted((a, b) => a.name.localeCompare(b.name, 'pl'))
+                        .map((cat) => (
+                          <SelectItem key={cat.id} value={String(cat.id)}>
+                            {cat.name}
+                          </SelectItem>
+                        ))}
                     </field.Select>
                   )}
                 </form.AppField>
@@ -254,17 +256,13 @@ export function TransferForm({
 
           {/* Conditional: Target register (REGISTER_TRANSFER only) */}
           {needsTargetRegister(currentType) && (
-            <form.AppField name="targetRegister">
-              {(field) => (
-                <field.Select label="Kasa docelowa" placeholder="Wybierz kasę docelową" showError>
-                  {referenceData.cashRegisters.map((cr) => (
-                    <SelectItem key={cr.id} value={String(cr.id)}>
-                      {cr.name}
-                    </SelectItem>
-                  ))}
-                </field.Select>
-              )}
-            </form.AppField>
+            <CashRegisterField
+              form={form}
+              name="targetRegister"
+              label="Kasa docelowa"
+              placeholder="Wybierz kasę docelową"
+              cashRegisters={referenceData.cashRegisters}
+            />
           )}
 
           {/* Conditional: Investment — radio-gated for EMPLOYEE_EXPENSE */}

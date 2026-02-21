@@ -23,13 +23,13 @@ export async function fetchReferenceData(): Promise<ReferenceDataT> {
   const db = await getDb(payload)
 
   const result = await db.execute(sql`
-    SELECT 'cashRegisters' AS collection, id, name, type::text FROM cash_registers WHERE active = true
+    SELECT 'cashRegisters' AS collection, id, name, type::text, active::boolean FROM cash_registers
     UNION ALL
-    SELECT 'investments' AS collection, id, name, NULL AS type FROM investments WHERE status = 'active'
+    SELECT 'investments' AS collection, id, name, NULL AS type, (status = 'active')::boolean AS active FROM investments
     UNION ALL
-    SELECT 'workers' AS collection, id, name, role::text AS type FROM users WHERE active = true
+    SELECT 'workers' AS collection, id, name, role::text AS type, active::boolean FROM users
     UNION ALL
-    SELECT 'otherCategories' AS collection, id, name, NULL AS type FROM other_categories
+    SELECT 'otherCategories' AS collection, id, name, NULL AS type, true AS active FROM other_categories
   `)
   console.log(`[PERF] query.fetchReferenceData ${elapsed()}ms (1 SQL, ${result.rows.length} rows)`)
 
@@ -40,7 +40,7 @@ export async function fetchReferenceData(): Promise<ReferenceDataT> {
 
   for (const row of result.rows) {
     const collection = row.collection as string
-    const item = { id: Number(row.id), name: row.name as string }
+    const item = { id: Number(row.id), name: row.name as string, active: row.active as boolean }
 
     if (collection === 'cashRegisters') {
       cashRegisters.push({ ...item, type: (row.type as string) ?? 'AUXILIARY' })

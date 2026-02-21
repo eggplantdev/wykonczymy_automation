@@ -35,7 +35,7 @@ export const sumRegisterBalance = async (
     SELECT
       COALESCE(SUM(
         CASE
-          WHEN type IN ('INVESTOR_DEPOSIT', 'STAGE_SETTLEMENT', 'COMPANY_FUNDING', 'OTHER_DEPOSIT')
+          WHEN type IN ('INVESTOR_DEPOSIT', 'STAGE_SETTLEMENT', 'COMPANY_FUNDING', 'OTHER_DEPOSIT', 'EMPLOYEE_EXPENSE')
             THEN amount
           ELSE -amount
         END
