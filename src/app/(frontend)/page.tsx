@@ -3,10 +3,7 @@ import { isManagementRole } from '@/lib/auth/roles'
 import { ManagerDashboard } from '@/components/dashboard/manager-dashboard'
 import { EmployeeDashboardServer } from '@/components/dashboard/employee-dashboard-server'
 import { redirect } from 'next/navigation'
-
-type PagePropsT = {
-  searchParams: Promise<Record<string, string | string[] | undefined>>
-}
+import type { PagePropsT } from '@/types/page'
 
 export default async function DashboardPage({ searchParams }: PagePropsT) {
   const user = await getCurrentUserJwt()

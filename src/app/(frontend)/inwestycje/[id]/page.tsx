@@ -12,13 +12,9 @@ import { PageWrapper } from '@/components/ui/page-wrapper'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { InfoList } from '@/components/ui/info-list'
 import { StatCard } from '@/components/ui/stat-card'
+import type { DynamicPagePropsT } from '@/types/page'
 
-type PagePropsT = {
-  params: Promise<{ id: string }>
-  searchParams: Promise<Record<string, string | string[] | undefined>>
-}
-
-export default async function InvestmentDetailPage({ params, searchParams }: PagePropsT) {
+export default async function InvestmentDetailPage({ params, searchParams }: DynamicPagePropsT) {
   const user = await getCurrentUserJwt()
   if (!user) redirect('/zaloguj')
   if (!isManagementRole(user.role)) redirect('/')

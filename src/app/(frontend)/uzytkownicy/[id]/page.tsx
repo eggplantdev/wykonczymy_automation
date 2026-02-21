@@ -7,7 +7,6 @@ import { buildTransferFilters } from '@/lib/queries/transfers'
 import { getUserDetail } from '@/lib/queries/users'
 import { notFound, redirect } from 'next/navigation'
 import { Suspense } from 'react'
-
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { InfoList } from '@/components/ui/info-list'
 import { PageWrapper } from '@/components/ui/page-wrapper'
@@ -15,15 +14,11 @@ import { PrintButton } from '@/components/ui/print-button'
 import { StatCard } from '@/components/ui/stat-card'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
+import type { DynamicPagePropsT } from '@/types/page'
 
 const EXCLUDE_COLUMNS = ['worker', 'otherCategory', 'invoice']
 
-type PagePropsT = {
-  params: Promise<{ id: string }>
-  searchParams: Promise<Record<string, string | string[] | undefined>>
-}
-
-export default async function UserDetailPage({ params, searchParams }: PagePropsT) {
+export default async function UserDetailPage({ params, searchParams }: DynamicPagePropsT) {
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) redirect('/zaloguj')
 
