@@ -1,11 +1,9 @@
-import { Suspense } from 'react'
 import { formatPLN } from '@/lib/format-currency'
 import { parsePagination } from '@/lib/pagination'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { fetchManagerDashboardData } from '@/lib/queries/dashboard'
 import { DashboardTables, CashRegistersTable } from '@/components/dashboard/dashboard-tables'
-import { TransferTableServer } from '@/components/transfers/transfer-table-server'
-import { TransferTableSkeleton } from '@/components/transfers/transfer-table-skeleton'
+import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { StatCard } from '@/components/ui/stat-card'
@@ -53,22 +51,19 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
       <DashboardTables investments={allInvestments} users={users} />
 
       {/* Recent transactions */}
-      <CollapsibleSection title="Ostatnie transfery" className="mt-8">
-        <Suspense fallback={<TransferTableSkeleton />}>
-          <TransferTableServer
-            className={`mt-4`}
-            where={buildTransferFilters(searchParams, { id: 0, isManager: true })}
-            page={page}
-            limit={limit}
-            baseUrl="/"
-            filters={{
-              cashRegisters: visibleRegisters.map((c) => ({ id: c.id, name: c.name })),
-              investments: activeInvestments.map((i) => ({ id: i.id, name: i.name })),
-              users: managementUsers,
-            }}
-          />
-        </Suspense>
-      </CollapsibleSection>
+      <TransfersSection
+        title="Ostatnie transfery"
+        className="mt-8"
+        where={buildTransferFilters(searchParams, { id: 0, isManager: true })}
+        page={page}
+        limit={limit}
+        baseUrl="/"
+        filters={{
+          cashRegisters: visibleRegisters.map((c) => ({ id: c.id, name: c.name })),
+          investments: activeInvestments.map((i) => ({ id: i.id, name: i.name })),
+          users: managementUsers,
+        }}
+      />
     </PageWrapper>
   )
 }

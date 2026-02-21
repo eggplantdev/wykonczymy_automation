@@ -1,4 +1,3 @@
-import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import { ROLE_LABELS, type RoleT } from '@/lib/auth/roles'
 import { formatPLN } from '@/lib/format-currency'
@@ -6,9 +5,7 @@ import { parseDateRange } from '@/lib/parse-date-range'
 import { parsePagination } from '@/lib/pagination'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { getUserDetail } from '@/lib/queries/users'
-import { TransferTableServer } from '@/components/transfers/transfer-table-server'
-import { TransferTableSkeleton } from '@/components/transfers/transfer-table-skeleton'
-import { CollapsibleSection } from '@/components/ui/collapsible-section'
+import { TransfersSection } from '@/components/transfers/transfers-section'
 import { InfoList } from '@/components/ui/info-list'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { PrintButton } from '@/components/ui/print-button'
@@ -75,19 +72,14 @@ export async function UserTransferView({
         </div>
       )}
 
-      <CollapsibleSection title="Transfery">
-        <Suspense fallback={<TransferTableSkeleton />}>
-          <TransferTableServer
-            where={where}
-            page={page}
-            limit={limit}
-            excludeColumns={excludeColumns}
-            baseUrl={baseUrl}
-            filters={{ showTypeFilter }}
-            className="mt-4"
-          />
-        </Suspense>
-      </CollapsibleSection>
+      <TransfersSection
+        where={where}
+        page={page}
+        limit={limit}
+        excludeColumns={excludeColumns}
+        baseUrl={baseUrl}
+        filters={{ showTypeFilter }}
+      />
     </PageWrapper>
   )
 }

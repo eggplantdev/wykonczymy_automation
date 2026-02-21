@@ -1,4 +1,3 @@
-import { Suspense } from 'react'
 import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { isAdminOrOwnerRole, MANAGEMENT_ROLES } from '@/lib/auth/roles'
@@ -6,10 +5,8 @@ import { parsePagination } from '@/lib/pagination'
 import { getInvestment } from '@/lib/queries/investments'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { formatPLN } from '@/lib/format-currency'
-import { TransferTableServer } from '@/components/transfers/transfer-table-server'
-import { TransferTableSkeleton } from '@/components/transfers/transfer-table-skeleton'
+import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
-import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { InfoList } from '@/components/ui/info-list'
 import { StatCard } from '@/components/ui/stat-card'
 import type { DynamicPagePropsT } from '@/types/page'
@@ -61,19 +58,14 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
       )}
 
       {/* Transactions table */}
-      <CollapsibleSection title="Transfery">
-        <Suspense fallback={<TransferTableSkeleton />}>
-          <TransferTableServer
-            where={transferWhere}
-            page={page}
-            limit={limit}
-            excludeColumns={['investment']}
-            baseUrl={`/inwestycje/${id}`}
-            filters={{}}
-            className="mt-4"
-          />
-        </Suspense>
-      </CollapsibleSection>
+      <TransfersSection
+        where={transferWhere}
+        page={page}
+        limit={limit}
+        excludeColumns={['investment']}
+        baseUrl={`/inwestycje/${id}`}
+        filters={{}}
+      />
     </PageWrapper>
   )
 }
