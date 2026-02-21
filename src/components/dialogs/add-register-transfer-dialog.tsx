@@ -7,16 +7,10 @@ import type { ReferenceDataT } from '@/types/reference-data'
 import { RegisterTransferForm } from '@/components/forms/register-transfer-form/register-transfer-form'
 
 type AddRegisterTransferDialogPropsT = {
-  referenceData: ReferenceDataT | undefined
-  userCashRegisterIds?: number[]
+  referenceData: ReferenceDataT
 }
 
-export function AddRegisterTransferDialog({
-  referenceData,
-  userCashRegisterIds,
-}: AddRegisterTransferDialogPropsT) {
-  if (!referenceData) return <></>
-
+export function AddRegisterTransferDialog({ referenceData }: AddRegisterTransferDialogPropsT) {
   return (
     <FormDialog
       trigger={
@@ -33,13 +27,7 @@ export function AddRegisterTransferDialog({
       title="Transfer między kasami"
       description="Przesuń środki między kasami."
     >
-      {(onSuccess) => (
-        <RegisterTransferForm
-          referenceData={referenceData}
-          userCashRegisterIds={userCashRegisterIds}
-          onSuccess={onSuccess}
-        />
-      )}
+      {(onSuccess) => <RegisterTransferForm referenceData={referenceData} onSuccess={onSuccess} />}
     </FormDialog>
   )
 }

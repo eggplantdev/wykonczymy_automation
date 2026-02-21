@@ -9,7 +9,7 @@ import {
   type TransferTypeT,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
-import type { ReferenceDataT } from '@/types/reference-data'
+import type { ReferenceDataBaseT } from '@/types/reference-data'
 import type { MediaInfoT } from '@/lib/queries/media'
 
 export type TransferRowT = {
@@ -45,7 +45,7 @@ export type TransferLookupsT = {
  * Builds lookup Maps from reference data + media map for use with mapTransferRow.
  */
 export function buildTransferLookups(
-  refData: ReferenceDataT,
+  refData: ReferenceDataBaseT,
   mediaMap: Map<number, MediaInfoT>,
 ): TransferLookupsT {
   const toNameMap = (items: ReadonlyArray<{ id: number; name: string }>): NameMapT =>

@@ -6,9 +6,9 @@ import { CACHE_TAGS } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/sum-transfers'
 import { perfStart } from '@/lib/perf'
 
-import type { ReferenceItemT, ReferenceDataT } from '@/types/reference-data'
+import type { ReferenceItemT, ReferenceDataBaseT } from '@/types/reference-data'
 
-export async function fetchReferenceData(): Promise<ReferenceDataT> {
+export async function fetchReferenceData(): Promise<ReferenceDataBaseT> {
   'use cache'
   cacheLife('max')
   cacheTag(
@@ -23,13 +23,13 @@ export async function fetchReferenceData(): Promise<ReferenceDataT> {
   const db = await getDb(payload)
 
   const result = await db.execute(sql`
-    SELECT 'cashRegisters' AS collection, id, name, type::text, active::boolean FROM cash_registers
+    SELECT 'cashRegisters' AS collection, id, name, type::text, active::boolean, owner_id::integer, NULL::integer AS default_cash_register_id FROM cash_registers
     UNION ALL
-    SELECT 'investments' AS collection, id, name, NULL AS type, (status = 'active')::boolean AS active FROM investments
+    SELECT 'investments', id, name, NULL, (status = 'active')::boolean, NULL::integer, NULL::integer FROM investments
     UNION ALL
-    SELECT 'workers' AS collection, id, name, role::text AS type, active::boolean FROM users
+    SELECT 'workers', id, name, role::text, active::boolean, NULL::integer, default_cash_register_id::integer FROM users
     UNION ALL
-    SELECT 'otherCategories' AS collection, id, name, NULL AS type, true AS active FROM other_categories
+    SELECT 'otherCategories', id, name, NULL, true, NULL::integer, NULL::integer FROM other_categories
   `)
   console.log(`[PERF] query.fetchReferenceData ${elapsed()}ms (1 SQL, ${result.rows.length} rows)`)
 
@@ -43,15 +43,25 @@ export async function fetchReferenceData(): Promise<ReferenceDataT> {
     const item = { id: Number(row.id), name: row.name as string, active: row.active as boolean }
 
     if (collection === 'cashRegisters') {
-      cashRegisters.push({ ...item, type: (row.type as string) ?? 'AUXILIARY' })
+      cashRegisters.push({
+        ...item,
+        type: (row.type as string) ?? 'AUXILIARY',
+        ownerId: row.owner_id ? Number(row.owner_id) : undefined,
+      })
     } else if (collection === 'investments') {
       investments.push(item)
     } else if (collection === 'workers') {
-      workers.push({ ...item, type: (row.type as string) ?? 'EMPLOYEE' })
+      workers.push({
+        ...item,
+        type: (row.type as string) ?? 'EMPLOYEE',
+        defaultCashRegisterId: row.default_cash_register_id
+          ? Number(row.default_cash_register_id)
+          : undefined,
+      })
     } else if (collection === 'otherCategories') {
       otherCategories.push(item)
     }
   }
 
-  return { cashRegisters, investments, workers, otherCategories } as ReferenceDataT
+  return { cashRegisters, investments, workers, otherCategories }
 }

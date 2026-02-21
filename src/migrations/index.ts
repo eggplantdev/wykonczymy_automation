@@ -12,6 +12,10 @@ import * as migration_20260218_seed_other_category_inne from './20260218_seed_ot
 import * as migration_20260218_transaction_type_overhaul from './20260218_transaction_type_overhaul'
 import * as migration_20260219_192300_add_active_field_to_users from './20260219_192300_add_active_field_to_users'
 import * as migration_20260220_add_active_field_to_cash_registers from './20260220_add_active_field_to_cash_registers'
+import * as migration_20260221_193257 from './20260221_193257'
+import * as migration_20260221_200518 from './20260221_200518'
+import * as migration_20260221_201040 from './20260221_201040'
+import * as migration_20260221_201112 from './20260221_201112'
 import * as migration_20260221_add_virtual_cash_register_type from './20260221_add_virtual_cash_register_type'
 
 export const migrations = [
@@ -84,6 +88,26 @@ export const migrations = [
     up: migration_20260220_add_active_field_to_cash_registers.up,
     down: migration_20260220_add_active_field_to_cash_registers.down,
     name: '20260220_add_active_field_to_cash_registers',
+  },
+  {
+    up: migration_20260221_193257.up,
+    down: migration_20260221_193257.down,
+    name: '20260221_193257',
+  },
+  {
+    up: migration_20260221_200518.up,
+    down: migration_20260221_200518.down,
+    name: '20260221_200518',
+  },
+  {
+    up: migration_20260221_201040.up,
+    down: migration_20260221_201040.down,
+    name: '20260221_201040',
+  },
+  {
+    up: migration_20260221_201112.up,
+    down: migration_20260221_201112.down,
+    name: '20260221_201112',
   },
   {
     up: migration_20260221_add_virtual_cash_register_type.up,

@@ -15,11 +15,11 @@ import { createTransferAction } from '@/lib/actions/transfers'
 import { depositFormSchema } from '@/components/forms/deposit-form/deposit-schema'
 import type { CreateTransferFormT } from '@/components/forms/transfer-form/transfer-schema'
 import type { ReferenceDataT } from '@/types/reference-data'
+import { getDefaultCashRegister, getUserCashRegisterIds } from '@/lib/utils/default-cash-register'
 import { today } from '@/lib/date-utils'
 import {
   AmountField,
   CashRegisterField,
-  DateField,
   DescriptionField,
   InvestmentField,
   // PaymentMethodField,
@@ -29,7 +29,6 @@ import FormFooter from '../form-components/form-footer'
 
 type DepositFormPropsT = {
   referenceData: ReferenceDataT
-  userCashRegisterIds?: number[]
   onSuccess: () => void
 }
 
@@ -43,7 +42,8 @@ type FormValuesT = {
   investment: string
 }
 
-export function DepositForm({ referenceData, userCashRegisterIds, onSuccess }: DepositFormPropsT) {
+export function DepositForm({ referenceData, onSuccess }: DepositFormPropsT) {
+  const userCashRegisterIds = getUserCashRegisterIds(referenceData)
   const form = useAppForm({
     defaultValues: {
       description: '',
@@ -51,7 +51,7 @@ export function DepositForm({ referenceData, userCashRegisterIds, onSuccess }: D
       date: today(),
       type: 'INVESTOR_DEPOSIT',
       paymentMethod: 'CASH',
-      cashRegister: userCashRegisterIds?.length === 1 ? String(userCashRegisterIds[0]) : '',
+      cashRegister: getDefaultCashRegister(referenceData),
       investment: '',
     } as FormValuesT,
     validators: {

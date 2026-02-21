@@ -1,7 +1,6 @@
 import '@/styles/globals.css'
 import React, { Suspense } from 'react'
 import { redirect } from 'next/navigation'
-
 import { abcFavorit, spaceMono } from '@/fonts'
 import { cn } from '@/lib/cn'
 import { ToastContainer } from 'react-toastify'

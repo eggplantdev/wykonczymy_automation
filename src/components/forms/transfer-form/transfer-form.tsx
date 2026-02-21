@@ -24,6 +24,7 @@ import {
   type CreateTransferFormT,
 } from '@/components/forms/transfer-form/transfer-schema'
 import type { ReferenceDataT } from '@/types/reference-data'
+import { getDefaultCashRegister, getUserCashRegisterIds } from '@/lib/utils/default-cash-register'
 import { today } from '@/lib/date-utils'
 import {
   AmountField,
@@ -38,7 +39,6 @@ import FormFooter from '../form-components/form-footer'
 
 type TransferFormPropsT = {
   referenceData: ReferenceDataT
-  userCashRegisterIds?: number[]
   onSuccess: () => void
 }
 
@@ -59,12 +59,9 @@ type FormValuesT = {
   invoiceNote: string
 }
 
-export function TransferForm({
-  referenceData,
-  userCashRegisterIds,
-  onSuccess,
-}: TransferFormPropsT) {
+export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
   const invoiceRef = useRef<HTMLInputElement>(null)
+  const userCashRegisterIds = getUserCashRegisterIds(referenceData)
   const isSourceRestricted = userCashRegisterIds !== undefined
   const [expenseTarget, setExpenseTarget] = useState<'investment' | 'other'>('investment')
 
@@ -75,7 +72,7 @@ export function TransferForm({
       date: today(),
       type: 'INVESTMENT_EXPENSE',
       paymentMethod: 'CASH',
-      cashRegister: userCashRegisterIds?.length === 1 ? String(userCashRegisterIds[0]) : '',
+      cashRegister: getDefaultCashRegister(referenceData),
       targetRegister: '',
       investment: '',
       worker: '',

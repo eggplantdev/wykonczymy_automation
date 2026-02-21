@@ -7,13 +7,10 @@ import type { ReferenceDataT } from '@/types/reference-data'
 import { TransferForm } from '@/components/forms/transfer-form/transfer-form'
 
 type AddTransferDialogPropsT = {
-  referenceData: ReferenceDataT | undefined
-  userCashRegisterIds?: number[]
+  referenceData: ReferenceDataT
 }
 
-export function AddTransferDialog({ referenceData, userCashRegisterIds }: AddTransferDialogPropsT) {
-  if (!referenceData) return <></>
-
+export function AddTransferDialog({ referenceData }: AddTransferDialogPropsT) {
   return (
     <FormDialog
       trigger={
@@ -24,13 +21,7 @@ export function AddTransferDialog({ referenceData, userCashRegisterIds }: AddTra
       }
       title="Nowa transakcja"
     >
-      {(onSuccess) => (
-        <TransferForm
-          referenceData={referenceData}
-          userCashRegisterIds={userCashRegisterIds}
-          onSuccess={onSuccess}
-        />
-      )}
+      {(onSuccess) => <TransferForm referenceData={referenceData} onSuccess={onSuccess} />}
     </FormDialog>
   )
 }
