@@ -8,7 +8,7 @@ export type ToastPosition = 'bottom-center' | 'top-center'
 export function toastMessage(
   message: string,
   type: ToastType = 'success',
-  autoClose: number = 5000,
+  autoClose: number = 2000,
   position: ToastPosition = 'bottom-center',
 ) {
   toast[type](message, {

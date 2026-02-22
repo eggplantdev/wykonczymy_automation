@@ -74,7 +74,7 @@ describe('submitOptimistically', () => {
     })
 
     expect(store().openFormId).toBeNull()
-    expect(mockToastMessage).toHaveBeenCalledWith('Wpłata dodana', 'success')
+    expect(mockToastMessage).toHaveBeenCalledWith('Wpłata dodana', 'success', 1000)
   })
 
   it('on failure: reopens dialog, sets failed status, shows error toast', async () => {
@@ -96,7 +96,7 @@ describe('submitOptimistically', () => {
       status: 'failed',
       error: 'Niewystarczające saldo',
     })
-    expect(mockToastMessage).toHaveBeenCalledWith('Niewystarczające saldo', 'error')
+    expect(mockToastMessage).toHaveBeenCalledWith('Niewystarczające saldo', 'error', 5000)
   })
 
   it('preserves invoice files in submission for recovery', async () => {

@@ -5,6 +5,7 @@ import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
 import { useInvoiceFiles } from '@/components/forms/hooks/use-invoice-files'
+import { toastMessage } from '@/components/toasts'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import {
   TRANSACTION_TRANSFER_TYPES,
@@ -38,6 +39,7 @@ import FormFooter from '../form-components/form-footer'
 type TransferFormPropsT = {
   referenceData: ReferenceDataT
   onSuccess: () => void
+  keepOpen?: boolean
 }
 
 // Form state uses strings since HTML inputs/selects work with strings.
@@ -55,7 +57,7 @@ type FormValuesT = {
   lineItems: { description: string; amount: string; invoiceNote: string }[]
 }
 
-export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
+export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFormPropsT) {
   const FORM_ID = 'transfer'
   const submission = useOptimisticFormStore((s) => s.submission)
   const submitOptimistically = useOptimisticFormStore((s) => s.submitOptimistically)
@@ -111,14 +113,24 @@ export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
 
       const invoiceFormData = buildInvoiceFormData()
 
-      submitOptimistically(
-        FORM_ID,
-        value as unknown as Record<string, unknown>,
-        getFiles(),
-        () => createBulkTransferAction(data, invoiceFormData),
-        'Transakcje dodane',
-      )
-      onSuccess()
+      if (keepOpen) {
+        const result = await createBulkTransferAction(data, invoiceFormData)
+        if (result.success) {
+          toastMessage('Transakcje dodane', 'success')
+          form.reset()
+        } else {
+          toastMessage(result.error, 'error')
+        }
+      } else {
+        submitOptimistically(
+          FORM_ID,
+          value as unknown as Record<string, unknown>,
+          getFiles(),
+          () => createBulkTransferAction(data, invoiceFormData),
+          'Transakcje dodane',
+        )
+        onSuccess()
+      }
 
       return false
     },

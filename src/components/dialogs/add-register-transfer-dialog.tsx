@@ -28,7 +28,13 @@ export function AddRegisterTransferDialog({ referenceData }: AddRegisterTransfer
       title="Transfer między kasami"
       description="Przesuń środki między kasami."
     >
-      {(onSuccess) => <RegisterTransferForm referenceData={referenceData} onSuccess={onSuccess} />}
+      {(onSuccess, keepOpen) => (
+        <RegisterTransferForm
+          referenceData={referenceData}
+          onSuccess={onSuccess}
+          keepOpen={keepOpen}
+        />
+      )}
     </FormDialog>
   )
 }
