@@ -3,6 +3,8 @@
 import {
   createTransferSchema,
   type CreateTransferFormT,
+  createBulkTransferSchema,
+  type CreateBulkTransferFormT,
 } from '@/components/forms/transfer-form/transfer-schema'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
@@ -12,7 +14,14 @@ import { perf, perfStart } from '@/lib/perf'
 import { uploadInvoiceFile } from '@/lib/upload-invoice'
 import config from '@payload-config'
 import { getPayload, type Payload } from 'payload'
-import { isDepositType } from '../constants/transfers'
+import { isDepositType, needsSourceRegister, INVESTMENT_TYPES } from '../constants/transfers'
+import { sql } from '@payloadcms/db-vercel-postgres'
+import {
+  getDb,
+  sumRegisterBalance,
+  sumInvestmentCosts,
+  sumInvestmentIncome,
+} from '@/lib/db/sum-transfers'
 import {
   checkIfSufficientBalance,
   getErrorMessage,
@@ -72,6 +81,121 @@ export async function createTransferAction(
     return { success: true }
   } catch (err) {
     console.log('[createTransferAction] Error:', getErrorMessage(err))
+    return { success: false, error: getErrorMessage(err) }
+  }
+}
+
+export async function createBulkTransferAction(
+  data: CreateBulkTransferFormT,
+  invoiceFormData: FormData | null,
+): Promise<ActionResultT> {
+  const elapsed = perfStart()
+  const lineCount = data.lineItems.length
+  console.log(`[PERF] createBulkTransferAction START type=${data.type} lineItems=${lineCount}`)
+
+  const session = await perf('bulkTransfer.requireAuth', () => requireAuth(MANAGEMENT_ROLES))
+  if (!session.success) return session
+  const { user } = session
+
+  const parsed = validateAction(createBulkTransferSchema, data)
+  if (!parsed.success) return parsed
+
+  try {
+    const payload = await perf('bulkTransfer.getPayload', () => getPayload({ config }))
+
+    // Validate source register + balance check (sum of all line items)
+    if (needsSourceRegister(parsed.data.type)) {
+      const validated = await validateSourceRegister(parsed.data.sourceRegister, user)
+      if (!validated.success) return validated
+
+      const totalAmount = parsed.data.lineItems.reduce((sum, item) => sum + item.amount, 0)
+      const balanceCheck = await checkIfSufficientBalance(validated.register, totalAmount, payload)
+      if (!balanceCheck.success) return balanceCheck
+    }
+
+    // Upload invoice files in parallel
+    const mediaIds = await perf(`bulkTransfer.uploadMedia (${lineCount} items)`, () =>
+      Promise.all(
+        parsed.data.lineItems.map(async (_, i) => {
+          const file = invoiceFormData?.get(`invoice-${i}`) as File | null
+          if (file && file.size > 0) return uploadInvoiceFile(payload, file)
+          return undefined
+        }),
+      ),
+    )
+
+    // Create all transactions in parallel with deferred recalc
+    const created = await perf(`bulkTransfer.createTransactions (${lineCount} items)`, async () => {
+      const results = await Promise.all(
+        parsed.data.lineItems.map((item, i) =>
+          payload.create({
+            collection: 'transactions',
+            data: {
+              description: item.description,
+              amount: item.amount,
+              date: parsed.data.date,
+              type: parsed.data.type,
+              paymentMethod: parsed.data.paymentMethod,
+              sourceRegister: parsed.data.sourceRegister,
+              targetRegister: parsed.data.targetRegister,
+              investment: parsed.data.investment,
+              worker: parsed.data.worker,
+              otherCategory: parsed.data.otherCategory,
+              otherDescription: parsed.data.otherDescription,
+              invoice: mediaIds[i],
+              invoiceNote: item.invoiceNote,
+              createdBy: user.id,
+            },
+            context: { skipBalanceRecalc: true },
+          }),
+        ),
+      )
+      return results.length
+    })
+
+    // Deferred recalc — register balance + investment financials
+    await perf('bulkTransfer.recalcBalances', async () => {
+      const db = await getDb(payload)
+
+      if (parsed.data.sourceRegister && needsSourceRegister(parsed.data.type)) {
+        const balance = await sumRegisterBalance(payload, parsed.data.sourceRegister)
+        await db.execute(sql`
+          UPDATE cash_registers SET balance = ${balance}, updated_at = NOW()
+          WHERE id = ${parsed.data.sourceRegister}
+        `)
+      }
+
+      if (parsed.data.targetRegister) {
+        const balance = await sumRegisterBalance(payload, parsed.data.targetRegister)
+        await db.execute(sql`
+          UPDATE cash_registers SET balance = ${balance}, updated_at = NOW()
+          WHERE id = ${parsed.data.targetRegister}
+        `)
+      }
+
+      if (
+        parsed.data.investment &&
+        (INVESTMENT_TYPES as readonly string[]).includes(parsed.data.type)
+      ) {
+        const [totalCosts, totalIncome] = await Promise.all([
+          sumInvestmentCosts(payload, parsed.data.investment),
+          sumInvestmentIncome(payload, parsed.data.investment),
+        ])
+        await db.execute(sql`
+          UPDATE investments
+          SET total_costs = ${totalCosts}, total_income = ${totalIncome}, updated_at = NOW()
+          WHERE id = ${parsed.data.investment}
+        `)
+      }
+    })
+
+    revalidateCollections(['transfers', 'cashRegisters', 'investments'])
+
+    console.log(`[PERF] createBulkTransferAction TOTAL ${elapsed()}ms (${created} transactions)`)
+
+    return { success: true }
+  } catch (err) {
+    console.log('[createBulkTransferAction] Error:', getErrorMessage(err))
     return { success: false, error: getErrorMessage(err) }
   }
 }
