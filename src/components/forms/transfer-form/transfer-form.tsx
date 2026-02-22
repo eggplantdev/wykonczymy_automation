@@ -1,11 +1,14 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { SelectItem } from '@/components/ui/select'
 import { FileInput } from '@/components/ui/file-input'
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
 import { toastMessage } from '@/components/toasts'
+import { formatPLN } from '@/lib/format-currency'
 import {
   TRANSACTION_TRANSFER_TYPES,
   TRANSFER_TYPE_LABELS,
@@ -18,22 +21,15 @@ import {
   type TransferTypeT,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
-import { createTransferAction } from '@/lib/actions/transfers'
+import { createBulkTransferAction } from '@/lib/actions/transfers'
 import {
-  transferFormSchema,
-  type CreateTransferFormT,
+  bulkTransferFormSchema,
+  type CreateBulkTransferFormT,
 } from '@/components/forms/transfer-form/transfer-schema'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { getDefaultCashRegister, getUserCashRegisterIds } from '@/lib/utils/default-cash-register'
 import { today } from '@/lib/date-utils'
-import {
-  AmountField,
-  CashRegisterField,
-  DescriptionField,
-  InvestmentField,
-  // PaymentMethodField,
-  WorkerField,
-} from '@/components/forms/form-fields'
+import { CashRegisterField, InvestmentField, WorkerField } from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
 
@@ -45,8 +41,6 @@ type TransferFormPropsT = {
 // Form state uses strings since HTML inputs/selects work with strings.
 // Numeric conversion happens in the server action.
 type FormValuesT = {
-  description: string
-  amount: string
   date: string
   type: string
   paymentMethod: string
@@ -56,19 +50,17 @@ type FormValuesT = {
   worker: string
   otherCategory: string
   otherDescription: string
-  invoiceNote: string
+  lineItems: { description: string; amount: string; invoiceNote: string }[]
 }
 
 export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
-  const invoiceRef = useRef<HTMLInputElement>(null)
+  const invoiceFilesRef = useRef<Map<number, File>>(new Map())
   const userCashRegisterIds = getUserCashRegisterIds(referenceData)
   const isSourceRestricted = userCashRegisterIds !== undefined
   const [expenseTarget, setExpenseTarget] = useState<'investment' | 'other'>('investment')
 
   const form = useAppForm({
     defaultValues: {
-      description: '',
-      amount: '',
       date: today(),
       type: 'INVESTMENT_EXPENSE',
       paymentMethod: 'CASH',
@@ -78,15 +70,13 @@ export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
       worker: '',
       otherCategory: '',
       otherDescription: '',
-      invoiceNote: '',
+      lineItems: [{ description: '', amount: '', invoiceNote: '' }],
     } as FormValuesT,
     validators: {
-      onSubmit: transferFormSchema,
+      onSubmit: bulkTransferFormSchema,
     },
     onSubmit: async ({ value }) => {
-      const data: CreateTransferFormT = {
-        description: value.description,
-        amount: Number(value.amount),
+      const data: CreateBulkTransferFormT = {
         date: value.date,
         type: value.type as TransferTypeT,
         paymentMethod: value.paymentMethod as PaymentMethodT,
@@ -96,23 +86,27 @@ export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
         worker: value.worker ? Number(value.worker) : undefined,
         otherCategory: value.otherCategory ? Number(value.otherCategory) : undefined,
         otherDescription: value.otherDescription || undefined,
-        invoiceNote: value.invoiceNote || undefined,
+        lineItems: value.lineItems.map((item) => ({
+          description: item.description,
+          amount: Number(item.amount),
+          invoiceNote: item.invoiceNote || undefined,
+        })),
       }
 
-      const file = invoiceRef.current?.files?.[0]
       let invoiceFormData: FormData | null = null
-      if (file) {
+      if (invoiceFilesRef.current.size > 0) {
         invoiceFormData = new FormData()
-        invoiceFormData.set('invoice', file)
+        invoiceFilesRef.current.forEach((file, index) => {
+          invoiceFormData!.set(`invoice-${index}`, file)
+        })
       }
 
-      const result = await createTransferAction(data, invoiceFormData)
+      const result = await createBulkTransferAction(data, invoiceFormData)
 
       if (result.success) {
-        toastMessage('Transfer dodany', 'success')
+        toastMessage('Transakcje dodane', 'success')
         onSuccess()
       } else {
-        console.log('result', result.error)
         toastMessage(result.error, 'error')
       }
 
@@ -123,6 +117,8 @@ export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
   useCheckFormErrors(form)
 
   const currentType = useStore(form.store, (s) => s.values.type)
+  const lineItems = useStore(form.store, (s) => s.values.lineItems)
+  const total = lineItems.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
 
   // TanStack Form preserves values of unmounted fields. When the user switches
   // transfer type, hidden fields (e.g. investment, worker) keep stale selections.
@@ -142,10 +138,26 @@ export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
     setExpenseTarget('investment')
   }
 
+  function handleRemoveLineItem(index: number, removeValue: (index: number) => void) {
+    const oldFiles = invoiceFilesRef.current
+    const newFiles = new Map<number, File>()
+    oldFiles.forEach((file, i) => {
+      if (i < index) newFiles.set(i, file)
+      else if (i > index) newFiles.set(i - 1, file)
+    })
+    invoiceFilesRef.current = newFiles
+    removeValue(index)
+  }
+
+  function handleFileChange(index: number, e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) invoiceFilesRef.current.set(index, file)
+    else invoiceFilesRef.current.delete(index)
+  }
+
   return (
     <form.AppForm>
       <form
-        className={``}
         onSubmit={(e) => {
           e.preventDefault()
           form.handleSubmit()
@@ -229,15 +241,6 @@ export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
               </>
             )}
 
-          <DescriptionField form={form} />
-
-          <AmountField form={form} />
-
-          {/* <DateField form={form} /> */}
-
-          {/* Payment method — temporarily hidden, always CASH */}
-          {/* <PaymentMethodField form={form} /> */}
-
           {/* Cash register — hidden for EMPLOYEE_EXPENSE, filtered to owned registers for non-ADMIN */}
           {needsSourceRegister(currentType) && (
             <CashRegisterField
@@ -267,32 +270,72 @@ export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
           {/* Conditional: Worker */}
           {needsWorker(currentType) && <WorkerField form={form} workers={referenceData.workers} />}
 
-          {/* Invoice file — not bound to form state, read via ref on submit */}
-          {!isDepositType(currentType) && currentType !== 'ACCOUNT_FUNDING' && (
-            <div className="space-y-1">
-              <label htmlFor="invoice" className="text-foreground text-sm font-medium">
-                Faktura
-              </label>
-              <FileInput
-                ref={invoiceRef}
-                id="invoice"
-                name="invoice"
-                accept="image/*,application/pdf"
-              />
-            </div>
-          )}
-
-          {/* Invoice note */}
-          {!isDepositType(currentType) && currentType !== 'ACCOUNT_FUNDING' && (
-            <form.AppField name="invoiceNote">
-              {(field) => (
-                <field.Textarea
-                  label="Notatka do faktury"
-                  placeholder="Opcjonalna notatka do faktury"
-                  showError
-                />
+          {/* Line items */}
+          {!isDepositType(currentType) && (
+            <form.Field name="lineItems" mode="array">
+              {(lineItemsField) => (
+                <div className="space-y-4">
+                  <p className="text-foreground text-sm font-medium">Pozycje</p>
+                  {lineItemsField.state.value.map((_, index) => (
+                    <div key={index} className="space-y-2">
+                      <div className="flex items-start gap-2">
+                        <div className="flex-1">
+                          <form.AppField name={`lineItems[${index}].description`}>
+                            {(field) => <field.Input placeholder="Opis pozycji" showError />}
+                          </form.AppField>
+                        </div>
+                        <div className="w-36">
+                          <form.AppField name={`lineItems[${index}].amount`}>
+                            {(field) => <field.Input placeholder="Kwota" type="number" showError />}
+                          </form.AppField>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveLineItem(index, lineItemsField.removeValue)}
+                          disabled={lineItemsField.state.value.length === 1}
+                          aria-label="Usuń pozycję"
+                        >
+                          <X className="size-4" />
+                        </Button>
+                      </div>
+                      {currentType !== 'ACCOUNT_FUNDING' && (
+                        <>
+                          <FileInput
+                            accept="image/*,application/pdf"
+                            onChange={(e) => handleFileChange(index, e)}
+                          />
+                          <form.AppField name={`lineItems[${index}].invoiceNote`}>
+                            {(field) => (
+                              <field.Textarea
+                                placeholder="Notatka do faktury (opcjonalnie)"
+                                showError
+                              />
+                            )}
+                          </form.AppField>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      lineItemsField.pushValue({
+                        description: '',
+                        amount: '',
+                        invoiceNote: '',
+                      })
+                    }
+                  >
+                    Dodaj pozycję
+                  </Button>
+                  <p className="text-foreground text-sm font-medium">Suma: {formatPLN(total)}</p>
+                </div>
               )}
-            </form.AppField>
+            </form.Field>
           )}
         </FieldGroup>
 
