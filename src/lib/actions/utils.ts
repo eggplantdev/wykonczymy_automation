@@ -1,9 +1,14 @@
 import type { ZodType, ZodError } from 'zod'
 import type { Payload } from 'payload'
-import { perf } from '@/lib/perf'
+import { getPayload } from 'payload'
+import config from '@payload-config'
+import { requireAuth } from '@/lib/auth/require-auth'
+import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
+import { revalidateCollections } from '@/lib/cache/revalidate'
+import type { CACHE_TAGS } from '@/lib/cache/tags'
 import { sumRegisterBalance } from '@/lib/db/sum-transfers'
+import { perfStart } from '@/lib/perf'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
-import { uploadInvoiceFile } from '@/lib/upload-invoice'
 import type { SessionUserT } from '@/types/auth'
 import type { ReferenceItemT } from '@/types/reference-data'
 
@@ -14,6 +19,8 @@ export type ActionResultT<TData = undefined> = TData extends undefined
 export type ValidateSourceRegisterResultT =
   | { success: true; register: ReferenceItemT }
   | { success: false; error: string }
+
+type ActionCtxT = { payload: Payload; user: SessionUserT }
 
 const DEFAULT_ERROR = 'Wystąpił błąd'
 
@@ -32,12 +39,36 @@ export function validateAction<TData>(
   return { success: true, data: parsed.data }
 }
 
+/** Auth + payload + try/catch + perf + revalidation wrapper for actions. */
+export async function withAction(
+  label: string,
+  handler: (ctx: ActionCtxT) => Promise<ActionResultT>,
+  revalidate?: (keyof typeof CACHE_TAGS)[],
+): Promise<ActionResultT> {
+  const elapsed = perfStart()
+
+  const session = await requireAuth(MANAGEMENT_ROLES)
+  if (!session.success) return session
+
+  try {
+    const payload = await getPayload({ config })
+    const result = await handler({ payload, user: session.user })
+
+    if (result.success && revalidate) revalidateCollections(revalidate)
+
+    console.log(`[PERF] ${label} ${elapsed()}ms`)
+    return result
+  } catch (err) {
+    return { success: false, error: getErrorMessage(err) }
+  }
+}
+
 /** Checks that the register exists and the user has ownership rights to it. */
 export async function validateSourceRegister(
   cashRegisterId: number | undefined,
   user: SessionUserT,
 ): Promise<ValidateSourceRegisterResultT> {
-  const refData = await perf('action.refData', () => fetchReferenceData())
+  const refData = await fetchReferenceData()
   const register = refData.cashRegisters.find((cr) => cr.id === cashRegisterId)
 
   if (!register) return { success: false, error: 'Kasa nie istnieje' }
@@ -58,9 +89,7 @@ export async function checkIfSufficientBalance(
 ): Promise<ActionResultT> {
   if (register.type === 'VIRTUAL') return { success: true }
 
-  const currentBalance = await perf('action.balanceCheck', () =>
-    sumRegisterBalance(payload, register.id),
-  )
+  const currentBalance = await sumRegisterBalance(payload, register.id)
 
   if (currentBalance > amount) return { success: true }
 
@@ -68,14 +97,4 @@ export async function checkIfSufficientBalance(
     success: false,
     error: `Niewystarczające saldo kasy (${currentBalance.toFixed(2)} zł). Najpierw dodaj środki.`,
   }
-}
-
-export async function handleInvoice(
-  invoiceFormData: FormData | null,
-  payload: Payload,
-): Promise<number | undefined> {
-  const invoiceFile = invoiceFormData?.get('invoice') as File | null
-  if (!invoiceFile || invoiceFile.size === 0) return undefined
-
-  return perf('action.uploadMedia', () => uploadInvoiceFile(payload, invoiceFile))
 }
