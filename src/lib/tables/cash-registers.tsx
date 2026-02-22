@@ -4,13 +4,14 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { formatPLN } from '@/lib/format-currency'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
 import { toggleCashRegisterActive } from '@/lib/actions/toggle-active'
+import type { CashRegisterTypeT } from '@/types/reference-data'
 
 export type CashRegisterRowT = {
   readonly id: number
   readonly name: string
   readonly ownerName: string
   readonly balance: number
-  readonly type: 'MAIN' | 'AUXILIARY' | 'VIRTUAL'
+  readonly type: CashRegisterTypeT
   readonly active: boolean
 }
 

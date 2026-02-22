@@ -4,6 +4,7 @@ import config from '@payload-config'
 import { CACHE_TAGS, entityTag } from '@/lib/cache/tags'
 import { getRelationName } from '@/lib/get-relation-name'
 import { perfStart } from '@/lib/perf'
+import type { CashRegisterTypeT } from '@/types/reference-data'
 import type { CashRegisterRowT } from '@/lib/tables/cash-registers'
 
 export async function getCashRegister(id: string) {
@@ -62,7 +63,7 @@ export function mapCashRegisterRows(
     ownerName:
       typeof cr.owner === 'number' ? (workersMap.get(cr.owner) ?? '—') : getRelationName(cr.owner),
     balance: (cr.balance ?? 0) as number,
-    type: (cr.type as 'MAIN' | 'AUXILIARY' | 'VIRTUAL') ?? 'AUXILIARY',
+    type: (cr.type as CashRegisterTypeT) ?? 'AUXILIARY',
     active: (cr.active ?? true) as boolean,
   }))
 }

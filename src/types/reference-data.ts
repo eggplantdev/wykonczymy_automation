@@ -7,6 +7,8 @@ export type ReferenceItemT = {
   readonly defaultCashRegisterId?: number
 }
 
+export type CashRegisterTypeT = 'MAIN' | 'AUXILIARY' | 'VIRTUAL'
+
 export type CashRegisterRefT = ReferenceItemT & {
   readonly balance: number
 }
