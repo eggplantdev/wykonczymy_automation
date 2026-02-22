@@ -13,6 +13,7 @@ type AddTransferDialogPropsT = {
 export function AddTransferDialog({ referenceData }: AddTransferDialogPropsT) {
   return (
     <FormDialog
+      formId="transfer"
       trigger={
         <Button variant="default" size="sm" className="gap-2">
           <Plus className="size-4" />

@@ -13,6 +13,7 @@ type AddRegisterTransferDialogPropsT = {
 export function AddRegisterTransferDialog({ referenceData }: AddRegisterTransferDialogPropsT) {
   return (
     <FormDialog
+      formId="register-transfer"
       trigger={
         <Button
           variant="outline"

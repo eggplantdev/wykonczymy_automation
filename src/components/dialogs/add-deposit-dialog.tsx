@@ -13,6 +13,7 @@ type AddDepositDialogPropsT = {
 export function AddDepositDialog({ referenceData }: AddDepositDialogPropsT) {
   return (
     <FormDialog
+      formId="deposit"
       trigger={
         <Button
           variant="outline"
