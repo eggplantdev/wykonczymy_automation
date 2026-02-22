@@ -49,7 +49,6 @@ export function CashRegisterField({
           {cashRegisters
             .filter((cr) => !ownedRegisterSet || ownedRegisterSet.has(cr.id))
             .filter((cr) => !activeOnly || cr.active !== false)
-            .toSorted((a, b) => a.name.localeCompare(b.name, 'pl'))
             .map((cr) => (
               <SelectItem key={cr.id} value={String(cr.id)}>
                 {cr.name}
