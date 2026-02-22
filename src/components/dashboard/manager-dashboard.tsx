@@ -23,6 +23,7 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
     managementUsers,
     recentCount,
     totalBalance,
+    ownedBalance,
     isAdminOrOwner,
   } = await fetchManagerDashboardData()
 
@@ -41,6 +42,9 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-1">
             <StatCard label="Saldo kas" value={formatPLN(totalBalance)} />
+            {ownedBalance !== undefined && (
+              <StatCard label="Saldo moich kas" value={formatPLN(ownedBalance)} />
+            )}
             <StatCard label="Aktywne inwestycje" value={String(activeInvestments.length)} />
             <StatCard label="Trasnsakcje (30 dni)" value={String(recentCount)} />
           </div>

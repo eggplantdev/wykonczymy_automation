@@ -124,7 +124,7 @@ export async function updateTransferInvoiceAction(
 
   try {
     const payload = await getPayload({ config })
-    const mediaId = await handleInvoice(invoiceFormData, payload)
+    const mediaId = await uploadInvoice(invoiceFormData, payload)
 
     await payload.update({
       collection: 'transactions',
