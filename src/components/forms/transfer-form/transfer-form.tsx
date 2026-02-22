@@ -1,14 +1,11 @@
 'use client'
 
-import { useRef, useState } from 'react'
-import { X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { useState } from 'react'
 import { SelectItem } from '@/components/ui/select'
-import { FileInput } from '@/components/ui/file-input'
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
+import { useInvoiceFiles } from '@/components/forms/hooks/use-invoice-files'
 import { toastMessage } from '@/components/toasts'
-import { formatPLN } from '@/lib/format-currency'
 import {
   TRANSACTION_TRANSFER_TYPES,
   TRANSFER_TYPE_LABELS,
@@ -29,7 +26,12 @@ import {
 import type { ReferenceDataT } from '@/types/reference-data'
 import { getDefaultCashRegister, getUserCashRegisterIds } from '@/lib/utils/default-cash-register'
 import { today } from '@/lib/date-utils'
-import { CashRegisterField, InvestmentField, WorkerField } from '@/components/forms/form-fields'
+import {
+  CashRegisterField,
+  InvestmentField,
+  LineItemsField,
+  WorkerField,
+} from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
 
@@ -54,7 +56,7 @@ type FormValuesT = {
 }
 
 export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
-  const invoiceFilesRef = useRef<Map<number, File>>(new Map())
+  const { handleRemoveLineItem, handleFileChange, buildInvoiceFormData } = useInvoiceFiles()
   const userCashRegisterIds = getUserCashRegisterIds(referenceData)
   const isSourceRestricted = userCashRegisterIds !== undefined
   const [expenseTarget, setExpenseTarget] = useState<'investment' | 'other'>('investment')
@@ -93,15 +95,7 @@ export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
         })),
       }
 
-      let invoiceFormData: FormData | null = null
-      if (invoiceFilesRef.current.size > 0) {
-        invoiceFormData = new FormData()
-        invoiceFilesRef.current.forEach((file, index) => {
-          invoiceFormData!.set(`invoice-${index}`, file)
-        })
-      }
-
-      const result = await createBulkTransferAction(data, invoiceFormData)
+      const result = await createBulkTransferAction(data, buildInvoiceFormData())
 
       if (result.success) {
         toastMessage('Transakcje dodane', 'success')
@@ -137,23 +131,6 @@ export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
     if (!isSourceRestricted || (userCashRegisterIds && userCashRegisterIds.length > 1))
       form.resetField('sourceRegister')
     setExpenseTarget('investment')
-  }
-
-  function handleRemoveLineItem(index: number, removeValue: (index: number) => void) {
-    const oldFiles = invoiceFilesRef.current
-    const newFiles = new Map<number, File>()
-    oldFiles.forEach((file, i) => {
-      if (i < index) newFiles.set(i, file)
-      else if (i > index) newFiles.set(i - 1, file)
-    })
-    invoiceFilesRef.current = newFiles
-    removeValue(index)
-  }
-
-  function handleFileChange(index: number, e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (file) invoiceFilesRef.current.set(index, file)
-    else invoiceFilesRef.current.delete(index)
   }
 
   return (
@@ -278,67 +255,30 @@ export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
 
           {/* Line items — all other non-deposit types */}
           {!isDepositType(currentType) && !isAccountFunding && (
-            <form.Field name="lineItems" mode="array">
-              {(lineItemsField) => (
-                <div className="space-y-4">
-                  <p className="text-foreground text-sm font-medium">Pozycje</p>
-                  {lineItemsField.state.value.map((_, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-start gap-2">
-                        <div className="flex-1">
-                          <form.AppField name={`lineItems[${index}].description`}>
-                            {(field) => <field.Input placeholder="Opis pozycji" showError />}
-                          </form.AppField>
-                        </div>
-                        <div className="w-36">
-                          <form.AppField name={`lineItems[${index}].amount`}>
-                            {(field) => <field.Input placeholder="Kwota" type="number" showError />}
-                          </form.AppField>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleRemoveLineItem(index, lineItemsField.removeValue)}
-                          disabled={lineItemsField.state.value.length === 1}
-                          aria-label="Usuń pozycję"
-                        >
-                          <X className="size-4" />
-                        </Button>
-                      </div>
-                      <FileInput
-                        accept="image/*,application/pdf"
-                        onChange={(e) => handleFileChange(index, e)}
-                      />
-                      <form.AppField name={`lineItems[${index}].invoiceNote`}>
-                        {(field) => (
-                          <field.Textarea
-                            placeholder="Notatka do faktury (opcjonalnie)"
-                            showError
-                            className="min-h-6"
-                          />
-                        )}
-                      </form.AppField>
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      lineItemsField.pushValue({
-                        description: '',
-                        amount: '',
-                        invoiceNote: '',
-                      })
-                    }
-                  >
-                    Dodaj pozycję
-                  </Button>
-                  <p className="text-foreground text-sm font-medium">Suma: {formatPLN(total)}</p>
-                </div>
+            <LineItemsField
+              form={form}
+              emptyItem={{ description: '', amount: '', invoiceNote: '' }}
+              total={total}
+              onRemoveItem={handleRemoveLineItem}
+              onFileChange={handleFileChange}
+              renderItemExtras={(index) => (
+                <form.AppField name={`lineItems[${index}].invoiceNote`}>
+                  {(field: {
+                    Textarea: React.FC<{
+                      placeholder: string
+                      showError: boolean
+                      className: string
+                    }>
+                  }) => (
+                    <field.Textarea
+                      placeholder="Notatka do faktury (opcjonalnie)"
+                      showError
+                      className="min-h-6"
+                    />
+                  )}
+                </form.AppField>
               )}
-            </form.Field>
+            />
           )}
         </FieldGroup>
 

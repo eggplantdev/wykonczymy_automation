@@ -3,7 +3,12 @@ import { useFormContext } from '../hooks/form-hooks'
 import { useFormStatus } from '../hooks/use-form-status'
 import { Loader } from '@/components/ui/loader/loader'
 
-export default function FormFooter() {
+type FormFooterPropsT = {
+  label?: string
+  submittingLabel?: string
+}
+
+export default function FormFooter({ label = 'Dodaj', submittingLabel }: FormFooterPropsT) {
   const form = useFormContext()
 
   const { isInvalid, isSubmitting } = useFormStatus(form)
@@ -12,10 +17,10 @@ export default function FormFooter() {
     <>
       <footer>
         <Button disabled={isSubmitting} type="submit">
-          Dodaj
+          {isSubmitting && submittingLabel ? submittingLabel : label}
         </Button>
         {isInvalid && (
-          <p className="text-destructive mt-2 text-sm font-medium">{'Formularz zawiera blędy '}</p>
+          <p className="text-destructive mt-2 text-sm font-medium">Formularz zawiera błędy</p>
         )}
       </footer>
       <Loader loading={isSubmitting} portal />
