@@ -2,7 +2,7 @@
 
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm } from '@/components/forms/hooks/form-hooks'
-import { toastMessage } from '@/components/toasts'
+import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import { type PaymentMethodT } from '@/lib/constants/transfers'
 import { createTransferAction } from '@/lib/actions/transfers'
 import { registerTransferFormSchema } from '@/components/forms/register-transfer-form/register-transfer-schema'
@@ -33,21 +33,34 @@ type FormValuesT = {
   targetRegister: string
 }
 
+const FORM_ID = 'register-transfer'
+
 export function RegisterTransferForm({ referenceData, onSuccess }: RegisterTransferFormPropsT) {
+  const submission = useOptimisticFormStore((s) => s.submission)
+  const submitOptimistically = useOptimisticFormStore((s) => s.submitOptimistically)
+  const clearSubmission = useOptimisticFormStore((s) => s.clearSubmission)
+
+  const recovering = submission?.formId === FORM_ID && submission.status === 'failed'
+  const recoveredValues = recovering ? (submission.formValues as FormValuesT) : undefined
+
   const userCashRegisterIds = getUserCashRegisterIds(referenceData)
   const form = useAppForm({
-    defaultValues: {
-      description: '',
-      amount: '',
-      date: today(),
-      paymentMethod: 'CASH',
-      sourceRegister: getDefaultCashRegister(referenceData),
-      targetRegister: '',
-    } as FormValuesT,
+    defaultValues:
+      recoveredValues ??
+      ({
+        description: '',
+        amount: '',
+        date: today(),
+        paymentMethod: 'CASH',
+        sourceRegister: getDefaultCashRegister(referenceData),
+        targetRegister: '',
+      } as FormValuesT),
     validators: {
       onSubmit: registerTransferFormSchema,
     },
     onSubmit: async ({ value }) => {
+      if (recovering) clearSubmission()
+
       const data: CreateTransferFormT = {
         description: value.description,
         amount: Number(value.amount),
@@ -58,14 +71,14 @@ export function RegisterTransferForm({ referenceData, onSuccess }: RegisterTrans
         targetRegister: Number(value.targetRegister),
       }
 
-      const result = await createTransferAction(data, null)
-
-      if (result.success) {
-        toastMessage('Transfer między kasami dodany', 'success')
-        onSuccess()
-      } else {
-        toastMessage(result.error, 'error')
-      }
+      submitOptimistically(
+        FORM_ID,
+        value as unknown as Record<string, unknown>,
+        new Map(),
+        () => createTransferAction(data, null),
+        'Transfer między kasami dodany',
+      )
+      onSuccess()
 
       return false
     },
