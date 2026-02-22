@@ -9,15 +9,26 @@ import { mapTransferRow, buildTransferLookups, type TransferLookupsT } from '@/l
 
 // ── Mock data ───────────────────────────────────────────────────────
 
+const stubInvestment = {
+  status: 'active' as const,
+  totalCosts: 0,
+  totalIncome: 0,
+  laborCosts: 0,
+  address: '',
+  phone: '',
+  email: '',
+  contactPerson: '',
+}
+
 const refData = {
   cashRegisters: [
-    { id: 1, name: 'Kasa główna', type: 'MAIN' },
-    { id: 2, name: 'Kasa pomocnicza', type: 'AUXILIARY' },
+    { id: 1, name: 'Kasa główna', type: 'MAIN', balance: 0 },
+    { id: 2, name: 'Kasa pomocnicza', type: 'AUXILIARY', balance: 0 },
   ],
-  investments: [{ id: 10, name: 'Inwestycja A' }],
+  investments: [{ id: 10, name: 'Inwestycja A', ...stubInvestment }],
   workers: [
-    { id: 100, name: 'Jan Kowalski', type: 'MANAGER' },
-    { id: 101, name: 'Anna Nowak', type: 'EMPLOYEE' },
+    { id: 100, name: 'Jan Kowalski', type: 'MANAGER', email: '' },
+    { id: 101, name: 'Anna Nowak', type: 'EMPLOYEE', email: '' },
   ],
   otherCategories: [{ id: 50, name: 'Materiały' }],
 }
