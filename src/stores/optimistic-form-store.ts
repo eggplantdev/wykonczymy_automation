@@ -46,7 +46,7 @@ export const useOptimisticFormStore = create<OptimisticFormStoreT>()((set) => ({
     action().then((result) => {
       if (result.success) {
         set({ submission: null })
-        toastMessage(successMessage, 'success')
+        toastMessage(successMessage, 'success', 1000)
       } else {
         // Reopen dialog with failed state
         set((state) => ({
@@ -55,7 +55,7 @@ export const useOptimisticFormStore = create<OptimisticFormStoreT>()((set) => ({
             ? { ...state.submission, status: 'failed', error: result.error }
             : null,
         }))
-        toastMessage(result.error, 'error')
+        toastMessage(result.error, 'error', 5000)
       }
     })
   },

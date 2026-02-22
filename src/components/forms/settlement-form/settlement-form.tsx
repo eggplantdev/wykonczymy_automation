@@ -38,6 +38,7 @@ type SettlementFormPropsT = {
   referenceData: SettlementReferenceDataT
   className?: string
   onSuccess?: () => void
+  keepOpen?: boolean
 }
 
 type FormValuesT = {
@@ -53,7 +54,12 @@ type FormValuesT = {
   lineItems: { description: string; amount: string; category?: string; note?: string }[]
 }
 
-export function SettlementForm({ referenceData, className, onSuccess }: SettlementFormPropsT) {
+export function SettlementForm({
+  referenceData,
+  className,
+  onSuccess,
+  keepOpen,
+}: SettlementFormPropsT) {
   const router = useRouter()
 
   const FORM_ID = 'settlement'
@@ -116,7 +122,7 @@ export function SettlementForm({ referenceData, className, onSuccess }: Settleme
               })),
       }
 
-      if (onSuccess) {
+      if (onSuccess && !keepOpen) {
         const invoiceFormData = buildInvoiceFormData()
         submitOptimistically(
           FORM_ID,
@@ -130,7 +136,9 @@ export function SettlementForm({ referenceData, className, onSuccess }: Settleme
         const result = await createSettlementAction(data, buildInvoiceFormData())
         if (result.success) {
           toastMessage('Dodano', 'success')
-          router.push('/')
+          if (keepOpen) form.reset()
+          else if (onSuccess) onSuccess()
+          else router.push('/')
         } else {
           toastMessage(result.error, 'error')
         }

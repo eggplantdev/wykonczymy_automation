@@ -12,7 +12,7 @@ type FormDialogPropsT = {
   title: string
   description?: string
   showKeepOpen?: boolean
-  children: (onSuccess: () => void) => React.ReactNode
+  children: (onSuccess: () => void, keepOpen: boolean) => React.ReactNode
 }
 
 export function FormDialog({
@@ -58,7 +58,7 @@ export function FormDialog({
         >
           <div className="h-auto">
             <DialogHeader title={title} description={description} />
-            <div className="mt-2 pr-1">{children(handleSuccess)}</div>
+            <div className="mt-2 pr-1">{children(handleSuccess, keepOpen)}</div>
             {showKeepOpen && (
               <label className="flex cursor-pointer items-center gap-2 py-4 text-sm select-none">
                 <Checkbox

@@ -3,6 +3,7 @@
 import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
+import { toastMessage } from '@/components/toasts'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import {
   DEPOSIT_UI_TYPES,
@@ -31,6 +32,7 @@ import { createTransferAction } from '@/lib/actions/transfers'
 type DepositFormPropsT = {
   referenceData: ReferenceDataT
   onSuccess: () => void
+  keepOpen?: boolean
 }
 
 type FormValuesT = {
@@ -43,7 +45,7 @@ type FormValuesT = {
   investment?: string
 }
 
-export function DepositForm({ referenceData, onSuccess }: DepositFormPropsT) {
+export function DepositForm({ referenceData, onSuccess, keepOpen }: DepositFormPropsT) {
   const FORM_ID = 'deposit'
   const submission = useOptimisticFormStore((s) => s.submission)
   const submitOptimistically = useOptimisticFormStore((s) => s.submitOptimistically)
@@ -80,14 +82,24 @@ export function DepositForm({ referenceData, onSuccess }: DepositFormPropsT) {
         investment: value.investment ? Number(value.investment) : undefined,
       }
 
-      submitOptimistically(
-        FORM_ID,
-        value as unknown as Record<string, unknown>,
-        new Map(),
-        () => createTransferAction(data, null),
-        'Wpłata dodana',
-      )
-      onSuccess()
+      if (keepOpen) {
+        const result = await createTransferAction(data, null)
+        if (result.success) {
+          toastMessage('Wpłata dodana', 'success')
+          form.reset()
+        } else {
+          toastMessage(result.error, 'error')
+        }
+      } else {
+        submitOptimistically(
+          FORM_ID,
+          value as unknown as Record<string, unknown>,
+          new Map(),
+          () => createTransferAction(data, null),
+          'Wpłata dodana',
+        )
+        onSuccess()
+      }
 
       return false
     },

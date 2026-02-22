@@ -22,7 +22,9 @@ export function AddTransferDialog({ referenceData }: AddTransferDialogPropsT) {
       }
       title="Nowa transakcja"
     >
-      {(onSuccess) => <TransferForm referenceData={referenceData} onSuccess={onSuccess} />}
+      {(onSuccess, keepOpen) => (
+        <TransferForm referenceData={referenceData} onSuccess={onSuccess} keepOpen={keepOpen} />
+      )}
     </FormDialog>
   )
 }

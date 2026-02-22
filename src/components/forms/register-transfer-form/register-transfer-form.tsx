@@ -2,6 +2,7 @@
 
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm } from '@/components/forms/hooks/form-hooks'
+import { toastMessage } from '@/components/toasts'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import { type PaymentMethodT } from '@/lib/constants/transfers'
 import { createTransferAction } from '@/lib/actions/transfers'
@@ -22,6 +23,7 @@ import FormFooter from '../form-components/form-footer'
 type RegisterTransferFormPropsT = {
   referenceData: ReferenceDataT
   onSuccess: () => void
+  keepOpen?: boolean
 }
 
 type FormValuesT = {
@@ -35,7 +37,11 @@ type FormValuesT = {
 
 const FORM_ID = 'register-transfer'
 
-export function RegisterTransferForm({ referenceData, onSuccess }: RegisterTransferFormPropsT) {
+export function RegisterTransferForm({
+  referenceData,
+  onSuccess,
+  keepOpen,
+}: RegisterTransferFormPropsT) {
   const submission = useOptimisticFormStore((s) => s.submission)
   const submitOptimistically = useOptimisticFormStore((s) => s.submitOptimistically)
   const clearSubmission = useOptimisticFormStore((s) => s.clearSubmission)
@@ -71,14 +77,24 @@ export function RegisterTransferForm({ referenceData, onSuccess }: RegisterTrans
         targetRegister: Number(value.targetRegister),
       }
 
-      submitOptimistically(
-        FORM_ID,
-        value as unknown as Record<string, unknown>,
-        new Map(),
-        () => createTransferAction(data, null),
-        'Transfer między kasami dodany',
-      )
-      onSuccess()
+      if (keepOpen) {
+        const result = await createTransferAction(data, null)
+        if (result.success) {
+          toastMessage('Transfer między kasami dodany', 'success')
+          form.reset()
+        } else {
+          toastMessage(result.error, 'error')
+        }
+      } else {
+        submitOptimistically(
+          FORM_ID,
+          value as unknown as Record<string, unknown>,
+          new Map(),
+          () => createTransferAction(data, null),
+          'Transfer między kasami dodany',
+        )
+        onSuccess()
+      }
 
       return false
     },

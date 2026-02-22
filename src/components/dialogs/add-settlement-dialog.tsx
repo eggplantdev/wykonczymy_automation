@@ -37,8 +37,12 @@ export function AddSettlementDialog({ referenceData }: AddSettlementDialogPropsT
       title="Rozliczenie pracownika"
       showKeepOpen={false}
     >
-      {(onSuccess) => (
-        <SettlementForm referenceData={settlementReferenceData} onSuccess={onSuccess} />
+      {(onSuccess, keepOpen) => (
+        <SettlementForm
+          referenceData={settlementReferenceData}
+          onSuccess={onSuccess}
+          keepOpen={keepOpen}
+        />
       )}
     </FormDialog>
   )
