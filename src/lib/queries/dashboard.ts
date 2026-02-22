@@ -71,12 +71,9 @@ export async function fetchManagerDashboardData() {
     .filter((cr) => cr.type !== 'VIRTUAL')
     .reduce((sum, cr) => sum + cr.balance, 0)
 
-  const ownedBalance =
-    user.role === 'ADMIN'
-      ? undefined
-      : refData.cashRegisters
-          .filter((cr) => cr.ownerId === user!.id && cr.type !== 'VIRTUAL' && cr.type !== 'MAIN')
-          .reduce((sum, cr) => sum + cr.balance, 0)
+  const ownedBalance = refData.cashRegisters
+    .filter((cr) => cr.ownerId === user!.id && cr.type !== 'VIRTUAL')
+    .reduce((sum, cr) => sum + cr.balance, 0)
 
   const virtualRegisters = cashRegisters.filter((cr) => cr.type === 'VIRTUAL' && cr.active)
 
