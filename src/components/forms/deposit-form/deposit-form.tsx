@@ -40,7 +40,7 @@ type FormValuesT = {
   type: string
   paymentMethod: string
   sourceRegister: string
-  investment: string
+  investment?: string
 }
 
 export function DepositForm({ referenceData, onSuccess }: DepositFormPropsT) {
