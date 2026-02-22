@@ -7,6 +7,7 @@ import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { revalidateCollections } from '@/lib/cache/revalidate'
 import type { CACHE_TAGS } from '@/lib/cache/tags'
 import { sql } from '@payloadcms/db-vercel-postgres'
+// import { getDb, sumRegisterBalance } from '@/lib/db/sum-transfers'
 import { getDb, sumRegisterBalance } from '@/lib/db/sum-transfers'
 import { perfStart } from '@/lib/perf'
 import type { SessionUserT } from '@/types/auth'
@@ -106,6 +107,8 @@ export async function validateSourceRegister(
 }
 
 /** Verifies the register has enough balance for the withdrawal. Skips virtual registers. */
+
+// temporary disabled
 export async function checkIfSufficientBalance(
   register: ReferenceItemT,
   amount: number,

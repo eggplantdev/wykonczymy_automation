@@ -10,7 +10,7 @@ import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { uploadBulkInvoices, uploadSingleInvoice } from '@/lib/upload-invoice'
 import { isDepositType, needsSourceRegister } from '../constants/transfers'
 import {
-  checkIfSufficientBalance,
+  // checkIfSufficientBalance,
   validateAction,
   validateSourceRegister,
   withAction,
@@ -34,13 +34,7 @@ export async function createTransferAction(
         const validated = await validateSourceRegister(data.sourceRegister, user, payload)
         console.log(`[PERF]   validateSourceRegister ${step()}ms`)
         if (!validated.success) return validated
-        const balanceCheck = await checkIfSufficientBalance(
-          validated.register,
-          data.amount,
-          payload,
-        )
-        console.log(`[PERF]   checkIfSufficientBalance ${step()}ms`)
-        if (!balanceCheck.success) return balanceCheck
+        // Balance check removed — negative balances are allowed
       }
 
       const mediaId = await uploadSingleInvoice(payload, invoiceFormData)
@@ -78,14 +72,8 @@ export async function createBulkTransferAction(
       if (needsSourceRegister(parsed.data.type)) {
         const validated = await validateSourceRegister(parsed.data.sourceRegister, user, payload)
         if (!validated.success) return validated
-
-        const totalAmount = parsed.data.lineItems.reduce((sum, item) => sum + item.amount, 0)
-        const balanceCheck = await checkIfSufficientBalance(
-          validated.register,
-          totalAmount,
-          payload,
-        )
-        if (!balanceCheck.success) return balanceCheck
+        // Balance check removed — negative balances are allowed
+        //checkIfSufficientBalance
       }
 
       const mediaIds = await uploadBulkInvoices(payload, invoiceFormData, lineCount)
