@@ -16,7 +16,7 @@ export function TopNav({ referenceData }: TopNavPropsT) {
     <header className="border-border bg-background sticky top-0 z-40 flex h-14 items-center justify-between gap-3 border-b px-3">
       {/* Left: app name */}
       <Link href="/" className="text-lg font-semibold">
-        Wykonczymy
+        Wykończymy 🚧
       </Link>
 
       {/* Right: action buttons */}
