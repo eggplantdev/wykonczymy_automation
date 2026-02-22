@@ -5,6 +5,10 @@ export default defineConfig({
   test: {
     globals: true,
     include: ['src/__tests__/**/*.test.ts'],
+    css: false,
+  },
+  css: {
+    postcss: { plugins: [] },
   },
   resolve: {
     alias: {
