@@ -1,7 +1,8 @@
 'use client'
 
 import { useTransition } from 'react'
-import { LogOut } from 'lucide-react'
+import { LogOut, Shield } from 'lucide-react'
+import Link from 'next/link'
 import { logoutAction } from '@/lib/actions/auth'
 import { ROLE_LABELS, type RoleT } from '@/lib/auth/roles'
 import { Button } from '@/components/ui/button'
@@ -29,16 +30,28 @@ export function AppFooter({ user }: AppFooterPropsT) {
             {ROLE_LABELS[user.role].pl}
           </span>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleLogout}
-          disabled={isPending}
-          aria-label="Wyloguj"
-        >
-          <LogOut className="size-4" />
-          <span className="hidden sm:inline">Wyloguj</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild aria-label="Panel administracyjny">
+            <Link
+              href={`${process.env.NEXT_PUBLIC_FRONTEND_URL}/admin`}
+              target="_blank"
+              aria-label="Panel administracyjny"
+            >
+              <Shield className="size-4" />
+              <span className="hidden sm:inline">Admin</span>
+            </Link>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleLogout}
+            disabled={isPending}
+            aria-label="Wyloguj"
+          >
+            <LogOut className="size-4" />
+            <span className="hidden sm:inline">Wyloguj</span>
+          </Button>
+        </div>
       </div>
     </footer>
   )
