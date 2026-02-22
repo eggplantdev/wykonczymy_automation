@@ -64,10 +64,10 @@ describe('transfer constants — helper truth table', () => {
 describe('TRANSACTION_TRANSFER_TYPES', () => {
   it('contains exactly the expected types', () => {
     expect(TRANSACTION_TRANSFER_TYPES).toEqual([
-      'INVESTMENT_EXPENSE',
-      'ACCOUNT_FUNDING',
-      'PAYOUT',
       'OTHER',
+      'INVESTMENT_EXPENSE',
+      'PAYOUT',
+      'ACCOUNT_FUNDING',
     ])
   })
 

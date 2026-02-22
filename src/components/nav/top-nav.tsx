@@ -16,7 +16,7 @@ export function TopNav({ referenceData }: TopNavPropsT) {
   return (
     <header className="border-border bg-background sticky top-0 z-40 flex h-14 items-center justify-between gap-3 border-b px-3">
       <RainbowButton as={Link} href="/">
-        <h1 className="text-sm font-semibold"> Wykończymy 🚧</h1>
+        <h1 className="text-sm"> Wykończymy 🚧</h1>
       </RainbowButton>
 
       {/* Right: action buttons */}
