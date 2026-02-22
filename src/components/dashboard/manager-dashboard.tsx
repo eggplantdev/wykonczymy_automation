@@ -21,7 +21,6 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
     allInvestments,
     users,
     managementUsers,
-    recentCount,
     totalBalance,
     ownedBalance,
     isAdminOrOwner,
@@ -46,7 +45,6 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
               <StatCard label="Saldo moich kas" value={formatPLN(ownedBalance)} />
             )}
             <StatCard label="Aktywne inwestycje" value={String(activeInvestments.length)} />
-            <StatCard label="Trasnsakcje (30 dni)" value={String(recentCount)} />
           </div>
         </div>
       </CollapsibleSection>

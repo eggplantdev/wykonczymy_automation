@@ -1,14 +1,7 @@
 'use client'
 
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import NextImage from 'next/image'
 import { Download, Printer, Replace } from 'lucide-react'
 import { ImageMedia } from '../ImageMedia'
 
@@ -52,9 +45,7 @@ export function InvoicePreviewDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-4xl" aria-describedby={undefined}>
-        <DialogHeader>
-          <DialogTitle>{displayName}</DialogTitle>
-        </DialogHeader>
+        <DialogHeader title={displayName} />
 
         <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto">
           {isImage && (

@@ -72,13 +72,31 @@ function DialogContent({
   )
 }
 
-function DialogHeader({ className, ...props }: React.ComponentProps<'div'>) {
+function DialogHeader({
+  className,
+  title,
+  description,
+  children,
+  ...props
+}: React.ComponentProps<'div'> & {
+  title?: string
+  description?: string
+}) {
   return (
     <div
       data-slot="dialog-header"
       className={cn('flex flex-col gap-2 text-center sm:text-left', className)}
       {...props}
-    />
+    >
+      {title ? (
+        <>
+          <DialogTitle>{title}</DialogTitle>
+          {description && <DialogDescription>{description}</DialogDescription>}
+        </>
+      ) : (
+        children
+      )}
+    </div>
   )
 }
 

@@ -14,6 +14,7 @@ const buttonVariants = cva(
         outline:
           'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground',
         ghost: 'hover:bg-accent hover:text-accent-foreground',
+        ghostDestructive: 'text-muted-foreground hover:bg-destructive/10 hover:text-destructive',
         destructive: 'bg-destructive text-white hover:bg-destructive/90',
         link: 'text-primary underline-offset-4 hover:underline',
         badgeActive: 'border border-green-600 text-green-600 hover:bg-green-600 hover:text-white',

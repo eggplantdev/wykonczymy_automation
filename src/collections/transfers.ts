@@ -20,6 +20,7 @@ const TRANSFER_TYPES = [
   },
   { label: { en: 'Payout', pl: 'Wypłata' }, value: 'PAYOUT' },
   { label: { en: 'Other', pl: 'Inne' }, value: 'OTHER' },
+  { label: { en: 'Cancellation', pl: 'Anulowanie' }, value: 'CANCELLATION' },
 ] as const
 
 const PAYMENT_METHODS = [
@@ -198,6 +199,28 @@ export const Transfers: CollectionConfig = {
           en: 'Required if no invoice file is attached',
           pl: 'Wymagane jeśli nie załączono faktury',
         },
+      },
+    },
+    // --- Cancellation ---
+    {
+      name: 'cancelled',
+      type: 'checkbox',
+      defaultValue: false,
+      label: { en: 'Cancelled', pl: 'Anulowane' },
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'cancelledTransaction',
+      type: 'relationship',
+      relationTo: 'transactions',
+      label: { en: 'Cancelled Transaction', pl: 'Anulowana transakcja' },
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+        condition: (data) => data?.type === 'CANCELLATION',
       },
     },
     // --- Metadata ---
