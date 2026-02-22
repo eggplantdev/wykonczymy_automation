@@ -5,7 +5,6 @@ import { recalcAfterChange, recalcAfterDelete } from '@/hooks/transfers/recalcul
 
 const TRANSFER_TYPES = [
   { label: { en: 'Investor Deposit', pl: 'Wpłata od inwestora' }, value: 'INVESTOR_DEPOSIT' },
-  { label: { en: 'Stage Settlement', pl: 'Rozliczenie etapu' }, value: 'STAGE_SETTLEMENT' },
   { label: { en: 'Company Funding', pl: 'Zasilenie z konta firmowego' }, value: 'COMPANY_FUNDING' },
   { label: { en: 'Other Deposit', pl: 'Inna wpłata' }, value: 'OTHER_DEPOSIT' },
   { label: { en: 'Investment Expense', pl: 'Wydatek inwestycyjny' }, value: 'INVESTMENT_EXPENSE' },
