@@ -4,14 +4,7 @@ import { useState, useTransition } from 'react'
 import { MessageSquareText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import { updateTransferNoteAction } from '@/lib/actions/transfers'
 import { toastMessage } from '@/components/toasts'
 
@@ -61,10 +54,10 @@ export function NoteCell({ transactionId, note }: NoteCellPropsT) {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Notatka do przelewu</DialogTitle>
-            <DialogDescription>Dodaj lub edytuj notatkę do tej transakcji.</DialogDescription>
-          </DialogHeader>
+          <DialogHeader
+            title="Notatka do przelewu"
+            description="Dodaj lub edytuj notatkę do tej transakcji."
+          />
 
           <Textarea
             value={value}

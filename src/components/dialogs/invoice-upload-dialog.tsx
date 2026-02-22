@@ -1,13 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { FileInput } from '@/components/ui/file-input'
 import { Upload } from 'lucide-react'
@@ -66,9 +60,7 @@ export function InvoiceUploadDialog({
         className="h-fit sm:top-1/2 sm:bottom-auto sm:max-w-md sm:-translate-y-1/2"
         aria-describedby={undefined}
       >
-        <DialogHeader>
-          <DialogTitle>{isReplace ? 'Zamień fakturę' : 'Dodaj fakturę'}</DialogTitle>
-        </DialogHeader>
+        <DialogHeader title={isReplace ? 'Zamień fakturę' : 'Dodaj fakturę'} />
 
         <FileInput ref={fileRef} accept="image/*,application/pdf" />
 
