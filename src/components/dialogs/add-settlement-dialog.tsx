@@ -27,6 +27,7 @@ export function AddSettlementDialog({ referenceData }: AddSettlementDialogPropsT
 
   return (
     <FormDialog
+      formId="settlement"
       trigger={
         <Button variant="outline" size="sm" className="gap-2">
           <Receipt className="size-4" />

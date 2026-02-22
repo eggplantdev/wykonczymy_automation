@@ -4,8 +4,10 @@ import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { ConfirmCloseDialog } from '@/components/ui/confirm-close-dialog'
 import { Checkbox } from '@/components/ui/checkbox'
+import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 
 type FormDialogPropsT = {
+  formId: string
   trigger: React.ReactNode
   title: string
   description?: string
@@ -14,25 +16,39 @@ type FormDialogPropsT = {
 }
 
 export function FormDialog({
+  formId,
   trigger,
   title,
   description,
   showKeepOpen = true,
   children,
 }: FormDialogPropsT) {
-  const [isOpen, setIsOpen] = useState(false)
   const [keepOpen, setKeepOpen] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
 
+  const isOpen = useOptimisticFormStore((s) => s.openFormId === formId)
+  const openDialog = useOptimisticFormStore((s) => s.openDialog)
+  const closeDialog = useOptimisticFormStore((s) => s.closeDialog)
+  const clearSubmission = useOptimisticFormStore((s) => s.clearSubmission)
+
+  function handleOpenChange(open: boolean) {
+    if (open) {
+      openDialog(formId)
+    } else {
+      closeDialog()
+      clearSubmission()
+    }
+  }
+
   function handleSuccess() {
-    if (!keepOpen) setIsOpen(false)
+    if (!keepOpen) closeDialog()
   }
 
   return (
     <>
-      <span onClick={() => setIsOpen(true)}>{trigger}</span>
+      <span onClick={() => openDialog(formId)}>{trigger}</span>
 
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogContent
           className="h-fit max-h-[80vh] sm:max-w-2xl"
           onInteractOutside={(e) => {
@@ -59,7 +75,7 @@ export function FormDialog({
       <ConfirmCloseDialog
         open={showConfirm}
         onOpenChange={setShowConfirm}
-        onConfirm={() => setIsOpen(false)}
+        onConfirm={() => handleOpenChange(false)}
       />
     </>
   )
