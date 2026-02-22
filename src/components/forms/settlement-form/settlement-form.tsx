@@ -9,6 +9,7 @@ import { useInvoiceFiles } from '@/components/forms/hooks/use-invoice-files'
 import useCheckFormErrors from '@/components/forms/hooks/use-check-form-errors'
 import FormFooter from '@/components/forms/form-components/form-footer'
 import { toastMessage } from '@/components/toasts'
+import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import { formatPLN } from '@/lib/format-currency'
 import { type PaymentMethodT } from '@/lib/constants/transfers'
 import { createSettlementAction, getManagementEmployeeSaldo } from '@/lib/actions/settlements'
@@ -54,31 +55,46 @@ type FormValuesT = {
 
 export function SettlementForm({ referenceData, className, onSuccess }: SettlementFormPropsT) {
   const router = useRouter()
-  const { handleRemoveLineItem, handleFileChange, buildInvoiceFormData } = useInvoiceFiles()
+
+  const FORM_ID = 'settlement'
+  const submission = useOptimisticFormStore((s) => s.submission)
+  const submitOptimistically = useOptimisticFormStore((s) => s.submitOptimistically)
+  const clearSubmission = useOptimisticFormStore((s) => s.clearSubmission)
+
+  const recovering = submission?.formId === FORM_ID && submission.status === 'failed'
+  const recoveredValues = recovering ? (submission.formValues as FormValuesT) : undefined
+  const recoveredFiles = recovering ? submission.invoiceFiles : undefined
+
+  const { handleRemoveLineItem, handleFileChange, buildInvoiceFormData, getFiles } =
+    useInvoiceFiles(recoveredFiles)
 
   // Saldo is display-only, not form data
   const [saldo, setSaldo] = useState<number | null>(null)
   const [isSaldoLoading, setIsSaldoLoading] = useState(false)
 
   const form = useAppForm({
-    defaultValues: {
-      worker: '',
-      mode: 'investment' as const,
-      investment: '',
-      sourceRegister: referenceData.defaultCashRegisterId
-        ? String(referenceData.defaultCashRegisterId)
-        : '',
-      amount: '',
-      description: '',
-      date: today(),
-      paymentMethod: 'CASH',
-      invoiceNote: '',
-      lineItems: [{ description: '', amount: '', category: '', note: '' }],
-    } as FormValuesT,
+    defaultValues:
+      recoveredValues ??
+      ({
+        worker: '',
+        mode: 'investment' as const,
+        investment: '',
+        sourceRegister: referenceData.defaultCashRegisterId
+          ? String(referenceData.defaultCashRegisterId)
+          : '',
+        amount: '',
+        description: '',
+        date: today(),
+        paymentMethod: 'CASH',
+        invoiceNote: '',
+        lineItems: [{ description: '', amount: '', category: '', note: '' }],
+      } as FormValuesT),
     validators: {
       onSubmit: settlementFormSchema,
     },
     onSubmit: async ({ value }) => {
+      if (recovering) clearSubmission()
+
       const data: CreateSettlementFormT = {
         worker: Number(value.worker),
         mode: value.mode,
@@ -100,14 +116,24 @@ export function SettlementForm({ referenceData, className, onSuccess }: Settleme
               })),
       }
 
-      const result = await createSettlementAction(data, buildInvoiceFormData())
-
-      if (result.success) {
-        toastMessage(`Dodano`, 'success')
-        if (onSuccess) onSuccess()
-        else router.push('/')
+      if (onSuccess) {
+        const invoiceFormData = buildInvoiceFormData()
+        submitOptimistically(
+          FORM_ID,
+          value as unknown as Record<string, unknown>,
+          getFiles(),
+          () => createSettlementAction(data, invoiceFormData),
+          'Dodano',
+        )
+        onSuccess()
       } else {
-        toastMessage(result.error, 'error')
+        const result = await createSettlementAction(data, buildInvoiceFormData())
+        if (result.success) {
+          toastMessage('Dodano', 'success')
+          router.push('/')
+        } else {
+          toastMessage(result.error, 'error')
+        }
       }
 
       return false

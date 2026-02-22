@@ -3,7 +3,7 @@
 import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
-import { toastMessage } from '@/components/toasts'
+import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import {
   DEPOSIT_UI_TYPES,
   TRANSFER_TYPE_LABELS,
@@ -44,20 +44,32 @@ type FormValuesT = {
 }
 
 export function DepositForm({ referenceData, onSuccess }: DepositFormPropsT) {
+  const FORM_ID = 'deposit'
+  const submission = useOptimisticFormStore((s) => s.submission)
+  const submitOptimistically = useOptimisticFormStore((s) => s.submitOptimistically)
+  const clearSubmission = useOptimisticFormStore((s) => s.clearSubmission)
+
+  const recovering = submission?.formId === FORM_ID && submission.status === 'failed'
+  const recoveredValues = recovering ? (submission.formValues as FormValuesT) : undefined
+
   const form = useAppForm({
-    defaultValues: {
-      description: '',
-      amount: '',
-      date: today(),
-      type: 'INVESTOR_DEPOSIT',
-      paymentMethod: 'CASH',
-      sourceRegister: getDefaultCashRegister(referenceData),
-      investment: '',
-    } as FormValuesT,
+    defaultValues:
+      recoveredValues ??
+      ({
+        description: '',
+        amount: '',
+        date: today(),
+        type: 'INVESTOR_DEPOSIT',
+        paymentMethod: 'CASH',
+        sourceRegister: getDefaultCashRegister(referenceData),
+        investment: '',
+      } as FormValuesT),
     validators: {
       onSubmit: transferFormSchema,
     },
     onSubmit: async ({ value }) => {
+      if (recovering) clearSubmission()
+
       const data: CreateTransferFormT = {
         description: value.description,
         amount: Number(value.amount),
@@ -68,14 +80,14 @@ export function DepositForm({ referenceData, onSuccess }: DepositFormPropsT) {
         investment: value.investment ? Number(value.investment) : undefined,
       }
 
-      const result = await createTransferAction(data, null)
-
-      if (result.success) {
-        toastMessage('Wpłata dodana', 'success')
-        onSuccess()
-      } else {
-        toastMessage(result.error, 'error')
-      }
+      submitOptimistically(
+        FORM_ID,
+        value as unknown as Record<string, unknown>,
+        new Map(),
+        () => createTransferAction(data, null),
+        'Wpłata dodana',
+      )
+      onSuccess()
 
       return false
     },
