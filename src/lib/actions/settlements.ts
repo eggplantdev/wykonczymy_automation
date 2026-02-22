@@ -8,6 +8,7 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 
 import {
   getDb,
+  sumEmployeeSaldo,
   sumInvestmentCosts,
   sumInvestmentIncome,
   sumRegisterBalance,
@@ -145,4 +146,15 @@ export async function createSettlementAction(
   } catch (err) {
     return { success: false, error: getErrorMessage(err) }
   }
+}
+
+export async function getManagementEmployeeSaldo(workerId: number): Promise<{ saldo: number }> {
+  const { user } = await requireAuth(MANAGEMENT_ROLES)
+  if (!user) throw new Error('Brak uprawnień')
+
+  // Bypass cache — this is an on-demand fetch from the settlement dialog
+  // and must always return fresh data.
+  const payload = await getPayload({ config })
+  const saldo = await sumEmployeeSaldo(payload, workerId)
+  return { saldo }
 }

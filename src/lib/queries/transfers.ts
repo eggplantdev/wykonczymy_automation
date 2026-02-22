@@ -1,11 +1,9 @@
 import { cacheLife, cacheTag } from 'next/cache'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { sql } from '@payloadcms/db-vercel-postgres'
 import type { Where } from 'payload'
 import { buildPaginationMeta, type PaginationParamsT } from '@/lib/pagination'
 import { CACHE_TAGS } from '@/lib/cache/tags'
-import { getDb } from '@/lib/db/sum-transfers'
 import { perfStart } from '@/lib/perf'
 
 type FindTransfersOptsT = PaginationParamsT & {
@@ -45,50 +43,6 @@ export async function findTransfersRaw({
     docs: result.docs as RawTransferDocT[],
     paginationMeta: buildPaginationMeta(result, limit),
   }
-}
-
-export async function findAllTransfersRaw({
-  where = {},
-  sort = '-date',
-}: {
-  readonly where?: Where
-  readonly sort?: string
-}) {
-  'use cache'
-  cacheLife('max')
-  cacheTag(CACHE_TAGS.transfers)
-
-  const elapsed = perfStart()
-  const payload = await getPayload({ config })
-  const result = await payload.find({
-    collection: 'transactions',
-    where,
-    sort,
-    pagination: false,
-    depth: 0,
-    overrideAccess: true,
-  })
-  console.log(`[PERF] query.findAllTransfersRaw ${elapsed()}ms (${result.docs.length} docs)`)
-
-  return result.docs as RawTransferDocT[]
-}
-
-export async function countRecentTransfers(sinceDate: string) {
-  'use cache'
-  cacheLife('max')
-  cacheTag(CACHE_TAGS.transfers)
-
-  const elapsed = perfStart()
-  const payload = await getPayload({ config })
-  const db = await getDb(payload)
-
-  const result = await db.execute(
-    sql`SELECT COUNT(*) AS count FROM transactions WHERE date >= ${sinceDate}`,
-  )
-  const count = Number(result.rows[0].count)
-  console.log(`[PERF] query.countRecentTransfers ${elapsed()}ms (${count} total)`)
-
-  return count
 }
 
 type SearchParamsT = Record<string, string | string[] | undefined>

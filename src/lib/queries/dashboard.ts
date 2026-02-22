@@ -1,22 +1,20 @@
-import { getPayload } from 'payload'
-import config from '@payload-config'
-import { fetchReferenceData } from '@/lib/queries/reference-data'
-import { sumAllWorkerSaldos } from '@/lib/db/sum-transfers'
+import { fetchReferenceData, fetchWorkerSaldos } from '@/lib/queries/reference-data'
 import { isAdminOrOwnerRole, isManagementRole, MANAGEMENT_ROLES, RoleT } from '../auth/roles'
 import { requireAuth } from '../auth/require-auth'
+import { perfStart } from '@/lib/perf'
 import type { CashRegisterTypeT } from '@/types/reference-data'
 import type { CashRegisterRowT } from '@/lib/tables/cash-registers'
 import type { InvestmentRowT } from '@/lib/tables/investments'
 import type { UserRowT } from '@/lib/tables/users'
 
 export async function fetchManagerDashboardData() {
+  const elapsed = perfStart()
   const { user } = await requireAuth(MANAGEMENT_ROLES)
   if (!user) throw new Error('Nie jesteś zalogowany')
 
   const isAdminOrOwner = isAdminOrOwnerRole(user.role)
 
-  const payload = await getPayload({ config })
-  const [refData, saldoMap] = await Promise.all([fetchReferenceData(), sumAllWorkerSaldos(payload)])
+  const [refData, saldoRecord] = await Promise.all([fetchReferenceData(), fetchWorkerSaldos()])
 
   const workersMap = new Map(refData.workers.map((w) => [w.id, w.name]))
 
@@ -54,7 +52,7 @@ export async function fetchManagerDashboardData() {
       name: w.name,
       email: w.email,
       role: w.type as RoleT,
-      saldo: saldoMap.get(w.id) ?? 0,
+      saldo: saldoRecord[String(w.id)] ?? 0,
       active: w.active ?? true,
     }))
 
@@ -76,6 +74,8 @@ export async function fetchManagerDashboardData() {
     .reduce((sum, cr) => sum + cr.balance, 0)
 
   const virtualRegisters = cashRegisters.filter((cr) => cr.type === 'VIRTUAL' && cr.active)
+
+  console.log(`[PERF] query.fetchManagerDashboardData ${elapsed()}ms`)
 
   return {
     visibleRegisters,
