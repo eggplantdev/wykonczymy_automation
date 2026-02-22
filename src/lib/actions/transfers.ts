@@ -5,6 +5,7 @@ import {
   type CreateTransferFormT,
 } from '@/components/forms/transfer-form/transfer-schema'
 import { requireAuth } from '@/lib/auth/require-auth'
+import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { revalidateCollections } from '@/lib/cache/revalidate'
 import { perf, perfStart } from '@/lib/perf'
@@ -133,6 +134,60 @@ export async function updateTransferInvoiceAction(
     })
 
     revalidateCollections(['transfers'])
+
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: getErrorMessage(err) }
+  }
+}
+
+export async function cancelTransferAction(transferId: number): Promise<ActionResultT> {
+  const session = await requireAuth(MANAGEMENT_ROLES)
+  if (!session.success) return session
+  const { user } = session
+
+  try {
+    const payload = await getPayload({ config })
+
+    const original = await payload.findByID({
+      collection: 'transactions',
+      id: transferId,
+      depth: 0,
+    })
+
+    if (!original) return { success: false, error: 'Transakcja nie istnieje.' }
+    if (original.cancelled) return { success: false, error: 'Transakcja jest już anulowana.' }
+
+    // Only creator or admin/owner can cancel
+    const creatorId =
+      typeof original.createdBy === 'number' ? original.createdBy : original.createdBy?.id
+    if (user.id !== creatorId && !isAdminOrOwnerRole(user.role)) {
+      return { success: false, error: 'Nie masz uprawnień do anulowania tej transakcji.' }
+    }
+
+    // Mark original as cancelled (triggers recalcAfterChange hook → balance recalculates)
+    await payload.update({
+      collection: 'transactions',
+      id: transferId,
+      data: { cancelled: true },
+    })
+
+    // Create CANCELLATION audit row
+    const today = new Date().toISOString().split('T')[0]
+    await payload.create({
+      collection: 'transactions',
+      data: {
+        type: 'CANCELLATION',
+        amount: original.amount,
+        date: today,
+        description: `Anulowanie transakcji #${transferId}`,
+        paymentMethod: original.paymentMethod,
+        cancelledTransaction: transferId,
+        createdBy: user.id,
+      },
+    })
+
+    revalidateCollections(['transfers', 'cashRegisters', 'investments'])
 
     return { success: true }
   } catch (err) {

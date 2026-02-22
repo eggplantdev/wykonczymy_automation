@@ -25,6 +25,15 @@ export const validateTransfer: CollectionBeforeValidateHook = ({ data, req, oper
   }
 
   const type = d.type ?? ''
+
+  // CANCELLATION rows skip all normal validation — relational fields are null
+  if (type === 'CANCELLATION') {
+    if (!d.cancelledTransaction) {
+      throw new Error('Cancelled transaction reference is required.')
+    }
+    return d
+  }
+
   const errors: string[] = []
 
   // sourceRegister — required for all types except EMPLOYEE_EXPENSE

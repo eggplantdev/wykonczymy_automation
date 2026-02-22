@@ -44,10 +44,12 @@ export const sumRegisterBalance = async (
         SELECT SUM(amount) FROM transactions
         WHERE target_register_id = ${registerId}
           AND type = 'REGISTER_TRANSFER'
+          AND cancelled IS NOT TRUE
       ), 0)
       AS balance
     FROM transactions
     WHERE source_register_id = ${registerId}
+      AND cancelled IS NOT TRUE
   `)
 
   return Number(result.rows[0].balance)
@@ -69,6 +71,7 @@ export const sumInvestmentCosts = async (
     FROM transactions
     WHERE investment_id = ${investmentId}
       AND type IN ('INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE')
+      AND cancelled IS NOT TRUE
   `)
 
   return Number(result.rows[0].total)
@@ -90,6 +93,7 @@ export const sumInvestmentIncome = async (
     FROM transactions
     WHERE investment_id = ${investmentId}
       AND type IN ('INVESTOR_DEPOSIT', 'STAGE_SETTLEMENT')
+      AND cancelled IS NOT TRUE
   `)
 
   return Number(result.rows[0].total)
@@ -115,6 +119,7 @@ export const sumAllWorkerSaldos = async (payload: Payload): Promise<Map<number, 
     FROM transactions
     WHERE worker_id IS NOT NULL
       AND type IN ('ACCOUNT_FUNDING', 'EMPLOYEE_EXPENSE')
+      AND cancelled IS NOT TRUE
     GROUP BY worker_id
   `)
 
@@ -140,6 +145,7 @@ export const sumEmployeeSaldo = async (
       FROM transactions
       WHERE worker_id = ${workerId}
         AND type IN ('ACCOUNT_FUNDING', 'EMPLOYEE_EXPENSE')
+        AND cancelled IS NOT TRUE
         AND date >= ${dateRange.start}
         AND date <= ${dateRange.end}
     `)
@@ -153,6 +159,7 @@ export const sumEmployeeSaldo = async (
     FROM transactions
     WHERE worker_id = ${workerId}
       AND type IN ('ACCOUNT_FUNDING', 'EMPLOYEE_EXPENSE')
+      AND cancelled IS NOT TRUE
   `)
 
   return Number(result.rows[0].saldo)
@@ -182,6 +189,7 @@ export const sumWorkerPeriodBreakdown = async (
     FROM transactions
     WHERE worker_id = ${workerId}
       AND type IN ('ACCOUNT_FUNDING', 'EMPLOYEE_EXPENSE')
+      AND cancelled IS NOT TRUE
       AND date >= ${dateRange.start}
       AND date <= ${dateRange.end}
   `)

@@ -3,9 +3,11 @@ import { formatPLN } from '@/lib/format-currency'
 import { getRelationName } from '@/lib/get-relation-name'
 import { InvoiceCell } from '@/components/transfers/invoice-cell'
 import { NoteCell } from '@/components/dialogs/note-dialog'
+import { CancelTransferButton } from '@/components/transfers/cancel-transfer-button'
 import {
   TRANSFER_TYPE_LABELS,
   PAYMENT_METHOD_LABELS,
+  isCancellationType,
   type TransferTypeT,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
@@ -29,6 +31,7 @@ export type TransferRowT = {
   readonly invoiceFilename: string | null
   readonly invoiceMimeType: string | null
   readonly invoiceNote: string | null
+  readonly cancelled: boolean
 }
 
 type NameMapT = Map<number, string>
@@ -88,6 +91,7 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
       invoiceFilename: media?.filename ?? null,
       invoiceMimeType: media?.mimeType ?? null,
       invoiceNote: doc.invoiceNote ?? null,
+      cancelled: doc.cancelled ?? false,
     }
   }
 
@@ -108,6 +112,7 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
     invoiceFilename: getMediaField(doc.invoice, 'filename'),
     invoiceMimeType: getMediaField(doc.invoice, 'mimeType'),
     invoiceNote: doc.invoiceNote ?? null,
+    cancelled: doc.cancelled ?? false,
   }
 }
 
@@ -159,7 +164,14 @@ const allColumns = [
     id: 'amount',
     header: () => <span className="block">Kwota</span>,
     meta: { label: 'Kwota' },
-    cell: (info) => <span className="block font-medium">{formatPLN(info.getValue())}</span>,
+    cell: (info) => {
+      const isCancelled = info.row.original.cancelled
+      return (
+        <span className={`block font-medium ${isCancelled ? 'line-through opacity-50' : ''}`}>
+          {formatPLN(info.getValue())}
+        </span>
+      )
+    },
   }),
   col.accessor('type', {
     id: 'type',
@@ -237,6 +249,17 @@ const allColumns = [
     header: 'Dodane przez',
     meta: { label: 'Dodane przez' },
     cell: (info) => info.getValue(),
+  }),
+  col.display({
+    id: 'actions',
+    header: 'Anuluj',
+    meta: { label: 'Anuluj' },
+    enableSorting: false,
+    cell: (info) => {
+      const row = info.row.original
+      if (row.cancelled || isCancellationType(row.type)) return null
+      return <CancelTransferButton transactionId={row.id} />
+    },
   }),
 ]
 

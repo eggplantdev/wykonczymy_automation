@@ -7,11 +7,35 @@ export type ReferenceItemT = {
   readonly defaultCashRegisterId?: number
 }
 
+export type CashRegisterRefT = ReferenceItemT & {
+  readonly balance: number
+}
+
+export type InvestmentRefT = ReferenceItemT & {
+  readonly status: 'active' | 'completed'
+  readonly totalCosts: number
+  readonly totalIncome: number
+  readonly laborCosts: number
+  readonly address: string
+  readonly phone: string
+  readonly email: string
+  readonly contactPerson: string
+}
+
+export type WorkerRefT = ReferenceItemT & {
+  readonly email: string
+}
+
+export type OtherCategoryRefT = {
+  readonly id: number
+  readonly name: string
+}
+
 export type ReferenceDataBaseT = {
-  cashRegisters: ReferenceItemT[]
-  investments: ReferenceItemT[]
-  workers: ReferenceItemT[]
-  otherCategories: ReferenceItemT[]
+  cashRegisters: CashRegisterRefT[]
+  investments: InvestmentRefT[]
+  workers: WorkerRefT[]
+  otherCategories: OtherCategoryRefT[]
 }
 
 export type ReferenceDataT = ReferenceDataBaseT & {
