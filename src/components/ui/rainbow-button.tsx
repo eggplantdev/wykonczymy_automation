@@ -18,14 +18,12 @@ export function RainbowButton<TElement extends React.ElementType = 'button'>({
   return (
     <Comp
       className={cn(
-        'group flex h-10 cursor-pointer items-center justify-center rounded-full bg-linear-to-r from-purple-500 via-red-500 to-yellow-500 p-[1.5px] text-white transition duration-300 hover:shadow-2xl hover:shadow-purple-600/30',
+        'inline-flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-lg px-5 text-sm font-semibold text-white transition duration-300 [background:linear-gradient(to_right,#e40303,#ff8c00,#ffed00,#008026,#004dff,#750787)] hover:shadow-[0_0_2rem_-0.25rem_#750787,0_0_2rem_-0.25rem_#750787]',
         className,
       )}
       {...props}
     >
-      <div className="flex h-full w-full items-center justify-center gap-1.5 rounded-full bg-gray-900 px-3 text-xs font-medium transition duration-300 ease-in-out group-hover:bg-linear-to-br group-hover:from-gray-700 group-hover:to-gray-900">
-        {children}
-      </div>
+      {children}
     </Comp>
   )
 }

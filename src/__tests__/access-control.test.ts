@@ -18,7 +18,7 @@ import type { RoleT } from '@/lib/auth/roles'
 // ── Helpers ──────────────────────────────────────────────────────────────
 
 const makeReq = (role: RoleT, id = 1) => ({ req: { user: { id, role } } })
-const noUser = { req: { user: undefined } } as ReturnType<typeof makeReq>
+const noUser = { req: { user: undefined } } as unknown as ReturnType<typeof makeReq>
 
 const ALL_ROLES: RoleT[] = ['ADMIN', 'OWNER', 'MANAGER', 'EMPLOYEE']
 
@@ -54,31 +54,31 @@ describe('hasAnyRole', () => {
 
 describe('isAdminBoolean', () => {
   it('returns true for ADMIN', () => {
-    expect(isAdminBoolean(makeReq('ADMIN'))).toBe(true)
+    expect(isAdminBoolean(makeReq('ADMIN') as never)).toBe(true)
   })
 
   it.each(['OWNER', 'MANAGER', 'EMPLOYEE'] as RoleT[])('returns false for %s', (role) => {
-    expect(isAdminBoolean(makeReq(role))).toBe(false)
+    expect(isAdminBoolean(makeReq(role) as never)).toBe(false)
   })
 })
 
 describe('isAdminOrOwnerOrManagerBoolean', () => {
   it.each(['ADMIN', 'OWNER', 'MANAGER'] as RoleT[])('returns true for %s', (role) => {
-    expect(isAdminOrOwnerOrManagerBoolean(makeReq(role))).toBe(true)
+    expect(isAdminOrOwnerOrManagerBoolean(makeReq(role) as never)).toBe(true)
   })
 
   it('returns false for EMPLOYEE', () => {
-    expect(isAdminOrOwnerOrManagerBoolean(makeReq('EMPLOYEE'))).toBe(false)
+    expect(isAdminOrOwnerOrManagerBoolean(makeReq('EMPLOYEE') as never)).toBe(false)
   })
 })
 
 describe('isManager', () => {
   it('returns true for MANAGER', () => {
-    expect(isManager(makeReq('MANAGER'))).toBe(true)
+    expect(isManager(makeReq('MANAGER') as never)).toBe(true)
   })
 
   it.each(['ADMIN', 'OWNER', 'EMPLOYEE'] as RoleT[])('returns false for %s', (role) => {
-    expect(isManager(makeReq(role))).toBe(false)
+    expect(isManager(makeReq(role) as never)).toBe(false)
   })
 })
 
