@@ -7,7 +7,7 @@ Verify error handling across all layers:
 ### Server Actions (`src/lib/actions/`)
 
 - `settlements.ts` — `try/catch` returns `getErrorMessage(err)`, but no granular handling (DB constraint violations, upload failures, etc.)
-- `transfers.ts` — same pattern; `recalculateBalancesAction` has no `try/catch` at all
+- `transfers.ts` — same pattern
 - Are Zod validation errors surfaced clearly to the user or just generic "error"?
 - What happens when `uploadInvoiceFile` fails mid-batch in settlements (partial uploads)?
 
@@ -35,24 +35,36 @@ Verify error handling across all layers:
 - Should partial failures in batch operations (settlements) roll back or continue?
 - Do we need user-facing error messages beyond the generic toast?
 
-## Toggle Active Status (Users, Investments, Cash Registers)
+## Performance: Covering Indexes for Transaction Aggregates
 
-Currently the dashboard tables have a client-side visibility filter (ActiveFilterButton), but no way to actually change an entity's `active` field from the UI.
+The computed-on-read functions (`fetchRegisterBalances`, `fetchInvestmentFinancials`, `fetchWorkerSaldos`) run `SUM()` queries over the `transactions` table on every cache miss. At current scale (~tens of rows) this is fine. As the table grows, add covering indexes to keep aggregation fast:
 
-### What's needed
+```sql
+-- Register balance aggregation (sumAllRegisterBalances)
+CREATE INDEX idx_txn_register_balance
+  ON transactions (source_register_id, type, cancelled) INCLUDE (amount);
 
-- A toggle action in each table row (users, investments, cash registers) to set `active: true/false`
-- Server action per entity: `toggleUserActiveAction`, `toggleInvestmentActiveAction`, `toggleCashRegisterActiveAction`
-- Role-gated (ADMIN/OWNER only, matching field-level access on the collection)
+-- Also covers target register lookups for REGISTER_TRANSFER
+CREATE INDEX idx_txn_target_register
+  ON transactions (target_register_id, type, cancelled) INCLUDE (amount);
 
-### Revalidation strategy
+-- Investment financials aggregation (sumAllInvestmentFinancials)
+CREATE INDEX idx_txn_investment_financials
+  ON transactions (investment_id, type, cancelled) INCLUDE (amount);
 
-- Collection-level revalidation for list queries (small dataset, cheap to refetch)
-- Entity-level tags (`entityTag('user', id)`) for detail pages only
-- Toggle action revalidates the collection tag (e.g. `CACHE_TAGS.users`) — no need for full page revalidation
+-- Worker saldo aggregation (sumAllWorkerSaldos)
+CREATE INDEX idx_txn_worker_saldo
+  ON transactions (worker_id, type, cancelled) INCLUDE (amount);
+```
 
-### UI considerations
+### When to add
 
-- What control? Icon button in the row? Context menu? Inline switch?
-- Confirmation dialog before deactivating? (deactivating a cash register or user has downstream effects)
-- Optimistic update or wait for server response?
+- When cold-cache query times for these functions exceed ~100ms in production
+- Or when the `transactions` table exceeds ~50k rows
+- Monitor via `[PERF]` logs in production
+
+### Why not now
+
+- Current data size makes full table scans negligible
+- Indexes add write overhead on every `INSERT`/`UPDATE`/`DELETE`
+- Premature optimization — add when measured, not speculated

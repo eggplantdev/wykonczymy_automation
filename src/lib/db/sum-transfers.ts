@@ -36,7 +36,7 @@ export const sumRegisterBalance = async (
     SELECT
       COALESCE(SUM(
         CASE
-          WHEN type IN ('INVESTOR_DEPOSIT', 'STAGE_SETTLEMENT', 'COMPANY_FUNDING', 'OTHER_DEPOSIT', 'EMPLOYEE_EXPENSE')
+          WHEN type IN ('INVESTOR_DEPOSIT', 'COMPANY_FUNDING', 'OTHER_DEPOSIT', 'EMPLOYEE_EXPENSE')
             THEN amount
           ELSE -amount
         END
@@ -80,7 +80,7 @@ export const sumInvestmentCosts = async (
 
 /**
  * SUM income for an investment using SQL aggregation.
- * Only INVESTOR_DEPOSIT and STAGE_SETTLEMENT types count.
+ * Only INVESTOR_DEPOSIT types count.
  */
 export const sumInvestmentIncome = async (
   payload: Payload,
@@ -93,7 +93,7 @@ export const sumInvestmentIncome = async (
     SELECT COALESCE(SUM(amount), 0) AS total
     FROM transactions
     WHERE investment_id = ${investmentId}
-      AND type IN ('INVESTOR_DEPOSIT', 'STAGE_SETTLEMENT')
+      AND type IN ('INVESTOR_DEPOSIT')
       AND cancelled IS NOT TRUE
   `)
 
@@ -113,7 +113,7 @@ export const sumAllRegisterBalances = async (payload: Payload): Promise<Map<numb
       SELECT source_register_id AS register_id,
         COALESCE(SUM(
           CASE
-            WHEN type IN ('INVESTOR_DEPOSIT', 'STAGE_SETTLEMENT', 'COMPANY_FUNDING', 'OTHER_DEPOSIT', 'EMPLOYEE_EXPENSE')
+            WHEN type IN ('INVESTOR_DEPOSIT', 'COMPANY_FUNDING', 'OTHER_DEPOSIT', 'EMPLOYEE_EXPENSE')
               THEN amount
             ELSE -amount
           END
@@ -162,7 +162,7 @@ export const sumAllInvestmentFinancials = async (
   const result = await db.execute(sql`
     SELECT investment_id,
       COALESCE(SUM(CASE WHEN type IN ('INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE') THEN amount ELSE 0 END), 0) AS total_costs,
-      COALESCE(SUM(CASE WHEN type IN ('INVESTOR_DEPOSIT', 'STAGE_SETTLEMENT') THEN amount ELSE 0 END), 0) AS total_income
+      COALESCE(SUM(CASE WHEN type IN ('INVESTOR_DEPOSIT') THEN amount ELSE 0 END), 0) AS total_income
     FROM transactions
     WHERE investment_id IS NOT NULL
       AND cancelled IS NOT TRUE
