@@ -11,8 +11,13 @@ export async function perf<TResult>(label: string, fn: () => Promise<TResult>): 
   return result
 }
 
-/** Marks a point in time, returns elapsed ms since start. */
+/** Lap timer — each call returns ms since the previous call (not since start). */
 export function perfStart(): () => number {
-  const start = performance.now()
-  return () => Math.round(performance.now() - start)
+  let prev = performance.now()
+  return () => {
+    const now = performance.now()
+    const delta = Math.round(now - prev)
+    prev = now
+    return delta
+  }
 }
