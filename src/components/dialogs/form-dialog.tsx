@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
+import { ConfirmCloseDialog } from '@/components/ui/confirm-close-dialog'
 import { Checkbox } from '@/components/ui/checkbox'
 
 type FormDialogPropsT = {
@@ -21,6 +22,7 @@ export function FormDialog({
 }: FormDialogPropsT) {
   const [isOpen, setIsOpen] = useState(false)
   const [keepOpen, setKeepOpen] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
 
   function handleSuccess() {
     if (!keepOpen) setIsOpen(false)
@@ -31,7 +33,13 @@ export function FormDialog({
       <span onClick={() => setIsOpen(true)}>{trigger}</span>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="h-fit max-h-[80vh] sm:max-w-2xl">
+        <DialogContent
+          className="h-fit max-h-[80vh] sm:max-w-2xl"
+          onInteractOutside={(e) => {
+            e.preventDefault()
+            setShowConfirm(true)
+          }}
+        >
           <div className="h-auto">
             <DialogHeader title={title} description={description} />
             <div className="mt-2 pr-1">{children(handleSuccess)}</div>
@@ -47,6 +55,12 @@ export function FormDialog({
           </div>
         </DialogContent>
       </Dialog>
+
+      <ConfirmCloseDialog
+        open={showConfirm}
+        onOpenChange={setShowConfirm}
+        onConfirm={() => setIsOpen(false)}
+      />
     </>
   )
 }
