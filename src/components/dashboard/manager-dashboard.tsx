@@ -2,12 +2,10 @@ import { formatPLN } from '@/lib/format-currency'
 import { parsePagination } from '@/lib/pagination'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { fetchManagerDashboardData } from '@/lib/queries/dashboard'
-import { DashboardTables, CashRegistersTable } from '@/components/dashboard/dashboard-tables'
+import { DashboardTables } from '@/components/dashboard/dashboard-tables'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
-import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { StatCard } from '@/components/ui/stat-card'
-import { SyncBalancesButton } from '@/components/dashboard/sync-balances-button'
 
 type ManagerDashboardPropsT = {
   searchParams: Record<string, string | string[] | undefined>
@@ -23,34 +21,31 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
     managementUsers,
     totalBalance,
     ownedBalance,
+    virtualRegisters,
     isAdminOrOwner,
   } = await fetchManagerDashboardData()
 
   return (
     <PageWrapper title="Kokpit">
       {/* Stat cards + cash registers */}
-      <CollapsibleSection title="Kasy" className="mt-6">
-        <div className="mt-4 grid grid-cols-1 gap-8 lg:grid-cols-2">
-          <div>
-            <CashRegistersTable data={visibleRegisters} />
-            {isAdminOrOwner && (
-              <div className="mt-2 flex justify-end">
-                <SyncBalancesButton />
-              </div>
-            )}
-          </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-1">
-            <StatCard label="Saldo kas" value={formatPLN(totalBalance)} />
-            {ownedBalance !== undefined && (
-              <StatCard label="Saldo moich kas" value={formatPLN(ownedBalance)} />
-            )}
-            <StatCard label="Aktywne inwestycje" value={String(activeInvestments.length)} />
-          </div>
-        </div>
-      </CollapsibleSection>
 
-      {/* Users & Investments — full width */}
-      <DashboardTables investments={allInvestments} users={users} />
+      <div className="mt-8 flex flex-wrap gap-4">
+        <StatCard label="Saldo kas" value={formatPLN(totalBalance)} />
+        {ownedBalance !== undefined && (
+          <StatCard label="Saldo moich kas" value={formatPLN(ownedBalance)} />
+        )}
+        {virtualRegisters.map((vr) => (
+          <StatCard key={vr.id} label={vr.name} value={formatPLN(vr.balance)} />
+        ))}
+        <StatCard label="Aktywne inwestycje" value={String(activeInvestments.length)} />
+      </div>
+
+      <DashboardTables
+        cashRegisters={visibleRegisters}
+        investments={allInvestments}
+        users={users}
+        showSyncButton={isAdminOrOwner}
+      />
 
       {/* Recent transactions */}
       <TransfersSection

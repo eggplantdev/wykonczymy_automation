@@ -6,7 +6,13 @@ import { CACHE_TAGS } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/sum-transfers'
 import { perfStart } from '@/lib/perf'
 
-import type { ReferenceItemT, ReferenceDataBaseT } from '@/types/reference-data'
+import type {
+  CashRegisterRefT,
+  InvestmentRefT,
+  WorkerRefT,
+  OtherCategoryRefT,
+  ReferenceDataBaseT,
+} from '@/types/reference-data'
 
 export async function fetchReferenceData(): Promise<ReferenceDataBaseT> {
   'use cache'
@@ -22,46 +28,71 @@ export async function fetchReferenceData(): Promise<ReferenceDataBaseT> {
   const payload = await getPayload({ config })
   const db = await getDb(payload)
 
-  const result = await db.execute(sql`
-    SELECT 'cashRegisters' AS collection, id, name, type::text, active::boolean, owner_id::integer, NULL::integer AS default_cash_register_id FROM cash_registers
-    UNION ALL
-    SELECT 'investments', id, name, NULL, (status = 'active')::boolean, NULL::integer, NULL::integer FROM investments
-    UNION ALL
-    SELECT 'workers', id, name, role::text, active::boolean, NULL::integer, default_cash_register_id::integer FROM users
-    UNION ALL
-    SELECT 'otherCategories', id, name, NULL, true, NULL::integer, NULL::integer FROM other_categories
-  `)
-  console.log(`[PERF] query.fetchReferenceData ${elapsed()}ms (1 SQL, ${result.rows.length} rows)`)
+  const [crResult, invResult, usersResult, catResult] = await Promise.all([
+    db.execute(sql`
+      SELECT id, name, type::text, active::boolean, owner_id::integer, balance
+      FROM cash_registers
+    `),
+    db.execute(sql`
+      SELECT id, name, status::text, total_costs, total_income, labor_costs,
+             address, phone, email, contact_person
+      FROM investments
+    `),
+    db.execute(sql`
+      SELECT id, name, role::text, active::boolean, email, default_cash_register_id::integer
+      FROM users
+    `),
+    db.execute(sql`
+      SELECT id, name FROM other_categories
+    `),
+  ])
 
-  const cashRegisters: ReferenceItemT[] = []
-  const investments: ReferenceItemT[] = []
-  const workers: ReferenceItemT[] = []
-  const otherCategories: ReferenceItemT[] = []
+  const totalRows =
+    crResult.rows.length + invResult.rows.length + usersResult.rows.length + catResult.rows.length
+  console.log(`[PERF] query.fetchReferenceData ${elapsed()}ms (4 SQL, ${totalRows} rows)`)
 
-  for (const row of result.rows) {
-    const collection = row.collection as string
-    const item = { id: Number(row.id), name: row.name as string, active: row.active as boolean }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw SQL rows
+  const cashRegisters: CashRegisterRefT[] = crResult.rows.map((row: any) => ({
+    id: Number(row.id),
+    name: row.name as string,
+    type: (row.type as string) ?? 'AUXILIARY',
+    active: row.active as boolean,
+    ownerId: row.owner_id ? Number(row.owner_id) : undefined,
+    balance: Number(row.balance ?? 0),
+  }))
 
-    if (collection === 'cashRegisters') {
-      cashRegisters.push({
-        ...item,
-        type: (row.type as string) ?? 'AUXILIARY',
-        ownerId: row.owner_id ? Number(row.owner_id) : undefined,
-      })
-    } else if (collection === 'investments') {
-      investments.push(item)
-    } else if (collection === 'workers') {
-      workers.push({
-        ...item,
-        type: (row.type as string) ?? 'EMPLOYEE',
-        defaultCashRegisterId: row.default_cash_register_id
-          ? Number(row.default_cash_register_id)
-          : undefined,
-      })
-    } else if (collection === 'otherCategories') {
-      otherCategories.push(item)
-    }
-  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const investments: InvestmentRefT[] = invResult.rows.map((row: any) => ({
+    id: Number(row.id),
+    name: row.name as string,
+    status: (row.status as 'active' | 'completed') ?? 'active',
+    active: row.status === 'active',
+    totalCosts: Number(row.total_costs ?? 0),
+    totalIncome: Number(row.total_income ?? 0),
+    laborCosts: Number(row.labor_costs ?? 0),
+    address: (row.address as string) ?? '',
+    phone: (row.phone as string) ?? '',
+    email: (row.email as string) ?? '',
+    contactPerson: (row.contact_person as string) ?? '',
+  }))
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const workers: WorkerRefT[] = usersResult.rows.map((row: any) => ({
+    id: Number(row.id),
+    name: row.name as string,
+    type: (row.role as string) ?? 'EMPLOYEE',
+    active: row.active as boolean,
+    email: (row.email as string) ?? '',
+    defaultCashRegisterId: row.default_cash_register_id
+      ? Number(row.default_cash_register_id)
+      : undefined,
+  }))
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const otherCategories: OtherCategoryRefT[] = catResult.rows.map((row: any) => ({
+    id: Number(row.id),
+    name: row.name as string,
+  }))
 
   return { cashRegisters, investments, workers, otherCategories }
 }

@@ -7,7 +7,11 @@ import { RefreshCw } from 'lucide-react'
 import { toastMessage } from '@/components/toasts'
 import { recalculateBalancesAction } from '@/lib/actions/recalculate-balances'
 
-export function SyncBalancesButton() {
+type PropsT = {
+  className?: string
+}
+
+export function SyncBalancesButton({ className }: PropsT) {
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
 
@@ -24,7 +28,13 @@ export function SyncBalancesButton() {
   }
 
   return (
-    <Button variant="outline" size="sm" onClick={handleSync} disabled={isPending}>
+    <Button
+      className={className}
+      variant="outline"
+      size="sm"
+      onClick={handleSync}
+      disabled={isPending}
+    >
       <RefreshCw className={isPending ? 'animate-spin' : ''} />
       {isPending ? 'Synchronizacja...' : 'Synchronizuj salda'}
     </Button>

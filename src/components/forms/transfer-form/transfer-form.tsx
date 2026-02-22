@@ -311,6 +311,7 @@ export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
                               <field.Textarea
                                 placeholder="Notatka do faktury (opcjonalnie)"
                                 showError
+                                className="min-h-6"
                               />
                             )}
                           </form.AppField>
