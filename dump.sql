@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict xEtaSORAqxbwGnyMrJUFPRcRfFmJSu5KNW2jzdcsVCnsEuGji1MzOh2JUgCTzk1
+\restrict ZlCfhT8QrQ872tzJkp14Ug01J3mVPeyFvRzlYe3bovAa43neezpdLP5oHVPGFGH
 
 -- Dumped from database version 17.8 (6108b59)
 -- Dumped by pg_dump version 17.7
@@ -19,36 +19,200 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+ALTER TABLE ONLY public.users_sessions DROP CONSTRAINT users_sessions_parent_id_fk;
+ALTER TABLE ONLY public.users DROP CONSTRAINT users_default_cash_register_id_cash_registers_id_fk;
+ALTER TABLE ONLY public.transactions DROP CONSTRAINT transactions_worker_id_users_id_fk;
+ALTER TABLE ONLY public.transactions DROP CONSTRAINT transactions_target_register_id_cash_registers_id_fk;
+ALTER TABLE ONLY public.transactions DROP CONSTRAINT transactions_other_category_id_other_categories_id_fk;
+ALTER TABLE ONLY public.transactions DROP CONSTRAINT transactions_invoice_id_media_id_fk;
+ALTER TABLE ONLY public.transactions DROP CONSTRAINT transactions_investment_id_investments_id_fk;
+ALTER TABLE ONLY public.transactions DROP CONSTRAINT transactions_created_by_id_users_id_fk;
+ALTER TABLE ONLY public.transactions DROP CONSTRAINT transactions_cash_register_id_cash_registers_id_fk;
+ALTER TABLE ONLY public.transactions DROP CONSTRAINT transactions_cancelled_transaction_id_fkey;
+ALTER TABLE ONLY public.payload_preferences_rels DROP CONSTRAINT payload_preferences_rels_users_fk;
+ALTER TABLE ONLY public.payload_preferences_rels DROP CONSTRAINT payload_preferences_rels_parent_fk;
+ALTER TABLE ONLY public.payload_locked_documents_rels DROP CONSTRAINT payload_locked_documents_rels_users_fk;
+ALTER TABLE ONLY public.payload_locked_documents_rels DROP CONSTRAINT payload_locked_documents_rels_transactions_fk;
+ALTER TABLE ONLY public.payload_locked_documents_rels DROP CONSTRAINT payload_locked_documents_rels_parent_fk;
+ALTER TABLE ONLY public.payload_locked_documents_rels DROP CONSTRAINT payload_locked_documents_rels_other_categories_fk;
+ALTER TABLE ONLY public.payload_locked_documents_rels DROP CONSTRAINT payload_locked_documents_rels_media_fk;
+ALTER TABLE ONLY public.payload_locked_documents_rels DROP CONSTRAINT payload_locked_documents_rels_investments_fk;
+ALTER TABLE ONLY public.payload_locked_documents_rels DROP CONSTRAINT payload_locked_documents_rels_cash_registers_fk;
+ALTER TABLE ONLY public.media DROP CONSTRAINT media_created_by_id_users_id_fk;
+ALTER TABLE ONLY public.cash_registers DROP CONSTRAINT cash_registers_owner_id_users_id_fk;
+ALTER TABLE ONLY neon_auth.session DROP CONSTRAINT "session_userId_fkey";
+ALTER TABLE ONLY neon_auth.member DROP CONSTRAINT "member_userId_fkey";
+ALTER TABLE ONLY neon_auth.member DROP CONSTRAINT "member_organizationId_fkey";
+ALTER TABLE ONLY neon_auth.invitation DROP CONSTRAINT "invitation_organizationId_fkey";
+ALTER TABLE ONLY neon_auth.invitation DROP CONSTRAINT "invitation_inviterId_fkey";
+ALTER TABLE ONLY neon_auth.account DROP CONSTRAINT "account_userId_fkey";
+DROP INDEX public.users_updated_at_idx;
+DROP INDEX public.users_sessions_parent_id_idx;
+DROP INDEX public.users_sessions_order_idx;
+DROP INDEX public.users_email_idx;
+DROP INDEX public.users_default_cash_register_idx;
+DROP INDEX public.users_created_at_idx;
+DROP INDEX public.transactions_worker_idx;
+DROP INDEX public.transactions_updated_at_idx;
+DROP INDEX public.transactions_target_register_idx;
+DROP INDEX public.transactions_source_register_idx;
+DROP INDEX public.transactions_other_category_idx;
+DROP INDEX public.transactions_invoice_idx;
+DROP INDEX public.transactions_investment_idx;
+DROP INDEX public.transactions_created_by_idx;
+DROP INDEX public.transactions_created_at_idx;
+DROP INDEX public.payload_preferences_updated_at_idx;
+DROP INDEX public.payload_preferences_rels_users_id_idx;
+DROP INDEX public.payload_preferences_rels_path_idx;
+DROP INDEX public.payload_preferences_rels_parent_idx;
+DROP INDEX public.payload_preferences_rels_order_idx;
+DROP INDEX public.payload_preferences_key_idx;
+DROP INDEX public.payload_preferences_created_at_idx;
+DROP INDEX public.payload_migrations_updated_at_idx;
+DROP INDEX public.payload_migrations_created_at_idx;
+DROP INDEX public.payload_locked_documents_updated_at_idx;
+DROP INDEX public.payload_locked_documents_rels_users_id_idx;
+DROP INDEX public.payload_locked_documents_rels_transactions_id_idx;
+DROP INDEX public.payload_locked_documents_rels_path_idx;
+DROP INDEX public.payload_locked_documents_rels_parent_idx;
+DROP INDEX public.payload_locked_documents_rels_other_categories_id_idx;
+DROP INDEX public.payload_locked_documents_rels_order_idx;
+DROP INDEX public.payload_locked_documents_rels_media_id_idx;
+DROP INDEX public.payload_locked_documents_rels_investments_id_idx;
+DROP INDEX public.payload_locked_documents_rels_cash_registers_id_idx;
+DROP INDEX public.payload_locked_documents_global_slug_idx;
+DROP INDEX public.payload_locked_documents_created_at_idx;
+DROP INDEX public.payload_kv_key_idx;
+DROP INDEX public.other_categories_updated_at_idx;
+DROP INDEX public.other_categories_name_idx;
+DROP INDEX public.other_categories_created_at_idx;
+DROP INDEX public.media_updated_at_idx;
+DROP INDEX public.media_sizes_thumbnail_sizes_thumbnail_filename_idx;
+DROP INDEX public.media_filename_idx;
+DROP INDEX public.media_created_by_idx;
+DROP INDEX public.media_created_at_idx;
+DROP INDEX public.investments_updated_at_idx;
+DROP INDEX public.investments_created_at_idx;
+DROP INDEX public.idx_transactions_worker_type;
+DROP INDEX public.idx_transactions_date;
+DROP INDEX public.idx_transactions_cancelled_tx;
+DROP INDEX public.idx_transactions_cancelled;
+DROP INDEX public.cash_registers_updated_at_idx;
+DROP INDEX public.cash_registers_owner_idx;
+DROP INDEX public.cash_registers_created_at_idx;
+DROP INDEX neon_auth.verification_identifier_idx;
+DROP INDEX neon_auth."session_userId_idx";
+DROP INDEX neon_auth.organization_slug_uidx;
+DROP INDEX neon_auth."member_userId_idx";
+DROP INDEX neon_auth."member_organizationId_idx";
+DROP INDEX neon_auth."invitation_organizationId_idx";
+DROP INDEX neon_auth.invitation_email_idx;
+DROP INDEX neon_auth."account_userId_idx";
+ALTER TABLE ONLY public.users_sessions DROP CONSTRAINT users_sessions_pkey;
+ALTER TABLE ONLY public.users DROP CONSTRAINT users_pkey;
+ALTER TABLE ONLY public.transactions DROP CONSTRAINT transactions_pkey;
+ALTER TABLE ONLY public.payload_preferences_rels DROP CONSTRAINT payload_preferences_rels_pkey;
+ALTER TABLE ONLY public.payload_preferences DROP CONSTRAINT payload_preferences_pkey;
+ALTER TABLE ONLY public.payload_migrations DROP CONSTRAINT payload_migrations_pkey;
+ALTER TABLE ONLY public.payload_locked_documents_rels DROP CONSTRAINT payload_locked_documents_rels_pkey;
+ALTER TABLE ONLY public.payload_locked_documents DROP CONSTRAINT payload_locked_documents_pkey;
+ALTER TABLE ONLY public.payload_kv DROP CONSTRAINT payload_kv_pkey;
+ALTER TABLE ONLY public.other_categories DROP CONSTRAINT other_categories_pkey;
+ALTER TABLE ONLY public.media DROP CONSTRAINT media_pkey;
+ALTER TABLE ONLY public.investments DROP CONSTRAINT investments_pkey;
+ALTER TABLE ONLY public.cash_registers DROP CONSTRAINT cash_registers_pkey;
+ALTER TABLE ONLY neon_auth.verification DROP CONSTRAINT verification_pkey;
+ALTER TABLE ONLY neon_auth."user" DROP CONSTRAINT user_pkey;
+ALTER TABLE ONLY neon_auth."user" DROP CONSTRAINT user_email_key;
+ALTER TABLE ONLY neon_auth.session DROP CONSTRAINT session_token_key;
+ALTER TABLE ONLY neon_auth.session DROP CONSTRAINT session_pkey;
+ALTER TABLE ONLY neon_auth.project_config DROP CONSTRAINT project_config_pkey;
+ALTER TABLE ONLY neon_auth.project_config DROP CONSTRAINT project_config_endpoint_id_key;
+ALTER TABLE ONLY neon_auth.organization DROP CONSTRAINT organization_slug_key;
+ALTER TABLE ONLY neon_auth.organization DROP CONSTRAINT organization_pkey;
+ALTER TABLE ONLY neon_auth.member DROP CONSTRAINT member_pkey;
+ALTER TABLE ONLY neon_auth.jwks DROP CONSTRAINT jwks_pkey;
+ALTER TABLE ONLY neon_auth.invitation DROP CONSTRAINT invitation_pkey;
+ALTER TABLE ONLY neon_auth.account DROP CONSTRAINT account_pkey;
+ALTER TABLE public.users ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE public.transactions ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE public.payload_preferences_rels ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE public.payload_preferences ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE public.payload_migrations ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE public.payload_locked_documents_rels ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE public.payload_locked_documents ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE public.payload_kv ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE public.other_categories ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE public.media ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE public.investments ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE public.cash_registers ALTER COLUMN id DROP DEFAULT;
+DROP TABLE public.users_sessions;
+DROP SEQUENCE public.users_id_seq;
+DROP TABLE public.users;
+DROP SEQUENCE public.transactions_id_seq;
+DROP TABLE public.transactions;
+DROP SEQUENCE public.payload_preferences_rels_id_seq;
+DROP TABLE public.payload_preferences_rels;
+DROP SEQUENCE public.payload_preferences_id_seq;
+DROP TABLE public.payload_preferences;
+DROP SEQUENCE public.payload_migrations_id_seq;
+DROP TABLE public.payload_migrations;
+DROP SEQUENCE public.payload_locked_documents_rels_id_seq;
+DROP TABLE public.payload_locked_documents_rels;
+DROP SEQUENCE public.payload_locked_documents_id_seq;
+DROP TABLE public.payload_locked_documents;
+DROP SEQUENCE public.payload_kv_id_seq;
+DROP TABLE public.payload_kv;
+DROP SEQUENCE public.other_categories_id_seq;
+DROP TABLE public.other_categories;
+DROP SEQUENCE public.media_id_seq;
+DROP TABLE public.media;
+DROP SEQUENCE public.investments_id_seq;
+DROP TABLE public.investments;
+DROP SEQUENCE public.cash_registers_id_seq;
+DROP TABLE public.cash_registers;
+DROP TABLE neon_auth.verification;
+DROP TABLE neon_auth."user";
+DROP TABLE neon_auth.session;
+DROP TABLE neon_auth.project_config;
+DROP TABLE neon_auth.organization;
+DROP TABLE neon_auth.member;
+DROP TABLE neon_auth.jwks;
+DROP TABLE neon_auth.invitation;
+DROP TABLE neon_auth.account;
+DROP TYPE public.enum_users_role;
+DROP TYPE public.enum_transactions_type;
+DROP TYPE public.enum_transactions_payment_method;
+DROP TYPE public.enum_investments_status;
+DROP TYPE public.enum_cash_registers_type;
+DROP SCHEMA neon_auth;
 --
--- Name: neon_auth; Type: SCHEMA; Schema: -; Owner: neon_auth
+-- Name: neon_auth; Type: SCHEMA; Schema: -; Owner: -
 --
 
 CREATE SCHEMA neon_auth;
 
 
-ALTER SCHEMA neon_auth OWNER TO neon_auth;
-
 --
--- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: pg_database_owner
+-- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: -
 --
 
 COMMENT ON SCHEMA public IS '';
 
 
 --
--- Name: enum_cash_registers_type; Type: TYPE; Schema: public; Owner: neondb_owner
+-- Name: enum_cash_registers_type; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.enum_cash_registers_type AS ENUM (
     'MAIN',
-    'AUXILIARY'
+    'AUXILIARY',
+    'VIRTUAL'
 );
 
 
-ALTER TYPE public.enum_cash_registers_type OWNER TO neondb_owner;
-
 --
--- Name: enum_investments_status; Type: TYPE; Schema: public; Owner: neondb_owner
+-- Name: enum_investments_status; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.enum_investments_status AS ENUM (
@@ -57,10 +221,8 @@ CREATE TYPE public.enum_investments_status AS ENUM (
 );
 
 
-ALTER TYPE public.enum_investments_status OWNER TO neondb_owner;
-
 --
--- Name: enum_transactions_payment_method; Type: TYPE; Schema: public; Owner: neondb_owner
+-- Name: enum_transactions_payment_method; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.enum_transactions_payment_method AS ENUM (
@@ -71,30 +233,26 @@ CREATE TYPE public.enum_transactions_payment_method AS ENUM (
 );
 
 
-ALTER TYPE public.enum_transactions_payment_method OWNER TO neondb_owner;
-
 --
--- Name: enum_transactions_type; Type: TYPE; Schema: public; Owner: neondb_owner
+-- Name: enum_transactions_type; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.enum_transactions_type AS ENUM (
-    'DEPOSIT',
+    'INVESTOR_DEPOSIT',
+    'COMPANY_FUNDING',
+    'OTHER_DEPOSIT',
     'INVESTMENT_EXPENSE',
     'ACCOUNT_FUNDING',
     'EMPLOYEE_EXPENSE',
+    'REGISTER_TRANSFER',
+    'PAYOUT',
     'OTHER',
-    'INVESTOR_DEPOSIT',
-    'STAGE_SETTLEMENT',
-    'COMPANY_FUNDING',
-    'OTHER_DEPOSIT',
-    'REGISTER_TRANSFER'
+    'CANCELLATION'
 );
 
 
-ALTER TYPE public.enum_transactions_type OWNER TO neondb_owner;
-
 --
--- Name: enum_users_role; Type: TYPE; Schema: public; Owner: neondb_owner
+-- Name: enum_users_role; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.enum_users_role AS ENUM (
@@ -105,14 +263,12 @@ CREATE TYPE public.enum_users_role AS ENUM (
 );
 
 
-ALTER TYPE public.enum_users_role OWNER TO neondb_owner;
-
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
 
 --
--- Name: account; Type: TABLE; Schema: neon_auth; Owner: neon_auth
+-- Name: account; Type: TABLE; Schema: neon_auth; Owner: -
 --
 
 CREATE TABLE neon_auth.account (
@@ -132,10 +288,8 @@ CREATE TABLE neon_auth.account (
 );
 
 
-ALTER TABLE neon_auth.account OWNER TO neon_auth;
-
 --
--- Name: invitation; Type: TABLE; Schema: neon_auth; Owner: neon_auth
+-- Name: invitation; Type: TABLE; Schema: neon_auth; Owner: -
 --
 
 CREATE TABLE neon_auth.invitation (
@@ -150,10 +304,8 @@ CREATE TABLE neon_auth.invitation (
 );
 
 
-ALTER TABLE neon_auth.invitation OWNER TO neon_auth;
-
 --
--- Name: jwks; Type: TABLE; Schema: neon_auth; Owner: neon_auth
+-- Name: jwks; Type: TABLE; Schema: neon_auth; Owner: -
 --
 
 CREATE TABLE neon_auth.jwks (
@@ -165,10 +317,8 @@ CREATE TABLE neon_auth.jwks (
 );
 
 
-ALTER TABLE neon_auth.jwks OWNER TO neon_auth;
-
 --
--- Name: member; Type: TABLE; Schema: neon_auth; Owner: neon_auth
+-- Name: member; Type: TABLE; Schema: neon_auth; Owner: -
 --
 
 CREATE TABLE neon_auth.member (
@@ -180,10 +330,8 @@ CREATE TABLE neon_auth.member (
 );
 
 
-ALTER TABLE neon_auth.member OWNER TO neon_auth;
-
 --
--- Name: organization; Type: TABLE; Schema: neon_auth; Owner: neon_auth
+-- Name: organization; Type: TABLE; Schema: neon_auth; Owner: -
 --
 
 CREATE TABLE neon_auth.organization (
@@ -196,10 +344,8 @@ CREATE TABLE neon_auth.organization (
 );
 
 
-ALTER TABLE neon_auth.organization OWNER TO neon_auth;
-
 --
--- Name: project_config; Type: TABLE; Schema: neon_auth; Owner: neon_auth
+-- Name: project_config; Type: TABLE; Schema: neon_auth; Owner: -
 --
 
 CREATE TABLE neon_auth.project_config (
@@ -216,10 +362,8 @@ CREATE TABLE neon_auth.project_config (
 );
 
 
-ALTER TABLE neon_auth.project_config OWNER TO neon_auth;
-
 --
--- Name: session; Type: TABLE; Schema: neon_auth; Owner: neon_auth
+-- Name: session; Type: TABLE; Schema: neon_auth; Owner: -
 --
 
 CREATE TABLE neon_auth.session (
@@ -236,10 +380,8 @@ CREATE TABLE neon_auth.session (
 );
 
 
-ALTER TABLE neon_auth.session OWNER TO neon_auth;
-
 --
--- Name: user; Type: TABLE; Schema: neon_auth; Owner: neon_auth
+-- Name: user; Type: TABLE; Schema: neon_auth; Owner: -
 --
 
 CREATE TABLE neon_auth."user" (
@@ -257,10 +399,8 @@ CREATE TABLE neon_auth."user" (
 );
 
 
-ALTER TABLE neon_auth."user" OWNER TO neon_auth;
-
 --
--- Name: verification; Type: TABLE; Schema: neon_auth; Owner: neon_auth
+-- Name: verification; Type: TABLE; Schema: neon_auth; Owner: -
 --
 
 CREATE TABLE neon_auth.verification (
@@ -273,27 +413,23 @@ CREATE TABLE neon_auth.verification (
 );
 
 
-ALTER TABLE neon_auth.verification OWNER TO neon_auth;
-
 --
--- Name: cash_registers; Type: TABLE; Schema: public; Owner: neondb_owner
+-- Name: cash_registers; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.cash_registers (
     id integer NOT NULL,
     name character varying NOT NULL,
     owner_id integer NOT NULL,
-    balance numeric DEFAULT 0,
     updated_at timestamp(3) with time zone DEFAULT now() NOT NULL,
     created_at timestamp(3) with time zone DEFAULT now() NOT NULL,
-    type public.enum_cash_registers_type DEFAULT 'AUXILIARY'::public.enum_cash_registers_type NOT NULL
+    type public.enum_cash_registers_type DEFAULT 'AUXILIARY'::public.enum_cash_registers_type NOT NULL,
+    active boolean DEFAULT true
 );
 
 
-ALTER TABLE public.cash_registers OWNER TO neondb_owner;
-
 --
--- Name: cash_registers_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
+-- Name: cash_registers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.cash_registers_id_seq
@@ -305,17 +441,15 @@ CREATE SEQUENCE public.cash_registers_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.cash_registers_id_seq OWNER TO neondb_owner;
-
 --
--- Name: cash_registers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
+-- Name: cash_registers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.cash_registers_id_seq OWNED BY public.cash_registers.id;
 
 
 --
--- Name: investments; Type: TABLE; Schema: public; Owner: neondb_owner
+-- Name: investments; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.investments (
@@ -326,19 +460,15 @@ CREATE TABLE public.investments (
     email character varying,
     contact_person character varying,
     notes character varying,
-    total_costs numeric DEFAULT 0,
     status public.enum_investments_status DEFAULT 'active'::public.enum_investments_status NOT NULL,
     updated_at timestamp(3) with time zone DEFAULT now() NOT NULL,
     created_at timestamp(3) with time zone DEFAULT now() NOT NULL,
-    total_income numeric DEFAULT 0 NOT NULL,
     labor_costs numeric DEFAULT 0 NOT NULL
 );
 
 
-ALTER TABLE public.investments OWNER TO neondb_owner;
-
 --
--- Name: investments_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
+-- Name: investments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.investments_id_seq
@@ -350,17 +480,15 @@ CREATE SEQUENCE public.investments_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.investments_id_seq OWNER TO neondb_owner;
-
 --
--- Name: investments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
+-- Name: investments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.investments_id_seq OWNED BY public.investments.id;
 
 
 --
--- Name: media; Type: TABLE; Schema: public; Owner: neondb_owner
+-- Name: media; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.media (
@@ -387,10 +515,8 @@ CREATE TABLE public.media (
 );
 
 
-ALTER TABLE public.media OWNER TO neondb_owner;
-
 --
--- Name: media_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
+-- Name: media_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.media_id_seq
@@ -402,17 +528,15 @@ CREATE SEQUENCE public.media_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.media_id_seq OWNER TO neondb_owner;
-
 --
--- Name: media_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
+-- Name: media_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.media_id_seq OWNED BY public.media.id;
 
 
 --
--- Name: other_categories; Type: TABLE; Schema: public; Owner: neondb_owner
+-- Name: other_categories; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.other_categories (
@@ -423,10 +547,8 @@ CREATE TABLE public.other_categories (
 );
 
 
-ALTER TABLE public.other_categories OWNER TO neondb_owner;
-
 --
--- Name: other_categories_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
+-- Name: other_categories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.other_categories_id_seq
@@ -438,17 +560,15 @@ CREATE SEQUENCE public.other_categories_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.other_categories_id_seq OWNER TO neondb_owner;
-
 --
--- Name: other_categories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
+-- Name: other_categories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.other_categories_id_seq OWNED BY public.other_categories.id;
 
 
 --
--- Name: payload_kv; Type: TABLE; Schema: public; Owner: neondb_owner
+-- Name: payload_kv; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.payload_kv (
@@ -458,10 +578,8 @@ CREATE TABLE public.payload_kv (
 );
 
 
-ALTER TABLE public.payload_kv OWNER TO neondb_owner;
-
 --
--- Name: payload_kv_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
+-- Name: payload_kv_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.payload_kv_id_seq
@@ -473,17 +591,15 @@ CREATE SEQUENCE public.payload_kv_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.payload_kv_id_seq OWNER TO neondb_owner;
-
 --
--- Name: payload_kv_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
+-- Name: payload_kv_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.payload_kv_id_seq OWNED BY public.payload_kv.id;
 
 
 --
--- Name: payload_locked_documents; Type: TABLE; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.payload_locked_documents (
@@ -494,10 +610,8 @@ CREATE TABLE public.payload_locked_documents (
 );
 
 
-ALTER TABLE public.payload_locked_documents OWNER TO neondb_owner;
-
 --
--- Name: payload_locked_documents_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.payload_locked_documents_id_seq
@@ -509,17 +623,15 @@ CREATE SEQUENCE public.payload_locked_documents_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.payload_locked_documents_id_seq OWNER TO neondb_owner;
-
 --
--- Name: payload_locked_documents_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.payload_locked_documents_id_seq OWNED BY public.payload_locked_documents.id;
 
 
 --
--- Name: payload_locked_documents_rels; Type: TABLE; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_rels; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.payload_locked_documents_rels (
@@ -536,10 +648,8 @@ CREATE TABLE public.payload_locked_documents_rels (
 );
 
 
-ALTER TABLE public.payload_locked_documents_rels OWNER TO neondb_owner;
-
 --
--- Name: payload_locked_documents_rels_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_rels_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.payload_locked_documents_rels_id_seq
@@ -551,17 +661,15 @@ CREATE SEQUENCE public.payload_locked_documents_rels_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.payload_locked_documents_rels_id_seq OWNER TO neondb_owner;
-
 --
--- Name: payload_locked_documents_rels_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_rels_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.payload_locked_documents_rels_id_seq OWNED BY public.payload_locked_documents_rels.id;
 
 
 --
--- Name: payload_migrations; Type: TABLE; Schema: public; Owner: neondb_owner
+-- Name: payload_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.payload_migrations (
@@ -573,10 +681,8 @@ CREATE TABLE public.payload_migrations (
 );
 
 
-ALTER TABLE public.payload_migrations OWNER TO neondb_owner;
-
 --
--- Name: payload_migrations_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
+-- Name: payload_migrations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.payload_migrations_id_seq
@@ -588,17 +694,15 @@ CREATE SEQUENCE public.payload_migrations_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.payload_migrations_id_seq OWNER TO neondb_owner;
-
 --
--- Name: payload_migrations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
+-- Name: payload_migrations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.payload_migrations_id_seq OWNED BY public.payload_migrations.id;
 
 
 --
--- Name: payload_preferences; Type: TABLE; Schema: public; Owner: neondb_owner
+-- Name: payload_preferences; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.payload_preferences (
@@ -610,10 +714,8 @@ CREATE TABLE public.payload_preferences (
 );
 
 
-ALTER TABLE public.payload_preferences OWNER TO neondb_owner;
-
 --
--- Name: payload_preferences_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
+-- Name: payload_preferences_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.payload_preferences_id_seq
@@ -625,17 +727,15 @@ CREATE SEQUENCE public.payload_preferences_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.payload_preferences_id_seq OWNER TO neondb_owner;
-
 --
--- Name: payload_preferences_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
+-- Name: payload_preferences_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.payload_preferences_id_seq OWNED BY public.payload_preferences.id;
 
 
 --
--- Name: payload_preferences_rels; Type: TABLE; Schema: public; Owner: neondb_owner
+-- Name: payload_preferences_rels; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.payload_preferences_rels (
@@ -647,10 +747,8 @@ CREATE TABLE public.payload_preferences_rels (
 );
 
 
-ALTER TABLE public.payload_preferences_rels OWNER TO neondb_owner;
-
 --
--- Name: payload_preferences_rels_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
+-- Name: payload_preferences_rels_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.payload_preferences_rels_id_seq
@@ -662,17 +760,15 @@ CREATE SEQUENCE public.payload_preferences_rels_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.payload_preferences_rels_id_seq OWNER TO neondb_owner;
-
 --
--- Name: payload_preferences_rels_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
+-- Name: payload_preferences_rels_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.payload_preferences_rels_id_seq OWNED BY public.payload_preferences_rels.id;
 
 
 --
--- Name: transactions; Type: TABLE; Schema: public; Owner: neondb_owner
+-- Name: transactions; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.transactions (
@@ -682,7 +778,7 @@ CREATE TABLE public.transactions (
     date timestamp(3) with time zone NOT NULL,
     type public.enum_transactions_type NOT NULL,
     payment_method public.enum_transactions_payment_method NOT NULL,
-    cash_register_id integer,
+    source_register_id integer,
     investment_id integer,
     worker_id integer,
     other_category_id integer,
@@ -692,14 +788,14 @@ CREATE TABLE public.transactions (
     created_by_id integer,
     updated_at timestamp(3) with time zone DEFAULT now() NOT NULL,
     created_at timestamp(3) with time zone DEFAULT now() NOT NULL,
-    target_register_id integer
+    target_register_id integer,
+    cancelled boolean DEFAULT false,
+    cancelled_transaction_id integer
 );
 
 
-ALTER TABLE public.transactions OWNER TO neondb_owner;
-
 --
--- Name: transactions_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
+-- Name: transactions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.transactions_id_seq
@@ -711,17 +807,15 @@ CREATE SEQUENCE public.transactions_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.transactions_id_seq OWNER TO neondb_owner;
-
 --
--- Name: transactions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
+-- Name: transactions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.transactions_id_seq OWNED BY public.transactions.id;
 
 
 --
--- Name: users; Type: TABLE; Schema: public; Owner: neondb_owner
+-- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.users (
@@ -737,14 +831,13 @@ CREATE TABLE public.users (
     login_attempts numeric DEFAULT 0,
     lock_until timestamp(3) with time zone,
     role public.enum_users_role DEFAULT 'EMPLOYEE'::public.enum_users_role NOT NULL,
-    active boolean DEFAULT true
+    active boolean DEFAULT true,
+    default_cash_register_id integer
 );
 
 
-ALTER TABLE public.users OWNER TO neondb_owner;
-
 --
--- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
+-- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.users_id_seq
@@ -756,17 +849,15 @@ CREATE SEQUENCE public.users_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.users_id_seq OWNER TO neondb_owner;
-
 --
--- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
+-- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
--- Name: users_sessions; Type: TABLE; Schema: public; Owner: neondb_owner
+-- Name: users_sessions; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.users_sessions (
@@ -778,94 +869,92 @@ CREATE TABLE public.users_sessions (
 );
 
 
-ALTER TABLE public.users_sessions OWNER TO neondb_owner;
-
 --
--- Name: cash_registers id; Type: DEFAULT; Schema: public; Owner: neondb_owner
+-- Name: cash_registers id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.cash_registers ALTER COLUMN id SET DEFAULT nextval('public.cash_registers_id_seq'::regclass);
 
 
 --
--- Name: investments id; Type: DEFAULT; Schema: public; Owner: neondb_owner
+-- Name: investments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.investments ALTER COLUMN id SET DEFAULT nextval('public.investments_id_seq'::regclass);
 
 
 --
--- Name: media id; Type: DEFAULT; Schema: public; Owner: neondb_owner
+-- Name: media id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.media ALTER COLUMN id SET DEFAULT nextval('public.media_id_seq'::regclass);
 
 
 --
--- Name: other_categories id; Type: DEFAULT; Schema: public; Owner: neondb_owner
+-- Name: other_categories id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.other_categories ALTER COLUMN id SET DEFAULT nextval('public.other_categories_id_seq'::regclass);
 
 
 --
--- Name: payload_kv id; Type: DEFAULT; Schema: public; Owner: neondb_owner
+-- Name: payload_kv id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payload_kv ALTER COLUMN id SET DEFAULT nextval('public.payload_kv_id_seq'::regclass);
 
 
 --
--- Name: payload_locked_documents id; Type: DEFAULT; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payload_locked_documents ALTER COLUMN id SET DEFAULT nextval('public.payload_locked_documents_id_seq'::regclass);
 
 
 --
--- Name: payload_locked_documents_rels id; Type: DEFAULT; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_rels id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payload_locked_documents_rels ALTER COLUMN id SET DEFAULT nextval('public.payload_locked_documents_rels_id_seq'::regclass);
 
 
 --
--- Name: payload_migrations id; Type: DEFAULT; Schema: public; Owner: neondb_owner
+-- Name: payload_migrations id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payload_migrations ALTER COLUMN id SET DEFAULT nextval('public.payload_migrations_id_seq'::regclass);
 
 
 --
--- Name: payload_preferences id; Type: DEFAULT; Schema: public; Owner: neondb_owner
+-- Name: payload_preferences id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payload_preferences ALTER COLUMN id SET DEFAULT nextval('public.payload_preferences_id_seq'::regclass);
 
 
 --
--- Name: payload_preferences_rels id; Type: DEFAULT; Schema: public; Owner: neondb_owner
+-- Name: payload_preferences_rels id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payload_preferences_rels ALTER COLUMN id SET DEFAULT nextval('public.payload_preferences_rels_id_seq'::regclass);
 
 
 --
--- Name: transactions id; Type: DEFAULT; Schema: public; Owner: neondb_owner
+-- Name: transactions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.transactions ALTER COLUMN id SET DEFAULT nextval('public.transactions_id_seq'::regclass);
 
 
 --
--- Name: users id; Type: DEFAULT; Schema: public; Owner: neondb_owner
+-- Name: users id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
 
 
 --
--- Data for Name: account; Type: TABLE DATA; Schema: neon_auth; Owner: neon_auth
+-- Data for Name: account; Type: TABLE DATA; Schema: neon_auth; Owner: -
 --
 
 COPY neon_auth.account (id, "accountId", "providerId", "userId", "accessToken", "refreshToken", "idToken", "accessTokenExpiresAt", "refreshTokenExpiresAt", scope, password, "createdAt", "updatedAt") FROM stdin;
@@ -873,7 +962,7 @@ COPY neon_auth.account (id, "accountId", "providerId", "userId", "accessToken", 
 
 
 --
--- Data for Name: invitation; Type: TABLE DATA; Schema: neon_auth; Owner: neon_auth
+-- Data for Name: invitation; Type: TABLE DATA; Schema: neon_auth; Owner: -
 --
 
 COPY neon_auth.invitation (id, "organizationId", email, role, status, "expiresAt", "createdAt", "inviterId") FROM stdin;
@@ -881,7 +970,7 @@ COPY neon_auth.invitation (id, "organizationId", email, role, status, "expiresAt
 
 
 --
--- Data for Name: jwks; Type: TABLE DATA; Schema: neon_auth; Owner: neon_auth
+-- Data for Name: jwks; Type: TABLE DATA; Schema: neon_auth; Owner: -
 --
 
 COPY neon_auth.jwks (id, "publicKey", "privateKey", "createdAt", "expiresAt") FROM stdin;
@@ -889,7 +978,7 @@ COPY neon_auth.jwks (id, "publicKey", "privateKey", "createdAt", "expiresAt") FR
 
 
 --
--- Data for Name: member; Type: TABLE DATA; Schema: neon_auth; Owner: neon_auth
+-- Data for Name: member; Type: TABLE DATA; Schema: neon_auth; Owner: -
 --
 
 COPY neon_auth.member (id, "organizationId", "userId", role, "createdAt") FROM stdin;
@@ -897,7 +986,7 @@ COPY neon_auth.member (id, "organizationId", "userId", role, "createdAt") FROM s
 
 
 --
--- Data for Name: organization; Type: TABLE DATA; Schema: neon_auth; Owner: neon_auth
+-- Data for Name: organization; Type: TABLE DATA; Schema: neon_auth; Owner: -
 --
 
 COPY neon_auth.organization (id, name, slug, logo, "createdAt", metadata) FROM stdin;
@@ -905,7 +994,7 @@ COPY neon_auth.organization (id, name, slug, logo, "createdAt", metadata) FROM s
 
 
 --
--- Data for Name: project_config; Type: TABLE DATA; Schema: neon_auth; Owner: neon_auth
+-- Data for Name: project_config; Type: TABLE DATA; Schema: neon_auth; Owner: -
 --
 
 COPY neon_auth.project_config (id, name, endpoint_id, created_at, updated_at, trusted_origins, social_providers, email_provider, email_and_password, allow_localhost) FROM stdin;
@@ -914,7 +1003,7 @@ COPY neon_auth.project_config (id, name, endpoint_id, created_at, updated_at, tr
 
 
 --
--- Data for Name: session; Type: TABLE DATA; Schema: neon_auth; Owner: neon_auth
+-- Data for Name: session; Type: TABLE DATA; Schema: neon_auth; Owner: -
 --
 
 COPY neon_auth.session (id, "expiresAt", token, "createdAt", "updatedAt", "ipAddress", "userAgent", "userId", "impersonatedBy", "activeOrganizationId") FROM stdin;
@@ -922,7 +1011,7 @@ COPY neon_auth.session (id, "expiresAt", token, "createdAt", "updatedAt", "ipAdd
 
 
 --
--- Data for Name: user; Type: TABLE DATA; Schema: neon_auth; Owner: neon_auth
+-- Data for Name: user; Type: TABLE DATA; Schema: neon_auth; Owner: -
 --
 
 COPY neon_auth."user" (id, name, email, "emailVerified", image, "createdAt", "updatedAt", role, banned, "banReason", "banExpires") FROM stdin;
@@ -930,7 +1019,7 @@ COPY neon_auth."user" (id, name, email, "emailVerified", image, "createdAt", "up
 
 
 --
--- Data for Name: verification; Type: TABLE DATA; Schema: neon_auth; Owner: neon_auth
+-- Data for Name: verification; Type: TABLE DATA; Schema: neon_auth; Owner: -
 --
 
 COPY neon_auth.verification (id, identifier, value, "expiresAt", "createdAt", "updatedAt") FROM stdin;
@@ -938,30 +1027,47 @@ COPY neon_auth.verification (id, identifier, value, "expiresAt", "createdAt", "u
 
 
 --
--- Data for Name: cash_registers; Type: TABLE DATA; Schema: public; Owner: neondb_owner
+-- Data for Name: cash_registers; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.cash_registers (id, name, owner_id, balance, updated_at, created_at, type) FROM stdin;
-5	Kasa główna	16	0	2026-02-19 19:35:49.113+00	2026-02-19 19:35:49.113+00	MAIN
-6	Kasa pomocnicza	16	0	2026-02-19 19:36:11.116+00	2026-02-19 19:36:11.116+00	AUXILIARY
-7	Kasa Adrian Gotówka	17	0	2026-02-19 20:52:58.02+00	2026-02-19 20:52:02.669+00	MAIN
-8	Kasa Adrian konto pomocnicze firmowe 	17	0	2026-02-19 20:55:56.86+00	2026-02-19 20:55:56.86+00	AUXILIARY
-9	Kasa Adrian konto główne	17	0	2026-02-19 21:01:32.598+00	2026-02-19 21:01:32.598+00	MAIN
-10	Yuri Kasa gotówka	18	0	2026-02-19 21:02:53.028+00	2026-02-19 21:02:53.027+00	MAIN
+COPY public.cash_registers (id, name, owner_id, updated_at, created_at, type, active) FROM stdin;
+8	Kasa Adrian konto pomocnicze firmowe 	17	2026-02-19 20:55:56.86+00	2026-02-19 20:55:56.86+00	AUXILIARY	t
+10	Yuri Kasa gotówka	18	2026-02-21 16:04:47.768+00	2026-02-19 21:02:53.027+00	AUXILIARY	t
+7	Kasa Adrian Gotówka	17	2026-02-21 16:05:21.245+00	2026-02-19 20:52:02.669+00	AUXILIARY	t
+5	Kasa główna Bartek	16	2026-02-21 17:46:50.587+00	2026-02-19 19:35:49.113+00	MAIN	t
+6	Kasa pomocnicza Bartek	16	2026-02-21 17:47:29.905+00	2026-02-19 19:36:11.116+00	AUXILIARY	t
+9	Kasa Adrian konto główne	17	2026-02-22 13:09:52.093+00	2026-02-19 21:01:32.598+00	AUXILIARY	t
+11	Telmak	16	2026-02-22 13:55:15.701+00	2026-02-22 13:55:15.699+00	VIRTUAL	t
 \.
 
 
 --
--- Data for Name: investments; Type: TABLE DATA; Schema: public; Owner: neondb_owner
+-- Data for Name: investments; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.investments (id, name, address, phone, email, contact_person, notes, total_costs, status, updated_at, created_at, total_income, labor_costs) FROM stdin;
-6	Apenińska 2/37 - Adam Orłowski	Apenińska 2/37 	+48 532 088 486	boguszewski.bartlomiej1@gmail.com	\N	\N	0	active	2026-02-19 22:27:15.541+00	2026-02-19 22:27:06.764+00	0	0
+COPY public.investments (id, name, address, phone, email, contact_person, notes, status, updated_at, created_at, labor_costs) FROM stdin;
+7	Madalinskiego 67 	Madalinskiego 67/31	\N	\N	504 682 208	\N	active	2026-02-20 11:15:32.613+00	2026-02-20 11:15:32.611+00	0
+16	Międzynarodowa 47/36	Międzynarodowa 47/36	571 324 069	\N	\N	\N	active	2026-02-20 11:29:04.131+00	2026-02-20 11:29:04.131+00	0
+17	Iławska 4/57	Iławska 4/57	663 687 460‬	\N	\N	\N	active	2026-02-20 11:35:38.257+00	2026-02-20 11:35:38.257+00	0
+18	Łomianki Staszica 20a/3	Łomianki Staszica 20a/3	537 042 276‬	\N	\N	\N	active	2026-02-20 11:37:16.608+00	2026-02-20 11:37:16.608+00	0
+19	Siennicka 50/152 	Siennicka 50/152 	602 593 833‬	\N	\N	\N	active	2026-02-20 11:37:55.998+00	2026-02-20 11:37:55.997+00	0
+20	Budrysow 11/13  m11	Budrysow 11/13  m11	577 073 822‬	\N	\N	\N	active	2026-02-20 11:38:36.31+00	2026-02-20 11:38:36.31+00	0
+21	Kiwi 8/46  	Kiwi 8/46  	730 611 869‬	\N	\N	\N	active	2026-02-20 11:39:54.851+00	2026-02-20 11:39:54.851+00	0
+9	Al. Rzeczypospolitej 21/25	Al. Rzeczypospolitej 21/25	696 457 782	\N	\N	\N	completed	2026-02-21 15:26:14.296+00	2026-02-20 11:18:42.048+00	0
+6	Apenińska 2/37 - Adam Orłowski	Apenińska 2/37 	+48 532 088 486	boguszewski.bartlomiej1@gmail.com	\N	\N	active	2026-02-21 15:26:33.259+00	2026-02-19 22:27:06.764+00	0
+15	Koprowskiego 6e/6	Koprowskiego 6e/6	791 435 644	\N	\N	\N	active	2026-02-21 15:42:39.393+00	2026-02-20 11:26:01.866+00	0
+11	Grochowska 207/104	Grochowska 207/104	600 722 533	\N	\N	\N	active	2026-02-21 16:01:25.017+00	2026-02-20 11:20:13.059+00	0
+22	Równoległa 8/61	Równoległa 8/61	‪+44 7598 023111‬	\N	\N	\N	active	2026-02-21 16:01:36.846+00	2026-02-20 11:40:49.472+00	0
+10	Żupnicza 10/83	Żupnicza 10/83	573 013 199	\N	\N	\N	active	2026-02-21 16:08:43.632+00	2026-02-20 11:19:36.471+00	0
+12	Sierakowskiego 3/81	Sierakowskiego 3/81	515 372 268	\N	\N	\N	active	2026-02-21 16:09:32.113+00	2026-02-20 11:20:52.239+00	0
+8	Chłodna 22/6	Chłodna 22/6	602 715 376 	wbrewka@interia.pl	\N	\N	active	2026-02-21 16:18:20.154+00	2026-02-20 11:17:23.225+00	0
+13	Bałuckiego 27/10	Bałuckiego 27/10	793 622 743	\N	\N	\N	active	2026-02-21 16:18:41.627+00	2026-02-20 11:23:36.541+00	0
+14	Wołoska 3/302	Wołoska 3/302	533 514 501	\N	\N	\N	active	2026-02-21 16:19:06.964+00	2026-02-20 11:24:03.841+00	0
 \.
 
 
 --
--- Data for Name: media; Type: TABLE DATA; Schema: public; Owner: neondb_owner
+-- Data for Name: media; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.media (id, alt, created_by_id, updated_at, created_at, url, thumbnail_u_r_l, filename, mime_type, filesize, width, height, focal_x, focal_y, sizes_thumbnail_url, sizes_thumbnail_width, sizes_thumbnail_height, sizes_thumbnail_mime_type, sizes_thumbnail_filesize, sizes_thumbnail_filename) FROM stdin;
@@ -969,15 +1075,19 @@ COPY public.media (id, alt, created_by_id, updated_at, created_at, url, thumbnai
 
 
 --
--- Data for Name: other_categories; Type: TABLE DATA; Schema: public; Owner: neondb_owner
+-- Data for Name: other_categories; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.other_categories (id, name, updated_at, created_at) FROM stdin;
+5	paliwo	2026-02-20 19:26:34.122+00	2026-02-20 19:26:34.121+00
+6	inne	2026-02-20 19:26:52.009+00	2026-02-20 19:26:52.008+00
+7	zaliczka na poczet wypłaty	2026-02-20 19:27:21.501+00	2026-02-20 19:27:21.501+00
+8	transport	2026-02-20 19:27:58.401+00	2026-02-20 19:27:58.401+00
 \.
 
 
 --
--- Data for Name: payload_kv; Type: TABLE DATA; Schema: public; Owner: neondb_owner
+-- Data for Name: payload_kv; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.payload_kv (id, key, data) FROM stdin;
@@ -985,7 +1095,7 @@ COPY public.payload_kv (id, key, data) FROM stdin;
 
 
 --
--- Data for Name: payload_locked_documents; Type: TABLE DATA; Schema: public; Owner: neondb_owner
+-- Data for Name: payload_locked_documents; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.payload_locked_documents (id, global_slug, updated_at, created_at) FROM stdin;
@@ -993,7 +1103,7 @@ COPY public.payload_locked_documents (id, global_slug, updated_at, created_at) F
 
 
 --
--- Data for Name: payload_locked_documents_rels; Type: TABLE DATA; Schema: public; Owner: neondb_owner
+-- Data for Name: payload_locked_documents_rels; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.payload_locked_documents_rels (id, "order", parent_id, path, users_id, cash_registers_id, investments_id, other_categories_id, media_id, transactions_id) FROM stdin;
@@ -1001,7 +1111,7 @@ COPY public.payload_locked_documents_rels (id, "order", parent_id, path, users_i
 
 
 --
--- Data for Name: payload_migrations; Type: TABLE DATA; Schema: public; Owner: neondb_owner
+-- Data for Name: payload_migrations; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.payload_migrations (id, name, batch, updated_at, created_at) FROM stdin;
@@ -1018,11 +1128,21 @@ COPY public.payload_migrations (id, name, batch, updated_at, created_at) FROM st
 11	20260218_add_investment_financials	6	2026-02-18 20:41:45.779+00	2026-02-18 20:41:45.778+00
 12	20260218_seed_other_category_inne	6	2026-02-18 20:41:45.984+00	2026-02-18 20:41:45.984+00
 13	20260219_192300_add_active_field_to_users	6	2026-02-19 19:23:25.289+00	2026-02-19 19:23:25.287+00
+14	20260220_add_active_field_to_cash_registers	7	2026-02-20 20:38:22.033+00	2026-02-20 20:38:22.032+00
+15	20260221_193257	8	2026-02-22 10:06:11.927+00	2026-02-22 10:06:11.926+00
+16	20260221_200518	8	2026-02-22 10:06:12.511+00	2026-02-22 10:06:12.511+00
+17	20260221_201040	8	2026-02-22 10:06:12.994+00	2026-02-22 10:06:12.994+00
+18	20260221_201112	8	2026-02-22 10:06:13.489+00	2026-02-22 10:06:13.489+00
+19	20260221_add_virtual_cash_register_type	8	2026-02-22 10:06:13.984+00	2026-02-22 10:06:13.984+00
+20	20260222_rename_cash_register_to_source_register	8	2026-02-22 10:06:14.464+00	2026-02-22 10:06:14.464+00
+21	20260222_0_add_cancellation_enum	9	2026-02-22 11:54:32.645+00	2026-02-22 11:54:32.644+00
+22	20260222_1_add_cancellation_columns	9	2026-02-22 11:54:33.217+00	2026-02-22 11:54:33.217+00
+23	20260222_drop_materialized_columns	9	2026-02-22 13:49:35.079+00	2026-02-22 13:49:35.078+00
 \.
 
 
 --
--- Data for Name: payload_preferences; Type: TABLE DATA; Schema: public; Owner: neondb_owner
+-- Data for Name: payload_preferences; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.payload_preferences (id, key, value, updated_at, created_at) FROM stdin;
@@ -1031,22 +1151,33 @@ COPY public.payload_preferences (id, key, value, updated_at, created_at) FROM st
 19	collection-cash-registers	{"editViewType": "default"}	2026-02-19 19:35:32.811+00	2026-02-19 19:35:29.665+00
 20	collection-cash-registers	{"limit": 10}	2026-02-19 19:40:11.823+00	2026-02-19 19:35:29.681+00
 16	collection-users	{"limit": 10, "editViewType": "default"}	2026-02-19 20:50:28.601+00	2026-02-19 19:32:02.988+00
-21	collection-cash-registers	{"editViewType": "default"}	2026-02-19 20:52:53.054+00	2026-02-19 20:51:41.62+00
 15	collection-users	{"limit": 10, "editViewType": "default"}	2026-02-19 21:02:40.526+00	2026-02-19 19:29:42.952+00
 22	collection-cash-registers	{}	2026-02-19 21:03:21.185+00	2026-02-19 21:03:21.184+00
 23	collection-cash-registers	{}	2026-02-19 21:03:21.371+00	2026-02-19 21:03:21.371+00
-24	collection-users	{}	2026-02-19 21:08:38.619+00	2026-02-19 21:08:38.619+00
-25	collection-users	{"sort": "-role", "limit": 10}	2026-02-19 22:21:18.594+00	2026-02-19 22:20:56.181+00
 26	collection-cash-registers	{"limit": 10, "editViewType": "default"}	2026-02-19 22:24:03.21+00	2026-02-19 22:21:34.265+00
 27	nav	{"groups": {"Administracja": {"open": true}}}	2026-02-19 22:24:44.259+00	2026-02-19 22:24:43.865+00
 28	collection-other-categories	{}	2026-02-19 22:25:01.435+00	2026-02-19 22:25:01.435+00
-30	collection-investments	{}	2026-02-19 22:25:04.166+00	2026-02-19 22:25:04.166+00
 29	collection-investments	{"editViewType": "default"}	2026-02-19 22:27:24.995+00	2026-02-19 22:25:03.966+00
+31	collection-media	{}	2026-02-20 11:30:01.793+00	2026-02-20 11:30:01.792+00
+32	collection-media	{}	2026-02-20 11:30:01.997+00	2026-02-20 11:30:01.997+00
+30	collection-investments	{"limit": 10}	2026-02-20 11:41:17.539+00	2026-02-19 22:25:04.166+00
+25	collection-users	{"sort": "-role", "limit": 10, "editViewType": "default"}	2026-02-20 14:48:44.177+00	2026-02-19 22:20:56.181+00
+34	collection-cash-registers	{"limit": 10}	2026-02-20 15:25:10.243+00	2026-02-20 14:45:51.399+00
+35	collection-investments	{}	2026-02-20 15:25:17.098+00	2026-02-20 15:25:17.097+00
+36	collection-investments	{}	2026-02-20 15:25:17.273+00	2026-02-20 15:25:17.273+00
+38	collection-media	{}	2026-02-20 15:25:52.884+00	2026-02-20 15:25:52.883+00
+37	collection-other-categories	{"editViewType": "default"}	2026-02-20 19:26:52.011+00	2026-02-20 15:25:48.105+00
+33	collection-users	{"limit": 10}	2026-02-21 08:11:27.245+00	2026-02-20 14:44:45.117+00
+24	collection-users	{"limit": 10}	2026-02-21 15:11:03.841+00	2026-02-19 21:08:38.619+00
+39	nav	{"groups": {"Finanse": {"open": true}}}	2026-02-21 15:14:56.234+00	2026-02-21 15:14:36.815+00
+40	collection-investments	{"limit": 10, "columns": [{"active": true, "accessor": "name"}, {"active": true, "accessor": "status"}, {"active": true, "accessor": "totalCosts"}, {"active": false, "accessor": "id"}, {"active": true, "accessor": "address"}, {"active": true, "accessor": "phone"}, {"active": false, "accessor": "email"}, {"active": false, "accessor": "contactPerson"}, {"active": false, "accessor": "notes"}, {"active": true, "accessor": "totalIncome"}, {"active": true, "accessor": "laborCosts"}, {"active": false, "accessor": "updatedAt"}, {"active": false, "accessor": "createdAt"}]}	2026-02-21 15:16:20.265+00	2026-02-21 15:14:50.8+00
+21	collection-cash-registers	{"limit": 10, "editViewType": "default"}	2026-02-21 16:02:12.266+00	2026-02-19 20:51:41.62+00
+41	collection-transactions	{"limit": 10}	2026-02-22 13:09:54.635+00	2026-02-22 12:50:05.344+00
 \.
 
 
 --
--- Data for Name: payload_preferences_rels; Type: TABLE DATA; Schema: public; Owner: neondb_owner
+-- Data for Name: payload_preferences_rels; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.payload_preferences_rels (id, "order", parent_id, path, users_id) FROM stdin;
@@ -1055,139 +1186,163 @@ COPY public.payload_preferences_rels (id, "order", parent_id, path, users_id) FR
 39	\N	19	user	15
 40	\N	20	user	15
 41	\N	16	user	16
-43	\N	21	user	16
 44	\N	15	user	15
 45	\N	22	user	18
 46	\N	23	user	18
-47	\N	24	user	18
-50	\N	25	user	17
 54	\N	26	user	17
 56	\N	27	user	17
 57	\N	28	user	17
-59	\N	30	user	17
 60	\N	29	user	17
+61	\N	31	user	17
+62	\N	32	user	17
+63	\N	30	user	17
+66	\N	25	user	17
+68	\N	34	user	19
+69	\N	35	user	19
+70	\N	36	user	19
+72	\N	38	user	19
+73	\N	37	user	19
+74	\N	33	user	19
+75	\N	33	user	19
+76	\N	24	user	18
+81	\N	39	user	18
+87	\N	40	user	18
+89	\N	21	user	16
+91	\N	41	user	15
 \.
 
 
 --
--- Data for Name: transactions; Type: TABLE DATA; Schema: public; Owner: neondb_owner
+-- Data for Name: transactions; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.transactions (id, description, amount, date, type, payment_method, cash_register_id, investment_id, worker_id, other_category_id, other_description, invoice_id, invoice_note, created_by_id, updated_at, created_at, target_register_id) FROM stdin;
+COPY public.transactions (id, description, amount, date, type, payment_method, source_register_id, investment_id, worker_id, other_category_id, other_description, invoice_id, invoice_note, created_by_id, updated_at, created_at, target_register_id, cancelled, cancelled_transaction_id) FROM stdin;
+392	zasilenie konta 	10000	2026-02-21 00:00:00+00	COMPANY_FUNDING	CASH	5	\N	\N	\N	\N	\N	\N	16	2026-02-21 15:34:47.493+00	2026-02-21 15:34:47.493+00	\N	f	\N
+394	zaliczka na materiały 	2000	2026-02-21 00:00:00+00	ACCOUNT_FUNDING	CASH	5	\N	21	\N	\N	\N	\N	16	2026-02-21 15:38:21.064+00	2026-02-21 15:38:21.064+00	\N	f	\N
+395	telmak 	100	2026-02-21 00:00:00+00	EMPLOYEE_EXPENSE	CASH	\N	15	21	\N	\N	\N	\N	16	2026-02-21 15:42:38.715+00	2026-02-21 15:42:38.715+00	\N	f	\N
+397	Castorama 	100	2026-02-21 00:00:00+00	EMPLOYEE_EXPENSE	CASH	\N	15	21	\N	\N	\N	\N	16	2026-02-21 15:42:38.717+00	2026-02-21 15:42:38.717+00	\N	f	\N
+396	elo 	50	2026-02-21 00:00:00+00	EMPLOYEE_EXPENSE	CASH	\N	15	21	\N	\N	\N	\N	16	2026-02-21 15:42:38.72+00	2026-02-21 15:42:38.72+00	\N	f	\N
+398	elo2 	150	2026-02-21 00:00:00+00	EMPLOYEE_EXPENSE	CASH	\N	15	21	\N	\N	\N	\N	16	2026-02-21 15:42:38.739+00	2026-02-21 15:42:38.739+00	\N	f	\N
+399	leroy	100	2026-02-21 00:00:00+00	EMPLOYEE_EXPENSE	CASH	\N	15	21	\N	\N	\N	\N	16	2026-02-21 15:42:38.722+00	2026-02-21 15:42:38.722+00	\N	f	\N
+401	asdfasdf	200	2026-02-21 00:00:00+00	INVESTMENT_EXPENSE	CASH	5	22	\N	\N	\N	\N	\N	16	2026-02-21 16:00:02.242+00	2026-02-21 16:00:02.241+00	\N	f	\N
+403	zakup	200	2026-02-21 00:00:00+00	INVESTMENT_EXPENSE	CASH	5	22	\N	\N	\N	\N	\N	16	2026-02-21 16:01:36.12+00	2026-02-21 16:01:36.12+00	\N	f	\N
 \.
 
 
 --
--- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: neondb_owner
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.users (id, name, updated_at, created_at, email, reset_password_token, reset_password_expiration, salt, hash, login_attempts, lock_until, role, active) FROM stdin;
-16	Bartek Antonik	2026-02-19 20:48:14.208+00	2026-02-19 19:30:25.676+00	bartek@wykonczymy.com.pl	\N	\N	f12afa9363715117552a87ccc5cd1f09d79289d1e89ab022fab97096da0e0c81	150d82cc6141f789312932283ace649461ea957caad3da796fdfeb6bde8d34208870764a54808c2c5f41c84501510c2d495aea85f53a12d4f4ecdbb20faef8b7f837053e1fd788e9b93fea03671c1983394ae06334e8985d354f8da5737f7868308da388ba00c9b7a842d762ca8b7b34f0e9f51c606ce4f7f4ba7523220a80ccbab1d1ba5b0109743053c448acad2a404695c7bf2f8b6e8c63087d1889c6f787ee702a6db379b049c037494ccd7450e192c69dac70caec27870cee436e9ba16632fa1d005c65cf417bdba135f08fd8660f7d0502aa2d166d6e632e2e0bce45f47fcb6fd08a4744c957c69240057909c7e3feb8b4896a859651830cff0c7e672b81ac8bc1dcbeb7bd2227a49a09584021aaeb7a2c8aa797fd0a2bf7b6de7179af6c2354e07f4b31ed036765ae3b08ca30a70c3c703d71f87028840ec55c6d7858961d58a93e6943cb5ed1a45629a76fc8e9ed78a066f0ba9114900a14866220e4eaf97d77430f9acf065c1298085758ea1388b4b8c0ee2b32c76e06de086154fccb6d98dc64b3499484494634a86d029e23be7de7db975e95e36f4b9f8c685e6c85d62f2e53c38a6fa358b88dfa34824c10658b686dec5cf9b855e7a3190de53034ec8da409c82c741c10b742950b3690ecae50fb8e76e88958c11c8397efe28347ca937229f5e7ec357476c0cf62772f4491e8e338074d98c65cb726aac0f2bc	0	\N	OWNER	t
-15	Konrad Antonik	2026-02-19 19:29:37.626+00	2026-02-19 19:29:37.624+00	admin@wykonczymy.com.pl	\N	\N	ddd12d7c0efbe3c50b61008df935cc01180575bd6792504b4014b7ac570f55e4	6f6454bc5b766857c9e2345724c72d5a3189c4d2604736b4e62ed9dde5d6845d1c448941302739cd96d4d74758405bccdf2d9d190e6ed4bdc3c147710962add4ebbca9a5be2e02e224160a38a68075a24813a2cde2e5d205fa54cb794dd27e5f64a852d1006865bd16563317ae19eb255b048d034a120c64532bf181b5ac4805d9b4541e673c18ca107ed7c173887a41f64ff1054cddf0b8839c3f8954c01eeb35bbea7976860a3c47a15c8dae75f102421282a179dd471f663e25921877c10efce692e829f076e05349f21e46e797c733da1100048fc4e792833b2f40df51ce13d9b3e1538604df5dd903eb52bc375d53016c2897879dc912aa69fb98e71a0d8888093aa8a9c022e2b20ac5195735383718c4799f1f49973caa32482bc9261249b3e99804d6ec97c62f2f353c3ace780c85f673b153f864d0a1e4da72de085cd73770a4d4eed0088f4d4ff881ff2f3abdb94093ea36e950200e715d30f94231178111d7b5a400ceceb32a7d14d199c4c6740eaa9a7e8e9aa0b1ac0b27c9f3408d804f51a8d02f058dd4b0b6fe7749c189467ebaeee8945043a2e5bdbe2d1d3e50b9abc3e1a4c663050098fe7694e7001638d7031f636d8f39277547cdaa44a71d8fa9a01b59f77b2f0821b3b3d2a04362f2f9279451cf734733dbbb9955549808d0345fdf6993de67284851694f24a109653331a135eb84dcdc79f76d229d73	0	\N	ADMIN	t
-18	Yuri Abramenko	2026-02-19 20:50:50.723+00	2026-02-19 20:50:50.723+00	yuri@wykonczymy.com.pl	\N	\N	7c8b1095c2f17358b5b27ce2d0aedbd321e14a22b4d7681654dc143d084f13e7	bccf1823aa1238c65bcde5b167f9559084883cbca6d6633c3ecb6745d86c51f082cacc6c2e3a20e481b7d9ca3a01e625d018a721f189344c983938401fb64d5ef5df4ea8b27cfbe333e863ba17be53124aa81d6070c6a3d4fbea97ed8ae5f07b5f6b130e7dbea924eabaa2cd8b52a60c6497991400a5898bd254f9351964e036dbec3cd9ea61869790b56718cb7d8aac1e6f4bbedbdef29bb3c3fdab3d55b908aecddc89596fbac6872bf4c3f3cda0002992c979ad545312864d3d2252a8f26b214d9acda30490560c9245106de925ea6e24c564f323e32b9c2ad6e698d4e46149bc7d5c116710ba05b6c5f5319a9cf58140185f965d7f449ae6130b12779ef469a2e8521debd952ec5f10dd3f968711603b999e615f7ad529609674255c156ee4fedcd130e4d480cb2c380665e9d22bc9b5c06871d19e7fa0e01a50fa58359a2e005855bff79d749ea3a563afb712ea90e3fceba8465d8fcfaaad22d37ac1f126f49e925e09060fc39aeb9fe375dc5e24c97d0e8f93a97047b00235fa5de59ce6a59f56ca1c8e87548405f914105b92625dabb3c04309d50ebca1fbac78cdb70ee3406a32056f718eb70015aea3e5f4e0ec2c74e50adc64fde811800a1a33f69752e34f51e366a697d502f3a4967a3dd21f7a02166be56d70f0573f9943c427ebad2b0c4e718ec100c3f46ca4c8d7e8ac2211de92539267caa100418f4fac69	0	\N	MANAGER	t
-17	Adrian Furmańczyk	2026-02-19 22:20:41.981+00	2026-02-19 20:49:39.969+00	adrian@wykonczymy.com.pl	\N	\N	1583433e140d4424d07e58cea1565eec76bc4712a0432192a5ca8809fc4dbbb7	c5a921fe274489095833b58f3e9472ec5bd2c597877e09ae8192bf96ee078f8646736f5c295406535bfa30d0c4636ff23a12f278cd93079349cdf5926f6515fd9f02718173feb15a3a1b81bd9ce65fade2e871e78e5c44aa6b6e0642a3d84974942974beb2f703b2c961945f7fd91b0c4d421c8fdc3ea92404d97b136a45c06a568893efe67a04de660f9023c89a85c03683c592235fb2715c38736f50557f77f2e7f445ec86cedc7d075700112818ce87fcd48cb6cb7549919f152056e63352c7861ad47d512a32abd5ec53de403756b3cce08e878f97c2674d6f33454bdfb1cdffe28808cf854173d73e134d47851bf8ef4dbb0b56823707aba81c1a6594c09e78a9b8da9514d0917673ca54090ea0df7cc91808b0774f408bd329255d1112e90b00775f237c64e78a19f51c896e7fb613c8004d066b1cb6517024dcbf418079e871e701ebbf4181d7ea8da18eef845f94fcd3cff4d05d62f45b0888040087369986a2e2d3a6c9b501606a41085f0d6fd7bf742a4661914a969d1a797e2fe29366693138776ae2e8a5b9d5ca1a9911addd7c6225221d87ee51f9eaddc5732eddd86c6df332e1cdc88bfb59b737659aaba05e9e0c512f87e364518e1c29b37aece815984e4cfdbbad543f59de2bc8e50ad9ed8bede222e17c03b32ffcadd275a4132b111e50b32c5ff0387479dd9ba0938305a8e59585539ebbfd399b9c8d72	0	\N	MANAGER	t
+COPY public.users (id, name, updated_at, created_at, email, reset_password_token, reset_password_expiration, salt, hash, login_attempts, lock_until, role, active, default_cash_register_id) FROM stdin;
+20	test123	2026-02-21 16:35:05.133+00	2026-02-20 14:48:24.036+00	test@test.pl	\N	\N	e22bc1a79e6008ba46271aa85a6ddd46ee2e720436ca60e1b7e61bcfe56288ab	94f7973831968a4a1b19e38a59723d8ef48834e5a06cefbc92c04b1fa59a7a8b3a6fe3e236217e30db776d827fe1b6198ff13e4bbfa1e14f7d9746139a4534ff121fe793e84c4a5df4fa36fffc5728ee290e8985113c88eb4e97ede4ab3cc251bd2d50c5795b568c0a8a77bdc201b1c8b114d275cf69ad1972fa2ddee55f3b4e8f1aa9a8418a7ef2b74e0e9313517b8ae5bca7cdcabd84156b7a62bbb579d90c39e9068f3ccf217217e6509ff5f2ce81f2fec656ad6f6ca60db58dcae8f2e65c1d32ed0d728146fd733258aba2c4a0a4e8fa53564dce4e9f33d3e60583b46507921f163fc5bbc34d30564cfc7ee6a32d94258e7bc51621b0d95386ee658c8af3d97e2f8d34c2ac4927376521e685f9b17905f48e63b4b509f4a4639a2268e252d1dbf176c3c6b23e70089d4e8f75471bfbf8edd1db658c74913b347d76ac18c5a9c051ef46ca213abd9d4b43cbb0e524d8a0abc11d0c4dc22ce9da11044268813b48f967dfeaf85627d6beec5f826506cb395d2c2e6f283725c6f04f214816fd7390404f2282b1ed7f3cd09dc4baa76ed1af0592f15a1b1c79606dca44188bb69fe8b8a960fd2d2f7bb1afcfe37a92a5fda60911e9f3cdea2c8f4f9e018e5a4c6545946eaaeca768c212b6828db6334c979bdc2ffaf2a17558e9a11ca015ce1d5bb44e68feebf41236e639310e77c1d41a2c46387e405efe5fd729242c3ac88b	0	\N	EMPLOYEE	t	\N
+19	Manager Test 	2026-02-21 16:35:17.858+00	2026-02-20 14:44:08.197+00	manager@wykonczymy.com.pl	\N	\N	ec0e7d784b9b2f545de435e804bbc9b6adabe62429551357360eeafdc006c88d	572700a16a9fa097440e1d508af9fc371b61d8ede1658675c28d01efeb931f3b69f538a21df2cfb9f7428655a449da189b471327059acf04dc22b979012dd3ecdb13abc11eb57786587a8f72078d5d2a17966f5c3a5578a4d18bbf1effd051a31be452d69ce936f387e55f7502e640b12c7994da6dae8e79229404293927117c78f0008f5745bf398eea63ed6e950ae24bb08bbe2995511f946808be25d78861459ba71e44b03b162b03fab80c4ec4806aff118232aef8125a22ea45b07b5e4c0e22305ce26800e02913fdf81342d9388a98a892b8cfab80d45389c10748ffa7043dd979eb1f61913f2d0404565e375410aaed29bb45e29751a4f531491a8b61895435c34b276f98f47ddda938be23e54eee4075d8c9761b3b6451bbc13956f1d8d2cadf344fcabfb10567e3f027b3d2f2457b592f544a716731e212925d1fea27793a7f7350c52777fdfb9c7de709dab600cfab62ae744cb6fd98c5b1e198bac35b9c10c2f89745f3fce3060c9a6408fafcb1f997616163fc8b05812a5285c5f6f27afe9af2882f236e52b927b18357c3a2f8202b4db1143c7cc38c72b6f6ceb8f3a32708446c8893b5bb91c3fad3339fc468c21ff7c3732fc02c97f44c0569af4444851a0e745dfc4279ba61b109e186605d79527cca424e17ec9205c0183119d8ed1ca6e48e05d9394661f20afee219a299445dfbe359d3cb57871f6d2e74	0	\N	MANAGER	t	\N
+21	Oleksander Moksunov	2026-02-21 15:14:08.156+00	2026-02-21 15:14:08.155+00	moksunov@ukr.net	\N	\N	9deaac79d0eca40e7abf2d52a930c20911295af71c8bad9c1b04b7972b80de3e	3a55d7cd649aa4c9d0e1e99e366cd6ab12c21293340424a1d3a79367dd78dff47ff0871faddd2559e0b2f95c1e9728b507c37eed1f6e5eaad2892ddb76d0c8b7ee64c3bea67e9f50b934112fbc422edf38d84ef851be459eb49ecfd481fa6ff26d174743de6d0a79ad060a3158e0901ff5c335bb76cb3fa694373df8ca42dee74cb7f07ac248804857ae804da1ea85fb8b40e49caa17c2f39ad66b2c6574bc16a7c15a540d19033e240555606eddfd8fde70fd15ffc5e6e3e73d60ab89ae95258b1d11868799d687a68a6f6f73a1b8d1a725676bad94eb30ba273f3598513f9c5b5b62595bf5212f7bbfaa6bca222bec615093638938a88edb7f269c7ccd79534a5f0d5f020b46abebc9c9ddf1d038fc78db9f85489eac46f2f04d34ed17b404d5eac493fd010ee934ef25386852b46c2ab72499e6dbf887ad04025addf78af23b65a7c0a681bb05ab472acd4abf5cbfa77f985877af2533c31ee873c61b58e095f2e9a42873cf2d808dd4f84bd67b5f49e9a8c578ceba9cc94386f57e15679dfc83159b21853f89e1f309716d9793446d85893545ee3d28336e1141d60dee525b8ab790500ac30c8d217ff813f23cd3a5bd4f35b13481bcd8e49f7d6bc04e76f39c7137db6fa5eb6ecaff4d1b2a14892a2055a3bd8b7abd09eb928c8c69fa05ab5ba726d8322109ea123ee2ad19b7ee14c254eb345e5ff0afab62ea3f1d7f01	0	\N	EMPLOYEE	t	\N
+18	Yuri Abramenko	2026-02-22 12:40:57.913+00	2026-02-19 20:50:50.723+00	yuri@wykonczymy.com.pl	\N	\N	eaac2d1f35d8ac4800fae84e7e905499a538dc3afdfd6e2189eb39136ad56aac	c3bd959bc7bbb757240a806e9c003d4c224e99f1398b007c4aed136d0b0bbce308273b3580314a52a90413b73db189b502514f3367eb16e075bec673894e1a9d125357211db4da6d91a854045f08ecb48ff19218f7dcb34be36bc0ebeda5b042686b697be981c84a69eaaecfa8c0f775687c2c0c8e47ae8e88d6e4bb9cccc60ed9538460f5fc7aedeb264f9fdbc9677e046417dddf49a15a65e4e2be623abbae718d16c8a7d93c003386c9c5bce7f5d7fc8fc07062be88dfaea3cfb2906a552730cb586b17eab13a1710742893065aa66597e512927514eab6e7070212827ca6f311c8da0656944cfec3e113548d8f6b15dd9167e39246616ea41e2a7b08c6af848e77dacdd8b1969fc390701933670f33468d068a1547c8e5cbbddfaf999901334857dcc69099de79d79518d3b2e7133edd19207c0317d60998f123c087d337ddf5071e3fd5ea88568724b6130588388f6788b03cbf6a2b2b755bc11ec0f116e5ccc691b878b4d791a265c4a0550d2574fe054e75d0915ea0e7271e9da0fd227ebc526a01e70d344293651c0ac36ac7d561caea5acb6bce3a618a48582c2e565cf622a449aea0efab20523fb00bf867c5eb1c331ff0ef22f933ec07998ea2a2ca28721d6fbabc0b0b10a50bd91526c0770287584787a3842cd17727c247c6f36efc66c814ae3bbcc60fa52df9376725ce81a2ea4ce22b398ea6bab19dca2672	0	\N	MANAGER	t	10
+15	Konrad Antonik	2026-02-22 12:39:55.631+00	2026-02-19 19:29:37.624+00	admin@wykonczymy.com.pl	\N	\N	9a2fc48021d4e803af405988b1a955c71d867e5ab9a81c67d5cbf0b2c4f7f830	0287fce862c4b46a47d6c572627defcbb2e7ac93c42da8fb4cd216238ea61b172b7737352e6812ff059dd873ab76b7a54a0810edeb90ce1d401ac6d9c69b56d89d5f79840680a9def33f704637cdd487f1c69495c91ee606e043084001a1e7881711c1ba11cd5f2252a552a36d43f4ea436e27aebbbd2b3c23d7faa84fa202b69098ed8c1bb2375a778887d254591bd990dca0a711df802dcd4ea3ffea190f315217b608cf543f4da3a4050b17a71d4278bd1b1f26523305b81182267f9fb3fbf961499e5db8f72e8d1b77ba0258f4e9a3fdd38971e79858d812f409ef5b8bfd39ead5d70fb884a8cfb63adbdcc4ed1ed57c7275e4aef1f735f0b3232debd95dc588dc230f974b47ff1fd7cee24278342df6ace24c4f4f1ee99d58ca464be20c8282685a5d302bac8ed71aa82d1da784d27e7170772e0d1d6924daf3c88c453bbb344b0d3cb1374a2b2ae1fe96c4fee9d29a7c559c4541e380bf1c709f2687e3634235767ee62ee712a1ed300919e0740b9223eca4fe120e59aed3847a8d2ba319ebebb31a9aee6cb04846e07bd5eb6f512ddec1b4d3c42c8a42da46c3311bf7a44f61d46119484da7d37160bfc57cfe7fa9891c8da50d3e990ed21f8b82c758b7cdf0e7fbd5edd33183380470482a861e054a17af9408b23fab7d84f741dbf95f2a0ee6c5a932b5d7d9fdd90c7ef8bba7c0a26bb8935fdc9060b332d5a73ae4	0	\N	ADMIN	t	\N
+16	Bartek Antonik	2026-02-22 12:40:40.218+00	2026-02-19 19:30:25.676+00	bartek@wykonczymy.com.pl	\N	\N	e8d3c94bffb650880abc19958c3ab94bb3d0ee11a786fd69b3ecec4da6c31893	74a47d1e59dd647fa23338a6954077c1ce0c68f10e19a4d5204188558842a861420b0689c7a4ee58ffad6c5f8726ff7b1458aa6c65b9e66ed157bb40040bb8c76203718f0c6c7647cca1a19c1f719695fc80f51ae7cf4694ea86ed69db170e9ee4a6326769d0099c1c78e1a95749f6a07438e0e241f5ce421bd54f1b8dbf723a66d85e801eb54c4f6135b48f07df9e78ee7d93545f42cd29781ba47789ddb736ff3edc2765545b1d99171514dcd40430c16b10292cbc37e76b1ac26d2574e77309d2750c9911b1ac67fe21ebbfc4c98d334dc22702717a72d55a11f865d8c1d07652cdad82aa50a4c0875409990f2a79a18c88269e4817295a99293b6bea480799c4908c8623823640e738fe7190d98fba723b191f3b7300e8caaccd3e95b047c9ac99508adcb9b3d19a6c60d56c3653fad494304fb2ec53893fcf60b20f470fb4ef1d2dd31db07e6ee1611245332a65e5c8891779bf0c243eb613391c0b1d6ed544beae78cfc554fde2628885fa468ace1b1de0aa5867c9e02c68c433c3a0fe2405faecff95fbfb16c0b10004185e605d0dd8bda5b65a9e61722b95fff1e323fb96af34e70b48914be969a5070bd40a80bdac8eeb7a9fb78a799fc68b92d4b7a663e142c7085fb8426979b7c8d5447d7e749ae2b8e3d86911cf5ba22ad3a76a9a1c2349729ff1d5a51738864e427e854ff7d4a9db7113ddb98707041c8b926b	0	\N	OWNER	t	5
+17	Adrian Furmańczyk	2026-02-22 12:41:26.333+00	2026-02-19 20:49:39.969+00	adrian@wykonczymy.com.pl	\N	\N	fbece407097c2ab3f81ed32256457daf4cbc513e9d556ff1dd572eb86f5f1aea	141207cef8618d0683f1fcf392ae8fd094894760b5728fe76b5c41dd1ca81e86ba51a3686babd6d872cbd4864108db3a3306af5404ae0ba8008b92cd56e2d30821341fba5b41f6bf40d81e2957e4eef119bdf9316285651ac9c9cd2e9a93d92f793ade9b26f87fb7d76225898aaa81905ae4231331d395438b68aa57b84728cef234bf9a55a03a00eac7907ce5db5215f40bd8318ac7faf8af926a960f0f743a6a9c69361871aa3e409ed3a74444973a0a4bcbbfb6c72e2eff582961c7604916b7e8038e3a15d6e66691c6d67c3d25829a2701891ba514d570702cd248a446965389fe82a17091ff2e3258dcc1623b925b0125db8513f56063b87ef2aebdccc8fa30421b26d869ebf87cb531a7b0a1c7ea83bdf4732201179010225af6086d7b9e1f09bddcc79e723ec7e4f20baafeddd3b78971e8b347d84424419a6a7ea1131dbacba34e088fa2b9160774c76378a8394df42ae265c14a97f512f17af1345f5d8a077e32a118bf4f42414b333c6c24bd08f702c73001190b36c93525f4fc5b7396fbca8ff8b44dcdb26c251fcb2f5cd80d7372c294024ecc9cb6c5bea36c267268bdd09d1b4f0a0a2ef9b07afc3667ce18e522ef42ef9d0d07d588a8776168e3bccc89a794097e65afa18bb4c76baaf1bcefe48f37694a1acac870b152f995873a511c1238be729ca3d01cae39e72549769f8fc38bfad207d7b149e38d99a5	0	\N	MANAGER	t	9
 \.
 
 
 --
--- Data for Name: users_sessions; Type: TABLE DATA; Schema: public; Owner: neondb_owner
+-- Data for Name: users_sessions; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.users_sessions (_order, _parent_id, id, created_at, expires_at) FROM stdin;
-1	15	cf04c811-9903-4dd8-9979-e81e98187987	2026-02-19 19:29:38.001+00	2026-02-20 19:29:38.001+00
-2	15	dd8fcf58-ef0f-475d-89a6-bb2a34fcaa8f	2026-02-19 19:50:36.478+00	2026-02-20 19:50:36.478+00
-3	15	7a2279e6-abf6-4cd0-a239-dcd55783b7f8	2026-02-19 20:47:20.411+00	2026-02-20 20:47:20.411+00
-1	18	26106eda-d657-4a3f-bcf6-51118884fa80	2026-02-19 21:03:14.764+00	2026-02-20 21:03:14.764+00
-1	17	3bdc8801-474d-4fcd-995a-6ad932ee9661	2026-02-19 22:20:41.687+00	2026-02-20 22:20:41.687+00
+1	16	086cdb4c-e172-4cae-ab58-f82167d91e87	2026-02-22 13:52:46.509+00	2026-02-23 13:52:46.509+00
+1	19	9bc2d9b6-1a25-47a5-a7c6-d4587d64873f	2026-02-21 08:11:22.4+00	2026-02-22 08:11:22.4+00
+1	18	89cd5150-2fa1-4494-88d5-fdd8c2bfe929	2026-02-21 16:04:31.292+00	2026-02-22 16:04:31.292+00
+1	17	660912fe-be2f-4c54-9ab0-86a4357dcd0b	2026-02-21 15:38:41.9+00	2026-02-22 15:38:41.9+00
+2	17	b4f1d439-79ae-45f3-ac1e-cc3c29d1a490	2026-02-22 13:52:13.186+00	2026-02-23 13:52:13.186+00
 \.
 
 
 --
--- Name: cash_registers_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
+-- Name: cash_registers_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.cash_registers_id_seq', 10, true);
-
-
---
--- Name: investments_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
---
-
-SELECT pg_catalog.setval('public.investments_id_seq', 6, true);
+SELECT pg_catalog.setval('public.cash_registers_id_seq', 11, true);
 
 
 --
--- Name: media_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
+-- Name: investments_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.investments_id_seq', 22, true);
+
+
+--
+-- Name: media_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.media_id_seq', 6, true);
 
 
 --
--- Name: other_categories_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
+-- Name: other_categories_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.other_categories_id_seq', 4, true);
+SELECT pg_catalog.setval('public.other_categories_id_seq', 8, true);
 
 
 --
--- Name: payload_kv_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
+-- Name: payload_kv_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.payload_kv_id_seq', 1, false);
 
 
 --
--- Name: payload_locked_documents_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.payload_locked_documents_id_seq', 6, true);
-
-
---
--- Name: payload_locked_documents_rels_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
---
-
-SELECT pg_catalog.setval('public.payload_locked_documents_rels_id_seq', 12, true);
+SELECT pg_catalog.setval('public.payload_locked_documents_id_seq', 21, true);
 
 
 --
--- Name: payload_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_rels_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.payload_migrations_id_seq', 13, true);
-
-
---
--- Name: payload_preferences_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
---
-
-SELECT pg_catalog.setval('public.payload_preferences_id_seq', 30, true);
+SELECT pg_catalog.setval('public.payload_locked_documents_rels_id_seq', 42, true);
 
 
 --
--- Name: payload_preferences_rels_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
+-- Name: payload_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.payload_preferences_rels_id_seq', 60, true);
-
-
---
--- Name: transactions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
---
-
-SELECT pg_catalog.setval('public.transactions_id_seq', 389, true);
+SELECT pg_catalog.setval('public.payload_migrations_id_seq', 23, true);
 
 
 --
--- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
+-- Name: payload_preferences_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.users_id_seq', 18, true);
+SELECT pg_catalog.setval('public.payload_preferences_id_seq', 41, true);
 
 
 --
--- Name: account account_pkey; Type: CONSTRAINT; Schema: neon_auth; Owner: neon_auth
+-- Name: payload_preferences_rels_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.payload_preferences_rels_id_seq', 91, true);
+
+
+--
+-- Name: transactions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.transactions_id_seq', 408, true);
+
+
+--
+-- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.users_id_seq', 21, true);
+
+
+--
+-- Name: account account_pkey; Type: CONSTRAINT; Schema: neon_auth; Owner: -
 --
 
 ALTER TABLE ONLY neon_auth.account
@@ -1195,7 +1350,7 @@ ALTER TABLE ONLY neon_auth.account
 
 
 --
--- Name: invitation invitation_pkey; Type: CONSTRAINT; Schema: neon_auth; Owner: neon_auth
+-- Name: invitation invitation_pkey; Type: CONSTRAINT; Schema: neon_auth; Owner: -
 --
 
 ALTER TABLE ONLY neon_auth.invitation
@@ -1203,7 +1358,7 @@ ALTER TABLE ONLY neon_auth.invitation
 
 
 --
--- Name: jwks jwks_pkey; Type: CONSTRAINT; Schema: neon_auth; Owner: neon_auth
+-- Name: jwks jwks_pkey; Type: CONSTRAINT; Schema: neon_auth; Owner: -
 --
 
 ALTER TABLE ONLY neon_auth.jwks
@@ -1211,7 +1366,7 @@ ALTER TABLE ONLY neon_auth.jwks
 
 
 --
--- Name: member member_pkey; Type: CONSTRAINT; Schema: neon_auth; Owner: neon_auth
+-- Name: member member_pkey; Type: CONSTRAINT; Schema: neon_auth; Owner: -
 --
 
 ALTER TABLE ONLY neon_auth.member
@@ -1219,7 +1374,7 @@ ALTER TABLE ONLY neon_auth.member
 
 
 --
--- Name: organization organization_pkey; Type: CONSTRAINT; Schema: neon_auth; Owner: neon_auth
+-- Name: organization organization_pkey; Type: CONSTRAINT; Schema: neon_auth; Owner: -
 --
 
 ALTER TABLE ONLY neon_auth.organization
@@ -1227,7 +1382,7 @@ ALTER TABLE ONLY neon_auth.organization
 
 
 --
--- Name: organization organization_slug_key; Type: CONSTRAINT; Schema: neon_auth; Owner: neon_auth
+-- Name: organization organization_slug_key; Type: CONSTRAINT; Schema: neon_auth; Owner: -
 --
 
 ALTER TABLE ONLY neon_auth.organization
@@ -1235,7 +1390,7 @@ ALTER TABLE ONLY neon_auth.organization
 
 
 --
--- Name: project_config project_config_endpoint_id_key; Type: CONSTRAINT; Schema: neon_auth; Owner: neon_auth
+-- Name: project_config project_config_endpoint_id_key; Type: CONSTRAINT; Schema: neon_auth; Owner: -
 --
 
 ALTER TABLE ONLY neon_auth.project_config
@@ -1243,7 +1398,7 @@ ALTER TABLE ONLY neon_auth.project_config
 
 
 --
--- Name: project_config project_config_pkey; Type: CONSTRAINT; Schema: neon_auth; Owner: neon_auth
+-- Name: project_config project_config_pkey; Type: CONSTRAINT; Schema: neon_auth; Owner: -
 --
 
 ALTER TABLE ONLY neon_auth.project_config
@@ -1251,7 +1406,7 @@ ALTER TABLE ONLY neon_auth.project_config
 
 
 --
--- Name: session session_pkey; Type: CONSTRAINT; Schema: neon_auth; Owner: neon_auth
+-- Name: session session_pkey; Type: CONSTRAINT; Schema: neon_auth; Owner: -
 --
 
 ALTER TABLE ONLY neon_auth.session
@@ -1259,7 +1414,7 @@ ALTER TABLE ONLY neon_auth.session
 
 
 --
--- Name: session session_token_key; Type: CONSTRAINT; Schema: neon_auth; Owner: neon_auth
+-- Name: session session_token_key; Type: CONSTRAINT; Schema: neon_auth; Owner: -
 --
 
 ALTER TABLE ONLY neon_auth.session
@@ -1267,7 +1422,7 @@ ALTER TABLE ONLY neon_auth.session
 
 
 --
--- Name: user user_email_key; Type: CONSTRAINT; Schema: neon_auth; Owner: neon_auth
+-- Name: user user_email_key; Type: CONSTRAINT; Schema: neon_auth; Owner: -
 --
 
 ALTER TABLE ONLY neon_auth."user"
@@ -1275,7 +1430,7 @@ ALTER TABLE ONLY neon_auth."user"
 
 
 --
--- Name: user user_pkey; Type: CONSTRAINT; Schema: neon_auth; Owner: neon_auth
+-- Name: user user_pkey; Type: CONSTRAINT; Schema: neon_auth; Owner: -
 --
 
 ALTER TABLE ONLY neon_auth."user"
@@ -1283,7 +1438,7 @@ ALTER TABLE ONLY neon_auth."user"
 
 
 --
--- Name: verification verification_pkey; Type: CONSTRAINT; Schema: neon_auth; Owner: neon_auth
+-- Name: verification verification_pkey; Type: CONSTRAINT; Schema: neon_auth; Owner: -
 --
 
 ALTER TABLE ONLY neon_auth.verification
@@ -1291,7 +1446,7 @@ ALTER TABLE ONLY neon_auth.verification
 
 
 --
--- Name: cash_registers cash_registers_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: cash_registers cash_registers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.cash_registers
@@ -1299,7 +1454,7 @@ ALTER TABLE ONLY public.cash_registers
 
 
 --
--- Name: investments investments_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: investments investments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.investments
@@ -1307,7 +1462,7 @@ ALTER TABLE ONLY public.investments
 
 
 --
--- Name: media media_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: media media_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.media
@@ -1315,7 +1470,7 @@ ALTER TABLE ONLY public.media
 
 
 --
--- Name: other_categories other_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: other_categories other_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.other_categories
@@ -1323,7 +1478,7 @@ ALTER TABLE ONLY public.other_categories
 
 
 --
--- Name: payload_kv payload_kv_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: payload_kv payload_kv_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payload_kv
@@ -1331,7 +1486,7 @@ ALTER TABLE ONLY public.payload_kv
 
 
 --
--- Name: payload_locked_documents payload_locked_documents_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents payload_locked_documents_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payload_locked_documents
@@ -1339,7 +1494,7 @@ ALTER TABLE ONLY public.payload_locked_documents
 
 
 --
--- Name: payload_locked_documents_rels payload_locked_documents_rels_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_rels payload_locked_documents_rels_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payload_locked_documents_rels
@@ -1347,7 +1502,7 @@ ALTER TABLE ONLY public.payload_locked_documents_rels
 
 
 --
--- Name: payload_migrations payload_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: payload_migrations payload_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payload_migrations
@@ -1355,7 +1510,7 @@ ALTER TABLE ONLY public.payload_migrations
 
 
 --
--- Name: payload_preferences payload_preferences_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: payload_preferences payload_preferences_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payload_preferences
@@ -1363,7 +1518,7 @@ ALTER TABLE ONLY public.payload_preferences
 
 
 --
--- Name: payload_preferences_rels payload_preferences_rels_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: payload_preferences_rels payload_preferences_rels_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payload_preferences_rels
@@ -1371,7 +1526,7 @@ ALTER TABLE ONLY public.payload_preferences_rels
 
 
 --
--- Name: transactions transactions_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: transactions transactions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.transactions
@@ -1379,7 +1534,7 @@ ALTER TABLE ONLY public.transactions
 
 
 --
--- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users
@@ -1387,7 +1542,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: users_sessions users_sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: users_sessions users_sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users_sessions
@@ -1395,420 +1550,441 @@ ALTER TABLE ONLY public.users_sessions
 
 
 --
--- Name: account_userId_idx; Type: INDEX; Schema: neon_auth; Owner: neon_auth
+-- Name: account_userId_idx; Type: INDEX; Schema: neon_auth; Owner: -
 --
 
 CREATE INDEX "account_userId_idx" ON neon_auth.account USING btree ("userId");
 
 
 --
--- Name: invitation_email_idx; Type: INDEX; Schema: neon_auth; Owner: neon_auth
+-- Name: invitation_email_idx; Type: INDEX; Schema: neon_auth; Owner: -
 --
 
 CREATE INDEX invitation_email_idx ON neon_auth.invitation USING btree (email);
 
 
 --
--- Name: invitation_organizationId_idx; Type: INDEX; Schema: neon_auth; Owner: neon_auth
+-- Name: invitation_organizationId_idx; Type: INDEX; Schema: neon_auth; Owner: -
 --
 
 CREATE INDEX "invitation_organizationId_idx" ON neon_auth.invitation USING btree ("organizationId");
 
 
 --
--- Name: member_organizationId_idx; Type: INDEX; Schema: neon_auth; Owner: neon_auth
+-- Name: member_organizationId_idx; Type: INDEX; Schema: neon_auth; Owner: -
 --
 
 CREATE INDEX "member_organizationId_idx" ON neon_auth.member USING btree ("organizationId");
 
 
 --
--- Name: member_userId_idx; Type: INDEX; Schema: neon_auth; Owner: neon_auth
+-- Name: member_userId_idx; Type: INDEX; Schema: neon_auth; Owner: -
 --
 
 CREATE INDEX "member_userId_idx" ON neon_auth.member USING btree ("userId");
 
 
 --
--- Name: organization_slug_uidx; Type: INDEX; Schema: neon_auth; Owner: neon_auth
+-- Name: organization_slug_uidx; Type: INDEX; Schema: neon_auth; Owner: -
 --
 
 CREATE UNIQUE INDEX organization_slug_uidx ON neon_auth.organization USING btree (slug);
 
 
 --
--- Name: session_userId_idx; Type: INDEX; Schema: neon_auth; Owner: neon_auth
+-- Name: session_userId_idx; Type: INDEX; Schema: neon_auth; Owner: -
 --
 
 CREATE INDEX "session_userId_idx" ON neon_auth.session USING btree ("userId");
 
 
 --
--- Name: verification_identifier_idx; Type: INDEX; Schema: neon_auth; Owner: neon_auth
+-- Name: verification_identifier_idx; Type: INDEX; Schema: neon_auth; Owner: -
 --
 
 CREATE INDEX verification_identifier_idx ON neon_auth.verification USING btree (identifier);
 
 
 --
--- Name: cash_registers_created_at_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: cash_registers_created_at_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX cash_registers_created_at_idx ON public.cash_registers USING btree (created_at);
 
 
 --
--- Name: cash_registers_owner_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: cash_registers_owner_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX cash_registers_owner_idx ON public.cash_registers USING btree (owner_id);
 
 
 --
--- Name: cash_registers_updated_at_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: cash_registers_updated_at_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX cash_registers_updated_at_idx ON public.cash_registers USING btree (updated_at);
 
 
 --
--- Name: idx_transactions_date; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: idx_transactions_cancelled; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_transactions_cancelled ON public.transactions USING btree (cancelled) WHERE (cancelled = true);
+
+
+--
+-- Name: idx_transactions_cancelled_tx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_transactions_cancelled_tx ON public.transactions USING btree (cancelled_transaction_id);
+
+
+--
+-- Name: idx_transactions_date; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_transactions_date ON public.transactions USING btree (date);
 
 
 --
--- Name: idx_transactions_worker_type; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: idx_transactions_worker_type; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_transactions_worker_type ON public.transactions USING btree (worker_id, type) WHERE (worker_id IS NOT NULL);
 
 
 --
--- Name: investments_created_at_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: investments_created_at_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX investments_created_at_idx ON public.investments USING btree (created_at);
 
 
 --
--- Name: investments_updated_at_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: investments_updated_at_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX investments_updated_at_idx ON public.investments USING btree (updated_at);
 
 
 --
--- Name: media_created_at_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: media_created_at_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX media_created_at_idx ON public.media USING btree (created_at);
 
 
 --
--- Name: media_created_by_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: media_created_by_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX media_created_by_idx ON public.media USING btree (created_by_id);
 
 
 --
--- Name: media_filename_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: media_filename_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX media_filename_idx ON public.media USING btree (filename);
 
 
 --
--- Name: media_sizes_thumbnail_sizes_thumbnail_filename_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: media_sizes_thumbnail_sizes_thumbnail_filename_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX media_sizes_thumbnail_sizes_thumbnail_filename_idx ON public.media USING btree (sizes_thumbnail_filename);
 
 
 --
--- Name: media_updated_at_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: media_updated_at_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX media_updated_at_idx ON public.media USING btree (updated_at);
 
 
 --
--- Name: other_categories_created_at_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: other_categories_created_at_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX other_categories_created_at_idx ON public.other_categories USING btree (created_at);
 
 
 --
--- Name: other_categories_name_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: other_categories_name_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX other_categories_name_idx ON public.other_categories USING btree (name);
 
 
 --
--- Name: other_categories_updated_at_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: other_categories_updated_at_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX other_categories_updated_at_idx ON public.other_categories USING btree (updated_at);
 
 
 --
--- Name: payload_kv_key_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: payload_kv_key_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX payload_kv_key_idx ON public.payload_kv USING btree (key);
 
 
 --
--- Name: payload_locked_documents_created_at_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_created_at_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX payload_locked_documents_created_at_idx ON public.payload_locked_documents USING btree (created_at);
 
 
 --
--- Name: payload_locked_documents_global_slug_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_global_slug_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX payload_locked_documents_global_slug_idx ON public.payload_locked_documents USING btree (global_slug);
 
 
 --
--- Name: payload_locked_documents_rels_cash_registers_id_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_rels_cash_registers_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX payload_locked_documents_rels_cash_registers_id_idx ON public.payload_locked_documents_rels USING btree (cash_registers_id);
 
 
 --
--- Name: payload_locked_documents_rels_investments_id_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_rels_investments_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX payload_locked_documents_rels_investments_id_idx ON public.payload_locked_documents_rels USING btree (investments_id);
 
 
 --
--- Name: payload_locked_documents_rels_media_id_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_rels_media_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX payload_locked_documents_rels_media_id_idx ON public.payload_locked_documents_rels USING btree (media_id);
 
 
 --
--- Name: payload_locked_documents_rels_order_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_rels_order_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX payload_locked_documents_rels_order_idx ON public.payload_locked_documents_rels USING btree ("order");
 
 
 --
--- Name: payload_locked_documents_rels_other_categories_id_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_rels_other_categories_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX payload_locked_documents_rels_other_categories_id_idx ON public.payload_locked_documents_rels USING btree (other_categories_id);
 
 
 --
--- Name: payload_locked_documents_rels_parent_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_rels_parent_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX payload_locked_documents_rels_parent_idx ON public.payload_locked_documents_rels USING btree (parent_id);
 
 
 --
--- Name: payload_locked_documents_rels_path_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_rels_path_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX payload_locked_documents_rels_path_idx ON public.payload_locked_documents_rels USING btree (path);
 
 
 --
--- Name: payload_locked_documents_rels_transactions_id_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_rels_transactions_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX payload_locked_documents_rels_transactions_id_idx ON public.payload_locked_documents_rels USING btree (transactions_id);
 
 
 --
--- Name: payload_locked_documents_rels_users_id_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_rels_users_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX payload_locked_documents_rels_users_id_idx ON public.payload_locked_documents_rels USING btree (users_id);
 
 
 --
--- Name: payload_locked_documents_updated_at_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_updated_at_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX payload_locked_documents_updated_at_idx ON public.payload_locked_documents USING btree (updated_at);
 
 
 --
--- Name: payload_migrations_created_at_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: payload_migrations_created_at_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX payload_migrations_created_at_idx ON public.payload_migrations USING btree (created_at);
 
 
 --
--- Name: payload_migrations_updated_at_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: payload_migrations_updated_at_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX payload_migrations_updated_at_idx ON public.payload_migrations USING btree (updated_at);
 
 
 --
--- Name: payload_preferences_created_at_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: payload_preferences_created_at_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX payload_preferences_created_at_idx ON public.payload_preferences USING btree (created_at);
 
 
 --
--- Name: payload_preferences_key_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: payload_preferences_key_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX payload_preferences_key_idx ON public.payload_preferences USING btree (key);
 
 
 --
--- Name: payload_preferences_rels_order_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: payload_preferences_rels_order_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX payload_preferences_rels_order_idx ON public.payload_preferences_rels USING btree ("order");
 
 
 --
--- Name: payload_preferences_rels_parent_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: payload_preferences_rels_parent_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX payload_preferences_rels_parent_idx ON public.payload_preferences_rels USING btree (parent_id);
 
 
 --
--- Name: payload_preferences_rels_path_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: payload_preferences_rels_path_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX payload_preferences_rels_path_idx ON public.payload_preferences_rels USING btree (path);
 
 
 --
--- Name: payload_preferences_rels_users_id_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: payload_preferences_rels_users_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX payload_preferences_rels_users_id_idx ON public.payload_preferences_rels USING btree (users_id);
 
 
 --
--- Name: payload_preferences_updated_at_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: payload_preferences_updated_at_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX payload_preferences_updated_at_idx ON public.payload_preferences USING btree (updated_at);
 
 
 --
--- Name: transactions_cash_register_idx; Type: INDEX; Schema: public; Owner: neondb_owner
---
-
-CREATE INDEX transactions_cash_register_idx ON public.transactions USING btree (cash_register_id);
-
-
---
--- Name: transactions_created_at_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: transactions_created_at_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX transactions_created_at_idx ON public.transactions USING btree (created_at);
 
 
 --
--- Name: transactions_created_by_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: transactions_created_by_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX transactions_created_by_idx ON public.transactions USING btree (created_by_id);
 
 
 --
--- Name: transactions_investment_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: transactions_investment_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX transactions_investment_idx ON public.transactions USING btree (investment_id);
 
 
 --
--- Name: transactions_invoice_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: transactions_invoice_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX transactions_invoice_idx ON public.transactions USING btree (invoice_id);
 
 
 --
--- Name: transactions_other_category_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: transactions_other_category_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX transactions_other_category_idx ON public.transactions USING btree (other_category_id);
 
 
 --
--- Name: transactions_target_register_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: transactions_source_register_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX transactions_source_register_idx ON public.transactions USING btree (source_register_id);
+
+
+--
+-- Name: transactions_target_register_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX transactions_target_register_idx ON public.transactions USING btree (target_register_id);
 
 
 --
--- Name: transactions_updated_at_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: transactions_updated_at_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX transactions_updated_at_idx ON public.transactions USING btree (updated_at);
 
 
 --
--- Name: transactions_worker_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: transactions_worker_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX transactions_worker_idx ON public.transactions USING btree (worker_id);
 
 
 --
--- Name: users_created_at_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: users_created_at_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX users_created_at_idx ON public.users USING btree (created_at);
 
 
 --
--- Name: users_email_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: users_default_cash_register_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX users_default_cash_register_idx ON public.users USING btree (default_cash_register_id);
+
+
+--
+-- Name: users_email_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX users_email_idx ON public.users USING btree (email);
 
 
 --
--- Name: users_sessions_order_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: users_sessions_order_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX users_sessions_order_idx ON public.users_sessions USING btree (_order);
 
 
 --
--- Name: users_sessions_parent_id_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: users_sessions_parent_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX users_sessions_parent_id_idx ON public.users_sessions USING btree (_parent_id);
 
 
 --
--- Name: users_updated_at_idx; Type: INDEX; Schema: public; Owner: neondb_owner
+-- Name: users_updated_at_idx; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX users_updated_at_idx ON public.users USING btree (updated_at);
 
 
 --
--- Name: account account_userId_fkey; Type: FK CONSTRAINT; Schema: neon_auth; Owner: neon_auth
+-- Name: account account_userId_fkey; Type: FK CONSTRAINT; Schema: neon_auth; Owner: -
 --
 
 ALTER TABLE ONLY neon_auth.account
@@ -1816,7 +1992,7 @@ ALTER TABLE ONLY neon_auth.account
 
 
 --
--- Name: invitation invitation_inviterId_fkey; Type: FK CONSTRAINT; Schema: neon_auth; Owner: neon_auth
+-- Name: invitation invitation_inviterId_fkey; Type: FK CONSTRAINT; Schema: neon_auth; Owner: -
 --
 
 ALTER TABLE ONLY neon_auth.invitation
@@ -1824,7 +2000,7 @@ ALTER TABLE ONLY neon_auth.invitation
 
 
 --
--- Name: invitation invitation_organizationId_fkey; Type: FK CONSTRAINT; Schema: neon_auth; Owner: neon_auth
+-- Name: invitation invitation_organizationId_fkey; Type: FK CONSTRAINT; Schema: neon_auth; Owner: -
 --
 
 ALTER TABLE ONLY neon_auth.invitation
@@ -1832,7 +2008,7 @@ ALTER TABLE ONLY neon_auth.invitation
 
 
 --
--- Name: member member_organizationId_fkey; Type: FK CONSTRAINT; Schema: neon_auth; Owner: neon_auth
+-- Name: member member_organizationId_fkey; Type: FK CONSTRAINT; Schema: neon_auth; Owner: -
 --
 
 ALTER TABLE ONLY neon_auth.member
@@ -1840,7 +2016,7 @@ ALTER TABLE ONLY neon_auth.member
 
 
 --
--- Name: member member_userId_fkey; Type: FK CONSTRAINT; Schema: neon_auth; Owner: neon_auth
+-- Name: member member_userId_fkey; Type: FK CONSTRAINT; Schema: neon_auth; Owner: -
 --
 
 ALTER TABLE ONLY neon_auth.member
@@ -1848,7 +2024,7 @@ ALTER TABLE ONLY neon_auth.member
 
 
 --
--- Name: session session_userId_fkey; Type: FK CONSTRAINT; Schema: neon_auth; Owner: neon_auth
+-- Name: session session_userId_fkey; Type: FK CONSTRAINT; Schema: neon_auth; Owner: -
 --
 
 ALTER TABLE ONLY neon_auth.session
@@ -1856,7 +2032,7 @@ ALTER TABLE ONLY neon_auth.session
 
 
 --
--- Name: cash_registers cash_registers_owner_id_users_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: cash_registers cash_registers_owner_id_users_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.cash_registers
@@ -1864,7 +2040,7 @@ ALTER TABLE ONLY public.cash_registers
 
 
 --
--- Name: media media_created_by_id_users_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: media media_created_by_id_users_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.media
@@ -1872,7 +2048,7 @@ ALTER TABLE ONLY public.media
 
 
 --
--- Name: payload_locked_documents_rels payload_locked_documents_rels_cash_registers_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_rels payload_locked_documents_rels_cash_registers_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payload_locked_documents_rels
@@ -1880,7 +2056,7 @@ ALTER TABLE ONLY public.payload_locked_documents_rels
 
 
 --
--- Name: payload_locked_documents_rels payload_locked_documents_rels_investments_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_rels payload_locked_documents_rels_investments_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payload_locked_documents_rels
@@ -1888,7 +2064,7 @@ ALTER TABLE ONLY public.payload_locked_documents_rels
 
 
 --
--- Name: payload_locked_documents_rels payload_locked_documents_rels_media_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_rels payload_locked_documents_rels_media_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payload_locked_documents_rels
@@ -1896,7 +2072,7 @@ ALTER TABLE ONLY public.payload_locked_documents_rels
 
 
 --
--- Name: payload_locked_documents_rels payload_locked_documents_rels_other_categories_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_rels payload_locked_documents_rels_other_categories_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payload_locked_documents_rels
@@ -1904,7 +2080,7 @@ ALTER TABLE ONLY public.payload_locked_documents_rels
 
 
 --
--- Name: payload_locked_documents_rels payload_locked_documents_rels_parent_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_rels payload_locked_documents_rels_parent_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payload_locked_documents_rels
@@ -1912,7 +2088,7 @@ ALTER TABLE ONLY public.payload_locked_documents_rels
 
 
 --
--- Name: payload_locked_documents_rels payload_locked_documents_rels_transactions_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_rels payload_locked_documents_rels_transactions_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payload_locked_documents_rels
@@ -1920,7 +2096,7 @@ ALTER TABLE ONLY public.payload_locked_documents_rels
 
 
 --
--- Name: payload_locked_documents_rels payload_locked_documents_rels_users_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: payload_locked_documents_rels payload_locked_documents_rels_users_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payload_locked_documents_rels
@@ -1928,7 +2104,7 @@ ALTER TABLE ONLY public.payload_locked_documents_rels
 
 
 --
--- Name: payload_preferences_rels payload_preferences_rels_parent_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: payload_preferences_rels payload_preferences_rels_parent_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payload_preferences_rels
@@ -1936,7 +2112,7 @@ ALTER TABLE ONLY public.payload_preferences_rels
 
 
 --
--- Name: payload_preferences_rels payload_preferences_rels_users_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: payload_preferences_rels payload_preferences_rels_users_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payload_preferences_rels
@@ -1944,15 +2120,23 @@ ALTER TABLE ONLY public.payload_preferences_rels
 
 
 --
--- Name: transactions transactions_cash_register_id_cash_registers_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: transactions transactions_cancelled_transaction_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.transactions
-    ADD CONSTRAINT transactions_cash_register_id_cash_registers_id_fk FOREIGN KEY (cash_register_id) REFERENCES public.cash_registers(id) ON DELETE SET NULL;
+    ADD CONSTRAINT transactions_cancelled_transaction_id_fkey FOREIGN KEY (cancelled_transaction_id) REFERENCES public.transactions(id) ON DELETE SET NULL;
 
 
 --
--- Name: transactions transactions_created_by_id_users_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: transactions transactions_cash_register_id_cash_registers_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transactions
+    ADD CONSTRAINT transactions_cash_register_id_cash_registers_id_fk FOREIGN KEY (source_register_id) REFERENCES public.cash_registers(id) ON DELETE SET NULL;
+
+
+--
+-- Name: transactions transactions_created_by_id_users_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.transactions
@@ -1960,7 +2144,7 @@ ALTER TABLE ONLY public.transactions
 
 
 --
--- Name: transactions transactions_investment_id_investments_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: transactions transactions_investment_id_investments_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.transactions
@@ -1968,7 +2152,7 @@ ALTER TABLE ONLY public.transactions
 
 
 --
--- Name: transactions transactions_invoice_id_media_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: transactions transactions_invoice_id_media_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.transactions
@@ -1976,7 +2160,7 @@ ALTER TABLE ONLY public.transactions
 
 
 --
--- Name: transactions transactions_other_category_id_other_categories_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: transactions transactions_other_category_id_other_categories_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.transactions
@@ -1984,7 +2168,7 @@ ALTER TABLE ONLY public.transactions
 
 
 --
--- Name: transactions transactions_target_register_id_cash_registers_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: transactions transactions_target_register_id_cash_registers_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.transactions
@@ -1992,7 +2176,7 @@ ALTER TABLE ONLY public.transactions
 
 
 --
--- Name: transactions transactions_worker_id_users_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: transactions transactions_worker_id_users_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.transactions
@@ -2000,7 +2184,15 @@ ALTER TABLE ONLY public.transactions
 
 
 --
--- Name: users_sessions users_sessions_parent_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: users users_default_cash_register_id_cash_registers_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_default_cash_register_id_cash_registers_id_fk FOREIGN KEY (default_cash_register_id) REFERENCES public.cash_registers(id) ON DELETE SET NULL;
+
+
+--
+-- Name: users_sessions users_sessions_parent_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users_sessions
@@ -2008,22 +2200,8 @@ ALTER TABLE ONLY public.users_sessions
 
 
 --
--- Name: DEFAULT PRIVILEGES FOR SEQUENCES; Type: DEFAULT ACL; Schema: public; Owner: cloud_admin
---
-
-ALTER DEFAULT PRIVILEGES FOR ROLE cloud_admin IN SCHEMA public GRANT ALL ON SEQUENCES TO neon_superuser WITH GRANT OPTION;
-
-
---
--- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: public; Owner: cloud_admin
---
-
-ALTER DEFAULT PRIVILEGES FOR ROLE cloud_admin IN SCHEMA public GRANT ALL ON TABLES TO neon_superuser WITH GRANT OPTION;
-
-
---
 -- PostgreSQL database dump complete
 --
 
-\unrestrict xEtaSORAqxbwGnyMrJUFPRcRfFmJSu5KNW2jzdcsVCnsEuGji1MzOh2JUgCTzk1
+\unrestrict ZlCfhT8QrQ872tzJkp14Ug01J3mVPeyFvRzlYe3bovAa43neezpdLP5oHVPGFGH
 
