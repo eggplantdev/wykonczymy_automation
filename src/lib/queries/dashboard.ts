@@ -38,6 +38,12 @@ export async function fetchManagerDashboardData() {
     .filter((cr) => cr.type !== 'VIRTUAL')
     .reduce((sum, cr) => sum + cr.balance, 0)
 
+  const ownedBalance = isAdminOrOwner
+    ? undefined
+    : rawCashRegisters
+        .filter((cr) => cr.owner === user!.id && cr.type !== 'VIRTUAL' && cr.type !== 'MAIN')
+        .reduce((sum, cr) => sum + ((cr.balance as number) ?? 0), 0)
+
   const managementUsers = refData.workers
     .filter((w) => isManagementRole(w.type as RoleT))
     .map((w) => ({ id: w.id, name: w.name }))
@@ -50,6 +56,7 @@ export async function fetchManagerDashboardData() {
     managementUsers,
     recentCount,
     totalBalance,
+    ownedBalance,
     isAdminOrOwner,
     currentUserId: user!.id,
   }
