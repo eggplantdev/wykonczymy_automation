@@ -1,4 +1,9 @@
-import { fetchReferenceData, fetchWorkerSaldos } from '@/lib/queries/reference-data'
+import {
+  fetchReferenceData,
+  fetchWorkerSaldos,
+  fetchRegisterBalances,
+  fetchInvestmentFinancials,
+} from '@/lib/queries/reference-data'
 import { isAdminOrOwnerRole, isManagementRole, MANAGEMENT_ROLES, RoleT } from '../auth/roles'
 import { requireAuth } from '../auth/require-auth'
 import { perfStart } from '@/lib/perf'
@@ -14,7 +19,12 @@ export async function fetchManagerDashboardData() {
 
   const isAdminOrOwner = isAdminOrOwnerRole(user.role)
 
-  const [refData, saldoRecord] = await Promise.all([fetchReferenceData(), fetchWorkerSaldos()])
+  const [refData, saldoRecord, balanceRecord, financialsRecord] = await Promise.all([
+    fetchReferenceData(),
+    fetchWorkerSaldos(),
+    fetchRegisterBalances(),
+    fetchInvestmentFinancials(),
+  ])
 
   const workersMap = new Map(refData.workers.map((w) => [w.id, w.name]))
 
@@ -22,24 +32,29 @@ export async function fetchManagerDashboardData() {
     id: cr.id,
     name: cr.name,
     ownerName: cr.ownerId ? (workersMap.get(cr.ownerId) ?? '—') : '—',
-    balance: cr.balance,
+    balance: balanceRecord[String(cr.id)] ?? 0,
     type: (cr.type as CashRegisterTypeT) ?? 'AUXILIARY',
     active: cr.active ?? true,
   }))
 
-  const allInvestments: InvestmentRowT[] = refData.investments.map((inv) => ({
-    id: inv.id,
-    name: inv.name,
-    status: inv.status,
-    totalCosts: inv.totalCosts,
-    totalIncome: inv.totalIncome,
-    laborCosts: inv.laborCosts,
-    balance: inv.totalIncome - inv.totalCosts - inv.laborCosts,
-    address: inv.address,
-    phone: inv.phone,
-    email: inv.email,
-    contactPerson: inv.contactPerson,
-  }))
+  const allInvestments: InvestmentRowT[] = refData.investments.map((inv) => {
+    const fin = financialsRecord[String(inv.id)]
+    const totalCosts = fin?.totalCosts ?? 0
+    const totalIncome = fin?.totalIncome ?? 0
+    return {
+      id: inv.id,
+      name: inv.name,
+      status: inv.status,
+      totalCosts,
+      totalIncome,
+      laborCosts: inv.laborCosts,
+      balance: totalIncome - totalCosts - inv.laborCosts,
+      address: inv.address,
+      phone: inv.phone,
+      email: inv.email,
+      contactPerson: inv.contactPerson,
+    }
+  })
 
   const activeInvestments = refData.investments
     .filter((i) => i.active)
@@ -71,7 +86,7 @@ export async function fetchManagerDashboardData() {
 
   const ownedBalance = refData.cashRegisters
     .filter((cr) => cr.ownerId === user!.id && cr.type !== 'VIRTUAL')
-    .reduce((sum, cr) => sum + cr.balance, 0)
+    .reduce((sum, cr) => sum + (balanceRecord[String(cr.id)] ?? 0), 0)
 
   const virtualRegisters = cashRegisters.filter((cr) => cr.type === 'VIRTUAL' && cr.active)
 

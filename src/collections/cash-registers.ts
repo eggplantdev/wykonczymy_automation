@@ -16,7 +16,7 @@ export const CashRegisters: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'owner', 'balance'],
+    defaultColumns: ['name', 'owner', 'type'],
     group: { en: 'Finance', pl: 'Finanse' },
   },
   hooks: {
@@ -58,23 +58,6 @@ export const CashRegisters: CollectionConfig = {
       ],
       admin: {
         condition: (_, __, { user }) => user?.role === 'ADMIN' || user?.role === 'OWNER',
-      },
-    },
-    {
-      name: 'balance',
-      type: 'number',
-      defaultValue: 0,
-      label: { en: 'Balance', pl: 'Saldo' },
-      admin: {
-        readOnly: true,
-        description: {
-          en: 'Updated automatically via transactions',
-          pl: 'Aktualizowane automatycznie przez transfery',
-        },
-      },
-      access: {
-        // Derived field — only writable via raw SQL in recalculation hooks
-        update: () => false,
       },
     },
     {

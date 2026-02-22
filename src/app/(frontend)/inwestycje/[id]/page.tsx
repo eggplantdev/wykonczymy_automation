@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/auth/require-auth'
 import { isAdminOrOwnerRole, MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/pagination'
 import { getInvestment } from '@/lib/queries/investments'
+import { fetchInvestmentFinancials } from '@/lib/queries/reference-data'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { formatPLN } from '@/lib/format-currency'
 import { TransfersSection } from '@/components/transfers/transfers-section'
@@ -21,8 +22,14 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   const { page, limit } = parsePagination(sp)
 
   const investmentId = Number(id)
-  const investment = await getInvestment(id)
+  const [investment, financialsRecord] = await Promise.all([
+    getInvestment(id),
+    fetchInvestmentFinancials(),
+  ])
   if (!investment) notFound()
+  const fin = financialsRecord[String(id)]
+  const totalCosts = fin?.totalCosts ?? 0
+  const totalIncome = fin?.totalIncome ?? 0
 
   const urlFilters = buildTransferFilters(sp, { id: user.id, isManager: true })
   const transferWhere = { ...urlFilters, investment: { equals: investmentId } }
@@ -57,16 +64,12 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
       {isAdminOrOwnerRole(user.role) && (
         // do not show these stats to managers =
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Koszty inwestycji" value={formatPLN(investment.totalCosts ?? 0)} />
-          <StatCard label="Wpłaty od inwestora" value={formatPLN(investment.totalIncome ?? 0)} />
+          <StatCard label="Koszty inwestycji" value={formatPLN(totalCosts)} />
+          <StatCard label="Wpłaty od inwestora" value={formatPLN(totalIncome)} />
           <StatCard label="Koszty robocizny" value={formatPLN(investment.laborCosts ?? 0)} />
           <StatCard
             label="Bilans"
-            value={formatPLN(
-              (investment.totalIncome ?? 0) -
-                (investment.totalCosts ?? 0) -
-                (investment.laborCosts ?? 0),
-            )}
+            value={formatPLN(totalIncome - totalCosts - (investment.laborCosts ?? 0))}
           />
         </div>
       )}

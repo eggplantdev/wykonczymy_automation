@@ -4,15 +4,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
-import { sql } from '@payloadcms/db-vercel-postgres'
-
-import {
-  getDb,
-  sumEmployeeSaldo,
-  sumInvestmentCosts,
-  sumInvestmentIncome,
-  sumRegisterBalance,
-} from '@/lib/db/sum-transfers'
+import { sumEmployeeSaldo } from '@/lib/db/sum-transfers'
 import { revalidateCollections } from '@/lib/cache/revalidate'
 import { uploadInvoiceFile } from '@/lib/upload-invoice'
 import { perf, perfStart } from '@/lib/perf'
@@ -56,21 +48,10 @@ export async function createSettlementAction(
             worker: parsed.data.worker,
             createdBy: user.id,
           },
-          context: { skipBalanceRecalc: true },
         }),
       )
 
-      // Recalculate register balance
-      await perf('settlement.recalcRegisterBalance', async () => {
-        const registerId = parsed.data.sourceRegister!
-        const balance = await sumRegisterBalance(payload, registerId)
-        const db = await getDb(payload)
-        await db.execute(sql`
-          UPDATE cash_registers SET balance = ${balance}, updated_at = NOW() WHERE id = ${registerId}
-        `)
-      })
-
-      revalidateCollections(['transfers', 'cashRegisters'])
+      revalidateCollections(['transfers'])
       console.log(`[PERF] createSettlementAction TOTAL ${elapsed()}ms (register refund)`)
       return { success: true }
     }
@@ -90,8 +71,7 @@ export async function createSettlementAction(
         ),
     )
 
-    // Create all transactions in parallel, skipping hooks (single recalc at end)
-    // EMPLOYEE_EXPENSE has no sourceRegister — register balance unaffected
+    // Create all transactions in parallel — hook handles cache revalidation
     const created = await perf(
       `settlement.createTransactions (${parsed.data.lineItems.length} items)`,
       async () => {
@@ -113,7 +93,6 @@ export async function createSettlementAction(
                 otherDescription: parsed.data.mode === 'category' ? item.note : undefined,
                 createdBy: user.id,
               },
-              context: { skipBalanceRecalc: true },
             }),
           ),
         )
@@ -121,24 +100,7 @@ export async function createSettlementAction(
       },
     )
 
-    // Single recalculation for investment financials (no register involved for EMPLOYEE_EXPENSE)
-    await perf('settlement.recalcBalances', async () => {
-      if (parsed.data.investment) {
-        const db = await getDb(payload)
-        const investmentId = parsed.data.investment
-        const [totalCosts, totalIncome] = await Promise.all([
-          sumInvestmentCosts(payload, investmentId),
-          sumInvestmentIncome(payload, investmentId),
-        ])
-        await db.execute(sql`
-          UPDATE investments
-          SET total_costs = ${totalCosts}, total_income = ${totalIncome}, updated_at = NOW()
-          WHERE id = ${investmentId}
-        `)
-      }
-    })
-
-    revalidateCollections(['transfers', 'cashRegisters'])
+    revalidateCollections(['transfers'])
 
     console.log(`[PERF] createSettlementAction TOTAL ${elapsed()}ms (${created} transactions)`)
 
