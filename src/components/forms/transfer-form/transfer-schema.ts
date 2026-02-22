@@ -2,7 +2,7 @@ import { z } from 'zod'
 import {
   TRANSFER_TYPES,
   PAYMENT_METHODS,
-  needsCashRegister,
+  needsSourceRegister,
   requiresInvestment,
   needsWorker,
   needsTargetRegister,
@@ -13,7 +13,7 @@ import { refineAmount, refineDate } from '@/lib/validation-utils'
 // Works with both number and string values — checks truthiness only.
 type TransferFieldsT = {
   type: string
-  cashRegister?: unknown
+  sourceRegister?: unknown
   targetRegister?: unknown
   investment?: unknown
   worker?: unknown
@@ -28,9 +28,9 @@ type FieldRuleT = {
 
 const transferFieldRules: FieldRuleT[] = [
   {
-    invalid: (d) => needsCashRegister(d.type) && !d.cashRegister,
+    invalid: (d) => needsSourceRegister(d.type) && !d.sourceRegister,
     message: 'Kasa jest wymagana dla tego typu transferu',
-    path: 'cashRegister',
+    path: 'sourceRegister',
   },
   {
     invalid: (d) => needsTargetRegister(d.type) && !d.targetRegister,
@@ -39,7 +39,7 @@ const transferFieldRules: FieldRuleT[] = [
   },
   {
     invalid: (d) =>
-      needsTargetRegister(d.type) && !!d.targetRegister && d.targetRegister === d.cashRegister,
+      needsTargetRegister(d.type) && !!d.targetRegister && d.targetRegister === d.sourceRegister,
     message: 'Kasa docelowa musi być inna niż kasa źródłowa',
     path: 'targetRegister',
   },
@@ -80,7 +80,7 @@ export const createTransferSchema = z
     date: z.string().min(1, 'Data jest wymagana'),
     type: z.enum(TRANSFER_TYPES),
     paymentMethod: z.enum(PAYMENT_METHODS),
-    cashRegister: z.number().optional(),
+    sourceRegister: z.number().optional(),
     targetRegister: z.number().optional(),
     investment: z.number().optional(),
     worker: z.number().optional(),
@@ -103,7 +103,7 @@ export const transferFormSchema = z
     date: z.string(),
     type: z.string(),
     paymentMethod: z.string(),
-    cashRegister: z.string(),
+    sourceRegister: z.string(),
     targetRegister: z.string(),
     investment: z.string(),
     worker: z.string(),

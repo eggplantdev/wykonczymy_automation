@@ -31,7 +31,7 @@ const baseDoc = {
   type: 'INVESTMENT_EXPENSE',
   paymentMethod: 'CASH',
   date: '2026-02-20',
-  cashRegister: 1,
+  sourceRegister: 1,
   targetRegister: null,
   investment: 10,
   worker: null,
@@ -68,7 +68,7 @@ describe('mapTransferRow — createdByName', () => {
     const row = mapTransferRow({
       ...baseDoc,
       createdBy: { id: 100, name: 'Jan Kowalski' },
-      cashRegister: { id: 1, name: 'Kasa główna' },
+      sourceRegister: { id: 1, name: 'Kasa główna' },
       investment: { id: 10, name: 'Inwestycja A' },
     })
     expect(row.createdByName).toBe('Jan Kowalski')

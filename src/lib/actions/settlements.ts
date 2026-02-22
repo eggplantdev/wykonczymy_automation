@@ -41,7 +41,7 @@ export async function createSettlementAction(
     const payload = await perf('settlement.getPayload', () => getPayload({ config }))
 
     if (parsed.data.mode === 'register') {
-      // Register refund: single EMPLOYEE_EXPENSE with cashRegister
+      // Register refund: single EMPLOYEE_EXPENSE with sourceRegister
       await perf('settlement.createRegisterRefund', () =>
         payload.create({
           collection: 'transactions',
@@ -51,7 +51,7 @@ export async function createSettlementAction(
             date: parsed.data.date,
             type: 'EMPLOYEE_EXPENSE',
             paymentMethod: parsed.data.paymentMethod,
-            cashRegister: parsed.data.cashRegister,
+            sourceRegister: parsed.data.sourceRegister,
             worker: parsed.data.worker,
             createdBy: user.id,
           },
@@ -61,7 +61,7 @@ export async function createSettlementAction(
 
       // Recalculate register balance
       await perf('settlement.recalcRegisterBalance', async () => {
-        const registerId = parsed.data.cashRegister!
+        const registerId = parsed.data.sourceRegister!
         const balance = await sumRegisterBalance(payload, registerId)
         const db = await getDb(payload)
         await db.execute(sql`
@@ -90,7 +90,7 @@ export async function createSettlementAction(
     )
 
     // Create all transactions in parallel, skipping hooks (single recalc at end)
-    // EMPLOYEE_EXPENSE has no cashRegister — register balance unaffected
+    // EMPLOYEE_EXPENSE has no sourceRegister — register balance unaffected
     const created = await perf(
       `settlement.createTransactions (${parsed.data.lineItems.length} items)`,
       async () => {

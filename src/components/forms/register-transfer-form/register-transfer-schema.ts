@@ -8,11 +8,11 @@ export const createRegisterTransferSchema = z
     amount: z.number().positive('Kwota musi być większa niż 0'),
     date: z.string().min(1, 'Data jest wymagana'),
     paymentMethod: z.enum(PAYMENT_METHODS),
-    cashRegister: z.number({ error: 'Kasa źródłowa jest wymagana' }),
+    sourceRegister: z.number({ error: 'Kasa źródłowa jest wymagana' }),
     targetRegister: z.number({ error: 'Kasa docelowa jest wymagana' }),
   })
   .superRefine((data, ctx) => {
-    if (data.targetRegister === data.cashRegister) {
+    if (data.targetRegister === data.sourceRegister) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Kasa docelowa musi być inna niż kasa źródłowa',
@@ -33,18 +33,18 @@ export const registerTransferFormSchema = z
     amount: z.string(),
     date: z.string(),
     paymentMethod: z.string(),
-    cashRegister: z.string(),
+    sourceRegister: z.string(),
     targetRegister: z.string(),
   })
   .superRefine((data, ctx) => {
     refineAmount(data, ctx)
     refineDate(data, ctx)
 
-    if (!data.cashRegister) {
+    if (!data.sourceRegister) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Kasa źródłowa jest wymagana',
-        path: ['cashRegister'],
+        path: ['sourceRegister'],
       })
     }
 
@@ -56,7 +56,7 @@ export const registerTransferFormSchema = z
       })
     }
 
-    if (data.targetRegister && data.cashRegister && data.targetRegister === data.cashRegister) {
+    if (data.targetRegister && data.sourceRegister && data.targetRegister === data.sourceRegister) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Kasa docelowa musi być inna niż kasa źródłowa',

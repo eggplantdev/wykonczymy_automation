@@ -8,12 +8,12 @@ import {
   DEPOSIT_UI_TYPES,
   TRANSFER_TYPE_LABELS,
   requiresInvestment,
-  type TransferTypeT,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
-import { createTransferAction } from '@/lib/actions/transfers'
-import { depositFormSchema } from '@/components/forms/deposit-form/deposit-schema'
-import type { CreateTransferFormT } from '@/components/forms/transfer-form/transfer-schema'
+import {
+  transferFormSchema,
+  type CreateTransferFormT,
+} from '@/components/forms/transfer-form/transfer-schema'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { getDefaultCashRegister, getUserCashRegisterIds } from '@/lib/utils/default-cash-register'
 import { today } from '@/lib/date-utils'
@@ -26,6 +26,7 @@ import {
 } from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
+import { createTransferAction } from '../../../lib/actions/transfers'
 
 type DepositFormPropsT = {
   referenceData: ReferenceDataT
@@ -38,7 +39,7 @@ type FormValuesT = {
   date: string
   type: string
   paymentMethod: string
-  cashRegister: string
+  sourceRegister: string
   investment: string
 }
 
@@ -51,20 +52,20 @@ export function DepositForm({ referenceData, onSuccess }: DepositFormPropsT) {
       date: today(),
       type: 'INVESTOR_DEPOSIT',
       paymentMethod: 'CASH',
-      cashRegister: getDefaultCashRegister(referenceData),
+      sourceRegister: getDefaultCashRegister(referenceData),
       investment: '',
     } as FormValuesT,
     validators: {
-      onSubmit: depositFormSchema,
+      onSubmit: transferFormSchema,
     },
     onSubmit: async ({ value }) => {
       const data: CreateTransferFormT = {
         description: value.description,
         amount: Number(value.amount),
         date: value.date,
-        type: value.type as TransferTypeT,
+        type: value.type as CreateTransferFormT['type'],
         paymentMethod: value.paymentMethod as PaymentMethodT,
-        cashRegister: value.cashRegister ? Number(value.cashRegister) : undefined,
+        sourceRegister: Number(value.sourceRegister),
         investment: value.investment ? Number(value.investment) : undefined,
       }
 

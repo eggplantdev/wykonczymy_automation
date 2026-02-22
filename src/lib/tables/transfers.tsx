@@ -19,7 +19,7 @@ export type TransferRowT = {
   readonly type: TransferTypeT
   readonly paymentMethod: PaymentMethodT
   readonly date: string
-  readonly cashRegisterName: string
+  readonly sourceRegisterName: string
   readonly targetRegisterName: string
   readonly investmentName: string
   readonly workerName: string
@@ -78,7 +78,7 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
       type: doc.type as TransferTypeT,
       paymentMethod: doc.paymentMethod as PaymentMethodT,
       date: doc.date,
-      cashRegisterName: lookupName(lookups.cashRegisters, doc.cashRegister),
+      sourceRegisterName: lookupName(lookups.cashRegisters, doc.sourceRegister),
       targetRegisterName: lookupName(lookups.cashRegisters, doc.targetRegister),
       investmentName: lookupName(lookups.investments, doc.investment),
       workerName: lookupName(lookups.workers, doc.worker),
@@ -98,7 +98,7 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
     type: doc.type as TransferTypeT,
     paymentMethod: doc.paymentMethod as PaymentMethodT,
     date: doc.date,
-    cashRegisterName: getRelationName(doc.cashRegister),
+    sourceRegisterName: getRelationName(doc.sourceRegister),
     targetRegisterName: getRelationName(doc.targetRegister),
     investmentName: getRelationName(doc.investment),
     workerName: getRelationName(doc.worker),
@@ -208,8 +208,8 @@ const allColumns = [
     meta: { label: 'Inwestycja' },
     cell: (info) => info.getValue(),
   }),
-  col.accessor('cashRegisterName', {
-    id: 'cashRegister',
+  col.accessor('sourceRegisterName', {
+    id: 'sourceRegister',
     header: 'Kasa',
     meta: { label: 'Kasa' },
     cell: (info) => info.getValue(),

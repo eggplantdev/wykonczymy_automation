@@ -65,7 +65,7 @@ export const INVESTMENT_TYPES: TransferTypeT[] = [...COST_TYPES, ...INCOME_TYPES
 
 export const isDepositType = (type: string) => (DEPOSIT_TYPES as readonly string[]).includes(type)
 
-export const needsCashRegister = (type: string) => type !== 'EMPLOYEE_EXPENSE'
+export const needsSourceRegister = (type: string) => type !== 'EMPLOYEE_EXPENSE'
 
 export const showsInvestment = (type: string) =>
   type === 'INVESTOR_DEPOSIT' || type === 'INVESTMENT_EXPENSE' || type === 'EMPLOYEE_EXPENSE'

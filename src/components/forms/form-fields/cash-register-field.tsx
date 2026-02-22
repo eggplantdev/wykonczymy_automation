@@ -15,7 +15,7 @@ type CashRegisterFieldPropsT = {
 
 export function CashRegisterField({
   form,
-  name = 'cashRegister',
+  name = 'sourceRegister',
   label = 'Kasa',
   placeholder = 'Wybierz kasę',
   cashRegisters,

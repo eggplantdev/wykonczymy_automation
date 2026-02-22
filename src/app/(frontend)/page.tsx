@@ -7,7 +7,7 @@ import type { PagePropsT } from '@/types/page'
 
 const EMPLOYEE_EXCLUDE_COLUMNS = [
   'type',
-  'cashRegister',
+  'sourceRegister',
   'worker',
   'otherCategory',
   'invoice',

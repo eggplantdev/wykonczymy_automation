@@ -29,7 +29,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
 
   const registerId = Number(id)
   const urlFilters = buildTransferFilters(sp, { id: user.id, isManager: true })
-  const transferWhere = { ...urlFilters, cashRegister: { equals: registerId } }
+  const transferWhere = { ...urlFilters, sourceRegister: { equals: registerId } }
 
   const ownerName = getRelationName(register.owner)
 
@@ -43,7 +43,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
         where={transferWhere}
         page={page}
         limit={limit}
-        excludeColumns={['cashRegister']}
+        excludeColumns={['sourceRegister']}
         baseUrl={`/kasa/${id}`}
         filters={{}}
       />

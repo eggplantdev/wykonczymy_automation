@@ -10,7 +10,7 @@ import {
   TRANSACTION_TRANSFER_TYPES,
   TRANSFER_TYPE_LABELS,
   isDepositType,
-  needsCashRegister,
+  needsSourceRegister,
   showsInvestment,
   needsWorker,
   needsTargetRegister,
@@ -50,7 +50,7 @@ type FormValuesT = {
   date: string
   type: string
   paymentMethod: string
-  cashRegister: string
+  sourceRegister: string
   targetRegister: string
   investment: string
   worker: string
@@ -72,7 +72,7 @@ export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
       date: today(),
       type: 'INVESTMENT_EXPENSE',
       paymentMethod: 'CASH',
-      cashRegister: getDefaultCashRegister(referenceData),
+      sourceRegister: getDefaultCashRegister(referenceData),
       targetRegister: '',
       investment: '',
       worker: '',
@@ -90,7 +90,7 @@ export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
         date: value.date,
         type: value.type as TransferTypeT,
         paymentMethod: value.paymentMethod as PaymentMethodT,
-        cashRegister: value.cashRegister ? Number(value.cashRegister) : undefined,
+        sourceRegister: value.sourceRegister ? Number(value.sourceRegister) : undefined,
         targetRegister: value.targetRegister ? Number(value.targetRegister) : undefined,
         investment: value.investment ? Number(value.investment) : undefined,
         worker: value.worker ? Number(value.worker) : undefined,
@@ -138,7 +138,7 @@ export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
   function resetConditionalFields() {
     conditionalFields.forEach((field) => form.resetField(field))
     if (!isSourceRestricted || (userCashRegisterIds && userCashRegisterIds.length > 1))
-      form.resetField('cashRegister')
+      form.resetField('sourceRegister')
     setExpenseTarget('investment')
   }
 
@@ -239,7 +239,7 @@ export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
           {/* <PaymentMethodField form={form} /> */}
 
           {/* Cash register — hidden for EMPLOYEE_EXPENSE, filtered to owned registers for non-ADMIN */}
-          {needsCashRegister(currentType) && (
+          {needsSourceRegister(currentType) && (
             <CashRegisterField
               form={form}
               cashRegisters={referenceData.cashRegisters}
