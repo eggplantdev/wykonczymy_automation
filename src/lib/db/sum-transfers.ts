@@ -101,6 +101,86 @@ export const sumInvestmentIncome = async (
 }
 
 /**
+ * SUM balances for ALL cash registers in one query (GROUP BY).
+ * Returns a Map<registerId, balance>.
+ */
+export const sumAllRegisterBalances = async (payload: Payload): Promise<Map<number, number>> => {
+  const elapsed = perfStart()
+  const db = await getDb(payload)
+
+  const result = await db.execute(sql`
+    WITH source_balances AS (
+      SELECT source_register_id AS register_id,
+        COALESCE(SUM(
+          CASE
+            WHEN type IN ('INVESTOR_DEPOSIT', 'STAGE_SETTLEMENT', 'COMPANY_FUNDING', 'OTHER_DEPOSIT', 'EMPLOYEE_EXPENSE')
+              THEN amount
+            ELSE -amount
+          END
+        ), 0) AS balance
+      FROM transactions
+      WHERE source_register_id IS NOT NULL
+        AND cancelled IS NOT TRUE
+      GROUP BY source_register_id
+    ),
+    target_balances AS (
+      SELECT target_register_id AS register_id,
+        COALESCE(SUM(amount), 0) AS balance
+      FROM transactions
+      WHERE target_register_id IS NOT NULL
+        AND type = 'REGISTER_TRANSFER'
+        AND cancelled IS NOT TRUE
+      GROUP BY target_register_id
+    )
+    SELECT
+      COALESCE(s.register_id, t.register_id) AS register_id,
+      COALESCE(s.balance, 0) + COALESCE(t.balance, 0) AS balance
+    FROM source_balances s
+    FULL OUTER JOIN target_balances t ON s.register_id = t.register_id
+  `)
+
+  const map = new Map<number, number>()
+  for (const row of result.rows) {
+    map.set(Number(row.register_id), Number(row.balance))
+  }
+  console.log(`[PERF] query.sumAllRegisterBalances ${elapsed()}ms (${map.size} registers)`)
+  return map
+}
+
+export type InvestmentFinancialsT = { totalCosts: number; totalIncome: number }
+
+/**
+ * SUM costs and income for ALL investments in one query (GROUP BY).
+ * Returns a Map<investmentId, { totalCosts, totalIncome }>.
+ */
+export const sumAllInvestmentFinancials = async (
+  payload: Payload,
+): Promise<Map<number, InvestmentFinancialsT>> => {
+  const elapsed = perfStart()
+  const db = await getDb(payload)
+
+  const result = await db.execute(sql`
+    SELECT investment_id,
+      COALESCE(SUM(CASE WHEN type IN ('INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE') THEN amount ELSE 0 END), 0) AS total_costs,
+      COALESCE(SUM(CASE WHEN type IN ('INVESTOR_DEPOSIT', 'STAGE_SETTLEMENT') THEN amount ELSE 0 END), 0) AS total_income
+    FROM transactions
+    WHERE investment_id IS NOT NULL
+      AND cancelled IS NOT TRUE
+    GROUP BY investment_id
+  `)
+
+  const map = new Map<number, InvestmentFinancialsT>()
+  for (const row of result.rows) {
+    map.set(Number(row.investment_id), {
+      totalCosts: Number(row.total_costs),
+      totalIncome: Number(row.total_income),
+    })
+  }
+  console.log(`[PERF] query.sumAllInvestmentFinancials ${elapsed()}ms (${map.size} investments)`)
+  return map
+}
+
+/**
  * SUM employee saldo using SQL aggregation.
  * ACCOUNT_FUNDINGs add to saldo, EMPLOYEE_EXPENSEs subtract.
  * Optional date range filters by the `date` column.

@@ -9,14 +9,10 @@ export type ReferenceItemT = {
 
 export type CashRegisterTypeT = 'MAIN' | 'AUXILIARY' | 'VIRTUAL'
 
-export type CashRegisterRefT = ReferenceItemT & {
-  readonly balance: number
-}
+export type CashRegisterRefT = ReferenceItemT
 
 export type InvestmentRefT = ReferenceItemT & {
   readonly status: 'active' | 'completed'
-  readonly totalCosts: number
-  readonly totalIncome: number
   readonly laborCosts: number
   readonly address: string
   readonly phone: string

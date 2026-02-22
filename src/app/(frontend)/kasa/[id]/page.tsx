@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/auth/require-auth'
 import { isAdminOrOwnerRole, MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/pagination'
 import { getCashRegister } from '@/lib/queries/cash-registers'
+import { fetchRegisterBalances } from '@/lib/queries/reference-data'
 import { getRelationName } from '@/lib/get-relation-name'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { formatPLN } from '@/lib/format-currency'
@@ -21,8 +22,9 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
   const sp = await searchParams
   const { page, limit } = parsePagination(sp)
 
-  const register = await getCashRegister(id)
+  const [register, balances] = await Promise.all([getCashRegister(id), fetchRegisterBalances()])
   if (!register) notFound()
+  const balance = balances[String(id)] ?? 0
 
   // only admin or owner can view MAIN registers
   if (!isAdminOrOwnerRole(user.role) && register.type === 'MAIN') notFound()
@@ -36,7 +38,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
   return (
     <PageWrapper title={register.name} backHref="/" backLabel="Kokpit" className={`grid gap-6`}>
       <InfoList items={[{ label: 'Właściciel', value: ownerName }]} />
-      <StatCard label="Saldo" value={formatPLN(register.balance ?? 0)} />
+      <StatCard label="Saldo" value={formatPLN(balance)} />
 
       {/* Transactions table */}
       <TransfersSection
