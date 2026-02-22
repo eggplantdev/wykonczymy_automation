@@ -2,20 +2,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { z } from 'zod'
 import type { Payload } from 'payload'
 import type { SessionUserT } from '@/types/auth'
-import type { ReferenceItemT, ReferenceDataBaseT } from '@/types/reference-data'
+import type { ReferenceItemT } from '@/types/reference-data'
 
 // ── Mocks ────────────────────────────────────────────────────────────────
 
 vi.mock('server-only', () => ({}))
 
 const mockSumRegisterBalance = vi.fn()
-vi.mock('@/lib/db/sum-transfers', () => ({
-  sumRegisterBalance: (...args: unknown[]) => mockSumRegisterBalance(...args),
-}))
+const mockDbExecute = vi.fn()
 
-const mockFetchReferenceData = vi.fn()
-vi.mock('@/lib/queries/reference-data', () => ({
-  fetchReferenceData: (...args: unknown[]) => mockFetchReferenceData(...args),
+vi.mock('@/lib/db/sum-transfers', () => ({
+  getDb: vi.fn().mockResolvedValue({ execute: (...args: unknown[]) => mockDbExecute(...args) }),
+  sumRegisterBalance: (...args: unknown[]) => mockSumRegisterBalance(...args),
 }))
 
 const { getErrorMessage, validateAction, validateSourceRegister, checkIfSufficientBalance } =
@@ -27,21 +25,22 @@ const adminUser: SessionUserT = { id: 1, email: 'a@t.com', name: 'Admin', role: 
 const managerUser: SessionUserT = { id: 2, email: 'm@t.com', name: 'Manager', role: 'MANAGER' }
 const employeeUser: SessionUserT = { id: 3, email: 'e@t.com', name: 'Emp', role: 'EMPLOYEE' }
 
-const refData: ReferenceDataBaseT = {
-  cashRegisters: [
-    { id: 1, name: 'Main', type: 'MAIN', active: true, ownerId: 2 },
-    { id: 2, name: 'Virtual', type: 'VIRTUAL', active: true, ownerId: 1 },
-    { id: 3, name: 'Aux', type: 'AUXILIARY', active: true, ownerId: 3 },
-  ],
-  investments: [],
-  workers: [],
-  otherCategories: [],
+// DB rows keyed by register ID — mirrors cash_registers table
+const dbRows: Record<number, Record<string, unknown>> = {
+  1: { id: 1, name: 'Main', type: 'MAIN', active: true, owner_id: 2 },
+  2: { id: 2, name: 'Virtual', type: 'VIRTUAL', active: true, owner_id: 1 },
+  3: { id: 3, name: 'Aux', type: 'AUXILIARY', active: true, owner_id: 3 },
+}
+
+/** Configure mockDbExecute to return the row for a given register ID. */
+function mockRegisterLookup(registerId: number | undefined) {
+  const row = registerId !== undefined ? dbRows[registerId] : undefined
+  mockDbExecute.mockResolvedValue({ rows: row ? [row] : [] })
 }
 
 beforeEach(() => {
   mockSumRegisterBalance.mockReset()
-  mockFetchReferenceData.mockReset()
-  mockFetchReferenceData.mockResolvedValue(refData)
+  mockDbExecute.mockReset()
 })
 
 // ── getErrorMessage ──────────────────────────────────────────────────────
@@ -96,17 +95,19 @@ describe('validateAction', () => {
 
 describe('validateSourceRegister', () => {
   it('returns error when register not found', async () => {
-    const result = await validateSourceRegister(999, adminUser)
+    mockRegisterLookup(999)
+    const result = await validateSourceRegister(999, adminUser, fakePayload)
     expect(result).toEqual({ success: false, error: 'Kasa nie istnieje' })
   })
 
   it('returns error for undefined cashRegisterId', async () => {
-    const result = await validateSourceRegister(undefined, adminUser)
+    const result = await validateSourceRegister(undefined, adminUser, fakePayload)
     expect(result).toEqual({ success: false, error: 'Kasa nie istnieje' })
   })
 
   it('ADMIN can access any register', async () => {
-    const result = await validateSourceRegister(1, adminUser)
+    mockRegisterLookup(1)
+    const result = await validateSourceRegister(1, adminUser, fakePayload)
     expect(result.success).toBe(true)
     if (result.success) {
       expect(result.register.id).toBe(1)
@@ -115,25 +116,29 @@ describe('validateSourceRegister', () => {
 
   it('MANAGER can access own register', async () => {
     // Register 1 has ownerId: 2, managerUser.id is 2
-    const result = await validateSourceRegister(1, managerUser)
+    mockRegisterLookup(1)
+    const result = await validateSourceRegister(1, managerUser, fakePayload)
     expect(result.success).toBe(true)
   })
 
   it('MANAGER cannot access another user register', async () => {
     // Register 3 has ownerId: 3, managerUser.id is 2
-    const result = await validateSourceRegister(3, managerUser)
+    mockRegisterLookup(3)
+    const result = await validateSourceRegister(3, managerUser, fakePayload)
     expect(result).toEqual({ success: false, error: 'Nie masz uprawnień do tej kasy' })
   })
 
   it('EMPLOYEE cannot access register they do not own', async () => {
     // Register 1 has ownerId: 2, employeeUser.id is 3
-    const result = await validateSourceRegister(1, employeeUser)
+    mockRegisterLookup(1)
+    const result = await validateSourceRegister(1, employeeUser, fakePayload)
     expect(result).toEqual({ success: false, error: 'Nie masz uprawnień do tej kasy' })
   })
 
   it('EMPLOYEE can access own register', async () => {
     // Register 3 has ownerId: 3, employeeUser.id is 3
-    const result = await validateSourceRegister(3, employeeUser)
+    mockRegisterLookup(3)
+    const result = await validateSourceRegister(3, employeeUser, fakePayload)
     expect(result.success).toBe(true)
   })
 })
