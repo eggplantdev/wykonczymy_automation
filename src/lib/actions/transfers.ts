@@ -35,6 +35,7 @@ export async function createTransferAction(
         console.log(`[PERF]   validateSourceRegister ${step()}ms`)
         if (!validated.success) return validated
         // Balance check removed — negative balances are allowed
+        // checkIfSufficientBalance in utils
       }
 
       const mediaId = await uploadSingleInvoice(payload, invoiceFormData)
