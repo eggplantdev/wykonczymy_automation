@@ -26,7 +26,7 @@ import {
 } from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
-import { createTransferAction } from '../../../lib/actions/transfers'
+import { createTransferAction } from '@/lib/actions/transfers'
 
 type DepositFormPropsT = {
   referenceData: ReferenceDataT

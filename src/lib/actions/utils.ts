@@ -32,6 +32,7 @@ export function validateAction<TData>(
   return { success: true, data: parsed.data }
 }
 
+/** Checks that the register exists and the user has ownership rights to it. */
 export async function validateSourceRegister(
   cashRegisterId: number | undefined,
   user: SessionUserT,
@@ -49,6 +50,7 @@ export async function validateSourceRegister(
   return { success: true, register }
 }
 
+/** Verifies the register has enough balance for the withdrawal. Skips virtual registers. */
 export async function checkIfSufficientBalance(
   register: ReferenceItemT,
   amount: number,
