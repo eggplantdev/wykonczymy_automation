@@ -183,6 +183,12 @@ describe('validateTransfer — EMPLOYEE_EXPENSE either/or', () => {
     expect(result.investment).toBe(1)
     expect(result.otherCategory).toBeNull()
   })
+
+  it('register refund (sourceRegister, no investment/category) → passes', () => {
+    const data = { ...base, type: 'EMPLOYEE_EXPENSE', worker: 1, sourceRegister: 3 }
+    const result = validateTransfer(hookArgs(data))
+    expect(result.sourceRegister).toBe(3)
+  })
 })
 
 // ═══════════════════════════════════════════════════════════════════════

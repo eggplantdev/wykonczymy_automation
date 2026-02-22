@@ -13,10 +13,6 @@ type TopNavPropsT = {
 }
 
 export function TopNav({ referenceData }: TopNavPropsT) {
-  console.log(
-    'top-nav.tsx:16 - process.env.NEXT_PUBLIC_ENV:',
-    process.env.NODE_ENV === 'development',
-  )
   return (
     <header className="border-border bg-background sticky top-0 z-40 flex h-14 items-center justify-between gap-3 border-b px-3">
       {process.env.NODE_ENV === 'development' ? (

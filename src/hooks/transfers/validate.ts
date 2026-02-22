@@ -36,13 +36,18 @@ export const validateTransfer: CollectionBeforeValidateHook = ({ data, req, oper
 
   const errors: string[] = []
 
+  // EMPLOYEE_EXPENSE with sourceRegister but no investment/category = register refund
+  const isRegisterRefund =
+    type === 'EMPLOYEE_EXPENSE' && !!d.sourceRegister && !d.investment && !d.otherCategory
+
   // sourceRegister — required for all types except EMPLOYEE_EXPENSE
   if (needsSourceRegister(type) && !d.sourceRegister) {
     errors.push('Cash register is required for this transfer type.')
   }
 
   // Auto-clear sourceRegister for EMPLOYEE_EXPENSE (prevent stale data)
-  if (!needsSourceRegister(type)) {
+  // Exception: register refunds need sourceRegister preserved
+  if (!needsSourceRegister(type) && !isRegisterRefund) {
     d.sourceRegister = null
   }
 
@@ -70,11 +75,12 @@ export const validateTransfer: CollectionBeforeValidateHook = ({ data, req, oper
     errors.push('Category is required for OTHER transfers.')
   }
 
-  // EMPLOYEE_EXPENSE: requires either investment OR (otherCategory + otherDescription)
+  // EMPLOYEE_EXPENSE: requires either investment OR otherCategory
+  // Exception: register refund (sourceRegister present) needs neither
   if (type === 'EMPLOYEE_EXPENSE') {
     const hasInvestment = !!d.investment
     const hasCategory = !!d.otherCategory
-    if (!hasInvestment && !hasCategory) {
+    if (!hasInvestment && !hasCategory && !isRegisterRefund) {
       errors.push('Employee expense requires either an investment or a category.')
     }
     if (hasInvestment && hasCategory) {
