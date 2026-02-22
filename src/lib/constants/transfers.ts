@@ -8,6 +8,7 @@ export const TRANSFER_TYPES = [
   'PAYOUT',
   'REGISTER_TRANSFER',
   'OTHER',
+  'CANCELLATION',
 ] as const
 export type TransferTypeT = (typeof TRANSFER_TYPES)[number]
 
@@ -21,6 +22,7 @@ export const TRANSFER_TYPE_LABELS: Record<TransferTypeT, string> = {
   PAYOUT: 'Wypłata',
   REGISTER_TRANSFER: 'Transfer między kasami',
   OTHER: 'Inne',
+  CANCELLATION: 'Anulowanie',
 }
 
 export const DEPOSIT_TYPES: TransferTypeT[] = [
@@ -79,3 +81,5 @@ export const needsWorker = (type: string) =>
 export const needsTargetRegister = (type: string) => type === 'REGISTER_TRANSFER'
 
 export const needsOtherCategory = (type: string) => type === 'OTHER' || type === 'EMPLOYEE_EXPENSE'
+
+export const isCancellationType = (type: string) => type === 'CANCELLATION'
