@@ -8,15 +8,15 @@ import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { revalidateCollections } from '@/lib/cache/revalidate'
 import { perf, perfStart } from '@/lib/perf'
-import { isDepositType } from '@/lib/constants/transfers'
+import { uploadInvoiceFile } from '@/lib/upload-invoice'
 import config from '@payload-config'
-import { getPayload } from 'payload'
+import { getPayload, type Payload } from 'payload'
+import { isDepositType } from '../constants/transfers'
 import {
+  checkIfSufficientBalance,
   getErrorMessage,
   validateAction,
   validateSourceRegister,
-  checkIfSufficientBalance,
-  handleInvoice,
   type ActionResultT,
 } from './utils'
 
@@ -31,26 +31,31 @@ export async function createTransferAction(
   if (!session.success) return session
   const { user } = session
 
+  // Validate schena
   const parsed = validateAction(createTransferSchema, data)
   if (!parsed.success) return parsed
+
+  let mediaId: number | undefined
 
   try {
     const payload = await perf('createTransfer.getPayload', () => getPayload({ config }))
 
-    // If not deposit, validate source register and check balance
+    // If not deposit, validate source register
     if (!isDepositType(parsed.data.type)) {
       const validated = await validateSourceRegister(data.sourceRegister, user)
       if (!validated.success) return validated
-
+      // and check if sufficient balance
       const balanceCheck = await checkIfSufficientBalance(validated.register, data.amount, payload)
       if (!balanceCheck.success) return balanceCheck
     }
 
-    const mediaId = invoiceFormData ? await handleInvoice(invoiceFormData, payload) : undefined
+    // Upload invoice file if provided
+    if (invoiceFormData) mediaId = await uploadInvoice(invoiceFormData, payload)
 
     await perf('createTransfer.payloadCreate (includes hooks)', async () => {
       await payload.create({
         collection: 'transactions',
+
         data: {
           ...data,
           description: data.description || '',
@@ -90,6 +95,24 @@ export async function updateTransferNoteAction(
   } catch (err) {
     return { success: false, error: getErrorMessage(err) }
   }
+}
+
+async function uploadInvoice(
+  invoiceFormData: FormData | null,
+  payload: Payload,
+): Promise<number | undefined> {
+  const invoiceFile = invoiceFormData?.get('invoice') as File | null
+  const hasInvoice = invoiceFile && invoiceFile.size > 0
+
+  // Upload invoice file if provided
+  let mediaId: number | undefined
+  if (hasInvoice) {
+    mediaId = await perf('createTransfer.uploadMedia', () =>
+      uploadInvoiceFile(payload, invoiceFile),
+    )
+  }
+
+  return mediaId
 }
 
 export async function updateTransferInvoiceAction(
