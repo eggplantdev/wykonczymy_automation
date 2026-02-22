@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 
-export function useInvoiceFiles() {
-  const invoiceFilesRef = useRef<Map<number, File>>(new Map())
+export function useInvoiceFiles(initialFiles?: Map<number, File>) {
+  const invoiceFilesRef = useRef<Map<number, File>>(initialFiles ?? new Map())
 
   function handleRemoveLineItem(index: number, removeValue: (index: number) => void) {
     const oldFiles = invoiceFilesRef.current
@@ -29,5 +29,9 @@ export function useInvoiceFiles() {
     return formData
   }
 
-  return { handleRemoveLineItem, handleFileChange, buildInvoiceFormData }
+  function getFiles(): Map<number, File> {
+    return new Map(invoiceFilesRef.current)
+  }
+
+  return { handleRemoveLineItem, handleFileChange, buildInvoiceFormData, getFiles }
 }
