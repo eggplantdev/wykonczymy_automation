@@ -1,5 +1,6 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { Payload, PayloadRequest } from 'payload'
+import { perfStart } from '@/lib/perf'
 
 export type DateRangeT = { start: string; end: string }
 
@@ -109,6 +110,7 @@ export const sumInvestmentIncome = async (
  * Returns a Map<workerId, saldo>.
  */
 export const sumAllWorkerSaldos = async (payload: Payload): Promise<Map<number, number>> => {
+  const elapsed = perfStart()
   const db = await getDb(payload)
 
   const result = await db.execute(sql`
@@ -127,6 +129,7 @@ export const sumAllWorkerSaldos = async (payload: Payload): Promise<Map<number, 
   for (const row of result.rows) {
     map.set(Number(row.worker_id), Number(row.saldo))
   }
+  console.log(`[PERF] query.sumAllWorkerSaldos ${elapsed()}ms (${map.size} workers)`)
   return map
 }
 
