@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { z } from 'zod'
 import type { Payload } from 'payload'
 import type { SessionUserT } from '@/types/auth'
-import type { ReferenceItemT } from '@/types/reference-data'
+// import type { ReferenceItemT } from '@/types/reference-data'
 
 // ── Mocks ────────────────────────────────────────────────────────────────
 
@@ -16,7 +16,7 @@ vi.mock('@/lib/db/sum-transfers', () => ({
   sumRegisterBalance: (...args: unknown[]) => mockSumRegisterBalance(...args),
 }))
 
-const { getErrorMessage, validateAction, validateSourceRegister, checkIfSufficientBalance } =
+const { getErrorMessage, validateAction, validateSourceRegister } =
   await import('@/lib/actions/utils')
 
 const fakePayload = {} as Payload
@@ -143,42 +143,42 @@ describe('validateSourceRegister', () => {
   })
 })
 
-// ── checkIfSufficientBalance ─────────────────────────────────────────────
+// ── checkIfSufficientBalance (commented out — negative balances allowed) ──
 
-describe('checkIfSufficientBalance', () => {
-  const normalRegister: ReferenceItemT = { id: 1, name: 'Main', type: 'MAIN', active: true }
-  const virtualRegister: ReferenceItemT = { id: 2, name: 'Virtual', type: 'VIRTUAL', active: true }
-
-  it('skips balance check for VIRTUAL register', async () => {
-    const result = await checkIfSufficientBalance(virtualRegister, 999999, fakePayload)
-    expect(result).toEqual({ success: true })
-    expect(mockSumRegisterBalance).not.toHaveBeenCalled()
-  })
-
-  it('succeeds when balance > amount', async () => {
-    mockSumRegisterBalance.mockResolvedValue(1000)
-    const result = await checkIfSufficientBalance(normalRegister, 500, fakePayload)
-    expect(result).toEqual({ success: true })
-  })
-
-  it('fails when balance === amount (not strictly greater)', async () => {
-    mockSumRegisterBalance.mockResolvedValue(500)
-    const result = await checkIfSufficientBalance(normalRegister, 500, fakePayload)
-    expect(result.success).toBe(false)
-  })
-
-  it('fails when balance < amount', async () => {
-    mockSumRegisterBalance.mockResolvedValue(100)
-    const result = await checkIfSufficientBalance(normalRegister, 500, fakePayload)
-    expect(result.success).toBe(false)
-    if (!result.success) {
-      expect(result.error).toContain('100.00')
-    }
-  })
-
-  it('fails when balance is 0', async () => {
-    mockSumRegisterBalance.mockResolvedValue(0)
-    const result = await checkIfSufficientBalance(normalRegister, 1, fakePayload)
-    expect(result.success).toBe(false)
-  })
-})
+// describe('checkIfSufficientBalance', () => {
+//   const normalRegister: ReferenceItemT = { id: 1, name: 'Main', type: 'MAIN', active: true }
+//   const virtualRegister: ReferenceItemT = { id: 2, name: 'Virtual', type: 'VIRTUAL', active: true }
+//
+//   it('skips balance check for VIRTUAL register', async () => {
+//     const result = await checkIfSufficientBalance(virtualRegister, 999999, fakePayload)
+//     expect(result).toEqual({ success: true })
+//     expect(mockSumRegisterBalance).not.toHaveBeenCalled()
+//   })
+//
+//   it('succeeds when balance > amount', async () => {
+//     mockSumRegisterBalance.mockResolvedValue(1000)
+//     const result = await checkIfSufficientBalance(normalRegister, 500, fakePayload)
+//     expect(result).toEqual({ success: true })
+//   })
+//
+//   it('fails when balance === amount (not strictly greater)', async () => {
+//     mockSumRegisterBalance.mockResolvedValue(500)
+//     const result = await checkIfSufficientBalance(normalRegister, 500, fakePayload)
+//     expect(result.success).toBe(false)
+//   })
+//
+//   it('fails when balance < amount', async () => {
+//     mockSumRegisterBalance.mockResolvedValue(100)
+//     const result = await checkIfSufficientBalance(normalRegister, 500, fakePayload)
+//     expect(result.success).toBe(false)
+//     if (!result.success) {
+//       expect(result.error).toContain('100.00')
+//     }
+//   })
+//
+//   it('fails when balance is 0', async () => {
+//     mockSumRegisterBalance.mockResolvedValue(0)
+//     const result = await checkIfSufficientBalance(normalRegister, 1, fakePayload)
+//     expect(result.success).toBe(false)
+//   })
+// })
