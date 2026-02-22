@@ -5,7 +5,7 @@ import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
 import { useInvoiceFiles } from '@/components/forms/hooks/use-invoice-files'
-import { toastMessage } from '@/components/toasts'
+import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import {
   TRANSACTION_TRANSFER_TYPES,
   TRANSFER_TYPE_LABELS,
@@ -56,28 +56,42 @@ type FormValuesT = {
 }
 
 export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
-  const { handleRemoveLineItem, handleFileChange, buildInvoiceFormData } = useInvoiceFiles()
+  const FORM_ID = 'transfer'
+  const submission = useOptimisticFormStore((s) => s.submission)
+  const submitOptimistically = useOptimisticFormStore((s) => s.submitOptimistically)
+  const clearSubmission = useOptimisticFormStore((s) => s.clearSubmission)
+
+  const recovering = submission?.formId === FORM_ID && submission.status === 'failed'
+  const recoveredValues = recovering ? (submission.formValues as FormValuesT) : undefined
+  const recoveredFiles = recovering ? submission.invoiceFiles : undefined
+
+  const { handleRemoveLineItem, handleFileChange, buildInvoiceFormData, getFiles } =
+    useInvoiceFiles(recoveredFiles)
   const userCashRegisterIds = getUserCashRegisterIds(referenceData)
   const isSourceRestricted = userCashRegisterIds !== undefined
   const [expenseTarget, setExpenseTarget] = useState<'investment' | 'other'>('investment')
 
   const form = useAppForm({
-    defaultValues: {
-      date: today(),
-      type: 'INVESTMENT_EXPENSE',
-      paymentMethod: 'CASH',
-      sourceRegister: getDefaultCashRegister(referenceData),
-      targetRegister: '',
-      investment: '',
-      worker: '',
-      otherCategory: '',
-      otherDescription: '',
-      lineItems: [{ description: '', amount: '', invoiceNote: '' }],
-    } as FormValuesT,
+    defaultValues:
+      recoveredValues ??
+      ({
+        date: today(),
+        type: 'INVESTMENT_EXPENSE',
+        paymentMethod: 'CASH',
+        sourceRegister: getDefaultCashRegister(referenceData),
+        targetRegister: '',
+        investment: '',
+        worker: '',
+        otherCategory: '',
+        otherDescription: '',
+        lineItems: [{ description: '', amount: '', invoiceNote: '' }],
+      } as FormValuesT),
     validators: {
       onSubmit: bulkTransferFormSchema,
     },
     onSubmit: async ({ value }) => {
+      if (recovering) clearSubmission()
+
       const data: CreateBulkTransferFormT = {
         date: value.date,
         type: value.type as TransferTypeT,
@@ -95,14 +109,16 @@ export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
         })),
       }
 
-      const result = await createBulkTransferAction(data, buildInvoiceFormData())
+      const invoiceFormData = buildInvoiceFormData()
 
-      if (result.success) {
-        toastMessage('Transakcje dodane', 'success')
-        onSuccess()
-      } else {
-        toastMessage(result.error, 'error')
-      }
+      submitOptimistically(
+        FORM_ID,
+        value as unknown as Record<string, unknown>,
+        getFiles(),
+        () => createBulkTransferAction(data, invoiceFormData),
+        'Transakcje dodane',
+      )
+      onSuccess()
 
       return false
     },
