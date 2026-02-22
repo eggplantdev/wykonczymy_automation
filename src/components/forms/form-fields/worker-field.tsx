@@ -1,6 +1,5 @@
 import type { ReferenceItemT } from '@/types/reference-data'
-
-const EXCLUDED_ROLES = ['ADMIN', 'OWNER'] as const
+import { MANAGEMENT_ROLES, type RoleT } from '@/lib/auth/roles'
 
 type WorkerFieldPropsT = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -13,9 +12,7 @@ type WorkerFieldPropsT = {
 
 export function WorkerField({ form, workers, filterByRole = true, listeners }: WorkerFieldPropsT) {
   const items = workers
-    .filter(
-      (w) => !filterByRole || !EXCLUDED_ROLES.includes(w.type as (typeof EXCLUDED_ROLES)[number]),
-    )
+    .filter((w) => !filterByRole || !MANAGEMENT_ROLES.includes(w.type as RoleT))
     .map((w) => ({ value: String(w.id), label: w.name }))
 
   return (
