@@ -104,12 +104,12 @@ export const transferFormSchema = z
     type: z.string(),
     paymentMethod: z.string(),
     sourceRegister: z.string(),
-    targetRegister: z.string(),
-    investment: z.string(),
-    worker: z.string(),
-    otherCategory: z.string(),
-    otherDescription: z.string(),
-    invoiceNote: z.string(),
+    targetRegister: z.string().optional().default(''),
+    investment: z.string().optional().default(''),
+    worker: z.string().optional().default(''),
+    otherCategory: z.string().optional().default(''),
+    otherDescription: z.string().optional().default(''),
+    invoiceNote: z.string().optional().default(''),
   })
   .superRefine((data, ctx) => {
     refineAmount(data, ctx)
