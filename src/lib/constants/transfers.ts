@@ -1,14 +1,15 @@
+// Sorted alphabetically by Polish label
 export const TRANSFER_TYPES = [
-  'INVESTOR_DEPOSIT',
-  'COMPANY_FUNDING',
-  'OTHER_DEPOSIT',
-  'INVESTMENT_EXPENSE',
-  'ACCOUNT_FUNDING',
-  'EMPLOYEE_EXPENSE',
-  'PAYOUT',
-  'REGISTER_TRANSFER',
-  'OTHER',
-  'CANCELLATION',
+  'CANCELLATION', // Anulowanie
+  'OTHER_DEPOSIT', // Inna wpłata
+  'OTHER', // Inne
+  'REGISTER_TRANSFER', // Transfer między kasami
+  'INVESTOR_DEPOSIT', // Wpłata od inwestora
+  'INVESTMENT_EXPENSE', // Wydatek inwestycyjny
+  'EMPLOYEE_EXPENSE', // Wydatek pracowniczy
+  'PAYOUT', // Wypłata
+  'ACCOUNT_FUNDING', // Zasilenie konta współpracownika
+  'COMPANY_FUNDING', // Zasilenie z konta firmowego
 ] as const
 export type TransferTypeT = (typeof TRANSFER_TYPES)[number]
 
@@ -31,19 +32,19 @@ export const DEPOSIT_TYPES: TransferTypeT[] = [
   'OTHER_DEPOSIT',
 ]
 
-// Deposit types visible in the deposit dialog
+// Deposit types visible in the deposit dialog (sorted by Polish label)
 export const DEPOSIT_UI_TYPES: TransferTypeT[] = [
-  'INVESTOR_DEPOSIT',
-  'COMPANY_FUNDING',
-  'OTHER_DEPOSIT',
+  'OTHER_DEPOSIT', // Inna wpłata
+  'INVESTOR_DEPOSIT', // Wpłata od inwestora
+  'COMPANY_FUNDING', // Zasilenie z konta firmowego
 ]
 
-// Transfer types visible in the transaction transfer dialog
+// Transfer types visible in the transaction transfer dialog (sorted by Polish label)
 export const TRANSACTION_TRANSFER_TYPES: TransferTypeT[] = [
-  'INVESTMENT_EXPENSE',
-  'ACCOUNT_FUNDING',
-  'PAYOUT',
-  'OTHER',
+  'OTHER', // Inne
+  'INVESTMENT_EXPENSE', // Wydatek inwestycyjny
+  'PAYOUT', // Wypłata
+  'ACCOUNT_FUNDING', // Zasilenie konta współpracownika
 ]
 
 export const PAYMENT_METHODS = [

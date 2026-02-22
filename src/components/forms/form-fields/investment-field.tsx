@@ -13,7 +13,6 @@ export function InvestmentField({ form, investments }: InvestmentFieldPropsT) {
 
   const items = investments
     .filter((inv) => !activeOnly || inv.active !== false)
-    .toSorted((a, b) => a.name.localeCompare(b.name, 'pl'))
     .map((inv) => ({ value: String(inv.id), label: inv.name }))
 
   return (

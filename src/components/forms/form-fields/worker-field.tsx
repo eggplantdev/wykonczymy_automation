@@ -16,7 +16,6 @@ export function WorkerField({ form, workers, filterByRole = true, listeners }: W
     .filter(
       (w) => !filterByRole || !EXCLUDED_ROLES.includes(w.type as (typeof EXCLUDED_ROLES)[number]),
     )
-    .toSorted((a, b) => a.name.localeCompare(b.name, 'pl'))
     .map((w) => ({ value: String(w.id), label: w.name }))
 
   return (

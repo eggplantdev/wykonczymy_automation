@@ -222,13 +222,11 @@ export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
                 <form.AppField name="otherCategory">
                   {(field) => (
                     <field.Select label="Kategoria" placeholder="Wybierz kategorię" showError>
-                      {referenceData.otherCategories
-                        .toSorted((a, b) => a.name.localeCompare(b.name, 'pl'))
-                        .map((cat) => (
-                          <SelectItem key={cat.id} value={String(cat.id)}>
-                            {cat.name}
-                          </SelectItem>
-                        ))}
+                      {referenceData.otherCategories.map((cat) => (
+                        <SelectItem key={cat.id} value={String(cat.id)}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
                     </field.Select>
                   )}
                 </form.AppField>

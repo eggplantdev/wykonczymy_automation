@@ -38,18 +38,22 @@ export async function fetchReferenceData(): Promise<ReferenceDataBaseT> {
     db.execute(sql`
       SELECT id, name, type::text, active::boolean, owner_id::integer
       FROM cash_registers
+      ORDER BY name
     `),
     db.execute(sql`
       SELECT id, name, status::text, labor_costs,
              address, phone, email, contact_person
       FROM investments
+      ORDER BY name
     `),
     db.execute(sql`
       SELECT id, name, role::text, active::boolean, email, default_cash_register_id::integer
       FROM users
+      ORDER BY name
     `),
     db.execute(sql`
       SELECT id, name FROM other_categories
+      ORDER BY name
     `),
   ])
 
