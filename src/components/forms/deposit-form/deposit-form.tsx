@@ -15,7 +15,7 @@ import {
   type CreateTransferFormT,
 } from '@/components/forms/transfer-form/transfer-schema'
 import type { ReferenceDataT } from '@/types/reference-data'
-import { getDefaultCashRegister, getUserCashRegisterIds } from '@/lib/utils/default-cash-register'
+import { getDefaultCashRegister } from '@/lib/utils/default-cash-register'
 import { today } from '@/lib/date-utils'
 import {
   AmountField,
@@ -44,7 +44,6 @@ type FormValuesT = {
 }
 
 export function DepositForm({ referenceData, onSuccess }: DepositFormPropsT) {
-  const userCashRegisterIds = getUserCashRegisterIds(referenceData)
   const form = useAppForm({
     defaultValues: {
       description: '',
@@ -117,12 +116,8 @@ export function DepositForm({ referenceData, onSuccess }: DepositFormPropsT) {
           {/* Payment method — temporarily hidden, always CASH */}
           {/* <PaymentMethodField form={form} /> */}
 
-          {/* Cash register — filtered to owned registers for non-ADMIN */}
-          <CashRegisterField
-            form={form}
-            cashRegisters={referenceData.cashRegisters}
-            userCashRegisterIds={userCashRegisterIds}
-          />
+          {/* Cash register no filtering in case of deposit */}
+          <CashRegisterField form={form} cashRegisters={referenceData.cashRegisters} />
 
           {/* Conditional: Investment — for INVESTOR_DEPOSIT */}
           {requiresInvestment(currentType) && (
