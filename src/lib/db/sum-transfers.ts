@@ -20,8 +20,8 @@ export const getDb = async (payload: Payload, req?: PayloadRequest): Promise<any
 /**
  * SUM balance for a cash register using SQL aggregation.
  * Deposit types add, expense types subtract.
- * EMPLOYEE_EXPENSE has cash_register_id = NULL so is automatically excluded.
- * REGISTER_TRANSFER: subtracts from source (cash_register_id) via main query,
+ * EMPLOYEE_EXPENSE has source_register_id = NULL so is automatically excluded.
+ * REGISTER_TRANSFER: subtracts from source (source_register_id) via main query,
  * adds to target (target_register_id) via subquery.
  */
 export const sumRegisterBalance = async (
@@ -47,7 +47,7 @@ export const sumRegisterBalance = async (
       ), 0)
       AS balance
     FROM transactions
-    WHERE cash_register_id = ${registerId}
+    WHERE source_register_id = ${registerId}
   `)
 
   return Number(result.rows[0].balance)

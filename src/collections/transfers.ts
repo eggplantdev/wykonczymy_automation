@@ -29,8 +29,8 @@ const PAYMENT_METHODS = [
   { label: { en: 'Card', pl: 'Karta' }, value: 'CARD' },
 ] as const
 
-/** Show cashRegister for all types except EMPLOYEE_EXPENSE */
-const showCashRegister = (data: Record<string, unknown>) => data?.type !== 'EMPLOYEE_EXPENSE'
+/** Show sourceRegister for all types except EMPLOYEE_EXPENSE */
+const showSourceRegister = (data: Record<string, unknown>) => data?.type !== 'EMPLOYEE_EXPENSE'
 
 /** Show investment field for types that use it (required or optional) */
 const showInvestment = (data: Record<string, unknown>) =>
@@ -57,7 +57,7 @@ export const Transfers: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'description',
-    defaultColumns: ['description', 'amount', 'type', 'date', 'cashRegister'],
+    defaultColumns: ['description', 'amount', 'type', 'date', 'sourceRegister'],
     group: { en: 'Finance', pl: 'Finanse' },
   },
   access: {
@@ -122,14 +122,14 @@ export const Transfers: CollectionConfig = {
       access: { update: () => false },
     },
     {
-      name: 'cashRegister',
+      name: 'sourceRegister',
       type: 'relationship',
       relationTo: 'cash-registers',
       required: false,
-      label: { en: 'Cash Register', pl: 'Kasa' },
+      label: { en: 'Source Register', pl: 'Kasa' },
       access: { update: () => false },
       admin: {
-        condition: (data) => showCashRegister(data),
+        condition: (data) => showSourceRegister(data),
       },
     },
     {

@@ -39,7 +39,7 @@ export function TransferFilters({
   const searchParams = useSearchParams()
 
   const currentType = searchParams.get('type') ?? ''
-  const currentCashRegister = searchParams.get('cashRegister') ?? ''
+  const currentSourceRegister = searchParams.get('sourceRegister') ?? ''
   const currentInvestment = searchParams.get('investment') ?? ''
   const currentCreatedBy = searchParams.get('createdBy') ?? ''
   const currentFrom = searchParams.get('from') ?? ''
@@ -87,11 +87,11 @@ export function TransferFilters({
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i)
 
   const hasEntityFilters =
-    currentType || currentCashRegister || currentInvestment || currentCreatedBy
+    currentType || currentSourceRegister || currentInvestment || currentCreatedBy
   const hasDateFilters = currentFrom || currentTo
 
   function clearEntityFilters() {
-    updateMultipleParams({ type: '', cashRegister: '', investment: '', createdBy: '' })
+    updateMultipleParams({ type: '', sourceRegister: '', investment: '', createdBy: '' })
   }
 
   function clearDateFilters() {
@@ -121,8 +121,8 @@ export function TransferFilters({
           {cashRegisters && cashRegisters.length > 0 && (
             <FilterField label="Kasa">
               <FilterSelect
-                value={currentCashRegister}
-                onValueChange={(v) => updateParam('cashRegister', v)}
+                value={currentSourceRegister}
+                onValueChange={(v) => updateParam('sourceRegister', v)}
                 options={cashRegisters.map((cr) => ({ value: String(cr.id), label: cr.name }))}
               />
             </FilterField>

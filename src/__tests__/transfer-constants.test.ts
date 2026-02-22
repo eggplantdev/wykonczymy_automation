@@ -4,7 +4,7 @@ import {
   TRANSACTION_TRANSFER_TYPES,
   DEPOSIT_TYPES,
   isDepositType,
-  needsCashRegister,
+  needsSourceRegister,
   showsInvestment,
   requiresInvestment,
   needsWorker,
@@ -21,8 +21,8 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
     fn: isDepositType,
     trueFor: ['INVESTOR_DEPOSIT', 'COMPANY_FUNDING', 'OTHER_DEPOSIT'],
   },
-  needsCashRegister: {
-    fn: needsCashRegister,
+  needsSourceRegister: {
+    fn: needsSourceRegister,
     // true for everything EXCEPT EMPLOYEE_EXPENSE
     trueFor: TRANSFER_TYPES.filter((t) => t !== 'EMPLOYEE_EXPENSE') as string[],
   },
@@ -96,8 +96,8 @@ describe('transfer constants — edge cases', () => {
   const allHelpers: [string, HelperFn][] = Object.entries(HELPERS).map(([name, h]) => [name, h.fn])
 
   for (const [name, fn] of allHelpers) {
-    // needsCashRegister uses `!== 'EMPLOYEE_EXPENSE'`, so unknown types return true
-    const expectedForUnknown = name === 'needsCashRegister'
+    // needsSourceRegister uses `!== 'EMPLOYEE_EXPENSE'`, so unknown types return true
+    const expectedForUnknown = name === 'needsSourceRegister'
 
     it(`${name}('') → ${expectedForUnknown}`, () => {
       expect(fn('')).toBe(expectedForUnknown)

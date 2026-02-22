@@ -1,32 +1,24 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
-import { revalidateCollections } from '@/lib/cache/revalidate'
-import { getPayload } from 'payload'
-import config from '@payload-config'
-import { requireAuth } from '@/lib/auth/require-auth'
-import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
-import { getUserCashRegisterIds } from '@/lib/auth/get-user-cash-registers'
-import { isDepositType } from '@/lib/constants/transfers'
 import {
   createTransferSchema,
   type CreateTransferFormT,
 } from '@/components/forms/transfer-form/transfer-schema'
-import { sumRegisterBalance, sumInvestmentCosts } from '@/lib/db/sum-transfers'
-import { uploadInvoiceFile } from '@/lib/upload-invoice'
+import { requireAuth } from '@/lib/auth/require-auth'
+import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
+import { revalidateCollections } from '@/lib/cache/revalidate'
 import { perf, perfStart } from '@/lib/perf'
-import { type ActionResultT, getErrorMessage, validateAction } from './utils'
-
-type RecalculateResultT =
-  | {
-      success: true
-      message: string
-      results: {
-        cashRegisters: { id: number; name: string; oldBalance: number; newBalance: number }[]
-        investments: { id: number; name: string; oldCosts: number; newCosts: number }[]
-      }
-    }
-  | { success: false; error: string }
+import { isDepositType } from '@/lib/constants/transfers'
+import config from '@payload-config'
+import { getPayload } from 'payload'
+import {
+  getErrorMessage,
+  validateAction,
+  validateSourceRegister,
+  checkIfSufficientBalance,
+  handleInvoice,
+  type ActionResultT,
+} from './utils'
 
 export async function createTransferAction(
   data: CreateTransferFormT,
@@ -39,74 +31,35 @@ export async function createTransferAction(
   if (!session.success) return session
   const { user } = session
 
-  // Validate
   const parsed = validateAction(createTransferSchema, data)
   if (!parsed.success) return parsed
-
-  // Non-ADMIN users can only transfer from their own registers
-  if (user.role !== 'ADMIN' && parsed.data.cashRegister) {
-    const ownedIds = await getUserCashRegisterIds(user.id, user.role)
-    if (ownedIds && !ownedIds.includes(parsed.data.cashRegister)) {
-      return { success: false, error: 'Nie masz uprawnień do tej kasy' }
-    }
-  }
-
-  const invoiceFile = invoiceFormData?.get('invoice') as File | null
-  const hasInvoice = invoiceFile && invoiceFile.size > 0
 
   try {
     const payload = await perf('createTransfer.getPayload', () => getPayload({ config }))
 
-    // Reject if transfer would cause negative balance on source register (skip for VIRTUAL)
-    if (!isDepositType(parsed.data.type) && parsed.data.cashRegister) {
-      const register = await perf('createTransfer.fetchRegisterType', () =>
-        payload.findByID({
-          collection: 'cash-registers',
-          id: parsed.data.cashRegister!,
-          select: { type: true },
-          overrideAccess: true,
-        }),
-      )
+    // If not deposit, validate source register and check balance
+    if (!isDepositType(parsed.data.type)) {
+      const validated = await validateSourceRegister(data.sourceRegister, user)
+      if (!validated.success) return validated
 
-      const currentBalance = await perf('createTransfer.balanceCheck', () =>
-        sumRegisterBalance(payload, parsed.data.cashRegister!),
-      )
-
-      // Skip balance check for VIRTUAL register
-      if (currentBalance < parsed.data.amount && register?.type !== 'VIRTUAL') {
-        return {
-          success: false,
-          error: `Niewystarczające saldo kasy (${currentBalance.toFixed(2)} zł). Najpierw dodaj środki.`,
-        }
-      }
+      const balanceCheck = await checkIfSufficientBalance(validated.register, data.amount, payload)
+      if (!balanceCheck.success) return balanceCheck
     }
 
-    // Upload invoice file if provided
-    let mediaId: number | undefined
-    if (hasInvoice) {
-      mediaId = await perf('createTransfer.uploadMedia', () =>
-        uploadInvoiceFile(payload, invoiceFile),
-      )
-    }
+    const mediaId = invoiceFormData ? await handleInvoice(invoiceFormData, payload) : undefined
 
-    // Create the transfer (hooks fire inside this call)
-    const description = parsed.data.description || ''
-
-    await perf('createTransfer.payloadCreate (includes hooks)', () =>
-      payload.create({
+    await perf('createTransfer.payloadCreate (includes hooks)', async () => {
+      await payload.create({
         collection: 'transactions',
         data: {
-          ...parsed.data,
-          description,
+          ...data,
+          description: data.description || '',
           invoice: mediaId,
           createdBy: user.id,
         },
-      }),
-    )
-
-    // Hook revalidates inside the DB transaction (row may not be visible yet).
-    // Revalidate again after payload.create() returns (transaction committed).
-    revalidateCollections(['transfers', 'cashRegisters', 'investments'])
+      })
+      revalidateCollections(['transfers', 'cashRegisters', 'investments'])
+    })
 
     console.log(`[PERF] createTransferAction TOTAL ${elapsed()}ms`)
 
@@ -114,59 +67,6 @@ export async function createTransferAction(
   } catch (err) {
     console.log('[createTransferAction] Error:', getErrorMessage(err))
     return { success: false, error: getErrorMessage(err) }
-  }
-}
-
-export async function recalculateBalancesAction(): Promise<RecalculateResultT> {
-  const session = await requireAuth(['ADMIN', 'OWNER'])
-  if (!session.success) return session
-
-  const payload = await getPayload({ config })
-  const results = {
-    cashRegisters: [] as { id: number; name: string; oldBalance: number; newBalance: number }[],
-    investments: [] as { id: number; name: string; oldCosts: number; newCosts: number }[],
-  }
-
-  const registers = await payload.find({ collection: 'cash-registers', pagination: false })
-  for (const reg of registers.docs) {
-    const newBalance = await sumRegisterBalance(payload, reg.id)
-    const oldBalance = reg.balance ?? 0
-    if (oldBalance !== newBalance) {
-      await payload.update({
-        collection: 'cash-registers',
-        id: reg.id,
-        data: { balance: newBalance },
-        context: { skipBalanceRecalc: true },
-        overrideAccess: true,
-      })
-      results.cashRegisters.push({ id: reg.id, name: reg.name, oldBalance, newBalance })
-    }
-  }
-
-  const investments = await payload.find({ collection: 'investments', pagination: false })
-  for (const inv of investments.docs) {
-    const newCosts = await sumInvestmentCosts(payload, inv.id)
-    const oldCosts = inv.totalCosts ?? 0
-    if (oldCosts !== newCosts) {
-      await payload.update({
-        collection: 'investments',
-        id: inv.id,
-        data: { totalCosts: newCosts },
-        context: { skipBalanceRecalc: true },
-        overrideAccess: true,
-      })
-      results.investments.push({ id: inv.id, name: inv.name, oldCosts, newCosts })
-    }
-  }
-
-  revalidateCollections(['transfers', 'cashRegisters', 'investments', 'users', 'otherCategories'])
-  revalidatePath('/', 'layout')
-
-  const fixed = results.cashRegisters.length + results.investments.length
-  return {
-    success: true,
-    message: fixed === 0 ? 'Wszystkie salda są poprawne' : `Naprawiono ${fixed} sald`,
-    results,
   }
 }
 
@@ -199,15 +99,9 @@ export async function updateTransferInvoiceAction(
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) return session
 
-  const invoiceFile = invoiceFormData.get('invoice') as File | null
-  if (!invoiceFile || invoiceFile.size === 0) {
-    return { success: false, error: 'Nie wybrano pliku' }
-  }
-
   try {
     const payload = await getPayload({ config })
-
-    const mediaId = await uploadInvoiceFile(payload, invoiceFile)
+    const mediaId = await handleInvoice(invoiceFormData, payload)
 
     await payload.update({
       collection: 'transactions',

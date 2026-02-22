@@ -20,7 +20,7 @@ const validClientInvestment = {
   worker: '1',
   mode: 'investment' as const,
   investment: '1',
-  cashRegister: '',
+  sourceRegister: '',
   amount: '',
   description: '',
   date: '2026-02-19',
@@ -33,7 +33,7 @@ const validClientCategory = {
   worker: '1',
   mode: 'category' as const,
   investment: '',
-  cashRegister: '',
+  sourceRegister: '',
   amount: '',
   description: '',
   date: '2026-02-19',
@@ -56,7 +56,7 @@ const validClientRegister = {
   worker: '1',
   mode: 'register' as const,
   investment: '',
-  cashRegister: '1',
+  sourceRegister: '1',
   amount: '200',
   description: 'Zwrot gotówki',
   date: '2026-02-19',
@@ -77,7 +77,7 @@ const validServerCategory = {
 const validServerRegister = {
   worker: 1,
   mode: 'register' as const,
-  cashRegister: 1,
+  sourceRegister: 1,
   amount: 200,
   description: 'Zwrot gotówki',
   date: '2026-02-19',
@@ -229,13 +229,13 @@ describe('settlementFormSchema (client)', () => {
       expect(result.success).toBe(true)
     })
 
-    it('missing cashRegister → error on cashRegister', () => {
+    it('missing sourceRegister → error on sourceRegister', () => {
       const result = settlementFormSchema.safeParse({
         ...validClientRegister,
-        cashRegister: '',
+        sourceRegister: '',
       })
       expect(result.success).toBe(false)
-      expect(errorPaths(result)).toContain('cashRegister')
+      expect(errorPaths(result)).toContain('sourceRegister')
     })
 
     it('missing amount → error on amount', () => {
@@ -421,11 +421,11 @@ describe('createSettlementSchema (server)', () => {
       expect(errorPaths(result)).toContain('lineItems.0.category')
     })
 
-    it('mode=register without cashRegister → fails', () => {
-      const { cashRegister, ...rest } = validServerRegister
+    it('mode=register without sourceRegister → fails', () => {
+      const { sourceRegister, ...rest } = validServerRegister
       const result = createSettlementSchema.safeParse(rest)
       expect(result.success).toBe(false)
-      expect(errorPaths(result)).toContain('cashRegister')
+      expect(errorPaths(result)).toContain('sourceRegister')
     })
 
     it('mode=register without amount → fails', () => {
@@ -480,10 +480,10 @@ describe('settlement schema parity', () => {
     expect(serverResult.success).toBe(true)
   })
 
-  it('mode=register without cashRegister — both reject', () => {
-    const clientPayload = { ...validClientRegister, cashRegister: '' }
+  it('mode=register without sourceRegister — both reject', () => {
+    const clientPayload = { ...validClientRegister, sourceRegister: '' }
     const serverPayload = { ...validServerRegister }
-    delete (serverPayload as Record<string, unknown>).cashRegister
+    delete (serverPayload as Record<string, unknown>).sourceRegister
 
     const clientResult = settlementFormSchema.safeParse(clientPayload)
     const serverResult = createSettlementSchema.safeParse(serverPayload)

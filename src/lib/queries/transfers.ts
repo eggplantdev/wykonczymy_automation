@@ -121,11 +121,11 @@ export function buildTransferFilters(
     where.type = { equals: typeParam }
   }
 
-  // Cash register filter
-  const cashRegisterParam =
-    typeof searchParams.cashRegister === 'string' ? searchParams.cashRegister : undefined
-  if (cashRegisterParam) {
-    where.cashRegister = { equals: Number(cashRegisterParam) }
+  // Source register filter
+  const sourceRegisterParam =
+    typeof searchParams.sourceRegister === 'string' ? searchParams.sourceRegister : undefined
+  if (sourceRegisterParam) {
+    where.sourceRegister = { equals: Number(sourceRegisterParam) }
   }
 
   // Investment filter

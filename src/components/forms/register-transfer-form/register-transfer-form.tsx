@@ -29,7 +29,7 @@ type FormValuesT = {
   amount: string
   date: string
   paymentMethod: string
-  cashRegister: string
+  sourceRegister: string
   targetRegister: string
 }
 
@@ -41,7 +41,7 @@ export function RegisterTransferForm({ referenceData, onSuccess }: RegisterTrans
       amount: '',
       date: today(),
       paymentMethod: 'CASH',
-      cashRegister: getDefaultCashRegister(referenceData),
+      sourceRegister: getDefaultCashRegister(referenceData),
       targetRegister: '',
     } as FormValuesT,
     validators: {
@@ -54,7 +54,7 @@ export function RegisterTransferForm({ referenceData, onSuccess }: RegisterTrans
         date: value.date,
         type: 'REGISTER_TRANSFER',
         paymentMethod: value.paymentMethod as PaymentMethodT,
-        cashRegister: Number(value.cashRegister),
+        sourceRegister: Number(value.sourceRegister),
         targetRegister: Number(value.targetRegister),
       }
 

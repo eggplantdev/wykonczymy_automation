@@ -17,6 +17,7 @@ import * as migration_20260221_200518 from './20260221_200518'
 import * as migration_20260221_201040 from './20260221_201040'
 import * as migration_20260221_201112 from './20260221_201112'
 import * as migration_20260221_add_virtual_cash_register_type from './20260221_add_virtual_cash_register_type'
+import * as migration_20260222_rename_cash_register_to_source_register from './20260222_rename_cash_register_to_source_register'
 
 export const migrations = [
   {
@@ -113,5 +114,10 @@ export const migrations = [
     up: migration_20260221_add_virtual_cash_register_type.up,
     down: migration_20260221_add_virtual_cash_register_type.down,
     name: '20260221_add_virtual_cash_register_type',
+  },
+  {
+    up: migration_20260222_rename_cash_register_to_source_register.up,
+    down: migration_20260222_rename_cash_register_to_source_register.down,
+    name: '20260222_rename_cash_register_to_source_register',
   },
 ]

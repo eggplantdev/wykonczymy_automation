@@ -21,7 +21,7 @@ export const settlementFormSchema = z
     worker: z.string(),
     mode: z.enum(SETTLEMENT_MODES),
     investment: z.string(),
-    cashRegister: z.string(),
+    sourceRegister: z.string(),
     amount: z.string(),
     description: z.string(),
     date: z.string(),
@@ -55,11 +55,11 @@ export const settlementFormSchema = z
     }
 
     if (data.mode === 'register') {
-      if (!data.cashRegister) {
+      if (!data.sourceRegister) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: 'Kasa jest wymagana',
-          path: ['cashRegister'],
+          path: ['sourceRegister'],
         })
       }
       if (!data.amount || Number(data.amount) <= 0) {
@@ -114,7 +114,7 @@ export const createSettlementSchema = z
     worker: z.number({ error: 'Pracownik jest wymagany' }).positive('Pracownik jest wymagany'),
     mode: z.enum(SETTLEMENT_MODES),
     investment: z.number().positive().optional(),
-    cashRegister: z.number().positive().optional(),
+    sourceRegister: z.number().positive().optional(),
     amount: z.number().positive('Kwota musi być większa niż 0').optional(),
     description: z.string().optional(),
     date: z.string().min(1, 'Data jest wymagana'),
@@ -141,11 +141,11 @@ export const createSettlementSchema = z
     }
 
     if (data.mode === 'register') {
-      if (!data.cashRegister) {
+      if (!data.sourceRegister) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: 'Kasa jest wymagana',
-          path: ['cashRegister'],
+          path: ['sourceRegister'],
         })
       }
       if (!data.amount || data.amount <= 0) {

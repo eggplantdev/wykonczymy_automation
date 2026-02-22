@@ -82,8 +82,8 @@ const resolveId = (value: unknown): number | undefined => {
  * afterChange — recalculate register balance and investment costs
  * after a transaction is created or updated.
  *
- * REGISTER_TRANSFER: recalcs both source (cashRegister) and target (targetRegister).
- * EMPLOYEE_EXPENSE: registerId is undefined (no cashRegister) → naturally skipped.
+ * REGISTER_TRANSFER: recalcs both source (sourceRegister) and target (targetRegister).
+ * EMPLOYEE_EXPENSE: registerId is undefined (no sourceRegister) → naturally skipped.
  */
 export const recalcAfterChange: CollectionAfterChangeHook = async ({
   doc,
@@ -98,8 +98,8 @@ export const recalcAfterChange: CollectionAfterChangeHook = async ({
     return doc
   }
 
-  const registerId = resolveId(doc.cashRegister)
-  const prevRegisterId = resolveId(previousDoc?.cashRegister)
+  const registerId = resolveId(doc.sourceRegister)
+  const prevRegisterId = resolveId(previousDoc?.sourceRegister)
   const targetRegisterId = resolveId(doc.targetRegister)
   const prevTargetRegisterId = resolveId(previousDoc?.targetRegister)
   const investmentId = resolveId(doc.investment)
@@ -160,7 +160,7 @@ export const recalcAfterDelete: CollectionAfterDeleteHook = async ({ doc, req })
   const elapsed = perfStart()
   console.log(`[PERF] recalcAfterDelete START id=${doc.id} type=${doc.type}`)
 
-  const registerId = resolveId(doc.cashRegister)
+  const registerId = resolveId(doc.sourceRegister)
   const targetRegisterId = resolveId(doc.targetRegister)
   const investmentId = resolveId(doc.investment)
 

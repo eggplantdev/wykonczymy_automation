@@ -1,7 +1,7 @@
 import type { CollectionBeforeValidateHook } from 'payload'
 import type { Transaction } from '@/payload-types'
 import {
-  needsCashRegister,
+  needsSourceRegister,
   requiresInvestment,
   needsWorker,
   needsTargetRegister,
@@ -27,14 +27,14 @@ export const validateTransfer: CollectionBeforeValidateHook = ({ data, req, oper
   const type = d.type ?? ''
   const errors: string[] = []
 
-  // cashRegister — required for all types except EMPLOYEE_EXPENSE
-  if (needsCashRegister(type) && !d.cashRegister) {
+  // sourceRegister — required for all types except EMPLOYEE_EXPENSE
+  if (needsSourceRegister(type) && !d.sourceRegister) {
     errors.push('Cash register is required for this transfer type.')
   }
 
-  // Auto-clear cashRegister for EMPLOYEE_EXPENSE (prevent stale data)
-  if (!needsCashRegister(type)) {
-    d.cashRegister = null
+  // Auto-clear sourceRegister for EMPLOYEE_EXPENSE (prevent stale data)
+  if (!needsSourceRegister(type)) {
+    d.sourceRegister = null
   }
 
   // investment — required for INVESTOR_DEPOSIT, INVESTMENT_EXPENSE
@@ -51,7 +51,7 @@ export const validateTransfer: CollectionBeforeValidateHook = ({ data, req, oper
   if (needsTargetRegister(type)) {
     if (!d.targetRegister) {
       errors.push('Target register is required for register transfers.')
-    } else if (d.cashRegister && d.targetRegister === d.cashRegister) {
+    } else if (d.sourceRegister && d.targetRegister === d.sourceRegister) {
       errors.push('Target register must be different from source register.')
     }
   }

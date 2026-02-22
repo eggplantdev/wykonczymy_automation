@@ -46,7 +46,7 @@ type FormValuesT = {
   worker: string
   mode: 'investment' | 'category' | 'register'
   investment?: string
-  cashRegister: string
+  sourceRegister: string
   amount: string
   description: string
   date: string
@@ -68,7 +68,7 @@ export function SettlementForm({ referenceData, className, onSuccess }: Settleme
       worker: '',
       mode: 'investment' as const,
       investment: '',
-      cashRegister: referenceData.defaultCashRegisterId
+      sourceRegister: referenceData.defaultCashRegisterId
         ? String(referenceData.defaultCashRegisterId)
         : '',
       amount: '',
@@ -86,7 +86,7 @@ export function SettlementForm({ referenceData, className, onSuccess }: Settleme
         worker: Number(value.worker),
         mode: value.mode,
         investment: value.mode === 'investment' ? Number(value.investment) : undefined,
-        cashRegister: value.mode === 'register' ? Number(value.cashRegister) : undefined,
+        sourceRegister: value.mode === 'register' ? Number(value.sourceRegister) : undefined,
         amount: value.mode === 'register' ? Number(value.amount) : undefined,
         description: value.mode === 'register' ? value.description || undefined : undefined,
         date: value.date,
