@@ -15,6 +15,7 @@ import {
   validateSourceRegister,
   withAction,
 } from './utils'
+import { perfStart } from '@/lib/perf'
 
 export async function createTransferAction(
   data: CreateTransferFormT,
@@ -23,21 +24,27 @@ export async function createTransferAction(
   return withAction(
     `createTransferAction type=${data.type}`,
     async ({ payload, user }) => {
+      const step = perfStart()
+
       const parsed = validateAction(createTransferSchema, data)
       if (!parsed.success) return parsed
+      console.log(`[PERF]   validateAction ${step()}ms`)
 
       if (!isDepositType(parsed.data.type)) {
-        const validated = await validateSourceRegister(data.sourceRegister, user)
+        const validated = await validateSourceRegister(data.sourceRegister, user, payload)
+        console.log(`[PERF]   validateSourceRegister ${step()}ms`)
         if (!validated.success) return validated
         const balanceCheck = await checkIfSufficientBalance(
           validated.register,
           data.amount,
           payload,
         )
+        console.log(`[PERF]   checkIfSufficientBalance ${step()}ms`)
         if (!balanceCheck.success) return balanceCheck
       }
 
       const mediaId = await uploadSingleInvoice(payload, invoiceFormData)
+      console.log(`[PERF]   uploadSingleInvoice ${step()}ms`)
 
       await payload.create({
         collection: 'transactions',
@@ -48,6 +55,7 @@ export async function createTransferAction(
           createdBy: user.id,
         },
       })
+      console.log(`[PERF]   payload.create ${step()}ms`)
 
       return { success: true }
     },
@@ -68,7 +76,7 @@ export async function createBulkTransferAction(
       if (!parsed.success) return parsed
 
       if (needsSourceRegister(parsed.data.type)) {
-        const validated = await validateSourceRegister(parsed.data.sourceRegister, user)
+        const validated = await validateSourceRegister(parsed.data.sourceRegister, user, payload)
         if (!validated.success) return validated
 
         const totalAmount = parsed.data.lineItems.reduce((sum, item) => sum + item.amount, 0)

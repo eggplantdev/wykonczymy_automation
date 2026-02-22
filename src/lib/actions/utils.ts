@@ -6,9 +6,9 @@ import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { revalidateCollections } from '@/lib/cache/revalidate'
 import type { CACHE_TAGS } from '@/lib/cache/tags'
-import { sumRegisterBalance } from '@/lib/db/sum-transfers'
+import { sql } from '@payloadcms/db-vercel-postgres'
+import { getDb, sumRegisterBalance } from '@/lib/db/sum-transfers'
 import { perfStart } from '@/lib/perf'
-import { fetchReferenceData } from '@/lib/queries/reference-data'
 import type { SessionUserT } from '@/types/auth'
 import type { ReferenceItemT } from '@/types/reference-data'
 
@@ -49,12 +49,19 @@ export async function withAction(
 
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) return session
+  console.log(`[PERF]   requireAuth ${elapsed()}ms`)
 
   try {
     const payload = await getPayload({ config })
-    const result = await handler({ payload, user: session.user })
+    console.log(`[PERF]   getPayload ${elapsed()}ms`)
 
-    if (result.success && revalidate) revalidateCollections(revalidate)
+    const result = await handler({ payload, user: session.user })
+    console.log(`[PERF]   handler done ${elapsed()}ms`)
+
+    if (result.success && revalidate) {
+      revalidateCollections(revalidate)
+      console.log(`[PERF]   revalidateCollections ${elapsed()}ms`)
+    }
 
     console.log(`[PERF] ${label} ${elapsed()}ms`)
     return result
@@ -67,13 +74,30 @@ export async function withAction(
 export async function validateSourceRegister(
   cashRegisterId: number | undefined,
   user: SessionUserT,
+  payload: Payload,
 ): Promise<ValidateSourceRegisterResultT> {
-  const refData = await fetchReferenceData()
-  const register = refData.cashRegisters.find((cr) => cr.id === cashRegisterId)
+  if (cashRegisterId === undefined) return { success: false, error: 'Kasa nie istnieje' }
 
-  if (!register) return { success: false, error: 'Kasa nie istnieje' }
+  const db = await getDb(payload)
+  const result = await db.execute(sql`
+    SELECT id, name, type::text, active::boolean, owner_id::integer
+    FROM cash_registers
+    WHERE id = ${cashRegisterId}
+    LIMIT 1
+  `)
 
-  // admin can transfer from any register other roles can only transfer from their own register
+  const row = result.rows[0]
+  if (!row) return { success: false, error: 'Kasa nie istnieje' }
+
+  const register: ReferenceItemT = {
+    id: Number(row.id),
+    name: row.name as string,
+    type: (row.type as string) ?? 'AUXILIARY',
+    active: row.active as boolean,
+    ownerId: row.owner_id ? Number(row.owner_id) : undefined,
+  }
+
+  // admin can transfer from any register, other roles can only transfer from their own register
   if (user.role !== 'ADMIN' && register.ownerId !== user.id) {
     return { success: false, error: 'Nie masz uprawnień do tej kasy' }
   }
