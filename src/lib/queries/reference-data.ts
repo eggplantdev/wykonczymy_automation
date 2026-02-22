@@ -3,7 +3,13 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { CACHE_TAGS } from '@/lib/cache/tags'
-import { getDb, sumAllWorkerSaldos } from '@/lib/db/sum-transfers'
+import {
+  getDb,
+  sumAllWorkerSaldos,
+  sumAllRegisterBalances,
+  sumAllInvestmentFinancials,
+  type InvestmentFinancialsT,
+} from '@/lib/db/sum-transfers'
 import { perfStart } from '@/lib/perf'
 
 import type {
@@ -30,11 +36,11 @@ export async function fetchReferenceData(): Promise<ReferenceDataBaseT> {
 
   const [crResult, invResult, usersResult, catResult] = await Promise.all([
     db.execute(sql`
-      SELECT id, name, type::text, active::boolean, owner_id::integer, balance
+      SELECT id, name, type::text, active::boolean, owner_id::integer
       FROM cash_registers
     `),
     db.execute(sql`
-      SELECT id, name, status::text, total_costs, total_income, labor_costs,
+      SELECT id, name, status::text, labor_costs,
              address, phone, email, contact_person
       FROM investments
     `),
@@ -58,7 +64,6 @@ export async function fetchReferenceData(): Promise<ReferenceDataBaseT> {
     type: (row.type as string) ?? 'AUXILIARY',
     active: row.active as boolean,
     ownerId: row.owner_id ? Number(row.owner_id) : undefined,
-    balance: Number(row.balance ?? 0),
   }))
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -67,8 +72,6 @@ export async function fetchReferenceData(): Promise<ReferenceDataBaseT> {
     name: row.name as string,
     status: (row.status as 'active' | 'completed') ?? 'active',
     active: row.status === 'active',
-    totalCosts: Number(row.total_costs ?? 0),
-    totalIncome: Number(row.total_income ?? 0),
     laborCosts: Number(row.labor_costs ?? 0),
     address: (row.address as string) ?? '',
     phone: (row.phone as string) ?? '',
@@ -109,5 +112,38 @@ export async function fetchWorkerSaldos(): Promise<WorkerSaldoMapT> {
   const map = await sumAllWorkerSaldos(payload)
   const record = Object.fromEntries(map)
   console.log(`[PERF] query.fetchWorkerSaldos ${elapsed()}ms (${map.size} workers)`)
+  return record
+}
+
+export type RegisterBalanceMapT = Record<string, number>
+
+export async function fetchRegisterBalances(): Promise<RegisterBalanceMapT> {
+  'use cache'
+  cacheLife('max')
+  cacheTag(CACHE_TAGS.transfers)
+
+  const elapsed = perfStart()
+  const payload = await getPayload({ config })
+  const map = await sumAllRegisterBalances(payload)
+  const record = Object.fromEntries(map)
+  console.log(`[PERF] query.fetchRegisterBalances ${elapsed()}ms (${map.size} registers)`)
+  return record
+}
+
+export type InvestmentFinancialsMapT = Record<string, InvestmentFinancialsT>
+
+export async function fetchInvestmentFinancials(): Promise<InvestmentFinancialsMapT> {
+  'use cache'
+  cacheLife('max')
+  cacheTag(CACHE_TAGS.transfers)
+
+  const elapsed = perfStart()
+  const payload = await getPayload({ config })
+  const map = await sumAllInvestmentFinancials(payload)
+  const record: InvestmentFinancialsMapT = {}
+  for (const [id, financials] of map) {
+    record[String(id)] = financials
+  }
+  console.log(`[PERF] query.fetchInvestmentFinancials ${elapsed()}ms (${map.size} investments)`)
   return record
 }

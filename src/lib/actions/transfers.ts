@@ -14,14 +14,7 @@ import { perf, perfStart } from '@/lib/perf'
 import { uploadInvoiceFile } from '@/lib/upload-invoice'
 import config from '@payload-config'
 import { getPayload, type Payload } from 'payload'
-import { isDepositType, needsSourceRegister, INVESTMENT_TYPES } from '../constants/transfers'
-import { sql } from '@payloadcms/db-vercel-postgres'
-import {
-  getDb,
-  sumRegisterBalance,
-  sumInvestmentCosts,
-  sumInvestmentIncome,
-} from '@/lib/db/sum-transfers'
+import { isDepositType, needsSourceRegister } from '../constants/transfers'
 import {
   checkIfSufficientBalance,
   getErrorMessage,
@@ -73,7 +66,7 @@ export async function createTransferAction(
           createdBy: user.id,
         },
       })
-      revalidateCollections(['transfers', 'cashRegisters', 'investments'])
+      revalidateCollections(['transfers'])
     })
 
     console.log(`[PERF] createTransferAction TOTAL ${elapsed()}ms`)
@@ -124,7 +117,7 @@ export async function createBulkTransferAction(
       ),
     )
 
-    // Create all transactions in parallel with deferred recalc
+    // Create all transactions in parallel — hook handles cache revalidation
     const created = await perf(`bulkTransfer.createTransactions (${lineCount} items)`, async () => {
       const results = await Promise.all(
         parsed.data.lineItems.map((item, i) =>
@@ -146,50 +139,13 @@ export async function createBulkTransferAction(
               invoiceNote: item.invoiceNote,
               createdBy: user.id,
             },
-            context: { skipBalanceRecalc: true },
           }),
         ),
       )
       return results.length
     })
 
-    // Deferred recalc — register balance + investment financials
-    await perf('bulkTransfer.recalcBalances', async () => {
-      const db = await getDb(payload)
-
-      if (parsed.data.sourceRegister && needsSourceRegister(parsed.data.type)) {
-        const balance = await sumRegisterBalance(payload, parsed.data.sourceRegister)
-        await db.execute(sql`
-          UPDATE cash_registers SET balance = ${balance}, updated_at = NOW()
-          WHERE id = ${parsed.data.sourceRegister}
-        `)
-      }
-
-      if (parsed.data.targetRegister) {
-        const balance = await sumRegisterBalance(payload, parsed.data.targetRegister)
-        await db.execute(sql`
-          UPDATE cash_registers SET balance = ${balance}, updated_at = NOW()
-          WHERE id = ${parsed.data.targetRegister}
-        `)
-      }
-
-      if (
-        parsed.data.investment &&
-        (INVESTMENT_TYPES as readonly string[]).includes(parsed.data.type)
-      ) {
-        const [totalCosts, totalIncome] = await Promise.all([
-          sumInvestmentCosts(payload, parsed.data.investment),
-          sumInvestmentIncome(payload, parsed.data.investment),
-        ])
-        await db.execute(sql`
-          UPDATE investments
-          SET total_costs = ${totalCosts}, total_income = ${totalIncome}, updated_at = NOW()
-          WHERE id = ${parsed.data.investment}
-        `)
-      }
-    })
-
-    revalidateCollections(['transfers', 'cashRegisters', 'investments'])
+    revalidateCollections(['transfers'])
 
     console.log(`[PERF] createBulkTransferAction TOTAL ${elapsed()}ms (${created} transactions)`)
 
@@ -311,7 +267,7 @@ export async function cancelTransferAction(transferId: number): Promise<ActionRe
       },
     })
 
-    revalidateCollections(['transfers', 'cashRegisters', 'investments'])
+    revalidateCollections(['transfers'])
 
     return { success: true }
   } catch (err) {

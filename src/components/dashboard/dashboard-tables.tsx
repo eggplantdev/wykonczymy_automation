@@ -6,7 +6,6 @@ import { cashRegisterColumns } from '@/lib/tables/cash-registers'
 import { userColumns } from '@/lib/tables/users'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { InvestmentDataTable } from '@/components/investments/investment-data-table'
-import { SyncBalancesButton } from '@/components/dashboard/sync-balances-button'
 import { useActiveFilter } from '@/hooks/use-active-filter'
 import type { CashRegisterRowT } from '@/lib/tables/cash-registers'
 import type { InvestmentRowT } from '@/lib/tables/investments'
@@ -50,21 +49,14 @@ type DashboardTablesPropsT = {
   readonly cashRegisters: readonly CashRegisterRowT[]
   readonly investments: readonly InvestmentRowT[]
   readonly users: readonly UserRowT[]
-  readonly showSyncButton?: boolean
 }
 
-export function DashboardTables({
-  cashRegisters,
-  investments,
-  users,
-  showSyncButton,
-}: DashboardTablesPropsT) {
+export function DashboardTables({ cashRegisters, investments, users }: DashboardTablesPropsT) {
   return (
     <div className="mt-8 space-y-8">
       <CollapsibleSection title="Kasy">
-        <div className="mt-4 space-y-2">
+        <div className="mt-4">
           <CashRegistersTable data={cashRegisters} />
-          {showSyncButton && <SyncBalancesButton className="ml-auto" />}
         </div>
       </CollapsibleSection>
       <CollapsibleSection title="Pracownicy">

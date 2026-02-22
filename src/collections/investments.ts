@@ -15,7 +15,7 @@ export const Investments: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'status', 'totalCosts'],
+    defaultColumns: ['name', 'status', 'laborCosts'],
     group: { en: 'Finance', pl: 'Finanse' },
   },
   hooks: {
@@ -59,39 +59,6 @@ export const Investments: CollectionConfig = {
       name: 'notes',
       type: 'textarea',
       label: { en: 'Notes', pl: 'Notatki' },
-    },
-    {
-      name: 'totalCosts',
-      type: 'number',
-      defaultValue: 0,
-      label: { en: 'Total Costs', pl: 'Koszty całkowite' },
-      admin: {
-        readOnly: true,
-        description: {
-          en: 'Updated automatically via transactions',
-          pl: 'Aktualizowane automatycznie przez transfery',
-        },
-      },
-      access: {
-        // Derived field — only writable via raw SQL in recalculation hooks
-        update: () => false,
-      },
-    },
-    {
-      name: 'totalIncome',
-      type: 'number',
-      defaultValue: 0,
-      label: { en: 'Total Income', pl: 'Wpłaty od inwestora' },
-      admin: {
-        readOnly: true,
-        description: {
-          en: 'Updated automatically via deposit transfers',
-          pl: 'Aktualizowane automatycznie przez wpłaty',
-        },
-      },
-      access: {
-        update: () => false,
-      },
     },
     {
       name: 'laborCosts',
