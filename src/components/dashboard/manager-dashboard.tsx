@@ -22,7 +22,6 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
     totalBalance,
     ownedBalance,
     virtualRegisters,
-    isAdminOrOwner,
   } = await fetchManagerDashboardData()
 
   return (
@@ -44,7 +43,6 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
         cashRegisters={visibleRegisters}
         investments={allInvestments}
         users={users}
-        showSyncButton={isAdminOrOwner}
       />
 
       {/* Recent transactions */}
