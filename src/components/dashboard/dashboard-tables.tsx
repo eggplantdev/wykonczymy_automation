@@ -1,18 +1,22 @@
 'use client'
 
+import { useMemo } from 'react'
 import { DataTable } from '@/components/ui/data-table/data-table'
 import { ActiveFilterButton } from '@/components/ui/active-filter-button'
-import { cashRegisterColumns } from '@/lib/tables/cash-registers'
-import { userColumns } from '@/lib/tables/users'
+import { getCashRegisterColumns } from '@/lib/tables/cash-registers'
+import { getUserColumns } from '@/lib/tables/users'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { InvestmentDataTable } from '@/components/investments/investment-data-table'
 import { useActiveFilter } from '@/hooks/use-active-filter'
+import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle'
+import { toggleCashRegisterActive, toggleUserActive } from '@/lib/actions/toggle-active'
 import type { CashRegisterRowT } from '@/lib/tables/cash-registers'
 import type { InvestmentRowT } from '@/lib/tables/investments'
 import type { UserRowT } from '@/lib/tables/users'
 
 const isCashRegisterActive = (row: CashRegisterRowT) => row.active
 const isUserActive = (row: UserRowT) => row.active
+const getActiveUpdate = (newActive: boolean) => ({ active: newActive })
 
 type CashRegistersTablePropsT = {
   readonly data: readonly CashRegisterRowT[]
@@ -20,16 +24,24 @@ type CashRegistersTablePropsT = {
 }
 
 function CashRegistersTable({ data, className }: CashRegistersTablePropsT) {
-  const { filteredData, showOnlyActive, setShowOnlyActive } = useActiveFilter(
+  const { optimisticData, handleToggle } = useOptimisticToggle(
     data,
+    getActiveUpdate,
+    toggleCashRegisterActive,
+  )
+
+  const { filteredData, showOnlyActive, setShowOnlyActive } = useActiveFilter(
+    optimisticData,
     isCashRegisterActive,
   )
+
+  const columns = useMemo(() => getCashRegisterColumns(handleToggle), [handleToggle])
 
   return (
     <DataTable
       className={className}
       data={filteredData}
-      columns={cashRegisterColumns}
+      columns={columns}
       emptyMessage="Brak kas"
       getRowHref={(row) => `/kasa/${row.id}`}
       getRowClassName={(row) => (!row.active ? 'opacity-50' : '')}
@@ -78,12 +90,23 @@ type UsersTablePropsT = {
 }
 
 function UsersTable({ data }: UsersTablePropsT) {
-  const { filteredData, showOnlyActive, setShowOnlyActive } = useActiveFilter(data, isUserActive)
+  const { optimisticData, handleToggle } = useOptimisticToggle(
+    data,
+    getActiveUpdate,
+    toggleUserActive,
+  )
+
+  const { filteredData, showOnlyActive, setShowOnlyActive } = useActiveFilter(
+    optimisticData,
+    isUserActive,
+  )
+
+  const columns = useMemo(() => getUserColumns(handleToggle), [handleToggle])
 
   return (
     <DataTable
       data={filteredData}
-      columns={userColumns}
+      columns={columns}
       emptyMessage="Brak pracownikiów"
       getRowHref={(row) => `/uzytkownicy/${row.id}`}
       getRowClassName={(row) => (!row.active ? 'opacity-50' : '')}
