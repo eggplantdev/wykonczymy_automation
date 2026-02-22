@@ -3,7 +3,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { CACHE_TAGS } from '@/lib/cache/tags'
-import { getDb } from '@/lib/db/sum-transfers'
+import { getDb, sumAllWorkerSaldos } from '@/lib/db/sum-transfers'
 import { perfStart } from '@/lib/perf'
 
 import type {
@@ -95,4 +95,19 @@ export async function fetchReferenceData(): Promise<ReferenceDataBaseT> {
   }))
 
   return { cashRegisters, investments, workers, otherCategories }
+}
+
+export type WorkerSaldoMapT = Record<string, number>
+
+export async function fetchWorkerSaldos(): Promise<WorkerSaldoMapT> {
+  'use cache'
+  cacheLife('max')
+  cacheTag(CACHE_TAGS.transfers)
+
+  const elapsed = perfStart()
+  const payload = await getPayload({ config })
+  const map = await sumAllWorkerSaldos(payload)
+  const record = Object.fromEntries(map)
+  console.log(`[PERF] query.fetchWorkerSaldos ${elapsed()}ms (${map.size} workers)`)
+  return record
 }
