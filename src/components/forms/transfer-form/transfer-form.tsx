@@ -117,6 +117,7 @@ export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
   useCheckFormErrors(form)
 
   const currentType = useStore(form.store, (s) => s.values.type)
+  const isAccountFunding = currentType === 'ACCOUNT_FUNDING'
   const lineItems = useStore(form.store, (s) => s.values.lineItems)
   const total = lineItems.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
 
@@ -268,8 +269,15 @@ export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
           {/* Conditional: Worker */}
           {needsWorker(currentType) && <WorkerField form={form} workers={referenceData.workers} />}
 
-          {/* Line items */}
-          {!isDepositType(currentType) && (
+          {/* ACCOUNT_FUNDING: single amount field */}
+          {isAccountFunding && (
+            <form.AppField name="lineItems[0].amount">
+              {(field) => <field.Input label="Kwota" placeholder="Kwota" type="number" showError />}
+            </form.AppField>
+          )}
+
+          {/* Line items — all other non-deposit types */}
+          {!isDepositType(currentType) && !isAccountFunding && (
             <form.Field name="lineItems" mode="array">
               {(lineItemsField) => (
                 <div className="space-y-4">
@@ -298,23 +306,19 @@ export function TransferForm({ referenceData, onSuccess }: TransferFormPropsT) {
                           <X className="size-4" />
                         </Button>
                       </div>
-                      {currentType !== 'ACCOUNT_FUNDING' && (
-                        <>
-                          <FileInput
-                            accept="image/*,application/pdf"
-                            onChange={(e) => handleFileChange(index, e)}
+                      <FileInput
+                        accept="image/*,application/pdf"
+                        onChange={(e) => handleFileChange(index, e)}
+                      />
+                      <form.AppField name={`lineItems[${index}].invoiceNote`}>
+                        {(field) => (
+                          <field.Textarea
+                            placeholder="Notatka do faktury (opcjonalnie)"
+                            showError
+                            className="min-h-6"
                           />
-                          <form.AppField name={`lineItems[${index}].invoiceNote`}>
-                            {(field) => (
-                              <field.Textarea
-                                placeholder="Notatka do faktury (opcjonalnie)"
-                                showError
-                                className="min-h-6"
-                              />
-                            )}
-                          </form.AppField>
-                        </>
-                      )}
+                        )}
+                      </form.AppField>
                     </div>
                   ))}
                   <Button

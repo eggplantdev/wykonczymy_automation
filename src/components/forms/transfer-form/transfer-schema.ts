@@ -153,7 +153,7 @@ export const bulkTransferFormSchema = z
     }
 
     data.lineItems.forEach((item, index) => {
-      if (!item.description.trim()) {
+      if (data.type !== 'ACCOUNT_FUNDING' && !item.description.trim()) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: 'Opis jest wymagany',

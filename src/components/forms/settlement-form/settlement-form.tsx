@@ -266,7 +266,7 @@ export function SettlementForm({ referenceData, className, onSuccess }: Settleme
               <form.Field name="lineItems" mode="array">
                 {(lineItemsField) => (
                   <div className="space-y-4">
-                    <p className="text-foreground text-sm font-medium">Pozycje faktury</p>
+                    <p className="text-foreground text-sm font-medium">Faktura</p>
                     {lineItemsField.state.value.map((_, index) => (
                       <div key={index} className="space-y-2">
                         <div className="flex items-start gap-2">
