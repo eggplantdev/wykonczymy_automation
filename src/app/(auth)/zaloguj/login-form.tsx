@@ -1,13 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
 import { loginAction } from '@/lib/actions/auth'
 
 export function LoginForm() {
-  const router = useRouter()
   const [error, setError] = useState<string>()
 
   const form = useAppForm({
@@ -18,10 +16,7 @@ export function LoginForm() {
     onSubmit: async ({ value }) => {
       setError(undefined)
       const response = await loginAction(value)
-      if (response.success) {
-        router.push('/')
-        router.refresh()
-      } else {
+      if (response.error) {
         setError(response.error)
       }
     },
