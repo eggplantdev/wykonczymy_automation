@@ -7,6 +7,7 @@ import { fetchRegisterBalances } from '@/lib/queries/reference-data'
 import { getRelationName } from '@/lib/get-relation-name'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { formatPLN } from '@/lib/format-currency'
+import { perfStart } from '@/lib/perf'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
@@ -14,6 +15,7 @@ import { StatCard } from '@/components/ui/stat-card'
 import type { DynamicPagePropsT } from '@/types/page'
 
 export default async function CashRegisterDetailPage({ params, searchParams }: DynamicPagePropsT) {
+  const step = perfStart()
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) redirect('/zaloguj')
   const { user } = session
@@ -23,6 +25,8 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
   const { page, limit } = parsePagination(sp)
 
   const [register, balances] = await Promise.all([getCashRegister(id), fetchRegisterBalances()])
+  console.log(`[PERF] kasa/${id} getCashRegister + fetchRegisterBalances ${step()}ms`)
+
   if (!register) notFound()
   const balance = balances[String(id)] ?? 0
 

@@ -6,6 +6,7 @@ import { getInvestment } from '@/lib/queries/investments'
 import { fetchInvestmentFinancials } from '@/lib/queries/reference-data'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { formatPLN } from '@/lib/format-currency'
+import { perfStart } from '@/lib/perf'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
@@ -17,6 +18,8 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   if (!session.success) redirect('/zaloguj')
   const { user } = session
 
+  const step = perfStart()
+
   const { id } = await params
   const sp = await searchParams
   const { page, limit } = parsePagination(sp)
@@ -26,6 +29,8 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
     getInvestment(id),
     fetchInvestmentFinancials(),
   ])
+  console.log(`[PERF] inwestycje/${id} getInvestment + fetchInvestmentFinancials ${step()}ms`)
+
   if (!investment) notFound()
   const fin = financialsRecord[String(id)]
   const totalCosts = fin?.totalCosts ?? 0

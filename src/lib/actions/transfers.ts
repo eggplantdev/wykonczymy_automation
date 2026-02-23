@@ -67,17 +67,22 @@ export async function createBulkTransferAction(
   return withAction(
     `createBulkTransferAction type=${data.type} items=${lineCount}`,
     async ({ payload, user }) => {
+      const step = perfStart()
+
       const parsed = validateAction(createBulkTransferSchema, data)
       if (!parsed.success) return parsed
+      console.log(`[PERF]   validateAction ${step()}ms`)
 
       if (needsSourceRegister(parsed.data.type)) {
         const validated = await validateSourceRegister(parsed.data.sourceRegister, user, payload)
+        console.log(`[PERF]   validateSourceRegister ${step()}ms`)
         if (!validated.success) return validated
         // Balance check removed — negative balances are allowed
         //checkIfSufficientBalance
       }
 
       const mediaIds = await uploadBulkInvoices(payload, invoiceFormData, lineCount)
+      console.log(`[PERF]   uploadBulkInvoices ${step()}ms (${lineCount} files)`)
 
       await Promise.all(
         parsed.data.lineItems.map((item, i) =>
@@ -102,6 +107,7 @@ export async function createBulkTransferAction(
           }),
         ),
       )
+      console.log(`[PERF]   payload.create x${lineCount} ${step()}ms`)
 
       return { success: true }
     },
@@ -113,11 +119,14 @@ export async function cancelTransferAction(transferId: number) {
   return withAction(
     'cancelTransferAction',
     async ({ payload, user }) => {
+      const step = perfStart()
+
       const original = await payload.findByID({
         collection: 'transactions',
         id: transferId,
         depth: 0,
       })
+      console.log(`[PERF]   findByID(${transferId}) ${step()}ms`)
 
       if (!original) return { success: false, error: 'Transakcja nie istnieje.' }
       if (original.cancelled) return { success: false, error: 'Transakcja jest już anulowana.' }
@@ -134,6 +143,7 @@ export async function cancelTransferAction(transferId: number) {
         id: transferId,
         data: { cancelled: true },
       })
+      console.log(`[PERF]   update cancelled ${step()}ms`)
 
       // Create CANCELLATION audit row
       const today = new Date().toISOString().split('T')[0]
@@ -149,6 +159,7 @@ export async function cancelTransferAction(transferId: number) {
           createdBy: user.id,
         },
       })
+      console.log(`[PERF]   create CANCELLATION ${step()}ms`)
 
       return { success: true }
     },
@@ -172,13 +183,17 @@ export async function updateTransferInvoiceAction(transferId: number, invoiceFor
   return withAction(
     'updateTransferInvoiceAction',
     async ({ payload }) => {
+      const step = perfStart()
+
       const mediaId = await uploadSingleInvoice(payload, invoiceFormData)
+      console.log(`[PERF]   uploadSingleInvoice ${step()}ms`)
 
       await payload.update({
         collection: 'transactions',
         id: transferId,
         data: { invoice: mediaId },
       })
+      console.log(`[PERF]   payload.update(${transferId}) ${step()}ms`)
 
       return { success: true }
     },
