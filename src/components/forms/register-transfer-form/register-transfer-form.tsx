@@ -50,6 +50,7 @@ export function RegisterTransferForm({
   const recoveredValues = recovering ? (submission.formValues as FormValuesT) : undefined
 
   const userCashRegisterIds = getUserCashRegisterIds(referenceData)
+
   const form = useAppForm({
     defaultValues:
       recoveredValues ??

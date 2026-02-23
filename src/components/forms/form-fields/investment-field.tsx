@@ -32,7 +32,13 @@ export function InvestmentField({ form, investments }: InvestmentFieldPropsT) {
           }
           placeholder="Wybierz inwestycję"
           searchPlaceholder="Szukaj inwestycji..."
-          emptyMessage="Nie znaleziono inwestycji."
+          emptyMessage={
+            items.length === 0
+              ? investments.length === 0
+                ? 'Brak inwestycji'
+                : 'Brak aktywnych inwestycji'
+              : 'Nie znaleziono inwestycji.'
+          }
           items={items}
           showError
         />
