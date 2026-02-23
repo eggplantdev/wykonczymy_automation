@@ -23,7 +23,13 @@ export function WorkerField({ form, workers, filterByRole = true, listeners }: W
           label="Pracownik"
           placeholder="Wybierz pracownika"
           searchPlaceholder="Szukaj pracownika..."
-          emptyMessage="Nie znaleziono pracownika."
+          emptyMessage={
+            items.length === 0
+              ? workers.length === 0
+                ? 'Brak pracowników'
+                : 'Brak dostępnych pracowników'
+              : 'Nie znaleziono pracownika.'
+          }
           items={items}
           showError
         />

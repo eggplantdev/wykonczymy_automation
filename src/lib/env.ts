@@ -12,6 +12,11 @@ const envSchema = z.object({
   EMAIL_USER: z.string().min(1),
   EMAIL_PASS: z.string().min(1),
   EMAIL_HOST: z.string().min(1),
+  // Meta
+  META_APP_SECRET: z.string().min(1),
+  META_APP_ID: z.string().min(1),
+  META_APP_TOKEN: z.string().min(1),
+  META_VERIFY_TOKEN: z.string().min(1),
 })
 
 type EnvT = z.infer<typeof envSchema>

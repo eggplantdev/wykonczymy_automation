@@ -21,12 +21,23 @@ export function CashRegisterField({
   cashRegisters,
   userCashRegisterIds,
 }: CashRegisterFieldPropsT) {
+  console.log('cash-register-field.tsx:26 - name:', name)
+  console.log(cashRegisters)
+  console.log({ userCashRegisterIds })
+
   const [activeOnly, setActiveOnly] = useState(true)
 
   const ownedRegisterSet = useMemo(
     () => (userCashRegisterIds ? new Set(userCashRegisterIds) : undefined),
     [userCashRegisterIds],
   )
+
+  const availableRegisters = cashRegisters.filter(
+    (cr) => !ownedRegisterSet || ownedRegisterSet.has(cr.id),
+  )
+  const filteredRegisters = availableRegisters.filter((cr) => !activeOnly || cr.active !== false)
+
+  const emptyMessage = availableRegisters.length === 0 ? 'Brak kas' : 'Brak aktywnych kas'
 
   return (
     <form.AppField name={name}>
@@ -46,14 +57,17 @@ export function CashRegisterField({
           placeholder={placeholder}
           showError
         >
-          {cashRegisters
-            .filter((cr) => !ownedRegisterSet || ownedRegisterSet.has(cr.id))
-            .filter((cr) => !activeOnly || cr.active !== false)
-            .map((cr) => (
+          {filteredRegisters.length > 0 ? (
+            filteredRegisters.map((cr) => (
               <SelectItem key={cr.id} value={String(cr.id)}>
                 {cr.name}
               </SelectItem>
-            ))}
+            ))
+          ) : (
+            <SelectItem value="" disabled>
+              {emptyMessage}
+            </SelectItem>
+          )}
         </field.Select>
       )}
     </form.AppField>
