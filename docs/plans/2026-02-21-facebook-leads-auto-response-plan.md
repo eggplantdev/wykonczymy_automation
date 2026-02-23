@@ -10,6 +10,48 @@
 
 ---
 
+## Current Status (2026-02-23)
+
+### Meta App Setup — BLOCKED on app verification
+
+**What's done:**
+
+- Webhook endpoint created: `src/app/(frontend)/api/webhooks/facebook-leads/route.ts` (GET verification + POST logging)
+- Env vars added to `src/lib/env.ts` (renamed to `META_` prefix): `META_APP_SECRET`, `META_APP_ID`, `META_APP_TOKEN`, `META_VERIFY_TOKEN`
+- `.env` has all Meta tokens: `META_APP_SECRET`, `META_APP_ID`, `META_APP_TOKEN`, `META_PAGE_ACCESS_TOKEN`, `META_PAGE_ID`, `META_VERIFY_TOKEN`
+- App-level webhook subscription active: `page` → `leadgen` field, callback URL via ngrok
+- Page-level subscription active: app subscribed to page `104897439055542` for `leadgen` events
+- Page Access Token has all required permissions: `pages_manage_metadata`, `leads_retrieval`, `pages_manage_ads`, `pages_read_engagement`, `pages_show_list`, `ads_management`, `ads_read`, `business_management`
+- Meta verification handshake (GET) succeeds — Meta can reach the endpoint
+- Manual curl POST to the endpoint works fine
+
+**What's blocking:**
+
+- **App is unpublished (Development mode)**. Meta does NOT deliver webhooks to unpublished apps — including test leads from admins/developers. The red warning in the dashboard confirms this: "No production data, including from app admins, developers or testers, will be delivered unless the app has been published."
+- App is currently **being verified by Meta** for Live mode. Once approved, webhook delivery should work immediately.
+
+**What to do after app is published:**
+
+1. Create a test lead in the Lead Ads Testing Tool
+2. Verify POST arrives at the webhook endpoint (via ngrok or production URL)
+3. Proceed with Tasks 1-10 below
+
+### Env vars currently in `.env` (Meta-related):
+
+```
+META_APP_SECRET, META_APP_ID, META_APP_TOKEN, META_PAGE_ACCESS_TOKEN, META_PAGE_ID, META_VERIFY_TOKEN
+```
+
+### Env vars registered in `src/lib/env.ts`:
+
+```
+META_APP_SECRET, META_APP_ID, META_APP_TOKEN, META_VERIFY_TOKEN
+```
+
+Note: `META_PAGE_ACCESS_TOKEN` and `META_PAGE_ID` are NOT yet in `env.ts` — add them in Task 8.
+
+---
+
 ### Task 1: Email Template Constants & Types
 
 **Files:**

@@ -1,5 +1,6 @@
 import type { ReferenceItemT } from '@/types/reference-data'
 import { MANAGEMENT_ROLES, type RoleT } from '@/lib/auth/roles'
+import { EmptyFieldMessage } from './empty-field-message'
 
 type WorkerFieldPropsT = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -15,25 +16,25 @@ export function WorkerField({ form, workers, filterByRole = true, listeners }: W
     .filter((w) => !filterByRole || !MANAGEMENT_ROLES.includes(w.type as RoleT))
     .map((w) => ({ value: String(w.id), label: w.name }))
 
+  const emptyMessage = workers.length === 0 ? 'Brak pracowników' : 'Brak dostępnych pracowników'
+
   return (
     <form.AppField name="worker" listeners={listeners}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      {(field: any) => (
-        <field.Combobox
-          label="Pracownik"
-          placeholder="Wybierz pracownika"
-          searchPlaceholder="Szukaj pracownika..."
-          emptyMessage={
-            items.length === 0
-              ? workers.length === 0
-                ? 'Brak pracowników'
-                : 'Brak dostępnych pracowników'
-              : 'Nie znaleziono pracownika.'
-          }
-          items={items}
-          showError
-        />
-      )}
+      {(field: any) =>
+        items.length > 0 ? (
+          <field.Combobox
+            label="Pracownik"
+            placeholder="Wybierz pracownika"
+            searchPlaceholder="Szukaj pracownika..."
+            emptyMessage="Nie znaleziono pracownika."
+            items={items}
+            showError
+          />
+        ) : (
+          <EmptyFieldMessage label="Pracownik" message={emptyMessage} />
+        )
+      }
     </form.AppField>
   )
 }
