@@ -10,6 +10,7 @@ import { InfoList } from '@/components/ui/info-list'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { PrintButton } from '@/components/ui/print-button'
 import { StatCard } from '@/components/ui/stat-card'
+import { perfStart } from '@/lib/perf'
 
 type UserTransferViewPropsT = {
   readonly userId: string
@@ -34,11 +35,14 @@ export async function UserTransferView({
   showTypeFilter = true,
   excludeColumns = ['worker', 'otherCategory', 'invoice'],
 }: UserTransferViewPropsT) {
+  const step = perfStart()
+
   const { page, limit } = parsePagination(searchParams)
   const dateRange = parseDateRange(searchParams)
 
   const userDetail = await getUserDetail(userId, dateRange)
   if (!userDetail) notFound()
+  console.log(`[PERF] UserTransferView(${userId}) getUserDetail ${step()}ms`)
 
   const { periodBreakdown } = userDetail
   const where = buildTransferFilters(searchParams, { id: Number(userId), isManager: false })

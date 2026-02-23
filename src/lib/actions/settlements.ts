@@ -10,6 +10,7 @@ import {
   CreateSettlementFormT,
   createSettlementSchema,
 } from '@/components/forms/settlement-form/settlement-schema'
+import { perfStart } from '@/lib/perf'
 import { validateAction, withAction } from './utils'
 
 export async function createSettlementAction(
@@ -21,8 +22,11 @@ export async function createSettlementAction(
   return withAction(
     `createSettlementAction items=${lineCount}`,
     async ({ payload, user }) => {
+      const step = perfStart()
+
       const parsed = validateAction(createSettlementSchema, data)
       if (!parsed.success) return parsed
+      console.log(`[PERF]   validateAction ${step()}ms`)
 
       if (parsed.data.mode === 'register') {
         // Register refund: single EMPLOYEE_EXPENSE with sourceRegister
@@ -39,6 +43,7 @@ export async function createSettlementAction(
             createdBy: user.id,
           },
         })
+        console.log(`[PERF]   payload.create (register refund) ${step()}ms`)
 
         return { success: true }
       }
@@ -50,6 +55,7 @@ export async function createSettlementAction(
         invoiceFormData,
         parsed.data.lineItems.length,
       )
+      console.log(`[PERF]   uploadBulkInvoices ${step()}ms (${parsed.data.lineItems.length} files)`)
 
       await Promise.all(
         parsed.data.lineItems.map((item, i) =>
@@ -72,6 +78,7 @@ export async function createSettlementAction(
           }),
         ),
       )
+      console.log(`[PERF]   payload.create x${parsed.data.lineItems.length} ${step()}ms`)
 
       return { success: true }
     },
@@ -80,12 +87,19 @@ export async function createSettlementAction(
 }
 
 export async function getManagementEmployeeSaldo(workerId: number): Promise<{ saldo: number }> {
+  const step = perfStart()
+
   const { user } = await requireAuth(MANAGEMENT_ROLES)
   if (!user) throw new Error('Brak uprawnień')
+  console.log(`[PERF]   requireAuth ${step()}ms`)
 
   // Bypass cache — this is an on-demand fetch from the settlement dialog
   // and must always return fresh data.
   const payload = await getPayload({ config })
+  console.log(`[PERF]   getPayload ${step()}ms`)
+
   const saldo = await sumEmployeeSaldo(payload, workerId)
+  console.log(`[PERF] getManagementEmployeeSaldo(${workerId}) saldo=${saldo} ${step()}ms`)
+
   return { saldo }
 }

@@ -6,13 +6,16 @@ import { DashboardTables } from '@/components/dashboard/dashboard-tables'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { StatCard } from '@/components/ui/stat-card'
+import { perfStart } from '@/lib/perf'
 
 type ManagerDashboardPropsT = {
   searchParams: Record<string, string | string[] | undefined>
 }
 
 export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT) {
+  const step = perfStart()
   const { page, limit } = parsePagination(searchParams)
+
   const {
     visibleRegisters,
     activeInvestments,
@@ -23,6 +26,7 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
     ownedBalance,
     virtualRegisters,
   } = await fetchManagerDashboardData()
+  console.log(`[PERF] ManagerDashboard fetchManagerDashboardData ${step()}ms`)
 
   return (
     <PageWrapper title="Pulpit">
