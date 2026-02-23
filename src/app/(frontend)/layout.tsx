@@ -8,6 +8,7 @@ import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
 import { Navigation } from '@/components/nav/navigation'
 import { AppFooter } from '@/components/nav/app-footer'
 import { Loader } from '@/components/ui/loader/loader'
+import { Providers } from './providers'
 
 export default function FrontendLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -17,10 +18,12 @@ export default function FrontendLayout({ children }: { children: React.ReactNode
       suppressHydrationWarning
     >
       <body className="bg-background text-foreground relative overscroll-none scroll-smooth">
-        <Suspense fallback={<Loader loading={true} />}>
-          <AuthenticatedShell>{children}</AuthenticatedShell>
-        </Suspense>
-        <ToastContainer style={{ zIndex: 10001 }} />
+        <Providers>
+          <Suspense fallback={<Loader loading={true} />}>
+            <AuthenticatedShell>{children}</AuthenticatedShell>
+          </Suspense>
+          <ToastContainer style={{ zIndex: 10001 }} />
+        </Providers>
       </body>
     </html>
   )
