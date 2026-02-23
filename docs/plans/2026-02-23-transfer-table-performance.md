@@ -15,7 +15,7 @@ Starting with `TransferTableServer` (most reused async component), then expandin
 
 | File                                                 | Checkpoints                                                                          |
 | ---------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `src/app/(frontend)/kasa/[id]/page.tsx`              | `getCashRegister + fetchRegisterBalances`                                            |
+| `src/app/(frontend)/kasa/[id]/page.tsx`              | `fetchReferenceData + fetchRegisterBalances`                                         |
 | `src/app/(frontend)/inwestycje/[id]/page.tsx`        | `getInvestment + fetchInvestmentFinancials`                                          |
 | `src/components/user-transfer-view.tsx`              | `getUserDetail`                                                                      |
 | `src/components/dashboard/manager-dashboard.tsx`     | `fetchManagerDashboardData`                                                          |
@@ -86,27 +86,33 @@ Starting with `TransferTableServer` (most reused async component), then expandin
 
 ## Optimization Log
 
-### Round 1: TransferTableServer
+### Round 1: `/kasa/[id]` — replace Payload ORM with reference data
 
-**Target:** _TBD after baseline_
+**Target:** Eliminate `getCashRegister` (Payload ORM depth=1) by reusing `fetchReferenceData`
 
 **Changes:**
 
-| #   | Change | File(s) | Rationale |
-| --- | ------ | ------- | --------- |
-|     |        |         |           |
+| #   | Change                                                                | File(s)                                 | Rationale                                                                 |
+| --- | --------------------------------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------- |
+| 1   | Replace `getCashRegister(id)` with `fetchReferenceData()` + lookup    | `src/app/(frontend)/kasa/[id]/page.tsx` | Eliminates 45–88ms Payload ORM call; primes cache for TransferTableServer |
+| 2   | Resolve owner name from `refData.workers` instead of depth=1 relation | `src/app/(frontend)/kasa/[id]/page.tsx` | No need for `getRelationName` — data already in reference data            |
 
-**After Metrics (Local):**
+**After Metrics (Local — dev, dashboard pre-warmed):**
 
-| Page | Operation | Before (ms) | After (ms) | Delta |
-| ---- | --------- | ----------- | ---------- | ----- |
-|      |           |             |            |       |
+| Page         | Operation                                             | Before (ms) | After (ms) | Delta    |
+| ------------ | ----------------------------------------------------- | ----------- | ---------- | -------- |
+| `/kasa/[id]` | Page data fetch (getCashRegister → fetchRefData)      | 100–159     | 42–50      | -58–109  |
+| `/kasa/[id]` | `TransferTableServer findTransfersRaw + fetchRefData` | 11–18       | 8–11       | ~-5      |
+| `/kasa/[id]` | **Full page** (`GET /kasa/... render:`)               | 478–546     | 98–169     | -309–380 |
 
-**After Metrics (Production):**
+**After Metrics (Local — dev, cold start):**
 
-| Page | Operation | Before (ms) | After (ms) | Delta |
-| ---- | --------- | ----------- | ---------- | ----- |
-|      |           |             |            |       |
+| Page         | Operation                               | Before (ms) | After (ms) | Delta                                                        |
+| ------------ | --------------------------------------- | ----------- | ---------- | ------------------------------------------------------------ |
+| `/kasa/[id]` | Page data fetch                         | 62          | 111        | +49 (fetchRefData cold is heavier than getCashRegister cold) |
+| `/kasa/[id]` | **Full page** (`GET /kasa/... render:`) | 1533        | 370        | -1163                                                        |
+
+> Note: Cold-start page data fetch is slightly slower because `fetchReferenceData` (4 SQL) is heavier than `getCashRegister` (1 Payload findByID). However, total page render is dramatically faster because `fetchReferenceData` primes the cache for `TransferTableServer`, eliminating a redundant cold computation in the Suspense child.
 
 ---
 
