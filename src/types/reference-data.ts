@@ -18,6 +18,7 @@ export type InvestmentRefT = ReferenceItemT & {
   readonly phone: string
   readonly email: string
   readonly contactPerson: string
+  readonly notes: string
 }
 
 export type WorkerRefT = ReferenceItemT & {

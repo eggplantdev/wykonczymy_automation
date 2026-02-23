@@ -2,8 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { isAdminOrOwnerRole, MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/pagination'
-import { getInvestment } from '@/lib/queries/investments'
-import { fetchInvestmentFinancials } from '@/lib/queries/reference-data'
+import { fetchReferenceData, fetchInvestmentFinancials } from '@/lib/queries/reference-data'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { formatPLN } from '@/lib/format-currency'
 import { perfStart } from '@/lib/perf'
@@ -25,13 +24,16 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   const { page, limit } = parsePagination(sp)
 
   const investmentId = Number(id)
-  const [investment, financialsRecord] = await Promise.all([
-    getInvestment(id),
+  // fetchReferenceData primes the cache for TransferTableServer in Suspense
+  const [refData, financialsRecord] = await Promise.all([
+    fetchReferenceData(),
     fetchInvestmentFinancials(),
   ])
-  console.log(`[PERF] inwestycje/${id} getInvestment + fetchInvestmentFinancials ${step()}ms`)
+  console.log(`[PERF] inwestycje/${id} fetchReferenceData + fetchInvestmentFinancials ${step()}ms`)
 
+  const investment = refData.investments.find((inv) => inv.id === investmentId)
   if (!investment) notFound()
+
   const fin = financialsRecord[String(id)]
   const totalCosts = fin?.totalCosts ?? 0
   const totalIncome = fin?.totalIncome ?? 0

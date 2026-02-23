@@ -18,6 +18,7 @@ const stubInvestment = {
   phone: '',
   email: '',
   contactPerson: '',
+  notes: '',
 }
 
 const refData = {

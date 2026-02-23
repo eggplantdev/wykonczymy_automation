@@ -42,7 +42,7 @@ export async function fetchReferenceData(): Promise<ReferenceDataBaseT> {
     `),
     db.execute(sql`
       SELECT id, name, status::text, labor_costs,
-             address, phone, email, contact_person
+             address, phone, email, contact_person, notes
       FROM investments
       ORDER BY name
     `),
@@ -81,6 +81,7 @@ export async function fetchReferenceData(): Promise<ReferenceDataBaseT> {
     phone: (row.phone as string) ?? '',
     email: (row.email as string) ?? '',
     contactPerson: (row.contact_person as string) ?? '',
+    notes: (row.notes as string) ?? '',
   }))
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
