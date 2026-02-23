@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Checkbox } from '@/components/ui/checkbox'
+import { ActiveFilterLabel } from './active-filter-label'
+import { EmptyFieldMessage } from './empty-field-message'
 import type { ReferenceItemT } from '@/types/reference-data'
 
 type InvestmentFieldPropsT = {
@@ -15,34 +16,27 @@ export function InvestmentField({ form, investments }: InvestmentFieldPropsT) {
     .filter((inv) => !activeOnly || inv.active !== false)
     .map((inv) => ({ value: String(inv.id), label: inv.name }))
 
+  const emptyMessage = investments.length === 0 ? 'Brak inwestycji' : 'Brak aktywnych inwestycji'
+  const labelExtra = <ActiveFilterLabel activeOnly={activeOnly} onToggle={setActiveOnly} />
+
   return (
     <form.AppField name="investment">
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      {(field: any) => (
-        <field.Combobox
-          label="Inwestycja"
-          labelExtra={
-            <label className="flex w-fit items-center gap-2 text-sm font-normal">
-              <Checkbox
-                checked={activeOnly}
-                onCheckedChange={(v: boolean) => setActiveOnly(v === true)}
-              />
-              {activeOnly ? 'Aktywne' : 'Wszystkie'}
-            </label>
-          }
-          placeholder="Wybierz inwestycję"
-          searchPlaceholder="Szukaj inwestycji..."
-          emptyMessage={
-            items.length === 0
-              ? investments.length === 0
-                ? 'Brak inwestycji'
-                : 'Brak aktywnych inwestycji'
-              : 'Nie znaleziono inwestycji.'
-          }
-          items={items}
-          showError
-        />
-      )}
+      {(field: any) =>
+        items.length > 0 ? (
+          <field.Combobox
+            label="Inwestycja"
+            labelExtra={labelExtra}
+            placeholder="Wybierz inwestycję"
+            searchPlaceholder="Szukaj inwestycji..."
+            emptyMessage="Nie znaleziono inwestycji."
+            items={items}
+            showError
+          />
+        ) : (
+          <EmptyFieldMessage label="Inwestycja" message={emptyMessage} labelExtra={labelExtra} />
+        )
+      }
     </form.AppField>
   )
 }

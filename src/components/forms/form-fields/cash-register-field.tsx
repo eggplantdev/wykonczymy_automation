@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
-import { Checkbox } from '@/components/ui/checkbox'
 import { SelectItem } from '@/components/ui/select'
+import { ActiveFilterLabel } from './active-filter-label'
+import { EmptyFieldMessage } from './empty-field-message'
 import type { ReferenceItemT } from '@/types/reference-data'
 
 type CashRegisterFieldPropsT = {
@@ -21,10 +22,6 @@ export function CashRegisterField({
   cashRegisters,
   userCashRegisterIds,
 }: CashRegisterFieldPropsT) {
-  console.log('cash-register-field.tsx:26 - name:', name)
-  console.log(cashRegisters)
-  console.log({ userCashRegisterIds })
-
   const [activeOnly, setActiveOnly] = useState(true)
 
   const ownedRegisterSet = useMemo(
@@ -38,38 +35,24 @@ export function CashRegisterField({
   const filteredRegisters = availableRegisters.filter((cr) => !activeOnly || cr.active !== false)
 
   const emptyMessage = availableRegisters.length === 0 ? 'Brak kas' : 'Brak aktywnych kas'
+  const labelExtra = <ActiveFilterLabel activeOnly={activeOnly} onToggle={setActiveOnly} />
 
   return (
     <form.AppField name={name}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      {(field: any) => (
-        <field.Select
-          label={label}
-          labelExtra={
-            <label className="flex w-fit items-center gap-2 text-sm font-normal">
-              <Checkbox
-                checked={activeOnly}
-                onCheckedChange={(v: boolean) => setActiveOnly(v === true)}
-              />
-              {activeOnly ? 'Aktywne' : 'Wszystkie'}
-            </label>
-          }
-          placeholder={placeholder}
-          showError
-        >
-          {filteredRegisters.length > 0 ? (
-            filteredRegisters.map((cr) => (
+      {(field: any) =>
+        filteredRegisters.length > 0 ? (
+          <field.Select label={label} labelExtra={labelExtra} placeholder={placeholder} showError>
+            {filteredRegisters.map((cr) => (
               <SelectItem key={cr.id} value={String(cr.id)}>
                 {cr.name}
               </SelectItem>
-            ))
-          ) : (
-            <SelectItem value="" disabled>
-              {emptyMessage}
-            </SelectItem>
-          )}
-        </field.Select>
-      )}
+            ))}
+          </field.Select>
+        ) : (
+          <EmptyFieldMessage label={label} message={emptyMessage} labelExtra={labelExtra} />
+        )
+      }
     </form.AppField>
   )
 }
