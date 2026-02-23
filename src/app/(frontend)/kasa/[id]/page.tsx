@@ -2,9 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { isAdminOrOwnerRole, MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/pagination'
-import { getCashRegister } from '@/lib/queries/cash-registers'
-import { fetchRegisterBalances } from '@/lib/queries/reference-data'
-import { getRelationName } from '@/lib/get-relation-name'
+import { fetchReferenceData, fetchRegisterBalances } from '@/lib/queries/reference-data'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { formatPLN } from '@/lib/format-currency'
 import { perfStart } from '@/lib/perf'
@@ -24,20 +22,26 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
   const sp = await searchParams
   const { page, limit } = parsePagination(sp)
 
-  const [register, balances] = await Promise.all([getCashRegister(id), fetchRegisterBalances()])
-  console.log(`[PERF] kasa/${id} getCashRegister + fetchRegisterBalances ${step()}ms`)
+  // fetch reference data is needed for transfers anyway it will be cached
+  // fetch register balances is needed for the balance display - it should be cached from the dashboard hit anyway
+  const [refData, balances] = await Promise.all([fetchReferenceData(), fetchRegisterBalances()])
+  console.log(`[PERF] kasa/${id} fetchReferenceData + fetchRegisterBalances ${step()}ms`)
 
+  const registerId = Number(id)
+  const register = refData.cashRegisters.find((cr) => cr.id === registerId)
   if (!register) notFound()
+
   const balance = balances[String(id)] ?? 0
 
   // only admin or owner can view MAIN registers
   if (!isAdminOrOwnerRole(user.role) && register.type === 'MAIN') notFound()
 
-  const registerId = Number(id)
   const urlFilters = buildTransferFilters(sp, { id: user.id, isManager: true })
   const transferWhere = { ...urlFilters, sourceRegister: { equals: registerId } }
 
-  const ownerName = getRelationName(register.owner)
+  const ownerName = register.ownerId
+    ? (refData.workers.find((w) => w.id === register.ownerId)?.name ?? '—')
+    : '—'
 
   return (
     <PageWrapper title={register.name} backHref="/" backLabel="Kokpit" className={`grid gap-6`}>

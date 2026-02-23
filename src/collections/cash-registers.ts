@@ -1,5 +1,5 @@
 import type { CollectionConfig, CollectionBeforeValidateHook } from 'payload'
-import { isAdminOrOwner, isAdminOrOwnerField, isAdminOrOwnerOrManager, isManager } from '@/access'
+import { isAdminOrOwnerField, isAdminOrOwnerOrManager, isManager } from '@/access'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 
 /** Managers can only create AUXILIARY registers — force the type. */

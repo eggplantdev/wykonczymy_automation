@@ -22,7 +22,8 @@
     "seed:ziutek": "node --env-file=.env --import tsx src/scripts/seed-ziutek-advances.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "perf:parse": "tsx scripts/parse-perf-logs.ts"
   },
   "dependencies": {
     "@bprogress/next": "^3.2.12",
