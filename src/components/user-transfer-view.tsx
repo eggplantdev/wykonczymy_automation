@@ -4,9 +4,11 @@ import { formatPLN } from '@/lib/format-currency'
 import { parseDateRange } from '@/lib/parse-date-range'
 import { parsePagination } from '@/lib/pagination'
 import { buildTransferFilters } from '@/lib/queries/transfers'
-import { getUserDetail } from '@/lib/queries/users'
+import { fetchReferenceData, fetchWorkerSaldos } from '@/lib/queries/reference-data'
+import { fetchWorkerPeriodBreakdown } from '@/lib/queries/users'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { InfoList } from '@/components/ui/info-list'
+import { MailtoLink } from '@/components/ui/mailto-link'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { PrintButton } from '@/components/ui/print-button'
 import { StatCard } from '@/components/ui/stat-card'
@@ -40,16 +42,25 @@ export async function UserTransferView({
   const { page, limit } = parsePagination(searchParams)
   const dateRange = parseDateRange(searchParams)
 
-  const userDetail = await getUserDetail(userId, dateRange)
-  if (!userDetail) notFound()
-  console.log(`[PERF] UserTransferView(${userId}) getUserDetail ${step()}ms`)
+  // fetchReferenceData + fetchWorkerSaldos are already cached from dashboard
+  // periodBreakdown only fetched when user applies a date range filter
+  const [refData, saldoRecord, periodBreakdown] = await Promise.all([
+    fetchReferenceData(),
+    fetchWorkerSaldos(),
+    dateRange ? fetchWorkerPeriodBreakdown(userId, dateRange) : Promise.resolve(undefined),
+  ])
+  console.log(`[PERF] UserTransferView(${userId}) refData + saldos ${step()}ms`)
 
-  const { periodBreakdown } = userDetail
-  const where = buildTransferFilters(searchParams, { id: Number(userId), isManager: false })
+  const numericId = Number(userId)
+  const worker = refData.workers.find((w) => w.id === numericId)
+  if (!worker) notFound()
+
+  const saldo = saldoRecord[userId] ?? 0
+  const where = buildTransferFilters(searchParams, { id: numericId, isManager: false })
 
   return (
     <PageWrapper
-      title={title ?? userDetail.name}
+      title={title ?? worker.name}
       backHref={backHref}
       backLabel={backLabel}
       className="grid gap-6"
@@ -59,19 +70,15 @@ export async function UserTransferView({
           items={[
             {
               label: 'Email',
-              value: (
-                <a href={`mailto:${userDetail.email}`} className="text-primary hover:underline">
-                  {userDetail.email}
-                </a>
-              ),
+              value: <MailtoLink email={worker.email} />,
             },
-            { label: 'Rola', value: ROLE_LABELS[userDetail.role as RoleT]?.pl ?? userDetail.role },
+            { label: 'Rola', value: ROLE_LABELS[worker.type as RoleT]?.pl ?? worker.type },
           ]}
         />
       )}
 
       <div className="flex items-end justify-between">
-        <StatCard label="Saldo" value={formatPLN(userDetail.saldo)} />
+        <StatCard label="Saldo" value={formatPLN(saldo)} />
         <PrintButton />
       </div>
 

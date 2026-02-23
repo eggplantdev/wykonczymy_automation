@@ -3,6 +3,7 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import { formatPLN } from '@/lib/format-currency'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
+import { MailtoLink } from '@/components/ui/mailto-link'
 
 export type InvestmentRowT = {
   readonly id: number
@@ -71,13 +72,7 @@ export function getInvestmentColumns(onToggle: (id: number, newActive: boolean) 
       meta: { label: 'Email' },
       cell: (info) => {
         const value = info.getValue()
-        return value ? (
-          <a href={`mailto:${value}`} className="text-primary hover:underline">
-            {value}
-          </a>
-        ) : (
-          '—'
-        )
+        return value ? <MailtoLink email={value} /> : '—'
       },
     }),
     col.accessor('contactPerson', {
