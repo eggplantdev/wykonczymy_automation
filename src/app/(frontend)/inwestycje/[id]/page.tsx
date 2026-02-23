@@ -9,6 +9,7 @@ import { perfStart } from '@/lib/perf'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
+import { MailtoLink } from '@/components/ui/mailto-link'
 import { StatCard } from '@/components/ui/stat-card'
 import type { DynamicPagePropsT } from '@/types/page'
 
@@ -53,11 +54,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
     },
     {
       label: 'Email',
-      value: investment.email ? (
-        <a href={`mailto:${investment.email}`} className="text-primary hover:underline">
-          {investment.email}
-        </a>
-      ) : undefined,
+      value: investment.email ? <MailtoLink email={investment.email} /> : undefined,
     },
     { label: 'Osoba kontaktowa', value: investment.contactPerson },
     { label: 'Notatki', value: investment.notes },

@@ -4,6 +4,7 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { formatPLN } from '@/lib/format-currency'
 import { ROLE_LABELS, type RoleT } from '@/lib/auth/roles'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
+import { MailtoLink } from '@/components/ui/mailto-link'
 
 export type UserRowT = {
   readonly id: number
@@ -25,14 +26,7 @@ export function getUserColumns(onToggle: (id: number, newActive: boolean) => voi
     col.accessor('email', {
       id: 'email',
       header: 'Email',
-      cell: (info) => {
-        const value = info.getValue()
-        return (
-          <a href={`mailto:${value}`} className="text-primary hover:underline">
-            {value}
-          </a>
-        )
-      },
+      cell: (info) => <MailtoLink email={info.getValue()} />,
     }),
     col.accessor('role', {
       id: 'role',
