@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 import type { Where } from 'payload'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { TransferTableServer } from '@/components/transfers/transfer-table-server'
-import { TransferTableSkeleton } from '@/components/transfers/transfer-table-skeleton'
+import { Spinner } from '@/components/ui/loader/spinner'
 import type { FilterConfigT } from '@/types/filters'
 
 type TransfersSectionPropsT = {
@@ -28,7 +28,7 @@ export function TransfersSection({
 }: TransfersSectionPropsT) {
   return (
     <CollapsibleSection title={title} className={className}>
-      <Suspense fallback={<TransferTableSkeleton />}>
+      <Suspense fallback={<Spinner />}>
         <TransferTableServer
           where={where}
           page={page}

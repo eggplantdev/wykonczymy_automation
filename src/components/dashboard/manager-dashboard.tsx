@@ -25,7 +25,7 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
   } = await fetchManagerDashboardData()
 
   return (
-    <PageWrapper title="Kokpit">
+    <PageWrapper title="Pulpit">
       {/* Stat cards + cash registers */}
 
       <div className="mt-8 flex flex-wrap gap-4">

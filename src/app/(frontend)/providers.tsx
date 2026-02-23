@@ -10,9 +10,10 @@ type ProvidersPropsT = {
 export function Providers({ children }: ProvidersPropsT) {
   return (
     <ProgressProvider
-      height="2px"
+      height="3px"
       color="oklch(0.205 0 0)"
-      options={{ showSpinner: false }}
+      options={{ showSpinner: false, trickleSpeed: 100 }}
+      startPosition={0.3}
       shallowRouting
     >
       {children}
