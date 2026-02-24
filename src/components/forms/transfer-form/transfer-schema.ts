@@ -153,13 +153,6 @@ export const bulkTransferFormSchema = z
     }
 
     data.lineItems.forEach((item, index) => {
-      if (data.type !== 'ACCOUNT_FUNDING' && !item.description.trim()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Opis jest wymagany',
-          path: ['lineItems', index, 'description'],
-        })
-      }
       if (!item.amount || Number(item.amount) <= 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -184,7 +177,7 @@ export const createBulkTransferSchema = z
     lineItems: z
       .array(
         z.object({
-          description: z.string().min(1, 'Opis jest wymagany'),
+          description: z.string(),
           amount: z.number().positive('Kwota musi być większa niż 0'),
           invoiceNote: z.string().optional(),
         }),
