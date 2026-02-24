@@ -17,11 +17,11 @@ type TopNavPropsT = {
 
 export function TopNav({ referenceData }: TopNavPropsT) {
   return (
-    <header className="border-border bg-background sticky top-0 z-40 flex h-14 items-center justify-between gap-3 border-b px-3">
+    <header className="border-border bg-background sticky top-0 z-40 flex min-h-14 items-center justify-between gap-3 border-b p-4 px-3">
       <div className="flex items-center gap-2">
         {process.env.NODE_ENV === 'development' ? (
           <RainbowButton as={Link} href="/">
-            <h1 className="text-md font-semibold"> Wykończymy 🚧</h1>
+            <h1 className="text-md font-semibold text-nowrap"> Wykończymy 🚧</h1>
           </RainbowButton>
         ) : (
           <Link href="/">
@@ -34,7 +34,7 @@ export function TopNav({ referenceData }: TopNavPropsT) {
       </div>
 
       {/* Right: action buttons */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center justify-end gap-2">
         {referenceData && (
           <>
             <AddSettlementDialog referenceData={referenceData} />
