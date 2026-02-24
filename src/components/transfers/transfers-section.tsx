@@ -28,7 +28,7 @@ export function TransfersSection({
 }: TransfersSectionPropsT) {
   return (
     <CollapsibleSection title={title} className={className}>
-      <Suspense fallback={<Spinner />}>
+      <Suspense fallback={null}>
         <TransferTableServer
           where={where}
           page={page}

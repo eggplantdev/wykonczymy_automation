@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { logoutAction } from '@/lib/actions/auth'
 import { ROLE_LABELS, type RoleT } from '@/lib/auth/roles'
 import { Button } from '@/components/ui/button'
+import { useRouter } from 'next/navigation'
 
 type AppFooterPropsT = {
   user: {
@@ -16,6 +17,7 @@ type AppFooterPropsT = {
 
 export function AppFooter({ user }: AppFooterPropsT) {
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
 
   const handleLogout = () => {
     startTransition(() => logoutAction())
@@ -42,6 +44,7 @@ export function AppFooter({ user }: AppFooterPropsT) {
             </Link>
           </Button>
           <Button
+            onMouseEnter={() => router.prefetch('/zaloguj')}
             variant="outline"
             size="sm"
             onClick={handleLogout}

@@ -2,7 +2,6 @@
 
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { isRedirectError } from 'next/dist/client/components/redirect-error'
 import { login, logout } from '@payloadcms/next/auth'
 import config from '@payload-config'
 
@@ -23,9 +22,8 @@ export async function loginAction(data: {
       password: data.password,
     })
 
-    redirect('/')
-  } catch (e) {
-    if (isRedirectError(e)) throw e
+    return { success: true }
+  } catch {
     return { success: false, error: 'Nieprawidłowy email lub hasło' }
   }
 }
