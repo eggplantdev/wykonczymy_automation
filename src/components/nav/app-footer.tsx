@@ -5,6 +5,7 @@ import { LogOut, Shield } from 'lucide-react'
 import Link from 'next/link'
 import { logoutAction } from '@/lib/actions/auth'
 import { ROLE_LABELS, type RoleT } from '@/lib/auth/roles'
+import { RoleBadge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 
@@ -28,9 +29,7 @@ export function AppFooter({ user }: AppFooterPropsT) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-foreground text-sm font-medium">{user.name}</span>
-          <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-            {ROLE_LABELS[user.role].pl}
-          </span>
+          <RoleBadge role={user.role}>{ROLE_LABELS[user.role].pl}</RoleBadge>
         </div>
         <div className="flex items-center gap-2">
           <Button asChild aria-label="Panel administracyjny">
