@@ -41,6 +41,10 @@ export function DataTableRow<TData>({
     }
   }
 
+  function handleMouseEnter() {
+    if (href) router.prefetch(href)
+  }
+
   return (
     <tr
       className={cn(
@@ -49,6 +53,7 @@ export function DataTableRow<TData>({
         getRowClassName?.(row.original),
       )}
       onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
     >
       {row
         .getAllCells()
