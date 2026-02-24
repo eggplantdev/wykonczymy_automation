@@ -20,7 +20,7 @@ export function PageWrapper({
   className,
 }: PageWrapperPropsT) {
   return (
-    <div className={cn('p-6 lg:p-8', className)}>
+    <div className={cn('min-h-svh p-6 lg:p-8', className)}>
       {backHref && (
         <Link href={backHref} className="text-muted-foreground hover:text-foreground text-sm">
           &larr; {backLabel}

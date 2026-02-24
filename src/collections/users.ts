@@ -1,4 +1,5 @@
 import {
+  canUpdateUser,
   isAdminOrOwnerOrManagerBoolean,
   isAdminOrOwnerField,
   isAdminOrOwnerOrManager,
@@ -29,7 +30,7 @@ export const Users: CollectionConfig = {
   access: {
     read: isAdminOrOwnerOrManager,
     create: isAdminOrOwnerOrManager,
-    update: isAdminOrOwnerOrSelf,
+    update: canUpdateUser,
     delete: isAdminOrOwnerOrSelf,
     admin: isAdminOrOwnerOrManagerBoolean,
   },
