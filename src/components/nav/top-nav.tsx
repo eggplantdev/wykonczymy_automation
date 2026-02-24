@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { ROLE_LABELS, type RoleT } from '@/lib/auth/roles'
+import type { RoleT } from '@/lib/auth/roles'
+import { ROLE_LABELS } from '@/lib/auth/roles'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { RoleBadge } from '@/components/ui/badge'
 import { AddSettlementDialog } from '@/components/dialogs/add-settlement-dialog'
@@ -27,10 +28,8 @@ export function TopNav({ referenceData }: TopNavPropsT) {
             <h1 className="text-md font-semibold"> Wykończymy 🚧</h1>
           </Link>
         )}
-        {process.env.NODE_ENV === 'development' && referenceData && (
-          <RoleBadge role={referenceData.currentUserRole as RoleT}>
-            {ROLE_LABELS[referenceData.currentUserRole as RoleT].pl}
-          </RoleBadge>
+        {referenceData?.currentUserRole === 'ADMIN' && (
+          <RoleBadge role={'ADMIN'}>{'Admin'}</RoleBadge>
         )}
       </div>
 

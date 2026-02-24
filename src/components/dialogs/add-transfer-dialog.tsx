@@ -1,6 +1,6 @@
 'use client'
 
-import { Plus } from 'lucide-react'
+import { Rocket } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FormDialog } from '@/components/dialogs/form-dialog'
 import type { ReferenceDataT } from '@/types/reference-data'
@@ -16,8 +16,8 @@ export function AddTransferDialog({ referenceData }: AddTransferDialogPropsT) {
       formId="transfer"
       trigger={
         <Button variant="default" size="sm" className="gap-2">
-          <Plus className="size-4" />
-          <span className="hidden lg:block">Transakcja</span>
+          <Rocket className="size-4" />
+          <span className="hidden lg:block">Wydatek / zaliczka </span>
         </Button>
       }
       title="Nowa transakcja"
