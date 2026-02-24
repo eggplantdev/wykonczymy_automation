@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { createColumnHelper } from '@tanstack/react-table'
 import { formatPLN } from '@/lib/format-currency'
 import { getRelationName } from '@/lib/get-relation-name'
@@ -21,9 +22,13 @@ export type TransferRowT = {
   readonly type: TransferTypeT
   readonly paymentMethod: PaymentMethodT
   readonly date: string
+  readonly sourceRegisterId: number | null
   readonly sourceRegisterName: string
+  readonly targetRegisterId: number | null
   readonly targetRegisterName: string
+  readonly investmentId: number | null
   readonly investmentName: string
+  readonly workerId: number | null
   readonly workerName: string
   readonly otherCategoryName: string
   readonly createdByName: string
@@ -81,9 +86,13 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
       type: doc.type as TransferTypeT,
       paymentMethod: doc.paymentMethod as PaymentMethodT,
       date: doc.date,
+      sourceRegisterId: toNullableId(doc.sourceRegister),
       sourceRegisterName: lookupName(lookups.cashRegisters, doc.sourceRegister),
+      targetRegisterId: toNullableId(doc.targetRegister),
       targetRegisterName: lookupName(lookups.cashRegisters, doc.targetRegister),
+      investmentId: toNullableId(doc.investment),
       investmentName: lookupName(lookups.investments, doc.investment),
+      workerId: toNullableId(doc.worker),
       workerName: lookupName(lookups.workers, doc.worker),
       otherCategoryName: lookupName(lookups.otherCategories, doc.otherCategory),
       createdByName: lookupName(lookups.workers, doc.createdBy),
@@ -102,9 +111,13 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
     type: doc.type as TransferTypeT,
     paymentMethod: doc.paymentMethod as PaymentMethodT,
     date: doc.date,
+    sourceRegisterId: toNullableId(doc.sourceRegister),
     sourceRegisterName: getRelationName(doc.sourceRegister),
+    targetRegisterId: toNullableId(doc.targetRegister),
     targetRegisterName: getRelationName(doc.targetRegister),
+    investmentId: toNullableId(doc.investment),
     investmentName: getRelationName(doc.investment),
+    workerId: toNullableId(doc.worker),
     workerName: getRelationName(doc.worker),
     otherCategoryName: getRelationName(doc.otherCategory),
     createdByName: getRelationName(doc.createdBy),
@@ -126,6 +139,14 @@ export function extractInvoiceIds(docs: any[]): number[] {
     if (typeof doc.invoice === 'number') ids.add(doc.invoice)
   }
   return [...ids]
+}
+
+function toNullableId(field: unknown): number | null {
+  if (typeof field === 'number') return field
+  if (typeof field === 'object' && field !== null && 'id' in field) {
+    return (field as { id: number }).id
+  }
+  return null
 }
 
 function lookupName(map: NameMapT, field: unknown): string {
@@ -184,7 +205,16 @@ const allColumns = [
     id: 'worker',
     header: 'Pracownik',
     meta: { label: 'Pracownik' },
-    cell: (info) => info.getValue(),
+    cell: (info) => {
+      const id = info.row.original.workerId
+      const name = info.getValue()
+      if (!id || name === '—') return name
+      return (
+        <Link href={`/uzytkownicy/${id}`} className="hover:underline">
+          {name}
+        </Link>
+      )
+    },
   }),
 
   col.accessor('invoiceUrl', {
@@ -218,19 +248,46 @@ const allColumns = [
     id: 'investment',
     header: 'Inwestycja',
     meta: { label: 'Inwestycja' },
-    cell: (info) => info.getValue(),
+    cell: (info) => {
+      const id = info.row.original.investmentId
+      const name = info.getValue()
+      if (!id || name === '—') return name
+      return (
+        <Link href={`/inwestycje/${id}`} className="hover:underline">
+          {name}
+        </Link>
+      )
+    },
   }),
   col.accessor('sourceRegisterName', {
     id: 'sourceRegister',
     header: 'Kasa',
     meta: { label: 'Kasa' },
-    cell: (info) => info.getValue(),
+    cell: (info) => {
+      const id = info.row.original.sourceRegisterId
+      const name = info.getValue()
+      if (!id || name === '—') return name
+      return (
+        <Link href={`/kasa/${id}`} className="hover:underline">
+          {name}
+        </Link>
+      )
+    },
   }),
   col.accessor('targetRegisterName', {
     id: 'targetRegister',
     header: 'Kasa docelowa',
     meta: { label: 'Kasa docelowa' },
-    cell: (info) => info.getValue(),
+    cell: (info) => {
+      const id = info.row.original.targetRegisterId
+      const name = info.getValue()
+      if (!id || name === '—') return name
+      return (
+        <Link href={`/kasa/${id}`} className="hover:underline">
+          {name}
+        </Link>
+      )
+    },
   }),
   col.accessor('otherCategoryName', {
     id: 'otherCategory',
