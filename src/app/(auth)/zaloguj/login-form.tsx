@@ -1,12 +1,19 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { LoaderCircle, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
+import { useAppForm } from '@/components/forms/hooks/form-hooks'
 import { loginAction } from '@/lib/actions/auth'
+import { cn } from '@/lib/cn'
+
+type ButtonStateT = 'idle' | 'pending' | 'success'
 
 export function LoginForm() {
   const [error, setError] = useState<string>()
+  const [buttonState, setButtonState] = useState<ButtonStateT>('idle')
+  const router = useRouter()
 
   const form = useAppForm({
     defaultValues: {
@@ -16,18 +23,26 @@ export function LoginForm() {
     onSubmit: async ({ value }) => {
       setError(undefined)
       const response = await loginAction(value)
-      if (response.error) {
+
+      if (response.success) {
+        setButtonState('success')
+        router.push('/')
+      } else {
+        setButtonState('idle')
         setError(response.error)
       }
     },
   })
 
-  const isSubmitting = useStore(form.store, (s) => s.isSubmitting)
+  const isPending = buttonState !== 'idle'
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault()
+        if (isPending) return
+        setButtonState('pending')
+        router.prefetch('/')
         form.handleSubmit()
       }}
       className="flex flex-col gap-4"
@@ -58,8 +73,27 @@ export function LoginForm() {
 
       {error && <p className="text-destructive text-sm">{error}</p>}
 
-      <Button type="submit" disabled={isSubmitting} className="mt-2">
-        {isSubmitting ? 'Logowanie...' : 'Zaloguj'}
+      <Button
+        type="submit"
+        disabled={isPending}
+        className={cn(
+          'mt-2 transition-colors duration-300',
+          buttonState === 'success' && 'bg-green-600 hover:bg-green-600',
+        )}
+      >
+        {buttonState === 'pending' && (
+          <>
+            <LoaderCircle className="animate-spin" />
+            Logowanie...
+          </>
+        )}
+        {buttonState === 'success' && (
+          <>
+            <Check />
+            Zalogowano
+          </>
+        )}
+        {buttonState === 'idle' && 'Zaloguj'}
       </Button>
     </form>
   )
