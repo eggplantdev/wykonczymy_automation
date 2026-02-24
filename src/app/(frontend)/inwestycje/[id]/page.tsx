@@ -62,7 +62,12 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   ]
 
   return (
-    <PageWrapper title={investment.name} backHref="/" backLabel="Kokpit" className={`grid gap-6`}>
+    <PageWrapper
+      title={investment.name}
+      backHref="/"
+      backLabel="Kokpit"
+      className="grid grid-cols-1 gap-6"
+    >
       <InfoList items={infoFields.filter((f) => f.value)} />
 
       {isAdminOrOwnerRole(user.role) && (

@@ -63,7 +63,7 @@ export async function UserTransferView({
       title={title ?? worker.name}
       backHref={backHref}
       backLabel={backLabel}
-      className="grid gap-6"
+      className="grid grid-cols-1 gap-6"
     >
       {showInfo && (
         <InfoList
