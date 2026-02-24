@@ -6,6 +6,7 @@ export default function Template({ children }: { children: React.ReactNode }) {
   return (
     <AnimatePresence mode="wait">
       <motion.div
+        className="min-h-svh"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
