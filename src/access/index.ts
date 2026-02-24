@@ -46,6 +46,13 @@ export const isAdminOrOwnerOrSelf: Access = ({ req: { user }, id }) => {
   return user?.id === id
 }
 
+// manager can update only employees
+export const canUpdateUser: Access = ({ req: { user }, id }) => {
+  if (hasAnyRole(user, 'ADMIN', 'OWNER')) return true
+  if (hasRole(user, 'MANAGER')) return { role: { equals: 'EMPLOYEE' } }
+  return user?.id === id
+}
+
 /**
  * Higher-order access: privileged roles get full access,
  * others get a Where clause filtering by `field = user.id`.
