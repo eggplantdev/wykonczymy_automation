@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { useAppForm } from '@/components/forms/hooks/form-hooks'
 import { loginAction } from '@/lib/actions/auth'
 import { cn } from '@/lib/cn'
+import { Loader } from '../../../components/ui/loader/loader'
 
 type ButtonStateT = 'idle' | 'pending' | 'success'
 
@@ -95,6 +96,7 @@ export function LoginForm() {
         )}
         {buttonState === 'idle' && 'Zaloguj'}
       </Button>
+      {isPending && <Loader loading={true} />}
     </form>
   )
 }
