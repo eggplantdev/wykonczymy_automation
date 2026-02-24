@@ -1,3 +1,7 @@
+'use client'
+
+import { Loader } from '@/components/ui/loader/loader'
+
 export default function Loading() {
-  return <></>
+  return <Loader loading={true} portal />
 }

@@ -8,7 +8,7 @@ export type PropsT = {
   loaderComponent?: ReactNode
   className?: string
   portal?: boolean
-  spinnerVariant?: 'black' | 'white'
+  // spinnerVariant?: 'black' | 'white'
 }
 
 export const Loader = ({
@@ -16,14 +16,14 @@ export const Loader = ({
   loaderComponent,
   className,
   portal,
-  spinnerVariant = 'black',
+  // spinnerVariant = 'black',
 }: PropsT) => {
   if (!loading) return null
 
   const spinner = loaderComponent ? (
     <div className={`animate-bounce`}>{loaderComponent}</div>
   ) : (
-    <Spinner variant={spinnerVariant} />
+    <p className="animate-bounce text-3xl font-semibold lg:text-5xl">🚧</p>
   )
 
   const comp = (
