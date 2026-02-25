@@ -18,6 +18,7 @@ import { today } from '@/lib/date-utils'
 import {
   AmountField,
   CashRegisterField,
+  DateField,
   DescriptionField,
   InvestmentField,
   LineItemsField,
@@ -197,6 +198,7 @@ export function SettlementForm({
               }}
             />
 
+            <DateField form={form} />
             {isSaldoLoading && <p className="text-muted-foreground text-sm">Ładowanie salda...</p>}
             {saldo !== null && !isSaldoLoading && (
               <p className="text-sm">
@@ -243,22 +245,16 @@ export function SettlementForm({
             </form.AppField>
 
             {/* Shared metadata */}
-            <div className="grid gap-4 md:grid-cols-2">
-              {mode === 'investment' && (
-                <InvestmentField form={form} investments={referenceData.investments} />
-              )}
+            {mode === 'investment' && (
+              <InvestmentField form={form} investments={referenceData.investments} />
+            )}
 
-              {mode === 'register' && (
-                <CashRegisterField form={form} cashRegisters={referenceData.cashRegisters} />
-              )}
+            {mode === 'register' && (
+              <CashRegisterField form={form} cashRegisters={referenceData.cashRegisters} />
+            )}
 
-              {/* <form.AppField name="date">
-                {(field) => <field.Input label="Data" type="date" showError />}
-              </form.AppField> */}
-
-              {/* PaymentMethodField — temporarily hidden, always CASH */}
-              {/* <PaymentMethodField form={form} /> */}
-            </div>
+            {/* PaymentMethodField — temporarily hidden, always CASH */}
+            {/* <PaymentMethodField form={form} /> */}
 
             {/* Register mode: single amount + description */}
             {mode === 'register' && (
@@ -328,13 +324,7 @@ export function SettlementForm({
             {/* Invoice note (investment + category modes only) */}
             {mode !== 'register' && (
               <form.AppField name="invoiceNote">
-                {(field) => (
-                  <field.Textarea
-                    label="Notatka do faktury"
-                    placeholder="Wymagane dla pozycji bez faktury"
-                    showError
-                  />
-                )}
+                {(field) => <field.Textarea label="Notatka" showError />}
               </form.AppField>
             )}
           </FieldGroup>

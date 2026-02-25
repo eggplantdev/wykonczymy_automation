@@ -21,6 +21,7 @@ import { today } from '@/lib/date-utils'
 import {
   AmountField,
   CashRegisterField,
+  DateField,
   DescriptionField,
   InvestmentField,
   // PaymentMethodField,
@@ -135,7 +136,7 @@ export function DepositForm({ referenceData, onSuccess, keepOpen }: DepositFormP
 
           <AmountField form={form} />
 
-          {/* <DateField form={form} /> */}
+          <DateField form={form} />
 
           {/* Payment method — temporarily hidden, always CASH */}
           {/* <PaymentMethodField form={form} /> */}

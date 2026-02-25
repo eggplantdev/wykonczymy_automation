@@ -10,9 +10,9 @@
 
 ---
 
-## Current Status (2026-02-23)
+## Current Status (2026-02-24)
 
-### Meta App Setup — BLOCKED on app verification
+### Meta App Setup — BLOCKED on Access Verification
 
 **What's done:**
 
@@ -24,17 +24,19 @@
 - Page Access Token has all required permissions: `pages_manage_metadata`, `leads_retrieval`, `pages_manage_ads`, `pages_read_engagement`, `pages_show_list`, `ads_management`, `ads_read`, `business_management`
 - Meta verification handshake (GET) succeeds — Meta can reach the endpoint
 - Manual curl POST to the endpoint works fine
+- Facebook account verified ✅
 
 **What's blocking:**
 
-- **App is unpublished (Development mode)**. Meta does NOT deliver webhooks to unpublished apps — including test leads from admins/developers. The red warning in the dashboard confirms this: "No production data, including from app admins, developers or testers, will be delivered unless the app has been published."
-- App is currently **being verified by Meta** for Live mode. Once approved, webhook delivery should work immediately.
+- **Access Verification in progress.** Meta requires the business (Bartosz Antonik) to complete Access Verification as a Tech Provider before the app can be published to Live mode. Verification form has been submitted — waiting for Meta approval.
+- **App is still unpublished (Development mode).** Cannot switch to Live until Access Verification is approved. Meta does NOT deliver webhooks to unpublished apps.
 
-**What to do after app is published:**
+**What to do after Access Verification is approved:**
 
-1. Create a test lead in the Lead Ads Testing Tool
-2. Verify POST arrives at the webhook endpoint (via ngrok or production URL)
-3. Proceed with Tasks 1-10 below
+1. Switch app from Development to Live mode in Meta App Dashboard
+2. Create a test lead in the Lead Ads Testing Tool
+3. Verify POST arrives at the webhook endpoint (via ngrok or production URL)
+4. Proceed with Tasks 1-10 below
 
 ### Env vars currently in `.env` (Meta-related):
 

@@ -25,7 +25,6 @@ export function AddDepositDialog({ referenceData }: AddDepositDialogPropsT) {
         </Button>
       }
       title="Nowa wpłata"
-      description="Dodaj wpłatę do kasy."
     >
       {(onSuccess, keepOpen) => (
         <DepositForm referenceData={referenceData} onSuccess={onSuccess} keepOpen={keepOpen} />

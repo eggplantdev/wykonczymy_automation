@@ -29,6 +29,7 @@ import { getDefaultCashRegister, getUserCashRegisterIds } from '@/lib/utils/defa
 import { today } from '@/lib/date-utils'
 import {
   CashRegisterField,
+  DateField,
   InvestmentField,
   LineItemsField,
   WorkerField,
@@ -170,6 +171,8 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
         }}
       >
         <FieldGroup>
+          {/* Date */}
+
           {/* Type — deposit types moved to separate deposit dialog */}
           <form.AppField name="type" listeners={{ onChange: resetConditionalFields }}>
             {(field) => (
@@ -182,6 +185,7 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
               </field.Select>
             )}
           </form.AppField>
+          <DateField form={form} />
 
           {/* Radio toggle for EMPLOYEE_EXPENSE: investment vs other category */}
           {currentType === 'EMPLOYEE_EXPENSE' && (

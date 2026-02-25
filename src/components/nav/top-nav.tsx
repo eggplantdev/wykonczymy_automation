@@ -1,8 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import type { RoleT } from '@/lib/auth/roles'
-import { ROLE_LABELS } from '@/lib/auth/roles'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { RoleBadge } from '@/components/ui/badge'
 import { AddSettlementDialog } from '@/components/dialogs/add-settlement-dialog'
