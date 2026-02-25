@@ -32,6 +32,7 @@ export type TransferRowT = {
   readonly workerName: string
   readonly otherCategoryName: string
   readonly createdByName: string
+  readonly createdAt: string
   readonly invoiceUrl: string | null
   readonly invoiceFilename: string | null
   readonly invoiceMimeType: string | null
@@ -96,6 +97,7 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
       workerName: lookupName(lookups.workers, doc.worker),
       otherCategoryName: lookupName(lookups.otherCategories, doc.otherCategory),
       createdByName: lookupName(lookups.workers, doc.createdBy),
+      createdAt: doc.createdAt,
       invoiceUrl: media?.url ?? null,
       invoiceFilename: media?.filename ?? null,
       invoiceMimeType: media?.mimeType ?? null,
@@ -121,6 +123,7 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
     workerName: getRelationName(doc.worker),
     otherCategoryName: getRelationName(doc.otherCategory),
     createdByName: getRelationName(doc.createdBy),
+    createdAt: doc.createdAt,
     invoiceUrl: getMediaField(doc.invoice, 'url'),
     invoiceFilename: getMediaField(doc.invoice, 'filename'),
     invoiceMimeType: getMediaField(doc.invoice, 'mimeType'),
@@ -306,6 +309,19 @@ const allColumns = [
     header: 'Dodane przez',
     meta: { label: 'Dodane przez' },
     cell: (info) => info.getValue(),
+  }),
+  col.accessor('createdAt', {
+    id: 'createdAt',
+    header: 'Czas dodania',
+    meta: { label: 'Czas dodania' },
+    cell: (info) =>
+      new Date(info.getValue()).toLocaleString('pl-PL', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
   }),
   col.display({
     id: 'actions',
