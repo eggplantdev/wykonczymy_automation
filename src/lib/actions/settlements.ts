@@ -57,27 +57,26 @@ export async function createSettlementAction(
       )
       console.log(`[PERF]   uploadBulkInvoices ${step()}ms (${parsed.data.lineItems.length} files)`)
 
-      await Promise.all(
-        parsed.data.lineItems.map((item, i) =>
-          payload.create({
-            collection: 'transactions',
-            data: {
-              description: item.description,
-              amount: item.amount,
-              date: parsed.data.date,
-              type: 'EMPLOYEE_EXPENSE',
-              paymentMethod: parsed.data.paymentMethod,
-              investment: parsed.data.mode === 'investment' ? parsed.data.investment : undefined,
-              worker: parsed.data.worker,
-              invoice: mediaIds[i],
-              invoiceNote: parsed.data.invoiceNote,
-              otherCategory: parsed.data.mode === 'category' ? item.category : undefined,
-              otherDescription: parsed.data.mode === 'category' ? item.note : undefined,
-              createdBy: user.id,
-            },
-          }),
-        ),
-      )
+      for (let i = 0; i < parsed.data.lineItems.length; i++) {
+        const item = parsed.data.lineItems[i]
+        await payload.create({
+          collection: 'transactions',
+          data: {
+            description: item.description,
+            amount: item.amount,
+            date: parsed.data.date,
+            type: 'EMPLOYEE_EXPENSE',
+            paymentMethod: parsed.data.paymentMethod,
+            investment: parsed.data.mode === 'investment' ? parsed.data.investment : undefined,
+            worker: parsed.data.worker,
+            invoice: mediaIds[i],
+            invoiceNote: parsed.data.invoiceNote,
+            otherCategory: parsed.data.mode === 'category' ? item.category : undefined,
+            otherDescription: parsed.data.mode === 'category' ? item.note : undefined,
+            createdBy: user.id,
+          },
+        })
+      }
       console.log(`[PERF]   payload.create x${parsed.data.lineItems.length} ${step()}ms`)
 
       return { success: true }

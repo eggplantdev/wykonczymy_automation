@@ -124,22 +124,20 @@ describe('settlementFormSchema (client)', () => {
       expect(errorPaths(result)).toContain('lineItems')
     })
 
-    it('line item without description → error on lineItems.0.description', () => {
+    it('line item without description → passes (description is optional)', () => {
       const result = settlementFormSchema.safeParse({
         ...validClientInvestment,
         lineItems: [{ description: '', amount: '100', category: '', note: '' }],
       })
-      expect(result.success).toBe(false)
-      expect(errorPaths(result)).toContain('lineItems.0.description')
+      expect(result.success).toBe(true)
     })
 
-    it('line item with whitespace-only description → error', () => {
+    it('line item with whitespace-only description → passes (description is optional)', () => {
       const result = settlementFormSchema.safeParse({
         ...validClientInvestment,
         lineItems: [{ description: '   ', amount: '100', category: '', note: '' }],
       })
-      expect(result.success).toBe(false)
-      expect(errorPaths(result)).toContain('lineItems.0.description')
+      expect(result.success).toBe(true)
     })
 
     it('line item with amount=0 → error on lineItems.0.amount', () => {
@@ -291,13 +289,12 @@ describe('settlementFormSchema (client)', () => {
         ...validClientInvestment,
         lineItems: [
           { description: 'OK 1', amount: '100', category: '', note: '' },
-          { description: '', amount: '0', category: '', note: '' }, // both invalid
+          { description: '', amount: '0', category: '', note: '' }, // invalid amount
           { description: 'OK 3', amount: '50', category: '', note: '' },
         ],
       })
       expect(result.success).toBe(false)
       const paths = errorPaths(result)
-      expect(paths).toContain('lineItems.1.description')
       expect(paths).toContain('lineItems.1.amount')
       // items 0 and 2 should not have errors
       expect(paths.some((p) => p.startsWith('lineItems.0'))).toBe(false)
@@ -361,12 +358,12 @@ describe('createSettlementSchema (server)', () => {
       expect(result.success).toBe(false)
     })
 
-    it('line item with empty description → fails', () => {
+    it('line item with empty description → passes (description is optional)', () => {
       const result = createSettlementSchema.safeParse({
         ...validServerInvestment,
-        lineItems: [{ description: '', amount: 100 }],
+        lineItems: [{ amount: 100 }],
       })
-      expect(result.success).toBe(false)
+      expect(result.success).toBe(true)
     })
 
     it('line item with amount = 0 → fails', () => {
