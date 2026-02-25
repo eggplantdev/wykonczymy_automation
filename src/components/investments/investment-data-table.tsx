@@ -1,11 +1,13 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { DataTable } from '@/components/ui/data-table/data-table'
 import { ColumnToggle } from '@/components/ui/column-toggle'
 import { ActiveFilterButton } from '@/components/ui/active-filter-button'
+import { SearchFilterInput } from '@/components/ui/search-filter-input'
 import { getInvestmentColumns, type InvestmentRowT } from '@/lib/tables/investments'
 import { useActiveFilter } from '@/hooks/use-active-filter'
+import { useSearchFilter } from '@/hooks/use-search-filter'
 import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle'
 import { toggleInvestmentStatus } from '@/lib/actions/toggle-active'
 
@@ -24,9 +26,19 @@ export function InvestmentDataTable({ data }: InvestmentDataTablePropsT) {
     toggleInvestmentStatus,
   )
 
-  const { filteredData, showOnlyActive, setShowOnlyActive } = useActiveFilter(
-    optimisticData,
-    isActive,
+  const {
+    filteredData: activeFiltered,
+    showOnlyActive,
+    setShowOnlyActive,
+  } = useActiveFilter(optimisticData, isActive)
+
+  const getSearchableText = useCallback(
+    (row: InvestmentRowT) => `${row.name} ${row.address} ${row.contactPerson}`,
+    [],
+  )
+  const { filteredData, searchTerm, setSearchTerm } = useSearchFilter(
+    activeFiltered,
+    getSearchableText,
   )
 
   const columns = useMemo(() => getInvestmentColumns(handleToggle), [handleToggle])
@@ -41,6 +53,7 @@ export function InvestmentDataTable({ data }: InvestmentDataTablePropsT) {
       getRowClassName={(row) => (row.status === 'completed' ? 'opacity-50' : '')}
       toolbar={(table, cv) => (
         <>
+          <SearchFilterInput value={searchTerm} onChange={setSearchTerm} placeholder="Szukaj..." />
           <ActiveFilterButton
             isActive={showOnlyActive}
             onChange={setShowOnlyActive}
