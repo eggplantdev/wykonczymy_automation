@@ -14,6 +14,7 @@ import { today } from '@/lib/date-utils'
 import {
   AmountField,
   CashRegisterField,
+  DateField,
   DescriptionField,
   // PaymentMethodField,
 } from '@/components/forms/form-fields'
@@ -133,7 +134,7 @@ export function RegisterTransferForm({
           <AmountField form={form} />
 
           {/* Date */}
-          {/* <DateField form={form} /> */}
+          <DateField form={form} />
 
           {/* Payment method — temporarily hidden, always CASH */}
           {/* <PaymentMethodField form={form} /> */}

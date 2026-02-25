@@ -50,7 +50,6 @@ export function FormDialog({
 
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogContent
-          className="h-fit max-h-[80vh] sm:max-w-2xl"
           onInteractOutside={(e) => {
             e.preventDefault()
             setShowConfirm(true)
@@ -58,7 +57,7 @@ export function FormDialog({
         >
           <div className="h-auto">
             <DialogHeader title={title} description={description} />
-            <div className="mt-2 pr-1">{children(handleSuccess, keepOpen)}</div>
+            <div className="mt-4 pr-1">{children(handleSuccess, keepOpen)}</div>
             {showKeepOpen && (
               <label className="flex cursor-pointer items-center gap-2 py-4 text-sm select-none">
                 <Checkbox
