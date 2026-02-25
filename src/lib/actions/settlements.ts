@@ -57,25 +57,36 @@ export async function createSettlementAction(
       )
       console.log(`[PERF]   uploadBulkInvoices ${step()}ms (${parsed.data.lineItems.length} files)`)
 
-      for (let i = 0; i < parsed.data.lineItems.length; i++) {
-        const item = parsed.data.lineItems[i]
-        await payload.create({
-          collection: 'transactions',
-          data: {
-            description: item.description,
-            amount: item.amount,
-            date: parsed.data.date,
-            type: 'EMPLOYEE_EXPENSE',
-            paymentMethod: parsed.data.paymentMethod,
-            investment: parsed.data.mode === 'investment' ? parsed.data.investment : undefined,
-            worker: parsed.data.worker,
-            invoice: mediaIds[i],
-            invoiceNote: parsed.data.invoiceNote,
-            otherCategory: parsed.data.mode === 'category' ? item.category : undefined,
-            otherDescription: parsed.data.mode === 'category' ? item.note : undefined,
-            createdBy: user.id,
-          },
-        })
+      const transactionId = await payload.db.beginTransaction()
+      if (!transactionId) throw new Error('Failed to start transaction')
+      const req = { transactionID: transactionId }
+
+      try {
+        for (let i = 0; i < parsed.data.lineItems.length; i++) {
+          const item = parsed.data.lineItems[i]
+          await payload.create({
+            collection: 'transactions',
+            req,
+            data: {
+              description: item.description,
+              amount: item.amount,
+              date: parsed.data.date,
+              type: 'EMPLOYEE_EXPENSE',
+              paymentMethod: parsed.data.paymentMethod,
+              investment: parsed.data.mode === 'investment' ? parsed.data.investment : undefined,
+              worker: parsed.data.worker,
+              invoice: mediaIds[i],
+              invoiceNote: parsed.data.invoiceNote,
+              otherCategory: parsed.data.mode === 'category' ? item.category : undefined,
+              otherDescription: parsed.data.mode === 'category' ? item.note : undefined,
+              createdBy: user.id,
+            },
+          })
+        }
+        await payload.db.commitTransaction(transactionId)
+      } catch (err) {
+        await payload.db.rollbackTransaction(transactionId)
+        throw err
       }
       console.log(`[PERF]   payload.create x${parsed.data.lineItems.length} ${step()}ms`)
 

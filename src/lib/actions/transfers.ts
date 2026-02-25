@@ -84,10 +84,16 @@ export async function createBulkTransferAction(
       const mediaIds = await uploadBulkInvoices(payload, invoiceFormData, lineCount)
       console.log(`[PERF]   uploadBulkInvoices ${step()}ms (${lineCount} files)`)
 
-      await Promise.all(
-        parsed.data.lineItems.map((item, i) =>
-          payload.create({
+      const transactionId = await payload.db.beginTransaction()
+      if (!transactionId) throw new Error('Failed to start transaction')
+      const req = { transactionID: transactionId }
+
+      try {
+        for (let i = 0; i < parsed.data.lineItems.length; i++) {
+          const item = parsed.data.lineItems[i]
+          await payload.create({
             collection: 'transactions',
+            req,
             data: {
               description: item.description,
               amount: item.amount,
@@ -104,9 +110,13 @@ export async function createBulkTransferAction(
               invoiceNote: item.invoiceNote,
               createdBy: user.id,
             },
-          }),
-        ),
-      )
+          })
+        }
+        await payload.db.commitTransaction(transactionId)
+      } catch (err) {
+        await payload.db.rollbackTransaction(transactionId)
+        throw err
+      }
       console.log(`[PERF]   payload.create x${lineCount} ${step()}ms`)
 
       return { success: true }
