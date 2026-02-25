@@ -82,13 +82,6 @@ export const settlementFormSchema = z
     }
 
     data.lineItems.forEach((item, index) => {
-      if (!item.description.trim()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Opis jest wymagany',
-          path: ['lineItems', index, 'description'],
-        })
-      }
       if (!item.amount || Number(item.amount) <= 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -123,7 +116,7 @@ export const createSettlementSchema = z
     lineItems: z
       .array(
         z.object({
-          description: z.string().min(1, 'Opis jest wymagany'),
+          description: z.string().optional(),
           amount: z.number().positive('Kwota musi być większa niż 0'),
           category: z.number().positive().optional(),
           note: z.string().optional(),
