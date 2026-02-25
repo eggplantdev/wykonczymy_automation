@@ -1,13 +1,15 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { DataTable } from '@/components/ui/data-table/data-table'
 import { ActiveFilterButton } from '@/components/ui/active-filter-button'
+import { SearchFilterInput } from '@/components/ui/search-filter-input'
 import { getCashRegisterColumns } from '@/lib/tables/cash-registers'
 import { getUserColumns } from '@/lib/tables/users'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { InvestmentDataTable } from '@/components/investments/investment-data-table'
 import { useActiveFilter } from '@/hooks/use-active-filter'
+import { useSearchFilter } from '@/hooks/use-search-filter'
 import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle'
 import { toggleCashRegisterActive, toggleUserActive } from '@/lib/actions/toggle-active'
 import type { CashRegisterRowT } from '@/lib/tables/cash-registers'
@@ -96,9 +98,16 @@ function UsersTable({ data }: UsersTablePropsT) {
     toggleUserActive,
   )
 
-  const { filteredData, showOnlyActive, setShowOnlyActive } = useActiveFilter(
-    optimisticData,
-    isUserActive,
+  const {
+    filteredData: activeFiltered,
+    showOnlyActive,
+    setShowOnlyActive,
+  } = useActiveFilter(optimisticData, isUserActive)
+
+  const getSearchableText = useCallback((row: UserRowT) => `${row.name} ${row.email}`, [])
+  const { filteredData, searchTerm, setSearchTerm } = useSearchFilter(
+    activeFiltered,
+    getSearchableText,
   )
 
   const columns = useMemo(() => getUserColumns(handleToggle), [handleToggle])
@@ -111,12 +120,15 @@ function UsersTable({ data }: UsersTablePropsT) {
       getRowHref={(row) => `/uzytkownicy/${row.id}`}
       getRowClassName={(row) => (!row.active ? 'opacity-50' : '')}
       toolbar={() => (
-        <ActiveFilterButton
-          isActive={showOnlyActive}
-          onChange={setShowOnlyActive}
-          activeLabel="Aktywni"
-          allLabel="Wszyscy"
-        />
+        <>
+          <SearchFilterInput value={searchTerm} onChange={setSearchTerm} placeholder="Szukaj..." />
+          <ActiveFilterButton
+            isActive={showOnlyActive}
+            onChange={setShowOnlyActive}
+            activeLabel="Aktywni"
+            allLabel="Wszyscy"
+          />
+        </>
       )}
     />
   )

@@ -90,7 +90,7 @@ export function DataTable<TData>({
 
   return (
     <div className={cn('space-y-2', className)}>
-      {toolbar && <div className="flex items-center">{toolbar(table, columnVisibility)}</div>}
+      {toolbar && <div className="flex items-center gap-2">{toolbar(table, columnVisibility)}</div>}
       <div className="border-border overflow-x-auto rounded-lg border">
         {enableVirtualization ? (
           <VirtualizedTableBody
