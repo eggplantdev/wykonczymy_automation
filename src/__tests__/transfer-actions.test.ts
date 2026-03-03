@@ -1,0 +1,765 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import type { Payload } from 'payload'
+
+// ── Mocks ────────────────────────────────────────────────────────────────
+
+vi.mock('server-only', () => ({}))
+
+const mockCreate = vi.fn()
+const mockUpdate = vi.fn()
+const mockFindByID = vi.fn()
+const mockBeginTransaction = vi.fn()
+const mockCommitTransaction = vi.fn()
+const mockRollbackTransaction = vi.fn()
+
+const mockPayload = {
+  create: mockCreate,
+  update: mockUpdate,
+  findByID: mockFindByID,
+  db: {
+    beginTransaction: mockBeginTransaction,
+    commitTransaction: mockCommitTransaction,
+    rollbackTransaction: mockRollbackTransaction,
+  },
+} as unknown as Payload
+
+const adminUser = { id: 1, email: 'admin@t.com', name: 'Admin', role: 'ADMIN' as const }
+const ownerUser = { id: 2, email: 'owner@t.com', name: 'Owner', role: 'OWNER' as const }
+const managerUser = { id: 3, email: 'mgr@t.com', name: 'Manager', role: 'MANAGER' as const }
+const otherManagerUser = { id: 4, email: 'mgr2@t.com', name: 'Manager2', role: 'MANAGER' as const }
+
+const mockRequireAuth = vi.fn()
+
+vi.mock('payload', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('payload')>()
+  return {
+    ...actual,
+    getPayload: vi.fn().mockResolvedValue(mockPayload),
+  }
+})
+
+vi.mock('@/lib/auth/require-auth', () => ({
+  requireAuth: (...args: unknown[]) => mockRequireAuth(...args),
+}))
+
+const mockUploadSingleInvoice = vi.fn()
+const mockUploadBulkInvoices = vi.fn()
+
+vi.mock('@/lib/upload-invoice', () => ({
+  uploadSingleInvoice: (...args: unknown[]) => mockUploadSingleInvoice(...args),
+  uploadBulkInvoices: (...args: unknown[]) => mockUploadBulkInvoices(...args),
+}))
+
+vi.mock('@/lib/cache/revalidate', () => ({
+  revalidateCollections: vi.fn(),
+}))
+
+const mockDbExecute = vi.fn()
+
+vi.mock('@/lib/db/sum-transfers', () => ({
+  getDb: vi.fn().mockResolvedValue({
+    execute: (...args: unknown[]) => mockDbExecute(...args),
+  }),
+  sumRegisterBalance: vi.fn().mockResolvedValue(99999),
+}))
+
+const {
+  createTransferAction,
+  createBulkTransferAction,
+  cancelTransferAction,
+  updateTransferNoteAction,
+  updateTransferInvoiceAction,
+} = await import('@/lib/actions/transfers')
+
+// ── Helpers ──────────────────────────────────────────────────────────────
+
+const TX_ID = 'test-tx-id'
+
+function makeSingleTransferData(overrides = {}) {
+  return {
+    description: 'Test transfer',
+    amount: 500,
+    date: '2026-02-25',
+    type: 'INVESTMENT_EXPENSE' as const,
+    paymentMethod: 'CASH' as const,
+    sourceRegister: 1,
+    investment: 1,
+    ...overrides,
+  }
+}
+
+function makeDepositData(overrides = {}) {
+  return {
+    description: 'Deposit',
+    amount: 1000,
+    date: '2026-02-25',
+    type: 'INVESTOR_DEPOSIT' as const,
+    paymentMethod: 'CASH' as const,
+    sourceRegister: 1,
+    investment: 1,
+    ...overrides,
+  }
+}
+
+function makeBulkTransferData(itemCount: number, overrides = {}) {
+  return {
+    type: 'INVESTMENT_EXPENSE' as const,
+    date: '2026-02-25',
+    paymentMethod: 'CASH' as const,
+    sourceRegister: 1,
+    investment: 1,
+    lineItems: Array.from({ length: itemCount }, (_, i) => ({
+      description: `Item ${i + 1}`,
+      amount: 100,
+    })),
+    ...overrides,
+  }
+}
+
+function makeOriginalTransfer(overrides = {}) {
+  return {
+    id: 10,
+    type: 'INVESTMENT_EXPENSE',
+    amount: 500,
+    date: '2026-02-20',
+    description: 'Original',
+    paymentMethod: 'CASH',
+    cancelled: false,
+    createdBy: 3, // managerUser.id
+    ...overrides,
+  }
+}
+
+function defaultDbRow(overrides = {}) {
+  return { id: 1, name: 'Main', type: 'MAIN', active: true, owner_id: 1, ...overrides }
+}
+
+beforeEach(() => {
+  mockCreate.mockReset().mockResolvedValue({ id: 1 })
+  mockUpdate.mockReset().mockResolvedValue({ id: 1 })
+  mockFindByID.mockReset()
+  mockBeginTransaction.mockReset().mockResolvedValue(TX_ID)
+  mockCommitTransaction.mockReset().mockResolvedValue(undefined)
+  mockRollbackTransaction.mockReset().mockResolvedValue(undefined)
+  mockRequireAuth.mockReset().mockResolvedValue({ success: true, user: adminUser })
+  mockUploadSingleInvoice.mockReset().mockResolvedValue(undefined)
+  mockUploadBulkInvoices.mockReset().mockResolvedValue([])
+  mockDbExecute.mockReset().mockResolvedValue({ rows: [defaultDbRow()] })
+})
+
+// ═════════════════════════════════════════════════════════════════════════
+// createTransferAction
+// ═════════════════════════════════════════════════════════════════════════
+
+describe('createTransferAction', () => {
+  it('valid INVESTMENT_EXPENSE transfer → success', async () => {
+    const result = await createTransferAction(makeSingleTransferData(), null)
+
+    expect(result.success).toBe(true)
+    expect(mockCreate).toHaveBeenCalledOnce()
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collection: 'transactions',
+        data: expect.objectContaining({
+          amount: 500,
+          type: 'INVESTMENT_EXPENSE',
+          date: '2026-02-25',
+          paymentMethod: 'CASH',
+          createdBy: adminUser.id,
+        }),
+      }),
+    )
+  })
+
+  it('valid INVESTOR_DEPOSIT → success', async () => {
+    const result = await createTransferAction(makeDepositData(), null)
+
+    expect(result.success).toBe(true)
+    expect(mockCreate).toHaveBeenCalledOnce()
+  })
+
+  it('valid COMPANY_FUNDING → success', async () => {
+    const result = await createTransferAction(makeDepositData({ type: 'COMPANY_FUNDING' }), null)
+
+    expect(result.success).toBe(true)
+  })
+
+  it('valid OTHER_DEPOSIT → success', async () => {
+    const result = await createTransferAction(makeDepositData({ type: 'OTHER_DEPOSIT' }), null)
+
+    expect(result.success).toBe(true)
+  })
+
+  it('valid ACCOUNT_FUNDING → success', async () => {
+    const result = await createTransferAction(
+      makeSingleTransferData({ type: 'ACCOUNT_FUNDING', worker: 1 }),
+      null,
+    )
+
+    expect(result.success).toBe(true)
+  })
+
+  it('valid PAYOUT → success', async () => {
+    const result = await createTransferAction(
+      makeSingleTransferData({ type: 'PAYOUT', investment: undefined }),
+      null,
+    )
+
+    expect(result.success).toBe(true)
+  })
+
+  it('deposit type → skips validateSourceRegister (no DB call)', async () => {
+    await createTransferAction(makeDepositData(), null)
+
+    // DB execute is only called inside validateSourceRegister
+    expect(mockDbExecute).not.toHaveBeenCalled()
+  })
+
+  it('non-deposit type → calls validateSourceRegister (DB call)', async () => {
+    await createTransferAction(makeSingleTransferData(), null)
+
+    expect(mockDbExecute).toHaveBeenCalled()
+  })
+
+  it('missing amount → returns validation error', async () => {
+    const result = await createTransferAction(
+      makeSingleTransferData({ amount: undefined }) as never,
+      null,
+    )
+
+    expect(result.success).toBe(false)
+    if (!result.success) expect(result.error).toBeTruthy()
+  })
+
+  it('zero amount → returns validation error', async () => {
+    const result = await createTransferAction(makeSingleTransferData({ amount: 0 }), null)
+
+    expect(result.success).toBe(false)
+  })
+
+  it('negative amount → returns validation error', async () => {
+    const result = await createTransferAction(makeSingleTransferData({ amount: -100 }), null)
+
+    expect(result.success).toBe(false)
+  })
+
+  it('invalid type → returns validation error', async () => {
+    const result = await createTransferAction(
+      makeSingleTransferData({ type: 'INVALID_TYPE' }) as never,
+      null,
+    )
+
+    expect(result.success).toBe(false)
+  })
+
+  it('missing date → returns validation error', async () => {
+    const result = await createTransferAction(makeSingleTransferData({ date: '' }), null)
+
+    expect(result.success).toBe(false)
+  })
+
+  it('invoice upload → passes mediaId to payload.create', async () => {
+    mockUploadSingleInvoice.mockResolvedValueOnce(42)
+
+    const formData = new FormData()
+    await createTransferAction(makeSingleTransferData(), formData)
+
+    expect(mockUploadSingleInvoice).toHaveBeenCalledWith(mockPayload, formData)
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ invoice: 42 }),
+      }),
+    )
+  })
+
+  it('no invoice → passes undefined as invoice', async () => {
+    await createTransferAction(makeSingleTransferData(), null)
+
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ invoice: undefined }),
+      }),
+    )
+  })
+
+  it('payload.create failure → returns error', async () => {
+    mockCreate.mockRejectedValueOnce(new Error('DB write failed'))
+
+    const result = await createTransferAction(makeSingleTransferData(), null)
+
+    expect(result.success).toBe(false)
+    if (!result.success) expect(result.error).toBe('DB write failed')
+  })
+
+  it('creates with correct data shape → description, amount, date, type, paymentMethod, createdBy', async () => {
+    const data = makeSingleTransferData({
+      description: 'Custom description',
+      amount: 250.5,
+      date: '2026-03-15',
+    })
+
+    await createTransferAction(data, null)
+
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collection: 'transactions',
+        data: expect.objectContaining({
+          description: 'Custom description',
+          amount: 250.5,
+          date: '2026-03-15',
+          type: 'INVESTMENT_EXPENSE',
+          paymentMethod: 'CASH',
+          createdBy: adminUser.id,
+        }),
+      }),
+    )
+  })
+
+  it('empty description defaults to empty string', async () => {
+    const data = makeSingleTransferData({ description: undefined })
+
+    await createTransferAction(data, null)
+
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ description: '' }),
+      }),
+    )
+  })
+
+  it('source register validation failure → returns error before create', async () => {
+    mockDbExecute.mockResolvedValueOnce({ rows: [] })
+
+    const result = await createTransferAction(makeSingleTransferData(), null)
+
+    expect(result.success).toBe(false)
+    if (!result.success) expect(result.error).toBe('Kasa nie istnieje')
+    expect(mockCreate).not.toHaveBeenCalled()
+  })
+
+  it('non-admin user with different register owner → returns permission error', async () => {
+    mockRequireAuth.mockResolvedValueOnce({ success: true, user: managerUser })
+    // Register owner_id = 1, managerUser.id = 3
+    mockDbExecute.mockResolvedValueOnce({ rows: [defaultDbRow({ owner_id: 1 })] })
+
+    const result = await createTransferAction(makeSingleTransferData(), null)
+
+    expect(result.success).toBe(false)
+    if (!result.success) expect(result.error).toBe('Nie masz uprawnień do tej kasy')
+  })
+})
+
+// ═════════════════════════════════════════════════════════════════════════
+// createBulkTransferAction
+// ═════════════════════════════════════════════════════════════════════════
+
+describe('createBulkTransferAction', () => {
+  it('valid bulk with correct data per item → each create has correct item data', async () => {
+    mockUploadBulkInvoices.mockResolvedValueOnce([undefined, undefined, undefined])
+
+    const data = makeBulkTransferData(3)
+    const result = await createBulkTransferAction(data, null)
+
+    expect(result.success).toBe(true)
+    expect(mockCreate).toHaveBeenCalledTimes(3)
+
+    for (let i = 0; i < 3; i++) {
+      expect(mockCreate.mock.calls[i][0]).toEqual(
+        expect.objectContaining({
+          collection: 'transactions',
+          data: expect.objectContaining({
+            description: `Item ${i + 1}`,
+            amount: 100,
+            date: '2026-02-25',
+            type: 'INVESTMENT_EXPENSE',
+            paymentMethod: 'CASH',
+            sourceRegister: 1,
+            investment: 1,
+            createdBy: adminUser.id,
+          }),
+        }),
+      )
+    }
+  })
+
+  it('schema validation failure — empty lineItems → returns error', async () => {
+    const result = await createBulkTransferAction(
+      makeBulkTransferData(0, { lineItems: [] }) as never,
+      null,
+    )
+
+    expect(result.success).toBe(false)
+    expect(mockCreate).not.toHaveBeenCalled()
+  })
+
+  it('schema validation failure — zero amount in lineItem → returns error', async () => {
+    const data = {
+      ...makeBulkTransferData(1),
+      lineItems: [{ description: 'Bad', amount: 0 }],
+    }
+
+    const result = await createBulkTransferAction(data as never, null)
+
+    expect(result.success).toBe(false)
+    expect(mockCreate).not.toHaveBeenCalled()
+  })
+
+  it('source register validation failure → returns error before any creates', async () => {
+    mockDbExecute.mockResolvedValueOnce({ rows: [] })
+
+    const result = await createBulkTransferAction(makeBulkTransferData(3), null)
+
+    expect(result.success).toBe(false)
+    if (!result.success) expect(result.error).toBe('Kasa nie istnieje')
+    expect(mockCreate).not.toHaveBeenCalled()
+    expect(mockBeginTransaction).not.toHaveBeenCalled()
+  })
+
+  it('large batch (40 items) → all 40 creates called sequentially with transaction', async () => {
+    mockUploadBulkInvoices.mockResolvedValueOnce(Array.from({ length: 40 }, () => undefined))
+    mockCreate.mockResolvedValue({ id: 1 })
+
+    const result = await createBulkTransferAction(makeBulkTransferData(40), null)
+
+    expect(result.success).toBe(true)
+    expect(mockCreate).toHaveBeenCalledTimes(40)
+    expect(mockBeginTransaction).toHaveBeenCalledOnce()
+    expect(mockCommitTransaction).toHaveBeenCalledWith(TX_ID)
+    expect(mockRollbackTransaction).not.toHaveBeenCalled()
+
+    // All creates share the same transaction ID
+    for (const call of mockCreate.mock.calls) {
+      expect(call[0]).toHaveProperty('req', { transactionID: TX_ID })
+    }
+  })
+
+  it('each create gets correct invoice mediaId from array', async () => {
+    const mediaIds = [101, undefined, 103]
+    mockUploadBulkInvoices.mockResolvedValueOnce(mediaIds)
+
+    await createBulkTransferAction(makeBulkTransferData(3), null)
+
+    expect(mockCreate.mock.calls[0][0].data.invoice).toBe(101)
+    expect(mockCreate.mock.calls[1][0].data.invoice).toBeUndefined()
+    expect(mockCreate.mock.calls[2][0].data.invoice).toBe(103)
+  })
+
+  it('EMPLOYEE_EXPENSE type → skips source register validation (needsSourceRegister returns false)', async () => {
+    mockUploadBulkInvoices.mockResolvedValueOnce([undefined])
+
+    const data = makeBulkTransferData(1, {
+      type: 'EMPLOYEE_EXPENSE',
+      sourceRegister: undefined,
+      worker: 1,
+      otherCategory: 1,
+    })
+
+    const result = await createBulkTransferAction(data, null)
+
+    expect(result.success).toBe(true)
+    expect(mockDbExecute).not.toHaveBeenCalled()
+  })
+
+  it('transaction rollback when create fails mid-batch', async () => {
+    mockUploadBulkInvoices.mockResolvedValueOnce([undefined, undefined, undefined])
+    mockCreate
+      .mockResolvedValueOnce({ id: 1 })
+      .mockRejectedValueOnce(new Error('Constraint violation'))
+
+    const result = await createBulkTransferAction(makeBulkTransferData(3), null)
+
+    expect(result.success).toBe(false)
+    if (!result.success) expect(result.error).toBe('Constraint violation')
+    expect(mockRollbackTransaction).toHaveBeenCalledWith(TX_ID)
+    expect(mockCommitTransaction).not.toHaveBeenCalled()
+  })
+})
+
+// ═════════════════════════════════════════════════════════════════════════
+// cancelTransferAction
+// ═════════════════════════════════════════════════════════════════════════
+
+describe('cancelTransferAction', () => {
+  it('success → marks original cancelled + creates CANCELLATION audit row', async () => {
+    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: adminUser.id }))
+
+    const result = await cancelTransferAction(10)
+
+    expect(result.success).toBe(true)
+
+    // Marks original as cancelled
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collection: 'transactions',
+        id: 10,
+        data: { cancelled: true },
+      }),
+    )
+
+    // Creates CANCELLATION audit row
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collection: 'transactions',
+        data: expect.objectContaining({
+          type: 'CANCELLATION',
+          amount: 500,
+          cancelledTransaction: 10,
+          createdBy: adminUser.id,
+        }),
+      }),
+    )
+  })
+
+  it('transfer not found → returns error', async () => {
+    mockFindByID.mockResolvedValueOnce(null)
+
+    const result = await cancelTransferAction(999)
+
+    expect(result.success).toBe(false)
+    if (!result.success) expect(result.error).toBe('Transakcja nie istnieje.')
+    expect(mockUpdate).not.toHaveBeenCalled()
+    expect(mockCreate).not.toHaveBeenCalled()
+  })
+
+  it('already cancelled → returns error', async () => {
+    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ cancelled: true }))
+
+    const result = await cancelTransferAction(10)
+
+    expect(result.success).toBe(false)
+    if (!result.success) expect(result.error).toBe('Transakcja jest już anulowana.')
+    expect(mockUpdate).not.toHaveBeenCalled()
+    expect(mockCreate).not.toHaveBeenCalled()
+  })
+
+  it('permission: creator (MANAGER) can cancel own transfer', async () => {
+    mockRequireAuth.mockResolvedValueOnce({ success: true, user: managerUser })
+    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: managerUser.id }))
+
+    const result = await cancelTransferAction(10)
+
+    expect(result.success).toBe(true)
+  })
+
+  it('permission: ADMIN can cancel any transfer', async () => {
+    mockRequireAuth.mockResolvedValueOnce({ success: true, user: adminUser })
+    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: managerUser.id }))
+
+    const result = await cancelTransferAction(10)
+
+    expect(result.success).toBe(true)
+  })
+
+  it('permission: OWNER can cancel any transfer', async () => {
+    mockRequireAuth.mockResolvedValueOnce({ success: true, user: ownerUser })
+    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: managerUser.id }))
+
+    const result = await cancelTransferAction(10)
+
+    expect(result.success).toBe(true)
+  })
+
+  it('permission: MANAGER who did not create → cannot cancel', async () => {
+    mockRequireAuth.mockResolvedValueOnce({ success: true, user: otherManagerUser })
+    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: managerUser.id }))
+
+    const result = await cancelTransferAction(10)
+
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error).toBe('Nie masz uprawnień do anulowania tej transakcji.')
+    }
+    expect(mockUpdate).not.toHaveBeenCalled()
+    expect(mockCreate).not.toHaveBeenCalled()
+  })
+
+  it('CANCELLATION audit row has correct data → amount, date, cancelledTransaction reference', async () => {
+    mockFindByID.mockResolvedValueOnce(
+      makeOriginalTransfer({ createdBy: adminUser.id, amount: 777, paymentMethod: 'CASH' }),
+    )
+
+    await cancelTransferAction(10)
+
+    const today = new Date().toISOString().split('T')[0]
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collection: 'transactions',
+        data: expect.objectContaining({
+          type: 'CANCELLATION',
+          amount: 777,
+          date: today,
+          description: 'Anulowanie transakcji #10',
+          paymentMethod: 'CASH',
+          cancelledTransaction: 10,
+          createdBy: adminUser.id,
+        }),
+      }),
+    )
+  })
+
+  it('createdBy as object (populated relation) → extracts id correctly', async () => {
+    mockFindByID.mockResolvedValueOnce(
+      makeOriginalTransfer({ createdBy: { id: managerUser.id, name: 'Manager' } }),
+    )
+    mockRequireAuth.mockResolvedValueOnce({ success: true, user: managerUser })
+
+    const result = await cancelTransferAction(10)
+
+    expect(result.success).toBe(true)
+  })
+
+  it('payload.update failure → returns error', async () => {
+    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: adminUser.id }))
+    mockUpdate.mockRejectedValueOnce(new Error('Update failed'))
+
+    const result = await cancelTransferAction(10)
+
+    expect(result.success).toBe(false)
+    if (!result.success) expect(result.error).toBe('Update failed')
+    expect(mockCreate).not.toHaveBeenCalled()
+  })
+
+  it('payload.create failure (audit row) → returns error', async () => {
+    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: adminUser.id }))
+    mockUpdate.mockResolvedValueOnce({ id: 10 })
+    mockCreate.mockRejectedValueOnce(new Error('Audit row creation failed'))
+
+    const result = await cancelTransferAction(10)
+
+    expect(result.success).toBe(false)
+    if (!result.success) expect(result.error).toBe('Audit row creation failed')
+  })
+
+  it('findByID called with correct collection and depth 0', async () => {
+    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: adminUser.id }))
+
+    await cancelTransferAction(10)
+
+    expect(mockFindByID).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collection: 'transactions',
+        id: 10,
+        depth: 0,
+      }),
+    )
+  })
+})
+
+// ═════════════════════════════════════════════════════════════════════════
+// updateTransferNoteAction
+// ═════════════════════════════════════════════════════════════════════════
+
+describe('updateTransferNoteAction', () => {
+  it('success → updates invoiceNote', async () => {
+    const result = await updateTransferNoteAction(10, 'New note text')
+
+    expect(result.success).toBe(true)
+    expect(mockUpdate).toHaveBeenCalledOnce()
+  })
+
+  it('called with correct collection and data', async () => {
+    await updateTransferNoteAction(55, 'Updated note')
+
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collection: 'transactions',
+        id: 55,
+        data: { invoiceNote: 'Updated note' },
+      }),
+    )
+  })
+
+  it('payload.update failure → returns error', async () => {
+    mockUpdate.mockRejectedValueOnce(new Error('Note update failed'))
+
+    const result = await updateTransferNoteAction(10, 'note')
+
+    expect(result.success).toBe(false)
+    if (!result.success) expect(result.error).toBe('Note update failed')
+  })
+
+  it('empty note → updates with empty string', async () => {
+    const result = await updateTransferNoteAction(10, '')
+
+    expect(result.success).toBe(true)
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: { invoiceNote: '' },
+      }),
+    )
+  })
+})
+
+// ═════════════════════════════════════════════════════════════════════════
+// updateTransferInvoiceAction
+// ═════════════════════════════════════════════════════════════════════════
+
+describe('updateTransferInvoiceAction', () => {
+  it('success → uploads file and updates invoice reference', async () => {
+    mockUploadSingleInvoice.mockResolvedValueOnce(88)
+    const formData = new FormData()
+
+    const result = await updateTransferInvoiceAction(10, formData)
+
+    expect(result.success).toBe(true)
+    expect(mockUploadSingleInvoice).toHaveBeenCalledWith(mockPayload, formData)
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collection: 'transactions',
+        id: 10,
+        data: { invoice: 88 },
+      }),
+    )
+  })
+
+  it('called with correct collection and mediaId', async () => {
+    mockUploadSingleInvoice.mockResolvedValueOnce(200)
+    const formData = new FormData()
+
+    await updateTransferInvoiceAction(77, formData)
+
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collection: 'transactions',
+        id: 77,
+        data: { invoice: 200 },
+      }),
+    )
+  })
+
+  it('upload failure → returns error', async () => {
+    mockUploadSingleInvoice.mockRejectedValueOnce(new Error('Upload failed'))
+    const formData = new FormData()
+
+    const result = await updateTransferInvoiceAction(10, formData)
+
+    expect(result.success).toBe(false)
+    if (!result.success) expect(result.error).toBe('Upload failed')
+    expect(mockUpdate).not.toHaveBeenCalled()
+  })
+
+  it('payload.update failure → returns error', async () => {
+    mockUploadSingleInvoice.mockResolvedValueOnce(88)
+    mockUpdate.mockRejectedValueOnce(new Error('Invoice update failed'))
+    const formData = new FormData()
+
+    const result = await updateTransferInvoiceAction(10, formData)
+
+    expect(result.success).toBe(false)
+    if (!result.success) expect(result.error).toBe('Invoice update failed')
+  })
+
+  it('no file in FormData → uploads undefined and updates with undefined', async () => {
+    mockUploadSingleInvoice.mockResolvedValueOnce(undefined)
+    const formData = new FormData()
+
+    const result = await updateTransferInvoiceAction(10, formData)
+
+    expect(result.success).toBe(true)
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: { invoice: undefined },
+      }),
+    )
+  })
+})
