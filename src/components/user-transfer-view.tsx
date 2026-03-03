@@ -10,7 +10,6 @@ import { TransfersSection } from '@/components/transfers/transfers-section'
 import { InfoList } from '@/components/ui/info-list'
 import { MailtoLink } from '@/components/ui/mailto-link'
 import { PageWrapper } from '@/components/ui/page-wrapper'
-import { PrintButton } from '@/components/ui/print-button'
 import { StatCard } from '@/components/ui/stat-card'
 import { perfStart } from '@/lib/perf'
 
@@ -77,10 +76,7 @@ export async function UserTransferView({
         />
       )}
 
-      <div className="flex items-end justify-between">
-        <StatCard label="Saldo" value={formatPLN(saldo)} />
-        <PrintButton />
-      </div>
+      <StatCard label="Saldo" value={formatPLN(saldo)} />
 
       {periodBreakdown && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -97,6 +93,8 @@ export async function UserTransferView({
         excludeColumns={excludeColumns}
         baseUrl={baseUrl}
         filters={{ showTypeFilter }}
+        context="worker"
+        contextId={numericId}
       />
     </PageWrapper>
   )

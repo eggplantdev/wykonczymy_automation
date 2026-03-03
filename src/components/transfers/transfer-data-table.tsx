@@ -4,10 +4,12 @@ import { DataTable } from '@/components/ui/data-table/data-table'
 import { ColumnToggle } from '@/components/ui/column-toggle'
 import { PaginationFooter } from '@/components/ui/pagination-footer'
 import { TransferFilters } from '@/components/transfers/transfer-filters'
+import { TransferExportToolbar } from '@/components/transfers/transfer-export-toolbar'
 import { getTransferColumns, type TransferRowT } from '@/lib/tables/transfers'
 import type { PaginationMetaT } from '@/lib/pagination'
 import { cn } from '../../lib/cn'
 import type { FilterConfigT } from '@/types/filters'
+import type { ExportContextT } from '@/types/export'
 
 type TransferDataTablePropsT = {
   readonly data: readonly TransferRowT[]
@@ -15,6 +17,9 @@ type TransferDataTablePropsT = {
   readonly excludeColumns?: string[]
   readonly baseUrl: string
   readonly filters?: FilterConfigT
+  readonly serializedWhere?: string
+  readonly context?: ExportContextT
+  readonly contextId?: number
   readonly className?: string
 }
 
@@ -24,6 +29,9 @@ export function TransferDataTable({
   excludeColumns = [],
   baseUrl,
   filters,
+  serializedWhere,
+  context,
+  contextId,
   className,
 }: TransferDataTablePropsT) {
   const columns = getTransferColumns(excludeColumns)
@@ -44,7 +52,20 @@ export function TransferDataTable({
         columns={columns}
         emptyMessage="Brak transferów"
         storageKey="transfers"
-        toolbar={(table, cv) => <ColumnToggle table={table} columnVisibility={cv} />}
+        toolbar={(table, cv) => (
+          <>
+            {serializedWhere && context && contextId && (
+              <TransferExportToolbar
+                serializedWhere={serializedWhere}
+                columnVisibility={cv}
+                excludeColumns={excludeColumns}
+                context={context}
+                contextId={contextId}
+              />
+            )}
+            <ColumnToggle table={table} columnVisibility={cv} />
+          </>
+        )}
       />
       <PaginationFooter paginationMeta={paginationMeta} baseUrl={baseUrl} />
     </div>
