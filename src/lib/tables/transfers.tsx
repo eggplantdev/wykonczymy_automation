@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createColumnHelper } from '@tanstack/react-table'
 import { formatPLN } from '@/lib/format-currency'
+import { formatPLDate, formatPLDateTime } from '@/lib/format-date'
 import { getRelationName } from '@/lib/get-relation-name'
 import { InvoiceCell } from '@/components/transfers/invoice-cell'
 import { NoteCell } from '@/components/dialogs/note-dialog'
@@ -171,12 +172,7 @@ const allColumns = [
     id: 'date',
     header: 'Data',
     meta: { label: 'Data' },
-    cell: (info) =>
-      new Date(info.getValue()).toLocaleDateString('pl-PL', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      }),
+    cell: (info) => formatPLDate(info.getValue()),
   }),
   col.accessor('description', {
     id: 'description',
@@ -314,14 +310,7 @@ const allColumns = [
     id: 'createdAt',
     header: 'Czas dodania',
     meta: { label: 'Czas dodania' },
-    cell: (info) =>
-      new Date(info.getValue()).toLocaleString('pl-PL', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
+    cell: (info) => formatPLDateTime(info.getValue()),
   }),
   col.display({
     id: 'actions',

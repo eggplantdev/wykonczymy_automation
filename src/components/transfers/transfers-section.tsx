@@ -2,8 +2,8 @@ import { Suspense } from 'react'
 import type { Where } from 'payload'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { TransferTableServer } from '@/components/transfers/transfer-table-server'
-import { Spinner } from '@/components/ui/loader/spinner'
 import type { FilterConfigT } from '@/types/filters'
+import type { ExportContextT } from '@/types/export'
 
 type TransfersSectionPropsT = {
   readonly title?: string
@@ -13,6 +13,8 @@ type TransfersSectionPropsT = {
   readonly baseUrl: string
   readonly excludeColumns?: string[]
   readonly filters?: FilterConfigT
+  readonly context?: ExportContextT
+  readonly contextId?: number
   readonly className?: string
 }
 
@@ -24,6 +26,8 @@ export function TransfersSection({
   baseUrl,
   excludeColumns,
   filters,
+  context,
+  contextId,
   className,
 }: TransfersSectionPropsT) {
   return (
@@ -36,6 +40,8 @@ export function TransfersSection({
           excludeColumns={excludeColumns}
           baseUrl={baseUrl}
           filters={filters}
+          context={context}
+          contextId={contextId}
           className="mt-4"
         />
       </Suspense>

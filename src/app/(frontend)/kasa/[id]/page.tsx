@@ -61,6 +61,8 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
         excludeColumns={['sourceRegister']}
         baseUrl={`/kasa/${id}`}
         filters={{}}
+        context="register"
+        contextId={registerId}
       />
     </PageWrapper>
   )

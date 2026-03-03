@@ -91,6 +91,8 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
         excludeColumns={['investment']}
         baseUrl={`/inwestycje/${id}`}
         filters={{}}
+        context="investment"
+        contextId={investmentId}
       />
     </PageWrapper>
   )
