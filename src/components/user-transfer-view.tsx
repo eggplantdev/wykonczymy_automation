@@ -5,6 +5,7 @@ import { parseDateRange } from '@/lib/parse-date-range'
 import { parsePagination } from '@/lib/pagination'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { fetchReferenceData, fetchWorkerSaldos } from '@/lib/queries/reference-data'
+import type { HeaderFieldT } from '@/types/export'
 import { fetchWorkerPeriodBreakdown } from '@/lib/queries/users'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { InfoList } from '@/components/ui/info-list'
@@ -57,6 +58,11 @@ export async function UserTransferView({
   const saldo = saldoRecord[userId] ?? 0
   const where = buildTransferFilters(searchParams, { id: numericId, isManager: false })
 
+  const headerFields: HeaderFieldT[] = [
+    { label: 'Pracownik', value: worker.name },
+    { label: 'Saldo', value: formatPLN(saldo) },
+  ]
+
   return (
     <PageWrapper
       title={title ?? worker.name}
@@ -94,6 +100,7 @@ export async function UserTransferView({
           filters: { showTypeFilter },
           context: 'worker',
           contextId: numericId,
+          headerFields,
         }}
       />
     </PageWrapper>

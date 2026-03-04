@@ -10,6 +10,7 @@ import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
 import { StatCard } from '@/components/ui/stat-card'
+import type { HeaderFieldT } from '@/types/export'
 import type { DynamicPagePropsT } from '@/types/page'
 
 export default async function CashRegisterDetailPage({ params, searchParams }: DynamicPagePropsT) {
@@ -43,6 +44,12 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
     ? (refData.workers.find((w) => w.id === register.ownerId)?.name ?? '—')
     : '—'
 
+  const headerFields: HeaderFieldT[] = [
+    { label: 'Kasa', value: register.name },
+    { label: 'Właściciel', value: ownerName },
+    { label: 'Saldo', value: formatPLN(balance) },
+  ]
+
   return (
     <PageWrapper
       title={register.name}
@@ -62,6 +69,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
           filters: {},
           context: 'register',
           contextId: registerId,
+          headerFields,
         }}
       />
     </PageWrapper>
