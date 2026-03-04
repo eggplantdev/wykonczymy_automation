@@ -55,12 +55,14 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
 
       {/* Transactions table */}
       <TransfersSection
-        query={{ where: transferWhere, page, limit }}
-        excludeColumns={['sourceRegister']}
-        baseUrl={`/kasa/${id}`}
-        filters={{}}
-        context="register"
-        contextId={registerId}
+        config={{
+          query: { where: transferWhere, page, limit },
+          baseUrl: `/kasa/${id}`,
+          excludeColumns: ['sourceRegister'],
+          filters: {},
+          context: 'register',
+          contextId: registerId,
+        }}
       />
     </PageWrapper>
   )

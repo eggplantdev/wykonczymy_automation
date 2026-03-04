@@ -8,33 +8,22 @@ import { TransferExportToolbar } from '@/components/transfers/transfer-export-to
 import { getTransferColumns, type TransferRowT } from '@/lib/tables/transfers'
 import type { PaginationMetaT } from '@/lib/pagination'
 import { cn } from '../../lib/cn'
-import type { FilterConfigT } from '@/types/filters'
-import type { Where } from 'payload'
-import type { ExportContextT } from '@/types/export'
+import type { TransferTableConfigT } from '@/types/export'
 
 type TransferDataTablePropsT = {
   readonly data: readonly TransferRowT[]
   readonly paginationMeta: PaginationMetaT
-  readonly excludeColumns?: string[]
-  readonly baseUrl: string
-  readonly filters?: FilterConfigT
-  readonly where?: Where
-  readonly context?: ExportContextT
-  readonly contextId?: number
+  readonly config: TransferTableConfigT
   readonly className?: string
 }
 
 export function TransferDataTable({
   data,
   paginationMeta,
-  excludeColumns = [],
-  baseUrl,
-  filters,
-  where,
-  context,
-  contextId,
+  config,
   className,
 }: TransferDataTablePropsT) {
+  const { query, baseUrl, excludeColumns = [], filters, context, contextId } = config
   const columns = getTransferColumns(excludeColumns)
 
   return (
@@ -55,9 +44,9 @@ export function TransferDataTable({
         storageKey="transfers"
         toolbar={(table, cv) => (
           <>
-            {where && context && contextId && (
+            {context && contextId && (
               <TransferExportToolbar
-                where={where}
+                where={query.where}
                 columnVisibility={cv}
                 excludeColumns={excludeColumns}
                 context={context}

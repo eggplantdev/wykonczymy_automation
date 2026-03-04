@@ -87,12 +87,14 @@ export async function UserTransferView({
       )}
 
       <TransfersSection
-        query={{ where, page, limit }}
-        excludeColumns={excludeColumns}
-        baseUrl={baseUrl}
-        filters={{ showTypeFilter }}
-        context="worker"
-        contextId={numericId}
+        config={{
+          query: { where, page, limit },
+          baseUrl,
+          excludeColumns,
+          filters: { showTypeFilter },
+          context: 'worker',
+          contextId: numericId,
+        }}
       />
     </PageWrapper>
   )

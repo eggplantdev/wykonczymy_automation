@@ -24,6 +24,7 @@ export function LoginForm() {
     onSubmit: async ({ value }) => {
       setError(undefined)
       const response = await loginAction(value)
+      console.log('response', response)
 
       if (response.success) {
         setButtonState('success')
@@ -36,7 +37,6 @@ export function LoginForm() {
   })
 
   const isPending = buttonState !== 'idle'
-
   return (
     <form
       onSubmit={(e) => {

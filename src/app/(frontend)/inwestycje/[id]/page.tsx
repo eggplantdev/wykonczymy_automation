@@ -85,12 +85,14 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
 
       {/* Transactions table */}
       <TransfersSection
-        query={{ where: transferWhere, page, limit }}
-        excludeColumns={['investment']}
-        baseUrl={`/inwestycje/${id}`}
-        filters={{}}
-        context="investment"
-        contextId={investmentId}
+        config={{
+          query: { where: transferWhere, page, limit },
+          baseUrl: `/inwestycje/${id}`,
+          excludeColumns: ['investment'],
+          filters: {},
+          context: 'investment',
+          contextId: investmentId,
+        }}
       />
     </PageWrapper>
   )
