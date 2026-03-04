@@ -44,7 +44,6 @@ function CashRegistersTable({ data, className }: CashRegistersTablePropsT) {
       className={className}
       data={filteredData}
       columns={columns}
-      emptyMessage="Brak kas"
       getRowHref={(row) => `/kasa/${row.id}`}
       getRowClassName={(row) => (!row.active ? 'opacity-50' : '')}
       toolbar={() => (
@@ -116,7 +115,6 @@ function UsersTable({ data }: UsersTablePropsT) {
     <DataTable
       data={filteredData}
       columns={columns}
-      emptyMessage="Brak pracownikiów"
       getRowHref={(row) => `/uzytkownicy/${row.id}`}
       getRowClassName={(row) => (!row.active ? 'opacity-50' : '')}
       toolbar={() => (
