@@ -1,20 +1,17 @@
 import { Suspense } from 'react'
 import { ResetPasswordForm } from './reset-password-form'
-import Link from 'next/link'
+import { AuthLink } from '@/components/ui/auth-link'
+import { AuthPageLayout } from '@/components/ui/auth-page-layout'
 
 export default function ResetPasswordPage() {
   return (
-    <div className="w-full max-w-sm px-4">
-      <h1 className="text-foreground mb-6 text-center text-xl font-semibold">Nowe hasło</h1>
+    <AuthPageLayout title="Nowe hasło">
       <Suspense>
         <ResetPasswordForm />
       </Suspense>
-      <Link
-        href="/zaloguj"
-        className="text-muted-foreground hover:text-foreground mt-4 block text-center text-sm transition-colors"
-      >
+      <AuthLink href="/zaloguj" className="mt-4 block">
         Powrót do logowania
-      </Link>
-    </div>
+      </AuthLink>
+    </AuthPageLayout>
   )
 }

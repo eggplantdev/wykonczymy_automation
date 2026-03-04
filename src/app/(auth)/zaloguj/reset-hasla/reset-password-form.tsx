@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { LoaderCircle, Check } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { useAppForm } from '@/components/forms/hooks/form-hooks'
 import { resetPasswordAction } from '@/lib/actions/auth'
+import { AuthSubmitButton } from '@/components/ui/auth-submit-button'
+import { AuthSuccessCard } from '@/components/ui/auth-success-card'
 
 type FormStateT = 'idle' | 'pending' | 'success'
 
@@ -57,14 +57,7 @@ export function ResetPasswordForm() {
   }
 
   if (formState === 'success') {
-    return (
-      <div className="flex flex-col items-center gap-2 rounded-md border p-6">
-        <Check className="text-green-600" size={32} />
-        <p className="text-foreground text-center text-sm">
-          Hasło zostało zmienione. Przekierowujemy do logowania...
-        </p>
-      </div>
-    )
+    return <AuthSuccessCard message="Hasło zostało zmienione. Przekierowujemy do logowania..." />
   }
 
   const isPending = formState === 'pending'
@@ -105,16 +98,11 @@ export function ResetPasswordForm() {
 
       {error && <p className="text-destructive text-sm">{error}</p>}
 
-      <Button type="submit" disabled={isPending} className="mt-2">
-        {isPending ? (
-          <>
-            <LoaderCircle className="animate-spin" />
-            Zapisywanie...
-          </>
-        ) : (
-          'Zapisz nowe hasło'
-        )}
-      </Button>
+      <AuthSubmitButton
+        isPending={isPending}
+        idleText="Zapisz nowe hasło"
+        pendingText="Zapisywanie..."
+      />
     </form>
   )
 }

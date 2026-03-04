@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { LoaderCircle, Check } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { useAppForm } from '@/components/forms/hooks/form-hooks'
 import { forgotPasswordAction } from '@/lib/actions/auth'
+import { AuthSubmitButton } from '@/components/ui/auth-submit-button'
+import { AuthSuccessCard } from '@/components/ui/auth-success-card'
 
 type FormStateT = 'idle' | 'pending' | 'success'
 
@@ -21,12 +21,7 @@ export function ForgotPasswordForm() {
 
   if (formState === 'success') {
     return (
-      <div className="flex flex-col items-center gap-2 rounded-md border p-6">
-        <Check className="text-green-600" size={32} />
-        <p className="text-foreground text-center text-sm">
-          Jeśli konto z tym adresem email istnieje, wysłaliśmy link do zresetowania hasła.
-        </p>
-      </div>
+      <AuthSuccessCard message="Jeśli konto z tym adresem email istnieje, wysłaliśmy link do zresetowania hasła." />
     )
   }
 
@@ -54,16 +49,7 @@ export function ForgotPasswordForm() {
         )}
       </form.AppField>
 
-      <Button type="submit" disabled={isPending} className="mt-2">
-        {isPending ? (
-          <>
-            <LoaderCircle className="animate-spin" />
-            Wysyłanie...
-          </>
-        ) : (
-          'Wyślij link'
-        )}
-      </Button>
+      <AuthSubmitButton isPending={isPending} idleText="Wyślij link" pendingText="Wysyłanie..." />
     </form>
   )
 }

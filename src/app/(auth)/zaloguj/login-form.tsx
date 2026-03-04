@@ -2,13 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { LoaderCircle, Check } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { AuthLink } from '@/components/ui/auth-link'
 import { useAppForm } from '@/components/forms/hooks/form-hooks'
 import { loginAction } from '@/lib/actions/auth'
-import { cn } from '@/lib/cn'
 import { Loader } from '@/components/ui/loader/loader'
+import { AuthSubmitButton } from '@/components/ui/auth-submit-button'
 
 type ButtonStateT = 'idle' | 'pending' | 'success'
 
@@ -75,34 +73,14 @@ export function LoginForm() {
 
       {error && <p className="text-destructive text-sm">{error}</p>}
 
-      <Button
-        type="submit"
-        disabled={isPending}
-        className={cn(
-          'mt-2 transition-colors duration-300',
-          buttonState === 'success' && 'bg-green-600 hover:bg-green-600',
-        )}
-      >
-        {buttonState === 'pending' && (
-          <>
-            <LoaderCircle className="animate-spin" />
-            Logowanie...
-          </>
-        )}
-        {buttonState === 'success' && (
-          <>
-            <Check />
-            Zalogowano
-          </>
-        )}
-        {buttonState === 'idle' && 'Zaloguj'}
-      </Button>
-      <Link
-        href="/zaloguj/zapomniane-haslo"
-        className="text-muted-foreground hover:text-foreground text-center text-sm transition-colors"
-      >
-        Nie pamiętasz hasła?
-      </Link>
+      <AuthSubmitButton
+        isPending={buttonState === 'pending'}
+        isSuccess={buttonState === 'success'}
+        idleText="Zaloguj"
+        pendingText="Logowanie..."
+        successText="Zalogowano"
+      />
+      <AuthLink href="/zaloguj/zapomniane-haslo">Nie pamiętasz hasła?</AuthLink>
       {isPending && <Loader loading={true} />}
     </form>
   )
