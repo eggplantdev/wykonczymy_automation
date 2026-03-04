@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button'
 import { fetchFilteredTransfers } from '@/lib/actions/export'
 import { buildTransferCsv } from '@/lib/export/csv'
 import { triggerDownload } from '@/lib/export/download'
+import { buildPrintHtml } from '@/lib/export/print'
+import { printViaIframe } from '@/lib/export/print-iframe'
 import { getTransferColumns } from '@/lib/tables/transfers'
 import type { TransferTableConfigT } from '@/types/export'
 
@@ -26,17 +28,26 @@ function getVisibleColumnIds(
 }
 
 export function TransferExportToolbar({ config, columnVisibility }: TransferExportToolbarPropsT) {
-  const { query, excludeColumns = [], context, contextId } = config
+  const { query, excludeColumns = [], headerFields = [] } = config
+  const [isPrintLoading, setIsPrintLoading] = useState(false)
   const [isCsvLoading, setIsCsvLoading] = useState(false)
 
   const visibleColumnIds = getVisibleColumnIds(excludeColumns, columnVisibility)
 
-  const handlePrint = useCallback(() => {
-    const whereBase64 = btoa(JSON.stringify(query.where))
-    const columns = visibleColumnIds.join(',')
-    const url = `/drukuj/transfery?context=${context}&contextId=${contextId}&where=${encodeURIComponent(whereBase64)}&columns=${columns}`
-    window.open(url, '_blank')
-  }, [query.where, visibleColumnIds, context, contextId])
+  const handlePrint = useCallback(async () => {
+    setIsPrintLoading(true)
+    try {
+      const result = await fetchFilteredTransfers(query.where)
+      if (!result.success) {
+        console.error('Print fetch failed:', result.error)
+        return
+      }
+      const html = buildPrintHtml(result.data, visibleColumnIds, headerFields)
+      printViaIframe(html)
+    } finally {
+      setIsPrintLoading(false)
+    }
+  }, [query.where, visibleColumnIds, headerFields])
 
   const handleCsv = useCallback(async () => {
     setIsCsvLoading(true)
@@ -62,9 +73,14 @@ export function TransferExportToolbar({ config, columnVisibility }: TransferExpo
         size="sm"
         className="gap-1.5"
         onClick={handlePrint}
+        disabled={isPrintLoading}
         aria-label="Drukuj transfery"
       >
-        <Printer className="size-4" />
+        {isPrintLoading ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : (
+          <Printer className="size-4" />
+        )}
         Drukuj
       </Button>
       <Button
