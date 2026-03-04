@@ -21,4 +21,5 @@ export type TransferTableConfigT = {
   readonly filters?: FilterConfigT
   readonly context?: ExportContextT
   readonly contextId?: number
+  readonly headerFields?: HeaderFieldT[]
 }
