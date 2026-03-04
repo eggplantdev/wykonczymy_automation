@@ -15,13 +15,12 @@ type CollapsibleSectionPropsT = {
 export function CollapsibleSection({
   title,
   defaultOpen = true,
-  className,
   children,
 }: CollapsibleSectionPropsT) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
 
   return (
-    <Collapsible.Root open={isOpen} onOpenChange={setIsOpen} className={className}>
+    <Collapsible.Root open={isOpen} onOpenChange={setIsOpen} className={'mt-8'}>
       <Collapsible.Trigger className="flex w-full cursor-pointer items-center gap-2 text-left">
         <h2 className="text-foreground text-lg font-semibold">{title}</h2>
         <ChevronDown

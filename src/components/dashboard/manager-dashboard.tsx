@@ -52,15 +52,18 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
       {/* Recent transactions */}
       <TransfersSection
         title="Ostatnie transakcje"
-        className="mt-8"
-        where={buildTransferFilters(searchParams, { id: 0, isManager: true })}
-        page={page}
-        limit={limit}
-        baseUrl="/"
-        filters={{
-          cashRegisters: visibleRegisters.map((c) => ({ id: c.id, name: c.name })),
-          investments: activeInvestments.map((i) => ({ id: i.id, name: i.name })),
-          users: managementUsers,
+        config={{
+          query: {
+            where: buildTransferFilters(searchParams, { id: 0, isManager: true }),
+            page,
+            limit,
+          },
+          baseUrl: '/',
+          filters: {
+            cashRegisters: visibleRegisters.map((c) => ({ id: c.id, name: c.name })),
+            investments: activeInvestments.map((i) => ({ id: i.id, name: i.name })),
+            users: managementUsers,
+          },
         }}
       />
     </PageWrapper>

@@ -9,16 +9,13 @@ import type { ActionResultT } from '@/lib/actions/utils'
 import { getErrorMessage } from '@/lib/actions/utils'
 import { perfStart } from '@/lib/perf'
 
-export async function fetchFilteredTransfers(
-  serializedWhere: string,
-): Promise<ActionResultT<TransferRowT[]>> {
+export async function fetchFilteredTransfers(where: Where): Promise<ActionResultT<TransferRowT[]>> {
   const elapsed = perfStart()
 
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) return session
 
   try {
-    const where: Where = JSON.parse(serializedWhere)
     const rows = await fetchAllTransferRows(where)
 
     console.log(`[PERF] fetchFilteredTransfers ${elapsed()}ms (${rows.length} rows)`)
