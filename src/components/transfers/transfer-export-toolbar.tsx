@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react'
 import type { VisibilityState } from '@tanstack/react-table'
 import { Printer, Download, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import type { Where } from 'payload'
 import { fetchFilteredTransfers } from '@/lib/actions/export'
 import { buildTransferCsv } from '@/lib/export/csv'
 import { triggerDownload } from '@/lib/export/download'
@@ -11,7 +12,7 @@ import { getTransferColumns } from '@/lib/tables/transfers'
 import type { ExportContextT } from '@/types/export'
 
 type TransferExportToolbarPropsT = {
-  readonly serializedWhere: string
+  readonly where: Where
   readonly columnVisibility: VisibilityState
   readonly excludeColumns: string[]
   readonly context: ExportContextT
@@ -29,7 +30,7 @@ function getVisibleColumnIds(
 }
 
 export function TransferExportToolbar({
-  serializedWhere,
+  where,
   columnVisibility,
   excludeColumns,
   context,
@@ -40,16 +41,16 @@ export function TransferExportToolbar({
   const visibleColumnIds = getVisibleColumnIds(excludeColumns, columnVisibility)
 
   const handlePrint = useCallback(() => {
-    const whereBase64 = btoa(serializedWhere)
+    const whereBase64 = btoa(JSON.stringify(where))
     const columns = visibleColumnIds.join(',')
     const url = `/drukuj/transfery?context=${context}&contextId=${contextId}&where=${encodeURIComponent(whereBase64)}&columns=${columns}`
     window.open(url, '_blank')
-  }, [serializedWhere, visibleColumnIds, context, contextId])
+  }, [where, visibleColumnIds, context, contextId])
 
   const handleCsv = useCallback(async () => {
     setIsCsvLoading(true)
     try {
-      const result = await fetchFilteredTransfers(serializedWhere)
+      const result = await fetchFilteredTransfers(where)
       if (!result.success) {
         console.error('Export failed:', result.error)
         return
@@ -61,7 +62,7 @@ export function TransferExportToolbar({
     } finally {
       setIsCsvLoading(false)
     }
-  }, [serializedWhere, visibleColumnIds])
+  }, [where, visibleColumnIds])
 
   return (
     <>

@@ -55,9 +55,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
 
       {/* Transactions table */}
       <TransfersSection
-        where={transferWhere}
-        page={page}
-        limit={limit}
+        query={{ where: transferWhere, page, limit }}
         excludeColumns={['sourceRegister']}
         baseUrl={`/kasa/${id}`}
         filters={{}}

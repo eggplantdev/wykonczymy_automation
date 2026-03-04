@@ -87,9 +87,7 @@ export async function UserTransferView({
       )}
 
       <TransfersSection
-        where={where}
-        page={page}
-        limit={limit}
+        query={{ where, page, limit }}
         excludeColumns={excludeColumns}
         baseUrl={baseUrl}
         filters={{ showTypeFilter }}

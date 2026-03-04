@@ -53,9 +53,11 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
       <TransfersSection
         title="Ostatnie transakcje"
         className="mt-8"
-        where={buildTransferFilters(searchParams, { id: 0, isManager: true })}
-        page={page}
-        limit={limit}
+        query={{
+          where: buildTransferFilters(searchParams, { id: 0, isManager: true }),
+          page,
+          limit,
+        }}
         baseUrl="/"
         filters={{
           cashRegisters: visibleRegisters.map((c) => ({ id: c.id, name: c.name })),

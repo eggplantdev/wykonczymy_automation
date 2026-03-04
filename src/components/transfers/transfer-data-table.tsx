@@ -9,6 +9,7 @@ import { getTransferColumns, type TransferRowT } from '@/lib/tables/transfers'
 import type { PaginationMetaT } from '@/lib/pagination'
 import { cn } from '../../lib/cn'
 import type { FilterConfigT } from '@/types/filters'
+import type { Where } from 'payload'
 import type { ExportContextT } from '@/types/export'
 
 type TransferDataTablePropsT = {
@@ -17,7 +18,7 @@ type TransferDataTablePropsT = {
   readonly excludeColumns?: string[]
   readonly baseUrl: string
   readonly filters?: FilterConfigT
-  readonly serializedWhere?: string
+  readonly where?: Where
   readonly context?: ExportContextT
   readonly contextId?: number
   readonly className?: string
@@ -29,7 +30,7 @@ export function TransferDataTable({
   excludeColumns = [],
   baseUrl,
   filters,
-  serializedWhere,
+  where,
   context,
   contextId,
   className,
@@ -54,9 +55,9 @@ export function TransferDataTable({
         storageKey="transfers"
         toolbar={(table, cv) => (
           <>
-            {serializedWhere && context && contextId && (
+            {where && context && contextId && (
               <TransferExportToolbar
-                serializedWhere={serializedWhere}
+                where={where}
                 columnVisibility={cv}
                 excludeColumns={excludeColumns}
                 context={context}
