@@ -421,7 +421,7 @@ describe('createSettlementAction — category mode', () => {
 
   it('missing category per line item → validation error', async () => {
     const data = makeCategoryData(1)
-    data.lineItems[0].category = undefined
+    data.lineItems[0].category = undefined as any
 
     const result = await createSettlementAction(data, null)
 
@@ -435,7 +435,7 @@ describe('createSettlementAction — category mode', () => {
     mockUploadBulkInvoices.mockResolvedValue([undefined])
 
     const data = makeCategoryData(1)
-    data.lineItems[0].note = undefined
+    data.lineItems[0].note = undefined as any
 
     const result = await createSettlementAction(data, null)
 

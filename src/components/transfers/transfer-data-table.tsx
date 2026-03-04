@@ -8,60 +8,30 @@ import { TransferExportToolbar } from '@/components/transfers/transfer-export-to
 import { getTransferColumns, type TransferRowT } from '@/lib/tables/transfers'
 import type { PaginationMetaT } from '@/lib/pagination'
 import { cn } from '../../lib/cn'
-import type { FilterConfigT } from '@/types/filters'
-import type { ExportContextT } from '@/types/export'
+import type { TransferTableConfigT } from '@/types/export'
 
 type TransferDataTablePropsT = {
   readonly data: readonly TransferRowT[]
   readonly paginationMeta: PaginationMetaT
-  readonly excludeColumns?: string[]
-  readonly baseUrl: string
-  readonly filters?: FilterConfigT
-  readonly serializedWhere?: string
-  readonly context?: ExportContextT
-  readonly contextId?: number
+  readonly config: TransferTableConfigT
   readonly className?: string
 }
 
-export function TransferDataTable({
-  data,
-  paginationMeta,
-  excludeColumns = [],
-  baseUrl,
-  filters,
-  serializedWhere,
-  context,
-  contextId,
-  className,
-}: TransferDataTablePropsT) {
+export function TransferDataTable({ data, paginationMeta, config }: TransferDataTablePropsT) {
+  const { baseUrl, excludeColumns = [], filters, context, contextId } = config
   const columns = getTransferColumns(excludeColumns)
 
   return (
-    <div className={cn('space-y-4', className)}>
-      {filters && (
-        <TransferFilters
-          cashRegisters={filters.cashRegisters}
-          investments={filters.investments}
-          users={filters.users}
-          showTypeFilter={filters.showTypeFilter}
-          baseUrl={baseUrl}
-        />
-      )}
+    <div className={cn('mt-4 space-y-4')}>
+      {filters && <TransferFilters {...filters} baseUrl={baseUrl} />}
       <DataTable
         data={data}
         columns={columns}
-        emptyMessage="Brak transferów"
         storageKey="transfers"
         toolbar={(table, cv) => (
           <>
-            {serializedWhere && context && contextId && (
-              <TransferExportToolbar
-                serializedWhere={serializedWhere}
-                columnVisibility={cv}
-                excludeColumns={excludeColumns}
-                context={context}
-                contextId={contextId}
-              />
+            {context && contextId && (
+              <TransferExportToolbar config={config} columnVisibility={cv} />
             )}
             <ColumnToggle table={table} columnVisibility={cv} />
           </>

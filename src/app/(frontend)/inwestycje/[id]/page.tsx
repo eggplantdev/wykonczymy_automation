@@ -11,6 +11,7 @@ import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
 import { MailtoLink } from '@/components/ui/mailto-link'
 import { StatCard } from '@/components/ui/stat-card'
+import type { HeaderFieldT } from '@/types/export'
 import type { DynamicPagePropsT } from '@/types/page'
 
 export default async function InvestmentDetailPage({ params, searchParams }: DynamicPagePropsT) {
@@ -38,6 +39,19 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   const fin = financialsRecord[String(id)]
   const totalCosts = fin?.totalCosts ?? 0
   const totalIncome = fin?.totalIncome ?? 0
+
+  const headerFields: HeaderFieldT[] = [{ label: 'Inwestycja', value: investment.name }]
+  if (isAdminOrOwnerRole(user.role)) {
+    headerFields.push(
+      { label: 'Koszty inwestycji', value: formatPLN(totalCosts) },
+      { label: 'Wpłaty od inwestora', value: formatPLN(totalIncome) },
+      { label: 'Koszty robocizny', value: formatPLN(investment.laborCosts ?? 0) },
+      {
+        label: 'Bilans',
+        value: formatPLN(totalIncome - totalCosts - (investment.laborCosts ?? 0)),
+      },
+    )
+  }
 
   const urlFilters = buildTransferFilters(sp, { id: user.id, isManager: true })
   const transferWhere = { ...urlFilters, investment: { equals: investmentId } }
@@ -85,14 +99,15 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
 
       {/* Transactions table */}
       <TransfersSection
-        where={transferWhere}
-        page={page}
-        limit={limit}
-        excludeColumns={['investment']}
-        baseUrl={`/inwestycje/${id}`}
-        filters={{}}
-        context="investment"
-        contextId={investmentId}
+        config={{
+          query: { where: transferWhere, page, limit },
+          baseUrl: `/inwestycje/${id}`,
+          excludeColumns: ['investment'],
+          filters: {},
+          context: 'investment',
+          contextId: investmentId,
+          headerFields,
+        }}
       />
     </PageWrapper>
   )

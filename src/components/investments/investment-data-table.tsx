@@ -47,7 +47,6 @@ export function InvestmentDataTable({ data }: InvestmentDataTablePropsT) {
     <DataTable
       data={filteredData}
       columns={columns}
-      emptyMessage="Brak inwestycji"
       storageKey="investments"
       getRowHref={(row) => `/inwestycje/${row.id}`}
       getRowClassName={(row) => (row.status === 'completed' ? 'opacity-50' : '')}

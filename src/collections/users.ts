@@ -5,6 +5,7 @@ import {
   isAdminOrOwnerOrManager,
   isAdminOrOwnerOrSelf,
 } from '@/access'
+import { forgotPasswordEmailHTML } from '@/lib/email/forgot-password-template'
 import type { CollectionConfig } from 'payload'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 import { ROLES, ROLE_LABELS } from '@/lib/auth/roles'
@@ -13,6 +14,15 @@ export const Users: CollectionConfig = {
   slug: 'users',
   auth: {
     tokenExpiration: 86400, // 24 hours until app logs you out
+    forgotPassword: {
+      generateEmailHTML: (args) => {
+        return forgotPasswordEmailHTML({
+          token: args?.token ?? '',
+          userName: (args?.user as { name?: string })?.name,
+        })
+      },
+      generateEmailSubject: () => 'Resetowanie hasła — Wykonczymy',
+    },
   },
   hooks: {
     afterChange: [makeRevalidateAfterChange('users')],

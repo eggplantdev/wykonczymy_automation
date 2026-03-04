@@ -24,7 +24,13 @@ export function writeVisibility(key: string, state: VisibilityState) {
 
 // --- Empty state ---
 
-export function EmptyRow({ colSpan, message }: { colSpan: number; message: string }) {
+export function EmptyRow({
+  colSpan,
+  message = 'Brak danych',
+}: {
+  colSpan: number
+  message?: string
+}) {
   return (
     <tr>
       <td colSpan={colSpan} className="text-muted-foreground px-4 py-8 text-center">

@@ -21,7 +21,6 @@ type DataTablePropsT<TData> = {
   readonly data: readonly TData[]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   readonly columns: ColumnDef<TData, any>[]
-  readonly emptyMessage?: string
   readonly enableVirtualization?: boolean
   readonly virtualRowHeight?: number
   readonly virtualContainerHeight?: number
@@ -37,7 +36,6 @@ type DataTablePropsT<TData> = {
 export function DataTable<TData>({
   data,
   columns,
-  emptyMessage = 'Brak danych',
   enableVirtualization = false,
   virtualRowHeight = 44,
   virtualContainerHeight = 600,
@@ -101,7 +99,6 @@ export function DataTable<TData>({
             virtualizer={virtualizer}
             colCount={visibleColCount}
             visibleColumnIds={visibleColumnIds}
-            emptyMessage={emptyMessage}
             getRowHref={getRowHref}
             getRowClassName={getRowClassName}
           />
@@ -110,7 +107,7 @@ export function DataTable<TData>({
             <TableHeader headerGroups={headerGroups} />
             <tbody>
               {rows.length === 0 ? (
-                <EmptyRow colSpan={visibleColCount} message={emptyMessage} />
+                <EmptyRow colSpan={visibleColCount} />
               ) : (
                 rows.map((row) => (
                   <DataTableRow

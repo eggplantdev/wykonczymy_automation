@@ -1,21 +1,20 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import type { VisibilityState } from '@tanstack/react-table'
 import { Printer, Download, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { fetchFilteredTransfers } from '@/lib/actions/export'
 import { buildTransferCsv } from '@/lib/export/csv'
 import { triggerDownload } from '@/lib/export/download'
+import { buildPrintHtml } from '@/lib/export/print'
+import { printViaIframe } from '@/lib/export/print-iframe'
 import { getTransferColumns } from '@/lib/tables/transfers'
-import type { ExportContextT } from '@/types/export'
+import type { TransferTableConfigT } from '@/types/export'
 
 type TransferExportToolbarPropsT = {
-  readonly serializedWhere: string
+  readonly config: TransferTableConfigT
   readonly columnVisibility: VisibilityState
-  readonly excludeColumns: string[]
-  readonly context: ExportContextT
-  readonly contextId: number
 }
 
 function getVisibleColumnIds(
@@ -28,28 +27,32 @@ function getVisibleColumnIds(
     .map((col) => col.id as string)
 }
 
-export function TransferExportToolbar({
-  serializedWhere,
-  columnVisibility,
-  excludeColumns,
-  context,
-  contextId,
-}: TransferExportToolbarPropsT) {
+export function TransferExportToolbar({ config, columnVisibility }: TransferExportToolbarPropsT) {
+  const { query, excludeColumns = [], headerFields = [] } = config
+  const [isPrintLoading, setIsPrintLoading] = useState(false)
   const [isCsvLoading, setIsCsvLoading] = useState(false)
 
   const visibleColumnIds = getVisibleColumnIds(excludeColumns, columnVisibility)
 
-  const handlePrint = useCallback(() => {
-    const whereBase64 = btoa(serializedWhere)
-    const columns = visibleColumnIds.join(',')
-    const url = `/drukuj/transfery?context=${context}&contextId=${contextId}&where=${encodeURIComponent(whereBase64)}&columns=${columns}`
-    window.open(url, '_blank')
-  }, [serializedWhere, visibleColumnIds, context, contextId])
+  async function handlePrint() {
+    setIsPrintLoading(true)
+    try {
+      const result = await fetchFilteredTransfers(query.where)
+      if (!result.success) {
+        console.error('Print fetch failed:', result.error)
+        return
+      }
+      const html = buildPrintHtml(result.data, visibleColumnIds, headerFields)
+      printViaIframe(html)
+    } finally {
+      setIsPrintLoading(false)
+    }
+  }
 
-  const handleCsv = useCallback(async () => {
+  async function handleCsv() {
     setIsCsvLoading(true)
     try {
-      const result = await fetchFilteredTransfers(serializedWhere)
+      const result = await fetchFilteredTransfers(query.where)
       if (!result.success) {
         console.error('Export failed:', result.error)
         return
@@ -61,7 +64,7 @@ export function TransferExportToolbar({
     } finally {
       setIsCsvLoading(false)
     }
-  }, [serializedWhere, visibleColumnIds])
+  }
 
   return (
     <>
@@ -70,9 +73,14 @@ export function TransferExportToolbar({
         size="sm"
         className="gap-1.5"
         onClick={handlePrint}
+        disabled={isPrintLoading}
         aria-label="Drukuj transfery"
       >
-        <Printer className="size-4" />
+        {isPrintLoading ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : (
+          <Printer className="size-4" />
+        )}
         Drukuj
       </Button>
       <Button

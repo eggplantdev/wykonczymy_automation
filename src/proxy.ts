@@ -4,13 +4,15 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const hasToken = request.cookies.has('payload-token')
 
+  const isAuthPage = pathname.startsWith('/zaloguj')
+
   // Not logged in → redirect to login
-  if (!hasToken && pathname !== '/zaloguj') {
+  if (!hasToken && !isAuthPage) {
     return NextResponse.redirect(new URL('/zaloguj', request.url))
   }
 
   // Logged in → redirect away from login page
-  if (hasToken && pathname === '/zaloguj') {
+  if (hasToken && isAuthPage) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
