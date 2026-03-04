@@ -9,15 +9,11 @@ type TransfersSectionPropsT = {
   readonly className?: string
 }
 
-export function TransfersSection({
-  title = 'Transfery',
-  config,
-  className,
-}: TransfersSectionPropsT) {
+export function TransfersSection({ title = 'Transfery', config }: TransfersSectionPropsT) {
   return (
-    <CollapsibleSection title={title} className={className}>
+    <CollapsibleSection title={title}>
       <Suspense fallback={null}>
-        <TransferTableServer config={config} className="mt-4" />
+        <TransferTableServer config={config} />
       </Suspense>
     </CollapsibleSection>
   )

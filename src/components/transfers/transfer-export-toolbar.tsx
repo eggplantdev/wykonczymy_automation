@@ -4,19 +4,15 @@ import { useCallback, useState } from 'react'
 import type { VisibilityState } from '@tanstack/react-table'
 import { Printer, Download, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import type { Where } from 'payload'
 import { fetchFilteredTransfers } from '@/lib/actions/export'
 import { buildTransferCsv } from '@/lib/export/csv'
 import { triggerDownload } from '@/lib/export/download'
 import { getTransferColumns } from '@/lib/tables/transfers'
-import type { ExportContextT } from '@/types/export'
+import type { TransferTableConfigT } from '@/types/export'
 
 type TransferExportToolbarPropsT = {
-  readonly where: Where
+  readonly config: TransferTableConfigT
   readonly columnVisibility: VisibilityState
-  readonly excludeColumns: string[]
-  readonly context: ExportContextT
-  readonly contextId: number
 }
 
 function getVisibleColumnIds(
@@ -29,28 +25,23 @@ function getVisibleColumnIds(
     .map((col) => col.id as string)
 }
 
-export function TransferExportToolbar({
-  where,
-  columnVisibility,
-  excludeColumns,
-  context,
-  contextId,
-}: TransferExportToolbarPropsT) {
+export function TransferExportToolbar({ config, columnVisibility }: TransferExportToolbarPropsT) {
+  const { query, excludeColumns = [], context, contextId } = config
   const [isCsvLoading, setIsCsvLoading] = useState(false)
 
   const visibleColumnIds = getVisibleColumnIds(excludeColumns, columnVisibility)
 
   const handlePrint = useCallback(() => {
-    const whereBase64 = btoa(JSON.stringify(where))
+    const whereBase64 = btoa(JSON.stringify(query.where))
     const columns = visibleColumnIds.join(',')
     const url = `/drukuj/transfery?context=${context}&contextId=${contextId}&where=${encodeURIComponent(whereBase64)}&columns=${columns}`
     window.open(url, '_blank')
-  }, [where, visibleColumnIds, context, contextId])
+  }, [query.where, visibleColumnIds, context, contextId])
 
   const handleCsv = useCallback(async () => {
     setIsCsvLoading(true)
     try {
-      const result = await fetchFilteredTransfers(where)
+      const result = await fetchFilteredTransfers(query.where)
       if (!result.success) {
         console.error('Export failed:', result.error)
         return
@@ -62,7 +53,7 @@ export function TransferExportToolbar({
     } finally {
       setIsCsvLoading(false)
     }
-  }, [where, visibleColumnIds])
+  }, [query.where, visibleColumnIds])
 
   return (
     <>

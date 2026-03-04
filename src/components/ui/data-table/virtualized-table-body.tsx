@@ -19,7 +19,6 @@ type VirtualizedTableBodyPropsT<TData> = {
   readonly virtualizer: ReturnType<typeof useVirtualizer<HTMLDivElement, Element>>
   readonly colCount: number
   readonly visibleColumnIds: ReadonlySet<string>
-  readonly emptyMessage: string
   readonly getRowHref?: (row: TData) => string | undefined
   readonly getRowClassName?: (row: TData) => string
 }
@@ -32,7 +31,6 @@ export function VirtualizedTableBody<TData>({
   virtualizer,
   colCount,
   visibleColumnIds,
-  emptyMessage,
   getRowHref,
   getRowClassName,
 }: VirtualizedTableBodyPropsT<TData>) {
@@ -44,7 +42,7 @@ export function VirtualizedTableBody<TData>({
         <TableHeader headerGroups={headerGroups} />
         <tbody>
           {rows.length === 0 ? (
-            <EmptyRow colSpan={colCount} message={emptyMessage} />
+            <EmptyRow colSpan={colCount} />
           ) : (
             <>
               {/* Top spacer — pushes visible rows to correct scroll position */}

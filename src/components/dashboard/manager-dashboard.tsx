@@ -52,7 +52,6 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
       {/* Recent transactions */}
       <TransfersSection
         title="Ostatnie transakcje"
-        className="mt-8"
         config={{
           query: {
             where: buildTransferFilters(searchParams, { id: 0, isManager: true }),
