@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { LoaderCircle, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAppForm } from '@/components/forms/hooks/form-hooks'
@@ -96,6 +97,12 @@ export function LoginForm() {
         )}
         {buttonState === 'idle' && 'Zaloguj'}
       </Button>
+      <Link
+        href="/zaloguj/zapomniane-haslo"
+        className="text-muted-foreground hover:text-foreground text-center text-sm transition-colors"
+      >
+        Nie pamiętasz hasła?
+      </Link>
       {isPending && <Loader loading={true} />}
     </form>
   )
