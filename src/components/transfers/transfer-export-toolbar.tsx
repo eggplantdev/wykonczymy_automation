@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import type { VisibilityState } from '@tanstack/react-table'
 import { Printer, Download, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -34,7 +34,7 @@ export function TransferExportToolbar({ config, columnVisibility }: TransferExpo
 
   const visibleColumnIds = getVisibleColumnIds(excludeColumns, columnVisibility)
 
-  const handlePrint = useCallback(async () => {
+  async function handlePrint() {
     setIsPrintLoading(true)
     try {
       const result = await fetchFilteredTransfers(query.where)
@@ -47,9 +47,9 @@ export function TransferExportToolbar({ config, columnVisibility }: TransferExpo
     } finally {
       setIsPrintLoading(false)
     }
-  }, [query.where, visibleColumnIds, headerFields])
+  }
 
-  const handleCsv = useCallback(async () => {
+  async function handleCsv() {
     setIsCsvLoading(true)
     try {
       const result = await fetchFilteredTransfers(query.where)
@@ -64,7 +64,7 @@ export function TransferExportToolbar({ config, columnVisibility }: TransferExpo
     } finally {
       setIsCsvLoading(false)
     }
-  }, [query.where, visibleColumnIds])
+  }
 
   return (
     <>
