@@ -29,12 +29,12 @@ export function TransferDataTable({ data, paginationMeta, config }: TransferData
         columns={columns}
         storageKey="transfers"
         toolbar={(table, cv) => (
-          <>
+          <div className="ml-auto flex items-center gap-2">
             {context && contextId && (
               <TransferExportToolbar config={config} columnVisibility={cv} />
             )}
             <ColumnToggle table={table} columnVisibility={cv} />
-          </>
+          </div>
         )}
       />
       <PaginationFooter paginationMeta={paginationMeta} baseUrl={baseUrl} />
