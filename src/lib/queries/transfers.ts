@@ -74,8 +74,7 @@ export function buildTransferFilters(
   const typeParam = typeof searchParams.type === 'string' ? searchParams.type : undefined
   if (typeParam) {
     const types = typeParam.split(',').filter((t) => (TRANSFER_TYPES as readonly string[]).includes(t))
-    if (types.length === 1) where.type = { equals: types[0] }
-    else if (types.length > 1) where.type = { in: types }
+    if (types.length > 0) where.type = { in: types }
   }
 
   // Source register filter
