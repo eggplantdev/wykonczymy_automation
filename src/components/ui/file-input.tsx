@@ -1,23 +1,132 @@
-import * as React from 'react'
+'use client'
 
+import * as React from 'react'
+import { useState } from 'react'
+import { Upload } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
-const FileInput = React.forwardRef<HTMLInputElement, React.ComponentProps<'input'>>(
-  ({ className, ...props }, ref) => (
-    <input
-      ref={ref}
-      type="file"
-      data-slot="file-input"
-      className={cn(
-        'text-muted-foreground block w-full text-sm',
-        'file:bg-primary file:text-primary-foreground file:hover:bg-primary/90 file:mr-4 file:rounded-md file:border-0 file:px-4 file:py-2 file:text-sm file:font-medium',
-        className,
-      )}
-      {...props}
-    />
-  ),
-)
+type FileInputPropsT = React.ComponentProps<'input'> & {
+  label?: string
+}
 
-FileInput.displayName = 'FileInput'
+function FileInput({ className, label, onChange, accept, ref, ...props }: FileInputPropsT) {
+  const [isDragOver, setIsDragOver] = useState(false)
+  const [fileName, setFileName] = useState<string>()
+  const [error, setError] = useState<string>()
+  const inputRef = React.useRef<HTMLInputElement | null>(null)
+
+  function setRefs(node: HTMLInputElement | null) {
+    inputRef.current = node
+    if (typeof ref === 'function') ref(node)
+    else if (ref) (ref as React.RefObject<HTMLInputElement | null>).current = node
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(true)
+  }
+
+  function handleDragLeave(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+
+    const file = e.dataTransfer.files[0]
+    if (!file) return
+
+    if (accept && !matchesAccept(file, accept)) {
+      setError(`Nieobsługiwany format pliku. Dozwolone: ${humanizeAccept(accept)}`)
+      return
+    }
+    setError(undefined)
+
+    // Set the file on the input element and fire onChange
+    const dt = new DataTransfer()
+    dt.items.add(file)
+    if (inputRef.current) {
+      inputRef.current.files = dt.files
+      const event = new Event('change', { bubbles: true })
+      inputRef.current.dispatchEvent(event)
+    }
+    setFileName(file.name)
+  }
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    setFileName(file?.name)
+    onChange?.(e)
+  }
+
+  return (
+    <>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => inputRef.current?.click()}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') inputRef.current?.click()
+        }}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={cn(
+          'flex cursor-pointer items-center justify-center gap-2 rounded-md border-2 border-dashed p-2 transition-colors',
+          'text-muted-foreground hover:border-primary/50 hover:bg-muted/50',
+          isDragOver && 'border-primary bg-muted/50',
+          className,
+        )}
+      >
+        <Upload className="mb-2 size-6" />
+        <span className="text-sm">{fileName ?? label ?? 'Przeciągnij plik lub kliknij'}</span>
+
+        <input
+          ref={setRefs}
+          type="file"
+          accept={accept}
+          onChange={handleChange}
+          className="sr-only"
+          {...props}
+        />
+      </div>
+      {error && (
+        <div role="alert" className="text-destructive mt-1 text-xs">
+          {error}
+        </div>
+      )}
+    </>
+  )
+}
+
+const MIME_LABELS: Record<string, string> = {
+  'image/*': 'obrazy',
+  'application/pdf': 'PDF',
+  'video/*': 'wideo',
+  'audio/*': 'audio',
+  'text/*': 'tekst',
+}
+
+function humanizeAccept(accept: string): string {
+  return accept
+    .split(',')
+    .map((s) => s.trim())
+    .map((pattern) => MIME_LABELS[pattern] ?? pattern)
+    .join(', ')
+}
+
+function matchesAccept(file: File, accept: string): boolean {
+  const allowed = accept.split(',').map((s) => s.trim())
+  return allowed.some((pattern) => {
+    if (pattern.startsWith('.')) return file.name.toLowerCase().endsWith(pattern.toLowerCase())
+    if (pattern.endsWith('/*')) return file.type.startsWith(pattern.replace('/*', '/'))
+    return file.type === pattern
+  })
+}
 
 export { FileInput }

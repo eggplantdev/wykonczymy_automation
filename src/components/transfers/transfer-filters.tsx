@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { FilterMultiSelect } from '@/components/transfers/filter-multi-select'
 import { TRANSFER_TYPES, TRANSFER_TYPE_LABELS } from '@/lib/constants/transfers'
 import { MONTHS } from '@/lib/constants/months'
 import { getMonthDateRange } from '@/lib/date-utils'
@@ -38,7 +39,7 @@ export function TransferFilters({
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const currentType = searchParams.get('type') ?? ''
+  const currentTypes = (searchParams.get('type') ?? '').split(',').filter(Boolean)
   const currentSourceRegister = searchParams.get('sourceRegister') ?? ''
   const currentInvestment = searchParams.get('investment') ?? ''
   const currentCreatedBy = searchParams.get('createdBy') ?? ''
@@ -87,7 +88,7 @@ export function TransferFilters({
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i)
 
   const hasEntityFilters =
-    currentType || currentSourceRegister || currentInvestment || currentCreatedBy
+    currentTypes.length > 0 || currentSourceRegister || currentInvestment || currentCreatedBy
   const hasDateFilters = currentFrom || currentTo
 
   function clearEntityFilters() {
@@ -107,9 +108,9 @@ export function TransferFilters({
         <div className="flex flex-wrap gap-3">
           {showTypeFilter && (
             <FilterField label="Typ">
-              <FilterSelect
-                value={currentType}
-                onValueChange={(v) => updateParam('type', v)}
+              <FilterMultiSelect
+                values={currentTypes}
+                onValuesChange={(types) => updateParam('type', types.join(','))}
                 options={TRANSFER_TYPES.map((t) => ({
                   value: t,
                   label: TRANSFER_TYPE_LABELS[t],
