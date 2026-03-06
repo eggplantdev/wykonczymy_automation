@@ -11,6 +11,13 @@ import {
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { CheckIcon } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { TRANSFER_TYPES, TRANSFER_TYPE_LABELS } from '@/lib/constants/transfers'
 import { MONTHS } from '@/lib/constants/months'
 import { getMonthDateRange } from '@/lib/date-utils'
@@ -38,7 +45,7 @@ export function TransferFilters({
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const currentType = searchParams.get('type') ?? ''
+  const currentTypes = (searchParams.get('type') ?? '').split(',').filter(Boolean)
   const currentSourceRegister = searchParams.get('sourceRegister') ?? ''
   const currentInvestment = searchParams.get('investment') ?? ''
   const currentCreatedBy = searchParams.get('createdBy') ?? ''
@@ -87,7 +94,7 @@ export function TransferFilters({
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i)
 
   const hasEntityFilters =
-    currentType || currentSourceRegister || currentInvestment || currentCreatedBy
+    currentTypes.length > 0 || currentSourceRegister || currentInvestment || currentCreatedBy
   const hasDateFilters = currentFrom || currentTo
 
   function clearEntityFilters() {
@@ -107,9 +114,9 @@ export function TransferFilters({
         <div className="flex flex-wrap gap-3">
           {showTypeFilter && (
             <FilterField label="Typ">
-              <FilterSelect
-                value={currentType}
-                onValueChange={(v) => updateParam('type', v)}
+              <FilterMultiSelect
+                values={currentTypes}
+                onValuesChange={(types) => updateParam('type', types.join(','))}
                 options={TRANSFER_TYPES.map((t) => ({
                   value: t,
                   label: TRANSFER_TYPE_LABELS[t],
@@ -235,5 +242,44 @@ function FilterSelect({ value, onValueChange, options, showAllOption = true }: F
         ))}
       </SelectContent>
     </Select>
+  )
+}
+
+type FilterMultiSelectPropsT = {
+  values: string[]
+  onValuesChange: (values: string[]) => void
+  options: FilterOptionT[]
+}
+
+function FilterMultiSelect({ values, onValuesChange, options }: FilterMultiSelectPropsT) {
+  function toggleValue(value: string) {
+    const next = values.includes(value)
+      ? values.filter((v) => v !== value)
+      : [...values, value]
+    onValuesChange(next)
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="min-w-40 justify-start gap-1.5">
+          {values.length === 0 ? 'Wszystkie' : `Wybrano (${values.length})`}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-56">
+        {options.map((opt) => (
+          <DropdownMenuItem
+            key={opt.value}
+            onSelect={(e) => e.preventDefault()}
+            onClick={() => toggleValue(opt.value)}
+          >
+            <CheckIcon
+              className={cn('size-4', !values.includes(opt.value) && 'opacity-0')}
+            />
+            {opt.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
