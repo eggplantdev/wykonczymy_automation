@@ -18,7 +18,7 @@ function FileInput({ className, label, onChange, accept, ref, ...props }: FileIn
   function setRefs(node: HTMLInputElement | null) {
     inputRef.current = node
     if (typeof ref === 'function') ref(node)
-    else if (ref) (ref as React.RefObject<HTMLInputElement | null>).current = node
+    else if (ref) ref.current = node
   }
 
   function handleDragOver(e: React.DragEvent) {
@@ -83,7 +83,7 @@ function FileInput({ className, label, onChange, accept, ref, ...props }: FileIn
           className,
         )}
       >
-        <Upload className="mb-2 size-6" />
+        <Upload className="size-6" />
         <span className="text-sm">{fileName ?? label ?? 'Przeciągnij plik lub kliknij'}</span>
 
         <input

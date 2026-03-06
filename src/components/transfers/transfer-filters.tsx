@@ -39,10 +39,12 @@ export function TransferFilters({
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const currentTypes = (searchParams.get('type') ?? '').split(',').filter(Boolean)
-  const currentSourceRegister = searchParams.get('sourceRegister') ?? ''
-  const currentInvestment = searchParams.get('investment') ?? ''
-  const currentCreatedBy = searchParams.get('createdBy') ?? ''
+  const getMultiParam = (key: string) => (searchParams.get(key) ?? '').split(',').filter(Boolean)
+
+  const currentTypes = getMultiParam('type')
+  const currentSourceRegisters = getMultiParam('sourceRegister')
+  const currentInvestments = getMultiParam('investment')
+  const currentCreatedBys = getMultiParam('createdBy')
   const currentFrom = searchParams.get('from') ?? ''
   const currentTo = searchParams.get('to') ?? ''
 
@@ -88,7 +90,7 @@ export function TransferFilters({
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i)
 
   const hasEntityFilters =
-    currentTypes.length > 0 || currentSourceRegister || currentInvestment || currentCreatedBy
+    currentTypes.length > 0 || currentSourceRegisters.length > 0 || currentInvestments.length > 0 || currentCreatedBys.length > 0
   const hasDateFilters = currentFrom || currentTo
 
   function clearEntityFilters() {
@@ -121,9 +123,9 @@ export function TransferFilters({
 
           {cashRegisters && cashRegisters.length > 0 && (
             <FilterField label="Kasa">
-              <FilterSelect
-                value={currentSourceRegister}
-                onValueChange={(v) => updateParam('sourceRegister', v)}
+              <FilterMultiSelect
+                values={currentSourceRegisters}
+                onValuesChange={(v) => updateParam('sourceRegister', v.join(','))}
                 options={cashRegisters.map((cr) => ({ value: String(cr.id), label: cr.name }))}
               />
             </FilterField>
@@ -131,9 +133,9 @@ export function TransferFilters({
 
           {investments && investments.length > 0 && (
             <FilterField label="Inwestycja">
-              <FilterSelect
-                value={currentInvestment}
-                onValueChange={(v) => updateParam('investment', v)}
+              <FilterMultiSelect
+                values={currentInvestments}
+                onValuesChange={(v) => updateParam('investment', v.join(','))}
                 options={investments.map((i) => ({ value: String(i.id), label: i.name }))}
               />
             </FilterField>
@@ -141,9 +143,9 @@ export function TransferFilters({
 
           {users && users.length > 0 && (
             <FilterField label="Dodane przez">
-              <FilterSelect
-                value={currentCreatedBy}
-                onValueChange={(v) => updateParam('createdBy', v)}
+              <FilterMultiSelect
+                values={currentCreatedBys}
+                onValuesChange={(v) => updateParam('createdBy', v.join(','))}
                 options={users.map((u) => ({ value: String(u.id), label: u.name }))}
               />
             </FilterField>

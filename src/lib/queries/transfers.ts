@@ -71,36 +71,29 @@ export function buildTransferFilters(
   }
 
   // Type filter (supports comma-separated multi-select)
-  const typeParam = typeof searchParams.type === 'string' ? searchParams.type : undefined
+  const typeParam = getStringParam(searchParams.type)
   if (typeParam) {
     const types = typeParam.split(',').filter((t) => (TRANSFER_TYPES as readonly string[]).includes(t))
     if (types.length > 0) where.type = { in: types }
   }
 
-  // Source register filter
-  const sourceRegisterParam =
-    typeof searchParams.sourceRegister === 'string' ? searchParams.sourceRegister : undefined
-  if (sourceRegisterParam) {
-    where.sourceRegister = { equals: Number(sourceRegisterParam) }
-  }
+  // Source register filter (supports comma-separated multi-select)
+  const sourceRegisterIds = parseNumericIds(getStringParam(searchParams.sourceRegister))
+  if (sourceRegisterIds.length > 0) where.sourceRegister = { in: sourceRegisterIds }
 
-  // Investment filter
-  const investmentParam =
-    typeof searchParams.investment === 'string' ? searchParams.investment : undefined
-  if (investmentParam) {
-    where.investment = { equals: Number(investmentParam) }
-  }
+  // Investment filter (supports comma-separated multi-select)
+  const investmentIds = parseNumericIds(getStringParam(searchParams.investment))
+  if (investmentIds.length > 0) where.investment = { in: investmentIds }
 
-  // Created by filter
-  const createdByParam =
-    typeof searchParams.createdBy === 'string' ? searchParams.createdBy : undefined
-  if (createdByParam) {
-    where.createdBy = { equals: Number(createdByParam) }
+  // Created by filter — skip when onlyOwnTransfers is active (security: don't override role scope)
+  if (!userContext.onlyOwnTransfers) {
+    const createdByIds = parseNumericIds(getStringParam(searchParams.createdBy))
+    if (createdByIds.length > 0) where.createdBy = { in: createdByIds }
   }
 
   // Date range
-  const fromParam = typeof searchParams.from === 'string' ? searchParams.from : undefined
-  const toParam = typeof searchParams.to === 'string' ? searchParams.to : undefined
+  const fromParam = getStringParam(searchParams.from)
+  const toParam = getStringParam(searchParams.to)
   if (fromParam || toParam) {
     where.date = {}
     if (fromParam) (where.date as Record<string, string>).greater_than_equal = fromParam
@@ -108,4 +101,13 @@ export function buildTransferFilters(
   }
 
   return where
+}
+
+function getStringParam(value: string | string[] | undefined): string | undefined {
+  return typeof value === 'string' ? value : undefined
+}
+
+function parseNumericIds(param: string | undefined): number[] {
+  if (!param) return []
+  return param.split(',').map(Number).filter(Boolean)
 }
