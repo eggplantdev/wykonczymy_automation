@@ -31,6 +31,9 @@ export function FilterMultiSelect({ values, onValuesChange, options }: FilterMul
       ? selected.filter((v) => v !== value)
       : [...selected, value]
 
+    // Prevent deselecting all — at least one must remain
+    if (next.length === 0) return
+
     // All selected → clear URL param (means "all")
     onValuesChange(next.length === options.length ? [] : next)
   }
