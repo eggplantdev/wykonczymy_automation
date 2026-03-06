@@ -4,6 +4,8 @@ import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { FileText, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { removeTransferInvoiceAction } from '@/lib/actions/transfers'
+import { toastMessage } from '@/components/toasts'
 
 const InvoicePreviewDialog = dynamic(() =>
   import('@/components/dialogs/invoice-preview-dialog').then((m) => ({
@@ -27,12 +29,24 @@ type InvoiceCellPropsT = {
 export function InvoiceCell({ transactionId, url, filename, mimeType }: InvoiceCellPropsT) {
   const [previewOpen, setPreviewOpen] = useState(false)
   const [uploadOpen, setUploadOpen] = useState(false)
+  const [removed, setRemoved] = useState(false)
 
-  const hasInvoice = !!url
+  const hasInvoice = !!url && !removed
 
   function handleReplace() {
     setPreviewOpen(false)
     setUploadOpen(true)
+  }
+
+  async function handleRemove() {
+    if (!confirm('Czy na pewno chcesz usunąć fakturę?')) return
+    const result = await removeTransferInvoiceAction(transactionId)
+    if (result.success) {
+      setPreviewOpen(false)
+      setRemoved(true)
+    } else {
+      toastMessage(result.error ?? 'Nie udało się usunąć faktury', 'error')
+    }
   }
 
   return (
@@ -67,6 +81,7 @@ export function InvoiceCell({ transactionId, url, filename, mimeType }: InvoiceC
           open={previewOpen}
           onOpenChange={setPreviewOpen}
           onReplace={handleReplace}
+          onRemove={handleRemove}
         />
       )}
 

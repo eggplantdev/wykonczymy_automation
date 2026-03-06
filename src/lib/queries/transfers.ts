@@ -5,6 +5,7 @@ import type { Where } from 'payload'
 import { buildPaginationMeta, type PaginationParamsT } from '@/lib/pagination'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 import { perfStart } from '@/lib/perf'
+import { TRANSFER_TYPES } from '@/lib/constants/transfers'
 
 type FindTransfersOptsT = PaginationParamsT & {
   readonly where?: Where
@@ -69,10 +70,11 @@ export function buildTransferFilters(
     where.createdBy = { equals: userContext.id }
   }
 
-  // Type filter
+  // Type filter (supports comma-separated multi-select)
   const typeParam = typeof searchParams.type === 'string' ? searchParams.type : undefined
   if (typeParam) {
-    where.type = { equals: typeParam }
+    const types = typeParam.split(',').filter((t) => (TRANSFER_TYPES as readonly string[]).includes(t))
+    if (types.length > 0) where.type = { in: types }
   }
 
   // Source register filter

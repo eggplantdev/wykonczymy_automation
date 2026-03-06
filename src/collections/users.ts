@@ -13,7 +13,7 @@ import { ROLES, ROLE_LABELS } from '@/lib/auth/roles'
 export const Users: CollectionConfig = {
   slug: 'users',
   auth: {
-    tokenExpiration: 86400, // 24 hours until app logs you out
+    tokenExpiration: 604800, // 7 days until app logs you out
     forgotPassword: {
       generateEmailHTML: (args) => {
         return forgotPasswordEmailHTML({

@@ -2,7 +2,7 @@
 
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Download, Printer, Replace } from 'lucide-react'
+import { Download, Printer, Replace, Trash2 } from 'lucide-react'
 import { ImageMedia } from '../ImageMedia'
 
 type InvoicePreviewDialogPropsT = {
@@ -12,6 +12,7 @@ type InvoicePreviewDialogPropsT = {
   readonly open: boolean
   readonly onOpenChange: (open: boolean) => void
   readonly onReplace?: () => void
+  readonly onRemove?: () => void
 }
 
 export function InvoicePreviewDialog({
@@ -21,6 +22,7 @@ export function InvoicePreviewDialog({
   open,
   onOpenChange,
   onReplace,
+  onRemove,
 }: InvoicePreviewDialogPropsT) {
   const isImage = mimeType?.startsWith('image/')
   const isPdf = mimeType === 'application/pdf'
@@ -70,6 +72,12 @@ export function InvoicePreviewDialog({
         </div>
 
         <DialogFooter>
+          {onRemove && (
+            <Button variant="destructive" onClick={onRemove}>
+              <Trash2 />
+              Usuń
+            </Button>
+          )}
           {onReplace && (
             <Button variant="outline" onClick={onReplace}>
               <Replace />

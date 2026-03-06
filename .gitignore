@@ -56,6 +56,12 @@ wnioski.md
 
 /temp
 
+# playwright
+.playwright-mcp/
+
 # payload
 src/payload-types.ts
 src/app/(payload)/admin/importMap.js
+
+# database dumps
+dump-*.sql
