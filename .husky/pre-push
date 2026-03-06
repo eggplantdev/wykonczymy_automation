@@ -1,2 +1,7 @@
+set -e
+
 pnpm run typecheck
 pnpm vitest run
+
+echo "Dumping production DB from Neon..."
+pnpm db:dump
