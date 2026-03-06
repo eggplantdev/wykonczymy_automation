@@ -5,6 +5,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
@@ -19,21 +21,30 @@ type FilterMultiSelectPropsT = {
 }
 
 export function FilterMultiSelect({ values, onValuesChange, options }: FilterMultiSelectPropsT) {
+  const allValues = options.map((o) => o.value)
+  const selected = values.length === 0 ? allValues : values
+  const allSelected = selected.length === options.length
+
   function toggleValue(value: string) {
-    const next = values.includes(value)
-      ? values.filter((v) => v !== value)
-      : [...values, value]
-    onValuesChange(next)
+    const isSelected = selected.includes(value)
+    const next = isSelected
+      ? selected.filter((v) => v !== value)
+      : [...selected, value]
+
+    // All selected → clear URL param (means "all")
+    onValuesChange(next.length === options.length ? [] : next)
   }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="min-w-40 justify-start gap-1.5">
-          {values.length === 0 ? 'Wszystkie' : `Wybrano (${values.length})`}
+          {allSelected ? 'Wszystkie' : `Wybrano (${selected.length})`}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
+        <DropdownMenuLabel>Widoczne transakcje</DropdownMenuLabel>
+        <DropdownMenuSeparator />
         {options.map((opt) => (
           <DropdownMenuItem
             key={opt.value}
@@ -41,7 +52,7 @@ export function FilterMultiSelect({ values, onValuesChange, options }: FilterMul
             onClick={() => toggleValue(opt.value)}
           >
             <CheckIcon
-              className={cn('size-4', !values.includes(opt.value) && 'opacity-0')}
+              className={cn('size-4', !selected.includes(opt.value) && 'opacity-0')}
             />
             {opt.label}
           </DropdownMenuItem>
