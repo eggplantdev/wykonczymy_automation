@@ -11,13 +11,7 @@ import {
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { CheckIcon } from 'lucide-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { FilterMultiSelect } from '@/components/transfers/filter-multi-select'
 import { TRANSFER_TYPES, TRANSFER_TYPE_LABELS } from '@/lib/constants/transfers'
 import { MONTHS } from '@/lib/constants/months'
 import { getMonthDateRange } from '@/lib/date-utils'
@@ -242,44 +236,5 @@ function FilterSelect({ value, onValueChange, options, showAllOption = true }: F
         ))}
       </SelectContent>
     </Select>
-  )
-}
-
-type FilterMultiSelectPropsT = {
-  values: string[]
-  onValuesChange: (values: string[]) => void
-  options: FilterOptionT[]
-}
-
-function FilterMultiSelect({ values, onValuesChange, options }: FilterMultiSelectPropsT) {
-  function toggleValue(value: string) {
-    const next = values.includes(value)
-      ? values.filter((v) => v !== value)
-      : [...values, value]
-    onValuesChange(next)
-  }
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="min-w-40 justify-start gap-1.5">
-          {values.length === 0 ? 'Wszystkie' : `Wybrano (${values.length})`}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-56">
-        {options.map((opt) => (
-          <DropdownMenuItem
-            key={opt.value}
-            onSelect={(e) => e.preventDefault()}
-            onClick={() => toggleValue(opt.value)}
-          >
-            <CheckIcon
-              className={cn('size-4', !values.includes(opt.value) && 'opacity-0')}
-            />
-            {opt.label}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
   )
 }
