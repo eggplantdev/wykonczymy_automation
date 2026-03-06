@@ -2,8 +2,10 @@
 
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
+import { useRouter } from 'next/navigation'
 import { FileText, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { removeTransferInvoiceAction } from '@/lib/actions/transfers'
 
 const InvoicePreviewDialog = dynamic(() =>
   import('@/components/dialogs/invoice-preview-dialog').then((m) => ({
@@ -30,9 +32,18 @@ export function InvoiceCell({ transactionId, url, filename, mimeType }: InvoiceC
 
   const hasInvoice = !!url
 
+  const router = useRouter()
+
   function handleReplace() {
     setPreviewOpen(false)
     setUploadOpen(true)
+  }
+
+  async function handleRemove() {
+    if (!confirm('Czy na pewno chcesz usunąć fakturę?')) return
+    setPreviewOpen(false)
+    const result = await removeTransferInvoiceAction(transactionId)
+    if (result.success) router.refresh()
   }
 
   return (
@@ -67,6 +78,7 @@ export function InvoiceCell({ transactionId, url, filename, mimeType }: InvoiceC
           open={previewOpen}
           onOpenChange={setPreviewOpen}
           onReplace={handleReplace}
+          onRemove={handleRemove}
         />
       )}
 

@@ -12,6 +12,7 @@ type FileInputPropsT = React.ComponentProps<'input'> & {
 function FileInput({ className, label, onChange, accept, ref, ...props }: FileInputPropsT) {
   const [isDragOver, setIsDragOver] = useState(false)
   const [fileName, setFileName] = useState<string>()
+  const [error, setError] = useState<string>()
   const inputRef = React.useRef<HTMLInputElement | null>(null)
 
   function setRefs(node: HTMLInputElement | null) {
@@ -40,8 +41,11 @@ function FileInput({ className, label, onChange, accept, ref, ...props }: FileIn
     const file = e.dataTransfer.files[0]
     if (!file) return
 
-    // Validate against accept prop
-    if (accept && !matchesAccept(file, accept)) return
+    if (accept && !matchesAccept(file, accept)) {
+      setError(`Nieobsługiwany format pliku. Dozwolone: ${humanizeAccept(accept)}`)
+      return
+    }
+    setError(undefined)
 
     // Set the file on the input element and fire onChange
     const dt = new DataTransfer()
@@ -61,37 +65,59 @@ function FileInput({ className, label, onChange, accept, ref, ...props }: FileIn
   }
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={() => inputRef.current?.click()}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') inputRef.current?.click()
-      }}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-      className={cn(
-        'flex cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed px-4 py-6 transition-colors',
-        'text-muted-foreground hover:border-primary/50 hover:bg-muted/50',
-        isDragOver && 'border-primary bg-muted/50',
-        className,
+    <>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => inputRef.current?.click()}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') inputRef.current?.click()
+        }}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={cn(
+          'flex cursor-pointer items-center justify-center gap-2 rounded-md border-2 border-dashed p-2 transition-colors',
+          'text-muted-foreground hover:border-primary/50 hover:bg-muted/50',
+          isDragOver && 'border-primary bg-muted/50',
+          className,
+        )}
+      >
+        <Upload className="mb-2 size-6" />
+        <span className="text-sm">{fileName ?? label ?? 'Przeciągnij plik lub kliknij'}</span>
+
+        <input
+          ref={setRefs}
+          type="file"
+          accept={accept}
+          onChange={handleChange}
+          className="sr-only"
+          {...props}
+        />
+      </div>
+      {error && (
+        <div role="alert" className="text-destructive mt-1 text-xs">
+          {error}
+        </div>
       )}
-    >
-      <Upload className="mb-2 size-6" />
-      <span className="text-sm">
-        {fileName ?? label ?? 'Przeciągnij plik lub kliknij'}
-      </span>
-      <input
-        ref={setRefs}
-        type="file"
-        accept={accept}
-        onChange={handleChange}
-        className="sr-only"
-        {...props}
-      />
-    </div>
+    </>
   )
+}
+
+const MIME_LABELS: Record<string, string> = {
+  'image/*': 'obrazy',
+  'application/pdf': 'PDF',
+  'video/*': 'wideo',
+  'audio/*': 'audio',
+  'text/*': 'tekst',
+}
+
+function humanizeAccept(accept: string): string {
+  return accept
+    .split(',')
+    .map((s) => s.trim())
+    .map((pattern) => MIME_LABELS[pattern] ?? pattern)
+    .join(', ')
 }
 
 function matchesAccept(file: File, accept: string): boolean {

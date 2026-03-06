@@ -210,3 +210,36 @@ export async function updateTransferInvoiceAction(transferId: number, invoiceFor
     ['transfers'],
   )
 }
+
+export async function removeTransferInvoiceAction(transferId: number) {
+  return withAction(
+    'removeTransferInvoiceAction',
+    async ({ payload }) => {
+      const step = perfStart()
+
+      const transfer = await payload.findByID({
+        collection: 'transactions',
+        id: transferId,
+        depth: 0,
+      })
+
+      const mediaId = typeof transfer.invoice === 'number' ? transfer.invoice : null
+      console.log(`[PERF]   findByID(${transferId}) ${step()}ms`)
+
+      await Promise.all([
+        payload.update({
+          collection: 'transactions',
+          id: transferId,
+          data: { invoice: null },
+        }),
+        mediaId
+          ? payload.delete({ collection: 'media', id: mediaId })
+          : Promise.resolve(),
+      ])
+      console.log(`[PERF]   clear invoice + delete media ${step()}ms`)
+
+      return { success: true }
+    },
+    ['transfers'],
+  )
+}
