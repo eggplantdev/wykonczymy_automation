@@ -20,6 +20,8 @@
     "migrate:create": "payload migrate:create",
     "seed:transfers": "node --env-file=.env --import tsx src/scripts/seed-transfers.ts",
     "seed:ziutek": "node --env-file=.env --import tsx src/scripts/seed-ziutek-advances.ts",
+    "db:dump": "source .env && docker exec -i \"$DOCKER_CONTAINER\" pg_dump --clean --no-owner --no-acl \"$DB_POSTGRES_URL_PROD\" > dump-latest.sql && cp dump-latest.sql \"dump-$(date +%Y-%m-%d).sql\"",
+    "db:import": "source .env && docker exec -i \"$DOCKER_CONTAINER\" psql -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\" < ${DUMP_FILE:-dump-latest.sql}",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
