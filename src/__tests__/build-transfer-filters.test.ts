@@ -29,6 +29,11 @@ describe('buildTransferFilters — role scoping', () => {
     expect(where.worker).toEqual({ equals: 5 })
     expect(where.createdBy).toEqual({ equals: 5 })
   })
+
+  it('onlyOwnTransfers ignores createdBy search param (security)', () => {
+    const where = buildTransferFilters({ createdBy: '999' }, { ...managerCtx, onlyOwnTransfers: true })
+    expect(where.createdBy).toEqual({ equals: 1 })
+  })
 })
 
 // ── Search param filters ─────────────────────────────────────────────────
@@ -36,22 +41,37 @@ describe('buildTransferFilters — role scoping', () => {
 describe('buildTransferFilters — search params', () => {
   it('type param adds type filter', () => {
     const where = buildTransferFilters({ type: 'INVESTOR_DEPOSIT' }, managerCtx)
-    expect(where.type).toEqual({ equals: 'INVESTOR_DEPOSIT' })
+    expect(where.type).toEqual({ in: ['INVESTOR_DEPOSIT'] })
+  })
+
+  it('type param supports comma-separated multi-select', () => {
+    const where = buildTransferFilters({ type: 'PAYOUT,OTHER' }, managerCtx)
+    expect(where.type).toEqual({ in: ['PAYOUT', 'OTHER'] })
+  })
+
+  it('type param ignores invalid values', () => {
+    const where = buildTransferFilters({ type: 'PAYOUT,GARBAGE' }, managerCtx)
+    expect(where.type).toEqual({ in: ['PAYOUT'] })
   })
 
   it('sourceRegister param adds numeric filter', () => {
     const where = buildTransferFilters({ sourceRegister: '3' }, managerCtx)
-    expect(where.sourceRegister).toEqual({ equals: 3 })
+    expect(where.sourceRegister).toEqual({ in: [3] })
+  })
+
+  it('sourceRegister param supports multi-select', () => {
+    const where = buildTransferFilters({ sourceRegister: '3,5' }, managerCtx)
+    expect(where.sourceRegister).toEqual({ in: [3, 5] })
   })
 
   it('investment param adds numeric filter', () => {
     const where = buildTransferFilters({ investment: '10' }, managerCtx)
-    expect(where.investment).toEqual({ equals: 10 })
+    expect(where.investment).toEqual({ in: [10] })
   })
 
   it('createdBy param adds numeric filter', () => {
     const where = buildTransferFilters({ createdBy: '7' }, managerCtx)
-    expect(where.createdBy).toEqual({ equals: 7 })
+    expect(where.createdBy).toEqual({ in: [7] })
   })
 
   it('date range — from only', () => {
@@ -87,8 +107,8 @@ describe('buildTransferFilters — search params', () => {
       { type: 'EMPLOYEE_EXPENSE', sourceRegister: '1', from: '2024-06-01' },
       managerCtx,
     )
-    expect(where.type).toEqual({ equals: 'EMPLOYEE_EXPENSE' })
-    expect(where.sourceRegister).toEqual({ equals: 1 })
+    expect(where.type).toEqual({ in: ['EMPLOYEE_EXPENSE'] })
+    expect(where.sourceRegister).toEqual({ in: [1] })
     expect(where.date).toEqual({ greater_than_equal: '2024-06-01' })
   })
 })

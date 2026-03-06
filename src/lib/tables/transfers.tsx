@@ -168,6 +168,12 @@ function getMediaField(field: unknown, key: string): string | null {
 const col = createColumnHelper<TransferRowT>()
 
 const allColumns = [
+  col.accessor('id', {
+    id: 'id',
+    header: 'ID',
+    meta: { label: 'ID' },
+    cell: (info) => `#${info.getValue()}`,
+  }),
   col.accessor('date', {
     id: 'date',
     header: 'Data',
