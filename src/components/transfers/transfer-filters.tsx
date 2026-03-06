@@ -90,7 +90,8 @@ export function TransferFilters({
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i)
 
   const hasEntityFilters =
-    currentTypes.length > 0 || currentSourceRegisters.length > 0 || currentInvestments.length > 0 || currentCreatedBys.length > 0
+    currentTypes.length > 0 || currentSourceRegisters.length > 0 ||
+    currentInvestments.length > 0 || currentCreatedBys.length > 0
   const hasDateFilters = currentFrom || currentTo
 
   function clearEntityFilters() {
