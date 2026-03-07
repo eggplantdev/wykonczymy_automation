@@ -10,7 +10,7 @@ import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
 import { MailtoLink } from '@/components/ui/mailto-link'
-import { StatCard } from '@/components/ui/stat-card'
+import { InvestmentStats } from '@/components/investments/investment-stats'
 import type { HeaderFieldT } from '@/types/export'
 import type { DynamicPagePropsT } from '@/types/page'
 
@@ -44,9 +44,9 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   const headerFields: HeaderFieldT[] = [{ label: 'Inwestycja', value: investment.name }]
   if (isAdminOrOwnerRole(user.role)) {
     headerFields.push(
-      { label: 'Koszty inwestycji', value: formatPLN(totalCosts) },
-      { label: 'Wpłaty od inwestora', value: formatPLN(totalIncome) },
-      { label: 'Koszty robocizny', value: formatPLN(totalLaborCosts) },
+      { label: 'Koszty inwestycji', value: formatPLN(totalCosts), amount: -totalCosts },
+      { label: 'Wpłaty od inwestora', value: formatPLN(totalIncome), amount: totalIncome },
+      { label: 'Koszty robocizny', value: formatPLN(totalLaborCosts), amount: -totalLaborCosts },
       {
         label: 'Bilans',
         value: formatPLN(totalIncome - totalCosts - totalLaborCosts),
@@ -87,12 +87,9 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
 
       {isAdminOrOwnerRole(user.role) && (
         // do not show these stats to managers =
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Koszty inwestycji" value={formatPLN(totalCosts)} />
-          <StatCard label="Wpłaty od inwestora" value={formatPLN(totalIncome)} />
-          <StatCard label="Koszty robocizny" value={formatPLN(totalLaborCosts)} />
-          <StatCard label="Bilans" value={formatPLN(totalIncome - totalCosts - totalLaborCosts)} />
-        </div>
+        <InvestmentStats
+          fields={headerFields.filter((f) => f.amount !== undefined || f.label === 'Bilans')}
+        />
       )}
 
       {/* Transactions table */}
@@ -101,7 +98,10 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
           query: { where: transferWhere, page, limit },
           baseUrl: `/inwestycje/${id}`,
           excludeColumns: ['investment'],
-          filters: {},
+          filters: {
+            cashRegisters: refData.cashRegisters.map((c) => ({ id: c.id, name: c.name })),
+            users: refData.workers.map((w) => ({ id: w.id, name: w.name })),
+          },
           context: 'investment',
           contextId: investmentId,
           headerFields,

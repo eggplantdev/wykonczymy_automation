@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { MessageSquareText } from 'lucide-react'
+import { MessageSquareText, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
@@ -49,7 +49,7 @@ export function NoteCell({ transactionId, note }: NoteCellPropsT) {
         className={hasNote ? 'text-foreground' : 'text-muted-foreground'}
         aria-label={hasNote ? 'Edytuj notatkę' : 'Dodaj notatkę'}
       >
-        <MessageSquareText />
+        {hasNote ? <MessageSquareText /> : <Plus />}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>

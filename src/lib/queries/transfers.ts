@@ -73,22 +73,31 @@ export function buildTransferFilters(
   // Type filter (supports comma-separated multi-select)
   const typeParam = getStringParam(searchParams.type)
   if (typeParam) {
-    const types = typeParam.split(',').filter((t) => (TRANSFER_TYPES as readonly string[]).includes(t))
+    const types = typeParam
+      .split(',')
+      .filter((t) => (TRANSFER_TYPES as readonly string[]).includes(t))
     if (types.length > 0) where.type = { in: types }
+    else where.id = { equals: -1 } // No valid types → return no results
   }
 
   // Source register filter (supports comma-separated multi-select)
-  const sourceRegisterIds = parseNumericIds(getStringParam(searchParams.sourceRegister))
+  const sourceRegisterParam = getStringParam(searchParams.sourceRegister)
+  const sourceRegisterIds = parseNumericIds(sourceRegisterParam)
   if (sourceRegisterIds.length > 0) where.sourceRegister = { in: sourceRegisterIds }
+  else if (sourceRegisterParam) where.id = { equals: -1 }
 
   // Investment filter (supports comma-separated multi-select)
-  const investmentIds = parseNumericIds(getStringParam(searchParams.investment))
+  const investmentParam = getStringParam(searchParams.investment)
+  const investmentIds = parseNumericIds(investmentParam)
   if (investmentIds.length > 0) where.investment = { in: investmentIds }
+  else if (investmentParam) where.id = { equals: -1 }
 
   // Created by filter — skip when onlyOwnTransfers is active (security: don't override role scope)
   if (!userContext.onlyOwnTransfers) {
-    const createdByIds = parseNumericIds(getStringParam(searchParams.createdBy))
+    const createdByParam = getStringParam(searchParams.createdBy)
+    const createdByIds = parseNumericIds(createdByParam)
     if (createdByIds.length > 0) where.createdBy = { in: createdByIds }
+    else if (createdByParam) where.id = { equals: -1 }
   }
 
   // Date range
