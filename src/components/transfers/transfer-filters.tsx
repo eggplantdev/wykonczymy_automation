@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Banknote, Landmark, Tags, User } from 'lucide-react'
 import { FilterMultiSelect } from '@/components/transfers/filter-multi-select'
 import { TRANSFER_TYPES, TRANSFER_TYPE_LABELS } from '@/lib/constants/transfers'
 import { MONTHS } from '@/lib/constants/months'
@@ -110,46 +111,46 @@ export function TransferFilters({
         (users && users.length > 0)) && (
         <div className="flex flex-wrap gap-3">
           {showTypeFilter && (
-            <FilterField label="Typ">
-              <FilterMultiSelect
-                values={currentTypes}
-                onValuesChange={(types) => updateParam('type', types.join(','))}
-                options={TRANSFER_TYPES.map((t) => ({
-                  value: t,
-                  label: TRANSFER_TYPE_LABELS[t],
-                }))}
-              />
-            </FilterField>
+            <FilterMultiSelect
+              values={currentTypes}
+              onValuesChange={(types) => updateParam('type', types.join(','))}
+              options={TRANSFER_TYPES.map((t) => ({
+                value: t,
+                label: TRANSFER_TYPE_LABELS[t],
+              }))}
+              label="Typ"
+              icon={Tags}
+            />
           )}
 
           {cashRegisters && cashRegisters.length > 0 && (
-            <FilterField label="Kasa">
-              <FilterMultiSelect
-                values={currentSourceRegisters}
-                onValuesChange={(v) => updateParam('sourceRegister', v.join(','))}
-                options={cashRegisters.map((cr) => ({ value: String(cr.id), label: cr.name }))}
-              />
-            </FilterField>
+            <FilterMultiSelect
+              values={currentSourceRegisters}
+              onValuesChange={(v) => updateParam('sourceRegister', v.join(','))}
+              options={cashRegisters.map((cr) => ({ value: String(cr.id), label: cr.name }))}
+              label="Kasa"
+              icon={Banknote}
+            />
           )}
 
           {investments && investments.length > 0 && (
-            <FilterField label="Inwestycja">
-              <FilterMultiSelect
-                values={currentInvestments}
-                onValuesChange={(v) => updateParam('investment', v.join(','))}
-                options={investments.map((i) => ({ value: String(i.id), label: i.name }))}
-              />
-            </FilterField>
+            <FilterMultiSelect
+              values={currentInvestments}
+              onValuesChange={(v) => updateParam('investment', v.join(','))}
+              options={investments.map((i) => ({ value: String(i.id), label: i.name }))}
+              label="Inwestycja"
+              icon={Landmark}
+            />
           )}
 
           {users && users.length > 0 && (
-            <FilterField label="Dodane przez">
-              <FilterMultiSelect
-                values={currentCreatedBys}
-                onValuesChange={(v) => updateParam('createdBy', v.join(','))}
-                options={users.map((u) => ({ value: String(u.id), label: u.name }))}
-              />
-            </FilterField>
+            <FilterMultiSelect
+              values={currentCreatedBys}
+              onValuesChange={(v) => updateParam('createdBy', v.join(','))}
+              options={users.map((u) => ({ value: String(u.id), label: u.name }))}
+              label="Dodane przez"
+              icon={User}
+            />
           )}
 
           {hasEntityFilters && (

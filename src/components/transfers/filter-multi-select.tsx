@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckIcon } from 'lucide-react'
+import { CheckIcon, type LucideIcon } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,9 +18,11 @@ type FilterMultiSelectPropsT = {
   values: string[]
   onValuesChange: (values: string[]) => void
   options: OptionT[]
+  label: string
+  icon?: LucideIcon
 }
 
-export function FilterMultiSelect({ values, onValuesChange, options }: FilterMultiSelectPropsT) {
+export function FilterMultiSelect({ values, onValuesChange, options, label, icon: Icon }: FilterMultiSelectPropsT) {
   const allValues = options.map((o) => o.value)
   const selected = values.length === 0 ? allValues : values
   const allSelected = selected.length === options.length
@@ -42,7 +44,9 @@ export function FilterMultiSelect({ values, onValuesChange, options }: FilterMul
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="min-w-40 justify-start gap-1.5">
-          {allSelected ? 'Wszystkie' : `Wybrano (${selected.length})`}
+          {Icon && <Icon className="size-4" />}
+          {label}
+          {!allSelected && ` (${selected.length})`}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
