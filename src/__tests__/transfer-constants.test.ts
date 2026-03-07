@@ -3,6 +3,7 @@ import {
   TRANSFER_TYPES,
   TRANSACTION_TRANSFER_TYPES,
   DEPOSIT_TYPES,
+  isTransferType,
   isDepositType,
   needsSourceRegister,
   showsInvestment,
@@ -95,19 +96,32 @@ describe('TRANSACTION_TRANSFER_TYPES', () => {
   })
 })
 
+describe('isTransferType — type guard', () => {
+  it('returns true for all valid transfer types', () => {
+    for (const type of TRANSFER_TYPES) {
+      expect(isTransferType(type)).toBe(true)
+    }
+  })
+
+  it('returns false for empty string', () => {
+    expect(isTransferType('')).toBe(false)
+  })
+
+  it('returns false for unknown type', () => {
+    expect(isTransferType('UNKNOWN_TYPE')).toBe(false)
+  })
+})
+
 describe('transfer constants — edge cases', () => {
   const allHelpers: [string, HelperFn][] = Object.entries(HELPERS).map(([name, h]) => [name, h.fn])
 
   for (const [name, fn] of allHelpers) {
-    // needsSourceRegister uses `!== 'EMPLOYEE_EXPENSE'`, so unknown types return true
-    const expectedForUnknown = name === 'needsSourceRegister'
-
-    it(`${name}('') → ${expectedForUnknown}`, () => {
-      expect(fn('')).toBe(expectedForUnknown)
+    it(`${name}('') → false`, () => {
+      expect(fn('')).toBe(false)
     })
 
-    it(`${name}('UNKNOWN_TYPE') → ${expectedForUnknown}`, () => {
-      expect(fn('UNKNOWN_TYPE')).toBe(expectedForUnknown)
+    it(`${name}('UNKNOWN_TYPE') → false`, () => {
+      expect(fn('UNKNOWN_TYPE')).toBe(false)
     })
   }
 })
