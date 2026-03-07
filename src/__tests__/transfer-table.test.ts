@@ -13,7 +13,6 @@ const stubInvestment = {
   status: 'active' as const,
   totalCosts: 0,
   totalIncome: 0,
-  laborCosts: 0,
   address: '',
   phone: '',
   email: '',

@@ -3,6 +3,7 @@ import {
   TRANSFER_TYPES,
   TRANSACTION_TRANSFER_TYPES,
   DEPOSIT_TYPES,
+  isTransferType,
   isDepositType,
   needsSourceRegister,
   showsInvestment,
@@ -23,16 +24,18 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
   },
   needsSourceRegister: {
     fn: needsSourceRegister,
-    // true for everything EXCEPT EMPLOYEE_EXPENSE
-    trueFor: TRANSFER_TYPES.filter((t) => t !== 'EMPLOYEE_EXPENSE') as string[],
+    // true for everything EXCEPT EMPLOYEE_EXPENSE and LABOR_COST
+    trueFor: TRANSFER_TYPES.filter(
+      (t) => t !== 'EMPLOYEE_EXPENSE' && t !== 'LABOR_COST',
+    ) as string[],
   },
   showsInvestment: {
     fn: showsInvestment,
-    trueFor: ['INVESTOR_DEPOSIT', 'INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE'],
+    trueFor: ['INVESTOR_DEPOSIT', 'INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE', 'LABOR_COST'],
   },
   requiresInvestment: {
     fn: requiresInvestment,
-    trueFor: ['INVESTOR_DEPOSIT', 'INVESTMENT_EXPENSE'],
+    trueFor: ['INVESTOR_DEPOSIT', 'INVESTMENT_EXPENSE', 'LABOR_COST'],
   },
   needsWorker: {
     fn: needsWorker,
@@ -65,6 +68,7 @@ describe('TRANSACTION_TRANSFER_TYPES', () => {
   it('contains exactly the expected types', () => {
     expect(TRANSACTION_TRANSFER_TYPES).toEqual([
       'OTHER',
+      'LABOR_COST',
       'INVESTMENT_EXPENSE',
       'PAYOUT',
       'ACCOUNT_FUNDING',
@@ -92,19 +96,32 @@ describe('TRANSACTION_TRANSFER_TYPES', () => {
   })
 })
 
+describe('isTransferType — type guard', () => {
+  it('returns true for all valid transfer types', () => {
+    for (const type of TRANSFER_TYPES) {
+      expect(isTransferType(type)).toBe(true)
+    }
+  })
+
+  it('returns false for empty string', () => {
+    expect(isTransferType('')).toBe(false)
+  })
+
+  it('returns false for unknown type', () => {
+    expect(isTransferType('UNKNOWN_TYPE')).toBe(false)
+  })
+})
+
 describe('transfer constants — edge cases', () => {
   const allHelpers: [string, HelperFn][] = Object.entries(HELPERS).map(([name, h]) => [name, h.fn])
 
   for (const [name, fn] of allHelpers) {
-    // needsSourceRegister uses `!== 'EMPLOYEE_EXPENSE'`, so unknown types return true
-    const expectedForUnknown = name === 'needsSourceRegister'
-
-    it(`${name}('') → ${expectedForUnknown}`, () => {
-      expect(fn('')).toBe(expectedForUnknown)
+    it(`${name}('') → false`, () => {
+      expect(fn('')).toBe(false)
     })
 
-    it(`${name}('UNKNOWN_TYPE') → ${expectedForUnknown}`, () => {
-      expect(fn('UNKNOWN_TYPE')).toBe(expectedForUnknown)
+    it(`${name}('UNKNOWN_TYPE') → false`, () => {
+      expect(fn('UNKNOWN_TYPE')).toBe(false)
     })
   }
 })

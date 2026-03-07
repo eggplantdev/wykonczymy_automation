@@ -8,7 +8,7 @@ import {
 } from '@/components/forms/transfer-form/transfer-schema'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { uploadBulkInvoices, uploadSingleInvoice } from '@/lib/upload-invoice'
-import { isDepositType, needsSourceRegister } from '../constants/transfers'
+import { needsSourceRegister } from '../constants/transfers'
 import {
   // checkIfSufficientBalance,
   validateAction,
@@ -30,7 +30,7 @@ export async function createTransferAction(
       if (!parsed.success) return parsed
       console.log(`[PERF]   validateAction ${step()}ms`)
 
-      if (!isDepositType(parsed.data.type)) {
+      if (needsSourceRegister(parsed.data.type)) {
         const validated = await validateSourceRegister(data.sourceRegister, user, payload)
         console.log(`[PERF]   validateSourceRegister ${step()}ms`)
         if (!validated.success) return validated

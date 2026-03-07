@@ -13,6 +13,7 @@ const TRANSFER_TYPES = [
     value: 'ACCOUNT_FUNDING',
   },
   { label: { en: 'Employee Expense', pl: 'Wydatek pracowniczy' }, value: 'EMPLOYEE_EXPENSE' },
+  { label: { en: 'Labor Cost', pl: 'Koszty robocizny' }, value: 'LABOR_COST' },
   {
     label: { en: 'Register Transfer', pl: 'Transfer między kasami' },
     value: 'REGISTER_TRANSFER',
@@ -29,14 +30,16 @@ const PAYMENT_METHODS = [
   { label: { en: 'Card', pl: 'Karta' }, value: 'CARD' },
 ] as const
 
-/** Show sourceRegister for all types except EMPLOYEE_EXPENSE */
-const showSourceRegister = (data: Record<string, unknown>) => data?.type !== 'EMPLOYEE_EXPENSE'
+/** Show sourceRegister for all types except EMPLOYEE_EXPENSE and LABOR_COST */
+const showSourceRegister = (data: Record<string, unknown>) =>
+  data?.type !== 'EMPLOYEE_EXPENSE' && data?.type !== 'LABOR_COST'
 
 /** Show investment field for types that use it (required or optional) */
 const showInvestment = (data: Record<string, unknown>) =>
   data?.type === 'INVESTOR_DEPOSIT' ||
   data?.type === 'INVESTMENT_EXPENSE' ||
-  data?.type === 'EMPLOYEE_EXPENSE'
+  data?.type === 'EMPLOYEE_EXPENSE' ||
+  data?.type === 'LABOR_COST'
 
 /** Show field when type includes worker */
 const needsWorker = (data: Record<string, unknown>) =>

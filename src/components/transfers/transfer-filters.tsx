@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Banknote, Landmark, Tags, User, X } from 'lucide-react'
 import { FilterMultiSelect } from '@/components/transfers/filter-multi-select'
 import { TRANSFER_TYPES, TRANSFER_TYPE_LABELS } from '@/lib/constants/transfers'
 import { MONTHS } from '@/lib/constants/months'
@@ -90,8 +91,10 @@ export function TransferFilters({
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i)
 
   const hasEntityFilters =
-    currentTypes.length > 0 || currentSourceRegisters.length > 0 ||
-    currentInvestments.length > 0 || currentCreatedBys.length > 0
+    currentTypes.length > 0 ||
+    currentSourceRegisters.length > 0 ||
+    currentInvestments.length > 0 ||
+    currentCreatedBys.length > 0
   const hasDateFilters = currentFrom || currentTo
 
   function clearEntityFilters() {
@@ -110,53 +113,58 @@ export function TransferFilters({
         (users && users.length > 0)) && (
         <div className="flex flex-wrap gap-3">
           {showTypeFilter && (
-            <FilterField label="Typ">
-              <FilterMultiSelect
-                values={currentTypes}
-                onValuesChange={(types) => updateParam('type', types.join(','))}
-                options={TRANSFER_TYPES.map((t) => ({
-                  value: t,
-                  label: TRANSFER_TYPE_LABELS[t],
-                }))}
-              />
-            </FilterField>
+            <FilterMultiSelect
+              values={currentTypes}
+              onValuesChange={(types) => updateParam('type', types.join(','))}
+              options={TRANSFER_TYPES.map((t) => ({
+                value: t,
+                label: TRANSFER_TYPE_LABELS[t],
+              }))}
+              label="Typ"
+              icon={Tags}
+            />
           )}
 
           {cashRegisters && cashRegisters.length > 0 && (
-            <FilterField label="Kasa">
-              <FilterMultiSelect
-                values={currentSourceRegisters}
-                onValuesChange={(v) => updateParam('sourceRegister', v.join(','))}
-                options={cashRegisters.map((cr) => ({ value: String(cr.id), label: cr.name }))}
-              />
-            </FilterField>
+            <FilterMultiSelect
+              values={currentSourceRegisters}
+              onValuesChange={(v) => updateParam('sourceRegister', v.join(','))}
+              options={cashRegisters.map((cr) => ({ value: String(cr.id), label: cr.name }))}
+              label="Kasa"
+              icon={Banknote}
+            />
           )}
 
           {investments && investments.length > 0 && (
-            <FilterField label="Inwestycja">
-              <FilterMultiSelect
-                values={currentInvestments}
-                onValuesChange={(v) => updateParam('investment', v.join(','))}
-                options={investments.map((i) => ({ value: String(i.id), label: i.name }))}
-              />
-            </FilterField>
+            <FilterMultiSelect
+              values={currentInvestments}
+              onValuesChange={(v) => updateParam('investment', v.join(','))}
+              options={investments.map((i) => ({ value: String(i.id), label: i.name }))}
+              label="Inwestycja"
+              icon={Landmark}
+            />
           )}
 
           {users && users.length > 0 && (
-            <FilterField label="Dodane przez">
-              <FilterMultiSelect
-                values={currentCreatedBys}
-                onValuesChange={(v) => updateParam('createdBy', v.join(','))}
-                options={users.map((u) => ({ value: String(u.id), label: u.name }))}
-              />
-            </FilterField>
+            <FilterMultiSelect
+              values={currentCreatedBys}
+              onValuesChange={(v) => updateParam('createdBy', v.join(','))}
+              options={users.map((u) => ({ value: String(u.id), label: u.name }))}
+              label="Dodane przez"
+              icon={User}
+            />
           )}
 
-          {hasEntityFilters && (
-            <Button variant="ghost" size="sm" className="self-end" onClick={clearEntityFilters}>
-              Wyczyść filtry
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="min-w-40 justify-start gap-1.5"
+            onClick={clearEntityFilters}
+            disabled={!hasEntityFilters}
+          >
+            <X className="size-4" />
+            Wyczyść wszystkie filtry
+          </Button>
         </div>
       )}
       <div className="flex flex-wrap items-end gap-3">
@@ -195,11 +203,16 @@ export function TransferFilters({
           />
         </FilterField>
 
-        {hasDateFilters && (
-          <Button variant="ghost" size="sm" className="self-end" onClick={clearDateFilters}>
-            Wyczyść daty
-          </Button>
-        )}
+        <Button
+          variant="outline"
+          size="sm"
+          className="min-w-40 justify-start gap-1.5"
+          onClick={clearDateFilters}
+          disabled={!hasDateFilters}
+        >
+          <X className="size-4" />
+          Wyczyść daty
+        </Button>
       </div>
     </div>
   )
@@ -226,9 +239,9 @@ type FilterSelectPropsT = {
 
 function FilterSelect({ value, onValueChange, options, showAllOption = true }: FilterSelectPropsT) {
   return (
-    <Select value={value} onValueChange={(v) => onValueChange(v === 'ALL' ? '' : v)}>
+    <Select value={value || 'ALL'} onValueChange={(v) => onValueChange(v === 'ALL' ? '' : v)}>
       <SelectTrigger className={'min-w-40'}>
-        <SelectValue placeholder="Wszystkie" />
+        <SelectValue />
       </SelectTrigger>
       <SelectContent>
         {showAllOption && <SelectItem value="ALL">Wszystkie</SelectItem>}

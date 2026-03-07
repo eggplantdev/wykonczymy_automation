@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { isAdminOrOwner, isAdminOrOwnerField, isAdminOrOwnerOrManager } from '@/access'
+import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 
 const STATUS_OPTIONS = [
@@ -15,7 +15,7 @@ export const Investments: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'status', 'laborCosts'],
+    defaultColumns: ['name', 'status'],
     group: { en: 'Finance', pl: 'Finanse' },
   },
   hooks: {
@@ -59,21 +59,6 @@ export const Investments: CollectionConfig = {
       name: 'notes',
       type: 'textarea',
       label: { en: 'Notes', pl: 'Notatki' },
-    },
-    {
-      name: 'laborCosts',
-      type: 'number',
-      defaultValue: 0,
-      label: { en: 'Labor Costs', pl: 'Koszty robocizny' },
-      admin: {
-        description: {
-          en: 'Manually entered labor costs',
-          pl: 'Ręcznie wprowadzone koszty robocizny',
-        },
-      },
-      access: {
-        update: isAdminOrOwnerField,
-      },
     },
     {
       name: 'status',

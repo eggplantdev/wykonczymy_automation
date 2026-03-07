@@ -1,8 +1,17 @@
 # Three Features Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **Status:** ✅ Merged — PR #2 + follow-up commits on main (2026-03-06)
 
 **Goal:** Add drag-and-drop file input, invoice removal from transactions, and multi-select transfer type filter.
+
+## Post-merge additions (committed directly to main)
+
+- All entity filters (cash register, investment, created-by) converted to multi-select
+- Transaction ID column added as first column in transfers table
+- Multi-select UX inverted: all selected by default, deselect to filter (matching ColumnToggle pattern)
+- "Widoczne transakcje" header in filter dropdowns
+- Security fix: `createdBy` URL param can't override `onlyOwnTransfers` scope
+- Extracted `getStringParam`/`parseNumericIds` helpers in backend, `getMultiParam` in frontend
 
 **Architecture:** Three independent features touching different areas of the codebase. No dependencies between them — can be implemented in any order. All follow existing patterns (server actions with `withAction`, URL-param filters, shadcn UI).
 
@@ -13,11 +22,13 @@
 ## Task 1: Drag-and-Drop File Input
 
 **Files:**
+
 - Modify: `src/components/ui/file-input.tsx`
 
 **Step 1: Replace the current `FileInput` with a drop zone wrapper**
 
 The current component is a plain `<input type="file">`. Wrap it with drag-and-drop support using HTML5 events. The drop zone should:
+
 - Show dashed border with "Przeciągnij plik lub kliknij" text
 - Highlight on drag hover (change border color/style)
 - Accept the same `accept` prop to validate file types
@@ -110,9 +121,7 @@ const FileInput = React.forwardRef<HTMLInputElement, FileInputPropsT>(
         )}
       >
         <Upload className="mb-2 size-6" />
-        <span className="text-sm">
-          {fileName ?? label ?? 'Przeciągnij plik lub kliknij'}
-        </span>
+        <span className="text-sm">{fileName ?? label ?? 'Przeciągnij plik lub kliknij'}</span>
         <input
           ref={setRefs}
           type="file"
@@ -143,6 +152,7 @@ export { FileInput }
 **Step 2: Verify consumers still work**
 
 Check that these files compile without errors (they use `FileInput`):
+
 - `src/components/forms/form-fields/line-items-field.tsx`
 - `src/components/forms/form-components/form-file-input.tsx`
 - `src/components/dialogs/invoice-upload-dialog.tsx`
@@ -170,6 +180,7 @@ git commit -m "feat: add drag-and-drop support to FileInput component"
 ### Task 2a: Server Action
 
 **Files:**
+
 - Modify: `src/lib/actions/transfers.ts` (add after line 212)
 
 **Step 1: Add `removeTransferInvoiceAction`**
@@ -228,6 +239,7 @@ git commit -m "feat: add removeTransferInvoiceAction server action"
 ### Task 2b: UI — Add Remove Button to Preview Dialog
 
 **Files:**
+
 - Modify: `src/components/dialogs/invoice-preview-dialog.tsx` (add `onRemove` prop + button)
 - Modify: `src/components/transfers/invoice-cell.tsx` (wire up `onRemove` callback)
 
@@ -236,28 +248,34 @@ git commit -m "feat: add removeTransferInvoiceAction server action"
 In `src/components/dialogs/invoice-preview-dialog.tsx`:
 
 Add to imports:
+
 ```ts
 import { Download, Printer, Replace, Trash2 } from 'lucide-react'
 ```
 
 Add to props type (after `onReplace`):
+
 ```ts
 readonly onRemove?: () => void
 ```
 
 Add to destructured props:
+
 ```ts
 onRemove,
 ```
 
 Add button in `DialogFooter` before the Replace button (line 73):
+
 ```tsx
-{onRemove && (
-  <Button variant="destructive" onClick={onRemove}>
-    <Trash2 />
-    Usuń
-  </Button>
-)}
+{
+  onRemove && (
+    <Button variant="destructive" onClick={onRemove}>
+      <Trash2 />
+      Usuń
+    </Button>
+  )
+}
 ```
 
 **Step 2: Wire up `onRemove` in `InvoiceCell`**
@@ -265,12 +283,14 @@ Add button in `DialogFooter` before the Replace button (line 73):
 In `src/components/transfers/invoice-cell.tsx`:
 
 Add import:
+
 ```ts
 import { useRouter } from 'next/navigation'
 import { removeTransferInvoiceAction } from '@/lib/actions/transfers'
 ```
 
 Inside `InvoiceCell`, add after `handleReplace`:
+
 ```ts
 const router = useRouter()
 
@@ -283,8 +303,9 @@ async function handleRemove() {
 ```
 
 Pass to `InvoicePreviewDialog`:
+
 ```tsx
-onRemove={handleRemove}
+onRemove = { handleRemove }
 ```
 
 **Step 3: Verify typecheck**
@@ -313,6 +334,7 @@ git commit -m "feat: add remove invoice from transaction"
 ### Task 3a: Update Backend Filter Logic
 
 **Files:**
+
 - Modify: `src/lib/queries/transfers.ts` (lines 72-76)
 
 **Step 1: Change type filter to support comma-separated values**
@@ -342,11 +364,13 @@ git commit -m "feat: support multi-select type filter in transfer queries"
 ### Task 3b: Multi-Select Filter Component
 
 **Files:**
+
 - Modify: `src/components/transfers/transfer-filters.tsx` (replace type FilterSelect with DropdownMenu)
 
 **Step 1: Add imports**
 
 Add to existing imports in `transfer-filters.tsx`:
+
 ```ts
 import { CheckIcon } from 'lucide-react'
 import {
@@ -370,9 +394,7 @@ type FilterMultiSelectPropsT = {
 
 function FilterMultiSelect({ values, onValuesChange, options }: FilterMultiSelectPropsT) {
   function toggleValue(value: string) {
-    const next = values.includes(value)
-      ? values.filter((v) => v !== value)
-      : [...values, value]
+    const next = values.includes(value) ? values.filter((v) => v !== value) : [...values, value]
     onValuesChange(next)
   }
 
@@ -380,9 +402,7 @@ function FilterMultiSelect({ values, onValuesChange, options }: FilterMultiSelec
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="min-w-40 justify-start gap-1.5">
-          {values.length === 0
-            ? 'Wszystkie'
-            : `Wybrano (${values.length})`}
+          {values.length === 0 ? 'Wszystkie' : `Wybrano (${values.length})`}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
@@ -392,9 +412,7 @@ function FilterMultiSelect({ values, onValuesChange, options }: FilterMultiSelec
             onSelect={(e) => e.preventDefault()}
             onClick={() => toggleValue(opt.value)}
           >
-            <CheckIcon
-              className={cn('size-4', !values.includes(opt.value) && 'opacity-0')}
-            />
+            <CheckIcon className={cn('size-4', !values.includes(opt.value) && 'opacity-0')} />
             {opt.label}
           </DropdownMenuItem>
         ))}
@@ -409,27 +427,32 @@ function FilterMultiSelect({ values, onValuesChange, options }: FilterMultiSelec
 In the `TransferFilters` component, replace the type filter section (lines 108-118).
 
 Change `currentType` parsing (line 41):
+
 ```ts
 const currentTypes = (searchParams.get('type') ?? '').split(',').filter(Boolean)
 ```
 
 Replace the type filter JSX:
+
 ```tsx
-{showTypeFilter && (
-  <FilterField label="Typ">
-    <FilterMultiSelect
-      values={currentTypes}
-      onValuesChange={(types) => updateParam('type', types.join(','))}
-      options={TRANSFER_TYPES.map((t) => ({
-        value: t,
-        label: TRANSFER_TYPE_LABELS[t],
-      }))}
-    />
-  </FilterField>
-)}
+{
+  showTypeFilter && (
+    <FilterField label="Typ">
+      <FilterMultiSelect
+        values={currentTypes}
+        onValuesChange={(types) => updateParam('type', types.join(','))}
+        options={TRANSFER_TYPES.map((t) => ({
+          value: t,
+          label: TRANSFER_TYPE_LABELS[t],
+        }))}
+      />
+    </FilterField>
+  )
+}
 ```
 
 Update `hasEntityFilters` (line 90) to use `currentTypes.length > 0` instead of `currentType`:
+
 ```ts
 const hasEntityFilters =
   currentTypes.length > 0 || currentSourceRegister || currentInvestment || currentCreatedBy
@@ -468,15 +491,15 @@ git commit -m "feat: multi-select transfer type filter matching ColumnToggle pat
 
 ## Reference Files
 
-| File | Purpose |
-|------|---------|
-| `src/components/ui/file-input.tsx` | File input component to enhance with drag-and-drop |
-| `src/components/ui/column-toggle.tsx` | Reference pattern for multi-select dropdown (DropdownMenu + CheckIcon) |
-| `src/components/transfers/transfer-filters.tsx` | Filter bar — type filter to convert to multi-select |
-| `src/components/transfers/invoice-cell.tsx` | Invoice table cell — wire up remove callback |
-| `src/components/dialogs/invoice-preview-dialog.tsx` | Preview dialog — add remove button |
-| `src/lib/actions/transfers.ts` | Server actions — add `removeTransferInvoiceAction` |
-| `src/lib/queries/transfers.ts` | Query builder — update `buildTransferFilters` for multi-type |
-| `src/lib/actions/utils.ts` | `withAction` wrapper pattern reference |
-| `src/lib/constants/transfers.ts` | Transfer type constants and labels |
-| `src/collections/media.ts` | Media collection — delete access is `isAdminOrOwner` |
+| File                                                | Purpose                                                                |
+| --------------------------------------------------- | ---------------------------------------------------------------------- |
+| `src/components/ui/file-input.tsx`                  | File input component to enhance with drag-and-drop                     |
+| `src/components/ui/column-toggle.tsx`               | Reference pattern for multi-select dropdown (DropdownMenu + CheckIcon) |
+| `src/components/transfers/transfer-filters.tsx`     | Filter bar — type filter to convert to multi-select                    |
+| `src/components/transfers/invoice-cell.tsx`         | Invoice table cell — wire up remove callback                           |
+| `src/components/dialogs/invoice-preview-dialog.tsx` | Preview dialog — add remove button                                     |
+| `src/lib/actions/transfers.ts`                      | Server actions — add `removeTransferInvoiceAction`                     |
+| `src/lib/queries/transfers.ts`                      | Query builder — update `buildTransferFilters` for multi-type           |
+| `src/lib/actions/utils.ts`                          | `withAction` wrapper pattern reference                                 |
+| `src/lib/constants/transfers.ts`                    | Transfer type constants and labels                                     |
+| `src/collections/media.ts`                          | Media collection — delete access is `isAdminOrOwner`                   |

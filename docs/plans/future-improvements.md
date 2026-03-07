@@ -68,3 +68,22 @@ CREATE INDEX idx_txn_worker_saldo
 - Current data size makes full table scans negligible
 - Indexes add write overhead on every `INSERT`/`UPDATE`/`DELETE`
 - Premature optimization — add when measured, not speculated
+
+## Dynamic Filter-Aware Stat Cards
+
+Investment detail pages and dashboard show stat cards (total costs, income, labor costs, balance) computed from all transactions. These values don't change when the user applies table filters (date, type, etc.).
+
+### Improvement
+
+Make stat cards recompute based on the currently visible (filtered) transaction set. This would give users a quick summary of the filtered subset — e.g. "total costs this month" or "labor costs for a specific type".
+
+### Approach Options
+
+1. **Server-side:** Pass filter params to the financials query and compute a filtered aggregate alongside the full aggregate
+2. **Client-side:** Derive totals from the already-fetched table data (simpler but limited to current page unless all rows are loaded)
+
+### Why not now
+
+- Current stat cards are useful as-is for the overall picture
+- Requires UI design decisions (show both filtered + total? replace total?)
+- Low priority compared to core feature work

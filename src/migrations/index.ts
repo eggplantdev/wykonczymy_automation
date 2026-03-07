@@ -21,6 +21,7 @@ import * as migration_20260222_rename_cash_register_to_source_register from './2
 import * as migration_20260222_0_add_cancellation_enum from './20260222_0_add_cancellation_enum'
 import * as migration_20260222_1_add_cancellation_columns from './20260222_1_add_cancellation_columns'
 import * as migration_20260222_drop_materialized_columns from './20260222_drop_materialized_columns'
+import * as migration_20260307_add_labor_cost_type_drop_labor_costs from './20260307_add_labor_cost_type_drop_labor_costs'
 
 export const migrations = [
   {
@@ -137,5 +138,10 @@ export const migrations = [
     up: migration_20260222_drop_materialized_columns.up,
     down: migration_20260222_drop_materialized_columns.down,
     name: '20260222_drop_materialized_columns',
+  },
+  {
+    up: migration_20260307_add_labor_cost_type_drop_labor_costs.up,
+    down: migration_20260307_add_labor_cost_type_drop_labor_costs.down,
+    name: '20260307_add_labor_cost_type_drop_labor_costs',
   },
 ]
