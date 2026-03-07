@@ -10,5 +10,5 @@ export function calculateBilans(
     .filter(
       (f) => f.label !== BILANS_LABEL && f.amount !== undefined && visibility[f.label] !== false,
     )
-    .reduce((sum, f) => sum + f.amount!, 0)
+    .reduce((sum, f) => sum + (f.amount ?? 0), 0)
 }

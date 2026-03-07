@@ -58,7 +58,7 @@ export const sumRegisterBalance = async (
 
 /**
  * SUM costs for an investment using SQL aggregation.
- * Only INVESTMENT_EXPENSE and EMPLOYEE_EXPENSE types count.
+ * INVESTMENT_EXPENSE, EMPLOYEE_EXPENSE, and LABOR_COST types count.
  */
 export const sumInvestmentCosts = async (
   payload: Payload,
