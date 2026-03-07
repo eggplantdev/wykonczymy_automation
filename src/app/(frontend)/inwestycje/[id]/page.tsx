@@ -86,7 +86,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
     >
       <InfoList items={infoFields.filter((f) => f.value)} />
 
-      {isAdminOrOwnerRole(user.role) && (
+      {isManagementRole(user.role) && (
         // do not show these stats to managers =
         <InvestmentStats
           fields={headerFields.filter((f) => f.amount !== undefined || f.label === BILANS_LABEL)}
