@@ -58,6 +58,8 @@ export function buildTransferFilters(
   searchParams: SearchParamsT,
   userContext: UserContextT,
 ): Where {
+  // Impossible condition — forces Payload to return zero results
+  const NO_RESULTS = { equals: -1 } as const
   const where: Where = {}
 
   // EMPLOYEE: always filter by own worker ID
@@ -77,27 +79,27 @@ export function buildTransferFilters(
       .split(',')
       .filter((t) => (TRANSFER_TYPES as readonly string[]).includes(t))
     if (types.length > 0) where.type = { in: types }
-    else where.id = { equals: -1 } // No valid types → return no results
+    else where.id = NO_RESULTS // No valid types → return no results
   }
 
   // Source register filter (supports comma-separated multi-select)
   const sourceRegisterParam = getStringParam(searchParams.sourceRegister)
   const sourceRegisterIds = parseNumericIds(sourceRegisterParam)
   if (sourceRegisterIds.length > 0) where.sourceRegister = { in: sourceRegisterIds }
-  else if (sourceRegisterParam) where.id = { equals: -1 }
+  else if (sourceRegisterParam) where.id = NO_RESULTS
 
   // Investment filter (supports comma-separated multi-select)
   const investmentParam = getStringParam(searchParams.investment)
   const investmentIds = parseNumericIds(investmentParam)
   if (investmentIds.length > 0) where.investment = { in: investmentIds }
-  else if (investmentParam) where.id = { equals: -1 }
+  else if (investmentParam) where.id = NO_RESULTS
 
   // Created by filter — skip when onlyOwnTransfers is active (security: don't override role scope)
   if (!userContext.onlyOwnTransfers) {
     const createdByParam = getStringParam(searchParams.createdBy)
     const createdByIds = parseNumericIds(createdByParam)
     if (createdByIds.length > 0) where.createdBy = { in: createdByIds }
-    else if (createdByParam) where.id = { equals: -1 }
+    else if (createdByParam) where.id = NO_RESULTS
   }
 
   // Date range

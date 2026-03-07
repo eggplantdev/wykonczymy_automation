@@ -32,8 +32,9 @@ export function FilterMultiSelect({
   icon: Icon,
 }: FilterMultiSelectPropsT) {
   const allValues = options.map((o) => o.value)
-  const noneSelected = values.length === 1 && values[0] === FILTER_NONE
-  const selected = noneSelected ? [] : values.length === 0 ? allValues : values
+  const hasNone = values.length === 1 && values[0] === FILTER_NONE
+  const hasNoFilter = values.length === 0
+  const selected = hasNone ? [] : hasNoFilter ? allValues : values
   const allSelected = selected.length === options.length
 
   function toggleValue(value: string) {
