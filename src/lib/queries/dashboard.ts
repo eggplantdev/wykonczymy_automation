@@ -41,14 +41,15 @@ export async function fetchManagerDashboardData() {
     const fin = financialsRecord[String(inv.id)]
     const totalCosts = fin?.totalCosts ?? 0
     const totalIncome = fin?.totalIncome ?? 0
+    const totalLaborCosts = fin?.totalLaborCosts ?? 0
     return {
       id: inv.id,
       name: inv.name,
       status: inv.status,
       totalCosts,
       totalIncome,
-      laborCosts: inv.laborCosts,
-      balance: totalIncome - totalCosts - inv.laborCosts,
+      totalLaborCosts,
+      balance: totalIncome - totalCosts - totalLaborCosts,
       address: inv.address,
       phone: inv.phone,
       email: inv.email,

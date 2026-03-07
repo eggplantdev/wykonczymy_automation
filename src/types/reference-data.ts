@@ -13,7 +13,6 @@ export type CashRegisterRefT = ReferenceItemT
 
 export type InvestmentRefT = ReferenceItemT & {
   readonly status: 'active' | 'completed'
-  readonly laborCosts: number
   readonly address: string
   readonly phone: string
   readonly email: string

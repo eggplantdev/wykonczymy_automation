@@ -17,7 +17,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
       searchParams={sp}
       baseUrl={`/uzytkownicy/${id}`}
       backHref="/"
-      backLabel="Kokpit"
+      backLabel="Pulpit"
       showInfo
     />
   )

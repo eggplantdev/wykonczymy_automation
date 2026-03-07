@@ -120,14 +120,19 @@ describe('sumAllInvestmentFinancials', () => {
   it('returns a Map of investment financials', async () => {
     mockExecute.mockResolvedValue({
       rows: [
-        { investment_id: '1', total_costs: '3000', total_income: '10000' },
-        { investment_id: '2', total_costs: '500', total_income: '0' },
+        {
+          investment_id: '1',
+          total_costs: '3000',
+          total_income: '10000',
+          total_labor_costs: '200',
+        },
+        { investment_id: '2', total_costs: '500', total_income: '0', total_labor_costs: '0' },
       ],
     })
     const map = await sumAllInvestmentFinancials(fakePayload)
     expect(map.size).toBe(2)
-    expect(map.get(1)).toEqual({ totalCosts: 3000, totalIncome: 10000 })
-    expect(map.get(2)).toEqual({ totalCosts: 500, totalIncome: 0 })
+    expect(map.get(1)).toEqual({ totalCosts: 3000, totalIncome: 10000, totalLaborCosts: 200 })
+    expect(map.get(2)).toEqual({ totalCosts: 500, totalIncome: 0, totalLaborCosts: 0 })
   })
 
   it('returns empty Map for no rows', async () => {

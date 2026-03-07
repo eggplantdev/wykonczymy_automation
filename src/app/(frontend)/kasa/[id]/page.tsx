@@ -54,7 +54,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
     <PageWrapper
       title={register.name}
       backHref="/"
-      backLabel="Kokpit"
+      backLabel="Pulpit"
       className="grid grid-cols-1 gap-6"
     >
       <InfoList items={[{ label: 'Właściciel', value: ownerName }]} />

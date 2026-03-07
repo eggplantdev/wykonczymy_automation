@@ -10,7 +10,8 @@ import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
 import { MailtoLink } from '@/components/ui/mailto-link'
-import { StatCard } from '@/components/ui/stat-card'
+import { InvestmentStats } from '@/components/investments/investment-stats'
+import { BILANS_LABEL } from '@/lib/export/header-fields'
 import type { HeaderFieldT } from '@/types/export'
 import type { DynamicPagePropsT } from '@/types/page'
 
@@ -39,16 +40,17 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   const fin = financialsRecord[String(id)]
   const totalCosts = fin?.totalCosts ?? 0
   const totalIncome = fin?.totalIncome ?? 0
+  const totalLaborCosts = fin?.totalLaborCosts ?? 0
 
   const headerFields: HeaderFieldT[] = [{ label: 'Inwestycja', value: investment.name }]
   if (isAdminOrOwnerRole(user.role)) {
     headerFields.push(
-      { label: 'Koszty inwestycji', value: formatPLN(totalCosts) },
-      { label: 'Wpłaty od inwestora', value: formatPLN(totalIncome) },
-      { label: 'Koszty robocizny', value: formatPLN(investment.laborCosts ?? 0) },
+      { label: 'Koszty inwestycji', value: formatPLN(totalCosts), amount: -totalCosts },
+      { label: 'Wpłaty od inwestora', value: formatPLN(totalIncome), amount: totalIncome },
+      { label: 'Koszty robocizny', value: formatPLN(totalLaborCosts), amount: -totalLaborCosts },
       {
-        label: 'Bilans',
-        value: formatPLN(totalIncome - totalCosts - (investment.laborCosts ?? 0)),
+        label: BILANS_LABEL,
+        value: formatPLN(totalIncome - totalCosts - totalLaborCosts),
       },
     )
   }
@@ -79,22 +81,16 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
     <PageWrapper
       title={investment.name}
       backHref="/"
-      backLabel="Kokpit"
+      backLabel="Pulpit"
       className="grid grid-cols-1 gap-6"
     >
       <InfoList items={infoFields.filter((f) => f.value)} />
 
       {isAdminOrOwnerRole(user.role) && (
         // do not show these stats to managers =
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Koszty inwestycji" value={formatPLN(totalCosts)} />
-          <StatCard label="Wpłaty od inwestora" value={formatPLN(totalIncome)} />
-          <StatCard label="Koszty robocizny" value={formatPLN(investment.laborCosts ?? 0)} />
-          <StatCard
-            label="Bilans"
-            value={formatPLN(totalIncome - totalCosts - (investment.laborCosts ?? 0))}
-          />
-        </div>
+        <InvestmentStats
+          fields={headerFields.filter((f) => f.amount !== undefined || f.label === BILANS_LABEL)}
+        />
       )}
 
       {/* Transactions table */}
@@ -103,7 +99,10 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
           query: { where: transferWhere, page, limit },
           baseUrl: `/inwestycje/${id}`,
           excludeColumns: ['investment'],
-          filters: {},
+          filters: {
+            cashRegisters: refData.cashRegisters.map((c) => ({ id: c.id, name: c.name })),
+            users: refData.workers.map((w) => ({ id: w.id, name: w.name })),
+          },
           context: 'investment',
           contextId: investmentId,
           headerFields,
