@@ -41,7 +41,7 @@ export async function fetchReferenceData(): Promise<ReferenceDataBaseT> {
       ORDER BY name
     `),
     db.execute(sql`
-      SELECT id, name, status::text, labor_costs,
+      SELECT id, name, status::text,
              address, phone, email, contact_person, notes
       FROM investments
       ORDER BY name
@@ -76,7 +76,6 @@ export async function fetchReferenceData(): Promise<ReferenceDataBaseT> {
     name: row.name as string,
     status: (row.status as 'active' | 'completed') ?? 'active',
     active: row.status === 'active',
-    laborCosts: Number(row.labor_costs ?? 0),
     address: (row.address as string) ?? '',
     phone: (row.phone as string) ?? '',
     email: (row.email as string) ?? '',

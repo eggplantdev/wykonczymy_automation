@@ -39,16 +39,17 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   const fin = financialsRecord[String(id)]
   const totalCosts = fin?.totalCosts ?? 0
   const totalIncome = fin?.totalIncome ?? 0
+  const totalLaborCosts = fin?.totalLaborCosts ?? 0
 
   const headerFields: HeaderFieldT[] = [{ label: 'Inwestycja', value: investment.name }]
   if (isAdminOrOwnerRole(user.role)) {
     headerFields.push(
       { label: 'Koszty inwestycji', value: formatPLN(totalCosts) },
       { label: 'Wpłaty od inwestora', value: formatPLN(totalIncome) },
-      { label: 'Koszty robocizny', value: formatPLN(investment.laborCosts ?? 0) },
+      { label: 'Koszty robocizny', value: formatPLN(totalLaborCosts) },
       {
         label: 'Bilans',
-        value: formatPLN(totalIncome - totalCosts - (investment.laborCosts ?? 0)),
+        value: formatPLN(totalIncome - totalCosts - totalLaborCosts),
       },
     )
   }
@@ -79,7 +80,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
     <PageWrapper
       title={investment.name}
       backHref="/"
-      backLabel="Kokpit"
+      backLabel="Pulpit"
       className="grid grid-cols-1 gap-6"
     >
       <InfoList items={infoFields.filter((f) => f.value)} />
@@ -89,11 +90,8 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Koszty inwestycji" value={formatPLN(totalCosts)} />
           <StatCard label="Wpłaty od inwestora" value={formatPLN(totalIncome)} />
-          <StatCard label="Koszty robocizny" value={formatPLN(investment.laborCosts ?? 0)} />
-          <StatCard
-            label="Bilans"
-            value={formatPLN(totalIncome - totalCosts - (investment.laborCosts ?? 0))}
-          />
+          <StatCard label="Koszty robocizny" value={formatPLN(totalLaborCosts)} />
+          <StatCard label="Bilans" value={formatPLN(totalIncome - totalCosts - totalLaborCosts)} />
         </div>
       )}
 

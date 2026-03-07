@@ -34,6 +34,7 @@ const VALID_DATA: Record<string, Record<string, unknown>> = {
   INVESTMENT_EXPENSE: { ...base, type: 'INVESTMENT_EXPENSE', sourceRegister: 1, investment: 1 },
   ACCOUNT_FUNDING: { ...base, type: 'ACCOUNT_FUNDING', sourceRegister: 1, worker: 1 },
   EMPLOYEE_EXPENSE: { ...base, type: 'EMPLOYEE_EXPENSE', worker: 1, investment: 1 },
+  LABOR_COST: { ...base, type: 'LABOR_COST', investment: 1 },
   REGISTER_TRANSFER: { ...base, type: 'REGISTER_TRANSFER', sourceRegister: 1, targetRegister: 2 },
   OTHER: { ...base, type: 'OTHER', sourceRegister: 1, otherCategory: 1 },
 }
@@ -100,6 +101,11 @@ describe('validateTransfer — missing required fields', () => {
     expect(() => validateTransfer(hookArgs(data))).toThrow(/[Ww]orker/)
   })
 
+  it('LABOR_COST without investment → throws', () => {
+    const { investment, ...data } = VALID_DATA.LABOR_COST
+    expect(() => validateTransfer(hookArgs(data))).toThrow(/[Ii]nvestment/)
+  })
+
   it('REGISTER_TRANSFER without sourceRegister → throws', () => {
     const { sourceRegister, ...data } = VALID_DATA.REGISTER_TRANSFER
     expect(() => validateTransfer(hookArgs(data))).toThrow(/[Cc]ash register/)
@@ -126,6 +132,12 @@ describe('validateTransfer — missing required fields', () => {
 // ═══════════════════════════════════════════════════════════════════════
 
 describe('validateTransfer — auto-clear behavior', () => {
+  it('LABOR_COST → sourceRegister set to null', () => {
+    const data = { ...VALID_DATA.LABOR_COST, sourceRegister: 5 }
+    const result = validateTransfer(hookArgs(data))
+    expect(result.sourceRegister).toBeNull()
+  })
+
   it('EMPLOYEE_EXPENSE → sourceRegister set to null', () => {
     const data = { ...VALID_DATA.EMPLOYEE_EXPENSE, sourceRegister: 5 }
     const result = validateTransfer(hookArgs(data))

@@ -11,7 +11,7 @@ export type InvestmentRowT = {
   readonly status: 'active' | 'completed'
   readonly totalCosts: number
   readonly totalIncome: number
-  readonly laborCosts: number
+  readonly totalLaborCosts: number
   readonly balance: number
   readonly address: string
   readonly phone: string

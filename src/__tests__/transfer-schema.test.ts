@@ -21,6 +21,7 @@ const VALID_SERVER_PAYLOADS: Record<string, Record<string, unknown>> = {
   INVESTMENT_EXPENSE: { ...base, type: 'INVESTMENT_EXPENSE', sourceRegister: 1, investment: 1 },
   ACCOUNT_FUNDING: { ...base, type: 'ACCOUNT_FUNDING', sourceRegister: 1, worker: 1 },
   EMPLOYEE_EXPENSE: { ...base, type: 'EMPLOYEE_EXPENSE', worker: 1, investment: 1 },
+  LABOR_COST: { ...base, type: 'LABOR_COST', investment: 1 },
   REGISTER_TRANSFER: {
     ...base,
     type: 'REGISTER_TRANSFER',
@@ -79,6 +80,13 @@ describe('createTransferSchema — valid payloads', () => {
 // ── 2b: Server Schema — Missing required fields ────────────────────────
 
 describe('createTransferSchema — missing required fields', () => {
+  it('LABOR_COST without investment → error on investment', () => {
+    const { investment, ...rest } = VALID_SERVER_PAYLOADS.LABOR_COST
+    const result = createTransferSchema.safeParse(rest)
+    expect(result.success).toBe(false)
+    expect(errorPaths(result)).toContain('investment')
+  })
+
   it('INVESTOR_DEPOSIT without sourceRegister → error on sourceRegister', () => {
     const { sourceRegister, ...rest } = VALID_SERVER_PAYLOADS.INVESTOR_DEPOSIT
     const result = createTransferSchema.safeParse(rest)
