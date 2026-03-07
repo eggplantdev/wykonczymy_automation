@@ -37,7 +37,6 @@ export function CsvButton({ where, visibleColumnIds }: CsvButtonPropsT) {
     <Button
       variant="outline"
       size="sm"
-      className="gap-1.5"
       onClick={handleCsv}
       disabled={isLoading}
       aria-label="Pobierz CSV"
