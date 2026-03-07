@@ -1,6 +1,6 @@
 # LABOR_COST Transfer Type Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **Status:** COMPLETED — all tasks implemented, 590 tests passing, PR #3 open.
 
 **Goal:** Add `LABOR_COST` transfer type tied to investments, replacing the static `laborCosts` field on investments with real transaction-derived data.
 
