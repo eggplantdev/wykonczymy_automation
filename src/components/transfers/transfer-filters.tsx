@@ -227,9 +227,9 @@ type FilterSelectPropsT = {
 
 function FilterSelect({ value, onValueChange, options, showAllOption = true }: FilterSelectPropsT) {
   return (
-    <Select value={value} onValueChange={(v) => onValueChange(v === 'ALL' ? '' : v)}>
+    <Select value={value || 'ALL'} onValueChange={(v) => onValueChange(v === 'ALL' ? '' : v)}>
       <SelectTrigger className={'min-w-40'}>
-        <SelectValue placeholder="Wszystkie" />
+        <SelectValue />
       </SelectTrigger>
       <SelectContent>
         {showAllOption && <SelectItem value="ALL">Wszystkie</SelectItem>}
