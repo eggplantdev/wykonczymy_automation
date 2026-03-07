@@ -23,16 +23,18 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
   },
   needsSourceRegister: {
     fn: needsSourceRegister,
-    // true for everything EXCEPT EMPLOYEE_EXPENSE
-    trueFor: TRANSFER_TYPES.filter((t) => t !== 'EMPLOYEE_EXPENSE') as string[],
+    // true for everything EXCEPT EMPLOYEE_EXPENSE and LABOR_COST
+    trueFor: TRANSFER_TYPES.filter(
+      (t) => t !== 'EMPLOYEE_EXPENSE' && t !== 'LABOR_COST',
+    ) as string[],
   },
   showsInvestment: {
     fn: showsInvestment,
-    trueFor: ['INVESTOR_DEPOSIT', 'INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE'],
+    trueFor: ['INVESTOR_DEPOSIT', 'INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE', 'LABOR_COST'],
   },
   requiresInvestment: {
     fn: requiresInvestment,
-    trueFor: ['INVESTOR_DEPOSIT', 'INVESTMENT_EXPENSE'],
+    trueFor: ['INVESTOR_DEPOSIT', 'INVESTMENT_EXPENSE', 'LABOR_COST'],
   },
   needsWorker: {
     fn: needsWorker,
@@ -65,6 +67,7 @@ describe('TRANSACTION_TRANSFER_TYPES', () => {
   it('contains exactly the expected types', () => {
     expect(TRANSACTION_TRANSFER_TYPES).toEqual([
       'OTHER',
+      'LABOR_COST',
       'INVESTMENT_EXPENSE',
       'PAYOUT',
       'ACCOUNT_FUNDING',

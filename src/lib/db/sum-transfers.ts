@@ -71,7 +71,7 @@ export const sumInvestmentCosts = async (
     SELECT COALESCE(SUM(amount), 0) AS total
     FROM transactions
     WHERE investment_id = ${investmentId}
-      AND type IN ('INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE')
+      AND type IN ('INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE', 'LABOR_COST')
       AND cancelled IS NOT TRUE
   `)
 
@@ -147,7 +147,11 @@ export const sumAllRegisterBalances = async (payload: Payload): Promise<Map<numb
   return map
 }
 
-export type InvestmentFinancialsT = { totalCosts: number; totalIncome: number }
+export type InvestmentFinancialsT = {
+  totalCosts: number
+  totalIncome: number
+  totalLaborCosts: number
+}
 
 /**
  * SUM costs and income for ALL investments in one query (GROUP BY).
@@ -162,7 +166,8 @@ export const sumAllInvestmentFinancials = async (
   const result = await db.execute(sql`
     SELECT investment_id,
       COALESCE(SUM(CASE WHEN type IN ('INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE') THEN amount ELSE 0 END), 0) AS total_costs,
-      COALESCE(SUM(CASE WHEN type IN ('INVESTOR_DEPOSIT') THEN amount ELSE 0 END), 0) AS total_income
+      COALESCE(SUM(CASE WHEN type IN ('INVESTOR_DEPOSIT') THEN amount ELSE 0 END), 0) AS total_income,
+      COALESCE(SUM(CASE WHEN type = 'LABOR_COST' THEN amount ELSE 0 END), 0) AS total_labor_costs
     FROM transactions
     WHERE investment_id IS NOT NULL
       AND cancelled IS NOT TRUE
@@ -174,6 +179,7 @@ export const sumAllInvestmentFinancials = async (
     map.set(Number(row.investment_id), {
       totalCosts: Number(row.total_costs),
       totalIncome: Number(row.total_income),
+      totalLaborCosts: Number(row.total_labor_costs),
     })
   }
   console.log(`[PERF] query.sumAllInvestmentFinancials ${elapsed()}ms (${map.size} investments)`)

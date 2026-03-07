@@ -27,7 +27,6 @@ const mockRefData: ReferenceDataBaseT = {
       name: 'Inv A',
       status: 'active' as const,
       active: true,
-      laborCosts: 500,
       address: 'Addr',
       phone: '123',
       email: 'e@e.com',
@@ -39,7 +38,6 @@ const mockRefData: ReferenceDataBaseT = {
       name: 'Inv B',
       status: 'completed' as const,
       active: false,
-      laborCosts: 100,
       address: '',
       phone: '',
       email: '',
@@ -61,7 +59,7 @@ vi.mock('@/lib/queries/reference-data', () => ({
   fetchWorkerSaldos: vi.fn().mockResolvedValue({ '3': 200, '4': -50 }),
   fetchRegisterBalances: vi.fn().mockResolvedValue({ '1': 10000, '2': 5000, '3': 3000 }),
   fetchInvestmentFinancials: vi.fn().mockResolvedValue({
-    '10': { totalCosts: 2000, totalIncome: 8000 },
+    '10': { totalCosts: 2000, totalIncome: 8000, totalLaborCosts: 500 },
   }),
 }))
 
@@ -89,7 +87,7 @@ describe('fetchManagerDashboardData', () => {
   })
 
   describe('investment balance calculation', () => {
-    it('calculates balance = totalIncome - totalCosts - laborCosts', async () => {
+    it('calculates balance = totalIncome - totalCosts - totalLaborCosts', async () => {
       const data = await fetchManagerDashboardData()
       const invA = data.allInvestments.find((i) => i.id === 10)!
       // 8000 - 2000 - 500 = 5500
@@ -99,8 +97,8 @@ describe('fetchManagerDashboardData', () => {
     it('defaults missing financials to 0', async () => {
       const data = await fetchManagerDashboardData()
       const invB = data.allInvestments.find((i) => i.id === 20)!
-      // 0 - 0 - 100 = -100
-      expect(invB.balance).toBe(-100)
+      // 0 - 0 - 0 = 0
+      expect(invB.balance).toBe(0)
     })
   })
 

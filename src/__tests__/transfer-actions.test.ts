@@ -208,17 +208,34 @@ describe('createTransferAction', () => {
     expect(result.success).toBe(true)
   })
 
-  it('deposit type → skips validateSourceRegister (no DB call)', async () => {
-    await createTransferAction(makeDepositData(), null)
-
-    // DB execute is only called inside validateSourceRegister
-    expect(mockDbExecute).not.toHaveBeenCalled()
-  })
-
-  it('non-deposit type → calls validateSourceRegister (DB call)', async () => {
+  it('type needing source register → calls validateSourceRegister (DB call)', async () => {
     await createTransferAction(makeSingleTransferData(), null)
 
     expect(mockDbExecute).toHaveBeenCalled()
+  })
+
+  it('deposit type with source register → also calls validateSourceRegister', async () => {
+    await createTransferAction(makeDepositData(), null)
+
+    expect(mockDbExecute).toHaveBeenCalled()
+  })
+
+  it('EMPLOYEE_EXPENSE → skips validateSourceRegister (no DB call)', async () => {
+    await createTransferAction(
+      makeSingleTransferData({ type: 'EMPLOYEE_EXPENSE', sourceRegister: undefined, worker: 1 }),
+      null,
+    )
+
+    expect(mockDbExecute).not.toHaveBeenCalled()
+  })
+
+  it('LABOR_COST → skips validateSourceRegister (no DB call)', async () => {
+    await createTransferAction(
+      makeSingleTransferData({ type: 'LABOR_COST', sourceRegister: undefined }),
+      null,
+    )
+
+    expect(mockDbExecute).not.toHaveBeenCalled()
   })
 
   it('missing amount → returns validation error', async () => {
