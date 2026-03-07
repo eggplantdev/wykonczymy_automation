@@ -2,23 +2,17 @@
 
 import { useState } from 'react'
 import type { VisibilityState } from '@tanstack/react-table'
-import { Printer, Download, Loader2, CheckIcon } from 'lucide-react'
+import { Printer, Download, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { fetchFilteredTransfers } from '@/lib/actions/export'
 import { buildTransferCsv } from '@/lib/export/csv'
 import { triggerDownload } from '@/lib/export/download'
 import { buildPrintHtml } from '@/lib/export/print'
 import { printViaIframe } from '@/lib/export/print-iframe'
 import { getTransferColumns } from '@/lib/tables/transfers'
-import { cn } from '@/lib/cn'
+import { formatPLN } from '@/lib/format-currency'
+import { BILANS_LABEL, calculateBilans } from '@/lib/export/header-fields'
+import { useHeaderFieldsStore } from '@/stores/header-fields-store'
 import type { TransferTableConfigT } from '@/types/export'
 
 type TransferExportToolbarPropsT = {
@@ -40,16 +34,22 @@ export function TransferExportToolbar({ config, columnVisibility }: TransferExpo
   const { query, excludeColumns = [], headerFields = [] } = config
   const [isPrintLoading, setIsPrintLoading] = useState(false)
   const [isCsvLoading, setIsCsvLoading] = useState(false)
-  const [headerFieldVisibility, setHeaderFieldVisibility] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(headerFields.map((f) => [f.label, true])),
-  )
+
+  const storeVisibility = useHeaderFieldsStore((s) => s.visibility)
 
   const visibleColumnIds = getVisibleColumnIds(excludeColumns, columnVisibility)
-  const visibleHeaderFields = headerFields.filter((f) => headerFieldVisibility[f.label] !== false)
 
-  function toggleHeaderField(label: string) {
-    setHeaderFieldVisibility((prev) => ({ ...prev, [label]: !prev[label] }))
-  }
+  // If store has visibility state (investment page), apply it; otherwise pass through all fields
+  const hasStoreVisibility = Object.keys(storeVisibility).length > 0
+  const visibleHeaderFields = hasStoreVisibility
+    ? headerFields
+        .filter((f) => storeVisibility[f.label] !== false)
+        .map((f) => {
+          if (f.label !== BILANS_LABEL) return f
+          const bilans = calculateBilans(headerFields, storeVisibility)
+          return { ...f, value: formatPLN(bilans) }
+        })
+    : [...headerFields]
 
   async function handlePrint() {
     setIsPrintLoading(true)
@@ -88,56 +88,21 @@ export function TransferExportToolbar({ config, columnVisibility }: TransferExpo
 
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1.5"
-            disabled={isPrintLoading}
-            aria-label="Drukuj transfery"
-          >
-            {isPrintLoading ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Printer className="size-4" />
-            )}
-            Drukuj
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-52">
-          {headerFields.length > 0 && (
-            <>
-              <DropdownMenuLabel>Pola nagłówka</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {headerFields.map((field) => (
-                <DropdownMenuItem
-                  key={field.label}
-                  onSelect={(e) => e.preventDefault()}
-                  onClick={() => toggleHeaderField(field.label)}
-                >
-                  <CheckIcon
-                    className={cn(
-                      'size-4',
-                      headerFieldVisibility[field.label] === false && 'opacity-0',
-                    )}
-                  />
-                  {field.label}
-                </DropdownMenuItem>
-              ))}
-              <DropdownMenuSeparator />
-            </>
-          )}
-          <DropdownMenuItem
-            onSelect={(e) => e.preventDefault()}
-            onClick={handlePrint}
-            disabled={isPrintLoading}
-          >
-            <Printer className="size-4" />
-            Drukuj
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <Button
+        variant="outline"
+        size="sm"
+        className="gap-1.5"
+        onClick={handlePrint}
+        disabled={isPrintLoading}
+        aria-label="Drukuj transfery"
+      >
+        {isPrintLoading ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : (
+          <Printer className="size-4" />
+        )}
+        Drukuj
+      </Button>
       <Button
         variant="outline"
         size="sm"

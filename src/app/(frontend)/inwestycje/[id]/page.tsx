@@ -11,6 +11,7 @@ import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
 import { MailtoLink } from '@/components/ui/mailto-link'
 import { InvestmentStats } from '@/components/investments/investment-stats'
+import { BILANS_LABEL } from '@/lib/export/header-fields'
 import type { HeaderFieldT } from '@/types/export'
 import type { DynamicPagePropsT } from '@/types/page'
 
@@ -48,7 +49,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
       { label: 'Wpłaty od inwestora', value: formatPLN(totalIncome), amount: totalIncome },
       { label: 'Koszty robocizny', value: formatPLN(totalLaborCosts), amount: -totalLaborCosts },
       {
-        label: 'Bilans',
+        label: BILANS_LABEL,
         value: formatPLN(totalIncome - totalCosts - totalLaborCosts),
       },
     )
@@ -88,7 +89,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
       {isAdminOrOwnerRole(user.role) && (
         // do not show these stats to managers =
         <InvestmentStats
-          fields={headerFields.filter((f) => f.amount !== undefined || f.label === 'Bilans')}
+          fields={headerFields.filter((f) => f.amount !== undefined || f.label === BILANS_LABEL)}
         />
       )}
 
