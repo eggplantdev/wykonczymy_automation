@@ -1,6 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { isAdminOrOwnerRole, MANAGEMENT_ROLES } from '@/lib/auth/roles'
+import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/pagination'
 import { fetchReferenceData, fetchInvestmentFinancials } from '@/lib/queries/reference-data'
 import { buildTransferFilters } from '@/lib/queries/transfers'
@@ -42,18 +42,16 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   const totalIncome = fin?.totalIncome ?? 0
   const totalLaborCosts = fin?.totalLaborCosts ?? 0
 
-  const headerFields: HeaderFieldT[] = [{ label: 'Inwestycja', value: investment.name }]
-  if (isAdminOrOwnerRole(user.role)) {
-    headerFields.push(
-      { label: 'Koszty inwestycji', value: formatPLN(totalCosts), amount: -totalCosts },
-      { label: 'Wpłaty od inwestora', value: formatPLN(totalIncome), amount: totalIncome },
-      { label: 'Koszty robocizny', value: formatPLN(totalLaborCosts), amount: -totalLaborCosts },
-      {
-        label: BILANS_LABEL,
-        value: formatPLN(totalIncome - totalCosts - totalLaborCosts),
-      },
-    )
-  }
+  const headerFields: HeaderFieldT[] = [
+    { label: 'Inwestycja', value: investment.name },
+    { label: 'Koszty inwestycji', value: formatPLN(totalCosts), amount: -totalCosts },
+    { label: 'Wpłaty od inwestora', value: formatPLN(totalIncome), amount: totalIncome },
+    { label: 'Koszty robocizny', value: formatPLN(totalLaborCosts), amount: -totalLaborCosts },
+    {
+      label: BILANS_LABEL,
+      value: formatPLN(totalIncome - totalCosts - totalLaborCosts),
+    },
+  ]
 
   const urlFilters = buildTransferFilters(sp, { id: user.id, isManager: true })
   const transferWhere = { ...urlFilters, investment: { equals: investmentId } }
@@ -86,12 +84,9 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
     >
       <InfoList items={infoFields.filter((f) => f.value)} />
 
-      {isManagementRole(user.role) && (
-        // do not show these stats to managers =
-        <InvestmentStats
-          fields={headerFields.filter((f) => f.amount !== undefined || f.label === BILANS_LABEL)}
-        />
-      )}
+      <InvestmentStats
+        fields={headerFields.filter((f) => f.amount !== undefined || f.label === BILANS_LABEL)}
+      />
 
       {/* Transactions table */}
       <TransfersSection
