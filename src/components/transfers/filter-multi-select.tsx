@@ -22,22 +22,32 @@ type FilterMultiSelectPropsT = {
   icon?: LucideIcon
 }
 
-export function FilterMultiSelect({ values, onValuesChange, options, label, icon: Icon }: FilterMultiSelectPropsT) {
+export const FILTER_NONE = '__none__'
+
+export function FilterMultiSelect({
+  values,
+  onValuesChange,
+  options,
+  label,
+  icon: Icon,
+}: FilterMultiSelectPropsT) {
   const allValues = options.map((o) => o.value)
-  const selected = values.length === 0 ? allValues : values
+  const noneSelected = values.length === 1 && values[0] === FILTER_NONE
+  const selected = noneSelected ? [] : values.length === 0 ? allValues : values
   const allSelected = selected.length === options.length
 
   function toggleValue(value: string) {
     const isSelected = selected.includes(value)
-    const next = isSelected
-      ? selected.filter((v) => v !== value)
-      : [...selected, value]
+    const next = isSelected ? selected.filter((v) => v !== value) : [...selected, value]
 
-    // Prevent deselecting all — at least one must remain
-    if (next.length === 0) return
+    if (next.length === 0) return onValuesChange([FILTER_NONE])
 
     // All selected → clear URL param (means "all")
     onValuesChange(next.length === options.length ? [] : next)
+  }
+
+  function toggleAll() {
+    onValuesChange(allSelected ? [FILTER_NONE] : [])
   }
 
   return (
@@ -52,15 +62,22 @@ export function FilterMultiSelect({ values, onValuesChange, options, label, icon
       <DropdownMenuContent align="start" className="w-56">
         <DropdownMenuLabel>Widoczne transakcje</DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onSelect={(e) => e.preventDefault()}
+          onClick={toggleAll}
+          className="font-medium"
+        >
+          <CheckIcon className={cn('size-4', !allSelected && 'opacity-0')} />
+          {allSelected ? 'Odznacz wszystkie' : 'Zaznacz wszystkie'}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         {options.map((opt) => (
           <DropdownMenuItem
             key={opt.value}
             onSelect={(e) => e.preventDefault()}
             onClick={() => toggleValue(opt.value)}
           >
-            <CheckIcon
-              className={cn('size-4', !selected.includes(opt.value) && 'opacity-0')}
-            />
+            <CheckIcon className={cn('size-4', !selected.includes(opt.value) && 'opacity-0')} />
             {opt.label}
           </DropdownMenuItem>
         ))}
