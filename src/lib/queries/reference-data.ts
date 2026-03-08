@@ -3,11 +3,13 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { CACHE_TAGS } from '@/lib/cache/tags'
+import type { Where } from 'payload'
 import {
   getDb,
   sumAllWorkerSaldos,
   sumAllRegisterBalances,
   sumAllInvestmentFinancials,
+  sumFilteredFinancials,
   type InvestmentFinancialsT,
 } from '@/lib/db/sum-transfers'
 import { perfStart } from '@/lib/perf'
@@ -150,4 +152,16 @@ export async function fetchInvestmentFinancials(): Promise<InvestmentFinancialsM
   }
   console.log(`[PERF] query.fetchInvestmentFinancials ${elapsed()}ms (${map.size} investments)`)
   return record
+}
+
+export async function fetchFilteredFinancials(where: Where) {
+  'use cache'
+  cacheLife('max')
+  cacheTag(CACHE_TAGS.transfers)
+
+  const elapsed = perfStart()
+  const payload = await getPayload({ config })
+  const result = await sumFilteredFinancials(payload, where)
+  console.log(`[PERF] query.fetchFilteredFinancials ${elapsed()}ms`)
+  return result
 }
