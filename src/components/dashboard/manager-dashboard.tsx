@@ -32,7 +32,7 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
     <PageWrapper title="Pulpit" backHref="">
       {/* Stat cards + cash registers */}
 
-      <div className="mt-8 flex flex-wrap gap-4">
+      <div className="mt-8 flex flex-wrap gap-4 *:flex-1">
         <StatCard label="Saldo kas" value={formatPLN(totalBalance)} />
         {ownedBalance !== undefined && (
           <StatCard label="Saldo moich kas" value={formatPLN(ownedBalance)} />

@@ -11,8 +11,7 @@ import { buildFilterConfig } from '@/lib/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
-import { InvestmentStats } from '@/components/investments/investment-stats'
-import { BILANS_LABEL } from '@/lib/export/header-fields'
+import { StatCard } from '@/components/ui/stat-card'
 import type { HeaderFieldT } from '@/types/export'
 import type { DynamicPagePropsT } from '@/types/page'
 
@@ -40,6 +39,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
   if (!register) notFound()
 
   const { totalCosts, totalIncome, totalLaborCosts } = deriveFinancials(typeDistribution)
+  const saldo = totalIncome - totalCosts - totalLaborCosts
 
   // only admin or owner can view MAIN registers
   if (!isAdminOrOwnerRole(user.role) && register.type === 'MAIN') notFound()
@@ -50,21 +50,14 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
 
   const headerFields: HeaderFieldT[] = [
     { label: 'Kasa', value: register.name },
-    { label: 'Koszty', value: formatPLN(totalCosts), amount: -totalCosts },
-    { label: 'Wpływy', value: formatPLN(totalIncome), amount: totalIncome },
-    { label: 'Koszty robocizny', value: formatPLN(totalLaborCosts), amount: -totalLaborCosts },
-    {
-      label: BILANS_LABEL,
-      value: formatPLN(totalIncome - totalCosts - totalLaborCosts),
-    },
+    { label: 'Właściciel', value: ownerName },
+    { label: 'Saldo', value: formatPLN(saldo) },
   ]
 
   return (
     <PageWrapper title={register.name}>
       <InfoList items={[{ label: 'Właściciel', value: ownerName }]} />
-      <InvestmentStats
-        fields={headerFields.filter((f) => f.amount !== undefined || f.label === BILANS_LABEL)}
-      />
+      <StatCard label="Saldo" value={formatPLN(saldo)} className="w-fit" />
 
       {/* Transactions table */}
       <TransfersSection

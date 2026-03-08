@@ -70,7 +70,7 @@ export function FilterMultiSelect({
         >
           {Icon && <Icon className="size-4" />}
           {label}
-          {allSelected ? ': Wszystkie' : ` (${selected.length})`}
+          {allSelected ? '' : ` (${selected.length})`}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">

@@ -191,6 +191,7 @@ export function TransferFilters({
               options={users.map((u) => ({ value: String(u.id), label: u.name }))}
               label="Dodane przez"
               icon={User}
+              searchable
             />
           )}
 
@@ -225,6 +226,7 @@ export function TransferFilters({
               options={otherCategories.map((c) => ({ value: String(c.id), label: c.name }))}
               label="Kategoria"
               icon={FolderOpen}
+              searchable
             />
           )}
 
@@ -236,7 +238,7 @@ export function TransferFilters({
             disabled={!hasEntityFilters}
           >
             <X className="size-4" />
-            Wyczyść wszystkie filtry
+            Wyczyść filtry
           </Button>
         </div>
       )}
@@ -290,7 +292,7 @@ function FilterSelect({
   value,
   onValueChange,
   options,
-  placeholder = 'Wszystkie',
+  placeholder = '∞',
   icon: Icon,
   showAllOption = true,
 }: FilterSelectPropsT) {
@@ -303,7 +305,7 @@ function FilterSelect({
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
-        {showAllOption && <SelectItem value="ALL">Wszystkie</SelectItem>}
+        {showAllOption && <SelectItem value="ALL">{placeholder}</SelectItem>}
         {options.map((opt) => (
           <SelectItem key={opt.value} value={opt.value}>
             {opt.label}
