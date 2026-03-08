@@ -1,5 +1,5 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
-import type { Payload, PayloadRequest } from 'payload'
+import type { Payload, PayloadRequest, Where } from 'payload'
 import { perfStart } from '@/lib/perf'
 
 export type DateRangeT = { start: string; end: string }
@@ -291,4 +291,99 @@ export const sumWorkerPeriodBreakdown = async (
     totalExpenses: expenses,
     periodSaldo: advances - expenses,
   }
+}
+
+/**
+ * SUM costs, income, and labor costs for transactions matching a Payload Where clause.
+ * Translates the Where clause to raw SQL conditions.
+ * Returns aggregate totals — no GROUP BY, single result row.
+ */
+export const sumFilteredFinancials = async (
+  payload: Payload,
+  where: Where,
+): Promise<InvestmentFinancialsT> => {
+  const elapsed = perfStart()
+  const db = await getDb(payload)
+
+  const conditions = buildSqlConditions(where)
+
+  const result = await db.execute(
+    sql.raw(`
+    SELECT
+      COALESCE(SUM(CASE WHEN type IN ('INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE') THEN amount ELSE 0 END), 0) AS total_costs,
+      COALESCE(SUM(CASE WHEN type IN ('INVESTOR_DEPOSIT') THEN amount ELSE 0 END), 0) AS total_income,
+      COALESCE(SUM(CASE WHEN type = 'LABOR_COST' THEN amount ELSE 0 END), 0) AS total_labor_costs
+    FROM transactions
+    WHERE cancelled IS NOT TRUE
+      ${conditions}
+  `),
+  )
+
+  console.log(`[PERF] query.sumFilteredFinancials ${elapsed()}ms`)
+
+  return {
+    totalCosts: Number(result.rows[0].total_costs),
+    totalIncome: Number(result.rows[0].total_income),
+    totalLaborCosts: Number(result.rows[0].total_labor_costs),
+  }
+}
+
+// ── Where-to-SQL translation ─────────────────────────────────────────
+
+const FIELD_TO_COLUMN: Record<string, string> = {
+  type: 'type',
+  sourceRegister: 'source_register_id',
+  targetRegister: 'target_register_id',
+  investment: 'investment_id',
+  worker: 'worker_id',
+  createdBy: 'created_by_id',
+  otherCategory: 'other_category_id',
+  paymentMethod: 'payment_method',
+  date: 'date',
+  cancelled: 'cancelled',
+}
+
+/**
+ * Translates a flat Payload Where object to SQL AND clauses.
+ * Only handles the operators used by buildTransferFilters():
+ *   { field: { equals: value } }
+ *   { field: { in: values[] } }
+ *   { field: { greater_than_equal: value } }
+ *   { field: { less_than_equal: value } }
+ *
+ * All values come from buildTransferFilters() which validates against known enums
+ * and parses numeric IDs. escapeValue provides SQL injection protection as a second layer.
+ */
+function buildSqlConditions(where: Where): string {
+  const clauses: string[] = []
+
+  for (const [field, condition] of Object.entries(where)) {
+    if (field === 'id') continue // skip impossible-condition sentinel
+    const column = FIELD_TO_COLUMN[field]
+    if (!column || typeof condition !== 'object' || condition === null) continue
+
+    const cond = condition as Record<string, unknown>
+
+    if ('equals' in cond) {
+      clauses.push(`AND ${column} = ${escapeValue(cond.equals)}`)
+    }
+    if ('in' in cond && Array.isArray(cond.in)) {
+      const vals = cond.in.map(escapeValue).join(', ')
+      clauses.push(`AND ${column} IN (${vals})`)
+    }
+    if ('greater_than_equal' in cond) {
+      clauses.push(`AND ${column} >= ${escapeValue(cond.greater_than_equal)}`)
+    }
+    if ('less_than_equal' in cond) {
+      clauses.push(`AND ${column} <= ${escapeValue(cond.less_than_equal)}`)
+    }
+  }
+
+  return clauses.join('\n      ')
+}
+
+function escapeValue(val: unknown): string {
+  if (typeof val === 'number') return String(val)
+  if (typeof val === 'string') return `'${val.replace(/'/g, "''")}'`
+  return 'NULL'
 }

@@ -9,6 +9,7 @@ import {
   sumAllWorkerSaldos,
   sumEmployeeSaldo,
   sumWorkerPeriodBreakdown,
+  sumFilteredFinancials,
 } from '@/lib/db/sum-transfers'
 
 // ── Fake Payload with controllable db.drizzle.execute ────────────────────
@@ -247,5 +248,87 @@ describe('sumWorkerPeriodBreakdown', () => {
       totalExpenses: 0,
       periodSaldo: 0,
     })
+  })
+})
+
+// ── sumFilteredFinancials ────────────────────────────────────────────
+
+describe('sumFilteredFinancials', () => {
+  it('returns totals from rows', async () => {
+    mockExecute.mockResolvedValue({
+      rows: [{ total_costs: '5000', total_income: '12000', total_labor_costs: '800' }],
+    })
+    const result = await sumFilteredFinancials(fakePayload, {})
+    expect(result).toEqual({ totalCosts: 5000, totalIncome: 12000, totalLaborCosts: 800 })
+  })
+
+  it('returns zeros when no matching transactions', async () => {
+    mockExecute.mockResolvedValue({
+      rows: [{ total_costs: '0', total_income: '0', total_labor_costs: '0' }],
+    })
+    const result = await sumFilteredFinancials(fakePayload, {})
+    expect(result).toEqual({ totalCosts: 0, totalIncome: 0, totalLaborCosts: 0 })
+  })
+})
+
+// ── sumFilteredFinancials — filter translation ───────────────────────
+
+/** Extract raw SQL string from sql.raw() query object passed to db.execute */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function extractSql(query: any): string {
+  return query.queryChunks?.[0]?.value?.[0] ?? String(query)
+}
+
+describe('sumFilteredFinancials — filter translation', () => {
+  beforeEach(() => {
+    mockExecute.mockResolvedValue({
+      rows: [{ total_costs: '0', total_income: '0', total_labor_costs: '0' }],
+    })
+  })
+
+  it('passes type filter to SQL', async () => {
+    await sumFilteredFinancials(fakePayload, { type: { in: ['PAYOUT', 'OTHER'] } })
+    const queryStr = extractSql(mockExecute.mock.calls[0][0])
+    expect(queryStr).toContain("type IN ('PAYOUT', 'OTHER')")
+  })
+
+  it('passes date range to SQL', async () => {
+    await sumFilteredFinancials(fakePayload, {
+      date: { greater_than_equal: '2024-01-01', less_than_equal: '2024-12-31' },
+    })
+    const queryStr = extractSql(mockExecute.mock.calls[0][0])
+    expect(queryStr).toContain("date >= '2024-01-01'")
+    expect(queryStr).toContain("date <= '2024-12-31'")
+  })
+
+  it('passes investment filter to SQL', async () => {
+    await sumFilteredFinancials(fakePayload, { investment: { in: [5] } })
+    const queryStr = extractSql(mockExecute.mock.calls[0][0])
+    expect(queryStr).toContain('investment_id IN (5)')
+  })
+
+  it('passes worker filter to SQL', async () => {
+    await sumFilteredFinancials(fakePayload, { worker: { in: [10, 20] } })
+    const queryStr = extractSql(mockExecute.mock.calls[0][0])
+    expect(queryStr).toContain('worker_id IN (10, 20)')
+  })
+
+  it('passes payment method filter to SQL', async () => {
+    await sumFilteredFinancials(fakePayload, { paymentMethod: { in: ['CASH'] } })
+    const queryStr = extractSql(mockExecute.mock.calls[0][0])
+    expect(queryStr).toContain("payment_method IN ('CASH')")
+  })
+
+  it('skips id sentinel field', async () => {
+    await sumFilteredFinancials(fakePayload, { id: { equals: -1 } })
+    const queryStr = extractSql(mockExecute.mock.calls[0][0])
+    expect(queryStr).not.toContain('id =')
+  })
+
+  it('empty where produces no extra conditions', async () => {
+    await sumFilteredFinancials(fakePayload, {})
+    const queryStr = extractSql(mockExecute.mock.calls[0][0])
+    expect(queryStr).toContain('WHERE cancelled IS NOT TRUE')
+    expect(queryStr).not.toContain('AND')
   })
 })
