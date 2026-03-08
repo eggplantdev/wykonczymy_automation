@@ -4,7 +4,8 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
-import { sumEmployeeSaldo } from '@/lib/db/sum-transfers'
+import { sumFilteredByType, deriveWorkerBreakdown } from '@/lib/db/sum-transfers'
+import { WORKER_SALDO_TYPES } from '@/lib/constants/transfers'
 import { uploadBulkInvoices } from '@/lib/upload-invoice'
 import {
   CreateSettlementFormT,
@@ -108,7 +109,11 @@ export async function getManagementEmployeeSaldo(workerId: number): Promise<{ sa
   const payload = await getPayload({ config })
   console.log(`[PERF]   getPayload ${step()}ms`)
 
-  const saldo = await sumEmployeeSaldo(payload, workerId)
+  const byType = await sumFilteredByType(payload, {
+    worker: { equals: workerId },
+    type: { in: WORKER_SALDO_TYPES },
+  })
+  const saldo = deriveWorkerBreakdown(byType).periodSaldo
   console.log(`[PERF] getManagementEmployeeSaldo(${workerId}) saldo=${saldo} ${step()}ms`)
 
   return { saldo }

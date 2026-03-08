@@ -51,17 +51,24 @@ vi.mock('@/lib/cache/revalidate', () => ({
   revalidateCollections: vi.fn(),
 }))
 
-const mockSumEmployeeSaldo = vi.fn().mockResolvedValue(500)
+const mockSumFilteredByType = vi.fn().mockResolvedValue([
+  { type: 'ACCOUNT_FUNDING', total: 1000 },
+  { type: 'EMPLOYEE_EXPENSE', total: 500 },
+])
 
-vi.mock('@/lib/db/sum-transfers', () => ({
-  getDb: vi.fn().mockResolvedValue({
-    execute: vi.fn().mockResolvedValue({
-      rows: [{ id: 1, name: 'Main', type: 'MAIN', active: true, owner_id: 1 }],
+vi.mock('@/lib/db/sum-transfers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/db/sum-transfers')>()
+  return {
+    ...actual,
+    getDb: vi.fn().mockResolvedValue({
+      execute: vi.fn().mockResolvedValue({
+        rows: [{ id: 1, name: 'Main', type: 'MAIN', active: true, owner_id: 1 }],
+      }),
     }),
-  }),
-  sumRegisterBalance: vi.fn().mockResolvedValue(99999),
-  sumEmployeeSaldo: mockSumEmployeeSaldo,
-}))
+    sumRegisterBalance: vi.fn().mockResolvedValue(99999),
+    sumFilteredByType: mockSumFilteredByType,
+  }
+})
 
 const { createSettlementAction, getManagementEmployeeSaldo } =
   await import('@/lib/actions/settlements')
@@ -128,7 +135,10 @@ beforeEach(() => {
   mockRequireAuth.mockReset().mockResolvedValue({ success: true, user: mockUser })
   mockUploadBulkInvoices.mockReset().mockResolvedValue([undefined])
   mockUploadSingleInvoice.mockReset().mockResolvedValue(undefined)
-  mockSumEmployeeSaldo.mockReset().mockResolvedValue(500)
+  mockSumFilteredByType.mockReset().mockResolvedValue([
+    { type: 'ACCOUNT_FUNDING', total: 1000 },
+    { type: 'EMPLOYEE_EXPENSE', total: 500 },
+  ])
 })
 
 // ═════════════════════════════════════════════════════════════════════════
@@ -547,17 +557,16 @@ describe('createSettlementAction — cross-mode tests', () => {
 describe('getManagementEmployeeSaldo', () => {
   it('returns saldo for authenticated user', async () => {
     mockRequireAuth.mockResolvedValueOnce({ success: true, user: mockUser })
-    mockSumEmployeeSaldo.mockResolvedValueOnce(1234.56)
+    mockSumFilteredByType.mockResolvedValueOnce([{ type: 'ACCOUNT_FUNDING', total: 1234.56 }])
 
     const result = await getManagementEmployeeSaldo(42)
 
     expect(result).toEqual({ saldo: 1234.56 })
-    expect(mockSumEmployeeSaldo).toHaveBeenCalledWith(mockPayload, 42)
   })
 
   it('returns zero saldo when employee has no transactions', async () => {
     mockRequireAuth.mockResolvedValueOnce({ success: true, user: mockUser })
-    mockSumEmployeeSaldo.mockResolvedValueOnce(0)
+    mockSumFilteredByType.mockResolvedValueOnce([])
 
     const result = await getManagementEmployeeSaldo(99)
 
@@ -566,7 +575,7 @@ describe('getManagementEmployeeSaldo', () => {
 
   it('returns negative saldo when employee owes money', async () => {
     mockRequireAuth.mockResolvedValueOnce({ success: true, user: mockUser })
-    mockSumEmployeeSaldo.mockResolvedValueOnce(-350)
+    mockSumFilteredByType.mockResolvedValueOnce([{ type: 'EMPLOYEE_EXPENSE', total: 350 }])
 
     const result = await getManagementEmployeeSaldo(7)
 
@@ -581,30 +590,30 @@ describe('getManagementEmployeeSaldo', () => {
     })
 
     await expect(getManagementEmployeeSaldo(1)).rejects.toThrow('Brak uprawnień')
-    expect(mockSumEmployeeSaldo).not.toHaveBeenCalled()
+    expect(mockSumFilteredByType).not.toHaveBeenCalled()
   })
 
   it('requireAuth called with MANAGEMENT_ROLES', async () => {
     mockRequireAuth.mockResolvedValueOnce({ success: true, user: mockUser })
-    mockSumEmployeeSaldo.mockResolvedValueOnce(0)
+    mockSumFilteredByType.mockResolvedValueOnce([])
 
     await getManagementEmployeeSaldo(1)
 
-    // getManagementEmployeeSaldo calls requireAuth directly (not via withAction),
-    // but the mock is shared. It should be called with MANAGEMENT_ROLES.
-    // The first call in beforeEach is reset, so check the most recent call.
     expect(mockRequireAuth).toHaveBeenCalledWith(
       expect.arrayContaining(['ADMIN', 'OWNER', 'MANAGER']),
     )
   })
 
-  it('sumEmployeeSaldo called with correct payload and workerId', async () => {
+  it('sumFilteredByType called with correct worker filter', async () => {
     mockRequireAuth.mockResolvedValueOnce({ success: true, user: mockUser })
-    mockSumEmployeeSaldo.mockResolvedValueOnce(100)
+    mockSumFilteredByType.mockResolvedValueOnce([])
 
     await getManagementEmployeeSaldo(55)
 
-    expect(mockSumEmployeeSaldo).toHaveBeenCalledOnce()
-    expect(mockSumEmployeeSaldo).toHaveBeenCalledWith(mockPayload, 55)
+    expect(mockSumFilteredByType).toHaveBeenCalledOnce()
+    expect(mockSumFilteredByType).toHaveBeenCalledWith(mockPayload, {
+      worker: { equals: 55 },
+      type: { in: ['ACCOUNT_FUNDING', 'EMPLOYEE_EXPENSE'] },
+    })
   })
 })

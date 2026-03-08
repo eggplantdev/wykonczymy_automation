@@ -9,7 +9,6 @@ import {
   sumAllWorkerSaldos,
   sumAllRegisterBalances,
   sumAllInvestmentFinancials,
-  sumFilteredFinancials,
   sumFilteredByType,
   type InvestmentFinancialsT,
   type TypeTotalT,
@@ -154,18 +153,6 @@ export async function fetchInvestmentFinancials(): Promise<InvestmentFinancialsM
   }
   console.log(`[PERF] query.fetchInvestmentFinancials ${elapsed()}ms (${map.size} investments)`)
   return record
-}
-
-export async function fetchFilteredFinancials(where: Where) {
-  'use cache'
-  cacheLife('max')
-  cacheTag(CACHE_TAGS.transfers)
-
-  const elapsed = perfStart()
-  const payload = await getPayload({ config })
-  const result = await sumFilteredFinancials(payload, where)
-  console.log(`[PERF] query.fetchFilteredFinancials ${elapsed()}ms`)
-  return result
 }
 
 export async function fetchFilteredByType(where: Where): Promise<TypeTotalT[]> {
