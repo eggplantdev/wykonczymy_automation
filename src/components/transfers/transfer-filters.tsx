@@ -11,9 +11,14 @@ import {
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Banknote, Landmark, Tags, User, X } from 'lucide-react'
+import { Banknote, CreditCard, FolderOpen, Landmark, Tags, User, Users, X } from 'lucide-react'
 import { FilterMultiSelect } from '@/components/transfers/filter-multi-select'
-import { TRANSFER_TYPES, TRANSFER_TYPE_LABELS } from '@/lib/constants/transfers'
+import {
+  TRANSFER_TYPES,
+  TRANSFER_TYPE_LABELS,
+  PAYMENT_METHODS,
+  PAYMENT_METHOD_LABELS,
+} from '@/lib/constants/transfers'
 import { MONTHS } from '@/lib/constants/months'
 import { getMonthDateRange } from '@/lib/date-utils'
 import { buildUrlWithParams } from '@/lib/build-url-with-params'
@@ -24,7 +29,10 @@ type TransferFiltersPropsT = {
   cashRegisters?: ReferenceItemT[]
   investments?: ReferenceItemT[]
   users?: ReferenceItemT[]
+  workers?: ReferenceItemT[]
+  otherCategories?: ReferenceItemT[]
   showTypeFilter?: boolean
+  showPaymentMethodFilter?: boolean
   baseUrl: string
   className?: string
 }
@@ -33,7 +41,10 @@ export function TransferFilters({
   cashRegisters,
   investments,
   users,
+  workers,
+  otherCategories,
   showTypeFilter = true,
+  showPaymentMethodFilter = false,
   baseUrl,
   className,
 }: TransferFiltersPropsT) {
@@ -46,6 +57,9 @@ export function TransferFilters({
   const currentSourceRegisters = getMultiParam('sourceRegister')
   const currentInvestments = getMultiParam('investment')
   const currentCreatedBys = getMultiParam('createdBy')
+  const currentWorkers = getMultiParam('worker')
+  const currentPaymentMethods = getMultiParam('paymentMethod')
+  const currentOtherCategories = getMultiParam('otherCategory')
   const currentFrom = searchParams.get('from') ?? ''
   const currentTo = searchParams.get('to') ?? ''
 
@@ -94,11 +108,22 @@ export function TransferFilters({
     currentTypes.length > 0 ||
     currentSourceRegisters.length > 0 ||
     currentInvestments.length > 0 ||
-    currentCreatedBys.length > 0
+    currentCreatedBys.length > 0 ||
+    currentWorkers.length > 0 ||
+    currentPaymentMethods.length > 0 ||
+    currentOtherCategories.length > 0
   const hasDateFilters = currentFrom || currentTo
 
   function clearEntityFilters() {
-    updateMultipleParams({ type: '', sourceRegister: '', investment: '', createdBy: '' })
+    updateMultipleParams({
+      type: '',
+      sourceRegister: '',
+      investment: '',
+      createdBy: '',
+      worker: '',
+      paymentMethod: '',
+      otherCategory: '',
+    })
   }
 
   function clearDateFilters() {
@@ -110,7 +135,10 @@ export function TransferFilters({
       {(showTypeFilter ||
         (cashRegisters && cashRegisters.length > 0) ||
         (investments && investments.length > 0) ||
-        (users && users.length > 0)) && (
+        (users && users.length > 0) ||
+        (workers && workers.length > 0) ||
+        showPaymentMethodFilter ||
+        (otherCategories && otherCategories.length > 0)) && (
         <div className="flex flex-wrap gap-3">
           {showTypeFilter && (
             <FilterMultiSelect
@@ -152,6 +180,39 @@ export function TransferFilters({
               options={users.map((u) => ({ value: String(u.id), label: u.name }))}
               label="Dodane przez"
               icon={User}
+            />
+          )}
+
+          {workers && workers.length > 0 && (
+            <FilterMultiSelect
+              values={currentWorkers}
+              onValuesChange={(v) => updateParam('worker', v.join(','))}
+              options={workers.map((w) => ({ value: String(w.id), label: w.name }))}
+              label="Współpracownik"
+              icon={Users}
+            />
+          )}
+
+          {showPaymentMethodFilter && (
+            <FilterMultiSelect
+              values={currentPaymentMethods}
+              onValuesChange={(v) => updateParam('paymentMethod', v.join(','))}
+              options={PAYMENT_METHODS.map((m) => ({
+                value: m,
+                label: PAYMENT_METHOD_LABELS[m],
+              }))}
+              label="Metoda płatności"
+              icon={CreditCard}
+            />
+          )}
+
+          {otherCategories && otherCategories.length > 0 && (
+            <FilterMultiSelect
+              values={currentOtherCategories}
+              onValuesChange={(v) => updateParam('otherCategory', v.join(','))}
+              options={otherCategories.map((c) => ({ value: String(c.id), label: c.name }))}
+              label="Kategoria"
+              icon={FolderOpen}
             />
           )}
 
