@@ -20,6 +20,7 @@ const buttonVariants = cva(
         badgeActive: 'border border-green-600 text-green-600 hover:bg-green-600 hover:text-white',
         badgePending: 'border border-amber-500 text-amber-500 opacity-50',
         badgeInactive: 'bg-muted text-muted-foreground hover:bg-muted-foreground/20',
+        activeFilter: 'border border-green-600 text-green-600 hover:bg-green-600 hover:text-white',
       },
       size: {
         default: 'h-9 px-4 py-2',
