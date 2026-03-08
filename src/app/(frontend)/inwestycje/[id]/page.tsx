@@ -2,10 +2,12 @@ import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/pagination'
-import { fetchReferenceData, fetchInvestmentFinancials } from '@/lib/queries/reference-data'
+import { fetchReferenceData, fetchFilteredByType } from '@/lib/queries/reference-data'
+import { deriveFinancials } from '@/lib/db/sum-transfers'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { formatPLN } from '@/lib/format-currency'
 import { perfStart } from '@/lib/perf'
+import { buildFilterConfig } from '@/lib/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
@@ -27,20 +29,19 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   const { page, limit } = parsePagination(sp)
 
   const investmentId = Number(id)
-  // fetchReferenceData primes the cache for TransferTableServer in Suspense
-  const [refData, financialsRecord] = await Promise.all([
+  const urlFilters = buildTransferFilters(sp, { id: user.id, isManager: true })
+  const transferWhere = { ...urlFilters, investment: { equals: investmentId } }
+
+  const [refData, typeDistribution] = await Promise.all([
     fetchReferenceData(),
-    fetchInvestmentFinancials(),
+    fetchFilteredByType(transferWhere),
   ])
-  console.log(`[PERF] inwestycje/${id} fetchReferenceData + fetchInvestmentFinancials ${step()}ms`)
+  console.log(`[PERF] inwestycje/${id} fetchReferenceData + fetchFilteredByType ${step()}ms`)
 
   const investment = refData.investments.find((inv) => inv.id === investmentId)
   if (!investment) notFound()
 
-  const fin = financialsRecord[String(id)]
-  const totalCosts = fin?.totalCosts ?? 0
-  const totalIncome = fin?.totalIncome ?? 0
-  const totalLaborCosts = fin?.totalLaborCosts ?? 0
+  const { totalCosts, totalIncome, totalLaborCosts } = deriveFinancials(typeDistribution)
 
   const headerFields: HeaderFieldT[] = [
     { label: 'Inwestycja', value: investment.name },
@@ -52,9 +53,6 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
       value: formatPLN(totalIncome - totalCosts - totalLaborCosts),
     },
   ]
-
-  const urlFilters = buildTransferFilters(sp, { id: user.id, isManager: true })
-  const transferWhere = { ...urlFilters, investment: { equals: investmentId } }
 
   const infoFields = [
     { label: 'Adres', value: investment.address },
@@ -89,10 +87,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
           query: { where: transferWhere, page, limit },
           baseUrl: `/inwestycje/${id}`,
           excludeColumns: ['investment'],
-          filters: {
-            cashRegisters: refData.cashRegisters.map((c) => ({ id: c.id, name: c.name })),
-            users: refData.workers.map((w) => ({ id: w.id, name: w.name })),
-          },
+          filters: buildFilterConfig(refData, 'investments'),
           context: 'investment',
           contextId: investmentId,
           headerFields,
