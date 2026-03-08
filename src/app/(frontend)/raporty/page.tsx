@@ -45,7 +45,7 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
   ]
 
   return (
-    <PageWrapper title="Transakcje">
+    <PageWrapper title="Raporty">
       <InvestmentStats
         fields={headerFields.filter((f) => f.amount !== undefined || f.label === BILANS_LABEL)}
       />
@@ -53,7 +53,7 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
       <TransfersSection
         config={{
           query: { where: urlFilters, page, limit },
-          baseUrl: '/transakcje',
+          baseUrl: '/raporty',
           filters: {
             cashRegisters: refData.cashRegisters.map((c) => ({ id: c.id, name: c.name })),
             investments: refData.investments.map((i) => ({ id: i.id, name: i.name })),

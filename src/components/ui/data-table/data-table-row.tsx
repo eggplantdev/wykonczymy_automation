@@ -58,11 +58,17 @@ export function DataTableRow<TData>({
       {row
         .getAllCells()
         .filter((cell) => visibleColumnIds.has(cell.column.id))
-        .map((cell) => (
-          <td key={cell.id} className="text-foreground px-4 py-3">
-            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-          </td>
-        ))}
+        .map((cell) => {
+          const align = cell.column.columnDef.meta?.align
+          return (
+            <td
+              key={cell.id}
+              className={cn('text-foreground px-4 py-3', align === 'right' && 'text-right')}
+            >
+              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            </td>
+          )
+        })}
     </tr>
   )
 }

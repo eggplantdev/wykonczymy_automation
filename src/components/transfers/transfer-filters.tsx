@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Select,
@@ -9,9 +9,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Banknote, CreditCard, FolderOpen, Landmark, Tags, User, Users, X } from 'lucide-react'
+import {
+  Banknote,
+  Calendar,
+  CreditCard,
+  FolderOpen,
+  Landmark,
+  Tags,
+  User,
+  Users,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
 import { FilterMultiSelect } from '@/components/transfers/filter-multi-select'
 import {
   TRANSFER_TYPES,
@@ -170,6 +180,7 @@ export function TransferFilters({
               options={investments.map((i) => ({ value: String(i.id), label: i.name }))}
               label="Inwestycja"
               icon={Landmark}
+              searchable
             />
           )}
 
@@ -188,8 +199,9 @@ export function TransferFilters({
               values={currentWorkers}
               onValuesChange={(v) => updateParam('worker', v.join(','))}
               options={workers.map((w) => ({ value: String(w.id), label: w.name }))}
-              label="Współpracownik"
+              label="Pracownik"
               icon={Users}
+              searchable
             />
           )}
 
@@ -228,41 +240,25 @@ export function TransferFilters({
           </Button>
         </div>
       )}
-      <div className="flex flex-wrap items-end gap-3">
-        <FilterField label="Rok">
-          <FilterSelect
-            value={pickerYear}
-            onValueChange={handleYearChange}
-            options={years.map((y) => ({ value: String(y), label: String(y) }))}
-          />
-        </FilterField>
+      <div className="flex flex-wrap items-center gap-3">
+        <FilterSelect
+          value={pickerYear}
+          onValueChange={handleYearChange}
+          options={years.map((y) => ({ value: String(y), label: String(y) }))}
+          placeholder="Rok"
+          icon={Calendar}
+        />
 
-        <FilterField label="Miesiąc">
-          <FilterSelect
-            value={pickerMonth}
-            onValueChange={handleMonthChange}
-            options={MONTHS.map((label, i) => ({ value: String(i + 1), label }))}
-          />
-        </FilterField>
+        <FilterSelect
+          value={pickerMonth}
+          onValueChange={handleMonthChange}
+          options={MONTHS.map((label, i) => ({ value: String(i + 1), label }))}
+          placeholder="Miesiąc"
+          icon={Calendar}
+        />
 
-        <FilterField label="Od">
-          <Input
-            type="date"
-            value={currentFrom}
-            onChange={(e) => updateParam('from', e.target.value)}
-            className="w-40"
-            placeholder="Od"
-          />
-        </FilterField>
-
-        <FilterField label="Do">
-          <Input
-            type="date"
-            value={currentTo}
-            onChange={(e) => updateParam('to', e.target.value)}
-            placeholder="Do"
-          />
-        </FilterField>
+        <DateFilterButton label="Od" value={currentFrom} onChange={(v) => updateParam('from', v)} />
+        <DateFilterButton label="Do" value={currentTo} onChange={(v) => updateParam('to', v)} />
 
         <Button
           variant="outline"
@@ -279,30 +275,32 @@ export function TransferFilters({
   )
 }
 
-function FilterField({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex flex-col space-y-1">
-      <span className="text-muted-foreground text-xs font-medium">{label}</span>
-      {children}
-    </div>
-  )
-}
-
 type FilterOptionT = { value: string; label: string }
 
 type FilterSelectPropsT = {
   value: string
   onValueChange: (value: string) => void
   options: FilterOptionT[]
+  placeholder?: string
+  icon?: LucideIcon
   showAllOption?: boolean
-  className?: string
 }
 
-function FilterSelect({ value, onValueChange, options, showAllOption = true }: FilterSelectPropsT) {
+function FilterSelect({
+  value,
+  onValueChange,
+  options,
+  placeholder = 'Wszystkie',
+  icon: Icon,
+  showAllOption = true,
+}: FilterSelectPropsT) {
   return (
     <Select value={value || 'ALL'} onValueChange={(v) => onValueChange(v === 'ALL' ? '' : v)}>
-      <SelectTrigger className={'min-w-40'}>
-        <SelectValue />
+      <SelectTrigger
+        className={cn('h-8 w-fit min-w-40 text-sm', (!value || value === 'ALL') && 'opacity-40')}
+      >
+        {Icon && <Icon className="text-muted-foreground size-4" />}
+        <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
         {showAllOption && <SelectItem value="ALL">Wszystkie</SelectItem>}
@@ -313,5 +311,37 @@ function FilterSelect({ value, onValueChange, options, showAllOption = true }: F
         ))}
       </SelectContent>
     </Select>
+  )
+}
+
+function DateFilterButton({
+  label,
+  value,
+  onChange,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      className={cn('w-fit min-w-40 justify-start gap-1.5', !value && 'opacity-40')}
+      onClick={() => inputRef.current?.showPicker()}
+    >
+      <Calendar className="size-4" />
+      {value || label}
+      <input
+        ref={inputRef}
+        type="date"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="sr-only"
+        tabIndex={-1}
+      />
+    </Button>
   )
 }

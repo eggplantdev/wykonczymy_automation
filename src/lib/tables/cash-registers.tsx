@@ -29,8 +29,9 @@ export function getCashRegisterColumns(onToggle: (id: number, newActive: boolean
     }),
     col.accessor('balance', {
       id: 'balance',
-      header: () => <span className="block text-right">Saldo</span>,
-      cell: (info) => <span className="block font-medium">{formatPLN(info.getValue())}</span>,
+      header: 'Saldo',
+      meta: { label: 'Saldo', align: 'right' },
+      cell: (info) => <span className="font-medium">{formatPLN(info.getValue())}</span>,
     }),
     col.accessor('active', {
       id: 'active',

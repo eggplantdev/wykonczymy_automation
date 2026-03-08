@@ -31,19 +31,15 @@ export function getInvestmentColumns(onToggle: (id: number, newActive: boolean) 
 
     col.accessor('totalCosts', {
       id: 'totalCosts',
-      header: () => <span className="block text-right">Koszty</span>,
-      meta: { label: 'Koszty' },
-      cell: (info) => (
-        <span className="block text-right font-medium">{formatPLN(info.getValue())}</span>
-      ),
+      header: 'Koszty',
+      meta: { label: 'Koszty', align: 'right' },
+      cell: (info) => <span className="font-medium">{formatPLN(info.getValue())}</span>,
     }),
     col.accessor('balance', {
       id: 'balance',
-      header: () => <span className="block text-right">Bilans</span>,
-      meta: { label: 'Bilans' },
-      cell: (info) => (
-        <span className="block text-right font-medium">{formatPLN(info.getValue())}</span>
-      ),
+      header: 'Bilans',
+      meta: { label: 'Bilans', align: 'right' },
+      cell: (info) => <span className="font-medium">{formatPLN(info.getValue())}</span>,
     }),
     col.accessor('address', {
       id: 'address',
