@@ -10,6 +10,8 @@ import {
   sumEmployeeSaldo,
   sumWorkerPeriodBreakdown,
   sumFilteredFinancials,
+  sumFilteredCostBreakdown,
+  sumFilteredByType,
 } from '@/lib/db/sum-transfers'
 
 // ── Fake Payload with controllable db.drizzle.execute ────────────────────
@@ -330,5 +332,63 @@ describe('sumFilteredFinancials — filter translation', () => {
     const queryStr = extractSql(mockExecute.mock.calls[0][0])
     expect(queryStr).toContain('WHERE cancelled IS NOT TRUE')
     expect(queryStr).not.toContain('AND')
+  })
+})
+
+// ── sumFilteredCostBreakdown ─────────────────────────────────────
+
+describe('sumFilteredCostBreakdown', () => {
+  it('returns zeros on NO_RESULTS sentinel', async () => {
+    const result = await sumFilteredCostBreakdown(fakePayload, { id: { equals: -1 } })
+    expect(result).toEqual({ investmentExpenses: 0, employeeExpenses: 0, laborCosts: 0 })
+    expect(mockExecute).not.toHaveBeenCalled()
+  })
+
+  it('returns breakdown from rows', async () => {
+    mockExecute.mockResolvedValue({
+      rows: [{ investment_expenses: '5000', employee_expenses: '2000', labor_costs: '800' }],
+    })
+    const result = await sumFilteredCostBreakdown(fakePayload, {})
+    expect(result).toEqual({ investmentExpenses: 5000, employeeExpenses: 2000, laborCosts: 800 })
+  })
+
+  it('passes filters to SQL', async () => {
+    mockExecute.mockResolvedValue({
+      rows: [{ investment_expenses: '0', employee_expenses: '0', labor_costs: '0' }],
+    })
+    await sumFilteredCostBreakdown(fakePayload, { investment: { in: [5] } })
+    const queryStr = extractSql(mockExecute.mock.calls[0][0])
+    expect(queryStr).toContain('investment_id IN (5)')
+  })
+})
+
+// ── sumFilteredByType ────────────────────────────────────────────
+
+describe('sumFilteredByType', () => {
+  it('returns empty array on NO_RESULTS sentinel', async () => {
+    const result = await sumFilteredByType(fakePayload, { id: { equals: -1 } })
+    expect(result).toEqual([])
+    expect(mockExecute).not.toHaveBeenCalled()
+  })
+
+  it('returns type totals from rows', async () => {
+    mockExecute.mockResolvedValue({
+      rows: [
+        { type: 'INVESTMENT_EXPENSE', total: '5000' },
+        { type: 'INVESTOR_DEPOSIT', total: '12000' },
+      ],
+    })
+    const result = await sumFilteredByType(fakePayload, {})
+    expect(result).toEqual([
+      { type: 'INVESTMENT_EXPENSE', total: 5000 },
+      { type: 'INVESTOR_DEPOSIT', total: 12000 },
+    ])
+  })
+
+  it('passes filters to SQL', async () => {
+    mockExecute.mockResolvedValue({ rows: [] })
+    await sumFilteredByType(fakePayload, { date: { greater_than_equal: '2024-01-01' } })
+    const queryStr = extractSql(mockExecute.mock.calls[0][0])
+    expect(queryStr).toContain("date >= '2024-01-01'")
   })
 })

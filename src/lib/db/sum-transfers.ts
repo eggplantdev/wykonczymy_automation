@@ -334,6 +334,80 @@ export const sumFilteredFinancials = async (
   }
 }
 
+/**
+ * Returns cost breakdown split into 3 buckets for pie chart.
+ * Handles NO_RESULTS sentinel.
+ */
+export type CostBreakdownT = {
+  investmentExpenses: number
+  employeeExpenses: number
+  laborCosts: number
+}
+
+export const sumFilteredCostBreakdown = async (
+  payload: Payload,
+  where: Where,
+): Promise<CostBreakdownT> => {
+  const idCondition = where.id as Record<string, unknown> | undefined
+  if (idCondition && 'equals' in idCondition && idCondition.equals === -1) {
+    return { investmentExpenses: 0, employeeExpenses: 0, laborCosts: 0 }
+  }
+
+  const db = await getDb(payload)
+  const conditions = buildSqlConditions(where)
+
+  const result = await db.execute(
+    sql.raw(`
+    SELECT
+      COALESCE(SUM(CASE WHEN type = 'INVESTMENT_EXPENSE' THEN amount ELSE 0 END), 0) AS investment_expenses,
+      COALESCE(SUM(CASE WHEN type = 'EMPLOYEE_EXPENSE' THEN amount ELSE 0 END), 0) AS employee_expenses,
+      COALESCE(SUM(CASE WHEN type = 'LABOR_COST' THEN amount ELSE 0 END), 0) AS labor_costs
+    FROM transactions
+    WHERE cancelled IS NOT TRUE
+      ${conditions}
+  `),
+  )
+
+  return {
+    investmentExpenses: Number(result.rows[0].investment_expenses),
+    employeeExpenses: Number(result.rows[0].employee_expenses),
+    laborCosts: Number(result.rows[0].labor_costs),
+  }
+}
+
+/**
+ * Returns SUM(amount) grouped by transaction type for pie chart.
+ * Handles NO_RESULTS sentinel.
+ */
+export type TypeTotalT = { type: string; total: number }
+
+export const sumFilteredByType = async (payload: Payload, where: Where): Promise<TypeTotalT[]> => {
+  const idCondition = where.id as Record<string, unknown> | undefined
+  if (idCondition && 'equals' in idCondition && idCondition.equals === -1) {
+    return []
+  }
+
+  const db = await getDb(payload)
+  const conditions = buildSqlConditions(where)
+
+  const result = await db.execute(
+    sql.raw(`
+    SELECT type, COALESCE(SUM(amount), 0) AS total
+    FROM transactions
+    WHERE cancelled IS NOT TRUE
+      ${conditions}
+    GROUP BY type
+    ORDER BY total DESC
+  `),
+  )
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return result.rows.map((row: any) => ({
+    type: row.type as string,
+    total: Number(row.total),
+  }))
+}
+
 // ── Where-to-SQL translation ─────────────────────────────────────────
 
 const FIELD_TO_COLUMN: Record<string, string> = {
