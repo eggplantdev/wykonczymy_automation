@@ -2,11 +2,17 @@ import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { ADMIN_OR_OWNER_ROLES } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/pagination'
-import { fetchReferenceData, fetchFilteredFinancials } from '@/lib/queries/reference-data'
+import {
+  fetchReferenceData,
+  fetchFilteredFinancials,
+  fetchFilteredCostBreakdown,
+  fetchFilteredByType,
+} from '@/lib/queries/reference-data'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { formatPLN } from '@/lib/format-currency'
 import { perfStart } from '@/lib/perf'
 import { TransfersSection } from '@/components/transfers/transfers-section'
+import { ReportCharts } from '@/components/reports/report-charts'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InvestmentStats } from '@/components/investments/investment-stats'
 import { BILANS_LABEL } from '@/lib/export/header-fields'
@@ -25,11 +31,13 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
 
   const urlFilters = buildTransferFilters(sp, { id: user.id, isManager: true })
 
-  const [refData, financials] = await Promise.all([
+  const [refData, financials, costBreakdown, typeDistribution] = await Promise.all([
     fetchReferenceData(),
     fetchFilteredFinancials(urlFilters),
+    fetchFilteredCostBreakdown(urlFilters),
+    fetchFilteredByType(urlFilters),
   ])
-  console.log(`[PERF] transakcje fetchReferenceData + fetchFilteredFinancials ${step()}ms`)
+  console.log(`[PERF] raporty data fetch ${step()}ms`)
 
   const { totalCosts, totalIncome, totalLaborCosts } = financials
 
@@ -49,6 +57,8 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
       <InvestmentStats
         fields={headerFields.filter((f) => f.amount !== undefined || f.label === BILANS_LABEL)}
       />
+
+      <ReportCharts costBreakdown={costBreakdown} typeDistribution={typeDistribution} />
 
       <TransfersSection
         config={{
