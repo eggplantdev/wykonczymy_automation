@@ -4,6 +4,8 @@
 
 **Goal:** Add a `/transakcje` page (Admin/Owner only) with the full transfers table, all filters (including new: worker, payment method, category), and dynamic stat cards calculated server-side via SQL aggregation.
 
+<!--  -->
+
 **Architecture:** Extend existing `buildTransferFilters()` with 3 new filter params (worker, paymentMethod, otherCategory). Extend `TransferFilters` component and `FilterConfigT` to render them. Add a new `sumFilteredFinancials()` SQL function that accepts a Payload `Where` clause translated to raw SQL conditions. The page reuses `PageWrapper`, `TransfersSection`, and all existing table/export components.
 
 **Tech Stack:** Next.js App Router, Payload CMS, Vercel Postgres (raw SQL), TanStack React Table, Zustand, Vitest

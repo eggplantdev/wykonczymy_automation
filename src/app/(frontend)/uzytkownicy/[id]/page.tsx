@@ -11,14 +11,5 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
   const { id } = await params
   const sp = await searchParams
 
-  return (
-    <UserTransferView
-      userId={id}
-      searchParams={sp}
-      baseUrl={`/uzytkownicy/${id}`}
-      backHref="/"
-      backLabel="Pulpit"
-      showInfo
-    />
-  )
+  return <UserTransferView userId={id} searchParams={sp} baseUrl={`/uzytkownicy/${id}`} showInfo />
 }

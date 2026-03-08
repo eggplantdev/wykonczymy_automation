@@ -29,7 +29,7 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
   console.log(`[PERF] ManagerDashboard fetchManagerDashboardData ${step()}ms`)
 
   return (
-    <PageWrapper title="Pulpit">
+    <PageWrapper title="Pulpit" backHref="">
       {/* Stat cards + cash registers */}
 
       <div className="mt-8 flex flex-wrap gap-4">
