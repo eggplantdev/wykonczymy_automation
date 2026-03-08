@@ -14,10 +14,10 @@ type PageWrapperPropsT = {
 export function PageWrapper({
   title,
   description,
-  backHref,
-  backLabel,
+  backHref = '/',
+  backLabel = 'Pulpit',
   children,
-  className,
+  className = 'grid grid-cols-1 gap-6',
 }: PageWrapperPropsT) {
   return (
     <div className={cn('p-6 lg:p-8', className)}>

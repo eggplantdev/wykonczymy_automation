@@ -45,12 +45,7 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
   ]
 
   return (
-    <PageWrapper
-      title="Transakcje"
-      backHref="/"
-      backLabel="Pulpit"
-      className="grid grid-cols-1 gap-6"
-    >
+    <PageWrapper title="Transakcje">
       <InvestmentStats
         fields={headerFields.filter((f) => f.amount !== undefined || f.label === BILANS_LABEL)}
       />

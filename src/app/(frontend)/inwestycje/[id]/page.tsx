@@ -76,12 +76,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   ]
 
   return (
-    <PageWrapper
-      title={investment.name}
-      backHref="/"
-      backLabel="Pulpit"
-      className="grid grid-cols-1 gap-6"
-    >
+    <PageWrapper title={investment.name}>
       <InfoList items={infoFields.filter((f) => f.value)} />
 
       <InvestmentStats

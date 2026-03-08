@@ -51,12 +51,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
   ]
 
   return (
-    <PageWrapper
-      title={register.name}
-      backHref="/"
-      backLabel="Pulpit"
-      className="grid grid-cols-1 gap-6"
-    >
+    <PageWrapper title={register.name}>
       <InfoList items={[{ label: 'Właściciel', value: ownerName }]} />
       <StatCard label="Saldo" value={formatPLN(balance)} />
 

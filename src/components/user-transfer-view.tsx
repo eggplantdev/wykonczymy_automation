@@ -19,8 +19,6 @@ type UserTransferViewPropsT = {
   readonly searchParams: Record<string, string | string[] | undefined>
   readonly baseUrl: string
   readonly title?: string
-  readonly backHref?: string
-  readonly backLabel?: string
   readonly showInfo?: boolean
   readonly showTypeFilter?: boolean
   readonly excludeColumns?: string[]
@@ -31,8 +29,6 @@ export async function UserTransferView({
   searchParams,
   baseUrl,
   title,
-  backHref,
-  backLabel,
   showInfo = false,
   showTypeFilter = true,
   excludeColumns = ['worker', 'otherCategory', 'invoice'],
@@ -64,12 +60,7 @@ export async function UserTransferView({
   ]
 
   return (
-    <PageWrapper
-      title={title ?? worker.name}
-      backHref={backHref}
-      backLabel={backLabel}
-      className="grid grid-cols-1 gap-6"
-    >
+    <PageWrapper title={title ?? worker.name}>
       {showInfo && (
         <InfoList
           items={[
