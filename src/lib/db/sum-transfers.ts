@@ -353,21 +353,23 @@ export type CostBreakdownT = {
 
 /** Derive financials (costs/income/labor) from type distribution. */
 export function deriveFinancials(byType: readonly TypeTotalT[]): InvestmentFinancialsT {
-  const get = (t: string) => byType.find((r) => r.type === t)?.total ?? 0
+  const totalByType = (transferType: string) =>
+    byType.find((row) => row.type === transferType)?.total ?? 0
   return {
-    totalCosts: get('INVESTMENT_EXPENSE') + get('EMPLOYEE_EXPENSE'),
-    totalIncome: get('INVESTOR_DEPOSIT'),
-    totalLaborCosts: get('LABOR_COST'),
+    totalCosts: totalByType('INVESTMENT_EXPENSE') + totalByType('EMPLOYEE_EXPENSE'),
+    totalIncome: totalByType('INVESTOR_DEPOSIT'),
+    totalLaborCosts: totalByType('LABOR_COST'),
   }
 }
 
 /** Derive cost breakdown from type distribution. */
 export function deriveCostBreakdown(byType: readonly TypeTotalT[]): CostBreakdownT {
-  const get = (t: string) => byType.find((r) => r.type === t)?.total ?? 0
+  const totalByType = (transferType: string) =>
+    byType.find((row) => row.type === transferType)?.total ?? 0
   return {
-    investmentExpenses: get('INVESTMENT_EXPENSE'),
-    employeeExpenses: get('EMPLOYEE_EXPENSE'),
-    laborCosts: get('LABOR_COST'),
+    investmentExpenses: totalByType('INVESTMENT_EXPENSE'),
+    employeeExpenses: totalByType('EMPLOYEE_EXPENSE'),
+    laborCosts: totalByType('LABOR_COST'),
   }
 }
 
