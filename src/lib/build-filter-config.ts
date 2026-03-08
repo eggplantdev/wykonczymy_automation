@@ -1,26 +1,25 @@
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import type { FilterConfigT } from '@/types/filters'
 
-type ExcludeEntityT = 'cashRegisters' | 'investments' | 'workers'
+type FilterKeyT = 'cashRegisters' | 'investments' | 'users' | 'workers'
 
-/** Build full filter config from reference data, excluding the implicit entity filter for the current page. */
+/** Build full filter config from reference data, excluding specified filters (e.g. implicit entity on detail pages). */
 export function buildFilterConfig(
   refData: ReferenceDataBaseT,
-  exclude?: ExcludeEntityT,
+  exclude?: FilterKeyT | FilterKeyT[],
 ): FilterConfigT {
+  const excluded = exclude ? (Array.isArray(exclude) ? exclude : [exclude]) : []
+  const has = (key: FilterKeyT) => !excluded.includes(key)
+
   return {
-    cashRegisters:
-      exclude !== 'cashRegisters'
-        ? refData.cashRegisters.map((c) => ({ id: c.id, name: c.name }))
-        : undefined,
-    investments:
-      exclude !== 'investments'
-        ? refData.investments.map((i) => ({ id: i.id, name: i.name }))
-        : undefined,
-    users: refData.workers.map((w) => ({ id: w.id, name: w.name })),
-    workers:
-      exclude !== 'workers' ? refData.workers.map((w) => ({ id: w.id, name: w.name })) : undefined,
-    otherCategories: refData.otherCategories.map((c) => ({ id: c.id, name: c.name })),
-    showPaymentMethodFilter: true,
+    cashRegisters: has('cashRegisters') ? toOptions(refData.cashRegisters) : undefined,
+    investments: has('investments') ? toOptions(refData.investments) : undefined,
+    users: has('users') ? toOptions(refData.workers) : undefined,
+    workers: has('workers') ? toOptions(refData.workers) : undefined,
+    otherCategories: toOptions(refData.otherCategories),
+    showPaymentMethodFilter: false,
   }
 }
+
+const toOptions = (items: { id: number; name: string }[]) =>
+  items.map(({ id, name }) => ({ id, name }))
