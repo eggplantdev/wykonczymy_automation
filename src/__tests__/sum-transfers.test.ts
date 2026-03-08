@@ -2,15 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Payload } from 'payload'
 import {
   sumRegisterBalance,
-  sumInvestmentCosts,
-  sumInvestmentIncome,
   sumAllRegisterBalances,
   sumAllInvestmentFinancials,
   sumAllWorkerSaldos,
-  sumEmployeeSaldo,
-  sumWorkerPeriodBreakdown,
-  sumFilteredFinancials,
   sumFilteredByType,
+  deriveWorkerBreakdown,
   deriveFinancials,
   deriveCostBreakdown,
 } from '@/lib/db/sum-transfers'
@@ -50,38 +46,6 @@ describe('sumRegisterBalance', () => {
     mockExecute.mockResolvedValue({ rows: [{ balance: '-300.50' }] })
     const result = await sumRegisterBalance(fakePayload, 1)
     expect(result).toBe(-300.5)
-  })
-})
-
-// ── sumInvestmentCosts ───────────────────────────────────────────────────
-
-describe('sumInvestmentCosts', () => {
-  it('returns the total from rows', async () => {
-    mockExecute.mockResolvedValue({ rows: [{ total: '5000' }] })
-    const result = await sumInvestmentCosts(fakePayload, 10)
-    expect(result).toBe(5000)
-  })
-
-  it('returns 0 when no matching transactions', async () => {
-    mockExecute.mockResolvedValue({ rows: [{ total: '0' }] })
-    const result = await sumInvestmentCosts(fakePayload, 10)
-    expect(result).toBe(0)
-  })
-})
-
-// ── sumInvestmentIncome ──────────────────────────────────────────────────
-
-describe('sumInvestmentIncome', () => {
-  it('returns the total from rows', async () => {
-    mockExecute.mockResolvedValue({ rows: [{ total: '12000' }] })
-    const result = await sumInvestmentIncome(fakePayload, 10)
-    expect(result).toBe(12000)
-  })
-
-  it('returns 0 when empty', async () => {
-    mockExecute.mockResolvedValue({ rows: [{ total: '0' }] })
-    const result = await sumInvestmentIncome(fakePayload, 10)
-    expect(result).toBe(0)
   })
 })
 
@@ -169,84 +133,39 @@ describe('sumAllWorkerSaldos', () => {
   })
 })
 
-// ── sumEmployeeSaldo ─────────────────────────────────────────────────────
+// ── deriveWorkerBreakdown ────────────────────────────────────────────
 
-describe('sumEmployeeSaldo', () => {
-  it('returns all-time saldo', async () => {
-    mockExecute.mockResolvedValue({ rows: [{ saldo: '750' }] })
-    const result = await sumEmployeeSaldo(fakePayload, 10)
-    expect(result).toBe(750)
-  })
-
-  it('returns saldo within date range', async () => {
-    mockExecute.mockResolvedValue({ rows: [{ saldo: '300' }] })
-    const result = await sumEmployeeSaldo(fakePayload, 10, {
-      start: '2024-01-01',
-      end: '2024-01-31',
-    })
-    expect(result).toBe(300)
-  })
-
-  it('returns 0 when no transactions', async () => {
-    mockExecute.mockResolvedValue({ rows: [{ saldo: '0' }] })
-    const result = await sumEmployeeSaldo(fakePayload, 10)
-    expect(result).toBe(0)
-  })
-
-  it('handles negative saldo', async () => {
-    mockExecute.mockResolvedValue({ rows: [{ saldo: '-150' }] })
-    const result = await sumEmployeeSaldo(fakePayload, 10)
-    expect(result).toBe(-150)
-  })
-})
-
-// ── sumWorkerPeriodBreakdown ─────────────────────────────────────────────
-
-describe('sumWorkerPeriodBreakdown', () => {
-  const dateRange = { start: '2024-01-01', end: '2024-01-31' }
-
-  it('returns advances, expenses, and periodSaldo', async () => {
-    mockExecute.mockResolvedValue({
-      rows: [{ advances: '1000', expenses: '600' }],
-    })
-    const result = await sumWorkerPeriodBreakdown(fakePayload, 10, dateRange)
-    expect(result).toEqual({
+describe('deriveWorkerBreakdown', () => {
+  it('derives advances, expenses, and periodSaldo', () => {
+    const byType = [
+      { type: 'ACCOUNT_FUNDING', total: 1000 },
+      { type: 'EMPLOYEE_EXPENSE', total: 600 },
+    ]
+    expect(deriveWorkerBreakdown(byType)).toEqual({
       totalAdvances: 1000,
       totalExpenses: 600,
       periodSaldo: 400,
     })
   })
 
-  it('only advances → expenses = 0', async () => {
-    mockExecute.mockResolvedValue({
-      rows: [{ advances: '500', expenses: '0' }],
-    })
-    const result = await sumWorkerPeriodBreakdown(fakePayload, 10, dateRange)
-    expect(result).toEqual({
+  it('only advances → expenses = 0', () => {
+    expect(deriveWorkerBreakdown([{ type: 'ACCOUNT_FUNDING', total: 500 }])).toEqual({
       totalAdvances: 500,
       totalExpenses: 0,
       periodSaldo: 500,
     })
   })
 
-  it('only expenses → advances = 0, negative periodSaldo', async () => {
-    mockExecute.mockResolvedValue({
-      rows: [{ advances: '0', expenses: '800' }],
-    })
-    const result = await sumWorkerPeriodBreakdown(fakePayload, 10, dateRange)
-    expect(result).toEqual({
+  it('only expenses → negative periodSaldo', () => {
+    expect(deriveWorkerBreakdown([{ type: 'EMPLOYEE_EXPENSE', total: 800 }])).toEqual({
       totalAdvances: 0,
       totalExpenses: 800,
       periodSaldo: -800,
     })
   })
 
-  it('empty range → all zeros', async () => {
-    mockExecute.mockResolvedValue({
-      rows: [{ advances: '0', expenses: '0' }],
-    })
-    const result = await sumWorkerPeriodBreakdown(fakePayload, 10, dateRange)
-    expect(result).toEqual({
+  it('empty array → all zeros', () => {
+    expect(deriveWorkerBreakdown([])).toEqual({
       totalAdvances: 0,
       totalExpenses: 0,
       periodSaldo: 0,
@@ -254,27 +173,7 @@ describe('sumWorkerPeriodBreakdown', () => {
   })
 })
 
-// ── sumFilteredFinancials ────────────────────────────────────────────
-
-describe('sumFilteredFinancials', () => {
-  it('returns totals from rows', async () => {
-    mockExecute.mockResolvedValue({
-      rows: [{ total_costs: '5000', total_income: '12000', total_labor_costs: '800' }],
-    })
-    const result = await sumFilteredFinancials(fakePayload, {})
-    expect(result).toEqual({ totalCosts: 5000, totalIncome: 12000, totalLaborCosts: 800 })
-  })
-
-  it('returns zeros when no matching transactions', async () => {
-    mockExecute.mockResolvedValue({
-      rows: [{ total_costs: '0', total_income: '0', total_labor_costs: '0' }],
-    })
-    const result = await sumFilteredFinancials(fakePayload, {})
-    expect(result).toEqual({ totalCosts: 0, totalIncome: 0, totalLaborCosts: 0 })
-  })
-})
-
-// ── sumFilteredFinancials — filter translation ───────────────────────
+// ── buildSqlConditions — filter translation (via sumFilteredByType) ──
 
 /** Extract raw SQL string from sql.raw() query object passed to db.execute */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -282,21 +181,19 @@ function extractSql(query: any): string {
   return query.queryChunks?.[0]?.value?.[0] ?? String(query)
 }
 
-describe('sumFilteredFinancials — filter translation', () => {
+describe('buildSqlConditions — filter translation', () => {
   beforeEach(() => {
-    mockExecute.mockResolvedValue({
-      rows: [{ total_costs: '0', total_income: '0', total_labor_costs: '0' }],
-    })
+    mockExecute.mockResolvedValue({ rows: [] })
   })
 
   it('passes type filter to SQL', async () => {
-    await sumFilteredFinancials(fakePayload, { type: { in: ['PAYOUT', 'OTHER'] } })
+    await sumFilteredByType(fakePayload, { type: { in: ['PAYOUT', 'OTHER'] } })
     const queryStr = extractSql(mockExecute.mock.calls[0][0])
     expect(queryStr).toContain("type IN ('PAYOUT', 'OTHER')")
   })
 
   it('passes date range to SQL', async () => {
-    await sumFilteredFinancials(fakePayload, {
+    await sumFilteredByType(fakePayload, {
       date: { greater_than_equal: '2024-01-01', less_than_equal: '2024-12-31' },
     })
     const queryStr = extractSql(mockExecute.mock.calls[0][0])
@@ -305,31 +202,31 @@ describe('sumFilteredFinancials — filter translation', () => {
   })
 
   it('passes investment filter to SQL', async () => {
-    await sumFilteredFinancials(fakePayload, { investment: { in: [5] } })
+    await sumFilteredByType(fakePayload, { investment: { in: [5] } })
     const queryStr = extractSql(mockExecute.mock.calls[0][0])
     expect(queryStr).toContain('investment_id IN (5)')
   })
 
   it('passes worker filter to SQL', async () => {
-    await sumFilteredFinancials(fakePayload, { worker: { in: [10, 20] } })
+    await sumFilteredByType(fakePayload, { worker: { in: [10, 20] } })
     const queryStr = extractSql(mockExecute.mock.calls[0][0])
     expect(queryStr).toContain('worker_id IN (10, 20)')
   })
 
   it('passes payment method filter to SQL', async () => {
-    await sumFilteredFinancials(fakePayload, { paymentMethod: { in: ['CASH'] } })
+    await sumFilteredByType(fakePayload, { paymentMethod: { in: ['CASH'] } })
     const queryStr = extractSql(mockExecute.mock.calls[0][0])
     expect(queryStr).toContain("payment_method IN ('CASH')")
   })
 
-  it('returns zeros and skips SQL when NO_RESULTS sentinel present', async () => {
-    const result = await sumFilteredFinancials(fakePayload, { id: { equals: -1 } })
-    expect(result).toEqual({ totalCosts: 0, totalIncome: 0, totalLaborCosts: 0 })
+  it('returns empty array and skips SQL when NO_RESULTS sentinel present', async () => {
+    const result = await sumFilteredByType(fakePayload, { id: { equals: -1 } })
+    expect(result).toEqual([])
     expect(mockExecute).not.toHaveBeenCalled()
   })
 
   it('empty where produces no extra conditions', async () => {
-    await sumFilteredFinancials(fakePayload, {})
+    await sumFilteredByType(fakePayload, {})
     const queryStr = extractSql(mockExecute.mock.calls[0][0])
     expect(queryStr).toContain('WHERE cancelled IS NOT TRUE')
     expect(queryStr).not.toContain('AND')

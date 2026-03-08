@@ -2,8 +2,6 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import type { Payload, PayloadRequest, Where } from 'payload'
 import { perfStart } from '@/lib/perf'
 
-export type DateRangeT = { start: string; end: string }
-
 /**
  * Returns the transaction-scoped Drizzle instance when inside a hook
  * (where `req` carries a `transactionID`), or the default instance otherwise.
@@ -54,50 +52,6 @@ export const sumRegisterBalance = async (
   `)
 
   return Number(result.rows[0].balance)
-}
-
-/**
- * SUM costs for an investment using SQL aggregation.
- * INVESTMENT_EXPENSE, EMPLOYEE_EXPENSE, and LABOR_COST types count.
- */
-export const sumInvestmentCosts = async (
-  payload: Payload,
-  investmentId: number,
-  req?: PayloadRequest,
-): Promise<number> => {
-  const db = await getDb(payload, req)
-
-  const result = await db.execute(sql`
-    SELECT COALESCE(SUM(amount), 0) AS total
-    FROM transactions
-    WHERE investment_id = ${investmentId}
-      AND type IN ('INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE', 'LABOR_COST')
-      AND cancelled IS NOT TRUE
-  `)
-
-  return Number(result.rows[0].total)
-}
-
-/**
- * SUM income for an investment using SQL aggregation.
- * Only INVESTOR_DEPOSIT types count.
- */
-export const sumInvestmentIncome = async (
-  payload: Payload,
-  investmentId: number,
-  req?: PayloadRequest,
-): Promise<number> => {
-  const db = await getDb(payload, req)
-
-  const result = await db.execute(sql`
-    SELECT COALESCE(SUM(amount), 0) AS total
-    FROM transactions
-    WHERE investment_id = ${investmentId}
-      AND type IN ('INVESTOR_DEPOSIT')
-      AND cancelled IS NOT TRUE
-  `)
-
-  return Number(result.rows[0].total)
 }
 
 /**
@@ -219,123 +173,16 @@ export const sumAllWorkerSaldos = async (payload: Payload): Promise<Map<number, 
   return map
 }
 
-export const sumEmployeeSaldo = async (
-  payload: Payload,
-  workerId: number,
-  dateRange?: DateRangeT,
-): Promise<number> => {
-  const db = await getDb(payload)
-
-  if (dateRange) {
-    const result = await db.execute(sql`
-      SELECT COALESCE(SUM(
-        CASE WHEN type = 'ACCOUNT_FUNDING' THEN amount ELSE -amount END
-      ), 0) AS saldo
-      FROM transactions
-      WHERE worker_id = ${workerId}
-        AND type IN ('ACCOUNT_FUNDING', 'EMPLOYEE_EXPENSE')
-        AND cancelled IS NOT TRUE
-        AND date >= ${dateRange.start}
-        AND date <= ${dateRange.end}
-    `)
-    return Number(result.rows[0].saldo)
-  }
-
-  const result = await db.execute(sql`
-    SELECT COALESCE(SUM(
-      CASE WHEN type = 'ACCOUNT_FUNDING' THEN amount ELSE -amount END
-    ), 0) AS saldo
-    FROM transactions
-    WHERE worker_id = ${workerId}
-      AND type IN ('ACCOUNT_FUNDING', 'EMPLOYEE_EXPENSE')
-      AND cancelled IS NOT TRUE
-  `)
-
-  return Number(result.rows[0].saldo)
-}
-
 export type WorkerPeriodBreakdownT = {
   totalAdvances: number
   totalExpenses: number
   periodSaldo: number
 }
 
-/**
- * Returns advances, expenses, and net saldo for a worker in a date range.
- * Single SQL query with CASE WHEN grouping.
- */
-export const sumWorkerPeriodBreakdown = async (
-  payload: Payload,
-  workerId: number,
-  dateRange: DateRangeT,
-): Promise<WorkerPeriodBreakdownT> => {
-  const db = await getDb(payload)
-
-  const result = await db.execute(sql`
-    SELECT
-      COALESCE(SUM(CASE WHEN type = 'ACCOUNT_FUNDING' THEN amount ELSE 0 END), 0) AS advances,
-      COALESCE(SUM(CASE WHEN type = 'EMPLOYEE_EXPENSE' THEN amount ELSE 0 END), 0) AS expenses
-    FROM transactions
-    WHERE worker_id = ${workerId}
-      AND type IN ('ACCOUNT_FUNDING', 'EMPLOYEE_EXPENSE')
-      AND cancelled IS NOT TRUE
-      AND date >= ${dateRange.start}
-      AND date <= ${dateRange.end}
-  `)
-
-  const advances = Number(result.rows[0].advances)
-  const expenses = Number(result.rows[0].expenses)
-
-  return {
-    totalAdvances: advances,
-    totalExpenses: expenses,
-    periodSaldo: advances - expenses,
-  }
-}
-
 /** Detects the NO_RESULTS sentinel ({ id: { equals: -1 } }) in a Where clause. */
 export const isNoResultsSentinel = (where: Where): boolean => {
   const id = where.id as Record<string, unknown> | undefined
   return id !== undefined && 'equals' in id && id.equals === -1
-}
-
-/**
- * SUM costs, income, and labor costs for transactions matching a Payload Where clause.
- * Translates the Where clause to raw SQL conditions.
- * Returns aggregate totals — no GROUP BY, single result row.
- */
-export const sumFilteredFinancials = async (
-  payload: Payload,
-  where: Where,
-): Promise<InvestmentFinancialsT> => {
-  if (isNoResultsSentinel(where)) {
-    return { totalCosts: 0, totalIncome: 0, totalLaborCosts: 0 }
-  }
-
-  const elapsed = perfStart()
-  const db = await getDb(payload)
-
-  const conditions = buildSqlConditions(where)
-
-  const result = await db.execute(
-    sql.raw(`
-    SELECT
-      COALESCE(SUM(CASE WHEN type IN ('INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE') THEN amount ELSE 0 END), 0) AS total_costs,
-      COALESCE(SUM(CASE WHEN type IN ('INVESTOR_DEPOSIT') THEN amount ELSE 0 END), 0) AS total_income,
-      COALESCE(SUM(CASE WHEN type = 'LABOR_COST' THEN amount ELSE 0 END), 0) AS total_labor_costs
-    FROM transactions
-    WHERE cancelled IS NOT TRUE
-      ${conditions}
-  `),
-  )
-
-  console.log(`[PERF] query.sumFilteredFinancials ${elapsed()}ms`)
-
-  return {
-    totalCosts: Number(result.rows[0].total_costs),
-    totalIncome: Number(result.rows[0].total_income),
-    totalLaborCosts: Number(result.rows[0].total_labor_costs),
-  }
 }
 
 /**
@@ -351,25 +198,31 @@ export type CostBreakdownT = {
   laborCosts: number
 }
 
+const totalByType = (byType: readonly TypeTotalT[], transferType: string): number =>
+  byType.find((row) => row.type === transferType)?.total ?? 0
+
 /** Derive financials (costs/income/labor) from type distribution. */
 export function deriveFinancials(byType: readonly TypeTotalT[]): InvestmentFinancialsT {
-  const totalByType = (transferType: string) =>
-    byType.find((row) => row.type === transferType)?.total ?? 0
   return {
-    totalCosts: totalByType('INVESTMENT_EXPENSE') + totalByType('EMPLOYEE_EXPENSE'),
-    totalIncome: totalByType('INVESTOR_DEPOSIT'),
-    totalLaborCosts: totalByType('LABOR_COST'),
+    totalCosts: totalByType(byType, 'INVESTMENT_EXPENSE') + totalByType(byType, 'EMPLOYEE_EXPENSE'),
+    totalIncome: totalByType(byType, 'INVESTOR_DEPOSIT'),
+    totalLaborCosts: totalByType(byType, 'LABOR_COST'),
   }
+}
+
+/** Derive worker advances/expenses breakdown from type distribution. */
+export function deriveWorkerBreakdown(byType: readonly TypeTotalT[]): WorkerPeriodBreakdownT {
+  const advances = totalByType(byType, 'ACCOUNT_FUNDING')
+  const expenses = totalByType(byType, 'EMPLOYEE_EXPENSE')
+  return { totalAdvances: advances, totalExpenses: expenses, periodSaldo: advances - expenses }
 }
 
 /** Derive cost breakdown from type distribution. */
 export function deriveCostBreakdown(byType: readonly TypeTotalT[]): CostBreakdownT {
-  const totalByType = (transferType: string) =>
-    byType.find((row) => row.type === transferType)?.total ?? 0
   return {
-    investmentExpenses: totalByType('INVESTMENT_EXPENSE'),
-    employeeExpenses: totalByType('EMPLOYEE_EXPENSE'),
-    laborCosts: totalByType('LABOR_COST'),
+    investmentExpenses: totalByType(byType, 'INVESTMENT_EXPENSE'),
+    employeeExpenses: totalByType(byType, 'EMPLOYEE_EXPENSE'),
+    laborCosts: totalByType(byType, 'LABOR_COST'),
   }
 }
 

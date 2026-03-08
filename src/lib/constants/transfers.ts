@@ -85,8 +85,10 @@ export const requiresInvestment = (type: string) =>
   isTransferType(type) &&
   (type === 'INVESTOR_DEPOSIT' || type === 'INVESTMENT_EXPENSE' || type === 'LABOR_COST')
 
+export const WORKER_SALDO_TYPES: TransferTypeT[] = ['ACCOUNT_FUNDING', 'EMPLOYEE_EXPENSE']
+
 export const needsWorker = (type: string) =>
-  isTransferType(type) && (type === 'ACCOUNT_FUNDING' || type === 'EMPLOYEE_EXPENSE')
+  isTransferType(type) && (WORKER_SALDO_TYPES as readonly string[]).includes(type)
 
 export const needsTargetRegister = (type: string) =>
   isTransferType(type) && type === 'REGISTER_TRANSFER'
