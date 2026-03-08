@@ -17,6 +17,7 @@ export function buildFilterConfig(
     users: has('users') ? toOptions(refData.workers) : undefined,
     workers: has('workers') ? toOptions(refData.workers) : undefined,
     otherCategories: toOptions(refData.otherCategories),
+    // Hidden for now - we only use cash for now
     showPaymentMethodFilter: false,
   }
 }

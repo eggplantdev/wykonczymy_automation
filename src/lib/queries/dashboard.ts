@@ -99,6 +99,8 @@ export async function fetchManagerDashboardData() {
     allInvestments,
     users,
     managementUsers,
+    workers: refData.workers.map((w) => ({ id: w.id, name: w.name })),
+    otherCategories: refData.otherCategories.map((c) => ({ id: c.id, name: c.name })),
     totalBalance,
     ownedBalance,
     virtualRegisters,

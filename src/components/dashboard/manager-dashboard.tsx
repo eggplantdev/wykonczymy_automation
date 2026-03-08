@@ -22,6 +22,9 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
     allInvestments,
     users,
     managementUsers,
+
+    workers,
+    otherCategories,
     totalBalance,
     ownedBalance,
     virtualRegisters,
@@ -59,10 +62,18 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
             limit,
           },
           baseUrl: '/',
+          // TODO: Consider restricting manager's transaction table to only transactions
+          // from/to registers they own (currently managers see all transactions).
+          // Intentionally inline — manager sees only visible registers and active investments.
+          // Entity pages use buildFilterConfig(refData) with full data since they're already scoped
+          // to one investment/user. Reports page is not accessible to managers at all.
           filters: {
             cashRegisters: visibleRegisters.map((c) => ({ id: c.id, name: c.name })),
             investments: activeInvestments.map((i) => ({ id: i.id, name: i.name })),
             users: managementUsers,
+            workers,
+            otherCategories,
+            showPaymentMethodFilter: false,
           },
         }}
       />
