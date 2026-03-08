@@ -5,7 +5,7 @@ import type { Where } from 'payload'
 import { buildPaginationMeta, type PaginationParamsT } from '@/lib/pagination'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 import { perfStart } from '@/lib/perf'
-import { TRANSFER_TYPES } from '@/lib/constants/transfers'
+import { TRANSFER_TYPES, PAYMENT_METHODS } from '@/lib/constants/transfers'
 
 type FindTransfersOptsT = PaginationParamsT & {
   readonly where?: Where
@@ -101,6 +101,30 @@ export function buildTransferFilters(
     if (createdByIds.length > 0) where.createdBy = { in: createdByIds }
     else if (createdByParam) where.id = NO_RESULTS
   }
+
+  // Worker filter — skip for employees (they already have worker scoped above)
+  if (userContext.isManager) {
+    const workerParam = getStringParam(searchParams.worker)
+    const workerIds = parseNumericIds(workerParam)
+    if (workerIds.length > 0) where.worker = { in: workerIds }
+    else if (workerParam) where.id = NO_RESULTS
+  }
+
+  // Payment method filter (validates against known methods)
+  const paymentMethodParam = getStringParam(searchParams.paymentMethod)
+  if (paymentMethodParam) {
+    const methods = paymentMethodParam
+      .split(',')
+      .filter((m) => (PAYMENT_METHODS as readonly string[]).includes(m))
+    if (methods.length > 0) where.paymentMethod = { in: methods }
+    else where.id = NO_RESULTS
+  }
+
+  // Other category filter
+  const otherCategoryParam = getStringParam(searchParams.otherCategory)
+  const otherCategoryIds = parseNumericIds(otherCategoryParam)
+  if (otherCategoryIds.length > 0) where.otherCategory = { in: otherCategoryIds }
+  else if (otherCategoryParam) where.id = NO_RESULTS
 
   // Date range
   const fromParam = getStringParam(searchParams.from)
