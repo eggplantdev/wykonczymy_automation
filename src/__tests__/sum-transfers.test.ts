@@ -10,8 +10,9 @@ import {
   sumEmployeeSaldo,
   sumWorkerPeriodBreakdown,
   sumFilteredFinancials,
-  sumFilteredCostBreakdown,
   sumFilteredByType,
+  deriveFinancials,
+  deriveCostBreakdown,
 } from '@/lib/db/sum-transfers'
 
 // ── Fake Payload with controllable db.drizzle.execute ────────────────────
@@ -335,30 +336,48 @@ describe('sumFilteredFinancials — filter translation', () => {
   })
 })
 
-// ── sumFilteredCostBreakdown ─────────────────────────────────────
+// ── deriveFinancials / deriveCostBreakdown ────────────────────────
 
-describe('sumFilteredCostBreakdown', () => {
-  it('returns zeros on NO_RESULTS sentinel', async () => {
-    const result = await sumFilteredCostBreakdown(fakePayload, { id: { equals: -1 } })
-    expect(result).toEqual({ investmentExpenses: 0, employeeExpenses: 0, laborCosts: 0 })
-    expect(mockExecute).not.toHaveBeenCalled()
+describe('deriveFinancials', () => {
+  it('derives totals from type distribution', () => {
+    const byType = [
+      { type: 'INVESTMENT_EXPENSE', total: 5000 },
+      { type: 'EMPLOYEE_EXPENSE', total: 2000 },
+      { type: 'INVESTOR_DEPOSIT', total: 12000 },
+      { type: 'LABOR_COST', total: 800 },
+    ]
+    expect(deriveFinancials(byType)).toEqual({
+      totalCosts: 7000,
+      totalIncome: 12000,
+      totalLaborCosts: 800,
+    })
   })
 
-  it('returns breakdown from rows', async () => {
-    mockExecute.mockResolvedValue({
-      rows: [{ investment_expenses: '5000', employee_expenses: '2000', labor_costs: '800' }],
+  it('returns zeros for empty array', () => {
+    expect(deriveFinancials([])).toEqual({ totalCosts: 0, totalIncome: 0, totalLaborCosts: 0 })
+  })
+})
+
+describe('deriveCostBreakdown', () => {
+  it('derives breakdown from type distribution', () => {
+    const byType = [
+      { type: 'INVESTMENT_EXPENSE', total: 5000 },
+      { type: 'EMPLOYEE_EXPENSE', total: 2000 },
+      { type: 'LABOR_COST', total: 800 },
+    ]
+    expect(deriveCostBreakdown(byType)).toEqual({
+      investmentExpenses: 5000,
+      employeeExpenses: 2000,
+      laborCosts: 800,
     })
-    const result = await sumFilteredCostBreakdown(fakePayload, {})
-    expect(result).toEqual({ investmentExpenses: 5000, employeeExpenses: 2000, laborCosts: 800 })
   })
 
-  it('passes filters to SQL', async () => {
-    mockExecute.mockResolvedValue({
-      rows: [{ investment_expenses: '0', employee_expenses: '0', labor_costs: '0' }],
+  it('returns zeros for empty array', () => {
+    expect(deriveCostBreakdown([])).toEqual({
+      investmentExpenses: 0,
+      employeeExpenses: 0,
+      laborCosts: 0,
     })
-    await sumFilteredCostBreakdown(fakePayload, { investment: { in: [5] } })
-    const queryStr = extractSql(mockExecute.mock.calls[0][0])
-    expect(queryStr).toContain('investment_id IN (5)')
   })
 })
 

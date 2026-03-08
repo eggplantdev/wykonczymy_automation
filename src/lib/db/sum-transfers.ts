@@ -293,6 +293,12 @@ export const sumWorkerPeriodBreakdown = async (
   }
 }
 
+/** Detects the NO_RESULTS sentinel ({ id: { equals: -1 } }) in a Where clause. */
+export const isNoResultsSentinel = (where: Where): boolean => {
+  const id = where.id as Record<string, unknown> | undefined
+  return id !== undefined && 'equals' in id && id.equals === -1
+}
+
 /**
  * SUM costs, income, and labor costs for transactions matching a Payload Where clause.
  * Translates the Where clause to raw SQL conditions.
@@ -302,9 +308,7 @@ export const sumFilteredFinancials = async (
   payload: Payload,
   where: Where,
 ): Promise<InvestmentFinancialsT> => {
-  // NO_RESULTS sentinel — filters produced an impossible condition, return zeros
-  const idCondition = where.id as Record<string, unknown> | undefined
-  if (idCondition && 'equals' in idCondition && idCondition.equals === -1) {
+  if (isNoResultsSentinel(where)) {
     return { totalCosts: 0, totalIncome: 0, totalLaborCosts: 0 }
   }
 
@@ -335,55 +339,40 @@ export const sumFilteredFinancials = async (
 }
 
 /**
- * Returns cost breakdown split into 3 buckets for pie chart.
+ * Returns SUM(amount) grouped by transaction type.
  * Handles NO_RESULTS sentinel.
+ * Use deriveFinancials() and deriveCostBreakdown() to extract aggregates.
  */
+export type TypeTotalT = { type: string; total: number }
+
 export type CostBreakdownT = {
   investmentExpenses: number
   employeeExpenses: number
   laborCosts: number
 }
 
-export const sumFilteredCostBreakdown = async (
-  payload: Payload,
-  where: Where,
-): Promise<CostBreakdownT> => {
-  const idCondition = where.id as Record<string, unknown> | undefined
-  if (idCondition && 'equals' in idCondition && idCondition.equals === -1) {
-    return { investmentExpenses: 0, employeeExpenses: 0, laborCosts: 0 }
-  }
-
-  const db = await getDb(payload)
-  const conditions = buildSqlConditions(where)
-
-  const result = await db.execute(
-    sql.raw(`
-    SELECT
-      COALESCE(SUM(CASE WHEN type = 'INVESTMENT_EXPENSE' THEN amount ELSE 0 END), 0) AS investment_expenses,
-      COALESCE(SUM(CASE WHEN type = 'EMPLOYEE_EXPENSE' THEN amount ELSE 0 END), 0) AS employee_expenses,
-      COALESCE(SUM(CASE WHEN type = 'LABOR_COST' THEN amount ELSE 0 END), 0) AS labor_costs
-    FROM transactions
-    WHERE cancelled IS NOT TRUE
-      ${conditions}
-  `),
-  )
-
+/** Derive financials (costs/income/labor) from type distribution. */
+export function deriveFinancials(byType: readonly TypeTotalT[]): InvestmentFinancialsT {
+  const get = (t: string) => byType.find((r) => r.type === t)?.total ?? 0
   return {
-    investmentExpenses: Number(result.rows[0].investment_expenses),
-    employeeExpenses: Number(result.rows[0].employee_expenses),
-    laborCosts: Number(result.rows[0].labor_costs),
+    totalCosts: get('INVESTMENT_EXPENSE') + get('EMPLOYEE_EXPENSE'),
+    totalIncome: get('INVESTOR_DEPOSIT'),
+    totalLaborCosts: get('LABOR_COST'),
   }
 }
 
-/**
- * Returns SUM(amount) grouped by transaction type for pie chart.
- * Handles NO_RESULTS sentinel.
- */
-export type TypeTotalT = { type: string; total: number }
+/** Derive cost breakdown from type distribution. */
+export function deriveCostBreakdown(byType: readonly TypeTotalT[]): CostBreakdownT {
+  const get = (t: string) => byType.find((r) => r.type === t)?.total ?? 0
+  return {
+    investmentExpenses: get('INVESTMENT_EXPENSE'),
+    employeeExpenses: get('EMPLOYEE_EXPENSE'),
+    laborCosts: get('LABOR_COST'),
+  }
+}
 
 export const sumFilteredByType = async (payload: Payload, where: Where): Promise<TypeTotalT[]> => {
-  const idCondition = where.id as Record<string, unknown> | undefined
-  if (idCondition && 'equals' in idCondition && idCondition.equals === -1) {
+  if (isNoResultsSentinel(where)) {
     return []
   }
 

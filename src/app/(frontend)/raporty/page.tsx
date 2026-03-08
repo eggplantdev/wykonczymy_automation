@@ -2,12 +2,8 @@ import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { ADMIN_OR_OWNER_ROLES } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/pagination'
-import {
-  fetchReferenceData,
-  fetchFilteredFinancials,
-  fetchFilteredCostBreakdown,
-  fetchFilteredByType,
-} from '@/lib/queries/reference-data'
+import { fetchReferenceData, fetchFilteredByType } from '@/lib/queries/reference-data'
+import { deriveFinancials, deriveCostBreakdown } from '@/lib/db/sum-transfers'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { formatPLN } from '@/lib/format-currency'
 import { perfStart } from '@/lib/perf'
@@ -31,15 +27,14 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
 
   const urlFilters = buildTransferFilters(sp, { id: user.id, isManager: true })
 
-  const [refData, financials, costBreakdown, typeDistribution] = await Promise.all([
+  const [refData, typeDistribution] = await Promise.all([
     fetchReferenceData(),
-    fetchFilteredFinancials(urlFilters),
-    fetchFilteredCostBreakdown(urlFilters),
     fetchFilteredByType(urlFilters),
   ])
   console.log(`[PERF] raporty data fetch ${step()}ms`)
 
-  const { totalCosts, totalIncome, totalLaborCosts } = financials
+  const { totalCosts, totalIncome, totalLaborCosts } = deriveFinancials(typeDistribution)
+  const costBreakdown = deriveCostBreakdown(typeDistribution)
 
   const headerFields: HeaderFieldT[] = [
     { label: 'Transakcje', value: 'Raport' },

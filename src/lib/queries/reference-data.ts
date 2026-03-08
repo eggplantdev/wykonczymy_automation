@@ -10,10 +10,8 @@ import {
   sumAllRegisterBalances,
   sumAllInvestmentFinancials,
   sumFilteredFinancials,
-  sumFilteredCostBreakdown,
   sumFilteredByType,
   type InvestmentFinancialsT,
-  type CostBreakdownT,
   type TypeTotalT,
 } from '@/lib/db/sum-transfers'
 import { perfStart } from '@/lib/perf'
@@ -168,15 +166,6 @@ export async function fetchFilteredFinancials(where: Where) {
   const result = await sumFilteredFinancials(payload, where)
   console.log(`[PERF] query.fetchFilteredFinancials ${elapsed()}ms`)
   return result
-}
-
-export async function fetchFilteredCostBreakdown(where: Where): Promise<CostBreakdownT> {
-  'use cache'
-  cacheLife('max')
-  cacheTag(CACHE_TAGS.transfers)
-
-  const payload = await getPayload({ config })
-  return sumFilteredCostBreakdown(payload, where)
 }
 
 export async function fetchFilteredByType(where: Where): Promise<TypeTotalT[]> {
