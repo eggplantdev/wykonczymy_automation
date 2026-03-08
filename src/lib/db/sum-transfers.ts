@@ -293,6 +293,12 @@ export const sumWorkerPeriodBreakdown = async (
   }
 }
 
+/** Detects the NO_RESULTS sentinel ({ id: { equals: -1 } }) in a Where clause. */
+export const isNoResultsSentinel = (where: Where): boolean => {
+  const id = where.id as Record<string, unknown> | undefined
+  return id !== undefined && 'equals' in id && id.equals === -1
+}
+
 /**
  * SUM costs, income, and labor costs for transactions matching a Payload Where clause.
  * Translates the Where clause to raw SQL conditions.
@@ -302,9 +308,7 @@ export const sumFilteredFinancials = async (
   payload: Payload,
   where: Where,
 ): Promise<InvestmentFinancialsT> => {
-  // NO_RESULTS sentinel — filters produced an impossible condition, return zeros
-  const idCondition = where.id as Record<string, unknown> | undefined
-  if (idCondition && 'equals' in idCondition && idCondition.equals === -1) {
+  if (isNoResultsSentinel(where)) {
     return { totalCosts: 0, totalIncome: 0, totalLaborCosts: 0 }
   }
 
@@ -332,6 +336,67 @@ export const sumFilteredFinancials = async (
     totalIncome: Number(result.rows[0].total_income),
     totalLaborCosts: Number(result.rows[0].total_labor_costs),
   }
+}
+
+/**
+ * Returns SUM(amount) grouped by transaction type.
+ * Handles NO_RESULTS sentinel.
+ * Use deriveFinancials() and deriveCostBreakdown() to extract aggregates.
+ */
+export type TypeTotalT = { type: string; total: number }
+
+export type CostBreakdownT = {
+  investmentExpenses: number
+  employeeExpenses: number
+  laborCosts: number
+}
+
+/** Derive financials (costs/income/labor) from type distribution. */
+export function deriveFinancials(byType: readonly TypeTotalT[]): InvestmentFinancialsT {
+  const totalByType = (transferType: string) =>
+    byType.find((row) => row.type === transferType)?.total ?? 0
+  return {
+    totalCosts: totalByType('INVESTMENT_EXPENSE') + totalByType('EMPLOYEE_EXPENSE'),
+    totalIncome: totalByType('INVESTOR_DEPOSIT'),
+    totalLaborCosts: totalByType('LABOR_COST'),
+  }
+}
+
+/** Derive cost breakdown from type distribution. */
+export function deriveCostBreakdown(byType: readonly TypeTotalT[]): CostBreakdownT {
+  const totalByType = (transferType: string) =>
+    byType.find((row) => row.type === transferType)?.total ?? 0
+  return {
+    investmentExpenses: totalByType('INVESTMENT_EXPENSE'),
+    employeeExpenses: totalByType('EMPLOYEE_EXPENSE'),
+    laborCosts: totalByType('LABOR_COST'),
+  }
+}
+
+export const sumFilteredByType = async (payload: Payload, where: Where): Promise<TypeTotalT[]> => {
+  if (isNoResultsSentinel(where)) {
+    return []
+  }
+
+  const db = await getDb(payload)
+  const conditions = buildSqlConditions(where)
+
+  const result = await db.execute(
+    sql.raw(`
+    SELECT type, COALESCE(SUM(amount), 0) AS total
+    FROM transactions
+    WHERE cancelled IS NOT TRUE
+      ${conditions}
+    GROUP BY type
+    ORDER BY total DESC
+  `),
+  )
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return result.rows.map((row: any) => ({
+    type: row.type as string,
+    total: Number(row.total),
+  }))
 }
 
 // ── Where-to-SQL translation ─────────────────────────────────────────
