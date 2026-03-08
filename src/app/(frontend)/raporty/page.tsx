@@ -7,6 +7,7 @@ import { deriveFinancials } from '@/lib/db/sum-transfers'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { formatPLN } from '@/lib/format-currency'
 import { perfStart } from '@/lib/perf'
+import { buildFilterConfig } from '@/lib/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { ReportChart } from '@/components/reports/report-charts'
 import { PageWrapper } from '@/components/ui/page-wrapper'
@@ -59,14 +60,7 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
         config={{
           query: { where: urlFilters, page, limit },
           baseUrl: '/raporty',
-          filters: {
-            cashRegisters: refData.cashRegisters.map((c) => ({ id: c.id, name: c.name })),
-            investments: refData.investments.map((i) => ({ id: i.id, name: i.name })),
-            users: refData.workers.map((w) => ({ id: w.id, name: w.name })),
-            workers: refData.workers.map((w) => ({ id: w.id, name: w.name })),
-            otherCategories: refData.otherCategories.map((c) => ({ id: c.id, name: c.name })),
-            showPaymentMethodFilter: true,
-          },
+          filters: buildFilterConfig(refData),
           headerFields,
         }}
       />

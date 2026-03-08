@@ -29,7 +29,6 @@ export default async function DashboardPage({ searchParams }: PagePropsT) {
       searchParams={params}
       baseUrl="/"
       excludeColumns={EMPLOYEE_EXCLUDE_COLUMNS}
-      showTypeFilter={false}
     />
   )
 }

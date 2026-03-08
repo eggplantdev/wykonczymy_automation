@@ -1,17 +1,17 @@
 import { notFound } from 'next/navigation'
 import { ROLE_LABELS, type RoleT } from '@/lib/auth/roles'
 import { formatPLN } from '@/lib/format-currency'
-import { parseDateRange } from '@/lib/parse-date-range'
 import { parsePagination } from '@/lib/pagination'
 import { buildTransferFilters } from '@/lib/queries/transfers'
-import { fetchReferenceData, fetchWorkerSaldos } from '@/lib/queries/reference-data'
+import { fetchReferenceData, fetchFilteredByType } from '@/lib/queries/reference-data'
+import { deriveWorkerBreakdown } from '@/lib/db/sum-transfers'
 import type { HeaderFieldT } from '@/types/export'
-import { fetchWorkerPeriodBreakdown } from '@/lib/queries/users'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { InfoList } from '@/components/ui/info-list'
 import { MailtoLink } from '@/components/ui/mailto-link'
 import { PageWrapper } from '@/components/ui/page-wrapper'
-import { StatCard } from '@/components/ui/stat-card'
+import { InvestmentStats } from '@/components/investments/investment-stats'
+import { buildFilterConfig } from '@/lib/build-filter-config'
 import { perfStart } from '@/lib/perf'
 
 type UserTransferViewPropsT = {
@@ -20,7 +20,6 @@ type UserTransferViewPropsT = {
   readonly baseUrl: string
   readonly title?: string
   readonly showInfo?: boolean
-  readonly showTypeFilter?: boolean
   readonly excludeColumns?: string[]
 }
 
@@ -30,33 +29,32 @@ export async function UserTransferView({
   baseUrl,
   title,
   showInfo = false,
-  showTypeFilter = true,
   excludeColumns = ['worker', 'otherCategory', 'invoice'],
 }: UserTransferViewPropsT) {
   const step = perfStart()
 
   const { page, limit } = parsePagination(searchParams)
-  const dateRange = parseDateRange(searchParams)
-
-  // fetchReferenceData + fetchWorkerSaldos are already cached from dashboard
-  // periodBreakdown only fetched when user applies a date range filter
-  const [refData, saldoRecord, periodBreakdown] = await Promise.all([
-    fetchReferenceData(),
-    fetchWorkerSaldos(),
-    dateRange ? fetchWorkerPeriodBreakdown(userId, dateRange) : Promise.resolve(undefined),
-  ])
-  console.log(`[PERF] UserTransferView(${userId}) refData + saldos ${step()}ms`)
-
   const numericId = Number(userId)
+
+  const urlFilters = buildTransferFilters(searchParams, { id: numericId, isManager: false })
+  const where = { ...urlFilters, worker: { equals: numericId } }
+
+  const [refData, typeDistribution] = await Promise.all([
+    fetchReferenceData(),
+    fetchFilteredByType(where),
+  ])
+  console.log(`[PERF] UserTransferView(${userId}) refData + fetchFilteredByType ${step()}ms`)
+
   const worker = refData.workers.find((w) => w.id === numericId)
   if (!worker) notFound()
 
-  const saldo = saldoRecord[userId] ?? 0
-  const where = buildTransferFilters(searchParams, { id: numericId, isManager: false })
+  const { totalAdvances, totalExpenses, periodSaldo } = deriveWorkerBreakdown(typeDistribution)
 
   const headerFields: HeaderFieldT[] = [
     { label: 'Pracownik', value: worker.name },
-    { label: 'Saldo', value: formatPLN(saldo) },
+    { label: 'Zasilenia', value: formatPLN(totalAdvances), amount: totalAdvances },
+    { label: 'Wydatki', value: formatPLN(totalExpenses), amount: -totalExpenses },
+    { label: 'Saldo', value: formatPLN(periodSaldo) },
   ]
 
   return (
@@ -73,22 +71,16 @@ export async function UserTransferView({
         />
       )}
 
-      <StatCard label="Saldo" value={formatPLN(saldo)} />
-
-      {periodBreakdown && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <StatCard label="Zasilenia w okresie" value={formatPLN(periodBreakdown.totalAdvances)} />
-          <StatCard label="Wydatki w okresie" value={formatPLN(periodBreakdown.totalExpenses)} />
-          <StatCard label="Saldo okresu" value={formatPLN(periodBreakdown.periodSaldo)} />
-        </div>
-      )}
+      <InvestmentStats
+        fields={headerFields.filter((f) => f.amount !== undefined || f.label === 'Saldo')}
+      />
 
       <TransfersSection
         config={{
           query: { where, page, limit },
           baseUrl,
           excludeColumns,
-          filters: { showTypeFilter },
+          filters: buildFilterConfig(refData, 'workers'),
           context: 'worker',
           contextId: numericId,
           headerFields,
