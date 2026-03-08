@@ -32,8 +32,6 @@ Verify error handling across all layers:
 ### Questions to Answer
 
 - Should failed queries return a typed error or throw?
-- Should partial failures in batch operations (settlements) roll back or continue?
-- Do we need user-facing error messages beyond the generic toast?
 
 ## Performance: Covering Indexes for Transaction Aggregates
 
@@ -87,3 +85,43 @@ Make stat cards recompute based on the currently visible (filtered) transaction 
 - Current stat cards are useful as-is for the overall picture
 - Requires UI design decisions (show both filtered + total? replace total?)
 - Low priority compared to core feature work
+
+## Dynamic Filter-Aware Stats
+
+Currently, applying table filters (transfer type, date range, etc.) changes which transactions are visible but has **no effect** on the stat cards (costs, income, labor costs, balance). Stats always reflect the full unfiltered dataset.
+
+### Expected Behavior
+
+When a user filters the transfers table, the stats should recalculate to reflect only the **filtered subset** of transactions.
+
+### Why It's Non-Trivial
+
+- Stats are computed server-side from aggregate SQL queries, independent of table filters
+- Table filters apply to the paginated transaction list, not to the financial summary
+- Client-side aggregation over visible rows only covers the current page, not the full filtered set
+
+### Approach Options
+
+1. **Server-side:** Pass active filters to the financials query and return a filtered aggregate alongside the full aggregate
+2. **Client-side (limited):** Sum amounts from all fetched rows — only accurate if all filtered rows are loaded (no pagination)
+
+### Relationship to Reports
+
+This is the same problem reports will need to solve — summarizing transactions by arbitrary filter criteria. Solving it here sets the pattern.
+
+## Access Control Tests
+
+Every page with `requireAuth()` should have tests verifying:
+
+- Redirects to `/zaloguj` for unauthenticated users
+- Redirects for roles outside the allowed set
+- Renders for each allowed role
+
+### Why
+
+- No test coverage for role guards today — if someone removes `requireAuth` or changes the role list, nothing catches it
+- Access control is security-critical and should not rely solely on manual review
+
+### Scope
+
+Pages to cover: dashboard, `/inwestycje/[id]`, `/kasa/[id]`, `/pracownicy`, `/przelewy`, and any other routes using `requireAuth`
