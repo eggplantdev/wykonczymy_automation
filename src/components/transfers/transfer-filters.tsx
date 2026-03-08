@@ -299,9 +299,21 @@ function FilterSelect({
   return (
     <Select value={value || 'ALL'} onValueChange={(v) => onValueChange(v === 'ALL' ? '' : v)}>
       <SelectTrigger
-        className={cn('h-8 w-fit min-w-40 text-sm', (!value || value === 'ALL') && 'opacity-40')}
+        className={cn(
+          'h-8 w-fit min-w-40 text-sm',
+          value &&
+            value !== 'ALL' &&
+            'border-green-600 text-green-600 hover:bg-green-600 hover:text-white',
+        )}
       >
-        {Icon && <Icon className="text-muted-foreground size-4" />}
+        {Icon && (
+          <Icon
+            className={cn(
+              'size-4',
+              value && value !== 'ALL' ? 'text-green-600' : 'text-muted-foreground',
+            )}
+          />
+        )}
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
@@ -329,9 +341,9 @@ function DateFilterButton({
 
   return (
     <Button
-      variant="outline"
+      variant={value ? 'activeFilter' : 'outline'}
       size="sm"
-      className={cn('w-fit min-w-40 justify-start gap-1.5', !value && 'opacity-40')}
+      className="w-fit min-w-40 justify-start gap-1.5"
       onClick={() => inputRef.current?.showPicker()}
     >
       <Calendar className="size-4" />

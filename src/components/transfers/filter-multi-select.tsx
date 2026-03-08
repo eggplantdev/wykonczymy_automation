@@ -64,9 +64,9 @@ export function FilterMultiSelect({
     <DropdownMenu onOpenChange={(open) => !open && setSearch('')}>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="outline"
+          variant={allSelected ? 'outline' : 'activeFilter'}
           size="sm"
-          className={cn('min-w-40 justify-start gap-1.5', allSelected && 'opacity-40')}
+          className="min-w-40 justify-start gap-1.5"
         >
           {Icon && <Icon className="size-4" />}
           {label}
