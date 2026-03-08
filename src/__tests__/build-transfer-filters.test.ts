@@ -31,7 +31,10 @@ describe('buildTransferFilters — role scoping', () => {
   })
 
   it('onlyOwnTransfers ignores createdBy search param (security)', () => {
-    const where = buildTransferFilters({ createdBy: '999' }, { ...managerCtx, onlyOwnTransfers: true })
+    const where = buildTransferFilters(
+      { createdBy: '999' },
+      { ...managerCtx, onlyOwnTransfers: true },
+    )
     expect(where.createdBy).toEqual({ equals: 1 })
   })
 })
@@ -110,5 +113,45 @@ describe('buildTransferFilters — search params', () => {
     expect(where.type).toEqual({ in: ['EMPLOYEE_EXPENSE'] })
     expect(where.sourceRegister).toEqual({ in: [1] })
     expect(where.date).toEqual({ greater_than_equal: '2024-06-01' })
+  })
+
+  it('worker param adds numeric filter', () => {
+    const where = buildTransferFilters({ worker: '10' }, managerCtx)
+    expect(where.worker).toEqual({ in: [10] })
+  })
+
+  it('worker param supports multi-select', () => {
+    const where = buildTransferFilters({ worker: '10,20' }, managerCtx)
+    expect(where.worker).toEqual({ in: [10, 20] })
+  })
+
+  it('worker param with invalid value returns no results', () => {
+    const where = buildTransferFilters({ worker: 'abc' }, managerCtx)
+    expect(where.id).toEqual({ equals: -1 })
+  })
+
+  it('employee worker filter takes precedence over worker param', () => {
+    const where = buildTransferFilters({ worker: '10' }, employeeCtx)
+    expect(where.worker).toEqual({ equals: 5 })
+  })
+
+  it('paymentMethod param adds filter', () => {
+    const where = buildTransferFilters({ paymentMethod: 'CASH' }, managerCtx)
+    expect(where.paymentMethod).toEqual({ in: ['CASH'] })
+  })
+
+  it('paymentMethod param with invalid value returns no results', () => {
+    const where = buildTransferFilters({ paymentMethod: 'INVALID' }, managerCtx)
+    expect(where.id).toEqual({ equals: -1 })
+  })
+
+  it('otherCategory param adds numeric filter', () => {
+    const where = buildTransferFilters({ otherCategory: '3' }, managerCtx)
+    expect(where.otherCategory).toEqual({ in: [3] })
+  })
+
+  it('otherCategory param supports multi-select', () => {
+    const where = buildTransferFilters({ otherCategory: '3,5' }, managerCtx)
+    expect(where.otherCategory).toEqual({ in: [3, 5] })
   })
 })
