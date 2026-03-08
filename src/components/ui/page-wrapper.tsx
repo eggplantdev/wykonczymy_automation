@@ -17,10 +17,10 @@ export function PageWrapper({
   backHref = '/',
   backLabel = 'Pulpit',
   children,
-  className = 'grid grid-cols-1 gap-6',
+  className,
 }: PageWrapperPropsT) {
   return (
-    <div className={cn('p-6 lg:p-8', className)}>
+    <div className={cn('grid grid-cols-1 gap-6 p-6 lg:p-8', className)}>
       {backHref && (
         <Link href={backHref} className="text-muted-foreground hover:text-foreground text-sm">
           &larr; {backLabel}

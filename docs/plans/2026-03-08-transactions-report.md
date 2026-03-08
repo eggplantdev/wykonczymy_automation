@@ -641,7 +641,68 @@ git commit -m "test: add transactions report filter combination tests"
 
 ---
 
-### Task 9: Run full test suite and lint
+### Task 9: Fix stats showing totals when all filter values deselected
+
+**Problem:** When the user deselects all values in a multi-select filter (e.g. Type), `FilterMultiSelect` sets the URL param to `__none__`, which causes `buildTransferFilters()` to set `where.id = { equals: -1 }` (the NO_RESULTS sentinel). This correctly causes the Payload table query to return zero rows. However, `sumFilteredFinancials()` uses `buildSqlConditions()` which **skips** the `id` sentinel field — so the SQL aggregation ignores the "no results" intent and returns totals for all transactions.
+
+**Expected:** When any filter produces NO_RESULTS, both the table AND the stats should return zero.
+
+**Files:**
+
+- Modify: `src/lib/db/sum-transfers.ts` — `sumFilteredFinancials` and/or `buildSqlConditions`
+- Modify: `src/__tests__/sum-transfers.test.ts` — add test for NO_RESULTS sentinel
+
+**Step 1: Write failing test**
+
+Add to `src/__tests__/sum-transfers.test.ts` in the "filter translation" describe block:
+
+```ts
+it('returns zeros when where contains NO_RESULTS sentinel (id = -1)', async () => {
+  mockExecute.mockResolvedValue({
+    rows: [{ total_costs: '5000', total_income: '12000', total_labor_costs: '800' }],
+  })
+  const result = await sumFilteredFinancials(fakePayload, { id: { equals: -1 } })
+  expect(result).toEqual({ totalCosts: 0, totalIncome: 0, totalLaborCosts: 0 })
+  // Should NOT call db.execute at all — short-circuit to zeros
+  expect(mockExecute).not.toHaveBeenCalled()
+})
+```
+
+**Step 2: Run tests to verify they fail**
+
+Run: `pnpm test -- src/__tests__/sum-transfers.test.ts`
+Expected: FAIL — currently `sumFilteredFinancials` runs the SQL query and returns non-zero totals
+
+**Step 3: Implement the fix**
+
+In `sumFilteredFinancials()`, add an early return before the SQL query:
+
+```ts
+// Short-circuit: if buildTransferFilters set the NO_RESULTS sentinel,
+// return zeros without hitting the database.
+const idCondition = where.id as Record<string, unknown> | undefined
+if (idCondition && 'equals' in idCondition && idCondition.equals === -1) {
+  return { totalCosts: 0, totalIncome: 0, totalLaborCosts: 0 }
+}
+```
+
+**Step 4: Run tests to verify they pass**
+
+Run: `pnpm test -- src/__tests__/sum-transfers.test.ts`
+Expected: ALL PASS
+
+**Step 5: Commit**
+
+```bash
+git add src/lib/db/sum-transfers.ts src/__tests__/sum-transfers.test.ts
+git commit -m "fix: return zero stats when filter produces NO_RESULTS sentinel"
+```
+
+---
+
+### Task 10: Run full test suite and lint
+
+> (was Task 9)
 
 **Step 1: Run all tests**
 
@@ -662,7 +723,9 @@ Expected: No errors
 
 ---
 
-### Task 10: Create PR
+### Task 11: Create PR
+
+> (was Task 10)
 
 **Step 1: Push branch**
 

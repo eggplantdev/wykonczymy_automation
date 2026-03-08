@@ -18,7 +18,7 @@ type TransferDataTablePropsT = {
 }
 
 export function TransferDataTable({ data, paginationMeta, config }: TransferDataTablePropsT) {
-  const { baseUrl, excludeColumns = [], filters, context, contextId } = config
+  const { baseUrl, excludeColumns = [], filters, headerFields } = config
   const columns = getTransferColumns(excludeColumns)
 
   return (
@@ -30,7 +30,7 @@ export function TransferDataTable({ data, paginationMeta, config }: TransferData
         storageKey="transfers"
         toolbar={(table, cv) => (
           <div className="ml-auto flex items-center gap-2">
-            {context && contextId && (
+            {headerFields && headerFields.length > 0 && (
               <TransferExportToolbar config={config} columnVisibility={cv} />
             )}
             <ColumnToggle table={table} columnVisibility={cv} />

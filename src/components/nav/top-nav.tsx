@@ -1,8 +1,10 @@
 'use client'
 
 import Link from 'next/link'
+import { FileBarChart } from 'lucide-react'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { RoleBadge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { AddSettlementDialog } from '@/components/dialogs/add-settlement-dialog'
 import { AddDepositDialog } from '@/components/dialogs/add-deposit-dialog'
 import { AddRegisterTransferDialog } from '@/components/dialogs/add-register-transfer-dialog'
@@ -33,6 +35,15 @@ export function TopNav({ referenceData }: TopNavPropsT) {
 
       {/* Right: action buttons */}
       <div className="flex flex-wrap items-center justify-end gap-2">
+        {(referenceData?.currentUserRole === 'ADMIN' ||
+          referenceData?.currentUserRole === 'OWNER') && (
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/raporty">
+              <FileBarChart className="size-4" />
+              Raporty
+            </Link>
+          </Button>
+        )}
         {referenceData && (
           <>
             <AddSettlementDialog referenceData={referenceData} />

@@ -7,5 +7,7 @@ declare module '@tanstack/react-table' {
     label?: string
     /** If false, column cannot be hidden by the user. Default: true. */
     canHide?: boolean
+    /** Cell text alignment. Default: left. */
+    align?: 'left' | 'right' | 'center'
   }
 }

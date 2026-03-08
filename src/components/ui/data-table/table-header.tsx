@@ -14,12 +14,14 @@ export function TableHeader({ headerGroups }: { headerGroups: any[] }) {
           {headerGroup.headers.map((header: any) => {
             const canSort = header.column.getCanSort()
             const sorted = header.column.getIsSorted()
+            const align = header.column.columnDef.meta?.align
 
             return (
               <th
                 key={header.id}
                 className={cn(
                   'text-muted-foreground px-4 py-3 text-left text-sm font-medium',
+                  align === 'right' && 'text-right',
                   canSort && 'cursor-pointer select-none',
                 )}
                 onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
