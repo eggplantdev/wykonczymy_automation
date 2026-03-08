@@ -3,12 +3,12 @@ import { requireAuth } from '@/lib/auth/require-auth'
 import { ADMIN_OR_OWNER_ROLES } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/pagination'
 import { fetchReferenceData, fetchFilteredByType } from '@/lib/queries/reference-data'
-import { deriveFinancials, deriveCostBreakdown } from '@/lib/db/sum-transfers'
+import { deriveFinancials } from '@/lib/db/sum-transfers'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { formatPLN } from '@/lib/format-currency'
 import { perfStart } from '@/lib/perf'
 import { TransfersSection } from '@/components/transfers/transfers-section'
-import { ReportCharts } from '@/components/reports/report-charts'
+import { ReportChart } from '@/components/reports/report-charts'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InvestmentStats } from '@/components/investments/investment-stats'
 import { BILANS_LABEL } from '@/lib/export/header-fields'
@@ -33,8 +33,8 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
   ])
   console.log(`[PERF] raporty data fetch ${step()}ms`)
 
-  const { totalCosts, totalIncome, totalLaborCosts } = deriveFinancials(typeDistribution)
-  const costBreakdown = deriveCostBreakdown(typeDistribution)
+  const financials = deriveFinancials(typeDistribution)
+  const { totalCosts, totalIncome, totalLaborCosts } = financials
 
   const headerFields: HeaderFieldT[] = [
     { label: 'Transakcje', value: 'Raport' },
@@ -53,7 +53,7 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
         fields={headerFields.filter((f) => f.amount !== undefined || f.label === BILANS_LABEL)}
       />
 
-      <ReportCharts costBreakdown={costBreakdown} typeDistribution={typeDistribution} />
+      <ReportChart financials={financials} />
 
       <TransfersSection
         config={{
