@@ -302,6 +302,12 @@ export const sumFilteredFinancials = async (
   payload: Payload,
   where: Where,
 ): Promise<InvestmentFinancialsT> => {
+  // NO_RESULTS sentinel — filters produced an impossible condition, return zeros
+  const idCondition = where.id as Record<string, unknown> | undefined
+  if (idCondition && 'equals' in idCondition && idCondition.equals === -1) {
+    return { totalCosts: 0, totalIncome: 0, totalLaborCosts: 0 }
+  }
+
   const elapsed = perfStart()
   const db = await getDb(payload)
 

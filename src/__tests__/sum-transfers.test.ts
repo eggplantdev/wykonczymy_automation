@@ -319,10 +319,10 @@ describe('sumFilteredFinancials — filter translation', () => {
     expect(queryStr).toContain("payment_method IN ('CASH')")
   })
 
-  it('skips id sentinel field', async () => {
-    await sumFilteredFinancials(fakePayload, { id: { equals: -1 } })
-    const queryStr = extractSql(mockExecute.mock.calls[0][0])
-    expect(queryStr).not.toContain('id =')
+  it('returns zeros and skips SQL when NO_RESULTS sentinel present', async () => {
+    const result = await sumFilteredFinancials(fakePayload, { id: { equals: -1 } })
+    expect(result).toEqual({ totalCosts: 0, totalIncome: 0, totalLaborCosts: 0 })
+    expect(mockExecute).not.toHaveBeenCalled()
   })
 
   it('empty where produces no extra conditions', async () => {
