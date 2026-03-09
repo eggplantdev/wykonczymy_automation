@@ -20,6 +20,7 @@ import type {
   InvestmentRefT,
   WorkerRefT,
   OtherCategoryRefT,
+  ExpenseCategoryRefT,
   ReferenceDataBaseT,
 } from '@/types/reference-data'
 
@@ -31,13 +32,14 @@ export async function fetchReferenceData(): Promise<ReferenceDataBaseT> {
     CACHE_TAGS.investments,
     CACHE_TAGS.users,
     CACHE_TAGS.otherCategories,
+    CACHE_TAGS.expenseCategories,
   )
 
   const elapsed = perfStart()
   const payload = await getPayload({ config })
   const db = await getDb(payload)
 
-  const [crResult, invResult, usersResult, catResult] = await Promise.all([
+  const [crResult, invResult, usersResult, catResult, expCatResult] = await Promise.all([
     db.execute(sql`
       SELECT id, name, type::text, active::boolean, owner_id::integer
       FROM cash_registers
@@ -58,11 +60,19 @@ export async function fetchReferenceData(): Promise<ReferenceDataBaseT> {
       SELECT id, name FROM other_categories
       ORDER BY name
     `),
+    db.execute(sql`
+      SELECT id, name FROM expense_categories
+      ORDER BY name
+    `),
   ])
 
   const totalRows =
-    crResult.rows.length + invResult.rows.length + usersResult.rows.length + catResult.rows.length
-  console.log(`[PERF] query.fetchReferenceData ${elapsed()}ms (4 SQL, ${totalRows} rows)`)
+    crResult.rows.length +
+    invResult.rows.length +
+    usersResult.rows.length +
+    catResult.rows.length +
+    expCatResult.rows.length
+  console.log(`[PERF] query.fetchReferenceData ${elapsed()}ms (5 SQL, ${totalRows} rows)`)
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw SQL rows
   const cashRegisters: CashRegisterRefT[] = crResult.rows.map((row: any) => ({
@@ -104,7 +114,13 @@ export async function fetchReferenceData(): Promise<ReferenceDataBaseT> {
     name: row.name as string,
   }))
 
-  return { cashRegisters, investments, workers, otherCategories }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const expenseCategories: ExpenseCategoryRefT[] = expCatResult.rows.map((row: any) => ({
+    id: Number(row.id),
+    name: row.name as string,
+  }))
+
+  return { cashRegisters, investments, workers, otherCategories, expenseCategories }
 }
 
 export type WorkerSaldoMapT = Record<string, number>
