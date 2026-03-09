@@ -31,6 +31,7 @@ const refData = {
     { id: 101, name: 'Anna Nowak', type: 'EMPLOYEE', email: '' },
   ],
   otherCategories: [{ id: 50, name: 'Materiały' }],
+  expenseCategories: [{ id: 60, name: 'Materiały budowlane' }],
 }
 
 const emptyMediaMap = new Map()
@@ -46,6 +47,7 @@ const baseDoc = {
   targetRegister: null,
   investment: 10,
   worker: null,
+  expenseCategory: null,
   otherCategory: null,
   invoice: null,
   invoiceNote: null,

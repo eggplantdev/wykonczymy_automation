@@ -31,6 +31,8 @@ export type TransferRowT = {
   readonly investmentName: string
   readonly workerId: number | null
   readonly workerName: string
+  readonly expenseCategoryId: number | null
+  readonly expenseCategoryName: string
   readonly otherCategoryName: string
   readonly createdByName: string
   readonly createdAt: string
@@ -47,6 +49,7 @@ export type TransferLookupsT = {
   readonly cashRegisters: NameMapT
   readonly investments: NameMapT
   readonly workers: NameMapT
+  readonly expenseCategories: NameMapT
   readonly otherCategories: NameMapT
   readonly media: Map<number, MediaInfoT>
 }
@@ -65,6 +68,7 @@ export function buildTransferLookups(
     cashRegisters: toNameMap(refData.cashRegisters),
     investments: toNameMap(refData.investments),
     workers: toNameMap(refData.workers),
+    expenseCategories: toNameMap(refData.expenseCategories),
     otherCategories: toNameMap(refData.otherCategories),
     media: mediaMap,
   }
@@ -94,6 +98,8 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
       targetRegisterName: lookupName(lookups.cashRegisters, doc.targetRegister),
       investmentId: toNullableId(doc.investment),
       investmentName: lookupName(lookups.investments, doc.investment),
+      expenseCategoryId: toNullableId(doc.expenseCategory),
+      expenseCategoryName: lookupName(lookups.expenseCategories, doc.expenseCategory),
       workerId: toNullableId(doc.worker),
       workerName: lookupName(lookups.workers, doc.worker),
       otherCategoryName: lookupName(lookups.otherCategories, doc.otherCategory),
@@ -120,6 +126,8 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
     targetRegisterName: getRelationName(doc.targetRegister),
     investmentId: toNullableId(doc.investment),
     investmentName: getRelationName(doc.investment),
+    expenseCategoryId: toNullableId(doc.expenseCategory),
+    expenseCategoryName: getRelationName(doc.expenseCategory),
     workerId: toNullableId(doc.worker),
     workerName: getRelationName(doc.worker),
     otherCategoryName: getRelationName(doc.otherCategory),
@@ -178,15 +186,9 @@ const allColumns = [
     header: 'Data',
     cell: (info) => formatPLDate(info.getValue()),
   }),
-  col.accessor('description', {
-    id: 'description',
-    header: 'Opis',
-    cell: (info) => info.getValue(),
-  }),
   col.accessor('amount', {
     id: 'amount',
     header: 'Kwota',
-    meta: { align: 'right' },
     cell: (info) => {
       const isCancelled = info.row.original.cancelled
       return (
@@ -200,6 +202,11 @@ const allColumns = [
     id: 'type',
     header: 'Typ',
     cell: (info) => TRANSFER_TYPE_LABELS[info.getValue() as TransferTypeT] ?? info.getValue(),
+  }),
+  col.accessor('description', {
+    id: 'description',
+    header: 'Opis',
+    cell: (info) => info.getValue(),
   }),
 
   col.accessor('workerName', {
@@ -256,6 +263,11 @@ const allColumns = [
       )
     },
   }),
+  col.accessor('expenseCategoryName', {
+    id: 'expenseCategory',
+    header: 'Kategoria wydatku',
+    cell: (info) => info.getValue(),
+  }),
   col.accessor('sourceRegisterName', {
     id: 'sourceRegister',
     header: 'Kasa',
@@ -286,7 +298,7 @@ const allColumns = [
   }),
   col.accessor('otherCategoryName', {
     id: 'otherCategory',
-    header: 'Kategoria',
+    header: 'Kategoria (inne wydatki)',
     cell: (info) => info.getValue(),
   }),
   col.accessor('paymentMethod', {
