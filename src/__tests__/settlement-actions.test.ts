@@ -97,6 +97,7 @@ function makeInvestmentData(itemCount: number, overrides: Record<string, unknown
     worker: 1,
     mode: 'investment' as const,
     investment: 1,
+    expenseCategory: 1,
     date: '2026-02-25',
     paymentMethod: 'CASH' as const,
     invoiceNote: '',
