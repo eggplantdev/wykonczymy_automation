@@ -89,7 +89,9 @@ export function SettlementForm({
         worker: '',
         mode: 'investment' as const,
         investment: '',
-        expenseCategory: '',
+        expenseCategory: referenceData.expenseCategories[0]
+          ? String(referenceData.expenseCategories[0].id)
+          : '',
         sourceRegister: referenceData.defaultCashRegisterId
           ? String(referenceData.defaultCashRegisterId)
           : '',
