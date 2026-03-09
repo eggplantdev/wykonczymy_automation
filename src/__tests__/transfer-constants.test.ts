@@ -11,6 +11,7 @@ import {
   needsWorker,
   needsTargetRegister,
   needsOtherCategory,
+  needsExpenseCategory,
 } from '@/lib/constants/transfers'
 
 // ── Truth table: expected return value per (helper × type) ──────────────
@@ -48,6 +49,10 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
   needsOtherCategory: {
     fn: needsOtherCategory,
     trueFor: ['OTHER', 'EMPLOYEE_EXPENSE'],
+  },
+  needsExpenseCategory: {
+    fn: needsExpenseCategory,
+    trueFor: ['INVESTMENT_EXPENSE'],
   },
 }
 

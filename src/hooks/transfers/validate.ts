@@ -75,6 +75,14 @@ export const validateTransfer: CollectionBeforeValidateHook = ({ data, req, oper
     errors.push('Category is required for OTHER transfers.')
   }
 
+  // expenseCategory — required for INVESTMENT_EXPENSE, and EMPLOYEE_EXPENSE with investment
+  if (
+    (type === 'INVESTMENT_EXPENSE' || (type === 'EMPLOYEE_EXPENSE' && !!d.investment)) &&
+    !d.expenseCategory
+  ) {
+    errors.push('Expense category is required for investment-related expenses.')
+  }
+
   // EMPLOYEE_EXPENSE: requires either investment OR otherCategory
   // Exception: register refund (sourceRegister present) needs neither
   if (type === 'EMPLOYEE_EXPENSE') {

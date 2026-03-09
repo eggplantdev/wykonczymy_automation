@@ -2,7 +2,7 @@
 export const TRANSFER_TYPES = [
   'CANCELLATION', // Anulowanie
   'OTHER_DEPOSIT', // Inna wpłata
-  'OTHER', // Inne
+  'OTHER', // Inny wydatek
   'LABOR_COST', // Koszty robocizny
   'REGISTER_TRANSFER', // Transfer między kasami
   'INVESTOR_DEPOSIT', // Wpłata od inwestora
@@ -24,7 +24,7 @@ export const TRANSFER_TYPE_LABELS: Record<TransferTypeT, string> = {
   LABOR_COST: 'Koszty robocizny',
   PAYOUT: 'Wypłata',
   REGISTER_TRANSFER: 'Transfer między kasami',
-  OTHER: 'Inne',
+  OTHER: 'Inny wydatek',
   CANCELLATION: 'Anulowanie',
 }
 
@@ -43,7 +43,7 @@ export const DEPOSIT_UI_TYPES: TransferTypeT[] = [
 
 // Transfer types visible in the transaction transfer dialog (sorted by Polish label)
 export const TRANSACTION_TRANSFER_TYPES: TransferTypeT[] = [
-  'OTHER', // Inne
+  'OTHER', // Inny wydatek
   'LABOR_COST', // Koszty robocizny
   'INVESTMENT_EXPENSE', // Wydatek inwestycyjny
   'PAYOUT', // Wypłata
@@ -95,5 +95,8 @@ export const needsTargetRegister = (type: string) =>
 
 export const needsOtherCategory = (type: string) =>
   isTransferType(type) && (type === 'OTHER' || type === 'EMPLOYEE_EXPENSE')
+
+export const needsExpenseCategory = (type: string) =>
+  isTransferType(type) && type === 'INVESTMENT_EXPENSE'
 
 export const isCancellationType = (type: string) => isTransferType(type) && type === 'CANCELLATION'
