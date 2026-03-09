@@ -6,6 +6,7 @@ import { cn } from '@/lib/cn'
 import { ToastContainer } from 'react-toastify'
 import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
 import { Navigation } from '@/components/nav/navigation'
+import { Sidebar } from '@/components/nav/sidebar'
 import { AppFooter } from '@/components/nav/app-footer'
 import { Loader } from '@/components/ui/loader/loader'
 
@@ -31,10 +32,13 @@ async function AuthenticatedShell({ children }: { children: React.ReactNode }) {
   if (!user) redirect('/zaloguj')
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Navigation user={user} />
-      <main className="flex-1 overflow-y-auto">{children}</main>
-      <AppFooter user={{ name: user.name, role: user.role }} />
+    <div className="flex min-h-screen">
+      <Sidebar user={{ name: user.name, role: user.role }} />
+      <div className="flex flex-1 flex-col">
+        <Navigation user={user} />
+        <main className="flex-1 overflow-y-auto">{children}</main>
+        <AppFooter user={{ name: user.name, role: user.role }} />
+      </div>
     </div>
   )
 }
