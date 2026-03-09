@@ -7,11 +7,13 @@ import { FileBarChart } from 'lucide-react'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { RoleBadge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 import { AddSettlementDialog } from '@/components/dialogs/add-settlement-dialog'
 import { AddDepositDialog } from '@/components/dialogs/add-deposit-dialog'
 import { AddRegisterTransferDialog } from '@/components/dialogs/add-register-transfer-dialog'
 import { AddTransferDialog } from '@/components/dialogs/add-transfer-dialog'
 import { SECTION_LINKS } from '@/lib/constants/sections'
+import { NavGroupWrapper } from '@/components/nav/nav-group-wrapper'
 import { RainbowButton } from '../ui/rainbow-button'
 
 type TopNavPropsT = {
@@ -49,28 +51,34 @@ export function TopNav({ referenceData }: TopNavPropsT) {
         )}
       </div>
 
-      {/* Center: section navigation */}
-      <nav className="hidden items-center gap-1 lg:flex">
-        {SECTION_LINKS.map((link) => (
-          <Button key={link.href} variant="ghost" size="sm" asChild>
-            <Link href={link.href} onClick={(e) => handleSectionClick(e, link.href.slice(1))}>
-              {link.label}
-            </Link>
-          </Button>
+      {/* Navigation links */}
+      <NavGroupWrapper className="hidden lg:flex">
+        {SECTION_LINKS.map((link, i) => (
+          <div key={link.href} className="flex items-center">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href={link.href} onClick={(e) => handleSectionClick(e, link.href.slice(1))}>
+                {link.label}
+              </Link>
+            </Button>
+            {i < SECTION_LINKS.length - 1 && <Separator orientation="vertical" />}
+          </div>
         ))}
-      </nav>
+        {(referenceData?.currentUserRole === 'ADMIN' ||
+          referenceData?.currentUserRole === 'OWNER') && (
+          <>
+            <Separator orientation="vertical" />
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/raporty">
+                <FileBarChart className="size-4" />
+                Raporty
+              </Link>
+            </Button>
+          </>
+        )}
+      </NavGroupWrapper>
 
       {/* Right: action buttons */}
       <div className="flex flex-wrap items-center justify-end gap-2">
-        {(referenceData?.currentUserRole === 'ADMIN' ||
-          referenceData?.currentUserRole === 'OWNER') && (
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/raporty">
-              <FileBarChart className="size-4" />
-              Raporty
-            </Link>
-          </Button>
-        )}
         {referenceData && (
           <>
             <AddSettlementDialog referenceData={referenceData} />
