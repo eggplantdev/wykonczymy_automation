@@ -14,6 +14,7 @@ import { fileURLToPath } from 'url'
 import { CashRegisters } from '@/collections/cash-registers'
 import { Investments } from '@/collections/investments'
 import { Media } from '@/collections/media'
+import { ExpenseCategories } from '@/collections/expense-categories'
 import { OtherCategories } from '@/collections/other-categories'
 import { Transfers } from '@/collections/transfers'
 import { Users } from '@/collections/users'
@@ -53,7 +54,15 @@ export default buildConfig({
       },
     }),
   }),
-  collections: [Users, CashRegisters, Investments, Transfers, OtherCategories, Media],
+  collections: [
+    Users,
+    CashRegisters,
+    Investments,
+    Transfers,
+    OtherCategories,
+    ExpenseCategories,
+    Media,
+  ],
   plugins: [
     vercelBlobStorage({
       collections: { media: true },
