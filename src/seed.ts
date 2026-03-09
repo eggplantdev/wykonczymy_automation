@@ -8,6 +8,7 @@ const SEED_ADMIN = {
 }
 
 const SEED_OTHER_CATEGORIES = ['Inne', 'Paliwo'] as const
+const SEED_EXPENSE_CATEGORIES = ['Materiały budowlane', 'Materiały wykończeniowe'] as const
 
 export const seed = async (payload: Payload): Promise<void> => {
   const existingUsers = await payload.count({ collection: 'users' })
@@ -22,6 +23,7 @@ export const seed = async (payload: Payload): Promise<void> => {
   payload.logger.info(`Seeded admin user: ${SEED_ADMIN.email} (password: ${SEED_ADMIN.password})`)
 
   await seedOtherCategories(payload)
+  await seedExpenseCategories(payload)
 }
 
 async function seedOtherCategories(payload: Payload): Promise<void> {
@@ -33,4 +35,15 @@ async function seedOtherCategories(payload: Payload): Promise<void> {
   }
 
   payload.logger.info(`Seeded ${SEED_OTHER_CATEGORIES.length} other categories`)
+}
+
+async function seedExpenseCategories(payload: Payload): Promise<void> {
+  const existing = await payload.count({ collection: 'expense-categories' })
+  if (existing.totalDocs > 0) return
+
+  for (const name of SEED_EXPENSE_CATEGORIES) {
+    await payload.create({ collection: 'expense-categories', data: { name } })
+  }
+
+  payload.logger.info(`Seeded ${SEED_EXPENSE_CATEGORIES.length} expense categories`)
 }
