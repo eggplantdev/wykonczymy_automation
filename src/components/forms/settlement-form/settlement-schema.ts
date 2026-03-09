@@ -21,6 +21,7 @@ export const settlementFormSchema = z
     worker: z.string(),
     mode: z.enum(SETTLEMENT_MODES),
     investment: z.string(),
+    expenseCategory: z.string().optional().default(''),
     sourceRegister: z.string(),
     amount: z.string(),
     description: z.string(),
@@ -51,6 +52,14 @@ export const settlementFormSchema = z
         code: z.ZodIssueCode.custom,
         message: 'Inwestycja jest wymagana',
         path: ['investment'],
+      })
+    }
+
+    if (data.mode === 'investment' && !data.expenseCategory) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Kategoria wydatku jest wymagana',
+        path: ['expenseCategory'],
       })
     }
 
@@ -107,6 +116,7 @@ export const createSettlementSchema = z
     worker: z.number({ error: 'Pracownik jest wymagany' }).positive('Pracownik jest wymagany'),
     mode: z.enum(SETTLEMENT_MODES),
     investment: z.number().positive().optional(),
+    expenseCategory: z.number().positive().optional(),
     sourceRegister: z.number().positive().optional(),
     amount: z.number().positive('Kwota musi być większa niż 0').optional(),
     description: z.string().optional(),
@@ -130,6 +140,14 @@ export const createSettlementSchema = z
         code: z.ZodIssueCode.custom,
         message: 'Inwestycja jest wymagana',
         path: ['investment'],
+      })
+    }
+
+    if (data.mode === 'investment' && !data.expenseCategory) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Kategoria wydatku jest wymagana',
+        path: ['expenseCategory'],
       })
     }
 

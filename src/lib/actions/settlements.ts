@@ -75,6 +75,8 @@ export async function createSettlementAction(
               type: 'EMPLOYEE_EXPENSE',
               paymentMethod: parsed.data.paymentMethod,
               investment: parsed.data.mode === 'investment' ? parsed.data.investment : undefined,
+              expenseCategory:
+                parsed.data.mode === 'investment' ? parsed.data.expenseCategory : undefined,
               worker: parsed.data.worker,
               invoice: mediaIds[i],
               invoiceNote: parsed.data.invoiceNote,

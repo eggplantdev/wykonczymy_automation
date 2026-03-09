@@ -30,6 +30,7 @@ import type { ReferenceItemT } from '@/types/reference-data'
 type SettlementReferenceDataT = {
   users: ReferenceItemT[]
   investments: ReferenceItemT[]
+  expenseCategories: ReferenceItemT[]
   otherCategories: ReferenceItemT[]
   cashRegisters: ReferenceItemT[]
   defaultCashRegisterId?: number
@@ -46,6 +47,7 @@ type FormValuesT = {
   worker: string
   mode: 'investment' | 'category' | 'register'
   investment?: string
+  expenseCategory: string
   sourceRegister: string
   amount: string
   description: string
@@ -86,6 +88,7 @@ export function SettlementForm({
         worker: '',
         mode: 'investment' as const,
         investment: '',
+        expenseCategory: '',
         sourceRegister: referenceData.defaultCashRegisterId
           ? String(referenceData.defaultCashRegisterId)
           : '',
@@ -106,6 +109,10 @@ export function SettlementForm({
         worker: Number(value.worker),
         mode: value.mode,
         investment: value.mode === 'investment' ? Number(value.investment) : undefined,
+        expenseCategory:
+          value.mode === 'investment' && value.expenseCategory
+            ? Number(value.expenseCategory)
+            : undefined,
         sourceRegister: value.mode === 'register' ? Number(value.sourceRegister) : undefined,
         amount: value.mode === 'register' ? Number(value.amount) : undefined,
         description: value.mode === 'register' ? value.description || undefined : undefined,
@@ -246,7 +253,24 @@ export function SettlementForm({
 
             {/* Shared metadata */}
             {mode === 'investment' && (
-              <InvestmentField form={form} investments={referenceData.investments} />
+              <>
+                <InvestmentField form={form} investments={referenceData.investments} />
+                <form.AppField name="expenseCategory">
+                  {(field) => (
+                    <field.Select
+                      label="Kategoria wydatku"
+                      placeholder="Wybierz kategorię"
+                      showError
+                    >
+                      {referenceData.expenseCategories.map((cat) => (
+                        <SelectItem key={cat.id} value={String(cat.id)}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </field.Select>
+                  )}
+                </form.AppField>
+              </>
             )}
 
             {mode === 'register' && (

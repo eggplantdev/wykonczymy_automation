@@ -6,6 +6,7 @@ import {
   requiresInvestment,
   needsWorker,
   needsTargetRegister,
+  needsExpenseCategory,
 } from '@/lib/constants/transfers'
 import { refineAmount, refineDate } from '@/lib/validation-utils'
 
@@ -17,6 +18,7 @@ type TransferFieldsT = {
   targetRegister?: unknown
   investment?: unknown
   worker?: unknown
+  expenseCategory?: unknown
   otherCategory?: unknown
 }
 
@@ -63,6 +65,16 @@ const transferFieldRules: FieldRuleT[] = [
     message: 'Inwestycja lub kategoria jest wymagana dla wydatku pracowniczego',
     path: 'investment',
   },
+  {
+    invalid: (d) => needsExpenseCategory(d.type) && !d.expenseCategory,
+    message: 'Kategoria wydatku jest wymagana',
+    path: 'expenseCategory',
+  },
+  {
+    invalid: (d) => d.type === 'EMPLOYEE_EXPENSE' && !!d.investment && !d.expenseCategory,
+    message: 'Kategoria wydatku jest wymagana',
+    path: 'expenseCategory',
+  },
 ]
 
 function validateTransferFields(data: TransferFieldsT, ctx: z.RefinementCtx) {
@@ -84,6 +96,7 @@ export const createTransferSchema = z
     targetRegister: z.number().optional(),
     investment: z.number().optional(),
     worker: z.number().optional(),
+    expenseCategory: z.number().optional(),
     otherCategory: z.number().optional(),
     otherDescription: z.string().optional(),
     invoiceNote: z.string().optional(),
@@ -107,6 +120,7 @@ export const transferFormSchema = z
     targetRegister: z.string().optional().default(''),
     investment: z.string().optional().default(''),
     worker: z.string().optional().default(''),
+    expenseCategory: z.string().optional().default(''),
     otherCategory: z.string().optional().default(''),
     otherDescription: z.string().optional().default(''),
     invoiceNote: z.string().optional().default(''),
@@ -136,6 +150,7 @@ export const bulkTransferFormSchema = z
     targetRegister: z.string(),
     investment: z.string(),
     worker: z.string(),
+    expenseCategory: z.string(),
     otherCategory: z.string(),
     otherDescription: z.string(),
     lineItems: z.array(lineItemClientSchema),
@@ -172,6 +187,7 @@ export const createBulkTransferSchema = z
     targetRegister: z.number().optional(),
     investment: z.number().optional(),
     worker: z.number().optional(),
+    expenseCategory: z.number().optional(),
     otherCategory: z.number().optional(),
     otherDescription: z.string().optional(),
     lineItems: z
