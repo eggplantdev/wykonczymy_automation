@@ -31,6 +31,7 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
     virtualRegisters,
   } = await fetchManagerDashboardData()
   console.log(`[PERF] ManagerDashboard fetchManagerDashboardData ${step()}ms`)
+  console.log(SECTION_IDS.transactions)
 
   return (
     <PageWrapper title="Pulpit" backHref="">

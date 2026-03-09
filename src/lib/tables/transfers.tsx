@@ -198,14 +198,38 @@ const allColumns = [
       )
     },
   }),
+  col.accessor('investmentName', {
+    id: 'investment',
+    header: 'Inwestycja',
+    cell: (info) => {
+      const id = info.row.original.investmentId
+      const name = info.getValue()
+      if (!id || name === '—') return name
+      return (
+        <Link href={`/inwestycje/${id}`} className="hover:underline">
+          {name}
+        </Link>
+      )
+    },
+  }),
   col.accessor('type', {
     id: 'type',
     header: 'Typ',
     cell: (info) => TRANSFER_TYPE_LABELS[info.getValue() as TransferTypeT] ?? info.getValue(),
   }),
+  col.accessor('expenseCategoryName', {
+    id: 'expenseCategory',
+    header: 'Kategoria wydatku',
+    cell: (info) => info.getValue(),
+  }),
   col.accessor('description', {
     id: 'description',
     header: 'Opis',
+    cell: (info) => info.getValue(),
+  }),
+  col.accessor('otherCategoryName', {
+    id: 'otherCategory',
+    header: 'Kategoria (inne wydatki)',
     cell: (info) => info.getValue(),
   }),
 
@@ -249,25 +273,7 @@ const allColumns = [
       return <NoteCell transactionId={row.id} note={row.invoiceNote} />
     },
   }),
-  col.accessor('investmentName', {
-    id: 'investment',
-    header: 'Inwestycja',
-    cell: (info) => {
-      const id = info.row.original.investmentId
-      const name = info.getValue()
-      if (!id || name === '—') return name
-      return (
-        <Link href={`/inwestycje/${id}`} className="hover:underline">
-          {name}
-        </Link>
-      )
-    },
-  }),
-  col.accessor('expenseCategoryName', {
-    id: 'expenseCategory',
-    header: 'Kategoria wydatku',
-    cell: (info) => info.getValue(),
-  }),
+
   col.accessor('sourceRegisterName', {
     id: 'sourceRegister',
     header: 'Kasa',
@@ -296,11 +302,7 @@ const allColumns = [
       )
     },
   }),
-  col.accessor('otherCategoryName', {
-    id: 'otherCategory',
-    header: 'Kategoria (inne wydatki)',
-    cell: (info) => info.getValue(),
-  }),
+
   col.accessor('paymentMethod', {
     id: 'paymentMethod',
     header: 'Metoda',
