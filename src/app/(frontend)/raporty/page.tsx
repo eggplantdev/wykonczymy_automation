@@ -52,7 +52,7 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
         fields={headerFields.filter((f) => f.amount !== undefined || f.label === BILANS_LABEL)}
       />
 
-      <ReportChart financials={financials} />
+      <ReportChart financials={financials} expenseCategories={refData.expenseCategories} />
 
       <TransfersSection
         config={{
