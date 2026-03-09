@@ -20,6 +20,7 @@ export function AddSettlementDialog({ referenceData }: AddSettlementDialogPropsT
   const settlementReferenceData = {
     users: referenceData.workers.filter((w) => !MANAGEMENT_ROLES.includes(w.type as RoleT)),
     investments: referenceData.investments,
+    expenseCategories: referenceData.expenseCategories,
     otherCategories: referenceData.otherCategories,
     cashRegisters: referenceData.cashRegisters.filter((cr) => cr.type !== 'VIRTUAL'),
     defaultCashRegisterId,

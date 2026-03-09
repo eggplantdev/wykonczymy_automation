@@ -84,6 +84,7 @@ function makeSingleTransferData(overrides = {}) {
     paymentMethod: 'CASH' as const,
     sourceRegister: 1,
     investment: 1,
+    expenseCategory: 1,
     ...overrides,
   }
 }
@@ -108,6 +109,7 @@ function makeBulkTransferData(itemCount: number, overrides = {}) {
     paymentMethod: 'CASH' as const,
     sourceRegister: 1,
     investment: 1,
+    expenseCategory: 1,
     lineItems: Array.from({ length: itemCount }, (_, i) => ({
       description: `Item ${i + 1}`,
       amount: 100,

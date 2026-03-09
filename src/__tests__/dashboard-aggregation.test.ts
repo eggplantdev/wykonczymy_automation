@@ -52,6 +52,7 @@ const mockRefData: ReferenceDataBaseT = {
     { id: 4, name: 'Employee Two', type: 'EMPLOYEE', active: true, email: 'emp2@test.com' },
   ],
   otherCategories: [],
+  expenseCategories: [],
 }
 
 vi.mock('@/lib/queries/reference-data', () => ({
@@ -59,7 +60,7 @@ vi.mock('@/lib/queries/reference-data', () => ({
   fetchWorkerSaldos: vi.fn().mockResolvedValue({ '3': 200, '4': -50 }),
   fetchRegisterBalances: vi.fn().mockResolvedValue({ '1': 10000, '2': 5000, '3': 3000 }),
   fetchInvestmentFinancials: vi.fn().mockResolvedValue({
-    '10': { totalCosts: 2000, totalIncome: 8000, totalLaborCosts: 500 },
+    '10': { categoryCosts: [], totalMaterialCosts: 2000, totalIncome: 8000, totalLaborCosts: 500 },
   }),
 }))
 
@@ -87,7 +88,7 @@ describe('fetchManagerDashboardData', () => {
   })
 
   describe('investment balance calculation', () => {
-    it('calculates balance = totalIncome - totalCosts - totalLaborCosts', async () => {
+    it('calculates balance = totalIncome - totalMaterialCosts - totalLaborCosts', async () => {
       const data = await fetchManagerDashboardData()
       const invA = data.allInvestments.find((i) => i.id === 10)!
       // 8000 - 2000 - 500 = 5500

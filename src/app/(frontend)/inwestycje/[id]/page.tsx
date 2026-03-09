@@ -2,10 +2,15 @@ import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/pagination'
-import { fetchReferenceData, fetchFilteredByType } from '@/lib/queries/reference-data'
+import {
+  fetchReferenceData,
+  fetchFilteredByType,
+  fetchCategoryBreakdown,
+} from '@/lib/queries/reference-data'
 import { deriveFinancials } from '@/lib/db/sum-transfers'
 import { buildTransferFilters } from '@/lib/queries/transfers'
-import { formatPLN } from '@/lib/format-currency'
+import { buildFinancialFields } from '@/lib/map-category-costs'
+import { BILANS_LABEL } from '@/lib/export/header-fields'
 import { perfStart } from '@/lib/perf'
 import { buildFilterConfig } from '@/lib/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
@@ -13,7 +18,6 @@ import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
 import { MailtoLink } from '@/components/ui/mailto-link'
 import { InvestmentStats } from '@/components/investments/investment-stats'
-import { BILANS_LABEL } from '@/lib/export/header-fields'
 import type { HeaderFieldT } from '@/types/export'
 import type { DynamicPagePropsT } from '@/types/page'
 
@@ -32,26 +36,21 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   const urlFilters = buildTransferFilters(sp, { id: user.id, isManager: true })
   const transferWhere = { ...urlFilters, investment: { equals: investmentId } }
 
-  const [refData, typeDistribution] = await Promise.all([
+  const [refData, typeDistribution, categoryBreakdown] = await Promise.all([
     fetchReferenceData(),
     fetchFilteredByType(transferWhere),
+    fetchCategoryBreakdown(transferWhere),
   ])
-  console.log(`[PERF] inwestycje/${id} fetchReferenceData + fetchFilteredByType ${step()}ms`)
+  console.log(`[PERF] inwestycje/${id} data fetch ${step()}ms`)
 
   const investment = refData.investments.find((inv) => inv.id === investmentId)
   if (!investment) notFound()
 
-  const { totalCosts, totalIncome, totalLaborCosts } = deriveFinancials(typeDistribution)
+  const financials = deriveFinancials(typeDistribution, categoryBreakdown)
 
   const headerFields: HeaderFieldT[] = [
     { label: 'Inwestycja', value: investment.name },
-    { label: 'Koszty inwestycji', value: formatPLN(totalCosts), amount: -totalCosts },
-    { label: 'Wpłaty od inwestora', value: formatPLN(totalIncome), amount: totalIncome },
-    { label: 'Koszty robocizny', value: formatPLN(totalLaborCosts), amount: -totalLaborCosts },
-    {
-      label: BILANS_LABEL,
-      value: formatPLN(totalIncome - totalCosts - totalLaborCosts),
-    },
+    ...buildFinancialFields(financials, refData.expenseCategories),
   ]
 
   const infoFields = [

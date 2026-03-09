@@ -17,7 +17,7 @@ type ReportChartPropsT = {
 
 export function ReportChart({ financials }: ReportChartPropsT) {
   const data = [
-    { name: 'Materiały', value: financials.totalCosts, fill: 'var(--color-chart-red)' },
+    { name: 'Materiały', value: financials.totalMaterialCosts, fill: 'var(--color-chart-red)' },
     { name: 'Robocizna', value: financials.totalLaborCosts, fill: 'var(--color-chart-yellow)' },
     { name: 'Wpływy', value: financials.totalIncome, fill: 'var(--color-chart-green)' },
   ]
