@@ -19,7 +19,7 @@ export async function findTransfersRaw({
   where = {},
   page,
   limit,
-  sort = '-date',
+  sort = '-id',
 }: FindTransfersOptsT) {
   'use cache'
   cacheLife('max')
