@@ -5,13 +5,14 @@ import type { TransferTableConfigT } from '@/types/export'
 
 type TransfersSectionPropsT = {
   readonly title?: string
+  readonly id?: string
   readonly config: TransferTableConfigT
   readonly className?: string
 }
 
-export function TransfersSection({ title = 'Transfery', config }: TransfersSectionPropsT) {
+export function TransfersSection({ title = 'Transfery', id, config }: TransfersSectionPropsT) {
   return (
-    <CollapsibleSection title={title}>
+    <CollapsibleSection title={title} id={id}>
       <Suspense fallback={null}>
         <TransferTableServer config={config} />
       </Suspense>

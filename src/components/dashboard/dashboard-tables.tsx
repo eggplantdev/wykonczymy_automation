@@ -67,17 +67,17 @@ type DashboardTablesPropsT = {
 export function DashboardTables({ cashRegisters, investments, users }: DashboardTablesPropsT) {
   return (
     <div className="mt-8 space-y-8">
-      <CollapsibleSection title="Kasy">
+      <CollapsibleSection title="Kasy" id="kasy">
         <div className="mt-4">
           <CashRegistersTable data={cashRegisters} />
         </div>
       </CollapsibleSection>
-      <CollapsibleSection title="Pracownicy">
+      <CollapsibleSection title="Pracownicy" id="pracownicy">
         <div className="mt-4">
           <UsersTable data={users} />
         </div>
       </CollapsibleSection>
-      <CollapsibleSection title="Inwestycje">
+      <CollapsibleSection title="Inwestycje" id="inwestycje">
         <div className="mt-4">
           <InvestmentDataTable data={investments} />
         </div>
