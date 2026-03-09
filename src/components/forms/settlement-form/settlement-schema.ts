@@ -21,7 +21,7 @@ export const settlementFormSchema = z
     worker: z.string(),
     mode: z.enum(SETTLEMENT_MODES),
     investment: z.string(),
-    expenseCategory: z.string().optional().default(''),
+    expenseCategory: z.string(),
     sourceRegister: z.string(),
     amount: z.string(),
     description: z.string(),

@@ -18,9 +18,21 @@ const VALID_SERVER_PAYLOADS: Record<string, Record<string, unknown>> = {
   INVESTOR_DEPOSIT: { ...base, type: 'INVESTOR_DEPOSIT', sourceRegister: 1, investment: 1 },
   COMPANY_FUNDING: { ...base, type: 'COMPANY_FUNDING', sourceRegister: 1 },
   OTHER_DEPOSIT: { ...base, type: 'OTHER_DEPOSIT', sourceRegister: 1 },
-  INVESTMENT_EXPENSE: { ...base, type: 'INVESTMENT_EXPENSE', sourceRegister: 1, investment: 1 },
+  INVESTMENT_EXPENSE: {
+    ...base,
+    type: 'INVESTMENT_EXPENSE',
+    sourceRegister: 1,
+    investment: 1,
+    expenseCategory: 1,
+  },
   ACCOUNT_FUNDING: { ...base, type: 'ACCOUNT_FUNDING', sourceRegister: 1, worker: 1 },
-  EMPLOYEE_EXPENSE: { ...base, type: 'EMPLOYEE_EXPENSE', worker: 1, investment: 1 },
+  EMPLOYEE_EXPENSE: {
+    ...base,
+    type: 'EMPLOYEE_EXPENSE',
+    worker: 1,
+    investment: 1,
+    expenseCategory: 1,
+  },
   LABOR_COST: { ...base, type: 'LABOR_COST', investment: 1 },
   REGISTER_TRANSFER: {
     ...base,
@@ -44,6 +56,7 @@ function toClientPayload(server: Record<string, unknown>): Record<string, string
     targetRegister: '',
     investment: '',
     worker: '',
+    expenseCategory: '',
     otherCategory: '',
     otherDescription: '',
     invoiceNote: '',
@@ -233,6 +246,7 @@ describe('createTransferSchema — EMPLOYEE_EXPENSE special cases', () => {
       type: 'EMPLOYEE_EXPENSE',
       worker: 1,
       investment: 1,
+      expenseCategory: 1,
     })
     expect(result.success).toBe(true)
   })
