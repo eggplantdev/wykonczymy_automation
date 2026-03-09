@@ -9,15 +9,14 @@ import {
 } from '@/lib/queries/reference-data'
 import { deriveFinancials } from '@/lib/db/sum-transfers'
 import { buildTransferFilters } from '@/lib/queries/transfers'
-import { formatPLN } from '@/lib/format-currency'
-import { mapCategoryCostsToFields } from '@/lib/map-category-costs'
+import { buildFinancialFields } from '@/lib/map-category-costs'
+import { BILANS_LABEL } from '@/lib/export/header-fields'
 import { perfStart } from '@/lib/perf'
 import { buildFilterConfig } from '@/lib/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { ReportChart } from '@/components/reports/report-charts'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InvestmentStats } from '@/components/investments/investment-stats'
-import { BILANS_LABEL } from '@/lib/export/header-fields'
 import type { HeaderFieldT } from '@/types/export'
 import type { PagePropsT } from '@/types/page'
 
@@ -41,18 +40,10 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
   console.log(`[PERF] raporty data fetch ${step()}ms`)
 
   const financials = deriveFinancials(typeDistribution, categoryBreakdown)
-  const { totalMaterialCosts, totalIncome, totalLaborCosts, categoryCosts } = financials
 
   const headerFields: HeaderFieldT[] = [
     { label: 'Transakcje', value: 'Raport' },
-    ...mapCategoryCostsToFields(categoryCosts, refData.expenseCategories),
-    { label: 'Koszty', value: formatPLN(totalMaterialCosts), amount: -totalMaterialCosts },
-    { label: 'Wpływy', value: formatPLN(totalIncome), amount: totalIncome },
-    { label: 'Koszty robocizny', value: formatPLN(totalLaborCosts), amount: -totalLaborCosts },
-    {
-      label: BILANS_LABEL,
-      value: formatPLN(totalIncome - totalMaterialCosts - totalLaborCosts),
-    },
+    ...buildFinancialFields(financials, refData.expenseCategories),
   ]
 
   return (
