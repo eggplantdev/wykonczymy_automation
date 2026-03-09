@@ -26,31 +26,31 @@ export function getInvestmentColumns(onToggle: (id: number, newActive: boolean) 
     col.accessor('name', {
       id: 'name',
       header: 'Nazwa',
-      meta: { canHide: false, label: 'Nazwa' },
+      meta: { canHide: false },
     }),
 
     col.accessor('totalCosts', {
       id: 'totalCosts',
       header: 'Koszty',
-      meta: { label: 'Koszty', align: 'right' },
+      meta: { align: 'right' },
       cell: (info) => <span className="font-medium">{formatPLN(info.getValue())}</span>,
     }),
     col.accessor('balance', {
       id: 'balance',
       header: 'Bilans',
-      meta: { label: 'Bilans', align: 'right' },
+      meta: { align: 'right' },
       cell: (info) => <span className="font-medium">{formatPLN(info.getValue())}</span>,
     }),
     col.accessor('address', {
       id: 'address',
       header: 'Adres',
-      meta: { label: 'Adres' },
+
       cell: (info) => info.getValue() || '—',
     }),
     col.accessor('phone', {
       id: 'phone',
       header: 'Telefon',
-      meta: { label: 'Telefon' },
+
       cell: (info) => {
         const value = info.getValue()
         return value ? (
@@ -65,7 +65,7 @@ export function getInvestmentColumns(onToggle: (id: number, newActive: boolean) 
     col.accessor('email', {
       id: 'email',
       header: 'Email',
-      meta: { label: 'Email' },
+
       cell: (info) => {
         const value = info.getValue()
         return value ? <MailtoLink email={value} /> : '—'
@@ -74,14 +74,14 @@ export function getInvestmentColumns(onToggle: (id: number, newActive: boolean) 
     col.accessor('contactPerson', {
       id: 'contactPerson',
       header: 'Osoba kontaktowa',
-      meta: { label: 'Osoba kontaktowa' },
+
       cell: (info) => info.getValue() || '—',
     }),
     col.accessor('status', {
       id: 'status',
       header: 'Status',
-      meta: { label: 'Status' },
-      enableSorting: false,
+      meta: { align: 'right' },
+      enableSorting: true,
       cell: (info) => (
         <ActiveToggleBadge
           id={info.row.original.id}

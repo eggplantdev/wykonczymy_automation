@@ -30,13 +30,14 @@ export function getCashRegisterColumns(onToggle: (id: number, newActive: boolean
     col.accessor('balance', {
       id: 'balance',
       header: 'Saldo',
-      meta: { label: 'Saldo', align: 'right' },
+      meta: { align: 'right' },
       cell: (info) => <span className="font-medium">{formatPLN(info.getValue())}</span>,
     }),
     col.accessor('active', {
       id: 'active',
       header: 'Status',
-      enableSorting: false,
+      meta: { align: 'right' },
+      enableSorting: true,
       cell: (info) => (
         <ActiveToggleBadge
           id={info.row.original.id}
