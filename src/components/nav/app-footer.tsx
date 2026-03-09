@@ -25,7 +25,7 @@ export function AppFooter({ user }: AppFooterPropsT) {
   }
 
   return (
-    <footer className="border-border bg-background border-t px-3 py-2">
+    <footer className="border-border bg-background border-t px-3 py-2 lg:hidden">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-foreground text-sm font-medium">{user.name}</span>
