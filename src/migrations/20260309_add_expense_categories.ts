@@ -35,7 +35,7 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
   // 4. Backfill existing INVESTMENT_EXPENSE + EMPLOYEE_EXPENSE (with investment) rows
   await db.execute(sql`
     UPDATE transactions
-    SET expense_category_id = (SELECT id FROM expense_categories WHERE name = 'Materiały budowlane')
+    SET expense_category_id = (SELECT id FROM expense_categories WHERE name = 'Materiały wykończeniowe')
     WHERE type IN ('INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE')
       AND investment_id IS NOT NULL
       AND expense_category_id IS NULL;
