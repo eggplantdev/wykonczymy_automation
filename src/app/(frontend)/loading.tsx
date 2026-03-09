@@ -1,6 +1,6 @@
 export default function Loading() {
   return (
-    <div className="flex flex-1 items-center justify-center">
+    <div className="flex h-screen w-screen">
       <p className="animate-bounce text-3xl font-semibold lg:text-5xl">🚧</p>
     </div>
   )
