@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import * as Collapsible from '@radix-ui/react-collapsible'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
 type CollapsibleSectionPropsT = {
   readonly title: string
+  readonly id?: string
   readonly defaultOpen?: boolean
   readonly className?: string
   readonly children: React.ReactNode
@@ -14,13 +15,33 @@ type CollapsibleSectionPropsT = {
 
 export function CollapsibleSection({
   title,
+  id,
   defaultOpen = true,
   children,
 }: CollapsibleSectionPropsT) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
 
+  useEffect(() => {
+    if (!id) return
+
+    function handleHash() {
+      const hash = window.location.hash.slice(1)
+      if (hash !== id) return
+
+      setIsOpen(true)
+      requestAnimationFrame(() => {
+        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        history.replaceState(null, '', window.location.pathname + window.location.search)
+      })
+    }
+
+    handleHash()
+    window.addEventListener('hashchange', handleHash)
+    return () => window.removeEventListener('hashchange', handleHash)
+  }, [id])
+
   return (
-    <Collapsible.Root open={isOpen} onOpenChange={setIsOpen} className={'mt-8'}>
+    <Collapsible.Root id={id} open={isOpen} onOpenChange={setIsOpen} className={'mt-8'}>
       <Collapsible.Trigger className="flex w-full cursor-pointer items-center gap-2 text-left">
         <h2 className="text-foreground text-lg font-semibold">{title}</h2>
         <ChevronDown
