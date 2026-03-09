@@ -10,14 +10,32 @@ import {
 } from '@/components/ui/chart'
 import { formatPLN } from '@/lib/format-currency'
 import type { InvestmentFinancialsT } from '@/lib/db/sum-transfers'
+import type { ExpenseCategoryRefT } from '@/types/reference-data'
+
+const CATEGORY_FILLS = [
+  'var(--color-chart-red)',
+  'var(--color-chart-blue)',
+  'var(--color-chart-purple)',
+  'var(--color-chart-orange)',
+  'var(--color-chart-teal)',
+] as const
 
 type ReportChartPropsT = {
   readonly financials: InvestmentFinancialsT
+  readonly expenseCategories: readonly ExpenseCategoryRefT[]
 }
 
-export function ReportChart({ financials }: ReportChartPropsT) {
+export function ReportChart({ financials, expenseCategories }: ReportChartPropsT) {
+  const costMap = new Map(financials.categoryCosts.map((cc) => [cc.categoryId, cc.total]))
+
+  const categorySlices = expenseCategories.map((cat, i) => ({
+    name: cat.name,
+    value: costMap.get(cat.id) ?? 0,
+    fill: CATEGORY_FILLS[i % CATEGORY_FILLS.length],
+  }))
+
   const data = [
-    { name: 'Materiały', value: financials.totalMaterialCosts, fill: 'var(--color-chart-red)' },
+    ...categorySlices,
     { name: 'Robocizna', value: financials.totalLaborCosts, fill: 'var(--color-chart-yellow)' },
     { name: 'Wpływy', value: financials.totalIncome, fill: 'var(--color-chart-green)' },
   ]
