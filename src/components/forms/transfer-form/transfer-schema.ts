@@ -66,12 +66,9 @@ const transferFieldRules: FieldRuleT[] = [
     path: 'investment',
   },
   {
-    invalid: (d) => needsExpenseCategory(d.type) && !d.expenseCategory,
-    message: 'Kategoria wydatku jest wymagana',
-    path: 'expenseCategory',
-  },
-  {
-    invalid: (d) => d.type === 'EMPLOYEE_EXPENSE' && !!d.investment && !d.expenseCategory,
+    invalid: (d) =>
+      (needsExpenseCategory(d.type) || (d.type === 'EMPLOYEE_EXPENSE' && !!d.investment)) &&
+      !d.expenseCategory,
     message: 'Kategoria wydatku jest wymagana',
     path: 'expenseCategory',
   },
