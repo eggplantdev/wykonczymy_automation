@@ -41,18 +41,12 @@ export function Sidebar({ user }: SidebarPropsT) {
   const showReports = user.role === 'ADMIN' || user.role === 'OWNER'
 
   return (
-    <aside className="border-border bg-background sticky top-0 hidden h-screen w-fit min-w-48 shrink-0 flex-col border-r p-3 lg:flex">
-      {/* Logo + badge */}
-      <div className="mb-6 flex items-center gap-2">
-        {process.env.NODE_ENV === 'development' ? (
-          <RainbowButton className={`w-full`} as={Link} href="/">
-            <h1 className="text-md font-semibold text-nowrap">Wykończymy 🚧</h1>
-          </RainbowButton>
-        ) : (
-          <Link href="/">
-            <h1 className="text-md font-semibold">Wykończymy 🚧</h1>
-          </Link>
-        )}
+    <aside className="border-border bg-background sticky top-0 hidden h-screen w-fit min-w-48 shrink-0 flex-col border-r px-3 pb-3 lg:flex">
+      {/* Logo + badge — matches top bar min-h-14 */}
+      <div className="mb-4 flex h-14 items-center">
+        <Link href="/">
+          <h1 className="text-md font-semibold">Wykończymy 🚧</h1>
+        </Link>
       </div>
       {/* Navigation */}
       <nav className="flex flex-col gap-1">
