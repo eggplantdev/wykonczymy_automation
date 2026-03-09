@@ -6,6 +6,7 @@ import { DashboardTables } from '@/components/dashboard/dashboard-tables'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { StatCard } from '@/components/ui/stat-card'
+import { SECTION_IDS } from '@/lib/constants/sections'
 import { perfStart } from '@/lib/perf'
 
 type ManagerDashboardPropsT = {
@@ -55,7 +56,7 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
       {/* Recent transactions */}
       <TransfersSection
         title="Ostatnie transakcje"
-        id="transakcje"
+        id={SECTION_IDS.transactions}
         config={{
           query: {
             where: buildTransferFilters(searchParams, { id: 0, isManager: true }),
