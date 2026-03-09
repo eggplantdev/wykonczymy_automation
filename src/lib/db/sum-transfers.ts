@@ -210,6 +210,38 @@ export type WorkerPeriodBreakdownT = {
   periodSaldo: number
 }
 
+/**
+ * SUM expense amounts grouped by expense_category_id for a filtered set of transactions.
+ * Returns CategoryCostT[] for use in stat cards.
+ */
+export const sumCategoryBreakdown = async (
+  payload: Payload,
+  where: Where,
+): Promise<CategoryCostT[]> => {
+  if (isNoResultsSentinel(where)) return []
+
+  const db = await getDb(payload)
+  const conditions = buildSqlConditions(where)
+
+  const result = await db.execute(
+    sql.raw(`
+      SELECT expense_category_id, COALESCE(SUM(amount), 0) AS total
+      FROM transactions
+      WHERE cancelled IS NOT TRUE
+        AND type IN ('INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE')
+        AND expense_category_id IS NOT NULL
+        ${conditions}
+      GROUP BY expense_category_id
+    `),
+  )
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return result.rows.map((row: any) => ({
+    categoryId: Number(row.expense_category_id),
+    total: Number(row.total),
+  }))
+}
+
 /** Detects the NO_RESULTS sentinel ({ id: { equals: -1 } }) in a Where clause. */
 export const isNoResultsSentinel = (where: Where): boolean => {
   const id = where.id as Record<string, unknown> | undefined

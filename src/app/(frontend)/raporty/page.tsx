@@ -2,7 +2,11 @@ import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { ADMIN_OR_OWNER_ROLES } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/pagination'
-import { fetchReferenceData, fetchFilteredByType } from '@/lib/queries/reference-data'
+import {
+  fetchReferenceData,
+  fetchFilteredByType,
+  fetchCategoryBreakdown,
+} from '@/lib/queries/reference-data'
 import { deriveFinancials } from '@/lib/db/sum-transfers'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { formatPLN } from '@/lib/format-currency'
@@ -28,17 +32,25 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
 
   const urlFilters = buildTransferFilters(sp, { id: user.id, isManager: true })
 
-  const [refData, typeDistribution] = await Promise.all([
+  const [refData, typeDistribution, categoryBreakdown] = await Promise.all([
     fetchReferenceData(),
     fetchFilteredByType(urlFilters),
+    fetchCategoryBreakdown(urlFilters),
   ])
   console.log(`[PERF] raporty data fetch ${step()}ms`)
 
-  const financials = deriveFinancials(typeDistribution)
-  const { totalMaterialCosts, totalIncome, totalLaborCosts } = financials
+  const financials = deriveFinancials(typeDistribution, categoryBreakdown)
+  const { totalMaterialCosts, totalIncome, totalLaborCosts, categoryCosts } = financials
+
+  const expenseCatMap = new Map(refData.expenseCategories.map((c) => [c.id, c.name]))
 
   const headerFields: HeaderFieldT[] = [
     { label: 'Transakcje', value: 'Raport' },
+    ...categoryCosts.map((cc) => ({
+      label: expenseCatMap.get(cc.categoryId) ?? `Kategoria #${cc.categoryId}`,
+      value: formatPLN(cc.total),
+      amount: -cc.total,
+    })),
     { label: 'Koszty', value: formatPLN(totalMaterialCosts), amount: -totalMaterialCosts },
     { label: 'Wpływy', value: formatPLN(totalIncome), amount: totalIncome },
     { label: 'Koszty robocizny', value: formatPLN(totalLaborCosts), amount: -totalLaborCosts },

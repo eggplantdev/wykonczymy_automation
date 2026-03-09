@@ -55,7 +55,7 @@ const transferFieldRules: FieldRuleT[] = [
   },
   {
     invalid: (d) => d.type === 'OTHER' && !d.otherCategory,
-    message: 'Kategoria jest wymagana dla transferu typu "Inne"',
+    message: 'Kategoria jest wymagana dla transferu typu "Inny wydatek"',
     path: 'otherCategory',
   },
   {
