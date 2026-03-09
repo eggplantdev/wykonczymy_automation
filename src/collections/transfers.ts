@@ -19,7 +19,7 @@ const TRANSFER_TYPES = [
     value: 'REGISTER_TRANSFER',
   },
   { label: { en: 'Payout', pl: 'Wypłata' }, value: 'PAYOUT' },
-  { label: { en: 'Other', pl: 'Inne' }, value: 'OTHER' },
+  { label: { en: 'Other Expense', pl: 'Inny wydatek' }, value: 'OTHER' },
   { label: { en: 'Cancellation', pl: 'Anulowanie' }, value: 'CANCELLATION' },
 ] as const
 
@@ -51,6 +51,10 @@ const showTargetRegister = (data: Record<string, unknown>) => data?.type === 'RE
 /** Show field when type is OTHER */
 const needsOtherCategory = (data: Record<string, unknown>) =>
   data?.type === 'OTHER' || data?.type === 'EMPLOYEE_EXPENSE'
+
+/** Show expenseCategory for investment-related expense types */
+const showExpenseCategory = (data: Record<string, unknown>) =>
+  data?.type === 'INVESTMENT_EXPENSE' || (data?.type === 'EMPLOYEE_EXPENSE' && !!data?.investment)
 
 export const Transfers: CollectionConfig = {
   slug: 'transactions',
@@ -154,6 +158,16 @@ export const Transfers: CollectionConfig = {
       access: { update: () => false },
       admin: {
         condition: (data) => showInvestment(data),
+      },
+    },
+    {
+      name: 'expenseCategory',
+      type: 'relationship',
+      relationTo: 'expense-categories',
+      label: { en: 'Expense Category', pl: 'Kategoria wydatku' },
+      access: { update: () => false },
+      admin: {
+        condition: (data) => showExpenseCategory(data),
       },
     },
     {
