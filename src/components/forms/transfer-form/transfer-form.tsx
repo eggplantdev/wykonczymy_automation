@@ -30,6 +30,7 @@ import { today } from '@/lib/date-utils'
 import {
   CashRegisterField,
   DateField,
+  ExpenseCategoryField,
   InvestmentField,
   LineItemsField,
   WorkerField,
@@ -282,17 +283,7 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
           {/* Conditional: Expense category — for INVESTMENT_EXPENSE or EMPLOYEE_EXPENSE with investment */}
           {(currentType === 'INVESTMENT_EXPENSE' ||
             (currentType === 'EMPLOYEE_EXPENSE' && expenseTarget === 'investment')) && (
-            <form.AppField name="expenseCategory">
-              {(field) => (
-                <field.Select label="Kategoria wydatku" placeholder="Wybierz kategorię" showError>
-                  {referenceData.expenseCategories.map((cat) => (
-                    <SelectItem key={cat.id} value={String(cat.id)}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </field.Select>
-              )}
-            </form.AppField>
+            <ExpenseCategoryField form={form} expenseCategories={referenceData.expenseCategories} />
           )}
 
           {/* Conditional: Worker */}

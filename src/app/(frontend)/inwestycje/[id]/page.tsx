@@ -10,6 +10,7 @@ import {
 import { deriveFinancials } from '@/lib/db/sum-transfers'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { formatPLN } from '@/lib/format-currency'
+import { mapCategoryCostsToFields } from '@/lib/map-category-costs'
 import { perfStart } from '@/lib/perf'
 import { buildFilterConfig } from '@/lib/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
@@ -51,15 +52,9 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
     categoryBreakdown,
   )
 
-  const expenseCatMap = new Map(refData.expenseCategories.map((c) => [c.id, c.name]))
-
   const headerFields: HeaderFieldT[] = [
     { label: 'Inwestycja', value: investment.name },
-    ...categoryCosts.map((cc) => ({
-      label: expenseCatMap.get(cc.categoryId) ?? `Kategoria #${cc.categoryId}`,
-      value: formatPLN(cc.total),
-      amount: -cc.total,
-    })),
+    ...mapCategoryCostsToFields(categoryCosts, refData.expenseCategories),
     {
       label: 'Koszty materiałowe',
       value: formatPLN(totalMaterialCosts),

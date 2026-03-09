@@ -20,6 +20,7 @@ import {
   CashRegisterField,
   DateField,
   DescriptionField,
+  ExpenseCategoryField,
   InvestmentField,
   LineItemsField,
   /* PaymentMethodField, */ WorkerField,
@@ -255,21 +256,10 @@ export function SettlementForm({
             {mode === 'investment' && (
               <>
                 <InvestmentField form={form} investments={referenceData.investments} />
-                <form.AppField name="expenseCategory">
-                  {(field) => (
-                    <field.Select
-                      label="Kategoria wydatku"
-                      placeholder="Wybierz kategorię"
-                      showError
-                    >
-                      {referenceData.expenseCategories.map((cat) => (
-                        <SelectItem key={cat.id} value={String(cat.id)}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </field.Select>
-                  )}
-                </form.AppField>
+                <ExpenseCategoryField
+                  form={form}
+                  expenseCategories={referenceData.expenseCategories}
+                />
               </>
             )}
 

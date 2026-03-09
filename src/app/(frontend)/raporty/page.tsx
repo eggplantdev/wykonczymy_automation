@@ -10,6 +10,7 @@ import {
 import { deriveFinancials } from '@/lib/db/sum-transfers'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { formatPLN } from '@/lib/format-currency'
+import { mapCategoryCostsToFields } from '@/lib/map-category-costs'
 import { perfStart } from '@/lib/perf'
 import { buildFilterConfig } from '@/lib/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
@@ -42,15 +43,9 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
   const financials = deriveFinancials(typeDistribution, categoryBreakdown)
   const { totalMaterialCosts, totalIncome, totalLaborCosts, categoryCosts } = financials
 
-  const expenseCatMap = new Map(refData.expenseCategories.map((c) => [c.id, c.name]))
-
   const headerFields: HeaderFieldT[] = [
     { label: 'Transakcje', value: 'Raport' },
-    ...categoryCosts.map((cc) => ({
-      label: expenseCatMap.get(cc.categoryId) ?? `Kategoria #${cc.categoryId}`,
-      value: formatPLN(cc.total),
-      amount: -cc.total,
-    })),
+    ...mapCategoryCostsToFields(categoryCosts, refData.expenseCategories),
     { label: 'Koszty', value: formatPLN(totalMaterialCosts), amount: -totalMaterialCosts },
     { label: 'Wpływy', value: formatPLN(totalIncome), amount: totalIncome },
     { label: 'Koszty robocizny', value: formatPLN(totalLaborCosts), amount: -totalLaborCosts },
