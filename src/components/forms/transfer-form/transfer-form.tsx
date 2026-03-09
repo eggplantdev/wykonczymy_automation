@@ -53,6 +53,7 @@ type FormValuesT = {
   targetRegister: string
   investment: string
   worker: string
+  expenseCategory: string
   otherCategory: string
   otherDescription: string
   lineItems: { description: string; amount: string; invoiceNote: string }[]
@@ -85,6 +86,7 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
         targetRegister: '',
         investment: '',
         worker: '',
+        expenseCategory: '',
         otherCategory: '',
         otherDescription: '',
         lineItems: [{ description: '', amount: '', invoiceNote: '' }],
@@ -103,6 +105,7 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
         targetRegister: value.targetRegister ? Number(value.targetRegister) : undefined,
         investment: value.investment ? Number(value.investment) : undefined,
         worker: value.worker ? Number(value.worker) : undefined,
+        expenseCategory: value.expenseCategory ? Number(value.expenseCategory) : undefined,
         otherCategory: value.otherCategory ? Number(value.otherCategory) : undefined,
         otherDescription: value.otherDescription || undefined,
         lineItems: value.lineItems.map((item) => ({
@@ -151,6 +154,7 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
     'targetRegister',
     'investment',
     'worker',
+    'expenseCategory',
     'otherCategory',
     'otherDescription',
   ] as const
@@ -274,6 +278,22 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
             (currentType !== 'EMPLOYEE_EXPENSE' || expenseTarget === 'investment') && (
               <InvestmentField form={form} investments={referenceData.investments} />
             )}
+
+          {/* Conditional: Expense category — for INVESTMENT_EXPENSE or EMPLOYEE_EXPENSE with investment */}
+          {(currentType === 'INVESTMENT_EXPENSE' ||
+            (currentType === 'EMPLOYEE_EXPENSE' && expenseTarget === 'investment')) && (
+            <form.AppField name="expenseCategory">
+              {(field) => (
+                <field.Select label="Kategoria wydatku" placeholder="Wybierz kategorię" showError>
+                  {referenceData.expenseCategories.map((cat) => (
+                    <SelectItem key={cat.id} value={String(cat.id)}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </field.Select>
+              )}
+            </form.AppField>
+          )}
 
           {/* Conditional: Worker */}
           {needsWorker(currentType) && <WorkerField form={form} workers={referenceData.workers} />}
