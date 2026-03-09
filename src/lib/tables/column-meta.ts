@@ -3,7 +3,7 @@ import '@tanstack/react-table'
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData, TValue> {
-    /** Column header label used in column toggle dropdown. Falls back to column id. */
+    /** Override label for column toggle dropdown. Falls back to header string, then column id. */
     label?: string
     /** If false, column cannot be hidden by the user. Default: true. */
     canHide?: boolean

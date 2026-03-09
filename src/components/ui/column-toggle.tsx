@@ -45,7 +45,8 @@ export function ColumnToggle<TData>({ table, columnVisibility }: ColumnTogglePro
             <CheckIcon
               className={cn('size-4', columnVisibility[col.id] === false && 'opacity-0')}
             />
-            {col.columnDef.meta?.label ?? col.id}
+            {col.columnDef.meta?.label ??
+              (typeof col.columnDef.header === 'string' ? col.columnDef.header : col.id)}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

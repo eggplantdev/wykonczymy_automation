@@ -171,29 +171,26 @@ const allColumns = [
   col.accessor('id', {
     id: 'id',
     header: 'ID',
-    meta: { label: 'ID' },
     cell: (info) => `#${info.getValue()}`,
   }),
   col.accessor('date', {
     id: 'date',
     header: 'Data',
-    meta: { label: 'Data' },
     cell: (info) => formatPLDate(info.getValue()),
   }),
   col.accessor('description', {
     id: 'description',
     header: 'Opis',
-    meta: { label: 'Opis' },
     cell: (info) => info.getValue(),
   }),
   col.accessor('amount', {
     id: 'amount',
-    header: () => <span className="block">Kwota</span>,
-    meta: { label: 'Kwota' },
+    header: 'Kwota',
+    meta: { align: 'right' },
     cell: (info) => {
       const isCancelled = info.row.original.cancelled
       return (
-        <span className={`block font-medium ${isCancelled ? 'line-through opacity-50' : ''}`}>
+        <span className={`font-medium ${isCancelled ? 'line-through opacity-50' : ''}`}>
           {formatPLN(info.getValue())}
         </span>
       )
@@ -202,14 +199,12 @@ const allColumns = [
   col.accessor('type', {
     id: 'type',
     header: 'Typ',
-    meta: { label: 'Typ' },
     cell: (info) => TRANSFER_TYPE_LABELS[info.getValue() as TransferTypeT] ?? info.getValue(),
   }),
 
   col.accessor('workerName', {
     id: 'worker',
     header: 'Pracownik',
-    meta: { label: 'Pracownik' },
     cell: (info) => {
       const id = info.row.original.workerId
       const name = info.getValue()
@@ -225,7 +220,6 @@ const allColumns = [
   col.accessor('invoiceUrl', {
     id: 'invoice',
     header: 'Faktura',
-    meta: { label: 'Faktura' },
     enableSorting: false,
     cell: (info) => {
       const row = info.row.original
@@ -242,7 +236,6 @@ const allColumns = [
   col.accessor('invoiceNote', {
     id: 'invoiceNote',
     header: 'Notatka',
-    meta: { label: 'Notatka' },
     enableSorting: false,
     cell: (info) => {
       const row = info.row.original
@@ -252,7 +245,6 @@ const allColumns = [
   col.accessor('investmentName', {
     id: 'investment',
     header: 'Inwestycja',
-    meta: { label: 'Inwestycja' },
     cell: (info) => {
       const id = info.row.original.investmentId
       const name = info.getValue()
@@ -267,7 +259,6 @@ const allColumns = [
   col.accessor('sourceRegisterName', {
     id: 'sourceRegister',
     header: 'Kasa',
-    meta: { label: 'Kasa' },
     cell: (info) => {
       const id = info.row.original.sourceRegisterId
       const name = info.getValue()
@@ -282,7 +273,6 @@ const allColumns = [
   col.accessor('targetRegisterName', {
     id: 'targetRegister',
     header: 'Kasa docelowa',
-    meta: { label: 'Kasa docelowa' },
     cell: (info) => {
       const id = info.row.original.targetRegisterId
       const name = info.getValue()
@@ -297,31 +287,26 @@ const allColumns = [
   col.accessor('otherCategoryName', {
     id: 'otherCategory',
     header: 'Kategoria',
-    meta: { label: 'Kategoria' },
     cell: (info) => info.getValue(),
   }),
   col.accessor('paymentMethod', {
     id: 'paymentMethod',
     header: 'Metoda',
-    meta: { label: 'Metoda' },
     cell: (info) => PAYMENT_METHOD_LABELS[info.getValue() as PaymentMethodT] ?? info.getValue(),
   }),
   col.accessor('createdByName', {
     id: 'createdBy',
     header: 'Dodane przez',
-    meta: { label: 'Dodane przez' },
     cell: (info) => info.getValue(),
   }),
   col.accessor('createdAt', {
     id: 'createdAt',
     header: 'Czas dodania',
-    meta: { label: 'Czas dodania' },
     cell: (info) => formatPLDateTime(info.getValue()),
   }),
   col.display({
     id: 'actions',
     header: 'Anuluj',
-    meta: { label: 'Anuluj' },
     enableSorting: false,
     cell: (info) => {
       const row = info.row.original

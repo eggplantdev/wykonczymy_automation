@@ -35,13 +35,15 @@ export function getUserColumns(onToggle: (id: number, newActive: boolean) => voi
     }),
     col.accessor('saldo', {
       id: 'saldo',
-      header: () => <span className="block">Saldo</span>,
-      cell: (info) => <span className="block font-medium">{formatPLN(info.getValue())}</span>,
+      header: 'Saldo',
+      meta: { align: 'right' },
+      cell: (info) => <span className="font-medium">{formatPLN(info.getValue())}</span>,
     }),
     col.accessor('active', {
       id: 'active',
       header: 'Status',
-      enableSorting: false,
+      meta: { align: 'right' },
+      enableSorting: true,
       cell: (info) => (
         <ActiveToggleBadge
           id={info.row.original.id}
