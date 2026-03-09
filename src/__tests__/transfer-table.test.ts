@@ -11,7 +11,7 @@ import { mapTransferRow, buildTransferLookups, type TransferLookupsT } from '@/l
 
 const stubInvestment = {
   status: 'active' as const,
-  totalCosts: 0,
+  totalMaterialCosts: 0,
   totalIncome: 0,
   address: '',
   phone: '',

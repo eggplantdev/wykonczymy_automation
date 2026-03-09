@@ -41,16 +41,20 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   const investment = refData.investments.find((inv) => inv.id === investmentId)
   if (!investment) notFound()
 
-  const { totalCosts, totalIncome, totalLaborCosts } = deriveFinancials(typeDistribution)
+  const { totalMaterialCosts, totalIncome, totalLaborCosts } = deriveFinancials(typeDistribution)
 
   const headerFields: HeaderFieldT[] = [
     { label: 'Inwestycja', value: investment.name },
-    { label: 'Koszty inwestycji', value: formatPLN(totalCosts), amount: -totalCosts },
+    {
+      label: 'Koszty materiałowe',
+      value: formatPLN(totalMaterialCosts),
+      amount: -totalMaterialCosts,
+    },
     { label: 'Wpłaty od inwestora', value: formatPLN(totalIncome), amount: totalIncome },
     { label: 'Koszty robocizny', value: formatPLN(totalLaborCosts), amount: -totalLaborCosts },
     {
       label: BILANS_LABEL,
-      value: formatPLN(totalIncome - totalCosts - totalLaborCosts),
+      value: formatPLN(totalIncome - totalMaterialCosts - totalLaborCosts),
     },
   ]
 
