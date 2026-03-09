@@ -86,27 +86,68 @@ describe('sumAllRegisterBalances', () => {
 
 describe('sumAllInvestmentFinancials', () => {
   it('returns a Map of investment financials', async () => {
-    mockExecute.mockResolvedValue({
-      rows: [
-        {
-          investment_id: '1',
-          total_costs: '3000',
-          total_income: '10000',
-          total_labor_costs: '200',
-        },
-        { investment_id: '2', total_costs: '500', total_income: '0', total_labor_costs: '0' },
-      ],
-    })
+    mockExecute
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            investment_id: '1',
+            total_costs: '3000',
+            total_income: '10000',
+            total_labor_costs: '200',
+          },
+          { investment_id: '2', total_costs: '500', total_income: '0', total_labor_costs: '0' },
+        ],
+      })
+      .mockResolvedValueOnce({ rows: [] })
     const map = await sumAllInvestmentFinancials(fakePayload)
     expect(map.size).toBe(2)
-    expect(map.get(1)).toEqual({ totalCosts: 3000, totalIncome: 10000, totalLaborCosts: 200 })
-    expect(map.get(2)).toEqual({ totalCosts: 500, totalIncome: 0, totalLaborCosts: 0 })
+    expect(map.get(1)).toEqual({
+      categoryCosts: [],
+      totalMaterialCosts: 3000,
+      totalIncome: 10000,
+      totalLaborCosts: 200,
+    })
+    expect(map.get(2)).toEqual({
+      categoryCosts: [],
+      totalMaterialCosts: 500,
+      totalIncome: 0,
+      totalLaborCosts: 0,
+    })
   })
 
   it('returns empty Map for no rows', async () => {
-    mockExecute.mockResolvedValue({ rows: [] })
+    mockExecute.mockResolvedValueOnce({ rows: [] }).mockResolvedValueOnce({ rows: [] })
     const map = await sumAllInvestmentFinancials(fakePayload)
     expect(map.size).toBe(0)
+  })
+
+  it('includes per-category costs', async () => {
+    mockExecute
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            investment_id: '1',
+            total_costs: '7000',
+            total_income: '10000',
+            total_labor_costs: '800',
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        rows: [
+          { investment_id: '1', expense_category_id: '1', category_total: '5000' },
+          { investment_id: '1', expense_category_id: '2', category_total: '2000' },
+        ],
+      })
+    const map = await sumAllInvestmentFinancials(fakePayload)
+    const inv = map.get(1)!
+    expect(inv.totalMaterialCosts).toBe(7000)
+    expect(inv.totalIncome).toBe(10000)
+    expect(inv.totalLaborCosts).toBe(800)
+    expect(inv.categoryCosts).toEqual([
+      { categoryId: 1, total: 5000 },
+      { categoryId: 2, total: 2000 },
+    ])
   })
 })
 
@@ -244,14 +285,36 @@ describe('deriveFinancials', () => {
       { type: 'LABOR_COST', total: 800 },
     ]
     expect(deriveFinancials(byType)).toEqual({
-      totalCosts: 7000,
+      categoryCosts: [],
+      totalMaterialCosts: 7000,
       totalIncome: 12000,
       totalLaborCosts: 800,
     })
   })
 
   it('returns zeros for empty array', () => {
-    expect(deriveFinancials([])).toEqual({ totalCosts: 0, totalIncome: 0, totalLaborCosts: 0 })
+    expect(deriveFinancials([])).toEqual({
+      categoryCosts: [],
+      totalMaterialCosts: 0,
+      totalIncome: 0,
+      totalLaborCosts: 0,
+    })
+  })
+
+  it('includes category costs when provided', () => {
+    const byType = [
+      { type: 'INVESTMENT_EXPENSE', total: 5000 },
+      { type: 'EMPLOYEE_EXPENSE', total: 2000 },
+      { type: 'INVESTOR_DEPOSIT', total: 12000 },
+      { type: 'LABOR_COST', total: 800 },
+    ]
+    const byCat = [
+      { categoryId: 1, total: 5000 },
+      { categoryId: 2, total: 2000 },
+    ]
+    const result = deriveFinancials(byType, byCat)
+    expect(result.totalMaterialCosts).toBe(7000)
+    expect(result.categoryCosts).toEqual(byCat)
   })
 })
 

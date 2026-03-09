@@ -35,16 +35,16 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
   console.log(`[PERF] raporty data fetch ${step()}ms`)
 
   const financials = deriveFinancials(typeDistribution)
-  const { totalCosts, totalIncome, totalLaborCosts } = financials
+  const { totalMaterialCosts, totalIncome, totalLaborCosts } = financials
 
   const headerFields: HeaderFieldT[] = [
     { label: 'Transakcje', value: 'Raport' },
-    { label: 'Koszty', value: formatPLN(totalCosts), amount: -totalCosts },
+    { label: 'Koszty', value: formatPLN(totalMaterialCosts), amount: -totalMaterialCosts },
     { label: 'Wpływy', value: formatPLN(totalIncome), amount: totalIncome },
     { label: 'Koszty robocizny', value: formatPLN(totalLaborCosts), amount: -totalLaborCosts },
     {
       label: BILANS_LABEL,
-      value: formatPLN(totalIncome - totalCosts - totalLaborCosts),
+      value: formatPLN(totalIncome - totalMaterialCosts - totalLaborCosts),
     },
   ]
 

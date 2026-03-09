@@ -38,8 +38,8 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
   const register = refData.cashRegisters.find((cr) => cr.id === registerId)
   if (!register) notFound()
 
-  const { totalCosts, totalIncome, totalLaborCosts } = deriveFinancials(typeDistribution)
-  const saldo = totalIncome - totalCosts - totalLaborCosts
+  const { totalMaterialCosts, totalIncome, totalLaborCosts } = deriveFinancials(typeDistribution)
+  const saldo = totalIncome - totalMaterialCosts - totalLaborCosts
 
   // only admin or owner can view MAIN registers
   if (!isAdminOrOwnerRole(user.role) && register.type === 'MAIN') notFound()
