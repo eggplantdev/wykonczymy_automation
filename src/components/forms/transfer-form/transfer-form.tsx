@@ -87,7 +87,9 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
         targetRegister: '',
         investment: '',
         worker: '',
-        expenseCategory: '',
+        expenseCategory: referenceData.expenseCategories[0]
+          ? String(referenceData.expenseCategories[0].id)
+          : '',
         otherCategory: '',
         otherDescription: '',
         lineItems: [{ description: '', amount: '', invoiceNote: '' }],

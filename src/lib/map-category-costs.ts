@@ -3,18 +3,17 @@ import type { HeaderFieldT } from '@/types/export'
 import { formatPLN } from '@/lib/format-currency'
 import { BILANS_LABEL } from '@/lib/export/header-fields'
 
-/** Map per-category cost breakdown to header fields for display. */
+/** Map ALL expense categories to header fields, showing 0 for categories with no transactions. */
 function mapCategoryCostsToFields(
   categoryCosts: readonly CategoryCostT[],
   expenseCategories: readonly { readonly id: number; readonly name: string }[],
 ): HeaderFieldT[] {
-  const nameMap = new Map(expenseCategories.map((c) => [c.id, c.name]))
+  const costMap = new Map(categoryCosts.map((cc) => [cc.categoryId, cc.total]))
 
-  return categoryCosts.map((cc) => ({
-    label: nameMap.get(cc.categoryId) ?? `Kategoria #${cc.categoryId}`,
-    value: formatPLN(cc.total),
-    amount: -cc.total,
-  }))
+  return expenseCategories.map((cat) => {
+    const total = costMap.get(cat.id) ?? 0
+    return { label: cat.name, value: formatPLN(total), amount: -total }
+  })
 }
 
 /** Build the shared financial header fields (category costs + totals + bilans). */
