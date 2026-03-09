@@ -11,18 +11,12 @@ import { AddSettlementDialog } from '@/components/dialogs/add-settlement-dialog'
 import { AddDepositDialog } from '@/components/dialogs/add-deposit-dialog'
 import { AddRegisterTransferDialog } from '@/components/dialogs/add-register-transfer-dialog'
 import { AddTransferDialog } from '@/components/dialogs/add-transfer-dialog'
+import { SECTION_LINKS } from '@/lib/constants/sections'
 import { RainbowButton } from '../ui/rainbow-button'
 
 type TopNavPropsT = {
   referenceData?: ReferenceDataT
 }
-
-const SECTION_LINKS = [
-  { href: '/#kasy', label: 'Kasy' },
-  { href: '/#pracownicy', label: 'Pracownicy' },
-  { href: '/#inwestycje', label: 'Inwestycje' },
-  { href: '/#transakcje', label: 'Transakcje' },
-] as const
 
 export function TopNav({ referenceData }: TopNavPropsT) {
   const pathname = usePathname()

@@ -8,6 +8,7 @@ import { getCashRegisterColumns } from '@/lib/tables/cash-registers'
 import { getUserColumns } from '@/lib/tables/users'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { InvestmentDataTable } from '@/components/investments/investment-data-table'
+import { SECTION_IDS } from '@/lib/constants/sections'
 import { useActiveFilter } from '@/hooks/use-active-filter'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle'
@@ -67,17 +68,17 @@ type DashboardTablesPropsT = {
 export function DashboardTables({ cashRegisters, investments, users }: DashboardTablesPropsT) {
   return (
     <div className="mt-8 space-y-8">
-      <CollapsibleSection title="Kasy" id="kasy">
+      <CollapsibleSection title="Kasy" id={SECTION_IDS.cashRegisters}>
         <div className="mt-4">
           <CashRegistersTable data={cashRegisters} />
         </div>
       </CollapsibleSection>
-      <CollapsibleSection title="Pracownicy" id="pracownicy">
+      <CollapsibleSection title="Pracownicy" id={SECTION_IDS.employees}>
         <div className="mt-4">
           <UsersTable data={users} />
         </div>
       </CollapsibleSection>
-      <CollapsibleSection title="Inwestycje" id="inwestycje">
+      <CollapsibleSection title="Inwestycje" id={SECTION_IDS.investments}>
         <div className="mt-4">
           <InvestmentDataTable data={investments} />
         </div>
