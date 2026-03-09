@@ -65,6 +65,7 @@ function makeSettlementData(itemCount: number) {
     worker: 1,
     mode: 'investment' as const,
     investment: 1,
+    expenseCategory: 1,
     date: '2026-02-25',
     paymentMethod: 'CASH' as const,
     invoiceNote: '',
@@ -82,6 +83,7 @@ function makeBulkTransferData(itemCount: number) {
     paymentMethod: 'CASH' as const,
     sourceRegister: 1,
     investment: 1,
+    expenseCategory: 1,
     lineItems: Array.from({ length: itemCount }, (_, i) => ({
       description: `Item ${i + 1}`,
       amount: 100,

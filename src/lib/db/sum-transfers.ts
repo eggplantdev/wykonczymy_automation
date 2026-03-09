@@ -101,15 +101,21 @@ export const sumAllRegisterBalances = async (payload: Payload): Promise<Map<numb
   return map
 }
 
+export type CategoryCostT = {
+  readonly categoryId: number
+  readonly total: number
+}
+
 export type InvestmentFinancialsT = {
-  totalCosts: number
-  totalIncome: number
-  totalLaborCosts: number
+  readonly categoryCosts: readonly CategoryCostT[]
+  readonly totalMaterialCosts: number
+  readonly totalIncome: number
+  readonly totalLaborCosts: number
 }
 
 /**
  * SUM costs and income for ALL investments in one query (GROUP BY).
- * Returns a Map<investmentId, { totalCosts, totalIncome }>.
+ * Returns a Map<investmentId, InvestmentFinancialsT>.
  */
 export const sumAllInvestmentFinancials = async (
   payload: Payload,
@@ -117,21 +123,46 @@ export const sumAllInvestmentFinancials = async (
   const elapsed = perfStart()
   const db = await getDb(payload)
 
-  const result = await db.execute(sql`
-    SELECT investment_id,
-      COALESCE(SUM(CASE WHEN type IN ('INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE') THEN amount ELSE 0 END), 0) AS total_costs,
-      COALESCE(SUM(CASE WHEN type IN ('INVESTOR_DEPOSIT') THEN amount ELSE 0 END), 0) AS total_income,
-      COALESCE(SUM(CASE WHEN type = 'LABOR_COST' THEN amount ELSE 0 END), 0) AS total_labor_costs
-    FROM transactions
-    WHERE investment_id IS NOT NULL
-      AND cancelled IS NOT TRUE
-    GROUP BY investment_id
-  `)
+  const [totalsResult, categoryResult] = await Promise.all([
+    db.execute(sql`
+      SELECT investment_id,
+        COALESCE(SUM(CASE WHEN type IN ('INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE') THEN amount ELSE 0 END), 0) AS total_costs,
+        COALESCE(SUM(CASE WHEN type IN ('INVESTOR_DEPOSIT') THEN amount ELSE 0 END), 0) AS total_income,
+        COALESCE(SUM(CASE WHEN type = 'LABOR_COST' THEN amount ELSE 0 END), 0) AS total_labor_costs
+      FROM transactions
+      WHERE investment_id IS NOT NULL
+        AND cancelled IS NOT TRUE
+      GROUP BY investment_id
+    `),
+    db.execute(sql`
+      SELECT investment_id, expense_category_id,
+        COALESCE(SUM(amount), 0) AS category_total
+      FROM transactions
+      WHERE investment_id IS NOT NULL
+        AND cancelled IS NOT TRUE
+        AND type IN ('INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE')
+        AND expense_category_id IS NOT NULL
+      GROUP BY investment_id, expense_category_id
+    `),
+  ])
+
+  // Build category costs per investment
+  const categoryMap = new Map<number, CategoryCostT[]>()
+  for (const row of categoryResult.rows) {
+    const invId = Number(row.investment_id)
+    if (!categoryMap.has(invId)) categoryMap.set(invId, [])
+    categoryMap.get(invId)!.push({
+      categoryId: Number(row.expense_category_id),
+      total: Number(row.category_total),
+    })
+  }
 
   const map = new Map<number, InvestmentFinancialsT>()
-  for (const row of result.rows) {
-    map.set(Number(row.investment_id), {
-      totalCosts: Number(row.total_costs),
+  for (const row of totalsResult.rows) {
+    const invId = Number(row.investment_id)
+    map.set(invId, {
+      categoryCosts: categoryMap.get(invId) ?? [],
+      totalMaterialCosts: Number(row.total_costs),
       totalIncome: Number(row.total_income),
       totalLaborCosts: Number(row.total_labor_costs),
     })
@@ -179,6 +210,38 @@ export type WorkerPeriodBreakdownT = {
   periodSaldo: number
 }
 
+/**
+ * SUM expense amounts grouped by expense_category_id for a filtered set of transactions.
+ * Returns CategoryCostT[] for use in stat cards.
+ */
+export const sumCategoryBreakdown = async (
+  payload: Payload,
+  where: Where,
+): Promise<CategoryCostT[]> => {
+  if (isNoResultsSentinel(where)) return []
+
+  const db = await getDb(payload)
+  const conditions = buildSqlConditions(where)
+
+  const result = await db.execute(
+    sql.raw(`
+      SELECT expense_category_id, COALESCE(SUM(amount), 0) AS total
+      FROM transactions
+      WHERE cancelled IS NOT TRUE
+        AND type IN ('INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE')
+        AND expense_category_id IS NOT NULL
+        ${conditions}
+      GROUP BY expense_category_id
+    `),
+  )
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return result.rows.map((row: any) => ({
+    categoryId: Number(row.expense_category_id),
+    total: Number(row.total),
+  }))
+}
+
 /** Detects the NO_RESULTS sentinel ({ id: { equals: -1 } }) in a Where clause. */
 export const isNoResultsSentinel = (where: Where): boolean => {
   const id = where.id as Record<string, unknown> | undefined
@@ -202,9 +265,14 @@ const totalByType = (byType: readonly TypeTotalT[], transferType: string): numbe
   byType.find((row) => row.type === transferType)?.total ?? 0
 
 /** Derive financials (costs/income/labor) from type distribution. */
-export function deriveFinancials(byType: readonly TypeTotalT[]): InvestmentFinancialsT {
+export function deriveFinancials(
+  byType: readonly TypeTotalT[],
+  categoryCosts: readonly CategoryCostT[] = [],
+): InvestmentFinancialsT {
   return {
-    totalCosts: totalByType(byType, 'INVESTMENT_EXPENSE') + totalByType(byType, 'EMPLOYEE_EXPENSE'),
+    categoryCosts,
+    totalMaterialCosts:
+      totalByType(byType, 'INVESTMENT_EXPENSE') + totalByType(byType, 'EMPLOYEE_EXPENSE'),
     totalIncome: totalByType(byType, 'INVESTOR_DEPOSIT'),
     totalLaborCosts: totalByType(byType, 'LABOR_COST'),
   }
@@ -261,6 +329,7 @@ const FIELD_TO_COLUMN: Record<string, string> = {
   investment: 'investment_id',
   worker: 'worker_id',
   createdBy: 'created_by_id',
+  expenseCategory: 'expense_category_id',
   otherCategory: 'other_category_id',
   paymentMethod: 'payment_method',
   date: 'date',

@@ -9,7 +9,7 @@ export type InvestmentRowT = {
   readonly id: number
   readonly name: string
   readonly status: 'active' | 'completed'
-  readonly totalCosts: number
+  readonly totalMaterialCosts: number
   readonly totalIncome: number
   readonly totalLaborCosts: number
   readonly balance: number
@@ -29,8 +29,8 @@ export function getInvestmentColumns(onToggle: (id: number, newActive: boolean) 
       meta: { canHide: false },
     }),
 
-    col.accessor('totalCosts', {
-      id: 'totalCosts',
+    col.accessor('totalMaterialCosts', {
+      id: 'totalMaterialCosts',
       header: 'Koszty',
       meta: { align: 'right' },
       cell: (info) => <span className="font-medium">{formatPLN(info.getValue())}</span>,

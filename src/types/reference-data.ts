@@ -29,11 +29,17 @@ export type OtherCategoryRefT = {
   readonly name: string
 }
 
+export type ExpenseCategoryRefT = {
+  readonly id: number
+  readonly name: string
+}
+
 export type ReferenceDataBaseT = {
   cashRegisters: CashRegisterRefT[]
   investments: InvestmentRefT[]
   workers: WorkerRefT[]
   otherCategories: OtherCategoryRefT[]
+  expenseCategories: ExpenseCategoryRefT[]
 }
 
 export type ReferenceDataT = ReferenceDataBaseT & {

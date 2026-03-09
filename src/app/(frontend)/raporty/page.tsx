@@ -2,17 +2,21 @@ import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { ADMIN_OR_OWNER_ROLES } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/pagination'
-import { fetchReferenceData, fetchFilteredByType } from '@/lib/queries/reference-data'
+import {
+  fetchReferenceData,
+  fetchFilteredByType,
+  fetchCategoryBreakdown,
+} from '@/lib/queries/reference-data'
 import { deriveFinancials } from '@/lib/db/sum-transfers'
 import { buildTransferFilters } from '@/lib/queries/transfers'
-import { formatPLN } from '@/lib/format-currency'
+import { buildFinancialFields } from '@/lib/map-category-costs'
+import { BILANS_LABEL } from '@/lib/export/header-fields'
 import { perfStart } from '@/lib/perf'
 import { buildFilterConfig } from '@/lib/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { ReportChart } from '@/components/reports/report-charts'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InvestmentStats } from '@/components/investments/investment-stats'
-import { BILANS_LABEL } from '@/lib/export/header-fields'
 import type { HeaderFieldT } from '@/types/export'
 import type { PagePropsT } from '@/types/page'
 
@@ -28,24 +32,18 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
 
   const urlFilters = buildTransferFilters(sp, { id: user.id, isManager: true })
 
-  const [refData, typeDistribution] = await Promise.all([
+  const [refData, typeDistribution, categoryBreakdown] = await Promise.all([
     fetchReferenceData(),
     fetchFilteredByType(urlFilters),
+    fetchCategoryBreakdown(urlFilters),
   ])
   console.log(`[PERF] raporty data fetch ${step()}ms`)
 
-  const financials = deriveFinancials(typeDistribution)
-  const { totalCosts, totalIncome, totalLaborCosts } = financials
+  const financials = deriveFinancials(typeDistribution, categoryBreakdown)
 
   const headerFields: HeaderFieldT[] = [
     { label: 'Transakcje', value: 'Raport' },
-    { label: 'Koszty', value: formatPLN(totalCosts), amount: -totalCosts },
-    { label: 'Wpływy', value: formatPLN(totalIncome), amount: totalIncome },
-    { label: 'Koszty robocizny', value: formatPLN(totalLaborCosts), amount: -totalLaborCosts },
-    {
-      label: BILANS_LABEL,
-      value: formatPLN(totalIncome - totalCosts - totalLaborCosts),
-    },
+    ...buildFinancialFields(financials, refData.expenseCategories),
   ]
 
   return (

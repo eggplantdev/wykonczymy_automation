@@ -39,17 +39,17 @@ export async function fetchManagerDashboardData() {
 
   const allInvestments: InvestmentRowT[] = refData.investments.map((inv) => {
     const fin = financialsRecord[String(inv.id)]
-    const totalCosts = fin?.totalCosts ?? 0
+    const totalMaterialCosts = fin?.totalMaterialCosts ?? 0
     const totalIncome = fin?.totalIncome ?? 0
     const totalLaborCosts = fin?.totalLaborCosts ?? 0
     return {
       id: inv.id,
       name: inv.name,
       status: inv.status,
-      totalCosts,
+      totalMaterialCosts,
       totalIncome,
       totalLaborCosts,
-      balance: totalIncome - totalCosts - totalLaborCosts,
+      balance: totalIncome - totalMaterialCosts - totalLaborCosts,
       address: inv.address,
       phone: inv.phone,
       email: inv.email,
@@ -101,6 +101,7 @@ export async function fetchManagerDashboardData() {
     managementUsers,
     workers: refData.workers.map((w) => ({ id: w.id, name: w.name })),
     otherCategories: refData.otherCategories.map((c) => ({ id: c.id, name: c.name })),
+    expenseCategories: refData.expenseCategories.map((c) => ({ id: c.id, name: c.name })),
     totalBalance,
     ownedBalance,
     virtualRegisters,
