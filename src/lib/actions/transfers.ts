@@ -1,12 +1,16 @@
 'use server'
 
+import { getPayload } from 'payload'
+import config from '@payload-config'
 import {
   createTransferSchema,
   type CreateTransferFormT,
   createBulkTransferSchema,
   type CreateBulkTransferFormT,
 } from '@/components/forms/transfer-form/transfer-schema'
-import { isAdminOrOwnerRole } from '@/lib/auth/roles'
+import { requireAuth } from '@/lib/auth/require-auth'
+import { isAdminOrOwnerRole, MANAGEMENT_ROLES } from '@/lib/auth/roles'
+import { sumRegisterBalance } from '@/lib/db/sum-transfers'
 import { uploadBulkInvoices, uploadSingleInvoice } from '@/lib/upload-invoice'
 import { needsSourceRegister } from '../constants/transfers'
 import {
@@ -241,4 +245,20 @@ export async function removeTransferInvoiceAction(transferId: number) {
     },
     ['transfers'],
   )
+}
+
+export async function getRegisterSaldo(registerId: number): Promise<{ saldo: number }> {
+  const step = perfStart()
+
+  const { user } = await requireAuth(MANAGEMENT_ROLES)
+  if (!user) throw new Error('Brak uprawnień')
+  console.log(`[PERF]   requireAuth ${step()}ms`)
+
+  const payload = await getPayload({ config })
+  console.log(`[PERF]   getPayload ${step()}ms`)
+
+  const saldo = await sumRegisterBalance(payload, registerId)
+  console.log(`[PERF] getRegisterSaldo(${registerId}) saldo=${saldo} ${step()}ms`)
+
+  return { saldo }
 }
