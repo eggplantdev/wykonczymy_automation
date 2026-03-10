@@ -14,6 +14,7 @@ export function AddTransferDialog({ referenceData }: AddTransferDialogPropsT) {
   return (
     <FormDialog
       formId="transfer"
+      className="max-w-[min(90vw,900px)]"
       trigger={
         <Button variant="default" size="sm" className="gap-2">
           <Rocket className="size-4" />

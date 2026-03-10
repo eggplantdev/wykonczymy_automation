@@ -12,6 +12,7 @@ type FormDialogPropsT = {
   title: string
   description?: string
   showKeepOpen?: boolean
+  className?: string
   children: (onSuccess: () => void, keepOpen: boolean) => React.ReactNode
 }
 
@@ -21,6 +22,7 @@ export function FormDialog({
   title,
   description,
   showKeepOpen = true,
+  className,
   children,
 }: FormDialogPropsT) {
   const [keepOpen, setKeepOpen] = useState(false)
@@ -50,6 +52,7 @@ export function FormDialog({
 
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogContent
+          className={className}
           onInteractOutside={(e) => {
             e.preventDefault()
             setShowConfirm(true)
