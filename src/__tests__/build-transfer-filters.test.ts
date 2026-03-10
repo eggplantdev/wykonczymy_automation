@@ -107,10 +107,10 @@ describe('buildTransferFilters — search params', () => {
 
   it('combines multiple filters', () => {
     const where = buildTransferFilters(
-      { type: 'EMPLOYEE_EXPENSE', sourceRegister: '1', from: '2024-06-01' },
+      { type: 'INVESTMENT_EXPENSE', sourceRegister: '1', from: '2024-06-01' },
       managerCtx,
     )
-    expect(where.type).toEqual({ in: ['EMPLOYEE_EXPENSE'] })
+    expect(where.type).toEqual({ in: ['INVESTMENT_EXPENSE'] })
     expect(where.sourceRegister).toEqual({ in: [1] })
     expect(where.date).toEqual({ greater_than_equal: '2024-06-01' })
   })
