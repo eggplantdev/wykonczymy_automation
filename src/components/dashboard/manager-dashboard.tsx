@@ -21,10 +21,8 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
     visibleRegisters,
     activeInvestments,
     allInvestments,
-    users,
     managementUsers,
 
-    workers,
     otherCategories,
     totalBalance,
     ownedBalance,
@@ -48,11 +46,7 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
         <StatCard label="Aktywne inwestycje" value={String(activeInvestments.length)} />
       </div>
 
-      <DashboardTables
-        cashRegisters={visibleRegisters}
-        investments={allInvestments}
-        users={users}
-      />
+      <DashboardTables cashRegisters={visibleRegisters} investments={allInvestments} />
 
       {/* Recent transactions */}
       <TransfersSection
@@ -74,7 +68,6 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
             cashRegisters: visibleRegisters.map((c) => ({ id: c.id, name: c.name })),
             investments: activeInvestments.map((i) => ({ id: i.id, name: i.name })),
             users: managementUsers,
-            workers,
             otherCategories,
             showPaymentMethodFilter: false,
           },

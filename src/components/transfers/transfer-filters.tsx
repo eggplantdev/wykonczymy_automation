@@ -18,7 +18,6 @@ import {
   Landmark,
   Tags,
   User,
-  Users,
   X,
   type LucideIcon,
 } from 'lucide-react'
@@ -39,7 +38,6 @@ type TransferFiltersPropsT = {
   cashRegisters?: ReferenceItemT[]
   investments?: ReferenceItemT[]
   users?: ReferenceItemT[]
-  workers?: ReferenceItemT[]
   otherCategories?: ReferenceItemT[]
   showTypeFilter?: boolean
   showPaymentMethodFilter?: boolean
@@ -51,7 +49,6 @@ export function TransferFilters({
   cashRegisters,
   investments,
   users,
-  workers,
   otherCategories,
   showTypeFilter = true,
   showPaymentMethodFilter = false,
@@ -67,7 +64,6 @@ export function TransferFilters({
   const currentSourceRegisters = getMultiParam('sourceRegister')
   const currentInvestments = getMultiParam('investment')
   const currentCreatedBys = getMultiParam('createdBy')
-  const currentWorkers = getMultiParam('worker')
   const currentPaymentMethods = getMultiParam('paymentMethod')
   const currentOtherCategories = getMultiParam('otherCategory')
   const currentFrom = searchParams.get('from') ?? ''
@@ -119,7 +115,6 @@ export function TransferFilters({
     currentSourceRegisters.length > 0 ||
     currentInvestments.length > 0 ||
     currentCreatedBys.length > 0 ||
-    currentWorkers.length > 0 ||
     currentPaymentMethods.length > 0 ||
     currentOtherCategories.length > 0
   const hasDateFilters = currentFrom || currentTo
@@ -130,7 +125,6 @@ export function TransferFilters({
       sourceRegister: '',
       investment: '',
       createdBy: '',
-      worker: '',
       paymentMethod: '',
       otherCategory: '',
     })
@@ -146,7 +140,6 @@ export function TransferFilters({
         (cashRegisters && cashRegisters.length > 0) ||
         (investments && investments.length > 0) ||
         (users && users.length > 0) ||
-        (workers && workers.length > 0) ||
         showPaymentMethodFilter ||
         (otherCategories && otherCategories.length > 0)) && (
         <div className="flex flex-wrap gap-3">
@@ -191,17 +184,6 @@ export function TransferFilters({
               options={users.map((u) => ({ value: String(u.id), label: u.name }))}
               label="Dodane przez"
               icon={User}
-              searchable
-            />
-          )}
-
-          {workers && workers.length > 0 && (
-            <FilterMultiSelect
-              values={currentWorkers}
-              onValuesChange={(v) => updateParam('worker', v.join(','))}
-              options={workers.map((w) => ({ value: String(w.id), label: w.name }))}
-              label="Pracownik"
-              icon={Users}
               searchable
             />
           )}

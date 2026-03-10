@@ -30,8 +30,6 @@ export type TransferRowT = {
   readonly targetRegisterName: string
   readonly investmentId: number | null
   readonly investmentName: string
-  readonly workerId: number | null
-  readonly workerName: string
   readonly expenseCategoryId: number | null
   readonly expenseCategoryName: string
   readonly otherCategoryName: string
@@ -49,7 +47,7 @@ type NameMapT = Map<number, string>
 export type TransferLookupsT = {
   readonly cashRegisters: NameMapT
   readonly investments: NameMapT
-  readonly workers: NameMapT
+  readonly users: NameMapT
   readonly expenseCategories: NameMapT
   readonly otherCategories: NameMapT
   readonly media: Map<number, MediaInfoT>
@@ -68,7 +66,7 @@ export function buildTransferLookups(
   return {
     cashRegisters: toNameMap(refData.cashRegisters),
     investments: toNameMap(refData.investments),
-    workers: toNameMap(refData.workers),
+    users: toNameMap(refData.workers),
     expenseCategories: toNameMap(refData.expenseCategories),
     otherCategories: toNameMap(refData.otherCategories),
     media: mediaMap,
@@ -101,10 +99,8 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
       investmentName: lookupName(lookups.investments, doc.investment),
       expenseCategoryId: toNullableId(doc.expenseCategory),
       expenseCategoryName: lookupName(lookups.expenseCategories, doc.expenseCategory),
-      workerId: toNullableId(doc.worker),
-      workerName: lookupName(lookups.workers, doc.worker),
       otherCategoryName: lookupName(lookups.otherCategories, doc.otherCategory),
-      createdByName: lookupName(lookups.workers, doc.createdBy),
+      createdByName: lookupName(lookups.users, doc.createdBy),
       createdAt: doc.createdAt,
       invoiceUrl: media?.url ?? null,
       invoiceFilename: media?.filename ?? null,
@@ -129,8 +125,6 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
     investmentName: getRelationName(doc.investment),
     expenseCategoryId: toNullableId(doc.expenseCategory),
     expenseCategoryName: getRelationName(doc.expenseCategory),
-    workerId: toNullableId(doc.worker),
-    workerName: getRelationName(doc.worker),
     otherCategoryName: getRelationName(doc.otherCategory),
     createdByName: getRelationName(doc.createdBy),
     createdAt: doc.createdAt,
@@ -232,21 +226,6 @@ const allColumns = [
     id: 'otherCategory',
     header: 'Kategoria (inne wydatki)',
     cell: (info) => info.getValue(),
-  }),
-
-  col.accessor('workerName', {
-    id: 'worker',
-    header: 'Pracownik',
-    cell: (info) => {
-      const id = info.row.original.workerId
-      const name = info.getValue()
-      if (!id || name === '—') return name
-      return (
-        <Link href={`/uzytkownicy/${id}`} className="hover:underline">
-          {name}
-        </Link>
-      )
-    },
   }),
 
   col.accessor('invoiceUrl', {

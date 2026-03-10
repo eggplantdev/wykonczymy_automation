@@ -3,13 +3,12 @@ import {
   fetchRegisterBalances,
   fetchInvestmentFinancials,
 } from '@/lib/queries/reference-data'
-import { isAdminOrOwnerRole, isManagementRole, MANAGEMENT_ROLES, RoleT } from '../auth/roles'
+import { isAdminOrOwnerRole, isManagementRole, MANAGEMENT_ROLES, type RoleT } from '../auth/roles'
 import { requireAuth } from '../auth/require-auth'
 import { perfStart } from '@/lib/perf'
 import type { CashRegisterTypeT } from '@/types/reference-data'
 import type { CashRegisterRowT } from '@/lib/tables/cash-registers'
 import type { InvestmentRowT } from '@/lib/tables/investments'
-import type { UserRowT } from '@/lib/tables/users'
 
 export async function fetchManagerDashboardData() {
   const elapsed = perfStart()
@@ -59,24 +58,6 @@ export async function fetchManagerDashboardData() {
     .filter((i) => i.active)
     .map((i) => ({ id: i.id, name: i.name }))
 
-  // Worker saldo = balance of their WORKER-type cash register
-  const workerRegisterMap = new Map(
-    refData.cashRegisters
-      .filter((cr) => cr.type === 'WORKER')
-      .map((cr) => [cr.ownerId, balanceRecord[String(cr.id)] ?? 0]),
-  )
-
-  const users: UserRowT[] = refData.workers
-    .filter((w) => w.type === 'EMPLOYEE')
-    .map((w) => ({
-      id: w.id,
-      name: w.name,
-      email: w.email,
-      role: w.type as RoleT,
-      saldo: workerRegisterMap.get(w.id) ?? 0,
-      active: w.active ?? true,
-    }))
-
   const managementUsers = refData.workers
     .filter((w) => isManagementRole(w.type as RoleT))
     .map((w) => ({ id: w.id, name: w.name }))
@@ -102,9 +83,7 @@ export async function fetchManagerDashboardData() {
     visibleRegisters,
     activeInvestments,
     allInvestments,
-    users,
     managementUsers,
-    workers: refData.workers.map((w) => ({ id: w.id, name: w.name })),
     otherCategories: refData.otherCategories.map((c) => ({ id: c.id, name: c.name })),
     expenseCategories: refData.expenseCategories.map((c) => ({ id: c.id, name: c.name })),
     totalBalance,

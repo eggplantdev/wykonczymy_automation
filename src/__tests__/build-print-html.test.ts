@@ -16,8 +16,6 @@ const makeRow = (overrides: Partial<TransferRowT> = {}): TransferRowT => ({
   targetRegisterName: '',
   investmentId: 1,
   investmentName: 'Inwestycja A',
-  workerId: 1,
-  workerName: 'Jan Kowalski',
   expenseCategoryId: null,
   expenseCategoryName: '',
   otherCategoryName: '',
@@ -53,8 +51,6 @@ describe('buildPrintHtml', () => {
     expect(html).toContain('Opis')
     expect(html).toContain('Kwota')
     expect(html).toContain('Materiały budowlane')
-    // 'worker' column not in visibleColumnIds — should not appear
-    expect(html).not.toContain('Pracownik')
   })
 
   it('marks cancelled rows', () => {
