@@ -119,7 +119,7 @@ export function DepositForm({ referenceData, onSuccess, keepOpen }: DepositFormP
         }}
       >
         <FieldGroup>
-          {/* Type — 3 deposit types */}
+          {/* Type */}
           <form.AppField name="type" listeners={{ onChange: () => form.resetField('investment') }}>
             {(field) => (
               <field.Select label="Typ wpłaty" showError>
@@ -134,9 +134,15 @@ export function DepositForm({ referenceData, onSuccess, keepOpen }: DepositFormP
 
           <DescriptionField form={form} placeholder="Opis wpłaty" />
 
-          <AmountField form={form} />
-
-          <DateField form={form} />
+          {/* Amount + Date */}
+          <div className="flex items-start gap-4">
+            <div className="min-w-0 flex-1">
+              <AmountField form={form} />
+            </div>
+            <div className="w-40">
+              <DateField form={form} />
+            </div>
+          </div>
 
           {/* Payment method — temporarily hidden, always CASH */}
           {/* <PaymentMethodField form={form} /> */}

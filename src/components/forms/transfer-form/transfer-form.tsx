@@ -215,6 +215,11 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
             </div>
           </div>
 
+          {/* Conditional: Investment */}
+          {showsInvestment(currentType) && (
+            <InvestmentField form={form} investments={referenceData.investments} />
+          )}
+
           {/* Cash register — filtered to owned registers for non-ADMIN */}
           {needsSourceRegister(currentType) && (
             <>
@@ -248,11 +253,6 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
               placeholder="Wybierz kasę docelową"
               cashRegisters={referenceData.cashRegisters}
             />
-          )}
-
-          {/* Conditional: Investment */}
-          {showsInvestment(currentType) && (
-            <InvestmentField form={form} investments={referenceData.investments} />
           )}
 
           {/* Line items — all non-deposit types */}

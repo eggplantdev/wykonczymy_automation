@@ -74,7 +74,7 @@ export function FilterMultiSelect({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
-        <DropdownMenuLabel>Widoczne transakcje</DropdownMenuLabel>
+        <DropdownMenuLabel>Filtruj: {label}</DropdownMenuLabel>
         {searchable && (
           <div className="flex items-center gap-2 px-2 py-1.5">
             <Search className="text-muted-foreground size-4 shrink-0" />
