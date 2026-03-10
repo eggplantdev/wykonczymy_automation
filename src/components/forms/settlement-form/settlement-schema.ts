@@ -18,11 +18,11 @@ export type SettlementModeT = (typeof SETTLEMENT_MODES)[number]
 /** Client-side schema — works with string values from HTML inputs. */
 export const settlementFormSchema = z
   .object({
-    worker: z.string(),
+    workerRegister: z.string(),
     mode: z.enum(SETTLEMENT_MODES),
     investment: z.string(),
     expenseCategory: z.string(),
-    sourceRegister: z.string(),
+    targetRegister: z.string().optional(),
     amount: z.string(),
     description: z.string(),
     date: z.string(),
@@ -31,11 +31,11 @@ export const settlementFormSchema = z
     lineItems: z.array(lineItemClientSchema),
   })
   .superRefine((data, ctx) => {
-    if (!data.worker) {
+    if (!data.workerRegister) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Pracownik jest wymagany',
-        path: ['worker'],
+        message: 'Kasa pracownika jest wymagana',
+        path: ['workerRegister'],
       })
     }
 
@@ -64,11 +64,11 @@ export const settlementFormSchema = z
     }
 
     if (data.mode === 'register') {
-      if (!data.sourceRegister) {
+      if (!data.targetRegister) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Kasa jest wymagana',
-          path: ['sourceRegister'],
+          message: 'Kasa docelowa jest wymagana',
+          path: ['targetRegister'],
         })
       }
       if (!data.amount || Number(data.amount) <= 0) {
@@ -113,11 +113,13 @@ export const settlementFormSchema = z
 /** Server-side schema — typed values after conversion. */
 export const createSettlementSchema = z
   .object({
-    worker: z.number({ error: 'Pracownik jest wymagany' }).positive('Pracownik jest wymagany'),
+    workerRegister: z
+      .number({ error: 'Kasa pracownika jest wymagana' })
+      .positive('Kasa pracownika jest wymagana'),
     mode: z.enum(SETTLEMENT_MODES),
     investment: z.number().positive().optional(),
     expenseCategory: z.number().positive().optional(),
-    sourceRegister: z.number().positive().optional(),
+    targetRegister: z.number().positive().optional(),
     amount: z.number().positive('Kwota musi być większa niż 0').optional(),
     description: z.string().optional(),
     date: z.string().min(1, 'Data jest wymagana'),
@@ -152,11 +154,11 @@ export const createSettlementSchema = z
     }
 
     if (data.mode === 'register') {
-      if (!data.sourceRegister) {
+      if (!data.targetRegister) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Kasa jest wymagana',
-          path: ['sourceRegister'],
+          message: 'Kasa docelowa jest wymagana',
+          path: ['targetRegister'],
         })
       }
       if (!data.amount || data.amount <= 0) {
