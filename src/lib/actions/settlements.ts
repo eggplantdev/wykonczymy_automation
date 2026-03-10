@@ -29,17 +29,17 @@ export async function createSettlementAction(
       console.log(`[PERF]   validateAction ${step()}ms`)
 
       if (parsed.data.mode === 'register') {
-        // Register refund: single EMPLOYEE_EXPENSE with sourceRegister
+        // Register refund: single REGISTER_TRANSFER from workerRegister → targetRegister
         await payload.create({
           collection: 'transactions',
           data: {
             description: parsed.data.description || 'Zwrot do kasy',
             amount: parsed.data.amount!,
             date: parsed.data.date,
-            type: 'EMPLOYEE_EXPENSE',
+            type: 'REGISTER_TRANSFER',
             paymentMethod: parsed.data.paymentMethod,
-            sourceRegister: parsed.data.sourceRegister,
-            worker: parsed.data.worker,
+            sourceRegister: parsed.data.workerRegister,
+            targetRegister: parsed.data.targetRegister,
             createdBy: user.id,
           },
         })
@@ -48,7 +48,7 @@ export async function createSettlementAction(
         return { success: true }
       }
 
-      // Investment/category modes: per-line-item EMPLOYEE_EXPENSE transactions
+      // Investment/category modes: per-line-item transactions
 
       const mediaIds = await uploadBulkInvoices(
         payload,
@@ -64,6 +64,9 @@ export async function createSettlementAction(
       try {
         for (let i = 0; i < parsed.data.lineItems.length; i++) {
           const item = parsed.data.lineItems[i]
+          const isInvestment = parsed.data.mode === 'investment'
+          const isCategory = parsed.data.mode === 'category'
+
           await payload.create({
             collection: 'transactions',
             req,
@@ -71,16 +74,15 @@ export async function createSettlementAction(
               description: item.description,
               amount: item.amount,
               date: parsed.data.date,
-              type: 'EMPLOYEE_EXPENSE',
+              type: isInvestment ? 'INVESTMENT_EXPENSE' : 'OTHER',
               paymentMethod: parsed.data.paymentMethod,
-              investment: parsed.data.mode === 'investment' ? parsed.data.investment : undefined,
-              expenseCategory:
-                parsed.data.mode === 'investment' ? parsed.data.expenseCategory : undefined,
-              worker: parsed.data.worker,
+              sourceRegister: parsed.data.workerRegister,
+              investment: isInvestment ? parsed.data.investment : undefined,
+              expenseCategory: isInvestment ? parsed.data.expenseCategory : undefined,
+              otherCategory: isCategory ? item.category : undefined,
+              otherDescription: isCategory ? item.note : undefined,
               invoice: mediaIds[i],
               invoiceNote: parsed.data.invoiceNote,
-              otherCategory: parsed.data.mode === 'category' ? item.category : undefined,
-              otherDescription: parsed.data.mode === 'category' ? item.note : undefined,
               createdBy: user.id,
             },
           })
