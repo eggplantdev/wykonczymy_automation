@@ -20,6 +20,8 @@ const mockRefData: ReferenceDataBaseT = {
     { id: 2, name: 'Aux Reg', type: 'AUXILIARY', active: true, ownerId: 2 },
     { id: 3, name: 'Virtual Reg', type: 'VIRTUAL', active: true, ownerId: 1 },
     { id: 4, name: 'Inactive Virtual', type: 'VIRTUAL', active: false, ownerId: 1 },
+    { id: 5, name: 'Worker Reg Emp1', type: 'WORKER', active: true, ownerId: 3 },
+    { id: 6, name: 'Worker Reg Emp2', type: 'WORKER', active: true, ownerId: 4 },
   ],
   investments: [
     {
@@ -57,8 +59,9 @@ const mockRefData: ReferenceDataBaseT = {
 
 vi.mock('@/lib/queries/reference-data', () => ({
   fetchReferenceData: vi.fn().mockResolvedValue(mockRefData),
-  fetchWorkerSaldos: vi.fn().mockResolvedValue({ '3': 200, '4': -50 }),
-  fetchRegisterBalances: vi.fn().mockResolvedValue({ '1': 10000, '2': 5000, '3': 3000 }),
+  fetchRegisterBalances: vi
+    .fn()
+    .mockResolvedValue({ '1': 10000, '2': 5000, '3': 3000, '5': 200, '6': -50 }),
   fetchInvestmentFinancials: vi.fn().mockResolvedValue({
     '10': { categoryCosts: [], totalMaterialCosts: 2000, totalIncome: 8000, totalLaborCosts: 500 },
   }),
@@ -106,14 +109,14 @@ describe('fetchManagerDashboardData', () => {
   describe('admin/owner view', () => {
     it('admin sees all registers', async () => {
       const data = await fetchManagerDashboardData()
-      expect(data.visibleRegisters.length).toBe(4)
+      expect(data.visibleRegisters.length).toBe(6)
       expect(data.isAdminOrOwner).toBe(true)
     })
 
     it('totalBalance excludes VIRTUAL registers', async () => {
       const data = await fetchManagerDashboardData()
-      // Main(10000) + Aux(5000) = 15000 (virtual excluded)
-      expect(data.totalBalance).toBe(15000)
+      // Main(10000) + Aux(5000) + Worker1(200) + Worker2(-50) = 15150 (virtual excluded)
+      expect(data.totalBalance).toBe(15150)
     })
 
     it('ownedBalance filters by ownerId and excludes VIRTUAL', async () => {

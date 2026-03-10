@@ -6,7 +6,6 @@ import { CACHE_TAGS } from '@/lib/cache/tags'
 import type { Where } from 'payload'
 import {
   getDb,
-  sumAllWorkerSaldos,
   sumAllRegisterBalances,
   sumAllInvestmentFinancials,
   sumFilteredByType,
@@ -123,21 +122,6 @@ export async function fetchReferenceData(): Promise<ReferenceDataBaseT> {
   }))
 
   return { cashRegisters, investments, workers, otherCategories, expenseCategories }
-}
-
-export type WorkerSaldoMapT = Record<string, number>
-
-export async function fetchWorkerSaldos(): Promise<WorkerSaldoMapT> {
-  'use cache'
-  cacheLife('max')
-  cacheTag(CACHE_TAGS.transfers)
-
-  const elapsed = perfStart()
-  const payload = await getPayload({ config })
-  const map = await sumAllWorkerSaldos(payload)
-  const record = Object.fromEntries(map)
-  console.log(`[PERF] query.fetchWorkerSaldos ${elapsed()}ms (${map.size} workers)`)
-  return record
 }
 
 export type RegisterBalanceMapT = Record<string, number>
