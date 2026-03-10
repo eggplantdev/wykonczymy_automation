@@ -55,6 +55,7 @@ export const CashRegisters: CollectionConfig = {
         { label: { en: 'Main', pl: 'Główna' }, value: 'MAIN' },
         { label: { en: 'Auxiliary', pl: 'Pomocnicza' }, value: 'AUXILIARY' },
         { label: { en: 'Virtual', pl: 'Wirtualna' }, value: 'VIRTUAL' },
+        { label: { en: 'Worker', pl: 'Pracownicza' }, value: 'WORKER' },
       ],
       admin: {
         condition: (_, __, { user }) => user?.role === 'ADMIN' || user?.role === 'OWNER',
