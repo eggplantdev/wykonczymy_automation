@@ -4,7 +4,7 @@ import { formatPLN } from '@/lib/format-currency'
 import { parsePagination } from '@/lib/pagination'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { fetchReferenceData, fetchFilteredByType } from '@/lib/queries/reference-data'
-import { deriveWorkerBreakdown } from '@/lib/db/sum-transfers'
+import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
 import type { HeaderFieldT } from '@/types/export'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { InfoList } from '@/components/ui/info-list'
@@ -48,7 +48,14 @@ export async function UserTransferView({
   const worker = refData.workers.find((w) => w.id === numericId)
   if (!worker) notFound()
 
-  const { totalAdvances, totalExpenses, periodSaldo } = deriveWorkerBreakdown(typeDistribution)
+  // Derive worker breakdown from type distribution
+  const totalAdvances = typeDistribution
+    .filter((t) => DEPOSIT_TYPES.includes(t.type as (typeof DEPOSIT_TYPES)[number]))
+    .reduce((sum, t) => sum + t.total, 0)
+  const totalExpenses = typeDistribution
+    .filter((t) => !DEPOSIT_TYPES.includes(t.type as (typeof DEPOSIT_TYPES)[number]))
+    .reduce((sum, t) => sum + t.total, 0)
+  const periodSaldo = totalAdvances - totalExpenses
 
   const headerFields: HeaderFieldT[] = [
     { label: 'Pracownik', value: worker.name },

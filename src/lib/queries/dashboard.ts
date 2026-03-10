@@ -1,6 +1,5 @@
 import {
   fetchReferenceData,
-  fetchWorkerSaldos,
   fetchRegisterBalances,
   fetchInvestmentFinancials,
 } from '@/lib/queries/reference-data'
@@ -19,9 +18,8 @@ export async function fetchManagerDashboardData() {
 
   const isAdminOrOwner = isAdminOrOwnerRole(user.role)
 
-  const [refData, saldoRecord, balanceRecord, financialsRecord] = await Promise.all([
+  const [refData, balanceRecord, financialsRecord] = await Promise.all([
     fetchReferenceData(),
-    fetchWorkerSaldos(),
     fetchRegisterBalances(),
     fetchInvestmentFinancials(),
   ])
@@ -61,6 +59,13 @@ export async function fetchManagerDashboardData() {
     .filter((i) => i.active)
     .map((i) => ({ id: i.id, name: i.name }))
 
+  // Worker saldo = balance of their WORKER-type cash register
+  const workerRegisterMap = new Map(
+    refData.cashRegisters
+      .filter((cr) => cr.type === 'WORKER')
+      .map((cr) => [cr.ownerId, balanceRecord[String(cr.id)] ?? 0]),
+  )
+
   const users: UserRowT[] = refData.workers
     .filter((w) => w.type === 'EMPLOYEE')
     .map((w) => ({
@@ -68,7 +73,7 @@ export async function fetchManagerDashboardData() {
       name: w.name,
       email: w.email,
       role: w.type as RoleT,
-      saldo: saldoRecord[String(w.id)] ?? 0,
+      saldo: workerRegisterMap.get(w.id) ?? 0,
       active: w.active ?? true,
     }))
 

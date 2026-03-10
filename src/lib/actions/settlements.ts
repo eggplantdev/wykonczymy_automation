@@ -4,8 +4,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
-import { sumFilteredByType, deriveWorkerBreakdown } from '@/lib/db/sum-transfers'
-import { WORKER_SALDO_TYPES } from '@/lib/constants/transfers'
+import { sumRegisterBalance } from '@/lib/db/sum-transfers'
 import { uploadBulkInvoices } from '@/lib/upload-invoice'
 import {
   CreateSettlementFormT,
@@ -108,14 +107,25 @@ export async function getManagementEmployeeSaldo(workerId: number): Promise<{ sa
 
   // Bypass cache — this is an on-demand fetch from the settlement dialog
   // and must always return fresh data.
+  // Worker saldo = balance of their WORKER-type cash register.
   const payload = await getPayload({ config })
   console.log(`[PERF]   getPayload ${step()}ms`)
 
-  const byType = await sumFilteredByType(payload, {
-    worker: { equals: workerId },
-    type: { in: WORKER_SALDO_TYPES },
+  // Find the worker's WORKER register
+  const registerResult = await payload.find({
+    collection: 'cash-registers',
+    where: { owner: { equals: workerId }, type: { equals: 'WORKER' } },
+    limit: 1,
   })
-  const saldo = deriveWorkerBreakdown(byType).periodSaldo
+  const register = registerResult.docs[0]
+  if (!register) {
+    console.log(
+      `[PERF] getManagementEmployeeSaldo(${workerId}) no WORKER register found ${step()}ms`,
+    )
+    return { saldo: 0 }
+  }
+
+  const saldo = await sumRegisterBalance(payload, register.id)
   console.log(`[PERF] getManagementEmployeeSaldo(${workerId}) saldo=${saldo} ${step()}ms`)
 
   return { saldo }
