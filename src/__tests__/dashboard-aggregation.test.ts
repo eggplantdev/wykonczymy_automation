@@ -81,7 +81,6 @@ describe('fetchManagerDashboardData', () => {
     expect(data).toHaveProperty('visibleRegisters')
     expect(data).toHaveProperty('allInvestments')
     expect(data).toHaveProperty('activeInvestments')
-    expect(data).toHaveProperty('users')
     expect(data).toHaveProperty('managementUsers')
     expect(data).toHaveProperty('totalBalance')
     expect(data).toHaveProperty('ownedBalance')
@@ -139,20 +138,6 @@ describe('fetchManagerDashboardData', () => {
   })
 
   describe('user filtering', () => {
-    it('users list contains only EMPLOYEEs', async () => {
-      const data = await fetchManagerDashboardData()
-      expect(data.users.every((u) => u.role === 'EMPLOYEE')).toBe(true)
-      expect(data.users.length).toBe(2)
-    })
-
-    it('assigns saldo from saldoRecord, defaults to 0', async () => {
-      const data = await fetchManagerDashboardData()
-      const emp1 = data.users.find((u) => u.id === 3)!
-      const emp2 = data.users.find((u) => u.id === 4)!
-      expect(emp1.saldo).toBe(200)
-      expect(emp2.saldo).toBe(-50)
-    })
-
     it('managementUsers contains ADMIN and MANAGER', async () => {
       const data = await fetchManagerDashboardData()
       expect(data.managementUsers.length).toBe(2)

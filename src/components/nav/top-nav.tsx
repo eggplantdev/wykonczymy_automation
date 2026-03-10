@@ -18,10 +18,6 @@ export function TopNav({ referenceData }: TopNavPropsT) {
           <h1 className="text-md font-semibold"> Wykończymy 🚧</h1>
         </Link>
       </div>
-      <span className="bg-destructive text-destructive-foreground rounded px-1.5 py-0.5 text-xs font-medium">
-        FEATURE BRANCH
-      </span>
-
       {/* Right: action buttons */}
       <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
         {referenceData && (
