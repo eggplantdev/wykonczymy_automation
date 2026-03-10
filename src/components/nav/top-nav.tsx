@@ -2,7 +2,6 @@
 
 import { AddDepositDialog } from '@/components/dialogs/add-deposit-dialog'
 import { AddRegisterTransferDialog } from '@/components/dialogs/add-register-transfer-dialog'
-import { AddSettlementDialog } from '@/components/dialogs/add-settlement-dialog'
 import { AddTransferDialog } from '@/components/dialogs/add-transfer-dialog'
 import type { ReferenceDataT } from '@/types/reference-data'
 import Link from 'next/link'
@@ -27,7 +26,6 @@ export function TopNav({ referenceData }: TopNavPropsT) {
       <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
         {referenceData && (
           <>
-            <AddSettlementDialog referenceData={referenceData} />
             <AddDepositDialog referenceData={referenceData} />
             <AddRegisterTransferDialog referenceData={referenceData} />
             <AddTransferDialog referenceData={referenceData} />
