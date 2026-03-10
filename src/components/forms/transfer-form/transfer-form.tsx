@@ -25,7 +25,7 @@ import {
   type CreateBulkTransferFormT,
 } from '@/components/forms/transfer-form/transfer-schema'
 import type { ReferenceDataT } from '@/types/reference-data'
-import { getDefaultCashRegister, getUserCashRegisterIds } from '@/lib/utils/default-cash-register'
+import { getDefaultCashRegister } from '@/lib/utils/default-cash-register'
 import { today } from '@/lib/date-utils'
 import {
   CashRegisterField,
@@ -73,9 +73,6 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
 
   const { handleRemoveLineItem, handleFileChange, buildInvoiceFormData, getFiles } =
     useInvoiceFiles(recoveredFiles)
-  const userCashRegisterIds = getUserCashRegisterIds(referenceData)
-  const isSourceRestricted = userCashRegisterIds !== undefined
-
   const defaultExpenseCategory = referenceData.expenseCategories[0]
     ? String(referenceData.expenseCategories[0].id)
     : ''
@@ -181,8 +178,7 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
 
   function resetConditionalFields() {
     conditionalFields.forEach((field) => form.resetField(field))
-    if (!isSourceRestricted || (userCashRegisterIds && userCashRegisterIds.length > 1))
-      form.resetField('sourceRegister')
+    form.resetField('sourceRegister')
     setSaldo(null)
   }
 
@@ -226,7 +222,6 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
               <CashRegisterField
                 form={form}
                 cashRegisters={referenceData.cashRegisters}
-                userCashRegisterIds={userCashRegisterIds}
                 listeners={{
                   onChange: ({ value }: { value: string }) => {
                     fetchSaldo(value)

@@ -9,7 +9,7 @@ import { createTransferAction } from '@/lib/actions/transfers'
 import { registerTransferFormSchema } from '@/components/forms/register-transfer-form/register-transfer-schema'
 import type { CreateTransferFormT } from '@/components/forms/transfer-form/transfer-schema'
 import type { ReferenceDataT } from '@/types/reference-data'
-import { getDefaultCashRegister, getUserCashRegisterIds } from '@/lib/utils/default-cash-register'
+import { getDefaultCashRegister } from '@/lib/utils/default-cash-register'
 import { today } from '@/lib/date-utils'
 import {
   AmountField,
@@ -49,8 +49,6 @@ export function RegisterTransferForm({
 
   const recovering = submission?.formId === FORM_ID && submission.status === 'failed'
   const recoveredValues = recovering ? (submission.formValues as FormValuesT) : undefined
-
-  const userCashRegisterIds = getUserCashRegisterIds(referenceData)
 
   const form = useAppForm({
     defaultValues:
@@ -113,12 +111,11 @@ export function RegisterTransferForm({
         }}
       >
         <FieldGroup>
-          {/* Source cash register — filtered to owned registers for non-ADMIN */}
+          {/* Source cash register */}
           <CashRegisterField
             form={form}
             label="Kasa źródłowa"
             cashRegisters={referenceData.cashRegisters}
-            userCashRegisterIds={userCashRegisterIds}
           />
 
           {/* Target cash register — all registers */}
