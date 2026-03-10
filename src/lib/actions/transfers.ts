@@ -249,12 +249,12 @@ export async function removeTransferInvoiceAction(transferId: number) {
 export async function getRegisterSaldo(registerId: number): Promise<{ saldo: number }> {
   const step = perfStart()
 
-  const { user } = await requireAuth(MANAGEMENT_ROLES)
+  const [{ user }, payload] = await Promise.all([
+    requireAuth(MANAGEMENT_ROLES),
+    getPayload({ config }),
+  ])
   if (!user) throw new Error('Brak uprawnień')
-  console.log(`[PERF]   requireAuth ${step()}ms`)
-
-  const payload = await getPayload({ config })
-  console.log(`[PERF]   getPayload ${step()}ms`)
+  console.log(`[PERF]   requireAuth + getPayload ${step()}ms`)
 
   const saldo = await sumRegisterBalance(payload, registerId)
   console.log(`[PERF] getRegisterSaldo(${registerId}) saldo=${saldo} ${step()}ms`)

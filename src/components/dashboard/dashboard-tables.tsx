@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { DataTable } from '@/components/ui/data-table/data-table'
 import { ActiveFilterButton } from '@/components/ui/active-filter-button'
 import { FilterMultiSelect, FILTER_NONE } from '@/components/transfers/filter-multi-select'
@@ -24,24 +24,25 @@ import type { UserRowT } from '@/lib/tables/users'
 const isCashRegisterActive = (row: CashRegisterRowT) => row.active
 const isUserActive = (row: UserRowT) => row.active
 const getActiveUpdate = (newActive: boolean) => ({ active: newActive })
+const getType = (row: CashRegisterRowT) => row.type
+const getOwner = (row: CashRegisterRowT) => row.ownerName
+const getCashRegisterSearchText = (row: CashRegisterRowT) => `${row.name} ${row.ownerName}`
+const getUserSearchText = (row: UserRowT) => `${row.name} ${row.email}`
 
 type CashRegistersTablePropsT = {
   readonly data: readonly CashRegisterRowT[]
   className?: string
 }
 
-function useClientMultiFilter<TItem>(
-  data: readonly TItem[],
-  accessor: (item: TItem) => string,
-  allValues: readonly string[],
-) {
+function useClientMultiFilter<TItem>(data: readonly TItem[], accessor: (item: TItem) => string) {
   const [values, setValues] = useState<string[]>([])
 
   const filteredData = useMemo(() => {
     const hasNone = values.length === 1 && values[0] === FILTER_NONE
     if (hasNone) return []
     if (values.length === 0) return data
-    return data.filter((item) => values.includes(accessor(item)))
+    const filterSet = new Set(values)
+    return data.filter((item) => filterSet.has(accessor(item)))
   }, [data, values, accessor])
 
   return { filteredData, values, setValues } as const
@@ -74,31 +75,20 @@ function CashRegistersTable({ data, className }: CashRegistersTablePropsT) {
     return uniqueOwners.map((name) => ({ value: name, label: name }))
   }, [optimisticData])
 
-  const getType = useCallback((row: CashRegisterRowT) => row.type, [])
-  const getOwner = useCallback((row: CashRegisterRowT) => row.ownerName, [])
-
-  const allTypes = useMemo(() => typeOptions.map((o) => o.value), [typeOptions])
-  const allOwners = useMemo(() => ownerOptions.map((o) => o.value), [ownerOptions])
-
   const {
     filteredData: typeFiltered,
     values: typeValues,
     setValues: setTypeValues,
-  } = useClientMultiFilter(activeFiltered, getType, allTypes)
+  } = useClientMultiFilter(activeFiltered, getType)
 
   const {
     filteredData: ownerFiltered,
     values: ownerValues,
     setValues: setOwnerValues,
-  } = useClientMultiFilter(typeFiltered, getOwner, allOwners)
-
-  const getSearchableText = useCallback(
-    (row: CashRegisterRowT) => `${row.name} ${row.ownerName}`,
-    [],
-  )
+  } = useClientMultiFilter(typeFiltered, getOwner)
   const { filteredData, searchTerm, setSearchTerm } = useSearchFilter(
     ownerFiltered,
-    getSearchableText,
+    getCashRegisterSearchText,
   )
 
   const columns = useMemo(() => getCashRegisterColumns(handleToggle), [handleToggle])
@@ -187,10 +177,9 @@ function UsersTable({ data }: UsersTablePropsT) {
     setShowOnlyActive,
   } = useActiveFilter(optimisticData, isUserActive)
 
-  const getSearchableText = useCallback((row: UserRowT) => `${row.name} ${row.email}`, [])
   const { filteredData, searchTerm, setSearchTerm } = useSearchFilter(
     activeFiltered,
-    getSearchableText,
+    getUserSearchText,
   )
 
   const columns = useMemo(() => getUserColumns(handleToggle), [handleToggle])
