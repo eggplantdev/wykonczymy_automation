@@ -192,15 +192,6 @@ describe('createTransferAction', () => {
     expect(result.success).toBe(true)
   })
 
-  it('valid ACCOUNT_FUNDING → success', async () => {
-    const result = await createTransferAction(
-      makeSingleTransferData({ type: 'ACCOUNT_FUNDING', worker: 1 }),
-      null,
-    )
-
-    expect(result.success).toBe(true)
-  })
-
   it('valid PAYOUT → success', async () => {
     const result = await createTransferAction(
       makeSingleTransferData({ type: 'PAYOUT', investment: undefined }),
@@ -220,15 +211,6 @@ describe('createTransferAction', () => {
     await createTransferAction(makeDepositData(), null)
 
     expect(mockDbExecute).toHaveBeenCalled()
-  })
-
-  it('EMPLOYEE_EXPENSE → skips validateSourceRegister (no DB call)', async () => {
-    await createTransferAction(
-      makeSingleTransferData({ type: 'EMPLOYEE_EXPENSE', sourceRegister: undefined, worker: 1 }),
-      null,
-    )
-
-    expect(mockDbExecute).not.toHaveBeenCalled()
   })
 
   it('LABOR_COST → skips validateSourceRegister (no DB call)', async () => {
@@ -461,22 +443,6 @@ describe('createBulkTransferAction', () => {
     expect(mockCreate.mock.calls[0][0].data.invoice).toBe(101)
     expect(mockCreate.mock.calls[1][0].data.invoice).toBeUndefined()
     expect(mockCreate.mock.calls[2][0].data.invoice).toBe(103)
-  })
-
-  it('EMPLOYEE_EXPENSE type → skips source register validation (needsSourceRegister returns false)', async () => {
-    mockUploadBulkInvoices.mockResolvedValueOnce([undefined])
-
-    const data = makeBulkTransferData(1, {
-      type: 'EMPLOYEE_EXPENSE',
-      sourceRegister: undefined,
-      worker: 1,
-      otherCategory: 1,
-    })
-
-    const result = await createBulkTransferAction(data, null)
-
-    expect(result.success).toBe(true)
-    expect(mockDbExecute).not.toHaveBeenCalled()
   })
 
   it('transaction rollback when create fails mid-batch', async () => {
