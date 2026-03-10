@@ -251,20 +251,18 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
               total={total}
               onRemoveItem={handleRemoveLineItem}
               onFileChange={handleFileChange}
-              renderItemExtras={(index) => (
-                <>
+              renderItemInline={(index) => (
+                <div className="w-40">
                   <form.AppField name={`lineItems[${index}].category`}>
                     {(field: {
                       Select: React.FC<{
-                        label: string
                         placeholder: string
                         showError: boolean
                         children: React.ReactNode
                       }>
                     }) => (
                       <field.Select
-                        label={currentType === 'OTHER' ? 'Kategoria *' : 'Kategoria'}
-                        placeholder="Wybierz kategorię"
+                        placeholder={currentType === 'OTHER' ? 'Kategoria *' : 'Kategoria'}
                         showError
                       >
                         {referenceData.otherCategories.map((cat) => (
@@ -275,22 +273,7 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
                       </field.Select>
                     )}
                   </form.AppField>
-                  <form.AppField name={`lineItems[${index}].invoiceNote`}>
-                    {(field: {
-                      Textarea: React.FC<{
-                        placeholder: string
-                        showError: boolean
-                        className: string
-                      }>
-                    }) => (
-                      <field.Textarea
-                        placeholder="Notatka (opcjonalnie)"
-                        showError
-                        className="min-h-6"
-                      />
-                    )}
-                  </form.AppField>
-                </>
+                </div>
               )}
             />
           )}
