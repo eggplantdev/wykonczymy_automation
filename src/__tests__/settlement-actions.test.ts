@@ -7,6 +7,7 @@ vi.mock('server-only', () => ({}))
 
 const mockCreate = vi.fn()
 const mockUpdate = vi.fn()
+const mockFind = vi.fn()
 const mockFindByID = vi.fn()
 const mockBeginTransaction = vi.fn()
 const mockCommitTransaction = vi.fn()
@@ -15,6 +16,7 @@ const mockRollbackTransaction = vi.fn()
 const mockPayload = {
   create: mockCreate,
   update: mockUpdate,
+  find: mockFind,
   findByID: mockFindByID,
   db: {
     beginTransaction: mockBeginTransaction,
@@ -51,10 +53,7 @@ vi.mock('@/lib/cache/revalidate', () => ({
   revalidateCollections: vi.fn(),
 }))
 
-const mockSumFilteredByType = vi.fn().mockResolvedValue([
-  { type: 'ACCOUNT_FUNDING', total: 1000 },
-  { type: 'EMPLOYEE_EXPENSE', total: 500 },
-])
+const mockSumRegisterBalance = vi.fn().mockResolvedValue(99999)
 
 vi.mock('@/lib/db/sum-transfers', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/db/sum-transfers')>()
@@ -65,8 +64,7 @@ vi.mock('@/lib/db/sum-transfers', async (importOriginal) => {
         rows: [{ id: 1, name: 'Main', type: 'MAIN', active: true, owner_id: 1 }],
       }),
     }),
-    sumRegisterBalance: vi.fn().mockResolvedValue(99999),
-    sumFilteredByType: mockSumFilteredByType,
+    sumRegisterBalance: mockSumRegisterBalance,
   }
 })
 
@@ -79,9 +77,9 @@ const TX_ID = 'test-tx-id'
 
 function makeRegisterData(overrides: Record<string, unknown> = {}) {
   return {
-    worker: 1,
+    workerRegister: 1,
     mode: 'register' as const,
-    sourceRegister: 1,
+    targetRegister: 2,
     amount: 250,
     description: '',
     date: '2026-02-25',
@@ -94,7 +92,7 @@ function makeRegisterData(overrides: Record<string, unknown> = {}) {
 
 function makeInvestmentData(itemCount: number, overrides: Record<string, unknown> = {}) {
   return {
-    worker: 1,
+    workerRegister: 1,
     mode: 'investment' as const,
     investment: 1,
     expenseCategory: 1,
@@ -111,7 +109,7 @@ function makeInvestmentData(itemCount: number, overrides: Record<string, unknown
 
 function makeCategoryData(itemCount: number, overrides: Record<string, unknown> = {}) {
   return {
-    worker: 1,
+    workerRegister: 1,
     mode: 'category' as const,
     date: '2026-02-25',
     paymentMethod: 'CASH' as const,
@@ -129,6 +127,7 @@ function makeCategoryData(itemCount: number, overrides: Record<string, unknown> 
 beforeEach(() => {
   mockCreate.mockReset()
   mockUpdate.mockReset()
+  mockFind.mockReset()
   mockFindByID.mockReset()
   mockBeginTransaction.mockReset().mockResolvedValue(TX_ID)
   mockCommitTransaction.mockReset().mockResolvedValue(undefined)
@@ -136,10 +135,7 @@ beforeEach(() => {
   mockRequireAuth.mockReset().mockResolvedValue({ success: true, user: mockUser })
   mockUploadBulkInvoices.mockReset().mockResolvedValue([undefined])
   mockUploadSingleInvoice.mockReset().mockResolvedValue(undefined)
-  mockSumFilteredByType.mockReset().mockResolvedValue([
-    { type: 'ACCOUNT_FUNDING', total: 1000 },
-    { type: 'EMPLOYEE_EXPENSE', total: 500 },
-  ])
+  mockSumRegisterBalance.mockReset().mockResolvedValue(99999)
 })
 
 // ═════════════════════════════════════════════════════════════════════════
@@ -147,7 +143,7 @@ beforeEach(() => {
 // ═════════════════════════════════════════════════════════════════════════
 
 describe('createSettlementAction — register mode', () => {
-  it('valid register refund → creates single EMPLOYEE_EXPENSE with sourceRegister', async () => {
+  it('valid register refund → creates single REGISTER_TRANSFER with sourceRegister and targetRegister', async () => {
     mockCreate.mockResolvedValue({ id: 1 })
 
     const result = await createSettlementAction(makeRegisterData(), null)
@@ -158,13 +154,21 @@ describe('createSettlementAction — register mode', () => {
       expect.objectContaining({
         collection: 'transactions',
         data: expect.objectContaining({
-          type: 'EMPLOYEE_EXPENSE',
+          type: 'REGISTER_TRANSFER',
           sourceRegister: 1,
+          targetRegister: 2,
           amount: 250,
-          worker: 1,
         }),
       }),
     )
+  })
+
+  it('no worker field in create call', async () => {
+    mockCreate.mockResolvedValue({ id: 1 })
+
+    await createSettlementAction(makeRegisterData(), null)
+
+    expect(mockCreate.mock.calls[0][0].data.worker).toBeUndefined()
   })
 
   it('default description "Zwrot do kasy" when description is empty', async () => {
@@ -195,14 +199,14 @@ describe('createSettlementAction — register mode', () => {
     )
   })
 
-  it('missing sourceRegister → validation error', async () => {
+  it('missing targetRegister → validation error', async () => {
     const result = await createSettlementAction(
-      makeRegisterData({ sourceRegister: undefined }),
+      makeRegisterData({ targetRegister: undefined }),
       null,
     )
 
     expect(result.success).toBe(false)
-    if (!result.success) expect(result.error).toBe('Kasa jest wymagana')
+    if (!result.success) expect(result.error).toBe('Kasa docelowa jest wymagana')
     expect(mockCreate).not.toHaveBeenCalled()
   })
 
@@ -222,11 +226,14 @@ describe('createSettlementAction — register mode', () => {
     expect(mockCreate).not.toHaveBeenCalled()
   })
 
-  it('missing worker → validation error', async () => {
-    const result = await createSettlementAction(makeRegisterData({ worker: undefined }), null)
+  it('missing workerRegister → validation error', async () => {
+    const result = await createSettlementAction(
+      makeRegisterData({ workerRegister: undefined }),
+      null,
+    )
 
     expect(result.success).toBe(false)
-    if (!result.success) expect(result.error).toBe('Pracownik jest wymagany')
+    if (!result.success) expect(result.error).toBe('Kasa pracownika jest wymagana')
     expect(mockCreate).not.toHaveBeenCalled()
   })
 
@@ -240,7 +247,7 @@ describe('createSettlementAction — register mode', () => {
     expect(mockRollbackTransaction).not.toHaveBeenCalled()
   })
 
-  it('creates with correct fields → type, paymentMethod, date, worker, createdBy', async () => {
+  it('creates with correct fields → type, paymentMethod, date, createdBy', async () => {
     mockCreate.mockResolvedValue({ id: 1 })
 
     await createSettlementAction(
@@ -252,10 +259,9 @@ describe('createSettlementAction — register mode', () => {
       expect.objectContaining({
         collection: 'transactions',
         data: expect.objectContaining({
-          type: 'EMPLOYEE_EXPENSE',
+          type: 'REGISTER_TRANSFER',
           paymentMethod: 'CASH',
           date: '2026-03-15',
-          worker: 1,
           createdBy: mockUser.id,
         }),
       }),
@@ -304,15 +310,19 @@ describe('createSettlementAction — investment mode', () => {
     expect(mockCommitTransaction).toHaveBeenCalledWith(TX_ID)
   })
 
-  it('each item created with investment field set, no otherCategory', async () => {
+  it('each item created as INVESTMENT_EXPENSE with investment and expenseCategory, no otherCategory', async () => {
     mockCreate.mockResolvedValue({ id: 1 })
     mockUploadBulkInvoices.mockResolvedValue([undefined, undefined, undefined])
 
     await createSettlementAction(makeInvestmentData(3), null)
 
     for (const call of mockCreate.mock.calls) {
+      expect(call[0].data.type).toBe('INVESTMENT_EXPENSE')
       expect(call[0].data).toHaveProperty('investment', 1)
+      expect(call[0].data).toHaveProperty('expenseCategory', 1)
+      expect(call[0].data).toHaveProperty('sourceRegister', 1)
       expect(call[0].data.otherCategory).toBeUndefined()
+      expect(call[0].data.worker).toBeUndefined()
     }
   })
 
@@ -411,7 +421,7 @@ describe('createSettlementAction — investment mode', () => {
 // ═════════════════════════════════════════════════════════════════════════
 
 describe('createSettlementAction — category mode', () => {
-  it('valid with category per item → creates with otherCategory and otherDescription', async () => {
+  it('valid with category per item → creates as OTHER with otherCategory and otherDescription', async () => {
     mockCreate.mockResolvedValue({ id: 1 })
     mockUploadBulkInvoices.mockResolvedValue([undefined, undefined])
 
@@ -421,13 +431,28 @@ describe('createSettlementAction — category mode', () => {
     expect(mockCreate).toHaveBeenCalledTimes(2)
 
     expect(mockCreate.mock.calls[0][0].data).toMatchObject({
+      type: 'OTHER',
+      sourceRegister: 1,
       otherCategory: 10,
       otherDescription: 'Note 1',
     })
     expect(mockCreate.mock.calls[1][0].data).toMatchObject({
+      type: 'OTHER',
+      sourceRegister: 1,
       otherCategory: 11,
       otherDescription: 'Note 2',
     })
+  })
+
+  it('no worker field in category mode create calls', async () => {
+    mockCreate.mockResolvedValue({ id: 1 })
+    mockUploadBulkInvoices.mockResolvedValue([undefined, undefined])
+
+    await createSettlementAction(makeCategoryData(2), null)
+
+    for (const call of mockCreate.mock.calls) {
+      expect(call[0].data.worker).toBeUndefined()
+    }
   })
 
   it('missing category per line item → validation error', async () => {
@@ -454,13 +479,14 @@ describe('createSettlementAction — category mode', () => {
     expect(mockCreate).toHaveBeenCalledOnce()
   })
 
-  it('each item created with otherCategory set, no investment', async () => {
+  it('each item created as OTHER with otherCategory set, no investment', async () => {
     mockCreate.mockResolvedValue({ id: 1 })
     mockUploadBulkInvoices.mockResolvedValue([undefined, undefined])
 
     await createSettlementAction(makeCategoryData(2), null)
 
     for (const call of mockCreate.mock.calls) {
+      expect(call[0].data.type).toBe('OTHER')
       expect(call[0].data.otherCategory).toBeDefined()
       expect(call[0].data.investment).toBeUndefined()
     }
@@ -556,27 +582,31 @@ describe('createSettlementAction — cross-mode tests', () => {
 // ═════════════════════════════════════════════════════════════════════════
 
 describe('getManagementEmployeeSaldo', () => {
-  it('returns saldo for authenticated user', async () => {
+  it('returns saldo from sumRegisterBalance for worker register', async () => {
     mockRequireAuth.mockResolvedValueOnce({ success: true, user: mockUser })
-    mockSumFilteredByType.mockResolvedValueOnce([{ type: 'ACCOUNT_FUNDING', total: 1234.56 }])
+    mockFind.mockResolvedValueOnce({ docs: [{ id: 42 }] })
+    mockSumRegisterBalance.mockResolvedValueOnce(1234.56)
 
     const result = await getManagementEmployeeSaldo(42)
 
     expect(result).toEqual({ saldo: 1234.56 })
+    expect(mockSumRegisterBalance).toHaveBeenCalledWith(mockPayload, 42)
   })
 
-  it('returns zero saldo when employee has no transactions', async () => {
+  it('returns zero saldo when no WORKER register found', async () => {
     mockRequireAuth.mockResolvedValueOnce({ success: true, user: mockUser })
-    mockSumFilteredByType.mockResolvedValueOnce([])
+    mockFind.mockResolvedValueOnce({ docs: [] })
 
     const result = await getManagementEmployeeSaldo(99)
 
     expect(result).toEqual({ saldo: 0 })
+    expect(mockSumRegisterBalance).not.toHaveBeenCalled()
   })
 
-  it('returns negative saldo when employee owes money', async () => {
+  it('returns negative saldo when register balance is negative', async () => {
     mockRequireAuth.mockResolvedValueOnce({ success: true, user: mockUser })
-    mockSumFilteredByType.mockResolvedValueOnce([{ type: 'EMPLOYEE_EXPENSE', total: 350 }])
+    mockFind.mockResolvedValueOnce({ docs: [{ id: 7 }] })
+    mockSumRegisterBalance.mockResolvedValueOnce(-350)
 
     const result = await getManagementEmployeeSaldo(7)
 
@@ -591,12 +621,13 @@ describe('getManagementEmployeeSaldo', () => {
     })
 
     await expect(getManagementEmployeeSaldo(1)).rejects.toThrow('Brak uprawnień')
-    expect(mockSumFilteredByType).not.toHaveBeenCalled()
+    expect(mockSumRegisterBalance).not.toHaveBeenCalled()
   })
 
   it('requireAuth called with MANAGEMENT_ROLES', async () => {
     mockRequireAuth.mockResolvedValueOnce({ success: true, user: mockUser })
-    mockSumFilteredByType.mockResolvedValueOnce([])
+    mockFind.mockResolvedValueOnce({ docs: [{ id: 1 }] })
+    mockSumRegisterBalance.mockResolvedValueOnce(0)
 
     await getManagementEmployeeSaldo(1)
 
@@ -605,16 +636,18 @@ describe('getManagementEmployeeSaldo', () => {
     )
   })
 
-  it('sumFilteredByType called with correct worker filter', async () => {
+  it('payload.find called with correct worker and WORKER type filter', async () => {
     mockRequireAuth.mockResolvedValueOnce({ success: true, user: mockUser })
-    mockSumFilteredByType.mockResolvedValueOnce([])
+    mockFind.mockResolvedValueOnce({ docs: [{ id: 55 }] })
+    mockSumRegisterBalance.mockResolvedValueOnce(0)
 
     await getManagementEmployeeSaldo(55)
 
-    expect(mockSumFilteredByType).toHaveBeenCalledOnce()
-    expect(mockSumFilteredByType).toHaveBeenCalledWith(mockPayload, {
-      worker: { equals: 55 },
-      type: { in: ['ACCOUNT_FUNDING', 'EMPLOYEE_EXPENSE'] },
+    expect(mockFind).toHaveBeenCalledOnce()
+    expect(mockFind).toHaveBeenCalledWith({
+      collection: 'cash-registers',
+      where: { owner: { equals: 55 }, type: { equals: 'WORKER' } },
+      limit: 1,
     })
   })
 })
