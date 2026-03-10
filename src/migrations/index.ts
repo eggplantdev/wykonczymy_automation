@@ -23,6 +23,9 @@ import * as migration_20260222_1_add_cancellation_columns from './20260222_1_add
 import * as migration_20260222_drop_materialized_columns from './20260222_drop_materialized_columns'
 import * as migration_20260307_add_labor_cost_type_drop_labor_costs from './20260307_add_labor_cost_type_drop_labor_costs'
 import * as migration_20260309_add_expense_categories from './20260309_add_expense_categories'
+import * as migration_20260310_fix_locked_docs_expense_categories from './20260310_fix_locked_docs_expense_categories'
+import * as migration_20260310_0_add_worker_register_type from './20260310_0_add_worker_register_type'
+import * as migration_20260310_workers_as_registers from './20260310_workers_as_registers'
 
 export const migrations = [
   {
@@ -149,5 +152,20 @@ export const migrations = [
     up: migration_20260309_add_expense_categories.up,
     down: migration_20260309_add_expense_categories.down,
     name: '20260309_add_expense_categories',
+  },
+  {
+    up: migration_20260310_fix_locked_docs_expense_categories.up,
+    down: migration_20260310_fix_locked_docs_expense_categories.down,
+    name: '20260310_fix_locked_docs_expense_categories',
+  },
+  {
+    up: migration_20260310_0_add_worker_register_type.up,
+    down: migration_20260310_0_add_worker_register_type.down,
+    name: '20260310_0_add_worker_register_type',
+  },
+  {
+    up: migration_20260310_workers_as_registers.up,
+    down: migration_20260310_workers_as_registers.down,
+    name: '20260310_workers_as_registers',
   },
 ]
