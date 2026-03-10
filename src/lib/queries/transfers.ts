@@ -62,11 +62,6 @@ export function buildTransferFilters(
   const NO_RESULTS = { equals: -1 } as const
   const where: Where = {}
 
-  // EMPLOYEE: always filter by own worker ID
-  if (!userContext.isManager) {
-    where.worker = { equals: userContext.id }
-  }
-
   // Manager scoped to own transactions (dashboard only)
   if (userContext.onlyOwnTransfers) {
     where.createdBy = { equals: userContext.id }
@@ -82,11 +77,15 @@ export function buildTransferFilters(
     else where.id = NO_RESULTS // No valid types → return no results
   }
 
-  // Source register filter (supports comma-separated multi-select)
+  // Cash register filter — matches source OR target register
   const sourceRegisterParam = getStringParam(searchParams.sourceRegister)
   const sourceRegisterIds = parseNumericIds(sourceRegisterParam)
-  if (sourceRegisterIds.length > 0) where.sourceRegister = { in: sourceRegisterIds }
-  else if (sourceRegisterParam) where.id = NO_RESULTS
+  if (sourceRegisterIds.length > 0) {
+    where.or = [
+      { sourceRegister: { in: sourceRegisterIds } },
+      { targetRegister: { in: sourceRegisterIds } },
+    ]
+  } else if (sourceRegisterParam) where.id = NO_RESULTS
 
   // Investment filter (supports comma-separated multi-select)
   const investmentParam = getStringParam(searchParams.investment)
@@ -100,14 +99,6 @@ export function buildTransferFilters(
     const createdByIds = parseNumericIds(createdByParam)
     if (createdByIds.length > 0) where.createdBy = { in: createdByIds }
     else if (createdByParam) where.id = NO_RESULTS
-  }
-
-  // Worker filter — skip for employees (they already have worker scoped above)
-  if (userContext.isManager) {
-    const workerParam = getStringParam(searchParams.worker)
-    const workerIds = parseNumericIds(workerParam)
-    if (workerIds.length > 0) where.worker = { in: workerIds }
-    else if (workerParam) where.id = NO_RESULTS
   }
 
   // Payment method filter (validates against known methods)

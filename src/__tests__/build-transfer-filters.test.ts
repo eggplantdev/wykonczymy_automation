@@ -9,25 +9,9 @@ const employeeCtx = { id: 5, isManager: false } as const
 // ── Role scoping ─────────────────────────────────────────────────────────
 
 describe('buildTransferFilters — role scoping', () => {
-  it('EMPLOYEE always filters by own worker ID', () => {
-    const where = buildTransferFilters({}, employeeCtx)
-    expect(where.worker).toEqual({ equals: 5 })
-  })
-
-  it('manager does NOT add worker filter', () => {
-    const where = buildTransferFilters({}, managerCtx)
-    expect(where.worker).toBeUndefined()
-  })
-
   it('onlyOwnTransfers adds createdBy filter', () => {
     const where = buildTransferFilters({}, { ...managerCtx, onlyOwnTransfers: true })
     expect(where.createdBy).toEqual({ equals: 1 })
-  })
-
-  it('EMPLOYEE + onlyOwnTransfers has both filters', () => {
-    const where = buildTransferFilters({}, { ...employeeCtx, onlyOwnTransfers: true })
-    expect(where.worker).toEqual({ equals: 5 })
-    expect(where.createdBy).toEqual({ equals: 5 })
   })
 
   it('onlyOwnTransfers ignores createdBy search param (security)', () => {
@@ -57,14 +41,17 @@ describe('buildTransferFilters — search params', () => {
     expect(where.type).toEqual({ in: ['PAYOUT'] })
   })
 
-  it('sourceRegister param adds numeric filter', () => {
+  it('sourceRegister param adds OR filter for source and target', () => {
     const where = buildTransferFilters({ sourceRegister: '3' }, managerCtx)
-    expect(where.sourceRegister).toEqual({ in: [3] })
+    expect(where.or).toEqual([{ sourceRegister: { in: [3] } }, { targetRegister: { in: [3] } }])
   })
 
   it('sourceRegister param supports multi-select', () => {
     const where = buildTransferFilters({ sourceRegister: '3,5' }, managerCtx)
-    expect(where.sourceRegister).toEqual({ in: [3, 5] })
+    expect(where.or).toEqual([
+      { sourceRegister: { in: [3, 5] } },
+      { targetRegister: { in: [3, 5] } },
+    ])
   })
 
   it('investment param adds numeric filter', () => {
@@ -111,28 +98,8 @@ describe('buildTransferFilters — search params', () => {
       managerCtx,
     )
     expect(where.type).toEqual({ in: ['INVESTMENT_EXPENSE'] })
-    expect(where.sourceRegister).toEqual({ in: [1] })
+    expect(where.or).toEqual([{ sourceRegister: { in: [1] } }, { targetRegister: { in: [1] } }])
     expect(where.date).toEqual({ greater_than_equal: '2024-06-01' })
-  })
-
-  it('worker param adds numeric filter', () => {
-    const where = buildTransferFilters({ worker: '10' }, managerCtx)
-    expect(where.worker).toEqual({ in: [10] })
-  })
-
-  it('worker param supports multi-select', () => {
-    const where = buildTransferFilters({ worker: '10,20' }, managerCtx)
-    expect(where.worker).toEqual({ in: [10, 20] })
-  })
-
-  it('worker param with invalid value returns no results', () => {
-    const where = buildTransferFilters({ worker: 'abc' }, managerCtx)
-    expect(where.id).toEqual({ equals: -1 })
-  })
-
-  it('employee worker filter takes precedence over worker param', () => {
-    const where = buildTransferFilters({ worker: '10' }, employeeCtx)
-    expect(where.worker).toEqual({ equals: 5 })
   })
 
   it('paymentMethod param adds filter', () => {

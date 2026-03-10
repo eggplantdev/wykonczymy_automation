@@ -183,10 +183,14 @@ describe('buildSqlConditions — filter translation', () => {
     expect(queryStr).toContain('investment_id IN (5)')
   })
 
-  it('passes worker filter to SQL', async () => {
-    await sumFilteredByType(fakePayload, { worker: { in: [10, 20] } })
+  it('passes OR register filter to SQL', async () => {
+    await sumFilteredByType(fakePayload, {
+      or: [{ sourceRegister: { in: [3] } }, { targetRegister: { in: [3] } }],
+    })
     const queryStr = extractSql(mockExecute.mock.calls[0][0])
-    expect(queryStr).toContain('worker_id IN (10, 20)')
+    expect(queryStr).toContain('source_register_id IN (3)')
+    expect(queryStr).toContain('target_register_id IN (3)')
+    expect(queryStr).toContain(' OR ')
   })
 
   it('passes payment method filter to SQL', async () => {

@@ -130,11 +130,15 @@ export function RegisterTransferForm({
             cashRegisters={referenceData.cashRegisters}
           />
 
-          {/* Amount */}
-          <AmountField form={form} />
-
-          {/* Date */}
-          <DateField form={form} />
+          {/* Amount + Date */}
+          <div className="flex items-start gap-4">
+            <div className="min-w-0 flex-1">
+              <AmountField form={form} />
+            </div>
+            <div className="w-40">
+              <DateField form={form} />
+            </div>
+          </div>
 
           {/* Payment method — temporarily hidden, always CASH */}
           {/* <PaymentMethodField form={form} /> */}

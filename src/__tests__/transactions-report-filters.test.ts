@@ -11,7 +11,6 @@ describe('transactions report — filter combinations', () => {
         sourceRegister: '1',
         investment: '5',
         createdBy: '3',
-        worker: '10',
         paymentMethod: 'CASH',
         otherCategory: '2',
         from: '2024-01-01',
@@ -20,10 +19,9 @@ describe('transactions report — filter combinations', () => {
       adminCtx,
     )
     expect(where.type).toEqual({ in: ['INVESTMENT_EXPENSE'] })
-    expect(where.sourceRegister).toEqual({ in: [1] })
+    expect(where.or).toEqual([{ sourceRegister: { in: [1] } }, { targetRegister: { in: [1] } }])
     expect(where.investment).toEqual({ in: [5] })
     expect(where.createdBy).toEqual({ in: [3] })
-    expect(where.worker).toEqual({ in: [10] })
     expect(where.paymentMethod).toEqual({ in: ['CASH'] })
     expect(where.otherCategory).toEqual({ in: [2] })
     expect(where.date).toEqual({
@@ -40,11 +38,6 @@ describe('transactions report — filter combinations', () => {
   it('invalid paymentMethod returns no results', () => {
     const where = buildTransferFilters({ paymentMethod: 'BITCOIN' }, adminCtx)
     expect(where.id).toEqual({ equals: -1 })
-  })
-
-  it('multiple workers via comma-separated param', () => {
-    const where = buildTransferFilters({ worker: '10,20,30' }, adminCtx)
-    expect(where.worker).toEqual({ in: [10, 20, 30] })
   })
 
   it('multiple categories via comma-separated param', () => {
