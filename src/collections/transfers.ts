@@ -151,7 +151,7 @@ export const Transfers: CollectionConfig = {
       name: 'expenseCategory',
       type: 'relationship',
       relationTo: 'expense-categories',
-      label: { en: 'Expense Category', pl: 'Kategoria wydatku' },
+      label: { en: 'Investment Expense Type', pl: 'Typ wydatku inwestycyjnego' },
       access: { update: () => false },
       admin: {
         condition: (data) => showExpenseCategory(data),
