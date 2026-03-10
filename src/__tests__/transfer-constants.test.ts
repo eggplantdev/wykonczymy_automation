@@ -8,7 +8,6 @@ import {
   needsSourceRegister,
   showsInvestment,
   requiresInvestment,
-  needsWorker,
   needsTargetRegister,
   needsOtherCategory,
   needsExpenseCategory,
@@ -25,22 +24,16 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
   },
   needsSourceRegister: {
     fn: needsSourceRegister,
-    // true for everything EXCEPT EMPLOYEE_EXPENSE and LABOR_COST
-    trueFor: TRANSFER_TYPES.filter(
-      (t) => t !== 'EMPLOYEE_EXPENSE' && t !== 'LABOR_COST',
-    ) as string[],
+    // true for everything EXCEPT LABOR_COST
+    trueFor: TRANSFER_TYPES.filter((t) => t !== 'LABOR_COST') as string[],
   },
   showsInvestment: {
     fn: showsInvestment,
-    trueFor: ['INVESTOR_DEPOSIT', 'INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE', 'LABOR_COST'],
+    trueFor: ['INVESTOR_DEPOSIT', 'INVESTMENT_EXPENSE', 'LABOR_COST'],
   },
   requiresInvestment: {
     fn: requiresInvestment,
     trueFor: ['INVESTOR_DEPOSIT', 'INVESTMENT_EXPENSE', 'LABOR_COST'],
-  },
-  needsWorker: {
-    fn: needsWorker,
-    trueFor: ['ACCOUNT_FUNDING', 'EMPLOYEE_EXPENSE'],
   },
   needsTargetRegister: {
     fn: needsTargetRegister,
@@ -48,7 +41,7 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
   },
   needsOtherCategory: {
     fn: needsOtherCategory,
-    trueFor: ['OTHER', 'EMPLOYEE_EXPENSE'],
+    trueFor: ['OTHER'],
   },
   needsExpenseCategory: {
     fn: needsExpenseCategory,
@@ -76,7 +69,6 @@ describe('TRANSACTION_TRANSFER_TYPES', () => {
       'LABOR_COST',
       'INVESTMENT_EXPENSE',
       'PAYOUT',
-      'ACCOUNT_FUNDING',
     ])
   })
 
@@ -90,8 +82,8 @@ describe('TRANSACTION_TRANSFER_TYPES', () => {
     expect(TRANSACTION_TRANSFER_TYPES).not.toContain('REGISTER_TRANSFER')
   })
 
-  it('excludes EMPLOYEE_EXPENSE', () => {
-    expect(TRANSACTION_TRANSFER_TYPES).not.toContain('EMPLOYEE_EXPENSE')
+  it('excludes ACCOUNT_FUNDING', () => {
+    expect(TRANSACTION_TRANSFER_TYPES).not.toContain('ACCOUNT_FUNDING')
   })
 
   it('every entry is a valid TransferTypeT', () => {
