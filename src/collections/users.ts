@@ -36,7 +36,7 @@ const autoCreateWorkerRegister: CollectionAfterChangeHook = async ({
   await req.payload.create({
     collection: 'cash-registers',
     data: {
-      name: `Konto - ${doc.name}`,
+      name: `Kasa - ${doc.name}`,
       owner: doc.id,
       type: 'WORKER',
       active: true,

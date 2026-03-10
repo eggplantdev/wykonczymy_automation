@@ -5,6 +5,7 @@ import { DataTable } from '@/components/ui/data-table/data-table'
 import { ActiveFilterButton } from '@/components/ui/active-filter-button'
 import { FilterMultiSelect, FILTER_NONE } from '@/components/transfers/filter-multi-select'
 import { Tags, User } from 'lucide-react'
+import { ColumnToggle } from '@/components/ui/column-toggle'
 import { SearchFilterInput } from '@/components/ui/search-filter-input'
 import { getCashRegisterColumns, REGISTER_TYPE_LABELS } from '@/lib/tables/cash-registers'
 import { getUserColumns } from '@/lib/tables/users'
@@ -107,9 +108,10 @@ function CashRegistersTable({ data, className }: CashRegistersTablePropsT) {
       className={className}
       data={filteredData}
       columns={columns}
+      storageKey="cashRegisters"
       getRowHref={(row) => `/kasa/${row.id}`}
       getRowClassName={(row) => (!row.active ? 'opacity-50' : '')}
-      toolbar={() => (
+      toolbar={(table, cv) => (
         <>
           <SearchFilterInput value={searchTerm} onChange={setSearchTerm} placeholder="Szukaj..." />
           <FilterMultiSelect
@@ -133,6 +135,7 @@ function CashRegistersTable({ data, className }: CashRegistersTablePropsT) {
             activeLabel="Aktywne"
             allLabel="Wszystkie"
           />
+          <ColumnToggle table={table} columnVisibility={cv} />
         </>
       )}
     />
@@ -196,9 +199,10 @@ function UsersTable({ data }: UsersTablePropsT) {
     <DataTable
       data={filteredData}
       columns={columns}
+      storageKey="users"
       getRowHref={(row) => `/uzytkownicy/${row.id}`}
       getRowClassName={(row) => (!row.active ? 'opacity-50' : '')}
-      toolbar={() => (
+      toolbar={(table, cv) => (
         <>
           <SearchFilterInput value={searchTerm} onChange={setSearchTerm} placeholder="Szukaj..." />
           <ActiveFilterButton
@@ -207,6 +211,7 @@ function UsersTable({ data }: UsersTablePropsT) {
             activeLabel="Aktywni"
             allLabel="Wszyscy"
           />
+          <ColumnToggle table={table} columnVisibility={cv} />
         </>
       )}
     />
