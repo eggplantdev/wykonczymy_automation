@@ -67,6 +67,7 @@ export async function withAction(
     console.log(`[PERF] ${label} ${elapsed()}ms`)
     return result
   } catch (err) {
+    console.error(`[ACTION_ERROR] ${label}`, err)
     return { success: false, error: getErrorMessage(err) }
   }
 }
