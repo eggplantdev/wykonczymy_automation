@@ -10,6 +10,7 @@ import {
   TRANSFER_TYPE_LABELS,
   PAYMENT_METHOD_LABELS,
   isCancellationType,
+  EXPENSE_CATEGORY_LABEL,
   type TransferTypeT,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
@@ -219,7 +220,7 @@ const allColumns = [
   }),
   col.accessor('expenseCategoryName', {
     id: 'expenseCategory',
-    header: 'Typ wydatku inwestycyjnego',
+    header: EXPENSE_CATEGORY_LABEL,
     cell: (info) => info.getValue(),
   }),
   col.accessor('description', {

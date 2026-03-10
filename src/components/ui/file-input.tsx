@@ -77,14 +77,14 @@ function FileInput({ className, label, onChange, accept, ref, ...props }: FileIn
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={cn(
-          'flex cursor-pointer items-center justify-center gap-2 rounded-md border-2 border-dashed p-2 transition-colors',
+          'border-input bg-background flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md border px-3 transition-colors',
           'text-muted-foreground hover:border-primary/50 hover:bg-muted/50',
           isDragOver && 'border-primary bg-muted/50',
           className,
         )}
       >
-        <Upload className="size-6" />
-        <span className="text-sm">{fileName ?? label ?? 'Przeciągnij plik lub kliknij'}</span>
+        <Upload className="size-4" />
+        <span className="text-sm">{fileName ?? label ?? 'FV - Przeciągnij lub kliknij'}</span>
 
         <input
           ref={setRefs}

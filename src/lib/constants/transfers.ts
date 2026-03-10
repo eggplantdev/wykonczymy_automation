@@ -24,6 +24,8 @@ export const TRANSFER_TYPE_LABELS: Record<TransferTypeT, string> = {
   CANCELLATION: 'Anulowanie',
 }
 
+export const EXPENSE_CATEGORY_LABEL = 'Typ wydatku inwestycyjnego'
+
 export const DEPOSIT_TYPES: TransferTypeT[] = [
   'INVESTOR_DEPOSIT',
   'COMPANY_FUNDING',
