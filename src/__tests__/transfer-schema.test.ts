@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   createTransferSchema,
+  createBulkTransferSchema,
   transferFormSchema,
 } from '@/components/forms/transfer-form/transfer-schema'
 
@@ -202,6 +203,65 @@ describe('createTransferSchema — amount edge cases', () => {
     const result = createTransferSchema.safeParse({
       ...VALID_SERVER_PAYLOADS.COMPANY_FUNDING,
       amount: 0.01,
+    })
+    expect(result.success).toBe(true)
+  })
+})
+
+// ── Bulk transfer schema — per-line-item category ───────────────────────
+
+describe('createBulkTransferSchema — per-line-item category', () => {
+  const bulkBase = {
+    date: '2026-02-25',
+    type: 'OTHER' as const,
+    paymentMethod: 'CASH' as const,
+    sourceRegister: 1,
+  }
+
+  it('OTHER with per-line category → passes', () => {
+    const result = createBulkTransferSchema.safeParse({
+      ...bulkBase,
+      lineItems: [{ description: 'Item', amount: 100, category: 5 }],
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('OTHER without per-line category → fails on lineItems.0.category', () => {
+    const result = createBulkTransferSchema.safeParse({
+      ...bulkBase,
+      lineItems: [{ description: 'Item', amount: 100 }],
+    })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      const paths = result.error.issues.map((i) => i.path.join('.'))
+      expect(paths).toContain('lineItems.0.category')
+    }
+  })
+
+  it('INVESTMENT_EXPENSE with optional per-line category → passes', () => {
+    const result = createBulkTransferSchema.safeParse({
+      ...bulkBase,
+      type: 'INVESTMENT_EXPENSE',
+      investment: 1,
+      expenseCategory: 1,
+      lineItems: [{ description: 'Item', amount: 100, category: 3 }],
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('PAYOUT without per-line category → passes (optional)', () => {
+    const result = createBulkTransferSchema.safeParse({
+      ...bulkBase,
+      type: 'PAYOUT',
+      lineItems: [{ description: 'Item', amount: 100 }],
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('line item with note → passes', () => {
+    const result = createBulkTransferSchema.safeParse({
+      ...bulkBase,
+      lineItems: [{ description: 'Item', amount: 100, category: 5, note: 'Test note' }],
     })
     expect(result.success).toBe(true)
   })
