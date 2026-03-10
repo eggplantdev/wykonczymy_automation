@@ -20,7 +20,7 @@ export function AddTransferDialog({ referenceData }: AddTransferDialogPropsT) {
           <span className="hidden lg:block">Wydatek / zaliczka </span>
         </Button>
       }
-      title="Nowa transakcja"
+      title="Nowy wydatek"
     >
       {(onSuccess, keepOpen) => (
         <TransferForm referenceData={referenceData} onSuccess={onSuccess} keepOpen={keepOpen} />
