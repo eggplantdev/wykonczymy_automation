@@ -8,11 +8,6 @@ const TRANSFER_TYPES = [
   { label: { en: 'Company Funding', pl: 'Zasilenie z konta firmowego' }, value: 'COMPANY_FUNDING' },
   { label: { en: 'Other Deposit', pl: 'Inna wpłata' }, value: 'OTHER_DEPOSIT' },
   { label: { en: 'Investment Expense', pl: 'Wydatek inwestycyjny' }, value: 'INVESTMENT_EXPENSE' },
-  {
-    label: { en: 'Account Funding', pl: 'Zasilenie konta współpracownika' },
-    value: 'ACCOUNT_FUNDING',
-  },
-  { label: { en: 'Employee Expense', pl: 'Wydatek pracowniczy' }, value: 'EMPLOYEE_EXPENSE' },
   { label: { en: 'Labor Cost', pl: 'Koszty robocizny' }, value: 'LABOR_COST' },
   {
     label: { en: 'Register Transfer', pl: 'Transfer między kasami' },
@@ -30,31 +25,23 @@ const PAYMENT_METHODS = [
   { label: { en: 'Card', pl: 'Karta' }, value: 'CARD' },
 ] as const
 
-/** Show sourceRegister for all types except EMPLOYEE_EXPENSE and LABOR_COST */
-const showSourceRegister = (data: Record<string, unknown>) =>
-  data?.type !== 'EMPLOYEE_EXPENSE' && data?.type !== 'LABOR_COST'
+/** Show sourceRegister for all types except LABOR_COST */
+const showSourceRegister = (data: Record<string, unknown>) => data?.type !== 'LABOR_COST'
 
 /** Show investment field for types that use it (required or optional) */
 const showInvestment = (data: Record<string, unknown>) =>
   data?.type === 'INVESTOR_DEPOSIT' ||
   data?.type === 'INVESTMENT_EXPENSE' ||
-  data?.type === 'EMPLOYEE_EXPENSE' ||
   data?.type === 'LABOR_COST'
-
-/** Show field when type includes worker */
-const needsWorker = (data: Record<string, unknown>) =>
-  data?.type === 'ACCOUNT_FUNDING' || data?.type === 'EMPLOYEE_EXPENSE'
 
 /** Show targetRegister only for REGISTER_TRANSFER */
 const showTargetRegister = (data: Record<string, unknown>) => data?.type === 'REGISTER_TRANSFER'
 
 /** Show field when type is OTHER */
-const needsOtherCategory = (data: Record<string, unknown>) =>
-  data?.type === 'OTHER' || data?.type === 'EMPLOYEE_EXPENSE'
+const needsOtherCategory = (data: Record<string, unknown>) => data?.type === 'OTHER'
 
-/** Show expenseCategory for investment-related expense types */
-const showExpenseCategory = (data: Record<string, unknown>) =>
-  data?.type === 'INVESTMENT_EXPENSE' || (data?.type === 'EMPLOYEE_EXPENSE' && !!data?.investment)
+/** Show expenseCategory for INVESTMENT_EXPENSE */
+const showExpenseCategory = (data: Record<string, unknown>) => data?.type === 'INVESTMENT_EXPENSE'
 
 export const Transfers: CollectionConfig = {
   slug: 'transactions',
@@ -177,7 +164,7 @@ export const Transfers: CollectionConfig = {
       label: { en: 'Worker', pl: 'Pracownik' },
       access: { update: () => false },
       admin: {
-        condition: (data) => needsWorker(data),
+        condition: () => false,
       },
     },
     {
