@@ -14,6 +14,13 @@ export type CashRegisterRowT = {
   readonly active: boolean
 }
 
+export const REGISTER_TYPE_LABELS: Record<CashRegisterTypeT, string> = {
+  MAIN: 'Główna',
+  AUXILIARY: 'Pomocnicza',
+  VIRTUAL: 'Wirtualna',
+  WORKER: 'Pracownicza',
+}
+
 const col = createColumnHelper<CashRegisterRowT>()
 
 export function getCashRegisterColumns(onToggle: (id: number, newActive: boolean) => void) {
@@ -21,6 +28,11 @@ export function getCashRegisterColumns(onToggle: (id: number, newActive: boolean
     col.accessor('name', {
       id: 'name',
       header: 'Nazwa',
+    }),
+    col.accessor('type', {
+      id: 'type',
+      header: 'Typ',
+      cell: (info) => REGISTER_TYPE_LABELS[info.getValue()],
     }),
     col.accessor('ownerName', {
       id: 'ownerName',

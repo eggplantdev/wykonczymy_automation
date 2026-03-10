@@ -1,10 +1,12 @@
 'use client'
 
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { DataTable } from '@/components/ui/data-table/data-table'
 import { ActiveFilterButton } from '@/components/ui/active-filter-button'
+import { FilterMultiSelect, FILTER_NONE } from '@/components/transfers/filter-multi-select'
+import { Tags, User } from 'lucide-react'
 import { SearchFilterInput } from '@/components/ui/search-filter-input'
-import { getCashRegisterColumns } from '@/lib/tables/cash-registers'
+import { getCashRegisterColumns, REGISTER_TYPE_LABELS } from '@/lib/tables/cash-registers'
 import { getUserColumns } from '@/lib/tables/users'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { InvestmentDataTable } from '@/components/investments/investment-data-table'
@@ -14,6 +16,7 @@ import { useSearchFilter } from '@/hooks/use-search-filter'
 import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle'
 import { toggleCashRegisterActive, toggleUserActive } from '@/lib/actions/toggle-active'
 import type { CashRegisterRowT } from '@/lib/tables/cash-registers'
+import type { CashRegisterTypeT } from '@/types/reference-data'
 import type { InvestmentRowT } from '@/lib/tables/investments'
 import type { UserRowT } from '@/lib/tables/users'
 
@@ -26,6 +29,23 @@ type CashRegistersTablePropsT = {
   className?: string
 }
 
+function useClientMultiFilter<TItem>(
+  data: readonly TItem[],
+  accessor: (item: TItem) => string,
+  allValues: readonly string[],
+) {
+  const [values, setValues] = useState<string[]>([])
+
+  const filteredData = useMemo(() => {
+    const hasNone = values.length === 1 && values[0] === FILTER_NONE
+    if (hasNone) return []
+    if (values.length === 0) return data
+    return data.filter((item) => values.includes(accessor(item)))
+  }, [data, values, accessor])
+
+  return { filteredData, values, setValues } as const
+}
+
 function CashRegistersTable({ data, className }: CashRegistersTablePropsT) {
   const { optimisticData, handleToggle } = useOptimisticToggle(
     data,
@@ -33,9 +53,51 @@ function CashRegistersTable({ data, className }: CashRegistersTablePropsT) {
     toggleCashRegisterActive,
   )
 
-  const { filteredData, showOnlyActive, setShowOnlyActive } = useActiveFilter(
-    optimisticData,
-    isCashRegisterActive,
+  const {
+    filteredData: activeFiltered,
+    showOnlyActive,
+    setShowOnlyActive,
+  } = useActiveFilter(optimisticData, isCashRegisterActive)
+
+  const typeOptions = useMemo(
+    () =>
+      (Object.keys(REGISTER_TYPE_LABELS) as CashRegisterTypeT[]).map((value) => ({
+        value,
+        label: REGISTER_TYPE_LABELS[value],
+      })),
+    [],
+  )
+
+  const ownerOptions = useMemo(() => {
+    const uniqueOwners = [...new Set(optimisticData.map((r) => r.ownerName))].filter(Boolean).sort()
+    return uniqueOwners.map((name) => ({ value: name, label: name }))
+  }, [optimisticData])
+
+  const getType = useCallback((row: CashRegisterRowT) => row.type, [])
+  const getOwner = useCallback((row: CashRegisterRowT) => row.ownerName, [])
+
+  const allTypes = useMemo(() => typeOptions.map((o) => o.value), [typeOptions])
+  const allOwners = useMemo(() => ownerOptions.map((o) => o.value), [ownerOptions])
+
+  const {
+    filteredData: typeFiltered,
+    values: typeValues,
+    setValues: setTypeValues,
+  } = useClientMultiFilter(activeFiltered, getType, allTypes)
+
+  const {
+    filteredData: ownerFiltered,
+    values: ownerValues,
+    setValues: setOwnerValues,
+  } = useClientMultiFilter(typeFiltered, getOwner, allOwners)
+
+  const getSearchableText = useCallback(
+    (row: CashRegisterRowT) => `${row.name} ${row.ownerName}`,
+    [],
+  )
+  const { filteredData, searchTerm, setSearchTerm } = useSearchFilter(
+    ownerFiltered,
+    getSearchableText,
   )
 
   const columns = useMemo(() => getCashRegisterColumns(handleToggle), [handleToggle])
@@ -48,12 +110,30 @@ function CashRegistersTable({ data, className }: CashRegistersTablePropsT) {
       getRowHref={(row) => `/kasa/${row.id}`}
       getRowClassName={(row) => (!row.active ? 'opacity-50' : '')}
       toolbar={() => (
-        <ActiveFilterButton
-          isActive={showOnlyActive}
-          onChange={setShowOnlyActive}
-          activeLabel="Aktywne"
-          allLabel="Wszystkie"
-        />
+        <>
+          <SearchFilterInput value={searchTerm} onChange={setSearchTerm} placeholder="Szukaj..." />
+          <FilterMultiSelect
+            label="Typ"
+            options={typeOptions}
+            values={typeValues}
+            onValuesChange={setTypeValues}
+            icon={Tags}
+          />
+          <FilterMultiSelect
+            label="Właściciel"
+            options={ownerOptions}
+            values={ownerValues}
+            onValuesChange={setOwnerValues}
+            icon={User}
+            searchable
+          />
+          <ActiveFilterButton
+            isActive={showOnlyActive}
+            onChange={setShowOnlyActive}
+            activeLabel="Aktywne"
+            allLabel="Wszystkie"
+          />
+        </>
       )}
     />
   )
