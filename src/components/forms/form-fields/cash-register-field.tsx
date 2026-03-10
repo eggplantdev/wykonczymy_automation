@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { SelectItem } from '@/components/ui/select'
 import { ActiveFilterLabel } from './active-filter-label'
 import { EmptyFieldMessage } from './empty-field-message'
 import type { CashRegisterTypeT, ReferenceItemT } from '@/types/reference-data'
@@ -55,18 +54,23 @@ export function CashRegisterField({
   const emptyMessage = availableRegisters.length === 0 ? 'Brak kas' : 'Brak aktywnych kas'
   const labelExtra = <ActiveFilterLabel activeOnly={activeOnly} onToggle={setActiveOnly} />
 
+  const comboboxItems = useMemo(
+    () => filteredRegisters.map((cr) => ({ value: String(cr.id), label: cr.name })),
+    [filteredRegisters],
+  )
+
   return (
     <form.AppField name={name} listeners={listeners}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       {(field: any) =>
         filteredRegisters.length > 0 ? (
-          <field.Select label={label} labelExtra={labelExtra} placeholder={placeholder} showError>
-            {filteredRegisters.map((cr) => (
-              <SelectItem key={cr.id} value={String(cr.id)}>
-                {cr.name}
-              </SelectItem>
-            ))}
-          </field.Select>
+          <field.Combobox
+            label={label}
+            labelExtra={labelExtra}
+            placeholder={placeholder}
+            items={comboboxItems}
+            showError
+          />
         ) : (
           <EmptyFieldMessage label={label} message={emptyMessage} labelExtra={labelExtra} />
         )
