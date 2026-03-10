@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
@@ -13,7 +12,6 @@ import {
   isDepositType,
   needsSourceRegister,
   showsInvestment,
-  needsWorker,
   needsTargetRegister,
   needsOtherCategory,
   type TransferTypeT,
@@ -33,7 +31,6 @@ import {
   ExpenseCategoryField,
   InvestmentField,
   LineItemsField,
-  WorkerField,
 } from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
@@ -53,7 +50,6 @@ type FormValuesT = {
   sourceRegister: string
   targetRegister: string
   investment: string
-  worker: string
   expenseCategory: string
   otherCategory: string
   otherDescription: string
@@ -74,7 +70,6 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
     useInvoiceFiles(recoveredFiles)
   const userCashRegisterIds = getUserCashRegisterIds(referenceData)
   const isSourceRestricted = userCashRegisterIds !== undefined
-  const [expenseTarget, setExpenseTarget] = useState<'investment' | 'other'>('investment')
 
   const form = useAppForm({
     defaultValues:
@@ -86,7 +81,6 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
         sourceRegister: getDefaultCashRegister(referenceData),
         targetRegister: '',
         investment: '',
-        worker: '',
         expenseCategory: referenceData.expenseCategories[0]
           ? String(referenceData.expenseCategories[0].id)
           : '',
@@ -107,7 +101,6 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
         sourceRegister: value.sourceRegister ? Number(value.sourceRegister) : undefined,
         targetRegister: value.targetRegister ? Number(value.targetRegister) : undefined,
         investment: value.investment ? Number(value.investment) : undefined,
-        worker: value.worker ? Number(value.worker) : undefined,
         expenseCategory: value.expenseCategory ? Number(value.expenseCategory) : undefined,
         otherCategory: value.otherCategory ? Number(value.otherCategory) : undefined,
         otherDescription: value.otherDescription || undefined,
@@ -146,17 +139,15 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
   useCheckFormErrors(form)
 
   const currentType = useStore(form.store, (s) => s.values.type)
-  const isAccountFunding = currentType === 'ACCOUNT_FUNDING'
   const lineItems = useStore(form.store, (s) => s.values.lineItems)
   const total = lineItems.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
 
   // TanStack Form preserves values of unmounted fields. When the user switches
-  // transfer type, hidden fields (e.g. investment, worker) keep stale selections.
+  // transfer type, hidden fields (e.g. investment) keep stale selections.
   // Reset them so validation and submission use a clean slate for the new type.
   const conditionalFields = [
     'targetRegister',
     'investment',
-    'worker',
     'expenseCategory',
     'otherCategory',
     'otherDescription',
@@ -166,7 +157,6 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
     conditionalFields.forEach((field) => form.resetField(field))
     if (!isSourceRestricted || (userCashRegisterIds && userCashRegisterIds.length > 1))
       form.resetField('sourceRegister')
-    setExpenseTarget('investment')
   }
 
   return (
@@ -194,74 +184,36 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
           </form.AppField>
           <DateField form={form} />
 
-          {/* Radio toggle for EMPLOYEE_EXPENSE: investment vs other category */}
-          {currentType === 'EMPLOYEE_EXPENSE' && (
-            <fieldset className="space-y-2">
-              <legend className="text-foreground text-sm font-medium">Cel wydatku</legend>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="radio"
-                    name="expenseTarget"
-                    value="investment"
-                    checked={expenseTarget === 'investment'}
-                    onChange={() => {
-                      setExpenseTarget('investment')
-                      form.resetField('otherCategory')
-                      form.resetField('otherDescription')
-                    }}
-                    className="accent-primary size-4"
-                  />
-                  Inwestycja
-                </label>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="radio"
-                    name="expenseTarget"
-                    value="other"
-                    checked={expenseTarget === 'other'}
-                    onChange={() => {
-                      setExpenseTarget('other')
-                      form.resetField('investment')
-                    }}
-                    className="accent-primary size-4"
-                  />
-                  Inna kategoria
-                </label>
-              </div>
-            </fieldset>
+          {/* Conditional: Other category */}
+          {needsOtherCategory(currentType) && (
+            <>
+              <form.AppField name="otherCategory">
+                {(field) => (
+                  <field.Select label="Kategoria" placeholder="Wybierz kategorię" showError>
+                    {referenceData.otherCategories.map((cat) => (
+                      <SelectItem key={cat.id} value={String(cat.id)}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </field.Select>
+                )}
+              </form.AppField>
+
+              <form.AppField name="otherDescription">
+                {(field) => (
+                  <field.Textarea label="Opis kategorii" placeholder="Dodatkowy opis" showError />
+                )}
+              </form.AppField>
+            </>
           )}
 
-          {/* Conditional: Other category — always for OTHER, radio-gated for EMPLOYEE_EXPENSE */}
-          {needsOtherCategory(currentType) &&
-            (currentType === 'OTHER' || expenseTarget === 'other') && (
-              <>
-                <form.AppField name="otherCategory">
-                  {(field) => (
-                    <field.Select label="Kategoria" placeholder="Wybierz kategorię" showError>
-                      {referenceData.otherCategories.map((cat) => (
-                        <SelectItem key={cat.id} value={String(cat.id)}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </field.Select>
-                  )}
-                </form.AppField>
-
-                <form.AppField name="otherDescription">
-                  {(field) => (
-                    <field.Textarea label="Opis kategorii" placeholder="Dodatkowy opis" showError />
-                  )}
-                </form.AppField>
-              </>
-            )}
-
-          {/* Cash register — hidden for EMPLOYEE_EXPENSE, filtered to owned registers for non-ADMIN */}
+          {/* Cash register — filtered to owned registers for non-ADMIN, excludes WORKER type */}
           {needsSourceRegister(currentType) && (
             <CashRegisterField
               form={form}
               cashRegisters={referenceData.cashRegisters}
               userCashRegisterIds={userCashRegisterIds}
+              excludeTypes={['WORKER']}
             />
           )}
 
@@ -276,30 +228,18 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
             />
           )}
 
-          {/* Conditional: Investment — radio-gated for EMPLOYEE_EXPENSE */}
-          {showsInvestment(currentType) &&
-            (currentType !== 'EMPLOYEE_EXPENSE' || expenseTarget === 'investment') && (
-              <InvestmentField form={form} investments={referenceData.investments} />
-            )}
+          {/* Conditional: Investment */}
+          {showsInvestment(currentType) && (
+            <InvestmentField form={form} investments={referenceData.investments} />
+          )}
 
-          {/* Conditional: Expense category — for INVESTMENT_EXPENSE or EMPLOYEE_EXPENSE with investment */}
-          {(currentType === 'INVESTMENT_EXPENSE' ||
-            (currentType === 'EMPLOYEE_EXPENSE' && expenseTarget === 'investment')) && (
+          {/* Conditional: Expense category — for INVESTMENT_EXPENSE */}
+          {currentType === 'INVESTMENT_EXPENSE' && (
             <ExpenseCategoryField form={form} expenseCategories={referenceData.expenseCategories} />
           )}
 
-          {/* Conditional: Worker */}
-          {needsWorker(currentType) && <WorkerField form={form} workers={referenceData.workers} />}
-
-          {/* ACCOUNT_FUNDING: single amount field */}
-          {isAccountFunding && (
-            <form.AppField name="lineItems[0].amount">
-              {(field) => <field.Input label="Kwota" placeholder="Kwota" type="number" showError />}
-            </form.AppField>
-          )}
-
-          {/* Line items — all other non-deposit types */}
-          {!isDepositType(currentType) && !isAccountFunding && (
+          {/* Line items — all non-deposit types */}
+          {!isDepositType(currentType) && (
             <LineItemsField
               form={form}
               emptyItem={{ description: '', amount: '', invoiceNote: '' }}

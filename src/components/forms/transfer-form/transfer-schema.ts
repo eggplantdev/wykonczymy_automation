@@ -4,7 +4,6 @@ import {
   PAYMENT_METHODS,
   needsSourceRegister,
   requiresInvestment,
-  needsWorker,
   needsTargetRegister,
   needsExpenseCategory,
 } from '@/lib/constants/transfers'
@@ -17,7 +16,6 @@ type TransferFieldsT = {
   sourceRegister?: unknown
   targetRegister?: unknown
   investment?: unknown
-  worker?: unknown
   expenseCategory?: unknown
   otherCategory?: unknown
 }
@@ -51,24 +49,12 @@ const transferFieldRules: FieldRuleT[] = [
     path: 'investment',
   },
   {
-    invalid: (d) => needsWorker(d.type) && !d.worker,
-    message: 'Pracownik jest wymagany dla tego typu transferu',
-    path: 'worker',
-  },
-  {
     invalid: (d) => d.type === 'OTHER' && !d.otherCategory,
     message: 'Kategoria jest wymagana dla transferu typu "Inny wydatek"',
     path: 'otherCategory',
   },
   {
-    invalid: (d) => d.type === 'EMPLOYEE_EXPENSE' && !d.investment && !d.otherCategory,
-    message: 'Inwestycja lub kategoria jest wymagana dla wydatku pracowniczego',
-    path: 'investment',
-  },
-  {
-    invalid: (d) =>
-      (needsExpenseCategory(d.type) || (d.type === 'EMPLOYEE_EXPENSE' && !!d.investment)) &&
-      !d.expenseCategory,
+    invalid: (d) => needsExpenseCategory(d.type) && !d.expenseCategory,
     message: 'Kategoria wydatku jest wymagana',
     path: 'expenseCategory',
   },
@@ -92,7 +78,6 @@ export const createTransferSchema = z
     sourceRegister: z.number().optional(),
     targetRegister: z.number().optional(),
     investment: z.number().optional(),
-    worker: z.number().optional(),
     expenseCategory: z.number().optional(),
     otherCategory: z.number().optional(),
     otherDescription: z.string().optional(),
@@ -116,7 +101,6 @@ export const transferFormSchema = z
     sourceRegister: z.string(),
     targetRegister: z.string().optional().default(''),
     investment: z.string().optional().default(''),
-    worker: z.string().optional().default(''),
     expenseCategory: z.string().optional().default(''),
     otherCategory: z.string().optional().default(''),
     otherDescription: z.string().optional().default(''),
@@ -146,7 +130,6 @@ export const bulkTransferFormSchema = z
     sourceRegister: z.string(),
     targetRegister: z.string(),
     investment: z.string(),
-    worker: z.string(),
     expenseCategory: z.string(),
     otherCategory: z.string(),
     otherDescription: z.string(),
@@ -183,7 +166,6 @@ export const createBulkTransferSchema = z
     sourceRegister: z.number().optional(),
     targetRegister: z.number().optional(),
     investment: z.number().optional(),
-    worker: z.number().optional(),
     expenseCategory: z.number().optional(),
     otherCategory: z.number().optional(),
     otherDescription: z.string().optional(),
