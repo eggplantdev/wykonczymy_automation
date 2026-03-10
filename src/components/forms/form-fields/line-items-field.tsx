@@ -13,7 +13,7 @@ type LineItemsFieldPropsT = {
   total: number
   onRemoveItem: (index: number, removeValue: (index: number) => void) => void
   onFileChange: (index: number, e: React.ChangeEvent<HTMLInputElement>) => void
-  renderItemExtras?: (index: number) => React.ReactNode
+  renderItemInline?: (index: number) => React.ReactNode
 }
 
 export function LineItemsField({
@@ -23,7 +23,7 @@ export function LineItemsField({
   total,
   onRemoveItem,
   onFileChange,
-  renderItemExtras,
+  renderItemInline,
 }: LineItemsFieldPropsT) {
   return (
     <form.Field name="lineItems" mode="array">
@@ -37,24 +37,37 @@ export function LineItemsField({
           {lineItemsField.state.value.map((_, index) => (
             <div key={index} className="space-y-2">
               <div className="flex items-start gap-2">
-                <div className="flex-1">
+                <div className="min-w-0 flex-1">
                   <form.AppField name={`lineItems[${index}].description`}>
                     {(field: { Input: React.FC<{ placeholder: string; showError: boolean }> }) => (
-                      <field.Input placeholder="Opis pozycji" showError />
+                      <field.Input placeholder="Opis" showError />
                     )}
                   </form.AppField>
                 </div>
-                <div className="w-36">
+                <div className="w-28">
                   <form.AppField name={`lineItems[${index}].amount`}>
                     {(field: {
                       Input: React.FC<{ placeholder: string; type: string; showError: boolean }>
                     }) => <field.Input placeholder="Kwota" type="number" showError />}
                   </form.AppField>
                 </div>
+                {renderItemInline?.(index)}
+                <div className="min-w-0 flex-1">
+                  <form.AppField name={`lineItems[${index}].invoiceNote`}>
+                    {(field: { Input: React.FC<{ placeholder: string; showError: boolean }> }) => (
+                      <field.Input placeholder="Notatka" showError />
+                    )}
+                  </form.AppField>
+                </div>
+                <FileInput
+                  accept="image/*,application/pdf"
+                  onChange={(e) => onFileChange(index, e)}
+                />
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
+                  className="shrink-0"
                   onClick={() => onRemoveItem(index, lineItemsField.removeValue)}
                   disabled={lineItemsField.state.value.length === 1}
                   aria-label="Usuń pozycję"
@@ -62,11 +75,6 @@ export function LineItemsField({
                   <X className="size-4" />
                 </Button>
               </div>
-              <FileInput
-                accept="image/*,application/pdf"
-                onChange={(e) => onFileChange(index, e)}
-              />
-              {renderItemExtras?.(index)}
             </div>
           ))}
           <Button
