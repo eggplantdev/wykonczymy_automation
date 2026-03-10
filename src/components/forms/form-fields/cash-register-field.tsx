@@ -14,6 +14,8 @@ type CashRegisterFieldPropsT = {
   readonly userCashRegisterIds?: number[]
   readonly includeTypes?: CashRegisterTypeT[]
   readonly excludeTypes?: CashRegisterTypeT[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  readonly listeners?: Record<string, any>
 }
 
 export function CashRegisterField({
@@ -25,6 +27,7 @@ export function CashRegisterField({
   userCashRegisterIds,
   includeTypes,
   excludeTypes,
+  listeners,
 }: CashRegisterFieldPropsT) {
   const [activeOnly, setActiveOnly] = useState(true)
 
@@ -53,7 +56,7 @@ export function CashRegisterField({
   const labelExtra = <ActiveFilterLabel activeOnly={activeOnly} onToggle={setActiveOnly} />
 
   return (
-    <form.AppField name={name}>
+    <form.AppField name={name} listeners={listeners}>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       {(field: any) =>
         filteredRegisters.length > 0 ? (
