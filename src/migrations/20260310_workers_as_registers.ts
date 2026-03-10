@@ -5,7 +5,7 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
     INSERT INTO cash_registers (name, owner_id, type, active, updated_at, created_at)
     SELECT
-      'Konto - ' || u.name,
+      'Kasa - ' || u.name,
       u.id,
       'WORKER',
       true,
