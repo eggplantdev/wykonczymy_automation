@@ -173,7 +173,7 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
           {/* Type — deposit types moved to separate deposit dialog */}
           <form.AppField name="type" listeners={{ onChange: resetConditionalFields }}>
             {(field) => (
-              <field.Select label="Typ transferu" showError>
+              <field.Select label="Typ wydatku" showError>
                 {TRANSACTION_TRANSFER_TYPES.map((t) => (
                   <SelectItem key={t} value={t}>
                     {TRANSFER_TYPE_LABELS[t]}
