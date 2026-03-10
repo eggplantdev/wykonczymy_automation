@@ -119,7 +119,6 @@ export function RegisterTransferForm({
             label="Kasa źródłowa"
             cashRegisters={referenceData.cashRegisters}
             userCashRegisterIds={userCashRegisterIds}
-            excludeTypes={['WORKER']}
           />
 
           {/* Target cash register — all registers */}
