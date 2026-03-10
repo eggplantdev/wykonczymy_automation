@@ -57,7 +57,6 @@ type FormValuesT = {
     amount: string
     invoiceNote: string
     category: string
-    note: string
   }[]
 }
 
@@ -107,7 +106,7 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
         expenseCategory: referenceData.expenseCategories[0]
           ? String(referenceData.expenseCategories[0].id)
           : '',
-        lineItems: [{ description: '', amount: '', invoiceNote: '', category: '', note: '' }],
+        lineItems: [{ description: '', amount: '', invoiceNote: '', category: '' }],
       } as FormValuesT),
     validators: {
       onSubmit: bulkTransferFormSchema,
@@ -128,7 +127,6 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
           amount: Number(item.amount),
           invoiceNote: item.invoiceNote || undefined,
           category: item.category ? Number(item.category) : undefined,
-          note: item.note || undefined,
         })),
       }
 
@@ -249,47 +247,34 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
           {!isDepositType(currentType) && (
             <LineItemsField
               form={form}
-              emptyItem={{ description: '', amount: '', invoiceNote: '', category: '', note: '' }}
+              emptyItem={{ description: '', amount: '', invoiceNote: '', category: '' }}
               total={total}
               onRemoveItem={handleRemoveLineItem}
               onFileChange={handleFileChange}
               renderItemExtras={(index) => (
                 <>
-                  <div className="grid gap-2 md:grid-cols-2">
-                    <form.AppField name={`lineItems[${index}].category`}>
-                      {(field: {
-                        Select: React.FC<{
-                          label: string
-                          placeholder: string
-                          showError: boolean
-                          children: React.ReactNode
-                        }>
-                      }) => (
-                        <field.Select
-                          label={currentType === 'OTHER' ? 'Kategoria *' : 'Kategoria'}
-                          placeholder="Wybierz kategorię"
-                          showError
-                        >
-                          {referenceData.otherCategories.map((cat) => (
-                            <SelectItem key={cat.id} value={String(cat.id)}>
-                              {cat.name}
-                            </SelectItem>
-                          ))}
-                        </field.Select>
-                      )}
-                    </form.AppField>
-                    <form.AppField name={`lineItems[${index}].note`}>
-                      {(field: {
-                        Input: React.FC<{
-                          label: string
-                          placeholder: string
-                          showError: boolean
-                        }>
-                      }) => (
-                        <field.Input label="Notatka" placeholder="Notatka do pozycji" showError />
-                      )}
-                    </form.AppField>
-                  </div>
+                  <form.AppField name={`lineItems[${index}].category`}>
+                    {(field: {
+                      Select: React.FC<{
+                        label: string
+                        placeholder: string
+                        showError: boolean
+                        children: React.ReactNode
+                      }>
+                    }) => (
+                      <field.Select
+                        label={currentType === 'OTHER' ? 'Kategoria *' : 'Kategoria'}
+                        placeholder="Wybierz kategorię"
+                        showError
+                      >
+                        {referenceData.otherCategories.map((cat) => (
+                          <SelectItem key={cat.id} value={String(cat.id)}>
+                            {cat.name}
+                          </SelectItem>
+                        ))}
+                      </field.Select>
+                    )}
+                  </form.AppField>
                   <form.AppField name={`lineItems[${index}].invoiceNote`}>
                     {(field: {
                       Textarea: React.FC<{
@@ -299,7 +284,7 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
                       }>
                     }) => (
                       <field.Textarea
-                        placeholder="Notatka do faktury (opcjonalnie)"
+                        placeholder="Notatka (opcjonalnie)"
                         showError
                         className="min-h-6"
                       />

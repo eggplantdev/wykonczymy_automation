@@ -12,7 +12,7 @@ export function ExpenseCategoryField({ form, expenseCategories }: ExpenseCategor
     <form.AppField name="expenseCategory">
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       {(field: any) => (
-        <field.Select label="Kategoria wydatku" placeholder="Wybierz kategorię" showError>
+        <field.Select label="Typ wydatku inwestycyjnego" placeholder="Wybierz typ" showError>
           {expenseCategories.map((cat) => (
             <SelectItem key={cat.id} value={String(cat.id)}>
               {cat.name}

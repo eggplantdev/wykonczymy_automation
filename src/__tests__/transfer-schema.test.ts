@@ -257,14 +257,6 @@ describe('createBulkTransferSchema — per-line-item category', () => {
     })
     expect(result.success).toBe(true)
   })
-
-  it('line item with note → passes', () => {
-    const result = createBulkTransferSchema.safeParse({
-      ...bulkBase,
-      lineItems: [{ description: 'Item', amount: 100, category: 5, note: 'Test note' }],
-    })
-    expect(result.success).toBe(true)
-  })
 })
 
 // ── 2c: Client Schema — Valid payloads ──────────────────────────────────

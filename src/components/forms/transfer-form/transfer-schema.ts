@@ -55,7 +55,7 @@ const transferFieldRules: FieldRuleT[] = [
   },
   {
     invalid: (d) => needsExpenseCategory(d.type) && !d.expenseCategory,
-    message: 'Kategoria wydatku jest wymagana',
+    message: 'Typ wydatku inwestycyjnego jest wymagany',
     path: 'expenseCategory',
   },
 ]
@@ -121,7 +121,6 @@ const lineItemClientSchema = z.object({
   amount: z.string(),
   invoiceNote: z.string(),
   category: z.string(),
-  note: z.string(),
 })
 
 export const bulkTransferFormSchema = z
@@ -181,7 +180,6 @@ export const createBulkTransferSchema = z
           amount: z.number().positive('Kwota musi być większa niż 0'),
           invoiceNote: z.string().optional(),
           category: z.number().positive().optional(),
-          note: z.string().optional(),
         }),
       )
       .min(1, 'Dodaj co najmniej jedną pozycję'),

@@ -219,7 +219,7 @@ const allColumns = [
   }),
   col.accessor('expenseCategoryName', {
     id: 'expenseCategory',
-    header: 'Kategoria wydatku',
+    header: 'Typ wydatku inwestycyjnego',
     cell: (info) => info.getValue(),
   }),
   col.accessor('description', {
