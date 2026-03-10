@@ -7,9 +7,7 @@ export const TRANSFER_TYPES = [
   'REGISTER_TRANSFER', // Transfer między kasami
   'INVESTOR_DEPOSIT', // Wpłata od inwestora
   'INVESTMENT_EXPENSE', // Wydatek inwestycyjny
-  'EMPLOYEE_EXPENSE', // Wydatek pracowniczy
   'PAYOUT', // Wypłata
-  'ACCOUNT_FUNDING', // Zasilenie konta współpracownika
   'COMPANY_FUNDING', // Zasilenie z konta firmowego
 ] as const
 export type TransferTypeT = (typeof TRANSFER_TYPES)[number]
@@ -19,8 +17,6 @@ export const TRANSFER_TYPE_LABELS: Record<TransferTypeT, string> = {
   COMPANY_FUNDING: 'Zasilenie z konta firmowego',
   OTHER_DEPOSIT: 'Inna wpłata',
   INVESTMENT_EXPENSE: 'Wydatek inwestycyjny',
-  ACCOUNT_FUNDING: 'Zasilenie konta współpracownika',
-  EMPLOYEE_EXPENSE: 'Wydatek pracowniczy',
   LABOR_COST: 'Koszty robocizny',
   PAYOUT: 'Wypłata',
   REGISTER_TRANSFER: 'Transfer między kasami',
@@ -47,7 +43,6 @@ export const TRANSACTION_TRANSFER_TYPES: TransferTypeT[] = [
   'LABOR_COST', // Koszty robocizny
   'INVESTMENT_EXPENSE', // Wydatek inwestycyjny
   'PAYOUT', // Wypłata
-  'ACCOUNT_FUNDING', // Zasilenie konta współpracownika
 ]
 
 export const PAYMENT_METHODS = [
@@ -65,7 +60,7 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethodT, string> = {
   // CARD: 'Karta',
 }
 
-export const COST_TYPES: TransferTypeT[] = ['INVESTMENT_EXPENSE', 'EMPLOYEE_EXPENSE', 'LABOR_COST']
+export const COST_TYPES: TransferTypeT[] = ['INVESTMENT_EXPENSE', 'LABOR_COST']
 export const INCOME_TYPES: TransferTypeT[] = ['INVESTOR_DEPOSIT']
 export const INVESTMENT_TYPES: TransferTypeT[] = [...COST_TYPES, ...INCOME_TYPES]
 
@@ -75,8 +70,7 @@ export const isTransferType = (type: string): type is TransferTypeT =>
 export const isDepositType = (type: string) =>
   isTransferType(type) && (DEPOSIT_TYPES as readonly string[]).includes(type)
 
-export const needsSourceRegister = (type: string) =>
-  isTransferType(type) && type !== 'EMPLOYEE_EXPENSE' && type !== 'LABOR_COST'
+export const needsSourceRegister = (type: string) => isTransferType(type) && type !== 'LABOR_COST'
 
 export const showsInvestment = (type: string) =>
   isTransferType(type) && (INVESTMENT_TYPES as readonly string[]).includes(type)
@@ -85,16 +79,10 @@ export const requiresInvestment = (type: string) =>
   isTransferType(type) &&
   (type === 'INVESTOR_DEPOSIT' || type === 'INVESTMENT_EXPENSE' || type === 'LABOR_COST')
 
-export const WORKER_SALDO_TYPES: TransferTypeT[] = ['ACCOUNT_FUNDING', 'EMPLOYEE_EXPENSE']
-
-export const needsWorker = (type: string) =>
-  isTransferType(type) && (WORKER_SALDO_TYPES as readonly string[]).includes(type)
-
 export const needsTargetRegister = (type: string) =>
   isTransferType(type) && type === 'REGISTER_TRANSFER'
 
-export const needsOtherCategory = (type: string) =>
-  isTransferType(type) && (type === 'OTHER' || type === 'EMPLOYEE_EXPENSE')
+export const needsOtherCategory = (type: string) => isTransferType(type) && type === 'OTHER'
 
 export const needsExpenseCategory = (type: string) =>
   isTransferType(type) && type === 'INVESTMENT_EXPENSE'
