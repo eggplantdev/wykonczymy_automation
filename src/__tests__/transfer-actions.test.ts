@@ -445,6 +445,48 @@ describe('createBulkTransferAction', () => {
     expect(mockCreate.mock.calls[2][0].data.invoice).toBe(103)
   })
 
+  it('OTHER type → each create gets its own category and note from line item', async () => {
+    mockUploadBulkInvoices.mockResolvedValueOnce([undefined, undefined])
+
+    const data = {
+      type: 'OTHER' as const,
+      date: '2026-02-25',
+      paymentMethod: 'CASH' as const,
+      sourceRegister: 1,
+      lineItems: [
+        { description: 'Item 1', amount: 100, category: 5, note: 'Note A' },
+        { description: 'Item 2', amount: 200, category: 7, note: 'Note B' },
+      ],
+    }
+
+    const result = await createBulkTransferAction(data, null)
+
+    expect(result.success).toBe(true)
+    expect(mockCreate).toHaveBeenCalledTimes(2)
+    expect(mockCreate.mock.calls[0][0].data).toEqual(
+      expect.objectContaining({ otherCategory: 5, otherDescription: 'Note A' }),
+    )
+    expect(mockCreate.mock.calls[1][0].data).toEqual(
+      expect.objectContaining({ otherCategory: 7, otherDescription: 'Note B' }),
+    )
+  })
+
+  it('INVESTMENT_EXPENSE with optional per-line category → passes through', async () => {
+    mockUploadBulkInvoices.mockResolvedValueOnce([undefined])
+
+    const data = {
+      ...makeBulkTransferData(1),
+      lineItems: [{ description: 'Item', amount: 100, category: 3, note: 'Extra' }],
+    }
+
+    const result = await createBulkTransferAction(data, null)
+
+    expect(result.success).toBe(true)
+    expect(mockCreate.mock.calls[0][0].data).toEqual(
+      expect.objectContaining({ otherCategory: 3, otherDescription: 'Extra' }),
+    )
+  })
+
   it('transaction rollback when create fails mid-batch', async () => {
     mockUploadBulkInvoices.mockResolvedValueOnce([undefined, undefined, undefined])
     mockCreate
