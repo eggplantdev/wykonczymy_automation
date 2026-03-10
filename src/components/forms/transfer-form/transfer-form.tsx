@@ -14,7 +14,6 @@ import {
   needsSourceRegister,
   showsInvestment,
   needsTargetRegister,
-  needsOtherCategory,
   type TransferTypeT,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
@@ -53,9 +52,13 @@ type FormValuesT = {
   targetRegister: string
   investment: string
   expenseCategory: string
-  otherCategory: string
-  otherDescription: string
-  lineItems: { description: string; amount: string; invoiceNote: string }[]
+  lineItems: {
+    description: string
+    amount: string
+    invoiceNote: string
+    category: string
+    note: string
+  }[]
 }
 
 export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFormPropsT) {
@@ -104,9 +107,7 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
         expenseCategory: referenceData.expenseCategories[0]
           ? String(referenceData.expenseCategories[0].id)
           : '',
-        otherCategory: '',
-        otherDescription: '',
-        lineItems: [{ description: '', amount: '', invoiceNote: '' }],
+        lineItems: [{ description: '', amount: '', invoiceNote: '', category: '', note: '' }],
       } as FormValuesT),
     validators: {
       onSubmit: bulkTransferFormSchema,
@@ -122,12 +123,12 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
         targetRegister: value.targetRegister ? Number(value.targetRegister) : undefined,
         investment: value.investment ? Number(value.investment) : undefined,
         expenseCategory: value.expenseCategory ? Number(value.expenseCategory) : undefined,
-        otherCategory: value.otherCategory ? Number(value.otherCategory) : undefined,
-        otherDescription: value.otherDescription || undefined,
         lineItems: value.lineItems.map((item) => ({
           description: item.description,
           amount: Number(item.amount),
           invoiceNote: item.invoiceNote || undefined,
+          category: item.category ? Number(item.category) : undefined,
+          note: item.note || undefined,
         })),
       }
 
@@ -165,13 +166,7 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
   // TanStack Form preserves values of unmounted fields. When the user switches
   // transfer type, hidden fields (e.g. investment) keep stale selections.
   // Reset them so validation and submission use a clean slate for the new type.
-  const conditionalFields = [
-    'targetRegister',
-    'investment',
-    'expenseCategory',
-    'otherCategory',
-    'otherDescription',
-  ] as const
+  const conditionalFields = ['targetRegister', 'investment', 'expenseCategory'] as const
 
   function resetConditionalFields() {
     conditionalFields.forEach((field) => form.resetField(field))
@@ -204,29 +199,6 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
             )}
           </form.AppField>
           <DateField form={form} />
-
-          {/* Conditional: Other category */}
-          {needsOtherCategory(currentType) && (
-            <>
-              <form.AppField name="otherCategory">
-                {(field) => (
-                  <field.Select label="Kategoria" placeholder="Wybierz kategorię" showError>
-                    {referenceData.otherCategories.map((cat) => (
-                      <SelectItem key={cat.id} value={String(cat.id)}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </field.Select>
-                )}
-              </form.AppField>
-
-              <form.AppField name="otherDescription">
-                {(field) => (
-                  <field.Textarea label="Opis kategorii" placeholder="Dodatkowy opis" showError />
-                )}
-              </form.AppField>
-            </>
-          )}
 
           {/* Cash register — filtered to owned registers for non-ADMIN */}
           {needsSourceRegister(currentType) && (
@@ -277,26 +249,63 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
           {!isDepositType(currentType) && (
             <LineItemsField
               form={form}
-              emptyItem={{ description: '', amount: '', invoiceNote: '' }}
+              emptyItem={{ description: '', amount: '', invoiceNote: '', category: '', note: '' }}
               total={total}
               onRemoveItem={handleRemoveLineItem}
               onFileChange={handleFileChange}
               renderItemExtras={(index) => (
-                <form.AppField name={`lineItems[${index}].invoiceNote`}>
-                  {(field: {
-                    Textarea: React.FC<{
-                      placeholder: string
-                      showError: boolean
-                      className: string
-                    }>
-                  }) => (
-                    <field.Textarea
-                      placeholder="Notatka do faktury (opcjonalnie)"
-                      showError
-                      className="min-h-6"
-                    />
-                  )}
-                </form.AppField>
+                <>
+                  <div className="grid gap-2 md:grid-cols-2">
+                    <form.AppField name={`lineItems[${index}].category`}>
+                      {(field: {
+                        Select: React.FC<{
+                          label: string
+                          placeholder: string
+                          showError: boolean
+                          children: React.ReactNode
+                        }>
+                      }) => (
+                        <field.Select
+                          label={currentType === 'OTHER' ? 'Kategoria *' : 'Kategoria'}
+                          placeholder="Wybierz kategorię"
+                          showError
+                        >
+                          {referenceData.otherCategories.map((cat) => (
+                            <SelectItem key={cat.id} value={String(cat.id)}>
+                              {cat.name}
+                            </SelectItem>
+                          ))}
+                        </field.Select>
+                      )}
+                    </form.AppField>
+                    <form.AppField name={`lineItems[${index}].note`}>
+                      {(field: {
+                        Input: React.FC<{
+                          label: string
+                          placeholder: string
+                          showError: boolean
+                        }>
+                      }) => (
+                        <field.Input label="Notatka" placeholder="Notatka do pozycji" showError />
+                      )}
+                    </form.AppField>
+                  </div>
+                  <form.AppField name={`lineItems[${index}].invoiceNote`}>
+                    {(field: {
+                      Textarea: React.FC<{
+                        placeholder: string
+                        showError: boolean
+                        className: string
+                      }>
+                    }) => (
+                      <field.Textarea
+                        placeholder="Notatka do faktury (opcjonalnie)"
+                        showError
+                        className="min-h-6"
+                      />
+                    )}
+                  </form.AppField>
+                </>
               )}
             />
           )}
