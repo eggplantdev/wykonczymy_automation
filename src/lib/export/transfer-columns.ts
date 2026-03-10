@@ -18,7 +18,6 @@ export const TRANSFER_EXPORT_COLUMNS: Record<string, ColumnDefT> = {
     label: 'Typ',
     getValue: (r) => TRANSFER_TYPE_LABELS[r.type as TransferTypeT] ?? r.type,
   },
-  worker: { label: 'Pracownik', getValue: (r) => r.workerName },
   investment: { label: 'Inwestycja', getValue: (r) => r.investmentName },
   sourceRegister: { label: 'Kasa', getValue: (r) => r.sourceRegisterName },
   targetRegister: { label: 'Kasa docelowa', getValue: (r) => r.targetRegisterName },

@@ -1,7 +1,7 @@
 import type { Where } from 'payload'
 import type { FilterConfigT } from '@/types/filters'
 
-export type ExportContextT = 'investment' | 'register' | 'worker'
+export type ExportContextT = 'investment' | 'register'
 
 export type HeaderFieldT = {
   readonly label: string

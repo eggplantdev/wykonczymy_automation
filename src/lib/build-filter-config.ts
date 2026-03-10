@@ -1,7 +1,7 @@
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import type { FilterConfigT } from '@/types/filters'
 
-type FilterKeyT = 'cashRegisters' | 'investments' | 'users' | 'workers'
+type FilterKeyT = 'cashRegisters' | 'investments' | 'users'
 
 /** Build full filter config from reference data, excluding specified filters (e.g. implicit entity on detail pages). */
 export function buildFilterConfig(
@@ -15,7 +15,6 @@ export function buildFilterConfig(
     cashRegisters: has('cashRegisters') ? toOptions(refData.cashRegisters) : undefined,
     investments: has('investments') ? toOptions(refData.investments) : undefined,
     users: has('users') ? toOptions(refData.workers) : undefined,
-    workers: has('workers') ? toOptions(refData.workers) : undefined,
     otherCategories: toOptions(refData.otherCategories),
     // Hidden for now - we only use cash for now
     showPaymentMethodFilter: false,
