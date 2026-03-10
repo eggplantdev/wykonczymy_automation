@@ -12,7 +12,7 @@ import { toastMessage } from '@/components/toasts'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import { formatPLN } from '@/lib/format-currency'
 import { type PaymentMethodT } from '@/lib/constants/transfers'
-import { createSettlementAction, getManagementEmployeeSaldo } from '@/lib/actions/settlements'
+import { createSettlementAction, getRegisterSaldo } from '@/lib/actions/settlements'
 import { cn } from '@/lib/cn'
 import { today } from '@/lib/date-utils'
 import {
@@ -23,18 +23,16 @@ import {
   ExpenseCategoryField,
   InvestmentField,
   LineItemsField,
-  /* PaymentMethodField, */ WorkerField,
+  /* PaymentMethodField, */
 } from '@/components/forms/form-fields'
 import { settlementFormSchema, type CreateSettlementFormT } from './settlement-schema'
 import type { ReferenceItemT } from '@/types/reference-data'
 
 type SettlementReferenceDataT = {
-  users: ReferenceItemT[]
   investments: ReferenceItemT[]
   expenseCategories: ReferenceItemT[]
   otherCategories: ReferenceItemT[]
   cashRegisters: ReferenceItemT[]
-  defaultCashRegisterId?: number
 }
 
 type SettlementFormPropsT = {
@@ -45,11 +43,11 @@ type SettlementFormPropsT = {
 }
 
 type FormValuesT = {
-  worker: string
+  workerRegister: string
   mode: 'investment' | 'category' | 'register'
   investment?: string
   expenseCategory: string
-  sourceRegister: string
+  targetRegister: string
   amount: string
   description: string
   date: string
@@ -86,15 +84,13 @@ export function SettlementForm({
     defaultValues:
       recoveredValues ??
       ({
-        worker: '',
+        workerRegister: '',
         mode: 'investment' as const,
         investment: '',
         expenseCategory: referenceData.expenseCategories[0]
           ? String(referenceData.expenseCategories[0].id)
           : '',
-        sourceRegister: referenceData.defaultCashRegisterId
-          ? String(referenceData.defaultCashRegisterId)
-          : '',
+        targetRegister: '',
         amount: '',
         description: '',
         date: today(),
@@ -109,14 +105,14 @@ export function SettlementForm({
       if (recovering) clearSubmission()
 
       const data: CreateSettlementFormT = {
-        worker: Number(value.worker),
+        workerRegister: Number(value.workerRegister),
         mode: value.mode,
         investment: value.mode === 'investment' ? Number(value.investment) : undefined,
         expenseCategory:
           value.mode === 'investment' && value.expenseCategory
             ? Number(value.expenseCategory)
             : undefined,
-        sourceRegister: value.mode === 'register' ? Number(value.sourceRegister) : undefined,
+        targetRegister: value.mode === 'register' ? Number(value.targetRegister) : undefined,
         amount: value.mode === 'register' ? Number(value.amount) : undefined,
         description: value.mode === 'register' ? value.description || undefined : undefined,
         date: value.date,
@@ -171,13 +167,13 @@ export function SettlementForm({
 
   const submitLabel = mode === 'register' ? 'Zwrot do kasy' : `Rozlicz (${lineItems.length} pozycji`
 
-  async function fetchSaldo(workerId: string) {
+  async function fetchSaldo(registerId: string) {
     setSaldo(null)
-    if (!workerId) return
+    if (!registerId) return
 
     setIsSaldoLoading(true)
     try {
-      const result = await getManagementEmployeeSaldo(Number(workerId))
+      const result = await getRegisterSaldo(Number(registerId))
       setSaldo(result.saldo)
     } catch {
       toastMessage('Nie udało się pobrać salda', 'error')
@@ -196,11 +192,14 @@ export function SettlementForm({
           }}
         >
           <FieldGroup>
-            {/* Employee selector */}
-            <WorkerField
+            {/* Worker register selector */}
+            <CashRegisterField
               form={form}
-              workers={referenceData.users}
-              filterByRole={false}
+              name="workerRegister"
+              label="Kasa pracownika"
+              placeholder="Wybierz kasę pracownika"
+              cashRegisters={referenceData.cashRegisters}
+              includeTypes={['WORKER']}
               listeners={{
                 onChange: ({ value }: { value: string }) => {
                   fetchSaldo(value)
@@ -266,7 +265,14 @@ export function SettlementForm({
             )}
 
             {mode === 'register' && (
-              <CashRegisterField form={form} cashRegisters={referenceData.cashRegisters} />
+              <CashRegisterField
+                form={form}
+                name="targetRegister"
+                label="Kasa docelowa"
+                placeholder="Wybierz kasę docelową"
+                cashRegisters={referenceData.cashRegisters}
+                excludeTypes={['WORKER']}
+              />
             )}
 
             {/* PaymentMethodField — temporarily hidden, always CASH */}

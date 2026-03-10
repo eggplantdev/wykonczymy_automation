@@ -5,25 +5,18 @@ import { Button } from '@/components/ui/button'
 import { FormDialog } from '@/components/dialogs/form-dialog'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { SettlementForm } from '@/components/forms/settlement-form/settlement-form'
-import { MANAGEMENT_ROLES, RoleT } from '@/lib/auth/roles'
 
 type AddSettlementDialogPropsT = {
   referenceData: ReferenceDataT
 }
 
 export function AddSettlementDialog({ referenceData }: AddSettlementDialogPropsT) {
-  const defaultCashRegisterId = referenceData.workers.find(
-    (w) => w.id === referenceData.currentUserId,
-  )?.defaultCashRegisterId
-
-  // Settlement form expects `users` — filter out admins/owners from worker dropdown
+  // Settlement form uses CashRegisterField with includeTypes/excludeTypes filtering
   const settlementReferenceData = {
-    users: referenceData.workers.filter((w) => !MANAGEMENT_ROLES.includes(w.type as RoleT)),
     investments: referenceData.investments,
     expenseCategories: referenceData.expenseCategories,
     otherCategories: referenceData.otherCategories,
-    cashRegisters: referenceData.cashRegisters.filter((cr) => cr.type !== 'VIRTUAL'),
-    defaultCashRegisterId,
+    cashRegisters: referenceData.cashRegisters,
   }
 
   return (

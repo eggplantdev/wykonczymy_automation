@@ -132,3 +132,19 @@ export async function getManagementEmployeeSaldo(workerId: number): Promise<{ sa
 
   return { saldo }
 }
+
+export async function getRegisterSaldo(registerId: number): Promise<{ saldo: number }> {
+  const step = perfStart()
+
+  const { user } = await requireAuth(MANAGEMENT_ROLES)
+  if (!user) throw new Error('Brak uprawnień')
+  console.log(`[PERF]   requireAuth ${step()}ms`)
+
+  const payload = await getPayload({ config })
+  console.log(`[PERF]   getPayload ${step()}ms`)
+
+  const saldo = await sumRegisterBalance(payload, registerId)
+  console.log(`[PERF] getRegisterSaldo(${registerId}) saldo=${saldo} ${step()}ms`)
+
+  return { saldo }
+}

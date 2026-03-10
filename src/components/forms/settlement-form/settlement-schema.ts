@@ -22,7 +22,7 @@ export const settlementFormSchema = z
     mode: z.enum(SETTLEMENT_MODES),
     investment: z.string(),
     expenseCategory: z.string(),
-    targetRegister: z.string().optional(),
+    targetRegister: z.string(),
     amount: z.string(),
     description: z.string(),
     date: z.string(),

@@ -62,7 +62,7 @@ const TX_ID = 'test-tx-id'
 
 function makeSettlementData(itemCount: number) {
   return {
-    worker: 1,
+    workerRegister: 1,
     mode: 'investment' as const,
     investment: 1,
     expenseCategory: 1,
