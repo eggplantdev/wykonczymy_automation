@@ -120,8 +120,8 @@ const lineItemClientSchema = z.object({
   description: z.string(),
   amount: z.string(),
   invoiceNote: z.string(),
-  category: z.string().optional().default(''),
-  note: z.string().optional().default(''),
+  category: z.string(),
+  note: z.string(),
 })
 
 export const bulkTransferFormSchema = z

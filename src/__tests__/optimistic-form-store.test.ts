@@ -105,7 +105,7 @@ describe('submitOptimistically', () => {
 
     const action = vi.fn(() => Promise.resolve({ success: false, error: 'fail' } as ActionResultT))
 
-    store().submitOptimistically('settlement', formValues, filesWithInvoice, action, 'OK')
+    store().submitOptimistically('transfer', formValues, filesWithInvoice, action, 'OK')
 
     await vi.waitFor(() => {
       expect(store().submission?.status).toBe('failed')
