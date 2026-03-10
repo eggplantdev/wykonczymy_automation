@@ -1,18 +1,9 @@
 import { requireAuth } from '@/lib/auth/require-auth'
 import { isManagementRole, ROLES } from '@/lib/auth/roles'
 import { ManagerDashboard } from '@/components/dashboard/manager-dashboard'
-import { UserTransferView } from '@/components/user-transfer-view'
-import { redirect } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
+import { fetchReferenceData } from '@/lib/queries/reference-data'
 import type { PagePropsT } from '@/types/page'
-
-const EMPLOYEE_EXCLUDE_COLUMNS = [
-  'type',
-  'sourceRegister',
-  'worker',
-  'otherCategory',
-  'invoice',
-  'paymentMethod',
-]
 
 export default async function DashboardPage({ searchParams }: PagePropsT) {
   const session = await requireAuth(ROLES)
@@ -22,13 +13,14 @@ export default async function DashboardPage({ searchParams }: PagePropsT) {
 
   if (isManagementRole(user.role)) return <ManagerDashboard searchParams={params} />
 
-  return (
-    <UserTransferView
-      userId={String(user.id)}
-      title="Moje konto"
-      searchParams={params}
-      baseUrl="/"
-      excludeColumns={EMPLOYEE_EXCLUDE_COLUMNS}
-    />
+  // Employee — redirect to their WORKER register
+  const refData = await fetchReferenceData()
+  const workerRegister = refData.cashRegisters.find(
+    (cr) => cr.type === 'WORKER' && cr.ownerId === user.id,
   )
+
+  if (workerRegister) redirect(`/kasa/${workerRegister.id}`)
+
+  // Employee has no WORKER register — admin needs to set one up
+  notFound()
 }

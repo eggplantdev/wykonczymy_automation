@@ -8,26 +8,22 @@ import { Tags, User } from 'lucide-react'
 import { ColumnToggle } from '@/components/ui/column-toggle'
 import { SearchFilterInput } from '@/components/ui/search-filter-input'
 import { getCashRegisterColumns, REGISTER_TYPE_LABELS } from '@/lib/tables/cash-registers'
-import { getUserColumns } from '@/lib/tables/users'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { InvestmentDataTable } from '@/components/investments/investment-data-table'
 import { SECTION_IDS } from '@/lib/constants/sections'
 import { useActiveFilter } from '@/hooks/use-active-filter'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle'
-import { toggleCashRegisterActive, toggleUserActive } from '@/lib/actions/toggle-active'
+import { toggleCashRegisterActive } from '@/lib/actions/toggle-active'
 import type { CashRegisterRowT } from '@/lib/tables/cash-registers'
 import type { CashRegisterTypeT } from '@/types/reference-data'
 import type { InvestmentRowT } from '@/lib/tables/investments'
-import type { UserRowT } from '@/lib/tables/users'
 
 const isCashRegisterActive = (row: CashRegisterRowT) => row.active
-const isUserActive = (row: UserRowT) => row.active
 const getActiveUpdate = (newActive: boolean) => ({ active: newActive })
 const getType = (row: CashRegisterRowT) => row.type
 const getOwner = (row: CashRegisterRowT) => row.ownerName
 const getCashRegisterSearchText = (row: CashRegisterRowT) => `${row.name} ${row.ownerName}`
-const getUserSearchText = (row: UserRowT) => `${row.name} ${row.email}`
 
 type CashRegistersTablePropsT = {
   readonly data: readonly CashRegisterRowT[]
@@ -135,20 +131,14 @@ function CashRegistersTable({ data, className }: CashRegistersTablePropsT) {
 type DashboardTablesPropsT = {
   readonly cashRegisters: readonly CashRegisterRowT[]
   readonly investments: readonly InvestmentRowT[]
-  readonly users: readonly UserRowT[]
 }
 
-export function DashboardTables({ cashRegisters, investments, users }: DashboardTablesPropsT) {
+export function DashboardTables({ cashRegisters, investments }: DashboardTablesPropsT) {
   return (
     <div className="mt-8 space-y-8">
       <CollapsibleSection title="Kasy" id={SECTION_IDS.cashRegisters}>
         <div className="mt-4">
           <CashRegistersTable data={cashRegisters} />
-        </div>
-      </CollapsibleSection>
-      <CollapsibleSection title="Pracownicy" id={SECTION_IDS.employees}>
-        <div className="mt-4">
-          <UsersTable data={users} />
         </div>
       </CollapsibleSection>
       <CollapsibleSection title="Inwestycje" id={SECTION_IDS.investments}>
@@ -157,52 +147,5 @@ export function DashboardTables({ cashRegisters, investments, users }: Dashboard
         </div>
       </CollapsibleSection>
     </div>
-  )
-}
-
-type UsersTablePropsT = {
-  readonly data: readonly UserRowT[]
-}
-
-function UsersTable({ data }: UsersTablePropsT) {
-  const { optimisticData, handleToggle } = useOptimisticToggle(
-    data,
-    getActiveUpdate,
-    toggleUserActive,
-  )
-
-  const {
-    filteredData: activeFiltered,
-    showOnlyActive,
-    setShowOnlyActive,
-  } = useActiveFilter(optimisticData, isUserActive)
-
-  const { filteredData, searchTerm, setSearchTerm } = useSearchFilter(
-    activeFiltered,
-    getUserSearchText,
-  )
-
-  const columns = useMemo(() => getUserColumns(handleToggle), [handleToggle])
-
-  return (
-    <DataTable
-      data={filteredData}
-      columns={columns}
-      storageKey="users"
-      getRowHref={(row) => `/uzytkownicy/${row.id}`}
-      getRowClassName={(row) => (!row.active ? 'opacity-50' : '')}
-      toolbar={(table, cv) => (
-        <>
-          <SearchFilterInput value={searchTerm} onChange={setSearchTerm} placeholder="Szukaj..." />
-          <ActiveFilterButton
-            isActive={showOnlyActive}
-            onChange={setShowOnlyActive}
-            activeLabel="Aktywni"
-            allLabel="Wszyscy"
-          />
-          <ColumnToggle table={table} columnVisibility={cv} />
-        </>
-      )}
-    />
   )
 }
