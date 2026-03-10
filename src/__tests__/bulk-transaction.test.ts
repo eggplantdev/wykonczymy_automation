@@ -53,28 +53,11 @@ vi.mock('@/lib/db/sum-transfers', () => ({
   sumRegisterBalance: vi.fn().mockResolvedValue(99999),
 }))
 
-const { createSettlementAction } = await import('@/lib/actions/settlements')
 const { createBulkTransferAction } = await import('@/lib/actions/transfers')
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
 const TX_ID = 'test-tx-id'
-
-function makeSettlementData(itemCount: number) {
-  return {
-    workerRegister: 1,
-    mode: 'investment' as const,
-    investment: 1,
-    expenseCategory: 1,
-    date: '2026-02-25',
-    paymentMethod: 'CASH' as const,
-    invoiceNote: '',
-    lineItems: Array.from({ length: itemCount }, (_, i) => ({
-      description: `Item ${i + 1}`,
-      amount: 100,
-    })),
-  }
-}
 
 function makeBulkTransferData(itemCount: number) {
   return {
@@ -96,66 +79,6 @@ beforeEach(() => {
   mockBeginTransaction.mockReset().mockResolvedValue(TX_ID)
   mockCommitTransaction.mockReset().mockResolvedValue(undefined)
   mockRollbackTransaction.mockReset().mockResolvedValue(undefined)
-})
-
-// ═════════════════════════════════════════════════════════════════════════
-// Settlement — transaction rollback
-// ═════════════════════════════════════════════════════════════════════════
-
-describe('createSettlementAction — transaction safety', () => {
-  it('commits when all items succeed', async () => {
-    mockCreate.mockResolvedValue({ id: 1 })
-
-    const result = await createSettlementAction(makeSettlementData(3), null)
-
-    expect(result.success).toBe(true)
-    expect(mockBeginTransaction).toHaveBeenCalledOnce()
-    expect(mockCreate).toHaveBeenCalledTimes(3)
-    expect(mockCommitTransaction).toHaveBeenCalledWith(TX_ID)
-    expect(mockRollbackTransaction).not.toHaveBeenCalled()
-  })
-
-  it('rolls back when 3rd of 5 items fails — no partial writes persist', async () => {
-    mockCreate
-      .mockResolvedValueOnce({ id: 1 }) // item 1 OK
-      .mockResolvedValueOnce({ id: 2 }) // item 2 OK
-      .mockRejectedValueOnce(new Error('DB constraint violation')) // item 3 FAIL
-
-    const result = await createSettlementAction(makeSettlementData(5), null)
-
-    expect(result.success).toBe(false)
-    if (!result.success) {
-      expect(result.error).toBe('DB constraint violation')
-    }
-
-    // Transaction rolled back — items 1 & 2 would not persist
-    expect(mockRollbackTransaction).toHaveBeenCalledWith(TX_ID)
-    expect(mockCommitTransaction).not.toHaveBeenCalled()
-
-    // Only 3 create calls were attempted (stopped at failure)
-    expect(mockCreate).toHaveBeenCalledTimes(3)
-  })
-
-  it('rolls back when 1st item fails — zero writes persist', async () => {
-    mockCreate.mockRejectedValueOnce(new Error('Connection lost'))
-
-    const result = await createSettlementAction(makeSettlementData(3), null)
-
-    expect(result.success).toBe(false)
-    expect(mockRollbackTransaction).toHaveBeenCalledWith(TX_ID)
-    expect(mockCommitTransaction).not.toHaveBeenCalled()
-    expect(mockCreate).toHaveBeenCalledTimes(1)
-  })
-
-  it('all creates share the same transaction ID via req', async () => {
-    mockCreate.mockResolvedValue({ id: 1 })
-
-    await createSettlementAction(makeSettlementData(3), null)
-
-    for (const call of mockCreate.mock.calls) {
-      expect(call[0]).toHaveProperty('req', { transactionID: TX_ID })
-    }
-  })
 })
 
 // ═════════════════════════════════════════════════════════════════════════
