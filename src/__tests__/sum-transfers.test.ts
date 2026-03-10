@@ -4,9 +4,7 @@ import {
   sumRegisterBalance,
   sumAllRegisterBalances,
   sumAllInvestmentFinancials,
-  sumAllWorkerSaldos,
   sumFilteredByType,
-  deriveWorkerBreakdown,
   deriveFinancials,
   deriveCostBreakdown,
 } from '@/lib/db/sum-transfers'
@@ -151,69 +149,6 @@ describe('sumAllInvestmentFinancials', () => {
   })
 })
 
-// ── sumAllWorkerSaldos ───────────────────────────────────────────────────
-
-describe('sumAllWorkerSaldos', () => {
-  it('returns a Map of worker saldos', async () => {
-    mockExecute.mockResolvedValue({
-      rows: [
-        { worker_id: '10', saldo: '500' },
-        { worker_id: '20', saldo: '-200' },
-      ],
-    })
-    const map = await sumAllWorkerSaldos(fakePayload)
-    expect(map.size).toBe(2)
-    expect(map.get(10)).toBe(500)
-    expect(map.get(20)).toBe(-200)
-  })
-
-  it('returns empty Map for no workers', async () => {
-    mockExecute.mockResolvedValue({ rows: [] })
-    const map = await sumAllWorkerSaldos(fakePayload)
-    expect(map.size).toBe(0)
-  })
-})
-
-// ── deriveWorkerBreakdown ────────────────────────────────────────────
-
-describe('deriveWorkerBreakdown', () => {
-  it('derives advances, expenses, and periodSaldo', () => {
-    const byType = [
-      { type: 'ACCOUNT_FUNDING', total: 1000 },
-      { type: 'EMPLOYEE_EXPENSE', total: 600 },
-    ]
-    expect(deriveWorkerBreakdown(byType)).toEqual({
-      totalAdvances: 1000,
-      totalExpenses: 600,
-      periodSaldo: 400,
-    })
-  })
-
-  it('only advances → expenses = 0', () => {
-    expect(deriveWorkerBreakdown([{ type: 'ACCOUNT_FUNDING', total: 500 }])).toEqual({
-      totalAdvances: 500,
-      totalExpenses: 0,
-      periodSaldo: 500,
-    })
-  })
-
-  it('only expenses → negative periodSaldo', () => {
-    expect(deriveWorkerBreakdown([{ type: 'EMPLOYEE_EXPENSE', total: 800 }])).toEqual({
-      totalAdvances: 0,
-      totalExpenses: 800,
-      periodSaldo: -800,
-    })
-  })
-
-  it('empty array → all zeros', () => {
-    expect(deriveWorkerBreakdown([])).toEqual({
-      totalAdvances: 0,
-      totalExpenses: 0,
-      periodSaldo: 0,
-    })
-  })
-})
-
 // ── buildSqlConditions — filter translation (via sumFilteredByType) ──
 
 /** Extract raw SQL string from sql.raw() query object passed to db.execute */
@@ -280,13 +215,12 @@ describe('deriveFinancials', () => {
   it('derives totals from type distribution', () => {
     const byType = [
       { type: 'INVESTMENT_EXPENSE', total: 5000 },
-      { type: 'EMPLOYEE_EXPENSE', total: 2000 },
       { type: 'INVESTOR_DEPOSIT', total: 12000 },
       { type: 'LABOR_COST', total: 800 },
     ]
     expect(deriveFinancials(byType)).toEqual({
       categoryCosts: [],
-      totalMaterialCosts: 7000,
+      totalMaterialCosts: 5000,
       totalIncome: 12000,
       totalLaborCosts: 800,
     })
@@ -304,16 +238,15 @@ describe('deriveFinancials', () => {
   it('includes category costs when provided', () => {
     const byType = [
       { type: 'INVESTMENT_EXPENSE', total: 5000 },
-      { type: 'EMPLOYEE_EXPENSE', total: 2000 },
       { type: 'INVESTOR_DEPOSIT', total: 12000 },
       { type: 'LABOR_COST', total: 800 },
     ]
     const byCat = [
-      { categoryId: 1, total: 5000 },
+      { categoryId: 1, total: 3000 },
       { categoryId: 2, total: 2000 },
     ]
     const result = deriveFinancials(byType, byCat)
-    expect(result.totalMaterialCosts).toBe(7000)
+    expect(result.totalMaterialCosts).toBe(5000)
     expect(result.categoryCosts).toEqual(byCat)
   })
 })
@@ -322,12 +255,10 @@ describe('deriveCostBreakdown', () => {
   it('derives breakdown from type distribution', () => {
     const byType = [
       { type: 'INVESTMENT_EXPENSE', total: 5000 },
-      { type: 'EMPLOYEE_EXPENSE', total: 2000 },
       { type: 'LABOR_COST', total: 800 },
     ]
     expect(deriveCostBreakdown(byType)).toEqual({
       investmentExpenses: 5000,
-      employeeExpenses: 2000,
       laborCosts: 800,
     })
   })
@@ -335,7 +266,6 @@ describe('deriveCostBreakdown', () => {
   it('returns zeros for empty array', () => {
     expect(deriveCostBreakdown([])).toEqual({
       investmentExpenses: 0,
-      employeeExpenses: 0,
       laborCosts: 0,
     })
   })
