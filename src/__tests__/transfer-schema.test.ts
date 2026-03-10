@@ -243,8 +243,7 @@ describe('createBulkTransferSchema — per-line-item category', () => {
       ...bulkBase,
       type: 'INVESTMENT_EXPENSE',
       investment: 1,
-      expenseCategory: 1,
-      lineItems: [{ description: 'Item', amount: 100, category: 3 }],
+      lineItems: [{ description: 'Item', amount: 100, category: 3, expenseCategory: 1 }],
     })
     expect(result.success).toBe(true)
   })

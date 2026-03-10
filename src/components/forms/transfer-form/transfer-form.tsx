@@ -10,6 +10,7 @@ import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import {
   TRANSACTION_TRANSFER_TYPES,
   TRANSFER_TYPE_LABELS,
+  EXPENSE_CATEGORY_LABEL,
   isDepositType,
   needsSourceRegister,
   showsInvestment,
@@ -51,12 +52,12 @@ type FormValuesT = {
   sourceRegister: string
   targetRegister: string
   investment: string
-  expenseCategory: string
   lineItems: {
     description: string
     amount: string
     invoiceNote: string
     category: string
+    expenseCategory: string
   }[]
 }
 
@@ -74,6 +75,10 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
     useInvoiceFiles(recoveredFiles)
   const userCashRegisterIds = getUserCashRegisterIds(referenceData)
   const isSourceRestricted = userCashRegisterIds !== undefined
+
+  const defaultExpenseCategory = referenceData.expenseCategories[0]
+    ? String(referenceData.expenseCategories[0].id)
+    : ''
 
   const [saldo, setSaldo] = useState<number | null>(null)
   const [isSaldoLoading, setIsSaldoLoading] = useState(false)
@@ -103,10 +108,15 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
         sourceRegister: getDefaultCashRegister(referenceData),
         targetRegister: '',
         investment: '',
-        expenseCategory: referenceData.expenseCategories[0]
-          ? String(referenceData.expenseCategories[0].id)
-          : '',
-        lineItems: [{ description: '', amount: '', invoiceNote: '', category: '' }],
+        lineItems: [
+          {
+            description: '',
+            amount: '',
+            invoiceNote: '',
+            category: '',
+            expenseCategory: defaultExpenseCategory,
+          },
+        ],
       } as FormValuesT),
     validators: {
       onSubmit: bulkTransferFormSchema,
@@ -121,12 +131,12 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
         sourceRegister: value.sourceRegister ? Number(value.sourceRegister) : undefined,
         targetRegister: value.targetRegister ? Number(value.targetRegister) : undefined,
         investment: value.investment ? Number(value.investment) : undefined,
-        expenseCategory: value.expenseCategory ? Number(value.expenseCategory) : undefined,
         lineItems: value.lineItems.map((item) => ({
           description: item.description,
           amount: Number(item.amount),
           invoiceNote: item.invoiceNote || undefined,
           category: item.category ? Number(item.category) : undefined,
+          expenseCategory: item.expenseCategory ? Number(item.expenseCategory) : undefined,
         })),
       }
 
@@ -164,7 +174,7 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
   // TanStack Form preserves values of unmounted fields. When the user switches
   // transfer type, hidden fields (e.g. investment) keep stale selections.
   // Reset them so validation and submission use a clean slate for the new type.
-  const conditionalFields = ['targetRegister', 'investment', 'expenseCategory'] as const
+  const conditionalFields = ['targetRegister', 'investment'] as const
 
   function resetConditionalFields() {
     conditionalFields.forEach((field) => form.resetField(field))
@@ -182,21 +192,25 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
         }}
       >
         <FieldGroup>
-          {/* Date */}
-
-          {/* Type — deposit types moved to separate deposit dialog */}
-          <form.AppField name="type" listeners={{ onChange: resetConditionalFields }}>
-            {(field) => (
-              <field.Select label="Typ wydatku" showError>
-                {TRANSACTION_TRANSFER_TYPES.map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {TRANSFER_TYPE_LABELS[t]}
-                  </SelectItem>
-                ))}
-              </field.Select>
-            )}
-          </form.AppField>
-          <DateField form={form} />
+          {/* Type + Date */}
+          <div className="flex items-start gap-4">
+            <div className="min-w-0 flex-1">
+              <form.AppField name="type" listeners={{ onChange: resetConditionalFields }}>
+                {(field) => (
+                  <field.Select label="Typ wydatku" showError>
+                    {TRANSACTION_TRANSFER_TYPES.map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {TRANSFER_TYPE_LABELS[t]}
+                      </SelectItem>
+                    ))}
+                  </field.Select>
+                )}
+              </form.AppField>
+            </div>
+            <div className="w-40">
+              <DateField form={form} />
+            </div>
+          </div>
 
           {/* Cash register — filtered to owned registers for non-ADMIN */}
           {needsSourceRegister(currentType) && (
@@ -238,42 +252,65 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
             <InvestmentField form={form} investments={referenceData.investments} />
           )}
 
-          {/* Conditional: Expense category — for INVESTMENT_EXPENSE */}
-          {currentType === 'INVESTMENT_EXPENSE' && (
-            <ExpenseCategoryField form={form} expenseCategories={referenceData.expenseCategories} />
-          )}
-
           {/* Line items — all non-deposit types */}
           {!isDepositType(currentType) && (
             <LineItemsField
               form={form}
-              emptyItem={{ description: '', amount: '', invoiceNote: '', category: '' }}
+              emptyItem={{
+                description: '',
+                amount: '',
+                invoiceNote: '',
+                category: '',
+                expenseCategory: defaultExpenseCategory,
+              }}
               total={total}
               onRemoveItem={handleRemoveLineItem}
               onFileChange={handleFileChange}
               renderItemInline={(index) => (
-                <div className="w-40">
-                  <form.AppField name={`lineItems[${index}].category`}>
-                    {(field: {
-                      Select: React.FC<{
-                        placeholder: string
-                        showError: boolean
-                        children: React.ReactNode
-                      }>
-                    }) => (
-                      <field.Select
-                        placeholder={currentType === 'OTHER' ? 'Kategoria *' : 'Kategoria'}
-                        showError
-                      >
-                        {referenceData.otherCategories.map((cat) => (
-                          <SelectItem key={cat.id} value={String(cat.id)}>
-                            {cat.name}
-                          </SelectItem>
-                        ))}
-                      </field.Select>
-                    )}
-                  </form.AppField>
-                </div>
+                <>
+                  {currentType === 'INVESTMENT_EXPENSE' && (
+                    <div className="min-w-0 flex-1">
+                      <form.AppField name={`lineItems[${index}].expenseCategory`}>
+                        {(field: {
+                          Select: React.FC<{
+                            placeholder: string
+                            showError: boolean
+                            children: React.ReactNode
+                          }>
+                        }) => (
+                          <field.Select placeholder={`${EXPENSE_CATEGORY_LABEL} *`} showError>
+                            {referenceData.expenseCategories.map((cat) => (
+                              <SelectItem key={cat.id} value={String(cat.id)}>
+                                {cat.name}
+                              </SelectItem>
+                            ))}
+                          </field.Select>
+                        )}
+                      </form.AppField>
+                    </div>
+                  )}
+                  {currentType === 'OTHER' && (
+                    <div className="min-w-0 flex-1">
+                      <form.AppField name={`lineItems[${index}].category`}>
+                        {(field: {
+                          Select: React.FC<{
+                            placeholder: string
+                            showError: boolean
+                            children: React.ReactNode
+                          }>
+                        }) => (
+                          <field.Select placeholder="Kategoria *" showError>
+                            {referenceData.otherCategories.map((cat) => (
+                              <SelectItem key={cat.id} value={String(cat.id)}>
+                                {cat.name}
+                              </SelectItem>
+                            ))}
+                          </field.Select>
+                        )}
+                      </form.AppField>
+                    </div>
+                  )}
+                </>
               )}
             />
           )}

@@ -35,15 +35,14 @@ export function LineItemsField({
         <div className="space-y-4">
           <p className="text-foreground text-sm font-medium">{label}</p>
           {lineItemsField.state.value.map((_, index) => (
-            <div key={index} className="space-y-2">
+            <div
+              key={index}
+              className={`space-y-2 ${index > 0 ? 'border-border border-t pt-4' : ''}`}
+            >
               <div className="flex items-start gap-2">
-                <div className="min-w-0 flex-1">
-                  <form.AppField name={`lineItems[${index}].description`}>
-                    {(field: { Input: React.FC<{ placeholder: string; showError: boolean }> }) => (
-                      <field.Input placeholder="Opis" showError />
-                    )}
-                  </form.AppField>
-                </div>
+                <span className="text-muted-foreground flex h-9 shrink-0 items-center text-sm font-medium">
+                  {index + 1}.
+                </span>
                 <div className="w-28">
                   <form.AppField name={`lineItems[${index}].amount`}>
                     {(field: {
@@ -51,14 +50,14 @@ export function LineItemsField({
                     }) => <field.Input placeholder="Kwota" type="number" showError />}
                   </form.AppField>
                 </div>
-                {renderItemInline?.(index)}
                 <div className="min-w-0 flex-1">
-                  <form.AppField name={`lineItems[${index}].invoiceNote`}>
+                  <form.AppField name={`lineItems[${index}].description`}>
                     {(field: { Input: React.FC<{ placeholder: string; showError: boolean }> }) => (
-                      <field.Input placeholder="Notatka" showError />
+                      <field.Input placeholder="Opis" showError />
                     )}
                   </form.AppField>
                 </div>
+                {renderItemInline?.(index)}
                 <Button
                   type="button"
                   variant="ghost"
@@ -71,10 +70,25 @@ export function LineItemsField({
                   <X className="size-4" />
                 </Button>
               </div>
-              <FileInput
-                accept="image/*,application/pdf"
-                onChange={(e) => onFileChange(index, e)}
-              />
+              <div className="flex items-start gap-2">
+                {/* Spacer to align with Kwota: matches number span */}
+                <span className="invisible flex h-9 shrink-0 items-center text-sm font-medium">
+                  0.
+                </span>
+                <div className="min-w-0 flex-1">
+                  <form.AppField name={`lineItems[${index}].invoiceNote`}>
+                    {(field: { Input: React.FC<{ placeholder: string; showError: boolean }> }) => (
+                      <field.Input placeholder="Notatka" showError />
+                    )}
+                  </form.AppField>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <FileInput
+                    accept="image/*,application/pdf"
+                    onChange={(e) => onFileChange(index, e)}
+                  />
+                </div>
+              </div>
             </div>
           ))}
           <Button

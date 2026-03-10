@@ -141,12 +141,7 @@ export function DepositForm({ referenceData, onSuccess, keepOpen }: DepositFormP
           {/* Payment method — temporarily hidden, always CASH */}
           {/* <PaymentMethodField form={form} /> */}
 
-          {/* Cash register — exclude WORKER accounts (deposits go to physical registers) */}
-          <CashRegisterField
-            form={form}
-            cashRegisters={referenceData.cashRegisters}
-            excludeTypes={['WORKER']}
-          />
+          <CashRegisterField form={form} cashRegisters={referenceData.cashRegisters} />
 
           {/* Conditional: Investment — for INVESTOR_DEPOSIT */}
           {requiresInvestment(currentType) && (

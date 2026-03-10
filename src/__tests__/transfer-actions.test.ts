@@ -109,10 +109,10 @@ function makeBulkTransferData(itemCount: number, overrides = {}) {
     paymentMethod: 'CASH' as const,
     sourceRegister: 1,
     investment: 1,
-    expenseCategory: 1,
     lineItems: Array.from({ length: itemCount }, (_, i) => ({
       description: `Item ${i + 1}`,
       amount: 100,
+      expenseCategory: 1,
     })),
     ...overrides,
   }
@@ -472,7 +472,7 @@ describe('createBulkTransferAction', () => {
 
     const data = {
       ...makeBulkTransferData(1),
-      lineItems: [{ description: 'Item', amount: 100, category: 3 }],
+      lineItems: [{ description: 'Item', amount: 100, category: 3, expenseCategory: 1 }],
     }
 
     const result = await createBulkTransferAction(data, null)

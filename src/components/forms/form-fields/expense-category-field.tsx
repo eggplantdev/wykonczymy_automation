@@ -1,4 +1,5 @@
 import { SelectItem } from '@/components/ui/select'
+import { EXPENSE_CATEGORY_LABEL } from '@/lib/constants/transfers'
 import type { ReferenceItemT } from '@/types/reference-data'
 
 type ExpenseCategoryFieldPropsT = {
@@ -12,7 +13,7 @@ export function ExpenseCategoryField({ form, expenseCategories }: ExpenseCategor
     <form.AppField name="expenseCategory">
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       {(field: any) => (
-        <field.Select label="Typ wydatku inwestycyjnego" placeholder="Wybierz typ" showError>
+        <field.Select label={EXPENSE_CATEGORY_LABEL} placeholder="Wybierz typ" showError>
           {expenseCategories.map((cat) => (
             <SelectItem key={cat.id} value={String(cat.id)}>
               {cat.name}
