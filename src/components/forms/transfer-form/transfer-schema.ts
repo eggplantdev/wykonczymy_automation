@@ -49,7 +49,7 @@ const transferFieldRules: FieldRuleT[] = [
     path: 'investment',
   },
   {
-    invalid: (d) => d.type === 'OTHER' && !d.otherCategory,
+    invalid: (d) => d.type === 'OTHER' && !('lineItems' in d) && !d.otherCategory,
     message: 'Kategoria jest wymagana dla transferu typu "Inny wydatek"',
     path: 'otherCategory',
   },
@@ -120,6 +120,8 @@ const lineItemClientSchema = z.object({
   description: z.string(),
   amount: z.string(),
   invoiceNote: z.string(),
+  category: z.string().optional().default(''),
+  note: z.string().optional().default(''),
 })
 
 export const bulkTransferFormSchema = z
@@ -131,8 +133,6 @@ export const bulkTransferFormSchema = z
     targetRegister: z.string(),
     investment: z.string(),
     expenseCategory: z.string(),
-    otherCategory: z.string(),
-    otherDescription: z.string(),
     lineItems: z.array(lineItemClientSchema),
   })
   .superRefine((data, ctx) => {
@@ -155,6 +155,13 @@ export const bulkTransferFormSchema = z
           path: ['lineItems', index, 'amount'],
         })
       }
+      if (data.type === 'OTHER' && !item.category) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Kategoria jest wymagana dla typu "Inny wydatek"',
+          path: ['lineItems', index, 'category'],
+        })
+      }
     })
   })
 
@@ -167,18 +174,32 @@ export const createBulkTransferSchema = z
     targetRegister: z.number().optional(),
     investment: z.number().optional(),
     expenseCategory: z.number().optional(),
-    otherCategory: z.number().optional(),
-    otherDescription: z.string().optional(),
     lineItems: z
       .array(
         z.object({
           description: z.string(),
           amount: z.number().positive('Kwota musi być większa niż 0'),
           invoiceNote: z.string().optional(),
+          category: z.number().positive().optional(),
+          note: z.string().optional(),
         }),
       )
       .min(1, 'Dodaj co najmniej jedną pozycję'),
   })
-  .superRefine((data, ctx) => validateTransferFields(data, ctx))
+  .superRefine((data, ctx) => {
+    validateTransferFields(data, ctx)
+
+    if (data.type === 'OTHER') {
+      data.lineItems.forEach((item, index) => {
+        if (!item.category) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Kategoria jest wymagana dla typu "Inny wydatek"',
+            path: ['lineItems', index, 'category'],
+          })
+        }
+      })
+    }
+  })
 
 export type CreateBulkTransferFormT = z.infer<typeof createBulkTransferSchema>
