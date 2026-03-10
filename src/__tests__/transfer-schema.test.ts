@@ -25,14 +25,6 @@ const VALID_SERVER_PAYLOADS: Record<string, Record<string, unknown>> = {
     investment: 1,
     expenseCategory: 1,
   },
-  ACCOUNT_FUNDING: { ...base, type: 'ACCOUNT_FUNDING', sourceRegister: 1, worker: 1 },
-  EMPLOYEE_EXPENSE: {
-    ...base,
-    type: 'EMPLOYEE_EXPENSE',
-    worker: 1,
-    investment: 1,
-    expenseCategory: 1,
-  },
   LABOR_COST: { ...base, type: 'LABOR_COST', investment: 1 },
   REGISTER_TRANSFER: {
     ...base,
@@ -55,7 +47,6 @@ function toClientPayload(server: Record<string, unknown>): Record<string, string
     sourceRegister: '',
     targetRegister: '',
     investment: '',
-    worker: '',
     expenseCategory: '',
     otherCategory: '',
     otherDescription: '',
@@ -142,27 +133,6 @@ describe('createTransferSchema — missing required fields', () => {
     expect(errorPaths(result)).toContain('investment')
   })
 
-  it('ACCOUNT_FUNDING without sourceRegister → error on sourceRegister', () => {
-    const { sourceRegister, ...rest } = VALID_SERVER_PAYLOADS.ACCOUNT_FUNDING
-    const result = createTransferSchema.safeParse(rest)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('sourceRegister')
-  })
-
-  it('ACCOUNT_FUNDING without worker → error on worker', () => {
-    const { worker, ...rest } = VALID_SERVER_PAYLOADS.ACCOUNT_FUNDING
-    const result = createTransferSchema.safeParse(rest)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('worker')
-  })
-
-  it('EMPLOYEE_EXPENSE without worker → error on worker', () => {
-    const { worker, ...rest } = VALID_SERVER_PAYLOADS.EMPLOYEE_EXPENSE
-    const result = createTransferSchema.safeParse(rest)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('worker')
-  })
-
   it('REGISTER_TRANSFER without targetRegister → error on targetRegister', () => {
     const { targetRegister, ...rest } = VALID_SERVER_PAYLOADS.REGISTER_TRANSFER
     const result = createTransferSchema.safeParse(rest)
@@ -237,41 +207,6 @@ describe('createTransferSchema — amount edge cases', () => {
   })
 })
 
-// ── 2b: Server Schema — EMPLOYEE_EXPENSE special cases ──────────────────
-
-describe('createTransferSchema — EMPLOYEE_EXPENSE special cases', () => {
-  it('with investment only → passes', () => {
-    const result = createTransferSchema.safeParse({
-      ...base,
-      type: 'EMPLOYEE_EXPENSE',
-      worker: 1,
-      investment: 1,
-      expenseCategory: 1,
-    })
-    expect(result.success).toBe(true)
-  })
-
-  it('with otherCategory only → passes', () => {
-    const result = createTransferSchema.safeParse({
-      ...base,
-      type: 'EMPLOYEE_EXPENSE',
-      worker: 1,
-      otherCategory: 1,
-    })
-    expect(result.success).toBe(true)
-  })
-
-  it('with neither investment nor otherCategory → fails (matches hook)', () => {
-    const result = createTransferSchema.safeParse({
-      ...base,
-      type: 'EMPLOYEE_EXPENSE',
-      worker: 1,
-    })
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('investment')
-  })
-})
-
 // ── 2c: Client Schema — Valid payloads ──────────────────────────────────
 
 describe('transferFormSchema — valid payloads (string values)', () => {
@@ -300,14 +235,6 @@ describe('transferFormSchema — missing required fields', () => {
     const result = transferFormSchema.safeParse(payload)
     expect(result.success).toBe(false)
     expect(errorPaths(result)).toContain('investment')
-  })
-
-  it('ACCOUNT_FUNDING without worker → error on worker', () => {
-    const payload = toClientPayload(VALID_SERVER_PAYLOADS.ACCOUNT_FUNDING)
-    payload.worker = ''
-    const result = transferFormSchema.safeParse(payload)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('worker')
   })
 
   it('REGISTER_TRANSFER without targetRegister → error on targetRegister', () => {
@@ -341,14 +268,6 @@ describe('transferFormSchema — missing required fields', () => {
     const result = transferFormSchema.safeParse(payload)
     expect(result.success).toBe(false)
     expect(errorPaths(result)).toContain('otherCategory')
-  })
-
-  it('EMPLOYEE_EXPENSE without worker → error on worker', () => {
-    const payload = toClientPayload(VALID_SERVER_PAYLOADS.EMPLOYEE_EXPENSE)
-    payload.worker = ''
-    const result = transferFormSchema.safeParse(payload)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('worker')
   })
 
   it('amount empty → error on amount', () => {
@@ -395,21 +314,4 @@ describe('schema parity — valid payloads', () => {
       expect(clientResult.success).toBe(true)
     })
   }
-})
-
-// ── 2d: Schema Parity — EMPLOYEE_EXPENSE without investment ─────────────
-
-describe('schema parity — EMPLOYEE_EXPENSE without investment or otherCategory', () => {
-  const serverPayload = { ...base, type: 'EMPLOYEE_EXPENSE', worker: 1 }
-  const clientPayload = toClientPayload(serverPayload)
-
-  it('server schema rejects (matches hook)', () => {
-    const result = createTransferSchema.safeParse(serverPayload)
-    expect(result.success).toBe(false)
-  })
-
-  it('client schema rejects (matches hook)', () => {
-    const result = transferFormSchema.safeParse(clientPayload)
-    expect(result.success).toBe(false)
-  })
 })
