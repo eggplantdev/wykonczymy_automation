@@ -68,6 +68,29 @@ function validateTransferFields(data: TransferFieldsT, ctx: z.RefinementCtx) {
   }
 }
 
+function validateLineItemCategories(
+  type: string,
+  lineItems: readonly { category?: unknown; expenseCategory?: unknown }[],
+  ctx: z.RefinementCtx,
+) {
+  lineItems.forEach((item, index) => {
+    if (type === 'OTHER' && !item.category) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Kategoria jest wymagana dla typu "Inny wydatek"',
+        path: ['lineItems', index, 'category'],
+      })
+    }
+    if (type === 'INVESTMENT_EXPENSE' && !item.expenseCategory) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Typ wydatku inwestycyjnego jest wymagany',
+        path: ['lineItems', index, 'expenseCategory'],
+      })
+    }
+  })
+}
+
 export const createTransferSchema = z
   .object({
     description: z.string().optional().default(''),
@@ -154,21 +177,8 @@ export const bulkTransferFormSchema = z
           path: ['lineItems', index, 'amount'],
         })
       }
-      if (data.type === 'OTHER' && !item.category) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Kategoria jest wymagana dla typu "Inny wydatek"',
-          path: ['lineItems', index, 'category'],
-        })
-      }
-      if (data.type === 'INVESTMENT_EXPENSE' && !item.expenseCategory) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Typ wydatku inwestycyjnego jest wymagany',
-          path: ['lineItems', index, 'expenseCategory'],
-        })
-      }
     })
+    validateLineItemCategories(data.type, data.lineItems, ctx)
   })
 
 export const createBulkTransferSchema = z
@@ -194,22 +204,7 @@ export const createBulkTransferSchema = z
   .superRefine((data, ctx) => {
     validateTransferFields(data, ctx)
 
-    data.lineItems.forEach((item, index) => {
-      if (data.type === 'OTHER' && !item.category) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Kategoria jest wymagana dla typu "Inny wydatek"',
-          path: ['lineItems', index, 'category'],
-        })
-      }
-      if (data.type === 'INVESTMENT_EXPENSE' && !item.expenseCategory) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Typ wydatku inwestycyjnego jest wymagany',
-          path: ['lineItems', index, 'expenseCategory'],
-        })
-      }
-    })
+    validateLineItemCategories(data.type, data.lineItems, ctx)
   })
 
 export type CreateBulkTransferFormT = z.infer<typeof createBulkTransferSchema>

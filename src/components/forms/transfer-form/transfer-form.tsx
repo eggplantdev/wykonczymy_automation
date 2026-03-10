@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
@@ -82,19 +82,22 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
 
   const [saldo, setSaldo] = useState<number | null>(null)
   const [isSaldoLoading, setIsSaldoLoading] = useState(false)
+  const saldoRequestRef = useRef(0)
 
   async function fetchSaldo(registerId: string) {
     setSaldo(null)
     if (!registerId) return
 
+    const requestId = ++saldoRequestRef.current
     setIsSaldoLoading(true)
     try {
       const result = await getRegisterSaldo(Number(registerId))
-      setSaldo(result.saldo)
+      // Ignore stale responses from earlier selections
+      if (saldoRequestRef.current === requestId) setSaldo(result.saldo)
     } catch {
       toastMessage('Nie udało się pobrać salda', 'error')
     } finally {
-      setIsSaldoLoading(false)
+      if (saldoRequestRef.current === requestId) setIsSaldoLoading(false)
     }
   }
 
@@ -266,52 +269,46 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
               total={total}
               onRemoveItem={handleRemoveLineItem}
               onFileChange={handleFileChange}
-              renderItemInline={(index) => (
-                <>
-                  {currentType === 'INVESTMENT_EXPENSE' && (
-                    <div className="min-w-0 flex-1">
-                      <form.AppField name={`lineItems[${index}].expenseCategory`}>
-                        {(field: {
-                          Select: React.FC<{
-                            placeholder: string
-                            showError: boolean
-                            children: React.ReactNode
-                          }>
-                        }) => (
-                          <field.Select placeholder={`${EXPENSE_CATEGORY_LABEL} *`} showError>
-                            {referenceData.expenseCategories.map((cat) => (
-                              <SelectItem key={cat.id} value={String(cat.id)}>
-                                {cat.name}
-                              </SelectItem>
-                            ))}
-                          </field.Select>
-                        )}
-                      </form.AppField>
-                    </div>
-                  )}
-                  {currentType === 'OTHER' && (
-                    <div className="min-w-0 flex-1">
-                      <form.AppField name={`lineItems[${index}].category`}>
-                        {(field: {
-                          Select: React.FC<{
-                            placeholder: string
-                            showError: boolean
-                            children: React.ReactNode
-                          }>
-                        }) => (
-                          <field.Select placeholder="Kategoria *" showError>
-                            {referenceData.otherCategories.map((cat) => (
-                              <SelectItem key={cat.id} value={String(cat.id)}>
-                                {cat.name}
-                              </SelectItem>
-                            ))}
-                          </field.Select>
-                        )}
-                      </form.AppField>
-                    </div>
-                  )}
-                </>
-              )}
+              renderItemInline={(index) => {
+                const categoryConfig =
+                  currentType === 'INVESTMENT_EXPENSE'
+                    ? {
+                        name: `lineItems[${index}].expenseCategory` as const,
+                        placeholder: `${EXPENSE_CATEGORY_LABEL} *`,
+                        options: referenceData.expenseCategories,
+                      }
+                    : currentType === 'OTHER'
+                      ? {
+                          name: `lineItems[${index}].category` as const,
+                          placeholder: 'Kategoria *',
+                          options: referenceData.otherCategories,
+                        }
+                      : undefined
+
+                if (!categoryConfig) return null
+
+                return (
+                  <div className="min-w-0 flex-1">
+                    <form.AppField name={categoryConfig.name}>
+                      {(field: {
+                        Select: React.FC<{
+                          placeholder: string
+                          showError: boolean
+                          children: React.ReactNode
+                        }>
+                      }) => (
+                        <field.Select placeholder={categoryConfig.placeholder} showError>
+                          {categoryConfig.options.map((cat) => (
+                            <SelectItem key={cat.id} value={String(cat.id)}>
+                              {cat.name}
+                            </SelectItem>
+                          ))}
+                        </field.Select>
+                      )}
+                    </form.AppField>
+                  </div>
+                )
+              }}
             />
           )}
         </FieldGroup>
