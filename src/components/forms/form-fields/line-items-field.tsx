@@ -59,10 +59,6 @@ export function LineItemsField({
                     )}
                   </form.AppField>
                 </div>
-                <FileInput
-                  accept="image/*,application/pdf"
-                  onChange={(e) => onFileChange(index, e)}
-                />
                 <Button
                   type="button"
                   variant="ghost"
@@ -75,6 +71,10 @@ export function LineItemsField({
                   <X className="size-4" />
                 </Button>
               </div>
+              <FileInput
+                accept="image/*,application/pdf"
+                onChange={(e) => onFileChange(index, e)}
+              />
             </div>
           ))}
           <Button
