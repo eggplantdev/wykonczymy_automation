@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
@@ -17,7 +18,8 @@ import {
   type TransferTypeT,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
-import { createBulkTransferAction } from '@/lib/actions/transfers'
+import { createBulkTransferAction, getRegisterSaldo } from '@/lib/actions/transfers'
+import { formatPLN } from '@/lib/format-currency'
 import {
   bulkTransferFormSchema,
   type CreateBulkTransferFormT,
@@ -70,6 +72,24 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
     useInvoiceFiles(recoveredFiles)
   const userCashRegisterIds = getUserCashRegisterIds(referenceData)
   const isSourceRestricted = userCashRegisterIds !== undefined
+
+  const [saldo, setSaldo] = useState<number | null>(null)
+  const [isSaldoLoading, setIsSaldoLoading] = useState(false)
+
+  async function fetchSaldo(registerId: string) {
+    setSaldo(null)
+    if (!registerId) return
+
+    setIsSaldoLoading(true)
+    try {
+      const result = await getRegisterSaldo(Number(registerId))
+      setSaldo(result.saldo)
+    } catch {
+      toastMessage('Nie udało się pobrać salda', 'error')
+    } finally {
+      setIsSaldoLoading(false)
+    }
+  }
 
   const form = useAppForm({
     defaultValues:
@@ -157,6 +177,7 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
     conditionalFields.forEach((field) => form.resetField(field))
     if (!isSourceRestricted || (userCashRegisterIds && userCashRegisterIds.length > 1))
       form.resetField('sourceRegister')
+    setSaldo(null)
   }
 
   return (
@@ -207,14 +228,28 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
             </>
           )}
 
-          {/* Cash register — filtered to owned registers for non-ADMIN, excludes WORKER type */}
+          {/* Cash register — filtered to owned registers for non-ADMIN */}
           {needsSourceRegister(currentType) && (
-            <CashRegisterField
-              form={form}
-              cashRegisters={referenceData.cashRegisters}
-              userCashRegisterIds={userCashRegisterIds}
-              excludeTypes={['WORKER']}
-            />
+            <>
+              <CashRegisterField
+                form={form}
+                cashRegisters={referenceData.cashRegisters}
+                userCashRegisterIds={userCashRegisterIds}
+                listeners={{
+                  onChange: ({ value }: { value: string }) => {
+                    fetchSaldo(value)
+                  },
+                }}
+              />
+              {isSaldoLoading && (
+                <p className="text-muted-foreground text-sm">Ładowanie salda...</p>
+              )}
+              {saldo !== null && !isSaldoLoading && (
+                <p className="text-sm">
+                  Aktualne saldo: <span className="font-medium">{formatPLN(saldo)}</span>
+                </p>
+              )}
+            </>
           )}
 
           {/* Conditional: Target register (REGISTER_TRANSFER only) */}
@@ -266,6 +301,20 @@ export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFor
             />
           )}
         </FieldGroup>
+
+        {saldo !== null && (
+          <div className="bg-muted/50 border-border mt-6 space-y-1 rounded-lg border px-6 py-4">
+            <p className="text-sm">
+              Aktualne saldo: <span className="font-medium">{formatPLN(saldo)}</span>
+            </p>
+            <p className="text-sm">
+              Suma wydatków: <span className="font-medium">{formatPLN(total)}</span>
+            </p>
+            <p className="text-sm">
+              Saldo po transakcji: <span className="font-medium">{formatPLN(saldo - total)}</span>
+            </p>
+          </div>
+        )}
 
         <div className="mt-6">
           <FormFooter />
