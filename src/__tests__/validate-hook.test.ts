@@ -38,21 +38,13 @@ const VALID_DATA: Record<string, Record<string, unknown>> = {
     investment: 1,
     expenseCategory: 1,
   },
-  ACCOUNT_FUNDING: { ...base, type: 'ACCOUNT_FUNDING', sourceRegister: 1, worker: 1 },
-  EMPLOYEE_EXPENSE: {
-    ...base,
-    type: 'EMPLOYEE_EXPENSE',
-    worker: 1,
-    investment: 1,
-    expenseCategory: 1,
-  },
   LABOR_COST: { ...base, type: 'LABOR_COST', investment: 1 },
   REGISTER_TRANSFER: { ...base, type: 'REGISTER_TRANSFER', sourceRegister: 1, targetRegister: 2 },
   OTHER: { ...base, type: 'OTHER', sourceRegister: 1, otherCategory: 1 },
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// All 9 types with valid data → passes
+// All types with valid data → passes
 // ═══════════════════════════════════════════════════════════════════════
 
 describe('validateTransfer — all types valid', () => {
@@ -98,21 +90,6 @@ describe('validateTransfer — missing required fields', () => {
     expect(() => validateTransfer(hookArgs(data))).toThrow(/[Ii]nvestment/)
   })
 
-  it('ACCOUNT_FUNDING without sourceRegister → throws', () => {
-    const { sourceRegister, ...data } = VALID_DATA.ACCOUNT_FUNDING
-    expect(() => validateTransfer(hookArgs(data))).toThrow(/[Cc]ash register/)
-  })
-
-  it('ACCOUNT_FUNDING without worker → throws', () => {
-    const { worker, ...data } = VALID_DATA.ACCOUNT_FUNDING
-    expect(() => validateTransfer(hookArgs(data))).toThrow(/[Ww]orker/)
-  })
-
-  it('EMPLOYEE_EXPENSE without worker → throws', () => {
-    const { worker, ...data } = VALID_DATA.EMPLOYEE_EXPENSE
-    expect(() => validateTransfer(hookArgs(data))).toThrow(/[Ww]orker/)
-  })
-
   it('LABOR_COST without investment → throws', () => {
     const { investment, ...data } = VALID_DATA.LABOR_COST
     expect(() => validateTransfer(hookArgs(data))).toThrow(/[Ii]nvestment/)
@@ -149,72 +126,6 @@ describe('validateTransfer — auto-clear behavior', () => {
     const result = validateTransfer(hookArgs(data))
     expect(result.sourceRegister).toBeNull()
   })
-
-  it('EMPLOYEE_EXPENSE → sourceRegister set to null', () => {
-    const data = { ...VALID_DATA.EMPLOYEE_EXPENSE, sourceRegister: 5 }
-    const result = validateTransfer(hookArgs(data))
-    expect(result.sourceRegister).toBeNull()
-  })
-
-  it('EMPLOYEE_EXPENSE with both investment + otherCategory → otherCategory auto-cleared', () => {
-    const data = {
-      ...base,
-      type: 'EMPLOYEE_EXPENSE',
-      worker: 1,
-      investment: 1,
-      expenseCategory: 1,
-      otherCategory: 2,
-      otherDescription: 'something',
-    }
-    const result = validateTransfer(hookArgs(data))
-    expect(result.otherCategory).toBeNull()
-    expect(result.otherDescription).toBeNull()
-    // investment preserved
-    expect(result.investment).toBe(1)
-  })
-})
-
-// ═══════════════════════════════════════════════════════════════════════
-// EMPLOYEE_EXPENSE special: investment OR otherCategory
-// ═══════════════════════════════════════════════════════════════════════
-
-describe('validateTransfer — EMPLOYEE_EXPENSE either/or', () => {
-  it('investment only → passes', () => {
-    const data = { ...base, type: 'EMPLOYEE_EXPENSE', worker: 1, investment: 1, expenseCategory: 1 }
-    expect(() => validateTransfer(hookArgs(data))).not.toThrow()
-  })
-
-  it('otherCategory only → passes', () => {
-    const data = { ...base, type: 'EMPLOYEE_EXPENSE', worker: 1, otherCategory: 1 }
-    expect(() => validateTransfer(hookArgs(data))).not.toThrow()
-  })
-
-  it('neither investment nor otherCategory → throws', () => {
-    const data = { ...base, type: 'EMPLOYEE_EXPENSE', worker: 1 }
-    expect(() => validateTransfer(hookArgs(data))).toThrow(
-      /requires either an investment or a category/,
-    )
-  })
-
-  it('both → passes (investment takes precedence, otherCategory cleared)', () => {
-    const data = {
-      ...base,
-      type: 'EMPLOYEE_EXPENSE',
-      worker: 1,
-      investment: 1,
-      expenseCategory: 1,
-      otherCategory: 2,
-    }
-    const result = validateTransfer(hookArgs(data))
-    expect(result.investment).toBe(1)
-    expect(result.otherCategory).toBeNull()
-  })
-
-  it('register refund (sourceRegister, no investment/category) → passes', () => {
-    const data = { ...base, type: 'EMPLOYEE_EXPENSE', worker: 1, sourceRegister: 3 }
-    const result = validateTransfer(hookArgs(data))
-    expect(result.sourceRegister).toBe(3)
-  })
 })
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -229,21 +140,6 @@ describe('validateTransfer — expenseCategory', () => {
 
   it('INVESTMENT_EXPENSE with expenseCategory → passes', () => {
     const data = { ...VALID_DATA.INVESTMENT_EXPENSE, expenseCategory: 1 }
-    expect(() => validateTransfer(hookArgs(data))).not.toThrow()
-  })
-
-  it('EMPLOYEE_EXPENSE with investment but no expenseCategory → throws', () => {
-    const data = { ...VALID_DATA.EMPLOYEE_EXPENSE, expenseCategory: undefined }
-    expect(() => validateTransfer(hookArgs(data))).toThrow(/[Ee]xpense category/)
-  })
-
-  it('EMPLOYEE_EXPENSE with investment + expenseCategory → passes', () => {
-    const data = { ...VALID_DATA.EMPLOYEE_EXPENSE, expenseCategory: 1 }
-    expect(() => validateTransfer(hookArgs(data))).not.toThrow()
-  })
-
-  it('EMPLOYEE_EXPENSE with otherCategory (no investment) → no expenseCategory needed', () => {
-    const data = { ...base, type: 'EMPLOYEE_EXPENSE', worker: 1, otherCategory: 1 }
     expect(() => validateTransfer(hookArgs(data))).not.toThrow()
   })
 })

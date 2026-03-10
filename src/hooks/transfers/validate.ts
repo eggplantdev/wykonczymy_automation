@@ -3,7 +3,6 @@ import type { Transaction } from '@/payload-types'
 import {
   needsSourceRegister,
   requiresInvestment,
-  needsWorker,
   needsTargetRegister,
   needsOtherCategory,
 } from '@/lib/constants/transfers'
@@ -36,29 +35,19 @@ export const validateTransfer: CollectionBeforeValidateHook = ({ data, req, oper
 
   const errors: string[] = []
 
-  // EMPLOYEE_EXPENSE with sourceRegister but no investment/category = register refund
-  const isRegisterRefund =
-    type === 'EMPLOYEE_EXPENSE' && !!d.sourceRegister && !d.investment && !d.otherCategory
-
-  // sourceRegister — required for all types except EMPLOYEE_EXPENSE
+  // sourceRegister — required for all types except LABOR_COST
   if (needsSourceRegister(type) && !d.sourceRegister) {
     errors.push('Cash register is required for this transfer type.')
   }
 
-  // Auto-clear sourceRegister for EMPLOYEE_EXPENSE (prevent stale data)
-  // Exception: register refunds need sourceRegister preserved
-  if (!needsSourceRegister(type) && !isRegisterRefund) {
+  // Auto-clear sourceRegister for types that don't need it
+  if (!needsSourceRegister(type)) {
     d.sourceRegister = null
   }
 
-  // investment — required for INVESTOR_DEPOSIT, INVESTMENT_EXPENSE
+  // investment — required for INVESTOR_DEPOSIT, INVESTMENT_EXPENSE, LABOR_COST
   if (requiresInvestment(type) && !d.investment) {
     errors.push('Investment is required for this transfer type.')
-  }
-
-  // worker — required for ACCOUNT_FUNDING, EMPLOYEE_EXPENSE
-  if (needsWorker(type) && !d.worker) {
-    errors.push('Worker is required for this transfer type.')
   }
 
   // targetRegister — required for REGISTER_TRANSFER, must differ from source
@@ -70,32 +59,14 @@ export const validateTransfer: CollectionBeforeValidateHook = ({ data, req, oper
     }
   }
 
-  // otherCategory — required for OTHER (EMPLOYEE_EXPENSE has its own check below)
-  if (type !== 'EMPLOYEE_EXPENSE' && needsOtherCategory(type) && !d.otherCategory) {
+  // otherCategory — required for OTHER
+  if (needsOtherCategory(type) && !d.otherCategory) {
     errors.push('Category is required for OTHER transfers.')
   }
 
-  // expenseCategory — required for INVESTMENT_EXPENSE, and EMPLOYEE_EXPENSE with investment
-  if (
-    (type === 'INVESTMENT_EXPENSE' || (type === 'EMPLOYEE_EXPENSE' && !!d.investment)) &&
-    !d.expenseCategory
-  ) {
+  // expenseCategory — required for INVESTMENT_EXPENSE
+  if (type === 'INVESTMENT_EXPENSE' && !d.expenseCategory) {
     errors.push('Expense category is required for investment-related expenses.')
-  }
-
-  // EMPLOYEE_EXPENSE: requires either investment OR otherCategory
-  // Exception: register refund (sourceRegister present) needs neither
-  if (type === 'EMPLOYEE_EXPENSE') {
-    const hasInvestment = !!d.investment
-    const hasCategory = !!d.otherCategory
-    if (!hasInvestment && !hasCategory && !isRegisterRefund) {
-      errors.push('Employee expense requires either an investment or a category.')
-    }
-    if (hasInvestment && hasCategory) {
-      // Investment takes precedence — auto-clear category
-      d.otherCategory = null
-      d.otherDescription = null
-    }
   }
 
   if (errors.length > 0) {
