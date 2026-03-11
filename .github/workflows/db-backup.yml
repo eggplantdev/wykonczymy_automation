@@ -1,0 +1,142 @@
+# ============================================================================
+# Daily Neon Postgres → FTP Backup
+# ============================================================================
+# What it does:
+#   1. Spins up a temporary Postgres Docker container to dump the database
+#   2. Compresses the dump with gzip
+#   3. Validates the backup isn't empty/corrupt
+#   4. Uploads it to remote server via secure FTPS
+#   5. Removes backups older than 7 days from the remote server
+#
+# Secrets required (set in GitHub repo → Settings → Secrets):
+#   - POSTGRES_URL  : Full Neon connection string (postgres://user:pass@host/db?sslmode=require)
+#   - FTP_HOST      : FTP hostname
+#   - FTP_USER      : FTP username
+#   - FTP_PASS      : FTP password
+# ============================================================================
+
+name: Backup Neon DB
+
+on:
+  schedule:
+    # Runs every day at 2:00 AM UTC
+    - cron: '0 2 * * *'
+
+  # Allows you to trigger this workflow manually from the GitHub Actions tab
+  workflow_dispatch:
+
+jobs:
+  backup-and-upload:
+    runs-on: ubuntu-latest
+    # Safety net: kill the job if it hangs longer than 10 minutes
+    timeout-minutes: 10
+
+    steps:
+      # lftp is a command-line FTP/FTPS client — not pre-installed on GitHub runners
+      - name: Install LFTP
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      # Uses a disposable Docker container with pg_dump (Postgres CLI tool)
+      # so we don't need to install Postgres on the runner.
+      # The container connects to Neon, dumps the DB, and pipes output to gzip on the host.
+      - name: Create Backup with Docker
+        env:
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+        run: |
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          FILENAME="wykonczymy-backup-${TIMESTAMP}.sql.gz"
+
+          # pg_dump flags:
+          #   --no-owner        : skip ownership commands (we restore to a different user)
+          #   --no-privileges   : skip GRANT/REVOKE statements
+          #   --clean           : add DROP statements before CREATE (for clean restore)
+          #   --if-exists       : don't error if objects don't exist yet when dropping
+          docker run --rm \
+            postgres:17-alpine \
+            pg_dump "$POSTGRES_URL" --no-owner --no-privileges --clean --if-exists \
+            | gzip > "$FILENAME"
+
+          # Make the filename available to subsequent steps via GitHub env
+          echo "BACKUP_FILE=$FILENAME" >> $GITHUB_ENV
+          echo "✅ Backup created: $FILENAME"
+
+      # Verify the backup file exists and isn't suspiciously small.
+      # A valid compressed dump should be at least 1KB.
+      # If pg_dump failed silently, we'd get an empty or tiny file.
+      - name: Validate Backup
+        run: |
+          FILE_SIZE=$(stat --format=%s "${{ env.BACKUP_FILE }}")
+          echo "📦 Backup size: $FILE_SIZE bytes"
+
+          if [ "$FILE_SIZE" -lt 1024 ]; then
+            echo "❌ Backup file is too small ($FILE_SIZE bytes) — likely corrupt or empty"
+            exit 1
+          fi
+
+      # Upload the backup via FTPS (FTP over TLS — encrypted connection).
+      # Then clean up old backups to prevent disk space from filling up.
+      - name: Upload via FTPS and Clean Old Backups
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+          REMOTE_DIR: /db_backups/
+        run: |
+          # --- Upload ---
+          # ssl:verify-certificate no — many shared hosting providers have mismatched certs.
+          # The connection is still encrypted (TLS), we just can't verify server identity.
+          lftp -c "
+            set ftp:ssl-auth TLS
+            set ftp:ssl-force true
+            set ftp:ssl-protect-data true
+            set ssl:verify-certificate no
+            open -u '$FTP_USER','$FTP_PASS' '$FTP_HOST';
+            mkdir -p -f '$REMOTE_DIR';
+            put -O '$REMOTE_DIR' '${{ env.BACKUP_FILE }}';
+            bye
+          "
+          echo "✅ Upload complete"
+
+          # --- Clean up backups older than 7 days ---
+          # How it works:
+          #   1. List remote files in a single lftp session
+          #   2. Build a list of old files by comparing dates locally
+          #   3. Delete all old files in one lftp session (single connection = fast)
+          CUTOFF=$(date -d '7 days ago' +%Y%m%d)
+
+          # Step 1: Get file list from remote (single connection)
+          FILE_LIST=$(lftp -c "
+            set ftp:ssl-auth TLS
+            set ftp:ssl-force true
+            set ftp:ssl-protect-data true
+            set ssl:verify-certificate no
+            open -u '$FTP_USER','$FTP_PASS' '$FTP_HOST';
+            cd '$REMOTE_DIR';
+            cls -1 *.sql.gz
+          ")
+
+          # Step 2: Build lftp delete commands for old files
+          DELETE_CMDS=""
+          while read -r FILE; do
+            [ -z "$FILE" ] && continue
+            # Extract date from filename: wykonczymy-backup-YYYYMMDD-HHMMSS.sql.gz
+            FILE_DATE=$(echo "$FILE" | grep -oP '\d{8}' | head -1)
+            if [ -n "$FILE_DATE" ] && [ "$FILE_DATE" -lt "$CUTOFF" ]; then
+              echo "🗑️ Will delete: $FILE"
+              DELETE_CMDS="${DELETE_CMDS}rm '${REMOTE_DIR}${FILE}';"
+            fi
+          done <<< "$FILE_LIST"
+
+          # Step 3: Execute all deletions in one connection (if any)
+          if [ -n "$DELETE_CMDS" ]; then
+            lftp -c "
+              set ftp:ssl-auth TLS
+              set ftp:ssl-force true
+              set ftp:ssl-protect-data true
+              set ssl:verify-certificate no
+              open -u '$FTP_USER','$FTP_PASS' '$FTP_HOST';
+              ${DELETE_CMDS}
+            "
+          fi
+
+          echo "✅ Cleanup complete — kept last 7 days of backups"
