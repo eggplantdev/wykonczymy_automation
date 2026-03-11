@@ -4,16 +4,16 @@ import { ArrowLeftRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FormDialog } from '@/components/dialogs/form-dialog'
 import type { ReferenceDataT } from '@/types/reference-data'
-import { RegisterTransferForm } from '@/components/forms/register-transfer-form/register-transfer-form'
+import { InternalTransferForm } from '@/components/forms/internal-transfer-form/internal-transfer-form'
 
-type AddRegisterTransferDialogPropsT = {
+type InternalTransferDialogPropsT = {
   referenceData: ReferenceDataT
 }
 
-export function AddRegisterTransferDialog({ referenceData }: AddRegisterTransferDialogPropsT) {
+export function InternalTransferDialog({ referenceData }: InternalTransferDialogPropsT) {
   return (
     <FormDialog
-      formId="register-transfer"
+      formId="internal-transfer"
       trigger={
         <Button
           variant="outline"
@@ -29,7 +29,7 @@ export function AddRegisterTransferDialog({ referenceData }: AddRegisterTransfer
       description="Przesuń środki między kasami."
     >
       {(onSuccess, keepOpen) => (
-        <RegisterTransferForm
+        <InternalTransferForm
           referenceData={referenceData}
           onSuccess={onSuccess}
           keepOpen={keepOpen}

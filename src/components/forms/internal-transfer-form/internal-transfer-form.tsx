@@ -2,12 +2,11 @@
 
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm } from '@/components/forms/hooks/form-hooks'
-import { toastMessage } from '@/components/toasts'
-import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
+import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import { type PaymentMethodT } from '@/lib/constants/transfers'
 import { createTransferAction } from '@/lib/actions/transfers'
-import { registerTransferFormSchema } from '@/components/forms/register-transfer-form/register-transfer-schema'
-import type { CreateTransferFormT } from '@/components/forms/expense-form/expense-schema'
+import { internalTransferFormSchema } from '@/components/forms/internal-transfer-form/internal-transfer-schema'
+import type { CreateTransferFormT } from '@/lib/schemas/transfer'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { getDefaultCashRegister } from '@/lib/utils/default-cash-register'
 import { today } from '@/lib/date-utils'
@@ -21,7 +20,7 @@ import {
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
 
-type RegisterTransferFormPropsT = {
+type InternalTransferFormPropsT = {
   referenceData: ReferenceDataT
   onSuccess: () => void
   keepOpen?: boolean
@@ -36,19 +35,14 @@ type FormValuesT = {
   targetRegister: string
 }
 
-const FORM_ID = 'register-transfer'
+const FORM_ID = 'internal-transfer'
 
-export function RegisterTransferForm({
+export function InternalTransferForm({
   referenceData,
   onSuccess,
   keepOpen,
-}: RegisterTransferFormPropsT) {
-  const submission = useOptimisticFormStore((s) => s.submission)
-  const submitOptimistically = useOptimisticFormStore((s) => s.submitOptimistically)
-  const clearSubmission = useOptimisticFormStore((s) => s.clearSubmission)
-
-  const recovering = submission?.formId === FORM_ID && submission.status === 'failed'
-  const recoveredValues = recovering ? (submission.formValues as FormValuesT) : undefined
+}: InternalTransferFormPropsT) {
+  const { isRecovering, recoveredValues, submit } = useFormSubmit<FormValuesT>(FORM_ID)
 
   const form = useAppForm({
     defaultValues:
@@ -62,11 +56,9 @@ export function RegisterTransferForm({
         targetRegister: '',
       } as FormValuesT),
     validators: {
-      onSubmit: registerTransferFormSchema,
+      onSubmit: internalTransferFormSchema,
     },
     onSubmit: async ({ value }) => {
-      if (recovering) clearSubmission()
-
       const data: CreateTransferFormT = {
         description: value.description,
         amount: Number(value.amount),
@@ -77,24 +69,13 @@ export function RegisterTransferForm({
         targetRegister: Number(value.targetRegister),
       }
 
-      if (keepOpen) {
-        const result = await createTransferAction(data, null)
-        if (result.success) {
-          toastMessage('Transfer między kasami dodany', 'success')
-          form.reset()
-        } else {
-          toastMessage(result.error, 'error')
-        }
-      } else {
-        submitOptimistically(
-          FORM_ID,
-          value as unknown as Record<string, unknown>,
-          new Map(),
-          () => createTransferAction(data, null),
-          'Transfer między kasami dodany',
-        )
-        onSuccess()
-      }
+      await submit(!!keepOpen, {
+        action: () => createTransferAction(data, null),
+        successMessage: 'Transfer między kasami dodany',
+        formValues: value as unknown as Record<string, unknown>,
+        onSuccess,
+        onKeepOpenSuccess: () => form.reset(),
+      })
 
       return false
     },

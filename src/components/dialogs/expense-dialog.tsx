@@ -6,11 +6,11 @@ import { FormDialog } from '@/components/dialogs/form-dialog'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { ExpenseForm } from '@/components/forms/expense-form/expense-form'
 
-type AddExpenseDialogPropsT = {
+type ExpenseDialogPropsT = {
   referenceData: ReferenceDataT
 }
 
-export function AddExpenseDialog({ referenceData }: AddExpenseDialogPropsT) {
+export function ExpenseDialog({ referenceData }: ExpenseDialogPropsT) {
   return (
     <FormDialog
       formId="expense"

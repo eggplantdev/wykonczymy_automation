@@ -7,14 +7,12 @@ import { TransferFilters } from '@/components/transfers/transfer-filters'
 import { TransferExportToolbar } from '@/components/transfers/transfer-export-toolbar'
 import { getTransferColumns, type TransferRowT } from '@/lib/tables/transfers'
 import type { PaginationMetaT } from '@/lib/pagination'
-import { cn } from '../../lib/cn'
 import type { TransferTableConfigT } from '@/types/export'
 
 type TransferDataTablePropsT = {
   readonly data: readonly TransferRowT[]
   readonly paginationMeta: PaginationMetaT
   readonly config: TransferTableConfigT
-  readonly className?: string
 }
 
 export function TransferDataTable({ data, paginationMeta, config }: TransferDataTablePropsT) {
@@ -22,12 +20,13 @@ export function TransferDataTable({ data, paginationMeta, config }: TransferData
   const columns = getTransferColumns(excludeColumns)
 
   return (
-    <div className={cn('mt-4 space-y-4')}>
+    <div className="mt-4 space-y-4">
       {filters && <TransferFilters {...filters} baseUrl={baseUrl} />}
       <DataTable
         data={data}
         columns={columns}
         storageKey="transfers"
+        getRowClassName={(row) => (row.cancelled ? 'opacity-40' : '')}
         toolbar={(table, cv) => (
           <div className="ml-auto flex items-center gap-2">
             {headerFields && headerFields.length > 0 && (

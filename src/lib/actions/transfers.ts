@@ -2,9 +2,8 @@
 
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { createTransferSchema, type CreateTransferFormT } from '@/lib/schemas/transfer'
 import {
-  createTransferSchema,
-  type CreateTransferFormT,
   createBulkTransferSchema,
   type CreateBulkTransferFormT,
 } from '@/components/forms/expense-form/expense-schema'

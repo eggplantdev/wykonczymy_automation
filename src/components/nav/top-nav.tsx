@@ -1,8 +1,8 @@
 'use client'
 
-import { AddDepositDialog } from '@/components/dialogs/add-deposit-dialog'
-import { AddRegisterTransferDialog } from '@/components/dialogs/add-register-transfer-dialog'
-import { AddExpenseDialog } from '@/components/dialogs/add-expense-dialog'
+import { DepositDialog } from '@/components/dialogs/deposit-dialog'
+import { InternalTransferDialog } from '@/components/dialogs/internal-transfer-dialog'
+import { ExpenseDialog } from '@/components/dialogs/expense-dialog'
 import type { ReferenceDataT } from '@/types/reference-data'
 import Link from 'next/link'
 
@@ -22,9 +22,9 @@ export function TopNav({ referenceData }: TopNavPropsT) {
       <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
         {referenceData && (
           <>
-            <AddDepositDialog referenceData={referenceData} />
-            <AddRegisterTransferDialog referenceData={referenceData} />
-            <AddExpenseDialog referenceData={referenceData} />
+            <DepositDialog referenceData={referenceData} />
+            <InternalTransferDialog referenceData={referenceData} />
+            <ExpenseDialog referenceData={referenceData} />
           </>
         )}
       </div>

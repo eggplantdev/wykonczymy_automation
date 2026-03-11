@@ -6,11 +6,11 @@ import { FormDialog } from '@/components/dialogs/form-dialog'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { DepositForm } from '@/components/forms/deposit-form/deposit-form'
 
-type AddDepositDialogPropsT = {
+type DepositDialogPropsT = {
   referenceData: ReferenceDataT
 }
 
-export function AddDepositDialog({ referenceData }: AddDepositDialogPropsT) {
+export function DepositDialog({ referenceData }: DepositDialogPropsT) {
   return (
     <FormDialog
       formId="deposit"

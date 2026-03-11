@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { PAYMENT_METHODS } from '@/lib/constants/transfers'
 import { refineAmount, refineDate } from '@/lib/validation-utils'
 
-export const createRegisterTransferSchema = z
+export const createInternalTransferSchema = z
   .object({
     description: z.string().optional().default(''),
     amount: z.number().positive('Kwota musi być większa niż 0'),
@@ -21,13 +21,13 @@ export const createRegisterTransferSchema = z
     }
   })
 
-export type CreateRegisterTransferFormT = z.infer<typeof createRegisterTransferSchema>
+export type CreateInternalTransferFormT = z.infer<typeof createInternalTransferSchema>
 
 /**
  * Client-side form validation schema.
  * Works with string values (HTML inputs) — the server schema handles type conversion.
  */
-export const registerTransferFormSchema = z
+export const internalTransferFormSchema = z
   .object({
     description: z.string(),
     amount: z.string(),
