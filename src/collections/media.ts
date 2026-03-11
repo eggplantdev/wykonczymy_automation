@@ -1,10 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
-
-/** Replace characters that break next/image optimization URLs */
-function sanitizeFilename(name: string): string {
-  return name.replace(/\s+/g, '-').replace(/[()]/g, '')
-}
+import { sanitizeFileName } from '@/lib/sanitize-filename'
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -16,10 +12,10 @@ export const Media: CollectionConfig = {
     beforeChange: [
       ({ data, req }) => {
         if (req.file?.name) {
-          req.file.name = sanitizeFilename(req.file.name)
+          req.file.name = sanitizeFileName(req.file.name)
         }
         if (data.filename) {
-          data.filename = sanitizeFilename(data.filename)
+          data.filename = sanitizeFileName(data.filename)
         }
         return data
       },
