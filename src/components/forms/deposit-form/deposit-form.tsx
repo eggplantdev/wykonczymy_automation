@@ -14,7 +14,7 @@ import {
 import {
   transferFormSchema,
   type CreateTransferFormT,
-} from '@/components/forms/transfer-form/transfer-schema'
+} from '@/components/forms/expense-form/expense-schema'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { getDefaultCashRegister } from '@/lib/utils/default-cash-register'
 import { today } from '@/lib/date-utils'

@@ -3,7 +3,7 @@ import {
   createTransferSchema,
   createBulkTransferSchema,
   transferFormSchema,
-} from '@/components/forms/transfer-form/transfer-schema'
+} from '@/components/forms/expense-form/expense-schema'
 
 // ── Helpers ─────────────────────────────────────────────────────────────
 

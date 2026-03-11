@@ -23,14 +23,13 @@ import { formatPLN } from '@/lib/format-currency'
 import {
   bulkTransferFormSchema,
   type CreateBulkTransferFormT,
-} from '@/components/forms/transfer-form/transfer-schema'
+} from '@/components/forms/expense-form/expense-schema'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { getDefaultCashRegister } from '@/lib/utils/default-cash-register'
 import { today } from '@/lib/date-utils'
 import {
   CashRegisterField,
   DateField,
-  ExpenseCategoryField,
   InvestmentField,
   LineItemsField,
 } from '@/components/forms/form-fields'
@@ -61,8 +60,8 @@ type FormValuesT = {
   }[]
 }
 
-export function TransferForm({ referenceData, onSuccess, keepOpen }: TransferFormPropsT) {
-  const FORM_ID = 'transfer'
+export function ExpenseForm({ referenceData, onSuccess, keepOpen }: TransferFormPropsT) {
+  const FORM_ID = 'expense'
   const submission = useOptimisticFormStore((s) => s.submission)
   const submitOptimistically = useOptimisticFormStore((s) => s.submitOptimistically)
   const clearSubmission = useOptimisticFormStore((s) => s.clearSubmission)

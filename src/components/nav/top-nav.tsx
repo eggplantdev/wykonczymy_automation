@@ -2,7 +2,7 @@
 
 import { AddDepositDialog } from '@/components/dialogs/add-deposit-dialog'
 import { AddRegisterTransferDialog } from '@/components/dialogs/add-register-transfer-dialog'
-import { AddTransferDialog } from '@/components/dialogs/add-transfer-dialog'
+import { AddExpenseDialog } from '@/components/dialogs/add-expense-dialog'
 import type { ReferenceDataT } from '@/types/reference-data'
 import Link from 'next/link'
 
@@ -24,7 +24,7 @@ export function TopNav({ referenceData }: TopNavPropsT) {
           <>
             <AddDepositDialog referenceData={referenceData} />
             <AddRegisterTransferDialog referenceData={referenceData} />
-            <AddTransferDialog referenceData={referenceData} />
+            <AddExpenseDialog referenceData={referenceData} />
           </>
         )}
       </div>
