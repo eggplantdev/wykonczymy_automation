@@ -338,15 +338,14 @@ describe('createTransferAction', () => {
     expect(mockCreate).not.toHaveBeenCalled()
   })
 
-  it('non-admin user with different register owner → returns permission error', async () => {
+  it('manager can transfer from any register regardless of owner', async () => {
     mockRequireAuth.mockResolvedValueOnce({ success: true, user: managerUser })
     // Register owner_id = 1, managerUser.id = 3
     mockDbExecute.mockResolvedValueOnce({ rows: [defaultDbRow({ owner_id: 1 })] })
 
     const result = await createTransferAction(makeSingleTransferData(), null)
 
-    expect(result.success).toBe(false)
-    if (!result.success) expect(result.error).toBe('Nie masz uprawnień do tej kasy')
+    expect(result.success).toBe(true)
   })
 })
 

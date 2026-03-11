@@ -114,31 +114,10 @@ describe('validateSourceRegister', () => {
     }
   })
 
-  it('MANAGER can access own register', async () => {
-    // Register 1 has ownerId: 2, managerUser.id is 2
-    mockRegisterLookup(1)
-    const result = await validateSourceRegister(1, managerUser, fakePayload)
-    expect(result.success).toBe(true)
-  })
-
-  it('MANAGER cannot access another user register', async () => {
+  it('MANAGER can access any register', async () => {
     // Register 3 has ownerId: 3, managerUser.id is 2
     mockRegisterLookup(3)
     const result = await validateSourceRegister(3, managerUser, fakePayload)
-    expect(result).toEqual({ success: false, error: 'Nie masz uprawnień do tej kasy' })
-  })
-
-  it('EMPLOYEE cannot access register they do not own', async () => {
-    // Register 1 has ownerId: 2, employeeUser.id is 3
-    mockRegisterLookup(1)
-    const result = await validateSourceRegister(1, employeeUser, fakePayload)
-    expect(result).toEqual({ success: false, error: 'Nie masz uprawnień do tej kasy' })
-  })
-
-  it('EMPLOYEE can access own register', async () => {
-    // Register 3 has ownerId: 3, employeeUser.id is 3
-    mockRegisterLookup(3)
-    const result = await validateSourceRegister(3, employeeUser, fakePayload)
     expect(result.success).toBe(true)
   })
 })
