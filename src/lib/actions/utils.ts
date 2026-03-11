@@ -94,16 +94,13 @@ export async function validateSourceRegister(
   const register: ReferenceItemT = {
     id: Number(row.id),
     name: row.name as string,
-    type: (row.type as string) ?? 'AUXILIARY',
+    type: (row.type as string) ?? 'AUXILIARY', // TODO this should be enum or constant
     active: row.active as boolean,
     ownerId: row.owner_id ? Number(row.owner_id) : undefined,
   }
 
-  // admin can transfer from any register, other roles can only transfer from their own register
-  // todo
-  // if (user.role !== 'ADMIN' && register.ownerId !== user.id) {
-  //   return { success: false, error: 'Nie masz uprawnień do tej kasy' }
-  // }
+  // ADMIN, OWNER, MANAGER can transfer from any register.
+  // EMPLOYEE is blocked earlier by requireAuth(MANAGEMENT_ROLES) in withAction.
 
   return { success: true, register }
 }
