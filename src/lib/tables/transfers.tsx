@@ -184,14 +184,7 @@ const allColumns = [
   col.accessor('amount', {
     id: 'amount',
     header: 'Kwota',
-    cell: (info) => {
-      const isCancelled = info.row.original.cancelled
-      return (
-        <span className={`font-medium ${isCancelled ? 'line-through opacity-50' : ''}`}>
-          {formatPLN(info.getValue())}
-        </span>
-      )
-    },
+    cell: (info) => <span className="font-medium">{formatPLN(info.getValue())}</span>,
   }),
   col.accessor('investmentName', {
     id: 'investment',

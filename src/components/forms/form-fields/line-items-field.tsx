@@ -3,11 +3,16 @@
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FileInput } from '@/components/ui/file-input'
+import { Label } from '@/components/ui/label'
 import { formatPLN } from '@/lib/format-currency'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type FormT = any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type FieldT = any
+
 type LineItemsFieldPropsT = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  form: any
+  form: FormT
   label?: string
   emptyItem: Record<string, string>
   total: number
@@ -27,70 +32,55 @@ export function LineItemsField({
 }: LineItemsFieldPropsT) {
   return (
     <form.Field name="lineItems" mode="array">
-      {(lineItemsField: {
-        state: { value: unknown[] }
-        removeValue: (index: number) => void
-        pushValue: (value: Record<string, string>) => void
-      }) => (
+      {(lineItemsField: FieldT) => (
         <div className="space-y-4">
-          <p className="text-foreground text-sm font-medium">{label}</p>
-          {lineItemsField.state.value.map((_, index) => (
-            <div
-              key={index}
-              className={`space-y-2 ${index > 0 ? 'border-border border-t pt-4' : ''}`}
-            >
-              <div className="flex items-start gap-2">
-                <span className="text-muted-foreground flex h-9 shrink-0 items-center text-sm font-medium">
-                  {index + 1}.
-                </span>
-                <div className="w-28">
-                  <form.AppField name={`lineItems[${index}].amount`}>
-                    {(field: {
-                      Input: React.FC<{ placeholder: string; type: string; showError: boolean }>
-                    }) => <field.Input placeholder="Kwota" type="number" showError />}
-                  </form.AppField>
+          <Label>{label}</Label>
+          <ol className="list-decimal space-y-4 pl-4">
+            {lineItemsField.state.value.map((_: unknown, index: number) => (
+              <li key={index}>
+                <div className="flex gap-2">
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <div className="flex items-start gap-2">
+                      <div className="w-28">
+                        <form.AppField name={`lineItems[${index}].amount`}>
+                          {(field: FieldT) => (
+                            <field.Input placeholder="Kwota" type="number" showError />
+                          )}
+                        </form.AppField>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <form.AppField name={`lineItems[${index}].description`}>
+                          {(field: FieldT) => <field.Input placeholder="Opis" showError />}
+                        </form.AppField>
+                      </div>
+                      {renderItemInline?.(index)}
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <div className="min-w-0 flex-1">
+                        <form.AppField name={`lineItems[${index}].invoiceNote`}>
+                          {(field: FieldT) => <field.Input placeholder="Notatka" showError />}
+                        </form.AppField>
+                      </div>
+                      <FileInput
+                        className="min-w-0 flex-1"
+                        accept="image/*,application/pdf"
+                        onChange={(e) => onFileChange(index, e)}
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onRemoveItem(index, lineItemsField.removeValue)}
+                    disabled={lineItemsField.state.value.length === 1}
+                  >
+                    <X className="size-4" />
+                  </Button>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <form.AppField name={`lineItems[${index}].description`}>
-                    {(field: { Input: React.FC<{ placeholder: string; showError: boolean }> }) => (
-                      <field.Input placeholder="Opis" showError />
-                    )}
-                  </form.AppField>
-                </div>
-                {renderItemInline?.(index)}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="shrink-0"
-                  onClick={() => onRemoveItem(index, lineItemsField.removeValue)}
-                  disabled={lineItemsField.state.value.length === 1}
-                  aria-label="Usuń pozycję"
-                >
-                  <X className="size-4" />
-                </Button>
-              </div>
-              <div className="flex items-start gap-2">
-                {/* Spacer to align with Kwota: matches number span */}
-                <span className="invisible flex h-9 shrink-0 items-center text-sm font-medium">
-                  0.
-                </span>
-                <div className="min-w-0 flex-1">
-                  <form.AppField name={`lineItems[${index}].invoiceNote`}>
-                    {(field: { Input: React.FC<{ placeholder: string; showError: boolean }> }) => (
-                      <field.Input placeholder="Notatka" showError />
-                    )}
-                  </form.AppField>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <FileInput
-                    accept="image/*,application/pdf"
-                    onChange={(e) => onFileChange(index, e)}
-                  />
-                </div>
-              </div>
-            </div>
-          ))}
+              </li>
+            ))}
+          </ol>
           <Button
             type="button"
             variant="outline"
@@ -99,7 +89,7 @@ export function LineItemsField({
           >
             Dodaj pozycję
           </Button>
-          <p className="text-foreground text-sm font-medium">Suma: {formatPLN(total)}</p>
+          <Label>Suma: {formatPLN(total)}</Label>
         </div>
       )}
     </form.Field>
