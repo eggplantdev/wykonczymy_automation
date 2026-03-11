@@ -7,7 +7,7 @@ import {
   type CreateTransferFormT,
   createBulkTransferSchema,
   type CreateBulkTransferFormT,
-} from '@/components/forms/transfer-form/transfer-schema'
+} from '@/components/forms/expense-form/expense-schema'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { isAdminOrOwnerRole, MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { sumRegisterBalance } from '@/lib/db/sum-transfers'

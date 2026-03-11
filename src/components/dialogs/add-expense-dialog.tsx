@@ -4,16 +4,16 @@ import { Rocket } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FormDialog } from '@/components/dialogs/form-dialog'
 import type { ReferenceDataT } from '@/types/reference-data'
-import { TransferForm } from '@/components/forms/transfer-form/transfer-form'
+import { ExpenseForm } from '@/components/forms/expense-form/expense-form'
 
-type AddTransferDialogPropsT = {
+type AddExpenseDialogPropsT = {
   referenceData: ReferenceDataT
 }
 
-export function AddTransferDialog({ referenceData }: AddTransferDialogPropsT) {
+export function AddExpenseDialog({ referenceData }: AddExpenseDialogPropsT) {
   return (
     <FormDialog
-      formId="transfer"
+      formId="expense"
       className="max-w-[min(90vw,900px)]"
       trigger={
         <Button variant="default" size="sm" className="gap-2">
@@ -24,7 +24,7 @@ export function AddTransferDialog({ referenceData }: AddTransferDialogPropsT) {
       title="Nowy wydatek"
     >
       {(onSuccess, keepOpen) => (
-        <TransferForm referenceData={referenceData} onSuccess={onSuccess} keepOpen={keepOpen} />
+        <ExpenseForm referenceData={referenceData} onSuccess={onSuccess} keepOpen={keepOpen} />
       )}
     </FormDialog>
   )
