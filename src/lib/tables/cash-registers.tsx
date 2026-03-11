@@ -2,6 +2,7 @@
 
 import { createColumnHelper } from '@tanstack/react-table'
 import { formatPLN } from '@/lib/format-currency'
+import { cn } from '@/lib/cn'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
 import type { CashRegisterTypeT } from '@/types/reference-data'
 
@@ -17,8 +18,22 @@ export type CashRegisterRowT = {
 export const REGISTER_TYPE_LABELS: Record<CashRegisterTypeT, string> = {
   MAIN: 'Główna',
   AUXILIARY: 'Pomocnicza',
-  VIRTUAL: 'Wirtualna',
+  VIRTUAL: 'Wirtualna (Telmak)',
   WORKER: 'Pracownicza',
+}
+
+export const REGISTER_TYPE_LABELS_PLURAL: Record<CashRegisterTypeT, string> = {
+  MAIN: 'Główne',
+  AUXILIARY: 'Pomocnicze',
+  VIRTUAL: 'Wirtualne - Telmak',
+  WORKER: 'Pracownicze',
+}
+
+export const REGISTER_TYPE_BORDER_COLORS: Record<CashRegisterTypeT, string> = {
+  MAIN: 'var(--color-chart-blue)',
+  AUXILIARY: 'var(--color-chart-teal)',
+  VIRTUAL: 'var(--color-chart-purple)',
+  WORKER: 'var(--color-chart-orange)',
 }
 
 const col = createColumnHelper<CashRegisterRowT>()
@@ -43,7 +58,14 @@ export function getCashRegisterColumns(onToggle: (id: number, newActive: boolean
       id: 'balance',
       header: 'Saldo',
       meta: { align: 'right' },
-      cell: (info) => <span className="font-medium">{formatPLN(info.getValue())}</span>,
+      cell: (info) => {
+        const value = info.getValue()
+        return (
+          <span className={cn('font-medium', value < 0 && 'text-destructive')}>
+            {formatPLN(value)}
+          </span>
+        )
+      },
     }),
     col.accessor('active', {
       id: 'active',
