@@ -55,12 +55,12 @@ function FileInput({ className, label, onChange, accept, ref, ...props }: FileIn
       const event = new Event('change', { bubbles: true })
       inputRef.current.dispatchEvent(event)
     }
-    setFileName(file.name)
+    setFileName(file.name ?? '')
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
-    setFileName(file?.name)
+    setFileName(file?.name ?? '')
     onChange?.(e)
   }
 
