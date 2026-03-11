@@ -4,6 +4,9 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
   reactCompiler: true,
   cacheComponents: true,
+  serverActions: {
+    bodySizeLimit: '10mb',
+  },
   // Cache rendered pages in the client Router Cache for 5 min.
   // Dynamic pages (searchParams/headers) skip this cache by default,
   // causing a full server round-trip + loader on every navigation.
