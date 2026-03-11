@@ -105,6 +105,26 @@ Transfer types: `INVESTOR_DEPOSIT`, `COMPANY_FUNDING`, `INVESTMENT_EXPENSE`, `AC
 - **Zod 4** for all validation
 - Tests in `src/__tests__/`, Vitest config aliases `@/*` → `./src/*`
 
+## Database Backup Strategy
+
+Two layers of protection:
+
+1. **Neon point-in-time restore** — 6-hour rollback window (built into Neon)
+2. **Automated backups** — two mechanisms:
+   - **Pre-push hook**: `db:dump` runs on every push to prod (local SQL dump)
+   - **GitHub Actions** (`.github/workflows/db-backup.yml`): Daily `pg_dump` at 2:00 AM UTC, compressed with gzip, uploaded via FTPS to remote server. Retains 7 days of backups.
+
+### Restore from backup
+
+```bash
+gunzip wykonczymy-backup-YYYYMMDD-HHMMSS.sql.gz
+psql "$DB_POSTGRES_URL" < wykonczymy-backup-YYYYMMDD-HHMMSS.sql
+```
+
+### GitHub Actions secrets required
+
+`POSTGRES_URL`, `FTP_HOST`, `FTP_USER`, `FTP_PASS`
+
 ## Environment Variables
 
 Required (validated at startup via `src/lib/env.ts`):
