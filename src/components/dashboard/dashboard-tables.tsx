@@ -1,17 +1,20 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { DataTable } from '@/components/ui/data-table/data-table'
 import { ActiveFilterButton } from '@/components/ui/active-filter-button'
-import { FilterMultiSelect, FILTER_NONE } from '@/components/transfers/filter-multi-select'
+import { FilterMultiSelect } from '@/components/transfers/filter-multi-select'
 import { Tags, User } from 'lucide-react'
 import { ColumnToggle } from '@/components/ui/column-toggle'
 import { SearchFilterInput } from '@/components/ui/search-filter-input'
 import { getCashRegisterColumns, REGISTER_TYPE_LABELS } from '@/lib/tables/cash-registers'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
+import { Description } from '@/components/ui/description'
 import { InvestmentDataTable } from '@/components/investments/investment-data-table'
+import { RegisterBalanceChart } from '@/components/dashboard/register-balance-chart'
 import { SECTION_IDS } from '@/lib/constants/sections'
 import { useActiveFilter } from '@/hooks/use-active-filter'
+import { useClientMultiFilter } from '@/hooks/use-client-multi-filter'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle'
 import { toggleCashRegisterActive } from '@/lib/actions/toggle-active'
@@ -30,19 +33,10 @@ type CashRegistersTablePropsT = {
   className?: string
 }
 
-function useClientMultiFilter<TItem>(data: readonly TItem[], accessor: (item: TItem) => string) {
-  const [values, setValues] = useState<string[]>([])
-
-  const filteredData = useMemo(() => {
-    const hasNone = values.length === 1 && values[0] === FILTER_NONE
-    if (hasNone) return []
-    if (values.length === 0) return data
-    const filterSet = new Set(values)
-    return data.filter((item) => filterSet.has(accessor(item)))
-  }, [data, values, accessor])
-
-  return { filteredData, values, setValues } as const
-}
+const TYPE_OPTIONS = (Object.keys(REGISTER_TYPE_LABELS) as CashRegisterTypeT[]).map((value) => ({
+  value,
+  label: REGISTER_TYPE_LABELS[value],
+}))
 
 function CashRegistersTable({ data, className }: CashRegistersTablePropsT) {
   const { optimisticData, handleToggle } = useOptimisticToggle(
@@ -56,15 +50,6 @@ function CashRegistersTable({ data, className }: CashRegistersTablePropsT) {
     showOnlyActive,
     setShowOnlyActive,
   } = useActiveFilter(optimisticData, isCashRegisterActive)
-
-  const typeOptions = useMemo(
-    () =>
-      (Object.keys(REGISTER_TYPE_LABELS) as CashRegisterTypeT[]).map((value) => ({
-        value,
-        label: REGISTER_TYPE_LABELS[value],
-      })),
-    [],
-  )
 
   const ownerOptions = useMemo(() => {
     const uniqueOwners = [...new Set(optimisticData.map((r) => r.ownerName))].filter(Boolean).sort()
@@ -90,41 +75,48 @@ function CashRegistersTable({ data, className }: CashRegistersTablePropsT) {
   const columns = useMemo(() => getCashRegisterColumns(handleToggle), [handleToggle])
 
   return (
-    <DataTable
-      className={className}
-      data={filteredData}
-      columns={columns}
-      storageKey="cashRegisters"
-      getRowHref={(row) => `/kasa/${row.id}`}
-      getRowClassName={(row) => (!row.active ? 'opacity-50' : '')}
-      toolbar={(table, cv) => (
-        <>
-          <SearchFilterInput value={searchTerm} onChange={setSearchTerm} placeholder="Szukaj..." />
-          <FilterMultiSelect
-            label="Typ"
-            options={typeOptions}
-            values={typeValues}
-            onValuesChange={setTypeValues}
-            icon={Tags}
-          />
-          <FilterMultiSelect
-            label="Właściciel"
-            options={ownerOptions}
-            values={ownerValues}
-            onValuesChange={setOwnerValues}
-            icon={User}
-            searchable
-          />
-          <ActiveFilterButton
-            isActive={showOnlyActive}
-            onChange={setShowOnlyActive}
-            activeLabel="Aktywne"
-            allLabel="Wszystkie"
-          />
-          <ColumnToggle table={table} columnVisibility={cv} />
-        </>
-      )}
-    />
+    <>
+      <RegisterBalanceChart data={filteredData} />
+      <DataTable
+        className={className}
+        data={filteredData}
+        columns={columns}
+        storageKey="cashRegisters"
+        getRowHref={(row) => `/kasa/${row.id}`}
+        getRowClassName={(row) => (!row.active ? 'opacity-50' : '')}
+        toolbar={(table, cv) => (
+          <>
+            <SearchFilterInput
+              value={searchTerm}
+              onChange={setSearchTerm}
+              placeholder="Szukaj..."
+            />
+            <FilterMultiSelect
+              label="Typ"
+              options={TYPE_OPTIONS}
+              values={typeValues}
+              onValuesChange={setTypeValues}
+              icon={Tags}
+            />
+            <FilterMultiSelect
+              label="Właściciel"
+              options={ownerOptions}
+              values={ownerValues}
+              onValuesChange={setOwnerValues}
+              icon={User}
+              searchable
+            />
+            <ActiveFilterButton
+              isActive={showOnlyActive}
+              onChange={setShowOnlyActive}
+              activeLabel="Aktywne"
+              allLabel="Wszystkie"
+            />
+            <ColumnToggle table={table} columnVisibility={cv} />
+          </>
+        )}
+      />
+    </>
   )
 }
 
@@ -134,6 +126,11 @@ type DashboardTablesPropsT = {
 }
 
 export function DashboardTables({ cashRegisters, investments }: DashboardTablesPropsT) {
+  const activeInvestmentCount = useMemo(
+    () => investments.filter((i) => i.status === 'active').length,
+    [investments],
+  )
+
   return (
     <div className="mt-8 space-y-8">
       <CollapsibleSection title="Kasy" id={SECTION_IDS.cashRegisters}>
@@ -142,6 +139,7 @@ export function DashboardTables({ cashRegisters, investments }: DashboardTablesP
         </div>
       </CollapsibleSection>
       <CollapsibleSection title="Inwestycje" id={SECTION_IDS.investments}>
+        <Description>{activeInvestmentCount} aktywnych</Description>
         <div className="mt-4">
           <InvestmentDataTable data={investments} />
         </div>
