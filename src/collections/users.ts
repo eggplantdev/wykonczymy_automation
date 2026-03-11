@@ -121,6 +121,10 @@ export const Users: CollectionConfig = {
       type: 'relationship',
       relationTo: 'cash-registers',
       label: { en: 'Default Cash Register', pl: 'Domyślna kasa' },
+      admin: {
+        description:
+          'Jeśli tworzysz pracownika i nie wybierzesz domyślnej kasy, zostanie ona utworzona automatycznie.',
+      },
     },
   ],
 }

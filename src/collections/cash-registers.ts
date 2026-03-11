@@ -1,11 +1,32 @@
-import type { CollectionConfig, CollectionBeforeValidateHook } from 'payload'
-import { isAdminOrOwnerField, isAdminOrOwnerOrManager, isManager } from '@/access'
+import type {
+  CollectionConfig,
+  CollectionBeforeDeleteHook,
+  CollectionBeforeValidateHook,
+} from 'payload'
+import { isAdminOrOwner, isAdminOrOwnerField, isAdminOrOwnerOrManager, isManager } from '@/access'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 
 /** Managers can only create AUXILIARY registers — force the type. */
 const enforceAuxiliaryForManager: CollectionBeforeValidateHook = ({ data, req }) => {
   if (isManager({ req })) return { ...data, type: 'AUXILIARY' }
   return data
+}
+
+/** Block deletion if any transactions reference this register. */
+const preventDeleteWithTransactions: CollectionBeforeDeleteHook = async ({ id, req }) => {
+  const { totalDocs } = await req.payload.find({
+    collection: 'transactions',
+    where: {
+      or: [{ sourceRegister: { equals: id } }, { targetRegister: { equals: id } }],
+    },
+    limit: 0,
+  })
+
+  if (totalDocs > 0) {
+    throw new Error(
+      `Nie można usunąć kasy — istnieje ${totalDocs} powiązanych transakcji. Najpierw usuń lub przenieś transakcje.`,
+    )
+  }
 }
 
 export const CashRegisters: CollectionConfig = {
@@ -21,6 +42,7 @@ export const CashRegisters: CollectionConfig = {
   },
   hooks: {
     beforeValidate: [enforceAuxiliaryForManager],
+    beforeDelete: [preventDeleteWithTransactions],
     afterChange: [makeRevalidateAfterChange('cashRegisters')],
     afterDelete: [makeRevalidateAfterDelete('cashRegisters')],
   },
@@ -29,7 +51,7 @@ export const CashRegisters: CollectionConfig = {
     read: isAdminOrOwnerOrManager,
     create: isAdminOrOwnerOrManager,
     update: isAdminOrOwnerOrManager,
-    delete: () => false,
+    delete: isAdminOrOwner,
   },
   fields: [
     {
