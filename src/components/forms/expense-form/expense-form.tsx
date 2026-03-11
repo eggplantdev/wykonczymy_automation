@@ -5,8 +5,8 @@ import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
 import { useInvoiceFiles } from '@/components/forms/hooks/use-invoice-files'
+import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import { toastMessage } from '@/components/toasts'
-import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import {
   TRANSACTION_TRANSFER_TYPES,
   TRANSFER_TYPE_LABELS,
@@ -60,15 +60,11 @@ type FormValuesT = {
   }[]
 }
 
-export function ExpenseForm({ referenceData, onSuccess, keepOpen }: TransferFormPropsT) {
-  const FORM_ID = 'expense'
-  const submission = useOptimisticFormStore((s) => s.submission)
-  const submitOptimistically = useOptimisticFormStore((s) => s.submitOptimistically)
-  const clearSubmission = useOptimisticFormStore((s) => s.clearSubmission)
+const FORM_ID = 'expense'
 
-  const recovering = submission?.formId === FORM_ID && submission.status === 'failed'
-  const recoveredValues = recovering ? (submission.formValues as FormValuesT) : undefined
-  const recoveredFiles = recovering ? submission.invoiceFiles : undefined
+export function ExpenseForm({ referenceData, onSuccess, keepOpen }: TransferFormPropsT) {
+  const { isRecovering, recoveredValues, recoveredFiles, submit } =
+    useFormSubmit<FormValuesT>(FORM_ID)
 
   const { handleRemoveLineItem, handleFileChange, buildInvoiceFormData, getFiles } =
     useInvoiceFiles(recoveredFiles)
@@ -121,8 +117,6 @@ export function ExpenseForm({ referenceData, onSuccess, keepOpen }: TransferForm
       onSubmit: bulkTransferFormSchema,
     },
     onSubmit: async ({ value }) => {
-      if (recovering) clearSubmission()
-
       const data: CreateBulkTransferFormT = {
         date: value.date,
         type: value.type as TransferTypeT,
@@ -141,24 +135,14 @@ export function ExpenseForm({ referenceData, onSuccess, keepOpen }: TransferForm
 
       const invoiceFormData = buildInvoiceFormData()
 
-      if (keepOpen) {
-        const result = await createBulkTransferAction(data, invoiceFormData)
-        if (result.success) {
-          toastMessage('Transakcje dodane', 'success')
-          form.reset()
-        } else {
-          toastMessage(result.error, 'error')
-        }
-      } else {
-        submitOptimistically(
-          FORM_ID,
-          value as unknown as Record<string, unknown>,
-          getFiles(),
-          () => createBulkTransferAction(data, invoiceFormData),
-          'Transakcje dodane',
-        )
-        onSuccess()
-      }
+      await submit(!!keepOpen, {
+        action: () => createBulkTransferAction(data, invoiceFormData),
+        successMessage: 'Transakcje dodane',
+        formValues: value as unknown as Record<string, unknown>,
+        files: getFiles(),
+        onSuccess,
+        onKeepOpenSuccess: () => form.reset(),
+      })
 
       return false
     },

@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest'
 import {
-  createRegisterTransferSchema,
-  registerTransferFormSchema,
-} from '@/components/forms/register-transfer-form/register-transfer-schema'
+  createInternalTransferSchema,
+  internalTransferFormSchema,
+} from '@/components/forms/internal-transfer-form/internal-transfer-schema'
 
-// ── createRegisterTransferSchema (server-side, typed values) ─────────────
+// ── createInternalTransferSchema (server-side, typed values) ─────────────
 
-describe('createRegisterTransferSchema', () => {
+describe('createInternalTransferSchema', () => {
   const validPayload = {
     amount: 100,
     date: '2024-01-15',
@@ -16,12 +16,12 @@ describe('createRegisterTransferSchema', () => {
   }
 
   it('accepts a valid payload', () => {
-    const result = createRegisterTransferSchema.safeParse(validPayload)
+    const result = createInternalTransferSchema.safeParse(validPayload)
     expect(result.success).toBe(true)
   })
 
   it('accepts payload with optional description', () => {
-    const result = createRegisterTransferSchema.safeParse({
+    const result = createInternalTransferSchema.safeParse({
       ...validPayload,
       description: 'Test transfer',
     })
@@ -29,7 +29,7 @@ describe('createRegisterTransferSchema', () => {
   })
 
   it('defaults description to empty string', () => {
-    const result = createRegisterTransferSchema.safeParse(validPayload)
+    const result = createInternalTransferSchema.safeParse(validPayload)
     expect(result.success).toBe(true)
     if (result.success) {
       expect(result.data.description).toBe('')
@@ -37,7 +37,7 @@ describe('createRegisterTransferSchema', () => {
   })
 
   it('fails when source === target register', () => {
-    const result = createRegisterTransferSchema.safeParse({
+    const result = createInternalTransferSchema.safeParse({
       ...validPayload,
       sourceRegister: 1,
       targetRegister: 1,
@@ -50,7 +50,7 @@ describe('createRegisterTransferSchema', () => {
   })
 
   it('fails when amount is 0', () => {
-    const result = createRegisterTransferSchema.safeParse({
+    const result = createInternalTransferSchema.safeParse({
       ...validPayload,
       amount: 0,
     })
@@ -58,7 +58,7 @@ describe('createRegisterTransferSchema', () => {
   })
 
   it('fails when amount is negative', () => {
-    const result = createRegisterTransferSchema.safeParse({
+    const result = createInternalTransferSchema.safeParse({
       ...validPayload,
       amount: -50,
     })
@@ -66,7 +66,7 @@ describe('createRegisterTransferSchema', () => {
   })
 
   it('fails when date is empty', () => {
-    const result = createRegisterTransferSchema.safeParse({
+    const result = createInternalTransferSchema.safeParse({
       ...validPayload,
       date: '',
     })
@@ -74,9 +74,9 @@ describe('createRegisterTransferSchema', () => {
   })
 })
 
-// ── registerTransferFormSchema (client-side, string values) ──────────────
+// ── internalTransferFormSchema (client-side, string values) ──────────────
 
-describe('registerTransferFormSchema', () => {
+describe('internalTransferFormSchema', () => {
   const validForm = {
     description: '',
     amount: '150.50',
@@ -87,37 +87,37 @@ describe('registerTransferFormSchema', () => {
   }
 
   it('accepts a valid form payload', () => {
-    const result = registerTransferFormSchema.safeParse(validForm)
+    const result = internalTransferFormSchema.safeParse(validForm)
     expect(result.success).toBe(true)
   })
 
   it('fails when amount is empty', () => {
-    const result = registerTransferFormSchema.safeParse({ ...validForm, amount: '' })
+    const result = internalTransferFormSchema.safeParse({ ...validForm, amount: '' })
     expect(result.success).toBe(false)
   })
 
   it('fails when amount is 0', () => {
-    const result = registerTransferFormSchema.safeParse({ ...validForm, amount: '0' })
+    const result = internalTransferFormSchema.safeParse({ ...validForm, amount: '0' })
     expect(result.success).toBe(false)
   })
 
   it('fails when date is empty', () => {
-    const result = registerTransferFormSchema.safeParse({ ...validForm, date: '' })
+    const result = internalTransferFormSchema.safeParse({ ...validForm, date: '' })
     expect(result.success).toBe(false)
   })
 
   it('fails when sourceRegister is empty', () => {
-    const result = registerTransferFormSchema.safeParse({ ...validForm, sourceRegister: '' })
+    const result = internalTransferFormSchema.safeParse({ ...validForm, sourceRegister: '' })
     expect(result.success).toBe(false)
   })
 
   it('fails when targetRegister is empty', () => {
-    const result = registerTransferFormSchema.safeParse({ ...validForm, targetRegister: '' })
+    const result = internalTransferFormSchema.safeParse({ ...validForm, targetRegister: '' })
     expect(result.success).toBe(false)
   })
 
   it('fails when source === target register', () => {
-    const result = registerTransferFormSchema.safeParse({
+    const result = internalTransferFormSchema.safeParse({
       ...validForm,
       sourceRegister: '1',
       targetRegister: '1',

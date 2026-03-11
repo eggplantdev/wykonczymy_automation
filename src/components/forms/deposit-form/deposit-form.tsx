@@ -3,18 +3,15 @@
 import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
-import { toastMessage } from '@/components/toasts'
-import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
+import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import {
   DEPOSIT_UI_TYPES,
   TRANSFER_TYPE_LABELS,
   requiresInvestment,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
-import {
-  transferFormSchema,
-  type CreateTransferFormT,
-} from '@/components/forms/expense-form/expense-schema'
+import { transferFormSchema } from '@/components/forms/expense-form/expense-schema'
+import type { CreateTransferFormT } from '@/lib/schemas/transfer'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { getDefaultCashRegister } from '@/lib/utils/default-cash-register'
 import { today } from '@/lib/date-utils'
@@ -46,14 +43,10 @@ type FormValuesT = {
   investment?: string
 }
 
-export function DepositForm({ referenceData, onSuccess, keepOpen }: DepositFormPropsT) {
-  const FORM_ID = 'deposit'
-  const submission = useOptimisticFormStore((s) => s.submission)
-  const submitOptimistically = useOptimisticFormStore((s) => s.submitOptimistically)
-  const clearSubmission = useOptimisticFormStore((s) => s.clearSubmission)
+const FORM_ID = 'deposit'
 
-  const recovering = submission?.formId === FORM_ID && submission.status === 'failed'
-  const recoveredValues = recovering ? (submission.formValues as FormValuesT) : undefined
+export function DepositForm({ referenceData, onSuccess, keepOpen }: DepositFormPropsT) {
+  const { isRecovering, recoveredValues, submit } = useFormSubmit<FormValuesT>(FORM_ID)
 
   const form = useAppForm({
     defaultValues:
@@ -71,8 +64,6 @@ export function DepositForm({ referenceData, onSuccess, keepOpen }: DepositFormP
       onSubmit: transferFormSchema,
     },
     onSubmit: async ({ value }) => {
-      if (recovering) clearSubmission()
-
       const data: CreateTransferFormT = {
         description: value.description,
         amount: Number(value.amount),
@@ -83,24 +74,13 @@ export function DepositForm({ referenceData, onSuccess, keepOpen }: DepositFormP
         investment: value.investment ? Number(value.investment) : undefined,
       }
 
-      if (keepOpen) {
-        const result = await createTransferAction(data, null)
-        if (result.success) {
-          toastMessage('Wpłata dodana', 'success')
-          form.reset()
-        } else {
-          toastMessage(result.error, 'error')
-        }
-      } else {
-        submitOptimistically(
-          FORM_ID,
-          value as unknown as Record<string, unknown>,
-          new Map(),
-          () => createTransferAction(data, null),
-          'Wpłata dodana',
-        )
-        onSuccess()
-      }
+      await submit(!!keepOpen, {
+        action: () => createTransferAction(data, null),
+        successMessage: 'Wpłata dodana',
+        formValues: value as unknown as Record<string, unknown>,
+        onSuccess,
+        onKeepOpenSuccess: () => form.reset(),
+      })
 
       return false
     },
