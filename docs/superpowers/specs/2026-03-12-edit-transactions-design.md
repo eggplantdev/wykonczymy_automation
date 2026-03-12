@@ -6,16 +6,15 @@ Allow editing of select fields on transactions via a new edit dialog triggered f
 
 ## Editable Fields
 
-| Field              | Type                              | Shown When                                             |
-| ------------------ | --------------------------------- | ------------------------------------------------------ |
-| `description`      | text                              | Always                                                 |
-| `date`             | date                              | Always                                                 |
-| `paymentMethod`    | select                            | Always                                                 |
-| `investment`       | relationship (investments)        | `INVESTOR_DEPOSIT`, `INVESTMENT_EXPENSE`, `LABOR_COST` |
-| `expenseCategory`  | relationship (expense-categories) | `INVESTMENT_EXPENSE`                                   |
-| `otherCategory`    | relationship (other-categories)   | Always (optional)                                      |
-| `otherDescription` | textarea                          | Always (optional)                                      |
-| `invoiceNote`      | textarea                          | Always                                                 |
+| Field             | Type                              | Shown When                                             |
+| ----------------- | --------------------------------- | ------------------------------------------------------ |
+| `description`     | text                              | Always                                                 |
+| `date`            | date                              | Always                                                 |
+| `paymentMethod`   | select                            | Always                                                 |
+| `investment`      | relationship (investments)        | `INVESTOR_DEPOSIT`, `INVESTMENT_EXPENSE`, `LABOR_COST` |
+| `expenseCategory` | relationship (expense-categories) | `INVESTMENT_EXPENSE`                                   |
+| `otherCategory`   | relationship (other-categories)   | Always (optional)                                      |
+| `invoiceNote`     | textarea                          | Always                                                 |
 
 ## Locked Fields (cancel + recreate)
 

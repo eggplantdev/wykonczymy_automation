@@ -114,7 +114,6 @@ export const updateTransferSchema = z.object({
   investment: z.number().optional(),
   expenseCategory: z.number().optional(),
   otherCategory: z.number().optional(),
-  otherDescription: z.string().optional(),
   invoiceNote: z.string().optional(),
 })
 
