@@ -1,6 +1,7 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { Payload, PayloadRequest, Where } from 'payload'
 import { perfStart } from '@/lib/perf'
+import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
 
 /**
  * Returns the transaction-scoped Drizzle instance when inside a hook
@@ -126,7 +127,7 @@ export const sumAllInvestmentFinancials = async (
     db.execute(sql`
       SELECT investment_id,
         COALESCE(SUM(CASE WHEN type = 'INVESTMENT_EXPENSE' THEN amount ELSE 0 END), 0) AS total_costs,
-        COALESCE(SUM(CASE WHEN type IN ('INVESTOR_DEPOSIT') THEN amount ELSE 0 END), 0) AS total_income,
+        COALESCE(SUM(CASE WHEN type IN ('INVESTOR_DEPOSIT', 'COMPANY_FUNDING', 'OTHER_DEPOSIT') THEN amount ELSE 0 END), 0) AS total_income,
         COALESCE(SUM(CASE WHEN type = 'LABOR_COST' THEN amount ELSE 0 END), 0) AS total_labor_costs
       FROM transactions
       WHERE investment_id IS NOT NULL
@@ -231,7 +232,7 @@ export function deriveFinancials(
   return {
     categoryCosts,
     totalMaterialCosts: totalByType(byType, 'INVESTMENT_EXPENSE'),
-    totalIncome: totalByType(byType, 'INVESTOR_DEPOSIT'),
+    totalIncome: DEPOSIT_TYPES.reduce((sum, t) => sum + totalByType(byType, t), 0),
     totalLaborCosts: totalByType(byType, 'LABOR_COST'),
   }
 }

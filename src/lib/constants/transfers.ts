@@ -63,8 +63,7 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethodT, string> = {
 }
 
 export const COST_TYPES: TransferTypeT[] = ['INVESTMENT_EXPENSE', 'LABOR_COST']
-export const INCOME_TYPES: TransferTypeT[] = ['INVESTOR_DEPOSIT']
-export const INVESTMENT_TYPES: TransferTypeT[] = [...COST_TYPES, ...INCOME_TYPES]
+export const INVESTMENT_TYPES: TransferTypeT[] = [...COST_TYPES, ...DEPOSIT_TYPES]
 
 export const isTransferType = (type: string): type is TransferTypeT =>
   (TRANSFER_TYPES as readonly string[]).includes(type)

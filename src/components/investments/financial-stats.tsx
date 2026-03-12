@@ -8,7 +8,7 @@ import type { StatEntryT } from '@/components/ui/toggle-stat-buttons'
 import type { HeaderFieldT } from '@/types/export'
 
 const EXPENSE_LABEL = 'Koszty robocizny'
-const INCOME_LABEL = 'Wpłaty od inwestora'
+const INCOME_LABEL = 'Wpłaty'
 
 const FIXED_FIELD_COLORS: Record<string, string> = {
   [EXPENSE_LABEL]: 'var(--color-chart-orange)',
@@ -20,6 +20,8 @@ const CATEGORY_PALETTE = [
   'var(--color-chart-teal)',
   'var(--color-chart-purple)',
 ]
+
+const ROW_LABELS = ['Koszty']
 
 type FinancialStatsPropsT = {
   readonly fields: readonly HeaderFieldT[]
@@ -57,9 +59,7 @@ export function FinancialStats({ fields }: FinancialStatsPropsT) {
   const expenseRow = entries.filter((e) => e.label !== INCOME_LABEL)
   const rows = incomeEntry ? [expenseRow, [incomeEntry]] : [expenseRow]
 
-  const rowLabels = incomeEntry ? ['Koszty', 'Wpłaty'] : ['Koszty']
-
   return (
-    <ToggleStatButtons rows={rows} rowLabels={rowLabels} summaryLabel="Bilans" onToggle={toggle} />
+    <ToggleStatButtons rows={rows} rowLabels={ROW_LABELS} summaryLabel="Bilans" onToggle={toggle} />
   )
 }

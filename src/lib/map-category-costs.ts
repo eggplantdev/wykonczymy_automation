@@ -26,7 +26,7 @@ export function buildFinancialFields(
   return [
     ...mapCategoryCostsToFields(categoryCosts, expenseCategories),
     { label: 'Koszty robocizny', value: formatPLN(totalLaborCosts), amount: -totalLaborCosts },
-    { label: 'Wpłaty od inwestora', value: formatPLN(totalIncome), amount: totalIncome },
+    { label: 'Wpłaty', value: formatPLN(totalIncome), amount: totalIncome },
     { label: BILANS_LABEL, value: formatPLN(totalIncome - totalMaterialCosts - totalLaborCosts) },
   ]
 }

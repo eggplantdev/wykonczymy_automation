@@ -7,7 +7,7 @@ import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import {
   DEPOSIT_UI_TYPES,
   TRANSFER_TYPE_LABELS,
-  requiresInvestment,
+  showsInvestment,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
 import { transferFormSchema } from '@/components/forms/expense-form/expense-schema'
@@ -129,8 +129,8 @@ export function DepositForm({ referenceData, onSuccess, keepOpen }: DepositFormP
 
           <CashRegisterField form={form} cashRegisters={referenceData.cashRegisters} />
 
-          {/* Conditional: Investment — for INVESTOR_DEPOSIT */}
-          {requiresInvestment(currentType) && (
+          {/* Conditional: Investment — required for INVESTOR_DEPOSIT, optional for others */}
+          {showsInvestment(currentType) && (
             <InvestmentField form={form} investments={referenceData.investments} />
           )}
         </FieldGroup>

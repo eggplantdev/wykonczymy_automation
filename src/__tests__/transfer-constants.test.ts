@@ -29,7 +29,13 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
   },
   showsInvestment: {
     fn: showsInvestment,
-    trueFor: ['INVESTOR_DEPOSIT', 'INVESTMENT_EXPENSE', 'LABOR_COST'],
+    trueFor: [
+      'INVESTOR_DEPOSIT',
+      'INVESTMENT_EXPENSE',
+      'LABOR_COST',
+      'COMPANY_FUNDING',
+      'OTHER_DEPOSIT',
+    ],
   },
   requiresInvestment: {
     fn: requiresInvestment,
