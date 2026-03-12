@@ -10,7 +10,6 @@ import { toastMessage } from '@/components/toasts'
 import {
   TRANSACTION_TRANSFER_TYPES,
   TRANSFER_TYPE_LABELS,
-  EXPENSE_CATEGORY_LABEL,
   isDepositType,
   needsSourceRegister,
   showsInvestment,
@@ -247,75 +246,8 @@ export function ExpenseForm({ referenceData, onSuccess, keepOpen }: TransferForm
               total={total}
               onRemoveItem={handleRemoveLineItem}
               onFileChange={handleFileChange}
-              renderItemInline={(index) => {
-                const cfg =
-                  currentType === 'INVESTMENT_EXPENSE'
-                    ? {
-                        name: `lineItems[${index}].expenseCategory`,
-                        label: EXPENSE_CATEGORY_LABEL,
-                        placeholder: `${EXPENSE_CATEGORY_LABEL} *`,
-                        options: referenceData.expenseCategories,
-                      }
-                    : currentType === 'OTHER'
-                      ? {
-                          name: `lineItems[${index}].category`,
-                          label: 'Kategoria',
-                          placeholder: 'Opcjonalnie',
-                          options: referenceData.otherCategories,
-                        }
-                      : undefined
-
-                if (!cfg) return null
-
-                return (
-                  <div className="min-w-0 flex-1">
-                    <form.AppField name={cfg.name as never}>
-                      {(field: {
-                        Select: React.FC<{
-                          label: string
-                          placeholder: string
-                          showError: boolean
-                          children: React.ReactNode
-                        }>
-                      }) => (
-                        <field.Select label={cfg.label} placeholder={cfg.placeholder} showError>
-                          {cfg.options.map((cat) => (
-                            <SelectItem key={cat.id} value={String(cat.id)}>
-                              {cat.name}
-                            </SelectItem>
-                          ))}
-                        </field.Select>
-                      )}
-                    </form.AppField>
-                  </div>
-                )
-              }}
-              renderItemSecondRow={(index) => {
-                if (currentType !== 'INVESTMENT_EXPENSE') return null
-
-                return (
-                  <div className="min-w-0 flex-1">
-                    <form.AppField name={`lineItems[${index}].category` as never}>
-                      {(field: {
-                        Select: React.FC<{
-                          label: string
-                          placeholder: string
-                          showError: boolean
-                          children: React.ReactNode
-                        }>
-                      }) => (
-                        <field.Select label="Kategoria" placeholder="Opcjonalnie" showError>
-                          {referenceData.otherCategories.map((cat) => (
-                            <SelectItem key={cat.id} value={String(cat.id)}>
-                              {cat.name}
-                            </SelectItem>
-                          ))}
-                        </field.Select>
-                      )}
-                    </form.AppField>
-                  </div>
-                )
-              }}
+              transferType={currentType}
+              referenceData={referenceData}
             />
           )}
         </FieldGroup>
