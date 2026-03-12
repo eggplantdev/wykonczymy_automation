@@ -52,7 +52,6 @@ export function EditTransferButton({ row, referenceData, canEdit }: EditTransfer
   const [otherCategory, setOtherCategory] = useState<string>(
     row.otherCategoryId ? String(row.otherCategoryId) : '',
   )
-  const [otherDescription, setOtherDescription] = useState(row.otherDescription)
   const [invoiceNote, setInvoiceNote] = useState(row.invoiceNote ?? '')
 
   function handleOpen() {
@@ -63,7 +62,6 @@ export function EditTransferButton({ row, referenceData, canEdit }: EditTransfer
     setInvestment(row.investmentId ? String(row.investmentId) : '')
     setExpenseCategory(row.expenseCategoryId ? String(row.expenseCategoryId) : '')
     setOtherCategory(row.otherCategoryId ? String(row.otherCategoryId) : '')
-    setOtherDescription(row.otherDescription)
     setInvoiceNote(row.invoiceNote ?? '')
     setOpen(true)
   }
@@ -77,7 +75,6 @@ export function EditTransferButton({ row, referenceData, canEdit }: EditTransfer
         investment: investment ? Number(investment) : undefined,
         expenseCategory: expenseCategory ? Number(expenseCategory) : undefined,
         otherCategory: otherCategory ? Number(otherCategory) : undefined,
-        otherDescription: otherDescription || undefined,
         invoiceNote: invoiceNote || undefined,
       })
 
@@ -215,16 +212,6 @@ export function EditTransferButton({ row, referenceData, canEdit }: EditTransfer
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Opis kategorii</label>
-              <Textarea
-                value={otherDescription}
-                onChange={(e) => setOtherDescription(e.target.value)}
-                disabled={isPending}
-                rows={2}
-              />
             </div>
 
             <div className="space-y-2">

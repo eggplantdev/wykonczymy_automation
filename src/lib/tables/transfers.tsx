@@ -36,7 +36,6 @@ export type TransferRowT = {
   readonly expenseCategoryName: string
   readonly otherCategoryName: string
   readonly otherCategoryId: number | null
-  readonly otherDescription: string
   readonly createdByName: string
   readonly createdById: number | null
   readonly createdAt: string
@@ -106,7 +105,6 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
       expenseCategoryName: lookupName(lookups.expenseCategories, doc.expenseCategory),
       otherCategoryName: lookupName(lookups.otherCategories, doc.otherCategory),
       otherCategoryId: toNullableId(doc.otherCategory),
-      otherDescription: doc.otherDescription ?? '',
       createdByName: lookupName(lookups.users, doc.createdBy),
       createdById: toNullableId(doc.createdBy),
       createdAt: doc.createdAt,
