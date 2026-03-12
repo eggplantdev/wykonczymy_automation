@@ -8,19 +8,24 @@ import { Tags, User } from 'lucide-react'
 import { ColumnToggle } from '@/components/ui/column-toggle'
 import { SearchFilterInput } from '@/components/ui/search-filter-input'
 import { getCashRegisterColumns, REGISTER_TYPE_LABELS } from '@/lib/tables/cash-registers'
+import { formatPLN } from '@/lib/format-currency'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { Description } from '@/components/ui/description'
 import { InvestmentDataTable } from '@/components/investments/investment-data-table'
 import { RegisterBalanceChart } from '@/components/dashboard/register-balance-chart'
+import { ToggleStatButtons } from '@/components/ui/toggle-stat-buttons'
 import { SECTION_IDS } from '@/lib/constants/sections'
 import { useActiveFilter } from '@/hooks/use-active-filter'
 import { useClientMultiFilter } from '@/hooks/use-client-multi-filter'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle'
 import { toggleCashRegisterActive } from '@/lib/actions/toggle-active'
+import type { StatEntryT } from '@/components/ui/toggle-stat-buttons'
 import type { CashRegisterRowT } from '@/lib/tables/cash-registers'
 import type { CashRegisterTypeT } from '@/types/reference-data'
 import type { InvestmentRowT } from '@/lib/tables/investments'
+
+const USER_REGISTER_COLOR = 'var(--color-chart-turquoise)'
 
 const isCashRegisterActive = (row: CashRegisterRowT) => row.active
 const getActiveUpdate = (newActive: boolean) => ({ active: newActive })
@@ -123,16 +128,41 @@ function CashRegistersTable({ data, className }: CashRegistersTablePropsT) {
 type DashboardTablesPropsT = {
   readonly cashRegisters: readonly CashRegisterRowT[]
   readonly investments: readonly InvestmentRowT[]
+  readonly currentUserName: string
 }
 
-export function DashboardTables({ cashRegisters, investments }: DashboardTablesPropsT) {
+export function DashboardTables({
+  cashRegisters,
+  investments,
+  currentUserName,
+}: DashboardTablesPropsT) {
   const activeInvestmentCount = useMemo(
     () => investments.filter((i) => i.status === 'active').length,
     [investments],
   )
 
+  const userEntries: StatEntryT[] = useMemo(() => {
+    return cashRegisters
+      .filter((cr) => cr.ownerName === currentUserName)
+      .map((cr) => ({
+        label: cr.name,
+        value: formatPLN(cr.balance),
+        amount: cr.balance,
+        borderColor: USER_REGISTER_COLOR,
+        valueClassName:
+          cr.balance > 0 ? 'text-chart-green' : cr.balance < 0 ? 'text-destructive' : undefined,
+      }))
+  }, [cashRegisters, currentUserName])
+
   return (
     <div className="mt-8 space-y-8">
+      {userEntries.length > 0 && (
+        <ToggleStatButtons
+          rows={[userEntries]}
+          summaryLabel="Saldo moich kas"
+          rowLabels={['Moje Kasy']}
+        />
+      )}
       <CollapsibleSection title="Kasy" id={SECTION_IDS.cashRegisters}>
         <div className="mt-4">
           <CashRegistersTable data={cashRegisters} />

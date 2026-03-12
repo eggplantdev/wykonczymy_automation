@@ -11,6 +11,7 @@ type StatEntryT = {
   readonly value: string
   readonly amount: number
   readonly borderColor: string
+  readonly valueClassName?: string
 }
 
 type ToggleStatButtonsPropsT = {
@@ -53,7 +54,7 @@ export function ToggleStatButtons({
   const total = computeSummary(allEntries, hidden)
 
   return (
-    <div className="space-y-2">
+    <div className="mb-4 space-y-2">
       {rows.map((row, rowIndex) => (
         <div key={rowIndex}>
           {rowLabels?.[rowIndex] && <Description>{rowLabels[rowIndex]}</Description>}
@@ -71,7 +72,7 @@ export function ToggleStatButtons({
                   aria-label={`${isHidden ? 'Pokaż' : 'Ukryj'} ${entry.label}`}
                 >
                   <span className="text-muted-foreground">{entry.label}:</span>
-                  <span className="font-medium">{entry.value}</span>
+                  <span className={cn('font-medium', entry.valueClassName)}>{entry.value}</span>
                 </Button>
               )
             })}
