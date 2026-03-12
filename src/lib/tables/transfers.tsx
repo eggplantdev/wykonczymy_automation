@@ -6,7 +6,7 @@ import { getRelationName } from '@/lib/get-relation-name'
 import { InvoiceCell } from '@/components/transfers/invoice-cell'
 import { NoteCell } from '@/components/dialogs/note-dialog'
 import { CancelTransferButton } from '@/components/transfers/cancel-transfer-button'
-import { EditTransferButton } from '@/components/transfers/edit-transfer-button'
+import { EditTransferDialog } from '@/components/dialogs/edit-transfer-dialog'
 import { isAdminOrOwnerRole, type RoleT } from '@/lib/auth/roles'
 import {
   TRANSFER_TYPE_LABELS,
@@ -336,7 +336,7 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
         return (
           <div className="flex items-center gap-1">
             {referenceData && (
-              <EditTransferButton row={row} referenceData={referenceData} canEdit={canEdit} />
+              <EditTransferDialog row={row} referenceData={referenceData} canEdit={canEdit} />
             )}
             <CancelTransferButton transactionId={row.id} />
           </div>
