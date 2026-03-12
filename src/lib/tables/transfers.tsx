@@ -133,7 +133,6 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
     expenseCategoryName: getRelationName(doc.expenseCategory),
     otherCategoryName: getRelationName(doc.otherCategory),
     otherCategoryId: toNullableId(doc.otherCategory),
-    otherDescription: doc.otherDescription ?? '',
     createdByName: getRelationName(doc.createdBy),
     createdById: toNullableId(doc.createdBy),
     createdAt: doc.createdAt,
