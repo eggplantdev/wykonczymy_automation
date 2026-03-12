@@ -13,8 +13,8 @@ Allow editing of select fields on transactions via a new edit dialog triggered f
 | `paymentMethod`    | select                            | Always                                                 |
 | `investment`       | relationship (investments)        | `INVESTOR_DEPOSIT`, `INVESTMENT_EXPENSE`, `LABOR_COST` |
 | `expenseCategory`  | relationship (expense-categories) | `INVESTMENT_EXPENSE`                                   |
-| `otherCategory`    | relationship (other-categories)   | `OTHER`                                                |
-| `otherDescription` | textarea                          | `OTHER`                                                |
+| `otherCategory`    | relationship (other-categories)   | Always (optional)                                      |
+| `otherDescription` | textarea                          | Always (optional)                                      |
 | `invoiceNote`      | textarea                          | Always                                                 |
 
 ## Locked Fields (cancel + recreate)
