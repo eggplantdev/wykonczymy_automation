@@ -74,12 +74,8 @@
           "name": "users_sessions_parent_id_fk",
           "tableFrom": "users_sessions",
           "tableTo": "users",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["_parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -322,12 +318,8 @@
           "name": "cash_registers_owner_id_users_id_fk",
           "tableFrom": "cash_registers",
           "tableTo": "users",
-          "columnsFrom": [
-            "owner_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["owner_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -685,12 +677,8 @@
           "name": "transactions_cash_register_id_cash_registers_id_fk",
           "tableFrom": "transactions",
           "tableTo": "cash_registers",
-          "columnsFrom": [
-            "cash_register_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["cash_register_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -698,12 +686,8 @@
           "name": "transactions_investment_id_investments_id_fk",
           "tableFrom": "transactions",
           "tableTo": "investments",
-          "columnsFrom": [
-            "investment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["investment_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -711,12 +695,8 @@
           "name": "transactions_worker_id_users_id_fk",
           "tableFrom": "transactions",
           "tableTo": "users",
-          "columnsFrom": [
-            "worker_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["worker_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -724,12 +704,8 @@
           "name": "transactions_other_category_id_other_categories_id_fk",
           "tableFrom": "transactions",
           "tableTo": "other_categories",
-          "columnsFrom": [
-            "other_category_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["other_category_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -737,12 +713,8 @@
           "name": "transactions_invoice_id_media_id_fk",
           "tableFrom": "transactions",
           "tableTo": "media",
-          "columnsFrom": [
-            "invoice_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["invoice_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -750,12 +722,8 @@
           "name": "transactions_created_by_id_users_id_fk",
           "tableFrom": "transactions",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1060,12 +1028,8 @@
           "name": "media_created_by_id_users_id_fk",
           "tableFrom": "media",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1415,12 +1379,8 @@
           "name": "payload_locked_documents_rels_parent_fk",
           "tableFrom": "payload_locked_documents_rels",
           "tableTo": "payload_locked_documents",
-          "columnsFrom": [
-            "parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1428,12 +1388,8 @@
           "name": "payload_locked_documents_rels_users_fk",
           "tableFrom": "payload_locked_documents_rels",
           "tableTo": "users",
-          "columnsFrom": [
-            "users_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["users_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1441,12 +1397,8 @@
           "name": "payload_locked_documents_rels_cash_registers_fk",
           "tableFrom": "payload_locked_documents_rels",
           "tableTo": "cash_registers",
-          "columnsFrom": [
-            "cash_registers_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["cash_registers_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1454,12 +1406,8 @@
           "name": "payload_locked_documents_rels_investments_fk",
           "tableFrom": "payload_locked_documents_rels",
           "tableTo": "investments",
-          "columnsFrom": [
-            "investments_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["investments_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1467,12 +1415,8 @@
           "name": "payload_locked_documents_rels_transactions_fk",
           "tableFrom": "payload_locked_documents_rels",
           "tableTo": "transactions",
-          "columnsFrom": [
-            "transactions_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["transactions_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1480,12 +1424,8 @@
           "name": "payload_locked_documents_rels_other_categories_fk",
           "tableFrom": "payload_locked_documents_rels",
           "tableTo": "other_categories",
-          "columnsFrom": [
-            "other_categories_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["other_categories_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1493,12 +1433,8 @@
           "name": "payload_locked_documents_rels_media_fk",
           "tableFrom": "payload_locked_documents_rels",
           "tableTo": "media",
-          "columnsFrom": [
-            "media_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["media_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1702,12 +1638,8 @@
           "name": "payload_preferences_rels_parent_fk",
           "tableFrom": "payload_preferences_rels",
           "tableTo": "payload_preferences",
-          "columnsFrom": [
-            "parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1715,12 +1647,8 @@
           "name": "payload_preferences_rels_users_fk",
           "tableFrom": "payload_preferences_rels",
           "tableTo": "users",
-          "columnsFrom": [
-            "users_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["users_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1812,41 +1740,22 @@
     "public.enum_users_role": {
       "name": "enum_users_role",
       "schema": "public",
-      "values": [
-        "ADMIN",
-        "OWNER",
-        "MANAGER",
-        "EMPLOYEE"
-      ]
+      "values": ["ADMIN", "OWNER", "MANAGER", "EMPLOYEE"]
     },
     "public.enum_investments_status": {
       "name": "enum_investments_status",
       "schema": "public",
-      "values": [
-        "active",
-        "completed"
-      ]
+      "values": ["active", "completed"]
     },
     "public.enum_transactions_type": {
       "name": "enum_transactions_type",
       "schema": "public",
-      "values": [
-        "DEPOSIT",
-        "INVESTMENT_EXPENSE",
-        "ADVANCE",
-        "EMPLOYEE_EXPENSE",
-        "OTHER"
-      ]
+      "values": ["DEPOSIT", "INVESTMENT_EXPENSE", "ADVANCE", "EMPLOYEE_EXPENSE", "OTHER"]
     },
     "public.enum_transactions_payment_method": {
       "name": "enum_transactions_payment_method",
       "schema": "public",
-      "values": [
-        "CASH",
-        "BLIK",
-        "TRANSFER",
-        "CARD"
-      ]
+      "values": ["CASH", "BLIK", "TRANSFER", "CARD"]
     }
   },
   "schemas": {},
