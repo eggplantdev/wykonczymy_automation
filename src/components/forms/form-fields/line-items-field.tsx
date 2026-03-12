@@ -71,6 +71,30 @@ function getSecondRowCategory(
   return undefined
 }
 
+function CategorySelect({
+  form,
+  index,
+  config,
+}: {
+  form: FormT
+  index: number
+  config: CategoryFieldConfigT
+}) {
+  return (
+    <form.AppField name={`lineItems[${index}].${config.fieldName}`}>
+      {(field: AppFieldComponentsT) => (
+        <field.Select label={config.label} placeholder={config.placeholder} showError>
+          {config.options.map((opt) => (
+            <SelectItem key={opt.id} value={String(opt.id)}>
+              {opt.name}
+            </SelectItem>
+          ))}
+        </field.Select>
+      )}
+    </form.AppField>
+  )
+}
+
 export function LineItemsField({
   form,
   transferType,
@@ -112,21 +136,7 @@ export function LineItemsField({
                   </div>
                   {inlineCategory && (
                     <div className="min-w-0 flex-1">
-                      <form.AppField name={`lineItems[${index}].${inlineCategory.fieldName}`}>
-                        {(field: AppFieldComponentsT) => (
-                          <field.Select
-                            label={inlineCategory.label}
-                            placeholder={inlineCategory.placeholder}
-                            showError
-                          >
-                            {inlineCategory.options.map((opt) => (
-                              <SelectItem key={opt.id} value={String(opt.id)}>
-                                {opt.name}
-                              </SelectItem>
-                            ))}
-                          </field.Select>
-                        )}
-                      </form.AppField>
+                      <CategorySelect form={form} index={index} config={inlineCategory} />
                     </div>
                   )}
                   <RemoveButton
@@ -138,21 +148,7 @@ export function LineItemsField({
                 <div className="flex items-start gap-2 pr-10 pl-8">
                   {secondRowCategory && (
                     <div className="min-w-0 flex-1">
-                      <form.AppField name={`lineItems[${index}].${secondRowCategory.fieldName}`}>
-                        {(field: AppFieldComponentsT) => (
-                          <field.Select
-                            label={secondRowCategory.label}
-                            placeholder={secondRowCategory.placeholder}
-                            showError
-                          >
-                            {secondRowCategory.options.map((opt) => (
-                              <SelectItem key={opt.id} value={String(opt.id)}>
-                                {opt.name}
-                              </SelectItem>
-                            ))}
-                          </field.Select>
-                        )}
-                      </form.AppField>
+                      <CategorySelect form={form} index={index} config={secondRowCategory} />
                     </div>
                   )}
                   <div className="min-w-0 flex-1">

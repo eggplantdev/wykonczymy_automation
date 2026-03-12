@@ -7,35 +7,32 @@ import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import {
   showsInvestment,
   needsExpenseCategory,
-  EXPENSE_CATEGORY_LABEL,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
 import { editTransferFormSchema } from '@/components/forms/expense-form/expense-schema'
+import type { z } from 'zod'
 import type { UpdateTransferFormT } from '@/lib/schemas/transfer'
 import type { TransferRowT } from '@/lib/tables/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import type { AppFieldComponentsT } from '@/components/forms/types/form-types'
 import { updateTransferAction } from '@/lib/actions/transfers'
-import { DateField, DescriptionField, InvestmentField } from '@/components/forms/form-fields'
+import {
+  DateField,
+  DescriptionField,
+  InvestmentField,
+  ExpenseCategoryField,
+} from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
 
 type EditTransferFormPropsT = {
-  row: TransferRowT
-  referenceData: ReferenceDataBaseT
-  onSuccess: () => void
-  keepOpen?: boolean
+  readonly row: TransferRowT
+  readonly referenceData: ReferenceDataBaseT
+  readonly onSuccess: () => void
+  readonly keepOpen?: boolean
 }
 
-type FormValuesT = {
-  description: string
-  date: string
-  paymentMethod: string
-  investment: string
-  expenseCategory: string
-  otherCategory: string
-  invoiceNote: string
-}
+type FormValuesT = z.infer<typeof editTransferFormSchema>
 
 const FORM_ID = 'edit-transfer'
 
@@ -45,7 +42,7 @@ export function EditTransferForm({
   onSuccess,
   keepOpen,
 }: EditTransferFormPropsT) {
-  const { isRecovering, recoveredValues, submit } = useFormSubmit<FormValuesT>(FORM_ID)
+  const { recoveredValues, submit } = useFormSubmit<FormValuesT>(FORM_ID)
 
   const form = useAppForm({
     defaultValues:
@@ -76,7 +73,7 @@ export function EditTransferForm({
       await submit(!!keepOpen, {
         action: () => updateTransferAction(row.id, data),
         successMessage: 'Transakcja zaktualizowana',
-        formValues: value as unknown as Record<string, unknown>,
+        formValues: value as Record<string, unknown>,
         onSuccess,
         onKeepOpenSuccess: () => form.reset(),
       })
@@ -107,17 +104,7 @@ export function EditTransferForm({
           )}
 
           {needsExpenseCategory(row.type) && (
-            <form.AppField name="expenseCategory">
-              {(field: AppFieldComponentsT) => (
-                <field.Select label={EXPENSE_CATEGORY_LABEL} placeholder="Wybierz typ" showError>
-                  {referenceData.expenseCategories.map((cat) => (
-                    <SelectItem key={cat.id} value={String(cat.id)}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </field.Select>
-              )}
-            </form.AppField>
+            <ExpenseCategoryField form={form} expenseCategories={referenceData.expenseCategories} />
           )}
 
           <form.AppField name="otherCategory">
