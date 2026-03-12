@@ -25,7 +25,7 @@ export function RegisterBalanceChart({ data }: RegisterBalanceChartPropsT) {
 
   return (
     <ToggleStatButtons
-      entries={entries}
+      rows={[entries]}
       summaryLabel="Saldo"
       helpText="Naciśnij wybraną kategorię lub wybierz filtry aby zaktualizować saldo."
     />

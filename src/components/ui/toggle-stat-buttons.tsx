@@ -14,7 +14,8 @@ type StatEntryT = {
 }
 
 type ToggleStatButtonsPropsT = {
-  readonly entries: readonly StatEntryT[]
+  readonly rows: readonly (readonly StatEntryT[])[]
+  readonly rowLabels?: readonly string[]
   readonly summaryLabel: string
   readonly helpText?: string
   readonly onToggle?: (label: string) => void
@@ -28,12 +29,14 @@ export function computeSummary(
 }
 
 export function ToggleStatButtons({
-  entries,
+  rows,
+  rowLabels,
   summaryLabel,
   helpText,
   onToggle,
 }: ToggleStatButtonsPropsT) {
   const [hidden, setHidden] = useState<Set<string>>(new Set())
+  const allEntries = rows.flat()
 
   function toggle(label: string) {
     setHidden((prev) => {
@@ -45,31 +48,36 @@ export function ToggleStatButtons({
     onToggle?.(label)
   }
 
-  if (entries.length === 0) return null
+  if (allEntries.length === 0) return null
 
-  const total = computeSummary(entries, hidden)
+  const total = computeSummary(allEntries, hidden)
 
   return (
-    <div className="mb-4 space-y-2">
-      <div className="flex flex-wrap items-center gap-3">
-        {entries.map((entry) => {
-          const isHidden = hidden.has(entry.label)
-          return (
-            <Button
-              variant="outline"
-              key={entry.label}
-              onClick={() => toggle(entry.label)}
-              className={cn('border-2', isHidden && 'opacity-40')}
-              style={{ borderColor: entry.borderColor }}
-              aria-pressed={!isHidden}
-              aria-label={`${isHidden ? 'Pokaż' : 'Ukryj'} ${entry.label}`}
-            >
-              <span className="text-muted-foreground">{entry.label}:</span>
-              <span className="font-medium">{entry.value}</span>
-            </Button>
-          )
-        })}
-      </div>
+    <div className="space-y-2">
+      {rows.map((row, rowIndex) => (
+        <div key={rowIndex}>
+          {rowLabels?.[rowIndex] && <Description>{rowLabels[rowIndex]}</Description>}
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            {row.map((entry) => {
+              const isHidden = hidden.has(entry.label)
+              return (
+                <Button
+                  variant="outline"
+                  key={entry.label}
+                  onClick={() => toggle(entry.label)}
+                  className={cn('border-2', isHidden && 'opacity-40')}
+                  style={{ borderColor: entry.borderColor }}
+                  aria-pressed={!isHidden}
+                  aria-label={`${isHidden ? 'Pokaż' : 'Ukryj'} ${entry.label}`}
+                >
+                  <span className="text-muted-foreground">{entry.label}:</span>
+                  <span className="font-medium">{entry.value}</span>
+                </Button>
+              )
+            })}
+          </div>
+        </div>
+      ))}
 
       {helpText && <Description>{helpText}</Description>}
 
