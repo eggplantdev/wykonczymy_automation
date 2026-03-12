@@ -18,7 +18,6 @@ import {
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
 import { createBulkTransferAction, getRegisterSaldo } from '@/lib/actions/transfers'
-import { formatPLN } from '@/lib/format-currency'
 import {
   bulkTransferFormSchema,
   type CreateBulkTransferFormT,
@@ -34,6 +33,8 @@ import {
 } from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
+import { SaldoSummary } from '../form-components/saldo-summary'
+import { SaldoDisplay } from '@/components/ui/saldo-display'
 
 type TransferFormPropsT = {
   referenceData: ReferenceDataT
@@ -213,9 +214,7 @@ export function ExpenseForm({ referenceData, onSuccess, keepOpen }: TransferForm
                 <p className="text-muted-foreground text-sm">Ładowanie salda...</p>
               )}
               {saldo !== null && !isSaldoLoading && (
-                <p className="text-sm">
-                  Aktualne saldo: <span className="font-medium">{formatPLN(saldo)}</span>
-                </p>
+                <SaldoDisplay saldo={saldo} label="Aktualne saldo" />
               )}
             </>
           )}
@@ -251,19 +250,7 @@ export function ExpenseForm({ referenceData, onSuccess, keepOpen }: TransferForm
           )}
         </FieldGroup>
 
-        {saldo !== null && (
-          <div className="bg-muted/50 border-border mt-6 space-y-1 rounded-lg border px-6 py-4">
-            <p className="text-sm">
-              Aktualne saldo: <span className="font-medium">{formatPLN(saldo)}</span>
-            </p>
-            <p className="text-sm">
-              Suma wydatków: <span className="font-medium">{formatPLN(total)}</span>
-            </p>
-            <p className="text-sm">
-              Saldo po transakcji: <span className="font-medium">{formatPLN(saldo - total)}</span>
-            </p>
-          </div>
-        )}
+        {saldo !== null && <SaldoSummary saldo={saldo} total={total} />}
 
         <div className="mt-6">
           <FormFooter />

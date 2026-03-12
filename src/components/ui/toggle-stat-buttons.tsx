@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { formatPLN } from '@/lib/format-currency'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
 import { Description } from '@/components/ui/description'
+import { SaldoDisplay } from '@/components/ui/saldo-display'
 
 type StatEntryT = {
   readonly label: string
@@ -22,10 +22,6 @@ type ToggleStatButtonsPropsT = {
 
 export function valueColor(value: number): string {
   return value >= 0 ? 'var(--color-chart-green)' : 'var(--color-destructive)'
-}
-
-export function balanceColorClass(value: number): string {
-  return value >= 0 ? 'text-chart-green' : 'text-destructive'
 }
 
 export function computeSummary(
@@ -83,10 +79,7 @@ export function ToggleStatButtons({
 
       {helpText && <Description>{helpText}</Description>}
 
-      <Description>
-        <span>{summaryLabel}: </span>
-        <span className={cn('font-semibold', balanceColorClass(total))}>{formatPLN(total)}</span>
-      </Description>
+      <SaldoDisplay saldo={total} label={summaryLabel} />
     </div>
   )
 }
