@@ -116,9 +116,10 @@ export function ExpenseForm({ referenceData, onSuccess, keepOpen }: TransferForm
       onSubmit: bulkTransferFormSchema,
     },
     onSubmit: async ({ value }) => {
+      const type = value.type as TransferTypeT
       const data: CreateBulkTransferFormT = {
         date: value.date,
-        type: value.type as TransferTypeT,
+        type,
         paymentMethod: value.paymentMethod as PaymentMethodT,
         sourceRegister: value.sourceRegister ? Number(value.sourceRegister) : undefined,
         targetRegister: value.targetRegister ? Number(value.targetRegister) : undefined,
@@ -128,7 +129,10 @@ export function ExpenseForm({ referenceData, onSuccess, keepOpen }: TransferForm
           amount: Number(item.amount),
           invoiceNote: item.invoiceNote || undefined,
           category: item.category ? Number(item.category) : undefined,
-          expenseCategory: item.expenseCategory ? Number(item.expenseCategory) : undefined,
+          expenseCategory:
+            type === 'INVESTMENT_EXPENSE' && item.expenseCategory
+              ? Number(item.expenseCategory)
+              : undefined,
         })),
       }
 
@@ -161,6 +165,7 @@ export function ExpenseForm({ referenceData, onSuccess, keepOpen }: TransferForm
   function resetConditionalFields() {
     conditionalFields.forEach((field) => form.resetField(field))
     form.resetField('sourceRegister')
+    form.resetField('lineItems')
     setSaldo(null)
   }
 
