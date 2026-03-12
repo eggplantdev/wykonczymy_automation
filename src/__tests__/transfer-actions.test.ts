@@ -67,7 +67,7 @@ const {
   createTransferAction,
   createBulkTransferAction,
   cancelTransferAction,
-  updateTransferNoteAction,
+  updateTransferAction,
   updateTransferInvoiceAction,
 } = await import('@/lib/actions/transfers')
 
@@ -666,45 +666,151 @@ describe('cancelTransferAction', () => {
 })
 
 // ═════════════════════════════════════════════════════════════════════════
-// updateTransferNoteAction
+// updateTransferAction
 // ═════════════════════════════════════════════════════════════════════════
 
-describe('updateTransferNoteAction', () => {
-  it('success → updates invoiceNote', async () => {
-    const result = await updateTransferNoteAction(10, 'New note text')
+function makeUpdateData(overrides = {}) {
+  return {
+    description: 'Updated description',
+    date: '2026-03-01',
+    paymentMethod: 'CASH' as const,
+    investment: 1,
+    expenseCategory: 1,
+    invoiceNote: 'Updated note',
+    ...overrides,
+  }
+}
+
+describe('updateTransferAction', () => {
+  it('success → updates transaction with editable fields + updatedBy', async () => {
+    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: adminUser.id }))
+
+    const result = await updateTransferAction(10, makeUpdateData())
 
     expect(result.success).toBe(true)
-    expect(mockUpdate).toHaveBeenCalledOnce()
-  })
-
-  it('called with correct collection and data', async () => {
-    await updateTransferNoteAction(55, 'Updated note')
-
     expect(mockUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         collection: 'transactions',
-        id: 55,
-        data: { invoiceNote: 'Updated note' },
+        id: 10,
+        data: expect.objectContaining({
+          description: 'Updated description',
+          date: '2026-03-01',
+          paymentMethod: 'CASH',
+          updatedBy: adminUser.id,
+        }),
       }),
     )
   })
 
-  it('payload.update failure → returns error', async () => {
-    mockUpdate.mockRejectedValueOnce(new Error('Note update failed'))
+  it('cancelled transaction → returns error', async () => {
+    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ cancelled: true }))
 
-    const result = await updateTransferNoteAction(10, 'note')
+    const result = await updateTransferAction(10, makeUpdateData())
 
     expect(result.success).toBe(false)
-    if (!result.success) expect(result.error).toBe('Note update failed')
+    if (!result.success) expect(result.error).toBe('Transakcja jest już anulowana.')
+    expect(mockUpdate).not.toHaveBeenCalled()
   })
 
-  it('empty note → updates with empty string', async () => {
-    const result = await updateTransferNoteAction(10, '')
+  it('CANCELLATION type → returns error', async () => {
+    mockFindByID.mockResolvedValueOnce(
+      makeOriginalTransfer({ type: 'CANCELLATION', createdBy: adminUser.id }),
+    )
+
+    const result = await updateTransferAction(10, makeUpdateData())
+
+    expect(result.success).toBe(false)
+    if (!result.success) expect(result.error).toBe('Nie można edytować anulowania.')
+    expect(mockUpdate).not.toHaveBeenCalled()
+  })
+
+  it('transaction not found → returns error', async () => {
+    mockFindByID.mockResolvedValueOnce(null)
+
+    const result = await updateTransferAction(999, makeUpdateData())
+
+    expect(result.success).toBe(false)
+    if (!result.success) expect(result.error).toBe('Transakcja nie istnieje.')
+  })
+
+  it('permission: MANAGER can edit own transaction', async () => {
+    mockRequireAuth.mockResolvedValueOnce({ success: true, user: managerUser })
+    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: managerUser.id }))
+
+    const result = await updateTransferAction(10, makeUpdateData())
 
     expect(result.success).toBe(true)
+  })
+
+  it('permission: MANAGER cannot edit another users transaction', async () => {
+    mockRequireAuth.mockResolvedValueOnce({ success: true, user: otherManagerUser })
+    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: managerUser.id }))
+
+    const result = await updateTransferAction(10, makeUpdateData())
+
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error).toBe('Nie masz uprawnień do edycji tej transakcji.')
+    }
+    expect(mockUpdate).not.toHaveBeenCalled()
+  })
+
+  it('permission: ADMIN can edit any transaction', async () => {
+    mockRequireAuth.mockResolvedValueOnce({ success: true, user: adminUser })
+    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: managerUser.id }))
+
+    const result = await updateTransferAction(10, makeUpdateData())
+
+    expect(result.success).toBe(true)
+  })
+
+  it('permission: OWNER can edit any transaction', async () => {
+    mockRequireAuth.mockResolvedValueOnce({ success: true, user: ownerUser })
+    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: managerUser.id }))
+
+    const result = await updateTransferAction(10, makeUpdateData())
+
+    expect(result.success).toBe(true)
+  })
+
+  it('createdBy as populated object → extracts id correctly', async () => {
+    mockFindByID.mockResolvedValueOnce(
+      makeOriginalTransfer({ createdBy: { id: managerUser.id, name: 'Manager' } }),
+    )
+    mockRequireAuth.mockResolvedValueOnce({ success: true, user: managerUser })
+
+    const result = await updateTransferAction(10, makeUpdateData())
+
+    expect(result.success).toBe(true)
+  })
+
+  it('payload.update failure → returns error', async () => {
+    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: adminUser.id }))
+    mockUpdate.mockRejectedValueOnce(new Error('Update failed'))
+
+    const result = await updateTransferAction(10, makeUpdateData())
+
+    expect(result.success).toBe(false)
+    if (!result.success) expect(result.error).toBe('Update failed')
+  })
+
+  it('passes all edited fields to payload.update', async () => {
+    const original = makeOriginalTransfer({
+      createdBy: adminUser.id,
+      sourceRegister: 5,
+      investment: 2,
+      type: 'INVESTMENT_EXPENSE',
+    })
+    mockFindByID.mockResolvedValueOnce(original)
+
+    await updateTransferAction(10, makeUpdateData({ investment: 3 }))
+
     expect(mockUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: { invoiceNote: '' },
+        data: expect.objectContaining({
+          investment: 3,
+          updatedBy: adminUser.id,
+        }),
       }),
     )
   })

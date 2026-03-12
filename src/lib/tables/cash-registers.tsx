@@ -16,7 +16,7 @@ export type CashRegisterRowT = {
 
 export const REGISTER_TYPE_LABELS: Record<CashRegisterTypeT, string> = {
   MAIN: 'Główne',
-  AUXILIARY: 'Pomocniczae',
+  AUXILIARY: 'Pomocnicze',
   VIRTUAL: 'Wirtualne Telmak',
   WORKER: 'Pracownicze',
 }
