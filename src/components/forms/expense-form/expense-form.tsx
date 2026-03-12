@@ -62,8 +62,7 @@ type FormValuesT = {
 const FORM_ID = 'expense'
 
 export function ExpenseForm({ referenceData, onSuccess, keepOpen }: TransferFormPropsT) {
-  const { isRecovering, recoveredValues, recoveredFiles, submit } =
-    useFormSubmit<FormValuesT>(FORM_ID)
+  const { recoveredValues, recoveredFiles, submit } = useFormSubmit<FormValuesT>(FORM_ID)
 
   const { handleRemoveLineItem, handleFileChange, buildInvoiceFormData, getFiles } =
     useInvoiceFiles(recoveredFiles)
