@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ActiveFilterLabel } from './active-filter-label'
 import { EmptyFieldMessage } from './empty-field-message'
 import type { ReferenceItemT } from '@/types/reference-data'
+import type { AppFieldComponentsT } from '@/components/forms/types/form-types'
 
 type InvestmentFieldPropsT = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -21,8 +22,7 @@ export function InvestmentField({ form, investments }: InvestmentFieldPropsT) {
 
   return (
     <form.AppField name="investment">
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      {(field: any) =>
+      {(field: AppFieldComponentsT) =>
         items.length > 0 ? (
           <field.Combobox
             label="Inwestycja"
