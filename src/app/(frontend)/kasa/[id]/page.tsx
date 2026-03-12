@@ -10,7 +10,7 @@ import { buildFilterConfig } from '@/lib/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
-import { StatCard } from '@/components/ui/stat-card'
+import { SaldoDisplay } from '@/components/ui/saldo-display'
 import type { Where } from 'payload'
 import type { HeaderFieldT } from '@/types/export'
 import type { DynamicPagePropsT } from '@/types/page'
@@ -67,7 +67,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
   return (
     <PageWrapper title={register.name}>
       <InfoList items={[{ label: 'Właściciel', value: ownerName }]} />
-      <StatCard label="Saldo" value={formatPLN(saldo)} className="w-fit" />
+      <SaldoDisplay saldo={saldo} />
 
       {/* Transactions table */}
       <TransfersSection
