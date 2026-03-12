@@ -26,6 +26,7 @@ import * as migration_20260309_add_expense_categories from './20260309_add_expen
 import * as migration_20260310_fix_locked_docs_expense_categories from './20260310_fix_locked_docs_expense_categories'
 import * as migration_20260310_0_add_worker_register_type from './20260310_0_add_worker_register_type'
 import * as migration_20260310_workers_as_registers from './20260310_workers_as_registers'
+import * as migration_20260312_add_updated_by_to_transactions from './20260312_add_updated_by_to_transactions'
 
 export const migrations = [
   {
@@ -167,5 +168,10 @@ export const migrations = [
     up: migration_20260310_workers_as_registers.up,
     down: migration_20260310_workers_as_registers.down,
     name: '20260310_workers_as_registers',
+  },
+  {
+    up: migration_20260312_add_updated_by_to_transactions.up,
+    down: migration_20260312_add_updated_by_to_transactions.down,
+    name: '20260312_add_updated_by_to_transactions',
   },
 ]

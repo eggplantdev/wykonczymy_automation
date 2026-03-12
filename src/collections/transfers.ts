@@ -70,7 +70,6 @@ export const Transfers: CollectionConfig = {
       name: 'description',
       type: 'text',
       label: { en: 'Description', pl: 'Opis' },
-      access: { update: () => false },
     },
     {
       name: 'amount',
@@ -91,7 +90,6 @@ export const Transfers: CollectionConfig = {
       type: 'date',
       required: true,
       label: { en: 'Date', pl: 'Data' },
-      access: { update: () => false },
       admin: {
         date: {
           pickerAppearance: 'dayOnly',
@@ -113,7 +111,6 @@ export const Transfers: CollectionConfig = {
       required: true,
       label: { en: 'Payment Method', pl: 'Metoda płatności' },
       options: [...PAYMENT_METHODS],
-      access: { update: () => false },
     },
     {
       name: 'sourceRegister',
@@ -142,7 +139,6 @@ export const Transfers: CollectionConfig = {
       type: 'relationship',
       relationTo: 'investments',
       label: { en: 'Investment', pl: 'Inwestycja' },
-      access: { update: () => false },
       admin: {
         condition: (data) => showInvestment(data),
       },
@@ -152,7 +148,6 @@ export const Transfers: CollectionConfig = {
       type: 'relationship',
       relationTo: 'expense-categories',
       label: { en: 'Investment Expense Type', pl: 'Typ wydatku inwestycyjnego' },
-      access: { update: () => false },
       admin: {
         condition: (data) => showExpenseCategory(data),
       },
@@ -172,7 +167,6 @@ export const Transfers: CollectionConfig = {
       type: 'relationship',
       relationTo: 'other-categories',
       label: { en: 'Category', pl: 'Kategoria' },
-      access: { update: () => false },
       admin: {
         condition: (data) => needsOtherCategory(data),
       },
@@ -181,7 +175,6 @@ export const Transfers: CollectionConfig = {
       name: 'otherDescription',
       type: 'textarea',
       label: { en: 'Category Description', pl: 'Opis kategorii' },
-      access: { update: () => false },
       admin: {
         condition: (data) => needsOtherCategory(data),
       },
@@ -232,6 +225,16 @@ export const Transfers: CollectionConfig = {
       type: 'relationship',
       relationTo: 'users',
       label: { en: 'Created By', pl: 'Utworzone przez' },
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'updatedBy',
+      type: 'relationship',
+      relationTo: 'users',
+      label: { en: 'Updated By', pl: 'Zaktualizowane przez' },
       admin: {
         readOnly: true,
         position: 'sidebar',
