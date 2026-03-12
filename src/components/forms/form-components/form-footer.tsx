@@ -6,16 +6,21 @@ import { Loader } from '@/components/ui/loader/loader'
 type FormFooterPropsT = {
   label?: string
   submittingLabel?: string
+  className?: string
 }
 
-export default function FormFooter({ label = 'Dodaj', submittingLabel }: FormFooterPropsT) {
+export default function FormFooter({
+  label = 'Dodaj',
+  submittingLabel,
+  className,
+}: FormFooterPropsT) {
   const form = useFormContext()
 
   const { isInvalid, isSubmitting } = useFormStatus(form)
 
   return (
     <>
-      <footer>
+      <footer className={className}>
         <Button disabled={isSubmitting} type="submit">
           {isSubmitting && submittingLabel ? submittingLabel : label}
         </Button>
