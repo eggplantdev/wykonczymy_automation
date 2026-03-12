@@ -33,7 +33,7 @@ export function CancelTransferButton({ transactionId }: CancelTransferButtonProp
 
   return (
     <>
-      <RemoveButton onClick={() => setOpen(true)} aria-label="Anuluj transakcję" />
+      <RemoveButton onClick={() => setOpen(true)} />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent showCloseButton={false} className="h-fit sm:max-w-md">
