@@ -33,7 +33,10 @@ export type TransferRowT = {
   readonly expenseCategoryId: number | null
   readonly expenseCategoryName: string
   readonly otherCategoryName: string
+  readonly otherCategoryId: number | null
+  readonly otherDescription: string
   readonly createdByName: string
+  readonly createdById: number | null
   readonly createdAt: string
   readonly invoiceUrl: string | null
   readonly invoiceFilename: string | null
@@ -100,7 +103,10 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
       expenseCategoryId: toNullableId(doc.expenseCategory),
       expenseCategoryName: lookupName(lookups.expenseCategories, doc.expenseCategory),
       otherCategoryName: lookupName(lookups.otherCategories, doc.otherCategory),
+      otherCategoryId: toNullableId(doc.otherCategory),
+      otherDescription: doc.otherDescription ?? '',
       createdByName: lookupName(lookups.users, doc.createdBy),
+      createdById: toNullableId(doc.createdBy),
       createdAt: doc.createdAt,
       invoiceUrl: media?.url ?? null,
       invoiceFilename: media?.filename ?? null,
@@ -126,7 +132,10 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
     expenseCategoryId: toNullableId(doc.expenseCategory),
     expenseCategoryName: getRelationName(doc.expenseCategory),
     otherCategoryName: getRelationName(doc.otherCategory),
+    otherCategoryId: toNullableId(doc.otherCategory),
+    otherDescription: doc.otherDescription ?? '',
     createdByName: getRelationName(doc.createdBy),
+    createdById: toNullableId(doc.createdBy),
     createdAt: doc.createdAt,
     invoiceUrl: getMediaField(doc.invoice, 'url'),
     invoiceFilename: getMediaField(doc.invoice, 'filename'),
