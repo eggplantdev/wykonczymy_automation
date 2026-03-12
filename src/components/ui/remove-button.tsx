@@ -1,11 +1,11 @@
 import { X } from 'lucide-react'
-import { Button, type ButtonProps } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/cn'
 
 type RemoveButtonPropsT = {
   onClick: () => void
   disabled?: boolean
-  variant?: ButtonProps['variant']
+  variant?: React.ComponentProps<typeof Button>['variant']
   className?: string
   'aria-label'?: string
 }

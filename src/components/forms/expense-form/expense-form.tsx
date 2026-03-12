@@ -272,6 +272,7 @@ export function ExpenseForm({ referenceData, onSuccess, keepOpen }: TransferForm
                     <form.AppField name={cfg.name as never}>
                       {(field: {
                         Select: React.FC<{
+                          label?: string
                           placeholder: string
                           showError: boolean
                           children: React.ReactNode
@@ -297,6 +298,7 @@ export function ExpenseForm({ referenceData, onSuccess, keepOpen }: TransferForm
                     <form.AppField name={`lineItems[${index}].category` as never}>
                       {(field: {
                         Select: React.FC<{
+                          label?: string
                           placeholder: string
                           showError: boolean
                           children: React.ReactNode
