@@ -11,7 +11,6 @@ import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
 import { Description } from '@/components/ui/description'
-import { balanceColorClass } from '@/components/ui/toggle-stat-buttons'
 import { cn } from '@/lib/cn'
 import type { Where } from 'payload'
 import type { HeaderFieldT } from '@/types/export'
@@ -71,7 +70,9 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
       <InfoList items={[{ label: 'Właściciel', value: ownerName }]} />
       <Description>
         Saldo:{' '}
-        <span className={cn('font-semibold', balanceColorClass(saldo))}>{formatPLN(saldo)}</span>
+        <span className={cn('font-semibold', saldo >= 0 ? 'text-chart-green' : 'text-destructive')}>
+          {formatPLN(saldo)}
+        </span>
       </Description>
 
       {/* Transactions table */}
