@@ -26,10 +26,11 @@ export function FinancialStats({ fields }: FinancialStatsPropsT) {
   const toggle = useHeaderFieldsStore((s) => s.toggle)
   const reset = useHeaderFieldsStore((s) => s.reset)
 
+  // Clear stale toggle state from previous pages — the Zustand store
+  // persists across SPA navigations, but the component's internal Set
+  // starts fresh on mount, causing print/export to disagree with the UI.
   useEffect(() => {
-    if (Object.keys(useHeaderFieldsStore.getState().visibility).length > 0) {
-      reset()
-    }
+    reset()
   }, [reset])
 
   const displayFields = fields.filter((f) => f.label !== BILANS_LABEL)
