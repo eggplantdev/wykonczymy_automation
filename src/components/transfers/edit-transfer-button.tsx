@@ -19,7 +19,6 @@ import { updateTransferAction } from '@/lib/actions/transfers'
 import { toastMessage } from '@/components/toasts'
 import {
   TRANSFER_TYPE_LABELS,
-  PAYMENT_METHOD_LABELS,
   showsInvestment,
   needsExpenseCategory,
   type PaymentMethodT,
@@ -41,7 +40,7 @@ export function EditTransferButton({ row, referenceData, canEdit }: EditTransfer
 
   // Form state
   const [description, setDescription] = useState(row.description)
-  const [date, setDate] = useState(row.date)
+  const [date, setDate] = useState(row.date.slice(0, 10))
   const [paymentMethod, setPaymentMethod] = useState<string>(row.paymentMethod)
   const [investment, setInvestment] = useState<string>(
     row.investmentId ? String(row.investmentId) : '',
@@ -57,7 +56,7 @@ export function EditTransferButton({ row, referenceData, canEdit }: EditTransfer
   function handleOpen() {
     // Reset to current row values
     setDescription(row.description)
-    setDate(row.date)
+    setDate(row.date.slice(0, 10))
     setPaymentMethod(row.paymentMethod)
     setInvestment(row.investmentId ? String(row.investmentId) : '')
     setExpenseCategory(row.expenseCategoryId ? String(row.expenseCategoryId) : '')
@@ -142,21 +141,7 @@ export function EditTransferButton({ row, referenceData, canEdit }: EditTransfer
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Metoda płatności</label>
-              <Select value={paymentMethod} onValueChange={setPaymentMethod} disabled={isPending}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(PAYMENT_METHOD_LABELS).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Payment method hidden — only CASH is currently used */}
 
             {showsInvestment(row.type) && (
               <div className="space-y-2">
