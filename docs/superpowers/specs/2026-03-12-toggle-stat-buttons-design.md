@@ -42,11 +42,15 @@ type ToggleStatButtonsPropsT = {
   readonly entries: readonly StatEntryT[]
   readonly summaryLabel: string // e.g. "Saldo" or "Bilans"
   readonly helpText?: string // optional instruction text below buttons
-  readonly onVisibilityChange?: (visibility: Record<string, boolean>) => void
+  readonly onToggle?: (label: string) => void // called on each toggle, consumers sync external state
 }
 ```
 
-Toggle state is internal (`useState<Set<string>>`). The `onVisibilityChange` callback lets consumers sync external state (e.g. `useHeaderFieldsStore` for exports).
+Toggle state is internal (`useState<Set<string>>`) keyed by `label`. Labels must be unique within an entries array. The `onToggle` callback fires with the toggled label, letting consumers sync external state (e.g. `FinancialStats` passes `useHeaderFieldsStore.toggle` directly).
+
+### Accessibility
+
+Each button must include `aria-pressed={isVisible}` and `aria-label` with show/hide intent (e.g. `"Ukryj Koszty robocizny"` / `"Pokaż Koszty robocizny"`), carried over from the current `InvestmentStats` implementation.
 
 ### Value coloring
 
@@ -65,7 +69,7 @@ Reused from existing `RegisterBalanceChart` logic.
 Becomes a thin wrapper:
 
 1. Groups `CashRegisterRowT[]` by type (existing logic)
-2. Maps each group → `StatEntryT` with `REGISTER_TYPE_BORDER_COLORS[type]`
+2. Maps each group → `StatEntryT` with `REGISTER_TYPE_BORDER_COLORS[type]`. The register count per type is baked into the label string (e.g. `"Główne (3)"`).
 3. Renders `<ToggleStatButtons entries={...} summaryLabel="Saldo" helpText="Naciśnij wybraną kategorię lub wybierz filtry aby zaktualizować saldo." />`
 
 No behavior change.
@@ -94,12 +98,16 @@ const CATEGORY_PALETTE = [
 ]
 ```
 
-4. Renders `<ToggleStatButtons entries={...} summaryLabel="Bilans" />`
-5. Uses `onVisibilityChange` to sync with `useHeaderFieldsStore` (export feature preserved)
+4. Renders `<ToggleStatButtons entries={...} summaryLabel="Bilans" onToggle={toggle} />`
+5. Passes `useHeaderFieldsStore.toggle` directly as `onToggle` (export feature preserved — `PrintButton` still reads from the same store via `calculateBilans`)
+
+**Palette cycling:** dynamic categories use `CATEGORY_PALETTE[index % CATEGORY_PALETTE.length]` where `index` is the category's position in the fields array.
 
 ## `/kasa/[id]` Change
 
 Replace `<StatCard label="Saldo" value={formatPLN(saldo)} className="w-fit" />` with a `Description` showing Saldo inline. Full income/expense breakdown is a separate follow-up task.
+
+Note: the `headerFields` array passed to `TransfersSection` for the print/export feature is left untouched.
 
 ## Files Changed
 
@@ -113,6 +121,10 @@ Replace `<StatCard label="Saldo" value={formatPLN(saldo)} className="w-fit" />` 
 | `src/app/(frontend)/kasa/[id]/page.tsx`               | **Update** — replace `StatCard` with `Description`   |
 | `src/app/(frontend)/inwestycje/[id]/page.tsx`         | **Update** — import `FinancialStats`                 |
 | `src/app/(frontend)/raporty/page.tsx`                 | **Update** — import `FinancialStats`                 |
+
+## Equivalence Note
+
+The `ToggleStatButtons` internal sum (visible entries reduced by `amount`) must produce the same result as `calculateBilans()` in `src/lib/export/header-fields.ts`, which `PrintButton` uses via the Zustand store. This is guaranteed because both sum `amount` for visible non-Bilans fields. The `onToggle` callback keeps the store in sync so both paths see the same visibility state.
 
 ## Out of Scope
 
