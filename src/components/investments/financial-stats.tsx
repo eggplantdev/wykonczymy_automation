@@ -27,7 +27,9 @@ export function FinancialStats({ fields }: FinancialStatsPropsT) {
   const reset = useHeaderFieldsStore((s) => s.reset)
 
   useEffect(() => {
-    reset()
+    if (Object.keys(useHeaderFieldsStore.getState().visibility).length > 0) {
+      reset()
+    }
   }, [reset])
 
   const displayFields = fields.filter((f) => f.label !== BILANS_LABEL)

@@ -24,6 +24,10 @@ export function valueColor(value: number): string {
   return value >= 0 ? 'var(--color-chart-green)' : 'var(--color-destructive)'
 }
 
+export function balanceColorClass(value: number): string {
+  return value >= 0 ? 'text-chart-green' : 'text-destructive'
+}
+
 export function computeSummary(
   entries: readonly StatEntryT[],
   hidden: ReadonlySet<string>,
@@ -49,9 +53,9 @@ export function ToggleStatButtons({
     onToggle?.(label)
   }
 
-  const total = computeSummary(entries, hidden)
-
   if (entries.length === 0) return null
+
+  const total = computeSummary(entries, hidden)
 
   return (
     <div className="mb-4 space-y-2">
@@ -81,9 +85,7 @@ export function ToggleStatButtons({
 
       <Description>
         <span>{summaryLabel}: </span>
-        <span className={cn('font-semibold', total >= 0 ? 'text-chart-green' : 'text-destructive')}>
-          {formatPLN(total)}
-        </span>
+        <span className={cn('font-semibold', balanceColorClass(total))}>{formatPLN(total)}</span>
       </Description>
     </div>
   )
