@@ -248,26 +248,28 @@ export function ExpenseForm({ referenceData, onSuccess, keepOpen }: TransferForm
               onRemoveItem={handleRemoveLineItem}
               onFileChange={handleFileChange}
               renderItemInline={(index) => {
-                const categoryConfig =
+                const cfg =
                   currentType === 'INVESTMENT_EXPENSE'
                     ? {
-                        name: `lineItems[${index}].expenseCategory` as const,
+                        name: `lineItems[${index}].expenseCategory`,
+                        label: EXPENSE_CATEGORY_LABEL,
                         placeholder: `${EXPENSE_CATEGORY_LABEL} *`,
                         options: referenceData.expenseCategories,
                       }
                     : currentType === 'OTHER'
                       ? {
-                          name: `lineItems[${index}].category` as const,
-                          placeholder: 'Kategoria *',
+                          name: `lineItems[${index}].category`,
+                          label: 'Kategoria',
+                          placeholder: 'Opcjonalnie',
                           options: referenceData.otherCategories,
                         }
                       : undefined
 
-                if (!categoryConfig) return null
+                if (!cfg) return null
 
                 return (
                   <div className="min-w-0 flex-1">
-                    <form.AppField name={categoryConfig.name}>
+                    <form.AppField name={cfg.name as never}>
                       {(field: {
                         Select: React.FC<{
                           placeholder: string
@@ -275,8 +277,33 @@ export function ExpenseForm({ referenceData, onSuccess, keepOpen }: TransferForm
                           children: React.ReactNode
                         }>
                       }) => (
-                        <field.Select placeholder={categoryConfig.placeholder} showError>
-                          {categoryConfig.options.map((cat) => (
+                        <field.Select label={cfg.label} placeholder={cfg.placeholder} showError>
+                          {cfg.options.map((cat) => (
+                            <SelectItem key={cat.id} value={String(cat.id)}>
+                              {cat.name}
+                            </SelectItem>
+                          ))}
+                        </field.Select>
+                      )}
+                    </form.AppField>
+                  </div>
+                )
+              }}
+              renderItemSecondRow={(index) => {
+                if (currentType !== 'INVESTMENT_EXPENSE') return null
+
+                return (
+                  <div className="min-w-0 flex-1">
+                    <form.AppField name={`lineItems[${index}].category` as never}>
+                      {(field: {
+                        Select: React.FC<{
+                          placeholder: string
+                          showError: boolean
+                          children: React.ReactNode
+                        }>
+                      }) => (
+                        <field.Select label="Kategoria" placeholder="Opcjonalnie" showError>
+                          {referenceData.otherCategories.map((cat) => (
                             <SelectItem key={cat.id} value={String(cat.id)}>
                               {cat.name}
                             </SelectItem>

@@ -1,7 +1,7 @@
 'use client'
 
-import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { RemoveButton } from '@/components/ui/remove-button'
 import { FileInput } from '@/components/ui/file-input'
 import { Label } from '@/components/ui/label'
 import { formatPLN } from '@/lib/format-currency'
@@ -19,6 +19,7 @@ type LineItemsFieldPropsT = {
   onRemoveItem: (index: number, removeValue: (index: number) => void) => void
   onFileChange: (index: number, e: React.ChangeEvent<HTMLInputElement>) => void
   renderItemInline?: (index: number) => React.ReactNode
+  renderItemSecondRow?: (index: number) => React.ReactNode
 }
 
 export function LineItemsField({
@@ -29,58 +30,62 @@ export function LineItemsField({
   onRemoveItem,
   onFileChange,
   renderItemInline,
+  renderItemSecondRow,
 }: LineItemsFieldPropsT) {
   return (
     <form.Field name="lineItems" mode="array">
       {(lineItemsField: FieldT) => (
         <div className="space-y-4">
           <Label>{label}</Label>
-          <ol className="list-decimal space-y-4 pl-4">
+          <div className="space-y-4">
             {lineItemsField.state.value.map((_: unknown, index: number) => (
-              <li key={index}>
-                <div className="flex gap-2">
-                  <div className="min-w-0 flex-1 space-y-2">
-                    <div className="flex items-start gap-2">
-                      <div className="w-28">
-                        <form.AppField name={`lineItems[${index}].amount`}>
-                          {(field: FieldT) => (
-                            <field.Input placeholder="Kwota" type="number" showError />
-                          )}
-                        </form.AppField>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <form.AppField name={`lineItems[${index}].description`}>
-                          {(field: FieldT) => <field.Input placeholder="Opis" showError />}
-                        </form.AppField>
-                      </div>
-                      {renderItemInline?.(index)}
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <div className="min-w-0 flex-1">
-                        <form.AppField name={`lineItems[${index}].invoiceNote`}>
-                          {(field: FieldT) => <field.Input placeholder="Notatka" showError />}
-                        </form.AppField>
-                      </div>
-                      <FileInput
-                        className="min-w-0 flex-1"
-                        accept="image/*,application/pdf"
-                        onChange={(e) => onFileChange(index, e)}
-                      />
-                    </div>
+              <div key={index} className="space-y-2">
+                <div className="flex items-end gap-2">
+                  <span className="text-muted-foreground mb-2 w-6 shrink-0 text-center text-sm font-medium">
+                    {index + 1}.
+                  </span>
+                  <div className="w-28">
+                    <form.AppField name={`lineItems[${index}].amount`}>
+                      {(field: FieldT) => (
+                        <field.Input label="Kwota" placeholder="0.00 PLN" type="number" showError />
+                      )}
+                    </form.AppField>
                   </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
+                  <div className="min-w-0 flex-1">
+                    <form.AppField name={`lineItems[${index}].description`}>
+                      {(field: FieldT) => (
+                        <field.Input label="Opis" placeholder="Opcjonalnie" showError />
+                      )}
+                    </form.AppField>
+                  </div>
+                  {renderItemInline?.(index)}
+                  <RemoveButton
+                    className="mb-0.5"
                     onClick={() => onRemoveItem(index, lineItemsField.removeValue)}
                     disabled={lineItemsField.state.value.length === 1}
-                  >
-                    <X className="size-4" />
-                  </Button>
+                  />
                 </div>
-              </li>
+                <div className="flex items-start gap-2 pr-10 pl-8">
+                  {renderItemSecondRow?.(index)}
+                  <div className="min-w-0 flex-1">
+                    <form.AppField name={`lineItems[${index}].invoiceNote`}>
+                      {(field: FieldT) => (
+                        <field.Input label="Notatka" placeholder="Opcjonalnie" showError />
+                      )}
+                    </form.AppField>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <Label className="mb-2 block">FV</Label>
+                    <FileInput
+                      label="Przeciągnij lub kliknij"
+                      accept="image/*,application/pdf"
+                      onChange={(e) => onFileChange(index, e)}
+                    />
+                  </div>
+                </div>
+              </div>
             ))}
-          </ol>
+          </div>
           <Button
             type="button"
             variant="outline"
