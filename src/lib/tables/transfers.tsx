@@ -6,6 +6,8 @@ import { getRelationName } from '@/lib/get-relation-name'
 import { InvoiceCell } from '@/components/transfers/invoice-cell'
 import { NoteCell } from '@/components/dialogs/note-dialog'
 import { CancelTransferButton } from '@/components/transfers/cancel-transfer-button'
+import { EditTransferButton } from '@/components/transfers/edit-transfer-button'
+import { isAdminOrOwnerRole, type RoleT } from '@/lib/auth/roles'
 import {
   TRANSFER_TYPE_LABELS,
   PAYMENT_METHOD_LABELS,
@@ -302,23 +304,54 @@ const allColumns = [
   }),
   col.display({
     id: 'actions',
-    header: 'Anuluj',
+    header: 'Akcje',
     enableSorting: false,
-    cell: (info) => {
-      const row = info.row.original
-      if (row.cancelled || isCancellationType(row.type)) return null
-      return <CancelTransferButton transactionId={row.id} />
-    },
+    cell: () => null, // Placeholder — overridden by getTransferColumns
   }),
 ]
 
 export type TransferColumnIdT = (typeof allColumns)[number]['id']
 
+type ColumnOptionsT = {
+  readonly referenceData?: ReferenceDataBaseT
+  readonly currentUserId?: number
+  readonly currentUserRole?: RoleT
+}
+
 /**
  * Returns transfer column definitions, excluding specified column IDs.
  */
-export function getTransferColumns(exclude: string[] = []) {
-  if (exclude.length === 0) return allColumns
+export function getTransferColumns(exclude: string[] = [], options: ColumnOptionsT = {}) {
+  const { referenceData, currentUserId, currentUserRole } = options
+
+  const columns = allColumns.map((column) => {
+    if (column.id !== 'actions') return column
+
+    return col.display({
+      id: 'actions',
+      header: 'Akcje',
+      enableSorting: false,
+      cell: (info) => {
+        const row = info.row.original
+        if (row.cancelled || isCancellationType(row.type)) return null
+
+        const canEdit =
+          !!currentUserRole &&
+          (isAdminOrOwnerRole(currentUserRole) || row.createdById === currentUserId)
+
+        return (
+          <div className="flex items-center gap-1">
+            {referenceData && (
+              <EditTransferButton row={row} referenceData={referenceData} canEdit={canEdit} />
+            )}
+            <CancelTransferButton transactionId={row.id} />
+          </div>
+        )
+      },
+    })
+  })
+
+  if (exclude.length === 0) return columns
   const excludeSet = new Set(exclude)
-  return allColumns.filter((c) => !excludeSet.has(c.id!))
+  return columns.filter((c) => !excludeSet.has(c.id!))
 }
