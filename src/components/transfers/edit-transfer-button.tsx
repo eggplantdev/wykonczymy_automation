@@ -22,7 +22,6 @@ import {
   PAYMENT_METHOD_LABELS,
   showsInvestment,
   needsExpenseCategory,
-  needsOtherCategory,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
 import { formatPLN } from '@/lib/format-currency'
@@ -202,39 +201,31 @@ export function EditTransferButton({ row, referenceData, canEdit }: EditTransfer
               </div>
             )}
 
-            {needsOtherCategory(row.type) && (
-              <>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Kategoria</label>
-                  <Select
-                    value={otherCategory}
-                    onValueChange={setOtherCategory}
-                    disabled={isPending}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Wybierz kategorię" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {referenceData.otherCategories.map((cat) => (
-                        <SelectItem key={cat.id} value={String(cat.id)}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Kategoria</label>
+              <Select value={otherCategory} onValueChange={setOtherCategory} disabled={isPending}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Wybierz kategorię" />
+                </SelectTrigger>
+                <SelectContent>
+                  {referenceData.otherCategories.map((cat) => (
+                    <SelectItem key={cat.id} value={String(cat.id)}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Opis kategorii</label>
-                  <Textarea
-                    value={otherDescription}
-                    onChange={(e) => setOtherDescription(e.target.value)}
-                    disabled={isPending}
-                    rows={2}
-                  />
-                </div>
-              </>
-            )}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Opis kategorii</label>
+              <Textarea
+                value={otherDescription}
+                onChange={(e) => setOtherDescription(e.target.value)}
+                disabled={isPending}
+                rows={2}
+              />
+            </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Notatka</label>
