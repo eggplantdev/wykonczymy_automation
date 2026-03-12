@@ -184,18 +184,6 @@ export async function cancelTransferAction(transferId: number) {
   )
 }
 
-export async function updateTransferNoteAction(transferId: number, note: string) {
-  return withAction('updateTransferNoteAction', async ({ payload }) => {
-    await payload.update({
-      collection: 'transactions',
-      id: transferId,
-      data: { invoiceNote: note },
-    })
-
-    return { success: true }
-  })
-}
-
 export async function updateTransferAction(transferId: number, data: UpdateTransferFormT) {
   return withAction(
     'updateTransferAction',

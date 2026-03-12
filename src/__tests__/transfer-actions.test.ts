@@ -68,7 +68,6 @@ const {
   createBulkTransferAction,
   cancelTransferAction,
   updateTransferAction,
-  updateTransferNoteAction,
   updateTransferInvoiceAction,
 } = await import('@/lib/actions/transfers')
 
@@ -812,51 +811,6 @@ describe('updateTransferAction', () => {
           investment: 3,
           updatedBy: adminUser.id,
         }),
-      }),
-    )
-  })
-})
-
-// ═════════════════════════════════════════════════════════════════════════
-// updateTransferNoteAction
-// ═════════════════════════════════════════════════════════════════════════
-
-describe('updateTransferNoteAction', () => {
-  it('success → updates invoiceNote', async () => {
-    const result = await updateTransferNoteAction(10, 'New note text')
-
-    expect(result.success).toBe(true)
-    expect(mockUpdate).toHaveBeenCalledOnce()
-  })
-
-  it('called with correct collection and data', async () => {
-    await updateTransferNoteAction(55, 'Updated note')
-
-    expect(mockUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        collection: 'transactions',
-        id: 55,
-        data: { invoiceNote: 'Updated note' },
-      }),
-    )
-  })
-
-  it('payload.update failure → returns error', async () => {
-    mockUpdate.mockRejectedValueOnce(new Error('Note update failed'))
-
-    const result = await updateTransferNoteAction(10, 'note')
-
-    expect(result.success).toBe(false)
-    if (!result.success) expect(result.error).toBe('Note update failed')
-  })
-
-  it('empty note → updates with empty string', async () => {
-    const result = await updateTransferNoteAction(10, '')
-
-    expect(result.success).toBe(true)
-    expect(mockUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: { invoiceNote: '' },
       }),
     )
   })
