@@ -2,6 +2,7 @@
 
 import { createColumnHelper } from '@tanstack/react-table'
 import { formatPLN } from '@/lib/format-currency'
+import { BalanceCell } from '@/components/ui/balance-cell'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
 import { MailtoLink } from '@/components/ui/mailto-link'
 
@@ -39,7 +40,7 @@ export function getInvestmentColumns(onToggle: (id: number, newActive: boolean) 
       id: 'balance',
       header: 'Bilans',
       meta: { align: 'right' },
-      cell: (info) => <span className="font-medium">{formatPLN(info.getValue())}</span>,
+      cell: (info) => <BalanceCell value={info.getValue()} />,
     }),
     col.accessor('address', {
       id: 'address',

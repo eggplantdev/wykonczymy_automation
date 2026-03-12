@@ -6,6 +6,7 @@ import { PaginationFooter } from '@/components/ui/pagination-footer'
 import { TransferFilters } from '@/components/transfers/transfer-filters'
 import { TransferExportToolbar } from '@/components/transfers/transfer-export-toolbar'
 import { getTransferColumns, type TransferRowT } from '@/lib/tables/transfers'
+import { isCancellationType } from '@/lib/constants/transfers'
 import type { PaginationMetaT } from '@/lib/pagination'
 import type { TransferTableConfigT } from '@/types/export'
 
@@ -26,7 +27,11 @@ export function TransferDataTable({ data, paginationMeta, config }: TransferData
         data={data}
         columns={columns}
         storageKey="transfers"
-        getRowClassName={(row) => (row.cancelled ? 'opacity-40' : '')}
+        getRowClassName={(row) => {
+          if (row.cancelled) return '[&_td]:line-through [&_td]:text-destructive/60'
+          if (isCancellationType(row.type)) return '[&_td]:text-destructive'
+          return ''
+        }}
         toolbar={(table, cv) => (
           <div className="ml-auto flex items-center gap-2">
             {headerFields && headerFields.length > 0 && (
