@@ -59,7 +59,7 @@ Cache revalidation is handled by the existing `recalcAfterChange` Payload hook, 
 - Editable fields pre-filled from current row data
 - Conditional fields shown/hidden based on transaction type (same rules as creation)
 - Buttons: "Anuluj" (cancel) / "Zapisz" (save)
-- Uses `useAppForm()` + Zod validation (`updateTransferSchema`)
+- Uses `useState` for form fields (simple dialog — no line items, no file uploads, no keep-open mode). Server-side Zod validation via `updateTransferSchema`.
 
 ### Removed: Inline NoteCell Editing
 
@@ -98,17 +98,20 @@ Add `updatedBy` relationship field (to `users`) on the transfers collection:
 - Add `createdById: number | null` — populated from raw doc's `created_by_id`. Required for UI edit button permission check (compare against current user ID).
 - Add `otherCategoryId: number | null` — populated from raw doc's `other_category_id`. Required to pre-fill the `otherCategory` relationship field in the edit dialog. Follows same pattern as existing `expenseCategoryId`.
 
-Both populated in `buildTransferRows` / `mapTransferRow`.
+- Add `otherDescription: string` — populated from raw doc's `other_description`. Required to pre-fill the `otherDescription` textarea in the edit dialog for `OTHER`-type transactions.
 
-## Optimistic Updates
+All populated in `buildTransferRows` / `mapTransferRow`.
 
-Follows existing fire-and-forget pattern via `useOptimisticFormStore`:
+## Submit & Refresh
 
-1. User submits edit dialog → dialog closes immediately
-2. Table row updates optimistically with new values
-3. Server action fires in background
-4. Success: cache revalidates, server data replaces optimistic data
-5. Error: toast with error message, optimistic data rolls back
+Uses `useTransition` + `router.refresh()` pattern (same as `CancelTransferButton`):
+
+1. User submits edit dialog → button shows "Zapisywanie..." (pending state)
+2. Server action executes
+3. Success: toast, dialog closes, `router.refresh()` reloads server data
+4. Error: toast with error message, dialog stays open for retry
+
+This is simpler than fire-and-forget optimistic updates and appropriate for a modal dialog where the user is already waiting.
 
 ## What Stays Unchanged
 
