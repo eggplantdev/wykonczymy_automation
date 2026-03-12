@@ -708,7 +708,7 @@ describe('updateTransferAction', () => {
     const result = await updateTransferAction(10, makeUpdateData())
 
     expect(result.success).toBe(false)
-    if (!result.success) expect(result.error).toBe('Nie można edytować anulowanej transakcji.')
+    if (!result.success) expect(result.error).toBe('Transakcja jest już anulowana.')
     expect(mockUpdate).not.toHaveBeenCalled()
   })
 
@@ -720,7 +720,7 @@ describe('updateTransferAction', () => {
     const result = await updateTransferAction(10, makeUpdateData())
 
     expect(result.success).toBe(false)
-    if (!result.success) expect(result.error).toBe('Nie można edytować anulowanej transakcji.')
+    if (!result.success) expect(result.error).toBe('Nie można edytować anulowania.')
     expect(mockUpdate).not.toHaveBeenCalled()
   })
 

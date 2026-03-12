@@ -296,12 +296,6 @@ const allColumns = [
     header: 'Czas dodania',
     cell: (info) => formatPLDateTime(info.getValue()),
   }),
-  col.display({
-    id: 'actions',
-    header: 'Akcje',
-    enableSorting: false,
-    cell: () => null, // Placeholder — overridden by getTransferColumns
-  }),
 ]
 
 export type TransferColumnIdT = (typeof allColumns)[number]['id']
@@ -318,32 +312,30 @@ type ColumnOptionsT = {
 export function getTransferColumns(exclude: string[] = [], options: ColumnOptionsT = {}) {
   const { referenceData, currentUserId, currentUserRole } = options
 
-  const columns = allColumns.map((column) => {
-    if (column.id !== 'actions') return column
+  const actionsColumn = col.display({
+    id: 'actions',
+    header: 'Akcje',
+    enableSorting: false,
+    cell: (info) => {
+      const row = info.row.original
+      if (row.cancelled || isCancellationType(row.type)) return null
 
-    return col.display({
-      id: 'actions',
-      header: 'Akcje',
-      enableSorting: false,
-      cell: (info) => {
-        const row = info.row.original
-        if (row.cancelled || isCancellationType(row.type)) return null
+      const canEdit =
+        !!currentUserRole &&
+        (isAdminOrOwnerRole(currentUserRole) || row.createdById === currentUserId)
 
-        const canEdit =
-          !!currentUserRole &&
-          (isAdminOrOwnerRole(currentUserRole) || row.createdById === currentUserId)
-
-        return (
-          <div className="flex items-center gap-1">
-            {referenceData && (
-              <EditTransferDialog row={row} referenceData={referenceData} canEdit={canEdit} />
-            )}
-            <CancelTransferButton transactionId={row.id} />
-          </div>
-        )
-      },
-    })
+      return (
+        <div className="flex items-center gap-1">
+          {referenceData && (
+            <EditTransferDialog row={row} referenceData={referenceData} canEdit={canEdit} />
+          )}
+          <CancelTransferButton transactionId={row.id} />
+        </div>
+      )
+    },
   })
+
+  const columns = [...allColumns, actionsColumn]
 
   if (exclude.length === 0) return columns
   const excludeSet = new Set(exclude)

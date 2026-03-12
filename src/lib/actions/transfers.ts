@@ -14,6 +14,7 @@ import {
 } from '@/components/forms/expense-form/expense-schema'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { isAdminOrOwnerRole, MANAGEMENT_ROLES } from '@/lib/auth/roles'
+import type { SessionUserT } from '@/types/auth'
 import { sumRegisterBalance } from '@/lib/db/sum-transfers'
 import { uploadBulkInvoices, uploadSingleInvoice } from '@/lib/upload-invoice'
 import { needsSourceRegister } from '../constants/transfers'
@@ -132,27 +133,47 @@ export async function createBulkTransferAction(
   )
 }
 
+type AuthErrorT = { readonly error: string }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AuthSuccessT = { readonly original: any }
+
+async function fetchAndAuthorize(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  payload: any,
+  user: SessionUserT,
+  transferId: number,
+  errorVerb: string,
+): Promise<AuthErrorT | AuthSuccessT> {
+  const original = await payload.findByID({
+    collection: 'transactions',
+    id: transferId,
+    depth: 0,
+  })
+
+  if (!original) return { error: 'Transakcja nie istnieje.' }
+  if (original.cancelled) return { error: 'Transakcja jest już anulowana.' }
+  if (original.type === 'CANCELLATION') return { error: 'Nie można edytować anulowania.' }
+
+  const creatorId =
+    typeof original.createdBy === 'number' ? original.createdBy : original.createdBy?.id
+  if (user.id !== creatorId && !isAdminOrOwnerRole(user.role)) {
+    return { error: `Nie masz uprawnień do ${errorVerb} tej transakcji.` }
+  }
+
+  return { original }
+}
+
 export async function cancelTransferAction(transferId: number) {
   return withAction(
     'cancelTransferAction',
     async ({ payload, user }) => {
       const step = perfStart()
 
-      const original = await payload.findByID({
-        collection: 'transactions',
-        id: transferId,
-        depth: 0,
-      })
+      const result = await fetchAndAuthorize(payload, user, transferId, 'anulowania')
       console.log(`[PERF]   findByID(${transferId}) ${step()}ms`)
 
-      if (!original) return { success: false, error: 'Transakcja nie istnieje.' }
-      if (original.cancelled) return { success: false, error: 'Transakcja jest już anulowana.' }
-
-      const creatorId =
-        typeof original.createdBy === 'number' ? original.createdBy : original.createdBy?.id
-      if (user.id !== creatorId && !isAdminOrOwnerRole(user.role)) {
-        return { success: false, error: 'Nie masz uprawnień do anulowania tej transakcji.' }
-      }
+      if ('error' in result) return { success: false, error: result.error }
+      const { original } = result
 
       // Mark original as cancelled (triggers recalcAfterChange hook)
       await payload.update({
@@ -194,23 +215,10 @@ export async function updateTransferAction(transferId: number, data: UpdateTrans
       if (!parsed.success) return parsed
       console.log(`[PERF]   validateAction ${step()}ms`)
 
-      const original = await payload.findByID({
-        collection: 'transactions',
-        id: transferId,
-        depth: 0,
-      })
+      const result = await fetchAndAuthorize(payload, user, transferId, 'edycji')
       console.log(`[PERF]   findByID(${transferId}) ${step()}ms`)
 
-      if (!original) return { success: false, error: 'Transakcja nie istnieje.' }
-      if (original.cancelled || original.type === 'CANCELLATION') {
-        return { success: false, error: 'Nie można edytować anulowanej transakcji.' }
-      }
-
-      const creatorId =
-        typeof original.createdBy === 'number' ? original.createdBy : original.createdBy?.id
-      if (user.id !== creatorId && !isAdminOrOwnerRole(user.role)) {
-        return { success: false, error: 'Nie masz uprawnień do edycji tej transakcji.' }
-      }
+      if ('error' in result) return { success: false, error: result.error }
 
       await payload.update({
         collection: 'transactions',
