@@ -3,6 +3,7 @@ import { create } from 'zustand'
 type HeaderFieldsStoreT = {
   visibility: Record<string, boolean>
   toggle: (label: string) => void
+  reset: () => void
 }
 
 export const useHeaderFieldsStore = create<HeaderFieldsStoreT>()((set) => ({
@@ -12,4 +13,6 @@ export const useHeaderFieldsStore = create<HeaderFieldsStoreT>()((set) => ({
     set((state) => ({
       visibility: { ...state.visibility, [label]: !(state.visibility[label] ?? true) },
     })),
+
+  reset: () => set({ visibility: {} }),
 }))

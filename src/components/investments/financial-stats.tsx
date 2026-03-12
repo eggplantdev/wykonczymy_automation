@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useHeaderFieldsStore } from '@/stores/header-fields-store'
 import { BILANS_LABEL } from '@/lib/export/header-fields'
 import { ToggleStatButtons } from '@/components/ui/toggle-stat-buttons'
@@ -23,6 +24,11 @@ type FinancialStatsPropsT = {
 
 export function FinancialStats({ fields }: FinancialStatsPropsT) {
   const toggle = useHeaderFieldsStore((s) => s.toggle)
+  const reset = useHeaderFieldsStore((s) => s.reset)
+
+  useEffect(() => {
+    reset()
+  }, [reset])
 
   const displayFields = fields.filter((f) => f.label !== BILANS_LABEL)
 
