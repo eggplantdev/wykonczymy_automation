@@ -102,3 +102,20 @@ export const createTransferSchema = z
   .superRefine((data, ctx) => validateTransferFields(data, ctx))
 
 export type CreateTransferFormT = z.infer<typeof createTransferSchema>
+
+// ---------------------------------------------------------------------------
+// Server-side schema for updating transfers (metadata fields only)
+// ---------------------------------------------------------------------------
+
+export const updateTransferSchema = z.object({
+  description: z.string().optional().default(''),
+  date: z.string().min(1, 'Data jest wymagana'),
+  paymentMethod: z.enum(PAYMENT_METHODS),
+  investment: z.number().optional(),
+  expenseCategory: z.number().optional(),
+  otherCategory: z.number().optional(),
+  otherDescription: z.string().optional(),
+  invoiceNote: z.string().optional(),
+})
+
+export type UpdateTransferFormT = z.infer<typeof updateTransferSchema>
