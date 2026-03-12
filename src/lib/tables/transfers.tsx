@@ -252,10 +252,7 @@ const allColumns = [
     id: 'invoiceNote',
     header: 'Notatka',
     enableSorting: false,
-    cell: (info) => {
-      const row = info.row.original
-      return <NoteCell transactionId={row.id} note={row.invoiceNote} />
-    },
+    cell: (info) => <NoteCell note={info.getValue()} />,
   }),
 
   col.accessor('sourceRegisterName', {
