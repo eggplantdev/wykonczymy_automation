@@ -1,19 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeSummary, valueColor } from '@/components/ui/toggle-stat-buttons'
-
-describe('valueColor', () => {
-  it('returns green for positive values', () => {
-    expect(valueColor(100)).toBe('var(--color-chart-green)')
-  })
-
-  it('returns green for zero', () => {
-    expect(valueColor(0)).toBe('var(--color-chart-green)')
-  })
-
-  it('returns destructive for negative values', () => {
-    expect(valueColor(-50)).toBe('var(--color-destructive)')
-  })
-})
+import { computeSummary } from '@/components/ui/toggle-stat-buttons'
 
 describe('computeSummary', () => {
   const entries = [

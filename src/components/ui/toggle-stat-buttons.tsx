@@ -20,10 +20,6 @@ type ToggleStatButtonsPropsT = {
   readonly onToggle?: (label: string) => void
 }
 
-export function valueColor(value: number): string {
-  return value >= 0 ? 'var(--color-chart-green)' : 'var(--color-destructive)'
-}
-
 export function computeSummary(
   entries: readonly StatEntryT[],
   hidden: ReadonlySet<string>,
@@ -69,9 +65,7 @@ export function ToggleStatButtons({
               aria-label={`${isHidden ? 'Pokaż' : 'Ukryj'} ${entry.label}`}
             >
               <span className="text-muted-foreground">{entry.label}:</span>
-              <span className="font-medium" style={{ color: valueColor(entry.amount) }}>
-                {entry.value}
-              </span>
+              <span className="font-medium">{entry.value}</span>
             </Button>
           )
         })}
