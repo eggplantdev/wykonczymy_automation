@@ -2,7 +2,12 @@
 
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { createTransferSchema, type CreateTransferFormT } from '@/lib/schemas/transfer'
+import {
+  createTransferSchema,
+  updateTransferSchema,
+  type CreateTransferFormT,
+  type UpdateTransferFormT,
+} from '@/lib/schemas/transfer'
 import {
   createBulkTransferSchema,
   type CreateBulkTransferFormT,
@@ -189,6 +194,50 @@ export async function updateTransferNoteAction(transferId: number, note: string)
 
     return { success: true }
   })
+}
+
+export async function updateTransferAction(transferId: number, data: UpdateTransferFormT) {
+  return withAction(
+    'updateTransferAction',
+    async ({ payload, user }) => {
+      const step = perfStart()
+
+      const parsed = validateAction(updateTransferSchema, data)
+      if (!parsed.success) return parsed
+      console.log(`[PERF]   validateAction ${step()}ms`)
+
+      const original = await payload.findByID({
+        collection: 'transactions',
+        id: transferId,
+        depth: 0,
+      })
+      console.log(`[PERF]   findByID(${transferId}) ${step()}ms`)
+
+      if (!original) return { success: false, error: 'Transakcja nie istnieje.' }
+      if (original.cancelled || original.type === 'CANCELLATION') {
+        return { success: false, error: 'Nie można edytować anulowanej transakcji.' }
+      }
+
+      const creatorId =
+        typeof original.createdBy === 'number' ? original.createdBy : original.createdBy?.id
+      if (user.id !== creatorId && !isAdminOrOwnerRole(user.role)) {
+        return { success: false, error: 'Nie masz uprawnień do edycji tej transakcji.' }
+      }
+
+      await payload.update({
+        collection: 'transactions',
+        id: transferId,
+        data: {
+          ...parsed.data,
+          updatedBy: user.id,
+        },
+      })
+      console.log(`[PERF]   payload.update(${transferId}) ${step()}ms`)
+
+      return { success: true }
+    },
+    ['transfers'],
+  )
 }
 
 export async function updateTransferInvoiceAction(transferId: number, invoiceFormData: FormData) {
