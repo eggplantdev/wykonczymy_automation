@@ -67,10 +67,12 @@ export async function fetchManagerDashboardData() {
     ? cashRegisters
     : cashRegisters.filter((cr) => cr.type !== 'MAIN')
 
+  // Not used in UI — kept as a server-side reference to verify chart totals are not broken
   const totalBalance = visibleRegisters
     .filter((cr) => cr.type !== 'VIRTUAL')
     .reduce((sum, cr) => sum + cr.balance, 0)
 
+  // Not used in UI — kept as a server-side reference to verify chart totals are not broken
   const ownedBalance = refData.cashRegisters
     .filter((cr) => cr.ownerId === user!.id && cr.type !== 'VIRTUAL')
     .reduce((sum, cr) => sum + (balanceRecord[String(cr.id)] ?? 0), 0)

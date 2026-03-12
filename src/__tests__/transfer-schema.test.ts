@@ -165,11 +165,10 @@ describe('createTransferSchema — missing required fields', () => {
     expect(errorPaths(result)).toContain('sourceRegister')
   })
 
-  it('OTHER without otherCategory → error on otherCategory', () => {
+  it('OTHER without otherCategory → passes (optional)', () => {
     const { otherCategory, ...rest } = VALID_SERVER_PAYLOADS.OTHER
     const result = createTransferSchema.safeParse(rest)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('otherCategory')
+    expect(result.success).toBe(true)
   })
 
   it('OTHER without sourceRegister → error on sourceRegister', () => {
@@ -226,16 +225,12 @@ describe('createBulkTransferSchema — per-line-item category', () => {
     expect(result.success).toBe(true)
   })
 
-  it('OTHER without per-line category → fails on lineItems.0.category', () => {
+  it('OTHER without per-line category → passes (optional)', () => {
     const result = createBulkTransferSchema.safeParse({
       ...bulkBase,
       lineItems: [{ description: 'Item', amount: 100 }],
     })
-    expect(result.success).toBe(false)
-    if (!result.success) {
-      const paths = result.error.issues.map((i) => i.path.join('.'))
-      expect(paths).toContain('lineItems.0.category')
-    }
+    expect(result.success).toBe(true)
   })
 
   it('INVESTMENT_EXPENSE with optional per-line category → passes', () => {
@@ -313,12 +308,11 @@ describe('transferFormSchema — missing required fields', () => {
     expect(errorPaths(result)).toContain('sourceRegister')
   })
 
-  it('OTHER without otherCategory → error on otherCategory', () => {
+  it('OTHER without otherCategory → passes (optional)', () => {
     const payload = toClientPayload(VALID_SERVER_PAYLOADS.OTHER)
     payload.otherCategory = ''
     const result = transferFormSchema.safeParse(payload)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('otherCategory')
+    expect(result.success).toBe(true)
   })
 
   it('amount empty → error on amount', () => {

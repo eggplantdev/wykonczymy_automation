@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { RemoveButton } from '@/components/ui/remove-button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import { cancelTransferAction } from '@/lib/actions/transfers'
 import { toastMessage } from '@/components/toasts'
@@ -33,14 +33,7 @@ export function CancelTransferButton({ transactionId }: CancelTransferButtonProp
 
   return (
     <>
-      <Button
-        variant="ghostDestructive"
-        size="icon"
-        onClick={() => setOpen(true)}
-        aria-label="Anuluj transakcję"
-      >
-        <X />
-      </Button>
+      <RemoveButton onClick={() => setOpen(true)} />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent showCloseButton={false} className="h-fit sm:max-w-md">

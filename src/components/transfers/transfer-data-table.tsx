@@ -7,18 +7,34 @@ import { TransferFilters } from '@/components/transfers/transfer-filters'
 import { TransferExportToolbar } from '@/components/transfers/transfer-export-toolbar'
 import { getTransferColumns, type TransferRowT } from '@/lib/tables/transfers'
 import { isCancellationType } from '@/lib/constants/transfers'
+import type { RoleT } from '@/lib/auth/roles'
 import type { PaginationMetaT } from '@/lib/pagination'
 import type { TransferTableConfigT } from '@/types/export'
+import type { ReferenceDataBaseT } from '@/types/reference-data'
 
 type TransferDataTablePropsT = {
   readonly data: readonly TransferRowT[]
   readonly paginationMeta: PaginationMetaT
   readonly config: TransferTableConfigT
+  readonly referenceData?: ReferenceDataBaseT
+  readonly currentUserId?: number
+  readonly currentUserRole?: RoleT
 }
 
-export function TransferDataTable({ data, paginationMeta, config }: TransferDataTablePropsT) {
+export function TransferDataTable({
+  data,
+  paginationMeta,
+  config,
+  referenceData,
+  currentUserId,
+  currentUserRole,
+}: TransferDataTablePropsT) {
   const { baseUrl, excludeColumns = [], filters, headerFields } = config
-  const columns = getTransferColumns(excludeColumns)
+  const columns = getTransferColumns(excludeColumns, {
+    referenceData,
+    currentUserId,
+    currentUserRole,
+  })
 
   return (
     <div className="mt-4 space-y-4">

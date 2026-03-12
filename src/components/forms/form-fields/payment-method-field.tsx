@@ -1,5 +1,6 @@
 import { SelectItem } from '@/components/ui/select'
 import { PAYMENT_METHODS, PAYMENT_METHOD_LABELS } from '@/lib/constants/transfers'
+import type { AppFieldComponentsT } from '@/components/forms/types/form-types'
 
 type PaymentMethodFieldPropsT = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -9,8 +10,7 @@ type PaymentMethodFieldPropsT = {
 export function PaymentMethodField({ form }: PaymentMethodFieldPropsT) {
   return (
     <form.AppField name="paymentMethod">
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      {(field: any) => (
+      {(field: AppFieldComponentsT) => (
         <field.Select label="Metoda płatności" showError>
           {PAYMENT_METHODS.map((m) => (
             <SelectItem key={m} value={m}>

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { ActiveFilterLabel } from './active-filter-label'
 import { EmptyFieldMessage } from './empty-field-message'
 import type { ReferenceItemT } from '@/types/reference-data'
+import type { AppFieldComponentsT } from '@/components/forms/types/form-types'
 
 type CashRegisterFieldPropsT = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,8 +40,7 @@ export function CashRegisterField({
 
   return (
     <form.AppField name={name} listeners={listeners}>
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      {(field: any) =>
+      {(field: AppFieldComponentsT) =>
         filteredRegisters.length > 0 ? (
           <field.Combobox
             label={label}

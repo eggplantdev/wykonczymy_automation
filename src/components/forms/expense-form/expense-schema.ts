@@ -108,3 +108,21 @@ export const createBulkTransferSchema = z
   })
 
 export type CreateBulkTransferFormT = z.infer<typeof createBulkTransferSchema>
+
+// ---------------------------------------------------------------------------
+// Edit transfer schema (client-side, string values)
+// ---------------------------------------------------------------------------
+
+export const editTransferFormSchema = z
+  .object({
+    description: z.string(),
+    date: z.string(),
+    paymentMethod: z.string(),
+    investment: z.string(),
+    expenseCategory: z.string(),
+    otherCategory: z.string(),
+    invoiceNote: z.string(),
+  })
+  .superRefine((data, ctx) => {
+    refineDate(data, ctx)
+  })
