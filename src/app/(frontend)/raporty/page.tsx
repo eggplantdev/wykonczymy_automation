@@ -16,7 +16,7 @@ import { buildFilterConfig } from '@/lib/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { ReportChart } from '@/components/reports/report-charts'
 import { PageWrapper } from '@/components/ui/page-wrapper'
-import { InvestmentStats } from '@/components/investments/investment-stats'
+import { FinancialStats } from '@/components/investments/financial-stats'
 import type { HeaderFieldT } from '@/types/export'
 import type { PagePropsT } from '@/types/page'
 
@@ -48,7 +48,7 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
 
   return (
     <PageWrapper title="Raporty">
-      <InvestmentStats
+      <FinancialStats
         fields={headerFields.filter((f) => f.amount !== undefined || f.label === BILANS_LABEL)}
       />
 

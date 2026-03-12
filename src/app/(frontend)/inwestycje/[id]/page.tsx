@@ -17,7 +17,7 @@ import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
 import { MailtoLink } from '@/components/ui/mailto-link'
-import { InvestmentStats } from '@/components/investments/investment-stats'
+import { FinancialStats } from '@/components/investments/financial-stats'
 import type { HeaderFieldT } from '@/types/export'
 import type { DynamicPagePropsT } from '@/types/page'
 
@@ -76,7 +76,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
     <PageWrapper title={investment.name}>
       <InfoList items={infoFields.filter((f) => f.value)} />
 
-      <InvestmentStats
+      <FinancialStats
         fields={headerFields.filter((f) => f.amount !== undefined || f.label === BILANS_LABEL)}
       />
 
