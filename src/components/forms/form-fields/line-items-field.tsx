@@ -1,40 +1,92 @@
 'use client'
 
+import { SelectItem } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { RemoveButton } from '@/components/ui/remove-button'
 import { FileInput } from '@/components/ui/file-input'
 import { Label } from '@/components/ui/label'
 import { formatPLN } from '@/lib/format-currency'
+import { EXPENSE_CATEGORY_LABEL } from '@/lib/constants/transfers'
+import type { ReferenceDataBaseT } from '@/types/reference-data'
+import type { AppFieldComponentsT } from '@/components/forms/types/form-types'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type FormT = any
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type FieldT = any
+type ArrayFieldT = any
+
+type CategoryFieldConfigT = {
+  readonly fieldName: string
+  readonly label: string
+  readonly placeholder: string
+  readonly options: ReadonlyArray<{ readonly id: number; readonly name: string }>
+}
 
 type LineItemsFieldPropsT = {
   form: FormT
+  transferType: string
+  referenceData: ReferenceDataBaseT
   label?: string
   emptyItem: Record<string, string>
   total: number
   onRemoveItem: (index: number, removeValue: (index: number) => void) => void
   onFileChange: (index: number, e: React.ChangeEvent<HTMLInputElement>) => void
-  renderItemInline?: (index: number) => React.ReactNode
-  renderItemSecondRow?: (index: number) => React.ReactNode
+}
+
+function getInlineCategory(
+  type: string,
+  refData: ReferenceDataBaseT,
+): CategoryFieldConfigT | undefined {
+  if (type === 'INVESTMENT_EXPENSE') {
+    return {
+      fieldName: 'expenseCategory',
+      label: EXPENSE_CATEGORY_LABEL,
+      placeholder: `${EXPENSE_CATEGORY_LABEL} *`,
+      options: refData.expenseCategories,
+    }
+  }
+  if (type === 'OTHER') {
+    return {
+      fieldName: 'category',
+      label: 'Kategoria',
+      placeholder: 'Opcjonalnie',
+      options: refData.otherCategories,
+    }
+  }
+  return undefined
+}
+
+function getSecondRowCategory(
+  type: string,
+  refData: ReferenceDataBaseT,
+): CategoryFieldConfigT | undefined {
+  if (type === 'INVESTMENT_EXPENSE') {
+    return {
+      fieldName: 'category',
+      label: 'Kategoria',
+      placeholder: 'Opcjonalnie',
+      options: refData.otherCategories,
+    }
+  }
+  return undefined
 }
 
 export function LineItemsField({
   form,
+  transferType,
+  referenceData,
   label = 'Pozycje',
   emptyItem,
   total,
   onRemoveItem,
   onFileChange,
-  renderItemInline,
-  renderItemSecondRow,
 }: LineItemsFieldPropsT) {
+  const inlineCategory = getInlineCategory(transferType, referenceData)
+  const secondRowCategory = getSecondRowCategory(transferType, referenceData)
+
   return (
     <form.Field name="lineItems" mode="array">
-      {(lineItemsField: FieldT) => (
+      {(lineItemsField: ArrayFieldT) => (
         <div className="space-y-4">
           <Label>{label}</Label>
           <div className="space-y-4">
@@ -46,19 +98,37 @@ export function LineItemsField({
                   </span>
                   <div className="w-28">
                     <form.AppField name={`lineItems[${index}].amount`}>
-                      {(field: FieldT) => (
+                      {(field: AppFieldComponentsT) => (
                         <field.Input label="Kwota" placeholder="0.00 PLN" type="number" showError />
                       )}
                     </form.AppField>
                   </div>
                   <div className="min-w-0 flex-1">
                     <form.AppField name={`lineItems[${index}].description`}>
-                      {(field: FieldT) => (
+                      {(field: AppFieldComponentsT) => (
                         <field.Input label="Opis" placeholder="Opcjonalnie" showError />
                       )}
                     </form.AppField>
                   </div>
-                  {renderItemInline?.(index)}
+                  {inlineCategory && (
+                    <div className="min-w-0 flex-1">
+                      <form.AppField name={`lineItems[${index}].${inlineCategory.fieldName}`}>
+                        {(field: AppFieldComponentsT) => (
+                          <field.Select
+                            label={inlineCategory.label}
+                            placeholder={inlineCategory.placeholder}
+                            showError
+                          >
+                            {inlineCategory.options.map((opt) => (
+                              <SelectItem key={opt.id} value={String(opt.id)}>
+                                {opt.name}
+                              </SelectItem>
+                            ))}
+                          </field.Select>
+                        )}
+                      </form.AppField>
+                    </div>
+                  )}
                   <RemoveButton
                     className="mb-0.5"
                     onClick={() => onRemoveItem(index, lineItemsField.removeValue)}
@@ -66,10 +136,28 @@ export function LineItemsField({
                   />
                 </div>
                 <div className="flex items-start gap-2 pr-10 pl-8">
-                  {renderItemSecondRow?.(index)}
+                  {secondRowCategory && (
+                    <div className="min-w-0 flex-1">
+                      <form.AppField name={`lineItems[${index}].${secondRowCategory.fieldName}`}>
+                        {(field: AppFieldComponentsT) => (
+                          <field.Select
+                            label={secondRowCategory.label}
+                            placeholder={secondRowCategory.placeholder}
+                            showError
+                          >
+                            {secondRowCategory.options.map((opt) => (
+                              <SelectItem key={opt.id} value={String(opt.id)}>
+                                {opt.name}
+                              </SelectItem>
+                            ))}
+                          </field.Select>
+                        )}
+                      </form.AppField>
+                    </div>
+                  )}
                   <div className="min-w-0 flex-1">
                     <form.AppField name={`lineItems[${index}].invoiceNote`}>
-                      {(field: FieldT) => (
+                      {(field: AppFieldComponentsT) => (
                         <field.Input label="Notatka" placeholder="Opcjonalnie" showError />
                       )}
                     </form.AppField>
