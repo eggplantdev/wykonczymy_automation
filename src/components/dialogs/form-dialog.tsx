@@ -13,7 +13,7 @@ type FormDialogPropsT = {
   description?: string
   showKeepOpen?: boolean
   className?: string
-  children: (onSuccess: () => void, keepOpen: boolean) => React.ReactNode
+  children: (onSubmitSuccess: () => void, keepOpen: boolean) => React.ReactNode
 }
 
 export function FormDialog({

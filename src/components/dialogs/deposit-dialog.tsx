@@ -26,8 +26,12 @@ export function DepositDialog({ referenceData }: DepositDialogPropsT) {
       }
       title="Nowa wpłata"
     >
-      {(onSuccess, keepOpen) => (
-        <DepositForm referenceData={referenceData} onSuccess={onSuccess} keepOpen={keepOpen} />
+      {(onSubmitSuccess, keepOpen) => (
+        <DepositForm
+          referenceData={referenceData}
+          onSubmitSuccess={onSubmitSuccess}
+          keepOpen={keepOpen}
+        />
       )}
     </FormDialog>
   )

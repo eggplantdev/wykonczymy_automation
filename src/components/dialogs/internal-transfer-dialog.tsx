@@ -28,10 +28,10 @@ export function InternalTransferDialog({ referenceData }: InternalTransferDialog
       title="Transfer między kasami"
       description="Przesuń środki między kasami."
     >
-      {(onSuccess, keepOpen) => (
+      {(onSubmitSuccess, keepOpen) => (
         <InternalTransferForm
           referenceData={referenceData}
-          onSuccess={onSuccess}
+          onSubmitSuccess={onSubmitSuccess}
           keepOpen={keepOpen}
         />
       )}

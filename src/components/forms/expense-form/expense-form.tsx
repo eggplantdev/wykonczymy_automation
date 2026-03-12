@@ -38,7 +38,7 @@ import { SaldoDisplay } from '@/components/ui/saldo-display'
 
 type TransferFormPropsT = {
   referenceData: ReferenceDataT
-  onSuccess: () => void
+  onSubmitSuccess: () => void
   keepOpen?: boolean
 }
 
@@ -62,7 +62,7 @@ type FormValuesT = {
 
 const FORM_ID = 'expense'
 
-export function ExpenseForm({ referenceData, onSuccess, keepOpen }: TransferFormPropsT) {
+export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: TransferFormPropsT) {
   const { recoveredValues, recoveredFiles, submit } = useFormSubmit<FormValuesT>(FORM_ID)
 
   const { handleRemoveLineItem, handleFileChange, buildInvoiceFormData, getFiles } =
@@ -143,7 +143,7 @@ export function ExpenseForm({ referenceData, onSuccess, keepOpen }: TransferForm
         successMessage: 'Transakcje dodane',
         formValues: value as unknown as Record<string, unknown>,
         files: getFiles(),
-        onSuccess,
+        onSubmitSuccess,
         onKeepOpenSuccess: () => form.reset(),
       })
 

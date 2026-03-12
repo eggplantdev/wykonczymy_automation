@@ -41,11 +41,11 @@ export function EditTransferDialog({ row, referenceData, canEdit }: EditTransfer
       title="Edytuj transakcję"
       description={`${TRANSFER_TYPE_LABELS[row.type]} · ${formatPLN(row.amount)}`}
     >
-      {(onSuccess, keepOpen) => (
+      {(onSubmitSuccess, keepOpen) => (
         <EditTransferForm
           row={row}
           referenceData={referenceData}
-          onSuccess={onSuccess}
+          onSubmitSuccess={onSubmitSuccess}
           keepOpen={keepOpen}
         />
       )}

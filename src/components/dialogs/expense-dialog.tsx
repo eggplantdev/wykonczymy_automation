@@ -23,8 +23,12 @@ export function ExpenseDialog({ referenceData }: ExpenseDialogPropsT) {
       }
       title="Nowy wydatek"
     >
-      {(onSuccess, keepOpen) => (
-        <ExpenseForm referenceData={referenceData} onSuccess={onSuccess} keepOpen={keepOpen} />
+      {(onSubmitSuccess, keepOpen) => (
+        <ExpenseForm
+          referenceData={referenceData}
+          onSubmitSuccess={onSubmitSuccess}
+          keepOpen={keepOpen}
+        />
       )}
     </FormDialog>
   )

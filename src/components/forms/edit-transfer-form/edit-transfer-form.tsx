@@ -28,7 +28,7 @@ import FormFooter from '../form-components/form-footer'
 type EditTransferFormPropsT = {
   readonly row: TransferRowT
   readonly referenceData: ReferenceDataBaseT
-  readonly onSuccess: () => void
+  readonly onSubmitSuccess: () => void
   readonly keepOpen?: boolean
 }
 
@@ -39,7 +39,7 @@ const FORM_ID = 'edit-transfer'
 export function EditTransferForm({
   row,
   referenceData,
-  onSuccess,
+  onSubmitSuccess,
   keepOpen,
 }: EditTransferFormPropsT) {
   const { recoveredValues, submit } = useFormSubmit<FormValuesT>(FORM_ID)
@@ -74,7 +74,7 @@ export function EditTransferForm({
         action: () => updateTransferAction(row.id, data),
         successMessage: 'Transakcja zaktualizowana',
         formValues: value as Record<string, unknown>,
-        onSuccess,
+        onSubmitSuccess,
         onKeepOpenSuccess: () => form.reset(),
       })
 

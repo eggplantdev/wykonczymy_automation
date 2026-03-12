@@ -22,7 +22,7 @@ import FormFooter from '../form-components/form-footer'
 
 type InternalTransferFormPropsT = {
   referenceData: ReferenceDataT
-  onSuccess: () => void
+  onSubmitSuccess: () => void
   keepOpen?: boolean
 }
 
@@ -39,7 +39,7 @@ const FORM_ID = 'internal-transfer'
 
 export function InternalTransferForm({
   referenceData,
-  onSuccess,
+  onSubmitSuccess,
   keepOpen,
 }: InternalTransferFormPropsT) {
   const { isRecovering, recoveredValues, submit } = useFormSubmit<FormValuesT>(FORM_ID)
@@ -73,7 +73,7 @@ export function InternalTransferForm({
         action: () => createTransferAction(data, null),
         successMessage: 'Transfer między kasami dodany',
         formValues: value as unknown as Record<string, unknown>,
-        onSuccess,
+        onSubmitSuccess,
         onKeepOpenSuccess: () => form.reset(),
       })
 

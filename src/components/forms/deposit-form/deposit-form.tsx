@@ -29,7 +29,7 @@ import { createTransferAction } from '@/lib/actions/transfers'
 
 type DepositFormPropsT = {
   referenceData: ReferenceDataT
-  onSuccess: () => void
+  onSubmitSuccess: () => void
   keepOpen?: boolean
 }
 
@@ -45,7 +45,7 @@ type FormValuesT = {
 
 const FORM_ID = 'deposit'
 
-export function DepositForm({ referenceData, onSuccess, keepOpen }: DepositFormPropsT) {
+export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: DepositFormPropsT) {
   const { isRecovering, recoveredValues, submit } = useFormSubmit<FormValuesT>(FORM_ID)
 
   const form = useAppForm({
@@ -78,7 +78,7 @@ export function DepositForm({ referenceData, onSuccess, keepOpen }: DepositFormP
         action: () => createTransferAction(data, null),
         successMessage: 'Wpłata dodana',
         formValues: value as unknown as Record<string, unknown>,
-        onSuccess,
+        onSubmitSuccess,
         onKeepOpenSuccess: () => form.reset(),
       })
 

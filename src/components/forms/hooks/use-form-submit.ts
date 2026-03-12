@@ -7,7 +7,7 @@ type SubmitOptionsT = {
   successMessage: string
   formValues: Record<string, unknown>
   files?: Map<number, File>
-  onSuccess: () => void
+  onSubmitSuccess: () => void
   onKeepOpenSuccess: () => void
 }
 
@@ -39,7 +39,7 @@ export function useFormSubmit<TValues>(formId: string) {
         opts.action,
         opts.successMessage,
       )
-      opts.onSuccess()
+      opts.onSubmitSuccess()
     }
   }
 
