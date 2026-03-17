@@ -10,7 +10,7 @@ import {
   showsInvestment,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
-import { transferFormSchema } from '@/components/forms/expense-form/expense-schema'
+import { expenseFormSchema } from '@/components/forms/expense-form/expense-schema'
 import type { CreateTransferFormT } from '@/lib/schemas/transfer'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { getDefaultCashRegister } from '@/lib/utils/default-cash-register'
@@ -61,7 +61,7 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
         investment: '',
       } as FormValuesT),
     validators: {
-      onSubmit: transferFormSchema,
+      onSubmit: expenseFormSchema,
     },
     onSubmit: async ({ value }) => {
       const data: CreateTransferFormT = {

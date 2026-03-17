@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import {
   createTransferSchema,
-  createBulkTransferSchema,
-  transferFormSchema,
+  createBulkExpenseSchema,
+  expenseFormSchema,
 } from '@/components/forms/expense-form/expense-schema'
 
 // ── Helpers ─────────────────────────────────────────────────────────────
@@ -209,7 +209,7 @@ describe('createTransferSchema — amount edge cases', () => {
 
 // ── Bulk transfer schema — per-line-item category ───────────────────────
 
-describe('createBulkTransferSchema — per-line-item category', () => {
+describe('createBulkExpenseSchema — per-line-item category', () => {
   const bulkBase = {
     date: '2026-02-25',
     type: 'OTHER' as const,
@@ -218,7 +218,7 @@ describe('createBulkTransferSchema — per-line-item category', () => {
   }
 
   it('OTHER with per-line category → passes', () => {
-    const result = createBulkTransferSchema.safeParse({
+    const result = createBulkExpenseSchema.safeParse({
       ...bulkBase,
       lineItems: [{ description: 'Item', amount: 100, category: 5 }],
     })
@@ -226,7 +226,7 @@ describe('createBulkTransferSchema — per-line-item category', () => {
   })
 
   it('OTHER without per-line category → passes (optional)', () => {
-    const result = createBulkTransferSchema.safeParse({
+    const result = createBulkExpenseSchema.safeParse({
       ...bulkBase,
       lineItems: [{ description: 'Item', amount: 100 }],
     })
@@ -234,7 +234,7 @@ describe('createBulkTransferSchema — per-line-item category', () => {
   })
 
   it('INVESTMENT_EXPENSE with optional per-line category → passes', () => {
-    const result = createBulkTransferSchema.safeParse({
+    const result = createBulkExpenseSchema.safeParse({
       ...bulkBase,
       type: 'INVESTMENT_EXPENSE',
       investment: 1,
@@ -244,7 +244,7 @@ describe('createBulkTransferSchema — per-line-item category', () => {
   })
 
   it('PAYOUT without per-line category → passes (optional)', () => {
-    const result = createBulkTransferSchema.safeParse({
+    const result = createBulkExpenseSchema.safeParse({
       ...bulkBase,
       type: 'PAYOUT',
       lineItems: [{ description: 'Item', amount: 100 }],
@@ -255,10 +255,10 @@ describe('createBulkTransferSchema — per-line-item category', () => {
 
 // ── 2c: Client Schema — Valid payloads ──────────────────────────────────
 
-describe('transferFormSchema — valid payloads (string values)', () => {
+describe('expenseFormSchema — valid payloads (string values)', () => {
   for (const [type, serverPayload] of Object.entries(VALID_SERVER_PAYLOADS)) {
     it(`${type} — passes`, () => {
-      const result = transferFormSchema.safeParse(toClientPayload(serverPayload))
+      const result = expenseFormSchema.safeParse(toClientPayload(serverPayload))
       expect(result.success).toBe(true)
     })
   }
@@ -266,11 +266,11 @@ describe('transferFormSchema — valid payloads (string values)', () => {
 
 // ── 2c: Client Schema — Missing required fields ────────────────────────
 
-describe('transferFormSchema — missing required fields', () => {
+describe('expenseFormSchema — missing required fields', () => {
   it('INVESTOR_DEPOSIT without sourceRegister → error on sourceRegister', () => {
     const payload = toClientPayload(VALID_SERVER_PAYLOADS.INVESTOR_DEPOSIT)
     payload.sourceRegister = ''
-    const result = transferFormSchema.safeParse(payload)
+    const result = expenseFormSchema.safeParse(payload)
     expect(result.success).toBe(false)
     expect(errorPaths(result)).toContain('sourceRegister')
   })
@@ -278,7 +278,7 @@ describe('transferFormSchema — missing required fields', () => {
   it('INVESTOR_DEPOSIT without investment → error on investment', () => {
     const payload = toClientPayload(VALID_SERVER_PAYLOADS.INVESTOR_DEPOSIT)
     payload.investment = ''
-    const result = transferFormSchema.safeParse(payload)
+    const result = expenseFormSchema.safeParse(payload)
     expect(result.success).toBe(false)
     expect(errorPaths(result)).toContain('investment')
   })
@@ -286,7 +286,7 @@ describe('transferFormSchema — missing required fields', () => {
   it('REGISTER_TRANSFER without targetRegister → error on targetRegister', () => {
     const payload = toClientPayload(VALID_SERVER_PAYLOADS.REGISTER_TRANSFER)
     payload.targetRegister = ''
-    const result = transferFormSchema.safeParse(payload)
+    const result = expenseFormSchema.safeParse(payload)
     expect(result.success).toBe(false)
     expect(errorPaths(result)).toContain('targetRegister')
   })
@@ -295,7 +295,7 @@ describe('transferFormSchema — missing required fields', () => {
     const payload = toClientPayload(VALID_SERVER_PAYLOADS.REGISTER_TRANSFER)
     payload.targetRegister = '1'
     payload.sourceRegister = '1'
-    const result = transferFormSchema.safeParse(payload)
+    const result = expenseFormSchema.safeParse(payload)
     expect(result.success).toBe(false)
     expect(errorPaths(result)).toContain('targetRegister')
   })
@@ -303,7 +303,7 @@ describe('transferFormSchema — missing required fields', () => {
   it('PAYOUT without sourceRegister → error on sourceRegister', () => {
     const payload = toClientPayload(VALID_SERVER_PAYLOADS.PAYOUT)
     payload.sourceRegister = ''
-    const result = transferFormSchema.safeParse(payload)
+    const result = expenseFormSchema.safeParse(payload)
     expect(result.success).toBe(false)
     expect(errorPaths(result)).toContain('sourceRegister')
   })
@@ -311,14 +311,14 @@ describe('transferFormSchema — missing required fields', () => {
   it('OTHER without otherCategory → passes (optional)', () => {
     const payload = toClientPayload(VALID_SERVER_PAYLOADS.OTHER)
     payload.otherCategory = ''
-    const result = transferFormSchema.safeParse(payload)
+    const result = expenseFormSchema.safeParse(payload)
     expect(result.success).toBe(true)
   })
 
   it('amount empty → error on amount', () => {
     const payload = toClientPayload(VALID_SERVER_PAYLOADS.COMPANY_FUNDING)
     payload.amount = ''
-    const result = transferFormSchema.safeParse(payload)
+    const result = expenseFormSchema.safeParse(payload)
     expect(result.success).toBe(false)
     expect(errorPaths(result)).toContain('amount')
   })
@@ -326,7 +326,7 @@ describe('transferFormSchema — missing required fields', () => {
   it('amount = "0" → error on amount', () => {
     const payload = toClientPayload(VALID_SERVER_PAYLOADS.COMPANY_FUNDING)
     payload.amount = '0'
-    const result = transferFormSchema.safeParse(payload)
+    const result = expenseFormSchema.safeParse(payload)
     expect(result.success).toBe(false)
     expect(errorPaths(result)).toContain('amount')
   })
@@ -334,7 +334,7 @@ describe('transferFormSchema — missing required fields', () => {
   it('amount = "-5" → error on amount', () => {
     const payload = toClientPayload(VALID_SERVER_PAYLOADS.COMPANY_FUNDING)
     payload.amount = '-5'
-    const result = transferFormSchema.safeParse(payload)
+    const result = expenseFormSchema.safeParse(payload)
     expect(result.success).toBe(false)
     expect(errorPaths(result)).toContain('amount')
   })
@@ -342,7 +342,7 @@ describe('transferFormSchema — missing required fields', () => {
   it('date empty → error on date', () => {
     const payload = toClientPayload(VALID_SERVER_PAYLOADS.COMPANY_FUNDING)
     payload.date = ''
-    const result = transferFormSchema.safeParse(payload)
+    const result = expenseFormSchema.safeParse(payload)
     expect(result.success).toBe(false)
     expect(errorPaths(result)).toContain('date')
   })
@@ -354,7 +354,7 @@ describe('schema parity — valid payloads', () => {
   for (const [type, serverPayload] of Object.entries(VALID_SERVER_PAYLOADS)) {
     it(`${type} — both schemas pass`, () => {
       const serverResult = createTransferSchema.safeParse(serverPayload)
-      const clientResult = transferFormSchema.safeParse(toClientPayload(serverPayload))
+      const clientResult = expenseFormSchema.safeParse(toClientPayload(serverPayload))
       expect(serverResult.success).toBe(true)
       expect(clientResult.success).toBe(true)
     })

@@ -6,7 +6,11 @@ import { RemoveButton } from '@/components/ui/remove-button'
 import { FileInput } from '@/components/ui/file-input'
 import { Label } from '@/components/ui/label'
 import { formatPLN } from '@/lib/format-currency'
-import { EXPENSE_CATEGORY_LABEL } from '@/lib/constants/transfers'
+import {
+  EXPENSE_CATEGORY_LABEL,
+  needsExpenseCategory,
+  showsOtherCategory,
+} from '@/lib/constants/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import type { AppFieldComponentsT } from '@/components/forms/types/form-types'
 
@@ -22,22 +26,37 @@ type CategoryFieldConfigT = {
   readonly options: ReadonlyArray<{ readonly id: number; readonly name: string }>
 }
 
+const EMPTY_LINE_ITEM: Record<string, string> = {
+  description: '',
+  amount: '',
+  invoiceNote: '',
+  category: '',
+  expenseCategory: '',
+}
+
 type LineItemsFieldPropsT = {
   form: FormT
   transferType: string
   referenceData: ReferenceDataBaseT
   label?: string
-  emptyItem: Record<string, string>
+  defaultExpenseCategory?: string
   total: number
   onRemoveItem: (index: number, removeValue: (index: number) => void) => void
   onFileChange: (index: number, e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
+const otherCategoryConfig = (refData: ReferenceDataBaseT): CategoryFieldConfigT => ({
+  fieldName: 'category',
+  label: 'Kategoria',
+  placeholder: 'Opcjonalnie',
+  options: refData.otherCategories,
+})
+
 function getInlineCategory(
   type: string,
   refData: ReferenceDataBaseT,
 ): CategoryFieldConfigT | undefined {
-  if (type === 'INVESTMENT_EXPENSE') {
+  if (needsExpenseCategory(type)) {
     return {
       fieldName: 'expenseCategory',
       label: EXPENSE_CATEGORY_LABEL,
@@ -45,14 +64,7 @@ function getInlineCategory(
       options: refData.expenseCategories,
     }
   }
-  if (type === 'OTHER') {
-    return {
-      fieldName: 'category',
-      label: 'Kategoria',
-      placeholder: 'Opcjonalnie',
-      options: refData.otherCategories,
-    }
-  }
+  if (showsOtherCategory(type)) return otherCategoryConfig(refData)
   return undefined
 }
 
@@ -60,14 +72,8 @@ function getSecondRowCategory(
   type: string,
   refData: ReferenceDataBaseT,
 ): CategoryFieldConfigT | undefined {
-  if (type === 'INVESTMENT_EXPENSE') {
-    return {
-      fieldName: 'category',
-      label: 'Kategoria',
-      placeholder: 'Opcjonalnie',
-      options: refData.otherCategories,
-    }
-  }
+  // Show other category in second row when inline is already taken by expense category
+  if (needsExpenseCategory(type) && showsOtherCategory(type)) return otherCategoryConfig(refData)
   return undefined
 }
 
@@ -100,13 +106,16 @@ export function LineItemsField({
   transferType,
   referenceData,
   label = 'Pozycje',
-  emptyItem,
+  defaultExpenseCategory = '',
   total,
   onRemoveItem,
   onFileChange,
 }: LineItemsFieldPropsT) {
   const inlineCategory = getInlineCategory(transferType, referenceData)
   const secondRowCategory = getSecondRowCategory(transferType, referenceData)
+  const emptyItem = defaultExpenseCategory
+    ? { ...EMPTY_LINE_ITEM, expenseCategory: defaultExpenseCategory }
+    : EMPTY_LINE_ITEM
 
   return (
     <form.Field name="lineItems" mode="array">

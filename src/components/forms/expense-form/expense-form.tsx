@@ -19,8 +19,8 @@ import {
 } from '@/lib/constants/transfers'
 import { createBulkTransferAction, getRegisterSaldo } from '@/lib/actions/transfers'
 import {
-  bulkTransferFormSchema,
-  type CreateBulkTransferFormT,
+  bulkExpenseFormSchema,
+  type CreateBulkExpenseFormT,
 } from '@/components/forms/expense-form/expense-schema'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { getDefaultCashRegister } from '@/lib/utils/default-cash-register'
@@ -113,11 +113,11 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
         ],
       } as FormValuesT),
     validators: {
-      onSubmit: bulkTransferFormSchema,
+      onSubmit: bulkExpenseFormSchema,
     },
     onSubmit: async ({ value }) => {
       const type = value.type as TransferTypeT
-      const data: CreateBulkTransferFormT = {
+      const data: CreateBulkExpenseFormT = {
         date: value.date,
         type,
         paymentMethod: value.paymentMethod as PaymentMethodT,
@@ -178,7 +178,6 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
         }}
       >
         <FieldGroup>
-          {/* Type + Date */}
           <div className="flex items-start gap-4">
             <div className="min-w-0 flex-1">
               <form.AppField name="type" listeners={{ onChange: resetConditionalFields }}>
@@ -239,13 +238,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
           {!isDepositType(currentType) && (
             <LineItemsField
               form={form}
-              emptyItem={{
-                description: '',
-                amount: '',
-                invoiceNote: '',
-                category: '',
-                expenseCategory: defaultExpenseCategory,
-              }}
+              defaultExpenseCategory={defaultExpenseCategory}
               total={total}
               onRemoveItem={handleRemoveLineItem}
               onFileChange={handleFileChange}

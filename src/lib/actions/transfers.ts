@@ -9,8 +9,8 @@ import {
   type UpdateTransferFormT,
 } from '@/lib/schemas/transfer'
 import {
-  createBulkTransferSchema,
-  type CreateBulkTransferFormT,
+  createBulkExpenseSchema,
+  type CreateBulkExpenseFormT,
 } from '@/components/forms/expense-form/expense-schema'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { isAdminOrOwnerRole, MANAGEMENT_ROLES } from '@/lib/auth/roles'
@@ -68,7 +68,7 @@ export async function createTransferAction(
 }
 
 export async function createBulkTransferAction(
-  data: CreateBulkTransferFormT,
+  data: CreateBulkExpenseFormT,
   invoiceFormData: FormData | null,
 ) {
   const lineCount = data.lineItems.length
@@ -78,7 +78,7 @@ export async function createBulkTransferAction(
     async ({ payload, user }) => {
       const step = perfStart()
 
-      const parsed = validateAction(createBulkTransferSchema, data)
+      const parsed = validateAction(createBulkExpenseSchema, data)
       if (!parsed.success) return parsed
       console.log(`[PERF]   validateAction ${step()}ms`)
 

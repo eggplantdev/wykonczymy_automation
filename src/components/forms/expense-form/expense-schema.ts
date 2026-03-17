@@ -14,7 +14,7 @@ export { createTransferSchema, type CreateTransferFormT }
  * Client-side form validation schema.
  * Works with string values (HTML inputs) — the server schema handles type conversion.
  */
-export const transferFormSchema = z
+export const expenseFormSchema = z
   .object({
     description: z.string(),
     amount: z.string(),
@@ -36,7 +36,7 @@ export const transferFormSchema = z
   })
 
 // ---------------------------------------------------------------------------
-// Bulk transfer schemas (line-items pattern)
+// Bulk expense schemas (line-items pattern)
 // ---------------------------------------------------------------------------
 
 const lineItemClientSchema = z.object({
@@ -47,7 +47,7 @@ const lineItemClientSchema = z.object({
   expenseCategory: z.string(),
 })
 
-export const bulkTransferFormSchema = z
+export const bulkExpenseFormSchema = z
   .object({
     date: z.string(),
     type: z.string(),
@@ -81,7 +81,7 @@ export const bulkTransferFormSchema = z
     validateLineItemCategories(data.type, data.lineItems, ctx)
   })
 
-export const createBulkTransferSchema = z
+export const createBulkExpenseSchema = z
   .object({
     date: z.string().min(1, 'Data jest wymagana'),
     type: z.enum(TRANSFER_TYPES),
@@ -107,22 +107,18 @@ export const createBulkTransferSchema = z
     validateLineItemCategories(data.type, data.lineItems, ctx)
   })
 
-export type CreateBulkTransferFormT = z.infer<typeof createBulkTransferSchema>
+export type CreateBulkExpenseFormT = z.infer<typeof createBulkExpenseSchema>
 
 // ---------------------------------------------------------------------------
-// Edit transfer schema (client-side, string values)
+// Edit expense schema (client-side, string values)
 // ---------------------------------------------------------------------------
 
-export const editTransferFormSchema = z
-  .object({
-    description: z.string(),
-    date: z.string(),
-    paymentMethod: z.string(),
-    investment: z.string(),
-    expenseCategory: z.string(),
-    otherCategory: z.string(),
-    invoiceNote: z.string(),
-  })
-  .superRefine((data, ctx) => {
-    refineDate(data, ctx)
-  })
+export const editExpenseFormSchema = z.object({
+  description: z.string(),
+  date: z.string().min(1, 'Data jest wymagana'),
+  paymentMethod: z.string(),
+  investment: z.string(),
+  expenseCategory: z.string(),
+  otherCategory: z.string(),
+  invoiceNote: z.string(),
+})

@@ -85,6 +85,9 @@ export const needsTargetRegister = (type: string) =>
 
 export const needsOtherCategory = (type: string) => isTransferType(type) && type === 'OTHER'
 
+export const showsOtherCategory = (type: string) =>
+  isTransferType(type) && (type === 'OTHER' || type === 'INVESTMENT_EXPENSE')
+
 export const needsExpenseCategory = (type: string) =>
   isTransferType(type) && type === 'INVESTMENT_EXPENSE'
 

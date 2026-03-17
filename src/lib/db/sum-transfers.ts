@@ -232,7 +232,10 @@ export function deriveFinancials(
   return {
     categoryCosts,
     totalMaterialCosts: totalByType(byType, 'INVESTMENT_EXPENSE'),
-    totalIncome: DEPOSIT_TYPES.reduce((sum, t) => sum + totalByType(byType, t), 0),
+    totalIncome:
+      totalByType(byType, 'INVESTOR_DEPOSIT') +
+      totalByType(byType, 'COMPANY_FUNDING') +
+      totalByType(byType, 'OTHER_DEPOSIT'),
     totalLaborCosts: totalByType(byType, 'LABOR_COST'),
   }
 }

@@ -9,7 +9,7 @@ import {
   needsExpenseCategory,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
-import { editTransferFormSchema } from '@/components/forms/expense-form/expense-schema'
+import { editExpenseFormSchema } from '@/components/forms/expense-form/expense-schema'
 import type { z } from 'zod'
 import type { UpdateTransferFormT } from '@/lib/schemas/transfer'
 import type { TransferRowT } from '@/lib/tables/transfers'
@@ -32,7 +32,7 @@ type EditTransferFormPropsT = {
   readonly keepOpen?: boolean
 }
 
-type FormValuesT = z.infer<typeof editTransferFormSchema>
+type FormValuesT = z.infer<typeof editExpenseFormSchema>
 
 const FORM_ID = 'edit-transfer'
 
@@ -53,11 +53,11 @@ export function EditTransferForm({
         paymentMethod: row.paymentMethod,
         investment: row.investmentId ? String(row.investmentId) : '',
         expenseCategory: row.expenseCategoryId ? String(row.expenseCategoryId) : '',
-        otherCategory: row.otherCategoryId ? String(row.otherCategoryId) : '',
+        otherCategory: row.otherCategoryId ? String(row.otherCategoryId ?? '') : '',
         invoiceNote: row.invoiceNote ?? '',
       } as FormValuesT),
     validators: {
-      onSubmit: editTransferFormSchema,
+      onSubmit: editExpenseFormSchema,
     },
     onSubmit: async ({ value }) => {
       const data: UpdateTransferFormT = {

@@ -9,7 +9,14 @@ type FileInputPropsT = React.ComponentProps<'input'> & {
   label?: string
 }
 
-function FileInput({ className, label, onChange, accept, ref, ...props }: FileInputPropsT) {
+function FileInput({
+  className,
+  label = 'Przeciągnij lub kliknij',
+  onChange,
+  accept = 'image/*,application/pdf',
+  ref,
+  ...props
+}: FileInputPropsT) {
   const [isDragOver, setIsDragOver] = useState(false)
   const [fileName, setFileName] = useState<string>()
   const [error, setError] = useState<string>()
