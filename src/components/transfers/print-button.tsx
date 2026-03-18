@@ -29,7 +29,17 @@ export function PrintButton({ config, visibleColumnIds }: PrintButtonPropsT) {
     : [...headerFields]
 
   const bilans = calculateBilans(headerFields, storeVisibility)
-  const visibleHeaderFields = [...visibleFields, { label: BILANS_LABEL, value: formatPLN(bilans) }]
+  const printFields = [...visibleFields, { label: BILANS_LABEL, value: formatPLN(bilans) }]
+
+  const totalPayouts = config.totalPayouts
+  const visibleHeaderFields =
+    totalPayouts !== undefined
+      ? [
+          ...printFields,
+          { label: 'Wypłaty', value: formatPLN(-totalPayouts) },
+          { label: 'Marża', value: formatPLN(bilans - totalPayouts) },
+        ]
+      : printFields
 
   async function handlePrint() {
     setIsLoading(true)
