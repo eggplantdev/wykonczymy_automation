@@ -10,10 +10,13 @@ export type InvestmentRowT = {
   readonly id: number
   readonly name: string
   readonly status: 'active' | 'completed'
+  readonly totalCosts: number
   readonly totalMaterialCosts: number
   readonly totalIncome: number
   readonly totalLaborCosts: number
+  readonly totalPayouts: number
   readonly balance: number
+  readonly marza: number
   readonly address: string
   readonly phone: string
   readonly email: string
@@ -30,8 +33,8 @@ export function getInvestmentColumns(onToggle: (id: number, newActive: boolean) 
       meta: { canHide: false },
     }),
 
-    col.accessor('totalMaterialCosts', {
-      id: 'totalMaterialCosts',
+    col.accessor('totalCosts', {
+      id: 'totalCosts',
       header: 'Koszty',
       meta: { align: 'right' },
       cell: (info) => <span className="font-medium">{formatPLN(info.getValue())}</span>,
@@ -39,6 +42,12 @@ export function getInvestmentColumns(onToggle: (id: number, newActive: boolean) 
     col.accessor('balance', {
       id: 'balance',
       header: 'Bilans',
+      meta: { align: 'right' },
+      cell: (info) => <BalanceCell value={info.getValue()} />,
+    }),
+    col.accessor('marza', {
+      id: 'marza',
+      header: 'Marża',
       meta: { align: 'right' },
       cell: (info) => <BalanceCell value={info.getValue()} />,
     }),

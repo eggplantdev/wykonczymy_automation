@@ -96,18 +96,26 @@ describe('fetchManagerDashboardData', () => {
   })
 
   describe('investment balance calculation', () => {
-    it('calculates balance = totalIncome - totalMaterialCosts - totalLaborCosts', async () => {
+    it('calculates balance, totalCosts, and marza correctly', async () => {
       const data = await fetchManagerDashboardData()
       const invA = data.allInvestments.find((i) => i.id === 10)!
-      // 8000 - 2000 - 500 = 5500
+      // balance: 8000 - 2000 - 500 = 5500
       expect(invA.balance).toBe(5500)
+      // totalCosts: 2000 + 500 = 2500
+      expect(invA.totalCosts).toBe(2500)
+      // totalPayouts: 300
+      expect(invA.totalPayouts).toBe(300)
+      // marza: 5500 - 300 = 5200
+      expect(invA.marza).toBe(5200)
     })
 
     it('defaults missing financials to 0', async () => {
       const data = await fetchManagerDashboardData()
       const invB = data.allInvestments.find((i) => i.id === 20)!
-      // 0 - 0 - 0 = 0
       expect(invB.balance).toBe(0)
+      expect(invB.totalCosts).toBe(0)
+      expect(invB.totalPayouts).toBe(0)
+      expect(invB.marza).toBe(0)
     })
   })
 

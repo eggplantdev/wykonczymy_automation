@@ -39,14 +39,20 @@ export async function fetchManagerDashboardData() {
     const totalMaterialCosts = fin?.totalMaterialCosts ?? 0
     const totalIncome = fin?.totalIncome ?? 0
     const totalLaborCosts = fin?.totalLaborCosts ?? 0
+    const totalPayouts = fin?.totalPayouts ?? 0
+    const totalCosts = totalMaterialCosts + totalLaborCosts
+    const balance = totalIncome - totalCosts
     return {
       id: inv.id,
       name: inv.name,
       status: inv.status,
+      totalCosts,
       totalMaterialCosts,
       totalIncome,
       totalLaborCosts,
-      balance: totalIncome - totalMaterialCosts - totalLaborCosts,
+      totalPayouts,
+      balance,
+      marza: balance - totalPayouts,
       address: inv.address,
       phone: inv.phone,
       email: inv.email,
