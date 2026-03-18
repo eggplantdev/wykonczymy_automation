@@ -10,11 +10,7 @@ import type { HeaderFieldT } from '@/types/export'
 const INCOME_LABEL = 'Wpłaty'
 const LABOR_LABELS = new Set(['Koszty robocizny', 'Wypłaty'])
 
-const MATERIAL_BORDER = 'border-chart-blue'
-const LABOR_BORDER = 'border-chart-orange'
-const INCOME_BORDER = 'border-chart-green'
-
-const ROW_LABELS = ['Koszty materiałowe', 'Robocizna (wybierz jedną z dwóch opcji)']
+const ROW_LABELS = ['Koszty materiałowe', 'Robocizna (wybierz jedną z dwóch opcji)', 'Dochód']
 
 type FinancialStatsPropsT = {
   readonly fields: readonly HeaderFieldT[]
@@ -36,25 +32,22 @@ export function FinancialStats({ fields }: FinancialStatsPropsT) {
   const displayFields = fields.filter((f) => f.label !== BILANS_LABEL)
 
   const toEntry = (field: HeaderFieldT, borderClassName: string): StatEntryT => ({
-    label: field.label,
-    value: field.value,
+    ...field,
     amount: field.amount ?? 0,
     borderClassName,
-    pairedWith: field.pairedWith,
-    defaultHidden: field.defaultHidden,
   })
 
   const materialRow = displayFields
     .filter((f) => !LABOR_LABELS.has(f.label) && f.label !== INCOME_LABEL)
-    .map((f) => toEntry(f, MATERIAL_BORDER))
+    .map((f) => toEntry(f, 'border-chart-blue'))
 
   const laborRow = displayFields
     .filter((f) => LABOR_LABELS.has(f.label))
-    .map((f) => toEntry(f, LABOR_BORDER))
+    .map((f) => toEntry(f, 'border-chart-orange'))
 
   const incomeRow = displayFields
     .filter((f) => f.label === INCOME_LABEL)
-    .map((f) => toEntry(f, INCOME_BORDER))
+    .map((f) => toEntry(f, 'border-chart-green'))
 
   const rows = [materialRow, laborRow, ...(incomeRow.length > 0 ? [incomeRow] : [])]
 
