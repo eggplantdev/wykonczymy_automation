@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
 import { Description } from '@/components/ui/description'
-import { SaldoDisplay, saldoColor } from '@/components/ui/saldo-display'
+import { SaldoDisplay } from '@/components/ui/saldo-display'
 
 type StatEntryT = {
   readonly label: string
@@ -95,7 +95,7 @@ export function ToggleStatButtons({
                   className={cn('border-2', entry.borderClassName, isHidden && 'opacity-40')}
                 >
                   <span className="text-muted-foreground">{entry.label}:</span>
-                  <span className={cn('font-medium', saldoColor(entry.amount))}>{entry.value}</span>
+                  <span className="font-medium">{entry.value}</span>
                 </Button>
               )
             })}
