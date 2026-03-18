@@ -4,14 +4,13 @@ import { useState } from 'react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
 import { Description } from '@/components/ui/description'
-import { SaldoDisplay } from '@/components/ui/saldo-display'
+import { SaldoDisplay, saldoColor } from '@/components/ui/saldo-display'
 
 type StatEntryT = {
   readonly label: string
   readonly value: string
   readonly amount: number
   readonly borderColor: string
-  readonly valueClassName?: string
   readonly pairedWith?: string
   readonly defaultHidden?: boolean
 }
@@ -101,7 +100,7 @@ export function ToggleStatButtons({
                   aria-label={`${isHidden ? 'Pokaż' : 'Ukryj'} ${entry.label}`}
                 >
                   <span className="text-muted-foreground">{entry.label}:</span>
-                  <span className={cn('font-medium', entry.valueClassName)}>{entry.value}</span>
+                  <span className={cn('font-medium', saldoColor(entry.amount))}>{entry.value}</span>
                 </Button>
               )
             })}

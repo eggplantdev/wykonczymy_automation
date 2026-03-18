@@ -22,8 +22,6 @@ export function UserRegisterStats({ cashRegisters, currentUserName }: UserRegist
         value: formatPLN(cr.balance),
         amount: cr.balance,
         borderColor: USER_REGISTER_COLOR,
-        valueClassName:
-          cr.balance > 0 ? 'text-chart-green' : cr.balance < 0 ? 'text-destructive' : undefined,
       }))
   }, [cashRegisters, currentUserName])
 
