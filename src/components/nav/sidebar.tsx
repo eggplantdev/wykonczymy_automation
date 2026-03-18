@@ -1,15 +1,19 @@
 'use client'
 
-import { useCallback, useTransition } from 'react'
-import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
-import { FileBarChart, LogOut, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { RoleBadge } from '@/components/ui/badge'
-import { SECTION_LINKS } from '@/lib/constants/sections'
-import { ROLE_LABELS, type RoleT } from '@/lib/auth/roles'
 import { logoutAction } from '@/lib/actions/auth'
-import { RainbowButton } from '@/components/ui/rainbow-button'
+import { isAdminOrOwnerRole, type RoleT } from '@/lib/auth/roles'
+import { SECTION_LINKS } from '@/lib/constants/sections'
+import { FileBarChart, LogOut, Shield } from 'lucide-react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+
+function navigateToHash(hash: string) {
+  window.location.hash = hash
+  //When you click "Kasy" and the hash is already #kasy, the browser sees window.location.hash = 'kasy' as a no-op — the value didn't change, so it doesn't fire
+  // the hashchange event. The CollapsibleSection listener never triggers, so nothing scrolls or opens.
+  window.dispatchEvent(new HashChangeEvent('hashchange'))
+}
 
 type SidebarPropsT = {
   readonly user: {
@@ -20,35 +24,17 @@ type SidebarPropsT = {
 
 export function Sidebar({ user }: SidebarPropsT) {
   const pathname = usePathname()
-  const router = useRouter()
-  const [isPending, startTransition] = useTransition()
 
-  const handleSectionClick = useCallback(
-    (e: React.MouseEvent, hash: string) => {
-      if (pathname === '/') {
-        e.preventDefault()
-        window.location.hash = hash
-        window.dispatchEvent(new HashChangeEvent('hashchange'))
-      }
-    },
-    [pathname],
-  )
-
-  const handleLogout = () => {
-    startTransition(() => logoutAction())
+  function handleSectionClick(e: React.MouseEvent, hash: string) {
+    e.preventDefault()
+    if (pathname === '/') navigateToHash(hash)
   }
-
-  const showReports = user.role === 'ADMIN' || user.role === 'OWNER'
 
   return (
     <aside className="border-border bg-background sticky top-0 hidden h-screen w-fit min-w-48 shrink-0 flex-col border-r px-3 pb-3 lg:flex">
-      {/* Logo + badge — matches top bar min-h-14 */}
-      <div className="mb-4 flex h-14 items-center">
-        <Link href="/">
-          <h1 className="text-md font-semibold">Wykończymy 🚧</h1>
-        </Link>
-      </div>
-      {/* Navigation */}
+      <Link href="/" className={`mx-auto mb-4`}>
+        <h1 className="text-md leading-14 font-semibold">Wykończymy 🚧</h1>
+      </Link>
       <nav className="flex flex-col gap-1">
         {SECTION_LINKS.map((link) => (
           <Button key={link.href} variant="ghost" size="sm" className="justify-start" asChild>
@@ -58,7 +44,7 @@ export function Sidebar({ user }: SidebarPropsT) {
             </Link>
           </Button>
         ))}
-        {showReports && (
+        {isAdminOrOwnerRole(user.role) && (
           <Button variant="ghost" size="sm" className="justify-start" asChild>
             <Link href="/raporty">
               <FileBarChart className="size-4" />
@@ -74,23 +60,12 @@ export function Sidebar({ user }: SidebarPropsT) {
         </div>
         <div className="flex flex-col gap-2">
           <Button size="sm" asChild aria-label="Panel administracyjny">
-            <Link
-              href={`${process.env.NEXT_PUBLIC_FRONTEND_URL}/admin`}
-              target="_blank"
-              aria-label="Panel administracyjny"
-            >
+            <Link href="/admin" target="_blank">
               <Shield className="size-4" />
               Admin
             </Link>
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onMouseEnter={() => router.prefetch('/zaloguj')}
-            onClick={handleLogout}
-            disabled={isPending}
-            aria-label="Wyloguj"
-          >
+          <Button variant="outline" size="sm" onClick={() => logoutAction()}>
             <LogOut className="size-4" />
             Wyloguj
           </Button>
