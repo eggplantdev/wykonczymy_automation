@@ -92,8 +92,15 @@ describe('sumAllInvestmentFinancials', () => {
             total_costs: '3000',
             total_income: '10000',
             total_labor_costs: '200',
+            total_payouts: '150',
           },
-          { investment_id: '2', total_costs: '500', total_income: '0', total_labor_costs: '0' },
+          {
+            investment_id: '2',
+            total_costs: '500',
+            total_income: '0',
+            total_labor_costs: '0',
+            total_payouts: '0',
+          },
         ],
       })
       .mockResolvedValueOnce({ rows: [] })
@@ -104,12 +111,14 @@ describe('sumAllInvestmentFinancials', () => {
       totalMaterialCosts: 3000,
       totalIncome: 10000,
       totalLaborCosts: 200,
+      totalPayouts: 150,
     })
     expect(map.get(2)).toEqual({
       categoryCosts: [],
       totalMaterialCosts: 500,
       totalIncome: 0,
       totalLaborCosts: 0,
+      totalPayouts: 0,
     })
   })
 
@@ -128,6 +137,7 @@ describe('sumAllInvestmentFinancials', () => {
             total_costs: '7000',
             total_income: '10000',
             total_labor_costs: '800',
+            total_payouts: '0',
           },
         ],
       })
@@ -221,12 +231,14 @@ describe('deriveFinancials', () => {
       { type: 'INVESTMENT_EXPENSE', total: 5000 },
       { type: 'INVESTOR_DEPOSIT', total: 12000 },
       { type: 'LABOR_COST', total: 800 },
+      { type: 'PAYOUT', total: 300 },
     ]
     expect(deriveFinancials(byType)).toEqual({
       categoryCosts: [],
       totalMaterialCosts: 5000,
       totalIncome: 12000,
       totalLaborCosts: 800,
+      totalPayouts: 300,
     })
   })
 
@@ -236,6 +248,7 @@ describe('deriveFinancials', () => {
       totalMaterialCosts: 0,
       totalIncome: 0,
       totalLaborCosts: 0,
+      totalPayouts: 0,
     })
   })
 
@@ -251,6 +264,7 @@ describe('deriveFinancials', () => {
     ]
     const result = deriveFinancials(byType, byCat)
     expect(result.totalMaterialCosts).toBe(5000)
+    expect(result.totalPayouts).toBe(0)
     expect(result.categoryCosts).toEqual(byCat)
   })
 })

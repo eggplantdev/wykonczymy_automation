@@ -4,14 +4,15 @@ import { useState } from 'react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
 import { Description } from '@/components/ui/description'
-import { SaldoDisplay } from '@/components/ui/saldo-display'
+import { SaldoDisplay, saldoColor } from '@/components/ui/saldo-display'
 
 type StatEntryT = {
   readonly label: string
   readonly value: string
   readonly amount: number
-  readonly borderColor: string
-  readonly valueClassName?: string
+  readonly borderClassName: string
+  readonly pairedWith?: string
+  readonly defaultHidden?: boolean
 }
 
 type ToggleStatButtonsPropsT = {
@@ -19,7 +20,31 @@ type ToggleStatButtonsPropsT = {
   readonly rowLabels?: readonly string[]
   readonly summaryLabel: string
   readonly helpText?: string
+  readonly colorValues?: boolean
   readonly onToggle?: (label: string) => void
+}
+
+export function buildToggleResult(
+  label: string,
+  prev: ReadonlySet<string>,
+  pairedWith: string | undefined,
+): Set<string> {
+  const next = new Set(prev)
+
+  if (pairedWith) {
+    // Paired toggle: if clicking a hidden card, show it and hide its pair
+    if (next.has(label)) {
+      next.delete(label)
+      next.add(pairedWith)
+    }
+    // If clicking a visible paired card, no-op
+    return next
+  }
+
+  // Non-paired: normal toggle
+  if (next.has(label)) next.delete(label)
+  else next.add(label)
+  return next
 }
 
 export function computeSummary(
@@ -34,19 +59,22 @@ export function ToggleStatButtons({
   rowLabels,
   summaryLabel,
   helpText,
+  colorValues,
   onToggle,
 }: ToggleStatButtonsPropsT) {
-  const [hidden, setHidden] = useState<Set<string>>(new Set())
   const allEntries = rows.flat()
 
+  const [hidden, setHidden] = useState<Set<string>>(
+    () => new Set(allEntries.filter((e) => e.defaultHidden).map((e) => e.label)),
+  )
+
   function toggle(label: string) {
-    setHidden((prev) => {
-      const next = new Set(prev)
-      if (next.has(label)) next.delete(label)
-      else next.add(label)
-      return next
-    })
+    const entry = allEntries.find((e) => e.label === label)
+    setHidden((prev) => buildToggleResult(label, prev, entry?.pairedWith))
+
+    // Fire onToggle for both cards in a paired swap to keep Zustand store in sync
     onToggle?.(label)
+    if (entry?.pairedWith) onToggle?.(entry.pairedWith)
   }
 
   if (allEntries.length === 0) return null
@@ -66,13 +94,12 @@ export function ToggleStatButtons({
                   variant="outline"
                   key={entry.label}
                   onClick={() => toggle(entry.label)}
-                  className={cn('border-2', isHidden && 'opacity-40')}
-                  style={{ borderColor: entry.borderColor }}
-                  aria-pressed={!isHidden}
-                  aria-label={`${isHidden ? 'Pokaż' : 'Ukryj'} ${entry.label}`}
+                  className={cn('border-2', entry.borderClassName, isHidden && 'opacity-40')}
                 >
                   <span className="text-muted-foreground">{entry.label}:</span>
-                  <span className={cn('font-medium', entry.valueClassName)}>{entry.value}</span>
+                  <span className={cn('font-medium', colorValues && saldoColor(entry.amount))}>
+                    {entry.value}
+                  </span>
                 </Button>
               )
             })}
@@ -82,7 +109,11 @@ export function ToggleStatButtons({
 
       {helpText && <Description>{helpText}</Description>}
 
-      <SaldoDisplay saldo={total} label={summaryLabel} />
+      <SaldoDisplay
+        saldo={total}
+        label={summaryLabel}
+        selectionCount={{ selected: allEntries.length - hidden.size, total: allEntries.length }}
+      />
     </div>
   )
 }

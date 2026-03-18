@@ -4,7 +4,7 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { formatPLN } from '@/lib/format-currency'
 import { BalanceCell } from '@/components/ui/balance-cell'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
-import { MailtoLink } from '@/components/ui/mailto-link'
+import { ContactLink } from '@/components/ui/contact-link'
 
 export type InvestmentRowT = {
   readonly id: number
@@ -52,25 +52,13 @@ export function getInvestmentColumns(onToggle: (id: number, newActive: boolean) 
       id: 'phone',
       header: 'Telefon',
 
-      cell: (info) => {
-        const value = info.getValue()
-        return value ? (
-          <a href={`tel:${value}`} className="text-primary hover:underline">
-            {value}
-          </a>
-        ) : (
-          '—'
-        )
-      },
+      cell: (info) => <ContactLink type="phone" value={info.getValue()} />,
     }),
     col.accessor('email', {
       id: 'email',
       header: 'Email',
 
-      cell: (info) => {
-        const value = info.getValue()
-        return value ? <MailtoLink email={value} /> : '—'
-      },
+      cell: (info) => <ContactLink type="email" value={info.getValue()} />,
     }),
     col.accessor('contactPerson', {
       id: 'contactPerson',

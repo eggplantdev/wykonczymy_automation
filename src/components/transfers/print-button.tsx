@@ -24,15 +24,12 @@ export function PrintButton({ config, visibleColumnIds }: PrintButtonPropsT) {
 
   // If store has visibility state (investment page), apply it; otherwise pass through all fields
   const hasStoreVisibility = Object.keys(storeVisibility).length > 0
-  const visibleHeaderFields = hasStoreVisibility
-    ? headerFields
-        .filter((f) => storeVisibility[f.label] !== false)
-        .map((f) => {
-          if (f.label !== BILANS_LABEL) return f
-          const bilans = calculateBilans(headerFields, storeVisibility)
-          return { ...f, value: formatPLN(bilans) }
-        })
+  const visibleFields = hasStoreVisibility
+    ? headerFields.filter((f) => storeVisibility[f.label] !== false)
     : [...headerFields]
+
+  const bilans = calculateBilans(headerFields, storeVisibility)
+  const visibleHeaderFields = [...visibleFields, { label: BILANS_LABEL, value: formatPLN(bilans) }]
 
   async function handlePrint() {
     setIsLoading(true)
