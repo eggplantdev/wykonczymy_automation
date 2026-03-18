@@ -24,6 +24,7 @@ export default function FormBase({
   controlFirst,
   horizontal,
   showError,
+  fieldClassName,
 }: FormBasePropsT) {
   const field = useFieldContext()
   const isInvalid = field.state.meta.errors.length > 0
@@ -41,7 +42,11 @@ export default function FormBase({
     ))
 
   return (
-    <Field data-invalid={isInvalid} orientation={horizontal ? 'horizontal' : undefined}>
+    <Field
+      data-invalid={isInvalid}
+      orientation={horizontal ? 'horizontal' : undefined}
+      className={fieldClassName}
+    >
       {controlFirst ? (
         <>
           {children}

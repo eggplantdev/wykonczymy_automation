@@ -40,6 +40,7 @@ export function FormFileInput({ accept, ...props }: FormFileInputPropsT) {
           'border-input bg-background flex h-9 w-full items-center gap-2 rounded-md border px-3 text-left text-sm transition-[color,box-shadow] outline-none',
           'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
           fileName ? 'text-foreground' : 'text-muted-foreground',
+          props.className,
         )}
       >
         <Icon iconName="plus" size="sm" />

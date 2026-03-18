@@ -20,7 +20,12 @@ export function FormSelect({
         onValueChange={(e) => e !== '' && field.handleChange(e)}
         disabled={disabled}
       >
-        <SelectTrigger aria-invalid={isInvalid} id={field.name} onBlur={field.handleBlur}>
+        <SelectTrigger
+          aria-invalid={isInvalid}
+          id={field.name}
+          onBlur={field.handleBlur}
+          className={props.className}
+        >
           <SelectValue placeholder={props.placeholder} />
         </SelectTrigger>
         <SelectContent>{children}</SelectContent>

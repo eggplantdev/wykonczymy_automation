@@ -1,4 +1,5 @@
 import { Checkbox } from '@/components/ui/checkbox'
+import { cn } from '@/lib/cn'
 import { useFieldContext } from '../hooks/form-hooks'
 import { FormControlPropsT } from '../types/form-types'
 import FormBase from './form-base'
@@ -16,7 +17,7 @@ export function FormCheckbox(props: FormControlPropsT) {
         onBlur={field.handleBlur}
         onCheckedChange={(e) => field.handleChange(e === true)}
         aria-invalid={isInvalid}
-        className={`mr-2`}
+        className={cn('mr-2', props.className)}
       />
     </FormBase>
   )

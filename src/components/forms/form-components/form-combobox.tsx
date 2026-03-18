@@ -55,6 +55,7 @@ export function FormCombobox({
             className={cn(
               'border-input focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 aria-invalid:border-destructive bg-background text-foreground flex h-9 w-full items-center justify-between gap-2 rounded-md border px-3 text-sm whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50',
               !selectedLabel && 'text-muted-foreground',
+              props.className,
             )}
           >
             <span className="truncate">{selectedLabel ?? props.placeholder}</span>

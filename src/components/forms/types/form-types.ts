@@ -10,6 +10,7 @@ export type FormControlPropsT = {
   type?: React.ComponentProps<'input'>['type']
   autoComplete?: React.ComponentProps<'input'>['autoComplete']
   className?: string
+  fieldClassName?: string
 }
 
 /**
