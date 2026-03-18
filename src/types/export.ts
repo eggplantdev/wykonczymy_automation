@@ -23,4 +23,5 @@ export type TransferTableConfigT = {
   readonly context?: ExportContextT
   readonly contextId?: number
   readonly headerFields?: HeaderFieldT[]
+  readonly totalPayouts?: number
 }

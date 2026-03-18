@@ -67,7 +67,10 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
     <PageWrapper title={investment.name}>
       <InfoList items={infoFields.filter((f) => f.value)} />
 
-      <FinancialStats fields={headerFields.filter((f) => f.amount !== undefined)} />
+      <FinancialStats
+        fields={headerFields.filter((f) => f.amount !== undefined)}
+        totalPayouts={financials.totalPayouts}
+      />
 
       {/* Transactions table */}
       <TransfersSection
@@ -79,6 +82,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
           context: 'investment',
           contextId: investmentId,
           headerFields,
+          totalPayouts: financials.totalPayouts,
         }}
       />
     </PageWrapper>
