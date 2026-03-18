@@ -32,7 +32,8 @@ const showSourceRegister = (data: Record<string, unknown>) => data?.type !== 'LA
 const showInvestment = (data: Record<string, unknown>) =>
   data?.type === 'INVESTOR_DEPOSIT' ||
   data?.type === 'INVESTMENT_EXPENSE' ||
-  data?.type === 'LABOR_COST'
+  data?.type === 'LABOR_COST' ||
+  data?.type === 'PAYOUT'
 
 /** Show targetRegister only for REGISTER_TRANSFER */
 const showTargetRegister = (data: Record<string, unknown>) => data?.type === 'REGISTER_TRANSFER'
