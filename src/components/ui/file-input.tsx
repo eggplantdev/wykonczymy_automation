@@ -1,17 +1,26 @@
+// TODO: Invoice upload improvements needed:
+// - Compress/resize large images before upload (currently fails with big files)
+// - Add proper error handling for upload failures
+
 'use client'
 
 import * as React from 'react'
 import { useState } from 'react'
 import { Upload } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { FieldLabel } from '@/components/ui/field'
 
 type FileInputPropsT = React.ComponentProps<'input'> & {
   label?: string
+  placeholder?: string
+  fieldClassName?: string
 }
 
 function FileInput({
   className,
-  label = 'Przeciągnij lub kliknij',
+  label,
+  placeholder = 'Przeciągnij lub kliknij',
+  fieldClassName,
   onChange,
   accept = 'image/*,application/pdf',
   ref,
@@ -72,7 +81,8 @@ function FileInput({
   }
 
   return (
-    <>
+    <div className={cn('flex w-full flex-col gap-1', fieldClassName)}>
+      {label && <FieldLabel>{label}</FieldLabel>}
       <div
         role="button"
         tabIndex={0}
@@ -91,7 +101,7 @@ function FileInput({
         )}
       >
         <Upload className="size-4" />
-        <span className="text-sm">{fileName ?? label ?? 'FV - Przeciągnij lub kliknij'}</span>
+        <span className="text-sm">{fileName ?? placeholder}</span>
 
         <input
           ref={setRefs}
@@ -107,7 +117,7 @@ function FileInput({
           {error}
         </div>
       )}
-    </>
+    </div>
   )
 }
 

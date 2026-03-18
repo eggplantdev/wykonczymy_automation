@@ -190,14 +190,12 @@ export function LineItemsField({
                       />
                     )}
                   </form.AppField>
-                  <div className="min-w-0 flex-1">
-                    {/* <Label className="mb-2 block">FV</Label> */}
-                    <FileInput
-                      label="Przeciągnij lub kliknij"
-                      accept="image/*,application/pdf"
-                      onChange={(e) => onFileChange(index, e)}
-                    />
-                  </div>
+                  <FileInput
+                    label="FV"
+                    fieldClassName="min-w-0 flex-1"
+                    accept="image/*,application/pdf"
+                    onChange={(e) => onFileChange(index, e)}
+                  />
                 </div>
               </div>
             ))}
