@@ -15,7 +15,7 @@ import { buildFilterConfig } from '@/lib/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
-import { MailtoLink } from '@/components/ui/mailto-link'
+import { ContactLink } from '@/components/ui/contact-link'
 import { FinancialStats } from '@/components/investments/financial-stats'
 import type { HeaderFieldT } from '@/types/export'
 import type { DynamicPagePropsT } from '@/types/page'
@@ -47,6 +47,8 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
 
   const financials = deriveFinancials(typeDistribution, categoryBreakdown)
 
+  // Dual-purpose: FinancialStats uses fields with `amount` for toggle buttons,
+  // PrintButton uses the full array (including the label-only entry) for print header.
   const headerFields: HeaderFieldT[] = [
     { label: 'Inwestycja', value: investment.name },
     ...buildFinancialFields(financials, refData.expenseCategories),
@@ -54,18 +56,8 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
 
   const infoFields = [
     { label: 'Adres', value: investment.address },
-    {
-      label: 'Telefon',
-      value: investment.phone ? (
-        <a href={`tel:${investment.phone}`} className="text-primary hover:underline">
-          {investment.phone}
-        </a>
-      ) : undefined,
-    },
-    {
-      label: 'Email',
-      value: investment.email ? <MailtoLink email={investment.email} /> : undefined,
-    },
+    { label: 'Telefon', value: <ContactLink type="phone" value={investment.phone} /> },
+    { label: 'Email', value: <ContactLink type="email" value={investment.email} /> },
     { label: 'Osoba kontaktowa', value: investment.contactPerson },
     { label: 'Notatki', value: investment.notes },
     { label: 'Status', value: investment.status === 'active' ? 'Aktywna' : 'Zakończona' },
