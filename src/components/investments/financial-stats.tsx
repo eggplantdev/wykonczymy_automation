@@ -7,22 +7,14 @@ import { ToggleStatButtons } from '@/components/ui/toggle-stat-buttons'
 import type { StatEntryT } from '@/components/ui/toggle-stat-buttons'
 import type { HeaderFieldT } from '@/types/export'
 
-const EXPENSE_LABEL = 'Koszty robocizny'
 const INCOME_LABEL = 'Wpłaty'
+const LABOR_LABELS = new Set(['Koszty robocizny', 'Wypłaty'])
 
-const PAYOUTS_LABEL = 'Wypłaty'
+const MATERIAL_BORDER = 'border-chart-blue'
+const LABOR_BORDER = 'border-chart-orange'
+const INCOME_BORDER = 'border-chart-green'
 
-const FIXED_FIELD_COLORS: Record<string, string> = {
-  [EXPENSE_LABEL]: 'border-chart-orange',
-  [PAYOUTS_LABEL]: 'border-chart-pink',
-  [INCOME_LABEL]: 'border-chart-green',
-}
-
-const CATEGORY_PALETTE = ['border-chart-blue', 'border-chart-teal', 'border-chart-purple']
-
-const LABOR_LABELS = new Set([EXPENSE_LABEL, PAYOUTS_LABEL])
-
-const ROW_LABELS = ['Koszty materiałowe', 'Robocizna']
+const ROW_LABELS = ['Koszty materiałowe', 'Robocizna (wybierz jedną z dwóch opcji)']
 
 type FinancialStatsPropsT = {
   readonly fields: readonly HeaderFieldT[]
@@ -43,28 +35,28 @@ export function FinancialStats({ fields }: FinancialStatsPropsT) {
 
   const displayFields = fields.filter((f) => f.label !== BILANS_LABEL)
 
-  // Palette index only increments for fields without fixed colors,
-  // so dynamic categories get consecutive palette slots.
-  let paletteIndex = 0
-  const entries: StatEntryT[] = displayFields.map((field) => {
-    const borderClassName =
-      FIXED_FIELD_COLORS[field.label] ?? CATEGORY_PALETTE[paletteIndex++ % CATEGORY_PALETTE.length]
-
-    return {
-      label: field.label,
-      value: field.value,
-      amount: field.amount ?? 0,
-      borderClassName,
-      pairedWith: field.pairedWith,
-      defaultHidden: field.defaultHidden,
-    }
+  const toEntry = (field: HeaderFieldT, borderClassName: string): StatEntryT => ({
+    label: field.label,
+    value: field.value,
+    amount: field.amount ?? 0,
+    borderClassName,
+    pairedWith: field.pairedWith,
+    defaultHidden: field.defaultHidden,
   })
 
-  const incomeEntry = entries.find((e) => e.label === INCOME_LABEL)
-  const laborRow = entries.filter((e) => LABOR_LABELS.has(e.label))
-  const materialRow = entries.filter((e) => e.label !== INCOME_LABEL && !LABOR_LABELS.has(e.label))
+  const materialRow = displayFields
+    .filter((f) => !LABOR_LABELS.has(f.label) && f.label !== INCOME_LABEL)
+    .map((f) => toEntry(f, MATERIAL_BORDER))
 
-  const rows = [materialRow, laborRow, ...(incomeEntry ? [[incomeEntry]] : [])]
+  const laborRow = displayFields
+    .filter((f) => LABOR_LABELS.has(f.label))
+    .map((f) => toEntry(f, LABOR_BORDER))
+
+  const incomeRow = displayFields
+    .filter((f) => f.label === INCOME_LABEL)
+    .map((f) => toEntry(f, INCOME_BORDER))
+
+  const rows = [materialRow, laborRow, ...(incomeRow.length > 0 ? [incomeRow] : [])]
 
   return (
     <ToggleStatButtons
@@ -72,7 +64,7 @@ export function FinancialStats({ fields }: FinancialStatsPropsT) {
       rowLabels={ROW_LABELS}
       summaryLabel="Bilans"
       onToggle={toggle}
-      helpText="Saldo liczone jest dynamicznie jako suma wybranych kategorii kas oraz filtrów."
+      helpText="Saldo liczone jest dynamicznie jako suma wybranych kategorii oraz filtrów."
     />
   )
 }
