@@ -32,6 +32,7 @@ export function UserRegisterStats({ cashRegisters, currentUserName }: UserRegist
       rows={[userEntries]}
       summaryLabel="Saldo moich kas"
       rowLabels={['Moje Kasy']}
+      colorValues
     />
   )
 }
