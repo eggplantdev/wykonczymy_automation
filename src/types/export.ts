@@ -7,6 +7,8 @@ export type HeaderFieldT = {
   readonly label: string
   readonly value: string
   readonly amount?: number
+  readonly pairedWith?: string
+  readonly defaultHidden?: boolean
 }
 
 export type TransferQueryT = {
