@@ -114,14 +114,9 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
 
           <DescriptionField form={form} placeholder="Opis wpłaty" />
 
-          {/* Amount + Date */}
           <div className="flex items-start gap-4">
-            <div className="min-w-0 flex-1">
-              <AmountField form={form} />
-            </div>
-            <div className="w-40">
-              <DateField form={form} />
-            </div>
+            <AmountField form={form} fieldClassName="min-w-0 flex-1" />
+            <DateField form={form} fieldClassName="w-40" />
           </div>
 
           {/* Payment method — temporarily hidden, always CASH */}
@@ -135,9 +130,7 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
           )}
         </FieldGroup>
 
-        <div className="mt-6">
-          <FormFooter />
-        </div>
+        <FormFooter className="mt-6" />
       </form>
     </form.AppForm>
   )

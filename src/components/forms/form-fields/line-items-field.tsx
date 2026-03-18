@@ -81,15 +81,22 @@ function CategorySelect({
   form,
   index,
   config,
+  fieldClassName,
 }: {
   form: FormT
   index: number
   config: CategoryFieldConfigT
+  fieldClassName?: string
 }) {
   return (
     <form.AppField name={`lineItems[${index}].${config.fieldName}`}>
       {(field: AppFieldComponentsT) => (
-        <field.Select label={config.label} placeholder={config.placeholder} showError>
+        <field.Select
+          label={config.label}
+          placeholder={config.placeholder}
+          showError
+          fieldClassName={fieldClassName}
+        >
           {config.options.map((opt) => (
             <SelectItem key={opt.id} value={String(opt.id)}>
               {opt.name}
@@ -129,24 +136,34 @@ export function LineItemsField({
                   <span className="text-muted-foreground mb-2 w-6 shrink-0 text-center text-sm font-medium">
                     {index + 1}.
                   </span>
-                  <div className="w-28">
-                    <form.AppField name={`lineItems[${index}].amount`}>
-                      {(field: AppFieldComponentsT) => (
-                        <field.Input label="Kwota" placeholder="0.00 PLN" type="number" showError />
-                      )}
-                    </form.AppField>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <form.AppField name={`lineItems[${index}].description`}>
-                      {(field: AppFieldComponentsT) => (
-                        <field.Input label="Opis" placeholder="Opcjonalnie" showError />
-                      )}
-                    </form.AppField>
-                  </div>
+                  <form.AppField name={`lineItems[${index}].amount`}>
+                    {(field: AppFieldComponentsT) => (
+                      <field.Input
+                        label="Kwota"
+                        placeholder="0.00 PLN"
+                        type="number"
+                        showError
+                        fieldClassName="w-28"
+                      />
+                    )}
+                  </form.AppField>
+                  <form.AppField name={`lineItems[${index}].description`}>
+                    {(field: AppFieldComponentsT) => (
+                      <field.Input
+                        label="Opis"
+                        placeholder="Opcjonalnie"
+                        showError
+                        fieldClassName="min-w-0 flex-1"
+                      />
+                    )}
+                  </form.AppField>
                   {inlineCategory && (
-                    <div className="min-w-0 flex-1">
-                      <CategorySelect form={form} index={index} config={inlineCategory} />
-                    </div>
+                    <CategorySelect
+                      form={form}
+                      index={index}
+                      config={inlineCategory}
+                      fieldClassName="min-w-0 flex-1"
+                    />
                   )}
                   <RemoveButton
                     className="mb-0.5"
@@ -156,19 +173,25 @@ export function LineItemsField({
                 </div>
                 <div className="flex items-start gap-2 pr-10 pl-8">
                   {secondRowCategory && (
-                    <div className="min-w-0 flex-1">
-                      <CategorySelect form={form} index={index} config={secondRowCategory} />
-                    </div>
+                    <CategorySelect
+                      form={form}
+                      index={index}
+                      config={secondRowCategory}
+                      fieldClassName="min-w-0 flex-1"
+                    />
                   )}
+                  <form.AppField name={`lineItems[${index}].invoiceNote`}>
+                    {(field: AppFieldComponentsT) => (
+                      <field.Input
+                        label="Notatka"
+                        placeholder="Opcjonalnie"
+                        showError
+                        fieldClassName="min-w-0 flex-1"
+                      />
+                    )}
+                  </form.AppField>
                   <div className="min-w-0 flex-1">
-                    <form.AppField name={`lineItems[${index}].invoiceNote`}>
-                      {(field: AppFieldComponentsT) => (
-                        <field.Input label="Notatka" placeholder="Opcjonalnie" showError />
-                      )}
-                    </form.AppField>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <Label className="mb-2 block">FV</Label>
+                    {/* <Label className="mb-2 block">FV</Label> */}
                     <FileInput
                       label="Przeciągnij lub kliknij"
                       accept="image/*,application/pdf"

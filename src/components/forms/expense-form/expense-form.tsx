@@ -179,22 +179,18 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
       >
         <FieldGroup>
           <div className="flex items-start gap-4">
-            <div className="min-w-0 flex-1">
-              <form.AppField name="type" listeners={{ onChange: resetConditionalFields }}>
-                {(field) => (
-                  <field.Select label="Typ wydatku" showError>
-                    {TRANSACTION_TRANSFER_TYPES.map((t) => (
-                      <SelectItem key={t} value={t}>
-                        {TRANSFER_TYPE_LABELS[t]}
-                      </SelectItem>
-                    ))}
-                  </field.Select>
-                )}
-              </form.AppField>
-            </div>
-            <div className="w-40">
-              <DateField form={form} />
-            </div>
+            <form.AppField name="type" listeners={{ onChange: resetConditionalFields }}>
+              {(field) => (
+                <field.Select label="Typ wydatku" showError fieldClassName="min-w-0 flex-1">
+                  {TRANSACTION_TRANSFER_TYPES.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {TRANSFER_TYPE_LABELS[t]}
+                    </SelectItem>
+                  ))}
+                </field.Select>
+              )}
+            </form.AppField>
+            <DateField form={form} fieldClassName="w-40" />
           </div>
 
           {showsInvestment(currentType) && (
@@ -242,9 +238,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
 
         {saldo !== null && <SaldoSummary saldo={saldo} total={total} />}
 
-        <div className="mt-6">
-          <FormFooter />
-        </div>
+        <FormFooter className="mt-6" />
       </form>
     </form.AppForm>
   )

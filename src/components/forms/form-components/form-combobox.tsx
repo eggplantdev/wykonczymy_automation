@@ -62,7 +62,7 @@ export function FormCombobox({
             <Icon iconName="dropdownDown" size="sm" />
           </button>
         </PopoverTrigger>
-        <PopoverContent className="z-[10001] w-[--radix-popover-trigger-width] p-0" align="start">
+        <PopoverContent className="z-10001 w-[--radix-popover-trigger-width] p-0" align="start">
           <Command>
             <CommandInput placeholder={searchPlaceholder} />
             <CommandList>
