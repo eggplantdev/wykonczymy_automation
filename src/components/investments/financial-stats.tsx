@@ -24,7 +24,9 @@ const CATEGORY_PALETTE = [
   'var(--color-chart-purple)',
 ]
 
-const ROW_LABELS = ['Koszty']
+const LABOR_LABELS = new Set([EXPENSE_LABEL, PAYOUTS_LABEL])
+
+const ROW_LABELS = ['Koszty materiałowe', 'Robocizna']
 
 type FinancialStatsPropsT = {
   readonly fields: readonly HeaderFieldT[]
@@ -41,7 +43,7 @@ export function FinancialStats({ fields }: FinancialStatsPropsT) {
   // starts fresh on mount, causing print/export to disagree with the UI.
   useEffect(() => {
     reset(defaultHiddenLabels.length > 0 ? defaultHiddenLabels : undefined)
-  }, [reset])
+  }, [reset, defaultHiddenLabels])
 
   const displayFields = fields.filter((f) => f.label !== BILANS_LABEL)
 
@@ -63,8 +65,10 @@ export function FinancialStats({ fields }: FinancialStatsPropsT) {
   })
 
   const incomeEntry = entries.find((e) => e.label === INCOME_LABEL)
-  const expenseRow = entries.filter((e) => e.label !== INCOME_LABEL)
-  const rows = incomeEntry ? [expenseRow, [incomeEntry]] : [expenseRow]
+  const laborRow = entries.filter((e) => LABOR_LABELS.has(e.label))
+  const materialRow = entries.filter((e) => e.label !== INCOME_LABEL && !LABOR_LABELS.has(e.label))
+
+  const rows = [materialRow, laborRow, ...(incomeEntry ? [[incomeEntry]] : [])]
 
   return (
     <ToggleStatButtons rows={rows} rowLabels={ROW_LABELS} summaryLabel="Bilans" onToggle={toggle} />
