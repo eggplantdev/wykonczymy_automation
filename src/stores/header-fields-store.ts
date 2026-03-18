@@ -3,7 +3,7 @@ import { create } from 'zustand'
 type HeaderFieldsStoreT = {
   visibility: Record<string, boolean>
   toggle: (label: string) => void
-  reset: () => void
+  reset: (defaultHidden?: string[]) => void
 }
 
 export const useHeaderFieldsStore = create<HeaderFieldsStoreT>()((set) => ({
@@ -14,5 +14,10 @@ export const useHeaderFieldsStore = create<HeaderFieldsStoreT>()((set) => ({
       visibility: { ...state.visibility, [label]: !(state.visibility[label] ?? true) },
     })),
 
-  reset: () => set({ visibility: {} }),
+  reset: (defaultHidden) =>
+    set({
+      visibility: defaultHidden
+        ? Object.fromEntries(defaultHidden.map((label) => [label, false]))
+        : {},
+    }),
 }))

@@ -10,8 +10,11 @@ import type { HeaderFieldT } from '@/types/export'
 const EXPENSE_LABEL = 'Koszty robocizny'
 const INCOME_LABEL = 'Wpłaty'
 
+const PAYOUTS_LABEL = 'Wypłaty'
+
 const FIXED_FIELD_COLORS: Record<string, string> = {
   [EXPENSE_LABEL]: 'var(--color-chart-orange)',
+  [PAYOUTS_LABEL]: 'var(--color-chart-pink)',
   [INCOME_LABEL]: 'var(--color-chart-green)',
 }
 
@@ -31,11 +34,13 @@ export function FinancialStats({ fields }: FinancialStatsPropsT) {
   const toggle = useHeaderFieldsStore((s) => s.toggle)
   const reset = useHeaderFieldsStore((s) => s.reset)
 
+  const defaultHiddenLabels = fields.filter((f) => f.defaultHidden).map((f) => f.label)
+
   // Clear stale toggle state from previous pages — the Zustand store
   // persists across SPA navigations, but the component's internal Set
   // starts fresh on mount, causing print/export to disagree with the UI.
   useEffect(() => {
-    reset()
+    reset(defaultHiddenLabels.length > 0 ? defaultHiddenLabels : undefined)
   }, [reset])
 
   const displayFields = fields.filter((f) => f.label !== BILANS_LABEL)
@@ -52,6 +57,8 @@ export function FinancialStats({ fields }: FinancialStatsPropsT) {
       value: field.value,
       amount: field.amount ?? 0,
       borderColor,
+      pairedWith: field.pairedWith,
+      defaultHidden: field.defaultHidden,
     }
   })
 
