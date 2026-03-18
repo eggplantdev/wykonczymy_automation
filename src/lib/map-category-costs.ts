@@ -1,7 +1,6 @@
 import type { CategoryCostT, InvestmentFinancialsT } from '@/lib/db/sum-transfers'
 import type { HeaderFieldT } from '@/types/export'
 import { formatPLN } from '@/lib/format-currency'
-import { BILANS_LABEL } from '@/lib/export/header-fields'
 
 /** Map ALL expense categories to header fields, showing 0 for categories with no transactions. */
 function mapCategoryCostsToFields(
@@ -16,13 +15,12 @@ function mapCategoryCostsToFields(
   })
 }
 
-/** Build the shared financial header fields (category costs + totals + bilans). */
+/** Build the shared financial header fields (category costs + totals). */
 export function buildFinancialFields(
   financials: InvestmentFinancialsT,
   expenseCategories: readonly { readonly id: number; readonly name: string }[],
 ): HeaderFieldT[] {
-  const { categoryCosts, totalMaterialCosts, totalIncome, totalLaborCosts, totalPayouts } =
-    financials
+  const { categoryCosts, totalIncome, totalLaborCosts, totalPayouts } = financials
 
   return [
     ...mapCategoryCostsToFields(categoryCosts, expenseCategories),
@@ -40,6 +38,5 @@ export function buildFinancialFields(
       defaultHidden: true,
     },
     { label: 'Wpłaty', value: formatPLN(totalIncome), amount: totalIncome },
-    { label: BILANS_LABEL, value: formatPLN(totalIncome - totalMaterialCosts - totalLaborCosts) },
   ]
 }

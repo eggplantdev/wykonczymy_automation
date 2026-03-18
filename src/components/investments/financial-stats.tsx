@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react'
 import { useHeaderFieldsStore } from '@/stores/header-fields-store'
-import { BILANS_LABEL } from '@/lib/export/header-fields'
 import { ToggleStatButtons } from '@/components/ui/toggle-stat-buttons'
 import type { StatEntryT } from '@/components/ui/toggle-stat-buttons'
 import type { HeaderFieldT } from '@/types/export'
@@ -29,23 +28,21 @@ export function FinancialStats({ fields }: FinancialStatsPropsT) {
     reset(defaultHiddenLabels.length > 0 ? defaultHiddenLabels : undefined)
   }, [reset, defaultHiddenLabels])
 
-  const displayFields = fields.filter((f) => f.label !== BILANS_LABEL)
-
   const toEntry = (field: HeaderFieldT, borderClassName: string): StatEntryT => ({
     ...field,
     amount: field.amount ?? 0,
     borderClassName,
   })
 
-  const materialRow = displayFields
+  const materialRow = fields
     .filter((f) => !LABOR_LABELS.has(f.label) && f.label !== INCOME_LABEL)
     .map((f) => toEntry(f, 'border-chart-blue'))
 
-  const laborRow = displayFields
+  const laborRow = fields
     .filter((f) => LABOR_LABELS.has(f.label))
     .map((f) => toEntry(f, 'border-chart-orange'))
 
-  const incomeRow = displayFields
+  const incomeRow = fields
     .filter((f) => f.label === INCOME_LABEL)
     .map((f) => toEntry(f, 'border-chart-green'))
 

@@ -10,7 +10,6 @@ import {
 import { deriveFinancials } from '@/lib/db/sum-transfers'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { buildFinancialFields } from '@/lib/map-category-costs'
-import { BILANS_LABEL } from '@/lib/export/header-fields'
 import { perfStart } from '@/lib/perf'
 import { buildFilterConfig } from '@/lib/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
@@ -48,9 +47,7 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
 
   return (
     <PageWrapper title="Raporty">
-      <FinancialStats
-        fields={headerFields.filter((f) => f.amount !== undefined || f.label === BILANS_LABEL)}
-      />
+      <FinancialStats fields={headerFields.filter((f) => f.amount !== undefined)} />
 
       <ReportChart financials={financials} expenseCategories={refData.expenseCategories} />
 
