@@ -2,6 +2,7 @@ import { parsePagination } from '@/lib/pagination'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { fetchManagerDashboardData } from '@/lib/queries/dashboard'
 import { DashboardTables } from '@/components/dashboard/dashboard-tables'
+import { UserRegisterStats } from '@/components/dashboard/user-register-stats'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { SECTION_IDS } from '@/lib/constants/sections'
@@ -22,11 +23,9 @@ export async function ManagerDashboard({ searchParams, currentUserName }: Manage
 
   return (
     <PageWrapper title="Pulpit" backHref="">
-      <DashboardTables
-        cashRegisters={visibleRegisters}
-        investments={allInvestments}
-        currentUserName={currentUserName}
-      />
+      <UserRegisterStats cashRegisters={visibleRegisters} currentUserName={currentUserName} />
+
+      <DashboardTables cashRegisters={visibleRegisters} investments={allInvestments} />
 
       {/* Recent transactions */}
       <TransfersSection
