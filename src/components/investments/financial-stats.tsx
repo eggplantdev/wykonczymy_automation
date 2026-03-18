@@ -29,19 +29,28 @@ export function FinancialStats({ fields, totalPayouts }: FinancialStatsPropsT) {
     borderClassName,
   })
 
-  const entries = fields.map((f) =>
-    f.label === INCOME_LABEL ? toEntry(f, 'border-chart-green') : toEntry(f, 'border-chart-blue'),
-  )
+  const expenseRow = fields
+    .filter((f) => f.label !== INCOME_LABEL)
+    .map((f) => toEntry(f, 'border-chart-blue'))
+
+  const incomeRow = fields
+    .filter((f) => f.label === INCOME_LABEL)
+    .map((f) => toEntry(f, 'border-chart-green'))
+
+  const rows = [expenseRow, ...(incomeRow.length > 0 ? [incomeRow] : [])]
+  const allEntries = rows.flat()
 
   // Compute current Bilans from visibility state (mirrors ToggleStatButtons internal logic)
-  const hidden = new Set(entries.filter((e) => visibility[e.label] === false).map((e) => e.label))
-  const bilans = computeSummary(entries, hidden)
+  const hidden = new Set(
+    allEntries.filter((e) => visibility[e.label] === false).map((e) => e.label),
+  )
+  const bilans = computeSummary(allEntries, hidden)
   const marza = bilans - (totalPayouts ?? 0)
 
   return (
     <>
       <ToggleStatButtons
-        rows={[entries]}
+        rows={rows}
         summaryLabel="Bilans"
         onToggle={toggle}
         helpText="Saldo liczone jest dynamicznie jako suma wybranych kategorii oraz filtrów."
