@@ -10,7 +10,7 @@ type StatEntryT = {
   readonly label: string
   readonly value: string
   readonly amount: number
-  readonly borderColor: string
+  readonly borderClassName: string
   readonly pairedWith?: string
   readonly defaultHidden?: boolean
 }
@@ -92,10 +92,7 @@ export function ToggleStatButtons({
                   variant="outline"
                   key={entry.label}
                   onClick={() => toggle(entry.label)}
-                  className={cn('border-2', isHidden && 'opacity-40')}
-                  style={{ borderColor: entry.borderColor }}
-                  aria-pressed={!isHidden}
-                  aria-label={`${isHidden ? 'Pokaż' : 'Ukryj'} ${entry.label}`}
+                  className={cn('border-2', entry.borderClassName, isHidden && 'opacity-40')}
                 >
                   <span className="text-muted-foreground">{entry.label}:</span>
                   <span className={cn('font-medium', saldoColor(entry.amount))}>{entry.value}</span>

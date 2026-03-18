@@ -13,16 +13,12 @@ const INCOME_LABEL = 'Wpłaty'
 const PAYOUTS_LABEL = 'Wypłaty'
 
 const FIXED_FIELD_COLORS: Record<string, string> = {
-  [EXPENSE_LABEL]: 'var(--color-chart-orange)',
-  [PAYOUTS_LABEL]: 'var(--color-chart-pink)',
-  [INCOME_LABEL]: 'var(--color-chart-green)',
+  [EXPENSE_LABEL]: 'border-chart-orange',
+  [PAYOUTS_LABEL]: 'border-chart-pink',
+  [INCOME_LABEL]: 'border-chart-green',
 }
 
-const CATEGORY_PALETTE = [
-  'var(--color-chart-blue)',
-  'var(--color-chart-teal)',
-  'var(--color-chart-purple)',
-]
+const CATEGORY_PALETTE = ['border-chart-blue', 'border-chart-teal', 'border-chart-purple']
 
 const LABOR_LABELS = new Set([EXPENSE_LABEL, PAYOUTS_LABEL])
 
@@ -51,14 +47,14 @@ export function FinancialStats({ fields }: FinancialStatsPropsT) {
   // so dynamic categories get consecutive palette slots.
   let paletteIndex = 0
   const entries: StatEntryT[] = displayFields.map((field) => {
-    const borderColor =
+    const borderClassName =
       FIXED_FIELD_COLORS[field.label] ?? CATEGORY_PALETTE[paletteIndex++ % CATEGORY_PALETTE.length]
 
     return {
       label: field.label,
       value: field.value,
       amount: field.amount ?? 0,
-      borderColor,
+      borderClassName,
       pairedWith: field.pairedWith,
       defaultHidden: field.defaultHidden,
     }
@@ -71,6 +67,12 @@ export function FinancialStats({ fields }: FinancialStatsPropsT) {
   const rows = [materialRow, laborRow, ...(incomeEntry ? [[incomeEntry]] : [])]
 
   return (
-    <ToggleStatButtons rows={rows} rowLabels={ROW_LABELS} summaryLabel="Bilans" onToggle={toggle} />
+    <ToggleStatButtons
+      rows={rows}
+      rowLabels={ROW_LABELS}
+      summaryLabel="Bilans"
+      onToggle={toggle}
+      helpText="Saldo liczone jest dynamicznie jako suma wybranych kategorii kas oraz filtrów."
+    />
   )
 }

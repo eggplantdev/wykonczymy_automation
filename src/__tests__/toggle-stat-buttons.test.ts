@@ -3,9 +3,9 @@ import { computeSummary, buildToggleResult } from '@/components/ui/toggle-stat-b
 
 describe('computeSummary', () => {
   const entries = [
-    { label: 'A', value: '100 zł', amount: 100, borderColor: 'blue' },
-    { label: 'B', value: '-50 zł', amount: -50, borderColor: 'red' },
-    { label: 'C', value: '200 zł', amount: 200, borderColor: 'green' },
+    { label: 'A', value: '100 zł', amount: 100, borderClassName: 'blue' },
+    { label: 'B', value: '-50 zł', amount: -50, borderClassName: 'red' },
+    { label: 'C', value: '200 zł', amount: 200, borderClassName: 'green' },
   ] as const
 
   it('sums all amounts when nothing is hidden', () => {
@@ -30,9 +30,9 @@ describe('computeSummary', () => {
 
 describe('computeSummary with paired entries', () => {
   const entries = [
-    { label: 'Income', value: '1000 zł', amount: 1000, borderColor: 'green' },
-    { label: 'Labor', value: '-200 zł', amount: -200, borderColor: 'orange' },
-    { label: 'Payouts', value: '-150 zł', amount: -150, borderColor: 'pink' },
+    { label: 'Income', value: '1000 zł', amount: 1000, borderClassName: 'green' },
+    { label: 'Labor', value: '-200 zł', amount: -200, borderClassName: 'orange' },
+    { label: 'Payouts', value: '-150 zł', amount: -150, borderClassName: 'pink' },
   ] as const
 
   it('excludes defaultHidden entry when it is in the hidden set', () => {
