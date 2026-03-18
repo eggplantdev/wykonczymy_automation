@@ -12,6 +12,8 @@ type StatEntryT = {
   readonly amount: number
   readonly borderColor: string
   readonly valueClassName?: string
+  readonly pairedWith?: string
+  readonly defaultHidden?: boolean
 }
 
 type ToggleStatButtonsPropsT = {
@@ -20,6 +22,29 @@ type ToggleStatButtonsPropsT = {
   readonly summaryLabel: string
   readonly helpText?: string
   readonly onToggle?: (label: string) => void
+}
+
+export function buildToggleResult(
+  label: string,
+  prev: ReadonlySet<string>,
+  pairedWith: string | undefined,
+): Set<string> {
+  const next = new Set(prev)
+
+  if (pairedWith) {
+    // Paired toggle: if clicking a hidden card, show it and hide its pair
+    if (next.has(label)) {
+      next.delete(label)
+      next.add(pairedWith)
+    }
+    // If clicking a visible paired card, no-op
+    return next
+  }
+
+  // Non-paired: normal toggle
+  if (next.has(label)) next.delete(label)
+  else next.add(label)
+  return next
 }
 
 export function computeSummary(
@@ -36,17 +61,19 @@ export function ToggleStatButtons({
   helpText,
   onToggle,
 }: ToggleStatButtonsPropsT) {
-  const [hidden, setHidden] = useState<Set<string>>(new Set())
   const allEntries = rows.flat()
 
+  const [hidden, setHidden] = useState<Set<string>>(
+    () => new Set(allEntries.filter((e) => e.defaultHidden).map((e) => e.label)),
+  )
+
   function toggle(label: string) {
-    setHidden((prev) => {
-      const next = new Set(prev)
-      if (next.has(label)) next.delete(label)
-      else next.add(label)
-      return next
-    })
+    const entry = allEntries.find((e) => e.label === label)
+    setHidden((prev) => buildToggleResult(label, prev, entry?.pairedWith))
+
+    // Fire onToggle for both cards in a paired swap to keep Zustand store in sync
     onToggle?.(label)
+    if (entry?.pairedWith) onToggle?.(entry.pairedWith)
   }
 
   if (allEntries.length === 0) return null
