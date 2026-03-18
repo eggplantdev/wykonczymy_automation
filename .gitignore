@@ -65,3 +65,4 @@ src/app/(payload)/admin/importMap.js
 
 # database dumps
 dumps/
+dump.sql
