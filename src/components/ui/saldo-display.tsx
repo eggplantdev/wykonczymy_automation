@@ -3,7 +3,7 @@ import { cn } from '@/lib/cn'
 import { Description } from '@/components/ui/description'
 
 export const saldoColor = (amount: number) =>
-  amount > 0 ? 'text-chart-green' : amount < 0 ? 'text-destructive' : undefined
+  amount > 0 ? 'text-chart-green' : amount < 0 ? 'text-destructive' : 'text-foreground'
 
 type SaldoDisplayPropsT = {
   readonly saldo: number
