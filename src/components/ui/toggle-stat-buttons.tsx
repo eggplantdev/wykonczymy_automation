@@ -20,7 +20,6 @@ type ToggleStatButtonsPropsT = {
   readonly rowLabels?: readonly string[]
   readonly summaryLabel: string
   readonly helpText?: string
-  readonly showSelectionCount?: boolean
   readonly onToggle?: (label: string) => void
 }
 
@@ -59,7 +58,6 @@ export function ToggleStatButtons({
   rowLabels,
   summaryLabel,
   helpText,
-  showSelectionCount,
   onToggle,
 }: ToggleStatButtonsPropsT) {
   const allEntries = rows.flat()
@@ -113,11 +111,7 @@ export function ToggleStatButtons({
       <SaldoDisplay
         saldo={total}
         label={summaryLabel}
-        selectionCount={
-          showSelectionCount
-            ? { selected: allEntries.length - hidden.size, total: allEntries.length }
-            : undefined
-        }
+        selectionCount={{ selected: allEntries.length - hidden.size, total: allEntries.length }}
       />
     </div>
   )
