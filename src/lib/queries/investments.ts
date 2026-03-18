@@ -1,10 +1,8 @@
 import { cacheLife, cacheTag } from 'next/cache'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { buildPaginationMeta, type PaginationParamsT } from '@/lib/pagination'
 import { CACHE_TAGS, entityTag } from '@/lib/cache/tags'
 import { perfStart } from '@/lib/perf'
-import type { InvestmentRowT } from '@/lib/tables/investments'
 
 export async function getInvestment(id: string) {
   'use cache'

@@ -99,7 +99,7 @@ export function InternalTransferForm({
             cashRegisters={referenceData.cashRegisters}
           />
 
-          {/* Target cash register — all registers */}
+          {/* Target cash register */}
           <CashRegisterField
             form={form}
             name="targetRegister"
@@ -117,7 +117,6 @@ export function InternalTransferForm({
           {/* Payment method — temporarily hidden, always CASH */}
           {/* <PaymentMethodField form={form} /> */}
 
-          {/* Description — optional */}
           <DescriptionField form={form} />
         </FieldGroup>
 

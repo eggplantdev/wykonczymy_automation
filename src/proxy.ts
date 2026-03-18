@@ -11,9 +11,6 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/zaloguj', request.url))
   }
 
-  // Auth layout handles "already logged in" redirect (it can verify the JWT).
-  // We don't redirect here because the proxy can't verify cookie validity.
-
   return NextResponse.next()
 }
 
