@@ -1,6 +1,5 @@
 'use client'
 
-import { useMemo } from 'react'
 import { formatPLN } from '@/lib/format-currency'
 import { ToggleStatButtons } from '@/components/ui/toggle-stat-buttons'
 import type { StatEntryT } from '@/components/ui/toggle-stat-buttons'
@@ -14,16 +13,14 @@ type UserRegisterStatsPropsT = {
 }
 
 export function UserRegisterStats({ cashRegisters, currentUserName }: UserRegisterStatsPropsT) {
-  const userEntries: StatEntryT[] = useMemo(() => {
-    return cashRegisters
-      .filter((cr) => cr.ownerName === currentUserName)
-      .map((cr) => ({
-        label: cr.name,
-        value: formatPLN(cr.balance),
-        amount: cr.balance,
-        borderClassName: USER_REGISTER_COLOR,
-      }))
-  }, [cashRegisters, currentUserName])
+  const userEntries: StatEntryT[] = cashRegisters
+    .filter((cr) => cr.ownerName === currentUserName)
+    .map((cr) => ({
+      label: cr.name,
+      value: formatPLN(cr.balance),
+      amount: cr.balance,
+      borderClassName: USER_REGISTER_COLOR,
+    }))
 
   if (userEntries.length === 0) return null
 
