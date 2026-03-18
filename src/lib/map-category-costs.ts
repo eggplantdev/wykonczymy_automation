@@ -20,7 +20,7 @@ export function buildFinancialFields(
   financials: InvestmentFinancialsT,
   expenseCategories: readonly { readonly id: number; readonly name: string }[],
 ): HeaderFieldT[] {
-  const { categoryCosts, totalIncome, totalLaborCosts, totalPayouts } = financials
+  const { categoryCosts, totalIncome, totalLaborCosts } = financials
 
   return [
     ...mapCategoryCostsToFields(categoryCosts, expenseCategories),
@@ -28,14 +28,6 @@ export function buildFinancialFields(
       label: 'Koszty robocizny',
       value: formatPLN(totalLaborCosts),
       amount: -totalLaborCosts,
-      pairedWith: 'Wypłaty',
-    },
-    {
-      label: 'Wypłaty',
-      value: formatPLN(totalPayouts),
-      amount: -totalPayouts,
-      pairedWith: 'Koszty robocizny',
-      defaultHidden: true,
     },
     { label: 'Wpłaty', value: formatPLN(totalIncome), amount: totalIncome },
   ]
