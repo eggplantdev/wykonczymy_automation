@@ -29,10 +29,10 @@ export const REGISTER_TYPE_LABELS_PLURAL: Record<CashRegisterTypeT, string> = {
 }
 
 export const REGISTER_TYPE_BORDER_COLORS: Record<CashRegisterTypeT, string> = {
-  MAIN: 'var(--color-chart-blue)',
-  AUXILIARY: 'var(--color-chart-teal)',
-  VIRTUAL: 'var(--color-chart-purple)',
-  WORKER: 'var(--color-chart-orange)',
+  MAIN: 'border-chart-blue',
+  AUXILIARY: 'border-chart-teal',
+  VIRTUAL: 'border-chart-purple',
+  WORKER: 'border-chart-orange',
 }
 
 const col = createColumnHelper<CashRegisterRowT>()

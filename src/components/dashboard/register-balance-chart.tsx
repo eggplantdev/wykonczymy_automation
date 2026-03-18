@@ -20,14 +20,14 @@ export function RegisterBalanceChart({ data }: RegisterBalanceChartPropsT) {
     label: `${REGISTER_TYPE_LABELS[type]} (${count})`,
     value: formatPLN(balance),
     amount: balance,
-    borderColor: REGISTER_TYPE_BORDER_COLORS[type],
+    borderClassName: REGISTER_TYPE_BORDER_COLORS[type],
   }))
 
   return (
     <ToggleStatButtons
       rows={[entries]}
       summaryLabel="Saldo"
-      helpText="Naciśnij wybraną kategorię lub wybierz filtry aby zaktualizować saldo."
+      helpText="Saldo liczone jest dynamicznie jako suma wybranych typów kas oraz filtrów."
     />
   )
 }
