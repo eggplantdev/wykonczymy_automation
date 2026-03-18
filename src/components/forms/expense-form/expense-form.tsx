@@ -23,7 +23,6 @@ import {
   type CreateBulkExpenseFormT,
 } from '@/components/forms/expense-form/expense-schema'
 import type { ReferenceDataT } from '@/types/reference-data'
-import { getDefaultCashRegister } from '@/lib/utils/default-cash-register'
 import { today } from '@/lib/date-utils'
 import {
   CashRegisterField,
@@ -99,7 +98,8 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
         date: today(),
         type: 'INVESTMENT_EXPENSE',
         paymentMethod: 'CASH',
-        sourceRegister: getDefaultCashRegister(referenceData),
+        // sourceRegister: getDefaultCashRegister(referenceData),
+        sourceRegister: '',
         targetRegister: '',
         investment: '',
         lineItems: [
@@ -197,22 +197,16 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
             </div>
           </div>
 
-          {/* Conditional: Investment */}
           {showsInvestment(currentType) && (
             <InvestmentField form={form} investments={referenceData.investments} />
           )}
 
-          {/* Cash register — filtered to owned registers for non-ADMIN */}
           {needsSourceRegister(currentType) && (
             <>
               <CashRegisterField
                 form={form}
                 cashRegisters={referenceData.cashRegisters}
-                listeners={{
-                  onChange: ({ value }: { value: string }) => {
-                    fetchSaldo(value)
-                  },
-                }}
+                listeners={{ onChange: ({ value }: { value: string }) => fetchSaldo(value) }}
               />
               {isSaldoLoading && (
                 <p className="text-muted-foreground text-sm">Ładowanie salda...</p>
@@ -223,7 +217,6 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
             </>
           )}
 
-          {/* Conditional: Target register (REGISTER_TRANSFER only) */}
           {needsTargetRegister(currentType) && (
             <CashRegisterField
               form={form}
@@ -234,7 +227,6 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
             />
           )}
 
-          {/* Line items — all non-deposit types */}
           {!isDepositType(currentType) && (
             <LineItemsField
               form={form}
