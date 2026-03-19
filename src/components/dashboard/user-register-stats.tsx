@@ -6,8 +6,8 @@ import type { StatEntryT } from '@/components/ui/toggle-stat-buttons'
 import type { CashRegisterRowT } from '@/lib/tables/cash-registers'
 
 type UserRegisterStatsPropsT = {
-  readonly cashRegisters: readonly CashRegisterRowT[]
-  readonly currentUserName: string
+  cashRegisters: CashRegisterRowT[]
+  currentUserName: string
 }
 
 export function UserRegisterStats({ cashRegisters, currentUserName }: UserRegisterStatsPropsT) {

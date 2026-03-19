@@ -11,10 +11,10 @@ import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/cn'
 
 type DataTableRowPropsT<TData> = {
-  readonly row: Row<TData>
-  readonly visibleColumnIds: ReadonlySet<string>
-  readonly getRowHref?: (row: TData) => string | undefined
-  readonly getRowClassName?: (row: TData) => string
+  row: Row<TData>
+  visibleColumnIds: Set<string>
+  getRowHref?: (row: TData) => string | undefined
+  getRowClassName?: (row: TData) => string
 }
 
 export function DataTableRow<TData>({
@@ -63,9 +63,11 @@ export function DataTableRow<TData>({
           return (
             <td
               key={cell.id}
-              className={cn('text-foreground px-4 py-3', align === 'right' && 'text-right')}
+              className={cn('text-foreground px-3 py-2', align === 'right' && 'text-right')}
             >
-              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              <span className="line-clamp-2">
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </span>
             </td>
           )
         })}

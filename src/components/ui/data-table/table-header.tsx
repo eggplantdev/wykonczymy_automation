@@ -20,7 +20,7 @@ export function TableHeader({ headerGroups }: { headerGroups: any[] }) {
               <th
                 key={header.id}
                 className={cn(
-                  'text-muted-foreground px-4 py-3 text-left text-sm font-medium',
+                  'text-muted-foreground px-3 py-2 text-left text-sm font-medium',
                   align === 'right' && 'text-right',
                   canSort && 'cursor-pointer select-none',
                 )}
