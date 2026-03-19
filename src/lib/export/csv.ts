@@ -9,10 +9,7 @@ function escapeCsv(value: string): string {
 }
 
 /** Generates a CSV string from transfer rows using only visible column IDs. */
-export function buildTransferCsv(
-  rows: readonly TransferRowT[],
-  visibleColumnIds: string[],
-): string {
+export function buildTransferCsv(rows: TransferRowT[], visibleColumnIds: string[]): string {
   const columns = visibleColumnIds
     .filter((id) => !EXPORT_EXCLUDED_COLUMNS.has(id) && TRANSFER_EXPORT_COLUMNS[id])
     .map((id) => ({ id, ...TRANSFER_EXPORT_COLUMNS[id]! }))

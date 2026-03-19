@@ -17,12 +17,12 @@ tr:last-child td { border-bottom: none; }
 `
 
 type ColumnT = {
-  readonly id: string
-  readonly label: string
-  readonly getValue: (row: TransferRowT) => string
+  id: string
+  label: string
+  getValue: (row: TransferRowT) => string
 }
 
-function HeaderFields({ fields }: { readonly fields: HeaderFieldT[] }) {
+function HeaderFields({ fields }: { fields: HeaderFieldT[] }) {
   if (fields.length === 0) return null
 
   return (
@@ -37,13 +37,7 @@ function HeaderFields({ fields }: { readonly fields: HeaderFieldT[] }) {
   )
 }
 
-function TransferTable({
-  rows,
-  columns,
-}: {
-  readonly rows: TransferRowT[]
-  readonly columns: ColumnT[]
-}) {
+function TransferTable({ rows, columns }: { rows: TransferRowT[]; columns: ColumnT[] }) {
   return (
     <table>
       <thead>
@@ -72,10 +66,10 @@ function PrintDocument({
   rows,
   columns,
 }: {
-  readonly title: string
-  readonly headerFields: HeaderFieldT[]
-  readonly rows: TransferRowT[]
-  readonly columns: ColumnT[]
+  title: string
+  headerFields: HeaderFieldT[]
+  rows: TransferRowT[]
+  columns: ColumnT[]
 }) {
   return (
     <html lang="pl">

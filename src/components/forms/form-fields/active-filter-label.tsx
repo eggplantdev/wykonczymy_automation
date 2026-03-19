@@ -1,8 +1,8 @@
 import { Checkbox } from '@/components/ui/checkbox'
 
 type ActiveFilterLabelPropsT = {
-  readonly activeOnly: boolean
-  readonly onToggle: (value: boolean) => void
+  activeOnly: boolean
+  onToggle: (value: boolean) => void
 }
 
 export function ActiveFilterLabel({ activeOnly, onToggle }: ActiveFilterLabelPropsT) {

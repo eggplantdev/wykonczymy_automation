@@ -1,9 +1,6 @@
 import { useMemo, useState } from 'react'
 
-export function useSearchFilter<TItem>(
-  data: readonly TItem[],
-  getSearchableText: (item: TItem) => string,
-) {
+export function useSearchFilter<TItem>(data: TItem[], getSearchableText: (item: TItem) => string) {
   const [searchTerm, setSearchTerm] = useState('')
 
   const filteredData = useMemo(() => {

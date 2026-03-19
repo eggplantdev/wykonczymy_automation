@@ -1,8 +1,8 @@
 export type FilterConfigT = {
-  readonly cashRegisters?: { id: number; name: string }[]
-  readonly investments?: { id: number; name: string }[]
-  readonly users?: { id: number; name: string }[]
-  readonly otherCategories?: { id: number; name: string }[]
-  readonly showTypeFilter?: boolean
-  readonly showPaymentMethodFilter?: boolean
+  cashRegisters?: { id: number; name: string }[]
+  investments?: { id: number; name: string }[]
+  users?: { id: number; name: string }[]
+  otherCategories?: { id: number; name: string }[]
+  showTypeFilter?: boolean
+  showPaymentMethodFilter?: boolean
 }

@@ -6,7 +6,7 @@ import type { CashRegisterRowT } from '@/lib/tables/cash-registers'
 import type { CashRegisterTypeT } from '@/types/reference-data'
 
 type RegisterBalanceChartPropsT = {
-  readonly data: readonly CashRegisterRowT[]
+  data: CashRegisterRowT[]
 }
 
 export function RegisterBalanceChart({ data }: RegisterBalanceChartPropsT) {

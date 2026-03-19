@@ -2,8 +2,8 @@ import { cn } from '@/lib/cn'
 import { formatPLN } from '@/lib/format-currency'
 
 type BalanceCellPropsT = {
-  readonly value: number
-  readonly className?: string
+  value: number
+  className?: string
 }
 
 export function BalanceCell({ value, className }: BalanceCellPropsT) {

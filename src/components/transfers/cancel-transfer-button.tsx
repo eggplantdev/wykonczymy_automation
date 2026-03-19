@@ -9,7 +9,7 @@ import { cancelTransferAction } from '@/lib/actions/transfers'
 import { toastMessage } from '@/components/toasts'
 
 type CancelTransferButtonPropsT = {
-  readonly transactionId: number
+  transactionId: number
 }
 
 export function CancelTransferButton({ transactionId }: CancelTransferButtonPropsT) {

@@ -11,16 +11,16 @@ import { TableHeader } from './table-header'
 import { EmptyRow } from './table-helpers'
 
 type VirtualizedTableBodyPropsT<TData> = {
-  readonly parentRef: React.RefObject<HTMLDivElement | null>
-  readonly containerHeight: number
+  parentRef: React.RefObject<HTMLDivElement | null>
+  containerHeight: number
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  readonly headerGroups: any[]
-  readonly rows: Row<TData>[]
-  readonly virtualizer: ReturnType<typeof useVirtualizer<HTMLDivElement, Element>>
-  readonly colCount: number
-  readonly visibleColumnIds: ReadonlySet<string>
-  readonly getRowHref?: (row: TData) => string | undefined
-  readonly getRowClassName?: (row: TData) => string
+  headerGroups: any[]
+  rows: Row<TData>[]
+  virtualizer: ReturnType<typeof useVirtualizer<HTMLDivElement, Element>>
+  colCount: number
+  visibleColumnIds: Set<string>
+  getRowHref?: (row: TData) => string | undefined
+  getRowClassName?: (row: TData) => string
 }
 
 export function VirtualizedTableBody<TData>({

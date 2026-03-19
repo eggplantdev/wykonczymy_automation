@@ -1,7 +1,7 @@
 import { MessageSquareText } from 'lucide-react'
 
 type NoteCellPropsT = {
-  readonly note: string | null
+  note: string | null
 }
 
 export function NoteCell({ note }: NoteCellPropsT) {

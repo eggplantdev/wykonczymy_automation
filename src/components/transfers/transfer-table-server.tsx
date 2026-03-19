@@ -6,7 +6,7 @@ import { perfStart } from '@/lib/perf'
 import type { TransferTableConfigT } from '@/types/export'
 
 type TransferTableServerPropsT = {
-  readonly config: TransferTableConfigT
+  config: TransferTableConfigT
 }
 
 export async function TransferTableServer({ config }: TransferTableServerPropsT) {

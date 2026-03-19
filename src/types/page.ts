@@ -1,10 +1,10 @@
 type SearchParamsT = Promise<Record<string, string | string[] | undefined>>
 
 export type PagePropsT = {
-  readonly searchParams: SearchParamsT
+  searchParams: SearchParamsT
 }
 
 export type DynamicPagePropsT = {
-  readonly params: Promise<{ id: string }>
-  readonly searchParams: SearchParamsT
+  params: Promise<{ id: string }>
+  searchParams: SearchParamsT
 }

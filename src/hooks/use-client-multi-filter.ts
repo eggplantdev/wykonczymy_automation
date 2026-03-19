@@ -1,10 +1,7 @@
 import { useMemo, useState } from 'react'
 import { FILTER_NONE } from '@/components/transfers/filter-multi-select'
 
-export function useClientMultiFilter<TItem>(
-  data: readonly TItem[],
-  accessor: (item: TItem) => string,
-) {
+export function useClientMultiFilter<TItem>(data: TItem[], accessor: (item: TItem) => string) {
   const [values, setValues] = useState<string[]>([])
 
   const filteredData = useMemo(() => {

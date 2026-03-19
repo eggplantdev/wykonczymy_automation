@@ -12,7 +12,7 @@ import {
 import type { RawTransferDocT } from '@/lib/queries/transfers'
 
 type BuildRowsOptsT = {
-  readonly skipMedia?: boolean
+  skipMedia?: boolean
 }
 
 /** Maps raw transfer docs + reference data into TransferRowT[]. */

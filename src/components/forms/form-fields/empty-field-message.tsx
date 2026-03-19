@@ -2,9 +2,9 @@ import type { ReactNode } from 'react'
 import FormBase from '@/components/forms/form-components/form-base'
 
 type EmptyFieldMessagePropsT = {
-  readonly label: string
-  readonly message: string
-  readonly labelExtra?: ReactNode
+  label: string
+  message: string
+  labelExtra?: ReactNode
 }
 
 export function EmptyFieldMessage({ label, message, labelExtra }: EmptyFieldMessagePropsT) {

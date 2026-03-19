@@ -22,7 +22,7 @@ type ToggleStatButtonsPropsT = {
   onToggle?: (label: string) => void
 }
 
-export function computeSummary(entries: StatEntryT[], hidden: ReadonlySet<string>): number {
+export function computeSummary(entries: StatEntryT[], hidden: Set<string>): number {
   return entries.filter((e) => !hidden.has(e.label)).reduce((sum, e) => sum + e.amount, 0)
 }
 

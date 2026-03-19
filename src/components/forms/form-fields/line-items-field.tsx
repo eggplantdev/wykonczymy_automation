@@ -20,10 +20,10 @@ type FormT = any
 type ArrayFieldT = any
 
 type CategoryFieldConfigT = {
-  readonly fieldName: string
-  readonly label: string
-  readonly placeholder: string
-  readonly options: ReadonlyArray<{ readonly id: number; readonly name: string }>
+  fieldName: string
+  label: string
+  placeholder: string
+  options: { id: number; name: string }[]
 }
 
 const EMPTY_LINE_ITEM: Record<string, string> = {

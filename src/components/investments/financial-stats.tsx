@@ -16,7 +16,7 @@ const INCOME_LABEL = 'Wpłaty'
 const LABOR_LABEL = 'Robocizna'
 
 type FinancialStatsPropsT = {
-  fields: readonly FinancialFieldT[]
+  fields: FinancialFieldT[]
   totalLaborCosts: number
   totalPayouts?: number
 }

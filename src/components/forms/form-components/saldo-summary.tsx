@@ -2,8 +2,8 @@ import { formatPLN } from '@/lib/format-currency'
 import { SaldoDisplay } from '@/components/ui/saldo-display'
 
 type SaldoSummaryPropsT = {
-  readonly saldo: number
-  readonly total: number
+  saldo: number
+  total: number
 }
 
 export function SaldoSummary({ saldo, total }: SaldoSummaryPropsT) {

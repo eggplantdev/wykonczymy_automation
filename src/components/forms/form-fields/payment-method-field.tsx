@@ -4,7 +4,7 @@ import type { AppFieldComponentsT } from '@/components/forms/types/form-types'
 
 type PaymentMethodFieldPropsT = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  readonly form: any
+  form: any
 }
 
 export function PaymentMethodField({ form }: PaymentMethodFieldPropsT) {

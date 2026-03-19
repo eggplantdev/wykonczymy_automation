@@ -1,10 +1,10 @@
 export type ReferenceItemT = {
-  readonly id: number
-  readonly name: string
-  readonly type?: string
-  readonly active?: boolean
-  readonly ownerId?: number
-  readonly defaultCashRegisterId?: number
+  id: number
+  name: string
+  type?: string
+  active?: boolean
+  ownerId?: number
+  defaultCashRegisterId?: number
 }
 
 export type CashRegisterTypeT = 'MAIN' | 'AUXILIARY' | 'VIRTUAL' | 'WORKER'
@@ -12,26 +12,26 @@ export type CashRegisterTypeT = 'MAIN' | 'AUXILIARY' | 'VIRTUAL' | 'WORKER'
 export type CashRegisterRefT = ReferenceItemT
 
 export type InvestmentRefT = ReferenceItemT & {
-  readonly status: 'active' | 'completed'
-  readonly address: string
-  readonly phone: string
-  readonly email: string
-  readonly contactPerson: string
-  readonly notes: string
+  status: 'active' | 'completed'
+  address: string
+  phone: string
+  email: string
+  contactPerson: string
+  notes: string
 }
 
 export type WorkerRefT = ReferenceItemT & {
-  readonly email: string
+  email: string
 }
 
 export type OtherCategoryRefT = {
-  readonly id: number
-  readonly name: string
+  id: number
+  name: string
 }
 
 export type ExpenseCategoryRefT = {
-  readonly id: number
-  readonly name: string
+  id: number
+  name: string
 }
 
 export type ReferenceDataBaseT = {

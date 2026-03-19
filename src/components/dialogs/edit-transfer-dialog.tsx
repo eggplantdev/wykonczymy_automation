@@ -11,9 +11,9 @@ import type { TransferRowT } from '@/lib/tables/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 
 type EditTransferDialogPropsT = {
-  readonly row: TransferRowT
-  readonly referenceData: ReferenceDataBaseT
-  readonly canEdit: boolean
+  row: TransferRowT
+  referenceData: ReferenceDataBaseT
+  canEdit: boolean
 }
 
 export function EditTransferDialog({ row, referenceData, canEdit }: EditTransferDialogPropsT) {

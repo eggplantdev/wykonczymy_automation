@@ -3,11 +3,11 @@
 import { Button } from '@/components/ui/button'
 
 type ActiveToggleBadgePropsT = {
-  readonly id: number
-  readonly isActive: boolean
-  readonly onToggle: (id: number, newValue: boolean) => void
-  readonly activeLabel?: string
-  readonly inactiveLabel?: string
+  id: number
+  isActive: boolean
+  onToggle: (id: number, newValue: boolean) => void
+  activeLabel?: string
+  inactiveLabel?: string
 }
 
 export function ActiveToggleBadge({

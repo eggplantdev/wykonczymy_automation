@@ -21,41 +21,41 @@ import type { ReferenceDataBaseT } from '@/types/reference-data'
 import type { MediaInfoT } from '@/lib/queries/media'
 
 export type TransferRowT = {
-  readonly id: number
-  readonly description: string
-  readonly amount: number
-  readonly type: TransferTypeT
-  readonly paymentMethod: PaymentMethodT
-  readonly date: string
-  readonly sourceRegisterId: number | null
-  readonly sourceRegisterName: string
-  readonly targetRegisterId: number | null
-  readonly targetRegisterName: string
-  readonly investmentId: number | null
-  readonly investmentName: string
-  readonly expenseCategoryId: number | null
-  readonly expenseCategoryName: string
-  readonly otherCategoryName: string
-  readonly otherCategoryId: number | null
-  readonly createdByName: string
-  readonly createdById: number | null
-  readonly createdAt: string
-  readonly invoiceUrl: string | null
-  readonly invoiceFilename: string | null
-  readonly invoiceMimeType: string | null
-  readonly invoiceNote: string | null
-  readonly cancelled: boolean
+  id: number
+  description: string
+  amount: number
+  type: TransferTypeT
+  paymentMethod: PaymentMethodT
+  date: string
+  sourceRegisterId: number | null
+  sourceRegisterName: string
+  targetRegisterId: number | null
+  targetRegisterName: string
+  investmentId: number | null
+  investmentName: string
+  expenseCategoryId: number | null
+  expenseCategoryName: string
+  otherCategoryName: string
+  otherCategoryId: number | null
+  createdByName: string
+  createdById: number | null
+  createdAt: string
+  invoiceUrl: string | null
+  invoiceFilename: string | null
+  invoiceMimeType: string | null
+  invoiceNote: string | null
+  cancelled: boolean
 }
 
 type NameMapT = Map<number, string>
 
 export type TransferLookupsT = {
-  readonly cashRegisters: NameMapT
-  readonly investments: NameMapT
-  readonly users: NameMapT
-  readonly expenseCategories: NameMapT
-  readonly otherCategories: NameMapT
-  readonly media: Map<number, MediaInfoT>
+  cashRegisters: NameMapT
+  investments: NameMapT
+  users: NameMapT
+  expenseCategories: NameMapT
+  otherCategories: NameMapT
+  media: Map<number, MediaInfoT>
 }
 
 /**
@@ -65,7 +65,7 @@ export function buildTransferLookups(
   refData: ReferenceDataBaseT,
   mediaMap: Map<number, MediaInfoT>,
 ): TransferLookupsT {
-  const toNameMap = (items: ReadonlyArray<{ id: number; name: string }>): NameMapT =>
+  const toNameMap = (items: { id: number; name: string }[]): NameMapT =>
     new Map(items.map((i) => [i.id, i.name]))
 
   return {
@@ -313,9 +313,9 @@ const allColumns = [
 export type TransferColumnIdT = (typeof allColumns)[number]['id']
 
 type ColumnOptionsT = {
-  readonly referenceData?: ReferenceDataBaseT
-  readonly currentUserId?: number
-  readonly currentUserRole?: RoleT
+  referenceData?: ReferenceDataBaseT
+  currentUserId?: number
+  currentUserRole?: RoleT
 }
 
 /**

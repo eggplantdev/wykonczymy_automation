@@ -14,8 +14,8 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/cn'
 
 type ColumnTogglePropsT<TData> = {
-  readonly table: Table<TData>
-  readonly columnVisibility: VisibilityState
+  table: Table<TData>
+  columnVisibility: VisibilityState
 }
 
 export function ColumnToggle<TData>({ table, columnVisibility }: ColumnTogglePropsT<TData>) {

@@ -4,10 +4,10 @@ import { TransferTableServer } from '@/components/transfers/transfer-table-serve
 import type { TransferTableConfigT } from '@/types/export'
 
 type TransfersSectionPropsT = {
-  readonly title?: string
-  readonly id?: string
-  readonly config: TransferTableConfigT
-  readonly className?: string
+  title?: string
+  id?: string
+  config: TransferTableConfigT
+  className?: string
 }
 
 export function TransfersSection({ title = 'Transfery', id, config }: TransfersSectionPropsT) {

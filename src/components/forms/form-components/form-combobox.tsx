@@ -18,14 +18,14 @@ import { FormControlPropsT } from '../types/form-types'
 import { useFieldContext } from '../hooks/form-hooks'
 
 export type ComboboxItemT = {
-  readonly value: string
-  readonly label: string
+  value: string
+  label: string
 }
 
 type FormComboboxPropsT = FormControlPropsT & {
-  readonly items: readonly ComboboxItemT[]
-  readonly searchPlaceholder?: string
-  readonly emptyMessage?: string
+  items: ComboboxItemT[]
+  searchPlaceholder?: string
+  emptyMessage?: string
 }
 
 export function FormCombobox({

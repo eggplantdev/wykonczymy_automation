@@ -8,8 +8,8 @@ import { perfStart } from '@/lib/perf'
 import { TRANSFER_TYPES, PAYMENT_METHODS } from '@/lib/constants/transfers'
 
 type FindTransfersOptsT = PaginationParamsT & {
-  readonly where?: Where
-  readonly sort?: string
+  where?: Where
+  sort?: string
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -49,9 +49,9 @@ export async function findTransfersRaw({
 type SearchParamsT = Record<string, string | string[] | undefined>
 
 type UserContextT = {
-  readonly id: number
-  readonly isManager: boolean
-  readonly onlyOwnTransfers?: boolean
+  id: number
+  isManager: boolean
+  onlyOwnTransfers?: boolean
 }
 
 export function buildTransferFilters(

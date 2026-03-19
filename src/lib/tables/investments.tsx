@@ -8,20 +8,20 @@ import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
 import { ContactLink } from '@/components/ui/contact-link'
 
 export type InvestmentRowT = {
-  readonly id: number
-  readonly name: string
-  readonly status: 'active' | 'completed'
-  readonly totalCosts: number
-  readonly totalMaterialCosts: number
-  readonly totalIncome: number
-  readonly totalLaborCosts: number
-  readonly totalPayouts: number
-  readonly balance: number
-  readonly margin: number
-  readonly address: string
-  readonly phone: string
-  readonly email: string
-  readonly contactPerson: string
+  id: number
+  name: string
+  status: 'active' | 'completed'
+  totalCosts: number
+  totalMaterialCosts: number
+  totalIncome: number
+  totalLaborCosts: number
+  totalPayouts: number
+  balance: number
+  margin: number
+  address: string
+  phone: string
+  email: string
+  contactPerson: string
 }
 
 const col = createColumnHelper<InvestmentRowT>()

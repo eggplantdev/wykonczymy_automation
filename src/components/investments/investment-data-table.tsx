@@ -17,7 +17,7 @@ const getStatusUpdate = (newActive: boolean) =>
   ({ status: newActive ? 'active' : 'completed' }) as Partial<InvestmentRowT>
 
 type InvestmentDataTablePropsT = {
-  data: readonly InvestmentRowT[]
+  data: InvestmentRowT[]
 }
 
 export function InvestmentDataTable({ data }: InvestmentDataTablePropsT) {
