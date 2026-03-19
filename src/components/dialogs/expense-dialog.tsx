@@ -16,9 +16,9 @@ export function ExpenseDialog({ referenceData }: ExpenseDialogPropsT) {
       formId="expense"
       className="max-w-[min(90vw,900px)]"
       trigger={
-        <Button variant="default" size="sm" className="gap-2">
+        <Button variant="red" size="sm">
           <Rocket className="size-4" />
-          <span className="hidden lg:block">Wydatek / zaliczka </span>
+          <span className="hidden lg:block">Wydatek </span>
         </Button>
       }
       title="Nowy wydatek"

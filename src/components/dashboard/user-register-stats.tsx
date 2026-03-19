@@ -5,8 +5,6 @@ import { ToggleStatButtons } from '@/components/ui/toggle-stat-buttons'
 import type { StatEntryT } from '@/components/ui/toggle-stat-buttons'
 import type { CashRegisterRowT } from '@/lib/tables/cash-registers'
 
-const USER_REGISTER_COLOR = 'border-chart-turquoise'
-
 type UserRegisterStatsPropsT = {
   readonly cashRegisters: readonly CashRegisterRowT[]
   readonly currentUserName: string
@@ -19,7 +17,7 @@ export function UserRegisterStats({ cashRegisters, currentUserName }: UserRegist
       label: cr.name,
       value: formatPLN(cr.balance),
       amount: cr.balance,
-      borderClassName: USER_REGISTER_COLOR,
+      borderClassName: 'border-chart-turquoise',
     }))
 
   if (userEntries.length === 0) return null

@@ -15,11 +15,7 @@ export function InternalTransferDialog({ referenceData }: InternalTransferDialog
     <FormDialog
       formId="internal-transfer"
       trigger={
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
-        >
+        <Button variant="turquoise" size="sm">
           <span className="hidden lg:block">Kasa</span>
           <ArrowLeftRight className="size-4" />
           <span className="hidden lg:block">Kasa</span>

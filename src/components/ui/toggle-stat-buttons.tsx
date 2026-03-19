@@ -7,25 +7,22 @@ import { Description } from '@/components/ui/description'
 import { SaldoDisplay, saldoColor } from '@/components/ui/saldo-display'
 
 type StatEntryT = {
-  readonly label: string
-  readonly value: string
-  readonly amount: number
-  readonly borderClassName: string
+  label: string
+  value: string
+  amount: number
+  borderClassName: string
 }
 
 type ToggleStatButtonsPropsT = {
-  readonly rows: readonly (readonly StatEntryT[])[]
-  readonly rowLabels?: readonly string[]
-  readonly summaryLabel: string
-  readonly helpText?: string
-  readonly colorValues?: boolean
-  readonly onToggle?: (label: string) => void
+  rows: StatEntryT[][]
+  rowLabels?: string[]
+  summaryLabel: string
+  helpText?: string
+  colorValues?: boolean
+  onToggle?: (label: string) => void
 }
 
-export function computeSummary(
-  entries: readonly StatEntryT[],
-  hidden: ReadonlySet<string>,
-): number {
+export function computeSummary(entries: StatEntryT[], hidden: ReadonlySet<string>): number {
   return entries.filter((e) => !hidden.has(e.label)).reduce((sum, e) => sum + e.amount, 0)
 }
 
