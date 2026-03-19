@@ -13,8 +13,8 @@ import type { TransferTableConfigT } from '@/types/export'
 import type { HeaderFieldT } from '@/types/export'
 
 type PrintButtonPropsT = {
-  readonly config: TransferTableConfigT
-  readonly visibleColumnIds: string[]
+  config: TransferTableConfigT
+  visibleColumnIds: string[]
 }
 
 export function PrintButton({ config, visibleColumnIds }: PrintButtonPropsT) {

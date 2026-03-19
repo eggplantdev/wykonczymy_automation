@@ -1,13 +1,13 @@
 export type PaginationMetaT = {
-  readonly currentPage: number
-  readonly totalPages: number
-  readonly totalDocs: number
-  readonly limit: number
+  currentPage: number
+  totalPages: number
+  totalDocs: number
+  limit: number
 }
 
 export type PaginationParamsT = {
-  readonly page: number
-  readonly limit: number
+  page: number
+  limit: number
 }
 
 type SearchParamsT = Record<string, string | string[] | undefined>

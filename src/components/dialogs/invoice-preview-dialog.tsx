@@ -6,13 +6,13 @@ import { Download, Printer, Replace, Trash2 } from 'lucide-react'
 import { ImageMedia } from '../ImageMedia'
 
 type InvoicePreviewDialogPropsT = {
-  readonly url: string
-  readonly filename: string | null
-  readonly mimeType: string | null
-  readonly open: boolean
-  readonly onOpenChange: (open: boolean) => void
-  readonly onReplace?: () => void
-  readonly onRemove?: () => void
+  url: string
+  filename: string | null
+  mimeType: string | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onReplace?: () => void
+  onRemove?: () => void
 }
 
 export function InvoicePreviewDialog({

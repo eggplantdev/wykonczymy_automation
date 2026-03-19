@@ -2,10 +2,10 @@ import type { ReactNode } from 'react'
 import { cn } from '@/lib/cn'
 
 type EmptyStatePropsT = {
-  readonly title: string
-  readonly description?: string
-  readonly children?: ReactNode
-  readonly className?: string
+  title: string
+  description?: string
+  children?: ReactNode
+  className?: string
 }
 
 export function EmptyState({ title, description, children, className }: EmptyStatePropsT) {

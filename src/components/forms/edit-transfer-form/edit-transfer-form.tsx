@@ -26,10 +26,10 @@ import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
 
 type EditTransferFormPropsT = {
-  readonly row: TransferRowT
-  readonly referenceData: ReferenceDataBaseT
-  readonly onSubmitSuccess: () => void
-  readonly keepOpen?: boolean
+  row: TransferRowT
+  referenceData: ReferenceDataBaseT
+  onSubmitSuccess: () => void
+  keepOpen?: boolean
 }
 
 type FormValuesT = z.infer<typeof editExpenseFormSchema>

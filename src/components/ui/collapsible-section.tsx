@@ -6,11 +6,11 @@ import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
 type CollapsibleSectionPropsT = {
-  readonly title: string
-  readonly id?: string
-  readonly defaultOpen?: boolean
-  readonly className?: string
-  readonly children: React.ReactNode
+  title: string
+  id?: string
+  defaultOpen?: boolean
+  className?: string
+  children: React.ReactNode
 }
 
 export function CollapsibleSection({

@@ -3,12 +3,12 @@ import type { ReactNode } from 'react'
 import { cn } from '@/lib/cn'
 
 type PageWrapperPropsT = {
-  readonly title: string
-  readonly description?: string
-  readonly backHref?: string
-  readonly backLabel?: string
-  readonly children?: ReactNode
-  readonly className?: string
+  title: string
+  description?: string
+  backHref?: string
+  backLabel?: string
+  children?: ReactNode
+  className?: string
 }
 
 export function PageWrapper({

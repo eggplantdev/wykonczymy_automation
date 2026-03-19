@@ -12,9 +12,9 @@ export const saldoColor = (amount: number) => {
 }
 
 type SaldoDisplayPropsT = {
-  readonly saldo: number
-  readonly label?: string
-  readonly selectionCount?: { readonly selected: number; readonly total: number }
+  saldo: number
+  label?: string
+  selectionCount?: { selected: number; total: number }
 }
 
 export function SaldoDisplay({ saldo, label = 'Saldo', selectionCount }: SaldoDisplayPropsT) {

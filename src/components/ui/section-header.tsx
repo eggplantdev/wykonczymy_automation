@@ -1,8 +1,8 @@
 import { cn } from '@/lib/cn'
 
 type SectionHeaderPropsT = {
-  readonly children: React.ReactNode
-  readonly className?: string
+  children: React.ReactNode
+  className?: string
 }
 
 export function SectionHeader({ children, className }: SectionHeaderPropsT) {

@@ -129,9 +129,9 @@ export async function createBulkTransferAction(
   )
 }
 
-type AuthErrorT = { readonly error: string }
+type AuthErrorT = { error: string }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AuthSuccessT = { readonly original: any }
+type AuthSuccessT = { original: any }
 
 async function fetchAndAuthorize(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

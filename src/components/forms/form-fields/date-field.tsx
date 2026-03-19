@@ -2,8 +2,8 @@ import type { AppFieldComponentsT } from '@/components/forms/types/form-types'
 
 type DateFieldPropsT = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  readonly form: any
-  readonly fieldClassName?: string
+  form: any
+  fieldClassName?: string
 }
 
 export function DateField({ form, fieldClassName }: DateFieldPropsT) {

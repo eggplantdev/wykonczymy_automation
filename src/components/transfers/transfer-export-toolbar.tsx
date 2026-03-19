@@ -7,8 +7,8 @@ import { CsvButton } from '@/components/transfers/csv-button'
 import type { TransferTableConfigT } from '@/types/export'
 
 type TransferExportToolbarPropsT = {
-  readonly config: TransferTableConfigT
-  readonly columnVisibility: VisibilityState
+  config: TransferTableConfigT
+  columnVisibility: VisibilityState
 }
 
 function getVisibleColumnIds(

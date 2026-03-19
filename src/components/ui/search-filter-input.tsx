@@ -2,9 +2,9 @@ import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 
 type SearchFilterInputPropsT = {
-  readonly value: string
-  readonly onChange: (value: string) => void
-  readonly placeholder?: string
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
 }
 
 export function SearchFilterInput({

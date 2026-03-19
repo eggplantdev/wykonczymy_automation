@@ -14,9 +14,9 @@ const INCOME_LABEL = 'Wpłaty'
 const LABOR_LABEL = 'Robocizna'
 
 type FinancialStatsPropsT = {
-  readonly fields: readonly FinancialFieldT[]
-  readonly totalLaborCosts: number
-  readonly totalPayouts?: number
+  fields: FinancialFieldT[]
+  totalLaborCosts: number
+  totalPayouts?: number
 }
 
 export function FinancialStats({

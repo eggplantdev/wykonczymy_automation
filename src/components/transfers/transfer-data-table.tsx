@@ -12,12 +12,12 @@ import type { TransferTableConfigT } from '@/types/export'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 
 type TransferDataTablePropsT = {
-  readonly data: readonly TransferRowT[]
-  readonly paginationMeta: PaginationMetaT
-  readonly config: TransferTableConfigT
-  readonly referenceData?: ReferenceDataBaseT
-  readonly currentUserId?: number
-  readonly currentUserRole?: RoleT
+  data: TransferRowT[]
+  paginationMeta: PaginationMetaT
+  config: TransferTableConfigT
+  referenceData?: ReferenceDataBaseT
+  currentUserId?: number
+  currentUserRole?: RoleT
 }
 
 export function TransferDataTable({

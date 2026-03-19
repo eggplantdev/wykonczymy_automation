@@ -22,9 +22,9 @@ type TransferFieldsT = {
 }
 
 type FieldRuleT = {
-  readonly invalid: (d: TransferFieldsT) => boolean
-  readonly message: string
-  readonly path: string
+  invalid: (d: TransferFieldsT) => boolean
+  message: string
+  path: string
 }
 
 const transferFieldRules: FieldRuleT[] = [
@@ -66,7 +66,7 @@ export function validateTransferFields(data: TransferFieldsT, ctx: z.RefinementC
 
 export function validateLineItemCategories(
   type: string,
-  lineItems: readonly { category?: unknown; expenseCategory?: unknown }[],
+  lineItems: { category?: unknown; expenseCategory?: unknown }[],
   ctx: z.RefinementCtx,
 ) {
   lineItems.forEach((item, index) => {

@@ -1,6 +1,6 @@
 type ContactLinkPropsT = {
-  readonly type: 'email' | 'phone'
-  readonly value: string | undefined
+  type: 'email' | 'phone'
+  value: string | undefined
 }
 
 const PROTOCOL = { email: 'mailto:', phone: 'tel:' } as const

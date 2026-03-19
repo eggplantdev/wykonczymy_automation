@@ -20,10 +20,10 @@ const InvoiceUploadDialog = dynamic(() =>
 )
 
 type InvoiceCellPropsT = {
-  readonly transactionId: number
-  readonly url: string | null
-  readonly filename: string | null
-  readonly mimeType: string | null
+  transactionId: number
+  url: string | null
+  filename: string | null
+  mimeType: string | null
 }
 
 export function InvoiceCell({ transactionId, url, filename, mimeType }: InvoiceCellPropsT) {

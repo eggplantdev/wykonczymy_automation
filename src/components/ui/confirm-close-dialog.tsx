@@ -10,13 +10,13 @@ import {
 } from '@/components/ui/alert-dialog'
 
 type ConfirmCloseDialogPropsT = {
-  readonly open: boolean
-  readonly onOpenChange: (open: boolean) => void
-  readonly onConfirm: () => void
-  readonly title?: string
-  readonly description?: string
-  readonly confirmLabel?: string
-  readonly cancelLabel?: string
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onConfirm: () => void
+  title?: string
+  description?: string
+  confirmLabel?: string
+  cancelLabel?: string
 }
 
 export function ConfirmCloseDialog({

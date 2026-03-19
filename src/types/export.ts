@@ -4,26 +4,26 @@ import type { FilterConfigT } from '@/types/filters'
 export type ExportContextT = 'investment' | 'register'
 
 export type HeaderFieldT = {
-  readonly label: string
-  readonly value: string
-  readonly amount?: number
+  label: string
+  value: string
+  amount?: number
 }
 
-export type FinancialFieldT = HeaderFieldT & { readonly amount: number }
+export type FinancialFieldT = HeaderFieldT & { amount: number }
 
 export type TransferQueryT = {
-  readonly where: Where
-  readonly page: number
-  readonly limit: number
+  where: Where
+  page: number
+  limit: number
 }
 
 export type TransferTableConfigT = {
-  readonly query: TransferQueryT
-  readonly baseUrl: string
-  readonly excludeColumns?: string[]
-  readonly filters?: FilterConfigT
-  readonly context?: ExportContextT
-  readonly contextId?: number
-  readonly headerFields?: HeaderFieldT[]
-  readonly totalPayouts?: number
+  query: TransferQueryT
+  baseUrl: string
+  excludeColumns?: string[]
+  filters?: FilterConfigT
+  context?: ExportContextT
+  contextId?: number
+  headerFields?: HeaderFieldT[]
+  totalPayouts?: number
 }

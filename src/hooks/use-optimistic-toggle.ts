@@ -2,8 +2,8 @@ import { useOptimistic, startTransition, useCallback } from 'react'
 import { toastMessage } from '@/components/toasts'
 import type { ActionResultT } from '@/lib/actions/utils'
 
-export function useOptimisticToggle<TRow extends { readonly id: number }>(
-  data: readonly TRow[],
+export function useOptimisticToggle<TRow extends { id: number }>(
+  data: TRow[],
   getUpdate: (newActive: boolean) => Partial<TRow>,
   serverAction: (id: number, newActive: boolean) => Promise<ActionResultT>,
 ) {

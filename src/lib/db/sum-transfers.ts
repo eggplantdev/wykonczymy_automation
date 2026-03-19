@@ -102,16 +102,16 @@ export const sumAllRegisterBalances = async (payload: Payload): Promise<Map<numb
 }
 
 export type CategoryCostT = {
-  readonly categoryId: number
-  readonly total: number
+  categoryId: number
+  total: number
 }
 
 export type InvestmentFinancialsT = {
-  readonly categoryCosts: readonly CategoryCostT[]
-  readonly totalMaterialCosts: number
-  readonly totalIncome: number
-  readonly totalLaborCosts: number
-  readonly totalPayouts: number
+  categoryCosts: CategoryCostT[]
+  totalMaterialCosts: number
+  totalIncome: number
+  totalLaborCosts: number
+  totalPayouts: number
 }
 
 /**
@@ -224,13 +224,13 @@ export type CostBreakdownT = {
   laborCosts: number
 }
 
-const totalByType = (byType: readonly TypeTotalT[], transferType: string): number =>
+const totalByType = (byType: TypeTotalT[], transferType: string): number =>
   byType.find((row) => row.type === transferType)?.total ?? 0
 
 /** Derive financials (costs/income/labor) from type distribution. */
 export function deriveFinancials(
-  byType: readonly TypeTotalT[],
-  categoryCosts: readonly CategoryCostT[] = [],
+  byType: TypeTotalT[],
+  categoryCosts: CategoryCostT[] = [],
 ): InvestmentFinancialsT {
   return {
     categoryCosts,
@@ -245,7 +245,7 @@ export function deriveFinancials(
 }
 
 /** Derive cost breakdown from type distribution. */
-export function deriveCostBreakdown(byType: readonly TypeTotalT[]): CostBreakdownT {
+export function deriveCostBreakdown(byType: TypeTotalT[]): CostBreakdownT {
   return {
     investmentExpenses: totalByType(byType, 'INVESTMENT_EXPENSE'),
     laborCosts: totalByType(byType, 'LABOR_COST'),

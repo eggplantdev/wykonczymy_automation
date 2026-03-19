@@ -5,8 +5,8 @@ import type { AppFieldComponentsT } from '@/components/forms/types/form-types'
 
 type ExpenseCategoryFieldPropsT = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  readonly form: any
-  readonly expenseCategories: readonly ReferenceItemT[]
+  form: any
+  expenseCategories: ReferenceItemT[]
 }
 
 export function ExpenseCategoryField({ form, expenseCategories }: ExpenseCategoryFieldPropsT) {

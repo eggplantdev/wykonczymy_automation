@@ -5,9 +5,9 @@ import { CACHE_TAGS } from '@/lib/cache/tags'
 import { perfStart } from '@/lib/perf'
 
 export type MediaInfoT = {
-  readonly url: string | null
-  readonly filename: string | null
-  readonly mimeType: string | null
+  url: string | null
+  filename: string | null
+  mimeType: string | null
 }
 
 export async function fetchMediaByIds(ids: number[]): Promise<Map<number, MediaInfoT>> {

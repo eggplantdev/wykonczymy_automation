@@ -4,8 +4,8 @@ import { formatPLN } from '@/lib/format-currency'
 
 /** Map ALL expense categories to header fields, showing 0 for categories with no transactions. */
 function mapCategoryCostsToFields(
-  categoryCosts: readonly CategoryCostT[],
-  expenseCategories: readonly { readonly id: number; readonly name: string }[],
+  categoryCosts: CategoryCostT[],
+  expenseCategories: { id: number; name: string }[],
 ): FinancialFieldT[] {
   const costMap = new Map(categoryCosts.map((cc) => [cc.categoryId, cc.total]))
 
@@ -18,7 +18,7 @@ function mapCategoryCostsToFields(
 /** Build the shared financial header fields (category costs + totals). */
 export function buildFinancialFields(
   financials: InvestmentFinancialsT,
-  expenseCategories: readonly { readonly id: number; readonly name: string }[],
+  expenseCategories: { id: number; name: string }[],
 ): FinancialFieldT[] {
   const { categoryCosts, totalIncome, totalLaborCosts } = financials
 

@@ -10,9 +10,9 @@ import { usePathname } from 'next/navigation'
 import { useCallback, useTransition } from 'react'
 
 type SidebarPropsT = {
-  readonly user: {
-    readonly name: string
-    readonly role: RoleT
+  user: {
+    name: string
+    role: RoleT
   }
 }
 

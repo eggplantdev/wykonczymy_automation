@@ -6,8 +6,8 @@ import type { AppFieldComponentsT } from '@/components/forms/types/form-types'
 
 type InvestmentFieldPropsT = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  readonly form: any
-  readonly investments: readonly ReferenceItemT[]
+  form: any
+  investments: ReferenceItemT[]
 }
 
 export function InvestmentField({ form, investments }: InvestmentFieldPropsT) {

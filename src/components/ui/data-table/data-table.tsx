@@ -18,19 +18,19 @@ import { TableHeader } from './table-header'
 import { EmptyRow, readVisibility, writeVisibility } from './table-helpers'
 
 type DataTablePropsT<TData> = {
-  readonly data: readonly TData[]
+  data: TData[]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  readonly columns: ColumnDef<TData, any>[]
-  readonly enableVirtualization?: boolean
-  readonly virtualRowHeight?: number
-  readonly virtualContainerHeight?: number
+  columns: ColumnDef<TData, any>[]
+  enableVirtualization?: boolean
+  virtualRowHeight?: number
+  virtualContainerHeight?: number
   /** localStorage key for persisting column visibility */
-  readonly storageKey?: string
+  storageKey?: string
   /** Makes the row clickable — navigates to the returned URL */
-  readonly getRowHref?: (row: TData) => string | undefined
-  readonly getRowClassName?: (row: TData) => string
-  readonly toolbar?: (table: Table<TData>, columnVisibility: VisibilityState) => React.ReactNode
-  readonly className?: string
+  getRowHref?: (row: TData) => string | undefined
+  getRowClassName?: (row: TData) => string
+  toolbar?: (table: Table<TData>, columnVisibility: VisibilityState) => React.ReactNode
+  className?: string
 }
 
 export function DataTable<TData>({

@@ -10,9 +10,9 @@ import { cn } from '../../lib/cn'
 const LIMIT_OPTIONS = [20, 50, 100] as const
 
 type PaginationFooterPropsT = {
-  readonly paginationMeta: PaginationMetaT
-  readonly baseUrl: string
-  readonly className?: string
+  paginationMeta: PaginationMetaT
+  baseUrl: string
+  className?: string
 }
 
 export function PaginationFooter({ paginationMeta, baseUrl, className }: PaginationFooterPropsT) {

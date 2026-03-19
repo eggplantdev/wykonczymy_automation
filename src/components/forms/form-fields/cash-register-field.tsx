@@ -6,13 +6,13 @@ import type { AppFieldComponentsT } from '@/components/forms/types/form-types'
 
 type CashRegisterFieldPropsT = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  readonly form: any
-  readonly name?: string
-  readonly label?: string
-  readonly placeholder?: string
-  readonly cashRegisters: readonly ReferenceItemT[]
+  form: any
+  name?: string
+  label?: string
+  placeholder?: string
+  cashRegisters: ReferenceItemT[]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  readonly listeners?: Record<string, any>
+  listeners?: Record<string, any>
 }
 
 export function CashRegisterField({

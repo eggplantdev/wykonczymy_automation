@@ -4,10 +4,10 @@ import { Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 type ActiveFilterButtonPropsT = {
-  readonly isActive: boolean
-  readonly onChange: (value: boolean) => void
-  readonly activeLabel: string
-  readonly allLabel: string
+  isActive: boolean
+  onChange: (value: boolean) => void
+  activeLabel: string
+  allLabel: string
 }
 
 export function ActiveFilterButton({

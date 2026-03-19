@@ -9,10 +9,10 @@ import { updateTransferInvoiceAction } from '@/lib/actions/transfers'
 import { toastMessage } from '@/components/toasts'
 
 type InvoiceUploadDialogPropsT = {
-  readonly transactionId: number
-  readonly open: boolean
-  readonly onOpenChange: (open: boolean) => void
-  readonly isReplace?: boolean
+  transactionId: number
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  isReplace?: boolean
 }
 
 export function InvoiceUploadDialog({

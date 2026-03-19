@@ -1,8 +1,8 @@
 type SearchParamsT = Record<string, string | string[] | undefined>
 
 export type DateRangeT = {
-  readonly from: string
-  readonly to: string
+  from: string
+  to: string
 }
 
 export function parseDateRange(searchParams: SearchParamsT): DateRangeT | undefined {

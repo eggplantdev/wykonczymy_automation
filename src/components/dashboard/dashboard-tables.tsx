@@ -29,7 +29,7 @@ const getOwner = (row: CashRegisterRowT) => row.ownerName
 const getCashRegisterSearchText = (row: CashRegisterRowT) => `${row.name} ${row.ownerName}`
 
 type CashRegistersTablePropsT = {
-  readonly data: readonly CashRegisterRowT[]
+  data: CashRegisterRowT[]
   className?: string
 }
 
@@ -121,8 +121,8 @@ function CashRegistersTable({ data, className }: CashRegistersTablePropsT) {
 }
 
 type DashboardTablesPropsT = {
-  readonly cashRegisters: readonly CashRegisterRowT[]
-  readonly investments: readonly InvestmentRowT[]
+  cashRegisters: CashRegisterRowT[]
+  investments: InvestmentRowT[]
 }
 
 export function DashboardTables({ cashRegisters, investments }: DashboardTablesPropsT) {

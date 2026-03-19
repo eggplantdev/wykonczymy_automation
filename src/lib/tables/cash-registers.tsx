@@ -6,12 +6,12 @@ import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
 import type { CashRegisterTypeT } from '@/types/reference-data'
 
 export type CashRegisterRowT = {
-  readonly id: number
-  readonly name: string
-  readonly ownerName: string
-  readonly balance: number
-  readonly type: CashRegisterTypeT
-  readonly active: boolean
+  id: number
+  name: string
+  ownerName: string
+  balance: number
+  type: CashRegisterTypeT
+  active: boolean
 }
 
 export const REGISTER_TYPE_LABELS: Record<CashRegisterTypeT, string> = {

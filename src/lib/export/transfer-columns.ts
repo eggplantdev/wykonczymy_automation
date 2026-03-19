@@ -5,8 +5,8 @@ import type { TransferRowT } from '@/lib/tables/transfers'
 import type { TransferTypeT, PaymentMethodT } from '@/lib/constants/transfers'
 
 type ColumnDefT = {
-  readonly label: string
-  readonly getValue: (row: TransferRowT) => string
+  label: string
+  getValue: (row: TransferRowT) => string
 }
 
 /** Shared column definitions for export (CSV) and print views. */

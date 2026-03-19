@@ -9,8 +9,8 @@ import { buildTransferCsv } from '@/lib/export/csv'
 import { triggerDownload } from '@/lib/export/download'
 
 type CsvButtonPropsT = {
-  readonly where: Where
-  readonly visibleColumnIds: string[]
+  where: Where
+  visibleColumnIds: string[]
 }
 
 export function CsvButton({ where, visibleColumnIds }: CsvButtonPropsT) {

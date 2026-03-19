@@ -1,9 +1,6 @@
 import { useMemo, useState } from 'react'
 
-export function useActiveFilter<TItem>(
-  data: readonly TItem[],
-  predicate: (item: TItem) => boolean,
-) {
+export function useActiveFilter<TItem>(data: TItem[], predicate: (item: TItem) => boolean) {
   const [showOnlyActive, setShowOnlyActive] = useState(true)
 
   const filteredData = useMemo(
