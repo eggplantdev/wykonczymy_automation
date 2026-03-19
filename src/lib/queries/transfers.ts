@@ -21,9 +21,9 @@ export async function findTransfersRaw({
   limit,
   sort = '-id',
 }: FindTransfersOptsT) {
-  'use cache'
-  cacheLife('max')
-  cacheTag(CACHE_TAGS.transfers)
+  // 'use cache'
+  // cacheLife('max')
+  // cacheTag(CACHE_TAGS.transfers)
 
   const elapsed = perfStart()
   const payload = await getPayload({ config })

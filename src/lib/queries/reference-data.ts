@@ -26,15 +26,15 @@ import type {
 } from '@/types/reference-data'
 
 export async function fetchReferenceData(): Promise<ReferenceDataBaseT> {
-  'use cache'
-  cacheLife('max')
-  cacheTag(
-    CACHE_TAGS.cashRegisters,
-    CACHE_TAGS.investments,
-    CACHE_TAGS.users,
-    CACHE_TAGS.otherCategories,
-    CACHE_TAGS.expenseCategories,
-  )
+  // 'use cache'
+  // cacheLife('max')
+  // cacheTag(
+  //   CACHE_TAGS.cashRegisters,
+  //   CACHE_TAGS.investments,
+  //   CACHE_TAGS.users,
+  //   CACHE_TAGS.otherCategories,
+  //   CACHE_TAGS.expenseCategories,
+  // )
 
   const elapsed = perfStart()
   const payload = await getPayload({ config })
@@ -127,9 +127,9 @@ export async function fetchReferenceData(): Promise<ReferenceDataBaseT> {
 export type RegisterBalanceMapT = Record<string, number>
 
 export async function fetchRegisterBalances(): Promise<RegisterBalanceMapT> {
-  'use cache'
-  cacheLife('max')
-  cacheTag(CACHE_TAGS.transfers)
+  // 'use cache'
+  // cacheLife('max')
+  // cacheTag(CACHE_TAGS.transfers)
 
   const elapsed = perfStart()
   const payload = await getPayload({ config })
@@ -142,9 +142,9 @@ export async function fetchRegisterBalances(): Promise<RegisterBalanceMapT> {
 export type InvestmentFinancialsMapT = Record<string, InvestmentFinancialsT>
 
 export async function fetchInvestmentFinancials(): Promise<InvestmentFinancialsMapT> {
-  'use cache'
-  cacheLife('max')
-  cacheTag(CACHE_TAGS.transfers)
+  // 'use cache'
+  // cacheLife('max')
+  // cacheTag(CACHE_TAGS.transfers)
 
   const elapsed = perfStart()
   const payload = await getPayload({ config })
@@ -158,18 +158,18 @@ export async function fetchInvestmentFinancials(): Promise<InvestmentFinancialsM
 }
 
 export async function fetchFilteredByType(where: Where): Promise<TypeTotalT[]> {
-  'use cache'
-  cacheLife('max')
-  cacheTag(CACHE_TAGS.transfers)
+  // 'use cache'
+  // cacheLife('max')
+  // cacheTag(CACHE_TAGS.transfers)
 
   const payload = await getPayload({ config })
   return sumFilteredByType(payload, where)
 }
 
 export async function fetchCategoryBreakdown(where: Where): Promise<CategoryCostT[]> {
-  'use cache'
-  cacheLife('max')
-  cacheTag(CACHE_TAGS.transfers)
+  // 'use cache'
+  // cacheLife('max')
+  // cacheTag(CACHE_TAGS.transfers)
 
   const payload = await getPayload({ config })
   return sumCategoryBreakdown(payload, where)

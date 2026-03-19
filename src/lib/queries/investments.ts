@@ -5,9 +5,9 @@ import { CACHE_TAGS, entityTag } from '@/lib/cache/tags'
 import { perfStart } from '@/lib/perf'
 
 export async function getInvestment(id: string) {
-  'use cache'
-  cacheLife('max')
-  cacheTag(CACHE_TAGS.investments, entityTag('investment', id))
+  // 'use cache'
+  // cacheLife('max')
+  // cacheTag(CACHE_TAGS.investments, entityTag('investment', id))
 
   const elapsed = perfStart()
   const payload = await getPayload({ config })
