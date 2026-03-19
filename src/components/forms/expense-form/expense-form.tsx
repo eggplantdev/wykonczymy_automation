@@ -17,7 +17,8 @@ import {
   type TransferTypeT,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
-import { createBulkTransferAction, getRegisterSaldo } from '@/lib/actions/transfers'
+import { createBulkTransferAction } from '@/lib/actions/transfers'
+import { getRegisterSaldo } from '@/lib/queries/register-saldo'
 import {
   bulkExpenseFormSchema,
   type CreateBulkExpenseFormT,

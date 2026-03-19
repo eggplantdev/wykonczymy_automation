@@ -13,9 +13,8 @@ import {
   type CreateBulkExpenseFormT,
 } from '@/components/forms/expense-form/expense-schema'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { isAdminOrOwnerRole, MANAGEMENT_ROLES } from '@/lib/auth/roles'
+import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import type { SessionUserT } from '@/types/auth'
-import { sumRegisterBalance } from '@/lib/db/sum-transfers'
 import { uploadBulkInvoices, uploadSingleInvoice } from '@/lib/upload-invoice'
 import { needsSourceRegister } from '../constants/transfers'
 import {
@@ -288,20 +287,4 @@ export async function removeTransferInvoiceAction(transferId: number) {
     },
     ['transfers'],
   )
-}
-
-export async function getRegisterSaldo(registerId: number): Promise<{ saldo: number }> {
-  const step = perfStart()
-
-  const [{ user }, payload] = await Promise.all([
-    requireAuth(MANAGEMENT_ROLES),
-    getPayload({ config }),
-  ])
-  if (!user) throw new Error('Brak uprawnień')
-  console.log(`[PERF]   requireAuth + getPayload ${step()}ms`)
-
-  const saldo = await sumRegisterBalance(payload, registerId)
-  console.log(`[PERF] getRegisterSaldo(${registerId}) saldo=${saldo} ${step()}ms`)
-
-  return { saldo }
 }
