@@ -47,7 +47,11 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
 
   return (
     <PageWrapper title="Raporty">
-      <FinancialStats fields={financialFields} totalPayouts={financials.totalPayouts} />
+      <FinancialStats
+        fields={financialFields}
+        totalLaborCosts={financials.totalLaborCosts}
+        totalPayouts={financials.totalPayouts}
+      />
 
       {/* TODO: ReportChart — unify colors with financial-stats before re-enabling */}
 

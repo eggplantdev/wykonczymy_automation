@@ -9,7 +9,7 @@ import { perfStart } from '@/lib/perf'
 import type { CashRegisterTypeT } from '@/types/reference-data'
 import type { CashRegisterRowT } from '@/lib/tables/cash-registers'
 import type { InvestmentRowT } from '@/lib/tables/investments'
-import { calculateMargin } from '@/lib/export/header-fields'
+import { calculateMargin } from '@/lib/calculate-margin'
 
 export async function fetchManagerDashboardData() {
   const elapsed = perfStart()
@@ -53,7 +53,7 @@ export async function fetchManagerDashboardData() {
       totalLaborCosts,
       totalPayouts,
       balance,
-      margin: calculateMargin(balance, totalPayouts),
+      margin: calculateMargin(totalLaborCosts, totalPayouts),
       address: inv.address,
       phone: inv.phone,
       email: inv.email,
