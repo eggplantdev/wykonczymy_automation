@@ -7,7 +7,7 @@ import { fetchFilteredTransfers } from '@/lib/actions/export'
 import { buildPrintHtml } from '@/lib/export/print'
 import { printViaIframe } from '@/lib/export/print-iframe'
 import { formatPLN } from '@/lib/format-currency'
-import { BILANS_LABEL, calculateBalance, calculateMargin } from '@/lib/export/header-fields'
+import { BILANS_LABEL, calculateBalance } from '@/lib/export/header-fields'
 import { useHeaderFieldsStore } from '@/stores/header-fields-store'
 import type { TransferTableConfigT } from '@/types/export'
 import type { HeaderFieldT } from '@/types/export'
@@ -29,17 +29,7 @@ export function PrintButton({ config, visibleColumnIds }: PrintButtonPropsT) {
     : [...headerFields]
 
   const bilans = calculateBalance(headerFields, storeVisibility)
-  const printFields = [...visibleFields, { label: BILANS_LABEL, value: formatPLN(bilans) }]
-
-  const totalPayouts = config.totalPayouts
-  const visibleHeaderFields =
-    totalPayouts !== undefined
-      ? [
-          ...printFields,
-          { label: 'Wypłaty', value: formatPLN(-totalPayouts) },
-          { label: 'Marża', value: formatPLN(calculateMargin(bilans, totalPayouts)) },
-        ]
-      : printFields
+  const visibleHeaderFields = [...visibleFields, { label: BILANS_LABEL, value: formatPLN(bilans) }]
 
   async function handlePrint() {
     setIsLoading(true)
