@@ -2,8 +2,10 @@ import { formatPLN } from '@/lib/format-currency'
 import { cn } from '@/lib/cn'
 import { Description } from '@/components/ui/description'
 
-export const saldoColor = (amount: number) =>
-  amount > 0 ? 'text-chart-green' : amount < 0 ? 'text-destructive' : 'text-foreground'
+export const saldoColor = (amount: number) => {
+  if (Math.abs(amount) < 0.005) return 'text-foreground'
+  return amount > 0 ? 'text-chart-green' : 'text-destructive'
+}
 
 type SaldoDisplayPropsT = {
   readonly saldo: number

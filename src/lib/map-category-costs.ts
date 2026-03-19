@@ -25,7 +25,7 @@ export function buildFinancialFields(
   return [
     ...mapCategoryCostsToFields(categoryCosts, expenseCategories),
     {
-      label: 'Koszty robocizny',
+      label: 'Robocizna',
       value: formatPLN(totalLaborCosts),
       amount: -totalLaborCosts,
     },

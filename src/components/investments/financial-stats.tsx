@@ -6,6 +6,9 @@ import { ToggleStatButtons, computeSummary } from '@/components/ui/toggle-stat-b
 import type { StatEntryT } from '@/components/ui/toggle-stat-buttons'
 import type { HeaderFieldT } from '@/types/export'
 import { SaldoDisplay } from '@/components/ui/saldo-display'
+import { calculateMargin } from '@/lib/export/header-fields'
+import { Description } from '../ui/description'
+import { Button } from '../ui/button'
 
 const INCOME_LABEL = 'Wpłaty'
 
@@ -14,7 +17,7 @@ type FinancialStatsPropsT = {
   readonly totalPayouts?: number
 }
 
-export function FinancialStats({ fields, totalPayouts }: FinancialStatsPropsT) {
+export function FinancialStats({ fields, totalPayouts = 0 }: FinancialStatsPropsT) {
   const toggle = useHeaderFieldsStore((s) => s.toggle)
   const reset = useHeaderFieldsStore((s) => s.reset)
   const visibility = useHeaderFieldsStore((s) => s.visibility)
@@ -40,28 +43,28 @@ export function FinancialStats({ fields, totalPayouts }: FinancialStatsPropsT) {
   const rows = [expenseRow, ...(incomeRow.length > 0 ? [incomeRow] : [])]
   const allEntries = rows.flat()
 
-  // Compute current Bilans from visibility state (mirrors ToggleStatButtons internal logic)
   const hidden = new Set(
     allEntries.filter((e) => visibility[e.label] === false).map((e) => e.label),
   )
-  const bilans = computeSummary(allEntries, hidden)
-  const marza = bilans - (totalPayouts ?? 0)
+  const balance = computeSummary(allEntries, hidden)
+  const margin = calculateMargin(balance, totalPayouts)
 
   return (
     <>
       <ToggleStatButtons
         rows={rows}
-        summaryLabel="Bilans"
+        rowLabels={['Koszty inwestora']}
+        summaryLabel="Bilans inwestora"
         onToggle={toggle}
         helpText="Saldo liczone jest dynamicznie jako suma wybranych kategorii oraz filtrów."
       />
 
-      {totalPayouts !== undefined && (
-        <div className="mb-4 space-y-1">
-          <SaldoDisplay saldo={-totalPayouts} label="Wypłaty" />
-          <SaldoDisplay saldo={marza} label="Marża" />
-        </div>
-      )}
+      <Description className="mb-4 space-y-1">
+        <Button variant="outline" className="border-chart-red">
+          Wypłaty: {totalPayouts}
+        </Button>
+        <SaldoDisplay saldo={margin} label="Marża" />
+      </Description>
     </>
   )
 }
