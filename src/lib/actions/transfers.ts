@@ -19,14 +19,14 @@ import {
   // checkIfSufficientBalance,
   validateAction,
   validateSourceRegister,
-  withAction,
+  protectedAction,
 } from './utils'
 
 export async function createTransferAction(
   data: CreateTransferFormT,
   invoiceFormData: FormData | null,
 ) {
-  return withAction(
+  return protectedAction(
     `createTransferAction type=${data.type}`,
     async ({ payload, user }) => {
       const step = perfStart()
@@ -69,7 +69,7 @@ export async function createBulkTransferAction(
 ) {
   const lineCount = data.lineItems.length
 
-  return withAction(
+  return protectedAction(
     `createBulkTransferAction type=${data.type} items=${lineCount}`,
     async ({ payload, user }) => {
       const step = perfStart()
@@ -160,7 +160,7 @@ async function fetchAndAuthorize(
 }
 
 export async function cancelTransferAction(transferId: number) {
-  return withAction(
+  return protectedAction(
     'cancelTransferAction',
     async ({ payload, user }) => {
       const step = perfStart()
@@ -202,7 +202,7 @@ export async function cancelTransferAction(transferId: number) {
 }
 
 export async function updateTransferAction(transferId: number, data: UpdateTransferFormT) {
-  return withAction(
+  return protectedAction(
     'updateTransferAction',
     async ({ payload, user }) => {
       const step = perfStart()
@@ -233,7 +233,7 @@ export async function updateTransferAction(transferId: number, data: UpdateTrans
 }
 
 export async function updateTransferInvoiceAction(transferId: number, invoiceFormData: FormData) {
-  return withAction(
+  return protectedAction(
     'updateTransferInvoiceAction',
     async ({ payload }) => {
       const step = perfStart()
@@ -255,7 +255,7 @@ export async function updateTransferInvoiceAction(transferId: number, invoiceFor
 }
 
 export async function removeTransferInvoiceAction(transferId: number) {
-  return withAction(
+  return protectedAction(
     'removeTransferInvoiceAction',
     async ({ payload }) => {
       const step = perfStart()

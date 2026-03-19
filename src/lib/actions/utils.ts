@@ -41,7 +41,7 @@ export function validateAction<TData>(
 }
 
 /** Auth + payload + try/catch + perf + revalidation wrapper for actions. */
-export async function withAction(
+export async function protectedAction(
   label: string,
   handler: (ctx: ActionCtxT) => Promise<ActionResultT>,
   revalidate?: (keyof typeof CACHE_TAGS)[],
@@ -100,7 +100,7 @@ export async function validateSourceRegister(
   }
 
   // ADMIN, OWNER, MANAGER can transfer from any register.
-  // EMPLOYEE is blocked earlier by requireAuth(MANAGEMENT_ROLES) in withAction.
+  // EMPLOYEE is blocked earlier by requireAuth(MANAGEMENT_ROLES) in protectedAction.
 
   return { success: true, register }
 }

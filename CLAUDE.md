@@ -71,7 +71,7 @@ JWT-based auth via Payload (`payload-token` cookie, 24h). Roles: `ADMIN`, `OWNER
 
 ### Server Action Pattern
 
-All mutations use `withAction()` wrapper (`src/lib/actions/`):
+All mutations use `protectedAction()` wrapper (`src/lib/actions/`):
 
 - `'use server'` directive
 - `requireAuth()` guard
