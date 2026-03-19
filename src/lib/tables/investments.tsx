@@ -77,7 +77,6 @@ export function getInvestmentColumns({ onToggle, userRole }: InvestmentColumnOpt
     col.accessor('email', {
       id: 'email',
       header: 'Email',
-
       cell: (info) => <ContactLink type="email" value={info.getValue()} />,
     }),
     col.accessor('contactPerson', {
