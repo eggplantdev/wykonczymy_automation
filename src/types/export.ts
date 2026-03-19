@@ -7,8 +7,6 @@ export type HeaderFieldT = {
   readonly label: string
   readonly value: string
   readonly amount?: number
-  readonly pairedWith?: string
-  readonly defaultHidden?: boolean
 }
 
 export type TransferQueryT = {
@@ -25,4 +23,5 @@ export type TransferTableConfigT = {
   readonly context?: ExportContextT
   readonly contextId?: number
   readonly headerFields?: HeaderFieldT[]
+  readonly totalPayouts?: number
 }

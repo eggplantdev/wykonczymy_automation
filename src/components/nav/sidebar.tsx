@@ -1,15 +1,13 @@
 'use client'
 
-import { useCallback, useTransition } from 'react'
-import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
-import { FileBarChart, LogOut, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { RoleBadge } from '@/components/ui/badge'
-import { SECTION_LINKS } from '@/lib/constants/sections'
-import { ROLE_LABELS, type RoleT } from '@/lib/auth/roles'
 import { logoutAction } from '@/lib/actions/auth'
-import { RainbowButton } from '@/components/ui/rainbow-button'
+import { type RoleT } from '@/lib/auth/roles'
+import { SECTION_LINKS } from '@/lib/constants/sections'
+import { FileBarChart, LogOut, Shield } from 'lucide-react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useCallback, useTransition } from 'react'
 
 type SidebarPropsT = {
   readonly user: {
@@ -20,7 +18,6 @@ type SidebarPropsT = {
 
 export function Sidebar({ user }: SidebarPropsT) {
   const pathname = usePathname()
-  const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
   const handleSectionClick = useCallback(
@@ -43,11 +40,9 @@ export function Sidebar({ user }: SidebarPropsT) {
   return (
     <aside className="border-border bg-background sticky top-0 hidden h-screen w-fit min-w-48 shrink-0 flex-col border-r px-3 pb-3 lg:flex">
       {/* Logo + badge — matches top bar min-h-14 */}
-      <div className="mb-4 flex h-14 items-center">
-        <Link href="/">
-          <h1 className="text-md font-semibold">Wykończymy 🚧</h1>
-        </Link>
-      </div>
+      <Link href="/" className={`mx-auto mb-4`}>
+        <h1 className="text-md leading-14 font-semibold">Wykończymy 🚧</h1>
+      </Link>
       {/* Navigation */}
       <nav className="flex flex-col gap-1">
         {SECTION_LINKS.map((link) => (
@@ -74,23 +69,12 @@ export function Sidebar({ user }: SidebarPropsT) {
         </div>
         <div className="flex flex-col gap-2">
           <Button size="sm" asChild aria-label="Panel administracyjny">
-            <Link
-              href={`${process.env.NEXT_PUBLIC_FRONTEND_URL}/admin`}
-              target="_blank"
-              aria-label="Panel administracyjny"
-            >
+            <Link href="/admin" target="_blank">
               <Shield className="size-4" />
               Admin
             </Link>
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onMouseEnter={() => router.prefetch('/zaloguj')}
-            onClick={handleLogout}
-            disabled={isPending}
-            aria-label="Wyloguj"
-          >
+          <Button variant="outline" size="sm" onClick={handleLogout} disabled={isPending}>
             <LogOut className="size-4" />
             Wyloguj
           </Button>

@@ -47,7 +47,7 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
 
   return (
     <PageWrapper title="Raporty">
-      <FinancialStats fields={headerFields.filter((f) => f.amount !== undefined)} />
+      <FinancialStats fields={headerFields} totalPayouts={financials.totalPayouts} />
 
       <ReportChart financials={financials} expenseCategories={refData.expenseCategories} />
 
@@ -57,6 +57,7 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
           baseUrl: '/raporty',
           filters: buildFilterConfig(refData),
           headerFields,
+          totalPayouts: financials.totalPayouts,
         }}
       />
     </PageWrapper>
