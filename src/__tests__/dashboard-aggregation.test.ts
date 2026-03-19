@@ -105,8 +105,8 @@ describe('fetchManagerDashboardData', () => {
       expect(invA.totalCosts).toBe(2500)
       // totalPayouts: 300
       expect(invA.totalPayouts).toBe(300)
-      // margin: 5500 + 300 = 5800
-      expect(invA.margin).toBe(5800)
+      // margin: laborCosts - payouts = 500 - 300 = 200
+      expect(invA.margin).toBe(200)
     })
 
     it('defaults missing financials to 0', async () => {
