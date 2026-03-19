@@ -41,12 +41,10 @@ export function ReportChart({ financials, expenseCategories }: ReportChartPropsT
     { name: 'Wpływy', value: financials.totalIncome, fill: 'var(--color-chart-green)' },
   ]
 
-  if (data.length === 0) {
-    return <p className="text-muted-foreground py-8 text-center text-sm">Brak danych</p>
-  }
+  if (data.length === 0) return <></>
 
   return (
-    <ChartContainer className="mx-auto h-[300px] w-[300px]">
+    <ChartContainer className="mx-auto size-[300px]">
       <PieChart>
         <Pie data={data} dataKey="value" nameKey="name" />
         <ChartTooltip content={<ChartTooltipContent valueFormatter={plnFormatter} />} />
