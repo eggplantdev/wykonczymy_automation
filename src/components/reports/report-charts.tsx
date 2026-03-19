@@ -37,8 +37,7 @@ export function ReportChart({ financials, expenseCategories }: ReportChartPropsT
   const data = [
     ...categorySlices,
     { name: 'Robocizna', value: financials.totalLaborCosts, fill: 'var(--color-chart-yellow)' },
-    { name: 'Wypłaty', value: financials.totalPayouts, fill: 'var(--color-chart-pink)' },
-    { name: 'Wpływy', value: financials.totalIncome, fill: 'var(--color-chart-green)' },
+    { name: 'Wpłaty', value: financials.totalIncome, fill: 'var(--color-chart-green)' },
   ]
 
   if (data.length === 0) return <></>

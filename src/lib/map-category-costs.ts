@@ -1,12 +1,12 @@
 import type { CategoryCostT, InvestmentFinancialsT } from '@/lib/db/sum-transfers'
-import type { HeaderFieldT } from '@/types/export'
+import type { FinancialFieldT } from '@/types/export'
 import { formatPLN } from '@/lib/format-currency'
 
 /** Map ALL expense categories to header fields, showing 0 for categories with no transactions. */
 function mapCategoryCostsToFields(
   categoryCosts: readonly CategoryCostT[],
   expenseCategories: readonly { readonly id: number; readonly name: string }[],
-): HeaderFieldT[] {
+): FinancialFieldT[] {
   const costMap = new Map(categoryCosts.map((cc) => [cc.categoryId, cc.total]))
 
   return expenseCategories.map((cat) => {
@@ -19,7 +19,7 @@ function mapCategoryCostsToFields(
 export function buildFinancialFields(
   financials: InvestmentFinancialsT,
   expenseCategories: readonly { readonly id: number; readonly name: string }[],
-): HeaderFieldT[] {
+): FinancialFieldT[] {
   const { categoryCosts, totalIncome, totalLaborCosts } = financials
 
   return [

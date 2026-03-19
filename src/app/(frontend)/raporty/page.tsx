@@ -13,7 +13,6 @@ import { buildFinancialFields } from '@/lib/map-category-costs'
 import { perfStart } from '@/lib/perf'
 import { buildFilterConfig } from '@/lib/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
-import { ReportChart } from '@/components/reports/report-charts'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { FinancialStats } from '@/components/investments/financial-stats'
 import type { HeaderFieldT } from '@/types/export'
@@ -40,16 +39,17 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
 
   const financials = deriveFinancials(typeDistribution, categoryBreakdown)
 
+  const financialFields = buildFinancialFields(financials, refData.expenseCategories)
   const headerFields: HeaderFieldT[] = [
     { label: 'Transakcje', value: 'Raport' },
-    ...buildFinancialFields(financials, refData.expenseCategories),
+    ...financialFields,
   ]
 
   return (
     <PageWrapper title="Raporty">
-      <FinancialStats fields={headerFields} totalPayouts={financials.totalPayouts} />
+      <FinancialStats fields={financialFields} totalPayouts={financials.totalPayouts} />
 
-      <ReportChart financials={financials} expenseCategories={refData.expenseCategories} />
+      {/* TODO: ReportChart — unify colors with financial-stats before re-enabling */}
 
       <TransfersSection
         config={{

@@ -9,6 +9,8 @@ export type HeaderFieldT = {
   readonly amount?: number
 }
 
+export type FinancialFieldT = HeaderFieldT & { readonly amount: number }
+
 export type TransferQueryT = {
   readonly where: Where
   readonly page: number

@@ -47,11 +47,10 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
 
   const financials = deriveFinancials(typeDistribution, categoryBreakdown)
 
-  // Dual-purpose: FinancialStats uses fields with `amount` for toggle buttons,
-  // PrintButton uses the full array (including the label-only entry) for print header.
+  const financialFields = buildFinancialFields(financials, refData.expenseCategories)
   const headerFields: HeaderFieldT[] = [
     { label: 'Inwestycja', value: investment.name },
-    ...buildFinancialFields(financials, refData.expenseCategories),
+    ...financialFields,
   ]
 
   const infoFields = [
@@ -67,7 +66,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
     <PageWrapper title={investment.name}>
       <InfoList items={infoFields.filter((f) => f.value)} />
 
-      <FinancialStats fields={headerFields} totalPayouts={financials.totalPayouts} />
+      <FinancialStats fields={financialFields} totalPayouts={financials.totalPayouts} />
 
       {/* Transactions table */}
       <TransfersSection

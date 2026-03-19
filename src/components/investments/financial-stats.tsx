@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { useHeaderFieldsStore } from '@/stores/header-fields-store'
 import { ToggleStatButtons, computeSummary } from '@/components/ui/toggle-stat-buttons'
 import type { StatEntryT } from '@/components/ui/toggle-stat-buttons'
-import type { HeaderFieldT } from '@/types/export'
+import type { FinancialFieldT } from '@/types/export'
 import { SaldoDisplay } from '@/components/ui/saldo-display'
 import { calculateMargin } from '@/lib/export/header-fields'
 import { Description } from '../ui/description'
@@ -13,7 +13,7 @@ import { Button } from '../ui/button'
 const INCOME_LABEL = 'Wpłaty'
 
 type FinancialStatsPropsT = {
-  readonly fields: readonly HeaderFieldT[]
+  readonly fields: readonly FinancialFieldT[]
   readonly totalPayouts?: number
 }
 
@@ -26,19 +26,16 @@ export function FinancialStats({ fields, totalPayouts = 0 }: FinancialStatsProps
     reset()
   }, [reset])
 
-  const toEntry = (field: HeaderFieldT, borderClassName: string): StatEntryT => ({
+  const toEntry = (field: FinancialFieldT, borderClassName: string): StatEntryT => ({
     ...field,
-    amount: field.amount ?? 0,
     borderClassName,
   })
 
-  const financialFields = fields.filter((f) => f.amount !== undefined)
-
-  const expenseRow = financialFields
+  const expenseRow = fields
     .filter((f) => f.label !== INCOME_LABEL)
     .map((f) => toEntry(f, 'border-chart-blue'))
 
-  const incomeRow = financialFields
+  const incomeRow = fields
     .filter((f) => f.label === INCOME_LABEL)
     .map((f) => toEntry(f, 'border-chart-green'))
 
