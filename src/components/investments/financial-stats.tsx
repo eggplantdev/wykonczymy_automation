@@ -68,12 +68,14 @@ export function FinancialStats({
         helpText="Saldo liczone jest dynamicznie jako suma wybranych kategorii oraz filtrów."
       />
 
-      <Description className="mb-4 space-y-1">
-        <Button variant="outline" className="border-chart-red">
-          Wypłaty: {totalPayouts}
-        </Button>
-        {isAdminOrOwnerRole(userRole) && <SaldoDisplay saldo={margin} label="Marża" />}
-      </Description>
+      {isAdminOrOwnerRole(userRole) && (
+        <Description className="mb-4 space-y-1">
+          <Button variant="outline" className="border-chart-red">
+            Wypłaty: {totalPayouts}
+          </Button>
+          <SaldoDisplay saldo={margin} label="Marża" />
+        </Description>
+      )}
     </>
   )
 }
