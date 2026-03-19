@@ -43,21 +43,32 @@ export const useOptimisticFormStore = create<OptimisticFormStoreT>()((set) => ({
     })
 
     // Fire-and-forget — runs after dialog unmounts
-    action().then((result) => {
-      if (result.success) {
-        set({ submission: null })
-        toastMessage(successMessage, 'success', 1000)
-      } else {
-        // Reopen dialog with failed state
+    action()
+      .then((result) => {
+        if (result.success) {
+          set({ submission: null })
+          toastMessage(successMessage, 'success', 1000)
+        } else {
+          // Reopen dialog with failed state
+          set((state) => ({
+            openFormId: formId,
+            submission: state.submission
+              ? { ...state.submission, status: 'failed', error: result.error }
+              : null,
+          }))
+          toastMessage(result.error, 'error', 5000)
+        }
+      })
+      .catch((err) => {
+        console.error('[OPTIMISTIC_SUBMIT]', err)
         set((state) => ({
           openFormId: formId,
           submission: state.submission
-            ? { ...state.submission, status: 'failed', error: result.error }
+            ? { ...state.submission, status: 'failed', error: 'Wystąpił nieoczekiwany błąd' }
             : null,
         }))
-        toastMessage(result.error, 'error', 5000)
-      }
-    })
+        toastMessage('Wystąpił nieoczekiwany błąd', 'error', 5000)
+      })
   },
 
   clearSubmission: () => set({ submission: null }),
