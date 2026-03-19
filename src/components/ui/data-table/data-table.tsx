@@ -18,7 +18,7 @@ import { TableHeader } from './table-header'
 import { EmptyRow, readVisibility, writeVisibility } from './table-helpers'
 
 type DataTablePropsT<TData> = {
-  data: TData[]
+  data: readonly TData[]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   columns: ColumnDef<TData, any>[]
   enableVirtualization?: boolean
