@@ -14,9 +14,14 @@ let cachedSecretKey: Uint8Array | undefined
 /** Derive the secret key from Payload's own config (cached after first call). */
 async function getSecretKey(): Promise<Uint8Array> {
   if (cachedSecretKey) return cachedSecretKey
-  const payload = await getPayload({ config })
-  cachedSecretKey = new TextEncoder().encode(payload.secret)
-  return cachedSecretKey
+  try {
+    const payload = await getPayload({ config })
+    cachedSecretKey = new TextEncoder().encode(payload.secret)
+    return cachedSecretKey
+  } catch (err) {
+    console.error('[getSecretKey] getPayload failed:', err)
+    throw err
+  }
 }
 
 /**
