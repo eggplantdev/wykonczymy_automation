@@ -32,11 +32,13 @@ export function FinancialStats({ fields, totalPayouts = 0 }: FinancialStatsProps
     borderClassName,
   })
 
-  const expenseRow = fields
+  const financialFields = fields.filter((f) => f.amount !== undefined)
+
+  const expenseRow = financialFields
     .filter((f) => f.label !== INCOME_LABEL)
     .map((f) => toEntry(f, 'border-chart-blue'))
 
-  const incomeRow = fields
+  const incomeRow = financialFields
     .filter((f) => f.label === INCOME_LABEL)
     .map((f) => toEntry(f, 'border-chart-green'))
 

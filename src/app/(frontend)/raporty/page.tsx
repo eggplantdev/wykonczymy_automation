@@ -47,10 +47,7 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
 
   return (
     <PageWrapper title="Raporty">
-      <FinancialStats
-        fields={headerFields.filter((f) => f.amount !== undefined)}
-        totalPayouts={financials.totalPayouts}
-      />
+      <FinancialStats fields={headerFields} totalPayouts={financials.totalPayouts} />
 
       <ReportChart financials={financials} expenseCategories={refData.expenseCategories} />
 

@@ -67,10 +67,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
     <PageWrapper title={investment.name}>
       <InfoList items={infoFields.filter((f) => f.value)} />
 
-      <FinancialStats
-        fields={headerFields.filter((f) => f.amount !== undefined)}
-        totalPayouts={financials.totalPayouts}
-      />
+      <FinancialStats fields={headerFields} totalPayouts={financials.totalPayouts} />
 
       {/* Transactions table */}
       <TransfersSection

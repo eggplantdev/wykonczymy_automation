@@ -16,7 +16,7 @@ export type InvestmentRowT = {
   readonly totalLaborCosts: number
   readonly totalPayouts: number
   readonly balance: number
-  readonly marza: number
+  readonly margin: number
   readonly address: string
   readonly phone: string
   readonly email: string
@@ -45,8 +45,8 @@ export function getInvestmentColumns(onToggle: (id: number, newActive: boolean) 
       meta: { align: 'right' },
       cell: (info) => <BalanceCell value={info.getValue()} />,
     }),
-    col.accessor('marza', {
-      id: 'marza',
+    col.accessor('margin', {
+      id: 'margin',
       header: 'Marża',
       meta: { align: 'right' },
       cell: (info) => <BalanceCell value={info.getValue()} />,

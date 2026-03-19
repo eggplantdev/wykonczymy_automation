@@ -53,7 +53,7 @@ export async function fetchManagerDashboardData() {
       totalLaborCosts,
       totalPayouts,
       balance,
-      marza: calculateMargin(balance, totalPayouts),
+      margin: calculateMargin(balance, totalPayouts),
       address: inv.address,
       phone: inv.phone,
       email: inv.email,
