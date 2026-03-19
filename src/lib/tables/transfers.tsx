@@ -10,6 +10,7 @@ import { EditTransferDialog } from '@/components/dialogs/edit-transfer-dialog'
 import { isAdminOrOwnerRole, type RoleT } from '@/lib/auth/roles'
 import {
   TRANSFER_TYPE_LABELS,
+  TRANSFER_TYPE_COLORS,
   PAYMENT_METHOD_LABELS,
   isCancellationType,
   EXPENSE_CATEGORY_LABEL,
@@ -192,7 +193,18 @@ const allColumns = [
   col.accessor('amount', {
     id: 'amount',
     header: 'Kwota',
-    cell: (info) => <span className="font-medium">{formatPLN(info.getValue())}</span>,
+    cell: (info) => {
+      const { type, cancelled } = info.row.original
+      const isMuted = cancelled || type === 'CANCELLATION'
+      return (
+        <span
+          className="font-medium"
+          style={isMuted ? undefined : { color: `var(--color-${TRANSFER_TYPE_COLORS[type]})` }}
+        >
+          {formatPLN(info.getValue())}
+        </span>
+      )
+    },
   }),
   col.accessor('investmentName', {
     id: 'investment',

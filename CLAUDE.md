@@ -96,6 +96,11 @@ All mutations use `protectedAction()` wrapper (`src/lib/actions/`):
 
 Transfer types: `INVESTOR_DEPOSIT`, `COMPANY_FUNDING`, `INVESTMENT_EXPENSE`, `ACCOUNT_FUNDING`, `EMPLOYEE_EXPENSE`, `REGISTER_TRANSFER`, `PAYOUT`, `OTHER`, `CANCELLATION`. Cancellation creates audit trail (original marked `cancelled: true`, new CANCELLATION row links back). Cash register balances recalculated via Payload hooks on transfer create/delete.
 
+## Code Style (project-specific)
+
+- Do not add `readonly` to type properties, props, or parameters
+- When editing a file that has unnecessary `readonly`, remove it
+
 ## Tech Stack Specifics
 
 - **pnpm 10.27.0** as package manager, `"type": "module"` in package.json

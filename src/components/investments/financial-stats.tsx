@@ -38,11 +38,11 @@ export function FinancialStats({
 
   const expenseRow = fields
     .filter((f) => f.label !== INCOME_LABEL && f.label !== LABOR_LABEL)
-    .map((f) => addBtnBorderColor(f, 'border-chart-blue'))
+    .map((f) => addBtnBorderColor(f, 'border-chart-red'))
 
   const laborRow = fields
     .filter((f) => f.label === LABOR_LABEL)
-    .map((f) => addBtnBorderColor(f, 'border-chart-yellow'))
+    .map((f) => addBtnBorderColor(f, 'border-chart-orange'))
 
   const incomeRow = fields
     .filter((f) => f.label === INCOME_LABEL)

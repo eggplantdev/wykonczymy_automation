@@ -24,6 +24,18 @@ export const TRANSFER_TYPE_LABELS: Record<TransferTypeT, string> = {
   CANCELLATION: 'Anulowanie',
 }
 
+export const TRANSFER_TYPE_COLORS: Record<TransferTypeT, string> = {
+  INVESTOR_DEPOSIT: 'chart-green',
+  COMPANY_FUNDING: 'chart-green',
+  OTHER_DEPOSIT: 'chart-green',
+  INVESTMENT_EXPENSE: 'chart-red',
+  LABOR_COST: 'chart',
+  PAYOUT: 'chart-red',
+  REGISTER_TRANSFER: 'chart-turquoise',
+  OTHER: 'chart-red',
+  CANCELLATION: 'muted-foreground',
+}
+
 export const EXPENSE_CATEGORY_LABEL = 'Typ wydatku inwestycyjnego'
 
 export const DEPOSIT_TYPES: TransferTypeT[] = [

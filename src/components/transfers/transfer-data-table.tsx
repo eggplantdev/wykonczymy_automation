@@ -6,7 +6,6 @@ import { PaginationFooter } from '@/components/ui/pagination-footer'
 import { TransferFilters } from '@/components/transfers/transfer-filters'
 import { TransferExportToolbar } from '@/components/transfers/transfer-export-toolbar'
 import { getTransferColumns, type TransferRowT } from '@/lib/tables/transfers'
-import { isCancellationType } from '@/lib/constants/transfers'
 import type { RoleT } from '@/lib/auth/roles'
 import type { PaginationMetaT } from '@/lib/pagination'
 import type { TransferTableConfigT } from '@/types/export'
@@ -44,8 +43,8 @@ export function TransferDataTable({
         columns={columns}
         storageKey="transfers"
         getRowClassName={(row) => {
-          if (row.cancelled) return '[&_td]:line-through [&_td]:text-destructive/60'
-          if (isCancellationType(row.type)) return '[&_td]:text-destructive'
+          if (row.cancelled) return '[&_td]:line-through [&_td]:text-muted-foreground'
+          if (row.type === 'CANCELLATION') return '[&_td]:text-muted-foreground'
           return ''
         }}
         toolbar={(table, cv) => (
