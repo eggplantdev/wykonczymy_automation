@@ -121,8 +121,8 @@ function CashRegistersTable({ data, className }: CashRegistersTablePropsT) {
 }
 
 type DashboardTablesPropsT = {
-  readonly cashRegisters: readonly CashRegisterRowT[]
-  readonly investments: readonly InvestmentRowT[]
+  cashRegisters: readonly CashRegisterRowT[]
+  investments: readonly InvestmentRowT[]
 }
 
 export function DashboardTables({ cashRegisters, investments }: DashboardTablesPropsT) {

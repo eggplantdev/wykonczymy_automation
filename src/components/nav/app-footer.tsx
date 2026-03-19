@@ -4,19 +4,14 @@ import { useTransition } from 'react'
 import { LogOut, Shield } from 'lucide-react'
 import Link from 'next/link'
 import { logoutAction } from '@/lib/actions/auth'
-import { ROLE_LABELS, type RoleT } from '@/lib/auth/roles'
+import { ROLE_LABELS } from '@/lib/auth/roles'
+import { useCurrentUser } from '@/hooks/use-current-user'
 import { RoleBadge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 
-type AppFooterPropsT = {
-  user: {
-    name: string
-    role: RoleT
-  }
-}
-
-export function AppFooter({ user }: AppFooterPropsT) {
+export function AppFooter() {
+  const user = useCurrentUser()
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
 

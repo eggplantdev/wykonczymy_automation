@@ -11,8 +11,7 @@ export default async function DashboardPage({ searchParams }: PagePropsT) {
   const { user } = session
   const params = await searchParams
 
-  if (isManagementRole(user.role))
-    return <ManagerDashboard searchParams={params} currentUserName={user.name} />
+  if (isManagementRole(user.role)) return <ManagerDashboard searchParams={params} />
 
   // Employee — redirect to their WORKER register
   const refData = await fetchReferenceData()

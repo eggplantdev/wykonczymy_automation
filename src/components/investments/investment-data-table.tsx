@@ -10,16 +10,18 @@ import { useActiveFilter } from '@/hooks/use-active-filter'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle'
 import { toggleInvestmentStatus } from '@/lib/actions/toggle-active'
+import { useCurrentUser } from '@/hooks/use-current-user'
 
 const isActive = (row: InvestmentRowT) => row.status === 'active'
 const getStatusUpdate = (newActive: boolean) =>
   ({ status: newActive ? 'active' : 'completed' }) as Partial<InvestmentRowT>
 
 type InvestmentDataTablePropsT = {
-  readonly data: readonly InvestmentRowT[]
+  data: readonly InvestmentRowT[]
 }
 
 export function InvestmentDataTable({ data }: InvestmentDataTablePropsT) {
+  const { role: userRole } = useCurrentUser()
   const { optimisticData, handleToggle } = useOptimisticToggle(
     data,
     getStatusUpdate,
@@ -41,7 +43,10 @@ export function InvestmentDataTable({ data }: InvestmentDataTablePropsT) {
     getSearchableText,
   )
 
-  const columns = useMemo(() => getInvestmentColumns(handleToggle), [handleToggle])
+  const columns = useMemo(
+    () => getInvestmentColumns({ onToggle: handleToggle, userRole }),
+    [handleToggle, userRole],
+  )
 
   return (
     <DataTable

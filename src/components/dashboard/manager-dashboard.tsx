@@ -10,10 +10,9 @@ import { perfStart } from '@/lib/perf'
 
 type ManagerDashboardPropsT = {
   searchParams: Record<string, string | string[] | undefined>
-  currentUserName: string
 }
 
-export async function ManagerDashboard({ searchParams, currentUserName }: ManagerDashboardPropsT) {
+export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT) {
   const step = perfStart()
   const { page, limit } = parsePagination(searchParams)
 
@@ -23,7 +22,7 @@ export async function ManagerDashboard({ searchParams, currentUserName }: Manage
 
   return (
     <PageWrapper title="Pulpit" backHref="">
-      <UserRegisterStats cashRegisters={visibleRegisters} currentUserName={currentUserName} />
+      <UserRegisterStats cashRegisters={visibleRegisters} />
 
       {/* Recent transactions */}
       <TransfersSection

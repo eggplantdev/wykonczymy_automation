@@ -8,6 +8,7 @@ import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
 import { Navigation } from '@/components/nav/navigation'
 import { Sidebar } from '@/components/nav/sidebar'
 import { AppFooter } from '@/components/nav/app-footer'
+import { CurrentUserProvider } from '@/hooks/use-current-user'
 import { Loader } from '@/components/ui/loader/loader'
 
 export default function FrontendLayout({ children }: { children: React.ReactNode }) {
@@ -32,13 +33,15 @@ async function AuthenticatedShell({ children }: { children: React.ReactNode }) {
   if (!user) redirect('/zaloguj')
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar user={{ name: user.name, role: user.role }} />
-      <div className="flex flex-1 flex-col">
-        <Navigation user={user} />
-        <main className="flex-1 overflow-y-auto">{children}</main>
-        <AppFooter user={{ name: user.name, role: user.role }} />
+    <CurrentUserProvider user={user}>
+      <div className="flex min-h-screen">
+        <Sidebar />
+        <div className="flex flex-1 flex-col">
+          <Navigation user={user} />
+          <main className="flex-1 overflow-y-auto">{children}</main>
+          <AppFooter />
+        </div>
       </div>
-    </div>
+    </CurrentUserProvider>
   )
 }

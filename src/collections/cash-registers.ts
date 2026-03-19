@@ -4,6 +4,7 @@ import type {
   CollectionBeforeValidateHook,
 } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerField, isAdminOrOwnerOrManager, isManager } from '@/access'
+import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 
 /** Managers can only create AUXILIARY registers — force the type. */
@@ -80,7 +81,7 @@ export const CashRegisters: CollectionConfig = {
         { label: { en: 'Worker', pl: 'Pracownicza' }, value: 'WORKER' },
       ],
       admin: {
-        condition: (_, __, { user }) => user?.role === 'ADMIN' || user?.role === 'OWNER',
+        condition: (_, __, { user }) => !!user?.role && isAdminOrOwnerRole(user.role),
       },
     },
     {

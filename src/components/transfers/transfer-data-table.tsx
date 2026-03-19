@@ -6,18 +6,16 @@ import { PaginationFooter } from '@/components/ui/pagination-footer'
 import { TransferFilters } from '@/components/transfers/transfer-filters'
 import { TransferExportToolbar } from '@/components/transfers/transfer-export-toolbar'
 import { getTransferColumns, type TransferRowT } from '@/lib/tables/transfers'
-import type { RoleT } from '@/lib/auth/roles'
+import { useCurrentUser } from '@/hooks/use-current-user'
 import type { PaginationMetaT } from '@/lib/pagination'
 import type { TransferTableConfigT } from '@/types/export'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 
 type TransferDataTablePropsT = {
-  readonly data: readonly TransferRowT[]
-  readonly paginationMeta: PaginationMetaT
-  readonly config: TransferTableConfigT
-  readonly referenceData?: ReferenceDataBaseT
-  readonly currentUserId?: number
-  readonly currentUserRole?: RoleT
+  data: readonly TransferRowT[]
+  paginationMeta: PaginationMetaT
+  config: TransferTableConfigT
+  referenceData?: ReferenceDataBaseT
 }
 
 export function TransferDataTable({
@@ -25,9 +23,8 @@ export function TransferDataTable({
   paginationMeta,
   config,
   referenceData,
-  currentUserId,
-  currentUserRole,
 }: TransferDataTablePropsT) {
+  const { id: currentUserId, role: currentUserRole } = useCurrentUser()
   const { baseUrl, excludeColumns = [], filters, headerFields } = config
   const columns = getTransferColumns(excludeColumns, {
     referenceData,

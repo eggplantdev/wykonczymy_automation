@@ -2,21 +2,16 @@
 
 import { Button } from '@/components/ui/button'
 import { logoutAction } from '@/lib/actions/auth'
-import { type RoleT } from '@/lib/auth/roles'
+import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { SECTION_LINKS } from '@/lib/constants/sections'
+import { useCurrentUser } from '@/hooks/use-current-user'
 import { FileBarChart, LogOut, Shield } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCallback, useTransition } from 'react'
 
-type SidebarPropsT = {
-  readonly user: {
-    readonly name: string
-    readonly role: RoleT
-  }
-}
-
-export function Sidebar({ user }: SidebarPropsT) {
+export function Sidebar() {
+  const user = useCurrentUser()
   const pathname = usePathname()
   const [isPending, startTransition] = useTransition()
 
@@ -35,7 +30,7 @@ export function Sidebar({ user }: SidebarPropsT) {
     startTransition(() => logoutAction())
   }
 
-  const showReports = user.role === 'ADMIN' || user.role === 'OWNER'
+  const showReports = isAdminOrOwnerRole(user.role)
 
   return (
     <aside className="border-border bg-background sticky top-0 hidden h-screen w-fit min-w-48 shrink-0 flex-col border-r px-3 pb-3 lg:flex">

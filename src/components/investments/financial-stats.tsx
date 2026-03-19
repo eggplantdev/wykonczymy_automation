@@ -7,6 +7,8 @@ import type { StatEntryT } from '@/components/ui/toggle-stat-buttons'
 import type { FinancialFieldT } from '@/types/export'
 import { SaldoDisplay } from '@/components/ui/saldo-display'
 import { calculateMargin } from '@/lib/calculate-margin'
+import { isAdminOrOwnerRole } from '@/lib/auth/roles'
+import { useCurrentUser } from '@/hooks/use-current-user'
 import { Description } from '../ui/description'
 import { Button } from '../ui/button'
 
@@ -14,9 +16,9 @@ const INCOME_LABEL = 'Wpłaty'
 const LABOR_LABEL = 'Robocizna'
 
 type FinancialStatsPropsT = {
-  readonly fields: readonly FinancialFieldT[]
-  readonly totalLaborCosts: number
-  readonly totalPayouts?: number
+  fields: readonly FinancialFieldT[]
+  totalLaborCosts: number
+  totalPayouts?: number
 }
 
 export function FinancialStats({
@@ -24,6 +26,7 @@ export function FinancialStats({
   totalLaborCosts,
   totalPayouts = 0,
 }: FinancialStatsPropsT) {
+  const { role: userRole } = useCurrentUser()
   const toggle = useHeaderFieldsStore((s) => s.toggle)
   const reset = useHeaderFieldsStore((s) => s.reset)
 
@@ -69,7 +72,7 @@ export function FinancialStats({
         <Button variant="outline" className="border-chart-red">
           Wypłaty: {totalPayouts}
         </Button>
-        <SaldoDisplay saldo={margin} label="Marża" />
+        {isAdminOrOwnerRole(userRole) && <SaldoDisplay saldo={margin} label="Marża" />}
       </Description>
     </>
   )
