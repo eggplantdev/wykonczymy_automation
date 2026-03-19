@@ -1,37 +1,20 @@
 'use client'
 
-import { useRef } from 'react'
+import { useTransition } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
-import {
-  Banknote,
-  Calendar,
-  CreditCard,
-  FolderOpen,
-  Landmark,
-  Tags,
-  User,
-  X,
-  type LucideIcon,
-} from 'lucide-react'
+import { Banknote, CreditCard, FolderOpen, Landmark, Tags, User } from 'lucide-react'
 import { FilterMultiSelect } from '@/components/transfers/filter-multi-select'
+import { ClearButton } from '@/components/transfers/clear-button'
+import { DateFilters } from '@/components/transfers/date-filters'
 import {
   TRANSFER_TYPES,
   TRANSFER_TYPE_LABELS,
   PAYMENT_METHODS,
   PAYMENT_METHOD_LABELS,
 } from '@/lib/constants/transfers'
-import { MONTHS } from '@/lib/constants/months'
-import { getMonthDateRange } from '@/lib/date-utils'
 import { buildUrlWithParams } from '@/lib/build-url-with-params'
 import { cn } from '@/lib/cn'
+import { Loader } from '@/components/ui/loader/loader'
 import type { ReferenceItemT } from '@/types/reference-data'
 
 type TransferFiltersPropsT = {
@@ -57,8 +40,34 @@ export function TransferFilters({
 }: TransferFiltersPropsT) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  // Transition keeps UI responsive during server re-render (shows Loader instead of blocking).
+  // Debounce in FilterMultiSelect batches rapid clicks to reduce how often we hit the server.
+  const [isPending, startTransition] = useTransition()
+
+  function navigate(url: string) {
+    startTransition(() => {
+      router.replace(url, { scroll: false })
+    })
+  }
+
+  function updateParam(key: string, value: string) {
+    navigate(buildUrlWithParams(baseUrl, searchParams.toString(), { [key]: value, page: '' }))
+  }
+
+  function updateMultipleParams(overrides: Record<string, string>) {
+    navigate(buildUrlWithParams(baseUrl, searchParams.toString(), { ...overrides, page: '' }))
+  }
 
   const getMultiParam = (key: string) => (searchParams.get(key) ?? '').split(',').filter(Boolean)
+
+  const ENTITY_FILTER_KEYS = [
+    'type',
+    'sourceRegister',
+    'investment',
+    'createdBy',
+    'paymentMethod',
+    'otherCategory',
+  ] as const
 
   const currentTypes = getMultiParam('type')
   const currentSourceRegisters = getMultiParam('sourceRegister')
@@ -66,76 +75,16 @@ export function TransferFilters({
   const currentCreatedBys = getMultiParam('createdBy')
   const currentPaymentMethods = getMultiParam('paymentMethod')
   const currentOtherCategories = getMultiParam('otherCategory')
-  const currentFrom = searchParams.get('from') ?? ''
-  const currentTo = searchParams.get('to') ?? ''
 
-  const now = new Date()
-  const pickerMonth = currentFrom ? String(new Date(currentFrom + 'T00:00:00').getMonth() + 1) : ''
-  const pickerYear = currentFrom ? String(new Date(currentFrom + 'T00:00:00').getFullYear()) : ''
-
-  function updateParam(key: string, value: string) {
-    router.replace(
-      buildUrlWithParams(baseUrl, searchParams.toString(), { [key]: value, page: '' }),
-      { scroll: false },
-    )
-  }
-
-  function updateMultipleParams(overrides: Record<string, string>) {
-    router.replace(
-      buildUrlWithParams(baseUrl, searchParams.toString(), { ...overrides, page: '' }),
-      { scroll: false },
-    )
-  }
-
-  function handleMonthChange(value: string) {
-    if (!value) {
-      updateMultipleParams({ from: '', to: '' })
-      return
-    }
-    const year = pickerYear ? Number(pickerYear) : now.getFullYear()
-    const { from, to } = getMonthDateRange(Number(value), year)
-    updateMultipleParams({ from, to })
-  }
-
-  function handleYearChange(value: string) {
-    if (!value) {
-      updateMultipleParams({ from: '', to: '' })
-      return
-    }
-    const month = pickerMonth ? Number(pickerMonth) : now.getMonth() + 1
-    const { from, to } = getMonthDateRange(month, Number(value))
-    updateMultipleParams({ from, to })
-  }
-
-  const currentYear = now.getFullYear()
-  const years = Array.from({ length: 5 }, (_, i) => currentYear - i)
-
-  const hasEntityFilters =
-    currentTypes.length > 0 ||
-    currentSourceRegisters.length > 0 ||
-    currentInvestments.length > 0 ||
-    currentCreatedBys.length > 0 ||
-    currentPaymentMethods.length > 0 ||
-    currentOtherCategories.length > 0
-  const hasDateFilters = currentFrom || currentTo
+  const hasEntityFilters = ENTITY_FILTER_KEYS.some((k) => getMultiParam(k).length > 0)
 
   function clearEntityFilters() {
-    updateMultipleParams({
-      type: '',
-      sourceRegister: '',
-      investment: '',
-      createdBy: '',
-      paymentMethod: '',
-      otherCategory: '',
-    })
-  }
-
-  function clearDateFilters() {
-    updateMultipleParams({ from: '', to: '' })
+    updateMultipleParams(Object.fromEntries(ENTITY_FILTER_KEYS.map((k) => [k, ''])))
   }
 
   return (
     <div className={cn('flex flex-col gap-3', className)}>
+      <Loader loading={isPending} portal />
       {(showTypeFilter ||
         (cashRegisters && cashRegisters.length > 0) ||
         (investments && investments.length > 0) ||
@@ -212,132 +161,12 @@ export function TransferFilters({
             />
           )}
 
-          <Button
-            variant="outline"
-            size="sm"
-            className="min-w-40 justify-start gap-1.5"
-            onClick={clearEntityFilters}
-            disabled={!hasEntityFilters}
-          >
-            <X className="size-4" />
+          <ClearButton onClick={clearEntityFilters} disabled={!hasEntityFilters}>
             Wyczyść filtry
-          </Button>
+          </ClearButton>
         </div>
       )}
-      <div className="flex flex-wrap items-center gap-3">
-        <FilterSelect
-          value={pickerYear}
-          onValueChange={handleYearChange}
-          options={years.map((y) => ({ value: String(y), label: String(y) }))}
-          placeholder="Rok"
-          icon={Calendar}
-        />
-
-        <FilterSelect
-          value={pickerMonth}
-          onValueChange={handleMonthChange}
-          options={MONTHS.map((label, i) => ({ value: String(i + 1), label }))}
-          placeholder="Miesiąc"
-          icon={Calendar}
-        />
-
-        <DateFilterButton label="Od" value={currentFrom} onChange={(v) => updateParam('from', v)} />
-        <DateFilterButton label="Do" value={currentTo} onChange={(v) => updateParam('to', v)} />
-
-        <Button
-          variant="outline"
-          size="sm"
-          className="min-w-40 justify-start gap-1.5"
-          onClick={clearDateFilters}
-          disabled={!hasDateFilters}
-        >
-          <X className="size-4" />
-          Wyczyść daty
-        </Button>
-      </div>
+      <DateFilters updateParam={updateParam} updateMultipleParams={updateMultipleParams} />
     </div>
-  )
-}
-
-type FilterOptionT = { value: string; label: string }
-
-type FilterSelectPropsT = {
-  value: string
-  onValueChange: (value: string) => void
-  options: FilterOptionT[]
-  placeholder?: string
-  icon?: LucideIcon
-  showAllOption?: boolean
-}
-
-function FilterSelect({
-  value,
-  onValueChange,
-  options,
-  placeholder = '∞',
-  icon: Icon,
-  showAllOption = true,
-}: FilterSelectPropsT) {
-  return (
-    <Select value={value || 'ALL'} onValueChange={(v) => onValueChange(v === 'ALL' ? '' : v)}>
-      <SelectTrigger
-        className={cn(
-          'h-8 w-fit min-w-40 text-sm',
-          value &&
-            value !== 'ALL' &&
-            'border-green-600 text-green-600 hover:bg-green-600 hover:text-white',
-        )}
-      >
-        {Icon && (
-          <Icon
-            className={cn(
-              'size-4',
-              value && value !== 'ALL' ? 'text-green-600' : 'text-muted-foreground',
-            )}
-          />
-        )}
-        <SelectValue placeholder={placeholder} />
-      </SelectTrigger>
-      <SelectContent>
-        {showAllOption && <SelectItem value="ALL">{placeholder}</SelectItem>}
-        {options.map((opt) => (
-          <SelectItem key={opt.value} value={opt.value}>
-            {opt.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  )
-}
-
-function DateFilterButton({
-  label,
-  value,
-  onChange,
-}: {
-  label: string
-  value: string
-  onChange: (value: string) => void
-}) {
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  return (
-    <Button
-      variant={value ? 'activeFilter' : 'outline'}
-      size="sm"
-      className="w-fit min-w-40 justify-start gap-1.5"
-      onClick={() => inputRef.current?.showPicker()}
-    >
-      <Calendar className="size-4" />
-      {value || label}
-      <input
-        ref={inputRef}
-        type="date"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="sr-only"
-        tabIndex={-1}
-      />
-    </Button>
   )
 }

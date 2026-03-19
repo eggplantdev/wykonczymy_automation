@@ -12,7 +12,7 @@ import {
   CommandList,
   CommandSeparator,
 } from '@/components/ui/command'
-import { Button } from '@/components/ui/button'
+import { FilterTriggerButton } from '@/components/transfers/filter-trigger-button'
 import { cn } from '@/lib/cn'
 
 type OptionT = { value: string; label: string }
@@ -113,15 +113,10 @@ export function FilterMultiSelect({
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
-        <Button
-          variant={allSelected ? 'outline' : 'activeFilter'}
-          size="sm"
-          className="min-w-40 justify-start"
-        >
-          {Icon && <Icon className="size-4" />}
+        <FilterTriggerButton active={!allSelected} icon={Icon}>
           {label}
           {allSelected ? '' : ` (${selected.length})`}
-        </Button>
+        </FilterTriggerButton>
       </PopoverTrigger>
       <PopoverContent className="w-56 p-0" align="start">
         <Command>

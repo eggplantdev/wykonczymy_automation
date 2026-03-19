@@ -25,8 +25,6 @@ export async function ManagerDashboard({ searchParams, currentUserName }: Manage
     <PageWrapper title="Pulpit" backHref="">
       <UserRegisterStats cashRegisters={visibleRegisters} currentUserName={currentUserName} />
 
-      <DashboardTables cashRegisters={visibleRegisters} investments={allInvestments} />
-
       {/* Recent transactions */}
       <TransfersSection
         title="Ostatnie transakcje"
@@ -52,6 +50,8 @@ export async function ManagerDashboard({ searchParams, currentUserName }: Manage
           },
         }}
       />
+
+      <DashboardTables cashRegisters={visibleRegisters} investments={allInvestments} />
     </PageWrapper>
   )
 }
