@@ -1,4 +1,4 @@
-import { cacheLife, cacheTag } from 'next/cache'
+import { unstable_cache } from 'next/cache'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import type { Where } from 'payload'
@@ -25,25 +25,31 @@ export async function findTransfersRaw({
   // cacheLife('max')
   // cacheTag(CACHE_TAGS.transfers)
 
-  const elapsed = perfStart()
-  const payload = await getPayload({ config })
-  const result = await payload.find({
-    collection: 'transactions',
-    where,
-    sort,
-    limit,
-    page,
-    depth: 0,
-    overrideAccess: true,
-  })
-  console.log(
-    `[PERF] query.findTransfersRaw ${elapsed()}ms (${result.docs.length} docs, page=${page})`,
-  )
+  return unstable_cache(
+    async () => {
+      const elapsed = perfStart()
+      const payload = await getPayload({ config })
+      const result = await payload.find({
+        collection: 'transactions',
+        where,
+        sort,
+        limit,
+        page,
+        depth: 0,
+        overrideAccess: true,
+      })
+      console.log(
+        `[PERF] query.findTransfersRaw ${elapsed()}ms (${result.docs.length} docs, page=${page})`,
+      )
 
-  return {
-    docs: result.docs as RawTransferDocT[],
-    paginationMeta: buildPaginationMeta(result, limit),
-  }
+      return {
+        docs: result.docs as RawTransferDocT[],
+        paginationMeta: buildPaginationMeta(result, limit),
+      }
+    },
+    ['transfers-raw', JSON.stringify(where), String(page), String(limit), sort],
+    { tags: [CACHE_TAGS.transfers] },
+  )()
 }
 
 type SearchParamsT = Record<string, string | string[] | undefined>

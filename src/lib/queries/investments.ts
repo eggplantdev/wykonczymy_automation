@@ -1,4 +1,4 @@
-import { cacheLife, cacheTag } from 'next/cache'
+import { unstable_cache, cacheLife, cacheTag } from 'next/cache'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { CACHE_TAGS, entityTag } from '@/lib/cache/tags'
@@ -9,17 +9,23 @@ export async function getInvestment(id: string) {
   // cacheLife('max')
   // cacheTag(CACHE_TAGS.investments, entityTag('investment', id))
 
-  const elapsed = perfStart()
-  const payload = await getPayload({ config })
-  try {
-    const investment = await payload.findByID({
-      collection: 'investments',
-      id,
-      overrideAccess: true,
-    })
-    console.log(`[PERF] query.getInvestment(${id}) ${elapsed()}ms`)
-    return investment ?? null
-  } catch {
-    return null
-  }
+  return unstable_cache(
+    async () => {
+      const elapsed = perfStart()
+      const payload = await getPayload({ config })
+      try {
+        const investment = await payload.findByID({
+          collection: 'investments',
+          id,
+          overrideAccess: true,
+        })
+        console.log(`[PERF] query.getInvestment(${id}) ${elapsed()}ms`)
+        return investment ?? null
+      } catch {
+        return null
+      }
+    },
+    ['investment', id],
+    { tags: [CACHE_TAGS.investments, entityTag('investment', id)] },
+  )()
 }
