@@ -65,7 +65,7 @@ export function DataTableRow<TData>({
               key={cell.id}
               className={cn('text-foreground px-3 py-2', align === 'right' && 'text-right')}
             >
-              <span className="line-clamp-2">
+              <span className="line-clamp-3">
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </span>
             </td>

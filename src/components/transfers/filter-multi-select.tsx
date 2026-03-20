@@ -28,7 +28,7 @@ type FilterMultiSelectPropsT = {
 
 // URL param encoding: [] = all selected (no filter), ['__none__'] = nothing selected
 export const FILTER_NONE = '__none__'
-const DEBOUNCE_MS = 800
+const DEBOUNCE_MS = 600
 
 export function FilterMultiSelect({
   values,
@@ -41,13 +41,6 @@ export function FilterMultiSelect({
   const [open, setOpen] = useState(false)
   const [localSelected, setLocalSelected] = useState<string[] | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  useEffect(
-    () => () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-    },
-    [],
-  )
 
   const allValues = options.map((o) => o.value)
 
@@ -109,6 +102,12 @@ export function FilterMultiSelect({
     setLocalSelected(next)
     scheduleFlush(next)
   }
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [])
 
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>

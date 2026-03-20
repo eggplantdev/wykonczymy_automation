@@ -83,8 +83,9 @@ All mutations use `protectedAction()` wrapper (`src/lib/actions/`):
 
 - Server components use `getPayload({ config })` or `fetchReferenceData()` (cached)
 - Financial calculations use raw SQL via `@vercel/postgres`
-- Cache: Next.js `'use cache'` + `cacheLife()` + `cacheTag()` from `src/lib/cache/`
+- Cache: `unstable_cache` from `next/cache` with tag-based invalidation (`cacheComponents` / `'use cache'` disabled due to Vercel bug — see `docs/vercel-server-action-bug-report.md`)
 - Tags: `CACHE_TAGS.cashRegisters`, `.investments`, `.users`, `.transfers`
+- Revalidation: `revalidateTag(tag, 'max')` in Payload hooks and server actions (Next.js 16 requires the second `cacheLife` profile arg)
 
 ### Forms
 
