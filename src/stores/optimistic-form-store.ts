@@ -61,13 +61,14 @@ export const useOptimisticFormStore = create<OptimisticFormStoreT>()((set) => ({
       })
       .catch((err) => {
         console.error('[OPTIMISTIC_SUBMIT]', err)
+        const errorMessage = err instanceof Error ? err.message : 'Wystąpił nieoczekiwany błąd'
         set((state) => ({
           openFormId: formId,
           submission: state.submission
-            ? { ...state.submission, status: 'failed', error: 'Wystąpił nieoczekiwany błąd' }
+            ? { ...state.submission, status: 'failed', error: errorMessage }
             : null,
         }))
-        toastMessage('Wystąpił nieoczekiwany błąd', 'error', 5000)
+        toastMessage(errorMessage, 'error', 5000)
       })
   },
 

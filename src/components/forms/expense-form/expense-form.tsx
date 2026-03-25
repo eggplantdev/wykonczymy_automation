@@ -18,6 +18,7 @@ import {
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
 import { createBulkTransferAction } from '@/lib/actions/transfers'
+import { uploadFilesClient } from '@/lib/upload-file-client'
 import { getRegisterSaldo } from '@/lib/queries/register-saldo'
 import {
   bulkExpenseFormSchema,
@@ -65,8 +66,7 @@ const FORM_ID = 'expense'
 export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: TransferFormPropsT) {
   const { recoveredValues, recoveredFiles, submit } = useFormSubmit<FormValuesT>(FORM_ID)
 
-  const { handleRemoveLineItem, handleFileChange, buildInvoiceFormData, getFiles } =
-    useInvoiceFiles(recoveredFiles)
+  const { handleRemoveLineItem, handleFileChange, getFiles } = useInvoiceFiles(recoveredFiles)
   const defaultExpenseCategory = referenceData.expenseCategories[0]
     ? String(referenceData.expenseCategories[0].id)
     : ''
@@ -137,13 +137,24 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
         })),
       }
 
-      const invoiceFormData = buildInvoiceFormData()
+      const files = getFiles()
 
       await submit(!!keepOpen, {
-        action: () => createBulkTransferAction(data, invoiceFormData),
+        action: async () => {
+          let invoiceMediaIds: (number | undefined)[] | undefined
+          if (files.size > 0) {
+            try {
+              invoiceMediaIds = await uploadFilesClient(files, value.lineItems.length)
+            } catch (err) {
+              const message = err instanceof Error ? err.message : 'Nie udało się przesłać plików'
+              return { success: false, error: message }
+            }
+          }
+          return createBulkTransferAction(data, invoiceMediaIds)
+        },
         successMessage: 'Transakcje dodane',
         formValues: value as unknown as Record<string, unknown>,
-        files: getFiles(),
+        files,
         onSubmitSuccess,
         onKeepOpenSuccess: () => form.reset(),
       })

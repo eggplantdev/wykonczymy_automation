@@ -70,7 +70,7 @@ export function InternalTransferForm({
       }
 
       await submit(!!keepOpen, {
-        action: () => createTransferAction(data, null),
+        action: () => createTransferAction(data),
         successMessage: 'Transfer między kasami dodany',
         formValues: value as unknown as Record<string, unknown>,
         onSubmitSuccess,

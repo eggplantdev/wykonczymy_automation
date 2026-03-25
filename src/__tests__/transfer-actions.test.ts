@@ -42,13 +42,7 @@ vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: (...args: unknown[]) => mockRequireAuth(...args),
 }))
 
-const mockUploadSingleInvoice = vi.fn()
-const mockUploadBulkInvoices = vi.fn()
-
-vi.mock('@/lib/upload-invoice', () => ({
-  uploadSingleInvoice: (...args: unknown[]) => mockUploadSingleInvoice(...args),
-  uploadBulkInvoices: (...args: unknown[]) => mockUploadBulkInvoices(...args),
-}))
+// upload-invoice is no longer called by server actions (uploads happen client-side via API route)
 
 vi.mock('@/lib/cache/revalidate', () => ({
   revalidateCollections: vi.fn(),
@@ -144,8 +138,6 @@ beforeEach(() => {
   mockCommitTransaction.mockReset().mockResolvedValue(undefined)
   mockRollbackTransaction.mockReset().mockResolvedValue(undefined)
   mockRequireAuth.mockReset().mockResolvedValue({ success: true, user: adminUser })
-  mockUploadSingleInvoice.mockReset().mockResolvedValue(undefined)
-  mockUploadBulkInvoices.mockReset().mockResolvedValue([])
   mockDbExecute.mockReset().mockResolvedValue({ rows: [defaultDbRow()] })
 })
 
@@ -155,7 +147,7 @@ beforeEach(() => {
 
 describe('createTransferAction', () => {
   it('valid INVESTMENT_EXPENSE transfer → success', async () => {
-    const result = await createTransferAction(makeSingleTransferData(), null)
+    const result = await createTransferAction(makeSingleTransferData())
 
     expect(result.success).toBe(true)
     expect(mockCreate).toHaveBeenCalledOnce()
@@ -174,20 +166,20 @@ describe('createTransferAction', () => {
   })
 
   it('valid INVESTOR_DEPOSIT → success', async () => {
-    const result = await createTransferAction(makeDepositData(), null)
+    const result = await createTransferAction(makeDepositData())
 
     expect(result.success).toBe(true)
     expect(mockCreate).toHaveBeenCalledOnce()
   })
 
   it('valid COMPANY_FUNDING → success', async () => {
-    const result = await createTransferAction(makeDepositData({ type: 'COMPANY_FUNDING' }), null)
+    const result = await createTransferAction(makeDepositData({ type: 'COMPANY_FUNDING' }))
 
     expect(result.success).toBe(true)
   })
 
   it('valid OTHER_DEPOSIT → success', async () => {
-    const result = await createTransferAction(makeDepositData({ type: 'OTHER_DEPOSIT' }), null)
+    const result = await createTransferAction(makeDepositData({ type: 'OTHER_DEPOSIT' }))
 
     expect(result.success).toBe(true)
   })
@@ -195,20 +187,19 @@ describe('createTransferAction', () => {
   it('valid PAYOUT → success', async () => {
     const result = await createTransferAction(
       makeSingleTransferData({ type: 'PAYOUT', investment: undefined }),
-      null,
     )
 
     expect(result.success).toBe(true)
   })
 
   it('type needing source register → calls validateSourceRegister (DB call)', async () => {
-    await createTransferAction(makeSingleTransferData(), null)
+    await createTransferAction(makeSingleTransferData())
 
     expect(mockDbExecute).toHaveBeenCalled()
   })
 
   it('deposit type with source register → also calls validateSourceRegister', async () => {
-    await createTransferAction(makeDepositData(), null)
+    await createTransferAction(makeDepositData())
 
     expect(mockDbExecute).toHaveBeenCalled()
   })
@@ -216,7 +207,6 @@ describe('createTransferAction', () => {
   it('LABOR_COST → skips validateSourceRegister (no DB call)', async () => {
     await createTransferAction(
       makeSingleTransferData({ type: 'LABOR_COST', sourceRegister: undefined }),
-      null,
     )
 
     expect(mockDbExecute).not.toHaveBeenCalled()
@@ -225,7 +215,6 @@ describe('createTransferAction', () => {
   it('missing amount → returns validation error', async () => {
     const result = await createTransferAction(
       makeSingleTransferData({ amount: undefined }) as never,
-      null,
     )
 
     expect(result.success).toBe(false)
@@ -233,13 +222,13 @@ describe('createTransferAction', () => {
   })
 
   it('zero amount → returns validation error', async () => {
-    const result = await createTransferAction(makeSingleTransferData({ amount: 0 }), null)
+    const result = await createTransferAction(makeSingleTransferData({ amount: 0 }))
 
     expect(result.success).toBe(false)
   })
 
   it('negative amount → returns validation error', async () => {
-    const result = await createTransferAction(makeSingleTransferData({ amount: -100 }), null)
+    const result = await createTransferAction(makeSingleTransferData({ amount: -100 }))
 
     expect(result.success).toBe(false)
   })
@@ -247,25 +236,20 @@ describe('createTransferAction', () => {
   it('invalid type → returns validation error', async () => {
     const result = await createTransferAction(
       makeSingleTransferData({ type: 'INVALID_TYPE' }) as never,
-      null,
     )
 
     expect(result.success).toBe(false)
   })
 
   it('missing date → returns validation error', async () => {
-    const result = await createTransferAction(makeSingleTransferData({ date: '' }), null)
+    const result = await createTransferAction(makeSingleTransferData({ date: '' }))
 
     expect(result.success).toBe(false)
   })
 
-  it('invoice upload → passes mediaId to payload.create', async () => {
-    mockUploadSingleInvoice.mockResolvedValueOnce(42)
+  it('invoice mediaId → passes mediaId to payload.create', async () => {
+    await createTransferAction(makeSingleTransferData(), 42)
 
-    const formData = new FormData()
-    await createTransferAction(makeSingleTransferData(), formData)
-
-    expect(mockUploadSingleInvoice).toHaveBeenCalledWith(mockPayload, formData)
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ invoice: 42 }),
@@ -274,7 +258,7 @@ describe('createTransferAction', () => {
   })
 
   it('no invoice → passes undefined as invoice', async () => {
-    await createTransferAction(makeSingleTransferData(), null)
+    await createTransferAction(makeSingleTransferData())
 
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -286,7 +270,7 @@ describe('createTransferAction', () => {
   it('payload.create failure → returns error', async () => {
     mockCreate.mockRejectedValueOnce(new Error('DB write failed'))
 
-    const result = await createTransferAction(makeSingleTransferData(), null)
+    const result = await createTransferAction(makeSingleTransferData())
 
     expect(result.success).toBe(false)
     if (!result.success) expect(result.error).toBe('DB write failed')
@@ -299,7 +283,7 @@ describe('createTransferAction', () => {
       date: '2026-03-15',
     })
 
-    await createTransferAction(data, null)
+    await createTransferAction(data)
 
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -319,7 +303,7 @@ describe('createTransferAction', () => {
   it('empty description defaults to empty string', async () => {
     const data = makeSingleTransferData({ description: undefined })
 
-    await createTransferAction(data, null)
+    await createTransferAction(data)
 
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -331,7 +315,7 @@ describe('createTransferAction', () => {
   it('source register validation failure → returns error before create', async () => {
     mockDbExecute.mockResolvedValueOnce({ rows: [] })
 
-    const result = await createTransferAction(makeSingleTransferData(), null)
+    const result = await createTransferAction(makeSingleTransferData())
 
     expect(result.success).toBe(false)
     if (!result.success) expect(result.error).toBe('Kasa nie istnieje')
@@ -343,7 +327,7 @@ describe('createTransferAction', () => {
     // Register owner_id = 1, managerUser.id = 3
     mockDbExecute.mockResolvedValueOnce({ rows: [defaultDbRow({ owner_id: 1 })] })
 
-    const result = await createTransferAction(makeSingleTransferData(), null)
+    const result = await createTransferAction(makeSingleTransferData())
 
     expect(result.success).toBe(true)
   })
@@ -355,10 +339,8 @@ describe('createTransferAction', () => {
 
 describe('createBulkTransferAction', () => {
   it('valid bulk with correct data per item → each create has correct item data', async () => {
-    mockUploadBulkInvoices.mockResolvedValueOnce([undefined, undefined, undefined])
-
     const data = makeBulkTransferData(3)
-    const result = await createBulkTransferAction(data, null)
+    const result = await createBulkTransferAction(data)
 
     expect(result.success).toBe(true)
     expect(mockCreate).toHaveBeenCalledTimes(3)
@@ -385,7 +367,6 @@ describe('createBulkTransferAction', () => {
   it('schema validation failure — empty lineItems → returns error', async () => {
     const result = await createBulkTransferAction(
       makeBulkTransferData(0, { lineItems: [] }) as never,
-      null,
     )
 
     expect(result.success).toBe(false)
@@ -398,7 +379,7 @@ describe('createBulkTransferAction', () => {
       lineItems: [{ description: 'Bad', amount: 0 }],
     }
 
-    const result = await createBulkTransferAction(data as never, null)
+    const result = await createBulkTransferAction(data as never)
 
     expect(result.success).toBe(false)
     expect(mockCreate).not.toHaveBeenCalled()
@@ -407,7 +388,7 @@ describe('createBulkTransferAction', () => {
   it('source register validation failure → returns error before any creates', async () => {
     mockDbExecute.mockResolvedValueOnce({ rows: [] })
 
-    const result = await createBulkTransferAction(makeBulkTransferData(3), null)
+    const result = await createBulkTransferAction(makeBulkTransferData(3))
 
     expect(result.success).toBe(false)
     if (!result.success) expect(result.error).toBe('Kasa nie istnieje')
@@ -416,10 +397,9 @@ describe('createBulkTransferAction', () => {
   })
 
   it('large batch (40 items) → all 40 creates called sequentially with transaction', async () => {
-    mockUploadBulkInvoices.mockResolvedValueOnce(Array.from({ length: 40 }, () => undefined))
     mockCreate.mockResolvedValue({ id: 1 })
 
-    const result = await createBulkTransferAction(makeBulkTransferData(40), null)
+    const result = await createBulkTransferAction(makeBulkTransferData(40))
 
     expect(result.success).toBe(true)
     expect(mockCreate).toHaveBeenCalledTimes(40)
@@ -435,9 +415,8 @@ describe('createBulkTransferAction', () => {
 
   it('each create gets correct invoice mediaId from array', async () => {
     const mediaIds = [101, undefined, 103]
-    mockUploadBulkInvoices.mockResolvedValueOnce(mediaIds)
 
-    await createBulkTransferAction(makeBulkTransferData(3), null)
+    await createBulkTransferAction(makeBulkTransferData(3), mediaIds)
 
     expect(mockCreate.mock.calls[0][0].data.invoice).toBe(101)
     expect(mockCreate.mock.calls[1][0].data.invoice).toBeUndefined()
@@ -445,8 +424,6 @@ describe('createBulkTransferAction', () => {
   })
 
   it('OTHER type → each create gets its own category from line item', async () => {
-    mockUploadBulkInvoices.mockResolvedValueOnce([undefined, undefined])
-
     const data = {
       type: 'OTHER' as const,
       date: '2026-02-25',
@@ -458,7 +435,7 @@ describe('createBulkTransferAction', () => {
       ],
     }
 
-    const result = await createBulkTransferAction(data, null)
+    const result = await createBulkTransferAction(data)
 
     expect(result.success).toBe(true)
     expect(mockCreate).toHaveBeenCalledTimes(2)
@@ -467,26 +444,23 @@ describe('createBulkTransferAction', () => {
   })
 
   it('INVESTMENT_EXPENSE with optional per-line category → passes through', async () => {
-    mockUploadBulkInvoices.mockResolvedValueOnce([undefined])
-
     const data = {
       ...makeBulkTransferData(1),
       lineItems: [{ description: 'Item', amount: 100, category: 3, expenseCategory: 1 }],
     }
 
-    const result = await createBulkTransferAction(data, null)
+    const result = await createBulkTransferAction(data)
 
     expect(result.success).toBe(true)
     expect(mockCreate.mock.calls[0][0].data).toEqual(expect.objectContaining({ otherCategory: 3 }))
   })
 
   it('transaction rollback when create fails mid-batch', async () => {
-    mockUploadBulkInvoices.mockResolvedValueOnce([undefined, undefined, undefined])
     mockCreate
       .mockResolvedValueOnce({ id: 1 })
       .mockRejectedValueOnce(new Error('Constraint violation'))
 
-    const result = await createBulkTransferAction(makeBulkTransferData(3), null)
+    const result = await createBulkTransferAction(makeBulkTransferData(3))
 
     expect(result.success).toBe(false)
     if (!result.success) expect(result.error).toBe('Constraint violation')
@@ -821,14 +795,10 @@ describe('updateTransferAction', () => {
 // ═════════════════════════════════════════════════════════════════════════
 
 describe('updateTransferInvoiceAction', () => {
-  it('success → uploads file and updates invoice reference', async () => {
-    mockUploadSingleInvoice.mockResolvedValueOnce(88)
-    const formData = new FormData()
-
-    const result = await updateTransferInvoiceAction(10, formData)
+  it('success → updates invoice reference with mediaId', async () => {
+    const result = await updateTransferInvoiceAction(10, 88)
 
     expect(result.success).toBe(true)
-    expect(mockUploadSingleInvoice).toHaveBeenCalledWith(mockPayload, formData)
     expect(mockUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         collection: 'transactions',
@@ -839,10 +809,7 @@ describe('updateTransferInvoiceAction', () => {
   })
 
   it('called with correct collection and mediaId', async () => {
-    mockUploadSingleInvoice.mockResolvedValueOnce(200)
-    const formData = new FormData()
-
-    await updateTransferInvoiceAction(77, formData)
+    await updateTransferInvoiceAction(77, 200)
 
     expect(mockUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -853,39 +820,12 @@ describe('updateTransferInvoiceAction', () => {
     )
   })
 
-  it('upload failure → returns error', async () => {
-    mockUploadSingleInvoice.mockRejectedValueOnce(new Error('Upload failed'))
-    const formData = new FormData()
-
-    const result = await updateTransferInvoiceAction(10, formData)
-
-    expect(result.success).toBe(false)
-    if (!result.success) expect(result.error).toBe('Upload failed')
-    expect(mockUpdate).not.toHaveBeenCalled()
-  })
-
   it('payload.update failure → returns error', async () => {
-    mockUploadSingleInvoice.mockResolvedValueOnce(88)
     mockUpdate.mockRejectedValueOnce(new Error('Invoice update failed'))
-    const formData = new FormData()
 
-    const result = await updateTransferInvoiceAction(10, formData)
+    const result = await updateTransferInvoiceAction(10, 88)
 
     expect(result.success).toBe(false)
     if (!result.success) expect(result.error).toBe('Invoice update failed')
-  })
-
-  it('no file in FormData → uploads undefined and updates with undefined', async () => {
-    mockUploadSingleInvoice.mockResolvedValueOnce(undefined)
-    const formData = new FormData()
-
-    const result = await updateTransferInvoiceAction(10, formData)
-
-    expect(result.success).toBe(true)
-    expect(mockUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: { invoice: undefined },
-      }),
-    )
   })
 })

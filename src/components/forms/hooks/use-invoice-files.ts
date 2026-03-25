@@ -20,18 +20,9 @@ export function useInvoiceFiles(initialFiles?: Map<number, File>) {
     else invoiceFilesRef.current.delete(index)
   }
 
-  function buildInvoiceFormData(): FormData | null {
-    if (invoiceFilesRef.current.size === 0) return null
-    const formData = new FormData()
-    invoiceFilesRef.current.forEach((file, index) => {
-      formData.set(`invoice-${index}`, file)
-    })
-    return formData
-  }
-
   function getFiles(): Map<number, File> {
     return new Map(invoiceFilesRef.current)
   }
 
-  return { handleRemoveLineItem, handleFileChange, buildInvoiceFormData, getFiles }
+  return { handleRemoveLineItem, handleFileChange, getFiles }
 }

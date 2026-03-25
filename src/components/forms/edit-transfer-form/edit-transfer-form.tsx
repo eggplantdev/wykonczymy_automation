@@ -1,7 +1,9 @@
 'use client'
 
+import { useRef, useState } from 'react'
 import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
+import { FileInput } from '@/components/ui/file-input'
 import { useAppForm } from '@/components/forms/hooks/form-hooks'
 import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import {
@@ -10,6 +12,7 @@ import {
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
 import { editExpenseFormSchema } from '@/components/forms/expense-form/expense-schema'
+import { uploadFileClient } from '@/lib/upload-file-client'
 import type { z } from 'zod'
 import type { UpdateTransferFormT } from '@/lib/schemas/transfer'
 import type { TransferRowT } from '@/lib/tables/transfers'
@@ -43,6 +46,8 @@ export function EditTransferForm({
   keepOpen,
 }: EditTransferFormPropsT) {
   const { recoveredValues, submit } = useFormSubmit<FormValuesT>(FORM_ID)
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [selectedFileName, setSelectedFileName] = useState<string | undefined>()
 
   const form = useAppForm({
     defaultValues:
@@ -70,8 +75,22 @@ export function EditTransferForm({
         invoiceNote: value.invoiceNote || undefined,
       }
 
+      // Capture file before dialog closes — the ref won't be available after unmount
+      const file = fileRef.current?.files?.[0]
+
       await submit(!!keepOpen, {
-        action: () => updateTransferAction(row.id, data),
+        action: async () => {
+          let invoiceMediaId: number | undefined
+          if (file) {
+            try {
+              invoiceMediaId = await uploadFileClient(file)
+            } catch (err) {
+              const message = err instanceof Error ? err.message : 'Nie udało się przesłać pliku'
+              return { success: false, error: message }
+            }
+          }
+          return updateTransferAction(row.id, data, invoiceMediaId)
+        },
         successMessage: 'Transakcja zaktualizowana',
         formValues: value as Record<string, unknown>,
         onSubmitSuccess,
@@ -83,6 +102,11 @@ export function EditTransferForm({
   })
 
   useCheckFormErrors(form)
+
+  function handleFileChange() {
+    const file = fileRef.current?.files?.[0]
+    setSelectedFileName(file?.name)
+  }
 
   return (
     <form.AppForm>
@@ -124,6 +148,19 @@ export function EditTransferForm({
               <field.Textarea label="Notatka" placeholder="Wpisz notatkę..." rows={3} showError />
             )}
           </form.AppField>
+
+          <div className="space-y-1">
+            <FileInput
+              ref={fileRef}
+              label={row.invoiceUrl ? 'Zamień fakturę' : 'Dodaj fakturę'}
+              accept="image/*,application/pdf"
+              placeholder={selectedFileName ?? 'Przeciągnij lub kliknij'}
+              onChange={handleFileChange}
+            />
+            {row.invoiceFilename && !selectedFileName && (
+              <p className="text-muted-foreground text-xs">Aktualna: {row.invoiceFilename}</p>
+            )}
+          </div>
         </FieldGroup>
 
         <FormFooter label="Zapisz" submittingLabel="Zapisywanie..." className="mt-6" />

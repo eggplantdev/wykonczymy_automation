@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { FileInput } from '@/components/ui/file-input'
 import { Upload } from 'lucide-react'
 import { updateTransferInvoiceAction } from '@/lib/actions/transfers'
+import { uploadFileClient } from '@/lib/upload-file-client'
 import { toastMessage } from '@/components/toasts'
 
 type InvoiceUploadDialogPropsT = {
@@ -32,18 +33,20 @@ export function InvoiceUploadDialog({
     }
 
     setIsSubmitting(true)
-    const formData = new FormData()
-    formData.set('invoice', file)
+    try {
+      const mediaId = await uploadFileClient(file)
+      const result = await updateTransferInvoiceAction(transactionId, mediaId)
 
-    const result = await updateTransferInvoiceAction(transactionId, formData)
-
-    setIsSubmitting(false)
-
-    if (result.success) {
-      toastMessage(isReplace ? 'Faktura zamieniona' : 'Faktura dodana', 'success')
-      onOpenChange(false)
-    } else {
-      toastMessage(result.error, 'error')
+      if (result.success) {
+        toastMessage(isReplace ? 'Faktura zamieniona' : 'Faktura dodana', 'success')
+        onOpenChange(false)
+      } else {
+        toastMessage(result.error, 'error')
+      }
+    } catch {
+      toastMessage('Nie udało się przesłać pliku', 'error')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -67,7 +70,7 @@ export function InvoiceUploadDialog({
         <DialogFooter>
           <Button onClick={handleSubmit} disabled={isSubmitting}>
             <Upload />
-            {isSubmitting ? 'Zapisywanie...' : 'Zapisz'}
+            {isSubmitting ? 'Przesyłanie...' : 'Zapisz'}
           </Button>
         </DialogFooter>
       </DialogContent>

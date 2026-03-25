@@ -12,7 +12,6 @@ import {
   type CreateTransferFormT,
   type UpdateTransferFormT,
 } from '@/lib/schemas/transfer'
-import { uploadBulkInvoices, uploadSingleInvoice } from '@/lib/upload-invoice'
 import type { SessionUserT } from '@/types/auth'
 import { needsSourceRegister } from '../constants/transfers'
 import {
@@ -22,10 +21,7 @@ import {
   protectedAction,
 } from './utils'
 
-export async function createTransferAction(
-  data: CreateTransferFormT,
-  invoiceFormData: FormData | null,
-) {
+export async function createTransferAction(data: CreateTransferFormT, invoiceMediaId?: number) {
   return protectedAction(
     `createTransferAction type=${data.type}`,
     async ({ payload, user }) => {
@@ -43,15 +39,12 @@ export async function createTransferAction(
         // checkIfSufficientBalance in utils
       }
 
-      const mediaId = await uploadSingleInvoice(payload, invoiceFormData)
-      console.log(`[PERF]   uploadSingleInvoice ${step()}ms`)
-
       await payload.create({
         collection: 'transactions',
         data: {
           ...data,
           description: data.description || '',
-          invoice: mediaId,
+          invoice: invoiceMediaId,
           createdBy: user.id,
         },
       })
@@ -65,7 +58,7 @@ export async function createTransferAction(
 
 export async function createBulkTransferAction(
   data: CreateBulkExpenseFormT,
-  invoiceFormData: FormData | null,
+  invoiceMediaIds?: (number | undefined)[],
 ) {
   const lineCount = data.lineItems.length
 
@@ -85,9 +78,6 @@ export async function createBulkTransferAction(
         // Balance check removed — negative balances are allowed
         //checkIfSufficientBalance
       }
-
-      const mediaIds = await uploadBulkInvoices(payload, invoiceFormData, lineCount)
-      console.log(`[PERF]   uploadBulkInvoices ${step()}ms (${lineCount} files)`)
 
       const transactionId = await payload.db.beginTransaction()
       if (!transactionId) throw new Error('Failed to start transaction')
@@ -110,7 +100,7 @@ export async function createBulkTransferAction(
               investment: parsed.data.investment,
               expenseCategory: item.expenseCategory,
               otherCategory: item.category,
-              invoice: mediaIds[i],
+              invoice: invoiceMediaIds?.[i],
               invoiceNote: item.invoiceNote,
               createdBy: user.id,
             },
@@ -201,7 +191,11 @@ export async function cancelTransferAction(transferId: number) {
   )
 }
 
-export async function updateTransferAction(transferId: number, data: UpdateTransferFormT) {
+export async function updateTransferAction(
+  transferId: number,
+  data: UpdateTransferFormT,
+  invoiceMediaId?: number,
+) {
   return protectedAction(
     'updateTransferAction',
     async ({ payload, user }) => {
@@ -221,6 +215,7 @@ export async function updateTransferAction(transferId: number, data: UpdateTrans
         id: transferId,
         data: {
           ...parsed.data,
+          ...(invoiceMediaId !== undefined && { invoice: invoiceMediaId }),
           updatedBy: user.id,
         },
       })
@@ -232,19 +227,16 @@ export async function updateTransferAction(transferId: number, data: UpdateTrans
   )
 }
 
-export async function updateTransferInvoiceAction(transferId: number, invoiceFormData: FormData) {
+export async function updateTransferInvoiceAction(transferId: number, invoiceMediaId: number) {
   return protectedAction(
     'updateTransferInvoiceAction',
     async ({ payload }) => {
       const step = perfStart()
 
-      const mediaId = await uploadSingleInvoice(payload, invoiceFormData)
-      console.log(`[PERF]   uploadSingleInvoice ${step()}ms`)
-
       await payload.update({
         collection: 'transactions',
         id: transferId,
-        data: { invoice: mediaId },
+        data: { invoice: invoiceMediaId },
       })
       console.log(`[PERF]   payload.update(${transferId}) ${step()}ms`)
 

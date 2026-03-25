@@ -33,12 +33,7 @@ vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn().mockResolvedValue({ success: true, user: mockUser }),
 }))
 
-vi.mock('@/lib/upload-invoice', () => ({
-  uploadBulkInvoices: vi
-    .fn()
-    .mockResolvedValue([undefined, undefined, undefined, undefined, undefined]),
-  uploadSingleInvoice: vi.fn().mockResolvedValue(undefined),
-}))
+// upload-invoice is no longer called by server actions (uploads happen client-side via API route)
 
 vi.mock('@/lib/cache/revalidate', () => ({
   revalidateCollections: vi.fn(),
@@ -89,7 +84,7 @@ describe('createBulkTransferAction — transaction safety', () => {
   it('commits when all items succeed', async () => {
     mockCreate.mockResolvedValue({ id: 1 })
 
-    const result = await createBulkTransferAction(makeBulkTransferData(3), null)
+    const result = await createBulkTransferAction(makeBulkTransferData(3))
 
     expect(result.success).toBe(true)
     expect(mockBeginTransaction).toHaveBeenCalledOnce()
@@ -104,7 +99,7 @@ describe('createBulkTransferAction — transaction safety', () => {
       .mockResolvedValueOnce({ id: 2 })
       .mockRejectedValueOnce(new Error('DB constraint violation'))
 
-    const result = await createBulkTransferAction(makeBulkTransferData(5), null)
+    const result = await createBulkTransferAction(makeBulkTransferData(5))
 
     expect(result.success).toBe(false)
     expect(mockRollbackTransaction).toHaveBeenCalledWith(TX_ID)
@@ -115,7 +110,7 @@ describe('createBulkTransferAction — transaction safety', () => {
   it('all creates share the same transaction ID via req', async () => {
     mockCreate.mockResolvedValue({ id: 1 })
 
-    await createBulkTransferAction(makeBulkTransferData(4), null)
+    await createBulkTransferAction(makeBulkTransferData(4))
 
     for (const call of mockCreate.mock.calls) {
       expect(call[0]).toHaveProperty('req', { transactionID: TX_ID })

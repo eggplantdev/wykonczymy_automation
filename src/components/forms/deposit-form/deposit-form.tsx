@@ -75,7 +75,7 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
       }
 
       await submit(!!keepOpen, {
-        action: () => createTransferAction(data, null),
+        action: () => createTransferAction(data),
         successMessage: 'Wpłata dodana',
         formValues: value as unknown as Record<string, unknown>,
         onSubmitSuccess,

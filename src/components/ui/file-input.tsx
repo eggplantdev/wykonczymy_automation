@@ -1,7 +1,3 @@
-// TODO: Invoice upload improvements needed:
-// - Compress/resize large images before upload (currently fails with big files)
-// - Add proper error handling for upload failures
-
 'use client'
 
 import * as React from 'react'
@@ -49,6 +45,13 @@ function FileInput({
     setIsDragOver(false)
   }
 
+  function setFileOnInput(file: File) {
+    if (!inputRef.current) return
+    const dt = new DataTransfer()
+    dt.items.add(file)
+    inputRef.current.files = dt.files
+  }
+
   function handleDrop(e: React.DragEvent) {
     e.preventDefault()
     e.stopPropagation()
@@ -63,20 +66,24 @@ function FileInput({
     }
     setError(undefined)
 
-    // Set the file on the input element and fire onChange
-    const dt = new DataTransfer()
-    dt.items.add(file)
-    if (inputRef.current) {
-      inputRef.current.files = dt.files
-      const event = new Event('change', { bubbles: true })
-      inputRef.current.dispatchEvent(event)
-    }
+    // Sync file to the hidden input (so form reads and ref.files work)
+    setFileOnInput(file)
     setFileName(file.name ?? '')
+
+    // Fire onChange directly — native dispatchEvent doesn't reliably trigger React's synthetic handler
+    if (onChange && inputRef.current) {
+      const syntheticEvent = {
+        target: inputRef.current,
+        currentTarget: inputRef.current,
+      } as React.ChangeEvent<HTMLInputElement>
+      onChange(syntheticEvent)
+    }
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     setFileName(file?.name ?? '')
+    setError(undefined)
     onChange?.(e)
   }
 
