@@ -68,13 +68,11 @@ export function getInvestmentColumns({ onToggle, userRole }: InvestmentColumnOpt
     col.accessor('address', {
       id: 'address',
       header: 'Adres',
-
       cell: (info) => info.getValue() || '—',
     }),
     col.accessor('phone', {
       id: 'phone',
       header: 'Telefon',
-
       cell: (info) => <ContactLink type="phone" value={info.getValue()} />,
     }),
     col.accessor('email', {
@@ -85,7 +83,6 @@ export function getInvestmentColumns({ onToggle, userRole }: InvestmentColumnOpt
     col.accessor('contactPerson', {
       id: 'contactPerson',
       header: 'Osoba kontaktowa',
-
       cell: (info) => info.getValue() || '—',
     }),
     col.accessor('review', {
@@ -111,24 +108,7 @@ export function getInvestmentColumns({ onToggle, userRole }: InvestmentColumnOpt
     col.display({
       id: 'actions',
       header: 'Akcje',
-      cell: (info) => {
-        const row = info.row.original
-        return (
-          <EditInvestmentDialog
-            investment={{
-              id: row.id,
-              name: row.name,
-              status: row.status,
-              address: row.address,
-              phone: row.phone,
-              email: row.email,
-              contactPerson: row.contactPerson,
-              notes: row.notes,
-              review: row.review,
-            }}
-          />
-        )
-      },
+      cell: (info) => <EditInvestmentDialog investment={info.row.original} />,
     }),
   ]
 }
