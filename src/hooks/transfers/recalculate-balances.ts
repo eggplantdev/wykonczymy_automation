@@ -1,5 +1,5 @@
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
-import { revalidateTag } from 'next/cache'
+import { updateTag } from 'next/cache'
 import { revalidateCollections } from '@/lib/cache/revalidate'
 import { entityTag } from '@/lib/cache/tags'
 import { perfStart } from '@/lib/perf'
@@ -29,15 +29,15 @@ export const recalcAfterChange: CollectionAfterChangeHook = async ({ doc, previo
   const prevInvestmentId = resolveId(previousDoc?.investment)
 
   // Revalidate entity-specific tags (for detail page caches)
-  if (registerId) revalidateTag(entityTag('cash-register', registerId), 'max')
+  if (registerId) updateTag(entityTag('cash-register', registerId))
   if (prevRegisterId && prevRegisterId !== registerId)
-    revalidateTag(entityTag('cash-register', prevRegisterId), 'max')
-  if (targetRegisterId) revalidateTag(entityTag('cash-register', targetRegisterId), 'max')
+    updateTag(entityTag('cash-register', prevRegisterId))
+  if (targetRegisterId) updateTag(entityTag('cash-register', targetRegisterId))
   if (prevTargetRegisterId && prevTargetRegisterId !== targetRegisterId)
-    revalidateTag(entityTag('cash-register', prevTargetRegisterId), 'max')
-  if (investmentId) revalidateTag(entityTag('investment', investmentId), 'max')
+    updateTag(entityTag('cash-register', prevTargetRegisterId))
+  if (investmentId) updateTag(entityTag('investment', investmentId))
   if (prevInvestmentId && prevInvestmentId !== investmentId)
-    revalidateTag(entityTag('investment', prevInvestmentId), 'max')
+    updateTag(entityTag('investment', prevInvestmentId))
 
   // Invalidate transfers collection tag — this covers fetchRegisterBalances,
   // fetchInvestmentFinancials, and fetchWorkerSaldos
@@ -60,9 +60,9 @@ export const recalcAfterDelete: CollectionAfterDeleteHook = async ({ doc }) => {
   const investmentId = resolveId(doc.investment)
 
   // Revalidate entity-specific tags
-  if (registerId) revalidateTag(entityTag('cash-register', registerId), 'max')
-  if (targetRegisterId) revalidateTag(entityTag('cash-register', targetRegisterId), 'max')
-  if (investmentId) revalidateTag(entityTag('investment', investmentId), 'max')
+  if (registerId) updateTag(entityTag('cash-register', registerId))
+  if (targetRegisterId) updateTag(entityTag('cash-register', targetRegisterId))
+  if (investmentId) updateTag(entityTag('investment', investmentId))
 
   revalidateCollections(['transfers'])
 

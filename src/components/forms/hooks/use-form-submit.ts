@@ -1,3 +1,4 @@
+import { useRouter } from 'next/navigation'
 import { toastMessage } from '@/components/toasts'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import type { ActionResultT } from '@/lib/actions/utils'
@@ -12,6 +13,7 @@ type SubmitOptionsT = {
 }
 
 export function useFormSubmit<TValues>(formId: string) {
+  const router = useRouter()
   const submission = useOptimisticFormStore((s) => s.submission)
   const submitOptimistically = useOptimisticFormStore((s) => s.submitOptimistically)
   const clearSubmission = useOptimisticFormStore((s) => s.clearSubmission)
@@ -28,6 +30,7 @@ export function useFormSubmit<TValues>(formId: string) {
       if (result.success) {
         toastMessage(opts.successMessage, 'success')
         opts.onKeepOpenSuccess()
+        router.refresh()
       } else {
         toastMessage(result.error, 'error')
       }
@@ -38,6 +41,7 @@ export function useFormSubmit<TValues>(formId: string) {
         opts.files ?? new Map(),
         opts.action,
         opts.successMessage,
+        () => router.refresh(),
       )
       opts.onSubmitSuccess()
     }
