@@ -16,13 +16,19 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
   const step = perfStart()
   const { page, limit } = parsePagination(searchParams)
 
-  const { visibleRegisters, activeInvestments, allInvestments, managementUsers, otherCategories } =
-    await fetchManagerDashboardData()
+  const {
+    visibleRegisters,
+    activeInvestments,
+    allInvestments,
+    managementUsers,
+    otherCategories,
+    isAdminOrOwner,
+  } = await fetchManagerDashboardData()
   console.log(`[PERF] ManagerDashboard fetchManagerDashboardData ${step()}ms`)
 
   return (
     <PageWrapper title="Pulpit" backHref="">
-      <UserRegisterStats cashRegisters={visibleRegisters} />
+      <UserRegisterStats cashRegisters={visibleRegisters} showAllRegisters={isAdminOrOwner} />
 
       {/* Recent transactions */}
       <TransfersSection

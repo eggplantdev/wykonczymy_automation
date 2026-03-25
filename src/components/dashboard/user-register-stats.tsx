@@ -5,12 +5,14 @@ import { useCurrentUser } from '@/hooks/use-current-user'
 import { ToggleStatButtons } from '@/components/ui/toggle-stat-buttons'
 import type { StatEntryT } from '@/components/ui/toggle-stat-buttons'
 import type { CashRegisterRowT } from '@/lib/tables/cash-registers'
+import { SaldoDisplay } from '@/components/ui/saldo-display'
 
 type UserRegisterStatsPropsT = {
   cashRegisters: CashRegisterRowT[]
+  showAllRegisters?: boolean
 }
 
-export function UserRegisterStats({ cashRegisters }: UserRegisterStatsPropsT) {
+export function UserRegisterStats({ cashRegisters, showAllRegisters }: UserRegisterStatsPropsT) {
   const { name } = useCurrentUser()
   const userEntries: StatEntryT[] = cashRegisters
     .filter((cr) => cr.ownerName === name)
@@ -21,14 +23,23 @@ export function UserRegisterStats({ cashRegisters }: UserRegisterStatsPropsT) {
       borderClassName: 'border-chart-turquoise',
     }))
 
-  if (userEntries.length === 0) return null
+  const totalSaldo = showAllRegisters
+    ? cashRegisters.filter((cr) => cr.type !== 'VIRTUAL').reduce((sum, cr) => sum + cr.balance, 0)
+    : null
 
   return (
-    <ToggleStatButtons
-      rows={[userEntries]}
-      summaryLabel="Saldo moich kas"
-      rowLabels={['Moje Kasy']}
-      colorValues
-    />
+    <div>
+      {userEntries.length > 0 && (
+        <ToggleStatButtons
+          rows={[userEntries]}
+          summaryLabel="Saldo moich kas"
+          rowLabels={['Moje Kasy']}
+          colorValues
+        />
+      )}
+      {totalSaldo !== null && (
+        <SaldoDisplay saldo={totalSaldo} label="Saldo wszystkich kas (bez wirtualnych)" />
+      )}
+    </div>
   )
 }
