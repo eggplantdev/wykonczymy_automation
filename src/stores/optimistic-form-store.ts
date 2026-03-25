@@ -24,7 +24,6 @@ type OptimisticFormStoreT = {
     invoiceFiles: Map<number, File>,
     action: () => Promise<ActionResultT>,
     successMessage: string,
-    onServerSuccess?: () => void,
   ) => void
   clearSubmission: () => void
 }
@@ -36,14 +35,7 @@ export const useOptimisticFormStore = create<OptimisticFormStoreT>()((set) => ({
   openDialog: (formId) => set({ openFormId: formId }),
   closeDialog: () => set({ openFormId: null }),
 
-  submitOptimistically: (
-    formId,
-    formValues,
-    invoiceFiles,
-    action,
-    successMessage,
-    onServerSuccess,
-  ) => {
+  submitOptimistically: (formId, formValues, invoiceFiles, action, successMessage) => {
     // Close dialog + save form snapshot
     set({
       openFormId: null,
@@ -56,7 +48,6 @@ export const useOptimisticFormStore = create<OptimisticFormStoreT>()((set) => ({
         if (result.success) {
           set({ submission: null })
           toastMessage(successMessage, 'success', 1000)
-          onServerSuccess?.()
         } else {
           // Reopen dialog with failed state
           set((state) => ({
