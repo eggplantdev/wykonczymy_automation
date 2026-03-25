@@ -17,6 +17,7 @@ import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
 import { ContactLink } from '@/components/ui/contact-link'
 import { FinancialStats } from '@/components/investments/financial-stats'
+import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
 import type { HeaderFieldT } from '@/types/export'
 import type { DynamicPagePropsT } from '@/types/page'
 
@@ -65,6 +66,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
 
   return (
     <PageWrapper title={investment.name}>
+      <EditInvestmentDialog investment={investment} />
       <InfoList items={infoFields.filter((f) => f.value)} />
 
       <FinancialStats
