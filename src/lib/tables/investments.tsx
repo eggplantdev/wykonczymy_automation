@@ -45,7 +45,7 @@ export function getInvestmentColumns({ onToggle, userRole }: InvestmentColumnOpt
 
     col.accessor('totalCosts', {
       id: 'totalCosts',
-      header: 'Koszty',
+      header: 'Koszty inwestora',
       meta: { align: 'right' },
       cell: (info) => <span className="font-medium">{formatPLN(info.getValue())}</span>,
     }),
