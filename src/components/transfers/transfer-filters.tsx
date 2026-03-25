@@ -110,7 +110,7 @@ export function TransferFilters({
               values={currentSourceRegisters}
               onValuesChange={(v) => updateParam('sourceRegister', v.join(','))}
               options={cashRegisters.map((cr) => ({ value: String(cr.id), label: cr.name }))}
-              label="Kasa"
+              label="Kasa źródłowa"
               icon={Banknote}
               searchable
             />

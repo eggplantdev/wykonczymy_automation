@@ -266,7 +266,7 @@ const allColumns = [
 
   col.accessor('sourceRegisterName', {
     id: 'sourceRegister',
-    header: 'Kasa',
+    header: 'Kasa źródłowa',
     cell: (info) => {
       const id = info.row.original.sourceRegisterId
       const name = info.getValue()
