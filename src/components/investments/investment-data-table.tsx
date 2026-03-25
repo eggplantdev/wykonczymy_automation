@@ -11,6 +11,7 @@ import { useSearchFilter } from '@/hooks/use-search-filter'
 import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle'
 import { toggleInvestmentStatus } from '@/lib/actions/toggle-active'
 import { useCurrentUser } from '@/hooks/use-current-user'
+import { AddInvestmentDialog } from '@/components/dialogs/add-investment-dialog'
 
 const isActive = (row: InvestmentRowT) => row.status === 'active'
 const getStatusUpdate = (newActive: boolean) =>
@@ -64,6 +65,7 @@ export function InvestmentDataTable({ data }: InvestmentDataTablePropsT) {
             activeLabel="Aktywne"
             allLabel="Wszystkie"
           />
+          <AddInvestmentDialog />
           <ColumnToggle table={table} columnVisibility={cv} />
         </>
       )}

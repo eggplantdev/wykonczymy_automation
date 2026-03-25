@@ -6,6 +6,7 @@ import { isAdminOrOwnerRole, type RoleT } from '@/lib/auth/roles'
 import { BalanceCell } from '@/components/ui/balance-cell'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
 import { ContactLink } from '@/components/ui/contact-link'
+import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
 
 export type InvestmentRowT = {
   id: number
@@ -23,6 +24,7 @@ export type InvestmentRowT = {
   email: string
   contactPerson: string
   review: string
+  notes: string
 }
 
 const col = createColumnHelper<InvestmentRowT>()
@@ -105,6 +107,28 @@ export function getInvestmentColumns({ onToggle, userRole }: InvestmentColumnOpt
           inactiveLabel="Zakończona"
         />
       ),
+    }),
+    col.display({
+      id: 'actions',
+      header: 'Akcje',
+      cell: (info) => {
+        const row = info.row.original
+        return (
+          <EditInvestmentDialog
+            investment={{
+              id: row.id,
+              name: row.name,
+              status: row.status,
+              address: row.address,
+              phone: row.phone,
+              email: row.email,
+              contactPerson: row.contactPerson,
+              notes: row.notes,
+              review: row.review,
+            }}
+          />
+        )
+      },
     }),
   ]
 }
