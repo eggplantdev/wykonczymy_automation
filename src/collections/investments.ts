@@ -61,6 +61,11 @@ export const Investments: CollectionConfig = {
       label: { en: 'Notes', pl: 'Notatki' },
     },
     {
+      name: 'review',
+      type: 'textarea',
+      label: { en: 'Review', pl: 'Opinia' },
+    },
+    {
       name: 'status',
       type: 'select',
       required: true,

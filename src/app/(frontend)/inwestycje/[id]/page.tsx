@@ -17,6 +17,7 @@ import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
 import { ContactLink } from '@/components/ui/contact-link'
 import { FinancialStats } from '@/components/investments/financial-stats'
+import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
 import type { HeaderFieldT } from '@/types/export'
 import type { DynamicPagePropsT } from '@/types/page'
 
@@ -59,11 +60,13 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
     { label: 'Email', value: <ContactLink type="email" value={investment.email} /> },
     { label: 'Osoba kontaktowa', value: investment.contactPerson },
     { label: 'Notatki', value: investment.notes },
+    { label: 'Opinia', value: investment.review || '—' },
     { label: 'Status', value: investment.status === 'active' ? 'Aktywna' : 'Zakończona' },
   ]
 
   return (
     <PageWrapper title={investment.name}>
+      <EditInvestmentDialog investment={investment} />
       <InfoList items={infoFields.filter((f) => f.value)} />
 
       <FinancialStats

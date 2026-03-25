@@ -96,6 +96,7 @@ export const fetchReferenceData = unstable_cache(
       email: (row.email as string) ?? '',
       contactPerson: (row.contact_person as string) ?? '',
       notes: (row.notes as string) ?? '',
+      review: (row.review as string) ?? '',
     }))
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

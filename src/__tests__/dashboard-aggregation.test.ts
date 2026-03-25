@@ -34,6 +34,7 @@ const mockRefData: ReferenceDataBaseT = {
       email: 'e@e.com',
       contactPerson: 'CP',
       notes: '',
+      review: '',
     },
     {
       id: 20,
@@ -45,6 +46,7 @@ const mockRefData: ReferenceDataBaseT = {
       email: '',
       contactPerson: '',
       notes: '',
+      review: '',
     },
   ],
   workers: [
