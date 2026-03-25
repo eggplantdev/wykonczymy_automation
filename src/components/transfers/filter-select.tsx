@@ -3,7 +3,14 @@
 import { useState } from 'react'
 import { CheckIcon, type LucideIcon } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
 import { FilterTriggerButton } from '@/components/transfers/filter-trigger-button'
 import { cn } from '@/lib/cn'
 
@@ -15,6 +22,7 @@ type FilterSelectPropsT = {
   options: FilterOptionT[]
   placeholder?: string
   icon?: LucideIcon
+  searchable?: boolean
 }
 
 export function FilterSelect({
@@ -23,6 +31,7 @@ export function FilterSelect({
   options,
   placeholder = '∞',
   icon: Icon,
+  searchable = false,
 }: FilterSelectPropsT) {
   const [open, setOpen] = useState(false)
   const selectedLabel = options.find((o) => o.value === value)?.label
@@ -41,6 +50,7 @@ export function FilterSelect({
       </PopoverTrigger>
       <PopoverContent className="w-56 p-0" align="start">
         <Command>
+          {searchable && <CommandInput placeholder="Szukaj..." />}
           <CommandList>
             <CommandGroup>
               {options.map((opt) => (
@@ -54,6 +64,7 @@ export function FilterSelect({
                 </CommandItem>
               ))}
             </CommandGroup>
+            {searchable && <CommandEmpty>Brak wyników</CommandEmpty>}
           </CommandList>
         </Command>
       </PopoverContent>
