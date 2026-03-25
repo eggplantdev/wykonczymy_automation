@@ -66,3 +66,6 @@ src/app/(payload)/admin/importMap.js
 # database dumps
 dumps/
 dump.sql
+
+# local codex skills package
+/codex-skills/

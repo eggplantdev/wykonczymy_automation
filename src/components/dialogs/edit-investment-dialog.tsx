@@ -21,7 +21,7 @@ export function EditInvestmentDialog({ investment }: EditInvestmentDialogPropsT)
       trigger={
         <Button size="sm" variant="outline" aria-label="Edytuj inwestycję">
           <Pencil className="size-4" />
-          <span>Edytuj inwestycję</span>
+          <span>Edytuj</span>
         </Button>
       }
       title="Edytuj inwestycję"
