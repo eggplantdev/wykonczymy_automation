@@ -19,8 +19,9 @@ export function EditInvestmentDialog({ investment }: EditInvestmentDialogPropsT)
       formId={formId}
       showKeepOpen={false}
       trigger={
-        <Button variant="ghost" size="icon" aria-label="Edytuj inwestycję">
+        <Button size="sm" variant="outline" aria-label="Edytuj inwestycję">
           <Pencil className="size-4" />
+          <span>Edytuj inwestycję</span>
         </Button>
       }
       title="Edytuj inwestycję"
