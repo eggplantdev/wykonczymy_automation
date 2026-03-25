@@ -109,6 +109,7 @@ export type CategoryCostT = {
 export type InvestmentFinancialsT = {
   categoryCosts: CategoryCostT[]
   totalMaterialCosts: number
+  totalCorrections: number
   totalIncome: number
   totalLaborCosts: number
   totalPayouts: number
@@ -128,6 +129,7 @@ export const sumAllInvestmentFinancials = async (
     db.execute(sql`
       SELECT investment_id,
         COALESCE(SUM(CASE WHEN type IN ('INVESTMENT_EXPENSE', 'CORRECTION') THEN amount ELSE 0 END), 0) AS total_costs,
+        COALESCE(SUM(CASE WHEN type = 'CORRECTION' THEN amount ELSE 0 END), 0) AS total_corrections,
         COALESCE(SUM(CASE WHEN type IN ('INVESTOR_DEPOSIT', 'COMPANY_FUNDING', 'OTHER_DEPOSIT') THEN amount ELSE 0 END), 0) AS total_income,
         COALESCE(SUM(CASE WHEN type = 'LABOR_COST' THEN amount ELSE 0 END), 0) AS total_labor_costs,
         COALESCE(SUM(CASE WHEN type = 'PAYOUT' THEN amount ELSE 0 END), 0) AS total_payouts
@@ -165,6 +167,7 @@ export const sumAllInvestmentFinancials = async (
     map.set(invId, {
       categoryCosts: categoryMap.get(invId) ?? [],
       totalMaterialCosts: Number(row.total_costs),
+      totalCorrections: Number(row.total_corrections),
       totalIncome: Number(row.total_income),
       totalLaborCosts: Number(row.total_labor_costs),
       totalPayouts: Number(row.total_payouts),
@@ -236,6 +239,7 @@ export function deriveFinancials(
     categoryCosts,
     totalMaterialCosts:
       totalByType(byType, 'INVESTMENT_EXPENSE') + totalByType(byType, 'CORRECTION'),
+    totalCorrections: totalByType(byType, 'CORRECTION'),
     totalIncome:
       totalByType(byType, 'INVESTOR_DEPOSIT') +
       totalByType(byType, 'COMPANY_FUNDING') +

@@ -90,6 +90,7 @@ describe('sumAllInvestmentFinancials', () => {
           {
             investment_id: '1',
             total_costs: '3000',
+            total_corrections: '0',
             total_income: '10000',
             total_labor_costs: '200',
             total_payouts: '150',
@@ -97,6 +98,7 @@ describe('sumAllInvestmentFinancials', () => {
           {
             investment_id: '2',
             total_costs: '500',
+            total_corrections: '0',
             total_income: '0',
             total_labor_costs: '0',
             total_payouts: '0',
@@ -109,6 +111,7 @@ describe('sumAllInvestmentFinancials', () => {
     expect(map.get(1)).toEqual({
       categoryCosts: [],
       totalMaterialCosts: 3000,
+      totalCorrections: 0,
       totalIncome: 10000,
       totalLaborCosts: 200,
       totalPayouts: 150,
@@ -116,6 +119,7 @@ describe('sumAllInvestmentFinancials', () => {
     expect(map.get(2)).toEqual({
       categoryCosts: [],
       totalMaterialCosts: 500,
+      totalCorrections: 0,
       totalIncome: 0,
       totalLaborCosts: 0,
       totalPayouts: 0,
@@ -135,6 +139,7 @@ describe('sumAllInvestmentFinancials', () => {
           {
             investment_id: '1',
             total_costs: '7000',
+            total_corrections: '0',
             total_income: '10000',
             total_labor_costs: '800',
             total_payouts: '0',
@@ -236,6 +241,7 @@ describe('deriveFinancials', () => {
     expect(deriveFinancials(byType)).toEqual({
       categoryCosts: [],
       totalMaterialCosts: 5000,
+      totalCorrections: 0,
       totalIncome: 12000,
       totalLaborCosts: 800,
       totalPayouts: 300,
@@ -246,6 +252,7 @@ describe('deriveFinancials', () => {
     expect(deriveFinancials([])).toEqual({
       categoryCosts: [],
       totalMaterialCosts: 0,
+      totalCorrections: 0,
       totalIncome: 0,
       totalLaborCosts: 0,
       totalPayouts: 0,

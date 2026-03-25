@@ -9,6 +9,7 @@ import { perfStart } from '@/lib/perf'
 import type { CashRegisterTypeT } from '@/types/reference-data'
 import type { CashRegisterRowT } from '@/lib/tables/cash-registers'
 import type { InvestmentRowT } from '@/lib/tables/investments'
+import { calculateBalance } from '@/lib/calculate-balance'
 import { calculateMargin } from '@/lib/calculate-margin'
 
 export async function fetchManagerDashboardData() {
@@ -37,23 +38,26 @@ export async function fetchManagerDashboardData() {
 
   const allInvestments: InvestmentRowT[] = refData.investments.map((inv) => {
     const fin = financialsRecord[String(inv.id)]
-    const totalMaterialCosts = fin?.totalMaterialCosts ?? 0
-    const totalIncome = fin?.totalIncome ?? 0
-    const totalLaborCosts = fin?.totalLaborCosts ?? 0
-    const totalPayouts = fin?.totalPayouts ?? 0
-    const totalCosts = totalMaterialCosts + totalLaborCosts
-    const balance = totalIncome - totalCosts
+    const financials = fin ?? {
+      categoryCosts: [],
+      totalMaterialCosts: 0,
+      totalCorrections: 0,
+      totalIncome: 0,
+      totalLaborCosts: 0,
+      totalPayouts: 0,
+    }
+    const totalCosts = financials.totalMaterialCosts + financials.totalLaborCosts
     return {
       id: inv.id,
       name: inv.name,
       status: inv.status,
       totalCosts,
-      totalMaterialCosts,
-      totalIncome,
-      totalLaborCosts,
-      totalPayouts,
-      balance,
-      margin: calculateMargin(totalLaborCosts, totalPayouts),
+      totalMaterialCosts: financials.totalMaterialCosts,
+      totalIncome: financials.totalIncome,
+      totalLaborCosts: financials.totalLaborCosts,
+      totalPayouts: financials.totalPayouts,
+      balance: calculateBalance(financials),
+      margin: calculateMargin(financials.totalLaborCosts, financials.totalPayouts),
       address: inv.address,
       phone: inv.phone,
       email: inv.email,

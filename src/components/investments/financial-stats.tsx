@@ -13,6 +13,7 @@ import { Description } from '../ui/description'
 import { Button } from '../ui/button'
 
 const INCOME_LABEL = 'Wpłaty'
+const CORRECTION_LABEL = 'Korekty'
 const LABOR_LABEL = 'Robocizna'
 
 type FinancialStatsPropsT = {
@@ -40,7 +41,9 @@ export function FinancialStats({
   })
 
   const expenseRow = fields
-    .filter((f) => f.label !== INCOME_LABEL && f.label !== LABOR_LABEL)
+    .filter(
+      (f) => f.label !== INCOME_LABEL && f.label !== CORRECTION_LABEL && f.label !== LABOR_LABEL,
+    )
     .map((f) => addBtnBorderColor(f, 'border-chart-red'))
 
   const laborRow = fields
@@ -48,7 +51,7 @@ export function FinancialStats({
     .map((f) => addBtnBorderColor(f, 'border-chart-orange'))
 
   const incomeRow = fields
-    .filter((f) => f.label === INCOME_LABEL)
+    .filter((f) => f.label === INCOME_LABEL || f.label === CORRECTION_LABEL)
     .map((f) => addBtnBorderColor(f, 'border-chart-green'))
 
   const rows = [
