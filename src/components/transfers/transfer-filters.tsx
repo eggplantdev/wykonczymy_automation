@@ -112,6 +112,7 @@ export function TransferFilters({
               options={cashRegisters.map((cr) => ({ value: String(cr.id), label: cr.name }))}
               label="Kasa"
               icon={Banknote}
+              searchable
             />
           )}
 

@@ -74,7 +74,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
         config={{
           query: { where: transferWhere, page, limit },
           baseUrl: `/kasa/${id}`,
-          excludeColumns: ['sourceRegister'],
+          excludeColumns: [],
           filters: buildFilterConfig(refData, 'cashRegisters'),
           context: 'register',
           contextId: registerId,
