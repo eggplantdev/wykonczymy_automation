@@ -7,33 +7,35 @@ import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import useCheckFormErrors from '@/components/forms/hooks/use-check-form-errors'
 import FormFooter from '@/components/forms/form-components/form-footer'
 import { investmentFormSchema, type InvestmentFormValuesT } from './investment-schema'
-import { createInvestmentAction } from '@/lib/actions/investments'
 import type { InvestmentFormDataT } from '@/lib/schemas/investment'
 import type { AppFieldComponentsT } from '@/components/forms/types/form-types'
+import type { ActionResultT } from '@/lib/actions/utils'
 
-type AddInvestmentFormPropsT = {
+type InvestmentFormPropsT = {
+  formId: string
+  defaultValues: InvestmentFormValuesT
+  action: (data: InvestmentFormDataT) => Promise<ActionResultT>
+  successMessage: string
+  submitLabel: string
+  submittingLabel: string
   onSubmitSuccess: () => void
   keepOpen?: boolean
 }
 
-const FORM_ID = 'add-investment'
-
-const EMPTY_DEFAULTS: InvestmentFormValuesT = {
-  name: '',
-  address: '',
-  phone: '',
-  email: '',
-  contactPerson: '',
-  notes: '',
-  review: '',
-  status: 'active',
-}
-
-export function AddInvestmentForm({ onSubmitSuccess, keepOpen }: AddInvestmentFormPropsT) {
-  const { recoveredValues, submit } = useFormSubmit<InvestmentFormValuesT>(FORM_ID)
+export function InvestmentForm({
+  formId,
+  defaultValues,
+  action,
+  successMessage,
+  submitLabel,
+  submittingLabel,
+  onSubmitSuccess,
+  keepOpen,
+}: InvestmentFormPropsT) {
+  const { recoveredValues, submit } = useFormSubmit<InvestmentFormValuesT>(formId)
 
   const form = useAppForm({
-    defaultValues: recoveredValues ?? EMPTY_DEFAULTS,
+    defaultValues: recoveredValues ?? defaultValues,
     validators: {
       onSubmit: investmentFormSchema,
     },
@@ -50,8 +52,8 @@ export function AddInvestmentForm({ onSubmitSuccess, keepOpen }: AddInvestmentFo
       }
 
       await submit(!!keepOpen, {
-        action: () => createInvestmentAction(data),
-        successMessage: 'Inwestycja dodana',
+        action: () => action(data),
+        successMessage,
         formValues: value as Record<string, unknown>,
         onSubmitSuccess,
         onKeepOpenSuccess: () => form.reset(),
@@ -124,7 +126,7 @@ export function AddInvestmentForm({ onSubmitSuccess, keepOpen }: AddInvestmentFo
           </form.AppField>
         </FieldGroup>
 
-        <FormFooter label="Dodaj" submittingLabel="Dodawanie..." className="mt-6" />
+        <FormFooter label={submitLabel} submittingLabel={submittingLabel} className="mt-6" />
       </form>
     </form.AppForm>
   )

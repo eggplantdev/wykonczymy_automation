@@ -3,7 +3,20 @@
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FormDialog } from '@/components/dialogs/form-dialog'
-import { AddInvestmentForm } from '@/components/forms/investment-form/add-investment-form'
+import { InvestmentForm } from '@/components/forms/investment-form/investment-form'
+import { createInvestmentAction } from '@/lib/actions/investments'
+import type { InvestmentFormValuesT } from '@/components/forms/investment-form/investment-schema'
+
+const EMPTY_DEFAULTS: InvestmentFormValuesT = {
+  name: '',
+  address: '',
+  phone: '',
+  email: '',
+  contactPerson: '',
+  notes: '',
+  review: '',
+  status: 'active',
+}
 
 export function AddInvestmentDialog() {
   return (
@@ -18,7 +31,16 @@ export function AddInvestmentDialog() {
       title="Nowa inwestycja"
     >
       {(onSubmitSuccess, keepOpen) => (
-        <AddInvestmentForm onSubmitSuccess={onSubmitSuccess} keepOpen={keepOpen} />
+        <InvestmentForm
+          formId="add-investment"
+          defaultValues={EMPTY_DEFAULTS}
+          action={createInvestmentAction}
+          successMessage="Inwestycja dodana"
+          submitLabel="Dodaj"
+          submittingLabel="Dodawanie..."
+          onSubmitSuccess={onSubmitSuccess}
+          keepOpen={keepOpen}
+        />
       )}
     </FormDialog>
   )
