@@ -3,6 +3,7 @@ export const TRANSFER_TYPES = [
   'CANCELLATION', // Anulowanie
   'OTHER_DEPOSIT', // Inna wpłata
   'OTHER', // Inny wydatek
+  'CORRECTION', // Korekta
   'LABOR_COST', // Koszty robocizny
   'REGISTER_TRANSFER', // Transfer między kasami
   'INVESTOR_DEPOSIT', // Wpłata od inwestora
@@ -18,6 +19,7 @@ export const TRANSFER_TYPE_LABELS: Record<TransferTypeT, string> = {
   OTHER_DEPOSIT: 'Inna wpłata',
   INVESTMENT_EXPENSE: 'Wydatek inwestycyjny',
   LABOR_COST: 'Koszty robocizny',
+  CORRECTION: 'Korekta',
   PAYOUT: 'Wypłata',
   REGISTER_TRANSFER: 'Transfer między kasami',
   OTHER: 'Inny wydatek',
@@ -30,6 +32,7 @@ export const TRANSFER_TYPE_COLORS: Record<TransferTypeT, string> = {
   OTHER_DEPOSIT: 'chart-green',
   INVESTMENT_EXPENSE: 'chart-red',
   LABOR_COST: 'chart',
+  CORRECTION: 'chart-orange',
   PAYOUT: 'chart-red',
   REGISTER_TRANSFER: 'chart-turquoise',
   OTHER: 'chart-red',
@@ -54,6 +57,7 @@ export const DEPOSIT_UI_TYPES: TransferTypeT[] = [
 // Transfer types visible in the transaction transfer dialog (sorted by Polish label)
 export const TRANSACTION_TRANSFER_TYPES: TransferTypeT[] = [
   'OTHER', // Inny wydatek
+  'CORRECTION', // Korekta
   'LABOR_COST', // Koszty robocizny
   'INVESTMENT_EXPENSE', // Wydatek inwestycyjny
   'PAYOUT', // Wypłata
@@ -75,7 +79,12 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethodT, string> = {
 }
 
 export const COST_TYPES: TransferTypeT[] = ['INVESTMENT_EXPENSE', 'LABOR_COST']
-export const INVESTMENT_TYPES: TransferTypeT[] = [...COST_TYPES, ...DEPOSIT_TYPES, 'PAYOUT']
+export const INVESTMENT_TYPES: TransferTypeT[] = [
+  ...COST_TYPES,
+  ...DEPOSIT_TYPES,
+  'PAYOUT',
+  'CORRECTION',
+]
 
 export const isTransferType = (type: string): type is TransferTypeT =>
   (TRANSFER_TYPES as readonly string[]).includes(type)

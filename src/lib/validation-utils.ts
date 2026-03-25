@@ -1,11 +1,31 @@
 import { z } from 'zod'
 
-/** Validates that a string amount is present and > 0. */
-export function refineAmount(data: { amount: string }, ctx: z.RefinementCtx) {
-  if (!data.amount || Number(data.amount) <= 0) {
+/**
+ * Returns an error message if the amount is invalid for the given type, or null if valid.
+ * CORRECTION allows negative amounts (invoice corrections); all other types require positive.
+ */
+export function getAmountError(amount: number, type: string): string | null {
+  if (type === 'CORRECTION') {
+    return amount === 0 ? 'Kwota nie może być równa 0' : null
+  }
+  return amount <= 0 ? 'Kwota musi być większa niż 0' : null
+}
+
+/** Validates that a string amount is present and valid for the given type (Zod refinement). */
+export function refineAmount(data: { amount: string; type?: string }, ctx: z.RefinementCtx) {
+  if (!data.amount) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: 'Kwota musi być większa niż 0',
+      path: ['amount'],
+    })
+    return
+  }
+  const error = getAmountError(Number(data.amount), data.type ?? '')
+  if (error) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: error,
       path: ['amount'],
     })
   }

@@ -7,6 +7,7 @@ import {
   needsTargetRegister,
   needsExpenseCategory,
 } from '@/lib/constants/transfers'
+import { getAmountError } from '@/lib/validation-utils'
 
 // ---------------------------------------------------------------------------
 // Shared type-dependent validation
@@ -87,7 +88,7 @@ export function validateLineItemCategories(
 export const createTransferSchema = z
   .object({
     description: z.string().optional().default(''),
-    amount: z.number().positive('Kwota musi być większa niż 0'),
+    amount: z.number(),
     date: z.string().min(1, 'Data jest wymagana'),
     type: z.enum(TRANSFER_TYPES),
     paymentMethod: z.enum(PAYMENT_METHODS),
@@ -99,7 +100,13 @@ export const createTransferSchema = z
     otherDescription: z.string().optional(),
     invoiceNote: z.string().optional(),
   })
-  .superRefine((data, ctx) => validateTransferFields(data, ctx))
+  .superRefine((data, ctx) => {
+    const amountErr = getAmountError(data.amount, data.type)
+    if (amountErr) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: amountErr, path: ['amount'] })
+    }
+    validateTransferFields(data, ctx)
+  })
 
 export type CreateTransferFormT = z.infer<typeof createTransferSchema>
 

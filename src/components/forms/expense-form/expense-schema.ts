@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { TRANSFER_TYPES, PAYMENT_METHODS } from '@/lib/constants/transfers'
-import { refineAmount, refineDate } from '@/lib/validation-utils'
+import { getAmountError, refineAmount, refineDate } from '@/lib/validation-utils'
 import {
   validateTransferFields,
   validateLineItemCategories,
@@ -70,10 +70,19 @@ export const bulkExpenseFormSchema = z
     }
 
     data.lineItems.forEach((item, index) => {
-      if (!item.amount || Number(item.amount) <= 0) {
+      if (!item.amount) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: 'Kwota musi być większa niż 0',
+          path: ['lineItems', index, 'amount'],
+        })
+        return
+      }
+      const err = getAmountError(Number(item.amount), data.type)
+      if (err) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: err,
           path: ['lineItems', index, 'amount'],
         })
       }
@@ -93,7 +102,7 @@ export const createBulkExpenseSchema = z
       .array(
         z.object({
           description: z.string(),
-          amount: z.number().positive('Kwota musi być większa niż 0'),
+          amount: z.number(),
           invoiceNote: z.string().optional(),
           category: z.number().positive().optional(),
           expenseCategory: z.number().positive().optional(),
@@ -103,6 +112,17 @@ export const createBulkExpenseSchema = z
   })
   .superRefine((data, ctx) => {
     validateTransferFields(data, ctx)
+
+    data.lineItems.forEach((item, index) => {
+      const err = getAmountError(item.amount, data.type)
+      if (err) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: err,
+          path: ['lineItems', index, 'amount'],
+        })
+      }
+    })
 
     validateLineItemCategories(data.type, data.lineItems, ctx)
   })

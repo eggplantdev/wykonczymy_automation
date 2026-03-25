@@ -36,6 +36,7 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
       'COMPANY_FUNDING',
       'OTHER_DEPOSIT',
       'PAYOUT',
+      'CORRECTION',
     ],
   },
   requiresInvestment: {
@@ -73,6 +74,7 @@ describe('TRANSACTION_TRANSFER_TYPES', () => {
   it('contains exactly the expected types', () => {
     expect(TRANSACTION_TRANSFER_TYPES).toEqual([
       'OTHER',
+      'CORRECTION',
       'LABOR_COST',
       'INVESTMENT_EXPENSE',
       'PAYOUT',

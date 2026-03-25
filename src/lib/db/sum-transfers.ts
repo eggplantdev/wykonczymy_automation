@@ -127,7 +127,7 @@ export const sumAllInvestmentFinancials = async (
   const [totalsResult, categoryResult] = await Promise.all([
     db.execute(sql`
       SELECT investment_id,
-        COALESCE(SUM(CASE WHEN type = 'INVESTMENT_EXPENSE' THEN amount ELSE 0 END), 0) AS total_costs,
+        COALESCE(SUM(CASE WHEN type IN ('INVESTMENT_EXPENSE', 'CORRECTION') THEN amount ELSE 0 END), 0) AS total_costs,
         COALESCE(SUM(CASE WHEN type IN ('INVESTOR_DEPOSIT', 'COMPANY_FUNDING', 'OTHER_DEPOSIT') THEN amount ELSE 0 END), 0) AS total_income,
         COALESCE(SUM(CASE WHEN type = 'LABOR_COST' THEN amount ELSE 0 END), 0) AS total_labor_costs,
         COALESCE(SUM(CASE WHEN type = 'PAYOUT' THEN amount ELSE 0 END), 0) AS total_payouts
@@ -142,7 +142,7 @@ export const sumAllInvestmentFinancials = async (
       FROM transactions
       WHERE investment_id IS NOT NULL
         AND cancelled IS NOT TRUE
-        AND type = 'INVESTMENT_EXPENSE'
+        AND type IN ('INVESTMENT_EXPENSE', 'CORRECTION')
         AND expense_category_id IS NOT NULL
       GROUP BY investment_id, expense_category_id
     `),
@@ -192,7 +192,7 @@ export const sumCategoryBreakdown = async (
       SELECT expense_category_id, COALESCE(SUM(amount), 0) AS total
       FROM transactions
       WHERE cancelled IS NOT TRUE
-        AND type = 'INVESTMENT_EXPENSE'
+        AND type IN ('INVESTMENT_EXPENSE', 'CORRECTION')
         AND expense_category_id IS NOT NULL
         ${conditions}
       GROUP BY expense_category_id
@@ -234,7 +234,8 @@ export function deriveFinancials(
 ): InvestmentFinancialsT {
   return {
     categoryCosts,
-    totalMaterialCosts: totalByType(byType, 'INVESTMENT_EXPENSE'),
+    totalMaterialCosts:
+      totalByType(byType, 'INVESTMENT_EXPENSE') + totalByType(byType, 'CORRECTION'),
     totalIncome:
       totalByType(byType, 'INVESTOR_DEPOSIT') +
       totalByType(byType, 'COMPANY_FUNDING') +
@@ -247,7 +248,8 @@ export function deriveFinancials(
 /** Derive cost breakdown from type distribution. */
 export function deriveCostBreakdown(byType: TypeTotalT[]): CostBreakdownT {
   return {
-    investmentExpenses: totalByType(byType, 'INVESTMENT_EXPENSE'),
+    investmentExpenses:
+      totalByType(byType, 'INVESTMENT_EXPENSE') + totalByType(byType, 'CORRECTION'),
     laborCosts: totalByType(byType, 'LABOR_COST'),
   }
 }

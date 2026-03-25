@@ -6,6 +6,7 @@ import {
   needsTargetRegister,
   needsOtherCategory,
 } from '@/lib/constants/transfers'
+import { getAmountError } from '@/lib/validation-utils'
 
 type TransferData = Partial<Transaction>
 
@@ -34,6 +35,12 @@ export const validateTransfer: CollectionBeforeValidateHook = ({ data, req, oper
   }
 
   const errors: string[] = []
+
+  // Amount validation — CORRECTION allows negative (invoice corrections), others must be positive
+  if (d.amount !== undefined && d.amount !== null) {
+    const amountErr = getAmountError(d.amount, type)
+    if (amountErr) errors.push(amountErr)
+  }
 
   // sourceRegister — required for all types except LABOR_COST
   if (needsSourceRegister(type) && !d.sourceRegister) {
