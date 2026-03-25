@@ -43,8 +43,9 @@ const showTargetRegister = (data: Record<string, unknown>) => data?.type === 'RE
 /** Show field when type is OTHER */
 const needsOtherCategory = (data: Record<string, unknown>) => data?.type === 'OTHER'
 
-/** Show expenseCategory for INVESTMENT_EXPENSE */
-const showExpenseCategory = (data: Record<string, unknown>) => data?.type === 'INVESTMENT_EXPENSE'
+/** Show expenseCategory for INVESTMENT_EXPENSE and CORRECTION */
+const showExpenseCategory = (data: Record<string, unknown>) =>
+  data?.type === 'INVESTMENT_EXPENSE' || data?.type === 'CORRECTION'
 
 export const Transfers: CollectionConfig = {
   slug: 'transactions',
