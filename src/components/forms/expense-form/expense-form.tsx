@@ -155,6 +155,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
   useCheckFormErrors(form)
 
   const currentType = useStore(form.store, (s) => s.values.type)
+  const currentInvestment = useStore(form.store, (s) => s.values.investment)
   const lineItems = useStore(form.store, (s) => s.values.lineItems)
   const total = lineItems.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
 
@@ -229,6 +230,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
               form={form}
               defaultExpenseCategory={defaultExpenseCategory}
               total={total}
+              hasInvestment={!!currentInvestment}
               onRemoveItem={handleRemoveLineItem}
               onFileChange={handleFileChange}
               transferType={currentType}

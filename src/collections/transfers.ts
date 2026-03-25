@@ -15,6 +15,7 @@ const TRANSFER_TYPES = [
   },
   { label: { en: 'Payout', pl: 'Wypłata' }, value: 'PAYOUT' },
   { label: { en: 'Other Expense', pl: 'Inny wydatek' }, value: 'OTHER' },
+  { label: { en: 'Correction', pl: 'Korekta' }, value: 'CORRECTION' },
   { label: { en: 'Cancellation', pl: 'Anulowanie' }, value: 'CANCELLATION' },
 ] as const
 
@@ -33,7 +34,8 @@ const showInvestment = (data: Record<string, unknown>) =>
   data?.type === 'INVESTOR_DEPOSIT' ||
   data?.type === 'INVESTMENT_EXPENSE' ||
   data?.type === 'LABOR_COST' ||
-  data?.type === 'PAYOUT'
+  data?.type === 'PAYOUT' ||
+  data?.type === 'CORRECTION'
 
 /** Show targetRegister only for REGISTER_TRANSFER */
 const showTargetRegister = (data: Record<string, unknown>) => data?.type === 'REGISTER_TRANSFER'
@@ -41,8 +43,9 @@ const showTargetRegister = (data: Record<string, unknown>) => data?.type === 'RE
 /** Show field when type is OTHER */
 const needsOtherCategory = (data: Record<string, unknown>) => data?.type === 'OTHER'
 
-/** Show expenseCategory for INVESTMENT_EXPENSE */
-const showExpenseCategory = (data: Record<string, unknown>) => data?.type === 'INVESTMENT_EXPENSE'
+/** Show expenseCategory for INVESTMENT_EXPENSE and CORRECTION */
+const showExpenseCategory = (data: Record<string, unknown>) =>
+  data?.type === 'INVESTMENT_EXPENSE' || data?.type === 'CORRECTION'
 
 export const Transfers: CollectionConfig = {
   slug: 'transactions',
@@ -76,13 +79,12 @@ export const Transfers: CollectionConfig = {
       name: 'amount',
       type: 'number',
       required: true,
-      min: 0.01,
       label: { en: 'Amount', pl: 'Kwota' },
       access: { update: () => false },
       admin: {
         description: {
-          en: 'Always positive — direction is determined by type',
-          pl: 'Zawsze dodatnia — kierunek wynika z typu',
+          en: 'Positive for most types — CORRECTION allows negative (invoice corrections)',
+          pl: 'Dodatnia dla większości typów — KOREKTA pozwala na ujemne (korekty faktur)',
         },
       },
     },

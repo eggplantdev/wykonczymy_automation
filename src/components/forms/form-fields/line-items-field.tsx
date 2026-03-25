@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { formatPLN } from '@/lib/format-currency'
 import {
   EXPENSE_CATEGORY_LABEL,
-  needsExpenseCategory,
+  showsExpenseCategory,
   showsOtherCategory,
 } from '@/lib/constants/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
@@ -41,6 +41,7 @@ type LineItemsFieldPropsT = {
   label?: string
   defaultExpenseCategory?: string
   total: number
+  hasInvestment?: boolean
   onRemoveItem: (index: number, removeValue: (index: number) => void) => void
   onFileChange: (index: number, e: React.ChangeEvent<HTMLInputElement>) => void
 }
@@ -55,8 +56,9 @@ const otherCategoryConfig = (refData: ReferenceDataBaseT): CategoryFieldConfigT 
 function getInlineCategory(
   type: string,
   refData: ReferenceDataBaseT,
+  hasInvestment?: boolean,
 ): CategoryFieldConfigT | undefined {
-  if (needsExpenseCategory(type)) {
+  if (showsExpenseCategory(type, hasInvestment)) {
     return {
       fieldName: 'expenseCategory',
       label: EXPENSE_CATEGORY_LABEL,
@@ -73,7 +75,7 @@ function getSecondRowCategory(
   refData: ReferenceDataBaseT,
 ): CategoryFieldConfigT | undefined {
   // Show other category in second row when inline is already taken by expense category
-  if (needsExpenseCategory(type) && showsOtherCategory(type)) return otherCategoryConfig(refData)
+  if (showsExpenseCategory(type) && showsOtherCategory(type)) return otherCategoryConfig(refData)
   return undefined
 }
 
@@ -115,10 +117,11 @@ export function LineItemsField({
   label = 'Pozycje',
   defaultExpenseCategory = '',
   total,
+  hasInvestment,
   onRemoveItem,
   onFileChange,
 }: LineItemsFieldPropsT) {
-  const inlineCategory = getInlineCategory(transferType, referenceData)
+  const inlineCategory = getInlineCategory(transferType, referenceData, hasInvestment)
   const secondRowCategory = getSecondRowCategory(transferType, referenceData)
   const emptyItem = defaultExpenseCategory
     ? { ...EMPTY_LINE_ITEM, expenseCategory: defaultExpenseCategory }
