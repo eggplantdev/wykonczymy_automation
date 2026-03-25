@@ -58,6 +58,7 @@ export async function fetchManagerDashboardData() {
       phone: inv.phone,
       email: inv.email,
       contactPerson: inv.contactPerson,
+      review: inv.review,
     }
   })
 

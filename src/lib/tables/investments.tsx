@@ -22,6 +22,7 @@ export type InvestmentRowT = {
   phone: string
   email: string
   contactPerson: string
+  review: string
 }
 
 const col = createColumnHelper<InvestmentRowT>()
@@ -83,6 +84,11 @@ export function getInvestmentColumns({ onToggle, userRole }: InvestmentColumnOpt
       id: 'contactPerson',
       header: 'Osoba kontaktowa',
 
+      cell: (info) => info.getValue() || '—',
+    }),
+    col.accessor('review', {
+      id: 'review',
+      header: 'Opinia',
       cell: (info) => info.getValue() || '—',
     }),
     col.accessor('status', {

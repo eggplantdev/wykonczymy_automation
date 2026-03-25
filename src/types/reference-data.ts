@@ -18,6 +18,7 @@ export type InvestmentRefT = ReferenceItemT & {
   email: string
   contactPerson: string
   notes: string
+  review: string
 }
 
 export type WorkerRefT = ReferenceItemT & {

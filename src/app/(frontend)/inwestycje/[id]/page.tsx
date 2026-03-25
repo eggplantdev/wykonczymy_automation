@@ -59,6 +59,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
     { label: 'Email', value: <ContactLink type="email" value={investment.email} /> },
     { label: 'Osoba kontaktowa', value: investment.contactPerson },
     { label: 'Notatki', value: investment.notes },
+    { label: 'Opinia', value: investment.review || '—' },
     { label: 'Status', value: investment.status === 'active' ? 'Aktywna' : 'Zakończona' },
   ]
 
