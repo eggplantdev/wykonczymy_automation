@@ -85,7 +85,9 @@ All mutations use `protectedAction()` wrapper (`src/lib/actions/`):
 - Financial calculations use raw SQL via `@vercel/postgres`
 - Cache: `unstable_cache` from `next/cache` with tag-based invalidation (`cacheComponents` / `'use cache'` disabled due to Vercel bug — see `docs/vercel-server-action-bug-report.md`)
 - Tags: `CACHE_TAGS.cashRegisters`, `.investments`, `.users`, `.transfers`
-- Revalidation: `revalidateTag(tag, 'max')` in Payload hooks and server actions (Next.js 16 requires the second `cacheLife` profile arg)
+- Revalidation uses two different functions depending on context:
+  - **Server Actions** (`lib/actions/`, `lib/cache/revalidate.ts`): use `updateTag()` — forces immediate cache expiration
+  - **Payload hooks** (`hooks/`): use `revalidateTag()` — because hooks run in Route Handler context where `updateTag` throws. Never import `lib/cache/revalidate.ts` from Payload hooks.
 
 ### Forms
 

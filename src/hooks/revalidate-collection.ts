@@ -1,16 +1,19 @@
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
-import { updateTag } from 'next/cache'
-import { revalidateCollection } from '@/lib/cache/revalidate'
-import type { CACHE_TAGS } from '@/lib/cache/tags'
-import { entityTag } from '@/lib/cache/tags'
+import { revalidateTag } from 'next/cache'
+import { CACHE_TAGS, entityTag } from '@/lib/cache/tags'
 
 type CollectionSlugT = keyof typeof CACHE_TAGS
 
+/**
+ * Payload hooks run in Route Handler context (not Server Actions),
+ * so they must use `revalidateTag` — `updateTag` throws in this context.
+ * Server Actions use `revalidateCollection()` from `lib/cache/revalidate.ts` instead.
+ */
 export function makeRevalidateAfterChange(slug: CollectionSlugT): CollectionAfterChangeHook {
   return ({ doc, context }) => {
     if (!context.skipRevalidation) {
-      revalidateCollection(slug)
-      updateTag(entityTag(slug, doc.id))
+      revalidateTag(CACHE_TAGS[slug], 'default')
+      revalidateTag(entityTag(slug, doc.id), 'default')
     }
     return doc
   }
@@ -19,8 +22,8 @@ export function makeRevalidateAfterChange(slug: CollectionSlugT): CollectionAfte
 export function makeRevalidateAfterDelete(slug: CollectionSlugT): CollectionAfterDeleteHook {
   return ({ doc, context }) => {
     if (!context.skipRevalidation) {
-      revalidateCollection(slug)
-      updateTag(entityTag(slug, doc.id))
+      revalidateTag(CACHE_TAGS[slug], 'default')
+      revalidateTag(entityTag(slug, doc.id), 'default')
     }
     return doc
   }

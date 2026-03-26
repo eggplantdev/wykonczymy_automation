@@ -1,7 +1,6 @@
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
-import { updateTag } from 'next/cache'
-import { revalidateCollections } from '@/lib/cache/revalidate'
-import { entityTag } from '@/lib/cache/tags'
+import { revalidateTag } from 'next/cache'
+import { CACHE_TAGS, entityTag } from '@/lib/cache/tags'
 import { perfStart } from '@/lib/perf'
 
 /** Resolve relationship value to a numeric ID (handles populated objects). */
@@ -29,19 +28,20 @@ export const recalcAfterChange: CollectionAfterChangeHook = async ({ doc, previo
   const prevInvestmentId = resolveId(previousDoc?.investment)
 
   // Revalidate entity-specific tags (for detail page caches)
-  if (registerId) updateTag(entityTag('cash-register', registerId))
+  if (registerId) revalidateTag(entityTag('cash-register', registerId), 'default')
   if (prevRegisterId && prevRegisterId !== registerId)
-    updateTag(entityTag('cash-register', prevRegisterId))
-  if (targetRegisterId) updateTag(entityTag('cash-register', targetRegisterId))
+    revalidateTag(entityTag('cash-register', prevRegisterId), 'default')
+  if (targetRegisterId) revalidateTag(entityTag('cash-register', targetRegisterId), 'default')
   if (prevTargetRegisterId && prevTargetRegisterId !== targetRegisterId)
-    updateTag(entityTag('cash-register', prevTargetRegisterId))
-  if (investmentId) updateTag(entityTag('investment', investmentId))
+    revalidateTag(entityTag('cash-register', prevTargetRegisterId), 'default')
+  if (investmentId) revalidateTag(entityTag('investment', investmentId), 'default')
   if (prevInvestmentId && prevInvestmentId !== investmentId)
-    updateTag(entityTag('investment', prevInvestmentId))
+    revalidateTag(entityTag('investment', prevInvestmentId), 'default')
 
   // Invalidate transfers collection tag — this covers fetchRegisterBalances,
   // fetchInvestmentFinancials, and fetchWorkerSaldos
-  revalidateCollections(['transfers'])
+  // Payload hooks run in Route Handler context — must use revalidateTag, not updateTag
+  revalidateTag(CACHE_TAGS.transfers, 'default')
 
   console.log(`[PERF] recalcAfterChange TOTAL ${elapsed()}ms`)
 
@@ -60,11 +60,12 @@ export const recalcAfterDelete: CollectionAfterDeleteHook = async ({ doc }) => {
   const investmentId = resolveId(doc.investment)
 
   // Revalidate entity-specific tags
-  if (registerId) updateTag(entityTag('cash-register', registerId))
-  if (targetRegisterId) updateTag(entityTag('cash-register', targetRegisterId))
-  if (investmentId) updateTag(entityTag('investment', investmentId))
+  if (registerId) revalidateTag(entityTag('cash-register', registerId), 'default')
+  if (targetRegisterId) revalidateTag(entityTag('cash-register', targetRegisterId), 'default')
+  if (investmentId) revalidateTag(entityTag('investment', investmentId), 'default')
 
-  revalidateCollections(['transfers'])
+  // Payload hooks run in Route Handler context — must use revalidateTag, not updateTag
+  revalidateTag(CACHE_TAGS.transfers, 'default')
 
   console.log(`[PERF] recalcAfterDelete TOTAL ${elapsed()}ms`)
 
