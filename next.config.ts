@@ -21,6 +21,7 @@ const nextConfig: NextConfig = {
   // },
   serverExternalPackages: ['payload', 'pino', 'pino-pretty', 'thread-stream'],
   images: {
+    qualities: [50, 80],
     remotePatterns: [
       {
         protocol: 'http',

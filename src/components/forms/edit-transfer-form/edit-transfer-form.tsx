@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { InvoiceThumbnail } from '@/components/invoice-thumbnail'
 import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
 import { FileInput } from '@/components/ui/file-input'
@@ -149,7 +150,14 @@ export function EditTransferForm({
             )}
           </form.AppField>
 
-          <div className="space-y-1">
+          <div className="space-y-2">
+            {row.invoiceUrl && !selectedFileName && (
+              <InvoiceThumbnail
+                url={row.invoiceUrl}
+                filename={row.invoiceFilename}
+                mimeType={row.invoiceMimeType}
+              />
+            )}
             <FileInput
               ref={fileRef}
               label={row.invoiceUrl ? 'Zamień fakturę' : 'Dodaj fakturę'}
@@ -157,9 +165,6 @@ export function EditTransferForm({
               placeholder={selectedFileName ?? 'Przeciągnij lub kliknij'}
               onChange={handleFileChange}
             />
-            {row.invoiceFilename && !selectedFileName && (
-              <p className="text-muted-foreground text-xs">Aktualna: {row.invoiceFilename}</p>
-            )}
           </div>
         </FieldGroup>
 

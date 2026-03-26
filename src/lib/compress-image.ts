@@ -16,6 +16,16 @@ export async function compressImage(originalFile: File, quality = QUALITY): Prom
         maxWidth: MAX_WIDTH,
         maxHeight: MAX_HEIGHT,
         success: (compressed) => {
+          if (process.env.NODE_ENV !== 'production') {
+            const beforeKB = (originalFile.size / 1024).toFixed(1)
+            const afterKB = (compressed.size / 1024).toFixed(1)
+            const saved = originalFile.size
+              ? ((1 - compressed.size / originalFile.size) * 100).toFixed(0)
+              : '0'
+            console.log(
+              `[compress] ${originalFile.name}: ${beforeKB} KB → ${afterKB} KB (${Number(saved) >= 0 ? `−${saved}` : `+${Math.abs(Number(saved))}`}%)`,
+            )
+          }
           const renamedFile = new File([compressed], originalFile.name, {
             type: compressed.type,
           })
