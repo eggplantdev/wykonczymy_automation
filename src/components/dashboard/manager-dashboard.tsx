@@ -22,6 +22,7 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
     allInvestments,
     managementUsers,
     otherCategories,
+    expenseCategories,
     isAdminOrOwner,
   } = await fetchManagerDashboardData()
   console.log(`[PERF] ManagerDashboard fetchManagerDashboardData ${step()}ms`)
@@ -51,6 +52,7 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
             investments: activeInvestments.map((i) => ({ id: i.id, name: i.name })),
             users: managementUsers,
             otherCategories,
+            expenseCategories,
             showPaymentMethodFilter: false,
           },
         }}

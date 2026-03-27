@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
+import { FilterGrid } from '@/components/ui/filter-grid'
 import { Description } from '@/components/ui/description'
 import { SaldoDisplay, saldoColor } from '@/components/ui/saldo-display'
 
@@ -57,7 +58,7 @@ export function ToggleStatButtons({
       {rows.map((row, rowIndex) => (
         <div key={rowIndex}>
           {rowLabels?.[rowIndex] && <Description>{rowLabels[rowIndex]}</Description>}
-          <div className="mt-2 flex flex-wrap items-center gap-3">
+          <FilterGrid className="mt-2">
             {row.map((entry) => {
               const isHidden = hidden.has(entry.label)
               return (
@@ -74,7 +75,7 @@ export function ToggleStatButtons({
                 </Button>
               )
             })}
-          </div>
+          </FilterGrid>
         </div>
       ))}
 

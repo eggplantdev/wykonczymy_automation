@@ -17,7 +17,7 @@ export function DateFilterButton({ label, value, onChange }: DateFilterButtonPro
     <Button
       variant={value ? 'activeFilter' : 'outline'}
       size="sm"
-      className="w-fit min-w-40 justify-start gap-1.5"
+      className="min-w-40 justify-start gap-1.5"
       onClick={() => inputRef.current?.showPicker()}
     >
       <Calendar className="size-4" />

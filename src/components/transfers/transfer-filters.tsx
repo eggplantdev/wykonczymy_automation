@@ -2,7 +2,8 @@
 
 import { useTransition } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Banknote, CreditCard, FolderOpen, Landmark, Tags, User } from 'lucide-react'
+import { Banknote, CreditCard, FolderOpen, Landmark, Receipt, Tags, User } from 'lucide-react'
+import { FilterGrid } from '@/components/ui/filter-grid'
 import { FilterMultiSelect } from '@/components/transfers/filter-multi-select'
 import { ClearButton } from '@/components/transfers/clear-button'
 import { DateFilters } from '@/components/transfers/date-filters'
@@ -22,6 +23,7 @@ type TransferFiltersPropsT = {
   investments?: ReferenceItemT[]
   users?: ReferenceItemT[]
   otherCategories?: ReferenceItemT[]
+  expenseCategories?: ReferenceItemT[]
   showTypeFilter?: boolean
   showPaymentMethodFilter?: boolean
   baseUrl: string
@@ -33,6 +35,7 @@ export function TransferFilters({
   investments,
   users,
   otherCategories,
+  expenseCategories,
   showTypeFilter = true,
   showPaymentMethodFilter = false,
   baseUrl,
@@ -67,6 +70,7 @@ export function TransferFilters({
     'createdBy',
     'paymentMethod',
     'otherCategory',
+    'expenseCategory',
   ] as const
 
   const currentTypes = getMultiParam('type')
@@ -75,6 +79,7 @@ export function TransferFilters({
   const currentCreatedBys = getMultiParam('createdBy')
   const currentPaymentMethods = getMultiParam('paymentMethod')
   const currentOtherCategories = getMultiParam('otherCategory')
+  const currentExpenseCategories = getMultiParam('expenseCategory')
 
   const hasEntityFilters = ENTITY_FILTER_KEYS.some((k) => getMultiParam(k).length > 0)
 
@@ -90,8 +95,9 @@ export function TransferFilters({
         (investments && investments.length > 0) ||
         (users && users.length > 0) ||
         showPaymentMethodFilter ||
-        (otherCategories && otherCategories.length > 0)) && (
-        <div className="flex flex-wrap gap-3">
+        (otherCategories && otherCategories.length > 0) ||
+        (expenseCategories && expenseCategories.length > 0)) && (
+        <FilterGrid>
           {showTypeFilter && (
             <FilterMultiSelect
               values={currentTypes}
@@ -162,10 +168,21 @@ export function TransferFilters({
             />
           )}
 
+          {expenseCategories && expenseCategories.length > 0 && (
+            <FilterMultiSelect
+              values={currentExpenseCategories}
+              onValuesChange={(v) => updateParam('expenseCategory', v.join(','))}
+              options={expenseCategories.map((c) => ({ value: String(c.id), label: c.name }))}
+              label="Typ wydatku inwestycyjnego"
+              icon={Receipt}
+              searchable
+            />
+          )}
+
           <ClearButton onClick={clearEntityFilters} disabled={!hasEntityFilters}>
             Wyczyść filtry
           </ClearButton>
-        </div>
+        </FilterGrid>
       )}
       <DateFilters updateParam={updateParam} updateMultipleParams={updateMultipleParams} />
     </div>

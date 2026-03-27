@@ -16,6 +16,7 @@ export function buildFilterConfig(
     investments: has('investments') ? toOptions(refData.investments) : undefined,
     users: has('users') ? toOptions(refData.workers) : undefined,
     otherCategories: toOptions(refData.otherCategories),
+    expenseCategories: toOptions(refData.expenseCategories),
     // Hidden for now - we only use cash for now
     showPaymentMethodFilter: false,
   }

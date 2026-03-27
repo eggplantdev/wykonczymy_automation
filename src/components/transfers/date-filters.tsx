@@ -2,6 +2,7 @@
 
 import { useSearchParams } from 'next/navigation'
 import { Calendar } from 'lucide-react'
+import { FilterGrid } from '@/components/ui/filter-grid'
 import { FilterSelect } from '@/components/transfers/filter-select'
 import { DateFilterButton } from '@/components/transfers/date-filter-button'
 import { ClearButton } from '@/components/transfers/clear-button'
@@ -42,7 +43,7 @@ export function DateFilters({ updateParam, updateMultipleParams }: DateFiltersPr
   const hasDateFilters = currentFrom || currentTo
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <FilterGrid>
       <FilterSelect
         value={pickerYear}
         onValueChange={handleYearChange}
@@ -68,6 +69,6 @@ export function DateFilters({ updateParam, updateMultipleParams }: DateFiltersPr
       >
         Wyczyść daty
       </ClearButton>
-    </div>
+    </FilterGrid>
   )
 }

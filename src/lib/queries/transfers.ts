@@ -117,6 +117,12 @@ export function buildTransferFilters(
     else where.id = NO_RESULTS
   }
 
+  // Expense category filter (investment expense type)
+  const expenseCategoryParam = getStringParam(searchParams.expenseCategory)
+  const expenseCategoryIds = parseNumericIds(expenseCategoryParam)
+  if (expenseCategoryIds.length > 0) where.expenseCategory = { in: expenseCategoryIds }
+  else if (expenseCategoryParam) where.id = NO_RESULTS
+
   // Other category filter
   const otherCategoryParam = getStringParam(searchParams.otherCategory)
   const otherCategoryIds = parseNumericIds(otherCategoryParam)
