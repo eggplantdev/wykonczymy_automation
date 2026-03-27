@@ -66,7 +66,11 @@ export function ToggleStatButtons({
                   variant="outline"
                   key={entry.label}
                   onClick={() => toggle(entry.label)}
-                  className={cn('border-2', entry.borderClassName, isHidden && 'opacity-40')}
+                  className={cn(
+                    'justify-start border-2',
+                    entry.borderClassName,
+                    isHidden && 'opacity-40',
+                  )}
                 >
                   <span className="text-muted-foreground">{entry.label}:</span>
                   <span className={cn('font-medium', colorValues && saldoColor(entry.amount))}>

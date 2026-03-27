@@ -43,7 +43,7 @@ export function DateFilters({ updateParam, updateMultipleParams }: DateFiltersPr
   const hasDateFilters = currentFrom || currentTo
 
   return (
-    <FilterGrid>
+    <FilterGrid className={`lg:grid-cols-5`}>
       <FilterSelect
         value={pickerYear}
         onValueChange={handleYearChange}
