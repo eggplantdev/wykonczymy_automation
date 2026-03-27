@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import type { SortingState } from '@tanstack/react-table'
 import { Printer, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { fetchFilteredTransfers } from '@/lib/actions/export'
@@ -8,6 +9,7 @@ import { buildPrintHtml } from '@/lib/export/print'
 import { printViaIframe } from '@/lib/export/print-iframe'
 import { formatPLN } from '@/lib/format-currency'
 import { BILANS_LABEL, calculateBalance } from '@/lib/export/header-fields'
+import { sortTransferRows } from '@/lib/export/sort-rows'
 import { useHeaderFieldsStore } from '@/stores/header-fields-store'
 import type { TransferTableConfigT } from '@/types/export'
 import type { HeaderFieldT } from '@/types/export'
@@ -15,9 +17,10 @@ import type { HeaderFieldT } from '@/types/export'
 type PrintButtonPropsT = {
   config: TransferTableConfigT
   visibleColumnIds: string[]
+  sorting: SortingState
 }
 
-export function PrintButton({ config, visibleColumnIds }: PrintButtonPropsT) {
+export function PrintButton({ config, visibleColumnIds, sorting }: PrintButtonPropsT) {
   const { query, headerFields = [] } = config
   const [isLoading, setIsLoading] = useState(false)
   const storeVisibility = useHeaderFieldsStore((s) => s.visibility)
@@ -39,8 +42,9 @@ export function PrintButton({ config, visibleColumnIds }: PrintButtonPropsT) {
         console.error('Print fetch failed:', result.error)
         return
       }
+      const sorted = sortTransferRows(result.data, sorting)
       const title = getPrintTitle(visibleHeaderFields)
-      const html = buildPrintHtml(result.data, visibleColumnIds, visibleHeaderFields, title)
+      const html = buildPrintHtml(sorted, visibleColumnIds, visibleHeaderFields, title)
       printViaIframe(html)
     } finally {
       setIsLoading(false)

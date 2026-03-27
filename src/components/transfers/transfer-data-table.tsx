@@ -44,10 +44,10 @@ export function TransferDataTable({
           if (row.type === 'CANCELLATION') return '[&_td]:text-muted-foreground'
           return ''
         }}
-        toolbar={(table, cv) => (
+        toolbar={(table, cv, sorting) => (
           <div className="ml-auto flex items-center gap-2">
             {headerFields && headerFields.length > 0 && (
-              <TransferExportToolbar config={config} columnVisibility={cv} />
+              <TransferExportToolbar config={config} columnVisibility={cv} sorting={sorting} />
             )}
             <ColumnToggle table={table} columnVisibility={cv} />
           </div>

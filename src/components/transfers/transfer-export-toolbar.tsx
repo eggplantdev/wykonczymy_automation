@@ -1,6 +1,6 @@
 'use client'
 
-import type { VisibilityState } from '@tanstack/react-table'
+import type { SortingState, VisibilityState } from '@tanstack/react-table'
 import { getTransferColumns } from '@/lib/tables/transfers'
 import { PrintButton } from '@/components/transfers/print-button'
 import { CsvButton } from '@/components/transfers/csv-button'
@@ -9,6 +9,7 @@ import type { TransferTableConfigT } from '@/types/export'
 type TransferExportToolbarPropsT = {
   config: TransferTableConfigT
   columnVisibility: VisibilityState
+  sorting: SortingState
 }
 
 function getVisibleColumnIds(
@@ -21,14 +22,18 @@ function getVisibleColumnIds(
     .map((col) => col.id as string)
 }
 
-export function TransferExportToolbar({ config, columnVisibility }: TransferExportToolbarPropsT) {
+export function TransferExportToolbar({
+  config,
+  columnVisibility,
+  sorting,
+}: TransferExportToolbarPropsT) {
   const { excludeColumns = [] } = config
   const visibleColumnIds = getVisibleColumnIds(excludeColumns, columnVisibility)
 
   return (
     <>
-      <PrintButton config={config} visibleColumnIds={visibleColumnIds} />
-      <CsvButton where={config.query.where} visibleColumnIds={visibleColumnIds} />
+      <PrintButton config={config} visibleColumnIds={visibleColumnIds} sorting={sorting} />
+      <CsvButton where={config.query.where} visibleColumnIds={visibleColumnIds} sorting={sorting} />
     </>
   )
 }
