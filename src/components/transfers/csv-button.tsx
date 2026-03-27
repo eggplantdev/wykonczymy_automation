@@ -27,7 +27,6 @@ export function CsvButton({ where, visibleColumnIds, sorting }: CsvButtonPropsT)
         console.error('Export failed:', result.error)
         return
       }
-      console.log('[CSV] sorting state:', JSON.stringify(sorting))
       const sorted = sortTransferRows(result.data, sorting)
       const csv = buildTransferCsv(sorted, visibleColumnIds)
       const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' })
