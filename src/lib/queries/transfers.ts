@@ -73,14 +73,24 @@ export function buildTransferFilters(
     where.createdBy = { equals: userContext.id }
   }
 
+  // Hide cancelled transfers by default (cancelled originals + CANCELLATION type)
+  const showCancelled = getStringParam(searchParams.showCancelled) === '1'
+
   // Type filter (supports comma-separated multi-select)
   const typeParam = getStringParam(searchParams.type)
   if (typeParam) {
-    const types = typeParam
+    let types = typeParam
       .split(',')
       .filter((t) => (TRANSFER_TYPES as readonly string[]).includes(t))
+    if (!showCancelled) types = types.filter((t) => t !== 'CANCELLATION')
     if (types.length > 0) where.type = { in: types }
     else where.id = NO_RESULTS // No valid types → return no results
+  } else if (!showCancelled) {
+    where.type = { not_in: ['CANCELLATION'] }
+  }
+
+  if (!showCancelled) {
+    where.cancelled = { not_equals: true }
   }
 
   // Cash register filter — matches source OR target register

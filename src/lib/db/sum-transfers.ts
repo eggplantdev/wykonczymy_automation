@@ -303,7 +303,9 @@ const FIELD_TO_COLUMN: Record<string, string> = {
  * Translates a flat Payload Where object to SQL AND clauses.
  * Only handles the operators used by buildTransferFilters():
  *   { field: { equals: value } }
+ *   { field: { not_equals: value } }
  *   { field: { in: values[] } }
+ *   { field: { not_in: values[] } }
  *   { field: { greater_than_equal: value } }
  *   { field: { less_than_equal: value } }
  *
@@ -344,9 +346,16 @@ function buildFieldCondition(where: Where): string | null {
     if ('equals' in cond) {
       parts.push(`${column} = ${escapeValue(cond.equals)}`)
     }
+    if ('not_equals' in cond) {
+      parts.push(`${column} != ${escapeValue(cond.not_equals)}`)
+    }
     if ('in' in cond && Array.isArray(cond.in)) {
       const vals = cond.in.map(escapeValue).join(', ')
       parts.push(`${column} IN (${vals})`)
+    }
+    if ('not_in' in cond && Array.isArray(cond.not_in)) {
+      const vals = cond.not_in.map(escapeValue).join(', ')
+      parts.push(`${column} NOT IN (${vals})`)
     }
     if ('greater_than_equal' in cond) {
       parts.push(`${column} >= ${escapeValue(cond.greater_than_equal)}`)

@@ -16,7 +16,12 @@ export async function fetchFilteredTransfers(where: Where): Promise<ActionResult
   if (!session.success) return session
 
   try {
-    const rows = await fetchAllTransferRows(where)
+    // Exports always exclude cancelled transfers and cancellation records —
+    // they are audit trail only and have no place in CSV, print, or invoice ZIP output.
+    const exportWhere: Where = {
+      and: [where, { cancelled: { not_equals: true } }, { type: { not_equals: 'CANCELLATION' } }],
+    }
+    const rows = await fetchAllTransferRows(exportWhere)
 
     console.log(`[PERF] fetchFilteredTransfers ${elapsed()}ms (${rows.length} rows)`)
     return { success: true, data: rows }
