@@ -84,11 +84,19 @@ describe('buildTransferFilters — search params', () => {
 
   it('ignores array params', () => {
     const where = buildTransferFilters({ type: ['A', 'B'] }, managerCtx)
-    expect(where.type).toBeUndefined()
+    expect(where.type).toEqual({ not_in: ['CANCELLATION'] })
   })
 
-  it('no params returns empty where (for manager)', () => {
+  it('no params excludes cancelled by default', () => {
     const where = buildTransferFilters({}, managerCtx)
+    expect(where).toEqual({
+      type: { not_in: ['CANCELLATION'] },
+      cancelled: { not_equals: true },
+    })
+  })
+
+  it('showCancelled=1 returns empty where', () => {
+    const where = buildTransferFilters({ showCancelled: '1' }, managerCtx)
     expect(where).toEqual({})
   })
 

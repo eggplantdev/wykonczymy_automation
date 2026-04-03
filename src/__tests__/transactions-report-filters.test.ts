@@ -30,9 +30,12 @@ describe('transactions report — filter combinations', () => {
     })
   })
 
-  it('no filters returns empty where', () => {
+  it('no filters excludes cancelled by default', () => {
     const where = buildTransferFilters({}, adminCtx)
-    expect(where).toEqual({})
+    expect(where).toEqual({
+      type: { not_in: ['CANCELLATION'] },
+      cancelled: { not_equals: true },
+    })
   })
 
   it('invalid paymentMethod returns no results', () => {
