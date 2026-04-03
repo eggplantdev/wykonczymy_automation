@@ -8,6 +8,7 @@ vi.mock('server-only', () => ({}))
 const mockCreate = vi.fn()
 const mockUpdate = vi.fn()
 const mockFindByID = vi.fn()
+const mockDelete = vi.fn()
 const mockBeginTransaction = vi.fn()
 const mockCommitTransaction = vi.fn()
 const mockRollbackTransaction = vi.fn()
@@ -16,6 +17,7 @@ const mockPayload = {
   create: mockCreate,
   update: mockUpdate,
   findByID: mockFindByID,
+  delete: mockDelete,
   db: {
     beginTransaction: mockBeginTransaction,
     commitTransaction: mockCommitTransaction,
@@ -134,6 +136,7 @@ beforeEach(() => {
   mockCreate.mockReset().mockResolvedValue({ id: 1 })
   mockUpdate.mockReset().mockResolvedValue({ id: 1 })
   mockFindByID.mockReset()
+  mockDelete.mockReset().mockResolvedValue(undefined)
   mockBeginTransaction.mockReset().mockResolvedValue(TX_ID)
   mockCommitTransaction.mockReset().mockResolvedValue(undefined)
   mockRollbackTransaction.mockReset().mockResolvedValue(undefined)
@@ -795,6 +798,10 @@ describe('updateTransferAction', () => {
 // ═════════════════════════════════════════════════════════════════════════
 
 describe('updateTransferInvoiceAction', () => {
+  beforeEach(() => {
+    mockFindByID.mockResolvedValue({ invoice: 42 })
+  })
+
   it('success → updates invoice reference with mediaId', async () => {
     const result = await updateTransferInvoiceAction(10, 88)
 
@@ -806,6 +813,24 @@ describe('updateTransferInvoiceAction', () => {
         data: { invoice: 88 },
       }),
     )
+  })
+
+  it('deletes old media when replacing invoice', async () => {
+    mockFindByID.mockResolvedValueOnce({ invoice: 55 })
+
+    await updateTransferInvoiceAction(10, 88)
+
+    expect(mockDelete).toHaveBeenCalledWith(
+      expect.objectContaining({ collection: 'media', id: 55 }),
+    )
+  })
+
+  it('skips old media deletion when no previous invoice', async () => {
+    mockFindByID.mockResolvedValueOnce({ invoice: null })
+
+    await updateTransferInvoiceAction(10, 88)
+
+    expect(mockDelete).not.toHaveBeenCalledWith(expect.objectContaining({ collection: 'media' }))
   })
 
   it('called with correct collection and mediaId', async () => {

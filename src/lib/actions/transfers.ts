@@ -233,12 +233,24 @@ export async function updateTransferInvoiceAction(transferId: number, invoiceMed
     async ({ payload }) => {
       const step = perfStart()
 
+      const transfer = await payload.findByID({
+        collection: 'transactions',
+        id: transferId,
+        depth: 0,
+      })
+      const oldMediaId = typeof transfer.invoice === 'number' ? transfer.invoice : null
+      console.log(`[PERF]   findByID(${transferId}) ${step()}ms`)
+
       await payload.update({
         collection: 'transactions',
         id: transferId,
         data: { invoice: invoiceMediaId },
       })
       console.log(`[PERF]   payload.update(${transferId}) ${step()}ms`)
+
+      if (oldMediaId) {
+        payload.delete({ collection: 'media', id: oldMediaId }).catch(console.error)
+      }
 
       return { success: true }
     },
