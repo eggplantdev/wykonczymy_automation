@@ -67,9 +67,6 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
   const { recoveredValues, recoveredFiles, submit } = useFormSubmit<FormValuesT>(FORM_ID)
 
   const { handleRemoveLineItem, handleFileChange, getFiles } = useInvoiceFiles(recoveredFiles)
-  const defaultExpenseCategory = referenceData.expenseCategories[0]
-    ? String(referenceData.expenseCategories[0].id)
-    : ''
 
   const [saldo, setSaldo] = useState<number | null>(null)
   const [isSaldoLoading, setIsSaldoLoading] = useState(false)
@@ -109,7 +106,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
             amount: '',
             invoiceNote: '',
             category: '',
-            expenseCategory: defaultExpenseCategory,
+            expenseCategory: '',
           },
         ],
       } as FormValuesT),
@@ -239,7 +236,6 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
           {!isDepositType(currentType) && (
             <LineItemsField
               form={form}
-              defaultExpenseCategory={defaultExpenseCategory}
               total={total}
               hasInvestment={!!currentInvestment}
               onRemoveItem={handleRemoveLineItem}
