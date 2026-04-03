@@ -151,6 +151,18 @@ export function buildTransferFilters(
   return where
 }
 
+/** Strip cancelled-related conditions from a Where object (for stats queries that handle it in SQL). */
+export function stripCancelledFilters(where: Where): Where {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { cancelled, type, ...rest } = where
+  const result: Where = { ...rest }
+  // Keep type filter only if it's a user-selected inclusion filter, not the default not_in exclusion
+  if (type && typeof type === 'object' && 'in' in type) {
+    result.type = type
+  }
+  return result
+}
+
 function getStringParam(value: string | string[] | undefined): string | undefined {
   return typeof value === 'string' ? value : undefined
 }

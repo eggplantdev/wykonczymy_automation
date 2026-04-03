@@ -8,7 +8,7 @@ import {
   fetchCategoryBreakdown,
 } from '@/lib/queries/reference-data'
 import { deriveFinancials } from '@/lib/db/sum-transfers'
-import { buildTransferFilters } from '@/lib/queries/transfers'
+import { buildTransferFilters, stripCancelledFilters } from '@/lib/queries/transfers'
 import { buildFinancialFields } from '@/lib/map-category-costs'
 import { perfStart } from '@/lib/perf'
 import { buildFilterConfig } from '@/lib/build-filter-config'
@@ -30,10 +30,13 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
 
   const urlFilters = buildTransferFilters(sp, { id: user.id, isManager: true })
 
+  // Stats ignore cancelled toggle — SQL already excludes cancelled via hardcoded WHERE clause
+  const statsWhere = stripCancelledFilters(urlFilters)
+
   const [refData, typeDistribution, categoryBreakdown] = await Promise.all([
     fetchReferenceData(),
-    fetchFilteredByType(urlFilters),
-    fetchCategoryBreakdown(urlFilters),
+    fetchFilteredByType(statsWhere),
+    fetchCategoryBreakdown(statsWhere),
   ])
   console.log(`[PERF] raporty data fetch ${step()}ms`)
 
