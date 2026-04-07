@@ -13,7 +13,7 @@ import {
   type UpdateTransferFormT,
 } from '@/lib/schemas/transfer'
 import type { SessionUserT } from '@/types/auth'
-import { needsSourceRegister } from '../constants/transfers'
+import { isLaborCost, needsSourceRegister } from '../constants/transfers'
 import {
   // checkIfSufficientBalance,
   validateAction,
@@ -209,16 +209,35 @@ export async function updateTransferAction(
       console.log(`[PERF]   findByID(${transferId}) ${step()}ms`)
 
       if ('error' in result) return { success: false, error: result.error }
+      const { original } = result
+
+      // Only LABOR_COST transfers can have their amount edited
+      const { amount, ...fields } = parsed.data
+      const newAmount = isLaborCost(original.type) ? amount : undefined
+      const amountChanged = newAmount !== undefined && newAmount !== original.amount
 
       await payload.update({
         collection: 'transactions',
         id: transferId,
         data: {
-          ...parsed.data,
+          ...fields,
+          ...(newAmount !== undefined && { amount: newAmount }),
           ...(invoiceMediaId !== undefined && { invoice: invoiceMediaId }),
           updatedBy: user.id,
         },
       })
+
+      if (amountChanged) {
+        await payload.create({
+          collection: 'amount-edits',
+          data: {
+            transaction: transferId,
+            previousAmount: original.amount,
+            newAmount,
+            editedBy: user.id,
+          },
+        })
+      }
       console.log(`[PERF]   payload.update(${transferId}) ${step()}ms`)
 
       return { success: true }

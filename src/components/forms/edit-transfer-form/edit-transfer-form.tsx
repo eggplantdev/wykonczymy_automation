@@ -10,6 +10,7 @@ import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import {
   showsInvestment,
   needsExpenseCategory,
+  isLaborCost,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
 import { editExpenseFormSchema } from '@/components/forms/expense-form/expense-schema'
@@ -21,6 +22,7 @@ import type { ReferenceDataBaseT } from '@/types/reference-data'
 import type { AppFieldComponentsT } from '@/components/forms/types/form-types'
 import { updateTransferAction } from '@/lib/actions/transfers'
 import {
+  AmountField,
   DateField,
   DescriptionField,
   InvestmentField,
@@ -55,6 +57,7 @@ export function EditTransferForm({
       recoveredValues ??
       ({
         description: row.description,
+        amount: isLaborCost(row.type) ? String(row.amount) : undefined,
         date: row.date.slice(0, 10),
         paymentMethod: row.paymentMethod,
         investment: row.investmentId ? String(row.investmentId) : '',
@@ -68,6 +71,7 @@ export function EditTransferForm({
     onSubmit: async ({ value }) => {
       const data: UpdateTransferFormT = {
         description: value.description,
+        amount: value.amount ? Number(value.amount) : undefined,
         date: value.date,
         paymentMethod: value.paymentMethod as PaymentMethodT,
         investment: value.investment ? Number(value.investment) : undefined,
@@ -119,6 +123,8 @@ export function EditTransferForm({
       >
         <FieldGroup>
           <DescriptionField form={form} />
+
+          {isLaborCost(row.type) && <AmountField form={form} />}
 
           <DateField form={form} />
 

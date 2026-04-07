@@ -133,12 +133,17 @@ export type CreateBulkExpenseFormT = z.infer<typeof createBulkExpenseSchema>
 // Edit expense schema (client-side, string values)
 // ---------------------------------------------------------------------------
 
-export const editExpenseFormSchema = z.object({
-  description: z.string(),
-  date: z.string().min(1, 'Data jest wymagana'),
-  paymentMethod: z.string(),
-  investment: z.string(),
-  expenseCategory: z.string(),
-  otherCategory: z.string(),
-  invoiceNote: z.string(),
-})
+export const editExpenseFormSchema = z
+  .object({
+    description: z.string(),
+    amount: z.string().optional(),
+    date: z.string().min(1, 'Data jest wymagana'),
+    paymentMethod: z.string(),
+    investment: z.string(),
+    expenseCategory: z.string(),
+    otherCategory: z.string(),
+    invoiceNote: z.string(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.amount !== undefined) refineAmount(data as { amount: string; type?: string }, ctx)
+  })

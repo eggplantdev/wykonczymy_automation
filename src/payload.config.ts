@@ -11,6 +11,7 @@ import { buildConfig } from 'payload'
 import sharp from 'sharp'
 import { fileURLToPath } from 'url'
 
+import { AmountEdits } from '@/collections/amount-edits'
 import { CashRegisters } from '@/collections/cash-registers'
 import { Investments } from '@/collections/investments'
 import { Media } from '@/collections/media'
@@ -61,6 +62,7 @@ export default buildConfig({
     Transfers,
     OtherCategories,
     ExpenseCategories,
+    AmountEdits,
     Media,
   ],
   plugins: [

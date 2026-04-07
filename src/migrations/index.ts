@@ -29,6 +29,7 @@ import * as migration_20260310_workers_as_registers from './20260310_workers_as_
 import * as migration_20260312_add_updated_by_to_transactions from './20260312_add_updated_by_to_transactions'
 import * as migration_20260325_add_review_to_investments from './20260325_add_review_to_investments'
 import * as migration_20260325_add_correction_enum from './20260325_add_correction_enum'
+import * as migration_20260407_add_amount_edit_audit from './20260407_add_amount_edit_audit'
 
 export const migrations = [
   {
@@ -185,5 +186,10 @@ export const migrations = [
     up: migration_20260325_add_correction_enum.up,
     down: migration_20260325_add_correction_enum.down,
     name: '20260325_add_correction_enum',
+  },
+  {
+    up: migration_20260407_add_amount_edit_audit.up,
+    down: migration_20260407_add_amount_edit_audit.down,
+    name: '20260407_add_amount_edit_audit',
   },
 ]

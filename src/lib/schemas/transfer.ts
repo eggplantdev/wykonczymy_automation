@@ -116,6 +116,7 @@ export type CreateTransferFormT = z.infer<typeof createTransferSchema>
 
 export const updateTransferSchema = z.object({
   description: z.string().optional().default(''),
+  amount: z.number().positive('Kwota musi być większa niż 0').optional(),
   date: z.string().min(1, 'Data jest wymagana'),
   paymentMethod: z.enum(PAYMENT_METHODS),
   investment: z.number().optional(),

@@ -9,7 +9,6 @@ import { SaldoDisplay } from '@/components/ui/saldo-display'
 import { calculateMargin } from '@/lib/calculate-margin'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { useCurrentUser } from '@/hooks/use-current-user'
-import { Description } from '../ui/description'
 import { Button } from '../ui/button'
 
 const INCOME_LABEL = 'Wpłaty'
@@ -72,12 +71,12 @@ export function FinancialStats({
       />
 
       {isAdminOrOwnerRole(userRole) && (
-        <Description className="mb-4 space-y-1">
+        <div className="text-muted-foreground mb-4 space-y-1 text-sm">
           <Button variant="outline" className="border-chart-red">
             Wypłaty: {totalPayouts}
           </Button>
           <SaldoDisplay saldo={margin} label="Marża" />
-        </Description>
+        </div>
       )}
     </>
   )

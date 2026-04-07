@@ -115,4 +115,6 @@ export const needsExpenseCategory = (type: string) =>
 export const showsExpenseCategory = (type: string, hasInvestment?: boolean) =>
   needsExpenseCategory(type) || (isTransferType(type) && type === 'CORRECTION' && !!hasInvestment)
 
+export const isLaborCost = (type: string) => isTransferType(type) && type === 'LABOR_COST'
+
 export const isCancellationType = (type: string) => isTransferType(type) && type === 'CANCELLATION'
