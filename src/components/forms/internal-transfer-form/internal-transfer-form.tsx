@@ -103,14 +103,12 @@ export function InternalTransferForm({
         }}
       >
         <FieldGroup>
-          {/* Source cash register */}
           <CashRegisterField
             form={form}
             label="Kasa źródłowa"
             cashRegisters={referenceData.cashRegisters}
           />
 
-          {/* Target cash register */}
           <CashRegisterField
             form={form}
             name="targetRegister"
@@ -119,7 +117,6 @@ export function InternalTransferForm({
             cashRegisters={referenceData.cashRegisters}
           />
 
-          {/* Amount + Date */}
           <div className="flex items-start gap-4">
             <AmountField form={form} fieldClassName="min-w-0 flex-1" />
             <DateField form={form} fieldClassName="w-40" />

@@ -35,7 +35,7 @@ pnpm test               # Vitest (single run)
 pnpm test:watch         # Vitest watch mode
 pnpm test -- src/__tests__/some-file.test.ts  # Run single test file
 pnpm generate:types     # Regenerate Payload types → src/payload-types.ts
-pnpm migrate:create     # Create new Payload migration
+pnpm migrate:create     # Create new Payload migration — ALWAYS use this first, then tweak FK constraints if needed. Never write migrations from scratch (easy to miss Payload internal tables like payload_locked_documents_rels).
 ```
 
 Local DB: `docker compose up -d` (Postgres 17 on port 5433).
