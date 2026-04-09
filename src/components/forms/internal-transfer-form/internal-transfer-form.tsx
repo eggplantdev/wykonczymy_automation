@@ -19,6 +19,8 @@ import {
 } from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
+import { FormClearButton } from '../form-components/form-clear-button'
+import { useInternalTransferFormStore } from '@/stores/form-stores'
 
 type InternalTransferFormPropsT = {
   referenceData: ReferenceDataT
@@ -42,11 +44,15 @@ export function InternalTransferForm({
   onSubmitSuccess,
   keepOpen,
 }: InternalTransferFormPropsT) {
-  const { isRecovering, recoveredValues, submit } = useFormSubmit<FormValuesT>(FORM_ID)
+  const { submit } = useFormSubmit(FORM_ID)
+
+  const storedValues = useInternalTransferFormStore((s) => s.formData)
+  const updateFormData = useInternalTransferFormStore((s) => s.updateFormData)
+  const resetFormData = useInternalTransferFormStore((s) => s.resetFormData)
 
   const form = useAppForm({
     defaultValues:
-      recoveredValues ??
+      storedValues ??
       ({
         description: '',
         amount: '',
@@ -57,6 +63,10 @@ export function InternalTransferForm({
       } as FormValuesT),
     validators: {
       onSubmit: internalTransferFormSchema,
+    },
+    listeners: {
+      onChange: ({ formApi }) => updateFormData(formApi.state.values as FormValuesT),
+      onChangeDebounceMs: 500,
     },
     onSubmit: async ({ value }) => {
       const data: CreateTransferFormT = {
@@ -70,11 +80,11 @@ export function InternalTransferForm({
       }
 
       await submit(!!keepOpen, {
+        form,
         action: () => createTransferAction(data),
         successMessage: 'Transfer między kasami dodany',
-        formValues: value as unknown as Record<string, unknown>,
         onSubmitSuccess,
-        onKeepOpenSuccess: () => form.reset(),
+        onReset: resetFormData,
       })
 
       return false
@@ -85,6 +95,7 @@ export function InternalTransferForm({
 
   return (
     <form.AppForm>
+      <FormClearButton onReset={resetFormData} />
       <form
         onSubmit={(e) => {
           e.preventDefault()

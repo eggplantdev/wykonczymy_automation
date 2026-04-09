@@ -4,7 +4,6 @@ import type { ActionResultT } from '@/lib/actions/utils'
 
 type PendingSubmissionT = {
   formId: string
-  formValues: Record<string, unknown>
   invoiceFiles: Map<number, File>
   status: 'pending' | 'failed'
   error: string | null
@@ -20,10 +19,10 @@ type OptimisticFormStoreT = {
   submission: PendingSubmissionT | null
   submitOptimistically: (
     formId: string,
-    formValues: Record<string, unknown>,
     invoiceFiles: Map<number, File>,
     action: () => Promise<ActionResultT>,
     successMessage: string,
+    onSuccess: () => void,
   ) => void
   clearSubmission: () => void
 }
@@ -33,13 +32,13 @@ export const useOptimisticFormStore = create<OptimisticFormStoreT>()((set) => ({
   submission: null,
 
   openDialog: (formId) => set({ openFormId: formId }),
-  closeDialog: () => set({ openFormId: null }),
+  closeDialog: () => set({ openFormId: null, submission: null }),
 
-  submitOptimistically: (formId, formValues, invoiceFiles, action, successMessage) => {
-    // Close dialog + save form snapshot
+  submitOptimistically: (formId, invoiceFiles, action, successMessage, onSuccess) => {
+    // Close dialog + save file snapshot
     set({
       openFormId: null,
-      submission: { formId, formValues, invoiceFiles, status: 'pending', error: null },
+      submission: { formId, invoiceFiles, status: 'pending', error: null },
     })
 
     // Fire-and-forget — runs after dialog unmounts
@@ -47,6 +46,7 @@ export const useOptimisticFormStore = create<OptimisticFormStoreT>()((set) => ({
       .then((result) => {
         if (result.success) {
           set({ submission: null })
+          onSuccess()
           toastMessage(successMessage, 'success', 1000)
         } else {
           // Reopen dialog with failed state

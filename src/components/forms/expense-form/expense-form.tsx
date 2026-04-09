@@ -34,8 +34,10 @@ import {
 } from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
+import { FormClearButton } from '../form-components/form-clear-button'
 import { SaldoSummary } from '../form-components/saldo-summary'
 import { SaldoDisplay } from '@/components/ui/saldo-display'
+import { useExpenseFormStore } from '@/stores/form-stores'
 
 type TransferFormPropsT = {
   referenceData: ReferenceDataT
@@ -64,7 +66,16 @@ type FormValuesT = {
 const FORM_ID = 'expense'
 
 export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: TransferFormPropsT) {
-  const { recoveredValues, recoveredFiles, submit } = useFormSubmit<FormValuesT>(FORM_ID)
+  const { recoveredFiles, submit } = useFormSubmit(FORM_ID)
+
+  const storedValues = useExpenseFormStore((s) => s.formData)
+  const updateFormData = useExpenseFormStore((s) => s.updateFormData)
+  const resetFormData = useExpenseFormStore((s) => s.resetFormData)
+
+  function handleReset() {
+    resetFormData()
+    setSaldo(null)
+  }
 
   const { handleRemoveLineItem, handleFileChange, getFiles } = useInvoiceFiles(recoveredFiles)
 
@@ -91,12 +102,11 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
 
   const form = useAppForm({
     defaultValues:
-      recoveredValues ??
+      storedValues ??
       ({
         date: today(),
         type: 'INVESTMENT_EXPENSE',
         paymentMethod: 'CASH',
-        // sourceRegister: getDefaultCashRegister(referenceData),
         sourceRegister: '',
         targetRegister: '',
         investment: '',
@@ -112,6 +122,10 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
       } as FormValuesT),
     validators: {
       onSubmit: bulkExpenseFormSchema,
+    },
+    listeners: {
+      onChange: ({ formApi }) => updateFormData(formApi.state.values as FormValuesT),
+      onChangeDebounceMs: 500,
     },
     onSubmit: async ({ value }) => {
       const type = value.type as TransferTypeT
@@ -137,6 +151,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
       const files = getFiles()
 
       await submit(!!keepOpen, {
+        form,
         action: async () => {
           let invoiceMediaIds: (number | undefined)[] | undefined
           if (files.size > 0) {
@@ -150,10 +165,9 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
           return createBulkTransferAction(data, invoiceMediaIds)
         },
         successMessage: 'Transakcje dodane',
-        formValues: value as unknown as Record<string, unknown>,
         files,
         onSubmitSuccess,
-        onKeepOpenSuccess: () => form.reset(),
+        onReset: handleReset,
       })
 
       return false
@@ -181,6 +195,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
 
   return (
     <form.AppForm>
+      <FormClearButton onReset={handleReset} />
       <form
         onSubmit={(e) => {
           e.preventDefault()

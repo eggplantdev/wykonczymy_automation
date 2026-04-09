@@ -6,7 +6,9 @@ import { useAppForm } from '@/components/forms/hooks/form-hooks'
 import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import useCheckFormErrors from '@/components/forms/hooks/use-check-form-errors'
 import FormFooter from '@/components/forms/form-components/form-footer'
+import { FormClearButton } from '@/components/forms/form-components/form-clear-button'
 import { investmentFormSchema, type InvestmentFormValuesT } from './investment-schema'
+import { useInvestmentFormStore } from '@/stores/form-stores'
 import type { InvestmentFormDataT } from '@/lib/schemas/investment'
 import type { AppFieldComponentsT } from '@/components/forms/types/form-types'
 import type { ActionResultT } from '@/lib/actions/utils'
@@ -32,12 +34,20 @@ export function InvestmentForm({
   onSubmitSuccess,
   keepOpen,
 }: InvestmentFormPropsT) {
-  const { recoveredValues, submit } = useFormSubmit<InvestmentFormValuesT>(formId)
+  const { submit } = useFormSubmit(formId)
+
+  const storedValues = useInvestmentFormStore((s) => s.formData)
+  const updateFormData = useInvestmentFormStore((s) => s.updateFormData)
+  const resetFormData = useInvestmentFormStore((s) => s.resetFormData)
 
   const form = useAppForm({
-    defaultValues: recoveredValues ?? defaultValues,
+    defaultValues: storedValues ?? defaultValues,
     validators: {
       onSubmit: investmentFormSchema,
+    },
+    listeners: {
+      onChange: ({ formApi }) => updateFormData(formApi.state.values as InvestmentFormValuesT),
+      onChangeDebounceMs: 500,
     },
     onSubmit: async ({ value }) => {
       const data: InvestmentFormDataT = {
@@ -52,11 +62,11 @@ export function InvestmentForm({
       }
 
       await submit(!!keepOpen, {
+        form,
         action: () => action(data),
         successMessage,
-        formValues: value as Record<string, unknown>,
         onSubmitSuccess,
-        onKeepOpenSuccess: () => form.reset(),
+        onReset: resetFormData,
       })
 
       return false
@@ -67,6 +77,7 @@ export function InvestmentForm({
 
   return (
     <form.AppForm>
+      <FormClearButton onReset={resetFormData} />
       <form
         onSubmit={(e) => {
           e.preventDefault()

@@ -30,6 +30,7 @@ import {
 } from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
+import { FormClearButton } from '../form-components/form-clear-button'
 
 type EditTransferFormPropsT = {
   row: TransferRowT
@@ -48,23 +49,21 @@ export function EditTransferForm({
   onSubmitSuccess,
   keepOpen,
 }: EditTransferFormPropsT) {
-  const { recoveredValues, submit } = useFormSubmit<FormValuesT>(FORM_ID)
+  const { submit } = useFormSubmit(FORM_ID)
   const fileRef = useRef<HTMLInputElement>(null)
   const [selectedFileName, setSelectedFileName] = useState<string | undefined>()
 
   const form = useAppForm({
-    defaultValues:
-      recoveredValues ??
-      ({
-        description: row.description,
-        amount: isLaborCost(row.type) ? String(row.amount) : undefined,
-        date: row.date.slice(0, 10),
-        paymentMethod: row.paymentMethod,
-        investment: row.investmentId ? String(row.investmentId) : '',
-        expenseCategory: row.expenseCategoryId ? String(row.expenseCategoryId) : '',
-        otherCategory: row.otherCategoryId ? String(row.otherCategoryId ?? '') : '',
-        invoiceNote: row.invoiceNote ?? '',
-      } as FormValuesT),
+    defaultValues: {
+      description: row.description,
+      amount: isLaborCost(row.type) ? String(row.amount) : undefined,
+      date: row.date.slice(0, 10),
+      paymentMethod: row.paymentMethod,
+      investment: row.investmentId ? String(row.investmentId) : '',
+      expenseCategory: row.expenseCategoryId ? String(row.expenseCategoryId) : '',
+      otherCategory: row.otherCategoryId ? String(row.otherCategoryId ?? '') : '',
+      invoiceNote: row.invoiceNote ?? '',
+    } as FormValuesT,
     validators: {
       onSubmit: editExpenseFormSchema,
     },
@@ -84,6 +83,7 @@ export function EditTransferForm({
       const file = fileRef.current?.files?.[0]
 
       await submit(!!keepOpen, {
+        form,
         action: async () => {
           let invoiceMediaId: number | undefined
           if (file) {
@@ -97,9 +97,7 @@ export function EditTransferForm({
           return updateTransferAction(row.id, data, invoiceMediaId)
         },
         successMessage: 'Transakcja zaktualizowana',
-        formValues: value as Record<string, unknown>,
         onSubmitSuccess,
-        onKeepOpenSuccess: () => form.reset(),
       })
 
       return false
@@ -115,6 +113,7 @@ export function EditTransferForm({
 
   return (
     <form.AppForm>
+      <FormClearButton />
       <form
         onSubmit={(e) => {
           e.preventDefault()

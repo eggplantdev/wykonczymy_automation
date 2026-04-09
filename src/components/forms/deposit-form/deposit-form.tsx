@@ -25,7 +25,9 @@ import {
 } from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
+import { FormClearButton } from '../form-components/form-clear-button'
 import { createTransferAction } from '@/lib/actions/transfers'
+import { useDepositFormStore } from '@/stores/form-stores'
 
 type DepositFormPropsT = {
   referenceData: ReferenceDataT
@@ -46,11 +48,15 @@ type FormValuesT = {
 const FORM_ID = 'deposit'
 
 export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: DepositFormPropsT) {
-  const { isRecovering, recoveredValues, submit } = useFormSubmit<FormValuesT>(FORM_ID)
+  const { submit } = useFormSubmit(FORM_ID)
+
+  const storedValues = useDepositFormStore((s) => s.formData)
+  const updateFormData = useDepositFormStore((s) => s.updateFormData)
+  const resetFormData = useDepositFormStore((s) => s.resetFormData)
 
   const form = useAppForm({
     defaultValues:
-      recoveredValues ??
+      storedValues ??
       ({
         description: '',
         amount: '',
@@ -62,6 +68,10 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
       } as FormValuesT),
     validators: {
       onSubmit: expenseFormSchema,
+    },
+    listeners: {
+      onChange: ({ formApi }) => updateFormData(formApi.state.values as FormValuesT),
+      onChangeDebounceMs: 500,
     },
     onSubmit: async ({ value }) => {
       const data: CreateTransferFormT = {
@@ -75,11 +85,11 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
       }
 
       await submit(!!keepOpen, {
+        form,
         action: () => createTransferAction(data),
         successMessage: 'Wpłata dodana',
-        formValues: value as unknown as Record<string, unknown>,
         onSubmitSuccess,
-        onKeepOpenSuccess: () => form.reset(),
+        onReset: resetFormData,
       })
 
       return false
@@ -92,6 +102,7 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
 
   return (
     <form.AppForm>
+      <FormClearButton onReset={resetFormData} />
       <form
         onSubmit={(e) => {
           e.preventDefault()
