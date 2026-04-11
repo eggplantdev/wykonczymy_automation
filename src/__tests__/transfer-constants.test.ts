@@ -35,7 +35,6 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
       'LABOR_COST',
       'COMPANY_FUNDING',
       'OTHER_DEPOSIT',
-      'PAYOUT',
       'CORRECTION',
     ],
   },
