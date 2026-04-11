@@ -2,10 +2,10 @@
 
 import { Button } from '@/components/ui/button'
 import { logoutAction } from '@/lib/actions/auth'
-import { isAdminOrOwnerRole } from '@/lib/auth/roles'
+import { isAdminOrOwnerRole, isManagementRole } from '@/lib/auth/roles'
 import { SECTION_LINKS } from '@/lib/constants/sections'
 import { useCurrentUser } from '@/hooks/use-current-user'
-import { FileBarChart, LogOut, Shield } from 'lucide-react'
+import { FileBarChart, LogOut, Shield, Users } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCallback, useTransition } from 'react'
@@ -30,6 +30,7 @@ export function Sidebar() {
     startTransition(() => logoutAction())
   }
 
+  const showUsers = isManagementRole(user.role)
   const showReports = isAdminOrOwnerRole(user.role)
 
   return (
@@ -48,6 +49,14 @@ export function Sidebar() {
             </Link>
           </Button>
         ))}
+        {showUsers && (
+          <Button variant="ghost" size="sm" className="justify-start" asChild>
+            <Link href="/pracownicy">
+              <Users className="size-4" />
+              Pracownicy
+            </Link>
+          </Button>
+        )}
         {showReports && (
           <Button variant="ghost" size="sm" className="justify-start" asChild>
             <Link href="/raporty">

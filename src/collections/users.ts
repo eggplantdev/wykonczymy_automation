@@ -6,45 +6,9 @@ import {
   isAdminOrOwnerOrSelf,
 } from '@/access'
 import { forgotPasswordEmailHTML } from '@/lib/email/forgot-password-template'
-import type { CollectionAfterChangeHook, CollectionConfig } from 'payload'
+import type { CollectionConfig } from 'payload'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 import { ROLES, ROLE_LABELS } from '@/lib/auth/roles'
-
-const autoCreateWorkerRegister: CollectionAfterChangeHook = async ({
-  doc,
-  previousDoc,
-  req,
-  operation,
-}) => {
-  const isNewEmployee =
-    (operation === 'create' && doc.role === 'EMPLOYEE') ||
-    (operation === 'update' && doc.role === 'EMPLOYEE' && previousDoc?.role !== 'EMPLOYEE')
-
-  if (!isNewEmployee) return doc
-
-  const existing = await req.payload.find({
-    collection: 'cash-registers',
-    where: {
-      owner: { equals: doc.id },
-      type: { equals: 'WORKER' },
-    },
-    limit: 1,
-  })
-
-  if (existing.docs.length > 0) return doc
-
-  await req.payload.create({
-    collection: 'cash-registers',
-    data: {
-      name: `Kasa - ${doc.name}`,
-      owner: doc.id,
-      type: 'WORKER',
-      active: true,
-    },
-  })
-
-  return doc
-}
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -61,7 +25,7 @@ export const Users: CollectionConfig = {
     },
   },
   hooks: {
-    afterChange: [autoCreateWorkerRegister, makeRevalidateAfterChange('users')],
+    afterChange: [makeRevalidateAfterChange('users')],
     afterDelete: [makeRevalidateAfterDelete('users')],
   },
   labels: {
@@ -121,10 +85,6 @@ export const Users: CollectionConfig = {
       type: 'relationship',
       relationTo: 'cash-registers',
       label: { en: 'Default Cash Register', pl: 'Domyślna kasa' },
-      admin: {
-        description:
-          'Jeśli tworzysz pracownika i nie wybierzesz domyślnej kasy, zostanie ona utworzona automatycznie.',
-      },
     },
   ],
 }
