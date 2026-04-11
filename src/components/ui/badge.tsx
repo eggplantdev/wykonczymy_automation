@@ -1,4 +1,4 @@
-import type { RoleT } from '@/lib/auth/roles'
+/*  */ import type { RoleT } from '@/lib/auth/roles'
 import { cn } from '@/lib/cn'
 
 const ROLE_COLORS: Record<RoleT, string> = {

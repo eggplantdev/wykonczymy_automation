@@ -56,7 +56,6 @@ type SearchParamsT = Record<string, string | string[] | undefined>
 
 type UserContextT = {
   id: number
-  isManager: boolean
   onlyOwnTransfers?: boolean
 }
 

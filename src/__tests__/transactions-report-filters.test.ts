@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 
-const adminCtx = { id: 1, isManager: true } as const
+const adminCtx = { id: 1 } as const
 
 describe('transactions report — filter combinations', () => {
   it('all filters combined produce correct Where', () => {

@@ -37,7 +37,7 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
         id={SECTION_IDS.transactions}
         config={{
           query: {
-            where: buildTransferFilters(searchParams, { id: 0, isManager: true }),
+            where: buildTransferFilters(searchParams, { id: 0 }),
             page,
             limit,
           },

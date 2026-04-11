@@ -1,6 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { MANAGEMENT_ROLES, ROLE_LABELS, type RoleT } from '@/lib/auth/roles'
+import { MANAGEMENT_ROLES, ROLE_LABELS } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/pagination'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { buildTransferFilters } from '@/lib/queries/transfers'
@@ -8,7 +8,6 @@ import { buildFilterConfig } from '@/lib/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
-import { SaldoDisplay } from '@/components/ui/saldo-display'
 import type { DynamicPagePropsT } from '@/types/page'
 
 export default async function UserDetailPage({ params, searchParams }: DynamicPagePropsT) {
@@ -26,7 +25,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
   const worker = refData.workers.find((w) => w.id === userId)
   if (!worker) notFound()
 
-  const role = (worker.type ?? 'EMPLOYEE') as RoleT
+  const role = worker.type
   const registerName = worker.defaultCashRegisterId
     ? refData.cashRegisters.find((cr) => cr.id === worker.defaultCashRegisterId)?.name
     : undefined
@@ -38,13 +37,12 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
     ...(registerName ? [{ label: 'Domyślna kasa', value: registerName }] : []),
   ]
 
-  const urlFilters = buildTransferFilters(sp, { id: currentUser.id, isManager: true })
+  const urlFilters = buildTransferFilters(sp, { id: currentUser.id })
   const transferWhere = { ...urlFilters, worker: { equals: userId } }
 
   return (
     <PageWrapper title={worker.name} backHref="/pracownicy" backLabel="Pracownicy">
       <InfoList items={infoFields} />
-      <SaldoDisplay saldo={0} label="Saldo" />
       <TransfersSection
         config={{
           query: { where: transferWhere, page, limit },

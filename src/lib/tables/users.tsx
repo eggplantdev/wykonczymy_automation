@@ -54,7 +54,7 @@ export function getUserColumns({ onToggle }: UserColumnOptionsT) {
     col.accessor('defaultCashRegisterName', {
       id: 'defaultCashRegister',
       header: 'Domyślna kasa',
-      cell: (info) => info.getValue() || '—',
+      cell: (info) => info.getValue() ?? '—',
     }),
   ]
 }

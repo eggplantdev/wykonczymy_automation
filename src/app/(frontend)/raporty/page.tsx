@@ -28,7 +28,7 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
   const sp = await searchParams
   const { page, limit } = parsePagination(sp)
 
-  const urlFilters = buildTransferFilters(sp, { id: user.id, isManager: true })
+  const urlFilters = buildTransferFilters(sp, { id: user.id })
 
   // Stats ignore cancelled toggle — SQL already excludes cancelled via hardcoded WHERE clause
   const statsWhere = stripCancelledFilters(urlFilters)

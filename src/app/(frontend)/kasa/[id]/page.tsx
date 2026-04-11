@@ -31,7 +31,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
   // register via its own OR clause. Passing it through would collide (both
   // produce `where.or`).
   const { sourceRegister: _, ...filteredSp } = sp
-  const urlFilters = buildTransferFilters(filteredSp, { id: user.id, isManager })
+  const urlFilters = buildTransferFilters(filteredSp, { id: user.id })
   const transferWhere: Where = {
     ...urlFilters,
     or: [{ sourceRegister: { equals: registerId } }, { targetRegister: { equals: registerId } }],

@@ -23,7 +23,8 @@ export type InvestmentRefT = ReferenceItemT & {
   review: string
 }
 
-export type WorkerRefT = ReferenceItemT & {
+export type WorkerRefT = Omit<ReferenceItemT, 'type'> & {
+  type: RoleT
   email: string
 }
 

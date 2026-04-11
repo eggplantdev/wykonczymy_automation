@@ -3,6 +3,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { CACHE_TAGS } from '@/lib/cache/tags'
+import type { RoleT } from '@/lib/auth/roles'
 import type { Where } from 'payload'
 import {
   getDb,
@@ -103,7 +104,7 @@ export const fetchReferenceData = unstable_cache(
     const workers: WorkerRefT[] = usersResult.rows.map((row: any) => ({
       id: Number(row.id),
       name: row.name as string,
-      type: (row.role as string) ?? 'EMPLOYEE',
+      type: (row.role as RoleT) ?? 'EMPLOYEE',
       active: row.active as boolean,
       email: (row.email as string) ?? '',
       defaultCashRegisterId: row.default_cash_register_id

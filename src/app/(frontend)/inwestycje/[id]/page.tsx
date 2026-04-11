@@ -33,7 +33,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   const { page, limit } = parsePagination(sp)
 
   const investmentId = Number(id)
-  const urlFilters = buildTransferFilters(sp, { id: user.id, isManager: true })
+  const urlFilters = buildTransferFilters(sp, { id: user.id })
   const transferWhere = { ...urlFilters, investment: { equals: investmentId } }
 
   // Stats ignore cancelled toggle — SQL already excludes cancelled via hardcoded WHERE clause

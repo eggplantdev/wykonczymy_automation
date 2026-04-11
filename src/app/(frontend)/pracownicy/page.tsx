@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { MANAGEMENT_ROLES, type RoleT } from '@/lib/auth/roles'
+import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { UserDataTable } from '@/components/users/user-data-table'
 import { PageWrapper } from '@/components/ui/page-wrapper'
@@ -17,7 +17,7 @@ export default async function UsersListPage() {
   const rows: UserRowT[] = refData.workers.map((worker) => ({
     id: worker.id,
     name: worker.name,
-    role: (worker.type ?? 'EMPLOYEE') as RoleT,
+    role: worker.type,
     email: worker.email,
     active: worker.active ?? true,
     defaultCashRegisterName: worker.defaultCashRegisterId

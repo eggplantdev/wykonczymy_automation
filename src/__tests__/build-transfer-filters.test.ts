@@ -3,8 +3,8 @@ import { buildTransferFilters } from '@/lib/queries/transfers'
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
-const managerCtx = { id: 1, isManager: true } as const
-const employeeCtx = { id: 5, isManager: false } as const
+const managerCtx = { id: 1 } as const
+const employeeCtx = { id: 5 } as const
 
 // ── Role scoping ─────────────────────────────────────────────────────────
 
