@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { logoutAction } from '@/lib/actions/auth'
-import { isAdminOrOwnerRole, isManagementRole } from '@/lib/auth/roles'
+import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { SECTION_LINKS } from '@/lib/constants/sections'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { FileBarChart, LogOut, Shield, Users } from 'lucide-react'
@@ -30,7 +30,7 @@ export function Sidebar() {
     startTransition(() => logoutAction())
   }
 
-  const showUsers = isManagementRole(user.role)
+  const showUsers = isAdminOrOwnerRole(user.role)
   const showReports = isAdminOrOwnerRole(user.role)
 
   return (

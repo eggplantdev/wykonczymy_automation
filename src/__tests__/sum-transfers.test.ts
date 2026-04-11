@@ -3,6 +3,7 @@ import type { Payload } from 'payload'
 import {
   sumRegisterBalance,
   sumAllRegisterBalances,
+  sumAllWorkerBalances,
   sumAllInvestmentFinancials,
   sumFilteredByType,
   deriveFinancials,
@@ -77,6 +78,38 @@ describe('sumAllRegisterBalances', () => {
     })
     const map = await sumAllRegisterBalances(fakePayload)
     expect(map.get(5)).toBe(800)
+  })
+})
+
+// ── sumAllWorkerBalances ─────────────────────────────────────────────────
+
+describe('sumAllWorkerBalances', () => {
+  it('returns a Map of worker payout totals', async () => {
+    mockExecute.mockResolvedValue({
+      rows: [
+        { worker_id: '1', balance: '3000' },
+        { worker_id: '2', balance: '1500.50' },
+      ],
+    })
+    const map = await sumAllWorkerBalances(fakePayload)
+    expect(map.size).toBe(2)
+    expect(map.get(1)).toBe(3000)
+    expect(map.get(2)).toBe(1500.5)
+  })
+
+  it('returns empty Map when no workers have payouts', async () => {
+    mockExecute.mockResolvedValue({ rows: [] })
+    const map = await sumAllWorkerBalances(fakePayload)
+    expect(map.size).toBe(0)
+  })
+
+  it('handles single worker', async () => {
+    mockExecute.mockResolvedValue({
+      rows: [{ worker_id: '7', balance: '500' }],
+    })
+    const map = await sumAllWorkerBalances(fakePayload)
+    expect(map.size).toBe(1)
+    expect(map.get(7)).toBe(500)
   })
 })
 
@@ -206,6 +239,23 @@ describe('buildSqlConditions — filter translation', () => {
     expect(queryStr).toContain('source_register_id IN (3)')
     expect(queryStr).toContain('target_register_id IN (3)')
     expect(queryStr).toContain(' OR ')
+  })
+
+  it('passes worker filter to SQL', async () => {
+    await sumFilteredByType(fakePayload, { worker: { equals: 5 } })
+    const queryStr = extractSql(mockExecute.mock.calls[0][0])
+    expect(queryStr).toContain('worker_id = 5')
+  })
+
+  it('passes worker filter combined with date range to SQL', async () => {
+    await sumFilteredByType(fakePayload, {
+      worker: { equals: 3 },
+      date: { greater_than_equal: '2024-06-01', less_than_equal: '2024-12-31' },
+    })
+    const queryStr = extractSql(mockExecute.mock.calls[0][0])
+    expect(queryStr).toContain('worker_id = 3')
+    expect(queryStr).toContain("date >= '2024-06-01'")
+    expect(queryStr).toContain("date <= '2024-12-31'")
   })
 
   it('passes payment method filter to SQL', async () => {
