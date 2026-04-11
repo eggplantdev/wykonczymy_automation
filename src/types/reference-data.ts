@@ -11,7 +11,9 @@ export type ReferenceItemT = {
 
 export type CashRegisterTypeT = 'MAIN' | 'AUXILIARY' | 'VIRTUAL' | 'WORKER'
 
-export type CashRegisterRefT = ReferenceItemT
+export type CashRegisterRefT = Omit<ReferenceItemT, 'type'> & {
+  type: CashRegisterTypeT
+}
 
 export type InvestmentRefT = ReferenceItemT & {
   status: 'active' | 'completed'

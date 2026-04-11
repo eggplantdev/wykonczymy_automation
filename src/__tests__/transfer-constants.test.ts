@@ -36,6 +36,7 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
       'COMPANY_FUNDING',
       'OTHER_DEPOSIT',
       'CORRECTION',
+      'PAYOUT',
     ],
   },
   requiresInvestment: {

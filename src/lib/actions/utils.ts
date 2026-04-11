@@ -11,14 +11,14 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb, sumRegisterBalance } from '@/lib/db/sum-transfers'
 import { perfStart } from '@/lib/perf'
 import type { SessionUserT } from '@/types/auth'
-import type { ReferenceItemT } from '@/types/reference-data'
+import type { CashRegisterRefT, CashRegisterTypeT, ReferenceItemT } from '@/types/reference-data'
 
 export type ActionResultT<TData = undefined> = TData extends undefined
   ? { success: true } | { success: false; error: string }
   : { success: true; data: TData } | { success: false; error: string }
 
 export type ValidateSourceRegisterResultT =
-  | { success: true; register: ReferenceItemT }
+  | { success: true; register: CashRegisterRefT }
   | { success: false; error: string }
 
 type ActionCtxT = { payload: Payload; user: SessionUserT }
@@ -91,10 +91,10 @@ export async function validateSourceRegister(
   const row = result.rows[0]
   if (!row) return { success: false, error: 'Kasa nie istnieje' }
 
-  const register: ReferenceItemT = {
+  const register: CashRegisterRefT = {
     id: Number(row.id),
     name: row.name as string,
-    type: (row.type as string) ?? 'AUXILIARY', // TODO this should be enum or constant
+    type: (row.type as CashRegisterTypeT) ?? 'AUXILIARY',
     active: row.active as boolean,
     ownerId: row.owner_id ? Number(row.owner_id) : undefined,
   }
@@ -105,14 +105,17 @@ export async function validateSourceRegister(
   return { success: true, register }
 }
 
-/** Verifies the register has enough balance for the withdrawal. Skips virtual registers. */
+/* Verifies the register has enough balance for the withdrawal. Only applies to Auxiliary registers.
+ * Workers sometimes pays from their own money - meaning negative balance. Virtual is designed to have negative balance most of the time.
+ * Owner has main registers - he can do whatever he wants, so this applies only for auxiliary registers.
+ */
+
 export async function checkIfSufficientBalance(
-  register: ReferenceItemT,
+  register: CashRegisterRefT,
   amount: number,
   payload: Payload,
 ): Promise<ActionResultT> {
-  if (register.type === 'VIRTUAL') return { success: true }
-
+  if (register.type !== 'AUXILIARY') return { success: true }
   const currentBalance = await sumRegisterBalance(payload, register.id)
 
   if (currentBalance >= amount) return { success: true }

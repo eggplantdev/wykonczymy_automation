@@ -23,8 +23,8 @@ const stubInvestment = {
 
 const refData = {
   cashRegisters: [
-    { id: 1, name: 'Kasa główna', type: 'MAIN', balance: 0 },
-    { id: 2, name: 'Kasa pomocnicza', type: 'AUXILIARY', balance: 0 },
+    { id: 1, name: 'Kasa główna', type: 'MAIN' as const, balance: 0 },
+    { id: 2, name: 'Kasa pomocnicza', type: 'AUXILIARY' as const, balance: 0 },
   ],
   investments: [{ id: 10, name: 'Inwestycja A', ...stubInvestment }],
   workers: [
