@@ -105,7 +105,7 @@ export const fetchReferenceData = unstable_cache(
     const workers: WorkerRefT[] = usersResult.rows.map((row: any) => ({
       id: Number(row.id),
       name: row.name as string,
-      type: (row.role as RoleT) ?? 'EMPLOYEE',
+      role: (row.role as RoleT) ?? 'EMPLOYEE',
       active: row.active as boolean,
       email: (row.email as string) ?? '',
       defaultCashRegisterId: row.default_cash_register_id

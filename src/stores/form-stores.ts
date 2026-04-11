@@ -1,5 +1,6 @@
 import { createFormStore } from '@/stores/create-form-store'
 import type { InvestmentFormValuesT } from '@/components/forms/investment-form/investment-schema'
+import type { WorkerFormValuesT } from '@/components/forms/worker-form/worker-schema'
 
 type DepositFormValuesT = {
   description: string
@@ -44,3 +45,4 @@ export const useExpenseFormStore = createFormStore<ExpenseFormValuesT>('expense-
 export const useInternalTransferFormStore =
   createFormStore<InternalTransferFormValuesT>('internal-transfer-form')
 export const useInvestmentFormStore = createFormStore<InvestmentFormValuesT>('investment-form')
+export const useWorkerFormStore = createFormStore<WorkerFormValuesT>('worker-form')

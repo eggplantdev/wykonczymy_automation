@@ -6,6 +6,7 @@ import { fetchReferenceData, fetchFilteredByType } from '@/lib/queries/reference
 import { buildTransferFilters, stripCancelledFilters } from '@/lib/queries/transfers'
 import { buildFilterConfig } from '@/lib/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
+import { EditWorkerDialog } from '@/components/dialogs/edit-worker-dialog'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
 import { SaldoDisplay } from '@/components/ui/saldo-display'
@@ -37,7 +38,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
   const worker = refData.workers.find((w) => w.id === userId)
   if (!worker) notFound()
 
-  const role = worker.type
+  const role = worker.role
   const registerName = worker.defaultCashRegisterId
     ? refData.cashRegisters.find((cr) => cr.id === worker.defaultCashRegisterId)?.name
     : undefined
@@ -58,6 +59,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
 
   return (
     <PageWrapper title={worker.name} backHref="/pracownicy" backLabel="Pracownicy">
+      <EditWorkerDialog worker={worker} cashRegisters={refData.cashRegisters} />
       <InfoList items={infoFields} />
       <SaldoDisplay saldo={saldo} label="Wypłaty" />
       <TransfersSection

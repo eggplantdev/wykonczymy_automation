@@ -26,7 +26,7 @@ export type InvestmentRefT = ReferenceItemT & {
 }
 
 export type WorkerRefT = Omit<ReferenceItemT, 'type'> & {
-  type: RoleT
+  role: RoleT
   email: string
 }
 

@@ -17,7 +17,7 @@ export default async function UsersListPage() {
   const rows: UserRowT[] = refData.workers.map((worker) => ({
     id: worker.id,
     name: worker.name,
-    role: worker.type,
+    role: worker.role,
     email: worker.email,
     active: worker.active ?? true,
     defaultCashRegisterName: worker.defaultCashRegisterId
@@ -28,7 +28,7 @@ export default async function UsersListPage() {
 
   return (
     <PageWrapper title="Pracownicy">
-      <UserDataTable data={rows} />
+      <UserDataTable data={rows} cashRegisters={refData.cashRegisters} />
     </PageWrapper>
   )
 }

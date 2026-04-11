@@ -29,7 +29,7 @@ describe('getUserDefaultCashRegisterId', () => {
     const data = makeRefData({
       currentUserId: 10,
       workers: [
-        { id: 10, name: 'Jan', type: 'EMPLOYEE', email: 'j@x.com', defaultCashRegisterId: 5 },
+        { id: 10, name: 'Jan', role: 'EMPLOYEE', email: 'j@x.com', defaultCashRegisterId: 5 },
       ],
     })
     expect(getUserDefaultCashRegisterId(data)).toBe(5)
@@ -38,7 +38,7 @@ describe('getUserDefaultCashRegisterId', () => {
   it('returns undefined when worker not found', () => {
     const data = makeRefData({
       currentUserId: 10,
-      workers: [{ id: 99, name: 'Other', type: 'EMPLOYEE', email: 'o@x.com' }],
+      workers: [{ id: 99, name: 'Other', role: 'EMPLOYEE', email: 'o@x.com' }],
     })
     expect(getUserDefaultCashRegisterId(data)).toBeUndefined()
   })
@@ -46,7 +46,7 @@ describe('getUserDefaultCashRegisterId', () => {
   it('returns undefined when worker has no defaultCashRegisterId', () => {
     const data = makeRefData({
       currentUserId: 10,
-      workers: [{ id: 10, name: 'Jan', type: 'EMPLOYEE', email: 'j@x.com' }],
+      workers: [{ id: 10, name: 'Jan', role: 'EMPLOYEE', email: 'j@x.com' }],
     })
     expect(getUserDefaultCashRegisterId(data)).toBeUndefined()
   })
@@ -59,7 +59,7 @@ describe('getDefaultCashRegister', () => {
     const data = makeRefData({
       currentUserId: 10,
       workers: [
-        { id: 10, name: 'Admin', type: 'ADMIN', email: 'a@x.com', defaultCashRegisterId: 2 },
+        { id: 10, name: 'Admin', role: 'ADMIN', email: 'a@x.com', defaultCashRegisterId: 2 },
       ],
     })
     expect(getDefaultCashRegister(data)).toBe('2')
@@ -68,7 +68,7 @@ describe('getDefaultCashRegister', () => {
   it('returns empty string when no default register', () => {
     const data = makeRefData({
       currentUserId: 10,
-      workers: [{ id: 10, name: 'Jan', type: 'EMPLOYEE', email: 'j@x.com' }],
+      workers: [{ id: 10, name: 'Jan', role: 'EMPLOYEE', email: 'j@x.com' }],
     })
     expect(getDefaultCashRegister(data)).toBe('')
   })

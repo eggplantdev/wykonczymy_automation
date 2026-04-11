@@ -72,7 +72,7 @@ export async function fetchManagerDashboardData() {
     .map((i) => ({ id: i.id, name: i.name }))
 
   const managementUsers = refData.workers
-    .filter((w) => isManagementRole(w.type as RoleT))
+    .filter((w) => isManagementRole(w.role))
     .map((w) => ({ id: w.id, name: w.name }))
 
   // admin can see all, manager can see auxiliary and virtual registers
