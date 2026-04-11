@@ -6,6 +6,7 @@ import {
   requiresInvestment,
   needsTargetRegister,
   needsExpenseCategory,
+  needsWorker,
 } from '@/lib/constants/transfers'
 import { getAmountError } from '@/lib/validation-utils'
 
@@ -20,6 +21,7 @@ type TransferFieldsT = {
   investment?: unknown
   expenseCategory?: unknown
   otherCategory?: unknown
+  worker?: unknown
 }
 
 type FieldRuleT = {
@@ -49,6 +51,11 @@ const transferFieldRules: FieldRuleT[] = [
     invalid: (d) => requiresInvestment(d.type) && !d.investment,
     message: 'Inwestycja jest wymagana dla tego typu transferu',
     path: 'investment',
+  },
+  {
+    invalid: (d) => needsWorker(d.type) && !d.worker,
+    message: 'Pracownik jest wymagany dla wypłaty',
+    path: 'worker',
   },
   {
     invalid: (d) => needsExpenseCategory(d.type) && !('lineItems' in d) && !d.expenseCategory,
@@ -97,6 +104,7 @@ export const createTransferSchema = z
     investment: z.number().optional(),
     expenseCategory: z.number().optional(),
     otherCategory: z.number().optional(),
+    worker: z.number().optional(),
     otherDescription: z.string().optional(),
     invoiceNote: z.string().optional(),
   })

@@ -26,6 +26,7 @@ export const expenseFormSchema = z
     investment: z.string().optional().default(''),
     expenseCategory: z.string().optional().default(''),
     otherCategory: z.string().optional().default(''),
+    worker: z.string().optional().default(''),
     otherDescription: z.string().optional().default(''),
     invoiceNote: z.string().optional().default(''),
   })
@@ -55,6 +56,7 @@ export const bulkExpenseFormSchema = z
     sourceRegister: z.string(),
     targetRegister: z.string(),
     investment: z.string(),
+    worker: z.string(),
     lineItems: z.array(lineItemClientSchema),
   })
   .superRefine((data, ctx) => {
@@ -98,6 +100,7 @@ export const createBulkExpenseSchema = z
     sourceRegister: z.number().optional(),
     targetRegister: z.number().optional(),
     investment: z.number().optional(),
+    worker: z.number().optional(),
     lineItems: z
       .array(
         z.object({

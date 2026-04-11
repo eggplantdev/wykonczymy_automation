@@ -162,7 +162,7 @@ export const Transfers: CollectionConfig = {
       label: { en: 'Worker', pl: 'Pracownik' },
       access: { update: () => false },
       admin: {
-        condition: () => false,
+        condition: (data) => data?.type === 'PAYOUT',
       },
     },
     {

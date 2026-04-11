@@ -20,6 +20,8 @@ const makeRow = (overrides: Partial<TransferRowT> = {}): TransferRowT => ({
   expenseCategoryName: '',
   otherCategoryName: '',
   otherCategoryId: null,
+  workerName: '—',
+  workerId: null,
   createdByName: 'Admin',
   createdById: 1,
   createdAt: '2026-01-15T10:00:00Z',

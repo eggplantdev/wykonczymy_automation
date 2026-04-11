@@ -33,7 +33,7 @@ const VALID_SERVER_PAYLOADS: Record<string, Record<string, unknown>> = {
     sourceRegister: 1,
     targetRegister: 2,
   },
-  PAYOUT: { ...base, type: 'PAYOUT', sourceRegister: 1 },
+  PAYOUT: { ...base, type: 'PAYOUT', sourceRegister: 1, worker: 1 },
   OTHER: { ...base, type: 'OTHER', sourceRegister: 1, otherCategory: 1 },
 }
 
@@ -50,6 +50,7 @@ function toClientPayload(server: Record<string, unknown>): Record<string, string
     investment: '',
     expenseCategory: '',
     otherCategory: '',
+    worker: '',
     otherDescription: '',
     invoiceNote: '',
   }
@@ -247,6 +248,7 @@ describe('createBulkExpenseSchema — per-line-item category', () => {
     const result = createBulkExpenseSchema.safeParse({
       ...bulkBase,
       type: 'PAYOUT',
+      worker: 1,
       lineItems: [{ description: 'Item', amount: 100 }],
     })
     expect(result.success).toBe(true)

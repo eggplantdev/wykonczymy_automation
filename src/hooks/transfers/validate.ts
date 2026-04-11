@@ -5,6 +5,7 @@ import {
   requiresInvestment,
   needsTargetRegister,
   needsOtherCategory,
+  needsWorker,
 } from '@/lib/constants/transfers'
 import { getAmountError } from '@/lib/validation-utils'
 
@@ -69,6 +70,16 @@ export const validateTransfer: CollectionBeforeValidateHook = ({ data, req, oper
   // otherCategory — required for OTHER
   if (needsOtherCategory(type) && !d.otherCategory) {
     errors.push('Category is required for OTHER transfers.')
+  }
+
+  // worker — required for PAYOUT
+  if (needsWorker(type) && !d.worker) {
+    errors.push('Worker is required for payout transfers.')
+  }
+
+  // Auto-clear worker for types that don't need it
+  if (!needsWorker(type)) {
+    d.worker = null
   }
 
   // expenseCategory — required for INVESTMENT_EXPENSE

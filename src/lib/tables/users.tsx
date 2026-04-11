@@ -2,6 +2,7 @@
 
 import { createColumnHelper } from '@tanstack/react-table'
 import { ROLE_LABELS, type RoleT } from '@/lib/auth/roles'
+import { formatPLN } from '@/lib/format-currency'
 import { RoleBadge } from '@/components/ui/badge'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
 
@@ -12,6 +13,7 @@ export type UserRowT = {
   email: string
   active: boolean
   defaultCashRegisterName?: string
+  balance: number
 }
 
 const col = createColumnHelper<UserRowT>()
@@ -50,6 +52,12 @@ export function getUserColumns({ onToggle }: UserColumnOptionsT) {
           onToggle={onToggle}
         />
       ),
+    }),
+    col.accessor('balance', {
+      id: 'balance',
+      header: 'Wypłaty',
+      meta: { align: 'right' },
+      cell: (info) => formatPLN(info.getValue()),
     }),
     col.accessor('defaultCashRegisterName', {
       id: 'defaultCashRegister',

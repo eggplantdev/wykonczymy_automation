@@ -101,6 +101,32 @@ export const sumAllRegisterBalances = async (payload: Payload): Promise<Map<numb
   return map
 }
 
+/**
+ * SUM payout amounts for ALL workers in one query (GROUP BY).
+ * Returns a Map<workerId, totalPayouts>.
+ */
+export const sumAllWorkerBalances = async (payload: Payload): Promise<Map<number, number>> => {
+  const elapsed = perfStart()
+  const db = await getDb(payload)
+
+  const result = await db.execute(sql`
+    SELECT worker_id,
+      COALESCE(SUM(amount), 0) AS balance
+    FROM transactions
+    WHERE worker_id IS NOT NULL
+      AND type = 'PAYOUT'
+      AND cancelled IS NOT TRUE
+    GROUP BY worker_id
+  `)
+
+  const map = new Map<number, number>()
+  for (const row of result.rows) {
+    map.set(Number(row.worker_id), Number(row.balance))
+  }
+  console.log(`[PERF] query.sumAllWorkerBalances ${elapsed()}ms (${map.size} workers)`)
+  return map
+}
+
 export type CategoryCostT = {
   categoryId: number
   total: number
@@ -294,6 +320,7 @@ const FIELD_TO_COLUMN: Record<string, string> = {
   createdBy: 'created_by_id',
   expenseCategory: 'expense_category_id',
   otherCategory: 'other_category_id',
+  worker: 'worker_id',
   paymentMethod: 'payment_method',
   date: 'date',
   cancelled: 'cancelled',

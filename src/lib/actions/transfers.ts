@@ -113,6 +113,7 @@ export async function createBulkTransferAction(
               sourceRegister: parsed.data.sourceRegister,
               targetRegister: parsed.data.targetRegister,
               investment: parsed.data.investment,
+              worker: parsed.data.worker,
               expenseCategory: item.expenseCategory,
               otherCategory: item.category,
               invoice: invoiceMediaIds?.[i],

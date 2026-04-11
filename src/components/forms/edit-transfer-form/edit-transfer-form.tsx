@@ -25,7 +25,7 @@ import {
   AmountField,
   DateField,
   DescriptionField,
-  InvestmentField,
+  EntityComboboxField,
   ExpenseCategoryField,
 } from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
@@ -130,7 +130,17 @@ export function EditTransferForm({
           {/* Payment method hidden — only CASH is currently used */}
 
           {showsInvestment(row.type) && (
-            <InvestmentField form={form} investments={referenceData.investments} />
+            <EntityComboboxField
+              form={form}
+              name="investment"
+              items={referenceData.investments}
+              label="Inwestycja"
+              placeholder="Wybierz inwestycję"
+              searchPlaceholder="Szukaj inwestycji..."
+              emptySearchMessage="Nie znaleziono inwestycji."
+              noItemsMessage="Brak inwestycji"
+              noActiveItemsMessage="Brak aktywnych inwestycji"
+            />
           )}
 
           {needsExpenseCategory(row.type) && (

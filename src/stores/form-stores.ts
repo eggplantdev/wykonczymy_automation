@@ -26,6 +26,7 @@ type ExpenseFormValuesT = {
   sourceRegister: string
   targetRegister: string
   investment: string
+  worker: string
   lineItems: LineItemT[]
 }
 

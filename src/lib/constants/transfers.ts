@@ -104,6 +104,8 @@ export const requiresInvestment = (type: string) =>
 export const needsTargetRegister = (type: string) =>
   isTransferType(type) && type === 'REGISTER_TRANSFER'
 
+export const needsWorker = (type: string) => isTransferType(type) && type === 'PAYOUT'
+
 export const needsOtherCategory = (type: string) => isTransferType(type) && type === 'OTHER'
 
 export const showsOtherCategory = (type: string) =>

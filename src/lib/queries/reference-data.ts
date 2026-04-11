@@ -8,6 +8,7 @@ import type { Where } from 'payload'
 import {
   getDb,
   sumAllRegisterBalances,
+  sumAllWorkerBalances,
   sumAllInvestmentFinancials,
   sumFilteredByType,
   sumCategoryBreakdown,
@@ -154,6 +155,21 @@ export const fetchRegisterBalances = unstable_cache(
     return record
   },
   ['register-balances'],
+  { tags: [CACHE_TAGS.transfers] },
+)
+
+export type WorkerBalanceMapT = Record<string, number>
+
+export const fetchWorkerBalances = unstable_cache(
+  async (): Promise<WorkerBalanceMapT> => {
+    const elapsed = perfStart()
+    const payload = await getPayload({ config })
+    const map = await sumAllWorkerBalances(payload)
+    const record = Object.fromEntries(map)
+    console.log(`[PERF] query.fetchWorkerBalances ${elapsed()}ms (${map.size} workers)`)
+    return record
+  },
+  ['worker-balances'],
   { tags: [CACHE_TAGS.transfers] },
 )
 

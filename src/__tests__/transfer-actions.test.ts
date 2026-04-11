@@ -189,7 +189,7 @@ describe('createTransferAction', () => {
 
   it('valid PAYOUT → success', async () => {
     const result = await createTransferAction(
-      makeSingleTransferData({ type: 'PAYOUT', investment: undefined }),
+      makeSingleTransferData({ type: 'PAYOUT', investment: undefined, worker: 1 }),
     )
 
     expect(result.success).toBe(true)

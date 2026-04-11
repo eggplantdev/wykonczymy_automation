@@ -2,12 +2,13 @@ import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES, ROLE_LABELS } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/pagination'
-import { fetchReferenceData } from '@/lib/queries/reference-data'
+import { fetchReferenceData, fetchWorkerBalances } from '@/lib/queries/reference-data'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { buildFilterConfig } from '@/lib/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
+import { SaldoDisplay } from '@/components/ui/saldo-display'
 import type { DynamicPagePropsT } from '@/types/page'
 
 export default async function UserDetailPage({ params, searchParams }: DynamicPagePropsT) {
@@ -20,7 +21,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
   const { page, limit } = parsePagination(sp)
 
   const userId = Number(id)
-  const refData = await fetchReferenceData()
+  const [refData, workerBalances] = await Promise.all([fetchReferenceData(), fetchWorkerBalances()])
 
   const worker = refData.workers.find((w) => w.id === userId)
   if (!worker) notFound()
@@ -37,12 +38,15 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
     ...(registerName ? [{ label: 'Domyślna kasa', value: registerName }] : []),
   ]
 
+  const saldo = workerBalances[String(userId)] ?? 0
+
   const urlFilters = buildTransferFilters(sp, { id: currentUser.id })
   const transferWhere = { ...urlFilters, worker: { equals: userId } }
 
   return (
     <PageWrapper title={worker.name} backHref="/pracownicy" backLabel="Pracownicy">
       <InfoList items={infoFields} />
+      <SaldoDisplay saldo={saldo} label="Wypłaty" />
       <TransfersSection
         config={{
           query: { where: transferWhere, page, limit },

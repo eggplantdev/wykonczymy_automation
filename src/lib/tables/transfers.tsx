@@ -37,6 +37,8 @@ export type TransferRowT = {
   expenseCategoryName: string
   otherCategoryName: string
   otherCategoryId: number | null
+  workerName: string
+  workerId: number | null
   createdByName: string
   createdById: number | null
   createdAt: string
@@ -106,6 +108,8 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
       expenseCategoryName: lookupName(lookups.expenseCategories, doc.expenseCategory),
       otherCategoryName: lookupName(lookups.otherCategories, doc.otherCategory),
       otherCategoryId: toNullableId(doc.otherCategory),
+      workerName: lookupName(lookups.users, doc.worker),
+      workerId: toNullableId(doc.worker),
       createdByName: lookupName(lookups.users, doc.createdBy),
       createdById: toNullableId(doc.createdBy),
       createdAt: doc.createdAt,
@@ -134,6 +138,8 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
     expenseCategoryName: getRelationName(doc.expenseCategory),
     otherCategoryName: getRelationName(doc.otherCategory),
     otherCategoryId: toNullableId(doc.otherCategory),
+    workerName: getRelationName(doc.worker),
+    workerId: toNullableId(doc.worker),
     createdByName: getRelationName(doc.createdBy),
     createdById: toNullableId(doc.createdBy),
     createdAt: doc.createdAt,
@@ -297,6 +303,20 @@ const allColumns = [
     id: 'paymentMethod',
     header: 'Metoda',
     cell: (info) => PAYMENT_METHOD_LABELS[info.getValue() as PaymentMethodT] ?? info.getValue(),
+  }),
+  col.accessor('workerName', {
+    id: 'worker',
+    header: 'Pracownik',
+    cell: (info) => {
+      const id = info.row.original.workerId
+      const name = info.getValue()
+      if (!id || name === '—') return name
+      return (
+        <Link href={`/pracownicy/${id}`} className="hover:underline">
+          {name}
+        </Link>
+      )
+    },
   }),
   col.accessor('createdByName', {
     id: 'createdBy',

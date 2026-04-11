@@ -21,7 +21,7 @@ import {
   CashRegisterField,
   DateField,
   DescriptionField,
-  InvestmentField,
+  EntityComboboxField,
   // PaymentMethodField,
 } from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
@@ -143,7 +143,17 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
 
           {/* Conditional: Investment — required for INVESTOR_DEPOSIT, optional for others */}
           {showsInvestment(currentType) && (
-            <InvestmentField form={form} investments={referenceData.investments} />
+            <EntityComboboxField
+              form={form}
+              name="investment"
+              items={referenceData.investments}
+              label="Inwestycja"
+              placeholder="Wybierz inwestycję"
+              searchPlaceholder="Szukaj inwestycji..."
+              emptySearchMessage="Nie znaleziono inwestycji."
+              noItemsMessage="Brak inwestycji"
+              noActiveItemsMessage="Brak aktywnych inwestycji"
+            />
           )}
         </FieldGroup>
 

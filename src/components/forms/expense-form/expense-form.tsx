@@ -13,6 +13,7 @@ import {
   needsSourceRegister,
   showsInvestment,
   needsTargetRegister,
+  needsWorker,
   type TransferTypeT,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
@@ -27,7 +28,7 @@ import { today } from '@/lib/date-utils'
 import {
   CashRegisterField,
   DateField,
-  InvestmentField,
+  EntityComboboxField,
   SourceRegisterField,
   LineItemsField,
 } from '@/components/forms/form-fields'
@@ -52,6 +53,7 @@ type FormValuesT = {
   sourceRegister: string
   targetRegister: string
   investment: string
+  worker: string
   lineItems: {
     description: string
     amount: string
@@ -89,6 +91,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
         sourceRegister: '',
         targetRegister: '',
         investment: '',
+        worker: '',
         lineItems: [
           {
             description: '',
@@ -115,6 +118,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
         sourceRegister: value.sourceRegister ? Number(value.sourceRegister) : undefined,
         targetRegister: value.targetRegister ? Number(value.targetRegister) : undefined,
         investment: value.investment ? Number(value.investment) : undefined,
+        worker: value.worker ? Number(value.worker) : undefined,
         lineItems: value.lineItems.map((item) => ({
           description: item.description,
           amount: Number(item.amount),
@@ -163,7 +167,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
   // TanStack Form preserves values of unmounted fields. When the user switches
   // transfer type, hidden fields (e.g. investment) keep stale selections.
   // Reset them so validation and submission use a clean slate for the new type.
-  const conditionalFields = ['targetRegister', 'investment'] as const
+  const conditionalFields = ['targetRegister', 'investment', 'worker'] as const
 
   function resetConditionalFields() {
     conditionalFields.forEach((field) => form.resetField(field))
@@ -198,7 +202,17 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
           </div>
 
           {showsInvestment(currentType) && (
-            <InvestmentField form={form} investments={referenceData.investments} />
+            <EntityComboboxField
+              form={form}
+              name="investment"
+              items={referenceData.investments}
+              label="Inwestycja"
+              placeholder="Wybierz inwestycję"
+              searchPlaceholder="Szukaj inwestycji..."
+              emptySearchMessage="Nie znaleziono inwestycji."
+              noItemsMessage="Brak inwestycji"
+              noActiveItemsMessage="Brak aktywnych inwestycji"
+            />
           )}
 
           {needsSourceRegister(currentType) && (
@@ -218,6 +232,20 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
               label="Kasa docelowa"
               placeholder="Wybierz kasę docelową"
               cashRegisters={referenceData.cashRegisters}
+            />
+          )}
+
+          {needsWorker(currentType) && (
+            <EntityComboboxField
+              form={form}
+              name="worker"
+              items={referenceData.workers}
+              label="Pracownik"
+              placeholder="Wybierz pracownika"
+              searchPlaceholder="Szukaj pracownika..."
+              emptySearchMessage="Nie znaleziono pracownika."
+              noItemsMessage="Brak pracowników"
+              noActiveItemsMessage="Brak aktywnych pracowników"
             />
           )}
 
