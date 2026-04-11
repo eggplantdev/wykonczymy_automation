@@ -48,7 +48,7 @@ export function UserDataTable({ data }: UserDataTablePropsT) {
       getRowClassName={(row) => (!row.active ? 'opacity-50' : '')}
       toolbar={(table, cv) => (
         <>
-          <SearchFilterInput value={searchTerm} onChange={setSearchTerm} placeholder="Szukaj..." />
+          <SearchFilterInput value={searchTerm} onChange={setSearchTerm} />
           <ActiveFilterButton
             isActive={showOnlyActive}
             onChange={setShowOnlyActive}

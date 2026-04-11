@@ -67,6 +67,8 @@ export function PrintButton({ config, visibleColumnIds, sorting }: PrintButtonPr
 
 function getPrintTitle(headerFields: HeaderFieldT[]): string {
   return (
-    headerFields.find((f) => f.label === 'Inwestycja' || f.label === 'Kasa')?.value ?? 'Transfery'
+    headerFields.find(
+      (f) => f.label === 'Inwestycja' || f.label === 'Kasa' || f.label === 'Pracownik',
+    )?.value ?? 'Transfery'
   )
 }

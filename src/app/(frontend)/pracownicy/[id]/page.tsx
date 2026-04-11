@@ -2,13 +2,15 @@ import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES, ROLE_LABELS } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/pagination'
-import { fetchReferenceData, fetchWorkerBalances } from '@/lib/queries/reference-data'
-import { buildTransferFilters } from '@/lib/queries/transfers'
+import { fetchReferenceData, fetchFilteredByType } from '@/lib/queries/reference-data'
+import { buildTransferFilters, stripCancelledFilters } from '@/lib/queries/transfers'
 import { buildFilterConfig } from '@/lib/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
 import { SaldoDisplay } from '@/components/ui/saldo-display'
+import { formatPLN } from '@/lib/format-currency'
+import type { HeaderFieldT } from '@/types/export'
 import type { DynamicPagePropsT } from '@/types/page'
 
 export default async function UserDetailPage({ params, searchParams }: DynamicPagePropsT) {
@@ -21,7 +23,16 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
   const { page, limit } = parsePagination(sp)
 
   const userId = Number(id)
-  const [refData, workerBalances] = await Promise.all([fetchReferenceData(), fetchWorkerBalances()])
+  const urlFilters = buildTransferFilters(sp, { id: currentUser.id })
+  const transferWhere = { ...urlFilters, worker: { equals: userId } }
+
+  // Stats ignore cancelled toggle — SQL already excludes cancelled via hardcoded WHERE clause
+  const statsWhere = stripCancelledFilters(transferWhere)
+
+  const [refData, typeDistribution] = await Promise.all([
+    fetchReferenceData(),
+    fetchFilteredByType(statsWhere),
+  ])
 
   const worker = refData.workers.find((w) => w.id === userId)
   if (!worker) notFound()
@@ -38,10 +49,12 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
     ...(registerName ? [{ label: 'Domyślna kasa', value: registerName }] : []),
   ]
 
-  const saldo = workerBalances[String(userId)] ?? 0
+  const saldo = typeDistribution.find((row) => row.type === 'PAYOUT')?.total ?? 0
 
-  const urlFilters = buildTransferFilters(sp, { id: currentUser.id })
-  const transferWhere = { ...urlFilters, worker: { equals: userId } }
+  const headerFields: HeaderFieldT[] = [
+    { label: 'Pracownik', value: worker.name },
+    { label: 'Wypłaty', value: formatPLN(saldo), amount: saldo },
+  ]
 
   return (
     <PageWrapper title={worker.name} backHref="/pracownicy" backLabel="Pracownicy">
@@ -52,7 +65,13 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
           query: { where: transferWhere, page, limit },
           baseUrl: `/pracownicy/${id}`,
           excludeColumns: ['worker'],
-          filters: buildFilterConfig(refData, 'users'),
+          filters: buildFilterConfig(refData, [
+            'users',
+            'otherCategories',
+            'expenseCategories',
+            'type',
+          ]),
+          headerFields,
         }}
       />
     </PageWrapper>

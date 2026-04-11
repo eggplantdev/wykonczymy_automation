@@ -145,14 +145,8 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
           {showsInvestment(currentType) && (
             <EntityComboboxField
               form={form}
-              name="investment"
+              variant="investment"
               items={referenceData.investments}
-              label="Inwestycja"
-              placeholder="Wybierz inwestycję"
-              searchPlaceholder="Szukaj inwestycji..."
-              emptySearchMessage="Nie znaleziono inwestycji."
-              noItemsMessage="Brak inwestycji"
-              noActiveItemsMessage="Brak aktywnych inwestycji"
             />
           )}
         </FieldGroup>

@@ -27,7 +27,7 @@ export default async function UsersListPage() {
   }))
 
   return (
-    <PageWrapper title="Pracownicy" backHref="/" backLabel="Pulpit">
+    <PageWrapper title="Pracownicy">
       <UserDataTable data={rows} />
     </PageWrapper>
   )

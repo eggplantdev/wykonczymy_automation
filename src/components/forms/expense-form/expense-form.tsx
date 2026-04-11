@@ -204,14 +204,8 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
           {showsInvestment(currentType) && (
             <EntityComboboxField
               form={form}
-              name="investment"
+              variant="investment"
               items={referenceData.investments}
-              label="Inwestycja"
-              placeholder="Wybierz inwestycję"
-              searchPlaceholder="Szukaj inwestycji..."
-              emptySearchMessage="Nie znaleziono inwestycji."
-              noItemsMessage="Brak inwestycji"
-              noActiveItemsMessage="Brak aktywnych inwestycji"
             />
           )}
 
@@ -236,17 +230,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
           )}
 
           {needsWorker(currentType) && (
-            <EntityComboboxField
-              form={form}
-              name="worker"
-              items={referenceData.workers}
-              label="Pracownik"
-              placeholder="Wybierz pracownika"
-              searchPlaceholder="Szukaj pracownika..."
-              emptySearchMessage="Nie znaleziono pracownika."
-              noItemsMessage="Brak pracowników"
-              noActiveItemsMessage="Brak aktywnych pracowników"
-            />
+            <EntityComboboxField form={form} variant="worker" items={referenceData.workers} />
           )}
 
           {!isDepositType(currentType) && (

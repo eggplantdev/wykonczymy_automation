@@ -9,11 +9,8 @@ type EntityItemT = {
   active?: boolean
 }
 
-type EntityComboboxFieldPropsT = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  form: any
+type VariantConfigT = {
   name: string
-  items: EntityItemT[]
   label: string
   placeholder: string
   searchPlaceholder: string
@@ -22,41 +19,60 @@ type EntityComboboxFieldPropsT = {
   noActiveItemsMessage: string
 }
 
-export function EntityComboboxField({
-  form,
-  name,
-  items,
-  label,
-  placeholder,
-  searchPlaceholder,
-  emptySearchMessage,
-  noItemsMessage,
-  noActiveItemsMessage,
-}: EntityComboboxFieldPropsT) {
+const VARIANT_CONFIG = {
+  investment: {
+    name: 'investment',
+    label: 'Inwestycja',
+    placeholder: 'Wybierz inwestycję',
+    searchPlaceholder: 'Szukaj inwestycji...',
+    emptySearchMessage: 'Nie znaleziono inwestycji.',
+    noItemsMessage: 'Brak inwestycji',
+    noActiveItemsMessage: 'Brak aktywnych inwestycji',
+  },
+  worker: {
+    name: 'worker',
+    label: 'Pracownik',
+    placeholder: 'Wybierz pracownika',
+    searchPlaceholder: 'Szukaj pracownika...',
+    emptySearchMessage: 'Nie znaleziono pracownika.',
+    noItemsMessage: 'Brak pracowników',
+    noActiveItemsMessage: 'Brak aktywnych pracowników',
+  },
+} as const satisfies Record<string, VariantConfigT>
+
+type EntityComboboxFieldPropsT = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  form: any
+  variant: keyof typeof VARIANT_CONFIG
+  items: EntityItemT[]
+}
+
+export function EntityComboboxField({ form, variant, items }: EntityComboboxFieldPropsT) {
   const [activeOnly, setActiveOnly] = useState(true)
+  const config = VARIANT_CONFIG[variant]
 
   const filtered = items
     .filter((item) => !activeOnly || item.active !== false)
     .map((item) => ({ value: String(item.id), label: item.name }))
 
-  const emptyMessage = items.length === 0 ? noItemsMessage : noActiveItemsMessage
+  const emptyMessage = items.length === 0 ? config.noItemsMessage : config.noActiveItemsMessage
   const labelExtra = <ActiveFilterLabel activeOnly={activeOnly} onToggle={setActiveOnly} />
 
   return (
-    <form.AppField name={name}>
+    <form.AppField name={config.name}>
       {(field: AppFieldComponentsT) =>
         filtered.length > 0 ? (
           <field.Combobox
-            label={label}
+            label={config.label}
             labelExtra={labelExtra}
-            placeholder={placeholder}
-            searchPlaceholder={searchPlaceholder}
-            emptyMessage={emptySearchMessage}
+            placeholder={config.placeholder}
+            searchPlaceholder={config.searchPlaceholder}
+            emptyMessage={config.emptySearchMessage}
             items={filtered}
             showError
           />
         ) : (
-          <EmptyFieldMessage label={label} message={emptyMessage} labelExtra={labelExtra} />
+          <EmptyFieldMessage label={config.label} message={emptyMessage} labelExtra={labelExtra} />
         )
       }
     </form.AppField>
