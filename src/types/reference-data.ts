@@ -1,3 +1,5 @@
+import type { RoleT } from '@/lib/auth/roles'
+
 export type ReferenceItemT = {
   id: number
   name: string
@@ -45,5 +47,5 @@ export type ReferenceDataBaseT = {
 
 export type ReferenceDataT = ReferenceDataBaseT & {
   currentUserId: number
-  currentUserRole: string
+  currentUserRole: RoleT
 }

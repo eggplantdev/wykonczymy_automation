@@ -106,8 +106,6 @@ export async function validateSourceRegister(
 }
 
 /** Verifies the register has enough balance for the withdrawal. Skips virtual registers. */
-
-// temporary disabled
 export async function checkIfSufficientBalance(
   register: ReferenceItemT,
   amount: number,
@@ -117,7 +115,7 @@ export async function checkIfSufficientBalance(
 
   const currentBalance = await sumRegisterBalance(payload, register.id)
 
-  if (currentBalance > amount) return { success: true }
+  if (currentBalance >= amount) return { success: true }
 
   return {
     success: false,

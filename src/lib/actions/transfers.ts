@@ -15,7 +15,7 @@ import {
 import type { SessionUserT } from '@/types/auth'
 import { isLaborCost, needsSourceRegister } from '../constants/transfers'
 import {
-  // checkIfSufficientBalance,
+  checkIfSufficientBalance,
   validateAction,
   validateSourceRegister,
   protectedAction,
@@ -35,8 +35,15 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
         const validated = await validateSourceRegister(data.sourceRegister, user, payload)
         console.log(`[PERF]   validateSourceRegister ${step()}ms`)
         if (!validated.success) return validated
-        // Balance check removed — negative balances are allowed
-        // checkIfSufficientBalance in utils
+
+        // Negative balance blocked on non-virtual registers (virtual can go negative)
+        const balanceCheck = await checkIfSufficientBalance(
+          validated.register,
+          data.amount,
+          payload,
+        )
+        console.log(`[PERF]   checkIfSufficientBalance ${step()}ms`)
+        if (!balanceCheck.success) return balanceCheck
       }
 
       await payload.create({
@@ -75,8 +82,16 @@ export async function createBulkTransferAction(
         const validated = await validateSourceRegister(parsed.data.sourceRegister, user, payload)
         console.log(`[PERF]   validateSourceRegister ${step()}ms`)
         if (!validated.success) return validated
-        // Balance check removed — negative balances are allowed
-        //checkIfSufficientBalance
+
+        // Negative balance blocked on non-virtual registers (virtual can go negative)
+        const totalAmount = parsed.data.lineItems.reduce((sum, item) => sum + item.amount, 0)
+        const balanceCheck = await checkIfSufficientBalance(
+          validated.register,
+          totalAmount,
+          payload,
+        )
+        console.log(`[PERF]   checkIfSufficientBalance ${step()}ms`)
+        if (!balanceCheck.success) return balanceCheck
       }
 
       const transactionId = await payload.db.beginTransaction()

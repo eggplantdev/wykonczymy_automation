@@ -1,8 +1,9 @@
 'use client'
 
 import { FieldGroup } from '@/components/ui/field'
-import { useAppForm } from '@/components/forms/hooks/form-hooks'
+import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
 import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
+import { useSaldo } from '@/components/forms/hooks/use-saldo'
 import { type PaymentMethodT } from '@/lib/constants/transfers'
 import { createTransferAction } from '@/lib/actions/transfers'
 import { internalTransferFormSchema } from '@/components/forms/internal-transfer-form/internal-transfer-schema'
@@ -15,11 +16,13 @@ import {
   CashRegisterField,
   DateField,
   DescriptionField,
+  SourceRegisterField,
   // PaymentMethodField,
 } from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
 import { FormClearButton } from '../form-components/form-clear-button'
+import { SaldoSummary } from '../form-components/saldo-summary'
 import { useInternalTransferFormStore } from '@/stores/form-stores'
 
 type InternalTransferFormPropsT = {
@@ -49,6 +52,13 @@ export function InternalTransferForm({
   const storedValues = useInternalTransferFormStore((s) => s.formData)
   const updateFormData = useInternalTransferFormStore((s) => s.updateFormData)
   const resetFormData = useInternalTransferFormStore((s) => s.resetFormData)
+
+  const { saldo, isSaldoLoading, fetchSaldo, resetSaldo } = useSaldo()
+
+  function handleReset() {
+    resetFormData()
+    resetSaldo()
+  }
 
   const form = useAppForm({
     defaultValues:
@@ -84,7 +94,7 @@ export function InternalTransferForm({
         action: () => createTransferAction(data),
         successMessage: 'Transfer między kasami dodany',
         onSubmitSuccess,
-        onReset: resetFormData,
+        onReset: handleReset,
       })
 
       return false
@@ -93,9 +103,11 @@ export function InternalTransferForm({
 
   useCheckFormErrors(form)
 
+  const currentAmount = useStore(form.store, (s) => Number(s.values.amount) || 0)
+
   return (
     <form.AppForm>
-      <FormClearButton onReset={resetFormData} />
+      <FormClearButton onReset={handleReset} />
       <form
         onSubmit={(e) => {
           e.preventDefault()
@@ -103,10 +115,13 @@ export function InternalTransferForm({
         }}
       >
         <FieldGroup>
-          <CashRegisterField
+          <SourceRegisterField
             form={form}
             label="Kasa źródłowa"
             cashRegisters={referenceData.cashRegisters}
+            saldo={saldo}
+            isSaldoLoading={isSaldoLoading}
+            fetchSaldo={fetchSaldo}
           />
 
           <CashRegisterField
@@ -127,6 +142,10 @@ export function InternalTransferForm({
 
           <DescriptionField form={form} />
         </FieldGroup>
+
+        {saldo !== null && (
+          <SaldoSummary saldo={saldo} total={currentAmount} totalLabel="Kwota transferu" />
+        )}
 
         <FormFooter className="mt-6" />
       </form>

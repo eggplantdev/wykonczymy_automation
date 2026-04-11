@@ -1,12 +1,11 @@
 'use client'
 
-import { useRef, useState } from 'react'
 import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
 import { useInvoiceFiles } from '@/components/forms/hooks/use-invoice-files'
 import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
-import { toastMessage } from '@/components/toasts'
+import { useSaldo } from '@/components/forms/hooks/use-saldo'
 import {
   TRANSACTION_TRANSFER_TYPES,
   TRANSFER_TYPE_LABELS,
@@ -19,7 +18,6 @@ import {
 } from '@/lib/constants/transfers'
 import { createBulkTransferAction } from '@/lib/actions/transfers'
 import { uploadFilesClient } from '@/lib/upload-file-client'
-import { getRegisterSaldo } from '@/lib/queries/register-saldo'
 import {
   bulkExpenseFormSchema,
   type CreateBulkExpenseFormT,
@@ -30,13 +28,13 @@ import {
   CashRegisterField,
   DateField,
   InvestmentField,
+  SourceRegisterField,
   LineItemsField,
 } from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
 import { FormClearButton } from '../form-components/form-clear-button'
 import { SaldoSummary } from '../form-components/saldo-summary'
-import { SaldoDisplay } from '@/components/ui/saldo-display'
 import { useExpenseFormStore } from '@/stores/form-stores'
 
 type TransferFormPropsT = {
@@ -72,33 +70,14 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
   const updateFormData = useExpenseFormStore((s) => s.updateFormData)
   const resetFormData = useExpenseFormStore((s) => s.resetFormData)
 
+  const { saldo, isSaldoLoading, fetchSaldo, resetSaldo } = useSaldo()
+
   function handleReset() {
     resetFormData()
-    setSaldo(null)
+    resetSaldo()
   }
 
   const { handleRemoveLineItem, handleFileChange, getFiles } = useInvoiceFiles(recoveredFiles)
-
-  const [saldo, setSaldo] = useState<number | null>(null)
-  const [isSaldoLoading, setIsSaldoLoading] = useState(false)
-  const saldoRequestRef = useRef(0)
-
-  async function fetchSaldo(registerId: string) {
-    setSaldo(null)
-    if (!registerId) return
-
-    const requestId = ++saldoRequestRef.current
-    setIsSaldoLoading(true)
-    try {
-      const result = await getRegisterSaldo(Number(registerId))
-      // Ignore stale responses from earlier selections
-      if (saldoRequestRef.current === requestId) setSaldo(result.saldo)
-    } catch {
-      toastMessage('Nie udało się pobrać salda', 'error')
-    } finally {
-      if (saldoRequestRef.current === requestId) setIsSaldoLoading(false)
-    }
-  }
 
   const form = useAppForm({
     defaultValues:
@@ -190,7 +169,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     conditionalFields.forEach((field) => form.resetField(field))
     form.resetField('sourceRegister')
     form.resetField('lineItems')
-    setSaldo(null)
+    resetSaldo()
   }
 
   return (
@@ -223,19 +202,13 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
           )}
 
           {needsSourceRegister(currentType) && (
-            <>
-              <CashRegisterField
-                form={form}
-                cashRegisters={referenceData.cashRegisters}
-                listeners={{ onChange: ({ value }: { value: string }) => fetchSaldo(value) }}
-              />
-              {isSaldoLoading && (
-                <p className="text-muted-foreground text-sm">Ładowanie salda...</p>
-              )}
-              {saldo !== null && !isSaldoLoading && (
-                <SaldoDisplay saldo={saldo} label="Aktualne saldo" />
-              )}
-            </>
+            <SourceRegisterField
+              form={form}
+              cashRegisters={referenceData.cashRegisters}
+              saldo={saldo}
+              isSaldoLoading={isSaldoLoading}
+              fetchSaldo={fetchSaldo}
+            />
           )}
 
           {needsTargetRegister(currentType) && (

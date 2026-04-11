@@ -10,6 +10,7 @@ import {
   showsInvestment,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
+import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { expenseFormSchema } from '@/components/forms/expense-form/expense-schema'
 import type { CreateTransferFormT } from '@/lib/schemas/transfer'
 import type { ReferenceDataT } from '@/types/reference-data'
@@ -48,6 +49,11 @@ type FormValuesT = {
 const FORM_ID = 'deposit'
 
 export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: DepositFormPropsT) {
+  // COMPANY_FUNDING visible only to admin/owner — managers see other deposit types
+  const depositTypes = isAdminOrOwnerRole(referenceData.currentUserRole)
+    ? DEPOSIT_UI_TYPES
+    : DEPOSIT_UI_TYPES.filter((t) => t !== 'COMPANY_FUNDING')
+
   const { submit } = useFormSubmit(FORM_ID)
 
   const storedValues = useDepositFormStore((s) => s.formData)
@@ -114,7 +120,7 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
           <form.AppField name="type" listeners={{ onChange: () => form.resetField('investment') }}>
             {(field) => (
               <field.Select label="Typ wpłaty" showError>
-                {DEPOSIT_UI_TYPES.map((t) => (
+                {depositTypes.map((t) => (
                   <SelectItem key={t} value={t}>
                     {TRANSFER_TYPE_LABELS[t]}
                   </SelectItem>
