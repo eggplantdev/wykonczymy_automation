@@ -1,0 +1,21 @@
+.wykonczymy-page {
+  --wk-background: #fdfbf7;
+  --wk-foreground: #1c1917;
+  --wk-accent: #a3785f;
+  --wk-muted: #78716c;
+  --wk-border: #e7e0d8;
+
+  overflow-x: hidden;
+  background: var(--wk-background);
+  color: var(--wk-foreground);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+.wykonczymy-page ::selection {
+  background: var(--wk-accent);
+  color: var(--wk-background);
+}
+
+.wykonczymy-page .font-serif {
+  font-family: var(--font-playfair), 'Georgia', serif;
+}
