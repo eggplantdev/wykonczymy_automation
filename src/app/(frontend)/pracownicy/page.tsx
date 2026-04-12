@@ -1,13 +1,13 @@
 import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { ADMIN_OR_OWNER_ROLES } from '@/lib/auth/roles'
+import { ADMIN_OR_OWNER_MANAGER_ROLES } from '@/lib/auth/roles'
 import { fetchReferenceData, fetchWorkerBalances } from '@/lib/queries/reference-data'
 import { UserDataTable } from '@/components/users/user-data-table'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import type { UserRowT } from '@/lib/tables/users'
 
 export default async function UsersListPage() {
-  const session = await requireAuth(ADMIN_OR_OWNER_ROLES)
+  const session = await requireAuth(ADMIN_OR_OWNER_MANAGER_ROLES)
   if (!session.success) redirect('/')
 
   const [refData, workerBalances] = await Promise.all([fetchReferenceData(), fetchWorkerBalances()])
