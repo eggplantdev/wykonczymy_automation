@@ -35,6 +35,11 @@ export const validateTransfer: CollectionBeforeValidateHook = ({ data, req, oper
     return d
   }
 
+  // Marking as cancelled — no field re-validation needed
+  if (operation === 'update' && d.cancelled) {
+    return d
+  }
+
   const errors: string[] = []
 
   // Amount validation — CORRECTION allows negative (invoice corrections), others must be positive
