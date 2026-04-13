@@ -30,6 +30,7 @@ import * as migration_20260312_add_updated_by_to_transactions from './20260312_a
 import * as migration_20260325_add_review_to_investments from './20260325_add_review_to_investments'
 import * as migration_20260325_add_correction_enum from './20260325_add_correction_enum'
 import * as migration_20260407_add_amount_edit_audit from './20260407_add_amount_edit_audit'
+import * as migration_20260412_add_amount_trigram_index from './20260412_add_amount_trigram_index'
 
 export const migrations = [
   {
@@ -191,5 +192,10 @@ export const migrations = [
     up: migration_20260407_add_amount_edit_audit.up,
     down: migration_20260407_add_amount_edit_audit.down,
     name: '20260407_add_amount_edit_audit',
+  },
+  {
+    up: migration_20260412_add_amount_trigram_index.up,
+    down: migration_20260412_add_amount_trigram_index.down,
+    name: '20260412_add_amount_trigram_index',
   },
 ]

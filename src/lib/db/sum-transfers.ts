@@ -324,6 +324,7 @@ const FIELD_TO_COLUMN: Record<string, string> = {
   paymentMethod: 'payment_method',
   date: 'date',
   cancelled: 'cancelled',
+  amount: 'amount',
 }
 
 /**
@@ -389,6 +390,11 @@ function buildFieldCondition(where: Where): string | null {
     }
     if ('less_than_equal' in cond) {
       parts.push(`${column} <= ${escapeValue(cond.less_than_equal)}`)
+    }
+    // Prefix match on numeric columns (e.g. amount): cast to text, then LIKE '15%'
+    // Callers must pre-validate values — this path uses sql.raw(), not parameterized queries
+    if ('like' in cond) {
+      parts.push(`${column}::text LIKE ${escapeValue(cond.like)} || '%'`)
     }
 
     if (parts.length > 0) return parts.join(' AND ')

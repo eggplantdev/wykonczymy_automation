@@ -4,6 +4,7 @@ import { useTransition } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Banknote, CreditCard, FolderOpen, Landmark, Receipt, Tags, User } from 'lucide-react'
 import { FilterGrid } from '@/components/ui/filter-grid'
+import { SearchFilterInput } from '@/components/ui/search-filter-input'
 import { FilterMultiSelect } from '@/components/transfers/filter-multi-select'
 import { ClearButton } from '@/components/transfers/clear-button'
 import { DateFilters } from '@/components/transfers/date-filters'
@@ -17,6 +18,19 @@ import { buildUrlWithParams } from '@/lib/build-url-with-params'
 import { cn } from '@/lib/cn'
 import { Loader } from '@/components/ui/loader/loader'
 import type { ReferenceItemT } from '@/types/reference-data'
+
+const DEBOUNCE_MS = 600
+
+const ENTITY_FILTER_KEYS = [
+  'type',
+  'sourceRegister',
+  'investment',
+  'createdBy',
+  'paymentMethod',
+  'otherCategory',
+  'expenseCategory',
+  'amount',
+] as const
 
 type TransferFiltersPropsT = {
   cashRegisters?: ReferenceItemT[]
@@ -63,16 +77,7 @@ export function TransferFilters({
 
   const getMultiParam = (key: string) => (searchParams.get(key) ?? '').split(',').filter(Boolean)
 
-  const ENTITY_FILTER_KEYS = [
-    'type',
-    'sourceRegister',
-    'investment',
-    'createdBy',
-    'paymentMethod',
-    'otherCategory',
-    'expenseCategory',
-  ] as const
-
+  const currentAmount = searchParams.get('amount') ?? ''
   const currentTypes = getMultiParam('type')
   const currentSourceRegisters = getMultiParam('sourceRegister')
   const currentInvestments = getMultiParam('investment')
@@ -178,6 +183,15 @@ export function TransferFilters({
               searchable
             />
           )}
+
+          <SearchFilterInput
+            value={currentAmount}
+            onChange={(v) => updateParam('amount', v)}
+            placeholder="Kwota"
+            inputMode="decimal"
+            inputClassName="w-36 lg:w-36"
+            debounceMs={DEBOUNCE_MS}
+          />
 
           <ClearButton onClick={clearEntityFilters} disabled={!hasEntityFilters}>
             Wyczyść filtry

@@ -1,8 +1,10 @@
 import { unstable_cache } from 'next/cache'
+import { sql } from '@payloadcms/db-vercel-postgres'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import type { Where } from 'payload'
+import type { Payload, Where } from 'payload'
 import { buildPaginationMeta, type PaginationParamsT } from '@/lib/pagination'
+import { getDb } from '@/lib/db/sum-transfers'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 import { perfStart } from '@/lib/perf'
 import { TRANSFER_TYPES, PAYMENT_METHODS } from '@/lib/constants/transfers'
@@ -29,9 +31,13 @@ export async function findTransfersRaw({
     async () => {
       const elapsed = perfStart()
       const payload = await getPayload({ config })
+
+      // Payload's `like` doesn't work on number columns — resolve via raw SQL
+      const resolvedWhere = await resolveAmountSearch(payload, where)
+
       const result = await payload.find({
         collection: 'transactions',
-        where,
+        where: resolvedWhere,
         sort,
         limit,
         page,
@@ -50,6 +56,45 @@ export async function findTransfersRaw({
     ['transfers-raw', JSON.stringify(where), String(page), String(limit), sort],
     { tags: [CACHE_TAGS.transfers] },
   )()
+}
+
+/**
+ * Resolves `amount: { like: '...' }` to `id: { in: [...] }` via raw SQL.
+ *
+ * Two-query pattern:
+ * 1. Raw SQL finds transaction IDs where amount starts with the search term
+ *    (e.g. "15" matches 15, 150, 1500 — prefix match, not substring)
+ * 2. Those IDs replace the amount condition in the Payload Where object
+ *
+ * Why not use Payload's `like` directly?
+ * Payload's `like` operator doesn't work on numeric columns —
+ * it silently returns all rows. So we bypass Payload for this filter
+ * and use raw SQL with `amount::text LIKE '15%'`.
+ *
+ * Performance: uses the trigram GIN index from migration 20260412.
+ */
+async function resolveAmountSearch(payload: Payload, where: Where): Promise<Where> {
+  const amountCond = where.amount as Record<string, unknown> | undefined
+  if (!amountCond || typeof amountCond !== 'object' || !('like' in amountCond)) return where
+
+  const search = String(amountCond.like)
+  const { amount: _, ...rest } = where
+
+  // If another filter already forced NO_RESULTS, keep it
+  const idCond = rest.id as Record<string, unknown> | undefined
+  if (idCond && 'equals' in idCond && idCond.equals === -1) return rest
+
+  const db = await getDb(payload)
+  const result = await db.execute(sql`
+    SELECT DISTINCT id FROM transactions
+    WHERE amount::text LIKE ${search + '%'}
+  `)
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ids = result.rows.map((r: any) => Number(r.id))
+
+  if (ids.length === 0) return { ...rest, id: { equals: -1 } }
+  return { ...rest, id: { in: ids } }
 }
 
 type SearchParamsT = Record<string, string | string[] | undefined>
@@ -137,6 +182,12 @@ export function buildTransferFilters(
   const otherCategoryIds = parseNumericIds(otherCategoryParam)
   if (otherCategoryIds.length > 0) where.otherCategory = { in: otherCategoryIds }
   else if (otherCategoryParam) where.id = NO_RESULTS
+
+  // Amount search (substring match via LIKE on the numeric field)
+  const amountParam = getStringParam(searchParams.amount)
+  if (amountParam && /^\d+\.?\d*$/.test(amountParam)) {
+    where.amount = { like: amountParam }
+  }
 
   // Date range
   const fromParam = getStringParam(searchParams.from)
