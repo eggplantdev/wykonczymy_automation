@@ -109,7 +109,7 @@ export const needsWorker = (type: string) => isTransferType(type) && type === 'P
 export const needsOtherCategory = (type: string) => isTransferType(type) && type === 'OTHER'
 
 export const showsOtherCategory = (type: string) =>
-  isTransferType(type) && (type === 'OTHER' || type === 'INVESTMENT_EXPENSE')
+  isTransferType(type) && (type === 'OTHER' || type === 'INVESTMENT_EXPENSE' || type === 'PAYOUT')
 
 export const needsExpenseCategory = (type: string) =>
   isTransferType(type) && type === 'INVESTMENT_EXPENSE'

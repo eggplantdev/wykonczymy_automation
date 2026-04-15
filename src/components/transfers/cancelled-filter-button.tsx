@@ -28,8 +28,8 @@ export function CancelledFilterButton({ baseUrl }: CancelledFilterButtonPropsT) 
     <ActiveFilterButton
       isActive={!showCancelled}
       onChange={toggleCancelled}
-      activeLabel="Ukryj anulowane"
-      allLabel="Pokaż anulowane"
+      activeLabel="Anulowane ukryte"
+      allLabel="Anulowane widoczne"
     />
   )
 }
