@@ -13,7 +13,7 @@ import {
   type UpdateTransferFormT,
 } from '@/lib/schemas/transfer'
 import type { SessionUserT } from '@/types/auth'
-import { isLaborCost, needsSourceRegister } from '../constants/transfers'
+import { isDepositType, isLaborCost, needsSourceRegister } from '../constants/transfers'
 import {
   checkIfSufficientBalance,
   validateAction,
@@ -32,18 +32,22 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
       console.log(`[PERF]   validateAction ${step()}ms`)
 
       if (needsSourceRegister(parsed.data.type)) {
+        // For deposits, sourceRegister is actually the target (the register receiving money)
         const validated = await validateSourceRegister(data.sourceRegister, user, payload)
         console.log(`[PERF]   validateSourceRegister ${step()}ms`)
         if (!validated.success) return validated
 
-        // Negative balance blocked on non-virtual registers (virtual can go negative)
-        const balanceCheck = await checkIfSufficientBalance(
-          validated.register,
-          data.amount,
-          payload,
-        )
-        console.log(`[PERF]   checkIfSufficientBalance ${step()}ms`)
-        if (!balanceCheck.success) return balanceCheck
+        // Skip balance check for deposits (money coming in, not out) and
+        // corrections (accounting adjustments, not cash withdrawals)
+        if (!isDepositType(parsed.data.type) && parsed.data.type !== 'CORRECTION') {
+          const balanceCheck = await checkIfSufficientBalance(
+            validated.register,
+            data.amount,
+            payload,
+          )
+          console.log(`[PERF]   checkIfSufficientBalance ${step()}ms`)
+          if (!balanceCheck.success) return balanceCheck
+        }
       }
 
       await payload.create({
@@ -79,19 +83,23 @@ export async function createBulkTransferAction(
       console.log(`[PERF]   validateAction ${step()}ms`)
 
       if (needsSourceRegister(parsed.data.type)) {
+        // For deposits, sourceRegister is actually the target (the register receiving money)
         const validated = await validateSourceRegister(parsed.data.sourceRegister, user, payload)
         console.log(`[PERF]   validateSourceRegister ${step()}ms`)
         if (!validated.success) return validated
 
-        // Negative balance blocked on non-virtual registers (virtual can go negative)
-        const totalAmount = parsed.data.lineItems.reduce((sum, item) => sum + item.amount, 0)
-        const balanceCheck = await checkIfSufficientBalance(
-          validated.register,
-          totalAmount,
-          payload,
-        )
-        console.log(`[PERF]   checkIfSufficientBalance ${step()}ms`)
-        if (!balanceCheck.success) return balanceCheck
+        // Skip balance check for deposits (money coming in, not out) and
+        // corrections (accounting adjustments, not cash withdrawals)
+        if (!isDepositType(parsed.data.type) && parsed.data.type !== 'CORRECTION') {
+          const totalAmount = parsed.data.lineItems.reduce((sum, item) => sum + item.amount, 0)
+          const balanceCheck = await checkIfSufficientBalance(
+            validated.register,
+            totalAmount,
+            payload,
+          )
+          console.log(`[PERF]   checkIfSufficientBalance ${step()}ms`)
+          if (!balanceCheck.success) return balanceCheck
+        }
       }
 
       const transactionId = await payload.db.beginTransaction()
