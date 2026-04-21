@@ -29,8 +29,14 @@ export function DataTableRow<TData>({
   function handleClick(e: React.MouseEvent<HTMLTableRowElement>) {
     if (!href) return
 
-    // Skip if the click landed on an interactive element (button, link)
     const target = e.target as HTMLElement
+
+    // Ignore events that bubbled from a React portal (e.g., Dialog content).
+    // React synthetic events propagate through the component tree, not the DOM,
+    // so a click inside a portaled dialog still reaches this handler.
+    if (!e.currentTarget.contains(target)) return
+
+    // Skip if the click landed on an interactive element (button, link)
     if (target.closest('a, button')) return
 
     // Cmd/Ctrl+click opens in new tab

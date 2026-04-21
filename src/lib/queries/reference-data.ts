@@ -51,7 +51,7 @@ export const fetchReferenceData = unstable_cache(
       `),
       db.execute(sql`
         SELECT id, name, status::text,
-               address, phone, email, contact_person, notes
+               address, phone, email, contact_person, notes, review
         FROM investments
         ORDER BY name
       `),
