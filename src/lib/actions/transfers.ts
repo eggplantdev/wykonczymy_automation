@@ -4,7 +4,7 @@ import {
   createBulkExpenseSchema,
   type CreateBulkExpenseFormT,
 } from '@/components/forms/expense-form/expense-schema'
-import { isAdminOrOwnerRole } from '@/lib/auth/roles'
+import { canMutateTransfer } from '@/lib/auth/roles'
 import { perfStart } from '@/lib/perf'
 import {
   createTransferSchema,
@@ -166,7 +166,13 @@ async function fetchAndAuthorize(
 
   const creatorId =
     typeof original.createdBy === 'number' ? original.createdBy : original.createdBy?.id
-  if (user.id !== creatorId && !isAdminOrOwnerRole(user.role)) {
+  const allowed = canMutateTransfer({
+    role: user.role,
+    userId: user.id,
+    transferType: original.type,
+    createdById: creatorId,
+  })
+  if (!allowed) {
     return { error: `Nie masz uprawnień do ${errorVerb} tej transakcji.` }
   }
 

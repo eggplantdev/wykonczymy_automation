@@ -17,3 +17,22 @@ export const isManagementRole = (role: RoleT): boolean =>
 
 export const isAdminOrOwnerRole = (role: RoleT): boolean =>
   (ADMIN_OR_OWNER_ROLES as readonly string[]).includes(role)
+
+type CanMutateTransferArgsT = {
+  role: RoleT
+  userId: number
+  transferType: string
+  createdById: number | null | undefined
+}
+
+export const canMutateTransfer = ({
+  role,
+  userId,
+  transferType,
+  createdById,
+}: CanMutateTransferArgsT): boolean => {
+  if (isAdminOrOwnerRole(role)) return true
+  if (createdById === userId) return true
+  if (transferType === 'LABOR_COST' && isManagementRole(role)) return true
+  return false
+}

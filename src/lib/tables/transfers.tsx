@@ -7,7 +7,7 @@ import { InvoiceCell } from '@/components/transfers/invoice-cell'
 import { NoteCell } from '@/components/dialogs/note-dialog'
 import { CancelTransferButton } from '@/components/transfers/cancel-transfer-button'
 import { EditTransferDialog } from '@/components/dialogs/edit-transfer-dialog'
-import { isAdminOrOwnerRole, type RoleT } from '@/lib/auth/roles'
+import { canMutateTransfer, type RoleT } from '@/lib/auth/roles'
 import {
   TRANSFER_TYPE_LABELS,
   TRANSFER_TYPE_COLORS,
@@ -354,7 +354,13 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
 
       const canEdit =
         !!currentUserRole &&
-        (isAdminOrOwnerRole(currentUserRole) || row.createdById === currentUserId)
+        currentUserId !== undefined &&
+        canMutateTransfer({
+          role: currentUserRole,
+          userId: currentUserId,
+          transferType: row.type,
+          createdById: row.createdById,
+        })
 
       return (
         <div className="flex items-center gap-1">
