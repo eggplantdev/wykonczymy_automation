@@ -46,13 +46,13 @@ export function InvoicePreviewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="h-fit sm:max-w-4xl">
+      <DialogContent className="h-full sm:max-w-4xl">
         <DialogHeader title={displayName} />
 
-        <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto">
+        <div className="flex h-[70vh] min-h-0 w-full flex-1 items-center justify-center">
           {isImage && (
             <ImageMedia
-              containerClass="relative h-[70vh] w-[min(90vw,1000px)]"
+              containerClass="relative h-full"
               imgClass="object-contain"
               sizes="(max-width:1200px) 90vw, 1000px"
               src={url}
