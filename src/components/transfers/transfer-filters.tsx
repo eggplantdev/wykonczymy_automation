@@ -8,6 +8,8 @@ import { SearchFilterInput } from '@/components/ui/search-filter-input'
 import { FilterMultiSelect } from '@/components/transfers/filter-multi-select'
 import { ClearButton } from '@/components/transfers/clear-button'
 import { DateFilters } from '@/components/transfers/date-filters'
+import { StatButton } from '@/components/ui/stat-button'
+import { formatPLN } from '@/lib/format-currency'
 import {
   TRANSFER_TYPES,
   TRANSFER_TYPE_LABELS,
@@ -42,6 +44,7 @@ type TransferFiltersPropsT = {
   showPaymentMethodFilter?: boolean
   baseUrl: string
   className?: string
+  totalFilteredAmount?: number
 }
 
 export function TransferFilters({
@@ -54,6 +57,7 @@ export function TransferFilters({
   showPaymentMethodFilter = false,
   baseUrl,
   className,
+  totalFilteredAmount,
 }: TransferFiltersPropsT) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -87,6 +91,8 @@ export function TransferFilters({
   const currentExpenseCategories = getMultiParam('expenseCategory')
 
   const hasEntityFilters = ENTITY_FILTER_KEYS.some((k) => getMultiParam(k).length > 0)
+  const hasDateFilter = !!searchParams.get('from') || !!searchParams.get('to')
+  const hasAnyFilter = hasEntityFilters || hasDateFilter
 
   function clearEntityFilters() {
     updateMultipleParams(Object.fromEntries(ENTITY_FILTER_KEYS.map((k) => [k, ''])))
@@ -199,6 +205,14 @@ export function TransferFilters({
         </FilterGrid>
       )}
       <DateFilters updateParam={updateParam} updateMultipleParams={updateMultipleParams} />
+
+      {totalFilteredAmount !== undefined && hasAnyFilter && (
+        <StatButton
+          label="Suma wybranych transakcji"
+          value={formatPLN(totalFilteredAmount)}
+          className="border-chart-blue"
+        />
+      )}
     </div>
   )
 }

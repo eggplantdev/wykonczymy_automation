@@ -6,10 +6,11 @@ import { ToggleStatButtons } from '@/components/ui/toggle-stat-buttons'
 import type { StatEntryT } from '@/components/ui/toggle-stat-buttons'
 import type { FinancialFieldT } from '@/types/export'
 import { SaldoDisplay } from '@/components/ui/saldo-display'
+import { StatButton } from '@/components/ui/stat-button'
+import { formatPLN } from '@/lib/format-currency'
 import { calculateMargin } from '@/lib/calculate-margin'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { useCurrentUser } from '@/hooks/use-current-user'
-import { Button } from '../ui/button'
 
 const INCOME_LABEL = 'Wpłaty'
 const CORRECTION_LABEL = 'Korekty'
@@ -72,9 +73,11 @@ export function FinancialStats({
 
       {isAdminOrOwnerRole(userRole) && (
         <div className="text-muted-foreground mb-4 space-y-1 text-sm">
-          <Button variant="outline" className="border-chart-red">
-            Wypłaty: {totalPayouts}
-          </Button>
+          <StatButton
+            label="Wypłaty"
+            value={formatPLN(totalPayouts)}
+            className="border-chart-red"
+          />
           <SaldoDisplay saldo={margin} label="Marża" />
         </div>
       )}

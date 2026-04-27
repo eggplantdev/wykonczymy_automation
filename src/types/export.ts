@@ -26,4 +26,7 @@ export type TransferTableConfigT = {
   contextId?: number
   headerFields?: HeaderFieldT[]
   totalPayouts?: number
+  totalFilteredAmount?: number
+  /** Defaults to true. Set to false to hide the "Suma kwot" button in TransferFilters. */
+  showTotalAmount?: boolean
 }

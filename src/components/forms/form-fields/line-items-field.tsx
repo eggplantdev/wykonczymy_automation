@@ -1,6 +1,5 @@
 'use client'
 
-import { SelectItem } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { RemoveButton } from '@/components/ui/remove-button'
 import { FileInput } from '@/components/ui/file-input'
@@ -93,18 +92,15 @@ function CategorySelect({
   return (
     <form.AppField name={`lineItems[${index}].${config.fieldName}`}>
       {(field: AppFieldComponentsT) => (
-        <field.Select
+        <field.Combobox
           label={config.label}
           placeholder={config.placeholder}
+          searchPlaceholder={`Szukaj: ${config.label.toLowerCase()}...`}
+          emptyMessage="Nie znaleziono."
+          items={config.options.map((opt) => ({ value: String(opt.id), label: opt.name }))}
           showError
           fieldClassName={fieldClassName}
-        >
-          {config.options.map((opt) => (
-            <SelectItem key={opt.id} value={String(opt.id)}>
-              {opt.name}
-            </SelectItem>
-          ))}
-        </field.Select>
+        />
       )}
     </form.AppField>
   )
