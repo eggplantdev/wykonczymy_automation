@@ -1,4 +1,4 @@
-import { findTransfersRaw } from '@/lib/queries/transfers'
+import { findTransfersRaw, stripCancelledFilters } from '@/lib/queries/transfers'
 import { fetchReferenceData, fetchFilteredByType } from '@/lib/queries/reference-data'
 import { buildTransferRows } from '@/lib/queries/fetch-transfer-rows'
 import { TransferDataTable } from '@/components/transfers/transfer-data-table'
@@ -17,7 +17,9 @@ export async function TransferTableServer({ config }: TransferTableServerPropsT)
   const [rawTxResult, refData, typeDistribution] = await Promise.all([
     findTransfersRaw(config.query),
     fetchReferenceData(),
-    showTotalAmount ? fetchFilteredByType(config.query.where) : Promise.resolve([]),
+    showTotalAmount
+      ? fetchFilteredByType(stripCancelledFilters(config.query.where))
+      : Promise.resolve([]),
   ])
   console.log(`[PERF] TransferTableServer findTransfersRaw + fetchReferenceData ${step()}ms`)
 
