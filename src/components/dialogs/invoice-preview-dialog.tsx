@@ -1,9 +1,11 @@
 'use client'
 
+import { useState } from 'react'
+import Image from 'next/image'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/loader/spinner'
 import { Download, Printer, Replace, Trash2 } from 'lucide-react'
-import { ImageMedia } from '../ImageMedia'
 
 type InvoicePreviewDialogPropsT = {
   url: string
@@ -27,6 +29,7 @@ export function InvoicePreviewDialog({
   const isImage = mimeType?.startsWith('image/')
   const isPdf = mimeType === 'application/pdf'
   const displayName = filename ?? 'Faktura'
+  const [isMediaLoading, setIsMediaLoading] = useState(true)
 
   function handlePrint() {
     const printWindow = window.open('', '_blank')
@@ -49,20 +52,33 @@ export function InvoicePreviewDialog({
       <DialogContent className="h-full sm:max-w-4xl">
         <DialogHeader title={displayName} />
 
-        <div className="flex h-[70vh] min-h-0 w-full flex-1 items-center justify-center">
+        <div className="relative flex h-[70vh] min-h-0 w-full flex-1 items-center justify-center">
+          {(isImage || isPdf) && isMediaLoading && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center">
+              <Spinner />
+            </div>
+          )}
           {isImage && (
-            <ImageMedia
-              containerClass="relative h-full"
-              imgClass="object-contain"
-              sizes="(max-width:1200px) 90vw, 1000px"
-              src={url}
-              alt={displayName}
-              fill
-              quality={50}
-            />
+            <div className="relative h-full w-full">
+              <Image
+                src={url}
+                alt={displayName}
+                fill
+                sizes="(max-width:1200px) 90vw, 1000px"
+                quality={50}
+                className="object-contain"
+                onLoad={() => setIsMediaLoading(false)}
+                onError={() => setIsMediaLoading(false)}
+              />
+            </div>
           )}
           {isPdf && (
-            <iframe src={url} title={displayName} className="h-[70vh] w-full rounded border-0" />
+            <iframe
+              src={url}
+              title={displayName}
+              className="h-[70vh] w-full rounded border-0"
+              onLoad={() => setIsMediaLoading(false)}
+            />
           )}
           {!isImage && !isPdf && (
             <p className="text-muted-foreground text-sm">
