@@ -8,10 +8,11 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { cancelTransferAction } from '@/lib/actions/transfers'
+import {
+  CANCEL_REASON_MAX_LENGTH as REASON_MAX_LENGTH,
+  CANCEL_REASON_MIN_LENGTH as REASON_MIN_LENGTH,
+} from '@/lib/schemas/transfer'
 import { toastMessage } from '@/components/toasts'
-
-const REASON_MIN_LENGTH = 10
-const REASON_MAX_LENGTH = 500
 
 type CancelTransferButtonPropsT = {
   transactionId: number

@@ -139,12 +139,21 @@ export type UpdateTransferFormT = z.infer<typeof updateTransferSchema>
 // Server-side schema for cancelling a transfer — reason is required
 // ---------------------------------------------------------------------------
 
+export const CANCEL_REASON_MIN_LENGTH = 10
+export const CANCEL_REASON_MAX_LENGTH = 500
+
 export const cancelTransferSchema = z.object({
   reason: z
     .string()
     .trim()
-    .min(10, 'Powód anulowania musi mieć min. 10 znaków')
-    .max(500, 'Powód anulowania może mieć maks. 500 znaków'),
+    .min(
+      CANCEL_REASON_MIN_LENGTH,
+      `Powód anulowania musi mieć min. ${CANCEL_REASON_MIN_LENGTH} znaków`,
+    )
+    .max(
+      CANCEL_REASON_MAX_LENGTH,
+      `Powód anulowania może mieć maks. ${CANCEL_REASON_MAX_LENGTH} znaków`,
+    ),
 })
 
 export type CancelTransferFormT = z.infer<typeof cancelTransferSchema>
