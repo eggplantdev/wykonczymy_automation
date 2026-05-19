@@ -1,9 +1,7 @@
 'use client'
 
-import { useTransition } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
 import { ActiveFilterButton } from '@/components/ui/active-filter-button'
-import { buildUrlWithParams } from '@/lib/build-url-with-params'
+import { useToggleSearchParam } from '@/hooks/use-toggle-search-param'
 
 type CancelledTransactionAuditButtonPropsT = {
   baseUrl: string
@@ -12,30 +10,15 @@ type CancelledTransactionAuditButtonPropsT = {
 export function CancelledTransactionAuditButton({
   baseUrl,
 }: CancelledTransactionAuditButtonPropsT) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [, startTransition] = useTransition()
-
-  const isCancelledTransactionAudit = searchParams.get('cancelledTransactionAudit') === '1'
-
-  function toggle(nextActive: boolean) {
-    const overrides: Record<string, string> = {
-      cancelledTransactionAudit: nextActive ? '1' : '',
-      page: '',
-    }
-    // Entering audit mode clears type + showCancelled (audit overrides them)
-    if (nextActive) {
-      overrides.type = ''
-      overrides.showCancelled = ''
-    }
-    const url = buildUrlWithParams(baseUrl, searchParams.toString(), overrides)
-    startTransition(() => router.replace(url, { scroll: false }))
-  }
+  // Entering audit mode clears type + showCancelled (audit overrides them)
+  const { isActive, setActive } = useToggleSearchParam(baseUrl, 'cancelledTransactionAudit', {
+    clearOnEnable: ['type', 'showCancelled'],
+  })
 
   return (
     <ActiveFilterButton
-      isActive={isCancelledTransactionAudit}
-      onChange={toggle}
+      isActive={isActive}
+      onChange={setActive}
       activeLabel="Tryb anulowań"
       allLabel="Tryb anulowań"
     />

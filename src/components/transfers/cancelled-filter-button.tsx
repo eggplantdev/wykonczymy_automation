@@ -1,33 +1,22 @@
 'use client'
 
-import { useTransition } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
 import { ActiveFilterButton } from '@/components/ui/active-filter-button'
-import { buildUrlWithParams } from '@/lib/build-url-with-params'
+import { useToggleSearchParam } from '@/hooks/use-toggle-search-param'
 
 type CancelledFilterButtonPropsT = {
   baseUrl: string
 }
 
 export function CancelledFilterButton({ baseUrl }: CancelledFilterButtonPropsT) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [, startTransition] = useTransition()
-
-  const showCancelled = searchParams.get('showCancelled') === '1'
-
-  function toggleCancelled(hideCancelled: boolean) {
-    const url = buildUrlWithParams(baseUrl, searchParams.toString(), {
-      showCancelled: hideCancelled ? '' : '1',
-      page: '',
-    })
-    startTransition(() => router.replace(url, { scroll: false }))
-  }
+  const { isActive: showCancelled, setActive: setShowCancelled } = useToggleSearchParam(
+    baseUrl,
+    'showCancelled',
+  )
 
   return (
     <ActiveFilterButton
       isActive={!showCancelled}
-      onChange={toggleCancelled}
+      onChange={(hideCancelled) => setShowCancelled(!hideCancelled)}
       activeLabel="Anulowane ukryte"
       allLabel="Anulowane widoczne"
     />
