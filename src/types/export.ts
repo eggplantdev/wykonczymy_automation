@@ -29,4 +29,5 @@ export type TransferTableConfigT = {
   totalFilteredAmount?: number
   /** Defaults to true. Set to false to hide the "Suma kwot" button in TransferFilters. */
   showTotalAmount?: boolean
+  cancelledTransactionAudit?: boolean
 }

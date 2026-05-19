@@ -117,20 +117,28 @@ export function buildTransferFilters(
     where.createdBy = { equals: userContext.id }
   }
 
-  // Hide cancelled transfers by default (cancelled originals + CANCELLATION type)
-  const showCancelled = getStringParam(searchParams.showCancelled) === '1'
+  // Audit mode — show only CANCELLATION rows for the period; originals are merged in by the caller
+  const cancelledTransactionAudit = getStringParam(searchParams.cancelledTransactionAudit) === '1'
 
-  // Type filter (supports comma-separated multi-select)
-  const typeParam = getStringParam(searchParams.type)
-  if (typeParam) {
-    let types = typeParam
-      .split(',')
-      .filter((t) => (TRANSFER_TYPES as readonly string[]).includes(t))
-    if (!showCancelled) types = types.filter((t) => t !== 'CANCELLATION')
-    if (types.length > 0) where.type = { in: types }
-    else where.id = NO_RESULTS // No valid types → return no results
-  } else if (!showCancelled) {
-    where.type = { not_in: ['CANCELLATION'] }
+  // Hide cancelled transfers by default (cancelled originals + CANCELLATION type)
+  const showCancelled =
+    getStringParam(searchParams.showCancelled) === '1' || cancelledTransactionAudit
+
+  if (cancelledTransactionAudit) {
+    where.type = { in: ['CANCELLATION'] }
+  } else {
+    // Type filter (supports comma-separated multi-select)
+    const typeParam = getStringParam(searchParams.type)
+    if (typeParam) {
+      let types = typeParam
+        .split(',')
+        .filter((t) => (TRANSFER_TYPES as readonly string[]).includes(t))
+      if (!showCancelled) types = types.filter((t) => t !== 'CANCELLATION')
+      if (types.length > 0) where.type = { in: types }
+      else where.id = NO_RESULTS // No valid types → return no results
+    } else if (!showCancelled) {
+      where.type = { not_in: ['CANCELLATION'] }
+    }
   }
 
   if (!showCancelled) {
@@ -205,6 +213,23 @@ export function buildTransferFilters(
   }
 
   return where
+}
+
+/**
+ * Fetch transactions by raw IDs, bypassing all filters (used by audit mode to splice
+ * cancellation originals into the page result regardless of period or cancelled status).
+ */
+export async function findTransfersByIds(ids: number[]): Promise<RawTransferDocT[]> {
+  if (ids.length === 0) return []
+  const payload = await getPayload({ config })
+  const result = await payload.find({
+    collection: 'transactions',
+    where: { id: { in: ids } },
+    limit: ids.length,
+    depth: 0,
+    overrideAccess: true,
+  })
+  return result.docs as RawTransferDocT[]
 }
 
 /** Strip cancelled-related conditions from a Where object (for stats queries that handle it in SQL). */

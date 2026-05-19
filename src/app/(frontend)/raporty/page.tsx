@@ -65,6 +65,7 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
           filters: buildFilterConfig(refData),
           headerFields,
           totalPayouts: financials.totalPayouts,
+          cancelledTransactionAudit: sp.cancelledTransactionAudit === '1',
         }}
       />
     </PageWrapper>

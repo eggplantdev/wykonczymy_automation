@@ -4,6 +4,7 @@ import { DataTable } from '@/components/ui/data-table/data-table'
 import { ColumnToggle } from '@/components/ui/column-toggle'
 import { PaginationFooter } from '@/components/ui/pagination-footer'
 import { CancelledFilterButton } from '@/components/transfers/cancelled-filter-button'
+import { CancelledTransactionAuditButton } from '@/components/transfers/cancelled-transaction-audit-button'
 import { TransferFilters } from '@/components/transfers/transfer-filters'
 import { TransferExportToolbar } from '@/components/transfers/transfer-export-toolbar'
 import { getTransferColumns, type TransferRowT } from '@/lib/tables/transfers'
@@ -50,6 +51,7 @@ export function TransferDataTable({
         }}
         toolbar={(table, cv, sorting) => (
           <div className="ml-auto flex items-center gap-2">
+            <CancelledTransactionAuditButton baseUrl={baseUrl} />
             <CancelledFilterButton baseUrl={baseUrl} />
             {headerFields && headerFields.length > 0 && (
               <TransferExportToolbar config={config} columnVisibility={cv} sorting={sorting} />

@@ -89,6 +89,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
           contextId: investmentId,
           headerFields,
           totalPayouts: financials.totalPayouts,
+          cancelledTransactionAudit: sp.cancelledTransactionAudit === '1',
         }}
       />
     </PageWrapper>

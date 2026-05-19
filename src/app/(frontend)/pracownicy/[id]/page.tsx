@@ -74,6 +74,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
             'type',
           ]),
           headerFields,
+          cancelledTransactionAudit: sp.cancelledTransactionAudit === '1',
         }}
       />
     </PageWrapper>

@@ -79,6 +79,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
           context: 'register',
           contextId: registerId,
           headerFields,
+          cancelledTransactionAudit: sp.cancelledTransactionAudit === '1',
         }}
       />
     </PageWrapper>

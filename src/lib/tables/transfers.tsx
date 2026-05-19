@@ -236,10 +236,35 @@ const allColumns = [
     header: EXPENSE_CATEGORY_LABEL,
     cell: (info) => info.getValue(),
   }),
+  // TODO: add click-to-expand for long descriptions.
+  // Tried a `<DescriptionCell>` client component with `useState` + `line-clamp-3`
+  // toggle on a `<button>` inside this cell. Click handler appeared not to update
+  // the rendered output (button "rendered once and not responding"). Root cause
+  // unclear — suspects: React Compiler memoization of the cell render, TanStack
+  // Table re-creating the cell node per parent render, or a Tailwind `display`
+  // conflict between `block` and `line-clamp-3`. Revisit when overflow becomes
+  // a real problem.
   col.accessor('description', {
     id: 'description',
     header: 'Opis',
-    cell: (info) => info.getValue(),
+    cell: (info) => {
+      const row = info.row.original
+      const value = info.getValue()
+      if (row.type === 'CANCELLATION') {
+        const colonIdx = value.indexOf(': ')
+        if (colonIdx !== -1) {
+          const prefix = value.slice(0, colonIdx + 1)
+          const reason = value.slice(colonIdx + 2)
+          return (
+            <div className="flex flex-col gap-0.5 leading-tight">
+              <span className="text-muted-foreground text-xs">{prefix}</span>
+              <span className="font-medium">{reason}</span>
+            </div>
+          )
+        }
+      }
+      return value
+    },
   }),
   col.accessor('otherCategoryName', {
     id: 'otherCategory',

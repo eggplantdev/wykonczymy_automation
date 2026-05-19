@@ -1,4 +1,8 @@
-import { findTransfersRaw, stripCancelledFilters } from '@/lib/queries/transfers'
+import {
+  findTransfersRaw,
+  findTransfersByIds,
+  stripCancelledFilters,
+} from '@/lib/queries/transfers'
 import { fetchReferenceData, fetchFilteredByType } from '@/lib/queries/reference-data'
 import { buildTransferRows } from '@/lib/queries/fetch-transfer-rows'
 import { TransferDataTable } from '@/components/transfers/transfer-data-table'
@@ -23,7 +27,24 @@ export async function TransferTableServer({ config }: TransferTableServerPropsT)
   ])
   console.log(`[PERF] TransferTableServer findTransfersRaw + fetchReferenceData ${step()}ms`)
 
-  const rows = await buildTransferRows(rawTxResult.docs, refData, { skipMedia })
+  // Cancelled-transaction audit mode — pull originals referenced by each CANCELLATION row and splice them in directly above
+  let pageDocs = rawTxResult.docs
+  if (config.cancelledTransactionAudit) {
+    const originalIds = pageDocs
+      .map((d) => d.cancelledTransaction)
+      .filter((v): v is number => typeof v === 'number')
+    if (originalIds.length > 0) {
+      const originals = await findTransfersByIds(originalIds)
+      const originalsById = new Map(originals.map((o) => [o.id as number, o]))
+      pageDocs = pageDocs.flatMap((doc) => {
+        const orig = originalsById.get(doc.cancelledTransaction as number)
+        return orig ? [orig, doc] : [doc]
+      })
+    }
+    console.log(`[PERF] TransferTableServer audit-mode pair fetch ${step()}ms`)
+  }
+
+  const rows = await buildTransferRows(pageDocs, refData, { skipMedia })
   console.log(`[PERF] TransferTableServer buildTransferRows ${step()}ms`)
 
   // Server-derived sum overrides any caller-provided value. Single source of truth.
