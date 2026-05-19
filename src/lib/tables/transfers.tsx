@@ -247,24 +247,7 @@ const allColumns = [
   col.accessor('description', {
     id: 'description',
     header: 'Opis',
-    cell: (info) => {
-      const row = info.row.original
-      const value = info.getValue()
-      if (row.type === 'CANCELLATION') {
-        const colonIdx = value.indexOf(': ')
-        if (colonIdx !== -1) {
-          const prefix = value.slice(0, colonIdx + 1)
-          const reason = value.slice(colonIdx + 2)
-          return (
-            <div className="flex flex-col gap-0.5 leading-tight">
-              <span className="text-muted-foreground text-xs">{prefix}</span>
-              <span className="font-medium">{reason}</span>
-            </div>
-          )
-        }
-      }
-      return value
-    },
+    cell: (info) => <span className="whitespace-pre-line">{info.getValue()}</span>,
   }),
   col.accessor('otherCategoryName', {
     id: 'otherCategory',

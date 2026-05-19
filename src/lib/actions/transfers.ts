@@ -213,7 +213,7 @@ export async function cancelTransferAction(transferId: number, data: CancelTrans
           type: 'CANCELLATION',
           amount: original.amount,
           date: today,
-          description: `Anulowanie transakcji #${transferId}: ${parsed.data.reason}`,
+          description: `Anulowanie transakcji #${transferId}\n${parsed.data.reason}`,
           paymentMethod: original.paymentMethod,
           cancelledTransaction: transferId,
           createdBy: user.id,

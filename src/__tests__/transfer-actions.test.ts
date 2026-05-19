@@ -587,7 +587,7 @@ describe('cancelTransferAction', () => {
           type: 'CANCELLATION',
           amount: 777,
           date: today,
-          description: 'Anulowanie transakcji #10',
+          description: `Anulowanie transakcji #10\n${VALID_CANCEL_REASON}`,
           paymentMethod: 'CASH',
           cancelledTransaction: 10,
           createdBy: adminUser.id,
