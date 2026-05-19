@@ -12,7 +12,7 @@ export type PaginationParamsT = {
 
 type SearchParamsT = Record<string, string | string[] | undefined>
 
-export const DEFAULT_LIMIT = 20
+export const DEFAULT_LIMIT = 100
 export const ALLOWED_LIMITS: number[] = [20, 50, 100]
 
 export function parsePagination(searchParams: SearchParamsT): PaginationParamsT {
