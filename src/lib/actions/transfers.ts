@@ -7,8 +7,10 @@ import {
 import { canMutateTransfer } from '@/lib/auth/roles'
 import { perfStart } from '@/lib/perf'
 import {
+  cancelTransferSchema,
   createTransferSchema,
   updateTransferSchema,
+  type CancelTransferFormT,
   type CreateTransferFormT,
   type UpdateTransferFormT,
 } from '@/lib/schemas/transfer'
@@ -179,11 +181,15 @@ async function fetchAndAuthorize(
   return { original }
 }
 
-export async function cancelTransferAction(transferId: number) {
+export async function cancelTransferAction(transferId: number, data: CancelTransferFormT) {
   return protectedAction(
     'cancelTransferAction',
     async ({ payload, user }) => {
       const step = perfStart()
+
+      const parsed = validateAction(cancelTransferSchema, data)
+      if (!parsed.success) return parsed
+      console.log(`[PERF]   validateAction ${step()}ms`)
 
       const result = await fetchAndAuthorize(payload, user, transferId, 'anulowania')
       console.log(`[PERF]   findByID(${transferId}) ${step()}ms`)
@@ -207,7 +213,7 @@ export async function cancelTransferAction(transferId: number) {
           type: 'CANCELLATION',
           amount: original.amount,
           date: today,
-          description: `Anulowanie transakcji #${transferId}`,
+          description: `Anulowanie transakcji #${transferId}: ${parsed.data.reason}`,
           paymentMethod: original.paymentMethod,
           cancelledTransaction: transferId,
           createdBy: user.id,

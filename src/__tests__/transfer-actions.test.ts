@@ -480,7 +480,7 @@ describe('cancelTransferAction', () => {
   it('success → marks original cancelled + creates CANCELLATION audit row', async () => {
     mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: adminUser.id }))
 
-    const result = await cancelTransferAction(10)
+    const result = await cancelTransferAction(10, { reason: 'Test reason at least ten chars' })
 
     expect(result.success).toBe(true)
 
@@ -510,7 +510,7 @@ describe('cancelTransferAction', () => {
   it('transfer not found → returns error', async () => {
     mockFindByID.mockResolvedValueOnce(null)
 
-    const result = await cancelTransferAction(999)
+    const result = await cancelTransferAction(999, { reason: 'Test reason at least ten chars' })
 
     expect(result.success).toBe(false)
     if (!result.success) expect(result.error).toBe('Transakcja nie istnieje.')
@@ -521,7 +521,7 @@ describe('cancelTransferAction', () => {
   it('already cancelled → returns error', async () => {
     mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ cancelled: true }))
 
-    const result = await cancelTransferAction(10)
+    const result = await cancelTransferAction(10, { reason: 'Test reason at least ten chars' })
 
     expect(result.success).toBe(false)
     if (!result.success) expect(result.error).toBe('Transakcja jest już anulowana.')
@@ -533,7 +533,7 @@ describe('cancelTransferAction', () => {
     mockRequireAuth.mockResolvedValueOnce({ success: true, user: managerUser })
     mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: managerUser.id }))
 
-    const result = await cancelTransferAction(10)
+    const result = await cancelTransferAction(10, { reason: 'Test reason at least ten chars' })
 
     expect(result.success).toBe(true)
   })
@@ -542,7 +542,7 @@ describe('cancelTransferAction', () => {
     mockRequireAuth.mockResolvedValueOnce({ success: true, user: adminUser })
     mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: managerUser.id }))
 
-    const result = await cancelTransferAction(10)
+    const result = await cancelTransferAction(10, { reason: 'Test reason at least ten chars' })
 
     expect(result.success).toBe(true)
   })
@@ -551,7 +551,7 @@ describe('cancelTransferAction', () => {
     mockRequireAuth.mockResolvedValueOnce({ success: true, user: ownerUser })
     mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: managerUser.id }))
 
-    const result = await cancelTransferAction(10)
+    const result = await cancelTransferAction(10, { reason: 'Test reason at least ten chars' })
 
     expect(result.success).toBe(true)
   })
@@ -560,7 +560,7 @@ describe('cancelTransferAction', () => {
     mockRequireAuth.mockResolvedValueOnce({ success: true, user: otherManagerUser })
     mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: managerUser.id }))
 
-    const result = await cancelTransferAction(10)
+    const result = await cancelTransferAction(10, { reason: 'Test reason at least ten chars' })
 
     expect(result.success).toBe(false)
     if (!result.success) {
@@ -575,7 +575,7 @@ describe('cancelTransferAction', () => {
       makeOriginalTransfer({ createdBy: adminUser.id, amount: 777, paymentMethod: 'CASH' }),
     )
 
-    await cancelTransferAction(10)
+    await cancelTransferAction(10, { reason: 'Test reason at least ten chars' })
 
     const today = new Date().toISOString().split('T')[0]
     expect(mockCreate).toHaveBeenCalledWith(
@@ -600,7 +600,7 @@ describe('cancelTransferAction', () => {
     )
     mockRequireAuth.mockResolvedValueOnce({ success: true, user: managerUser })
 
-    const result = await cancelTransferAction(10)
+    const result = await cancelTransferAction(10, { reason: 'Test reason at least ten chars' })
 
     expect(result.success).toBe(true)
   })
@@ -609,7 +609,7 @@ describe('cancelTransferAction', () => {
     mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: adminUser.id }))
     mockUpdate.mockRejectedValueOnce(new Error('Update failed'))
 
-    const result = await cancelTransferAction(10)
+    const result = await cancelTransferAction(10, { reason: 'Test reason at least ten chars' })
 
     expect(result.success).toBe(false)
     if (!result.success) expect(result.error).toBe('Update failed')
@@ -621,7 +621,7 @@ describe('cancelTransferAction', () => {
     mockUpdate.mockResolvedValueOnce({ id: 10 })
     mockCreate.mockRejectedValueOnce(new Error('Audit row creation failed'))
 
-    const result = await cancelTransferAction(10)
+    const result = await cancelTransferAction(10, { reason: 'Test reason at least ten chars' })
 
     expect(result.success).toBe(false)
     if (!result.success) expect(result.error).toBe('Audit row creation failed')
@@ -630,7 +630,7 @@ describe('cancelTransferAction', () => {
   it('findByID called with correct collection and depth 0', async () => {
     mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ createdBy: adminUser.id }))
 
-    await cancelTransferAction(10)
+    await cancelTransferAction(10, { reason: 'Test reason at least ten chars' })
 
     expect(mockFindByID).toHaveBeenCalledWith(
       expect.objectContaining({
