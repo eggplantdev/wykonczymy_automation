@@ -32,6 +32,7 @@ const ENTITY_FILTER_KEYS = [
   'otherCategory',
   'expenseCategory',
   'amount',
+  'id',
 ] as const
 
 type TransferFiltersPropsT = {
@@ -82,6 +83,7 @@ export function TransferFilters({
   const getMultiParam = (key: string) => (searchParams.get(key) ?? '').split(',').filter(Boolean)
 
   const currentAmount = searchParams.get('amount') ?? ''
+  const currentId = searchParams.get('id') ?? ''
   const currentTypes = getMultiParam('type')
   const currentSourceRegisters = getMultiParam('sourceRegister')
   const currentInvestments = getMultiParam('investment')
@@ -199,6 +201,15 @@ export function TransferFilters({
             debounceMs={DEBOUNCE_MS}
           />
 
+          <SearchFilterInput
+            value={currentId}
+            onChange={(v) => updateParam('id', stripNonDigits(v))}
+            placeholder="ID"
+            inputMode="numeric"
+            inputClassName="w-24 lg:w-28"
+            debounceMs={DEBOUNCE_MS}
+          />
+
           <ClearButton onClick={clearEntityFilters} disabled={!hasEntityFilters}>
             Wyczyść filtry
           </ClearButton>
@@ -215,4 +226,10 @@ export function TransferFilters({
       )}
     </div>
   )
+}
+
+// Drops any character that isn't 0–9 (e.g. user paste with spaces, commas, "#" prefix).
+// Keeps the ID input safe to pass as a numeric URL param without further validation.
+function stripNonDigits(value: string): string {
+  return value.replace(/\D/g, '')
 }

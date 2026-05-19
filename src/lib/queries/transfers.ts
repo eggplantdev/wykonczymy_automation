@@ -189,6 +189,12 @@ export function buildTransferFilters(
     where.amount = { like: amountParam }
   }
 
+  // ID search — exact match. Defers to NO_RESULTS if another filter already short-circuited.
+  const idParam = getStringParam(searchParams.id)
+  if (idParam && /^\d+$/.test(idParam) && !where.id) {
+    where.id = { equals: Number(idParam) }
+  }
+
   // Date range
   const fromParam = getStringParam(searchParams.from)
   const toParam = getStringParam(searchParams.to)
