@@ -2,4 +2,9 @@ pnpm run typecheck
 pnpm vitest run
 
 echo "Dumping production DB from Neon..."
-pnpm db:dump
+if pnpm db:dump && [ -s dumps/dump-latest.sql ]; then
+  echo "✅ DB dump succeeded ($(du -h dumps/dump-latest.sql | cut -f1))"
+else
+  echo "❌ DB dump failed or produced empty file"
+  exit 1
+fi
