@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { createUniver, LocaleType, mergeLocales } from '@univerjs/presets'
 import { UniverSheetsCorePreset } from '@univerjs/preset-sheets-core'
 import UniverPresetSheetsCoreEnUS from '@univerjs/preset-sheets-core/locales/en-US'
+import plPL from './locales/pl-PL'
 
 import '@univerjs/preset-sheets-core/lib/index.css'
 
@@ -69,7 +70,7 @@ export function KosztorysSpike({ investmentId, investmentName }: KosztorysSpikeP
         const { univerAPI } = createUniver({
           locale: LocaleType.EN_US,
           locales: {
-            [LocaleType.EN_US]: mergeLocales(UniverPresetSheetsCoreEnUS),
+            [LocaleType.EN_US]: mergeLocales(UniverPresetSheetsCoreEnUS, plPL),
           },
           presets: [
             UniverSheetsCorePreset({
