@@ -15,10 +15,10 @@ export default function FrontendLayout({ children }: { children: React.ReactNode
   return (
     <html
       lang="pl"
-      className={cn(abcFavorit.variable, spaceMono.variable, 'antialiased')}
+      className={cn(abcFavorit.variable, spaceMono.variable, 'overscroll-none antialiased')}
       suppressHydrationWarning
     >
-      <body className="bg-background text-foreground relative min-h-screen overscroll-none scroll-smooth">
+      <body className="bg-background text-foreground relative min-h-screen scroll-smooth">
         <Suspense fallback={<Loader loading={true} />}>
           <AuthenticatedShell>{children}</AuthenticatedShell>
         </Suspense>

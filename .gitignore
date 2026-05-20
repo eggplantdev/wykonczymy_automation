@@ -69,3 +69,6 @@ dump.sql
 
 # local codex skills package
 /codex-skills/
+
+# kosztorys xlsx source (converted to JSON in src/data/)
+/Kopia kosztorys wzór dla konrada do testów.xlsx
