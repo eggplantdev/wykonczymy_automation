@@ -2,7 +2,6 @@ import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner } from '@/access'
 import { validateTransfer } from '@/hooks/transfers/validate'
 import { recalcAfterChange, recalcAfterDelete } from '@/hooks/transfers/recalculate-balances'
-import { appendMaterialToKosztorys } from '@/hooks/transfers/append-material-to-kosztorys'
 
 const TRANSFER_TYPES = [
   { label: { en: 'Investor Deposit', pl: 'Wpłata od inwestora' }, value: 'INVESTOR_DEPOSIT' },
@@ -67,7 +66,7 @@ export const Transfers: CollectionConfig = {
   },
   hooks: {
     beforeValidate: [validateTransfer],
-    afterChange: [recalcAfterChange, appendMaterialToKosztorys],
+    afterChange: [recalcAfterChange],
     afterDelete: [recalcAfterDelete],
   },
   fields: [

@@ -276,7 +276,7 @@ The spike was useful: it forced the conversation that surfaced these gaps in con
 ### What we keep / archive / discard if we pivot to B-iframe
 
 - **Keep:** the xlsx → IWorkbookData converter (still useful as a template seeder if we want to push our cleaned-up version to a new Sheet via Sheets API)
-- **Keep:** the hook architecture in `src/hooks/transfers/append-material-to-kosztorys.ts` — same shape, retarget from `putWorkbook(blob)` to `sheets.spreadsheets.values.append`
+- ~~**Keep:** the hook architecture in `src/hooks/transfers/append-material-to-kosztorys.ts` — same shape, retarget from `putWorkbook(blob)` to `sheets.spreadsheets.values.append`~~ **Superseded (2026-05-20):** the side effect moved to the server action layer (`src/lib/actions/transfers.ts`) per project convention; the hook was deleted, not retargeted.
 - **Archive:** `src/app/(frontend)/kosztorys-spike/**` and `src/app/(frontend)/api/kosztorys/**` — leave in place for archaeology, or delete in a follow-up
 - **Discard:** `src/lib/kosztorys/blob.ts`, `src/lib/kosztorys/append-material.ts` (Blob-specific), `public/data/kosztorys-workbook.json` (no longer the source of truth)
 - **Uninstall:** `@univerjs/presets`, `@univerjs/preset-sheets-core`, `@vercel/blob`

@@ -2,13 +2,30 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Wire one investment (id 31, "11 Listopada 40") end-to-end so creating a Wydatek inwestycyjny with category Materiały budowlane/wykończeniowe appends a row to the linked Google Sheet's `materiały ` tab and the row appears in an in-app iframe view of the sheet within seconds. Lock the materiały tab to service-account-only edits.
+**Goal:** Wire one investment (id 31, "11 Listopada 40") end-to-end so creating a Wydatek inwestycyjny with category Materiały budowlane/wykończeniowe appends a row to the linked Google Sheet's `materiały ` tab and the row appears in an in-app iframe view of the sheet within seconds.
 
-**Architecture:** Payload `afterChange` hook on `transactions` collection → Google Sheets API `values.append` against `'materiały '!A:H` of the investment's linked sheet → also applies an idempotent protected range on the materiały tab so only the service account can edit it. In-app route `/kosztorys/[investmentId]` renders `<iframe src="https://docs.google.com/spreadsheets/d/{id}/edit?embedded=true&rm=embedded">` so the owner sees the live sheet inside our app, with Google's native sync propagating both their edits and the app's pushes to all open viewers.
+**Architecture:** Server action `createTransferAction` (and `createBulkTransferAction`) in `src/lib/actions/transfers.ts`, after `payload.create` succeeds → Google Sheets API `values.append` against `'materiały '!A:H` of the investment's linked sheet. In-app route `/kosztorys/[investmentId]` renders `<iframe src="https://docs.google.com/spreadsheets/d/{id}/edit?embedded=true&rm=embedded">` so the owner sees the live sheet inside our app, with Google's native sync propagating both their edits and the app's pushes to all open viewers.
+
+> **Architecture decision (2026-05-20):** Project convention is "all mutations go through server actions" (CLAUDE.md). The original draft of this plan used a Payload `afterChange` hook; that's been changed to extend the existing server action instead. The Univer spike's hook (`src/hooks/transfers/append-material-to-kosztorys.ts`) is removed entirely in the pre-Task-1 cleanup.
+
+---
+
+## TODO — Deferred: materiały tab protection
+
+**Decision deferred until after PoC trial.** The original draft of this plan applied an idempotent `addProtectedRange` on the materiały tab so only the service account could edit it (with self-heal on every push). For the PoC we skip protection entirely — both the function and any call to it. Materiały is editable by the owner and team in the iframe like any other tab.
+
+**Why this needs careful consideration before re-enabling:**
+
+- Protection covers the whole tab, including label cells (A2, E2 "Materiały budowlane/wykończeniowe") and SUM cells (B1, F1) — owner cannot adjust those without removing the protection
+- Self-heal-on-every-push means an owner intentionally removing the protection (to fix something) gets it back on the next transfer create; that may surprise them more than help them
+- Without protection, accidental edits to app-managed rows in materiały will happen and there is no audit trail — drift between Postgres `transactions` and the sheet's materiały rows is silent
+- The owner trial **without** protection is itself the larger experiment: does the team's discipline / Drive sharing model handle this on its own, or is the lock genuinely needed?
+
+**Re-evaluate after the one-week trial.** If owners report accidental edits to materiały, add protection back: Task 2 still includes the protection steps in the body (marked DEFERRED below) so the code is pre-designed and can be implemented in a follow-up.
 
 **Tech Stack:** Next.js 16 App Router, Payload CMS 3.73, `googleapis` SDK (server-side service account JWT auth), existing Postgres for `googleSheetId` on Investments, Vitest for the sheets-client unit tests.
 
-**Context references:** Background, decision history, and PoC scope in `docs/plans/2026-05-20-kosztorys-sheets-integration.md`. Univer/Blob spike (committed as `fcbf647`) stays in place during the PoC for side-by-side comparison; its cleanup is Task 7 (optional, deferred until owner trial passes).
+**Context references:** Background, decision history, and PoC scope in `docs/plans/2026-05-20-kosztorys-sheets-integration.md`. Univer/Blob spike (committed as `fcbf647`) was removed in the pre-Task-1 cleanup commit — the spike's hook is no longer present, and the side effect now lives in the transfer server action (Task 4).
 
 ---
 
@@ -17,17 +34,25 @@
 These are manual setup steps the engineer cannot do. Confirm these are complete before starting Task 1.
 
 - [ ] **Google Cloud project** — pick or create one (owner's call where it lives)
-- [ ] **APIs enabled in that project:** Google Sheets API, Google Drive API
+- [ ] **APIs enabled in that project:** Google Sheets API **and Google Drive API** (both required — Sheets API for row append/delete, Drive API for auto-provisioning new sheets on investment creation)
 - [ ] **Service account created** in IAM → Service Accounts → "Create"; no roles needed
 - [ ] **Service account JSON key downloaded** (the full JSON file)
-- [ ] **Test sheet shared with the service account email** at Editor access. For the PoC this is the sheet owner intends to use for investment 31. (The service account email looks like `name@project-id.iam.gserviceaccount.com`.)
-- [ ] **`.env` updated** with the JSON pasted as a single-line string:
+- [ ] **Template sheet** — clean kosztorys (no transactions, just the structure: tabs `kosztorys_robocizny`, `materiały ` with trailing space, `pokoje `, `Podsumowanie`, etc.). Owner-maintained, source of every new auto-provisioned sheet.
+- [ ] **Template sheet shared with the service account email** at Editor access. (Editor needed — `drive.files.copy` requires read of the file and `files.create` parent permissions.)
+- [ ] **Template sheet's file ID noted** (long string between `/d/` and `/edit` in the URL).
+- [ ] **(Optional) Destination Drive folder** for all auto-provisioned sheets. Service account needs Editor on this folder.
+- [ ] **Existing investment 31's sheet shared with the service account email** at Editor access. (For the PoC trial — investment 31 was created before auto-provisioning existed, so its sheet was made manually. Owner pastes its ID into investment 31's `googleSheetId` field after Task 4 lands.)
+- [ ] **`.env` updated** with:
   ```
   GOOGLE_SERVICE_ACCOUNT_JSON='{"type":"service_account",...whole JSON...}'
+  KOSZTORYS_TEMPLATE_SHEET_ID='1AbC...XyZ'
+  # optional:
+  KOSZTORYS_DRIVE_FOLDER_ID='1FoldERid...'
   ```
-- [ ] **Sheet ID** of the test sheet noted somewhere (the long string between `/d/` and `/edit` in the sheet URL). Will be pasted into investment 31's `googleSheetId` field after Task 3 lands.
 
-Until all of these are checked, the build cannot complete Task 6 (E2E verification), and Tasks 2–4 cannot be smoke-tested against the real API.
+**No backfill for existing investments.** Investments created before auto-provisioning ships (everything except those created via `createInvestmentAction` after Task 8) will NOT auto-get a sheet. If the owner wants a sheet for an existing investment, they create one manually (copy template) and paste its ID into the `googleSheetId` field in the admin panel. Investment 31 is the working example of this manual path during the PoC trial.
+
+Until all of these are checked, the build cannot complete Task 9 (E2E verification), and Tasks 2–8 cannot be smoke-tested against the real API.
 
 ---
 
@@ -43,7 +68,7 @@ Files this plan creates or modifies:
 | `src/__tests__/lib/google/sheets.test.ts`                     | create | Unit tests for the sheets client (mocks `googleapis`)                    |
 | `src/migrations/{generated}.ts`                               | create | Adds `googleSheetId` column to `investments` table                       |
 | `src/collections/investments.ts`                              | modify | Declares the `googleSheetId` field                                       |
-| `src/hooks/transfers/append-material-to-kosztorys.ts`         | modify | Swap Blob calls for Sheets API; add protection call                      |
+| `src/lib/actions/transfers.ts`                                | modify | Sync materiały append to Sheets after `payload.create` (replaces hook)   |
 | `src/app/(frontend)/kosztorys/[investmentId]/page.tsx`        | create | Server: load investment, render iframe via `googleSheetId`               |
 | `src/app/(frontend)/kosztorys/[investmentId]/iframe-view.tsx` | create | Client: thin iframe wrapper (gets sheet id as prop)                      |
 
@@ -54,7 +79,7 @@ Files this plan does NOT touch (deferred to Task 7):
 - `src/lib/kosztorys/**` — Blob lib stays
 - `public/data/kosztorys-workbook.json` — generated workbook stays
 
-The retargeted hook (`src/hooks/transfers/append-material-to-kosztorys.ts`) replaces its Blob target with Sheets — the file path stays the same so the wiring in `src/collections/transfers.ts` doesn't need updating.
+The spike's Payload `afterChange` hook (`src/hooks/transfers/append-material-to-kosztorys.ts`) is gone. Its side-effect responsibility moves into the existing `createTransferAction` / `createBulkTransferAction` server actions in `src/lib/actions/transfers.ts` (per project convention — all mutations go through server actions). The `appendMaterialToKosztorys` reference was already removed from `src/collections/transfers.ts`'s `afterChange` array during the pre-Task-1 cleanup.
 
 ---
 
@@ -147,7 +172,9 @@ EOF
 - Create: `src/lib/google/sheets.ts`
 - Create: `src/__tests__/lib/google/sheets.test.ts`
 
-This task owns two responsibilities: authenticating with the service account, and exposing two operations — `appendMaterialRow` (writes one row to materiały) and `ensureMaterialyProtection` (idempotently locks materiały to service-account-only edits).
+This task owns service-account auth + `appendMaterialRow` (writes one row to materiały).
+
+> **DEFERRED:** Steps 5–8 below (`ensureMaterialyProtection` function + its three unit tests) are skipped for the PoC per the TODO at the top of this plan. Leave the steps in place as design documentation for the follow-up. Stop after Step 4 and jump to Step 9 (commit) — the commit body should reflect that only `appendMaterialRow` was built.
 
 Column layout in the materiały tab (0-based):
 
@@ -547,105 +574,128 @@ EOF
 
 ---
 
-### Task 4: Retarget the transfer hook from Blob to Sheets API
+### Task 4: Trigger the Sheets append from the transfer server action
 
 **Files:**
 
-- Modify: `src/hooks/transfers/append-material-to-kosztorys.ts`
+- Modify: `src/lib/actions/transfers.ts`
 
-This task swaps the Blob storage calls for the new Sheets client. The hook's shape — fire-and-forget, filters by transfer type + category, looks up investment id — stays the same.
+> **REVISED (2026-05-20):** Original task retargeted a Payload `afterChange` hook from Blob to Sheets. Per project convention ("all mutations through server actions"), the hook has been removed entirely in the pre-Task-1 cleanup; this task now extends `createTransferAction` (and `createBulkTransferAction`) directly. Fire-and-forget semantics preserved — Sheets errors log but never fail the action.
 
-- [ ] **Step 1: Read the current hook**
+> **DEFERRED:** No call to `ensureMaterialyProtection` per the TODO at the top of this plan. Only `appendMaterialRow` is called from the server action.
 
-Read: `src/hooks/transfers/append-material-to-kosztorys.ts` to refresh context on the current implementation.
+- [ ] **Step 1: Read the current server actions**
 
-- [ ] **Step 2: Replace the file with the Sheets-API implementation**
+Read: `src/lib/actions/transfers.ts` — note the shape of `createTransferAction` (line ~26) and `createBulkTransferAction` (line ~72). Both call `payload.create({ collection: 'transactions', ... })` inside a `protectedAction()` wrapper. The Sheets append needs to fire AFTER `payload.create` returns successfully, with the created doc's `id` and `description` available.
 
-Overwrite `src/hooks/transfers/append-material-to-kosztorys.ts` with:
+- [ ] **Step 2: Add a Sheets-sync helper inside the actions file**
+
+Add this helper near the top of `src/lib/actions/transfers.ts` (after imports, before the first action):
 
 ```ts
-import type { CollectionAfterChangeHook } from 'payload'
-import { appendMaterialRow, ensureMaterialyProtection } from '@/lib/google/sheets'
-import type { MaterialKindT } from '@/lib/google/sheets'
+import { appendMaterialRow, type MaterialKindT } from '@/lib/google/sheets'
 
 const MATERIAL_CATEGORY_KIND: Record<string, MaterialKindT> = {
   'Materiały budowlane': 'budowlane',
   'Materiały wykończeniowe': 'wykończeniowe',
 }
 
-function resolveId(value: unknown): number | undefined {
-  if (typeof value === 'number') return value
-  if (typeof value === 'object' && value !== null && 'id' in value) {
-    return (value as { id: number }).id
-  }
-  return undefined
-}
-
 /**
- * afterChange — when a new INVESTMENT_EXPENSE with category Materiały budowlane
- * or wykończeniowe is created on an investment that has a linked Google Sheet
- * (`googleSheetId`), append a row to the materiały tab via Sheets API. Also
- * idempotently re-applies the materiały protection so a row's edit-lock
- * self-heals if anyone has removed the protection in the iframe.
- *
- * Fire-and-forget: any error logs but does not throw — transfer commits
- * are never blocked by Sheets API outages.
+ * Fire-and-forget Sheets sync. Resolves the investment's googleSheetId and
+ * the expense category, and appends a materiały row if all conditions match.
+ * Any error logs but never throws — the transfer create has already
+ * succeeded by the time we get here.
  */
-export const appendMaterialToKosztorys: CollectionAfterChangeHook = async ({
-  doc,
-  operation,
-  req,
-}) => {
+async function syncMaterialToSheet(params: {
+  transferId: number
+  type: string
+  amount: number
+  description: string | null
+  date: string | Date
+  investmentId: number | undefined
+  expenseCategoryName: string | undefined
+}): Promise<void> {
   try {
-    if (operation !== 'create') return doc
-    if (doc.type !== 'INVESTMENT_EXPENSE') return doc
+    if (params.type !== 'INVESTMENT_EXPENSE') return
+    if (!params.investmentId) return
+    if (!params.expenseCategoryName) return
 
-    const investmentId = resolveId(doc.investment)
-    if (!investmentId) return doc
+    const kind = MATERIAL_CATEGORY_KIND[params.expenseCategoryName]
+    if (!kind) return
 
-    const categoryId = resolveId(doc.expenseCategory)
-    if (!categoryId) return doc
-
-    const category = await req.payload.findByID({
-      collection: 'expense-categories',
-      id: categoryId,
-      overrideAccess: true,
-    })
-    const kind = category?.name ? MATERIAL_CATEGORY_KIND[category.name] : undefined
-    if (!kind) return doc
-
-    const investment = await req.payload.findByID({
+    const payload = await getPayload({ config })
+    const investment = await payload.findByID({
       collection: 'investments',
-      id: investmentId,
+      id: params.investmentId,
       overrideAccess: true,
     })
     const sheetId = investment?.googleSheetId
     if (!sheetId) {
       console.log(
-        `[kosztorys-sync] skip transfer #${doc.id}: no googleSheetId for investment #${investmentId}`,
+        `[kosztorys-sync] skip transfer #${params.transferId}: no googleSheetId for investment #${params.investmentId}`,
       )
-      return doc
+      return
     }
 
-    await ensureMaterialyProtection(sheetId)
     await appendMaterialRow(sheetId, {
       kind,
-      amount: Number(doc.amount),
-      description: doc.description ?? '',
-      transferId: doc.id,
-      date: doc.date ? new Date(doc.date).toISOString().slice(0, 10) : undefined,
+      amount: params.amount,
+      description: params.description ?? '',
+      transferId: params.transferId,
+      date: new Date(params.date).toISOString().slice(0, 10),
     })
 
-    console.log(`[kosztorys-sync] appended transfer #${doc.id} → sheet ${sheetId} (${kind})`)
+    console.log(
+      `[kosztorys-sync] appended transfer #${params.transferId} → sheet ${sheetId} (${kind})`,
+    )
   } catch (err) {
     console.error('[kosztorys-sync] failed (non-fatal):', err)
   }
-
-  return doc
 }
 ```
 
-- [ ] **Step 3: Typecheck**
+If the file doesn't already import `getPayload` / `config`, add `import { getPayload } from 'payload'` and `import config from '@payload-config'`.
+
+- [ ] **Step 3: Call the helper from `createTransferAction`**
+
+After the `await payload.create({ collection: 'transactions', ... })` call inside `createTransferAction`, capture the result and invoke the helper. The expense category name has to be resolved from `data.expenseCategory` (which is the id) — easiest is to read it from the validated input + a `findByID` inside the helper, OR pass the resolved name from a single lookup. Pattern:
+
+```ts
+const created = await payload.create({
+  collection: 'transactions',
+  data: { ...parsed, createdBy: user.id /* ... */ },
+})
+console.log(`[PERF]   payload.create ${step()}ms`)
+
+let expenseCategoryName: string | undefined
+if (parsed.expenseCategory) {
+  const cat = await payload.findByID({
+    collection: 'expense-categories',
+    id: parsed.expenseCategory,
+    overrideAccess: true,
+  })
+  expenseCategoryName = cat?.name
+}
+
+// fire-and-forget; do NOT await, do NOT include in ActionResult
+void syncMaterialToSheet({
+  transferId: created.id,
+  type: parsed.type,
+  amount: Number(parsed.amount),
+  description: parsed.description ?? null,
+  date: parsed.date,
+  investmentId: parsed.investment,
+  expenseCategoryName,
+})
+```
+
+The exact placement depends on the existing code shape — read the action first and adapt. The `void` prefix matters: `await`-ing would re-introduce the Sheets-API outage as a blocker for the user-visible action.
+
+- [ ] **Step 4: Repeat for `createBulkTransferAction`**
+
+Bulk action creates N transfers in a loop. Each successful `payload.create` should fire its own `void syncMaterialToSheet(...)`. Do not batch — each row independently determines whether it's a Materiały item.
+
+- [ ] **Step 5: Typecheck**
 
 Run:
 
@@ -653,25 +703,24 @@ Run:
 pnpm typecheck
 ```
 
-Expected: PASS. If it complains about `doc.investment` / `doc.expenseCategory` shape, the `payload-types.ts` might need regenerating (`pnpm generate:types`).
+Expected: PASS. If `investment.googleSheetId` is typed as `unknown`, re-run `pnpm generate:types`.
 
-- [ ] **Step 4: Verify wiring**
-
-The hook is already registered in `src/collections/transfers.ts` (from the Univer spike work — `afterChange: [recalcAfterChange, appendMaterialToKosztorys]`). Confirm by reading the file; no change should be needed.
-
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add src/hooks/transfers/append-material-to-kosztorys.ts
+git add src/lib/actions/transfers.ts
 git commit -m "$(cat <<'EOF'
-retarget kosztorys-sync hook from Vercel Blob to Google Sheets API
+sync materiały transfers to Google Sheet from the transfer server action
 
-Hook shape unchanged (still fire-and-forget on INVESTMENT_EXPENSE +
-Materiały budowlane/wykończeniowe). Each push first calls
-ensureMaterialyProtection so the tab's edit-lock self-heals on every
-transfer if anyone has removed the protection in the iframe, then
-appends the row via Sheets API. The Blob lib (src/lib/kosztorys/) is
-now unused; cleanup is deferred until owner trial passes.
+createTransferAction and createBulkTransferAction now fire-and-forget a
+Sheets API append after a successful payload.create when the transfer
+is INVESTMENT_EXPENSE + category Materiały budowlane/wykończeniowe and
+the investment has a googleSheetId. Sheets errors log but never fail
+the action — the user-visible transfer commit is unaffected.
+
+No Payload afterChange hook is used: project convention is all
+mutations go through server actions, so the side effect belongs here.
+Materiały tab protection deferred — see TODO in the build plan.
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 EOF
@@ -864,42 +913,141 @@ If the row doesn't appear:
 - Check the dev server log for `[kosztorys-sync] appended transfer #N → sheet S (budowlane)`. If absent, the hook didn't trigger — check the transfer type and expense category were resolved correctly.
 - If the log says `[kosztorys-sync] failed (non-fatal): ...`, read the error. Common: service account isn't shared on the sheet (share with Editor access), or the materiały tab is named differently than `'materiały '` (the trailing space must be present).
 
-- [ ] **Step 6: Confirm materiały is protected**
+> **DEFERRED:** Steps 6 (protection edit-block) and 7 (self-heal) skipped per the TODO at the top of this plan. Owner edits to materiały are NOT prevented during the trial — this is itself an experiment (see TODO).
 
-In the iframe (tab A), click any cell in the materiały tab and try to type.
+- [ ] **Step 6: Hand off to owner for the one-week trial**
 
-Expected: Sheets shows the protection notice: "You are trying to edit a protected cell or object…". The edit is blocked.
-
-Try editing a cell in another tab (e.g. `kosztorys_robocizny`).
-
-Expected: the edit goes through normally.
-
-- [ ] **Step 7: Confirm self-heal**
-
-In a third browser tab, open the same sheet directly (not iframed): `https://docs.google.com/spreadsheets/d/<sheet-id>/edit`. Go to **Data → Protect sheets and ranges**, find the "Materiały: managed by app via API" protection, delete it.
-
-Back in tab B, create another Wydatek (same fields, kwota 50, opis "self-heal test").
-
-Switch to tab A's iframe, refresh the iframe (Ctrl-R on the iframe area, or use the "Open in Sheets ↗" link and come back).
-
-Expected: the new row is present in materiały AND the protection is back. Confirm by trying to edit a materiały cell — it should be blocked again.
-
-If self-heal didn't work, the `ensureMaterialyProtection` call may have raced with the append; double-check the order in the hook (protection first, then append) and the idempotent check (`alreadyProtected` filter) is correct.
-
-- [ ] **Step 8: Hand off to owner for the one-week trial**
-
-The PoC is now ready for owner trial. Per the decision brief, success criteria for the trial are:
+The PoC is now ready for owner trial. Per the decision brief (with protection deferred), success criteria for the trial are:
 
 1. Owner edits robocizny / pokoje in the iframe; changes persist + visible to team members with Drive access
-2. Owner cannot accidentally edit materiały (verified by Step 6 above)
-3. File → Download as xlsx, File → Print, version history, mobile editing all work via Sheets
+2. File → Download as xlsx, File → Print, version history, mobile editing all work via Sheets
+3. **NEW: Owner does NOT accidentally edit app-managed materiały rows.** If they do, capture the incident — it's the signal for re-enabling protection per the TODO.
 4. After one week, owner gives "ship it to other investments" verdict
 
 Document any rough edges the owner reports for the post-trial decision.
 
 ---
 
-### Task 7 (optional, after owner trial passes): Clean up Univer / Blob spike
+### Task 7.5: Auto-provision sheet on investment creation
+
+**Files:**
+
+- Create: `src/lib/google/drive.ts` — Drive client + `createKosztorysFromTemplate`
+- Modify: `src/lib/actions/investments.ts` — `createInvestmentAction` fires the provisioning
+
+**Goal:** when an investment is created in the app via `createInvestmentAction`, automatically copy the template sheet in Drive, name the copy `Kosztorys – {investment.name}`, and write the new sheet's ID into the investment's `googleSheetId` field. Fire-and-forget — provisioning failure must not block investment creation.
+
+- [ ] **Step 1: Add Drive client + `createKosztorysFromTemplate`**
+
+Create: `src/lib/google/drive.ts`
+
+```ts
+import { google, drive_v3 } from 'googleapis'
+
+function getDriveClient(): drive_v3.Drive {
+  const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON
+  if (!raw) throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON not set')
+  const creds = JSON.parse(raw) as { client_email: string; private_key: string }
+  const auth = new google.auth.JWT({
+    email: creds.client_email,
+    key: creds.private_key,
+    scopes: ['https://www.googleapis.com/auth/drive.file'],
+  })
+  return google.drive({ version: 'v3', auth })
+}
+
+export async function createKosztorysFromTemplate(
+  investmentName: string,
+): Promise<{ sheetId: string }> {
+  const drive = getDriveClient()
+  const templateId = process.env.KOSZTORYS_TEMPLATE_SHEET_ID
+  if (!templateId) throw new Error('KOSZTORYS_TEMPLATE_SHEET_ID not set')
+  const folderId = process.env.KOSZTORYS_DRIVE_FOLDER_ID
+
+  const copy = await drive.files.copy({
+    fileId: templateId,
+    requestBody: {
+      name: `Kosztorys – ${investmentName}`,
+      ...(folderId ? { parents: [folderId] } : {}),
+    },
+    fields: 'id',
+  })
+
+  if (!copy.data.id) throw new Error('Drive returned no file id')
+  return { sheetId: copy.data.id }
+}
+```
+
+- [ ] **Step 2: Add `KOSZTORYS_TEMPLATE_SHEET_ID` + optional `KOSZTORYS_DRIVE_FOLDER_ID` to env validation**
+
+Modify `src/lib/env.ts`:
+
+```ts
+KOSZTORYS_TEMPLATE_SHEET_ID: z.string().min(1, 'KOSZTORYS_TEMPLATE_SHEET_ID is required'),
+KOSZTORYS_DRIVE_FOLDER_ID: z.string().optional(),
+```
+
+- [ ] **Step 3: Wire into `createInvestmentAction`**
+
+Modify `src/lib/actions/investments.ts`. After the `payload.create` call, fire-and-forget the provisioning and update the investment with the resulting `googleSheetId`:
+
+```ts
+const created = await payload.create({
+  collection: 'investments',
+  data: parsed.data,
+})
+
+void createKosztorysFromTemplate(created.name)
+  .then(({ sheetId }) =>
+    payload.update({
+      collection: 'investments',
+      id: created.id,
+      data: { googleSheetId: sheetId },
+      overrideAccess: true,
+    }),
+  )
+  .then(() => console.log(`[kosztorys-provision] investment #${created.id} → sheet provisioned`))
+  .catch((err) =>
+    console.error(`[kosztorys-provision] investment #${created.id} failed (non-fatal):`, err),
+  )
+
+return { success: true }
+```
+
+`void` matters — `await` would block the user-visible create on Drive API latency / outages.
+
+- [ ] **Step 4: Tests**
+
+Add unit tests for `createKosztorysFromTemplate` (mocked `googleapis.drive.files.copy`) — verifies `fileId`, `name`, `parents`, return shape. Same mock pattern as the sheets-client tests.
+
+- [ ] **Step 5: E2E verification**
+
+In the admin panel, create a test investment. Watch the dev server log for `[kosztorys-provision] investment #N → sheet provisioned`. Verify in Drive that a new file `Kosztorys – {name}` exists. Refresh the investment in the admin panel — `googleSheetId` should now be populated (provisioning is async, may take a few seconds). Open `/inwestycje/{N}/kosztorys` — iframe loads the new (empty-template) sheet.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add src/lib/google/drive.ts src/lib/env.ts src/lib/actions/investments.ts src/__tests__/lib/google/drive.test.ts
+git commit -m "$(cat <<'EOF'
+auto-provision Google Sheet on investment creation
+
+createInvestmentAction fires a fire-and-forget Drive files.copy from
+the kosztorys template, then writes the new sheet id into the
+investment's googleSheetId field. Failure logs but never blocks the
+investment create — owner can always paste a sheet id manually.
+
+No backfill for investments created before this lands.
+
+Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+EOF
+)"
+```
+
+---
+
+### Task 7 — DONE (executed in pre-Task-1 cleanup commit): Clean up Univer / Blob spike
+
+> Originally scheduled as optional post-trial cleanup. Moved earlier and executed as the pre-Task-1 commit. Steps below kept as historical record of what was removed.
 
 **Files:**
 
