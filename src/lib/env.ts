@@ -17,6 +17,20 @@ const envSchema = z.object({
   META_APP_ID: z.string().min(1),
   META_APP_TOKEN: z.string().min(1),
   META_VERIFY_TOKEN: z.string().min(1),
+  // Google (Sheets + Drive for kosztorys integration)
+  GOOGLE_SERVICE_ACCOUNT_JSON: z
+    .string()
+    .min(1, 'GOOGLE_SERVICE_ACCOUNT_JSON is required')
+    .refine((raw) => {
+      try {
+        const parsed = JSON.parse(raw)
+        return typeof parsed?.client_email === 'string' && typeof parsed?.private_key === 'string'
+      } catch {
+        return false
+      }
+    }, 'GOOGLE_SERVICE_ACCOUNT_JSON must be valid JSON with client_email and private_key'),
+  KOSZTORYS_TEMPLATE_SHEET_ID: z.string().min(1, 'KOSZTORYS_TEMPLATE_SHEET_ID is required'),
+  KOSZTORYS_DRIVE_FOLDER_ID: z.string().optional(),
 })
 
 type EnvT = z.infer<typeof envSchema>

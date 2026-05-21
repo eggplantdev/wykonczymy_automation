@@ -53,6 +53,7 @@
     "compressorjs": "^1.2.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.26.2",
+    "googleapis": "^172.0.0",
     "isomorphic-dompurify": "^2.35.0",
     "jose": "^5.9.6",
     "jszip": "^3.10.1",
