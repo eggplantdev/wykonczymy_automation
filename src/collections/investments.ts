@@ -73,5 +73,16 @@ export const Investments: CollectionConfig = {
       label: { en: 'Status', pl: 'Status' },
       options: [...STATUS_OPTIONS],
     },
+    {
+      name: 'googleSheetId',
+      type: 'text',
+      label: { en: 'Google Sheet ID', pl: 'ID arkusza Google' },
+      admin: {
+        description: {
+          en: 'Long string between /d/ and /edit in the sheet URL. Used to embed the kosztorys and to sync transfers via Sheets API. Auto-set on investment create; can be pasted manually for investments created before that feature shipped.',
+          pl: 'Długi ciąg pomiędzy /d/ a /edit w URL arkusza. Używane do osadzenia kosztorysu i synchronizacji transakcji przez Sheets API. Ustawiane automatycznie przy tworzeniu inwestycji; można wkleić ręcznie dla inwestycji utworzonych zanim ta funkcja powstała.',
+        },
+      },
+    },
   ],
 }
