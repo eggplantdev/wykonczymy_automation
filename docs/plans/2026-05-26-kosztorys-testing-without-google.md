@@ -386,6 +386,15 @@ When you're ready to wire real Google credentials:
 - [ ] All the buttons that failed in Scenarios 2, 4 now succeed; the
       log lines in Scenarios 5, 7 flip from "failed (non-fatal)" to
       success messages.
+- [ ] **Fix the materiały → Podsumowanie link in the real template.**
+      In the throwaway test template, `Podsumowanie!B7` ("Materiały"
+      total) references `kosztorys_robocizny!T398` — a drifted single-cell
+      ref pointing at an unrelated labor row, NOT the materiały tab. So
+      app-pushed material costs land in `materiały ` but never roll up to
+      the summary. Acceptable for the smoke test (we only verify the push,
+      not the rollup). When swapping in the real owner-maintained template,
+      confirm `Podsumowanie` "Materiały" reads `='materiały '!B1+'materiały '!F1`
+      (budowlane + wykończeniowe) so the app's pushes reach the headline total.
 - [ ] At that point, follow the build plan's Task 10 for the full E2E.
 
 ---
