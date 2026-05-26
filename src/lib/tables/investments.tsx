@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
+import { FileSpreadsheet } from 'lucide-react'
 import { createColumnHelper } from '@tanstack/react-table'
-import { cn } from '@/lib/cn'
 import { formatPLN } from '@/lib/format-currency'
+import { Button } from '@/components/ui/button'
 import { isAdminOrOwnerRole, type RoleT } from '@/lib/auth/roles'
 import { BalanceCell } from '@/components/ui/balance-cell'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
@@ -112,19 +113,17 @@ export function getInvestmentColumns({ onToggle, userRole }: InvestmentColumnOpt
       id: 'hasSheet',
       header: 'Kosztorys',
       enableSorting: true,
-      cell: (info) => (
-        <Link
-          href={`/inwestycje/${info.row.original.id}/kosztorys`}
-          className={cn(
-            'inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium',
-            info.getValue()
-              ? 'bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200'
-              : 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
-          )}
-        >
-          {info.getValue() ? 'Powiązany' : 'Brak'}
-        </Link>
-      ),
+      cell: (info) =>
+        info.getValue() ? (
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/inwestycje/${info.row.original.id}/kosztorys`}>
+              <FileSpreadsheet className="size-4" />
+              Otwórz
+            </Link>
+          </Button>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        ),
     }),
     col.display({
       id: 'actions',
