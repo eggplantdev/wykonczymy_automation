@@ -129,7 +129,18 @@ Files: `.env`
   Single quotes are mandatory — zsh would otherwise eat the `\n` in
   `private_key`.
 
-- [ ] **Step 3:** Boot dev:
+- [ ] **Step 3:** Apply pending migrations. `pnpm dev` does NOT migrate
+      (only `pnpm build` does — see `package.json` scripts), so we run
+      the Payload CLI directly. It picks up `DB_POSTGRES_URL` from
+      `.env`, so it lands on the test DB only:
+
+  ```bash
+  pnpm exec payload migrate
+  ```
+
+  Expect: `Migrated: 20260525_add_google_sheet_id_to_investments`.
+
+- [ ] **Step 4:** Boot dev:
 
   ```bash
   pnpm dev
@@ -137,11 +148,9 @@ Files: `.env`
 
   Expect:
   - No env validation errors at startup
-  - Migration log includes `20260525_add_google_sheet_id_to_investments`
-    (running against `wykonczymy-test-db`, not the real DB)
   - "Ready" appears
 
-- [ ] **Step 4:** Confirm the column landed _in the test DB only_:
+- [ ] **Step 5:** Confirm the column landed _in the test DB only_:
 
   ```bash
   docker exec -i wykonczymy psql -U postgres -d 'wykonczymy-test-db' \
