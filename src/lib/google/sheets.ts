@@ -207,24 +207,27 @@ export async function setupMaterialyTab(
   // Clear any prior layout so this is a clean template.
   await sheets.spreadsheets.values.clear({ spreadsheetId, range: TAB_RANGE })
 
-  // Summary occupies rows 1..(types+1); header on the next row; data after that.
-  const headerRow = expenseTypes.length + 2
-  const dataStart = headerRow + 1
-
-  // Polish-locale sheets use ';' as the formula argument separator, not ','.
-  const summary: (string | number)[][] = [['RAZEM', `=SUM(E${dataStart}:E)`]]
-  expenseTypes.forEach((typ, i) => {
-    const labelRow = i + 2 // sheet row holding this type's label (== SUMIF criterion)
-    summary.push([typ, `=SUMIF(C${dataStart}:C; A${labelRow}; E${dataStart}:E)`])
+  // Header at row 1, data from row 2 — a clean A:G block you can date-filter.
+  // The summary is a small 2-row table to the right (column I onward): RAZEM +
+  // one column per type, with each total UNDER its label. Each total's SUMIF
+  // criterion is its own label cell (drift-proof). Polish locale → ';' separator.
+  const SUMMARY_START_COL = 8 // column I
+  const labels: string[] = ['RAZEM', ...expenseTypes]
+  const totals: string[] = ['=SUM(E2:E)']
+  expenseTypes.forEach((_typ, i) => {
+    const labelCell = `${columnLetter(SUMMARY_START_COL + 1 + i)}1` // J1, K1, L1, …
+    totals.push(`=SUMIF(C2:C; ${labelCell}; E2:E)`)
   })
 
+  const summaryStart = columnLetter(SUMMARY_START_COL)
   await sheets.spreadsheets.values.batchUpdate({
     spreadsheetId,
     requestBody: {
       valueInputOption: 'USER_ENTERED',
       data: [
-        { range: `'${MATERIALY_TAB}'!A1`, values: summary },
-        { range: `'${MATERIALY_TAB}'!A${headerRow}`, values: [MATERIALY_HEADER] },
+        { range: `'${MATERIALY_TAB}'!A1`, values: [MATERIALY_HEADER] },
+        { range: `'${MATERIALY_TAB}'!${summaryStart}1`, values: [labels] },
+        { range: `'${MATERIALY_TAB}'!${summaryStart}2`, values: [totals] },
       ],
     },
   })

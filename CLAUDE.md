@@ -27,7 +27,7 @@ We are currently running the local app against a **side-by-side test database** 
 
 - Never run destructive SQL (DROP, TRUNCATE, restore-from-dump, etc.) against `wykonczymy-db` — that is the user's real local data. Always check `-d 'wykonczymy-test-db'` is in the command before destructive ops.
 - The migration `20260525_add_google_sheet_id_to_investments` is currently only applied to `wykonczymy-test-db`. `wykonczymy-db` will get it when we flip back.
-- The Google env vars in `.env` (`GOOGLE_SERVICE_ACCOUNT_JSON`, `KOSZTORYS_TEMPLATE_SHEET_ID`) are dummy values that satisfy Zod's shape check but cannot authenticate. The Google API will reject them — that is expected during this phase.
+- The Google env vars in `.env` (`GOOGLE_SERVICE_ACCOUNT_JSON`, `KOSZTORYS_TEMPLATE_SHEET_ID`) are **real, working credentials** — the service account can authenticate and the Google API accepts them. Treat sheet writes as hitting live data.
 
 **Removal trigger:** when the user finishes Phase 5 of the testing plan (real Google creds wired in, test DB dropped). At that point, delete this whole section from CLAUDE.md.
 

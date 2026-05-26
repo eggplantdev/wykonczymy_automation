@@ -72,13 +72,29 @@ clean, normalized, id-keyed table, so reading human edits back (and reconciling
 them against the app) is a well-defined problem rather than parsing an arbitrary
 layout. Not built yet — noted as a direction.
 
-## Summary block
+## Layout: data block + side summary
 
-`RAZEM = SUM(kwota)` plus one `=SUMIF(typ, "<type>", kwota)` per type
-(Materiały budowlane / wykończeniowe / Pozostałe koszty). Written **once** by
-`setupMaterialyTab` (below); the row-sync never touches the summary cells
-afterward. A 4th type needs one more SUMIF line — or use a dynamic `QUERY` so
-even that is automatic.
+```
+      A    B    C        D     E      F          G       H   I        J                   K                       L
+row1: id   data typ...   opis  kwota  kategoria  notatka     RAZEM    Materiały budowlane Mat. wykończeniowe      Pozostałe koszty
+row2: <expense>                                                =SUM     =SUMIF              =SUMIF                  =SUMIF
+row3: <expense>
+```
+
+- **Data block `A1:G`** — header row 1, expenses from row 2 down. A clean,
+  contiguous table so Data → Create filter / sort-by-date works.
+- **Summary to the right** (column I onward): a small 2-row table — type labels
+  in row 1, each total **directly under** its label in row 2. `RAZEM = SUM(kwota)`
+  and `=SUMIF(C2:C; <labelCell>; E2:E)` per type. A 4th type → one more column
+  (or a dynamic `QUERY`).
+
+Written **once** by `setupMaterialyTab`; the row-sync never touches the summary.
+
+**Filter trade-off (intentional):** the totals are in **row 2**, the first data
+row. A basic filter hides whole rows, so a date-filter that excludes row 2 also
+_visually_ hides the totals (the values stay correct — SUMIF ignores hidden
+rows). Putting labels+totals in row 1 only, or on a separate tab, would be
+fully filter-proof; row-2 was the owner's explicit layout choice.
 
 ## Setup: attaching the materiały tab (approach A)
 
@@ -89,9 +105,9 @@ rather than creating a file. (True new-file creation needs Workspace + a Shared
 Drive — that's R1 below.)
 
 - `setupMaterialyTab(spreadsheetId, expenseTypes)` in `src/lib/google/sheets.ts`
-  — adds the `materiały ` tab if missing, clears it, writes the summary
-  (RAZEM + one row per type) and the header row. The app builds the tab; the
-  owner builds nothing.
+  — adds the `materiały ` tab if missing, clears it, then writes the header row
+  (`A1:G1`) and the side summary (labels in row 1 from column I, totals beneath
+  in row 2). The app builds the tab; the owner builds nothing.
 - `setupKosztorysSheetAction(investmentId)` in `src/lib/actions/investments.ts`
   — reads the investment's `googleSheetId` and the live expense-category names,
   then calls the above. Wired to the "Utwórz arkusz materiały" button on the
@@ -105,7 +121,8 @@ Drive — that's R1 below.)
   use `;`. (The sync writes only data, not formulas, so only `setupMaterialyTab`
   is affected today.)
 - **SUMIF references the label cell, not a string literal.** Each per-type total
-  is `=SUMIF(C…:C; A<labelRow>; E…:E)` where `A<labelRow>` holds the type name.
+  is `=SUMIF(C2:C; <labelCell>1; E2:E)` where the label cell (J1/K1/L1…) holds
+  the type name.
   This solves two things: (1) **maintainability** — the type name lives in one
   place (the visible label), edit it once; (2) **correct matching** — the SUMIF
   criterion is the _exact same value_ shown as the label, so a hidden literal
@@ -151,10 +168,15 @@ against files it owns. The owner gets a shared link per investment.
 > 4. **Human owns, SA is editor (consumer fallback).** Reintroduces dependence on
 >    a person's Drive; escape hatch only.
 >
-> **Resolution:** the project **will use a Google Workspace account** (confirmed
-> 2026-05-27), so → **option 1, a Shared Drive** the service account is a member
-> of. This is also what unblocks true new-file creation that the current
-> personal-account setup (see "Setup: attaching the materiały tab") cannot do.
+> **Resolution (phased, decided 2026-05-27):** R1 needs Workspace + a Shared
+> Drive (option 1) — that's the eventual target. But we **start _without_
+> connecting Workspace**, continuing the current personal-account setup (option 4
+> / the "attach a materiały tab to an owner-linked sheet" PoC). We ship and
+> validate the _sync_ on a personal account first, then adopt Workspace + Shared
+> Drive when we actually take on R1 (app-owned templates + automated file
+> creation). Rationale: the sync — the valuable part — works on a personal
+> account today; Workspace is only required for the ownership/provisioning half,
+> so we defer that cost until R1 is real.
 
 Open questions (not blocking capture):
 
