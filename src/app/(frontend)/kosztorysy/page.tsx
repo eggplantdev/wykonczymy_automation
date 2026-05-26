@@ -10,12 +10,14 @@ export default async function KosztorysyListPage() {
   const session = await requireAuth(ADMIN_OR_OWNER_MANAGER_ROLES)
   if (!session.success) redirect('/')
 
-  const investments = await getInvestmentsForKosztorys()
+  // TODO: add filtering (by status, linked/unlinked, name search) — for now we
+  // only surface investments that already have a linked kosztorys sheet.
+  const investments = (await getInvestmentsForKosztorys()).filter((inv) => inv.hasSheet)
 
   return (
     <PageWrapper title="Kosztorysy" description="Wybierz inwestycję, aby otworzyć jej kosztorys.">
       {investments.length === 0 ? (
-        <p className="text-muted-foreground text-sm">Brak inwestycji.</p>
+        <p className="text-muted-foreground text-sm">Brak powiązanych kosztorysów.</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {investments.map((investment) => (

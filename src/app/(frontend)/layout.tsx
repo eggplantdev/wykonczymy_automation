@@ -34,11 +34,11 @@ async function AuthenticatedShell({ children }: { children: React.ReactNode }) {
 
   return (
     <CurrentUserProvider user={user}>
-      <div className="flex min-h-screen">
+      <div className="flex h-screen">
         <Sidebar />
         <div className="flex flex-1 flex-col">
           <Navigation user={user} />
-          <main className="flex-1 overflow-y-auto">{children}</main>
+          <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
           <AppFooter />
         </div>
       </div>

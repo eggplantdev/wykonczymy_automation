@@ -12,8 +12,8 @@ type PropsT = {
 export function KosztorysIframeView({ sheetId, investmentName, investmentId, toolbar }: PropsT) {
   const src = `https://docs.google.com/spreadsheets/d/${sheetId}/edit?usp=sharing&rm=embedded&embedded=true`
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] flex-col">
-      <div className="border-border flex flex-wrap items-center justify-between gap-4 border-b px-4 py-2">
+    <div className="flex h-[calc(100dvh-3.5rem)] flex-col overflow-hidden">
+      <div className="border-border flex shrink-0 flex-wrap items-center justify-between gap-4 border-b px-4 py-2">
         <div className="flex flex-col">
           <h1 className="text-foreground text-sm font-medium">Kosztorys — {investmentName}</h1>
           <span className="text-muted-foreground text-xs">
@@ -35,7 +35,7 @@ export function KosztorysIframeView({ sheetId, investmentName, investmentId, too
       <iframe
         src={src}
         title={`Kosztorys for ${investmentName}`}
-        className="w-full flex-1 border-0"
+        className="min-h-0 w-full flex-1 border-0"
       />
     </div>
   )
