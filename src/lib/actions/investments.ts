@@ -1,8 +1,40 @@
 'use server'
 
 import { createKosztorysFromTemplate } from '@/lib/google/drive'
+import { setupMaterialyTab } from '@/lib/google/sheets'
 import { investmentSchema, type InvestmentFormDataT } from '@/lib/schemas/investment'
 import { validateAction, protectedAction } from './utils'
+
+// Attach (or reset) a fresh materiały tab on the investment's linked sheet.
+// Header + summary are written by the app — the owner builds nothing. Works on a
+// personal Google account because it never creates a new file (see approach A).
+export async function setupKosztorysSheetAction(investmentId: number) {
+  return protectedAction<{ types: string[] }>('setupKosztorysSheetAction', async ({ payload }) => {
+    const investment = await payload.findByID({
+      collection: 'investments',
+      id: investmentId,
+      overrideAccess: true,
+    })
+    if (!investment?.googleSheetId) {
+      return {
+        success: false,
+        error: 'Inwestycja nie ma powiązanego arkusza Google — najpierw podłącz arkusz.',
+      }
+    }
+
+    const cats = await payload.find({
+      collection: 'expense-categories',
+      limit: 100,
+      overrideAccess: true,
+    })
+    const types = cats.docs
+      .map((c) => (c as { name?: string }).name)
+      .filter((n): n is string => !!n)
+
+    await setupMaterialyTab(investment.googleSheetId, types)
+    return { success: true, data: { types } }
+  })
+}
 
 export async function createInvestmentAction(data: InvestmentFormDataT) {
   return protectedAction(

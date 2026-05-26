@@ -9,6 +9,7 @@ vi.mock('server-only', () => ({}))
 const valuesGetMock = vi.fn()
 const valuesAppendMock = vi.fn()
 const valuesUpdateMock = vi.fn()
+const valuesBatchUpdateMock = vi.fn()
 const spreadsheetsGetMock = vi.fn()
 const batchUpdateMock = vi.fn()
 
@@ -27,11 +28,23 @@ vi.mock('googleapis', () => ({
           get: valuesGetMock,
           append: valuesAppendMock,
           update: valuesUpdateMock,
+          batchUpdate: valuesBatchUpdateMock,
         },
       },
     }),
   },
 }))
+
+// The sheet's header row — the sync locates fields by these names.
+const SHEET_HEADER = [
+  'id',
+  'data',
+  'typ wydatku inwestycyjnego',
+  'opis',
+  'kwota',
+  'kategoria',
+  'notatka',
+]
 
 // ── payload mock ─────────────────────────────────────────────────────────
 
@@ -80,9 +93,10 @@ function findReturns(docs: object[]) {
   findMock.mockResolvedValue({ docs })
 }
 
-// readMaterialyTransferIds parses col I; cells are wrapped in single-element arrays per row.
+// The sync reads the whole grid and locates the header row, then scans the id
+// column below it. We prepend the header, so transferId i lands on sheet row i+2.
 function sheetColIReturns(transferIds: Array<number | null>) {
-  const values = transferIds.map((id) => (id === null ? [] : [id]))
+  const values = [SHEET_HEADER, ...transferIds.map((id) => (id === null ? [] : [id]))]
   valuesGetMock.mockResolvedValue({ data: { values } })
 }
 
@@ -158,14 +172,14 @@ describe('previewMaterialSync', () => {
       return Promise.resolve(null)
     })
     findReturns([]) // active app rows is empty (the only relevant tx is cancelled)
-    sheetColIReturns([999]) // sheet has row for transferId 999 at row 1
+    sheetColIReturns([999]) // sheet has row for transferId 999 at row 2 (after header)
 
     const result = await previewMaterialSync(31)
 
     expect(result.success).toBe(true)
     if (!result.success) throw new Error('expected success')
     expect(result.data.toAppend).toEqual([])
-    expect(result.data.toDelete).toEqual([{ transferId: 999, rowIndex: 1 }])
+    expect(result.data.toDelete).toEqual([{ transferId: 999, rowIndex: 2 }])
     expect(result.data.orphans).toEqual([])
   })
 
@@ -186,7 +200,7 @@ describe('previewMaterialSync', () => {
     if (!result.success) throw new Error('expected success')
     expect(result.data.toAppend).toEqual([])
     expect(result.data.toDelete).toEqual([])
-    expect(result.data.orphans).toEqual([{ transferIdInSheet: 9999, rowIndex: 1 }])
+    expect(result.data.orphans).toEqual([{ transferIdInSheet: 9999, rowIndex: 2 }])
   })
 })
 
@@ -201,10 +215,12 @@ describe('applyMaterialSync', () => {
       toAppend: [
         {
           transferId: 5,
-          kind: 'budowlane' as const,
-          amount: 100,
-          description: 'cement',
           date: '2026-05-21',
+          typ: 'Materiały budowlane',
+          description: 'cement',
+          amount: 100,
+          category: 'Łazienka',
+          note: 'FV/1',
         },
       ],
       toDelete: [],

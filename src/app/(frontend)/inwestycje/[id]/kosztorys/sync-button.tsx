@@ -15,10 +15,22 @@ import {
   previewMaterialSync,
   type MaterialSyncPreviewT,
 } from '@/lib/actions/sheets-sync'
+import { setupKosztorysSheetAction } from '@/lib/actions/investments'
 
 export function SyncButton({ investmentId }: { investmentId: number }) {
   const [preview, setPreview] = useState<MaterialSyncPreviewT | null>(null)
   const [pending, startTransition] = useTransition()
+
+  const onSetup = () => {
+    startTransition(async () => {
+      const res = await setupKosztorysSheetAction(investmentId)
+      if (!res.success) {
+        toastMessage(res.error, 'error')
+        return
+      }
+      toastMessage(`Arkusz materiały gotowy (${res.data.types.length} typów)`, 'success')
+    })
+  }
 
   const onCheck = () => {
     startTransition(async () => {
@@ -52,6 +64,9 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
 
   return (
     <>
+      <Button size="sm" variant="outline" onClick={onSetup} disabled={pending}>
+        {pending ? 'Pracuję…' : 'Utwórz arkusz materiały'}
+      </Button>
       <Button size="sm" variant="outline" onClick={onCheck} disabled={pending}>
         {pending ? 'Sprawdzam…' : 'Sprawdź synchronizację'}
       </Button>
@@ -67,7 +82,7 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
                 tone="green"
                 items={preview.toAppend.map((r) => ({
                   key: r.transferId,
-                  text: `#${r.transferId} · ${r.kind} · ${r.amount} zł · ${r.description} [${r.date}]`,
+                  text: `#${r.transferId} · ${r.typ} · ${r.amount} zł · ${r.description} [${r.date}]`,
                 }))}
               />
               <Section

@@ -6,21 +6,17 @@ import {
   appendMaterialRow,
   deleteMaterialRowByTransferId,
   readMaterialyTransferIds,
-  type MaterialKindT,
 } from '@/lib/google/sheets'
 import { protectedAction } from './utils'
 
-const MATERIAL_CATEGORY_KIND: Record<string, MaterialKindT> = {
-  'Materiały budowlane': 'budowlane',
-  'Materiały wykończeniowe': 'wykończeniowe',
-}
-
 type AppRowT = {
   transferId: number
-  kind: MaterialKindT
-  amount: number
-  description: string
   date: string
+  typ: string
+  description: string
+  amount: number
+  category: string
+  note: string
 }
 
 type ToDeleteT = { transferId: number; rowIndex: number }
@@ -60,20 +56,25 @@ async function loadAppMaterialRows(
 
   const rows: AppRowT[] = []
   for (const t of result.docs) {
-    const categoryName =
+    const typ =
       typeof t.expenseCategory === 'object' && t.expenseCategory !== null
         ? (t.expenseCategory as { name?: string }).name
         : undefined
-    if (!categoryName) continue
-    const kind = MATERIAL_CATEGORY_KIND[categoryName]
-    if (!kind) continue
+    if (!typ) continue
+
+    const otherCategoryName =
+      typeof t.otherCategory === 'object' && t.otherCategory !== null
+        ? ((t.otherCategory as { name?: string }).name ?? '')
+        : ''
 
     rows.push({
       transferId: t.id,
-      kind,
-      amount: Number(t.amount),
-      description: t.description ?? '',
       date: t.date ? new Date(t.date).toISOString().slice(0, 10) : '',
+      typ,
+      description: t.description ?? '',
+      amount: Number(t.amount),
+      category: otherCategoryName,
+      note: t.invoiceNote ?? '',
     })
   }
   return rows
@@ -229,24 +230,30 @@ export async function syncSingleTransferToSheet(params: {
       return
     }
 
-    const categoryName =
+    const typ =
       typeof transfer.expenseCategory === 'object' && transfer.expenseCategory !== null
         ? (transfer.expenseCategory as { name?: string }).name
         : undefined
-    const kind = categoryName ? MATERIAL_CATEGORY_KIND[categoryName] : undefined
-    if (!kind) return
+    if (!typ) return
 
     const existing = await readMaterialyTransferIds(sheetId)
     if (existing.has(params.transferId)) return
 
+    const categoryLabel =
+      typeof transfer.otherCategory === 'object' && transfer.otherCategory !== null
+        ? ((transfer.otherCategory as { name?: string }).name ?? '')
+        : ''
+
     await appendMaterialRow(sheetId, {
-      kind,
-      amount: Number(transfer.amount),
-      description: transfer.description ?? '',
       transferId: params.transferId,
       date: transfer.date ? new Date(transfer.date).toISOString().slice(0, 10) : '',
+      typ,
+      description: transfer.description ?? '',
+      amount: Number(transfer.amount),
+      category: categoryLabel,
+      note: transfer.invoiceNote ?? '',
     })
-    console.log(`[sheets-sync] append transfer #${params.transferId} → sheet ${sheetId} (${kind})`)
+    console.log(`[sheets-sync] append transfer #${params.transferId} → sheet ${sheetId} (${typ})`)
   } catch (err) {
     console.error('[sheets-sync] failed (non-fatal):', err)
   }
