@@ -45,7 +45,7 @@ pnpm format:fix         # Prettier
 pnpm typecheck          # tsc --noEmit
 pnpm test               # Vitest (single run)
 pnpm test:watch         # Vitest watch mode
-pnpm test -- src/__tests__/some-file.test.ts  # Run single test file
+pnpm exec vitest run src/__tests__/some-file.test.ts  # Run single test file (pnpm 10's `--` no longer forwards positional args to nested scripts)
 pnpm generate:types     # Regenerate Payload types → src/payload-types.ts
 pnpm migrate:create     # Create new Payload migration — ALWAYS use this first, then tweak FK constraints if needed. Never write migrations from scratch (easy to miss Payload internal tables like payload_locked_documents_rels).
 ```
