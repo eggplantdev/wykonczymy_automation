@@ -1,14 +1,8 @@
 import { google, drive_v3 } from 'googleapis'
+import { createServiceAccountJWT } from './auth'
 
 function getDriveClient(): drive_v3.Drive {
-  const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON
-  if (!raw) throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON not set')
-  const creds = JSON.parse(raw) as { client_email: string; private_key: string }
-  const auth = new google.auth.JWT({
-    email: creds.client_email,
-    key: creds.private_key,
-    scopes: ['https://www.googleapis.com/auth/drive.file'],
-  })
+  const auth = createServiceAccountJWT(['https://www.googleapis.com/auth/drive.file'])
   return google.drive({ version: 'v3', auth })
 }
 

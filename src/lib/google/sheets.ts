@@ -1,4 +1,5 @@
 import { google, sheets_v4 } from 'googleapis'
+import { createServiceAccountJWT } from './auth'
 
 export type MaterialKindT = 'budowlane' | 'wykończeniowe'
 
@@ -18,14 +19,7 @@ const VALUE_COLUMNS: Record<MaterialKindT, string> = {
 const TRANSFER_ID_COLUMN = 'I'
 
 function getClient(): sheets_v4.Sheets {
-  const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON
-  if (!raw) throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON not set')
-  const creds = JSON.parse(raw) as { client_email: string; private_key: string }
-  const auth = new google.auth.JWT({
-    email: creds.client_email,
-    key: creds.private_key,
-    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-  })
+  const auth = createServiceAccountJWT(['https://www.googleapis.com/auth/spreadsheets'])
   return google.sheets({ version: 'v4', auth })
 }
 

@@ -20,21 +20,20 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
       // if Drive is down, the template was deleted, or the SA lost access — the
       // banner from Task 9 will surface the missing googleSheetId and offer a
       // manual retry via provisionKosztorysAction below.
-      void createKosztorysFromTemplate(created.name)
-        .then(({ sheetId }) =>
-          payload.update({
+      void (async () => {
+        try {
+          const { sheetId } = await createKosztorysFromTemplate(created.name)
+          await payload.update({
             collection: 'investments',
             id: created.id,
             data: { googleSheetId: sheetId },
             overrideAccess: true,
-          }),
-        )
-        .then(() =>
-          console.log(`[kosztorys-provision] investment #${created.id} → sheet provisioned`),
-        )
-        .catch((err) =>
-          console.error(`[kosztorys-provision] investment #${created.id} failed (non-fatal):`, err),
-        )
+          })
+          console.log(`[kosztorys-provision] investment #${created.id} → sheet provisioned`)
+        } catch (err) {
+          console.error(`[kosztorys-provision] investment #${created.id} failed (non-fatal):`, err)
+        }
+      })()
 
       return { success: true }
     },
