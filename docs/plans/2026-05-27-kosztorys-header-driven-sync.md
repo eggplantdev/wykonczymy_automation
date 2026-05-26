@@ -184,11 +184,30 @@ Open questions (not blocking capture):
 - Copy semantics: copy the whole file then append the tab, vs. a blank file + tab?
 - What if a chosen template _already_ has a `materiały ` tab — skip, replace, or fail?
 
-## Cancellation (planned — Option 2, not yet built)
+## Cancellation: append-only reversing entries (built)
 
-Append-only **reversing entry**: a cancelled expense is not erased; its
-CANCELLATION transaction appends a new row with the **negative** amount, same
-`typ`, and its own id. The `SUMIF`/`SUM` totals net to zero, the audit trail
-stays, and the writer never has to mutate or delete an existing row. The current
-code still has a clear-based `deleteMaterialRowByTransferId` used by the
-reconciler; it is slated for removal once reversing entries land.
+A cancelled expense is **never erased**. When `cancelTransferAction` creates the
+CANCELLATION audit transaction, it fires `syncSingleTransferToSheet` with that
+cancellation's **own id**; the sync resolves the original expense and appends a
+new row with the **negative** amount, the original's `typ`, and
+`opis = "Anulowanie #<originalId>"`. The original `+` row stays; the `−` row
+nets it out, so `SUM`/`SUMIF` totals self-correct and the full audit trail is
+preserved on the sheet.
+
+Consequences of going append-only (all done):
+
+- **`deleteMaterialRowByTransferId` is gone** — the app never mutates or deletes
+  an existing row, only appends. No row-shifting, no risk to the summary.
+- **No `intent` on `syncSingleTransferToSheet`** — it's append-only; an
+  `INVESTMENT_EXPENSE` appends `+`, a `CANCELLATION` appends `−`, anything else
+  is ignored.
+- **Reconciler is append-only too** — `previewMaterialSync` returns just
+  `toAppend` (app rows missing from the sheet). `toDelete` and the `orphans`
+  category are removed: nothing is deleted, and a sheet row the app doesn't
+  recognise is the owner's own data, left untouched. `loadAppMaterialRows`
+  expects both the expense (`+`) and its cancellation (`−`) rows, so a synced
+  ledger and the DB agree. The reconcile button is **"Synchronizuj tabelę"**.
+
+> The reconciler's `loadAppMaterialRows` does a two-step query — investment
+> expenses, then the CANCELLATION rows pointing at them — because a CANCELLATION
+> transaction carries no `investment` field, only `cancelledTransaction`.

@@ -115,32 +115,3 @@ describe('readMaterialyTransferIds', () => {
     expect(map.size).toBe(1)
   })
 })
-
-describe('deleteMaterialRowByTransferId', () => {
-  it('clears the matched expense row’s mapped cells', async () => {
-    getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101], [102]] } })
-    const { deleteMaterialRowByTransferId } = await import('@/lib/google/sheets')
-    const result = await deleteMaterialRowByTransferId('s', 102)
-    expect(result).toEqual({ deleted: true, rowIndex: 3 })
-    expect(valuesBatchUpdateMock).toHaveBeenCalledTimes(1)
-    const data = valuesBatchUpdateMock.mock.calls[0][0].requestBody.data
-    expect(data.map((d: { range: string }) => d.range)).toEqual([
-      "'materiały '!A3",
-      "'materiały '!B3",
-      "'materiały '!C3",
-      "'materiały '!D3",
-      "'materiały '!E3",
-      "'materiały '!F3",
-      "'materiały '!G3",
-    ])
-    expect(data.every((d: { values: unknown[][] }) => d.values[0][0] === '')).toBe(true)
-  })
-
-  it('returns { deleted: false } when the transferId is not found', async () => {
-    getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101]] } })
-    const { deleteMaterialRowByTransferId } = await import('@/lib/google/sheets')
-    const result = await deleteMaterialRowByTransferId('s', 999)
-    expect(result).toEqual({ deleted: false })
-    expect(valuesBatchUpdateMock).not.toHaveBeenCalled()
-  })
-})

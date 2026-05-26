@@ -51,9 +51,9 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
         toastMessage(res.error, 'error')
         return
       }
-      const { added, deleted, skipped, errors } = res.data
+      const { added, skipped, errors } = res.data
       toastMessage(
-        `Synchronizacja: +${added} / −${deleted} / pominięto ${skipped}${
+        `Synchronizacja: +${added} / pominięto ${skipped}${
           errors.length ? ` · błędy: ${errors.length}` : ''
         }`,
         errors.length ? 'warning' : 'success',
@@ -68,7 +68,7 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
         {pending ? 'Pracuję…' : 'Utwórz arkusz materiały'}
       </Button>
       <Button size="sm" variant="outline" onClick={onCheck} disabled={pending}>
-        {pending ? 'Sprawdzam…' : 'Sprawdź synchronizację'}
+        {pending ? 'Synchronizuję…' : 'Synchronizuj tabelę'}
       </Button>
       <Dialog open={preview !== null} onOpenChange={(open) => !open && setPreview(null)}>
         <DialogContent className="max-w-2xl">
@@ -83,22 +83,6 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
                 items={preview.toAppend.map((r) => ({
                   key: r.transferId,
                   text: `#${r.transferId} · ${r.typ} · ${r.amount} zł · ${r.description} [${r.date}]`,
-                }))}
-              />
-              <Section
-                title={`Do usunięcia (${preview.toDelete.length})`}
-                tone="red"
-                items={preview.toDelete.map((r) => ({
-                  key: r.transferId,
-                  text: `#${r.transferId} · wiersz ${r.rowIndex}`,
-                }))}
-              />
-              <Section
-                title={`Sieroty w arkuszu (${preview.orphans.length})`}
-                tone="yellow"
-                items={preview.orphans.map((o) => ({
-                  key: o.transferIdInSheet,
-                  text: `transferId #${o.transferIdInSheet} (wiersz ${o.rowIndex}) — brak w bazie; pozostaje bez zmian`,
                 }))}
               />
             </div>

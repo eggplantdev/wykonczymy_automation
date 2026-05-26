@@ -68,7 +68,7 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
       // would block the user-visible action on Google Sheets API latency, and the
       // sync is no-op for non-INVESTMENT_EXPENSE rows anyway. Drift is recoverable
       // via the sync button on the kosztorys page.
-      void syncSingleTransferToSheet({ transferId: created.id, intent: 'CREATE' })
+      void syncSingleTransferToSheet({ transferId: created.id })
 
       return { success: true }
     },
@@ -152,7 +152,7 @@ export async function createBulkTransferAction(
       // would leak into the sheet. Per-row, not batched: each line item decides
       // independently whether it's a Materiały entry.
       for (const transferId of createdIds) {
-        void syncSingleTransferToSheet({ transferId, intent: 'CREATE' })
+        void syncSingleTransferToSheet({ transferId })
       }
 
       return { success: true }
@@ -221,13 +221,9 @@ export async function cancelTransferAction(transferId: number, data: CancelTrans
       })
       console.log(`[PERF]   update cancelled ${step()}ms`)
 
-      // Pull the row from the sheet too, if it's a Materiały entry on a linked
-      // investment. No-op for everything else; failure is logged only.
-      void syncSingleTransferToSheet({ transferId, intent: 'DELETE' })
-
       // Create CANCELLATION audit row
       const today = new Date().toISOString().split('T')[0]
-      await payload.create({
+      const cancellation = await payload.create({
         collection: 'transactions',
         data: {
           type: 'CANCELLATION',
@@ -240,6 +236,10 @@ export async function cancelTransferAction(transferId: number, data: CancelTrans
         },
       })
       console.log(`[PERF]   create CANCELLATION ${step()}ms`)
+
+      // Append a reversing (−) row to the sheet for the cancellation, if the
+      // original was a synced investment expense. Fire-and-forget; logged only.
+      void syncSingleTransferToSheet({ transferId: cancellation.id })
 
       return { success: true }
     },

@@ -88,9 +88,20 @@ function setEnv() {
   })
 }
 
-// payload returns a paginated shape; we only care about `docs`.
-function findReturns(docs: object[]) {
-  findMock.mockResolvedValue({ docs })
+// loadAppMaterialRows queries twice: expenses first, then cancellations (only if
+// there were expenses). First call returns the expenses; later calls default to
+// empty unless cancellations are provided.
+function findReturns(expenses: object[], cancellations: object[] = []) {
+  findMock.mockResolvedValueOnce({ docs: expenses }).mockResolvedValue({ docs: cancellations })
+}
+
+function makeCancellation(id: number, cancelledTransactionId: number) {
+  return {
+    id,
+    type: 'CANCELLATION',
+    cancelledTransaction: cancelledTransactionId,
+    date: '2026-05-22T00:00:00Z',
+  }
 }
 
 // The sync reads the whole grid and locates the header row, then scans the id
@@ -141,7 +152,7 @@ describe('previewMaterialSync', () => {
     expect(valuesGetMock).not.toHaveBeenCalled()
   })
 
-  it('returns toAppend for DB Materiały rows that are not in the sheet', async () => {
+  it('returns toAppend for DB expenses that are not in the sheet', async () => {
     findByIDMock.mockResolvedValue({ id: 31, name: '11 Listopada 40', googleSheetId: 'sheet-1' })
     findReturns([
       makeMaterialTransaction(101, 'Materiały budowlane', { amount: 250, description: 'cement' }),
@@ -155,52 +166,37 @@ describe('previewMaterialSync', () => {
     if (!result.success) throw new Error('expected success')
     expect(result.data.toAppend).toHaveLength(2)
     expect(result.data.toAppend.map((r) => r.transferId).sort()).toEqual([101, 102])
-    expect(result.data.toDelete).toEqual([])
-    expect(result.data.orphans).toEqual([])
   })
 
-  it('returns toDelete for rows in the sheet whose transfer exists but is excluded (e.g. cancelled)', async () => {
-    findByIDMock.mockImplementation(({ collection, id }: { collection: string; id: number }) => {
-      if (collection === 'investments') {
-        return Promise.resolve({ id: 31, name: '11 Listopada 40', googleSheetId: 'sheet-1' })
-      }
-      // probe finds the cancelled transaction by id — its mere existence promotes
-      // the sheet row to toDelete rather than orphan.
-      if (collection === 'transactions' && id === 999) {
-        return Promise.resolve({ id: 999, cancelled: true })
-      }
-      return Promise.resolve(null)
-    })
-    findReturns([]) // active app rows is empty (the only relevant tx is cancelled)
-    sheetColIReturns([999]) // sheet has row for transferId 999 at row 2 (after header)
+  it('includes a cancellation as a negative reversing row', async () => {
+    findByIDMock.mockResolvedValue({ id: 31, name: '11 Listopada 40', googleSheetId: 'sheet-1' })
+    findReturns(
+      [makeMaterialTransaction(101, 'Materiały budowlane', { amount: 250, description: 'cement' })],
+      [makeCancellation(201, 101)],
+    )
+    sheetColIReturns([]) // empty sheet
+
+    const result = await previewMaterialSync(31)
+
+    expect(result.success).toBe(true)
+    if (!result.success) throw new Error('expected success')
+    const byId = Object.fromEntries(result.data.toAppend.map((r) => [r.transferId, r]))
+    expect(byId[101].amount).toBe(250)
+    expect(byId[201].amount).toBe(-250) // reverses the original
+    expect(byId[201].typ).toBe('Materiały budowlane') // same type as the original
+    expect(byId[201].description).toBe('Anulowanie #101')
+  })
+
+  it('does not re-append rows already present in the sheet', async () => {
+    findByIDMock.mockResolvedValue({ id: 31, name: '11 Listopada 40', googleSheetId: 'sheet-1' })
+    findReturns([makeMaterialTransaction(101, 'Materiały budowlane', { amount: 250 })])
+    sheetColIReturns([101]) // already synced
 
     const result = await previewMaterialSync(31)
 
     expect(result.success).toBe(true)
     if (!result.success) throw new Error('expected success')
     expect(result.data.toAppend).toEqual([])
-    expect(result.data.toDelete).toEqual([{ transferId: 999, rowIndex: 2 }])
-    expect(result.data.orphans).toEqual([])
-  })
-
-  it('classifies true orphans (sheet row whose transferId is not in the DB at all)', async () => {
-    findByIDMock.mockImplementation(({ collection, id }: { collection: string; id: number }) => {
-      if (collection === 'investments') {
-        return Promise.resolve({ id: 31, name: '11 Listopada 40', googleSheetId: 'sheet-1' })
-      }
-      if (collection === 'transactions' && id === 9999) return Promise.resolve(null)
-      return Promise.resolve(null)
-    })
-    findReturns([])
-    sheetColIReturns([9999])
-
-    const result = await previewMaterialSync(31)
-
-    expect(result.success).toBe(true)
-    if (!result.success) throw new Error('expected success')
-    expect(result.data.toAppend).toEqual([])
-    expect(result.data.toDelete).toEqual([])
-    expect(result.data.orphans).toEqual([{ transferIdInSheet: 9999, rowIndex: 2 }])
   })
 })
 
@@ -223,8 +219,6 @@ describe('applyMaterialSync', () => {
           note: 'FV/1',
         },
       ],
-      toDelete: [],
-      orphans: [],
       spreadsheetId: 'sheet-1',
     }
 
@@ -232,8 +226,8 @@ describe('applyMaterialSync', () => {
 
     expect(result.success).toBe(true)
     if (!result.success) throw new Error('expected success')
-    expect(result.data).toEqual({ added: 0, deleted: 0, skipped: 1, errors: [] })
-    expect(valuesAppendMock).not.toHaveBeenCalled()
+    expect(result.data).toEqual({ added: 0, skipped: 1, errors: [] })
+    expect(valuesBatchUpdateMock).not.toHaveBeenCalled()
   })
 
   it('refuses when the investment’s googleSheetId no longer matches the preview’s spreadsheetId', async () => {
@@ -245,8 +239,6 @@ describe('applyMaterialSync', () => {
 
     const preview = {
       toAppend: [],
-      toDelete: [],
-      orphans: [],
       spreadsheetId: 'sheet-1-old',
     }
 
@@ -256,7 +248,6 @@ describe('applyMaterialSync', () => {
     if (result.success) throw new Error('expected failure')
     expect(result.error).toMatch(/podgląd ponownie/i)
     // Refusal happens before any Google write.
-    expect(valuesAppendMock).not.toHaveBeenCalled()
-    expect(batchUpdateMock).not.toHaveBeenCalled()
+    expect(valuesBatchUpdateMock).not.toHaveBeenCalled()
   })
 })
