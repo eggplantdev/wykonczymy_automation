@@ -16,6 +16,7 @@ import {
 } from '@/lib/schemas/transfer'
 import type { SessionUserT } from '@/types/auth'
 import { isDepositType, isLaborCost, needsSourceRegister } from '../constants/transfers'
+import { syncSingleTransferToSheet } from './sheets-sync'
 import {
   checkIfSufficientBalance,
   validateAction,
@@ -52,7 +53,7 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
         }
       }
 
-      await payload.create({
+      const created = await payload.create({
         collection: 'transactions',
         data: {
           ...data,
@@ -62,6 +63,12 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
         },
       })
       console.log(`[PERF]   payload.create ${step()}ms`)
+
+      // Fire-and-forget Materiały sync. The `void` is load-bearing — awaiting it
+      // would block the user-visible action on Google Sheets API latency, and the
+      // sync is no-op for non-INVESTMENT_EXPENSE rows anyway. Drift is recoverable
+      // via the sync button on the kosztorys page.
+      void syncSingleTransferToSheet({ transferId: created.id, intent: 'CREATE' })
 
       return { success: true }
     },
@@ -108,10 +115,11 @@ export async function createBulkTransferAction(
       if (!transactionId) throw new Error('Failed to start transaction')
       const req = { transactionID: transactionId }
 
+      const createdIds: number[] = []
       try {
         for (let i = 0; i < parsed.data.lineItems.length; i++) {
           const item = parsed.data.lineItems[i]
-          await payload.create({
+          const created = await payload.create({
             collection: 'transactions',
             req,
             data: {
@@ -131,6 +139,7 @@ export async function createBulkTransferAction(
               createdBy: user.id,
             },
           })
+          createdIds.push(created.id)
         }
         await payload.db.commitTransaction(transactionId)
       } catch (err) {
@@ -138,6 +147,13 @@ export async function createBulkTransferAction(
         throw err
       }
       console.log(`[PERF]   payload.create x${lineCount} ${step()}ms`)
+
+      // Fire-and-forget after commit — never before, else a rolled-back row
+      // would leak into the sheet. Per-row, not batched: each line item decides
+      // independently whether it's a Materiały entry.
+      for (const transferId of createdIds) {
+        void syncSingleTransferToSheet({ transferId, intent: 'CREATE' })
+      }
 
       return { success: true }
     },
@@ -204,6 +220,10 @@ export async function cancelTransferAction(transferId: number, data: CancelTrans
         data: { cancelled: true },
       })
       console.log(`[PERF]   update cancelled ${step()}ms`)
+
+      // Pull the row from the sheet too, if it's a Materiały entry on a linked
+      // investment. No-op for everything else; failure is logged only.
+      void syncSingleTransferToSheet({ transferId, intent: 'DELETE' })
 
       // Create CANCELLATION audit row
       const today = new Date().toISOString().split('T')[0]
