@@ -51,7 +51,7 @@ export const fetchReferenceData = unstable_cache(
       `),
       db.execute(sql`
         SELECT id, name, status::text,
-               address, phone, email, contact_person, notes, review
+               address, phone, email, contact_person, notes, review, google_sheet_id
         FROM investments
         ORDER BY name
       `),
@@ -99,6 +99,7 @@ export const fetchReferenceData = unstable_cache(
       contactPerson: (row.contact_person as string) ?? '',
       notes: (row.notes as string) ?? '',
       review: (row.review as string) ?? '',
+      hasSheet: Boolean(row.google_sheet_id),
     }))
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

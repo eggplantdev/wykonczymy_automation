@@ -19,6 +19,7 @@ const stubInvestment = {
   contactPerson: '',
   notes: '',
   review: '',
+  hasSheet: false,
 }
 
 const refData = {

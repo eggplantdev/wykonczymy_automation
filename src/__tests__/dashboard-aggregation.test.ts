@@ -35,6 +35,7 @@ const mockRefData: ReferenceDataBaseT = {
       contactPerson: 'CP',
       notes: '',
       review: '',
+      hasSheet: false,
     },
     {
       id: 20,
@@ -47,6 +48,7 @@ const mockRefData: ReferenceDataBaseT = {
       contactPerson: '',
       notes: '',
       review: '',
+      hasSheet: false,
     },
   ],
   workers: [

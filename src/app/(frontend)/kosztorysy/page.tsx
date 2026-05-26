@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { ADMIN_OR_OWNER_MANAGER_ROLES } from '@/lib/auth/roles'
-import { getInvestmentsForKosztorys } from '@/lib/queries/investments'
+import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { cn } from '@/lib/cn'
 
@@ -10,14 +10,15 @@ export default async function KosztorysyListPage() {
   const session = await requireAuth(ADMIN_OR_OWNER_MANAGER_ROLES)
   if (!session.success) redirect('/')
 
-  // TODO: add filtering (by status, linked/unlinked, name search) — for now we
-  // only surface investments that already have a linked kosztorys sheet.
-  const investments = (await getInvestmentsForKosztorys()).filter((inv) => inv.hasSheet)
+  // Read from the shared reference-data cache (same source as the investments
+  // table), so linked-status can never diverge between the two views.
+  // TODO: add filtering (by status, linked/unlinked, name search).
+  const { investments } = await fetchReferenceData()
 
   return (
     <PageWrapper title="Kosztorysy" description="Wybierz inwestycję, aby otworzyć jej kosztorys.">
       {investments.length === 0 ? (
-        <p className="text-muted-foreground text-sm">Brak powiązanych kosztorysów.</p>
+        <p className="text-muted-foreground text-sm">Brak inwestycji.</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {investments.map((investment) => (
