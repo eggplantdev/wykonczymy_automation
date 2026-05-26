@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
@@ -74,12 +75,23 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
 
   const { saldo, isSaldoLoading, fetchSaldo, resetSaldo } = useSaldo()
 
+  // Bumped on reset to remount the (uncontrolled) file inputs, clearing their
+  // native files and internal filename state — form.reset() can't reach them.
+  const [fileInputKey, setFileInputKey] = useState(0)
+
+  const {
+    handleRemoveLineItem,
+    handleFileChange,
+    getFiles,
+    reset: resetInvoiceFiles,
+  } = useInvoiceFiles(recoveredFiles)
+
   function handleReset() {
     resetFormData()
     resetSaldo()
+    resetInvoiceFiles()
+    setFileInputKey((k) => k + 1)
   }
-
-  const { handleRemoveLineItem, handleFileChange, getFiles } = useInvoiceFiles(recoveredFiles)
 
   const form = useAppForm({
     defaultValues:
@@ -240,6 +252,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
               hasInvestment={!!currentInvestment}
               onRemoveItem={handleRemoveLineItem}
               onFileChange={handleFileChange}
+              fileInputKey={fileInputKey}
               transferType={currentType}
               referenceData={referenceData}
             />
