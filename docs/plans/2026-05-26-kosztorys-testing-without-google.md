@@ -41,34 +41,58 @@ failed (non-fatal):`. The log line itself is the proof that the wiring
 
 ---
 
-## Phase 1: Fresh local DB from dump
+## Phase 1: Fresh side-by-side database from dump
 
-The dump was created with `pg_dump --clean --no-owner --no-acl`, so the
-`DROP TABLE` statements are baked in — no need to drop the schema first.
+We create a **new database inside the existing `wykonczymy` container** so
+your normal local DB (`wykonczymy-db`) stays untouched. You switch
+between the two by flipping `DB_POSTGRES_URL` in `.env`.
 
-- [ ] **Step 1:** Restore the latest dump into the local container:
+The dump was created with `pg_dump --clean --no-owner --no-acl`, so its
+`DROP TABLE` statements run against the _target_ DB only — they cannot
+touch other databases in the same container.
+
+- [ ] **Step 1:** Create the new database:
 
   ```bash
-  docker exec -i wykonczymy psql -U postgres -d 'wykonczymy-db' < dumps/dump-latest.sql
+  docker exec -i wykonczymy psql -U postgres -c 'CREATE DATABASE "wykonczymy-test-db";'
+  ```
+
+  Expect: `CREATE DATABASE`. If it already exists from a previous run,
+  drop it first: `DROP DATABASE "wykonczymy-test-db";` (only ever runs
+  against the side-by-side DB — never `wykonczymy-db`).
+
+- [ ] **Step 2:** Restore the latest dump _into the new DB_:
+
+  ```bash
+  docker exec -i wykonczymy psql -U postgres -d 'wykonczymy-test-db' < dumps/dump-latest.sql
   ```
 
   Expect: lots of `DROP TABLE` + `CREATE TABLE` + `INSERT` chatter; final
-  line clean.
+  line clean. The `DROP`s target tables inside `wykonczymy-test-db` only.
 
-- [ ] **Step 2:** Confirm the DB is loaded but our new column doesn't yet
+- [ ] **Step 3:** Confirm the DB is loaded but our new column doesn't yet
       exist (the migration hasn't run):
 
   ```bash
-  docker exec -i wykonczymy psql -U postgres -d 'wykonczymy-db' -c "\d investments" | grep -i google || echo "no google column yet — expected"
+  docker exec -i wykonczymy psql -U postgres -d 'wykonczymy-test-db' \
+    -c "\d investments" | grep -i google || echo "no google column yet — expected"
   ```
 
   Expect: `no google column yet — expected`. (The dump is from before the
   Task 4 migration; the migration will run on dev boot in Phase 2.)
 
-- [ ] **Step 3:** Note investment IDs you'll use for testing:
+- [ ] **Step 4:** Confirm the original DB is untouched:
 
   ```bash
-  docker exec -i wykonczymy psql -U postgres -d 'wykonczymy-db' \
+  docker exec -i wykonczymy psql -U postgres -c '\l' | grep wykonczymy
+  ```
+
+  Expect: both `wykonczymy-db` and `wykonczymy-test-db` listed.
+
+- [ ] **Step 5:** Note investment IDs you'll use for testing:
+
+  ```bash
+  docker exec -i wykonczymy psql -U postgres -d 'wykonczymy-test-db' \
     -c "SELECT id, name, status FROM investments ORDER BY id LIMIT 10;"
   ```
 
@@ -77,12 +101,24 @@ The dump was created with `pg_dump --clean --no-owner --no-acl`, so the
 
 ---
 
-## Phase 2: Boot with dummy Google env
+## Phase 2: Point the app at the test DB + boot with dummy Google env
 
 Files: `.env`
 
-- [ ] **Step 1:** Add three lines to `.env` (the validator parses
-      `GOOGLE_SERVICE_ACCOUNT_JSON` and requires `client_email` +
+- [ ] **Step 1:** Comment out the current `DB_POSTGRES_URL` and add a
+      test-DB line above it (so you can flip back by toggling comments).
+      The URL points at `wykonczymy-test-db` instead of `wykonczymy-db`:
+
+  ```
+  # DB_POSTGRES_URL=<original wykonczymy-db URL>  ← comment this
+  DB_POSTGRES_URL=postgres://postgres:<password>@127.0.0.1:5433/wykonczymy-test-db
+  ```
+
+  Keep `POSTGRES_PASSWORD` as is — only the database segment of the URL
+  changes.
+
+- [ ] **Step 2:** Add three Google dummy vars to `.env` (the validator
+      parses `GOOGLE_SERVICE_ACCOUNT_JSON` and requires `client_email` +
       `private_key`):
 
   ```
@@ -93,7 +129,7 @@ Files: `.env`
   Single quotes are mandatory — zsh would otherwise eat the `\n` in
   `private_key`.
 
-- [ ] **Step 2:** Boot dev:
+- [ ] **Step 3:** Boot dev:
 
   ```bash
   pnpm dev
@@ -102,16 +138,24 @@ Files: `.env`
   Expect:
   - No env validation errors at startup
   - Migration log includes `20260525_add_google_sheet_id_to_investments`
+    (running against `wykonczymy-test-db`, not the real DB)
   - "Ready" appears
 
-- [ ] **Step 3:** Confirm the column landed:
+- [ ] **Step 4:** Confirm the column landed _in the test DB only_:
 
   ```bash
-  docker exec -i wykonczymy psql -U postgres -d 'wykonczymy-db' \
+  docker exec -i wykonczymy psql -U postgres -d 'wykonczymy-test-db' \
     -c "\d investments" | grep google
   ```
 
   Expect: `google_sheet_id | character varying`.
+
+  And confirm the original DB is **still** untouched:
+
+  ```bash
+  docker exec -i wykonczymy psql -U postgres -d 'wykonczymy-db' \
+    -c "\d investments" | grep -i google || echo "wykonczymy-db unaffected — expected"
+  ```
 
 ---
 
@@ -312,13 +356,27 @@ Dev server running with the dummy env. Open two browser tabs — admin
 
 When you're ready to wire real Google credentials:
 
-- [ ] Remove the dummy values from `.env`.
+- [ ] **Flip `.env` back to `wykonczymy-db`** — uncomment the original
+      `DB_POSTGRES_URL`, comment / delete the `wykonczymy-test-db` line.
+- [ ] **Drop the test database** (only ever target the test DB here, not
+      `wykonczymy-db`):
+
+  ```bash
+  docker exec -i wykonczymy psql -U postgres -c 'DROP DATABASE "wykonczymy-test-db";'
+  ```
+
+- [ ] Remove the dummy Google values from `.env`.
 - [ ] Paste real `GOOGLE_SERVICE_ACCOUNT_JSON`,
       `KOSZTORYS_TEMPLATE_SHEET_ID`, and optionally
       `KOSZTORYS_DRIVE_FOLDER_ID`.
-- [ ] Restart dev. All the buttons that failed in Scenarios 2, 4 now
-      succeed; the log lines in Scenarios 5, 7 flip from "failed
-      (non-fatal)" to success messages.
+- [ ] **Remove the "Temporary: kosztorys testing DB" section from
+      `CLAUDE.md`** — it was only there for the duration of this
+      testing phase.
+- [ ] Restart dev — pointing back at `wykonczymy-db`. The migration
+      will run there now, applying the `googleSheetId` column.
+- [ ] All the buttons that failed in Scenarios 2, 4 now succeed; the
+      log lines in Scenarios 5, 7 flip from "failed (non-fatal)" to
+      success messages.
 - [ ] At that point, follow the build plan's Task 10 for the full E2E.
 
 ---

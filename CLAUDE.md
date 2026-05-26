@@ -19,6 +19,18 @@ alwaysApply: true
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## ⚠️ TEMPORARY: kosztorys testing DB (remove after Phase 5 of `docs/plans/2026-05-26-kosztorys-testing-without-google.md`)
+
+We are currently running the local app against a **side-by-side test database** `wykonczymy-test-db` (inside the existing `wykonczymy` docker container), not against the normal `wykonczymy-db`. The two coexist in the same container; `DB_POSTGRES_URL` in `.env` decides which one the app talks to.
+
+**Rules for this period:**
+
+- Never run destructive SQL (DROP, TRUNCATE, restore-from-dump, etc.) against `wykonczymy-db` — that is the user's real local data. Always check `-d 'wykonczymy-test-db'` is in the command before destructive ops.
+- The migration `20260525_add_google_sheet_id_to_investments` is currently only applied to `wykonczymy-test-db`. `wykonczymy-db` will get it when we flip back.
+- The Google env vars in `.env` (`GOOGLE_SERVICE_ACCOUNT_JSON`, `KOSZTORYS_TEMPLATE_SHEET_ID`) are dummy values that satisfy Zod's shape check but cannot authenticate. The Google API will reject them — that is expected during this phase.
+
+**Removal trigger:** when the user finishes Phase 5 of the testing plan (real Google creds wired in, test DB dropped). At that point, delete this whole section from CLAUDE.md.
+
 ## Project Overview
 
 Business management dashboard (cash registers, transfers, investments, employees) built with **Next.js 16.1.6** + **Payload CMS 3.73.0**. Polish-language app with English code.
