@@ -131,19 +131,25 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
           </DialogHeader>
           {preview && (
             <div className="space-y-4 text-sm">
-              {preview.toAppend.length === 0 ? (
-                <p className="text-muted-foreground">
-                  Wszystko jest już zsynchronizowane — brak nowych pozycji do dodania.
-                </p>
+              {pendingChanges(preview) === 0 ? (
+                <p className="text-muted-foreground">Wszystko jest już zsynchronizowane.</p>
               ) : (
-                <Section
-                  title={`Wydatki do dodania (${preview.toAppend.length})`}
-                  tone="green"
-                  items={preview.toAppend.map((r) => ({
-                    key: r.transferId,
-                    text: `#${r.transferId} · ${r.typ} · ${formatPLN(r.amount)} · ${r.description} [${r.date}]`,
-                  }))}
-                />
+                <>
+                  <p className="text-muted-foreground text-xs">
+                    Do dodania: <strong>{preview.toAppend.length}</strong> · do odświeżenia:{' '}
+                    <strong>{preview.toUpdateCount}</strong> · do usunięcia:{' '}
+                    <strong>{preview.toRemoveCount}</strong>
+                  </p>
+                  {preview.toAppend.length > 0 && (
+                    <Section
+                      title={`Wydatki do dodania (${preview.toAppend.length})`}
+                      items={preview.toAppend.map((r) => ({
+                        key: r.transferId,
+                        text: `#${r.transferId} · ${r.typ} · ${formatPLN(r.amount)} · ${r.description} [${r.date}]`,
+                      }))}
+                    />
+                  )}
+                </>
               )}
             </div>
           )}
@@ -151,8 +157,11 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
             <Button variant="outline" onClick={() => setPreview(null)}>
               Anuluj
             </Button>
-            <Button onClick={onConfirm} disabled={pending || preview?.toAppend.length === 0}>
-              Dodaj do arkusza
+            <Button
+              onClick={onConfirm}
+              disabled={pending || !preview || pendingChanges(preview) === 0}
+            >
+              Zsynchronizuj arkusz
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -161,29 +170,30 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
   )
 }
 
+// Total state-changing operations a confirm would perform — drives the "nothing
+// to do" message and whether the confirm button is enabled (review T3.1).
+function pendingChanges(p: MaterialSyncPreviewT): number {
+  return p.toAppend.length + p.toUpdateCount + p.toRemoveCount
+}
+
 type SectionPropsT = {
   title: string
-  tone: 'green' | 'red' | 'yellow'
   items: Array<{ key: number; text: string }>
 }
 
-function Section({ title, tone, items }: SectionPropsT) {
-  const dot = { green: 'bg-emerald-500', red: 'bg-red-500', yellow: 'bg-amber-500' }[tone]
+// Only ever rendered with a non-empty list, so no empty-state branch.
+function Section({ title, items }: SectionPropsT) {
   return (
     <div>
       <div className="mb-1 flex items-center gap-2 font-medium">
-        <span className={`h-2 w-2 rounded-full ${dot}`} />
+        <span className="h-2 w-2 rounded-full bg-emerald-500" />
         {title}
       </div>
-      {items.length === 0 ? (
-        <div className="text-muted-foreground pl-4 text-xs">— brak —</div>
-      ) : (
-        <ul className="text-muted-foreground space-y-0.5 pl-4 text-xs">
-          {items.map((i) => (
-            <li key={i.key}>{i.text}</li>
-          ))}
-        </ul>
-      )}
+      <ul className="text-muted-foreground space-y-0.5 pl-4 text-xs">
+        {items.map((i) => (
+          <li key={i.key}>{i.text}</li>
+        ))}
+      </ul>
     </div>
   )
 }

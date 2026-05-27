@@ -17,7 +17,11 @@ import {
 import type { SessionUserT } from '@/types/auth'
 import { after } from 'next/server'
 import { isDepositType, isLaborCost, needsSourceRegister } from '../constants/transfers'
-import { removeTransferFromSheet, syncSingleTransferToSheet } from './sheets-sync'
+import {
+  removeTransferFromSheet,
+  syncBulkExpensesToSheet,
+  syncSingleTransferToSheet,
+} from './sheets-sync'
 import {
   checkIfSufficientBalance,
   validateAction,
@@ -149,16 +153,11 @@ export async function createBulkTransferAction(
       }
       console.log(`[PERF]   payload.create x${lineCount} ${step()}ms`)
 
-      // Post-response sync after commit — never before, else a rolled-back row
-      // would leak into the sheet. Serialized (await in a loop), NOT N parallel
-      // fire-and-forgets: each append reads the sheet to find the next empty row,
-      // so parallel calls would all target the same row and overwrite each other.
+      // Post-response sync after commit — never before, else a rolled-back row would
+      // leak into the sheet. One batched call for all created rows (read the sheet
+      // once, write once) instead of N serialized single-transfer syncs (review T4.2).
       // `after()` keeps the function alive past the response on Vercel.
-      after(async () => {
-        for (const transferId of createdIds) {
-          await syncSingleTransferToSheet({ transferId })
-        }
-      })
+      after(() => syncBulkExpensesToSheet(createdIds))
 
       return { success: true }
     },

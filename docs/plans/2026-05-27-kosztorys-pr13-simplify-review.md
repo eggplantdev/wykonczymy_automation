@@ -157,7 +157,7 @@ Each field binds to the FIRST column whose header contains its keyword (`findInd
 
 ## Tier 3 — UX / correctness-adjacent
 
-### T3.1 ☐ Preview under-reports; confirm button disabled when only updates/removals are needed
+### T3.1 ☑ Preview under-reports; confirm button disabled when only updates/removals are needed
 
 **`src/lib/actions/sheets-sync.ts:154` + `src/app/(frontend)/inwestycje/[id]/kosztorys/sync-button.tsx:153`** — CONFIRMED
 
@@ -203,7 +203,7 @@ The Editor-access check does a `batchUpdate` rewriting the title to its current 
 Each `appendMaterialRow`/`updateMaterialRow` independently re-reads the whole `A1:Z1000` grid (~26k cells); `applyMaterialSync` calls them per row, and `syncSingleTransferToSheet` reads the grid via `readMaterialyTransferIds` then again inside append/update. Root cause: the low-level helpers each `readGrid` with no way to share an already-read grid.
 **Fix:** let helpers accept a pre-read grid + header map; read once per action and issue a single `values.batchUpdate` carrying all rows. Collapses 2N calls to ~2. (Also removes the concurrency surface behind T2.1.)
 
-### T4.2 ☐ Bulk `after()` syncs line items one-by-one
+### T4.2 ☑ Bulk `after()` syncs line items one-by-one
 
 **`src/lib/actions/transfers.ts:157`** — efficiency
 
@@ -221,7 +221,7 @@ Each item re-fetches the investment's `sheetId` and re-reads the grid. Bulk item
 
 **`src/app/(frontend)/inwestycje/[id]/kosztorys/sync-button.tsx:129`** — reuse. Use `formatPLN` from `@/lib/format-currency` for pl-PL formatting consistency.
 
-### T4.6 ☐ `Section` component over-built
+### T4.6 ☑ `Section` component over-built
 
 **`src/app/(frontend)/inwestycje/[id]/kosztorys/sync-button.tsx`** — simplify. `tone` red/yellow entries + the `items.length === 0` branch are unreachable (single render, `tone="green"`, caller short-circuits on empty). Inline the single list or hardcode the emerald dot.
 

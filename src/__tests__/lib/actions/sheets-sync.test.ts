@@ -217,6 +217,29 @@ describe('previewMaterialSync', () => {
     if (!result.success) throw new Error('expected success')
     expect(result.data.toAppend).toEqual([])
   })
+
+  it('reports update and remove counts, not just appends (T3.1)', async () => {
+    findByIDMock.mockResolvedValue({ id: 31, name: 'X', googleSheetId: 'sheet-1' })
+    // active expenses #7 (present → refresh) and #9 (missing → append); #8 on the
+    // sheet is this investment's orphan (a now-cancelled expense → remove).
+    findMock
+      .mockResolvedValueOnce({
+        docs: [
+          makeMaterialTransaction(7, 'Materiały budowlane', { amount: 100 }),
+          makeMaterialTransaction(9, 'Materiały budowlane', { amount: 50 }),
+        ],
+      })
+      .mockResolvedValueOnce({ docs: [{ id: 8 }] })
+    sheetColIReturns([7, 8])
+
+    const result = await previewMaterialSync(31)
+
+    expect(result.success).toBe(true)
+    if (!result.success) throw new Error('expected success')
+    expect(result.data.toAppend.map((r) => r.transferId)).toEqual([9])
+    expect(result.data.toUpdateCount).toBe(1) // #7 present → refreshed
+    expect(result.data.toRemoveCount).toBe(1) // #8 orphan → removed
+  })
 })
 
 // ── applyMaterialSync ────────────────────────────────────────────────────

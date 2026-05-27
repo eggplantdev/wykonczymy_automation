@@ -22,6 +22,11 @@ type AppRowT = {
 
 export type MaterialSyncPreviewT = {
   toAppend: AppRowT[]
+  // What a confirm would ALSO do beyond appends: refresh present rows in place and
+  // remove this investment's orphaned rows. Surfaced so the dialog doesn't claim
+  // "nothing to do" when there are still updates/removes pending (review T3.1).
+  toUpdateCount: number
+  toRemoveCount: number
   spreadsheetId: string
 }
 
@@ -140,21 +145,60 @@ export async function previewMaterialSync(investmentId: number) {
       return { success: false, error: 'Inwestycja nie ma powiązanego arkusza Google.' }
     }
 
-    const [appRows, sheetIds] = await Promise.all([
-      loadAppMaterialRows(payload, investmentId),
-      readMaterialyTransferIds(sheetId),
-    ])
-
-    // The preview surfaces only rows to APPEND (ids the sheet is missing).
-    // applyMaterialSync additionally overwrites present rows and removes this
-    // investment's orphaned rows — the preview under-reports those (review T3.1).
-    const toAppend = appRows.filter((r) => !sheetIds.has(r.transferId))
+    const { appRows, toAppend, removableIds } = await buildSyncPlan(payload, investmentId, sheetId)
 
     return {
       success: true,
-      data: { toAppend, spreadsheetId: sheetId },
+      data: {
+        toAppend,
+        toUpdateCount: appRows.length - toAppend.length,
+        toRemoveCount: removableIds.length,
+        spreadsheetId: sheetId,
+      },
     }
   })
+}
+
+// The shared sync plan, used by BOTH preview and apply so they can never disagree:
+// which active expenses to append (missing from the sheet) vs refresh (present),
+// and which sheet rows to remove. Removal is scoped to THIS investment's own
+// expenses — NOT "is this id any transaction" — because ids are dense sequential
+// PKs: an owner's manual number in the id column (a quantity, a year) would
+// otherwise collide with some unrelated transaction (a payout, another
+// investment's expense) and get its row deleted (review T1.1).
+async function buildSyncPlan(
+  payload: Awaited<ReturnType<typeof getPayload>>,
+  investmentId: number,
+  sheetId: string,
+): Promise<{ appRows: AppRowT[]; toAppend: AppRowT[]; removableIds: number[] }> {
+  const [appRows, current] = await Promise.all([
+    loadAppMaterialRows(payload, investmentId),
+    readMaterialyTransferIds(sheetId),
+  ])
+
+  const toAppend = appRows.filter((r) => !current.has(r.transferId))
+
+  const appIds = new Set(appRows.map((r) => r.transferId))
+  const orphanIds = [...current.keys()].filter((id) => !appIds.has(id))
+  let removableIds: number[] = []
+  if (orphanIds.length > 0) {
+    const removableExpenses = await payload.find({
+      collection: 'transactions',
+      where: {
+        and: [
+          { id: { in: orphanIds } },
+          { investment: { equals: investmentId } },
+          { type: { equals: 'INVESTMENT_EXPENSE' } },
+        ],
+      },
+      depth: 0,
+      limit: 0, // enumerate all matches — a truncated page would leave real expense
+      overrideAccess: true, // ids unconfirmed, and they'd be wrongly kept as "manual rows".
+    })
+    removableIds = removableExpenses.docs.map((d) => d.id as number)
+  }
+
+  return { appRows, toAppend, removableIds }
 }
 
 // Re-derives what to append SERVER-SIDE — never trusts a client-supplied row set.
@@ -170,37 +214,7 @@ export async function applyMaterialSync(investmentId: number) {
         return { success: false, error: 'Inwestycja nie ma powiązanego arkusza Google.' }
       }
 
-      const [appRows, current] = await Promise.all([
-        loadAppMaterialRows(payload, investmentId),
-        readMaterialyTransferIds(sheetId),
-      ])
-
-      // Scoped orphan-removal: an id on the sheet but not among the active expenses
-      // is removable ONLY if it's one of THIS investment's own expenses (a
-      // now-cancelled one whose row should go). The guard query is scoped to
-      // investment + INVESTMENT_EXPENSE — NOT "is this id any transaction" — because
-      // ids are dense sequential PKs: an owner's manual number in the id column (a
-      // quantity, a year) would otherwise collide with some unrelated transaction (a
-      // payout, another investment's expense) and get its row deleted (review T1.1).
-      const appIds = new Set(appRows.map((r) => r.transferId))
-      const orphanIds = [...current.keys()].filter((id) => !appIds.has(id))
-      let removableIds: number[] = []
-      if (orphanIds.length > 0) {
-        const removableExpenses = await payload.find({
-          collection: 'transactions',
-          where: {
-            and: [
-              { id: { in: orphanIds } },
-              { investment: { equals: investmentId } },
-              { type: { equals: 'INVESTMENT_EXPENSE' } },
-            ],
-          },
-          depth: 0,
-          limit: 0, // enumerate all matches — a truncated page would leave real expense
-          overrideAccess: true, // ids unconfirmed, and they'd be wrongly kept as "manual rows".
-        })
-        removableIds = removableExpenses.docs.map((d) => d.id as number)
-      }
+      const { appRows, removableIds } = await buildSyncPlan(payload, investmentId, sheetId)
 
       // One batched write: upsert every active expense (append the missing, heal the
       // present) and drop the removable orphans — O(1) Google API calls, not O(N)
@@ -310,5 +324,50 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
     )
   } catch (err) {
     console.error('[sheets-sync] failed (non-fatal):', err)
+  }
+}
+
+/**
+ * Batched sync for a set of just-created transfers (the bulk-create path). Groups
+ * the mappable INVESTMENT_EXPENSE rows by investment and writes each investment's
+ * sheet in ONE batched call — instead of N serialized single-transfer syncs, each
+ * re-reading the sheet (review T4.2). Never throws; logs and swallows errors.
+ */
+export async function syncBulkExpensesToSheet(transferIds: number[]): Promise<void> {
+  try {
+    if (transferIds.length === 0) return
+    const payload = await getPayload({ config })
+    const found = await payload.find({
+      collection: 'transactions',
+      where: { id: { in: transferIds } },
+      depth: 1,
+      limit: 0,
+      overrideAccess: true,
+    })
+
+    // Group expense rows by investment (a bulk is normally one investment, but the
+    // grouping keeps it correct if that ever changes).
+    const rowsByInvestment = new Map<number, AppRowT[]>()
+    for (const doc of found.docs) {
+      const t = doc as { type?: string; investment?: unknown }
+      if (t.type !== 'INVESTMENT_EXPENSE') continue
+      const investmentId = relId(t.investment)
+      const row = expenseRow(doc as unknown as TxDoc)
+      if (investmentId === undefined || !row) continue
+      const list = rowsByInvestment.get(investmentId) ?? []
+      list.push(row)
+      rowsByInvestment.set(investmentId, list)
+    }
+
+    for (const [investmentId, rows] of rowsByInvestment) {
+      const sheetId = await getInvestmentSheetId(payload, investmentId)
+      if (!sheetId) continue
+      const { added, updated } = await applyMaterialRowsBatch(sheetId, rows, [])
+      console.log(
+        `[sheets-sync] bulk sync investment #${investmentId} → +${added}/${updated} on sheet ${sheetId}`,
+      )
+    }
+  } catch (err) {
+    console.error('[sheets-sync] syncBulkExpensesToSheet failed (non-fatal):', err)
   }
 }

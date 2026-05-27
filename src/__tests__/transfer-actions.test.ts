@@ -15,9 +15,11 @@ vi.mock('next/server', async (importOriginal) => {
 
 // The sheet sync itself isn't under test here — spy on the boundary functions.
 const mockSyncSingle = vi.fn()
+const mockSyncBulk = vi.fn()
 const mockRemoveFromSheet = vi.fn()
 vi.mock('@/lib/actions/sheets-sync', () => ({
   syncSingleTransferToSheet: (...a: unknown[]) => mockSyncSingle(...a),
+  syncBulkExpensesToSheet: (...a: unknown[]) => mockSyncBulk(...a),
   removeTransferFromSheet: (...a: unknown[]) => mockRemoveFromSheet(...a),
 }))
 
@@ -161,6 +163,7 @@ beforeEach(() => {
   mockRequireAuth.mockReset().mockResolvedValue({ success: true, user: adminUser })
   mockDbExecute.mockReset().mockResolvedValue({ rows: [defaultDbRow()] })
   mockSyncSingle.mockReset()
+  mockSyncBulk.mockReset()
   mockRemoveFromSheet.mockReset()
 })
 
