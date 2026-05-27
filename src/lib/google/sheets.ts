@@ -16,7 +16,7 @@ export type MaterialRowInputT = {
   note: string
 }
 
-const MATERIALY_TAB = 'materiały '
+const MATERIALY_TAB = 'wydatki'
 const TAB_RANGE = `'${MATERIALY_TAB}'!A1:Z1000`
 const MAX_HEADER_SCAN_ROWS = 15
 
@@ -60,9 +60,40 @@ function columnLetter(index: number): string {
   return letter
 }
 
+type RgbT = { red: number; green: number; blue: number }
+
+function hexToRgb(hex: string): RgbT {
+  const h = hex.replace('#', '')
+  const full = h.length === 3 ? [...h].map((c) => c + c).join('') : h
+  return {
+    red: parseInt(full.slice(0, 2), 16) / 255,
+    green: parseInt(full.slice(2, 4), 16) / 255,
+    blue: parseInt(full.slice(4, 6), 16) / 255,
+  }
+}
+
+// Heavily-whitened version of a color for whole-row backgrounds, so dark text
+// stays readable while the hue is still recognizable at a glance.
+function tint(rgb: RgbT, amount = 0.82): RgbT {
+  const mix = (c: number) => c + (1 - c) * amount
+  return { red: mix(rgb.red), green: mix(rgb.green), blue: mix(rgb.blue) }
+}
+
+// Black or white text for a solid swatch, picked by perceived luminance.
+function textOn(rgb: RgbT): RgbT {
+  const lum = 0.299 * rgb.red + 0.587 * rgb.green + 0.114 * rgb.blue
+  return lum > 0.6 ? { red: 0, green: 0, blue: 0 } : { red: 1, green: 1, blue: 1 }
+}
+
 function getClient(): sheets_v4.Sheets {
   const auth = createServiceAccountJWT(['https://www.googleapis.com/auth/spreadsheets'])
   return google.sheets({ version: 'v4', auth })
+}
+
+function serviceAccountEmail(): string {
+  const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON
+  if (!raw) throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON not set')
+  return (JSON.parse(raw) as { client_email?: string }).client_email ?? ''
 }
 
 type HeaderMapT = { headerRow: number; cols: Record<FieldT, number> }
@@ -156,36 +187,30 @@ export async function appendMaterialRow(
   return { rowIndex }
 }
 
-export async function deleteMaterialRowByTransferId(
-  spreadsheetId: string,
-  transferId: number,
-): Promise<{ deleted: boolean; rowIndex?: number }> {
-  const sheets = getClient()
-  const grid = await readGrid(spreadsheetId)
-  const { headerRow, cols } = resolveHeaders(grid)
-
-  for (let r = headerRow; r < grid.length; r++) {
-    if (isTransferId(grid[r]?.[cols.id]) !== transferId) continue
-    const rowIndex = r + 1
-    // Clear only this expense's mapped field cells; leaves the row in place and
-    // never touches summary columns.
-    const data = FIELDS.map((field) => ({
-      range: `'${MATERIALY_TAB}'!${columnLetter(cols[field])}${rowIndex}`,
-      values: [['']],
-    }))
-    await sheets.spreadsheets.values.batchUpdate({
-      spreadsheetId,
-      requestBody: { valueInputOption: 'RAW', data },
-    })
-    return { deleted: true, rowIndex }
-  }
-  return { deleted: false }
+// Color that brands each expense type across the sheet (row tint + summary
+// swatch), keyed by type name. A type not listed here falls back to gray — it
+// still appears, just uncolored until a hex is added (one-line edit).
+const TYPE_COLORS: Record<string, string> = {
+  'Materiały budowlane': '#3b82f6',
+  'Materiały wykończeniowe': '#22c55e',
+  'Pozostałe koszty': '#f59e0b',
 }
+const FALLBACK_COLOR = '#64748b'
+const colorFor = (typeName: string): string => TYPE_COLORS[typeName] ?? FALLBACK_COLOR
+
+// Column H — directly after notatka (G). No gap between the data block and the
+// summary (RAZEM sits next to notatka).
+const SUMMARY_START_COL = 7
+const MONEY_PATTERN = '#,##0.00 "zł"'
+const HEADER_BG: RgbT = { red: 0.17, green: 0.24, blue: 0.31 }
+const RAZEM_BG: RgbT = { red: 0.93, green: 0.94, blue: 0.95 }
+const WHITE: RgbT = { red: 1, green: 1, blue: 1 }
 
 // Attach (or reset) the materiały tab on an existing spreadsheet: ensure the tab
-// exists, then write the RAZEM + per-type SUMIF summary and the header row. Does
-// NOT create a new file, so it works within service-account Drive limits. The
-// summary's per-type rows double as SUMIF criteria (label == matched typ).
+// exists, write the header + RAZEM/per-type SUMIF summary, then style it (frozen
+// bold header, currency amounts, per-type whole-row color, matching summary
+// swatches). Does NOT create a new file, so it works within service-account Drive
+// limits. Re-runnable: clears values and drops prior conditional rules first.
 export async function setupMaterialyTab(
   spreadsheetId: string,
   expenseTypes: string[],
@@ -194,28 +219,42 @@ export async function setupMaterialyTab(
 
   const meta = await sheets.spreadsheets.get({
     spreadsheetId,
-    fields: 'sheets(properties(title))',
+    fields:
+      'sheets(properties(sheetId,title),conditionalFormats,protectedRanges(protectedRangeId))',
   })
-  const exists = (meta.data.sheets ?? []).some((s) => s.properties?.title === MATERIALY_TAB)
-  if (!exists) {
-    await sheets.spreadsheets.batchUpdate({
+  const existing = (meta.data.sheets ?? []).find((s) => s.properties?.title === MATERIALY_TAB)
+  let sheetId = existing?.properties?.sheetId ?? undefined
+  const priorRuleCount = existing?.conditionalFormats?.length ?? 0
+  const priorProtectedRangeIds = (existing?.protectedRanges ?? [])
+    .map((p) => p.protectedRangeId)
+    .filter((id): id is number => id != null)
+  if (sheetId == null) {
+    const added = await sheets.spreadsheets.batchUpdate({
       spreadsheetId,
       requestBody: { requests: [{ addSheet: { properties: { title: MATERIALY_TAB } } }] },
     })
+    sheetId = added.data.replies?.[0]?.addSheet?.properties?.sheetId ?? 0
   }
 
-  // Clear any prior layout so this is a clean template.
-  await sheets.spreadsheets.values.clear({ spreadsheetId, range: TAB_RANGE })
+  // Reset the header row and the entire summary region (column H rightward),
+  // but DO NOT clear the data block (A2:G). This makes re-running setup
+  // non-destructive: it refreshes the template/formatting on an already-populated
+  // sheet without wiping synced rows, so no re-sync is needed afterward.
+  await sheets.spreadsheets.values.batchClear({
+    spreadsheetId,
+    requestBody: {
+      ranges: [`'${MATERIALY_TAB}'!A1:G1`, `'${MATERIALY_TAB}'!H1:Z1000`],
+    },
+  })
 
   // Header at row 1, data from row 2 — a clean A:G block you can date-filter.
-  // The summary is a small 2-row table to the right (column I onward): RAZEM +
-  // one column per type, with each total UNDER its label. Each total's SUMIF
-  // criterion is its own label cell (drift-proof). Polish locale → ';' separator.
-  const SUMMARY_START_COL = 8 // column I
+  // The summary is a small 2-row table starting at column H: RAZEM + one column
+  // per type, each total UNDER its label. Each total's SUMIF criterion is its own
+  // label cell (drift-proof). Polish locale → ';' separator.
   const labels: string[] = ['RAZEM', ...expenseTypes]
   const totals: string[] = ['=SUM(E2:E)']
-  expenseTypes.forEach((_typ, i) => {
-    const labelCell = `${columnLetter(SUMMARY_START_COL + 1 + i)}1` // J1, K1, L1, …
+  expenseTypes.forEach((_t, i) => {
+    const labelCell = `${columnLetter(SUMMARY_START_COL + 1 + i)}1` // I1, J1, K1, …
     totals.push(`=SUMIF(C2:C; ${labelCell}; E2:E)`)
   })
 
@@ -231,4 +270,172 @@ export async function setupMaterialyTab(
       ],
     },
   })
+
+  const requests: sheets_v4.Schema$Request[] = []
+
+  // Drop prior protected ranges so a re-run doesn't stack duplicates.
+  for (const protectedRangeId of priorProtectedRangeIds) {
+    requests.push({ deleteProtectedRange: { protectedRangeId } })
+  }
+
+  // Drop prior conditional rules (reverse order keeps indices valid) so a re-run
+  // doesn't stack duplicate row-coloring rules.
+  for (let i = priorRuleCount - 1; i >= 0; i--) {
+    requests.push({ deleteConditionalFormatRule: { sheetId, index: i } })
+  }
+
+  // Freeze the header row.
+  requests.push({
+    updateSheetProperties: {
+      properties: { sheetId, gridProperties: { frozenRowCount: 1 } },
+      fields: 'gridProperties.frozenRowCount',
+    },
+  })
+
+  // Header row A1:G1 — dark background, bold white, centered.
+  requests.push({
+    repeatCell: {
+      range: { sheetId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 0, endColumnIndex: 7 },
+      cell: {
+        userEnteredFormat: {
+          backgroundColor: HEADER_BG,
+          horizontalAlignment: 'CENTER',
+          textFormat: { bold: true, foregroundColor: WHITE },
+        },
+      },
+      fields: 'userEnteredFormat(backgroundColor,horizontalAlignment,textFormat)',
+    },
+  })
+
+  // Currency format on the kwota column (E) data rows.
+  requests.push({
+    repeatCell: {
+      range: { sheetId, startRowIndex: 1, startColumnIndex: 4, endColumnIndex: 5 },
+      cell: { userEnteredFormat: { numberFormat: { type: 'NUMBER', pattern: MONEY_PATTERN } } },
+      fields: 'userEnteredFormat.numberFormat',
+    },
+  })
+
+  // Per type: whole-row tint (conditional) + bold solid swatch on its label+total.
+  expenseTypes.forEach((typeName, i) => {
+    const rgb = hexToRgb(colorFor(typeName))
+    const labelColIdx = SUMMARY_START_COL + 1 + i
+    const labelCellAbs = `$${columnLetter(labelColIdx)}$1`
+    requests.push({
+      addConditionalFormatRule: {
+        index: 0,
+        rule: {
+          ranges: [{ sheetId, startRowIndex: 1, startColumnIndex: 0, endColumnIndex: 7 }],
+          booleanRule: {
+            condition: {
+              type: 'CUSTOM_FORMULA',
+              values: [{ userEnteredValue: `=$C2=${labelCellAbs}` }],
+            },
+            format: { backgroundColor: tint(rgb) },
+          },
+        },
+      },
+    })
+    // Summary swatch (label + total) uses the SAME tint as the type's rows, so
+    // the total visibly matches its rows. Bold, dark text (tint is light).
+    const swatchBg = tint(rgb)
+    requests.push({
+      repeatCell: {
+        range: {
+          sheetId,
+          startRowIndex: 0,
+          endRowIndex: 2,
+          startColumnIndex: labelColIdx,
+          endColumnIndex: labelColIdx + 1,
+        },
+        cell: {
+          userEnteredFormat: {
+            backgroundColor: swatchBg,
+            textFormat: { bold: true, foregroundColor: textOn(swatchBg) },
+          },
+        },
+        fields: 'userEnteredFormat(backgroundColor,textFormat)',
+      },
+    })
+  })
+
+  // RAZEM label + total — neutral, bold.
+  requests.push({
+    repeatCell: {
+      range: {
+        sheetId,
+        startRowIndex: 0,
+        endRowIndex: 2,
+        startColumnIndex: SUMMARY_START_COL,
+        endColumnIndex: SUMMARY_START_COL + 1,
+      },
+      cell: {
+        userEnteredFormat: { backgroundColor: RAZEM_BG, textFormat: { bold: true } },
+      },
+      fields: 'userEnteredFormat(backgroundColor,textFormat)',
+    },
+  })
+
+  // Totals row (H2 across the summary) — bold + currency.
+  requests.push({
+    repeatCell: {
+      range: {
+        sheetId,
+        startRowIndex: 1,
+        endRowIndex: 2,
+        startColumnIndex: SUMMARY_START_COL,
+        endColumnIndex: SUMMARY_START_COL + 1 + expenseTypes.length,
+      },
+      cell: {
+        userEnteredFormat: {
+          numberFormat: { type: 'NUMBER', pattern: MONEY_PATTERN },
+          textFormat: { bold: true },
+        },
+      },
+      fields: 'userEnteredFormat(numberFormat,textFormat)',
+    },
+  })
+
+  // Explicit widths for the data block A–G. Auto-resize can't be used here: setup
+  // runs on a freshly-cleared tab (no data rows yet), so it would shrink columns
+  // to the short header text. Order: id, data, typ, opis, kwota, kategoria, notatka.
+  const DATA_COL_WIDTHS = [60, 100, 200, 240, 110, 140, 180]
+  DATA_COL_WIDTHS.forEach((pixelSize, idx) => {
+    requests.push({
+      updateDimensionProperties: {
+        range: { sheetId, dimension: 'COLUMNS', startIndex: idx, endIndex: idx + 1 },
+        properties: { pixelSize },
+        fields: 'pixelSize',
+      },
+    })
+  })
+
+  // Summary columns DO have content (labels + totals) at setup time, so auto-size
+  // them to fit the type names.
+  requests.push({
+    autoResizeDimensions: {
+      dimensions: {
+        sheetId,
+        dimension: 'COLUMNS',
+        startIndex: SUMMARY_START_COL,
+        endIndex: SUMMARY_START_COL + 1 + expenseTypes.length,
+      },
+    },
+  })
+
+  // Read-only protection: lock the whole tab so only the service account (the
+  // app) can edit it — the data is app-managed/one-way. Caveat: the file *owner*
+  // can always bypass a protected range; this hard-blocks team collaborators.
+  requests.push({
+    addProtectedRange: {
+      protectedRange: {
+        range: { sheetId },
+        description: 'Tylko do odczytu — synchronizowane z aplikacją',
+        warningOnly: false,
+        editors: { users: [serviceAccountEmail()] },
+      },
+    },
+  })
+
+  await sheets.spreadsheets.batchUpdate({ spreadsheetId, requestBody: { requests } })
 }

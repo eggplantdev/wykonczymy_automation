@@ -51,13 +51,13 @@ describe('appendMaterialRow', () => {
     const req = valuesBatchUpdateMock.mock.calls[0][0]
     expect(req.requestBody.valueInputOption).toBe('USER_ENTERED')
     expect(req.requestBody.data).toEqual([
-      { range: "'materiały '!A2", values: [[101]] },
-      { range: "'materiały '!B2", values: [['2026-05-27']] },
-      { range: "'materiały '!C2", values: [['Materiały budowlane']] },
-      { range: "'materiały '!D2", values: [['cement']] },
-      { range: "'materiały '!E2", values: [[500]] },
-      { range: "'materiały '!F2", values: [['Łazienka']] },
-      { range: "'materiały '!G2", values: [['FV/1']] },
+      { range: "'wydatki'!A2", values: [[101]] },
+      { range: "'wydatki'!B2", values: [['2026-05-27']] },
+      { range: "'wydatki'!C2", values: [['Materiały budowlane']] },
+      { range: "'wydatki'!D2", values: [['cement']] },
+      { range: "'wydatki'!E2", values: [[500]] },
+      { range: "'wydatki'!F2", values: [['Łazienka']] },
+      { range: "'wydatki'!G2", values: [['FV/1']] },
     ])
   })
 
@@ -74,7 +74,7 @@ describe('appendMaterialRow', () => {
       note: '',
     })
     expect(result).toEqual({ rowIndex: 4 })
-    expect(valuesBatchUpdateMock.mock.calls[0][0].requestBody.data[0].range).toBe("'materiały '!A4")
+    expect(valuesBatchUpdateMock.mock.calls[0][0].requestBody.data[0].range).toBe("'wydatki'!A4")
   })
 
   it('fails loud when the header row is missing required columns', async () => {
