@@ -154,8 +154,10 @@ needs Workspace + a Shared Drive — that's R1 below.)
 
 - **"Zresetuj zakładkę materiały"** → confirmation dialog (it's destructive: a
   full tab clear + re-write). The dialog spells out what happens — headers,
-  per-type summary, colors, read-only lock; existing rows are re-created by the
-  follow-up sync. Calls `setupKosztorysSheetAction`.
+  per-type summary, colors, read-only lock. On confirm it `setupKosztorysSheetAction`
+  (clear + rebuild) **then immediately re-syncs** (`previewMaterialSync` +
+  `applyMaterialSync`) so the app's rows reappear — otherwise the reset would just
+  leave an empty tab. Only manually-added (non-app) rows are lost.
 - **"Synchronizuj wydatki inwestycyjne"** → `previewMaterialSync`, then a dialog
   that explains the **append-only** nature ("dodane zostaną nowe wydatki…, nic nie
   jest usuwane ani nadpisywane") and lists the rows to add, confirmed with "Dodaj

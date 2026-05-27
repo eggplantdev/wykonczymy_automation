@@ -25,13 +25,23 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
 
   const onSetupConfirm = () => {
     startTransition(async () => {
-      const res = await setupKosztorysSheetAction(investmentId)
-      if (!res.success) {
-        toastMessage(res.error, 'error')
+      const setup = await setupKosztorysSheetAction(investmentId)
+      if (!setup.success) {
+        toastMessage(setup.error, 'error')
         return
       }
-      toastMessage(`Zakładka gotowa (${res.data.types.length} typów)`, 'success')
+      // Reset wipes the tab — immediately re-sync so the rows come back.
+      const prev = await previewMaterialSync(investmentId)
+      const applied = prev.success ? await applyMaterialSync(investmentId, prev.data) : prev
       setSetupOpen(false)
+      if (!applied.success) {
+        toastMessage(
+          `Zakładka zresetowana, ale synchronizacja nie powiodła się: ${applied.error}`,
+          'warning',
+        )
+        return
+      }
+      toastMessage(`Zakładka zresetowana i zsynchronizowana (+${applied.data.added})`, 'success')
     })
   }
 
@@ -81,11 +91,11 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
               Zresetować zakładkę „wydatki inwestycyjne (tylko do odczytu)"?
             </DialogTitle>
             <DialogDescription>
-              W arkuszu Google powstanie (lub zostanie odświeżona) zakładka{' '}
-              <strong>wydatki inwestycyjne (tylko do odczytu)</strong>. Aplikacja ustawi w niej
-              nagłówki kolumn, podsumowanie z sumami per typ, kolory typów oraz blokadę edycji —
-              edytować będzie mogła tylko aplikacja, zespół ma podgląd. Istniejące wiersze wydatków
-              pozostają nienaruszone; to nie kasuje danych.
+              Zakładka <strong>wydatki inwestycyjne (tylko do odczytu)</strong> zostanie zbudowana
+              od nowa: aplikacja wyczyści całą jej zawartość, ustawi nagłówki, podsumowanie z sumami
+              per typ, kolory typów i blokadę edycji, a następnie{' '}
+              <strong>ponownie doda wszystkie aktualne wydatki z aplikacji</strong>. Wiersze dodane
+              ręcznie (spoza aplikacji) zostaną bezpowrotnie utracone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
