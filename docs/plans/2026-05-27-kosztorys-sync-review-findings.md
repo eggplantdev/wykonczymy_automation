@@ -7,7 +7,16 @@
 > **Status (2026-05-27):** #1, #2, #3, #5, #6 implemented; then #8, #10, #11, #14, #16, #17;
 > then #4 (live push + overwrite-by-id reconciler heal + investment-move removal — see
 > `2026-05-27-kosztorys-sync-edit-propagation-{design,plan}.md`). #7 and #18 investigated
-> & refuted/accepted. Remaining: #9, #12, #13, #15.
+> & refuted/accepted. Remaining: #12, #13, #15.
+>
+> **Active-costs reconciliation (2026-05-27):** the cancellation `+ row / − row` model
+> was replaced — the sheet now mirrors only **non-cancelled** investment expenses (one
+> row per expense, matching the investment table's ids/count/totals). Cancelling removes
+> the expense's row; the reconciler does scoped orphan-removal (preserving manual rows).
+> See `2026-05-27-kosztorys-active-costs-reconcile-{design,plan}.md`. This **moots #7**
+> (no cancelled expense is synced, so there is no lone `+` row to overstate) and
+> **supersedes #9** (the per-type `SUMIF` was rebuilt with full-column ranges + literal
+> criteria — `buildMaterialySummary` — drift-proof against sorts/inserts).
 
 ## High severity
 
