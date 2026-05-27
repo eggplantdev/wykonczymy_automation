@@ -77,7 +77,8 @@ vi.mock('@/lib/cache/revalidate', () => ({
   revalidateCollections: vi.fn(),
 }))
 
-const { previewMaterialSync, applyMaterialSync } = await import('@/lib/actions/sheets-sync')
+const { previewMaterialSync, applyMaterialSync, syncSingleTransferToSheet } =
+  await import('@/lib/actions/sheets-sync')
 
 // ── helpers ──────────────────────────────────────────────────────────────
 
@@ -255,19 +256,23 @@ describe('applyMaterialSync', () => {
     expect(valuesBatchUpdateMock).not.toHaveBeenCalled()
   })
 
-  // The rows to append are re-derived server-side from the DB (not trusted from a
-  // client-supplied preview), then filtered against what is already in the sheet.
-  it('does not append an expense already present in the sheet', async () => {
+  // The rows are re-derived server-side from the DB (not trusted from a client-
+  // supplied preview). Present rows are now OVERWRITTEN by id (drift heal), not skipped.
+  it('overwrites an expense already present in the sheet (drift heal)', async () => {
     findByIDMock.mockResolvedValue({ id: 31, name: '11 Listopada 40', googleSheetId: 'sheet-1' })
     findReturns([makeMaterialTransaction(5, 'Materiały budowlane', { amount: 100 })])
-    sheetColIReturns([5]) // already synced
+    sheetColIReturns([5]) // already synced → row 2
 
     const result = await applyMaterialSync(31)
 
     expect(result.success).toBe(true)
     if (!result.success) throw new Error('expected success')
-    expect(result.data).toEqual({ added: 0, skipped: 0, errors: [] })
-    expect(valuesBatchUpdateMock).not.toHaveBeenCalled()
+    expect(result.data).toEqual({ added: 0, updated: 1, errors: [] })
+    // one write, targeting the existing row 2
+    expect(valuesBatchUpdateMock).toHaveBeenCalledTimes(1)
+    expect(valuesBatchUpdateMock.mock.calls[0][0].requestBody.data[0].range).toBe(
+      "'wydatki inwestycyjne (tylko do odczytu)'!A2",
+    )
   })
 
   it('appends an expense that the DB has but the sheet is missing', async () => {
@@ -281,7 +286,38 @@ describe('applyMaterialSync', () => {
 
     expect(result.success).toBe(true)
     if (!result.success) throw new Error('expected success')
-    expect(result.data).toEqual({ added: 1, skipped: 0, errors: [] })
+    expect(result.data).toEqual({ added: 1, updated: 0, errors: [] })
     expect(valuesBatchUpdateMock).toHaveBeenCalledTimes(1)
+  })
+})
+
+// ── syncSingleTransferToSheet ──────────────────────────────────────────────
+
+describe('syncSingleTransferToSheet', () => {
+  it('updates the existing row in place when the transfer is already on the sheet', async () => {
+    // transaction lookup, then its investment lookup
+    findByIDMock.mockImplementation(({ collection }: { collection: string }) =>
+      collection === 'transactions'
+        ? Promise.resolve({
+            id: 101,
+            type: 'INVESTMENT_EXPENSE',
+            investment: 31,
+            expenseCategory: { name: 'Materiały budowlane' },
+            amount: 999,
+            description: 'edited',
+            date: '2026-05-27T00:00:00Z',
+          })
+        : Promise.resolve({ id: 31, googleSheetId: 'sheet-1' }),
+    )
+    sheetColIReturns([101]) // id already present → row 2
+
+    await syncSingleTransferToSheet({ transferId: 101 })
+
+    // exactly one write, and it targets the existing row 2 (update), not row 3 (append)
+    expect(valuesBatchUpdateMock).toHaveBeenCalledTimes(1)
+    expect(valuesBatchUpdateMock.mock.calls[0][0].requestBody.data[0].range).toBe(
+      "'wydatki inwestycyjne (tylko do odczytu)'!A2",
+    )
+    expect(valuesBatchUpdateMock.mock.calls[0][0].requestBody.data[4].values).toEqual([[999]])
   })
 })

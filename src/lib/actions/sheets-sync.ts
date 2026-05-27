@@ -2,7 +2,7 @@
 
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { appendMaterialRow, readMaterialyTransferIds } from '@/lib/google/sheets'
+import { appendMaterialRow, readMaterialyTransferIds, updateMaterialRow } from '@/lib/google/sheets'
 import { protectedAction } from './utils'
 
 type AppRowT = {
@@ -22,7 +22,7 @@ export type MaterialSyncPreviewT = {
 
 export type ApplyMaterialSyncResultT = {
   added: number
-  skipped: number
+  updated: number
   errors: Array<{ transferId: number; message: string }>
 }
 
@@ -228,26 +228,30 @@ export async function applyMaterialSync(investmentId: number) {
         loadAppMaterialRows(payload, investmentId),
         readMaterialyTransferIds(sheetId),
       ])
-      const toAppend = appRows.filter((r) => !current.has(r.transferId))
 
       let added = 0
-      let skipped = 0
+      let updated = 0
       const errors: ApplyMaterialSyncResultT['errors'] = []
 
-      for (const row of toAppend) {
-        if (current.has(row.transferId)) {
-          skipped++
-          continue
-        }
+      // Overwrite-by-id heal: append rows the sheet lacks, overwrite present ones to
+      // match the DB. The id is the join key, not a content fingerprint — an edit
+      // never changes the id — so we overwrite unconditionally rather than compare.
+      for (const row of appRows) {
+        const existingRow = current.get(row.transferId)
         try {
-          await appendMaterialRow(sheetId, row)
-          added++
+          if (existingRow !== undefined) {
+            await updateMaterialRow(sheetId, existingRow, row)
+            updated++
+          } else {
+            await appendMaterialRow(sheetId, row)
+            added++
+          }
         } catch (err) {
           errors.push({ transferId: row.transferId, message: String(err) })
         }
       }
 
-      return { success: true, data: { added, skipped, errors } }
+      return { success: true, data: { added, updated, errors } }
     },
     // The sheet rows are derived from the investment's expenses; the kosztorys/
     // investment UI reads through the investments cache, so invalidate that.
@@ -316,7 +320,14 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
     }
 
     const existing = await readMaterialyTransferIds(sheetId)
-    if (existing.has(params.transferId)) return
+    const existingRow = existing.get(params.transferId)
+    if (existingRow !== undefined) {
+      await updateMaterialRow(sheetId, existingRow, row)
+      console.log(
+        `[sheets-sync] update transfer #${params.transferId} → sheet ${sheetId} row ${existingRow}`,
+      )
+      return
+    }
 
     await appendMaterialRow(sheetId, row)
     console.log(
