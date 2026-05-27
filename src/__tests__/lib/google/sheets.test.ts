@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const getMock = vi.fn()
 const valuesBatchUpdateMock = vi.fn()
+const spreadsheetsGetMock = vi.fn()
+const batchUpdateMock = vi.fn()
 
 vi.mock('googleapis', () => ({
   google: {
@@ -12,6 +14,8 @@ vi.mock('googleapis', () => ({
     },
     sheets: vi.fn().mockReturnValue({
       spreadsheets: {
+        get: spreadsheetsGetMock,
+        batchUpdate: batchUpdateMock,
         values: { get: getMock, batchUpdate: valuesBatchUpdateMock },
       },
     }),
@@ -26,6 +30,9 @@ beforeEach(() => {
   getMock.mockReset()
   valuesBatchUpdateMock.mockReset()
   valuesBatchUpdateMock.mockResolvedValue({ data: {} })
+  spreadsheetsGetMock.mockReset()
+  batchUpdateMock.mockReset()
+  batchUpdateMock.mockResolvedValue({ data: {} })
   process.env.GOOGLE_SERVICE_ACCOUNT_JSON = JSON.stringify({
     client_email: 'test@example.iam.gserviceaccount.com',
     private_key: '-----BEGIN PRIVATE KEY-----\nMIITEST\n-----END PRIVATE KEY-----\n',
@@ -123,6 +130,40 @@ describe('updateMaterialRow', () => {
       { range: "'wydatki inwestycyjne (tylko do odczytu)'!F3", values: [['Łazienka']] },
       { range: "'wydatki inwestycyjne (tylko do odczytu)'!G3", values: [['FV/1']] },
     ])
+  })
+})
+
+describe('removeMaterialRow', () => {
+  it('deletes the row carrying the transferId via deleteDimension', async () => {
+    // id 102 sits on sheet row 3 (header row 1, 101 on row 2, 102 on row 3)
+    getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101], [102]] } })
+    // tab gid lookup
+    spreadsheetsGetMock.mockResolvedValueOnce({
+      data: {
+        sheets: [
+          { properties: { sheetId: 777, title: 'wydatki inwestycyjne (tylko do odczytu)' } },
+        ],
+      },
+    })
+    const { removeMaterialRow } = await import('@/lib/google/sheets')
+    await removeMaterialRow('s', 102)
+
+    expect(batchUpdateMock).toHaveBeenCalledTimes(1)
+    expect(batchUpdateMock.mock.calls[0][0].requestBody.requests).toEqual([
+      {
+        deleteDimension: {
+          range: { sheetId: 777, dimension: 'ROWS', startIndex: 2, endIndex: 3 },
+        },
+      },
+    ])
+  })
+
+  it('no-ops when the transferId is not on the sheet', async () => {
+    getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101]] } })
+    const { removeMaterialRow } = await import('@/lib/google/sheets')
+    await removeMaterialRow('s', 999)
+    expect(spreadsheetsGetMock).not.toHaveBeenCalled()
+    expect(batchUpdateMock).not.toHaveBeenCalled()
   })
 })
 

@@ -248,6 +248,43 @@ export async function updateMaterialRow(
   })
 }
 
+// Delete the single row carrying `transferId` (the only deletion path in this
+// otherwise append-only model). Used when an edit reassigns an expense to a
+// different investment: the row is removed from the OLD sheet. No-op if the id
+// isn't on this sheet, or the tab is missing.
+export async function removeMaterialRow(spreadsheetId: string, transferId: number): Promise<void> {
+  const ids = await readMaterialyTransferIds(spreadsheetId)
+  const rowNumber = ids.get(transferId)
+  if (rowNumber === undefined) return
+
+  const sheets = getClient()
+  const meta = await sheets.spreadsheets.get({
+    spreadsheetId,
+    fields: 'sheets(properties(sheetId,title))',
+  })
+  const gid = (meta.data.sheets ?? []).find((s) => s.properties?.title === MATERIALY_TAB)
+    ?.properties?.sheetId
+  if (gid == null) return
+
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId,
+    requestBody: {
+      requests: [
+        {
+          deleteDimension: {
+            range: {
+              sheetId: gid,
+              dimension: 'ROWS',
+              startIndex: rowNumber - 1,
+              endIndex: rowNumber,
+            },
+          },
+        },
+      ],
+    },
+  })
+}
+
 // Color that brands each expense type across the sheet (row tint + summary
 // swatch), keyed by type name. A type not listed here falls back to gray — it
 // still appears, just uncolored until a hex is added (one-line edit).
