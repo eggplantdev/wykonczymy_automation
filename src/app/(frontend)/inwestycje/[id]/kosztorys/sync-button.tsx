@@ -97,8 +97,12 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
             </DialogTitle>
             <DialogDescription>
               Zakładka <strong>wydatki inwestycyjne (tylko do odczytu)</strong> zostanie zbudowana
-              od nowa: aplikacja wyczyści całą jej zawartość. Wiersze dodane ręcznie (spoza
-              aplikacji) zostaną bezpowrotnie utracone.
+              od nowa: aplikacja wyczyści całą jej zawartość, w tym wiersze dodane ręcznie (spoza
+              aplikacji). Tej operacji nie można cofnąć.
+              <strong>
+                Jeśli chcesz zachować ręcznie dodane dane, najpierw zrób kopię zakładki
+              </strong>
+              — aplikacja nie zmienia innych kart, więc taka kopia pozostanie nienaruszona.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
