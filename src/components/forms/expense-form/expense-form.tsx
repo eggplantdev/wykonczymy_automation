@@ -185,6 +185,12 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     conditionalFields.forEach((field) => form.resetField(field))
     form.resetField('sourceRegister')
     form.resetField('lineItems')
+    // resetField('lineItems') drops the line-item rows, but the queued files live
+    // outside the form (invoiceFilesRef + uncontrolled inputs). Clear them too and
+    // bump the key to remount the inputs — otherwise a file queued before the type
+    // switch attaches to the wrong/nonexistent line item on submit.
+    resetInvoiceFiles()
+    setFileInputKey((k) => k + 1)
     resetSaldo()
   }
 

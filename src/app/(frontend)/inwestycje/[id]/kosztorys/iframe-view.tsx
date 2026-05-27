@@ -32,11 +32,29 @@ export function KosztorysIframeView({ sheetId, investmentName, investmentId, too
           </a>
         </div>
       </div>
+      {/* Desktop: the embedded sheet. The iframe is hidden below lg — Google Sheets
+          is barely usable in a phone-width iframe, and the embed also fought the
+          mobile footer for vertical space. */}
       <iframe
         src={src}
         title={`Kosztorys for ${investmentName}`}
-        className="min-h-0 w-full flex-1 border-0"
+        className="hidden min-h-0 w-full flex-1 border-0 lg:block"
       />
+      {/* Mobile/tablet fallback: skip the embed, point to the full Sheets app. */}
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center lg:hidden">
+        <p className="text-muted-foreground text-sm">
+          Kosztorys najlepiej otworzyć na komputerze. Na telefonie skorzystaj z aplikacji Google
+          Sheets.
+        </p>
+        <a
+          href={`https://docs.google.com/spreadsheets/d/${sheetId}/edit`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex min-h-11 items-center rounded-md px-4 py-2 text-sm font-medium"
+        >
+          Otwórz w Google Sheets ↗
+        </a>
+      </div>
     </div>
   )
 }

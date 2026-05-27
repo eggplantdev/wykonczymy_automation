@@ -46,6 +46,18 @@ const isoDate = (d: unknown): string => {
   return match ? match[1] : new Date(d as string).toISOString().slice(0, 10)
 }
 
+// Coerce a payload amount (number | string) to a finite number, or undefined if it
+// can't be one. Guards against Number('')→0 (silently wrong) and Number('x')→NaN
+// (serialized to the sheet as text), both of which would corrupt the SUMIF totals.
+const finiteAmount = (raw: unknown): number | undefined => {
+  // Number('') and Number('   ') both coerce to 0 — reject blanks first so they
+  // can't masquerade as a finite zero amount.
+  if (raw == null) return undefined
+  if (typeof raw === 'string' && raw.trim() === '') return undefined
+  const n = Number(raw)
+  return Number.isFinite(n) ? n : undefined
+}
+
 // A cancellation transfer stores its description as `Anulowanie transakcji #<id>\n<reason>`.
 // Pull out just the reason (everything after the first newline) for the note column.
 const cancellationReason = (description: unknown): string => {
@@ -68,12 +80,17 @@ type TxDoc = {
 function expenseRow(t: TxDoc): AppRowT | undefined {
   const typ = relName(t.expenseCategory)
   if (!typ) return undefined
+  const amount = finiteAmount(t.amount)
+  if (amount === undefined) {
+    console.warn(`[sheets-sync] skip expense #${t.id}: non-finite amount ${String(t.amount)}`)
+    return undefined
+  }
   return {
     transferId: t.id,
     date: isoDate(t.date),
     typ,
     description: t.description ?? '',
-    amount: Number(t.amount),
+    amount,
     category: relName(t.otherCategory),
     note: t.invoiceNote ?? '',
   }
@@ -90,12 +107,19 @@ function cancellationRow(
 ): AppRowT | undefined {
   const typ = relName(original.expenseCategory)
   if (!typ) return undefined
+  const amount = finiteAmount(original.amount)
+  if (amount === undefined) {
+    console.warn(
+      `[sheets-sync] skip cancellation #${cancellationId}: non-finite amount ${String(original.amount)}`,
+    )
+    return undefined
+  }
   return {
     transferId: cancellationId,
     date: isoDate(date),
     typ,
     description: `Anulowanie #${original.id}`,
-    amount: -Number(original.amount),
+    amount: -amount,
     category: relName(original.otherCategory),
     note: reason,
   }
@@ -225,7 +249,9 @@ export async function applyMaterialSync(investmentId: number) {
 
       return { success: true, data: { added, skipped, errors } }
     },
-    ['transfers'],
+    // The sheet rows are derived from the investment's expenses; the kosztorys/
+    // investment UI reads through the investments cache, so invalidate that.
+    ['investments'],
   )
 }
 

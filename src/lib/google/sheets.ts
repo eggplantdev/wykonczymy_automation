@@ -50,6 +50,22 @@ const normalize = (cell: unknown): string =>
     .trim()
     .toLowerCase()
 
+// Google Sheets uses the spreadsheet locale's list separator inside formula
+// argument lists: locales whose decimal mark is a comma (pl_PL, most of the EU)
+// use ';', period-decimal locales (en_US, …) use ','. Detect the decimal mark via
+// Intl and pick accordingly, so a SUMIF written here parses on a non-PL sheet too.
+// Defaults to ';' if the locale is unknown/unparseable (the Polish-sheet case).
+export function formulaArgSeparator(locale: string | undefined): ';' | ',' {
+  try {
+    const decimal = new Intl.NumberFormat((locale ?? 'pl-PL').replace('_', '-'))
+      .formatToParts(1.1)
+      .find((p) => p.type === 'decimal')?.value
+    return decimal === ',' ? ';' : ','
+  } catch {
+    return ';'
+  }
+}
+
 function columnLetter(index: number): string {
   let n = index + 1
   let letter = ''
@@ -232,8 +248,9 @@ export async function setupMaterialyTab(
   const meta = await sheets.spreadsheets.get({
     spreadsheetId,
     fields:
-      'sheets(properties(sheetId,title),conditionalFormats,protectedRanges(protectedRangeId))',
+      'properties.locale,sheets(properties(sheetId,title),conditionalFormats,protectedRanges(protectedRangeId))',
   })
+  const argSep = formulaArgSeparator(meta.data.properties?.locale ?? undefined)
   const existing = (meta.data.sheets ?? []).find((s) => s.properties?.title === MATERIALY_TAB)
   let sheetId = existing?.properties?.sheetId ?? undefined
   const priorRuleCount = existing?.conditionalFormats?.length ?? 0
@@ -263,12 +280,12 @@ export async function setupMaterialyTab(
   // Header at row 1, data from row 2 — a clean A:G block you can date-filter.
   // The summary is a small 2-row table starting at column H: RAZEM + one column
   // per type, each total UNDER its label. Each total's SUMIF criterion is its own
-  // label cell (drift-proof). Polish locale → ';' separator.
+  // label cell (drift-proof). Separator follows the sheet's locale (argSep).
   const labels: string[] = ['RAZEM', ...expenseTypes]
   const totals: string[] = ['=SUM(E2:E)']
   expenseTypes.forEach((_t, i) => {
     const labelCell = `${columnLetter(SUMMARY_START_COL + 1 + i)}1` // I1, J1, K1, …
-    totals.push(`=SUMIF(C2:C; ${labelCell}; E2:E)`)
+    totals.push(`=SUMIF(C2:C${argSep} ${labelCell}${argSep} E2:E)`)
   })
 
   const summaryStart = columnLetter(SUMMARY_START_COL)

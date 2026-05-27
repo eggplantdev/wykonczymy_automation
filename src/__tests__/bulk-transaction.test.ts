@@ -5,6 +5,13 @@ import type { Payload } from 'payload'
 
 vi.mock('server-only', () => ({}))
 
+// after() (next/server) schedules the post-response sheet sync; it throws outside
+// a request scope. The sync isn't under test here, so no-op it.
+vi.mock('next/server', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next/server')>()
+  return { ...actual, after: () => {} }
+})
+
 const mockCreate = vi.fn()
 const mockBeginTransaction = vi.fn()
 const mockCommitTransaction = vi.fn()

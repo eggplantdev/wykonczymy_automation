@@ -43,6 +43,7 @@
 
 - Problem: `+` rows now include cancelled expenses, assuming a matching `−` row always exists. A `cancelled=true` set via admin/legacy path (no CANCELLATION tx) syncs a lone `+`.
 - Fix: skip the `+` row for a cancelled expense that has no matching CANCELLATION (or re-add a `cancelled` guard and only emit cancellations that exist).
+- **Investigated & refuted (2026-05-27):** the lone state does not exist in prod (0 rows: `cancelled=true` INVESTMENT_EXPENSE with no CANCELLATION, across 134 cancellations / 56 cancelled expenses) and is not reachable via the admin UI (`cancelled` is `admin.readOnly`, no admin cancel action). Only reachable via a non-atomic partial failure in `cancelTransferAction` (update succeeds, CANCELLATION create throws). Downstream blast radius is a single overstated row in a Google Sheet. No guard added — the real fix, if ever needed, is making `cancelTransferAction`'s update+create atomic (one DB transaction), tracked separately.
 
 **8. SUMIF `;` separator breaks on non-PL linked sheets** — `src/lib/google/sheets.ts` (~L271)
 
@@ -102,5 +103,6 @@
 - [ ] **18. Mid-list line-item removal desyncs the file label** — `src/components/forms/form-fields/line-items-field.tsx` (~L196)
   - Problem: FileInput is keyed by array index (`file-${fileInputKey}-${index}`). Removing a middle line item reindexes the `invoiceFilesRef` map correctly but remounts the shifted rows' inputs, clearing their displayed filename while a file is still queued — UI shows "no file" for a row that has one. Pre-existing index-keying weakness; the full-reset fix is correct, this path is not covered.
   - Fix: key file inputs by a stable line-item identity instead of array index (requires line items to carry an id), or accept the cosmetic desync.
+  - **Accepted as cosmetic (2026-05-27):** verified the file itself stays correctly associated — `handleRemoveLineItem` reindexes `invoiceFilesRef` (`i > index → i-1`) and `uploadFilesClient` consumes by index, so submission is correct after a mid-list removal. Only the shifted row's _displayed_ filename clears. The robust fix (stable line-item ids) would touch `FormValuesT`, the Zod schema, `EMPTY_LINE_ITEM`, the defaults, and both `key={index}` sites — too wide for a display-only glitch. No change made.
 
 > Note: a flagged concern that the "Odśwież dane" button (`revalidatePath('/', 'layout')`) might not invalidate `unstable_cache` data was **investigated and refuted** — a controlled test (DB-only change → stale on reload → fresh only after the button) confirmed it does refresh the reference-data cache. No action needed.

@@ -211,6 +211,23 @@ describe('previewMaterialSync', () => {
     expect(byId[201].note).toBe('')
   })
 
+  it('skips an expense whose amount is not a finite number', async () => {
+    findByIDMock.mockResolvedValue({ id: 31, name: '11 Listopada 40', googleSheetId: 'sheet-1' })
+    findReturns([
+      makeMaterialTransaction(101, 'Materiały budowlane', { amount: 250 }),
+      // amount '' → Number('')===0, amount 'x' → NaN: both must be dropped, not synced.
+      { ...makeMaterialTransaction(102, 'Materiały budowlane'), amount: '' },
+      { ...makeMaterialTransaction(103, 'Materiały budowlane'), amount: 'x' },
+    ])
+    sheetColIReturns([]) // empty sheet
+
+    const result = await previewMaterialSync(31)
+
+    expect(result.success).toBe(true)
+    if (!result.success) throw new Error('expected success')
+    expect(result.data.toAppend.map((r) => r.transferId)).toEqual([101])
+  })
+
   it('does not re-append rows already present in the sheet', async () => {
     findByIDMock.mockResolvedValue({ id: 31, name: '11 Listopada 40', googleSheetId: 'sheet-1' })
     findReturns([makeMaterialTransaction(101, 'Materiały budowlane', { amount: 250 })])

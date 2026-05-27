@@ -96,6 +96,26 @@ describe('appendMaterialRow', () => {
   })
 })
 
+describe('formulaArgSeparator', () => {
+  it("uses ';' for comma-decimal locales (pl_PL, de_DE)", async () => {
+    const { formulaArgSeparator } = await import('@/lib/google/sheets')
+    expect(formulaArgSeparator('pl_PL')).toBe(';')
+    expect(formulaArgSeparator('de_DE')).toBe(';')
+  })
+
+  it("uses ',' for period-decimal locales (en_US, en_GB)", async () => {
+    const { formulaArgSeparator } = await import('@/lib/google/sheets')
+    expect(formulaArgSeparator('en_US')).toBe(',')
+    expect(formulaArgSeparator('en_GB')).toBe(',')
+  })
+
+  it("defaults to ';' for an unknown/empty locale", async () => {
+    const { formulaArgSeparator } = await import('@/lib/google/sheets')
+    expect(formulaArgSeparator(undefined)).toBe(';')
+    expect(formulaArgSeparator('')).toBe(';')
+  })
+})
+
 describe('readMaterialyTransferIds', () => {
   it('maps transferId → row from the id column under the header', async () => {
     getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101], [102], [], [103]] } })
