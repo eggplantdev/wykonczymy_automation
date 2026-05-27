@@ -7,7 +7,7 @@ import { isAdminOrOwnerRole, isManagementRole } from '@/lib/auth/roles'
 import { SECTION_LINKS } from '@/lib/constants/sections'
 import { toastMessage } from '@/components/toasts'
 import { useCurrentUser } from '@/hooks/use-current-user'
-import { FileBarChart, FileSpreadsheet, LogOut, RefreshCw, Shield, Users } from 'lucide-react'
+import { FileBarChart, LogOut, RefreshCw, Shield, Users } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCallback, useTransition } from 'react'
@@ -59,14 +59,6 @@ export function Sidebar() {
             </Link>
           </Button>
         ))}
-        {showUsers && (
-          <Button variant="ghost" size="sm" className="justify-start" asChild>
-            <Link href="/kosztorysy">
-              <FileSpreadsheet className="size-4" />
-              Kosztorysy
-            </Link>
-          </Button>
-        )}
         {showUsers && (
           <Button variant="ghost" size="sm" className="justify-start" asChild>
             <Link href="/pracownicy">
