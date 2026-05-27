@@ -108,7 +108,7 @@ Sheet sync lives only in the four server actions. The collection's `afterChange`
 **Trigger:** any update payload that omits `investment` while the effective investment differs from the original. The app form likely always sends it, but the schema permits the hole.
 **Fix:** require `investment` in the update path, or resolve old-vs-new from the DB inside the sync layer (see T5.1), not from the payload.
 
-### T2.4 ☐ Editing an expense to clear its category (or non-finite amount) leaves a stale row
+### T2.4 ☑ Editing an expense to clear its category (or non-finite amount) leaves a stale row
 
 **`src/lib/actions/sheets-sync.ts:300`** — CONFIRMED
 
@@ -117,11 +117,11 @@ Sheet sync lives only in the four server actions. The collection's `afterChange`
 **Trigger:** edit a synced expense to clear its category → stale row (old typ/amount) lingers and keeps feeding SUMIF totals until a full reconcile.
 **Fix:** on a failed row-build for an already-synced transfer, remove its existing row rather than returning.
 
-### T2.5 ☐ `updateTransferAction` sync is gated on `original.type === 'INVESTMENT_EXPENSE'`
+### T2.5 ⊘ `updateTransferAction` sync is gated on `original.type === 'INVESTMENT_EXPENSE'`
 
-**`src/lib/actions/transfers.ts:309`** — CONFIRMED (PLAUSIBLE)
+**`src/lib/actions/transfers.ts:309`** — REFUTED on inspection → **WON'T-FIX (by design)**: `updateTransferSchema` has no `type` field, so a transfer's type is **immutable on edit**. A non-expense can never become an `INVESTMENT_EXPENSE` through this action, so gating the sync on `original.type` is correct and complete. No code change.
 
-The post-response sync block only runs when the _original_ type was an expense. An edit that newly makes a non-expense into an expense (sets investment + expenseCategory) skips sync entirely.
+~~The post-response sync block only runs when the _original_ type was an expense. An edit that newly makes a non-expense into an expense (sets investment + expenseCategory) skips sync entirely.~~ (premise false: type can't change on edit.)
 
 **Trigger:** edit a non-expense transfer into an `INVESTMENT_EXPENSE` → never lands on the sheet until manual Synchronizuj.
 **Fix:** gate on the _resulting_ type (or both), not just the original.
@@ -135,7 +135,7 @@ The category `afterChange` only revalidates a cache tag. `setupMaterialyTab` bak
 **Trigger:** rename a category in admin → per-type totals zero out silently.
 **Fix:** propagate category rename to all linked sheets (re-run setup / flag dirty for the reconciler), or stop embedding mutable literal names as the join key.
 
-### T2.7 ☐ `resolveHeaders` first-match maps to the wrong column on a duplicate keyword
+### T2.7 ☑ `resolveHeaders` first-match maps to the wrong column on a duplicate keyword
 
 **`src/lib/google/sheets.ts:149`** — CONFIRMED
 

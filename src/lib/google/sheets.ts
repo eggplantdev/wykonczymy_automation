@@ -152,7 +152,20 @@ function resolveHeaders(grid: unknown[][]): HeaderMapT {
         found += 1
       }
     }
-    if (found === FIELDS.length) return { headerRow: r + 1, cols }
+    if (found === FIELDS.length) {
+      // This is the header row. Reject it if any field's keyword matches more than
+      // one column — findIndex would silently pick the leftmost and we'd then read
+      // and write the wrong column (review T2.7). Fail loud so the owner renames it.
+      for (const field of FIELDS) {
+        const count = row.filter((cell) => FIELD_MATCHERS[field](normalize(cell))).length
+        if (count > 1) {
+          throw new Error(
+            `${MATERIALY_TAB}: ambiguous header — ${count} columns match „${field}". Zmień nazwę dodatkowej kolumny.`,
+          )
+        }
+      }
+      return { headerRow: r + 1, cols }
+    }
   }
   throw new Error(
     `${MATERIALY_TAB}: header row not found — need columns for id, data, typ, opis, kwota, kategoria, notatka`,

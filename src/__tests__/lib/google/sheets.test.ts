@@ -158,6 +158,17 @@ describe('applyMaterialRowsBatch', () => {
       ]),
     ).rejects.toThrow(/header row not found/)
   })
+
+  it('fails loud when a field keyword matches more than one header column (T2.7)', async () => {
+    // An extra "Kategoria robót" column also matches the "kategoria" keyword.
+    getMock.mockResolvedValueOnce({ data: { values: [[...HEADER, 'Kategoria robót']] } })
+    const { applyMaterialRowsBatch } = await import('@/lib/google/sheets')
+    await expect(
+      applyMaterialRowsBatch('s', [
+        { transferId: 1, date: 'd', typ: 't', description: 'x', amount: 1, category: '', note: '' },
+      ]),
+    ).rejects.toThrow(/ambiguous header/)
+  })
 })
 
 describe('removeMaterialRow', () => {

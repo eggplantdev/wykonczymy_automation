@@ -409,6 +409,36 @@ describe('syncSingleTransferToSheet', () => {
     })
     expect(valuesBatchUpdateMock).not.toHaveBeenCalled() // no append/update
   })
+
+  it('removes the row when an edited expense is no longer mappable (category cleared) — T2.4', async () => {
+    findByIDMock.mockImplementation(({ collection }: { collection: string }) =>
+      collection === 'transactions'
+        ? Promise.resolve({
+            id: 101,
+            type: 'INVESTMENT_EXPENSE',
+            investment: 31,
+            expenseCategory: null, // cleared → expenseRow() returns undefined
+            amount: 100,
+            date: '2026-05-27T00:00:00Z',
+          })
+        : Promise.resolve({ id: 31, googleSheetId: 'sheet-1' }),
+    )
+    sheetColIReturns([101]) // 101 currently on row 2
+    spreadsheetsGetMock.mockResolvedValueOnce({
+      data: {
+        sheets: [{ properties: { sheetId: 5, title: 'wydatki inwestycyjne (tylko do odczytu)' } }],
+      },
+    })
+
+    await syncSingleTransferToSheet({ transferId: 101 })
+
+    // The stale row is deleted (data columns only); nothing is appended/updated.
+    expect(batchUpdateMock).toHaveBeenCalledTimes(1)
+    expect(
+      batchUpdateMock.mock.calls[0][0].requestBody.requests[0].deleteRange.range.startRowIndex,
+    ).toBe(1)
+    expect(valuesBatchUpdateMock).not.toHaveBeenCalled()
+  })
 })
 
 // ── removeTransferFromSheet ────────────────────────────────────────────────

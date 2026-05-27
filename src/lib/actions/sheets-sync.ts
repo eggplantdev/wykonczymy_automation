@@ -280,13 +280,24 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
 
     if (transfer.type !== 'INVESTMENT_EXPENSE') return
     const investmentId = relId(transfer.investment)
-    const row = expenseRow(transfer as unknown as TxDoc)
-    if (!row || investmentId === undefined) return
+    if (investmentId === undefined) return
 
     const sheetId = await getInvestmentSheetId(payload, investmentId)
     if (!sheetId) {
       console.log(
         `[sheets-sync] skip transfer #${params.transferId}: investment #${investmentId} has no googleSheetId`,
+      )
+      return
+    }
+
+    // Expense no longer mappable (category cleared → empty typ, or a non-finite
+    // amount): drop any row it previously had instead of leaving stale data on the
+    // sheet (review T2.4). removeMaterialRow is a no-op if the row isn't present.
+    const row = expenseRow(transfer as unknown as TxDoc)
+    if (!row) {
+      await removeMaterialRow(sheetId, params.transferId)
+      console.log(
+        `[sheets-sync] transfer #${params.transferId} no longer mappable → removed from sheet ${sheetId}`,
       )
       return
     }
