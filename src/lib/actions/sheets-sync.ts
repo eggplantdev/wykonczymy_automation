@@ -204,22 +204,32 @@ export async function applyMaterialSync(investmentId: number) {
       }
 
       // Scoped orphan-removal: drop sheet rows whose id is no longer an active expense
-      // for this investment BUT only when that id is a real transaction (a cancelled
-      // expense, one moved to another investment, or a deleted row). Sheet ids that
-      // aren't real transactions are the owner's own manual rows — leave them alone.
+      // for this investment BUT only when that id is one of THIS investment's own
+      // expenses (i.e. a now-cancelled one whose row should go). The guard query is
+      // scoped to investment + INVESTMENT_EXPENSE — NOT "is this id any transaction" —
+      // because ids are dense sequential PKs: an owner's manual number in the id column
+      // (a quantity, a year) would otherwise collide with some unrelated transaction
+      // (a payout, another investment's expense) and get its row deleted. Anything
+      // outside this investment's expenses is the owner's own data — leave it alone.
       const appIds = new Set(appRows.map((r) => r.transferId))
       const orphanIds = [...current.keys()].filter((id) => !appIds.has(id))
       if (orphanIds.length > 0) {
-        const realTransactions = await payload.find({
+        const removableExpenses = await payload.find({
           collection: 'transactions',
-          where: { id: { in: orphanIds } },
+          where: {
+            and: [
+              { id: { in: orphanIds } },
+              { investment: { equals: investmentId } },
+              { type: { equals: 'INVESTMENT_EXPENSE' } },
+            ],
+          },
           depth: 0,
           limit: 1000,
           overrideAccess: true,
         })
-        const realTransactionIds = new Set(realTransactions.docs.map((d) => d.id as number))
+        const removableIds = new Set(removableExpenses.docs.map((d) => d.id as number))
         for (const id of orphanIds) {
-          if (!realTransactionIds.has(id)) continue // owner's manual row — keep
+          if (!removableIds.has(id)) continue // not this investment's expense — keep
           try {
             await removeMaterialRow(sheetId, id)
             removed++

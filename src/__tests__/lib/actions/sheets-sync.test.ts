@@ -282,6 +282,53 @@ describe('applyMaterialSync', () => {
       batchUpdateMock.mock.calls[0][0].requestBody.requests[0].deleteRange.range.startRowIndex,
     ).toBe(2)
   })
+
+  it('scopes the orphan-removal guard to this investment and INVESTMENT_EXPENSE', async () => {
+    findByIDMock.mockResolvedValue({ id: 31, name: 'X', googleSheetId: 'sheet-1' })
+    findMock
+      .mockResolvedValueOnce({
+        docs: [makeMaterialTransaction(7, 'Materiały budowlane', { amount: 100 })],
+      })
+      .mockResolvedValueOnce({ docs: [] })
+    sheetColIReturns([7, 8])
+
+    await applyMaterialSync(31)
+
+    // The orphan lookup (2nd find) must filter by id + investment + type, NOT id alone —
+    // otherwise a manual number colliding with an unrelated transaction id is deleted.
+    const orphanWhere = findMock.mock.calls[1][0].where
+    expect(orphanWhere.and).toEqual(
+      expect.arrayContaining([
+        { id: { in: [8] } },
+        { investment: { equals: 31 } },
+        { type: { equals: 'INVESTMENT_EXPENSE' } },
+      ]),
+    )
+  })
+
+  it('keeps a row whose id collides with a transaction that is not this investment expense', async () => {
+    findByIDMock.mockResolvedValue({ id: 31, name: 'X', googleSheetId: 'sheet-1' })
+    // #7 is the active expense; #8 is a manual number that happens to equal a real PAYOUT
+    // id — the scoped guard returns no matching expense, so #8 must be left untouched.
+    findMock
+      .mockResolvedValueOnce({
+        docs: [makeMaterialTransaction(7, 'Materiały budowlane', { amount: 100 })],
+      })
+      .mockResolvedValueOnce({ docs: [] })
+    sheetColIReturns([7, 8])
+    spreadsheetsGetMock.mockResolvedValue({
+      data: {
+        sheets: [{ properties: { sheetId: 5, title: 'wydatki inwestycyjne (tylko do odczytu)' } }],
+      },
+    })
+
+    const result = await applyMaterialSync(31)
+
+    expect(result.success).toBe(true)
+    if (!result.success) throw new Error('expected success')
+    expect(result.data.removed).toBe(0)
+    expect(batchUpdateMock).not.toHaveBeenCalled()
+  })
 })
 
 // ── syncSingleTransferToSheet ──────────────────────────────────────────────
