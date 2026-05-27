@@ -28,6 +28,7 @@ export type MaterialSyncPreviewT = {
 export type ApplyMaterialSyncResultT = {
   added: number
   updated: number
+  removed: number
   errors: Array<{ transferId: number; message: string }>
 }
 
@@ -176,11 +177,14 @@ export async function applyMaterialSync(investmentId: number) {
 
       let added = 0
       let updated = 0
+      let removed = 0
       const errors: ApplyMaterialSyncResultT['errors'] = []
 
       // Overwrite-by-id heal: append rows the sheet lacks, overwrite present ones to
       // match the DB. The id is the join key, not a content fingerprint — an edit
       // never changes the id — so we overwrite unconditionally rather than compare.
+      // Appends go to the bottom and don't shift existing rows, so the row numbers in
+      // `current` stay valid for the overwrites.
       for (const row of appRows) {
         const existingRow = current.get(row.transferId)
         try {
@@ -196,7 +200,33 @@ export async function applyMaterialSync(investmentId: number) {
         }
       }
 
-      return { success: true, data: { added, updated, errors } }
+      // Scoped orphan-removal: drop sheet rows whose id is no longer an active expense
+      // for this investment BUT only when that id is a real transaction (a cancelled
+      // expense, one moved to another investment, or a deleted row). Sheet ids that
+      // aren't real transactions are the owner's own manual rows — leave them alone.
+      const appIds = new Set(appRows.map((r) => r.transferId))
+      const orphanIds = [...current.keys()].filter((id) => !appIds.has(id))
+      if (orphanIds.length > 0) {
+        const realTx = await payload.find({
+          collection: 'transactions',
+          where: { id: { in: orphanIds } },
+          depth: 0,
+          limit: 1000,
+          overrideAccess: true,
+        })
+        const realIds = new Set(realTx.docs.map((d) => d.id as number))
+        for (const id of orphanIds) {
+          if (!realIds.has(id)) continue // owner's manual row — keep
+          try {
+            await removeMaterialRow(sheetId, id)
+            removed++
+          } catch (err) {
+            errors.push({ transferId: id, message: String(err) })
+          }
+        }
+      }
+
+      return { success: true, data: { added, updated, removed, errors } }
     },
     // The sheet rows are derived from the investment's expenses; the kosztorys/
     // investment UI reads through the investments cache, so invalidate that.

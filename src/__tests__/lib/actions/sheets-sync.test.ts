@@ -232,7 +232,7 @@ describe('applyMaterialSync', () => {
 
     expect(result.success).toBe(true)
     if (!result.success) throw new Error('expected success')
-    expect(result.data).toEqual({ added: 0, updated: 1, errors: [] })
+    expect(result.data).toEqual({ added: 0, updated: 1, removed: 0, errors: [] })
     // one write, targeting the existing row 2
     expect(valuesBatchUpdateMock).toHaveBeenCalledTimes(1)
     expect(valuesBatchUpdateMock.mock.calls[0][0].requestBody.data[0].range).toBe(
@@ -251,8 +251,37 @@ describe('applyMaterialSync', () => {
 
     expect(result.success).toBe(true)
     if (!result.success) throw new Error('expected success')
-    expect(result.data).toEqual({ added: 1, updated: 0, errors: [] })
+    expect(result.data).toEqual({ added: 1, updated: 0, removed: 0, errors: [] })
     expect(valuesBatchUpdateMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('removes orphan rows that are real transactions but keeps manual rows', async () => {
+    findByIDMock.mockResolvedValue({ id: 31, name: 'X', googleSheetId: 'sheet-1' })
+    // loadApp expenses (1st find) → active expense #7; orphan lookup (2nd find) → #8 is a real tx
+    findMock
+      .mockResolvedValueOnce({
+        docs: [makeMaterialTransaction(7, 'Materiały budowlane', { amount: 100 })],
+      })
+      .mockResolvedValueOnce({ docs: [{ id: 8 }] })
+    // sheet has the active #7, a real-but-orphan #8 (e.g. cancelled), and a manual #9999
+    sheetColIReturns([7, 8, 9999])
+    // removeMaterialRow needs the tab gid
+    spreadsheetsGetMock.mockResolvedValue({
+      data: {
+        sheets: [{ properties: { sheetId: 5, title: 'wydatki inwestycyjne (tylko do odczytu)' } }],
+      },
+    })
+
+    const result = await applyMaterialSync(31)
+
+    expect(result.success).toBe(true)
+    if (!result.success) throw new Error('expected success')
+    expect(result.data).toEqual({ added: 0, updated: 1, removed: 1, errors: [] })
+    // exactly one row deleted, and it is #8's row (sheet row 3 → startIndex 2), never #9999
+    expect(batchUpdateMock).toHaveBeenCalledTimes(1)
+    expect(
+      batchUpdateMock.mock.calls[0][0].requestBody.requests[0].deleteDimension.range.startIndex,
+    ).toBe(2)
   })
 })
 
