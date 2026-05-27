@@ -92,10 +92,8 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
             </DialogTitle>
             <DialogDescription>
               Zakładka <strong>wydatki inwestycyjne (tylko do odczytu)</strong> zostanie zbudowana
-              od nowa: aplikacja wyczyści całą jej zawartość, ustawi nagłówki, podsumowanie z sumami
-              per typ, kolory typów i blokadę edycji, a następnie{' '}
-              <strong>ponownie doda wszystkie aktualne wydatki z aplikacji</strong>. Wiersze dodane
-              ręcznie (spoza aplikacji) zostaną bezpowrotnie utracone.
+              od nowa: aplikacja wyczyści całą jej zawartość. Wiersze dodane ręcznie (spoza
+              aplikacji) zostaną bezpowrotnie utracone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
