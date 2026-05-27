@@ -276,10 +276,10 @@ describe('applyMaterialSync', () => {
     expect(result.success).toBe(true)
     if (!result.success) throw new Error('expected success')
     expect(result.data).toEqual({ added: 0, updated: 1, removed: 1, errors: [] })
-    // exactly one row deleted, and it is #8's row (sheet row 3 → startIndex 2), never #9999
+    // exactly one row deleted, and it is #8's row (sheet row 3 → startRowIndex 2), never #9999
     expect(batchUpdateMock).toHaveBeenCalledTimes(1)
     expect(
-      batchUpdateMock.mock.calls[0][0].requestBody.requests[0].deleteDimension.range.startIndex,
+      batchUpdateMock.mock.calls[0][0].requestBody.requests[0].deleteRange.range.startRowIndex,
     ).toBe(2)
   })
 })
@@ -331,13 +331,18 @@ describe('syncSingleTransferToSheet', () => {
 
     await syncSingleTransferToSheet({ transferId: 2460 })
 
-    // It deletes the ORIGINAL's row (#2459 at row 2), and appends nothing.
+    // It deletes the ORIGINAL's row (#2459 at row 2) — data columns only, so the
+    // summary in column H survives — and appends nothing.
     expect(batchUpdateMock).toHaveBeenCalledTimes(1)
-    expect(batchUpdateMock.mock.calls[0][0].requestBody.requests[0].deleteDimension.range).toEqual({
-      sheetId: 5,
-      dimension: 'ROWS',
-      startIndex: 1,
-      endIndex: 2,
+    expect(batchUpdateMock.mock.calls[0][0].requestBody.requests[0].deleteRange).toEqual({
+      range: {
+        sheetId: 5,
+        startRowIndex: 1,
+        endRowIndex: 2,
+        startColumnIndex: 0,
+        endColumnIndex: 7,
+      },
+      shiftDimension: 'ROWS',
     })
     expect(valuesBatchUpdateMock).not.toHaveBeenCalled() // no append/update
   })
@@ -358,11 +363,15 @@ describe('removeTransferFromSheet', () => {
     await removeTransferFromSheet({ transferId: 55, investmentId: 31 })
 
     expect(batchUpdateMock).toHaveBeenCalledTimes(1)
-    expect(batchUpdateMock.mock.calls[0][0].requestBody.requests[0].deleteDimension.range).toEqual({
-      sheetId: 12,
-      dimension: 'ROWS',
-      startIndex: 1,
-      endIndex: 2,
+    expect(batchUpdateMock.mock.calls[0][0].requestBody.requests[0].deleteRange).toEqual({
+      range: {
+        sheetId: 12,
+        startRowIndex: 1,
+        endRowIndex: 2,
+        startColumnIndex: 0,
+        endColumnIndex: 7,
+      },
+      shiftDimension: 'ROWS',
     })
   })
 

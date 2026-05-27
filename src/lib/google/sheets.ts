@@ -273,6 +273,13 @@ export async function updateMaterialRow(
 // otherwise append-only model). Used when an edit reassigns an expense to a
 // different investment: the row is removed from the OLD sheet. No-op if the id
 // isn't on this sheet, or the tab is missing.
+//
+// Scoped to the mapped data columns (A..SUMMARY_START_COL) via deleteRange +
+// shiftDimension ROWS — NOT a full-width deleteDimension(ROWS). The summary
+// totals (=SUM/=SUMIF) live on row 2 (next to the newest expense), and a
+// full-row delete of that row would take the formula cells with it. Deleting
+// only the data columns shifts the rows below up while leaving the summary
+// columns (>= SUMMARY_START_COL) untouched.
 export async function removeMaterialRow(spreadsheetId: string, transferId: number): Promise<void> {
   const ids = await readMaterialyTransferIds(spreadsheetId)
   const rowNumber = ids.get(transferId)
@@ -292,13 +299,15 @@ export async function removeMaterialRow(spreadsheetId: string, transferId: numbe
     requestBody: {
       requests: [
         {
-          deleteDimension: {
+          deleteRange: {
             range: {
               sheetId: gid,
-              dimension: 'ROWS',
-              startIndex: rowNumber - 1,
-              endIndex: rowNumber,
+              startRowIndex: rowNumber - 1,
+              endRowIndex: rowNumber,
+              startColumnIndex: 0,
+              endColumnIndex: SUMMARY_START_COL,
             },
+            shiftDimension: 'ROWS',
           },
         },
       ],

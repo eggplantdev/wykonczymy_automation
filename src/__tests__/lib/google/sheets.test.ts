@@ -134,7 +134,7 @@ describe('updateMaterialRow', () => {
 })
 
 describe('removeMaterialRow', () => {
-  it('deletes the row carrying the transferId via deleteDimension', async () => {
+  it('deletes only the data columns of the row, leaving the summary columns intact', async () => {
     // id 102 sits on sheet row 3 (header row 1, 101 on row 2, 102 on row 3)
     getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101], [102]] } })
     // tab gid lookup
@@ -149,10 +149,20 @@ describe('removeMaterialRow', () => {
     await removeMaterialRow('s', 102)
 
     expect(batchUpdateMock).toHaveBeenCalledTimes(1)
+    // deleteRange scoped to columns [0, 7) shifts rows below up while the summary
+    // block (column H = index 7 onward) is never in the deleted range — so the
+    // =SUM/=SUMIF formulas on row 2 survive even when the deleted row is row 2.
     expect(batchUpdateMock.mock.calls[0][0].requestBody.requests).toEqual([
       {
-        deleteDimension: {
-          range: { sheetId: 777, dimension: 'ROWS', startIndex: 2, endIndex: 3 },
+        deleteRange: {
+          range: {
+            sheetId: 777,
+            startRowIndex: 2,
+            endRowIndex: 3,
+            startColumnIndex: 0,
+            endColumnIndex: 7,
+          },
+          shiftDimension: 'ROWS',
         },
       },
     ])
