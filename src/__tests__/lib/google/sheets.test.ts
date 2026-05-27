@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const getMock = vi.fn()
 const valuesBatchUpdateMock = vi.fn()
+const valuesAppendMock = vi.fn()
 const spreadsheetsGetMock = vi.fn()
 const batchUpdateMock = vi.fn()
 
@@ -16,7 +17,7 @@ vi.mock('googleapis', () => ({
       spreadsheets: {
         get: spreadsheetsGetMock,
         batchUpdate: batchUpdateMock,
-        values: { get: getMock, batchUpdate: valuesBatchUpdateMock },
+        values: { get: getMock, batchUpdate: valuesBatchUpdateMock, append: valuesAppendMock },
       },
     }),
   },
@@ -30,6 +31,8 @@ beforeEach(() => {
   getMock.mockReset()
   valuesBatchUpdateMock.mockReset()
   valuesBatchUpdateMock.mockResolvedValue({ data: {} })
+  valuesAppendMock.mockReset()
+  valuesAppendMock.mockResolvedValue({ data: {} })
   spreadsheetsGetMock.mockReset()
   batchUpdateMock.mockReset()
   batchUpdateMock.mockResolvedValue({ data: {} })
@@ -39,97 +42,111 @@ beforeEach(() => {
   })
 })
 
-describe('appendMaterialRow', () => {
-  it('writes the seven mapped fields at the next empty row', async () => {
-    getMock.mockResolvedValueOnce({ data: { values: [HEADER] } }) // header only → next row 2
-    const { appendMaterialRow } = await import('@/lib/google/sheets')
-    const result = await appendMaterialRow('s', {
-      transferId: 101,
-      date: '2026-05-27',
-      typ: 'Materiały budowlane',
-      description: 'cement',
-      amount: 500,
-      category: 'Łazienka',
-      note: 'FV/1',
-    })
+describe('applyMaterialRowsBatch', () => {
+  const TAB = "'wydatki inwestycyjne (tylko do odczytu)'"
 
-    expect(result).toEqual({ rowIndex: 2 })
-    expect(valuesBatchUpdateMock).toHaveBeenCalledTimes(1)
-    const req = valuesBatchUpdateMock.mock.calls[0][0]
-    expect(req.requestBody.valueInputOption).toBe('USER_ENTERED')
-    expect(req.requestBody.data).toEqual([
-      { range: "'wydatki inwestycyjne (tylko do odczytu)'!A2", values: [[101]] },
-      { range: "'wydatki inwestycyjne (tylko do odczytu)'!B2", values: [['2026-05-27']] },
-      { range: "'wydatki inwestycyjne (tylko do odczytu)'!C2", values: [['Materiały budowlane']] },
-      { range: "'wydatki inwestycyjne (tylko do odczytu)'!D2", values: [['cement']] },
-      { range: "'wydatki inwestycyjne (tylko do odczytu)'!E2", values: [[500]] },
-      { range: "'wydatki inwestycyjne (tylko do odczytu)'!F2", values: [['Łazienka']] },
-      { range: "'wydatki inwestycyjne (tylko do odczytu)'!G2", values: [['FV/1']] },
+  it('appends an id the sheet lacks via values.append (server-side row allocation)', async () => {
+    getMock.mockResolvedValueOnce({ data: { values: [HEADER] } }) // header only
+    const { applyMaterialRowsBatch } = await import('@/lib/google/sheets')
+    const res = await applyMaterialRowsBatch('s', [
+      {
+        transferId: 101,
+        date: '2026-05-27',
+        typ: 'Materiały budowlane',
+        description: 'cement',
+        amount: 500,
+        category: 'Łazienka',
+        note: 'FV/1',
+      },
+    ])
+
+    expect(res).toEqual({ added: 1, updated: 0, removed: 0 })
+    expect(valuesBatchUpdateMock).not.toHaveBeenCalled()
+    expect(valuesAppendMock).toHaveBeenCalledTimes(1)
+    const req = valuesAppendMock.mock.calls[0][0]
+    // values.append lets Google place the row after the last non-empty data row,
+    // so a manual row below the block is never overwritten (T1.4) and concurrent
+    // appends can't collide on a computed row (T2.1).
+    expect(req.range).toBe(`${TAB}!A:G`)
+    expect(req.valueInputOption).toBe('USER_ENTERED')
+    expect(req.insertDataOption).toBe('INSERT_ROWS')
+    expect(req.requestBody.values).toEqual([
+      [101, '2026-05-27', 'Materiały budowlane', 'cement', 500, 'Łazienka', 'FV/1'],
     ])
   })
 
-  it('appends after the last id row', async () => {
-    getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101], [102]] } })
-    const { appendMaterialRow } = await import('@/lib/google/sheets')
-    const result = await appendMaterialRow('s', {
-      transferId: 103,
+  it('overwrites an existing id in place via batchUpdate (no append)', async () => {
+    getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101], [102]] } }) // 102 → row 3
+    const { applyMaterialRowsBatch } = await import('@/lib/google/sheets')
+    const res = await applyMaterialRowsBatch('s', [
+      {
+        transferId: 102,
+        date: '2026-05-27',
+        typ: 'Materiały budowlane',
+        description: 'cement',
+        amount: 500,
+        category: 'Łazienka',
+        note: 'FV/1',
+      },
+    ])
+
+    expect(res).toEqual({ added: 0, updated: 1, removed: 0 })
+    expect(valuesAppendMock).not.toHaveBeenCalled()
+    expect(valuesBatchUpdateMock.mock.calls[0][0].requestBody.data).toEqual([
+      { range: `${TAB}!A3`, values: [[102]] },
+      { range: `${TAB}!B3`, values: [['2026-05-27']] },
+      { range: `${TAB}!C3`, values: [['Materiały budowlane']] },
+      { range: `${TAB}!D3`, values: [['cement']] },
+      { range: `${TAB}!E3`, values: [[500]] },
+      { range: `${TAB}!F3`, values: [['Łazienka']] },
+      { range: `${TAB}!G3`, values: [['FV/1']] },
+    ])
+  })
+
+  it('updates present, appends missing, and removes orphans bottom-up in one batch', async () => {
+    // header r1, 101 r2, 102 r3, 103 r4
+    getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101], [102], [103]] } })
+    spreadsheetsGetMock.mockResolvedValueOnce({
+      data: {
+        sheets: [
+          { properties: { sheetId: 777, title: 'wydatki inwestycyjne (tylko do odczytu)' } },
+        ],
+      },
+    })
+    const { applyMaterialRowsBatch } = await import('@/lib/google/sheets')
+    const row = (id: number) => ({
+      transferId: id,
       date: 'd',
-      typ: 'Pozostałe koszty',
+      typ: 'Materiały budowlane',
       description: 'x',
       amount: 1,
       category: '',
       note: '',
     })
-    expect(result).toEqual({ rowIndex: 4 })
-    expect(valuesBatchUpdateMock.mock.calls[0][0].requestBody.data[0].range).toBe(
-      "'wydatki inwestycyjne (tylko do odczytu)'!A4",
-    )
+    const res = await applyMaterialRowsBatch('s', [row(102), row(200)], [101, 103])
+
+    expect(res).toEqual({ added: 1, updated: 1, removed: 2 })
+    expect(valuesBatchUpdateMock).toHaveBeenCalledTimes(1) // the one update (102)
+    expect(valuesAppendMock).toHaveBeenCalledTimes(1) // the one append (200)
+    // deletes run bottom-up: 103 (row 4 → startRowIndex 3) before 101 (row 2 → 1)
+    const reqs = batchUpdateMock.mock.calls[0][0].requestBody.requests
+    expect(
+      reqs.map(
+        (r: { deleteRange: { range: { startRowIndex: number } } }) =>
+          r.deleteRange.range.startRowIndex,
+      ),
+    ).toEqual([3, 1])
+    expect(reqs[0].deleteRange.range.endColumnIndex).toBe(7) // summary (col H+) preserved
   })
 
   it('fails loud when the header row is missing required columns', async () => {
     getMock.mockResolvedValueOnce({ data: { values: [['id', 'data', 'opis']] } })
-    const { appendMaterialRow } = await import('@/lib/google/sheets')
+    const { applyMaterialRowsBatch } = await import('@/lib/google/sheets')
     await expect(
-      appendMaterialRow('s', {
-        transferId: 1,
-        date: 'd',
-        typ: 't',
-        description: 'x',
-        amount: 1,
-        category: '',
-        note: '',
-      }),
+      applyMaterialRowsBatch('s', [
+        { transferId: 1, date: 'd', typ: 't', description: 'x', amount: 1, category: '', note: '' },
+      ]),
     ).rejects.toThrow(/header row not found/)
-  })
-})
-
-describe('updateMaterialRow', () => {
-  it('writes the seven mapped fields at the given row, leaving other rows untouched', async () => {
-    // grid is read to resolve header columns; row 3 is the target
-    getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101], [102]] } })
-    const { updateMaterialRow } = await import('@/lib/google/sheets')
-    await updateMaterialRow('s', 3, {
-      transferId: 102,
-      date: '2026-05-27',
-      typ: 'Materiały budowlane',
-      description: 'cement',
-      amount: 500,
-      category: 'Łazienka',
-      note: 'FV/1',
-    })
-
-    expect(valuesBatchUpdateMock).toHaveBeenCalledTimes(1)
-    const req = valuesBatchUpdateMock.mock.calls[0][0]
-    expect(req.requestBody.valueInputOption).toBe('USER_ENTERED')
-    expect(req.requestBody.data).toEqual([
-      { range: "'wydatki inwestycyjne (tylko do odczytu)'!A3", values: [[102]] },
-      { range: "'wydatki inwestycyjne (tylko do odczytu)'!B3", values: [['2026-05-27']] },
-      { range: "'wydatki inwestycyjne (tylko do odczytu)'!C3", values: [['Materiały budowlane']] },
-      { range: "'wydatki inwestycyjne (tylko do odczytu)'!D3", values: [['cement']] },
-      { range: "'wydatki inwestycyjne (tylko do odczytu)'!E3", values: [[500]] },
-      { range: "'wydatki inwestycyjne (tylko do odczytu)'!F3", values: [['Łazienka']] },
-      { range: "'wydatki inwestycyjne (tylko do odczytu)'!G3", values: [['FV/1']] },
-    ])
   })
 })
 

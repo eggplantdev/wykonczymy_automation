@@ -50,18 +50,22 @@ The column/field has no unique constraint. Two investments can be linked to the 
 **Trigger:** same sheet linked twice → both sync disjoint expense sets into one tab; each `applyMaterialSync` sees the _other_ investment's rows as real-transaction orphans (made worse if T1.1 is fixed only for type, not investment) and deletes them → the two investments continuously erase each other.
 **Fix:** add a unique index on `google_sheet_id` (Payload field `unique: true` + migration), and reject linking an already-linked sheet in `linkKosztorysSheetAction`.
 
-### T1.4 ☐ `appendMaterialRow` overwrites a manual row directly below the data block
+### T1.4 ☑ `appendMaterialRow` overwrites a manual row directly below the data block
 
-**`src/lib/google/sheets.ts:211`** — CONFIRMED
+**`src/lib/google/sheets.ts`** — CONFIRMED → **FIXED**: appends now go through `spreadsheets.values.append` (range `A:G`), which lands the row after the last non-empty data row — never over a manual row. (Folded into the T2.1/T4.1 batching refactor.) ⚠ live-verify the `values.append` placement once on the test sheet.
 
 Append target = `(last row with a parseable id) + 1`. A manual non-id row sitting immediately below the data block does not advance `lastDataRow`, so the next append writes its 7 mapped cells over that manual row (no empty-cell guard, `USER_ENTERED`).
 
 **Trigger:** owner adds a "Notes" row directly under the synced expenses → next expense create overwrites it.
 **Fix:** append below the last _non-empty_ row, or require an explicit blank separator the append never crosses.
 
-### T1.5 ☐ Any finite number in the id column is treated as a transferId
+### T1.5 ◐ Any finite number in the id column is treated as a transferId
 
-**`src/lib/google/sheets.ts:179`** — CONFIRMED
+**`src/lib/google/sheets.ts:179`** — CONFIRMED → **PARTIALLY FIXED**
+
+- **Delete-side closed** by T1.1 (orphan removal scoped to this investment's expenses) — a stray manual number can no longer be deleted unless it equals one of this investment's own expense ids.
+- **Append-side closed** by the T1.4 fix — appends no longer target a computed row, so a manual number can't be overwritten by an append.
+- **Update-side residual (open):** `applyMaterialRowsBatch` still maps id→row, so a manual row whose id-cell equals _this investment's active expense id_ would be overwritten in place. Fully closing it needs id **namespacing** (e.g. write `#<id>` and parse only prefixed cells as app ids) — a data-format change with a one-time re-sync migration. **Needs a decision** (small follow-up); the tab is SA-protected, so manual rows there are already an edge case.
 
 `isTransferId` accepts any `Number.isFinite` value; nothing distinguishes app-written ids from manual numbers. Since transaction ids are sequential integers, low/mid-range manual numbers collide readily.
 
@@ -72,9 +76,9 @@ Append target = `(last row with a parseable id) + 1`. A manual non-id row sittin
 
 ## Tier 2 — Sync drift / consistency holes
 
-### T2.1 ☐ Concurrent single creates race on the append row → one expense lost
+### T2.1 ☑ Concurrent single creates race on the append row → one expense lost
 
-**`src/lib/google/sheets.ts:207` ← `src/lib/actions/transfers.ts:72`** — CONFIRMED
+**`src/lib/google/sheets.ts` ← `src/lib/actions/transfers.ts:72`** — CONFIRMED → **FIXED**: appends use `spreadsheets.values.append`, which allocates the row server-side — two concurrent single-creates can no longer compute and write the same row. (Minor residual: two _concurrent full reconciles_ could still double-append a missing id; the reconcile is a rare manual action, and updates are idempotent.)
 
 `appendMaterialRow` is read-then-write with no cross-request lock. The authors serialized the _bulk_ path (`transfers.ts:157`, with a comment naming this exact hazard) but the single-create `after()` is unguarded.
 
@@ -185,7 +189,9 @@ The Editor-access check does a `batchUpdate` rewriting the title to its current 
 
 ## Tier 4 — Cleanup (reuse / simplification / efficiency)
 
-### T4.1 ☐ Per-row full-grid re-reads make sync O(N) Google API calls
+### T4.1 ☑ Per-row full-grid re-reads make sync O(N) Google API calls
+
+**FIXED**: `applyMaterialRowsBatch` does one `readGrid` + at most three writes (one `values.batchUpdate` for all updates, one `values.append` for all appends, one `spreadsheets.batchUpdate` for all deletes), regardless of row count. `applyMaterialSync` and `syncSingleTransferToSheet` both route through it. Verified must-fix by the 1000+ scale answer.
 
 **`src/lib/google/sheets.ts` (`appendMaterialRow`/`updateMaterialRow`/`readGrid`), `src/lib/actions/sheets-sync.ts:191`** — efficiency, highest-impact cleanup
 
@@ -218,7 +224,9 @@ Each item re-fetches the investment's `sheetId` and re-reads the grid. Bulk item
 
 **`src/lib/actions/sheets-sync.ts:151`, `src/lib/google/sheets.ts:273`** — simplify. Leftovers from the reversing-row model; the code now updates and removes. Delete/rewrite to describe reconcile behavior.
 
-### T4.8 ☐ `updateMaterialRow`/`appendMaterialRow` duplicated write block
+### T4.8 ☑ `updateMaterialRow`/`appendMaterialRow` duplicated write block
+
+**FIXED**: both removed; the duplicated value-mapping is now shared helpers (`valuesByField`/`cellDataForRow`/`rowArray`) feeding the single `applyMaterialRowsBatch`. `removeMaterialRow` delegates to it too (one delete path).
 
 **`src/lib/google/sheets.ts`** — simplify. ~20 lines copy-pasted, differing only in target row. Have append compute its row then delegate to update. (Folds into T4.1.)
 

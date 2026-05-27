@@ -3,10 +3,9 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import {
-  appendMaterialRow,
+  applyMaterialRowsBatch,
   readMaterialyTransferIds,
   removeMaterialRow,
-  updateMaterialRow,
 } from '@/lib/google/sheets'
 import { protectedAction } from './utils'
 
@@ -178,41 +177,16 @@ export async function applyMaterialSync(investmentId: number) {
         readMaterialyTransferIds(sheetId),
       ])
 
-      let added = 0
-      let updated = 0
-      let removed = 0
-      const errors: ApplyMaterialSyncResultT['errors'] = []
-
-      // Overwrite-by-id heal: append rows the sheet lacks, overwrite present ones to
-      // match the DB. The id is the join key, not a content fingerprint — an edit
-      // never changes the id — so we overwrite unconditionally rather than compare.
-      // Appends go to the bottom and don't shift existing rows, so the row numbers in
-      // `current` stay valid for the overwrites.
-      for (const row of appRows) {
-        const existingRow = current.get(row.transferId)
-        try {
-          if (existingRow !== undefined) {
-            await updateMaterialRow(sheetId, existingRow, row)
-            updated++
-          } else {
-            await appendMaterialRow(sheetId, row)
-            added++
-          }
-        } catch (err) {
-          errors.push({ transferId: row.transferId, message: String(err) })
-        }
-      }
-
-      // Scoped orphan-removal: drop sheet rows whose id is no longer an active expense
-      // for this investment BUT only when that id is one of THIS investment's own
-      // expenses (i.e. a now-cancelled one whose row should go). The guard query is
-      // scoped to investment + INVESTMENT_EXPENSE — NOT "is this id any transaction" —
-      // because ids are dense sequential PKs: an owner's manual number in the id column
-      // (a quantity, a year) would otherwise collide with some unrelated transaction
-      // (a payout, another investment's expense) and get its row deleted. Anything
-      // outside this investment's expenses is the owner's own data — leave it alone.
+      // Scoped orphan-removal: an id on the sheet but not among the active expenses
+      // is removable ONLY if it's one of THIS investment's own expenses (a
+      // now-cancelled one whose row should go). The guard query is scoped to
+      // investment + INVESTMENT_EXPENSE — NOT "is this id any transaction" — because
+      // ids are dense sequential PKs: an owner's manual number in the id column (a
+      // quantity, a year) would otherwise collide with some unrelated transaction (a
+      // payout, another investment's expense) and get its row deleted (review T1.1).
       const appIds = new Set(appRows.map((r) => r.transferId))
       const orphanIds = [...current.keys()].filter((id) => !appIds.has(id))
+      let removableIds: number[] = []
       if (orphanIds.length > 0) {
         const removableExpenses = await payload.find({
           collection: 'transactions',
@@ -227,19 +201,20 @@ export async function applyMaterialSync(investmentId: number) {
           limit: 0, // enumerate all matches — a truncated page would leave real expense
           overrideAccess: true, // ids unconfirmed, and they'd be wrongly kept as "manual rows".
         })
-        const removableIds = new Set(removableExpenses.docs.map((d) => d.id as number))
-        for (const id of orphanIds) {
-          if (!removableIds.has(id)) continue // not this investment's expense — keep
-          try {
-            await removeMaterialRow(sheetId, id)
-            removed++
-          } catch (err) {
-            errors.push({ transferId: id, message: String(err) })
-          }
-        }
+        removableIds = removableExpenses.docs.map((d) => d.id as number)
       }
 
-      return { success: true, data: { added, updated, removed, errors } }
+      // One batched write: upsert every active expense (append the missing, heal the
+      // present) and drop the removable orphans — O(1) Google API calls, not O(N)
+      // (review T4.1). The whole batch succeeds or throws (caught by protectedAction),
+      // so there is no per-row partial-error set anymore.
+      const { added, updated, removed } = await applyMaterialRowsBatch(
+        sheetId,
+        appRows,
+        removableIds,
+      )
+
+      return { success: true, data: { added, updated, removed, errors: [] } }
     },
     // The sheet rows are derived from the investment's expenses; the kosztorys/
     // investment UI reads through the investments cache, so invalidate that.
@@ -318,19 +293,11 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
       return
     }
 
-    const existing = await readMaterialyTransferIds(sheetId)
-    const existingRow = existing.get(params.transferId)
-    if (existingRow !== undefined) {
-      await updateMaterialRow(sheetId, existingRow, row)
-      console.log(
-        `[sheets-sync] update transfer #${params.transferId} → sheet ${sheetId} row ${existingRow}`,
-      )
-      return
-    }
-
-    await appendMaterialRow(sheetId, row)
+    // One read + one write via the batched path: appends the row if the sheet
+    // lacks it, otherwise overwrites the existing row in place.
+    const { added } = await applyMaterialRowsBatch(sheetId, [row], [])
     console.log(
-      `[sheets-sync] append transfer #${params.transferId} → sheet ${sheetId} (${row.typ})`,
+      `[sheets-sync] ${added ? 'append' : 'update'} transfer #${params.transferId} → sheet ${sheetId} (${row.typ})`,
     )
   } catch (err) {
     console.error('[sheets-sync] failed (non-fatal):', err)

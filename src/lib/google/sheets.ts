@@ -204,22 +204,9 @@ export async function readMaterialyTransferIds(
   return map
 }
 
-export async function appendMaterialRow(
-  spreadsheetId: string,
-  input: MaterialRowInputT,
-): Promise<{ rowIndex: number }> {
-  const sheets = getClient()
-  const grid = await readGrid(spreadsheetId)
-  const { headerRow, cols } = resolveHeaders(grid)
-
-  // Next empty row = one past the last row carrying an id below the header.
-  let lastDataRow = headerRow
-  for (let r = headerRow; r < grid.length; r++) {
-    if (isTransferId(grid[r]?.[cols.id]) !== undefined) lastDataRow = r + 1
-  }
-  const rowIndex = lastDataRow + 1
-
-  const valueByField: Record<FieldT, string | number> = {
+// ── value-mapping helpers (shared by every write path) ──────────────────────
+function valuesByField(input: MaterialRowInputT): Record<FieldT, string | number> {
+  return {
     id: input.transferId,
     date: input.date,
     typ: input.typ,
@@ -228,96 +215,129 @@ export async function appendMaterialRow(
     category: input.category,
     note: input.note,
   }
-  // Write only the mapped cells — summary/other columns are never touched.
-  const data = FIELDS.map((field) => ({
-    range: `'${MATERIALY_TAB}'!${columnLetter(cols[field])}${rowIndex}`,
-    values: [[valueByField[field]]],
-  }))
-  await sheets.spreadsheets.values.batchUpdate({
-    spreadsheetId,
-    requestBody: { valueInputOption: 'USER_ENTERED', data },
-  })
-
-  return { rowIndex }
 }
 
-// Overwrite the seven mapped cells of an EXISTING row (located by
-// readMaterialyTransferIds). Mirrors appendMaterialRow but targets a known
-// rowNumber instead of the next empty row — used to push an edit, or to heal drift
-// on re-sync. Touches only the mapped columns; summary/formatting/protected range
-// are untouched.
-export async function updateMaterialRow(
-  spreadsheetId: string,
-  rowNumber: number,
-  input: MaterialRowInputT,
-): Promise<void> {
-  const sheets = getClient()
-  const grid = await readGrid(spreadsheetId)
-  const { cols } = resolveHeaders(grid)
-
-  const valueByField: Record<FieldT, string | number> = {
-    id: input.transferId,
-    date: input.date,
-    typ: input.typ,
-    description: input.description,
-    amount: input.amount,
-    category: input.category,
-    note: input.note,
-  }
-  const data = FIELDS.map((field) => ({
+// The seven mapped cells of one row as A1 value ranges at a known row number.
+function cellDataForRow(input: MaterialRowInputT, cols: Record<FieldT, number>, rowNumber: number) {
+  const vals = valuesByField(input)
+  return FIELDS.map((field) => ({
     range: `'${MATERIALY_TAB}'!${columnLetter(cols[field])}${rowNumber}`,
-    values: [[valueByField[field]]],
+    values: [[vals[field]]],
   }))
-  await sheets.spreadsheets.values.batchUpdate({
-    spreadsheetId,
-    requestBody: { valueInputOption: 'USER_ENTERED', data },
-  })
 }
 
-// Delete the single row carrying `transferId` (the only deletion path in this
-// otherwise append-only model). Used when an edit reassigns an expense to a
-// different investment: the row is removed from the OLD sheet. No-op if the id
-// isn't on this sheet, or the tab is missing.
-//
-// Scoped to the mapped data columns (A..SUMMARY_START_COL) via deleteRange +
-// shiftDimension ROWS — NOT a full-width deleteDimension(ROWS). The summary
-// totals (=SUM/=SUMIF) live on row 2 (next to the newest expense), and a
-// full-row delete of that row would take the formula cells with it. Deleting
-// only the data columns shifts the rows below up while leaving the summary
-// columns (>= SUMMARY_START_COL) untouched.
-export async function removeMaterialRow(spreadsheetId: string, transferId: number): Promise<void> {
-  const ids = await readMaterialyTransferIds(spreadsheetId)
-  const rowNumber = ids.get(transferId)
-  if (rowNumber === undefined) return
+// One row as a positional array (index = column) for values.append. Honors a
+// reordered header by placing each field at its mapped column; gaps stay blank.
+function rowArray(input: MaterialRowInputT, cols: Record<FieldT, number>): (string | number)[] {
+  const vals = valuesByField(input)
+  const width = Math.max(...FIELDS.map((f) => cols[f])) + 1
+  const arr: (string | number)[] = Array(width).fill('')
+  for (const field of FIELDS) arr[cols[field]] = vals[field]
+  return arr
+}
 
-  const sheets = getClient()
+// The Materiały tab's numeric sheetId (gid), or undefined if the tab is missing.
+async function materialyTabGid(
+  sheets: sheets_v4.Sheets,
+  spreadsheetId: string,
+): Promise<number | undefined> {
   const meta = await sheets.spreadsheets.get({
     spreadsheetId,
     fields: 'sheets(properties(sheetId,title))',
   })
-  const gid = (meta.data.sheets ?? []).find((s) => s.properties?.title === MATERIALY_TAB)
-    ?.properties?.sheetId
-  if (gid == null) return
+  return (
+    (meta.data.sheets ?? []).find((s) => s.properties?.title === MATERIALY_TAB)?.properties
+      ?.sheetId ?? undefined
+  )
+}
 
-  await sheets.spreadsheets.batchUpdate({
-    spreadsheetId,
-    requestBody: {
-      requests: [
-        {
-          deleteRange: {
-            range: {
-              sheetId: gid,
-              startRowIndex: rowNumber - 1,
-              endRowIndex: rowNumber,
-              startColumnIndex: 0,
-              endColumnIndex: SUMMARY_START_COL,
+// The single batched write path: upsert rows (overwrite by id where present,
+// else append) and delete rows by id. Does ONE readGrid + at most three writes
+// regardless of row count — so a full reconcile of N expenses no longer costs
+// O(N) Google API calls (review T4.1). Appends go through values.append, which
+// allocates rows server-side AFTER the last non-empty data row: concurrent
+// appends can't collide on a computed row (review T2.1) and a manual row below
+// the block is never overwritten (review T1.4). Removes touch only the data
+// columns (A..SUMMARY_START_COL) so the summary survives, bottom-up so row
+// numbers don't shift mid-batch.
+export async function applyMaterialRowsBatch(
+  spreadsheetId: string,
+  upserts: MaterialRowInputT[],
+  removeIds: number[] = [],
+): Promise<{ added: number; updated: number; removed: number }> {
+  const sheets = getClient()
+  const grid = await readGrid(spreadsheetId)
+  const { headerRow, cols } = resolveHeaders(grid)
+
+  const idToRow = new Map<number, number>()
+  for (let r = headerRow; r < grid.length; r++) {
+    const id = isTransferId(grid[r]?.[cols.id])
+    if (id !== undefined) idToRow.set(id, r + 1)
+  }
+
+  const updates = upserts.filter((u) => idToRow.has(u.transferId))
+  const appends = upserts.filter((u) => !idToRow.has(u.transferId))
+
+  // Updates: overwrite the mapped cells at each id's known row.
+  if (updates.length > 0) {
+    const data = updates.flatMap((row) =>
+      cellDataForRow(row, cols, idToRow.get(row.transferId) as number),
+    )
+    await sheets.spreadsheets.values.batchUpdate({
+      spreadsheetId,
+      requestBody: { valueInputOption: 'USER_ENTERED', data },
+    })
+  }
+
+  // Appends: Google allocates the next rows after the last non-empty data row.
+  if (appends.length > 0) {
+    const lastCol = columnLetter(Math.max(...FIELDS.map((f) => cols[f])))
+    await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: `'${MATERIALY_TAB}'!A:${lastCol}`,
+      valueInputOption: 'USER_ENTERED',
+      insertDataOption: 'INSERT_ROWS',
+      requestBody: { values: appends.map((row) => rowArray(row, cols)) },
+    })
+  }
+
+  // Removes: delete only the data columns of each row, bottom-up.
+  const removeRows = removeIds
+    .map((id) => idToRow.get(id))
+    .filter((r): r is number => r !== undefined)
+    .sort((a, b) => b - a)
+  if (removeRows.length > 0) {
+    const gid = await materialyTabGid(sheets, spreadsheetId)
+    if (gid != null) {
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
+        requestBody: {
+          requests: removeRows.map((rowNumber) => ({
+            deleteRange: {
+              range: {
+                sheetId: gid,
+                startRowIndex: rowNumber - 1,
+                endRowIndex: rowNumber,
+                startColumnIndex: 0,
+                endColumnIndex: SUMMARY_START_COL,
+              },
+              shiftDimension: 'ROWS' as const,
             },
-            shiftDimension: 'ROWS',
-          },
+          })),
         },
-      ],
-    },
-  })
+      })
+    }
+  }
+
+  return { added: appends.length, updated: updates.length, removed: removeRows.length }
+}
+
+// Delete the single row carrying `transferId`. Used when an edit reassigns an
+// expense to a different investment (dropped from the OLD sheet) or a cancellation
+// removes its row. Delegates to the batched path (one scoped deleteRange, summary
+// preserved). No-op if the id isn't on this sheet, or the tab is missing.
+export async function removeMaterialRow(spreadsheetId: string, transferId: number): Promise<void> {
+  await applyMaterialRowsBatch(spreadsheetId, [], [transferId])
 }
 
 // Color that brands each expense type across the sheet (row tint + summary
