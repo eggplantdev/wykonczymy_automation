@@ -304,14 +304,17 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
       return
     }
 
-    // Expense no longer mappable (category cleared → empty typ, or a non-finite
-    // amount): drop any row it previously had instead of leaving stale data on the
-    // sheet (review T2.4). removeMaterialRow is a no-op if the row isn't present.
-    const row = expenseRow(transfer as unknown as TxDoc)
+    // A cancelled expense (the sheet mirrors ACTIVE costs — this is how cancellation
+    // removal works when driven from the collection hook), or one no longer mappable
+    // (category cleared → empty typ, or a non-finite amount), should NOT be on the
+    // sheet — drop any row it has (review T2.4). removeMaterialRow no-ops if absent.
+    const row = (transfer as { cancelled?: boolean }).cancelled
+      ? undefined
+      : expenseRow(transfer as unknown as TxDoc)
     if (!row) {
       await removeMaterialRow(sheetId, params.transferId)
       console.log(
-        `[sheets-sync] transfer #${params.transferId} no longer mappable → removed from sheet ${sheetId}`,
+        `[sheets-sync] transfer #${params.transferId} cancelled/unmappable → removed from sheet ${sheetId}`,
       )
       return
     }

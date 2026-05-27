@@ -433,9 +433,13 @@ describe('createBulkTransferAction', () => {
     expect(mockCommitTransaction).toHaveBeenCalledWith(TX_ID)
     expect(mockRollbackTransaction).not.toHaveBeenCalled()
 
-    // All creates share the same transaction ID
+    // All creates share the same transaction ID (+ skip the per-row sheet sync; the
+    // action batches it once after commit).
     for (const call of mockCreate.mock.calls) {
-      expect(call[0]).toHaveProperty('req', { transactionID: TX_ID })
+      expect(call[0]).toHaveProperty('req', {
+        transactionID: TX_ID,
+        context: { skipKosztorysSync: true },
+      })
     }
   })
 
@@ -815,34 +819,15 @@ describe('updateTransferAction', () => {
     )
   })
 
-  it('pushes the edit to the current sheet and does not remove when investment is unchanged', async () => {
-    mockFindByID.mockResolvedValueOnce(
-      makeOriginalTransfer({ createdBy: adminUser.id, investment: 2 }),
-    )
-
-    await updateTransferAction(10, makeUpdateData({ investment: 2 }))
-
-    expect(mockSyncSingle).toHaveBeenCalledWith({ transferId: 10 })
-    expect(mockRemoveFromSheet).not.toHaveBeenCalled()
-  })
-
-  it('removes from the old sheet then pushes to the new when investment changes', async () => {
+  // Sheet sync moved to the transactions collection afterChange hook (review T2.2),
+  // so updateTransferAction no longer calls it directly. The edit / investment-move /
+  // non-expense-skip behavior is covered in hooks/sync-kosztorys-sheet.test.ts.
+  it('does not sync the sheet directly from the action (hook owns it now)', async () => {
     mockFindByID.mockResolvedValueOnce(
       makeOriginalTransfer({ createdBy: adminUser.id, investment: 2 }),
     )
 
     await updateTransferAction(10, makeUpdateData({ investment: 9 }))
-
-    expect(mockRemoveFromSheet).toHaveBeenCalledWith({ transferId: 10, investmentId: 2 })
-    expect(mockSyncSingle).toHaveBeenCalledWith({ transferId: 10 })
-  })
-
-  it('does not sync a non-expense type', async () => {
-    mockFindByID.mockResolvedValueOnce(
-      makeOriginalTransfer({ createdBy: adminUser.id, type: 'LABOR_COST' }),
-    )
-
-    await updateTransferAction(10, makeUpdateData())
 
     expect(mockSyncSingle).not.toHaveBeenCalled()
     expect(mockRemoveFromSheet).not.toHaveBeenCalled()

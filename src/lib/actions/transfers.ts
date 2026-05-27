@@ -17,11 +17,7 @@ import {
 import type { SessionUserT } from '@/types/auth'
 import { after } from 'next/server'
 import { isDepositType, isLaborCost, needsSourceRegister } from '../constants/transfers'
-import {
-  removeTransferFromSheet,
-  syncBulkExpensesToSheet,
-  syncSingleTransferToSheet,
-} from './sheets-sync'
+import { syncBulkExpensesToSheet } from './sheets-sync'
 import {
   checkIfSufficientBalance,
   validateAction,
@@ -69,11 +65,9 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
       })
       console.log(`[PERF]   payload.create ${step()}ms`)
 
-      // Post-response Materiały sync via `after()` — runs after the user-visible
-      // action returns (so Google Sheets latency never blocks it) but the runtime
-      // keeps the function alive to finish it, unlike a bare `void` that Vercel can
-      // freeze/kill on return. Drift is still recoverable via the sync button.
-      after(() => syncSingleTransferToSheet({ transferId: created.id }))
+      // Materiały sheet sync now runs from the transactions collection afterChange
+      // hook (covers admin-panel edits too, review T2.2), so the action no longer
+      // schedules it — that would double the work.
 
       return { success: true }
     },
@@ -118,7 +112,10 @@ export async function createBulkTransferAction(
 
       const transactionId = await payload.db.beginTransaction()
       if (!transactionId) throw new Error('Failed to start transaction')
-      const req = { transactionID: transactionId }
+      // skipKosztorysSync: the per-row afterChange hook must NOT sync each created
+      // row one-by-one — this action batches them all in a single sheet write below
+      // (review T4.2). The flag rides on req.context, which Payload passes to hooks.
+      const req = { transactionID: transactionId, context: { skipKosztorysSync: true } }
 
       const createdIds: number[] = []
       try {
@@ -241,10 +238,9 @@ export async function cancelTransferAction(transferId: number, data: CancelTrans
       })
       console.log(`[PERF]   create CANCELLATION ${step()}ms`)
 
-      // Remove the cancelled expense's row from its kosztorys sheet (the sheet
-      // mirrors ACTIVE expenses). syncSingleTransferToSheet routes the CANCELLATION
-      // to a row removal. Post-response via `after()`; logged only.
-      after(() => syncSingleTransferToSheet({ transferId: cancellation.id }))
+      // The kosztorys sheet row is removed by the collection afterChange hook, which
+      // fires on the `cancelled: true` update above (review T2.2) — no action-level
+      // sync here, or it would double the work.
 
       return { success: true }
     },
@@ -301,27 +297,10 @@ export async function updateTransferAction(
       }
       console.log(`[PERF]   payload.update(${transferId}) ${step()}ms`)
 
-      // Post-response Materiały sync for synced expenses. If the investment changed,
-      // drop the stale row from the OLD sheet first, then push to the current sheet
-      // (append on the new sheet, or update in place if unchanged). after() keeps the
-      // work alive past the response on Vercel; failures are non-fatal.
-      if (original.type === 'INVESTMENT_EXPENSE') {
-        const originalInvestment = (original as { investment?: number | { id?: number } })
-          .investment
-        const oldInvestmentId =
-          typeof originalInvestment === 'number' ? originalInvestment : originalInvestment?.id
-        const newInvestmentId = fields.investment
-        after(async () => {
-          if (
-            oldInvestmentId !== undefined &&
-            newInvestmentId !== undefined &&
-            oldInvestmentId !== newInvestmentId
-          ) {
-            await removeTransferFromSheet({ transferId, investmentId: oldInvestmentId })
-          }
-          await syncSingleTransferToSheet({ transferId })
-        })
-      }
+      // Materiały sheet sync (including the move-to-another-investment case) runs from
+      // the collection afterChange hook, which compares previousDoc/doc from the DB —
+      // so it's correct even when the edit omits the investment field (review T2.2 +
+      // closes T2.3), and it covers admin-panel edits. No action-level sync here.
 
       return { success: true }
     },

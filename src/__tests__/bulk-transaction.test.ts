@@ -120,7 +120,10 @@ describe('createBulkTransferAction — transaction safety', () => {
     await createBulkTransferAction(makeBulkTransferData(4))
 
     for (const call of mockCreate.mock.calls) {
-      expect(call[0]).toHaveProperty('req', { transactionID: TX_ID })
+      expect(call[0]).toHaveProperty('req', {
+        transactionID: TX_ID,
+        context: { skipKosztorysSync: true },
+      })
     }
   })
 })
