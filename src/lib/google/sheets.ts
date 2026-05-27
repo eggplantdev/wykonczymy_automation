@@ -402,9 +402,12 @@ export async function setupMaterialyTab(
   // SUMIF totals or the row coloring).
   await sheets.spreadsheets.values.clear({ spreadsheetId, range: TAB_RANGE })
 
-  // Header at row 1, data from row 2 — a clean A:G block you can date-filter.
-  // The summary is a small 2-row table starting at column H: RAZEM + one column
-  // per type, the total UNDER its label. Separator follows the sheet's locale.
+  // Header at row 1; the summary occupies row 2 (columns H+). Data rows land from
+  // row 3 down: `applyMaterialRowsBatch` appends via Google `values.append`, which
+  // places the first row after row 2 because the summary cells make row 2 count as
+  // table content. Keeping the summary on its own row means data sorts/deletes never
+  // disturb it. The summary is a small 2-row table starting at column H: RAZEM + one
+  // column per type, the total UNDER its label. Separator follows the sheet's locale.
   const { labels, totals } = buildMaterialySummary(expenseTypes, argSep)
 
   const summaryStart = columnLetter(SUMMARY_START_COL)

@@ -61,14 +61,19 @@ The sheet holds **only the currently active (non-cancelled) expenses**:
 
 ## Write paths
 
-| Trigger                           | Action                                                                                   | Sheet effect                                                                                                                         |
-| --------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Create expense                    | `createTransferAction` / `createBulkTransferAction` → `after(syncSingleTransferToSheet)` | **Append** at the next empty row (bottom). Bulk creates run after commit, serialized.                                                |
-| Cancel expense                    | `cancelTransferAction` → `after(syncSingleTransferToSheet(cancellation.id))`             | **Remove** the original's row (`removeMaterialRow`).                                                                                 |
-| Edit expense                      | `syncSingleTransferToSheet` → `updateMaterialRow` (by id)                                | **Overwrite the 7 cells in place** (same row, no duplicate). Type change recolours via the conditional rule; totals shift via SUMIF. |
-| Edit → move to another investment | `removeTransferFromSheet` (old sheet) + `syncSingleTransferToSheet` (new sheet)          | Row dropped from old sheet, appended to new.                                                                                         |
-| Reconcile (Synchronizuj button)   | `previewMaterialSync` → `applyMaterialSync`                                              | **Append** missing + **overwrite** present (heal) + **scoped orphan-removal**. Reports `+added / updated / removed`.                 |
-| Reset tab (Zresetuj zakładkę)     | `setupKosztorysSheetAction` + `applyMaterialSync`                                        | Rebuilds the tab from scratch (header, summary, formatting) then re-syncs. **Wipes manual rows** — destructive.                      |
+All sheet writes go through **one batched path**, `applyMaterialRowsBatch(sheetId, upserts, removeIds)`
+(`sheets.ts`): it upserts by id (append new rows via Google `values.append`, overwrite present
+rows in place) and removes ids in a single round of API calls. Appends land from **row 3** (row 2
+is the summary row). `removeMaterialRow` is a thin wrapper that delegates to the same batched path.
+
+| Trigger                           | Action                                                                                   | Sheet effect                                                                                                                            |
+| --------------------------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Create expense                    | `createTransferAction` / `createBulkTransferAction` → `after(syncSingleTransferToSheet)` | `applyMaterialRowsBatch` upsert of one row → **appends** it. Bulk = one call per row in the `after()` loop.                             |
+| Cancel expense                    | `cancelTransferAction` → `after(syncSingleTransferToSheet(cancellation.id))`             | **Removes** the original's row (`removeMaterialRow` → batched scoped delete).                                                           |
+| Edit expense                      | `syncSingleTransferToSheet` → `applyMaterialRowsBatch` upsert (by id)                    | **Overwrites the 7 cells in place** (same row, no duplicate). Type change recolours via the conditional rule; totals shift via SUMIF.   |
+| Edit → move to another investment | `removeTransferFromSheet` (old sheet) + `syncSingleTransferToSheet` (new sheet)          | Row dropped from old sheet, appended to new.                                                                                            |
+| Reconcile (Synchronizuj button)   | `previewMaterialSync` → `applyMaterialSync` → `applyMaterialRowsBatch`                   | One batched write: **append** missing + **overwrite** present (heal) + **scoped orphan-removal**. Reports `+added / updated / removed`. |
+| Reset tab (Zresetuj zakładkę)     | `setupKosztorysSheetAction` + `applyMaterialSync`                                        | Rebuilds the tab from scratch (header, summary, formatting) then re-syncs via the batched write. **Wipes manual rows** — destructive.   |
 
 Notes:
 
@@ -92,14 +97,23 @@ owner-shared existing sheet** (the service account has no Drive storage quota on
 personal account) rather than copying a template. Setup attaches/rebuilds the
 read-only tab.
 
-## Recent fix (committed `53b8727`)
+## Recent fixes
 
-`removeMaterialRow` used a full-width `deleteDimension: ROWS`. Because the newest
-expense and the H2 summary totals share **row 2**, deleting the top expense wiped
-the `=SUM`/`=SUMIF` formulas. Fixed to a column-scoped `deleteRange`
-(`shiftDimension: ROWS`, columns `[0, SUMMARY_START_COL)`): only the data cells are
-removed and rows below shift up, leaving the summary columns untouched. Verified
-live + unit-tested.
+- **Single batched write path (`7fc8ec0`).** All sheet writes now funnel through
+  `applyMaterialRowsBatch` (upsert + scoped remove in one round) instead of serial
+  per-row `appendMaterialRow`/`updateMaterialRow` calls. This fixes the failure where
+  reconciling/resetting a large investment (e.g. inv 31, ~94 expenses) blew Google's
+  ~60 writes/min quota and silently dropped rows. Side effect: data now starts at
+  **row 3** (Google `values.append` places rows after the summary on row 2). Also
+  landed alongside: scoped orphan-removal guard (`d826ed1`), dropped 1000-row caps
+  that could orphan-delete real rows (`5e3b711`), and a unique constraint on
+  `googleSheetId` so one sheet can't link to two investments (`4459b6f`/`8752064`).
+- **`removeMaterialRow` column-scoped delete (`53b8727`).** Was a full-width
+  `deleteDimension: ROWS`; because the newest expense and the H2 summary totals shared
+  row 2, deleting the top expense wiped the `=SUM`/`=SUMIF` formulas. Now a
+  column-scoped `deleteRange` (`shiftDimension: ROWS`, columns `[0, SUMMARY_START_COL)`)
+  removes only the data cells, leaving the summary columns untouched. (With data now on
+  row 3+, the summary on row 2 is decoupled regardless.) Verified live + unit-tested.
 
 ## Verification status (live, investment 6)
 
@@ -127,6 +141,20 @@ verification log in `docs/plans/2026-05-27-kosztorys-active-costs-reconcile-plan
 One follow-up surfaced: cosmetic **finding #19** (summary block relocates off row 2 after a
 sort/large row-shift; numbers stay correct, a reset re-pins it) — decide whether to pin the
 summary block or leave it.
+
+**Staging/prod deployment prerequisites (env vars):** `env.ts` validates at boot and
+`process.exit(1)`s if missing, so the feature needs two new vars per environment:
+`GOOGLE_SERVICE_ACCOUNT_JSON` (sensitive) + `KOSZTORYS_TEMPLATE_SHEET_ID`
+(`KOSZTORYS_DRIVE_FOLDER_ID` optional, unset).
+
+- [x] **Preview / `staging` branch** — both added 2026-05-27 (scoped to the `staging`
+      git branch; the Vercel project has no custom env, so the `staging` branch deploys
+      under Preview). Verified via `vercel env ls preview`.
+- [ ] **Production** — not set yet (deferred); add before promoting prod, else prod
+      crashes on the `env.ts` boot check.
+- [ ] **Broaden Preview** — vars are scoped to the `staging` branch only. Other preview
+      branches (incl. `table`) won't boot until the vars are added to all Preview (do via
+      dashboard or interactively; 54.1.0's non-interactive CLI won't target all-Preview).
 
 **Test-DB → production cutover (the `⚠️ TEMPORARY` block in `CLAUDE.md`):**
 
