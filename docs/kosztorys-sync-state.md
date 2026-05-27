@@ -62,9 +62,12 @@ The sheet holds **only the currently active (non-cancelled) expenses**:
 ## Write paths
 
 All sheet writes go through **one batched path**, `applyMaterialRowsBatch(sheetId, upserts, removeIds)`
-(`sheets.ts`): it upserts by id (append new rows via Google `values.append`, overwrite present
-rows in place) and removes ids in a single round of API calls. Appends land from **row 3** (row 2
-is the summary row). `removeMaterialRow` is a thin wrapper that delegates to the same batched path.
+(`sheets.ts`): it upserts by id (overwrite present rows in place; append new ones at the row after
+the last mapped-column data row) and removes ids — all in a single `batchUpdate`. Data starts at
+**row 2**; the append row is computed explicitly rather than via Google `values.append` (whose table
+detection would treat the adjacent summary cell as content and leave row 2's A:G blank). The first
+data row shares row 2 with the summary totals (summary lives in columns H+). `removeMaterialRow` is
+a thin wrapper that delegates to the same batched path.
 
 | Trigger                           | Action                                                                                   | Sheet effect                                                                                                                            |
 | --------------------------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
@@ -103,17 +106,20 @@ read-only tab.
   `applyMaterialRowsBatch` (upsert + scoped remove in one round) instead of serial
   per-row `appendMaterialRow`/`updateMaterialRow` calls. This fixes the failure where
   reconciling/resetting a large investment (e.g. inv 31, ~94 expenses) blew Google's
-  ~60 writes/min quota and silently dropped rows. Side effect: data now starts at
-  **row 3** (Google `values.append` places rows after the summary on row 2). Also
-  landed alongside: scoped orphan-removal guard (`d826ed1`), dropped 1000-row caps
+  ~60 writes/min quota and silently dropped rows. Appends are written at an explicitly
+  computed row (last mapped-column data row + 1), **not** via Google `values.append` —
+  so data starts cleanly at **row 2** (append's table detection would otherwise treat
+  the adjacent summary cell as content and leave row 2 blank). Also landed alongside:
+  scoped orphan-removal guard (`d826ed1`), dropped 1000-row caps
   that could orphan-delete real rows (`5e3b711`), and a unique constraint on
   `googleSheetId` so one sheet can't link to two investments (`4459b6f`/`8752064`).
 - **`removeMaterialRow` column-scoped delete (`53b8727`).** Was a full-width
   `deleteDimension: ROWS`; because the newest expense and the H2 summary totals shared
   row 2, deleting the top expense wiped the `=SUM`/`=SUMIF` formulas. Now a
   column-scoped `deleteRange` (`shiftDimension: ROWS`, columns `[0, SUMMARY_START_COL)`)
-  removes only the data cells, leaving the summary columns untouched. (With data now on
-  row 3+, the summary on row 2 is decoupled regardless.) Verified live + unit-tested.
+  removes only the data cells, leaving the summary columns untouched — so even though the
+  first data row still shares row 2 with the summary, deleting it can't wipe the totals.
+  Verified live + unit-tested.
 
 ## Verification status (live, investment 6)
 
