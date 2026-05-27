@@ -40,9 +40,9 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
         )
         return
       }
-      const { added, updated, errors } = applied.data
+      const { added, updated, removed, errors } = applied.data
       toastMessage(
-        `Zakładka zresetowana i zsynchronizowana: +${added} / zaktualizowano ${updated}${
+        `Zakładka zresetowana i zsynchronizowana: +${added} / zaktualizowano ${updated} / usunięto ${removed}${
           errors.length ? ` · błędy: ${errors.length}` : ''
         }`,
         errors.length ? 'warning' : 'success',
@@ -69,9 +69,9 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
         toastMessage(res.error, 'error')
         return
       }
-      const { added, updated, errors } = res.data
+      const { added, updated, removed, errors } = res.data
       toastMessage(
-        `Synchronizacja: +${added} / zaktualizowano ${updated}${
+        `Synchronizacja: +${added} / zaktualizowano ${updated} / usunięto ${removed}${
           errors.length ? ` · błędy: ${errors.length}` : ''
         }`,
         errors.length ? 'warning' : 'success',
