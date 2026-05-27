@@ -7,7 +7,8 @@
 > **Status (2026-05-27):** #1, #2, #3, #5, #6 implemented; then #8, #10, #11, #14, #16, #17;
 > then #4 (live push + overwrite-by-id reconciler heal + investment-move removal — see
 > `2026-05-27-kosztorys-sync-edit-propagation-{design,plan}.md`). #7 and #18 investigated
-> & refuted/accepted. Remaining: #12, #13, #15.
+> & refuted/accepted. #12 accepted by design (single-tab lock), #13 accepted as mitigated,
+> #15 fixed (structured quota-error detection). **All review findings now resolved.**
 >
 > **Active-costs reconciliation (2026-05-27):** the cancellation `+ row / − row` model
 > was replaced — the sheet now mirrors only **non-cancelled** investment expenses (one
@@ -84,11 +85,13 @@
 
 - Problem: whole-tab protected range with editors=[SA] removes edit from the owner's other collaborators (owner kept by Google).
 - Fix: scope the protection (or use `warningOnly`) and/or warn the owner that collaborators lose edit on the tab.
+- **Accepted by design (2026-05-27):** the protected range targets ONLY the `Materiały`/"wydatki inwestycyjne (tylko do odczytu)" tab — `addProtectedRange` uses `range: { sheetId }` with the tab's gid and no row/col bounds, so every OTHER tab in the owner's spreadsheet stays fully editable. Locking the one app-managed, read-only tab (so collaborators can't desync it) is the intended behavior — that tab is literally titled "tylko do odczytu". The collaborator caveat is documented in `sheets.ts` (~L550). No change. (Tracked as done in memory: `project_kosztorys_column_lock`.)
 
 **13. Link doesn't confirm the tab exists** — `src/lib/google/sheet-access.ts:31`
 
 - Problem: `verifySheetAccess` only confirms the SA can open the file; linking "succeeds" on any accessible spreadsheet, then sync errors "Arkusz nie ma karty…".
 - Fix: also check for the tab (or offer to create it) during link.
+- **Accepted as mitigated (2026-05-27):** `verifySheetAccess` now also runs a no-op write probe (confirms EDIT access, closing #2), and `readGrid` turns a missing tab into an actionable message ("Arkusz nie ma karty „…". Kliknij „Zresetuj zakładkę materiały"…"), with the reset flow creating the tab. A link-time tab check adds little over that. No change.
 
 **14. `applyMaterialSync` revalidates the wrong cache tag** — `src/lib/actions/sheets-sync.ts` (~L216)
 
@@ -99,6 +102,7 @@
 
 - Problem: relies on a substring match of Google's localizable, non-contractual error text.
 - Fix: match by error code/reason, not message text.
+- **Done (2026-05-27):** added `isStorageQuotaError(err)` in `src/lib/google/drive.ts` — matches the structured reason `storageQuotaExceeded` (top-level `errors[]` or `response.data.error.errors[]`), with the message-substring kept only as a last-resort fallback. `provisionKosztorysAction` uses it. Unit-tested in `drive.test.ts`.
 
 ## UI / layout / forms — follow-up review TODO (2026-05-27)
 
