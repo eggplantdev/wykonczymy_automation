@@ -264,9 +264,10 @@ describe('applyMaterialSync', () => {
     expect(result.success).toBe(true)
     if (!result.success) throw new Error('expected success')
     expect(result.data).toEqual({ added: 1, updated: 0, removed: 0, errors: [] })
-    // appends now go through values.append (server-side row allocation), not batchUpdate
-    expect(valuesAppendMock).toHaveBeenCalledTimes(1)
-    expect(valuesBatchUpdateMock).not.toHaveBeenCalled()
+    // appends are written at a computed row via batchUpdate (not values.append —
+    // its table detection counts the summary column and skips the first data row)
+    expect(valuesBatchUpdateMock).toHaveBeenCalledTimes(1)
+    expect(valuesAppendMock).not.toHaveBeenCalled()
   })
 
   it('removes orphan rows that are real transactions but keeps manual rows', async () => {

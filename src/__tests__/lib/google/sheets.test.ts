@@ -45,8 +45,8 @@ beforeEach(() => {
 describe('applyMaterialRowsBatch', () => {
   const TAB = "'wydatki inwestycyjne (tylko do odczytu)'"
 
-  it('appends an id the sheet lacks via values.append (server-side row allocation)', async () => {
-    getMock.mockResolvedValueOnce({ data: { values: [HEADER] } }) // header only
+  it('appends an id the sheet lacks at the row after the last data row', async () => {
+    getMock.mockResolvedValueOnce({ data: { values: [HEADER] } }) // header only → append at row 2
     const { applyMaterialRowsBatch } = await import('@/lib/google/sheets')
     const res = await applyMaterialRowsBatch('s', [
       {
@@ -61,17 +61,17 @@ describe('applyMaterialRowsBatch', () => {
     ])
 
     expect(res).toEqual({ added: 1, updated: 0, removed: 0 })
-    expect(valuesBatchUpdateMock).not.toHaveBeenCalled()
-    expect(valuesAppendMock).toHaveBeenCalledTimes(1)
-    const req = valuesAppendMock.mock.calls[0][0]
-    // values.append lets Google place the row after the last non-empty data row,
-    // so a manual row below the block is never overwritten (T1.4) and concurrent
-    // appends can't collide on a computed row (T2.1).
-    expect(req.range).toBe(`${TAB}!A:G`)
-    expect(req.valueInputOption).toBe('USER_ENTERED')
-    expect(req.insertDataOption).toBe('INSERT_ROWS')
-    expect(req.requestBody.values).toEqual([
-      [101, '2026-05-27', 'Materiały budowlane', 'cement', 500, 'Łazienka', 'FV/1'],
+    // We compute the row explicitly (not values.append): its table detection counts
+    // the adjacent summary column and would skip the first data row, leaving a blank.
+    expect(valuesAppendMock).not.toHaveBeenCalled()
+    expect(valuesBatchUpdateMock.mock.calls[0][0].requestBody.data).toEqual([
+      { range: `${TAB}!A2`, values: [[101]] },
+      { range: `${TAB}!B2`, values: [['2026-05-27']] },
+      { range: `${TAB}!C2`, values: [['Materiały budowlane']] },
+      { range: `${TAB}!D2`, values: [['cement']] },
+      { range: `${TAB}!E2`, values: [[500]] },
+      { range: `${TAB}!F2`, values: [['Łazienka']] },
+      { range: `${TAB}!G2`, values: [['FV/1']] },
     ])
   })
 
@@ -126,8 +126,18 @@ describe('applyMaterialRowsBatch', () => {
     const res = await applyMaterialRowsBatch('s', [row(102), row(200)], [101, 103])
 
     expect(res).toEqual({ added: 1, updated: 1, removed: 2 })
-    expect(valuesBatchUpdateMock).toHaveBeenCalledTimes(1) // the one update (102)
-    expect(valuesAppendMock).toHaveBeenCalledTimes(1) // the one append (200)
+    expect(valuesAppendMock).not.toHaveBeenCalled()
+    // One batchUpdate carries both the update (102 at its row 3) and the append
+    // (200 at row 5 = after the last data row 4). 2 rows × 7 cells = 14 ranges.
+    expect(valuesBatchUpdateMock).toHaveBeenCalledTimes(1)
+    const cells = valuesBatchUpdateMock.mock.calls[0][0].requestBody.data
+    expect(cells).toHaveLength(14)
+    expect(cells.find((c: { values: number[][] }) => c.values[0][0] === 102).range).toBe(
+      `${TAB}!A3`,
+    )
+    expect(cells.find((c: { values: number[][] }) => c.values[0][0] === 200).range).toBe(
+      `${TAB}!A5`,
+    )
     // deletes run bottom-up: 103 (row 4 → startRowIndex 3) before 101 (row 2 → 1)
     const reqs = batchUpdateMock.mock.calls[0][0].requestBody.requests
     expect(

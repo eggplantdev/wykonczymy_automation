@@ -52,7 +52,7 @@ The column/field has no unique constraint. Two investments can be linked to the 
 
 ### T1.4 ☑ `appendMaterialRow` overwrites a manual row directly below the data block
 
-**`src/lib/google/sheets.ts`** — CONFIRMED → **FIXED**: appends now go through `spreadsheets.values.append` (range `A:G`), which lands the row after the last non-empty data row — never over a manual row. (Folded into the T2.1/T4.1 batching refactor.) ⚠ live-verify the `values.append` placement once on the test sheet.
+**`src/lib/google/sheets.ts`** — CONFIRMED → **FIXED (live-verified)**: the append target is computed as the row after the last non-empty cell in the MAPPED columns (A–G) — scanning all mapped columns (not just the id column) means a manual row below the block pushes appends past it. (NB: `values.append` was tried first but its table detection counts the adjacent summary column and mis-places the row — see T2.1.) Verified on inv 6: 36-row resync left no blank/overwritten row.
 
 Append target = `(last row with a parseable id) + 1`. A manual non-id row sitting immediately below the data block does not advance `lastDataRow`, so the next append writes its 7 mapped cells over that manual row (no empty-cell guard, `USER_ENTERED`).
 
@@ -76,9 +76,14 @@ Append target = `(last row with a parseable id) + 1`. A manual non-id row sittin
 
 ## Tier 2 — Sync drift / consistency holes
 
-### T2.1 ☑ Concurrent single creates race on the append row → one expense lost
+### T2.1 ◐ Concurrent single creates race on the append row → one expense lost
 
-**`src/lib/google/sheets.ts` ← `src/lib/actions/transfers.ts:72`** — CONFIRMED → **FIXED**: appends use `spreadsheets.values.append`, which allocates the row server-side — two concurrent single-creates can no longer compute and write the same row. (Minor residual: two _concurrent full reconciles_ could still double-append a missing id; the reconcile is a rare manual action, and updates are idempotent.)
+**`src/lib/google/sheets.ts` ← `src/lib/actions/transfers.ts:72`** — CONFIRMED → **MITIGATED (not fully closed)**
+
+- Initially fixed with `spreadsheets.values.append` (server-side row allocation), but **live testing revealed `values.append` is unusable here**: its table detection treats the adjacent summary column (H) as part of the table and appends _below_ the shared row, leaving the first data row permanently **blank**. Reverted.
+- Appends now compute the target row explicitly (row after the last non-empty A–G cell) and write via `batchUpdate`. The **batched reconcile stays one call** (the T4.1 scale fix holds), but two **concurrent single-creates** to the same investment can still compute the same row, so one overwrites the other.
+- **Residual accepted:** concurrent creates to one investment are rare and the drift self-heals on the next reconcile (worst case: one row briefly missing). Fully closing it needs cross-request serialization — deferred (see T5.1).
+- **Live-verified (2026-05-28, inv 6):** reset→resync appended all 36 expenses with no blank row; single edit updated in place; totals match the investment page.
 
 `appendMaterialRow` is read-then-write with no cross-request lock. The authors serialized the _bulk_ path (`transfers.ts:157`, with a comment naming this exact hazard) but the single-create `after()` is unguarded.
 

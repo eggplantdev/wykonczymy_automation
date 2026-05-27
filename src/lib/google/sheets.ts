@@ -226,16 +226,6 @@ function cellDataForRow(input: MaterialRowInputT, cols: Record<FieldT, number>, 
   }))
 }
 
-// One row as a positional array (index = column) for values.append. Honors a
-// reordered header by placing each field at its mapped column; gaps stay blank.
-function rowArray(input: MaterialRowInputT, cols: Record<FieldT, number>): (string | number)[] {
-  const vals = valuesByField(input)
-  const width = Math.max(...FIELDS.map((f) => cols[f])) + 1
-  const arr: (string | number)[] = Array(width).fill('')
-  for (const field of FIELDS) arr[cols[field]] = vals[field]
-  return arr
-}
-
 // The Materiały tab's numeric sheetId (gid), or undefined if the tab is missing.
 async function materialyTabGid(
   sheets: sheets_v4.Sheets,
@@ -278,26 +268,36 @@ export async function applyMaterialRowsBatch(
   const updates = upserts.filter((u) => idToRow.has(u.transferId))
   const appends = upserts.filter((u) => !idToRow.has(u.transferId))
 
-  // Updates: overwrite the mapped cells at each id's known row.
-  if (updates.length > 0) {
-    const data = updates.flatMap((row) =>
-      cellDataForRow(row, cols, idToRow.get(row.transferId) as number),
-    )
+  // Append target = the row after the last one carrying data in the MAPPED columns
+  // (A..maxCol). Scanning all mapped columns (not just the id column) makes appends
+  // land below a manual row sitting under the block (T1.4). Scanning ONLY the mapped
+  // columns deliberately ignores the summary block (col >= SUMMARY_START_COL): the
+  // summary total shares a row with the first data row, and counting it would skip
+  // that row and leave a blank. (We can't use values.append for the same reason —
+  // its table detection treats the adjacent summary column as part of the table and
+  // appends below it, leaving the first data row blank.)
+  const maxCol = Math.max(...FIELDS.map((f) => cols[f]))
+  let lastDataRow = headerRow
+  for (let r = headerRow; r < grid.length; r++) {
+    const row = grid[r] ?? []
+    for (let c = 0; c <= maxCol; c++) {
+      if (String(row[c] ?? '').trim() !== '') {
+        lastDataRow = r + 1
+        break
+      }
+    }
+  }
+
+  // Updates (at known rows) and appends (at sequential rows after the last data row)
+  // are all plain cell writes — one batchUpdate regardless of count (T4.1).
+  const data = [
+    ...updates.flatMap((row) => cellDataForRow(row, cols, idToRow.get(row.transferId) as number)),
+    ...appends.flatMap((row, i) => cellDataForRow(row, cols, lastDataRow + 1 + i)),
+  ]
+  if (data.length > 0) {
     await sheets.spreadsheets.values.batchUpdate({
       spreadsheetId,
       requestBody: { valueInputOption: 'USER_ENTERED', data },
-    })
-  }
-
-  // Appends: Google allocates the next rows after the last non-empty data row.
-  if (appends.length > 0) {
-    const lastCol = columnLetter(Math.max(...FIELDS.map((f) => cols[f])))
-    await sheets.spreadsheets.values.append({
-      spreadsheetId,
-      range: `'${MATERIALY_TAB}'!A:${lastCol}`,
-      valueInputOption: 'USER_ENTERED',
-      insertDataOption: 'INSERT_ROWS',
-      requestBody: { values: appends.map((row) => rowArray(row, cols)) },
     })
   }
 
@@ -562,18 +562,23 @@ export async function setupMaterialyTab(
     })
   })
 
-  // Summary columns DO have content (labels + totals) at setup time, so auto-size
-  // them to fit the type names.
-  requests.push({
-    autoResizeDimensions: {
-      dimensions: {
-        sheetId,
-        dimension: 'COLUMNS',
-        startIndex: SUMMARY_START_COL,
-        endIndex: SUMMARY_START_COL + 1 + expenseTypes.length,
+  // Explicit widths for the summary block. Auto-resize is wrong here: setup runs on
+  // a freshly-cleared tab, so the totals compute to 0 ("0,00 zł") and auto-size makes
+  // the columns too narrow for the real totals once data lands — RAZEM (the grand
+  // total, the largest number) was the worst-hit. Size RAZEM for a big currency value
+  // and each type column for its (longer) label.
+  const SUMMARY_RAZEM_WIDTH = 150
+  const SUMMARY_TYPE_WIDTH = 190
+  for (let i = 0; i < 1 + expenseTypes.length; i++) {
+    const idx = SUMMARY_START_COL + i
+    requests.push({
+      updateDimensionProperties: {
+        range: { sheetId, dimension: 'COLUMNS', startIndex: idx, endIndex: idx + 1 },
+        properties: { pixelSize: i === 0 ? SUMMARY_RAZEM_WIDTH : SUMMARY_TYPE_WIDTH },
+        fields: 'pixelSize',
       },
-    },
-  })
+    })
+  }
 
   // Read-only protection: lock the whole tab so only the service account (the
   // app) can edit it — the data is app-managed/one-way. Caveat: the file *owner*
