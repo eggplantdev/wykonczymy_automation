@@ -7,11 +7,19 @@ vi.mock('server-only', () => ({}))
 
 // The actions schedule the post-response Google Sheets sync via next/server's
 // after(). Outside a request scope (i.e. in these unit tests) the real after()
-// throws; the sheet sync isn't under test here, so no-op it.
+// throws. Run the callback synchronously so the scheduled sheet work is observable.
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: () => {} }
+  return { ...actual, after: (fn: () => unknown) => fn() }
 })
+
+// The sheet sync itself isn't under test here — spy on the boundary functions.
+const mockSyncSingle = vi.fn()
+const mockRemoveFromSheet = vi.fn()
+vi.mock('@/lib/actions/sheets-sync', () => ({
+  syncSingleTransferToSheet: (...a: unknown[]) => mockSyncSingle(...a),
+  removeTransferFromSheet: (...a: unknown[]) => mockRemoveFromSheet(...a),
+}))
 
 const mockCreate = vi.fn()
 const mockUpdate = vi.fn()
@@ -152,6 +160,8 @@ beforeEach(() => {
   mockRollbackTransaction.mockReset().mockResolvedValue(undefined)
   mockRequireAuth.mockReset().mockResolvedValue({ success: true, user: adminUser })
   mockDbExecute.mockReset().mockResolvedValue({ rows: [defaultDbRow()] })
+  mockSyncSingle.mockReset()
+  mockRemoveFromSheet.mockReset()
 })
 
 // ═════════════════════════════════════════════════════════════════════════
@@ -800,6 +810,39 @@ describe('updateTransferAction', () => {
         }),
       }),
     )
+  })
+
+  it('pushes the edit to the current sheet and does not remove when investment is unchanged', async () => {
+    mockFindByID.mockResolvedValueOnce(
+      makeOriginalTransfer({ createdBy: adminUser.id, investment: 2 }),
+    )
+
+    await updateTransferAction(10, makeUpdateData({ investment: 2 }))
+
+    expect(mockSyncSingle).toHaveBeenCalledWith({ transferId: 10 })
+    expect(mockRemoveFromSheet).not.toHaveBeenCalled()
+  })
+
+  it('removes from the old sheet then pushes to the new when investment changes', async () => {
+    mockFindByID.mockResolvedValueOnce(
+      makeOriginalTransfer({ createdBy: adminUser.id, investment: 2 }),
+    )
+
+    await updateTransferAction(10, makeUpdateData({ investment: 9 }))
+
+    expect(mockRemoveFromSheet).toHaveBeenCalledWith({ transferId: 10, investmentId: 2 })
+    expect(mockSyncSingle).toHaveBeenCalledWith({ transferId: 10 })
+  })
+
+  it('does not sync a non-expense type', async () => {
+    mockFindByID.mockResolvedValueOnce(
+      makeOriginalTransfer({ createdBy: adminUser.id, type: 'LABOR_COST' }),
+    )
+
+    await updateTransferAction(10, makeUpdateData())
+
+    expect(mockSyncSingle).not.toHaveBeenCalled()
+    expect(mockRemoveFromSheet).not.toHaveBeenCalled()
   })
 })
 

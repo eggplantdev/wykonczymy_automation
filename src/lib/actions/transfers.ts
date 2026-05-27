@@ -17,7 +17,7 @@ import {
 import type { SessionUserT } from '@/types/auth'
 import { after } from 'next/server'
 import { isDepositType, isLaborCost, needsSourceRegister } from '../constants/transfers'
-import { syncSingleTransferToSheet } from './sheets-sync'
+import { removeTransferFromSheet, syncSingleTransferToSheet } from './sheets-sync'
 import {
   checkIfSufficientBalance,
   validateAction,
@@ -301,6 +301,28 @@ export async function updateTransferAction(
         })
       }
       console.log(`[PERF]   payload.update(${transferId}) ${step()}ms`)
+
+      // Post-response Materiały sync for synced expenses. If the investment changed,
+      // drop the stale row from the OLD sheet first, then push to the current sheet
+      // (append on the new sheet, or update in place if unchanged). after() keeps the
+      // work alive past the response on Vercel; failures are non-fatal.
+      if (original.type === 'INVESTMENT_EXPENSE') {
+        const originalInvestment = (original as { investment?: number | { id?: number } })
+          .investment
+        const oldInvestmentId =
+          typeof originalInvestment === 'number' ? originalInvestment : originalInvestment?.id
+        const newInvestmentId = fields.investment
+        after(async () => {
+          if (
+            oldInvestmentId !== undefined &&
+            newInvestmentId !== undefined &&
+            oldInvestmentId !== newInvestmentId
+          ) {
+            await removeTransferFromSheet({ transferId, investmentId: oldInvestmentId })
+          }
+          await syncSingleTransferToSheet({ transferId })
+        })
+      }
 
       return { success: true }
     },
