@@ -1,6 +1,7 @@
 'use server'
 
 import { createKosztorysFromTemplate } from '@/lib/google/drive'
+import { extractSheetId, serviceAccountEmail, verifySheetAccess } from '@/lib/google/sheet-access'
 import { setupMaterialyTab } from '@/lib/google/sheets'
 import { investmentSchema, type InvestmentFormDataT } from '@/lib/schemas/investment'
 import { validateAction, protectedAction } from './utils'
@@ -93,7 +94,23 @@ export async function provisionKosztorysAction(investmentId: number) {
         return { success: false, error: 'Ta inwestycja ma już powiązany arkusz.' }
       }
 
-      const { sheetId } = await createKosztorysFromTemplate(investment.name)
+      let sheetId: string
+      try {
+        ;({ sheetId } = await createKosztorysFromTemplate(investment.name))
+      } catch (err) {
+        const msg = String(err)
+        if (msg.includes('storage quota')) {
+          return {
+            success: false,
+            error:
+              'Nie można utworzyć nowego arkusza — konto usługi Google nie ma miejsca na dysku. ' +
+              'Tworzenie nowych kosztorysów będzie możliwe po skonfigurowaniu Dysku współdzielonego ' +
+              '(Google Workspace). Na razie użyj opcji „Powiąż istniejący arkusz”.',
+          }
+        }
+        return { success: false, error: `Nie udało się utworzyć arkusza: ${msg}` }
+      }
+
       await payload.update({
         collection: 'investments',
         id: investmentId,
@@ -102,6 +119,54 @@ export async function provisionKosztorysAction(investmentId: number) {
       })
 
       return { success: true, data: { sheetId } }
+    },
+    ['investments'],
+  )
+}
+
+/**
+ * Link an EXISTING Google Sheet to an investment. Accepts a pasted sheet URL or a
+ * raw id; verifies the service account can actually open it (else the sync/iframe
+ * would silently fail), then stores its id. The working alternative to
+ * provisionKosztorysAction while new-file creation is blocked by SA Drive quota.
+ */
+export async function linkKosztorysSheetAction(investmentId: number, input: string) {
+  return protectedAction<{ title: string }>(
+    'linkKosztorysSheetAction',
+    async ({ payload }) => {
+      const investment = await payload.findByID({
+        collection: 'investments',
+        id: investmentId,
+        overrideAccess: true,
+      })
+      if (!investment) return { success: false, error: 'Inwestycja nie istnieje.' }
+      if (investment.googleSheetId) {
+        return { success: false, error: 'Ta inwestycja ma już powiązany arkusz.' }
+      }
+
+      const sheetId = extractSheetId(input)
+      if (!sheetId) {
+        return { success: false, error: 'Nieprawidłowy link lub identyfikator arkusza Google.' }
+      }
+
+      const access = await verifySheetAccess(sheetId)
+      if (!access) {
+        return {
+          success: false,
+          error:
+            'Nie można otworzyć tego arkusza. Udostępnij go (co najmniej do odczytu) dla konta ' +
+            `usługi: ${serviceAccountEmail()} — a następnie spróbuj ponownie.`,
+        }
+      }
+
+      await payload.update({
+        collection: 'investments',
+        id: investmentId,
+        data: { googleSheetId: sheetId },
+        overrideAccess: true,
+      })
+
+      return { success: true, data: { title: access.title } }
     },
     ['investments'],
   )

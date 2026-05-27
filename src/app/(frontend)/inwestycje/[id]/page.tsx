@@ -1,6 +1,4 @@
-import Link from 'next/link'
 import { redirect, notFound } from 'next/navigation'
-import { FileSpreadsheet } from 'lucide-react'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/pagination'
@@ -19,8 +17,8 @@ import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
 import { ContactLink } from '@/components/ui/contact-link'
 import { FinancialStats } from '@/components/investments/financial-stats'
-import { Button } from '@/components/ui/button'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
+import { KosztorysButton } from '@/components/dialogs/kosztorys-button'
 import type { HeaderFieldT } from '@/types/export'
 import type { DynamicPagePropsT } from '@/types/page'
 
@@ -74,12 +72,11 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
     <PageWrapper title={investment.name}>
       <div className="flex flex-wrap items-center gap-2">
         <EditInvestmentDialog investment={investment} />
-        <Button variant="outline" size="sm" asChild>
-          <Link href={`/inwestycje/${id}/kosztorys`}>
-            <FileSpreadsheet className="size-4" />
-            Kosztorys
-          </Link>
-        </Button>
+        <KosztorysButton
+          investmentId={investmentId}
+          investmentName={investment.name}
+          hasSheet={investment.hasSheet}
+        />
       </div>
       <InfoList items={infoFields.filter((f) => f.value)} />
 

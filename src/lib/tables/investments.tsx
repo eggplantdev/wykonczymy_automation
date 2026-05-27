@@ -1,15 +1,13 @@
 'use client'
 
-import Link from 'next/link'
-import { FileSpreadsheet } from 'lucide-react'
 import { createColumnHelper } from '@tanstack/react-table'
 import { formatPLN } from '@/lib/format-currency'
-import { Button } from '@/components/ui/button'
 import { isAdminOrOwnerRole, type RoleT } from '@/lib/auth/roles'
 import { BalanceCell } from '@/components/ui/balance-cell'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
 import { ContactLink } from '@/components/ui/contact-link'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
+import { KosztorysButton } from '@/components/dialogs/kosztorys-button'
 
 export type InvestmentRowT = {
   id: number
@@ -113,17 +111,13 @@ export function getInvestmentColumns({ onToggle, userRole }: InvestmentColumnOpt
       id: 'hasSheet',
       header: 'Kosztorys',
       enableSorting: true,
-      cell: (info) =>
-        info.getValue() ? (
-          <Button variant="outline" size="sm" asChild>
-            <Link href={`/inwestycje/${info.row.original.id}/kosztorys`}>
-              <FileSpreadsheet className="size-4" />
-              Otwórz
-            </Link>
-          </Button>
-        ) : (
-          <span className="text-muted-foreground">—</span>
-        ),
+      cell: (info) => (
+        <KosztorysButton
+          investmentId={info.row.original.id}
+          investmentName={info.row.original.name}
+          hasSheet={!!info.getValue()}
+        />
+      ),
     }),
     col.display({
       id: 'actions',

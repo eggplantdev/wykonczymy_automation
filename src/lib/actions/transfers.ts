@@ -15,6 +15,7 @@ import {
   type UpdateTransferFormT,
 } from '@/lib/schemas/transfer'
 import type { SessionUserT } from '@/types/auth'
+import { after } from 'next/server'
 import { isDepositType, isLaborCost, needsSourceRegister } from '../constants/transfers'
 import { syncSingleTransferToSheet } from './sheets-sync'
 import {
@@ -64,11 +65,11 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
       })
       console.log(`[PERF]   payload.create ${step()}ms`)
 
-      // Fire-and-forget Materiały sync. The `void` is load-bearing — awaiting it
-      // would block the user-visible action on Google Sheets API latency, and the
-      // sync is no-op for non-INVESTMENT_EXPENSE rows anyway. Drift is recoverable
-      // via the sync button on the kosztorys page.
-      void syncSingleTransferToSheet({ transferId: created.id })
+      // Post-response Materiały sync via `after()` — runs after the user-visible
+      // action returns (so Google Sheets latency never blocks it) but the runtime
+      // keeps the function alive to finish it, unlike a bare `void` that Vercel can
+      // freeze/kill on return. Drift is still recoverable via the sync button.
+      after(() => syncSingleTransferToSheet({ transferId: created.id }))
 
       return { success: true }
     },
@@ -148,12 +149,16 @@ export async function createBulkTransferAction(
       }
       console.log(`[PERF]   payload.create x${lineCount} ${step()}ms`)
 
-      // Fire-and-forget after commit — never before, else a rolled-back row
-      // would leak into the sheet. Per-row, not batched: each line item decides
-      // independently whether it's a Materiały entry.
-      for (const transferId of createdIds) {
-        void syncSingleTransferToSheet({ transferId })
-      }
+      // Post-response sync after commit — never before, else a rolled-back row
+      // would leak into the sheet. Serialized (await in a loop), NOT N parallel
+      // fire-and-forgets: each append reads the sheet to find the next empty row,
+      // so parallel calls would all target the same row and overwrite each other.
+      // `after()` keeps the function alive past the response on Vercel.
+      after(async () => {
+        for (const transferId of createdIds) {
+          await syncSingleTransferToSheet({ transferId })
+        }
+      })
 
       return { success: true }
     },
@@ -238,8 +243,9 @@ export async function cancelTransferAction(transferId: number, data: CancelTrans
       console.log(`[PERF]   create CANCELLATION ${step()}ms`)
 
       // Append a reversing (−) row to the sheet for the cancellation, if the
-      // original was a synced investment expense. Fire-and-forget; logged only.
-      void syncSingleTransferToSheet({ transferId: cancellation.id })
+      // original was a synced investment expense. Post-response via `after()`;
+      // logged only.
+      after(() => syncSingleTransferToSheet({ transferId: cancellation.id }))
 
       return { success: true }
     },

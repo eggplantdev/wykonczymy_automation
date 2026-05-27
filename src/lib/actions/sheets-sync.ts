@@ -37,7 +37,14 @@ const relId = (rel: unknown): number | undefined =>
       ? (rel as { id?: number }).id
       : undefined
 
-const isoDate = (d: unknown): string => (d ? new Date(d as string).toISOString().slice(0, 10) : '')
+// Payload stores dates as ISO strings (e.g. "2026-05-27T00:00:00.000Z"). Slice the
+// leading YYYY-MM-DD directly — a `new Date(...).toISOString()` round-trip converts
+// to UTC and can land the date a day early for a just-after-midnight local time.
+const isoDate = (d: unknown): string => {
+  if (!d) return ''
+  const match = String(d).match(/^(\d{4}-\d{2}-\d{2})/)
+  return match ? match[1] : new Date(d as string).toISOString().slice(0, 10)
+}
 
 // A cancellation transfer stores its description as `Anulowanie transakcji #<id>\n<reason>`.
 // Pull out just the reason (everything after the first newline) for the note column.
@@ -175,7 +182,11 @@ export async function previewMaterialSync(investmentId: number) {
   })
 }
 
-export async function applyMaterialSync(investmentId: number, preview: MaterialSyncPreviewT) {
+// Re-derives what to append SERVER-SIDE — never trusts a client-supplied row set.
+// The preview the browser holds is display-only; an attacker round-tripping a
+// forged toAppend (arbitrary typ/amount/description) would otherwise land in the
+// sheet verbatim. The set written here is exactly previewMaterialSync would show.
+export async function applyMaterialSync(investmentId: number) {
   return protectedAction<ApplyMaterialSyncResultT>(
     'applyMaterialSync',
     async ({ payload }) => {
@@ -184,21 +195,22 @@ export async function applyMaterialSync(investmentId: number, preview: MaterialS
         id: investmentId,
         overrideAccess: true,
       })
-      if (!investment?.googleSheetId || investment.googleSheetId !== preview.spreadsheetId) {
-        return {
-          success: false,
-          error: 'Powiązanie arkusza zmieniło się — uruchom podgląd ponownie.',
-        }
+      if (!investment?.googleSheetId) {
+        return { success: false, error: 'Inwestycja nie ma powiązanego arkusza Google.' }
       }
       const sheetId = investment.googleSheetId
 
-      // Re-read ids once; idempotency guard for appends whose row may already exist.
-      const current = await readMaterialyTransferIds(sheetId)
+      const [appRows, current] = await Promise.all([
+        loadAppMaterialRows(payload, investmentId),
+        readMaterialyTransferIds(sheetId),
+      ])
+      const toAppend = appRows.filter((r) => !current.has(r.transferId))
+
       let added = 0
       let skipped = 0
       const errors: ApplyMaterialSyncResultT['errors'] = []
 
-      for (const row of preview.toAppend) {
+      for (const row of toAppend) {
         if (current.has(row.transferId)) {
           skipped++
           continue

@@ -135,6 +135,8 @@ beforeEach(() => {
   valuesGetMock.mockReset()
   valuesAppendMock.mockReset()
   valuesUpdateMock.mockReset()
+  valuesBatchUpdateMock.mockReset()
+  valuesBatchUpdateMock.mockResolvedValue({ data: {} })
   spreadsheetsGetMock.mockReset()
   batchUpdateMock.mockReset()
   findMock.mockReset()
@@ -225,51 +227,44 @@ describe('previewMaterialSync', () => {
 // ── applyMaterialSync ────────────────────────────────────────────────────
 
 describe('applyMaterialSync', () => {
-  it('skips an append whose transferId is already present in col I', async () => {
-    findByIDMock.mockResolvedValue({ id: 31, name: '11 Listopada 40', googleSheetId: 'sheet-1' })
-    sheetColIReturns([5]) // col I already has transferId 5
+  it('rejects when investment has no googleSheetId', async () => {
+    findByIDMock.mockResolvedValue({ id: 31, name: '11 Listopada 40', googleSheetId: null })
 
-    const preview = {
-      toAppend: [
-        {
-          transferId: 5,
-          date: '2026-05-21',
-          typ: 'Materiały budowlane',
-          description: 'cement',
-          amount: 100,
-          category: 'Łazienka',
-          note: 'FV/1',
-        },
-      ],
-      spreadsheetId: 'sheet-1',
-    }
-
-    const result = await applyMaterialSync(31, preview)
-
-    expect(result.success).toBe(true)
-    if (!result.success) throw new Error('expected success')
-    expect(result.data).toEqual({ added: 0, skipped: 1, errors: [] })
-    expect(valuesBatchUpdateMock).not.toHaveBeenCalled()
-  })
-
-  it('refuses when the investment’s googleSheetId no longer matches the preview’s spreadsheetId', async () => {
-    findByIDMock.mockResolvedValue({
-      id: 31,
-      name: '11 Listopada 40',
-      googleSheetId: 'sheet-1-current',
-    })
-
-    const preview = {
-      toAppend: [],
-      spreadsheetId: 'sheet-1-old',
-    }
-
-    const result = await applyMaterialSync(31, preview)
+    const result = await applyMaterialSync(31)
 
     expect(result.success).toBe(false)
     if (result.success) throw new Error('expected failure')
-    expect(result.error).toMatch(/podgląd ponownie/i)
-    // Refusal happens before any Google write.
+    expect(result.error).toMatch(/arkusza/i)
     expect(valuesBatchUpdateMock).not.toHaveBeenCalled()
+  })
+
+  // The rows to append are re-derived server-side from the DB (not trusted from a
+  // client-supplied preview), then filtered against what is already in the sheet.
+  it('does not append an expense already present in the sheet', async () => {
+    findByIDMock.mockResolvedValue({ id: 31, name: '11 Listopada 40', googleSheetId: 'sheet-1' })
+    findReturns([makeMaterialTransaction(5, 'Materiały budowlane', { amount: 100 })])
+    sheetColIReturns([5]) // already synced
+
+    const result = await applyMaterialSync(31)
+
+    expect(result.success).toBe(true)
+    if (!result.success) throw new Error('expected success')
+    expect(result.data).toEqual({ added: 0, skipped: 0, errors: [] })
+    expect(valuesBatchUpdateMock).not.toHaveBeenCalled()
+  })
+
+  it('appends an expense that the DB has but the sheet is missing', async () => {
+    findByIDMock.mockResolvedValue({ id: 31, name: '11 Listopada 40', googleSheetId: 'sheet-1' })
+    findReturns([
+      makeMaterialTransaction(7, 'Materiały budowlane', { amount: 250, description: 'cement' }),
+    ])
+    sheetColIReturns([]) // empty sheet
+
+    const result = await applyMaterialSync(31)
+
+    expect(result.success).toBe(true)
+    if (!result.success) throw new Error('expected success')
+    expect(result.data).toEqual({ added: 1, skipped: 0, errors: [] })
+    expect(valuesBatchUpdateMock).toHaveBeenCalledTimes(1)
   })
 })

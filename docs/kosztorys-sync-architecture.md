@@ -4,6 +4,26 @@
 > The plan is the recipe; this doc is the **rationale** — what we built, why
 > we built it this way, and how it slots into the existing system.
 
+> **⚠️ Partially superseded (2026-05-27).** Two redesigns landed after this
+> doc was first written:
+>
+> 1. **Single tidy table + append-only.** The wide two-block layout (`B:C` /
+>    `F:G` + col I) is gone. There is now ONE long table on the
+>    `wydatki inwestycyjne (tylko do odczytu)` tab, columns located by header
+>    text (see `docs/plans/2026-05-27-kosztorys-header-driven-sync.md`). The
+>    sync is **append-only**: cancellations append a negative reversing row;
+>    nothing is ever deleted. So `deleteMaterialRowByTransferId`,
+>    `toDelete`, `orphans`, and the `intent` param described below **no longer
+>    exist**. The join key is the `id` column (any position), not col I.
+> 2. **Link an existing sheet, not copy a template.** Provisioning via
+>    `drive.files.copy` (§4) is replaced by linking an owner-shared sheet
+>    (`sheet-access.ts` + setup that attaches the tab) — the service account
+>    has no Drive storage quota on a personal account. The `layout.tsx` /
+>    `no-sheet-banner.tsx` files in §5d/file-map were deleted.
+>
+> §2/§3/§6 below are corrected for #1. §4/§5d describe the old provisioning
+> flow and are left for historical rationale only.
+
 ---
 
 ## TL;DR — the flow in one page
@@ -19,37 +39,40 @@
         │  1. validate + auth (protectedAction wrapper)
         │  2. payload.create → row in `transactions`
         │  3. revalidate transfers cache
-        │  4. void syncSingleTransferToSheet({intent: 'CREATE'})   ◀── fire-and-forget
-        │                                                              (no UI wait)
-        ▼
+        │  4. after(() => syncSingleTransferToSheet({transferId}))  ◀── post-response
+        │                                                              (Vercel keeps the
+        ▼                                                              fn alive to finish)
    syncSingleTransferToSheet
         │
-        ├─ skip if type ≠ INVESTMENT_EXPENSE
-        ├─ skip if category ≠ Materiały budowlane/wykończeniowe
+        ├─ INVESTMENT_EXPENSE → build + row    │ skip if no expenseCategory
+        ├─ CANCELLATION       → build − row    │ (reverses the original expense)
         ├─ skip if investment.googleSheetId is empty
         │
         ▼
    googleapis client (service-account JWT)
         │
-        ├─ values.append → 'materiały '!B:C or F:G  (amount, "desc [date]")
-        └─ values.update → 'materiały '!I{row}      (transferId)   ◀── join key
+        └─ readGrid → resolveHeaders (locate cols by header text)
+           → appendMaterialRow: write the 7 mapped cells at the next empty row
+             (id is the join key; one row per transferId)
 
                                           ┌──────────────────────────────┐
                                           │   Google Sheet  (kosztorys)  │
                                           │                              │
-                                          │   tab 'materiały '           │
-                                          │   ├─ A..H human-friendly     │
-                                          │   └─ I  transferId (app-owned) │
+                                          │  tab 'wydatki inwestycyjne   │
+                                          │       (tylko do odczytu)'    │
+                                          │  one long table, header-driven│
+                                          │  + RAZEM/per-type SUMIF block │
                                           └──────────────────────────────┘
 
-   Cancel path is symmetric: intent: 'DELETE' → read col I → deleteDimension that row.
+   Cancel path is append-only: a CANCELLATION appends a − reversing row (same
+   typ as the original, its own id). The + row stays — the sheet is an audit log.
 
    Drift recovery: SyncButton on /inwestycje/[id]/kosztorys
-        previewMaterialSync  →  diff{toAppend, toDelete, orphans}
-        confirm → applyMaterialSync (idempotent re-check before each write)
+        previewMaterialSync  →  {toAppend}   (display only)
+        confirm → applyMaterialSync RE-DERIVES toAppend server-side, then appends
 
-   Provisioning: createInvestmentAction (or banner button) → drive.files.copy
-        from KOSZTORYS_TEMPLATE_SHEET_ID → write back to investments.googleSheetId
+   Provisioning (superseded): link an owner-shared sheet via sheet-access.ts;
+        setup attaches + (re)builds the read-only tab. Old flow was drive.files.copy.
 ```
 
 **One-sentence summary:** Postgres is the source of truth. The sheet is a
@@ -85,87 +108,86 @@ optimised for a different audience (here, the owner working in Sheets).
 
 ## 2. Identity — how a row knows which transfer it is
 
-Column **I** in `materiały ` stores the Postgres `transferId` as a number.
-Nothing else does — there's no embedded ID in the description, no naming
-convention, no hash.
+The **`id` column** (located by its header text, not a fixed position)
+stores the Postgres `transferId` as a number. Nothing else does — no
+embedded ID in the description, no naming convention, no hash.
 
 Why this matters:
 
-- **Append is two API calls**, not one. `values.append` writes amount +
-  description to `B:C` (budowlane) or `F:G` (wykończeniowe). The response
-  tells us which row got written, then `values.update` puts the
-  `transferId` into `I{rowNumber}`. Splitting the writes leaves columns
-  D–H untouched — owner-typed comments and settled flags survive.
-- **Delete is a lookup**, not a guess. `deleteMaterialRowByTransferId`
-  reads col I, finds the row whose I-cell equals the target id, and runs
-  `deleteDimension`. No reliance on row order, no fuzzy matching by
-  amount+description.
-- **Diff is set algebra**, not heuristics. `previewMaterialSync` reads
-  col I once, builds `Map<transferId, rowIndex>`, then compares to the
-  Postgres set:
-  - `appIds \ sheetIds` → `toAppend`
-  - `sheetIds ∩ {cancelled or missing in DB}` → `toDelete`
-  - `sheetIds \ appIds` where the transfer doesn't exist at all →
-    `orphans` (surfaced but never auto-deleted, see §6)
+- **Header-driven, not positional.** `resolveHeaders` scans the top rows,
+  finds the row that contains all seven fields (id, data, typ, opis, kwota,
+  kategoria, notatka) and maps each to its column. The owner can reorder
+  columns or add their own; the code still finds the right cells. It
+  fail-loud throws if the header is missing rather than writing to the
+  wrong column.
+- **Append writes only the seven mapped cells** at the next empty row
+  (one past the last id below the header). The summary block, formulas,
+  and any owner columns are never touched.
+- **Append-only — no delete.** A cancellation does not remove the original
+  row; it appends a negative reversing row (same `typ`, amount = −original,
+  its own id, reason in the note). The sheet reads like a double-entry
+  ledger / `git revert`: history is preserved, the running `RAZEM` total
+  still nets correctly.
+- **Diff is one set difference.** `previewMaterialSync` reads the id column
+  into `Set<transferId>`, then `appRows.filter(r => !sheetIds.has(r.id))`
+  → `toAppend`. There is no `toDelete` and no `orphans`: rows the app
+  doesn't recognise are the owner's own data, left untouched.
 
-A row without a `transferId` in col I is, by construction, owner-typed
-content. The reconciler will never touch it — which is the whole point.
+A row without a recognised `id` is, by construction, owner-typed content.
+The reconciler never touches it — which is the whole point.
 
 ---
 
 ## 3. Write paths
 
-### 3a. Auto-push on create (fire-and-forget)
+### 3a. Auto-push on create (post-response via `after()`)
 
 `createTransferAction` and `createBulkTransferAction` end with:
 
 ```ts
-void syncSingleTransferToSheet({ transferId: created.id, intent: 'CREATE' })
+after(() => syncSingleTransferToSheet({ transferId: created.id }))
 ```
 
-The `void` is **load-bearing**. Awaiting the Sheets API would block the
-user-visible action on Google's latency for every transfer — including
-the non-Materiały ones where the sync is a no-op. The user sees a fast
-green check; the sheet catches up within a few seconds; if the sheet
-write fails, the next preview→confirm will reveal the drift.
+Why `after()` and not a bare `void`? Awaiting the Sheets API inline would
+block the user-visible action on Google's latency for every transfer —
+including the non-Materiały ones where the sync is a no-op. But a bare
+`void` promise can be **frozen or killed when the serverless function
+returns** on Vercel, silently dropping the write. `after()` (from
+`next/server`) runs the work after the response is sent yet keeps the
+function alive to finish it. Drift is still recoverable via the sync button.
 
-Bulk creates fire **per-row**, **after commit** — never before, because a
-rolled-back row must not leak into the sheet.
+Bulk creates run **after commit** (never before — a rolled-back row must
+not leak into the sheet) and **serialized** — `await` per row inside one
+`after()` callback. Not N parallel calls: each `appendMaterialRow` reads
+the sheet to find the next empty row, so parallel appends would all target
+the same row and overwrite each other.
 
-### 3b. Auto-push on cancel (fire-and-forget)
+### 3b. Auto-push on cancel (post-response, append-only)
 
 `cancelTransferAction` marks the original row `cancelled: true`, creates
-the CANCELLATION audit row, then fires:
+the CANCELLATION audit row, then:
 
 ```ts
-void syncSingleTransferToSheet({ transferId, intent: 'DELETE' })
+after(() => syncSingleTransferToSheet({ transferId: cancellation.id }))
 ```
 
-Same fire-and-forget shape. The sheet row disappears within seconds, or
-the next reconcile picks it up.
+This appends a **negative reversing row** for the cancellation (the
+original + row stays). Append-only: the sheet keeps the full history.
 
 ### 3c. Reconciliation — the sync button (two-phase)
 
 Why two phases (preview → confirm) instead of one button that just
-"syncs"?
+"syncs"? The diff is the audit trail — the owner sees exactly what will be
+added before it's added. The preview shows only `toAppend` (append-only;
+nothing is deleted), so it's a low-stakes "these N rows will appear" list.
 
-- The owner is editing the sheet manually in parallel. A one-click sync
-  could silently delete a row the owner _just_ added (because that row
-  has no `transferId` in col I yet — it'd look like an orphan, but the
-  reconciler explicitly does **not** delete orphans, so this particular
-  scare is moot; still, the explicit preview is a trust-builder).
-- The diff is the audit trail. The owner sees exactly what changed before
-  it changes. After the trial we may collapse this to a one-button flow
-  if nobody ever cancels at the preview step.
-- `applyMaterialSync` re-reads col I once at the start, so a row that
-  appeared between preview and confirm is **skipped, not duplicated**.
-  This is **optimistic concurrency**: we don't lock the sheet, we just
-  re-check the world before each write.
-
-`MaterialSyncPreviewT` carries the `spreadsheetId` it was computed
-against. `applyMaterialSync` refuses to apply if the investment's
-`googleSheetId` changed in the meantime — a small but cheap guard
-against accidentally applying a preview to the wrong sheet.
+**`applyMaterialSync` re-derives the rows to append SERVER-SIDE** — it does
+NOT trust the `toAppend` the browser holds. It reloads the DB rows via
+`loadAppMaterialRows`, re-reads the sheet's id column, and appends only
+`appRows \ sheetIds`. The client preview is display-only: a forged
+`toAppend` (arbitrary typ/amount/description) can't reach the sheet. Reads
+are fresh on apply, so a row that appeared between preview and confirm is
+naturally excluded — optimistic concurrency, no sheet lock.
 
 ---
 
@@ -298,24 +320,24 @@ client.
 
 ## 6. Failure modes — what we accept and what we don't
 
-| Failure                                   | Behaviour                                                                                                  |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Sheets API down on transfer create        | Action returns success. Log line. Owner triggers sync button later to fill the gap.                        |
-| Sheets API down on transfer cancel        | Same. Drift surfaces in preview as `toDelete`.                                                             |
-| Drive down on investment create           | Investment is created without `googleSheetId`. Banner appears. Owner clicks "Utwórz nowy kosztorys" later. |
-| Service account loses access to a sheet   | Auto-push fails silently. Preview fails (visible error toast). Owner re-shares with the SA email.          |
-| Owner manually deletes an app-managed row | Next reconcile sees it in `toAppend` — pushes it back. Owner gets used to "stop deleting those."           |
-| Owner manually edits an app-managed row   | We don't notice. Source of truth is Postgres; the sheet edit decays on next reconcile.                     |
-| Owner adds their own row without col I    | Reconciler classifies as **orphan**. **Never auto-deleted.** Surfaced in preview for owner awareness only. |
-| `transferId` collision in col I           | Impossible — Postgres ids are monotonic per table, and only this code writes col I.                        |
+| Failure                                    | Behaviour                                                                                                   |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| Sheets API down on transfer create         | Action returns success. Log line. Owner triggers sync button later to fill the gap.                         |
+| Sheets API down on transfer cancel         | Same. The missing − row reappears in the next preview's `toAppend`.                                         |
+| Drive down on investment create            | Investment is created without `googleSheetId`. Banner appears. Owner links a sheet later.                   |
+| Service account loses access to a sheet    | Auto-push fails silently. Preview fails (visible error toast). Owner re-shares with the SA email as Editor. |
+| Owner manually deletes an app-managed row  | Next reconcile sees it in `toAppend` — pushes it back. Owner gets used to "stop deleting those."            |
+| Owner manually edits an app-managed row    | We don't notice (append-only never rewrites a synced row — review finding #4). Surface a re-sync later.     |
+| Owner adds their own row (unrecognised id) | Left untouched. The reconciler only ADDS missing app rows; it never deletes or flags owner rows.            |
+| `transferId` collision in the id column    | Impossible — Postgres ids are monotonic per table, and only this code writes the id column.                 |
 
 What we **don't** accept:
 
-- Silent corruption of human-typed data. The split-writes pattern (B:C
-  then I) is specifically chosen so we never overwrite columns D–H.
-- Duplicate app-managed rows for the same transfer. The
-  `current.has(transferId)` re-check in `applyMaterialSync` guards
-  against the race where preview→confirm overlapped an auto-push.
+- Silent corruption of human-typed data. Append-only + writing only the
+  seven mapped cells means owner columns and the summary are never touched.
+- Duplicate app-managed rows for the same transfer. `applyMaterialSync`
+  re-reads the id column and filters `appRows \ sheetIds` before appending,
+  so a row already present is never re-added.
 
 ---
 
@@ -366,19 +388,18 @@ What we **don't** accept:
 ```
 src/lib/env.ts                                                   ← 3 new vars validated at boot
 src/lib/google/auth.ts                                           ← service-account JWT factory (shared by sheets + drive)
-src/lib/google/sheets.ts                                         ← appendMaterialRow, deleteMaterialRowByTransferId, readMaterialyTransferIds
-src/lib/google/drive.ts                                          ← createKosztorysFromTemplate
+src/lib/google/sheets.ts                                         ← appendMaterialRow, readMaterialyTransferIds, setupMaterialyTab (header-driven)
+src/lib/google/sheet-access.ts                                   ← extractSheetId, verifySheetAccess (write-scope probe), serviceAccountEmail
 src/lib/actions/utils.ts                                         ← protectedAction now generic over TData
-src/lib/actions/sheets-sync.ts                                   ← preview / apply / syncSingleTransferToSheet
-src/lib/actions/transfers.ts                                     ← fire-and-forget sync after create/bulk-create/cancel
-src/lib/actions/investments.ts                                   ← auto-provision on create + provisionKosztorysAction
+src/lib/actions/sheets-sync.ts                                   ← preview / apply (server-side re-derive) / syncSingleTransferToSheet
+src/lib/actions/transfers.ts                                     ← after() sync on create/bulk-create/cancel (bulk serialized)
+src/lib/actions/investments.ts                                   ← link/setup kosztorys sheet actions
 src/collections/investments.ts                                   ← googleSheetId text field
 src/migrations/20260525_add_google_sheet_id_to_investments.ts    ← ADD COLUMN nullable
-src/app/(frontend)/inwestycje/[id]/layout.tsx                    ← mounts banner
-src/app/(frontend)/inwestycje/[id]/no-sheet-banner.tsx           ← two-CTA banner
 src/app/(frontend)/inwestycje/[id]/kosztorys/page.tsx            ← server: iframe or null
 src/app/(frontend)/inwestycje/[id]/kosztorys/iframe-view.tsx     ← client: iframe wrapper
-src/app/(frontend)/inwestycje/[id]/kosztorys/sync-button.tsx     ← client: preview→confirm dialog
+src/app/(frontend)/inwestycje/[id]/kosztorys/sync-button.tsx     ← client: reset + sync dialogs
+src/components/dialogs/kosztorys-setup-dialog.tsx                ← client: link-existing-sheet dialog
 src/__tests__/lib/google/sheets.test.ts                          ← mocked unit tests
-src/__tests__/lib/google/drive.test.ts                           ← mocked unit tests
+src/__tests__/lib/actions/sheets-sync.test.ts                    ← mocked unit tests
 ```

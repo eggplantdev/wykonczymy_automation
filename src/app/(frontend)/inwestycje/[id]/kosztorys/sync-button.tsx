@@ -31,8 +31,7 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
         return
       }
       // Reset wipes the tab — immediately re-sync so the rows come back.
-      const prev = await previewMaterialSync(investmentId)
-      const applied = prev.success ? await applyMaterialSync(investmentId, prev.data) : prev
+      const applied = await applyMaterialSync(investmentId)
       setSetupOpen(false)
       if (!applied.success) {
         toastMessage(
@@ -59,7 +58,7 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
   const onConfirm = () => {
     if (!preview) return
     startTransition(async () => {
-      const res = await applyMaterialSync(investmentId, preview)
+      const res = await applyMaterialSync(investmentId)
       if (!res.success) {
         toastMessage(res.error, 'error')
         return
