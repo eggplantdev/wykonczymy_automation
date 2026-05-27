@@ -95,12 +95,17 @@ function findReturns(expenses: object[], cancellations: object[] = []) {
   findMock.mockResolvedValueOnce({ docs: expenses }).mockResolvedValue({ docs: cancellations })
 }
 
-function makeCancellation(id: number, cancelledTransactionId: number) {
+function makeCancellation(id: number, cancelledTransactionId: number, reason?: string) {
   return {
     id,
     type: 'CANCELLATION',
     cancelledTransaction: cancelledTransactionId,
     date: '2026-05-22T00:00:00Z',
+    // Mirrors how cancelTransferAction stores it: header line + reason after a newline.
+    description:
+      reason === undefined
+        ? undefined
+        : `Anulowanie transakcji #${cancelledTransactionId}\n${reason}`,
   }
 }
 
@@ -172,7 +177,7 @@ describe('previewMaterialSync', () => {
     findByIDMock.mockResolvedValue({ id: 31, name: '11 Listopada 40', googleSheetId: 'sheet-1' })
     findReturns(
       [makeMaterialTransaction(101, 'Materiały budowlane', { amount: 250, description: 'cement' })],
-      [makeCancellation(201, 101)],
+      [makeCancellation(201, 101, 'Błędna pozycja')],
     )
     sheetColIReturns([]) // empty sheet
 
@@ -185,6 +190,23 @@ describe('previewMaterialSync', () => {
     expect(byId[201].amount).toBe(-250) // reverses the original
     expect(byId[201].typ).toBe('Materiały budowlane') // same type as the original
     expect(byId[201].description).toBe('Anulowanie #101')
+    expect(byId[201].note).toBe('Błędna pozycja') // cancellation reason lands in the note column
+  })
+
+  it('leaves the note empty when a cancellation has no reason', async () => {
+    findByIDMock.mockResolvedValue({ id: 31, name: '11 Listopada 40', googleSheetId: 'sheet-1' })
+    findReturns(
+      [makeMaterialTransaction(101, 'Materiały budowlane', { amount: 250 })],
+      [makeCancellation(201, 101)],
+    )
+    sheetColIReturns([]) // empty sheet
+
+    const result = await previewMaterialSync(31)
+
+    expect(result.success).toBe(true)
+    if (!result.success) throw new Error('expected success')
+    const byId = Object.fromEntries(result.data.toAppend.map((r) => [r.transferId, r]))
+    expect(byId[201].note).toBe('')
   })
 
   it('does not re-append rows already present in the sheet', async () => {

@@ -17,7 +17,7 @@ export type MaterialRowInputT = {
   note: string
 }
 
-const MATERIALY_TAB = 'wydatki inwestycyjne'
+const MATERIALY_TAB = 'wydatki inwestycyjne (tylko do odczytu)'
 const TAB_RANGE = `'${MATERIALY_TAB}'!A1:Z1000`
 const MAX_HEADER_SCAN_ROWS = 15
 
@@ -124,8 +124,19 @@ function resolveHeaders(grid: unknown[][]): HeaderMapT {
 
 async function readGrid(spreadsheetId: string): Promise<unknown[][]> {
   const sheets = getClient()
-  const res = await sheets.spreadsheets.values.get({ spreadsheetId, range: TAB_RANGE })
-  return (res.data.values ?? []) as unknown[][]
+  try {
+    const res = await sheets.spreadsheets.values.get({ spreadsheetId, range: TAB_RANGE })
+    return (res.data.values ?? []) as unknown[][]
+  } catch (err) {
+    // Google returns "Unable to parse range" when the tab doesn't exist — turn
+    // that into an actionable message instead of leaking the raw API error.
+    if (String(err).includes('Unable to parse range')) {
+      throw new Error(
+        `Arkusz nie ma karty „${MATERIALY_TAB}". Kliknij „Utwórz arkusz materiały", aby ją utworzyć.`,
+      )
+    }
+    throw err
+  }
 }
 
 function isTransferId(cell: unknown): number | undefined {
@@ -242,16 +253,12 @@ export async function setupMaterialyTab(
     }
   }
 
-  // Reset the header row and the entire summary region (column H rightward),
-  // but DO NOT clear the data block (A2:G). This makes re-running setup
-  // non-destructive: it refreshes the template/formatting on an already-populated
-  // sheet without wiping synced rows, so no re-sync is needed afterward.
-  await sheets.spreadsheets.values.batchClear({
-    spreadsheetId,
-    requestBody: {
-      ranges: [`'${MATERIALY_TAB}'!A1:G1`, `'${MATERIALY_TAB}'!H1:Z1000`],
-    },
-  })
+  // Clear the whole tab so it's a clean template. This is deliberately
+  // destructive of data rows: after setup the owner re-syncs, and the resync
+  // re-appends every row with the CURRENT expense-category names — which is what
+  // heals a renamed type (stale typ strings can't survive to break the per-type
+  // SUMIF totals or the row coloring).
+  await sheets.spreadsheets.values.clear({ spreadsheetId, range: TAB_RANGE })
 
   // Header at row 1, data from row 2 — a clean A:G block you can date-filter.
   // The summary is a small 2-row table starting at column H: RAZEM + one column

@@ -7,7 +7,8 @@
 
 ## The model: one long table, located by header name
 
-A single `materiały ` tab, **one row per investment expense**, columns found by
+A single tab named **`wydatki inwestycyjne (tylko do odczytu)`** (the constant
+`MATERIALY_TAB`), **one row per investment expense**, columns found by
 **header text** (not by position):
 
 ```
@@ -75,18 +76,19 @@ layout. Not built yet — noted as a direction.
 ## Layout: data block + side summary
 
 ```
-      A    B    C        D     E      F          G       H   I        J                   K                       L
-row1: id   data typ...   opis  kwota  kategoria  notatka     RAZEM    Materiały budowlane Mat. wykończeniowe      Pozostałe koszty
-row2: <expense>                                                =SUM     =SUMIF              =SUMIF                  =SUMIF
+      A    B    C        D     E      F          G          H        I                   J                    K
+row1: id   data typ...   opis  kwota  kategoria  notatka    RAZEM    Materiały budowlane Mat. wykończeniowe   Pozostałe koszty
+row2: <expense>                                             =SUM     =SUMIF              =SUMIF               =SUMIF
 row3: <expense>
 ```
 
 - **Data block `A1:G`** — header row 1, expenses from row 2 down. A clean,
   contiguous table so Data → Create filter / sort-by-date works.
-- **Summary to the right** (column I onward): a small 2-row table — type labels
-  in row 1, each total **directly under** its label in row 2. `RAZEM = SUM(kwota)`
-  and `=SUMIF(C2:C; <labelCell>; E2:E)` per type. A 4th type → one more column
-  (or a dynamic `QUERY`).
+- **Summary immediately to the right, starting at column H** (no gap — RAZEM
+  sits right after `notatka`; `SUMMARY_START_COL = 7`): a small 2-row table —
+  type labels in row 1, each total **directly under** its label in row 2.
+  `RAZEM = SUM(kwota)` and `=SUMIF(C2:C; <labelCell>; E2:E)` per type. A 4th
+  type → one more column (or a dynamic `QUERY`).
 
 Written **once** by `setupMaterialyTab`; the row-sync never touches the summary.
 
@@ -96,22 +98,71 @@ _visually_ hides the totals (the values stay correct — SUMIF ignores hidden
 rows). Putting labels+totals in row 1 only, or on a separate tab, would be
 fully filter-proof; row-2 was the owner's explicit layout choice.
 
-## Setup: attaching the materiały tab (approach A)
+## Per-type color (readability)
+
+Each expense type is branded with one color, used **identically** in two places so
+they visibly match:
+
+- **Whole data row** — tinted via a per-type **conditional-format rule**
+  (`=$C2=$<labelCell>`), so the color auto-applies to every row the sync appends
+  later (the sync stays data-only, never writes formatting).
+- **Summary swatch** — that type's label + total cell get the **same** tint, bold.
+
+Colors come from a name-keyed map in `sheets.ts` (`TYPE_COLORS`), **not** a DB
+column — deliberately, to avoid a migration. A type not in the map falls back to
+gray (`FALLBACK_COLOR`); it still appears, just uncolored until a hex is added
+(one-line edit). Trade-off: this re-introduces a small "new type → code touch"
+for color only (the row/summary still work with the gray fallback with zero code
+change). Header row is frozen, dark, bold-white; `kwota` and totals use a Polish
+currency number format; totals are bold.
+
+## Setup: attaching the expenses tab (approach A)
 
 On a **personal Google account the service account cannot create a new file**
 (no Drive quota → `403`). It _can_ add a tab to an existing sheet. So the app
-provisions by **attaching** a materiały tab to a sheet the owner has linked,
-rather than creating a file. (True new-file creation needs Workspace + a Shared
-Drive — that's R1 below.)
+provisions by **attaching** the `wydatki inwestycyjne (tylko do odczytu)` tab to a
+sheet the owner has linked, rather than creating a file. (True new-file creation
+needs Workspace + a Shared Drive — that's R1 below.)
 
 - `setupMaterialyTab(spreadsheetId, expenseTypes)` in `src/lib/google/sheets.ts`
-  — adds the `materiały ` tab if missing, clears it, then writes the header row
-  (`A1:G1`) and the side summary (labels in row 1 from column I, totals beneath
-  in row 2). The app builds the tab; the owner builds nothing.
+  — adds the expenses tab if missing (tab name = `MATERIALY_TAB`), then writes the
+  header row (`A1:G1`) and the side summary (labels in row 1 from column H, totals
+  beneath in row 2) plus all formatting. **Re-running clears the whole tab**
+  (`clear(A1:Z1000)`) — deliberately destructive of data rows: the owner re-syncs
+  afterward, and the resync re-appends every row with the _current_ category
+  names. That resync is what **heals a renamed type** — stale `typ` strings can't
+  linger to break the per-type SUMIF totals or the row coloring. The app builds
+  the tab; the owner builds nothing.
+  ⚠️ The tab is matched by exact title, so **renaming `MATERIALY_TAB` strands any
+  sheet already provisioned under the old name** (setup creates a fresh empty tab;
+  sync duplicates rows into it). During testing this is a non-issue — existing
+  sheets are disposable, so just rename the tab by hand or re-provision. A real
+  rename migration is only needed once there is production data to preserve.
+  The tab is also written **read-only**: `setupMaterialyTab` adds a Sheets
+  **protected range** over the whole tab with editors restricted to the service
+  account (description "Tylko do odczytu — synchronizowane z aplikacją"), dropping
+  any prior protection on re-run. The service account writes through it; team
+  collaborators get a read-only tab. Caveat: a protected range **cannot lock out
+  the file owner** (Google auto-adds the owner as an editor) — full lockout needs
+  the service-account-owned / Shared-Drive setup (R1). The "(tylko do odczytu)" in
+  the tab _name_ is the human-facing signal; the protected range is the teeth.
 - `setupKosztorysSheetAction(investmentId)` in `src/lib/actions/investments.ts`
   — reads the investment's `googleSheetId` and the live expense-category names,
-  then calls the above. Wired to the "Utwórz arkusz materiały" button on the
-  kosztorys page.
+  then calls the above.
+
+### Kosztorys-page toolbar (two buttons, two intents)
+
+- **"Zresetuj zakładkę materiały"** → confirmation dialog (it's destructive: a
+  full tab clear + re-write). The dialog spells out what happens — headers,
+  per-type summary, colors, read-only lock; existing rows are re-created by the
+  follow-up sync. Calls `setupKosztorysSheetAction`.
+- **"Synchronizuj wydatki inwestycyjne"** → `previewMaterialSync`, then a dialog
+  that explains the **append-only** nature ("dodane zostaną nowe wydatki…, nic nie
+  jest usuwane ani nadpisywane") and lists the rows to add, confirmed with "Dodaj
+  do arkusza". Non-destructive, so it shows a preview rather than a warning.
+- If the tab is missing, the sync surfaces a friendly message
+  (`Arkusz nie ma karty „…". Kliknij „Zresetuj zakładkę materiały"…`) instead of
+  Google's raw "Unable to parse range".
 
 ### Implementation notes (gotchas worth keeping)
 
@@ -121,7 +172,7 @@ Drive — that's R1 below.)
   use `;`. (The sync writes only data, not formulas, so only `setupMaterialyTab`
   is affected today.)
 - **SUMIF references the label cell, not a string literal.** Each per-type total
-  is `=SUMIF(C2:C; <labelCell>1; E2:E)` where the label cell (J1/K1/L1…) holds
+  is `=SUMIF(C2:C; <labelCell>1; E2:E)` where the label cell (I1/J1/K1…) holds
   the type name.
   This solves two things: (1) **maintainability** — the type name lives in one
   place (the visible label), edit it once; (2) **correct matching** — the SUMIF
@@ -206,7 +257,7 @@ Consequences of going append-only (all done):
   category are removed: nothing is deleted, and a sheet row the app doesn't
   recognise is the owner's own data, left untouched. `loadAppMaterialRows`
   expects both the expense (`+`) and its cancellation (`−`) rows, so a synced
-  ledger and the DB agree. The reconcile button is **"Synchronizuj tabelę"**.
+  ledger and the DB agree. The reconcile button is **"Synchronizuj wydatki inwestycyjne"**.
 
 > The reconciler's `loadAppMaterialRows` does a two-step query — investment
 > expenses, then the CANCELLATION rows pointing at them — because a CANCELLATION

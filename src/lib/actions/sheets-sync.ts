@@ -39,6 +39,14 @@ const relId = (rel: unknown): number | undefined =>
 
 const isoDate = (d: unknown): string => (d ? new Date(d as string).toISOString().slice(0, 10) : '')
 
+// A cancellation transfer stores its description as `Anulowanie transakcji #<id>\n<reason>`.
+// Pull out just the reason (everything after the first newline) for the note column.
+const cancellationReason = (description: unknown): string => {
+  if (typeof description !== 'string') return ''
+  const nl = description.indexOf('\n')
+  return nl === -1 ? '' : description.slice(nl + 1).trim()
+}
+
 type TxDoc = {
   id: number
   amount: number | string
@@ -65,10 +73,13 @@ function expenseRow(t: TxDoc): AppRowT | undefined {
 }
 
 // − reversing row for a cancellation, built from the original expense it reverses.
+// The cancellation's reason goes into the note column so the sheet shows *why* the
+// expense was reversed.
 function cancellationRow(
   cancellationId: number,
   date: unknown,
   original: TxDoc,
+  reason: string,
 ): AppRowT | undefined {
   const typ = relName(original.expenseCategory)
   if (!typ) return undefined
@@ -79,7 +90,7 @@ function cancellationRow(
     description: `Anulowanie #${original.id}`,
     amount: -Number(original.amount),
     category: relName(original.otherCategory),
-    note: original.invoiceNote ?? '',
+    note: reason,
   }
 }
 
@@ -123,7 +134,12 @@ async function loadAppMaterialRows(
       const origId = relId((c as { cancelledTransaction?: unknown }).cancelledTransaction)
       const original = origId !== undefined ? expenseById.get(origId) : undefined
       if (!original) continue
-      const row = cancellationRow(c.id, (c as { date?: unknown }).date, original)
+      const row = cancellationRow(
+        c.id,
+        (c as { date?: unknown }).date,
+        original,
+        cancellationReason((c as { description?: unknown }).description),
+      )
       if (row) rows.push(row)
     }
   }
@@ -236,7 +252,12 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
       })
       if (!original || original.type !== 'INVESTMENT_EXPENSE') return
       investmentId = relId(original.investment)
-      row = cancellationRow(transfer.id, transfer.date, original as unknown as TxDoc)
+      row = cancellationRow(
+        transfer.id,
+        transfer.date,
+        original as unknown as TxDoc,
+        cancellationReason(transfer.description),
+      )
     } else {
       return
     }

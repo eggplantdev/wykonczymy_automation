@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -19,16 +20,18 @@ import { setupKosztorysSheetAction } from '@/lib/actions/investments'
 
 export function SyncButton({ investmentId }: { investmentId: number }) {
   const [preview, setPreview] = useState<MaterialSyncPreviewT | null>(null)
+  const [setupOpen, setSetupOpen] = useState(false)
   const [pending, startTransition] = useTransition()
 
-  const onSetup = () => {
+  const onSetupConfirm = () => {
     startTransition(async () => {
       const res = await setupKosztorysSheetAction(investmentId)
       if (!res.success) {
         toastMessage(res.error, 'error')
         return
       }
-      toastMessage(`Arkusz materiały gotowy (${res.data.types.length} typów)`, 'success')
+      toastMessage(`Zakładka gotowa (${res.data.types.length} typów)`, 'success')
+      setSetupOpen(false)
     })
   }
 
@@ -64,35 +67,71 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
 
   return (
     <>
-      <Button size="sm" variant="outline" onClick={onSetup} disabled={pending}>
-        {pending ? 'Pracuję…' : 'Utwórz arkusz materiały'}
+      <Button size="sm" variant="outline" onClick={() => setSetupOpen(true)} disabled={pending}>
+        Zresetuj zakładkę materiały
       </Button>
       <Button size="sm" variant="outline" onClick={onCheck} disabled={pending}>
-        {pending ? 'Synchronizuję…' : 'Synchronizuj tabelę'}
+        {pending ? 'Synchronizuję…' : 'Synchronizuj wydatki inwestycyjne'}
       </Button>
+
+      <Dialog open={setupOpen} onOpenChange={setSetupOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Zresetować zakładkę „wydatki inwestycyjne (tylko do odczytu)"?
+            </DialogTitle>
+            <DialogDescription>
+              W arkuszu Google powstanie (lub zostanie odświeżona) zakładka{' '}
+              <strong>wydatki inwestycyjne (tylko do odczytu)</strong>. Aplikacja ustawi w niej
+              nagłówki kolumn, podsumowanie z sumami per typ, kolory typów oraz blokadę edycji —
+              edytować będzie mogła tylko aplikacja, zespół ma podgląd. Istniejące wiersze wydatków
+              pozostają nienaruszone; to nie kasuje danych.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSetupOpen(false)} disabled={pending}>
+              Anuluj
+            </Button>
+            <Button onClick={onSetupConfirm} disabled={pending}>
+              {pending ? 'Pracuję…' : 'Zresetuj zakładkę'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Dialog open={preview !== null} onOpenChange={(open) => !open && setPreview(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Podgląd zmian w arkuszu</DialogTitle>
+            <DialogTitle>Synchronizacja wydatków inwestycyjnych</DialogTitle>
+            <DialogDescription>
+              Do arkusza zostaną dodane nowe wydatki inwestycyjne, których jeszcze w nim nie ma. Nic
+              nie jest usuwane ani nadpisywane — istniejące wiersze i podsumowanie pozostają bez
+              zmian.
+            </DialogDescription>
           </DialogHeader>
           {preview && (
             <div className="space-y-4 text-sm">
-              <Section
-                title={`Do dodania (${preview.toAppend.length})`}
-                tone="green"
-                items={preview.toAppend.map((r) => ({
-                  key: r.transferId,
-                  text: `#${r.transferId} · ${r.typ} · ${r.amount} zł · ${r.description} [${r.date}]`,
-                }))}
-              />
+              {preview.toAppend.length === 0 ? (
+                <p className="text-muted-foreground">
+                  Wszystko jest już zsynchronizowane — brak nowych pozycji do dodania.
+                </p>
+              ) : (
+                <Section
+                  title={`Wydatki do dodania (${preview.toAppend.length})`}
+                  tone="green"
+                  items={preview.toAppend.map((r) => ({
+                    key: r.transferId,
+                    text: `#${r.transferId} · ${r.typ} · ${r.amount} zł · ${r.description} [${r.date}]`,
+                  }))}
+                />
+              )}
             </div>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setPreview(null)}>
               Anuluj
             </Button>
-            <Button onClick={onConfirm} disabled={pending}>
-              Zatwierdź zmiany
+            <Button onClick={onConfirm} disabled={pending || preview?.toAppend.length === 0}>
+              Dodaj do arkusza
             </Button>
           </DialogFooter>
         </DialogContent>

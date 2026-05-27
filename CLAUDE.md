@@ -29,7 +29,7 @@ We are currently running the local app against a **side-by-side test database** 
 - The migration `20260525_add_google_sheet_id_to_investments` is currently only applied to `wykonczymy-test-db`. `wykonczymy-db` will get it when we flip back.
 - The Google env vars in `.env` (`GOOGLE_SERVICE_ACCOUNT_JSON`, `KOSZTORYS_TEMPLATE_SHEET_ID`) are **real, working credentials** — the service account can authenticate and the Google API accepts them. Treat sheet writes as hitting live data.
 
-**Removal trigger:** when the user finishes Phase 5 of the testing plan (real Google creds wired in, test DB dropped). At that point, delete this whole section from CLAUDE.md.
+**Removal trigger:** real Google creds are already wired (done). What remains of Phase 5 is flipping `DB_POSTGRES_URL` back to `wykonczymy-db` and dropping `wykonczymy-test-db`. Delete this whole section once that's done.
 
 ## Project Overview
 
