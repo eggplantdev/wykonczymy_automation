@@ -94,7 +94,8 @@ Append target = `(last row with a parseable id) + 1`. A manual non-id row sittin
 
 **`src/hooks/transfers/sync-kosztorys-sheet.ts` (new) + collection wiring** — CONFIRMED → **FIXED**: sheet sync moved to the transactions collection `afterChange`/`afterDelete` hooks, so it fires for EVERY mutation path — server actions AND direct Payload admin edits/deletes. Removed the action-level sync from create/cancel/update to avoid doubling; the bulk action sets `req.context.skipKosztorysSync` and keeps its single batched sync (T4.2 preserved). The hook lazy-imports the `'use server'` sync module inside `after()` so it doesn't poison the collection's import graph, and defers via `after()` so the mutation response isn't blocked on Google.
 
-> **Convention note:** this deliberately overrides the usual "side-effects-in-action, not hooks" rule (per user decision), because only the collection layer covers admin-panel mutations. Tests: `__tests__/hooks/sync-kosztorys-sheet.test.ts`. **Live-verify after a dev-server restart** (Payload loads collection config at startup).
+> **Convention note:** this deliberately overrides the usual "side-effects-in-action, not hooks" rule (per user decision), because only the collection layer covers admin-panel mutations. Tests: `__tests__/hooks/sync-kosztorys-sheet.test.ts`.
+> **LIVE-VERIFIED (2026-05-28, inv 6):** an app edit synced in place via the hook with no doubling (37 rows, 0 blanks/dupes); an edit through the **Payload admin panel** (which bypasses the server action) also synced — confirming the gap is closed.
 > This also retires most of **T5.1** (sync is now centralized in one place) and closes **T2.3** (see below).
 
 ### T2.3 ☑ `updateTransferAction` leaves a stale row when `investment` is omitted
