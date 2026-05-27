@@ -33,7 +33,6 @@ export default async function KosztorysPage({ params }: { params: Promise<{ id: 
     <KosztorysIframeView
       sheetId={investment.googleSheetId}
       investmentName={investment.name}
-      investmentId={investmentId}
       toolbar={<SyncButton investmentId={investmentId} />}
     />
   )
