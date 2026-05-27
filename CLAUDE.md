@@ -19,7 +19,7 @@ alwaysApply: true
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## ⚠️ TEMPORARY: kosztorys testing DB (remove after Phase 5 of `docs/plans/2026-05-26-kosztorys-testing-without-google.md`)
+## ⚠️ TEMPORARY: kosztorys testing DB
 
 We are currently running the local app against a **side-by-side test database** `wykonczymy-test-db` (inside the existing `wykonczymy` docker container), not against the normal `wykonczymy-db`. The two coexist in the same container; `DB_POSTGRES_URL` in `.env` decides which one the app talks to.
 

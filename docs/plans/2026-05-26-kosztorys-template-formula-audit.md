@@ -4,8 +4,7 @@
 > `15AoSJfaHcGwuDCukzu5hKitWE-oPw0xrD_8xtBM2Q8I`
 > ("Kopia kosztorys wzór dla konrada do testów"), audited 2026-05-26 via the
 > service account using the Sheets API (`valueRenderOption: FORMULA` +
-> `UNFORMATTED_VALUE`). Supports the real-Google cutover (Phase 5 of
-> `2026-05-26-kosztorys-testing-without-google.md`, Task 10 of
+> `UNFORMATTED_VALUE`). Supports the real-Google cutover (Task 10 of
 > `2026-05-20-kosztorys-b-iframe-poc-build.md`).
 
 ---
