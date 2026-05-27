@@ -23,9 +23,9 @@
 **Trigger:** owner types a value into the id-cell of a manual row that happens to equal a real transaction id → that manual row is silently deleted on the next Synchronizuj. The exact rows the code claims to protect.
 **Fix:** scope the guard query to `type: { equals: 'INVESTMENT_EXPENSE' }` AND `investment: { equals: investmentId }`, so only ids that are _this investment's expenses_ count as removable.
 
-### T1.2 ☐ `>1000` active expenses → valid synced rows deleted as "orphans"
+### T1.2 ☑ `>1000` active expenses → valid synced rows deleted as "orphans"
 
-**`src/lib/actions/sheets-sync.ts:104` + `src/lib/google/sheets.ts:21` (`A1:Z1000` cap)** — CONFIRMED
+**`src/lib/actions/sheets-sync.ts:104` + `src/lib/google/sheets.ts:21` (`A1:Z1000` cap)** — CONFIRMED → **FIXED**: `TAB_RANGE` is now open-ended `A:Z` (no row cap; Google trims trailing empties), and both `payload.find` caps (`loadAppMaterialRows` + orphan guard) are `limit: 0` (all docs). Reads no longer truncate, so no real row is ever mistaken for an orphan. (Columns past `Z` remain unsupported — acceptable: data is A–G, summary starts at H.) Test added: open-range + uncapped-find assertion.
 
 `loadAppMaterialRows` caps at `limit: 1000` and the sheet read range is hard-capped `A1:Z1000`. For an investment with >1000 active `INVESTMENT_EXPENSE` rows, expenses 1001+ are excluded from `appRows`. `applyMaterialSync` then sees their already-synced sheet rows as orphans; the orphan check (T1.1) finds they _are_ real transactions and removes them.
 

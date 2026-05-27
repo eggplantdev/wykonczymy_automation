@@ -176,6 +176,19 @@ describe('previewMaterialSync', () => {
     expect(whereArg.and).toEqual(expect.arrayContaining([{ cancelled: { not_equals: true } }]))
   })
 
+  it('reads an open-ended range and fetches all expenses (no row cap)', async () => {
+    findByIDMock.mockResolvedValue({ id: 31, name: '11 Listopada 40', googleSheetId: 'sheet-1' })
+    findReturns([])
+    sheetColIReturns([])
+
+    await previewMaterialSync(31)
+
+    // A capped find / range would silently drop rows past the cap, and the reconciler
+    // would then delete their un-read sheet rows as orphans (T1.2).
+    expect(findMock.mock.calls[0][0].limit).toBe(0)
+    expect(valuesGetMock.mock.calls[0][0].range).toMatch(/!A:Z$/)
+  })
+
   it('skips an expense whose amount is not a finite number', async () => {
     findByIDMock.mockResolvedValue({ id: 31, name: '11 Listopada 40', googleSheetId: 'sheet-1' })
     findReturns([

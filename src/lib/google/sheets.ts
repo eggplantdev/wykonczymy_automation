@@ -18,7 +18,12 @@ export type MaterialRowInputT = {
 }
 
 const MATERIALY_TAB = 'wydatki inwestycyjne (tylko do odczytu)'
-const TAB_RANGE = `'${MATERIALY_TAB}'!A1:Z1000`
+// Open-ended rows (A:Z, no row cap): a kosztorys can hold any number of expense
+// rows, and a fixed cap would make reads silently truncate — the reconciler would
+// then see un-read rows as orphans and delete them. Google trims trailing empties,
+// so an open range stays cheap. Columns are bounded at Z: data is A–G, the summary
+// starts at H, and Z leaves ample room.
+const TAB_RANGE = `'${MATERIALY_TAB}'!A:Z`
 const MAX_HEADER_SCAN_ROWS = 15
 
 // Header the setup writes. The sync locates columns by keyword, so these exact

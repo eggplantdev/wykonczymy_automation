@@ -111,8 +111,8 @@ async function loadAppMaterialRows(
       ],
     },
     depth: 1,
-    limit: 1000,
-    overrideAccess: true,
+    limit: 0, // all expenses — a capped find would drop rows 1001+ from the desired set,
+    overrideAccess: true, // and the reconciler would then delete their (un-enumerated) sheet rows.
   })
 
   const rows: AppRowT[] = []
@@ -224,8 +224,8 @@ export async function applyMaterialSync(investmentId: number) {
             ],
           },
           depth: 0,
-          limit: 1000,
-          overrideAccess: true,
+          limit: 0, // enumerate all matches — a truncated page would leave real expense
+          overrideAccess: true, // ids unconfirmed, and they'd be wrongly kept as "manual rows".
         })
         const removableIds = new Set(removableExpenses.docs.map((d) => d.id as number))
         for (const id of orphanIds) {
