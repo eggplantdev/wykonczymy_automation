@@ -514,3 +514,21 @@ On investment 6: click **Synchronizuj wydatki inwestycyjne** (or **Zresetuj zak�
 - Per-type totals populate and RAZEM = 48 243,57 (matches the app).
 
 Fold these assertions into the end-to-end Playwright verification (Task 8 of the prior plan).
+
+---
+
+## Live verification log (2026-05-27, investment 6)
+
+Verified against the real sheet (`1cFCFtplugpjJpq…`) + the test DB via the service account.
+
+- [x] **Test A — Reset rebuilds clean (headline).** After **Zresetuj zakładkę materiały**:
+      sheet had **36** data rows = DB non-cancelled inv-6 expenses (36); **0** `Anulowanie`
+      rows; cancelled originals (2459, 2452, 2447) and cancellation ids (2460, 2458) all gone;
+      per-type SUMIF totals non-zero and reconciling — Materiały budowlane 35 115,57,
+      Materiały wykończeniowe 10 608, Pozostałe koszty 3 720, **RAZEM 49 443,57** =
+      Σ per-type = DB active total. Confirms the active-costs model + the drift-proof SUMIF
+      fix live. (Totals are higher than the earlier 48 243,57 snapshot because the DB's active
+      set changed between checks — the point is sheet == DB at verification time.)
+- [ ] **Test B — Cancel removes the row.** Deferred to a parallel tester.
+- [ ] Test C — Create appends · Test D — Edit updates in place · Test E — Edit→move ·
+      Test F — Manual-row preservation (via Synchronizuj) · Test G — Drift-proof sort.
