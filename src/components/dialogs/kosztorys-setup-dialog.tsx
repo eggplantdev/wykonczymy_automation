@@ -13,7 +13,11 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { toastMessage } from '@/components/toasts'
-import { linkKosztorysSheetAction, provisionKosztorysAction } from '@/lib/actions/investments'
+import {
+  getServiceAccountEmailAction,
+  linkKosztorysSheetAction,
+  provisionKosztorysAction,
+} from '@/lib/actions/investments'
 
 type PropsT = {
   investmentId: number
@@ -27,8 +31,16 @@ type PropsT = {
 export function KosztorysSetupDialog({ investmentId, investmentName, trigger }: PropsT) {
   const [open, setOpen] = useState(false)
   const [link, setLink] = useState('')
+  const [saEmail, setSaEmail] = useState('')
   const [pending, startTransition] = useTransition()
   const router = useRouter()
+
+  // Load the service-account email when the dialog opens, so the link section can
+  // tell the user exactly who to share their sheet with (fetched lazily, once).
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next)
+    if (next && !saEmail) void getServiceAccountEmailAction().then(setSaEmail)
+  }
 
   const finish = (message: string) => {
     toastMessage(message, 'success')
@@ -55,7 +67,7 @@ export function KosztorysSetupDialog({ investmentId, investmentName, trigger }: 
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{trigger ?? <Button size="sm">Dodaj kosztorys</Button>}</DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
@@ -81,8 +93,17 @@ export function KosztorysSetupDialog({ investmentId, investmentName, trigger }: 
           <section className="space-y-2">
             <h3 className="font-medium">Powiąż istniejący arkusz</h3>
             <p className="text-muted-foreground text-xs">
-              Wklej link do arkusza Google. Musi być udostępniony dla konta usługi.
+              Najpierw udostępnij arkusz <strong>jako Edytujący</strong> dla konta usługi, a
+              następnie wklej jego link poniżej.
             </p>
+            {saEmail && (
+              <p className="text-muted-foreground text-xs">
+                Konto usługi:{' '}
+                <code className="bg-muted rounded px-1 py-0.5 text-xs break-all select-all">
+                  {saEmail}
+                </code>
+              </p>
+            )}
             <Input
               value={link}
               onChange={(e) => setLink(e.target.value)}

@@ -130,6 +130,13 @@ export async function provisionKosztorysAction(investmentId: number) {
  * would silently fail), then stores its id. The working alternative to
  * provisionKosztorysAction while new-file creation is blocked by SA Drive quota.
  */
+// The service-account email a user must share their sheet with before linking.
+// Non-secret; surfaced in the setup dialog so the share step is clear up front
+// (not only discovered via the "share with…" error after a failed link attempt).
+export async function getServiceAccountEmailAction(): Promise<string> {
+  return serviceAccountEmail()
+}
+
 export async function linkKosztorysSheetAction(investmentId: number, input: string) {
   return protectedAction<{ title: string }>(
     'linkKosztorysSheetAction',
@@ -154,7 +161,7 @@ export async function linkKosztorysSheetAction(investmentId: number, input: stri
         return {
           success: false,
           error:
-            'Nie można otworzyć tego arkusza. Udostępnij go (co najmniej do odczytu) dla konta ' +
+            'Nie można otworzyć tego arkusza. Udostępnij go jako Edytujący dla konta ' +
             `usługi: ${serviceAccountEmail()} — a następnie spróbuj ponownie.`,
         }
       }
