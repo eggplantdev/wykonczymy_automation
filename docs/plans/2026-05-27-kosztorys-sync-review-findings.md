@@ -4,7 +4,10 @@
 > `table`). Each item: **problem** (short) → **fix** (proposed). Fix order:
 > **1, 2, 3, 5, 6** first (data-loss + security + correctness), then the rest.
 >
-> **Status (2026-05-27):** #1, #2, #3, #5, #6 implemented. Remaining: #4, #7–#15.
+> **Status (2026-05-27):** #1, #2, #3, #5, #6 implemented; then #8, #10, #11, #14, #16, #17;
+> then #4 (live push + overwrite-by-id reconciler heal + investment-move removal — see
+> `2026-05-27-kosztorys-sync-edit-propagation-{design,plan}.md`). #7 and #18 investigated
+> & refuted/accepted. Remaining: #9, #12, #13, #15.
 
 ## High severity
 
@@ -28,6 +31,7 @@
 
 - Problem: preview is append-only (`!sheetIds.has(id)`) and update never syncs → an edited already-synced row can never be corrected, even by manual re-sync.
 - Fix: on update of a synced expense, clear+re-append that row; or surface a "needs re-sync" flag; cheapest: block editing synced fields / document loudly.
+- **Done (2026-05-27):** went with the robust fix. New sheet primitives `updateMaterialRow` / `removeMaterialRow`; `syncSingleTransferToSheet` updates the existing row in place instead of skipping; `updateTransferAction` fires a post-response `after()` that removes the stale row from the OLD sheet on an investment reassignment, then pushes to the current sheet; the reconciler (`applyMaterialSync`) heals drift by **overwrite-by-id** (append absent rows, overwrite present ones — no field comparison, since the id is a join key not a content fingerprint). Result shape is now `{ added, updated, errors }`. Deletion is confined to the explicit move-removal — the reconciler never deletes. Design + plan: `2026-05-27-kosztorys-sync-edit-propagation-{design,plan}.md`.
 
 **5. Fire-and-forget sync dropped on serverless** — `src/lib/actions/transfers.ts:71,155,242`
 
