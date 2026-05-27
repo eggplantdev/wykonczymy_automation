@@ -40,9 +40,12 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
         )
         return
       }
-      const { added, updated, removed, errors } = applied.data
+      // Reset just wiped the tab, so every synced row is an append — `updated` and
+      // `removed` are always 0 here (unlike the standalone Synchronizuj path, which
+      // runs against a populated tab). Show only +added.
+      const { added, errors } = applied.data
       toastMessage(
-        `Zakładka zresetowana i zsynchronizowana: +${added} / zaktualizowano ${updated} / usunięto ${removed}${
+        `Zakładka zresetowana i zsynchronizowana: +${added}${
           errors.length ? ` · błędy: ${errors.length}` : ''
         }`,
         errors.length ? 'warning' : 'success',
@@ -109,7 +112,7 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
             <Button variant="outline" onClick={() => setSetupOpen(false)} disabled={pending}>
               Anuluj
             </Button>
-            <Button onClick={onSetupConfirm} disabled={pending}>
+            <Button variant="destructive" onClick={onSetupConfirm} disabled={pending}>
               {pending ? 'Pracuję…' : 'Zresetuj zakładkę'}
             </Button>
           </DialogFooter>
