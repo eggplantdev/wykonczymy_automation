@@ -4,8 +4,9 @@ import { createServiceAccountJWT } from './auth'
 // One row per investment expense in a single long table. Columns are located by
 // header text (normalized, keyword-contains) so the sheet layout — column order,
 // extra columns, a summary block — can change without touching this code.
-// The id column is the join key (one row per transferId). The Suma/summary cells
-// are the owner's formulas; the app only ever writes the seven mapped fields.
+// The id column is the join key (one row per transferId). The row SYNC
+// (append/read) only ever touches the seven mapped fields; the header, the
+// RAZEM/SUMIF summary and all formatting are written once by setupMaterialyTab.
 export type MaterialRowInputT = {
   transferId: number
   date: string
@@ -16,7 +17,7 @@ export type MaterialRowInputT = {
   note: string
 }
 
-const MATERIALY_TAB = 'wydatki'
+const MATERIALY_TAB = 'wydatki inwestycyjne'
 const TAB_RANGE = `'${MATERIALY_TAB}'!A1:Z1000`
 const MAX_HEADER_SCAN_ROWS = 15
 
@@ -233,7 +234,12 @@ export async function setupMaterialyTab(
       spreadsheetId,
       requestBody: { requests: [{ addSheet: { properties: { title: MATERIALY_TAB } } }] },
     })
-    sheetId = added.data.replies?.[0]?.addSheet?.properties?.sheetId ?? 0
+    sheetId = added.data.replies?.[0]?.addSheet?.properties?.sheetId ?? undefined
+    if (sheetId == null) {
+      // Never fall back to 0 — that is the gid of the spreadsheet's first tab, so
+      // every formatting request below would silently target the wrong sheet.
+      throw new Error('setupMaterialyTab: addSheet returned no sheetId')
+    }
   }
 
   // Reset the header row and the entire summary region (column H rightward),
