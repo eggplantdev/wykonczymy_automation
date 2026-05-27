@@ -101,8 +101,10 @@ function findReturns(expenses: object[]) {
 
 // The sync reads the whole grid and locates the header row, then scans the id
 // column below it. We prepend the header, so transferId i lands on sheet row i+2.
+// App ids are namespaced as `#<id>` on the sheet (T1.5), so the reader only matches
+// the `#`-prefixed form — mirror that here, or the rows read back as "unsynced".
 function sheetColIReturns(transferIds: Array<number | null>) {
-  const values = [SHEET_HEADER, ...transferIds.map((id) => (id === null ? [] : [id]))]
+  const values = [SHEET_HEADER, ...transferIds.map((id) => (id === null ? [] : [`#${id}`]))]
   valuesGetMock.mockResolvedValue({ data: { values } })
 }
 
