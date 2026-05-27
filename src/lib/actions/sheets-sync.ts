@@ -63,14 +63,6 @@ const finiteAmount = (raw: unknown): number | undefined => {
   return Number.isFinite(n) ? n : undefined
 }
 
-// A cancellation transfer stores its description as `Anulowanie transakcji #<id>\n<reason>`.
-// Pull out just the reason (everything after the first newline) for the note column.
-const cancellationReason = (description: unknown): string => {
-  if (typeof description !== 'string') return ''
-  const nl = description.indexOf('\n')
-  return nl === -1 ? '' : description.slice(nl + 1).trim()
-}
-
 type TxDoc = {
   id: number
   amount: number | string
@@ -101,38 +93,9 @@ function expenseRow(t: TxDoc): AppRowT | undefined {
   }
 }
 
-// − reversing row for a cancellation, built from the original expense it reverses.
-// The cancellation's reason goes into the note column so the sheet shows *why* the
-// expense was reversed.
-function cancellationRow(
-  cancellationId: number,
-  date: unknown,
-  original: TxDoc,
-  reason: string,
-): AppRowT | undefined {
-  const typ = relName(original.expenseCategory)
-  if (!typ) return undefined
-  const amount = finiteAmount(original.amount)
-  if (amount === undefined) {
-    console.warn(
-      `[sheets-sync] skip cancellation #${cancellationId}: non-finite amount ${String(original.amount)}`,
-    )
-    return undefined
-  }
-  return {
-    transferId: cancellationId,
-    date: isoDate(date),
-    typ,
-    description: `Anulowanie #${original.id}`,
-    amount: -amount,
-    category: relName(original.otherCategory),
-    note: reason,
-  }
-}
-
-// Every row the sheet should hold: each investment expense (+, even if cancelled)
-// and each cancellation that reverses one of them (−). Append-only: nothing is
-// ever removed, so a cancelled expense keeps its + row and gains a − row.
+// Every row the sheet should hold: each NON-CANCELLED investment expense, one row
+// keyed by its own id. The sheet mirrors active costs — cancelled expenses are
+// excluded here (and their rows removed by the reconciler / on cancel).
 async function loadAppMaterialRows(
   payload: Awaited<ReturnType<typeof getPayload>>,
   investmentId: number,
@@ -140,7 +103,11 @@ async function loadAppMaterialRows(
   const expenses = await payload.find({
     collection: 'transactions',
     where: {
-      and: [{ investment: { equals: investmentId } }, { type: { equals: 'INVESTMENT_EXPENSE' } }],
+      and: [
+        { investment: { equals: investmentId } },
+        { type: { equals: 'INVESTMENT_EXPENSE' } },
+        { cancelled: { not_equals: true } },
+      ],
     },
     depth: 1,
     limit: 1000,
@@ -148,36 +115,9 @@ async function loadAppMaterialRows(
   })
 
   const rows: AppRowT[] = []
-  const expenseById = new Map<number, TxDoc>()
   for (const t of expenses.docs as unknown as TxDoc[]) {
-    expenseById.set(t.id, t)
     const row = expenseRow(t)
     if (row) rows.push(row)
-  }
-
-  const expenseIds = [...expenseById.keys()]
-  if (expenseIds.length > 0) {
-    const cancellations = await payload.find({
-      collection: 'transactions',
-      where: {
-        and: [{ type: { equals: 'CANCELLATION' } }, { cancelledTransaction: { in: expenseIds } }],
-      },
-      depth: 0,
-      limit: 1000,
-      overrideAccess: true,
-    })
-    for (const c of cancellations.docs) {
-      const origId = relId((c as { cancelledTransaction?: unknown }).cancelledTransaction)
-      const original = origId !== undefined ? expenseById.get(origId) : undefined
-      if (!original) continue
-      const row = cancellationRow(
-        c.id,
-        (c as { date?: unknown }).date,
-        original,
-        cancellationReason((c as { description?: unknown }).description),
-      )
-      if (row) rows.push(row)
-    }
   }
   return rows
 }
