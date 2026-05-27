@@ -76,6 +76,10 @@ export const Investments: CollectionConfig = {
     {
       name: 'googleSheetId',
       type: 'text',
+      // One sheet per investment: two investments sharing a tab would each treat the
+      // other's rows as orphans and delete them on sync (review T1.3). Postgres allows
+      // multiple NULLs under a unique index, so unlinked investments are unaffected.
+      unique: true,
       label: { en: 'Google Sheet ID', pl: 'ID arkusza Google' },
       admin: {
         description: {

@@ -32,6 +32,7 @@ import * as migration_20260325_add_correction_enum from './20260325_add_correcti
 import * as migration_20260407_add_amount_edit_audit from './20260407_add_amount_edit_audit'
 import * as migration_20260412_add_amount_trigram_index from './20260412_add_amount_trigram_index'
 import * as migration_20260525_add_google_sheet_id_to_investments from './20260525_add_google_sheet_id_to_investments'
+import * as migration_20260527_add_unique_google_sheet_id from './20260527_add_unique_google_sheet_id'
 
 export const migrations = [
   {
@@ -203,5 +204,10 @@ export const migrations = [
     up: migration_20260525_add_google_sheet_id_to_investments.up,
     down: migration_20260525_add_google_sheet_id_to_investments.down,
     name: '20260525_add_google_sheet_id_to_investments',
+  },
+  {
+    up: migration_20260527_add_unique_google_sheet_id.up,
+    down: migration_20260527_add_unique_google_sheet_id.down,
+    name: '20260527_add_unique_google_sheet_id',
   },
 ]

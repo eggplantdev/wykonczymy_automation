@@ -37,11 +37,13 @@
 **Trigger:** any kosztorys that grows past 1000 expense rows. Also: columns past `Z` are invisible to header resolution; appends recompute "last id row" only within the first 1000 rows and overwrite/duplicate.
 **Fix:** raise/remove the row cap (paginate `loadAppMaterialRows`; widen/auto-size `TAB_RANGE`), and make orphan-removal correct under truncation (don't delete an id you didn't fully enumerate). Couple with T1.1.
 
-### T1.3 ◐ No unique constraint on `google_sheet_id` → two investments can share one sheet
+### T1.3 ☑ No unique constraint on `google_sheet_id` → two investments can share one sheet
 
-**`src/migrations/20260525_add_google_sheet_id_to_investments.ts` + `src/collections/investments.ts`** — CONFIRMED (PLAUSIBLE trigger)
-**Layer 1 (app guard) — FIXED:** `linkKosztorysSheetAction` now rejects a sheet already linked to another investment (names the conflicting investment), before the Google round-trip.
-**Layer 2 (DB unique index) — DEFERRED, needs decision:** catches direct admin-panel edits too, but requires a migration; gated on the test-db→prod-db flip and a pre-existing-duplicates check.
+**`src/collections/investments.ts` + `src/migrations/20260527_add_unique_google_sheet_id.ts`** — CONFIRMED → **FIXED (both layers)**
+**Layer 1 (app guard):** `linkKosztorysSheetAction` rejects a sheet already linked to another investment (names the conflict), before the Google round-trip.
+**Layer 2 (DB unique index):** `unique: true` on the field + hand-written `CREATE UNIQUE INDEX investments_google_sheet_id_idx` migration, applied to test-db. Verified: NULLs allowed (unlinked investments fine), duplicate non-null rejected. Catches direct admin-panel edits too.
+
+> **Migration tooling note (pre-existing debt, NOT this PR):** `migrate:create` could not generate this — it emits phantom drift because `.json` schema snapshots are missing for the 6 hand-written migrations since `20260312`, so its baseline is frozen at the Feb snapshot. The index migration was hand-written (mirroring `20260525_add_google_sheet_id`), consistent with those 6. Rebuilding the snapshot baseline is separate deferred tech debt — see `project_migrate_create_stale_snapshots` memory. Runtime is unaffected; only the generator is broken.
 
 The column/field has no unique constraint. Two investments can be linked to the same spreadsheet (paste the same URL, or admin edit).
 
