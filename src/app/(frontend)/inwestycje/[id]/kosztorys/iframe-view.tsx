@@ -26,16 +26,16 @@ export function KosztorysIframeView({ sheetId, investmentName, toolbar }: PropsT
           <ExternalLink href={ALL_SHEETS_URL}>Wszystkie kosztorysy ↗</ExternalLink>
         </div>
       </div>
-      {/* Desktop: the embedded sheet. The iframe is hidden below lg — Google Sheets
-          is barely usable in a phone-width iframe, and the embed also fought the
-          mobile footer for vertical space. */}
+      {/* The embedded sheet, shown from sm (≥640px) up. Below sm the iframe is
+          hidden — Google Sheets is barely usable in a phone-width iframe, and the
+          embed also fought the mobile footer for vertical space. */}
       <iframe
         src={src}
         title={`Kosztorys for ${investmentName}`}
-        className="hidden min-h-0 w-full flex-1 border-0 lg:block"
+        className="hidden min-h-0 w-full flex-1 border-0 sm:block"
       />
-      {/* Mobile/tablet fallback: skip the embed, point to the full Sheets app. */}
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center lg:hidden">
+      {/* Phone fallback (below sm): skip the embed, point to the full Sheets app. */}
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center sm:hidden">
         <p className="text-muted-foreground text-sm">
           Kosztorys najlepiej otworzyć na komputerze. Na telefonie skorzystaj z aplikacji Arkusze.
         </p>
