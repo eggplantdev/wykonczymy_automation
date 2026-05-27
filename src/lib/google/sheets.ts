@@ -118,7 +118,7 @@ function resolveHeaders(grid: unknown[][]): HeaderMapT {
     if (found === FIELDS.length) return { headerRow: r + 1, cols }
   }
   throw new Error(
-    'materiały: header row not found — need columns for id, data, typ, opis, kwota, kategoria, notatka',
+    `${MATERIALY_TAB}: header row not found — need columns for id, data, typ, opis, kwota, kategoria, notatka`,
   )
 }
 
@@ -132,7 +132,7 @@ async function readGrid(spreadsheetId: string): Promise<unknown[][]> {
     // that into an actionable message instead of leaking the raw API error.
     if (String(err).includes('Unable to parse range')) {
       throw new Error(
-        `Arkusz nie ma karty „${MATERIALY_TAB}". Kliknij „Utwórz arkusz materiały", aby ją utworzyć.`,
+        `Arkusz nie ma karty „${MATERIALY_TAB}". Kliknij „Zresetuj zakładkę materiały", aby ją utworzyć.`,
       )
     }
     throw err
@@ -218,7 +218,7 @@ const HEADER_BG: RgbT = { red: 0.17, green: 0.24, blue: 0.31 }
 const RAZEM_BG: RgbT = { red: 0.93, green: 0.94, blue: 0.95 }
 const WHITE: RgbT = { red: 1, green: 1, blue: 1 }
 
-// Attach (or reset) the materiały tab on an existing spreadsheet: ensure the tab
+// Attach (or reset) the expenses tab on an existing spreadsheet: ensure the tab
 // exists, write the header + RAZEM/per-type SUMIF summary, then style it (frozen
 // bold header, currency amounts, per-type whole-row color, matching summary
 // swatches). Does NOT create a new file, so it works within service-account Drive
