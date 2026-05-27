@@ -96,6 +96,36 @@ describe('appendMaterialRow', () => {
   })
 })
 
+describe('updateMaterialRow', () => {
+  it('writes the seven mapped fields at the given row, leaving other rows untouched', async () => {
+    // grid is read to resolve header columns; row 3 is the target
+    getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101], [102]] } })
+    const { updateMaterialRow } = await import('@/lib/google/sheets')
+    await updateMaterialRow('s', 3, {
+      transferId: 102,
+      date: '2026-05-27',
+      typ: 'Materiały budowlane',
+      description: 'cement',
+      amount: 500,
+      category: 'Łazienka',
+      note: 'FV/1',
+    })
+
+    expect(valuesBatchUpdateMock).toHaveBeenCalledTimes(1)
+    const req = valuesBatchUpdateMock.mock.calls[0][0]
+    expect(req.requestBody.valueInputOption).toBe('USER_ENTERED')
+    expect(req.requestBody.data).toEqual([
+      { range: "'wydatki inwestycyjne (tylko do odczytu)'!A3", values: [[102]] },
+      { range: "'wydatki inwestycyjne (tylko do odczytu)'!B3", values: [['2026-05-27']] },
+      { range: "'wydatki inwestycyjne (tylko do odczytu)'!C3", values: [['Materiały budowlane']] },
+      { range: "'wydatki inwestycyjne (tylko do odczytu)'!D3", values: [['cement']] },
+      { range: "'wydatki inwestycyjne (tylko do odczytu)'!E3", values: [[500]] },
+      { range: "'wydatki inwestycyjne (tylko do odczytu)'!F3", values: [['Łazienka']] },
+      { range: "'wydatki inwestycyjne (tylko do odczytu)'!G3", values: [['FV/1']] },
+    ])
+  })
+})
+
 describe('formulaArgSeparator', () => {
   it("uses ';' for comma-decimal locales (pl_PL, de_DE)", async () => {
     const { formulaArgSeparator } = await import('@/lib/google/sheets')

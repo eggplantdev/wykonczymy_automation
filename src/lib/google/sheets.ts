@@ -215,6 +215,39 @@ export async function appendMaterialRow(
   return { rowIndex }
 }
 
+// Overwrite the seven mapped cells of an EXISTING row (located by
+// readMaterialyTransferIds). Mirrors appendMaterialRow but targets a known
+// rowNumber instead of the next empty row — used to push an edit, or to heal drift
+// on re-sync. Touches only the mapped columns; summary/formatting/protected range
+// are untouched.
+export async function updateMaterialRow(
+  spreadsheetId: string,
+  rowNumber: number,
+  input: MaterialRowInputT,
+): Promise<void> {
+  const sheets = getClient()
+  const grid = await readGrid(spreadsheetId)
+  const { cols } = resolveHeaders(grid)
+
+  const valueByField: Record<FieldT, string | number> = {
+    id: input.transferId,
+    date: input.date,
+    typ: input.typ,
+    description: input.description,
+    amount: input.amount,
+    category: input.category,
+    note: input.note,
+  }
+  const data = FIELDS.map((field) => ({
+    range: `'${MATERIALY_TAB}'!${columnLetter(cols[field])}${rowNumber}`,
+    values: [[valueByField[field]]],
+  }))
+  await sheets.spreadsheets.values.batchUpdate({
+    spreadsheetId,
+    requestBody: { valueInputOption: 'USER_ENTERED', data },
+  })
+}
+
 // Color that brands each expense type across the sheet (row tint + summary
 // swatch), keyed by type name. A type not listed here falls back to gray — it
 // still appears, just uncolored until a hex is added (one-line edit).
