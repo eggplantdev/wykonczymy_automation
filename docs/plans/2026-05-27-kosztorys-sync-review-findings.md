@@ -130,3 +130,13 @@
 - Fix (deferred): relocate the summary off the sortable data rows entirely (its own region above a frozen header, or a separate area), so a data sort can't move it. Out of scope for the active-costs work; only matters if the owner sorts the whole sheet often.
 
 > **Live verification (2026-05-27, investment 6):** active-costs reconciliation + the SUMIF/`deleteRange` fixes verified end-to-end through the app. Tests A (reset→exact mirror), B (cancel removes row, summary survives a row-2 delete), C (create appends), D (edit-in-place + recolor + per-type shift), G (sort doesn't break totals) all passed. E (edit→move) and F (manual-row preservation) are code-confirmed but not yet run live. Detailed log in `2026-05-27-kosztorys-active-costs-reconcile-plan.md`.
+
+> **Operational note — programmatic sheet creation needs a Workspace Shared Drive (2026-05-27):**
+> the service account has no Drive storage of its own, so `createKosztorysFromTemplate`
+> (`drive.files.copy`) fails with `storageQuotaExceeded` when creating a NEW sheet on a
+> personal/free Google account (this is what #15's `isStorageQuotaError` detects). The
+> working path on a personal account is **"Powiąż istniejący arkusz"** (`linkKosztorysSheetAction`).
+> To enable creation: a **Google Workspace Shared Drive** (storage owned by the drive, SA
+> as member) + `KOSZTORYS_DRIVE_FOLDER_ID` pointing into it + adding **`supportsAllDrives: true`**
+> to the `drive.files.copy` call (`drive.ts:18` currently omits it). See memory
+> `project_kosztorys_sa_no_drive_storage`.
