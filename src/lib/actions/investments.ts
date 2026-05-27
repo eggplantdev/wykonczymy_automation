@@ -1,6 +1,6 @@
 'use server'
 
-import { createKosztorysFromTemplate } from '@/lib/google/drive'
+import { createKosztorysFromTemplate, isStorageQuotaError } from '@/lib/google/drive'
 import { extractSheetId, serviceAccountEmail, verifySheetAccess } from '@/lib/google/sheet-access'
 import { setupMaterialyTab } from '@/lib/google/sheets'
 import { investmentSchema, type InvestmentFormDataT } from '@/lib/schemas/investment'
@@ -99,7 +99,7 @@ export async function provisionKosztorysAction(investmentId: number) {
         ;({ sheetId } = await createKosztorysFromTemplate(investment.name))
       } catch (err) {
         const msg = String(err)
-        if (msg.includes('storage quota')) {
+        if (isStorageQuotaError(err)) {
           return {
             success: false,
             error:

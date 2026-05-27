@@ -56,3 +56,35 @@ describe('createKosztorysFromTemplate', () => {
     await expect(createKosztorysFromTemplate('X')).rejects.toThrow(/KOSZTORYS_TEMPLATE_SHEET_ID/)
   })
 })
+
+describe('isStorageQuotaError', () => {
+  it('matches the structured reason on a top-level errors array', async () => {
+    const { isStorageQuotaError } = await import('@/lib/google/drive')
+    expect(isStorageQuotaError({ code: 403, errors: [{ reason: 'storageQuotaExceeded' }] })).toBe(
+      true,
+    )
+  })
+
+  it('matches the structured reason nested under response.data.error.errors', async () => {
+    const { isStorageQuotaError } = await import('@/lib/google/drive')
+    expect(
+      isStorageQuotaError({
+        response: { data: { error: { errors: [{ reason: 'storageQuotaExceeded' }] } } },
+      }),
+    ).toBe(true)
+  })
+
+  it('falls back to a message match when no structured reason is present', async () => {
+    const { isStorageQuotaError } = await import('@/lib/google/drive')
+    expect(
+      isStorageQuotaError(new Error("The user's Drive storage quota has been exceeded.")),
+    ).toBe(true)
+  })
+
+  it('is false for unrelated errors (different reason / message / nullish)', async () => {
+    const { isStorageQuotaError } = await import('@/lib/google/drive')
+    expect(isStorageQuotaError({ code: 404, errors: [{ reason: 'notFound' }] })).toBe(false)
+    expect(isStorageQuotaError(new Error('Drive returned no file id'))).toBe(false)
+    expect(isStorageQuotaError(undefined)).toBe(false)
+  })
+})
