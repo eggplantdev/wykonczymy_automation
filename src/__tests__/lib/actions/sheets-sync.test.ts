@@ -77,8 +77,12 @@ vi.mock('@/lib/cache/revalidate', () => ({
   revalidateCollections: vi.fn(),
 }))
 
-const { previewMaterialSync, applyMaterialSync, syncSingleTransferToSheet } =
-  await import('@/lib/actions/sheets-sync')
+const {
+  previewMaterialSync,
+  applyMaterialSync,
+  syncSingleTransferToSheet,
+  removeTransferFromSheet,
+} = await import('@/lib/actions/sheets-sync')
 
 // ── helpers ──────────────────────────────────────────────────────────────
 
@@ -319,5 +323,36 @@ describe('syncSingleTransferToSheet', () => {
       "'wydatki inwestycyjne (tylko do odczytu)'!A2",
     )
     expect(valuesBatchUpdateMock.mock.calls[0][0].requestBody.data[4].values).toEqual([[999]])
+  })
+})
+
+// ── removeTransferFromSheet ────────────────────────────────────────────────
+
+describe('removeTransferFromSheet', () => {
+  it('removes the row from the given investment’s sheet', async () => {
+    findByIDMock.mockResolvedValue({ id: 31, googleSheetId: 'sheet-old' })
+    sheetColIReturns([55]) // id 55 on row 2 of the old sheet
+    spreadsheetsGetMock.mockResolvedValueOnce({
+      data: {
+        sheets: [{ properties: { sheetId: 12, title: 'wydatki inwestycyjne (tylko do odczytu)' } }],
+      },
+    })
+
+    await removeTransferFromSheet({ transferId: 55, investmentId: 31 })
+
+    expect(batchUpdateMock).toHaveBeenCalledTimes(1)
+    expect(batchUpdateMock.mock.calls[0][0].requestBody.requests[0].deleteDimension.range).toEqual({
+      sheetId: 12,
+      dimension: 'ROWS',
+      startIndex: 1,
+      endIndex: 2,
+    })
+  })
+
+  it('no-ops when the investment has no googleSheetId', async () => {
+    findByIDMock.mockResolvedValue({ id: 31, googleSheetId: null })
+    await removeTransferFromSheet({ transferId: 55, investmentId: 31 })
+    expect(valuesGetMock).not.toHaveBeenCalled()
+    expect(batchUpdateMock).not.toHaveBeenCalled()
   })
 })

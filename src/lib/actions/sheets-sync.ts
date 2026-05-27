@@ -2,7 +2,12 @@
 
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { appendMaterialRow, readMaterialyTransferIds, updateMaterialRow } from '@/lib/google/sheets'
+import {
+  appendMaterialRow,
+  readMaterialyTransferIds,
+  removeMaterialRow,
+  updateMaterialRow,
+} from '@/lib/google/sheets'
 import { protectedAction } from './utils'
 
 type AppRowT = {
@@ -257,6 +262,31 @@ export async function applyMaterialSync(investmentId: number) {
     // investment UI reads through the investments cache, so invalidate that.
     ['investments'],
   )
+}
+
+/**
+ * Remove a transfer's row from a SPECIFIC investment's sheet. Called when an edit
+ * reassigns an expense to a different investment — the stale row is dropped from the
+ * OLD sheet (the new sheet gets the row via syncSingleTransferToSheet). Never throws.
+ */
+export async function removeTransferFromSheet(params: {
+  transferId: number
+  investmentId: number
+}): Promise<void> {
+  try {
+    const payload = await getPayload({ config })
+    const investment = await payload.findByID({
+      collection: 'investments',
+      id: params.investmentId,
+      overrideAccess: true,
+    })
+    const sheetId = investment?.googleSheetId
+    if (!sheetId) return
+    await removeMaterialRow(sheetId, params.transferId)
+    console.log(`[sheets-sync] remove transfer #${params.transferId} from sheet ${sheetId}`)
+  } catch (err) {
+    console.error('[sheets-sync] removeTransferFromSheet failed (non-fatal):', err)
+  }
 }
 
 /**
