@@ -1,5 +1,9 @@
 'use server'
 
+import { revalidateTag } from 'next/cache'
+import { CACHE_TAGS } from '@/lib/cache/tags'
+import { requireAuth } from '@/lib/auth/require-auth'
+import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { createKosztorysFromTemplate, isStorageQuotaError } from '@/lib/google/drive'
 import { extractSheetId, serviceAccountEmail, verifySheetAccess } from '@/lib/google/sheet-access'
 import { setupMaterialyTab } from '@/lib/google/sheets'
@@ -62,6 +66,12 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
             data: { googleSheetId: sheetId },
             overrideAccess: true,
           })
+          // Revalidate again here: protectedAction already revalidated ['investments']
+          // when the handler returned, but this fire-and-forget write lands AFTER that,
+          // so without this the banner/listing keep showing hasSheet=false until an
+          // unrelated mutation invalidates the tag (review T2.8). revalidateTag (not
+          // updateTag) — this runs detached, past the action's execution context.
+          revalidateTag(CACHE_TAGS.investments, 'default')
           console.log(`[kosztorys-provision] investment #${created.id} → sheet provisioned`)
         } catch (err) {
           console.error(`[kosztorys-provision] investment #${created.id} failed (non-fatal):`, err)
@@ -133,8 +143,17 @@ export async function provisionKosztorysAction(investmentId: number) {
 // The service-account email a user must share their sheet with before linking.
 // Non-secret; surfaced in the setup dialog so the share step is clear up front
 // (not only discovered via the "share with…" error after a failed link attempt).
+// Requires auth (like every other action here) and never throws: returns '' if the
+// caller isn't authed or the credential env var is unset, so the caller's
+// fire-and-forget `.then(setSaEmail)` can't raise an unhandled rejection (T3.2).
 export async function getServiceAccountEmailAction(): Promise<string> {
-  return serviceAccountEmail()
+  const auth = await requireAuth(MANAGEMENT_ROLES)
+  if (!auth.success) return ''
+  try {
+    return serviceAccountEmail()
+  } catch {
+    return ''
+  }
 }
 
 export async function linkKosztorysSheetAction(investmentId: number, input: string) {

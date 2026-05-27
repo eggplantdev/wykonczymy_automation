@@ -39,7 +39,10 @@ export function KosztorysSetupDialog({ investmentId, investmentName, trigger }: 
   // tell the user exactly who to share their sheet with (fetched lazily, once).
   const handleOpenChange = (next: boolean) => {
     setOpen(next)
-    if (next && !saEmail) void getServiceAccountEmailAction().then(setSaEmail)
+    if (next && !saEmail)
+      void getServiceAccountEmailAction()
+        .then(setSaEmail)
+        .catch(() => {})
   }
 
   const finish = (message: string) => {

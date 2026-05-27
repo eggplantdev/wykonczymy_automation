@@ -7,6 +7,7 @@ import {
   readMaterialyTransferIds,
   removeMaterialRow,
 } from '@/lib/google/sheets'
+import { getRelationName } from '@/lib/get-relation-name'
 import { protectedAction } from './utils'
 
 type AppRowT = {
@@ -32,9 +33,6 @@ export type ApplyMaterialSyncResultT = {
 }
 
 // ── relation/value helpers (payload relations are number | object | null) ──────
-const relName = (rel: unknown): string =>
-  typeof rel === 'object' && rel !== null ? ((rel as { name?: string }).name ?? '') : ''
-
 const relId = (rel: unknown): number | undefined =>
   typeof rel === 'number'
     ? rel
@@ -75,7 +73,7 @@ type TxDoc = {
 
 // + row for an investment expense (skip if it has no expense category → no typ).
 function expenseRow(t: TxDoc): AppRowT | undefined {
-  const typ = relName(t.expenseCategory)
+  const typ = getRelationName(t.expenseCategory, '')
   if (!typ) return undefined
   const amount = finiteAmount(t.amount)
   if (amount === undefined) {
@@ -88,7 +86,7 @@ function expenseRow(t: TxDoc): AppRowT | undefined {
     typ,
     description: t.description ?? '',
     amount,
-    category: relName(t.otherCategory),
+    category: getRelationName(t.otherCategory, ''),
     note: t.invoiceNote ?? '',
   }
 }
@@ -147,9 +145,9 @@ export async function previewMaterialSync(investmentId: number) {
       readMaterialyTransferIds(sheetId),
     ])
 
-    // Append-only: the reconciler only adds app rows the sheet is missing. Rows
-    // the app doesn't recognise are the owner's own data — left untouched, not
-    // flagged. Nothing is ever deleted.
+    // The preview surfaces only rows to APPEND (ids the sheet is missing).
+    // applyMaterialSync additionally overwrites present rows and removes this
+    // investment's orphaned rows — the preview under-reports those (review T3.1).
     const toAppend = appRows.filter((r) => !sheetIds.has(r.transferId))
 
     return {

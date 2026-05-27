@@ -1,5 +1,6 @@
 import { google, sheets_v4 } from 'googleapis'
 import { createServiceAccountJWT } from './auth'
+import { serviceAccountEmail } from './sheet-access'
 
 // One row per investment expense in a single long table. Columns are located by
 // header text (normalized, keyword-contains) so the sheet layout — column order,
@@ -131,12 +132,6 @@ function textOn(rgb: RgbT): RgbT {
 function getClient(): sheets_v4.Sheets {
   const auth = createServiceAccountJWT(['https://www.googleapis.com/auth/spreadsheets'])
   return google.sheets({ version: 'v4', auth })
-}
-
-function serviceAccountEmail(): string {
-  const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON
-  if (!raw) throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON not set')
-  return (JSON.parse(raw) as { client_email?: string }).client_email ?? ''
 }
 
 type HeaderMapT = { headerRow: number; cols: Record<FieldT, number> }
@@ -402,12 +397,14 @@ export async function setupMaterialyTab(
   // SUMIF totals or the row coloring).
   await sheets.spreadsheets.values.clear({ spreadsheetId, range: TAB_RANGE })
 
-  // Header at row 1; the summary occupies row 2 (columns H+). Data rows land from
-  // row 3 down: `applyMaterialRowsBatch` appends via Google `values.append`, which
-  // places the first row after row 2 because the summary cells make row 2 count as
-  // table content. Keeping the summary on its own row means data sorts/deletes never
-  // disturb it. The summary is a small 2-row table starting at column H: RAZEM + one
-  // column per type, the total UNDER its label. Separator follows the sheet's locale.
+  // Header at row 1, data from row 2 — a clean A:G block you can date-filter. The
+  // first data row (row 2) shares its row with the summary totals, which sit in
+  // columns H+ (A:G stay free for data). `applyMaterialRowsBatch` computes the append
+  // row explicitly (last mapped-column data row + 1) rather than using Google
+  // `values.append` — append's table detection would treat the adjacent summary cell
+  // as table content and place the first row at row 3, leaving row 2's A:G blank. The
+  // summary is a small 2-row table starting at column H: RAZEM + one column per type,
+  // the total UNDER its label. Separator follows the sheet's locale.
   const { labels, totals } = buildMaterialySummary(expenseTypes, argSep)
 
   const summaryStart = columnLetter(SUMMARY_START_COL)

@@ -144,7 +144,7 @@ Each field binds to the FIRST column whose header contains its keyword (`findInd
 **Trigger:** owner adds e.g. `Kategoria robót` left of the app's `kategoria` column → category reads/writes land in the owner's column, no error (all 7 fields still "found").
 **Fix:** detect duplicate matches and fail loudly, or anchor matchers to exact header strings written by setup.
 
-### T2.8 ☐ Auto-provision writes `googleSheetId` after the cache is already revalidated
+### T2.8 ☑ Auto-provision writes `googleSheetId` after the cache is already revalidated
 
 **`src/lib/actions/investments.ts:56`** — CONFIRMED
 
@@ -165,7 +165,7 @@ Each field binds to the FIRST column whose header contains its keyword (`findInd
 
 **Fix:** have preview compute `{toAppend, toUpdate, toRemove}` and enable confirm when any is non-empty; surface all three counts.
 
-### T3.2 ☐ `getServiceAccountEmailAction` bypasses `protectedAction`, throws, caller has no `.catch`
+### T3.2 ☑ `getServiceAccountEmailAction` bypasses `protectedAction`, throws, caller has no `.catch`
 
 **`src/lib/actions/investments.ts:136` ← `src/components/dialogs/kosztorys-setup-dialog.tsx:42`** — CONFIRMED
 
@@ -209,15 +209,15 @@ Each `appendMaterialRow`/`updateMaterialRow` independently re-reads the whole `A
 
 Each item re-fetches the investment's `sheetId` and re-reads the grid. Bulk items share one investment → resolve sheetId + read grid once, batch all appends.
 
-### T4.3 ☐ `serviceAccountEmail()` duplicated
+### T4.3 ☑ `serviceAccountEmail()` duplicated
 
 **`src/lib/google/sheets.ts:131` vs `src/lib/google/sheet-access.ts`** — reuse. Import the exported one; delete the local copy (`investments.ts` already imports from `sheet-access`).
 
-### T4.4 ☐ `relName()` duplicates `getRelationName()`
+### T4.4 ☑ `relName()` duplicates `getRelationName()`
 
 **`src/lib/actions/sheets-sync.ts:36`** — reuse. `src/lib/get-relation-name.ts` already does object-vs-id `.name` extraction; call it (pass `''` fallback).
 
-### T4.5 ☐ Preview amount rendered as raw `${r.amount} zł`
+### T4.5 ☑ Preview amount rendered as raw `${r.amount} zł`
 
 **`src/app/(frontend)/inwestycje/[id]/kosztorys/sync-button.tsx:129`** — reuse. Use `formatPLN` from `@/lib/format-currency` for pl-PL formatting consistency.
 
@@ -225,7 +225,7 @@ Each item re-fetches the investment's `sheetId` and re-reads the grid. Bulk item
 
 **`src/app/(frontend)/inwestycje/[id]/kosztorys/sync-button.tsx`** — simplify. `tone` red/yellow entries + the `items.length === 0` branch are unreachable (single render, `tone="green"`, caller short-circuits on empty). Inline the single list or hardcode the emerald dot.
 
-### T4.7 ☐ Stale "append-only / nothing is ever deleted" comments
+### T4.7 ☑ Stale "append-only / nothing is ever deleted" comments
 
 **`src/lib/actions/sheets-sync.ts:151`, `src/lib/google/sheets.ts:273`** — simplify. Leftovers from the reversing-row model; the code now updates and removes. Delete/rewrite to describe reconcile behavior.
 

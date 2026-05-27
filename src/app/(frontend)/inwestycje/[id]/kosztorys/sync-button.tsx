@@ -17,6 +17,7 @@ import {
   type MaterialSyncPreviewT,
 } from '@/lib/actions/sheets-sync'
 import { setupKosztorysSheetAction } from '@/lib/actions/investments'
+import { formatPLN } from '@/lib/format-currency'
 
 export function SyncButton({ investmentId }: { investmentId: number }) {
   const [preview, setPreview] = useState<MaterialSyncPreviewT | null>(null)
@@ -140,7 +141,7 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
                   tone="green"
                   items={preview.toAppend.map((r) => ({
                     key: r.transferId,
-                    text: `#${r.transferId} · ${r.typ} · ${r.amount} zł · ${r.description} [${r.date}]`,
+                    text: `#${r.transferId} · ${r.typ} · ${formatPLN(r.amount)} · ${r.description} [${r.date}]`,
                   }))}
                 />
               )}
