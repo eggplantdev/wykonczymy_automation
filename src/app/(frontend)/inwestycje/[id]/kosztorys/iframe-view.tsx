@@ -1,6 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import { ExternalLink } from '@/components/ui/external-link'
 
 type PropsT = {
   sheetId: string
@@ -8,32 +9,21 @@ type PropsT = {
   toolbar?: ReactNode
 }
 
+const ALL_SHEETS_URL = 'https://docs.google.com/spreadsheets/u/0/'
+
 export function KosztorysIframeView({ sheetId, investmentName, toolbar }: PropsT) {
-  const src = `https://docs.google.com/spreadsheets/d/${sheetId}/edit?usp=sharing&rm=embedded&embedded=true`
+  const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/edit`
+  const src = `${sheetUrl}?usp=sharing&rm=embedded&embedded=true`
   return (
     <div className="flex h-[calc(100dvh-3.5rem)] flex-col overflow-hidden">
       <div className="border-border flex shrink-0 flex-wrap items-center justify-between gap-4 border-b px-4 py-2">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5">
           <h1 className="text-foreground text-sm font-medium">Kosztorys — {investmentName}</h1>
-          <a
-            href={`https://docs.google.com/spreadsheets/d/${sheetId}/edit`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-foreground text-xs underline"
-          >
-            Otwórz w Sheets ↗
-          </a>
+          <ExternalLink href={sheetUrl}>Otwórz w Sheets ↗</ExternalLink>
         </div>
         <div className="flex items-center gap-3">
           {toolbar}
-          <a
-            href="https://docs.google.com/spreadsheets/u/0/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-foreground text-xs underline"
-          >
-            Wszystkie kosztorysy ↗
-          </a>
+          <ExternalLink href={ALL_SHEETS_URL}>Wszystkie kosztorysy ↗</ExternalLink>
         </div>
       </div>
       {/* Desktop: the embedded sheet. The iframe is hidden below lg — Google Sheets
@@ -49,14 +39,9 @@ export function KosztorysIframeView({ sheetId, investmentName, toolbar }: PropsT
         <p className="text-muted-foreground text-sm">
           Kosztorys najlepiej otworzyć na komputerze. Na telefonie skorzystaj z aplikacji Arkusze.
         </p>
-        <a
-          href={`https://docs.google.com/spreadsheets/d/${sheetId}/edit`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex min-h-11 items-center rounded-md px-4 py-2 text-sm font-medium"
-        >
+        <ExternalLink href={sheetUrl} variant="button">
           Otwórz w Arkuszach ↗
-        </a>
+        </ExternalLink>
       </div>
     </div>
   )
