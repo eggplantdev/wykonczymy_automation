@@ -156,6 +156,26 @@ export async function linkKosztorysSheetAction(investmentId: number, input: stri
         return { success: false, error: 'Nieprawidłowy link lub identyfikator arkusza Google.' }
       }
 
+      // Refuse a sheet already linked to another investment. Two investments sharing
+      // one tab would each treat the other's rows as orphans and delete them on sync
+      // (T1.3). (The DB unique constraint is the belt-and-suspenders for direct admin
+      // edits; this guard covers the link flow.)
+      const alreadyLinked = await payload.find({
+        collection: 'investments',
+        where: {
+          and: [{ googleSheetId: { equals: sheetId } }, { id: { not_equals: investmentId } }],
+        },
+        depth: 0,
+        limit: 1,
+        overrideAccess: true,
+      })
+      if (alreadyLinked.docs.length > 0) {
+        return {
+          success: false,
+          error: `Ten arkusz jest już powiązany z inną inwestycją („${alreadyLinked.docs[0].name}”).`,
+        }
+      }
+
       const access = await verifySheetAccess(sheetId)
       if (!access) {
         return {

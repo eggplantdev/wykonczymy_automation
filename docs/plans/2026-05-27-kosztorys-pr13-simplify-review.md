@@ -9,6 +9,11 @@
 > Findings are tiered by severity. Tier 1 = silent data loss / corruption (fix before merge to
 > staging-then-main). Tiers 2–3 = consistency/UX holes. Tier 4–5 = cleanup & architecture.
 > Each finding was CONFIRMED against the live code unless marked PLAUSIBLE.
+>
+> **SCALE DECISION (2026-05-27):** the user confirmed a single kosztorys can hold **1000+ expense
+> rows**. This elevates **T2.1 + T4.1 (batch the reconcile) to MUST-FIX** — at that scale the
+> full-reconcile button does O(N) Google API calls and would rate-limit / fail mid-sync. They are
+> the same refactor (read grid once → single `values.batchUpdate`). See `project_kosztorys_scale_1000plus` memory.
 
 ---
 
@@ -32,9 +37,11 @@
 **Trigger:** any kosztorys that grows past 1000 expense rows. Also: columns past `Z` are invisible to header resolution; appends recompute "last id row" only within the first 1000 rows and overwrite/duplicate.
 **Fix:** raise/remove the row cap (paginate `loadAppMaterialRows`; widen/auto-size `TAB_RANGE`), and make orphan-removal correct under truncation (don't delete an id you didn't fully enumerate). Couple with T1.1.
 
-### T1.3 ⚠ No unique constraint on `google_sheet_id` → two investments can share one sheet
+### T1.3 ◐ No unique constraint on `google_sheet_id` → two investments can share one sheet
 
 **`src/migrations/20260525_add_google_sheet_id_to_investments.ts` + `src/collections/investments.ts`** — CONFIRMED (PLAUSIBLE trigger)
+**Layer 1 (app guard) — FIXED:** `linkKosztorysSheetAction` now rejects a sheet already linked to another investment (names the conflicting investment), before the Google round-trip.
+**Layer 2 (DB unique index) — DEFERRED, needs decision:** catches direct admin-panel edits too, but requires a migration; gated on the test-db→prod-db flip and a pre-existing-duplicates check.
 
 The column/field has no unique constraint. Two investments can be linked to the same spreadsheet (paste the same URL, or admin edit).
 
