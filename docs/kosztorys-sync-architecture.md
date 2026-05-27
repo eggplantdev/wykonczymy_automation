@@ -1,5 +1,10 @@
 # Kosztorys ↔ Google Sheets — Architecture
 
+> **➡️ For the current behaviour + what's left, read
+> [`kosztorys-sync-state.md`](./kosztorys-sync-state.md).** This file is kept for
+> design rationale; some of its prose (append-only / negative reversing rows) is
+> superseded by the active-costs model.
+
 > Sister document to `docs/plans/2026-05-20-kosztorys-b-iframe-poc-build.md`.
 > The plan is the recipe; this doc is the **rationale** — what we built, why
 > we built it this way, and how it slots into the existing system.
@@ -382,6 +387,59 @@ What we **don't** accept:
   sheet, why doesn't the app see it" enough times.
 
 ---
+
+## 9. Verification — live test results (2026-05-27)
+
+Run against the live test sheet
+(`1cFCFtplugpjJpq6xsABAdn7_pWBrji2V_E-9Kz33APs`, investment #6) via Playwright
+through the real UI, with the sheet state read back through the Sheets API
+(formulas via `valueRenderOption: FORMULA`, totals via `UNFORMATTED_VALUE`, row
+tint via `effectiveFormat.backgroundColor`).
+
+### 9a. Bug found + fixed — `removeMaterialRow` wiped the summary formulas
+
+**Symptom.** Cancelling a recently-added expense blanked the RAZEM / per-type
+`SUMIF` totals on the sheet.
+
+**Root cause.** The summary block is a 2-row table at column H: labels on **H1**
+(header row) and the `=SUM(E:E)` + per-type `=SUMIF` totals on **H2**
+(`setupMaterialyTab`). New expenses are written newest-first, so the freshest
+expense sits on **row 2** — the same row as the totals. `removeMaterialRow` used
+`deleteDimension: ROWS`, which deletes the **entire full-width row**; deleting the
+row-2 expense took H2's formulas with it. (Deleting any lower row was harmless —
+rows above a deletion don't shift — which is why it looked intermittent.)
+
+**Fix.** Swap the full-row `deleteDimension` for a column-scoped `deleteRange`
+with `shiftDimension: ROWS`, bounded to the data columns `[0, SUMMARY_START_COL)`.
+Only the expense's own cells are deleted and the rows below shift up (still
+gapless); the summary columns (H onward) are never in the deleted range.
+Unit test in `sheets.test.ts` asserts the exact `deleteRange` request shape.
+
+**Live proof.** With #2467 on row 2 and H2 holding all four formulas, cancelling
+#2467 through the UI left H2 **fully intact** (`=SUM(E:E)` + three `=SUMIF`) and
+shifted the row below up into row 2 with no gap. The same operation pre-fix
+blanked H2 entirely.
+
+### 9b. Test matrix → see the live verification log
+
+The full pass/fail matrix (Tests A–G) lives in the canonical live-verification
+log: **`docs/plans/2026-05-27-kosztorys-active-costs-reconcile-plan.md`**.
+As of 2026-05-27: **A, B, C, D pass** (reset reconciliation, cancel-removes-row
+incl. the row-2 case from 9a, create-appends, edit-in-place); **E, F, G** are not
+yet run live (E needs a second linked sheet; F/G are code-confirmed but not
+exercised through the exact action).
+
+Two behaviours worth calling out here because they correct stale prose above:
+
+- **Cancel deletes the row — it does NOT append a negative row.** Test B confirms
+  the active-costs model; §2/§3b's "append-only / negative reversing row"
+  description is superseded (see the top banner).
+- **Edit recolors automatically.** `updateMaterialRow` writes no formatting; the
+  row tint follows a `CUSTOM_FORMULA` conditional-format rule keyed on column C,
+  so changing the typ recolors the row for free (Test D: blue → green).
+
+The embedded-iframe `401` from `docs.google.com` in the browser console is
+expected (the iframe isn't authenticated) and is unrelated to the sync.
 
 ## File map
 

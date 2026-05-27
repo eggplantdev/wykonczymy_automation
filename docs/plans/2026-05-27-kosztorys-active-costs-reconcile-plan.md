@@ -529,6 +529,28 @@ Verified against the real sheet (`1cFCFtplugpjJpq…`) + the test DB via the ser
       Σ per-type = DB active total. Confirms the active-costs model + the drift-proof SUMIF
       fix live. (Totals are higher than the earlier 48 243,57 snapshot because the DB's active
       set changed between checks — the point is sheet == DB at verification time.)
-- [ ] **Test B — Cancel removes the row.** Deferred to a parallel tester.
-- [ ] Test C — Create appends · Test D — Edit updates in place · Test E — Edit→move ·
-      Test F — Manual-row preservation (via Synchronizuj) · Test G — Drift-proof sort.
+- [x] **Test B — Cancel removes the row (post-fix).** Cancelled #2461/#2463/#2467 through
+      the UI. Each row disappeared from the sheet (38→36→… ids), **no negative/reversing row**
+      was added (active-costs model), and the data below shifted up with no gap. Headline:
+      cancelling #2467 while it sat on **row 2** left the column-H summary **fully intact**
+      (`=SUM(E:E)` + three `=SUMIF`) — the exact regression the `deleteRange` fix (commit
+      `53b8727`) targets. Pre-fix, the same cancel blanked H2.
+- [x] **Test C — Create appends.** Added 3 expenses (#2461–#2463) via the dialog; the
+      post-response `after()` auto-synced all three to the sheet. The **Synchronizuj** preview
+      then correctly showed _"nothing to add"_ — proving create is the write path and the button
+      is only a drift reconciler. (Raw append lands at the bottom; a reset re-syncs newest-first.)
+- [x] **Test D — Edit updates in place.** Edited #2469 (desc + typ Materiały budowlane →
+      wykończeniowe). Same row 37, id unchanged, **single row** (no duplicate); opis + typ cells
+      updated; row tint went blue `rgb(219,232,253)` → green `rgb(215,244,226)` (the
+      `CUSTOM_FORMULA` conditional rule on col C recolors automatically — `updateMaterialRow`
+      writes no formatting); per-type totals shifted budowlane −700 / wykończeniowe +700, RAZEM
+      unchanged.
+- [ ] **Test E — Edit → move investment.** Not run — needs a second investment with a linked
+      sheet. Code path exists (`syncSingleTransferToSheet` appends to new + `removeTransferFromSheet`
+      drops from old).
+- [ ] **Test F — Manual-row preservation (via Synchronizuj).** Not run live. Code-confirmed:
+      scoped orphan-removal only deletes ids that resolve to a real transaction, so a manual id
+      (e.g. 99999) is kept. Needs a live type-a-row-then-reconcile pass.
+- [ ] **Test G — Drift-proof sort.** Not run as an explicit Data → sort-by-A. The full-column +
+      literal-criterion SUMIF was observed correct across appends/edits/deletes (row shifts), but
+      the exact sort action wasn't performed.
