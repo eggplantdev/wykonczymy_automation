@@ -40,9 +40,9 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
         )
         return
       }
-      const { added, skipped, errors } = applied.data
+      const { added, updated, errors } = applied.data
       toastMessage(
-        `Zakładka zresetowana i zsynchronizowana: +${added} / pominięto ${skipped}${
+        `Zakładka zresetowana i zsynchronizowana: +${added} / zaktualizowano ${updated}${
           errors.length ? ` · błędy: ${errors.length}` : ''
         }`,
         errors.length ? 'warning' : 'success',
@@ -69,9 +69,9 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
         toastMessage(res.error, 'error')
         return
       }
-      const { added, skipped, errors } = res.data
+      const { added, updated, errors } = res.data
       toastMessage(
-        `Synchronizacja: +${added} / pominięto ${skipped}${
+        `Synchronizacja: +${added} / zaktualizowano ${updated}${
           errors.length ? ` · błędy: ${errors.length}` : ''
         }`,
         errors.length ? 'warning' : 'success',
@@ -116,9 +116,9 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
           <DialogHeader>
             <DialogTitle>Synchronizacja wydatków inwestycyjnych</DialogTitle>
             <DialogDescription>
-              Do arkusza zostaną dodane nowe wydatki inwestycyjne, których jeszcze w nim nie ma. Nic
-              nie jest usuwane ani nadpisywane — istniejące wiersze i podsumowanie pozostają bez
-              zmian.
+              Do arkusza zostaną dodane nowe wydatki inwestycyjne, a istniejące wiersze zostaną
+              odświeżone, aby pasowały do danych z aplikacji. Wiersze dodane ręcznie (spoza
+              aplikacji) pozostają bez zmian.
             </DialogDescription>
           </DialogHeader>
           {preview && (
