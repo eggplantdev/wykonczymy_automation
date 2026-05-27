@@ -290,10 +290,9 @@ export async function removeTransferFromSheet(params: {
 }
 
 /**
- * Single-transfer sync, called fire-and-forget from create/cancel server actions.
- * Append-only: an INVESTMENT_EXPENSE appends a + row; a CANCELLATION appends a −
- * reversing row (same typ as the original, its own id). Never throws; logs and
- * swallows errors so the calling action's UX is unaffected.
+ * Single-transfer sync from create/cancel/update actions. An INVESTMENT_EXPENSE
+ * appends or updates its row; a CANCELLATION removes the original expense's row.
+ * Never throws; logs and swallows errors so the calling action's UX is unaffected.
  */
 export async function syncSingleTransferToSheet(params: { transferId: number }): Promise<void> {
   try {
@@ -307,13 +306,9 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
     })
     if (!transfer) return
 
-    let row: AppRowT | undefined
-    let investmentId: number | undefined
-
-    if (transfer.type === 'INVESTMENT_EXPENSE') {
-      investmentId = relId(transfer.investment)
-      row = expenseRow(transfer as unknown as TxDoc)
-    } else if (transfer.type === 'CANCELLATION') {
+    // A cancellation no longer adds a reversing row — the sheet mirrors ACTIVE
+    // expenses, so cancelling an expense removes its row from the sheet.
+    if (transfer.type === 'CANCELLATION') {
       const origId = relId((transfer as { cancelledTransaction?: unknown }).cancelledTransaction)
       if (origId === undefined) return
       const original = await payload.findByID({
@@ -323,17 +318,23 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
         overrideAccess: true,
       })
       if (!original || original.type !== 'INVESTMENT_EXPENSE') return
-      investmentId = relId(original.investment)
-      row = cancellationRow(
-        transfer.id,
-        transfer.date,
-        original as unknown as TxDoc,
-        cancellationReason(transfer.description),
-      )
-    } else {
+      const investmentId = relId(original.investment)
+      if (investmentId === undefined) return
+      const investment = await payload.findByID({
+        collection: 'investments',
+        id: investmentId,
+        overrideAccess: true,
+      })
+      const sheetId = investment?.googleSheetId
+      if (!sheetId) return
+      await removeMaterialRow(sheetId, origId)
+      console.log(`[sheets-sync] cancel #${origId}: removed row from sheet ${sheetId}`)
       return
     }
 
+    if (transfer.type !== 'INVESTMENT_EXPENSE') return
+    const investmentId = relId(transfer.investment)
+    const row = expenseRow(transfer as unknown as TxDoc)
     if (!row || investmentId === undefined) return
 
     const investment = await payload.findByID({
@@ -361,9 +362,7 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
 
     await appendMaterialRow(sheetId, row)
     console.log(
-      `[sheets-sync] append transfer #${params.transferId} → sheet ${sheetId} (${row.typ}${
-        row.amount < 0 ? ', reversal' : ''
-      })`,
+      `[sheets-sync] append transfer #${params.transferId} → sheet ${sheetId} (${row.typ})`,
     )
   } catch (err) {
     console.error('[sheets-sync] failed (non-fatal):', err)

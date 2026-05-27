@@ -324,6 +324,34 @@ describe('syncSingleTransferToSheet', () => {
     )
     expect(valuesBatchUpdateMock.mock.calls[0][0].requestBody.data[4].values).toEqual([[999]])
   })
+
+  it('removes the original expense row from its sheet when a CANCELLATION is synced', async () => {
+    // 1st transactions lookup: the cancellation; 2nd: the original expense; then investment
+    findByIDMock.mockImplementation(({ collection, id }: { collection: string; id: number }) => {
+      if (collection === 'investments') return Promise.resolve({ id: 31, googleSheetId: 'sheet-1' })
+      if (id === 2460)
+        return Promise.resolve({ id: 2460, type: 'CANCELLATION', cancelledTransaction: 2459 })
+      return Promise.resolve({ id: 2459, type: 'INVESTMENT_EXPENSE', investment: 31 })
+    })
+    sheetColIReturns([2459]) // original sits on row 2 of the sheet
+    spreadsheetsGetMock.mockResolvedValueOnce({
+      data: {
+        sheets: [{ properties: { sheetId: 5, title: 'wydatki inwestycyjne (tylko do odczytu)' } }],
+      },
+    })
+
+    await syncSingleTransferToSheet({ transferId: 2460 })
+
+    // It deletes the ORIGINAL's row (#2459 at row 2), and appends nothing.
+    expect(batchUpdateMock).toHaveBeenCalledTimes(1)
+    expect(batchUpdateMock.mock.calls[0][0].requestBody.requests[0].deleteDimension.range).toEqual({
+      sheetId: 5,
+      dimension: 'ROWS',
+      startIndex: 1,
+      endIndex: 2,
+    })
+    expect(valuesBatchUpdateMock).not.toHaveBeenCalled() // no append/update
+  })
 })
 
 // ── removeTransferFromSheet ────────────────────────────────────────────────

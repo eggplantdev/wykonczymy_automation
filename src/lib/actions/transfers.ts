@@ -242,9 +242,9 @@ export async function cancelTransferAction(transferId: number, data: CancelTrans
       })
       console.log(`[PERF]   create CANCELLATION ${step()}ms`)
 
-      // Append a reversing (−) row to the sheet for the cancellation, if the
-      // original was a synced investment expense. Post-response via `after()`;
-      // logged only.
+      // Remove the cancelled expense's row from its kosztorys sheet (the sheet
+      // mirrors ACTIVE expenses). syncSingleTransferToSheet routes the CANCELLATION
+      // to a row removal. Post-response via `after()`; logged only.
       after(() => syncSingleTransferToSheet({ transferId: cancellation.id }))
 
       return { success: true }
