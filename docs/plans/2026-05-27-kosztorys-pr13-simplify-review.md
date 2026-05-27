@@ -174,7 +174,7 @@ The only action in the PR not wrapped in `protectedAction`/`requireAuth`; it `th
 **Trigger:** missing env → unhandled promise rejection + silently empty SA-email hint. Also callable without a management role (leaked value is a non-secret email, but the bypass is inconsistent).
 **Fix:** wrap in `protectedAction`, return an error result, add `.catch` at the call site.
 
-### T3.3 ☐ Embedded Sheets iframe has no sandbox/CSP and no desktop fallback
+### T3.3 ☑ Embedded Sheets iframe has no sandbox/CSP and no desktop fallback
 
 **`src/app/(frontend)/inwestycje/[id]/kosztorys/iframe-view.tsx`** — PLAUSIBLE
 
@@ -253,7 +253,7 @@ Every expense write path must remember to call sync, and update re-implements ol
 Per-mutation syncs swallow errors as "non-fatal, recoverable via the sync button", but recovery is a human remembering to click per investment. "Eventually consistent" has no "eventually".
 **Deeper fix:** pair optimistic sync with a cron / on-load reconcile-if-stale so the swallowed-error design has a real backstop.
 
-### T5.3 ☐ `TYPE_COLORS` hardcoded by category name
+### T5.3 ☑ `TYPE_COLORS` hardcoded by category name
 
 **`src/lib/google/sheets.ts:321`** — altitude (low severity)
 

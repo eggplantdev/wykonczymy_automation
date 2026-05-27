@@ -26,6 +26,13 @@ export function KosztorysIframeView({ sheetId, investmentName, toolbar }: PropsT
           <ExternalLink href={ALL_SHEETS_URL}>Wszystkie kosztorysy ↗</ExternalLink>
         </div>
       </div>
+      {/* Desktop escape hatch: the embed can render blank when the browser blocks
+          third-party cookies (Safari default), and a cross-origin iframe gives us no
+          load/error signal to detect it — so always offer open-in-new-tab (T3.3). */}
+      <p className="text-muted-foreground hidden shrink-0 px-4 py-1 text-xs sm:block">
+        Jeśli arkusz się nie wyświetla (np. zablokowane pliki cookie),{' '}
+        <ExternalLink href={sheetUrl}>otwórz go w nowej karcie ↗</ExternalLink>.
+      </p>
       {/* The embedded sheet, shown from sm (≥640px) up. Below sm the iframe is
           hidden — Google Sheets is barely usable in a phone-width iframe, and the
           embed also fought the mobile footer for vertical space. */}

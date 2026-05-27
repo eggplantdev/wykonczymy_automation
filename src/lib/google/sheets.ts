@@ -349,15 +349,25 @@ export async function removeMaterialRow(spreadsheetId: string, transferId: numbe
 }
 
 // Color that brands each expense type across the sheet (row tint + summary
-// swatch), keyed by type name. A type not listed here falls back to gray — it
-// still appears, just uncolored until a hex is added (one-line edit).
+// swatch), keyed by type name. The three core types keep their hand-picked brand
+// colors; any other type gets a stable, distinct color derived from its name
+// (review T5.3) — so a category added in the admin is auto-colored, not gray, with
+// no code change or schema field.
 const TYPE_COLORS: Record<string, string> = {
   'Materiały budowlane': '#3b82f6',
   'Materiały wykończeniowe': '#22c55e',
   'Pozostałe koszty': '#f59e0b',
 }
-const FALLBACK_COLOR = '#64748b'
-const colorFor = (typeName: string): string => TYPE_COLORS[typeName] ?? FALLBACK_COLOR
+// Palette for auto-assigned colors (distinct hues, all legible once tinted).
+const AUTO_COLORS = ['#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#0ea5e9', '#a3a635', '#ef4444']
+const colorFor = (typeName: string): string => {
+  if (TYPE_COLORS[typeName]) return TYPE_COLORS[typeName]
+  // Deterministic name → palette index (small string hash), so the same category
+  // always maps to the same color across syncs.
+  let hash = 0
+  for (let i = 0; i < typeName.length; i++) hash = (hash * 31 + typeName.charCodeAt(i)) | 0
+  return AUTO_COLORS[Math.abs(hash) % AUTO_COLORS.length]
+}
 
 // Column H — directly after notatka (G). No gap between the data block and the
 // summary (RAZEM sits next to notatka).
