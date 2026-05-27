@@ -545,12 +545,18 @@ Verified against the real sheet (`1cFCFtplugpjJpq…`) + the test DB via the ser
       `CUSTOM_FORMULA` conditional rule on col C recolors automatically — `updateMaterialRow`
       writes no formatting); per-type totals shifted budowlane −700 / wykończeniowe +700, RAZEM
       unchanged.
-- [ ] **Test E — Edit → move investment.** Not run — needs a second investment with a linked
-      sheet. Code path exists (`syncSingleTransferToSheet` appends to new + `removeTransferFromSheet`
-      drops from old).
-- [ ] **Test F — Manual-row preservation (via Synchronizuj).** Not run live. Code-confirmed:
-      scoped orphan-removal only deletes ids that resolve to a real transaction, so a manual id
-      (e.g. 99999) is kept. Needs a live type-a-row-then-reconcile pass.
-- [ ] **Test G — Drift-proof sort.** Not run as an explicit Data → sort-by-A. The full-column +
-      literal-criterion SUMIF was observed correct across appends/edits/deletes (row shifts), but
-      the exact sort action wasn't performed.
+- [x] **Test E — Edit → move investment.** Created #2470 on inv 6 (auto-synced to inv6 sheet),
+      then edited its investment to inv 31 (sheet `1EhjP…`, reset first to create the tab). After
+      save: DB `investment_id=31`; **row removed from inv6 sheet**, **appended to inv31 sheet**,
+      id preserved. `removeTransferFromSheet` (old) + `syncSingleTransferToSheet` (new) confirmed live.
+- [x] **Test F — Manual-row preservation (via Synchronizuj).** Injected a manual `#99999` row +
+      an orphan row for cancelled `#2461` into the inv6 sheet, and removed active `#2469`'s row to
+      enable the reconcile. After **Dodaj do arkusza**: **`#99999` kept**, **`#2461` removed**
+      (real-transaction orphan), **`#2469` re-appended**. Scoped orphan-removal does not touch
+      manual rows.
+- [x] **Test G — Drift-proof sort.** Sorted the inv6 data rows by column A (id). Per-type SUMIF
+      totals stayed correct (Pozostałe 3720, wykończeniowe 10108, budowlane 35238.57 — the latter =
+      DB active 35115.57 **+ 123 from the live manual #99999 row**, i.e. the SUMIF correctly counts
+      a manual entry). Totals did **not** drop to 0 → full-column + literal-criterion fix holds.
+      Side effect: the summary block relocated from row 2 to row 33 — the known cosmetic
+      **finding #19** (a reset re-pins it). Numbers correct, layout drifts.

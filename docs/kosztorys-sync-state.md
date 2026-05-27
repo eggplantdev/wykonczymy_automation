@@ -105,29 +105,28 @@ live + unit-tested.
 
 Detailed log: `docs/plans/2026-05-27-kosztorys-active-costs-reconcile-plan.md`.
 
-| Test                        | What it proves                                        | Status                              |
-| --------------------------- | ----------------------------------------------------- | ----------------------------------- |
-| A — Reset rebuilds clean    | sheet == DB active set; SUMIF totals reconcile        | ✅ pass                             |
-| B — Cancel removes the row  | row gone, no negative row, summary survives (the fix) | ✅ pass                             |
-| C — Create appends          | auto-sync on create; button is only a reconciler      | ✅ pass                             |
-| D — Edit updates in place   | same row, recolour, totals shift, no duplicate        | ✅ pass                             |
-| E — Edit → move investment  | row moves old→new sheet                               | ⛔ not run (needs 2nd linked sheet) |
-| F — Manual-row preservation | reconcile keeps `99999`, removes real orphans         | ⚠️ code-confirmed, not live         |
-| G — Drift-proof sort        | SUMIF survives Data → sort-by-A                       | ⚠️ not run as the exact action      |
+| Test                        | What it proves                                        | Status                            |
+| --------------------------- | ----------------------------------------------------- | --------------------------------- |
+| A — Reset rebuilds clean    | sheet == DB active set; SUMIF totals reconcile        | ✅ pass                           |
+| B — Cancel removes the row  | row gone, no negative row, summary survives (the fix) | ✅ pass                           |
+| C — Create appends          | auto-sync on create; button is only a reconciler      | ✅ pass                           |
+| D — Edit updates in place   | same row, recolour, totals shift, no duplicate        | ✅ pass                           |
+| E — Edit → move investment  | row moves old→new sheet (inv6 → inv31)                | ✅ pass                           |
+| F — Manual-row preservation | reconcile keeps `99999`, removes real orphans         | ✅ pass                           |
+| G — Drift-proof sort        | SUMIF survives Data → sort-by-A (totals stay correct) | ✅ pass (summary relocates — #19) |
+
+All of A–G pass. G also reproduced cosmetic **finding #19**: after a sort, the summary
+block relocates off row 2 (numbers stay correct; a reset re-pins it).
 
 ---
 
 ## Things still left
 
-**Live verification (remaining):**
-
-- [ ] **Test E — Edit → move investment.** Needs a second investment that has a
-      linked `googleSheetId`. Verify the row leaves the old sheet and appears on the new.
-- [ ] **Test F — Manual-row preservation.** Type a row with id `99999` into the
-      sheet, run **Synchronizuj** → confirm `99999` survives while real-transaction
-      orphans are removed.
-- [ ] **Test G — Drift-proof formula.** In the sheet, Data → sort by column A;
-      confirm per-type SUMIF totals stay correct (don't drop to 0).
+**Live verification:** ✅ **Done — A–G all pass** (2026-05-27, inv 6 + inv 31). See the
+verification log in `docs/plans/2026-05-27-kosztorys-active-costs-reconcile-plan.md`.
+One follow-up surfaced: cosmetic **finding #19** (summary block relocates off row 2 after a
+sort/large row-shift; numbers stay correct, a reset re-pins it) — decide whether to pin the
+summary block or leave it.
 
 **Test-DB → production cutover (the `⚠️ TEMPORARY` block in `CLAUDE.md`):**
 
@@ -155,9 +154,10 @@ Detailed log: `docs/plans/2026-05-27-kosztorys-active-costs-reconcile-plan.md`.
 
 - [ ] Reconcile or retire `docs/kosztorys-sync-architecture.md`'s stale
       append-only prose (this doc supersedes the behavioural parts).
-- [ ] Clean up leftover test data: expense **#2469** ("Test D — po edycji") is still
-      active on inv 6 and mirrored on the sheet. The cancelled test rows
-      (#2461/#2462/#2463/#2467) remain in Postgres with their CANCELLATION audit rows.
+- [ ] Clean up leftover test data from the A–G runs: **#2469** ("Test D") active on inv 6,
+      **#2470** ("Test E") active on inv 31 (both mirrored on their sheets); cancelled test rows
+      (#2461/#2462/#2463/#2467) remain in Postgres with their CANCELLATION audit rows. A sheet
+      **reset** per investment rebuilds clean tabs.
 
 **Open product question:**
 
