@@ -66,6 +66,27 @@ export function formulaArgSeparator(locale: string | undefined): ';' | ',' {
   }
 }
 
+// Build the summary row values: RAZEM (grand total) + one SUMIF per expense type.
+// Uses full-column ranges (C:C / E:E) and a LITERAL type-name criterion — NOT
+// `C2:C` + a label-cell reference like the old form did. That older form drifted:
+// any row insert or a sort spanning the summary columns shifted the formula and
+// rewrote its criterion to an empty cell, zeroing every per-type total. Full
+// columns survive inserts (the header text is ignored by SUM/SUMIF), and a literal
+// criterion can't come unstuck from a moved label cell. argSep follows the sheet
+// locale. Type names are double-quote-escaped for the formula string.
+export function buildMaterialySummary(
+  expenseTypes: string[],
+  argSep: ';' | ',',
+): { labels: string[]; totals: string[] } {
+  const labels = ['RAZEM', ...expenseTypes]
+  const totals = ['=SUM(E:E)']
+  for (const t of expenseTypes) {
+    const escaped = t.replace(/"/g, '""')
+    totals.push(`=SUMIF(C:C${argSep} "${escaped}"${argSep} E:E)`)
+  }
+  return { labels, totals }
+}
+
 function columnLetter(index: number): string {
   let n = index + 1
   let letter = ''
@@ -349,14 +370,8 @@ export async function setupMaterialyTab(
 
   // Header at row 1, data from row 2 — a clean A:G block you can date-filter.
   // The summary is a small 2-row table starting at column H: RAZEM + one column
-  // per type, each total UNDER its label. Each total's SUMIF criterion is its own
-  // label cell (drift-proof). Separator follows the sheet's locale (argSep).
-  const labels: string[] = ['RAZEM', ...expenseTypes]
-  const totals: string[] = ['=SUM(E2:E)']
-  expenseTypes.forEach((_t, i) => {
-    const labelCell = `${columnLetter(SUMMARY_START_COL + 1 + i)}1` // I1, J1, K1, …
-    totals.push(`=SUMIF(C2:C${argSep} ${labelCell}${argSep} E2:E)`)
-  })
+  // per type, the total UNDER its label. Separator follows the sheet's locale.
+  const { labels, totals } = buildMaterialySummary(expenseTypes, argSep)
 
   const summaryStart = columnLetter(SUMMARY_START_COL)
   await sheets.spreadsheets.values.batchUpdate({

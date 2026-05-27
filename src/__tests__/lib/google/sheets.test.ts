@@ -187,6 +187,31 @@ describe('formulaArgSeparator', () => {
   })
 })
 
+describe('buildMaterialySummary', () => {
+  it('uses full-column ranges + literal type-name criteria (drift-proof)', async () => {
+    const { buildMaterialySummary } = await import('@/lib/google/sheets')
+    const { labels, totals } = buildMaterialySummary(
+      ['Materiały budowlane', 'Pozostałe koszty'],
+      ';',
+    )
+    expect(labels).toEqual(['RAZEM', 'Materiały budowlane', 'Pozostałe koszty'])
+    expect(totals).toEqual([
+      '=SUM(E:E)',
+      '=SUMIF(C:C; "Materiały budowlane"; E:E)',
+      '=SUMIF(C:C; "Pozostałe koszty"; E:E)',
+    ])
+    // No reference to label cells (I1/J1/…) and no C2:C — those were the drift source.
+    expect(totals.join('')).not.toMatch(/[IJKL]\d/)
+    expect(totals.join('')).not.toContain('C2:C')
+  })
+
+  it('honors the locale separator and escapes quotes in type names', async () => {
+    const { buildMaterialySummary } = await import('@/lib/google/sheets')
+    const { totals } = buildMaterialySummary(['A "B"'], ',')
+    expect(totals).toEqual(['=SUM(E:E)', '=SUMIF(C:C, "A ""B""", E:E)'])
+  })
+})
+
 describe('readMaterialyTransferIds', () => {
   it('maps transferId → row from the id column under the header', async () => {
     getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101], [102], [], [103]] } })
