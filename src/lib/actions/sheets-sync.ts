@@ -123,17 +123,25 @@ async function loadAppMaterialRows(
   return rows
 }
 
+// Resolve an investment's linked Google Sheet id, or undefined if it has none.
+async function getInvestmentSheetId(
+  payload: Awaited<ReturnType<typeof getPayload>>,
+  investmentId: number,
+): Promise<string | undefined> {
+  const investment = await payload.findByID({
+    collection: 'investments',
+    id: investmentId,
+    overrideAccess: true,
+  })
+  return investment?.googleSheetId ?? undefined
+}
+
 export async function previewMaterialSync(investmentId: number) {
   return protectedAction<MaterialSyncPreviewT>('previewMaterialSync', async ({ payload }) => {
-    const investment = await payload.findByID({
-      collection: 'investments',
-      id: investmentId,
-      overrideAccess: true,
-    })
-    if (!investment?.googleSheetId) {
+    const sheetId = await getInvestmentSheetId(payload, investmentId)
+    if (!sheetId) {
       return { success: false, error: 'Inwestycja nie ma powiązanego arkusza Google.' }
     }
-    const sheetId = investment.googleSheetId
 
     const [appRows, sheetIds] = await Promise.all([
       loadAppMaterialRows(payload, investmentId),
@@ -160,15 +168,10 @@ export async function applyMaterialSync(investmentId: number) {
   return protectedAction<ApplyMaterialSyncResultT>(
     'applyMaterialSync',
     async ({ payload }) => {
-      const investment = await payload.findByID({
-        collection: 'investments',
-        id: investmentId,
-        overrideAccess: true,
-      })
-      if (!investment?.googleSheetId) {
+      const sheetId = await getInvestmentSheetId(payload, investmentId)
+      if (!sheetId) {
         return { success: false, error: 'Inwestycja nie ma powiązanego arkusza Google.' }
       }
-      const sheetId = investment.googleSheetId
 
       const [appRows, current] = await Promise.all([
         loadAppMaterialRows(payload, investmentId),
@@ -207,16 +210,16 @@ export async function applyMaterialSync(investmentId: number) {
       const appIds = new Set(appRows.map((r) => r.transferId))
       const orphanIds = [...current.keys()].filter((id) => !appIds.has(id))
       if (orphanIds.length > 0) {
-        const realTx = await payload.find({
+        const realTransactions = await payload.find({
           collection: 'transactions',
           where: { id: { in: orphanIds } },
           depth: 0,
           limit: 1000,
           overrideAccess: true,
         })
-        const realIds = new Set(realTx.docs.map((d) => d.id as number))
+        const realTransactionIds = new Set(realTransactions.docs.map((d) => d.id as number))
         for (const id of orphanIds) {
-          if (!realIds.has(id)) continue // owner's manual row — keep
+          if (!realTransactionIds.has(id)) continue // owner's manual row — keep
           try {
             await removeMaterialRow(sheetId, id)
             removed++
@@ -245,12 +248,7 @@ export async function removeTransferFromSheet(params: {
 }): Promise<void> {
   try {
     const payload = await getPayload({ config })
-    const investment = await payload.findByID({
-      collection: 'investments',
-      id: params.investmentId,
-      overrideAccess: true,
-    })
-    const sheetId = investment?.googleSheetId
+    const sheetId = await getInvestmentSheetId(payload, params.investmentId)
     if (!sheetId) return
     await removeMaterialRow(sheetId, params.transferId)
     console.log(`[sheets-sync] remove transfer #${params.transferId} from sheet ${sheetId}`)
@@ -290,12 +288,7 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
       if (!original || original.type !== 'INVESTMENT_EXPENSE') return
       const investmentId = relId(original.investment)
       if (investmentId === undefined) return
-      const investment = await payload.findByID({
-        collection: 'investments',
-        id: investmentId,
-        overrideAccess: true,
-      })
-      const sheetId = investment?.googleSheetId
+      const sheetId = await getInvestmentSheetId(payload, investmentId)
       if (!sheetId) return
       await removeMaterialRow(sheetId, origId)
       console.log(`[sheets-sync] cancel #${origId}: removed row from sheet ${sheetId}`)
@@ -307,12 +300,7 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
     const row = expenseRow(transfer as unknown as TxDoc)
     if (!row || investmentId === undefined) return
 
-    const investment = await payload.findByID({
-      collection: 'investments',
-      id: investmentId,
-      overrideAccess: true,
-    })
-    const sheetId = investment?.googleSheetId
+    const sheetId = await getInvestmentSheetId(payload, investmentId)
     if (!sheetId) {
       console.log(
         `[sheets-sync] skip transfer #${params.transferId}: investment #${investmentId} has no googleSheetId`,

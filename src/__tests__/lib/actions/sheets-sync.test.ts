@@ -93,11 +93,10 @@ function setEnv() {
   })
 }
 
-// loadAppMaterialRows queries twice: expenses first, then cancellations (only if
-// there were expenses). First call returns the expenses; later calls default to
-// empty unless cancellations are provided.
-function findReturns(expenses: object[], cancellations: object[] = []) {
-  findMock.mockResolvedValueOnce({ docs: expenses }).mockResolvedValue({ docs: cancellations })
+// First find (loadAppMaterialRows) returns the expenses; any later find (e.g. the
+// reconciler's orphan-id lookup) defaults to empty.
+function findReturns(expenses: object[]) {
+  findMock.mockResolvedValueOnce({ docs: expenses }).mockResolvedValue({ docs: [] })
 }
 
 // The sync reads the whole grid and locates the header row, then scans the id
