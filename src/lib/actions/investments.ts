@@ -54,9 +54,11 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
       })
 
       // Fire-and-forget Drive provisioning. The investment create succeeds even
-      // if Drive is down, the template was deleted, or the SA lost access — the
-      // banner from Task 9 will surface the missing googleSheetId and offer a
-      // manual retry via provisionKosztorysAction below.
+      // when the copy fails — and on a personal-account SA it currently ALWAYS
+      // fails ("storage quota exceeded" — the SA has no Drive of its own; needs
+      // a Workspace Shared Drive). The no-sheet banner then surfaces the missing
+      // googleSheetId and the user takes the working path: "Powiąż istniejący
+      // arkusz" via linkKosztorysSheetAction (paste an owner-shared sheet).
       void (async () => {
         try {
           const { sheetId } = await createKosztorysFromTemplate(created.name)

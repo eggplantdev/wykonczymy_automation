@@ -250,14 +250,17 @@ async function materialyTabGid(
 }
 
 // The single batched write path: upsert rows (overwrite by id where present,
-// else append) and delete rows by id. Does ONE readGrid + at most three writes
+// else append) and delete rows by id. Does ONE readGrid + at most two writes
 // regardless of row count — so a full reconcile of N expenses no longer costs
-// O(N) Google API calls (review T4.1). Appends go through values.append, which
-// allocates rows server-side AFTER the last non-empty data row: concurrent
-// appends can't collide on a computed row (review T2.1) and a manual row below
-// the block is never overwritten (review T1.4). Removes touch only the data
-// columns (A..SUMMARY_START_COL) so the summary survives, bottom-up so row
-// numbers don't shift mid-batch.
+// O(N) Google API calls (review T4.1). Appends target an EXPLICITLY computed
+// row (last mapped-column data row + 1) and go through values.batchUpdate —
+// NOT values.append, which couldn't be used here: its table detection treats
+// the adjacent summary column as part of the table and appends below the
+// shared first-data row, leaving row 2 blank (review T2.1 + the live failure
+// it caused). The computed-row + scan-all-mapped-columns approach keeps appends
+// below any manual row sitting under the block (review T1.4). Removes touch
+// only the data columns ([0, SUMMARY_START_COL)) so the summary survives, and
+// run bottom-up so row numbers don't shift mid-batch.
 export async function applyMaterialRowsBatch(
   spreadsheetId: string,
   upserts: MaterialRowInputT[],

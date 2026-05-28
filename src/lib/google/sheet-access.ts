@@ -24,7 +24,7 @@ export function extractSheetId(input: string): string | undefined {
 // Editor" message rather than leaking the raw API error.
 //
 // We must verify write access, not just read: the sync (setupMaterialyTab /
-// appendMaterialRow) needs Editor. A read-only probe would pass a Viewer-only
+// applyMaterialRowsBatch) needs Editor. A read-only probe would pass a Viewer-only
 // share at link time, then 403 on first sync. So after reading the title we run a
 // no-op write (rewrite the title to itself) under the full `spreadsheets` scope —
 // a Viewer share can read but not write, so this surfaces the gap now.

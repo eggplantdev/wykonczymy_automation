@@ -123,11 +123,25 @@ Notes:
 ## Provisioning
 
 An investment links to a sheet via `investments.googleSheetId` (Payload field,
-`unique: true` so one sheet can't link to two investments — review T1.3). We
-**link an owner-shared existing sheet** (the service account has no Drive storage
-quota on a personal account, so it can't own a created file — see memory
-`project_kosztorys_sa_no_drive_storage`) rather than copying a template. Setup
-attaches the read-only tab and stamps the header + summary + formatting.
+`unique: true` so one sheet can't link to two investments — review T1.3). The
+Setup dialog offers two paths:
+
+1. **Utwórz nowy kosztorys** — `createKosztorysFromTemplate` ⇒ `drive.files.copy`
+   from `KOSZTORYS_TEMPLATE_SHEET_ID`. **Currently blocked on a personal-account
+   service account**: the SA has no Drive storage quota and the copy fails with a
+   "storage quota exceeded" error (`isStorageQuotaError`). `provisionKosztorysAction`
+   detects this and surfaces a Polish-language message pointing the user at the
+   link-existing path. `createInvestmentAction` also fires-and-forgets the same
+   call on investment create, so a new investment lands without `googleSheetId`
+   and the no-sheet banner appears. The fix needs a Workspace Shared Drive +
+   `supportsAllDrives` — see memory `project_kosztorys_sa_no_drive_storage`.
+2. **Powiąż istniejący arkusz** — `linkKosztorysSheetAction`. The owner shares
+   an already-existing sheet with the SA as Editor and pastes its URL/id.
+   `verifySheetAccess` does a no-op write-probe to surface a Viewer-only share
+   immediately, then the id is stored. **This is the working path today.**
+
+After either path lands a `googleSheetId`, `setupKosztorysSheetAction` attaches
+the read-only tab and stamps the header + summary + formatting.
 
 ---
 
