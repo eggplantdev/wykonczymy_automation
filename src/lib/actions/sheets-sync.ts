@@ -126,16 +126,21 @@ async function loadAppMaterialRows(
 }
 
 // Resolve an investment's linked Google Sheet id, or undefined if it has none.
+// The sheet id lives on the `kosztoryses` collection (one row per sheet, optional
+// FK back to an investment), so we look up by relation rather than reading a
+// field on investments — see migration 20260528_move_sheet_id_to_kosztoryses.
 async function getInvestmentSheetId(
   payload: Awaited<ReturnType<typeof getPayload>>,
   investmentId: number,
 ): Promise<string | undefined> {
-  const investment = await payload.findByID({
-    collection: 'investments',
-    id: investmentId,
+  const found = await payload.find({
+    collection: 'kosztoryses',
+    where: { investment: { equals: investmentId } },
+    limit: 1,
+    depth: 0,
     overrideAccess: true,
   })
-  return investment?.googleSheetId ?? undefined
+  return found.docs[0]?.googleSheetId ?? undefined
 }
 
 export async function previewMaterialSync(investmentId: number) {

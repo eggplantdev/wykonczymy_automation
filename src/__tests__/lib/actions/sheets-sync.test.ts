@@ -93,8 +93,18 @@ function setEnv() {
   })
 }
 
-// First find (loadAppMaterialRows) returns the expenses; any later find (e.g. the
-// reconciler's orphan-id lookup) defaults to empty.
+// Queue the kosztoryses lookup (the FIRST find call inside any action that
+// resolves an investment's sheet via getInvestmentSheetId). Pass `null` to
+// simulate an investment with no kosztorys row → action rejects with no-sheet.
+function withSheet(investmentId: number, googleSheetId: string | null) {
+  findMock.mockResolvedValueOnce({
+    docs: googleSheetId ? [{ id: 1, googleSheetId, investment: investmentId }] : [],
+  })
+}
+
+// Queue the expense lookup (loadAppMaterialRows). Subsequent finds (e.g. the
+// reconciler's orphan-id lookup) default to empty. Tests that need to inspect
+// the orphan-id call must use mockResolvedValueOnce themselves.
 function findReturns(expenses: object[]) {
   findMock.mockResolvedValueOnce({ docs: expenses }).mockResolvedValue({ docs: [] })
 }
@@ -137,8 +147,8 @@ beforeEach(() => {
 // ── previewMaterialSync ──────────────────────────────────────────────────
 
 describe('previewMaterialSync', () => {
-  it('rejects when investment has no googleSheetId', async () => {
-    findByIDMock.mockResolvedValue({ id: 31, name: '11 Listopada 40', googleSheetId: null })
+  it('rejects when investment has no linked kosztorys sheet', async () => {
+    withSheet(31, null)
 
     const result = await previewMaterialSync(31)
 
@@ -150,7 +160,7 @@ describe('previewMaterialSync', () => {
   })
 
   it('returns toAppend for DB expenses that are not in the sheet', async () => {
-    findByIDMock.mockResolvedValue({ id: 31, name: '11 Listopada 40', googleSheetId: 'sheet-1' })
+    withSheet(31, 'sheet-1')
     findReturns([
       makeMaterialTransaction(101, 'Materiały budowlane', { amount: 250, description: 'cement' }),
       makeMaterialTransaction(102, 'Materiały wykończeniowe', { amount: 80, description: 'farba' }),
@@ -166,18 +176,19 @@ describe('previewMaterialSync', () => {
   })
 
   it('queries only non-cancelled investment expenses', async () => {
-    findByIDMock.mockResolvedValue({ id: 31, name: '11 Listopada 40', googleSheetId: 'sheet-1' })
+    withSheet(31, 'sheet-1')
     findReturns([])
     sheetColIReturns([])
 
     await previewMaterialSync(31)
 
-    const whereArg = findMock.mock.calls[0][0].where
+    // findMock.calls[0] = kosztoryses lookup; [1] = expenses lookup.
+    const whereArg = findMock.mock.calls[1][0].where
     expect(whereArg.and).toEqual(expect.arrayContaining([{ cancelled: { not_equals: true } }]))
   })
 
   it('reads an open-ended range and fetches all expenses (no row cap)', async () => {
-    findByIDMock.mockResolvedValue({ id: 31, name: '11 Listopada 40', googleSheetId: 'sheet-1' })
+    withSheet(31, 'sheet-1')
     findReturns([])
     sheetColIReturns([])
 
@@ -185,12 +196,12 @@ describe('previewMaterialSync', () => {
 
     // A capped find / range would silently drop rows past the cap, and the reconciler
     // would then delete their un-read sheet rows as orphans (T1.2).
-    expect(findMock.mock.calls[0][0].limit).toBe(0)
+    expect(findMock.mock.calls[1][0].limit).toBe(0)
     expect(valuesGetMock.mock.calls[0][0].range).toMatch(/!A:Z$/)
   })
 
   it('skips an expense whose amount is not a finite number', async () => {
-    findByIDMock.mockResolvedValue({ id: 31, name: '11 Listopada 40', googleSheetId: 'sheet-1' })
+    withSheet(31, 'sheet-1')
     findReturns([
       makeMaterialTransaction(101, 'Materiały budowlane', { amount: 250 }),
       // amount '' → Number('')===0, amount 'x' → NaN: both must be dropped, not synced.
@@ -207,7 +218,7 @@ describe('previewMaterialSync', () => {
   })
 
   it('does not re-append rows already present in the sheet', async () => {
-    findByIDMock.mockResolvedValue({ id: 31, name: '11 Listopada 40', googleSheetId: 'sheet-1' })
+    withSheet(31, 'sheet-1')
     findReturns([makeMaterialTransaction(101, 'Materiały budowlane', { amount: 250 })])
     sheetColIReturns([101]) // already synced
 
@@ -219,7 +230,7 @@ describe('previewMaterialSync', () => {
   })
 
   it('reports update and remove counts, not just appends (T3.1)', async () => {
-    findByIDMock.mockResolvedValue({ id: 31, name: 'X', googleSheetId: 'sheet-1' })
+    withSheet(31, 'sheet-1')
     // active expenses #7 (present → refresh) and #9 (missing → append); #8 on the
     // sheet is this investment's orphan (a now-cancelled expense → remove).
     findMock
@@ -245,8 +256,8 @@ describe('previewMaterialSync', () => {
 // ── applyMaterialSync ────────────────────────────────────────────────────
 
 describe('applyMaterialSync', () => {
-  it('rejects when investment has no googleSheetId', async () => {
-    findByIDMock.mockResolvedValue({ id: 31, name: '11 Listopada 40', googleSheetId: null })
+  it('rejects when investment has no linked kosztorys sheet', async () => {
+    withSheet(31, null)
 
     const result = await applyMaterialSync(31)
 
@@ -259,7 +270,7 @@ describe('applyMaterialSync', () => {
   // The rows are re-derived server-side from the DB (not trusted from a client-
   // supplied preview). Present rows are now OVERWRITTEN by id (drift heal), not skipped.
   it('overwrites an expense already present in the sheet (drift heal)', async () => {
-    findByIDMock.mockResolvedValue({ id: 31, name: '11 Listopada 40', googleSheetId: 'sheet-1' })
+    withSheet(31, 'sheet-1')
     findReturns([makeMaterialTransaction(5, 'Materiały budowlane', { amount: 100 })])
     sheetColIReturns([5]) // already synced → row 2
 
@@ -276,7 +287,7 @@ describe('applyMaterialSync', () => {
   })
 
   it('appends an expense that the DB has but the sheet is missing', async () => {
-    findByIDMock.mockResolvedValue({ id: 31, name: '11 Listopada 40', googleSheetId: 'sheet-1' })
+    withSheet(31, 'sheet-1')
     findReturns([
       makeMaterialTransaction(7, 'Materiały budowlane', { amount: 250, description: 'cement' }),
     ])
@@ -294,8 +305,8 @@ describe('applyMaterialSync', () => {
   })
 
   it('removes orphan rows that are real transactions but keeps manual rows', async () => {
-    findByIDMock.mockResolvedValue({ id: 31, name: 'X', googleSheetId: 'sheet-1' })
-    // loadApp expenses (1st find) → active expense #7; orphan lookup (2nd find) → #8 is a real tx
+    withSheet(31, 'sheet-1')
+    // loadApp expenses (2nd find) → active expense #7; orphan lookup (3rd find) → #8 is a real tx
     findMock
       .mockResolvedValueOnce({
         docs: [makeMaterialTransaction(7, 'Materiały budowlane', { amount: 100 })],
@@ -323,7 +334,7 @@ describe('applyMaterialSync', () => {
   })
 
   it('scopes the orphan-removal guard to this investment and INVESTMENT_EXPENSE', async () => {
-    findByIDMock.mockResolvedValue({ id: 31, name: 'X', googleSheetId: 'sheet-1' })
+    withSheet(31, 'sheet-1')
     findMock
       .mockResolvedValueOnce({
         docs: [makeMaterialTransaction(7, 'Materiały budowlane', { amount: 100 })],
@@ -333,9 +344,10 @@ describe('applyMaterialSync', () => {
 
     await applyMaterialSync(31)
 
-    // The orphan lookup (2nd find) must filter by id + investment + type, NOT id alone —
+    // The orphan lookup (3rd find) must filter by id + investment + type, NOT id alone —
     // otherwise a manual number colliding with an unrelated transaction id is deleted.
-    const orphanWhere = findMock.mock.calls[1][0].where
+    // findMock.calls[0] = kosztoryses; [1] = expenses; [2] = orphan-id lookup.
+    const orphanWhere = findMock.mock.calls[2][0].where
     expect(orphanWhere.and).toEqual(
       expect.arrayContaining([
         { id: { in: [8] } },
@@ -346,7 +358,7 @@ describe('applyMaterialSync', () => {
   })
 
   it('keeps a row whose id collides with a transaction that is not this investment expense', async () => {
-    findByIDMock.mockResolvedValue({ id: 31, name: 'X', googleSheetId: 'sheet-1' })
+    withSheet(31, 'sheet-1')
     // #7 is the active expense; #8 is a manual number that happens to equal a real PAYOUT
     // id — the scoped guard returns no matching expense, so #8 must be left untouched.
     findMock
@@ -374,20 +386,17 @@ describe('applyMaterialSync', () => {
 
 describe('syncSingleTransferToSheet', () => {
   it('updates the existing row in place when the transfer is already on the sheet', async () => {
-    // transaction lookup, then its investment lookup
-    findByIDMock.mockImplementation(({ collection }: { collection: string }) =>
-      collection === 'transactions'
-        ? Promise.resolve({
-            id: 101,
-            type: 'INVESTMENT_EXPENSE',
-            investment: 31,
-            expenseCategory: { name: 'Materiały budowlane' },
-            amount: 999,
-            description: 'edited',
-            date: '2026-05-27T00:00:00Z',
-          })
-        : Promise.resolve({ id: 31, googleSheetId: 'sheet-1' }),
-    )
+    // syncSingleTransferToSheet: findByID(transactions) → getInvestmentSheetId via find(kosztoryses).
+    findByIDMock.mockResolvedValue({
+      id: 101,
+      type: 'INVESTMENT_EXPENSE',
+      investment: 31,
+      expenseCategory: { name: 'Materiały budowlane' },
+      amount: 999,
+      description: 'edited',
+      date: '2026-05-27T00:00:00Z',
+    })
+    withSheet(31, 'sheet-1')
     sheetColIReturns([101]) // id already present → row 2
 
     await syncSingleTransferToSheet({ transferId: 101 })
@@ -401,13 +410,14 @@ describe('syncSingleTransferToSheet', () => {
   })
 
   it('removes the original expense row from its sheet when a CANCELLATION is synced', async () => {
-    // 1st transactions lookup: the cancellation; 2nd: the original expense; then investment
-    findByIDMock.mockImplementation(({ collection, id }: { collection: string; id: number }) => {
-      if (collection === 'investments') return Promise.resolve({ id: 31, googleSheetId: 'sheet-1' })
+    // 1st findByID(transactions) = the cancellation; 2nd findByID(transactions) = the original.
+    // Then getInvestmentSheetId → find(kosztoryses).
+    findByIDMock.mockImplementation(({ id }: { id: number }) => {
       if (id === 2460)
         return Promise.resolve({ id: 2460, type: 'CANCELLATION', cancelledTransaction: 2459 })
       return Promise.resolve({ id: 2459, type: 'INVESTMENT_EXPENSE', investment: 31 })
     })
+    withSheet(31, 'sheet-1')
     sheetColIReturns([2459]) // original sits on row 2 of the sheet
     spreadsheetsGetMock.mockResolvedValueOnce({
       data: {
@@ -434,18 +444,15 @@ describe('syncSingleTransferToSheet', () => {
   })
 
   it('removes the row when an edited expense is no longer mappable (category cleared) — T2.4', async () => {
-    findByIDMock.mockImplementation(({ collection }: { collection: string }) =>
-      collection === 'transactions'
-        ? Promise.resolve({
-            id: 101,
-            type: 'INVESTMENT_EXPENSE',
-            investment: 31,
-            expenseCategory: null, // cleared → expenseRow() returns undefined
-            amount: 100,
-            date: '2026-05-27T00:00:00Z',
-          })
-        : Promise.resolve({ id: 31, googleSheetId: 'sheet-1' }),
-    )
+    findByIDMock.mockResolvedValue({
+      id: 101,
+      type: 'INVESTMENT_EXPENSE',
+      investment: 31,
+      expenseCategory: null, // cleared → expenseRow() returns undefined
+      amount: 100,
+      date: '2026-05-27T00:00:00Z',
+    })
+    withSheet(31, 'sheet-1')
     sheetColIReturns([101]) // 101 currently on row 2
     spreadsheetsGetMock.mockResolvedValueOnce({
       data: {
@@ -468,7 +475,7 @@ describe('syncSingleTransferToSheet', () => {
 
 describe('removeTransferFromSheet', () => {
   it('removes the row from the given investment’s sheet', async () => {
-    findByIDMock.mockResolvedValue({ id: 31, googleSheetId: 'sheet-old' })
+    withSheet(31, 'sheet-old')
     sheetColIReturns([55]) // id 55 on row 2 of the old sheet
     spreadsheetsGetMock.mockResolvedValueOnce({
       data: {
@@ -491,8 +498,8 @@ describe('removeTransferFromSheet', () => {
     })
   })
 
-  it('no-ops when the investment has no googleSheetId', async () => {
-    findByIDMock.mockResolvedValue({ id: 31, googleSheetId: null })
+  it('no-ops when the investment has no linked kosztorys sheet', async () => {
+    withSheet(31, null)
     await removeTransferFromSheet({ transferId: 55, investmentId: 31 })
     expect(valuesGetMock).not.toHaveBeenCalled()
     expect(batchUpdateMock).not.toHaveBeenCalled()
