@@ -33,6 +33,7 @@ import * as migration_20260407_add_amount_edit_audit from './20260407_add_amount
 import * as migration_20260412_add_amount_trigram_index from './20260412_add_amount_trigram_index'
 import * as migration_20260525_add_google_sheet_id_to_investments from './20260525_add_google_sheet_id_to_investments'
 import * as migration_20260527_add_unique_google_sheet_id from './20260527_add_unique_google_sheet_id'
+import * as migration_20260528_move_sheet_id_to_kosztoryses from './20260528_move_sheet_id_to_kosztoryses'
 
 export const migrations = [
   {
@@ -209,5 +210,10 @@ export const migrations = [
     up: migration_20260527_add_unique_google_sheet_id.up,
     down: migration_20260527_add_unique_google_sheet_id.down,
     name: '20260527_add_unique_google_sheet_id',
+  },
+  {
+    up: migration_20260528_move_sheet_id_to_kosztoryses.up,
+    down: migration_20260528_move_sheet_id_to_kosztoryses.down,
+    name: '20260528_move_sheet_id_to_kosztoryses',
   },
 ]

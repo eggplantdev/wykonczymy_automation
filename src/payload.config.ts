@@ -16,6 +16,7 @@ import { CashRegisters } from '@/collections/cash-registers'
 import { Investments } from '@/collections/investments'
 import { Media } from '@/collections/media'
 import { ExpenseCategories } from '@/collections/expense-categories'
+import { Kosztoryses } from '@/collections/kosztoryses'
 import { OtherCategories } from '@/collections/other-categories'
 import { Transfers } from '@/collections/transfers'
 import { Users } from '@/collections/users'
@@ -59,6 +60,7 @@ export default buildConfig({
     Users,
     CashRegisters,
     Investments,
+    Kosztoryses,
     Transfers,
     OtherCategories,
     ExpenseCategories,
