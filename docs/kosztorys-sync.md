@@ -36,6 +36,47 @@ working in Sheets).
 
 ---
 
+## Data model
+
+A kosztorys is its **own** collection (`kosztoryses`), separate from `investments`.
+The kosztoryses row owns the sheet:
+
+```
+kosztoryses
+├── id                serial PK
+├── google_sheet_id   varchar UNIQUE NOT NULL
+├── name              varchar NOT NULL            (defaults to the sheet's title)
+├── investment_id     integer NULL  REFERENCES investments(id) ON DELETE SET NULL
+└── created_at / updated_at
+```
+
+Two constraints make the cardinality work:
+
+- `google_sheet_id` is **unique** — a sheet can be registered as a kosztorys
+  exactly once (T1.3).
+- A **partial unique index** `(investment_id) WHERE investment_id IS NOT NULL`
+  enforces 1:1 between an investment and its kosztorys when linked, but allows
+  unlimited unlinked rows.
+
+`ON DELETE SET NULL` is intentional: deleting an investment **doesn't** delete
+its kosztorys — the row stays as an unlinked kosztorys, the sheet survives, and
+the owner can re-link it later. This is what lets a kosztorys outlive its
+investment.
+
+Why a separate collection (and not just a field on `investments`)? **So a
+kosztorys can exist before its investment does.** The owner can register a
+sheet at `/kosztorysy → "+ Dodaj kosztorys"`, cost the project, and link it to
+an investment once the project is committed — see Provisioning below.
+
+The migration trail is:
+
+- `20260525_add_google_sheet_id_to_investments` — added the field on investments.
+- `20260527_add_unique_google_sheet_id` — added the unique index.
+- `20260528_move_sheet_id_to_kosztoryses` — created the new table, backfilled,
+  dropped the column from investments. This is the source of truth today.
+
+---
+
 ## The model — active-costs mirror (NOT append-only)
 
 The sheet holds **only currently active (non-cancelled) expenses**:
@@ -144,26 +185,58 @@ Notes:
 
 ## Provisioning
 
-An investment links to a sheet via `investments.googleSheetId` (Payload field,
-`unique: true` so one sheet can't link to two investments — review T1.3). The
-Setup dialog offers two paths:
+Every kosztorys is one row in the `kosztoryses` collection (see Data model
+above). There are three entry points, all of which boil down to one of two
+sheet operations: **copy the template** (a new Drive file) or **link an
+existing sheet** (an owner-shared file).
 
-1. **Utwórz nowy kosztorys** — `createKosztorysFromTemplate` ⇒ `drive.files.copy`
-   from `KOSZTORYS_TEMPLATE_SHEET_ID`. **Currently blocked on a personal-account
-   service account**: the SA has no Drive storage quota and the copy fails with a
-   "storage quota exceeded" error (`isStorageQuotaError`). `provisionKosztorysAction`
-   detects this and surfaces a Polish-language message pointing the user at the
-   link-existing path. `createInvestmentAction` also fires-and-forgets the same
-   call on investment create, so a new investment lands without `googleSheetId`
-   and the no-sheet banner appears. The fix needs a Workspace Shared Drive +
-   `supportsAllDrives` — see memory `project_kosztorys_sa_no_drive_storage`.
+### Per-investment dialog (investment page banner / no-sheet table cell)
+
+`KosztorysSetupDialog` offers two paths:
+
+1. **Utwórz nowy kosztorys** — `provisionKosztorysAction` →
+   `createKosztorysFromTemplate` ⇒ `drive.files.copy` from
+   `KOSZTORYS_TEMPLATE_SHEET_ID`, then `payload.create('kosztoryses', ...)`
+   with `investment: investmentId`. **Currently blocked on a personal-account
+   service account**: the SA has no Drive storage quota and the copy fails
+   with a "storage quota exceeded" error (`isStorageQuotaError`). The action
+   detects this and surfaces a Polish-language message pointing the user at
+   the link-existing path. `createInvestmentAction` also fire-and-forgets the
+   same call on investment create, so a new investment lands without a
+   kosztorys row and the no-sheet banner appears. The fix needs a Workspace
+   Shared Drive + `supportsAllDrives` — see memory
+   `project_kosztorys_sa_no_drive_storage`.
 2. **Powiąż istniejący arkusz** — `linkKosztorysSheetAction`. The owner shares
    an already-existing sheet with the SA as Editor and pastes its URL/id.
    `verifySheetAccess` does a no-op write-probe to surface a Viewer-only share
-   immediately, then the id is stored. **This is the working path today.**
+   immediately, then the action creates a `kosztoryses` row with the sheet's
+   title as `name` and the investment id set. **This is the working path
+   today.** Guarded against re-registering an already-known sheet — the user
+   is pointed at the listing page instead.
 
-After either path lands a `googleSheetId`, `setupKosztorysSheetAction` attaches
-the read-only tab and stamps the header + summary + formatting.
+After either path creates the kosztoryses row, `setupKosztorysSheetAction`
+attaches the read-only tab and stamps the banner + header + summary +
+formatting.
+
+### Listing page (unlinked workflow) — `/kosztorysy`
+
+For costing a project **before** committing the investment:
+
+3. **+ Dodaj kosztorys** (`AddKosztorysDialog`) →
+   `addUnlinkedKosztorysAction`. Same paste-existing-URL flow as path 2, but
+   creates a kosztoryses row with `investment IS NULL` and runs
+   `setupMaterialyTab` so the sheet is pre-stamped (banner/header/summary).
+   The row shows up in the "Niepowiązane kosztorysy" section.
+4. **Powiąż z inwestycją** (per unlinked row) →
+   `linkKosztorysToInvestmentAction(kosztorysId, investmentId)`. Sets
+   `investment_id` on the existing kosztoryses row, then fire-and-forgets
+   `applyMaterialSync` so the sheet inherits the investment's expenses. The
+   picker only offers investments where `hasSheet=false` (derived from the
+   `LEFT JOIN kosztoryses` in `fetchReferenceData`).
+
+The listing page also surfaces the third axis — investments that don't yet
+have a kosztorys — and reuses the existing `KosztorysSetupDialog` for those
+rows (back to path 1/2).
 
 ---
 
@@ -242,8 +315,12 @@ Detailed log: `docs/plans/2026-05-27-kosztorys-active-costs-reconcile-plan.md`.
 
 - **Test-DB → production cutover** (the `⚠️ TEMPORARY` block in `CLAUDE.md`):
   - [ ] Flip `DB_POSTGRES_URL` back from `wykonczymy-test-db` to `wykonczymy-db`.
-  - [ ] Apply migration `20260525_add_google_sheet_id_to_investments` (and
-        `20260527_add_unique_google_sheet_id`) to `wykonczymy-db`.
+  - [ ] Apply the three sheets-id migrations to `wykonczymy-db`:
+        `20260525_add_google_sheet_id_to_investments`,
+        `20260527_add_unique_google_sheet_id`, and
+        `20260528_move_sheet_id_to_kosztoryses` (the prior two run, then this
+        one creates kosztoryses + drops the column; backfill is a no-op since
+        prod has no kosztoryses yet).
   - [ ] Drop `wykonczymy-test-db`.
   - [ ] Remove the temporary section from `CLAUDE.md`.
 - **Vercel env vars for Production** — `env.ts` `process.exit(1)`s on missing
@@ -259,16 +336,25 @@ Detailed log: `docs/plans/2026-05-27-kosztorys-active-costs-reconcile-plan.md`.
 ## Key files
 
 ```
-src/lib/google/sheets.ts             ← header-driven read/applyMaterialRowsBatch/setup/protection/summary/colour
-src/lib/google/sheet-access.ts       ← link/verify an existing sheet (extractSheetId, verifySheetAccess)
-src/lib/google/auth.ts               ← service-account JWT factory
-src/hooks/transfers/sync-kosztorys-sheet.ts  ← collection-hook side of the sync (the T2.2 path)
-src/lib/actions/sheets-sync.ts       ← preview / apply (server re-derive) / syncSingleTransferToSheet / syncBulkExpensesToSheet / removeTransferFromSheet
-src/lib/actions/transfers.ts         ← bulk action: sets skipKosztorysSync + after(syncBulkExpensesToSheet)
-src/lib/actions/investments.ts       ← link & setup/reset kosztorys sheet actions
-src/collections/transfers.ts         ← afterChange/afterDelete wire syncKosztorys* alongside the balance recalc
-src/collections/investments.ts       ← googleSheetId field (unique)
-src/app/(frontend)/inwestycje/[id]/kosztorys/   ← page, iframe-view, sync-button (reset + sync dialogs)
+src/collections/kosztoryses.ts                    ← the collection itself (sheet id + optional FK to investment)
+src/lib/google/sheets.ts                          ← header-driven read/applyMaterialRowsBatch/setup/protection/summary/colour
+src/lib/google/sheet-access.ts                    ← link/verify an existing sheet (extractSheetId, verifySheetAccess)
+src/lib/google/auth.ts                            ← service-account JWT factory
+src/lib/google/kosztorys-lookup.ts                ← getInvestmentSheetId(payload, id) — the shared kosztoryses → sheetId helper
+src/hooks/transfers/sync-kosztorys-sheet.ts       ← collection-hook side of the sync (the T2.2 path)
+src/lib/actions/sheets-sync.ts                    ← preview / apply (server re-derive) / syncSingleTransferToSheet / syncBulkExpensesToSheet / removeTransferFromSheet
+src/lib/actions/transfers.ts                      ← bulk action: sets skipKosztorysSync + after(syncBulkExpensesToSheet)
+src/lib/actions/investments.ts                    ← per-investment link/provision/setup actions
+src/lib/actions/kosztoryses.ts                    ← unlinked add / link-to-investment / unlink / delete actions
+src/lib/queries/kosztoryses.ts                    ← cached listing query (fetchAllKosztoryses)
+src/lib/queries/reference-data.ts                 ← investments LEFT JOIN kosztoryses → hasSheet
+src/collections/transfers.ts                      ← afterChange/afterDelete wire syncKosztorys* alongside the balance recalc
+src/migrations/20260528_move_sheet_id_to_kosztoryses.ts  ← the schema split
+src/app/(frontend)/kosztorysy/page.tsx            ← top-level listing (3 sections + Add CTA)
+src/app/(frontend)/inwestycje/[id]/kosztorys/     ← per-investment page, iframe-view, sync-button (reset + sync dialogs)
+src/components/dialogs/kosztorys-setup-dialog.tsx       ← per-investment dialog (template + link tabs)
+src/components/dialogs/add-kosztorys-dialog.tsx         ← listing-page CTA dialog (unlinked add)
+src/components/dialogs/link-kosztorys-to-investment-dialog.tsx  ← per-row CTA dialog
 src/__tests__/lib/google/sheets.test.ts
 src/__tests__/lib/actions/sheets-sync.test.ts
 src/__tests__/hooks/sync-kosztorys-sheet.test.ts
