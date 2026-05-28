@@ -7,6 +7,7 @@ import {
   readMaterialyTransferIds,
   removeMaterialRow,
 } from '@/lib/google/sheets'
+import { getInvestmentSheetId } from '@/lib/google/kosztorys-lookup'
 import { getRelationName } from '@/lib/get-relation-name'
 import { protectedAction } from './utils'
 
@@ -123,24 +124,6 @@ async function loadAppMaterialRows(
     if (row) rows.push(row)
   }
   return rows
-}
-
-// Resolve an investment's linked Google Sheet id, or undefined if it has none.
-// The sheet id lives on the `kosztoryses` collection (one row per sheet, optional
-// FK back to an investment), so we look up by relation rather than reading a
-// field on investments — see migration 20260528_move_sheet_id_to_kosztoryses.
-async function getInvestmentSheetId(
-  payload: Awaited<ReturnType<typeof getPayload>>,
-  investmentId: number,
-): Promise<string | undefined> {
-  const found = await payload.find({
-    collection: 'kosztoryses',
-    where: { investment: { equals: investmentId } },
-    limit: 1,
-    depth: 0,
-    overrideAccess: true,
-  })
-  return found.docs[0]?.googleSheetId ?? undefined
 }
 
 export async function previewMaterialSync(investmentId: number) {

@@ -5,6 +5,7 @@ import { CACHE_TAGS } from '@/lib/cache/tags'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { createKosztorysFromTemplate, isStorageQuotaError } from '@/lib/google/drive'
+import { getInvestmentSheetId } from '@/lib/google/kosztorys-lookup'
 import { extractSheetId, serviceAccountEmail, verifySheetAccess } from '@/lib/google/sheet-access'
 import { setupMaterialyTab } from '@/lib/google/sheets'
 import { investmentSchema, type InvestmentFormDataT } from '@/lib/schemas/investment'
@@ -15,12 +16,8 @@ import { validateAction, protectedAction } from './utils'
 // personal Google account because it never creates a new file (see approach A).
 export async function setupKosztorysSheetAction(investmentId: number) {
   return protectedAction<{ types: string[] }>('setupKosztorysSheetAction', async ({ payload }) => {
-    const investment = await payload.findByID({
-      collection: 'investments',
-      id: investmentId,
-      overrideAccess: true,
-    })
-    if (!investment?.googleSheetId) {
+    const sheetId = await getInvestmentSheetId(payload, investmentId)
+    if (!sheetId) {
       return {
         success: false,
         error: 'Inwestycja nie ma powiązanego arkusza Google — najpierw podłącz arkusz.',
@@ -36,7 +33,7 @@ export async function setupKosztorysSheetAction(investmentId: number) {
       .map((c) => (c as { name?: string }).name)
       .filter((n): n is string => !!n)
 
-    await setupMaterialyTab(investment.googleSheetId, types)
+    await setupMaterialyTab(sheetId, types)
     return { success: true, data: { types } }
   })
 }
@@ -57,15 +54,14 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
       // when the copy fails — and on a personal-account SA it currently ALWAYS
       // fails ("storage quota exceeded" — the SA has no Drive of its own; needs
       // a Workspace Shared Drive). The no-sheet banner then surfaces the missing
-      // googleSheetId and the user takes the working path: "Powiąż istniejący
-      // arkusz" via linkKosztorysSheetAction (paste an owner-shared sheet).
+      // kosztorys and the user takes the working path: "Powiąż istniejący arkusz"
+      // via linkKosztorysSheetAction (paste an owner-shared sheet).
       void (async () => {
         try {
           const { sheetId } = await createKosztorysFromTemplate(created.name)
-          await payload.update({
-            collection: 'investments',
-            id: created.id,
-            data: { googleSheetId: sheetId },
+          await payload.create({
+            collection: 'kosztoryses',
+            data: { googleSheetId: sheetId, name: created.name, investment: created.id },
             overrideAccess: true,
           })
           // Revalidate again here: protectedAction already revalidated ['investments']
@@ -73,6 +69,10 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
           // so without this the banner/listing keep showing hasSheet=false until an
           // unrelated mutation invalidates the tag (review T2.8). revalidateTag (not
           // updateTag) — this runs detached, past the action's execution context.
+          // Both tags need bumping: the kosztoryses listing reads from kosztoryses
+          // cache; the investments tables read hasSheet derived via JOIN, cached
+          // under the investments tag.
+          revalidateTag(CACHE_TAGS.kosztoryses, 'default')
           revalidateTag(CACHE_TAGS.investments, 'default')
           console.log(`[kosztorys-provision] investment #${created.id} → sheet provisioned`)
         } catch (err) {
@@ -102,7 +102,9 @@ export async function provisionKosztorysAction(investmentId: number) {
         overrideAccess: true,
       })
       if (!investment) return { success: false, error: 'Inwestycja nie istnieje.' }
-      if (investment.googleSheetId) {
+
+      const existing = await getInvestmentSheetId(payload, investmentId)
+      if (existing) {
         return { success: false, error: 'Ta inwestycja ma już powiązany arkusz.' }
       }
 
@@ -123,16 +125,16 @@ export async function provisionKosztorysAction(investmentId: number) {
         return { success: false, error: `Nie udało się utworzyć arkusza: ${msg}` }
       }
 
-      await payload.update({
-        collection: 'investments',
-        id: investmentId,
-        data: { googleSheetId: sheetId },
+      await payload.create({
+        collection: 'kosztoryses',
+        data: { googleSheetId: sheetId, name: investment.name, investment: investmentId },
         overrideAccess: true,
       })
 
       return { success: true, data: { sheetId } }
     },
-    ['investments'],
+    // Affects both the kosztoryses listing and the investments table (hasSheet flips true).
+    ['kosztoryses', 'investments'],
   )
 }
 
@@ -168,7 +170,9 @@ export async function linkKosztorysSheetAction(investmentId: number, input: stri
         overrideAccess: true,
       })
       if (!investment) return { success: false, error: 'Inwestycja nie istnieje.' }
-      if (investment.googleSheetId) {
+
+      const existing = await getInvestmentSheetId(payload, investmentId)
+      if (existing) {
         return { success: false, error: 'Ta inwestycja ma już powiązany arkusz.' }
       }
 
@@ -177,23 +181,24 @@ export async function linkKosztorysSheetAction(investmentId: number, input: stri
         return { success: false, error: 'Nieprawidłowy link lub identyfikator arkusza Google.' }
       }
 
-      // Refuse a sheet already linked to another investment. Two investments sharing
-      // one tab would each treat the other's rows as orphans and delete them on sync
-      // (T1.3). (The DB unique constraint is the belt-and-suspenders for direct admin
-      // edits; this guard covers the link flow.)
-      const alreadyLinked = await payload.find({
-        collection: 'investments',
-        where: {
-          and: [{ googleSheetId: { equals: sheetId } }, { id: { not_equals: investmentId } }],
-        },
+      // Refuse a sheet already registered as a kosztorys (linked or not). Two
+      // investments sharing one tab would each treat the other's rows as orphans
+      // and delete them on sync (T1.3). The kosztoryses.google_sheet_id UNIQUE
+      // constraint is the belt-and-suspenders for direct admin edits; this guard
+      // surfaces the conflict with a Polish error instead of a 500.
+      const alreadyRegistered = await payload.find({
+        collection: 'kosztoryses',
+        where: { googleSheetId: { equals: sheetId } },
         depth: 0,
         limit: 1,
         overrideAccess: true,
       })
-      if (alreadyLinked.docs.length > 0) {
+      if (alreadyRegistered.docs.length > 0) {
         return {
           success: false,
-          error: `Ten arkusz jest już powiązany z inną inwestycją („${alreadyLinked.docs[0].name}”).`,
+          error:
+            'Ten arkusz jest już zarejestrowany w aplikacji jako kosztorys. ' +
+            'Powiąż go z inwestycją z listy „Kosztorysy".',
         }
       }
 
@@ -207,16 +212,16 @@ export async function linkKosztorysSheetAction(investmentId: number, input: stri
         }
       }
 
-      await payload.update({
-        collection: 'investments',
-        id: investmentId,
-        data: { googleSheetId: sheetId },
+      await payload.create({
+        collection: 'kosztoryses',
+        data: { googleSheetId: sheetId, name: access.title, investment: investmentId },
         overrideAccess: true,
       })
 
       return { success: true, data: { title: access.title } }
     },
-    ['investments'],
+    // Affects both the kosztoryses listing and the investments table (hasSheet flips true).
+    ['kosztoryses', 'investments'],
   )
 }
 
