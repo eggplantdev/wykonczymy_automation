@@ -1,5 +1,8 @@
 import { notFound } from 'next/navigation'
+import { getPayload } from 'payload'
+import config from '@payload-config'
 import { getInvestment } from '@/lib/queries/investments'
+import { getInvestmentSheetId } from '@/lib/google/kosztorys-lookup'
 import { KosztorysButton } from '@/components/dialogs/kosztorys-button'
 import { KosztorysIframeView } from './iframe-view'
 import { SyncButton } from './sync-button'
@@ -12,9 +15,13 @@ export default async function KosztorysPage({ params }: { params: Promise<{ id: 
   const investment = await getInvestment(id)
   if (!investment) notFound()
 
+  // Sheet id lives on the kosztoryses collection now, not on investments.
+  const payload = await getPayload({ config })
+  const sheetId = await getInvestmentSheetId(payload, investmentId)
+
   // Reached without a linked sheet (e.g. navigated here by accident): offer the
   // same setup entry point as the listing / investment view instead of a blank.
-  if (!investment.googleSheetId) {
+  if (!sheetId) {
     return (
       <div className="flex flex-col items-center gap-4 py-16 text-center">
         <p className="text-muted-foreground text-sm">
@@ -31,7 +38,7 @@ export default async function KosztorysPage({ params }: { params: Promise<{ id: 
 
   return (
     <KosztorysIframeView
-      sheetId={investment.googleSheetId}
+      sheetId={sheetId}
       investmentName={investment.name}
       toolbar={<SyncButton investmentId={investmentId} />}
     />

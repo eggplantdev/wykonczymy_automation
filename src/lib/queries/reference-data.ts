@@ -49,11 +49,16 @@ export const fetchReferenceData = unstable_cache(
         FROM cash_registers
         ORDER BY name
       `),
+      // The sheet id lives on kosztoryses now (1:1 via partial unique index on
+      // investment_id). LEFT JOIN so investments without a kosztorys still appear,
+      // and we project a boolean instead of leaking the sheet id into the cache.
       db.execute(sql`
-        SELECT id, name, status::text,
-               address, phone, email, contact_person, notes, review, google_sheet_id
-        FROM investments
-        ORDER BY name
+        SELECT i.id, i.name, i.status::text,
+               i.address, i.phone, i.email, i.contact_person, i.notes, i.review,
+               (k.google_sheet_id IS NOT NULL) AS has_sheet
+        FROM investments i
+        LEFT JOIN kosztoryses k ON k.investment_id = i.id
+        ORDER BY i.name
       `),
       db.execute(sql`
         SELECT id, name, role::text, active::boolean, email, default_cash_register_id::integer
@@ -99,7 +104,7 @@ export const fetchReferenceData = unstable_cache(
       contactPerson: (row.contact_person as string) ?? '',
       notes: (row.notes as string) ?? '',
       review: (row.review as string) ?? '',
-      hasSheet: Boolean(row.google_sheet_id),
+      hasSheet: Boolean(row.has_sheet),
     }))
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -136,6 +141,10 @@ export const fetchReferenceData = unstable_cache(
       CACHE_TAGS.users,
       CACHE_TAGS.otherCategories,
       CACHE_TAGS.expenseCategories,
+      // hasSheet derives from kosztoryses via JOIN — invalidate on kosztorys
+      // create/link/unlink/delete too, otherwise the listing's "kosztorys" badge
+      // stays stale.
+      CACHE_TAGS.kosztoryses,
     ],
   },
 )

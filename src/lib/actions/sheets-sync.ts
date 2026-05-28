@@ -287,7 +287,7 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
     const sheetId = await getInvestmentSheetId(payload, investmentId)
     if (!sheetId) {
       console.log(
-        `[sheets-sync] skip transfer #${params.transferId}: investment #${investmentId} has no googleSheetId`,
+        `[sheets-sync] skip transfer #${params.transferId}: investment #${investmentId} has no linked kosztorys`,
       )
       return
     }

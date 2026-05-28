@@ -27,13 +27,23 @@ function extractSelectColumns(table: string): Set<string> {
   const re = new RegExp(`SELECT\\s+([\\s\\S]*?)\\s+FROM\\s+${table}\\b`, 'i')
   const match = SOURCE.match(re)
   if (!match) return new Set()
-  // Normalize: strip type casts (::text, ::integer, ::boolean) and whitespace,
-  // split by comma, keep bare identifiers.
+  // Resolve each select-list item to the column name it'll appear under in the
+  // result row. Handles three shapes:
+  //   `id`                                  → `id`
+  //   `i.address`                           → `address`  (table alias prefix)
+  //   `(k.x IS NOT NULL) AS has_sheet`      → `has_sheet` (explicit alias wins)
   return new Set(
     match[1]
-      .replace(/::\w+/g, '')
+      .replace(/::\w+/g, '') // drop type casts (::text, ::integer, …)
       .split(',')
-      .map((c) => c.trim().toLowerCase())
+      .map((c) => {
+        const trimmed = c.trim()
+        const aliased = trimmed.match(/\bAS\s+(\w+)\s*$/i)
+        if (aliased) return aliased[1].toLowerCase()
+        // Plain identifier, maybe prefixed by a table alias — take the last segment.
+        const parts = trimmed.split('.')
+        return parts[parts.length - 1].toLowerCase()
+      })
       .filter(Boolean),
   )
 }
