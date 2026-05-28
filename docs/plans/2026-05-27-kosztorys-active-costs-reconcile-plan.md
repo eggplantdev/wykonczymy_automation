@@ -10,8 +10,6 @@
 
 **Integration target:** branch `table` merges into **`staging`** — NOT `main`. Do not merge or PR this work against `main`. (Production promotion happens from `staging` separately.)
 
-**Design doc:** `docs/plans/2026-05-27-kosztorys-active-costs-reconcile-design.md`
-
 ---
 
 ## File Structure
