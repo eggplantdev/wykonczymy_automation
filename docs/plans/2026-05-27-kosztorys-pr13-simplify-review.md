@@ -59,18 +59,17 @@ Append target = `(last row with a parseable id) + 1`. A manual non-id row sittin
 **Trigger:** owner adds a "Notes" row directly under the synced expenses → next expense create overwrites it.
 **Fix:** append below the last _non-empty_ row, or require an explicit blank separator the append never crosses.
 
-### T1.5 ◐ Any finite number in the id column is treated as a transferId
+### T1.5 ⊘ Any finite number in the id column is treated as a transferId
 
-**`src/lib/google/sheets.ts:179`** — CONFIRMED → **PARTIALLY FIXED**
+**`src/lib/google/sheets.ts:179`** — CONFIRMED → **WON'T-FIX (Tables collision, 2026-05-28)**
 
 - **Delete-side closed** by T1.1 (orphan removal scoped to this investment's expenses) — a stray manual number can no longer be deleted unless it equals one of this investment's own expense ids.
 - **Append-side closed** by the T1.4 fix — appends no longer target a computed row, so a manual number can't be overwritten by an append.
-- **Update-side residual (open):** `applyMaterialRowsBatch` still maps id→row, so a manual row whose id-cell equals _this investment's active expense id_ would be overwritten in place. Fully closing it needs id **namespacing** (e.g. write `#<id>` and parse only prefixed cells as app ids) — a data-format change with a one-time re-sync migration. **Needs a decision** (small follow-up); the tab is SA-protected, so manual rows there are already an edge case.
+- **Update-side residual accepted:** `applyMaterialRowsBatch` maps id→row, so a manual row whose id-cell equals _this investment's active expense id_ is still overwritten in place. The tab is SA-protected, so producing such a row requires the file owner to bypass protection — a real but narrow edge case.
 
-`isTransferId` accepts any `Number.isFinite` value; nothing distinguishes app-written ids from manual numbers. Since transaction ids are sequential integers, low/mid-range manual numbers collide readily.
+**Attempted and reverted (2026-05-28):** namespacing app ids as `#<id>` and parsing only `#`-prefixed cells. Live test on inv 6 surfaced a hard-blocker: Google Sheets' **Tables feature** assigns a `columnType: "DOUBLE"` to the id column (verified via `spreadsheets.get` — `sheets[].tables[].columnProperties`). That column type **overrides cell-level `userEnteredFormat.numberFormat`**, so `effectiveFormat` reported `NUMBER` even after explicitly forcing TEXT; Sheets flagged every `#<id>` cell with "ta wartość nie jest zgodna z typem kolumny liczba". The Sheets API has no clean public way to clear/override a Table column's type from outside the Tables API, and Google now auto-tables ranges in many UI flows, so any fix here would be re-broken by an owner converting their tab to a Table. Whole approach abandoned — see commit `09fb836` (revert).
 
-**Trigger:** owner types `2024` (a year/qty) in the id column. If txn #2024 is an active expense here, `updateMaterialRow` overwrites that manual row; otherwise the orphan path can delete it.
-**Fix:** namespace the app's id cells (e.g. a hidden marker column, or a prefix like `#<id>`), so manual numerics are never mistaken for sync keys. This is the common root of T1.1/T1.4/T1.5.
+**Decision:** keep ids numeric (matches the natural column type, no warnings, no migration). Owner protection is the real backstop for the residual; if a real collision ever happens, the manual "Zsynchronizuj arkusz" button shows it in the diff before applying.
 
 ---
 
@@ -181,13 +180,13 @@ No `referrerPolicy`/CSP `frame-src` documented; with third-party cookies blocked
 
 **Fix:** add a desktop "open in Google Sheets" fallback + an explainer; document the frame-src expectation.
 
-### T3.4 ☐ `verifySheetAccess` write-probe rewrites the title to itself
+### T3.4 ⊘ `verifySheetAccess` write-probe rewrites the title to itself
 
-**`src/lib/google/sheet-access.ts:37`** — PLAUSIBLE
+**`src/lib/google/sheet-access.ts:37`** — PLAUSIBLE → **WON'T-FIX (leave, 2026-05-28)**
 
 The Editor-access check does a `batchUpdate` rewriting the title to its current value. Defensible (must verify write), but it races a concurrent rename and adds revision-history noise on every link/retry.
 
-**Fix:** if a cheaper write-permission signal exists, prefer it; otherwise document the trade-off.
+**Decision (user, 2026-05-28):** leave as-is. The probe only runs on link/retry (rare), the title is rewritten to its own value (no visible change), and a write-probe is the most reliable signal that the SA actually has Editor access. Not worth the complexity of a cheaper-but-weaker check.
 
 ---
 
@@ -245,12 +244,12 @@ Each item re-fetches the investment's `sheetId` and re-reads the grid. Bulk item
 Every expense write path must remember to call sync, and update re-implements old-vs-new investment routing inline. A 5th mutation path silently won't sync (this is the root of T2.1–T2.5, T2.2).
 **Deeper fix:** one sync dispatcher keyed on `transferId` that reads current DB state and decides append/update/remove (and which sheet the row currently lives on), invoked from exactly one place — ideally the collection hook so it can't be bypassed. Owns the serialization invariant (T2.1) where `appendMaterialRow` lives.
 
-### T5.2 ☐ No guaranteed / scheduled reconciler
+### T5.2 ⊘ No guaranteed / scheduled reconciler
 
-**`src/lib/actions/sheets-sync.ts`** — altitude
+**`src/lib/actions/sheets-sync.ts`** — altitude → **WON'T-DO (user, 2026-05-28: "cron is unnecessary")**
 
 Per-mutation syncs swallow errors as "non-fatal, recoverable via the sync button", but recovery is a human remembering to click per investment. "Eventually consistent" has no "eventually".
-**Deeper fix:** pair optimistic sync with a cron / on-load reconcile-if-stale so the swallowed-error design has a real backstop.
+**Decision:** no cron/scheduled reconciler. The manual "Zsynchronizuj arkusz" button (with its preview of pending appends/updates/removes — T3.1) is the accepted backstop; sheets are low-traffic and an owner reconciles on demand. Revisit only if drift turns out to be a real operational problem.
 
 ### T5.3 ☑ `TYPE_COLORS` hardcoded by category name
 
