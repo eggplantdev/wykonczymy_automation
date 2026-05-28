@@ -20,7 +20,7 @@ export async function setupKosztorysSheetAction(investmentId: number) {
     if (!sheetId) {
       return {
         success: false,
-        error: 'Inwestycja nie ma powiązanego arkusza Google — najpierw podłącz arkusz.',
+        error: 'Inwestycja nie ma kosztorysu — najpierw dodaj kosztorys.',
       }
     }
 
@@ -105,7 +105,7 @@ export async function provisionKosztorysAction(investmentId: number) {
 
       const existing = await getInvestmentSheetId(payload, investmentId)
       if (existing) {
-        return { success: false, error: 'Ta inwestycja ma już powiązany arkusz.' }
+        return { success: false, error: 'Ta inwestycja ma już kosztorys.' }
       }
 
       let sheetId: string
@@ -173,7 +173,7 @@ export async function linkKosztorysSheetAction(investmentId: number, input: stri
 
       const existing = await getInvestmentSheetId(payload, investmentId)
       if (existing) {
-        return { success: false, error: 'Ta inwestycja ma już powiązany arkusz.' }
+        return { success: false, error: 'Ta inwestycja ma już kosztorys.' }
       }
 
       const sheetId = extractSheetId(input)

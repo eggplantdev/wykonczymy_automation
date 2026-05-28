@@ -25,7 +25,7 @@ export default async function KosztorysPage({ params }: { params: Promise<{ id: 
     return (
       <div className="flex flex-col items-center gap-4 py-16 text-center">
         <p className="text-muted-foreground text-sm">
-          Inwestycja <strong>{investment.name}</strong> nie ma jeszcze powiązanego kosztorysu.
+          Inwestycja <strong>{investment.name}</strong> nie ma jeszcze kosztorysu.
         </p>
         <KosztorysButton
           investmentId={investmentId}

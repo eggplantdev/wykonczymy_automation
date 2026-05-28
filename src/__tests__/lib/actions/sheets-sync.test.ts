@@ -154,7 +154,7 @@ describe('previewMaterialSync', () => {
 
     expect(result.success).toBe(false)
     if (result.success) throw new Error('expected failure')
-    expect(result.error).toMatch(/arkusza/i)
+    expect(result.error).toMatch(/kosztorysu/i)
     // Never touched Google when there is nothing to read against.
     expect(valuesGetMock).not.toHaveBeenCalled()
   })
@@ -263,7 +263,7 @@ describe('applyMaterialSync', () => {
 
     expect(result.success).toBe(false)
     if (result.success) throw new Error('expected failure')
-    expect(result.error).toMatch(/arkusza/i)
+    expect(result.error).toMatch(/kosztorysu/i)
     expect(valuesBatchUpdateMock).not.toHaveBeenCalled()
   })
 

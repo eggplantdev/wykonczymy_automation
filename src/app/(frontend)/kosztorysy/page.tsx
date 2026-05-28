@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ExternalLink, FileSpreadsheet, Plus } from 'lucide-react'
+import { FileSpreadsheet, Plus } from 'lucide-react'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { ADMIN_OR_OWNER_MANAGER_ROLES } from '@/lib/auth/roles'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
@@ -9,9 +9,15 @@ import { AddKosztorysDialog } from '@/components/dialogs/add-kosztorys-dialog'
 import { LinkKosztorysToInvestmentDialog } from '@/components/dialogs/link-kosztorys-to-investment-dialog'
 import { KosztorysSetupDialog } from '@/components/dialogs/kosztorys-setup-dialog'
 import { Button } from '@/components/ui/button'
+import { ExternalLink } from '@/components/ui/external-link'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 
 const sheetUrl = (sheetId: string) => `https://docs.google.com/spreadsheets/d/${sheetId}/edit`
+
+// Owner's Sheets file picker — used by both the listing header and the
+// AddKosztorysDialog so the user can create a fresh sheet in a new tab and
+// paste its URL back without losing their place in the app.
+const ALL_SHEETS_URL = 'https://docs.google.com/spreadsheets/u/0/'
 
 export default async function KosztorysyListPage() {
   const session = await requireAuth(ADMIN_OR_OWNER_MANAGER_ROLES)
@@ -30,7 +36,8 @@ export default async function KosztorysyListPage() {
 
   return (
     <PageWrapper title="Kosztorysy">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap items-center justify-end gap-3">
+        <ExternalLink href={ALL_SHEETS_URL}>Wszystkie arkusze ↗</ExternalLink>
         <AddKosztorysDialog
           trigger={
             <Button size="sm">
@@ -42,15 +49,15 @@ export default async function KosztorysyListPage() {
       </div>
 
       <Section
-        title="Powiązane kosztorysy"
-        emptyMessage="Brak powiązanych kosztorysów."
+        title="Inwestycje z kosztorysami"
+        emptyMessage="Żadna inwestycja nie ma jeszcze kosztorysu."
         rows={linked}
         renderRow={(k) => <LinkedRow key={k.id} kosztorys={k} />}
       />
 
       <Section
-        title="Niepowiązane kosztorysy"
-        emptyMessage="Wszystkie kosztorysy są powiązane z inwestycjami."
+        title="Kosztorysy bez inwestycji"
+        emptyMessage="Wszystkie kosztorysy mają przypisaną inwestycję."
         rows={unlinked}
         renderRow={(k) => (
           <UnlinkedRow key={k.id} kosztorys={k} availableInvestments={investmentsWithoutSheet} />
@@ -108,12 +115,7 @@ function LinkedRow({ kosztorys }: { kosztorys: KosztorysRowT }) {
             Otwórz
           </Link>
         </Button>
-        <Button size="sm" variant="outline" asChild>
-          <a href={sheetUrl(kosztorys.googleSheetId)} target="_blank" rel="noopener noreferrer">
-            <ExternalLink className="size-4" />
-            Sheets
-          </a>
-        </Button>
+        <ExternalLink href={sheetUrl(kosztorys.googleSheetId)}>Arkusze ↗</ExternalLink>
       </div>
     </li>
   )
@@ -130,7 +132,7 @@ function UnlinkedRow({
     <li className="border-border bg-background flex flex-wrap items-center justify-between gap-3 rounded-md border p-3">
       <div className="min-w-0 flex-1">
         <p className="font-medium">{kosztorys.name}</p>
-        <p className="text-muted-foreground text-xs">Bez powiązania z inwestycją</p>
+        <p className="text-muted-foreground text-xs">Bez przypisanej inwestycji</p>
       </div>
       <div className="flex items-center gap-2">
         <LinkKosztorysToInvestmentDialog
@@ -138,12 +140,7 @@ function UnlinkedRow({
           kosztorysName={kosztorys.name}
           availableInvestments={availableInvestments}
         />
-        <Button size="sm" variant="outline" asChild>
-          <a href={sheetUrl(kosztorys.googleSheetId)} target="_blank" rel="noopener noreferrer">
-            <ExternalLink className="size-4" />
-            Sheets
-          </a>
-        </Button>
+        <ExternalLink href={sheetUrl(kosztorys.googleSheetId)}>Arkusze ↗</ExternalLink>
       </div>
     </li>
   )

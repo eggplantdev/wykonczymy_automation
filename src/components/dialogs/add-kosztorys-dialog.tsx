@@ -13,8 +13,13 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { toastMessage } from '@/components/toasts'
+import { ExternalLink } from '@/components/ui/external-link'
 import { getServiceAccountEmailAction } from '@/lib/actions/investments'
 import { addUnlinkedKosztorysAction } from '@/lib/actions/kosztoryses'
+
+// Same constant as on /kosztorysy: shortcut to the owner's Google Sheets file
+// picker so the user can spin up a fresh sheet and paste its URL back here.
+const ALL_SHEETS_URL = 'https://docs.google.com/spreadsheets/u/0/'
 
 type PropsT = {
   trigger?: ReactNode
@@ -68,6 +73,7 @@ export function AddKosztorysDialog({ trigger }: PropsT) {
             Najpierw udostępnij arkusz <strong>jako Edytujący</strong> dla konta usługi, a następnie
             wklej jego link poniżej.
           </p>
+          <ExternalLink href={ALL_SHEETS_URL}>Otwórz wszystkie arkusze ↗</ExternalLink>
           {saEmail && (
             <p className="text-muted-foreground text-xs">
               Konto usługi:{' '}

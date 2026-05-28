@@ -120,11 +120,11 @@ export async function linkKosztorysToInvestmentAction(kosztorysId: number, inves
 
       if (!kosztorys) return { success: false, error: 'Kosztorys nie istnieje.' }
       if (kosztorys.investment) {
-        return { success: false, error: 'Ten kosztorys jest już powiązany z inwestycją.' }
+        return { success: false, error: 'Ten kosztorys jest już dodany do inwestycji.' }
       }
       if (!investment) return { success: false, error: 'Inwestycja nie istnieje.' }
       if (investmentHasKosztorys.docs.length > 0) {
-        return { success: false, error: 'Ta inwestycja ma już powiązany kosztorys.' }
+        return { success: false, error: 'Ta inwestycja ma już kosztorys.' }
       }
 
       await payload.update({

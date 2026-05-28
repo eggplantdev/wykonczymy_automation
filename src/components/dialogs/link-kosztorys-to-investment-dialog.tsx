@@ -52,7 +52,7 @@ export function LinkKosztorysToInvestmentDialog({
       if (!res.success) return toastMessage(res.error, 'error')
       const investment = availableInvestments.find((i) => i.id === investmentId)
       toastMessage(
-        `Powiązano „${kosztorysName}” z inwestycją „${investment?.name ?? ''}”.`,
+        `Dodano „${kosztorysName}” do inwestycji „${investment?.name ?? ''}”.`,
         'success',
       )
       setOpen(false)
@@ -66,16 +66,16 @@ export function LinkKosztorysToInvestmentDialog({
       <DialogTrigger asChild>
         {trigger ?? (
           <Button size="sm" variant="outline">
-            Powiąż z inwestycją
+            Dodaj kosztorys
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Powiąż kosztorys z inwestycją</DialogTitle>
+          <DialogTitle>Dodaj kosztorys do inwestycji</DialogTitle>
           <DialogDescription>
-            Wybierz inwestycję bez kosztorysu. Po powiązaniu, wydatki inwestycji zostaną
-            zsynchronizowane do arkusza.
+            Wybierz inwestycję bez kosztorysu. Po dodaniu, wydatki inwestycji zostaną
+            zsynchronizowane do kosztorysu.
           </DialogDescription>
         </DialogHeader>
 
@@ -105,7 +105,7 @@ export function LinkKosztorysToInvestmentDialog({
             onClick={onSubmit}
             disabled={pending || !selectedId || availableInvestments.length === 0}
           >
-            {pending ? 'Wiążę…' : 'Powiąż'}
+            {pending ? 'Dodaję…' : 'Dodaj kosztorys'}
           </Button>
         </DialogFooter>
       </DialogContent>

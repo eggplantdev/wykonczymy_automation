@@ -130,7 +130,7 @@ export async function previewMaterialSync(investmentId: number) {
   return protectedAction<MaterialSyncPreviewT>('previewMaterialSync', async ({ payload }) => {
     const sheetId = await getInvestmentSheetId(payload, investmentId)
     if (!sheetId) {
-      return { success: false, error: 'Inwestycja nie ma powiązanego arkusza Google.' }
+      return { success: false, error: 'Inwestycja nie ma kosztorysu.' }
     }
 
     const { appRows, toAppend, removableIds } = await buildSyncPlan(payload, investmentId, sheetId)
@@ -199,7 +199,7 @@ export async function applyMaterialSync(investmentId: number) {
     async ({ payload }) => {
       const sheetId = await getInvestmentSheetId(payload, investmentId)
       if (!sheetId) {
-        return { success: false, error: 'Inwestycja nie ma powiązanego arkusza Google.' }
+        return { success: false, error: 'Inwestycja nie ma kosztorysu.' }
       }
 
       const { appRows, removableIds } = await buildSyncPlan(payload, investmentId, sheetId)

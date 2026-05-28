@@ -65,7 +65,7 @@ export function KosztorysSetupDialog({ investmentId, investmentName, trigger }: 
     startTransition(async () => {
       const res = await linkKosztorysSheetAction(investmentId, link)
       if (!res.success) return toastMessage(res.error, 'error')
-      finish(`Powiązano arkusz „${res.data.title}”.`)
+      finish(`Dodano kosztorys „${res.data.title}”.`)
     })
   }
 
@@ -94,7 +94,7 @@ export function KosztorysSetupDialog({ investmentId, investmentName, trigger }: 
           <div className="border-t" />
 
           <section className="space-y-2">
-            <h3 className="font-medium">Powiąż istniejący arkusz</h3>
+            <h3 className="font-medium">Dodaj istniejący kosztorys</h3>
             <p className="text-muted-foreground text-xs">
               Najpierw udostępnij arkusz <strong>jako Edytujący</strong> dla konta usługi, a
               następnie wklej jego link poniżej.
@@ -119,7 +119,7 @@ export function KosztorysSetupDialog({ investmentId, investmentName, trigger }: 
               variant="outline"
               className="w-full"
             >
-              {pending ? 'Sprawdzam…' : 'Powiąż arkusz'}
+              {pending ? 'Sprawdzam…' : 'Dodaj kosztorys'}
             </Button>
           </section>
         </div>
