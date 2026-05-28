@@ -21,8 +21,11 @@ export const Kosztoryses: CollectionConfig = {
     group: { en: 'Finance', pl: 'Finanse' },
   },
   hooks: {
-    afterChange: [makeRevalidateAfterChange('kosztoryses')],
-    afterDelete: [makeRevalidateAfterDelete('kosztoryses')],
+    // Bump `investments` too — the investments listing reads hasSheet via a
+    // LEFT JOIN on kosztoryses (cached under the investments tag), so an
+    // admin-panel edit / create / delete here must invalidate both caches.
+    afterChange: [makeRevalidateAfterChange('kosztoryses', 'investments')],
+    afterDelete: [makeRevalidateAfterDelete('kosztoryses', 'investments')],
   },
   access: {
     read: isAdminOrOwnerOrManager,

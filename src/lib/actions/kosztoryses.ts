@@ -1,6 +1,7 @@
 'use server'
 
 import { applyMaterialSync } from '@/lib/actions/sheets-sync'
+import { ADMIN_OR_OWNER_ROLES } from '@/lib/auth/roles'
 import { extractSheetId, serviceAccountEmail, verifySheetAccess } from '@/lib/google/sheet-access'
 import { setupMaterialyTab } from '@/lib/google/sheets'
 import { protectedAction } from './utils'
@@ -92,34 +93,36 @@ export async function linkKosztorysToInvestmentAction(kosztorysId: number, inves
   return protectedAction(
     'linkKosztorysToInvestmentAction',
     async ({ payload }) => {
-      const kosztorys = await payload.findByID({
-        collection: 'kosztoryses',
-        id: kosztorysId,
-        depth: 0,
-        overrideAccess: true,
-      })
+      // The three lookups are independent — fetch them in parallel. The partial
+      // unique index on investment_id WHERE NOT NULL would also catch a double-
+      // link at the DB layer; the loud check turns it into a Polish error first.
+      const [kosztorys, investment, investmentHasKosztorys] = await Promise.all([
+        payload.findByID({
+          collection: 'kosztoryses',
+          id: kosztorysId,
+          depth: 0,
+          overrideAccess: true,
+        }),
+        payload.findByID({
+          collection: 'investments',
+          id: investmentId,
+          depth: 0,
+          overrideAccess: true,
+        }),
+        payload.find({
+          collection: 'kosztoryses',
+          where: { investment: { equals: investmentId } },
+          depth: 0,
+          limit: 1,
+          overrideAccess: true,
+        }),
+      ])
+
       if (!kosztorys) return { success: false, error: 'Kosztorys nie istnieje.' }
       if (kosztorys.investment) {
         return { success: false, error: 'Ten kosztorys jest już powiązany z inwestycją.' }
       }
-
-      const investment = await payload.findByID({
-        collection: 'investments',
-        id: investmentId,
-        depth: 0,
-        overrideAccess: true,
-      })
       if (!investment) return { success: false, error: 'Inwestycja nie istnieje.' }
-
-      // The partial unique index on investment_id WHERE NOT NULL would also
-      // catch this at the DB layer; reject loud first for a Polish message.
-      const investmentHasKosztorys = await payload.find({
-        collection: 'kosztoryses',
-        where: { investment: { equals: investmentId } },
-        depth: 0,
-        limit: 1,
-        overrideAccess: true,
-      })
       if (investmentHasKosztorys.docs.length > 0) {
         return { success: false, error: 'Ta inwestycja ma już powiązany kosztorys.' }
       }
@@ -176,11 +179,20 @@ export async function unlinkKosztorysFromInvestmentAction(kosztorysId: number) {
 /**
  * Delete the kosztorys row only — the Google Sheet stays as-is (it lives on
  * the owner's Drive; we don't have permission and shouldn't presume).
+ *
+ * Tighter than the other actions: the collection's `delete` access is
+ * `isAdminOrOwner` (matches investments — destructive ops kept narrower),
+ * so we re-check the role here. `protectedAction` only gates at
+ * MANAGEMENT_ROLES, which includes MANAGER; without this check, a manager
+ * would bypass the collection's tighter intent via `overrideAccess: true`.
  */
 export async function deleteKosztorysAction(kosztorysId: number) {
   return protectedAction(
     'deleteKosztorysAction',
-    async ({ payload }) => {
+    async ({ payload, user }) => {
+      if (!(ADMIN_OR_OWNER_ROLES as readonly string[]).includes(user.role)) {
+        return { success: false, error: 'Brak uprawnień do usuwania kosztorysów.' }
+      }
       await payload.delete({
         collection: 'kosztoryses',
         id: kosztorysId,
