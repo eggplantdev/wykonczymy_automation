@@ -12,8 +12,6 @@ import { Button } from '@/components/ui/button'
 import { ExternalLink } from '@/components/ui/external-link'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 
-const sheetUrl = (sheetId: string) => `https://docs.google.com/spreadsheets/d/${sheetId}/edit`
-
 // Owner's Sheets file picker — used by both the listing header and the
 // AddKosztorysDialog so the user can create a fresh sheet in a new tab and
 // paste its URL back without losing their place in the app.
@@ -36,13 +34,15 @@ export default async function KosztorysyListPage() {
 
   return (
     <PageWrapper title="Kosztorysy">
-      <div className="flex flex-wrap items-center justify-end gap-3">
-        <ExternalLink href={ALL_SHEETS_URL}>Wszystkie arkusze ↗</ExternalLink>
+      <div className="flex flex-wrap items-center gap-3">
+        <ExternalLink className="mr-auto" href={ALL_SHEETS_URL}>
+          Otwórz w arkuszach google ↗
+        </ExternalLink>
         <AddKosztorysDialog
           trigger={
             <Button size="sm">
               <Plus className="size-4" />
-              Dodaj kosztorys
+              Dodaj kosztorys bez inwestycji
             </Button>
           }
         />
@@ -108,15 +108,12 @@ function LinkedRow({ kosztorys }: { kosztorys: KosztorysRowT }) {
         <p className="font-medium">{inv.name}</p>
         <p className="text-muted-foreground truncate text-xs">{kosztorys.name}</p>
       </div>
-      <div className="flex items-center gap-2">
-        <Button size="sm" asChild>
-          <Link href={`/inwestycje/${inv.id}/kosztorys`}>
-            <FileSpreadsheet className="size-4" />
-            Otwórz
-          </Link>
-        </Button>
-        <ExternalLink href={sheetUrl(kosztorys.googleSheetId)}>Arkusze ↗</ExternalLink>
-      </div>
+      <Button size="sm" asChild>
+        <Link href={`/inwestycje/${inv.id}/kosztorys`}>
+          <FileSpreadsheet className="size-4" />
+          Otwórz
+        </Link>
+      </Button>
     </li>
   )
 }
@@ -134,14 +131,11 @@ function UnlinkedRow({
         <p className="font-medium">{kosztorys.name}</p>
         <p className="text-muted-foreground text-xs">Bez przypisanej inwestycji</p>
       </div>
-      <div className="flex items-center gap-2">
-        <LinkKosztorysToInvestmentDialog
-          kosztorysId={kosztorys.id}
-          kosztorysName={kosztorys.name}
-          availableInvestments={availableInvestments}
-        />
-        <ExternalLink href={sheetUrl(kosztorys.googleSheetId)}>Arkusze ↗</ExternalLink>
-      </div>
+      <LinkKosztorysToInvestmentDialog
+        kosztorysId={kosztorys.id}
+        kosztorysName={kosztorys.name}
+        availableInvestments={availableInvestments}
+      />
     </li>
   )
 }
