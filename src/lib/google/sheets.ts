@@ -380,6 +380,21 @@ const HEADER_BG: RgbT = { red: 0.17, green: 0.24, blue: 0.31 }
 const RAZEM_BG: RgbT = { red: 0.93, green: 0.94, blue: 0.95 }
 const WHITE: RgbT = { red: 1, green: 1, blue: 1 }
 
+// Tab layout (0-indexed rows): row 1 holds a baked-in user-facing banner warning
+// that manual edits to this tab are overwritten on next sync, row 2 holds the
+// column headers, data starts at row 3. The banner is part of the table on purpose
+// — owners who open the sheet in a new tab (bypassing the in-app notice) still
+// see it. Reads/writes are header-driven (`resolveHeaders` scans for the header
+// row by keyword), so shifting the header down doesn't affect the sync paths —
+// only `setupMaterialyTab`'s formatting math has to know these positions.
+const BANNER_ROW = 0
+const HEADER_ROW = 1
+const DATA_START_ROW = 2
+
+const BANNER_TEXT =
+  '⚠ Edycje rób w aplikacji — ręczne zmiany w tej zakładce zostaną nadpisane przy następnej synchronizacji.'
+const BANNER_BG: RgbT = { red: 1, green: 0.949, blue: 0.8 } // soft amber, contrasts the dark header below
+
 // Attach (or reset) the expenses tab on an existing spreadsheet: ensure the tab
 // exists, write the header + RAZEM/per-type SUMIF summary, then style it (frozen
 // bold header, currency amounts, per-type whole-row color, matching summary
@@ -394,7 +409,7 @@ export async function setupMaterialyTab(
   const meta = await sheets.spreadsheets.get({
     spreadsheetId,
     fields:
-      'properties.locale,sheets(properties(sheetId,title),conditionalFormats,protectedRanges(protectedRangeId))',
+      'properties.locale,sheets(properties(sheetId,title),conditionalFormats,protectedRanges(protectedRangeId),tables(tableId))',
   })
   const argSep = formulaArgSeparator(meta.data.properties?.locale ?? undefined)
   const existing = (meta.data.sheets ?? []).find((s) => s.properties?.title === MATERIALY_TAB)
@@ -403,6 +418,16 @@ export async function setupMaterialyTab(
   const priorProtectedRangeIds = (existing?.protectedRanges ?? [])
     .map((p) => p.protectedRangeId)
     .filter((id): id is number => id != null)
+  // Google Sheets' Tables feature (Data → Convert to table; sometimes auto-applied)
+  // hijacks the tab: row 1 becomes the Table's column-name header (our banner text
+  // ends up named as column 1), column types are enforced over cell-level number
+  // formats (the T1.5 column-type collision), merges across the Table's range are
+  // disallowed, and the Table's row colouring fights conditional formats. We never
+  // create a Table here — but if someone (or Google's UI auto-promotion) added one,
+  // remove it first so our formatting/protection actually take effect.
+  const priorTableIds = (existing?.tables ?? [])
+    .map((t) => t.tableId)
+    .filter((id): id is string => !!id)
   if (sheetId == null) {
     const added = await sheets.spreadsheets.batchUpdate({
       spreadsheetId,
@@ -423,14 +448,16 @@ export async function setupMaterialyTab(
   // SUMIF totals or the row coloring).
   await sheets.spreadsheets.values.clear({ spreadsheetId, range: TAB_RANGE })
 
-  // Header at row 1, data from row 2 — a clean A:G block you can date-filter. The
-  // first data row (row 2) shares its row with the summary totals, which sit in
-  // columns H+ (A:G stay free for data). `applyMaterialRowsBatch` computes the append
-  // row explicitly (last mapped-column data row + 1) rather than using Google
-  // `values.append` — append's table detection would treat the adjacent summary cell
-  // as table content and place the first row at row 3, leaving row 2's A:G blank. The
-  // summary is a small 2-row table starting at column H: RAZEM + one column per type,
-  // the total UNDER its label. Separator follows the sheet's locale.
+  // Layout: row 1 banner (warning text, merged across the full table), row 2 header
+  // + summary labels, row 3+ data — and row 3 also holds the summary totals. So
+  // the totals stay visually aligned with the first data row, just like before the
+  // banner landed. `applyMaterialRowsBatch` computes the append row explicitly
+  // (last mapped-column data row + 1) rather than using Google `values.append` —
+  // append's table detection would treat the adjacent summary cell as table content
+  // and place the first row at the row AFTER the totals, leaving the data-totals
+  // alignment broken. The summary is a small 2-row table starting at column H:
+  // RAZEM + one column per type, the total UNDER its label. Separator follows the
+  // sheet's locale.
   const { labels, totals } = buildMaterialySummary(expenseTypes, argSep)
 
   const summaryStart = columnLetter(SUMMARY_START_COL)
@@ -439,14 +466,24 @@ export async function setupMaterialyTab(
     requestBody: {
       valueInputOption: 'USER_ENTERED',
       data: [
-        { range: `'${MATERIALY_TAB}'!A1`, values: [MATERIALY_HEADER] },
-        { range: `'${MATERIALY_TAB}'!${summaryStart}1`, values: [labels] },
-        { range: `'${MATERIALY_TAB}'!${summaryStart}2`, values: [totals] },
+        // Write the banner BEFORE we mergeCells below — merge keeps the top-left
+        // value and discards the rest, so the order matters.
+        { range: `'${MATERIALY_TAB}'!A${BANNER_ROW + 1}`, values: [[BANNER_TEXT]] },
+        { range: `'${MATERIALY_TAB}'!A${HEADER_ROW + 1}`, values: [MATERIALY_HEADER] },
+        { range: `'${MATERIALY_TAB}'!${summaryStart}${HEADER_ROW + 1}`, values: [labels] },
+        { range: `'${MATERIALY_TAB}'!${summaryStart}${DATA_START_ROW + 1}`, values: [totals] },
       ],
     },
   })
 
   const requests: sheets_v4.Schema$Request[] = []
+
+  // Delete pre-existing Tables FIRST — see the priorTableIds comment above; any
+  // formatting/merge/freeze request that runs while a Table still owns the range
+  // is silently overridden by the Table.
+  for (const tableId of priorTableIds) {
+    requests.push({ deleteTable: { tableId } })
+  }
 
   // Drop prior protected ranges so a re-run doesn't stack duplicates.
   for (const protectedRangeId of priorProtectedRangeIds) {
@@ -459,18 +496,64 @@ export async function setupMaterialyTab(
     requests.push({ deleteConditionalFormatRule: { sheetId, index: i } })
   }
 
-  // Freeze the header row.
+  // Freeze the banner + header rows together (so both stay visible on scroll).
   requests.push({
     updateSheetProperties: {
-      properties: { sheetId, gridProperties: { frozenRowCount: 1 } },
+      properties: { sheetId, gridProperties: { frozenRowCount: 2 } },
       fields: 'gridProperties.frozenRowCount',
     },
   })
 
-  // Header row A1:G1 — dark background, bold white, centered.
+  // Banner row — merge across the WHOLE table (data block A:G + summary block H:K)
+  // so the warning visually owns the top of the tab.
+  const tableEndColIdx = SUMMARY_START_COL + 1 + expenseTypes.length
+  requests.push({
+    mergeCells: {
+      range: {
+        sheetId,
+        startRowIndex: BANNER_ROW,
+        endRowIndex: BANNER_ROW + 1,
+        startColumnIndex: 0,
+        endColumnIndex: tableEndColIdx,
+      },
+      mergeType: 'MERGE_ALL',
+    },
+  })
+  // Banner styling — soft amber, bold, centred, wrap-on so the text grows the row
+  // height automatically if the table is narrow.
   requests.push({
     repeatCell: {
-      range: { sheetId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 0, endColumnIndex: 7 },
+      range: {
+        sheetId,
+        startRowIndex: BANNER_ROW,
+        endRowIndex: BANNER_ROW + 1,
+        startColumnIndex: 0,
+        endColumnIndex: tableEndColIdx,
+      },
+      cell: {
+        userEnteredFormat: {
+          backgroundColor: BANNER_BG,
+          horizontalAlignment: 'CENTER',
+          verticalAlignment: 'MIDDLE',
+          wrapStrategy: 'WRAP',
+          textFormat: { bold: true },
+        },
+      },
+      fields:
+        'userEnteredFormat(backgroundColor,horizontalAlignment,verticalAlignment,wrapStrategy,textFormat)',
+    },
+  })
+
+  // Header row A2:G2 — dark background, bold white, centered.
+  requests.push({
+    repeatCell: {
+      range: {
+        sheetId,
+        startRowIndex: HEADER_ROW,
+        endRowIndex: HEADER_ROW + 1,
+        startColumnIndex: 0,
+        endColumnIndex: 7,
+      },
       cell: {
         userEnteredFormat: {
           backgroundColor: HEADER_BG,
@@ -482,29 +565,39 @@ export async function setupMaterialyTab(
     },
   })
 
-  // Currency format on the kwota column (E) data rows.
+  // Currency format on the kwota column (E) data rows (row 3 down).
   requests.push({
     repeatCell: {
-      range: { sheetId, startRowIndex: 1, startColumnIndex: 4, endColumnIndex: 5 },
+      range: {
+        sheetId,
+        startRowIndex: DATA_START_ROW,
+        startColumnIndex: 4,
+        endColumnIndex: 5,
+      },
       cell: { userEnteredFormat: { numberFormat: { type: 'NUMBER', pattern: MONEY_PATTERN } } },
       fields: 'userEnteredFormat.numberFormat',
     },
   })
 
   // Per type: whole-row tint (conditional) + bold solid swatch on its label+total.
+  // The rule applies to the data range (row 3+); the formula's row anchor matches
+  // the range's first row (DATA_START_ROW + 1 = 3), so `=$C3=<label cell>` evaluates
+  // per data row against the type's summary label (now sitting at row 2).
   expenseTypes.forEach((typeName, i) => {
     const rgb = hexToRgb(colorFor(typeName))
     const labelColIdx = SUMMARY_START_COL + 1 + i
-    const labelCellAbs = `$${columnLetter(labelColIdx)}$1`
+    const labelCellAbs = `$${columnLetter(labelColIdx)}$${HEADER_ROW + 1}`
     requests.push({
       addConditionalFormatRule: {
         index: 0,
         rule: {
-          ranges: [{ sheetId, startRowIndex: 1, startColumnIndex: 0, endColumnIndex: 7 }],
+          ranges: [
+            { sheetId, startRowIndex: DATA_START_ROW, startColumnIndex: 0, endColumnIndex: 7 },
+          ],
           booleanRule: {
             condition: {
               type: 'CUSTOM_FORMULA',
-              values: [{ userEnteredValue: `=$C2=${labelCellAbs}` }],
+              values: [{ userEnteredValue: `=$C${DATA_START_ROW + 1}=${labelCellAbs}` }],
             },
             format: { backgroundColor: tint(rgb) },
           },
@@ -512,14 +605,15 @@ export async function setupMaterialyTab(
       },
     })
     // Summary swatch (label + total) uses the SAME tint as the type's rows, so
-    // the total visibly matches its rows. Bold, dark text (tint is light).
+    // the total visibly matches its rows. Bold, dark text (tint is light). Covers
+    // the label row (HEADER_ROW) AND the totals row (DATA_START_ROW).
     const swatchBg = tint(rgb)
     requests.push({
       repeatCell: {
         range: {
           sheetId,
-          startRowIndex: 0,
-          endRowIndex: 2,
+          startRowIndex: HEADER_ROW,
+          endRowIndex: DATA_START_ROW + 1,
           startColumnIndex: labelColIdx,
           endColumnIndex: labelColIdx + 1,
         },
@@ -534,13 +628,13 @@ export async function setupMaterialyTab(
     })
   })
 
-  // RAZEM label + total — neutral, bold.
+  // RAZEM label (HEADER_ROW) + total (DATA_START_ROW) — neutral, bold.
   requests.push({
     repeatCell: {
       range: {
         sheetId,
-        startRowIndex: 0,
-        endRowIndex: 2,
+        startRowIndex: HEADER_ROW,
+        endRowIndex: DATA_START_ROW + 1,
         startColumnIndex: SUMMARY_START_COL,
         endColumnIndex: SUMMARY_START_COL + 1,
       },
@@ -551,13 +645,13 @@ export async function setupMaterialyTab(
     },
   })
 
-  // Totals row (H2 across the summary) — bold + currency.
+  // Totals row across the summary block (DATA_START_ROW) — bold + currency.
   requests.push({
     repeatCell: {
       range: {
         sheetId,
-        startRowIndex: 1,
-        endRowIndex: 2,
+        startRowIndex: DATA_START_ROW,
+        endRowIndex: DATA_START_ROW + 1,
         startColumnIndex: SUMMARY_START_COL,
         endColumnIndex: SUMMARY_START_COL + 1 + expenseTypes.length,
       },
