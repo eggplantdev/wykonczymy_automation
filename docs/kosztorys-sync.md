@@ -57,21 +57,43 @@ The sheet holds **only currently active (non-cancelled) expenses**:
   **One inherent gap:** Google always lets the **file owner** bypass a protected
   range, so the owner (not other collaborators) can still hand-edit. Not closable
   without transferring sheet ownership to the service account.
+- **Row 1: warning banner**, merged across the full table (A..K-ish, depending
+  on type count), amber background, bold, frozen alongside the header.
+  Text: "⚠ Edycje rób w aplikacji — ręczne zmiany w tej zakładce zostaną
+  nadpisane przy następnej synchronizacji." Visible regardless of whether the
+  owner views the iframe in-app or opens the sheet directly in a new tab. Reset
+  re-writes it from scratch so it can't go stale.
+- **Row 2: header. Row 3+: data**, with the summary totals also living on row 3
+  (right of the data columns). The conditional-format anchor is `=$C3=<label>`.
 - **Columns are header-driven, not positional.** `resolveHeaders` scans the top
   rows for a header carrying all seven fields and maps each to its column. The
   owner may reorder/add columns; the code still finds the right cells and
   **fails loud** if a header is missing or if a field keyword matches more than
-  one column (review T2.7).
+  one column (review T2.7). The banner row's text doesn't match any field
+  keyword, so the resolver skips past it.
   - Seven mapped fields: `id, data, typ, opis, kwota, kategoria, notatka`.
   - **Join key = the `id` column** (Postgres transaction id, stored as a number).
 - **Summary block at column H (`SUMMARY_START_COL = 7`):**
-  - **H1** = labels: `RAZEM` + one per expense type.
-  - **H2** = totals: `=SUM(E:E)` and one `=SUMIF(C:C, "<type>", E:E)` per type.
-  - Full-column ranges + literal type-name criteria → drift-proof: row
-    inserts/sorts can't unstick the formula or zero a total.
+  - **H2** = labels: `RAZEM` + one per expense type.
+  - **H3** = totals: `=SUM(E:E)` and one `=SUMIF(C:C, "<type>", E:E)` per type
+    — full-column ranges + literal type-name criteria → drift-proof against
+    row inserts/sorts.
 - **Row colour is a conditional-format rule**, not a static fill: a
-  `CUSTOM_FORMULA` rule `=$C2=<label cell>` tints the whole row by the type in
+  `CUSTOM_FORMULA` rule `=$C3=<label cell>` tints the whole row by the type in
   column C. Change the type → the row recolours automatically.
+- **Google Sheets `Tables` are stripped on every setup/reset.** A Table (the
+  `Data → Convert to table` feature, sometimes auto-applied by Sheets) claims a
+  competing layout authority over the same range: it enforces column types
+  (which silently override cell-level number formats — this was the root cause
+  of T1.5's "typ kolumny liczba" warning on a namespaced id column), it
+  hijacks row 1 as its column-name header (auto-filling missing cells with
+  `Kolumna nr N`), and it disallows merged cells inside its range (which broke
+  the banner merge on first attempt). The setup queries
+  `sheets(tables(tableId))` and pushes `deleteTable` requests before applying
+  formatting/protection, so the tab is always a single-authority surface owned
+  by `setupMaterialyTab`. **The Table feature is therefore a known footgun**:
+  if the file owner re-tables the tab manually, the next reset wipes the
+  Table.
 
 ---
 
@@ -169,10 +191,10 @@ What we **don't** accept:
 
 ## Accepted residuals
 
-| ID   | What                                                                 | Why accepted                                                                                                                                                                                                                                                                                                                                                          |
-| ---- | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1.5 | Manual numeric in id column may collide with active expense id       | Implementing `#<id>` namespacing was attempted (commit `062c0ac`) and reverted (`09fb836`) — Google's **Tables feature** assigns a `columnType: DOUBLE` to column A that overrides cell-level `numberFormat`, so namespaced ids show as warnings and there's no clean API to clear the column type. Tab is SA-protected, so reaching this case requires owner bypass. |
-| T2.1 | Two concurrent single-creates can collide on the computed append row | One overwrites the other; the reconciler heals it on next click. Lost the server-side row-allocation guarantee because `values.append` couldn't be used (see write-paths note).                                                                                                                                                                                       |
+| ID   | What                                                                 | Why accepted                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ---- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| T1.5 | Manual numeric in id column may collide with active expense id       | `#<id>` namespacing was attempted (`062c0ac`) and reverted (`09fb836`) because the sheet's wrapping **Table** enforced `columnType: DOUBLE` on column A. The 2026-05-28 banner work now strips Tables on every reset (see Sheet structure), so the _technical_ blocker is gone — namespacing would work today. The won't-fix is now decision-only: the residual is narrow (requires the file owner to bypass SA protection on the read-only tab and type a manual number that happens to equal one of THIS investment's active expense ids), and the reconciler's preview surfaces the planned overwrite before it lands. Revisit if a real case is ever reported. |
+| T2.1 | Two concurrent single-creates can collide on the computed append row | One overwrites the other; the reconciler heals it on next click. Lost the server-side row-allocation guarantee because `values.append` couldn't be used (see write-paths note).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 
 Full ledger of every finding, with status (☑ fixed · ⊘ won't-fix · accepted),
 lives in `docs/plans/2026-05-27-kosztorys-pr13-simplify-review.md`.
