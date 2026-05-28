@@ -59,13 +59,13 @@ Append target = `(last row with a parseable id) + 1`. A manual non-id row sittin
 **Trigger:** owner adds a "Notes" row directly under the synced expenses → next expense create overwrites it.
 **Fix:** append below the last _non-empty_ row, or require an explicit blank separator the append never crosses.
 
-### T1.5 ☑ Any finite number in the id column is treated as a transferId
+### T1.5 ◐ Any finite number in the id column is treated as a transferId
 
-**`src/lib/google/sheets.ts`** — CONFIRMED → **FIXED (id namespacing)**
+**`src/lib/google/sheets.ts:179`** — CONFIRMED → **PARTIALLY FIXED**
 
 - **Delete-side closed** by T1.1 (orphan removal scoped to this investment's expenses) — a stray manual number can no longer be deleted unless it equals one of this investment's own expense ids.
 - **Append-side closed** by the T1.4 fix — appends no longer target a computed row, so a manual number can't be overwritten by an append.
-- **Update-side now closed (2026-05-28):** app ids are written **namespaced** as `#<id>` (`formatTransferId`), and `isTransferId` parses **only** `#`-prefixed positive integers. A bare manual number (`2024`, `12`) or malformed marker (`#abc`) in the id column is no longer a sync key, so it can't be matched for an in-place update — closing the residual. New test asserts bare/manual cells are ignored (`readMaterialyTransferIds … only #<id> is a sync key`). **Migration:** the only format-coupling is the id cell; existing linked sheets re-namespace via the existing "Zresetuj zakładkę" button (it `values.clear`s the tab, then re-syncs every row in the new format). No code-level migration needed — the feature is pre-production (test-db only).
+- **Update-side residual (open):** `applyMaterialRowsBatch` still maps id→row, so a manual row whose id-cell equals _this investment's active expense id_ would be overwritten in place. Fully closing it needs id **namespacing** (e.g. write `#<id>` and parse only prefixed cells as app ids) — a data-format change with a one-time re-sync migration. **Needs a decision** (small follow-up); the tab is SA-protected, so manual rows there are already an edge case.
 
 `isTransferId` accepts any `Number.isFinite` value; nothing distinguishes app-written ids from manual numbers. Since transaction ids are sequential integers, low/mid-range manual numbers collide readily.
 
@@ -181,13 +181,13 @@ No `referrerPolicy`/CSP `frame-src` documented; with third-party cookies blocked
 
 **Fix:** add a desktop "open in Google Sheets" fallback + an explainer; document the frame-src expectation.
 
-### T3.4 ⊘ `verifySheetAccess` write-probe rewrites the title to itself
+### T3.4 ☐ `verifySheetAccess` write-probe rewrites the title to itself
 
-**`src/lib/google/sheet-access.ts:37`** — PLAUSIBLE → **WON'T-FIX (leave, 2026-05-28)**
+**`src/lib/google/sheet-access.ts:37`** — PLAUSIBLE
 
 The Editor-access check does a `batchUpdate` rewriting the title to its current value. Defensible (must verify write), but it races a concurrent rename and adds revision-history noise on every link/retry.
 
-**Decision (user, 2026-05-28):** leave as-is. The probe only runs on link/retry (rare), the title is rewritten to its own value (no visible change), and a write-probe is the most reliable signal that the SA actually has Editor access. Not worth the complexity of a cheaper-but-weaker check.
+**Fix:** if a cheaper write-permission signal exists, prefer it; otherwise document the trade-off.
 
 ---
 
@@ -245,12 +245,12 @@ Each item re-fetches the investment's `sheetId` and re-reads the grid. Bulk item
 Every expense write path must remember to call sync, and update re-implements old-vs-new investment routing inline. A 5th mutation path silently won't sync (this is the root of T2.1–T2.5, T2.2).
 **Deeper fix:** one sync dispatcher keyed on `transferId` that reads current DB state and decides append/update/remove (and which sheet the row currently lives on), invoked from exactly one place — ideally the collection hook so it can't be bypassed. Owns the serialization invariant (T2.1) where `appendMaterialRow` lives.
 
-### T5.2 ⊘ No guaranteed / scheduled reconciler
+### T5.2 ☐ No guaranteed / scheduled reconciler
 
-**`src/lib/actions/sheets-sync.ts`** — altitude → **WON'T-DO (user, 2026-05-28: "cron is unnecessary")**
+**`src/lib/actions/sheets-sync.ts`** — altitude
 
 Per-mutation syncs swallow errors as "non-fatal, recoverable via the sync button", but recovery is a human remembering to click per investment. "Eventually consistent" has no "eventually".
-**Decision:** no cron/scheduled reconciler. The manual "Zsynchronizuj arkusz" button (with its preview of pending appends/updates/removes — T3.1) is the accepted backstop; sheets are low-traffic and an owner reconciles on demand. Revisit only if drift turns out to be a real operational problem.
+**Deeper fix:** pair optimistic sync with a cron / on-load reconcile-if-stale so the swallowed-error design has a real backstop.
 
 ### T5.3 ☑ `TYPE_COLORS` hardcoded by category name
 
@@ -267,7 +267,7 @@ New categories get gray until a developer edits the constant and redeploys — a
 
 ---
 
-## Suggested merge gatex
+## Suggested merge gate
 
 - **Block staging→main on Tier 1** (T1.1–T1.5): all are silent data-loss paths. T1.1 + T1.5 share one root (id-as-join-key with a permissive parser) — fixing namespacing + query scoping closes most of Tier 1 at once.
 - Tier 2 can land as fast-follows but T2.2 (admin bypass) and T2.6 (rename) are user-visible drift.

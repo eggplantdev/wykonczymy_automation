@@ -65,7 +65,7 @@ describe('applyMaterialRowsBatch', () => {
     // the adjacent summary column and would skip the first data row, leaving a blank.
     expect(valuesAppendMock).not.toHaveBeenCalled()
     expect(valuesBatchUpdateMock.mock.calls[0][0].requestBody.data).toEqual([
-      { range: `${TAB}!A2`, values: [['#101']] }, // id is namespaced (#<id>) on write (T1.5)
+      { range: `${TAB}!A2`, values: [[101]] },
       { range: `${TAB}!B2`, values: [['2026-05-27']] },
       { range: `${TAB}!C2`, values: [['Materiały budowlane']] },
       { range: `${TAB}!D2`, values: [['cement']] },
@@ -76,7 +76,7 @@ describe('applyMaterialRowsBatch', () => {
   })
 
   it('overwrites an existing id in place via batchUpdate (no append)', async () => {
-    getMock.mockResolvedValueOnce({ data: { values: [HEADER, ['#101'], ['#102']] } }) // 102 → row 3
+    getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101], [102]] } }) // 102 → row 3
     const { applyMaterialRowsBatch } = await import('@/lib/google/sheets')
     const res = await applyMaterialRowsBatch('s', [
       {
@@ -93,7 +93,7 @@ describe('applyMaterialRowsBatch', () => {
     expect(res).toEqual({ added: 0, updated: 1, removed: 0 })
     expect(valuesAppendMock).not.toHaveBeenCalled()
     expect(valuesBatchUpdateMock.mock.calls[0][0].requestBody.data).toEqual([
-      { range: `${TAB}!A3`, values: [['#102']] },
+      { range: `${TAB}!A3`, values: [[102]] },
       { range: `${TAB}!B3`, values: [['2026-05-27']] },
       { range: `${TAB}!C3`, values: [['Materiały budowlane']] },
       { range: `${TAB}!D3`, values: [['cement']] },
@@ -105,7 +105,7 @@ describe('applyMaterialRowsBatch', () => {
 
   it('updates present, appends missing, and removes orphans bottom-up in one batch', async () => {
     // header r1, 101 r2, 102 r3, 103 r4
-    getMock.mockResolvedValueOnce({ data: { values: [HEADER, ['#101'], ['#102'], ['#103']] } })
+    getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101], [102], [103]] } })
     spreadsheetsGetMock.mockResolvedValueOnce({
       data: {
         sheets: [
@@ -132,11 +132,10 @@ describe('applyMaterialRowsBatch', () => {
     expect(valuesBatchUpdateMock).toHaveBeenCalledTimes(1)
     const cells = valuesBatchUpdateMock.mock.calls[0][0].requestBody.data
     expect(cells).toHaveLength(14)
-    // id cells carry the namespaced form (T1.5): update 102 → row 3, append 200 → row 5.
-    expect(cells.find((c: { values: string[][] }) => c.values[0][0] === '#102').range).toBe(
+    expect(cells.find((c: { values: number[][] }) => c.values[0][0] === 102).range).toBe(
       `${TAB}!A3`,
     )
-    expect(cells.find((c: { values: string[][] }) => c.values[0][0] === '#200').range).toBe(
+    expect(cells.find((c: { values: number[][] }) => c.values[0][0] === 200).range).toBe(
       `${TAB}!A5`,
     )
     // deletes run bottom-up: 103 (row 4 → startRowIndex 3) before 101 (row 2 → 1)
@@ -175,7 +174,7 @@ describe('applyMaterialRowsBatch', () => {
 describe('removeMaterialRow', () => {
   it('deletes only the data columns of the row, leaving the summary columns intact', async () => {
     // id 102 sits on sheet row 3 (header row 1, 101 on row 2, 102 on row 3)
-    getMock.mockResolvedValueOnce({ data: { values: [HEADER, ['#101'], ['#102']] } })
+    getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101], [102]] } })
     // tab gid lookup
     spreadsheetsGetMock.mockResolvedValueOnce({
       data: {
@@ -208,7 +207,7 @@ describe('removeMaterialRow', () => {
   })
 
   it('no-ops when the transferId is not on the sheet', async () => {
-    getMock.mockResolvedValueOnce({ data: { values: [HEADER, ['#101']] } })
+    getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101]] } })
     const { removeMaterialRow } = await import('@/lib/google/sheets')
     await removeMaterialRow('s', 999)
     expect(spreadsheetsGetMock).not.toHaveBeenCalled()
@@ -263,9 +262,7 @@ describe('buildMaterialySummary', () => {
 
 describe('readMaterialyTransferIds', () => {
   it('maps transferId → row from the id column under the header', async () => {
-    getMock.mockResolvedValueOnce({
-      data: { values: [HEADER, ['#101'], ['#102'], [], ['#103']] },
-    })
+    getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101], [102], [], [103]] } })
     const { readMaterialyTransferIds } = await import('@/lib/google/sheets')
     const map = await readMaterialyTransferIds('s')
     expect(map.get(101)).toBe(2)
@@ -274,23 +271,9 @@ describe('readMaterialyTransferIds', () => {
     expect(map.size).toBe(3)
   })
 
-  it('ignores bare/manual cells in the id column — only #<id> is a sync key (T1.5)', async () => {
-    // 2024 (a year), 12 (a quantity), '#abc' (malformed), '' (blank) are all manual
-    // entries an owner might type; none must be mistaken for a transferId.
-    getMock.mockResolvedValueOnce({
-      data: { values: [HEADER, ['#101'], [2024], [12], ['#abc'], [''], ['#102']] },
-    })
-    const { readMaterialyTransferIds } = await import('@/lib/google/sheets')
-    const map = await readMaterialyTransferIds('s')
-    expect([...map.entries()]).toEqual([
-      [101, 2],
-      [102, 7],
-    ])
-  })
-
   it('locates the header even with a summary block above it', async () => {
     getMock.mockResolvedValueOnce({
-      data: { values: [['PODSUMOWANIE'], ['RAZEM', 800], [], HEADER, ['#101']] },
+      data: { values: [['PODSUMOWANIE'], ['RAZEM', 800], [], HEADER, [101]] },
     })
     const { readMaterialyTransferIds } = await import('@/lib/google/sheets')
     const map = await readMaterialyTransferIds('s')

@@ -5,13 +5,9 @@ import { serviceAccountEmail } from './sheet-access'
 // One row per investment expense in a single long table. Columns are located by
 // header text (normalized, keyword-contains) so the sheet layout — column order,
 // extra columns, a summary block — can change without touching this code.
-// The id column is the join key (one row per transferId). App-written ids are
-// NAMESPACED as `#<id>` (e.g. `#2469`) and only `#`-prefixed cells are parsed as
-// sync keys — so a bare manual number an owner types in the id column (a year, a
-// quantity) can never collide with an expense id and be overwritten or deleted
-// (review T1.5). The row SYNC (append/read) only ever touches the seven mapped
-// fields; the header, the RAZEM/SUMIF summary and all formatting are written
-// once by setupMaterialyTab.
+// The id column is the join key (one row per transferId). The row SYNC
+// (append/read) only ever touches the seven mapped fields; the header, the
+// RAZEM/SUMIF summary and all formatting are written once by setupMaterialyTab.
 export type MaterialRowInputT = {
   transferId: number
   date: string
@@ -193,18 +189,12 @@ async function readGrid(spreadsheetId: string): Promise<unknown[][]> {
   }
 }
 
-// App ids are written NAMESPACED as `#<id>` (ID_MARKER + positive integer). Parse
-// ONLY that shape: a bare number, blank, or any other text is treated as a manual
-// cell and ignored, so it can never be matched as a sync key (review T1.5).
-const ID_MARKER = '#'
-const formatTransferId = (transferId: number): string => `${ID_MARKER}${transferId}`
-
 function isTransferId(cell: unknown): number | undefined {
   if (cell == null) return undefined
   const trimmed = String(cell).trim()
-  if (!trimmed.startsWith(ID_MARKER)) return undefined
-  const id = Number(trimmed.slice(ID_MARKER.length))
-  return Number.isInteger(id) && id > 0 ? id : undefined
+  if (trimmed === '') return undefined
+  const id = Number(trimmed)
+  return Number.isFinite(id) ? id : undefined
 }
 
 // Map<transferId, sheetRowNumber>, scanning the id column below the header row.
@@ -225,7 +215,7 @@ export async function readMaterialyTransferIds(
 // ── value-mapping helpers (shared by every write path) ──────────────────────
 function valuesByField(input: MaterialRowInputT): Record<FieldT, string | number> {
   return {
-    id: formatTransferId(input.transferId),
+    id: input.transferId,
     date: input.date,
     typ: input.typ,
     description: input.description,
