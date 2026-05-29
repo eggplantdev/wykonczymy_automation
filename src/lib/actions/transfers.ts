@@ -16,10 +16,11 @@ import {
 } from '@/lib/schemas/transfer'
 import type { SessionUserT } from '@/types/auth'
 import { after } from 'next/server'
-import { isDepositType, isLaborCost, needsSourceRegister } from '../constants/transfers'
+import { isLaborCost, needsSourceRegister } from '../constants/transfers'
 import { syncBulkExpensesToSheet } from './sheets-sync'
 import {
-  checkIfSufficientBalance,
+  // TODO: re-enable when the negative-balance constraint on auxiliary registers is brought back
+  // checkIfSufficientBalance,
   validateAction,
   validateSourceRegister,
   protectedAction,
@@ -41,17 +42,19 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
         console.log(`[PERF]   validateSourceRegister ${step()}ms`)
         if (!validated.success) return validated
 
+        // TODO: negative-balance constraint on auxiliary registers temporarily dropped.
+        // Re-enable this block (and the import + checkIfSufficientBalance in utils.ts) to bring it back.
         // Skip balance check for deposits (money coming in, not out) and
         // corrections (accounting adjustments, not cash withdrawals)
-        if (!isDepositType(parsed.data.type) && parsed.data.type !== 'CORRECTION') {
-          const balanceCheck = await checkIfSufficientBalance(
-            validated.register,
-            data.amount,
-            payload,
-          )
-          console.log(`[PERF]   checkIfSufficientBalance ${step()}ms`)
-          if (!balanceCheck.success) return balanceCheck
-        }
+        // if (!isDepositType(parsed.data.type) && parsed.data.type !== 'CORRECTION') {
+        //   const balanceCheck = await checkIfSufficientBalance(
+        //     validated.register,
+        //     data.amount,
+        //     payload,
+        //   )
+        //   console.log(`[PERF]   checkIfSufficientBalance ${step()}ms`)
+        //   if (!balanceCheck.success) return balanceCheck
+        // }
       }
 
       const created = await payload.create({
@@ -92,18 +95,20 @@ export async function createBulkTransferAction(
         console.log(`[PERF]   validateSourceRegister ${step()}ms`)
         if (!validated.success) return validated
 
+        // TODO: negative-balance constraint on auxiliary registers temporarily dropped.
+        // Re-enable this block (and the import + checkIfSufficientBalance in utils.ts) to bring it back.
         // Skip balance check for deposits (money coming in, not out) and
         // corrections (accounting adjustments, not cash withdrawals)
-        if (!isDepositType(parsed.data.type) && parsed.data.type !== 'CORRECTION') {
-          const totalAmount = parsed.data.lineItems.reduce((sum, item) => sum + item.amount, 0)
-          const balanceCheck = await checkIfSufficientBalance(
-            validated.register,
-            totalAmount,
-            payload,
-          )
-          console.log(`[PERF]   checkIfSufficientBalance ${step()}ms`)
-          if (!balanceCheck.success) return balanceCheck
-        }
+        // if (!isDepositType(parsed.data.type) && parsed.data.type !== 'CORRECTION') {
+        //   const totalAmount = parsed.data.lineItems.reduce((sum, item) => sum + item.amount, 0)
+        //   const balanceCheck = await checkIfSufficientBalance(
+        //     validated.register,
+        //     totalAmount,
+        //     payload,
+        //   )
+        //   console.log(`[PERF]   checkIfSufficientBalance ${step()}ms`)
+        //   if (!balanceCheck.success) return balanceCheck
+        // }
       }
 
       const transactionId = await payload.db.beginTransaction()

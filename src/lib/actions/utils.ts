@@ -8,7 +8,8 @@ import { revalidateCollections } from '@/lib/cache/revalidate'
 import type { CACHE_TAGS } from '@/lib/cache/tags'
 import { sql } from '@payloadcms/db-vercel-postgres'
 // import { getDb, sumRegisterBalance } from '@/lib/db/sum-transfers'
-import { getDb, sumRegisterBalance } from '@/lib/db/sum-transfers'
+// TODO: re-add sumRegisterBalance when the negative-balance constraint (checkIfSufficientBalance) is restored
+import { getDb } from '@/lib/db/sum-transfers'
 import { perfStart } from '@/lib/perf'
 import type { SessionUserT } from '@/types/auth'
 import type { CashRegisterRefT, CashRegisterTypeT, ReferenceItemT } from '@/types/reference-data'
@@ -110,18 +111,21 @@ export async function validateSourceRegister(
  * Owner has main registers - he can do whatever he wants, so this applies only for auxiliary registers.
  */
 
-export async function checkIfSufficientBalance(
-  register: CashRegisterRefT,
-  amount: number,
-  payload: Payload,
-): Promise<ActionResultT> {
-  if (register.type !== 'AUXILIARY') return { success: true }
-  const currentBalance = await sumRegisterBalance(payload, register.id)
-
-  if (currentBalance >= amount) return { success: true }
-
-  return {
-    success: false,
-    error: `Niewystarczające saldo kasy (${currentBalance.toFixed(2)} zł). Najpierw dodaj środki.`,
-  }
-}
+// TODO: negative-balance constraint on auxiliary registers temporarily dropped.
+// Re-enable this function, its callers in lib/actions/transfers.ts, the sumRegisterBalance
+// import above, and the tests in __tests__/action-utils.test.ts to bring it back.
+// export async function checkIfSufficientBalance(
+//   register: CashRegisterRefT,
+//   amount: number,
+//   payload: Payload,
+// ): Promise<ActionResultT> {
+//   if (register.type !== 'AUXILIARY') return { success: true }
+//   const currentBalance = await sumRegisterBalance(payload, register.id)
+//
+//   if (currentBalance >= amount) return { success: true }
+//
+//   return {
+//     success: false,
+//     error: `Niewystarczające saldo kasy (${currentBalance.toFixed(2)} zł). Najpierw dodaj środki.`,
+//   }
+// }
