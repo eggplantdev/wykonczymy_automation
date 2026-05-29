@@ -26,6 +26,8 @@ type DataTablePropsT<TData> = {
   virtualContainerHeight?: number
   /** localStorage key for persisting column visibility */
   storageKey?: string
+  /** Sort applied on first render. Defaults to none. */
+  initialSorting?: SortingState
   /** Makes the row clickable — navigates to the returned URL */
   getRowHref?: (row: TData) => string | undefined
   getRowClassName?: (row: TData) => string
@@ -44,12 +46,13 @@ export function DataTable<TData>({
   virtualRowHeight = 44,
   virtualContainerHeight = 600,
   storageKey,
+  initialSorting = [],
   getRowHref,
   getRowClassName,
   toolbar,
   className,
 }: DataTablePropsT<TData>) {
-  const [sorting, setSorting] = useState<SortingState>([])
+  const [sorting, setSorting] = useState<SortingState>(initialSorting)
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
 
   // Apply persisted visibility after hydration to avoid server/client mismatch

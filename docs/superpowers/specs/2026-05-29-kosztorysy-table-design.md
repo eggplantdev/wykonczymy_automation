@@ -51,23 +51,19 @@ Mapping rules:
 - **unlinked**: `name` = sheet name, no investment fields, `id` = `sheet-${sheetId}`.
 - **no-sheet**: `name` = investment name, no sheet fields, `id` = `inv-${investmentId}`.
 
-## Columns (4, simpler than investments' ~10)
+## Columns (2 — minimal; status/sheet name conveyed elsewhere)
 
 Defined in `lib/tables/sheets.tsx` via `createColumnHelper<SheetTableRowT>()`,
 mirroring `lib/tables/investments.tsx`.
 
-| id          | header    | content                                                                                                          | sortable | hideable                  |
-| ----------- | --------- | ---------------------------------------------------------------------------------------------------------------- | -------- | ------------------------- |
-| `name`      | Nazwa     | linked/no-sheet → investment name as `Link` to `/inwestycje/{investmentId}`; unlinked → sheet name as plain text | yes      | no (`meta.canHide:false`) |
-| `sheetName` | Kosztorys | sheet name for linked/unlinked; `—` for no-sheet                                                                 | yes      | yes                       |
-| `status`    | Status    | `Badge` with Polish label (see below)                                                                            | yes      | yes                       |
-| `actions`   | Akcje     | per-status CTA (display column, not sortable)                                                                    | no       | no                        |
+| id        | header | content                                                                                                          | sortable | hideable                  |
+| --------- | ------ | ---------------------------------------------------------------------------------------------------------------- | -------- | ------------------------- |
+| `name`    | Nazwa  | linked/no-sheet → investment name as `Link` to `/inwestycje/{investmentId}`; unlinked → sheet name as plain text | yes      | no (`meta.canHide:false`) |
+| `actions` | Akcje  | per-status CTA (display column, right-aligned, not sortable)                                                     | no       | no (`meta.canHide:false`) |
 
-Status labels / badge:
-
-- `linked` → "Powiązany"
-- `unlinked` → "Bez inwestycji"
-- `no-sheet` → "Bez kosztorysu"
+No separate Kosztorys or Status column: the Akcje button already names the state
+(Otwórz / link dialog / Dodaj kosztorys), and the Status multiselect filters the
+list. `status` stays on the row type purely to drive that filter.
 
 Actions column reuses the existing dialogs/buttons (no behavior change):
 
@@ -75,8 +71,9 @@ Actions column reuses the existing dialogs/buttons (no behavior change):
   (FileSpreadsheet icon), as in the current `LinkedRow`.
 - `unlinked` → `LinkSheetToInvestmentDialog` with `sheetId`, `sheetName`,
   `availableInvestments`.
-- `no-sheet` → `SheetSetupDialog` with `investmentId`, `investmentName`, and the
-  same outline `Dodaj kosztorys` trigger as the current `NoSheetRow`.
+- `no-sheet` → `SheetSetupDialog` with `investmentId`, `investmentName`, and an
+  outline `Dodaj kosztorys` trigger (contextual: adds a kosztorys to that
+  investment — distinct from the toolbar's global `Nowy kosztorys`).
 
 `availableInvestments` (the picker options for `LinkSheetToInvestmentDialog`) is
 the same `investmentsWithoutSheet` list, passed from the page into the client
@@ -89,35 +86,52 @@ the Nazwa `Link`.
 
 - **Search** (`useSearchFilter`): matches on `name` + `sheetName`. Reuses the
   existing hook and `SearchFilterInput`, identical to investments.
-- **Status filter**: a new 4-way segmented toggle (user-chosen) —
-  `Wszystkie / Powiązane / Bez inwestycji / Bez kosztorysu`. Implemented as
-  `useState<SheetStatusT | 'all'>('all')` in the client wrapper, applied before
-  search. New component `status-segment-filter.tsx` renders four buttons using the
-  same `variant="activeFilter"` / `outline` language as `ActiveFilterButton`.
-- **Column visibility**: `ColumnToggle`, reused unchanged.
+- **Status filter**: the existing `FilterMultiSelect` (the transfers component —
+  "like other tables"), with options Powiązane / Bez inwestycji / Bez kosztorysu.
+  Held as `useState<string[]>([])` in the wrapper; its URL-style encoding is
+  reused in-memory — `[]` = all (no filter), `[FILTER_NONE]` = none, else the
+  explicit subset (`deriveSelected`).
+- **Column visibility**: no `ColumnToggle` — both columns are non-hideable, so it
+  would render nothing.
 
 Filter order in the wrapper: `data → status filter → search filter → table`.
+
+## Default sort
+
+The table loads sorted **by name (A–Z)** — flat alphabetical on the Nazwa column.
+Status grouping is available on demand by clicking the Status header.
+
+Two pieces:
+
+- Initial `DataTable` sorting state of `[{ id: 'name', desc: false }]`.
+  `DataTable` currently initializes `useState<SortingState>([])`; it needs an
+  optional `initialSorting` prop (defaulting to `[]`) so kosztorysy can seed it
+  without affecting the other tables.
+- (The status column was dropped, so no status `sortingFn` is needed.)
 
 ## Files
 
 ### New
 
 1. `lib/tables/sheets.tsx` — `SheetTableRowT`, `SheetStatusT`, `getSheetColumns({ availableInvestments })`.
-2. `components/ui/status-segment-filter.tsx` — the 4-way segmented toggle. Props:
-   `value: SheetStatusT | 'all'`, `onChange`, and the option list/labels.
-3. `components/sheets/sheet-data-table.tsx` — `'use client'` wrapper mirroring
+2. `components/sheets/sheet-data-table.tsx` — `'use client'` wrapper mirroring
    `investment-data-table.tsx`: holds status + search state, builds columns via
    `useMemo`, renders `DataTable` with the toolbar (`SearchFilterInput`,
-   `StatusSegmentFilter`, `AddSheetDialog`, `ColumnToggle`).
+   `FilterMultiSelect`, `AddSheetDialog` as `Nowy kosztorys`).
+
+(No new filter component — the status filter reuses the transfers
+`FilterMultiSelect`.)
 
 ### Modified
 
-4. `app/(frontend)/kosztorysy/page.tsx` — drop the three `Section`s; build the
+3. `app/(frontend)/kosztorysy/page.tsx` — drop the three `Section`s; build the
    unified `SheetTableRowT[]`; render `<SheetDataTable data={...}
 availableInvestments={...} />`. `AddSheetDialog` moves into the table toolbar
    (matching how `AddInvestmentDialog` lives in the investments toolbar). The
-   `ALL_SHEETS_URL` external link stays in the page header above the table. No
-   duplication of `AddSheetDialog`.
+   `ALL_SHEETS_URL` external link stays in the page header above the table.
+4. `components/ui/data-table/data-table.tsx` — add optional `initialSorting` prop
+   (defaults to `[]`) so kosztorysy seeds name-ascending without affecting other
+   tables.
 
 ### Deleted (become dead once table replaces them)
 
