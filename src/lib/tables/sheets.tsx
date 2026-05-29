@@ -2,9 +2,9 @@
 
 import Link from 'next/link'
 import { createColumnHelper } from '@tanstack/react-table'
-import { FileSpreadsheet } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LinkSheetToInvestmentDialog } from '@/components/dialogs/link-sheet-to-investment-dialog'
+import { LinkedSheetActions } from '@/components/sheets/linked-sheet-actions'
 import { SheetSetupDialog } from '@/components/dialogs/sheet-setup-dialog'
 
 // The three former card-lists collapse into one row type discriminated by
@@ -59,12 +59,11 @@ export function getSheetColumns({ availableInvestments }: SheetColumnOptionsT) {
 
         if (row.status === 'linked')
           return (
-            <Button size="sm" asChild>
-              <Link href={`/inwestycje/${row.investmentId}/kosztorys`}>
-                <FileSpreadsheet className="size-4" />
-                Otwórz
-              </Link>
-            </Button>
+            <LinkedSheetActions
+              sheetId={row.sheetId!}
+              investmentId={row.investmentId!}
+              investmentName={row.investmentName!}
+            />
           )
 
         if (row.status === 'unlinked')
