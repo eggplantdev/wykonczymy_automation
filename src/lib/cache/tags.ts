@@ -5,6 +5,7 @@ export const CACHE_TAGS = {
   users: 'collection:users',
   otherCategories: 'collection:other-categories',
   expenseCategories: 'collection:expense-categories',
+  kosztoryses: 'collection:kosztoryses',
 } as const
 
 export type CacheTagT = (typeof CACHE_TAGS)[keyof typeof CACHE_TAGS]

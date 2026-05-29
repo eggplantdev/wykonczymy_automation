@@ -2,4 +2,17 @@ pnpm run typecheck
 pnpm vitest run
 
 echo "Dumping production DB from Neon..."
-pnpm db:dump
+if pnpm db:dump && [ -s dumps/dump-latest.sql ]; then
+  echo "✅ DB dump succeeded ($(du -h dumps/dump-latest.sql | cut -f1))"
+else
+  echo "❌ DB dump failed or produced empty file"
+  exit 1
+fi
+
+echo "Pruning dumps older than 7 days..."
+pruned=$(find dumps -name 'dump-*.sql' ! -name 'dump-latest.sql' -mtime +7 -print -delete 2>/dev/null | wc -l | tr -d ' ')
+echo "✅ Pruned ${pruned:-0} old dump(s)"
+
+# Background watcher: prints Vercel deployment state transitions to this terminal.
+# Detached subshell so `git push` returns immediately when the hook exits.
+( bash scripts/watch-deploy.sh & )

@@ -15,7 +15,9 @@ import {
   type UpdateTransferFormT,
 } from '@/lib/schemas/transfer'
 import type { SessionUserT } from '@/types/auth'
+import { after } from 'next/server'
 import { isDepositType, isLaborCost, needsSourceRegister } from '../constants/transfers'
+import { syncBulkExpensesToSheet } from './sheets-sync'
 import {
   checkIfSufficientBalance,
   validateAction,
@@ -52,7 +54,7 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
         }
       }
 
-      await payload.create({
+      const created = await payload.create({
         collection: 'transactions',
         data: {
           ...data,
@@ -106,12 +108,16 @@ export async function createBulkTransferAction(
 
       const transactionId = await payload.db.beginTransaction()
       if (!transactionId) throw new Error('Failed to start transaction')
-      const req = { transactionID: transactionId }
+      // skipSheetSync: the per-row afterChange hook must NOT sync each created
+      // row one-by-one — this action batches them all in a single sheet write below
+      // (review T4.2). The flag rides on req.context, which Payload passes to hooks.
+      const req = { transactionID: transactionId, context: { skipSheetSync: true } }
 
+      const createdIds: number[] = []
       try {
         for (let i = 0; i < parsed.data.lineItems.length; i++) {
           const item = parsed.data.lineItems[i]
-          await payload.create({
+          const created = await payload.create({
             collection: 'transactions',
             req,
             data: {
@@ -131,6 +137,7 @@ export async function createBulkTransferAction(
               createdBy: user.id,
             },
           })
+          createdIds.push(created.id)
         }
         await payload.db.commitTransaction(transactionId)
       } catch (err) {
@@ -138,6 +145,12 @@ export async function createBulkTransferAction(
         throw err
       }
       console.log(`[PERF]   payload.create x${lineCount} ${step()}ms`)
+
+      // Post-response sync after commit — never before, else a rolled-back row would
+      // leak into the sheet. One batched call for all created rows (read the sheet
+      // once, write once) instead of N serialized single-transfer syncs (review T4.2).
+      // `after()` keeps the function alive past the response on Vercel.
+      after(() => syncBulkExpensesToSheet(createdIds))
 
       return { success: true }
     },
@@ -207,7 +220,7 @@ export async function cancelTransferAction(transferId: number, data: CancelTrans
 
       // Create CANCELLATION audit row
       const today = new Date().toISOString().split('T')[0]
-      await payload.create({
+      const cancellation = await payload.create({
         collection: 'transactions',
         data: {
           type: 'CANCELLATION',
@@ -220,6 +233,10 @@ export async function cancelTransferAction(transferId: number, data: CancelTrans
         },
       })
       console.log(`[PERF]   create CANCELLATION ${step()}ms`)
+
+      // The kosztorys sheet row is removed by the collection afterChange hook, which
+      // fires on the `cancelled: true` update above (review T2.2) — no action-level
+      // sync here, or it would double the work.
 
       return { success: true }
     },
@@ -275,6 +292,11 @@ export async function updateTransferAction(
         })
       }
       console.log(`[PERF]   payload.update(${transferId}) ${step()}ms`)
+
+      // Materiały sheet sync (including the move-to-another-investment case) runs from
+      // the collection afterChange hook, which compares previousDoc/doc from the DB —
+      // so it's correct even when the edit omits the investment field (review T2.2 +
+      // closes T2.3), and it covers admin-panel edits. No action-level sync here.
 
       return { success: true }
     },

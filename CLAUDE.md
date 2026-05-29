@@ -19,6 +19,18 @@ alwaysApply: true
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## ⚠️ TEMPORARY: kosztorys testing DB
+
+We are currently running the local app against a **side-by-side test database** `wykonczymy-test-db` (inside the existing `wykonczymy` docker container), not against the normal `wykonczymy-db`. The two coexist in the same container; `DB_POSTGRES_URL` in `.env` decides which one the app talks to.
+
+**Rules for this period:**
+
+- Never run destructive SQL (DROP, TRUNCATE, restore-from-dump, etc.) against `wykonczymy-db` — that is the user's real local data. Always check `-d 'wykonczymy-test-db'` is in the command before destructive ops.
+- The migration `20260525_add_google_sheet_id_to_investments` is currently only applied to `wykonczymy-test-db`. `wykonczymy-db` will get it when we flip back.
+- The Google env vars in `.env` (`GOOGLE_SERVICE_ACCOUNT_JSON`, `KOSZTORYS_TEMPLATE_SHEET_ID`) are **real, working credentials** — the service account can authenticate and the Google API accepts them. Treat sheet writes as hitting live data.
+
+**Removal trigger:** real Google creds are already wired (done). What remains of Phase 5 is flipping `DB_POSTGRES_URL` back to `wykonczymy-db` and dropping `wykonczymy-test-db`. Delete this whole section once that's done.
+
 ## Project Overview
 
 Business management dashboard (cash registers, transfers, investments, employees) built with **Next.js 16.1.6** + **Payload CMS 3.73.0**. Polish-language app with English code.
@@ -33,7 +45,7 @@ pnpm format:fix         # Prettier
 pnpm typecheck          # tsc --noEmit
 pnpm test               # Vitest (single run)
 pnpm test:watch         # Vitest watch mode
-pnpm test -- src/__tests__/some-file.test.ts  # Run single test file
+pnpm exec vitest run src/__tests__/some-file.test.ts  # Run single test file (pnpm 10's `--` no longer forwards positional args to nested scripts)
 pnpm generate:types     # Regenerate Payload types → src/payload-types.ts
 pnpm migrate:create     # Create new Payload migration — ALWAYS use this first, then tweak FK constraints if needed. Never write migrations from scratch (easy to miss Payload internal tables like payload_locked_documents_rels).
 ```

@@ -24,7 +24,8 @@
     "db:import": "source .env && docker exec -i \"$DOCKER_CONTAINER\" psql -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\" < ${DUMP_FILE:-dumps/dump-latest.sql}",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "watch:deploy": "bash scripts/watch-deploy.sh"
   },
   "dependencies": {
     "@payloadcms/db-vercel-postgres": "3.73.0",
@@ -52,6 +53,7 @@
     "compressorjs": "^1.2.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.26.2",
+    "googleapis": "^172.0.0",
     "isomorphic-dompurify": "^2.35.0",
     "jose": "^5.9.6",
     "jszip": "^3.10.1",

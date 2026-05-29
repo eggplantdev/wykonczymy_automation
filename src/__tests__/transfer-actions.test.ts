@@ -5,6 +5,24 @@ import type { Payload } from 'payload'
 
 vi.mock('server-only', () => ({}))
 
+// The actions schedule the post-response Google Sheets sync via next/server's
+// after(). Outside a request scope (i.e. in these unit tests) the real after()
+// throws. Run the callback synchronously so the scheduled sheet work is observable.
+vi.mock('next/server', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next/server')>()
+  return { ...actual, after: (fn: () => unknown) => fn() }
+})
+
+// The sheet sync itself isn't under test here — spy on the boundary functions.
+const mockSyncSingle = vi.fn()
+const mockSyncBulk = vi.fn()
+const mockRemoveFromSheet = vi.fn()
+vi.mock('@/lib/actions/sheets-sync', () => ({
+  syncSingleTransferToSheet: (...a: unknown[]) => mockSyncSingle(...a),
+  syncBulkExpensesToSheet: (...a: unknown[]) => mockSyncBulk(...a),
+  removeTransferFromSheet: (...a: unknown[]) => mockRemoveFromSheet(...a),
+}))
+
 const mockCreate = vi.fn()
 const mockUpdate = vi.fn()
 const mockFindByID = vi.fn()
@@ -144,6 +162,9 @@ beforeEach(() => {
   mockRollbackTransaction.mockReset().mockResolvedValue(undefined)
   mockRequireAuth.mockReset().mockResolvedValue({ success: true, user: adminUser })
   mockDbExecute.mockReset().mockResolvedValue({ rows: [defaultDbRow()] })
+  mockSyncSingle.mockReset()
+  mockSyncBulk.mockReset()
+  mockRemoveFromSheet.mockReset()
 })
 
 // ═════════════════════════════════════════════════════════════════════════
@@ -412,9 +433,13 @@ describe('createBulkTransferAction', () => {
     expect(mockCommitTransaction).toHaveBeenCalledWith(TX_ID)
     expect(mockRollbackTransaction).not.toHaveBeenCalled()
 
-    // All creates share the same transaction ID
+    // All creates share the same transaction ID (+ skip the per-row sheet sync; the
+    // action batches it once after commit).
     for (const call of mockCreate.mock.calls) {
-      expect(call[0]).toHaveProperty('req', { transactionID: TX_ID })
+      expect(call[0]).toHaveProperty('req', {
+        transactionID: TX_ID,
+        context: { skipSheetSync: true },
+      })
     }
   })
 
@@ -792,6 +817,20 @@ describe('updateTransferAction', () => {
         }),
       }),
     )
+  })
+
+  // Sheet sync moved to the transactions collection afterChange hook (review T2.2),
+  // so updateTransferAction no longer calls it directly. The edit / investment-move /
+  // non-expense-skip behavior is covered in hooks/sync-kosztorys-sheet.test.ts.
+  it('does not sync the sheet directly from the action (hook owns it now)', async () => {
+    mockFindByID.mockResolvedValueOnce(
+      makeOriginalTransfer({ createdBy: adminUser.id, investment: 2 }),
+    )
+
+    await updateTransferAction(10, makeUpdateData({ investment: 9 }))
+
+    expect(mockSyncSingle).not.toHaveBeenCalled()
+    expect(mockRemoveFromSheet).not.toHaveBeenCalled()
   })
 })
 

@@ -24,5 +24,9 @@ export function useInvoiceFiles(initialFiles?: Map<number, File>) {
     return new Map(invoiceFilesRef.current)
   }
 
-  return { handleRemoveLineItem, handleFileChange, getFiles }
+  function reset() {
+    invoiceFilesRef.current = new Map()
+  }
+
+  return { handleRemoveLineItem, handleFileChange, getFiles, reset }
 }

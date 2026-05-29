@@ -43,6 +43,8 @@ type LineItemsFieldPropsT = {
   hasInvestment?: boolean
   onRemoveItem: (index: number, removeValue: (index: number) => void) => void
   onFileChange: (index: number, e: React.ChangeEvent<HTMLInputElement>) => void
+  // Bump to force-remount the uncontrolled file inputs (clears their selection).
+  fileInputKey?: number
 }
 
 const otherCategoryConfig = (refData: ReferenceDataBaseT): CategoryFieldConfigT => ({
@@ -116,6 +118,7 @@ export function LineItemsField({
   hasInvestment,
   onRemoveItem,
   onFileChange,
+  fileInputKey = 0,
 }: LineItemsFieldPropsT) {
   const inlineCategory = getInlineCategory(transferType, referenceData, hasInvestment)
   const secondRowCategory = getSecondRowCategory(transferType, referenceData)
@@ -190,6 +193,7 @@ export function LineItemsField({
                     )}
                   </form.AppField>
                   <FileInput
+                    key={`file-${fileInputKey}-${index}`}
                     label="FV"
                     fieldClassName="min-w-0 flex-1"
                     accept="image/*,application/pdf"

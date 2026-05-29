@@ -41,15 +41,15 @@ export function validateAction<TData>(
 }
 
 /** Auth + payload + try/catch + perf + revalidation wrapper for actions. */
-export async function protectedAction(
+export async function protectedAction<TData = undefined>(
   label: string,
-  handler: (ctx: ActionCtxT) => Promise<ActionResultT>,
+  handler: (ctx: ActionCtxT) => Promise<ActionResultT<TData>>,
   revalidate?: (keyof typeof CACHE_TAGS)[],
-): Promise<ActionResultT> {
+): Promise<ActionResultT<TData>> {
   const elapsed = perfStart()
 
   const session = await requireAuth(MANAGEMENT_ROLES)
-  if (!session.success) return session
+  if (!session.success) return { success: false, error: session.error } as ActionResultT<TData>
   console.log(`[PERF]   requireAuth ${elapsed()}ms`)
 
   try {
@@ -68,7 +68,7 @@ export async function protectedAction(
     return result
   } catch (err) {
     console.error(`[ACTION_ERROR] ${label}`, err)
-    return { success: false, error: getErrorMessage(err) }
+    return { success: false, error: getErrorMessage(err) } as ActionResultT<TData>
   }
 }
 

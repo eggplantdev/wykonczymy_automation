@@ -15,10 +15,10 @@ export default function FrontendLayout({ children }: { children: React.ReactNode
   return (
     <html
       lang="pl"
-      className={cn(abcFavorit.variable, spaceMono.variable, 'antialiased')}
+      className={cn(abcFavorit.variable, spaceMono.variable, 'overscroll-none antialiased')}
       suppressHydrationWarning
     >
-      <body className="bg-background text-foreground relative min-h-screen overscroll-none scroll-smooth">
+      <body className="bg-background text-foreground relative min-h-screen scroll-smooth">
         <Suspense fallback={<Loader loading={true} />}>
           <AuthenticatedShell>{children}</AuthenticatedShell>
         </Suspense>
@@ -34,11 +34,11 @@ async function AuthenticatedShell({ children }: { children: React.ReactNode }) {
 
   return (
     <CurrentUserProvider user={user}>
-      <div className="flex min-h-screen">
+      <div className="flex h-screen">
         <Sidebar />
         <div className="flex flex-1 flex-col">
           <Navigation user={user} />
-          <main className="flex-1 overflow-y-auto">{children}</main>
+          <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
           <AppFooter />
         </div>
       </div>

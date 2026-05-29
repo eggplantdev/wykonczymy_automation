@@ -2,10 +2,12 @@
 
 import { Button } from '@/components/ui/button'
 import { logoutAction } from '@/lib/actions/auth'
+import { refreshDataAction } from '@/lib/actions/refresh'
 import { isAdminOrOwnerRole, isManagementRole } from '@/lib/auth/roles'
 import { SECTION_LINKS } from '@/lib/constants/sections'
+import { toastMessage } from '@/components/toasts'
 import { useCurrentUser } from '@/hooks/use-current-user'
-import { FileBarChart, LogOut, Shield, Users } from 'lucide-react'
+import { FileBarChart, FileSpreadsheet, LogOut, RefreshCw, Shield, Users } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCallback, useTransition } from 'react'
@@ -14,6 +16,7 @@ export function Sidebar() {
   const user = useCurrentUser()
   const pathname = usePathname()
   const [isPending, startTransition] = useTransition()
+  const [isRefreshing, startRefreshTransition] = useTransition()
 
   const handleSectionClick = useCallback(
     (e: React.MouseEvent, hash: string) => {
@@ -28,6 +31,13 @@ export function Sidebar() {
 
   const handleLogout = () => {
     startTransition(() => logoutAction())
+  }
+
+  const handleRefresh = () => {
+    startRefreshTransition(async () => {
+      await refreshDataAction()
+      toastMessage('Dane odświeżone')
+    })
   }
 
   const showUsers = isManagementRole(user.role)
@@ -51,6 +61,14 @@ export function Sidebar() {
         ))}
         {showUsers && (
           <Button variant="ghost" size="sm" className="justify-start" asChild>
+            <Link href="/kosztorysy">
+              <FileSpreadsheet className="size-4" />
+              Kosztorysy
+            </Link>
+          </Button>
+        )}
+        {showUsers && (
+          <Button variant="ghost" size="sm" className="justify-start" asChild>
             <Link href="/pracownicy">
               <Users className="size-4" />
               Pracownicy
@@ -72,6 +90,16 @@ export function Sidebar() {
           <div className="text-foreground text-sm font-medium">{user.name}</div>
         </div>
         <div className="flex flex-col gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            aria-label="Odśwież dane"
+          >
+            <RefreshCw className={isRefreshing ? 'size-4 animate-spin' : 'size-4'} />
+            Odśwież dane
+          </Button>
           <Button size="sm" asChild aria-label="Panel administracyjny">
             <Link href="/admin" target="_blank">
               <Shield className="size-4" />

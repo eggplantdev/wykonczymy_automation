@@ -64,6 +64,7 @@ export async function fetchManagerDashboardData() {
       contactPerson: inv.contactPerson,
       review: inv.review,
       notes: inv.notes,
+      hasSheet: inv.hasSheet,
     }
   })
 

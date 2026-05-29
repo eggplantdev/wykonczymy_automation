@@ -52,6 +52,9 @@ export function EditTransferForm({
   const { submit } = useFormSubmit(FORM_ID)
   const fileRef = useRef<HTMLInputElement>(null)
   const [selectedFileName, setSelectedFileName] = useState<string | undefined>()
+  // Bumped on reset to remount the (uncontrolled) file input, clearing its
+  // native file and internal filename state — form.reset() can't reach them.
+  const [fileInputKey, setFileInputKey] = useState(0)
 
   const form = useAppForm({
     defaultValues: {
@@ -98,6 +101,10 @@ export function EditTransferForm({
         },
         successMessage: 'Transakcja zaktualizowana',
         onSubmitSuccess,
+        onReset: () => {
+          setSelectedFileName(undefined)
+          setFileInputKey((k) => k + 1)
+        },
       })
 
       return false
@@ -168,6 +175,7 @@ export function EditTransferForm({
               />
             )}
             <FileInput
+              key={fileInputKey}
               ref={fileRef}
               label={row.invoiceUrl ? 'Zamień fakturę' : 'Dodaj fakturę'}
               accept="image/*,application/pdf"

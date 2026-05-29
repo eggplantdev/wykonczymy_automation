@@ -23,6 +23,7 @@ export type InvestmentRefT = ReferenceItemT & {
   contactPerson: string
   notes: string
   review: string
+  hasSheet: boolean
 }
 
 export type WorkerRefT = Omit<ReferenceItemT, 'type'> & {
