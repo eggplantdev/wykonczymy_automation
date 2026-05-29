@@ -1,7 +1,8 @@
 'use server'
 
-import { revalidateTag } from 'next/cache'
-import { CACHE_TAGS } from '@/lib/cache/tags'
+// Only used by the DISABLED auto-create block in createInvestmentAction (see below).
+// import { revalidateTag } from 'next/cache'
+// import { CACHE_TAGS } from '@/lib/cache/tags'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { createSheetFromTemplate, isStorageQuotaError } from '@/lib/google/drive'
@@ -45,7 +46,7 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
       const parsed = validateAction(investmentSchema, data)
       if (!parsed.success) return parsed
 
-      const created = await payload.create({
+      await payload.create({
         collection: 'investments',
         data: parsed.data,
       })
@@ -56,6 +57,11 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
       // a Workspace Shared Drive). The no-sheet banner then surfaces the missing
       // kosztorys and the user takes the working path: "Powiąż istniejący arkusz"
       // via linkSheetAction (paste an owner-shared sheet).
+      // DISABLED (2026-05-29): auto-create never succeeds on the personal-account SA
+      // (always storageQuotaExceeded), so this block only produced console.error noise
+      // on every investment create. Link-existing ("Powiąż istniejący arkusz") is the
+      // working flow. Re-enable only with a Workspace Shared Drive — see drive.ts.
+      /*
       void (async () => {
         try {
           const { sheetId } = await createSheetFromTemplate(created.name)
@@ -79,6 +85,7 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
           console.error(`[kosztorys-provision] investment #${created.id} failed (non-fatal):`, err)
         }
       })()
+      */
 
       return { success: true }
     },

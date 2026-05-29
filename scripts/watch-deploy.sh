@@ -10,15 +10,17 @@ API_PATH="/v6/deployments?projectId=$PROJECT_ID&teamId=$TEAM_ID&limit=1"
 
 sleep 5  # let git push reach Vercel before we snapshot
 
-LAST_UID="$(vercel api --raw "$API_PATH" | jq -r '.deployments[0].uid')"
+last_uid="$(vercel api --raw "$API_PATH" | jq -r '.deployments[0].uid')"
 prev_state=""
 
+# NOTE: do NOT name the read target UID — it's a read-only bash builtin, and with
+# `set -e` the failed assignment would kill the watcher on the first iteration.
 while true; do
-  IFS=$'\t' read -r UID STATE URL < <(
+  IFS=$'\t' read -r dep_uid STATE URL < <(
     vercel api --raw "$API_PATH" \
       | jq -r '.deployments[0] | "\(.uid)\t\(.state)\t\(.url)"'
   )
-  if [ "$UID" != "$LAST_UID" ]; then
+  if [ "$dep_uid" != "$last_uid" ]; then
     if [ "$STATE" != "$prev_state" ]; then
       echo "  $STATE  https://$URL"
       prev_state="$STATE"
