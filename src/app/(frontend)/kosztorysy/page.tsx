@@ -35,17 +35,17 @@ export default async function KosztorysyListPage() {
   return (
     <PageWrapper title="Kosztorysy">
       <div className="flex flex-wrap items-center gap-3">
-        <ExternalLink className="mr-auto" href={ALL_SHEETS_URL}>
-          Otwórz w arkuszach google ↗
-        </ExternalLink>
-        <AddKosztorysDialog
-          trigger={
-            <Button size="sm">
-              <Plus className="size-4" />
-              Dodaj kosztorys bez inwestycji
-            </Button>
-          }
-        />
+        <div className="mr-auto">
+          <AddKosztorysDialog
+            trigger={
+              <Button size="sm">
+                <Plus className="size-4" />
+                Dodaj kosztorys bez inwestycji
+              </Button>
+            }
+          />
+        </div>
+        <ExternalLink href={ALL_SHEETS_URL}>Otwórz w arkuszach google ↗</ExternalLink>
       </div>
 
       <Section
