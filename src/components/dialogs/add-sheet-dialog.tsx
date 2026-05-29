@@ -1,6 +1,7 @@
 'use client'
 
 import { type ReactNode, useState, useTransition } from 'react'
+import { Copy } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -35,10 +36,22 @@ export function AddSheetDialog({ trigger }: PropsT) {
 
   const handleOpenChange = (next: boolean) => {
     setOpen(next)
-    if (next && !saEmail)
-      void getServiceAccountEmailAction()
-        .then(setSaEmail)
-        .catch(() => {})
+    if (next) {
+      // Reset inputs on every open so a previously-added link never lingers.
+      setLink('')
+      setName('')
+      if (!saEmail)
+        void getServiceAccountEmailAction()
+          .then(setSaEmail)
+          .catch(() => {})
+    }
+  }
+
+  const copyEmail = () => {
+    void navigator.clipboard
+      .writeText(saEmail)
+      .then(() => toastMessage('Skopiowano adres konta usługi.', 'success'))
+      .catch(() => toastMessage('Nie udało się skopiować.', 'error'))
   }
 
   const onSubmit = () => {
@@ -66,18 +79,34 @@ export function AddSheetDialog({ trigger }: PropsT) {
         </DialogHeader>
 
         <div className="space-y-4 text-sm">
-          <p className="text-muted-foreground text-xs">
-            Najpierw udostępnij arkusz <strong>jako Edytujący</strong> dla konta usługi, a następnie
-            wklej jego link poniżej.
-          </p>
+          <ol className="text-muted-foreground list-decimal space-y-1 pl-4 text-xs">
+            <li>
+              Stwórz nową kopię <strong>„Kosztorys Wzór"</strong> w Arkuszach Google.
+            </li>
+            <li>
+              Udostępnij arkusz <strong>jako Edytujący</strong> dla konta usługi (poniżej).
+            </li>
+          </ol>
           <ExternalLink href={ALL_SHEETS_URL}>Otwórz wszystkie arkusze ↗</ExternalLink>
           {saEmail && (
-            <p className="text-muted-foreground text-xs">
-              Konto usługi:{' '}
-              <code className="bg-muted rounded px-1 py-0.5 text-xs break-all select-all">
-                {saEmail}
-              </code>
-            </p>
+            <div className="space-y-1">
+              <p className="text-muted-foreground text-xs">Konto usługi:</p>
+              <div className="flex items-center gap-2">
+                <code className="bg-muted flex-1 rounded px-1 py-0.5 text-xs break-all select-all">
+                  {saEmail}
+                </code>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  className="size-7 shrink-0"
+                  onClick={copyEmail}
+                  aria-label="Kopiuj adres konta usługi"
+                >
+                  <Copy className="size-3.5" />
+                </Button>
+              </div>
+            </div>
           )}
           <div className="space-y-2">
             <label className="text-xs font-medium" htmlFor="kosztorys-link">
