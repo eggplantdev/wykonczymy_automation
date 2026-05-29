@@ -59,7 +59,7 @@ export default async function SheetsListPage() {
   return (
     <PageWrapper title="Kosztorysy">
       <div className="flex flex-wrap items-center justify-end gap-3">
-        <ExternalLink href={ALL_SHEETS_URL}>Otwórz w arkuszach google ↗</ExternalLink>
+        <ExternalLink href={ALL_SHEETS_URL}>Otwórz arkusze google ↗</ExternalLink>
       </div>
 
       <SheetDataTable data={rows} availableInvestments={investmentsWithoutSheet} />

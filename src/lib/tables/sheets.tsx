@@ -82,7 +82,7 @@ export function getSheetColumns({ availableInvestments }: SheetColumnOptionsT) {
             investmentName={row.investmentName}
             trigger={
               <Button size="sm" variant="outline">
-                Dodaj kosztorys
+                Dodaj
               </Button>
             }
           />
