@@ -37,7 +37,9 @@ function deriveSelected(values: string[]): string[] {
 }
 
 export function SheetDataTable({ data, availableInvestments }: SheetDataTablePropsT) {
-  const [statusValues, setStatusValues] = useState<string[]>([])
+  // Default to showing only linked kosztorysy (Powiązane); the other statuses
+  // (Bez inwestycji / Bez kosztorysu) stay one filter-click away.
+  const [statusValues, setStatusValues] = useState<string[]>(['linked'])
 
   const statusFiltered = useMemo(() => {
     const selected = deriveSelected(statusValues)
