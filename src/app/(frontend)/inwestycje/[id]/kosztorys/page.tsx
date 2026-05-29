@@ -2,12 +2,12 @@ import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { getInvestment } from '@/lib/queries/investments'
-import { getInvestmentSheetId } from '@/lib/google/kosztorys-lookup'
-import { KosztorysButton } from '@/components/dialogs/kosztorys-button'
-import { KosztorysIframeView } from './iframe-view'
-import { SyncButton } from './sync-button'
+import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
+import { SheetButton } from '@/components/dialogs/sheet-button'
+import { SheetIframeView } from '@/components/sheets/iframe-view'
+import { SyncButton } from '@/components/sheets/sync-button'
 
-export default async function KosztorysPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function InvestmentSheetPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const investmentId = Number(id)
   if (!Number.isFinite(investmentId) || investmentId <= 0) notFound()
@@ -27,7 +27,7 @@ export default async function KosztorysPage({ params }: { params: Promise<{ id: 
         <p className="text-muted-foreground text-sm">
           Inwestycja <strong>{investment.name}</strong> nie ma jeszcze kosztorysu.
         </p>
-        <KosztorysButton
+        <SheetButton
           investmentId={investmentId}
           investmentName={investment.name}
           hasSheet={false}
@@ -37,7 +37,7 @@ export default async function KosztorysPage({ params }: { params: Promise<{ id: 
   }
 
   return (
-    <KosztorysIframeView
+    <SheetIframeView
       sheetId={sheetId}
       investmentName={investment.name}
       toolbar={<SyncButton investmentId={investmentId} />}

@@ -20,22 +20,22 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { toastMessage } from '@/components/toasts'
-import { linkKosztorysToInvestmentAction } from '@/lib/actions/kosztoryses'
+import { linkSheetToInvestmentAction } from '@/lib/actions/sheets'
 
 type InvestmentOptionT = { id: number; name: string }
 
 type PropsT = {
-  kosztorysId: number
-  kosztorysName: string
+  sheetId: number
+  sheetName: string
   availableInvestments: InvestmentOptionT[]
   trigger?: ReactNode
 }
 
 // Pick an investment with no kosztorys and link this unlinked row to it. The
 // caller decides which investments are eligible (typically hasSheet=false).
-export function LinkKosztorysToInvestmentDialog({
-  kosztorysId,
-  kosztorysName,
+export function LinkSheetToInvestmentDialog({
+  sheetId,
+  sheetName,
   availableInvestments,
   trigger,
 }: PropsT) {
@@ -48,13 +48,10 @@ export function LinkKosztorysToInvestmentDialog({
     if (!selectedId) return
     const investmentId = Number(selectedId)
     startTransition(async () => {
-      const res = await linkKosztorysToInvestmentAction(kosztorysId, investmentId)
+      const res = await linkSheetToInvestmentAction(sheetId, investmentId)
       if (!res.success) return toastMessage(res.error, 'error')
       const investment = availableInvestments.find((i) => i.id === investmentId)
-      toastMessage(
-        `Dodano „${kosztorysName}” do inwestycji „${investment?.name ?? ''}”.`,
-        'success',
-      )
+      toastMessage(`Dodano „${sheetName}” do inwestycji „${investment?.name ?? ''}”.`, 'success')
       setOpen(false)
       setSelectedId('')
       router.refresh()

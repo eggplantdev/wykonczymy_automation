@@ -6,7 +6,7 @@ import { perfStart } from '@/lib/perf'
 
 // Row shape served to the listing page. `investment` is undefined for an
 // unlinked kosztorys (registered before the project is committed).
-export type KosztorysRowT = {
+export type SheetRowT = {
   id: number
   name: string
   googleSheetId: string
@@ -19,8 +19,8 @@ export type KosztorysRowT = {
 
 // All kosztoryses + their linked investment (depth: 1). Sorted newest first
 // so freshly-added unlinked rows surface to the top.
-export const fetchAllKosztoryses = unstable_cache(
-  async (): Promise<KosztorysRowT[]> => {
+export const fetchAllSheets = unstable_cache(
+  async (): Promise<SheetRowT[]> => {
     const elapsed = perfStart()
     const payload = await getPayload({ config })
     const result = await payload.find({
@@ -30,7 +30,7 @@ export const fetchAllKosztoryses = unstable_cache(
       sort: '-updatedAt',
       overrideAccess: true,
     })
-    console.log(`[PERF] query.fetchAllKosztoryses ${elapsed()}ms (${result.docs.length} rows)`)
+    console.log(`[PERF] query.fetchAllSheets ${elapsed()}ms (${result.docs.length} rows)`)
 
     return result.docs.map((doc) => {
       const investmentRel = doc.investment

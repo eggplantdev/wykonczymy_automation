@@ -7,30 +7,30 @@ import { setupMaterialyTab } from '@/lib/google/sheets'
 import { protectedAction } from './utils'
 
 /**
- * Register an existing Google Sheet as a kosztorys WITHOUT linking it to an
+ * Register an existing Google Sheet as a sheet record WITHOUT linking it to an
  * investment. Lets the owner cost a project before the investment is committed
- * — the link step happens later via linkKosztorysToInvestmentAction (or the
+ * — the link step happens later via linkSheetToInvestmentAction (or the
  * per-investment "Powiąż istniejący arkusz" flow on the investment page).
  *
  * Flow: extract id → verify the SA can edit it → create the kosztoryses row →
  * stamp the materiały tab (banner + header + summary + protection). The setup
- * step is best-effort: if it fails, the kosztorys row still exists and the
+ * step is best-effort: if it fails, the sheet row still exists and the
  * setup can be retried from the per-investment page after linking.
  */
-export async function addUnlinkedKosztorysAction(input: string, name?: string) {
-  return protectedAction<{ kosztorysId: number; name: string }>(
-    'addUnlinkedKosztorysAction',
+export async function addUnlinkedSheetAction(input: string, name?: string) {
+  return protectedAction<{ sheetId: number; name: string }>(
+    'addUnlinkedSheetAction',
     async ({ payload }) => {
-      const sheetId = extractSheetId(input)
-      if (!sheetId) {
+      const googleSheetId = extractSheetId(input)
+      if (!googleSheetId) {
         return { success: false, error: 'Nieprawidłowy link lub identyfikator arkusza Google.' }
       }
 
-      // Same loud-rejection as linkKosztorysSheetAction: the unique constraint
+      // Same loud-rejection as linkSheetAction: the unique constraint
       // would also throw, but a Polish error is friendlier than a 500.
       const existing = await payload.find({
         collection: 'kosztoryses',
-        where: { googleSheetId: { equals: sheetId } },
+        where: { googleSheetId: { equals: googleSheetId } },
         depth: 0,
         limit: 1,
         overrideAccess: true,
@@ -42,7 +42,7 @@ export async function addUnlinkedKosztorysAction(input: string, name?: string) {
         }
       }
 
-      const access = await verifySheetAccess(sheetId)
+      const access = await verifySheetAccess(googleSheetId)
       if (!access) {
         return {
           success: false,
@@ -56,7 +56,7 @@ export async function addUnlinkedKosztorysAction(input: string, name?: string) {
       // the admin panel (the listing page shows whichever is set).
       const created = await payload.create({
         collection: 'kosztoryses',
-        data: { googleSheetId: sheetId, name: name?.trim() || access.title || sheetId },
+        data: { googleSheetId, name: name?.trim() || access.title || googleSheetId },
         overrideAccess: true,
       })
 
@@ -73,33 +73,33 @@ export async function addUnlinkedKosztorysAction(input: string, name?: string) {
         const types = cats.docs
           .map((c) => (c as { name?: string }).name)
           .filter((n): n is string => !!n)
-        await setupMaterialyTab(sheetId, types)
+        await setupMaterialyTab(googleSheetId, types)
       } catch (err) {
-        console.error(`[kosztoryses] setupMaterialyTab failed for ${sheetId} (non-fatal):`, err)
+        console.error(`[sheets] setupMaterialyTab failed for ${googleSheetId} (non-fatal):`, err)
       }
 
-      return { success: true, data: { kosztorysId: created.id as number, name: created.name } }
+      return { success: true, data: { sheetId: created.id as number, name: created.name } }
     },
     ['kosztoryses'],
   )
 }
 
 /**
- * Attach a previously unlinked kosztorys to an investment. After the FK is
+ * Attach a previously unlinked sheet record to an investment. After the FK is
  * set, the materiały tab gets populated from the investment's expenses (a
  * normal sync run, fire-and-forget so the action returns fast).
  */
-export async function linkKosztorysToInvestmentAction(kosztorysId: number, investmentId: number) {
+export async function linkSheetToInvestmentAction(sheetId: number, investmentId: number) {
   return protectedAction(
-    'linkKosztorysToInvestmentAction',
+    'linkSheetToInvestmentAction',
     async ({ payload }) => {
       // The three lookups are independent — fetch them in parallel. The partial
       // unique index on investment_id WHERE NOT NULL would also catch a double-
       // link at the DB layer; the loud check turns it into a Polish error first.
-      const [kosztorys, investment, investmentHasKosztorys] = await Promise.all([
+      const [sheet, investment, investmentHasSheet] = await Promise.all([
         payload.findByID({
           collection: 'kosztoryses',
-          id: kosztorysId,
+          id: sheetId,
           depth: 0,
           overrideAccess: true,
         }),
@@ -118,18 +118,18 @@ export async function linkKosztorysToInvestmentAction(kosztorysId: number, inves
         }),
       ])
 
-      if (!kosztorys) return { success: false, error: 'Kosztorys nie istnieje.' }
-      if (kosztorys.investment) {
+      if (!sheet) return { success: false, error: 'Kosztorys nie istnieje.' }
+      if (sheet.investment) {
         return { success: false, error: 'Ten kosztorys jest już dodany do inwestycji.' }
       }
       if (!investment) return { success: false, error: 'Inwestycja nie istnieje.' }
-      if (investmentHasKosztorys.docs.length > 0) {
+      if (investmentHasSheet.docs.length > 0) {
         return { success: false, error: 'Ta inwestycja ma już kosztorys.' }
       }
 
       await payload.update({
         collection: 'kosztoryses',
-        id: kosztorysId,
+        id: sheetId,
         data: { investment: investmentId },
         overrideAccess: true,
       })
@@ -138,7 +138,7 @@ export async function linkKosztorysToInvestmentAction(kosztorysId: number, inves
       // in place. Fire-and-forget: a slow Google round-trip mustn't keep the
       // UI spinner up — and a sync failure shouldn't undo the link.
       void applyMaterialSync(investmentId).catch((err) => {
-        console.error(`[kosztoryses] post-link sync for investment #${investmentId} failed:`, err)
+        console.error(`[sheets] post-link sync for investment #${investmentId} failed:`, err)
       })
 
       return { success: true }
@@ -148,24 +148,24 @@ export async function linkKosztorysToInvestmentAction(kosztorysId: number, inves
 }
 
 /**
- * Detach a kosztorys from its investment, leaving the sheet untouched. The
- * row stays as an "unlinked kosztorys" — re-linkable later from the listing.
+ * Detach a sheet record from its investment, leaving the sheet untouched. The
+ * row stays as an "unlinked sheet" — re-linkable later from the listing.
  */
-export async function unlinkKosztorysFromInvestmentAction(kosztorysId: number) {
+export async function unlinkSheetFromInvestmentAction(sheetId: number) {
   return protectedAction(
-    'unlinkKosztorysFromInvestmentAction',
+    'unlinkSheetFromInvestmentAction',
     async ({ payload }) => {
-      const kosztorys = await payload.findByID({
+      const sheet = await payload.findByID({
         collection: 'kosztoryses',
-        id: kosztorysId,
+        id: sheetId,
         depth: 0,
         overrideAccess: true,
       })
-      if (!kosztorys) return { success: false, error: 'Kosztorys nie istnieje.' }
+      if (!sheet) return { success: false, error: 'Kosztorys nie istnieje.' }
 
       await payload.update({
         collection: 'kosztoryses',
-        id: kosztorysId,
+        id: sheetId,
         data: { investment: null },
         overrideAccess: true,
       })
@@ -177,7 +177,7 @@ export async function unlinkKosztorysFromInvestmentAction(kosztorysId: number) {
 }
 
 /**
- * Delete the kosztorys row only — the Google Sheet stays as-is (it lives on
+ * Delete the sheet record only — the Google Sheet stays as-is (it lives on
  * the owner's Drive; we don't have permission and shouldn't presume).
  *
  * Tighter than the other actions: the collection's `delete` access is
@@ -186,16 +186,16 @@ export async function unlinkKosztorysFromInvestmentAction(kosztorysId: number) {
  * MANAGEMENT_ROLES, which includes MANAGER; without this check, a manager
  * would bypass the collection's tighter intent via `overrideAccess: true`.
  */
-export async function deleteKosztorysAction(kosztorysId: number) {
+export async function deleteSheetAction(sheetId: number) {
   return protectedAction(
-    'deleteKosztorysAction',
+    'deleteSheetAction',
     async ({ payload, user }) => {
       if (!(ADMIN_OR_OWNER_ROLES as readonly string[]).includes(user.role)) {
         return { success: false, error: 'Brak uprawnień do usuwania kosztorysów.' }
       }
       await payload.delete({
         collection: 'kosztoryses',
-        id: kosztorysId,
+        id: sheetId,
         overrideAccess: true,
       })
       return { success: true }

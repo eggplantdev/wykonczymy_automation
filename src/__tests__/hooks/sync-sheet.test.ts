@@ -22,14 +22,13 @@ vi.mock('@/lib/actions/sheets-sync', () => ({
   removeTransferFromSheet: (...a: unknown[]) => mockRemoveFromSheet(...a),
 }))
 
-const { syncKosztorysAfterChange, syncKosztorysAfterDelete } =
-  await import('@/hooks/transfers/sync-kosztorys-sheet')
+const { syncSheetAfterChange, syncSheetAfterDelete } = await import('@/hooks/transfers/sync-sheet')
 
 // Await every after() callback the hook scheduled (each lazily imports the sync module).
 const flush = () => Promise.all(hoisted.pending)
 
 const change = async (args: object) => {
-  ;(syncKosztorysAfterChange as unknown as (a: object) => unknown)({
+  ;(syncSheetAfterChange as unknown as (a: object) => unknown)({
     collection: {},
     req: {},
     operation: 'update',
@@ -38,7 +37,7 @@ const change = async (args: object) => {
   await flush()
 }
 const del = async (args: object) => {
-  ;(syncKosztorysAfterDelete as unknown as (a: object) => unknown)({
+  ;(syncSheetAfterDelete as unknown as (a: object) => unknown)({
     collection: {},
     req: {},
     ...args,
@@ -52,7 +51,7 @@ beforeEach(() => {
   hoisted.pending.length = 0
 })
 
-describe('syncKosztorysAfterChange', () => {
+describe('syncSheetAfterChange', () => {
   it('syncs an expense in place when the investment is unchanged', async () => {
     await change({ doc: { id: 10, type: 'INVESTMENT_EXPENSE', investment: 2 } })
     expect(mockSyncSingle).toHaveBeenCalledWith({ transferId: 10 })
@@ -74,16 +73,16 @@ describe('syncKosztorysAfterChange', () => {
     expect(mockRemoveFromSheet).not.toHaveBeenCalled()
   })
 
-  it('skips when context.skipKosztorysSync is set (bulk batches its own sync)', async () => {
+  it('skips when context.skipSheetSync is set (bulk batches its own sync)', async () => {
     await change({
       doc: { id: 10, type: 'INVESTMENT_EXPENSE', investment: 2 },
-      context: { skipKosztorysSync: true },
+      context: { skipSheetSync: true },
     })
     expect(mockSyncSingle).not.toHaveBeenCalled()
   })
 })
 
-describe('syncKosztorysAfterDelete', () => {
+describe('syncSheetAfterDelete', () => {
   it('removes a deleted expense from its sheet', async () => {
     await del({ doc: { id: 10, type: 'INVESTMENT_EXPENSE', investment: 2 } })
     expect(mockRemoveFromSheet).toHaveBeenCalledWith({ transferId: 10, investmentId: 2 })

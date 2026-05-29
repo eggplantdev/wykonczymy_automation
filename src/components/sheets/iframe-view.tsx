@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { ExternalLink } from '@/components/ui/external-link'
+import { ALL_SHEETS_URL } from '@/lib/constants/sheets'
 
 type PropsT = {
   sheetId: string
@@ -9,9 +10,7 @@ type PropsT = {
   toolbar?: ReactNode
 }
 
-const ALL_SHEETS_URL = 'https://docs.google.com/spreadsheets/u/0/'
-
-export function KosztorysIframeView({ sheetId, investmentName, toolbar }: PropsT) {
+export function SheetIframeView({ sheetId, investmentName, toolbar }: PropsT) {
   const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/edit`
   const src = `${sheetUrl}?usp=sharing&rm=embedded&embedded=true`
   return (

@@ -16,7 +16,7 @@ import {
   previewMaterialSync,
   type MaterialSyncPreviewT,
 } from '@/lib/actions/sheets-sync'
-import { setupKosztorysSheetAction } from '@/lib/actions/investments'
+import { setupSheetAction } from '@/lib/actions/investments'
 import { formatPLN } from '@/lib/format-currency'
 
 export function SyncButton({ investmentId }: { investmentId: number }) {
@@ -26,7 +26,7 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
 
   const onSetupConfirm = () => {
     startTransition(async () => {
-      const setup = await setupKosztorysSheetAction(investmentId)
+      const setup = await setupSheetAction(investmentId)
       if (!setup.success) {
         toastMessage(setup.error, 'error')
         return

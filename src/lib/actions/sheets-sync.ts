@@ -7,7 +7,7 @@ import {
   readMaterialyTransferIds,
   removeMaterialRow,
 } from '@/lib/google/sheets'
-import { getInvestmentSheetId } from '@/lib/google/kosztorys-lookup'
+import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
 import { getRelationName } from '@/lib/get-relation-name'
 import { protectedAction } from './utils'
 

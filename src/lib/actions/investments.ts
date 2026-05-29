@@ -4,8 +4,8 @@ import { revalidateTag } from 'next/cache'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
-import { createKosztorysFromTemplate, isStorageQuotaError } from '@/lib/google/drive'
-import { getInvestmentSheetId } from '@/lib/google/kosztorys-lookup'
+import { createSheetFromTemplate, isStorageQuotaError } from '@/lib/google/drive'
+import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
 import { extractSheetId, serviceAccountEmail, verifySheetAccess } from '@/lib/google/sheet-access'
 import { setupMaterialyTab } from '@/lib/google/sheets'
 import { investmentSchema, type InvestmentFormDataT } from '@/lib/schemas/investment'
@@ -14,8 +14,8 @@ import { validateAction, protectedAction } from './utils'
 // Attach (or reset) a fresh materiały tab on the investment's linked sheet.
 // Header + summary are written by the app — the owner builds nothing. Works on a
 // personal Google account because it never creates a new file (see approach A).
-export async function setupKosztorysSheetAction(investmentId: number) {
-  return protectedAction<{ types: string[] }>('setupKosztorysSheetAction', async ({ payload }) => {
+export async function setupSheetAction(investmentId: number) {
+  return protectedAction<{ types: string[] }>('setupSheetAction', async ({ payload }) => {
     const sheetId = await getInvestmentSheetId(payload, investmentId)
     if (!sheetId) {
       return {
@@ -55,10 +55,10 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
       // fails ("storage quota exceeded" — the SA has no Drive of its own; needs
       // a Workspace Shared Drive). The no-sheet banner then surfaces the missing
       // kosztorys and the user takes the working path: "Powiąż istniejący arkusz"
-      // via linkKosztorysSheetAction (paste an owner-shared sheet).
+      // via linkSheetAction (paste an owner-shared sheet).
       void (async () => {
         try {
-          const { sheetId } = await createKosztorysFromTemplate(created.name)
+          const { sheetId } = await createSheetFromTemplate(created.name)
           await payload.create({
             collection: 'kosztoryses',
             data: { googleSheetId: sheetId, name: created.name, investment: created.id },
@@ -92,9 +92,9 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
  * — the user is staring at a button, so we wait for Drive to land before
  * returning so the UI can refresh and show the iframe.
  */
-export async function provisionKosztorysAction(investmentId: number) {
+export async function provisionSheetAction(investmentId: number) {
   return protectedAction<{ sheetId: string }>(
-    'provisionKosztorysAction',
+    'provisionSheetAction',
     async ({ payload }) => {
       const investment = await payload.findByID({
         collection: 'investments',
@@ -110,7 +110,7 @@ export async function provisionKosztorysAction(investmentId: number) {
 
       let sheetId: string
       try {
-        ;({ sheetId } = await createKosztorysFromTemplate(investment.name))
+        ;({ sheetId } = await createSheetFromTemplate(investment.name))
       } catch (err) {
         const msg = String(err)
         if (isStorageQuotaError(err)) {
@@ -142,7 +142,7 @@ export async function provisionKosztorysAction(investmentId: number) {
  * Link an EXISTING Google Sheet to an investment. Accepts a pasted sheet URL or a
  * raw id; verifies the service account can actually open it (else the sync/iframe
  * would silently fail), then stores its id. The working alternative to
- * provisionKosztorysAction while new-file creation is blocked by SA Drive quota.
+ * provisionSheetAction while new-file creation is blocked by SA Drive quota.
  */
 // The service-account email a user must share their sheet with before linking.
 // Non-secret; surfaced in the setup dialog so the share step is clear up front
@@ -160,9 +160,9 @@ export async function getServiceAccountEmailAction(): Promise<string> {
   }
 }
 
-export async function linkKosztorysSheetAction(investmentId: number, input: string) {
+export async function linkSheetAction(investmentId: number, input: string) {
   return protectedAction<{ title: string }>(
-    'linkKosztorysSheetAction',
+    'linkSheetAction',
     async ({ payload }) => {
       const investment = await payload.findByID({
         collection: 'investments',

@@ -45,17 +45,17 @@ ToSheet)`. Bulk-creates batch through one `applyMaterialRowsBatch` per investmen
 
 ### Design history (recent commits, newest first)
 
-| When       | Change                                                                                                                                                                                 | Refs                                          |
-| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| 2026-05-28 | UI vocabulary pass: "Dodaj kosztorys" / "Arkusze" / "Wszystkie arkusze", + section rename "Inwestycje z kosztorysami"                                                                  | `ae4ed4b`                                     |
-| 2026-05-28 | Kosztoryses afterChange/Delete bumps the investments cache tag (admin-panel edits refresh listing badges); deleteKosztorysAction tightened to ADMIN_OR_OWNER; link action parallelised | `e4d60ce` (simplify pass)                     |
-| 2026-05-28 | `/kosztorysy` listing page + 4 kosztoryses actions + 2 dialogs + sidebar entry                                                                                                         | `13ddffb`                                     |
-| 2026-05-28 | Read paths: reference-data LEFT JOIN kosztoryses for `hasSheet`; per-investment kosztorys page resolves sheet via helper; removed `googleSheetId` field from investments               | `69dd1ae`                                     |
-| 2026-05-28 | Write actions in investments.ts route through kosztoryses; `getInvestmentSheetId` extracted to a plain helper                                                                          | `908d362`                                     |
-| 2026-05-28 | Sync layer (`sheets-sync.ts:getInvestmentSheetId`) resolves the sheet id via kosztoryses, not investments; 18 test mocks shifted to a `withSheet` helper                               | `6f2f564`                                     |
-| 2026-05-28 | New `kosztoryses` collection + migration `20260528_move_sheet_id_to_kosztoryses` (table, partial unique index, backfill, drop column)                                                  | `2b07871`                                     |
-| 2026-05-27 | Hardened sync: bulk serialization, server-derived rows, write-scope sheet probe; reset/cancel/edit flows; link-existing-sheet flow                                                     | `9a181ea`, `5a28555`, `a7a9abd`, `87cb13c`    |
-| 2026-05-25 | Initial sheet-integration scaffold: `google_sheet_id` field on investments + iframe view + first sync                                                                                  | `20260525_add_google_sheet_id_to_investments` |
+| When       | Change                                                                                                                                                                        | Refs                                          |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| 2026-05-28 | UI vocabulary pass: "Dodaj kosztorys" / "Arkusze" / "Wszystkie arkusze", + section rename "Inwestycje z kosztorysami"                                                         | `ae4ed4b`                                     |
+| 2026-05-28 | Sheets afterChange/Delete bumps the investments cache tag (admin-panel edits refresh listing badges); deleteSheetAction tightened to ADMIN_OR_OWNER; link action parallelised | `e4d60ce` (simplify pass)                     |
+| 2026-05-28 | `/kosztorysy` listing page + 4 kosztoryses actions + 2 dialogs + sidebar entry                                                                                                | `13ddffb`                                     |
+| 2026-05-28 | Read paths: reference-data LEFT JOIN kosztoryses for `hasSheet`; per-investment kosztorys page resolves sheet via helper; removed `googleSheetId` field from investments      | `69dd1ae`                                     |
+| 2026-05-28 | Write actions in investments.ts route through kosztoryses; `getInvestmentSheetId` extracted to a plain helper                                                                 | `908d362`                                     |
+| 2026-05-28 | Sync layer (`sheets-sync.ts:getInvestmentSheetId`) resolves the sheet id via kosztoryses, not investments; 18 test mocks shifted to a `withSheet` helper                      | `6f2f564`                                     |
+| 2026-05-28 | New `kosztoryses` collection + migration `20260528_move_sheet_id_to_kosztoryses` (table, partial unique index, backfill, drop column)                                         | `2b07871`                                     |
+| 2026-05-27 | Hardened sync: bulk serialization, server-derived rows, write-scope sheet probe; reset/cancel/edit flows; link-existing-sheet flow                                            | `9a181ea`, `5a28555`, `a7a9abd`, `87cb13c`    |
+| 2026-05-25 | Initial sheet-integration scaffold: `google_sheet_id` field on investments + iframe view + first sync                                                                         | `20260525_add_google_sheet_id_to_investments` |
 
 The plan that drove the 2026-05-28 split lived at
 `docs/plans/2026-05-28-kosztoryses-collection-listing-page.md`; it's been removed
@@ -207,7 +207,7 @@ table content and would leave row 2 blank. `removeMaterialRow` is a thin wrapper
 over the same primitive.
 
 **Single-transfer mutations go through a Payload collection hook**
-(`src/hooks/transfers/sync-kosztorys-sheet.ts`, wired in
+(`src/hooks/transfers/sync-sheet.ts`, wired in
 `src/collections/transfers.ts`), so **admin-panel and bare-`payload.*` edits sync
 too** (review T2.2). The hook lazy-imports the `'use server'` sync module inside
 `after()` (avoids poisoning the collection's import graph) and defers via
@@ -216,12 +216,12 @@ too** (review T2.2). The hook lazy-imports the `'use server'` sync module inside
 | Trigger                                  | How the sync fires                                                                                                | Sheet effect                                                                                            |
 | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | Create one expense (form, action)        | `payload.create` → `afterChange` hook → `after(syncSingleTransferToSheet)`                                        | Upsert one row (appends since the id isn't present).                                                    |
-| **Bulk create**                          | Action sets `req.context.skipKosztorysSync = true` → per-row hook defers → `after(syncBulkExpensesToSheet)`       | **One batched call per investment** via `applyMaterialRowsBatch` (review T4.2, must-fix at 1000+ rows). |
+| **Bulk create**                          | Action sets `req.context.skipSheetSync = true` → per-row hook defers → `after(syncBulkExpensesToSheet)`           | **One batched call per investment** via `applyMaterialRowsBatch` (review T4.2, must-fix at 1000+ rows). |
 | Edit expense (form, action, admin panel) | `payload.update` → `afterChange` hook → `after(syncSingleTransferToSheet)`                                        | Overwrites the 7 cells in place. If `investment` changed: drop from old sheet first, then sync to new.  |
 | Cancel expense                           | `cancelTransferAction` flips `cancelled: true` on the original → `afterChange` hook → `syncSingleTransferToSheet` | Removes the original's row (cancelled/unmappable branch — review T2.4).                                 |
 | Delete expense (admin panel)             | `afterDelete` hook → `after(removeTransferFromSheet)`                                                             | Row removed.                                                                                            |
 | Reconcile (Synchronizuj button)          | `previewMaterialSync` → `applyMaterialSync` → `applyMaterialRowsBatch`                                            | One batched write: append missing + overwrite present (heal) + **scoped orphan-removal**.               |
-| Reset tab (Zresetuj zakładkę)            | `setupKosztorysSheetAction` + `applyMaterialSync`                                                                 | Rebuilds the tab from scratch (header, summary, formatting) then re-syncs. **Wipes manual rows.**       |
+| Reset tab (Zresetuj zakładkę)            | `setupSheetAction` + `applyMaterialSync`                                                                          | Rebuilds the tab from scratch (header, summary, formatting) then re-syncs. **Wipes manual rows.**       |
 
 Notes:
 
@@ -248,10 +248,10 @@ existing sheet** (an owner-shared file).
 
 ### Per-investment dialog (investment page banner / no-sheet table cell)
 
-`KosztorysSetupDialog` offers two paths:
+`SheetSetupDialog` offers two paths:
 
-1. **Utwórz nowy kosztorys** — `provisionKosztorysAction` →
-   `createKosztorysFromTemplate` ⇒ `drive.files.copy` from
+1. **Utwórz nowy kosztorys** — `provisionSheetAction` →
+   `createSheetFromTemplate` ⇒ `drive.files.copy` from
    `KOSZTORYS_TEMPLATE_SHEET_ID`, then `payload.create('kosztoryses', ...)`
    with `investment: investmentId`. **Currently blocked on a personal-account
    service account**: the SA has no Drive storage quota and the copy fails
@@ -262,7 +262,7 @@ existing sheet** (an owner-shared file).
    kosztorys row and the no-sheet banner appears. The fix needs a Workspace
    Shared Drive + `supportsAllDrives` — see memory
    `project_kosztorys_sa_no_drive_storage`.
-2. **Dodaj istniejący kosztorys** — `linkKosztorysSheetAction`. The owner shares
+2. **Dodaj istniejący kosztorys** — `linkSheetAction`. The owner shares
    an already-existing sheet with the SA as Editor and pastes its URL/id.
    `verifySheetAccess` does a no-op write-probe to surface a Viewer-only share
    immediately, then the action creates a `kosztoryses` row with the sheet's
@@ -270,7 +270,7 @@ existing sheet** (an owner-shared file).
    today.** Guarded against re-registering an already-known sheet — the user
    is pointed at the listing page instead.
 
-After either path creates the kosztoryses row, `setupKosztorysSheetAction`
+After either path creates the kosztoryses row, `setupSheetAction`
 attaches the read-only tab and stamps the banner + header + summary +
 formatting.
 
@@ -278,13 +278,13 @@ formatting.
 
 For costing a project **before** committing the investment:
 
-3. **Dodaj kosztorys bez inwestycji** (header CTA → `AddKosztorysDialog`) →
-   `addUnlinkedKosztorysAction`. Same paste-existing-URL flow as path 2, but
+3. **Dodaj kosztorys bez inwestycji** (header CTA → `AddSheetDialog`) →
+   `addUnlinkedSheetAction`. Same paste-existing-URL flow as path 2, but
    creates a kosztoryses row with `investment IS NULL` and runs
    `setupMaterialyTab` so the sheet is pre-stamped (banner / header /
    summary). The row shows up in the "Kosztorysy bez inwestycji" section.
-4. **Dodaj kosztorys** (per unlinked row → `LinkKosztorysToInvestmentDialog`)
-   → `linkKosztorysToInvestmentAction(kosztorysId, investmentId)`. Sets
+4. **Dodaj kosztorys** (per unlinked row → `LinkSheetToInvestmentDialog`)
+   → `linkSheetToInvestmentAction(sheetId, investmentId)`. Sets
    `investment_id` on the existing kosztoryses row, then fire-and-forgets
    `applyMaterialSync` so the sheet inherits the investment's expenses. The
    picker only offers investments where `hasSheet=false` (derived from the
@@ -292,10 +292,10 @@ For costing a project **before** committing the investment:
 
 The header also surfaces an "Otwórz w arkuszach google ↗" link to the owner's
 Google Sheets file picker, so creating a fresh sheet in a new tab and pasting
-its URL back into `AddKosztorysDialog` is one click away.
+its URL back into `AddSheetDialog` is one click away.
 
 The listing page also surfaces the third axis — investments that don't yet
-have a kosztorys — and reuses the existing `KosztorysSetupDialog` for those
+have a kosztorys — and reuses the existing `SheetSetupDialog` for those
 rows (back to path 1/2).
 
 ---
@@ -351,7 +351,7 @@ lives in `docs/plans/2026-05-27-kosztorys-pr13-simplify-review.md`.
   still "side effects go in the server action", but kosztorys sync is the
   documented exception: it lives in the collection hook because admin-panel and
   bare-`payload.*` edits had to sync too (review T2.2). The bulk-create action
-  sets `req.context.skipKosztorysSync` so the per-row hook defers to its batched
+  sets `req.context.skipSheetSync` so the per-row hook defers to its batched
   call — no double work.
 
 ## Tests — live verification
@@ -379,18 +379,18 @@ Executed via the MCP Playwright browser against the user's dev server
 (http://localhost:3000) on `wykonczymy-test-db`, after every milestone landed
 and the `simplify` pass was applied.
 
-| Step                                                                      | What it proves                                                                                                              | Result                                                                                              |
-| ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `/kosztorysy` renders three sections                                      | listing page + queries wired; `fetchAllKosztoryses` runs (~170ms, 2 rows)                                                   | ✅ "Inwestycje z kosztorysami (2) / Kosztorysy bez inwestycji (0) / Inwestycje bez kosztorysu (60)" |
-| `Dodaj kosztorys bez inwestycji` opens dialog                             | client component mounts; `getServiceAccountEmailAction` resolves                                                            | ✅ SA email rendered in dialog body                                                                 |
-| Invalid URL → rejection toast                                             | `addUnlinkedKosztorysAction` runs, validates via `extractSheetId`, returns `{success:false}`, `toastMessage('error')` fires | ✅ `Toastify__toast--error` displayed                                                               |
-| Paste sheet URL of inv 31's sheet (kosztoryses row deleted via SQL first) | full happy path: extract → verify SA access → create row → `setupMaterialyTab`                                              | ✅ Row appears in "Kosztorysy bez inwestycji"; sections re-balance                                  |
-| Click "Dodaj kosztorys" on unlinked row → pick inv 31 → confirm           | `linkKosztorysToInvestmentAction` updates FK; fire-and-forget `applyMaterialSync` runs                                      | ✅ Row moves to "Inwestycje z kosztorysami"; sections re-balance to 2 / 0 / 60                      |
-| `/inwestycje/6/kosztorys` iframe page                                     | `getInvestmentSheetId` helper resolves; iframe receives the sheet id                                                        | ✅ Page renders; Google's 401 inside the iframe is the SA-share login, downstream of our code       |
-| `/inwestycje/6` shows "Otwórz" CTA                                        | `hasSheet` derives true via the new LEFT JOIN in `fetchReferenceData`                                                       | ✅ "Otwórz" link to `/inwestycje/6/kosztorys`                                                       |
-| Sidebar shows "Kosztorysy" entry (lg+)                                    | sidebar registration, role gating                                                                                           | ✅ link visible for ADMIN role                                                                      |
-| `\d investments` post-migration                                           | column drop landed                                                                                                          | ✅ `google_sheet_id` not present                                                                    |
-| `\d kosztoryses` post-migration                                           | table + partial unique index landed                                                                                         | ✅ `kosztoryses_investment_id_unique_idx ... WHERE investment_id IS NOT NULL`                       |
+| Step                                                                      | What it proves                                                                                                          | Result                                                                                              |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `/kosztorysy` renders three sections                                      | listing page + queries wired; `fetchAllSheets` runs (~170ms, 2 rows)                                                    | ✅ "Inwestycje z kosztorysami (2) / Kosztorysy bez inwestycji (0) / Inwestycje bez kosztorysu (60)" |
+| `Dodaj kosztorys bez inwestycji` opens dialog                             | client component mounts; `getServiceAccountEmailAction` resolves                                                        | ✅ SA email rendered in dialog body                                                                 |
+| Invalid URL → rejection toast                                             | `addUnlinkedSheetAction` runs, validates via `extractSheetId`, returns `{success:false}`, `toastMessage('error')` fires | ✅ `Toastify__toast--error` displayed                                                               |
+| Paste sheet URL of inv 31's sheet (kosztoryses row deleted via SQL first) | full happy path: extract → verify SA access → create row → `setupMaterialyTab`                                          | ✅ Row appears in "Kosztorysy bez inwestycji"; sections re-balance                                  |
+| Click "Dodaj kosztorys" on unlinked row → pick inv 31 → confirm           | `linkSheetToInvestmentAction` updates FK; fire-and-forget `applyMaterialSync` runs                                      | ✅ Row moves to "Inwestycje z kosztorysami"; sections re-balance to 2 / 0 / 60                      |
+| `/inwestycje/6/kosztorys` iframe page                                     | `getInvestmentSheetId` helper resolves; iframe receives the sheet id                                                    | ✅ Page renders; Google's 401 inside the iframe is the SA-share login, downstream of our code       |
+| `/inwestycje/6` shows "Otwórz" CTA                                        | `hasSheet` derives true via the new LEFT JOIN in `fetchReferenceData`                                                   | ✅ "Otwórz" link to `/inwestycje/6/kosztorys`                                                       |
+| Sidebar shows "Kosztorysy" entry (lg+)                                    | sidebar registration, role gating                                                                                       | ✅ link visible for ADMIN role                                                                      |
+| `\d investments` post-migration                                           | column drop landed                                                                                                      | ✅ `google_sheet_id` not present                                                                    |
+| `\d kosztoryses` post-migration                                           | table + partial unique index landed                                                                                     | ✅ `kosztoryses_investment_id_unique_idx ... WHERE investment_id IS NOT NULL`                       |
 
 **Caveats / not verified live:**
 
@@ -401,7 +401,7 @@ and the `simplify` pass was applied.
   API (would need a Google account I don't have); the link action's
   fire-and-forget `applyMaterialSync` is exercised by the existing sync-layer
   tests A–G above.
-- `unlinkKosztorysFromInvestmentAction` and `deleteKosztorysAction` have no
+- `unlinkSheetFromInvestmentAction` and `deleteSheetAction` have no
   UI surface yet on `/kosztorysy` (the actions exist for the admin panel and
   for future row-level controls). Both are unit-test-shaped.
 
@@ -428,33 +428,34 @@ and the `simplify` pass was applied.
   "Utwórz nowy kosztorys" ship; drop the unused one after owners actually try
   them.
 - **Unlink / delete UI on `/kosztorysy`** — actions exist
-  (`unlinkKosztorysFromInvestmentAction`, `deleteKosztorysAction`) but the
+  (`unlinkSheetFromInvestmentAction`, `deleteSheetAction`) but the
   listing rows don't yet expose them. Decide whether to add row-level menus
   here or leave destructive ops to the admin panel.
 
 ## Key files
 
 ```
-src/collections/kosztoryses.ts                    ← the collection itself (sheet id + optional FK to investment)
+src/collections/sheets.ts                    ← the collection itself (sheet id + optional FK to investment)
 src/lib/google/sheets.ts                          ← header-driven read/applyMaterialRowsBatch/setup/protection/summary/colour
 src/lib/google/sheet-access.ts                    ← link/verify an existing sheet (extractSheetId, verifySheetAccess)
 src/lib/google/auth.ts                            ← service-account JWT factory
-src/lib/google/kosztorys-lookup.ts                ← getInvestmentSheetId(payload, id) — the shared kosztoryses → sheetId helper
-src/hooks/transfers/sync-kosztorys-sheet.ts       ← collection-hook side of the sync (the T2.2 path)
+src/lib/google/sheet-lookup.ts                ← getInvestmentSheetId(payload, id) — the shared kosztoryses → sheetId helper
+src/hooks/transfers/sync-sheet.ts       ← collection-hook side of the sync (the T2.2 path)
 src/lib/actions/sheets-sync.ts                    ← preview / apply (server re-derive) / syncSingleTransferToSheet / syncBulkExpensesToSheet / removeTransferFromSheet
-src/lib/actions/transfers.ts                      ← bulk action: sets skipKosztorysSync + after(syncBulkExpensesToSheet)
+src/lib/actions/transfers.ts                      ← bulk action: sets skipSheetSync + after(syncBulkExpensesToSheet)
 src/lib/actions/investments.ts                    ← per-investment link/provision/setup actions
-src/lib/actions/kosztoryses.ts                    ← unlinked add / link-to-investment / unlink / delete actions
-src/lib/queries/kosztoryses.ts                    ← cached listing query (fetchAllKosztoryses)
+src/lib/actions/sheets.ts                    ← unlinked add / link-to-investment / unlink / delete actions
+src/lib/queries/sheets.ts                    ← cached listing query (fetchAllSheets)
 src/lib/queries/reference-data.ts                 ← investments LEFT JOIN kosztoryses → hasSheet
-src/collections/transfers.ts                      ← afterChange/afterDelete wire syncKosztorys* alongside the balance recalc
+src/collections/transfers.ts                      ← afterChange/afterDelete wire syncSheet* alongside the balance recalc
 src/migrations/20260528_move_sheet_id_to_kosztoryses.ts  ← the schema split
-src/app/(frontend)/kosztorysy/page.tsx            ← top-level listing (3 sections + Add CTA)
-src/app/(frontend)/inwestycje/[id]/kosztorys/     ← per-investment page, iframe-view, sync-button (reset + sync dialogs)
-src/components/dialogs/kosztorys-setup-dialog.tsx       ← per-investment dialog (template + link tabs)
-src/components/dialogs/add-kosztorys-dialog.tsx         ← listing-page CTA dialog (unlinked add)
-src/components/dialogs/link-kosztorys-to-investment-dialog.tsx  ← per-row CTA dialog
+src/app/(frontend)/kosztorysy/page.tsx            ← top-level listing page (3 sections + Add CTA)
+src/app/(frontend)/inwestycje/[id]/kosztorys/page.tsx  ← per-investment iframe page
+src/components/sheets/                            ← presentational components moved out of the route dirs: iframe-view, sync-button (reset + sync dialogs), linked-row, unlinked-row, no-sheet-row, section
+src/components/dialogs/sheet-setup-dialog.tsx       ← per-investment dialog (template + link tabs)
+src/components/dialogs/add-sheet-dialog.tsx         ← listing-page CTA dialog (unlinked add)
+src/components/dialogs/link-sheet-to-investment-dialog.tsx  ← per-row CTA dialog
 src/__tests__/lib/google/sheets.test.ts
 src/__tests__/lib/actions/sheets-sync.test.ts
-src/__tests__/hooks/sync-kosztorys-sheet.test.ts
+src/__tests__/hooks/sync-sheet.test.ts
 ```

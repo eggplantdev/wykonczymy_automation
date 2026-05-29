@@ -6,7 +6,7 @@ function getDriveClient(): drive_v3.Drive {
   return google.drive({ version: 'v3', auth })
 }
 
-export async function createKosztorysFromTemplate(
+export async function createSheetFromTemplate(
   investmentName: string,
 ): Promise<{ sheetId: string }> {
   const templateId = process.env.KOSZTORYS_TEMPLATE_SHEET_ID

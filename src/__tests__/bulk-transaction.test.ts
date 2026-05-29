@@ -122,7 +122,7 @@ describe('createBulkTransferAction — transaction safety', () => {
     for (const call of mockCreate.mock.calls) {
       expect(call[0]).toHaveProperty('req', {
         transactionID: TX_ID,
-        context: { skipKosztorysSync: true },
+        context: { skipSheetSync: true },
       })
     }
   })

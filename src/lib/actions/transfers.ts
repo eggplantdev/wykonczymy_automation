@@ -108,10 +108,10 @@ export async function createBulkTransferAction(
 
       const transactionId = await payload.db.beginTransaction()
       if (!transactionId) throw new Error('Failed to start transaction')
-      // skipKosztorysSync: the per-row afterChange hook must NOT sync each created
+      // skipSheetSync: the per-row afterChange hook must NOT sync each created
       // row one-by-one — this action batches them all in a single sheet write below
       // (review T4.2). The flag rides on req.context, which Payload passes to hooks.
-      const req = { transactionID: transactionId, context: { skipKosztorysSync: true } }
+      const req = { transactionID: transactionId, context: { skipSheetSync: true } }
 
       const createdIds: number[] = []
       try {

@@ -7,7 +7,7 @@ import { BalanceCell } from '@/components/ui/balance-cell'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
 import { ContactLink } from '@/components/ui/contact-link'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
-import { KosztorysButton } from '@/components/dialogs/kosztorys-button'
+import { SheetButton } from '@/components/dialogs/sheet-button'
 
 export type InvestmentRowT = {
   id: number
@@ -112,7 +112,7 @@ export function getInvestmentColumns({ onToggle, userRole }: InvestmentColumnOpt
       header: 'Kosztorys',
       enableSorting: true,
       cell: (info) => (
-        <KosztorysButton
+        <SheetButton
           investmentId={info.row.original.id}
           investmentName={info.row.original.name}
           hasSheet={!!info.getValue()}

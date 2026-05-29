@@ -19,14 +19,10 @@ const resolveId = (value: unknown): number | undefined => {
 // remove from the doc's current state (a cancelled or unmappable expense is removed).
 //
 // Deferred via after() so the mutation response isn't blocked on the Google API.
-// The bulk-create action sets context.skipKosztorysSync and batches the sync itself
+// The bulk-create action sets context.skipSheetSync and batches the sync itself
 // (review T4.2), so we don't fire N per-row syncs from here.
-export const syncKosztorysAfterChange: CollectionAfterChangeHook = ({
-  doc,
-  previousDoc,
-  context,
-}) => {
-  if (context?.skipKosztorysSync) return doc
+export const syncSheetAfterChange: CollectionAfterChangeHook = ({ doc, previousDoc, context }) => {
+  if (context?.skipSheetSync) return doc
   // Only expense rows touch the sheet. Cancellation is handled here too: cancelling
   // flips the original expense's `cancelled` flag (an INVESTMENT_EXPENSE afterChange),
   // and syncSingleTransferToSheet removes a cancelled expense's row. The separate
@@ -51,7 +47,7 @@ export const syncKosztorysAfterChange: CollectionAfterChangeHook = ({
   return doc
 }
 
-export const syncKosztorysAfterDelete: CollectionAfterDeleteHook = ({ doc }) => {
+export const syncSheetAfterDelete: CollectionAfterDeleteHook = ({ doc }) => {
   const investmentId = resolveId(doc.investment)
   if (doc.type !== 'INVESTMENT_EXPENSE' || investmentId === undefined) return doc
   const transferId = doc.id as number

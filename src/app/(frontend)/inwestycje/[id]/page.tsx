@@ -18,7 +18,7 @@ import { InfoList } from '@/components/ui/info-list'
 import { ContactLink } from '@/components/ui/contact-link'
 import { FinancialStats } from '@/components/investments/financial-stats'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
-import { KosztorysButton } from '@/components/dialogs/kosztorys-button'
+import { SheetButton } from '@/components/dialogs/sheet-button'
 import type { HeaderFieldT } from '@/types/export'
 import type { DynamicPagePropsT } from '@/types/page'
 
@@ -72,7 +72,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
     <PageWrapper title={investment.name}>
       <div className="flex flex-wrap items-center gap-2">
         <EditInvestmentDialog investment={investment} />
-        <KosztorysButton
+        <SheetButton
           investmentId={investmentId}
           investmentName={investment.name}
           hasSheet={investment.hasSheet}

@@ -15,9 +15,11 @@ import {
 import { toastMessage } from '@/components/toasts'
 import {
   getServiceAccountEmailAction,
-  linkKosztorysSheetAction,
-  provisionKosztorysAction,
+  linkSheetAction,
+  provisionSheetAction,
 } from '@/lib/actions/investments'
+import { ExternalLink } from '../ui/external-link'
+import { ALL_SHEETS_URL } from '@/lib/constants/sheets'
 
 type PropsT = {
   investmentId: number
@@ -28,7 +30,7 @@ type PropsT = {
 // Two ways to give an investment a kosztorys: create a fresh sheet from the
 // template, or link an existing one by pasting its URL/id. Shared by the
 // investment page banner and the investments table cell.
-export function KosztorysSetupDialog({ investmentId, investmentName, trigger }: PropsT) {
+export function SheetSetupDialog({ investmentId, investmentName, trigger }: PropsT) {
   const [open, setOpen] = useState(false)
   const [link, setLink] = useState('')
   const [saEmail, setSaEmail] = useState('')
@@ -54,7 +56,7 @@ export function KosztorysSetupDialog({ investmentId, investmentName, trigger }: 
 
   const onCreate = () => {
     startTransition(async () => {
-      const res = await provisionKosztorysAction(investmentId)
+      const res = await provisionSheetAction(investmentId)
       if (!res.success) return toastMessage(res.error, 'error')
       finish(`Utworzono kosztorys${investmentName ? ` dla „${investmentName}”` : ''}.`)
     })
@@ -63,7 +65,7 @@ export function KosztorysSetupDialog({ investmentId, investmentName, trigger }: 
   const onLink = () => {
     if (!link.trim()) return
     startTransition(async () => {
-      const res = await linkKosztorysSheetAction(investmentId, link)
+      const res = await linkSheetAction(investmentId, link)
       if (!res.success) return toastMessage(res.error, 'error')
       finish(`Dodano kosztorys „${res.data.title}”.`)
     })
@@ -75,13 +77,11 @@ export function KosztorysSetupDialog({ investmentId, investmentName, trigger }: 
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Kosztorys inwestycji</DialogTitle>
-          <DialogDescription>
-            Utwórz nowy arkusz z szablonu albo powiąż istniejący arkusz Google.
-          </DialogDescription>
+          <DialogDescription>Dodaj istniejący arkusz Google.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 text-sm">
-          <section className="space-y-2">
+          {/* <section className="space-y-2">
             <h3 className="font-medium">Nowy kosztorys</h3>
             <p className="text-muted-foreground text-xs">
               Tworzy kopię szablonu i przypisuje ją do tej inwestycji.
@@ -89,12 +89,14 @@ export function KosztorysSetupDialog({ investmentId, investmentName, trigger }: 
             <Button onClick={onCreate} disabled={pending} className="w-full">
               {pending ? 'Pracuję…' : 'Utwórz nowy kosztorys'}
             </Button>
-          </section>
+          </section> */}
 
-          <div className="border-t" />
+          {/* <div className="border-t" /> */}
 
           <section className="space-y-2">
-            <h3 className="font-medium">Dodaj istniejący kosztorys</h3>
+            <p>
+              <ExternalLink href={ALL_SHEETS_URL}>Otwórz arkusze google ↗</ExternalLink>
+            </p>
             <p className="text-muted-foreground text-xs">
               Najpierw udostępnij arkusz <strong>jako Edytujący</strong> dla konta usługi, a
               następnie wklej jego link poniżej.

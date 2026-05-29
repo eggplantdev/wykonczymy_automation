@@ -9,7 +9,7 @@ import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/re
 // outlives the investment, becoming unlinked again if the investment is deleted.
 // The 1:1 cardinality (one investment ↔ at most one kosztorys) is enforced by a
 // partial unique index on investment_id (see 20260528_move_sheet_id_to_kosztoryses).
-export const Kosztoryses: CollectionConfig = {
+export const Sheets: CollectionConfig = {
   slug: 'kosztoryses',
   labels: {
     singular: { en: 'Kosztorys', pl: 'Kosztorys' },

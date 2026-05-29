@@ -15,20 +15,17 @@ import {
 import { toastMessage } from '@/components/toasts'
 import { ExternalLink } from '@/components/ui/external-link'
 import { getServiceAccountEmailAction } from '@/lib/actions/investments'
-import { addUnlinkedKosztorysAction } from '@/lib/actions/kosztoryses'
-
-// Same constant as on /kosztorysy: shortcut to the owner's Google Sheets file
-// picker so the user can spin up a fresh sheet and paste its URL back here.
-const ALL_SHEETS_URL = 'https://docs.google.com/spreadsheets/u/0/'
+import { addUnlinkedSheetAction } from '@/lib/actions/sheets'
+import { ALL_SHEETS_URL } from '@/lib/constants/sheets'
 
 type PropsT = {
   trigger?: ReactNode
 }
 
 // Register an existing Google Sheet as a kosztorys, no investment attached.
-// Trimmed clone of the "Powiąż istniejący arkusz" half of KosztorysSetupDialog —
+// Trimmed clone of the "Powiąż istniejący arkusz" half of SheetSetupDialog —
 // no "create new" tab (that path needs an investment to name the file).
-export function AddKosztorysDialog({ trigger }: PropsT) {
+export function AddSheetDialog({ trigger }: PropsT) {
   const [open, setOpen] = useState(false)
   const [link, setLink] = useState('')
   const [name, setName] = useState('')
@@ -47,7 +44,7 @@ export function AddKosztorysDialog({ trigger }: PropsT) {
   const onSubmit = () => {
     if (!link.trim()) return
     startTransition(async () => {
-      const res = await addUnlinkedKosztorysAction(link, name || undefined)
+      const res = await addUnlinkedSheetAction(link, name || undefined)
       if (!res.success) return toastMessage(res.error, 'error')
       toastMessage(`Dodano kosztorys „${res.data.name}".`, 'success')
       setOpen(false)
