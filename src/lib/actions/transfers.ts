@@ -65,10 +65,6 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
       })
       console.log(`[PERF]   payload.create ${step()}ms`)
 
-      // Materiały sheet sync now runs from the transactions collection afterChange
-      // hook (covers admin-panel edits too, review T2.2), so the action no longer
-      // schedules it — that would double the work.
-
       return { success: true }
     },
     ['transfers'],

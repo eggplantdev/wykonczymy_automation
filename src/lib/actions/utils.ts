@@ -49,8 +49,6 @@ export async function protectedAction<TData = undefined>(
   const elapsed = perfStart()
 
   const session = await requireAuth(MANAGEMENT_ROLES)
-  // Failure shape is identical across all ActionResultT<TData> branches, but TS
-  // can't unify the conditional with a generic TData — cast keeps the wrapper one-liner.
   if (!session.success) return { success: false, error: session.error } as ActionResultT<TData>
   console.log(`[PERF]   requireAuth ${elapsed()}ms`)
 

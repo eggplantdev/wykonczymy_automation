@@ -73,9 +73,5 @@ export const Investments: CollectionConfig = {
       label: { en: 'Status', pl: 'Status' },
       options: [...STATUS_OPTIONS],
     },
-    // The Google Sheet id moved to the `kosztoryses` collection (one row per
-    // sheet, optional FK back to an investment). See migration
-    // 20260528_move_sheet_id_to_kosztoryses — and the kosztoryses collection
-    // for the new shape.
   ],
 }
