@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const getMock = vi.fn()
 const valuesBatchUpdateMock = vi.fn()
 const valuesAppendMock = vi.fn()
+const valuesClearMock = vi.fn()
 const spreadsheetsGetMock = vi.fn()
 const batchUpdateMock = vi.fn()
 
@@ -17,7 +18,12 @@ vi.mock('googleapis', () => ({
       spreadsheets: {
         get: spreadsheetsGetMock,
         batchUpdate: batchUpdateMock,
-        values: { get: getMock, batchUpdate: valuesBatchUpdateMock, append: valuesAppendMock },
+        values: {
+          get: getMock,
+          batchUpdate: valuesBatchUpdateMock,
+          append: valuesAppendMock,
+          clear: valuesClearMock,
+        },
       },
     }),
   },
@@ -33,6 +39,8 @@ beforeEach(() => {
   valuesBatchUpdateMock.mockResolvedValue({ data: {} })
   valuesAppendMock.mockReset()
   valuesAppendMock.mockResolvedValue({ data: {} })
+  valuesClearMock.mockReset()
+  valuesClearMock.mockResolvedValue({ data: {} })
   spreadsheetsGetMock.mockReset()
   batchUpdateMock.mockReset()
   batchUpdateMock.mockResolvedValue({ data: {} })
@@ -279,5 +287,39 @@ describe('readMaterialyTransferIds', () => {
     const map = await readMaterialyTransferIds('s')
     expect(map.get(101)).toBe(5) // header at row 4, data at row 5
     expect(map.size).toBe(1)
+  })
+})
+
+describe('ensureMaterialyTab', () => {
+  const TAB = 'wydatki inwestycyjne (tylko do odczytu)'
+
+  it('leaves an existing tab completely untouched (never wipes manual data)', async () => {
+    // Tab already present on the linked sheet → the create-if-missing guard must
+    // short-circuit: no addSheet, and crucially no values.clear (which would
+    // destroy the owner's hand-entered rows).
+    spreadsheetsGetMock.mockResolvedValueOnce({
+      data: { sheets: [{ properties: { sheetId: 42, title: TAB } }] },
+    })
+    const { ensureMaterialyTab } = await import('@/lib/google/sheets')
+    const res = await ensureMaterialyTab('s', ['Materiały budowlane'])
+    expect(res).toEqual({ created: false })
+    expect(valuesClearMock).not.toHaveBeenCalled()
+    expect(batchUpdateMock).not.toHaveBeenCalled()
+  })
+
+  it('builds the tab when it is missing', async () => {
+    // First get = the guard's tab lookup (no match); second get = setupMaterialyTab's
+    // metadata read. Both return no matching tab so setup runs the create path.
+    spreadsheetsGetMock.mockResolvedValue({
+      data: { sheets: [], properties: { locale: 'pl_PL' } },
+    })
+    // setupMaterialyTab's first batchUpdate is the addSheet — it must surface a gid.
+    batchUpdateMock.mockResolvedValueOnce({
+      data: { replies: [{ addSheet: { properties: { sheetId: 7 } } }] },
+    })
+    const { ensureMaterialyTab } = await import('@/lib/google/sheets')
+    const res = await ensureMaterialyTab('s', ['Materiały budowlane'])
+    expect(res).toEqual({ created: true })
+    expect(valuesClearMock).toHaveBeenCalled()
   })
 })

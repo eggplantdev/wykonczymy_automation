@@ -87,7 +87,7 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
   return (
     <>
       <Button size="sm" variant="outline" onClick={() => setSetupOpen(true)} disabled={pending}>
-        Zresetuj zakładkę materiały
+        Zresetuj wydatki inwestycyjne
       </Button>
       <Button size="sm" variant="outline" onClick={onCheck} disabled={pending}>
         {pending ? 'Synchronizuję…' : 'Synchronizuj wydatki inwestycyjne'}

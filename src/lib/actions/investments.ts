@@ -3,12 +3,13 @@
 // Only used by the DISABLED auto-create block in createInvestmentAction (see below).
 // import { revalidateTag } from 'next/cache'
 // import { CACHE_TAGS } from '@/lib/cache/tags'
+import type { Payload } from 'payload'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { createSheetFromTemplate, isStorageQuotaError } from '@/lib/google/drive'
 import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
 import { extractSheetId, serviceAccountEmail, verifySheetAccess } from '@/lib/google/sheet-access'
-import { setupMaterialyTab } from '@/lib/google/sheets'
+import { ensureMaterialyTab, setupMaterialyTab } from '@/lib/google/sheets'
 import { investmentSchema, type InvestmentFormDataT } from '@/lib/schemas/investment'
 import { validateAction, protectedAction } from './utils'
 
@@ -25,15 +26,7 @@ export async function setupSheetAction(investmentId: number) {
       }
     }
 
-    const cats = await payload.find({
-      collection: 'expense-categories',
-      limit: 100,
-      overrideAccess: true,
-    })
-    const types = cats.docs
-      .map((c) => (c as { name?: string }).name)
-      .filter((n): n is string => !!n)
-
+    const types = await getExpenseTypeNames(payload)
     await setupMaterialyTab(sheetId, types)
     return { success: true, data: { types } }
   })
@@ -225,6 +218,23 @@ export async function linkSheetAction(investmentId: number, input: string) {
         overrideAccess: true,
       })
 
+      // Create-if-missing: build the expenses tab only when the linked sheet doesn't
+      // already have one. Never wipes an existing tab — the owner may be attaching a
+      // sheet they've already filled in by hand; that destructive path stays behind
+      // the explicit "Zresetuj wydatki inwestycyjne" button. Non-fatal: a Sheets
+      // hiccup here must not fail the link (the row is already registered) — the user
+      // can still reset manually, and the first sync surfaces a missing tab with that
+      // exact hint.
+      try {
+        const types = await getExpenseTypeNames(payload)
+        await ensureMaterialyTab(sheetId, types)
+      } catch (err) {
+        console.error(
+          `[link-sheet] ensureMaterialyTab failed for #${investmentId} (non-fatal):`,
+          err,
+        )
+      }
+
       return { success: true, data: { title: access.title } }
     },
     // Affects both the kosztoryses listing and the investments table (hasSheet flips true).
@@ -249,4 +259,16 @@ export async function updateInvestmentAction(id: number, data: InvestmentFormDat
     },
     ['investments'],
   )
+}
+
+// Expense-category names that drive the per-type summary columns / row coloring in
+// the materiały tab. Shared by setupSheetAction (reset) and linkSheetAction
+// (create-if-missing) so both seed the tab with the same, current type set.
+async function getExpenseTypeNames(payload: Payload): Promise<string[]> {
+  const cats = await payload.find({
+    collection: 'expense-categories',
+    limit: 100,
+    overrideAccess: true,
+  })
+  return cats.docs.map((c) => (c as { name?: string }).name).filter((n): n is string => !!n)
 }

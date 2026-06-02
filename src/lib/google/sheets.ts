@@ -182,7 +182,7 @@ async function readGrid(spreadsheetId: string): Promise<unknown[][]> {
     // that into an actionable message instead of leaking the raw API error.
     if (String(err).includes('Unable to parse range')) {
       throw new Error(
-        `Arkusz nie ma karty „${MATERIALY_TAB}". Kliknij „Zresetuj zakładkę materiały", aby ją utworzyć.`,
+        `Arkusz nie ma karty „${MATERIALY_TAB}". Kliknij „Zresetuj wydatki inwestycyjne", aby ją utworzyć.`,
       )
     }
     throw err
@@ -712,4 +712,23 @@ export async function setupMaterialyTab(
   })
 
   await sheets.spreadsheets.batchUpdate({ spreadsheetId, requestBody: { requests } })
+}
+
+// Non-destructive counterpart to setupMaterialyTab: build the expenses tab ONLY
+// when it's missing, and leave it completely untouched if it already exists. Used
+// on link, where the owner may be attaching a sheet that already holds a populated
+// tab — silently wiping it (what setupMaterialyTab does) would destroy hand-entered
+// data with no confirmation. The destructive wipe-and-rebuild stays behind the
+// explicit "Zresetuj wydatki inwestycyjne" button. Returns whether it created the tab.
+export async function ensureMaterialyTab(
+  spreadsheetId: string,
+  expenseTypes: string[],
+): Promise<{ created: boolean }> {
+  const sheets = getClient()
+  const gid = await materialyTabGid(sheets, spreadsheetId)
+  if (gid != null) return { created: false }
+  // Tab is absent → setupMaterialyTab builds it on a fresh (empty) tab, so its
+  // internal values.clear has nothing to destroy.
+  await setupMaterialyTab(spreadsheetId, expenseTypes)
+  return { created: true }
 }
