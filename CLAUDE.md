@@ -1,22 +1,3 @@
----
-description:
-alwaysApply: true
----
-
-# When answering code-related questions, follow these rules:
-
-1. **Intuition first:** When explaining concepts, make them understandable for someone who is still learning.
-2. **Concrete and practical:** Back every complex abstract concept (formulas, architecture) with a simple, concrete example or scenario.
-3. **"Why":** Don't just explain how it works; explain _why_ we chose this approach, what trade-offs are involved, and what potential mistakes/pitfalls exist.
-4. **Broader perspective:** Compare discussed concepts with other technologies, languages, and frameworks that solve similar problems differently, so I learn alternative approaches to architecture and patterns. Especially design patterns, always explain if a pattern is used or something close to a pattern - user wants to make learnig design patterns a priority.
-5. **Active learning rule:** Never end a response with just a period. **ALWAYS** end with a specific question, "what if" scenario, or a small problem to solve to test my understanding. Do not continue until I give the correct answer — if I'm wrong, explain why and ask again in a different way.
-
-**Goal:** Build intuition and active understanding, not just passive knowledge.
-
----
-
-# CLAUDE.md
-
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## ⚠️ TEMPORARY: drop the kosztorys testing DB
