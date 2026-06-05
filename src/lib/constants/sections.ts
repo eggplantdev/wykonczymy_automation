@@ -1,8 +1,6 @@
 import { ArrowLeftRight, Building, Wallet } from 'lucide-react'
 
 export const SECTION_IDS = {
-  cashRegisters: 'kasy',
-  investments: 'inwestycje',
   transactions: 'transakcje',
 } as const
 
