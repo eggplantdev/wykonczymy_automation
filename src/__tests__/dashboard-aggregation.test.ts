@@ -89,57 +89,22 @@ describe('fetchManagerDashboardData', () => {
   it('returns all expected fields', async () => {
     const data = await fetchManagerDashboardData()
     expect(data).toHaveProperty('visibleRegisters')
-    expect(data).toHaveProperty('allInvestments')
     expect(data).toHaveProperty('activeInvestments')
     expect(data).toHaveProperty('managementUsers')
-    expect(data).toHaveProperty('totalBalance')
-    expect(data).toHaveProperty('ownedBalance')
-    expect(data).toHaveProperty('virtualRegisters')
+    expect(data).toHaveProperty('otherCategories')
+    expect(data).toHaveProperty('expenseCategories')
     expect(data).toHaveProperty('isAdminOrOwner')
-    expect(data).toHaveProperty('currentUserId')
   })
 
-  describe('investment balance calculation', () => {
-    it('calculates balance, totalCosts, and margin correctly', async () => {
-      const data = await fetchManagerDashboardData()
-      const invA = data.allInvestments.find((i) => i.id === 10)!
-      // balance: 8000 - 2000 - 500 = 5500
-      expect(invA.balance).toBe(5500)
-      // totalCosts: 2000 + 500 = 2500
-      expect(invA.totalCosts).toBe(2500)
-      // totalPayouts: 300
-      expect(invA.totalPayouts).toBe(300)
-      // margin: laborCosts - payouts = 500 - 300 = 200
-      expect(invA.margin).toBe(200)
-    })
-
-    it('defaults missing financials to 0', async () => {
-      const data = await fetchManagerDashboardData()
-      const invB = data.allInvestments.find((i) => i.id === 20)!
-      expect(invB.balance).toBe(0)
-      expect(invB.totalCosts).toBe(0)
-      expect(invB.totalPayouts).toBe(0)
-      expect(invB.margin).toBe(0)
-    })
-  })
+  // Investment balance/margin math moved to shapeInvestments — see shape-rows.test.ts.
+  // totalBalance / ownedBalance / virtualRegisters / currentUserId were unused dead
+  // returns removed when fetchManagerDashboardData was slimmed (dashboard-split).
 
   describe('admin/owner view', () => {
     it('admin sees all registers', async () => {
       const data = await fetchManagerDashboardData()
       expect(data.visibleRegisters.length).toBe(6)
       expect(data.isAdminOrOwner).toBe(true)
-    })
-
-    it('totalBalance excludes VIRTUAL registers', async () => {
-      const data = await fetchManagerDashboardData()
-      // Main(10000) + Aux(5000) + Worker1(200) + Worker2(-50) = 15150 (virtual excluded)
-      expect(data.totalBalance).toBe(15150)
-    })
-
-    it('ownedBalance filters by ownerId and excludes VIRTUAL', async () => {
-      const data = await fetchManagerDashboardData()
-      // User 1 owns: Main(10000, non-virtual) + Virtual(3000, excluded) + InactiveVirtual(0, excluded)
-      expect(data.ownedBalance).toBe(10000)
     })
   })
 
@@ -160,14 +125,6 @@ describe('fetchManagerDashboardData', () => {
       const data = await fetchManagerDashboardData()
       expect(data.managementUsers.length).toBe(2)
       expect(data.managementUsers.map((u) => u.id)).toEqual(expect.arrayContaining([1, 2]))
-    })
-  })
-
-  describe('virtual registers', () => {
-    it('virtualRegisters filtered to VIRTUAL + active only', async () => {
-      const data = await fetchManagerDashboardData()
-      expect(data.virtualRegisters.length).toBe(1)
-      expect(data.virtualRegisters[0].name).toBe('Virtual Reg')
     })
   })
 
