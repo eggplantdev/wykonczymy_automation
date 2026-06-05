@@ -4,7 +4,9 @@ import { describe, it, expect, vi } from 'vitest'
 vi.mock('server-only', () => ({}))
 
 import { shapeCashRegisters } from '@/lib/queries/cash-registers'
-import type { CashRegisterRefT, WorkerRefT } from '@/types/reference-data'
+import { shapeInvestments } from '@/lib/queries/investments'
+import type { CashRegisterRefT, WorkerRefT, InvestmentRefT } from '@/types/reference-data'
+import type { InvestmentFinancialsMapT } from '@/lib/queries/reference-data'
 
 const workers: WorkerRefT[] = [{ id: 1, name: 'Adrian', role: 'MANAGER', email: 'a@x.pl' }]
 
@@ -43,5 +45,52 @@ describe('shapeCashRegisters', () => {
       {},
     )
     expect(rows[0]).toMatchObject({ ownerName: '—', balance: 0, active: false })
+  })
+})
+
+const baseInv: InvestmentRefT = {
+  id: 5,
+  name: 'Grojecka',
+  status: 'active',
+  address: 'Grójecka 1',
+  phone: '123',
+  email: 'g@x.pl',
+  contactPerson: 'Pan G',
+  notes: '',
+  review: '',
+  hasSheet: false,
+  active: true,
+}
+
+describe('shapeInvestments', () => {
+  it('computes balance and margin from financials', () => {
+    const financials: InvestmentFinancialsMapT = {
+      '5': {
+        categoryCosts: [],
+        totalMaterialCosts: 1000,
+        totalCorrections: 0,
+        totalIncome: 9547,
+        totalLaborCosts: 3900,
+        totalPayouts: 1000,
+      },
+    }
+    const [row] = shapeInvestments([baseInv], financials)
+    expect(row.totalCosts).toBe(4900) // 1000 + 3900
+    expect(row.balance).toBe(4647) // 9547 - (1000 + 3900)
+    expect(row.margin).toBe(2900) // 3900 - 1000
+    expect(row).toMatchObject({ id: 5, name: 'Grojecka', status: 'active', hasSheet: false })
+  })
+
+  it('defaults to zeroed financials when investment has no entry', () => {
+    const [row] = shapeInvestments([baseInv], {})
+    expect(row).toMatchObject({
+      totalCosts: 0,
+      totalMaterialCosts: 0,
+      totalIncome: 0,
+      totalLaborCosts: 0,
+      totalPayouts: 0,
+      balance: 0,
+      margin: 0,
+    })
   })
 })
