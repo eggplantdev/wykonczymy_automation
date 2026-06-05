@@ -1,7 +1,6 @@
 import { parsePagination } from '@/lib/pagination'
 import { buildTransferFilters } from '@/lib/queries/transfers'
 import { fetchManagerDashboardData } from '@/lib/queries/dashboard'
-import { DashboardTables } from '@/components/dashboard/dashboard-tables'
 import { UserRegisterStats } from '@/components/dashboard/user-register-stats'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
@@ -19,7 +18,6 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
   const {
     visibleRegisters,
     activeInvestments,
-    allInvestments,
     managementUsers,
     otherCategories,
     expenseCategories,
@@ -58,8 +56,6 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
           },
         }}
       />
-
-      <DashboardTables cashRegisters={visibleRegisters} investments={allInvestments} />
     </PageWrapper>
   )
 }
