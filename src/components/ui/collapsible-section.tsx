@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import * as Collapsible from '@radix-ui/react-collapsible'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/cn'
@@ -20,25 +20,6 @@ export function CollapsibleSection({
   children,
 }: CollapsibleSectionPropsT) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
-
-  useEffect(() => {
-    if (!id) return
-
-    function handleHash() {
-      const hash = window.location.hash.slice(1)
-      if (hash !== id) return
-
-      setIsOpen(true)
-      requestAnimationFrame(() => {
-        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        history.replaceState(null, '', window.location.pathname + window.location.search)
-      })
-    }
-
-    handleHash()
-    window.addEventListener('hashchange', handleHash)
-    return () => window.removeEventListener('hashchange', handleHash)
-  }, [id])
 
   return (
     <Collapsible.Root id={id} open={isOpen} onOpenChange={setIsOpen} className={''}>

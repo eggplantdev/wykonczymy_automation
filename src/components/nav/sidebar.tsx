@@ -9,28 +9,12 @@ import { toastMessage } from '@/components/toasts'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { FileBarChart, FileSpreadsheet, LogOut, RefreshCw, Shield, Users } from 'lucide-react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useCallback, useTransition } from 'react'
+import { useTransition } from 'react'
 
 export function Sidebar() {
   const user = useCurrentUser()
-  const pathname = usePathname()
   const [isPending, startTransition] = useTransition()
   const [isRefreshing, startRefreshTransition] = useTransition()
-
-  const handleSectionClick = useCallback(
-    (e: React.MouseEvent, href: string) => {
-      const hashIndex = href.indexOf('#')
-      // Only intercept in-page section anchors (e.g. /#transakcje) while on the landing page;
-      // real route links (/kasy, /inwestycje) navigate normally.
-      if (hashIndex !== -1 && pathname === '/') {
-        e.preventDefault()
-        window.location.hash = href.slice(hashIndex + 1)
-        window.dispatchEvent(new HashChangeEvent('hashchange'))
-      }
-    },
-    [pathname],
-  )
 
   const handleLogout = () => {
     startTransition(() => logoutAction())
@@ -56,7 +40,7 @@ export function Sidebar() {
       <nav className="flex flex-col gap-1">
         {SECTION_LINKS.map((link) => (
           <Button key={link.href} variant="ghost" size="sm" className="justify-start" asChild>
-            <Link href={link.href} onClick={(e) => handleSectionClick(e, link.href)}>
+            <Link href={link.href}>
               <link.icon className="size-4" />
               {link.label}
             </Link>
