@@ -10,6 +10,6 @@ export type SectionIdT = (typeof SECTION_IDS)[keyof typeof SECTION_IDS]
 
 export const SECTION_LINKS = [
   { href: `/#${SECTION_IDS.transactions}`, label: 'Transakcje', icon: ArrowLeftRight },
-  { href: `/#${SECTION_IDS.cashRegisters}`, label: 'Kasy', icon: Wallet },
-  { href: `/#${SECTION_IDS.investments}`, label: 'Inwestycje', icon: Building },
+  { href: '/kasy', label: 'Kasy', icon: Wallet },
+  { href: '/inwestycje', label: 'Inwestycje', icon: Building },
 ] as const

@@ -19,10 +19,13 @@ export function Sidebar() {
   const [isRefreshing, startRefreshTransition] = useTransition()
 
   const handleSectionClick = useCallback(
-    (e: React.MouseEvent, hash: string) => {
-      if (pathname === '/') {
+    (e: React.MouseEvent, href: string) => {
+      const hashIndex = href.indexOf('#')
+      // Only intercept in-page section anchors (e.g. /#transakcje) while on the landing page;
+      // real route links (/kasy, /inwestycje) navigate normally.
+      if (hashIndex !== -1 && pathname === '/') {
         e.preventDefault()
-        window.location.hash = hash
+        window.location.hash = href.slice(hashIndex + 1)
         window.dispatchEvent(new HashChangeEvent('hashchange'))
       }
     },
@@ -53,7 +56,7 @@ export function Sidebar() {
       <nav className="flex flex-col gap-1">
         {SECTION_LINKS.map((link) => (
           <Button key={link.href} variant="ghost" size="sm" className="justify-start" asChild>
-            <Link href={link.href} onClick={(e) => handleSectionClick(e, link.href.slice(1))}>
+            <Link href={link.href} onClick={(e) => handleSectionClick(e, link.href)}>
               <link.icon className="size-4" />
               {link.label}
             </Link>
