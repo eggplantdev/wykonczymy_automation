@@ -15,4 +15,5 @@ echo "✅ Pruned ${pruned:-0} old dump(s)"
 
 # Background watcher: prints Vercel deployment state transitions to this terminal.
 # Detached subshell so `git push` returns immediately when the hook exits.
-( bash scripts/watch-deploy.sh & )
+# Pass the pushed commit SHA so the watcher tracks THIS deploy, not "newest".
+( DEPLOY_SHA="$(git rev-parse HEAD)" bash scripts/watch-deploy.sh & )
