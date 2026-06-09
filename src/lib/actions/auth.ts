@@ -24,7 +24,16 @@ export async function loginAction(data: {
     })
 
     return { success: true }
-  } catch {
+  } catch (error) {
+    // Payload locks the account after maxLoginAttempts (default 5, lockTime 10 min) and throws
+    // LockedAuth — same 401 as a wrong password, so the name is the only reliable discriminator.
+    if (error instanceof Error && error.name === 'LockedAuth') {
+      return {
+        success: false,
+        error:
+          'Konto zostało tymczasowo zablokowane po zbyt wielu nieudanych próbach. Spróbuj ponownie za kilka minut.',
+      }
+    }
     return { success: false, error: 'Nieprawidłowy email lub hasło' }
   }
 }
