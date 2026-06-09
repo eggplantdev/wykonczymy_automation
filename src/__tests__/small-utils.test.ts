@@ -61,6 +61,14 @@ describe('isValidUrl', () => {
   it('returns true for data URI', () => {
     expect(isValidUrl('data:text/plain;base64,aGVsbG8=')).toBe(true)
   })
+
+  // Regression: production NEXT_PUBLIC_FRONTEND_URL was 'https:wykonczymy.vercel.app' —
+  // missing the // after the scheme. new URL() silently normalizes that for http(s), so the
+  // validator accepted it and the malformed value got baked into reset-password email hrefs,
+  // which Gmail resolved relative to google.com → 404. The gate must reject it.
+  it('returns false for an http(s) URL missing the // authority separator', () => {
+    expect(isValidUrl('https:wykonczymy.vercel.app')).toBe(false)
+  })
 })
 
 // ── refineAmount ─────────────────────────────────────────────────────────
