@@ -20,7 +20,7 @@ export function buildFinancialFields(
   financials: InvestmentFinancialsT,
   expenseCategories: { id: number; name: string }[],
 ): FinancialFieldT[] {
-  const { categoryCosts, totalCorrections, totalIncome, totalLaborCosts } = financials
+  const { categoryCosts, totalCorrections, totalIncome, totalLaborCosts, totalRabat } = financials
 
   return [
     ...mapCategoryCostsToFields(categoryCosts, expenseCategories),
@@ -33,5 +33,8 @@ export function buildFinancialFields(
       amount: -totalLaborCosts,
     },
     { label: 'Wpłaty', value: formatPLN(totalIncome), amount: totalIncome },
+    ...(totalRabat !== 0
+      ? [{ label: 'Rabat', value: formatPLN(totalRabat), amount: totalRabat }]
+      : []),
   ]
 }

@@ -15,6 +15,7 @@ import { useCurrentUser } from '@/hooks/use-current-user'
 const INCOME_LABEL = 'Wpłaty'
 const CORRECTION_LABEL = 'Korekty'
 const LABOR_LABEL = 'Robocizna'
+const RABAT_LABEL = 'Rabat'
 
 type FinancialStatsPropsT = {
   fields: FinancialFieldT[]
@@ -44,7 +45,11 @@ export function FinancialStats({
 
   const expenseRow = fields
     .filter(
-      (f) => f.label !== INCOME_LABEL && f.label !== CORRECTION_LABEL && f.label !== LABOR_LABEL,
+      (f) =>
+        f.label !== INCOME_LABEL &&
+        f.label !== CORRECTION_LABEL &&
+        f.label !== LABOR_LABEL &&
+        f.label !== RABAT_LABEL,
     )
     .map((f) => addBtnBorderColor(f, 'border-chart-red'))
 
@@ -53,7 +58,9 @@ export function FinancialStats({
     .map((f) => addBtnBorderColor(f, 'border-chart-orange'))
 
   const incomeRow = fields
-    .filter((f) => f.label === INCOME_LABEL || f.label === CORRECTION_LABEL)
+    .filter(
+      (f) => f.label === INCOME_LABEL || f.label === CORRECTION_LABEL || f.label === RABAT_LABEL,
+    )
     .map((f) => addBtnBorderColor(f, 'border-chart-green'))
 
   const rows = [
