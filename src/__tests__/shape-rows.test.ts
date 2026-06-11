@@ -91,8 +91,35 @@ describe('shapeInvestments', () => {
       totalIncome: 0,
       totalLaborCosts: 0,
       totalPayouts: 0,
+      totalInvestmentExpense: 0,
+      categoryCosts: [],
       balance: 0,
       margin: 0,
     })
+  })
+
+  it('totalInvestmentExpense sums the category breakdown and excludes corrections', () => {
+    const financials: InvestmentFinancialsMapT = {
+      '5': {
+        // uncategorised corrections (-50) live in totalMaterialCosts but NOT in categoryCosts
+        categoryCosts: [
+          { categoryId: 1, total: 800 },
+          { categoryId: 2, total: 400 },
+        ],
+        totalMaterialCosts: 1150, // (800 + 400) + (-50) correction
+        totalCorrections: -50,
+        totalIncome: 0,
+        totalLaborCosts: 0,
+        totalPayouts: 0,
+        totalRabat: 0,
+        totalLoss: 0,
+      },
+    }
+    const [row] = shapeInvestments([baseInv], financials)
+    expect(row.totalInvestmentExpense).toBe(1200) // 800 + 400 — correction not folded in
+    expect(row.categoryCosts).toEqual([
+      { categoryId: 1, total: 800 },
+      { categoryId: 2, total: 400 },
+    ])
   })
 })

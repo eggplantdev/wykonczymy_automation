@@ -6,6 +6,7 @@ import { ColumnToggle } from '@/components/ui/column-toggle'
 import { ActiveFilterButton } from '@/components/ui/active-filter-button'
 import { SearchFilterInput } from '@/components/ui/search-filter-input'
 import { getInvestmentColumns, type InvestmentRowT } from '@/lib/tables/investments'
+import type { ExpenseCategoryRefT } from '@/types/reference-data'
 import { useActiveFilter } from '@/hooks/use-active-filter'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle'
@@ -19,9 +20,10 @@ const getStatusUpdate = (newActive: boolean) =>
 
 type InvestmentDataTablePropsT = {
   data: InvestmentRowT[]
+  expenseCategories: ExpenseCategoryRefT[]
 }
 
-export function InvestmentDataTable({ data }: InvestmentDataTablePropsT) {
+export function InvestmentDataTable({ data, expenseCategories }: InvestmentDataTablePropsT) {
   const { role: userRole } = useCurrentUser()
   const { optimisticData, handleToggle } = useOptimisticToggle(
     data,
@@ -45,8 +47,8 @@ export function InvestmentDataTable({ data }: InvestmentDataTablePropsT) {
   )
 
   const columns = useMemo(
-    () => getInvestmentColumns({ onToggle: handleToggle, userRole }),
-    [handleToggle, userRole],
+    () => getInvestmentColumns({ onToggle: handleToggle, userRole, expenseCategories }),
+    [handleToggle, userRole, expenseCategories],
   )
 
   return (
