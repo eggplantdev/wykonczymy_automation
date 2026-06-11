@@ -67,12 +67,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
           query: { where: transferWhere, page, limit },
           baseUrl: `/pracownicy/${id}`,
           excludeColumns: ['worker'],
-          filters: buildFilterConfig(refData, [
-            'users',
-            'otherCategories',
-            'expenseCategories',
-            'type',
-          ]),
+          filters: buildFilterConfig(refData, ['users', 'expenseCategories', 'type']),
           headerFields,
           cancelledTransactionAudit: sp.cancelledTransactionAudit === '1',
         }}
