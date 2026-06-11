@@ -1,7 +1,41 @@
+
+
+
+
+
+
+RABAT to osobna pozycja - po prostu zmniejsza kwotę, którą inwestor miał nadpłacić
+
+
+
+
 1.⁠ ⁠dodanie pozycji jako rabat 
 2.⁠ ⁠dodanie kosztu jako składowej robocizny(ważne w kontekście marży) 
 3.⁠ ⁠aktualizacja automatyczna kosztorysów. wpłaty, wypłaty, zaliczki, podsumowanie wydatków.
-4.⁠ ⁠otwieranie kart jako osobne okna
+
+
+
+
+
+
+Rabat - osobna pozycja po prostu odlicza się z marża nie schodzi z żadnej kasy.   
+
+Materiały wliczone 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -46,3 +80,23 @@ Z dwójpracownikom też w jakiejś tabelce w ogóle po prostu pyk, pyk, pyk. Ha 
 
 10 x flow here 
 clean up remote branches 
+
+
+
+
+Pracownicy kategoria
+
+
+
+Hej, 
+
+1. W inwestycjach potrzebuje mieć jeszcze parę kolumn. 
+
+wypłaty, 
+wpłaty, 
+materiały wykończeniowe
+materiały budowlane 
+
+2. Strata - już gaadliśmy o tym. Może masz tam notatki z tego. 
+
+3. automatycznie uzupełnianie się kosztorysów. Nie wiem czy to w ogóle możliwe. Chyba gadaliśmy o tym, że nie i , że trzeba zrobić nowe. 
