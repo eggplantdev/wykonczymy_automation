@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import isValidUrl from './isValidUrl'
+import isValidUrl from './is-valid-url'
 
 // Schema defines expected env vars and their types
 const envSchema = z.object({
