@@ -2,15 +2,18 @@ import type { CategoryCostT, InvestmentFinancialsT } from '@/lib/db/sum-transfer
 import type { FinancialFieldT } from '@/types/export'
 import { formatPLN } from '@/lib/format-currency'
 
+/** Amount booked to a given expense category, 0 when that category has no rows. */
+export function costForCategory(categoryCosts: CategoryCostT[], categoryId: number): number {
+  return categoryCosts.find((c) => c.categoryId === categoryId)?.total ?? 0
+}
+
 /** Map ALL expense categories to header fields, showing 0 for categories with no transactions. */
 function mapCategoryCostsToFields(
   categoryCosts: CategoryCostT[],
   expenseCategories: { id: number; name: string }[],
 ): FinancialFieldT[] {
-  const costMap = new Map(categoryCosts.map((cc) => [cc.categoryId, cc.total]))
-
   return expenseCategories.map((cat) => {
-    const total = costMap.get(cat.id) ?? 0
+    const total = costForCategory(categoryCosts, cat.id)
     return { label: cat.name, value: formatPLN(total), amount: -total }
   })
 }
