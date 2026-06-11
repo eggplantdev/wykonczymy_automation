@@ -99,6 +99,10 @@ How the financial figures (marża / materiały / robocizna / korekty) connect: `
 
 - Do not add `readonly` to type properties, props, or parameters. If you touch a file with unnecessary `readonly`, remove it.
 
+## Tech Debt
+
+Known refactor/cleanup backlog (non-blocking, judgment-heavy): `docs/tech-debt-backlog.md`. Check it before starting a refactor, and record new findings there rather than spawning a new audit doc.
+
 ## Stack Notes
 
 - React Compiler is enabled — don't hand-write `useMemo` / `useCallback` for things it handles
