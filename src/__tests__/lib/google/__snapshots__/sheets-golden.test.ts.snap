@@ -1,0 +1,1228 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`GOLDEN: expenses tab emitted requests > applyMaterialRowsBatch: update + append + remove in one batch 1`] = `
+[
+  [
+    "spreadsheets.get",
+    {
+      "fields": "sheets(properties(sheetId,title))",
+      "spreadsheetId": "golden-sheet",
+    },
+  ],
+  [
+    "spreadsheets.batchUpdate",
+    {
+      "requestBody": {
+        "requests": [
+          {
+            "deleteRange": {
+              "range": {
+                "endColumnIndex": 7,
+                "endRowIndex": 4,
+                "sheetId": 777,
+                "startColumnIndex": 0,
+                "startRowIndex": 3,
+              },
+              "shiftDimension": "ROWS",
+            },
+          },
+          {
+            "deleteRange": {
+              "range": {
+                "endColumnIndex": 7,
+                "endRowIndex": 2,
+                "sheetId": 777,
+                "startColumnIndex": 0,
+                "startRowIndex": 1,
+              },
+              "shiftDimension": "ROWS",
+            },
+          },
+        ],
+      },
+      "spreadsheetId": "golden-sheet",
+    },
+  ],
+  [
+    "values.get",
+    {
+      "range": "'wydatki inwestycyjne (tylko do odczytu)'!A:Z",
+      "spreadsheetId": "golden-sheet",
+    },
+  ],
+  [
+    "values.batchUpdate",
+    {
+      "requestBody": {
+        "data": [
+          {
+            "range": "'wydatki inwestycyjne (tylko do odczytu)'!A3",
+            "values": [
+              [
+                102,
+              ],
+            ],
+          },
+          {
+            "range": "'wydatki inwestycyjne (tylko do odczytu)'!B3",
+            "values": [
+              [
+                "2026-06-01",
+              ],
+            ],
+          },
+          {
+            "range": "'wydatki inwestycyjne (tylko do odczytu)'!C3",
+            "values": [
+              [
+                "Materiały budowlane",
+              ],
+            ],
+          },
+          {
+            "range": "'wydatki inwestycyjne (tylko do odczytu)'!D3",
+            "values": [
+              [
+                "cement "extra"",
+              ],
+            ],
+          },
+          {
+            "range": "'wydatki inwestycyjne (tylko do odczytu)'!E3",
+            "values": [
+              [
+                1234.56,
+              ],
+            ],
+          },
+          {
+            "range": "'wydatki inwestycyjne (tylko do odczytu)'!F3",
+            "values": [
+              [
+                "Łazienka",
+              ],
+            ],
+          },
+          {
+            "range": "'wydatki inwestycyjne (tylko do odczytu)'!G3",
+            "values": [
+              [
+                "FV/9",
+              ],
+            ],
+          },
+          {
+            "range": "'wydatki inwestycyjne (tylko do odczytu)'!A5",
+            "values": [
+              [
+                200,
+              ],
+            ],
+          },
+          {
+            "range": "'wydatki inwestycyjne (tylko do odczytu)'!B5",
+            "values": [
+              [
+                "2026-06-02",
+              ],
+            ],
+          },
+          {
+            "range": "'wydatki inwestycyjne (tylko do odczytu)'!C5",
+            "values": [
+              [
+                "Pozostałe koszty",
+              ],
+            ],
+          },
+          {
+            "range": "'wydatki inwestycyjne (tylko do odczytu)'!D5",
+            "values": [
+              [
+                "wywóz gruzu",
+              ],
+            ],
+          },
+          {
+            "range": "'wydatki inwestycyjne (tylko do odczytu)'!E5",
+            "values": [
+              [
+                0,
+              ],
+            ],
+          },
+          {
+            "range": "'wydatki inwestycyjne (tylko do odczytu)'!F5",
+            "values": [
+              [
+                "",
+              ],
+            ],
+          },
+          {
+            "range": "'wydatki inwestycyjne (tylko do odczytu)'!G5",
+            "values": [
+              [
+                "",
+              ],
+            ],
+          },
+        ],
+        "valueInputOption": "USER_ENTERED",
+      },
+      "spreadsheetId": "golden-sheet",
+    },
+  ],
+]
+`;
+
+exports[`GOLDEN: expenses tab emitted requests > setupMaterialyTab on a sheet where the tab already exists (reset path) 1`] = `
+[
+  [
+    "spreadsheets.get",
+    {
+      "fields": "properties.locale,sheets(properties(sheetId,title),conditionalFormats,protectedRanges(protectedRangeId),tables(tableId))",
+      "spreadsheetId": "golden-sheet",
+    },
+  ],
+  [
+    "spreadsheets.batchUpdate",
+    {
+      "requestBody": {
+        "requests": [
+          {
+            "deleteTable": {
+              "tableId": "tbl-1",
+            },
+          },
+          {
+            "deleteProtectedRange": {
+              "protectedRangeId": 55,
+            },
+          },
+          {
+            "deleteConditionalFormatRule": {
+              "index": 1,
+              "sheetId": 777,
+            },
+          },
+          {
+            "deleteConditionalFormatRule": {
+              "index": 0,
+              "sheetId": 777,
+            },
+          },
+          {
+            "updateSheetProperties": {
+              "fields": "gridProperties.frozenRowCount",
+              "properties": {
+                "gridProperties": {
+                  "frozenRowCount": 2,
+                },
+                "sheetId": 777,
+              },
+            },
+          },
+          {
+            "mergeCells": {
+              "mergeType": "MERGE_ALL",
+              "range": {
+                "endColumnIndex": 11,
+                "endRowIndex": 1,
+                "sheetId": 777,
+                "startColumnIndex": 0,
+                "startRowIndex": 0,
+              },
+            },
+          },
+          {
+            "repeatCell": {
+              "cell": {
+                "userEnteredFormat": {
+                  "backgroundColor": {
+                    "blue": 0.8,
+                    "green": 0.949,
+                    "red": 1,
+                  },
+                  "horizontalAlignment": "CENTER",
+                  "textFormat": {
+                    "bold": true,
+                  },
+                  "verticalAlignment": "MIDDLE",
+                  "wrapStrategy": "WRAP",
+                },
+              },
+              "fields": "userEnteredFormat(backgroundColor,horizontalAlignment,verticalAlignment,wrapStrategy,textFormat)",
+              "range": {
+                "endColumnIndex": 11,
+                "endRowIndex": 1,
+                "sheetId": 777,
+                "startColumnIndex": 0,
+                "startRowIndex": 0,
+              },
+            },
+          },
+          {
+            "repeatCell": {
+              "cell": {
+                "userEnteredFormat": {
+                  "backgroundColor": {
+                    "blue": 0.31,
+                    "green": 0.24,
+                    "red": 0.17,
+                  },
+                  "horizontalAlignment": "CENTER",
+                  "textFormat": {
+                    "bold": true,
+                    "foregroundColor": {
+                      "blue": 1,
+                      "green": 1,
+                      "red": 1,
+                    },
+                  },
+                },
+              },
+              "fields": "userEnteredFormat(backgroundColor,horizontalAlignment,textFormat)",
+              "range": {
+                "endColumnIndex": 7,
+                "endRowIndex": 2,
+                "sheetId": 777,
+                "startColumnIndex": 0,
+                "startRowIndex": 1,
+              },
+            },
+          },
+          {
+            "repeatCell": {
+              "cell": {
+                "userEnteredFormat": {
+                  "numberFormat": {
+                    "pattern": "#,##0.00 "zł"",
+                    "type": "NUMBER",
+                  },
+                },
+              },
+              "fields": "userEnteredFormat.numberFormat",
+              "range": {
+                "endColumnIndex": 5,
+                "sheetId": 777,
+                "startColumnIndex": 4,
+                "startRowIndex": 2,
+              },
+            },
+          },
+          {
+            "addConditionalFormatRule": {
+              "index": 0,
+              "rule": {
+                "booleanRule": {
+                  "condition": {
+                    "type": "CUSTOM_FORMULA",
+                    "values": [
+                      {
+                        "userEnteredValue": "=$C3=$I$2",
+                      },
+                    ],
+                  },
+                  "format": {
+                    "backgroundColor": {
+                      "blue": 0.9936470588235294,
+                      "green": 0.9117647058823529,
+                      "red": 0.8616470588235294,
+                    },
+                  },
+                },
+                "ranges": [
+                  {
+                    "endColumnIndex": 7,
+                    "sheetId": 777,
+                    "startColumnIndex": 0,
+                    "startRowIndex": 2,
+                  },
+                ],
+              },
+            },
+          },
+          {
+            "repeatCell": {
+              "cell": {
+                "userEnteredFormat": {
+                  "backgroundColor": {
+                    "blue": 0.9936470588235294,
+                    "green": 0.9117647058823529,
+                    "red": 0.8616470588235294,
+                  },
+                  "textFormat": {
+                    "bold": true,
+                    "foregroundColor": {
+                      "blue": 0,
+                      "green": 0,
+                      "red": 0,
+                    },
+                  },
+                },
+              },
+              "fields": "userEnteredFormat(backgroundColor,textFormat)",
+              "range": {
+                "endColumnIndex": 9,
+                "endRowIndex": 3,
+                "sheetId": 777,
+                "startColumnIndex": 8,
+                "startRowIndex": 1,
+              },
+            },
+          },
+          {
+            "addConditionalFormatRule": {
+              "index": 0,
+              "rule": {
+                "booleanRule": {
+                  "condition": {
+                    "type": "CUSTOM_FORMULA",
+                    "values": [
+                      {
+                        "userEnteredValue": "=$C3=$J$2",
+                      },
+                    ],
+                  },
+                  "format": {
+                    "backgroundColor": {
+                      "blue": 0.8863529411764706,
+                      "green": 0.9590588235294117,
+                      "red": 0.844,
+                    },
+                  },
+                },
+                "ranges": [
+                  {
+                    "endColumnIndex": 7,
+                    "sheetId": 777,
+                    "startColumnIndex": 0,
+                    "startRowIndex": 2,
+                  },
+                ],
+              },
+            },
+          },
+          {
+            "repeatCell": {
+              "cell": {
+                "userEnteredFormat": {
+                  "backgroundColor": {
+                    "blue": 0.8863529411764706,
+                    "green": 0.9590588235294117,
+                    "red": 0.844,
+                  },
+                  "textFormat": {
+                    "bold": true,
+                    "foregroundColor": {
+                      "blue": 0,
+                      "green": 0,
+                      "red": 0,
+                    },
+                  },
+                },
+              },
+              "fields": "userEnteredFormat(backgroundColor,textFormat)",
+              "range": {
+                "endColumnIndex": 10,
+                "endRowIndex": 3,
+                "sheetId": 777,
+                "startColumnIndex": 9,
+                "startRowIndex": 1,
+              },
+            },
+          },
+          {
+            "addConditionalFormatRule": {
+              "index": 0,
+              "rule": {
+                "booleanRule": {
+                  "condition": {
+                    "type": "CUSTOM_FORMULA",
+                    "values": [
+                      {
+                        "userEnteredValue": "=$C3=$K$2",
+                      },
+                    ],
+                  },
+                  "format": {
+                    "backgroundColor": {
+                      "blue": 0.8277647058823528,
+                      "green": 0.9315294117647059,
+                      "red": 0.9929411764705882,
+                    },
+                  },
+                },
+                "ranges": [
+                  {
+                    "endColumnIndex": 7,
+                    "sheetId": 777,
+                    "startColumnIndex": 0,
+                    "startRowIndex": 2,
+                  },
+                ],
+              },
+            },
+          },
+          {
+            "repeatCell": {
+              "cell": {
+                "userEnteredFormat": {
+                  "backgroundColor": {
+                    "blue": 0.8277647058823528,
+                    "green": 0.9315294117647059,
+                    "red": 0.9929411764705882,
+                  },
+                  "textFormat": {
+                    "bold": true,
+                    "foregroundColor": {
+                      "blue": 0,
+                      "green": 0,
+                      "red": 0,
+                    },
+                  },
+                },
+              },
+              "fields": "userEnteredFormat(backgroundColor,textFormat)",
+              "range": {
+                "endColumnIndex": 11,
+                "endRowIndex": 3,
+                "sheetId": 777,
+                "startColumnIndex": 10,
+                "startRowIndex": 1,
+              },
+            },
+          },
+          {
+            "repeatCell": {
+              "cell": {
+                "userEnteredFormat": {
+                  "backgroundColor": {
+                    "blue": 0.95,
+                    "green": 0.94,
+                    "red": 0.93,
+                  },
+                  "textFormat": {
+                    "bold": true,
+                  },
+                },
+              },
+              "fields": "userEnteredFormat(backgroundColor,textFormat)",
+              "range": {
+                "endColumnIndex": 8,
+                "endRowIndex": 3,
+                "sheetId": 777,
+                "startColumnIndex": 7,
+                "startRowIndex": 1,
+              },
+            },
+          },
+          {
+            "repeatCell": {
+              "cell": {
+                "userEnteredFormat": {
+                  "numberFormat": {
+                    "pattern": "#,##0.00 "zł"",
+                    "type": "NUMBER",
+                  },
+                  "textFormat": {
+                    "bold": true,
+                  },
+                },
+              },
+              "fields": "userEnteredFormat(numberFormat,textFormat)",
+              "range": {
+                "endColumnIndex": 11,
+                "endRowIndex": 3,
+                "sheetId": 777,
+                "startColumnIndex": 7,
+                "startRowIndex": 2,
+              },
+            },
+          },
+          {
+            "updateDimensionProperties": {
+              "fields": "pixelSize",
+              "properties": {
+                "pixelSize": 60,
+              },
+              "range": {
+                "dimension": "COLUMNS",
+                "endIndex": 1,
+                "sheetId": 777,
+                "startIndex": 0,
+              },
+            },
+          },
+          {
+            "updateDimensionProperties": {
+              "fields": "pixelSize",
+              "properties": {
+                "pixelSize": 100,
+              },
+              "range": {
+                "dimension": "COLUMNS",
+                "endIndex": 2,
+                "sheetId": 777,
+                "startIndex": 1,
+              },
+            },
+          },
+          {
+            "updateDimensionProperties": {
+              "fields": "pixelSize",
+              "properties": {
+                "pixelSize": 200,
+              },
+              "range": {
+                "dimension": "COLUMNS",
+                "endIndex": 3,
+                "sheetId": 777,
+                "startIndex": 2,
+              },
+            },
+          },
+          {
+            "updateDimensionProperties": {
+              "fields": "pixelSize",
+              "properties": {
+                "pixelSize": 240,
+              },
+              "range": {
+                "dimension": "COLUMNS",
+                "endIndex": 4,
+                "sheetId": 777,
+                "startIndex": 3,
+              },
+            },
+          },
+          {
+            "updateDimensionProperties": {
+              "fields": "pixelSize",
+              "properties": {
+                "pixelSize": 110,
+              },
+              "range": {
+                "dimension": "COLUMNS",
+                "endIndex": 5,
+                "sheetId": 777,
+                "startIndex": 4,
+              },
+            },
+          },
+          {
+            "updateDimensionProperties": {
+              "fields": "pixelSize",
+              "properties": {
+                "pixelSize": 140,
+              },
+              "range": {
+                "dimension": "COLUMNS",
+                "endIndex": 6,
+                "sheetId": 777,
+                "startIndex": 5,
+              },
+            },
+          },
+          {
+            "updateDimensionProperties": {
+              "fields": "pixelSize",
+              "properties": {
+                "pixelSize": 180,
+              },
+              "range": {
+                "dimension": "COLUMNS",
+                "endIndex": 7,
+                "sheetId": 777,
+                "startIndex": 6,
+              },
+            },
+          },
+          {
+            "updateDimensionProperties": {
+              "fields": "pixelSize",
+              "properties": {
+                "pixelSize": 150,
+              },
+              "range": {
+                "dimension": "COLUMNS",
+                "endIndex": 8,
+                "sheetId": 777,
+                "startIndex": 7,
+              },
+            },
+          },
+          {
+            "updateDimensionProperties": {
+              "fields": "pixelSize",
+              "properties": {
+                "pixelSize": 190,
+              },
+              "range": {
+                "dimension": "COLUMNS",
+                "endIndex": 9,
+                "sheetId": 777,
+                "startIndex": 8,
+              },
+            },
+          },
+          {
+            "updateDimensionProperties": {
+              "fields": "pixelSize",
+              "properties": {
+                "pixelSize": 190,
+              },
+              "range": {
+                "dimension": "COLUMNS",
+                "endIndex": 10,
+                "sheetId": 777,
+                "startIndex": 9,
+              },
+            },
+          },
+          {
+            "updateDimensionProperties": {
+              "fields": "pixelSize",
+              "properties": {
+                "pixelSize": 190,
+              },
+              "range": {
+                "dimension": "COLUMNS",
+                "endIndex": 11,
+                "sheetId": 777,
+                "startIndex": 10,
+              },
+            },
+          },
+          {
+            "addProtectedRange": {
+              "protectedRange": {
+                "description": "Tylko do odczytu — synchronizowane z aplikacją",
+                "editors": {
+                  "users": [
+                    "test@example.iam.gserviceaccount.com",
+                  ],
+                },
+                "range": {
+                  "sheetId": 777,
+                },
+                "warningOnly": false,
+              },
+            },
+          },
+        ],
+      },
+      "spreadsheetId": "golden-sheet",
+    },
+  ],
+  [
+    "values.batchUpdate",
+    {
+      "requestBody": {
+        "data": [
+          {
+            "range": "'wydatki inwestycyjne (tylko do odczytu)'!A1",
+            "values": [
+              [
+                "⚠ Edycje rób w aplikacji — ręczne zmiany w tej zakładce zostaną nadpisane przy następnej synchronizacji.",
+              ],
+            ],
+          },
+          {
+            "range": "'wydatki inwestycyjne (tylko do odczytu)'!A2",
+            "values": [
+              [
+                "id",
+                "data",
+                "typ wydatku inwestycyjnego",
+                "opis",
+                "kwota",
+                "kategoria",
+                "notatka",
+              ],
+            ],
+          },
+          {
+            "range": "'wydatki inwestycyjne (tylko do odczytu)'!H2",
+            "values": [
+              [
+                "RAZEM",
+                "Materiały budowlane",
+                "Materiały wykończeniowe",
+                "Pozostałe koszty",
+              ],
+            ],
+          },
+          {
+            "range": "'wydatki inwestycyjne (tylko do odczytu)'!H3",
+            "values": [
+              [
+                "=SUM(E:E)",
+                "=SUMIF(C:C; "Materiały budowlane"; E:E)",
+                "=SUMIF(C:C; "Materiały wykończeniowe"; E:E)",
+                "=SUMIF(C:C; "Pozostałe koszty"; E:E)",
+              ],
+            ],
+          },
+        ],
+        "valueInputOption": "USER_ENTERED",
+      },
+      "spreadsheetId": "golden-sheet",
+    },
+  ],
+  [
+    "values.clear",
+    {
+      "range": "'wydatki inwestycyjne (tylko do odczytu)'!A:Z",
+      "spreadsheetId": "golden-sheet",
+    },
+  ],
+]
+`;
+
+exports[`GOLDEN: expenses tab emitted requests > setupMaterialyTab when the tab is missing (addSheet path) 1`] = `
+[
+  [
+    "spreadsheets.get",
+    {
+      "fields": "properties.locale,sheets(properties(sheetId,title),conditionalFormats,protectedRanges(protectedRangeId),tables(tableId))",
+      "spreadsheetId": "golden-sheet",
+    },
+  ],
+  [
+    "spreadsheets.batchUpdate",
+    {
+      "requestBody": {
+        "requests": [
+          {
+            "addSheet": {
+              "properties": {
+                "title": "wydatki inwestycyjne (tylko do odczytu)",
+              },
+            },
+          },
+        ],
+      },
+      "spreadsheetId": "golden-sheet",
+    },
+  ],
+  [
+    "spreadsheets.batchUpdate",
+    {
+      "requestBody": {
+        "requests": [
+          {
+            "updateSheetProperties": {
+              "fields": "gridProperties.frozenRowCount",
+              "properties": {
+                "gridProperties": {
+                  "frozenRowCount": 2,
+                },
+                "sheetId": 9,
+              },
+            },
+          },
+          {
+            "mergeCells": {
+              "mergeType": "MERGE_ALL",
+              "range": {
+                "endColumnIndex": 9,
+                "endRowIndex": 1,
+                "sheetId": 9,
+                "startColumnIndex": 0,
+                "startRowIndex": 0,
+              },
+            },
+          },
+          {
+            "repeatCell": {
+              "cell": {
+                "userEnteredFormat": {
+                  "backgroundColor": {
+                    "blue": 0.8,
+                    "green": 0.949,
+                    "red": 1,
+                  },
+                  "horizontalAlignment": "CENTER",
+                  "textFormat": {
+                    "bold": true,
+                  },
+                  "verticalAlignment": "MIDDLE",
+                  "wrapStrategy": "WRAP",
+                },
+              },
+              "fields": "userEnteredFormat(backgroundColor,horizontalAlignment,verticalAlignment,wrapStrategy,textFormat)",
+              "range": {
+                "endColumnIndex": 9,
+                "endRowIndex": 1,
+                "sheetId": 9,
+                "startColumnIndex": 0,
+                "startRowIndex": 0,
+              },
+            },
+          },
+          {
+            "repeatCell": {
+              "cell": {
+                "userEnteredFormat": {
+                  "backgroundColor": {
+                    "blue": 0.31,
+                    "green": 0.24,
+                    "red": 0.17,
+                  },
+                  "horizontalAlignment": "CENTER",
+                  "textFormat": {
+                    "bold": true,
+                    "foregroundColor": {
+                      "blue": 1,
+                      "green": 1,
+                      "red": 1,
+                    },
+                  },
+                },
+              },
+              "fields": "userEnteredFormat(backgroundColor,horizontalAlignment,textFormat)",
+              "range": {
+                "endColumnIndex": 7,
+                "endRowIndex": 2,
+                "sheetId": 9,
+                "startColumnIndex": 0,
+                "startRowIndex": 1,
+              },
+            },
+          },
+          {
+            "repeatCell": {
+              "cell": {
+                "userEnteredFormat": {
+                  "numberFormat": {
+                    "pattern": "#,##0.00 "zł"",
+                    "type": "NUMBER",
+                  },
+                },
+              },
+              "fields": "userEnteredFormat.numberFormat",
+              "range": {
+                "endColumnIndex": 5,
+                "sheetId": 9,
+                "startColumnIndex": 4,
+                "startRowIndex": 2,
+              },
+            },
+          },
+          {
+            "addConditionalFormatRule": {
+              "index": 0,
+              "rule": {
+                "booleanRule": {
+                  "condition": {
+                    "type": "CUSTOM_FORMULA",
+                    "values": [
+                      {
+                        "userEnteredValue": "=$C3=$I$2",
+                      },
+                    ],
+                  },
+                  "format": {
+                    "backgroundColor": {
+                      "blue": 0.9936470588235294,
+                      "green": 0.9117647058823529,
+                      "red": 0.8616470588235294,
+                    },
+                  },
+                },
+                "ranges": [
+                  {
+                    "endColumnIndex": 7,
+                    "sheetId": 9,
+                    "startColumnIndex": 0,
+                    "startRowIndex": 2,
+                  },
+                ],
+              },
+            },
+          },
+          {
+            "repeatCell": {
+              "cell": {
+                "userEnteredFormat": {
+                  "backgroundColor": {
+                    "blue": 0.9936470588235294,
+                    "green": 0.9117647058823529,
+                    "red": 0.8616470588235294,
+                  },
+                  "textFormat": {
+                    "bold": true,
+                    "foregroundColor": {
+                      "blue": 0,
+                      "green": 0,
+                      "red": 0,
+                    },
+                  },
+                },
+              },
+              "fields": "userEnteredFormat(backgroundColor,textFormat)",
+              "range": {
+                "endColumnIndex": 9,
+                "endRowIndex": 3,
+                "sheetId": 9,
+                "startColumnIndex": 8,
+                "startRowIndex": 1,
+              },
+            },
+          },
+          {
+            "repeatCell": {
+              "cell": {
+                "userEnteredFormat": {
+                  "backgroundColor": {
+                    "blue": 0.95,
+                    "green": 0.94,
+                    "red": 0.93,
+                  },
+                  "textFormat": {
+                    "bold": true,
+                  },
+                },
+              },
+              "fields": "userEnteredFormat(backgroundColor,textFormat)",
+              "range": {
+                "endColumnIndex": 8,
+                "endRowIndex": 3,
+                "sheetId": 9,
+                "startColumnIndex": 7,
+                "startRowIndex": 1,
+              },
+            },
+          },
+          {
+            "repeatCell": {
+              "cell": {
+                "userEnteredFormat": {
+                  "numberFormat": {
+                    "pattern": "#,##0.00 "zł"",
+                    "type": "NUMBER",
+                  },
+                  "textFormat": {
+                    "bold": true,
+                  },
+                },
+              },
+              "fields": "userEnteredFormat(numberFormat,textFormat)",
+              "range": {
+                "endColumnIndex": 9,
+                "endRowIndex": 3,
+                "sheetId": 9,
+                "startColumnIndex": 7,
+                "startRowIndex": 2,
+              },
+            },
+          },
+          {
+            "updateDimensionProperties": {
+              "fields": "pixelSize",
+              "properties": {
+                "pixelSize": 60,
+              },
+              "range": {
+                "dimension": "COLUMNS",
+                "endIndex": 1,
+                "sheetId": 9,
+                "startIndex": 0,
+              },
+            },
+          },
+          {
+            "updateDimensionProperties": {
+              "fields": "pixelSize",
+              "properties": {
+                "pixelSize": 100,
+              },
+              "range": {
+                "dimension": "COLUMNS",
+                "endIndex": 2,
+                "sheetId": 9,
+                "startIndex": 1,
+              },
+            },
+          },
+          {
+            "updateDimensionProperties": {
+              "fields": "pixelSize",
+              "properties": {
+                "pixelSize": 200,
+              },
+              "range": {
+                "dimension": "COLUMNS",
+                "endIndex": 3,
+                "sheetId": 9,
+                "startIndex": 2,
+              },
+            },
+          },
+          {
+            "updateDimensionProperties": {
+              "fields": "pixelSize",
+              "properties": {
+                "pixelSize": 240,
+              },
+              "range": {
+                "dimension": "COLUMNS",
+                "endIndex": 4,
+                "sheetId": 9,
+                "startIndex": 3,
+              },
+            },
+          },
+          {
+            "updateDimensionProperties": {
+              "fields": "pixelSize",
+              "properties": {
+                "pixelSize": 110,
+              },
+              "range": {
+                "dimension": "COLUMNS",
+                "endIndex": 5,
+                "sheetId": 9,
+                "startIndex": 4,
+              },
+            },
+          },
+          {
+            "updateDimensionProperties": {
+              "fields": "pixelSize",
+              "properties": {
+                "pixelSize": 140,
+              },
+              "range": {
+                "dimension": "COLUMNS",
+                "endIndex": 6,
+                "sheetId": 9,
+                "startIndex": 5,
+              },
+            },
+          },
+          {
+            "updateDimensionProperties": {
+              "fields": "pixelSize",
+              "properties": {
+                "pixelSize": 180,
+              },
+              "range": {
+                "dimension": "COLUMNS",
+                "endIndex": 7,
+                "sheetId": 9,
+                "startIndex": 6,
+              },
+            },
+          },
+          {
+            "updateDimensionProperties": {
+              "fields": "pixelSize",
+              "properties": {
+                "pixelSize": 150,
+              },
+              "range": {
+                "dimension": "COLUMNS",
+                "endIndex": 8,
+                "sheetId": 9,
+                "startIndex": 7,
+              },
+            },
+          },
+          {
+            "updateDimensionProperties": {
+              "fields": "pixelSize",
+              "properties": {
+                "pixelSize": 190,
+              },
+              "range": {
+                "dimension": "COLUMNS",
+                "endIndex": 9,
+                "sheetId": 9,
+                "startIndex": 8,
+              },
+            },
+          },
+          {
+            "addProtectedRange": {
+              "protectedRange": {
+                "description": "Tylko do odczytu — synchronizowane z aplikacją",
+                "editors": {
+                  "users": [
+                    "test@example.iam.gserviceaccount.com",
+                  ],
+                },
+                "range": {
+                  "sheetId": 9,
+                },
+                "warningOnly": false,
+              },
+            },
+          },
+        ],
+      },
+      "spreadsheetId": "golden-sheet",
+    },
+  ],
+  [
+    "values.batchUpdate",
+    {
+      "requestBody": {
+        "data": [
+          {
+            "range": "'wydatki inwestycyjne (tylko do odczytu)'!A1",
+            "values": [
+              [
+                "⚠ Edycje rób w aplikacji — ręczne zmiany w tej zakładce zostaną nadpisane przy następnej synchronizacji.",
+              ],
+            ],
+          },
+          {
+            "range": "'wydatki inwestycyjne (tylko do odczytu)'!A2",
+            "values": [
+              [
+                "id",
+                "data",
+                "typ wydatku inwestycyjnego",
+                "opis",
+                "kwota",
+                "kategoria",
+                "notatka",
+              ],
+            ],
+          },
+          {
+            "range": "'wydatki inwestycyjne (tylko do odczytu)'!H2",
+            "values": [
+              [
+                "RAZEM",
+                "Materiały budowlane",
+              ],
+            ],
+          },
+          {
+            "range": "'wydatki inwestycyjne (tylko do odczytu)'!H3",
+            "values": [
+              [
+                "=SUM(E:E)",
+                "=SUMIF(C:C; "Materiały budowlane"; E:E)",
+              ],
+            ],
+          },
+        ],
+        "valueInputOption": "USER_ENTERED",
+      },
+      "spreadsheetId": "golden-sheet",
+    },
+  ],
+  [
+    "values.clear",
+    {
+      "range": "'wydatki inwestycyjne (tylko do odczytu)'!A:Z",
+      "spreadsheetId": "golden-sheet",
+    },
+  ],
+]
+`;
