@@ -73,7 +73,7 @@ export function FinancialStats({
   const margin = calculateMargin(totalLaborCosts, totalPayouts, totalRabat, totalLoss)
 
   return (
-    <>
+    <div className="space-y-2">
       <ToggleStatButtons
         rows={rows}
         rowLabels={['Koszty inwestora']}
@@ -83,13 +83,13 @@ export function FinancialStats({
       />
 
       {totalLoss !== 0 && (
-        <div className="text-muted-foreground mb-4 space-y-1 text-sm">
+        <div className="text-muted-foreground space-y-1 text-sm">
           <StatButton label="Strata" value={formatPLN(totalLoss)} className="border-chart-purple" />
         </div>
       )}
 
       {isAdminOrOwnerRole(userRole) && (
-        <div className="text-muted-foreground mb-4 space-y-1 text-sm">
+        <div className="text-muted-foreground space-y-1 text-sm">
           <StatButton
             label="Wypłaty"
             value={formatPLN(totalPayouts)}
@@ -98,6 +98,6 @@ export function FinancialStats({
           <SaldoDisplay saldo={margin} label="Marża" />
         </div>
       )}
-    </>
+    </div>
   )
 }

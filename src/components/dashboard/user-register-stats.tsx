@@ -28,7 +28,7 @@ export function UserRegisterStats({ cashRegisters, showAllRegisters }: UserRegis
     : null
 
   return (
-    <div>
+    <div className="space-y-4">
       {userEntries.length > 0 && (
         <ToggleStatButtons
           rows={[userEntries]}

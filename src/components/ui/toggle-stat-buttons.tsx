@@ -54,7 +54,7 @@ export function ToggleStatButtons({
   const total = computeSummary(allEntries, hidden)
 
   return (
-    <div className="mb-4 space-y-2">
+    <div className="space-y-2">
       {rows.map((row, rowIndex) => (
         <div key={rowIndex}>
           {rowLabels?.[rowIndex] && <Description>{rowLabels[rowIndex]}</Description>}
