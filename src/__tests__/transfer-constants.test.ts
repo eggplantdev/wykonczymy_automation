@@ -24,8 +24,8 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
   },
   needsSourceRegister: {
     fn: needsSourceRegister,
-    // true for everything EXCEPT LABOR_COST
-    trueFor: TRANSFER_TYPES.filter((t) => t !== 'LABOR_COST') as string[],
+    // true for everything EXCEPT LABOR_COST and RABAT (billing figures, no cash movement)
+    trueFor: TRANSFER_TYPES.filter((t) => t !== 'LABOR_COST' && t !== 'RABAT') as string[],
   },
   showsInvestment: {
     fn: showsInvestment,
@@ -37,11 +37,12 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
       'OTHER_DEPOSIT',
       'CORRECTION',
       'PAYOUT',
+      'RABAT',
     ],
   },
   requiresInvestment: {
     fn: requiresInvestment,
-    trueFor: ['INVESTOR_DEPOSIT', 'INVESTMENT_EXPENSE', 'LABOR_COST'],
+    trueFor: ['INVESTOR_DEPOSIT', 'INVESTMENT_EXPENSE', 'LABOR_COST', 'RABAT'],
   },
   needsTargetRegister: {
     fn: needsTargetRegister,
@@ -76,6 +77,7 @@ describe('TRANSACTION_TRANSFER_TYPES', () => {
       'OTHER',
       'CORRECTION',
       'LABOR_COST',
+      'RABAT',
       'INVESTMENT_EXPENSE',
       'PAYOUT',
     ])
