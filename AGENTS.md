@@ -1,204 +1,62 @@
 # AGENTS.md
 
-Repository guidance for coding agents working in this project.
-
-## Source Of Truth
-
-This file consolidates:
-
-- project-specific guidance from `CLAUDE.md`
-- portable global Claude rules from `~/.claude/rules/*.md`
-
-Do not treat Claude-specific permissions, plugins, sound hooks, or desktop UI toggles as repository behavior.
-
-## Global Agent Behavior
-
-- Be direct, technical, and concise. No praise, filler, or empty reassurance.
-- Use macOS-compatible shell examples unless the user explicitly asks for something else.
-- Change as little code as possible to solve the task.
-- Stay within scope and avoid touching unrelated code.
-- Preserve existing comments.
-- Use English for code and documentation.
-- Do not invent libraries or APIs.
-- When proposing terminal commands, explain what they do.
-
-## Planning For Non-Trivial Tasks
-
-For substantial changes, prefer this sequence:
-
-1. Clarify architecture, data model, integration points, and breaking-change risk.
-2. Criticize weak assumptions or requirement gaps before implementing.
-3. Define a concrete technical approach.
-4. Break implementation into small milestones.
-
-## Response Style For Code Explanations
-
-When answering code-related questions:
-
-1. Start with intuition before implementation details.
-2. Keep explanations concrete and practical. Pair abstract ideas with a simple example or scenario.
-3. Explain why a given approach is used, including trade-offs and likely pitfalls.
-4. Compare with alternative approaches, technologies, or patterns when that helps learning.
-5. If the user is in learning mode, prefer ending with a small question, scenario, or exercise to confirm understanding.
-
-Goal: build active understanding, not just passive recall.
-
-If the conversation is in English and the user's phrasing is awkward, add a short correction note at the end only when the wording actually needs refinement.
-
-## General Code Style
-
-### Paradigm
-
-- Prefer functional and declarative patterns over classes
-- Prefer iteration and modularization over duplication
-- Prefer immutability unless the project already uses a mutable pattern intentionally
-
-### Naming
-
-- Classes: `PascalCase`
-- Variables and functions: `camelCase`
-- Files: `kebab-case`
-- Directories: `snake_case` only if already established by the repo, otherwise prefer existing project conventions
-- Environment variables: `UPPERCASE`
-- Booleans: use auxiliary verbs like `isLoading` or `hasError`
-
-### File Structure
-
-Default order:
-
-1. Types and imports
-2. Exported component or main export
-3. Subcomponents
-4. Helpers
-5. Static content and constants
-
-### Functions
-
-- Keep functions focused and short where practical
-- Prefer early returns over nested conditionals
-- Extract reusable logic
-- Prefer `map`, `filter`, and `reduce` where they improve clarity
-- Prefer default parameters over defensive null checks
-- Prefer an object parameter when a function would otherwise take many positional arguments
-
-### Constants
-
-- Avoid magic numbers
-- Group related primitives into named constants or composite structures
-
-## TypeScript
-
-- Use TypeScript for all code
-- Prefer `type` over `interface`
-- Avoid `any`
-- Avoid `enum`; prefer literal unions or `as const` maps
-- Suffix shared type names with `T`
-- Prefer `undefined` over `null` for optional values
-- Use optional chaining and nullish coalescing
-- Avoid non-null assertions except in tests
-- Use descriptive generic names when a single letter is unclear
-
-Project override:
-
-- Do not add `readonly` to type properties, props, or parameters in this repo
-- If you touch a file that contains unnecessary `readonly`, remove it
-
-## React
-
-- Use declarative JSX
-- Favor named exports
-- Prefer one component per file
-- Use the `function` keyword for components
-- Prefer early returns
-- Avoid unnecessary `useEffect`
-- Use Zustand selectors instead of destructuring the whole store
-
-## Next.js
-
-- Use the App Router
-- Prefer Server Components by default
-- Add `'use client'` only when needed
-- Keep API routes in `app/api`
-- Use `loading.tsx` and `error.tsx` where appropriate
-- Prefer static generation or cache-friendly server fetching where possible
-
-## Styling
-
-- Use Tailwind and Shadcn patterns already established in the repo
-- Prefer `rem` and `%` over `px`
-- Use semantic HTML
-- Ensure icon-only buttons have `aria-label`
-- Keep touch targets at least `44x44`
-- Use mobile-first responsive styles
-
-## Project Stack Rules
+Project-specific guidance for coding agents. Global conventions (response style, TypeScript / React / Next.js / Tailwind rules, git, tooling, personas) live in the user's global rules and are **not** repeated here. This file is only what's true for THIS repo and not inferable from the framework or `@package.json`.
 
 ## Project Overview
 
-Business management dashboard for cash registers, transfers, investments, and employees.
-
-- Framework: Next.js 16.1.6
-- CMS: Payload CMS 3.73.0
-- Language: Polish UI, English code
+Business management dashboard for cash registers, transfers, investments, and employees. Next.js + Payload CMS. **Polish UI, English code.** Versions in `@package.json`.
 
 ## Common Commands
 
+Scripts live in `@package.json`. Non-obvious ones:
+
 ```bash
-pnpm dev
-pnpm build
-pnpm lint
-pnpm format:fix
-pnpm typecheck
-pnpm test
-pnpm test -- src/__tests__/some-file.test.ts
-pnpm generate:types
-pnpm migrate:create
-docker compose up -d
+pnpm build         # generate:importmap + generate:types + migrate + next build
+pnpm exec vitest run src/__tests__/some-file.test.ts  # single test file — pnpm 10 no longer forwards `--` to nested scripts
+pnpm generate:types  # regenerate src/payload-types.ts (gitignored — never `git add` it)
+docker compose up -d  # local Postgres on port 5433
 ```
 
-Local Postgres runs on port `5433`.
+### Migrations
+
+`pnpm migrate:create` has emitted phantom drift since ~March 2026 (missing `.json` snapshots), so **hand-write migrations**: copy the structure of the latest file in `src/migrations/` and adjust FK constraints / internal Payload tables by hand. Don't trust an auto-generated migration blindly. `pnpm build` runs `payload migrate`.
+
+## Local Environment And Live Data
+
+- The local app points at the real `wykonczymy-db` (`DB_POSTGRES_URL`), which holds the user's real local data. **Never run destructive SQL (DROP, TRUNCATE, restore-from-dump) against it.**
+- `GOOGLE_SERVICE_ACCOUNT_JSON` and `KOSZTORYS_TEMPLATE_SHEET_ID` in `.env` are real working credentials — Google Sheets writes hit live data.
+- Never `git push` or apply prod migrations (`supabase db push` / `db:push:safe`); a human does that. A PreToolUse hook also blocks it.
 
 ## Architecture
 
 ### Route Groups
 
-- `src/app/(frontend)` - main authenticated app
-- `src/app/(auth)` - login page
-- `src/app/(payload)` - Payload admin panel and API routes
+- `src/app/(frontend)` — main authenticated app
+- `src/app/(auth)` — login page
+- `src/app/(payload)` — Payload admin panel and API routes
 
 ### Important Directories
 
-- `src/collections` - Payload collection configs
-- `src/access` - role-based access control
-- `src/lib/actions` - server actions for mutations
-- `src/lib/queries` - server-side fetching and cached reference data
-- `src/lib/auth` - JWT auth and roles
-- `src/lib/db` - raw SQL financial calculations
-- `src/lib/cache` - cache tags and revalidation helpers
-- `src/components/forms` - TanStack React Form setup
-- `src/components/ui` - Shadcn UI components
-- `src/stores` - Zustand stores
-- `src/types` - shared TypeScript types
-- `src/migrations` - Payload migrations
+- `src/collections` — Payload collection configs
+- `src/access` — role-based access control
+- `src/lib/actions` — server actions for mutations
+- `src/lib/queries` — server-side fetching and cached reference data
+- `src/lib/auth` — JWT auth and roles
+- `src/lib/db` — raw SQL financial calculations
+- `src/lib/cache` — cache tags and revalidation helpers
+- `src/components/forms` — TanStack React Form setup
+- `src/components/ui` — Shadcn UI components
+- `src/stores` — Zustand stores
+- `src/types` — shared TypeScript types
+- `src/migrations` — Payload migrations
 
 ## Auth And Roles
 
-JWT auth is handled through Payload using the `payload-token` cookie with a 24 hour lifetime.
-
-Roles:
-
-- `ADMIN`
-- `OWNER`
-- `MANAGER`
-- `EMPLOYEE`
-
-Role hierarchy is defined in `src/lib/auth/roles.ts`. Access control functions live in `src/access`.
+JWT auth via Payload using the `payload-token` cookie (24h lifetime). Roles: `ADMIN`, `OWNER`, `MANAGER`, `EMPLOYEE`. Hierarchy in `src/lib/auth/roles.ts`; access control functions in `src/access`.
 
 ## Mutation Pattern
 
-All mutations should go through `protectedAction()` in `src/lib/actions`.
-
-Expected pattern:
+All mutations go through `protectedAction()` in `src/lib/actions`:
 
 - `'use server'`
 - `requireAuth()`
@@ -210,96 +68,42 @@ Expected pattern:
 
 - Server components use `getPayload({ config })` or `fetchReferenceData()`
 - Financial calculations use raw SQL via `@vercel/postgres`
-- Cache uses `unstable_cache` with tag-based invalidation
-- `cacheComponents` and `'use cache'` are disabled because of a documented Vercel bug
-- Revalidation uses `revalidateTag(tag, 'max')`
-
-Known cache tags:
-
-- `CACHE_TAGS.cashRegisters`
-- `CACHE_TAGS.investments`
-- `CACHE_TAGS.users`
-- `CACHE_TAGS.transfers`
+- Cache uses `unstable_cache` with tag-based invalidation; `cacheComponents` and `'use cache'` are disabled because of a documented Vercel bug (see `docs/vercel-server-action-bug-report.md`)
+- Revalidation differs by context: in **server actions** (`lib/actions`, `lib/cache/revalidate.ts`) use `updateTag()` for immediate expiration; in **Payload hooks** (`hooks/`) use `revalidateTag()` — hooks run in a Route Handler context where `updateTag` throws. Never import `lib/cache/revalidate.ts` from a Payload hook.
+- Tags: `CACHE_TAGS.cashRegisters`, `.investments`, `.users`, `.transfers`
 
 ## Forms
 
-- Use TanStack React Form, not React Hook Form
-- Use the custom `useAppForm()` hook
-- Use Zod 4 for validation
-- Optimistic updates use `useOptimisticFormStore` with Zustand
+- TanStack React Form via the custom `useAppForm()` hook (not React Hook Form)
+- Optimistic updates use `useOptimisticFormStore` (Zustand), fire-and-forget
 
 ## Transfer Business Logic
 
-Transfer types:
+The transfer-type union lives in `src/collections/transfers.ts` — read it there rather than trusting a copy (this list has gone stale before).
 
-- `INVESTOR_DEPOSIT`
-- `COMPANY_FUNDING`
-- `INVESTMENT_EXPENSE`
-- `ACCOUNT_FUNDING`
-- `EMPLOYEE_EXPENSE`
-- `REGISTER_TRANSFER`
-- `PAYOUT`
-- `OTHER`
-- `CANCELLATION`
+Non-obvious rules:
 
-Cancellation is modeled as an audit trail:
+- `LABOR_COST` (robocizna) has **no source register** — it is a billing/markup figure, not a cash movement. It feeds the margin (`marża = robocizna − wypłaty`), not the cash ledger.
+- `CORRECTION` may be negative (invoice credits).
+- Cancellation is an audit trail: the original is marked `cancelled: true`, a new `CANCELLATION` row links back to it.
+- Cash register balances are recalculated via Payload hooks on transfer create and delete.
 
-- the original transfer is marked `cancelled: true`
-- a new `CANCELLATION` row is created
-- the cancellation links back to the original row
-
-Cash register balances are recalculated via Payload hooks on transfer create and delete.
+How the financial figures (marża / materiały / robocizna / korekty) connect: `docs/investment-financials-and-discount.md`.
 
 ## Project-Specific Code Style
 
-- Do not add `readonly` to type properties, props, or parameters
-- When editing a file that already contains unnecessary `readonly`, remove it
+- Do not add `readonly` to type properties, props, or parameters. If you touch a file with unnecessary `readonly`, remove it.
 
 ## Stack Notes
 
-- Package manager: `pnpm` 10.27.0
-- `package.json` uses `"type": "module"`
-- React Compiler is enabled
-- Tests live in `src/__tests__`
-- Vitest aliases `@/*` to `./src/*`
-
-Payload-specific note:
-
+- React Compiler is enabled — don't hand-write `useMemo` / `useCallback` for things it handles
+- Tests live in `src/__tests__`; Vitest aliases `@/*` → `./src/*`
 - `src/app/(payload)/layout.tsx` must include `importMap`, `serverFunction`, and `handleServerFunctions`
-
-## Database Backups
-
-Two backup layers are expected:
-
-1. Neon point-in-time restore with a 6 hour window
-2. Automated backups through a pre-push hook and a GitHub Actions workflow
-
-Restore flow:
-
-```bash
-gunzip wykonczymy-backup-YYYYMMDD-HHMMSS.sql.gz
-psql "$DB_POSTGRES_URL" < wykonczymy-backup-YYYYMMDD-HHMMSS.sql
-```
-
-Required GitHub Actions secrets:
-
-- `POSTGRES_URL`
-- `FTP_HOST`
-- `FTP_USER`
-- `FTP_PASS`
 
 ## Environment Variables
 
-Validated in `src/lib/env.ts`:
+Validated at startup in `src/lib/env.ts` — read there for the current required list.
 
-- `NEXT_PUBLIC_FRONTEND_URL`
-- `DB_POSTGRES_URL`
-- `PAYLOAD_SECRET`
-- `BLOB_READ_WRITE_TOKEN`
-- `EMAIL_USER`
-- `EMAIL_PASS`
-- `EMAIL_HOST`
-- `META_APP_SECRET`
-- `META_APP_ID`
-- `META_APP_TOKEN`
-- `META_VERIFY_TOKEN`
+```
+
+```
