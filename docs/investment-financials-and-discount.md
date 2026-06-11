@@ -5,6 +5,11 @@
 > `src/components/investments/financial-stats.tsx`.
 > Client request transcript: `docs/notes`.
 
+> **Status (2026-06-11):** Request B (Rabat) is **implemented**. The base formulas in the
+> diagrams below describe the pre-rabat model that motivated the change; the live formulas are
+> now `marża = robocizna − wypłaty − rabat` and `bilans = wpłaty − materiały − robocizna + rabat`.
+> Request A (R+M internal material) is **not** built yet.
+
 ## TL;DR — the one thing that's non-obvious
 
 There are **two independent ledgers** sitting on the same `transactions` table, and they
@@ -154,8 +159,10 @@ whole reason the client says "korekta nie wystarczy".
 
 ## Current state in code
 
-- **No `RABAT` type exists.** Transfer types are in `src/lib/constants/transfers.ts` /
-  `src/collections/transfers.ts`. There is `CORRECTION` only.
+- **`RABAT` type is implemented** (2026-06-11). It is a positive labour discount with no
+  source register; it lowers `marża` and raises `bilans`. See the funnel `deriveFinancials`
+  (`totalRabat`), `calculate-margin.ts`, `calculate-balance.ts`, and the green "Rabat" line in
+  `financial-stats.tsx` / `map-category-costs.ts`.
 - **No R+M / "niepodlegające rozliczeniu" material type exists.**
 - `marża` and `bilans` are hardcoded formulas (`calculate-margin.ts`,
   `calculate-balance.ts`) — they have no concept of either new line.
@@ -183,7 +190,12 @@ and **decide whether that cost also touches the investor balance and the cash re
 6. **Sheets sync** — decide if it belongs in the materiały tab (probably not, since it's not
    billed to the client).
 
-### B) Rabat — proposed type `RABAT`
+### B) Rabat — type `RABAT` ✅ IMPLEMENTED (2026-06-11)
+
+Built as described below. `calculate-balance.ts` adds `totalRabat` (rather than literally
+treating robocizna as `robocizna − rabat`, the algebraically-equivalent form). No cash
+movement, no Sheets sync. Validation: positive amount enforced by the default
+`getAmountError` rule (no special sign rule needed).
 
 1. **New transfer type**, amount is a positive discount value.
 2. **`deriveFinancials`** — add `totalRabat = Σ RABAT`.
