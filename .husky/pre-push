@@ -15,5 +15,17 @@ echo "✅ Pruned ${pruned:-0} old dump(s)"
 
 # Background watcher: prints Vercel deployment state transitions to this terminal.
 # Detached subshell so `git push` returns immediately when the hook exits.
-# Pass the pushed commit SHA so the watcher tracks THIS deploy, not "newest".
-( DEPLOY_SHA="$(git rev-parse HEAD)" bash scripts/watch-deploy.sh & )
+# DEPLOY_SHA pins the watcher to THIS commit's deploy (matched by SHA), not "newest".
+# Set SKIP_WATCH_DEPLOY=1 to bypass (CI machines, offline pushes, etc.).
+#
+# Foreground auth precheck FIRST (~1s): a dead local CLI token can't watch
+# deploys, and a backgrounded watcher would just poll blind and then misblame the
+# Git integration 3 min later. Surface it loudly here instead. Non-fatal — never
+# block a push over LOCAL auth; just skip the (useless) watcher.
+if [ -z "${SKIP_WATCH_DEPLOY:-}" ]; then
+  if bash scripts/watch-deploy.sh --check-auth; then
+    ( DEPLOY_SHA="$(git rev-parse HEAD)" bash scripts/watch-deploy.sh & )
+  else
+    echo "  🔒 vercel: skipping deploy watcher — fix local CLI auth (see above), then push again to tail." >&2
+  fi
+fi
