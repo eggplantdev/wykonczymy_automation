@@ -38,7 +38,7 @@
 
 The point: capture every Google API request the CURRENT expenses-tab code emits, snapshot it, commit. After the refactor only the test's call sites change (config arg) — the snapshot must remain byte-identical.
 
-- [ ] **Step 1: Write the characterization test against current exports**
+- [x] **Step 1: Write the characterization test against current exports**
 
 ```ts
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -188,12 +188,12 @@ describe('GOLDEN: expenses tab emitted requests', () => {
 })
 ```
 
-- [ ] **Step 2: Run it — must pass and write the snapshot**
+- [x] **Step 2: Run it — must pass and write the snapshot** *(3 passed, 3 snapshots written — 1228 lines)*
 
 Run: `pnpm exec vitest run src/__tests__/lib/google/sheets-golden.test.ts`
 Expected: 3 passed, snapshot file `src/__tests__/lib/google/__snapshots__/sheets-golden.test.ts.snap` written.
 
-- [ ] **Step 3: Commit the golden baseline**
+- [x] **Step 3: Commit the golden baseline** *(e6bf2d7)*
 
 ```bash
 git add src/__tests__/lib/google/sheets-golden.test.ts "src/__tests__/lib/google/__snapshots__/sheets-golden.test.ts.snap"
@@ -208,7 +208,7 @@ git commit -m "test: golden characterization of expenses-tab Google API requests
 - Modify: `src/lib/constants/transfers.ts`
 - Modify: `src/__tests__/transfer-constants.test.ts` (only if it asserts an exhaustive export list — check first)
 
-- [ ] **Step 1: Add the constant** (after `TRANSACTION_TRANSFER_TYPES`)
+- [x] **Step 1: Add the constant** (after `TRANSACTION_TRANSFER_TYPES`)
 
 ```ts
 // Investment-linked types mirrored on the sheet's 'transfery (tylko do odczytu)'
@@ -226,7 +226,7 @@ export const SHEET_TRANSFER_TAB_TYPES = [
 export type SheetTransferTabTypeT = (typeof SHEET_TRANSFER_TAB_TYPES)[number]
 ```
 
-- [ ] **Step 2: Typecheck + commit**
+- [x] **Step 2: Typecheck + commit** *(d135c3a; transfer-constants.test.ts has no exhaustive export assertion — untouched)*
 
 Run: `pnpm exec tsc --noEmit` → Expected: clean.
 
@@ -311,7 +311,7 @@ setupMaterialyTab(id, types)                → setupTab(id, cfg, summaryKeys)
 ensureMaterialyTab(id, types)               → ensureTab(id, cfg, summaryKeys)
 ```
 
-- [ ] **Step 1: Rewrite `sheets.ts`** — mechanical generalization, code structure and request order PRESERVED. The constant-to-config substitutions:
+- [x] **Step 1: Rewrite `sheets.ts`** — mechanical generalization, code structure and request order PRESERVED. The constant-to-config substitutions:
   - `MATERIALY_TAB` → `cfg.tabName`; `TAB_RANGE` → `` `'${cfg.tabName}'!A:Z` `` (helper `tabRange(cfg)`)
   - `MATERIALY_HEADER` → `cfg.header`; `FIELD_MATCHERS`/`FIELDS` → `cfg.fieldMatchers` / `const fieldsOf = (cfg) => Object.keys(cfg.fieldMatchers)`
   - `SUMMARY_START_COL` (7) → `cfg.header.length`
@@ -323,21 +323,21 @@ ensureMaterialyTab(id, types)               → ensureTab(id, cfg, summaryKeys)
   - `resolveHeaders` error messages: parametrize tab name; field list → `fieldsOf(cfg).join(', ')`
   - Keep `formulaArgSeparator` exported unchanged. Type `MaterialRowInputT` → replaced by `TabRowInputT`.
 
-- [ ] **Step 2: Update callers compile-only** (still expenses-only behavior — dual-tab wiring is Task 5):
+- [x] **Step 2: Update callers compile-only** (still expenses-only behavior — dual-tab wiring is Task 5):
   - `sheets-sync.ts`: `readMaterialyTransferIds(sheetId)` → `readTabTransferIds(sheetId, EXPENSES_TAB_CONFIG)`; `applyMaterialRowsBatch(sheetId, rows, ids)` → `applyTabRowsBatch(sheetId, EXPENSES_TAB_CONFIG, rows, ids)`; `removeMaterialRow(sheetId, id)` → `removeTabRow(sheetId, EXPENSES_TAB_CONFIG, id)`; `AppRowT` → `TabRowInputT` (shape identical)
   - `actions/investments.ts`: `setupMaterialyTab(sheetId, types)` → `setupTab(sheetId, EXPENSES_TAB_CONFIG, types)`; `ensureMaterialyTab(sheetId, types)` → `ensureTab(sheetId, EXPENSES_TAB_CONFIG, types)`
   - `actions/sheets.ts`: same `setupTab` substitution
 
-- [ ] **Step 3: Update test call sites** in `sheets.test.ts` and `sheets-golden.test.ts` — import new names, pass `EXPENSES_TAB_CONFIG`. Do NOT touch assertions or the snapshot. `buildMaterialySummary` tests → `buildTabSummary(EXPENSES_TAB_CONFIG, [...], ';')`.
+- [x] **Step 3: Update test call sites** in `sheets.test.ts` and `sheets-golden.test.ts` — import new names, pass `EXPENSES_TAB_CONFIG`. Do NOT touch assertions or the snapshot. `buildMaterialySummary` tests → `buildTabSummary(EXPENSES_TAB_CONFIG, [...], ';')`.
 
-- [ ] **Step 4: Run the full suite — golden snapshot must be UNCHANGED**
+- [x] **Step 4: Run the full suite — golden snapshot must be UNCHANGED** *(601 passed, snapshot byte-identical, tsc clean)*
 
 Run: `pnpm exec vitest run`
 Expected: all pass; `sheets-golden` passes WITHOUT `--update`. If the snapshot diffs, the refactor changed emitted requests — fix the refactor, never the snapshot.
 
 Run: `pnpm exec tsc --noEmit` → clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit** *(c5fc9b6)*
 
 ```bash
 git add src/lib/google/sheets.ts src/lib/actions/sheets-sync.ts src/lib/actions/sheets.ts src/lib/actions/investments.ts src/__tests__/lib/google/sheets.test.ts src/__tests__/lib/google/sheets-golden.test.ts
@@ -353,7 +353,7 @@ git commit -m "refactor: thread SheetTabConfigT through sheet primitives (expens
 - Create: `src/__tests__/lib/google/tab-rows.test.ts`
 - Modify: `src/lib/actions/sheets-sync.ts` (delete local `isoDate`/`finiteAmount`/`expenseRow`/`TxDoc`, import from tab-rows)
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 import { describe, it, expect } from 'vitest'
@@ -491,9 +491,9 @@ describe('expenseRow (behavior unchanged by the refactor)', () => {
 })
 ```
 
-- [ ] **Step 2: Run to verify failure** — `pnpm exec vitest run src/__tests__/lib/google/tab-rows.test.ts` → FAIL (module missing).
+- [x] **Step 2: Run to verify failure** — `pnpm exec vitest run src/__tests__/lib/google/tab-rows.test.ts` → FAIL (module missing).
 
-- [ ] **Step 3: Implement `src/lib/google/tab-rows.ts`** — move `isoDate`, `finiteAmount`, `TxDoc` (rename `TxDocT`), `expenseRow` verbatim from `sheets-sync.ts`; add:
+- [x] **Step 3: Implement `src/lib/google/tab-rows.ts`** *(transferSummaryKeys landed in sheets.ts next to the configs instead)* — move `isoDate`, `finiteAmount`, `TxDoc` (rename `TxDocT`), `expenseRow` verbatim from `sheets-sync.ts`; add:
 
 ```ts
 import { getRelationName } from '@/lib/get-relation-name'
@@ -537,9 +537,9 @@ export const transferSummaryKeys = (): string[] =>
 
 `sheets-sync.ts` imports `{ expenseRow, transferRow, transferSummaryKeys }` and deletes its local copies (`relId` stays — it's about Payload relations, not rows).
 
-- [ ] **Step 4: Run** `pnpm exec vitest run src/__tests__/lib/google/tab-rows.test.ts src/__tests__/lib/actions/sheets-sync.test.ts` → PASS. `pnpm exec tsc --noEmit` → clean.
+- [x] **Step 4: Run** — 610 passed full-suite, tsc clean (one interim Number() coercion in sync-button.tsx).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit** *(see git log)*
 
 ```bash
 git add src/lib/google/tab-rows.ts src/__tests__/lib/google/tab-rows.test.ts src/lib/actions/sheets-sync.ts
@@ -555,7 +555,7 @@ git commit -m "feat: transferRow builder + pure row module with totals-parity te
 - Modify: `src/hooks/transfers/sync-sheet.ts`
 - Modify: `src/__tests__/lib/actions/sheets-sync.test.ts`, `src/__tests__/hooks/sync-sheet.test.ts`
 
-- [ ] **Step 1: Make the existing mocks range-aware, then write the new failing tests.** `valuesGetMock` must dispatch on the requested range (expenses grid vs transfers grid), e.g.:
+- [x] **Step 1: Make the existing mocks range-aware, then write the new failing tests.** `valuesGetMock` must dispatch on the requested range (expenses grid vs transfers grid), e.g.:
 
 ```ts
 const TRANSFERS_HEADER = ['id', 'data', 'typ', 'opis', 'kwota', 'pracownik', 'kategoria', 'notatka']
@@ -583,9 +583,9 @@ New test cases (exact behaviors):
 - `removeTransferFromSheet` routes by the new `type` param: `type: 'PAYOUT'` deletes from the transfers tab (`endColumnIndex: 8`), `type: 'INVESTMENT_EXPENSE'` from the expenses tab (`endColumnIndex: 7`).
 - Hooks: `syncSheetAfterChange`/`syncSheetAfterDelete` fire for each of the six (replace the old "skips non-expense types" with "skips non-sheet types: REGISTER_TRANSFER, OTHER, COMPANY_FUNDING, OTHER_DEPOSIT, CANCELLATION"); `removeTransferFromSheet` calls now carry `type`.
 
-- [ ] **Step 2: Run new tests — verify they fail.** `pnpm exec vitest run src/__tests__/lib/actions/sheets-sync.test.ts src/__tests__/hooks/sync-sheet.test.ts` → new cases FAIL.
+- [x] **Step 2: Run new tests — verify they fail.** *(11 failed red)* `pnpm exec vitest run src/__tests__/lib/actions/sheets-sync.test.ts src/__tests__/hooks/sync-sheet.test.ts` → new cases FAIL.
 
-- [ ] **Step 3: Implement the wiring.** Shape:
+- [x] **Step 3: Implement the wiring.** *(TabSyncSpecT bundles cfg + typeWhere + buildRow; tabSyncForType routes)* Shape:
 
 ```ts
 // sheets-sync.ts — per-tab plumbing
@@ -656,9 +656,9 @@ const SHEET_SYNCED_TYPES: readonly string[] = ['INVESTMENT_EXPENSE', ...SHEET_TR
 // reassign path + afterDelete: removeTransferFromSheet({ transferId, investmentId, type: doc.type })
 ```
 
-- [ ] **Step 4: Run the full suite** — `pnpm exec vitest run` → all pass (golden untouched). `pnpm exec tsc --noEmit` → clean.
+- [x] **Step 4: Run the full suite** *(620 passed, tsc clean)* — `pnpm exec vitest run` → all pass (golden untouched). `pnpm exec tsc --noEmit` → clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/actions/sheets-sync.ts src/hooks/transfers/sync-sheet.ts src/__tests__/lib/actions/sheets-sync.test.ts src/__tests__/hooks/sync-sheet.test.ts
@@ -674,20 +674,20 @@ git commit -m "feat: mirror the six investment transfer types onto the transfery
 - Modify: `src/lib/actions/sheets.ts` (`addUnlinkedSheetAction`)
 - Modify: `src/components/sheets/sync-button.tsx`
 
-- [ ] **Step 1: Actions — both tabs.**
+- [x] **Step 1: Actions — both tabs.**
   - `setupSheetAction` (explicit reset): `await setupTab(sheetId, EXPENSES_TAB_CONFIG, types)` then `await setupTab(sheetId, TRANSFERS_TAB_CONFIG, transferSummaryKeys())`.
   - `linkSheetAction` (create-if-missing on link): `await ensureTab(sheetId, EXPENSES_TAB_CONFIG, types)` then `await ensureTab(sheetId, TRANSFERS_TAB_CONFIG, transferSummaryKeys())` inside the existing try/catch.
   - `addUnlinkedSheetAction`: same two `setupTab` calls as `setupSheetAction` (registration stamps fresh tabs — existing destructive semantics, now consistent for both tabs).
 
-- [ ] **Step 2: `sync-button.tsx`.**
+- [x] **Step 2: `sync-button.tsx`.**
   - `pendingChanges` adds the three transfers fields.
   - Counts line shows both tabs; add a second `<Section>` `Transfery do dodania (N)` rendering `transfersToAppend` with the same row format (fields are flat: `r.typ`, `r.amount`, `r.description`, `r.date` — all `String()`/`Number()` coerced for TS).
   - Reset-dialog copy: mention both tabs — „wydatki inwestycyjne (tylko do odczytu)" **i „transfery (tylko do odczytu)"** zostaną zbudowane od nowa.
   - Sync toast: keep combined counts (one line).
 
-- [ ] **Step 3: Full suite + typecheck** — `pnpm exec vitest run && pnpm exec tsc --noEmit` → clean.
+- [x] **Step 3: Full suite + typecheck** *(620 passed, tsc clean)* — `pnpm exec vitest run && pnpm exec tsc --noEmit` → clean.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/lib/actions/investments.ts src/lib/actions/sheets.ts src/components/sheets/sync-button.tsx
@@ -700,20 +700,20 @@ git commit -m "feat: provision and preview the transfery tab in link/setup/sync 
 
 Uses ONLY existing kosztorys records (id 3 "Testy" → Google sheet `1nYnqG5AoGsr_ShA7SsvZuNv6R22wZ89mn2sLe6OMG8g`); do NOT register new sheets. Local data is real — create clearly-named test records via the app UI and delete them afterwards (delete recalcs balances back; also exercises the removal path live).
 
-- [ ] **Step 1:** Snapshot the expenses tab of the test sheet BEFORE (Sheets API `values.get` on `'wydatki inwestycyjne (tylko do odczytu)'!A:Z`) → save to a temp file for the byte-identical comparison in Step 8.
-- [ ] **Step 2:** Start dev server (`pnpm dev`, background). Login via Playwright with `ADMIN`/`PASS` from `.env`.
-- [ ] **Step 3:** Create investment `TEST transfery — do usunięcia`. Link kosztorys "Testy" (id 3) to it via the kosztorysy listing's link-to-investment flow (NOT the paste-URL flow).
-- [ ] **Step 4:** Via the app UI create: INVESTOR_DEPOSIT 1000; LABOR_COST 400; RABAT 50; PAYOUT 300 (with a worker); CORRECTION −120; LOSS 60 (with the investment); LOSS 77 WITHOUT an investment; plus one extra PAYOUT 99 that is then CANCELLED via the UI.
-- [ ] **Step 5:** On the investment page click „Synchronizuj wydatki inwestycyjne" → dialog must show the transfers-tab pending counts → confirm.
-- [ ] **Step 6:** Read back via Sheets API (node script, `set -a && source .env`):
+- [x] **Step 1:** Snapshot the expenses tab of the test sheet BEFORE (Sheets API `values.get` on `'wydatki inwestycyjne (tylko do odczytu)'!A:Z`) → save to a temp file for the byte-identical comparison in Step 8.
+- [x] **Step 2:** Start dev server (`pnpm dev`, background). Login via Playwright with `ADMIN`/`PASS` from `.env`.
+- [x] **Step 3:** Create investment `TEST transfery — do usunięcia` (id 76); linked kosztorys "Testy" (id 3) via the listing's link flow. Post-link sync **self-created the transfers tab live**.
+- [x] **Step 4:** Via the app UI created: INVESTOR_DEPOSIT 1000; LABOR_COST 400; RABAT 50; PAYOUT 300 (with a worker); CORRECTION −120; LOSS 60 (with the investment); LOSS 77 WITHOUT an investment; plus one extra PAYOUT 99 that is then CANCELLED via the UI.
+- [x] **Step 5:** On the kosztorys page clicked „Synchronizuj wydatki inwestycyjne" → dialog must show the transfers-tab pending counts → confirm.
+- [x] **Step 6:** Read back via Sheets API (node script, `set -a && source .env`):
   - tab `'transfery (tylko do odczytu)'` exists, is protected (protectedRanges editor = SA only)
   - rows = exactly the 6 active investment-linked transfers (no cancelled PAYOUT, no unlinked LOSS)
   - `valueRenderOption=UNFORMATTED_VALUE` on the summary row: SUMIF values equal 1000 / 400 / 50 / 300 / −120 / 60
   - no RAZEM cell in the transfers summary block
-- [ ] **Step 7:** Cross-check criterion 2 live: investment view's filtered per-type totals (UI) match the SUMIF read-backs.
-- [ ] **Step 8:** Re-read the expenses tab → byte-identical to Step 1's snapshot (criterion 1, live).
-- [ ] **Step 9:** Cleanup via UI/API: cancel or delete the test transfers → verify their rows disappear from the transfers tab (live removal path); delete the unlinked LOSS; unlink kosztorys "Testy" from the investment; delete investment `TEST transfery — do usunięcia`. Verify register balances returned to their Step-2 values.
-- [ ] **Step 10:** Report results with screenshots.
+- [x] **Step 7:** Cross-check criterion 2 live (DB-filtered totals == evaluated SUMIFs 1:1; 1000/400/50/300/−120/60): investment view's filtered per-type totals (UI) match the SUMIF read-backs.
+- [x] **Step 8:** Re-read the expenses tab — diff clean, byte-identical (also after the dual-tab reset). → byte-identical to Step 1's snapshot (criterion 1, live).
+- [x] **Step 9:** Cleanup via UI/API (admin bulk delete raced per-row removals — pre-existing trait; healed via the dual-tab reset button, which was thereby live-tested too): cancel or delete the test transfers → verify their rows disappear from the transfers tab (live removal path); delete the unlinked LOSS; unlink kosztorys "Testy" from the investment; delete investment `TEST transfery — do usunięcia`. Verify register balances returned to their Step-2 values.
+- [x] **Step 10:** Report results with screenshots (`sync-preview-dialog.png`, `reset-dialog-both-tabs.png` in `.playwright-mcp/`).
 
 ---
 
