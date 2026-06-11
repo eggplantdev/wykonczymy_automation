@@ -14,7 +14,7 @@ import {
   type TabRowInputT,
 } from '@/lib/google/sheets'
 import { expenseRow, transferRow, type TxDocT } from '@/lib/google/tab-rows'
-import { SHEET_TRANSFER_TAB_TYPES } from '@/lib/constants/transfers'
+import { isSheetTransferTabType, SHEET_TRANSFER_TAB_TYPES } from '@/lib/constants/transfers'
 import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
 import { protectedAction } from './utils'
 
@@ -52,11 +52,15 @@ type PayloadT = Awaited<ReturnType<typeof getPayload>>
 
 // Everything tab-specific the sync plan needs: which tab to read/write, which
 // transaction types may own a row there (drives the desired-row query AND the
-// orphan-removal guard), and how a transaction doc becomes a row.
+// orphan-removal guard), how a transaction doc becomes a row, and — when set —
+// how to self-heal a missing tab before writing (sheets linked before the
+// transfers tab existed don't have it; the expenses tab deliberately has no
+// auto-create, its missing-tab error carries the reset-button hint instead).
 type TabSyncSpecT = {
   cfg: SheetTabConfigT
   typeWhere: { equals: string } | { in: string[] }
   buildRow: (t: TxDocT) => TabRowInputT | undefined
+  ensure?: (sheetId: string) => Promise<{ created: boolean }>
 }
 
 const EXPENSES_SYNC: TabSyncSpecT = {
@@ -69,13 +73,14 @@ const TRANSFERS_SYNC: TabSyncSpecT = {
   cfg: TRANSFERS_TAB_CONFIG,
   typeWhere: { in: [...SHEET_TRANSFER_TAB_TYPES] },
   buildRow: transferRow,
+  ensure: (sheetId) => ensureTab(sheetId, TRANSFERS_TAB_CONFIG, transferSummaryKeys()),
 }
 
 // Which tab (if any) mirrors a transaction of this type.
 const tabSyncForType = (type: unknown): TabSyncSpecT | undefined =>
   type === 'INVESTMENT_EXPENSE'
     ? EXPENSES_SYNC
-    : (SHEET_TRANSFER_TAB_TYPES as readonly string[]).includes(String(type))
+    : isSheetTransferTabType(type)
       ? TRANSFERS_SYNC
       : undefined
 
@@ -212,7 +217,7 @@ export async function applyMaterialSync(investmentId: number) {
 
       // Sheets linked before the transfers tab existed self-heal here: create the
       // tab if it's missing, then reconcile it like the expenses tab.
-      await ensureTab(sheetId, TRANSFERS_TAB_CONFIG, transferSummaryKeys())
+      await TRANSFERS_SYNC.ensure?.(sheetId)
       const transfersPlan = await buildSyncPlan(payload, investmentId, sheetId, TRANSFERS_SYNC)
       const t = await applyTabRowsBatch(
         sheetId,
@@ -241,20 +246,20 @@ export async function applyMaterialSync(investmentId: number) {
  * Remove a transfer's row from a SPECIFIC investment's sheet. Called when an edit
  * reassigns a transfer to a different investment — the stale row is dropped from the
  * OLD sheet (the new sheet gets the row via syncSingleTransferToSheet) — and on
- * delete. `type` picks the tab; omitted falls back to the expenses tab (defensive,
- * pre-feature callers). Never throws.
+ * delete. `type` picks the tab; a type no tab mirrors is a no-op. Never throws.
  */
 export async function removeTransferFromSheet(params: {
   transferId: number
   investmentId: number
-  type?: string
+  type: string
 }): Promise<void> {
   try {
-    const cfg = tabSyncForType(params.type)?.cfg ?? EXPENSES_TAB_CONFIG
+    const tab = tabSyncForType(params.type)
+    if (!tab) return
     const payload = await getPayload({ config })
     const sheetId = await getInvestmentSheetId(payload, params.investmentId)
     if (!sheetId) return
-    await removeTabRow(sheetId, cfg, params.transferId)
+    await removeTabRow(sheetId, tab.cfg, params.transferId)
     console.log(`[sheets-sync] remove transfer #${params.transferId} from sheet ${sheetId}`)
   } catch (err) {
     console.error('[sheets-sync] removeTransferFromSheet failed (non-fatal):', err)
@@ -329,9 +334,7 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
     }
 
     // Sheets linked before the transfers tab existed self-heal on first write.
-    if (tab === TRANSFERS_SYNC) {
-      await ensureTab(sheetId, TRANSFERS_TAB_CONFIG, transferSummaryKeys())
-    }
+    await tab.ensure?.(sheetId)
 
     // One read + one write via the batched path: appends the row if the sheet
     // lacks it, otherwise overwrites the existing row in place.
@@ -383,9 +386,7 @@ export async function syncBulkExpensesToSheet(transferIds: number[]): Promise<vo
       const sheetId = await getInvestmentSheetId(payload, investmentId)
       if (!sheetId) continue
       for (const [tab, rows] of byTab) {
-        if (tab === TRANSFERS_SYNC) {
-          await ensureTab(sheetId, TRANSFERS_TAB_CONFIG, transferSummaryKeys())
-        }
+        await tab.ensure?.(sheetId)
         const { added, updated } = await applyTabRowsBatch(sheetId, tab.cfg, rows, [])
         console.log(
           `[sheets-sync] bulk sync investment #${investmentId} (${tab.cfg.tabName}) → +${added}/${updated} on sheet ${sheetId}`,

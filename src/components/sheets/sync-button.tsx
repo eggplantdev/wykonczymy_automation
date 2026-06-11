@@ -147,19 +147,13 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
                   {preview.toAppend.length > 0 && (
                     <Section
                       title={`Wydatki do dodania (${preview.toAppend.length})`}
-                      items={preview.toAppend.map((r) => ({
-                        key: r.transferId,
-                        text: `#${r.transferId} · ${r.typ} · ${formatPLN(Number(r.amount))} · ${r.description} [${r.date}]`,
-                      }))}
+                      items={preview.toAppend.map(appendItem)}
                     />
                   )}
                   {preview.transfersToAppend.length > 0 && (
                     <Section
                       title={`Transfery do dodania (${preview.transfersToAppend.length})`}
-                      items={preview.transfersToAppend.map((r) => ({
-                        key: r.transferId,
-                        text: `#${r.transferId} · ${r.typ} · ${formatPLN(Number(r.amount))} · ${r.description} [${r.date}]`,
-                      }))}
+                      items={preview.transfersToAppend.map(appendItem)}
                     />
                   )}
                 </>
@@ -181,6 +175,14 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
       </Dialog>
     </>
   )
+}
+
+// One pending row as a display line for the preview's append sections.
+function appendItem(r: MaterialSyncPreviewT['toAppend'][number]) {
+  return {
+    key: r.transferId,
+    text: `#${r.transferId} · ${r.typ} · ${formatPLN(Number(r.amount))} · ${r.description} [${r.date}]`,
+  }
 }
 
 // Total state-changing operations a confirm would perform — drives the "nothing

@@ -138,7 +138,7 @@ function sheetGrids(expenseIds: Array<number | null>, transferIds: Array<number 
     }),
   )
 }
-const sheetColIReturns = (expenseIds: Array<number | null>) => sheetGrids(expenseIds)
+
 
 function makeMaterialTransaction(
   id: number,
@@ -192,7 +192,7 @@ describe('previewMaterialSync', () => {
       makeMaterialTransaction(101, 'Materiały budowlane', { amount: 250, description: 'cement' }),
       makeMaterialTransaction(102, 'Materiały wykończeniowe', { amount: 80, description: 'farba' }),
     ])
-    sheetColIReturns([]) // empty sheet
+    sheetGrids([]) // empty sheet
 
     const result = await previewMaterialSync(31)
 
@@ -205,7 +205,7 @@ describe('previewMaterialSync', () => {
   it('queries only non-cancelled investment expenses', async () => {
     withSheet(31, 'sheet-1')
     findReturns([])
-    sheetColIReturns([])
+    sheetGrids([])
 
     await previewMaterialSync(31)
 
@@ -217,7 +217,7 @@ describe('previewMaterialSync', () => {
   it('reads an open-ended range and fetches all expenses (no row cap)', async () => {
     withSheet(31, 'sheet-1')
     findReturns([])
-    sheetColIReturns([])
+    sheetGrids([])
 
     await previewMaterialSync(31)
 
@@ -235,7 +235,7 @@ describe('previewMaterialSync', () => {
       { ...makeMaterialTransaction(102, 'Materiały budowlane'), amount: '' },
       { ...makeMaterialTransaction(103, 'Materiały budowlane'), amount: 'x' },
     ])
-    sheetColIReturns([]) // empty sheet
+    sheetGrids([]) // empty sheet
 
     const result = await previewMaterialSync(31)
 
@@ -247,7 +247,7 @@ describe('previewMaterialSync', () => {
   it('does not re-append rows already present in the sheet', async () => {
     withSheet(31, 'sheet-1')
     findReturns([makeMaterialTransaction(101, 'Materiały budowlane', { amount: 250 })])
-    sheetColIReturns([101]) // already synced
+    sheetGrids([101]) // already synced
 
     const result = await previewMaterialSync(31)
 
@@ -269,7 +269,7 @@ describe('previewMaterialSync', () => {
       })
       .mockResolvedValueOnce({ docs: [{ id: 8 }] })
       .mockResolvedValue({ docs: [] })
-    sheetColIReturns([7, 8])
+    sheetGrids([7, 8])
 
     const result = await previewMaterialSync(31)
 
@@ -335,7 +335,7 @@ describe('applyMaterialSync', () => {
   it('overwrites an expense already present in the sheet (drift heal)', async () => {
     withSheet(31, 'sheet-1')
     findReturns([makeMaterialTransaction(5, 'Materiały budowlane', { amount: 100 })])
-    sheetColIReturns([5]) // already synced → row 2
+    sheetGrids([5]) // already synced → row 2
 
     const result = await applyMaterialSync(31)
 
@@ -354,7 +354,7 @@ describe('applyMaterialSync', () => {
     findReturns([
       makeMaterialTransaction(7, 'Materiały budowlane', { amount: 250, description: 'cement' }),
     ])
-    sheetColIReturns([]) // empty sheet
+    sheetGrids([]) // empty sheet
 
     const result = await applyMaterialSync(31)
 
@@ -377,7 +377,7 @@ describe('applyMaterialSync', () => {
       .mockResolvedValueOnce({ docs: [{ id: 8 }] })
       .mockResolvedValue({ docs: [] })
     // sheet has the active #7, a real-but-orphan #8 (e.g. cancelled), and a manual #9999
-    sheetColIReturns([7, 8, 9999])
+    sheetGrids([7, 8, 9999])
     // removal resolves the tab gid from the BOTH_TABS_META default
 
     const result = await applyMaterialSync(31)
@@ -400,7 +400,7 @@ describe('applyMaterialSync', () => {
       })
       .mockResolvedValueOnce({ docs: [] })
       .mockResolvedValue({ docs: [] })
-    sheetColIReturns([7, 8])
+    sheetGrids([7, 8])
 
     await applyMaterialSync(31)
 
@@ -427,7 +427,7 @@ describe('applyMaterialSync', () => {
       })
       .mockResolvedValueOnce({ docs: [] })
       .mockResolvedValue({ docs: [] })
-    sheetColIReturns([7, 8])
+    sheetGrids([7, 8])
 
     const result = await applyMaterialSync(31)
 
@@ -553,7 +553,7 @@ describe('syncSingleTransferToSheet', () => {
       date: '2026-05-27T00:00:00Z',
     })
     withSheet(31, 'sheet-1')
-    sheetColIReturns([101]) // id already present → row 2
+    sheetGrids([101]) // id already present → row 2
 
     await syncSingleTransferToSheet({ transferId: 101 })
 
@@ -574,7 +574,7 @@ describe('syncSingleTransferToSheet', () => {
       return Promise.resolve({ id: 2459, type: 'INVESTMENT_EXPENSE', investment: 31 })
     })
     withSheet(31, 'sheet-1')
-    sheetColIReturns([2459]) // original sits on row 2 of the sheet
+    sheetGrids([2459]) // original sits on row 2 of the sheet
     spreadsheetsGetMock.mockResolvedValueOnce({
       data: {
         sheets: [{ properties: { sheetId: 5, title: 'wydatki inwestycyjne (tylko do odczytu)' } }],
@@ -609,7 +609,7 @@ describe('syncSingleTransferToSheet', () => {
       date: '2026-05-27T00:00:00Z',
     })
     withSheet(31, 'sheet-1')
-    sheetColIReturns([101]) // 101 currently on row 2
+    sheetGrids([101]) // 101 currently on row 2
     spreadsheetsGetMock.mockResolvedValueOnce({
       data: {
         sheets: [{ properties: { sheetId: 5, title: 'wydatki inwestycyjne (tylko do odczytu)' } }],
@@ -692,14 +692,14 @@ describe('syncSingleTransferToSheet — transfers tab routing', () => {
 describe('removeTransferFromSheet', () => {
   it('removes the row from the given investment’s sheet', async () => {
     withSheet(31, 'sheet-old')
-    sheetColIReturns([55]) // id 55 on row 2 of the old sheet
+    sheetGrids([55]) // id 55 on row 2 of the old sheet
     spreadsheetsGetMock.mockResolvedValueOnce({
       data: {
         sheets: [{ properties: { sheetId: 12, title: 'wydatki inwestycyjne (tylko do odczytu)' } }],
       },
     })
 
-    await removeTransferFromSheet({ transferId: 55, investmentId: 31 })
+    await removeTransferFromSheet({ transferId: 55, investmentId: 31, type: 'INVESTMENT_EXPENSE' })
 
     expect(batchUpdateMock).toHaveBeenCalledTimes(1)
     expect(batchUpdateMock.mock.calls[0][0].requestBody.requests[0].deleteRange).toEqual({
@@ -716,7 +716,7 @@ describe('removeTransferFromSheet', () => {
 
   it('no-ops when the investment has no linked kosztorys sheet', async () => {
     withSheet(31, null)
-    await removeTransferFromSheet({ transferId: 55, investmentId: 31 })
+    await removeTransferFromSheet({ transferId: 55, investmentId: 31, type: 'INVESTMENT_EXPENSE' })
     expect(valuesGetMock).not.toHaveBeenCalled()
     expect(batchUpdateMock).not.toHaveBeenCalled()
   })

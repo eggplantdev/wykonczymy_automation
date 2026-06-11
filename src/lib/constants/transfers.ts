@@ -85,6 +85,9 @@ export const SHEET_TRANSFER_TAB_TYPES = [
 ] as const satisfies readonly TransferTypeT[]
 export type SheetTransferTabTypeT = (typeof SHEET_TRANSFER_TAB_TYPES)[number]
 
+export const isSheetTransferTabType = (t: unknown): t is SheetTransferTabTypeT =>
+  (SHEET_TRANSFER_TAB_TYPES as readonly string[]).includes(String(t))
+
 export const PAYMENT_METHODS = [
   'CASH',
   // 'BLIK',

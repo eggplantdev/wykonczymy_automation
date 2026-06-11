@@ -1,9 +1,5 @@
 import { getRelationName } from '@/lib/get-relation-name'
-import {
-  SHEET_TRANSFER_TAB_TYPES,
-  TRANSFER_TYPE_LABELS,
-  type SheetTransferTabTypeT,
-} from '@/lib/constants/transfers'
+import { isSheetTransferTabType, TRANSFER_TYPE_LABELS } from '@/lib/constants/transfers'
 import type { TabRowInputT } from './sheets'
 
 // Pure transaction-doc → sheet-row builders, split out of sheets-sync.ts because
@@ -63,13 +59,10 @@ export function expenseRow(t: TxDocT): TabRowInputT | undefined {
   }
 }
 
-const isTransferTabType = (t: unknown): t is SheetTransferTabTypeT =>
-  (SHEET_TRANSFER_TAB_TYPES as readonly string[]).includes(String(t))
-
 // Row for the transfers tab: one of the six mirrored types → the 8-column shape.
 // `worker` is PAYOUT context, `category` is CORRECTION context — blank otherwise.
 export function transferRow(t: TxDocT): TabRowInputT | undefined {
-  if (!isTransferTabType(t.type)) return undefined
+  if (!isSheetTransferTabType(t.type)) return undefined
   const amount = finiteAmount(t.amount)
   if (amount === undefined) {
     console.warn(`[sheets-sync] skip transfer #${t.id}: non-finite amount ${String(t.amount)}`)
