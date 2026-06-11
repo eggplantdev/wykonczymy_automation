@@ -96,13 +96,12 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
       <Dialog open={setupOpen} onOpenChange={setSetupOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              Zresetować zakładkę „wydatki inwestycyjne (tylko do odczytu)"?
-            </DialogTitle>
+            <DialogTitle>Zresetować zakładki synchronizowane z aplikacją?</DialogTitle>
             <DialogDescription>
-              Zakładka <strong>wydatki inwestycyjne (tylko do odczytu)</strong> zostanie zbudowana
-              od nowa: aplikacja wyczyści całą jej zawartość, w tym wiersze dodane ręcznie (spoza
-              aplikacji). Tej operacji nie można cofnąć.
+              Zakładki <strong>wydatki inwestycyjne (tylko do odczytu)</strong> i{' '}
+              <strong>transfery (tylko do odczytu)</strong> zostaną zbudowane od nowa: aplikacja
+              wyczyści całą ich zawartość, w tym wiersze dodane ręcznie (spoza aplikacji). Tej
+              operacji nie można cofnąć.
               <strong>
                 Jeśli chcesz zachować ręcznie dodane dane, najpierw zrób kopię zakładki
               </strong>
@@ -136,14 +135,28 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
               ) : (
                 <>
                   <p className="text-muted-foreground text-xs">
-                    Do dodania: <strong>{preview.toAppend.length}</strong> · do odświeżenia:{' '}
-                    <strong>{preview.toUpdateCount}</strong> · do usunięcia:{' '}
+                    Wydatki — do dodania: <strong>{preview.toAppend.length}</strong> · do
+                    odświeżenia: <strong>{preview.toUpdateCount}</strong> · do usunięcia:{' '}
                     <strong>{preview.toRemoveCount}</strong>
+                  </p>
+                  <p className="text-muted-foreground text-xs">
+                    Transfery — do dodania: <strong>{preview.transfersToAppend.length}</strong> ·
+                    do odświeżenia: <strong>{preview.transfersToUpdateCount}</strong> · do
+                    usunięcia: <strong>{preview.transfersToRemoveCount}</strong>
                   </p>
                   {preview.toAppend.length > 0 && (
                     <Section
                       title={`Wydatki do dodania (${preview.toAppend.length})`}
                       items={preview.toAppend.map((r) => ({
+                        key: r.transferId,
+                        text: `#${r.transferId} · ${r.typ} · ${formatPLN(Number(r.amount))} · ${r.description} [${r.date}]`,
+                      }))}
+                    />
+                  )}
+                  {preview.transfersToAppend.length > 0 && (
+                    <Section
+                      title={`Transfery do dodania (${preview.transfersToAppend.length})`}
+                      items={preview.transfersToAppend.map((r) => ({
                         key: r.transferId,
                         text: `#${r.transferId} · ${r.typ} · ${formatPLN(Number(r.amount))} · ${r.description} [${r.date}]`,
                       }))}
@@ -171,9 +184,17 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
 }
 
 // Total state-changing operations a confirm would perform — drives the "nothing
-// to do" message and whether the confirm button is enabled (review T3.1).
+// to do" message and whether the confirm button is enabled (review T3.1). The
+// confirm reconciles BOTH tabs, so transfers-tab changes count too.
 function pendingChanges(p: MaterialSyncPreviewT): number {
-  return p.toAppend.length + p.toUpdateCount + p.toRemoveCount
+  return (
+    p.toAppend.length +
+    p.toUpdateCount +
+    p.toRemoveCount +
+    p.transfersToAppend.length +
+    p.transfersToUpdateCount +
+    p.transfersToRemoveCount
+  )
 }
 
 type SectionPropsT = {

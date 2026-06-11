@@ -9,7 +9,13 @@ import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { createSheetFromTemplate, isStorageQuotaError } from '@/lib/google/drive'
 import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
 import { extractSheetId, serviceAccountEmail, verifySheetAccess } from '@/lib/google/sheet-access'
-import { ensureTab, EXPENSES_TAB_CONFIG, setupTab } from '@/lib/google/sheets'
+import {
+  ensureTab,
+  EXPENSES_TAB_CONFIG,
+  setupTab,
+  TRANSFERS_TAB_CONFIG,
+  transferSummaryKeys,
+} from '@/lib/google/sheets'
 import { investmentSchema, type InvestmentFormDataT } from '@/lib/schemas/investment'
 import { validateAction, protectedAction } from './utils'
 
@@ -28,6 +34,7 @@ export async function setupSheetAction(investmentId: number) {
 
     const types = await getExpenseTypeNames(payload)
     await setupTab(sheetId, EXPENSES_TAB_CONFIG, types)
+    await setupTab(sheetId, TRANSFERS_TAB_CONFIG, transferSummaryKeys())
     return { success: true, data: { types } }
   })
 }
@@ -228,6 +235,7 @@ export async function linkSheetAction(investmentId: number, input: string) {
       try {
         const types = await getExpenseTypeNames(payload)
         await ensureTab(sheetId, EXPENSES_TAB_CONFIG, types)
+        await ensureTab(sheetId, TRANSFERS_TAB_CONFIG, transferSummaryKeys())
       } catch (err) {
         console.error(
           `[link-sheet] ensureTab failed for #${investmentId} (non-fatal):`,

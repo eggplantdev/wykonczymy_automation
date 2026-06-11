@@ -3,7 +3,12 @@
 import { applyMaterialSync } from '@/lib/actions/sheets-sync'
 import { ADMIN_OR_OWNER_ROLES } from '@/lib/auth/roles'
 import { extractSheetId, serviceAccountEmail, verifySheetAccess } from '@/lib/google/sheet-access'
-import { EXPENSES_TAB_CONFIG, setupTab } from '@/lib/google/sheets'
+import {
+  EXPENSES_TAB_CONFIG,
+  setupTab,
+  TRANSFERS_TAB_CONFIG,
+  transferSummaryKeys,
+} from '@/lib/google/sheets'
 import { protectedAction } from './utils'
 
 /**
@@ -74,6 +79,7 @@ export async function addUnlinkedSheetAction(input: string, name?: string) {
           .map((c) => (c as { name?: string }).name)
           .filter((n): n is string => !!n)
         await setupTab(googleSheetId, EXPENSES_TAB_CONFIG, types)
+        await setupTab(googleSheetId, TRANSFERS_TAB_CONFIG, transferSummaryKeys())
       } catch (err) {
         console.error(`[sheets] setupTab failed for ${googleSheetId} (non-fatal):`, err)
       }
