@@ -10,6 +10,7 @@ const base: InvestmentFinancialsT = {
   totalLaborCosts: 1000,
   totalPayouts: 0,
   totalRabat: 0,
+  totalLoss: 0,
 }
 
 describe('buildFinancialFields — rabat row', () => {

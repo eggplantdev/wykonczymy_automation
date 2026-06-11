@@ -128,6 +128,7 @@ describe('sumAllInvestmentFinancials', () => {
             total_labor_costs: '200',
             total_payouts: '150',
             total_rabat: '50',
+            total_loss: '120',
           },
           {
             investment_id: '2',
@@ -137,6 +138,7 @@ describe('sumAllInvestmentFinancials', () => {
             total_labor_costs: '0',
             total_payouts: '0',
             total_rabat: '0',
+            total_loss: '0',
           },
         ],
       })
@@ -151,6 +153,7 @@ describe('sumAllInvestmentFinancials', () => {
       totalLaborCosts: 200,
       totalPayouts: 150,
       totalRabat: 50,
+      totalLoss: 120,
     })
     expect(map.get(2)).toEqual({
       categoryCosts: [],
@@ -160,6 +163,7 @@ describe('sumAllInvestmentFinancials', () => {
       totalLaborCosts: 0,
       totalPayouts: 0,
       totalRabat: 0,
+      totalLoss: 0,
     })
   })
 
@@ -292,6 +296,7 @@ describe('deriveFinancials', () => {
       { type: 'LABOR_COST', total: 800 },
       { type: 'PAYOUT', total: 300 },
       { type: 'RABAT', total: 200 },
+      { type: 'LOSS', total: 150 },
     ]
     expect(deriveFinancials(byType)).toEqual({
       categoryCosts: [],
@@ -301,6 +306,7 @@ describe('deriveFinancials', () => {
       totalLaborCosts: 800,
       totalPayouts: 300,
       totalRabat: 200,
+      totalLoss: 150,
     })
   })
 
@@ -313,6 +319,7 @@ describe('deriveFinancials', () => {
       totalLaborCosts: 0,
       totalPayouts: 0,
       totalRabat: 0,
+      totalLoss: 0,
     })
   })
 

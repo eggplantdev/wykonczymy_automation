@@ -10,6 +10,7 @@ const base: InvestmentFinancialsT = {
   totalLaborCosts: 0,
   totalPayouts: 0,
   totalRabat: 0,
+  totalLoss: 0,
 }
 
 describe('calculateBalance', () => {
@@ -34,5 +35,17 @@ describe('calculateBalance', () => {
         totalRabat: 800,
       }),
     ).toBe(5800)
+  })
+
+  it('ignores losses — strata is the company cost, not the investor cost', () => {
+    expect(
+      calculateBalance({
+        ...base,
+        totalIncome: 10000,
+        totalMaterialCosts: 3000,
+        totalLaborCosts: 2000,
+        totalLoss: 1500,
+      }),
+    ).toBe(5000)
   })
 })

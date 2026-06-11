@@ -29,8 +29,13 @@ export function shapeInvestments(
       totalLaborCosts: 0,
       totalPayouts: 0,
       totalRabat: 0,
+      totalLoss: 0,
     }
     const totalCosts = financials.totalMaterialCosts + financials.totalLaborCosts
+    // Sum of the categorised expense breakdown = total INVESTMENT_EXPENSE.
+    // Mirrors the detail page: corrections are uncategorised, so they sit outside
+    // this total (and outside the per-category columns), not folded in.
+    const totalInvestmentExpense = financials.categoryCosts.reduce((sum, c) => sum + c.total, 0)
     return {
       id: inv.id,
       name: inv.name,
@@ -40,6 +45,8 @@ export function shapeInvestments(
       totalIncome: financials.totalIncome,
       totalLaborCosts: financials.totalLaborCosts,
       totalPayouts: financials.totalPayouts,
+      totalInvestmentExpense,
+      categoryCosts: financials.categoryCosts,
       balance: calculateBalance(financials),
       margin: calculateMargin(
         financials.totalLaborCosts,
