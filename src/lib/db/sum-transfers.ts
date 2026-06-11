@@ -239,7 +239,7 @@ export const sumCategoryBreakdown = async (
 }
 
 /** Detects the NO_RESULTS sentinel ({ id: { equals: -1 } }) in a Where clause. */
-export const isNoResultsSentinel = (where: Where): boolean => {
+const isNoResultsSentinel = (where: Where): boolean => {
   const id = where.id as Record<string, unknown> | undefined
   return id !== undefined && 'equals' in id && id.equals === -1
 }

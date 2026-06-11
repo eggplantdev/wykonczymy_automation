@@ -17,7 +17,7 @@ import FormBase from './form-base'
 import { FormControlPropsT } from '../types/form-types'
 import { useFieldContext } from '../hooks/form-hooks'
 
-export type ComboboxItemT = {
+type ComboboxItemT = {
   value: string
   label: string
 }

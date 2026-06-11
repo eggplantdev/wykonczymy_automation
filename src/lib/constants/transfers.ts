@@ -82,8 +82,8 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethodT, string> = {
   // CARD: 'Karta',
 }
 
-export const COST_TYPES: TransferTypeT[] = ['INVESTMENT_EXPENSE', 'LABOR_COST']
-export const INVESTMENT_TYPES: TransferTypeT[] = [
+const COST_TYPES: TransferTypeT[] = ['INVESTMENT_EXPENSE', 'LABOR_COST']
+const INVESTMENT_TYPES: TransferTypeT[] = [
   ...COST_TYPES,
   ...DEPOSIT_TYPES,
   'RABAT',

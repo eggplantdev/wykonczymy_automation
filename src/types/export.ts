@@ -1,7 +1,7 @@
 import type { Where } from 'payload'
 import type { FilterConfigT } from '@/types/filters'
 
-export type ExportContextT = 'investment' | 'register'
+type ExportContextT = 'investment' | 'register'
 
 export type HeaderFieldT = {
   label: string
@@ -11,7 +11,7 @@ export type HeaderFieldT = {
 
 export type FinancialFieldT = HeaderFieldT & { amount: number }
 
-export type TransferQueryT = {
+type TransferQueryT = {
   where: Where
   page: number
   limit: number
