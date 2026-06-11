@@ -139,6 +139,7 @@ export type InvestmentFinancialsT = {
   totalIncome: number
   totalLaborCosts: number
   totalPayouts: number
+  totalRabat: number
 }
 
 /**
@@ -158,7 +159,8 @@ export const sumAllInvestmentFinancials = async (
         COALESCE(SUM(CASE WHEN type = 'CORRECTION' THEN amount ELSE 0 END), 0) AS total_corrections,
         COALESCE(SUM(CASE WHEN type IN ('INVESTOR_DEPOSIT', 'COMPANY_FUNDING', 'OTHER_DEPOSIT') THEN amount ELSE 0 END), 0) AS total_income,
         COALESCE(SUM(CASE WHEN type = 'LABOR_COST' THEN amount ELSE 0 END), 0) AS total_labor_costs,
-        COALESCE(SUM(CASE WHEN type = 'PAYOUT' THEN amount ELSE 0 END), 0) AS total_payouts
+        COALESCE(SUM(CASE WHEN type = 'PAYOUT' THEN amount ELSE 0 END), 0) AS total_payouts,
+        COALESCE(SUM(CASE WHEN type = 'RABAT' THEN amount ELSE 0 END), 0) AS total_rabat
       FROM transactions
       WHERE investment_id IS NOT NULL
         AND cancelled IS NOT TRUE
@@ -197,6 +199,7 @@ export const sumAllInvestmentFinancials = async (
       totalIncome: Number(row.total_income),
       totalLaborCosts: Number(row.total_labor_costs),
       totalPayouts: Number(row.total_payouts),
+      totalRabat: Number(row.total_rabat),
     })
   }
   console.log(`[PERF] query.sumAllInvestmentFinancials ${elapsed()}ms (${map.size} investments)`)
@@ -272,6 +275,7 @@ export function deriveFinancials(
       totalByType(byType, 'OTHER_DEPOSIT'),
     totalLaborCosts: totalByType(byType, 'LABOR_COST'),
     totalPayouts: totalByType(byType, 'PAYOUT'),
+    totalRabat: totalByType(byType, 'RABAT'),
   }
 }
 
