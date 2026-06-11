@@ -28,6 +28,7 @@ export function shapeInvestments(
       totalIncome: 0,
       totalLaborCosts: 0,
       totalPayouts: 0,
+      totalRabat: 0,
     }
     const totalCosts = financials.totalMaterialCosts + financials.totalLaborCosts
     return {
@@ -40,7 +41,11 @@ export function shapeInvestments(
       totalLaborCosts: financials.totalLaborCosts,
       totalPayouts: financials.totalPayouts,
       balance: calculateBalance(financials),
-      margin: calculateMargin(financials.totalLaborCosts, financials.totalPayouts),
+      margin: calculateMargin(
+        financials.totalLaborCosts,
+        financials.totalPayouts,
+        financials.totalRabat,
+      ),
       address: inv.address,
       phone: inv.phone,
       email: inv.email,

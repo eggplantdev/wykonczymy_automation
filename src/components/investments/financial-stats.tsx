@@ -20,12 +20,14 @@ type FinancialStatsPropsT = {
   fields: FinancialFieldT[]
   totalLaborCosts: number
   totalPayouts?: number
+  totalRabat?: number
 }
 
 export function FinancialStats({
   fields,
   totalLaborCosts,
   totalPayouts = 0,
+  totalRabat = 0,
 }: FinancialStatsPropsT) {
   const { role: userRole } = useCurrentUser()
   const toggle = useHeaderFieldsStore((s) => s.toggle)
@@ -59,7 +61,7 @@ export function FinancialStats({
     ...(laborRow.length > 0 ? [laborRow] : []),
     ...(incomeRow.length > 0 ? [incomeRow] : []),
   ]
-  const margin = calculateMargin(totalLaborCosts, totalPayouts)
+  const margin = calculateMargin(totalLaborCosts, totalPayouts, totalRabat)
 
   return (
     <>

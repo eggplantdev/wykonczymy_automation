@@ -72,6 +72,7 @@ describe('shapeInvestments', () => {
         totalIncome: 9547,
         totalLaborCosts: 3900,
         totalPayouts: 1000,
+        totalRabat: 0,
       },
     }
     const [row] = shapeInvestments([baseInv], financials)
