@@ -34,6 +34,7 @@ import * as migration_20260412_add_amount_trigram_index from './20260412_add_amo
 import * as migration_20260525_add_google_sheet_id_to_investments from './20260525_add_google_sheet_id_to_investments'
 import * as migration_20260527_add_unique_google_sheet_id from './20260527_add_unique_google_sheet_id'
 import * as migration_20260528_move_sheet_id_to_kosztoryses from './20260528_move_sheet_id_to_kosztoryses'
+import * as migration_20260611_add_rabat_enum from './20260611_add_rabat_enum'
 
 export const migrations = [
   {
@@ -215,5 +216,10 @@ export const migrations = [
     up: migration_20260528_move_sheet_id_to_kosztoryses.up,
     down: migration_20260528_move_sheet_id_to_kosztoryses.down,
     name: '20260528_move_sheet_id_to_kosztoryses',
+  },
+  {
+    up: migration_20260611_add_rabat_enum.up,
+    down: migration_20260611_add_rabat_enum.down,
+    name: '20260611_add_rabat_enum',
   },
 ]
