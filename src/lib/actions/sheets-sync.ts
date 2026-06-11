@@ -7,23 +7,14 @@ import {
   EXPENSES_TAB_CONFIG,
   readTabTransferIds,
   removeTabRow,
+  type TabRowInputT,
 } from '@/lib/google/sheets'
+import { expenseRow, type TxDocT } from '@/lib/google/tab-rows'
 import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
-import { getRelationName } from '@/lib/get-relation-name'
 import { protectedAction } from './utils'
 
-type AppRowT = {
-  transferId: number
-  date: string
-  typ: string
-  description: string
-  amount: number
-  category: string
-  note: string
-}
-
 export type MaterialSyncPreviewT = {
-  toAppend: AppRowT[]
+  toAppend: TabRowInputT[]
   // What a confirm would ALSO do beyond appends: refresh present rows in place and
   // remove this investment's orphaned rows. Surfaced so the dialog doesn't claim
   // "nothing to do" when there are still updates/removes pending (review T3.1).
@@ -47,64 +38,13 @@ const relId = (rel: unknown): number | undefined =>
       ? (rel as { id?: number }).id
       : undefined
 
-// Payload stores dates as ISO strings (e.g. "2026-05-27T00:00:00.000Z"). Slice the
-// leading YYYY-MM-DD directly — a `new Date(...).toISOString()` round-trip converts
-// to UTC and can land the date a day early for a just-after-midnight local time.
-const isoDate = (d: unknown): string => {
-  if (!d) return ''
-  const match = String(d).match(/^(\d{4}-\d{2}-\d{2})/)
-  return match ? match[1] : new Date(d as string).toISOString().slice(0, 10)
-}
-
-// Coerce a payload amount (number | string) to a finite number, or undefined if it
-// can't be one. Guards against Number('')→0 (silently wrong) and Number('x')→NaN
-// (serialized to the sheet as text), both of which would corrupt the SUMIF totals.
-const finiteAmount = (raw: unknown): number | undefined => {
-  // Number('') and Number('   ') both coerce to 0 — reject blanks first so they
-  // can't masquerade as a finite zero amount.
-  if (raw == null) return undefined
-  if (typeof raw === 'string' && raw.trim() === '') return undefined
-  const n = Number(raw)
-  return Number.isFinite(n) ? n : undefined
-}
-
-type TxDoc = {
-  id: number
-  amount: number | string
-  date?: string | null
-  description?: string | null
-  invoiceNote?: string | null
-  expenseCategory?: unknown
-  otherCategory?: unknown
-}
-
-// + row for an investment expense (skip if it has no expense category → no typ).
-function expenseRow(t: TxDoc): AppRowT | undefined {
-  const typ = getRelationName(t.expenseCategory, '')
-  if (!typ) return undefined
-  const amount = finiteAmount(t.amount)
-  if (amount === undefined) {
-    console.warn(`[sheets-sync] skip expense #${t.id}: non-finite amount ${String(t.amount)}`)
-    return undefined
-  }
-  return {
-    transferId: t.id,
-    date: isoDate(t.date),
-    typ,
-    description: t.description ?? '',
-    amount,
-    category: getRelationName(t.otherCategory, ''),
-    note: t.invoiceNote ?? '',
-  }
-}
-
 // Every row the sheet should hold: each NON-CANCELLED investment expense, one row
 // keyed by its own id. The sheet mirrors active costs — cancelled expenses are
 // excluded here (and their rows removed by the reconciler / on cancel).
 async function loadAppMaterialRows(
   payload: Awaited<ReturnType<typeof getPayload>>,
   investmentId: number,
-): Promise<AppRowT[]> {
+): Promise<TabRowInputT[]> {
   const expenses = await payload.find({
     collection: 'transactions',
     where: {
@@ -119,8 +59,8 @@ async function loadAppMaterialRows(
     overrideAccess: true, // and the reconciler would then delete their (un-enumerated) sheet rows.
   })
 
-  const rows: AppRowT[] = []
-  for (const t of expenses.docs as unknown as TxDoc[]) {
+  const rows: TabRowInputT[] = []
+  for (const t of expenses.docs as unknown as TxDocT[]) {
     const row = expenseRow(t)
     if (row) rows.push(row)
   }
@@ -159,7 +99,7 @@ async function buildSyncPlan(
   payload: Awaited<ReturnType<typeof getPayload>>,
   investmentId: number,
   sheetId: string,
-): Promise<{ appRows: AppRowT[]; toAppend: AppRowT[]; removableIds: number[] }> {
+): Promise<{ appRows: TabRowInputT[]; toAppend: TabRowInputT[]; removableIds: number[] }> {
   const [appRows, current] = await Promise.all([
     loadAppMaterialRows(payload, investmentId),
     readTabTransferIds(sheetId, EXPENSES_TAB_CONFIG),
@@ -300,7 +240,7 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
     // sheet — drop any row it has (review T2.4). removeMaterialRow no-ops if absent.
     const row = (transfer as { cancelled?: boolean }).cancelled
       ? undefined
-      : expenseRow(transfer as unknown as TxDoc)
+      : expenseRow(transfer as unknown as TxDocT)
     if (!row) {
       await removeTabRow(sheetId, EXPENSES_TAB_CONFIG, params.transferId)
       console.log(
@@ -340,12 +280,12 @@ export async function syncBulkExpensesToSheet(transferIds: number[]): Promise<vo
 
     // Group expense rows by investment (a bulk is normally one investment, but the
     // grouping keeps it correct if that ever changes).
-    const rowsByInvestment = new Map<number, AppRowT[]>()
+    const rowsByInvestment = new Map<number, TabRowInputT[]>()
     for (const doc of found.docs) {
       const t = doc as { type?: string; investment?: unknown }
       if (t.type !== 'INVESTMENT_EXPENSE') continue
       const investmentId = relId(t.investment)
-      const row = expenseRow(doc as unknown as TxDoc)
+      const row = expenseRow(doc as unknown as TxDocT)
       if (investmentId === undefined || !row) continue
       const list = rowsByInvestment.get(investmentId) ?? []
       list.push(row)

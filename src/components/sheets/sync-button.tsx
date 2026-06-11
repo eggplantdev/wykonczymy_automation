@@ -145,7 +145,7 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
                       title={`Wydatki do dodania (${preview.toAppend.length})`}
                       items={preview.toAppend.map((r) => ({
                         key: r.transferId,
-                        text: `#${r.transferId} · ${r.typ} · ${formatPLN(r.amount)} · ${r.description} [${r.date}]`,
+                        text: `#${r.transferId} · ${r.typ} · ${formatPLN(Number(r.amount))} · ${r.description} [${r.date}]`,
                       }))}
                     />
                   )}
