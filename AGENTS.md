@@ -21,6 +21,10 @@ docker compose up -d  # local Postgres on port 5433
 
 `pnpm migrate:create` has emitted phantom drift since ~March 2026 (missing `.json` snapshots), so **hand-write migrations**: copy the structure of the latest file in `src/migrations/` and adjust FK constraints / internal Payload tables by hand. Don't trust an auto-generated migration blindly. `pnpm build` runs `payload migrate`.
 
+### Dependencies
+
+Prefer hand-editing `@package.json` over `pnpm remove` / `pnpm install`. On this arm64 machine those re-link `node_modules` and can swap the native `lightningcss` binary to x64 — dropping `lightningcss.darwin-arm64.node` and breaking the Tailwind v4 / Turbopack CSS build with an error that blames `src/styles/globals.css`. Repair: `pnpm install --force`, then `rm -rf .next` and restart dev. Detail: `context/foundation/lessons.md`.
+
 ## Local Environment And Live Data
 
 - The local app points at the real `wykonczymy-db` (`DB_POSTGRES_URL`), which holds the user's real local data. **Never run destructive SQL (DROP, TRUNCATE, restore-from-dump) against it.**
