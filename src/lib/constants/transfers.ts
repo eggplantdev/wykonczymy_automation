@@ -6,6 +6,7 @@ export const TRANSFER_TYPES = [
   'CORRECTION', // Korekta
   'LABOR_COST', // Koszty robocizny
   'RABAT', // Rabat
+  'LOSS', // Strata
   'REGISTER_TRANSFER', // Transfer między kasami
   'INVESTOR_DEPOSIT', // Wpłata od inwestora
   'INVESTMENT_EXPENSE', // Wydatek inwestycyjny
@@ -21,6 +22,7 @@ export const TRANSFER_TYPE_LABELS: Record<TransferTypeT, string> = {
   INVESTMENT_EXPENSE: 'Wydatek inwestycyjny',
   LABOR_COST: 'Koszty robocizny',
   RABAT: 'Rabat',
+  LOSS: 'Strata',
   CORRECTION: 'Korekta',
   PAYOUT: 'Wypłata',
   REGISTER_TRANSFER: 'Transfer między kasami',
@@ -35,6 +37,7 @@ export const TRANSFER_TYPE_COLORS: Record<TransferTypeT, string> = {
   INVESTMENT_EXPENSE: 'chart-red',
   LABOR_COST: 'chart',
   RABAT: 'chart-green',
+  LOSS: 'chart-purple',
   CORRECTION: 'chart-orange',
   PAYOUT: 'chart-red',
   REGISTER_TRANSFER: 'chart-turquoise',
@@ -63,6 +66,7 @@ export const TRANSACTION_TRANSFER_TYPES: TransferTypeT[] = [
   'CORRECTION', // Korekta
   'LABOR_COST', // Koszty robocizny
   'RABAT', // Rabat
+  'LOSS', // Strata
   'INVESTMENT_EXPENSE', // Wydatek inwestycyjny
   'PAYOUT', // Wypłata
 ]
@@ -87,6 +91,7 @@ const INVESTMENT_TYPES: TransferTypeT[] = [
   ...COST_TYPES,
   ...DEPOSIT_TYPES,
   'RABAT',
+  'LOSS',
   'CORRECTION',
   'PAYOUT',
 ]
@@ -106,7 +111,7 @@ export const isDepositType = (type: string) =>
   isTransferType(type) && (DEPOSIT_TYPES as readonly string[]).includes(type)
 
 export const needsSourceRegister = (type: string) =>
-  isTransferType(type) && type !== 'LABOR_COST' && type !== 'RABAT'
+  isTransferType(type) && type !== 'LABOR_COST' && type !== 'RABAT' && type !== 'LOSS'
 
 export const showsInvestment = (type: string) =>
   isTransferType(type) && (INVESTMENT_TYPES as readonly string[]).includes(type)
