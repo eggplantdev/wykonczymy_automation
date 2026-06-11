@@ -338,8 +338,6 @@ const allColumns = [
   }),
 ]
 
-export type TransferColumnIdT = (typeof allColumns)[number]['id']
-
 type ColumnOptionsT = {
   referenceData?: ReferenceDataBaseT
   currentUserId?: number

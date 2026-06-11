@@ -21,8 +21,6 @@ export const createInternalTransferSchema = z
     }
   })
 
-export type CreateInternalTransferFormT = z.infer<typeof createInternalTransferSchema>
-
 /**
  * Client-side form validation schema.
  * Works with string values (HTML inputs) — the server schema handles type conversion.

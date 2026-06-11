@@ -14,5 +14,3 @@ export const iconVariants = cva('shrink-0', {
     size: 'sm',
   },
 })
-
-export type IconSize = 'xs' | 'sm' | 'md' | 'lg'

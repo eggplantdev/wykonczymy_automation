@@ -31,16 +31,6 @@ function PaginationItem({ ...props }: React.ComponentProps<'li'>) {
   return <li data-slot="pagination-item" {...props} />
 }
 
-type PaginationLabelsT = {
-  previous?: string
-  next?: string
-  goToPreviousPage?: string
-  goToNextPage?: string
-  page?: string
-  morePages?: string
-  paginationLabel?: string
-}
-
 type PaginationLinkPropsT = {
   isActive?: boolean
   isDisabled?: boolean
@@ -112,7 +102,6 @@ function PaginationEllipsis({
   )
 }
 
-export type { PaginationLabelsT }
 export {
   Pagination,
   PaginationContent,

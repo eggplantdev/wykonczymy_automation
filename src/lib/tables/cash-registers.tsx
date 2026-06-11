@@ -21,13 +21,6 @@ export const REGISTER_TYPE_LABELS: Record<CashRegisterTypeT, string> = {
   WORKER: 'Pracownicze',
 }
 
-export const REGISTER_TYPE_LABELS_PLURAL: Record<CashRegisterTypeT, string> = {
-  MAIN: 'Główne',
-  AUXILIARY: 'Pomocnicze',
-  VIRTUAL: 'Wirtualne - Telmak',
-  WORKER: 'Pracownicze',
-}
-
 export const REGISTER_TYPE_BORDER_COLORS: Record<CashRegisterTypeT, string> = {
   MAIN: 'border-chart-blue',
   AUXILIARY: 'border-chart-teal',
