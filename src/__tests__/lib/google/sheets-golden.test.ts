@@ -83,8 +83,8 @@ describe('GOLDEN: expenses tab emitted requests', () => {
         ],
       },
     })
-    const { setupMaterialyTab } = await import('@/lib/google/sheets')
-    await setupMaterialyTab('golden-sheet', [
+    const { setupTab, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
+    await setupTab('golden-sheet', EXPENSES_TAB_CONFIG, [
       'Materiały budowlane',
       'Materiały wykończeniowe',
       'Pozostałe koszty',
@@ -99,8 +99,8 @@ describe('GOLDEN: expenses tab emitted requests', () => {
     batchUpdateMock.mockResolvedValueOnce({
       data: { replies: [{ addSheet: { properties: { sheetId: 9 } } }] },
     })
-    const { setupMaterialyTab } = await import('@/lib/google/sheets')
-    await setupMaterialyTab('golden-sheet', ['Materiały budowlane'])
+    const { setupTab, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
+    await setupTab('golden-sheet', EXPENSES_TAB_CONFIG, ['Materiały budowlane'])
     expect(captured()).toMatchSnapshot()
   })
 
@@ -114,9 +114,10 @@ describe('GOLDEN: expenses tab emitted requests', () => {
         ],
       },
     })
-    const { applyMaterialRowsBatch } = await import('@/lib/google/sheets')
-    const res = await applyMaterialRowsBatch(
+    const { applyTabRowsBatch, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
+    const res = await applyTabRowsBatch(
       'golden-sheet',
+      EXPENSES_TAB_CONFIG,
       [
         {
           transferId: 102,

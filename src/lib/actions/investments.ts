@@ -9,7 +9,7 @@ import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { createSheetFromTemplate, isStorageQuotaError } from '@/lib/google/drive'
 import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
 import { extractSheetId, serviceAccountEmail, verifySheetAccess } from '@/lib/google/sheet-access'
-import { ensureMaterialyTab, setupMaterialyTab } from '@/lib/google/sheets'
+import { ensureTab, EXPENSES_TAB_CONFIG, setupTab } from '@/lib/google/sheets'
 import { investmentSchema, type InvestmentFormDataT } from '@/lib/schemas/investment'
 import { validateAction, protectedAction } from './utils'
 
@@ -27,7 +27,7 @@ export async function setupSheetAction(investmentId: number) {
     }
 
     const types = await getExpenseTypeNames(payload)
-    await setupMaterialyTab(sheetId, types)
+    await setupTab(sheetId, EXPENSES_TAB_CONFIG, types)
     return { success: true, data: { types } }
   })
 }
@@ -227,10 +227,10 @@ export async function linkSheetAction(investmentId: number, input: string) {
       // exact hint.
       try {
         const types = await getExpenseTypeNames(payload)
-        await ensureMaterialyTab(sheetId, types)
+        await ensureTab(sheetId, EXPENSES_TAB_CONFIG, types)
       } catch (err) {
         console.error(
-          `[link-sheet] ensureMaterialyTab failed for #${investmentId} (non-fatal):`,
+          `[link-sheet] ensureTab failed for #${investmentId} (non-fatal):`,
           err,
         )
       }

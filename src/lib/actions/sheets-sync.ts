@@ -3,9 +3,10 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import {
-  applyMaterialRowsBatch,
-  readMaterialyTransferIds,
-  removeMaterialRow,
+  applyTabRowsBatch,
+  EXPENSES_TAB_CONFIG,
+  readTabTransferIds,
+  removeTabRow,
 } from '@/lib/google/sheets'
 import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
 import { getRelationName } from '@/lib/get-relation-name'
@@ -161,7 +162,7 @@ async function buildSyncPlan(
 ): Promise<{ appRows: AppRowT[]; toAppend: AppRowT[]; removableIds: number[] }> {
   const [appRows, current] = await Promise.all([
     loadAppMaterialRows(payload, investmentId),
-    readMaterialyTransferIds(sheetId),
+    readTabTransferIds(sheetId, EXPENSES_TAB_CONFIG),
   ])
 
   const toAppend = appRows.filter((r) => !current.has(r.transferId))
@@ -208,8 +209,9 @@ export async function applyMaterialSync(investmentId: number) {
       // present) and drop the removable orphans — O(1) Google API calls, not O(N)
       // (review T4.1). The whole batch succeeds or throws (caught by protectedAction),
       // so there is no per-row partial-error set anymore.
-      const { added, updated, removed } = await applyMaterialRowsBatch(
+      const { added, updated, removed } = await applyTabRowsBatch(
         sheetId,
+        EXPENSES_TAB_CONFIG,
         appRows,
         removableIds,
       )
@@ -235,7 +237,7 @@ export async function removeTransferFromSheet(params: {
     const payload = await getPayload({ config })
     const sheetId = await getInvestmentSheetId(payload, params.investmentId)
     if (!sheetId) return
-    await removeMaterialRow(sheetId, params.transferId)
+    await removeTabRow(sheetId, EXPENSES_TAB_CONFIG, params.transferId)
     console.log(`[sheets-sync] remove transfer #${params.transferId} from sheet ${sheetId}`)
   } catch (err) {
     console.error('[sheets-sync] removeTransferFromSheet failed (non-fatal):', err)
@@ -275,7 +277,7 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
       if (investmentId === undefined) return
       const sheetId = await getInvestmentSheetId(payload, investmentId)
       if (!sheetId) return
-      await removeMaterialRow(sheetId, origId)
+      await removeTabRow(sheetId, EXPENSES_TAB_CONFIG, origId)
       console.log(`[sheets-sync] cancel #${origId}: removed row from sheet ${sheetId}`)
       return
     }
@@ -300,7 +302,7 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
       ? undefined
       : expenseRow(transfer as unknown as TxDoc)
     if (!row) {
-      await removeMaterialRow(sheetId, params.transferId)
+      await removeTabRow(sheetId, EXPENSES_TAB_CONFIG, params.transferId)
       console.log(
         `[sheets-sync] transfer #${params.transferId} cancelled/unmappable → removed from sheet ${sheetId}`,
       )
@@ -309,7 +311,7 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
 
     // One read + one write via the batched path: appends the row if the sheet
     // lacks it, otherwise overwrites the existing row in place.
-    const { added } = await applyMaterialRowsBatch(sheetId, [row], [])
+    const { added } = await applyTabRowsBatch(sheetId, EXPENSES_TAB_CONFIG, [row], [])
     console.log(
       `[sheets-sync] ${added ? 'append' : 'update'} transfer #${params.transferId} → sheet ${sheetId} (${row.typ})`,
     )
@@ -353,7 +355,7 @@ export async function syncBulkExpensesToSheet(transferIds: number[]): Promise<vo
     for (const [investmentId, rows] of rowsByInvestment) {
       const sheetId = await getInvestmentSheetId(payload, investmentId)
       if (!sheetId) continue
-      const { added, updated } = await applyMaterialRowsBatch(sheetId, rows, [])
+      const { added, updated } = await applyTabRowsBatch(sheetId, EXPENSES_TAB_CONFIG, rows, [])
       console.log(
         `[sheets-sync] bulk sync investment #${investmentId} → +${added}/${updated} on sheet ${sheetId}`,
       )

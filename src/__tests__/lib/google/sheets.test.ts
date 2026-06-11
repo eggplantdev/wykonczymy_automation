@@ -50,13 +50,13 @@ beforeEach(() => {
   })
 })
 
-describe('applyMaterialRowsBatch', () => {
+describe('applyTabRowsBatch', () => {
   const TAB = "'wydatki inwestycyjne (tylko do odczytu)'"
 
   it('appends an id the sheet lacks at the row after the last data row', async () => {
     getMock.mockResolvedValueOnce({ data: { values: [HEADER] } }) // header only → append at row 2
-    const { applyMaterialRowsBatch } = await import('@/lib/google/sheets')
-    const res = await applyMaterialRowsBatch('s', [
+    const { applyTabRowsBatch, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
+    const res = await applyTabRowsBatch('s', EXPENSES_TAB_CONFIG, [
       {
         transferId: 101,
         date: '2026-05-27',
@@ -85,8 +85,8 @@ describe('applyMaterialRowsBatch', () => {
 
   it('overwrites an existing id in place via batchUpdate (no append)', async () => {
     getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101], [102]] } }) // 102 → row 3
-    const { applyMaterialRowsBatch } = await import('@/lib/google/sheets')
-    const res = await applyMaterialRowsBatch('s', [
+    const { applyTabRowsBatch, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
+    const res = await applyTabRowsBatch('s', EXPENSES_TAB_CONFIG, [
       {
         transferId: 102,
         date: '2026-05-27',
@@ -121,7 +121,7 @@ describe('applyMaterialRowsBatch', () => {
         ],
       },
     })
-    const { applyMaterialRowsBatch } = await import('@/lib/google/sheets')
+    const { applyTabRowsBatch, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
     const row = (id: number) => ({
       transferId: id,
       date: 'd',
@@ -131,7 +131,7 @@ describe('applyMaterialRowsBatch', () => {
       category: '',
       note: '',
     })
-    const res = await applyMaterialRowsBatch('s', [row(102), row(200)], [101, 103])
+    const res = await applyTabRowsBatch('s', EXPENSES_TAB_CONFIG, [row(102), row(200)], [101, 103])
 
     expect(res).toEqual({ added: 1, updated: 1, removed: 2 })
     expect(valuesAppendMock).not.toHaveBeenCalled()
@@ -159,9 +159,9 @@ describe('applyMaterialRowsBatch', () => {
 
   it('fails loud when the header row is missing required columns', async () => {
     getMock.mockResolvedValueOnce({ data: { values: [['id', 'data', 'opis']] } })
-    const { applyMaterialRowsBatch } = await import('@/lib/google/sheets')
+    const { applyTabRowsBatch, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
     await expect(
-      applyMaterialRowsBatch('s', [
+      applyTabRowsBatch('s', EXPENSES_TAB_CONFIG, [
         { transferId: 1, date: 'd', typ: 't', description: 'x', amount: 1, category: '', note: '' },
       ]),
     ).rejects.toThrow(/header row not found/)
@@ -170,16 +170,16 @@ describe('applyMaterialRowsBatch', () => {
   it('fails loud when a field keyword matches more than one header column (T2.7)', async () => {
     // An extra "Kategoria robót" column also matches the "kategoria" keyword.
     getMock.mockResolvedValueOnce({ data: { values: [[...HEADER, 'Kategoria robót']] } })
-    const { applyMaterialRowsBatch } = await import('@/lib/google/sheets')
+    const { applyTabRowsBatch, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
     await expect(
-      applyMaterialRowsBatch('s', [
+      applyTabRowsBatch('s', EXPENSES_TAB_CONFIG, [
         { transferId: 1, date: 'd', typ: 't', description: 'x', amount: 1, category: '', note: '' },
       ]),
     ).rejects.toThrow(/ambiguous header/)
   })
 })
 
-describe('removeMaterialRow', () => {
+describe('removeTabRow', () => {
   it('deletes only the data columns of the row, leaving the summary columns intact', async () => {
     // id 102 sits on sheet row 3 (header row 1, 101 on row 2, 102 on row 3)
     getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101], [102]] } })
@@ -191,8 +191,8 @@ describe('removeMaterialRow', () => {
         ],
       },
     })
-    const { removeMaterialRow } = await import('@/lib/google/sheets')
-    await removeMaterialRow('s', 102)
+    const { removeTabRow, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
+    await removeTabRow('s', EXPENSES_TAB_CONFIG, 102)
 
     expect(batchUpdateMock).toHaveBeenCalledTimes(1)
     // deleteRange scoped to columns [0, 7) shifts rows below up while the summary
@@ -216,8 +216,8 @@ describe('removeMaterialRow', () => {
 
   it('no-ops when the transferId is not on the sheet', async () => {
     getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101]] } })
-    const { removeMaterialRow } = await import('@/lib/google/sheets')
-    await removeMaterialRow('s', 999)
+    const { removeTabRow, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
+    await removeTabRow('s', EXPENSES_TAB_CONFIG, 999)
     expect(spreadsheetsGetMock).not.toHaveBeenCalled()
     expect(batchUpdateMock).not.toHaveBeenCalled()
   })
@@ -243,10 +243,10 @@ describe('formulaArgSeparator', () => {
   })
 })
 
-describe('buildMaterialySummary', () => {
+describe('buildTabSummary', () => {
   it('uses full-column ranges + literal type-name criteria (drift-proof)', async () => {
-    const { buildMaterialySummary } = await import('@/lib/google/sheets')
-    const { labels, totals } = buildMaterialySummary(
+    const { buildTabSummary, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
+    const { labels, totals } = buildTabSummary(EXPENSES_TAB_CONFIG, 
       ['Materiały budowlane', 'Pozostałe koszty'],
       ';',
     )
@@ -262,17 +262,17 @@ describe('buildMaterialySummary', () => {
   })
 
   it('honors the locale separator and escapes quotes in type names', async () => {
-    const { buildMaterialySummary } = await import('@/lib/google/sheets')
-    const { totals } = buildMaterialySummary(['A "B"'], ',')
+    const { buildTabSummary, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
+    const { totals } = buildTabSummary(EXPENSES_TAB_CONFIG, ['A "B"'], ',')
     expect(totals).toEqual(['=SUM(E:E)', '=SUMIF(C:C, "A ""B""", E:E)'])
   })
 })
 
-describe('readMaterialyTransferIds', () => {
+describe('readTabTransferIds', () => {
   it('maps transferId → row from the id column under the header', async () => {
     getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101], [102], [], [103]] } })
-    const { readMaterialyTransferIds } = await import('@/lib/google/sheets')
-    const map = await readMaterialyTransferIds('s')
+    const { readTabTransferIds, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
+    const map = await readTabTransferIds('s', EXPENSES_TAB_CONFIG)
     expect(map.get(101)).toBe(2)
     expect(map.get(102)).toBe(3)
     expect(map.get(103)).toBe(5)
@@ -283,14 +283,14 @@ describe('readMaterialyTransferIds', () => {
     getMock.mockResolvedValueOnce({
       data: { values: [['PODSUMOWANIE'], ['RAZEM', 800], [], HEADER, [101]] },
     })
-    const { readMaterialyTransferIds } = await import('@/lib/google/sheets')
-    const map = await readMaterialyTransferIds('s')
+    const { readTabTransferIds, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
+    const map = await readTabTransferIds('s', EXPENSES_TAB_CONFIG)
     expect(map.get(101)).toBe(5) // header at row 4, data at row 5
     expect(map.size).toBe(1)
   })
 })
 
-describe('ensureMaterialyTab', () => {
+describe('ensureTab', () => {
   const TAB = 'wydatki inwestycyjne (tylko do odczytu)'
 
   it('leaves an existing tab completely untouched (never wipes manual data)', async () => {
@@ -300,8 +300,8 @@ describe('ensureMaterialyTab', () => {
     spreadsheetsGetMock.mockResolvedValueOnce({
       data: { sheets: [{ properties: { sheetId: 42, title: TAB } }] },
     })
-    const { ensureMaterialyTab } = await import('@/lib/google/sheets')
-    const res = await ensureMaterialyTab('s', ['Materiały budowlane'])
+    const { ensureTab, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
+    const res = await ensureTab('s', EXPENSES_TAB_CONFIG, ['Materiały budowlane'])
     expect(res).toEqual({ created: false })
     expect(valuesClearMock).not.toHaveBeenCalled()
     expect(batchUpdateMock).not.toHaveBeenCalled()
@@ -317,8 +317,8 @@ describe('ensureMaterialyTab', () => {
     batchUpdateMock.mockResolvedValueOnce({
       data: { replies: [{ addSheet: { properties: { sheetId: 7 } } }] },
     })
-    const { ensureMaterialyTab } = await import('@/lib/google/sheets')
-    const res = await ensureMaterialyTab('s', ['Materiały budowlane'])
+    const { ensureTab, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
+    const res = await ensureTab('s', EXPENSES_TAB_CONFIG, ['Materiały budowlane'])
     expect(res).toEqual({ created: true })
     expect(valuesClearMock).toHaveBeenCalled()
   })
