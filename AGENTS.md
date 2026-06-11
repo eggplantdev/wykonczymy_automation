@@ -25,11 +25,12 @@ docker compose up -d  # local Postgres on port 5433
 
 Prefer hand-editing `@package.json` over `pnpm remove` / `pnpm install`. On this arm64 machine those re-link `node_modules` and can swap the native `lightningcss` binary to x64 — dropping `lightningcss.darwin-arm64.node` and breaking the Tailwind v4 / Turbopack CSS build with an error that blames `src/styles/globals.css`. Repair: `pnpm install --force`, then `rm -rf .next` and restart dev. Detail: `context/foundation/lessons.md`.
 
-## Local Environment And Live Data
+## Databases And Live Data
 
-- The local app points at the real `wykonczymy-db` (`DB_POSTGRES_URL`), which holds the user's real local data. **Never run destructive SQL (DROP, TRUNCATE, restore-from-dump) against it.**
+- **The real DB is Neon Postgres** — `DB_POSTGRES_URL_PROD` / `DB_POSTGRES_URL_STAGING` in `.env` are live credentials. **Never run SQL, migrations, or dumps-restores against the Neon URLs**; a human applies prod migrations. A PreToolUse hook blocks prod-DB mutations.
+- The local app points at the docker Postgres on 5433 (`DB_POSTGRES_URL`, db `wykonczymy-db`) — a copy restored from Neon dumps: `pnpm db:dump` (prod → `dumps/dump-latest.sql`, also run by the pre-push hook) and `pnpm db:import` (dump → local). Refreshable, but confirm before wiping it — a restore loses anything entered locally since the last dump.
 - `GOOGLE_SERVICE_ACCOUNT_JSON` and `KOSZTORYS_TEMPLATE_SHEET_ID` in `.env` are real working credentials — Google Sheets writes hit live data.
-- Never `git push` or apply prod migrations (`supabase db push` / `db:push:safe`); a human does that. A PreToolUse hook also blocks it.
+- Never `git push`; a human pushes to remotes. A PreToolUse hook also blocks it.
 
 ## Architecture
 
@@ -96,6 +97,19 @@ Non-obvious rules:
 
 How the financial figures (marża / materiały / robocizna / korekty) connect: `docs/investment-financials-and-discount.md`.
 
+## Testing
+
+Vitest unit specs under `src/__tests__` (aliases `@/*` → `./src/*`); single-file command in **Common Commands**. No E2E harness exists yet.
+
+**Don't hand-roll tests or pick the layer by feel — route to a skill.** Always start from a named risk, never from "cover this file"; the cheapest layer that gives a real signal wins. The trap behind every bad test: assert observable behavior (persisted rows, recalculated balances, returned `ActionResultT`), not the implementation under test — the full anti-pattern lists are owned by the skills, don't restate them here.
+
+- **New code, test-first** → **`/10x-tdd`** (when you can name the first failing test in one sentence and the impl isn't written yet).
+- **Protecting existing code** → `/10x-research` → `/10x-plan` → `/10x-implement`, anchored on the risk.
+- **Browser-level / multi-boundary risk** → **`/10x-e2e`** — but there is no Playwright setup in this repo yet, so setting one up is its own change, not a side effect of a test task.
+- **A bug that slipped past the tests (test-driven debugging) — mandatory, not optional.** Reproduce it with a **failing test first**, then fix — never silently patch. Assert the **persisted / observable state, not the action's return value** — a success result can hide a failed write. The repro test stays as the regression guard for the path that had none.
+
+There is no `context/foundation/test-plan.md` here yet — for a larger test rollout, generate one with `/10x-test-plan` first and anchor new tests on its risks.
+
 ## Project-Specific Code Style
 
 - Do not add `readonly` to type properties, props, or parameters. If you touch a file with unnecessary `readonly`, remove it.
@@ -107,13 +121,8 @@ Known refactor/cleanup backlog (non-blocking, judgment-heavy): `docs/tech-debt-b
 ## Stack Notes
 
 - React Compiler is enabled — don't hand-write `useMemo` / `useCallback` for things it handles
-- Tests live in `src/__tests__`; Vitest aliases `@/*` → `./src/*`
 - `src/app/(payload)/layout.tsx` must include `importMap`, `serverFunction`, and `handleServerFunctions`
 
 ## Environment Variables
 
 Validated at startup in `src/lib/env.ts` — read there for the current required list.
-
-```
-
-```

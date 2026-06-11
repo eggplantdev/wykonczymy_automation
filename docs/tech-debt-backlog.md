@@ -48,6 +48,10 @@ Priority tags: **HIGH** (drift risk / latent bug / biggest win) · MED · LOW.
 - [ ] LOW — `src/components/wykonczymy/{hero,about,contact,projects,nav}.tsx` — the same ~5 hardcoded hex (`#1c1917`/`#78716c`/`#e7e0d8`/`#fdfbf7`) + `text-[0.625rem]` (×5) + `tracking-[0.2em]` repeat across the marketing site, none in `@theme`. Add the palette (`--color-ink/stone/sand/cream`, `--text-2xs`, ease + shadow tokens) to `globals.css`, then the swaps are mechanical.
 - [ ] LOW (a11y) — `src/components/wykonczymy/nav.tsx:34-48` — mobile hamburger is icon-only, 24×24 (< 44px target) and has no `aria-label`.
 
+## Testing
+
+- [ ] **HIGH** — No E2E harness exists (no `playwright.config.ts`, no `e2e/`, no `@playwright/test` dep, no `test:e2e` script) — the money paths (transfer create → register recalculation → marża/bilans, Sheets sync) have zero browser-level coverage. Stand it up directly, no 10x plan chain (decided 2026-06-11): add `@playwright/test`, copy the working config from `/Users/konradantonik/workspace/10x_devs/playwright.config.ts` (prod build, isolated port + dist dir, `reuseExistingServer: false`, system Chrome), one smoke spec in `e2e/`, a `test:e2e` script. Specs run against the local docker Postgres — it's a dump-restored copy of Neon (`pnpm db:import`), not a live DB, so spec cruft is acceptable and a refresh resets it. Follow the 10x_devs model: each spec self-seeds per-run unique data, no wipe/reset in the test flow. Note `/10x-e2e` is plan-coupled, so it drops out with the plan; its `references/` still hold the spec-quality rules (locators, wait-for-state, test independence) worth following by hand.
+
 ## Optional
 
 - [ ] `src/app/global-error.tsx` — currently has no logging (the stray debug log was removed). If you want production error visibility, wire a real reporter (Sentry / structured console) rather than re-adding a debug log.
