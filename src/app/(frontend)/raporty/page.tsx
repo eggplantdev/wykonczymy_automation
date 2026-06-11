@@ -56,8 +56,6 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
         totalPayouts={financials.totalPayouts}
       />
 
-      {/* TODO: ReportChart — unify colors with financial-stats before re-enabling */}
-
       <TransfersSection
         config={{
           query: { where: urlFilters, page, limit },
