@@ -4,12 +4,17 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import {
   applyTabRowsBatch,
+  ensureTab,
   EXPENSES_TAB_CONFIG,
   readTabTransferIds,
   removeTabRow,
+  TRANSFERS_TAB_CONFIG,
+  transferSummaryKeys,
+  type SheetTabConfigT,
   type TabRowInputT,
 } from '@/lib/google/sheets'
-import { expenseRow, type TxDocT } from '@/lib/google/tab-rows'
+import { expenseRow, transferRow, type TxDocT } from '@/lib/google/tab-rows'
+import { SHEET_TRANSFER_TAB_TYPES } from '@/lib/constants/transfers'
 import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
 import { protectedAction } from './utils'
 
@@ -20,6 +25,11 @@ export type MaterialSyncPreviewT = {
   // "nothing to do" when there are still updates/removes pending (review T3.1).
   toUpdateCount: number
   toRemoveCount: number
+  // Same three figures for the transfers tab — the confirm reconciles BOTH tabs,
+  // so a transfers-only pending change must keep the confirm button enabled.
+  transfersToAppend: TabRowInputT[]
+  transfersToUpdateCount: number
+  transfersToRemoveCount: number
   spreadsheetId: string
 }
 
@@ -38,30 +48,64 @@ const relId = (rel: unknown): number | undefined =>
       ? (rel as { id?: number }).id
       : undefined
 
-// Every row the sheet should hold: each NON-CANCELLED investment expense, one row
-// keyed by its own id. The sheet mirrors active costs — cancelled expenses are
-// excluded here (and their rows removed by the reconciler / on cancel).
-async function loadAppMaterialRows(
-  payload: Awaited<ReturnType<typeof getPayload>>,
+type PayloadT = Awaited<ReturnType<typeof getPayload>>
+
+// Everything tab-specific the sync plan needs: which tab to read/write, which
+// transaction types may own a row there (drives the desired-row query AND the
+// orphan-removal guard), and how a transaction doc becomes a row.
+type TabSyncSpecT = {
+  cfg: SheetTabConfigT
+  typeWhere: { equals: string } | { in: string[] }
+  buildRow: (t: TxDocT) => TabRowInputT | undefined
+}
+
+const EXPENSES_SYNC: TabSyncSpecT = {
+  cfg: EXPENSES_TAB_CONFIG,
+  typeWhere: { equals: 'INVESTMENT_EXPENSE' },
+  buildRow: expenseRow,
+}
+
+const TRANSFERS_SYNC: TabSyncSpecT = {
+  cfg: TRANSFERS_TAB_CONFIG,
+  typeWhere: { in: [...SHEET_TRANSFER_TAB_TYPES] },
+  buildRow: transferRow,
+}
+
+// Which tab (if any) mirrors a transaction of this type.
+const tabSyncForType = (type: unknown): TabSyncSpecT | undefined =>
+  type === 'INVESTMENT_EXPENSE'
+    ? EXPENSES_SYNC
+    : (SHEET_TRANSFER_TAB_TYPES as readonly string[]).includes(String(type))
+      ? TRANSFERS_SYNC
+      : undefined
+
+// Every row the tab should hold: each NON-CANCELLED transaction of the tab's
+// types, one row keyed by its own id. The sheet mirrors active transfers —
+// cancelled ones are excluded here (and their rows removed by the reconciler /
+// on cancel). An investment-less transfer (LOSS allows that) never matches the
+// investment filter, so it appears on no sheet.
+async function loadAppRows(
+  payload: PayloadT,
   investmentId: number,
+  tab: TabSyncSpecT,
 ): Promise<TabRowInputT[]> {
-  const expenses = await payload.find({
+  const found = await payload.find({
     collection: 'transactions',
     where: {
       and: [
         { investment: { equals: investmentId } },
-        { type: { equals: 'INVESTMENT_EXPENSE' } },
+        { type: tab.typeWhere },
         { cancelled: { not_equals: true } },
       ],
     },
     depth: 1,
-    limit: 0, // all expenses — a capped find would drop rows 1001+ from the desired set,
+    limit: 0, // all rows — a capped find would drop rows 1001+ from the desired set,
     overrideAccess: true, // and the reconciler would then delete their (un-enumerated) sheet rows.
   })
 
   const rows: TabRowInputT[] = []
-  for (const t of expenses.docs as unknown as TxDocT[]) {
-    const row = expenseRow(t)
+  for (const t of found.docs as unknown as TxDocT[]) {
+    const row = tab.buildRow(t)
     if (row) rows.push(row)
   }
   return rows
@@ -74,35 +118,46 @@ export async function previewMaterialSync(investmentId: number) {
       return { success: false, error: 'Inwestycja nie ma kosztorysu.' }
     }
 
-    const { appRows, toAppend, removableIds } = await buildSyncPlan(payload, investmentId, sheetId)
+    const expenses = await buildSyncPlan(payload, investmentId, sheetId, EXPENSES_SYNC)
+    // The transfers tab may not exist yet (sheets linked before the feature) —
+    // preview treats that as "everything appends"; the apply path creates the tab.
+    const transfers = await buildSyncPlan(payload, investmentId, sheetId, TRANSFERS_SYNC, {
+      emptyIfMissing: true,
+    })
 
     return {
       success: true,
       data: {
-        toAppend,
-        toUpdateCount: appRows.length - toAppend.length,
-        toRemoveCount: removableIds.length,
+        toAppend: expenses.toAppend,
+        toUpdateCount: expenses.appRows.length - expenses.toAppend.length,
+        toRemoveCount: expenses.removableIds.length,
+        transfersToAppend: transfers.toAppend,
+        transfersToUpdateCount: transfers.appRows.length - transfers.toAppend.length,
+        transfersToRemoveCount: transfers.removableIds.length,
         spreadsheetId: sheetId,
       },
     }
   })
 }
 
-// The shared sync plan, used by BOTH preview and apply so they can never disagree:
-// which active expenses to append (missing from the sheet) vs refresh (present),
-// and which sheet rows to remove. Removal is scoped to THIS investment's own
-// expenses — NOT "is this id any transaction" — because ids are dense sequential
-// PKs: an owner's manual number in the id column (a quantity, a year) would
-// otherwise collide with some unrelated transaction (a payout, another
-// investment's expense) and get its row deleted (review T1.1).
+// The shared per-tab sync plan, used by BOTH preview and apply so they can never
+// disagree: which active rows to append (missing from the sheet) vs refresh
+// (present), and which sheet rows to remove. Removal is scoped to THIS
+// investment's own transactions of the tab's types — NOT "is this id any
+// transaction" — because ids are dense sequential PKs: an owner's manual number
+// in the id column (a quantity, a year) would otherwise collide with some
+// unrelated transaction (a payout, another investment's expense) and get its row
+// deleted (review T1.1).
 async function buildSyncPlan(
-  payload: Awaited<ReturnType<typeof getPayload>>,
+  payload: PayloadT,
   investmentId: number,
   sheetId: string,
+  tab: TabSyncSpecT,
+  readOpts: { emptyIfMissing?: boolean } = {},
 ): Promise<{ appRows: TabRowInputT[]; toAppend: TabRowInputT[]; removableIds: number[] }> {
   const [appRows, current] = await Promise.all([
-    loadAppMaterialRows(payload, investmentId),
-    readTabTransferIds(sheetId, EXPENSES_TAB_CONFIG),
+    loadAppRows(payload, investmentId, tab),
+    readTabTransferIds(sheetId, tab.cfg, readOpts),
   ])
 
   const toAppend = appRows.filter((r) => !current.has(r.transferId))
@@ -111,20 +166,20 @@ async function buildSyncPlan(
   const orphanIds = [...current.keys()].filter((id) => !appIds.has(id))
   let removableIds: number[] = []
   if (orphanIds.length > 0) {
-    const removableExpenses = await payload.find({
+    const removable = await payload.find({
       collection: 'transactions',
       where: {
         and: [
           { id: { in: orphanIds } },
           { investment: { equals: investmentId } },
-          { type: { equals: 'INVESTMENT_EXPENSE' } },
+          { type: tab.typeWhere },
         ],
       },
       depth: 0,
-      limit: 0, // enumerate all matches — a truncated page would leave real expense
+      limit: 0, // enumerate all matches — a truncated page would leave real transfer
       overrideAccess: true, // ids unconfirmed, and they'd be wrongly kept as "manual rows".
     })
-    removableIds = removableExpenses.docs.map((d) => d.id as number)
+    removableIds = removable.docs.map((d) => d.id as number)
   }
 
   return { appRows, toAppend, removableIds }
@@ -143,20 +198,38 @@ export async function applyMaterialSync(investmentId: number) {
         return { success: false, error: 'Inwestycja nie ma kosztorysu.' }
       }
 
-      const { appRows, removableIds } = await buildSyncPlan(payload, investmentId, sheetId)
-
-      // One batched write: upsert every active expense (append the missing, heal the
-      // present) and drop the removable orphans — O(1) Google API calls, not O(N)
-      // (review T4.1). The whole batch succeeds or throws (caught by protectedAction),
-      // so there is no per-row partial-error set anymore.
-      const { added, updated, removed } = await applyTabRowsBatch(
+      // One batched write per tab: upsert every active row (append the missing,
+      // heal the present) and drop the removable orphans — O(1) Google API calls
+      // per tab, not O(N) (review T4.1). The whole batch succeeds or throws
+      // (caught by protectedAction), so there is no per-row partial-error set.
+      const expensesPlan = await buildSyncPlan(payload, investmentId, sheetId, EXPENSES_SYNC)
+      const e = await applyTabRowsBatch(
         sheetId,
         EXPENSES_TAB_CONFIG,
-        appRows,
-        removableIds,
+        expensesPlan.appRows,
+        expensesPlan.removableIds,
       )
 
-      return { success: true, data: { added, updated, removed, errors: [] } }
+      // Sheets linked before the transfers tab existed self-heal here: create the
+      // tab if it's missing, then reconcile it like the expenses tab.
+      await ensureTab(sheetId, TRANSFERS_TAB_CONFIG, transferSummaryKeys())
+      const transfersPlan = await buildSyncPlan(payload, investmentId, sheetId, TRANSFERS_SYNC)
+      const t = await applyTabRowsBatch(
+        sheetId,
+        TRANSFERS_TAB_CONFIG,
+        transfersPlan.appRows,
+        transfersPlan.removableIds,
+      )
+
+      return {
+        success: true,
+        data: {
+          added: e.added + t.added,
+          updated: e.updated + t.updated,
+          removed: e.removed + t.removed,
+          errors: [],
+        },
+      }
     },
     // The sheet rows are derived from the investment's expenses; the kosztorys/
     // investment UI reads through the investments cache, so invalidate that.
@@ -166,18 +239,22 @@ export async function applyMaterialSync(investmentId: number) {
 
 /**
  * Remove a transfer's row from a SPECIFIC investment's sheet. Called when an edit
- * reassigns an expense to a different investment — the stale row is dropped from the
- * OLD sheet (the new sheet gets the row via syncSingleTransferToSheet). Never throws.
+ * reassigns a transfer to a different investment — the stale row is dropped from the
+ * OLD sheet (the new sheet gets the row via syncSingleTransferToSheet) — and on
+ * delete. `type` picks the tab; omitted falls back to the expenses tab (defensive,
+ * pre-feature callers). Never throws.
  */
 export async function removeTransferFromSheet(params: {
   transferId: number
   investmentId: number
+  type?: string
 }): Promise<void> {
   try {
+    const cfg = tabSyncForType(params.type)?.cfg ?? EXPENSES_TAB_CONFIG
     const payload = await getPayload({ config })
     const sheetId = await getInvestmentSheetId(payload, params.investmentId)
     if (!sheetId) return
-    await removeTabRow(sheetId, EXPENSES_TAB_CONFIG, params.transferId)
+    await removeTabRow(sheetId, cfg, params.transferId)
     console.log(`[sheets-sync] remove transfer #${params.transferId} from sheet ${sheetId}`)
   } catch (err) {
     console.error('[sheets-sync] removeTransferFromSheet failed (non-fatal):', err)
@@ -202,7 +279,7 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
     if (!transfer) return
 
     // A cancellation no longer adds a reversing row — the sheet mirrors ACTIVE
-    // expenses, so cancelling an expense removes its row from the sheet.
+    // transfers, so cancelling one removes its row from whichever tab held it.
     if (transfer.type === 'CANCELLATION') {
       const origId = relId((transfer as { cancelledTransaction?: unknown }).cancelledTransaction)
       if (origId === undefined) return
@@ -212,17 +289,19 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
         depth: 1,
         overrideAccess: true,
       })
-      if (!original || original.type !== 'INVESTMENT_EXPENSE') return
+      const origTab = tabSyncForType(original?.type)
+      if (!original || !origTab) return
       const investmentId = relId(original.investment)
       if (investmentId === undefined) return
       const sheetId = await getInvestmentSheetId(payload, investmentId)
       if (!sheetId) return
-      await removeTabRow(sheetId, EXPENSES_TAB_CONFIG, origId)
+      await removeTabRow(sheetId, origTab.cfg, origId)
       console.log(`[sheets-sync] cancel #${origId}: removed row from sheet ${sheetId}`)
       return
     }
 
-    if (transfer.type !== 'INVESTMENT_EXPENSE') return
+    const tab = tabSyncForType(transfer.type)
+    if (!tab) return
     const investmentId = relId(transfer.investment)
     if (investmentId === undefined) return
 
@@ -234,24 +313,29 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
       return
     }
 
-    // A cancelled expense (the sheet mirrors ACTIVE costs — this is how cancellation
+    // A cancelled transfer (the sheet mirrors ACTIVE rows — this is how cancellation
     // removal works when driven from the collection hook), or one no longer mappable
     // (category cleared → empty typ, or a non-finite amount), should NOT be on the
-    // sheet — drop any row it has (review T2.4). removeMaterialRow no-ops if absent.
+    // sheet — drop any row it has (review T2.4). removeTabRow no-ops if absent.
     const row = (transfer as { cancelled?: boolean }).cancelled
       ? undefined
-      : expenseRow(transfer as unknown as TxDocT)
+      : tab.buildRow(transfer as unknown as TxDocT)
     if (!row) {
-      await removeTabRow(sheetId, EXPENSES_TAB_CONFIG, params.transferId)
+      await removeTabRow(sheetId, tab.cfg, params.transferId)
       console.log(
         `[sheets-sync] transfer #${params.transferId} cancelled/unmappable → removed from sheet ${sheetId}`,
       )
       return
     }
 
+    // Sheets linked before the transfers tab existed self-heal on first write.
+    if (tab === TRANSFERS_SYNC) {
+      await ensureTab(sheetId, TRANSFERS_TAB_CONFIG, transferSummaryKeys())
+    }
+
     // One read + one write via the batched path: appends the row if the sheet
     // lacks it, otherwise overwrites the existing row in place.
-    const { added } = await applyTabRowsBatch(sheetId, EXPENSES_TAB_CONFIG, [row], [])
+    const { added } = await applyTabRowsBatch(sheetId, tab.cfg, [row], [])
     console.log(
       `[sheets-sync] ${added ? 'append' : 'update'} transfer #${params.transferId} → sheet ${sheetId} (${row.typ})`,
     )
@@ -278,27 +362,35 @@ export async function syncBulkExpensesToSheet(transferIds: number[]): Promise<vo
       overrideAccess: true,
     })
 
-    // Group expense rows by investment (a bulk is normally one investment, but the
+    // Group rows by investment AND tab (a bulk is normally one investment, but the
     // grouping keeps it correct if that ever changes).
-    const rowsByInvestment = new Map<number, TabRowInputT[]>()
+    const rowsByInvestment = new Map<number, Map<TabSyncSpecT, TabRowInputT[]>>()
     for (const doc of found.docs) {
       const t = doc as { type?: string; investment?: unknown }
-      if (t.type !== 'INVESTMENT_EXPENSE') continue
+      const tab = tabSyncForType(t.type)
+      if (!tab) continue
       const investmentId = relId(t.investment)
-      const row = expenseRow(doc as unknown as TxDocT)
+      const row = tab.buildRow(doc as unknown as TxDocT)
       if (investmentId === undefined || !row) continue
-      const list = rowsByInvestment.get(investmentId) ?? []
+      const byTab = rowsByInvestment.get(investmentId) ?? new Map<TabSyncSpecT, TabRowInputT[]>()
+      const list = byTab.get(tab) ?? []
       list.push(row)
-      rowsByInvestment.set(investmentId, list)
+      byTab.set(tab, list)
+      rowsByInvestment.set(investmentId, byTab)
     }
 
-    for (const [investmentId, rows] of rowsByInvestment) {
+    for (const [investmentId, byTab] of rowsByInvestment) {
       const sheetId = await getInvestmentSheetId(payload, investmentId)
       if (!sheetId) continue
-      const { added, updated } = await applyTabRowsBatch(sheetId, EXPENSES_TAB_CONFIG, rows, [])
-      console.log(
-        `[sheets-sync] bulk sync investment #${investmentId} → +${added}/${updated} on sheet ${sheetId}`,
-      )
+      for (const [tab, rows] of byTab) {
+        if (tab === TRANSFERS_SYNC) {
+          await ensureTab(sheetId, TRANSFERS_TAB_CONFIG, transferSummaryKeys())
+        }
+        const { added, updated } = await applyTabRowsBatch(sheetId, tab.cfg, rows, [])
+        console.log(
+          `[sheets-sync] bulk sync investment #${investmentId} (${tab.cfg.tabName}) → +${added}/${updated} on sheet ${sheetId}`,
+        )
+      }
     }
   } catch (err) {
     console.error('[sheets-sync] syncBulkExpensesToSheet failed (non-fatal):', err)

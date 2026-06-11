@@ -10,6 +10,7 @@ const valuesGetMock = vi.fn()
 const valuesAppendMock = vi.fn()
 const valuesUpdateMock = vi.fn()
 const valuesBatchUpdateMock = vi.fn()
+const valuesClearMock = vi.fn()
 const spreadsheetsGetMock = vi.fn()
 const batchUpdateMock = vi.fn()
 
@@ -29,13 +30,14 @@ vi.mock('googleapis', () => ({
           append: valuesAppendMock,
           update: valuesUpdateMock,
           batchUpdate: valuesBatchUpdateMock,
+          clear: valuesClearMock,
         },
       },
     }),
   },
 }))
 
-// The sheet's header row — the sync locates fields by these names.
+// The sheet's header rows — the sync locates fields by these names.
 const SHEET_HEADER = [
   'id',
   'data',
@@ -45,6 +47,18 @@ const SHEET_HEADER = [
   'kategoria',
   'notatka',
 ]
+const TRANSFERS_HEADER = ['id', 'data', 'typ', 'opis', 'kwota', 'pracownik', 'kategoria', 'notatka']
+
+// Spreadsheet metadata with both app-managed tabs present — the default for
+// spreadsheets.get so ensureTab() no-ops instead of running a full setup.
+const BOTH_TABS_META = {
+  data: {
+    sheets: [
+      { properties: { sheetId: 5, title: 'wydatki inwestycyjne (tylko do odczytu)' } },
+      { properties: { sheetId: 6, title: 'transfery (tylko do odczytu)' } },
+    ],
+  },
+}
 
 // ── payload mock ─────────────────────────────────────────────────────────
 
@@ -111,10 +125,20 @@ function findReturns(expenses: object[]) {
 
 // The sync reads the whole grid and locates the header row, then scans the id
 // column below it. We prepend the header, so transferId i lands on sheet row i+2.
-function sheetColIReturns(transferIds: Array<number | null>) {
-  const values = [SHEET_HEADER, ...transferIds.map((id) => (id === null ? [] : [id]))]
-  valuesGetMock.mockResolvedValue({ data: { values } })
+// Range-aware: the dual-tab sync reads BOTH tabs — dispatch on the requested
+// range so each read sees its own tab's grid.
+function sheetGrids(expenseIds: Array<number | null>, transferIds: Array<number | null> = []) {
+  valuesGetMock.mockImplementation(({ range }: { range: string }) =>
+    Promise.resolve({
+      data: {
+        values: range.startsWith("'transfery")
+          ? [TRANSFERS_HEADER, ...transferIds.map((id) => (id === null ? [] : [id]))]
+          : [SHEET_HEADER, ...expenseIds.map((id) => (id === null ? [] : [id]))],
+      },
+    }),
+  )
 }
+const sheetColIReturns = (expenseIds: Array<number | null>) => sheetGrids(expenseIds)
 
 function makeMaterialTransaction(
   id: number,
@@ -137,7 +161,10 @@ beforeEach(() => {
   valuesUpdateMock.mockReset()
   valuesBatchUpdateMock.mockReset()
   valuesBatchUpdateMock.mockResolvedValue({ data: {} })
+  valuesClearMock.mockReset()
+  valuesClearMock.mockResolvedValue({ data: {} })
   spreadsheetsGetMock.mockReset()
+  spreadsheetsGetMock.mockResolvedValue(BOTH_TABS_META)
   batchUpdateMock.mockReset()
   findMock.mockReset()
   findByIDMock.mockReset()
@@ -241,6 +268,7 @@ describe('previewMaterialSync', () => {
         ],
       })
       .mockResolvedValueOnce({ docs: [{ id: 8 }] })
+      .mockResolvedValue({ docs: [] })
     sheetColIReturns([7, 8])
 
     const result = await previewMaterialSync(31)
@@ -250,6 +278,41 @@ describe('previewMaterialSync', () => {
     expect(result.data.toAppend.map((r) => r.transferId)).toEqual([9])
     expect(result.data.toUpdateCount).toBe(1) // #7 present → refreshed
     expect(result.data.toRemoveCount).toBe(1) // #8 orphan → removed
+  })
+
+  it('previews the transfers tab, treating a MISSING tab as all-appends (no throw)', async () => {
+    withSheet(31, 'sheet-1')
+    // [1] expenses load → none; [2] transfers load → one active PAYOUT
+    findMock
+      .mockResolvedValueOnce({ docs: [] })
+      .mockResolvedValueOnce({
+        docs: [
+          {
+            id: 20,
+            type: 'PAYOUT',
+            investment: 31,
+            amount: 300,
+            description: 'wypłata',
+            date: '2026-06-01T00:00:00Z',
+          },
+        ],
+      })
+      .mockResolvedValue({ docs: [] })
+    // expenses tab exists; the transfers tab does NOT (pre-feature sheet) — Google
+    // reports a missing tab as an unparseable range.
+    valuesGetMock.mockImplementation(({ range }: { range: string }) =>
+      range.startsWith("'transfery")
+        ? Promise.reject(new Error("Unable to parse range: 'transfery (tylko do odczytu)'!A:Z"))
+        : Promise.resolve({ data: { values: [SHEET_HEADER] } }),
+    )
+
+    const result = await previewMaterialSync(31)
+
+    expect(result.success).toBe(true)
+    if (!result.success) throw new Error('expected success')
+    expect(result.data.transfersToAppend.map((r) => r.transferId)).toEqual([20])
+    expect(result.data.transfersToUpdateCount).toBe(0)
+    expect(result.data.transfersToRemoveCount).toBe(0)
   })
 })
 
@@ -312,14 +375,10 @@ describe('applyMaterialSync', () => {
         docs: [makeMaterialTransaction(7, 'Materiały budowlane', { amount: 100 })],
       })
       .mockResolvedValueOnce({ docs: [{ id: 8 }] })
+      .mockResolvedValue({ docs: [] })
     // sheet has the active #7, a real-but-orphan #8 (e.g. cancelled), and a manual #9999
     sheetColIReturns([7, 8, 9999])
-    // removeMaterialRow needs the tab gid
-    spreadsheetsGetMock.mockResolvedValue({
-      data: {
-        sheets: [{ properties: { sheetId: 5, title: 'wydatki inwestycyjne (tylko do odczytu)' } }],
-      },
-    })
+    // removal resolves the tab gid from the BOTH_TABS_META default
 
     const result = await applyMaterialSync(31)
 
@@ -340,6 +399,7 @@ describe('applyMaterialSync', () => {
         docs: [makeMaterialTransaction(7, 'Materiały budowlane', { amount: 100 })],
       })
       .mockResolvedValueOnce({ docs: [] })
+      .mockResolvedValue({ docs: [] })
     sheetColIReturns([7, 8])
 
     await applyMaterialSync(31)
@@ -366,12 +426,8 @@ describe('applyMaterialSync', () => {
         docs: [makeMaterialTransaction(7, 'Materiały budowlane', { amount: 100 })],
       })
       .mockResolvedValueOnce({ docs: [] })
+      .mockResolvedValue({ docs: [] })
     sheetColIReturns([7, 8])
-    spreadsheetsGetMock.mockResolvedValue({
-      data: {
-        sheets: [{ properties: { sheetId: 5, title: 'wydatki inwestycyjne (tylko do odczytu)' } }],
-      },
-    })
 
     const result = await applyMaterialSync(31)
 
@@ -379,6 +435,106 @@ describe('applyMaterialSync', () => {
     if (!result.success) throw new Error('expected success')
     expect(result.data.removed).toBe(0)
     expect(batchUpdateMock).not.toHaveBeenCalled()
+  })
+})
+
+// ── applyMaterialSync — transfers tab ───────────────────────────────────────
+
+describe('applyMaterialSync — transfers tab', () => {
+  function makeTransfer(
+    id: number,
+    type: string,
+    overrides: Partial<{ amount: number; worker: { name: string }; cancelled: boolean }> = {},
+  ) {
+    return {
+      id,
+      type,
+      investment: 31,
+      amount: overrides.amount ?? 100,
+      description: `tx-${id}`,
+      date: '2026-06-01T00:00:00Z',
+      ...overrides,
+    }
+  }
+
+  it('reconciles the transfers tab too and sums counts across tabs', async () => {
+    withSheet(31, 'sheet-1')
+    // [1] expenses load → #7 present on the sheet (update); [2] transfers load →
+    // PAYOUT #20 missing from the transfers tab (append).
+    findMock
+      .mockResolvedValueOnce({
+        docs: [makeMaterialTransaction(7, 'Materiały budowlane', { amount: 100 })],
+      })
+      .mockResolvedValueOnce({
+        docs: [makeTransfer(20, 'PAYOUT', { amount: 300, worker: { name: 'Jan' } })],
+      })
+      .mockResolvedValue({ docs: [] })
+    sheetGrids([7], [])
+
+    const result = await applyMaterialSync(31)
+
+    expect(result.success).toBe(true)
+    if (!result.success) throw new Error('expected success')
+    expect(result.data).toEqual({ added: 1, updated: 1, removed: 0, errors: [] })
+    // two writes: expenses tab first, transfers tab second
+    expect(valuesBatchUpdateMock).toHaveBeenCalledTimes(2)
+    expect(valuesBatchUpdateMock.mock.calls[0][0].requestBody.data[0].range).toBe(
+      "'wydatki inwestycyjne (tylko do odczytu)'!A2",
+    )
+    const transferCells = valuesBatchUpdateMock.mock.calls[1][0].requestBody.data
+    expect(transferCells[0].range).toBe("'transfery (tylko do odczytu)'!A2")
+    expect(transferCells).toHaveLength(8) // 8 mapped columns incl. pracownik
+    expect(transferCells[2].values).toEqual([['Wypłata']]) // typ = PL label
+    expect(transferCells[5].values).toEqual([['Jan']]) // F = pracownik
+  })
+
+  it('scopes the transfers orphan guard to this investment and the six types', async () => {
+    withSheet(31, 'sheet-1')
+    findMock.mockResolvedValue({ docs: [] })
+    // transfers tab holds #55, which no longer maps to an active transfer
+    sheetGrids([], [55])
+
+    await applyMaterialSync(31)
+
+    // [0] kosztoryses; [1] expenses load; [2] transfers load; [3] transfers orphan lookup
+    const orphanWhere = findMock.mock.calls[3][0].where
+    expect(orphanWhere.and).toEqual(
+      expect.arrayContaining([
+        { id: { in: [55] } },
+        { investment: { equals: 31 } },
+        {
+          type: {
+            in: ['INVESTOR_DEPOSIT', 'LABOR_COST', 'RABAT', 'PAYOUT', 'CORRECTION', 'LOSS'],
+          },
+        },
+      ]),
+    )
+  })
+
+  it('creates the transfers tab first when it is missing (self-heal on old sheets)', async () => {
+    withSheet(31, 'sheet-1')
+    findMock.mockResolvedValue({ docs: [] })
+    sheetGrids([], [])
+    // metadata shows only the expenses tab → ensureTab must run the full setup
+    spreadsheetsGetMock.mockResolvedValue({
+      data: {
+        properties: { locale: 'pl_PL' },
+        sheets: [{ properties: { sheetId: 5, title: 'wydatki inwestycyjne (tylko do odczytu)' } }],
+      },
+    })
+    // setup's addSheet must surface a gid
+    batchUpdateMock.mockResolvedValueOnce({
+      data: { replies: [{ addSheet: { properties: { sheetId: 99 } } }] },
+    })
+
+    const result = await applyMaterialSync(31)
+
+    expect(result.success).toBe(true)
+    const addSheetReq = batchUpdateMock.mock.calls[0][0].requestBody.requests[0]
+    expect(addSheetReq).toEqual({
+      addSheet: { properties: { title: 'transfery (tylko do odczytu)' } },
+    })
+    expect(valuesClearMock).toHaveBeenCalledTimes(1) // setup cleared only the new tab
   })
 })
 
@@ -471,6 +627,66 @@ describe('syncSingleTransferToSheet', () => {
   })
 })
 
+// ── syncSingleTransferToSheet — transfers tab routing ──────────────────────
+
+describe('syncSingleTransferToSheet — transfers tab routing', () => {
+  it('routes a PAYOUT to the transfers tab', async () => {
+    findByIDMock.mockResolvedValue({
+      id: 201,
+      type: 'PAYOUT',
+      investment: 31,
+      amount: 300,
+      worker: { name: 'Jan' },
+      description: 'wypłata',
+      date: '2026-06-01T00:00:00Z',
+    })
+    withSheet(31, 'sheet-1')
+    sheetGrids([], []) // transfers tab empty → append at row 2
+
+    await syncSingleTransferToSheet({ transferId: 201 })
+
+    expect(valuesBatchUpdateMock).toHaveBeenCalledTimes(1)
+    const cells = valuesBatchUpdateMock.mock.calls[0][0].requestBody.data
+    expect(cells[0].range).toBe("'transfery (tylko do odczytu)'!A2")
+    expect(cells).toHaveLength(8)
+    expect(cells[5].values).toEqual([['Jan']])
+  })
+
+  it('removes the original LABOR_COST row from the transfers tab when a CANCELLATION is synced', async () => {
+    findByIDMock.mockImplementation(({ id }: { id: number }) => {
+      if (id === 2460)
+        return Promise.resolve({ id: 2460, type: 'CANCELLATION', cancelledTransaction: 2459 })
+      return Promise.resolve({ id: 2459, type: 'LABOR_COST', investment: 31 })
+    })
+    withSheet(31, 'sheet-1')
+    sheetGrids([], [2459]) // original sits on row 2 of the TRANSFERS tab
+
+    await syncSingleTransferToSheet({ transferId: 2460 })
+
+    expect(batchUpdateMock).toHaveBeenCalledTimes(1)
+    expect(batchUpdateMock.mock.calls[0][0].requestBody.requests[0].deleteRange).toEqual({
+      range: {
+        sheetId: 6, // transfers tab gid from BOTH_TABS_META
+        startRowIndex: 1,
+        endRowIndex: 2,
+        startColumnIndex: 0,
+        endColumnIndex: 8, // transfers tab has 8 data columns
+      },
+      shiftDimension: 'ROWS',
+    })
+    expect(valuesBatchUpdateMock).not.toHaveBeenCalled()
+  })
+
+  it('ignores types outside the sheet-synced set', async () => {
+    findByIDMock.mockResolvedValue({ id: 300, type: 'REGISTER_TRANSFER', amount: 50 })
+
+    await syncSingleTransferToSheet({ transferId: 300 })
+
+    expect(valuesGetMock).not.toHaveBeenCalled()
+    expect(valuesBatchUpdateMock).not.toHaveBeenCalled()
+  })
+})
+
 // ── removeTransferFromSheet ────────────────────────────────────────────────
 
 describe('removeTransferFromSheet', () => {
@@ -503,5 +719,17 @@ describe('removeTransferFromSheet', () => {
     await removeTransferFromSheet({ transferId: 55, investmentId: 31 })
     expect(valuesGetMock).not.toHaveBeenCalled()
     expect(batchUpdateMock).not.toHaveBeenCalled()
+  })
+
+  it('routes by type: a PAYOUT row is deleted from the transfers tab', async () => {
+    withSheet(31, 'sheet-old')
+    sheetGrids([], [55]) // id 55 on row 2 of the TRANSFERS tab
+
+    await removeTransferFromSheet({ transferId: 55, investmentId: 31, type: 'PAYOUT' })
+
+    expect(batchUpdateMock).toHaveBeenCalledTimes(1)
+    const { range } = batchUpdateMock.mock.calls[0][0].requestBody.requests[0].deleteRange
+    expect(range.sheetId).toBe(6) // transfers tab gid
+    expect(range.endColumnIndex).toBe(8)
   })
 })

@@ -1,5 +1,6 @@
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
 import { after } from 'next/server'
+import { SHEET_TRANSFER_TAB_TYPES } from '@/lib/constants/transfers'
 
 // sheets-sync is a 'use server' module (it pulls in `server-only` + the Payload
 // config), so it's imported LAZILY inside after() — a static import here would poison
@@ -21,13 +22,17 @@ const resolveId = (value: unknown): number | undefined => {
 // Deferred via after() so the mutation response isn't blocked on the Google API.
 // The bulk-create action sets context.skipSheetSync and batches the sync itself
 // (review T4.2), so we don't fire N per-row syncs from here.
+// Types that own a row on one of the app-managed tabs: expenses tab for
+// INVESTMENT_EXPENSE, transfery tab for the six investment-linked types.
+const SHEET_SYNCED_TYPES: readonly string[] = ['INVESTMENT_EXPENSE', ...SHEET_TRANSFER_TAB_TYPES]
+
 export const syncSheetAfterChange: CollectionAfterChangeHook = ({ doc, previousDoc, context }) => {
   if (context?.skipSheetSync) return doc
-  // Only expense rows touch the sheet. Cancellation is handled here too: cancelling
-  // flips the original expense's `cancelled` flag (an INVESTMENT_EXPENSE afterChange),
-  // and syncSingleTransferToSheet removes a cancelled expense's row. The separate
-  // CANCELLATION audit row is not itself a sheet row, so it's skipped.
-  if (doc.type !== 'INVESTMENT_EXPENSE') return doc
+  // Only tab-owning rows touch the sheet. Cancellation is handled here too:
+  // cancelling flips the original transfer's `cancelled` flag (an afterChange of
+  // its own type), and syncSingleTransferToSheet removes a cancelled row. The
+  // separate CANCELLATION audit row is not itself a sheet row, so it's skipped.
+  if (!SHEET_SYNCED_TYPES.includes(doc.type)) return doc
 
   const transferId = doc.id as number
   const prevInvestmentId = resolveId(previousDoc?.investment)
@@ -40,7 +45,7 @@ export const syncSheetAfterChange: CollectionAfterChangeHook = ({ doc, previousD
     // when an edit omits the field — closes review T2.3): drop the stale row from the
     // OLD sheet first, then sync to the current one.
     if (prevInvestmentId !== undefined && prevInvestmentId !== investmentId) {
-      await removeTransferFromSheet({ transferId, investmentId: prevInvestmentId })
+      await removeTransferFromSheet({ transferId, investmentId: prevInvestmentId, type: doc.type })
     }
     await syncSingleTransferToSheet({ transferId })
   })
@@ -49,11 +54,11 @@ export const syncSheetAfterChange: CollectionAfterChangeHook = ({ doc, previousD
 
 export const syncSheetAfterDelete: CollectionAfterDeleteHook = ({ doc }) => {
   const investmentId = resolveId(doc.investment)
-  if (doc.type !== 'INVESTMENT_EXPENSE' || investmentId === undefined) return doc
+  if (!SHEET_SYNCED_TYPES.includes(doc.type) || investmentId === undefined) return doc
   const transferId = doc.id as number
   after(async () => {
     const { removeTransferFromSheet } = await import('@/lib/actions/sheets-sync')
-    await removeTransferFromSheet({ transferId, investmentId })
+    await removeTransferFromSheet({ transferId, investmentId, type: doc.type })
   })
   return doc
 }

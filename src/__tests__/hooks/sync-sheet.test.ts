@@ -63,12 +63,27 @@ describe('syncSheetAfterChange', () => {
       doc: { id: 10, type: 'INVESTMENT_EXPENSE', investment: 9 },
       previousDoc: { id: 10, type: 'INVESTMENT_EXPENSE', investment: 2 },
     })
-    expect(mockRemoveFromSheet).toHaveBeenCalledWith({ transferId: 10, investmentId: 2 })
+    expect(mockRemoveFromSheet).toHaveBeenCalledWith({
+      transferId: 10,
+      investmentId: 2,
+      type: 'INVESTMENT_EXPENSE',
+    })
     expect(mockSyncSingle).toHaveBeenCalledWith({ transferId: 10 })
   })
 
-  it('skips non-expense types', async () => {
-    await change({ doc: { id: 10, type: 'LABOR_COST', investment: 2 } })
+  it('syncs each transfers-tab type (the six mirrored on the transfery tab)', async () => {
+    const six = ['INVESTOR_DEPOSIT', 'LABOR_COST', 'RABAT', 'PAYOUT', 'CORRECTION', 'LOSS']
+    for (const type of six) {
+      mockSyncSingle.mockReset()
+      await change({ doc: { id: 10, type, investment: 2 } })
+      expect(mockSyncSingle).toHaveBeenCalledWith({ transferId: 10 })
+    }
+  })
+
+  it('skips types with no sheet tab (not expenses, not one of the six)', async () => {
+    for (const type of ['REGISTER_TRANSFER', 'OTHER', 'COMPANY_FUNDING', 'OTHER_DEPOSIT', 'CANCELLATION']) {
+      await change({ doc: { id: 10, type, investment: 2 } })
+    }
     expect(mockSyncSingle).not.toHaveBeenCalled()
     expect(mockRemoveFromSheet).not.toHaveBeenCalled()
   })
@@ -85,11 +100,25 @@ describe('syncSheetAfterChange', () => {
 describe('syncSheetAfterDelete', () => {
   it('removes a deleted expense from its sheet', async () => {
     await del({ doc: { id: 10, type: 'INVESTMENT_EXPENSE', investment: 2 } })
-    expect(mockRemoveFromSheet).toHaveBeenCalledWith({ transferId: 10, investmentId: 2 })
+    expect(mockRemoveFromSheet).toHaveBeenCalledWith({
+      transferId: 10,
+      investmentId: 2,
+      type: 'INVESTMENT_EXPENSE',
+    })
   })
 
-  it('skips non-expense deletes', async () => {
+  it('removes a deleted transfers-tab transfer from its sheet, routed by type', async () => {
+    await del({ doc: { id: 11, type: 'PAYOUT', investment: 2 } })
+    expect(mockRemoveFromSheet).toHaveBeenCalledWith({
+      transferId: 11,
+      investmentId: 2,
+      type: 'PAYOUT',
+    })
+  })
+
+  it('skips deletes of types with no sheet tab', async () => {
     await del({ doc: { id: 10, type: 'CANCELLATION', investment: 2 } })
+    await del({ doc: { id: 12, type: 'REGISTER_TRANSFER', investment: 2 } })
     expect(mockRemoveFromSheet).not.toHaveBeenCalled()
   })
 })
