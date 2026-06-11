@@ -5,6 +5,7 @@ export const TRANSFER_TYPES = [
   'OTHER', // Inny wydatek
   'CORRECTION', // Korekta
   'LABOR_COST', // Koszty robocizny
+  'RABAT', // Rabat
   'REGISTER_TRANSFER', // Transfer między kasami
   'INVESTOR_DEPOSIT', // Wpłata od inwestora
   'INVESTMENT_EXPENSE', // Wydatek inwestycyjny
@@ -19,6 +20,7 @@ export const TRANSFER_TYPE_LABELS: Record<TransferTypeT, string> = {
   OTHER_DEPOSIT: 'Inna wpłata',
   INVESTMENT_EXPENSE: 'Wydatek inwestycyjny',
   LABOR_COST: 'Koszty robocizny',
+  RABAT: 'Rabat',
   CORRECTION: 'Korekta',
   PAYOUT: 'Wypłata',
   REGISTER_TRANSFER: 'Transfer między kasami',
@@ -32,6 +34,7 @@ export const TRANSFER_TYPE_COLORS: Record<TransferTypeT, string> = {
   OTHER_DEPOSIT: 'chart-green',
   INVESTMENT_EXPENSE: 'chart-red',
   LABOR_COST: 'chart',
+  RABAT: 'chart-green',
   CORRECTION: 'chart-orange',
   PAYOUT: 'chart-red',
   REGISTER_TRANSFER: 'chart-turquoise',
@@ -59,6 +62,7 @@ export const TRANSACTION_TRANSFER_TYPES: TransferTypeT[] = [
   'OTHER', // Inny wydatek
   'CORRECTION', // Korekta
   'LABOR_COST', // Koszty robocizny
+  'RABAT', // Rabat
   'INVESTMENT_EXPENSE', // Wydatek inwestycyjny
   'PAYOUT', // Wypłata
 ]
@@ -82,6 +86,7 @@ export const COST_TYPES: TransferTypeT[] = ['INVESTMENT_EXPENSE', 'LABOR_COST']
 export const INVESTMENT_TYPES: TransferTypeT[] = [
   ...COST_TYPES,
   ...DEPOSIT_TYPES,
+  'RABAT',
   'CORRECTION',
   'PAYOUT',
 ]
@@ -92,14 +97,18 @@ export const isTransferType = (type: string): type is TransferTypeT =>
 export const isDepositType = (type: string) =>
   isTransferType(type) && (DEPOSIT_TYPES as readonly string[]).includes(type)
 
-export const needsSourceRegister = (type: string) => isTransferType(type) && type !== 'LABOR_COST'
+export const needsSourceRegister = (type: string) =>
+  isTransferType(type) && type !== 'LABOR_COST' && type !== 'RABAT'
 
 export const showsInvestment = (type: string) =>
   isTransferType(type) && (INVESTMENT_TYPES as readonly string[]).includes(type)
 
 export const requiresInvestment = (type: string) =>
   isTransferType(type) &&
-  (type === 'INVESTOR_DEPOSIT' || type === 'INVESTMENT_EXPENSE' || type === 'LABOR_COST')
+  (type === 'INVESTOR_DEPOSIT' ||
+    type === 'INVESTMENT_EXPENSE' ||
+    type === 'LABOR_COST' ||
+    type === 'RABAT')
 
 export const needsTargetRegister = (type: string) =>
   isTransferType(type) && type === 'REGISTER_TRANSFER'
