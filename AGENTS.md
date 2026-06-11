@@ -87,9 +87,10 @@ The transfer-type union lives in `src/collections/transfers.ts` — read it ther
 
 Non-obvious rules:
 
-- `LABOR_COST` (robocizna) has **no source register** — it is a billing/markup figure, not a cash movement. It feeds the margin (`marża = robocizna − wypłaty − rabat`), not the cash ledger.
+- `LABOR_COST` (robocizna) has **no source register** — it is a billing/markup figure, not a cash movement. It feeds the margin (`marża = robocizna − wypłaty − rabat − strata`), not the cash ledger.
 - `CORRECTION` may be negative (invoice credits).
 - `RABAT` (rabat) is a labour discount: **no source register**, positive amount, requires an investment. It hits **both** figures — lowers `marża` and raises `bilans` (the client owes less) — unlike `CORRECTION`, which moves only the balance.
+- `LOSS` (strata) is a company-absorbed cost: **no source register**, positive amount, investment **optional**. It only lowers `marża`; `bilans` is untouched — unlike `RABAT`, which moves both.
 - Cancellation is an audit trail: the original is marked `cancelled: true`, a new `CANCELLATION` row links back to it.
 - Cash register balances are recalculated via Payload hooks on transfer create and delete.
 

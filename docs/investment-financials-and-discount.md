@@ -5,9 +5,10 @@
 > `src/components/investments/financial-stats.tsx`.
 > Client request transcript: `docs/notes`.
 
-> **Status (2026-06-11):** Request B (Rabat) is **implemented**. The base formulas in the
-> diagrams below describe the pre-rabat model that motivated the change; the live formulas are
-> now `marża = robocizna − wypłaty − rabat` and `bilans = wpłaty − materiały − robocizna + rabat`.
+> **Status (2026-06-11):** Request B (Rabat) and the `LOSS` (Strata) type are **implemented**.
+> The base formulas in the diagrams below describe the pre-rabat model that motivated the
+> change; the live formulas are now `marża = robocizna − wypłaty − rabat − strata` and
+> `bilans = wpłaty − materiały − robocizna + rabat`.
 > Request A (R+M internal material) is **not** built yet.
 
 ## TL;DR — the one thing that's non-obvious
@@ -163,6 +164,13 @@ whole reason the client says "korekta nie wystarczy".
   source register; it lowers `marża` and raises `bilans`. See the funnel `deriveFinancials`
   (`totalRabat`), `calculate-margin.ts`, `calculate-balance.ts`, and the green "Rabat" line in
   `financial-stats.tsx` / `map-category-costs.ts`.
+- **`LOSS` (Strata) type is implemented** (2026-06-11). A cost the company absorbs itself:
+  positive amount, no source register, investment **optional** (unattached losses hit only the
+  global marża on Raporty). It lowers `marża` and — the one-line contrast with RABAT — leaves
+  `bilans` completely untouched (`calculate-balance.ts` does not read `totalLoss`; a test pins
+  this). Displayed as its own purple "Strata" stat in `financial-stats.tsx`, deliberately kept
+  out of `buildFinancialFields` so it never enters the bilans toggle sum or the client-facing
+  export. Spec: `docs/superpowers/specs/2026-06-11-loss-strata-transfer-type-design.md`.
 - **No R+M / "niepodlegające rozliczeniu" material type exists.**
 - `marża` and `bilans` are hardcoded formulas (`calculate-margin.ts`,
   `calculate-balance.ts`) — they have no concept of either new line.
