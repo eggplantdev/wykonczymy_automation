@@ -1,10 +1,46 @@
 # Full-scan report — wykonczymy
 
+## ✅ To-do checklist (easy → hard)
+
+> Gate **every** dead-code deletion on `pnpm typecheck` — `grep` alone is not enough. It already false-flagged `column-meta.ts` (a TS module augmentation) as orphaned; deleting it broke the build.
+
+**Done**
+
+- [x] Remove stray debug log — `src/app/global-error.tsx` (commit `1686ae0`)
+- [x] Delete `ui/confirm-close-dialog.tsx` (obsolete — replaced by Zustand form persistence) + `ui/print-button.tsx` (superseded by `transfers/print-button.tsx`) — typecheck green
+- [x] Remove recharts cluster — `reports/report-charts.tsx` + `ui/chart.tsx` + `recharts` dep + stale `ReportChart` TODO in `raporty/page.tsx` — typecheck green
+- [x] Remove `src/seed.ts` (orphaned dev seeder; npm `seed:*` scripts use `src/scripts/seed-*.ts`)
+
+**Easy — dead code** (delete one → `typecheck` → keep only if green)
+
+- [ ] Delete remaining confirmed-orphaned files — UI: `card-box`, `rainbow-button`, `input-group`, `section-header`, `skeleton`, `tag`, `ImageMedia`; icons: `calendar-add/approved/processing-icon`, `dot-icon`; plus `downloadFile.ts`, `types/users.ts`, `form-components/index.ts` (~13 files) — re-verify each by export name + import path, not bare grep
+- [ ] ⚠️ KEEP `src/lib/tables/column-meta.ts` — NOT dead; it augments `ColumnMeta` (`canHide`/`label`/`align`)
+- [ ] Remove 4 unused non-CSS deps via `pnpm remove`: `next-themes`, `swiper`, `usehooks-ts`, `isomorphic-dompurify`
+- [ ] Remove unused exports: `perf()`, `COST_TYPES`, `INVESTMENT_TYPES`, `SHEET_STATUSES`, `isNoResultsSentinel`, `REGISTER_TYPE_LABELS_PLURAL` (+ ~10 unused types)
+- [ ] Rename `isValidUrl.ts` → `is-valid-url.ts` (kebab-case)
+
+**Decisions needed** (your call first)
+
+- [ ] ⚠️ **Shadcn enter/exit animations are dead** — neither `tailwindcss-animate` nor `tw-animate-css` is loaded in `globals.css`, but 9 components (`dialog`, `alert-dialog`, `popover`, `dropdown-menu`, `select`, `tooltip`, `checkbox`, `field`, `collapsible-section`) use `animate-in`/`fade-in-0`/`zoom-in-95`/`slide-in-*` (not in v4 core). **A (restore, recommended):** add `@import 'tw-animate-css';`, keep `tw-animate-css`, drop `tailwindcss-animate`. **B (drop):** remove both, accept no animations.
+- [ ] Safe-to-remove config deps (verified not loaded): `@tailwindcss/forms`, `@tailwindcss/typography`, `autoprefixer` (v4 auto-prefixes); plus `eslint-config-next`/`eslint-config-prettier` (verify `eslint.config.mjs` first)
+
+**Hard — refactors** (judgment-heavy, separate sessions)
+
+- [ ] Extract a shared form-shell from the 5 transfer forms (biggest win)
+- [ ] Fix divergent `worker`/`investment` schemas (`number` vs `string`) — latent bug
+- [ ] Dedup `collections/transfers.ts` predicates vs `lib/constants/transfers.ts`
+- [ ] Split god-files: `lib/db/sum-transfers.ts` (409 LOC), `lib/google/sheets.ts` (734 LOC)
+- [ ] Untangle the `lib/` root junk-drawer (domain-finance → `lib/db`)
+
+---
+
+# Full-scan report — wykonczymy
+
 **Mode:** apply safe fixes + report · **Worktree:** `.worktrees/simplify-fullscan` (branch `simplify-fullscan-wt`, off `staging`)
 **Lenses:** quality/simplify · structure & cohesion · dead-code & deps · Tailwind v4
 **Tally:** 1 applied · ~40 proposed · 12 dismissed
 
-> **Verification caveat:** `pnpm install` was declined, so this worktree has no `node_modules`. I could **not** run `lint` / `typecheck` / `test`. The one applied change is a one-line debug-log removal — safe to compile, but the suite was not run.
+> **Verification:** `pnpm typecheck` was run on `staging` after the applied fix — **green**. (`lint` / `test` not run.) Note: this audit was produced read-only; `grep`-based "orphaned" calls must still be re-confirmed with `typecheck` before deletion.
 
 > **Headline:** across all four lenses, exactly **one** finding was safe to auto-apply. Not because the code is clean — because its debt is _judgment-heavy_, not mechanical. Every dedup target differs per call-site (slug/shape/signature), every structural move breaks imports, and every Tailwind swap needs a `@theme` token added first. The value here is the map, not the auto-fix.
 
@@ -77,21 +113,3 @@
 ### Observability (follow-on to the one applied fix)
 
 - `src/app/global-error.tsx` — now has no logging. If you want production error visibility, wire a real reporter (Sentry/console in a structured way) rather than re-adding the debug log.
-
----
-
-## Dismissed
-
-- `src/lib/actions/investments.ts:3-5` — commented `revalidateTag`/`CACHE_TAGS` imports are an **intentional** breadcrumb for the disabled auto-create block. Keep.
-- `src/lib/actions/utils.ts:10-11` — commented `getDb/sumRegisterBalance` import + TODO to re-add when the negative-balance constraint returns. **Intentional.** Keep.
-- `src/lib/actions/transfers.ts:46-56, 99-110` — commented `checkIfSufficientBalance` blocks with explicit "re-enable this block" instructions. **Intentional toggle.** Keep.
-- `[PERF]` `console.log`s in `sum-transfers.ts`, `lib/actions/*`, `hooks/transfers/*` — deliberate `perfStart` instrumentation per AGENTS.md. Keep.
-- shadcn UI barrel unused re-exports across `components/ui/*` — vendored component APIs; removing piecemeal fights the pattern. Keep.
-- `components/ui/*` stock-Shadcn arbitrary values (`ring-[3px]`, `rounded-[2px]`, `min-w-[8rem]`, `text-[0.8rem]`) — upstream defaults; tokenizing diverges from Shadcn. Leave.
-- All 19 inline `style={{}}` in `ui/*` and `wykonczymy/*` — Framer motion values, recharts series colors, TanStack-Virtual measured heights, OG `ImageResponse` (Satori has no Tailwind), SVG data-URI (`film-grain.tsx`). **Legitimately dynamic.** Leave.
-- `tag.tsx` arbitrary radii/gaps — Figma-spec'd per the file header comment. Leave.
-- `src/lib/cache/revalidate.ts revalidateCollections` `for...of` — a sub-agent suggested `.map().forEach()`; that's wrong/worse for side-effects. Not a finding.
-- `extractInvoiceIds` Set-loop — idiomatic dedup; rewrite isn't clearly better. Leave.
-- `src/lib/auth/roles.ts:11-13` `readonly RoleT[]` tuples — AGENTS.md bans `readonly` on props, but these are const tuples cast downstream; removal is non-trivial, not a mechanical safe-fix. Hold (would be a Proposed, not auto-apply).
-- `public/fonts/*`, `scripts/inspect-template.mjs`, root `tests.js` — knip flags as unused but fonts load via `next/font` CSS vars; low value, verify-before-touch. Leave.
-- `src/components/ui/data-table/data-table.tsx:21`, `transfers/transfer-data-table.tsx:17`, `ui/toggle-stat-buttons.tsx:26` `readonly` on props — violate the no-readonly convention and removal is mechanical, but TanStack typing may push back, so not a blind auto-apply. Hold.
