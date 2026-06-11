@@ -13,7 +13,7 @@
 
 **Easy — dead code** (delete one → `typecheck` → keep only if green)
 
-- [ ] Delete remaining confirmed-orphaned files — UI: `card-box`, `rainbow-button`, `input-group`, `section-header`, `skeleton`, `tag`, `ImageMedia`; icons: `calendar-add/approved/processing-icon`, `dot-icon`; plus `downloadFile.ts`, `types/users.ts`, `form-components/index.ts` (~13 files) — re-verify each by export name + import path, not bare grep
+- [x] Delete remaining confirmed-orphaned files (14) — UI: `card-box`, `rainbow-button`, `input-group`, `section-header`, `skeleton`, `tag`, `ImageMedia`; icons: `calendar-add/approved/processing-icon`, `dot-icon`; plus `downloadFile.ts`, `types/users.ts`, `form-components/index.ts` — each re-verified by exact export name + import path + `declare module` guard; typecheck green
 - [ ] ⚠️ KEEP `src/lib/tables/column-meta.ts` — NOT dead; it augments `ColumnMeta` (`canHide`/`label`/`align`)
 - [ ] Remove 4 unused non-CSS deps via `pnpm remove`: `next-themes`, `swiper`, `usehooks-ts`, `isomorphic-dompurify`
 - [ ] Remove unused exports: `perf()`, `COST_TYPES`, `INVESTMENT_TYPES`, `SHEET_STATUSES`, `isNoResultsSentinel`, `REGISTER_TYPE_LABELS_PLURAL` (+ ~10 unused types)
