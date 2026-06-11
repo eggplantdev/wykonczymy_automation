@@ -16,7 +16,8 @@
 - [x] Delete remaining confirmed-orphaned files (14) — UI: `card-box`, `rainbow-button`, `input-group`, `section-header`, `skeleton`, `tag`, `ImageMedia`; icons: `calendar-add/approved/processing-icon`, `dot-icon`; plus `downloadFile.ts`, `types/users.ts`, `form-components/index.ts` — each re-verified by exact export name + import path + `declare module` guard; typecheck green
 - [ ] ⚠️ KEEP `src/lib/tables/column-meta.ts` — NOT dead; it augments `ColumnMeta` (`canHide`/`label`/`align`)
 - [ ] Remove 4 unused non-CSS deps via `pnpm remove`: `next-themes`, `swiper`, `usehooks-ts`, `isomorphic-dompurify`
-- [ ] Remove unused exports: `perf()`, `COST_TYPES`, `INVESTMENT_TYPES`, `SHEET_STATUSES`, `isNoResultsSentinel`, `REGISTER_TYPE_LABELS_PLURAL` (+ ~10 unused types)
+- [x] Remove 8 dead exports (used nowhere) — `perf()`, `REGISTER_TYPE_LABELS_PLURAL`, `CreateInternalTransferFormT`, `IconSize`, `CacheTagT`, `SectionIdT`, `TransferColumnIdT`, `PaginationLabelsT` (commit `b933b99`). `CreateTransferFormT` kept — used in 5 files (audit was stale).
+- [ ] Un-export internally-used-only symbols (drop `export`, keep the symbol): `COST_TYPES`, `INVESTMENT_TYPES`, `SHEET_STATUSES`, `ComboboxItemT`, `ExportContextT`, `TransferQueryT` — and `isNoResultsSentinel` (**blocked**: lives in `lib/db/sum-transfers.ts`, the parallel `totalRabat`/rabat session's hot file)
 - [ ] Rename `isValidUrl.ts` → `is-valid-url.ts` (kebab-case)
 
 **Decisions needed** (your call first)
