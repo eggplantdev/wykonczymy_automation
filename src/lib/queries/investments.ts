@@ -52,6 +52,7 @@ export function shapeInvestments(
         financials.totalLaborCosts,
         financials.totalPayouts,
         financials.totalRabat,
+        financials.totalLoss,
       ),
       address: inv.address,
       phone: inv.phone,

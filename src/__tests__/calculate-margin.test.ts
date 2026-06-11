@@ -13,4 +13,12 @@ describe('calculateMargin', () => {
   it('defaults rabat to 0 when omitted', () => {
     expect(calculateMargin(5000, 1000, undefined)).toBe(4000)
   })
+
+  it('subtracts the loss from the margin', () => {
+    expect(calculateMargin(5000, 1000, 0, 700)).toBe(3300)
+  })
+
+  it('subtracts both rabat and loss', () => {
+    expect(calculateMargin(5000, 1000, 800, 700)).toBe(2500)
+  })
 })
