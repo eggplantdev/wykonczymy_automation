@@ -719,10 +719,10 @@ Uses ONLY existing kosztorys records (id 3 "Testy" → Google sheet `1nYnqG5AoGs
 
 ### Task 8: Final gates
 
-- [ ] **Step 1:** `pnpm exec vitest run` → all green (pre-existing failures from other agents' in-flight files don't count against this change — note them explicitly).
-- [ ] **Step 2:** `pnpm exec tsc --noEmit` → clean. `pnpm lint` → clean on the files this change touches.
-- [ ] **Step 3:** Run the `simplify` skill over the change set (user's standing rule for sizeable changes), apply its protocol.
-- [ ] **Step 4:** Final commit of any remaining files (explicit paths only). Do NOT push.
+- [x] **Step 1:** `pnpm exec vitest run` → 620/620 green (no pre-existing failures at run time).
+- [x] **Step 2:** tsc clean; eslint clean on all touched files (repo-wide `pnpm lint` has 9 pre-existing errors in `scripts/inspect-template.mjs`, untouched).
+- [x] **Step 3:** `simplify` run — 5 applied (commit 0997e3d), 2 proposed, 6 dismissed; report in tmp file.
+- [x] **Step 4:** All work committed by explicit path; nothing pushed.
 
 ## Self-review notes
 
