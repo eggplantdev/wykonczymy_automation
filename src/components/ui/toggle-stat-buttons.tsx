@@ -83,13 +83,13 @@ export function ToggleStatButtons({
         </div>
       ))}
 
-      {helpText && <Description>{helpText}</Description>}
-
       <SaldoDisplay
         saldo={total}
         label={summaryLabel}
         selectionCount={{ selected: allEntries.length - hidden.size, total: allEntries.length }}
       />
+
+      {helpText && <Description>{helpText}</Description>}
     </div>
   )
 }

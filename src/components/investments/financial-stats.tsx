@@ -68,7 +68,7 @@ export function FinancialStats({
         rowLabels={['Koszty inwestora']}
         summaryLabel="Bilans inwestora"
         onToggle={toggle}
-        helpText="Saldo liczone jest dynamicznie jako suma wybranych kategorii oraz filtrów."
+        helpText="Bilans inwestora jest liczony dynamicznie jako suma wybranych kategorii oraz filtrów."
       />
 
       {isAdminOrOwnerRole(userRole) && (
