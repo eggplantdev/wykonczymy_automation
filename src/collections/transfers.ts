@@ -11,6 +11,7 @@ const TRANSFER_TYPES = [
   { label: { en: 'Investment Expense', pl: 'Wydatek inwestycyjny' }, value: 'INVESTMENT_EXPENSE' },
   { label: { en: 'Labor Cost', pl: 'Koszty robocizny' }, value: 'LABOR_COST' },
   { label: { en: 'Rebate', pl: 'Rabat' }, value: 'RABAT' },
+  { label: { en: 'Loss', pl: 'Strata' }, value: 'LOSS' },
   {
     label: { en: 'Register Transfer', pl: 'Transfer między kasami' },
     value: 'REGISTER_TRANSFER',
@@ -28,9 +29,9 @@ const PAYMENT_METHODS = [
   { label: { en: 'Card', pl: 'Karta' }, value: 'CARD' },
 ] as const
 
-/** Show sourceRegister for all types except LABOR_COST and RABAT (billing figures, no cash movement) */
+/** Show sourceRegister for all types except LABOR_COST, RABAT and LOSS (P&L figures, no cash movement) */
 const showSourceRegister = (data: Record<string, unknown>) =>
-  data?.type !== 'LABOR_COST' && data?.type !== 'RABAT'
+  data?.type !== 'LABOR_COST' && data?.type !== 'RABAT' && data?.type !== 'LOSS'
 
 /** Show investment field for types that use it (required or optional) */
 const showInvestment = (data: Record<string, unknown>) =>
@@ -38,6 +39,7 @@ const showInvestment = (data: Record<string, unknown>) =>
   data?.type === 'INVESTMENT_EXPENSE' ||
   data?.type === 'LABOR_COST' ||
   data?.type === 'RABAT' ||
+  data?.type === 'LOSS' ||
   data?.type === 'PAYOUT' ||
   data?.type === 'CORRECTION'
 

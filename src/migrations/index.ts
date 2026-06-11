@@ -35,6 +35,7 @@ import * as migration_20260525_add_google_sheet_id_to_investments from './202605
 import * as migration_20260527_add_unique_google_sheet_id from './20260527_add_unique_google_sheet_id'
 import * as migration_20260528_move_sheet_id_to_kosztoryses from './20260528_move_sheet_id_to_kosztoryses'
 import * as migration_20260611_add_rabat_enum from './20260611_add_rabat_enum'
+import * as migration_20260611_1_add_loss_enum from './20260611_1_add_loss_enum'
 
 export const migrations = [
   {
@@ -221,5 +222,10 @@ export const migrations = [
     up: migration_20260611_add_rabat_enum.up,
     down: migration_20260611_add_rabat_enum.down,
     name: '20260611_add_rabat_enum',
+  },
+  {
+    up: migration_20260611_1_add_loss_enum.up,
+    down: migration_20260611_1_add_loss_enum.down,
+    name: '20260611_1_add_loss_enum',
   },
 ]
