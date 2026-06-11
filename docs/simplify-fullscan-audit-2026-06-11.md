@@ -17,7 +17,7 @@
 - [ ] ⚠️ KEEP `src/lib/tables/column-meta.ts` — NOT dead; it augments `ColumnMeta` (`canHide`/`label`/`align`)
 - [ ] Remove 4 unused non-CSS deps via `pnpm remove`: `next-themes`, `swiper`, `usehooks-ts`, `isomorphic-dompurify`
 - [x] Remove 8 dead exports (used nowhere) — `perf()`, `REGISTER_TYPE_LABELS_PLURAL`, `CreateInternalTransferFormT`, `IconSize`, `CacheTagT`, `SectionIdT`, `TransferColumnIdT`, `PaginationLabelsT` (commit `b933b99`). `CreateTransferFormT` kept — used in 5 files (audit was stale).
-- [ ] Un-export internally-used-only symbols (drop `export`, keep the symbol): `COST_TYPES`, `INVESTMENT_TYPES`, `SHEET_STATUSES`, `ComboboxItemT`, `ExportContextT`, `TransferQueryT` — and `isNoResultsSentinel` (**blocked**: lives in `lib/db/sum-transfers.ts`, the parallel `totalRabat`/rabat session's hot file)
+- [x] Un-export internally-used-only symbols (drop `export`, keep the symbol): `COST_TYPES`, `INVESTMENT_TYPES`, `SHEET_STATUSES`, `ComboboxItemT`, `ExportContextT`, `TransferQueryT`, and `isNoResultsSentinel` (commit `e0a55d5`) — each verified referenced only within its own module; typecheck green. The `sum-transfers.ts` block cleared once the parallel rabat session landed.
 - [ ] Rename `isValidUrl.ts` → `is-valid-url.ts` (kebab-case)
 
 **Decisions needed** (your call first)
