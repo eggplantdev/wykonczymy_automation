@@ -15,15 +15,15 @@
 
 - [x] Delete remaining confirmed-orphaned files (14) — UI: `card-box`, `rainbow-button`, `input-group`, `section-header`, `skeleton`, `tag`, `ImageMedia`; icons: `calendar-add/approved/processing-icon`, `dot-icon`; plus `downloadFile.ts`, `types/users.ts`, `form-components/index.ts` — each re-verified by exact export name + import path + `declare module` guard; typecheck green
 - [ ] ⚠️ KEEP `src/lib/tables/column-meta.ts` — NOT dead; it augments `ColumnMeta` (`canHide`/`label`/`align`)
-- [ ] Remove 4 unused non-CSS deps via `pnpm remove`: `next-themes`, `swiper`, `usehooks-ts`, `isomorphic-dompurify`
+- [x] Remove 4 unused non-CSS deps: `next-themes`, `swiper`, `usehooks-ts`, `isomorphic-dompurify` (commit `644fee8`) — hand-edited `package.json` + `pnpm install`; arm64 lightningcss verified intact
 - [x] Remove 8 dead exports (used nowhere) — `perf()`, `REGISTER_TYPE_LABELS_PLURAL`, `CreateInternalTransferFormT`, `IconSize`, `CacheTagT`, `SectionIdT`, `TransferColumnIdT`, `PaginationLabelsT` (commit `b933b99`). `CreateTransferFormT` kept — used in 5 files (audit was stale).
 - [x] Un-export internally-used-only symbols (drop `export`, keep the symbol): `COST_TYPES`, `INVESTMENT_TYPES`, `SHEET_STATUSES`, `ComboboxItemT`, `ExportContextT`, `TransferQueryT`, and `isNoResultsSentinel` (commit `e0a55d5`) — each verified referenced only within its own module; typecheck green. The `sum-transfers.ts` block cleared once the parallel rabat session landed.
 - [ ] Rename `isValidUrl.ts` → `is-valid-url.ts` (kebab-case)
 
-**Decisions needed** (your call first)
+**Decisions made**
 
-- [ ] ⚠️ **Shadcn enter/exit animations are dead** — neither `tailwindcss-animate` nor `tw-animate-css` is loaded in `globals.css`, but 9 components (`dialog`, `alert-dialog`, `popover`, `dropdown-menu`, `select`, `tooltip`, `checkbox`, `field`, `collapsible-section`) use `animate-in`/`fade-in-0`/`zoom-in-95`/`slide-in-*` (not in v4 core). **A (restore, recommended):** add `@import 'tw-animate-css';`, keep `tw-animate-css`, drop `tailwindcss-animate`. **B (drop):** remove both, accept no animations.
-- [ ] Safe-to-remove config deps (verified not loaded): `@tailwindcss/forms`, `@tailwindcss/typography`, `autoprefixer` (v4 auto-prefixes); plus `eslint-config-next`/`eslint-config-prettier` (verify `eslint.config.mjs` first)
+- [x] **Shadcn enter/exit animations** — chose **A (restore)**: added `@import 'tw-animate-css';` to `globals.css`, dropped the dead v3 `tailwindcss-animate` plugin (commit `b2e7173`). The Radix `data-[state]` overlay animations now emit; verified `.animate-in` + `@keyframes enter` through the `@tailwindcss/postcss` pipeline.
+- [x] Remove config deps (verified not loaded): `@tailwindcss/forms`, `@tailwindcss/typography`, `autoprefixer` (v4 auto-prefixes); `eslint-config-next`/`eslint-config-prettier` (eslint.config.mjs imports `@next/eslint-plugin-next` directly) (commit `644fee8`)
 
 **Hard — refactors** (judgment-heavy, separate sessions)
 
