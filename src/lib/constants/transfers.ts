@@ -91,6 +91,14 @@ const INVESTMENT_TYPES: TransferTypeT[] = [
   'PAYOUT',
 ]
 
+// Subset of INVESTMENT_TYPES where the investment is mandatory (not just shown).
+const REQUIRES_INVESTMENT_TYPES: TransferTypeT[] = [
+  'INVESTOR_DEPOSIT',
+  'INVESTMENT_EXPENSE',
+  'LABOR_COST',
+  'RABAT',
+]
+
 export const isTransferType = (type: string): type is TransferTypeT =>
   (TRANSFER_TYPES as readonly string[]).includes(type)
 
@@ -104,11 +112,7 @@ export const showsInvestment = (type: string) =>
   isTransferType(type) && (INVESTMENT_TYPES as readonly string[]).includes(type)
 
 export const requiresInvestment = (type: string) =>
-  isTransferType(type) &&
-  (type === 'INVESTOR_DEPOSIT' ||
-    type === 'INVESTMENT_EXPENSE' ||
-    type === 'LABOR_COST' ||
-    type === 'RABAT')
+  isTransferType(type) && (REQUIRES_INVESTMENT_TYPES as readonly string[]).includes(type)
 
 export const needsTargetRegister = (type: string) =>
   isTransferType(type) && type === 'REGISTER_TRANSFER'
