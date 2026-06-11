@@ -55,6 +55,7 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
         totalLaborCosts={financials.totalLaborCosts}
         totalPayouts={financials.totalPayouts}
         totalRabat={financials.totalRabat}
+        totalLoss={financials.totalLoss}
       />
 
       <TransfersSection

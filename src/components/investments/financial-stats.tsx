@@ -22,6 +22,7 @@ type FinancialStatsPropsT = {
   totalLaborCosts: number
   totalPayouts?: number
   totalRabat?: number
+  totalLoss?: number
 }
 
 export function FinancialStats({
@@ -29,6 +30,7 @@ export function FinancialStats({
   totalLaborCosts,
   totalPayouts = 0,
   totalRabat = 0,
+  totalLoss = 0,
 }: FinancialStatsPropsT) {
   const { role: userRole } = useCurrentUser()
   const toggle = useHeaderFieldsStore((s) => s.toggle)
@@ -68,7 +70,7 @@ export function FinancialStats({
     ...(laborRow.length > 0 ? [laborRow] : []),
     ...(incomeRow.length > 0 ? [incomeRow] : []),
   ]
-  const margin = calculateMargin(totalLaborCosts, totalPayouts, totalRabat)
+  const margin = calculateMargin(totalLaborCosts, totalPayouts, totalRabat, totalLoss)
 
   return (
     <>
@@ -79,6 +81,12 @@ export function FinancialStats({
         onToggle={toggle}
         helpText="Bilans inwestora jest liczony dynamicznie jako suma wybranych kategorii oraz filtrów."
       />
+
+      {totalLoss !== 0 && (
+        <div className="text-muted-foreground mb-4 space-y-1 text-sm">
+          <StatButton label="Strata" value={formatPLN(totalLoss)} className="border-chart-purple" />
+        </div>
+      )}
 
       {isAdminOrOwnerRole(userRole) && (
         <div className="text-muted-foreground mb-4 space-y-1 text-sm">

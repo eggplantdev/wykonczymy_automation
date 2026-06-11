@@ -85,6 +85,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
         totalLaborCosts={financials.totalLaborCosts}
         totalPayouts={financials.totalPayouts}
         totalRabat={financials.totalRabat}
+        totalLoss={financials.totalLoss}
       />
 
       {/* Transactions table */}
