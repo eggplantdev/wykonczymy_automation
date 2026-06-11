@@ -71,6 +71,20 @@ export const TRANSACTION_TRANSFER_TYPES: TransferTypeT[] = [
   'PAYOUT', // Wypłata
 ]
 
+// Investment-linked types mirrored on the sheet's 'transfery (tylko do odczytu)'
+// tab — every showInvestment type (src/collections/transfers.ts) EXCEPT
+// INVESTMENT_EXPENSE (owns the expenses tab) and CANCELLATION (audit row).
+// Order = summary-block column order on the tab.
+export const SHEET_TRANSFER_TAB_TYPES = [
+  'INVESTOR_DEPOSIT',
+  'LABOR_COST',
+  'RABAT',
+  'PAYOUT',
+  'CORRECTION',
+  'LOSS',
+] as const satisfies readonly TransferTypeT[]
+export type SheetTransferTabTypeT = (typeof SHEET_TRANSFER_TAB_TYPES)[number]
+
 export const PAYMENT_METHODS = [
   'CASH',
   // 'BLIK',
