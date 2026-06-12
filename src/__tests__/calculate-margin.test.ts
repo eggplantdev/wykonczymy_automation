@@ -21,4 +21,13 @@ describe('calculateMargin', () => {
   it('subtracts both rabat and loss', () => {
     expect(calculateMargin(5000, 1000, 800, 700)).toBe(2500)
   })
+
+  it('subtracts settled internal material from margin', () => {
+    // robocizna 500, payouts 0, rabat 0, loss 0, settled 100 → 400
+    expect(calculateMargin(500, 0, 0, 0, 100)).toBe(400)
+  })
+
+  it('defaults settled to 0 (existing callers unaffected)', () => {
+    expect(calculateMargin(500, 0, 0, 0)).toBe(500)
+  })
 })

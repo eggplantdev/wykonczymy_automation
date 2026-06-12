@@ -228,6 +228,19 @@ export const Transfers: CollectionConfig = {
         condition: (data) => data?.type === 'CANCELLATION',
       },
     },
+    {
+      name: 'settled',
+      type: 'checkbox',
+      defaultValue: false,
+      label: { en: 'Included in labour (R+M)', pl: 'Wliczone w robociznę' },
+      admin: {
+        condition: (data) => data?.type === 'INVESTMENT_EXPENSE',
+        description: {
+          en: 'Material already priced into robocizna: leaves the register, reduces margin, NOT billed to the client.',
+          pl: 'Materiał już zawarty w cenie robocizny: schodzi z kasy, obniża marżę, klient NIE płaci za niego osobno.',
+        },
+      },
+    },
     // --- Metadata ---
     {
       name: 'createdBy',

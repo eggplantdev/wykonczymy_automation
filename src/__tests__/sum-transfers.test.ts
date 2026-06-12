@@ -129,6 +129,7 @@ describe('sumAllInvestmentFinancials', () => {
             total_payouts: '150',
             total_rabat: '50',
             total_loss: '120',
+            total_settled: '0',
           },
           {
             investment_id: '2',
@@ -139,6 +140,7 @@ describe('sumAllInvestmentFinancials', () => {
             total_payouts: '0',
             total_rabat: '0',
             total_loss: '0',
+            total_settled: '0',
           },
         ],
       })
@@ -154,6 +156,8 @@ describe('sumAllInvestmentFinancials', () => {
       totalPayouts: 150,
       totalRabat: 50,
       totalLoss: 120,
+      totalSettled: 0,
+      settledCategoryCosts: [],
     })
     expect(map.get(2)).toEqual({
       categoryCosts: [],
@@ -164,6 +168,8 @@ describe('sumAllInvestmentFinancials', () => {
       totalPayouts: 0,
       totalRabat: 0,
       totalLoss: 0,
+      totalSettled: 0,
+      settledCategoryCosts: [],
     })
   })
 
@@ -282,7 +288,10 @@ describe('buildSqlConditions — filter translation', () => {
     await sumFilteredByType(fakePayload, {})
     const queryStr = extractSql(mockExecute.mock.calls[0][0])
     expect(queryStr).toContain('WHERE cancelled IS NOT TRUE')
-    expect(queryStr).not.toContain('AND')
+    // No filter clauses appended in the conditions slot (between WHERE and GROUP BY).
+    // The base SELECT now contains an unrelated `AND` inside the settled re-bucket CASE.
+    const conditionsSlot = queryStr.split('cancelled IS NOT TRUE')[1].split('GROUP BY')[0]
+    expect(conditionsSlot.trim()).toBe('')
   })
 })
 
@@ -307,6 +316,8 @@ describe('deriveFinancials', () => {
       totalPayouts: 300,
       totalRabat: 200,
       totalLoss: 150,
+      totalSettled: 0,
+      settledCategoryCosts: [],
     })
   })
 
@@ -320,6 +331,8 @@ describe('deriveFinancials', () => {
       totalPayouts: 0,
       totalRabat: 0,
       totalLoss: 0,
+      totalSettled: 0,
+      settledCategoryCosts: [],
     })
   })
 
@@ -337,6 +350,26 @@ describe('deriveFinancials', () => {
     expect(result.totalMaterialCosts).toBe(5000)
     expect(result.totalPayouts).toBe(0)
     expect(result.categoryCosts).toEqual(byCat)
+  })
+})
+
+describe('deriveFinancials — settled internal material', () => {
+  it('keeps settled out of materials and surfaces it as totalSettled', () => {
+    const byType = [
+      { type: 'INVESTMENT_EXPENSE', total: 200 },
+      { type: 'INVESTMENT_EXPENSE_SETTLED', total: 100 },
+      { type: 'LABOR_COST', total: 500 },
+      { type: 'INVESTOR_DEPOSIT', total: 1000 },
+    ]
+    const f = deriveFinancials(byType)
+    expect(f.totalMaterialCosts).toBe(200) // settled NOT folded in
+    expect(f.totalSettled).toBe(100)
+    expect(f.settledCategoryCosts).toEqual([])
+  })
+
+  it('passes through settledCategoryCosts when provided', () => {
+    const f = deriveFinancials([], [], [{ categoryId: 7, total: 100 }])
+    expect(f.settledCategoryCosts).toEqual([{ categoryId: 7, total: 100 }])
   })
 })
 
@@ -388,5 +421,15 @@ describe('sumFilteredByType', () => {
     await sumFilteredByType(fakePayload, { date: { greater_than_equal: '2024-01-01' } })
     const queryStr = extractSql(mockExecute.mock.calls[0][0])
     expect(queryStr).toContain("date >= '2024-01-01'")
+  })
+
+  // Regression: the settled re-bucket CASE emits a string literal alongside the
+  // `type` enum column. Without casting the ELSE branch to text, Postgres coerces
+  // 'INVESTMENT_EXPENSE_SETTLED' to the enum and throws (invalid enum value).
+  it('casts the enum column to text in the settled re-bucket CASE', async () => {
+    mockExecute.mockResolvedValue({ rows: [] })
+    await sumFilteredByType(fakePayload, {})
+    const queryStr = extractSql(mockExecute.mock.calls[0][0])
+    expect(queryStr).toContain('ELSE type::text')
   })
 })

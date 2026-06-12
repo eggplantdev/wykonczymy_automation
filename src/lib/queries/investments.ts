@@ -30,6 +30,8 @@ export function shapeInvestments(
       totalPayouts: 0,
       totalRabat: 0,
       totalLoss: 0,
+      totalSettled: 0,
+      settledCategoryCosts: [],
     }
     const totalCosts = financials.totalMaterialCosts + financials.totalLaborCosts
     // Sum of the categorised expense breakdown = total INVESTMENT_EXPENSE.
@@ -53,6 +55,7 @@ export function shapeInvestments(
         financials.totalPayouts,
         financials.totalRabat,
         financials.totalLoss,
+        financials.totalSettled,
       ),
       address: inv.address,
       phone: inv.phone,

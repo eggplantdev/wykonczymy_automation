@@ -47,6 +47,9 @@ export const TRANSFER_TYPE_COLORS: Record<TransferTypeT, string> = {
 
 export const EXPENSE_CATEGORY_LABEL = 'Typ wydatku inwestycyjnego'
 
+// Display label for a settled INVESTMENT_EXPENSE (material priced into robocizna).
+export const SETTLED_TYPE_LABEL = 'Materiały wliczone w robociznę'
+
 export const DEPOSIT_TYPES: TransferTypeT[] = [
   'INVESTOR_DEPOSIT',
   'COMPANY_FUNDING',

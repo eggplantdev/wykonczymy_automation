@@ -141,6 +141,8 @@ export type InvestmentFinancialsT = {
   totalPayouts: number
   totalRabat: number
   totalLoss: number
+  totalSettled: number
+  settledCategoryCosts: CategoryCostT[]
 }
 
 /**
@@ -156,13 +158,14 @@ export const sumAllInvestmentFinancials = async (
   const [totalsResult, categoryResult] = await Promise.all([
     db.execute(sql`
       SELECT investment_id,
-        COALESCE(SUM(CASE WHEN type IN ('INVESTMENT_EXPENSE', 'CORRECTION') THEN amount ELSE 0 END), 0) AS total_costs,
+        COALESCE(SUM(CASE WHEN type IN ('INVESTMENT_EXPENSE', 'CORRECTION') AND settled IS NOT TRUE THEN amount ELSE 0 END), 0) AS total_costs,
         COALESCE(SUM(CASE WHEN type = 'CORRECTION' THEN amount ELSE 0 END), 0) AS total_corrections,
         COALESCE(SUM(CASE WHEN type IN ('INVESTOR_DEPOSIT', 'COMPANY_FUNDING', 'OTHER_DEPOSIT') THEN amount ELSE 0 END), 0) AS total_income,
         COALESCE(SUM(CASE WHEN type = 'LABOR_COST' THEN amount ELSE 0 END), 0) AS total_labor_costs,
         COALESCE(SUM(CASE WHEN type = 'PAYOUT' THEN amount ELSE 0 END), 0) AS total_payouts,
         COALESCE(SUM(CASE WHEN type = 'RABAT' THEN amount ELSE 0 END), 0) AS total_rabat,
-        COALESCE(SUM(CASE WHEN type = 'LOSS' THEN amount ELSE 0 END), 0) AS total_loss
+        COALESCE(SUM(CASE WHEN type = 'LOSS' THEN amount ELSE 0 END), 0) AS total_loss,
+        COALESCE(SUM(CASE WHEN type = 'INVESTMENT_EXPENSE' AND settled IS TRUE THEN amount ELSE 0 END), 0) AS total_settled
       FROM transactions
       WHERE investment_id IS NOT NULL
         AND cancelled IS NOT TRUE
@@ -176,6 +179,7 @@ export const sumAllInvestmentFinancials = async (
         AND cancelled IS NOT TRUE
         AND type IN ('INVESTMENT_EXPENSE', 'CORRECTION')
         AND expense_category_id IS NOT NULL
+        AND settled IS NOT TRUE
       GROUP BY investment_id, expense_category_id
     `),
   ])
@@ -203,6 +207,8 @@ export const sumAllInvestmentFinancials = async (
       totalPayouts: Number(row.total_payouts),
       totalRabat: Number(row.total_rabat),
       totalLoss: Number(row.total_loss),
+      totalSettled: Number(row.total_settled),
+      settledCategoryCosts: [], // list view shows the aggregate only, not the split
     })
   }
   console.log(`[PERF] query.sumAllInvestmentFinancials ${elapsed()}ms (${map.size} investments)`)
@@ -228,6 +234,40 @@ export const sumCategoryBreakdown = async (
       FROM transactions
       WHERE cancelled IS NOT TRUE
         AND type IN ('INVESTMENT_EXPENSE', 'CORRECTION')
+        AND expense_category_id IS NOT NULL
+        AND settled IS NOT TRUE
+        ${conditions}
+      GROUP BY expense_category_id
+    `),
+  )
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return result.rows.map((row: any) => ({
+    categoryId: Number(row.expense_category_id),
+    total: Number(row.total),
+  }))
+}
+
+/**
+ * SUM settled INVESTMENT_EXPENSE amounts grouped by expense_category_id, for the
+ * out-of-bilans "Materiały wliczone w robociznę" split buttons.
+ */
+export const sumSettledCategoryBreakdown = async (
+  payload: Payload,
+  where: Where,
+): Promise<CategoryCostT[]> => {
+  if (isNoResultsSentinel(where)) return []
+
+  const db = await getDb(payload)
+  const conditions = buildSqlConditions(where)
+
+  const result = await db.execute(
+    sql.raw(`
+      SELECT expense_category_id, COALESCE(SUM(amount), 0) AS total
+      FROM transactions
+      WHERE cancelled IS NOT TRUE
+        AND type = 'INVESTMENT_EXPENSE'
+        AND settled IS TRUE
         AND expense_category_id IS NOT NULL
         ${conditions}
       GROUP BY expense_category_id
@@ -266,6 +306,7 @@ const totalByType = (byType: TypeTotalT[], transferType: string): number =>
 export function deriveFinancials(
   byType: TypeTotalT[],
   categoryCosts: CategoryCostT[] = [],
+  settledCategoryCosts: CategoryCostT[] = [],
 ): InvestmentFinancialsT {
   return {
     categoryCosts,
@@ -280,6 +321,8 @@ export function deriveFinancials(
     totalPayouts: totalByType(byType, 'PAYOUT'),
     totalRabat: totalByType(byType, 'RABAT'),
     totalLoss: totalByType(byType, 'LOSS'),
+    totalSettled: totalByType(byType, 'INVESTMENT_EXPENSE_SETTLED'),
+    settledCategoryCosts,
   }
 }
 
@@ -302,11 +345,14 @@ export const sumFilteredByType = async (payload: Payload, where: Where): Promise
 
   const result = await db.execute(
     sql.raw(`
-    SELECT type, COALESCE(SUM(amount), 0) AS total
+    SELECT
+      CASE WHEN type = 'INVESTMENT_EXPENSE' AND settled IS TRUE
+           THEN 'INVESTMENT_EXPENSE_SETTLED' ELSE type::text END AS type,
+      COALESCE(SUM(amount), 0) AS total
     FROM transactions
     WHERE cancelled IS NOT TRUE
       ${conditions}
-    GROUP BY type
+    GROUP BY 1
     ORDER BY total DESC
   `),
   )

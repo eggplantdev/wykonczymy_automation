@@ -6,10 +6,11 @@ import {
   fetchReferenceData,
   fetchFilteredByType,
   fetchCategoryBreakdown,
+  fetchSettledCategoryBreakdown,
 } from '@/lib/queries/reference-data'
 import { deriveFinancials } from '@/lib/db/sum-transfers'
 import { buildTransferFilters, stripCancelledFilters } from '@/lib/queries/transfers'
-import { buildFinancialFields } from '@/lib/map-category-costs'
+import { buildFinancialFields, buildSettledFields } from '@/lib/map-category-costs'
 import { perfStart } from '@/lib/perf'
 import { buildFilterConfig } from '@/lib/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
@@ -40,19 +41,24 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   // Stats ignore cancelled toggle — SQL already excludes cancelled via hardcoded WHERE clause
   const statsWhere = stripCancelledFilters(transferWhere)
 
-  const [refData, typeDistribution, categoryBreakdown] = await Promise.all([
+  const [refData, typeDistribution, categoryBreakdown, settledBreakdown] = await Promise.all([
     fetchReferenceData(),
     fetchFilteredByType(statsWhere),
     fetchCategoryBreakdown(statsWhere),
+    fetchSettledCategoryBreakdown(statsWhere),
   ])
   console.log(`[PERF] inwestycje/${id} data fetch ${step()}ms`)
 
   const investment = refData.investments.find((inv) => inv.id === investmentId)
   if (!investment) notFound()
 
-  const financials = deriveFinancials(typeDistribution, categoryBreakdown)
+  const financials = deriveFinancials(typeDistribution, categoryBreakdown, settledBreakdown)
 
   const financialFields = buildFinancialFields(financials, refData.expenseCategories)
+  const settledFields = buildSettledFields(
+    financials.settledCategoryCosts,
+    refData.expenseCategories,
+  )
   const headerFields: HeaderFieldT[] = [
     { label: 'Inwestycja', value: investment.name },
     ...financialFields,
@@ -86,6 +92,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
         totalPayouts={financials.totalPayouts}
         totalRabat={financials.totalRabat}
         totalLoss={financials.totalLoss}
+        settledFields={settledFields}
       />
 
       {/* Transactions table */}

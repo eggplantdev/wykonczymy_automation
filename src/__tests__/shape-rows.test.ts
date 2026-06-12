@@ -74,6 +74,8 @@ describe('shapeInvestments', () => {
         totalPayouts: 1000,
         totalRabat: 0,
         totalLoss: 0,
+        totalSettled: 0,
+        settledCategoryCosts: [],
       },
     }
     const [row] = shapeInvestments([baseInv], financials)
@@ -113,6 +115,8 @@ describe('shapeInvestments', () => {
         totalPayouts: 0,
         totalRabat: 0,
         totalLoss: 0,
+        totalSettled: 0,
+        settledCategoryCosts: [],
       },
     }
     const [row] = shapeInvestments([baseInv], financials)

@@ -12,6 +12,7 @@ import {
   sumAllInvestmentFinancials,
   sumFilteredByType,
   sumCategoryBreakdown,
+  sumSettledCategoryBreakdown,
   type InvestmentFinancialsT,
   type TypeTotalT,
   type CategoryCostT,
@@ -231,6 +232,21 @@ export async function fetchCategoryBreakdown(where: Where): Promise<CategoryCost
       return sumCategoryBreakdown(payload, where)
     },
     ['category-breakdown', JSON.stringify(where)],
+    { tags: [CACHE_TAGS.transfers] },
+  )()
+}
+
+export async function fetchSettledCategoryBreakdown(where: Where): Promise<CategoryCostT[]> {
+  // 'use cache'
+  // cacheLife('max')
+  // cacheTag(CACHE_TAGS.transfers)
+
+  return unstable_cache(
+    async () => {
+      const payload = await getPayload({ config })
+      return sumSettledCategoryBreakdown(payload, where)
+    },
+    ['settled-category-breakdown', JSON.stringify(where)],
     { tags: [CACHE_TAGS.transfers] },
   )()
 }

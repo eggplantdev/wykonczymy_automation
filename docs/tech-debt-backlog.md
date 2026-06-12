@@ -22,12 +22,11 @@ Priority tags: **HIGH** (drift risk / latent bug / biggest win) · MED · LOW.
 - [ ] **HIGH** — Split god-file `src/lib/google/sheets.ts` (734 LOC, largest file): row type + formatting helper + summary builder + 5 async Sheets I/O fns → split by concern.
 - [ ] MED — Transfer-type union defined twice: `src/lib/constants/transfers.ts:2` vs `src/collections/transfers.ts:7`; derive the Payload options from the const array.
 - [ ] MED — `src/lib/` root is a 22-file junk drawer mixing generic formatters with domain finance (`calculate-balance`, `calculate-margin`, `map-category-costs` → belong in `lib/db`) and URL/filter builders.
-- [ ] MED — Three competing "utils" conventions: `src/lib/utils/default-cash-register.ts` (lone-file dir) vs flat `*-utils.ts` vs `lib/cn.ts`; pick one.
+- [ ] MED — Consolidate `lib/` utility scatter into `src/lib/utils/` (4 competing homes today: lone-file `lib/utils/`, flat `lib/date-utils.ts` + `lib/validation-utils.ts`, catch-all `lib/actions/utils.ts`, and `components/toasts.ts` stranded in `components/`). One move per commit, `pnpm typecheck` after each: (1) `date-utils.ts`→`utils/date.ts` (~5 importers); (2) `validation-utils.ts`→`utils/validation.ts` (~5); (3) `components/toasts.ts`→`utils/toast.ts` (~14, biggest blast radius); (4) split `lib/actions/utils.ts` (`ActionResultT`→`types/action.ts`; `protectedAction`/`getErrorMessage`/`validateAction`→`actions/run-action.ts`; `validateSourceRegister`→its domain module). Then add a one-line AGENTS.md note so new helpers land in `lib/utils/` by default. _(Found via structure-scatter-audit; per-form schema/hook colocation under `forms/<form>/` is a deliberate convention, out of scope.)_
 - [ ] MED — Split `src/lib/schemas/transfer.ts` — 3 schemas + 3 types + 2 validators + magic-number constants in one file.
 - [ ] MED — Split `src/lib/actions/utils.ts` — catch-all holding the `protectedAction()` framework + `getErrorMessage` + validators + 2 result types. Give `protectedAction` its own file; types → `src/types/`.
 - [ ] MED — `src/lib/queries/transfers.ts` exports a type + 2 where-clause builders (`buildTransferFilters`, `stripCancelledFilters`) that are filter logic, not fetching — move them out.
 - [ ] MED (doc-only) — Declare the placement rule: `src/types/` = cross-feature only, feature types colocate (re `src/components/forms/types/form-types.ts` vs `src/types/`).
-- [ ] LOW — `src/lib/validation-utils.ts` — Zod refinement helpers live away from the schemas that use them → move under `lib/schemas/`.
 - [ ] LOW — `src/lib/tables/*.tsx` (5 files) — React column-definition components (return JSX) sit in non-UI `lib/`; move to `components/`.
 - [ ] LOW — `src/lib/constants/transfers.ts` holds ~18 behavioral predicates (`needsSourceRegister`, `isLaborCost`…) = domain logic, not constants; split into a transfer-rules module.
 
@@ -51,6 +50,10 @@ Priority tags: **HIGH** (drift risk / latent bug / biggest win) · MED · LOW.
 ## Testing
 
 - [ ] **HIGH** — No E2E harness exists (no `playwright.config.ts`, no `e2e/`, no `@playwright/test` dep, no `test:e2e` script) — the money paths (transfer create → register recalculation → marża/bilans, Sheets sync) have zero browser-level coverage. Stand it up directly, no 10x plan chain (decided 2026-06-11): add `@playwright/test`, copy the working config from `/Users/konradantonik/workspace/10x_devs/playwright.config.ts` (prod build, isolated port + dist dir, `reuseExistingServer: false`, system Chrome), one smoke spec in `e2e/`, a `test:e2e` script. Specs run against the local docker Postgres — it's a dump-restored copy of Neon (`pnpm db:import`), not a live DB, so spec cruft is acceptable and a refresh resets it. Follow the 10x_devs model: each spec self-seeds per-run unique data, no wipe/reset in the test flow. Note `/10x-e2e` is plan-coupled, so it drops out with the plan; its `references/` still hold the spec-quality rules (locators, wait-for-state, test independence) worth following by hand.
+
+## Bugs & correctness (non-blocking)
+
+- [ ] **HIGH** — Optimistic form submits don't refresh the page. All `FormDialog` + `submitOptimistically` forms (transfers, investments, deposits): after a dialog edit the new data isn't visible until a manual refresh — the server cache is revalidated but the client never re-renders. Root cause: `src/stores/optimistic-form-store.ts` success handler clears state + toasts but never calls `router.refresh()`. Fix once (global): add `router.refresh()` (or `startTransition` + `router.refresh()`) in the store's success handler. _(See memory `project_optimistic_refresh.md`.)_
 
 ## Optional
 

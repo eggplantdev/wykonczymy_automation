@@ -55,6 +55,7 @@ type FormValuesT = {
   targetRegister: string
   investment: string
   worker: string
+  settled: boolean
   lineItems: {
     description: string
     amount: string
@@ -104,6 +105,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
         targetRegister: '',
         investment: '',
         worker: '',
+        settled: false,
         lineItems: [
           {
             description: '',
@@ -131,6 +133,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
         targetRegister: value.targetRegister ? Number(value.targetRegister) : undefined,
         investment: value.investment ? Number(value.investment) : undefined,
         worker: value.worker ? Number(value.worker) : undefined,
+        settled: value.settled,
         lineItems: value.lineItems.map((item) => ({
           description: item.description,
           amount: Number(item.amount),
@@ -179,7 +182,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
   // TanStack Form preserves values of unmounted fields. When the user switches
   // transfer type, hidden fields (e.g. investment) keep stale selections.
   // Reset them so validation and submission use a clean slate for the new type.
-  const conditionalFields = ['targetRegister', 'investment', 'worker'] as const
+  const conditionalFields = ['targetRegister', 'investment', 'worker', 'settled'] as const
 
   function resetConditionalFields() {
     conditionalFields.forEach((field) => form.resetField(field))
@@ -225,6 +228,14 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
               variant="investment"
               items={referenceData.investments}
             />
+          )}
+
+          {currentType === 'INVESTMENT_EXPENSE' && (
+            <form.AppField name="settled">
+              {(field) => (
+                <field.Checkbox label="Wliczone w robociznę (materiał w cenie robocizny — nie obciąża klienta)" />
+              )}
+            </form.AppField>
           )}
 
           {needsSourceRegister(currentType) && (

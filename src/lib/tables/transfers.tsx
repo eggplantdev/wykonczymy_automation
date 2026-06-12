@@ -14,6 +14,7 @@ import {
   PAYMENT_METHOD_LABELS,
   isCancellationType,
   EXPENSE_CATEGORY_LABEL,
+  SETTLED_TYPE_LABEL,
   type TransferTypeT,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
@@ -47,6 +48,7 @@ export type TransferRowT = {
   invoiceMimeType: string | null
   invoiceNote: string | null
   cancelled: boolean
+  settled: boolean
 }
 
 type NameMapT = Map<number, string>
@@ -118,6 +120,7 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
       invoiceMimeType: media?.mimeType ?? null,
       invoiceNote: doc.invoiceNote ?? null,
       cancelled: doc.cancelled ?? false,
+      settled: doc.settled ?? false,
     }
   }
 
@@ -148,6 +151,7 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
     invoiceMimeType: getMediaField(doc.invoice, 'mimeType'),
     invoiceNote: doc.invoiceNote ?? null,
     cancelled: doc.cancelled ?? false,
+    settled: doc.settled ?? false,
   }
 }
 
@@ -200,12 +204,13 @@ const allColumns = [
     id: 'amount',
     header: 'Kwota',
     cell: (info) => {
-      const { type, cancelled } = info.row.original
+      const { type, cancelled, settled } = info.row.original
       const isMuted = cancelled || type === 'CANCELLATION'
+      const color = settled ? 'chart-orange' : TRANSFER_TYPE_COLORS[type]
       return (
         <span
           className="font-medium"
-          style={isMuted ? undefined : { color: `var(--color-${TRANSFER_TYPE_COLORS[type]})` }}
+          style={isMuted ? undefined : { color: `var(--color-${color})` }}
         >
           {formatPLN(info.getValue())}
         </span>
@@ -229,7 +234,10 @@ const allColumns = [
   col.accessor('type', {
     id: 'type',
     header: 'Typ',
-    cell: (info) => TRANSFER_TYPE_LABELS[info.getValue() as TransferTypeT] ?? info.getValue(),
+    cell: (info) =>
+      info.row.original.settled
+        ? SETTLED_TYPE_LABEL
+        : (TRANSFER_TYPE_LABELS[info.getValue() as TransferTypeT] ?? info.getValue()),
   }),
   col.accessor('expenseCategoryName', {
     id: 'expenseCategory',
