@@ -9,6 +9,7 @@ import { SaldoDisplay } from '@/components/ui/saldo-display'
 import { StatButton } from '@/components/ui/stat-button'
 import { formatPLN } from '@/lib/format-currency'
 import { calculateMargin } from '@/lib/calculate-margin'
+import { SETTLED_TYPE_LABEL } from '@/lib/constants/transfers'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { useCurrentUser } from '@/hooks/use-current-user'
 
@@ -93,7 +94,7 @@ export function FinancialStats({
 
       {settledFields.length > 0 && (
         <div className="text-muted-foreground space-y-1 text-sm">
-          <p className="text-xs">Materiały wliczone w robociznę</p>
+          <p className="text-xs">{SETTLED_TYPE_LABEL}</p>
           {settledFields.map((f) => (
             <StatButton
               key={f.label}

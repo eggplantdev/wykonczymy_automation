@@ -14,13 +14,12 @@ import {
   PAYMENT_METHOD_LABELS,
   isCancellationType,
   EXPENSE_CATEGORY_LABEL,
+  SETTLED_TYPE_LABEL,
   type TransferTypeT,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import type { MediaInfoT } from '@/lib/queries/media'
-
-const SETTLED_TYPE_LABEL = 'Materiały wliczone w robociznę'
 
 export type TransferRowT = {
   id: number

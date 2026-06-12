@@ -102,6 +102,9 @@ export const createBulkExpenseSchema = z
     targetRegister: z.number().optional(),
     investment: z.number().optional(),
     worker: z.number().optional(),
+    // Optional server-side so existing bulk-action callers needn't pass it; the
+    // expense form always supplies it (defaults false). Non-INVESTMENT_EXPENSE
+    // submissions are coerced to false in the action.
     settled: z.boolean().optional(),
     lineItems: z
       .array(
