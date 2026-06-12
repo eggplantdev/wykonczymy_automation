@@ -30,6 +30,7 @@ const makeRow = (overrides: Partial<TransferRowT> = {}): TransferRowT => ({
   invoiceMimeType: null,
   invoiceNote: null,
   cancelled: false,
+  settled: false,
   ...overrides,
 })
 
