@@ -23,6 +23,7 @@ type FinancialStatsPropsT = {
   totalPayouts?: number
   totalRabat?: number
   totalLoss?: number
+  settledFields?: FinancialFieldT[]
 }
 
 export function FinancialStats({
@@ -31,6 +32,7 @@ export function FinancialStats({
   totalPayouts = 0,
   totalRabat = 0,
   totalLoss = 0,
+  settledFields = [],
 }: FinancialStatsPropsT) {
   const { role: userRole } = useCurrentUser()
   const toggle = useHeaderFieldsStore((s) => s.toggle)
@@ -70,7 +72,8 @@ export function FinancialStats({
     ...(laborRow.length > 0 ? [laborRow] : []),
     ...(incomeRow.length > 0 ? [incomeRow] : []),
   ]
-  const margin = calculateMargin(totalLaborCosts, totalPayouts, totalRabat, totalLoss)
+  const totalSettled = settledFields.reduce((sum, f) => sum + f.amount, 0)
+  const margin = calculateMargin(totalLaborCosts, totalPayouts, totalRabat, totalLoss, totalSettled)
 
   return (
     <div className="space-y-2">
@@ -85,6 +88,20 @@ export function FinancialStats({
       {totalLoss !== 0 && (
         <div className="text-muted-foreground space-y-1 text-sm">
           <StatButton label="Strata" value={formatPLN(totalLoss)} className="border-chart-purple" />
+        </div>
+      )}
+
+      {settledFields.length > 0 && (
+        <div className="text-muted-foreground space-y-1 text-sm">
+          <p className="text-xs">Materiały wliczone w robociznę</p>
+          {settledFields.map((f) => (
+            <StatButton
+              key={f.label}
+              label={f.label}
+              value={f.value}
+              className="border-chart-orange"
+            />
+          ))}
         </div>
       )}
 
