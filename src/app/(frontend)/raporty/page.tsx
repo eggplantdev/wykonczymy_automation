@@ -6,10 +6,11 @@ import {
   fetchReferenceData,
   fetchFilteredByType,
   fetchCategoryBreakdown,
+  fetchSettledCategoryBreakdown,
 } from '@/lib/queries/reference-data'
 import { deriveFinancials } from '@/lib/db/sum-transfers'
 import { buildTransferFilters, stripCancelledFilters } from '@/lib/queries/transfers'
-import { buildFinancialFields } from '@/lib/map-category-costs'
+import { buildFinancialFields, buildSettledFields } from '@/lib/map-category-costs'
 import { perfStart } from '@/lib/perf'
 import { buildFilterConfig } from '@/lib/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
@@ -33,16 +34,21 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
   // Stats ignore cancelled toggle — SQL already excludes cancelled via hardcoded WHERE clause
   const statsWhere = stripCancelledFilters(urlFilters)
 
-  const [refData, typeDistribution, categoryBreakdown] = await Promise.all([
+  const [refData, typeDistribution, categoryBreakdown, settledBreakdown] = await Promise.all([
     fetchReferenceData(),
     fetchFilteredByType(statsWhere),
     fetchCategoryBreakdown(statsWhere),
+    fetchSettledCategoryBreakdown(statsWhere),
   ])
   console.log(`[PERF] raporty data fetch ${step()}ms`)
 
-  const financials = deriveFinancials(typeDistribution, categoryBreakdown)
+  const financials = deriveFinancials(typeDistribution, categoryBreakdown, settledBreakdown)
 
   const financialFields = buildFinancialFields(financials, refData.expenseCategories)
+  const settledFields = buildSettledFields(
+    financials.settledCategoryCosts,
+    refData.expenseCategories,
+  )
   const headerFields: HeaderFieldT[] = [
     { label: 'Transakcje', value: 'Raport' },
     ...financialFields,
@@ -56,6 +62,7 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
         totalPayouts={financials.totalPayouts}
         totalRabat={financials.totalRabat}
         totalLoss={financials.totalLoss}
+        settledFields={settledFields}
       />
 
       <TransfersSection
