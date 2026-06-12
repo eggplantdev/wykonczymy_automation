@@ -57,6 +57,7 @@ export const bulkExpenseFormSchema = z
     targetRegister: z.string(),
     investment: z.string(),
     worker: z.string(),
+    settled: z.boolean(),
     lineItems: z.array(lineItemClientSchema),
   })
   .superRefine((data, ctx) => {
@@ -101,6 +102,7 @@ export const createBulkExpenseSchema = z
     targetRegister: z.number().optional(),
     investment: z.number().optional(),
     worker: z.number().optional(),
+    settled: z.boolean().optional(),
     lineItems: z
       .array(
         z.object({
