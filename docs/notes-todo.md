@@ -1,14 +1,19 @@
 # Kosztorysy / Investments — Client Notes → TODO
 
+> **Status (2026-06-12).** Most of this list shipped. The remaining open items (3b/3c/3d)
+> push _more_ into Google Sheets — which the off-sheets arc (`context/foundation/roadmap.md`)
+> is retiring. Re-confirm with the client whether they're still wanted before planning, or
+> let the in-app kosztorys (workstream B) supersede them. The canonical todo is the roadmap.
+
 ## Checklist
 
-- [ ] **1. Materiały R+M** — new expense type: subtracts from kasa, shows as investment cost, reduces marża, not billed to client
-- [ ] **2. Rabat** — discount off robocizna that reduces marża (distinct from korekta)
-- [ ] **3a. Zaliczki/wpłaty → Sheet** — with netto/brutto + VAT (8%/23%)
-- [ ] **3b. Wypłaty → Sheet** — hidden table, excluded from client copy
-- [ ] **3c. BUG: materiały sum stuck on B1** — investigate cell binding
-- [ ] **3d. Podsumowanie wydatków** — auto-maintain in Sheet
-- [x] **4. Pulpit na osobne strony** — split dashboard sections into separate pages (Kasy / Inwestycje / Transakcje) — DONE
+- [ ] **1. Materiały R+M** — in progress; owned by `docs/plan-settled-expenses.md` (`settled` flag). Not tracked here anymore.
+- [x] **2. Rabat** — shipped (`investment-rabat`).
+- [x] **3a. Zaliczki/wpłaty → Sheet** — shipped.
+- [ ] **3b. Wypłaty → Sheet** — open; hidden table, excluded from client copy. ⚠ may be superseded by off-sheets.
+- [ ] **3c. BUG: materiały sum stuck on B1** — open; investigate cell binding (likely a formula in the client's template, not an app bug — see §3c below).
+- [ ] **3d. Podsumowanie wydatków** — open; auto-maintain in Sheet. ⚠ may be superseded by off-sheets.
+- [x] **4. Pulpit na osobne strony** — shipped (`feat/dashboard-split`).
 
 ---
 
@@ -89,23 +94,9 @@ Only **investment expenses** currently flow into the linked Google Sheet. Everyt
 - Today **only `INVESTMENT_EXPENSE`** syncs to the Sheet (tab `"wydatki inwestycyjne (tylko do odczytu)"`). Deposits and payouts are explicitly skipped. → `src/hooks/transfers/sync-sheet.ts:30`, `src/lib/actions/sheets-sync.ts:103-127`, `src/lib/google/sheets.ts:21`.
 - No netto/brutto/VAT anywhere — deposit form & transfers schema have only a flat `amount`. → `src/components/forms/deposit-form/deposit-form.tsx`, `src/collections/transfers.ts:73-248`.
 
-### 3a. Zaliczki / wpłaty od inwestora → Sheet, with netto/brutto + VAT
-
-- [ ] Add a **netto/brutto + VAT** mechanism to deposits (`INVESTOR_DEPOSIT`): two fields (netto, brutto), enter one, pick **VAT (8% / 23%)**, auto-compute the other (lines 31). Client's preferred default: enter **brutto**, pick VAT only when it differs.
-- [ ] Auto-write investor deposits into the kosztorys Sheet (new block/tab), mirroring the existing expense-sync batched-write path → extend `src/lib/actions/sheets-sync.ts` + `src/hooks/transfers/sync-sheet.ts` (currently early-returns on non-`INVESTMENT_EXPENSE`).
-- [ ] Client accepts incremental delivery: the block auto-fills, he binds the right target cell/range (see 3c).
-
 ### 3b. Wypłaty (payouts) → hidden Sheet table
 
 - [ ] Sync `PAYOUT` rows into a **hidden** table in the Sheet — must **not** appear in the client-facing copy (lines 35–37). Same sync infra as 3a, plus a hide/strip step for the client export.
-
-### 3c. BUG: materiały sum stuck on cell **B1** (binding doesn't work)
-
-**Client line 31 — currently broken, he hit it live on the call.**
-
-- Symptom: the materiały total in his Sheet keeps sourcing from **B1**; he tries to re-point it to a different cell/tab and it won't take ("cały czas jest B1 z jakiegoś powodu… to się nie wpisuje, nie wiem dlaczego").
-- App side: there is **no B1 hardcode** and **no per-Sheet cell-config field** — column placement is resolved dynamically by header keyword-match and the data layout is baked in (banner row 0, header row 1, data row 2+). → `src/lib/google/sheets.ts:142-173`, `:228-235`, `:390-392`. The `kosztoryses` collection has no cell/range fields → `src/collections/sheets.ts:12-70`.
-- [ ] **Investigate**: the "B1" is almost certainly a formula **inside the client's Sheet template** pointing at a fixed cell, with no app UI to configure where the materiały sum lands. Reproduce on his template, then decide: (a) make the target cell/tab configurable per Sheet, or (b) write the materiały summary to a known, documented cell and fix his template formula. Pin down whether the failing "binding" is an app feature or a manual Sheet formula.
 
 ### 3d. Podsumowanie wydatków (expense summary) — auto
 
