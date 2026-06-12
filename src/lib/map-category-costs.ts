@@ -41,3 +41,15 @@ export function buildFinancialFields(
       : []),
   ]
 }
+
+/** Build labelled fields for settled internal material, split per expense category.
+ *  Positive amounts (display only) — these live OUTSIDE the bilans toggle sum. */
+export function buildSettledFields(
+  settledCategoryCosts: CategoryCostT[],
+  expenseCategories: { id: number; name: string }[],
+): FinancialFieldT[] {
+  return expenseCategories
+    .map((cat) => ({ cat, total: costForCategory(settledCategoryCosts, cat.id) }))
+    .filter(({ total }) => total !== 0)
+    .map(({ cat, total }) => ({ label: cat.name, value: formatPLN(total), amount: total }))
+}
