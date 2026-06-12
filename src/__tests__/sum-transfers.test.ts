@@ -422,4 +422,14 @@ describe('sumFilteredByType', () => {
     const queryStr = extractSql(mockExecute.mock.calls[0][0])
     expect(queryStr).toContain("date >= '2024-01-01'")
   })
+
+  // Regression: the settled re-bucket CASE emits a string literal alongside the
+  // `type` enum column. Without casting the ELSE branch to text, Postgres coerces
+  // 'INVESTMENT_EXPENSE_SETTLED' to the enum and throws (invalid enum value).
+  it('casts the enum column to text in the settled re-bucket CASE', async () => {
+    mockExecute.mockResolvedValue({ rows: [] })
+    await sumFilteredByType(fakePayload, {})
+    const queryStr = extractSql(mockExecute.mock.calls[0][0])
+    expect(queryStr).toContain('ELSE type::text')
+  })
 })

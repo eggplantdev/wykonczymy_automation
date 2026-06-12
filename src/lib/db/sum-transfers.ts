@@ -347,7 +347,7 @@ export const sumFilteredByType = async (payload: Payload, where: Where): Promise
     sql.raw(`
     SELECT
       CASE WHEN type = 'INVESTMENT_EXPENSE' AND settled IS TRUE
-           THEN 'INVESTMENT_EXPENSE_SETTLED' ELSE type END AS type,
+           THEN 'INVESTMENT_EXPENSE_SETTLED' ELSE type::text END AS type,
       COALESCE(SUM(amount), 0) AS total
     FROM transactions
     WHERE cancelled IS NOT TRUE
