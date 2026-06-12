@@ -36,6 +36,7 @@ import * as migration_20260527_add_unique_google_sheet_id from './20260527_add_u
 import * as migration_20260528_move_sheet_id_to_kosztoryses from './20260528_move_sheet_id_to_kosztoryses'
 import * as migration_20260611_add_rabat_enum from './20260611_add_rabat_enum'
 import * as migration_20260611_1_add_loss_enum from './20260611_1_add_loss_enum'
+import * as migration_20260612_0_add_settled from './20260612_0_add_settled'
 
 export const migrations = [
   {
@@ -227,5 +228,10 @@ export const migrations = [
     up: migration_20260611_1_add_loss_enum.up,
     down: migration_20260611_1_add_loss_enum.down,
     name: '20260611_1_add_loss_enum',
+  },
+  {
+    up: migration_20260612_0_add_settled.up,
+    down: migration_20260612_0_add_settled.down,
+    name: '20260612_0_add_settled',
   },
 ]
