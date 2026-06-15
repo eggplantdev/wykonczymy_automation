@@ -33,7 +33,7 @@ Prefer hand-editing `@package.json` over `pnpm remove` / `pnpm install`. On this
 
 ## Databases And Live Data
 
-- **The real DB is Neon Postgres** — `DB_POSTGRES_URL_PROD` / `DB_POSTGRES_URL_STAGING` in `.env` are live credentials. **Never run SQL, migrations, or dumps-restores against the Neon URLs**; a human applies prod migrations. A PreToolUse hook blocks prod-DB mutations.
+- **The real DB is Neon Postgres** — `DB_POSTGRES_URL_PROD` in `.env` is the live prod credential (a single `ep-steep-unit` Neon branch; the former separate staging branch was deleted, so prod/staging are no longer split). **Never run SQL, migrations, or dumps-restores against the Neon URL**; a human applies prod migrations. A PreToolUse hook blocks prod-DB mutations.
 - The local app points at the docker Postgres on 5433 (`DB_POSTGRES_URL`, db `wykonczymy-db`) — a copy restored from Neon dumps: `pnpm db:dump` (prod → `dumps/dump-latest.sql`, also run by the pre-push hook) and `pnpm db:import` (dump → local). Refreshable, but confirm before wiping it — a restore loses anything entered locally since the last dump.
 - `GOOGLE_SERVICE_ACCOUNT_JSON` and `KOSZTORYS_TEMPLATE_SHEET_ID` in `.env` are real working credentials — Google Sheets writes hit live data.
 - Never `git push`; a human pushes to remotes. A PreToolUse hook also blocks it.

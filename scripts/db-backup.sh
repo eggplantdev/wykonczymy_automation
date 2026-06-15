@@ -14,7 +14,7 @@
 #                          (a frozen/wrong DB shows up as 0 growth or a drop)
 #
 # Usage:
-#   source .env && BACKUP_DB_URL="$DB_POSTGRES_URL_PROD_NEW" scripts/db-backup.sh
+#   source .env && BACKUP_DB_URL="$DB_POSTGRES_URL_PROD" scripts/db-backup.sh
 # ============================================================================
 set -euo pipefail
 
