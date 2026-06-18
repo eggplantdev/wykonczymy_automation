@@ -458,11 +458,11 @@ git commit -m "fix(korekta): show/edit the type on corrections with an investmen
 
 ---
 
-### Task 5 (manual, no code): Phase 1 deploy + in-app backfill
+### Task 5 (manual, no code): Phase 1 deploy + in-app backfill — ✅ DONE (2026-06-18)
 
-- [ ] Deploy Phase 1 (human pushes). The "Korekty" line still exists, so balances are unchanged.
-- [ ] Backfill only the corrections that **have an investment** but no type: open each via "edytuj transakcję", set its "Typ wydatku inwestycyjnego", save. Leave corrections with no investment untouched — they are valid and carry no type (owner decision). Enumerate the affected set (investment set, `expenseCategory` NULL) against **fresh prod data** (pull a current dump via the `restore-prod-backup-local` skill); the local snapshot's count is stale.
-- [ ] Verify: each backfilled correction now shows its type in the transfers table and folds into its expense type on the investment page (still also visible in the "Korekty" line at this point — that is expected until Phase 2).
+- [x] Deploy Phase 1 (human pushes). The "Korekty" line still exists, so balances are unchanged.
+- [x] Backfill only the corrections that **have an investment** but no type: open each via "edytuj transakcję", set its "Typ wydatku inwestycyjnego", save. Leave corrections with no investment untouched — they are valid and carry no type (owner decision). Enumerate the affected set (investment set, `expenseCategory` NULL) against **fresh prod data** (pull a current dump via the `restore-prod-backup-local` skill); the local snapshot's count is stale.
+- [x] Verify: each backfilled correction now shows its type in the transfers table and folds into its expense type on the investment page (still also visible in the "Korekty" line at this point — that is expected until Phase 2).
 
 > Do NOT start Phase 2 until the backfill is complete — removing the "Korekty" line before backfill makes untyped corrections vanish from the balance.
 
@@ -470,7 +470,7 @@ git commit -m "fix(korekta): show/edit the type on corrections with an investmen
 
 # PHASE 2 — Remove the "Korekty" line + reroute the sheet
 
-### Task 6: Remove the "Korekty" field from the financial breakdown
+### Task 6: Remove the "Korekty" field from the financial breakdown — ✅ DONE (commit `4e457c9`)
 
 **Files:**
 
@@ -552,7 +552,7 @@ git commit -m "feat(korekta): drop the separate Korekty balance line"
 
 ---
 
-### Task 7: Remove `CORRECTION_LABEL` from FinancialStats
+### Task 7: Remove `CORRECTION_LABEL` from FinancialStats — ✅ DONE (commit `f7aba3f`)
 
 **Files:**
 
@@ -590,7 +590,12 @@ git commit -m "refactor(korekta): drop CORRECTION_LABEL from financial stats"
 
 ---
 
-### Task 8: Route corrections to the kosztorys "Wydatki" tab (not "Transfery")
+### Task 8: Route corrections to the kosztorys "Wydatki" tab (not "Transfery") — ✅ DONE (commit `3621de6`)
+
+> **Two follow-ups beyond the original plan** (both committed):
+>
+> - **Sync gate:** `SHEET_SYNCED_TYPES` in `src/hooks/transfers/sync-sheet.ts` was built from `SHEET_TRANSFER_TAB_TYPES`; removing CORRECTION from that list would have made a correction edit/delete sync to **no** tab. Added CORRECTION back to the gate explicitly.
+> - **Frozen summary column:** `SHEET_TRANSFER_TAB_TYPES` also fed the transfers-tab SUMIF summary layout via `transferSummaryKeys()`, so a tab rebuild (reset/relink) would have **shrunk the summary and shifted Strata into Korekta's column** — breaking kosztorys formulas keyed to a fixed position across many client sheets. Decoupled layout from routing: a fixed `TRANSFERS_SUMMARY_TYPES` keeps the 5th slot, relabelled `Korekta → wydatki inwest.` (its SUMIF totals 0). Guarded by a column-position test in `sheets.test.ts`; rule recorded in `context/foundation/lessons.md`.
 
 **Files:**
 
