@@ -36,19 +36,36 @@ line, no double count. In the kosztorys sheet it appears on the **"Wydatki"** ta
 For ID 77: the ~31k currently in corrections stops being a separate line and instead
 lowers the relevant expense types' costs.
 
+**Investment is optional on a correction; the type is required only when there IS an
+investment** (LOSS-style, owner decision — supersedes the earlier "always require an
+investment" draft). A correction with no investment is a valid, company-level adjustment
+and carries no `expenseCategory`. Once an investment is attached, the correction belongs
+to that investment's books, so it must name the expense type it adjusts. Concretely:
+
+- `requiresInvestment('CORRECTION')` stays **false**.
+- `needsExpenseCategory(type, hasInvestment)` is true for `INVESTMENT_EXPENSE` always,
+  and for `CORRECTION` **only when `hasInvestment`**. "Shown" and "required" now coincide,
+  so this single predicate replaces `showsExpenseCategory` (which is removed).
+
 ## Scope — 5 code areas + data
 
 1. **Create form** — `expense-form.tsx:142`: send `expenseCategory` for `CORRECTION`
    too (extract the line-item mapping into a pure, testable function).
-2. **Edit form** — `edit-transfer-form.tsx:147`: show the type field for corrections
-   (falls out of the `needsExpenseCategory` change below). Update path already
-   persists `expenseCategory` (`updateTransferAction:282`, `updateTransferSchema`).
-3. **Validation** — make the type (and investment) required for corrections:
-   - `needsExpenseCategory` ⊇ `CORRECTION` (drives create requirement, edit-form
-     display, and the hook check in one place).
-   - `validateLineItemCategories` — require type on a CORRECTION line item.
-   - `validateTransfer` hook — require `expenseCategory` for CORRECTION.
-   - `requiresInvestment` ⊇ `CORRECTION`.
+2. **Edit form** — `edit-transfer-form.tsx:147`: the gate must become investment-aware,
+   `needsExpenseCategory(row.type, !!row.investmentId)`, so a correction shows the type
+   field only once it has an investment. (The old plan said this needed "NO edit" because
+   `needsExpenseCategory` would flat-include CORRECTION — no longer true.) Update path
+   already persists `expenseCategory` (`updateTransferAction:282`, `updateTransferSchema`).
+3. **Validation** — the type is required for a correction **only when it has an investment**:
+   - `needsExpenseCategory(type, hasInvestment)` — true for `INVESTMENT_EXPENSE` always,
+     for `CORRECTION` only when `hasInvestment`. One predicate drives create display
+     (`line-items-field`), edit display, and both validators; `showsExpenseCategory` is
+     folded into it and removed.
+   - `validateLineItemCategories` — require type on a CORRECTION line item only when the
+     transfer carries an investment (thread `hasInvestment` in).
+   - `validateTransfer` hook — require `expenseCategory` for CORRECTION only when `investment`
+     is set: `needsExpenseCategory(type, !!d.investment)`.
+   - `requiresInvestment` — **unchanged**, CORRECTION stays optional.
 4. **Financials** — remove the "Korekty" line/button entirely. No sum of corrections
    is shown anywhere in the UI (not even as an informational, balance-neutral row) —
    corrections are visible only as typed negative line items within their expense type:
@@ -61,10 +78,12 @@ lowers the relevant expense types' costs.
      `tabSyncForType('CORRECTION')` → `EXPENSES_SYNC`.
    - `constants.ts:86` — remove `CORRECTION` from `SHEET_TRANSFER_TAB_TYPES`.
 
-Data: every existing correction must be backfilled with a type, and any correction with
-no investment must get one — a correction without an investment is a data bug (owner
-decision), not a valid case. Doable **in-app via "edytuj transakcję"** (once area 2 ships)
-— no prod SQL. Enumerate the full set against fresh prod data, not the stale local snapshot.
+Data: backfill a type only for corrections that **have an investment** — those are the
+ones that now belong to an investment's books and currently show "—". A correction with
+no investment is valid as-is and needs no type; leave it. Doable **in-app via "edytuj
+transakcję"** (once area 2 ships) — no prod SQL. Enumerate the affected set (corrections
+with an investment but no `expenseCategory`) against fresh prod data, not the stale local
+snapshot.
 
 ## Non-obvious sheet effects
 
@@ -94,10 +113,15 @@ Unit, on observable behavior, aligned to existing test files:
 
 Phase 1
 
-- Extracted line-item mapper: a CORRECTION line item carries `expenseCategory`.
-- `validateTransfer` (`validate-hook.test.ts`): CORRECTION without type → throws;
-  without investment → throws.
-- `validateLineItemCategories`: CORRECTION line item without type → issue.
+- Extracted line-item mapper: a CORRECTION line item with an investment carries
+  `expenseCategory`; without an investment it does not.
+- `validateTransfer` (`validate-hook.test.ts`): CORRECTION **with** investment but no type
+  → throws; CORRECTION **without** investment → passes (type not required).
+- `validateLineItemCategories`: CORRECTION line item with investment but no type → issue;
+  without investment → no issue.
+- `needsExpenseCategory` (`transfer-constants.test.ts`): true for `(CORRECTION, true)`,
+  false for `(CORRECTION, false)` and `(CORRECTION, undefined)`; true for INVESTMENT_EXPENSE
+  regardless of the flag. `requiresInvestment('CORRECTION')` stays false.
 
 Phase 2
 
