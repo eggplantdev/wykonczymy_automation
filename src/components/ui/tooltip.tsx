@@ -53,14 +53,15 @@ function TooltipContent({
 type SimpleTooltipPropsT = {
   content: string
   children: React.ReactNode
+  className?: string
 }
 
-function SimpleTooltip({ content, children }: SimpleTooltipPropsT) {
+function SimpleTooltip({ content, children, className }: SimpleTooltipPropsT) {
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>{children}</TooltipTrigger>
-        <TooltipContent>{content}</TooltipContent>
+        <TooltipContent className={className}>{content}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   )

@@ -18,6 +18,7 @@ type ToggleStatButtonsPropsT = {
   rows: StatEntryT[][]
   rowLabels?: string[]
   summaryLabel: string
+  summaryTooltip?: string
   helpText?: string
   colorValues?: boolean
   onToggle?: (label: string) => void
@@ -31,6 +32,7 @@ export function ToggleStatButtons({
   rows,
   rowLabels,
   summaryLabel,
+  summaryTooltip,
   helpText,
   colorValues,
   onToggle,
@@ -86,6 +88,7 @@ export function ToggleStatButtons({
       <SaldoDisplay
         saldo={total}
         label={summaryLabel}
+        tooltip={summaryTooltip}
         selectionCount={{ selected: allEntries.length - hidden.size, total: allEntries.length }}
       />
 
