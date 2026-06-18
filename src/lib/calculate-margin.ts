@@ -1,6 +1,6 @@
 // Marża (margin) = company's profit from an investment.
 // Labor costs are what the investor pays the company for work.
-// Payouts are the company's already-withdrawn profit.
+// Payouts (PAYOUT, paid to a worker) are wages paid out — a cost, so they lower margin.
 // A rabat is a discount on the labour price — the company's own cost — so it lowers margin.
 // A loss (strata) is a cost the company absorbs itself — lowers margin, never touches bilans.
 // Settled internal material is bought by the company but already priced into robocizna —

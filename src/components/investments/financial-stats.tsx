@@ -74,7 +74,14 @@ export function FinancialStats({
         rowLabels={['Koszty inwestora']}
         summaryLabel="Bilans inwestora"
         onToggle={toggle}
-        helpText="Bilans inwestora jest liczony dynamicznie jako suma wybranych kategorii oraz filtrów."
+        summaryTooltip={
+          'Bilans inwestora \n' +
+          '= Wpłaty − Materiały − Robocizna + Rabat.\n' +
+          'Materiały zawierają korekty (korekta obniża koszt). ' +
+          'Rabat obniża dług klienta, więc podnosi bilans inwestora. ' +
+          'Bilans jest dynamiczny — odznaczenie kafelka usuwa go z wyliczenia.\n ' +
+          'Bilans nie obejmuje wypłat, straty ani marży.'
+        }
       />
 
       {totalLoss !== 0 && (
@@ -104,7 +111,18 @@ export function FinancialStats({
             value={formatPLN(totalPayouts)}
             className="border-chart-red"
           />
-          <SaldoDisplay saldo={margin} label="Marża" />
+          <SaldoDisplay
+            saldo={margin}
+            label="Marża"
+            tooltip={
+              'Marża \n' +
+              '= Robocizna − Wypłaty − Rabat − Strata − Materiały wliczone w robociznę.\n' +
+              'Robocizna to kwota, którą inwestor płaci firmie za pracę. ' +
+              'Wypłaty to kwoty wypłacone pracownikom — koszt, więc obniżają marżę. ' +
+              'Rabat i strata to koszty firmy, więc obniżają marżę. ' +
+              'Materiały wliczone w robociznę kupuje firma — obniżają marżę, ale nie obciążają bilansu inwestora.'
+            }
+          />
         </div>
       )}
     </div>
