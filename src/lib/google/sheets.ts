@@ -2,8 +2,9 @@ import { google, sheets_v4 } from 'googleapis'
 import { createServiceAccountJWT } from './auth'
 import { serviceAccountEmail } from './sheet-access'
 import {
-  SHEET_TRANSFER_TAB_TYPES,
+  TRANSFERS_SUMMARY_TYPES,
   TRANSFER_TYPE_LABELS,
+  CORRECTION_MOVED_LABEL,
 } from '@/lib/constants/transfers'
 
 // One row per transfer in a single long table, one app-managed tab per
@@ -65,9 +66,13 @@ export const TRANSFERS_TAB_CONFIG: SheetTabConfigT = {
   dataColWidths: [60, 100, 160, 240, 110, 140, 140, 180],
 }
 
-// PL labels for the transfers tab's per-type SUMIF summary, in tab order.
+// PL labels for the transfers tab's per-type SUMIF summary, in tab order. Driven
+// by the FIXED summary layout (incl. a now-zero Korekta column), NOT the routing
+// list — so a tab rebuild never shifts columns out from under existing formulas.
 export const transferSummaryKeys = (): string[] =>
-  SHEET_TRANSFER_TAB_TYPES.map((t) => TRANSFER_TYPE_LABELS[t])
+  TRANSFERS_SUMMARY_TYPES.map((t) =>
+    t === 'CORRECTION' ? CORRECTION_MOVED_LABEL : TRANSFER_TYPE_LABELS[t],
+  )
 
 const fieldsOf = (cfg: SheetTabConfigT): string[] => Object.keys(cfg.fieldMatchers)
 const colOf = (cfg: SheetTabConfigT, field: string): string =>

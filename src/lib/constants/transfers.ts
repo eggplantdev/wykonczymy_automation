@@ -90,6 +90,27 @@ export type SheetTransferTabTypeT = (typeof SHEET_TRANSFER_TAB_TYPES)[number]
 export const isSheetTransferTabType = (t: unknown): t is SheetTransferTabTypeT =>
   (SHEET_TRANSFER_TAB_TYPES as readonly string[]).includes(String(t))
 
+// Placeholder label for the retired Korekta summary column. Corrections now live
+// on the expenses tab, but the column stays so sheet formulas keyed to a fixed
+// position don't shift; the label signals where corrections went. It's ALSO the
+// SUMIF criterion, so it must match no real `typ` value (it never will) → totals 0.
+export const CORRECTION_MOVED_LABEL = 'Korekta → wydatki inwest.'
+
+// Per-type SUMIF summary columns on the transfers tab — a FIXED layout, decoupled
+// from data routing (SHEET_TRANSFER_TAB_TYPES). CORRECTION keeps its original 5th
+// slot even though corrections now route to the expenses tab (its SUMIF totals 0
+// here): the summary block is rebuilt verbatim by setupTab on a reset/relink, and
+// dropping the column would shift LOSS left and break sheet formulas keyed to a
+// fixed column position. Order = column order on the tab.
+export const TRANSFERS_SUMMARY_TYPES = [
+  'INVESTOR_DEPOSIT',
+  'LABOR_COST',
+  'RABAT',
+  'PAYOUT',
+  'CORRECTION',
+  'LOSS',
+] as const satisfies readonly TransferTypeT[]
+
 export const PAYMENT_METHODS = [
   'CASH',
   // 'BLIK',

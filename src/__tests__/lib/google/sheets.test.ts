@@ -246,7 +246,8 @@ describe('formulaArgSeparator', () => {
 describe('buildTabSummary', () => {
   it('uses full-column ranges + literal type-name criteria (drift-proof)', async () => {
     const { buildTabSummary, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
-    const { labels, totals } = buildTabSummary(EXPENSES_TAB_CONFIG, 
+    const { labels, totals } = buildTabSummary(
+      EXPENSES_TAB_CONFIG,
       ['Materiały budowlane', 'Pozostałe koszty'],
       ';',
     )
@@ -265,6 +266,25 @@ describe('buildTabSummary', () => {
     const { buildTabSummary, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
     const { totals } = buildTabSummary(EXPENSES_TAB_CONFIG, ['A "B"'], ',')
     expect(totals).toEqual(['=SUM(E:E)', '=SUMIF(C:C, "A ""B""", E:E)'])
+  })
+})
+
+describe('transferSummaryKeys — fixed layout (corrections moved, column kept)', () => {
+  it('keeps 6 columns with the Korekta slot in its original 5th position', async () => {
+    const { transferSummaryKeys } = await import('@/lib/google/sheets')
+    const { CORRECTION_MOVED_LABEL } = await import('@/lib/constants/transfers')
+    const keys = transferSummaryKeys()
+    // Routing dropped CORRECTION, but the summary layout must NOT shrink — a tab
+    // rebuild would otherwise shift Strata left and break sheet formulas keyed to
+    // a fixed column. The 5th slot is the moved-Korekta placeholder; Strata stays 6th.
+    expect(keys).toEqual([
+      'Wpłata od inwestora',
+      'Koszty robocizny',
+      'Rabat',
+      'Wypłata',
+      CORRECTION_MOVED_LABEL,
+      'Strata',
+    ])
   })
 })
 
