@@ -142,6 +142,28 @@ describe('validateTransfer — expenseCategory', () => {
     const data = { ...VALID_DATA.INVESTMENT_EXPENSE, expenseCategory: 1 }
     expect(() => validateTransfer(hookArgs(data))).not.toThrow()
   })
+
+  it('CORRECTION with an investment but no expenseCategory → throws', () => {
+    const data = { ...base, amount: -100, type: 'CORRECTION', sourceRegister: 1, investment: 1 }
+    expect(() => validateTransfer(hookArgs(data))).toThrow(/[Ee]xpense category/)
+  })
+
+  it('CORRECTION with an investment + expenseCategory → passes', () => {
+    const data = {
+      ...base,
+      amount: -100,
+      type: 'CORRECTION',
+      sourceRegister: 1,
+      investment: 1,
+      expenseCategory: 1,
+    }
+    expect(() => validateTransfer(hookArgs(data))).not.toThrow()
+  })
+
+  it('CORRECTION with NO investment and no expenseCategory → passes (type not required)', () => {
+    const data = { ...base, amount: -100, type: 'CORRECTION', sourceRegister: 1 }
+    expect(() => validateTransfer(hookArgs(data))).not.toThrow()
+  })
 })
 
 // ═══════════════════════════════════════════════════════════════════════

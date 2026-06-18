@@ -6,6 +6,7 @@ import {
   needsTargetRegister,
   needsOtherCategory,
   needsWorker,
+  needsExpenseCategory,
 } from '@/lib/constants/transfers'
 import { getAmountError } from '@/lib/validation-utils'
 
@@ -87,8 +88,8 @@ export const validateTransfer: CollectionBeforeValidateHook = ({ data, req, oper
     d.worker = null
   }
 
-  // expenseCategory — required for INVESTMENT_EXPENSE
-  if (type === 'INVESTMENT_EXPENSE' && !d.expenseCategory) {
+  // expenseCategory — required for INVESTMENT_EXPENSE, and for CORRECTION once it has an investment
+  if (needsExpenseCategory(type, !!d.investment) && !d.expenseCategory) {
     errors.push('Expense category is required for investment-related expenses.')
   }
 
