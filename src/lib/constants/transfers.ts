@@ -149,11 +149,12 @@ export const needsOtherCategory = (type: string) => isTransferType(type) && type
 export const showsOtherCategory = (type: string) =>
   isTransferType(type) && (type === 'OTHER' || type === 'INVESTMENT_EXPENSE' || type === 'PAYOUT')
 
-export const needsExpenseCategory = (type: string) =>
-  isTransferType(type) && type === 'INVESTMENT_EXPENSE'
+export const needsExpenseCategory = (type: string, hasInvestment?: boolean) =>
+  isTransferType(type) &&
+  (type === 'INVESTMENT_EXPENSE' || (type === 'CORRECTION' && !!hasInvestment))
 
 export const showsExpenseCategory = (type: string, hasInvestment?: boolean) =>
-  needsExpenseCategory(type) || (isTransferType(type) && type === 'CORRECTION' && !!hasInvestment)
+  needsExpenseCategory(type, hasInvestment)
 
 export const isLaborCost = (type: string) => isTransferType(type) && type === 'LABOR_COST'
 

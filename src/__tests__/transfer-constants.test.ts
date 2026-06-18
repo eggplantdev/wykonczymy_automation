@@ -74,6 +74,20 @@ describe('transfer constants — helper truth table', () => {
   }
 })
 
+describe('needsExpenseCategory — investment-aware', () => {
+  it.each([
+    ['INVESTMENT_EXPENSE', undefined, true],
+    ['INVESTMENT_EXPENSE', false, true],
+    ['CORRECTION', true, true],
+    ['CORRECTION', false, false],
+    ['CORRECTION', undefined, false],
+    ['LOSS', true, false],
+    ['OTHER', true, false],
+  ] as const)('needsExpenseCategory(%s, %s) === %s', (type, hasInvestment, expected) => {
+    expect(needsExpenseCategory(type, hasInvestment)).toBe(expected)
+  })
+})
+
 describe('TRANSACTION_TRANSFER_TYPES', () => {
   it('contains exactly the expected types', () => {
     expect(TRANSACTION_TRANSFER_TYPES).toEqual([
