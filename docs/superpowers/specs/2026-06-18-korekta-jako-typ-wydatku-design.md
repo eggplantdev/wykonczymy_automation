@@ -61,8 +61,10 @@ lowers the relevant expense types' costs.
      `tabSyncForType('CORRECTION')` → `EXPENSES_SYNC`.
    - `constants.ts:86` — remove `CORRECTION` from `SHEET_TRANSFER_TAB_TYPES`.
 
-Data: the 34 existing uncategorized corrections must be backfilled with a type. This
-is now doable **in-app via "edytuj transakcję"** (once area 2 ships) — no prod SQL.
+Data: every existing correction must be backfilled with a type, and any correction with
+no investment must get one — a correction without an investment is a data bug (owner
+decision), not a valid case. Doable **in-app via "edytuj transakcję"** (once area 2 ships)
+— no prod SQL. Enumerate the full set against fresh prod data, not the stale local snapshot.
 
 ## Non-obvious sheet effects
 

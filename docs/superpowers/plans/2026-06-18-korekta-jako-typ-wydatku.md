@@ -373,7 +373,7 @@ git commit -m "fix(korekta): send expense type from the form for corrections"
 ### Task 5 (manual, no code): Phase 1 deploy + in-app backfill
 
 - [ ] Deploy Phase 1 (human pushes). The "Korekty" line still exists, so balances are unchanged.
-- [ ] Backfill the 34 legacy corrections in-app via "edytuj transakcję": open each correction, set its "Typ wydatku inwestycyjnego" (and investment if missing — note: one legacy correction has no investment). Save.
+- [ ] Backfill every legacy correction in-app via "edytuj transakcję": open each, set its "Typ wydatku inwestycyjnego", and assign an investment to any that lack one — a correction with no investment is a data bug (owner decision), not a valid case, so fix it here. Save. Enumerate the full set against **fresh prod data** (pull a current dump via the `restore-prod-backup-local` skill); the local snapshot's count is stale.
 - [ ] Verify: each backfilled correction now shows its type in the transfers table and folds into its expense type on the investment page (still also visible in the "Korekty" line at this point — that is expected until Phase 2).
 
 > Do NOT start Phase 2 until the backfill is complete — removing the "Korekty" line before backfill makes untyped corrections vanish from the balance.
