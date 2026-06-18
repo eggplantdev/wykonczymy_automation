@@ -29,7 +29,9 @@ name: Backup Neon DB
 
 on:
   schedule:
-    - cron: '0 */4 * * *' # every 4 hours (00,04,08,12,16,20 UTC)
+    # hourly 04:00–22:00 UTC = 06:00–00:00 Warsaw (CEST). Cron is fixed UTC with
+    # no DST, so in winter (CET) this shifts to 05:00–23:00 Warsaw — adjust if it matters.
+    - cron: '0 4-22 * * *'
   workflow_dispatch:
     inputs:
       target_dir:
