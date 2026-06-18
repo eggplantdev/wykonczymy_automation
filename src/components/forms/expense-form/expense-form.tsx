@@ -19,6 +19,7 @@ import {
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
 import { createBulkTransferAction } from '@/lib/actions/transfers'
+import { mapLineItem } from '@/components/forms/expense-form/map-line-item'
 import { uploadFilesClient } from '@/lib/upload-file-client'
 import {
   bulkExpenseFormSchema,
@@ -134,16 +135,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
         investment: value.investment ? Number(value.investment) : undefined,
         worker: value.worker ? Number(value.worker) : undefined,
         settled: value.settled,
-        lineItems: value.lineItems.map((item) => ({
-          description: item.description,
-          amount: Number(item.amount),
-          invoiceNote: item.invoiceNote || undefined,
-          category: item.category ? Number(item.category) : undefined,
-          expenseCategory:
-            type === 'INVESTMENT_EXPENSE' && item.expenseCategory
-              ? Number(item.expenseCategory)
-              : undefined,
-        })),
+        lineItems: value.lineItems.map((item) => mapLineItem(item, type, !!value.investment)),
       }
 
       const files = getFiles()
