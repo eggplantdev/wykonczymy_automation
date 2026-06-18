@@ -269,15 +269,36 @@ describe('buildTabSummary', () => {
   })
 })
 
-describe('transferSummaryKeys — fixed layout (corrections moved, column kept)', () => {
-  it('keeps 6 columns with the Korekta slot in its original 5th position', async () => {
-    const { transferSummaryKeys } = await import('@/lib/google/sheets')
+// Kosztorys sheets across many client spreadsheets reference the transfers-tab
+// SUMIF summary columns by FIXED position. Dropping or reordering any column —
+// data header OR summary key — shifts the survivors and silently breaks those
+// formulas, with no fix but going sheet-by-sheet by hand. This pins the whole
+// left-to-right layout so any such change fails loudly here first. See
+// context/foundation/lessons.md "frozen external contract".
+describe('transfers tab — frozen column layout (kosztorys formulas depend on positions)', () => {
+  it('freezes the data header columns A–H', async () => {
+    const { TRANSFERS_TAB_CONFIG } = await import('@/lib/google/sheets')
+    expect(TRANSFERS_TAB_CONFIG.header).toEqual([
+      'id',
+      'data',
+      'typ',
+      'opis',
+      'kwota',
+      'pracownik',
+      'kategoria',
+      'notatka',
+    ])
+  })
+
+  it('keeps the summary 6-wide, Korekta in slot 5 (col M), Strata in slot 6 (col N)', async () => {
+    const { transferSummaryKeys, buildTabSummary, TRANSFERS_TAB_CONFIG } =
+      await import('@/lib/google/sheets')
     const { CORRECTION_MOVED_LABEL } = await import('@/lib/constants/transfers')
-    const keys = transferSummaryKeys()
-    // Routing dropped CORRECTION, but the summary layout must NOT shrink — a tab
-    // rebuild would otherwise shift Strata left and break sheet formulas keyed to
-    // a fixed column. The 5th slot is the moved-Korekta placeholder; Strata stays 6th.
-    expect(keys).toEqual([
+    const { labels } = buildTabSummary(TRANSFERS_TAB_CONFIG, transferSummaryKeys(), ';')
+
+    // Routing dropped CORRECTION, but the layout must NOT shrink — slot 5 is the
+    // moved-Korekta placeholder (totals 0), Strata stays slot 6.
+    expect(labels).toEqual([
       'Wpłata od inwestora',
       'Koszty robocizny',
       'Rabat',
@@ -285,6 +306,13 @@ describe('transferSummaryKeys — fixed layout (corrections moved, column kept)'
       CORRECTION_MOVED_LABEL,
       'Strata',
     ])
+
+    // Absolute column the formulas point at = header width (8, no RAZEM on this
+    // tab) + index. A removed/reordered column on EITHER side moves these.
+    const columnOf = (label: string) =>
+      String.fromCharCode(65 + TRANSFERS_TAB_CONFIG.header.length + labels.indexOf(label))
+    expect(columnOf(CORRECTION_MOVED_LABEL)).toBe('M')
+    expect(columnOf('Strata')).toBe('N')
   })
 })
 
