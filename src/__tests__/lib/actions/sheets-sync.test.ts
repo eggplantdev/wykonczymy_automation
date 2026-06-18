@@ -139,7 +139,6 @@ function sheetGrids(expenseIds: Array<number | null>, transferIds: Array<number 
   )
 }
 
-
 function makeMaterialTransaction(
   id: number,
   categoryName: 'Materiały budowlane' | 'Materiały wykończeniowe',
@@ -412,7 +411,7 @@ describe('applyMaterialSync', () => {
       expect.arrayContaining([
         { id: { in: [8] } },
         { investment: { equals: 31 } },
-        { type: { equals: 'INVESTMENT_EXPENSE' } },
+        { type: { in: ['INVESTMENT_EXPENSE', 'CORRECTION'] } },
       ]),
     )
   })
@@ -488,7 +487,7 @@ describe('applyMaterialSync — transfers tab', () => {
     expect(transferCells[5].values).toEqual([['Jan']]) // F = pracownik
   })
 
-  it('scopes the transfers orphan guard to this investment and the six types', async () => {
+  it('scopes the transfers orphan guard to this investment and the five types', async () => {
     withSheet(31, 'sheet-1')
     findMock.mockResolvedValue({ docs: [] })
     // transfers tab holds #55, which no longer maps to an active transfer
@@ -504,7 +503,7 @@ describe('applyMaterialSync — transfers tab', () => {
         { investment: { equals: 31 } },
         {
           type: {
-            in: ['INVESTOR_DEPOSIT', 'LABOR_COST', 'RABAT', 'PAYOUT', 'CORRECTION', 'LOSS'],
+            in: ['INVESTOR_DEPOSIT', 'LABOR_COST', 'RABAT', 'PAYOUT', 'LOSS'],
           },
         },
       ]),

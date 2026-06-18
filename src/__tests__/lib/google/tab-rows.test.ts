@@ -26,16 +26,16 @@ describe('transferRow', () => {
     expect(row?.worker).toBe('Jan')
   })
 
-  it('fills kategoria from expenseCategory (CORRECTION) and preserves a negative amount', () => {
-    const row = transferRow({
-      ...base,
-      id: 7,
-      type: 'CORRECTION',
-      amount: -120.5,
-      expenseCategory: { name: 'Materiały budowlane' },
-    })
-    expect(row?.amount).toBe(-120.5)
-    expect(row?.category).toBe('Materiały budowlane')
+  it('returns undefined for a CORRECTION (now mirrored on the expenses tab, not here)', () => {
+    expect(
+      transferRow({
+        ...base,
+        id: 7,
+        type: 'CORRECTION',
+        amount: -120.5,
+        expenseCategory: { name: 'Materiały budowlane' },
+      }),
+    ).toBeUndefined()
   })
 
   it('returns undefined for types outside the six (never a row on this tab)', () => {
@@ -95,9 +95,7 @@ describe('sheet totals == filtered view (criterion 2)', () => {
     const rows = desired.map((d) => transferRow(d)).filter((r) => r !== undefined)
     for (const type of SHEET_TRANSFER_TAB_TYPES) {
       const label = TRANSFER_TYPE_LABELS[type]
-      const sheetSum = rows
-        .filter((r) => r.typ === label)
-        .reduce((s, r) => s + Number(r.amount), 0)
+      const sheetSum = rows.filter((r) => r.typ === label).reduce((s, r) => s + Number(r.amount), 0)
       expect(sheetSum).toBe(dbTotal(type))
     }
   })
@@ -137,5 +135,22 @@ describe('expenseRow (behavior unchanged by the refactor)', () => {
     expect(
       expenseRow({ id: 3, amount: '', expenseCategory: { name: 'Materiały budowlane' } }),
     ).toBeUndefined()
+  })
+
+  it('builds a row for a typed CORRECTION and preserves the negative amount', () => {
+    const row = expenseRow({
+      ...base,
+      id: 9,
+      type: 'CORRECTION',
+      amount: -120,
+      expenseCategory: { name: 'Materiały budowlane' },
+    })
+    expect(row).toBeDefined()
+    expect(row!.amount).toBe(-120)
+    expect(row!.typ).toBe('Materiały budowlane')
+  })
+
+  it('skips an untyped CORRECTION', () => {
+    expect(expenseRow({ ...base, id: 10, type: 'CORRECTION', amount: -50 })).toBeUndefined()
   })
 })

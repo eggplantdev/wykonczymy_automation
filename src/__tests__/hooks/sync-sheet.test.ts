@@ -71,9 +71,9 @@ describe('syncSheetAfterChange', () => {
     expect(mockSyncSingle).toHaveBeenCalledWith({ transferId: 10 })
   })
 
-  it('syncs each transfers-tab type (the six mirrored on the transfery tab)', async () => {
-    const six = ['INVESTOR_DEPOSIT', 'LABOR_COST', 'RABAT', 'PAYOUT', 'CORRECTION', 'LOSS']
-    for (const type of six) {
+  it('syncs each sheet-mirrored type (transfery tab types + CORRECTION on the wydatki tab)', async () => {
+    const synced = ['INVESTOR_DEPOSIT', 'LABOR_COST', 'RABAT', 'PAYOUT', 'LOSS', 'CORRECTION']
+    for (const type of synced) {
       mockSyncSingle.mockReset()
       await change({ doc: { id: 10, type, investment: 2 } })
       expect(mockSyncSingle).toHaveBeenCalledWith({ transferId: 10 })
@@ -81,7 +81,13 @@ describe('syncSheetAfterChange', () => {
   })
 
   it('skips types with no sheet tab (not expenses, not one of the six)', async () => {
-    for (const type of ['REGISTER_TRANSFER', 'OTHER', 'COMPANY_FUNDING', 'OTHER_DEPOSIT', 'CANCELLATION']) {
+    for (const type of [
+      'REGISTER_TRANSFER',
+      'OTHER',
+      'COMPANY_FUNDING',
+      'OTHER_DEPOSIT',
+      'CANCELLATION',
+    ]) {
       await change({ doc: { id: 10, type, investment: 2 } })
     }
     expect(mockSyncSingle).not.toHaveBeenCalled()

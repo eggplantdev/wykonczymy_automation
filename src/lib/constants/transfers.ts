@@ -83,7 +83,6 @@ export const SHEET_TRANSFER_TAB_TYPES = [
   'LABOR_COST',
   'RABAT',
   'PAYOUT',
-  'CORRECTION',
   'LOSS',
 ] as const satisfies readonly TransferTypeT[]
 export type SheetTransferTabTypeT = (typeof SHEET_TRANSFER_TAB_TYPES)[number]

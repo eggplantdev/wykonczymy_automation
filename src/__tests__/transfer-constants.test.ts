@@ -11,6 +11,8 @@ import {
   needsTargetRegister,
   needsOtherCategory,
   needsExpenseCategory,
+  isSheetTransferTabType,
+  SHEET_TRANSFER_TAB_TYPES,
 } from '@/lib/constants/transfers'
 
 // ── Truth table: expected return value per (helper × type) ──────────────
@@ -150,4 +152,13 @@ describe('transfer constants — edge cases', () => {
       expect(fn('UNKNOWN_TYPE')).toBe(false)
     })
   }
+})
+
+describe('SHEET_TRANSFER_TAB_TYPES — corrections moved to the expenses tab', () => {
+  it('does not contain CORRECTION', () => {
+    expect(SHEET_TRANSFER_TAB_TYPES).not.toContain('CORRECTION')
+  })
+  it('isSheetTransferTabType is false for CORRECTION', () => {
+    expect(isSheetTransferTabType('CORRECTION')).toBe(false)
+  })
 })

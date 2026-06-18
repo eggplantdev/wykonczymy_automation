@@ -65,7 +65,7 @@ type TabSyncSpecT = {
 
 const EXPENSES_SYNC: TabSyncSpecT = {
   cfg: EXPENSES_TAB_CONFIG,
-  typeWhere: { equals: 'INVESTMENT_EXPENSE' },
+  typeWhere: { in: ['INVESTMENT_EXPENSE', 'CORRECTION'] },
   buildRow: expenseRow,
 }
 
@@ -78,7 +78,7 @@ const TRANSFERS_SYNC: TabSyncSpecT = {
 
 // Which tab (if any) mirrors a transaction of this type.
 const tabSyncForType = (type: unknown): TabSyncSpecT | undefined =>
-  type === 'INVESTMENT_EXPENSE'
+  type === 'INVESTMENT_EXPENSE' || type === 'CORRECTION'
     ? EXPENSES_SYNC
     : isSheetTransferTabType(type)
       ? TRANSFERS_SYNC
