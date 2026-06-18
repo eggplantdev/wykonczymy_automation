@@ -50,7 +50,7 @@ jobs:
       REMOTE_DIR: ${{ github.event.inputs.target_dir || '/db_backups/' }}
       RETENTION_DAYS: '30'
       SIZE_FLOOR: '1024' # bytes (gzipped)
-      MIN_TX: '1000' # transactions floor (real prod ~2131)
+      MIN_TX: '2000' # transactions floor — sanity check, not exact count (real prod 2342 @ 2026-06; headroom below current so legit transfer deletes don't false-alarm)
       FRESH_DAYS: '3' # newest date in dump must be within this
       KEY_TABLES: 'transactions investments cash_registers users'
 
