@@ -2,6 +2,7 @@ import { z } from 'zod'
 import {
   TRANSFER_TYPES,
   PAYMENT_METHODS,
+  EXPENSE_CATEGORY_LABEL,
   needsSourceRegister,
   requiresInvestment,
   needsTargetRegister,
@@ -60,7 +61,7 @@ const transferFieldRules: FieldRuleT[] = [
   {
     invalid: (d) =>
       needsExpenseCategory(d.type, !!d.investment) && !('lineItems' in d) && !d.expenseCategory,
-    message: 'Typ wydatku inwestycyjnego jest wymagany',
+    message: `${EXPENSE_CATEGORY_LABEL} jest wymagany`,
     path: 'expenseCategory',
   },
 ]
@@ -83,7 +84,7 @@ export function validateLineItemCategories(
     if (needsExpenseCategory(type, hasInvestment) && !item.expenseCategory) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Typ wydatku inwestycyjnego jest wymagany',
+        message: `${EXPENSE_CATEGORY_LABEL} jest wymagany`,
         path: ['lineItems', index, 'expenseCategory'],
       })
     }
