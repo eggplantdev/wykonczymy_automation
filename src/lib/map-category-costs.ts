@@ -23,13 +23,10 @@ export function buildFinancialFields(
   financials: InvestmentFinancialsT,
   expenseCategories: { id: number; name: string }[],
 ): FinancialFieldT[] {
-  const { categoryCosts, totalCorrections, totalIncome, totalLaborCosts, totalRabat } = financials
+  const { categoryCosts, totalIncome, totalLaborCosts, totalRabat } = financials
 
   return [
     ...mapCategoryCostsToFields(categoryCosts, expenseCategories),
-    ...(totalCorrections !== 0
-      ? [{ label: 'Korekty', value: formatPLN(totalCorrections), amount: -totalCorrections }]
-      : []),
     {
       label: 'Robocizna',
       value: formatPLN(totalLaborCosts),
