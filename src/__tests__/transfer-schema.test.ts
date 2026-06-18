@@ -4,6 +4,34 @@ import {
   createBulkExpenseSchema,
   expenseFormSchema,
 } from '@/components/forms/expense-form/expense-schema'
+import { validateLineItemCategories } from '@/lib/schemas/transfer'
+
+describe('validateLineItemCategories — CORRECTION (investment-conditional)', () => {
+  const collect = () => {
+    const issues: { path: (string | number)[] }[] = []
+    const ctx = { addIssue: (i: { path: (string | number)[] }) => issues.push(i) } as never
+    return { issues, ctx }
+  }
+
+  it('flags a CORRECTION line item with no type WHEN it has an investment', () => {
+    const { issues, ctx } = collect()
+    validateLineItemCategories('CORRECTION', [{ expenseCategory: undefined }], ctx, true)
+    expect(issues).toHaveLength(1)
+    expect(issues[0].path).toEqual(['lineItems', 0, 'expenseCategory'])
+  })
+
+  it('does NOT flag a CORRECTION line item with no type when it has no investment', () => {
+    const { issues, ctx } = collect()
+    validateLineItemCategories('CORRECTION', [{ expenseCategory: undefined }], ctx, false)
+    expect(issues).toHaveLength(0)
+  })
+
+  it('passes a CORRECTION line item that has a type', () => {
+    const { issues, ctx } = collect()
+    validateLineItemCategories('CORRECTION', [{ expenseCategory: 5 }], ctx, true)
+    expect(issues).toHaveLength(0)
+  })
+})
 
 // ── Helpers ─────────────────────────────────────────────────────────────
 

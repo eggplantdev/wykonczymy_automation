@@ -90,7 +90,7 @@ export const bulkExpenseFormSchema = z
         })
       }
     })
-    validateLineItemCategories(data.type, data.lineItems, ctx)
+    validateLineItemCategories(data.type, data.lineItems, ctx, !!data.investment)
   })
 
 export const createBulkExpenseSchema = z
@@ -132,7 +132,7 @@ export const createBulkExpenseSchema = z
       }
     })
 
-    validateLineItemCategories(data.type, data.lineItems, ctx)
+    validateLineItemCategories(data.type, data.lineItems, ctx, !!data.investment)
   })
 
 export type CreateBulkExpenseFormT = z.infer<typeof createBulkExpenseSchema>

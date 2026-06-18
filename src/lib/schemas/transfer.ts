@@ -58,7 +58,8 @@ const transferFieldRules: FieldRuleT[] = [
     path: 'worker',
   },
   {
-    invalid: (d) => needsExpenseCategory(d.type) && !('lineItems' in d) && !d.expenseCategory,
+    invalid: (d) =>
+      needsExpenseCategory(d.type, !!d.investment) && !('lineItems' in d) && !d.expenseCategory,
     message: 'Typ wydatku inwestycyjnego jest wymagany',
     path: 'expenseCategory',
   },
@@ -76,9 +77,10 @@ export function validateLineItemCategories(
   type: string,
   lineItems: { category?: unknown; expenseCategory?: unknown }[],
   ctx: z.RefinementCtx,
+  hasInvestment?: boolean,
 ) {
   lineItems.forEach((item, index) => {
-    if (type === 'INVESTMENT_EXPENSE' && !item.expenseCategory) {
+    if (needsExpenseCategory(type, hasInvestment) && !item.expenseCategory) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Typ wydatku inwestycyjnego jest wymagany',
