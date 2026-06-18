@@ -5,7 +5,7 @@ import { InvoiceThumbnail } from '@/components/invoice-thumbnail'
 import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
 import { FileInput } from '@/components/ui/file-input'
-import { useAppForm } from '@/components/forms/hooks/form-hooks'
+import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
 import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import {
   showsInvestment,
@@ -113,6 +113,11 @@ export function EditTransferForm({
 
   useCheckFormErrors(form)
 
+  // Gate the type field on the LIVE investment value, not row.investmentId — the
+  // investment is editable here, so adding one to a correction must reveal the
+  // type field without a reload (matches the create form's currentInvestment).
+  const currentInvestment = useStore(form.store, (s) => s.values.investment)
+
   function handleFileChange() {
     const file = fileRef.current?.files?.[0]
     setSelectedFileName(file?.name)
@@ -144,7 +149,7 @@ export function EditTransferForm({
             />
           )}
 
-          {needsExpenseCategory(row.type, !!row.investmentId) && (
+          {needsExpenseCategory(row.type, !!currentInvestment) && (
             <ExpenseCategoryField form={form} expenseCategories={referenceData.expenseCategories} />
           )}
 
