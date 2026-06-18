@@ -90,6 +90,17 @@ export type SheetTransferTabTypeT = (typeof SHEET_TRANSFER_TAB_TYPES)[number]
 export const isSheetTransferTabType = (t: unknown): t is SheetTransferTabTypeT =>
   (SHEET_TRANSFER_TAB_TYPES as readonly string[]).includes(String(t))
 
+// Types that own a row on the kosztorys "Wydatki inwestycyjne" tab. Single source
+// of truth for sheet routing AND the sync-hook gate — keep them from drifting
+// apart (a CORRECTION once synced to no tab because one of three copies was missed).
+export const EXPENSES_TAB_TYPES = [
+  'INVESTMENT_EXPENSE',
+  'CORRECTION',
+] as const satisfies readonly TransferTypeT[]
+
+export const isExpensesTabType = (t: unknown): boolean =>
+  (EXPENSES_TAB_TYPES as readonly string[]).includes(String(t))
+
 // Placeholder label for the retired Korekta summary column. Corrections now live
 // on the expenses tab, but the column stays so sheet formulas keyed to a fixed
 // position don't shift; the label signals where corrections went. It's ALSO the

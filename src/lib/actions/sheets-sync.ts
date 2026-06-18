@@ -14,7 +14,12 @@ import {
   type TabRowInputT,
 } from '@/lib/google/sheets'
 import { expenseRow, transferRow, type TxDocT } from '@/lib/google/tab-rows'
-import { isSheetTransferTabType, SHEET_TRANSFER_TAB_TYPES } from '@/lib/constants/transfers'
+import {
+  isSheetTransferTabType,
+  isExpensesTabType,
+  EXPENSES_TAB_TYPES,
+  SHEET_TRANSFER_TAB_TYPES,
+} from '@/lib/constants/transfers'
 import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
 import { protectedAction } from './utils'
 
@@ -65,7 +70,7 @@ type TabSyncSpecT = {
 
 const EXPENSES_SYNC: TabSyncSpecT = {
   cfg: EXPENSES_TAB_CONFIG,
-  typeWhere: { in: ['INVESTMENT_EXPENSE', 'CORRECTION'] },
+  typeWhere: { in: [...EXPENSES_TAB_TYPES] },
   buildRow: expenseRow,
 }
 
@@ -78,7 +83,7 @@ const TRANSFERS_SYNC: TabSyncSpecT = {
 
 // Which tab (if any) mirrors a transaction of this type.
 const tabSyncForType = (type: unknown): TabSyncSpecT | undefined =>
-  type === 'INVESTMENT_EXPENSE' || type === 'CORRECTION'
+  isExpensesTabType(type)
     ? EXPENSES_SYNC
     : isSheetTransferTabType(type)
       ? TRANSFERS_SYNC

@@ -1,6 +1,6 @@
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
 import { after } from 'next/server'
-import { SHEET_TRANSFER_TAB_TYPES } from '@/lib/constants/transfers'
+import { EXPENSES_TAB_TYPES, SHEET_TRANSFER_TAB_TYPES } from '@/lib/constants/transfers'
 
 // sheets-sync is a 'use server' module (it pulls in `server-only` + the Payload
 // config), so it's imported LAZILY inside after() — a static import here would poison
@@ -23,12 +23,8 @@ const resolveId = (value: unknown): number | undefined => {
 // The bulk-create action sets context.skipSheetSync and batches the sync itself
 // (review T4.2), so we don't fire N per-row syncs from here.
 // Types that own a row on one of the app-managed tabs: expenses tab for
-// INVESTMENT_EXPENSE and CORRECTION, transfery tab for the investment-linked types.
-const SHEET_SYNCED_TYPES: readonly string[] = [
-  'INVESTMENT_EXPENSE',
-  'CORRECTION',
-  ...SHEET_TRANSFER_TAB_TYPES,
-]
+// EXPENSES_TAB_TYPES, transfery tab for the investment-linked types.
+const SHEET_SYNCED_TYPES: readonly string[] = [...EXPENSES_TAB_TYPES, ...SHEET_TRANSFER_TAB_TYPES]
 
 export const syncSheetAfterChange: CollectionAfterChangeHook = ({ doc, previousDoc, context }) => {
   if (context?.skipSheetSync) return doc
