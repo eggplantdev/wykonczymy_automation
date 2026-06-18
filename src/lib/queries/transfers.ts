@@ -221,15 +221,73 @@ export function buildTransferFilters(
  */
 export async function findTransfersByIds(ids: number[]): Promise<RawTransferDocT[]> {
   if (ids.length === 0) return []
-  const payload = await getPayload({ config })
-  const result = await payload.find({
-    collection: 'transactions',
-    where: { id: { in: ids } },
-    limit: ids.length,
-    depth: 0,
-    overrideAccess: true,
+  // Sort so the cache key is stable regardless of input order.
+  const sortedIds = [...ids].sort((a, b) => a - b)
+  return unstable_cache(
+    async () => {
+      const payload = await getPayload({ config })
+      const result = await payload.find({
+        collection: 'transactions',
+        where: { id: { in: sortedIds } },
+        limit: sortedIds.length,
+        depth: 0,
+        overrideAccess: true,
+      })
+      return result.docs as RawTransferDocT[]
+    },
+    ['transfers-by-ids', sortedIds.join(',')],
+    { tags: [CACHE_TAGS.transfers] },
+  )()
+}
+
+/**
+ * Fetch the originals referenced by CANCELLATION rows in `docs`, indexed by id.
+ * Returns an empty map when there are no cancellation rows. Shared by the two
+ * cancellation display paths (audit-mode splice and inline enrichment).
+ */
+export async function buildCancellationOriginalsMap(
+  docs: RawTransferDocT[],
+): Promise<Map<number, RawTransferDocT>> {
+  const ids = docs
+    .filter((d) => d.type === 'CANCELLATION')
+    .map((d) => d.cancelledTransaction)
+    .filter((v): v is number => typeof v === 'number')
+  if (ids.length === 0) return new Map()
+  const originals = await findTransfersByIds(ids)
+  return new Map(originals.map((o) => [o.id as number, o]))
+}
+
+/**
+ * A CANCELLATION audit row stores none of the original's relational fields
+ * (see cancelTransferAction — only amount/description/paymentMethod are copied),
+ * so it renders as all em-dashes. For display, borrow the original's investment /
+ * registers / category / worker and stamp `originalType` for the Typ column.
+ *
+ * Display-only on purpose: the financial SQL in lib/db queries the DB directly and
+ * never sees these merged docs, so this cannot affect register balances — unlike
+ * persisting a sourceRegister onto the row, which the balance query would subtract.
+ */
+export async function enrichCancellationOriginals(
+  docs: RawTransferDocT[],
+): Promise<RawTransferDocT[]> {
+  const originalsById = await buildCancellationOriginalsMap(docs)
+  if (originalsById.size === 0) return docs
+
+  return docs.map((doc) => {
+    if (doc.type !== 'CANCELLATION') return doc
+    const orig = originalsById.get(doc.cancelledTransaction as number)
+    if (!orig) return doc
+    return {
+      ...doc,
+      investment: orig.investment ?? null,
+      sourceRegister: orig.sourceRegister ?? null,
+      targetRegister: orig.targetRegister ?? null,
+      expenseCategory: orig.expenseCategory ?? null,
+      otherCategory: orig.otherCategory ?? null,
+      worker: orig.worker ?? null,
+      originalType: orig.type ?? null,
+    }
   })
-  return result.docs as RawTransferDocT[]
 }
 
 /** Strip cancelled-related conditions from a Where object (for stats queries that handle it in SQL). */

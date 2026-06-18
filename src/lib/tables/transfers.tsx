@@ -49,6 +49,8 @@ export type TransferRowT = {
   invoiceNote: string | null
   cancelled: boolean
   settled: boolean
+  // For a CANCELLATION row: the type of the original transfer it reverses (display-only). null otherwise.
+  originalType: TransferTypeT | null
 }
 
 type NameMapT = Map<number, string>
@@ -89,42 +91,9 @@ export function buildTransferLookups(
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRowT {
-  if (lookups) {
-    const mediaId = typeof doc.invoice === 'number' ? doc.invoice : null
-    const media = mediaId ? lookups.media.get(mediaId) : undefined
-
-    return {
-      id: doc.id,
-      description: doc.description,
-      amount: doc.amount,
-      type: doc.type as TransferTypeT,
-      paymentMethod: doc.paymentMethod as PaymentMethodT,
-      date: doc.date,
-      sourceRegisterId: toNullableId(doc.sourceRegister),
-      sourceRegisterName: lookupName(lookups.cashRegisters, doc.sourceRegister),
-      targetRegisterId: toNullableId(doc.targetRegister),
-      targetRegisterName: lookupName(lookups.cashRegisters, doc.targetRegister),
-      investmentId: toNullableId(doc.investment),
-      investmentName: lookupName(lookups.investments, doc.investment),
-      expenseCategoryId: toNullableId(doc.expenseCategory),
-      expenseCategoryName: lookupName(lookups.expenseCategories, doc.expenseCategory),
-      otherCategoryName: lookupName(lookups.otherCategories, doc.otherCategory),
-      otherCategoryId: toNullableId(doc.otherCategory),
-      workerName: lookupName(lookups.users, doc.worker),
-      workerId: toNullableId(doc.worker),
-      createdByName: lookupName(lookups.users, doc.createdBy),
-      createdById: toNullableId(doc.createdBy),
-      createdAt: doc.createdAt,
-      invoiceUrl: media?.url ?? null,
-      invoiceFilename: media?.filename ?? null,
-      invoiceMimeType: media?.mimeType ?? null,
-      invoiceNote: doc.invoiceNote ?? null,
-      cancelled: doc.cancelled ?? false,
-      settled: doc.settled ?? false,
-    }
-  }
-
-  return {
+  // Scalars + resolved IDs are identical across both modes; only the *name* fields
+  // and invoice media differ (lookup maps vs populated objects).
+  const base = {
     id: doc.id,
     description: doc.description,
     amount: doc.amount,
@@ -132,26 +101,50 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
     paymentMethod: doc.paymentMethod as PaymentMethodT,
     date: doc.date,
     sourceRegisterId: toNullableId(doc.sourceRegister),
-    sourceRegisterName: getRelationName(doc.sourceRegister),
     targetRegisterId: toNullableId(doc.targetRegister),
-    targetRegisterName: getRelationName(doc.targetRegister),
     investmentId: toNullableId(doc.investment),
-    investmentName: getRelationName(doc.investment),
     expenseCategoryId: toNullableId(doc.expenseCategory),
-    expenseCategoryName: getRelationName(doc.expenseCategory),
-    otherCategoryName: getRelationName(doc.otherCategory),
     otherCategoryId: toNullableId(doc.otherCategory),
-    workerName: getRelationName(doc.worker),
     workerId: toNullableId(doc.worker),
-    createdByName: getRelationName(doc.createdBy),
     createdById: toNullableId(doc.createdBy),
     createdAt: doc.createdAt,
-    invoiceUrl: getMediaField(doc.invoice, 'url'),
-    invoiceFilename: getMediaField(doc.invoice, 'filename'),
-    invoiceMimeType: getMediaField(doc.invoice, 'mimeType'),
     invoiceNote: doc.invoiceNote ?? null,
     cancelled: doc.cancelled ?? false,
     settled: doc.settled ?? false,
+    originalType: (doc.originalType as TransferTypeT) ?? null,
+  }
+
+  if (lookups) {
+    const mediaId = typeof doc.invoice === 'number' ? doc.invoice : null
+    const media = mediaId ? lookups.media.get(mediaId) : undefined
+
+    return {
+      ...base,
+      sourceRegisterName: lookupName(lookups.cashRegisters, doc.sourceRegister),
+      targetRegisterName: lookupName(lookups.cashRegisters, doc.targetRegister),
+      investmentName: lookupName(lookups.investments, doc.investment),
+      expenseCategoryName: lookupName(lookups.expenseCategories, doc.expenseCategory),
+      otherCategoryName: lookupName(lookups.otherCategories, doc.otherCategory),
+      workerName: lookupName(lookups.users, doc.worker),
+      createdByName: lookupName(lookups.users, doc.createdBy),
+      invoiceUrl: media?.url ?? null,
+      invoiceFilename: media?.filename ?? null,
+      invoiceMimeType: media?.mimeType ?? null,
+    }
+  }
+
+  return {
+    ...base,
+    sourceRegisterName: getRelationName(doc.sourceRegister),
+    targetRegisterName: getRelationName(doc.targetRegister),
+    investmentName: getRelationName(doc.investment),
+    expenseCategoryName: getRelationName(doc.expenseCategory),
+    otherCategoryName: getRelationName(doc.otherCategory),
+    workerName: getRelationName(doc.worker),
+    createdByName: getRelationName(doc.createdBy),
+    invoiceUrl: getMediaField(doc.invoice, 'url'),
+    invoiceFilename: getMediaField(doc.invoice, 'filename'),
+    invoiceMimeType: getMediaField(doc.invoice, 'mimeType'),
   }
 }
 
@@ -234,10 +227,16 @@ const allColumns = [
   col.accessor('type', {
     id: 'type',
     header: 'Typ',
-    cell: (info) =>
-      info.row.original.settled
-        ? SETTLED_TYPE_LABEL
-        : (TRANSFER_TYPE_LABELS[info.getValue() as TransferTypeT] ?? info.getValue()),
+    cell: (info) => {
+      const { settled, type, originalType } = info.row.original
+      if (settled) return SETTLED_TYPE_LABEL
+      const label = TRANSFER_TYPE_LABELS[type] ?? type
+      // For a cancellation, append what it reversed: "Anulowanie (Wydatek inwestycyjny)"
+      if (type === 'CANCELLATION' && originalType) {
+        return `${label} (${TRANSFER_TYPE_LABELS[originalType] ?? originalType})`
+      }
+      return label
+    },
   }),
   col.accessor('expenseCategoryName', {
     id: 'expenseCategory',

@@ -1,6 +1,7 @@
 import {
   findTransfersRaw,
-  findTransfersByIds,
+  buildCancellationOriginalsMap,
+  enrichCancellationOriginals,
   stripCancelledFilters,
 } from '@/lib/queries/transfers'
 import { fetchReferenceData, fetchFilteredByType } from '@/lib/queries/reference-data'
@@ -30,18 +31,19 @@ export async function TransferTableServer({ config }: TransferTableServerPropsT)
   // Cancelled-transaction audit mode — pull originals referenced by each CANCELLATION row and splice them in directly above
   let pageDocs = rawTxResult.docs
   if (config.cancelledTransactionAudit) {
-    const originalIds = pageDocs
-      .map((d) => d.cancelledTransaction)
-      .filter((v): v is number => typeof v === 'number')
-    if (originalIds.length > 0) {
-      const originals = await findTransfersByIds(originalIds)
-      const originalsById = new Map(originals.map((o) => [o.id as number, o]))
+    const originalsById = await buildCancellationOriginalsMap(pageDocs)
+    if (originalsById.size > 0) {
       pageDocs = pageDocs.flatMap((doc) => {
         const orig = originalsById.get(doc.cancelledTransaction as number)
-        return orig ? [orig, doc] : [doc]
+        // Stamp originalType so the cancellation row's Typ label matches the non-audit view.
+        return orig ? [orig, { ...doc, originalType: orig.type }] : [doc]
       })
     }
     console.log(`[PERF] TransferTableServer audit-mode pair fetch ${step()}ms`)
+  } else {
+    // Outside audit mode, a CANCELLATION row appears standalone (when showCancelled is on).
+    // Borrow the original's relational fields so its columns aren't all em-dashes.
+    pageDocs = await enrichCancellationOriginals(pageDocs)
   }
 
   const rows = await buildTransferRows(pageDocs, refData, { skipMedia })
