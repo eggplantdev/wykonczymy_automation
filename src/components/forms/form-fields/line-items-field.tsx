@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { formatPLN } from '@/lib/format-currency'
 import {
   EXPENSE_CATEGORY_LABEL,
-  showsExpenseCategory,
+  needsExpenseCategory,
   showsOtherCategory,
 } from '@/lib/constants/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
@@ -59,7 +59,7 @@ function getInlineCategory(
   refData: ReferenceDataBaseT,
   hasInvestment?: boolean,
 ): CategoryFieldConfigT | undefined {
-  if (showsExpenseCategory(type, hasInvestment)) {
+  if (needsExpenseCategory(type, hasInvestment)) {
     return {
       fieldName: 'expenseCategory',
       label: EXPENSE_CATEGORY_LABEL,
@@ -76,7 +76,7 @@ function getSecondRowCategory(
   refData: ReferenceDataBaseT,
 ): CategoryFieldConfigT | undefined {
   // Show other category in second row when inline is already taken by expense category
-  if (showsExpenseCategory(type) && showsOtherCategory(type)) return otherCategoryConfig(refData)
+  if (needsExpenseCategory(type) && showsOtherCategory(type)) return otherCategoryConfig(refData)
   return undefined
 }
 

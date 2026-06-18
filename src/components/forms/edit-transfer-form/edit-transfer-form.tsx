@@ -144,7 +144,7 @@ export function EditTransferForm({
             />
           )}
 
-          {needsExpenseCategory(row.type) && (
+          {needsExpenseCategory(row.type, !!row.investmentId) && (
             <ExpenseCategoryField form={form} expenseCategories={referenceData.expenseCategories} />
           )}
 
