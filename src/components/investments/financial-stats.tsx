@@ -10,7 +10,6 @@ import { StatButton } from '@/components/ui/stat-button'
 import { Description } from '@/components/ui/description'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { formatPLN } from '@/lib/format-currency'
-import { calculateMargin } from '@/lib/calculate-margin'
 import { SETTLED_TYPE } from '@/lib/constants/transfers'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { useCurrentUser } from '@/hooks/use-current-user'
@@ -18,10 +17,10 @@ import { useCurrentUser } from '@/hooks/use-current-user'
 const INCOME_LABEL = 'Wpłaty'
 const LABOR_LABEL = 'Robocizna'
 const RABAT_LABEL = 'Rabat'
+
 // Both figures render only inside the isAdminOrOwnerRole(...) block below, so this
 // note is shown exclusively to Admin/Owner — flags the figure as owner-level.
 const RESTRICTED_NOTE = '\nWidoczność — właściciel'
-
 const TOOLTIPS = {
   kosztyInwestora:
     'Materiały kupione na inwestycję, w podziale na kategorie. ' +
@@ -52,18 +51,18 @@ const TOOLTIPS = {
 
 type FinancialStatsPropsT = {
   fields: FinancialFieldT[]
-  totalLaborCosts: number
+  // Margin is computed server-side via calculateMargin(financials) and passed in — the
+  // component does not re-derive it, so listing and detail can't drift on marża.
+  margin: number
   totalPayouts?: number
-  totalRabat?: number
   totalLoss?: number
   settledFields?: FinancialFieldT[]
 }
 
 export function FinancialStats({
   fields,
-  totalLaborCosts,
+  margin,
   totalPayouts = 0,
-  totalRabat = 0,
   totalLoss = 0,
   settledFields = [],
 }: FinancialStatsPropsT) {
@@ -100,8 +99,6 @@ export function FinancialStats({
     ...(laborRow.length > 0 ? [laborRow] : []),
     ...(incomeRow.length > 0 ? [incomeRow] : []),
   ]
-  const totalSettled = settledFields.reduce((sum, f) => sum + f.amount, 0)
-  const margin = calculateMargin(totalLaborCosts, totalPayouts, totalRabat, totalLoss, totalSettled)
 
   return (
     <div className="space-y-2">

@@ -16,11 +16,31 @@ import {
   sumCategoryByTypeSettled,
   deriveCategoryBreakdowns,
   deriveFinancials,
+  type InvestmentFinancialsT,
 } from '@/lib/db/sum-transfers'
-import { extractFigures, type InvestmentFiguresT } from '@/lib/investment-figures'
+import { calculateBalance } from '@/lib/calculate-balance'
+import { calculateMargin } from '@/lib/calculate-margin'
+
+type FiguresT = {
+  bilans: number
+  marza: number
+  materialy: number
+  wydatkiInwestycyjne: number
+  wyplaty: number
+  settled: number
+}
+
+const figuresOf = (f: InvestmentFinancialsT): FiguresT => ({
+  bilans: calculateBalance(f),
+  marza: calculateMargin(f),
+  materialy: f.totalMaterialCosts,
+  wydatkiInwestycyjne: f.categoryCosts.reduce((s, c) => s + c.total, 0),
+  wyplaty: f.totalPayouts,
+  settled: f.totalSettled,
+})
 
 const round2 = (n: number) => Math.round(n * 100) / 100
-const FIGURE_KEYS: (keyof InvestmentFiguresT)[] = [
+const FIGURE_KEYS: (keyof FiguresT)[] = [
   'bilans',
   'marza',
   'materialy',
@@ -59,10 +79,10 @@ async function main() {
     )
     const listingFin = listingMap.get(inv.id)
 
-    const detail = extractFigures(detailFin)
+    const detail = figuresOf(detailFin)
     const listing = listingFin
-      ? extractFigures(listingFin)
-      : (Object.fromEntries(FIGURE_KEYS.map((k) => [k, 0])) as InvestmentFiguresT)
+      ? figuresOf(listingFin)
+      : (Object.fromEntries(FIGURE_KEYS.map((k) => [k, 0])) as FiguresT)
 
     const diffs = FIGURE_KEYS.filter((k) => round2(listing[k]) !== round2(detail[k]))
     rows.push({ id: inv.id, name: inv.name, listing, detail, match: diffs.length === 0, diffs })

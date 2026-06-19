@@ -8,6 +8,7 @@ import {
   fetchCategoryBreakdowns,
 } from '@/lib/queries/reference-data'
 import { deriveFinancials } from '@/lib/db/sum-transfers'
+import { calculateMargin } from '@/lib/calculate-margin'
 import { buildTransferFilters, stripCancelledFilters } from '@/lib/queries/transfers'
 import { buildFinancialFields, buildSettledFields } from '@/lib/map-category-costs'
 import { perfStart } from '@/lib/perf'
@@ -90,9 +91,8 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
 
       <FinancialStats
         fields={financialFields}
-        totalLaborCosts={financials.totalLaborCosts}
+        margin={calculateMargin(financials)}
         totalPayouts={financials.totalPayouts}
-        totalRabat={financials.totalRabat}
         totalLoss={financials.totalLoss}
         settledFields={settledFields}
       />

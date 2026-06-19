@@ -1,12 +1,21 @@
 import { describe, it, expect } from 'vitest'
 import { deriveFinancials, type TypeSettledTotalT } from '@/lib/db/sum-transfers'
-import { extractFigures, type InvestmentFiguresT } from '@/lib/investment-figures'
+import { calculateBalance } from '@/lib/calculate-balance'
+import { calculateMargin } from '@/lib/calculate-margin'
 import type { CategoryCostT } from '@/lib/db/sum-transfers'
 
-// The "definite test": instead of only checking listing == detail (parity), this
-// checks that ADDING one transaction moves the figures exactly as the financial
-// model predicts. A settled material is a company cost off the client's books —
-// it must move ONLY marża and the settled bucket, never bilans or client materiały.
+type FiguresT = {
+  bilans: number
+  marza: number
+  materialy: number
+  wydatkiInwestycyjne: number
+  settled: number
+}
+
+// Settled vs unsettled: adding ONE transaction must move the figures exactly as the
+// financial model predicts. A settled expense is a company cost off the client's books —
+// it moves ONLY marża and the settled bucket. The same expense left unsettled moves the
+// opposite way (bilans + client materiały). That contrast is the point of this file.
 
 const BASE: TypeSettledTotalT[] = [
   { type: 'INVESTOR_DEPOSIT', settled: false, total: 10000 },
@@ -16,9 +25,18 @@ const BASE: TypeSettledTotalT[] = [
 ]
 const CATS: CategoryCostT[] = [{ categoryId: 1, total: 3000 }]
 
-const figures = (rows: TypeSettledTotalT[]) => extractFigures(deriveFinancials(rows, CATS))
+const figures = (rows: TypeSettledTotalT[]): FiguresT => {
+  const f = deriveFinancials(rows, CATS)
+  return {
+    bilans: calculateBalance(f),
+    marza: calculateMargin(f),
+    materialy: f.totalMaterialCosts,
+    wydatkiInwestycyjne: f.categoryCosts.reduce((s, c) => s + c.total, 0),
+    settled: f.totalSettled,
+  }
+}
 
-const delta = (before: InvestmentFiguresT, after: InvestmentFiguresT) => ({
+const delta = (before: FiguresT, after: FiguresT) => ({
   bilans: after.bilans - before.bilans,
   marza: after.marza - before.marza,
   materialy: after.materialy - before.materialy,
@@ -26,7 +44,7 @@ const delta = (before: InvestmentFiguresT, after: InvestmentFiguresT) => ({
   settled: after.settled - before.settled,
 })
 
-describe('settled transaction differential', () => {
+describe('settled vs unsettled expense', () => {
   const before = figures(BASE)
 
   it('adding a settled INVESTMENT_EXPENSE of X moves only marża (−X) and settled (+X)', () => {
