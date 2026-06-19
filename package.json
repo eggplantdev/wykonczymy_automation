@@ -23,6 +23,7 @@
     "db:dump": "source .env && mkdir -p dumps && docker exec -i \"$DOCKER_CONTAINER\" pg_dump --clean --no-owner --no-acl \"$DB_POSTGRES_URL_PROD\" > dumps/dump-latest.sql && cp dumps/dump-latest.sql \"dumps/dump-$(date +%Y-%m-%d_%H-%M).sql\"",
     "db:import": "source .env && docker exec -i \"$DOCKER_CONTAINER\" psql -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\" < ${DUMP_FILE:-dumps/dump-latest.sql}",
     "test": "vitest run",
+    "test:parity": "node --env-file=.env node_modules/vitest/vitest.mjs run src/__tests__/investment-parity-db.test.ts",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "watch:deploy": "bash scripts/watch-deploy.sh"

@@ -1,6 +1,11 @@
 pnpm run typecheck
 pnpm vitest run
 
+# DB-backed listing-vs-detail parity sweep over every real investment. Loads .env so it
+# actually runs (the plain vitest run above skips it for lack of DB env), and fails the
+# push if the local DB is unreachable — a skipped parity check is false confidence.
+pnpm test:parity
+
 echo "Dumping production DB from Neon..."
 if pnpm db:dump && [ -s dumps/dump-latest.sql ]; then
   echo "✅ DB dump succeeded ($(du -h dumps/dump-latest.sql | cut -f1))"
