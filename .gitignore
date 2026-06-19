@@ -5,6 +5,9 @@
 
 .mcp.json
 
+# kosztorys data exports/templates (contain client investment data)
+Kosztor*.csv
+
 # dependencies
 /node_modules
 /.pnp
