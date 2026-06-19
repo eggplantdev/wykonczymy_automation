@@ -234,7 +234,7 @@ export const Transfers: CollectionConfig = {
       defaultValue: false,
       label: { en: 'Included in labour (R+M)', pl: 'Wliczone w robociznę' },
       admin: {
-        condition: (data) => data?.type === 'INVESTMENT_EXPENSE',
+        condition: (data) => data?.type === 'INVESTMENT_EXPENSE' || data?.type === 'CORRECTION',
         description: {
           en: 'Material already priced into robocizna: leaves the register, reduces margin, NOT billed to the client.',
           pl: 'Materiał już zawarty w cenie robocizny: schodzi z kasy, obniża marżę, klient NIE płaci za niego osobno.',

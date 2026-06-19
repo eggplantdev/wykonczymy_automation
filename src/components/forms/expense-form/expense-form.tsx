@@ -222,7 +222,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
             />
           )}
 
-          {currentType === 'INVESTMENT_EXPENSE' && (
+          {(currentType === 'INVESTMENT_EXPENSE' || currentType === 'CORRECTION') && (
             <form.AppField name="settled">
               {(field) => (
                 <field.Checkbox label="Wliczone w robociznę (materiał w cenie robocizny — nie obciąża klienta)" />

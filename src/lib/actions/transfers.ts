@@ -139,7 +139,9 @@ export async function createBulkTransferAction(
               otherCategory: item.category,
               invoice: invoiceMediaIds?.[i],
               invoiceNote: item.invoiceNote,
-              settled: parsed.data.type === 'INVESTMENT_EXPENSE' && parsed.data.settled === true,
+              settled:
+                (parsed.data.type === 'INVESTMENT_EXPENSE' || parsed.data.type === 'CORRECTION') &&
+                parsed.data.settled === true,
               createdBy: user.id,
             },
           })
