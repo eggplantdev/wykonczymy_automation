@@ -1,6 +1,6 @@
 ---
 name: restore-prod-backup-local
-description: Restore the latest Neon production backup into the local Docker Postgres for this repo (wykonczymy), and/or check that the automated backup pipeline is healthy. The dumps live on an FTP server (188.210.222.1, /db_backups/) that GitHub Actions uploads to every 4h — THIS skill is how you fetch data off that FTP server, so it is the answer to any "do you have a skill to get/pull the latest data from the FTP server?" question. Use whenever the user asks to "refresh the local DB from prod", "restore the latest backup locally", "populate local Docker from a backup", "pull down a prod dump", "get/pull/download the latest data or dump from the FTP server", "grab the newest backup off FTP", "fetch data from the backup FTP server", "check if backups are working", "is the db-backup GitHub Action green", or mentions anything about the Neon → GitHub Actions → FTP → local Docker backup chain. Trigger even if the user only says "FTP server", "the backup server", or "backup" loosely in the context of getting the local database's data — this skill owns the whole verify-and-restore flow end to end.
+description: Restore the latest Neon production backup into the local Docker Postgres for this repo (wykonczymy), and/or check that the automated backup pipeline is healthy. The dumps live on an FTP server (188.210.222.1, /db_backups/) that GitHub Actions uploads to hourly (cron `0 4-22 * * *` = 04:00–22:00 UTC, with a ~6h overnight gap) — THIS skill is how you fetch data off that FTP server, so it is the answer to any "do you have a skill to get/pull the latest data from the FTP server?" question. Use whenever the user asks to "refresh the local DB from prod", "restore the latest backup locally", "populate local Docker from a backup", "pull down a prod dump", "get/pull/download the latest data or dump from the FTP server", "grab the newest backup off FTP", "fetch data from the backup FTP server", "check if backups are working", "is the db-backup GitHub Action green", or mentions anything about the Neon → GitHub Actions → FTP → local Docker backup chain. Trigger even if the user only says "FTP server", "the backup server", or "backup" loosely in the context of getting the local database's data — this skill owns the whole verify-and-restore flow end to end.
 ---
 
 # Restore prod backup → local Docker Postgres
@@ -8,11 +8,12 @@ description: Restore the latest Neon production backup into the local Docker Pos
 ## What this is
 
 A GitHub Actions workflow (`.github/workflows/db-backup.yml`) dumps the live Neon prod
-DB every 4 hours, validates it (size / row floor / freshness / no-shrink), and uploads a
+DB hourly (cron `0 4-22 * * *` = 04:00–22:00 UTC; no run 22:00–04:00 UTC), validates it
+(size / row floor / freshness / no-shrink), and uploads a
 gzipped dump to an FTP server. This skill verifies that pipeline is healthy and restores
 the newest dump into the **local** Docker Postgres so you can work against real data.
 
-The chain: **Neon (prod) → GitHub Actions (every 4h) → FTP `188.210.222.1:/db_backups/` → local Docker `wykonczymy` container**.
+The chain: **Neon (prod) → GitHub Actions (hourly, 04:00–22:00 UTC) → FTP `188.210.222.1:/db_backups/` → local Docker `wykonczymy` container**.
 
 ## Hard safety rules
 
@@ -44,8 +45,9 @@ Run these in order. Stop and report if any step fails — don't silently continu
 gh run list --workflow=db-backup.yml --limit 12
 ```
 
-Healthy looks like: recent runs all `success`, on the 4-hour cadence (`schedule`), most
-recent within ~4h. If runs are failing or stale, **say so** — the local restore would pull
+Healthy looks like: recent runs all `success`, on the hourly cadence (`schedule`), most
+recent within ~1h (during the 04:00–22:00 UTC window; expect up to a ~6h gap overnight).
+If runs are failing or stale, **say so** — the local restore would pull
 an old/bad dump. The workflow's own guards (`MIN_TX`, freshness, no-shrink) mean a _green_
 run is a trustworthy dump.
 
