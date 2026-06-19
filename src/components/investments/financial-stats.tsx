@@ -11,7 +11,7 @@ import { Description } from '@/components/ui/description'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { formatPLN } from '@/lib/format-currency'
 import { calculateMargin } from '@/lib/calculate-margin'
-import { SETTLED_TYPE_LABEL } from '@/lib/constants/transfers'
+import { SETTLED_TYPE } from '@/lib/constants/transfers'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { useCurrentUser } from '@/hooks/use-current-user'
 
@@ -122,20 +122,15 @@ export function FinancialStats({
       {settledFields.length > 0 && (
         <div className="text-muted-foreground space-y-1 text-sm">
           <Description>
-            {SETTLED_TYPE_LABEL}
+            {SETTLED_TYPE.label}
             <InfoTooltip
               content={TOOLTIPS.materialyWliczone}
-              label={`Co to jest: ${SETTLED_TYPE_LABEL}`}
+              label={`Co to jest: ${SETTLED_TYPE.label}`}
               className="ml-1"
             />
           </Description>
           {settledFields.map((f) => (
-            <StatButton
-              key={f.label}
-              label={f.label}
-              value={f.value}
-              className="border-chart-orange"
-            />
+            <StatButton key={f.label} label={f.label} value={f.value} color={SETTLED_TYPE.color} />
           ))}
         </div>
       )}

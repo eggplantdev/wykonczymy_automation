@@ -47,8 +47,13 @@ export const TRANSFER_TYPE_COLORS: Record<TransferTypeT, string> = {
 
 export const EXPENSE_CATEGORY_LABEL = 'Typ wydatku inwestycyjnego'
 
-// Display label for a settled INVESTMENT_EXPENSE (material priced into robocizna).
-export const SETTLED_TYPE_LABEL = 'Materiały wliczone w robociznę'
+// Single source for the settled INVESTMENT_EXPENSE (material priced into robocizna):
+// label + chart color, shared by the transfers table and the investment stats panel so they never drift.
+// `color` is a chart token (resolved via var(--color-<token>)); chart-pink keeps it distinct from korekta (orange).
+export const SETTLED_TYPE = {
+  label: 'Materiały wliczone w robociznę',
+  color: 'chart-pink',
+} as const
 
 export const DEPOSIT_TYPES: TransferTypeT[] = [
   'INVESTOR_DEPOSIT',

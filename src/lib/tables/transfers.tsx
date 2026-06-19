@@ -14,7 +14,7 @@ import {
   PAYMENT_METHOD_LABELS,
   isCancellationType,
   EXPENSE_CATEGORY_LABEL,
-  SETTLED_TYPE_LABEL,
+  SETTLED_TYPE,
   type TransferTypeT,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
@@ -199,7 +199,7 @@ const allColumns = [
     cell: (info) => {
       const { type, cancelled, settled } = info.row.original
       const isMuted = cancelled || type === 'CANCELLATION'
-      const color = settled ? 'chart-orange' : TRANSFER_TYPE_COLORS[type]
+      const color = settled ? SETTLED_TYPE.color : TRANSFER_TYPE_COLORS[type]
       return (
         <span
           className="font-medium"
@@ -229,7 +229,7 @@ const allColumns = [
     header: 'Typ',
     cell: (info) => {
       const { settled, type, originalType } = info.row.original
-      if (settled) return SETTLED_TYPE_LABEL
+      if (settled) return SETTLED_TYPE.label
       const label = TRANSFER_TYPE_LABELS[type] ?? type
       // For a cancellation, append what it reversed: "Anulowanie (Wydatek inwestycyjny)"
       if (type === 'CANCELLATION' && originalType) {
