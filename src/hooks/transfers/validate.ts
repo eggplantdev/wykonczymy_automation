@@ -88,6 +88,13 @@ export const validateTransfer: CollectionBeforeValidateHook = ({ data, req, oper
     d.worker = null
   }
 
+  // settled (wliczone w robociznę) only applies to material expenses and their
+  // corrections — clear it for any other type so the admin panel / API can't persist
+  // a stray flag that the reporting layer would mis-bucket.
+  if (type !== 'INVESTMENT_EXPENSE' && type !== 'CORRECTION') {
+    d.settled = false
+  }
+
   // expenseCategory — required for INVESTMENT_EXPENSE, and for CORRECTION once it has an investment
   if (needsExpenseCategory(type, !!d.investment) && !d.expenseCategory) {
     errors.push('Expense category is required for investment-related expenses.')
