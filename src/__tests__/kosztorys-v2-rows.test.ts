@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { treeToRows, diffRow, stageKey } from '@/lib/kosztorys/v2-rows'
+import { rowNetForView } from '@/lib/kosztorys/calc'
+import { buildV2Columns } from '@/lib/tables/kosztorys-v2-columns'
 import type { KosztorysTreeT } from '@/types/kosztorys'
 
 const baseItem = {
@@ -71,5 +73,36 @@ describe('diffRow', () => {
   it('bez zmian → pusty diff', () => {
     const [prev] = treeToRows(tree)
     expect(diffRow(prev, { ...prev })).toEqual({})
+  })
+})
+
+describe('rowNetForView', () => {
+  const item = {
+    ...baseItem,
+    measuredQty: 10,
+    clientPrice: 20,
+    subcontractorWToolsPrice: 12,
+    subcontractorOwnToolsPrice: 10,
+    discountType: null,
+    discountValue: 0,
+  }
+  it('liczy netto wg ceny widoku', () => {
+    expect(rowNetForView(item, 'client')).toBe(200)
+    expect(rowNetForView(item, 'w_tools')).toBe(120)
+    expect(rowNetForView(item, 'own_tools')).toBe(100)
+  })
+})
+
+describe('buildV2Columns', () => {
+  it('dokłada jedną kolumnę na każdy etap', () => {
+    const cols0 = buildV2Columns([], 'client')
+    const cols2 = buildV2Columns(
+      [
+        { id: 100, ordinal: 1, label: null },
+        { id: 101, ordinal: 2, label: null },
+      ],
+      'client',
+    )
+    expect(cols2.length - cols0.length).toBe(2)
   })
 })

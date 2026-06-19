@@ -52,3 +52,17 @@ export function stageValue(item: KosztorysItemT, qtyDoneInStage: number): number
 export function rowRemaining(item: KosztorysItemT, doneNetTotal: number): number {
   return rowNet(item) - doneNetTotal
 }
+
+// --- Widoki cenowe (jeden zbiór → trzy widoki: klient / podwykonawca z/bez narzędzi) ---
+export type PriceViewT = 'client' | 'w_tools' | 'own_tools'
+
+export function viewPrice(item: KosztorysItemT, view: PriceViewT): number {
+  if (view === 'w_tools') return item.subcontractorWToolsPrice
+  if (view === 'own_tools') return item.subcontractorOwnToolsPrice
+  return item.clientPrice
+}
+
+/** Netto wiersza wg ceny wybranego widoku (pomiar × cena widoku − rabat). */
+export function rowNetForView(item: KosztorysItemT, view: PriceViewT): number {
+  return applyDiscount(item.measuredQty * viewPrice(item, view), item)
+}
