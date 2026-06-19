@@ -58,3 +58,15 @@ export type KosztorysEditorRowT = KosztorysItemT & {
   sectionDefaultCostVariant: CostVariantT
   stageQty: Record<number, number>
 }
+
+// --- Wariant v2 (react-datasheet-grid): płaski wiersz z etapami spłaszczonymi
+// do kluczy stage_<stageId>, żeby keyColumn mapował 1:1. ---
+export type KosztorysV2RowBaseT = KosztorysItemT & {
+  sectionName: string
+  sectionVatRate: number
+  sectionDefaultCostVariant: CostVariantT
+}
+
+export type KosztorysV2RowT = KosztorysV2RowBaseT & {
+  [stageKey: `stage_${number}`]: number
+}
