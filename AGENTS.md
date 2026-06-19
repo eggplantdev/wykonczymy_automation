@@ -101,7 +101,7 @@ Non-obvious rules:
 - Cancellation is an audit trail: the original is marked `cancelled: true`, a new `CANCELLATION` row links back to it.
 - Cash register balances are recalculated via Payload hooks on transfer create and delete.
 
-How the financial figures (marża / materiały / robocizna / korekty) connect: `docs/investment-financials-and-discount.md`.
+How the financial figures (marża / materiały / robocizna / korekty) connect: `docs/docs_reviewed_19_06/investment-financials-and-discount.md`.
 
 ## Testing
 
