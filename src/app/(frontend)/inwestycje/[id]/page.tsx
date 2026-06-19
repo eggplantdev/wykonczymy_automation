@@ -20,6 +20,8 @@ import { ContactLink } from '@/components/ui/contact-link'
 import { FinancialStats } from '@/components/investments/financial-stats'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
 import { SheetButton } from '@/components/dialogs/sheet-button'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 import type { HeaderFieldT } from '@/types/export'
 import type { DynamicPagePropsT } from '@/types/page'
 
@@ -86,6 +88,9 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
           investmentName={investment.name}
           hasSheet={investment.hasSheet}
         />
+        <Button asChild variant="outline" size="sm">
+          <Link href={`/inwestycje/${id}/kosztorys-edytor`}>Kosztorys (edytor)</Link>
+        </Button>
       </div>
       <InfoList items={infoFields.filter((f) => f.value)} />
 
