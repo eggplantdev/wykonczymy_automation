@@ -23,10 +23,26 @@ export function buildFinancialFields(
   financials: InvestmentFinancialsT,
   expenseCategories: { id: number; name: string }[],
 ): FinancialFieldT[] {
-  const { categoryCosts, totalIncome, totalLaborCosts, totalRabat } = financials
+  const { categoryCosts, totalIncome, totalLaborCosts, totalRabat, totalMaterialCosts } = financials
+
+  // Material costs not attributed to any expense category — in practice legacy
+  // corrections entered before the category became required. They count toward
+  // totalMaterialCosts (and thus the listing's bilans), so they MUST appear here too,
+  // otherwise the detail bilans (sum of these fields) drifts below the listing's.
+  const categorised = categoryCosts.reduce((sum, c) => sum + c.total, 0)
+  const uncategorised = totalMaterialCosts - categorised
 
   return [
     ...mapCategoryCostsToFields(categoryCosts, expenseCategories),
+    ...(uncategorised !== 0
+      ? [
+          {
+            label: 'Korekta (bez kategorii)',
+            value: formatPLN(uncategorised),
+            amount: -uncategorised,
+          },
+        ]
+      : []),
     {
       label: 'Robocizna',
       value: formatPLN(totalLaborCosts),
