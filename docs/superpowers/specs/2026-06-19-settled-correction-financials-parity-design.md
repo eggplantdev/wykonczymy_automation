@@ -1,7 +1,7 @@
 # Settled corrections + investment-financials parity (single source of truth)
 
 Date: 2026-06-19
-Status: design — awaiting user review
+Status: implemented + audited + verified on branch `feat/settled-correction-parity` (2026-06-19)
 
 ## Problem
 
@@ -161,3 +161,35 @@ formatting does not create false diffs.
   column already exists), so no migration is expected.
 - Local DB is a refreshable copy of prod; confirm before any reset. The tool is
   read-only.
+
+## Audit & verification results (2026-06-19)
+
+**Where the audit ran.** Against the **local Docker Postgres** (`DB_POSTGRES_URL`,
+`localhost:5433/wykonczymy-db`), which is a copy of prod restored from a Neon dump.
+Prod (Neon) was **never queried directly** — blocked by the PreToolUse hook and project
+rules. So "found on prod" below means "found on the local copy of prod data", which is
+the closest legitimate proxy. (Two test rows on investment #31 were added locally during
+the session and removed; they were local-only, not from the dump.)
+
+**Method.** `src/scripts/audit-investment-parity.ts` computes the six figures for every
+investment via **both** paths (listing `sumAllInvestmentFinancials` vs detail
+`sumFilteredByType` + breakdowns → `deriveFinancials`), under the **deployed** code
+(pre-refactor commit) and under the **branch** code, then diffs.
+
+**Found (deployed code, current data) — 1 live outlier:**
+
+- **#90 "kosztorys wzór. nic nie dodajemy"** — carries a settled `CORRECTION −300`.
+  - listing: `bilans 0, materiały 0` · detail: `bilans 300, materiały −300`
+  - Root cause = the divergence this spec targets: the detail path kept the settled
+    CORRECTION in materiały; the listing excluded it (`settled IS NOT TRUE`).
+
+**Not divergent:** a settled `INVESTMENT_EXPENSE` (e.g. #64 Wyszogrodzka 7, 19.99) is
+handled consistently by **both** deployed paths — the deployed detail query already
+re-bucketed settled `INVESTMENT_EXPENSE`. So the only live divergence class is the
+settled **CORRECTION**, exactly as theorised. (An earlier session run flagged #64; that
+was a transient data-state artifact and did not reproduce on stable data.)
+
+**Verified (branch code, same data):** **0 outliers across 79 investments.** #90
+reconciles to `bilans 0, marża +300, settled −300` on both paths — the target semantics
+(off bilans, into marża). Unit guards green: parity test, differential test
+(`settled-differential.test.ts`), full suite 657/657.
