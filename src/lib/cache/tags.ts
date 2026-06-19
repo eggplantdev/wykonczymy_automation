@@ -6,6 +6,11 @@ export const CACHE_TAGS = {
   otherCategories: 'collection:other-categories',
   expenseCategories: 'collection:expense-categories',
   kosztoryses: 'collection:kosztoryses',
+  kosztorysSections: 'collection:kosztorys-sections',
+  kosztorysItems: 'collection:kosztorys-items',
+  kosztorysStages: 'collection:kosztorys-stages',
+  stageProgress: 'collection:stage-progress',
+  kosztorysRooms: 'collection:kosztorys-rooms',
 } as const
 
 export const entityTag = (collection: string, id: number | string) => `${collection}:${id}` as const

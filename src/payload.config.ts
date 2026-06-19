@@ -16,6 +16,11 @@ import { CashRegisters } from '@/collections/cash-registers'
 import { Investments } from '@/collections/investments'
 import { Media } from '@/collections/media'
 import { ExpenseCategories } from '@/collections/expense-categories'
+import { KosztorysSections } from '@/collections/kosztorys-sections'
+import { KosztorysItems } from '@/collections/kosztorys-items'
+import { KosztorysStages } from '@/collections/kosztorys-stages'
+import { StageProgress } from '@/collections/stage-progress'
+import { KosztorysRooms } from '@/collections/kosztorys-rooms'
 import { Sheets } from '@/collections/sheets'
 import { OtherCategories } from '@/collections/other-categories'
 import { Transfers } from '@/collections/transfers'
@@ -64,6 +69,11 @@ export default buildConfig({
     Transfers,
     OtherCategories,
     ExpenseCategories,
+    KosztorysSections,
+    KosztorysItems,
+    KosztorysStages,
+    StageProgress,
+    KosztorysRooms,
     AmountEdits,
     Media,
   ],
