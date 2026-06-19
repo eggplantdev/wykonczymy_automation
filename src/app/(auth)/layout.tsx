@@ -11,7 +11,13 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
   return (
     <html
       lang="pl"
-      className={cn(abcFavorit.variable, spaceMono.variable, 'antialiased')}
+      className={cn(
+        abcFavorit.variable,
+        spaceMono.variable,
+        'antialiased',
+        // Non-prod (local/preview) renders dark so it's impossible to mistake for prod.
+        // process.env.NODE_ENV !== 'production' && 'dark',
+      )}
       suppressHydrationWarning
     >
       <body className="bg-background text-foreground relative overscroll-none scroll-smooth">

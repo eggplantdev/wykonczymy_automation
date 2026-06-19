@@ -10,12 +10,19 @@ import { Sidebar } from '@/components/nav/sidebar'
 import { AppFooter } from '@/components/nav/app-footer'
 import { CurrentUserProvider } from '@/hooks/use-current-user'
 import { Loader } from '@/components/ui/loader/loader'
+import { EnvBadge } from '@/components/ui/env-badge'
 
 export default function FrontendLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="pl"
-      className={cn(abcFavorit.variable, spaceMono.variable, 'overscroll-none antialiased')}
+      className={cn(
+        abcFavorit.variable,
+        spaceMono.variable,
+        'overscroll-none antialiased',
+        // Non-prod (local/preview) renders dark so it's impossible to mistake for prod.
+        // process.env.NODE_ENV !== 'production' && 'dark',
+      )}
       suppressHydrationWarning
     >
       <body className="bg-background text-foreground relative min-h-screen scroll-smooth">
@@ -23,6 +30,7 @@ export default function FrontendLayout({ children }: { children: React.ReactNode
           <AuthenticatedShell>{children}</AuthenticatedShell>
         </Suspense>
         <ToastContainer style={{ zIndex: 10001 }} />
+        <EnvBadge />
       </body>
     </html>
   )
