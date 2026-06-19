@@ -1,6 +1,5 @@
 import { google, sheets_v4 } from 'googleapis'
 import { createServiceAccountJWT } from './auth'
-import { serviceAccountEmail } from './sheet-access'
 import {
   TRANSFERS_SUMMARY_TYPES,
   TRANSFER_TYPE_LABELS,
@@ -765,16 +764,18 @@ export async function setupTab(
     })
   }
 
-  // Read-only protection: lock the whole tab so only the service account (the
-  // app) can edit it — the data is app-managed/one-way. Caveat: the file *owner*
-  // can always bypass a protected range; this hard-blocks team collaborators.
+  // Warning-only protection on the whole tab: the data is app-managed/one-way
+  // (DB → sheet), so this just flags "don't edit, the app owns this" with a
+  // confirm prompt — it does NOT hard-block. A hard block (warningOnly:false +
+  // service-account-only editors) also disabled tab ops (rename/hide/move) for
+  // every non-owner, blocking the team; warning-only keeps the signal without
+  // the block, and any stray edit is overwritten on the next reset/sync anyway.
   requests.push({
     addProtectedRange: {
       protectedRange: {
         range: { sheetId },
         description: 'Tylko do odczytu — synchronizowane z aplikacją',
-        warningOnly: false,
-        editors: { users: [serviceAccountEmail()] },
+        warningOnly: true,
       },
     },
   })

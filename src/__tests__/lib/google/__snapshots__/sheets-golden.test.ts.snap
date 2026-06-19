@@ -699,15 +699,10 @@ exports[`GOLDEN: expenses tab emitted requests > setupMaterialyTab on a sheet wh
             "addProtectedRange": {
               "protectedRange": {
                 "description": "Tylko do odczytu — synchronizowane z aplikacją",
-                "editors": {
-                  "users": [
-                    "test@example.iam.gserviceaccount.com",
-                  ],
-                },
                 "range": {
                   "sheetId": 777,
                 },
-                "warningOnly": false,
+                "warningOnly": true,
               },
             },
           },
@@ -1149,15 +1144,10 @@ exports[`GOLDEN: expenses tab emitted requests > setupMaterialyTab when the tab 
             "addProtectedRange": {
               "protectedRange": {
                 "description": "Tylko do odczytu — synchronizowane z aplikacją",
-                "editors": {
-                  "users": [
-                    "test@example.iam.gserviceaccount.com",
-                  ],
-                },
                 "range": {
                   "sheetId": 9,
                 },
-                "warningOnly": false,
+                "warningOnly": true,
               },
             },
           },
