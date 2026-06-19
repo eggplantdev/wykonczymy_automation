@@ -7,6 +7,8 @@ import type { StatEntryT } from '@/components/ui/toggle-stat-buttons'
 import type { FinancialFieldT } from '@/types/export'
 import { SaldoDisplay } from '@/components/ui/saldo-display'
 import { StatButton } from '@/components/ui/stat-button'
+import { Description } from '@/components/ui/description'
+import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { formatPLN } from '@/lib/format-currency'
 import { calculateMargin } from '@/lib/calculate-margin'
 import { SETTLED_TYPE_LABEL } from '@/lib/constants/transfers'
@@ -16,6 +18,31 @@ import { useCurrentUser } from '@/hooks/use-current-user'
 const INCOME_LABEL = 'Wpłaty'
 const LABOR_LABEL = 'Robocizna'
 const RABAT_LABEL = 'Rabat'
+
+const TOOLTIPS = {
+  kosztyInwestora:
+    'Materiały kupione na inwestycję, w podziale na kategorie. ' +
+    'Zawierają korekty — korekta obniża koszt. Obniżają bilans inwestora.',
+  robocizna:
+    'Kwota, którą inwestor płaci firmie za pracę. ' +
+    'Obniża bilans inwestora i jest podstawą marży.',
+  wplaty: 'Wpłaty inwestora, finansowanie firmy i inne wpłaty. Podnoszą bilans inwestora.',
+  rabat:
+    'Rabat na robociznę — obniża dług klienta, więc podnosi bilans inwestora. ' +
+    'Jednocześnie obniża marżę firmy.',
+  wyplaty: 'Kwoty wypłacone pracownikom. Obniżają marżę. Nie wchodzą do bilansu inwestora.',
+  strata: 'Koszt pokrywany przez firmę. Obniża marżę. Nie wchodzi do bilansu inwestora.',
+  materialyWliczone:
+    'Materiały kupione przez firmę, wliczone w robociznę. ' +
+    'Obniżają marżę, ale nie obciążają bilansu inwestora.',
+  bilans:
+    'Bilans inwestora = Wpłaty − Materiały − Robocizna + Rabat.\n' +
+    'Jeśli minus — inwestor wisi pieniądze.\n' +
+    'Dynamiczny: odznaczenie kafelka usuwa go z wyliczenia i z wydruku.',
+  marza:
+    'Marża = Robocizna − Wypłaty − Rabat − Strata − materiały wliczone w robociznę.\n' +
+    'Ile firma zarabia na inwestycji.',
+} as const
 
 type FinancialStatsPropsT = {
   fields: FinancialFieldT[]
@@ -53,11 +80,14 @@ export function FinancialStats({
 
   const laborRow = fields
     .filter((f) => f.label === LABOR_LABEL)
-    .map((f) => addBtnBorderColor(f, 'border-chart-orange'))
+    .map((f) => ({ ...addBtnBorderColor(f, 'border-chart-orange'), tooltip: TOOLTIPS.robocizna }))
 
   const incomeRow = fields
     .filter((f) => f.label === INCOME_LABEL || f.label === RABAT_LABEL)
-    .map((f) => addBtnBorderColor(f, 'border-chart-green'))
+    .map((f) => ({
+      ...addBtnBorderColor(f, 'border-chart-green'),
+      tooltip: f.label === RABAT_LABEL ? TOOLTIPS.rabat : TOOLTIPS.wplaty,
+    }))
 
   const rows = [
     expenseRow,
@@ -72,27 +102,33 @@ export function FinancialStats({
       <ToggleStatButtons
         rows={rows}
         rowLabels={['Koszty inwestora']}
+        rowTooltips={[TOOLTIPS.kosztyInwestora]}
         summaryLabel="Bilans inwestora"
         onToggle={toggle}
-        summaryTooltip={
-          'Bilans inwestora \n' +
-          '= Wpłaty − Materiały − Robocizna + Rabat.\n' +
-          'Materiały zawierają korekty (korekta obniża koszt). ' +
-          'Rabat obniża dług klienta, więc podnosi bilans inwestora. ' +
-          'Bilans jest dynamiczny — odznaczenie kafelka usuwa go z wyliczenia.\n ' +
-          'Bilans nie obejmuje wypłat, straty ani marży.'
-        }
+        summaryTooltip={TOOLTIPS.bilans}
       />
 
       {totalLoss !== 0 && (
         <div className="text-muted-foreground space-y-1 text-sm">
-          <StatButton label="Strata" value={formatPLN(totalLoss)} className="border-chart-purple" />
+          <StatButton
+            label="Strata"
+            value={formatPLN(totalLoss)}
+            className="border-chart-purple"
+            tooltip={TOOLTIPS.strata}
+          />
         </div>
       )}
 
       {settledFields.length > 0 && (
         <div className="text-muted-foreground space-y-1 text-sm">
-          <p className="text-xs">{SETTLED_TYPE_LABEL}</p>
+          <Description>
+            {SETTLED_TYPE_LABEL}
+            <InfoTooltip
+              content={TOOLTIPS.materialyWliczone}
+              label={`Co to jest: ${SETTLED_TYPE_LABEL}`}
+              className="ml-1"
+            />
+          </Description>
           {settledFields.map((f) => (
             <StatButton
               key={f.label}
@@ -110,19 +146,9 @@ export function FinancialStats({
             label="Wypłaty"
             value={formatPLN(totalPayouts)}
             className="border-chart-red"
+            tooltip={TOOLTIPS.wyplaty}
           />
-          <SaldoDisplay
-            saldo={margin}
-            label="Marża"
-            tooltip={
-              'Marża \n' +
-              '= Robocizna − Wypłaty − Rabat − Strata − Materiały wliczone w robociznę.\n' +
-              'Robocizna to kwota, którą inwestor płaci firmie za pracę. ' +
-              'Wypłaty to kwoty wypłacone pracownikom — koszt, więc obniżają marżę. ' +
-              'Rabat i strata to koszty firmy, więc obniżają marżę. ' +
-              'Materiały wliczone w robociznę kupuje firma — obniżają marżę, ale nie obciążają bilansu inwestora.'
-            }
-          />
+          <SaldoDisplay saldo={margin} label="Marża" tooltip={TOOLTIPS.marza} />
         </div>
       )}
     </div>

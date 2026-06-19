@@ -6,17 +6,22 @@ import { Button } from '@/components/ui/button'
 import { FilterGrid } from '@/components/ui/filter-grid'
 import { Description } from '@/components/ui/description'
 import { SaldoDisplay, saldoColor } from '@/components/ui/saldo-display'
+import { InfoTooltip } from '@/components/ui/info-tooltip'
 
 type StatEntryT = {
   label: string
   value: string
   amount: number
   borderClassName: string
+  // Explanation shown via an (i) rendered beside the tile (can't nest inside — the tile is a button).
+  tooltip?: string
 }
 
 type ToggleStatButtonsPropsT = {
   rows: StatEntryT[][]
   rowLabels?: string[]
+  // Per-row (i) explanation, parallel to rowLabels.
+  rowTooltips?: (string | undefined)[]
   summaryLabel: string
   summaryTooltip?: string
   helpText?: string
@@ -31,6 +36,7 @@ export function computeSummary(entries: readonly StatEntryT[], hidden: Set<strin
 export function ToggleStatButtons({
   rows,
   rowLabels,
+  rowTooltips,
   summaryLabel,
   summaryTooltip,
   helpText,
@@ -57,33 +63,60 @@ export function ToggleStatButtons({
 
   return (
     <div className="space-y-2">
-      {rows.map((row, rowIndex) => (
-        <div key={rowIndex}>
-          {rowLabels?.[rowIndex] && <Description>{rowLabels[rowIndex]}</Description>}
-          <FilterGrid className="mt-2">
-            {row.map((entry) => {
-              const isHidden = hidden.has(entry.label)
-              return (
-                <Button
-                  variant="outline"
-                  key={entry.label}
-                  onClick={() => toggle(entry.label)}
-                  className={cn(
-                    'justify-start border-2',
-                    entry.borderClassName,
-                    isHidden && 'opacity-40',
-                  )}
-                >
-                  <span className="text-muted-foreground">{entry.label}:</span>
-                  <span className={cn('font-medium', colorValues && saldoColor(entry.amount))}>
-                    {entry.value}
+      {rows.map((row, rowIndex) => {
+        const rowLabel = rowLabels?.[rowIndex]
+        const rowTooltip = rowTooltips?.[rowIndex]
+        return (
+          <div key={rowIndex}>
+            {rowLabel && (
+              <Description>
+                {rowLabel}
+                {rowTooltip && (
+                  <InfoTooltip
+                    content={rowTooltip}
+                    label={`Co to jest: ${rowLabel}`}
+                    className="ml-1"
+                  />
+                )}
+              </Description>
+            )}
+            <FilterGrid className="mt-2">
+              {row.map((entry) => {
+                const isHidden = hidden.has(entry.label)
+                const button = (
+                  <Button
+                    variant="outline"
+                    key={entry.label}
+                    onClick={() => toggle(entry.label)}
+                    className={cn(
+                      'justify-start border-2',
+                      entry.borderClassName,
+                      isHidden && 'opacity-40',
+                    )}
+                  >
+                    <span className="text-muted-foreground">{entry.label}:</span>
+                    <span className={cn('font-medium', colorValues && saldoColor(entry.amount))}>
+                      {entry.value}
+                    </span>
+                  </Button>
+                )
+                return entry.tooltip ? (
+                  <span key={entry.label} className="inline-flex items-center">
+                    {button}
+                    <InfoTooltip
+                      content={entry.tooltip}
+                      label={`Co to jest: ${entry.label}`}
+                      className="ml-1"
+                    />
                   </span>
-                </Button>
-              )
-            })}
-          </FilterGrid>
-        </div>
-      ))}
+                ) : (
+                  button
+                )
+              })}
+            </FilterGrid>
+          </div>
+        )
+      })}
 
       <SaldoDisplay
         saldo={total}
