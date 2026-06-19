@@ -32,7 +32,7 @@ export function Sidebar() {
 
   // Roundcube can't auto-login via URL; _user only prefills the username field on its
   // login page (no-op when a Roundcube session is already active).
-  const roundcubeUrl = `https://h50.seohost.pl/roundcube/?_user=${encodeURIComponent(user.email)}`
+  const roundcubeUrl = `https://www.wykonczymy.com.pl/webmail/?_user=${encodeURIComponent(user.email)}`
 
   return (
     <aside className="border-border bg-background sticky top-0 hidden h-screen w-fit min-w-48 shrink-0 flex-col border-r px-3 pb-3 lg:flex">
