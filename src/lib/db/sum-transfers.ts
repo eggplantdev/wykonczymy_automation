@@ -1,7 +1,7 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { Payload, PayloadRequest, Where } from 'payload'
 import { perfStart } from '@/lib/perf'
-import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
+import { DEPOSIT_TYPES, isExpensesTabType } from '@/lib/constants/transfers'
 
 /**
  * Returns the transaction-scoped Drizzle instance when inside a hook
@@ -168,14 +168,14 @@ export const sumAllInvestmentFinancials = async (
     `),
     db.execute(sql`
       SELECT investment_id, expense_category_id,
-        COALESCE(SUM(amount), 0) AS category_total
+        type::text AS type,
+        (settled IS TRUE) AS settled,
+        COALESCE(SUM(amount), 0) AS total
       FROM transactions
       WHERE investment_id IS NOT NULL
         AND cancelled IS NOT TRUE
-        AND type IN ('INVESTMENT_EXPENSE', 'CORRECTION')
         AND expense_category_id IS NOT NULL
-        AND settled IS NOT TRUE
-      GROUP BY investment_id, expense_category_id
+      GROUP BY investment_id, expense_category_id, type, (settled IS TRUE)
     `),
   ])
 
@@ -191,36 +191,53 @@ export const sumAllInvestmentFinancials = async (
     })
   }
 
-  // Build category costs per investment
-  const categoryMap = new Map<number, CategoryCostT[]>()
+  // Group the raw (category, type, settled) sums per investment.
+  const categoryRowsByInvestment = new Map<number, CategoryTypeSettledRowT[]>()
   for (const row of categoryResult.rows) {
     const invId = Number(row.investment_id)
-    if (!categoryMap.has(invId)) categoryMap.set(invId, [])
-    categoryMap.get(invId)!.push({
+    if (!categoryRowsByInvestment.has(invId)) categoryRowsByInvestment.set(invId, [])
+    categoryRowsByInvestment.get(invId)!.push({
       categoryId: Number(row.expense_category_id),
-      total: Number(row.category_total),
+      type: row.type as string,
+      settled: row.settled === true,
+      total: Number(row.total),
     })
   }
 
   // One shared classifier for both paths: feed each investment's raw sums through
-  // deriveFinancials. List view shows the per-category aggregate only, not the
-  // settled split → settledCategoryCosts stays [].
+  // deriveFinancials + deriveCategoryBreakdowns. The listing renders the aggregate, but
+  // computing settledCategoryCosts here keeps the two paths identical by construction.
   const map = new Map<number, InvestmentFinancialsT>()
   for (const [invId, rows] of rowsByInvestment) {
-    map.set(invId, deriveFinancials(rows, categoryMap.get(invId) ?? [], []))
+    const { categoryCosts, settledCategoryCosts } = deriveCategoryBreakdowns(
+      categoryRowsByInvestment.get(invId) ?? [],
+    )
+    map.set(invId, deriveFinancials(rows, categoryCosts, settledCategoryCosts))
   }
   console.log(`[PERF] query.sumAllInvestmentFinancials ${elapsed()}ms (${map.size} investments)`)
   return map
 }
 
+export type CategoryTypeSettledRowT = {
+  categoryId: number
+  type: string
+  settled: boolean
+  total: number
+}
+
+export type CategoryBreakdownsT = {
+  categoryCosts: CategoryCostT[]
+  settledCategoryCosts: CategoryCostT[]
+}
+
 /**
- * SUM expense amounts grouped by expense_category_id for a filtered set of transactions.
- * Returns CategoryCostT[] for use in stat cards.
+ * SUM amounts grouped by (expense_category_id, type, settled) for a filtered set.
+ * Raw sums only — no business rule in SQL. Feed to deriveCategoryBreakdowns().
  */
-export const sumCategoryBreakdown = async (
+export const sumCategoryByTypeSettled = async (
   payload: Payload,
   where: Where,
-): Promise<CategoryCostT[]> => {
+): Promise<CategoryTypeSettledRowT[]> => {
   if (isNoResultsSentinel(where)) return []
 
   const db = await getDb(payload)
@@ -228,55 +245,44 @@ export const sumCategoryBreakdown = async (
 
   const result = await db.execute(
     sql.raw(`
-      SELECT expense_category_id, COALESCE(SUM(amount), 0) AS total
+      SELECT expense_category_id,
+        type::text AS type,
+        (settled IS TRUE) AS settled,
+        COALESCE(SUM(amount), 0) AS total
       FROM transactions
       WHERE cancelled IS NOT TRUE
-        AND type IN ('INVESTMENT_EXPENSE', 'CORRECTION')
         AND expense_category_id IS NOT NULL
-        AND settled IS NOT TRUE
         ${conditions}
-      GROUP BY expense_category_id
+      GROUP BY expense_category_id, type, (settled IS TRUE)
     `),
   )
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return result.rows.map((row: any) => ({
     categoryId: Number(row.expense_category_id),
+    type: row.type as string,
+    settled: row.settled === true,
     total: Number(row.total),
   }))
 }
 
 /**
- * SUM settled INVESTMENT_EXPENSE amounts grouped by expense_category_id, for the
- * out-of-bilans "Materiały wliczone w robociznę" split buttons.
+ * Single source of truth for the per-category split — mirrors deriveFinancials:
+ * only material-expense types (INVESTMENT_EXPENSE + CORRECTION) count, split by the
+ * settled flag. settledCategoryCosts therefore reconciles with totalSettled by
+ * construction, so the "Materiały wliczone w robociznę" buttons sum to the headline.
  */
-export const sumSettledCategoryBreakdown = async (
-  payload: Payload,
-  where: Where,
-): Promise<CategoryCostT[]> => {
-  if (isNoResultsSentinel(where)) return []
-
-  const db = await getDb(payload)
-  const conditions = buildSqlConditions(where)
-
-  const result = await db.execute(
-    sql.raw(`
-      SELECT expense_category_id, COALESCE(SUM(amount), 0) AS total
-      FROM transactions
-      WHERE cancelled IS NOT TRUE
-        AND type = 'INVESTMENT_EXPENSE'
-        AND settled IS TRUE
-        AND expense_category_id IS NOT NULL
-        ${conditions}
-      GROUP BY expense_category_id
-    `),
-  )
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return result.rows.map((row: any) => ({
-    categoryId: Number(row.expense_category_id),
-    total: Number(row.total),
-  }))
+export function deriveCategoryBreakdowns(rows: CategoryTypeSettledRowT[]): CategoryBreakdownsT {
+  const live = new Map<number, number>()
+  const settled = new Map<number, number>()
+  for (const r of rows) {
+    if (!isExpensesTabType(r.type)) continue
+    const bucket = r.settled ? settled : live
+    bucket.set(r.categoryId, (bucket.get(r.categoryId) ?? 0) + r.total)
+  }
+  const toCosts = (m: Map<number, number>): CategoryCostT[] =>
+    [...m].map(([categoryId, total]) => ({ categoryId, total }))
+  return { categoryCosts: toCosts(live), settledCategoryCosts: toCosts(settled) }
 }
 
 /** Detects the NO_RESULTS sentinel ({ id: { equals: -1 } }) in a Where clause. */
@@ -285,21 +291,10 @@ const isNoResultsSentinel = (where: Where): boolean => {
   return id !== undefined && 'equals' in id && id.equals === -1
 }
 
-/**
- * Returns SUM(amount) grouped by transaction type.
- * Handles NO_RESULTS sentinel.
- * Use deriveFinancials() and deriveCostBreakdown() to extract aggregates.
- */
-export type TypeTotalT = { type: string; total: number }
-
+/** Raw per-(type, settled) sum for one investment — the input both code paths feed
+ *  into deriveFinancials(). */
 export type TypeSettledTotalT = { type: string; settled: boolean; total: number }
 
-export type CostBreakdownT = {
-  investmentExpenses: number
-  laborCosts: number
-}
-
-const isExpenseType = (t: string) => t === 'INVESTMENT_EXPENSE' || t === 'CORRECTION'
 const sumRows = (rows: TypeSettledTotalT[], pred: (r: TypeSettledTotalT) => boolean): number =>
   rows.reduce((acc, r) => (pred(r) ? acc + r.total : acc), 0)
 
@@ -312,7 +307,7 @@ export function deriveFinancials(
 ): InvestmentFinancialsT {
   return {
     categoryCosts,
-    totalMaterialCosts: sumRows(rows, (r) => isExpenseType(r.type) && !r.settled),
+    totalMaterialCosts: sumRows(rows, (r) => isExpensesTabType(r.type) && !r.settled),
     totalCorrections: sumRows(rows, (r) => r.type === 'CORRECTION' && !r.settled),
     totalIncome: sumRows(rows, (r) => (DEPOSIT_TYPES as readonly string[]).includes(r.type)),
     totalLaborCosts: sumRows(rows, (r) => r.type === 'LABOR_COST'),
@@ -321,16 +316,8 @@ export function deriveFinancials(
     totalLoss: sumRows(rows, (r) => r.type === 'LOSS'),
     // Settled material is symmetric for INVESTMENT_EXPENSE and CORRECTION: it leaves
     // materials/bilans and lowers margin via this bucket.
-    totalSettled: sumRows(rows, (r) => isExpenseType(r.type) && r.settled),
+    totalSettled: sumRows(rows, (r) => isExpensesTabType(r.type) && r.settled),
     settledCategoryCosts,
-  }
-}
-
-/** Derive cost breakdown from a raw (type, settled) distribution. */
-export function deriveCostBreakdown(rows: TypeSettledTotalT[]): CostBreakdownT {
-  return {
-    investmentExpenses: sumRows(rows, (r) => isExpenseType(r.type) && !r.settled),
-    laborCosts: sumRows(rows, (r) => r.type === 'LABOR_COST'),
   }
 }
 

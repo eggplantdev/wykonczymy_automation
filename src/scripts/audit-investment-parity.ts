@@ -13,8 +13,8 @@ import config from '@payload-config'
 import {
   sumAllInvestmentFinancials,
   sumFilteredByType,
-  sumCategoryBreakdown,
-  sumSettledCategoryBreakdown,
+  sumCategoryByTypeSettled,
+  deriveCategoryBreakdowns,
   deriveFinancials,
 } from '@/lib/db/sum-transfers'
 import { extractFigures, type InvestmentFiguresT } from '@/lib/investment-figures'
@@ -47,12 +47,16 @@ async function main() {
   const rows = []
   for (const inv of investments) {
     const where = { investment: { equals: inv.id } }
-    const [byType, cats, settledCats] = await Promise.all([
+    const [byType, catRows] = await Promise.all([
       sumFilteredByType(payload, where),
-      sumCategoryBreakdown(payload, where),
-      sumSettledCategoryBreakdown(payload, where),
+      sumCategoryByTypeSettled(payload, where),
     ])
-    const detailFin = deriveFinancials(byType, cats, settledCats)
+    const breakdowns = deriveCategoryBreakdowns(catRows)
+    const detailFin = deriveFinancials(
+      byType,
+      breakdowns.categoryCosts,
+      breakdowns.settledCategoryCosts,
+    )
     const listingFin = listingMap.get(inv.id)
 
     const detail = extractFigures(detailFin)

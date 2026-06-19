@@ -5,8 +5,7 @@ import { parsePagination } from '@/lib/pagination'
 import {
   fetchReferenceData,
   fetchFilteredByType,
-  fetchCategoryBreakdown,
-  fetchSettledCategoryBreakdown,
+  fetchCategoryBreakdowns,
 } from '@/lib/queries/reference-data'
 import { deriveFinancials } from '@/lib/db/sum-transfers'
 import { buildTransferFilters, stripCancelledFilters } from '@/lib/queries/transfers'
@@ -34,15 +33,18 @@ export default async function TransactionsReportPage({ searchParams }: PageProps
   // Stats ignore cancelled toggle — SQL already excludes cancelled via hardcoded WHERE clause
   const statsWhere = stripCancelledFilters(urlFilters)
 
-  const [refData, typeDistribution, categoryBreakdown, settledBreakdown] = await Promise.all([
+  const [refData, typeDistribution, breakdowns] = await Promise.all([
     fetchReferenceData(),
     fetchFilteredByType(statsWhere),
-    fetchCategoryBreakdown(statsWhere),
-    fetchSettledCategoryBreakdown(statsWhere),
+    fetchCategoryBreakdowns(statsWhere),
   ])
   console.log(`[PERF] raporty data fetch ${step()}ms`)
 
-  const financials = deriveFinancials(typeDistribution, categoryBreakdown, settledBreakdown)
+  const financials = deriveFinancials(
+    typeDistribution,
+    breakdowns.categoryCosts,
+    breakdowns.settledCategoryCosts,
+  )
 
   const financialFields = buildFinancialFields(financials, refData.expenseCategories)
   const settledFields = buildSettledFields(

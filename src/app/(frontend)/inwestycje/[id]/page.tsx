@@ -5,8 +5,7 @@ import { parsePagination } from '@/lib/pagination'
 import {
   fetchReferenceData,
   fetchFilteredByType,
-  fetchCategoryBreakdown,
-  fetchSettledCategoryBreakdown,
+  fetchCategoryBreakdowns,
 } from '@/lib/queries/reference-data'
 import { deriveFinancials } from '@/lib/db/sum-transfers'
 import { buildTransferFilters, stripCancelledFilters } from '@/lib/queries/transfers'
@@ -41,18 +40,21 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   // Stats ignore cancelled toggle — SQL already excludes cancelled via hardcoded WHERE clause
   const statsWhere = stripCancelledFilters(transferWhere)
 
-  const [refData, typeDistribution, categoryBreakdown, settledBreakdown] = await Promise.all([
+  const [refData, typeDistribution, breakdowns] = await Promise.all([
     fetchReferenceData(),
     fetchFilteredByType(statsWhere),
-    fetchCategoryBreakdown(statsWhere),
-    fetchSettledCategoryBreakdown(statsWhere),
+    fetchCategoryBreakdowns(statsWhere),
   ])
   console.log(`[PERF] inwestycje/${id} data fetch ${step()}ms`)
 
   const investment = refData.investments.find((inv) => inv.id === investmentId)
   if (!investment) notFound()
 
-  const financials = deriveFinancials(typeDistribution, categoryBreakdown, settledBreakdown)
+  const financials = deriveFinancials(
+    typeDistribution,
+    breakdowns.categoryCosts,
+    breakdowns.settledCategoryCosts,
+  )
 
   const financialFields = buildFinancialFields(financials, refData.expenseCategories)
   const settledFields = buildSettledFields(

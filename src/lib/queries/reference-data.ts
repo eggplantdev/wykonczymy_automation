@@ -1,4 +1,4 @@
-import { unstable_cache, cacheLife, cacheTag } from 'next/cache'
+import { unstable_cache } from 'next/cache'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { sql } from '@payloadcms/db-vercel-postgres'
@@ -11,11 +11,11 @@ import {
   sumAllWorkerBalances,
   sumAllInvestmentFinancials,
   sumFilteredByType,
-  sumCategoryBreakdown,
-  sumSettledCategoryBreakdown,
+  sumCategoryByTypeSettled,
+  deriveCategoryBreakdowns,
   type InvestmentFinancialsT,
   type TypeSettledTotalT,
-  type CategoryCostT,
+  type CategoryBreakdownsT,
 } from '@/lib/db/sum-transfers'
 import { perfStart } from '@/lib/perf'
 
@@ -221,7 +221,7 @@ export async function fetchFilteredByType(where: Where): Promise<TypeSettledTota
   )()
 }
 
-export async function fetchCategoryBreakdown(where: Where): Promise<CategoryCostT[]> {
+export async function fetchCategoryBreakdowns(where: Where): Promise<CategoryBreakdownsT> {
   // 'use cache'
   // cacheLife('max')
   // cacheTag(CACHE_TAGS.transfers)
@@ -229,24 +229,9 @@ export async function fetchCategoryBreakdown(where: Where): Promise<CategoryCost
   return unstable_cache(
     async () => {
       const payload = await getPayload({ config })
-      return sumCategoryBreakdown(payload, where)
+      return deriveCategoryBreakdowns(await sumCategoryByTypeSettled(payload, where))
     },
-    ['category-breakdown', JSON.stringify(where)],
-    { tags: [CACHE_TAGS.transfers] },
-  )()
-}
-
-export async function fetchSettledCategoryBreakdown(where: Where): Promise<CategoryCostT[]> {
-  // 'use cache'
-  // cacheLife('max')
-  // cacheTag(CACHE_TAGS.transfers)
-
-  return unstable_cache(
-    async () => {
-      const payload = await getPayload({ config })
-      return sumSettledCategoryBreakdown(payload, where)
-    },
-    ['settled-category-breakdown', JSON.stringify(where)],
+    ['category-breakdowns', JSON.stringify(where)],
     { tags: [CACHE_TAGS.transfers] },
   )()
 }

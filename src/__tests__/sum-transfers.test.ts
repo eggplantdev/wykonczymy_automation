@@ -7,7 +7,7 @@ import {
   sumAllInvestmentFinancials,
   sumFilteredByType,
   deriveFinancials,
-  deriveCostBreakdown,
+  deriveCategoryBreakdowns,
 } from '@/lib/db/sum-transfers'
 
 // ── Fake Payload with controllable db.drizzle.execute ────────────────────
@@ -171,8 +171,20 @@ describe('sumAllInvestmentFinancials', () => {
       })
       .mockResolvedValueOnce({
         rows: [
-          { investment_id: '1', expense_category_id: '1', category_total: '5000' },
-          { investment_id: '1', expense_category_id: '2', category_total: '2000' },
+          {
+            investment_id: '1',
+            expense_category_id: '1',
+            type: 'INVESTMENT_EXPENSE',
+            settled: false,
+            total: '5000',
+          },
+          {
+            investment_id: '1',
+            expense_category_id: '2',
+            type: 'INVESTMENT_EXPENSE',
+            settled: false,
+            total: '2000',
+          },
         ],
       })
     const map = await sumAllInvestmentFinancials(fakePayload)
@@ -368,22 +380,44 @@ describe('deriveFinancials — settled material is symmetric for EXPENSE and COR
   })
 })
 
-describe('deriveCostBreakdown', () => {
-  it('derives breakdown from type+settled distribution', () => {
+describe('deriveCategoryBreakdowns', () => {
+  it('splits material-expense categories by settled, symmetric for CORRECTION', () => {
     const rows = [
-      { type: 'INVESTMENT_EXPENSE', settled: false, total: 5000 },
-      { type: 'LABOR_COST', settled: false, total: 800 },
+      { categoryId: 1, type: 'INVESTMENT_EXPENSE', settled: false, total: 3000 },
+      { categoryId: 1, type: 'CORRECTION', settled: true, total: -200 }, // the divergence case
+      { categoryId: 2, type: 'INVESTMENT_EXPENSE', settled: true, total: 500 },
     ]
-    expect(deriveCostBreakdown(rows)).toEqual({
-      investmentExpenses: 5000,
-      laborCosts: 800,
-    })
+    const { categoryCosts, settledCategoryCosts } = deriveCategoryBreakdowns(rows)
+    expect(categoryCosts).toEqual([{ categoryId: 1, total: 3000 }])
+    // settled CORRECTION must appear in the settled breakdown — old code dropped it
+    expect(settledCategoryCosts).toEqual([
+      { categoryId: 1, total: -200 },
+      { categoryId: 2, total: 500 },
+    ])
   })
 
-  it('returns zeros for empty array', () => {
-    expect(deriveCostBreakdown([])).toEqual({
-      investmentExpenses: 0,
-      laborCosts: 0,
+  it('settledCategoryCosts reconcile with deriveFinancials.totalSettled', () => {
+    const catRows = [
+      { categoryId: 1, type: 'INVESTMENT_EXPENSE', settled: true, total: 500 },
+      { categoryId: 1, type: 'CORRECTION', settled: true, total: -200 },
+    ]
+    const { settledCategoryCosts } = deriveCategoryBreakdowns(catRows)
+    const settledSum = settledCategoryCosts.reduce((s, c) => s + c.total, 0)
+    const f = deriveFinancials([
+      { type: 'INVESTMENT_EXPENSE', settled: true, total: 500 },
+      { type: 'CORRECTION', settled: true, total: -200 },
+    ])
+    expect(settledSum).toBe(f.totalSettled) // headline == sum of the category buttons
+  })
+
+  it('ignores non-material types', () => {
+    const rows = [
+      { categoryId: 1, type: 'PAYOUT', settled: false, total: 999 },
+      { categoryId: 1, type: 'LABOR_COST', settled: true, total: 999 },
+    ]
+    expect(deriveCategoryBreakdowns(rows)).toEqual({
+      categoryCosts: [],
+      settledCategoryCosts: [],
     })
   })
 })
