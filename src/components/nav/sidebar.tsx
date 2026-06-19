@@ -7,7 +7,7 @@ import { isAdminOrOwnerRole, isManagementRole } from '@/lib/auth/roles'
 import { SECTION_LINKS } from '@/lib/constants/sections'
 import { toastMessage } from '@/components/toasts'
 import { useCurrentUser } from '@/hooks/use-current-user'
-import { FileBarChart, FileSpreadsheet, LogOut, RefreshCw, Shield, Users } from 'lucide-react'
+import { FileBarChart, FileSpreadsheet, LogOut, Mail, RefreshCw, Shield, Users } from 'lucide-react'
 import Link from 'next/link'
 import { useTransition } from 'react'
 
@@ -29,6 +29,10 @@ export function Sidebar() {
 
   const showUsers = isManagementRole(user.role)
   const showReports = isAdminOrOwnerRole(user.role)
+
+  // Roundcube can't auto-login via URL; _user only prefills the username field on its
+  // login page (no-op when a Roundcube session is already active).
+  const roundcubeUrl = `https://h50.seohost.pl/roundcube/?_user=${encodeURIComponent(user.email)}`
 
   return (
     <aside className="border-border bg-background sticky top-0 hidden h-screen w-fit min-w-48 shrink-0 flex-col border-r px-3 pb-3 lg:flex">
@@ -91,6 +95,12 @@ export function Sidebar() {
             <Link href="/admin" target="_blank">
               <Shield className="size-4" />
               Admin
+            </Link>
+          </Button>
+          <Button variant="outline" size="sm" asChild aria-label="Poczta (Roundcube)">
+            <Link href={roundcubeUrl} target="_blank" rel="noopener noreferrer">
+              <Mail className="size-4" />
+              Poczta
             </Link>
           </Button>
           <Button variant="outline" size="sm" onClick={handleLogout} disabled={isPending}>
