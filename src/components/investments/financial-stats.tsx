@@ -18,6 +18,9 @@ import { useCurrentUser } from '@/hooks/use-current-user'
 const INCOME_LABEL = 'Wpłaty'
 const LABOR_LABEL = 'Robocizna'
 const RABAT_LABEL = 'Rabat'
+// Both figures render only inside the isAdminOrOwnerRole(...) block below, so this
+// note is shown exclusively to Admin/Owner — flags the figure as owner-level.
+const RESTRICTED_NOTE = '\nWidoczność — właściciel'
 
 const TOOLTIPS = {
   kosztyInwestora:
@@ -30,7 +33,9 @@ const TOOLTIPS = {
   rabat:
     'Rabat na robociznę — obniża dług klienta, więc podnosi bilans inwestora. ' +
     'Jednocześnie obniża marżę firmy.',
-  wyplaty: 'Kwoty wypłacone pracownikom. Obniżają marżę. Nie wchodzą do bilansu inwestora.',
+  wyplaty:
+    'Kwoty wypłacone pracownikom. Obniżają marżę. Nie wchodzą do bilansu inwestora.' +
+    RESTRICTED_NOTE,
   strata: 'Koszt pokrywany przez firmę. Obniża marżę. Nie wchodzi do bilansu inwestora.',
   materialyWliczone:
     'Materiały kupione przez firmę, wliczone w robociznę. ' +
@@ -41,7 +46,8 @@ const TOOLTIPS = {
     'Dynamiczny: odznaczenie kafelka usuwa go z wyliczenia i z wydruku.',
   marza:
     'Marża = Robocizna − Wypłaty − Rabat − Strata − materiały wliczone w robociznę.\n' +
-    'Ile firma zarabia na inwestycji.',
+    'Ile firma zarabia na inwestycji.' +
+    RESTRICTED_NOTE,
 } as const
 
 type FinancialStatsPropsT = {
