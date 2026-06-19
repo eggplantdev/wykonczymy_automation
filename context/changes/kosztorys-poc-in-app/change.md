@@ -3,7 +3,7 @@ id: kosztorys-poc-in-app
 title: Kosztorys robocizny w aplikacji — POC przejścia z Google Sheets
 status: planned
 created: 2026-06-19
-updated: 2026-06-19
+updated: 2026-06-20
 ---
 
 # Kosztorys robocizny w aplikacji — POC przejścia z Google Sheets
@@ -115,6 +115,47 @@ zakres z narzędziami / zakres bez narzędzi) → **jeden zbiór, trzy widoki** 
 przełącznik aktywnej ceny. Gwarancja strukturalna: trzy ceny w jednym wierszu
 `kosztorys_items`, etapy w jednej `kosztorys_stages`; formuły to czyste funkcje
 (`calc.ts`), nie komórki — zero dryfu, zero ręcznej synchronizacji.
+
+### Werdykt bake-offu (2026-06-20) — v2 zbudowana, bramka zgodności ZDANA
+
+v2 (`react-datasheet-grid` 4.11.6) zaimplementowana i działa obok v1. Obie trasy
+żyją: v1 `/inwestycje/:id/kosztorys-edytor`, v2 `/inwestycje/:id/kosztorys-edytor-v2`
+(link wejścia obok siebie na detalu inwestycji). Plan zrealizowany w 6 taskach;
+wspólny rdzeń (`queries`/`actions`/`calc`/`types`) reużyty, v1 nietknięta, `calc.ts`
+rozszerzony tylko addytywnie (`PriceViewT`/`viewPrice`/`rowNetForView`).
+
+**Zweryfikowane obiektywnie (browser + testy + build), inwestycja 6:**
+
+- **Bramka zgodności (główne ryzyko) — ZDANA.** Montaż, edycja komórki, nawigacja
+  strzałkami/Tab, Enter/Esc, copy-paste — wszystko natywnie pod React 19.2 /
+  Next 16.1 / React Compiler. Jedyny zgrzyt: transitywny `react-resize-detector`
+  ma peer `react ≤18` (tylko WARN przy instalacji, runtime OK). Fallback na
+  react-data-grid **nie jest potrzebny**.
+- **Warunek podstawowy „jeden zbiór, trzy widoki" — DZIAŁA.** Przełącznik
+  Robocizna / Z narzędziami / Bez narzędzi zmienia aktywną kolumnę „Cena"
+  (`clientPrice` → `subcontractorWToolsPrice` → `subcontractorOwnToolsPrice`) i jej
+  liczone; pomiar i etapy bez zmian — ten sam wiersz. (Zaobserwowane: cena
+  3000 → 0 przy przełączeniu, reszta wiersza stała.)
+- **Autosave per pole — DZIAŁA.** Edycja „Pomiar" 1→7 zapisana i trwała po
+  reloadzie; `[PERF] updateItemFieldAction` = zapis jednego rekordu, nie arkusza.
+- **Bramka ról** = `requireAuth(MANAGEMENT_ROLES)`, mirror v1 (parytet kodu).
+- `pnpm typecheck` PASS, `pnpm exec next build` PASS (obie trasy), 6 testów
+  jednostkowych adaptera/kolumn PASS.
+
+**Do oceny przez właściciela (subiektywne / nieautomatyzowalne tu):** „sheet-feel"
+v1 vs v2 obok siebie; płynność edycji przy ~1000 wierszy (seed inw. 6 ma 14
+pozycji w tej bazie — perf-test wymaga doseedowania); resize kolumn i zmienna
+wysokość wiersza.
+
+**Decyzja (rekomendacja):** **v2 = docelowy fundament POC.** Bramka — jedyne
+twarde ryzyko — zdana, warunek podstawowy spełniony natywnie i bez duplikacji.
+Na v2 dokładamy resztę: subtotale per sekcja, plan-vs-actual, pokoje, PDF,
+dodawanie/usuwanie sekcji/etapów, oraz forward-scope (read-only wydatki z
+transferów). v1 do usunięcia **po** sportowaniu jej przewag, których v2 jeszcze
+nie ma: sort/filtr per kolumna, przełącznik widoczności kolumn, kolumna
+„Pozostało", select typu rabatu (`percent|amount`), suma netto w toolbarze.
+Ostateczne „v2 zostaje" warunkowane potwierdzeniem sheet-feel + perf przez
+właściciela.
 
 ## Forward scope — deliverable dla klienta (brain dump, mniejszy problem, później)
 
