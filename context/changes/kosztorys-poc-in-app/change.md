@@ -100,3 +100,29 @@ POC od razu w wyglądzie aplikacji, nie surowy `<table>`. Decyzje:
 **Następne kroki (kolejność wg priorytetu właściciela):** subtotale per sekcja ·
 doseed cen podwykonawcy (zakładki „zakres z/bez narzędzi") · panel plan-vs-actual ·
 eksport PDF · UI pokoi · revert-on-error.
+
+## Bake-off siatki edytora (2026-06-19)
+
+Faza 3 (edytowalna siatka) to rdzeń POC i **nie idziemy dalej, dopóki nie
+zdecydujemy, że siatka jest dość szybka/niezawodna/„sheet-like"**. Decyzja:
+budujemy drugą wersję na **react-datasheet-grid** (v2) obok obecnej TanStack (v1)
+i porównujemy. v2 = docelowy fundament — pozostałe funkcjonalności POC dokładamy
+na nim. Spec: `docs/superpowers/specs/2026-06-19-kosztorys-editor-grid-bakeoff-design.md`.
+Plan: `docs/superpowers/plans/2026-06-19-kosztorys-editor-v2-datasheet-grid.md`.
+
+**Warunek podstawowy (raison d'être):** trzy zduplikowane kosztorysy (robocizna /
+zakres z narzędziami / zakres bez narzędzi) → **jeden zbiór, trzy widoki** przez
+przełącznik aktywnej ceny. Gwarancja strukturalna: trzy ceny w jednym wierszu
+`kosztorys_items`, etapy w jednej `kosztorys_stages`; formuły to czyste funkcje
+(`calc.ts`), nie komórki — zero dryfu, zero ręcznej synchronizacji.
+
+## Forward scope — deliverable dla klienta (brain dump, mniejszy problem, później)
+
+Osobny późniejszy slice, **poza** planem bake-offu. Finalny kosztorys wysyłany
+klientowi składa nie tylko robocizną, ale i **wydatkami** — przede wszystkim
+wydatki inwestycyjne (transfery `INVESTMENT_EXPENSE`), przynajmniej część (które
+dokładnie = TBD), z możliwością filtrowania/ukrywania (jak reguła eksportu P12).
+**Wydatki read-only — składane z istniejących transferów, nie edytowane w
+kosztorysie** (edycja zostaje w transferach; jedno źródło prawdy). To, co dziś
+rozbite na zakładki arkusza, w appce pokazane też **zbiorczo** (jedno zestawienie
+dla klienta). Doprecyzowanie i plan — przy starcie tego slice'u, po bake-offie.
