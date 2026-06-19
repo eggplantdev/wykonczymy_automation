@@ -416,17 +416,19 @@ describe('sumFilteredByType', () => {
     expect(mockExecute).not.toHaveBeenCalled()
   })
 
-  it('returns type totals from rows', async () => {
+  it('returns type+settled totals from rows', async () => {
     mockExecute.mockResolvedValue({
       rows: [
-        { type: 'INVESTMENT_EXPENSE', total: '5000' },
-        { type: 'INVESTOR_DEPOSIT', total: '12000' },
+        { type: 'INVESTMENT_EXPENSE', settled: false, total: '5000' },
+        { type: 'INVESTMENT_EXPENSE', settled: true, total: '100' },
+        { type: 'INVESTOR_DEPOSIT', settled: false, total: '12000' },
       ],
     })
     const result = await sumFilteredByType(fakePayload, {})
     expect(result).toEqual([
-      { type: 'INVESTMENT_EXPENSE', total: 5000 },
-      { type: 'INVESTOR_DEPOSIT', total: 12000 },
+      { type: 'INVESTMENT_EXPENSE', settled: false, total: 5000 },
+      { type: 'INVESTMENT_EXPENSE', settled: true, total: 100 },
+      { type: 'INVESTOR_DEPOSIT', settled: false, total: 12000 },
     ])
   })
 
@@ -435,15 +437,5 @@ describe('sumFilteredByType', () => {
     await sumFilteredByType(fakePayload, { date: { greater_than_equal: '2024-01-01' } })
     const queryStr = extractSql(mockExecute.mock.calls[0][0])
     expect(queryStr).toContain("date >= '2024-01-01'")
-  })
-
-  // Regression: the settled re-bucket CASE emits a string literal alongside the
-  // `type` enum column. Without casting the ELSE branch to text, Postgres coerces
-  // 'INVESTMENT_EXPENSE_SETTLED' to the enum and throws (invalid enum value).
-  it('casts the enum column to text in the settled re-bucket CASE', async () => {
-    mockExecute.mockResolvedValue({ rows: [] })
-    await sumFilteredByType(fakePayload, {})
-    const queryStr = extractSql(mockExecute.mock.calls[0][0])
-    expect(queryStr).toContain('ELSE type::text')
   })
 })

@@ -14,7 +14,7 @@ import {
   sumCategoryBreakdown,
   sumSettledCategoryBreakdown,
   type InvestmentFinancialsT,
-  type TypeTotalT,
+  type TypeSettledTotalT,
   type CategoryCostT,
 } from '@/lib/db/sum-transfers'
 import { perfStart } from '@/lib/perf'
@@ -206,7 +206,7 @@ export const fetchInvestmentFinancials = unstable_cache(
   { tags: [CACHE_TAGS.transfers] },
 )
 
-export async function fetchFilteredByType(where: Where): Promise<TypeTotalT[]> {
+export async function fetchFilteredByType(where: Where): Promise<TypeSettledTotalT[]> {
   // 'use cache'
   // cacheLife('max')
   // cacheTag(CACHE_TAGS.transfers)

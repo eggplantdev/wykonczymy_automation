@@ -336,7 +336,10 @@ export function deriveCostBreakdown(rows: TypeSettledTotalT[]): CostBreakdownT {
   }
 }
 
-export const sumFilteredByType = async (payload: Payload, where: Where): Promise<TypeTotalT[]> => {
+export const sumFilteredByType = async (
+  payload: Payload,
+  where: Where,
+): Promise<TypeSettledTotalT[]> => {
   if (isNoResultsSentinel(where)) {
     return []
   }
@@ -347,13 +350,13 @@ export const sumFilteredByType = async (payload: Payload, where: Where): Promise
   const result = await db.execute(
     sql.raw(`
     SELECT
-      CASE WHEN type = 'INVESTMENT_EXPENSE' AND settled IS TRUE
-           THEN 'INVESTMENT_EXPENSE_SETTLED' ELSE type::text END AS type,
+      type::text AS type,
+      (settled IS TRUE) AS settled,
       COALESCE(SUM(amount), 0) AS total
     FROM transactions
     WHERE cancelled IS NOT TRUE
       ${conditions}
-    GROUP BY 1
+    GROUP BY type, (settled IS TRUE)
     ORDER BY total DESC
   `),
   )
@@ -361,6 +364,7 @@ export const sumFilteredByType = async (payload: Payload, where: Where): Promise
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return result.rows.map((row: any) => ({
     type: row.type as string,
+    settled: row.settled === true,
     total: Number(row.total),
   }))
 }
