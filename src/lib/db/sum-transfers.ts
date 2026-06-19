@@ -294,44 +294,45 @@ const isNoResultsSentinel = (where: Where): boolean => {
  */
 export type TypeTotalT = { type: string; total: number }
 
+export type TypeSettledTotalT = { type: string; settled: boolean; total: number }
+
 export type CostBreakdownT = {
   investmentExpenses: number
   laborCosts: number
 }
 
-const totalByType = (byType: TypeTotalT[], transferType: string): number =>
-  byType.find((row) => row.type === transferType)?.total ?? 0
+const isExpenseType = (t: string) => t === 'INVESTMENT_EXPENSE' || t === 'CORRECTION'
+const sumRows = (rows: TypeSettledTotalT[], pred: (r: TypeSettledTotalT) => boolean): number =>
+  rows.reduce((acc, r) => (pred(r) ? acc + r.total : acc), 0)
 
-/** Derive financials (costs/income/labor) from type distribution. */
+/** Derive financials from a raw (type, settled) distribution. Single source of truth
+ *  for the bucketing rule — both the listing and the detail page feed this. */
 export function deriveFinancials(
-  byType: TypeTotalT[],
+  rows: TypeSettledTotalT[],
   categoryCosts: CategoryCostT[] = [],
   settledCategoryCosts: CategoryCostT[] = [],
 ): InvestmentFinancialsT {
   return {
     categoryCosts,
-    totalMaterialCosts:
-      totalByType(byType, 'INVESTMENT_EXPENSE') + totalByType(byType, 'CORRECTION'),
-    totalCorrections: totalByType(byType, 'CORRECTION'),
-    totalIncome:
-      totalByType(byType, 'INVESTOR_DEPOSIT') +
-      totalByType(byType, 'COMPANY_FUNDING') +
-      totalByType(byType, 'OTHER_DEPOSIT'),
-    totalLaborCosts: totalByType(byType, 'LABOR_COST'),
-    totalPayouts: totalByType(byType, 'PAYOUT'),
-    totalRabat: totalByType(byType, 'RABAT'),
-    totalLoss: totalByType(byType, 'LOSS'),
-    totalSettled: totalByType(byType, 'INVESTMENT_EXPENSE_SETTLED'),
+    totalMaterialCosts: sumRows(rows, (r) => isExpenseType(r.type) && !r.settled),
+    totalCorrections: sumRows(rows, (r) => r.type === 'CORRECTION' && !r.settled),
+    totalIncome: sumRows(rows, (r) => (DEPOSIT_TYPES as readonly string[]).includes(r.type)),
+    totalLaborCosts: sumRows(rows, (r) => r.type === 'LABOR_COST'),
+    totalPayouts: sumRows(rows, (r) => r.type === 'PAYOUT'),
+    totalRabat: sumRows(rows, (r) => r.type === 'RABAT'),
+    totalLoss: sumRows(rows, (r) => r.type === 'LOSS'),
+    // Settled material is symmetric for INVESTMENT_EXPENSE and CORRECTION: it leaves
+    // materials/bilans and lowers margin via this bucket.
+    totalSettled: sumRows(rows, (r) => isExpenseType(r.type) && r.settled),
     settledCategoryCosts,
   }
 }
 
-/** Derive cost breakdown from type distribution. */
-export function deriveCostBreakdown(byType: TypeTotalT[]): CostBreakdownT {
+/** Derive cost breakdown from a raw (type, settled) distribution. */
+export function deriveCostBreakdown(rows: TypeSettledTotalT[]): CostBreakdownT {
   return {
-    investmentExpenses:
-      totalByType(byType, 'INVESTMENT_EXPENSE') + totalByType(byType, 'CORRECTION'),
-    laborCosts: totalByType(byType, 'LABOR_COST'),
+    investmentExpenses: sumRows(rows, (r) => isExpenseType(r.type) && !r.settled),
+    laborCosts: sumRows(rows, (r) => r.type === 'LABOR_COST'),
   }
 }
 

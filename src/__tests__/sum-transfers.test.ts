@@ -298,16 +298,16 @@ describe('buildSqlConditions — filter translation', () => {
 // ── deriveFinancials / deriveCostBreakdown ────────────────────────
 
 describe('deriveFinancials', () => {
-  it('derives totals from type distribution', () => {
-    const byType = [
-      { type: 'INVESTMENT_EXPENSE', total: 5000 },
-      { type: 'INVESTOR_DEPOSIT', total: 12000 },
-      { type: 'LABOR_COST', total: 800 },
-      { type: 'PAYOUT', total: 300 },
-      { type: 'RABAT', total: 200 },
-      { type: 'LOSS', total: 150 },
+  it('derives totals from type+settled distribution', () => {
+    const rows = [
+      { type: 'INVESTMENT_EXPENSE', settled: false, total: 5000 },
+      { type: 'INVESTOR_DEPOSIT', settled: false, total: 12000 },
+      { type: 'LABOR_COST', settled: false, total: 800 },
+      { type: 'PAYOUT', settled: false, total: 300 },
+      { type: 'RABAT', settled: false, total: 200 },
+      { type: 'LOSS', settled: false, total: 150 },
     ]
-    expect(deriveFinancials(byType)).toEqual({
+    expect(deriveFinancials(rows)).toEqual({
       categoryCosts: [],
       totalMaterialCosts: 5000,
       totalCorrections: 0,
@@ -337,34 +337,48 @@ describe('deriveFinancials', () => {
   })
 
   it('includes category costs when provided', () => {
-    const byType = [
-      { type: 'INVESTMENT_EXPENSE', total: 5000 },
-      { type: 'INVESTOR_DEPOSIT', total: 12000 },
-      { type: 'LABOR_COST', total: 800 },
+    const rows = [
+      { type: 'INVESTMENT_EXPENSE', settled: false, total: 5000 },
+      { type: 'INVESTOR_DEPOSIT', settled: false, total: 12000 },
+      { type: 'LABOR_COST', settled: false, total: 800 },
     ]
     const byCat = [
       { categoryId: 1, total: 3000 },
       { categoryId: 2, total: 2000 },
     ]
-    const result = deriveFinancials(byType, byCat)
+    const result = deriveFinancials(rows, byCat)
     expect(result.totalMaterialCosts).toBe(5000)
     expect(result.totalPayouts).toBe(0)
     expect(result.categoryCosts).toEqual(byCat)
   })
 })
 
-describe('deriveFinancials — settled internal material', () => {
-  it('keeps settled out of materials and surfaces it as totalSettled', () => {
-    const byType = [
-      { type: 'INVESTMENT_EXPENSE', total: 200 },
-      { type: 'INVESTMENT_EXPENSE_SETTLED', total: 100 },
-      { type: 'LABOR_COST', total: 500 },
-      { type: 'INVESTOR_DEPOSIT', total: 1000 },
+describe('deriveFinancials — settled material is symmetric for EXPENSE and CORRECTION', () => {
+  it('keeps settled INVESTMENT_EXPENSE out of materials, into totalSettled', () => {
+    const rows = [
+      { type: 'INVESTMENT_EXPENSE', settled: false, total: 200 },
+      { type: 'INVESTMENT_EXPENSE', settled: true, total: 100 },
+      { type: 'LABOR_COST', settled: false, total: 500 },
+      { type: 'INVESTOR_DEPOSIT', settled: false, total: 1000 },
     ]
-    const f = deriveFinancials(byType)
+    const f = deriveFinancials(rows)
     expect(f.totalMaterialCosts).toBe(200) // settled NOT folded in
     expect(f.totalSettled).toBe(100)
     expect(f.settledCategoryCosts).toEqual([])
+  })
+
+  it('keeps settled CORRECTION out of materials/corrections, into totalSettled', () => {
+    const rows = [
+      { type: 'CORRECTION', settled: false, total: 50 },
+      { type: 'CORRECTION', settled: true, total: -200 },
+      { type: 'INVESTMENT_EXPENSE', settled: false, total: 1000 },
+    ]
+    const f = deriveFinancials(rows)
+    // unsettled correction stays in materials and corrections
+    expect(f.totalMaterialCosts).toBe(1050)
+    expect(f.totalCorrections).toBe(50)
+    // settled correction leaves materials, lands in totalSettled (negative ok)
+    expect(f.totalSettled).toBe(-200)
   })
 
   it('passes through settledCategoryCosts when provided', () => {
@@ -374,12 +388,12 @@ describe('deriveFinancials — settled internal material', () => {
 })
 
 describe('deriveCostBreakdown', () => {
-  it('derives breakdown from type distribution', () => {
-    const byType = [
-      { type: 'INVESTMENT_EXPENSE', total: 5000 },
-      { type: 'LABOR_COST', total: 800 },
+  it('derives breakdown from type+settled distribution', () => {
+    const rows = [
+      { type: 'INVESTMENT_EXPENSE', settled: false, total: 5000 },
+      { type: 'LABOR_COST', settled: false, total: 800 },
     ]
-    expect(deriveCostBreakdown(byType)).toEqual({
+    expect(deriveCostBreakdown(rows)).toEqual({
       investmentExpenses: 5000,
       laborCosts: 800,
     })
