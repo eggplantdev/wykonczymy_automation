@@ -106,6 +106,11 @@ export const EXPENSES_TAB_TYPES = [
 export const isExpensesTabType = (t: unknown): boolean =>
   (EXPENSES_TAB_TYPES as readonly string[]).includes(String(t))
 
+// The "wliczone w robociznę" (settled) flag applies to exactly the material-expense
+// types — the same membership as the expenses tab. Reuses the one array so the form,
+// action, collection condition, validate hook and reporting math can't drift apart.
+export const canBeSettled = (t: unknown): boolean => isExpensesTabType(t)
+
 // Placeholder label for the retired Korekta summary column. Corrections now live
 // on the expenses tab, but the column stays so sheet formulas keyed to a fixed
 // position don't shift; the label signals where corrections went. It's ALSO the

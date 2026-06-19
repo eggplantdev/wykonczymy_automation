@@ -15,6 +15,7 @@ import {
   showsInvestment,
   needsTargetRegister,
   needsWorker,
+  canBeSettled,
   type TransferTypeT,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
@@ -222,7 +223,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
             />
           )}
 
-          {(currentType === 'INVESTMENT_EXPENSE' || currentType === 'CORRECTION') && (
+          {canBeSettled(currentType) && (
             <form.AppField name="settled">
               {(field) => (
                 <field.Checkbox label="Wliczone w robociznę (materiał w cenie robocizny — nie obciąża klienta)" />

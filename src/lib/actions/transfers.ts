@@ -5,6 +5,7 @@ import {
   type CreateBulkExpenseFormT,
 } from '@/components/forms/expense-form/expense-schema'
 import { canMutateTransfer } from '@/lib/auth/roles'
+import { canBeSettled } from '@/lib/constants/transfers'
 import { perfStart } from '@/lib/perf'
 import {
   cancelTransferSchema,
@@ -139,9 +140,7 @@ export async function createBulkTransferAction(
               otherCategory: item.category,
               invoice: invoiceMediaIds?.[i],
               invoiceNote: item.invoiceNote,
-              settled:
-                (parsed.data.type === 'INVESTMENT_EXPENSE' || parsed.data.type === 'CORRECTION') &&
-                parsed.data.settled === true,
+              settled: canBeSettled(parsed.data.type) && parsed.data.settled === true,
               createdBy: user.id,
             },
           })

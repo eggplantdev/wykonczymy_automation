@@ -7,6 +7,7 @@ import {
   needsOtherCategory,
   needsWorker,
   needsExpenseCategory,
+  canBeSettled,
 } from '@/lib/constants/transfers'
 import { getAmountError } from '@/lib/validation-utils'
 
@@ -91,7 +92,7 @@ export const validateTransfer: CollectionBeforeValidateHook = ({ data, req, oper
   // settled (wliczone w robociznę) only applies to material expenses and their
   // corrections — clear it for any other type so the admin panel / API can't persist
   // a stray flag that the reporting layer would mis-bucket.
-  if (type !== 'INVESTMENT_EXPENSE' && type !== 'CORRECTION') {
+  if (!canBeSettled(type)) {
     d.settled = false
   }
 
