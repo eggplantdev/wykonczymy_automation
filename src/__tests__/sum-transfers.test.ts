@@ -116,32 +116,17 @@ describe('sumAllWorkerBalances', () => {
 // ── sumAllInvestmentFinancials ────────────────────────────────────────────
 
 describe('sumAllInvestmentFinancials', () => {
-  it('returns a Map of investment financials', async () => {
+  it('returns a Map of investment financials via deriveFinancials', async () => {
     mockExecute
       .mockResolvedValueOnce({
         rows: [
-          {
-            investment_id: '1',
-            total_costs: '3000',
-            total_corrections: '0',
-            total_income: '10000',
-            total_labor_costs: '200',
-            total_payouts: '150',
-            total_rabat: '50',
-            total_loss: '120',
-            total_settled: '0',
-          },
-          {
-            investment_id: '2',
-            total_costs: '500',
-            total_corrections: '0',
-            total_income: '0',
-            total_labor_costs: '0',
-            total_payouts: '0',
-            total_rabat: '0',
-            total_loss: '0',
-            total_settled: '0',
-          },
+          { investment_id: '1', type: 'INVESTMENT_EXPENSE', settled: false, total: '3000' },
+          { investment_id: '1', type: 'INVESTOR_DEPOSIT', settled: false, total: '10000' },
+          { investment_id: '1', type: 'LABOR_COST', settled: false, total: '200' },
+          { investment_id: '1', type: 'PAYOUT', settled: false, total: '150' },
+          { investment_id: '1', type: 'RABAT', settled: false, total: '50' },
+          { investment_id: '1', type: 'LOSS', settled: false, total: '120' },
+          { investment_id: '2', type: 'INVESTMENT_EXPENSE', settled: false, total: '500' },
         ],
       })
       .mockResolvedValueOnce({ rows: [] })
@@ -159,38 +144,29 @@ describe('sumAllInvestmentFinancials', () => {
       totalSettled: 0,
       settledCategoryCosts: [],
     })
-    expect(map.get(2)).toEqual({
-      categoryCosts: [],
-      totalMaterialCosts: 500,
-      totalCorrections: 0,
-      totalIncome: 0,
-      totalLaborCosts: 0,
-      totalPayouts: 0,
-      totalRabat: 0,
-      totalLoss: 0,
-      totalSettled: 0,
-      settledCategoryCosts: [],
-    })
+    expect(map.get(2)?.totalMaterialCosts).toBe(500)
   })
 
-  it('returns empty Map for no rows', async () => {
-    mockExecute.mockResolvedValueOnce({ rows: [] }).mockResolvedValueOnce({ rows: [] })
-    const map = await sumAllInvestmentFinancials(fakePayload)
-    expect(map.size).toBe(0)
+  it('buckets a settled CORRECTION into totalSettled, not materials', async () => {
+    mockExecute
+      .mockResolvedValueOnce({
+        rows: [
+          { investment_id: '1', type: 'CORRECTION', settled: true, total: '-200' },
+          { investment_id: '1', type: 'INVESTMENT_EXPENSE', settled: false, total: '1000' },
+        ],
+      })
+      .mockResolvedValueOnce({ rows: [] })
+    const inv = (await sumAllInvestmentFinancials(fakePayload)).get(1)!
+    expect(inv.totalMaterialCosts).toBe(1000)
+    expect(inv.totalSettled).toBe(-200)
   })
 
   it('includes per-category costs', async () => {
     mockExecute
       .mockResolvedValueOnce({
         rows: [
-          {
-            investment_id: '1',
-            total_costs: '7000',
-            total_corrections: '0',
-            total_income: '10000',
-            total_labor_costs: '800',
-            total_payouts: '0',
-          },
+          { investment_id: '1', type: 'INVESTMENT_EXPENSE', settled: false, total: '7000' },
+          { investment_id: '1', type: 'INVESTOR_DEPOSIT', settled: false, total: '10000' },
         ],
       })
       .mockResolvedValueOnce({
@@ -203,11 +179,16 @@ describe('sumAllInvestmentFinancials', () => {
     const inv = map.get(1)!
     expect(inv.totalMaterialCosts).toBe(7000)
     expect(inv.totalIncome).toBe(10000)
-    expect(inv.totalLaborCosts).toBe(800)
     expect(inv.categoryCosts).toEqual([
       { categoryId: 1, total: 5000 },
       { categoryId: 2, total: 2000 },
     ])
+  })
+
+  it('returns empty Map for no rows', async () => {
+    mockExecute.mockResolvedValueOnce({ rows: [] }).mockResolvedValueOnce({ rows: [] })
+    const map = await sumAllInvestmentFinancials(fakePayload)
+    expect(map.size).toBe(0)
   })
 })
 

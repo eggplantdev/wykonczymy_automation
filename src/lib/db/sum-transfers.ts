@@ -158,18 +158,13 @@ export const sumAllInvestmentFinancials = async (
   const [totalsResult, categoryResult] = await Promise.all([
     db.execute(sql`
       SELECT investment_id,
-        COALESCE(SUM(CASE WHEN type IN ('INVESTMENT_EXPENSE', 'CORRECTION') AND settled IS NOT TRUE THEN amount ELSE 0 END), 0) AS total_costs,
-        COALESCE(SUM(CASE WHEN type = 'CORRECTION' THEN amount ELSE 0 END), 0) AS total_corrections,
-        COALESCE(SUM(CASE WHEN type IN ('INVESTOR_DEPOSIT', 'COMPANY_FUNDING', 'OTHER_DEPOSIT') THEN amount ELSE 0 END), 0) AS total_income,
-        COALESCE(SUM(CASE WHEN type = 'LABOR_COST' THEN amount ELSE 0 END), 0) AS total_labor_costs,
-        COALESCE(SUM(CASE WHEN type = 'PAYOUT' THEN amount ELSE 0 END), 0) AS total_payouts,
-        COALESCE(SUM(CASE WHEN type = 'RABAT' THEN amount ELSE 0 END), 0) AS total_rabat,
-        COALESCE(SUM(CASE WHEN type = 'LOSS' THEN amount ELSE 0 END), 0) AS total_loss,
-        COALESCE(SUM(CASE WHEN type = 'INVESTMENT_EXPENSE' AND settled IS TRUE THEN amount ELSE 0 END), 0) AS total_settled
+        type::text AS type,
+        (settled IS TRUE) AS settled,
+        COALESCE(SUM(amount), 0) AS total
       FROM transactions
       WHERE investment_id IS NOT NULL
         AND cancelled IS NOT TRUE
-      GROUP BY investment_id
+      GROUP BY investment_id, type, (settled IS TRUE)
     `),
     db.execute(sql`
       SELECT investment_id, expense_category_id,
@@ -184,6 +179,18 @@ export const sumAllInvestmentFinancials = async (
     `),
   ])
 
+  // Group the raw (type, settled) sums per investment.
+  const rowsByInvestment = new Map<number, TypeSettledTotalT[]>()
+  for (const row of totalsResult.rows) {
+    const invId = Number(row.investment_id)
+    if (!rowsByInvestment.has(invId)) rowsByInvestment.set(invId, [])
+    rowsByInvestment.get(invId)!.push({
+      type: row.type as string,
+      settled: row.settled === true,
+      total: Number(row.total),
+    })
+  }
+
   // Build category costs per investment
   const categoryMap = new Map<number, CategoryCostT[]>()
   for (const row of categoryResult.rows) {
@@ -195,21 +202,12 @@ export const sumAllInvestmentFinancials = async (
     })
   }
 
+  // One shared classifier for both paths: feed each investment's raw sums through
+  // deriveFinancials. List view shows the per-category aggregate only, not the
+  // settled split → settledCategoryCosts stays [].
   const map = new Map<number, InvestmentFinancialsT>()
-  for (const row of totalsResult.rows) {
-    const invId = Number(row.investment_id)
-    map.set(invId, {
-      categoryCosts: categoryMap.get(invId) ?? [],
-      totalMaterialCosts: Number(row.total_costs),
-      totalCorrections: Number(row.total_corrections),
-      totalIncome: Number(row.total_income),
-      totalLaborCosts: Number(row.total_labor_costs),
-      totalPayouts: Number(row.total_payouts),
-      totalRabat: Number(row.total_rabat),
-      totalLoss: Number(row.total_loss),
-      totalSettled: Number(row.total_settled),
-      settledCategoryCosts: [], // list view shows the aggregate only, not the split
-    })
+  for (const [invId, rows] of rowsByInvestment) {
+    map.set(invId, deriveFinancials(rows, categoryMap.get(invId) ?? [], []))
   }
   console.log(`[PERF] query.sumAllInvestmentFinancials ${elapsed()}ms (${map.size} investments)`)
   return map
