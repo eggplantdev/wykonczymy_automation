@@ -66,3 +66,21 @@ export function viewPrice(item: KosztorysItemT, view: PriceViewT): number {
 export function rowNetForView(item: KosztorysItemT, view: PriceViewT): number {
   return applyDiscount(item.measuredQty * viewPrice(item, view), item)
 }
+
+/** Wartość pojedynczego etapu wg ceny widoku (ilość wykonana × cena widoku − rabat). */
+export function stageValueForView(
+  item: KosztorysItemT,
+  qtyDoneInStage: number,
+  view: PriceViewT,
+): number {
+  return applyDiscount(qtyDoneInStage * viewPrice(item, view), item)
+}
+
+/** Pozostało wg widoku = netto widoku − Σ wartości wykonanych etapów wg widoku. */
+export function rowRemainingForView(
+  item: KosztorysItemT,
+  doneNetTotal: number,
+  view: PriceViewT,
+): number {
+  return rowNetForView(item, view) - doneNetTotal
+}

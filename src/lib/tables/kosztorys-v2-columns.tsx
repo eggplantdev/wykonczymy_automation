@@ -1,9 +1,17 @@
 'use client'
 
-import { Column, keyColumn, textColumn, floatColumn } from 'react-datasheet-grid'
-import { effectiveVat, rowNetForView, type PriceViewT } from '@/lib/kosztorys/calc'
-import { stageKey } from '@/lib/kosztorys/v2-rows'
+import type { ReactNode } from 'react'
+import { Column, type CellProps, keyColumn, textColumn, floatColumn } from 'react-datasheet-grid'
+import { SortHeader } from '@/components/kosztorys/sort-header'
+import {
+  effectiveVat,
+  rowNetForView,
+  rowRemainingForView,
+  type PriceViewT,
+} from '@/lib/kosztorys/calc'
+import { rowDoneNetForView, stageKey, type SortDirT } from '@/lib/kosztorys/v2-rows'
 import type {
+  DiscountTypeT,
   KosztorysItemT,
   KosztorysSectionT,
   KosztorysStageT,
@@ -20,6 +28,21 @@ const PRICE_FIELD: Record<PriceViewT, keyof KosztorysV2RowT> = {
   own_tools: 'subcontractorOwnToolsPrice',
 }
 
+const DISCOUNT_OPTIONS: { value: string; label: string }[] = [
+  { value: '', label: '—' },
+  { value: 'percent', label: '%' },
+  { value: 'amount', label: 'zł' },
+]
+
+export type V2SortStateT = { field: string; dir: SortDirT } | null
+
+export type BuildV2ColumnsOptsT = {
+  stages: KosztorysStageT[]
+  view: PriceViewT
+  sort?: V2SortStateT
+  onToggleSort?: (field: string) => void
+}
+
 // keyColumn wymaga column: Column<Row[K]>. floatColumn/textColumn są nullowalne
 // (Column<number|null> / <string|null>), a pola pozycji są non-null. Cell-typ jest
 // niezmienniczy (rowData kowariantne + setRowData kontrawariantne), więc żaden konkretny
@@ -32,6 +55,13 @@ function keyCol(
   rest: Partial<Column<KosztorysV2RowT>>,
 ): Column<KosztorysV2RowT> {
   return { ...(keyColumn(key, column) as Column<KosztorysV2RowT>), ...rest }
+}
+
+// Tytuł kolumny jako klikalny nagłówek sortujący (gdy onToggleSort podany).
+function title(field: string, label: string, opts: BuildV2ColumnsOptsT): ReactNode {
+  if (!opts.onToggleSort) return label
+  const active = opts.sort?.field === field ? opts.sort.dir : null
+  return <SortHeader label={label} active={active} onToggle={() => opts.onToggleSort?.(field)} />
 }
 
 // Rekonstrukcja inputów dla calc.ts z płaskiego wiersza.
@@ -48,44 +78,140 @@ function asSection(r: KosztorysV2RowT): KosztorysSectionT {
 // Kolumna liczona, read-only: własny component renderujący wartość z calc.
 function computedColumn(
   id: string,
-  title: string,
+  titleNode: ReactNode,
   compute: (r: KosztorysV2RowT) => number,
+  className = 'text-muted-foreground',
 ): Column<KosztorysV2RowT> {
   return {
     id,
-    title,
+    title: titleNode,
     disabled: true,
     component: ({ rowData }) => (
-      <span className="block w-full pr-2 text-right">{fmt(compute(rowData))}</span>
+      <span className={`block w-full pr-2 text-right ${className}`}>{fmt(compute(rowData))}</span>
     ),
   }
 }
 
-export function buildV2Columns(
-  stages: KosztorysStageT[],
-  view: PriceViewT,
-): Column<KosztorysV2RowT>[] {
+// Komórka select typu rabatu (parytet z v1: —/%/zł). setRowData zasila diff → autosave.
+function DiscountTypeCell({ rowData, setRowData }: CellProps<KosztorysV2RowT, unknown>) {
+  return (
+    <select
+      className="size-full bg-transparent px-2 text-sm outline-none"
+      value={rowData.discountType ?? ''}
+      onChange={(e) =>
+        setRowData({
+          ...rowData,
+          discountType: (e.target.value || null) as DiscountTypeT | null,
+        })
+      }
+    >
+      {DISCOUNT_OPTIONS.map((o) => (
+        <option key={o.value} value={o.value}>
+          {o.label}
+        </option>
+      ))}
+    </select>
+  )
+}
+
+function discountTypeColumn(titleNode: ReactNode): Column<KosztorysV2RowT> {
+  return {
+    id: 'discountType',
+    title: titleNode,
+    minWidth: 70,
+    component: DiscountTypeCell,
+    keepFocus: true,
+    copyValue: ({ rowData }) => rowData.discountType ?? '',
+    deleteValue: ({ rowData }) => ({ ...rowData, discountType: null }),
+    pasteValue: ({ rowData, value }) => ({
+      ...rowData,
+      discountType: (value === 'percent' || value === 'amount'
+        ? value
+        : null) as DiscountTypeT | null,
+    }),
+  }
+}
+
+// Jedyne źródło etykiet kolumn dla przełącznika widoczności (id ↔ etykieta).
+// Etapy dynamiczne; reszta stała. Trzyma parytet z id ustawionymi w buildV2Columns.
+export function v2ToggleableColumns(stages: KosztorysStageT[]): { id: string; label: string }[] {
+  return [
+    { id: 'sectionName', label: 'Sekcja' },
+    { id: 'description', label: 'Opis' },
+    { id: 'unit', label: 'J.m.' },
+    { id: 'plannedQty', label: 'Przedmiar' },
+    { id: 'measuredQty', label: 'Pomiar' },
+    { id: 'price', label: 'Cena' },
+    { id: 'discountType', label: 'Rabat' },
+    { id: 'discountValue', label: 'Rabat wart.' },
+    ...stages.map((st) => ({ id: stageKey(st.id), label: `Etap ${st.ordinal}` })),
+    { id: 'net', label: 'Netto' },
+    { id: 'gross', label: 'Brutto' },
+    { id: 'remaining', label: 'Pozostało' },
+  ]
+}
+
+export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[] {
+  const { stages, view } = opts
   const left: Column<KosztorysV2RowT>[] = [
-    keyCol('sectionName', textColumn, { title: 'Sekcja', minWidth: 140 }),
-    keyCol('description', textColumn, { title: 'Opis', minWidth: 240, grow: 2 }),
-    keyCol('unit', textColumn, { title: 'J.m.', minWidth: 64 }),
-    keyCol('plannedQty', floatColumn, { title: 'Przedmiar', minWidth: 90 }),
-    keyCol('measuredQty', floatColumn, { title: 'Pomiar', minWidth: 90 }),
-    // Aktywna cena zależna od widoku (ten sam wiersz, inna kolumna ceny).
-    keyCol(PRICE_FIELD[view], floatColumn, { title: 'Cena', minWidth: 90 }),
-    keyCol('discountValue', floatColumn, { title: 'Rabat', minWidth: 80 }),
+    keyCol('sectionName', textColumn, {
+      id: 'sectionName',
+      title: title('sectionName', 'Sekcja', opts),
+      minWidth: 140,
+    }),
+    keyCol('description', textColumn, {
+      id: 'description',
+      title: title('description', 'Opis', opts),
+      minWidth: 240,
+      grow: 2,
+    }),
+    keyCol('unit', textColumn, { id: 'unit', title: title('unit', 'J.m.', opts), minWidth: 64 }),
+    keyCol('plannedQty', floatColumn, {
+      id: 'plannedQty',
+      title: title('plannedQty', 'Przedmiar', opts),
+      minWidth: 90,
+    }),
+    keyCol('measuredQty', floatColumn, {
+      id: 'measuredQty',
+      title: title('measuredQty', 'Pomiar', opts),
+      minWidth: 90,
+    }),
+    // Aktywna cena zależna od widoku (ten sam wiersz, inna kolumna ceny). id stałe = 'price'.
+    keyCol(PRICE_FIELD[view], floatColumn, {
+      id: 'price',
+      title: title('price', 'Cena', opts),
+      minWidth: 90,
+    }),
+    discountTypeColumn(title('discountType', 'Rabat', opts)),
+    keyCol('discountValue', floatColumn, {
+      id: 'discountValue',
+      title: title('discountValue', 'Rabat wart.', opts),
+      minWidth: 80,
+    }),
   ]
 
   const stageCols: Column<KosztorysV2RowT>[] = stages.map((st) =>
-    keyCol(stageKey(st.id), floatColumn, { title: `E${st.ordinal}`, minWidth: 64 }),
+    keyCol(stageKey(st.id), floatColumn, {
+      id: stageKey(st.id),
+      title: `E${st.ordinal}`,
+      minWidth: 64,
+    }),
   )
 
   const computed: Column<KosztorysV2RowT>[] = [
-    computedColumn('net', 'Netto', (r) => rowNetForView(r as unknown as KosztorysItemT, view)),
-    computedColumn('gross', 'Brutto', (r) => {
+    computedColumn(
+      'net',
+      title('net', 'Netto', opts),
+      (r) => rowNetForView(r as unknown as KosztorysItemT, view),
+      'font-medium',
+    ),
+    computedColumn('gross', title('gross', 'Brutto', opts), (r) => {
       const item = r as unknown as KosztorysItemT
       return rowNetForView(item, view) * (1 + effectiveVat(item, asSection(r)))
     }),
+    computedColumn('remaining', title('remaining', 'Pozostało', opts), (r) =>
+      rowRemainingForView(r as unknown as KosztorysItemT, rowDoneNetForView(r, stages, view), view),
+    ),
   ]
 
   return [...left, ...stageCols, ...computed]

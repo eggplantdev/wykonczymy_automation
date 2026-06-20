@@ -1,5 +1,6 @@
+import { stageValueForView, type PriceViewT } from '@/lib/kosztorys/calc'
 import type { ItemPatchT } from '@/lib/actions/kosztorys'
-import type { KosztorysTreeT, KosztorysV2RowT } from '@/types/kosztorys'
+import type { KosztorysStageT, KosztorysTreeT, KosztorysV2RowT } from '@/types/kosztorys'
 
 export function stageKey(stageId: number): `stage_${number}` {
   return `stage_${stageId}`
@@ -72,4 +73,63 @@ export function diffRow(prev: KosztorysV2RowT, next: KosztorysV2RowT): RowDiffT 
   if (Object.keys(itemPatch).length > 0) diff.itemPatch = itemPatch as ItemPatchT
   if (stageChanges.length > 0) diff.stageChanges = stageChanges
   return diff
+}
+
+// Filtr toolbara: szukajka po opisie / sekcji / j.m. (parytet z v1). Pusty/whitespace → bez filtra.
+export function filterRows(rows: KosztorysV2RowT[], query: string): KosztorysV2RowT[] {
+  const q = query.trim().toLowerCase()
+  if (!q) return rows
+  return rows.filter(
+    (r) =>
+      (r.description ?? '').toLowerCase().includes(q) ||
+      r.sectionName.toLowerCase().includes(q) ||
+      (r.unit ?? '').toLowerCase().includes(q),
+  )
+}
+
+export type SortDirT = 'asc' | 'desc'
+
+// Sort po wartości z accessora; stringi po locale (pl), liczby numerycznie. Zwraca nową tablicę.
+export function sortRows(
+  rows: KosztorysV2RowT[],
+  getValue: (row: KosztorysV2RowT) => string | number,
+  dir: SortDirT,
+): KosztorysV2RowT[] {
+  const sign = dir === 'asc' ? 1 : -1
+  return [...rows].sort((a, b) => {
+    const va = getValue(a)
+    const vb = getValue(b)
+    if (typeof va === 'string' || typeof vb === 'string') {
+      return sign * String(va).localeCompare(String(vb), 'pl')
+    }
+    return sign * (va - vb)
+  })
+}
+
+// Cofnij pole wiersza do wartości sprzed edycji (revert-on-error autosave), ale TYLKO
+// jeśli od czasu nieudanego zapisu nic nowszego nie wpisano (current === attempted) —
+// inaczej deptalibyśmy świeższą edycję użytkownika.
+export function revertField(
+  rows: KosztorysV2RowT[],
+  id: number,
+  field: keyof KosztorysV2RowT,
+  prevValue: unknown,
+  attempted: unknown,
+): KosztorysV2RowT[] {
+  return rows.map((r) => {
+    if (r.id !== id || r[field] !== attempted) return r
+    return { ...r, [field]: prevValue } as KosztorysV2RowT
+  })
+}
+
+// Σ wartości wykonanych etapów wiersza v2 wg ceny widoku (do kolumny „Pozostało").
+export function rowDoneNetForView(
+  row: KosztorysV2RowT,
+  stages: KosztorysStageT[],
+  view: PriceViewT,
+): number {
+  return stages.reduce(
+    (sum, st) => sum + stageValueForView(row, row[stageKey(st.id)] ?? 0, view),
+    0,
+  )
 }

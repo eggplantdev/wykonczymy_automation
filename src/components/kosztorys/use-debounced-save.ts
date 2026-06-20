@@ -5,7 +5,8 @@ import { toastMessage } from '@/components/toasts'
 import type { ActionResultT } from '@/lib/actions/utils'
 
 // Debounced zapis w tle per klucz pola. UI aktualizuje stan lokalny natychmiast
-// (poza tym hookiem); tu tylko strzelamy akcję po ciszy. Błąd = toast.
+// (poza tym hookiem); tu tylko strzelamy akcję po ciszy. Błąd = toast + opcjonalny
+// onError (revert-on-error: rodzic cofa optymistyczną edycję do stanu sprzed zapisu).
 export function useDebouncedSave(delay = 500) {
   const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>())
 
@@ -15,15 +16,19 @@ export function useDebouncedSave(delay = 500) {
   }, [])
 
   return useCallback(
-    (key: string, run: () => Promise<ActionResultT>) => {
+    (key: string, run: () => Promise<ActionResultT>, onError?: () => void) => {
       const existing = timers.current.get(key)
       if (existing) clearTimeout(existing)
+      const fail = (msg: string) => {
+        toastMessage(msg, 'error', 5000)
+        onError?.()
+      }
       const t = setTimeout(() => {
         run()
           .then((res) => {
-            if (!res.success) toastMessage(res.error, 'error', 5000)
+            if (!res.success) fail(res.error)
           })
-          .catch((e) => toastMessage(e instanceof Error ? e.message : 'Błąd zapisu', 'error', 5000))
+          .catch((e) => fail(e instanceof Error ? e.message : 'Błąd zapisu'))
       }, delay)
       timers.current.set(key, t)
     },

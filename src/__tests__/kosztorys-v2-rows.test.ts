@@ -1,8 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { treeToRows, diffRow, stageKey } from '@/lib/kosztorys/v2-rows'
+import {
+  treeToRows,
+  diffRow,
+  stageKey,
+  filterRows,
+  sortRows,
+  rowDoneNetForView,
+  revertField,
+} from '@/lib/kosztorys/v2-rows'
 import { rowNetForView } from '@/lib/kosztorys/calc'
 import { buildV2Columns } from '@/lib/tables/kosztorys-v2-columns'
-import type { KosztorysTreeT } from '@/types/kosztorys'
+import type { KosztorysTreeT, KosztorysV2RowT } from '@/types/kosztorys'
 
 const baseItem = {
   id: 1,
@@ -93,16 +101,104 @@ describe('rowNetForView', () => {
   })
 })
 
+describe('filterRows', () => {
+  const rows = treeToRows({
+    ...tree,
+    sections: [
+      {
+        ...tree.sections[0],
+        items: [
+          { ...baseItem, id: 1, description: 'Malowanie ścian', unit: 'm2' },
+          { ...baseItem, id: 2, description: 'Gładź gipsowa', unit: 'm2' },
+          { ...baseItem, id: 3, description: 'Demontaż', unit: 'szt' },
+        ],
+      },
+    ],
+  })
+
+  it('pusty filtr → wszystkie wiersze', () => {
+    expect(filterRows(rows, '')).toHaveLength(3)
+    expect(filterRows(rows, '   ')).toHaveLength(3)
+  })
+
+  it('filtruje po opisie (case-insensitive)', () => {
+    expect(filterRows(rows, 'malow').map((r) => r.id)).toEqual([1])
+  })
+
+  it('filtruje po sekcji i j.m.', () => {
+    expect(filterRows(rows, 'sekcja a')).toHaveLength(3)
+    expect(filterRows(rows, 'szt').map((r) => r.id)).toEqual([3])
+  })
+})
+
+describe('sortRows', () => {
+  const rows: KosztorysV2RowT[] = [
+    { id: 1, measuredQty: 3 } as KosztorysV2RowT,
+    { id: 2, measuredQty: 1 } as KosztorysV2RowT,
+    { id: 3, measuredQty: 2 } as KosztorysV2RowT,
+  ]
+  const get = (r: KosztorysV2RowT) => r.measuredQty
+
+  it('asc / desc', () => {
+    expect(sortRows(rows, get, 'asc').map((r) => r.id)).toEqual([2, 3, 1])
+    expect(sortRows(rows, get, 'desc').map((r) => r.id)).toEqual([1, 3, 2])
+  })
+
+  it('nie mutuje wejścia', () => {
+    sortRows(rows, get, 'asc')
+    expect(rows.map((r) => r.id)).toEqual([1, 2, 3])
+  })
+
+  it('sortuje stringi lokalnie', () => {
+    const strRows = [
+      { id: 1, description: 'Łaty' } as KosztorysV2RowT,
+      { id: 2, description: 'Aaa' } as KosztorysV2RowT,
+    ]
+    expect(sortRows(strRows, (r) => r.description ?? '', 'asc').map((r) => r.id)).toEqual([2, 1])
+  })
+})
+
+describe('rowDoneNetForView', () => {
+  it('sumuje wartości etapów wg ceny widoku', () => {
+    const [row] = treeToRows(tree) // stage 100 qty=2, stage 101 qty=0; clientPrice 20
+    expect(rowDoneNetForView(row, tree.stages, 'client')).toBe(40) // 2 × 20
+    expect(rowDoneNetForView(row, tree.stages, 'w_tools')).toBe(24) // 2 × 12
+  })
+})
+
+describe('revertField', () => {
+  const rows: KosztorysV2RowT[] = [
+    { id: 1, measuredQty: 8 } as KosztorysV2RowT,
+    { id: 2, measuredQty: 3 } as KosztorysV2RowT,
+  ]
+
+  it('cofa pole do wartości sprzed edycji, gdy current === attempted', () => {
+    const out = revertField(rows, 1, 'measuredQty', 5, 8) // wpisano 8, serwer odrzucił → wróć do 5
+    expect(out[0].measuredQty).toBe(5)
+    expect(out[1].measuredQty).toBe(3) // inny wiersz nietknięty
+  })
+
+  it('nie nadpisuje świeższej edycji (current !== attempted)', () => {
+    const out = revertField(rows, 1, 'measuredQty', 5, 99) // od czasu błędu user wpisał 8, nie 99
+    expect(out[0].measuredQty).toBe(8)
+  })
+
+  it('nie rusza wierszy o innym id', () => {
+    const out = revertField(rows, 99, 'measuredQty', 0, 8)
+    expect(out).toEqual(rows)
+  })
+})
+
 describe('buildV2Columns', () => {
   it('dokłada jedną kolumnę na każdy etap', () => {
-    const cols0 = buildV2Columns([], 'client')
-    const cols2 = buildV2Columns(
-      [
+    const cols0 = buildV2Columns({ stages: [], view: 'client' })
+    const cols2 = buildV2Columns({
+      stages: [
         { id: 100, ordinal: 1, label: null },
         { id: 101, ordinal: 2, label: null },
       ],
-      'client',
-    )
+      view: 'client',
+    })
     expect(cols2.length - cols0.length).toBe(2)
   })
 })
