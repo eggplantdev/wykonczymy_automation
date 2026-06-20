@@ -106,6 +106,13 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
   // Pełni też rolę „świeżego zbioru" czytanego w event-handlerach struktury (count sekcji):
   // utrzymywany przy każdym add/remove/edit, więc nie potrzeba osobnego ref na rows.
   const prevById = useRef(new Map(rows.map((r) => [r.id, r])))
+  // „Latest value" ref: świeży `rows` (kolejność wyświetlania) czytany w event-time reorderze.
+  // Closure kolumny dsg jest zamrożona na montażu, więc `rows` z renderu bywa nieaktualne, a
+  // odpalenie akcji w updaterze setRows aktualizuje Router w trakcie renderu (błąd React).
+  // Zapis refa w renderze to znany, bezpieczny wzorzec „latest value" — reguła jest zbyt ostra.
+  const rowsRef = useRef(rows)
+  // eslint-disable-next-line react-hooks/refs
+  rowsRef.current = rows
 
   function toggleSort(field: string) {
     setSort((prev) => {
@@ -115,10 +122,8 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
     })
   }
 
-  // onRemoveItem (handleRemoveItem) czyta prevById.current — stabilny ref — wyłącznie z
-  // onClick komórki, nigdy podczas renderu. Reguła nie potrafi tego dowieść przez zwykłe
-  // wywołanie funkcji (inaczej niż dla propa JSX jak onChange), stąd celowe wyciszenie.
-  // eslint-disable-next-line react-hooks/refs
+  // onRemoveItem/onReorderItem czytają prevById.current / rowsRef.current — stabilne refy —
+  // wyłącznie z onClick komórki, nigdy podczas renderu, więc przekazanie ich tu jest bezpieczne.
   const allColumns = buildV2Columns({
     stages: tree.stages,
     view,
@@ -211,18 +216,14 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
   }
 
   function handleReorderItem(row: KosztorysV2RowT, dir: 'up' | 'down') {
-    // Świeży zbiór bierzemy z updatera setRows — closure kolumny dsg jest zamrożona na montażu,
-    // więc `rows` z renderu bywa nieaktualne. Akcja odpalana w updaterze: swapItemInSection jest
-    // czyste, a reorderItemsAction idempotentne (renumeruje do tych samych wartości), więc
-    // ewentualny podwójny przebieg w dev StrictMode jest nieszkodliwy.
-    setRows((rs) => {
-      const next = swapItemInSection(rs, row.id, dir)
-      if (next === rs) return rs // brzeg bloku → no-op
-      // Pełna lista id sekcji w nowej kolejności → serwer renumeruje display_order od zera.
-      const orderedIds = next.filter((r) => r.sectionId === row.sectionId).map((r) => r.id)
-      void reorderItemsAction(row.sectionId, orderedIds)
-      return next
-    })
+    const next = swapItemInSection(rowsRef.current, row.id, dir)
+    if (next === rowsRef.current) return // brzeg bloku → no-op
+    setRows(next)
+    // Pełna lista id sekcji w nowej kolejności → serwer renumeruje display_order od zera.
+    // Akcja z event-handlera (nie z updatera setRows) — odpalona w renderze aktualizowałaby
+    // Router w trakcie renderu (rewalidacja cache), co React odrzuca.
+    const orderedIds = next.filter((r) => r.sectionId === row.sectionId).map((r) => r.id)
+    void reorderItemsAction(row.sectionId, orderedIds)
   }
 
   async function handleAddSection() {
