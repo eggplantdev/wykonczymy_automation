@@ -17,6 +17,90 @@ z istniejącą zakładką „Arkusz".
 - **Plan:** `context/changes/kosztorys-poc-in-app/plan.md`
 - **Brief:** `context/changes/kosztorys-poc-in-app/plan-brief.md`
 
+## Decyzje POC → MVP (do review właściciela)
+
+> Rejestr decyzji, które zapadły w POC i które **przenosimy do MVP**. Legenda statusu:
+> **[PEWNE]** = zaakceptowane, niesiemy bez zmian · **[SKRÓT POC]** = świadome
+> uproszczenie na czas POC, do rewizji przy MVP · **[ZALEŻNE]** = wiąże się z otwartym
+> pytaniem właściciela (patrz „Pytania do właściciela" na końcu). Otwarte pytania NIE są
+> tu decyzjami — są w sekcji pytań.
+
+### A. Model danych i kalkulacje
+
+- **[PEWNE] Czysty start, baza appki = źródło prawdy, ZERO importu arkuszy.** Arkusze
+  dowiedzione jako niewiarygodne (drift od bazy: brak backfillu wydatków, kolizje ID
+  transferów, rozjazd sum wypłat). Appka i tak liczy wszystkie actuals; arkusz wnosił
+  tylko rozpiskę robocizny — i to ona trafia do edytora.
+- **[PEWNE] Schemat rdzenia:** `kosztorys_sections` / `kosztorys_items` /
+  `kosztorys_stages` / `stage_progress` (+ `kosztorys_rooms`). **Brak osobnej tabeli
+  materiałów** — materiały = `INVESTMENT_EXPENSE` (już w appce).
+- **[PEWNE] Model widoku płaski** (`KosztorysV2RowT`): sekcja jako denormalizowana,
+  sortowalna/filtrowalna kolumna, NIE wiersz-nagłówek — żeby sort/filtr działały jak w
+  pozostałych tabelach appki. Subtotale per sekcja = osobny temat (pytanie #1).
+- **[PEWNE] Wartości liczone, nie przechowywane** (czyste funkcje w `calc.ts`): netto,
+  brutto, „pozostało", sumy sekcji/całości, marża. Zapisywane = TYLKO inputy. Gwarancja:
+  zero dryfu formuł, zero ręcznej synchronizacji między widokami.
+- **[PEWNE] Przedmiar i pomiar = dwie niezależne, edytowalne kolumny.** Wartość liczona
+  z **pomiaru**. W szablonie pomiar startuje skopiowany z przedmiaru (żeby nie był pusty).
+- **[PEWNE] Etapy dynamiczne** (wiersze `kosztorys_stages`, kolumny renderowane z danych);
+  `stage_progress` rzadkie (brak wiersza = 0). Usunięcie etapu z wpisanym postępem =
+  BLOKADA (najpierw wyczyść). Etap = ordinal + opcjonalna nazwa.
+- **[PEWNE] Rabat dwutrybowy:** `discount_type ∈ {percent, amount}` + `discount_value`.
+- **[PEWNE] VAT kaskadowo:** ceny wpisywane **netto**, brutto = netto × (1+vat) liczone.
+  `vat_rate` na sekcji (+ globalny default), pozycja dziedziczy. (Domyślna stawka =
+  pytanie #P7; override per pozycja — otwarte.)
+- **[PEWNE] „Pozostało do wykonania" = kontrola postępu robót** (wartość pozycji − Σ
+  wartości wykonanych etapów), wskaźnik informacyjny, NIE figura rozliczeniowa z klientem.
+- **[ZALEŻNE] Ceny = 3 niezależne kolumny snapshot w jednym wierszu** (`clientPrice`,
+  `subcontractorWToolsPrice`, `subcontractorOwnToolsPrice`) — wariant **A**. Relacja
+  podwykonawca↔klient NIE jest formułą (raz %, raz inna absolutna). POC zaimplementował A;
+  formalnie A vs B (dynamiczna tabela wariantów) **nierozstrzygnięte** — patrz pytanie #P4.
+
+### B. Edytor — stack, UX, funkcje
+
+- **[PEWNE] Edytor = v2 `react-datasheet-grid`** (bake-off wygrany, decyzja właściciela
+  2026-06-20). v1 (TanStack) **usunięta** po sportowaniu przewag. Bramka zgodności z
+  React 19 / Next 16 / React Compiler — zdana natywnie.
+- **[PEWNE] „Jeden zbiór, trzy widoki"** — przełącznik aktywnej ceny (Robocizna /
+  Z narzędziami / Bez narzędzi) zmienia kolumnę „Cena" i jej liczone; pomiar i etapy bez
+  zmian. To raison d'être całego podejścia (koniec 3 zduplikowanych arkuszy).
+- **[PEWNE] Autosave per pole, optymistycznie, debounced; BEZ przycisku „Zapisz".**
+  Zapisujemy tylko zmienione pole (skala 1000+). + **revert-on-error** (cofa edycję przy
+  odrzuceniu serwera).
+- **[PEWNE] Funkcje siatki:** sort per kolumna (nietrwały po reloadzie — parytet z appką),
+  filtr/szukajka (opis/sekcja/j.m.), przełącznik widoczności kolumn (TRWAŁY, localStorage),
+  kolumna „Pozostało", select typu rabatu, suma netto w toolbarze (respektuje filtr+widok).
+- **[PEWNE] Rozszerzanie kolumn (drag-resize).** Uchwyt na krawędzi nagłówka; prowadnica
+  w trakcie dragu; **commit-on-release** (na puść) + zapis do localStorage, trwały po
+  reloadzie. **Ograniczenie biblioteki:** dsg nie ma natywnego resize i nie przelicza
+  szerokości bez remountu — stąd commit-on-release + remount siatki przez `key`. Live-drag
+  (podgląd szerokości na żywo) niewykonalny bez forka. Zob. lekcję w
+  `context/foundation/lessons.md` („no native column resize … remount with a `key`").
+- **[PEWNE] Layout:** pełna wysokość strony (jak widok arkusza), mniejsza czcionka,
+  `DataSheetGrid` ze stałym `rowHeight`, fix migotania (tor `grid-cols-[minmax(0,1fr)]`).
+- **[SKRÓT POC] `lockRows` włączone** — dodawanie/usuwanie pozycji/sekcji/etapów to
+  osobny, zaplanowany slice (pytanie #7). Akcje serwerowe (`addItem`/`addStage`/
+  `removeItem`/`updateSection`) już istnieją jako infrastruktura pod ten slice.
+- **[SKRÓT POC] Trwałość UI per przeglądarka (localStorage), globalnie dla wszystkich
+  kosztorysów** (widoczność i szerokości kolumn, klucze `kosztorys-v2-*`). W MVP rozważyć
+  per-użytkownik i/lub per-kosztorys.
+
+### C. Dostęp i role
+
+- **[PEWNE] Bramka:** `requireAuth(MANAGEMENT_ROLES)` = **ADMIN / OWNER / MANAGER** widzą
+  i edytują wszystko. **EMPLOYEE — zero dostępu** (nie widzi kosztorysu).
+- **[SKRÓT POC] Brak ukrywania wrażliwych kolumn przed MANAGEREM.** Follow-on: ceny
+  podwykonawcy (koszt/marża) tylko dla OWNER/ADMIN — pytanie #P10.
+
+### D. Zakres i współistnienie
+
+- **[PEWNE] Współistnienie z zakładką „Arkusz"** — edytor nie zastępuje jeszcze arkusza,
+  żyje obok (link wejścia na detalu inwestycji „Kosztorys (edytor)").
+- **[PEWNE] Domyślne POC:** PLN, hard-delete, reorder strzałkami (bez drag), bez
+  `work_catalogue`, bez multi-waluty, bez teardownu Sheets, bez synchronizacji dwukierunkowej.
+- **[ZALEŻNE] Forward-scope (wydatki klienckie read-only z transferów)** — osobny późniejszy
+  slice; które transfery `INVESTMENT_EXPENSE` wchodzą = pytanie #5.
+
 ## Baza danych (ZWERYFIKOWANE 2026-06-19)
 
 **Wszystkie migracje POC idą wyłącznie na `wykonczymy-poc`** — osobną bazę w
@@ -315,3 +399,37 @@ OwnToolsPrice`: osobne zakładki arkusza `zakres z/bez narzędzi` (mapowanie 1:1
 7. **Dodawanie/usuwanie pozycji w siatce.** Obecnie `lockRows` (stopka „Add rows"
    datasheet-grid była niefunkcjonalna). Osobny slice — potwierdzić priorytet i UX
    (przycisk „+ pozycja" do sekcji, usuwanie per wiersz jak w v1)?
+8. **Zawijanie wierszy.** react-datasheet-grid renderuje wiersze o stałej wysokości,
+   jednoliniowo — długi `opis` jest ucinany. Decyzja: (a) zostawić jednoliniowo
+   z ucięciem + tooltip/rozwijanie na hover/klik, czy (b) zawijać tekst ze zmienną
+   wysokością wiersza? Wariant (b) jest kosztowny w datasheet-grid (wirtualizacja
+   zakłada stałą wysokość) — potwierdzić, czy w ogóle potrzebne dla danych klienta.
+9. **Cofanie akcji + historia wersji.** react-datasheet-grid **nie ma** wbudowanego
+   undo/redo; obecny edytor nie obsługuje żadnej historii (jest tylko revert-on-error
+   przy nieudanym zapisie — to nie to samo). Ctrl+Z działa najwyżej w obrębie pojedynczej
+   edytowanej komórki, nie na poziomie siatki — przypadkowa edycja, wklejenie czy
+   usunięcie wiersza są nieodwracalne. **Realny problem, nie kosmetyka.** Dwie różne osie
+   bezpieczeństwa (jak warstwy Google Sheets): warstwa 1 = szybkie cofnięcie tu i teraz,
+   warstwa 2 = powrót do wcześniejszego stanu z przeszłości (chroni przed sekwencyjnym
+   błędem, którego lock z #10 nie łapie, i przed „wysłaliśmy klientowi starą wersję").
+   **Decyzja kierunkowa (2026-06-20): OBIE warstwy.**
+   - **Warstwa 1 — lokalny stos Command** (szybkie cofnięcia). Trzymany w pamięci karty,
+     undo wyzwalane **przyciskiem w toolbarze ORAZ skrótem Cmd+Z** (redo: Cmd+Shift+Z).
+     Wykonalne jako prosty model jednoosobowy dzięki lockowi (#10) — bez OT/CRDT.
+   - **Warstwa 2 — okresowe snapshoty** (historia wersji). Materializacja stanu kosztorysu
+     co N zdarzeń / interwał, z UI „przywróć wersję". Potrzebna **niezależnie** od locka.
+   - **Notka implementacyjna:** rozważyć jeden append-only log zmian
+     (`{kiedy, kto, item_id, pole, było, jest}`) jako wspólne źródło dla warstwy 1 (replay
+     wstecz = undo), warstwy 2 (replay do timestampu = wersja) i audytu zmian cen — wzorzec
+     Event Sourcing; snapshoty = optymalizacja odtwarzania przy 1000+ wierszy (jak Git:
+     snapshot + delty). Osobny slice. Do potwierdzenia przez właściciela.
+10. **Współbieżność edycji (konflikty zapisu).** Edytor zapisuje per pole (debounced) —
+    przy dwóch managerach na jednym kosztorysie to **last-write-wins**: późniejszy zapis
+    cicho nadpisuje wcześniejszy, bez merge i bez ostrzeżenia. To problem logicznie
+    _przed_ undo (#9): nie ma sensu cofać, jeśli najpierw tracisz edycje przez nadpisanie.
+    **Decyzja kierunkowa (2026-06-20): na ten moment lock — jeden edytor naraz.** Najtańsza
+    obrona, a dodatkowo odblokowuje najprostszy undo (model jednoosobowy → lokalny stos
+    Command, patrz #9). Do dopracowania przy implementacji: zakres locka (per kosztorys vs
+    per sekcja), zwolnienie (timeout/heartbeat na porzuconą kartę), UX dla zablokowanego
+    (read-only + „edytuje X"). Pełny merge wielu edytorów (OT/CRDT) świadomie **odrzucony**
+    na tym etapie. Do potwierdzenia przez właściciela.
