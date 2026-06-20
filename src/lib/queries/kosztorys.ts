@@ -9,6 +9,7 @@ import type {
   KosztorysStageT,
   KosztorysTreeT,
   StageProgressT,
+  SubcontractorOverrideTypeT,
 } from '@/types/kosztorys'
 
 // Relacje przychodzą jako number (depth 0) lub obiekt — normalizujemy do id.
@@ -20,7 +21,7 @@ export async function getKosztorysTree(investmentId: number): Promise<KosztorysT
   const payload = await getPayload({ config })
   const where = { investment: { equals: investmentId } }
 
-  const [sectionsRes, itemsRes, stagesRes] = await Promise.all([
+  const [sectionsRes, itemsRes, stagesRes, investment] = await Promise.all([
     payload.find({
       collection: 'kosztorys-sections',
       where,
@@ -36,7 +37,13 @@ export async function getKosztorysTree(investmentId: number): Promise<KosztorysT
       sort: 'displayOrder',
     }),
     payload.find({ collection: 'kosztorys-stages', where, depth: 0, limit: 1000, sort: 'ordinal' }),
+    payload.findByID({ collection: 'investments', id: investmentId, depth: 0 }),
   ])
+
+  const globalCoeffs = {
+    wTools: num(investment.wToolsCoeff) || 0.65,
+    ownTools: num(investment.ownToolsCoeff) || 0.55,
+  }
 
   const items: KosztorysItemT[] = itemsRes.docs.map((d) => ({
     id: d.id,
@@ -49,8 +56,10 @@ export async function getKosztorysTree(investmentId: number): Promise<KosztorysT
     discountType: (d.discountType as DiscountTypeT | null) ?? null,
     discountValue: num(d.discountValue),
     clientPrice: num(d.clientPrice),
-    subcontractorWToolsPrice: num(d.subcontractorWToolsPrice),
-    subcontractorOwnToolsPrice: num(d.subcontractorOwnToolsPrice),
+    wToolsOverrideType: (d.wToolsOverrideType as SubcontractorOverrideTypeT | null) ?? null,
+    wToolsOverrideValue: num(d.wToolsOverrideValue),
+    ownToolsOverrideType: (d.ownToolsOverrideType as SubcontractorOverrideTypeT | null) ?? null,
+    ownToolsOverrideValue: num(d.ownToolsOverrideValue),
     costVariant: (d.costVariant as CostVariantT | null) ?? null,
     vatRate: d.vatRate == null ? null : num(d.vatRate),
     hiddenInExport: Boolean(d.hiddenInExport),
@@ -63,6 +72,8 @@ export async function getKosztorysTree(investmentId: number): Promise<KosztorysT
     displayOrder: num(d.displayOrder),
     vatRate: num(d.vatRate),
     defaultCostVariant: (d.defaultCostVariant as CostVariantT) ?? 'w_tools',
+    wToolsCoeff: d.wToolsCoeff == null ? null : num(d.wToolsCoeff),
+    ownToolsCoeff: d.ownToolsCoeff == null ? null : num(d.ownToolsCoeff),
     items: items.filter((it) => it.sectionId === d.id),
   }))
 
@@ -89,5 +100,5 @@ export async function getKosztorysTree(investmentId: number): Promise<KosztorysT
     }))
   }
 
-  return { sections, stages, progress }
+  return { sections, stages, progress, globalCoeffs }
 }

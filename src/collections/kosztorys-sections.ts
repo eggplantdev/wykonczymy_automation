@@ -43,5 +43,16 @@ export const KosztorysSections: CollectionConfig = {
       defaultValue: 'w_tools',
       label: { en: 'Default cost variant', pl: 'Domyślny wariant kosztu' },
     },
+    // Współczynnik narzutu podwykonawcy per sekcja; null = dziedziczy globalny z inwestycji.
+    {
+      name: 'wToolsCoeff',
+      type: 'number',
+      label: { en: 'Coeff (with tools)', pl: 'Współczynnik (z narzędziami)' },
+    },
+    {
+      name: 'ownToolsCoeff',
+      type: 'number',
+      label: { en: 'Coeff (own tools)', pl: 'Współczynnik (bez narzędzi)' },
+    },
   ],
 }

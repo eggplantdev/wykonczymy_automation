@@ -2,10 +2,10 @@ import { escapeCsv } from '@/lib/export/csv-cell'
 import type { KosztorysExportColumnT } from '@/lib/export/kosztorys-export-columns'
 import { effectiveVat, rowNetForView, type PriceViewT } from '@/lib/kosztorys/calc'
 import type {
-  KosztorysItemT,
   KosztorysSectionT,
   KosztorysV2RowT,
   SectionSubtotalT,
+  ViewPricingT,
 } from '@/types/kosztorys'
 
 const fmtPLN = (n: number) =>
@@ -30,6 +30,8 @@ function sectionOf(r: KosztorysV2RowT): KosztorysSectionT {
     displayOrder: 0,
     vatRate: r.sectionVatRate,
     defaultCostVariant: r.sectionDefaultCostVariant,
+    wToolsCoeff: r.sectionWToolsCoeff,
+    ownToolsCoeff: r.sectionOwnToolsCoeff,
   }
 }
 
@@ -78,7 +80,7 @@ export function buildKosztorysCsvGrouped(
     lines.push(put(`Subtotal ${sub.sectionName}`, fmtPLN(sub.net)))
     netTotal += sub.net
     for (const r of secRows) {
-      const item = r as unknown as KosztorysItemT
+      const item = r as unknown as ViewPricingT
       grossTotal += rowNetForView(item, view) * (1 + effectiveVat(item, sectionOf(r)))
     }
   }

@@ -38,6 +38,7 @@ import * as migration_20260611_add_rabat_enum from './20260611_add_rabat_enum'
 import * as migration_20260611_1_add_loss_enum from './20260611_1_add_loss_enum'
 import * as migration_20260612_0_add_settled from './20260612_0_add_settled'
 import * as migration_20260620_add_kosztorys_tables from './20260620_add_kosztorys_tables'
+import * as migration_20260620_1_subcontractor_coeffs from './20260620_1_subcontractor_coeffs'
 
 export const migrations = [
   {
@@ -239,5 +240,10 @@ export const migrations = [
     up: migration_20260620_add_kosztorys_tables.up,
     down: migration_20260620_add_kosztorys_tables.down,
     name: '20260620_add_kosztorys_tables',
+  },
+  {
+    up: migration_20260620_1_subcontractor_coeffs.up,
+    down: migration_20260620_1_subcontractor_coeffs.down,
+    name: '20260620_1_subcontractor_coeffs',
   },
 ]

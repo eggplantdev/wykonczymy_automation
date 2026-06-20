@@ -16,8 +16,10 @@ const itemPatchSchema = z
     discountType: z.enum(['percent', 'amount']).nullable(),
     discountValue: z.coerce.number(),
     clientPrice: z.coerce.number(),
-    subcontractorWToolsPrice: z.coerce.number(),
-    subcontractorOwnToolsPrice: z.coerce.number(),
+    wToolsOverrideType: z.enum(['coeff', 'amount']).nullable(),
+    wToolsOverrideValue: z.coerce.number(),
+    ownToolsOverrideType: z.enum(['coeff', 'amount']).nullable(),
+    ownToolsOverrideValue: z.coerce.number(),
     costVariant: z.enum(['w_tools', 'own_tools']).nullable(),
     vatRate: z.coerce.number().nullable(),
     hiddenInExport: z.boolean(),
@@ -31,13 +33,20 @@ const sectionPatchSchema = z
     vatRate: z.coerce.number(),
     defaultCostVariant: z.enum(['w_tools', 'own_tools']),
     displayOrder: z.coerce.number(),
+    wToolsCoeff: z.coerce.number().nullable(),
+    ownToolsCoeff: z.coerce.number().nullable(),
   })
+  .partial()
+
+const investmentCoeffsSchema = z
+  .object({ wToolsCoeff: z.coerce.number(), ownToolsCoeff: z.coerce.number() })
   .partial()
 
 const stagePatchSchema = z.object({ label: z.string().nullable() }).partial()
 
 export type ItemPatchT = z.infer<typeof itemPatchSchema>
 export type SectionPatchT = z.infer<typeof sectionPatchSchema>
+export type InvestmentCoeffsPatchT = z.infer<typeof investmentCoeffsSchema>
 
 // --- Aktualizacje pól (autosave) ---
 
@@ -64,6 +73,23 @@ export async function updateSectionFieldAction(sectionId: number, patch: Section
       return { success: true }
     },
     ['kosztorysSections'],
+  )
+}
+
+export async function updateInvestmentCoeffsAction(
+  investmentId: number,
+  patch: InvestmentCoeffsPatchT,
+) {
+  return protectedAction(
+    'updateInvestmentCoeffsAction',
+    async ({ payload }) => {
+      const parsed = validateAction(investmentCoeffsSchema, patch)
+      if (!parsed.success) return parsed
+      await payload.update({ collection: 'investments', id: investmentId, data: parsed.data })
+      return { success: true }
+    },
+    // Współczynnik globalny zmienia wyprowadzone ceny pozycji → odśwież cache kosztorysu.
+    ['kosztorysItems', 'kosztorysSections'],
   )
 }
 
@@ -159,8 +185,6 @@ export async function addItemAction(
           measuredQty: 0,
           discountValue: 0,
           clientPrice: 0,
-          subcontractorWToolsPrice: 0,
-          subcontractorOwnToolsPrice: 0,
           hiddenInExport: false,
         },
       })

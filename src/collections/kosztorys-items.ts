@@ -2,9 +2,10 @@ import type { CollectionConfig } from 'payload'
 import { isAdminOrOwnerOrManager } from '@/access'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 
-// Pozycja rozpiski. Ceny = niezależne snapshoty (nie formuła). Wartość liczona z
-// measuredQty (pomiar), nie plannedQty (przedmiar). costVariant/vatRate = null
-// oznacza "dziedzicz z sekcji". discountType ∈ {percent, amount} (walidacja w akcji).
+// Pozycja rozpiski. Cena klienta = snapshot. Ceny podwykonawcy wyprowadzane ze
+// współczynnika narzutu (sekcja/inwestycja), z dwustanowym override per pozycja:
+// *OverrideType ∈ {coeff, amount} | null (null = wyprowadź), *OverrideValue. Wartość
+// liczona z measuredQty (pomiar). costVariant/vatRate = null = "dziedzicz z sekcji".
 export const KosztorysItems: CollectionConfig = {
   slug: 'kosztorys-items',
   labels: {
@@ -37,8 +38,10 @@ export const KosztorysItems: CollectionConfig = {
     { name: 'discountType', type: 'text' },
     { name: 'discountValue', type: 'number', required: true, defaultValue: 0 },
     { name: 'clientPrice', type: 'number', required: true, defaultValue: 0 },
-    { name: 'subcontractorWToolsPrice', type: 'number', required: true, defaultValue: 0 },
-    { name: 'subcontractorOwnToolsPrice', type: 'number', required: true, defaultValue: 0 },
+    { name: 'wToolsOverrideType', type: 'text' },
+    { name: 'wToolsOverrideValue', type: 'number', defaultValue: 0 },
+    { name: 'ownToolsOverrideType', type: 'text' },
+    { name: 'ownToolsOverrideValue', type: 'number', defaultValue: 0 },
     { name: 'costVariant', type: 'text' },
     { name: 'vatRate', type: 'number' },
     { name: 'hiddenInExport', type: 'checkbox', required: true, defaultValue: false },

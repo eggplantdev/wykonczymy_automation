@@ -9,10 +9,10 @@ import {
 import { rowDoneNetForView } from '@/lib/kosztorys/v2-rows'
 import { formatPLN } from '@/lib/format-currency'
 import type {
-  KosztorysItemT,
   KosztorysSectionT,
   KosztorysStageT,
   KosztorysV2RowT,
+  ViewPricingT,
 } from '@/types/kosztorys'
 
 export type KosztorysExportColumnT = {
@@ -31,11 +31,13 @@ function asSection(r: KosztorysV2RowT): KosztorysSectionT {
     displayOrder: 0,
     vatRate: r.sectionVatRate,
     defaultCostVariant: r.sectionDefaultCostVariant,
+    wToolsCoeff: r.sectionWToolsCoeff,
+    ownToolsCoeff: r.sectionOwnToolsCoeff,
   }
 }
 
 function grossForView(r: KosztorysV2RowT, view: PriceViewT): number {
-  const item = r as unknown as KosztorysItemT
+  const item = r as unknown as ViewPricingT
   return rowNetForView(item, view) * (1 + effectiveVat(item, asSection(r)))
 }
 
@@ -54,20 +56,20 @@ function getValueForId(id: string, stages: KosztorysStageT[]): KosztorysExportCo
     case 'measuredQty':
       return (r) => String(r.measuredQty)
     case 'price':
-      return (r, view) => formatPLN(viewPrice(r as unknown as KosztorysItemT, view))
+      return (r, view) => formatPLN(viewPrice(r as unknown as ViewPricingT, view))
     case 'discountType':
       return (r) => (r.discountType ? DISCOUNT_LABEL[r.discountType] : '')
     case 'discountValue':
       return (r) => String(r.discountValue)
     case 'net':
-      return (r, view) => formatPLN(rowNetForView(r as unknown as KosztorysItemT, view))
+      return (r, view) => formatPLN(rowNetForView(r as unknown as ViewPricingT, view))
     case 'gross':
       return (r, view) => formatPLN(grossForView(r, view))
     case 'remaining':
       return (r, view) =>
         formatPLN(
           rowRemainingForView(
-            r as unknown as KosztorysItemT,
+            r as unknown as ViewPricingT,
             rowDoneNetForView(r, stages, view),
             view,
           ),
