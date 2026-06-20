@@ -89,10 +89,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
           hasSheet={investment.hasSheet}
         />
         <Button asChild variant="outline" size="sm">
-          <Link href={`/inwestycje/${id}/kosztorys-edytor`}>Kosztorys (edytor)</Link>
-        </Button>
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/inwestycje/${id}/kosztorys-edytor-v2`}>Kosztorys (v2)</Link>
+          <Link href={`/inwestycje/${id}/kosztorys-edytor-v2`}>Kosztorys (edytor)</Link>
         </Button>
       </div>
       <InfoList items={infoFields.filter((f) => f.value)} />

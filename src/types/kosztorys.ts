@@ -49,16 +49,6 @@ export type KosztorysTreeT = {
   progress: StageProgressT[]
 }
 
-// Spłaszczony wiersz dla siatki (TanStack DataTable): pozycja + denormalizowane
-// pola sekcji (do liczenia/sortowania/filtrowania) + ilości etapów per stageId.
-export type KosztorysEditorRowT = KosztorysItemT & {
-  sectionName: string
-  sectionOrder: number
-  sectionVatRate: number
-  sectionDefaultCostVariant: CostVariantT
-  stageQty: Record<number, number>
-}
-
 // --- Wariant v2 (react-datasheet-grid): płaski wiersz z etapami spłaszczonymi
 // do kluczy stage_<stageId>, żeby keyColumn mapował 1:1. ---
 export type KosztorysV2RowBaseT = KosztorysItemT & {
