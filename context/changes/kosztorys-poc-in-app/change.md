@@ -718,3 +718,19 @@ wpisana wartość`. Też podąża za ceną klienta, ale ignoruje współczynnik 
     To nadrzędna, gęsta warstwa onboardingu — spina się z konkretami: tryby ceny nad tabelą (#2),
     wartość per etap (#13/#15), tooltip opisu (#8). **Konkretny pierwszy cel: rabat** — kolumna
     rabatu (typ `—/%/zł` + wartość) wymaga tooltipa „co liczy i od czego". Duża robota UX, MVP.
+17. **[MVP] Zasada arkusza: nie kasujesz niczego, co ma dane (pozycja / etap / sekcja).**
+    (właściciel, 2026-06-20) Jedna jednolita reguła na wszystkich poziomach, nie trzy osobne.
+    Dziś kasowanie pozycji to **hard-delete**, gardzi je tylko inwariant „sekcja ≥1 pozycja" (#7)
+    — **brak ochrony przed skasowaniem czegoś, co ma już dane** (pomiar, postęp etapów). To cicha
+    utrata danych, ta sama klasa co cascade przy kasowaniu etapu (#9). Zasada wywodzi się z
+    istniejącego guardu etapów i rozciąga na resztę:
+    - **Etap — guard JUŻ JEST:** `removeStageAction` blokuje etap z `qty_done<>0`. Wzorzec
+      referencyjny dla pozostałych.
+    - **Pozycja — guard DO DODANIA:** zablokuj kasowanie pozycji z danymi (każ najpierw wyczyścić).
+    - **Sekcja — guard DO DODANIA z kaskadą:** skasowanie sekcji ciągnie pozycje → `stage_progress`;
+      guard = „zablokuj, jeśli **którakolwiek** pozycja w sekcji ma dane".
+      **DECYZJA (właściciel, 2026-06-20) — nie „raczej", nie alternatywa: element z danymi jest
+      NIEUSUWALNY, trzeba go najpierw wyczyścić.** Guard jest wybraną drogą; undo/historia (#9) to
+      osobny temat, NIE zamiennik tej reguły. Jedyne otwarte (wspólne dla wszystkich poziomów):
+      **co liczy się jako „dane"** (`measuredQty>0`? jakikolwiek `stage_progress`? wpisany
+      rabat/cena ≠ default?) — do doprecyzowania przy implementacji. MVP.
