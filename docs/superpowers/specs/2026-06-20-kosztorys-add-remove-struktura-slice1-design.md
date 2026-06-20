@@ -108,6 +108,13 @@ tylko renderuje `value` (które JEST reaktywne, w przeciwieństwie do sizing kol
   (`rowNetForView × (1 + effectiveVat)`); subtotale muszą sumować odpowiednią wartość wg
   trybu. Dotyczy `sectionSubtotalsForView`/`SectionSubtotalT` (panel zdefiniowany w specu
   `2026-06-20-kosztorys-section-subtotals-design.md`) — zmiana tam, tu tylko zaparkowane.
+  - **GOTCHA VAT (krytyczne dla brutto).** W ramach **jednej sekcji mogą być różne stawki
+    VAT** — `vatRate` pozycji nadpisuje stawkę sekcji (`effectiveVat = item.vatRate ??
+section.vatRate`). Dlatego brutto sekcji = **Σ brutto per pozycja**
+    (`Σ rowNetForView_i × (1 + effectiveVat_i)`), a **NIE** `netto_sekcji × (1 + VAT_sekcji)`
+    — to drugie daje błędny wynik, gdy choć jedna pozycja ma własną stawkę. To samo dotyczy
+    sumy brutto w stopce. Netto zostaje prostą sumą — problem jest wyłącznie po stronie
+    brutto.
 - **Wybór kolorów sekcji (pomysł, do oszacowania).** Pozwolić przypisać sekcji kolor —
   w **płaskiej** siatce sekcje nie mają wierszy-nagłówków, więc kolor (np. lewy pasek /
   tło komórki „Sekcja", kropka w panelu) byłby tanim, zawsze-widocznym sposobem na wzrokowe
