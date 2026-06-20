@@ -101,6 +101,13 @@ tylko renderuje `value` (które JEST reaktywne, w przeciwieństwie do sizing kol
   Wymaga `reorderAction` (jeszcze nie istnieje).
 - **Później:** drag-drop (zamiast strzałek), dodawanie/usuwanie **etapów** (operacje na
   kolumnach — inny UX).
+- **Podsumowania netto/brutto (TODO).** Panel „Sekcje" (subtotale per sekcja + stopka
+  „Suma") oraz licznik w górnym pasku pokazują **tylko netto**. Mają respektować **wybór
+  netto/brutto** — przełącznik (osobny od przełącznika 3 widoków cen), który zmienia, czy
+  kwoty w podsumowaniach są netto czy brutto. Brutto liczy się już per wiersz
+  (`rowNetForView × (1 + effectiveVat)`); subtotale muszą sumować odpowiednią wartość wg
+  trybu. Dotyczy `sectionSubtotalsForView`/`SectionSubtotalT` (panel zdefiniowany w specu
+  `2026-06-20-kosztorys-section-subtotals-design.md`) — zmiana tam, tu tylko zaparkowane.
 - **Wybór kolorów sekcji (pomysł, do oszacowania).** Pozwolić przypisać sekcji kolor —
   w **płaskiej** siatce sekcje nie mają wierszy-nagłówków, więc kolor (np. lewy pasek /
   tło komórki „Sekcja", kropka w panelu) byłby tanim, zawsze-widocznym sposobem na wzrokowe
