@@ -8,6 +8,7 @@ import { useDebouncedSave } from '@/components/kosztorys/use-debounced-save'
 import { useHiddenColumns } from '@/components/kosztorys/use-hidden-columns'
 import { useColumnWidths } from '@/components/kosztorys/use-column-widths'
 import { DatasheetColumnToggle } from '@/components/kosztorys/datasheet-column-toggle'
+import { KosztorysSectionSummary } from '@/components/kosztorys/kosztorys-section-summary'
 import { useElementHeight } from '@/hooks/use-element-height'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,6 +26,7 @@ import {
 import {
   rowNetForView,
   rowRemainingForView,
+  sectionSubtotalsForView,
   viewPrice,
   type PriceViewT,
 } from '@/lib/kosztorys/calc'
@@ -77,6 +79,7 @@ export function KosztorysEditorV2({ tree, investmentName }: PropsT) {
   const [view, setView] = useState<PriceViewT>('client')
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<SortStateT>(null)
+  const [summaryOpen, setSummaryOpen] = useState(true)
   const { hidden, toggle: toggleColumn } = useHiddenColumns()
   // Szerokości kolumn: trwałe w localStorage. Commit (na puść uchwytu) zapisuje i przez
   // `key` remountuje siatkę z nową szerokością — react-datasheet-grid nie przelicza sizing
@@ -120,6 +123,11 @@ export function KosztorysEditorV2({ tree, investmentName }: PropsT) {
     () => viewRows.reduce((sum, r) => sum + rowNetForView(r, view), 0),
     [viewRows, view],
   )
+
+  // Subtotale per sekcja: PEŁNY zbiór (nie viewRows) — stabilna rozpiska niezależna od
+  // filtra/sortu. `totalNet` (suma pełnego zbioru) ≠ `grandNet` (filtro-świadomy w toolbarze).
+  const subtotals = useMemo(() => sectionSubtotalsForView(rows, view), [rows, view])
+  const totalNet = useMemo(() => subtotals.reduce((s, x) => s + x.net, 0), [subtotals])
 
   // revert-on-error: cofnij optymistyczną edycję pola do wartości sprzed zapisu
   // (rows + snapshot diffu), gdy serwer odrzuci. Guard „current === attempted" jest
@@ -207,7 +215,14 @@ export function KosztorysEditorV2({ tree, investmentName }: PropsT) {
             maximumFractionDigits: 2,
           })}
         </span>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-1">
+          <Button
+            size="sm"
+            variant={summaryOpen ? 'default' : 'outline'}
+            onClick={() => setSummaryOpen((o) => !o)}
+          >
+            Sekcje
+          </Button>
           <DatasheetColumnToggle columns={toggleable} hidden={hidden} onToggle={toggleColumn} />
         </div>
       </div>
@@ -216,20 +231,34 @@ export function KosztorysEditorV2({ tree, investmentName }: PropsT) {
           Tor grid `minmax(0,1fr)` daje DEFINITYWNĄ szerokość (= viewport): siatka nie
           rozpycha kontenera do sumy kolumn (~1650px), tylko przewija je wewnętrznie.
           Bez tego szerokość oscylowała viewport↔treść i resize-detector grida mrugał. */}
-      <div ref={gridRef} className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] overflow-hidden">
-        <DataSheetGrid
-          // Remount przy zmianie szerokości kolumn: dsg nie przelicza sizing bez tego.
-          key={widthsKey}
-          className="kosztorys-grid"
-          value={viewRows}
-          onChange={onChange}
-          columns={columns}
-          height={gridHeight}
-          rowHeight={32}
-          headerRowHeight={32}
-          lockRows
-          rowKey={({ rowData }) => String(rowData.id)}
-        />
+      <div className="flex min-h-0 flex-1 overflow-hidden">
+        {/* min-w-0 pozwala wrapperowi kurczyć się poniżej treści w kontekście flex;
+            grid-cols-[minmax(0,1fr)] dalej daje siatce definitywną szerokość (anti-migotanie). */}
+        <div
+          ref={gridRef}
+          className="grid min-h-0 min-w-0 flex-1 grid-cols-[minmax(0,1fr)] overflow-hidden"
+        >
+          <DataSheetGrid
+            // Remount przy zmianie szerokości kolumn: dsg nie przelicza sizing bez tego.
+            key={widthsKey}
+            className="kosztorys-grid"
+            value={viewRows}
+            onChange={onChange}
+            columns={columns}
+            height={gridHeight}
+            rowHeight={32}
+            headerRowHeight={32}
+            lockRows
+            rowKey={({ rowData }) => String(rowData.id)}
+          />
+        </div>
+        {summaryOpen && (
+          <KosztorysSectionSummary
+            subtotals={subtotals}
+            grandNet={totalNet}
+            onClose={() => setSummaryOpen(false)}
+          />
+        )}
       </div>
       {/* Pionowa prowadnica podczas przeciągania krawędzi kolumny (fixed = X kursora). */}
       {guideX !== null && (
