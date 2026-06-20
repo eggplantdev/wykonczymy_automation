@@ -101,6 +101,13 @@ tylko renderuje `value` (które JEST reaktywne, w przeciwieństwie do sizing kol
   Wymaga `reorderAction` (jeszcze nie istnieje).
 - **Później:** drag-drop (zamiast strzałek), dodawanie/usuwanie **etapów** (operacje na
   kolumnach — inny UX).
+- **Wybór kolorów sekcji (pomysł, do oszacowania).** Pozwolić przypisać sekcji kolor —
+  w **płaskiej** siatce sekcje nie mają wierszy-nagłówków, więc kolor (np. lewy pasek /
+  tło komórki „Sekcja", kropka w panelu) byłby tanim, zawsze-widocznym sposobem na wzrokowe
+  odróżnienie sekcji i wzmocnienie wskaźnika aktywnej sekcji. Zakres do doprecyzowania:
+  paleta predefiniowana vs dowolny kolor, nowe pole `color` na `kosztorys-sections`
+  (+ migracja) i zdenormalizowanie go na wierszu (jak `sectionName`/`sectionVatRate`).
+  Wymaga osobnego brainstormu — tu tylko zaparkowane.
 
 ## Testy
 
