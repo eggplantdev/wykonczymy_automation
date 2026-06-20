@@ -64,6 +64,11 @@ z istniejącą zakładką „Arkusz".
 - **[PEWNE] „Jeden zbiór, trzy widoki"** — przełącznik aktywnej ceny (Robocizna /
   Z narzędziami / Bez narzędzi) zmienia kolumnę „Cena" i jej liczone; pomiar i etapy bez
   zmian. To raison d'être całego podejścia (koniec 3 zduplikowanych arkuszy).
+  **Bug naprawiony 2026-06-20:** dsg zamraża `columns` na montażu, więc sam przełącznik
+  widoku nie podnosił nowych wiązań — wszystkie 3 widoki pokazywały cenę klienta. Fix:
+  `view` w kluczu remountu siatki (`key={`${view}:${widthsKey}`}`). Lekcja poszerzona w
+  `context/foundation/lessons.md` (klucz remountu musi obejmować KAŻDY wymiar kształtujący
+  kolumny, nie tylko szerokości).
 - **[PEWNE] Autosave per pole, optymistycznie, debounced; BEZ przycisku „Zapisz".**
   Zapisujemy tylko zmienione pole (skala 1000+). + **revert-on-error** (cofa edycję przy
   odrzuceniu serwera).
@@ -381,10 +386,22 @@ za właściciela. Do rozstrzygnięcia, zanim ruszą:
    sortowaniu po cenie/netto sekcje się przeplatają i subtotale tracą sens. Decyzja:
    (a) subtotale w osobnym panelu/stopce liczonej zawsze po sekcji niezależnie od
    sortu, czy (b) subtotale tylko w trybie „bez sortu" (grupowanie wyłącza sort)?
-2. **Źródło cen podwykonawcy** (widoki „Z narzędziami" / „Bez narzędzi" pokazują
-   teraz 0, bo seed inw. 6 ma tylko cenę klienta). Skąd brać `subcontractorWTools/
-OwnToolsPrice`: osobne zakładki arkusza `zakres z/bez narzędzi` (mapowanie 1:1 po
-   opisie?), narzut % od ceny klienta, czy ręcznie w appce?
+2. **Źródło cen podwykonawcy** — USTALONE z arkusza źródłowego + decyzja właściciela.
+   Zakładki `zakres z/bez narzędzi` w arkuszu to **widoki pochodne** od `kosztorys_robocizny`
+   (kolumny A–L ciągnięte formułą 1:1 po numerze wiersza), nie osobne źródło. Reguła z formuł:
+   `cena z narzędziami = clientPrice × 0,65`, `cena bez narzędzi = z_narzędziami × 0,85`
+   (≈ `client × 0,5525`) — ALE pojedyncze wiersze nadpisują to **ręczną wartością absolutną**
+   (dowód: wiersz r07 ma `700` zamiast `60×0,65=39`).
+   **Decyzja właściciela (2026-06-20): współczynniki są PER-POZYCJA — nie globalne i nie
+   per-inwestycja.** W ramach jednej inwestycji każda pozycja ma domyślną wartość wyprowadzoną,
+   ale może być nadpisana ręcznie. → **waliduje wariant A** (3 niezależne kolumny snapshot,
+   #P4): czysta formuła nie wystarcza, bo override'y istnieją. Trzymamy wyliczoną **cenę**
+   (snapshot), NIE współczynnik per pozycja (współczynnik w bazie = dryf między ceną a mnożnikiem).
+   **Mechanizm wypełniania (do zaprojektowania): bulk-apply input** — zawęź pozycje istniejącym
+   filtrem/szukajką i zastosuj do nich albo **procent** od ceny klienta, albo **wartość
+   absolutną**; override per pozycja zostaje. **Otwarte:** UX bulk-apply + czy default 0,65/0,85
+   gdzieś podpowiadać. (Po fixie remountu — sekcja B — widoki „z/bez narzędzi" pokazują teraz
+   poprawnie 0, bo pola są puste; to potwierdza, że problem to brak danych, nie wiązanie kolumny.)
 3. **Eksport — format.** PDF czy CSV najpierw? Dla CSV: jak spłaszczyć zagnieżdżenie
    (sekcje → pozycje → etapy) do jednej tabeli? Dla PDF: które kolumny w dokumencie
    klienckim (z/bez cen wariantów, z/bez etapów)?
