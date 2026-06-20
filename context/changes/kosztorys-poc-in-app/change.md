@@ -97,9 +97,11 @@ POC od razu w wyglądzie aplikacji, nie surowy `<table>`. Decyzje:
 4. Setup `node_modules` (jeśli świeży worktree): `pnpm install` →
    `pnpm install --force` (naprawia arm64 sharp/lightningcss) → `pnpm generate:types`.
 
-**Następne kroki (kolejność wg priorytetu właściciela):** subtotale per sekcja ·
-doseed cen podwykonawcy (zakładki „zakres z/bez narzędzi") · panel plan-vs-actual ·
-eksport PDF · UI pokoi · revert-on-error.
+**Następne kroki — budowane na v2** (decyzja bake-offu niżej; kolejność wg
+priorytetu właściciela): subtotale per sekcja · doseed cen podwykonawcy (zakładki
+„zakres z/bez narzędzi") · panel plan-vs-actual · eksport PDF · UI pokoi ·
+revert-on-error · sportowanie przewag v1 (sort/filtr, toggle kolumn, „Pozostało",
+select rabatu, suma netto) przed usunięciem v1.
 
 ## Bake-off siatki edytora (2026-06-19)
 
@@ -116,7 +118,7 @@ przełącznik aktywnej ceny. Gwarancja strukturalna: trzy ceny w jednym wierszu
 `kosztorys_items`, etapy w jednej `kosztorys_stages`; formuły to czyste funkcje
 (`calc.ts`), nie komórki — zero dryfu, zero ręcznej synchronizacji.
 
-### Werdykt bake-offu (2026-06-20) — v2 zbudowana, bramka zgodności ZDANA
+### Werdykt bake-offu (2026-06-20) — DECYZJA: v2 wybrana przez właściciela
 
 v2 (`react-datasheet-grid` 4.11.6) zaimplementowana i działa obok v1. Obie trasy
 żyją: v1 `/inwestycje/:id/kosztorys-edytor`, v2 `/inwestycje/:id/kosztorys-edytor-v2`
@@ -142,20 +144,21 @@ rozszerzony tylko addytywnie (`PriceViewT`/`viewPrice`/`rowNetForView`).
 - `pnpm typecheck` PASS, `pnpm exec next build` PASS (obie trasy), 6 testów
   jednostkowych adaptera/kolumn PASS.
 
-**Do oceny przez właściciela (subiektywne / nieautomatyzowalne tu):** „sheet-feel"
-v1 vs v2 obok siebie; płynność edycji przy ~1000 wierszy (seed inw. 6 ma 14
-pozycji w tej bazie — perf-test wymaga doseedowania); resize kolumn i zmienna
-wysokość wiersza.
+**DECYZJA (właściciel, 2026-06-20): v2 = docelowy fundament POC.** Sheet-feel
+oceniony w przeglądarce i zaakceptowany. Bramka zgodności — jedyne twarde ryzyko —
+zdana, warunek podstawowy spełniony natywnie i bez duplikacji. Idziemy dalej na v2.
 
-**Decyzja (rekomendacja):** **v2 = docelowy fundament POC.** Bramka — jedyne
-twarde ryzyko — zdana, warunek podstawowy spełniony natywnie i bez duplikacji.
-Na v2 dokładamy resztę: subtotale per sekcja, plan-vs-actual, pokoje, PDF,
-dodawanie/usuwanie sekcji/etapów, oraz forward-scope (read-only wydatki z
-transferów). v1 do usunięcia **po** sportowaniu jej przewag, których v2 jeszcze
-nie ma: sort/filtr per kolumna, przełącznik widoczności kolumn, kolumna
-„Pozostało", select typu rabatu (`percent|amount`), suma netto w toolbarze.
-Ostateczne „v2 zostaje" warunkowane potwierdzeniem sheet-feel + perf przez
-właściciela.
+**Konsekwencje decyzji:**
+
+- Wszystkie kolejne funkcjonalności POC budujemy **na v2**: subtotale per sekcja,
+  plan-vs-actual, pokoje, eksport PDF, dodawanie/usuwanie sekcji/etapów, oraz
+  forward-scope (read-only wydatki z transferów).
+- **v1 (TanStack) do usunięcia po sportowaniu jej przewag**, których v2 jeszcze nie
+  ma: sort/filtr per kolumna, przełącznik widoczności kolumn, kolumna „Pozostało",
+  select typu rabatu (`percent|amount`), suma netto w toolbarze. Dopóki nieportowane
+  — v1 zostaje jako referencja; nie kasujemy przedwcześnie.
+- **Perf przy ~1000 wierszy jeszcze nie zmierzony** (seed inw. 6 ma tu 14 pozycji) —
+  do sprawdzenia przy doseedowaniu, ale nie blokuje decyzji.
 
 ## Forward scope — deliverable dla klienta (brain dump, mniejszy problem, później)
 
