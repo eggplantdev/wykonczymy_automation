@@ -20,7 +20,8 @@ Reorder sekcji, przenoszenie pozycji między sekcjami i drag-drop są poza tym s
     i `treeToRows`).
   - **Sort kolumnowy** (`sort` w stanie edytora) — **nieniszcząca nakładka wizualna** nad
     `rows`. Klik nagłówka cyklicznie asc → desc → off; nie dotyka `display_order`.
-- **Brak `reorderItemsAction`** — to jedyny brakujący backend tego slice'a.
+- **Brak akcji reorderu** — to jedyny brakujący backend tego slice'a (dodajemy
+  `swapItemOrderAction`; patrz §Akcja).
 
 ## Zakres (Slice 2)
 
@@ -34,15 +35,22 @@ trzymać żadnego osobnego stanu/snapshotu/historii.
 **Bez zmian.** `kosztorys-items.displayOrder` istnieje. Reorder = przepisanie wartości tego
 pola pozycjom w sekcji.
 
-## Akcja — `reorderItemsAction`
+## Akcja — `swapItemOrderAction`
 
-`reorderItemsAction(sectionId: number, orderedItemIds: number[])` w
-`src/lib/actions/kosztorys.ts`:
+`swapItemOrderAction(first, second)` w `src/lib/actions/kosztorys.ts`, gdzie każdy argument
+to `{ id: number; displayOrder: number }` z **nowym** `display_order`, jaki pozycja ma przyjąć:
 
-- Renumeruje `display_order = <index na liście>` dla pozycji sekcji wg `orderedItemIds`.
-- **Pełna lista** sekcji (nie swap dwóch) — serwer dostaje całą prawdę o kolejności i
-  renumeruje od zera. Idempotentne, odporne na dryf między klientem a bazą.
+- ▲▼ to **zawsze swap dwóch sąsiadów**, więc realnie zmieniają się tylko **dwa** wiersze →
+  **2 update'y, niezależnie od rozmiaru sekcji**. Sortowanie zapytania po `display_order`
+  (`src/lib/queries/kosztorys.ts`) gwarantuje, że wymiana ich wartości wystarcza.
 - Wzorzec `protectedAction`, tag `['kosztorysItems']`.
+
+> **Dlaczego nie renumeracja całej sekcji.** Pierwotny szkic używał
+> `reorderItemsAction(sectionId, orderedItemIds[])` — renumeracja całej listy od zera. Przy
+> 1000+ wierszach jeden klik ▲▼ = N×`payload.update` = dławik (lekcja „Liczba zapisów ma
+> odpowiadać realnej zmianie" w `context/foundation/lessons.md`). `reorderItemsAction`
+> **zostaje** w kodzie, ale jest zarezerwowana na **cross-section move** (patrz „Poza
+> zakresem"), gdzie zmienia się więcej niż dwa wiersze — nie używa jej ten slice.
 
 ## UX — strzałki ▲▼ w siatce
 
@@ -59,20 +67,29 @@ pola pozycjom w sekcji.
 Spójnie z add/remove ze Slice 1 (**nie** jawny „Zapisz kolejność"). Świadome odejście od
 szkicu Slice 1 (linie 98-101 tamtego specu) — uzasadnienie w „Odrzucone alternatywy".
 
-1. **Lokalnie:** swap dwóch wierszy w master `rows` → siatka od razu pokazuje nowy układ
-   (przy `sort === null` `viewRows` zachowuje kolejność `rows`, bo `filterRows` nie sortuje).
-2. **W tle:** `reorderItemsAction(sectionId, orderedIds)`.
+1. **Lokalnie:** swap dwóch wierszy w master `rows` (`swapItemInSection`) → siatka od razu
+   pokazuje nowy układ (przy `sort === null` `viewRows` zachowuje kolejność `rows`, bo
+   `filterRows` nie sortuje).
+2. **W tle:** `swapItemOrderAction({ id: row.id, displayOrder: neighbor.displayOrder },
+{ id: neighbor.id, displayOrder: row.displayOrder })` — wymiana `display_order` przeciąganej
+   pozycji i jej sąsiada. **Odpalane z event-handlera, NIE z updatera `setRows`** — w updaterze
+   akcja wykonałaby się w trakcie renderu, a jej rewalidacja cache ruszyłaby Router → błąd React
+   (lekcja „Nie odpalaj server actions w updaterze setState"). Świeży `rows` czytamy z
+   „latest-value" refa, bo closure kolumny dsg jest zamrożona na montażu.
 3. **`prevById`** (mapa po `id` pozycji) — bez zmian; jest niezależna od kolejności, więc
    diff edycji pól zostaje spójny.
 4. **`router.refresh()`** bezpieczny — serwer ma już zapisaną kolejność, reseed `treeToRows`
    odtworzy ten sam układ.
 
-## Helper
+## Helpery
 
-`swapItemInSection(rows, itemId, dir)` w `src/lib/kosztorys/v2-rows.ts` — czysty,
-testowalny. Operuje na **sekwencji wyświetlania pozycji tej samej sekcji**, nie na surowych
-indeksach tablicy `rows`. Zwraca nową tablicę `rows` (lub tę samą referencję / niezmieniony
-układ przy no-op). Z niej edytor wyłuska `orderedItemIds` sekcji do akcji.
+Oba w `src/lib/kosztorys/v2-rows.ts`, czyste i testowalne, operują na **sekwencji
+wyświetlania pozycji tej samej sekcji** (nie na surowych indeksach / ciągłości bloku):
+
+- `swapItemInSection(rows, itemId, dir)` — zwraca nową tablicę `rows` z przestawioną pozycją
+  (optymistyka), albo **tę samą referencję** przy no-opie (brzeg bloku / nieznane id).
+- `sectionNeighbor(rows, itemId, dir)` — zwraca sąsiada w sekcji w kierunku ▲/▼ (albo
+  `undefined` na brzegu). Edytor bierze z niego `displayOrder` obu wierszy do `swapItemOrderAction`.
 
 ## Inwarianty i edge-case'y
 
@@ -125,6 +142,7 @@ disabled odkładamy:
 
 ## Testy
 
-Odłożone na życzenie właściciela (faza POC). Gdy wrócą: ryzyko siedzi w helperze, więc
-jednostkowo czysty `swapItemInSection` (swap w środku sekcji, no-op na brzegu bloku,
-tolerancja na pozycję dodaną na koniec `rows`) — nie cienka akcja serwerowa.
+Odłożone na życzenie właściciela (faza POC). Gdy wrócą: ryzyko siedzi w helperach, więc
+jednostkowo czyste `swapItemInSection` i `sectionNeighbor` (swap w środku sekcji, no-op /
+`undefined` na brzegu bloku, tolerancja na pozycję dodaną na koniec `rows`) — nie cienka
+akcja serwerowa.

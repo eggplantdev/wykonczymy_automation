@@ -2,6 +2,20 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **ZREALIZOWANE 2026-06-20 — z dwoma odchyleniami od tego planu (źródło prawdy = spec
+> `2026-06-20-kosztorys-reorder-items-slice2-design.md`):**
+>
+> 1. **Mechanizm zapisu:** plan zakładał `reorderItemsAction` (renumeracja całej sekcji) w
+>    Task 4. Przy 1000+ wierszach dławiło (N×`payload.update` na klik). Zastąpione
+>    `swapItemOrderAction` (2 update'y — swap `display_order` dwóch sąsiadów) + helperem
+>    `sectionNeighbor`. `reorderItemsAction` została w kodzie na przyszły cross-section move.
+> 2. **Skąd odpalana akcja:** plan odpalał akcję po `setRows`; runtime wymusił odpalenie z
+>    event-handlera (nie z updatera `setRows`) — w updaterze rewalidacja cache rusza Router w
+>    trakcie renderu (błąd React). Świeży `rows` z „latest-value" `rowsRef`.
+>
+> Obie lekcje zapisane w `context/foundation/lessons.md`. Poniższe taski (zwł. 1 i 4) opisują
+> pierwotny model — czytaj przez pryzmat powyższego.
+
 **Goal:** Dodać ręczne przestawianie pozycji w obrębie sekcji strzałkami ▲▼ w siatce edytora v2, z natychmiastowym optymistycznym zapisem `display_order`.
 
 **Architecture:** Czysty helper `swapItemInSection` przestawia dwie pozycje tej samej sekcji w master `rows` (operując na sekwencji wyświetlania, nie na ciągłości bloku). Edytor robi optymistyczny `setRows` + odpala w tle `reorderItemsAction(sectionId, orderedIds)`, która renumeruje `display_order` całą listą. Strzałki żyją w kolumnie akcji obok kosza; są wyszarzone przy aktywnym sorcie kolumnowym (siatka remountuje się na przejściu `null↔sort`, bo dsg zamraża `columns` na montażu).
