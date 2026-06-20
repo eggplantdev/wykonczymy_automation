@@ -94,7 +94,7 @@ automated, CI-runnable E2E replaces hand-driven MCP sessions for the financial c
 
 - A newly created investment's kosztorys lives **only in the app**, and the owner
   runs its full lifecycle there — sections, items, three price models, stage
-  progress (etapy), rooms (pokoje), totals, and print/PDF — with no Google Sheet
+  progress (etapy), totals, and print/PDF — with no Google Sheet
   created and no syncing involved.
 - End-to-end verification of the financial core (sign in → create a transfer →
   register balance and investment figures update) runs automated and CI-runnable,
@@ -122,7 +122,7 @@ automated, CI-runnable E2E replaces hand-driven MCP sessions for the financial c
   investment
 - **When** they open that investment's kosztorys
 - **Then** they author it entirely in the app — sections, items with three price
-  models, stage progress, rooms, and live totals — and no Google Sheet exists for
+  models, stage progress, and live totals — and no Google Sheet exists for
   this investment
 - _(Before: a sheet was provisioned or linked per investment and the kosztorys lived
   there, bridged by a one-way mirror.)_
@@ -130,8 +130,8 @@ automated, CI-runnable E2E replaces hand-driven MCP sessions for the financial c
 #### Acceptance Criteria
 
 - No sheet-backed kosztorys record is created for the new investment.
-- All four parity surfaces work: etapy, pokoje, print/PDF + CSV, catalogue
-  autocomplete.
+- All parity surfaces work: etapy, print/PDF + spreadsheet export, catalogue autocomplete.
+  (pokoje cut — owner 2026-06-20.)
 - Totals (row / section / grand) match hand-computed values.
 
 ### US-02: Financial core is regression-protected automatically
@@ -174,9 +174,13 @@ were challenged and resolved as "stands as written."
   per-item, per-stage progress.
   > Considered: "fixed 10 columns is simpler / progress could be a later feature."
   > Stands — etapy are how the owner tracks a job; parity without them is not parity.
-- **[new] FR-005** — Manager+ can manage rooms (pokoje) measurements per investment.
-  > Considered: "real usage doubted; could be a calculator inside the item form."
-  > Stands — the owner uses pokoje; it is part of the parity bar.
+- ~~**[new] FR-005** — Manager+ can manage rooms (pokoje) measurements per investment.~~
+  > **CANCELLED (owner, 2026-06-20):** pokoje are out of scope. The "pokoje" tab is
+  > dropped and will not exist in the app — no rooms table, no item-to-room link.
+  > Removes this from the parity bar.
+  > **Standing instruction:** rooms MAY resurface in source sheets shown while working on
+  > the app (the owner may share a sheet that has pokoje). Treat them as noise — do NOT
+  > carry rooms into the app and do NOT re-open the question. The decision is final.
 - **[new] FR-006** — Manager+ can maintain a work catalogue and add items via
   autocomplete (hand-typing always allowed).
   > Considered: "an empty catalogue is dead weight until seeded; could grow
@@ -210,12 +214,23 @@ were challenged and resolved as "stands as written."
 
 ### Modified
 
-- **[modified] FR-008** — Owner can print/PDF and CSV-export the kosztorys. _(Was:
-  print/PDF and CSV export exist for transfers only.)_ Reuses the existing export
-  infrastructure; only the kosztorys-shaped render is new.
-  > Considered: "the client-facing doc may need design beyond browser print; the CSV
-  > shape for nested data is its own decision." Stands — reuse is why this is cheap;
-  > polish later if needed.
+- **[modified] FR-008** — Owner can BOTH print/PDF AND spreadsheet-export the kosztorys —
+  both are required, not either/or (owner, 2026-06-20). _(Was: print/PDF and CSV export
+  exist for transfers only.)_ Two distinct client-facing moments drive this:
+  - **At contract signing** the client usually gets **only a PDF**.
+  - **After the work is done** the client gets a **spreadsheet (Excel / Google Sheets)** so
+    they can re-verify and recompute the figures themselves.
+    > Complication for the spreadsheet export: the app computes figures from **SQL, not from
+    > cell formulas**, so a flat value dump can't be re-verified. The export script must
+    > **translate app calculations into live spreadsheet formulas** when writing to Sheets/Excel,
+    > so the client sees the math, not just the numbers. This is the load-bearing part — the
+    > PDF and the value layout are the easy half.
+    > **Export security (hard requirement):** the legacy sheets only **hid** the sensitive
+    > columns (buy prices, margins, subcontractor prices) — anyone Excel-savvy could unhide
+    > them. The app MUST NOT repeat this. Columns/data the client may not see must be
+    > **physically removed from the exported file** — not hidden, not protected; simply absent.
+    > Applies to both PDF and spreadsheet, and to the formula translation: an exported formula
+    > must never reference a value whose column is not in the file.
 - **[modified] FR-009** — New investments get no Google Sheet; their kosztorys exists
   only in the app, nothing synced. _(Was: each new investment provisioned or linked
   a sheet.)_
@@ -302,16 +317,17 @@ access, unchanged.
 ## Open Questions
 
 Resolved during shaping (recorded here for traceability): currency is PLN-only
-(non-goal); rooms/pokoje are in scope (FR-005); the catalogue is a single shared
+(non-goal); ~~rooms/pokoje are in scope (FR-005)~~ — **rooms/pokoje CUT, out of scope
+(owner 2026-06-20)**; the catalogue is a single shared
 list (no multi-tenant). The following were surfaced by the design spec or by shaping
 and remain open — they are load-bearing for implementation, not invented gaps.
 
 1. **Per-item discount (rabat).** The sheet has a per-item discount column. Keep it
    as a per-item field, derive it from a catalogue default, or handle it elsewhere?
    — Owner: user. Ref: spec Q1.
-2. **VAT.** The sheet appears net-only. Does the in-app kosztorys need a per-item VAT
-   rate, a single net model, or net plus a global gross flag? Matters if the
-   kosztorys is the formal client offer. — Owner: user. Ref: spec Q2.
+2. ~~**VAT.**~~ RESOLVED (owner, 2026-06-20): **one VAT rate per investment** — not per
+   section, not per item. Prices entered net; gross computed from the investment rate.
+   Ref: spec Q2.
 3. **Labour vs. materials shape.** Are labour items and materials one unified item
    list with a kind flag, or separate lists? This also affects whether the
    materiały-mirror can retire sooner. — Owner: user. Ref: spec Q3.
@@ -323,9 +339,8 @@ and remain open — they are load-bearing for implementation, not invented gaps.
 6. **Catalogue seeding.** FR-006 requires the catalogue at release. Hand-type from
    scratch, parse a live sheet once to populate, or start empty and let it grow with
    use? — Owner: user. Ref: spec Q8.
-7. **Item-to-room link.** Some items are room-scoped, some global. Does an item carry
-   an optional room link in this phase, or is that deferred? — Owner: user. Ref:
-   spec Q10.
+7. ~~**Item-to-room link.**~~ RESOLVED (owner, 2026-06-20): moot — pokoje cut entirely
+   (FR-005 cancelled). No rooms, no item-to-room link. Ref: spec Q10.
 8. **Importer trigger (FR-010).** What concretely triggers the second-release
    importer, so "later" does not become "never"? Name a condition or date. — Owner:
    user.

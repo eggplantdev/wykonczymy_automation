@@ -54,19 +54,20 @@ is parity polish on top of it.
 
 ## At a glance
 
-| ID   | Change ID                | Outcome (user can …)                                             | Prerequisites                            | PRD refs                      | Status   |
-| ---- | ------------------------ | ---------------------------------------------------------------- | ---------------------------------------- | ----------------------------- | -------- |
-| F-01 | e2e-harness              | (foundation) Playwright E2E harness, CI-runnable, isolated DB    | —                                        | FR-011                        | ready    |
-| S-01 | kosztorys-sections-items | author kosztorys sections + items in-app with live totals        | —                                        | FR-001, FR-002, FR-007, US-01 | ready    |
-| S-02 | financial-core-smoke     | trust an automated smoke that transfers update balances/figures  | F-01                                     | FR-012, FR-011, FR-015, US-02 | proposed |
-| S-03 | kosztorys-price-models   | record three price models per item and toggle the pricing view   | S-01                                     | FR-003                        | proposed |
-| S-04 | kosztorys-stages         | manage stages (etapy) and record per-item, per-stage progress    | S-01                                     | FR-004                        | proposed |
-| S-05 | kosztorys-rooms          | manage room (pokoje) measurements per investment                 | S-01                                     | FR-005                        | proposed |
-| S-06 | kosztorys-catalogue      | maintain a work catalogue and add items via autocomplete         | S-01                                     | FR-006                        | proposed |
-| S-07 | kosztorys-export         | print/PDF and CSV-export the kosztorys                           | S-01                                     | FR-008                        | proposed |
-| S-08 | editor-e2e-coverage      | (gate) rely on automated E2E over the editor before release      | F-01, S-01, S-03, S-04, S-05, S-06, S-07 | FR-013                        | proposed |
-| S-09 | new-investment-no-sheet  | create a new investment with no Google Sheet, kosztorys app-only | S-01, S-03, S-04, S-05, S-06, S-07, S-08 | FR-009, FR-014, FR-016, US-01 | proposed |
-| S-10 | kosztorys-importer       | import an existing sheet kosztorys into the app                  | S-09                                     | FR-010, FR-016                | proposed |
+| ID   | Change ID                | Outcome (user can …)                                                                                                                                                                   | Prerequisites                            | PRD refs                      | Status              |
+| ---- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ----------------------------- | ------------------- |
+| F-01 | e2e-harness              | (foundation) Playwright E2E harness, CI-runnable, isolated DB                                                                                                                          | —                                        | FR-011                        | ready               |
+| S-01 | kosztorys-sections-items | author kosztorys sections + items in-app with live totals                                                                                                                              | —                                        | FR-001, FR-002, FR-007, US-01 | ready               |
+| S-02 | financial-core-smoke     | trust an automated smoke that transfers update balances/figures                                                                                                                        | F-01                                     | FR-012, FR-011, FR-015, US-02 | proposed            |
+| S-03 | kosztorys-price-models   | record three price models per item and toggle the pricing view                                                                                                                         | S-01                                     | FR-003                        | proposed            |
+| S-04 | kosztorys-stages         | manage stages (etapy) and record per-item, per-stage progress                                                                                                                          | S-01                                     | FR-004                        | proposed            |
+| S-05 | kosztorys-rooms          | ~~manage room (pokoje) measurements per investment~~ — CUT, out of scope (owner 2026-06-20)                                                                                            | S-01                                     | FR-005                        | cancelled           |
+| S-06 | kosztorys-catalogue      | maintain a work catalogue and add items via autocomplete                                                                                                                               | S-01                                     | FR-006                        | proposed            |
+| S-07 | kosztorys-export         | print/PDF and CSV-export the kosztorys                                                                                                                                                 | S-01                                     | FR-008                        | proposed            |
+| S-08 | editor-e2e-coverage      | (gate) rely on automated E2E over the editor before release                                                                                                                            | F-01, S-01, S-03, S-04, S-05, S-06, S-07 | FR-013                        | proposed            |
+| S-09 | new-investment-no-sheet  | create a new investment with no Google Sheet, kosztorys app-only                                                                                                                       | S-01, S-03, S-04, S-05, S-06, S-07, S-08 | FR-009, FR-014, FR-016, US-01 | proposed            |
+| S-10 | kosztorys-importer       | import an existing sheet kosztorys into the app                                                                                                                                        | S-09                                     | FR-010, FR-016                | proposed            |
+| S-11 | contractor-blind-sheet   | mobile-first blind no-price contractor sheet (works + units + qtyDone for one stage), mapped 1:1 back onto the main kosztorys by item ID; needs a stable per-kosztorys item identifier | S-01, S-04                               | —                             | proposed (post-MVP) |
 
 ## Streams
 
@@ -148,7 +149,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Parallel with:** S-04, S-05, S-06, S-07
 - **Blockers:** —
 - **Unknowns:**
-  - VAT — per-item VAT rate, single net model, or net + a global gross flag? Matters if the kosztorys is the formal client offer. (PRD Q2). — Owner: user. Block: no.
+  - ~~VAT — per-item VAT rate, single net model, or net + a global gross flag?~~ RESOLVED (owner, 2026-06-20): **one VAT rate per investment** — not per section, not per item. Prices entered net, gross computed. (PRD Q2.)
   - Per-item discount (rabat) — keep the sheet's per-item discount column, derive from a catalogue default, or handle elsewhere? (PRD Q1). — Owner: user. Block: no.
 - **Risk:** Extends the item price from one snapshotted value (S-01) to three; totals must recompute under the selected view. Risk: snapshot semantics — a later catalogue price change must not retroactively alter existing items.
 - **Status:** proposed
@@ -165,18 +166,17 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Risk:** Adds a stages table + per-item-per-stage progress join keyed off S-01's items. Variable stage count (not fixed 10 columns) is the parity requirement. Risk: progress totals interacting with the live-totals rule from S-01.
 - **Status:** proposed
 
-### S-05: Rooms (pokoje) measurements
+### S-05: Rooms (pokoje) measurements — CANCELLED
 
-- **Outcome:** a Manager+ user can manage room (pokoje) measurements per investment.
+- **CUT (owner, 2026-06-20):** pokoje are out of scope. The "pokoje" tab is dropped; it
+  will not exist in the app. No rooms table, no item-to-room link. Resolves PRD Q7 / spec Q10.
+- **Standing instruction:** rooms MAY resurface in source sheets shown while working on the
+  app. Treat as noise — do NOT carry rooms into the app, do NOT re-open the question. Final.
+- **Outcome:** ~~a Manager+ user can manage room (pokoje) measurements per investment.~~
 - **Change ID:** kosztorys-rooms
 - **PRD refs:** FR-005
 - **Prerequisites:** S-01
-- **Parallel with:** S-03, S-04, S-06, S-07
-- **Blockers:** —
-- **Unknowns:**
-  - Item-to-room link — does an item carry an optional room link in this phase, or is that deferred? (PRD Q7 / spec Q10). — Owner: user. Block: no.
-- **Risk:** Adds a rooms table. Risk: if items link to rooms (Q7), this couples back to S-01's item schema — resolve the link question before building to avoid a follow-up migration.
-- **Status:** proposed
+- **Status:** cancelled
 
 ### S-06: Work catalogue + autocomplete
 
@@ -191,22 +191,24 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Risk:** Adds the catalogue table that S-01 items snapshot their price from. Risk: an empty catalogue is dead weight at release; the seeding decision gates whether this slice ships usefully.
 - **Status:** proposed
 
-### S-07: Print/PDF + CSV export
+### S-07: Print/PDF + spreadsheet export
 
-- **Outcome:** the owner can print/PDF and CSV-export the kosztorys.
+- **Outcome:** the owner can BOTH print/PDF AND spreadsheet-export the kosztorys — both required (owner 2026-06-20). PDF for contract signing; spreadsheet (Excel / Google Sheets) after the work is done, so the client can re-verify and recompute.
 - **Change ID:** kosztorys-export
 - **PRD refs:** FR-008
 - **Prerequisites:** S-01
-- **Parallel with:** S-03, S-04, S-05, S-06
+- **Parallel with:** S-03, S-04, S-06
 - **Blockers:** —
 - **Unknowns:**
-  - CSV shape for nested data (sections → items → stages) — flatten how? — Owner: user. Block: no.
-- **Risk:** Reuses the existing export infrastructure (transfers already print/PDF + CSV); only the kosztorys-shaped render is new — which is why this is cheap. Risk: the client-facing document may need design beyond browser print; polish is deferred.
+  - PDF: which columns in the client doc (variant prices? stages?). — Owner: user. Block: no.
+  - Spreadsheet flatten shape for nested data (sections → items → stages). — Owner: user. Block: no.
+- **Risk:** The PDF + value layout reuse existing export infra and are cheap. The load-bearing part is the spreadsheet export: the app computes figures from SQL, NOT cell formulas, so a flat value dump can't be re-verified — the export script must **translate app calculations into live spreadsheet formulas** when writing to Sheets/Excel. Scope this as the real work of the slice, not a polish step.
+- **Security (hard requirement):** the legacy sheets only **hid** sensitive columns (buy prices, margins, subcontractor prices) — trivially unhidden. The export MUST **physically remove** any data the client may not see from the file (not hide it), across both PDF and spreadsheet; an exported formula must not reference a column absent from the file.
 - **Status:** proposed
 
 ### S-08: Editor E2E coverage (release gate)
 
-- **Outcome:** the kosztorys editor flows are end-to-end-covered by the automated suite before the owner-facing release — sections/items/pricing/stages/rooms/catalogue/export exercised without a manual pass.
+- **Outcome:** the kosztorys editor flows are end-to-end-covered by the automated suite before the owner-facing release — sections/items/pricing/stages/catalogue/export exercised without a manual pass. (rooms cut — owner 2026-06-20.)
 - **Change ID:** editor-e2e-coverage
 - **PRD refs:** FR-013
 - **Prerequisites:** F-01, S-01, S-03, S-04, S-05, S-06, S-07
@@ -244,19 +246,20 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 ## Backlog Handoff
 
-| Roadmap ID | Change ID                | Suggested issue title                                      | Ready for `/10x-plan` | Notes                                                |
-| ---------- | ------------------------ | ---------------------------------------------------------- | --------------------- | ---------------------------------------------------- |
-| F-01       | e2e-harness              | Stand up Playwright E2E harness (CI-runnable, isolated DB) | yes                   | Run `/10x-plan e2e-harness`                          |
-| S-01       | kosztorys-sections-items | In-app kosztorys: sections + items with live totals        | yes                   | North star. Run `/10x-plan kosztorys-sections-items` |
-| S-02       | financial-core-smoke     | Financial-core E2E smoke (transfer → balances update)      | no                    | After F-01                                           |
-| S-03       | kosztorys-price-models   | Kosztorys: three price models + pricing-view toggle        | no                    | After S-01                                           |
-| S-04       | kosztorys-stages         | Kosztorys: stage progress (etapy)                          | no                    | After S-01                                           |
-| S-05       | kosztorys-rooms          | Kosztorys: room (pokoje) measurements                      | no                    | After S-01                                           |
-| S-06       | kosztorys-catalogue      | Kosztorys: work catalogue + autocomplete                   | no                    | After S-01                                           |
-| S-07       | kosztorys-export         | Kosztorys: print/PDF + CSV export                          | no                    | After S-01; reuses export infra                      |
-| S-08       | editor-e2e-coverage      | E2E coverage of the kosztorys editor (release gate)        | no                    | After F-01 + editor slices                           |
-| S-09       | new-investment-no-sheet  | New investments: no Google Sheet, kosztorys app-only       | no                    | Cutover gate; after parity + S-08                    |
-| S-10       | kosztorys-importer       | Import existing sheet kosztorysy into the app              | no                    | Second release; after S-09                           |
+| Roadmap ID | Change ID                | Suggested issue title                                                    | Ready for `/10x-plan` | Notes                                                                                                     |
+| ---------- | ------------------------ | ------------------------------------------------------------------------ | --------------------- | --------------------------------------------------------------------------------------------------------- |
+| F-01       | e2e-harness              | Stand up Playwright E2E harness (CI-runnable, isolated DB)               | yes                   | Run `/10x-plan e2e-harness`                                                                               |
+| S-01       | kosztorys-sections-items | In-app kosztorys: sections + items with live totals                      | yes                   | North star. Run `/10x-plan kosztorys-sections-items`                                                      |
+| S-02       | financial-core-smoke     | Financial-core E2E smoke (transfer → balances update)                    | no                    | After F-01                                                                                                |
+| S-03       | kosztorys-price-models   | Kosztorys: three price models + pricing-view toggle                      | no                    | After S-01                                                                                                |
+| S-04       | kosztorys-stages         | Kosztorys: stage progress (etapy)                                        | no                    | After S-01                                                                                                |
+| ~~S-05~~   | kosztorys-rooms          | ~~Kosztorys: room (pokoje) measurements~~ — CANCELLED (owner 2026-06-20) | —                     | Out of scope                                                                                              |
+| S-06       | kosztorys-catalogue      | Kosztorys: work catalogue + autocomplete                                 | no                    | After S-01                                                                                                |
+| S-07       | kosztorys-export         | Kosztorys: print/PDF + CSV export                                        | no                    | After S-01; reuses export infra                                                                           |
+| S-08       | editor-e2e-coverage      | E2E coverage of the kosztorys editor (release gate)                      | no                    | After F-01 + editor slices                                                                                |
+| S-09       | new-investment-no-sheet  | New investments: no Google Sheet, kosztorys app-only                     | no                    | Cutover gate; after parity + S-08                                                                         |
+| S-10       | kosztorys-importer       | Import existing sheet kosztorysy into the app                            | no                    | Second release; after S-09                                                                                |
+| S-11       | contractor-blind-sheet   | Blind no-price contractor sheet → 1:1 map onto kosztorys                 | no                    | Post-MVP; mobile-first; maps by item ID (needs stable per-kosztorys item ID); fills qtyDone for one stage |
 
 This table is the clean handoff to Linear/Jira or any MCP-backed backlog. One row per F-NN and S-NN.
 
@@ -268,13 +271,26 @@ under and are best resolved before that slice is planned. Per-slice context live
 slice's Unknowns.
 
 1. **Per-item discount (rabat).** Per-item field, catalogue default, or handled elsewhere? — Owner: user. Gates: S-03 (spec Q1).
-2. **VAT.** Per-item VAT rate, single net model, or net + global gross flag? — Owner: user. Gates: S-03 (spec Q2).
+2. ~~**VAT.**~~ RESOLVED (owner, 2026-06-20): **one VAT rate per investment** — not per section, not per item. Net entry, gross computed. Gates: S-03 (spec Q2).
 3. **Labour vs. materials shape.** Unified item list with a kind flag, or separate lists? Also affects when the materiały-mirror can retire. — Owner: user. Gates: S-01 (spec Q3).
 4. **Delete semantics for kosztorys items.** Soft-delete (audit) or hard-delete? — Owner: user. Gates: S-01 (spec Q4).
 5. **Ordering of sections / items / stages.** Drag-to-reorder or by-creation/alphabetical? — Owner: user. Gates: S-01, S-04 (spec Q6).
 6. **Catalogue seeding.** Hand-type, parse a live sheet once, or start empty and grow? — Owner: user. Gates: S-06 (spec Q8).
-7. **Item-to-room link.** Optional room link per item in this phase, or deferred? — Owner: user. Gates: S-05 (spec Q10).
+7. ~~**Item-to-room link.**~~ RESOLVED (owner, 2026-06-20): moot — pokoje cut entirely (S-05 cancelled). No rooms, no link. Gates: ~~S-05~~ (spec Q10).
 8. **Importer trigger (FR-010).** What concretely triggers the second-release importer? — Owner: user. Gates: S-10.
+
+## Deferred to PRD/MVP (not POC)
+
+- **Undo + version history for the kosztorys editor** (owner, 2026-06-20). NOT part of the
+  POC — belongs to the proper PRD/MVP release. Directional decision (change.md Q9): two
+  layers — (1) in-tab Command stack for fast undo (Cmd+Z / toolbar), (2) periodic snapshots
+  for version restore. **Testing priority #2:** high problem potential, but **risk #1 is
+  wrongly-computed formulas and the financial risk they cause** — that is tested first, undo
+  second. Anchor undo as risk #2 when `context/foundation/test-plan.md` is generated
+  (`/10x-test-plan`); formulas/financials = risk #1. Caveat (lessons.md): we have a history
+  of dozens of tests that asserted nothing (tautological / always-green) — the formula tests
+  must hit real `calc.ts` on DB data and be proven red→green, not stand-ins. Not yet an
+  FR/slice — needs shaping into the PRD.
 
 ## Parked
 
