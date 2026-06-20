@@ -60,3 +60,11 @@ export type KosztorysV2RowBaseT = KosztorysItemT & {
 export type KosztorysV2RowT = KosztorysV2RowBaseT & {
   [stageKey: `stage_${number}`]: number
 }
+
+export type SectionSubtotalT = {
+  sectionId: number
+  sectionName: string
+  net: number
+  share: number // 0..1, udział w sumie netto wszystkich sekcji
+  itemCount: number
+}

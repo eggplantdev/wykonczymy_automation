@@ -1,4 +1,10 @@
-import type { CostVariantT, KosztorysItemT, KosztorysSectionT } from '@/types/kosztorys'
+import type {
+  CostVariantT,
+  KosztorysItemT,
+  KosztorysSectionT,
+  KosztorysV2RowT,
+  SectionSubtotalT,
+} from '@/types/kosztorys'
 
 // Jedyne źródło formuł rozpiski. Czyste funkcje — zapisujemy tylko inputy, wszystko
 // poniżej liczymy na żywo. Wartość liczona z measuredQty (pomiar), nie plannedQty.
@@ -83,4 +89,35 @@ export function rowRemainingForView(
   view: PriceViewT,
 ): number {
   return rowNetForView(item, view) - doneNetTotal
+}
+
+/**
+ * Subtotale netto per sekcja wg aktywnego widoku cenowego. Liczone po pełnym
+ * zbiorze (ignoruje filtr/sort). Kolejność = pierwszego wystąpienia sekcji w
+ * `rows` (treeToRows daje już porządek sekcja→displayOrder).
+ */
+export function sectionSubtotalsForView(
+  rows: KosztorysV2RowT[],
+  view: PriceViewT,
+): SectionSubtotalT[] {
+  const bySection = new Map<number, SectionSubtotalT>()
+  for (const row of rows) {
+    let acc = bySection.get(row.sectionId)
+    if (!acc) {
+      acc = {
+        sectionId: row.sectionId,
+        sectionName: row.sectionName,
+        net: 0,
+        share: 0,
+        itemCount: 0,
+      }
+      bySection.set(row.sectionId, acc)
+    }
+    acc.net += rowNetForView(row, view)
+    acc.itemCount += 1
+  }
+  const result = [...bySection.values()]
+  const grandNet = result.reduce((sum, s) => sum + s.net, 0)
+  if (grandNet > 0) for (const s of result) s.share = s.net / grandNet
+  return result
 }
