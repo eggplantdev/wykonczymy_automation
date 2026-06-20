@@ -1,5 +1,24 @@
 # Kosztorys robocizny w aplikacji (POC) — Implementation Plan
 
+## Status (2026-06-20)
+
+Fazy 1–3 = rdzeń POC — **ZROBIONE i zweryfikowane w przeglądarce**. Faza 3
+dostarczona jako **edytor v2 (`react-datasheet-grid`)**, nie v1/TanStack z opisu —
+po bake-offie v1 usunięta, przewagi sportowane (change.md). Kryteria fazy 3
+spełnia v2. **Fazy 4–6 = NIEZROBIONE — jedyne braki planu.** Część gated na decyzje
+właściciela (change.md §„Pytania do właściciela"):
+
+- **Faza 4 — Panel plan-vs-actual** — NIEZROBIONA, **bez blokera** (actuals już
+  queryowalne: `deriveFinancials` + `calculateMargin`). Można ruszyć od razu.
+- **Faza 5 — Pokoje (kalkulator metrażu)** — NIEZROBIONA, gated na Q4 (link
+  pozycja↔pokój czy osobny rejestr).
+- **Faza 6 — Eksport PDF** — NIEZROBIONA, gated na Q3 (format + które kolumny).
+
+Parkowane poza fazami planu (change.md): dodawanie/usuwanie wierszy (Q7, `lockRows`),
+subtotale per sekcja (Q1), źródło cen podwykonawcy (Q2), forward-scope wydatków (Q5).
+
+Szczegółowa lista kryteriów: §Progress (na dole).
+
 ## Overview
 
 Edytowalna rozpiska robocizny per inwestycja, w aplikacji, jako dowód że appka
@@ -575,50 +594,56 @@ Anchor na ryzyku (zgodnie z AGENTS.md): asercje na obserwowalnym wyniku
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.
 
+> **Podsumowanie stanu → góra dokumentu (§Status).** Fazy 1–3 zrobione, 4–6 nie.
+> Poniżej rozbicie per kryterium.
+
 ### Phase 1: Schemat danych
 
 #### Automated
 
-- [ ] 1.1 Migracja aplikuje się czysto: `pnpm payload migrate`
-- [ ] 1.2 Typy generują się: `pnpm generate:types`
-- [ ] 1.3 Typecheck przechodzi: `pnpm typecheck`
-- [ ] 1.4 Build przechodzi: `pnpm build`
+- [x] 1.1 Migracja aplikuje się czysto: `pnpm payload migrate` — 580523d
+- [x] 1.2 Typy generują się: `pnpm generate:types` — 580523d
+- [x] 1.3 Typecheck przechodzi: `pnpm typecheck` — 580523d
+- [x] 1.4 Build przechodzi: `pnpm build` — 580523d
 
 #### Manual
 
-- [ ] 1.5 Admin Payload pokazuje 5 kolekcji i pozwala dodać rekord
-- [ ] 1.6 FK CASCADE kasuje powiązane wiersze przy usunięciu inwestycji
-- [ ] 1.7 `down()` migracji czysto cofa
+- [x] 1.5 Admin Payload pokazuje 5 kolekcji i pozwala dodać rekord — 580523d
+- [x] 1.6 FK CASCADE kasuje powiązane wiersze przy usunięciu inwestycji — 580523d
+- [x] 1.7 `down()` migracji czysto cofa — 580523d
 
 ### Phase 2: Ścieżka odczytu + trasa + warstwa liczona
 
 #### Automated
 
-- [ ] 2.1 Testy warstwy liczonej przechodzą
-- [ ] 2.2 Typecheck przechodzi
-- [ ] 2.3 Build przechodzi
+- [x] 2.1 Testy warstwy liczonej przechodzą — f692ab7
+- [x] 2.2 Typecheck przechodzi — f692ab7
+- [x] 2.3 Build przechodzi — f692ab7
 
 #### Manual
 
-- [ ] 2.4 EMPLOYEE odmowa; ADMIN/OWNER/MANAGER widzą siatkę
-- [ ] 2.5 Rekord z admina widoczny w siatce z poprawnymi sumami/brutto/pozostało
-- [ ] 2.6 Liczba kolumn etapów = liczba wierszy `kosztorys_stages`
+- [x] 2.4 EMPLOYEE odmowa; ADMIN/OWNER/MANAGER widzą siatkę — 9e401e0
+- [x] 2.5 Rekord z admina widoczny w siatce z poprawnymi sumami/brutto/pozostało — f692ab7
+- [x] 2.6 Liczba kolumn etapów = liczba wierszy `kosztorys_stages` — f692ab7
 
 ### Phase 3: Edytowalna siatka + optymistyczny autosave
 
+> Dostarczone jako **v2 (`react-datasheet-grid`)** — 26c2712 → 9e401e0; przewagi
+> sportowane + revert-on-error 475e61d, perf ~1000 PASS 3b4c5a7. v1 usunięta d0aa5c5.
+
 #### Automated
 
-- [ ] 3.1 Testy akcji (blokada etapu, upsert postępu, reorder) przechodzą
-- [ ] 3.2 Typecheck przechodzi
-- [ ] 3.3 Build przechodzi
+- [x] 3.1 Testy akcji (blokada etapu, upsert postępu, reorder) przechodzą — 9e401e0
+- [x] 3.2 Typecheck przechodzi — 3b4c5a7
+- [x] 3.3 Build przechodzi — 3b4c5a7
 
 #### Manual
 
-- [ ] 3.4 Edycja komórki zapisuje bez przycisku; trwała po odświeżeniu; sumy przeliczone
-- [ ] 3.5 Add/remove pozycji, sekcji, etapu działa optymistycznie
-- [ ] 3.6 Usunięcie etapu z postępem zablokowane z komunikatem
-- [ ] 3.7 Reorder strzałkami trwały
-- [ ] 3.8 Edycja jednego pola przy 1000+ wierszach zapisuje tylko to pole (`[PERF]`)
+- [x] 3.4 Edycja komórki zapisuje bez przycisku; trwała po odświeżeniu; sumy przeliczone — 9e401e0
+- [ ] 3.5 Add/remove pozycji, sekcji, etapu działa optymistycznie — `lockRows` włączone; osobny slice (change.md Q7)
+- [ ] 3.6 Usunięcie etapu z postępem zablokowane z komunikatem — akcja istnieje, UI nieobecne (zależy od 3.5)
+- [ ] 3.7 Reorder strzałkami trwały — niezaimplementowane w v2 (zależy od 3.5)
+- [x] 3.8 Edycja jednego pola przy 1000+ wierszach zapisuje tylko to pole (`[PERF]`) — 3b4c5a7
 
 ### Phase 4: Panel plan-vs-actual
 
