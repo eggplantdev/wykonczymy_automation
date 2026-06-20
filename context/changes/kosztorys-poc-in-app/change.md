@@ -29,8 +29,7 @@ z istniejącą zakładką „Arkusz".
 
 - **Spec (zaakceptowany):** `docs/superpowers/specs/2026-06-19-kosztorys-poc-in-app-design.md`
 - **Brain dump:** `docs/superpowers/specs/2026-06-19-kosztorys-poc-in-app-notes.md`
-- **Plan:** `context/changes/kosztorys-poc-in-app/plan.md`
-- **Brief:** `context/changes/kosztorys-poc-in-app/plan-brief.md`
+- **Plan:** `context/changes/kosztorys-poc-in-app/plan.md` (strymowany — Status + Progress)
 
 ## Decyzje POC → MVP (do review właściciela)
 

@@ -49,6 +49,28 @@ Prior design work this PRD builds on:
 - `docs/kosztorys-sheet-inspection.md` — tooling that dumped the template's
   structure.
 
+### Key code locations (kosztorys rework reference)
+
+Durable repo pointers salvaged from the POC plan (the POC editor code itself is
+throwaway — see the banner in `context/changes/kosztorys-poc-in-app/change.md` — but
+these existing-app anchors survive and are the starting point for the MVP rework):
+
+- **Actuals are already queryable, no new ledger queries needed:** `deriveFinancials()`
+  (`src/lib/db/sum-transfers.ts:303-322`) → `totalLaborCosts` / `totalPayouts` /
+  `totalRabat` / `totalLoss` / materials; `calculateMargin()`
+  (`src/lib/calculate-margin.ts:13-14`); assembled like
+  `src/app/(frontend)/inwestycje/[id]/page.tsx:44-58`.
+- **Mutation skeleton:** `protectedAction()` (`src/lib/actions/utils.ts:44-74`) +
+  `revalidateCollections` (`src/lib/cache/revalidate.ts`).
+- **Migrations are hand-written** (`migrate:create` broken since March) — pattern (table +
+  FK + register in `payload_locked_documents_rels`):
+  `src/migrations/20260528_move_sheet_id_to_kosztoryses.ts`; registry `src/migrations/index.ts`.
+- **Role gate:** `MANAGEMENT_ROLES` (`src/lib/auth/roles.ts`), `src/access/index.ts`.
+- **Zero-dependency print:** `buildPrintHtml` (`src/lib/export/print.tsx:95-107`) +
+  `printViaIframe` (`src/lib/export/print-iframe.ts`).
+- **Robocizna today = single aggregate `LABOR_COST` transfer** (`src/collections/transfers.ts`);
+  the full line-item breakdown lived only in the sheet (now in the POC editor).
+
 ## Problem Statement & Motivation
 
 Two pains drive this change.
