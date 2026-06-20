@@ -1,6 +1,11 @@
 import { stageValueForView, type PriceViewT } from '@/lib/kosztorys/calc'
 import type { ItemPatchT } from '@/lib/actions/kosztorys'
-import type { KosztorysStageT, KosztorysTreeT, KosztorysV2RowT } from '@/types/kosztorys'
+import type {
+  CostVariantT,
+  KosztorysStageT,
+  KosztorysTreeT,
+  KosztorysV2RowT,
+} from '@/types/kosztorys'
 
 export function stageKey(stageId: number): `stage_${number}` {
   return `stage_${stageId}`
@@ -120,6 +125,67 @@ export function revertField(
     if (r.id !== id || r[field] !== attempted) return r
     return { ...r, [field]: prevValue } as KosztorysV2RowT
   })
+}
+
+// Domyślne wartości nowej sekcji. MUSZĄ odpowiadać addSectionAction w
+// src/lib/actions/kosztorys.ts — pliku 'use server' nie wolno eksportować stałych,
+// więc trzymamy mirror tu i budujemy z niego optymistyczny wiersz (bez czekania na refresh).
+export const NEW_SECTION_DEFAULTS = {
+  name: 'Nowa sekcja',
+  vatRate: 0.08,
+  defaultCostVariant: 'w_tools',
+} as const satisfies { name: string; vatRate: number; defaultCostVariant: CostVariantT }
+
+export type BlankRowInputT = {
+  id: number
+  displayOrder: number
+  sectionId: number
+  sectionName: string
+  sectionVatRate: number
+  sectionDefaultCostVariant: CostVariantT
+  stages: KosztorysStageT[]
+}
+
+// Pusty wiersz pozycji = serwerowe defaulty addItemAction + zdenormalizowane pola sekcji
+// + stage_*=0. Budowany optymistycznie ze znanego id/displayOrder zwróconego przez akcję.
+export function buildBlankRow(input: BlankRowInputT): KosztorysV2RowT {
+  const stageFields: Record<string, number> = {}
+  for (const st of input.stages) stageFields[stageKey(st.id)] = 0
+  return {
+    id: input.id,
+    sectionId: input.sectionId,
+    displayOrder: input.displayOrder,
+    description: null,
+    unit: null,
+    plannedQty: 0,
+    measuredQty: 0,
+    discountType: null,
+    discountValue: 0,
+    clientPrice: 0,
+    subcontractorWToolsPrice: 0,
+    subcontractorOwnToolsPrice: 0,
+    costVariant: null,
+    vatRate: null,
+    hiddenInExport: false,
+    note: null,
+    sectionName: input.sectionName,
+    sectionVatRate: input.sectionVatRate,
+    sectionDefaultCostVariant: input.sectionDefaultCostVariant,
+    ...stageFields,
+  } as KosztorysV2RowT
+}
+
+export function applyAddItem(rows: KosztorysV2RowT[], row: KosztorysV2RowT): KosztorysV2RowT[] {
+  return [...rows, row]
+}
+
+export function applyRemoveItem(rows: KosztorysV2RowT[], itemId: number): KosztorysV2RowT[] {
+  return rows.filter((r) => r.id !== itemId)
+}
+
+// Liczba pozycji sekcji w pełnym zbiorze — strażnik inwariantu „sekcja ma ≥1 pozycję".
+export function sectionItemCount(rows: KosztorysV2RowT[], sectionId: number): number {
+  return rows.reduce((n, r) => (r.sectionId === sectionId ? n + 1 : n), 0)
 }
 
 // Σ wartości wykonanych etapów wiersza v2 wg ceny widoku (do kolumny „Pozostało").
