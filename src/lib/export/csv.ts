@@ -1,12 +1,6 @@
+import { escapeCsv } from '@/lib/export/csv-cell'
 import { TRANSFER_EXPORT_COLUMNS } from '@/lib/export/transfer-columns'
 import type { TransferRowT } from '@/lib/tables/transfers'
-
-function escapeCsv(value: string): string {
-  if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-    return `"${value.replace(/"/g, '""')}"`
-  }
-  return value
-}
 
 /** Generates a CSV string from transfer rows using only visible column IDs. */
 export function buildTransferCsv(rows: TransferRowT[], visibleColumnIds: string[]): string {
