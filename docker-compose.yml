@@ -1,4 +1,5 @@
 services:
+  # Local copy of PROD data (restored from Neon dumps). Port 5433, db `wykonczymy-db`.
   db:
     image: postgres:17-alpine
     container_name: wykonczymy
@@ -10,5 +11,22 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
+
+  # POC sandbox — SEPARATE container, port 5434, own volume, db `wykonczymy-poc`.
+  # Different port from prod-copy on purpose: a wrong connection string can't silently
+  # land you in the other DB. Nuke/reseed this freely without touching prod-copy data.
+  db-poc:
+    image: postgres:17-alpine
+    container_name: wykonczymy-poc
+    ports:
+      - '5434:5432'
+    environment:
+      POSTGRES_DB: wykonczymy-poc
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata-poc:/var/lib/postgresql/data
+
 volumes:
   pgdata:
+  pgdata-poc:
