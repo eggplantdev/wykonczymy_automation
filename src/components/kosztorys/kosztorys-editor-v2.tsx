@@ -14,10 +14,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { buildV2Columns, v2ToggleableColumns } from '@/lib/tables/kosztorys-v2-columns'
 import {
+  applyAddItem,
+  applyRemoveItem,
+  buildBlankRow,
   diffRow,
   filterRows,
+  NEW_SECTION_DEFAULTS,
   revertField,
   rowDoneNetForView,
+  sectionItemCount,
   sortRows,
   stageKey,
   treeToRows,
@@ -31,8 +36,13 @@ import {
   type PriceViewT,
 } from '@/lib/kosztorys/calc'
 import {
+  addItemAction,
+  addSectionAction,
+  removeItemAction,
+  removeSectionAction,
   setStageProgressAction,
   updateItemFieldAction,
+  updateSectionFieldAction,
   type ItemPatchT,
 } from '@/lib/actions/kosztorys'
 import type { KosztorysStageT, KosztorysTreeT, KosztorysV2RowT } from '@/types/kosztorys'
@@ -71,7 +81,7 @@ function sortValue(
   }
 }
 
-export function KosztorysEditorV2({ tree, investmentName }: PropsT) {
+export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT) {
   const router = useRouter()
   const save = useDebouncedSave(500)
   const [gridRef, gridHeight] = useElementHeight()
@@ -79,6 +89,7 @@ export function KosztorysEditorV2({ tree, investmentName }: PropsT) {
   const [view, setView] = useState<PriceViewT>('client')
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<SortStateT>(null)
+  const [activeSectionId, setActiveSectionId] = useState<number | null>(null)
   const [summaryOpen, setSummaryOpen] = useState(true)
   const { hidden, toggle: toggleColumn } = useHiddenColumns()
   // Szerokości kolumn: trwałe w localStorage. Commit (na puść uchwytu) zapisuje i przez
@@ -88,6 +99,8 @@ export function KosztorysEditorV2({ tree, investmentName }: PropsT) {
   const { widths, setWidth } = useColumnWidths()
   const [guideX, setGuideX] = useState<number | null>(null)
   // Snapshot poprzednich wierszy do diffu (po id pozycji) — pełny zbiór, nie widok.
+  // Pełni też rolę „świeżego zbioru" czytanego w event-handlerach struktury (count sekcji):
+  // utrzymywany przy każdym add/remove/edit, więc nie potrzeba osobnego ref na rows.
   const prevById = useRef(new Map(rows.map((r) => [r.id, r])))
 
   function toggleSort(field: string) {
@@ -98,6 +111,10 @@ export function KosztorysEditorV2({ tree, investmentName }: PropsT) {
     })
   }
 
+  // onRemoveItem (handleRemoveItem) czyta prevById.current — stabilny ref — wyłącznie z
+  // onClick komórki, nigdy podczas renderu. Reguła nie potrafi tego dowieść przez zwykłe
+  // wywołanie funkcji (inaczej niż dla propa JSX jak onChange), stąd celowe wyciszenie.
+  // eslint-disable-next-line react-hooks/refs
   const allColumns = buildV2Columns({
     stages: tree.stages,
     view,
@@ -106,6 +123,7 @@ export function KosztorysEditorV2({ tree, investmentName }: PropsT) {
     widths,
     onGuide: setGuideX,
     onCommitColumn: setWidth,
+    onRemoveItem: handleRemoveItem,
   })
   const columns = allColumns.filter((c) => !(c.id && hidden.has(c.id)))
   const toggleable = v2ToggleableColumns(tree.stages)
@@ -114,10 +132,12 @@ export function KosztorysEditorV2({ tree, investmentName }: PropsT) {
 
   // Widok = filtr + sort. Edycja mapowana z powrotem do pełnego zbioru po id.
   const viewRows = useMemo(() => {
-    const filtered = filterRows(rows, search)
+    const scoped =
+      activeSectionId == null ? rows : rows.filter((r) => r.sectionId === activeSectionId)
+    const filtered = filterRows(scoped, search)
     if (!sort) return filtered
     return sortRows(filtered, (r) => sortValue(r, sort.field, view, tree.stages), sort.dir)
-  }, [rows, search, sort, view, tree.stages])
+  }, [rows, activeSectionId, search, sort, view, tree.stages])
 
   const grandNet = useMemo(
     () => viewRows.reduce((sum, r) => sum + rowNetForView(r, view), 0),
@@ -143,6 +163,76 @@ export function KosztorysEditorV2({ tree, investmentName }: PropsT) {
     if (snap && snap[field] === attempted) {
       prevById.current.set(id, { ...snap, [field]: prevVal } as KosztorysV2RowT)
     }
+  }
+
+  async function handleAddItem(sectionId: number) {
+    const res = await addItemAction(investmentId, sectionId)
+    if (!res.success) return
+    // Zdenormalizowane pola sekcji bierzemy z dowolnego istniejącego wiersza tej sekcji.
+    const sample = [...prevById.current.values()].find((r) => r.sectionId === sectionId)
+    const row = buildBlankRow({
+      id: res.data.id,
+      displayOrder: res.data.displayOrder,
+      sectionId,
+      sectionName: sample?.sectionName ?? NEW_SECTION_DEFAULTS.name,
+      sectionVatRate: sample?.sectionVatRate ?? NEW_SECTION_DEFAULTS.vatRate,
+      sectionDefaultCostVariant:
+        sample?.sectionDefaultCostVariant ?? NEW_SECTION_DEFAULTS.defaultCostVariant,
+      stages: tree.stages,
+    })
+    prevById.current.set(row.id, row)
+    setRows((rs) => applyAddItem(rs, row))
+  }
+
+  function handleRemoveItem(row: KosztorysV2RowT) {
+    // Inwariant: sekcja ma ≥1 pozycję. Count z prevById (świeży zbiór, event-time read —
+    // kolumny dsg są zamrożone na montażu, więc tu, nie wizualnym disabled, pilnujemy reguły).
+    if (sectionItemCount([...prevById.current.values()], row.sectionId) <= 1) {
+      window.alert(
+        'Sekcja musi mieć co najmniej jedną pozycję. Aby ją usunąć, użyj kosza sekcji w panelu.',
+      )
+      return
+    }
+    prevById.current.delete(row.id)
+    setRows((rs) => applyRemoveItem(rs, row.id))
+    void removeItemAction(row.id)
+  }
+
+  async function handleAddSection() {
+    const sec = await addSectionAction(investmentId)
+    if (!sec.success) return
+    // Nowa sekcja od razu dostaje pustą pozycję (pusta sekcja = 0 wierszy = niewidoczna).
+    const item = await addItemAction(investmentId, sec.data.id)
+    if (!item.success) return
+    const row = buildBlankRow({
+      id: item.data.id,
+      displayOrder: item.data.displayOrder,
+      sectionId: sec.data.id,
+      sectionName: NEW_SECTION_DEFAULTS.name,
+      sectionVatRate: NEW_SECTION_DEFAULTS.vatRate,
+      sectionDefaultCostVariant: NEW_SECTION_DEFAULTS.defaultCostVariant,
+      stages: tree.stages,
+    })
+    prevById.current.set(row.id, row)
+    setRows((rs) => applyAddItem(rs, row))
+  }
+
+  function handleRemoveSection(sectionId: number) {
+    setRows((rs) => rs.filter((r) => r.sectionId !== sectionId))
+    for (const [id, r] of prevById.current) {
+      if (r.sectionId === sectionId) prevById.current.delete(id)
+    }
+    if (activeSectionId === sectionId) setActiveSectionId(null)
+    void removeSectionAction(sectionId)
+  }
+
+  function handleRenameSection(sectionId: number, name: string) {
+    // Nazwa zdenormalizowana na każdym wierszu sekcji — nadpisz lokalnie wszystkie.
+    setRows((rs) => rs.map((r) => (r.sectionId === sectionId ? { ...r, sectionName: name } : r)))
+    for (const [id, r] of prevById.current) {
+      if (r.sectionId === sectionId) prevById.current.set(id, { ...r, sectionName: name })
+    }
+    void updateSectionFieldAction(sectionId, { name })
   }
 
   function onChange(next: KosztorysV2RowT[]) {
@@ -208,6 +298,11 @@ export function KosztorysEditorV2({ tree, investmentName }: PropsT) {
           onChange={(e) => setSearch(e.target.value)}
           className="h-8 max-w-xs"
         />
+        {activeSectionId != null && (
+          <Button size="sm" variant="outline" onClick={() => handleAddItem(activeSectionId)}>
+            ＋ pozycja
+          </Button>
+        )}
         <span className="text-muted-foreground text-sm">
           {viewRows.length} pozycji · netto{' '}
           {grandNet.toLocaleString('pl-PL', {
@@ -258,7 +353,13 @@ export function KosztorysEditorV2({ tree, investmentName }: PropsT) {
           <KosztorysSectionSummary
             subtotals={subtotals}
             grandNet={totalNet}
+            activeSectionId={activeSectionId}
             onClose={() => setSummaryOpen(false)}
+            onAddSection={handleAddSection}
+            onAddItem={handleAddItem}
+            onRenameSection={handleRenameSection}
+            onRemoveSection={handleRemoveSection}
+            onFilterSection={setActiveSectionId}
           />
         )}
       </div>
