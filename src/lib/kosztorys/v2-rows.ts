@@ -230,6 +230,21 @@ export function swapItemInSection(
   return next
 }
 
+// Sąsiad pozycji w obrębie JEJ sekcji w kierunku ▲/▼ (ta sama sekwencja co swapItemInSection).
+// `undefined` na brzegu bloku — sygnał no-op. Używane do swapu display_order dwóch wierszy.
+export function sectionNeighbor(
+  rows: KosztorysV2RowT[],
+  itemId: number,
+  dir: 'up' | 'down',
+): KosztorysV2RowT | undefined {
+  const target = rows.find((r) => r.id === itemId)
+  if (!target) return undefined
+  const sameSection = rows.filter((r) => r.sectionId === target.sectionId)
+  const pos = sameSection.findIndex((r) => r.id === itemId)
+  const neighborPos = dir === 'up' ? pos - 1 : pos + 1
+  return sameSection[neighborPos]
+}
+
 // Σ wartości wykonanych etapów wiersza v2 wg ceny widoku (do kolumny „Pozostało").
 export function rowDoneNetForView(
   row: KosztorysV2RowT,

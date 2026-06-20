@@ -233,6 +233,40 @@ export async function reorderItemsAction(
   )
 }
 
+const itemOrderSchema = z.object({ id: z.number(), displayOrder: z.number() })
+const swapItemOrderSchema = z.object({ first: itemOrderSchema, second: itemOrderSchema })
+
+// Zamiana display_order dwóch pozycji (sąsiadów) — 2 update'y niezależnie od rozmiaru sekcji.
+// Dla ruchu ▲▼ (zawsze swap sąsiadów) wystarcza to zamiast renumeracji całej sekcji przez
+// reorderItemsAction (ta zostaje na cross-section move, gdzie zmienia się więcej wierszy).
+// Każdy argument niesie NOWY display_order, który pozycja ma przyjąć.
+export async function swapItemOrderAction(
+  first: { id: number; displayOrder: number },
+  second: { id: number; displayOrder: number },
+): Promise<ActionResultT> {
+  return protectedAction(
+    'swapItemOrderAction',
+    async ({ payload }) => {
+      const parsed = validateAction(swapItemOrderSchema, { first, second })
+      if (!parsed.success) return parsed
+      await Promise.all([
+        payload.update({
+          collection: 'kosztorys-items',
+          id: parsed.data.first.id,
+          data: { displayOrder: parsed.data.first.displayOrder },
+        }),
+        payload.update({
+          collection: 'kosztorys-items',
+          id: parsed.data.second.id,
+          data: { displayOrder: parsed.data.second.displayOrder },
+        }),
+      ])
+      return { success: true }
+    },
+    ['kosztorysItems'],
+  )
+}
+
 export async function addStageAction(
   investmentId: number,
 ): Promise<ActionResultT<{ id: number; ordinal: number }>> {

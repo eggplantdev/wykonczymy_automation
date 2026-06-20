@@ -24,6 +24,7 @@ import {
   revertField,
   rowDoneNetForView,
   sectionItemCount,
+  sectionNeighbor,
   sortRows,
   stageKey,
   swapItemInSection,
@@ -42,8 +43,8 @@ import {
   addSectionAction,
   removeItemAction,
   removeSectionAction,
-  reorderItemsAction,
   setStageProgressAction,
+  swapItemOrderAction,
   updateInvestmentCoeffsAction,
   updateItemFieldAction,
   updateSectionFieldAction,
@@ -216,14 +217,17 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
   }
 
   function handleReorderItem(row: KosztorysV2RowT, dir: 'up' | 'down') {
-    const next = swapItemInSection(rowsRef.current, row.id, dir)
-    if (next === rowsRef.current) return // brzeg bloku → no-op
-    setRows(next)
-    // Pełna lista id sekcji w nowej kolejności → serwer renumeruje display_order od zera.
-    // Akcja z event-handlera (nie z updatera setRows) — odpalona w renderze aktualizowałaby
-    // Router w trakcie renderu (rewalidacja cache), co React odrzuca.
-    const orderedIds = next.filter((r) => r.sectionId === row.sectionId).map((r) => r.id)
-    void reorderItemsAction(row.sectionId, orderedIds)
+    const rs = rowsRef.current
+    const neighbor = sectionNeighbor(rs, row.id, dir)
+    if (!neighbor) return // brzeg bloku → no-op
+    setRows(swapItemInSection(rs, row.id, dir))
+    // ▲▼ to swap dwóch sąsiadów → wymieniamy tylko ich display_order (2 update'y, nie
+    // renumeracja całej sekcji — to dławiło przy 1000+ wierszach). Akcja z event-handlera,
+    // nie z updatera setRows (tam jej rewalidacja cache ruszałaby Router w trakcie renderu).
+    void swapItemOrderAction(
+      { id: row.id, displayOrder: neighbor.displayOrder },
+      { id: neighbor.id, displayOrder: row.displayOrder },
+    )
   }
 
   async function handleAddSection() {
