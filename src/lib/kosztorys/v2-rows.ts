@@ -20,8 +20,10 @@ const ITEM_FIELDS = [
   'discountType',
   'discountValue',
   'clientPrice',
-  'subcontractorWToolsPrice',
-  'subcontractorOwnToolsPrice',
+  'wToolsOverrideType',
+  'wToolsOverrideValue',
+  'ownToolsOverrideType',
+  'ownToolsOverrideValue',
   'costVariant',
   'vatRate',
   'hiddenInExport',
@@ -47,6 +49,10 @@ export function treeToRows(tree: KosztorysTreeT): KosztorysV2RowT[] {
         sectionName: section.name,
         sectionVatRate: section.vatRate,
         sectionDefaultCostVariant: section.defaultCostVariant,
+        sectionWToolsCoeff: section.wToolsCoeff,
+        sectionOwnToolsCoeff: section.ownToolsCoeff,
+        globalWToolsCoeff: tree.globalCoeffs.wTools,
+        globalOwnToolsCoeff: tree.globalCoeffs.ownTools,
         ...stageFields,
       } as KosztorysV2RowT)
     }
@@ -143,6 +149,10 @@ export type BlankRowInputT = {
   sectionName: string
   sectionVatRate: number
   sectionDefaultCostVariant: CostVariantT
+  sectionWToolsCoeff: number | null
+  sectionOwnToolsCoeff: number | null
+  globalWToolsCoeff: number
+  globalOwnToolsCoeff: number
   stages: KosztorysStageT[]
 }
 
@@ -162,8 +172,10 @@ export function buildBlankRow(input: BlankRowInputT): KosztorysV2RowT {
     discountType: null,
     discountValue: 0,
     clientPrice: 0,
-    subcontractorWToolsPrice: 0,
-    subcontractorOwnToolsPrice: 0,
+    wToolsOverrideType: null,
+    wToolsOverrideValue: 0,
+    ownToolsOverrideType: null,
+    ownToolsOverrideValue: 0,
     costVariant: null,
     vatRate: null,
     hiddenInExport: false,
@@ -171,6 +183,10 @@ export function buildBlankRow(input: BlankRowInputT): KosztorysV2RowT {
     sectionName: input.sectionName,
     sectionVatRate: input.sectionVatRate,
     sectionDefaultCostVariant: input.sectionDefaultCostVariant,
+    sectionWToolsCoeff: input.sectionWToolsCoeff,
+    sectionOwnToolsCoeff: input.sectionOwnToolsCoeff,
+    globalWToolsCoeff: input.globalWToolsCoeff,
+    globalOwnToolsCoeff: input.globalOwnToolsCoeff,
     ...stageFields,
   } as KosztorysV2RowT
 }

@@ -3,6 +3,9 @@
 
 export type DiscountTypeT = 'percent' | 'amount'
 export type CostVariantT = 'w_tools' | 'own_tools'
+// Override ceny podwykonawcy per pozycja: 'coeff' = klient × wartość (podąża za ceną
+// klienta), 'amount' = płaska kwota (zamrożona), null = wyprowadź z efektywnego współczynnika.
+export type SubcontractorOverrideTypeT = 'coeff' | 'amount'
 
 export type KosztorysSectionT = {
   id: number
@@ -10,6 +13,9 @@ export type KosztorysSectionT = {
   displayOrder: number
   vatRate: number
   defaultCostVariant: CostVariantT
+  // null = dziedziczy globalny współczynnik z inwestycji.
+  wToolsCoeff: number | null
+  ownToolsCoeff: number | null
 }
 
 export type KosztorysItemT = {
@@ -23,12 +29,26 @@ export type KosztorysItemT = {
   discountType: DiscountTypeT | null
   discountValue: number
   clientPrice: number
-  subcontractorWToolsPrice: number
-  subcontractorOwnToolsPrice: number
+  wToolsOverrideType: SubcontractorOverrideTypeT | null
+  wToolsOverrideValue: number
+  ownToolsOverrideType: SubcontractorOverrideTypeT | null
+  ownToolsOverrideValue: number
   costVariant: CostVariantT | null
   vatRate: number | null
   hiddenInExport: boolean
   note: string | null
+}
+
+// Globalne (na inwestycję) współczynniki narzutu podwykonawcy; niesione przez drzewo.
+export type KosztorysGlobalCoeffsT = { wTools: number; ownTools: number }
+
+// Minimalny kształt do derivacji ceny widoku — KosztorysV2RowT go spełnia
+// (KosztorysItemT + zdenormalizowane współczynniki sekcji i globalne).
+export type ViewPricingT = KosztorysItemT & {
+  sectionWToolsCoeff: number | null
+  sectionOwnToolsCoeff: number | null
+  globalWToolsCoeff: number
+  globalOwnToolsCoeff: number
 }
 
 export type KosztorysStageT = {
@@ -47,6 +67,7 @@ export type KosztorysTreeT = {
   sections: (KosztorysSectionT & { items: KosztorysItemT[] })[]
   stages: KosztorysStageT[]
   progress: StageProgressT[]
+  globalCoeffs: KosztorysGlobalCoeffsT
 }
 
 // --- Wariant v2 (react-datasheet-grid): płaski wiersz z etapami spłaszczonymi
@@ -55,6 +76,11 @@ export type KosztorysV2RowBaseT = KosztorysItemT & {
   sectionName: string
   sectionVatRate: number
   sectionDefaultCostVariant: CostVariantT
+  // Zdenormalizowane współczynniki do derivacji ceny podwykonawcy na wierszu (ViewPricingT).
+  sectionWToolsCoeff: number | null
+  sectionOwnToolsCoeff: number | null
+  globalWToolsCoeff: number
+  globalOwnToolsCoeff: number
 }
 
 export type KosztorysV2RowT = KosztorysV2RowBaseT & {

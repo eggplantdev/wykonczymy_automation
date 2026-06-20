@@ -4,6 +4,7 @@ import type {
   KosztorysSectionT,
   KosztorysV2RowT,
   SectionSubtotalT,
+  ViewPricingT,
 } from '@/types/kosztorys'
 
 // Jedyne źródło formuł rozpiski. Czyste funkcje — zapisujemy tylko inputy, wszystko
@@ -34,17 +35,6 @@ export function rowNet(item: KosztorysItemT): number {
   return applyDiscount(item.measuredQty * item.clientPrice, item)
 }
 
-function variantPrice(item: KosztorysItemT, section: KosztorysSectionT): number {
-  return effectiveCostVariant(item, section) === 'own_tools'
-    ? item.subcontractorOwnToolsPrice
-    : item.subcontractorWToolsPrice
-}
-
-/** Plan kosztu podwykonawcy wg wariantu kosztu pozycji (pomiar × cena wariantu − rabat). */
-export function rowSubcontractorNet(item: KosztorysItemT, section: KosztorysSectionT): number {
-  return applyDiscount(item.measuredQty * variantPrice(item, section), item)
-}
-
 export function rowGross(item: KosztorysItemT, section: KosztorysSectionT): number {
   return rowNet(item) * (1 + effectiveVat(item, section))
 }
@@ -62,33 +52,47 @@ export function rowRemaining(item: KosztorysItemT, doneNetTotal: number): number
 // --- Widoki cenowe (jeden zbiór → trzy widoki: klient / podwykonawca z/bez narzędzi) ---
 export type PriceViewT = 'client' | 'w_tools' | 'own_tools'
 
-export function viewPrice(item: KosztorysItemT, view: PriceViewT): number {
-  if (view === 'w_tools') return item.subcontractorWToolsPrice
-  if (view === 'own_tools') return item.subcontractorOwnToolsPrice
-  return item.clientPrice
+/** Efektywny współczynnik narzutu wg widoku: sekcja nadpisuje globalny (z inwestycji). */
+export function effectiveCoeff(row: ViewPricingT, view: 'w_tools' | 'own_tools'): number {
+  if (view === 'w_tools') return row.sectionWToolsCoeff ?? row.globalWToolsCoeff
+  return row.sectionOwnToolsCoeff ?? row.globalOwnToolsCoeff
+}
+
+/** Cena podwykonawcy wg widoku: null→wyprowadzona (klient×coeff), coeff→klient×%, amount→płaska. */
+export function subcontractorPrice(row: ViewPricingT, view: 'w_tools' | 'own_tools'): number {
+  const type = view === 'w_tools' ? row.wToolsOverrideType : row.ownToolsOverrideType
+  const value = view === 'w_tools' ? row.wToolsOverrideValue : row.ownToolsOverrideValue
+  if (type === 'amount') return value
+  if (type === 'coeff') return row.clientPrice * value
+  return row.clientPrice * effectiveCoeff(row, view)
+}
+
+export function viewPrice(row: ViewPricingT, view: PriceViewT): number {
+  if (view === 'w_tools' || view === 'own_tools') return subcontractorPrice(row, view)
+  return row.clientPrice
 }
 
 /** Netto wiersza wg ceny wybranego widoku (pomiar × cena widoku − rabat). */
-export function rowNetForView(item: KosztorysItemT, view: PriceViewT): number {
-  return applyDiscount(item.measuredQty * viewPrice(item, view), item)
+export function rowNetForView(row: ViewPricingT, view: PriceViewT): number {
+  return applyDiscount(row.measuredQty * viewPrice(row, view), row)
 }
 
 /** Wartość pojedynczego etapu wg ceny widoku (ilość wykonana × cena widoku − rabat). */
 export function stageValueForView(
-  item: KosztorysItemT,
+  row: ViewPricingT,
   qtyDoneInStage: number,
   view: PriceViewT,
 ): number {
-  return applyDiscount(qtyDoneInStage * viewPrice(item, view), item)
+  return applyDiscount(qtyDoneInStage * viewPrice(row, view), row)
 }
 
 /** Pozostało wg widoku = netto widoku − Σ wartości wykonanych etapów wg widoku. */
 export function rowRemainingForView(
-  item: KosztorysItemT,
+  row: ViewPricingT,
   doneNetTotal: number,
   view: PriceViewT,
 ): number {
-  return rowNetForView(item, view) - doneNetTotal
+  return rowNetForView(row, view) - doneNetTotal
 }
 
 /**

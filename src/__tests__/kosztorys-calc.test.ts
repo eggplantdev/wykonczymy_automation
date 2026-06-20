@@ -4,9 +4,11 @@ import {
   sectionSubtotalsForView,
   stageValueForView,
 } from '@/lib/kosztorys/calc'
-import type { KosztorysItemT, KosztorysV2RowT } from '@/types/kosztorys'
+import type { KosztorysV2RowT, ViewPricingT } from '@/types/kosztorys'
 
-const item: KosztorysItemT = {
+// Ceny podwykonawcy jako override 'amount' (płaskie 12/10) — zachowuje wartości sprzed
+// migracji na model współczynnikowy (testy walidują ścieżkę amount, nie wyprowadzanie).
+const item: ViewPricingT = {
   id: 1,
   sectionId: 10,
   displayOrder: 0,
@@ -17,12 +19,18 @@ const item: KosztorysItemT = {
   discountType: null,
   discountValue: 0,
   clientPrice: 20,
-  subcontractorWToolsPrice: 12,
-  subcontractorOwnToolsPrice: 10,
+  wToolsOverrideType: 'amount',
+  wToolsOverrideValue: 12,
+  ownToolsOverrideType: 'amount',
+  ownToolsOverrideValue: 10,
   costVariant: null,
   vatRate: null,
   hiddenInExport: false,
   note: null,
+  sectionWToolsCoeff: null,
+  sectionOwnToolsCoeff: null,
+  globalWToolsCoeff: 0.65,
+  globalOwnToolsCoeff: 0.55,
 }
 
 describe('stageValueForView', () => {

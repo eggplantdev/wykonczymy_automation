@@ -23,8 +23,11 @@ const baseItem = {
   discountType: null,
   discountValue: 0,
   clientPrice: 20,
-  subcontractorWToolsPrice: 12,
-  subcontractorOwnToolsPrice: 10,
+  // Override 'amount' (płaskie 12/10) — zachowuje wartości testów sprzed migracji.
+  wToolsOverrideType: 'amount' as const,
+  wToolsOverrideValue: 12,
+  ownToolsOverrideType: 'amount' as const,
+  ownToolsOverrideValue: 10,
   costVariant: null,
   vatRate: null,
   hiddenInExport: false,
@@ -39,6 +42,8 @@ const tree: KosztorysTreeT = {
       displayOrder: 0,
       vatRate: 0.08,
       defaultCostVariant: 'w_tools',
+      wToolsCoeff: null,
+      ownToolsCoeff: null,
       items: [baseItem],
     },
   ],
@@ -47,6 +52,7 @@ const tree: KosztorysTreeT = {
     { id: 101, ordinal: 2, label: null },
   ],
   progress: [{ itemId: 1, stageId: 100, qtyDone: 2 }],
+  globalCoeffs: { wTools: 0.65, ownTools: 0.55 },
 }
 
 describe('treeToRows', () => {
@@ -89,10 +95,12 @@ describe('rowNetForView', () => {
     ...baseItem,
     measuredQty: 10,
     clientPrice: 20,
-    subcontractorWToolsPrice: 12,
-    subcontractorOwnToolsPrice: 10,
     discountType: null,
     discountValue: 0,
+    sectionWToolsCoeff: null,
+    sectionOwnToolsCoeff: null,
+    globalWToolsCoeff: 0.65,
+    globalOwnToolsCoeff: 0.55,
   }
   it('liczy netto wg ceny widoku', () => {
     expect(rowNetForView(item, 'client')).toBe(200)
