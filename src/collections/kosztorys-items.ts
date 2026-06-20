@@ -5,7 +5,8 @@ import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/re
 // Pozycja rozpiski. Cena klienta = snapshot. Ceny podwykonawcy wyprowadzane ze
 // współczynnika narzutu (sekcja/inwestycja), z dwustanowym override per pozycja:
 // *OverrideType ∈ {coeff, amount} | null (null = wyprowadź), *OverrideValue. Wartość
-// liczona z measuredQty (pomiar). costVariant/vatRate = null = "dziedzicz z sekcji".
+// liczona z measuredQty (pomiar). costVariant = null = "dziedzicz z sekcji".
+// VAT nie żyje tu — jedna stawka na inwestycji (vat per investment).
 export const KosztorysItems: CollectionConfig = {
   slug: 'kosztorys-items',
   labels: {
@@ -43,7 +44,6 @@ export const KosztorysItems: CollectionConfig = {
     { name: 'ownToolsOverrideType', type: 'text' },
     { name: 'ownToolsOverrideValue', type: 'number', defaultValue: 0 },
     { name: 'costVariant', type: 'text' },
-    { name: 'vatRate', type: 'number' },
     { name: 'hiddenInExport', type: 'checkbox', required: true, defaultValue: false },
     { name: 'note', type: 'text', label: { en: 'Note', pl: 'Komentarz' } },
   ],

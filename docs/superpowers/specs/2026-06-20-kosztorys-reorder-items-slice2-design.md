@@ -122,11 +122,12 @@ disabled odkładamy:
 
 - **Przenoszenie pozycji między sekcjami (docelowo wymagane).** Pozycja przekracza granicę
   sekcji: zmienia `sectionId` **oraz** zdenormalizowane pola wiersza (`sectionName`,
-  `sectionVatRate`, `sectionDefaultCostVariant`, współczynniki) i wymaga renumeracji
-  `display_order` w **dwóch** sekcjach (źródłowej i docelowej). Model `display_order` z tego
-  slice'a (per-sekcja, renumeracja pełną listą) **celowo tego nie blokuje** — cross-section
-  move to dwa wywołania renumeracji + patch pól sekcji wiersza. Osobny brainstorm (UX: drag
-  przez granicę vs „przenieś do sekcji…", przeliczenie cen po zmianie VAT/coeff sekcji).
+  `sectionDefaultCostVariant`, współczynniki — `vatRate` jest na inwestycji, więc się nie
+  zmienia) i wymaga renumeracji `display_order` w **dwóch** sekcjach (źródłowej i docelowej).
+  Model `display_order` z tego slice'a (per-sekcja, renumeracja pełną listą) **celowo tego
+  nie blokuje** — cross-section move to dwa wywołania renumeracji + patch pól sekcji wiersza.
+  Osobny brainstorm (UX: drag przez granicę vs „przenieś do sekcji…", przeliczenie cen po
+  zmianie coeff sekcji).
 - **Reorder sekcji** — ▲▼ na sekcji w panelu „Sekcje"; renumeruje `kosztorys-sections.displayOrder`
   (analogiczna akcja `reorderSectionsAction`). Przestawia całe bloki.
 - **Drag-drop** — zamiast strzałek, gdy reorder się ustabilizuje.

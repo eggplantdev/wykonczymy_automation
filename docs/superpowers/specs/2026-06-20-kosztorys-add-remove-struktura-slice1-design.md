@@ -105,22 +105,19 @@ tylko renderuje `value` (które JEST reaktywne, w przeciwieństwie do sizing kol
   „Suma") oraz licznik w górnym pasku pokazują **tylko netto**. Mają respektować **wybór
   netto/brutto** — przełącznik (osobny od przełącznika 3 widoków cen), który zmienia, czy
   kwoty w podsumowaniach są netto czy brutto. Brutto liczy się już per wiersz
-  (`rowNetForView × (1 + effectiveVat)`); subtotale muszą sumować odpowiednią wartość wg
+  (`rowNetForView × (1 + row.vatRate)`); subtotale muszą sumować odpowiednią wartość wg
   trybu. Dotyczy `sectionSubtotalsForView`/`SectionSubtotalT` (panel zdefiniowany w specu
   `2026-06-20-kosztorys-section-subtotals-design.md`) — zmiana tam, tu tylko zaparkowane.
-  - **GOTCHA VAT (krytyczne dla brutto).** W ramach **jednej sekcji mogą być różne stawki
-    VAT** — `vatRate` pozycji nadpisuje stawkę sekcji (`effectiveVat = item.vatRate ??
-section.vatRate`). Dlatego brutto sekcji = **Σ brutto per pozycja**
-    (`Σ rowNetForView_i × (1 + effectiveVat_i)`), a **NIE** `netto_sekcji × (1 + VAT_sekcji)`
-    — to drugie daje błędny wynik, gdy choć jedna pozycja ma własną stawkę. To samo dotyczy
-    sumy brutto w stopce. Netto zostaje prostą sumą — problem jest wyłącznie po stronie
-    brutto.
+  - **VAT = jedna stawka na inwestycję** (decyzja właściciela, spec
+    `2026-06-20-kosztorys-vat-per-investment-design.md`). Brutto sekcji = `netto_sekcji ×
+(1 + VAT_inwestycji)` — bez kaskady sekcja→pozycja, bez `effectiveVat`. (Wcześniejszy
+    wariant „różne stawki w jednej sekcji / Σ brutto per pozycja" został **odrzucony**.)
 - **Wybór kolorów sekcji (pomysł, do oszacowania).** Pozwolić przypisać sekcji kolor —
   w **płaskiej** siatce sekcje nie mają wierszy-nagłówków, więc kolor (np. lewy pasek /
   tło komórki „Sekcja", kropka w panelu) byłby tanim, zawsze-widocznym sposobem na wzrokowe
   odróżnienie sekcji i wzmocnienie wskaźnika aktywnej sekcji. Zakres do doprecyzowania:
   paleta predefiniowana vs dowolny kolor, nowe pole `color` na `kosztorys-sections`
-  (+ migracja) i zdenormalizowanie go na wierszu (jak `sectionName`/`sectionVatRate`).
+  (+ migracja) i zdenormalizowanie go na wierszu (jak `sectionName`).
   Wymaga osobnego brainstormu — tu tylko zaparkowane.
 
 ## Testy

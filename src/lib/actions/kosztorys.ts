@@ -21,7 +21,6 @@ const itemPatchSchema = z
     ownToolsOverrideType: z.enum(['coeff', 'amount']).nullable(),
     ownToolsOverrideValue: z.coerce.number(),
     costVariant: z.enum(['w_tools', 'own_tools']).nullable(),
-    vatRate: z.coerce.number().nullable(),
     hiddenInExport: z.boolean(),
     note: z.string().nullable(),
   })
@@ -30,7 +29,6 @@ const itemPatchSchema = z
 const sectionPatchSchema = z
   .object({
     name: z.string(),
-    vatRate: z.coerce.number(),
     defaultCostVariant: z.enum(['w_tools', 'own_tools']),
     displayOrder: z.coerce.number(),
     wToolsCoeff: z.coerce.number().nullable(),
@@ -38,8 +36,13 @@ const sectionPatchSchema = z
   })
   .partial()
 
+// Stawka VAT inwestycji jedzie tym samym kanałem co współczynniki narzutu (edycja z panelu).
 const investmentCoeffsSchema = z
-  .object({ wToolsCoeff: z.coerce.number(), ownToolsCoeff: z.coerce.number() })
+  .object({
+    wToolsCoeff: z.coerce.number(),
+    ownToolsCoeff: z.coerce.number(),
+    vatRate: z.coerce.number(),
+  })
   .partial()
 
 const stagePatchSchema = z.object({ label: z.string().nullable() }).partial()
@@ -143,7 +146,6 @@ export async function addSectionAction(
           investment: investmentId,
           name: 'Nowa sekcja',
           displayOrder: count.totalDocs,
-          vatRate: 0.08,
           defaultCostVariant: 'w_tools',
         },
       })

@@ -93,5 +93,13 @@ export const Investments: CollectionConfig = {
         pl: 'Współczynnik podwykonawcy (bez narzędzi)',
       },
     },
+    // Jedna stawka VAT na inwestycję (decyzja właściciela). Brutto wiersza = netto × (1 + vatRate).
+    // Patrz docs/superpowers/specs/2026-06-20-kosztorys-vat-per-investment-design.md
+    {
+      name: 'vatRate',
+      type: 'number',
+      defaultValue: 0.08,
+      label: { en: 'VAT rate', pl: 'Stawka VAT' },
+    },
   ],
 }

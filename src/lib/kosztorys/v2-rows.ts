@@ -25,7 +25,6 @@ const ITEM_FIELDS = [
   'ownToolsOverrideType',
   'ownToolsOverrideValue',
   'costVariant',
-  'vatRate',
   'hiddenInExport',
   'note',
 ] as const satisfies readonly (keyof ItemPatchT)[]
@@ -47,7 +46,7 @@ export function treeToRows(tree: KosztorysTreeT): KosztorysV2RowT[] {
       rows.push({
         ...item,
         sectionName: section.name,
-        sectionVatRate: section.vatRate,
+        vatRate: tree.vatRate,
         sectionDefaultCostVariant: section.defaultCostVariant,
         sectionWToolsCoeff: section.wToolsCoeff,
         sectionOwnToolsCoeff: section.ownToolsCoeff,
@@ -138,16 +137,15 @@ export function revertField(
 // więc trzymamy mirror tu i budujemy z niego optymistyczny wiersz (bez czekania na refresh).
 export const NEW_SECTION_DEFAULTS = {
   name: 'Nowa sekcja',
-  vatRate: 0.08,
   defaultCostVariant: 'w_tools',
-} as const satisfies { name: string; vatRate: number; defaultCostVariant: CostVariantT }
+} as const satisfies { name: string; defaultCostVariant: CostVariantT }
 
 export type BlankRowInputT = {
   id: number
   displayOrder: number
   sectionId: number
   sectionName: string
-  sectionVatRate: number
+  vatRate: number
   sectionDefaultCostVariant: CostVariantT
   sectionWToolsCoeff: number | null
   sectionOwnToolsCoeff: number | null
@@ -177,11 +175,10 @@ export function buildBlankRow(input: BlankRowInputT): KosztorysV2RowT {
     ownToolsOverrideType: null,
     ownToolsOverrideValue: 0,
     costVariant: null,
-    vatRate: null,
     hiddenInExport: false,
     note: null,
     sectionName: input.sectionName,
-    sectionVatRate: input.sectionVatRate,
+    vatRate: input.vatRate,
     sectionDefaultCostVariant: input.sectionDefaultCostVariant,
     sectionWToolsCoeff: input.sectionWToolsCoeff,
     sectionOwnToolsCoeff: input.sectionOwnToolsCoeff,

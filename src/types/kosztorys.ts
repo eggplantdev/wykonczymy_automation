@@ -1,5 +1,6 @@
 // Płaskie typy rozpiski robocizny (POC). Relacje zredukowane do *_id liczb —
-// query pobiera z głębokością 0. costVariant/vatRate = null oznacza "dziedzicz z sekcji".
+// query pobiera z głębokością 0. costVariant = null oznacza "dziedzicz z sekcji".
+// VAT to jedna stawka na inwestycję (KosztorysTreeT.vatRate), nie per sekcja/pozycja.
 
 export type DiscountTypeT = 'percent' | 'amount'
 export type CostVariantT = 'w_tools' | 'own_tools'
@@ -11,7 +12,6 @@ export type KosztorysSectionT = {
   id: number
   name: string
   displayOrder: number
-  vatRate: number
   defaultCostVariant: CostVariantT
   // null = dziedziczy globalny współczynnik z inwestycji.
   wToolsCoeff: number | null
@@ -34,7 +34,6 @@ export type KosztorysItemT = {
   ownToolsOverrideType: SubcontractorOverrideTypeT | null
   ownToolsOverrideValue: number
   costVariant: CostVariantT | null
-  vatRate: number | null
   hiddenInExport: boolean
   note: string | null
 }
@@ -68,13 +67,16 @@ export type KosztorysTreeT = {
   stages: KosztorysStageT[]
   progress: StageProgressT[]
   globalCoeffs: KosztorysGlobalCoeffsT
+  // Jedna stawka VAT na inwestycję — niesiona drzewem (jak globalCoeffs), zdenormalizowana na wiersz.
+  vatRate: number
 }
 
 // --- Wariant v2 (react-datasheet-grid): płaski wiersz z etapami spłaszczonymi
 // do kluczy stage_<stageId>, żeby keyColumn mapował 1:1. ---
 export type KosztorysV2RowBaseT = KosztorysItemT & {
   sectionName: string
-  sectionVatRate: number
+  // Zdenormalizowana stawka VAT inwestycji (jedna na cały kosztorys) — brutto = netto × (1 + vatRate).
+  vatRate: number
   sectionDefaultCostVariant: CostVariantT
   // Zdenormalizowane współczynniki do derivacji ceny podwykonawcy na wierszu (ViewPricingT).
   sectionWToolsCoeff: number | null

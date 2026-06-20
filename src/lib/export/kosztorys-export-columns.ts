@@ -1,6 +1,5 @@
 import { v2ToggleableColumns } from '@/lib/tables/kosztorys-v2-columns'
 import {
-  effectiveVat,
   rowNetForView,
   rowRemainingForView,
   viewPrice,
@@ -8,12 +7,7 @@ import {
 } from '@/lib/kosztorys/calc'
 import { rowDoneNetForView } from '@/lib/kosztorys/v2-rows'
 import { formatPLN } from '@/lib/format-currency'
-import type {
-  KosztorysSectionT,
-  KosztorysStageT,
-  KosztorysV2RowT,
-  ViewPricingT,
-} from '@/types/kosztorys'
+import type { KosztorysStageT, KosztorysV2RowT, ViewPricingT } from '@/types/kosztorys'
 
 export type KosztorysExportColumnT = {
   id: string
@@ -23,22 +17,8 @@ export type KosztorysExportColumnT = {
 
 const DISCOUNT_LABEL: Record<string, string> = { percent: '%', amount: 'zł' }
 
-// Rekonstrukcja sekcji dla calc.ts z płaskiego wiersza (VAT/wariant dziedziczone).
-function asSection(r: KosztorysV2RowT): KosztorysSectionT {
-  return {
-    id: r.sectionId,
-    name: r.sectionName,
-    displayOrder: 0,
-    vatRate: r.sectionVatRate,
-    defaultCostVariant: r.sectionDefaultCostVariant,
-    wToolsCoeff: r.sectionWToolsCoeff,
-    ownToolsCoeff: r.sectionOwnToolsCoeff,
-  }
-}
-
 function grossForView(r: KosztorysV2RowT, view: PriceViewT): number {
-  const item = r as unknown as ViewPricingT
-  return rowNetForView(item, view) * (1 + effectiveVat(item, asSection(r)))
+  return rowNetForView(r as unknown as ViewPricingT, view) * (1 + r.vatRate)
 }
 
 // getValue per id. Etapy (stage_<id>) i nieznane id → odczyt liczbowy z wiersza.

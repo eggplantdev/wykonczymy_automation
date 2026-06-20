@@ -29,7 +29,6 @@ const baseItem = {
   ownToolsOverrideType: 'amount' as const,
   ownToolsOverrideValue: 10,
   costVariant: null,
-  vatRate: null,
   hiddenInExport: false,
   note: null,
 }
@@ -40,7 +39,6 @@ const tree: KosztorysTreeT = {
       id: 10,
       name: 'Sekcja A',
       displayOrder: 0,
-      vatRate: 0.08,
       defaultCostVariant: 'w_tools',
       wToolsCoeff: null,
       ownToolsCoeff: null,
@@ -53,6 +51,7 @@ const tree: KosztorysTreeT = {
   ],
   progress: [{ itemId: 1, stageId: 100, qtyDone: 2 }],
   globalCoeffs: { wTools: 0.65, ownTools: 0.55 },
+  vatRate: 0.08,
 }
 
 describe('treeToRows', () => {
@@ -63,7 +62,7 @@ describe('treeToRows', () => {
       id: 1,
       sectionId: 10,
       sectionName: 'Sekcja A',
-      sectionVatRate: 0.08,
+      vatRate: 0.08,
       description: 'Malowanie',
     })
     expect(rows[0][stageKey(100)]).toBe(2)

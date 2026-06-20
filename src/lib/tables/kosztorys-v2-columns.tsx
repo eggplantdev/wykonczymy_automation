@@ -6,7 +6,6 @@ import { Column, type CellProps, keyColumn, textColumn, floatColumn } from 'reac
 import { SortHeader } from '@/components/kosztorys/sort-header'
 import { ResizableHeader } from '@/components/kosztorys/column-resize-handle'
 import {
-  effectiveVat,
   rowNetForView,
   rowRemainingForView,
   viewPrice,
@@ -15,7 +14,6 @@ import {
 import { rowDoneNetForView, stageKey, type SortDirT } from '@/lib/kosztorys/v2-rows'
 import type {
   DiscountTypeT,
-  KosztorysSectionT,
   KosztorysStageT,
   KosztorysV2RowT,
   SubcontractorOverrideTypeT,
@@ -89,19 +87,6 @@ function title(field: string, label: string, opts: BuildV2ColumnsOptsT): ReactNo
   if (!opts.onToggleSort) return label
   const active = opts.sort?.field === field ? opts.sort.dir : null
   return <SortHeader label={label} active={active} onToggle={() => opts.onToggleSort?.(field)} />
-}
-
-// Rekonstrukcja inputów dla calc.ts z płaskiego wiersza.
-function asSection(r: KosztorysV2RowT): KosztorysSectionT {
-  return {
-    id: r.sectionId,
-    name: r.sectionName,
-    displayOrder: 0,
-    vatRate: r.sectionVatRate,
-    defaultCostVariant: r.sectionDefaultCostVariant,
-    wToolsCoeff: r.sectionWToolsCoeff,
-    ownToolsCoeff: r.sectionOwnToolsCoeff,
-  }
 }
 
 // Kolumna liczona, read-only: własny component renderujący wartość z calc.
@@ -417,10 +402,11 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
       (r) => rowNetForView(r as unknown as ViewPricingT, view),
       'font-medium',
     ),
-    computedColumn('gross', title('gross', 'Brutto', opts), (r) => {
-      const item = r as unknown as ViewPricingT
-      return rowNetForView(item, view) * (1 + effectiveVat(item, asSection(r)))
-    }),
+    computedColumn(
+      'gross',
+      title('gross', 'Brutto', opts),
+      (r) => rowNetForView(r as unknown as ViewPricingT, view) * (1 + r.vatRate),
+    ),
     computedColumn('remaining', title('remaining', 'Pozostało', opts), (r) =>
       rowRemainingForView(r as unknown as ViewPricingT, rowDoneNetForView(r, stages, view), view),
     ),

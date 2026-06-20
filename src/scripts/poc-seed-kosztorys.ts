@@ -91,7 +91,6 @@ async function run() {
           investment: INVESTMENT_ID,
           name,
           displayOrder: sectionOrder++,
-          vatRate: 0.08,
           defaultCostVariant: 'w_tools',
         },
         ...ctx,

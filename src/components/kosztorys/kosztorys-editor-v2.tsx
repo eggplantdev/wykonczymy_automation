@@ -41,6 +41,7 @@ import {
 import {
   addItemAction,
   addSectionAction,
+  addStageAction,
   removeItemAction,
   removeSectionAction,
   setStageProgressAction,
@@ -76,7 +77,7 @@ function sortValue(
     case 'net':
       return rowNetForView(row, view)
     case 'gross':
-      return rowNetForView(row, view) * (1 + (row.vatRate ?? row.sectionVatRate))
+      return rowNetForView(row, view) * (1 + row.vatRate)
     case 'remaining':
       return rowRemainingForView(row, rowDoneNetForView(row, stages, view), view)
     default: {
@@ -91,6 +92,9 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
   const save = useDebouncedSave(500)
   const [gridRef, gridHeight] = useElementHeight()
   const [rows, setRows] = useState<KosztorysV2RowT[]>(() => treeToRows(tree))
+  // Etapy stanem (nie z propa) — dodanie etapu dokłada kolumnę optymistycznie. Nowy etap nie
+  // ma wpisów postępu na istniejących wierszach (sparse, brak klucza = 0) — komórka pusta.
+  const [stages, setStages] = useState<KosztorysStageT[]>(tree.stages)
   const [view, setView] = useState<PriceViewT>('client')
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<SortStateT>(null)
@@ -126,7 +130,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
   // onRemoveItem/onReorderItem czytają prevById.current / rowsRef.current — stabilne refy —
   // wyłącznie z onClick komórki, nigdy podczas renderu, więc przekazanie ich tu jest bezpieczne.
   const allColumns = buildV2Columns({
-    stages: tree.stages,
+    stages,
     view,
     sort,
     onToggleSort: toggleSort,
@@ -137,12 +141,13 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
     onReorderItem: handleReorderItem,
   })
   const columns = allColumns.filter((c) => !(c.id && hidden.has(c.id)))
-  const toggleable = v2ToggleableColumns(tree.stages)
+  const toggleable = v2ToggleableColumns(stages)
   // Sygnatury wymuszające remount siatki: dsg zamraża `columns` na montażu, więc KAŻDY
-  // wymiar kształtujący kolumny musi być w kluczu — szerokości ORAZ zbiór ukrytych kolumn
-  // (bez tego „Kolumny" nie pokazywało/chowało nic). Patrz lekcja w lessons.md.
+  // wymiar kształtujący kolumny musi być w kluczu — szerokości, zbiór ukrytych kolumn ORAZ
+  // zestaw etapów (dodanie etapu = nowa kolumna). Patrz lekcja w lessons.md.
   const widthsKey = JSON.stringify(widths)
   const hiddenKey = [...hidden].sort().join(',')
+  const stagesKey = stages.map((s) => s.id).join(',')
 
   // Widok = filtr + sort. Edycja mapowana z powrotem do pełnego zbioru po id.
   const viewRows = useMemo(() => {
@@ -150,16 +155,11 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
       activeSectionId == null ? rows : rows.filter((r) => r.sectionId === activeSectionId)
     const filtered = filterRows(scoped, search)
     if (!sort) return filtered
-    return sortRows(filtered, (r) => sortValue(r, sort.field, view, tree.stages), sort.dir)
-  }, [rows, activeSectionId, search, sort, view, tree.stages])
-
-  const grandNet = useMemo(
-    () => viewRows.reduce((sum, r) => sum + rowNetForView(r, view), 0),
-    [viewRows, view],
-  )
+    return sortRows(filtered, (r) => sortValue(r, sort.field, view, stages), sort.dir)
+  }, [rows, activeSectionId, search, sort, view, stages])
 
   // Subtotale per sekcja: PEŁNY zbiór (nie viewRows) — stabilna rozpiska niezależna od
-  // filtra/sortu. `totalNet` (suma pełnego zbioru) ≠ `grandNet` (filtro-świadomy w toolbarze).
+  // filtra/sortu.
   const subtotals = useMemo(() => sectionSubtotalsForView(rows, view), [rows, view])
   const totalNet = useMemo(() => subtotals.reduce((s, x) => s + x.net, 0), [subtotals])
 
@@ -189,14 +189,14 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
       displayOrder: res.data.displayOrder,
       sectionId,
       sectionName: sample?.sectionName ?? NEW_SECTION_DEFAULTS.name,
-      sectionVatRate: sample?.sectionVatRate ?? NEW_SECTION_DEFAULTS.vatRate,
+      vatRate: tree.vatRate,
       sectionDefaultCostVariant:
         sample?.sectionDefaultCostVariant ?? NEW_SECTION_DEFAULTS.defaultCostVariant,
       sectionWToolsCoeff: sample?.sectionWToolsCoeff ?? null,
       sectionOwnToolsCoeff: sample?.sectionOwnToolsCoeff ?? null,
       globalWToolsCoeff: tree.globalCoeffs.wTools,
       globalOwnToolsCoeff: tree.globalCoeffs.ownTools,
-      stages: tree.stages,
+      stages,
     })
     prevById.current.set(row.id, row)
     setRows((rs) => applyAddItem(rs, row))
@@ -241,16 +241,24 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
       displayOrder: item.data.displayOrder,
       sectionId: sec.data.id,
       sectionName: NEW_SECTION_DEFAULTS.name,
-      sectionVatRate: NEW_SECTION_DEFAULTS.vatRate,
+      vatRate: tree.vatRate,
       sectionDefaultCostVariant: NEW_SECTION_DEFAULTS.defaultCostVariant,
       sectionWToolsCoeff: null,
       sectionOwnToolsCoeff: null,
       globalWToolsCoeff: tree.globalCoeffs.wTools,
       globalOwnToolsCoeff: tree.globalCoeffs.ownTools,
-      stages: tree.stages,
+      stages,
     })
     prevById.current.set(row.id, row)
     setRows((rs) => applyAddItem(rs, row))
+  }
+
+  async function handleAddStage() {
+    const res = await addStageAction(investmentId)
+    if (!res.success) return
+    // Dokładamy kolumnę etapu. Brak wpisów postępu na istniejących wierszach = puste komórki
+    // (sparse, brak klucza = 0). stagesKey w kluczu siatki wymusza remount z nową kolumną.
+    setStages((s) => [...s, { id: res.data.id, ordinal: res.data.ordinal, label: null }])
   }
 
   function handleRemoveSection(sectionId: number) {
@@ -276,17 +284,61 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
     tree.sections.map((s) => [s.id, { wTools: s.wToolsCoeff, ownTools: s.ownToolsCoeff }]),
   )
 
-  // Zmiana współczynnika przelicza wyprowadzone ceny wszystkich nienadpisanych pozycji →
-  // pełny refresh z serwera (nie optymistyka per pole, bo dotyka wielu wierszy naraz).
+  // Optymistyczny patch zdenormalizowanego pola na pasujących wierszach + prevById (jak
+  // handleRenameSection dla sectionName). Stawka VAT i współczynniki narzutu są
+  // zdenormalizowane na KAŻDYM wierszu, ale zmienia się je POZA siatką (panel). Sam
+  // router.refresh() ich nie podniesie: `rows` siedzi w useState z inicjalizatorem
+  // odpalanym raz na montażu, więc odświeżony prop `tree` nie reinicjalizuje wierszy —
+  // bez tego patcha kolumny „Brutto"/„Cena" pokazywałyby starą wartość do reloadu.
+  function patchRows(
+    match: (row: KosztorysV2RowT) => boolean,
+    patch: (row: KosztorysV2RowT) => KosztorysV2RowT,
+  ) {
+    setRows((rs) => rs.map((r) => (match(r) ? patch(r) : r)))
+    for (const [id, r] of prevById.current) {
+      if (match(r)) prevById.current.set(id, patch(r))
+    }
+  }
+
+  // Zmiana globalnego współczynnika przelicza wyprowadzone ceny wszystkich nienadpisanych
+  // pozycji. Patch optymistyczny na wierszach + refresh dla panelu (czyta z `tree`).
   async function handleGlobalCoeffChange(patch: { wToolsCoeff?: number; ownToolsCoeff?: number }) {
+    patchRows(
+      () => true,
+      (r) => ({
+        ...r,
+        ...(patch.wToolsCoeff != null ? { globalWToolsCoeff: patch.wToolsCoeff } : {}),
+        ...(patch.ownToolsCoeff != null ? { globalOwnToolsCoeff: patch.ownToolsCoeff } : {}),
+      }),
+    )
     const res = await updateInvestmentCoeffsAction(investmentId, patch)
     if (res.success) router.refresh()
   }
 
+  // VAT inwestycji (jedna stawka): wpisujemy w %, trzymamy w ułamku. Jedna stawka na cały
+  // kosztorys → patch na wszystkich wierszach; brutto = netto × (1 + vatRate).
+  async function handleVatChange(vatRate: number) {
+    patchRows(
+      () => true,
+      (r) => ({ ...r, vatRate }),
+    )
+    const res = await updateInvestmentCoeffsAction(investmentId, { vatRate })
+    if (res.success) router.refresh()
+  }
+
+  // Współczynnik sekcji (null = dziedziczy globalny) — patch tylko na wierszach tej sekcji.
   async function handleSectionCoeffChange(
     sectionId: number,
     patch: { wToolsCoeff?: number | null; ownToolsCoeff?: number | null },
   ) {
+    patchRows(
+      (r) => r.sectionId === sectionId,
+      (r) => ({
+        ...r,
+        ...('wToolsCoeff' in patch ? { sectionWToolsCoeff: patch.wToolsCoeff ?? null } : {}),
+        ...('ownToolsCoeff' in patch ? { sectionOwnToolsCoeff: patch.ownToolsCoeff ?? null } : {}),
+      }),
+    )
     const res = await updateSectionFieldAction(sectionId, patch)
     if (res.success) router.refresh()
   }
@@ -359,13 +411,10 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
             ＋ pozycja
           </Button>
         )}
-        <span className="text-muted-foreground text-sm">
-          {viewRows.length} pozycji · netto{' '}
-          {grandNet.toLocaleString('pl-PL', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}
-        </span>
+        <Button size="sm" variant="outline" onClick={handleAddStage}>
+          ＋ etap
+        </Button>
+        <span className="text-muted-foreground text-sm">{viewRows.length} pozycji</span>
         <div className="ml-auto flex items-center gap-1">
           <Button
             size="sm"
@@ -376,7 +425,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
           </Button>
           <KosztorysCsvButton
             rows={viewRows}
-            stages={tree.stages}
+            stages={stages}
             hidden={hidden}
             view={view}
             subtotals={subtotals}
@@ -404,7 +453,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
             // chowało/pokazywało nic, bez `widthsKey` resize nie przeliczał szerokości.
             // `sorted/natural`: strzałki reorderu (wyszarzone przy sorcie) muszą się przebudować
             // na wejściu/zejściu z sortu — asc↔desc nie remountuje (stan strzałek bez zmian).
-            key={`${view}:${sort ? 'sorted' : 'natural'}:${hiddenKey}:${widthsKey}`}
+            key={`${view}:${sort ? 'sorted' : 'natural'}:${hiddenKey}:${widthsKey}:${stagesKey}`}
             className="kosztorys-grid"
             value={viewRows}
             onChange={onChange}
@@ -422,6 +471,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
             grandNet={totalNet}
             activeSectionId={activeSectionId}
             globalCoeffs={tree.globalCoeffs}
+            vatRate={tree.vatRate}
             sectionCoeffs={sectionCoeffs}
             onClose={() => setSummaryOpen(false)}
             onAddSection={handleAddSection}
@@ -430,6 +480,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
             onRemoveSection={handleRemoveSection}
             onFilterSection={setActiveSectionId}
             onGlobalCoeffChange={handleGlobalCoeffChange}
+            onVatChange={handleVatChange}
             onSectionCoeffChange={handleSectionCoeffChange}
           />
         )}

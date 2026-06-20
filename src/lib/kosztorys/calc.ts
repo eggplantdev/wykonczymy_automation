@@ -7,15 +7,13 @@ import type {
   ViewPricingT,
 } from '@/types/kosztorys'
 
+// VAT: jedna stawka na inwestycję (vatRate), niesiona na wierszu. Brak kaskady sekcja→pozycja.
+
 // Jedyne źródło formuł rozpiski. Czyste funkcje — zapisujemy tylko inputy, wszystko
 // poniżej liczymy na żywo. Wartość liczona z measuredQty (pomiar), nie plannedQty.
 //
 // Rabat: discountValue dla 'percent' = punkty procentowe (10 => 10%), dla 'amount'
 // = kwota w zł odjęta od wartości netto.
-
-export function effectiveVat(item: KosztorysItemT, section: KosztorysSectionT): number {
-  return item.vatRate ?? section.vatRate
-}
 
 export function effectiveCostVariant(
   item: KosztorysItemT,
@@ -35,8 +33,8 @@ export function rowNet(item: KosztorysItemT): number {
   return applyDiscount(item.measuredQty * item.clientPrice, item)
 }
 
-export function rowGross(item: KosztorysItemT, section: KosztorysSectionT): number {
-  return rowNet(item) * (1 + effectiveVat(item, section))
+export function rowGross(item: KosztorysItemT, vatRate: number): number {
+  return rowNet(item) * (1 + vatRate)
 }
 
 /** Wartość pojedynczego etapu pozycji (ilość wykonana × cena klienta − rabat). */

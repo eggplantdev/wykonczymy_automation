@@ -13,6 +13,8 @@ type PropsT = {
   grandNet: number
   activeSectionId: number | null
   globalCoeffs: { wTools: number; ownTools: number }
+  // Stawka VAT inwestycji jako ułamek (0.08); pole edytuje w %.
+  vatRate: number
   sectionCoeffs: Map<number, SectionCoeffsT>
   onClose: () => void
   onAddSection: () => void
@@ -21,6 +23,7 @@ type PropsT = {
   onRemoveSection: (sectionId: number) => void
   onFilterSection: (sectionId: number | null) => void
   onGlobalCoeffChange: (patch: { wToolsCoeff?: number; ownToolsCoeff?: number }) => void
+  onVatChange: (vatRate: number) => void
   onSectionCoeffChange: (
     sectionId: number,
     patch: { wToolsCoeff?: number | null; ownToolsCoeff?: number | null },
@@ -77,6 +80,7 @@ export function KosztorysSectionSummary({
   grandNet,
   activeSectionId,
   globalCoeffs,
+  vatRate,
   sectionCoeffs,
   onClose,
   onAddSection,
@@ -85,6 +89,7 @@ export function KosztorysSectionSummary({
   onRemoveSection,
   onFilterSection,
   onGlobalCoeffChange,
+  onVatChange,
   onSectionCoeffChange,
 }: PropsT) {
   // Inline rename: id edytowanej sekcji + bufor nazwy. null = nic nie edytujemy.
@@ -141,6 +146,12 @@ export function KosztorysSectionSummary({
             label="bez narzędzi"
             value={globalCoeffs.ownTools}
             onCommit={(n) => n != null && onGlobalCoeffChange({ ownToolsCoeff: n })}
+          />
+          {/* Jedna stawka VAT na inwestycję: w UI w %, w modelu ułamek (8% ↔ 0.08). */}
+          <CoeffField
+            label="VAT (%)"
+            value={vatRate * 100}
+            onCommit={(n) => n != null && onVatChange(n / 100)}
           />
         </div>
       </div>

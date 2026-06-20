@@ -44,6 +44,7 @@ export async function getKosztorysTree(investmentId: number): Promise<KosztorysT
     wTools: num(investment.wToolsCoeff) || 0.65,
     ownTools: num(investment.ownToolsCoeff) || 0.55,
   }
+  const vatRate = num(investment.vatRate) || 0.08
 
   const items: KosztorysItemT[] = itemsRes.docs.map((d) => ({
     id: d.id,
@@ -61,7 +62,6 @@ export async function getKosztorysTree(investmentId: number): Promise<KosztorysT
     ownToolsOverrideType: (d.ownToolsOverrideType as SubcontractorOverrideTypeT | null) ?? null,
     ownToolsOverrideValue: num(d.ownToolsOverrideValue),
     costVariant: (d.costVariant as CostVariantT | null) ?? null,
-    vatRate: d.vatRate == null ? null : num(d.vatRate),
     hiddenInExport: Boolean(d.hiddenInExport),
     note: d.note ?? null,
   }))
@@ -70,7 +70,6 @@ export async function getKosztorysTree(investmentId: number): Promise<KosztorysT
     id: d.id,
     name: d.name,
     displayOrder: num(d.displayOrder),
-    vatRate: num(d.vatRate),
     defaultCostVariant: (d.defaultCostVariant as CostVariantT) ?? 'w_tools',
     wToolsCoeff: d.wToolsCoeff == null ? null : num(d.wToolsCoeff),
     ownToolsCoeff: d.ownToolsCoeff == null ? null : num(d.ownToolsCoeff),
@@ -100,5 +99,5 @@ export async function getKosztorysTree(investmentId: number): Promise<KosztorysT
     }))
   }
 
-  return { sections, stages, progress, globalCoeffs }
+  return { sections, stages, progress, globalCoeffs, vatRate }
 }
