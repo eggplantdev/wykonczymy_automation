@@ -39,6 +39,12 @@ dosłownie ten sam zbiór `rows` zawężony → sync 1:1 za darmo).
   kaskadowo). Jeśli usuwasz sekcję aktualnie zafiltrowaną → wyczyść `activeSectionId`.
 - **Filtruj do sekcji:** klik nazwy sekcji w panelu → `activeSectionId`; siatka pokazuje
   tylko jej wiersze (AND z szukajką i sortem). „Pokaż wszystkie" czyści.
+  - **TODO MVP — wskaźnik aktywnej sekcji.** Obecnie jedyna oznaka filtra to subtelne
+    podświetlenie pozycji w panelu (`bg-accent/40`) — a panel bywa **zamknięty**, więc
+    wtedy nie widać, że siatka jest zawężona do jednej sekcji. Dodać **zawsze widoczny
+    wskaźnik na górnym pasku** (badge „Sekcja: <nazwa>" z ✕ czyszczącym filtr), niezależny
+    od stanu panelu. Nazwę brać z `subtotals` po `activeSectionId`. Mały dodatek UX —
+    osobny krok, nie blokuje Slice 1.
 - **Dodaj pozycję:** „＋ pozycja" przy sekcji w panelu (cel jednoznaczny). Gdy siatka jest
   zafiltrowana do sekcji — także przycisk „＋ pozycja" na górnym pasku.
 - **Usuń pozycję:** ikonka kosza w **wierszu** (własna kolumna akcji) → `removeItemAction`.
