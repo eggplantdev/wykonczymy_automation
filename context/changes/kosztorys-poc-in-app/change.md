@@ -109,13 +109,13 @@ z istniejącą zakładką „Arkusz".
 
 ## Baza danych (ZWERYFIKOWANE 2026-06-19)
 
-**Wszystkie migracje POC idą wyłącznie na `wykonczymy-poc`** — osobną bazę w
-lokalnym Dockerze (kontener `wykonczymy`, port 5433). Potwierdzone:
+**Wszystkie migracje POC idą wyłącznie na `wykonczymy-poc`** — osobny kontener Dockera.
+Potwierdzone (ZAKTUALIZOWANE 2026-06-20 — wcześniej błędnie wpisany port 5433/jeden kontener):
 
-- Worktree `.env` → `DB_POSTGRES_URL = postgres://postgres:****@localhost:5433/wykonczymy-poc`
-  (jedyny, bez nadpisań; `.env.copy` to backup, nieładowany).
-- Kontener `wykonczymy` mapuje `0.0.0.0:5433->5432`; w kontenerze są dwie bazy:
-  `wykonczymy-db` (lokalny main — **NIETKNIĘTY**) oraz `wykonczymy-poc` (cel POC).
+- Worktree `.env` → `DB_POSTGRES_URL = postgres://postgres:postgres@localhost:5434/wykonczymy-poc`.
+- **Dwa osobne kontenery:** `wykonczymy-poc` mapuje `0.0.0.0:5434->5432` (cel POC, baza
+  `wykonczymy-poc`); `wykonczymy` mapuje `0.0.0.0:5433->5432` (lokalny main, baza
+  `wykonczymy-db` — **NIETKNIĘTY**).
 - `wykonczymy-poc` zaseedowana z dumpa Neona (80 inwestycji); tabele kosztorysu
   dodaje migracja `20260620_add_kosztorys_tables`.
 - Prod (Neon) = `DB_POSTGRES_URL_PROD`, osobna zmienna — `payload migrate` jej nie
@@ -161,6 +161,41 @@ POC od razu w wyglądzie aplikacji, nie surowy `<table>`. Decyzje:
 - **Model widoku = płaski** (`KosztorysEditorRowT`): sekcja jako sortowalna/
   filtrowalna kolumna (denormalizowana z sekcji), nie wiersz-nagłówek — żeby sort/
   filtr działały jak w tabelach aplikacji. Subtotale per sekcja = follow-on.
+
+## Stan implementacji — handoff
+
+### Sesja 2026-06-20 — ceny podwykonawcy (współczynniki + override) + 2 fixy dsg
+
+**Zaimplementowane i zacommitowane** (gałąź `poc-kosztorys-in-app`, NIE pushnięte):
+
+- **Ceny podwykonawcy przez współczynnik narzutu + dwustanowy override** (rozwiązuje #2).
+  Spec: `docs/superpowers/specs/2026-06-20-kosztorys-subcontractor-pricing-design.md`,
+  plan (9 tasków): `docs/superpowers/plans/2026-06-20-kosztorys-subcontractor-pricing.md`.
+  - Model: `effectiveCoeff`/`subcontractorPrice` w `calc.ts`; współczynniki na `investments`
+    (default 0,65/0,55) + `kosztorys_sections` (nullable→dziedziczy); override per pozycja
+    (`{w,own}ToolsOverride{Type,Value}`, typ ∈ coeff/amount/null) zamiast snapshotów cen.
+  - Migracja: `src/migrations/20260620_1_subcontractor_coeffs.ts` — **zaaplikowana na
+    `wykonczymy-poc`** (5434). Re-seed niepotrzebny (override null → ceny wyprowadzone).
+  - UI: panel sekcji (globalne + per-sekcja współczynniki), siatka w widokach podwykonawcy
+    (kolumna „Cena" wyprowadzona/override + „Tryb liczenia ceny").
+- **Fix dsg #1:** przełącznik widoku gubił wiązania kolumn (3 widoki = cena klienta) —
+  `view` w kluczu remountu. **Zweryfikowany w przeglądarce** (bez narzędzi = 0 przy pustych).
+- **Fix dsg #2:** „Kolumny" (widoczność) nie działało — `hidden` dodany do klucza remountu.
+- Lekcja w `lessons.md` poszerzona: klucz remountu dsg musi obejmować KAŻDY wymiar
+  kształtujący kolumny (szerokości, widok, ukryte kolumny).
+
+**Status weryfikacji:** fix #1 potwierdzony w przeglądarce. **NIEzweryfikowane end-to-end
+w przeglądarce:** cała funkcja cen podwykonawcy (panel współczynników, edycja override,
+tryby) oraz fix #2 — do sprawdzenia przy podjęciu.
+
+**Świadomie odłożone (udokumentowane w #2 „Follow-up UX" i planie):**
+
+- Wyjaśnienie trybów liczenia ceny **nad tabelą** w danym widoku (model nieoczywisty) —
+  treść opisów już zapisana w #2.
+- Ustawienia wyliczania cen prawdopodobnie **wydzielić z panelu bocznego** na osobny ekran.
+- **Testy** — odłożone na MVP (zmigrowano tylko fixture'y, by `tsc` był zielony).
+
+---
 
 ## Stan implementacji — handoff (2026-06-19)
 
@@ -401,13 +436,10 @@ za właściciela. Do rozstrzygnięcia, zanim ruszą:
 
    **Follow-up UX (z weryfikacji w przeglądarce 2026-06-20 — model jest nieoczywisty):**
    - **Wyjaśnienie trybów MUSI być nad tabelą, w ramach danego widoku** (nie tylko w
-     dropdownie) — bardzo nieoczywiste. Treść do pokazania (zachowana tu, żeby nie zniknęła):
-     - **auto (z współczynnika)** — cena liczona = `cena klienta × współczynnik narzutu`
-       (z sekcji, a jeśli sekcja pusta — globalny). Domyślny stan; podąża za ceną klienta
-       i zmianą współczynnika.
-     - **× mnożnik ceny klienta** (`coeff`) — własny mnożnik tej pozycji: `cena klienta ×
-wpisana wartość`. Też podąża za ceną klienta, ale ignoruje współczynnik sekcji/globalny.
-     - **kwota zł** (`amount`) — płaska, wpisana kwota; nie zależy od ceny klienta.
+     dropdownie) — bardzo nieoczywiste. Treść do pokazania (zachowana tu, żeby nie zniknęła): - **auto (z współczynnika)** — cena liczona = `cena klienta × współczynnik narzutu`
+     (z sekcji, a jeśli sekcja pusta — globalny). Domyślny stan; podąża za ceną klienta
+     i zmianą współczynnika. - **× mnożnik ceny klienta** (`coeff`) — własny mnożnik tej pozycji: `cena klienta ×
+wpisana wartość`. Też podąża za ceną klienta, ale ignoruje współczynnik sekcji/globalny. - **kwota zł** (`amount`) — płaska, wpisana kwota; nie zależy od ceny klienta.
    - **Ustawienia wyliczania cen prawdopodobnie lepiej wydzielić z panelu bocznego na osobny
      ekran/sekcję** — w panelu sekcji są mało oczywiste. (Decyzja na później, nie teraz.)
    - Zrobione od ręki 2026-06-20: kolumna nazwana „Tryb liczenia ceny", etykiety trybów
