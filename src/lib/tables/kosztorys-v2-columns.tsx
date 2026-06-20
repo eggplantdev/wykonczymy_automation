@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react'
 import { Column, type CellProps, keyColumn, textColumn, floatColumn } from 'react-datasheet-grid'
 import { SortHeader } from '@/components/kosztorys/sort-header'
+import { ResizableHeader } from '@/components/kosztorys/column-resize-handle'
 import {
   effectiveVat,
   rowNetForView,
@@ -41,6 +42,11 @@ export type BuildV2ColumnsOptsT = {
   view: PriceViewT
   sort?: V2SortStateT
   onToggleSort?: (field: string) => void
+  // Resize: szerokości przypiętych kolumn (id→px) + callbacki dragu. Gdy podane,
+  // każda kolumna dostaje uchwyt; przypięte zyskują basis/grow:0 (reszta zostaje na flex).
+  widths?: Record<string, number>
+  onGuide?: (x: number | null) => void
+  onCommitColumn?: (id: string, width: number) => void
 }
 
 // keyColumn wymaga column: Column<Row[K]>. floatColumn/textColumn są nullowalne
@@ -151,6 +157,36 @@ export function v2ToggleableColumns(stages: KosztorysStageT[]): { id: string; la
   ]
 }
 
+// Nakłada na kolumnę przypiętą szerokość (basis/grow:0) i owija jej title w uchwyt resize.
+// Bez callbacków dragu (onResizeColumn) zwraca kolumnę bez zmian — resize wyłączony.
+function withResize(
+  col: Column<KosztorysV2RowT>,
+  opts: BuildV2ColumnsOptsT,
+): Column<KosztorysV2RowT> {
+  if (!opts.onGuide || !opts.onCommitColumn || !col.id) return col
+  const min = col.minWidth ?? 100
+  const pinned = opts.widths?.[col.id]
+  // Przypięcie = sztywna szerokość niezależna od algorytmu flex dsg: min=max=basis=W,
+  // grow/shrink 0. (Samo `basis` dsg ignorował przy overflow — siadał na minWidth.)
+  const sized: Column<KosztorysV2RowT> =
+    pinned != null
+      ? { ...col, basis: pinned, grow: 0, shrink: 0, minWidth: pinned, maxWidth: pinned }
+      : col
+  return {
+    ...sized,
+    title: (
+      <ResizableHeader
+        colId={col.id}
+        minWidth={min}
+        onGuide={opts.onGuide}
+        onCommit={opts.onCommitColumn}
+      >
+        {col.title}
+      </ResizableHeader>
+    ),
+  }
+}
+
 export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[] {
   const { stages, view } = opts
   const left: Column<KosztorysV2RowT>[] = [
@@ -214,5 +250,5 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
     ),
   ]
 
-  return [...left, ...stageCols, ...computed]
+  return [...left, ...stageCols, ...computed].map((c) => withResize(c, opts))
 }

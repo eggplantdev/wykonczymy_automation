@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { DataSheetGrid } from 'react-datasheet-grid'
 import { useDebouncedSave } from '@/components/kosztorys/use-debounced-save'
 import { useHiddenColumns } from '@/components/kosztorys/use-hidden-columns'
+import { useColumnWidths } from '@/components/kosztorys/use-column-widths'
 import { DatasheetColumnToggle } from '@/components/kosztorys/datasheet-column-toggle'
 import { useElementHeight } from '@/hooks/use-element-height'
 import { Button } from '@/components/ui/button'
@@ -77,6 +78,12 @@ export function KosztorysEditorV2({ tree, investmentName }: PropsT) {
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<SortStateT>(null)
   const { hidden, toggle: toggleColumn } = useHiddenColumns()
+  // Szerokości kolumn: trwałe w localStorage. Commit (na puść uchwytu) zapisuje i przez
+  // `key` remountuje siatkę z nową szerokością — react-datasheet-grid nie przelicza sizing
+  // bez remountu (jego wewnętrzne memo). W trakcie dragu pokazujemy tylko pionową prowadnicę
+  // (guideX = X kursora), bez dotykania grida.
+  const { widths, setWidth } = useColumnWidths()
+  const [guideX, setGuideX] = useState<number | null>(null)
   // Snapshot poprzednich wierszy do diffu (po id pozycji) — pełny zbiór, nie widok.
   const prevById = useRef(new Map(rows.map((r) => [r.id, r])))
 
@@ -88,9 +95,19 @@ export function KosztorysEditorV2({ tree, investmentName }: PropsT) {
     })
   }
 
-  const allColumns = buildV2Columns({ stages: tree.stages, view, sort, onToggleSort: toggleSort })
+  const allColumns = buildV2Columns({
+    stages: tree.stages,
+    view,
+    sort,
+    onToggleSort: toggleSort,
+    widths,
+    onGuide: setGuideX,
+    onCommitColumn: setWidth,
+  })
   const columns = allColumns.filter((c) => !(c.id && hidden.has(c.id)))
   const toggleable = v2ToggleableColumns(tree.stages)
+  // Sygnatura szerokości — zmiana wymusza remount siatki (patrz key na DataSheetGrid).
+  const widthsKey = JSON.stringify(widths)
 
   // Widok = filtr + sort. Edycja mapowana z powrotem do pełnego zbioru po id.
   const viewRows = useMemo(() => {
@@ -201,6 +218,8 @@ export function KosztorysEditorV2({ tree, investmentName }: PropsT) {
           Bez tego szerokość oscylowała viewport↔treść i resize-detector grida mrugał. */}
       <div ref={gridRef} className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] overflow-hidden">
         <DataSheetGrid
+          // Remount przy zmianie szerokości kolumn: dsg nie przelicza sizing bez tego.
+          key={widthsKey}
           className="kosztorys-grid"
           value={viewRows}
           onChange={onChange}
@@ -212,6 +231,13 @@ export function KosztorysEditorV2({ tree, investmentName }: PropsT) {
           rowKey={({ rowData }) => String(rowData.id)}
         />
       </div>
+      {/* Pionowa prowadnica podczas przeciągania krawędzi kolumny (fixed = X kursora). */}
+      {guideX !== null && (
+        <div
+          className="bg-primary/70 pointer-events-none fixed inset-y-0 z-50 w-px"
+          style={{ left: guideX }}
+        />
+      )}
     </div>
   )
 }
