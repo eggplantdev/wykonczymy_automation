@@ -205,6 +205,34 @@ export async function removeItemAction(itemId: number) {
   )
 }
 
+const reorderItemsSchema = z.object({
+  sectionId: z.number(),
+  orderedItemIds: z.array(z.number()).min(1),
+})
+
+// Renumeracja display_order pozycji sekcji wg pełnej listy id (nie swap dwóch) — serwer
+// dostaje całą prawdę o kolejności i renumeruje od zera. Idempotentne, odporne na dryf.
+// Transakcyjność pomijamy (POC, parytet z addSection→addItem ze Slice 1).
+export async function reorderItemsAction(
+  sectionId: number,
+  orderedItemIds: number[],
+): Promise<ActionResultT> {
+  return protectedAction(
+    'reorderItemsAction',
+    async ({ payload }) => {
+      const parsed = validateAction(reorderItemsSchema, { sectionId, orderedItemIds })
+      if (!parsed.success) return parsed
+      await Promise.all(
+        parsed.data.orderedItemIds.map((id, index) =>
+          payload.update({ collection: 'kosztorys-items', id, data: { displayOrder: index } }),
+        ),
+      )
+      return { success: true }
+    },
+    ['kosztorysItems'],
+  )
+}
+
 export async function addStageAction(
   investmentId: number,
 ): Promise<ActionResultT<{ id: number; ordinal: number }>> {
