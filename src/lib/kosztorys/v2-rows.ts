@@ -204,6 +204,32 @@ export function sectionItemCount(rows: KosztorysV2RowT[], sectionId: number): nu
   return rows.reduce((n, r) => (r.sectionId === sectionId ? n + 1 : n), 0)
 }
 
+// Przestaw pozycję w obrębie JEJ sekcji o jedno miejsce (▲/▼). Operuje na sekwencji
+// wyświetlania pozycji tej samej sekcji (kolejność w `rows`), NIE na ciągłości bloku —
+// dzięki temu toleruje pozycję dodaną przez applyAddItem na koniec `rows` (Slice 1).
+// Zwraca tę samą referencję przy no-opie (brzeg bloku / nieznane id) — sygnał dla edytora,
+// że nie ma czego zapisywać.
+export function swapItemInSection(
+  rows: KosztorysV2RowT[],
+  itemId: number,
+  dir: 'up' | 'down',
+): KosztorysV2RowT[] {
+  const target = rows.find((r) => r.id === itemId)
+  if (!target) return rows
+  // Indeksy w `rows` pozycji tej samej sekcji, w kolejności tablicy (= kolejności wyświetlania).
+  const sameSection = rows
+    .map((r, i) => ({ id: r.id, i }))
+    .filter((_, idx) => rows[idx].sectionId === target.sectionId)
+  const pos = sameSection.findIndex((x) => x.id === itemId)
+  const targetPos = dir === 'up' ? pos - 1 : pos + 1
+  if (targetPos < 0 || targetPos >= sameSection.length) return rows // brzeg bloku → no-op
+  const a = sameSection[pos].i
+  const b = sameSection[targetPos].i
+  const next = [...rows]
+  ;[next[a], next[b]] = [next[b], next[a]]
+  return next
+}
+
 // Σ wartości wykonanych etapów wiersza v2 wg ceny widoku (do kolumny „Pozostało").
 export function rowDoneNetForView(
   row: KosztorysV2RowT,
