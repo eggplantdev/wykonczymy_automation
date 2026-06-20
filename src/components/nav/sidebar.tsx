@@ -7,7 +7,16 @@ import { isAdminOrOwnerRole, isManagementRole } from '@/lib/auth/roles'
 import { SECTION_LINKS } from '@/lib/constants/sections'
 import { toastMessage } from '@/components/toasts'
 import { useCurrentUser } from '@/hooks/use-current-user'
-import { FileBarChart, FileSpreadsheet, LogOut, Mail, RefreshCw, Shield, Users } from 'lucide-react'
+import {
+  Calculator,
+  FileBarChart,
+  FileSpreadsheet,
+  LogOut,
+  Mail,
+  RefreshCw,
+  Shield,
+  Users,
+} from 'lucide-react'
 import Link from 'next/link'
 import { useTransition } from 'react'
 
@@ -55,6 +64,16 @@ export function Sidebar() {
             <Link href="/kosztorysy">
               <FileSpreadsheet className="size-4" />
               Kosztorysy
+            </Link>
+          </Button>
+        )}
+        {showUsers && (
+          <Button variant="ghost" size="sm" className="justify-start" asChild>
+            {/* POC shortcut to the in-app kosztorys editor. Hard-coded to the test
+                investment (7 = „test kosztorys Sienicka"); change the id as needed. */}
+            <Link href="/inwestycje/7/kosztorys-edytor-v2">
+              <Calculator className="size-4" />
+              Kosztorys (edytor)
             </Link>
           </Button>
         )}
