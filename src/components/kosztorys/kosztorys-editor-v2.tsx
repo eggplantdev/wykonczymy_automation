@@ -42,6 +42,7 @@ import {
   removeItemAction,
   removeSectionAction,
   setStageProgressAction,
+  updateInvestmentCoeffsAction,
   updateItemFieldAction,
   updateSectionFieldAction,
   type ItemPatchT,
@@ -179,6 +180,10 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
       sectionVatRate: sample?.sectionVatRate ?? NEW_SECTION_DEFAULTS.vatRate,
       sectionDefaultCostVariant:
         sample?.sectionDefaultCostVariant ?? NEW_SECTION_DEFAULTS.defaultCostVariant,
+      sectionWToolsCoeff: sample?.sectionWToolsCoeff ?? null,
+      sectionOwnToolsCoeff: sample?.sectionOwnToolsCoeff ?? null,
+      globalWToolsCoeff: tree.globalCoeffs.wTools,
+      globalOwnToolsCoeff: tree.globalCoeffs.ownTools,
       stages: tree.stages,
     })
     prevById.current.set(row.id, row)
@@ -212,6 +217,10 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
       sectionName: NEW_SECTION_DEFAULTS.name,
       sectionVatRate: NEW_SECTION_DEFAULTS.vatRate,
       sectionDefaultCostVariant: NEW_SECTION_DEFAULTS.defaultCostVariant,
+      sectionWToolsCoeff: null,
+      sectionOwnToolsCoeff: null,
+      globalWToolsCoeff: tree.globalCoeffs.wTools,
+      globalOwnToolsCoeff: tree.globalCoeffs.ownTools,
       stages: tree.stages,
     })
     prevById.current.set(row.id, row)
@@ -234,6 +243,26 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
       if (r.sectionId === sectionId) prevById.current.set(id, { ...r, sectionName: name })
     }
     void updateSectionFieldAction(sectionId, { name })
+  }
+
+  // Współczynniki sekcji (null = dziedziczy globalny) do panelu — z drzewa, po id sekcji.
+  const sectionCoeffs = new Map(
+    tree.sections.map((s) => [s.id, { wTools: s.wToolsCoeff, ownTools: s.ownToolsCoeff }]),
+  )
+
+  // Zmiana współczynnika przelicza wyprowadzone ceny wszystkich nienadpisanych pozycji →
+  // pełny refresh z serwera (nie optymistyka per pole, bo dotyka wielu wierszy naraz).
+  async function handleGlobalCoeffChange(patch: { wToolsCoeff?: number; ownToolsCoeff?: number }) {
+    const res = await updateInvestmentCoeffsAction(investmentId, patch)
+    if (res.success) router.refresh()
+  }
+
+  async function handleSectionCoeffChange(
+    sectionId: number,
+    patch: { wToolsCoeff?: number | null; ownToolsCoeff?: number | null },
+  ) {
+    const res = await updateSectionFieldAction(sectionId, patch)
+    if (res.success) router.refresh()
   }
 
   function onChange(next: KosztorysV2RowT[]) {
@@ -363,12 +392,16 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
             subtotals={subtotals}
             grandNet={totalNet}
             activeSectionId={activeSectionId}
+            globalCoeffs={tree.globalCoeffs}
+            sectionCoeffs={sectionCoeffs}
             onClose={() => setSummaryOpen(false)}
             onAddSection={handleAddSection}
             onAddItem={handleAddItem}
             onRenameSection={handleRenameSection}
             onRemoveSection={handleRemoveSection}
             onFilterSection={setActiveSectionId}
+            onGlobalCoeffChange={handleGlobalCoeffChange}
+            onSectionCoeffChange={handleSectionCoeffChange}
           />
         )}
       </div>

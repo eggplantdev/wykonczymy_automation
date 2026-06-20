@@ -9,32 +9,43 @@ import {
   effectiveVat,
   rowNetForView,
   rowRemainingForView,
+  viewPrice,
   type PriceViewT,
 } from '@/lib/kosztorys/calc'
 import { rowDoneNetForView, stageKey, type SortDirT } from '@/lib/kosztorys/v2-rows'
 import type {
   DiscountTypeT,
-  KosztorysItemT,
   KosztorysSectionT,
   KosztorysStageT,
   KosztorysV2RowT,
+  SubcontractorOverrideTypeT,
+  ViewPricingT,
 } from '@/types/kosztorys'
 
 const fmt = (n: number) =>
   n.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-
-// Pole ceny renderowane jako aktywna kolumna „Cena" zależnie od widoku.
-const PRICE_FIELD: Record<PriceViewT, keyof KosztorysV2RowT> = {
-  client: 'clientPrice',
-  w_tools: 'subcontractorWToolsPrice',
-  own_tools: 'subcontractorOwnToolsPrice',
-}
 
 const DISCOUNT_OPTIONS: { value: string; label: string }[] = [
   { value: '', label: '—' },
   { value: 'percent', label: '%' },
   { value: 'amount', label: 'zł' },
 ]
+
+// Tryb override ceny podwykonawcy (kolumna „Tryb" w widokach podwykonawcy).
+const SUB_MODE_OPTIONS: { value: string; label: string }[] = [
+  { value: '', label: 'auto' },
+  { value: 'coeff', label: '×' },
+  { value: 'amount', label: 'zł' },
+]
+
+// Pola override per widok podwykonawcy.
+const OVERRIDE_FIELDS: Record<
+  'w_tools' | 'own_tools',
+  { type: keyof KosztorysV2RowT; value: keyof KosztorysV2RowT }
+> = {
+  w_tools: { type: 'wToolsOverrideType', value: 'wToolsOverrideValue' },
+  own_tools: { type: 'ownToolsOverrideType', value: 'ownToolsOverrideValue' },
+}
 
 export type V2SortStateT = { field: string; dir: SortDirT } | null
 
@@ -84,6 +95,8 @@ function asSection(r: KosztorysV2RowT): KosztorysSectionT {
     displayOrder: 0,
     vatRate: r.sectionVatRate,
     defaultCostVariant: r.sectionDefaultCostVariant,
+    wToolsCoeff: r.sectionWToolsCoeff,
+    ownToolsCoeff: r.sectionOwnToolsCoeff,
   }
 }
 
@@ -141,6 +154,85 @@ function discountTypeColumn(titleNode: ReactNode): Column<KosztorysV2RowT> {
         ? value
         : null) as DiscountTypeT | null,
     }),
+  }
+}
+
+// Kolumna „Cena" w widoku podwykonawcy: pokazuje cenę wyprowadzoną (szaro, gdy override
+// null) albo wpisaną wartość override. Wpisanie wartości w stan null tworzy override
+// 'amount' (płaski); wyczyszczenie wraca do wyprowadzonej (null). Tryb coeff vs amount
+// ustawia osobna kolumna „Tryb".
+function subcontractorPriceColumn(
+  view: 'w_tools' | 'own_tools',
+  titleNode: ReactNode,
+): Column<KosztorysV2RowT> {
+  const { type: typeField, value: valueField } = OVERRIDE_FIELDS[view]
+  return {
+    id: 'price',
+    title: titleNode,
+    minWidth: 90,
+    keepFocus: true,
+    component: ({ rowData, setRowData }: CellProps<KosztorysV2RowT, unknown>) => {
+      const type = rowData[typeField] as SubcontractorOverrideTypeT | null
+      const derived = type == null
+      const price = viewPrice(rowData as unknown as ViewPricingT, view)
+      return (
+        <input
+          className={`size-full bg-transparent px-2 text-right text-sm outline-none ${derived ? 'text-muted-foreground italic' : ''}`}
+          value={derived ? '' : String(rowData[valueField] ?? '')}
+          placeholder={derived ? fmt(price) : ''}
+          inputMode="decimal"
+          onChange={(e) => {
+            const raw = e.target.value.trim().replace(',', '.')
+            if (raw === '') {
+              setRowData({ ...rowData, [typeField]: null, [valueField]: 0 })
+              return
+            }
+            const n = Number(raw)
+            if (Number.isNaN(n)) return
+            setRowData({ ...rowData, [typeField]: type ?? 'amount', [valueField]: n })
+          }}
+        />
+      )
+    },
+    copyValue: ({ rowData }) => String(viewPrice(rowData as unknown as ViewPricingT, view)),
+    deleteValue: ({ rowData }) => ({ ...rowData, [typeField]: null, [valueField]: 0 }),
+  }
+}
+
+// Kolumna „Tryb" override ceny podwykonawcy: auto (null) / × (coeff) / zł (amount).
+// Przejście na auto zeruje wartość override.
+function subcontractorModeColumn(
+  view: 'w_tools' | 'own_tools',
+  titleNode: ReactNode,
+): Column<KosztorysV2RowT> {
+  const { type: typeField, value: valueField } = OVERRIDE_FIELDS[view]
+  return {
+    id: 'priceMode',
+    title: titleNode,
+    minWidth: 64,
+    keepFocus: true,
+    component: ({ rowData, setRowData }: CellProps<KosztorysV2RowT, unknown>) => (
+      <select
+        className="size-full bg-transparent px-2 text-sm outline-none"
+        value={(rowData[typeField] as string | null) ?? ''}
+        onChange={(e) => {
+          const next = (e.target.value || null) as SubcontractorOverrideTypeT | null
+          setRowData({
+            ...rowData,
+            [typeField]: next,
+            ...(next === null ? { [valueField]: 0 } : {}),
+          })
+        }}
+      >
+        {SUB_MODE_OPTIONS.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    ),
+    copyValue: ({ rowData }) => (rowData[typeField] as string | null) ?? '',
+    deleteValue: ({ rowData }) => ({ ...rowData, [typeField]: null, [valueField]: 0 }),
   }
 }
 
@@ -228,6 +320,22 @@ function actionColumn(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT> {
 
 export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[] {
   const { stages, view } = opts
+  // Widok klient: prosta edytowalna cena. Widoki podwykonawcy: kolumna „Tryb" (override)
+  // + „Cena" pokazująca wyprowadzoną/override. (Remount po `view` w edytorze — dsg zamraża
+  // columns na montażu; patrz lekcja w lessons.md.)
+  const priceCols: Column<KosztorysV2RowT>[] =
+    view === 'client'
+      ? [
+          keyCol('clientPrice', floatColumn, {
+            id: 'price',
+            title: title('price', 'Cena', opts),
+            minWidth: 90,
+          }),
+        ]
+      : [
+          subcontractorModeColumn(view, title('priceMode', 'Tryb', opts)),
+          subcontractorPriceColumn(view, title('price', 'Cena', opts)),
+        ]
   const left: Column<KosztorysV2RowT>[] = [
     keyCol('sectionName', textColumn, {
       id: 'sectionName',
@@ -254,12 +362,7 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
       title: title('measuredQty', 'Pomiar', opts),
       minWidth: 90,
     }),
-    // Aktywna cena zależna od widoku (ten sam wiersz, inna kolumna ceny). id stałe = 'price'.
-    keyCol(PRICE_FIELD[view], floatColumn, {
-      id: 'price',
-      title: title('price', 'Cena', opts),
-      minWidth: 90,
-    }),
+    ...priceCols,
     discountTypeColumn(title('discountType', 'Rabat', opts)),
     keyCol('discountValue', floatColumn, {
       id: 'discountValue',
@@ -280,15 +383,15 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
     computedColumn(
       'net',
       title('net', 'Netto', opts),
-      (r) => rowNetForView(r as unknown as KosztorysItemT, view),
+      (r) => rowNetForView(r as unknown as ViewPricingT, view),
       'font-medium',
     ),
     computedColumn('gross', title('gross', 'Brutto', opts), (r) => {
-      const item = r as unknown as KosztorysItemT
+      const item = r as unknown as ViewPricingT
       return rowNetForView(item, view) * (1 + effectiveVat(item, asSection(r)))
     }),
     computedColumn('remaining', title('remaining', 'Pozostało', opts), (r) =>
-      rowRemainingForView(r as unknown as KosztorysItemT, rowDoneNetForView(r, stages, view), view),
+      rowRemainingForView(r as unknown as ViewPricingT, rowDoneNetForView(r, stages, view), view),
     ),
   ]
 

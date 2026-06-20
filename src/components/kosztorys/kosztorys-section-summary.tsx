@@ -6,31 +6,86 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { SectionSubtotalT } from '@/types/kosztorys'
 
+type SectionCoeffsT = { wTools: number | null; ownTools: number | null }
+
 type PropsT = {
   subtotals: SectionSubtotalT[]
   grandNet: number
   activeSectionId: number | null
+  globalCoeffs: { wTools: number; ownTools: number }
+  sectionCoeffs: Map<number, SectionCoeffsT>
   onClose: () => void
   onAddSection: () => void
   onAddItem: (sectionId: number) => void
   onRenameSection: (sectionId: number, name: string) => void
   onRemoveSection: (sectionId: number) => void
   onFilterSection: (sectionId: number | null) => void
+  onGlobalCoeffChange: (patch: { wToolsCoeff?: number; ownToolsCoeff?: number }) => void
+  onSectionCoeffChange: (
+    sectionId: number,
+    patch: { wToolsCoeff?: number | null; ownToolsCoeff?: number | null },
+  ) => void
 }
 
 const fmt = (n: number) =>
   n.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
+// Pole współczynnika narzutu. Uncontrolled + `key` na wartości (remount po router.refresh),
+// commit na blur/Enter — bez useEffect (reguła projektu). Puste + nullable = dziedzicz (null).
+function CoeffField({
+  label,
+  value,
+  placeholder,
+  nullable,
+  onCommit,
+}: {
+  label: string
+  value: number | null
+  placeholder?: number
+  nullable?: boolean
+  onCommit: (n: number | null) => void
+}) {
+  return (
+    <label className="text-muted-foreground flex items-center gap-1 text-xs">
+      {label}
+      <input
+        key={value == null ? 'null' : String(value)}
+        type="text"
+        inputMode="decimal"
+        defaultValue={value == null ? '' : String(value)}
+        placeholder={placeholder != null ? String(placeholder) : ''}
+        className="border-border h-6 w-14 rounded border bg-transparent px-1 text-right text-xs outline-none"
+        onBlur={(e) => {
+          const raw = e.target.value.trim().replace(',', '.')
+          if (raw === '') {
+            if (nullable) onCommit(null)
+            return
+          }
+          const n = Number(raw)
+          if (!Number.isNaN(n)) onCommit(n)
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+        }}
+      />
+    </label>
+  )
+}
+
 export function KosztorysSectionSummary({
   subtotals,
   grandNet,
   activeSectionId,
+  globalCoeffs,
+  sectionCoeffs,
   onClose,
   onAddSection,
   onAddItem,
   onRenameSection,
   onRemoveSection,
   onFilterSection,
+  onGlobalCoeffChange,
+  onSectionCoeffChange,
 }: PropsT) {
   // Inline rename: id edytowanej sekcji + bufor nazwy. null = nic nie edytujemy.
   const [editId, setEditId] = useState<number | null>(null)
@@ -71,6 +126,22 @@ export function KosztorysSectionSummary({
           <Button size="icon" variant="ghost" className="h-6 w-6" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
+        </div>
+      </div>
+
+      <div className="border-border shrink-0 border-b px-3 py-2">
+        <div className="text-muted-foreground mb-1 text-xs">Domyślny współczynnik narzutu</div>
+        <div className="flex items-center gap-3">
+          <CoeffField
+            label="z narz."
+            value={globalCoeffs.wTools}
+            onCommit={(n) => n != null && onGlobalCoeffChange({ wToolsCoeff: n })}
+          />
+          <CoeffField
+            label="bez narz."
+            value={globalCoeffs.ownTools}
+            onCommit={(n) => n != null && onGlobalCoeffChange({ ownToolsCoeff: n })}
+          />
         </div>
       </div>
 
@@ -158,6 +229,23 @@ export function KosztorysSectionSummary({
                     </>
                   )}
                 </div>
+              </div>
+
+              <div className="mt-1 flex items-center gap-3">
+                <CoeffField
+                  label="z"
+                  nullable
+                  value={sectionCoeffs.get(s.sectionId)?.wTools ?? null}
+                  placeholder={globalCoeffs.wTools}
+                  onCommit={(n) => onSectionCoeffChange(s.sectionId, { wToolsCoeff: n })}
+                />
+                <CoeffField
+                  label="bez"
+                  nullable
+                  value={sectionCoeffs.get(s.sectionId)?.ownTools ?? null}
+                  placeholder={globalCoeffs.ownTools}
+                  onCommit={(n) => onSectionCoeffChange(s.sectionId, { ownToolsCoeff: n })}
+                />
               </div>
             </li>
           )
