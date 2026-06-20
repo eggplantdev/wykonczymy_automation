@@ -11,6 +11,7 @@ Business management dashboard for cash registers, transfers, investments, and em
 - **Canonical todo + slices:** `context/foundation/roadmap.md` — the v2 arc as slices (`F-01`, `S-01`…`S-10`) in dependency order, each with a `Status` field (`ready` / `proposed` / `blocked` / `done`). Start here for what to build next. Built from `context/foundation/prd.md` via `/10x-roadmap`; per-change plans land in `context/changes/<change-id>/` via `/10x-plan`.
 - **Live status board:** Linear project **"Wykonczymy v2"**. When you start implementing a slice set its Linear issue to In Progress, and to Done when it's complete. **Reality-check Linear access first** — if the Linear MCP isn't connected, update the slice's `Status` in `roadmap.md` instead rather than claiming a Linear change you can't make.
 - Refactor/cleanup backlog: see **Tech Debt** below. Client-notes todo: `docs/notes-todo.md`.
+- **Recurring rules / gotchas:** `context/foundation/lessons.md` — the append-only register the 10x skills re-read (frame/research/plan/implement/review). When a _class_ of bug or design pitfall emerges, append it there via `/10x-lesson` (append-only — never reorder/rewrite existing entries). Don't inline a lesson in this file or stash it in agent memory; one-off incidents aren't lessons.
 
 ## Common Commands
 
