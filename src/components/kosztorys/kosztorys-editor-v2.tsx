@@ -129,8 +129,11 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
   })
   const columns = allColumns.filter((c) => !(c.id && hidden.has(c.id)))
   const toggleable = v2ToggleableColumns(tree.stages)
-  // Sygnatura szerokości — zmiana wymusza remount siatki (patrz key na DataSheetGrid).
+  // Sygnatury wymuszające remount siatki: dsg zamraża `columns` na montażu, więc KAŻDY
+  // wymiar kształtujący kolumny musi być w kluczu — szerokości ORAZ zbiór ukrytych kolumn
+  // (bez tego „Kolumny" nie pokazywało/chowało nic). Patrz lekcja w lessons.md.
   const widthsKey = JSON.stringify(widths)
+  const hiddenKey = [...hidden].sort().join(',')
 
   // Widok = filtr + sort. Edycja mapowana z powrotem do pełnego zbioru po id.
   const viewRows = useMemo(() => {
@@ -372,10 +375,11 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
           className="grid min-h-0 min-w-0 flex-1 grid-cols-[minmax(0,1fr)] overflow-hidden"
         >
           <DataSheetGrid
-            // Remount przy zmianie szerokości kolumn ORAZ widoku: dsg zamraża `columns`
-            // na montażu i nie podnosi nowych wiązań (cena→pole, netto wg widoku) bez
-            // remountu — bez `view` w kluczu wszystkie 3 widoki pokazywały cenę klienta.
-            key={`${view}:${widthsKey}`}
+            // Remount przy zmianie szerokości / widoku / zbioru ukrytych kolumn: dsg zamraża
+            // `columns` na montażu i nie podnosi żadnej zmiany ich definicji bez remountu —
+            // bez `view` 3 widoki pokazywały cenę klienta, bez `hiddenKey` „Kolumny" nie
+            // chowało/pokazywało nic, bez `widthsKey` resize nie przeliczał szerokości.
+            key={`${view}:${hiddenKey}:${widthsKey}`}
             className="kosztorys-grid"
             value={viewRows}
             onChange={onChange}
