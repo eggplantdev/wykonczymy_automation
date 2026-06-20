@@ -4,7 +4,6 @@ import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { getInvestment } from '@/lib/queries/investments'
 import { getKosztorysTree } from '@/lib/queries/kosztorys'
 import { KosztorysEditorV2 } from '@/components/kosztorys/kosztorys-editor-v2'
-import { PageWrapper } from '@/components/ui/page-wrapper'
 
 export default async function KosztorysEditorV2Page({
   params,
@@ -24,8 +23,6 @@ export default async function KosztorysEditorV2Page({
   const tree = await getKosztorysTree(investmentId)
 
   return (
-    <PageWrapper title={`Kosztorys v2 — ${investment.name}`}>
-      <KosztorysEditorV2 investmentId={investmentId} tree={tree} />
-    </PageWrapper>
+    <KosztorysEditorV2 investmentId={investmentId} tree={tree} investmentName={investment.name} />
   )
 }

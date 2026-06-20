@@ -178,3 +178,14 @@
 --aspect-*	Aspect ratio utilities like aspect-video
 --ease-*	Transition timing function utilities like ease-out
 --animate-*	Animation utilities like animate-spin */
+
+/* Edytor kosztorysu v2 (react-datasheet-grid): mniejsza czcionka + ciaśniejsze
+   komórki, żeby zmieścić więcej wierszy „jak w arkuszu". Biblioteka nie ma zmiennej
+   CSS na font-size, więc nadpisujemy jej wewnętrzne klasy w zasięgu `.kosztorys-grid`. */
+.kosztorys-grid .dsg-cell,
+.kosztorys-grid .dsg-input {
+  font-size: 0.75rem;
+}
+.kosztorys-grid .dsg-cell-header {
+  font-size: 0.6875rem;
+}
