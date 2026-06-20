@@ -131,14 +131,14 @@ export function KosztorysSectionSummary({
 
       <div className="border-border shrink-0 border-b px-3 py-2">
         <div className="text-muted-foreground mb-1 text-xs">Domyślny współczynnik narzutu</div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-1">
           <CoeffField
-            label="z narz."
+            label="z narzędziami"
             value={globalCoeffs.wTools}
             onCommit={(n) => n != null && onGlobalCoeffChange({ wToolsCoeff: n })}
           />
           <CoeffField
-            label="bez narz."
+            label="bez narzędzi"
             value={globalCoeffs.ownTools}
             onCommit={(n) => n != null && onGlobalCoeffChange({ ownToolsCoeff: n })}
           />
@@ -231,16 +231,16 @@ export function KosztorysSectionSummary({
                 </div>
               </div>
 
-              <div className="mt-1 flex items-center gap-3">
+              <div className="mt-1 flex flex-col gap-1">
                 <CoeffField
-                  label="z"
+                  label="z narzędziami"
                   nullable
                   value={sectionCoeffs.get(s.sectionId)?.wTools ?? null}
                   placeholder={globalCoeffs.wTools}
                   onCommit={(n) => onSectionCoeffChange(s.sectionId, { wToolsCoeff: n })}
                 />
                 <CoeffField
-                  label="bez"
+                  label="bez narzędzi"
                   nullable
                   value={sectionCoeffs.get(s.sectionId)?.ownTools ?? null}
                   placeholder={globalCoeffs.ownTools}

@@ -31,11 +31,12 @@ const DISCOUNT_OPTIONS: { value: string; label: string }[] = [
   { value: 'amount', label: 'zł' },
 ]
 
-// Tryb override ceny podwykonawcy (kolumna „Tryb" w widokach podwykonawcy).
+// Tryb liczenia ceny podwykonawcy (kolumna w widokach podwykonawcy). Etykiety opisowe —
+// model jest nieoczywisty (patrz follow-up UX w change.md: wyjaśnienie nad tabelą).
 const SUB_MODE_OPTIONS: { value: string; label: string }[] = [
-  { value: '', label: 'auto' },
-  { value: 'coeff', label: '×' },
-  { value: 'amount', label: 'zł' },
+  { value: '', label: 'auto (z współczynnika)' },
+  { value: 'coeff', label: '× mnożnik ceny klienta' },
+  { value: 'amount', label: 'kwota zł' },
 ]
 
 // Pola override per widok podwykonawcy.
@@ -209,7 +210,7 @@ function subcontractorModeColumn(
   return {
     id: 'priceMode',
     title: titleNode,
-    minWidth: 64,
+    minWidth: 150,
     keepFocus: true,
     component: ({ rowData, setRowData }: CellProps<KosztorysV2RowT, unknown>) => (
       <select
@@ -333,7 +334,7 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
           }),
         ]
       : [
-          subcontractorModeColumn(view, title('priceMode', 'Tryb', opts)),
+          subcontractorModeColumn(view, title('priceMode', 'Tryb liczenia ceny', opts)),
           subcontractorPriceColumn(view, title('price', 'Cena', opts)),
         ]
   const left: Column<KosztorysV2RowT>[] = [

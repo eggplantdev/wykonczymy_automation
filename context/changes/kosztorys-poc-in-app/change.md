@@ -397,8 +397,22 @@ za właściciela. Do rozstrzygnięcia, zanim ruszą:
    wcześniejsza notatka „snapshot, nie współczynnik" + „bulk-apply" **nieaktualna** — model
    zmienił się w brainstormingu na współczynnik+override, bo override jako współczynnik
    podąża za ceną klienta, a `amount` pokrywa płaskie wartości jak r07=700.) Domyślne
-   globalne współczynniki: 0,65 / 0,55. **Otwarte (drobne):** UX trybu override w siatce
-   (osobna kolumna „Tryb") do oceny w użyciu.
+   globalne współczynniki: 0,65 / 0,55.
+
+   **Follow-up UX (z weryfikacji w przeglądarce 2026-06-20 — model jest nieoczywisty):**
+   - **Wyjaśnienie trybów MUSI być nad tabelą, w ramach danego widoku** (nie tylko w
+     dropdownie) — bardzo nieoczywiste. Treść do pokazania (zachowana tu, żeby nie zniknęła):
+     - **auto (z współczynnika)** — cena liczona = `cena klienta × współczynnik narzutu`
+       (z sekcji, a jeśli sekcja pusta — globalny). Domyślny stan; podąża za ceną klienta
+       i zmianą współczynnika.
+     - **× mnożnik ceny klienta** (`coeff`) — własny mnożnik tej pozycji: `cena klienta ×
+wpisana wartość`. Też podąża za ceną klienta, ale ignoruje współczynnik sekcji/globalny.
+     - **kwota zł** (`amount`) — płaska, wpisana kwota; nie zależy od ceny klienta.
+   - **Ustawienia wyliczania cen prawdopodobnie lepiej wydzielić z panelu bocznego na osobny
+     ekran/sekcję** — w panelu sekcji są mało oczywiste. (Decyzja na później, nie teraz.)
+   - Zrobione od ręki 2026-06-20: kolumna nazwana „Tryb liczenia ceny", etykiety trybów
+     opisowe, etykiety współczynników w panelu pełne („z narzędziami"/„bez narzędzi").
+
 3. **Eksport — format.** PDF czy CSV najpierw? Dla CSV: jak spłaszczyć zagnieżdżenie
    (sekcje → pozycje → etapy) do jednej tabeli? Dla PDF: które kolumny w dokumencie
    klienckim (z/bez cen wariantów, z/bez etapów)?
