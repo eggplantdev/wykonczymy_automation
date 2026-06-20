@@ -20,9 +20,24 @@ const ENV_LABELS: Record<EnvT, string> = {
   development: 'LOCAL',
 }
 
+// Pull ONLY the database name out of the connection string — never the user, password,
+// host, or port. `URL.pathname` is `/<dbname>`; query params (e.g. `?sslmode`) are dropped.
+function dbNameFromUrl(url: string | undefined): string | undefined {
+  if (!url) return undefined
+  try {
+    return new URL(url).pathname.replace(/^\//, '') || undefined
+  } catch {
+    return undefined
+  }
+}
+
+const DB_NAME = dbNameFromUrl(process.env.DB_POSTGRES_URL)
+
 export function EnvBadge() {
   // Never show in production — the badge exists only to flag non-prod environments.
   if (ENV === 'production') return null
+
+  const label = DB_NAME ? `${ENV_LABELS[ENV] ?? ENV} · ${DB_NAME}` : (ENV_LABELS[ENV] ?? ENV)
 
   return (
     <div
@@ -32,9 +47,9 @@ export function EnvBadge() {
         '[writing-mode:vertical-rl]',
         ENV_STYLES[ENV] ?? ENV_STYLES.production,
       )}
-      title={`Środowisko: ${ENV}`}
+      title={`Środowisko: ${ENV}${DB_NAME ? ` · baza: ${DB_NAME}` : ''}`}
     >
-      {ENV_LABELS[ENV] ?? ENV}
+      {label}
     </div>
   )
 }
