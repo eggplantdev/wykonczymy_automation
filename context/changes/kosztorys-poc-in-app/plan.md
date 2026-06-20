@@ -10,12 +10,20 @@ właściciela (change.md §„Pytania do właściciela"):
 
 - **Faza 4 — Panel plan-vs-actual** — NIEZROBIONA, **bez blokera** (actuals już
   queryowalne: `deriveFinancials` + `calculateMargin`). Można ruszyć od razu.
-- **Faza 5 — Pokoje (kalkulator metrażu)** — NIEZROBIONA, gated na Q4 (link
-  pozycja↔pokój czy osobny rejestr).
-- **Faza 6 — Eksport PDF** — NIEZROBIONA, gated na Q3 (format + które kolumny).
+- **Faza 5 — Pokoje (kalkulator metrażu)** — ❌ **ANULOWANA** (właściciel, 2026-06-20):
+  pokoje wypadły z zakresu, nie powstaną w apce. Q4 rozstrzygnięte: out.
+- **Faza 6 — Eksport** — NIEZROBIONA, gated na Q3. **Zakres rozszerzony 2026-06-20:**
+  PDF (umowa) **i** arkusz Excel/Sheets (po wykonaniu, z żywymi formułami z SQL-a) —
+  oba wymagane; dane wrażliwe fizycznie wycięte z pliku. Otwarte tylko: które kolumny w PDF.
 
 Parkowane poza fazami planu (change.md): dodawanie/usuwanie wierszy (Q7, `lockRows`),
-subtotale per sekcja (Q1), źródło cen podwykonawcy (Q2), forward-scope wydatków (Q5).
+subtotale per sekcja (Q1). Rozstrzygnięte: ceny podwykonawcy (Q2 ✅), forward-scope
+wydatków (Q5 ✅ kierunkowo — wszystkie 7 typów przypiętych do inwestycji wchodzą z
+widocznością warunkową; **defaulty istnieją (zaliczki/strata domyślnie ukryte dla klienta),
+ale wszystko nadal edytowalne przed eksportem** — default = stan wyjściowy, nie blokada;
+korekta zawarta w wydatkach inwestycyjnych; mapa typów w change.md §Forward scope).
+**Nowy wymóg z Q5:** widoczność sekcji/typów jako **multi-select** (dziś tylko „jedna albo
+wszystkie"), analogicznie do przełącznika kolumn.
 
 Szczegółowa lista kryteriów: §Progress (na dole).
 
@@ -442,9 +450,15 @@ marży zostaje (follow-on P10 nie w POC).
 
 ---
 
-## Phase 5: Pokoje (kalkulator metrażu)
+## Phase 5: Pokoje (kalkulator metrażu) — ❌ ANULOWANA (właściciel, 2026-06-20)
 
-### Overview
+> **Pokoje wypadły z zakresu.** Zakładka „pokoje" nie powstanie w aplikacji — żadnej
+> tabeli `kosztorys_rooms`, żadnego linku pozycja↔pokój. Q4 rozstrzygnięte: out.
+> Cała ta faza jest nieaktualna i zostawiona tylko jako ślad. **Trwała instrukcja:**
+> pokoje mogą wrócić w arkuszach źródłowych — to szum, nie przenosić, nie pytać.
+> Reszta sekcji poniżej = nieaktualny opis sprzed decyzji.
+
+### Overview (NIEAKTUALNE)
 
 Luźny kalkulator metrażu (`kosztorys_rooms`), bez powiązania z pozycjami — 1:1 z
 zakładką „pokoje" w arkuszu. Edytowalna tabela wzorem siatki z Phase 3.
@@ -487,9 +501,17 @@ Wysokość domyślna konfigurowalna (arkusz: 2,58 m), edytowalna per pokój.
 
 ---
 
-## Phase 6: Konfigurowalny eksport PDF
+## Phase 6: Eksport — PDF + arkusz (zakres rozszerzony 2026-06-20)
 
 ### Overview
+
+> **Zakres rozszerzony (właściciel, 2026-06-20) — patrz change.md #3.** Wymagane OBA
+> formaty: **PDF** (moment podpisania umowy) i **arkusz Excel/Google Sheets** (po wykonaniu
+> prac, do samodzielnej weryfikacji przez klienta). Arkusz musi nieść **żywe formuły** —
+> appka liczy z SQL-a, nie z formuł komórkowych, więc skrypt eksportu tłumaczy kalkulacje
+> na formuły arkusza. **Bezpieczeństwo:** dane wrażliwe (ceny zakupu, marże, ceny
+> podwykonawcy) **fizycznie wycięte z pliku**, nie ukryte; formuła nie może referować
+> nieobecnej kolumny. Opis poniżej (sam PDF) jest węższy niż obecny zakres.
 
 Krok „przygotuj eksport": toggle widoczności per pozycja (`hidden_in_export`),
 potem PDF-oferta dla klienta (tylko ceny klienta) przez druk przeglądarki.
@@ -640,9 +662,9 @@ Anchor na ryzyku (zgodnie z AGENTS.md): asercje na obserwowalnym wyniku
 #### Manual
 
 - [x] 3.4 Edycja komórki zapisuje bez przycisku; trwała po odświeżeniu; sumy przeliczone — 9e401e0
-- [ ] 3.5 Add/remove pozycji, sekcji, etapu działa optymistycznie — `lockRows` włączone; osobny slice (change.md Q7)
-- [ ] 3.6 Usunięcie etapu z postępem zablokowane z komunikatem — akcja istnieje, UI nieobecne (zależy od 3.5)
-- [ ] 3.7 Reorder strzałkami trwały — niezaimplementowane w v2 (zależy od 3.5)
+- [x] 3.5 Add/remove **pozycji** (toolbar + gutter kosz) i **sekcji** (panel); **etap: dodawanie** (button „+ etap", browser ✅ 2026-06-20). Kasowanie etapu → MVP (change.md #7/#9)
+- [~] 3.6 Blokada kasowania etapu z postępem — logika gotowa w `removeStageAction`; UI kasowania → MVP (splata się z undo/cascade, #9)
+- [x] 3.7 Reorder strzałkami ▲▼ trwały — ZROBIONE (`handleReorderItem` + `swapItemOrderAction`)
 - [x] 3.8 Edycja jednego pola przy 1000+ wierszach zapisuje tylko to pole (`[PERF]`) — 3b4c5a7
 
 ### Phase 4: Panel plan-vs-actual
@@ -657,19 +679,16 @@ Anchor na ryzyku (zgodnie z AGENTS.md): asercje na obserwowalnym wyniku
 - [ ] 4.3 Plan zgodny z sumami siatki; actuals zgodne z panelem finansowym detalu
 - [ ] 4.4 Marża planowana i rzeczywista liczone wg definicji
 
-### Phase 5: Pokoje (kalkulator metrażu)
+### Phase 5: Pokoje (kalkulator metrażu) — ❌ ANULOWANA (właściciel, 2026-06-20)
 
-#### Automated
+Pokoje wypadły z zakresu — kryteria nieaktualne, faza nie będzie realizowana.
 
-- [ ] 5.1 Test formuł pokoi przechodzi
-- [ ] 5.2 Typecheck + build przechodzą
+- [~] 5.1 ~~Test formuł pokoi~~ — anulowane
+- [~] 5.2 ~~Typecheck + build~~ — anulowane
+- [~] 5.3 ~~Obwód/ściany/malowanie~~ — anulowane
+- [~] 5.4 ~~Metraż do przepisania~~ — anulowane
 
-#### Manual
-
-- [ ] 5.3 Obwód/ściany/malowanie liczą się poprawnie
-- [ ] 5.4 Metraż możliwy do przepisania do przedmiaru
-
-### Phase 6: Konfigurowalny eksport PDF
+### Phase 6: Eksport — PDF + arkusz (zakres rozszerzony 2026-06-20)
 
 #### Automated
 

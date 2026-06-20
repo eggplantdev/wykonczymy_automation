@@ -709,3 +709,12 @@ wpisana wartość`. Też podąża za ceną klienta, ale ignoruje współczynnik 
     to luka **prezentacji i tłumaczenia konceptu**. Do zrobienia przy MVP łącznie z #13 i
     follow-upem UX z #2: pokazać wartość per etap, objaśnić tryb ceny w danym widoku, tak żeby
     „za co jest ta cena" było czytelne bez domyślania się. MVP.
+16. **[MVP] Zasada UX: gęste, wszechobecne tipy wyjaśniające zamysł — zwłaszcza na początku.**
+    (właściciel, 2026-06-20) W edytorze jest dużo niejasności — sam właściciel po kilku
+    godzinach patrzenia „nie do końca rozumie, jak działa rabat" (np. „rabat → cena": co to
+    znaczy, % czy zł, od czego liczone). Decyzja: **dodawać tooltipy/podpowiedzi wszędzie, gdzie
+    się da**, tłumaczące intencję każdej kolumny/kontrolki, **nawet jeśli tymczasowe**. Cel:
+    nikt (właściciel, manager, przyszła sesja) nie ma się domyślać, co dana liczba/pole znaczy.
+    To nadrzędna, gęsta warstwa onboardingu — spina się z konkretami: tryby ceny nad tabelą (#2),
+    wartość per etap (#13/#15), tooltip opisu (#8). **Konkretny pierwszy cel: rabat** — kolumna
+    rabatu (typ `—/%/zł` + wartość) wymaga tooltipa „co liczy i od czego". Duża robota UX, MVP.
