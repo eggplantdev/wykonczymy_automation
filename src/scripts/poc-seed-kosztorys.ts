@@ -125,8 +125,6 @@ async function run() {
           discountType: rabat > 0 ? 'percent' : null,
           discountValue: rabat > 0 ? rabat * 100 : 0,
           clientPrice,
-          subcontractorWToolsPrice: 0,
-          subcontractorOwnToolsPrice: 0,
           hiddenInExport: false,
         },
         ...ctx,

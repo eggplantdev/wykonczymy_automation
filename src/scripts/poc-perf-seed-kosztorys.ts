@@ -73,8 +73,11 @@ async function run() {
               discountType: i % 5 === 0 ? 'percent' : null,
               discountValue: i % 5 === 0 ? 5 : 0,
               clientPrice: 20 + (i % 50) * 3,
-              subcontractorWToolsPrice: 12 + (i % 40) * 2,
-              subcontractorOwnToolsPrice: 10 + (i % 30) * 2,
+              // Mieszanka stanów override do pokrycia perf: co 5. = płaskie 700, reszta wyprowadzona.
+              wToolsOverrideType: i % 5 === 0 ? 'amount' : null,
+              wToolsOverrideValue: i % 5 === 0 ? 700 : 0,
+              ownToolsOverrideType: null,
+              ownToolsOverrideValue: 0,
               hiddenInExport: false,
             },
             ...ctx,

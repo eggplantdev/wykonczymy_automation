@@ -51,10 +51,11 @@ z istniejącą zakładką „Arkusz".
   pytanie #P7; override per pozycja — otwarte.)
 - **[PEWNE] „Pozostało do wykonania" = kontrola postępu robót** (wartość pozycji − Σ
   wartości wykonanych etapów), wskaźnik informacyjny, NIE figura rozliczeniowa z klientem.
-- **[ZALEŻNE] Ceny = 3 niezależne kolumny snapshot w jednym wierszu** (`clientPrice`,
-  `subcontractorWToolsPrice`, `subcontractorOwnToolsPrice`) — wariant **A**. Relacja
-  podwykonawca↔klient NIE jest formułą (raz %, raz inna absolutna). POC zaimplementował A;
-  formalnie A vs B (dynamiczna tabela wariantów) **nierozstrzygnięte** — patrz pytanie #P4.
+- **[PEWNE] Ceny podwykonawcy = współczynnik narzutu + override dwustanowy** (zaimplementowane
+  2026-06-20, zastępuje dawny wariant „3 kolumny snapshot"). `clientPrice` to snapshot; ceny
+  z/bez narzędzi wyprowadzane przez współczynnik dziedziczony globalny (inwestycja) → sekcja
+  (nullable), z override per pozycja (`coeff`/`amount`/null). Szczegóły i geneza: pytanie #2
+  oraz `docs/superpowers/specs/2026-06-20-kosztorys-subcontractor-pricing-design.md`.
 
 ### B. Edytor — stack, UX, funkcje
 
@@ -386,22 +387,18 @@ za właściciela. Do rozstrzygnięcia, zanim ruszą:
    sortowaniu po cenie/netto sekcje się przeplatają i subtotale tracą sens. Decyzja:
    (a) subtotale w osobnym panelu/stopce liczonej zawsze po sekcji niezależnie od
    sortu, czy (b) subtotale tylko w trybie „bez sortu" (grupowanie wyłącza sort)?
-2. **Źródło cen podwykonawcy** — USTALONE z arkusza źródłowego + decyzja właściciela.
-   Zakładki `zakres z/bez narzędzi` w arkuszu to **widoki pochodne** od `kosztorys_robocizny`
-   (kolumny A–L ciągnięte formułą 1:1 po numerze wiersza), nie osobne źródło. Reguła z formuł:
-   `cena z narzędziami = clientPrice × 0,65`, `cena bez narzędzi = z_narzędziami × 0,85`
-   (≈ `client × 0,5525`) — ALE pojedyncze wiersze nadpisują to **ręczną wartością absolutną**
-   (dowód: wiersz r07 ma `700` zamiast `60×0,65=39`).
-   **Decyzja właściciela (2026-06-20): współczynniki są PER-POZYCJA — nie globalne i nie
-   per-inwestycja.** W ramach jednej inwestycji każda pozycja ma domyślną wartość wyprowadzoną,
-   ale może być nadpisana ręcznie. → **waliduje wariant A** (3 niezależne kolumny snapshot,
-   #P4): czysta formuła nie wystarcza, bo override'y istnieją. Trzymamy wyliczoną **cenę**
-   (snapshot), NIE współczynnik per pozycja (współczynnik w bazie = dryf między ceną a mnożnikiem).
-   **Mechanizm wypełniania (do zaprojektowania): bulk-apply input** — zawęź pozycje istniejącym
-   filtrem/szukajką i zastosuj do nich albo **procent** od ceny klienta, albo **wartość
-   absolutną**; override per pozycja zostaje. **Otwarte:** UX bulk-apply + czy default 0,65/0,85
-   gdzieś podpowiadać. (Po fixie remountu — sekcja B — widoki „z/bez narzędzi" pokazują teraz
-   poprawnie 0, bo pola są puste; to potwierdza, że problem to brak danych, nie wiązanie kolumny.)
+2. **Źródło cen podwykonawcy** — ✅ ROZWIĄZANE (zaimplementowane 2026-06-20). Ceny
+   podwykonawcy wyprowadzane z ceny klienta przez **współczynnik narzutu** dziedziczony
+   globalny (inwestycja) → sekcja (nullable), z **dwustanowym override per pozycja**
+   (`coeff` = klient × %, `amount` = płaska kwota, null = wyprowadź). Cena liczona w locie
+   (zero dryfu); panel sekcji ustawia współczynniki, siatka edytuje override w widokach
+   podwykonawcy. Spec: `docs/superpowers/specs/2026-06-20-kosztorys-subcontractor-pricing-design.md`,
+   plan: `docs/superpowers/plans/2026-06-20-kosztorys-subcontractor-pricing.md`. (Uwaga:
+   wcześniejsza notatka „snapshot, nie współczynnik" + „bulk-apply" **nieaktualna** — model
+   zmienił się w brainstormingu na współczynnik+override, bo override jako współczynnik
+   podąża za ceną klienta, a `amount` pokrywa płaskie wartości jak r07=700.) Domyślne
+   globalne współczynniki: 0,65 / 0,55. **Otwarte (drobne):** UX trybu override w siatce
+   (osobna kolumna „Tryb") do oceny w użyciu.
 3. **Eksport — format.** PDF czy CSV najpierw? Dla CSV: jak spłaszczyć zagnieżdżenie
    (sekcje → pozycje → etapy) do jednej tabeli? Dla PDF: które kolumny w dokumencie
    klienckim (z/bez cen wariantów, z/bez etapów)?
