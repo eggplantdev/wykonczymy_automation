@@ -26,6 +26,7 @@ import {
   sectionItemCount,
   sortRows,
   stageKey,
+  swapItemInSection,
   treeToRows,
   type SortDirT,
 } from '@/lib/kosztorys/v2-rows'
@@ -41,6 +42,7 @@ import {
   addSectionAction,
   removeItemAction,
   removeSectionAction,
+  reorderItemsAction,
   setStageProgressAction,
   updateInvestmentCoeffsAction,
   updateItemFieldAction,
@@ -126,6 +128,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
     onGuide: setGuideX,
     onCommitColumn: setWidth,
     onRemoveItem: handleRemoveItem,
+    onReorderItem: handleReorderItem,
   })
   const columns = allColumns.filter((c) => !(c.id && hidden.has(c.id)))
   const toggleable = v2ToggleableColumns(tree.stages)
@@ -205,6 +208,21 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
     prevById.current.delete(row.id)
     setRows((rs) => applyRemoveItem(rs, row.id))
     void removeItemAction(row.id)
+  }
+
+  function handleReorderItem(row: KosztorysV2RowT, dir: 'up' | 'down') {
+    // Świeży zbiór bierzemy z updatera setRows — closure kolumny dsg jest zamrożona na montażu,
+    // więc `rows` z renderu bywa nieaktualne. Akcja odpalana w updaterze: swapItemInSection jest
+    // czyste, a reorderItemsAction idempotentne (renumeruje do tych samych wartości), więc
+    // ewentualny podwójny przebieg w dev StrictMode jest nieszkodliwy.
+    setRows((rs) => {
+      const next = swapItemInSection(rs, row.id, dir)
+      if (next === rs) return rs // brzeg bloku → no-op
+      // Pełna lista id sekcji w nowej kolejności → serwer renumeruje display_order od zera.
+      const orderedIds = next.filter((r) => r.sectionId === row.sectionId).map((r) => r.id)
+      void reorderItemsAction(row.sectionId, orderedIds)
+      return next
+    })
   }
 
   async function handleAddSection() {
@@ -379,7 +397,9 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
             // `columns` na montażu i nie podnosi żadnej zmiany ich definicji bez remountu —
             // bez `view` 3 widoki pokazywały cenę klienta, bez `hiddenKey` „Kolumny" nie
             // chowało/pokazywało nic, bez `widthsKey` resize nie przeliczał szerokości.
-            key={`${view}:${hiddenKey}:${widthsKey}`}
+            // `sorted/natural`: strzałki reorderu (wyszarzone przy sorcie) muszą się przebudować
+            // na wejściu/zejściu z sortu — asc↔desc nie remountuje (stan strzałek bez zmian).
+            key={`${view}:${sort ? 'sorted' : 'natural'}:${hiddenKey}:${widthsKey}`}
             className="kosztorys-grid"
             value={viewRows}
             onChange={onChange}
