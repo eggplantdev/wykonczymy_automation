@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { Trash2 } from 'lucide-react'
+import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
 import { Column, type CellProps, keyColumn, textColumn, floatColumn } from 'react-datasheet-grid'
 import { SortHeader } from '@/components/kosztorys/sort-header'
 import { ResizableHeader } from '@/components/kosztorys/column-resize-handle'
@@ -65,6 +65,9 @@ export type BuildV2ColumnsOptsT = {
   // `columns` na montażu, więc closure MUSI czytać aktualne dane, nie snapshot z mountu.
   onRemoveItem?: (row: KosztorysV2RowT) => void
   getSectionItemCount?: (sectionId: number) => number
+  // Reorder pozycji w obrębie sekcji (▲/▼). Czyta świeży `rows` z editora (ref) — bo dsg
+  // zamraża `columns` na montażu. Wyszarzony przy aktywnym sorcie kolumnowym (patrz `sort`).
+  onReorderItem?: (row: KosztorysV2RowT, dir: 'up' | 'down') => void
 }
 
 // keyColumn wymaga column: Column<Row[K]>. floatColumn/textColumn są nullowalne
@@ -286,24 +289,51 @@ function withResize(
   }
 }
 
-// Kolumna akcji: kosz usuwający pozycję. Sztywne 44px, nie-resizable, nie-toggleable.
-// Kosz nieaktywny gdy to ostatnia pozycja sekcji (inwariant „sekcja ma ≥1 pozycję").
+// Kolumna akcji: ▲▼ reorder pozycji w sekcji + kosz usuwający pozycję. Sztywne 64px,
+// nie-resizable, nie-toggleable. Kosz nieaktywny gdy to ostatnia pozycja sekcji (inwariant
+// „sekcja ma ≥1 pozycję"). Strzałki wyszarzone przy aktywnym sorcie kolumnowym — „w górę"
+// względem listy posortowanej po cenie nie ma odwzorowania w display_order; najpierw zdejmij
+// sort. (Brzeg bloku sekcji nie wyszarza strzałki — to no-op po stronie handlera, TODO MVP.)
 function actionColumn(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT> {
   const onRemove = opts.onRemoveItem
+  const onReorder = opts.onReorderItem
   const getCount = opts.getSectionItemCount
+  const sortActive = opts.sort != null
   return {
     id: 'actions',
     title: '',
-    basis: 44,
+    basis: 64,
     grow: 0,
     shrink: 0,
-    minWidth: 44,
-    maxWidth: 44,
+    minWidth: 64,
+    maxWidth: 64,
     disabled: true,
     component: ({ rowData }) => {
       const isLast = getCount ? getCount(rowData.sectionId) <= 1 : false
       return (
-        <div className="flex size-full items-center justify-center">
+        <div className="flex size-full items-center justify-center gap-1">
+          {onReorder && (
+            <div className="flex flex-col leading-none">
+              <button
+                type="button"
+                disabled={sortActive}
+                title={sortActive ? 'Najpierw zdejmij sortowanie kolumną' : 'Przesuń w górę'}
+                onClick={() => onReorder(rowData, 'up')}
+                className="text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                <ChevronUp className="h-3 w-3" />
+              </button>
+              <button
+                type="button"
+                disabled={sortActive}
+                title={sortActive ? 'Najpierw zdejmij sortowanie kolumną' : 'Przesuń w dół'}
+                onClick={() => onReorder(rowData, 'down')}
+                className="text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                <ChevronDown className="h-3 w-3" />
+              </button>
+            </div>
+          )}
           <button
             type="button"
             disabled={isLast}
@@ -397,5 +427,5 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
   ]
 
   const base = [...left, ...stageCols, ...computed].map((c) => withResize(c, opts))
-  return opts.onRemoveItem ? [actionColumn(opts), ...base] : base
+  return opts.onRemoveItem || opts.onReorderItem ? [actionColumn(opts), ...base] : base
 }
