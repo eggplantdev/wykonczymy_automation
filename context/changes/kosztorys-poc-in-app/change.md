@@ -32,7 +32,8 @@ z istniejącą zakładką „Arkusz".
   transferów, rozjazd sum wypłat). Appka i tak liczy wszystkie actuals; arkusz wnosił
   tylko rozpiskę robocizny — i to ona trafia do edytora.
 - **[PEWNE] Schemat rdzenia:** `kosztorys_sections` / `kosztorys_items` /
-  `kosztorys_stages` / `stage_progress` (+ `kosztorys_rooms`). **Brak osobnej tabeli
+  `kosztorys_stages` / `stage_progress`. **Brak tabeli `kosztorys_rooms`** — pokoje
+  wypadły z zakresu (właściciel, 2026-06-20; patrz pytanie #4). **Brak osobnej tabeli
   materiałów** — materiały = `INVESTMENT_EXPENSE` (już w appce).
 - **[PEWNE] Model widoku płaski** (`KosztorysV2RowT`): sekcja jako denormalizowana,
   sortowalna/filtrowalna kolumna, NIE wiersz-nagłówek — żeby sort/filtr działały jak w
@@ -46,11 +47,38 @@ z istniejącą zakładką „Arkusz".
   `stage_progress` rzadkie (brak wiersza = 0). Usunięcie etapu z wpisanym postępem =
   BLOKADA (najpierw wyczyść). Etap = ordinal + opcjonalna nazwa.
 - **[PEWNE] Rabat dwutrybowy:** `discount_type ∈ {percent, amount}` + `discount_value`.
-- **[PEWNE] VAT kaskadowo:** ceny wpisywane **netto**, brutto = netto × (1+vat) liczone.
-  `vat_rate` na sekcji (+ globalny default), pozycja dziedziczy. (Domyślna stawka =
-  pytanie #P7; override per pozycja — otwarte.)
+- **[PEWNE] VAT per inwestycja** (właściciel, 2026-06-20): ceny wpisywane **netto**,
+  brutto = netto × (1+vat) liczone. **Jedna `vat_rate` na inwestycję** — NIE per sekcja,
+  NIE per pozycja. Bez kaskady i bez override'ów. (Wcześniej rozważany wariant kaskadowy
+  sekcja→pozycja — odrzucony.) **ZAIMPLEMENTOWANE 2026-06-20** zgodnie z tą decyzją: pole
+  `investments.vat_rate` (edytowalne w panelu „Sekcje"), martwe kolumny `vat_rate` na
+  sekcji/pozycji usunięte migracją `20260620_2_vat_per_investment`. Spec:
+  `docs/superpowers/specs/2026-06-20-kosztorys-vat-per-investment-design.md`.
+  **TODO (właściciel, 2026-06-20): wywalić kontrolkę VAT z panelu „Sekcje".** VAT to
+  ustawienie INWESTYCJI, nie sekcji — w panelu sekcji nie ma czego szukać (ta sama myśl co
+  follow-up „ustawienia wyliczania cen wydzielić z panelu bocznego"). Model `investments.vat_rate`
+  ZOSTAJE; znika tylko kontrolka z panelu. **Dom edycji — ROZSTRZYGNIĘTE (właściciel,
+  2026-06-20): detal inwestycji ALBO przyszły panel „Podsumowanie" (jeszcze nie istnieje).**
+  Razem z VAT przenosimy też **współczynniki cen podwykonawcy** (ta sama klasa: ustawienia
+  inwestycji wciśnięte w panel boczny). Do czasu powstania tej powierzchni — VAT na default 8%.
+  **Pole nadal per-inwestycja — to NIE powrót do VAT per sekcja.**
 - **[PEWNE] „Pozostało do wykonania" = kontrola postępu robót** (wartość pozycji − Σ
   wartości wykonanych etapów), wskaźnik informacyjny, NIE figura rozliczeniowa z klientem.
+- **[PEWNE] Robocizna = suma wszystkich etapów = wartość pracy WYKONANEJ** (właściciel,
+  2026-06-20; doprecyzowane). Mechanizm potwierdzony rzeczywistością: **pozycja jest
+  jednostką** (żyje w kosztorysie z ceną), a **etap to nakładka postępu** — wykonawca wpisuje
+  tylko `qtyDone` (ile wykonał). „Suma etapów" = Σ po etapach (Σ pozycji: qtyDone × cena
+  z kosztorysu). To NIE partycjonowanie pozycji na etapy. **Zgodne z obecnym schematem**
+  (`StageProgressT = { itemId, stageId, qtyDone }`) — żadnej zmiany modelu nie trzeba.
+  Figura nagłówkowa (suma w toolbarze) **WYWALONA 2026-06-20** — nie pokazujemy żadnej sumy
+  w nagłówku (ani planu, ani wykonania); patrz pytanie #11a.
+- **[PEWNE] Robocizna netto vs brutto = pochodna kontekstu rozliczeniowego klienta**
+  (właściciel, 2026-06-20). To NIE jest otwarte pytanie — jest zdeterminowane: czy klient
+  rozlicza się **B2B czy nie**, oraz jaką ma **stawkę VAT (23% vs 8%)**. Te dwa wejścia
+  decydują, czy robocizna jest netto czy brutto. Powiązane z „[PEWNE] VAT per inwestycja"
+  wyżej (stawka 23/8 siedzi na inwestycji). Obecnie w appce jest gołe „robocizna" bez
+  oznaczenia — do domknięcia w modelu kalkulacji (patrz pytanie #11), ale reguła wyboru
+  jest znana, nie do decyzji.
 - **[PEWNE] Ceny podwykonawcy = współczynnik narzutu + override dwustanowy** (zaimplementowane
   2026-06-20, zastępuje dawny wariant „3 kolumny snapshot"). `clientPrice` to snapshot; ceny
   z/bez narzędzi wyprowadzane przez współczynnik dziedziczony globalny (inwestycja) → sekcja
@@ -75,7 +103,7 @@ z istniejącą zakładką „Arkusz".
   odrzuceniu serwera).
 - **[PEWNE] Funkcje siatki:** sort per kolumna (nietrwały po reloadzie — parytet z appką),
   filtr/szukajka (opis/sekcja/j.m.), przełącznik widoczności kolumn (TRWAŁY, localStorage),
-  kolumna „Pozostało", select typu rabatu, suma netto w toolbarze (respektuje filtr+widok).
+  kolumna „Pozostało", select typu rabatu. (Suma netto w toolbarze — WYWALONA 2026-06-20, #11a.)
 - **[PEWNE] Rozszerzanie kolumn (drag-resize).** Uchwyt na krawędzi nagłówka; prowadnica
   w trakcie dragu; **commit-on-release** (na puść) + zapis do localStorage, trwały po
   reloadzie. **Ograniczenie biblioteki:** dsg nie ma natywnego resize i nie przelicza
@@ -84,9 +112,10 @@ z istniejącą zakładką „Arkusz".
   `context/foundation/lessons.md` („no native column resize … remount with a `key`").
 - **[PEWNE] Layout:** pełna wysokość strony (jak widok arkusza), mniejsza czcionka,
   `DataSheetGrid` ze stałym `rowHeight`, fix migotania (tor `grid-cols-[minmax(0,1fr)]`).
-- **[SKRÓT POC] `lockRows` włączone** — dodawanie/usuwanie pozycji/sekcji/etapów to
-  osobny, zaplanowany slice (pytanie #7). Akcje serwerowe (`addItem`/`addStage`/
-  `removeItem`/`updateSection`) już istnieją jako infrastruktura pod ten slice.
+- **[PEWNE] `lockRows` zostaje** (blokuje tylko niefunkcjonalną natywną stopkę dsg) — CRUD
+  idzie przez własne UI: pozycje (toolbar „+ pozycja" + gutter kosz + reorder ▲▼), sekcje
+  (panel add/remove/rename), **dodawanie etapu** (toolbar „+ etap", 2026-06-20). Kasowanie
+  etapu i multi-select etapów → MVP. Szczegóły i stan: pytanie #7.
 - **[SKRÓT POC] Trwałość UI per przeglądarka (localStorage), globalnie dla wszystkich
   kosztorysów** (widoczność i szerokości kolumn, klucze `kosztorys-v2-*`). W MVP rozważyć
   per-użytkownik i/lub per-kosztorys.
@@ -181,12 +210,18 @@ POC od razu w wyglądzie aplikacji, nie surowy `<table>`. Decyzje:
 - **Fix dsg #1:** przełącznik widoku gubił wiązania kolumn (3 widoki = cena klienta) —
   `view` w kluczu remountu. **Zweryfikowany w przeglądarce** (bez narzędzi = 0 przy pustych).
 - **Fix dsg #2:** „Kolumny" (widoczność) nie działało — `hidden` dodany do klucza remountu.
+  **Zweryfikowany w przeglądarce (właściciel, 2026-06-20): ukryj/pokaż + trwałość po reloadzie OK.**
+  - **TODO (wymóg właściciela, 2026-06-20):** dropdown „Kolumny" potrzebuje akcji
+    **„zaznacz wszystkie / odznacz wszystkie"** (toggle wszystkich naraz), żeby nie klikać
+    kolumn po jednej. Drobny dodatek do `DatasheetColumnToggle`.
 - Lekcja w `lessons.md` poszerzona: klucz remountu dsg musi obejmować KAŻDY wymiar
   kształtujący kolumny (szerokości, widok, ukryte kolumny).
 
-**Status weryfikacji:** fix #1 potwierdzony w przeglądarce. **NIEzweryfikowane end-to-end
-w przeglądarce:** cała funkcja cen podwykonawcy (panel współczynników, edycja override,
-tryby) oraz fix #2 — do sprawdzenia przy podjęciu.
+**Status weryfikacji:** fix #1 oraz **fix #2 (widoczność kolumn) potwierdzone w przeglądarce**.
+**Ceny podwykonawcy — wstępnie OK (właściciel, 2026-06-20: „działa chyba")**, pełne
+potwierdzenie end-to-end (panel współczynników, edycja override, wszystkie tryby) odłożone.
+**Subtotale per sekcja — weryfikacja ODŁOŻONA na MVP (właściciel, 2026-06-20)** — feature
+zbudowany, browser-verify nie teraz.
 
 **Świadomie odłożone (udokumentowane w #2 „Follow-up UX" i planie):**
 
@@ -240,8 +275,16 @@ priorytetu właściciela):
 - ✅ **revert-on-error** — ZROBIONE 2026-06-20 (autosave cofa edycję przy błędzie serwera).
 - ⏸ **Pozostałe wymagają decyzji właściciela** (patrz „Pytania do właściciela" na
   końcu): subtotale per sekcja · doseed cen podwykonawcy (zakładki „zakres z/bez
-  narzędzi") · panel plan-vs-actual · eksport PDF/CSV · UI pokoi · forward-scope
-  (read-only wydatki z transferów).
+  narzędzi") · panel plan-vs-actual · eksport PDF/CSV · forward-scope
+  (read-only wydatki z transferów). (Pokoje wypadły — patrz pytanie #4.)
+
+**Panel plan-vs-actual / marża planowana (spec §8) — ROZSTRZYGNIĘTE (właściciel,
+2026-06-20): marża planowana NIEPOTRZEBNA — odpada (nie POC, nie MVP).** „Marża planowana"
+miała być = `Σ(pomiar × cena_klienta) − Σ(pomiar × cena_podwykonawcy)` (rozpiętość klient−
+podwykonawca z kosztorysu); różniłaby się od rzeczywistej tylko o realne odchylenia (`PAYOUT`
+≠ plan, `RABAT`, `LOSS`). Właściciel uznał, że tej założonej figury nie potrzebuje — marża
+rzeczywista (wzór appki) wystarcza. **Wiersz „marża planowana" ze spec §8 wykreślony.** (Reszta
+§8 — wykonano/zafakturowano/wypłacono/materiały — to actuals, nie plan; osobno, jeśli kiedyś.)
 
 ## Bake-off siatki edytora (2026-06-19)
 
@@ -291,8 +334,8 @@ zdana, warunek podstawowy spełniony natywnie i bez duplikacji. Idziemy dalej na
 **Konsekwencje decyzji:**
 
 - Wszystkie kolejne funkcjonalności POC budujemy **na v2**: subtotale per sekcja,
-  plan-vs-actual, pokoje, eksport PDF, dodawanie/usuwanie sekcji/etapów, oraz
-  forward-scope (read-only wydatki z transferów).
+  plan-vs-actual, eksport PDF, dodawanie/usuwanie sekcji/etapów, oraz
+  forward-scope (read-only wydatki z transferów). (Pokoje wypadły — patrz pytanie #4.)
 - **v1 (TanStack) do usunięcia po sportowaniu jej przewag**, których v2 jeszcze nie
   ma: sort/filtr per kolumna, przełącznik widoczności kolumn, kolumna „Pozostało",
   select typu rabatu (`percent|amount`), suma netto w toolbarze. Dopóki nieportowane
@@ -400,16 +443,41 @@ Na życzenie właściciela: edytor na **pełną wysokość strony** jak widok ar
   (Zweryfikowane: szerokość stała 1200px, 60 fps, 0 oscylacji.) Dodatkowo `router.refresh()`
   w `onChange` tylko przy realnej zmianie (bezwarunkowy potrafił dokładać do pętli).
 
-## Forward scope — deliverable dla klienta (brain dump, mniejszy problem, później)
+## Forward scope — deliverable dla klienta (decyzja kierunkowa 2026-06-20, patrz #5)
 
 Osobny późniejszy slice, **poza** planem bake-offu. Finalny kosztorys wysyłany
-klientowi składa nie tylko robocizną, ale i **wydatkami** — przede wszystkim
-wydatki inwestycyjne (transfery `INVESTMENT_EXPENSE`), przynajmniej część (które
-dokładnie = TBD), z możliwością filtrowania/ukrywania (jak reguła eksportu P12).
-**Wydatki read-only — składane z istniejących transferów, nie edytowane w
-kosztorysie** (edycja zostaje w transferach; jedno źródło prawdy). To, co dziś
-rozbite na zakładki arkusza, w appce pokazane też **zbiorczo** (jedno zestawienie
-dla klienta). Doprecyzowanie i plan — przy starcie tego slice'u, po bake-offie.
+klientowi składa nie tylko robocizną, ale i **wydatkami/transakcjami przypiętymi do
+inwestycji**. Reguła: można wpiąć wszystkie typy przypięte do inwestycji, bo rządzi
+**widoczność warunkowa** — **defaulty widoczności istnieją (np. zaliczki/strata ukryte
+dla klienta), ale wszystko nadal edytowalne przed eksportem** (multi-select, analogiczny
+do przełącznika kolumn — nowy wymóg). Default = stan wyjściowy, nie blokada.
+**Read-only — składane z istniejących transferów, edycja zostaje w transferach** (jedno
+źródło prawdy). To, co dziś rozbite na zakładki arkusza, w appce pokazane **zbiorczo**.
+
+### Mapa typów transakcji (trwała referencja)
+
+> **Źródło prawdy = `src/collections/transfers.ts` (`TRANSFER_TYPES`).** Lista
+> dezaktualizowała się już w przeszłości — przy wątpliwości czytaj kod, nie tę kopię.
+> Snapshot 2026-06-20. „Inwestycja?" = czy typ ma pole `investment` (`showInvestment`).
+
+| value                | PL (UI)                     | EN                 | Inwestycja? | Rola / uwaga (forward-scope)                                                  |
+| -------------------- | --------------------------- | ------------------ | ----------- | ----------------------------------------------------------------------------- |
+| `INVESTOR_DEPOSIT`   | Wpłata od inwestora         | Investor Deposit   | ✅          | Uwzględniona. Wpłata — rusza bilans.                                          |
+| `INVESTMENT_EXPENSE` | Wydatek inwestycyjny        | Investment Expense | ✅          | Uwzględniony. Materiały/koszt. Zawiera już efekt korekt.                      |
+| `LABOR_COST`         | Koszty robocizny            | Labor Cost         | ✅          | = suma etapów (#11), two-way binding — TO jest kosztorys. Bez kasy źródłowej. |
+| `PAYOUT`             | Wypłata                     | Payout             | ✅          | = zaliczki. Uwzględnione; **default: ukryte dla klienta** (edytowalne).       |
+| `RABAT`              | Rabat                       | Rebate             | ✅          | Uwzględniony. Bez kasy źródłowej; ↓marża, ↑bilans.                            |
+| `LOSS`               | Strata                      | Loss               | ✅          | Uwzględniona; **default: ukryta dla klienta** (edytowalne). Bez kasy; ↓marża. |
+| `CORRECTION`         | Korekta                     | Correction         | ✅          | **Nie osobna linia** — pomniejsza `INVESTMENT_EXPENSE`. Może być ujemna.      |
+| `COMPANY_FUNDING`    | Zasilenie z konta firmowego | Company Funding    | ❌          | Poza kosztorysem (brak pola inwestycji).                                      |
+| `OTHER_DEPOSIT`      | Inna wpłata                 | Other Deposit      | ❌          | Poza kosztorysem.                                                             |
+| `REGISTER_TRANSFER`  | Transfer między kasami      | Register Transfer  | ❌          | Poza kosztorysem. Ruch między kasami.                                         |
+| `OTHER`              | Inny wydatek                | Other Expense      | ❌          | Poza kosztorysem.                                                             |
+| `CANCELLATION`       | Anulowanie                  | Cancellation       | ❌          | Poza kosztorysem. Link audytowy do anulowanej transakcji.                     |
+
+**Przypięte do inwestycji (7):** `INVESTOR_DEPOSIT`, `INVESTMENT_EXPENSE`, `LABOR_COST`,
+`PAYOUT`, `RABAT`, `LOSS`, `CORRECTION`. **Nieprzypięte (5):** `COMPANY_FUNDING`,
+`OTHER_DEPOSIT`, `REGISTER_TRANSFER`, `OTHER`, `CANCELLATION`.
 
 ## Pytania do właściciela (zaparkowane decyzje — 2026-06-20)
 
@@ -445,25 +513,85 @@ wpisana wartość`. Też podąża za ceną klienta, ale ignoruje współczynnik 
    - Zrobione od ręki 2026-06-20: kolumna nazwana „Tryb liczenia ceny", etykiety trybów
      opisowe, etykiety współczynników w panelu pełne („z narzędziami"/„bez narzędzi").
 
-3. **Eksport — format.** PDF czy CSV najpierw? Dla CSV: jak spłaszczyć zagnieżdżenie
-   (sekcje → pozycje → etapy) do jednej tabeli? Dla PDF: które kolumny w dokumencie
-   klienckim (z/bez cen wariantów, z/bez etapów)?
-4. **UI pokoi (S-05).** Czy pozycja ma opcjonalny link do pokoju w tej fazie (PRD Q7),
-   czy pokoje to osobny rejestr bez powiązania z pozycjami? Load-bearing dla schematu.
-5. **Forward-scope wydatków.** Które transfery `INVESTMENT_EXPENSE` wchodzą do
-   kosztorysu klienckiego (wszystkie / wybrane kategorie / reguła jak P12)? (TBD z briefu.)
+3. **Eksport — PDF i arkusz, oba wymagane** (właściciel, 2026-06-20). To nie „albo/albo" —
+   dwa różne momenty u klienta:
+   - **Podpisywanie umowy → tylko PDF.**
+   - **Po wykonaniu prac → arkusz (Excel / Google Sheets)**, żeby klient sam zweryfikował
+     i przeliczył, czy wszystko się zgadza.
+     **Utrudnienie load-bearing:** appka liczy figury z **SQL-a, nie z formuł komórkowych** —
+     więc płaski zrzut wartości nie da się zweryfikować. Skrypt eksportu musi **przetłumaczyć
+     kalkulacje appki na żywe formuły arkusza** przy zapisie do Sheets/Excela (klient ma
+     widzieć matematykę, nie same liczby). PDF i układ wartości to łatwa połowa. Otwarte:
+     które kolumny w PDF klienckim (z/bez cen wariantów, z/bez etapów); jak spłaszczyć
+     zagnieżdżenie (sekcje → pozycje → etapy) w arkuszu.
+     **Bezpieczeństwo eksportu — twarde wymaganie (właściciel, 2026-06-20):** w arkuszach
+     robiono to **naiwnie — kolumny były tylko ukryte**, więc każdy ogarnięty w Excelu mógł
+     je odkryć i zobaczyć dane (ceny zakupu, marże, ceny podwykonawcy). **W aplikacji tak
+     NIE wolno.** Kolumny/dane, których klient nie ma widzieć, muszą być **fizycznie wycięte
+     z eksportowanego pliku** — nie ukryte, nie zahasłowane, ich w pliku ma w ogóle nie być.
+     Dotyczy obu formatów (PDF i arkusz) oraz tłumaczenia formuł: formuła w eksporcie nie
+     może odwoływać się do wartości, której kolumny w pliku nie ma.
+4. ~~**UI pokoi (S-05).**~~ — ROZWIĄZANE (właściciel, 2026-06-20): **pokoje WYPADAJĄ z zakresu.**
+   Zakładka „pokoje" do wywalenia, nie będzie w apce. Konsekwencja: tabela `kosztorys_rooms`
+   i jakikolwiek link pozycja→pokój znikają ze schematu POC/MVP.
+   **⚠️ Trwała instrukcja dla przyszłych sesji:** pokoje **mogą wrócić** w arkuszach
+   źródłowych pokazywanych w trakcie pracy nad apką (właściciel może podrzucić arkusz, który
+   ma pokoje). To **nieistotne** — traktuj jako szum, **NIE przenoś do aplikacji** i **NIE
+   otwieraj ponownie tematu** ani nie pytaj o pokoje. Decyzja jest ostateczna: pokoje out.
+5. **Forward-scope wydatków** — ROZWIĄZANE kierunkowo (właściciel, 2026-06-20).
+   **⚠️ ZAKRES: przeniesione do MVP (właściciel, 2026-06-20) — NIE POC.** Kierunek poniżej
+   stoi; sam slice (read-only wydatki z transferów + multi-select widoczności) budujemy przy MVP.
+   **Reguła:** wszystkie transakcje **przypięte do inwestycji** mogą wejść do kosztorysu
+   („walnąć wszystko, co chcemy"), bo i tak rządzi **widoczność warunkowa** — przełączasz,
+   co widać. 7 typów z polem `investment` (lista z `transfers.ts`): `INVESTOR_DEPOSIT`,
+   `INVESTMENT_EXPENSE`, `LABOR_COST`, `PAYOUT`, `RABAT`, `LOSS`, `CORRECTION`. Ustalenia:
+   **Zasada nadrzędna:** **defaulty widoczności istnieją** (punkt startowy), **ale wszystko
+   nadal jest edytowalne przed eksportem** — default to nie blokada, tylko stan wyjściowy,
+   który da się dowolnie nadpisać per eksport.
+   - **LABOR_COST („Koszty robocizny")** = suma etapów (patrz #11), two-way binding — to JEST kosztorys.
+   - **INVESTOR_DEPOSIT („Wpłata od inwestora")** — uwzględniona (oczywiste).
+   - **RABAT („Rabat")** — uwzględniony w kosztorysie.
+   - **CORRECTION („Korekta")** — **nie osobna linia**: korekty **pomniejszają wydatki
+     inwestycyjne**, więc są już zawarte w `INVESTMENT_EXPENSE`. (Do potwierdzenia w modelu.)
+   - **PAYOUT („Wypłata") = zaliczki** — uwzględnione; **default: ukryte dla klienta** (edytowalne).
+   - **LOSS („Strata")** — uwzględniona; **default: ukryta dla klienta** (edytowalne).
+   - **Wydatki read-only** — składane z istniejących transferów, edycja zostaje w transferach
+     (jedno źródło prawdy).
+     **Nowy wymóg UI (load-bearing):** dziś widoczność sekcji jest **albo jedna, albo wszystkie**.
+     Trzeba dodać **multi-select** wyboru, co widoczne — **analogicznie do przełącznika kolumn** —
+     żeby przed eksportem dało się dowolnie nadpisać defaulty i złożyć, co klient zobaczy. Ten sam
+     mechanizm obsłuży **sekcje, typy transakcji (forward-scope) i etapy** (multi-select etapów = MVP, #7).
 6. ~~Sprzątanie danych perf na inw. 7~~ — ROZWIĄZANE: inw. 7 przemianowana na
    „test kosztorys Sienicka" + przeseedowana realnymi danymi (224 poz.). Perf-seed
    zostaje jako narzędzie. (Uwaga: widoki „Z narzędziami"/„Bez narzędzi" pokazują tam
    0 — to wraca do pytania #2 o źródło cen podwykonawcy.)
-7. **Dodawanie/usuwanie pozycji w siatce.** Obecnie `lockRows` (stopka „Add rows"
-   datasheet-grid była niefunkcjonalna). Osobny slice — potwierdzić priorytet i UX
-   (przycisk „+ pozycja" do sekcji, usuwanie per wiersz jak w v1)?
-8. **Zawijanie wierszy.** react-datasheet-grid renderuje wiersze o stałej wysokości,
-   jednoliniowo — długi `opis` jest ucinany. Decyzja: (a) zostawić jednoliniowo
-   z ucięciem + tooltip/rozwijanie na hover/klik, czy (b) zawijać tekst ze zmienną
-   wysokością wiersza? Wariant (b) jest kosztowny w datasheet-grid (wirtualizacja
-   zakłada stałą wysokość) — potwierdzić, czy w ogóle potrzebne dla danych klienta.
+7. **Dodawanie/usuwanie w siatce** — dla POC ZAMKNIĘTE (weryfikacja kodu 2026-06-20;
+   wcześniejszy wpis „wszystko gated/lockRows" był nieaktualny). `lockRows` zostaje (blokuje
+   tylko niefunkcjonalną natywną stopkę dsg) — CRUD idzie przez własne UI + istniejące akcje.
+   Kasowanie etapu i multi-select etapów przeniesione na MVP (niżej):
+   - ✅ **Pozycje:** dodawanie (toolbar „+ pozycja" do aktywnej sekcji + per sekcja),
+     kasowanie (kosz w gutterze, inwariant „sekcja ≥1 pozycja"), reorder strzałkami ▲▼.
+     (`kosztorys-editor-v2.tsx` `handleAddItem`/`handleRemoveItem`/`handleReorderItem`;
+     gutter w `kosztorys-v2-columns.tsx` `Trash2`/`Chevron`.)
+   - ✅ **Sekcje:** add/remove/rename w panelu (`KosztorysSectionSummary`).
+   - ✅ **Etapy — dodawanie ZROBIONE (2026-06-20).** Button **„+ etap"** w toolbarze
+     (`handleAddStage` → `addStageAction`, optymistycznie: `stages` jako stan, nowa kolumna
+     przez `stagesKey` w kluczu remountu; nowy etap = puste komórki postępu, sparse=0).
+     typecheck+build PASS, **browser ✅ (zweryfikowane 2026-06-20)**.
+   - **[MVP] Kasowanie etapu z UI** (właściciel, 2026-06-20: na MVP, nie POC). Akcja
+     `removeStageAction` z blokadą „etap z postępem" (3.6) gotowa; brak tylko kontrolki.
+     Odłożone, bo splata się z undo (kasowanie = cascade, patrz #9) — czyli z warstwą historii MVP.
+   - **[MVP] Select/multi-select etapów** — wciąż brak wyboru widocznych etapów,
+     **analogicznie do sekcji** (i do multi-selecta widoczności z #5). Oczywiste, ale nie na
+     POC — **do MVP.** Ten sam mechanizm widoczności obejmie sekcje, typy transakcji (#5)
+     i etapy.
+8. ~~**Zawijanie wierszy.**~~ — ROZWIĄZANE (właściciel, 2026-06-20): **wariant (a) —
+   jednoliniowo z ucięciem + tooltip pokazujący całą treść.** Bez zawijania (wariant b
+   odrzucony — kosztowny w datasheet-grid przy wirtualizacji stałej wysokości). Dodatkowo
+   resize kolumn jest już dodany, więc użytkownik może i tak poszerzyć kolumnę opisu —
+   tooltip to wystarczające dopełnienie dla naprawdę długich wpisów. Do zrobienia: tooltip
+   na komórce `opis` (pełny tekst na hover). **⚠️ ZAKRES: przeniesione do MVP (właściciel,
+   2026-06-20) — NIE POC.** Resize kolumn wystarcza na POC; tooltip dokładamy przy MVP.
 9. **Cofanie akcji + historia wersji.** react-datasheet-grid **nie ma** wbudowanego
    undo/redo; obecny edytor nie obsługuje żadnej historii (jest tylko revert-on-error
    przy nieudanym zapisie — to nie to samo). Ctrl+Z działa najwyżej w obrębie pojedynczej
@@ -483,6 +611,23 @@ wpisana wartość`. Też podąża za ceną klienta, ale ignoruje współczynnik 
      wstecz = undo), warstwy 2 (replay do timestampu = wersja) i audytu zmian cen — wzorzec
      Event Sourcing; snapshoty = optymalizacja odtwarzania przy 1000+ wierszy (jak Git:
      snapshot + delty). Osobny slice. Do potwierdzenia przez właściciela.
+   - **⚠️ ZAKRES: to NIE POC — to PRD/MVP** (właściciel, 2026-06-20). Cofanie i historia
+     nie wchodzą do POC; należą do właściwego wydania. Świadomie poza bieżącym scope.
+   - **Twardy przypadek dla undo: kasowanie etapu = cascade** (właściciel, 2026-06-20).
+     `DELETE` etapu kasuje na poziomie FK (`ON DELETE CASCADE`) WSZYSTKIE wpisy `stage_progress`
+     tego etapu dla wszystkich pozycji (patrz #7). Cofnięcie takiego usunięcia musi odtworzyć
+     cały skasowany kaskadą zbiór, nie tylko sam wiersz etapu — nietrywialne. Dziś bramka
+     w `removeStageAction` (blokada etapu z `qty_done<>0`) ogranicza utratę, ale undo i tak
+     musi to ogarnąć. Skomplikowane — świadomie odłożone na warstwę historii MVP, nie POC.
+   - **⚠️ PRIORYTET TESTOWY: #2** (właściciel, 2026-06-20). Cofanie + historia to wysoki
+     potencjał problemów, ale **ryzyko #1 to źle liczone formuły i wynikające z nich ryzyko
+     finansowe** — to jest pierwsze do testowania, undo/historia drugie. Gdy powstanie
+     `context/foundation/test-plan.md` (`/10x-test-plan`), undo = ryzyko #2.
+   - **Uwaga z historii (lessons.md):** mieliśmy już dziesiątki testów, które **nic nie
+     sprawdzały** (tautologiczne / tylko-zielone) — patrz lekcja „test parytetu/regresji
+     musi wołać realne funkcje na realnych danych i być udowodniony red→green". Plan testów
+     dla formuł MUSI tego uniknąć: asercje na **realnych kalkulacjach** (`calc.ts` na danych
+     z bazy), nie na atrapach, każda udowodniona red.
 10. **Współbieżność edycji (konflikty zapisu).** Edytor zapisuje per pole (debounced) —
     przy dwóch managerach na jednym kosztorysie to **last-write-wins**: późniejszy zapis
     cicho nadpisuje wcześniejszy, bez merge i bez ostrzeżenia. To problem logicznie
@@ -493,3 +638,74 @@ wpisana wartość`. Też podąża za ceną klienta, ale ignoruje współczynnik 
     per sekcja), zwolnienie (timeout/heartbeat na porzuconą kartę), UX dla zablokowanego
     (read-only + „edytuje X"). Pełny merge wielu edytorów (OT/CRDT) świadomie **odrzucony**
     na tym etapie. Do potwierdzenia przez właściciela.
+11. **Robocizna: definicja sumy + obsługa netto/brutto w modelu.** (właściciel, 2026-06-20)
+    (a) ~~spójność modelu~~ **ROZWIĄZANE:** etap = nakładka postępu (`qtyDone` per pozycja),
+    pozycja jest jednostką — obecny schemat poprawny, „suma etapów" = wartość wykonana
+    (Σ qtyDone × cena). Bez zmiany modelu.
+    **Figura nagłówkowa — WYWALONA (właściciel, 2026-06-20: „wywalamy nagłówek").** Żadnej
+    sumy w nagłówku/toolbarze edytora. Usunięto istniejącą sumę „netto" z toolbara
+    (`kosztorys-editor-v2.tsx`; został tylko licznik „X pozycji"). Nie wprowadzamy żadnej
+    figury nagłówkowej — ani planu, ani wykonania. Powód: liczba bez jasnego pytania, na
+    które odpowiada, jest szumem.
+    **Zostaje jako rozumienie modelu (nie jako UI):** `LABOR_COST` = praca wykonana
+    (Σ etapów), a plan (Σ pomiar × cena) to tylko odniesienie do oceny odchylenia — nie druga
+    figura rozliczeniowa. Gdyby kiedyś wróciło porównanie plan/wykonanie, miejscem jest panel
+    plan-vs-actual, NIE nagłówek (a panel sam jest odłożony — patrz niżej).
+    (b) **netto/brutto** — reguła znana (pochodna B2B vs nie + stawka VAT 23/8, patrz sekcja A);
+    dziś w appce gołe „robocizna" bez oznaczenia. Do zrobienia: model musi nieść tę informację,
+    żeby robocizna była jednoznacznie netto albo brutto wg kontekstu inwestycji.
+12. **[POST-MVP] „Ślepy" kosztorys wykonawcy → mapowanie 1:1 na kosztorys główny.**
+    (właściciel, 2026-06-20) Funkcja na **dalszą kolejność, po MVP** (nie POC). Podwykonawca/
+    pracownik dostaje **okrojony kosztorys bez stawek i bez cen** — tylko lista prac
+    - jednostki + pola do wpisania ile wykonał. Wypełnia **jeden etap**. To, co wpiszą
+      (`qtyDone` per pozycja), wraca i **mapuje się 1:1 na kosztorys główny bez ręcznego
+      przepisywania** — pyk, od razu na właściwym kosztorysie, gdzie dochodzą pełne formuły
+      i cennik (np. 1 mb × cena z kosztorysu → wartość, dalej kalkulacja). Spina się
+      bezpośrednio z modelem etapu z #11a (etap = nakładka `qtyDone`) — ten „ślepy arkusz"
+      to po prostu kanał wejścia dla jednego etapu. Wymagania (właściciel, 2026-06-20):
+    * **Mobile-first.** Wykonawcy często nie mają komputerów — interfejs głównie pod telefon.
+    * **Mapowanie po ID pracy, nie po nazwie.** Nazwy prac mogą wymagać tłumaczenia
+      (inny język wykonawcy), więc powiązanie wejścia z pozycją idzie po **identyfikatorze
+      pozycji**, a etykieta jest tylko warstwą prezentacji.
+    * **Pozycja potrzebuje stabilnego, unikalnego ID w ramach kosztorysu.** Dziś
+      `kosztorys_items.id` to globalny PK — wystarcza technicznie do mapowania, ale do
+      potwierdzenia, czy potrzebny jest osobny **biznesowy/stały identyfikator pozycji**
+      (czytelny, odporny na zmianę nazwy/kolejności), żeby „ślepy arkusz" i tłumaczenia
+      działały pewnie. Decyzja na etapie projektowania S-11.
+    * Do skminienia po MVP: forma dystrybucji (link/eksport/osobny widok roli), walidacja wejścia.
+13. **[MVP] Podsumowanie wartości per etap (rozliczenia etapów).** (właściciel, 2026-06-20)
+    W oryginalnym arkuszu każdy etap miał **liczoną wartość** (mapa kolumn: „P+ wartości etapów
+    liczone"); przy porcie na siatkę zostały tylko kolumny **ilości** (`qtyDone`), a wartości/sumy
+    etapów **zniknęły**. Model już to liczy per wiersz (`stageValueForView` → karmi „Pozostało"),
+    ale brak **agregatu per etap** = `Σ_pozycji (qtyDone_w_etapie × cena)` („ile cenowo wykonano
+    w etapie N"). Wzór potwierdzony: `Pozostało = Σ(pomiar × cena) − Σ_etapów[Σ_pozycji(qtyDone×cena)]`
+    — dziś prawa strona widoczna jako jedna kwota łączna, chcemy ją **rozbitą per etap**
+    (analogia do subtotali per sekcja, tylko po osi etapów).
+    - **Kierunek (właściciel, 2026-06-20): odtworzyć strukturę oryginalnego arkusza** — prace
+      osobno → rozliczenia (wartości) osobno → podsumowanie. Gdzie konkretnie (stopka per kolumna
+      etapu vs osobny panel „Podsumowanie etapów" vs oba) + czy też kolumna wartości per wiersz —
+      **TBD, do przegadania, nie teraz.**
+    - **Nowa oś widoczności (load-bearing, do przegadania):** widoczność rozbić na **dwie
+      rzeczy** — (1) widoczność etapów per etap ORAZ (2) widoczność „wykonane prace" vs
+      „podsumowanie finansowe" (osobne przełączanie warstwy prac i warstwy rozliczeń). Spina się
+      z multi-selectem widoczności z #5/#7 (ten sam mechanizm obejmie sekcje, typy transakcji,
+      etapy i teraz warstwy prace/finanse).
+    - Wszystko **MVP**, nie POC. Naturalny dom = przyszły panel „Podsumowanie" (jeszcze nie istnieje;
+      ten sam, do którego idą VAT + współczynniki cen — sekcja A).
+14. **[MVP] Przesuwanie kolumn (reorder).** (właściciel, 2026-06-20) Dziś jest tylko
+    reorder **wierszy** (pozycje ▲▼, sekcja B/#7) — kolumn nie da się przestawiać. Dodać
+    możliwość zmiany kolejności kolumn. Trwałość per przeglądarka (localStorage), analogicznie
+    do widoczności i szerokości kolumn (`kosztorys-v2-*`). Uwaga implementacyjna: dsg nie ma
+    natywnego reorderu kolumn i zamraża `columns` na montażu — najpewniej ta sama klasa co
+    resize/widoczność (przebudowa listy kolumn + remount przez `key`, patrz lekcja w
+    `lessons.md`). MVP, nie POC.
+15. **[MVP] Flow etapów × ceny (z/bez narzędzi) jest konceptualnie mglisty — rework UX+model.**
+    (właściciel, 2026-06-20) Diagnoza właściciela: „jest cena niby za coś, ale nie wiem za co".
+    Korzeń = **brak przelicznika per etap (#13)**: kolumny etapów pokazują tylko ilości
+    (`qtyDone`), nigdzie nie rozwiązują się w **pieniądze per etap**, więc cena wisi w powietrzu —
+    widać stawkę i ilości, ale nie „ten etap = tyle zł". Drugi czynnik = **tryby z/bez narzędzi
+    nieoczywiste bez objaśnienia nad tabelą** (już zapisany follow-up w #2). To NIE błąd
+    liczenia — model (współczynnik → cena podwykonawcy, Σ etapów → wykonanie) jest poprawny;
+    to luka **prezentacji i tłumaczenia konceptu**. Do zrobienia przy MVP łącznie z #13 i
+    follow-upem UX z #2: pokazać wartość per etap, objaśnić tryb ceny w danym widoku, tak żeby
+    „za co jest ta cena" było czytelne bez domyślania się. MVP.
