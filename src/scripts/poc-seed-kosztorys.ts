@@ -9,7 +9,9 @@ import config from '../payload.config'
 
 const SHEET_ID = '1TWZuU7ZDElhUameN4ii2U5TztmQG387Gqcn9NgwwObE'
 const TAB = 'kosztorys_robocizny'
-const INVESTMENT_ID = 6
+const INVESTMENT_ID = Number(process.env.INV ?? 6)
+// Opcjonalna zmiana nazwy inwestycji (np. RENAME="test kosztorys Sienicka").
+const RENAME = process.env.RENAME
 const STAGE_COUNT = 6
 
 const num = (v: unknown): number => (typeof v === 'number' ? v : Number(v) || 0)
@@ -37,6 +39,16 @@ async function run() {
 
   // Wyczyść poprzednie wiersze inwestycji (sekcje kasują pozycje + postęp przez FK CASCADE).
   const ctx = { context: { skipRevalidation: true } }
+
+  if (RENAME) {
+    await payload.update({
+      collection: 'investments',
+      id: INVESTMENT_ID,
+      data: { name: RENAME },
+      ...ctx,
+    })
+    console.log(`Renamed inv ${INVESTMENT_ID} → "${RENAME}"`)
+  }
   await payload.delete({
     collection: 'kosztorys-sections',
     where: { investment: { equals: INVESTMENT_ID } },

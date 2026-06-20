@@ -1,0 +1,110 @@
+// One-off PERF: syntetyczny duży kosztorys (~1000 pozycji) do pomiaru wydajności v2.
+// TYLKO wykonczymy-poc. Domyślnie inwestycja 7 (żeby nie ruszać realnego seedu inw. 6).
+// Czyści kosztorys docelowej inwestycji, tworzy SECTIONS×ITEMS_PER_SECTION pozycji,
+// STAGE_COUNT etapów i rzadki postęp.
+//
+//   INV=7 node --env-file=.env --import tsx src/scripts/poc-perf-seed-kosztorys.ts
+import { getPayload } from 'payload'
+import config from '../payload.config'
+
+const INVESTMENT_ID = Number(process.env.INV ?? 7)
+const SECTIONS = 10
+const ITEMS_PER_SECTION = 100 // 10 × 100 = 1000 pozycji
+const STAGE_COUNT = 7
+const CHUNK = 40 // równoległe create() w paczkach, żeby nie zalać puli połączeń
+
+const ctx = { context: { skipRevalidation: true } }
+
+async function run() {
+  const payload = await getPayload({ config })
+
+  await payload.delete({
+    collection: 'kosztorys-sections',
+    where: { investment: { equals: INVESTMENT_ID } },
+    ...ctx,
+  })
+  await payload.delete({
+    collection: 'kosztorys-stages',
+    where: { investment: { equals: INVESTMENT_ID } },
+    ...ctx,
+  })
+
+  const stageIds: number[] = []
+  for (let ord = 1; ord <= STAGE_COUNT; ord++) {
+    const s = await payload.create({
+      collection: 'kosztorys-stages',
+      data: { investment: INVESTMENT_ID, ordinal: ord },
+      ...ctx,
+    })
+    stageIds.push(s.id)
+  }
+
+  let itemCount = 0
+  let progressCount = 0
+
+  for (let si = 0; si < SECTIONS; si++) {
+    const section = await payload.create({
+      collection: 'kosztorys-sections',
+      data: {
+        investment: INVESTMENT_ID,
+        name: `Sekcja ${si + 1}`,
+        displayOrder: si,
+        vatRate: 0.08,
+        defaultCostVariant: 'w_tools',
+      },
+      ...ctx,
+    })
+
+    const indices = Array.from({ length: ITEMS_PER_SECTION }, (_, i) => i)
+    for (let c = 0; c < indices.length; c += CHUNK) {
+      const slice = indices.slice(c, c + CHUNK)
+      const items = await Promise.all(
+        slice.map((i) =>
+          payload.create({
+            collection: 'kosztorys-items',
+            data: {
+              investment: INVESTMENT_ID,
+              section: section.id,
+              displayOrder: i,
+              description: `Pozycja ${si + 1}.${i + 1} — robocizna testowa`,
+              unit: ['m2', 'mb', 'szt', 'kpl'][i % 4],
+              plannedQty: (i % 17) + 1,
+              measuredQty: (i % 13) + 1,
+              discountType: i % 5 === 0 ? 'percent' : null,
+              discountValue: i % 5 === 0 ? 5 : 0,
+              clientPrice: 20 + (i % 50) * 3,
+              subcontractorWToolsPrice: 12 + (i % 40) * 2,
+              subcontractorOwnToolsPrice: 10 + (i % 30) * 2,
+              hiddenInExport: false,
+            },
+            ...ctx,
+          }),
+        ),
+      )
+      itemCount += items.length
+
+      // Rzadki postęp: co 3. pozycja ma wpis w 1–2 etapach.
+      const progress = items
+        .filter((_, idx) => (c + idx) % 3 === 0)
+        .flatMap((item, idx) => {
+          const entries = [{ item: item.id, stage: stageIds[0], qtyDone: 1 }]
+          if (idx % 2 === 0) entries.push({ item: item.id, stage: stageIds[1], qtyDone: 1 })
+          return entries
+        })
+      await Promise.all(
+        progress.map((data) => payload.create({ collection: 'stage-progress', data, ...ctx })),
+      )
+      progressCount += progress.length
+    }
+  }
+
+  console.log(
+    `PERF seed inv ${INVESTMENT_ID}: ${SECTIONS} sekcji, ${itemCount} pozycji, ${STAGE_COUNT} etapów, ${progressCount} wpisów postępu`,
+  )
+  process.exit(0)
+}
+
+run().catch((e) => {
+  console.error(e)
+  process.exit(1)
+})
