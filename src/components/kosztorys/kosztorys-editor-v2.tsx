@@ -9,6 +9,7 @@ import { useHiddenColumns } from '@/components/kosztorys/use-hidden-columns'
 import { useColumnWidths } from '@/components/kosztorys/use-column-widths'
 import { DatasheetColumnToggle } from '@/components/kosztorys/datasheet-column-toggle'
 import { KosztorysSectionSummary } from '@/components/kosztorys/kosztorys-section-summary'
+import { KosztorysCsvButton } from '@/components/kosztorys/kosztorys-csv-button'
 import { useElementHeight } from '@/hooks/use-element-height'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -318,6 +319,14 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
           >
             Sekcje
           </Button>
+          <KosztorysCsvButton
+            rows={viewRows}
+            stages={tree.stages}
+            hidden={hidden}
+            view={view}
+            subtotals={subtotals}
+            investmentName={investmentName}
+          />
           <DatasheetColumnToggle columns={toggleable} hidden={hidden} onToggle={toggleColumn} />
         </div>
       </div>
