@@ -63,6 +63,15 @@ tylko renderuje `value` (które JEST reaktywne, w przeciwieństwie do sizing kol
   ostatniej pozycji sekcji jest zablokowane** (kosz nieaktywny / proponuje „usuń sekcję").
   Po co: panel liczy sekcje z `rows`; sekcja bez wierszy zniknęłaby z panelu i nie dałoby się
   do niej wrócić. Inwariant trzyma spójność panel↔grid bez przebudowy źródła panelu.
+  - **Stan implementacji (2026-06-20):** strażnik egzekwowany jest w `handleRemoveItem`
+    (count z `prevById`, event-time) przez `window.alert` + `return` — kosz jest klikalny
+    zawsze, dopiero kliknięcie na ostatniej pozycji pokazuje komunikat zamiast usuwać.
+    Powód odejścia od wyszarzenia: dsg zamraża `columns` na montażu (live-count w komórce
+    widziałby stan z mountu), a reguła `react-hooks/refs` blokuje render-time odczyt refa.
+  - **TODO MVP:** zamienić `window.alert` na **wyszarzony (disabled) kosz z tooltipem**
+    („Sekcja musi mieć co najmniej jedną pozycję — użyj kosza sekcji"). Realizacja: nieść
+    flagę „ostatnia pozycja w sekcji" **na wartości grida** (reaktywnej, omija zamrożenie
+    kolumn), nie przez render-time ref. Osobny, mały slice — nie poprawka.
 - **`prevById`** w rytm splice'u (add → set, remove → delete) — diff zostaje spójny.
 - **Filtr + sort + szukajka** komponują się na `viewRows`; `onChange` scala po id do pełnego
   zbioru, więc ukryte/odfiltrowane wiersze są bezpieczne.
