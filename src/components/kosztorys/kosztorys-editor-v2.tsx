@@ -239,8 +239,10 @@ export function KosztorysEditorV2({ tree, investmentName }: PropsT) {
           className="grid min-h-0 min-w-0 flex-1 grid-cols-[minmax(0,1fr)] overflow-hidden"
         >
           <DataSheetGrid
-            // Remount przy zmianie szerokości kolumn: dsg nie przelicza sizing bez tego.
-            key={widthsKey}
+            // Remount przy zmianie szerokości kolumn ORAZ widoku: dsg zamraża `columns`
+            // na montażu i nie podnosi nowych wiązań (cena→pole, netto wg widoku) bez
+            // remountu — bez `view` w kluczu wszystkie 3 widoki pokazywały cenę klienta.
+            key={`${view}:${widthsKey}`}
             className="kosztorys-grid"
             value={viewRows}
             onChange={onChange}
