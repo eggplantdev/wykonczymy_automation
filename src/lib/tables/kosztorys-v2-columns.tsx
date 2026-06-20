@@ -1,6 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import { Trash2 } from 'lucide-react'
 import { Column, type CellProps, keyColumn, textColumn, floatColumn } from 'react-datasheet-grid'
 import { SortHeader } from '@/components/kosztorys/sort-header'
 import { ResizableHeader } from '@/components/kosztorys/column-resize-handle'
@@ -47,6 +48,11 @@ export type BuildV2ColumnsOptsT = {
   widths?: Record<string, number>
   onGuide?: (x: number | null) => void
   onCommitColumn?: (id: string, width: number) => void
+  // Akcje na wierszu: usuwanie pozycji + odczyt liczby pozycji sekcji (do blokady
+  // inwariantu „≥1 pozycja"). Oba czytają świeży stan z editora (ref) — bo dsg zamraża
+  // `columns` na montażu, więc closure MUSI czytać aktualne dane, nie snapshot z mountu.
+  onRemoveItem?: (row: KosztorysV2RowT) => void
+  getSectionItemCount?: (sectionId: number) => number
 }
 
 // keyColumn wymaga column: Column<Row[K]>. floatColumn/textColumn są nullowalne
@@ -187,6 +193,39 @@ function withResize(
   }
 }
 
+// Kolumna akcji: kosz usuwający pozycję. Sztywne 44px, nie-resizable, nie-toggleable.
+// Kosz nieaktywny gdy to ostatnia pozycja sekcji (inwariant „sekcja ma ≥1 pozycję").
+function actionColumn(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT> {
+  const onRemove = opts.onRemoveItem
+  const getCount = opts.getSectionItemCount
+  return {
+    id: 'actions',
+    title: '',
+    basis: 44,
+    grow: 0,
+    shrink: 0,
+    minWidth: 44,
+    maxWidth: 44,
+    disabled: true,
+    component: ({ rowData }) => {
+      const isLast = getCount ? getCount(rowData.sectionId) <= 1 : false
+      return (
+        <div className="flex size-full items-center justify-center">
+          <button
+            type="button"
+            disabled={isLast}
+            title={isLast ? 'Sekcja musi mieć co najmniej jedną pozycję' : 'Usuń pozycję'}
+            onClick={() => onRemove?.(rowData)}
+            className="text-muted-foreground hover:text-destructive disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      )
+    },
+  }
+}
+
 export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[] {
   const { stages, view } = opts
   const left: Column<KosztorysV2RowT>[] = [
@@ -194,6 +233,9 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
       id: 'sectionName',
       title: title('sectionName', 'Sekcja', opts),
       minWidth: 140,
+      // Nazwę sekcji zmienia się wyłącznie z panelu — edycja per-wiersz zmieniałaby tylko
+      // kopię tego wiersza (zdenormalizowane pole), nie sekcję. Stąd read-only.
+      disabled: true,
     }),
     keyCol('description', textColumn, {
       id: 'description',
@@ -250,5 +292,6 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
     ),
   ]
 
-  return [...left, ...stageCols, ...computed].map((c) => withResize(c, opts))
+  const base = [...left, ...stageCols, ...computed].map((c) => withResize(c, opts))
+  return opts.onRemoveItem ? [actionColumn(opts), ...base] : base
 }
