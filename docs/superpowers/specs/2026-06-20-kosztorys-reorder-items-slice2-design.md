@@ -96,6 +96,10 @@ disabled odkładamy:
   są zależne od kolejności i render-time). MVP: nieść flagi na **wartości grida** (reaktywnej),
   jak w TODO kosza ze Slice 1.
 - **Wskaźnik „aktywny sort kolumnowy"** — na razie wystarcza, że ▲▼ są szare przy sorcie.
+- **UX strzałek do przeprojektowania (2026-06-20, po weryfikacji).** Działa, ale wygląda/klika
+  się słabo: dwie małe ikonki ▲▼ ciasno spiętrzone w 64px kolumnie. Kandydaci na MVP: większy
+  cel kliknięcia, drag-handle zamiast strzałek (spójne z docelowym drag-drop), albo ▲▼ tylko
+  na hover wiersza. Wiązać z pozycją „drag-drop" z „Poza zakresem".
 
 ## Poza zakresem (kolejne slice'y) — kierunek docelowy
 
@@ -109,6 +113,15 @@ disabled odkładamy:
 - **Reorder sekcji** — ▲▼ na sekcji w panelu „Sekcje"; renumeruje `kosztorys-sections.displayOrder`
   (analogiczna akcja `reorderSectionsAction`). Przestawia całe bloki.
 - **Drag-drop** — zamiast strzałek, gdy reorder się ustabilizuje.
+  - **GOTCHA — DnD wymusza migrację `display_order` na klucze rzadkie.** ▲▼ to swap sąsiadów,
+    więc tani `swapItemOrderAction` (2 update'y) wystarcza. DnD ma semantykę _move/insert_:
+    przeciągnięcie pozycji przez pół sekcji przesuwa **cały zakres** między źródłem a celem →
+    renumeracja N wierszy na drop = ten sam dławik, który zdjęliśmy ze strzałek (patrz lekcja
+    „Liczba zapisów ma odpowiadać realnej zmianie" w `context/foundation/lessons.md`). Moment
+    wejścia DnD = moment migracji `display_order` na **rzadkie/ułamkowe** wartości (LexoRank /
+    midpoint między sąsiadami → 1 zapis na drop + okazjonalny rebalans). Wtedy
+    `swapItemOrderAction`/`reorderItemsAction` stają się zbędne. Nie robić tego na zapas (YAGNI),
+    ale i nie wpuszczać DnD na ciągłych intach — wejdzie z wbudowanym dławikiem.
 
 ## Testy
 
