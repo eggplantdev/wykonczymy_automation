@@ -1,5 +1,25 @@
 # Kosztorys robocizny w aplikacji (POC) — Implementation Plan
 
+> ## ⚠️ KOD POC — DO PRZEROBIENIA. Co tu jest WARTOŚCIOWE, a co do wyrzucenia
+>
+> **Dla przyszłych agentów:** to plan POC budowanego na szybko. Pełny opis w `change.md`
+> (banner na górze). W skrócie:
+>
+> **WARTOŚCIOWE — bierz to dalej:**
+>
+> - **Lekcje** (`context/foundation/lessons.md`) — twarde gotchas z tej pracy (remount dsg,
+>   brak natywnego resize, migotanie flex, lightningcss arm64). Realne, sprawdzone.
+> - **To, że działa** — POC dowiódł, że appka może zastąpić arkusz w tej części. Dowód
+>   koncepcji, nie produkcyjny kod.
+> - **Decyzje** — wszystkie rozstrzygnięcia właściciela (sekcja „Decyzje" + „Pytania"
+>   w `change.md`). To jest źródło prawdy o zamyśle.
+>
+> **DO PRZEROBIENIA OD ZERA:**
+>
+> - **Cały quality gate** — testy, code review, `simplify`, audyty jakości/architektury.
+>   Świadomie pominięte w POC; przy MVP implementowane od nowa. Nie zakładaj, że brak
+>   testów = stabilne; nie traktuj istniejącego kodu jako wzorca.
+
 ## Status (2026-06-20)
 
 Fazy 1–3 = rdzeń POC — **ZROBIONE i zweryfikowane w przeglądarce**. Faza 3

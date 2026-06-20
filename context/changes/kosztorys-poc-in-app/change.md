@@ -8,6 +8,21 @@ updated: 2026-06-20
 
 # Kosztorys robocizny w aplikacji — POC przejścia z Google Sheets
 
+> ## ⚠️ TO JEST KOD POC — DO PRZEROBIENIA, NIE WZORZEC
+>
+> **Dla przyszłych agentów i ludzi czytających te pliki:** cały kod związany z tym
+> kosztorysem (edytor v2, kalkulacje, akcje, migracje POC) powstał, **żeby szybko dojść
+> do działającego POC** — i będzie **totalnie do przerobienia** przy przejściu na MVP.
+>
+> Świadomie **POMINIĘTO**: testy, quality checki, code review, `simplify`, dbałość
+> o architekturę. To był wybór („feedback: w fazie POC pomijamy testy; bramka =
+> typecheck + build + browser"), nie przeoczenie.
+>
+> **Konsekwencja — czego NIE robić:** nie traktuj istniejącego kodu ani jego jakości
+> jako wzorca/sugestii „jak ma być". Nie kopiuj wzorców 1:1, nie zakładaj, że brak
+> testów = stabilne. Przy MVP spodziewaj się **dużej fali poprawek** (jakość, testy,
+> review, uproszczenia). Źródłem prawdy o **zamyśle** jest ta dokumentacja, nie kod.
+
 POC pełnego przejścia edytowalnej rozpiski robocizny z Google Sheets do aplikacji.
 Czysty start (bez importu arkuszy), baza aplikacji = źródło prawdy, współistnienie
 z istniejącą zakładką „Arkusz".
