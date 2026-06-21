@@ -6,7 +6,7 @@
   "packageManager": "pnpm@10.27.0",
   "scripts": {
     "dev": "next dev --turbo",
-    "build": "payload generate:importmap && payload generate:types && payload migrate && next build",
+    "build": "payload generate:importmap && payload generate:types && next build",
     "start": "next start",
     "lint": "eslint .",
     "format": "prettier --check --ignore-path .gitignore .",
@@ -18,6 +18,7 @@
     "generate:types": "payload generate:types",
     "generate:importmap": "payload generate:importmap",
     "migrate:create": "payload migrate:create",
+    "db:migrate:prod": "pnpm db:dump && source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_PROD\" payload migrate",
     "seed:transfers": "node --env-file=.env --import tsx src/scripts/seed-transfers.ts",
     "seed:ziutek": "node --env-file=.env --import tsx src/scripts/seed-ziutek-advances.ts",
     "db:dump": "source .env && mkdir -p dumps && docker exec -i \"$DOCKER_CONTAINER\" pg_dump --clean --no-owner --no-acl \"$DB_POSTGRES_URL_PROD\" > dumps/dump-latest.sql && cp dumps/dump-latest.sql \"dumps/dump-$(date +%Y-%m-%d_%H-%M).sql\"",

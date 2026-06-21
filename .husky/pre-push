@@ -1,3 +1,38 @@
+# ── Prod-migration gate (gate + remind only — NEVER touches the DB) ──────────
+# Payload migrations no longer run at build time, so a Vercel deploy can't change
+# the schema. Schema is now a separate, human-owned plane. On a push to main that
+# ADDS a migration under src/migrations/, stop and make the human acknowledge that
+# prod must be migrated by hand (`pnpm db:migrate:prod`, backup-first) — schema
+# BEFORE the code that needs it goes live. This block only asks; it runs no SQL.
+# Reads /dev/tty because git feeds the pushed-ref list to a pre-push hook on stdin.
+PROD_BRANCH=main
+push_to_prod= sha_from= sha_to=
+while read -r _local_ref local_sha remote_ref remote_sha; do
+  if [ "$remote_ref" = "refs/heads/$PROD_BRANCH" ]; then
+    push_to_prod=1; sha_from=$remote_sha; sha_to=$local_sha
+  fi
+done
+
+if [ -n "$push_to_prod" ]; then
+  if [ "$sha_from" = "0000000000000000000000000000000000000000" ]; then
+    sha_from=$(git hash-object -t tree /dev/null)   # new branch: diff vs empty tree
+  fi
+  # --diff-filter=A: only ADDED migrations are pending applies. A rename/edit or a
+  # deletion (e.g. removing a smoke-test migration) is never something prod needs.
+  if git diff --name-only --diff-filter=A "$sha_from" "$sha_to" -- src/migrations/ | grep -q '\.ts$'; then
+    if { : < /dev/tty; } 2>/dev/null; then
+      printf '\n⚠  Push to %s adds new src/migrations/.\n   Prod is NOT auto-migrated. Run `pnpm db:migrate:prod` yourself (backup-first)\n   BEFORE this deploy serves traffic, else the live app runs against an old schema.\n   Push the code now anyway? [y/N] ' "$PROD_BRANCH" > /dev/tty
+      read -r go < /dev/tty || go=n
+      case "$go" in
+        [Yy]*) echo "→ pushing code; remember to run pnpm db:migrate:prod" >&2 ;;
+        *)     echo "✗ aborted — migrate prod first, then push" >&2; exit 1 ;;
+      esac
+    else
+      echo "→ no terminal to confirm; pushing code only (migrate prod manually)" >&2
+    fi
+  fi
+fi
+
 pnpm run typecheck
 pnpm vitest run
 

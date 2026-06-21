@@ -17,7 +17,7 @@ Business management dashboard for cash registers, transfers, investments, and em
 Scripts live in `@package.json`. Non-obvious ones:
 
 ```bash
-pnpm build         # generate:importmap + generate:types + migrate + next build
+pnpm build         # generate:importmap + generate:types + next build (NO migrate — see Migrations)
 pnpm exec vitest run src/__tests__/some-file.test.ts  # single test file — pnpm 10 no longer forwards `--` to nested scripts
 pnpm generate:types  # regenerate src/payload-types.ts (gitignored — never `git add` it)
 docker compose up -d  # local Postgres on port 5433
@@ -25,7 +25,9 @@ docker compose up -d  # local Postgres on port 5433
 
 ### Migrations
 
-`pnpm migrate:create` has emitted phantom drift since ~March 2026 (missing `.json` snapshots), so **hand-write migrations**: copy the structure of the latest file in `src/migrations/` and adjust FK constraints / internal Payload tables by hand. Don't trust an auto-generated migration blindly. `pnpm build` runs `payload migrate`.
+`pnpm migrate:create` has emitted phantom drift since ~March 2026 (missing `.json` snapshots), so **hand-write migrations**: copy the structure of the latest file in `src/migrations/` and adjust FK constraints / internal Payload tables by hand. Don't trust an auto-generated migration blindly.
+
+**Migrations are NO LONGER run by the build.** `payload migrate` was removed from `pnpm build` so a Vercel deploy (incl. previews) can never touch the schema — code and schema are separate planes. Apply migrations to prod deliberately with **`pnpm db:migrate:prod`** (dumps Neon prod first, then `payload migrate` against `DB_POSTGRES_URL_PROD`), run by a **human**, never the agent. A `.husky/pre-push` gate reminds you on a push to `main` that adds `src/migrations/*.ts`. Order: migrate prod **before** pushing the code that needs it. Pattern owned by the `payload-prod-migrate` skill.
 
 ### Dependencies
 
