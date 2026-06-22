@@ -17,7 +17,6 @@ import {
   DateField,
   DescriptionField,
   SourceRegisterField,
-  // PaymentMethodField,
 } from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
@@ -136,9 +135,6 @@ export function InternalTransferForm({
             <AmountField form={form} fieldClassName="min-w-0 flex-1" />
             <DateField form={form} fieldClassName="w-40" />
           </div>
-
-          {/* Payment method — temporarily hidden, always CASH */}
-          {/* <PaymentMethodField form={form} /> */}
 
           <DescriptionField form={form} />
         </FieldGroup>

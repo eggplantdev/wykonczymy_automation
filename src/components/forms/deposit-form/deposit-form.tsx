@@ -22,7 +22,6 @@ import {
   DateField,
   DescriptionField,
   EntityComboboxField,
-  // PaymentMethodField,
 } from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
@@ -135,9 +134,6 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
             <AmountField form={form} fieldClassName="min-w-0 flex-1" />
             <DateField form={form} fieldClassName="w-40" />
           </div>
-
-          {/* Payment method — temporarily hidden, always CASH */}
-          {/* <PaymentMethodField form={form} /> */}
 
           <CashRegisterField form={form} cashRegisters={referenceData.cashRegisters} />
 
