@@ -9,8 +9,8 @@ Business management dashboard for cash registers, transfers, investments, and em
 ## Backlog & Task Tracking
 
 - **Canonical todo + slices:** `context/foundation/roadmap.md` — the v2 arc as slices (`F-01`, `S-01`…`S-10`) in dependency order, each with a `Status` field (`ready` / `proposed` / `blocked` / `done`). Start here for what to build next. Built from `context/foundation/prd.md` via `/10x-roadmap`; per-change plans land in `context/changes/<change-id>/` via `/10x-plan`.
-- **Live status board:** Linear project **"Wykonczymy v2"**. When you start implementing a slice set its Linear issue to In Progress, and to Done when it's complete. **Reality-check Linear access first** — if the Linear MCP isn't connected, update the slice's `Status` in `roadmap.md` instead rather than claiming a Linear change you can't make.
-- Refactor/cleanup backlog: see **Tech Debt** below. Client-notes todo: `docs/notes-todo.md`.
+- **Live status board + general todo:** Linear project **"Wykonczymy v2"** — both the slice board and the home for smaller/ad-hoc tasks (there is no separate todo file). When you start implementing a slice set its Linear issue to In Progress, and to Done when it's complete. **Reality-check Linear access first** — if the Linear MCP isn't connected, update the slice's `Status` in `roadmap.md` instead rather than claiming a Linear change you can't make.
+- Refactor/cleanup backlog: see **Tech Debt** below.
 - After ANY bigger change, plan implementation etc. update relevant document, clean up staled plans, designs etc.
 
 ## Common Commands
