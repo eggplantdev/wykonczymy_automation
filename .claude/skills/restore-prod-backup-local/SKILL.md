@@ -98,7 +98,15 @@ verify with step 6.
 > default (or `DUMP_FILE=...`). The explicit `docker exec` above is clearer when targeting a
 > specific timestamped dump.
 
-### 6. Verify the data landed (this is the real success check)
+### 6. Clean up old backup files
+
+Delete `wykonczymy-backup-*` files (both `.gz` and decompressed `.sql`) in `dumps/` older than 7 days.
+
+```bash
+find dumps -maxdepth 1 -name 'wykonczymy-backup-*' -mtime +7 -delete
+```
+
+### 7. Verify the data landed (this is the real success check)
 
 Cast counts to `text` — you can't `UNION` `bigint` with a timestamp.
 

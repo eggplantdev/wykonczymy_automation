@@ -1,3 +1,7 @@
+##
+
+- Czy sumy per-typ (Materiały budowlane/wykończeniowe) mają mieć też wariant „rozliczone"?
+
 ## 16. LEKCJA (to całe back-and-forth — czego nie powtarzać)
 
 1. **Ta sama figura składana niezależnie w wielu miejscach nie może być równa „przez przypadek".** Równość musi być wymuszonym inwariantem (wspólny kod tam, gdzie się da; test właściwości tam, gdzie kod musi się różnić — jak interaktywny bilans).
