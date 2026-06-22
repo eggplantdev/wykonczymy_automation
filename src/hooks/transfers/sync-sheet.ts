@@ -24,7 +24,7 @@ const resolveId = (value: unknown): number | undefined => {
 // (review T4.2), so we don't fire N per-row syncs from here.
 // Types that own a row on one of the app-managed tabs: expenses tab for
 // EXPENSES_TAB_TYPES, transfery tab for the investment-linked types.
-const SHEET_SYNCED_TYPES: readonly string[] = [...EXPENSES_TAB_TYPES, ...SHEET_TRANSFER_TAB_TYPES]
+const SHEET_SYNCED_TYPES: string[] = [...EXPENSES_TAB_TYPES, ...SHEET_TRANSFER_TAB_TYPES]
 
 export const syncSheetAfterChange: CollectionAfterChangeHook = ({ doc, previousDoc, context }) => {
   if (context?.skipSheetSync) return doc

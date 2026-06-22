@@ -15,7 +15,7 @@ type EntityT = {
   mappingConst: string
 }
 
-const ENTITIES: readonly EntityT[] = [
+const ENTITIES: EntityT[] = [
   { label: 'cash_registers', table: 'cash_registers', mappingConst: 'cashRegisters' },
   { label: 'investments', table: 'investments', mappingConst: 'investments' },
   { label: 'users', table: 'users', mappingConst: 'workers' },

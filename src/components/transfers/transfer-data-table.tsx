@@ -14,7 +14,7 @@ import type { TransferTableConfigT } from '@/types/export'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 
 type TransferDataTablePropsT = {
-  data: readonly TransferRowT[]
+  data: TransferRowT[]
   paginationMeta: PaginationMetaT
   config: TransferTableConfigT
   referenceData?: ReferenceDataBaseT
