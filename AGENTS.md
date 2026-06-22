@@ -129,4 +129,16 @@ Known refactor/cleanup backlog (non-blocking, judgment-heavy): `docs/tech-debt-b
 
 ## Environment Variables
 
-Validated at startup in `src/lib/env.ts` — read there for the current required list.
+Read env **only** through the validated layer in `src/lib/` — never raw `process.env` (an ESLint
+`no-restricted-syntax` rule enforces it; `NODE_ENV` is the lone exception). Schemas live in
+`env-schema.ts`; client entry is `env.ts` (`FRONTEND_URL`), server entry `env.server.ts` (`serverEnv`).
+
+Traps:
+
+- `env.server.ts` is `server-only` — **never import it from the Payload CLI graph** (`payload.config.ts`
+  / collections), where `server-only` throws under `payload generate:types`. That's why
+  `payload.config.ts` is the one file allowlisted to read raw `process.env`.
+- `(frontend)/layout.tsx` imports both entries as the build gate (a missing var fails `next build`) —
+  don't delete those seemingly-unused imports.
+- Tests alias both entries to passthrough stubs (`src/__tests__/stubs/`); the eager parse otherwise
+  forces every server-touching test to supply the whole env.
