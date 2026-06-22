@@ -1,9 +1,23 @@
-// READ-ONLY. Computes the six per-investment figures via BOTH the listing path
-// (sumAllInvestmentFinancials) and the detail path (sumFilteredByType + breakdowns
-// -> deriveFinancials), diffs them, and writes JSON + CSV to dumps/.
+// READ-ONLY parity check for the investment financial figures.
 //
-// Usage: node --env-file=.env --import tsx src/scripts/audit-investment-parity.ts before
-//        node --env-file=.env --import tsx src/scripts/audit-investment-parity.ts after
+// WHY THIS EXISTS: the six per-investment figures (bilans, marża, materiały,
+// wydatki inwestycyjne, wypłaty, settled) are computed by TWO independent code
+// paths that must always agree:
+//   - listing path — sumAllInvestmentFinancials(): one batched aggregate over ALL
+//     investments, used by the list view (fast, single query).
+//   - detail path  — sumFilteredByType + sumCategoryByTypeSettled ->
+//     deriveCategoryBreakdowns -> deriveFinancials(): per-investment, used by the
+//     detail page.
+// Because they're separate implementations, a change to the aggregation logic can
+// silently make them drift apart. This script computes both for every investment,
+// diffs them, and reports any mismatch — your regression net when touching
+// src/lib/db/sum-transfers.ts or the calculate-* helpers.
+//
+// WORKFLOW: snapshot before a refactor, snapshot after, compare the two dumps:
+//   node --env-file=.env --import tsx src/scripts/audit-investment-parity.ts before
+//   node --env-file=.env --import tsx src/scripts/audit-investment-parity.ts after
+// Writes dumps/parity-<label>.{json,csv} and prints outliers to stdout. A non-empty
+// "Outliers" list means the two paths disagree — investigate before shipping.
 //
 // Avoids the next/cache-wrapped query wrappers (they throw outside Next): it calls the
 // raw db aggregation functions directly and lists investments via payload.find.
@@ -39,6 +53,8 @@ const figuresOf = (f: InvestmentFinancialsT): FiguresT => ({
   settled: f.totalSettled,
 })
 
+// Compare at 2 dp — the two paths sum in different orders, so raw floats differ by
+// sub-grosz noise that isn't a real mismatch.
 const round2 = (n: number) => Math.round(n * 100) / 100
 const FIGURE_KEYS: (keyof FiguresT)[] = [
   'bilans',
@@ -53,6 +69,7 @@ async function main() {
   const label = process.argv[2] ?? 'snapshot'
   const payload = await getPayload({ config })
 
+  // Every investment, no access filtering — this is an offline audit, not a user request.
   const invResult = await payload.find({
     collection: 'investments',
     limit: 0,
@@ -80,6 +97,8 @@ async function main() {
     const listingFin = listingMap.get(inv.id)
 
     const detail = figuresOf(detailFin)
+    // An investment with no transfers is absent from the listing aggregate; treat it
+    // as all-zero so it still diffs against the detail path instead of crashing.
     const listing = listingFin
       ? figuresOf(listingFin)
       : (Object.fromEntries(FIGURE_KEYS.map((k) => [k, 0])) as FiguresT)
