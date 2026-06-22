@@ -25,7 +25,7 @@ const { useAppForm } = createFormHook({
   formContext,
 })
 
-export { fieldContext, formContext, useFieldContext, useFormContext, useStore }
+export { useFieldContext, useFormContext, useStore }
 
 // Export form hook
 export { useAppForm }

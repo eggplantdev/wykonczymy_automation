@@ -25,4 +25,4 @@ function RoleBadge({ role, className, ...props }: RoleBadgePropsT) {
   )
 }
 
-export { RoleBadge, ROLE_COLORS }
+export { RoleBadge }

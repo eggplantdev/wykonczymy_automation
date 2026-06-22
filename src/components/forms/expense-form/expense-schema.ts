@@ -5,10 +5,9 @@ import {
   validateTransferFields,
   validateLineItemCategories,
   createTransferSchema,
-  type CreateTransferFormT,
 } from '@/lib/schemas/transfer'
 
-export { createTransferSchema, type CreateTransferFormT }
+export { createTransferSchema }
 
 /**
  * Client-side form validation schema.

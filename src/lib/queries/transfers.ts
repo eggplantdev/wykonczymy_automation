@@ -219,7 +219,7 @@ export function buildTransferFilters(
  * Fetch transactions by raw IDs, bypassing all filters (used by audit mode to splice
  * cancellation originals into the page result regardless of period or cancelled status).
  */
-export async function findTransfersByIds(ids: number[]): Promise<RawTransferDocT[]> {
+async function findTransfersByIds(ids: number[]): Promise<RawTransferDocT[]> {
   if (ids.length === 0) return []
   // Sort so the cache key is stable regardless of input order.
   const sortedIds = [...ids].sort((a, b) => a - b)

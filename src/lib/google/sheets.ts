@@ -216,7 +216,7 @@ function resolveHeaders(cfg: SheetTabConfigT, grid: unknown[][]): HeaderMapT {
 // Thrown when the tab itself is absent (Google reports "Unable to parse range").
 // Callers that can self-heal (ensureTab + retry) or degrade (treat as empty)
 // catch this specifically.
-export class MissingTabError extends Error {}
+class MissingTabError extends Error {}
 
 async function readGrid(spreadsheetId: string, cfg: SheetTabConfigT): Promise<unknown[][]> {
   const sheets = getClient()
