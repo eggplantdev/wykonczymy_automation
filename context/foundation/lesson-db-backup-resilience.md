@@ -81,37 +81,6 @@ Any connection string you copy into a second place (a CI secret, another env var
 time bomb that detonates when the source rotates. Prefer the integration's _injected_
 vars. If you must copy, **document it and own a rotation plan.**
 
-### L5 — Know which account/project actually hosts production.
-
-Providers let two accounts exist under one email (e.g. SSO login vs native signup). The
-console you log into may not show the database prod truly uses. **Inventory it:
-provider → account → project → branch/endpoint.** If you can't log into the account that
-owns prod, that is itself a sev-1 risk.
-
-### L6 — Off-platform backups are necessary but not sufficient.
-
-An off-site copy (FTP, S3, another region) is good — but only if it backs up the _right_
-DB and is _restore-tested_. Off-site + wrong-DB = false confidence with extra steps.
-
-### L7 — Detect staleness, not just existence.
-
-N identical-sized backups in a row is a screaming alarm that the source is frozen — but
-only if something is listening. Assert that data **advances** (max timestamp moves, row
-counts grow), not merely that a file appears.
-
-### L8 — Restore-path gotchas (Postgres/Neon, but generalize the idea).
-
-The restore path has its own failure modes you only discover under pressure:
-
-- `pg_dump --clean` **drops** objects before recreating — a half-failed restore leaves
-  an empty DB.
-- A dump's `SET search_path=''` **poisons pooled (PgBouncer) backends**: later queries
-  fail with "relation does not exist" until the backend is recycled. **Dump and restore
-  over the DIRECT connection, not the pooler.**
-- Piping `psql` output through `grep` can mangle leading meta-commands (`\restrict`).
-  Restore by feeding the file straight to `psql`, not through a pipe you filter.
-- Test the restore _into a throwaway DB_ as part of the backup job.
-
 ### L9 — Never point production at a preview/branch database. (The actual root cause here.)
 
 Managed Git-branch integrations (Vercel↔Neon, and similar "database branching" / preview-DB
