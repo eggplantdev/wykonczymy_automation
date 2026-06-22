@@ -12,7 +12,7 @@ type AuthResultT =
  * Checks authentication and verifies the user has one of the allowed roles.
  * Use in server actions as the first guard.
  */
-export async function requireAuth(allowedRoles: RoleT[]): Promise<AuthResultT> {
+export async function requireAuth(allowedRoles: readonly RoleT[]): Promise<AuthResultT> {
   const user = await getCurrentUserJwt()
 
   if (!user) {

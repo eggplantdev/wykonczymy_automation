@@ -8,9 +8,12 @@ export const ROLE_LABELS: Record<RoleT, { en: string; pl: string }> = {
   EMPLOYEE: { en: 'Employee', pl: 'Pracownik' },
 }
 
-export const MANAGEMENT_ROLES = ['ADMIN', 'OWNER', 'MANAGER'] as const
-export const ADMIN_OR_OWNER_ROLES = ['ADMIN', 'OWNER'] as const
-export const ADMIN_OR_OWNER_MANAGER_ROLES = ['ADMIN', 'OWNER', 'MANAGER'] as const
+// The `: readonly RoleT[]` annotation widens the `as const` tuple — load-bearing, not noise:
+// it lets `.includes(role)` take any RoleT and lets these pass to the readonly-param guards
+// (requireAuth). Without it the bare tuple narrows both and breaks every call site.
+export const MANAGEMENT_ROLES: readonly RoleT[] = ['ADMIN', 'OWNER', 'MANAGER'] as const
+export const ADMIN_OR_OWNER_ROLES: readonly RoleT[] = ['ADMIN', 'OWNER'] as const
+export const ADMIN_OR_OWNER_MANAGER_ROLES: readonly RoleT[] = ['ADMIN', 'OWNER', 'MANAGER'] as const
 
 export const isManagementRole = (role: RoleT): boolean =>
   (MANAGEMENT_ROLES as readonly string[]).includes(role)
