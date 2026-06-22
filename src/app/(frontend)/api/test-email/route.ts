@@ -3,6 +3,7 @@ import config from '@payload-config'
 import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
 import nodemailer from 'nodemailer'
 import { NextResponse } from 'next/server'
+import { serverEnv } from '@/lib/env.server'
 
 /**
  * GET /api/test-email?to=you@example.com
@@ -24,12 +25,12 @@ export async function GET(request: Request) {
 
   // Verify SMTP connection independently first
   const transport = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
+    host: serverEnv.EMAIL_HOST,
     port: 465,
     secure: true,
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      user: serverEnv.EMAIL_USER,
+      pass: serverEnv.EMAIL_PASS,
     },
   })
 
@@ -42,9 +43,9 @@ export async function GET(request: Request) {
         error: 'SMTP connection failed',
         detail: message,
         config: {
-          host: process.env.EMAIL_HOST ?? '(not set)',
-          user: process.env.EMAIL_USER ?? '(not set)',
-          passSet: !!process.env.EMAIL_PASS,
+          host: serverEnv.EMAIL_HOST,
+          user: serverEnv.EMAIL_USER,
+          passSet: !!serverEnv.EMAIL_PASS,
         },
       },
       { status: 500 },

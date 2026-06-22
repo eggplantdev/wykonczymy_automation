@@ -1,5 +1,6 @@
 import { google, drive_v3 } from 'googleapis'
 import { createServiceAccountJWT } from './auth'
+import { serverEnv } from '@/lib/env.server'
 
 function getDriveClient(): drive_v3.Drive {
   const auth = createServiceAccountJWT(['https://www.googleapis.com/auth/drive.file'])
@@ -9,11 +10,10 @@ function getDriveClient(): drive_v3.Drive {
 export async function createSheetFromTemplate(
   investmentName: string,
 ): Promise<{ sheetId: string }> {
-  const templateId = process.env.KOSZTORYS_TEMPLATE_SHEET_ID
-  if (!templateId) throw new Error('KOSZTORYS_TEMPLATE_SHEET_ID not set')
+  const templateId = serverEnv.KOSZTORYS_TEMPLATE_SHEET_ID
 
   const drive = getDriveClient()
-  const folderId = process.env.KOSZTORYS_DRIVE_FOLDER_ID
+  const folderId = serverEnv.KOSZTORYS_DRIVE_FOLDER_ID
 
   const copy = await drive.files.copy({
     fileId: templateId,

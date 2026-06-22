@@ -1,9 +1,10 @@
 import { cn } from '@/lib/cn'
+import { serverEnv } from '@/lib/env.server'
 
 // VERCEL_ENV is 'production' | 'preview' | 'development' on Vercel; undefined locally,
 // where NODE_ENV ('development') is the right signal. NODE_ENV alone can't tell a
 // Preview deploy from prod (both are 'production'), so prefer VERCEL_ENV when present.
-const ENV = (process.env.VERCEL_ENV ?? process.env.NODE_ENV) as EnvT
+const ENV = (serverEnv.VERCEL_ENV ?? process.env.NODE_ENV) as EnvT
 
 type EnvT = 'production' | 'preview' | 'development'
 

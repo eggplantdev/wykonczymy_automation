@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next'
-import { env } from '@/lib/env'
+import { FRONTEND_URL } from '@/lib/env'
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: '*',
       disallow: '*',
     },
-    sitemap: `${env.NEXT_PUBLIC_FRONTEND_URL}/sitemap.xml`,
+    sitemap: `${FRONTEND_URL}/sitemap.xml`,
   }
 }

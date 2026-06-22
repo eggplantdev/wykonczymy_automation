@@ -1,10 +1,12 @@
+import { FRONTEND_URL } from '@/lib/env'
+
 const BRAND_COLOR = '#1a1a1a'
 const BG_COLOR = '#fafafa'
 const TEXT_COLOR = '#333333'
 const MUTED_COLOR = '#666666'
 
 export function forgotPasswordEmailHTML({ token, userName }: { token: string; userName?: string }) {
-  const resetUrl = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/zaloguj/reset-hasla?token=${token}`
+  const resetUrl = `${FRONTEND_URL}/zaloguj/reset-hasla?token=${token}`
   const greeting = userName ? `Cześć ${userName},` : 'Cześć,'
 
   return `<!DOCTYPE html>

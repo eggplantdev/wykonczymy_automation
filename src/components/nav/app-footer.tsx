@@ -9,6 +9,7 @@ import { useCurrentUser } from '@/hooks/use-current-user'
 import { RoleBadge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
+import { FRONTEND_URL } from '@/lib/env'
 
 export function AppFooter() {
   const user = useCurrentUser()
@@ -28,11 +29,7 @@ export function AppFooter() {
         </div>
         <div className="flex items-center gap-2">
           <Button asChild aria-label="Panel administracyjny">
-            <Link
-              href={`${process.env.NEXT_PUBLIC_FRONTEND_URL}/admin`}
-              target="_blank"
-              aria-label="Panel administracyjny"
-            >
+            <Link href={`${FRONTEND_URL}/admin`} target="_blank" aria-label="Panel administracyjny">
               <Shield className="size-4" />
               <span className="hidden sm:inline">Admin</span>
             </Link>

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { serverEnv } from '@/lib/env.server'
 
 /**
  * GET /api/webhooks/facebook-leads
@@ -10,7 +11,7 @@ export async function GET(request: NextRequest) {
   const token = searchParams.get('hub.verify_token')
   const challenge = searchParams.get('hub.challenge')
 
-  if (mode === 'subscribe' && token === process.env.META_VERIFY_TOKEN) {
+  if (mode === 'subscribe' && token === serverEnv.META_VERIFY_TOKEN) {
     console.log('[facebook-leads] Webhook verified successfully')
     return new NextResponse(challenge, { status: 200 })
   }
