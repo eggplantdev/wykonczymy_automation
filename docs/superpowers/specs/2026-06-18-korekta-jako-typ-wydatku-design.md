@@ -1,7 +1,7 @@
 # Design: Korekta as a typed investment expense (not a separate balance line)
 
 Date: 2026-06-18
-Status: approved (design); implementation pending
+Status: approved (design); IMPLEMENTED
 
 ## Problem
 

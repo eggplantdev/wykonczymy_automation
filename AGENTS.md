@@ -11,6 +11,7 @@ Business management dashboard for cash registers, transfers, investments, and em
 - **Canonical todo + slices:** `context/foundation/roadmap.md` — the v2 arc as slices (`F-01`, `S-01`…`S-10`) in dependency order, each with a `Status` field (`ready` / `proposed` / `blocked` / `done`). Start here for what to build next. Built from `context/foundation/prd.md` via `/10x-roadmap`; per-change plans land in `context/changes/<change-id>/` via `/10x-plan`.
 - **Live status board:** Linear project **"Wykonczymy v2"**. When you start implementing a slice set its Linear issue to In Progress, and to Done when it's complete. **Reality-check Linear access first** — if the Linear MCP isn't connected, update the slice's `Status` in `roadmap.md` instead rather than claiming a Linear change you can't make.
 - Refactor/cleanup backlog: see **Tech Debt** below. Client-notes todo: `docs/notes-todo.md`.
+- After ANY bigger change, plan implementation etc. update relevant document, clean up staled plans, designs etc.
 
 ## Common Commands
 
@@ -35,10 +36,10 @@ Prefer hand-editing `@package.json` over `pnpm remove` / `pnpm install`. On this
 
 ## Databases And Live Data
 
-- **The real DB is Neon Postgres** — `DB_POSTGRES_URL_PROD` in `.env` is the live prod credential (a single `ep-steep-unit` Neon branch; the former separate staging branch was deleted, so prod/staging are no longer split). **Never run SQL, migrations, or dumps-restores against the Neon URL**; a human applies prod migrations. A PreToolUse hook blocks prod-DB mutations.
+- **The real DB is Neon Postgres** — `DB_POSTGRES_URL_PROD` in `.env` is the live prod credential. **Never run SQL, migrations, or dumps-restores against the Neon URL**; a human applies prod migrations.
 - The local app points at the docker Postgres on 5433 (`DB_POSTGRES_URL`, db `wykonczymy-db`) — a copy restored from Neon dumps: `pnpm db:dump` (prod → `dumps/dump-latest.sql`, also run by the pre-push hook) and `pnpm db:import` (dump → local). Refreshable, but confirm before wiping it — a restore loses anything entered locally since the last dump.
 - `GOOGLE_SERVICE_ACCOUNT_JSON` and `KOSZTORYS_TEMPLATE_SHEET_ID` in `.env` are real working credentials — Google Sheets writes hit live data.
-- Never `git push`; a human pushes to remotes. A PreToolUse hook also blocks it.
+- Never `git push`; a human pushes to remotes.
 
 ## Architecture
 
@@ -81,9 +82,8 @@ All mutations go through `protectedAction()` in `src/lib/actions`:
 
 - Server components use `getPayload({ config })` or `fetchReferenceData()`
 - Financial calculations use raw SQL via `@vercel/postgres`
-- Cache uses `unstable_cache` with tag-based invalidation; `cacheComponents` and `'use cache'` are disabled because of a documented Vercel bug (see `docs/vercel-server-action-bug-report.md`)
+- Cache uses `unstable_cache` with tag-based invalidation; `cacheComponents` and `'use cache'` are disabled because of a documented Vercel bug (see `docs/vercel-server-action-bug-report.md` - currently in git commit history)
 - Revalidation differs by context: in **server actions** (`lib/actions`, `lib/cache/revalidate.ts`) use `updateTag()` for immediate expiration; in **Payload hooks** (`hooks/`) use `revalidateTag()` — hooks run in a Route Handler context where `updateTag` throws. Never import `lib/cache/revalidate.ts` from a Payload hook.
-- Tags: `CACHE_TAGS.cashRegisters`, `.investments`, `.users`, `.transfers`
 
 ## Forms
 
@@ -109,18 +109,14 @@ How the financial figures (marża / materiały / robocizna / korekty) connect: `
 
 Vitest unit specs under `src/__tests__` (aliases `@/*` → `./src/*`); single-file command in **Common Commands**. No E2E harness exists yet.
 
-**Don't hand-roll tests or pick the layer by feel — route to a skill.** Always start from a named risk, never from "cover this file"; the cheapest layer that gives a real signal wins. The trap behind every bad test: assert observable behavior (persisted rows, recalculated balances, returned `ActionResultT`), not the implementation under test — the full anti-pattern lists are owned by the skills, don't restate them here.
+Don't hand-roll tests or pick the layer by feel — route to a skill. Always start from a risk in test-plan.md, never from "cover this file"; the cheapest layer that gives a real signal wins. The trap behind every bad test — assert observable behavior, not the implementation under test — and the full anti-pattern lists are owned by the skills (/10x-tdd, /10x-e2e's references/) and test-plan.md; don't restate them here.
 
 - **New code, test-first** → **`/10x-tdd`** (when you can name the first failing test in one sentence and the impl isn't written yet).
 - **Protecting existing code** → `/10x-research` → `/10x-plan` → `/10x-implement`, anchored on the risk.
-- **Browser-level / multi-boundary risk** → **`/10x-e2e`** — but there is no Playwright setup in this repo yet, so setting one up is its own change, not a side effect of a test task.
+- **Browser-level / multi-boundary risk** → **`/10x-e2e`** — but there is no Playwright setup in this repo yet, so setting one up is its own change, not a side effect of a test task // we will add playwright.
 - **A bug that slipped past the tests (test-driven debugging) — mandatory, not optional.** Reproduce it with a **failing test first**, then fix — never silently patch. Assert the **persisted / observable state, not the action's return value** — a success result can hide a failed write. The repro test stays as the regression guard for the path that had none.
 
 There is no `context/foundation/test-plan.md` here yet — for a larger test rollout, generate one with `/10x-test-plan` first and anchor new tests on its risks.
-
-## Project-Specific Code Style
-
-- Do not add `readonly` to type properties, props, or parameters. If you touch a file with unnecessary `readonly`, remove it.
 
 ## Tech Debt
 
