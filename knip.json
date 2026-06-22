@@ -1,0 +1,6 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "ignoreIssues": {
+    "src/components/ui/**": ["exports", "types"]
+  }
+}
