@@ -20,6 +20,10 @@ export type SheetTabConfigT = {
   // — field order drives cell-write order and column-letter derivation.
   fieldMatchers: Record<string, (h: string) => boolean>
   includeGrandTotal: boolean // RAZEM + =SUM(amount-col) — expenses only
+  // Label for the grand-total column when includeGrandTotal is set. Defaults to
+  // 'RAZEM'; the rozliczone tab overrides it to 'RAZEM rozliczone' so the two
+  // expense-shaped tabs read distinctly.
+  grandTotalLabel?: string
   dataColWidths: number[]
 }
 
@@ -43,6 +47,16 @@ export const EXPENSES_TAB_CONFIG: SheetTabConfigT = {
   },
   includeGrandTotal: true,
   dataColWidths: [60, 100, 200, 240, 110, 140, 180],
+}
+
+// The separate "rozliczone R+M" tab: same column shape and per-category SUMIF
+// summary as the expenses tab (a third instance of the same pattern), so it
+// mirrors settled expenses at their real amount with the category breakdown for
+// free. Only the tab name and the grand-total label differ.
+export const SETTLED_TAB_CONFIG: SheetTabConfigT = {
+  ...EXPENSES_TAB_CONFIG,
+  tabName: 'rozliczone R+M (tylko do odczytu)',
+  grandTotalLabel: 'RAZEM rozliczone',
 }
 
 // No grand total: summing money-in (INVESTOR_DEPOSIT) with money-out (PAYOUT)
@@ -122,7 +136,9 @@ export function buildTabSummary(
 ): { labels: string[]; totals: string[] } {
   const typCol = colOf(cfg, 'typ')
   const amountCol = colOf(cfg, 'amount')
-  const labels = cfg.includeGrandTotal ? ['RAZEM', ...summaryKeys] : [...summaryKeys]
+  const labels = cfg.includeGrandTotal
+    ? [cfg.grandTotalLabel ?? 'RAZEM', ...summaryKeys]
+    : [...summaryKeys]
   const totals = cfg.includeGrandTotal ? [`=SUM(${amountCol}:${amountCol})`] : []
   for (const t of summaryKeys) {
     const escaped = t.replace(/"/g, '""')
@@ -405,7 +421,16 @@ export async function removeTabRow(
   cfg: SheetTabConfigT,
   transferId: number,
 ): Promise<void> {
-  await applyTabRowsBatch(spreadsheetId, cfg, [], [transferId])
+  try {
+    await applyTabRowsBatch(spreadsheetId, cfg, [], [transferId])
+  } catch (err) {
+    // A tab that doesn't exist holds no rows to remove — a no-op, not an error. The
+    // rozliczone/transfers tabs can be absent on sheets linked before they existed;
+    // the remove path (unlike the write path) has no ensure to self-heal first, and
+    // there is genuinely nothing to delete.
+    if (err instanceof MissingTabError) return
+    throw err
+  }
 }
 
 // Color that brands each summary key across the sheet (row tint + summary
@@ -792,13 +817,17 @@ export async function setupTab(
 export async function ensureTab(
   spreadsheetId: string,
   cfg: SheetTabConfigT,
-  summaryKeys: string[],
+  // Eager keys, or a lazy source resolved ONLY when the tab must be built. The
+  // rozliczone tab's keys come from a DB category lookup; passing it as a thunk keeps
+  // the common already-exists path (every sync after the first) free of that query.
+  summaryKeys: string[] | (() => string[] | Promise<string[]>),
 ): Promise<{ created: boolean }> {
   const sheets = getClient()
   const gid = await tabGid(sheets, spreadsheetId, cfg)
   if (gid != null) return { created: false }
   // Tab is absent → setupTab builds it on a fresh (empty) tab, so its internal
   // values.clear has nothing to destroy.
-  await setupTab(spreadsheetId, cfg, summaryKeys)
+  const keys = typeof summaryKeys === 'function' ? await summaryKeys() : summaryKeys
+  await setupTab(spreadsheetId, cfg, keys)
   return { created: true }
 }

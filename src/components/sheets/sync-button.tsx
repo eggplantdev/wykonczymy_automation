@@ -15,6 +15,7 @@ import {
   applyMaterialSync,
   previewMaterialSync,
   type MaterialSyncPreviewT,
+  type TabSyncPreviewT,
 } from '@/lib/actions/sheets-sync'
 import { setupSheetAction } from '@/lib/actions/investments'
 import { formatPLN } from '@/lib/format-currency'
@@ -98,7 +99,8 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
           <DialogHeader>
             <DialogTitle>Zresetować zakładki synchronizowane z aplikacją?</DialogTitle>
             <DialogDescription>
-              Zakładki <strong>wydatki inwestycyjne (tylko do odczytu)</strong> i{' '}
+              Zakładki <strong>wydatki inwestycyjne (tylko do odczytu)</strong>,{' '}
+              <strong>rozliczone R+M (tylko do odczytu)</strong> i{' '}
               <strong>transfery (tylko do odczytu)</strong> zostaną zbudowane od nowa: aplikacja
               wyczyści całą ich zawartość, w tym wiersze dodane ręcznie (spoza aplikacji). Tej
               operacji nie można cofnąć.
@@ -134,28 +136,22 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
                 <p className="text-muted-foreground">Wszystko jest już zsynchronizowane.</p>
               ) : (
                 <>
-                  <p className="text-muted-foreground text-xs">
-                    Wydatki — do dodania: <strong>{preview.toAppend.length}</strong> · do
-                    odświeżenia: <strong>{preview.toUpdateCount}</strong> · do usunięcia:{' '}
-                    <strong>{preview.toRemoveCount}</strong>
-                  </p>
-                  <p className="text-muted-foreground text-xs">
-                    Transfery — do dodania: <strong>{preview.transfersToAppend.length}</strong> ·
-                    do odświeżenia: <strong>{preview.transfersToUpdateCount}</strong> · do
-                    usunięcia: <strong>{preview.transfersToRemoveCount}</strong>
-                  </p>
-                  {preview.toAppend.length > 0 && (
-                    <Section
-                      title={`Wydatki do dodania (${preview.toAppend.length})`}
-                      items={preview.toAppend.map(appendItem)}
-                    />
-                  )}
-                  {preview.transfersToAppend.length > 0 && (
-                    <Section
-                      title={`Transfery do dodania (${preview.transfersToAppend.length})`}
-                      items={preview.transfersToAppend.map(appendItem)}
-                    />
-                  )}
+                  {preview.tabs.map((t) => (
+                    <p key={t.label} className="text-muted-foreground text-xs">
+                      {t.label} — do dodania: <strong>{t.toAppend.length}</strong> · do odświeżenia:{' '}
+                      <strong>{t.toUpdateCount}</strong> · do usunięcia:{' '}
+                      <strong>{t.toRemoveCount}</strong>
+                    </p>
+                  ))}
+                  {preview.tabs
+                    .filter((t) => t.toAppend.length > 0)
+                    .map((t) => (
+                      <Section
+                        key={t.label}
+                        title={`${t.label} do dodania (${t.toAppend.length})`}
+                        items={t.toAppend.map(appendItem)}
+                      />
+                    ))}
                 </>
               )}
             </div>
@@ -178,7 +174,7 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
 }
 
 // One pending row as a display line for the preview's append sections.
-function appendItem(r: MaterialSyncPreviewT['toAppend'][number]) {
+function appendItem(r: TabSyncPreviewT['toAppend'][number]) {
   return {
     key: r.transferId,
     text: `#${r.transferId} · ${r.typ} · ${formatPLN(Number(r.amount))} · ${r.description} [${r.date}]`,
@@ -187,16 +183,9 @@ function appendItem(r: MaterialSyncPreviewT['toAppend'][number]) {
 
 // Total state-changing operations a confirm would perform — drives the "nothing
 // to do" message and whether the confirm button is enabled (review T3.1). The
-// confirm reconciles BOTH tabs, so transfers-tab changes count too.
+// confirm reconciles every tab, so each tab's changes count.
 function pendingChanges(p: MaterialSyncPreviewT): number {
-  return (
-    p.toAppend.length +
-    p.toUpdateCount +
-    p.toRemoveCount +
-    p.transfersToAppend.length +
-    p.transfersToUpdateCount +
-    p.transfersToRemoveCount
-  )
+  return p.tabs.reduce((sum, t) => sum + t.toAppend.length + t.toUpdateCount + t.toRemoveCount, 0)
 }
 
 type SectionPropsT = {

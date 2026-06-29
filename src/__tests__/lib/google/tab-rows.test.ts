@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { expenseRow, transferRow } from '@/lib/google/tab-rows'
+import { expenseRow, settledExpenseRow, transferRow } from '@/lib/google/tab-rows'
 import { SHEET_TRANSFER_TAB_TYPES, TRANSFER_TYPE_LABELS } from '@/lib/constants/transfers'
 
 const base = { date: '2026-06-01T00:00:00.000Z', description: 'x', invoiceNote: '' }
@@ -152,5 +152,174 @@ describe('expenseRow (behavior unchanged by the refactor)', () => {
 
   it('skips an untyped CORRECTION', () => {
     expect(expenseRow({ ...base, id: 10, type: 'CORRECTION', amount: -50 })).toBeUndefined()
+  })
+})
+
+// Billing fix: a settled ("wliczone w robociznę") expense must not reach the client's
+// SUM(E:E)/SUMIF, so on the BILL tab its column-E `amount` is 0 and its type is suffixed
+// " rozliczone" to mark the 0-cost line. The real amount lives on the separate tab
+// (settledExpenseRow), not here.
+describe('expenseRow — settled (R+M) routing (bill tab)', () => {
+  it('settled INVESTMENT_EXPENSE: kwota 0, type suffixed " rozliczone"', () => {
+    const row = expenseRow({
+      ...base,
+      id: 11,
+      type: 'INVESTMENT_EXPENSE',
+      amount: 250,
+      settled: true,
+      expenseCategory: { name: 'Materiały budowlane' },
+    })
+    expect(row).toBeDefined()
+    expect(row!.amount).toBe(0)
+    expect(row!.typ).toBe('Materiały budowlane rozliczone')
+    expect(row!.settledAmount).toBeUndefined()
+  })
+
+  it('settled CORRECTION (negative): kwota 0, type suffixed', () => {
+    const row = expenseRow({
+      ...base,
+      id: 12,
+      type: 'CORRECTION',
+      amount: -120,
+      settled: true,
+      expenseCategory: { name: 'Materiały budowlane' },
+    })
+    expect(row!.amount).toBe(0)
+    expect(row!.typ).toBe('Materiały budowlane rozliczone')
+  })
+
+  it('non-settled expense: kwota = amount, plain type', () => {
+    const row = expenseRow({
+      ...base,
+      id: 13,
+      type: 'INVESTMENT_EXPENSE',
+      amount: 250,
+      settled: false,
+      expenseCategory: { name: 'Materiały budowlane' },
+    })
+    expect(row!.amount).toBe(250)
+    expect(row!.typ).toBe('Materiały budowlane')
+  })
+
+  it('absent settled flag is treated as non-settled', () => {
+    const row = expenseRow({
+      ...base,
+      id: 14,
+      amount: 99,
+      expenseCategory: { name: 'Materiały budowlane' },
+    })
+    expect(row!.amount).toBe(99)
+    expect(row!.typ).toBe('Materiały budowlane')
+  })
+
+  it('a non-finite amount is skipped even when settled', () => {
+    expect(
+      expenseRow({
+        ...base,
+        id: 15,
+        amount: '',
+        settled: true,
+        expenseCategory: { name: 'Materiały budowlane' },
+      }),
+    ).toBeUndefined()
+  })
+})
+
+// Bridge invariant (3.3): the bug FAZA 1 + FAZA 2 each tested per-plane but nothing
+// crossed — app-math excluded settled, row-mapping suffixed settled, but no test asserted
+// the bill tab's client-facing SUM(E:E) obeys the same exclusion. This is that test: seed
+// a MIXED settled/non-settled dataset through `expenseRow` (the bill-tab builder) and assert
+// the column-E total the client sums equals only the non-settled real amounts. Proven red
+// against pre-FAZA-2 behavior (settled mirrored at real amount) before landing.
+describe('bill tab SUM(E:E) excludes settled — bridge invariant (3.3)', () => {
+  const mat = { name: 'Materiały budowlane' }
+  // Mixed: settled rows carry real amounts that MUST NOT reach the client total.
+  const docs: TxDocT[] = [
+    { ...base, id: 1, amount: 250, expenseCategory: mat }, // non-settled
+    { ...base, id: 2, amount: 500, settled: true, expenseCategory: mat }, // settled → 0
+    { ...base, id: 3, amount: -120, expenseCategory: mat }, // non-settled credit
+    { ...base, id: 4, amount: 1000, settled: true, expenseCategory: mat }, // settled → 0
+    { ...base, id: 5, amount: 99, settled: false, expenseCategory: mat }, // explicit non-settled
+  ]
+  const rows = docs.map(expenseRow).filter((r) => r !== undefined)
+
+  // What the client's SUM(E:E) over the bill tab actually adds up.
+  const columnESum = rows.reduce((s, r) => s + Number(r.amount), 0)
+  // What it SHOULD be: only the non-settled real amounts (settled is company-absorbed).
+  const nonSettledTotal = docs.filter((d) => !d.settled).reduce((s, d) => s + Number(d.amount), 0)
+
+  it('(a) every settled row writes column-E amount 0', () => {
+    const settledRows = docs
+      .filter((d) => d.settled)
+      .map(expenseRow)
+      .filter((r) => r !== undefined)
+    expect(settledRows.length).toBe(2)
+    for (const r of settledRows) expect(r.amount).toBe(0)
+  })
+
+  it('(b) Σ(column-E) over the bill tab == Σ(non-settled real amounts)', () => {
+    expect(columnESum).toBe(nonSettledTotal)
+    expect(columnESum).toBe(250 - 120 + 99) // 229 — the two settled (500, 1000) excluded
+  })
+
+  it('(c) settled rows still appear on the bill tab, type suffixed " rozliczone"', () => {
+    const settledRows = rows.filter((r) => r.typ.endsWith(' rozliczone'))
+    expect(settledRows.length).toBe(2)
+    for (const r of settledRows) expect(r.typ).toBe('Materiały budowlane rozliczone')
+  })
+})
+
+// The separate "rozliczone R+M" tab shows settled expenses at their REAL amount, plain type.
+describe('settledExpenseRow (rozliczone tab)', () => {
+  it('settled expense → real amount, plain category type', () => {
+    const row = settledExpenseRow({
+      ...base,
+      id: 21,
+      type: 'INVESTMENT_EXPENSE',
+      amount: 250,
+      settled: true,
+      expenseCategory: { name: 'Materiały budowlane' },
+    })
+    expect(row).toBeDefined()
+    expect(row!.amount).toBe(250)
+    expect(row!.typ).toBe('Materiały budowlane')
+  })
+
+  it('settled CORRECTION keeps its negative amount', () => {
+    const row = settledExpenseRow({
+      ...base,
+      id: 22,
+      type: 'CORRECTION',
+      amount: -120,
+      settled: true,
+      expenseCategory: { name: 'Materiały budowlane' },
+    })
+    expect(row!.amount).toBe(-120)
+  })
+
+  it('non-settled expense → undefined (belongs only on the bill tab)', () => {
+    expect(
+      settledExpenseRow({
+        ...base,
+        id: 23,
+        type: 'INVESTMENT_EXPENSE',
+        amount: 250,
+        settled: false,
+        expenseCategory: { name: 'Materiały budowlane' },
+      }),
+    ).toBeUndefined()
+  })
+
+  it('missing category or non-finite amount → undefined', () => {
+    expect(settledExpenseRow({ ...base, id: 24, amount: 250, settled: true })).toBeUndefined()
+    expect(
+      settledExpenseRow({
+        ...base,
+        id: 25,
+        amount: '',
+        settled: true,
+        expenseCategory: { name: 'Materiały budowlane' },
+      }),
+    ).toBeUndefined()
   })
 })

@@ -1,6 +1,6 @@
 'use server'
 
-import { getPayload } from 'payload'
+import { getPayload, type Where } from 'payload'
 import config from '@payload-config'
 import {
   applyTabRowsBatch,
@@ -8,12 +8,14 @@ import {
   EXPENSES_TAB_CONFIG,
   readTabTransferIds,
   removeTabRow,
+  SETTLED_TAB_CONFIG,
   TRANSFERS_TAB_CONFIG,
   transferSummaryKeys,
   type SheetTabConfigT,
   type TabRowInputT,
 } from '@/lib/google/sheets'
-import { expenseRow, transferRow, type TxDocT } from '@/lib/google/tab-rows'
+import { getExpenseTypeNames } from '@/lib/google/expense-categories'
+import { expenseRow, settledExpenseRow, transferRow, type TxDocT } from '@/lib/google/tab-rows'
 import {
   isSheetTransferTabType,
   isExpensesTabType,
@@ -23,18 +25,20 @@ import {
 import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
 import { protectedAction } from './utils'
 
-export type MaterialSyncPreviewT = {
+// One tab's pending changes. `toUpdateCount`/`toRemoveCount` are what a confirm would
+// do BEYOND appends (refresh present rows, remove this investment's orphans) — surfaced
+// so the dialog doesn't claim "nothing to do" when updates/removes are pending (T3.1).
+export type TabSyncPreviewT = {
+  label: string
   toAppend: TabRowInputT[]
-  // What a confirm would ALSO do beyond appends: refresh present rows in place and
-  // remove this investment's orphaned rows. Surfaced so the dialog doesn't claim
-  // "nothing to do" when there are still updates/removes pending (review T3.1).
   toUpdateCount: number
   toRemoveCount: number
-  // Same three figures for the transfers tab — the confirm reconciles BOTH tabs,
-  // so a transfers-only pending change must keep the confirm button enabled.
-  transfersToAppend: TabRowInputT[]
-  transfersToUpdateCount: number
-  transfersToRemoveCount: number
+}
+
+// The confirm reconciles every app-managed tab, so each contributes its own pending
+// counts and the confirm stays enabled when any single tab has a delta.
+export type MaterialSyncPreviewT = {
+  tabs: TabSyncPreviewT[]
   spreadsheetId: string
 }
 
@@ -64,6 +68,11 @@ type PayloadT = Awaited<ReturnType<typeof getPayload>>
 type TabSyncSpecT = {
   cfg: SheetTabConfigT
   typeWhere: { equals: string } | { in: string[] }
+  // Extra desired-row filter ANDed onto type/investment/cancelled in loadAppRows —
+  // e.g. the rozliczone tab only wants settled rows. Deliberately NOT applied to the
+  // orphan-removal query: a row that stops matching (settled→normal) must still be
+  // recognised as a removable orphan, not silently kept.
+  extraWhere?: Where
   buildRow: (t: TxDocT) => TabRowInputT | undefined
   ensure?: (sheetId: string) => Promise<{ created: boolean }>
 }
@@ -74,6 +83,21 @@ const EXPENSES_SYNC: TabSyncSpecT = {
   buildRow: expenseRow,
 }
 
+// The rozliczone R+M tab: only settled expenses, at their real amount. Auto-creates
+// itself (with the current category summary) on already-linked sheets that predate it.
+const SETTLED_SYNC: TabSyncSpecT = {
+  cfg: SETTLED_TAB_CONFIG,
+  typeWhere: { in: [...EXPENSES_TAB_TYPES] },
+  extraWhere: { settled: { equals: true } },
+  buildRow: settledExpenseRow,
+  // Lazy keys: the category lookup runs only when ensureTab actually has to build the
+  // tab — not on every settled-expense save once it already exists.
+  ensure: (sheetId) =>
+    ensureTab(sheetId, SETTLED_TAB_CONFIG, async () =>
+      getExpenseTypeNames(await getPayload({ config })),
+    ),
+}
+
 const TRANSFERS_SYNC: TabSyncSpecT = {
   cfg: TRANSFERS_TAB_CONFIG,
   typeWhere: { in: [...SHEET_TRANSFER_TAB_TYPES] },
@@ -81,13 +105,18 @@ const TRANSFERS_SYNC: TabSyncSpecT = {
   ensure: (sheetId) => ensureTab(sheetId, TRANSFERS_TAB_CONFIG, transferSummaryKeys()),
 }
 
-// Which tab (if any) mirrors a transaction of this type.
-const tabSyncForType = (type: unknown): TabSyncSpecT | undefined =>
+// The tabs a transaction of this type can occupy. An expenses-type lands on BOTH the
+// bill tab and the rozliczone tab — each tab's buildRow then decides whether the
+// specific doc belongs (settledExpenseRow returns undefined for a non-settled row, so
+// iterating the list upserts where it belongs and removes where it doesn't). Routing
+// by type alone (not by the doc's settled flag) is what lets the cleanup paths drop a
+// row from every tab it could be on without knowing its current state.
+const tabsForType = (type: unknown): TabSyncSpecT[] =>
   isExpensesTabType(type)
-    ? EXPENSES_SYNC
+    ? [EXPENSES_SYNC, SETTLED_SYNC]
     : isSheetTransferTabType(type)
-      ? TRANSFERS_SYNC
-      : undefined
+      ? [TRANSFERS_SYNC]
+      : []
 
 // Every row the tab should hold: each NON-CANCELLED transaction of the tab's
 // types, one row keyed by its own id. The sheet mirrors active transfers —
@@ -106,6 +135,7 @@ async function loadAppRows(
         { investment: { equals: investmentId } },
         { type: tab.typeWhere },
         { cancelled: { not_equals: true } },
+        ...(tab.extraWhere ? [tab.extraWhere] : []),
       ],
     },
     depth: 1,
@@ -128,25 +158,30 @@ export async function previewMaterialSync(investmentId: number) {
       return { success: false, error: 'Inwestycja nie ma kosztorysu.' }
     }
 
-    const expenses = await buildSyncPlan(payload, investmentId, sheetId, EXPENSES_SYNC)
-    // The transfers tab may not exist yet (sheets linked before the feature) —
-    // preview treats that as "everything appends"; the apply path creates the tab.
-    const transfers = await buildSyncPlan(payload, investmentId, sheetId, TRANSFERS_SYNC, {
-      emptyIfMissing: true,
-    })
+    const previewTabs: Array<{ label: string; spec: TabSyncSpecT }> = [
+      { label: 'Wydatki', spec: EXPENSES_SYNC },
+      { label: 'Transfery', spec: TRANSFERS_SYNC },
+      { label: 'Rozliczone R+M', spec: SETTLED_SYNC },
+    ]
 
-    return {
-      success: true,
-      data: {
-        toAppend: expenses.toAppend,
-        toUpdateCount: expenses.appRows.length - expenses.toAppend.length,
-        toRemoveCount: expenses.removableIds.length,
-        transfersToAppend: transfers.toAppend,
-        transfersToUpdateCount: transfers.appRows.length - transfers.toAppend.length,
-        transfersToRemoveCount: transfers.removableIds.length,
-        spreadsheetId: sheetId,
-      },
+    const tabs: TabSyncPreviewT[] = []
+    for (const { label, spec } of previewTabs) {
+      // Tabs that self-heal (have an `ensure`) may not exist yet on older sheets —
+      // preview treats a missing one as "everything appends"; the apply path creates
+      // it. The expenses tab has no auto-create, so a missing one surfaces here
+      // (throws → the reset-button hint) rather than being silently treated as empty.
+      const plan = await buildSyncPlan(payload, investmentId, sheetId, spec, {
+        emptyIfMissing: !!spec.ensure,
+      })
+      tabs.push({
+        label,
+        toAppend: plan.toAppend,
+        toUpdateCount: plan.appRows.length - plan.toAppend.length,
+        toRemoveCount: plan.removableIds.length,
+      })
     }
+
+    return { success: true, data: { tabs, spreadsheetId: sheetId } }
   })
 }
 
@@ -208,35 +243,28 @@ export async function applyMaterialSync(investmentId: number) {
         return { success: false, error: 'Inwestycja nie ma kosztorysu.' }
       }
 
-      // One batched write per tab: upsert every active row (append the missing,
-      // heal the present) and drop the removable orphans — O(1) Google API calls
-      // per tab, not O(N) (review T4.1). The whole batch succeeds or throws
-      // (caught by protectedAction), so there is no per-row partial-error set.
-      const expensesPlan = await buildSyncPlan(payload, investmentId, sheetId, EXPENSES_SYNC)
-      const e = await applyTabRowsBatch(
-        sheetId,
-        EXPENSES_TAB_CONFIG,
-        expensesPlan.appRows,
-        expensesPlan.removableIds,
-      )
-
-      // Sheets linked before the transfers tab existed self-heal here: create the
-      // tab if it's missing, then reconcile it like the expenses tab.
-      await TRANSFERS_SYNC.ensure?.(sheetId)
-      const transfersPlan = await buildSyncPlan(payload, investmentId, sheetId, TRANSFERS_SYNC)
-      const t = await applyTabRowsBatch(
-        sheetId,
-        TRANSFERS_TAB_CONFIG,
-        transfersPlan.appRows,
-        transfersPlan.removableIds,
+      // Reconcile every app-managed tab — concurrently, since each writes a DISJOINT
+      // tab of the same spreadsheet and shares no state. Per tab: self-heal a missing
+      // tab (the transfers/rozliczone tabs may predate the sheet; the expenses tab has
+      // no ensure by design), then one batched write — upsert every active row (append
+      // the missing, heal the present) and drop the removable orphans, O(1) Google API
+      // calls per tab not O(N) (review T4.1). Orphan removal on the rozliczone tab drops
+      // rows whose transaction is no longer settled/active (toggle, cancel, delete). If
+      // any tab throws, Promise.all rejects and protectedAction surfaces the error.
+      const results = await Promise.all(
+        [EXPENSES_SYNC, TRANSFERS_SYNC, SETTLED_SYNC].map(async (spec) => {
+          await spec.ensure?.(sheetId)
+          const plan = await buildSyncPlan(payload, investmentId, sheetId, spec)
+          return applyTabRowsBatch(sheetId, spec.cfg, plan.appRows, plan.removableIds)
+        }),
       )
 
       return {
         success: true,
         data: {
-          added: e.added + t.added,
-          updated: e.updated + t.updated,
-          removed: e.removed + t.removed,
+          added: results.reduce((s, r) => s + r.added, 0),
+          updated: results.reduce((s, r) => s + r.updated, 0),
+          removed: results.reduce((s, r) => s + r.removed, 0),
           errors: [],
         },
       }
@@ -259,12 +287,14 @@ export async function removeTransferFromSheet(params: {
   type: string
 }): Promise<void> {
   try {
-    const tab = tabSyncForType(params.type)
-    if (!tab) return
+    const tabs = tabsForType(params.type)
+    if (tabs.length === 0) return
     const payload = await getPayload({ config })
     const sheetId = await getInvestmentSheetId(payload, params.investmentId)
     if (!sheetId) return
-    await removeTabRow(sheetId, tab.cfg, params.transferId)
+    // Drop the row from EVERY tab the type can occupy — a settled expense is on both
+    // the bill and rozliczone tabs; removeTabRow no-ops where it isn't present.
+    for (const tab of tabs) await removeTabRow(sheetId, tab.cfg, params.transferId)
     console.log(`[sheets-sync] remove transfer #${params.transferId} from sheet ${sheetId}`)
   } catch (err) {
     console.error('[sheets-sync] removeTransferFromSheet failed (non-fatal):', err)
@@ -299,19 +329,19 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
         depth: 1,
         overrideAccess: true,
       })
-      const origTab = tabSyncForType(original?.type)
-      if (!original || !origTab) return
+      const origTabs = tabsForType(original?.type)
+      if (!original || origTabs.length === 0) return
       const investmentId = relId(original.investment)
       if (investmentId === undefined) return
       const sheetId = await getInvestmentSheetId(payload, investmentId)
       if (!sheetId) return
-      await removeTabRow(sheetId, origTab.cfg, origId)
+      for (const tab of origTabs) await removeTabRow(sheetId, tab.cfg, origId)
       console.log(`[sheets-sync] cancel #${origId}: removed row from sheet ${sheetId}`)
       return
     }
 
-    const tab = tabSyncForType(transfer.type)
-    if (!tab) return
+    const tabs = tabsForType(transfer.type)
+    if (tabs.length === 0) return
     const investmentId = relId(transfer.investment)
     if (investmentId === undefined) return
 
@@ -323,30 +353,30 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
       return
     }
 
-    // A cancelled transfer (the sheet mirrors ACTIVE rows — this is how cancellation
-    // removal works when driven from the collection hook), or one no longer mappable
-    // (category cleared → empty typ, or a non-finite amount), should NOT be on the
-    // sheet — drop any row it has (review T2.4). removeTabRow no-ops if absent.
-    const row = (transfer as { cancelled?: boolean }).cancelled
-      ? undefined
-      : tab.buildRow(transfer as unknown as TxDocT)
-    if (!row) {
-      await removeTabRow(sheetId, tab.cfg, params.transferId)
+    // Resolve the row PER TAB: a cancelled transfer (the sheet mirrors ACTIVE rows),
+    // or one not belonging on a given tab (non-settled → no rozliczone row;
+    // category cleared → empty typ; non-finite amount), yields no row for that tab and
+    // is removed from it (review T2.4) — so a settled→normal toggle drops the stale
+    // rozliczone row while the bill row is refreshed in the same pass. removeTabRow
+    // no-ops if absent.
+    const cancelled = (transfer as { cancelled?: boolean }).cancelled
+    for (const tab of tabs) {
+      const row = cancelled ? undefined : tab.buildRow(transfer as unknown as TxDocT)
+      if (!row) {
+        await removeTabRow(sheetId, tab.cfg, params.transferId)
+        console.log(
+          `[sheets-sync] transfer #${params.transferId} not on ${tab.cfg.tabName} → removed from sheet ${sheetId}`,
+        )
+        continue
+      }
+      // Sheets linked before a tab existed self-heal on first write.
+      await tab.ensure?.(sheetId)
+      // One read + one write via the batched path: append if missing, else overwrite.
+      const { added } = await applyTabRowsBatch(sheetId, tab.cfg, [row], [])
       console.log(
-        `[sheets-sync] transfer #${params.transferId} cancelled/unmappable → removed from sheet ${sheetId}`,
+        `[sheets-sync] ${added ? 'append' : 'update'} transfer #${params.transferId} → ${tab.cfg.tabName} on sheet ${sheetId} (${row.typ})`,
       )
-      return
     }
-
-    // Sheets linked before the transfers tab existed self-heal on first write.
-    await tab.ensure?.(sheetId)
-
-    // One read + one write via the batched path: appends the row if the sheet
-    // lacks it, otherwise overwrites the existing row in place.
-    const { added } = await applyTabRowsBatch(sheetId, tab.cfg, [row], [])
-    console.log(
-      `[sheets-sync] ${added ? 'append' : 'update'} transfer #${params.transferId} → sheet ${sheetId} (${row.typ})`,
-    )
   } catch (err) {
     console.error('[sheets-sync] failed (non-fatal):', err)
   }
@@ -375,16 +405,19 @@ export async function syncBulkExpensesToSheet(transferIds: number[]): Promise<vo
     const rowsByInvestment = new Map<number, Map<TabSyncSpecT, TabRowInputT[]>>()
     for (const doc of found.docs) {
       const t = doc as { type?: string; investment?: unknown }
-      const tab = tabSyncForType(t.type)
-      if (!tab) continue
       const investmentId = relId(t.investment)
-      const row = tab.buildRow(doc as unknown as TxDocT)
-      if (investmentId === undefined || !row) continue
-      const byTab = rowsByInvestment.get(investmentId) ?? new Map<TabSyncSpecT, TabRowInputT[]>()
-      const list = byTab.get(tab) ?? []
-      list.push(row)
-      byTab.set(tab, list)
-      rowsByInvestment.set(investmentId, byTab)
+      if (investmentId === undefined) continue
+      // A settled expense fans out to both the bill and rozliczone tabs; each tab's
+      // buildRow decides whether this doc yields a row there.
+      for (const tab of tabsForType(t.type)) {
+        const row = tab.buildRow(doc as unknown as TxDocT)
+        if (!row) continue
+        const byTab = rowsByInvestment.get(investmentId) ?? new Map<TabSyncSpecT, TabRowInputT[]>()
+        const list = byTab.get(tab) ?? []
+        list.push(row)
+        byTab.set(tab, list)
+        rowsByInvestment.set(investmentId, byTab)
+      }
     }
 
     for (const [investmentId, byTab] of rowsByInvestment) {

@@ -37,17 +37,24 @@ export type TxDocT = {
   expenseCategory?: unknown
   otherCategory?: unknown
   worker?: unknown
+  settled?: boolean
 }
 
-// Row for the expenses tab (skip if it has no expense category → no typ).
-export function expenseRow(t: TxDocT): TabRowInputT | undefined {
-  const typ = getRelationName(t.expenseCategory, '')
-  if (!typ) return undefined
-  const amount = finiteAmount(t.amount)
-  if (amount === undefined) {
+// Shared body for both expense tabs: the category→typ guard, the finite-amount guard
+// (+ skip-warn), and the identical 7-field shape. Only `typ`/`amount` differ per tab,
+// so each caller passes a transform over the validated (typ, amount).
+function buildExpenseRow(
+  t: TxDocT,
+  transform: (typ: string, amount: number) => { typ: string; amount: number },
+): TabRowInputT | undefined {
+  const baseTyp = getRelationName(t.expenseCategory, '')
+  if (!baseTyp) return undefined // no expense category → no typ → skip
+  const baseAmount = finiteAmount(t.amount)
+  if (baseAmount === undefined) {
     console.warn(`[sheets-sync] skip expense #${t.id}: non-finite amount ${String(t.amount)}`)
     return undefined
   }
+  const { typ, amount } = transform(baseTyp, baseAmount)
   return {
     transferId: t.id,
     date: isoDate(t.date),
@@ -57,6 +64,24 @@ export function expenseRow(t: TxDocT): TabRowInputT | undefined {
     category: getRelationName(t.otherCategory, ''),
     note: t.invoiceNote ?? '',
   }
+}
+
+// Row for the bill tab. A settled expense ("wliczone w robociznę") is absorbed by the
+// company, not billed to the client: column-E amount is 0 so client SUM(E:E)/SUMIF
+// exclude it, and the type is suffixed " rozliczone" to mark the 0-cost line. The real
+// amount is mirrored on the separate "rozliczone R+M" tab (settledExpenseRow), not here.
+export function expenseRow(t: TxDocT): TabRowInputT | undefined {
+  return buildExpenseRow(t, (typ, amount) =>
+    t.settled ? { typ: `${typ} rozliczone`, amount: 0 } : { typ, amount },
+  )
+}
+
+// Row for the separate "rozliczone R+M" tab: settled expenses at their REAL amount, plain
+// category in `typ` (the tab name already says these are settled). The sync feeds it only
+// settled rows; the guard is defensive. Mirrors the pre-billing-fix expense row.
+export function settledExpenseRow(t: TxDocT): TabRowInputT | undefined {
+  if (!t.settled) return undefined
+  return buildExpenseRow(t, (typ, amount) => ({ typ, amount }))
 }
 
 // Row for the transfers tab: one of the six mirrored types → the 8-column shape.

@@ -3,19 +3,12 @@
 // Only used by the DISABLED auto-create block in createInvestmentAction (see below).
 // import { revalidateTag } from 'next/cache'
 // import { CACHE_TAGS } from '@/lib/cache/tags'
-import type { Payload } from 'payload'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { createSheetFromTemplate, isStorageQuotaError } from '@/lib/google/drive'
 import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
 import { extractSheetId, serviceAccountEmail, verifySheetAccess } from '@/lib/google/sheet-access'
-import {
-  ensureTab,
-  EXPENSES_TAB_CONFIG,
-  setupTab,
-  TRANSFERS_TAB_CONFIG,
-  transferSummaryKeys,
-} from '@/lib/google/sheets'
+import { stampAllTabs } from '@/lib/google/app-managed-tabs'
 import { investmentSchema, type InvestmentFormDataT } from '@/lib/schemas/investment'
 import { validateAction, protectedAction } from './utils'
 
@@ -23,7 +16,7 @@ import { validateAction, protectedAction } from './utils'
 // Header + summary are written by the app — the owner builds nothing. Works on a
 // personal Google account because it never creates a new file (see approach A).
 export async function setupSheetAction(investmentId: number) {
-  return protectedAction<{ types: string[] }>('setupSheetAction', async ({ payload }) => {
+  return protectedAction('setupSheetAction', async ({ payload }) => {
     const sheetId = await getInvestmentSheetId(payload, investmentId)
     if (!sheetId) {
       return {
@@ -32,10 +25,8 @@ export async function setupSheetAction(investmentId: number) {
       }
     }
 
-    const types = await getExpenseTypeNames(payload)
-    await setupTab(sheetId, EXPENSES_TAB_CONFIG, types)
-    await setupTab(sheetId, TRANSFERS_TAB_CONFIG, transferSummaryKeys())
-    return { success: true, data: { types } }
+    await stampAllTabs(sheetId, payload, 'setup')
+    return { success: true }
   })
 }
 
@@ -233,14 +224,9 @@ export async function linkSheetAction(investmentId: number, input: string) {
       // can still reset manually, and the first sync surfaces a missing tab with that
       // exact hint.
       try {
-        const types = await getExpenseTypeNames(payload)
-        await ensureTab(sheetId, EXPENSES_TAB_CONFIG, types)
-        await ensureTab(sheetId, TRANSFERS_TAB_CONFIG, transferSummaryKeys())
+        await stampAllTabs(sheetId, payload, 'ensure')
       } catch (err) {
-        console.error(
-          `[link-sheet] ensureTab failed for #${investmentId} (non-fatal):`,
-          err,
-        )
+        console.error(`[link-sheet] ensureTab failed for #${investmentId} (non-fatal):`, err)
       }
 
       return { success: true, data: { title: access.title } }
@@ -267,16 +253,4 @@ export async function updateInvestmentAction(id: number, data: InvestmentFormDat
     },
     ['investments'],
   )
-}
-
-// Expense-category names that drive the per-type summary columns / row coloring in
-// the materiały tab. Shared by setupSheetAction (reset) and linkSheetAction
-// (create-if-missing) so both seed the tab with the same, current type set.
-async function getExpenseTypeNames(payload: Payload): Promise<string[]> {
-  const cats = await payload.find({
-    collection: 'expense-categories',
-    limit: 100,
-    overrideAccess: true,
-  })
-  return cats.docs.map((c) => (c as { name?: string }).name).filter((n): n is string => !!n)
 }

@@ -221,6 +221,19 @@ describe('removeTabRow', () => {
     expect(spreadsheetsGetMock).not.toHaveBeenCalled()
     expect(batchUpdateMock).not.toHaveBeenCalled()
   })
+
+  it('no-ops (does not throw) when the tab itself is missing', async () => {
+    // A removal targets a tab that doesn't exist (e.g. the rozliczone tab on a sheet
+    // linked before that feature). Google reports a missing tab as an unparseable
+    // range; removeTabRow must treat "nothing to remove" as a no-op, not an error —
+    // the per-tab cleanup loop relies on it (no ensure/self-heal on the remove path).
+    getMock.mockRejectedValueOnce(
+      new Error("Unable to parse range: 'rozliczone R+M (tylko do odczytu)'!A:Z"),
+    )
+    const { removeTabRow, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
+    await expect(removeTabRow('s', EXPENSES_TAB_CONFIG, 102)).resolves.toBeUndefined()
+    expect(batchUpdateMock).not.toHaveBeenCalled()
+  })
 })
 
 describe('formulaArgSeparator', () => {
@@ -266,6 +279,23 @@ describe('buildTabSummary', () => {
     const { buildTabSummary, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
     const { totals } = buildTabSummary(EXPENSES_TAB_CONFIG, ['A "B"'], ',')
     expect(totals).toEqual(['=SUM(E:E)', '=SUMIF(C:C, "A ""B""", E:E)'])
+  })
+
+  it('labels the rozliczone tab grand total "RAZEM rozliczone", same per-category SUMIFs', async () => {
+    const { buildTabSummary, SETTLED_TAB_CONFIG } = await import('@/lib/google/sheets')
+    const { labels, totals } = buildTabSummary(
+      SETTLED_TAB_CONFIG,
+      ['Materiały budowlane', 'Pozostałe koszty'],
+      ';',
+    )
+    // Only the grand-total label differs from the bill tab; the SUMIF math (same
+    // column shape) is identical.
+    expect(labels).toEqual(['RAZEM rozliczone', 'Materiały budowlane', 'Pozostałe koszty'])
+    expect(totals).toEqual([
+      '=SUM(E:E)',
+      '=SUMIF(C:C; "Materiały budowlane"; E:E)',
+      '=SUMIF(C:C; "Pozostałe koszty"; E:E)',
+    ])
   })
 })
 
