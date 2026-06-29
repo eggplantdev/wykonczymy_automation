@@ -53,6 +53,11 @@ next-env.d.ts
 claude_code_notes.md
 PROJECT_SUMMARY.md
 
+# Claude Code session artifacts (prompts, handoffs, cli manifest) — keep skills tracked
+.claude/prompts/
+.claude/handoffs/
+.claude/.10x-cli-manifest.json
+
 
 /figma
 
