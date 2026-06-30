@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { expenseRow, settledExpenseRow, transferRow } from '@/lib/google/tab-rows'
+import { expenseRow, settledExpenseRow, transferRow, type TxDocT } from '@/lib/google/tab-rows'
 import { SHEET_TRANSFER_TAB_TYPES, TRANSFER_TYPE_LABELS } from '@/lib/constants/transfers'
 
 const base = { date: '2026-06-01T00:00:00.000Z', description: 'x', invoiceNote: '' }
@@ -263,7 +263,7 @@ describe('bill tab SUM(E:E) excludes settled — bridge invariant (3.3)', () => 
   })
 
   it('(c) settled rows still appear on the bill tab, type suffixed " rozliczone"', () => {
-    const settledRows = rows.filter((r) => r.typ.endsWith(' rozliczone'))
+    const settledRows = rows.filter((r) => String(r.typ).endsWith(' rozliczone'))
     expect(settledRows.length).toBe(2)
     for (const r of settledRows) expect(r.typ).toBe('Materiały budowlane rozliczone')
   })
