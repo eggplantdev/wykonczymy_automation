@@ -19,18 +19,19 @@ Append-only **event log**: one row per submission, never deduped. A returning pe
 A person/contact view (dedupe by email) is deliberately deferred until email extraction is proven
 and we control the forms. Polish admin labels, English slug/code.
 
-| Field         | Type                    | Notes                                                                  |
-| ------------- | ----------------------- | ---------------------------------------------------------------------- |
-| `source`      | select                  | `facebook_lead_ads` now; extensible. Required.                         |
-| `email`       | text, nullable, indexed | lifted from Meta `EMAIL`-typed field                                   |
-| `name`        | text, nullable          | lifted from Meta `FULL_NAME`-typed field                               |
-| `phone`       | text, nullable          | lifted from Meta `PHONE`-typed field                                   |
-| `rawData`     | json                    | full `field_data` as a **key/value array** — ground truth, never lossy |
-| `externalId`  | text                    | `leadgen_id`; **unique per source** (idempotency)                      |
-| `formId`      | text, nullable          | source form id                                                         |
-| `formName`    | text, nullable          | source form name (provenance)                                          |
-| `submittedAt` | date                    | Meta `created_time`                                                    |
-| `isTest`      | checkbox                | true when values are prefixed `<test lead: …>`                         |
+| Field             | Type                    | Notes                                                                                                                                                                            |
+| ----------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `source`          | select                  | `facebook_lead_ads` now; extensible. Required.                                                                                                                                   |
+| `email`           | text, nullable, indexed | lifted from Meta `EMAIL`-typed field                                                                                                                                             |
+| `name`            | text, nullable          | lifted from Meta `FULL_NAME`-typed field                                                                                                                                         |
+| `phone`           | text, nullable          | lifted from Meta `PHONE`-typed field                                                                                                                                             |
+| `rawData`         | json                    | full `field_data` as a **key/value array** — ground truth, never lossy                                                                                                           |
+| `externalId`      | text                    | `leadgen_id`; **unique per source** (idempotency)                                                                                                                                |
+| `formId`          | text, nullable          | source form id                                                                                                                                                                   |
+| `formName`        | text, nullable          | source form name (provenance)                                                                                                                                                    |
+| `submittedAt`     | date                    | Meta `created_time`                                                                                                                                                              |
+| `isTest`          | checkbox                | true when values are prefixed `<test lead: …>`                                                                                                                                   |
+| `autoReplyStatus` | select                  | `pending` (default) · `sent` · `failed` · `skipped`. **Forward-looking** — populated by the future auto-reply phase; stays `pending` in the first increment (nothing sends yet). |
 
 Idempotency: unique `(source, externalId)`. Meta retries webhooks, so an existing row → skip
 (no duplicate row, no duplicate notification).
@@ -74,8 +75,13 @@ POST:
   email-regex on values. Detect `<test lead: …>` prefix → `isTest`.
 - `lead-schema.ts` — Zod schema for the expected lead shape (the safety net's contract).
 - `store-lead.ts` — insert via `getPayload({config})`, idempotent on `(source, externalId)`.
-- `notify.ts` — reuse the existing `EMAIL_*` transport. Two messages: (a) new-lead heads-up,
-  (b) shape-mismatch alert. Both to `LEADS_NOTIFY_EMAIL`.
+- `notify.ts` — send via **`payload.sendEmail(...)`** (the repo already configures
+  `nodemailerAdapter` in `payload.config.ts` — do NOT hand-roll a transport). Two messages:
+  (a) new-lead heads-up, (b) shape-mismatch alert. Both to `LEADS_NOTIFY_EMAIL`.
+
+**Admin labels:** plain Polish strings (this repo has no Payload localization — do NOT use
+moodbox's bilingual `{ pl, en }` label objects). Status values/pattern follow moodbox's
+`ScheduledEmails` (`pending`/`sent`/`failed`/…), labels in Polish only.
 
 ## Reliability / extraction
 
