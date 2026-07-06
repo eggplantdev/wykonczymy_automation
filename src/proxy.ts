@@ -6,7 +6,8 @@ export function proxy(request: NextRequest) {
 
   const isAuthPage = pathname.startsWith('/zaloguj')
   // Public pages Meta's crawler must reach without a session (app publish requirement)
-  const isPublicPage = pathname === '/privacy' || pathname === '/data-deletion'
+  const isPublicPage =
+    pathname === '/privacy' || pathname === '/usuwanie-danych' || pathname === '/terms'
 
   // Not logged in → redirect to login
   if (!hasToken && !isAuthPage && !isPublicPage) {

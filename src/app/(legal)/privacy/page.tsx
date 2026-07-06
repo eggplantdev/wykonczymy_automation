@@ -31,7 +31,7 @@ export default function PrivacyPolicyPage() {
       <p className="mb-4">
         Masz prawo dostępu do swoich danych, ich sprostowania oraz usunięcia. Aby usunąć swoje dane,
         zapoznaj się z instrukcją na stronie{' '}
-        <a className="underline" href="/data-deletion">
+        <a className="underline" href="/usuwanie-danych">
           Usuwanie danych
         </a>
         .
