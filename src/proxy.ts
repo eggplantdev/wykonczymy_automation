@@ -5,9 +5,11 @@ export function proxy(request: NextRequest) {
   const hasToken = request.cookies.has('payload-token')
 
   const isAuthPage = pathname.startsWith('/zaloguj')
+  // Public pages Meta's crawler must reach without a session (app publish requirement)
+  const isPublicPage = pathname === '/privacy' || pathname === '/data-deletion'
 
   // Not logged in → redirect to login
-  if (!hasToken && !isAuthPage) {
+  if (!hasToken && !isAuthPage && !isPublicPage) {
     return NextResponse.redirect(new URL('/zaloguj', request.url))
   }
 

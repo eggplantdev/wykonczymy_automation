@@ -23,6 +23,7 @@ export const serverSchema = z.object({
   META_APP_ID: z.string().min(1),
   META_APP_TOKEN: z.string().min(1),
   META_VERIFY_TOKEN: z.string().min(1),
+  META_PAGE_ACCESS_TOKEN: z.string().min(1),
   // Google (Sheets + Drive for kosztorys integration)
   GOOGLE_SERVICE_ACCOUNT_JSON: z
     .string()

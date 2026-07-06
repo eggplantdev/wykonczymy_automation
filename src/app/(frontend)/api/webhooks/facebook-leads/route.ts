@@ -22,12 +22,26 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/webhooks/facebook-leads
- * Receives lead notifications from Meta. Currently just logs the payload.
+ * Meta delivers only a leadgen_id per lead; the actual field data (name, email,
+ * phone) must be fetched with a Page token in a second authenticated call.
  */
 export async function POST(request: NextRequest) {
   const body = await request.json()
 
   console.log('[facebook-leads] Webhook received:', JSON.stringify(body, null, 2))
+
+  for (const entry of body.entry ?? []) {
+    for (const change of entry.changes ?? []) {
+      const leadgenId = change.value?.leadgen_id
+      if (!leadgenId) continue
+
+      const url = `https://graph.facebook.com/v21.0/${leadgenId}?access_token=${serverEnv.META_PAGE_ACCESS_TOKEN}`
+      const res = await fetch(url)
+      const lead = await res.json()
+
+      console.log('[facebook-leads] Lead data:', JSON.stringify(lead, null, 2))
+    }
+  }
 
   // Always return 200 to Meta (otherwise it retries)
   return NextResponse.json({ received: true }, { status: 200 })
