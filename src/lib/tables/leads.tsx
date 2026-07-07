@@ -75,7 +75,7 @@ export function getLeadColumns({ onToggle }: LeadColumnOptionsT) {
       id: 'contactStatus',
       header: headerWithInfo(
         'Status kontaktu',
-        'Czy ktoś z zespołu skontaktował się już z tym leadem. Ustawiane ręcznie — kliknij odznakę, aby zmienić.',
+        'Czy ktoś z zespołu skontaktował się już z tym klientem. Ustawiane ręcznie — kliknij odznakę, aby zmienić.',
       ),
       meta: { align: 'right' },
       enableSorting: true,
