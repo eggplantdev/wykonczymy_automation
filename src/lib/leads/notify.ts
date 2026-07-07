@@ -75,7 +75,7 @@ export async function sendAutoReply(payload: Payload, lead: Lead): Promise<void>
     heading: 'Dziękujemy za kontakt',
     paragraphs: [
       'Dzień dobry,',
-      'Dziękujemy za przesłanie zgłoszenia. Otrzymaliśmy Twoje dane kontaktowe i odezwiemy się najszybciej, jak to możliwe.',
+      'Dziękujemy za przesłanie zgłoszenia. Odezwiemy się najszybciej, jak to możliwe.',
       'Pozdrawiamy,\nZespół Wykończymy',
     ],
     footer: 'To wiadomość wysłana automatycznie — nie musisz na nią odpowiadać.',
