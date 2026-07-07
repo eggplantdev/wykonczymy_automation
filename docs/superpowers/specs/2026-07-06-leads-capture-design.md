@@ -31,6 +31,7 @@ and we control the forms. Polish admin labels, English slug/code.
 | `formName`        | text, nullable          | source form name (provenance)                                                                                                                                                    |
 | `submittedAt`     | date                    | Meta `created_time`                                                                                                                                                              |
 | `isTest`          | checkbox                | true when values are prefixed `<test lead: …>`                                                                                                                                   |
+| `notifyStatus`    | select                  | `pending` (default) · `sent` · `failed` · `skipped`. Outcome of the internal heads-up email. `failed` = **captured but not notified** — queryable + re-sendable.                 |
 | `autoReplyStatus` | select                  | `pending` (default) · `sent` · `failed` · `skipped`. **Forward-looking** — populated by the future auto-reply phase; stays `pending` in the first increment (nothing sends yet). |
 
 Idempotency: unique `(source, externalId)`. Meta retries webhooks, so an existing row → skip
@@ -60,10 +61,19 @@ POST:
        validateLead(zod)                           // safety net
          └─ on parse fail OR expected-but-missing email → notifyAdmin(alert)   // poor-man's Sentry
        normalizeLead(field_data, questions)        // → {email,name,phone,raw,isTest}
-       storeLead(...)                              // Payload Local API, skip if externalId exists
-       notifyNewLead(...)                          // internal heads-up to LEADS_NOTIFY_EMAIL (NOT the lead)
-  3. return 200
+       storeLead(...)                              // Payload Local API, skip if externalId exists — LEAD IS NOW SAFE
+       try notifyNewLead(...) → update notifyStatus = 'sent'   // heads-up to LEADS_NOTIFY_EMAIL (NOT the lead)
+       catch → update notifyStatus = 'failed'      // captured-but-not-notified: recorded, never silent
+  3. return 200                                     // always 200 so Meta doesn't retry a stored lead
 ```
+
+**Store-then-notify ordering is deliberate:** the lead is persisted before any email is attempted,
+so a mail failure can never lose the lead. The notification outcome is written back to `notifyStatus`,
+turning "captured but mail dropped" into a queryable state (`notifyStatus = 'failed'`) with a manual
+admin re-send. **Blind spot (honest):** this catches send _errors_ (throw / SMTP reject); it does
+NOT catch mail the SMTP server accepts then drops downstream — no delivery webhook exists yet. Closed
+later by Sentry + a mail provider with delivery events. Automatic retry of `failed` rows (cron) is
+future work; the first increment records + allows manual re-send only.
 
 ### Units (`src/lib/leads/`)
 
@@ -140,6 +150,11 @@ twice yields one row; assert the persisted row count, not the function's return.
 
 **Risk 4 — bad shape silently swallowed.** `lead-schema` Zod → **unit tests**: known-good lead
 parses; malformed shapes fail and route to the alert.
+
+**Risk 5 — lead captured but notification silently dropped.** → **integration test**: with the mail
+send stubbed to throw, assert the lead is **still persisted** and its `notifyStatus = 'failed'`
+(assert persisted state, not the handler's return). Proves a mail failure never loses the lead and
+never goes silent.
 
 `normalize-lead` and `verify-signature` are pure with known inputs → **TDD candidates** (write the
 failing test first). `store-lead` idempotency is protect-existing-behavior → test alongside impl.
