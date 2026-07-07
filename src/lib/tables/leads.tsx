@@ -93,7 +93,7 @@ export function getLeadColumns({ onToggle }: LeadColumnOptionsT) {
       id: 'autoReplyStatus',
       header: headerWithInfo(
         'Auto-odpowiedź',
-        'Status automatycznego e-maila z potwierdzeniem wysłanego do leada. „Pominięto” dla zgłoszeń bez adresu e-mail i testowych.',
+        'Status automatycznego e-maila z potwierdzeniem wysłanego do klienta. „Pominięto” dla zgłoszeń bez adresu e-mail i testowych.',
       ),
       cell: (info) => <DeliveryStatusBadge status={info.getValue()} />,
     }),
