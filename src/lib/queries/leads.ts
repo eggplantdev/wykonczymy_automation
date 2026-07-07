@@ -7,7 +7,7 @@ import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { buildLeadAnswers } from '@/lib/leads/lead-answers'
 import type { LeadFieldT, LeadFormQuestionT } from '@/lib/leads/lead-schema'
-import type { LeadRowT } from '@/lib/tables/leads'
+import type { LeadRowT } from '@/types/leads'
 
 const asString = (value: unknown): string => (typeof value === 'string' ? value : '')
 

@@ -6,7 +6,7 @@ import { ContactLink } from '@/components/ui/contact-link'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { LeadAnswersDialog } from '@/components/leads/lead-answers-dialog'
-import type { LeadAnswerT } from '@/lib/leads/lead-answers'
+import type { LeadRowT } from '@/types/leads'
 
 // Header label + an (i) tooltip. The wrapper stops a click on the icon from
 // bubbling into the <th>'s sort handler on sortable columns.
@@ -21,18 +21,6 @@ const headerWithInfo = (label: string, info: string) =>
       </span>
     )
   }
-
-export type LeadRowT = {
-  id: number
-  name: string
-  email: string
-  phone: string
-  formName: string
-  submittedAt: string | null
-  contactStatus: 'new' | 'contacted'
-  answers: LeadAnswerT[]
-  isTest: boolean
-}
 
 const col = createColumnHelper<LeadRowT>()
 
