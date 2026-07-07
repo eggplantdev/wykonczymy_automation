@@ -90,9 +90,10 @@ future work; the first increment records + allows manual re-send only.
   `nodemailerAdapter` in `payload.config.ts` — do NOT hand-roll a transport). Two messages:
   (a) new-lead heads-up, (b) shape-mismatch alert. Both to `LEADS_NOTIFY_EMAIL`.
 
-**Admin labels:** plain Polish strings (this repo has no Payload localization — do NOT use
-moodbox's bilingual `{ pl, en }` label objects). Status values/pattern follow moodbox's
-`ScheduledEmails` (`pending`/`sent`/`failed`/…), labels in Polish only.
+**Admin labels:** bilingual `{ en, pl }` label objects — this **is** the convention in this repo's
+own collections (`investments.ts`, `transfers.ts`), verified during planning. (The earlier
+"Polish-only" note was copied from moodbox and is wrong for this repo.) Status values/pattern follow
+`ScheduledEmails` (`pending`/`sent`/`failed`/…).
 
 ## Reliability / extraction
 
@@ -123,11 +124,12 @@ together (they are what make the store useful, safe, and actually seen):
 2. **Extract** — type-driven `email`/`name`/`phone`.
 3. **Notify you** — internal heads-up email per lead.
    (Safety-net Zod alert is part of this increment, not a separate phase.)
-4. **Leads table view** — a frontend page listing all leads, reusing the existing
+4. **Submissions table view** — a frontend page (`/zgloszenia`, nav label "Zgłoszenia") listing all
+   form submissions (each `leads` row = one submission), reusing the existing
    `src/components/ui/data-table/` pattern. Columns: `name`/`email`/`phone`, `formName`,
    `submittedAt`, `contactStatus` (editable), `notifyStatus`, `autoReplyStatus`, `isTest`.
    `contactStatus` is manually editable inline (via a `protectedAction`). No realtime — data is
-   current on load/navigation.
+   current on load/navigation. Code slug stays `leads`; only the UI names it "submissions".
 
 Future work (NOT in this increment):
 
