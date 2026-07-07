@@ -1,3 +1,5 @@
+import { escapeHtml } from './escape-html'
+
 // Branded HTML email shell — logo header + card body, all inline styles so it
 // survives Gmail/Outlook (which strip <style> and don't support inline <svg>).
 // The logo is referenced by ABSOLUTE URL: email clients can't resolve relative
@@ -13,9 +15,6 @@ const BRAND = {
   muted: '#6b7280',
   border: '#e2e5e8',
 } as const
-
-const escapeHtml = (value: string): string =>
-  value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
 type BrandedEmailT = {
   logoUrl: string

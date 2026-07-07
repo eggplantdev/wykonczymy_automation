@@ -3,12 +3,10 @@ import type { Lead } from '@/payload-types'
 import { serverEnv } from '@/lib/env.server'
 import { FRONTEND_URL } from '@/lib/env'
 import { renderBrandedEmail } from './email-template'
+import { escapeHtml } from './escape-html'
 
 // Absolute URL — email clients can't resolve relative paths. Served from public/.
 const LOGO_URL = `${FRONTEND_URL}/wykonczymy-app-icon.png`
-
-const escapeHtml = (value: string): string =>
-  value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
 const row = (label: string, value?: string | null): string =>
   value ? `<tr><td><strong>${label}:</strong></td><td>${escapeHtml(value)}</td></tr>` : ''
