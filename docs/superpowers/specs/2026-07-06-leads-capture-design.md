@@ -31,6 +31,7 @@ and we control the forms. Polish admin labels, English slug/code.
 | `formName`        | text, nullable          | source form name (provenance)                                                                                                                                                    |
 | `submittedAt`     | date                    | Meta `created_time`                                                                                                                                                              |
 | `isTest`          | checkbox                | true when values are prefixed `<test lead: …>`                                                                                                                                   |
+| `contactStatus`   | select                  | `new` (default) · `contacted`. **Human** follow-up — did someone actually reach out to this person. Manually editable in the leads table. Extensible (`converted`, `rejected`).  |
 | `notifyStatus`    | select                  | `pending` (default) · `sent` · `failed` · `skipped`. Outcome of the internal heads-up email. `failed` = **captured but not notified** — queryable + re-sendable.                 |
 | `autoReplyStatus` | select                  | `pending` (default) · `sent` · `failed` · `skipped`. **Forward-looking** — populated by the future auto-reply phase; stays `pending` in the first increment (nothing sends yet). |
 
@@ -115,15 +116,29 @@ notification and the safety-net alert; independent of the sending account (`EMAI
 
 ## Phasing
 
-The first buildable increment = capture + extract + notify + safety net, shipped together (they are
-what make the store useful and safe):
+The first buildable increment = capture + extract + notify + safety net + table view, shipped
+together (they are what make the store useful, safe, and actually seen):
 
 1. **Capture** — HMAC verify → store raw into `leads`.
 2. **Extract** — type-driven `email`/`name`/`phone`.
 3. **Notify you** — internal heads-up email per lead.
    (Safety-net Zod alert is part of this increment, not a separate phase.)
+4. **Leads table view** — a frontend page listing all leads, reusing the existing
+   `src/components/ui/data-table/` pattern. Columns: `name`/`email`/`phone`, `formName`,
+   `submittedAt`, `contactStatus` (editable), `notifyStatus`, `autoReplyStatus`, `isTest`.
+   `contactStatus` is manually editable inline (via a `protectedAction`). No realtime — data is
+   current on load/navigation.
 
-Future work (NOT in this increment): 4. Read full form definition / richer form handling for other sources. 5. Change the FB form's confirmation/redirect message. 6. **Lead-facing auto-reply** — only once email extraction is proven reliable against real leads. 7. Sentry (supersedes the email safety net). 8. Person/contact view (dedupe by email) on top of the event log.
+Future work (NOT in this increment):
+
+- **Notification bell + websockets/polling** — live "new lead" badge in `top-nav`; needs an
+  unseen-tracking mechanism and a streaming/poll transport the app lacks. Deferred deliberately.
+- Read full form definition / richer form handling for other sources.
+- Change the FB form's confirmation/redirect message.
+- **Lead-facing auto-reply** — only once email extraction is proven reliable against real leads.
+- Sentry (supersedes the email safety net).
+- Person/contact view (dedupe by email) on top of the event log.
+- **`clients` vs `investments`** — see Open Question below.
 
 ## Testing
 
@@ -159,6 +174,26 @@ never goes silent.
 `normalize-lead` and `verify-signature` are pure with known inputs → **TDD candidates** (write the
 failing test first). `store-lead` idempotency is protect-existing-behavior → test alongside impl.
 Route authoring through `/10x-tdd` (pure units) and `/10x-implement` (the rest) per AGENTS.md.
+
+## Open question — `clients` vs `investments`
+
+The user wants a place to enrich a lead into a full client record (address + details filled in after
+back-and-forth). **`src/collections/investments.ts` already carries that data**: `name`, `address`,
+`phone`, `email`, `contactPerson`, `notes`, `status`. An investment is effectively the client+project
+entity today. So the fork is:
+
+- **(A) Reuse `investments`** — a lead "converts" by creating/linking an investment; no new collection.
+  Fewer moving parts, but conflates "a person who enquired" with "a booked job" (an investment implies
+  work exists).
+- **(B) New `clients` collection** — leads convert into a `client`; `investments` gains a relation to
+  `clients`. Cleaner separation (client identity ≠ a specific job; one client → many investments), but
+  a schema change + migration + reworking how investments reference client data.
+
+**Direction chosen: (B)** — a lean `clients` collection, `investments` gains a relation to it. An
+investment is a different beast (a booked job with financials); a client is an identity that may
+precede any job and span several. **But not in this increment** — the lead-capture increment ships
+without it. `leads` is a self-contained event log; converting/enriching a lead into a `client` is a
+follow-up once real leads flow. Recorded here so B is a deliberate decision, not a default.
 
 ## Out of scope
 
