@@ -435,16 +435,16 @@ ample. No virtualization needed initially (`DataTable` supports it later if the 
 
 #### Automated
 
-- [ ] 1.1 Types regenerate cleanly (`pnpm generate:types`)
-- [ ] 1.2 Typecheck passes (`pnpm exec tsc --noEmit`)
-- [ ] 1.3 Lint passes (`pnpm lint`)
-- [ ] 1.4 Migration applies to local DB (`pnpm payload migrate`)
-- [ ] 1.5 `leads` table + compound unique index exist in local DB
+- [x] 1.1 Types regenerate cleanly (`pnpm generate:types`)
+- [x] 1.2 Typecheck passes (`pnpm exec tsc --noEmit`)
+- [x] 1.3 Lint passes (`pnpm lint`)
+- [x] 1.4 Migration applies to local DB (`pnpm payload migrate`)
+- [x] 1.5 `leads` table + compound unique index exist in local DB
 
 #### Manual
 
-- [ ] 1.6 `leads` collection visible in admin under its group
-- [ ] 1.7 Manual row creates; duplicate `(source, externalId)` rejected
+- [x] 1.6 `leads` collection visible in admin under its group
+- [x] 1.7 Manual row creates; duplicate `(source, externalId)` rejected
 
 ### Phase 2: Pure Units (TDD)
 

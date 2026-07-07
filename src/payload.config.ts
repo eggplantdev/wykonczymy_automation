@@ -14,6 +14,7 @@ import { fileURLToPath } from 'url'
 import { AmountEdits } from '@/collections/amount-edits'
 import { CashRegisters } from '@/collections/cash-registers'
 import { Investments } from '@/collections/investments'
+import { Leads } from '@/collections/leads'
 import { Media } from '@/collections/media'
 import { ExpenseCategories } from '@/collections/expense-categories'
 import { Sheets } from '@/collections/sheets'
@@ -65,6 +66,7 @@ export default buildConfig({
     OtherCategories,
     ExpenseCategories,
     AmountEdits,
+    Leads,
     Media,
   ],
   plugins: [

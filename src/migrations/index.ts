@@ -37,6 +37,7 @@ import * as migration_20260528_move_sheet_id_to_kosztoryses from './20260528_mov
 import * as migration_20260611_add_rabat_enum from './20260611_add_rabat_enum'
 import * as migration_20260611_1_add_loss_enum from './20260611_1_add_loss_enum'
 import * as migration_20260612_0_add_settled from './20260612_0_add_settled'
+import * as migration_20260707_add_leads from './20260707_add_leads'
 
 export const migrations = [
   {
@@ -233,5 +234,10 @@ export const migrations = [
     up: migration_20260612_0_add_settled.up,
     down: migration_20260612_0_add_settled.down,
     name: '20260612_0_add_settled',
+  },
+  {
+    up: migration_20260707_add_leads.up,
+    down: migration_20260707_add_leads.down,
+    name: '20260707_add_leads',
   },
 ]
