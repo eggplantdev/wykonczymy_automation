@@ -76,6 +76,17 @@ export const Leads: CollectionConfig = {
       },
     },
     {
+      name: 'formQuestions',
+      type: 'json',
+      label: { en: 'Form questions', pl: 'Pytania formularza' },
+      admin: {
+        description: {
+          en: 'key→label map from the form definition, so raw answers render as real questions',
+          pl: 'mapa klucz→etykieta z definicji formularza — by odpowiedzi renderować jako prawdziwe pytania',
+        },
+      },
+    },
+    {
       name: 'externalId',
       type: 'text',
       label: { en: 'External ID', pl: 'ID zewnętrzne' },

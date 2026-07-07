@@ -20,7 +20,11 @@ import type { LeadFieldT } from '@/lib/leads/lead-schema'
 
 const DUMP_PATH = '.local/fb-leads/fb_leads_dataset.json'
 
-type DumpFormT = { id: string; name?: string; questions?: LeadQuestionT[] }
+type DumpFormT = {
+  id: string
+  name?: string
+  questions?: (LeadQuestionT & { label?: string })[]
+}
 type DumpLeadT = { id: string; created_time: string; field_data: LeadFieldT[] }
 type DumpT = { forms: DumpFormT[]; leads_by_form: Record<string, DumpLeadT[]> }
 
@@ -54,10 +58,14 @@ async function main(): Promise<void> {
   for (const [formId, leads] of Object.entries(dump.leads_by_form)) {
     const form = formById.get(formId)
     console.log(`[backfill-leads] form ${formId} "${form?.name ?? '?'}" — ${leads.length} leads`)
+    const formQuestions = (form?.questions ?? [])
+      .filter((question) => question.label)
+      .map((question) => ({ key: question.key, label: question.label as string }))
+
     for (const lead of leads) {
       total += 1
       const normalized = normalizeLead(lead.field_data, form?.questions)
-      const { created: wasCreated } = await storeLead(
+      const { lead: stored, created: wasCreated } = await storeLead(
         payload,
         {
           source: 'facebook_lead_ads',
@@ -66,6 +74,7 @@ async function main(): Promise<void> {
           name: normalized.name,
           phone: normalized.phone,
           rawData: normalized.rawData,
+          formQuestions,
           formId,
           formName: form?.name,
           submittedAt: lead.created_time,
@@ -73,8 +82,22 @@ async function main(): Promise<void> {
         },
         { skipRevalidation: true },
       )
-      if (wasCreated) created += 1
-      else skipped += 1
+      if (wasCreated) {
+        created += 1
+      } else {
+        skipped += 1
+        // storeLead leaves existing rows untouched; enrich them with formQuestions
+        // so a re-run backfills the map onto leads captured before this field existed.
+        if (formQuestions.length) {
+          await payload.update({
+            collection: 'leads',
+            id: stored.id,
+            data: { formQuestions },
+            overrideAccess: true,
+            context: { skipRevalidation: true },
+          })
+        }
+      }
     }
   }
 

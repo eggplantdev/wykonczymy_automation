@@ -5,6 +5,8 @@ import { CACHE_TAGS } from '@/lib/cache/tags'
 import { perfStart } from '@/lib/perf'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
+import { buildLeadAnswers } from '@/lib/leads/lead-answers'
+import type { LeadFieldT, LeadFormQuestionT } from '@/lib/leads/lead-schema'
 import type { LeadRowT } from '@/lib/tables/leads'
 
 const asString = (value: unknown): string => (typeof value === 'string' ? value : '')
@@ -29,7 +31,10 @@ const getLeads = unstable_cache(
       formName: asString(lead.formName),
       submittedAt: lead.submittedAt ?? null,
       contactStatus: lead.contactStatus,
-      autoReplyStatus: lead.autoReplyStatus,
+      answers: buildLeadAnswers(
+        lead.rawData as LeadFieldT[] | undefined,
+        lead.formQuestions as LeadFormQuestionT[] | undefined,
+      ),
       isTest: Boolean(lead.isTest),
     }))
   },

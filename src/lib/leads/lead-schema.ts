@@ -17,3 +17,18 @@ export const leadSchema = z.object({
 
 export type LeadFieldT = z.infer<typeof leadFieldSchema>
 export type FetchedLeadT = z.infer<typeof leadSchema>
+
+// A form question as returned by `GET /{form_id}?fields=questions`. `label` is the
+// human question text we persist to render real questions in the answers modal.
+export const formQuestionSchema = z.object({
+  key: z.string(),
+  label: z.string().optional(),
+  type: z.string().optional(),
+})
+
+export const formQuestionsResponseSchema = z.object({
+  questions: z.array(formQuestionSchema).optional(),
+})
+
+// What we persist on the lead (`formQuestions`) — just the key→label map, ordered.
+export type LeadFormQuestionT = { key: string; label: string }

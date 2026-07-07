@@ -6,7 +6,8 @@ import { serverEnv } from '@/lib/env.server'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 import { verifySignature } from '@/lib/leads/verify-signature'
 import { fetchLead } from '@/lib/leads/fetch-lead'
-import { leadSchema } from '@/lib/leads/lead-schema'
+import { fetchFormQuestions } from '@/lib/leads/fetch-form-questions'
+import { leadSchema, type LeadFormQuestionT } from '@/lib/leads/lead-schema'
 import { normalizeLead } from '@/lib/leads/normalize-lead'
 import { captureLead } from '@/lib/leads/capture-lead'
 import { notifyShapeAlert } from '@/lib/leads/notify'
@@ -61,6 +62,8 @@ export async function POST(request: NextRequest) {
   const payload = await getPayload({ config })
   let captured = 0
   let hadUnexpectedError = false
+  // A webhook batch usually shares one form — fetch its questions once per request.
+  const questionsByForm = new Map<string, LeadFormQuestionT[]>()
 
   for (const entry of body.entry ?? []) {
     for (const change of entry.changes ?? []) {
@@ -85,6 +88,11 @@ export async function POST(request: NextRequest) {
 
         const normalized = normalizeLead(parsed.data.field_data)
 
+        const formId = parsed.data.form_id
+        if (formId && !questionsByForm.has(formId)) {
+          questionsByForm.set(formId, await fetchFormQuestions(formId))
+        }
+
         if (!normalized.email) {
           await notifyShapeAlert(payload, {
             leadgenId: String(leadgenId),
@@ -100,7 +108,8 @@ export async function POST(request: NextRequest) {
           name: normalized.name,
           phone: normalized.phone,
           rawData: normalized.rawData,
-          formId: parsed.data.form_id,
+          formQuestions: formId ? questionsByForm.get(formId) : undefined,
+          formId,
           submittedAt: parsed.data.created_time,
           isTest: normalized.isTest,
         })

@@ -1,6 +1,6 @@
 import type { Payload } from 'payload'
 import type { Lead } from '@/payload-types'
-import type { LeadFieldT } from './lead-schema'
+import type { LeadFieldT, LeadFormQuestionT } from './lead-schema'
 
 export type StoreLeadInputT = {
   source: 'facebook_lead_ads'
@@ -9,6 +9,7 @@ export type StoreLeadInputT = {
   name?: string
   phone?: string
   rawData: LeadFieldT[]
+  formQuestions?: LeadFormQuestionT[]
   formId?: string
   formName?: string
   submittedAt?: string
@@ -53,6 +54,7 @@ export async function storeLead(
       name: input.name,
       phone: input.phone,
       rawData: input.rawData,
+      formQuestions: input.formQuestions,
       formId: input.formId,
       formName: input.formName,
       submittedAt: input.submittedAt,

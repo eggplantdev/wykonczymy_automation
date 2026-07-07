@@ -4,8 +4,9 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { formatPLDateTime } from '@/lib/format-date'
 import { ContactLink } from '@/components/ui/contact-link'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
-import { DeliveryStatusBadge, type DeliveryStatusT } from '@/components/ui/delivery-status-badge'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
+import { LeadAnswersDialog } from '@/components/leads/lead-answers-dialog'
+import type { LeadAnswerT } from '@/lib/leads/lead-answers'
 
 // Header label + an (i) tooltip. The wrapper stops a click on the icon from
 // bubbling into the <th>'s sort handler on sortable columns.
@@ -29,7 +30,7 @@ export type LeadRowT = {
   formName: string
   submittedAt: string | null
   contactStatus: 'new' | 'contacted'
-  autoReplyStatus: DeliveryStatusT
+  answers: LeadAnswerT[]
   isTest: boolean
 }
 
@@ -89,13 +90,16 @@ export function getLeadColumns({ onToggle }: LeadColumnOptionsT) {
         />
       ),
     }),
-    col.accessor('autoReplyStatus', {
-      id: 'autoReplyStatus',
-      header: headerWithInfo(
-        'Auto-odpowiedź',
-        'Status automatycznego e-maila z potwierdzeniem wysłanego do klienta. „Pominięto” dla zgłoszeń bez adresu e-mail i testowych.',
+    col.display({
+      id: 'details',
+      header: 'Odpowiedzi',
+      cell: (info) => (
+        <LeadAnswersDialog
+          name={info.row.original.name}
+          formName={info.row.original.formName}
+          answers={info.row.original.answers}
+        />
       ),
-      cell: (info) => <DeliveryStatusBadge status={info.getValue()} />,
     }),
   ]
 }
