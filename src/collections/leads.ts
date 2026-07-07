@@ -7,7 +7,7 @@ const SOURCE_OPTIONS = [
 ] as const
 
 const CONTACT_STATUS_OPTIONS = [
-  { label: { en: 'New', pl: 'Nowy' }, value: 'new' },
+  { label: { en: 'Pending', pl: 'Oczekuje' }, value: 'new' },
   { label: { en: 'Contacted', pl: 'Skontaktowano' }, value: 'contacted' },
 ] as const
 

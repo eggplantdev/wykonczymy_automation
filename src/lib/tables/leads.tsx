@@ -5,6 +5,21 @@ import { formatPLDateTime } from '@/lib/format-date'
 import { ContactLink } from '@/components/ui/contact-link'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
 import { DeliveryStatusBadge, type DeliveryStatusT } from '@/components/ui/delivery-status-badge'
+import { InfoTooltip } from '@/components/ui/info-tooltip'
+
+// Header label + an (i) tooltip. The wrapper stops a click on the icon from
+// bubbling into the <th>'s sort handler on sortable columns.
+const headerWithInfo = (label: string, info: string) =>
+  function HeaderWithInfo() {
+    return (
+      <span className="inline-flex items-center gap-1">
+        {label}
+        <span onClick={(event) => event.stopPropagation()} className="inline-flex">
+          <InfoTooltip content={info} label={label} />
+        </span>
+      </span>
+    )
+  }
 
 export type LeadRowT = {
   id: number
@@ -58,7 +73,10 @@ export function getLeadColumns({ onToggle }: LeadColumnOptionsT) {
     }),
     col.accessor('contactStatus', {
       id: 'contactStatus',
-      header: 'Status kontaktu',
+      header: headerWithInfo(
+        'Status kontaktu',
+        'Czy ktoś z zespołu skontaktował się już z tym leadem. Ustawiane ręcznie — kliknij odznakę, aby zmienić.',
+      ),
       meta: { align: 'right' },
       enableSorting: true,
       cell: (info) => (
@@ -67,13 +85,16 @@ export function getLeadColumns({ onToggle }: LeadColumnOptionsT) {
           isActive={info.getValue() === 'contacted'}
           onToggle={onToggle}
           activeLabel="Skontaktowano"
-          inactiveLabel="Nowy"
+          inactiveLabel="Oczekuje"
         />
       ),
     }),
     col.accessor('autoReplyStatus', {
       id: 'autoReplyStatus',
-      header: 'Auto-odpowiedź',
+      header: headerWithInfo(
+        'Auto-odpowiedź',
+        'Status automatycznego e-maila z potwierdzeniem wysłanego do leada. „Pominięto” dla zgłoszeń bez adresu e-mail i testowych.',
+      ),
       cell: (info) => <DeliveryStatusBadge status={info.getValue()} />,
     }),
   ]
