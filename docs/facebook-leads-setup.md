@@ -15,8 +15,22 @@ call to fetch the actual field data:
 GET https://graph.facebook.com/v21.0/{leadgen_id}?access_token={META_PAGE_ACCESS_TOKEN}
 ```
 
-**Current state:** the handler only `console.log`s the lead. Nothing is persisted yet.
-Next feature: store `field_data` in a Payload `leads` collection.
+**What happens per lead** (`route.ts` → `captureLead`):
+
+1. **Verify** the `X-Hub-Signature-256` HMAC over the raw body (bad sig → 403).
+2. **Fetch** the field data (call above) + the form's questions (`?fields=questions`,
+   once per form per request) for the `key→label` map.
+3. **Normalize** — lift email/name/phone by field type → key heuristic → email regex;
+   a Zod safety net alerts `LEADS_ALERT_EMAIL` on an unexpected shape.
+4. **Store** once per `(source, externalId)` in the `leads` collection (idempotent — Meta
+   redelivers on any non-200), keeping the full `field_data` (`rawData`) + `formQuestions`.
+5. **Notify** `LEADS_NOTIFY_EMAIL` (internal heads-up) and **auto-reply** the lead from
+   `LEADS_REPLY_FROM` (branded confirmation) — each retried 3×, tracked per lead in
+   `notifyStatus` / `autoReplyStatus`. Store-then-notify: a mail failure never loses a lead.
+
+Leads surface at **`/zgloszenia`** (table + editable follow-up status + a details modal
+rendering each form answer against its real question). Historical leads are loaded with the
+backfill script (below), not the webhook.
 
 ## Key facts
 
@@ -58,7 +72,16 @@ Served from `src/app/(legal)/`, exempted from the login redirect in `src/proxy.t
 
 ## Env vars (see `.env.copy`)
 
-`META_APP_ID`, `META_APP_SECRET`, `META_APP_TOKEN`, `META_VERIFY_TOKEN`, `META_PAGE_ACCESS_TOKEN`.
+Meta: `META_APP_ID`, `META_APP_SECRET`, `META_APP_TOKEN`, `META_VERIFY_TOKEN`, `META_PAGE_ACCESS_TOKEN`.
+
+Email routing:
+
+- `LEADS_NOTIFY_EMAIL` — internal new-lead heads-up (sales inbox).
+- `LEADS_ALERT_EMAIL` — integration shape-alerts (ops/dev inbox: schema fail / no email extracted).
+- `LEADS_REPLY_FROM` — `From:` on the customer auto-reply; its domain **must** have SPF/DKIM or the
+  confirmation spam-folders. The logo in that email loads from `${NEXT_PUBLIC_FRONTEND_URL}/wykonczymy-app-icon.png`,
+  so it only renders once deployed to a public prod domain.
+
 All must be in Vercel prod env too; **redeploy after changing** (env changes don't reach existing deployments).
 
 ## Testing
