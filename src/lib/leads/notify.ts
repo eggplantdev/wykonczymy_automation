@@ -70,14 +70,11 @@ export async function notifyShapeAlert(
 export async function sendAutoReply(payload: Payload, lead: Lead): Promise<void> {
   if (!lead.email) throw new Error('sendAutoReply called for a lead with no email')
 
-  const firstName = lead.name?.trim().split(/\s+/)[0]
-  const greeting = firstName ? `Dzień dobry ${firstName},` : 'Dzień dobry,'
-
   const html = renderBrandedEmail({
     logoUrl: LOGO_URL,
     heading: 'Dziękujemy za kontakt',
     paragraphs: [
-      greeting,
+      'Dzień dobry,',
       'Dziękujemy za przesłanie zgłoszenia. Otrzymaliśmy Twoje dane kontaktowe i odezwiemy się najszybciej, jak to możliwe.',
       'Pozdrawiamy,\nZespół Wykończymy',
     ],

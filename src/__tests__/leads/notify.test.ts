@@ -66,12 +66,14 @@ describe('sendAutoReply', () => {
     expect(arg.subject).toContain('Dziękujemy za kontakt')
   })
 
-  it('greets by first name and embeds the logo by absolute URL', async () => {
+  it('greets generically (no name) and embeds the logo by absolute URL', async () => {
     const sendEmail = vi.fn().mockResolvedValue({})
     await sendAutoReply(fakePayload(sendEmail), lead)
 
     const html = sendEmail.mock.calls[0][0].html as string
-    expect(html).toContain('Dzień dobry Anna,')
+    expect(html).toContain('Dzień dobry,')
+    expect(html).not.toContain(lead.name as string)
+    expect(html).toContain('Pozdrawiamy,<br />Zespół Wykończymy')
     expect(html).toMatch(/<img src="https?:\/\/[^"]+\/wykonczymy-app-icon\.png"/)
   })
 

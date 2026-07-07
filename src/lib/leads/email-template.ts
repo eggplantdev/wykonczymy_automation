@@ -35,7 +35,7 @@ export function renderBrandedEmail({
   const body = paragraphs
     .map(
       (text) =>
-        `<p style="color:${BRAND.text};font-size:15px;line-height:1.7;margin:0 0 16px 0;">${escapeHtml(text)}</p>`,
+        `<p style="color:${BRAND.text};font-size:15px;line-height:1.7;margin:0 0 16px 0;">${escapeHtml(text).replace(/\n/g, '<br />')}</p>`,
     )
     .join('\n')
 
