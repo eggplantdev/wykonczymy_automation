@@ -1,9 +1,9 @@
 ---
 id: leads-capture-fb-webhook
 title: Lead capture — HMAC-verified FB Lead Ads webhook → leads collection + table view
-status: planned
+status: implementing
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 ---
 
 # Lead capture — FB Lead Ads → centralized leads store
