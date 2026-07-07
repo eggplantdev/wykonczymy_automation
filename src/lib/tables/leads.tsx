@@ -76,11 +76,5 @@ export function getLeadColumns({ onToggle }: LeadColumnOptionsT) {
       header: 'Auto-odpowiedź',
       cell: (info) => <DeliveryStatusBadge status={info.getValue()} />,
     }),
-    col.accessor('isTest', {
-      id: 'isTest',
-      header: 'Test',
-      enableSorting: true,
-      cell: (info) => (info.getValue() ? 'Testowe' : '—'),
-    }),
   ]
 }
