@@ -56,25 +56,16 @@ describe('notifyNewLead', () => {
 })
 
 describe('sendAutoReply', () => {
-  it('sends TO the lead, FROM the authenticated reply address', async () => {
+  // Assert the routing contract only — NOT the copy. Wording churns constantly;
+  // template mechanics (logo, escaping, line breaks) are covered in email-template.test.ts.
+  it('sends TO the lead, FROM the authenticated reply address, with the logo embedded', async () => {
     const sendEmail = vi.fn().mockResolvedValue({})
     await sendAutoReply(fakePayload(sendEmail), lead)
 
     const arg = sendEmail.mock.calls[0][0]
     expect(arg.to).toBe('anna.nowak@example.com')
     expect(arg.from).toBe('admin@wykonczymy.com.pl')
-    expect(arg.subject).toContain('Dziękujemy za kontakt')
-  })
-
-  it('greets generically (no name) and embeds the logo by absolute URL', async () => {
-    const sendEmail = vi.fn().mockResolvedValue({})
-    await sendAutoReply(fakePayload(sendEmail), lead)
-
-    const html = sendEmail.mock.calls[0][0].html as string
-    expect(html).toContain('Dzień dobry,')
-    expect(html).not.toContain(lead.name as string)
-    expect(html).toContain('Pozdrawiamy,<br />Zespół Wykończymy')
-    expect(html).toMatch(/<img src="https?:\/\/[^"]+\/wykonczymy-app-icon\.png"/)
+    expect(arg.html).toMatch(/<img src="https?:\/\/[^"]+\/wykonczymy-app-icon\.png"/)
   })
 
   it('throws when the lead has no email (caller flips autoReplyStatus)', async () => {
