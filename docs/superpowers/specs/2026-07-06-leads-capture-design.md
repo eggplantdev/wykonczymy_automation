@@ -117,9 +117,33 @@ Future work (NOT in this increment): 4. Read full form definition / richer form 
 
 ## Testing
 
-Per project convention (POC → skip; MVP → add): tests come once extraction is exercised against
-real leads. Backfill (`docs/facebook-leads-setup.md`) gives a real dataset to validate
-`normalize-lead` against without waiting for live webhooks.
+MVP-grade, so covered. Anchored on risk, cheapest layer that gives real signal, asserting
+observable behavior (not implementation). No live webhook needed — the backfill dump is the fixture.
+
+**Risk 1 — extraction picks the wrong field / drops email (highest).** `normalize-lead` is a pure
+function → **unit tests** against a sanitised slice of the real 62-lead dataset:
+
+- EMAIL/PHONE/FULL_NAME lifted correctly from typed fields
+- `CUSTOM` fields stay in `rawData`, never promoted
+- email-regex fallback fires when the typed field is absent
+- `values` array handled (not assumed scalar)
+- `<test lead: …>` prefix → `isTest = true`
+- **missing email → returns emailless result AND flags the safety-net path** (assert the observable:
+  a lead with no email still normalizes + is marked for the alert, never throws/drops)
+
+**Risk 2 — forged/tampered webhook accepted (security).** `verify-signature` pure → **unit tests**:
+valid signature passes; tampered body, wrong secret, missing header each reject.
+
+**Risk 3 — Meta retry creates duplicate rows/notifications.** `store-lead` idempotency →
+**integration test** (Payload Local API against test db): inserting the same `(source, externalId)`
+twice yields one row; assert the persisted row count, not the function's return.
+
+**Risk 4 — bad shape silently swallowed.** `lead-schema` Zod → **unit tests**: known-good lead
+parses; malformed shapes fail and route to the alert.
+
+`normalize-lead` and `verify-signature` are pure with known inputs → **TDD candidates** (write the
+failing test first). `store-lead` idempotency is protect-existing-behavior → test alongside impl.
+Route authoring through `/10x-tdd` (pure units) and `/10x-implement` (the rest) per AGENTS.md.
 
 ## Out of scope
 
