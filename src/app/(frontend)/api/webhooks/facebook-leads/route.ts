@@ -49,54 +49,79 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const body = JSON.parse(raw)
+  // A malformed (but signed) body must not 500 — that makes Meta retry forever.
+  let body: { entry?: { changes?: { value?: { leadgen_id?: string } }[] }[] }
+  try {
+    body = JSON.parse(raw)
+  } catch {
+    console.error('[facebook-leads] Body was not valid JSON — acking to stop retries')
+    return NextResponse.json({ received: true }, { status: 200 })
+  }
+
   const payload = await getPayload({ config })
   let captured = 0
+  let hadUnexpectedError = false
 
   for (const entry of body.entry ?? []) {
     for (const change of entry.changes ?? []) {
       const leadgenId = change.value?.leadgen_id
       if (!leadgenId) continue
 
-      const fetched = await fetchLead(leadgenId)
-      const parsed = leadSchema.safeParse(fetched)
+      // Isolate each lead: a fetch/store failure on one must not abort its
+      // siblings or 500 the batch. Capture is idempotent, so Meta's retry recovers
+      // this leadgen_id without duplicating the ones already stored this request.
+      try {
+        const fetched = await fetchLead(leadgenId)
+        const parsed = leadSchema.safeParse(fetched)
 
-      if (!parsed.success) {
-        await notifyShapeAlert(payload, {
-          leadgenId: String(leadgenId),
-          reason: `Lead failed schema validation: ${parsed.error.message}`,
-          raw: fetched,
-        }).catch((err) => console.error('[facebook-leads] Shape alert failed', err))
-        continue
+        if (!parsed.success) {
+          await notifyShapeAlert(payload, {
+            leadgenId: String(leadgenId),
+            reason: `Lead failed schema validation: ${parsed.error.message}`,
+            raw: fetched,
+          }).catch((err) => console.error('[facebook-leads] Shape alert failed', err))
+          continue
+        }
+
+        const normalized = normalizeLead(parsed.data.field_data)
+
+        if (!normalized.email) {
+          await notifyShapeAlert(payload, {
+            leadgenId: String(leadgenId),
+            reason: 'No email could be extracted from the lead',
+            raw: parsed.data,
+          }).catch((err) => console.error('[facebook-leads] Shape alert failed', err))
+        }
+
+        await captureLead(payload, {
+          source: 'facebook_lead_ads',
+          externalId: parsed.data.id,
+          email: normalized.email,
+          name: normalized.name,
+          phone: normalized.phone,
+          rawData: normalized.rawData,
+          formId: parsed.data.form_id,
+          submittedAt: parsed.data.created_time,
+          isTest: normalized.isTest,
+        })
+        captured += 1
+      } catch (err) {
+        // A fetch/store failure is recoverable: signal it so Meta redelivers the
+        // whole batch. The store is idempotent, so already-captured siblings this
+        // request won't duplicate — only this failed leadgen_id retries.
+        hadUnexpectedError = true
+        console.error(`[facebook-leads] Failed to process leadgen_id ${leadgenId}`, err)
       }
-
-      const normalized = normalizeLead(parsed.data.field_data)
-
-      if (!normalized.email) {
-        await notifyShapeAlert(payload, {
-          leadgenId: String(leadgenId),
-          reason: 'No email could be extracted from the lead',
-          raw: parsed.data,
-        }).catch((err) => console.error('[facebook-leads] Shape alert failed', err))
-      }
-
-      await captureLead(payload, {
-        source: 'facebook_lead_ads',
-        externalId: parsed.data.id,
-        email: normalized.email,
-        name: normalized.name,
-        phone: normalized.phone,
-        rawData: normalized.rawData,
-        formId: parsed.data.form_id,
-        submittedAt: parsed.data.created_time,
-        isTest: normalized.isTest,
-      })
-      captured += 1
     }
   }
 
   if (captured > 0) revalidateTag(CACHE_TAGS.leads, 'default')
 
-  // Always return 200 to Meta (otherwise it retries).
+  // Non-200 tells Meta to retry. Only reach for it on a recoverable error — a
+  // malformed body or bad shape already acked 200 above, since retrying can't fix those.
+  if (hadUnexpectedError) {
+    return NextResponse.json({ error: 'Partial failure — retry requested' }, { status: 500 })
+  }
+
   return NextResponse.json({ received: true }, { status: 200 })
 }

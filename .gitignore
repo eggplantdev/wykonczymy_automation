@@ -76,6 +76,9 @@ src/app/(payload)/admin/importMap.js
 dumps/
 dump.sql
 
+# local-only data (FB lead exports — real PII, never commit)
+.local/
+
 # local codex skills package
 /codex-skills/
 

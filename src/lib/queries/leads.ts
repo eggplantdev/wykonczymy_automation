@@ -7,7 +7,7 @@ import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import type { LeadRowT } from '@/lib/tables/leads'
 
-const str = (value: unknown): string => (typeof value === 'string' ? value : '')
+const asString = (value: unknown): string => (typeof value === 'string' ? value : '')
 
 const getLeads = unstable_cache(
   async (): Promise<LeadRowT[]> => {
@@ -23,10 +23,10 @@ const getLeads = unstable_cache(
     console.log(`[PERF] query.getLeads ${elapsed()}ms`)
     return docs.map((lead) => ({
       id: lead.id,
-      name: str(lead.name),
-      email: str(lead.email),
-      phone: str(lead.phone),
-      formName: str(lead.formName),
+      name: asString(lead.name),
+      email: asString(lead.email),
+      phone: asString(lead.phone),
+      formName: asString(lead.formName),
       submittedAt: lead.submittedAt ?? null,
       contactStatus: lead.contactStatus,
       notifyStatus: lead.notifyStatus,
