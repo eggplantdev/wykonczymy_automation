@@ -24,9 +24,12 @@ export type StoreLeadInputT = {
  * `externalId` can't be deduped, so it always creates (the compound unique index
  * tolerates NULLs).
  */
+// `skipRevalidation` lets a non-request caller (backfill script) bypass the
+// collection's afterChange revalidateTag hook, which throws outside a Next request.
 export async function storeLead(
   payload: Payload,
   input: StoreLeadInputT,
+  options?: { skipRevalidation?: boolean },
 ): Promise<{ lead: Lead; created: boolean }> {
   if (input.externalId) {
     const existing = await payload.find({
@@ -60,6 +63,7 @@ export async function storeLead(
       autoReplyStatus: 'pending',
     },
     overrideAccess: true,
+    context: { skipRevalidation: options?.skipRevalidation ?? false },
   })
 
   return { lead, created: true }

@@ -37,14 +37,16 @@ export default ts.config(
   },
   {
     // Read env only through the validated layer (env.ts / env.server.ts) — never raw
-    // process.env. Allowlist the env layer itself, payload.config (runs in the Payload CLI
-    // graph where `server-only` can't be imported), and tests (which seed process.env).
+    // process.env. Allowlist the env layer itself, payload.config and CLI scripts (both run
+    // in the Payload CLI graph where `server-only` can't be imported), and tests (which seed
+    // process.env).
     files: ['src/**/*.{ts,tsx}'],
     ignores: [
       'src/lib/env.ts',
       'src/lib/env.server.ts',
       'src/lib/env-schema.ts',
       'src/payload.config.ts',
+      'src/scripts/**',
       'src/__tests__/**',
     ],
     rules: {
