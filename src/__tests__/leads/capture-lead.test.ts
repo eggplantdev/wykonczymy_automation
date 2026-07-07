@@ -67,11 +67,40 @@ describe('captureLead — notify + auto-reply', () => {
     expect(dataOf()).toEqual({ notifyStatus: 'sent', autoReplyStatus: 'skipped' })
   })
 
-  it('does nothing on a redelivered lead (created === false)', async () => {
-    vi.mocked(storeLead).mockResolvedValue({ lead: baseLead, created: false })
+  it('does nothing on a redelivery whose emails already went out (both statuses settled)', async () => {
+    vi.mocked(storeLead).mockResolvedValue({
+      lead: { ...baseLead, notifyStatus: 'sent', autoReplyStatus: 'sent' } as Lead,
+      created: false,
+    })
     await captureLead(payload, input)
     expect(notifyNewLead).not.toHaveBeenCalled()
     expect(sendAutoReply).not.toHaveBeenCalled()
     expect(update).not.toHaveBeenCalled()
+  })
+
+  // The bug: a crash between the store (writes 'pending') and the status update
+  // left a row 'pending' with no email ever sent; redelivery short-circuited on
+  // created===false, so it was never retried. A 'pending' channel means "never
+  // attempted" — retry it; a settled channel ('sent'/'failed'/'skipped') is left alone.
+  it('retries a pending channel on redelivery (crashed before the first send)', async () => {
+    vi.mocked(storeLead).mockResolvedValue({
+      lead: { ...baseLead, notifyStatus: 'pending', autoReplyStatus: 'pending' } as Lead,
+      created: false,
+    })
+    await captureLead(payload, input)
+    expect(notifyNewLead).toHaveBeenCalledTimes(1)
+    expect(sendAutoReply).toHaveBeenCalledTimes(1)
+    expect(dataOf()).toEqual({ notifyStatus: 'sent', autoReplyStatus: 'sent' })
+  })
+
+  it('retries only the still-pending channel, never re-sending the settled one', async () => {
+    vi.mocked(storeLead).mockResolvedValue({
+      lead: { ...baseLead, notifyStatus: 'sent', autoReplyStatus: 'pending' } as Lead,
+      created: false,
+    })
+    await captureLead(payload, input)
+    expect(notifyNewLead).not.toHaveBeenCalled()
+    expect(sendAutoReply).toHaveBeenCalledTimes(1)
+    expect(dataOf()).toEqual({ notifyStatus: 'sent', autoReplyStatus: 'sent' })
   })
 })

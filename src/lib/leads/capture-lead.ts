@@ -21,39 +21,50 @@ async function sendWithRetry(send: () => Promise<void>, label: string): Promise<
 /**
  * Store-then-notify: the ordering is load-bearing. The lead is persisted BEFORE
  * any email is attempted, so a mail failure can never lose it — it only flips
- * `notifyStatus` to `failed`. A redelivered lead (`created === false`) is not
- * re-notified: no duplicate email on Meta's retries.
+ * the channel's status to `failed`.
  *
- * The email send is retried up to NOTIFY_ATTEMPTS times before giving up — a
- * transient SMTP blip shouldn't cost the heads-up. Only the final failure flips
- * the status to `failed`.
+ * `storeLead` writes both statuses `pending` on create, so `pending` means
+ * "never attempted". On a fresh create we run both channels. On a redelivery
+ * (`created === false`) we retry ONLY the channels still `pending` — the case
+ * where a crash between store and status-write left them stuck — while leaving a
+ * settled channel (`sent`/`failed`/`skipped`) untouched, so Meta's retries never
+ * re-send an email that already went out.
+ *
+ * Each send is retried up to NOTIFY_ATTEMPTS times before giving up — a transient
+ * SMTP blip shouldn't cost the message. Only the final failure flips to `failed`.
  */
 export async function captureLead(
   payload: Payload,
   input: StoreLeadInputT,
 ): Promise<{ lead: Lead; created: boolean }> {
   const { lead, created } = await storeLead(payload, input)
-  if (!created) return { lead, created }
+
+  const runNotify = created || lead.notifyStatus === 'pending'
+  const runAutoReply = created || lead.autoReplyStatus === 'pending'
+  if (!runNotify && !runAutoReply) return { lead, created }
 
   // Internal heads-up to the sales inbox.
-  const notified = await sendWithRetry(() => notifyNewLead(payload, lead), 'notify')
+  const notifyStatus: Lead['notifyStatus'] = runNotify
+    ? (await sendWithRetry(() => notifyNewLead(payload, lead), 'notify'))
+      ? 'sent'
+      : 'failed'
+    : lead.notifyStatus
 
   // Customer-facing confirmation. Skipped (no send) for phone-only leads and for
   // Meta's test submissions — never email a fake `<test lead:>` address.
   const canAutoReply = Boolean(lead.email) && !lead.isTest
-  const autoReplyStatus: Lead['autoReplyStatus'] = !canAutoReply
-    ? 'skipped'
-    : (await sendWithRetry(() => sendAutoReply(payload, lead), 'auto-reply'))
-      ? 'sent'
-      : 'failed'
+  const autoReplyStatus: Lead['autoReplyStatus'] = runAutoReply
+    ? !canAutoReply
+      ? 'skipped'
+      : (await sendWithRetry(() => sendAutoReply(payload, lead), 'auto-reply'))
+        ? 'sent'
+        : 'failed'
+    : lead.autoReplyStatus
 
   await payload.update({
     collection: 'leads',
     id: lead.id,
-    data: {
-      notifyStatus: notified ? 'sent' : 'failed',
-      autoReplyStatus,
-    },
+    data: { notifyStatus, autoReplyStatus },
     overrideAccess: true,
   })
 
