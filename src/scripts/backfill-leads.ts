@@ -14,16 +14,16 @@
 import { readFileSync, existsSync } from 'node:fs'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { normalizeLead, type LeadQuestionT } from '@/lib/leads/normalize-lead'
+import { normalizeLead } from '@/lib/leads/normalize-lead'
 import { storeLead } from '@/lib/leads/store-lead'
-import type { LeadFieldT } from '@/lib/leads/lead-schema'
+import { toLeadFormQuestions, type LeadFieldT } from '@/lib/leads/lead-schema'
 
 const DUMP_PATH = '.local/fb-leads/fb_leads_dataset.json'
 
 type DumpFormT = {
   id: string
   name?: string
-  questions?: (LeadQuestionT & { label?: string })[]
+  questions?: { key: string; type?: string; label?: string }[]
 }
 type DumpLeadT = { id: string; created_time: string; field_data: LeadFieldT[] }
 type DumpT = { forms: DumpFormT[]; leads_by_form: Record<string, DumpLeadT[]> }
@@ -58,9 +58,7 @@ async function main(): Promise<void> {
   for (const [formId, leads] of Object.entries(dump.leads_by_form)) {
     const form = formById.get(formId)
     console.log(`[backfill-leads] form ${formId} "${form?.name ?? '?'}" — ${leads.length} leads`)
-    const formQuestions = (form?.questions ?? [])
-      .filter((question) => question.label)
-      .map((question) => ({ key: question.key, label: question.label as string }))
+    const formQuestions = toLeadFormQuestions(form?.questions)
 
     for (const lead of leads) {
       total += 1

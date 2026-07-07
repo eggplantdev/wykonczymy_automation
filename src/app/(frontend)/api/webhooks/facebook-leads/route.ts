@@ -86,12 +86,16 @@ export async function POST(request: NextRequest) {
           continue
         }
 
-        const normalized = normalizeLead(parsed.data.field_data)
-
+        // Fetch the form's questions first: they carry Meta's field `type`
+        // (EMAIL/PHONE/FULL_NAME), normalizeLead's most reliable pass. Without
+        // them it falls back to key heuristics + email regex.
         const formId = parsed.data.form_id
         if (formId && !questionsByForm.has(formId)) {
           questionsByForm.set(formId, await fetchFormQuestions(formId))
         }
+        const questions = formId ? questionsByForm.get(formId) : undefined
+
+        const normalized = normalizeLead(parsed.data.field_data, questions)
 
         if (!normalized.email) {
           await notifyShapeAlert(payload, {
@@ -108,7 +112,7 @@ export async function POST(request: NextRequest) {
           name: normalized.name,
           phone: normalized.phone,
           rawData: normalized.rawData,
-          formQuestions: formId ? questionsByForm.get(formId) : undefined,
+          formQuestions: questions,
           formId,
           submittedAt: parsed.data.created_time,
           isTest: normalized.isTest,

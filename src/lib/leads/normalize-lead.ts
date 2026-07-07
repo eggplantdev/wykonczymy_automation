@@ -1,7 +1,5 @@
 import type { LeadFieldT } from './lead-schema'
 
-export type LeadQuestionT = { key: string; type: string }
-
 export type NormalizedLeadT = {
   email?: string
   name?: string
@@ -37,10 +35,10 @@ const firstValue = (field: LeadFieldT | undefined): string | undefined => field?
  */
 export function normalizeLead(
   fieldData: LeadFieldT[],
-  questions?: LeadQuestionT[],
+  questions?: readonly { key: string; type?: string }[],
 ): NormalizedLeadT {
-  const typeByKey = new Map((questions ?? []).map((q) => [q.key, q.type]))
-  const isTest = fieldData.some((f) => firstValue(f)?.startsWith(TEST_LEAD_PREFIX) ?? false)
+  const typeByKey = new Map((questions ?? []).map((question) => [question.key, question.type]))
+  const isTest = fieldData.some((field) => firstValue(field)?.startsWith(TEST_LEAD_PREFIX) ?? false)
 
   let email: string | undefined
   let name: string | undefined
