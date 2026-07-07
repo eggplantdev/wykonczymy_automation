@@ -413,8 +413,9 @@ ample. No virtualization needed initially (`DataTable` supports it later if the 
 - Local: `pnpm payload migrate` against docker Postgres (5433) after writing the migration.
 - **Prod (human only):** apply via `pnpm db:migrate:prod` **before** pushing the code that needs it;
   never run against Neon from the agent.
-- **Vercel prod env:** a human adds `LEADS_NOTIFY_EMAIL` (and confirms the META vars) and redeploys —
-  env changes don't reach existing deployments.
+- **Vercel prod env:** a human adds `LEADS_NOTIFY_EMAIL` (new-lead heads-up) and `LEADS_ALERT_EMAIL`
+  (integration shape-alerts — may point at a separate ops/dev inbox), confirms the META vars, and
+  redeploys — env changes don't reach existing deployments.
 
 ## References
 
@@ -462,9 +463,9 @@ ample. No virtualization needed initially (`DataTable` supports it later if the 
 
 #### Automated
 
-- [x] 3.1 Integration + unit tests pass (`pnpm exec vitest run src/lib/leads/`)
-- [x] 3.2 Typecheck passes
-- [x] 3.3 Lint passes
+- [x] 3.1 Integration + unit tests pass (`pnpm exec vitest run src/lib/leads/`) — 3c49ed4
+- [x] 3.2 Typecheck passes — 3c49ed4
+- [x] 3.3 Lint passes — 3c49ed4
 
 #### Manual
 
@@ -476,9 +477,9 @@ ample. No virtualization needed initially (`DataTable` supports it later if the 
 
 #### Automated
 
-- [ ] 4.1 Typecheck passes
-- [ ] 4.2 Lint passes
-- [ ] 4.3 Build passes (`pnpm build`)
+- [x] 4.1 Typecheck passes
+- [x] 4.2 Lint passes
+- [x] 4.3 Build passes (`pnpm build`)
 
 #### Manual
 

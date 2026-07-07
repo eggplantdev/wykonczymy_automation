@@ -34,8 +34,9 @@ export async function notifyNewLead(payload: Payload, lead: Lead): Promise<void>
 
 /**
  * Safety net: a fetched lead failed schema validation or arrived without an
- * expected email. Alerts a human instead of leaving a silent gap. Best-effort —
- * failure here must not break capture, so the caller does not await-throw on it.
+ * expected email. Alerts the ops/dev inbox (`LEADS_ALERT_EMAIL`) instead of
+ * leaving a silent gap. Best-effort — failure here must not break capture, so
+ * the caller does not await-throw on it.
  */
 export async function notifyShapeAlert(
   payload: Payload,
@@ -49,8 +50,8 @@ export async function notifyShapeAlert(
   `
 
   await payload.sendEmail({
-    to: serverEnv.LEADS_NOTIFY_EMAIL,
-    subject: '⚠️ Zgłoszenie wymaga uwagi — Wykończymy',
+    to: serverEnv.LEADS_ALERT_EMAIL,
+    subject: '⚠️ Zgłoszenie wymaga uwagi - formularz ma niespodziewaną strukturę — Wykończymy',
     html,
   })
 }

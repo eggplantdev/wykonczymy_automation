@@ -5,6 +5,7 @@ import { notifyNewLead, notifyShapeAlert } from '@/lib/leads/notify'
 
 beforeAll(() => {
   process.env.LEADS_NOTIFY_EMAIL = 'inbox@example.com'
+  process.env.LEADS_ALERT_EMAIL = 'ops@example.com'
 })
 
 const lead = {
@@ -54,14 +55,14 @@ describe('notifyNewLead', () => {
 })
 
 describe('notifyShapeAlert', () => {
-  it('alerts the internal inbox with the leadgen_id and reason', async () => {
+  it('alerts the ops inbox (LEADS_ALERT_EMAIL) with the leadgen_id and reason', async () => {
     const sendEmail = vi.fn().mockResolvedValue({})
     await notifyShapeAlert(fakePayload(sendEmail), {
       leadgenId: '1000000000000001',
       reason: 'No email could be extracted from the lead',
     })
     const arg = sendEmail.mock.calls[0][0]
-    expect(arg.to).toBe('inbox@example.com')
+    expect(arg.to).toBe('ops@example.com')
     expect(arg.html).toContain('1000000000000001')
     expect(arg.html).toContain('No email could be extracted')
   })
