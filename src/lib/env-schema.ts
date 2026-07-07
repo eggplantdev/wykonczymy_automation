@@ -28,6 +28,8 @@ export const serverSchema = z.object({
   LEADS_NOTIFY_EMAIL: z.string().min(1),
   // Recipient for integration shape-alerts (ops/dev inbox — schema fail / no email extracted)
   LEADS_ALERT_EMAIL: z.string().min(1),
+  // From-address on the customer-facing auto-reply confirmation (needs SPF/DKIM on its domain)
+  LEADS_REPLY_FROM: z.string().min(1),
   // Google (Sheets + Drive for kosztorys integration)
   GOOGLE_SERVICE_ACCOUNT_JSON: z
     .string()

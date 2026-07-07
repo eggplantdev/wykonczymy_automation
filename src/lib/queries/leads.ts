@@ -29,7 +29,6 @@ const getLeads = unstable_cache(
       formName: asString(lead.formName),
       submittedAt: lead.submittedAt ?? null,
       contactStatus: lead.contactStatus,
-      notifyStatus: lead.notifyStatus,
       autoReplyStatus: lead.autoReplyStatus,
       isTest: Boolean(lead.isTest),
     }))

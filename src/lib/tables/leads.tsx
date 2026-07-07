@@ -14,7 +14,6 @@ export type LeadRowT = {
   formName: string
   submittedAt: string | null
   contactStatus: 'new' | 'contacted'
-  notifyStatus: DeliveryStatusT
   autoReplyStatus: DeliveryStatusT
   isTest: boolean
 }
@@ -71,11 +70,6 @@ export function getLeadColumns({ onToggle }: LeadColumnOptionsT) {
           inactiveLabel="Nowy"
         />
       ),
-    }),
-    col.accessor('notifyStatus', {
-      id: 'notifyStatus',
-      header: 'Powiadomienie',
-      cell: (info) => <DeliveryStatusBadge status={info.getValue()} />,
     }),
     col.accessor('autoReplyStatus', {
       id: 'autoReplyStatus',

@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest'
 import type { Payload } from 'payload'
 import type { Lead } from '@/payload-types'
-import { notifyNewLead, notifyShapeAlert } from '@/lib/leads/notify'
+import { notifyNewLead, notifyShapeAlert, sendAutoReply } from '@/lib/leads/notify'
 
 beforeAll(() => {
   process.env.LEADS_NOTIFY_EMAIL = 'inbox@example.com'
   process.env.LEADS_ALERT_EMAIL = 'ops@example.com'
+  process.env.LEADS_REPLY_FROM = 'admin@wykonczymy.com.pl'
 })
 
 const lead = {
@@ -51,6 +52,35 @@ describe('notifyNewLead', () => {
     const html = sendEmail.mock.calls[0][0].html as string
     expect(html).toContain('A&lt;b&gt;&amp;')
     expect(html).not.toContain('A<b>')
+  })
+})
+
+describe('sendAutoReply', () => {
+  it('sends TO the lead, FROM the authenticated reply address', async () => {
+    const sendEmail = vi.fn().mockResolvedValue({})
+    await sendAutoReply(fakePayload(sendEmail), lead)
+
+    const arg = sendEmail.mock.calls[0][0]
+    expect(arg.to).toBe('anna.nowak@example.com')
+    expect(arg.from).toBe('admin@wykonczymy.com.pl')
+    expect(arg.subject).toContain('Dziękujemy za kontakt')
+  })
+
+  it('greets by first name and embeds the logo by absolute URL', async () => {
+    const sendEmail = vi.fn().mockResolvedValue({})
+    await sendAutoReply(fakePayload(sendEmail), lead)
+
+    const html = sendEmail.mock.calls[0][0].html as string
+    expect(html).toContain('Dzień dobry Anna,')
+    expect(html).toMatch(/<img src="https?:\/\/[^"]+\/wykonczymy-app-icon\.png"/)
+  })
+
+  it('throws when the lead has no email (caller flips autoReplyStatus)', async () => {
+    const sendEmail = vi.fn().mockResolvedValue({})
+    await expect(
+      sendAutoReply(fakePayload(sendEmail), { ...lead, email: null } as Lead),
+    ).rejects.toThrow(/no email/)
+    expect(sendEmail).not.toHaveBeenCalled()
   })
 })
 

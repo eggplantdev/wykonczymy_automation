@@ -1,6 +1,11 @@
 import type { Payload } from 'payload'
 import type { Lead } from '@/payload-types'
 import { serverEnv } from '@/lib/env.server'
+import { FRONTEND_URL } from '@/lib/env'
+import { renderBrandedEmail } from './email-template'
+
+// Absolute URL — email clients can't resolve relative paths. Served from public/.
+const LOGO_URL = `${FRONTEND_URL}/wykonczymy-app-icon.png`
 
 const escapeHtml = (value: string): string =>
   value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -52,6 +57,37 @@ export async function notifyShapeAlert(
   await payload.sendEmail({
     to: serverEnv.LEADS_ALERT_EMAIL,
     subject: '⚠️ Zgłoszenie wymaga uwagi - formularz ma niespodziewaną strukturę — Wykończymy',
+    html,
+  })
+}
+
+/**
+ * Customer-facing confirmation ("we got your contact") — sent TO the lead, FROM
+ * `LEADS_REPLY_FROM` (an SPF/DKIM-authenticated domain, so it doesn't spam-folder).
+ * Assumes `lead.email` is present; the caller skips this send for phone-only and
+ * test leads. Throws on failure so the caller can flip `autoReplyStatus`.
+ */
+export async function sendAutoReply(payload: Payload, lead: Lead): Promise<void> {
+  if (!lead.email) throw new Error('sendAutoReply called for a lead with no email')
+
+  const firstName = lead.name?.trim().split(/\s+/)[0]
+  const greeting = firstName ? `Dzień dobry ${firstName},` : 'Dzień dobry,'
+
+  const html = renderBrandedEmail({
+    logoUrl: LOGO_URL,
+    heading: 'Dziękujemy za kontakt',
+    paragraphs: [
+      greeting,
+      'Dziękujemy za przesłanie zgłoszenia. Otrzymaliśmy Twoje dane kontaktowe i odezwiemy się najszybciej, jak to możliwe.',
+      'Pozdrawiamy,\nZespół Wykończymy',
+    ],
+    footer: 'To wiadomość wysłana automatycznie — nie musisz na nią odpowiadać.',
+  })
+
+  await payload.sendEmail({
+    to: lead.email,
+    from: serverEnv.LEADS_REPLY_FROM,
+    subject: 'Dziękujemy za kontakt — Wykończymy',
     html,
   })
 }
