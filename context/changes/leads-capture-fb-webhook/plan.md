@@ -477,9 +477,9 @@ ample. No virtualization needed initially (`DataTable` supports it later if the 
 
 #### Automated
 
-- [x] 4.1 Typecheck passes
-- [x] 4.2 Lint passes
-- [x] 4.3 Build passes (`pnpm build`)
+- [x] 4.1 Typecheck passes — 37e1d3a
+- [x] 4.2 Lint passes — 37e1d3a
+- [x] 4.3 Build passes (`pnpm build`) — 37e1d3a
 
 #### Manual
 
