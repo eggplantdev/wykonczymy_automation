@@ -45,8 +45,30 @@ describe('normalizeLead', () => {
     expect(r.rawData).toEqual(realFieldData)
   })
 
-  it('falls back to an email regex on values when no questions are provided', () => {
+  // Webhook path: the per-lead payload has no field type, so we key off the field name.
+  it('lifts email / phone / name by known key when no questions are provided', () => {
     const r = normalizeLead(realFieldData)
+    expect(r.email).toBe('anna.nowak@example.com')
+    expect(r.phone).toBe('+48500600700')
+    expect(r.name).toBe('Anna Nowak')
+  })
+
+  it('does not promote a CUSTOM field via the key heuristic', () => {
+    const r = normalizeLead(realFieldData)
+    expect(r.name).not.toContain('Bemowo')
+    expect(r.phone).not.toContain('Lazienka')
+  })
+
+  it('ignores a mail-ish key whose value is not an email (regex still recovers the real one)', () => {
+    const r = normalizeLead([
+      { name: 'kod_mailingowy', values: ['PROMO2026'] },
+      { name: 'kontakt', values: ['anna.nowak@example.com'] },
+    ])
+    expect(r.email).toBe('anna.nowak@example.com')
+  })
+
+  it('falls back to an email regex on values when the key is unrecognised', () => {
+    const r = normalizeLead([{ name: 'kontakt', values: ['anna.nowak@example.com'] }])
     expect(r.email).toBe('anna.nowak@example.com')
   })
 

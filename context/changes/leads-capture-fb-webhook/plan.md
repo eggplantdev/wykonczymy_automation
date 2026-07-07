@@ -450,21 +450,21 @@ ample. No virtualization needed initially (`DataTable` supports it later if the 
 
 #### Automated
 
-- [x] 2.1 verify-signature / lead-schema / normalize-lead unit tests pass
-- [x] 2.2 Typecheck passes
-- [x] 2.3 Lint passes
+- [x] 2.1 verify-signature / lead-schema / normalize-lead unit tests pass — 73ae1a2
+- [x] 2.2 Typecheck passes — 73ae1a2
+- [x] 2.3 Lint passes — 73ae1a2
 
 #### Manual
 
-- [x] 2.4 Normalize fixtures spot-checked against the real dump (fabricated PII, real shape)
+- [x] 2.4 Normalize fixtures spot-checked against the real dump (fabricated PII, real shape) — 73ae1a2
 
 ### Phase 3: Persistence, Notify & Webhook Wiring
 
 #### Automated
 
-- [ ] 3.1 Integration + unit tests pass (`pnpm exec vitest run src/lib/leads/`)
-- [ ] 3.2 Typecheck passes
-- [ ] 3.3 Lint passes
+- [x] 3.1 Integration + unit tests pass (`pnpm exec vitest run src/lib/leads/`)
+- [x] 3.2 Typecheck passes
+- [x] 3.3 Lint passes
 
 #### Manual
 
