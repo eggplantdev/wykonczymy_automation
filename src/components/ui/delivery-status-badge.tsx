@@ -1,4 +1,5 @@
 import { cn } from '@/lib/cn'
+import { BADGE_BASE } from '@/components/ui/badge'
 
 export type DeliveryStatusT = 'pending' | 'sent' | 'failed' | 'skipped'
 
@@ -17,14 +18,5 @@ const STATUS: Record<DeliveryStatusT, { label: string; className: string }> = {
 
 export function DeliveryStatusBadge({ status }: { status: DeliveryStatusT }) {
   const { label, className } = STATUS[status]
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium',
-        className,
-      )}
-    >
-      {label}
-    </span>
-  )
+  return <span className={cn(BADGE_BASE, className)}>{label}</span>
 }

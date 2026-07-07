@@ -33,7 +33,7 @@ export function LeadAnswersDialog({ name, formName, answers }: LeadAnswersDialog
         <dl className="divide-border divide-y text-sm">
           {answers.map((answer, index) => (
             <div key={index} className="grid grid-cols-[1fr_1.5fr] gap-3 py-2">
-              <dt className="text-muted-foreground">{answer.label}</dt>
+              <dt className="text-muted-foreground break-words">{answer.label}</dt>
               <dd className="text-foreground break-words">{answer.value}</dd>
             </div>
           ))}
