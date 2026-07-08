@@ -84,18 +84,41 @@ export function buildTransferLookups(
   }
 }
 
-/**
- * Maps a Payload transfer document to a flat TransferRowT.
- * When `lookups` is provided, resolves IDs from maps (depth: 0 mode).
- * When omitted, falls back to populated objects (depth: 1 mode).
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRowT {
-  // Scalars + resolved IDs are identical across both modes; only the *name* fields
-  // and invoice media differ (lookup maps vs populated objects).
-  const base = {
+// A depth:0 transfer doc: relationship fields are IDs, not populated objects.
+// `originalType` is spliced in by TransferTableServer for CANCELLATION audit rows
+// and isn't part of the collection schema.
+type RelationIdT = number | null | undefined
+
+export type TransferDocT = {
+  id: number
+  description?: string | null
+  amount: number
+  type: string
+  paymentMethod: string
+  date: string
+  sourceRegister?: RelationIdT
+  targetRegister?: RelationIdT
+  investment?: RelationIdT
+  expenseCategory?: RelationIdT
+  otherCategory?: RelationIdT
+  worker?: RelationIdT
+  createdBy?: RelationIdT
+  createdAt: string
+  invoice?: RelationIdT
+  invoiceNote?: string | null
+  cancelled?: boolean | null
+  settled?: boolean | null
+  originalType?: TransferTypeT | null
+}
+
+/** Maps a depth:0 transfer document to a flat TransferRowT, resolving IDs via lookup maps. */
+export function mapTransferRow(doc: TransferDocT, lookups: TransferLookupsT): TransferRowT {
+  const mediaId = typeof doc.invoice === 'number' ? doc.invoice : null
+  const media = mediaId ? lookups.media.get(mediaId) : undefined
+
+  return {
     id: doc.id,
-    description: doc.description,
+    description: doc.description ?? '',
     amount: doc.amount,
     type: doc.type as TransferTypeT,
     paymentMethod: doc.paymentMethod as PaymentMethodT,
@@ -111,40 +134,17 @@ export function mapTransferRow(doc: any, lookups?: TransferLookupsT): TransferRo
     invoiceNote: doc.invoiceNote ?? null,
     cancelled: doc.cancelled ?? false,
     settled: doc.settled ?? false,
-    originalType: (doc.originalType as TransferTypeT) ?? null,
-  }
-
-  if (lookups) {
-    const mediaId = typeof doc.invoice === 'number' ? doc.invoice : null
-    const media = mediaId ? lookups.media.get(mediaId) : undefined
-
-    return {
-      ...base,
-      sourceRegisterName: lookupName(lookups.cashRegisters, doc.sourceRegister),
-      targetRegisterName: lookupName(lookups.cashRegisters, doc.targetRegister),
-      investmentName: lookupName(lookups.investments, doc.investment),
-      expenseCategoryName: lookupName(lookups.expenseCategories, doc.expenseCategory),
-      otherCategoryName: lookupName(lookups.otherCategories, doc.otherCategory),
-      workerName: lookupName(lookups.users, doc.worker),
-      createdByName: lookupName(lookups.users, doc.createdBy),
-      invoiceUrl: media?.url ?? null,
-      invoiceFilename: media?.filename ?? null,
-      invoiceMimeType: media?.mimeType ?? null,
-    }
-  }
-
-  return {
-    ...base,
-    sourceRegisterName: getRelationName(doc.sourceRegister),
-    targetRegisterName: getRelationName(doc.targetRegister),
-    investmentName: getRelationName(doc.investment),
-    expenseCategoryName: getRelationName(doc.expenseCategory),
-    otherCategoryName: getRelationName(doc.otherCategory),
-    workerName: getRelationName(doc.worker),
-    createdByName: getRelationName(doc.createdBy),
-    invoiceUrl: getMediaField(doc.invoice, 'url'),
-    invoiceFilename: getMediaField(doc.invoice, 'filename'),
-    invoiceMimeType: getMediaField(doc.invoice, 'mimeType'),
+    originalType: doc.originalType ?? null,
+    sourceRegisterName: lookupName(lookups.cashRegisters, doc.sourceRegister),
+    targetRegisterName: lookupName(lookups.cashRegisters, doc.targetRegister),
+    investmentName: lookupName(lookups.investments, doc.investment),
+    expenseCategoryName: lookupName(lookups.expenseCategories, doc.expenseCategory),
+    otherCategoryName: lookupName(lookups.otherCategories, doc.otherCategory),
+    workerName: lookupName(lookups.users, doc.worker),
+    createdByName: lookupName(lookups.users, doc.createdBy),
+    invoiceUrl: media?.url ?? null,
+    invoiceFilename: media?.filename ?? null,
+    invoiceMimeType: media?.mimeType ?? null,
   }
 }
 
@@ -171,13 +171,6 @@ function toNullableId(field: unknown): number | null {
 function lookupName(map: NameMapT, field: unknown): string {
   if (typeof field === 'number') return map.get(field) ?? '—'
   return getRelationName(field)
-}
-
-function getMediaField(field: unknown, key: string): string | null {
-  if (typeof field === 'object' && field !== null && key in field) {
-    return (field as Record<string, unknown>)[key] as string | null
-  }
-  return null
 }
 
 const col = createColumnHelper<TransferRowT>()
