@@ -35,7 +35,7 @@ export const TRANSFER_TYPE_COLORS: Record<TransferTypeT, string> = {
   COMPANY_FUNDING: 'chart-green',
   OTHER_DEPOSIT: 'chart-green',
   INVESTMENT_EXPENSE: 'chart-red',
-  LABOR_COST: 'chart',
+  LABOR_COST: 'chart-orange',
   RABAT: 'chart-green',
   LOSS: 'chart-purple',
   CORRECTION: 'chart-orange',
