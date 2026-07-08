@@ -1,9 +1,10 @@
 ---
 id: kosztorys-settled-sheet-billing
 title: Settled (R+M) expenses leak into the client's kosztorys bill — Sheets FAZA 2
-status: implemented
+status: archived
 created: 2026-06-29
-updated: 2026-06-29
+updated: 2026-07-08
+archived_at: 2026-07-08T12:31:06Z
 ---
 
 # Settled (R+M) expenses leak into the client's kosztorys bill — Sheets FAZA 2
