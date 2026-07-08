@@ -10,8 +10,8 @@ import {
 } from '@/lib/queries/reference-data'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { calculateBalance } from '@/lib/calculate-balance'
-import { calculateMargin } from '@/lib/calculate-margin'
+import { calculateBalance } from '@/lib/db/calculate-balance'
+import { calculateMargin } from '@/lib/db/calculate-margin'
 import type { InvestmentRefT } from '@/types/reference-data'
 import type { InvestmentRowT } from '@/components/tables/investments'
 

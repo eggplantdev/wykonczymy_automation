@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calculateMargin } from '@/lib/calculate-margin'
+import { calculateMargin } from '@/lib/db/calculate-margin'
 import type { InvestmentFinancialsT } from '@/lib/db/sum-transfers'
 
 const fin = (p: Partial<InvestmentFinancialsT>): InvestmentFinancialsT => ({

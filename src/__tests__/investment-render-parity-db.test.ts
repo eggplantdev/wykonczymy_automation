@@ -8,9 +8,9 @@ import {
   deriveFinancials,
   deriveCategoryBreakdowns,
 } from '@/lib/db/sum-transfers'
-import { calculateBalance } from '@/lib/calculate-balance'
-import { calculateMargin } from '@/lib/calculate-margin'
-import { buildFinancialFields } from '@/lib/map-category-costs'
+import { calculateBalance } from '@/lib/db/calculate-balance'
+import { calculateMargin } from '@/lib/db/calculate-margin'
+import { buildFinancialFields } from '@/lib/db/map-category-costs'
 // NOTE: a SECOND function also named calculateBalance — this one sums the *visible*
 // display fields. It is the one the DETAIL page actually uses for "Bilans inwestora".
 import { calculateBalance as sumVisibleFields } from '@/lib/export/header-fields'

@@ -32,8 +32,8 @@ import {
   deriveFinancials,
   type InvestmentFinancialsT,
 } from '@/lib/db/sum-transfers'
-import { calculateBalance } from '@/lib/calculate-balance'
-import { calculateMargin } from '@/lib/calculate-margin'
+import { calculateBalance } from '@/lib/db/calculate-balance'
+import { calculateMargin } from '@/lib/db/calculate-margin'
 
 type FiguresT = {
   bilans: number
