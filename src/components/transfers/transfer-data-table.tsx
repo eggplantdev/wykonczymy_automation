@@ -8,7 +8,7 @@ import { CancelledTransactionAuditButton } from '@/components/transfers/cancelle
 import { TransferFilters } from '@/components/transfers/transfer-filters'
 import { TransferExportToolbar } from '@/components/transfers/transfer-export-toolbar'
 import { getTransferColumns } from '@/components/tables/transfers'
-import type { TransferRowT } from '@/lib/queries/transfer-mapping'
+import type { TransferRowT } from '@/types/transfers'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import type { PaginationMetaT } from '@/lib/utils/pagination'
 import type { TransferTableConfigT } from '@/types/export'

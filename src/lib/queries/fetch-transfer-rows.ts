@@ -7,9 +7,9 @@ import {
   mapTransferRow,
   extractInvoiceIds,
   buildTransferLookups,
-  type TransferRowT,
   type TransferDocT,
 } from '@/lib/queries/transfer-mapping'
+import type { TransferRowT } from '@/types/transfers'
 import type { RawTransferDocT } from '@/lib/queries/transfers'
 
 type BuildRowsOptsT = {

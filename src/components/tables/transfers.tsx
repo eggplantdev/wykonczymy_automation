@@ -17,7 +17,7 @@ import {
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
-import type { TransferRowT } from '@/lib/queries/transfer-mapping'
+import type { TransferRowT } from '@/types/transfers'
 
 const col = createColumnHelper<TransferRowT>()
 

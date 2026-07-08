@@ -5,7 +5,7 @@ import {
 } from '@/lib/constants/transfers'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDate, formatPLDateTime } from '@/lib/utils/format-date'
-import type { TransferRowT } from '@/lib/queries/transfer-mapping'
+import type { TransferRowT } from '@/types/transfers'
 import type { TransferTypeT, PaymentMethodT } from '@/lib/constants/transfers'
 
 type ColumnDefT = {

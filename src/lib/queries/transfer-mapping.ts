@@ -2,38 +2,7 @@ import { getRelationName } from '@/lib/utils/get-relation-name'
 import type { TransferTypeT, PaymentMethodT } from '@/lib/constants/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import type { MediaInfoT } from '@/lib/queries/media'
-
-export type TransferRowT = {
-  id: number
-  description: string
-  amount: number
-  type: TransferTypeT
-  paymentMethod: PaymentMethodT
-  date: string
-  sourceRegisterId: number | null
-  sourceRegisterName: string
-  targetRegisterId: number | null
-  targetRegisterName: string
-  investmentId: number | null
-  investmentName: string
-  expenseCategoryId: number | null
-  expenseCategoryName: string
-  otherCategoryName: string
-  otherCategoryId: number | null
-  workerName: string
-  workerId: number | null
-  createdByName: string
-  createdById: number | null
-  createdAt: string
-  invoiceUrl: string | null
-  invoiceFilename: string | null
-  invoiceMimeType: string | null
-  invoiceNote: string | null
-  cancelled: boolean
-  settled: boolean
-  // For a CANCELLATION row: the type of the original transfer it reverses (display-only). null otherwise.
-  originalType: TransferTypeT | null
-}
+import type { TransferRowT } from '@/types/transfers'
 
 type NameMapT = Map<number, string>
 
