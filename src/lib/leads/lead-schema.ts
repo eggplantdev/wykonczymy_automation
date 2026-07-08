@@ -22,7 +22,6 @@ export type LeadFieldT = z.infer<typeof leadFieldSchema>
 // hold a shape our writers never produced — so narrow with a parse, not an `as`.
 // `.catch([])` degrades a malformed row to "no answers" instead of throwing mid-render.
 export const leadRawDataSchema = z.array(leadFieldSchema).catch([])
-export type FetchedLeadT = z.infer<typeof leadSchema>
 
 // A form question as returned by `GET /{form_id}?fields=questions`. `label` is the
 // human question text we persist to render real questions in the answers modal.
