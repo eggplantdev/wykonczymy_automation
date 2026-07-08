@@ -41,25 +41,28 @@ async function toggleActive(
   }
 }
 
-export const toggleUserActive = (id: number, active: boolean) =>
-  toggleActive(id, active, {
+export async function toggleUserActive(id: number, active: boolean) {
+  return toggleActive(id, active, {
     collection: 'users',
     cacheTag: 'users',
     data: (active) => ({ active }),
     overrideAccess: true,
   })
+}
 
-export const toggleCashRegisterActive = (id: number, active: boolean) =>
-  toggleActive(id, active, {
+export async function toggleCashRegisterActive(id: number, active: boolean) {
+  return toggleActive(id, active, {
     collection: 'cash-registers',
     cacheTag: 'cashRegisters',
     data: (active) => ({ active }),
     overrideAccess: true,
   })
+}
 
-export const toggleInvestmentStatus = (id: number, active: boolean) =>
-  toggleActive(id, active, {
+export async function toggleInvestmentStatus(id: number, active: boolean) {
+  return toggleActive(id, active, {
     collection: 'investments',
     cacheTag: 'investments',
     data: (active) => ({ status: active ? 'active' : 'completed' }),
   })
+}
