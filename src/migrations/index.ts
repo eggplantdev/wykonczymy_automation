@@ -37,7 +37,7 @@ import * as migration_20260528_move_sheet_id_to_kosztoryses from './20260528_mov
 import * as migration_20260611_add_rabat_enum from './20260611_add_rabat_enum'
 import * as migration_20260611_1_add_loss_enum from './20260611_1_add_loss_enum'
 import * as migration_20260612_0_add_settled from './20260612_0_add_settled'
-import * as migration_20260707_add_leads from './20260707_add_leads'
+import * as migration_20260707_0_add_leads from './20260707_0_add_leads'
 import * as migration_20260707_1_add_lead_form_questions from './20260707_1_add_lead_form_questions'
 import * as migration_20260708_add_notification_reads from './20260708_add_notification_reads'
 import * as migration_20260708_1_drop_lead_is_test from './20260708_1_drop_lead_is_test'
@@ -239,9 +239,9 @@ export const migrations = [
     name: '20260612_0_add_settled',
   },
   {
-    up: migration_20260707_add_leads.up,
-    down: migration_20260707_add_leads.down,
-    name: '20260707_add_leads',
+    up: migration_20260707_0_add_leads.up,
+    down: migration_20260707_0_add_leads.down,
+    name: '20260707_0_add_leads',
   },
   {
     up: migration_20260707_1_add_lead_form_questions.up,

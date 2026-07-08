@@ -8,10 +8,18 @@ import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-ve
 // (the miss that needed a follow-up fix for expense_categories — folded in up front here).
 export async function up({ db }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
-    CREATE TYPE "public"."enum_leads_source" AS ENUM('facebook_lead_ads');
-    CREATE TYPE "public"."enum_leads_contact_status" AS ENUM('new', 'contacted');
-    CREATE TYPE "public"."enum_leads_notify_status" AS ENUM('pending', 'sent', 'failed', 'skipped');
-    CREATE TYPE "public"."enum_leads_auto_reply_status" AS ENUM('pending', 'sent', 'failed', 'skipped');
+    DO $$ BEGIN
+      CREATE TYPE "public"."enum_leads_source" AS ENUM('facebook_lead_ads');
+    EXCEPTION WHEN duplicate_object THEN null; END $$;
+    DO $$ BEGIN
+      CREATE TYPE "public"."enum_leads_contact_status" AS ENUM('new', 'contacted');
+    EXCEPTION WHEN duplicate_object THEN null; END $$;
+    DO $$ BEGIN
+      CREATE TYPE "public"."enum_leads_notify_status" AS ENUM('pending', 'sent', 'failed', 'skipped');
+    EXCEPTION WHEN duplicate_object THEN null; END $$;
+    DO $$ BEGIN
+      CREATE TYPE "public"."enum_leads_auto_reply_status" AS ENUM('pending', 'sent', 'failed', 'skipped');
+    EXCEPTION WHEN duplicate_object THEN null; END $$;
 
     CREATE TABLE IF NOT EXISTS "leads" (
       "id" serial PRIMARY KEY NOT NULL,
