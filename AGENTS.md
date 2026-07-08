@@ -4,7 +4,7 @@ Project-specific guidance for coding agents. Global conventions (response style,
 
 ## Project Overview
 
-Business management dashboard for cash registers, transfers, investments, and employees. Next.js + Payload CMS. **Polish UI, English code.** Versions in `@package.json`.
+Business management dashboard for cash registers, transfers, investments, and employees. Next.js + Payload CMS. **Polish UI, English code.** Code comments are always in English, even when the UI strings they sit next to are Polish. Versions in `@package.json`.
 
 ## Backlog & Task Tracking
 
