@@ -1,4 +1,4 @@
-/*  */ import type { RoleT } from '@/lib/auth/roles'
+import type { RoleT } from '@/lib/auth/roles'
 import { cn } from '@/lib/utils/cn'
 
 /** Shared pill base for the app's status/role badges — colors layer on top. */

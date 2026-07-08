@@ -97,7 +97,6 @@ export function FilterMultiSelect({
   }
 
   function toggleAll() {
-    /*  */
     const next = allSelected ? [] : [...allValues]
     setLocalSelected(next)
     scheduleFlush(next)

@@ -14,7 +14,7 @@ const resolveId = (value: unknown): number | undefined => {
 
 /**
  * afterChange — revalidate caches after a transaction is created or updated.
- * No more SQL UPDATEs — balances are computed on read via cached functions.
+ * Balances are computed on read via cached functions, so there's no write here.
  */
 export const recalcAfterChange: CollectionAfterChangeHook = async ({ doc, previousDoc }) => {
   const elapsed = perfStart()
