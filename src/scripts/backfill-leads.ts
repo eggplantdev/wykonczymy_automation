@@ -76,7 +76,6 @@ async function main(): Promise<void> {
           formId,
           formName: form?.name,
           submittedAt: lead.created_time,
-          isTest: normalized.isTest,
         },
         { skipRevalidation: true },
       )

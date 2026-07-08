@@ -5,10 +5,8 @@ export type NormalizedLeadT = {
   name?: string
   phone?: string
   rawData: LeadFieldT[]
-  isTest: boolean
 }
 
-const TEST_LEAD_PREFIX = '<test lead:'
 const EMAIL_RE = /[^\s@]+@[^\s@]+\.[^\s@]+/
 
 // Key heuristics for the webhook path, where the per-lead payload carries no field
@@ -38,7 +36,6 @@ export function normalizeLead(
   questions?: readonly { key: string; type?: string }[],
 ): NormalizedLeadT {
   const typeByKey = new Map((questions ?? []).map((question) => [question.key, question.type]))
-  const isTest = fieldData.some((field) => firstValue(field)?.startsWith(TEST_LEAD_PREFIX) ?? false)
 
   let email: string | undefined
   let name: string | undefined
@@ -82,5 +79,5 @@ export function normalizeLead(
     }
   }
 
-  return { email, name, phone, rawData: fieldData, isTest }
+  return { email, name, phone, rawData: fieldData }
 }

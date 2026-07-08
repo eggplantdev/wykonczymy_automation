@@ -13,7 +13,6 @@ export type StoreLeadInputT = {
   formId?: string
   formName?: string
   submittedAt?: string
-  isTest: boolean
 }
 
 /** The already-stored sibling for this `(source, externalId)`, or undefined. */
@@ -66,7 +65,6 @@ export async function storeLead(
     formId: input.formId,
     formName: input.formName,
     submittedAt: input.submittedAt,
-    isTest: input.isTest,
     // Required selects — captureLead flips notifyStatus after the send attempt.
     contactStatus: 'new' as const,
     notifyStatus: 'pending' as const,

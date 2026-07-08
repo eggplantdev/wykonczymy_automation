@@ -35,7 +35,6 @@ const getLeads = unstable_cache(
         leadRawDataSchema.parse(lead.rawData),
         leadFormQuestionsSchema.parse(lead.formQuestions),
       ),
-      isTest: Boolean(lead.isTest),
     }))
   },
   ['leads-all'],

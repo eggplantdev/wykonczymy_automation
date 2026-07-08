@@ -18,7 +18,7 @@ export default async function LeadsPage() {
   // round-trip before the (cached) read.
   const payload = await getPayload({ config })
   const [, leads] = await Promise.all([markLeadsSeen(payload, session.user.id), fetchAllLeads()])
-  const newCount = leads.filter((lead) => lead.contactStatus === 'new' && !lead.isTest).length
+  const newCount = leads.filter((lead) => lead.contactStatus === 'new').length
 
   return (
     <PageWrapper title="Zgłoszenia">

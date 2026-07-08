@@ -37,7 +37,6 @@ export function LeadsDataTable({ data }: { data: LeadRowT[] }) {
       columns={columns}
       storageKey="leads"
       initialSorting={[{ id: 'submittedAt', desc: true }]}
-      getRowClassName={(row) => (row.isTest ? 'opacity-50' : '')}
       toolbar={(table, cv) => (
         <>
           <SearchFilterInput value={searchTerm} onChange={setSearchTerm} placeholder="Szukaj..." />

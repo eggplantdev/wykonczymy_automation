@@ -119,12 +119,6 @@ export const Leads: CollectionConfig = {
       },
     },
     {
-      name: 'isTest',
-      type: 'checkbox',
-      defaultValue: false,
-      label: { en: 'Test lead', pl: 'Zgłoszenie testowe' },
-    },
-    {
       name: 'contactStatus',
       type: 'select',
       required: true,

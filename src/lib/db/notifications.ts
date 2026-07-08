@@ -12,8 +12,8 @@ const LEADS_STREAM = 'leads'
 const LEADS_EPOCH = '2026-07-08T00:00:00Z'
 
 /**
- * Unread new-lead count for one user: non-test leads created after their read
- * cursor (or after LEADS_EPOCH if they've never visited). Powers the nav badge.
+ * Unread new-lead count for one user: leads created after their read cursor
+ * (or after LEADS_EPOCH if they've never visited). Powers the nav badge.
  */
 export const countUnreadLeads = async (payload: Payload, userId: number): Promise<number> => {
   const db = await getDb(payload)
@@ -21,12 +21,11 @@ export const countUnreadLeads = async (payload: Payload, userId: number): Promis
   const result = await db.execute(sql`
     SELECT COUNT(*) AS count
     FROM leads
-    WHERE is_test IS NOT TRUE
-      AND created_at > COALESCE(
-        (SELECT seen_at FROM notification_reads
-         WHERE user_id = ${userId} AND stream = ${LEADS_STREAM}),
-        ${LEADS_EPOCH}::timestamptz
-      )
+    WHERE created_at > COALESCE(
+      (SELECT seen_at FROM notification_reads
+       WHERE user_id = ${userId} AND stream = ${LEADS_STREAM}),
+      ${LEADS_EPOCH}::timestamptz
+    )
   `)
 
   return Number(result.rows[0].count)

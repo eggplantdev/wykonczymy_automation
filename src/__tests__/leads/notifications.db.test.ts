@@ -16,7 +16,7 @@ const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SEC
 
 const runTag = `test-notif-${Date.now()}`
 
-const makeInput = (externalId: string, isTest: boolean): StoreLeadInputT => ({
+const makeInput = (externalId: string): StoreLeadInputT => ({
   source: 'facebook_lead_ads',
   externalId,
   email: 'anna.nowak@example.com',
@@ -25,7 +25,6 @@ const makeInput = (externalId: string, isTest: boolean): StoreLeadInputT => ({
   rawData: [{ name: 'adres_e-mail', values: ['anna.nowak@example.com'] }],
   formId: '899352536400611',
   submittedAt: '2026-07-05T18:48:40.000Z',
-  isTest,
 })
 
 describe.skipIf(!ENV_READY)('countUnreadLeads + markLeadsSeen (DB)', () => {
@@ -58,16 +57,15 @@ describe.skipIf(!ENV_READY)('countUnreadLeads + markLeadsSeen (DB)', () => {
     }
   })
 
-  it('counts only non-test leads created after the cursor, and advancing the cursor clears them', async () => {
+  it('counts leads created after the cursor, and advancing the cursor clears them', async () => {
     // Cursor first, then leads → the leads are unambiguously newer than seen_at.
     await markLeadsSeen(payload, userId)
 
-    const real1 = await storeLead(payload, makeInput(`${runTag}-a`, false))
-    const real2 = await storeLead(payload, makeInput(`${runTag}-b`, false))
-    const test1 = await storeLead(payload, makeInput(`${runTag}-c`, true))
-    createdLeadIds.push(real1.lead.id, real2.lead.id, test1.lead.id)
+    const lead1 = await storeLead(payload, makeInput(`${runTag}-a`))
+    const lead2 = await storeLead(payload, makeInput(`${runTag}-b`))
+    createdLeadIds.push(lead1.lead.id, lead2.lead.id)
 
-    // Two non-test leads after the cursor; the test lead is excluded.
+    // Both leads landed after the cursor.
     expect(await countUnreadLeads(payload, userId)).toBe(2)
 
     // Advancing the cursor past them drops the count to 0 — and re-running is idempotent.
@@ -80,7 +78,7 @@ describe.skipIf(!ENV_READY)('countUnreadLeads + markLeadsSeen (DB)', () => {
     await clearCursor()
 
     const before = await countUnreadLeads(payload, userId)
-    const extra = await storeLead(payload, makeInput(`${runTag}-d`, false))
+    const extra = await storeLead(payload, makeInput(`${runTag}-d`))
     createdLeadIds.push(extra.lead.id)
 
     // The epoch (COALESCE fallback) is before "now", so a just-created lead increments.

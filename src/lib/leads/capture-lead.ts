@@ -50,9 +50,8 @@ export async function captureLead(
       : 'failed'
     : lead.notifyStatus
 
-  // Customer-facing confirmation. Skipped (no send) for phone-only leads and for
-  // Meta's test submissions — never email a fake `<test lead:>` address.
-  const canAutoReply = Boolean(lead.email) && !lead.isTest
+  // Customer-facing confirmation. Skipped (no send) for phone-only leads.
+  const canAutoReply = Boolean(lead.email)
   const autoReplyStatus: Lead['autoReplyStatus'] = runAutoReply
     ? !canAutoReply
       ? 'skipped'

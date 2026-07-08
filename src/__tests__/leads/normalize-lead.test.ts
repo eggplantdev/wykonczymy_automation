@@ -20,17 +20,6 @@ const realFieldData = [
   { name: 'adres_e-mail', values: ['anna.nowak@example.com'] },
 ]
 
-// Testing-tool lead: dummy fields carry the `<test lead: …>` prefix; email is a real address.
-const testFieldData = [
-  {
-    name: 'z_jakiej_dzielnicy_warszawy_jesteś?',
-    values: ['<test lead: dummy data for z_jakiej_dzielnicy_warszawy_jesteś?>'],
-  },
-  { name: 'full name', values: ['<test lead: dummy data for full name>'] },
-  { name: 'phone_number', values: ['<test lead: dummy data for phone_number>'] },
-  { name: 'adres_e-mail', values: ['test@meta.com'] },
-]
-
 describe('normalizeLead', () => {
   it('lifts email / phone / name by Meta field type', () => {
     const r = normalizeLead(realFieldData, questions)
@@ -75,11 +64,6 @@ describe('normalizeLead', () => {
   it('handles values as an array (never assumes a scalar)', () => {
     const r = normalizeLead([{ name: 'adres_e-mail', values: ['a@b.pl', 'ignored'] }], questions)
     expect(r.email).toBe('a@b.pl')
-  })
-
-  it('flags a test lead via the <test lead: …> prefix', () => {
-    expect(normalizeLead(testFieldData, questions).isTest).toBe(true)
-    expect(normalizeLead(realFieldData, questions).isTest).toBe(false)
   })
 
   it('returns an emailless result without throwing when no email is present', () => {

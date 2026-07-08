@@ -40,6 +40,7 @@ import * as migration_20260612_0_add_settled from './20260612_0_add_settled'
 import * as migration_20260707_add_leads from './20260707_add_leads'
 import * as migration_20260707_1_add_lead_form_questions from './20260707_1_add_lead_form_questions'
 import * as migration_20260708_add_notification_reads from './20260708_add_notification_reads'
+import * as migration_20260708_1_drop_lead_is_test from './20260708_1_drop_lead_is_test'
 
 export const migrations = [
   {
@@ -251,5 +252,10 @@ export const migrations = [
     up: migration_20260708_add_notification_reads.up,
     down: migration_20260708_add_notification_reads.down,
     name: '20260708_add_notification_reads',
+  },
+  {
+    up: migration_20260708_1_drop_lead_is_test.up,
+    down: migration_20260708_1_drop_lead_is_test.down,
+    name: '20260708_1_drop_lead_is_test',
   },
 ]

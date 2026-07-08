@@ -13,7 +13,6 @@ const input: StoreLeadInputT = {
   source: 'facebook_lead_ads',
   externalId: 'lead-1',
   rawData: [],
-  isTest: false,
 }
 
 const asFind = (docs: Lead[]) => ({ docs })

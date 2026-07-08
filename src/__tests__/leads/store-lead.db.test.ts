@@ -25,7 +25,6 @@ const makeInput = (externalId: string): StoreLeadInputT => ({
   rawData: [{ name: 'adres_e-mail', values: ['anna.nowak@example.com'] }],
   formId: '899352536400611',
   submittedAt: '2026-07-05T18:48:40.000Z',
-  isTest: true,
 })
 
 describe.skipIf(!ENV_READY)('storeLead + captureLead (DB)', () => {

@@ -14,5 +14,4 @@ export type LeadRowT = {
   submittedAt: string | null
   contactStatus: 'new' | 'contacted'
   answers: LeadAnswerT[]
-  isTest: boolean
 }

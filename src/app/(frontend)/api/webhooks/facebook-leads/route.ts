@@ -115,7 +115,6 @@ export async function POST(request: NextRequest) {
           formQuestions: questions,
           formId,
           submittedAt: parsed.data.created_time,
-          isTest: normalized.isTest,
         })
         captured += 1
       } catch (err) {

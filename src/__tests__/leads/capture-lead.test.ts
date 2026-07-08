@@ -12,7 +12,7 @@ import { captureLead } from '@/lib/leads/capture-lead'
 import { storeLead } from '@/lib/leads/store-lead'
 import { notifyNewLead, sendAutoReply } from '@/lib/leads/notify'
 
-const baseLead = { id: 1, email: 'jan@example.com', isTest: false } as Lead
+const baseLead = { id: 1, email: 'jan@example.com' } as Lead
 const update = vi.fn()
 const payload = { update } as unknown as Payload
 const input = { source: 'facebook_lead_ads', externalId: 'x' } as never
@@ -52,17 +52,6 @@ describe('captureLead — notify + auto-reply', () => {
   it('skips the auto-reply for a phone-only lead (no email)', async () => {
     vi.mocked(storeLead).mockResolvedValue({ lead: { id: 2 } as Lead, created: true })
     await captureLead(payload, input)
-    expect(sendAutoReply).not.toHaveBeenCalled()
-    expect(dataOf()).toEqual({ notifyStatus: 'sent', autoReplyStatus: 'skipped' })
-  })
-
-  it('skips the auto-reply for a test lead but still notifies internally', async () => {
-    vi.mocked(storeLead).mockResolvedValue({
-      lead: { id: 3, email: 'x@test.com', isTest: true } as Lead,
-      created: true,
-    })
-    await captureLead(payload, input)
-    expect(notifyNewLead).toHaveBeenCalledTimes(1)
     expect(sendAutoReply).not.toHaveBeenCalled()
     expect(dataOf()).toEqual({ notifyStatus: 'sent', autoReplyStatus: 'skipped' })
   })
