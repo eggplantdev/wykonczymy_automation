@@ -6,6 +6,8 @@ export const CACHE_TAGS = {
   otherCategories: 'collection:other-categories',
   expenseCategories: 'collection:expense-categories',
   kosztoryses: 'collection:kosztoryses',
+  kosztorysSections: 'collection:kosztorys-sections',
+  kosztorysItems: 'collection:kosztorys-items',
   leads: 'collection:leads',
 } as const
 

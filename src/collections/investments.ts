@@ -73,5 +73,25 @@ export const Investments: CollectionConfig = {
       label: { en: 'Status', pl: 'Status' },
       options: [...STATUS_OPTIONS],
     },
+    // Globalne (na inwestycję) współczynniki narzutu podwykonawcy — domyślne dla kosztorysu;
+    // sekcja może nadpisać, pozycja może nadpisać (override). Kolumny stworzone w migracji z defaultami.
+    {
+      name: 'wToolsCoeff',
+      type: 'number',
+      defaultValue: 0.65,
+      label: {
+        en: 'Subcontractor coeff (with tools)',
+        pl: 'Współczynnik podwykonawcy (z narzędziami)',
+      },
+    },
+    {
+      name: 'ownToolsCoeff',
+      type: 'number',
+      defaultValue: 0.55,
+      label: {
+        en: 'Subcontractor coeff (own tools)',
+        pl: 'Współczynnik podwykonawcy (bez narzędzi)',
+      },
+    },
   ],
 }
