@@ -17,6 +17,23 @@ function parseNumericIds(param: string | undefined): number[] {
   return param.split(',').map(Number).filter(Boolean)
 }
 
+/**
+ * Canonicalize an amount search term to the text form the DB stores.
+ * `amount` is unscaled `numeric` fed from JS numbers, so its `::text` form has no
+ * trailing zeros (18.00 → "18", 72.40 → "72.4"). Accept the Polish comma separator
+ * and round-trip through Number so a typed "18,00"/"18.00" prefix-matches an 18 row.
+ * Assumes normal money magnitudes: astronomically large terms would stringify to
+ * exponential form and stop matching, but no amount reaches that range.
+ * Returns null for non-numeric input (filter skipped). EX-408.
+ */
+function normalizeAmountSearch(raw: string | undefined): string | null {
+  if (!raw) return null
+  const dotted = raw.replace(',', '.')
+  if (!/^\d+\.?\d*$/.test(dotted)) return null
+  const n = Number(dotted)
+  return Number.isFinite(n) ? String(n) : null
+}
+
 export function buildTransferFilters(
   searchParams: SearchParamsT,
   userContext: UserContextT,
@@ -104,11 +121,9 @@ export function buildTransferFilters(
   if (otherCategoryIds.length > 0) where.otherCategory = { in: otherCategoryIds }
   else if (otherCategoryParam) where.id = NO_RESULTS
 
-  // Amount search (substring match via LIKE on the numeric field)
-  const amountParam = getStringParam(searchParams.amount)
-  if (amountParam && /^\d+\.?\d*$/.test(amountParam)) {
-    where.amount = { like: amountParam }
-  }
+  // Amount search — prefix LIKE on the numeric field (resolved via raw SQL downstream)
+  const amountLike = normalizeAmountSearch(getStringParam(searchParams.amount))
+  if (amountLike !== null) where.amount = { like: amountLike }
 
   // ID search — exact match. Defers to NO_RESULTS if another filter already short-circuited.
   const idParam = getStringParam(searchParams.id)

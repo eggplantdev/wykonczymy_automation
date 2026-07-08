@@ -130,3 +130,41 @@ describe('buildTransferFilters — search params', () => {
     expect(where.otherCategory).toEqual({ in: [3, 5] })
   })
 })
+
+// ── Amount search ────────────────────────────────────────────────────────
+// The `amount` column is unscaled `numeric`; every value is inserted from a JS
+// number, so its `::text` form carries NO trailing zeros (1000 → "1000",
+// 72.40 → "72.4"). The LIKE search must canonicalize the typed term to that
+// form, otherwise "18.00"/"18,00" prefix-match nothing. Regression: EX-408.
+
+describe('buildTransferFilters — amount search', () => {
+  it('plain integer passes through unchanged', () => {
+    const where = buildTransferFilters({ amount: '1000' }, managerCtx)
+    expect(where.amount).toEqual({ like: '1000' })
+  })
+
+  it('strips trailing-zero decimals so "18.00" matches an 18 row', () => {
+    const where = buildTransferFilters({ amount: '18.00' }, managerCtx)
+    expect(where.amount).toEqual({ like: '18' })
+  })
+
+  it('accepts the Polish comma separator', () => {
+    const where = buildTransferFilters({ amount: '18,00' }, managerCtx)
+    expect(where.amount).toEqual({ like: '18' })
+  })
+
+  it('normalizes a comma decimal to a dot ("72,4" → "72.4")', () => {
+    const where = buildTransferFilters({ amount: '72,4' }, managerCtx)
+    expect(where.amount).toEqual({ like: '72.4' })
+  })
+
+  it('trims trailing zeros on a fractional value ("72,40" → "72.4")', () => {
+    const where = buildTransferFilters({ amount: '72,40' }, managerCtx)
+    expect(where.amount).toEqual({ like: '72.4' })
+  })
+
+  it('ignores non-numeric input', () => {
+    const where = buildTransferFilters({ amount: 'abc' }, managerCtx)
+    expect(where.amount).toBeUndefined()
+  })
+})
