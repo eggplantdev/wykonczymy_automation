@@ -46,7 +46,7 @@ Roles: ADMIN / OWNER / MANAGER / EMPLOYEE.
 The kosztorys (line-item budget + stage progress + per-room measurements + summary)
 lives in Google Sheets — 6 tabs per investment. The app owns exactly one tab per
 sheet (`wydatki inwestycyjne (tylko do odczytu)`), a one-way materialised mirror of
-active `INVESTMENT_EXPENSE` rows (see `docs/kosztorys-sync.md`). Everything else is
+active `INVESTMENT_EXPENSE` rows (see `context/reference/kosztorys-sync.md`). Everything else is
 "sheet land" the owner edits manually. This bridge is explicitly transitional —
 the user is "trying to fit the sheets with the data from the app" as a temporary
 solution.
