@@ -16,7 +16,7 @@ import { expenseFormSchema } from '@/components/forms/expense-form/expense-schem
 import type { CreateTransferFormT } from '@/lib/schemas/transfer'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { getDefaultCashRegister } from '@/lib/utils/default-cash-register'
-import { today } from '@/lib/date-utils'
+import { today } from '@/lib/utils/date'
 import {
   AmountField,
   CashRegisterField,

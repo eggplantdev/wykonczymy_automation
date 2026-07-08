@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { toastMessage } from '@/components/toasts'
+import { toastMessage } from '@/lib/utils/toast'
 import {
   applyMaterialSync,
   previewMaterialSync,

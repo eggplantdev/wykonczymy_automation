@@ -27,7 +27,7 @@ import {
   type CreateBulkExpenseFormT,
 } from '@/components/forms/expense-form/expense-schema'
 import type { ReferenceDataT } from '@/types/reference-data'
-import { today } from '@/lib/date-utils'
+import { today } from '@/lib/utils/date'
 import {
   CashRegisterField,
   DateField,

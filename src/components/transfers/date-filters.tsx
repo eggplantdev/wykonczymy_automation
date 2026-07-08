@@ -7,7 +7,7 @@ import { FilterSelect } from '@/components/transfers/filter-select'
 import { DateFilterButton } from '@/components/transfers/date-filter-button'
 import { ClearButton } from '@/components/transfers/clear-button'
 import { MONTHS } from '@/lib/constants/months'
-import { getMonthDateRange } from '@/lib/date-utils'
+import { getMonthDateRange } from '@/lib/utils/date'
 
 type DateFiltersPropsT = {
   updateParam: (key: string, value: string) => void

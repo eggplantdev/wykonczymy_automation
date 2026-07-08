@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { toastMessage } from '@/components/toasts'
+import { toastMessage } from '@/lib/utils/toast'
 import { getRegisterSaldo } from '@/lib/queries/register-saldo'
 
 export function useSaldo() {

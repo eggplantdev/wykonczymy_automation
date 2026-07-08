@@ -13,7 +13,7 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { toastMessage } from '@/components/toasts'
+import { toastMessage } from '@/lib/utils/toast'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { unlinkSheetFromInvestmentAction, deleteSheetAction } from '@/lib/actions/sheets'

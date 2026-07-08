@@ -9,7 +9,7 @@ import {
   needsExpenseCategory,
   needsWorker,
 } from '@/lib/constants/transfers'
-import { getAmountError } from '@/lib/validation-utils'
+import { getAmountError } from '@/lib/utils/validation'
 
 // ---------------------------------------------------------------------------
 // Shared type-dependent validation

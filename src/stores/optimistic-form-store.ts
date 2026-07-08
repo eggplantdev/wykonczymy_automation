@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { toastMessage } from '@/components/toasts'
+import { toastMessage } from '@/lib/utils/toast'
 import type { ActionResultT } from '@/lib/actions/utils'
 
 type PendingSubmissionT = {

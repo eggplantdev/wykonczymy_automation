@@ -1,5 +1,5 @@
 import { useRouter } from 'next/navigation'
-import { toastMessage } from '@/components/toasts'
+import { toastMessage } from '@/lib/utils/toast'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import type { ActionResultT } from '@/lib/actions/utils'
 

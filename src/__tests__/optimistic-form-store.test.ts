@@ -5,7 +5,7 @@ import type { ActionResultT } from '@/lib/actions/utils'
 
 const mockToastMessage = vi.fn()
 
-vi.mock('@/components/toasts', () => ({
+vi.mock('@/lib/utils/toast', () => ({
   toastMessage: (...args: unknown[]) => mockToastMessage(...args),
 }))
 
