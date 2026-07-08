@@ -84,10 +84,15 @@ the exception — material the company eats, so it _does_ hit marża.
 not cash movements). `settled` is a boolean on an otherwise normal material expense, so it
 keeps `source_register` required.
 
+`settled` is a **flag, not a dedicated type**: type is orthogonal to expense category, so a
+type approach would need one type _per category_ (`INTERNAL_BUILDING_MATERIAL`,
+`INTERNAL_FINISHING_MATERIAL`, …), multiplying every time a category is added — disqualifying.
+A boolean stays orthogonal to the category axis.
+
 Display: `RABAT` is the green "Rabat" line, `LOSS` the purple "Strata" stat, and settled
 material its own block in `financial-stats.tsx`. `LOSS` is deliberately kept out of
 `buildFinancialFields` so it never enters the bilans toggle sum or the client-facing export.
 
-Specs: `docs/superpowers/specs/2026-06-11-investment-rabat-design.md`,
-`docs/superpowers/specs/2026-06-11-loss-strata-transfer-type-design.md`,
-`docs/superpowers/specs/2026-06-12-settled-internal-material-design.md`.
+Specs: `context/reference/superpowers/plans/2026-06-11-investment-rabat.md`,
+`context/reference/superpowers/plans/2026-06-11-loss-strata-transfer-type.md`,
+`context/reference/superpowers/specs/2026-06-12-settled-internal-material-design.md`.
