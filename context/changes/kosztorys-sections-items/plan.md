@@ -517,9 +517,9 @@ never by the agent (`payload-prod-migrate` skill). No data backfill required.
 
 #### Automated
 
-- [x] 3.1 Type checking passes
-- [x] 3.2 Lint passes
-- [x] 3.3 Existing unit suite still green (`pnpm exec vitest run`)
+- [x] 3.1 Type checking passes — 2ad24e2
+- [x] 3.2 Lint passes — 2ad24e2
+- [x] 3.3 Existing unit suite still green (`pnpm exec vitest run`) — 2ad24e2
 
 #### Manual
 
@@ -529,10 +529,10 @@ never by the agent (`payload-prod-migrate` skill). No data backfill required.
 
 #### Automated
 
-- [ ] 4.1 Type checking passes
-- [ ] 4.2 Lint passes
-- [ ] 4.3 Unit suite green
-- [ ] 4.4 Dev build compiles / clean dev start (`pnpm build`)
+- [x] 4.1 Type checking passes
+- [x] 4.2 Lint passes
+- [x] 4.3 Unit suite green
+- [x] 4.4 Dev build compiles / clean dev start (`pnpm build`)
 
 #### Manual
 
