@@ -16,6 +16,12 @@ export const leadSchema = z.object({
 })
 
 export type LeadFieldT = z.infer<typeof leadFieldSchema>
+
+// Read-boundary schemas for the untyped `json` columns (`rawData`, `formQuestions`).
+// Payload emits them as an unstructured blob, and admin edits or legacy backfills can
+// hold a shape our writers never produced — so narrow with a parse, not an `as`.
+// `.catch([])` degrades a malformed row to "no answers" instead of throwing mid-render.
+export const leadRawDataSchema = z.array(leadFieldSchema).catch([])
 export type FetchedLeadT = z.infer<typeof leadSchema>
 
 // A form question as returned by `GET /{form_id}?fields=questions`. `label` is the
@@ -34,6 +40,12 @@ export const formQuestionsResponseSchema = z.object({
 // answers modal renders, plus the Meta field `type` — the most reliable signal
 // for normalizeLead (EMAIL/PHONE/FULL_NAME) when it's available.
 export type LeadFormQuestionT = { key: string; label: string; type?: string }
+
+// Read-boundary schema for the persisted `formQuestions` json column (label is
+// always present — `toLeadFormQuestions` drops label-less entries before storing).
+export const leadFormQuestionsSchema = z
+  .array(z.object({ key: z.string(), label: z.string(), type: z.string().optional() }))
+  .catch([])
 
 /**
  * Project raw Graph/dump questions (`{key, label?, type?}`) into the persisted
