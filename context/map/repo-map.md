@@ -16,9 +16,10 @@ English code. It is a **solo project** (one human, Konrad; 72% of commits pair-a
 with Claude agents), so `AGENTS.md` + `context/` are the only second source of truth —
 treat them as load-bearing, not decoration. The system's center of gravity is the
 **transfer/finance engine**: it is simultaneously the most-depended-on code (artifact-2)
-and the most-churned (artifact-1). Danger concentrates in three places — the money SQL,
-one real import cycle through the Payload hook graph, and the two composition-hub route
-pages that touch everything.
+and the most-churned (artifact-1). Danger concentrates in three places — the money SQL
+(`sum-transfers.ts`, which recently turned unstable), the auth contracts (`roles.ts`, Ca=44),
+and the two composition-hub route pages that touch everything. (The one "real" import cycle
+depcruise reports is already author-mitigated and runtime-safe — noise, not debt; see §4.)
 
 ```mermaid
 graph TD
@@ -85,15 +86,15 @@ pivot → **July = leads pipeline + UI refresh**. The hot area moves; weight rec
 
 Cross-referencing git co-change (artifact-1) with the import graph (artifact-2):
 
-| Coupling                                              | Source         | Kind                                                          |
-| ----------------------------------------------------- | -------------- | ------------------------------------------------------------- |
-| `__tests__` ↔ `lib/actions` (75) / `lib/queries` (52) | git            | **Real** — tests guard the data/mutation layer; move together |
-| `components/forms` ↔ `lib/actions` (44)               | git + graph    | **Real** — a form + its server action ship as a unit          |
-| `components/dialogs` ↔ `components/forms` (39)        | git + graph    | **Real** — dialogs wrap forms; near-inseparable               |
-| `lib/actions` ↔ `lib/queries` (40)                    | git + graph    | **Real** — mutate-then-invalidate/read                        |
-| the 7-node Payload hook cycle                         | **graph only** | **Real & risky** — invisible to git (§4)                      |
-| the 15 `useAppForm` form cycles                       | **graph only** | By-design mutual refs; low risk                               |
-| `migrations/index.ts` spanning 47 areas               | git only       | **Regeneration** — cheap/mechanical, _not_ a design signal    |
+| Coupling                                              | Source         | Kind                                                                     |
+| ----------------------------------------------------- | -------------- | ------------------------------------------------------------------------ |
+| `__tests__` ↔ `lib/actions` (75) / `lib/queries` (52) | git            | **Real** — tests guard the data/mutation layer; move together            |
+| `components/forms` ↔ `lib/actions` (44)               | git + graph    | **Real** — a form + its server action ship as a unit                     |
+| `components/dialogs` ↔ `components/forms` (39)        | git + graph    | **Real** — dialogs wrap forms; near-inseparable                          |
+| `lib/actions` ↔ `lib/queries` (40)                    | git + graph    | **Real** — mutate-then-invalidate/read                                   |
+| the Payload hook cycle                                | **graph only** | Reported by graph, but **runtime-safe** (lazy edge) — not live debt (§4) |
+| the 15 `useAppForm` form cycles                       | **graph only** | By-design mutual refs; low risk                                          |
+| `migrations/index.ts` spanning 47 areas               | git only       | **Regeneration** — cheap/mechanical, _not_ a design signal               |
 
 The **action ↔ query ↔ form ↔ dialog cluster** is the app's true working unit — a feature
 change rarely stays inside one of them. Where sources disagree: git can't see the Payload
@@ -102,14 +103,14 @@ churn is just re-exports. `access/` coupling is **`unknown`** — the graph bare
 
 ## 4. Risk zones
 
-| Zone                                                  | Why                                                                                                                                                                                                                                                                                                               | Evidence                           |
-| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| **Transfer/finance core**                             | Most-depended-on _and_ most-churned; `constants/transfers.ts` is a 29-dependent contract, `actions/transfers.ts` the #1 churned file. AGENTS.md warns the transfer-type union goes stale.                                                                                                                         | artifact-1 + artifact-2 agree      |
-| **Money SQL** (`lib/db/sum-transfers.ts`)             | Raw `@vercel/postgres` financial calc; graph can't verify correctness — needs test coverage.                                                                                                                                                                                                                      | artifact-2 `unknown`               |
-| **Payload hook ↔ action cycle**                       | 7-node loop: `collections/transfers.ts` → `hooks/transfers/sync-sheet.ts` → `actions/sheets-sync.ts` → `actions/run-action.ts` → `auth/require-auth.ts` → `auth/get-current-user-jwt.ts` → `payload.config.ts` → back. Editing sync-sheet, the action runner, or the auth guard ripples through the config graph. | artifact-2 (`depcruise err-long`)  |
-| **Auth contracts** (`auth/roles.ts` Ca=44)            | Wide blast radius on the access plane; `access/` logic is graph-invisible so real reach is under-measured.                                                                                                                                                                                                        | artifact-2                         |
-| **Composition hubs** (`inwestycje/[id]`, `kasa/[id]`) | Touch almost anything and one moves; hardest pages to change safely.                                                                                                                                                                                                                                              | artifact-1 (52/51 areas)           |
-| **Money SQL got fragile** ⚠                           | `lib/db/sum-transfers.ts` flipped stable→unstable since the prior cruise (Ca 11→5, I 15%→50%) — it grew outgoing deps. A money-path module becoming a composer raises change-sensitivity; pair with test coverage (still `unknown`).                                                                              | artifact-2 (re-cruised 2026-07-08) |
+| Zone                                                  | Why                                                                                                                                                                                                                                                                                                                    | Evidence                           |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| **Transfer/finance core**                             | Most-depended-on _and_ most-churned; `constants/transfers.ts` is a 29-dependent contract, `actions/transfers.ts` the #1 churned file. AGENTS.md warns the transfer-type union goes stale.                                                                                                                              | artifact-1 + artifact-2 agree      |
+| **Money SQL** (`lib/db/sum-transfers.ts`)             | Raw `@vercel/postgres` financial calc; graph can't verify correctness — needs test coverage.                                                                                                                                                                                                                           | artifact-2 `unknown`               |
+| **Payload hook cycle** (already mitigated)            | `config → collections/transfers → sync-sheet → sheets-sync → … → config`. **Not live debt** — the hook→action edge is a lazy `await import()` (commented in `sync-sheet.ts`), so the init chain never closes; depcruise flags it only because it follows dynamic imports. No code fix; tooling decision only (EX-411). | artifact-2 + code read             |
+| **Auth contracts** (`auth/roles.ts` Ca=44)            | Wide blast radius on the access plane; `access/` logic is graph-invisible so real reach is under-measured.                                                                                                                                                                                                             | artifact-2                         |
+| **Composition hubs** (`inwestycje/[id]`, `kasa/[id]`) | Touch almost anything and one moves; hardest pages to change safely.                                                                                                                                                                                                                                                   | artifact-1 (52/51 areas)           |
+| **Money SQL got fragile** ⚠                           | `lib/db/sum-transfers.ts` flipped stable→unstable since the prior cruise (Ca 11→5, I 15%→50%) — it grew outgoing deps. A money-path module becoming a composer raises change-sensitivity; pair with test coverage (still `unknown`).                                                                                   | artifact-2 (re-cruised 2026-07-08) |
 
 ## 5. Who to ask
 
@@ -150,13 +151,12 @@ Ordered by cost/value. None block a branch switch; captured here so they survive
    call it from `.husky/pre-push` so a boundary violation fails locally instead of drifting.
    Turns the map from a snapshot into a living check.
 
-3. **M4L3 "Deep Focus" on the Payload hook cycle (§4).** The one real import cycle
-   (`collections/transfers.ts` → `hooks/transfers/sync-sheet.ts` → `actions/sheets-sync.ts` →
-   `actions/run-action.ts` → `auth/require-auth.ts` → `auth/get-current-user-jwt.ts` →
-   `payload.config.ts` → back) is the top structural debt. Question to answer: can
-   `sync-sheet.ts` get its Payload client without pulling `lib/actions/*` + the auth chain?
-   Render the focused subgraph first:
-   `depcruise --focus "hooks/transfers/sync-sheet" --output-type dot | dot -Tsvg`.
+3. **Decide how pre-push treats `no-circular` (EX-411).** Originally scoped as an "M4L3 Deep
+   Focus refactor" on the Payload cycle — but a code read showed both real cycles (Payload +
+   `constants/transfer-rules ↔ transfers`) are already author-mitigated and runtime-safe (lazy
+   `await import()` / call-time access, both commented). So there is **no code to fix**;
+   `no-circular` is noise-only here. The real decision is tooling: keep it at `warn` (never
+   block the push), optionally baseline the 2 known cycles. Folds into #2.
 
 4. **Close the two `unknown` coverage gaps the graph can't see.** (a) Money SQL
    (`lib/db/sum-transfers.ts`) correctness — needs a test-coverage review, not a graph.
