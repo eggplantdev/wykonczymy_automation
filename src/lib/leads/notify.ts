@@ -3,6 +3,8 @@ import type { Lead } from '@/payload-types'
 import { serverEnv } from '@/lib/env.server'
 import { FRONTEND_URL } from '@/lib/env'
 import { renderBrandedEmail } from './email-template'
+import { buildLeadAnswers } from './lead-answers'
+import { leadRawDataSchema, leadFormQuestionsSchema } from './lead-schema'
 import { escapeHtml } from './escape-html'
 
 // Absolute URL — email clients can't resolve relative paths. Served from public/.
@@ -17,12 +19,24 @@ const row = (label: string, value?: string | null): string =>
  * `notifyStatus` to `failed` (the lead itself is already persisted).
  */
 export async function notifyNewLead(payload: Payload, lead: Lead): Promise<void> {
-  const subject = lead.isTest
-    ? '[TEST] Nowe zgłoszenie — Wykończymy'
-    : 'Nowe zgłoszenie — Wykończymy'
+  const subject = 'Nowe zgłoszenie — Wykończymy'
+
+  // The standard name/email/phone are already in the header block above; drop any
+  // answer that just repeats one of them so the section shows only the extra fields.
+  const shownUpTop = new Set([lead.name, lead.email, lead.phone].filter(Boolean))
+  const answers = buildLeadAnswers(
+    leadRawDataSchema.parse(lead.rawData),
+    leadFormQuestionsSchema.parse(lead.formQuestions),
+  ).filter((answer) => !shownUpTop.has(answer.value))
+  const answersHtml = answers.length
+    ? `<h3>Treść formularza</h3>
+    <table>
+      ${answers.map((answer) => row(escapeHtml(answer.label), answer.value)).join('\n      ')}
+    </table>`
+    : ''
 
   const html = `
-    <h2>Nowe zgłoszenie${lead.isTest ? ' (testowe)' : ''}</h2>
+    <h2>Nowe zgłoszenie</h2>
     <table>
       ${row('Imię i nazwisko', lead.name)}
       ${row('Email', lead.email)}
@@ -30,6 +44,7 @@ export async function notifyNewLead(payload: Payload, lead: Lead): Promise<void>
       ${row('Formularz', lead.formName)}
       ${row('Data', lead.submittedAt)}
     </table>
+    ${answersHtml}
   `
 
   await payload.sendEmail({ to: serverEnv.LEADS_NOTIFY_EMAIL, subject, html })
@@ -62,8 +77,8 @@ export async function notifyShapeAlert(
 /**
  * Customer-facing confirmation ("we got your contact") — sent TO the lead, FROM
  * `LEADS_REPLY_FROM` (an SPF/DKIM-authenticated domain, so it doesn't spam-folder).
- * Assumes `lead.email` is present; the caller skips this send for phone-only and
- * test leads. Throws on failure so the caller can flip `autoReplyStatus`.
+ * Assumes `lead.email` is present; the caller skips this send for phone-only
+ * leads. Throws on failure so the caller can flip `autoReplyStatus`.
  */
 export async function sendAutoReply(payload: Payload, lead: Lead): Promise<void> {
   if (!lead.email) throw new Error('sendAutoReply called for a lead with no email')

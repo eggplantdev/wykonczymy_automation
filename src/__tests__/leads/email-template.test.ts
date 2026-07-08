@@ -16,6 +16,10 @@ describe('renderBrandedEmail', () => {
     expect(render()).toContain('<img src="https://example.com/logo.png"')
   })
 
+  it('renders the WYKOŃCZYMY wordmark alongside the logo', () => {
+    expect(render()).toContain('WYKOŃCZYMY')
+  })
+
   it('escapes HTML in heading and paragraphs', () => {
     const html = render({ heading: '<b>x</b>', paragraphs: ['a & <script>'] })
     expect(html).toContain('&lt;b&gt;x&lt;/b&gt;')

@@ -28,7 +28,7 @@ export function EnvBadge() {
   return (
     <div
       className={cn(
-        'fixed top-1/2 right-0 z-[10000] -translate-y-1/2 rounded-l-lg px-3 py-6',
+        'fixed top-1/2 right-0 z-10000 -translate-y-1/2 rounded-l-lg px-3 py-6',
         'font-mono text-lg font-bold tracking-widest uppercase shadow-xl select-none',
         '[writing-mode:vertical-rl]',
         ENV_STYLES[ENV] ?? ENV_STYLES.production,

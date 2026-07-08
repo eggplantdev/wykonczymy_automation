@@ -24,9 +24,11 @@ GET https://graph.facebook.com/v21.0/{leadgen_id}?access_token={META_PAGE_ACCESS
    a Zod safety net alerts `LEADS_ALERT_EMAIL` on an unexpected shape.
 4. **Store** once per `(source, externalId)` in the `leads` collection (idempotent — Meta
    redelivers on any non-200), keeping the full `field_data` (`rawData`) + `formQuestions`.
-5. **Notify** `LEADS_NOTIFY_EMAIL` (internal heads-up) and **auto-reply** the lead from
-   `LEADS_REPLY_FROM` (branded confirmation) — each retried 3×, tracked per lead in
-   `notifyStatus` / `autoReplyStatus`. Store-then-notify: a mail failure never loses a lead.
+5. **Notify** `LEADS_NOTIFY_EMAIL` (internal heads-up — name/email/phone plus a **"Treść
+   formularza"** section with every extra form answer; fields already shown up top are
+   de-duplicated) and **auto-reply** the lead from `LEADS_REPLY_FROM` (branded confirmation)
+   — each retried 3×, tracked per lead in `notifyStatus` / `autoReplyStatus`. Store-then-notify:
+   a mail failure never loses a lead.
 
 Leads surface at **`/zgloszenia`** (table + editable follow-up status + a details modal
 rendering each form answer against its real question). Historical leads are loaded with the
@@ -76,7 +78,7 @@ Meta: `META_APP_ID`, `META_APP_SECRET`, `META_APP_TOKEN`, `META_VERIFY_TOKEN`, `
 
 Email routing:
 
-- `LEADS_NOTIFY_EMAIL` — internal new-lead heads-up (sales inbox).
+- `LEADS_NOTIFY_EMAIL` — internal new-lead heads-up (sales inbox); lists the extra form answers (fields already shown up top are de-duplicated).
 - `LEADS_ALERT_EMAIL` — integration shape-alerts (ops/dev inbox: schema fail / no email extracted).
 - `LEADS_REPLY_FROM` — `From:` on the customer auto-reply; its domain **must** have SPF/DKIM or the
   confirmation spam-folders. The logo in that email loads from `${NEXT_PUBLIC_FRONTEND_URL}/wykonczymy-app-icon.png`,
@@ -133,7 +135,8 @@ Design constraints this dump proves out:
   model them as `select` — store the raw string.
 - Meta types the standard fields: `FULL_NAME`, `PHONE`, `EMAIL`. Only these are safe to lift into
   typed top-level columns (name / phone / email); everything else stays in the key/value array.
-- **Filter test leads on import** — the lead-ads testing tool writes values prefixed `<test lead: …>`.
+- The lead-ads testing tool writes values prefixed `<test lead: …>`; these are captured like any
+  other lead (no special flag or filtering — the distinction was removed as needless complexity).
 - Keep provenance columns: `leadgen_id` (dedupe key, unique), `form_id`, `form_name`, `created_time`.
 - Values arrive as a `values` **array**; every field here is single-value, but the shape is a list —
   store `values[0]` or the whole array, don't assume scalar.

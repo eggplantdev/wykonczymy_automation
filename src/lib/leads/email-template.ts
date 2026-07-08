@@ -1,6 +1,6 @@
 import { escapeHtml } from './escape-html'
 
-// Branded HTML email shell — logo header + card body, all inline styles so it
+// Branded HTML email shell — card body + logo/wordmark footer, all inline styles so it
 // survives Gmail/Outlook (which strip <style> and don't support inline <svg>).
 // The logo is referenced by ABSOLUTE URL: email clients can't resolve relative
 // paths, and remote-image blocking is covered by the alt text.
@@ -51,13 +51,14 @@ export function renderBrandedEmail({
   </head>
   <body style="background-color:${BRAND.pageBg};margin:0;padding:32px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
     <div style="max-width:560px;margin:0 auto;background-color:${BRAND.cardBg};border:1px solid ${BRAND.border};border-radius:12px;overflow:hidden;">
-      <div style="background-color:${BRAND.cream};text-align:center;padding:28px 32px 20px 32px;">
-        <img src="${logoUrl}" alt="Wykończymy" width="72" height="72" style="display:inline-block;border:0;outline:none;" />
-      </div>
       <div style="padding:32px;">
         <h1 style="color:${BRAND.navy};font-size:22px;font-weight:600;margin:0 0 20px 0;">${escapeHtml(heading)}</h1>
         ${body}
         ${footerHtml}
+      </div>
+      <div style="background-color:${BRAND.cream};text-align:center;padding:24px 32px;">
+        <img src="${logoUrl}" alt="Wykończymy" width="56" height="56" style="display:inline-block;border:0;outline:none;vertical-align:middle;" />
+        <div style="color:${BRAND.navy};font-size:16px;font-weight:700;letter-spacing:2px;margin-top:10px;">WYKOŃCZYMY</div>
       </div>
     </div>
   </body>

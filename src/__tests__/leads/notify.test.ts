@@ -17,7 +17,6 @@ const lead = {
   phone: '+48500600700',
   formName: 'komercyjnie - wwa',
   submittedAt: '2026-07-05T18:48:40.000Z',
-  isTest: false,
 } as unknown as Lead
 
 const fakePayload = (sendEmail: ReturnType<typeof vi.fn>) => ({ sendEmail }) as unknown as Payload
@@ -35,12 +34,6 @@ describe('notifyNewLead', () => {
     expect(arg.subject).not.toContain('TEST')
   })
 
-  it('marks the subject as TEST for a test lead', async () => {
-    const sendEmail = vi.fn().mockResolvedValue({})
-    await notifyNewLead(fakePayload(sendEmail), { ...lead, isTest: true })
-    expect(sendEmail.mock.calls[0][0].subject).toContain('[TEST]')
-  })
-
   it('propagates a send failure so the caller can flip notifyStatus', async () => {
     const sendEmail = vi.fn().mockRejectedValue(new Error('smtp down'))
     await expect(notifyNewLead(fakePayload(sendEmail), lead)).rejects.toThrow('smtp down')
@@ -52,6 +45,41 @@ describe('notifyNewLead', () => {
     const html = sendEmail.mock.calls[0][0].html as string
     expect(html).toContain('A&lt;b&gt;&amp;')
     expect(html).not.toContain('A<b>')
+  })
+
+  it('includes the form answers (label + value) so the team sees the full submission', async () => {
+    const sendEmail = vi.fn().mockResolvedValue({})
+    const withAnswers = {
+      ...lead,
+      rawData: [{ name: 'budzet', values: ['50 tys'] }],
+      formQuestions: [{ key: 'budzet', label: 'Budżet' }],
+    } as unknown as Lead
+    await notifyNewLead(fakePayload(sendEmail), withAnswers)
+    const html = sendEmail.mock.calls[0][0].html as string
+    expect(html).toContain('Budżet')
+    expect(html).toContain('50 tys')
+  })
+
+  it('drops answers that only repeat the name/email/phone shown in the header', async () => {
+    const sendEmail = vi.fn().mockResolvedValue({})
+    const withDupes = {
+      ...lead,
+      rawData: [
+        { name: 'full name', values: [lead.name] },
+        { name: 'email', values: [lead.email] },
+        { name: 'budzet', values: ['50 tys'] },
+      ],
+      formQuestions: [
+        { key: 'full name', label: 'Pełna nazwa' },
+        { key: 'email', label: 'Kontakt mailowy' },
+        { key: 'budzet', label: 'Budżet' },
+      ],
+    } as unknown as Lead
+    await notifyNewLead(fakePayload(sendEmail), withDupes)
+    const html = sendEmail.mock.calls[0][0].html as string
+    expect(html).not.toContain('Pełna nazwa')
+    expect(html).not.toContain('Kontakt mailowy')
+    expect(html).toContain('Budżet')
   })
 })
 
