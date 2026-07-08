@@ -135,7 +135,53 @@ by the author.
 8. **`context/map/artifact-2-structure.md`** — the dependency detail behind §3–4 (mind the
    stale `lib/tables` path).
 
-## 7. Limitations
+## 7. What's next — follow-ups from this mapping
+
+Ordered by cost/value. None block a branch switch; captured here so they survive one.
+
+1. **Re-cruise `artifact-2` to clear the stale path (cheap, do first).** `lib/tables/*`
+   moved to `components/tables/*` (`a8691df`) after artifact-2 was generated, so its
+   table-layer rows and the `lib/tables/transfers.tsx` orchestrator entry point at a dead
+   path. Refresh:
+
+   ```
+   pnpm exec depcruise src --config .dependency-cruiser.cjs --output-type metrics
+   pnpm exec depcruise src --config .dependency-cruiser.cjs --output-type err-long   # cycles
+   ```
+
+   Then update the affected rows in `artifact-2-structure.md`. ~15 min.
+
+2. **Wire depcruise into CI/pre-push as a guard.** The config already encodes AGENTS.md
+   invariants as `error`-severity rules (`no-hook-imports-revalidate`,
+   `no-payload-graph-imports-env-server`). Add a `depcruise` script to `package.json` and
+   call it from `.husky/pre-push` so a boundary violation fails locally instead of drifting.
+   Turns the map from a snapshot into a living check.
+
+3. **M4L3 "Deep Focus" on the Payload hook cycle (§4).** The one real import cycle
+   (`actions/utils.ts` → `payload.config.ts` → `collections/transfers.ts` →
+   `hooks/transfers/sync-sheet.ts` → `actions/sheets-sync.ts` → back) is the top structural
+   debt. Question to answer: can `sync-sheet.ts` get its Payload client without importing
+   `lib/actions/*`? Render the focused subgraph first:
+   `depcruise --focus "hooks/transfers/sync-sheet" --output-type dot | dot -Tsvg`.
+
+4. **Close the two `unknown` coverage gaps the graph can't see.** (a) Money SQL
+   (`lib/db/sum-transfers.ts`) correctness — needs a test-coverage review, not a graph.
+   (b) `access/` RBAC is nearly graph-invisible; confirm `src/access/*` consumes
+   `auth/roles.ts` consistently by reading, not cruising. Anchor any new tests on
+   `context/foundation/test-plan.md` risks (create it via `/10x-test-plan` if still absent).
+
+5. **Dead-code check on the two orphans** artifact-2 flagged: `lib/parse-date-range.ts` and
+   `lib/tables/column-meta.ts` (module augmentation — gate deletion on `tsc`, not grep).
+
+6. **Refresh cadence.** This map is one snapshot of a fast-moving repo. Re-run the full M4L2
+   flow (or at least the depcruise + git-territory steps) after any large structural change
+   — a folder move, a new top-level feature, or when the risk zones stop matching reality.
+
+> Per AGENTS.md, actionable refactor items (1–5) belong in Linear ("Wykonczymy v2") rather
+> than lingering as a doc TODO. This section is the hand-off note; promote each to a Linear
+> issue when you pick it up.
+
+## 8. Limitations
 
 - **Window & method:** full history but only ~5 months; "12 months" = the repo's whole life.
   This is an _activity + structure_ map, not a semantic one.
