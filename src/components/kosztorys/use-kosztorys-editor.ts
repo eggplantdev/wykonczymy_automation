@@ -1,0 +1,351 @@
+'use client'
+
+import { useMemo, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useDebouncedSave } from '@/components/kosztorys/use-debounced-save'
+import { useColumnWidths } from '@/components/kosztorys/use-column-widths'
+import { useElementHeight } from '@/hooks/use-element-height'
+import { toastMessage } from '@/lib/utils/toast'
+import { buildV2Columns, type V2SortStateT } from '@/lib/tables/kosztorys-v2-columns'
+import {
+  applyAddItem,
+  applyRemoveItem,
+  buildBlankRow,
+  diffRow,
+  filterRows,
+  NEW_SECTION_DEFAULTS,
+  revertField,
+  sectionItemCount,
+  sectionNeighbor,
+  sortRows,
+  swapItemInSection,
+  treeToRows,
+} from '@/lib/kosztorys/v2-rows'
+import {
+  rowNetForView,
+  sectionSubtotalsForView,
+  viewPrice,
+  type PriceViewT,
+} from '@/lib/kosztorys/calc'
+import {
+  addItemAction,
+  addSectionAction,
+  removeItemAction,
+  removeSectionAction,
+  swapItemOrderAction,
+  updateInvestmentCoeffsAction,
+  updateItemFieldAction,
+  updateSectionFieldAction,
+} from '@/lib/actions/kosztorys'
+import type { ItemPatchT, KosztorysTreeT, KosztorysV2RowT } from '@/types/kosztorys'
+
+type ArgsT = { investmentId: number; tree: KosztorysTreeT }
+
+// Value to sort by for a given field — derived (price/net) according to the view.
+function sortValue(row: KosztorysV2RowT, field: string, view: PriceViewT): string | number {
+  switch (field) {
+    case 'price':
+      return viewPrice(row, view)
+    case 'net':
+      return rowNetForView(row, view)
+    default: {
+      const v = row[field as keyof KosztorysV2RowT]
+      return (typeof v === 'number' ? v : (v ?? '')) as string | number
+    }
+  }
+}
+
+// All editor state, derived data, and handlers for the in-app kosztorys grid. Kept out of the
+// component so the component is only composition + markup. The dsg constraints live here: the
+// grid freezes `columns` at mount, so handlers read fresh state through refs (prevById / rowsRef)
+// and never fire an action from inside a setRows updater (that would move the Router during render).
+export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
+  const router = useRouter()
+  const save = useDebouncedSave(500)
+  const [gridRef, gridHeight] = useElementHeight()
+  const [rows, setRows] = useState<KosztorysV2RowT[]>(() => treeToRows(tree))
+  const [view, setView] = useState<PriceViewT>('client')
+  const [search, setSearch] = useState('')
+  const [sort, setSort] = useState<V2SortStateT>(null)
+  const [activeSectionId, setActiveSectionId] = useState<number | null>(null)
+  const [summaryOpen, setSummaryOpen] = useState(true)
+  // Column widths: persisted in localStorage. Commit (on handle release) saves and, via
+  // `key`, remounts the grid with the new width — react-datasheet-grid does not recompute
+  // sizing without a remount (its internal memo). During the drag we only show a vertical
+  // guide (guideX = cursor X), without touching the grid.
+  const { widths, setWidth } = useColumnWidths()
+  const [guideX, setGuideX] = useState<number | null>(null)
+  // Snapshot of the previous rows for diffing (keyed by item id) — the full dataset, not the view.
+  // It also serves as the "fresh dataset" read by structural event handlers (section count):
+  // kept in sync on every add/remove/edit, so no separate ref for rows is needed.
+  const prevById = useRef(new Map(rows.map((r) => [r.id, r])))
+  // "Latest value" ref: the fresh `rows` (display order) read during an event-time reorder.
+  // The dsg column closure is frozen at mount, so the render's `rows` can be stale, and firing
+  // an action inside the setRows updater would update the Router during render (a React error).
+  // Writing a ref during render is the well-known, safe "latest value" pattern — the rule is too strict.
+  const rowsRef = useRef(rows)
+  // eslint-disable-next-line react-hooks/refs
+  rowsRef.current = rows
+
+  function toggleSort(field: string) {
+    setSort((prev) => {
+      if (prev?.field !== field) return { field, dir: 'asc' }
+      if (prev.dir === 'asc') return { field, dir: 'desc' }
+      return null
+    })
+  }
+
+  // onRemoveItem/onReorderItem read prevById.current / rowsRef.current — stable refs —
+  // only from a cell's onClick, never during render, so passing them here is safe.
+  const columns = buildV2Columns({
+    view,
+    sort,
+    onToggleSort: toggleSort,
+    widths,
+    onGuide: setGuideX,
+    onCommitColumn: setWidth,
+    onRemoveItem: handleRemoveItem,
+    onReorderItem: handleReorderItem,
+  })
+  const widthsKey = JSON.stringify(widths)
+
+  // View = filter + sort. Edits are mapped back into the full dataset by id.
+  const viewRows = useMemo(() => {
+    const scoped =
+      activeSectionId == null ? rows : rows.filter((r) => r.sectionId === activeSectionId)
+    const filtered = filterRows(scoped, search)
+    if (!sort) return filtered
+    return sortRows(filtered, (r) => sortValue(r, sort.field, view), sort.dir)
+  }, [rows, activeSectionId, search, sort, view])
+
+  // Per-section subtotals: the FULL dataset (not viewRows) — a stable breakdown independent of
+  // the filter/sort.
+  const subtotals = useMemo(() => sectionSubtotalsForView(rows, view), [rows, view])
+  const totalNet = useMemo(() => subtotals.reduce((s, x) => s + x.net, 0), [subtotals])
+
+  // Section coefficients (null = inherits the global) for the panel — from the tree, keyed by section id.
+  const sectionCoeffs = new Map(
+    tree.sections.map((s) => [s.id, { wTools: s.wToolsCoeff, ownTools: s.ownToolsCoeff }]),
+  )
+
+  // revert-on-error: roll an optimistic field edit back to its pre-save value
+  // (rows + diff snapshot) when the server rejects it. The "current === attempted" guard lives
+  // in revertField — we don't stomp on a newer edit.
+  function revertOne(
+    id: number,
+    field: keyof KosztorysV2RowT,
+    prevVal: unknown,
+    attempted: unknown,
+  ) {
+    setRows((rs) => revertField(rs, id, field, prevVal, attempted))
+    const snap = prevById.current.get(id)
+    if (snap && snap[field] === attempted) {
+      prevById.current.set(id, { ...snap, [field]: prevVal } as KosztorysV2RowT)
+    }
+  }
+
+  async function handleAddItem(sectionId: number) {
+    const res = await addItemAction(investmentId, sectionId)
+    if (!res.success) return
+    // Take the denormalized section fields from any existing row of that section.
+    const sample = [...prevById.current.values()].find((r) => r.sectionId === sectionId)
+    const row = buildBlankRow({
+      id: res.data.id,
+      displayOrder: res.data.displayOrder,
+      sectionId,
+      sectionName: sample?.sectionName ?? NEW_SECTION_DEFAULTS.name,
+      vatRate: tree.vatRate,
+      sectionDefaultCostVariant:
+        sample?.sectionDefaultCostVariant ?? NEW_SECTION_DEFAULTS.defaultCostVariant,
+      sectionWToolsCoeff: sample?.sectionWToolsCoeff ?? null,
+      sectionOwnToolsCoeff: sample?.sectionOwnToolsCoeff ?? null,
+      globalWToolsCoeff: tree.globalCoeffs.wTools,
+      globalOwnToolsCoeff: tree.globalCoeffs.ownTools,
+      stages: [],
+    })
+    prevById.current.set(row.id, row)
+    setRows((rs) => applyAddItem(rs, row))
+  }
+
+  function handleRemoveItem(row: KosztorysV2RowT) {
+    // Invariant: a section has ≥1 item. Count from prevById (fresh dataset, event-time read —
+    // dsg columns are frozen at mount, so we enforce the rule here, not via a visual disabled state).
+    if (sectionItemCount([...prevById.current.values()], row.sectionId) <= 1) {
+      toastMessage(
+        'Sekcja musi mieć co najmniej jedną pozycję. Aby ją usunąć, użyj kosza sekcji w panelu.',
+        'warning',
+        4000,
+      )
+      return
+    }
+    prevById.current.delete(row.id)
+    setRows((rs) => applyRemoveItem(rs, row.id))
+    void removeItemAction(row.id)
+  }
+
+  function handleReorderItem(row: KosztorysV2RowT, dir: 'up' | 'down') {
+    const rs = rowsRef.current
+    const neighbor = sectionNeighbor(rs, row.id, dir)
+    if (!neighbor) return // edge of the block → no-op
+    setRows(swapItemInSection(rs, row.id, dir))
+    // ▲▼ is a swap of two neighbors → we only exchange their display_order (2 updates, not a
+    // renumbering of the whole section — that choked with 1000+ rows). The action fires from the
+    // event handler, not from the setRows updater (there its cache revalidation would move the Router during render).
+    void swapItemOrderAction(
+      { id: row.id, displayOrder: neighbor.displayOrder },
+      { id: neighbor.id, displayOrder: row.displayOrder },
+    )
+  }
+
+  async function handleAddSection() {
+    const sec = await addSectionAction(investmentId)
+    if (!sec.success) return
+    // A new section immediately gets a blank item (an empty section = 0 rows = invisible).
+    const item = await addItemAction(investmentId, sec.data.id)
+    if (!item.success) return
+    const row = buildBlankRow({
+      id: item.data.id,
+      displayOrder: item.data.displayOrder,
+      sectionId: sec.data.id,
+      sectionName: NEW_SECTION_DEFAULTS.name,
+      vatRate: tree.vatRate,
+      sectionDefaultCostVariant: NEW_SECTION_DEFAULTS.defaultCostVariant,
+      sectionWToolsCoeff: null,
+      sectionOwnToolsCoeff: null,
+      globalWToolsCoeff: tree.globalCoeffs.wTools,
+      globalOwnToolsCoeff: tree.globalCoeffs.ownTools,
+      stages: [],
+    })
+    prevById.current.set(row.id, row)
+    setRows((rs) => applyAddItem(rs, row))
+  }
+
+  function handleRemoveSection(sectionId: number) {
+    setRows((rs) => rs.filter((r) => r.sectionId !== sectionId))
+    for (const [id, r] of prevById.current) {
+      if (r.sectionId === sectionId) prevById.current.delete(id)
+    }
+    if (activeSectionId === sectionId) setActiveSectionId(null)
+    void removeSectionAction(sectionId)
+  }
+
+  function handleRenameSection(sectionId: number, name: string) {
+    // The name is denormalized on every row of the section — overwrite them all locally.
+    setRows((rs) => rs.map((r) => (r.sectionId === sectionId ? { ...r, sectionName: name } : r)))
+    for (const [id, r] of prevById.current) {
+      if (r.sectionId === sectionId) prevById.current.set(id, { ...r, sectionName: name })
+    }
+    void updateSectionFieldAction(sectionId, { name })
+  }
+
+  // Optimistic patch of a denormalized field on the matching rows + prevById (like
+  // handleRenameSection for sectionName). The markup coefficients are denormalized on
+  // EVERY row, but they are changed OUTSIDE the grid (the panel). router.refresh() alone won't
+  // pick them up: `rows` lives in useState with an initializer that runs once at mount, so a
+  // refreshed `tree` prop does not reinitialize the rows — without this patch the "Cena" column
+  // would show the stale value until a reload.
+  function patchRows(
+    match: (row: KosztorysV2RowT) => boolean,
+    patch: (row: KosztorysV2RowT) => KosztorysV2RowT,
+  ) {
+    setRows((rs) => rs.map((r) => (match(r) ? patch(r) : r)))
+    for (const [id, r] of prevById.current) {
+      if (match(r)) prevById.current.set(id, patch(r))
+    }
+  }
+
+  // Changing the global coefficient recomputes the derived prices of all non-overridden
+  // items. Optimistic patch on the rows + a refresh for the panel (which reads from `tree`).
+  async function handleGlobalCoeffChange(patch: { wToolsCoeff?: number; ownToolsCoeff?: number }) {
+    patchRows(
+      () => true,
+      (r) => ({
+        ...r,
+        ...(patch.wToolsCoeff != null ? { globalWToolsCoeff: patch.wToolsCoeff } : {}),
+        ...(patch.ownToolsCoeff != null ? { globalOwnToolsCoeff: patch.ownToolsCoeff } : {}),
+      }),
+    )
+    const res = await updateInvestmentCoeffsAction(investmentId, patch)
+    if (res.success) router.refresh()
+  }
+
+  // Section coefficient (null = inherits the global) — patch only the rows of that section.
+  async function handleSectionCoeffChange(
+    sectionId: number,
+    patch: { wToolsCoeff?: number | null; ownToolsCoeff?: number | null },
+  ) {
+    patchRows(
+      (r) => r.sectionId === sectionId,
+      (r) => ({
+        ...r,
+        ...('wToolsCoeff' in patch ? { sectionWToolsCoeff: patch.wToolsCoeff ?? null } : {}),
+        ...('ownToolsCoeff' in patch ? { sectionOwnToolsCoeff: patch.ownToolsCoeff ?? null } : {}),
+      }),
+    )
+    const res = await updateSectionFieldAction(sectionId, patch)
+    if (res.success) router.refresh()
+  }
+
+  function onChange(next: KosztorysV2RowT[]) {
+    const changedById = new Map<number, KosztorysV2RowT>()
+    for (const row of next) {
+      const prev = prevById.current.get(row.id)
+      if (!prev) continue
+      const diff = diffRow(prev, row)
+      if (diff.itemPatch) {
+        const patch = diff.itemPatch
+        for (const field of Object.keys(patch)) {
+          const key = field as keyof KosztorysV2RowT
+          const prevVal = prev[key]
+          const attempted = row[key]
+          save(
+            `item:${row.id}:${field}`,
+            () => updateItemFieldAction(row.id, { [field]: patch[field as keyof ItemPatchT] }),
+            () => revertOne(row.id, key, prevVal, attempted),
+          )
+        }
+        changedById.set(row.id, row)
+      }
+      prevById.current.set(row.id, row)
+    }
+    if (changedById.size > 0) {
+      // Merge the view's changes into the full dataset by id (so filter/sort don't lose hidden rows).
+      setRows((master) => master.map((r) => changedById.get(r.id) ?? r))
+      // Pull the recomputed totals from the server after the save quiets down (only when
+      // something actually changed — an unconditional refresh on a spurious onChange could loop the render).
+      setTimeout(() => router.refresh(), 700)
+    }
+  }
+
+  return {
+    // grid data + layout
+    gridRef,
+    gridHeight,
+    columns,
+    viewRows,
+    view,
+    sort,
+    widthsKey,
+    guideX,
+    // subtotals + section panel
+    subtotals,
+    totalNet,
+    sectionCoeffs,
+    // toolbar / panel state
+    setView,
+    search,
+    setSearch,
+    activeSectionId,
+    setActiveSectionId,
+    summaryOpen,
+    setSummaryOpen,
+    // handlers
+    onChange,
+    handleAddItem,
+    handleAddSection,
+    handleRenameSection,
+    handleRemoveSection,
+    handleGlobalCoeffChange,
+    handleSectionCoeffChange,
+  }
+}
