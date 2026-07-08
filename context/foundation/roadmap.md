@@ -4,7 +4,7 @@ project: 'Wykonczymy — off-sheets phase 1'
 version: 1
 status: draft
 created: 2026-06-12
-updated: 2026-06-12
+updated: 2026-07-08
 prd_version: 1
 main_goal: quality
 top_blocker: none
@@ -16,6 +16,14 @@ top_blocker: none
 > Derived from `context/foundation/prd.md` (v1) + probed codebase baseline.
 > Edit-in-place; archive when superseded.
 > Slices below are listed in dependency order. The "At a glance" table is the index.
+
+> **Reconciled with the POC (2026-07-08).** This roadmap was written 2026-06-12, before the
+> in-app-editor POC (branch `poc-kosztorys-in-app`) built and settled the shape. The slice list
+> below now reflects that: **S-05 rooms is cut** (pokoje out of scope), **S-10 importer is
+> deferred** to a post-MVP band, and **S-11 subcontractor-pricing / S-12 VAT / S-13 undo /
+> S-14 column-locking / S-15 hardening** are added as own slices. The two-mode discount folds
+> into S-01; robocizna netto/brutto into S-01/S-03. Full rationale + the POC decisions +
+> owner's four calls: **`context/changes/kosztorys-mvp/change.md`**.
 
 ## Where work is tracked
 
@@ -52,29 +60,34 @@ is parity polish on top of it.
 
 ## At a glance
 
-| ID   | Change ID                | Outcome (user can …)                                             | Prerequisites                            | PRD refs                      | Status   |
-| ---- | ------------------------ | ---------------------------------------------------------------- | ---------------------------------------- | ----------------------------- | -------- |
-| F-01 | e2e-harness              | (foundation) Playwright E2E harness, CI-runnable, isolated DB    | —                                        | FR-011                        | ready    |
-| S-01 | kosztorys-sections-items | author kosztorys sections + items in-app with live totals        | —                                        | FR-001, FR-002, FR-007, US-01 | ready    |
-| S-02 | financial-core-smoke     | trust an automated smoke that transfers update balances/figures  | F-01                                     | FR-012, FR-011, FR-015, US-02 | proposed |
-| S-03 | kosztorys-price-models   | record three price models per item and toggle the pricing view   | S-01                                     | FR-003                        | proposed |
-| S-04 | kosztorys-stages         | manage stages (etapy) and record per-item, per-stage progress    | S-01                                     | FR-004                        | proposed |
-| S-05 | kosztorys-rooms          | manage room (pokoje) measurements per investment                 | S-01                                     | FR-005                        | proposed |
-| S-06 | kosztorys-catalogue      | maintain a work catalogue and add items via autocomplete         | S-01                                     | FR-006                        | proposed |
-| S-07 | kosztorys-export         | print/PDF and CSV-export the kosztorys                           | S-01                                     | FR-008                        | proposed |
-| S-08 | editor-e2e-coverage      | (gate) rely on automated E2E over the editor before release      | F-01, S-01, S-03, S-04, S-05, S-06, S-07 | FR-013                        | proposed |
-| S-09 | new-investment-no-sheet  | create a new investment with no Google Sheet, kosztorys app-only | S-01, S-03, S-04, S-05, S-06, S-07, S-08 | FR-009, FR-014, FR-016, US-01 | proposed |
-| S-10 | kosztorys-importer       | import an existing sheet kosztorys into the app                  | S-09                                     | FR-010, FR-016                | proposed |
+| ID       | Change ID                       | Outcome (user can …)                                                      | Prerequisites                                              | PRD refs                      | Status   |
+| -------- | ------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------- | ----------------------------- | -------- |
+| F-01     | e2e-harness                     | (foundation) Playwright E2E harness, CI-runnable, isolated DB             | —                                                          | FR-011                        | ready    |
+| S-01     | kosztorys-sections-items        | author kosztorys sections + items in-app with live totals                 | —                                                          | FR-001, FR-002, FR-007, US-01 | ready    |
+| S-02     | financial-core-smoke            | trust an automated smoke that transfers update balances/figures           | F-01                                                       | FR-012, FR-011, FR-015, US-02 | proposed |
+| S-03     | kosztorys-price-models          | record three price models per item and toggle the pricing view            | S-01                                                       | FR-003                        | proposed |
+| S-04     | kosztorys-stages                | manage stages (etapy) and record per-item, per-stage progress             | S-01                                                       | FR-004                        | proposed |
+| ~~S-05~~ | ~~kosztorys-rooms~~             | ~~room (pokoje) measurements~~ — **CUT** (pokoje out of scope)            | —                                                          | ~~FR-005~~                    | cut      |
+| S-06     | kosztorys-catalogue             | maintain a work catalogue and add items via autocomplete                  | S-01                                                       | FR-006                        | proposed |
+| S-07     | kosztorys-export                | CSV-export the kosztorys (WYSIWYG snapshot; no print/PDF)                 | S-01                                                       | FR-008                        | proposed |
+| S-11     | kosztorys-subcontractor-pricing | price subcontractor work via markup coefficient + per-item override       | S-01, S-03                                                 | — (POC)                       | proposed |
+| S-12     | kosztorys-vat                   | set VAT per investment; enter net, compute gross                          | S-01                                                       | — (POC)                       | proposed |
+| S-13     | kosztorys-undo                  | undo the last editor edit(s)                                              | S-01                                                       | — (POC)                       | proposed |
+| S-14     | kosztorys-column-locking        | lock / pin editor columns                                                 | S-01                                                       | — (POC)                       | proposed |
+| S-08     | editor-e2e-coverage             | (gate) rely on automated E2E over the editor before release               | F-01, S-01, S-03, S-04, S-06, S-07, S-11, S-12, S-13, S-14 | FR-013                        | proposed |
+| S-15     | kosztorys-hardening             | quality / perf / a11y hardening pass before cutover                       | S-08                                                       | — (POC)                       | proposed |
+| S-09     | new-investment-no-sheet         | create a new investment with no Google Sheet, kosztorys app-only          | S-08, S-15                                                 | FR-009, FR-014, FR-016, US-01 | proposed |
+| S-10     | kosztorys-importer              | import an existing sheet kosztorys into the app — **DEFERRED** (post-MVP) | S-09                                                       | FR-010, FR-016                | deferred |
 
 ## Streams
 
 Navigation aid — groups items that share a Prerequisites chain. Canonical ordering still lives in the dependency graph below; this table is the proposed reading order across parallel tracks.
 
-| Stream | Theme                   | Chain                                                          | Note                                                                                        |
-| ------ | ----------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| A      | Test automation         | `F-01` → `S-02` → `S-08`                                       | Quality bias sequences the harness first; `S-08` also joins Stream B (needs editor slices). |
-| B      | Kosztorys editor parity | `S-01` → `S-03` / `S-04` / `S-05` / `S-06` / `S-07` (parallel) | North star `S-01` heads the owner-facing track; the four follow-ons run in parallel.        |
-| C      | Cutover & import        | `S-09` → `S-10`                                                | `S-09` is the release gate — joins Stream A at `S-08` and Stream B at `S-07`.               |
+| Stream | Theme                   | Chain                                                                                     | Note                                                                                                             |
+| ------ | ----------------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| A      | Test automation         | `F-01` → `S-02` → `S-08`                                                                  | Quality bias sequences the harness first; `S-08` also joins Stream B (needs editor slices).                      |
+| B      | Kosztorys editor parity | `S-01` → `S-03` / `S-04` / `S-06` / `S-07` / `S-11` / `S-12` / `S-13` / `S-14` (parallel) | North star `S-01` heads the owner-facing track; the parity follow-ons run in parallel. `S-11` also needs `S-03`. |
+| C      | Cutover & import        | `S-08` → `S-15` → `S-09` → `S-10`                                                         | `S-09` is the release gate — after the E2E gate (`S-08`) and hardening (`S-15`). `S-10` deferred.                |
 
 ## Baseline
 
@@ -88,7 +101,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Deploy / infra:** present — Vercel (build runs `generate:types` + `payload migrate` + `next build`).
 - **Observability:** partial — `perfStart()` perf logging only; no error tracking (`global-error.tsx` has no reporter). Out of scope for this phase.
 - **Test / E2E:** absent — Vitest unit specs under `src/__tests__` only; no `playwright.config.*`, no `@playwright/test`, no `test:e2e` script. → workstream A (F-01).
-- **In-app kosztorys editor:** absent — kosztorys is Google-Sheet-backed: the `kosztoryses` collection holds a sheet id, UI is `iframe-view.tsx` + a one-way `INVESTMENT_EXPENSE` mirror + sync button (`src/collections/sheets.ts`, `src/components/sheets`). → workstream B (S-01+).
+- **In-app kosztorys editor:** absent on `main` — kosztorys is Google-Sheet-backed: the `kosztoryses` collection holds a sheet id, UI is `iframe-view.tsx` + a one-way `INVESTMENT_EXPENSE` mirror + sync button (`src/collections/sheets.ts`, `src/components/sheets`). → workstream B (S-01+). **A working POC exists on branch `poc-kosztorys-in-app`** (react-datasheet-grid editor + tested `calc.ts`/`v2-rows.ts` core + `kosztorys_sections/items/stages/stage_progress` schema) — the MVP ports its tested core, not its editor/migrations. See `context/changes/kosztorys-mvp/change.md`.
 
 ## Foundations
 
@@ -121,6 +134,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - Delete semantics — soft-delete (audit) vs hard-delete (matches the rest of the app)? (PRD Q4). — Owner: user. Block: no.
   - Reorder interaction — drag-to-reorder vs by-creation/alphabetical? (PRD Q5). — Owner: user. Block: no.
   - Totals need a price to compute — S-01 carries a single per-item price (snapshotted from catalogue/typed value); the three price models arrive in S-03. Confirm a single model is acceptable for the first slice. — Owner: user. Block: no.
+- **Folded from POC (settled, not open):** unified item list (materials = `INVESTMENT_EXPENSE`, no separate table); **hard-delete**; reorder via ▲▼ arrows with a `display_order` layer (DnD later would need sparse keys); **przedmiar + pomiar = two independent columns**, value computed from pomiar; **two-mode discount** (`discount_type ∈ {percent, amount}` + `discount_value`); values **computed, not stored** (only inputs persist). The Unknowns above are largely answered by these — carry the POC's shape.
 - **Risk:** Introduces the additive kosztorys tables (sections, items) and the "worth = qty × snapshotted price, totals derived" rule. Additive-only — must not touch transfers/balance/marża write paths (FR-015). Risk: inline-edit + live totals at 1000+ rows is the hard UX/perf problem; the spreadsheet parity bar is high.
 - **Status:** ready
 
@@ -130,7 +144,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Change ID:** financial-core-smoke
 - **PRD refs:** FR-012, FR-011, FR-015, US-02
 - **Prerequisites:** F-01
-- **Parallel with:** S-01, S-03, S-04, S-05, S-06, S-07 (independent of all editor work)
+- **Parallel with:** all editor slices (S-01, S-03, S-04, S-06, S-07, S-11–S-14) — independent of all editor work
 - **Blockers:** —
 - **Unknowns:**
   - Transfer side effects (register recalculation hooks) make the spec slower/heavier — confirm the seed + assertion shape keeps it deterministic. — Owner: team. Block: no.
@@ -143,12 +157,16 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Change ID:** kosztorys-price-models
 - **PRD refs:** FR-003
 - **Prerequisites:** S-01
-- **Parallel with:** S-04, S-05, S-06, S-07
+- **Parallel with:** S-04, S-06, S-07, S-11, S-12, S-13, S-14
 - **Blockers:** —
-- **Unknowns:**
-  - VAT — per-item VAT rate, single net model, or net + a global gross flag? Matters if the kosztorys is the formal client offer. (PRD Q2). — Owner: user. Block: no.
-  - Per-item discount (rabat) — keep the sheet's per-item discount column, derive from a catalogue default, or handle elsewhere? (PRD Q1). — Owner: user. Block: no.
-- **Risk:** Extends the item price from one snapshotted value (S-01) to three; totals must recompute under the selected view. Risk: snapshot semantics — a later catalogue price change must not retroactively alter existing items.
+- **Scope note (POC):** S-03 is the **"one dataset, three views"** price-column toggle
+  (Robocizna / z narzędziami / bez narzędzi) over one item set. The _derivation_ of the two
+  subcontractor prices moved to **S-11** (coefficient + override, replacing the old three
+  snapshot columns); VAT moved to **S-12**; per-item discount folded into **S-01**.
+- **Resolved by POC:** robocizna netto vs brutto is **derived from the client billing context**
+  (B2B? 23% vs 8%), tied to S-12's per-investment VAT rate — a determined rule, not an open
+  question.
+- **Risk:** Extends the item price from one snapshotted value (S-01) to three views; totals must recompute under the selected view. Risk: snapshot semantics — a later catalogue price change must not retroactively alter existing items. dsg gotcha: the active view must be in the grid remount key (POC bug, see `lessons.md`).
 - **Status:** proposed
 
 ### S-04: Stage progress (etapy)
@@ -157,24 +175,21 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Change ID:** kosztorys-stages
 - **PRD refs:** FR-004
 - **Prerequisites:** S-01
-- **Parallel with:** S-03, S-05, S-06, S-07
+- **Parallel with:** S-03, S-06, S-07, S-11, S-12, S-13, S-14
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Adds a stages table + per-item-per-stage progress join keyed off S-01's items. Variable stage count (not fixed 10 columns) is the parity requirement. Risk: progress totals interacting with the live-totals rule from S-01.
 - **Status:** proposed
 
-### S-05: Rooms (pokoje) measurements
+### ~~S-05: Rooms (pokoje) measurements~~ — CUT
 
-- **Outcome:** a Manager+ user can manage room (pokoje) measurements per investment.
+- **CUT (2026-07-08):** pokoje are out of scope (owner, POC 2026-06-20). The POC's
+  `kosztorys_rooms` table is a dead orphan — do not build. Room-measurement formulas were
+  recognised during the POC but parked; revive only via a new change (see
+  `context/changes/kosztorys-mvp/change.md`).
+- **Outcome (dropped):** a Manager+ user can manage room (pokoje) measurements per investment.
 - **Change ID:** kosztorys-rooms
-- **PRD refs:** FR-005
-- **Prerequisites:** S-01
-- **Parallel with:** S-03, S-04, S-06, S-07
-- **Blockers:** —
-- **Unknowns:**
-  - Item-to-room link — does an item carry an optional room link in this phase, or is that deferred? (PRD Q7 / spec Q10). — Owner: user. Block: no.
-- **Risk:** Adds a rooms table. Risk: if items link to rooms (Q7), this couples back to S-01's item schema — resolve the link question before building to avoid a follow-up migration.
-- **Status:** proposed
+- **Status:** cut
 
 ### S-06: Work catalogue + autocomplete
 
@@ -182,32 +197,32 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Change ID:** kosztorys-catalogue
 - **PRD refs:** FR-006
 - **Prerequisites:** S-01
-- **Parallel with:** S-03, S-04, S-05, S-07
+- **Parallel with:** S-03, S-04, S-07, S-11, S-12, S-13, S-14
 - **Blockers:** —
 - **Unknowns:**
   - Catalogue seeding — hand-type from scratch, parse a live sheet once to populate, or start empty and grow with use? Required at release. (PRD Q6 / spec Q8). — Owner: user. Block: no.
 - **Risk:** Adds the catalogue table that S-01 items snapshot their price from. Risk: an empty catalogue is dead weight at release; the seeding decision gates whether this slice ships usefully.
 - **Status:** proposed
 
-### S-07: Print/PDF + CSV export
+### S-07: CSV export
 
-- **Outcome:** the owner can print/PDF and CSV-export the kosztorys.
+- **Outcome:** the owner can CSV-export the kosztorys. **Print/PDF is out of MVP scope** (POC, 2026-07-08) — the client-facing document polish is deferred; CSV is the release bar.
 - **Change ID:** kosztorys-export
 - **PRD refs:** FR-008
 - **Prerequisites:** S-01
-- **Parallel with:** S-03, S-04, S-05, S-06
+- **Parallel with:** S-03, S-04, S-06, S-11, S-12, S-13, S-14
 - **Blockers:** —
 - **Unknowns:**
   - CSV shape for nested data (sections → items → stages) — flatten how? — Owner: user. Block: no.
-- **Risk:** Reuses the existing export infrastructure (transfers already print/PDF + CSV); only the kosztorys-shaped render is new — which is why this is cheap. Risk: the client-facing document may need design beyond browser print; polish is deferred.
+- **Risk:** Reuses the existing export infrastructure (transfers already CSV-export); only the kosztorys-shaped render is new — which is why this is cheap.
 - **Status:** proposed
 
 ### S-08: Editor E2E coverage (release gate)
 
-- **Outcome:** the kosztorys editor flows are end-to-end-covered by the automated suite before the owner-facing release — sections/items/pricing/stages/rooms/catalogue/export exercised without a manual pass.
+- **Outcome:** the kosztorys editor flows are end-to-end-covered by the automated suite before the owner-facing release — sections/items/pricing/stages/subcontractor-pricing/VAT/undo/column-locking/catalogue/export exercised without a manual pass.
 - **Change ID:** editor-e2e-coverage
 - **PRD refs:** FR-013
-- **Prerequisites:** F-01, S-01, S-03, S-04, S-05, S-06, S-07
+- **Prerequisites:** F-01, S-01, S-03, S-04, S-06, S-07, S-11, S-12, S-13, S-14
 - **Parallel with:** —
 - **Blockers:** —
 - **Unknowns:** —
@@ -219,7 +234,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Outcome:** creating a new investment provisions no Google Sheet and nothing is synced; its kosztorys exists only in the app, authored through the editor.
 - **Change ID:** new-investment-no-sheet
 - **PRD refs:** FR-009, FR-014, FR-016, US-01
-- **Prerequisites:** S-01, S-03, S-04, S-05, S-06, S-07, S-08
+- **Prerequisites:** S-08, S-15 (transitively: all parity slices + E2E gate + hardening)
 - **Parallel with:** —
 - **Blockers:** —
 - **Unknowns:**
@@ -227,7 +242,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Risk:** The release gate — only flips once full parity (S-01..S-07) is built and E2E-covered (S-08). Guardrail: the materiały-mirror must keep syncing for investments still on sheets (FR-014), and existing sheet kosztorysy stay accessible (FR-016). Risk: a half-built editor behind this flag recreates the two-worlds problem.
 - **Status:** proposed
 
-### S-10: Importer for existing sheet kosztorysy
+### S-10: Importer for existing sheet kosztorysy — DEFERRED (post-MVP)
 
 - **Outcome:** the owner can import an existing sheet kosztorys into the app, writing only the new kosztorys tables.
 - **Change ID:** kosztorys-importer
@@ -238,23 +253,93 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Importer trigger — what concretely triggers this second-release importer so "later" does not become "never"? Name a condition or date. (PRD Q8). — Owner: user. Block: no.
 - **Risk:** Second release within the arc, after parity is proven. Reads sheets, writes only new tables (additive). Guardrail: live sheet data must survive untouched until safely imported (FR-016). Risk: without a named trigger this slips indefinitely — resolve the trigger question before planning.
+- **Status:** deferred — owner pulled the importer out of the MVP arc (2026-07-08). New investments start clean in the app (S-09); back-importing old sheet kosztorysy is a post-MVP band, unblocked only once the trigger question is answered.
+
+---
+
+The five slices below (**S-11…S-15**) were added on 2026-07-08 reconciling the roadmap with
+the POC. S-11/S-12 carve out pricing dimensions that the pre-POC S-01/S-03 under-specified;
+S-13/S-14 are owner-requested MVP features; S-15 is the pre-cutover hardening gate. Rationale
+and the full decision register: `context/changes/kosztorys-mvp/change.md`.
+
+### S-11: Subcontractor pricing (markup coefficient + override)
+
+- **Outcome:** the two subcontractor price views (z narzędziami / bez narzędzi) are derived from the client price via a **markup coefficient** — inherited global(investment) → section(nullable) — with a per-item **two-state override** (`coeff` / fixed `amount` / null). Replaces the sheet's three hand-maintained snapshot columns.
+- **Change ID:** kosztorys-subcontractor-pricing
+- **PRD refs:** — (POC decision)
+- **Prerequisites:** S-01, S-03
+- **Parallel with:** S-04, S-06, S-07, S-12, S-13, S-14
+- **Blockers:** —
+- **Open note (decision 4):** where the coefficients are edited (settings-home UX) is TBD — owner leans detail-inwestycji or a future "Podsumowanie" panel, not the side panel.
+- **Risk:** `clientPrice` stays the snapshot; the two other views are computed. Risk: override precedence (item > section > investment) must be unambiguous and the derived views must recompute under the S-03 toggle without re-snapshotting.
+- **Status:** proposed
+
+### S-12: VAT per investment (netto entry, brutto computed)
+
+- **Outcome:** each investment carries one VAT rate (`investments.vat_rate`); prices are entered **netto** and brutto is computed. One rate per investment — no per-section/per-item rate, no cascade, no override.
+- **Change ID:** kosztorys-vat
+- **PRD refs:** FR (PRD Q2)
+- **Prerequisites:** S-01
+- **Parallel with:** S-03, S-04, S-06, S-07, S-11, S-13, S-14
+- **Blockers:** —
+- **Open note (decision 4):** where the rate is set (settings-home UX) is TBD — same placement question as S-11.
+- **Risk:** Additive column on `investments` + a computed brutto layer. Risk: robocizna netto/brutto derivation (client billing context, 23% vs 8%) is downstream of this rate — keep the rule in one place.
+- **Status:** proposed
+
+### S-13: Undo
+
+- **Outcome:** the editor supports undo for destructive/edit actions (row delete, cell edit, reorder), so the spreadsheet-parity bar includes recovering from a mistake.
+- **Change ID:** kosztorys-undo
+- **PRD refs:** — (owner request)
+- **Prerequisites:** S-01
+- **Parallel with:** S-03, S-04, S-06, S-07, S-11, S-12, S-14
+- **Blockers:** —
+- **Risk:** Autosave is per-field/optimistic/debounced (POC), so undo must reconcile with the persisted state, not just local grid state. Risk: scope creep — bound it to a shallow action history, not a full command stack.
+- **Status:** proposed
+
+### S-14: Column locking
+
+- **Outcome:** columns can be locked so managers don't accidentally edit protected fields (parity with the sheet's protected `materiały` range). Complements the sheet's `addProtectedRange` model now that authoring moves in-app.
+- **Change ID:** kosztorys-column-locking
+- **PRD refs:** — (owner request)
+- **Prerequisites:** S-01
+- **Parallel with:** S-03, S-04, S-06, S-07, S-11, S-12, S-13
+- **Blockers:** —
+- **Open note:** overlaps the POC follow-on P10 (hide sensitive subcontractor cost/margin columns from MANAGER — OWNER/ADMIN-only). Decide whether locking and column-visibility are one slice or two at plan time.
+- **Risk:** react-datasheet-grid column config is frozen on mount (same class of bug as the S-03 view toggle) — a lock toggle must go through the grid remount key. Risk: interaction with autosave (a locked cell must reject writes server-side, not just hide the input).
+- **Status:** proposed
+
+### S-15: Pre-cutover hardening
+
+- **Outcome:** the editor is hardened before the cutover gate — perf at 1000+ rows re-verified on the clean build, autosave failure/revert paths exercised, access rules (MANAGEMENT_ROLES full / EMPLOYEE none) enforced, and the POC shortcuts (per-browser localStorage, inv-7) removed.
+- **Change ID:** kosztorys-hardening
+- **PRD refs:** —
+- **Prerequisites:** S-08
+- **Parallel with:** —
+- **Blockers:** —
+- **Risk:** This is the gate between "feature-complete editor" and "safe to make it the only authoring path" (S-09). Risk: skipping it pushes POC-grade shortcuts into the cutover.
 - **Status:** proposed
 
 ## Backlog Handoff
 
-| Roadmap ID | Change ID                | Suggested issue title                                      | Ready for `/10x-plan` | Notes                                                |
-| ---------- | ------------------------ | ---------------------------------------------------------- | --------------------- | ---------------------------------------------------- |
-| F-01       | e2e-harness              | Stand up Playwright E2E harness (CI-runnable, isolated DB) | yes                   | Run `/10x-plan e2e-harness`                          |
-| S-01       | kosztorys-sections-items | In-app kosztorys: sections + items with live totals        | yes                   | North star. Run `/10x-plan kosztorys-sections-items` |
-| S-02       | financial-core-smoke     | Financial-core E2E smoke (transfer → balances update)      | no                    | After F-01                                           |
-| S-03       | kosztorys-price-models   | Kosztorys: three price models + pricing-view toggle        | no                    | After S-01                                           |
-| S-04       | kosztorys-stages         | Kosztorys: stage progress (etapy)                          | no                    | After S-01                                           |
-| S-05       | kosztorys-rooms          | Kosztorys: room (pokoje) measurements                      | no                    | After S-01                                           |
-| S-06       | kosztorys-catalogue      | Kosztorys: work catalogue + autocomplete                   | no                    | After S-01                                           |
-| S-07       | kosztorys-export         | Kosztorys: print/PDF + CSV export                          | no                    | After S-01; reuses export infra                      |
-| S-08       | editor-e2e-coverage      | E2E coverage of the kosztorys editor (release gate)        | no                    | After F-01 + editor slices                           |
-| S-09       | new-investment-no-sheet  | New investments: no Google Sheet, kosztorys app-only       | no                    | Cutover gate; after parity + S-08                    |
-| S-10       | kosztorys-importer       | Import existing sheet kosztorysy into the app              | no                    | Second release; after S-09                           |
+| Roadmap ID | Change ID                       | Suggested issue title                                        | Ready for `/10x-plan` | Notes                                                |
+| ---------- | ------------------------------- | ------------------------------------------------------------ | --------------------- | ---------------------------------------------------- |
+| F-01       | e2e-harness                     | Stand up Playwright E2E harness (CI-runnable, isolated DB)   | yes                   | Run `/10x-plan e2e-harness`                          |
+| S-01       | kosztorys-sections-items        | In-app kosztorys: sections + items with live totals          | yes                   | North star. Run `/10x-plan kosztorys-sections-items` |
+| S-02       | financial-core-smoke            | Financial-core E2E smoke (transfer → balances update)        | no                    | After F-01                                           |
+| S-03       | kosztorys-price-models          | Kosztorys: three price models + pricing-view toggle          | no                    | After S-01                                           |
+| S-04       | kosztorys-stages                | Kosztorys: stage progress (etapy)                            | no                    | After S-01                                           |
+| ~~S-05~~   | ~~kosztorys-rooms~~             | ~~Kosztorys: room (pokoje) measurements~~                    | —                     | **CUT** — pokoje out of scope                        |
+| S-06       | kosztorys-catalogue             | Kosztorys: work catalogue + autocomplete                     | no                    | After S-01                                           |
+| S-07       | kosztorys-export                | Kosztorys: CSV export (no print/PDF)                         | no                    | After S-01; reuses export infra                      |
+| S-11       | kosztorys-subcontractor-pricing | Kosztorys: subcontractor pricing (coefficient + override)    | no                    | After S-01 + S-03                                    |
+| S-12       | kosztorys-vat                   | Kosztorys: VAT per investment (netto entry, brutto computed) | no                    | After S-01                                           |
+| S-13       | kosztorys-undo                  | Kosztorys: undo                                              | no                    | After S-01                                           |
+| S-14       | kosztorys-column-locking        | Kosztorys: column locking                                    | no                    | After S-01                                           |
+| S-08       | editor-e2e-coverage             | E2E coverage of the kosztorys editor (release gate)          | no                    | After F-01 + all editor + parity slices              |
+| S-15       | kosztorys-hardening             | Kosztorys: pre-cutover hardening                             | no                    | After S-08                                           |
+| S-09       | new-investment-no-sheet         | New investments: no Google Sheet, kosztorys app-only         | no                    | Cutover gate; after S-08 + S-15                      |
+| S-10       | kosztorys-importer              | Import existing sheet kosztorysy into the app                | no                    | **DEFERRED** post-MVP; after S-09                    |
 
 This table is the clean handoff to Linear/Jira or any MCP-backed backlog. One row per F-NN and S-NN.
 
@@ -265,14 +350,20 @@ These are the PRD's open questions, carried verbatim. The user called the top bl
 under and are best resolved before that slice is planned. Per-slice context lives in each
 slice's Unknowns.
 
-1. **Per-item discount (rabat).** Per-item field, catalogue default, or handled elsewhere? — Owner: user. Gates: S-03 (spec Q1).
-2. **VAT.** Per-item VAT rate, single net model, or net + global gross flag? — Owner: user. Gates: S-03 (spec Q2).
-3. **Labour vs. materials shape.** Unified item list with a kind flag, or separate lists? Also affects when the materiały-mirror can retire. — Owner: user. Gates: S-01 (spec Q3).
-4. **Delete semantics for kosztorys items.** Soft-delete (audit) or hard-delete? — Owner: user. Gates: S-01 (spec Q4).
-5. **Ordering of sections / items / stages.** Drag-to-reorder or by-creation/alphabetical? — Owner: user. Gates: S-01, S-04 (spec Q6).
+**Resolved by the POC (2026-07-08)** — kept for the record; see `context/changes/kosztorys-mvp/change.md`:
+
+1. ~~**Per-item discount (rabat).**~~ **Resolved:** two-mode discount (`percent`/`amount`), folded into S-01.
+2. ~~**VAT.**~~ **Resolved:** one rate per investment, netto entry / brutto computed — carved into **S-12**.
+3. ~~**Labour vs. materials shape.**~~ **Resolved:** unified item list; materials = `INVESTMENT_EXPENSE`, no separate table.
+4. ~~**Delete semantics.**~~ **Resolved:** hard-delete.
+5. ~~**Ordering.**~~ **Resolved:** ▲▼ arrow reorder over a `display_order` layer (DnD deferred).
+6. ~~**Item-to-room link.**~~ **Resolved:** rooms cut (S-05) — no link.
+
+**Still open:**
+
 6. **Catalogue seeding.** Hand-type, parse a live sheet once, or start empty and grow? — Owner: user. Gates: S-06 (spec Q8).
-7. **Item-to-room link.** Optional room link per item in this phase, or deferred? — Owner: user. Gates: S-05 (spec Q10).
-8. **Importer trigger (FR-010).** What concretely triggers the second-release importer? — Owner: user. Gates: S-10.
+7. **Importer trigger (FR-010).** What concretely triggers the deferred importer? — Owner: user. Gates: S-10.
+8. **Settings-home UX.** Where VAT (S-12) + subcontractor coefficients (S-11) are edited — detail-inwestycji or a future "Podsumowanie" panel, not the side panel. — Owner: user. Gates: S-11, S-12.
 
 ## Parked
 
