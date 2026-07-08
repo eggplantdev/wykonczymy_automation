@@ -43,3 +43,33 @@
 - **Problem**: Both planes had tests, but they tested the rule _in isolation_: the app-math test proved marża/bilans exclude settled; the row-mapping tests proved `expenseRow` maps fields. **Neither asserted that the Sheets bill-tab output obeys the same settled exclusion as the financial model.** The Sheets layer simply never knew about `settled`, so it mirrored settled expenses at full amount in column E and the client's `SUM(E:E)`/`SUMIF` billed them — the exact opposite of intent (FAZA 2 bug). Each plane was green; the _bridge_ between them was untested, so the divergence shipped. This is the same failure shape as the parity-test lesson above (independently-assembled copies of one figure drift when nothing asserts their equality), generalized from "two code paths" to "two representations."
 - **Rule**: (1) When a rule lives in two planes, write a test that pins the **shared invariant across the boundary** — e.g. "the sum of bill-tab column-E amounts equals the app's client-billable total, settled excluded," running the _real_ serializer (`expenseRow`) over a mixed settled/non-settled dataset. (2) Prove it **red** against the pre-fix behavior (settled at full amount) before trusting green. (3) A regression that "slipped past the tests" is mandatory-test-first: reproduce the leak with a failing assertion on the serialized output, then keep it as the guard. (4) Don't accept "both sides are tested" as coverage of the bridge — name the boundary and test it explicitly.
 - **Applies to**: plan, plan-review, implement, impl-review, tdd, simplify
+
+## Debug Playwright E2E against a WARM manual server, never by re-running the 2.5-min `pnpm build` webServer per hypothesis
+
+- **Context**: Any work on the Playwright harness (`playwright.config.ts`, `e2e/*.spec.ts`, `e2e/global-setup.ts`, `e2e/helpers.ts`). The webServer command is `pnpm build && pnpm start` on PORT 3100 / `NEXT_DIST_DIR=.next-e2e` with `reuseExistingServer:false`, so **every** `pnpm test:e2e` does a full cold production build (~107s warm, >300s cold) before a single line of test runs. Building the auth foundation + first specs took ~2h, almost all of it in this loop.
+- **Problem**: Each failed hypothesis cost a full build to observe — and three real dead-ends stacked up (see rules below), so that's ~8 rebuilds ≈ an hour of pure waiting. Worse, launching overlapping `test:e2e` runs left orphaned `next start` / test processes holding `:3100` and `.next-e2e/lock`, producing _fake_ failures ("port already used", "Unable to acquire lock", and a logout that "didn't fire") that looked like code bugs and burned another ~20 min. `retries:0` locally means no trace is kept on a normal run, so failures were opaque.
+- **Rule** — for ANY E2E diagnosis, switch to a warm-server + throwaway-script loop (seconds per iteration, no rebuild):
+  ```bash
+  # 1. build ONCE (only when app source changed — specs/config changes need no rebuild)
+  NEXT_DIST_DIR=.next-e2e pnpm build
+  # 2. start the warm server and LEAVE IT RUNNING (use the bin directly, NOT `node .../.bin/next`
+  #    — that runs the shell wrapper through node and throws "missing ) after argument list")
+  NEXT_DIST_DIR=.next-e2e PORT=3100 ./node_modules/.bin/next start &
+  # 3. iterate: drive a throwaway ./dbg.mjs from the REPO ROOT (imports resolve there),
+  #    `import { chromium } from '@playwright/test'`, baseURL http://127.0.0.1:3100,
+  #    viewport {width:1280,height:720}; log page.on('console'|'pageerror'|'request'(POST)).
+  #    Loop it 5-6× in one launch to surface flakes a single pass hides.
+  node ./dbg.mjs
+  # 4. BETWEEN full `pnpm test:e2e` runs, always reclaim the port+lock first — orphaned procs
+  #    cause fake "port in use" / "lock" / no-op-click failures that mimic real bugs:
+  lsof -ti tcp:3100 | xargs -r kill -9; pkill -9 -f playwright_chromiumdev_profile; rm -f .next-e2e/lock
+  ```
+  For a full-suite trace when you must, pass `--trace on` and unzip `test-results/**/trace.zip` (`0-trace.network` for POSTs, `0-trace.trace` for console). Only fall back to full `pnpm test:e2e` for the final green confirmation, not for diagnosis.
+- **Applies to**: implement, impl-review, e2e, tdd
+
+## Playwright's loader can't import the Payload/Next graph, and driving the real UI hits hydration races — seed via subprocess, wait for `__reactFiber$`, and run `workers:1`
+
+- **Context**: `e2e/global-setup.ts` and specs that seed data or drive the real login/mutation UI in this Payload + Next App Router app. Surfaced building the authenticated E2E foundation.
+- **Problem**: Three distinct traps, each initially mistaken for something else: (1) **`next/cache` is unresolvable in Playwright's module loader.** Importing `seedE2eUser()` into global-setup pulled `@payload-config` → collections → `src/hooks/revalidate-collection.ts` → `next/cache`, throwing `Cannot find module '.../next/cache'` — it resolves fine under `node --import tsx` but not Playwright's transform. (2) **Hydration races when Playwright drives real UI.** The login `<form>`'s `onSubmit` `preventDefault` only exists post-hydration, so an early click did a native GET (`/zaloguj?email=…&password=…`) that never logged in; and because `(auth)/zaloguj` and `(frontend)/` are **different Next root layouts**, `router.push('/')` is a full document nav that re-hydrates from scratch — so the logout click was a silent no-op (no POST fired) until the dashboard hydrated. (3) **`fullyParallel:false` does NOT serialize across files.** Playwright still spawned 2 workers that hammered the one cold server + one shared local DB, flaking the auth spec's render; the fix is `workers:1`.
+- **Rule**: (1) **Never import the Payload config graph (or anything re-exporting `next/cache`) into the Playwright process.** Keep credentials/constants in a payload-free module (`src/scripts/e2e-user-credentials.ts`); run the seeder as a subprocess (`execFileSync('pnpm',['seed:e2e'])`, which loads its own `.env` via tsx) — global-setup runs after the webServer is up, so Local-API seeding before the browser login is fine. (2) When driving real UI, **wait for React hydration before interacting** — poll the target for a `__reactFiber$…` key (`e2e/helpers.ts:waitForHydration`); fill controlled inputs only _after_ hydration or they reset. Assume every cross-root-layout navigation (`(auth)`↔`(frontend)`) is a hard reload that re-hydrates. (3) Set **`workers:1`** for this suite (cold server + shared DB) — `fullyParallel:false` alone isn't enough. (4) `payload.create` for a user outside a request context needs `context:{skipRevalidation:true}` (the Users `afterChange` hook calls `revalidateTag`, which throws there).
+- **Applies to**: plan, plan-review, implement, impl-review, e2e

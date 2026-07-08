@@ -14,6 +14,17 @@ const E2E_DIST_DIR = '.next-e2e'
 
 export default defineConfig({
   testDir: './e2e',
+  // One worker: fullyParallel:false only serializes tests WITHIN a file — Playwright still
+  // parallelizes across files, which pits specs against each other on one cold server and one
+  // shared local DB (mutation specs touch the same registers). Serialize the whole suite.
+  workers: 1,
+  // The first authenticated test pays the cold prod server's first-hit render (~28s observed);
+  // 60s per test keeps that off the flake line. webServer boot has its own budget below.
+  timeout: 60_000,
+  // Seeds the OWNER user and captures an authenticated storageState (e2e/.auth/user.json)
+  // once per run. No global `storageState` here — that would break the unauthenticated smoke
+  // and login specs; authenticated specs opt in via test.use({ storageState }).
+  globalSetup: './e2e/global-setup.ts',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -38,6 +49,8 @@ export default defineConfig({
     env: { PORT, NEXT_DIST_DIR: E2E_DIST_DIR },
     url: BASE_URL,
     reuseExistingServer: false,
-    timeout: 300_000,
+    // Full `pnpm build` (generate:importmap + generate:types + next build) then `pnpm start`.
+    // A cold build (cold TS typecheck + Payload codegen) overruns 300s; 600s gives headroom.
+    timeout: 600_000,
   },
 })
