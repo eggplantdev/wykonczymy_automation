@@ -47,6 +47,7 @@ export function Sidebar() {
             <Link href={link.href}>
               <link.icon className="size-4" />
               {link.label}
+              {link.badge && <link.badge />}
             </Link>
           </Button>
         ))}
