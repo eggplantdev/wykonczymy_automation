@@ -8,7 +8,7 @@ import {
   extractInvoiceIds,
   buildTransferLookups,
   type TransferRowT,
-} from '@/lib/tables/transfers'
+} from '@/components/tables/transfers'
 import type { RawTransferDocT } from '@/lib/queries/transfers'
 
 type BuildRowsOptsT = {

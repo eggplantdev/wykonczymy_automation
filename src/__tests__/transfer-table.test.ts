@@ -5,7 +5,11 @@ vi.mock('server-only', () => ({}))
 vi.mock('@/components/transfers/invoice-cell', () => ({ InvoiceCell: () => null }))
 vi.mock('@/components/dialogs/note-dialog', () => ({ NoteCell: () => null }))
 
-import { mapTransferRow, buildTransferLookups, type TransferLookupsT } from '@/lib/tables/transfers'
+import {
+  mapTransferRow,
+  buildTransferLookups,
+  type TransferLookupsT,
+} from '@/components/tables/transfers'
 
 // ── Mock data ───────────────────────────────────────────────────────
 

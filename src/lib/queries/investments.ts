@@ -13,7 +13,7 @@ import { requireAuth } from '@/lib/auth/require-auth'
 import { calculateBalance } from '@/lib/calculate-balance'
 import { calculateMargin } from '@/lib/calculate-margin'
 import type { InvestmentRefT } from '@/types/reference-data'
-import type { InvestmentRowT } from '@/lib/tables/investments'
+import type { InvestmentRowT } from '@/components/tables/investments'
 
 export function shapeInvestments(
   investments: InvestmentRefT[],

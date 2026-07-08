@@ -7,7 +7,7 @@ import { useSearchFilter } from '@/hooks/use-search-filter'
 import {
   getInvestmentWithoutSheetColumns,
   type InvestmentWithoutSheetRowT,
-} from '@/lib/tables/sheets'
+} from '@/components/tables/sheets'
 
 type PropsT = {
   data: InvestmentWithoutSheetRowT[]

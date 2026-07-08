@@ -7,7 +7,7 @@ import { SearchFilterInput } from '@/components/ui/search-filter-input'
 import { AddSheetDialog } from '@/components/dialogs/add-sheet-dialog'
 import { Button } from '@/components/ui/button'
 import { useSearchFilter } from '@/hooks/use-search-filter'
-import { getKosztorysColumns, type KosztorysRowT } from '@/lib/tables/sheets'
+import { getKosztorysColumns, type KosztorysRowT } from '@/components/tables/sheets'
 
 type InvestmentOptionT = { id: number; name: string }
 

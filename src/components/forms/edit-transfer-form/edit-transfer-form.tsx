@@ -17,7 +17,7 @@ import { editExpenseFormSchema } from '@/components/forms/expense-form/expense-s
 import { uploadFileClient } from '@/lib/upload-file-client'
 import type { z } from 'zod'
 import type { UpdateTransferFormT } from '@/lib/schemas/transfer'
-import type { TransferRowT } from '@/lib/tables/transfers'
+import type { TransferRowT } from '@/components/tables/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import type { AppFieldComponentsT } from '@/components/forms/types/form-types'
 import { updateTransferAction } from '@/lib/actions/transfers'

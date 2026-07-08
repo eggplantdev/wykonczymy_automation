@@ -8,7 +8,7 @@ import { ExternalLink } from '@/components/ui/external-link'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { KosztorysDataTable } from '@/components/sheets/kosztorys-data-table'
 import { InvestmentsWithoutSheetTable } from '@/components/sheets/investments-without-sheet-table'
-import type { KosztorysRowT, InvestmentWithoutSheetRowT } from '@/lib/tables/sheets'
+import type { KosztorysRowT, InvestmentWithoutSheetRowT } from '@/components/tables/sheets'
 
 export default async function SheetsListPage() {
   const session = await requireAuth(ADMIN_OR_OWNER_MANAGER_ROLES)
