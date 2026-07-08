@@ -4,8 +4,11 @@
 > over `src/` (config: `.dependency-cruiser.cjs`), excluding tests, mocks, `.d.ts`, migrations.
 > Command: `pnpm exec depcruise src --config .dependency-cruiser.cjs --output-type <metrics|err-long>`
 >
-> NOTE: there is no `artifact-1-territory.md` yet — this run was driven structure-first by request,
-> so "active area" cross-references below are **inferred from the code**, not from git history. Marked `unknown`.
+> **Re-cruised 2026-07-08** after the `lib/tables/* → components/tables/*` move (`a8691df`) and the
+> `lib/cn.ts → lib/utils/cn.ts` / `lib/parse-date-range.ts → lib/utils/parse-date-range.ts` /
+> `lib/tables/column-meta.ts → components/tables/column-meta.ts` relocations. Graph now:
+> **399 modules, 1238 dependencies, 26 violations (0 errors, 16 warnings)**. The territory anchor
+> `artifact-1-territory.md` now exists — activity claims are cross-referenced there, no longer `unknown`.
 
 ## Key observations
 
@@ -19,53 +22,58 @@
    - Payload hooks (`hooks/transfers/*`, `hooks/revalidate-collection.ts`) do **not** import `lib/cache/revalidate.ts` (which calls `updateTag`, illegal in a hook's Route Handler context).
    - The Payload CLI graph (`payload.config.ts` + `collections/`) does **not** import `env.server.ts` (`server-only`, throws under `generate:types`).
 
-3. **17 import cycles, but only ONE is real.** 14 are the TanStack-Form `useAppForm` pattern
+3. **16 import cycles, but only ONE is real.** 15 are the TanStack-Form `useAppForm` pattern
    (`form-hooks.ts` ↔ `form-components/*` ↔ `form-base.tsx`) — by-design mutual reference, low risk.
-   The real one is a 5-node cross-layer loop through the Payload graph (see Risk Zones).
+   The real one is now a **7-node** cross-layer loop through the Payload graph, re-routed since the last
+   cruise: it no longer passes through the (now-deleted) `lib/actions/utils.ts` but through the auth chain
+   (`run-action.ts → require-auth.ts → get-current-user-jwt.ts`). See Risk Zones.
 
-4. **The true load-bearing leaves are tiny and stable** — `lib/cn.ts` (Ca=99, I=0%), `lib/auth/roles.ts`
-   (Ca=41, I=0%), `lib/constants/transfers.ts` (Ca=24, I=0%). High blast radius if changed, but they almost
-   never change. The transfer-type union AGENTS.md warns about (`lib/constants/transfers.ts`) is provably a contract: 24 dependents, zero outgoing.
+4. **The true load-bearing leaves are tiny and stable** — `lib/utils/cn.ts` (Ca=99, I=0%),
+   `lib/auth/roles.ts` (Ca=44, I=0%), `lib/constants/transfers.ts` (Ca=29, I=3%). High blast radius if
+   changed, but they almost never change. The transfer-type union AGENTS.md warns about
+   (`lib/constants/transfers.ts`) is provably a contract: 29 dependents, one outgoing.
 
-5. **8 orphans** — mostly framework entry points (`app/icon.tsx`, `global-error.tsx`, `template.tsx`,
-   `loading.tsx`) that are legitimately import-less. Two non-route orphans deserve a dead-code check:
-   `lib/tables/column-meta.ts` and `lib/parse-date-range.ts`. (`column-meta.ts` is a known module-augmentation file — grep-invisible; verify before deleting.)
+5. **10 orphans** — mostly framework entry points (`app/icon.tsx`, `global-error.tsx`, `template.tsx`,
+   `loading.tsx`, `proxy.ts`, and the three new `app/(legal)/*` pages) that are legitimately import-less.
+   Two non-route orphans: `components/tables/column-meta.ts` (module-augmentation — grep-invisible; gate
+   deletion on `tsc`) and `lib/utils/parse-date-range.ts` — the latter is **NOT dead**: it's imported by
+   `__tests__/small-utils.test.ts`, and depcruise excludes `__tests__`, so it shows as a false orphan.
 
 ## Load-bearing modules (high Ca = wide blast radius on a contract change)
 
-| Module                                 | Ca  | Ce  | I%  | Role (evidence)                                            | Caution                                          |
-| -------------------------------------- | --- | --- | --- | ---------------------------------------------------------- | ------------------------------------------------ |
-| `lib/cn.ts`                            | 99  | 0   | 0   | Tailwind class merger; ubiquitous leaf                     | Repo-wide blast radius, but stable — safe        |
-| `components/ui/icons/icon-variants.ts` | 48  | 0   | 0   | Shared icon variant contract                               | Stable leaf                                      |
-| `components/ui/button.tsx`             | 43  | 1   | 2   | Base UI primitive                                          | Stable; API change ripples to 43 sites           |
-| `lib/auth/roles.ts`                    | 41  | 0   | 0   | **Role hierarchy contract** (ADMIN/OWNER/MANAGER/EMPLOYEE) | Auth-sensitive; 41 dependents, edit deliberately |
-| `types/reference-data.ts`              | 34  | 1   | 3   | Cross-layer data contract                                  | Contract change crosses many layers              |
-| `lib/constants/transfers.ts`           | 24  | 0   | 0   | **Transfer-type union** (AGENTS.md)                        | Provable contract; 24 dependents                 |
-| `lib/auth/require-auth.ts`             | 16  | 3   | 16  | Auth gate for actions                                      | Auth-sensitive entry guard                       |
-| `lib/queries/reference-data.ts`        | 14  | 6   | 30  | Cached reference fetch                                     | Composer; depends on 6, feeds 14                 |
-| `lib/db/sum-transfers.ts`              | 11  | 2   | 15  | Raw-SQL financial calc                                     | Money path; high-sensitivity                     |
+| Module                                 | Ca  | Ce  | I%  | Role (evidence)                                            | Caution                                                            |
+| -------------------------------------- | --- | --- | --- | ---------------------------------------------------------- | ------------------------------------------------------------------ |
+| `lib/utils/cn.ts`                      | 99  | 0   | 0   | Tailwind class merger; ubiquitous leaf                     | Repo-wide blast radius, but stable — safe                          |
+| `components/ui/icons/icon-variants.ts` | 48  | 0   | 0   | Shared icon variant contract                               | Stable leaf                                                        |
+| `lib/auth/roles.ts`                    | 44  | 0   | 0   | **Role hierarchy contract** (ADMIN/OWNER/MANAGER/EMPLOYEE) | Auth-sensitive; 44 dependents, edit deliberately                   |
+| `components/ui/button.tsx`             | 44  | 1   | 2   | Base UI primitive                                          | Stable; API change ripples to 44 sites                             |
+| `types/reference-data.ts`              | 35  | 1   | 3   | Cross-layer data contract                                  | Contract change crosses many layers                                |
+| `lib/constants/transfers.ts`           | 29  | 1   | 3   | **Transfer-type union** (AGENTS.md)                        | Provable contract; 29 dependents                                   |
+| `lib/auth/require-auth.ts`             | 19  | 3   | 14  | Auth gate for actions                                      | Auth-sensitive entry guard; **in the real cycle**                  |
+| `lib/queries/reference-data.ts`        | 14  | 8   | 36  | Cached reference fetch                                     | Composer; depends on 8, feeds 14                                   |
+| `lib/db/sum-transfers.ts`              | 5   | 5   | 50  | Raw-SQL financial calc                                     | Money path; **now unstable** (was Ca=11/I=15) — grew outgoing deps |
 
 ## Orchestrators (high I% = fragile to neighbor changes)
 
-| Module                                 | Ca  | Ce  | I%  | Notes                                                   |
-| -------------------------------------- | --- | --- | --- | ------------------------------------------------------- |
-| `lib/tables/transfers.tsx`             | 10  | 11  | 52  | Transfers table; composes 11 deps, in the real cycle    |
-| `lib/actions/utils.ts`                 | 12  | 9   | 43  | Action helpers; **node in the real cycle**              |
-| `payload.config.ts`                    | 20  | 11  | 35  | Payload hub; depended-on AND depends-on; **cycle node** |
-| `components/forms/hooks/form-hooks.ts` | 18  | 6   | 25  | `useAppForm` core; center of the 14 form cycles         |
+| Module                                 | Ca  | Ce  | I%  | Notes                                                                               |
+| -------------------------------------- | --- | --- | --- | ----------------------------------------------------------------------------------- |
+| `lib/actions/run-action.ts`            | 9   | 8   | 47  | Action runner; **new node in the real cycle** (replaced deleted `actions/utils.ts`) |
+| `lib/actions/sheets-sync.ts`           | 4   | 7   | 64  | Sheets sync action; **cycle node**                                                  |
+| `payload.config.ts`                    | 26  | 12  | 32  | Payload hub; depended-on AND depends-on; **cycle node**                             |
+| `components/tables/transfers.tsx`      | 2   | 10  | 83  | Transfers table (moved from `lib/tables/`); composes 10 deps                        |
+| `components/forms/hooks/form-hooks.ts` | 17  | 6   | 26  | `useAppForm` core; center of the 15 form cycles                                     |
 
 ## Risk zones
 
-| Zone                            | What                                                                                                                                                                         | Evidence                           | Why it matters                                                                                                                                                                                                                                                                                                                                                       | Next check                                                                            |
-| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| **Payload-hook ↔ action cycle** | 5-node loop: `lib/actions/utils.ts` → `payload.config.ts` → `collections/transfers.ts` → `hooks/transfers/sync-sheet.ts` → `lib/actions/sheets-sync.ts` → back to `utils.ts` | `depcruise --output-type err-long` | The transfer collection's hook reaches back into the actions layer, which reaches back into the Payload config to get a client. Editing sync-sheet, the transfer collection, or action utils can ripple unpredictably across the config graph. Classic Payload trap (hooks live in the collection's config graph but call server actions that re-import the config). | Deep Focus (M4L3) candidate. Can the sync-sheet hook avoid importing `lib/actions/*`? |
-| **Financial SQL**               | `lib/db/sum-transfers.ts` Ca=11, plus `lib/db/*` raw-SQL layer                                                                                                               | metrics + AGENTS.md                | Money calculations; AGENTS.md flags `@vercel/postgres` raw SQL. High change-sensitivity.                                                                                                                                                                                                                                                                             | `unknown`: graph doesn't show SQL correctness — needs test coverage review            |
-| **Auth contracts**              | `lib/auth/roles.ts` (Ca=41), `require-auth.ts` (Ca=16)                                                                                                                       | metrics                            | Wide blast radius on the access-control plane                                                                                                                                                                                                                                                                                                                        | Verify `src/access/*` consumes these consistently                                     |
-| **Orphans**                     | `lib/tables/column-meta.ts`, `lib/parse-date-range.ts`                                                                                                                       | `no-orphans` rule                  | Possible dead code                                                                                                                                                                                                                                                                                                                                                   | Gate any deletion on `tsc`, not grep (column-meta is a module augmentation)           |
+| Zone                            | What                                                                                                                                                                                                                                                                | Evidence                           | Why it matters                                                                                                                                                                                                                                                                                                                                                                                                                                     | Next check                                                                                                             |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Payload-hook ↔ action cycle** | 7-node loop: `collections/transfers.ts` → `hooks/transfers/sync-sheet.ts` → `lib/actions/sheets-sync.ts` → `lib/actions/run-action.ts` → `lib/auth/require-auth.ts` → `lib/auth/get-current-user-jwt.ts` → `payload.config.ts` → back to `collections/transfers.ts` | `depcruise --output-type err-long` | The transfer collection's hook reaches into the actions layer, which pulls the auth chain, which pulls the Payload config to resolve a client — closing the loop back to the collection. Editing sync-sheet, the transfer collection, the action runner, or the auth guard can ripple unpredictably across the config graph. Classic Payload trap (hooks live in the collection's config graph but call server actions that re-import the config). | Deep Focus (M4L3) candidate. Can `sync-sheet` get its Payload client without pulling `lib/actions/*` + the auth chain? |
+| **Financial SQL**               | `lib/db/sum-transfers.ts` Ca=11, plus `lib/db/*` raw-SQL layer                                                                                                                                                                                                      | metrics + AGENTS.md                | Money calculations; AGENTS.md flags `@vercel/postgres` raw SQL. High change-sensitivity.                                                                                                                                                                                                                                                                                                                                                           | `unknown`: graph doesn't show SQL correctness — needs test coverage review                                             |
+| **Auth contracts**              | `lib/auth/roles.ts` (Ca=41), `require-auth.ts` (Ca=16)                                                                                                                                                                                                              | metrics                            | Wide blast radius on the access-control plane                                                                                                                                                                                                                                                                                                                                                                                                      | Verify `src/access/*` consumes these consistently                                                                      |
+| **Orphans**                     | `components/tables/column-meta.ts` (module augmentation), `lib/utils/parse-date-range.ts` (test-only)                                                                                                                                                               | `no-orphans` rule                  | `parse-date-range.ts` is a **false orphan** — imported by `__tests__/small-utils.test.ts`, which depcruise excludes. `column-meta.ts` is grep-invisible.                                                                                                                                                                                                                                                                                           | Gate any deletion on `tsc`, not grep. `parse-date-range` is live via tests — keep.                                     |
 
 ## Unknowns (what the static graph cannot show)
 
-- **No territory cross-reference** — git-history "hot vs frozen" not yet captured; all activity claims here are inferred.
 - **Runtime coupling invisible**: Payload hook registration, `getPayload({ config })` dynamic resolution,
   feature flags, cache-tag wiring, and Next.js route-handler boundaries don't appear as imports.
 - **Cycle severity unranked by the tool** — the form cycles are by-design; only human reading separated them from the real one.
@@ -73,5 +81,5 @@
 
 ## Optional next step: graph render
 
-Only after selection. Candidate single-question render: the 5-node Payload-hook cycle, via
+Only after selection. Candidate single-question render: the 7-node Payload-hook cycle, via
 `depcruise --focus "hooks/transfers/sync-sheet" --output-type dot | dot -T svg`. Not the whole `src/` (hairball).

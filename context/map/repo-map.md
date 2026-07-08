@@ -72,7 +72,7 @@ graph TD
 
 - `app/(frontend)/inwestycje/[id]/page.tsx` (63 commits, 52 areas) and
   `kasa/[id]/page.tsx` (43 commits, 51 areas) assemble most of the app. Distinct from
-  artifact-2's dependency leaves (`lib/cn.ts` Ca=99) — those are _depended-on_; these are
+  artifact-2's dependency leaves (`lib/utils/cn.ts` Ca=99) — those are _depended-on_; these are
   where _edits land_.
 
 **Peripheral / shallow:** `access/` (nearly empty in the graph — RBAC likely inline in
@@ -91,7 +91,7 @@ Cross-referencing git co-change (artifact-1) with the import graph (artifact-2):
 | `components/forms` ↔ `lib/actions` (44)               | git + graph    | **Real** — a form + its server action ship as a unit          |
 | `components/dialogs` ↔ `components/forms` (39)        | git + graph    | **Real** — dialogs wrap forms; near-inseparable               |
 | `lib/actions` ↔ `lib/queries` (40)                    | git + graph    | **Real** — mutate-then-invalidate/read                        |
-| the 5-node Payload hook cycle                         | **graph only** | **Real & risky** — invisible to git (§4)                      |
+| the 7-node Payload hook cycle                         | **graph only** | **Real & risky** — invisible to git (§4)                      |
 | the 14 `useAppForm` form cycles                       | **graph only** | By-design mutual refs; low risk                               |
 | `migrations/index.ts` spanning 47 areas               | git only       | **Regeneration** — cheap/mechanical, _not_ a design signal    |
 
@@ -102,14 +102,14 @@ churn is just re-exports. `access/` coupling is **`unknown`** — the graph bare
 
 ## 4. Risk zones
 
-| Zone                                                  | Why                                                                                                                                                                                                          | Evidence                          |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------- |
-| **Transfer/finance core**                             | Most-depended-on _and_ most-churned; `constants/transfers.ts` is a 24-dependent contract, `actions/transfers.ts` the #1 churned file. AGENTS.md warns the transfer-type union goes stale.                    | artifact-1 + artifact-2 agree     |
-| **Money SQL** (`lib/db/sum-transfers.ts`)             | Raw `@vercel/postgres` financial calc; graph can't verify correctness — needs test coverage.                                                                                                                 | artifact-2 `unknown`              |
-| **Payload hook ↔ action cycle**                       | 5-node loop: `actions/utils.ts` → `payload.config.ts` → `collections/transfers.ts` → `hooks/transfers/sync-sheet.ts` → `actions/sheets-sync.ts` → back. Editing sync-sheet ripples through the config graph. | artifact-2 (`depcruise err-long`) |
-| **Auth contracts** (`auth/roles.ts` Ca=41)            | Wide blast radius on the access plane; `access/` logic is graph-invisible so real reach is under-measured.                                                                                                   | artifact-2                        |
-| **Composition hubs** (`inwestycje/[id]`, `kasa/[id]`) | Touch almost anything and one moves; hardest pages to change safely.                                                                                                                                         | artifact-1 (52/51 areas)          |
-| **Stale map path** ⚠                                  | `lib/tables/*` moved to `components/tables/*` today (`a8691df`); artifact-2 still cites the old path. Re-cruise before trusting its table-layer rows.                                                        | artifact-1 existence check        |
+| Zone                                                  | Why                                                                                                                                                                                                                                                                                                               | Evidence                           |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| **Transfer/finance core**                             | Most-depended-on _and_ most-churned; `constants/transfers.ts` is a 24-dependent contract, `actions/transfers.ts` the #1 churned file. AGENTS.md warns the transfer-type union goes stale.                                                                                                                         | artifact-1 + artifact-2 agree      |
+| **Money SQL** (`lib/db/sum-transfers.ts`)             | Raw `@vercel/postgres` financial calc; graph can't verify correctness — needs test coverage.                                                                                                                                                                                                                      | artifact-2 `unknown`               |
+| **Payload hook ↔ action cycle**                       | 7-node loop: `collections/transfers.ts` → `hooks/transfers/sync-sheet.ts` → `actions/sheets-sync.ts` → `actions/run-action.ts` → `auth/require-auth.ts` → `auth/get-current-user-jwt.ts` → `payload.config.ts` → back. Editing sync-sheet, the action runner, or the auth guard ripples through the config graph. | artifact-2 (`depcruise err-long`)  |
+| **Auth contracts** (`auth/roles.ts` Ca=41)            | Wide blast radius on the access plane; `access/` logic is graph-invisible so real reach is under-measured.                                                                                                                                                                                                        | artifact-2                         |
+| **Composition hubs** (`inwestycje/[id]`, `kasa/[id]`) | Touch almost anything and one moves; hardest pages to change safely.                                                                                                                                                                                                                                              | artifact-1 (52/51 areas)           |
+| **Money SQL got fragile** ⚠                           | `lib/db/sum-transfers.ts` flipped stable→unstable since the prior cruise (Ca 11→5, I 15%→50%) — it grew outgoing deps. A money-path module becoming a composer raises change-sensitivity; pair with test coverage (still `unknown`).                                                                              | artifact-2 (re-cruised 2026-07-08) |
 
 ## 5. Who to ask
 
@@ -132,24 +132,18 @@ by the author.
 6. **`src/components/forms/` + `useAppForm()`** — the form spine every feature touches.
 7. **`context/foundation/investment-financials-and-discount.md`** — how marża / materiały /
    robocizna / korekty connect (the finance model the UI reflects).
-8. **`context/map/artifact-2-structure.md`** — the dependency detail behind §3–4 (mind the
-   stale `lib/tables` path).
+8. **`context/map/artifact-2-structure.md`** — the dependency detail behind §3–4
+   (re-cruised 2026-07-08; paths current).
 
 ## 7. What's next — follow-ups from this mapping
 
 Ordered by cost/value. None block a branch switch; captured here so they survive one.
 
-1. **Re-cruise `artifact-2` to clear the stale path (cheap, do first).** `lib/tables/*`
-   moved to `components/tables/*` (`a8691df`) after artifact-2 was generated, so its
-   table-layer rows and the `lib/tables/transfers.tsx` orchestrator entry point at a dead
-   path. Refresh:
-
-   ```
-   pnpm exec depcruise src --config .dependency-cruiser.cjs --output-type metrics
-   pnpm exec depcruise src --config .dependency-cruiser.cjs --output-type err-long   # cycles
-   ```
-
-   Then update the affected rows in `artifact-2-structure.md`. ~15 min.
+1. ~~**Re-cruise `artifact-2` to clear the stale path.**~~ **DONE 2026-07-08.** Re-cruised
+   after the `lib/tables/* → components/tables/*` move; refreshed metrics, orphans, and the
+   real-cycle path in `artifact-2-structure.md`. Findings: the cycle re-routed through the
+   auth chain (7 nodes, no longer via the now-deleted `actions/utils.ts`); `sum-transfers.ts`
+   flipped stable→unstable; `parse-date-range.ts` is a false orphan (test-only, keep).
 
 2. **Wire depcruise into CI/pre-push as a guard.** The config already encodes AGENTS.md
    invariants as `error`-severity rules (`no-hook-imports-revalidate`,
@@ -158,10 +152,11 @@ Ordered by cost/value. None block a branch switch; captured here so they survive
    Turns the map from a snapshot into a living check.
 
 3. **M4L3 "Deep Focus" on the Payload hook cycle (§4).** The one real import cycle
-   (`actions/utils.ts` → `payload.config.ts` → `collections/transfers.ts` →
-   `hooks/transfers/sync-sheet.ts` → `actions/sheets-sync.ts` → back) is the top structural
-   debt. Question to answer: can `sync-sheet.ts` get its Payload client without importing
-   `lib/actions/*`? Render the focused subgraph first:
+   (`collections/transfers.ts` → `hooks/transfers/sync-sheet.ts` → `actions/sheets-sync.ts` →
+   `actions/run-action.ts` → `auth/require-auth.ts` → `auth/get-current-user-jwt.ts` →
+   `payload.config.ts` → back) is the top structural debt. Question to answer: can
+   `sync-sheet.ts` get its Payload client without pulling `lib/actions/*` + the auth chain?
+   Render the focused subgraph first:
    `depcruise --focus "hooks/transfers/sync-sheet" --output-type dot | dot -Tsvg`.
 
 4. **Close the two `unknown` coverage gaps the graph can't see.** (a) Money SQL

@@ -23,7 +23,7 @@
    spans 52 distinct areas) and `kasa/[id]/page.tsx` (43 commits, 51 areas). These
    detail pages compose nearly the whole app — touch almost anything and one of them moves.
    They are the highest-blast-radius _editing_ surfaces (distinct from the highest-blast
-   _dependency_ leaves like `lib/cn.ts`, which artifact-2 covers).
+   _dependency_ leaves like `lib/utils/cn.ts`, which artifact-2 covers).
 
 3. **Work has moved in clear phases, not evenly.** Feb–Mar was a forms/UI/routes build-out
    burst (forms 344, ui 264, app 303). May pivoted hard to **Google Sheets integration**
@@ -38,9 +38,10 @@
    should expect to move a test in the same commit.
 
 5. **Structure already drifted from reality once, today.** `lib/tables/*` was moved to
-   `components/tables/*` in `a8691df` (2026-07-08 13:48) — so `artifact-2-structure.md`,
-   which lists `lib/tables/transfers.tsx` as a live orchestrator, references a path that no
-   longer exists. Flagged for the synthesis; artifact-2 wants a re-cruise.
+   `components/tables/*` in `a8691df` (2026-07-08 13:48), so `artifact-2-structure.md`
+   originally referenced a dead `lib/tables/transfers.tsx` path. **Resolved:** artifact-2 was
+   re-cruised the same day and now reflects the move (plus the `lib/cn.ts → lib/utils/cn.ts`
+   relocation and the re-routed Payload cycle).
 
 ## Activity — where the project was really touched
 
