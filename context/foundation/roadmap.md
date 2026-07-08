@@ -19,13 +19,9 @@ top_blocker: none
 
 ## Where work is tracked
 
-Single entry point — **no separate todo file**. Each line points at an existing doc; update those, don't spawn new ones.
-
-- **This file (`roadmap.md`) — the canonical todo:** v2 slices + status, in the [At a glance](#at-a-glance) table.
-- **Linear "Wykonczymy v2" — live status board:** mirror of slice status; reality-check Linear access first (see AGENTS.md).
-- **`docs/tech-debt-backlog.md`** — refactor / cleanup / known-bugs backlog (not PRD slices; absorbed the old `improvements.md`).
-- **`docs/notes-todo.md`** — client-notes todo (sheet-automation items — partly superseded by this off-sheets arc).
-- **`docs/plan-settled-expenses.md`** — R+M `settled` flag plan (open; design in `docs/superpowers/specs/2026-06-12-settled-internal-material-design.md`).
+- **`roadmap.md` (this file) — source of truth for slices:** the v2 arc (`F-`/`S-` slices) + their `Status`, in the [At a glance](#at-a-glance) table. Dependency order, what to build next.
+- **Linear "Wykonczymy v2" — live status + the ONLY home for ad-hoc todos:** mirrors slice status (flip to Done at archive) and holds every smaller / one-off task. No second todo file. Reality-check Linear access first (see AGENTS.md).
+- **`context/reference/tech-debt-backlog.md`** — refactor / cleanup / known-bugs backlog (judgment-heavy, not PRD slices).
 
 ## Vision recap
 

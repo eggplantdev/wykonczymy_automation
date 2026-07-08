@@ -8,10 +8,12 @@ Business management dashboard for cash registers, transfers, investments, and em
 
 ## Backlog & Task Tracking
 
-- **Canonical todo + slices:** `context/foundation/roadmap.md` — the v2 arc as slices (`F-01`, `S-01`…`S-10`) in dependency order, each with a `Status` field (`ready` / `proposed` / `blocked` / `done`). Start here for what to build next. Built from `context/foundation/prd.md` via `/10x-roadmap`; per-change plans land in `context/changes/<change-id>/` via `/10x-plan`.
-- **Live status board + general todo:** Linear project **"Wykonczymy v2"** — both the slice board and the home for smaller/ad-hoc tasks (there is no separate todo file). When you start implementing a slice set its Linear issue to In Progress, and to Done when it's complete. **Reality-check Linear access first** — if the Linear MCP isn't connected, update the slice's `Status` in `roadmap.md` instead rather than claiming a Linear change you can't make.
+- **Slices:** `context/foundation/roadmap.md` is the source of truth — the v2 arc (`F-01`, `S-01`…`S-10`) in dependency order, each with a `Status` field (`ready` / `proposed` / `blocked` / `done`). Start here for what to build next. Built from `context/foundation/prd.md` via `/10x-roadmap`; per-change plans land in `context/changes/<change-id>/` via `/10x-plan`.
+- **Todos & live status:** Linear project **"Wykonczymy v2"** only — the slice-status mirror plus every smaller / ad-hoc task. No second todo file. When you start a slice set its Linear issue to In Progress, and to Done when complete. **Reality-check Linear access first** — if the Linear MCP isn't connected, update the slice's `Status` in `roadmap.md` rather than claim a Linear change you can't make.
+- **All prose docs live under `context/`** (`foundation/` durable, `changes/` in-flight, `archive/` done, `reference/` standalone references) — never create a top-level `docs/` dir.
+- **Doc lifecycle:** a one-off design/plan doc is not current truth — verify its claims against code before trusting or quoting it. When a change ships, extract the durable rationale into the right living doc (`lessons.md` / a `foundation/` or `context/reference/` doc), then **archive** the raw doc under `context/archive/<slug>/`. Delete only pure scaffolds with zero unique rationale.
 - Refactor/cleanup backlog: see **Tech Debt** below.
-- After ANY bigger change, plan implementation etc. update relevant document, clean up staled plans, designs etc.
+- After ANY bigger change, plan/implementation etc. update the relevant living doc and clean up stale plans/designs per the Doc lifecycle rule above.
 
 ## Common Commands
 
@@ -103,7 +105,7 @@ Non-obvious rules:
 - Cancellation is an audit trail: the original is marked `cancelled: true`, a new `CANCELLATION` row links back to it.
 - Cash register balances are recalculated via Payload hooks on transfer create and delete.
 
-How the financial figures (marża / materiały / robocizna / korekty) connect: `docs/docs_reviewed_19_06/investment-financials-and-discount.md`.
+How the financial figures (marża / materiały / robocizna / korekty) connect: `context/reference/docs_reviewed_19_06/investment-financials-and-discount.md`.
 
 ## Testing
 
@@ -120,7 +122,7 @@ There is no `context/foundation/test-plan.md` here yet — for a larger test rol
 
 ## Tech Debt
 
-Known refactor/cleanup backlog (non-blocking, judgment-heavy): `docs/tech-debt-backlog.md`. Check it before starting a refactor, and record new findings there rather than spawning a new audit doc.
+Known refactor/cleanup backlog (non-blocking, judgment-heavy): `context/reference/tech-debt-backlog.md`. Check it before starting a refactor, and record new findings there rather than spawning a new audit doc.
 
 ## Stack Notes
 
