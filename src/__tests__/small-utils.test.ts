@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { z } from 'zod'
 import { parseDateRange } from '@/lib/utils/parse-date-range'
-import isValidUrl from '@/lib/is-valid-url'
+import isValidUrl from '@/lib/utils/is-valid-url'
 import { refineAmount, refineDate } from '@/lib/utils/validation'
 
 // ── parseDateRange ───────────────────────────────────────────────────────

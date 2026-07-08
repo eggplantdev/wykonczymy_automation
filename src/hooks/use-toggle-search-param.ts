@@ -2,7 +2,7 @@
 
 import { useTransition } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { buildUrlWithParams } from '@/lib/build-url-with-params'
+import { buildUrlWithParams } from '@/lib/utils/build-url-with-params'
 
 type UseToggleSearchParamOptsT = {
   /** Extra params to clear when turning ON. */

@@ -3,7 +3,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
-import { uploadFile } from '@/lib/upload-file'
+import { uploadFile } from '@/lib/utils/upload-file'
 
 /**
  * POST /api/upload-file

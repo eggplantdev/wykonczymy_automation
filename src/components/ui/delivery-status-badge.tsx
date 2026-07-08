@@ -1,4 +1,4 @@
-import { cn } from '@/lib/cn'
+import { cn } from '@/lib/utils/cn'
 import { BADGE_BASE } from '@/components/ui/badge'
 
 export type DeliveryStatusT = 'pending' | 'sent' | 'failed' | 'skipped'

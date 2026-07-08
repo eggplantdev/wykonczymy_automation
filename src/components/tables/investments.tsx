@@ -1,7 +1,7 @@
 'use client'
 
 import { createColumnHelper } from '@tanstack/react-table'
-import { formatPLN } from '@/lib/format-currency'
+import { formatPLN } from '@/lib/utils/format-currency'
 import { isAdminOrOwnerRole, type RoleT } from '@/lib/auth/roles'
 import type { ExpenseCategoryRefT } from '@/types/reference-data'
 import type { CategoryCostT } from '@/lib/db/sum-transfers'

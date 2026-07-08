@@ -13,7 +13,7 @@ import {
   CommandSeparator,
 } from '@/components/ui/command'
 import { FilterTriggerButton } from '@/components/transfers/filter-trigger-button'
-import { cn } from '@/lib/cn'
+import { cn } from '@/lib/utils/cn'
 
 type OptionT = { value: string; label: string }
 

@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { useState } from 'react'
 import { Upload } from 'lucide-react'
-import { cn } from '@/lib/cn'
+import { cn } from '@/lib/utils/cn'
 import { FieldLabel } from '@/components/ui/field'
 
 type FileInputPropsT = React.ComponentProps<'input'> & {

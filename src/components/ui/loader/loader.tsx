@@ -1,7 +1,7 @@
 import { ReactNode } from 'react'
 import { FixedClientLoader } from './fixed-client-loader'
 import { Spinner } from './spinner'
-import { cn } from '@/lib/cn'
+import { cn } from '@/lib/utils/cn'
 
 export type PropsT = {
   loading: boolean

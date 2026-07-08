@@ -1,4 +1,4 @@
-import { cn } from '@/lib/cn'
+import { cn } from '@/lib/utils/cn'
 import { serverEnv } from '@/lib/env/server'
 
 // VERCEL_ENV is 'production' | 'preview' | 'development' on Vercel; undefined locally,

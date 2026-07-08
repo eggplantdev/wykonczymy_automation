@@ -1,4 +1,4 @@
-import { getRelationName } from '@/lib/get-relation-name'
+import { getRelationName } from '@/lib/utils/get-relation-name'
 import { isSheetTransferTabType, TRANSFER_TYPE_LABELS } from '@/lib/constants/transfers'
 import type { TabRowInputT } from './sheets'
 

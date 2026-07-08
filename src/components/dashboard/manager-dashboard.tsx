@@ -1,4 +1,4 @@
-import { parsePagination } from '@/lib/pagination'
+import { parsePagination } from '@/lib/utils/pagination'
 import { buildTransferFilters } from '@/lib/queries/transfer-filters'
 import { fetchManagerDashboardData } from '@/lib/queries/dashboard'
 import { UserRegisterStats } from '@/components/dashboard/user-register-stats'

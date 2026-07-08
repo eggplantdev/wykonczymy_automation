@@ -1,7 +1,7 @@
 import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
-import { parsePagination } from '@/lib/pagination'
+import { parsePagination } from '@/lib/utils/pagination'
 import {
   fetchReferenceData,
   fetchFilteredByType,
@@ -12,7 +12,7 @@ import { calculateMargin } from '@/lib/db/calculate-margin'
 import { buildTransferFilters, stripCancelledFilters } from '@/lib/queries/transfer-filters'
 import { buildFinancialFields, buildSettledFields } from '@/lib/db/map-category-costs'
 import { perfStart } from '@/lib/perf'
-import { buildFilterConfig } from '@/lib/build-filter-config'
+import { buildFilterConfig } from '@/lib/utils/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'

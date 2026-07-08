@@ -5,10 +5,10 @@ import {
   buildPaginationMeta,
   DEFAULT_LIMIT,
   ALLOWED_LIMITS,
-} from '@/lib/pagination'
-import { buildUrlWithParams } from '@/lib/build-url-with-params'
-import { formatPLN } from '@/lib/format-currency'
-import { getRelationName } from '@/lib/get-relation-name'
+} from '@/lib/utils/pagination'
+import { buildUrlWithParams } from '@/lib/utils/build-url-with-params'
+import { formatPLN } from '@/lib/utils/format-currency'
+import { getRelationName } from '@/lib/utils/get-relation-name'
 
 // ── getMonthDateRange ────────────────────────────────────────────────────
 

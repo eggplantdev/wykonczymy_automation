@@ -1,5 +1,5 @@
-import { formatPLN, normalize } from '@/lib/format-currency'
-import { cn } from '@/lib/cn'
+import { formatPLN, normalize } from '@/lib/utils/format-currency'
+import { cn } from '@/lib/utils/cn'
 import { Description } from '@/components/ui/description'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
 

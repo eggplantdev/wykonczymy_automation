@@ -21,7 +21,7 @@ import {
 } from '@/lib/constants/transfers'
 import { createBulkTransferAction } from '@/lib/actions/transfers'
 import { mapLineItem } from '@/components/forms/expense-form/map-line-item'
-import { uploadFilesClient } from '@/lib/upload-file-client'
+import { uploadFilesClient } from '@/lib/utils/upload-file-client'
 import {
   bulkExpenseFormSchema,
   type CreateBulkExpenseFormT,

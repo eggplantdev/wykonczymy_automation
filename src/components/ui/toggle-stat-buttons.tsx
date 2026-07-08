@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { cn } from '@/lib/cn'
+import { cn } from '@/lib/utils/cn'
 import { Button } from '@/components/ui/button'
 import { FilterGrid } from '@/components/ui/filter-grid'
 import { Description } from '@/components/ui/description'

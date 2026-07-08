@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import isValidUrl from '@/lib/is-valid-url'
+import isValidUrl from '@/lib/utils/is-valid-url'
 
 // Pure schemas — NO side effects and NO `import 'server-only'`, so this file is safe to
 // import from both env entries (env/index.ts / env/server.ts) and from the Payload CLI graph.

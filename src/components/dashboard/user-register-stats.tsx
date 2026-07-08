@@ -1,6 +1,6 @@
 'use client'
 
-import { formatPLN } from '@/lib/format-currency'
+import { formatPLN } from '@/lib/utils/format-currency'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { ToggleStatButtons } from '@/components/ui/toggle-stat-buttons'
 import type { StatEntryT } from '@/components/ui/toggle-stat-buttons'

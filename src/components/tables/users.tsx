@@ -2,7 +2,7 @@
 
 import { createColumnHelper } from '@tanstack/react-table'
 import { ROLE_LABELS, type RoleT } from '@/lib/auth/roles'
-import { formatPLN } from '@/lib/format-currency'
+import { formatPLN } from '@/lib/utils/format-currency'
 import { RoleBadge } from '@/components/ui/badge'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
 

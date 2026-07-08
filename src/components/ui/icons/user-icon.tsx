@@ -1,5 +1,5 @@
 import { type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/cn'
+import { cn } from '@/lib/utils/cn'
 import { iconVariants } from './icon-variants'
 
 type PropsT = VariantProps<typeof iconVariants> & {

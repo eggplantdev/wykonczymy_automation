@@ -1,4 +1,4 @@
-import { formatPLN } from '@/lib/format-currency'
+import { formatPLN } from '@/lib/utils/format-currency'
 import { SaldoDisplay } from '@/components/ui/saldo-display'
 
 type SaldoSummaryPropsT = {

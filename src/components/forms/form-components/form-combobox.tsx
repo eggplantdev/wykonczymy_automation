@@ -12,7 +12,7 @@ import {
   CommandList,
 } from '@/components/ui/command'
 import Icon from '@/components/ui/icons/icon'
-import { cn } from '@/lib/cn'
+import { cn } from '@/lib/utils/cn'
 import FormBase from './form-base'
 import { FormControlPropsT } from '../types/form-types'
 import { useFieldContext } from '../hooks/form-hooks'

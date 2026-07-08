@@ -11,7 +11,7 @@ import {
   type VisibilityState,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { cn } from '@/lib/cn'
+import { cn } from '@/lib/utils/cn'
 import { DataTableRow } from './data-table-row'
 import { VirtualizedTableBody } from './virtualized-table-body'
 import { TableHeader } from './table-header'

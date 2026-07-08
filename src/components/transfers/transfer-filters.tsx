@@ -9,15 +9,15 @@ import { FilterMultiSelect } from '@/components/transfers/filter-multi-select'
 import { ClearButton } from '@/components/transfers/clear-button'
 import { DateFilters } from '@/components/transfers/date-filters'
 import { StatButton } from '@/components/ui/stat-button'
-import { formatPLN } from '@/lib/format-currency'
+import { formatPLN } from '@/lib/utils/format-currency'
 import {
   TRANSFER_TYPES,
   TRANSFER_TYPE_LABELS,
   PAYMENT_METHODS,
   PAYMENT_METHOD_LABELS,
 } from '@/lib/constants/transfers'
-import { buildUrlWithParams } from '@/lib/build-url-with-params'
-import { cn } from '@/lib/cn'
+import { buildUrlWithParams } from '@/lib/utils/build-url-with-params'
+import { cn } from '@/lib/utils/cn'
 import { Loader } from '@/components/ui/loader/loader'
 import type { ReferenceItemT } from '@/types/reference-data'
 

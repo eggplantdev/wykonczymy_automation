@@ -1,4 +1,4 @@
-import { compressImage } from '@/lib/compress-image'
+import { compressImage } from '@/lib/utils/compress-image'
 
 type UploadResultT = { mediaId: number }
 

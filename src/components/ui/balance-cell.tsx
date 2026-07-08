@@ -1,5 +1,5 @@
-import { cn } from '@/lib/cn'
-import { formatPLN } from '@/lib/format-currency'
+import { cn } from '@/lib/utils/cn'
+import { formatPLN } from '@/lib/utils/format-currency'
 
 type BalanceCellPropsT = {
   value: number
