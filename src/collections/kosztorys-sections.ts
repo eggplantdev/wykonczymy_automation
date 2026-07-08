@@ -2,9 +2,9 @@ import type { CollectionConfig } from 'payload'
 import { isAdminOrOwnerOrManager } from '@/access'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 
-// Sekcja rozpiski robocizny (nagłówek grupujący pozycje). defaultCostVariant
-// kaskaduje na pozycje (pozycja dziedziczy, może nadpisać). VAT nie żyje na sekcji —
-// jedna stawka na inwestycji (S-12, jeszcze niewdrożone).
+// Labor cost sheet section (a header grouping items). defaultCostVariant
+// cascades to items (an item inherits it and may override). VAT does not live on the section —
+// there is a single rate per investment (S-12, not yet implemented).
 export const KosztorysSections: CollectionConfig = {
   slug: 'kosztorys-sections',
   labels: {
@@ -37,7 +37,7 @@ export const KosztorysSections: CollectionConfig = {
       defaultValue: 'w_tools',
       label: { en: 'Default cost variant', pl: 'Domyślny wariant kosztu' },
     },
-    // Współczynnik narzutu podwykonawcy per sekcja; null = dziedziczy globalny z inwestycji.
+    // Per-section subcontractor markup coefficient; null = inherit the global one from the investment.
     {
       name: 'wToolsCoeff',
       type: 'number',

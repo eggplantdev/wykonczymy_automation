@@ -10,13 +10,13 @@ import type {
   SubcontractorOverrideTypeT,
 } from '@/types/kosztorys'
 
-// Relacje przychodzą jako number (depth 0) lub obiekt — normalizujemy do id.
+// Relationships arrive as a number (depth 0) or an object — we normalize to the id.
 const relId = (v: unknown): number =>
   typeof v === 'object' && v ? (v as { id: number }).id : Number(v)
 const num = (v: unknown): number => Number(v ?? 0)
 
-// S-01: sekcje + pozycje jednej inwestycji, uporządkowane displayOrder → displayOrder.
-// Etapy (S-04) i VAT (S-12) poza zakresem: stages/progress = [], vatRate = 0.
+// S-01: sections + items of a single investment, ordered by displayOrder → displayOrder.
+// Stages (S-04) and VAT (S-12) are out of scope: stages/progress = [], vatRate = 0.
 export async function getKosztorysTree(investmentId: number): Promise<KosztorysTreeT> {
   const payload = await getPayload({ config })
   const where = { investment: { equals: investmentId } }

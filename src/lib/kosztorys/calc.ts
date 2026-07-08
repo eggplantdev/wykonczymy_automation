@@ -7,13 +7,14 @@ import type {
   ViewPricingT,
 } from '@/types/kosztorys'
 
-// VAT: jedna stawka na inwestycję (vatRate), niesiona na wierszu. Brak kaskady sekcja→pozycja.
+// VAT: a single rate per investment (vatRate), carried on the row. No section→item cascade.
 
-// Jedyne źródło formuł rozpiski. Czyste funkcje — zapisujemy tylko inputy, wszystko
-// poniżej liczymy na żywo. Wartość liczona z measuredQty (pomiar), nie plannedQty.
+// The single source of the breakdown formulas. Pure functions — we persist only the
+// inputs and compute everything below live. Value is computed from measuredQty (the
+// measured qty, "pomiar"), not plannedQty.
 //
-// Rabat: discountValue dla 'percent' = punkty procentowe (10 => 10%), dla 'amount'
-// = kwota w zł odjęta od wartości netto.
+// Discount ("rabat"): discountValue for 'percent' = percentage points (10 => 10%), for
+// 'amount' = an amount in PLN subtracted from the net value.
 
 export function effectiveCostVariant(
   item: KosztorysItemT,
@@ -28,7 +29,7 @@ function applyDiscount(gross: number, item: KosztorysItemT): number {
   return gross
 }
 
-/** Wartość netto wiersza wg ceny klienta (pomiar × cena − rabat). */
+/** Net row value at the client price (measured qty × price − discount). */
 export function rowNet(item: KosztorysItemT): number {
   return applyDiscount(item.measuredQty * item.clientPrice, item)
 }
@@ -37,26 +38,26 @@ export function rowGross(item: KosztorysItemT, vatRate: number): number {
   return rowNet(item) * (1 + vatRate)
 }
 
-/** Wartość pojedynczego etapu pozycji (ilość wykonana × cena klienta − rabat). */
+/** Value of a single item stage (qty done × client price − discount). */
 export function stageValue(item: KosztorysItemT, qtyDoneInStage: number): number {
   return applyDiscount(qtyDoneInStage * item.clientPrice, item)
 }
 
-/** Pozostało do wykonania = netto wiersza − Σ wartości wykonanych etapów. */
+/** Remaining to do = row net − Σ of completed-stage values. */
 export function rowRemaining(item: KosztorysItemT, doneNetTotal: number): number {
   return rowNet(item) - doneNetTotal
 }
 
-// --- Widoki cenowe (jeden zbiór → trzy widoki: klient / podwykonawca z/bez narzędzi) ---
+// --- Price views (one dataset → three views: client / subcontractor with/without tools) ---
 export type PriceViewT = 'client' | 'w_tools' | 'own_tools'
 
-/** Efektywny współczynnik narzutu wg widoku: sekcja nadpisuje globalny (z inwestycji). */
+/** Effective markup coefficient by view: the section overrides the global (investment) one. */
 export function effectiveCoeff(row: ViewPricingT, view: 'w_tools' | 'own_tools'): number {
   if (view === 'w_tools') return row.sectionWToolsCoeff ?? row.globalWToolsCoeff
   return row.sectionOwnToolsCoeff ?? row.globalOwnToolsCoeff
 }
 
-/** Cena podwykonawcy wg widoku: null→wyprowadzona (klient×coeff), coeff→klient×%, amount→płaska. */
+/** Subcontractor price by view: null→derived (client×coeff), coeff→client×%, amount→flat. */
 export function subcontractorPrice(row: ViewPricingT, view: 'w_tools' | 'own_tools'): number {
   const type = view === 'w_tools' ? row.wToolsOverrideType : row.ownToolsOverrideType
   const value = view === 'w_tools' ? row.wToolsOverrideValue : row.ownToolsOverrideValue
@@ -70,12 +71,12 @@ export function viewPrice(row: ViewPricingT, view: PriceViewT): number {
   return row.clientPrice
 }
 
-/** Netto wiersza wg ceny wybranego widoku (pomiar × cena widoku − rabat). */
+/** Row net at the selected view's price (measured qty × view price − discount). */
 export function rowNetForView(row: ViewPricingT, view: PriceViewT): number {
   return applyDiscount(row.measuredQty * viewPrice(row, view), row)
 }
 
-/** Wartość pojedynczego etapu wg ceny widoku (ilość wykonana × cena widoku − rabat). */
+/** Value of a single stage at the view's price (qty done × view price − discount). */
 export function stageValueForView(
   row: ViewPricingT,
   qtyDoneInStage: number,
@@ -84,7 +85,7 @@ export function stageValueForView(
   return applyDiscount(qtyDoneInStage * viewPrice(row, view), row)
 }
 
-/** Pozostało wg widoku = netto widoku − Σ wartości wykonanych etapów wg widoku. */
+/** Remaining by view = view net − Σ of completed-stage values by view. */
 export function rowRemainingForView(
   row: ViewPricingT,
   doneNetTotal: number,
@@ -94,9 +95,9 @@ export function rowRemainingForView(
 }
 
 /**
- * Subtotale netto per sekcja wg aktywnego widoku cenowego. Liczone po pełnym
- * zbiorze (ignoruje filtr/sort). Kolejność = pierwszego wystąpienia sekcji w
- * `rows` (treeToRows daje już porządek sekcja→displayOrder).
+ * Net subtotals per section for the active price view. Computed over the full
+ * dataset (ignores filter/sort). Order = first occurrence of each section in
+ * `rows` (treeToRows already yields section→displayOrder order).
  */
 export function sectionSubtotalsForView(
   rows: KosztorysV2RowT[],

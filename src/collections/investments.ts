@@ -73,8 +73,8 @@ export const Investments: CollectionConfig = {
       label: { en: 'Status', pl: 'Status' },
       options: [...STATUS_OPTIONS],
     },
-    // Globalne (na inwestycję) współczynniki narzutu podwykonawcy — domyślne dla kosztorysu;
-    // sekcja może nadpisać, pozycja może nadpisać (override). Kolumny stworzone w migracji z defaultami.
+    // Global (per-investment) subcontractor markup coefficients — the defaults for the sheet;
+    // a section may override them, and an item may override them. Columns created in a migration with defaults.
     {
       name: 'wToolsCoeff',
       type: 'number',

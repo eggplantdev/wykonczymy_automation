@@ -11,7 +11,7 @@ export function stageKey(stageId: number): `stage_${number}` {
   return `stage_${stageId}`
 }
 
-// Pola pozycji edytowalne w siatce (= klucze ItemPatchT). Diff porównuje tylko je.
+// Item fields editable in the grid (= the keys of ItemPatchT). The diff compares only these.
 const ITEM_FIELDS = [
   'description',
   'unit',
@@ -85,7 +85,7 @@ export function diffRow(prev: KosztorysV2RowT, next: KosztorysV2RowT): RowDiffT 
   return diff
 }
 
-// Filtr toolbara: szukajka po opisie / sekcji / j.m. (parytet z v1). Pusty/whitespace → bez filtra.
+// Toolbar filter: search over description / section / unit (parity with v1). Empty/whitespace → no filter.
 export function filterRows(rows: KosztorysV2RowT[], query: string): KosztorysV2RowT[] {
   const q = query.trim().toLowerCase()
   if (!q) return rows
@@ -99,7 +99,7 @@ export function filterRows(rows: KosztorysV2RowT[], query: string): KosztorysV2R
 
 export type SortDirT = 'asc' | 'desc'
 
-// Sort po wartości z accessora; stringi po locale (pl), liczby numerycznie. Zwraca nową tablicę.
+// Sort by the accessor's value; strings by locale (pl), numbers numerically. Returns a new array.
 export function sortRows(
   rows: KosztorysV2RowT[],
   getValue: (row: KosztorysV2RowT) => string | number,
@@ -116,9 +116,9 @@ export function sortRows(
   })
 }
 
-// Cofnij pole wiersza do wartości sprzed edycji (revert-on-error autosave), ale TYLKO
-// jeśli od czasu nieudanego zapisu nic nowszego nie wpisano (current === attempted) —
-// inaczej deptalibyśmy świeższą edycję użytkownika.
+// Revert a row field to its pre-edit value (revert-on-error autosave), but ONLY
+// if nothing newer was typed since the failed save (current === attempted) —
+// otherwise we would trample the user's fresher edit.
 export function revertField(
   rows: KosztorysV2RowT[],
   id: number,
@@ -132,9 +132,9 @@ export function revertField(
   })
 }
 
-// Domyślne wartości nowej sekcji. MUSZĄ odpowiadać addSectionAction w
-// src/lib/actions/kosztorys.ts — pliku 'use server' nie wolno eksportować stałych,
-// więc trzymamy mirror tu i budujemy z niego optymistyczny wiersz (bez czekania na refresh).
+// Default values for a new section. They MUST match addSectionAction in
+// src/lib/actions/kosztorys.ts — a 'use server' file may not export constants,
+// so we keep a mirror here and build the optimistic row from it (without waiting for a refresh).
 export const NEW_SECTION_DEFAULTS = {
   name: 'Nowa sekcja',
   defaultCostVariant: 'w_tools',
@@ -154,8 +154,8 @@ export type BlankRowInputT = {
   stages: KosztorysStageT[]
 }
 
-// Pusty wiersz pozycji = serwerowe defaulty addItemAction + zdenormalizowane pola sekcji
-// + stage_*=0. Budowany optymistycznie ze znanego id/displayOrder zwróconego przez akcję.
+// Blank item row = addItemAction's server defaults + denormalized section fields
+// + stage_*=0. Built optimistically from the known id/displayOrder returned by the action.
 export function buildBlankRow(input: BlankRowInputT): KosztorysV2RowT {
   const stageFields: Record<string, number> = {}
   for (const st of input.stages) stageFields[stageKey(st.id)] = 0
@@ -196,16 +196,16 @@ export function applyRemoveItem(rows: KosztorysV2RowT[], itemId: number): Koszto
   return rows.filter((r) => r.id !== itemId)
 }
 
-// Liczba pozycji sekcji w pełnym zbiorze — strażnik inwariantu „sekcja ma ≥1 pozycję".
+// Count of a section's items in the full dataset — guards the invariant "a section has ≥1 item".
 export function sectionItemCount(rows: KosztorysV2RowT[], sectionId: number): number {
   return rows.reduce((n, r) => (r.sectionId === sectionId ? n + 1 : n), 0)
 }
 
-// Przestaw pozycję w obrębie JEJ sekcji o jedno miejsce (▲/▼). Operuje na sekwencji
-// wyświetlania pozycji tej samej sekcji (kolejność w `rows`), NIE na ciągłości bloku —
-// dzięki temu toleruje pozycję dodaną przez applyAddItem na koniec `rows` (Slice 1).
-// Zwraca tę samą referencję przy no-opie (brzeg bloku / nieznane id) — sygnał dla edytora,
-// że nie ma czego zapisywać.
+// Move an item one place within ITS section (▲/▼). Operates on the display sequence
+// of items in the same section (their order in `rows`), NOT on block contiguity —
+// this way it tolerates an item appended to the end of `rows` by applyAddItem (Slice 1).
+// Returns the same reference on a no-op (block edge / unknown id) — a signal to the editor
+// that there is nothing to save.
 export function swapItemInSection(
   rows: KosztorysV2RowT[],
   itemId: number,
@@ -213,13 +213,13 @@ export function swapItemInSection(
 ): KosztorysV2RowT[] {
   const target = rows.find((r) => r.id === itemId)
   if (!target) return rows
-  // Indeksy w `rows` pozycji tej samej sekcji, w kolejności tablicy (= kolejności wyświetlania).
+  // Indices in `rows` of items in the same section, in array order (= display order).
   const sameSection = rows
     .map((r, i) => ({ id: r.id, i }))
     .filter((_, idx) => rows[idx].sectionId === target.sectionId)
   const pos = sameSection.findIndex((x) => x.id === itemId)
   const targetPos = dir === 'up' ? pos - 1 : pos + 1
-  if (targetPos < 0 || targetPos >= sameSection.length) return rows // brzeg bloku → no-op
+  if (targetPos < 0 || targetPos >= sameSection.length) return rows // block edge → no-op
   const a = sameSection[pos].i
   const b = sameSection[targetPos].i
   const next = [...rows]
@@ -227,8 +227,8 @@ export function swapItemInSection(
   return next
 }
 
-// Sąsiad pozycji w obrębie JEJ sekcji w kierunku ▲/▼ (ta sama sekwencja co swapItemInSection).
-// `undefined` na brzegu bloku — sygnał no-op. Używane do swapu display_order dwóch wierszy.
+// Neighbor of an item within ITS section in the ▲/▼ direction (same sequence as swapItemInSection).
+// `undefined` at the block edge — a no-op signal. Used to swap the display_order of two rows.
 export function sectionNeighbor(
   rows: KosztorysV2RowT[],
   itemId: number,
@@ -242,7 +242,7 @@ export function sectionNeighbor(
   return sameSection[neighborPos]
 }
 
-// Σ wartości wykonanych etapów wiersza v2 wg ceny widoku (do kolumny „Pozostało").
+// Σ of completed-stage values for a v2 row at the view's price (for the "Pozostało" column).
 export function rowDoneNetForView(
   row: KosztorysV2RowT,
   stages: KosztorysStageT[],

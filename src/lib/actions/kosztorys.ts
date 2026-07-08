@@ -5,8 +5,8 @@ import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import type { ActionResultT } from '@/types/action'
 import type { ItemPatchT } from '@/types/kosztorys'
 
-// --- Schematy patchy (wszystkie pola opcjonalne — autosave wysyła jedno pole) ---
-// itemPatchSchema dopina się kształtem do ItemPatchT (jedno źródło typu w types/kosztorys.ts).
+// --- Patch schemas (all fields optional — autosave sends one field at a time) ---
+// itemPatchSchema is shaped to match ItemPatchT (a single source of the type in types/kosztorys.ts).
 
 const itemPatchSchema = z
   .object({
@@ -37,7 +37,7 @@ const sectionPatchSchema = z
   })
   .partial()
 
-// Współczynniki narzutu inwestycji (edycja z panelu). VAT (S-12) poza zakresem.
+// Investment markup coefficients (edited from the panel). VAT (S-12) is out of scope.
 const investmentCoeffsSchema = z
   .object({
     wToolsCoeff: z.coerce.number(),
@@ -48,7 +48,7 @@ const investmentCoeffsSchema = z
 export type SectionPatchT = z.infer<typeof sectionPatchSchema>
 export type InvestmentCoeffsPatchT = z.infer<typeof investmentCoeffsSchema>
 
-// --- Aktualizacje pól (autosave) ---
+// --- Field updates (autosave) ---
 
 export async function updateItemFieldAction(itemId: number, patch: ItemPatchT) {
   return protectedAction(
@@ -88,12 +88,12 @@ export async function updateInvestmentCoeffsAction(
       await payload.update({ collection: 'investments', id: investmentId, data: parsed.data })
       return { success: true }
     },
-    // Współczynnik globalny zmienia wyprowadzone ceny pozycji → odśwież cache kosztorysu.
+    // A global coefficient changes the derived item prices → refresh the sheet cache.
     ['kosztorysItems', 'kosztorysSections'],
   )
 }
 
-// --- Struktura: sekcje / pozycje ---
+// --- Structure: sections / items ---
 
 export async function addSectionAction(
   investmentId: number,
@@ -177,9 +177,9 @@ const reorderItemsSchema = z.object({
   orderedItemIds: z.array(z.number()).min(1),
 })
 
-// Renumeracja display_order pozycji sekcji wg pełnej listy id (nie swap dwóch) — serwer
-// dostaje całą prawdę o kolejności i renumeruje od zera. Zarezerwowane pod przyszły
-// cross-section move; ▲▼ używa swapItemOrderAction (2 zapisy zamiast N).
+// Renumbers the display_order of a section's items from the full list of ids (not a two-item swap) — the server
+// receives the complete truth about the ordering and renumbers from zero. Reserved for a future
+// cross-section move; ▲▼ uses swapItemOrderAction (2 writes instead of N).
 export async function reorderItemsAction(
   sectionId: number,
   orderedItemIds: number[],
@@ -203,9 +203,9 @@ export async function reorderItemsAction(
 const itemOrderSchema = z.object({ id: z.number(), displayOrder: z.number() })
 const swapItemOrderSchema = z.object({ first: itemOrderSchema, second: itemOrderSchema })
 
-// Zamiana display_order dwóch pozycji (sąsiadów) — 2 update'y niezależnie od rozmiaru sekcji.
-// Dla ruchu ▲▼ (zawsze swap sąsiadów) wystarcza to zamiast renumeracji całej sekcji.
-// Każdy argument niesie NOWY display_order, który pozycja ma przyjąć.
+// Swaps the display_order of two (adjacent) items — 2 updates regardless of section size.
+// For the ▲▼ move (always a swap of neighbors) this suffices instead of renumbering the whole section.
+// Each argument carries the NEW display_order that the item should take on.
 export async function swapItemOrderAction(
   first: { id: number; displayOrder: number },
   second: { id: number; displayOrder: number },

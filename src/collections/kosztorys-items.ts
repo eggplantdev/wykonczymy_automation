@@ -2,11 +2,11 @@ import type { CollectionConfig } from 'payload'
 import { isAdminOrOwnerOrManager } from '@/access'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 
-// Pozycja rozpiski. Cena klienta = snapshot. Ceny podwykonawcy wyprowadzane ze
-// współczynnika narzutu (sekcja/inwestycja), z dwustanowym override per pozycja:
-// *OverrideType ∈ {coeff, amount} | null (null = wyprowadź), *OverrideValue. Wartość
-// liczona z measuredQty (pomiar). costVariant = null = "dziedzicz z sekcji".
-// VAT nie żyje tu — jedna stawka na inwestycji (S-12, jeszcze niewdrożone).
+// A sheet item. Client price = a snapshot. Subcontractor prices are derived from the
+// markup coefficient (section/investment), with a two-state per-item override:
+// *OverrideType ∈ {coeff, amount} | null (null = derive), *OverrideValue. The value is
+// computed from measuredQty (the measurement). costVariant = null = "inherit from section".
+// VAT does not live here — there is a single rate per investment (S-12, not yet implemented).
 export const KosztorysItems: CollectionConfig = {
   slug: 'kosztorys-items',
   labels: {

@@ -22,7 +22,7 @@ const baseItem = {
   discountType: null,
   discountValue: 0,
   clientPrice: 20,
-  // Override 'amount' (płaskie 12/10) — zachowuje wartości testów sprzed migracji.
+  // 'amount' override (flat 12/10) — preserves the test values from before the migration.
   wToolsOverrideType: 'amount' as const,
   wToolsOverrideValue: 12,
   ownToolsOverrideType: 'amount' as const,
@@ -65,7 +65,7 @@ describe('treeToRows', () => {
       description: 'Malowanie',
     })
     expect(rows[0][stageKey(100)]).toBe(2)
-    expect(rows[0][stageKey(101)]).toBe(0) // brak postępu → 0
+    expect(rows[0][stageKey(101)]).toBe(0) // no progress → 0
   })
 })
 
@@ -179,13 +179,13 @@ describe('revertField', () => {
   ]
 
   it('cofa pole do wartości sprzed edycji, gdy current === attempted', () => {
-    const out = revertField(rows, 1, 'measuredQty', 5, 8) // wpisano 8, serwer odrzucił → wróć do 5
+    const out = revertField(rows, 1, 'measuredQty', 5, 8) // 8 was entered, server rejected it → revert to 5
     expect(out[0].measuredQty).toBe(5)
-    expect(out[1].measuredQty).toBe(3) // inny wiersz nietknięty
+    expect(out[1].measuredQty).toBe(3) // other row untouched
   })
 
   it('nie nadpisuje świeższej edycji (current !== attempted)', () => {
-    const out = revertField(rows, 1, 'measuredQty', 5, 99) // od czasu błędu user wpisał 8, nie 99
+    const out = revertField(rows, 1, 'measuredQty', 5, 99) // since the error the user entered 8, not 99
     expect(out[0].measuredQty).toBe(8)
   })
 

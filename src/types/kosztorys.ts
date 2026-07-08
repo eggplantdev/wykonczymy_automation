@@ -1,12 +1,12 @@
-// Płaskie typy rozpiski robocizny. Relacje zredukowane do *_id liczb —
-// query pobiera z głębokością 0. costVariant = null oznacza "dziedzicz z sekcji".
-// VAT to jedna stawka na inwestycję (KosztorysTreeT.vatRate), nie per sekcja/pozycja;
-// w S-01 niesiona jako 0 (VAT wchodzi w S-12).
+// Flat types for the labor ("robocizna") breakdown. Relations are reduced to numeric *_id
+// values — the query fetches with depth 0. costVariant = null means "inherit from the section".
+// VAT is a single rate per investment (KosztorysTreeT.vatRate), not per section/item;
+// in S-01 it is carried as 0 (VAT arrives in S-12).
 
 export type DiscountTypeT = 'percent' | 'amount'
 export type CostVariantT = 'w_tools' | 'own_tools'
-// Override ceny podwykonawcy per pozycja: 'coeff' = klient × wartość (podąża za ceną
-// klienta), 'amount' = płaska kwota (zamrożona), null = wyprowadź z efektywnego współczynnika.
+// Per-item subcontractor price override: 'coeff' = client × value (tracks the client
+// price), 'amount' = flat frozen amount, null = derive from the effective coefficient.
 export type SubcontractorOverrideTypeT = 'coeff' | 'amount'
 
 export type KosztorysSectionT = {
@@ -14,7 +14,7 @@ export type KosztorysSectionT = {
   name: string
   displayOrder: number
   defaultCostVariant: CostVariantT
-  // null = dziedziczy globalny współczynnik z inwestycji.
+  // null = inherit the global coefficient from the investment.
   wToolsCoeff: number | null
   ownToolsCoeff: number | null
 }
@@ -39,9 +39,9 @@ export type KosztorysItemT = {
   note: string | null
 }
 
-// Patch autosave pozycji = podzbiór pól edytowalnych w siatce (bez id/sectionId/displayOrder).
-// Jedno źródło prawdy: importowany zarówno przez czysty core (v2-rows diffRow/RowDiffT) jak
-// i przez akcję serwerową updateItemFieldAction (walidacja zod dopina się do tego kształtu).
+// Item autosave patch = the subset of fields editable in the grid (excluding id/sectionId/displayOrder).
+// Single source of truth: imported both by the pure core (v2-rows diffRow/RowDiffT) and
+// by the server action updateItemFieldAction (its zod validation is derived from this shape).
 export type ItemPatchT = Partial<
   Pick<
     KosztorysItemT,
@@ -62,11 +62,11 @@ export type ItemPatchT = Partial<
   >
 >
 
-// Globalne (na inwestycję) współczynniki narzutu podwykonawcy; niesione przez drzewo.
+// Global (per-investment) subcontractor markup coefficients; carried through the tree.
 export type KosztorysGlobalCoeffsT = { wTools: number; ownTools: number }
 
-// Minimalny kształt do derivacji ceny widoku — KosztorysV2RowT go spełnia
-// (KosztorysItemT + zdenormalizowane współczynniki sekcji i globalne).
+// Minimal shape for deriving the view price — KosztorysV2RowT satisfies it
+// (KosztorysItemT + denormalized section and global coefficients).
 export type ViewPricingT = KosztorysItemT & {
   sectionWToolsCoeff: number | null
   sectionOwnToolsCoeff: number | null
@@ -91,18 +91,18 @@ export type KosztorysTreeT = {
   stages: KosztorysStageT[]
   progress: StageProgressT[]
   globalCoeffs: KosztorysGlobalCoeffsT
-  // Jedna stawka VAT na inwestycję — niesiona drzewem (jak globalCoeffs), zdenormalizowana na wiersz.
+  // A single VAT rate per investment — carried through the tree (like globalCoeffs), denormalized onto each row.
   vatRate: number
 }
 
-// --- Wariant v2 (react-datasheet-grid): płaski wiersz z etapami spłaszczonymi
-// do kluczy stage_<stageId>, żeby keyColumn mapował 1:1. ---
+// --- v2 variant (react-datasheet-grid): a flat row with stages flattened
+// into stage_<stageId> keys so that keyColumn maps 1:1. ---
 export type KosztorysV2RowBaseT = KosztorysItemT & {
   sectionName: string
-  // Zdenormalizowana stawka VAT inwestycji (jedna na cały kosztorys) — brutto = netto × (1 + vatRate).
+  // Denormalized investment VAT rate (one for the whole kosztorys) — gross = net × (1 + vatRate).
   vatRate: number
   sectionDefaultCostVariant: CostVariantT
-  // Zdenormalizowane współczynniki do derivacji ceny podwykonawcy na wierszu (ViewPricingT).
+  // Denormalized coefficients for deriving the subcontractor price on the row (ViewPricingT).
   sectionWToolsCoeff: number | null
   sectionOwnToolsCoeff: number | null
   globalWToolsCoeff: number
@@ -117,6 +117,6 @@ export type SectionSubtotalT = {
   sectionId: number
   sectionName: string
   net: number
-  share: number // 0..1, udział w sumie netto wszystkich sekcji
+  share: number // 0..1, share of the combined net total of all sections
   itemCount: number
 }

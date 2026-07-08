@@ -6,8 +6,8 @@ import {
 } from '@/lib/kosztorys/calc'
 import type { KosztorysV2RowT, ViewPricingT } from '@/types/kosztorys'
 
-// Ceny podwykonawcy jako override 'amount' (płaskie 12/10) — zachowuje wartości sprzed
-// migracji na model współczynnikowy (testy walidują ścieżkę amount, nie wyprowadzanie).
+// Subcontractor prices as an 'amount' override (flat 12/10) — preserves the values from before
+// the migration to the coefficient model (the tests validate the amount path, not the derivation).
 const item: ViewPricingT = {
   id: 1,
   sectionId: 10,
@@ -47,14 +47,14 @@ describe('stageValueForView', () => {
 
 describe('rowRemainingForView', () => {
   it('pozostało = netto widoku − wykonane', () => {
-    // netto client = 10 × 20 = 200; wykonane = 60 → pozostało 140
+    // client net = 10 × 20 = 200; done = 60 → remaining 140
     expect(rowRemainingForView(item, 60, 'client')).toBe(140)
-    // netto w_tools = 10 × 12 = 120; wykonane = 36 → pozostało 84
+    // w_tools net = 10 × 12 = 120; done = 36 → remaining 84
     expect(rowRemainingForView(item, 36, 'w_tools')).toBe(84)
   })
 })
 
-// fixture: 2 sekcje, A (id 10) ma 2 pozycje, B (id 20) 1 pozycję
+// fixture: 2 sections, A (id 10) has 2 items, B (id 20) has 1 item
 const v2Rows: KosztorysV2RowT[] = [
   {
     ...item,
@@ -90,7 +90,7 @@ const v2Rows: KosztorysV2RowT[] = [
 describe('sectionSubtotalsForView', () => {
   it('sumuje netto per sekcja, nie miesza sekcji', () => {
     const r = sectionSubtotalsForView(v2Rows, 'client')
-    // Sekcja A: poz1 10×20=200 + poz2 40 = 240; Sekcja B: 1000
+    // Section A: item1 10×20=200 + item2 40 = 240; Section B: 1000
     expect(r.map((s) => [s.sectionId, s.net, s.itemCount])).toEqual([
       [10, 240, 2],
       [20, 1000, 1],
@@ -99,7 +99,7 @@ describe('sectionSubtotalsForView', () => {
 
   it('view-awareness: w_tools daje inne netto', () => {
     const r = sectionSubtotalsForView(v2Rows, 'w_tools')
-    // poz1 10×12=120; poz2 5×12=60 −20% = 48 → A=168; B 10×12=120
+    // item1 10×12=120; item2 5×12=60 −20% = 48 → A=168; B 10×12=120
     expect(r[0].net).toBe(168)
     expect(r[1].net).toBe(120)
   })
