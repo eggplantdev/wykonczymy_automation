@@ -1,6 +1,6 @@
 import { useOptimistic, startTransition, useCallback } from 'react'
 import { toastMessage } from '@/lib/utils/toast'
-import type { ActionResultT } from '@/lib/actions/utils'
+import type { ActionResultT } from '@/types/action'
 
 export function useOptimisticToggle<TRow extends { id: number }>(
   data: TRow[],

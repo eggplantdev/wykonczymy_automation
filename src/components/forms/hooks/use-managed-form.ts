@@ -4,7 +4,7 @@ import { useAppForm } from '@/components/forms/hooks/form-hooks'
 import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import useCheckFormErrors from '@/components/forms/hooks/use-check-form-errors'
 import type { FormStoreT } from '@/stores/create-form-store'
-import type { ActionResultT } from '@/lib/actions/utils'
+import type { ActionResultT } from '@/types/action'
 
 type FormStoreHookT<TValues> = UseBoundStore<StoreApi<FormStoreT<TValues>>>
 

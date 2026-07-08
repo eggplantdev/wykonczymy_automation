@@ -4,7 +4,7 @@ import { applyMaterialSync } from '@/lib/actions/sheets-sync'
 import { ADMIN_OR_OWNER_ROLES } from '@/lib/auth/roles'
 import { extractSheetId, serviceAccountEmail, verifySheetAccess } from '@/lib/google/sheet-access'
 import { stampAllTabs } from '@/lib/google/app-managed-tabs'
-import { protectedAction } from './utils'
+import { protectedAction } from './run-action'
 
 /**
  * Register an existing Google Sheet as a sheet record WITHOUT linking it to an

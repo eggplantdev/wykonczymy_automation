@@ -5,7 +5,8 @@ import config from '@payload-config'
 import { revalidateCollection } from '@/lib/cache/revalidate'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
-import { type ActionResultT, getErrorMessage } from './utils'
+import type { ActionResultT } from '@/types/action'
+import { getErrorMessage } from './run-action'
 
 export async function toggleLeadContactStatus(
   id: number,

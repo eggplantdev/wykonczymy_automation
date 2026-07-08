@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { toastMessage } from '@/lib/utils/toast'
-import type { ActionResultT } from '@/lib/actions/utils'
+import type { ActionResultT } from '@/types/action'
 
 type PendingSubmissionT = {
   formId: string

@@ -12,7 +12,7 @@ import { ROLES, ROLE_LABELS } from '@/lib/auth/roles'
 import type { WorkerFormDataT } from './worker-schema'
 import type { ReferenceItemT } from '@/types/reference-data'
 import type { AppFieldComponentsT } from '@/components/forms/types/form-types'
-import type { ActionResultT } from '@/lib/actions/utils'
+import type { ActionResultT } from '@/types/action'
 
 type WorkerFormPropsT = {
   formId: string

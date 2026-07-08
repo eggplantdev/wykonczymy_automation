@@ -9,7 +9,7 @@ import { investmentFormSchema, type InvestmentFormValuesT } from './investment-s
 import { useInvestmentFormStore } from '@/stores/form-stores'
 import type { InvestmentFormDataT } from './investment-schema'
 import type { AppFieldComponentsT } from '@/components/forms/types/form-types'
-import type { ActionResultT } from '@/lib/actions/utils'
+import type { ActionResultT } from '@/types/action'
 
 type InvestmentFormPropsT = {
   formId: string

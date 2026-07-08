@@ -6,7 +6,8 @@ import { revalidateCollection } from '@/lib/cache/revalidate'
 import type { CACHE_TAGS } from '@/lib/cache/tags'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
-import { type ActionResultT, getErrorMessage } from './utils'
+import type { ActionResultT } from '@/types/action'
+import { getErrorMessage } from './run-action'
 
 type ToggleConfigT = {
   collection: 'users' | 'cash-registers' | 'investments'

@@ -21,13 +21,9 @@ import type { SessionUserT } from '@/types/auth'
 import { after } from 'next/server'
 import { isLaborCost, needsSourceRegister } from '../constants/transfers'
 import { syncBulkExpensesToSheet } from './sheets-sync'
-import {
-  // TODO: re-enable when the negative-balance constraint on auxiliary registers is brought back
-  // checkIfSufficientBalance,
-  validateAction,
-  validateSourceRegister,
-  protectedAction,
-} from './utils'
+import { validateAction, protectedAction } from './run-action'
+// TODO: re-add checkIfSufficientBalance when the negative-balance constraint is restored
+import { validateSourceRegister } from './validate-source-register'
 
 export async function createTransferAction(data: CreateTransferFormT, invoiceMediaId?: number) {
   return protectedAction(
