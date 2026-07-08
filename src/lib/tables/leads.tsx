@@ -66,7 +66,6 @@ export function getLeadColumns({ onToggle }: LeadColumnOptionsT) {
         'Status kontaktu',
         'Czy ktoś z zespołu skontaktował się już z tym klientem. Ustawiane ręcznie — kliknij odznakę, aby zmienić.',
       ),
-      meta: { align: 'right' },
       enableSorting: true,
       cell: (info) => (
         <ActiveToggleBadge
