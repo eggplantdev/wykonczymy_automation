@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildTransferFilters } from '@/lib/queries/transfers'
+import { buildTransferFilters } from '@/lib/queries/transfer-filters'
 
 const adminCtx = { id: 1 } as const
 

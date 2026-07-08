@@ -1,5 +1,5 @@
 import { parsePagination } from '@/lib/pagination'
-import { buildTransferFilters } from '@/lib/queries/transfers'
+import { buildTransferFilters } from '@/lib/queries/transfer-filters'
 import { fetchManagerDashboardData } from '@/lib/queries/dashboard'
 import { UserRegisterStats } from '@/components/dashboard/user-register-stats'
 import { TransfersSection } from '@/components/transfers/transfers-section'
