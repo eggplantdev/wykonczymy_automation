@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
-import { cn } from '@/lib/cn'
+import { cn } from '@/lib/utils/cn'
 
 type PageWrapperPropsT = {
   title: string

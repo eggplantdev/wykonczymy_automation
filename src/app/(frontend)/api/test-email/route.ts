@@ -3,7 +3,7 @@ import config from '@payload-config'
 import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
 import nodemailer from 'nodemailer'
 import { NextResponse } from 'next/server'
-import { serverEnv } from '@/lib/env.server'
+import { serverEnv } from '@/lib/env/server'
 
 /**
  * GET /api/test-email?to=you@example.com

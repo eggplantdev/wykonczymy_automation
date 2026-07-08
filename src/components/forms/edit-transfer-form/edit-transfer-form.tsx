@@ -14,10 +14,10 @@ import {
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
 import { editExpenseFormSchema } from '@/components/forms/expense-form/expense-schema'
-import { uploadFileClient } from '@/lib/upload-file-client'
+import { uploadFileClient } from '@/lib/utils/upload-file-client'
 import type { z } from 'zod'
 import type { UpdateTransferFormT } from '@/lib/schemas/transfer'
-import type { TransferRowT } from '@/components/tables/transfers'
+import type { TransferRowT } from '@/types/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import type { AppFieldComponentsT } from '@/components/forms/types/form-types'
 import { updateTransferAction } from '@/lib/actions/transfers'

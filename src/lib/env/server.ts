@@ -1,5 +1,5 @@
 import 'server-only'
-import { serverSchema } from './env-schema'
+import { serverSchema } from './schema'
 
 // Server entry — the `server-only` directive turns any client-component import of this
 // module into a BUILD error, so server secrets can never reach the browser bundle.

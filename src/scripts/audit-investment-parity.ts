@@ -30,8 +30,8 @@ import {
   sumCategoryByTypeSettled,
   deriveCategoryBreakdowns,
   deriveFinancials,
-  type InvestmentFinancialsT,
 } from '@/lib/db/sum-transfers'
+import type { InvestmentFinancialsT } from '@/types/investment-financials'
 import { calculateBalance } from '@/lib/db/calculate-balance'
 import { calculateMargin } from '@/lib/db/calculate-margin'
 

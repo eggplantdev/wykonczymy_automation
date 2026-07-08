@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 // fetchLead must throw on a non-2xx Graph response so the webhook route's catch
 // treats it as recoverable (→ non-200 → Meta redelivers). Returning the error
 // body instead would fail leadSchema and get ACKed 200 → the lead is lost forever.
-vi.mock('@/lib/env.server', () => ({
+vi.mock('@/lib/env/server', () => ({
   serverEnv: { META_PAGE_ACCESS_TOKEN: 'test-token' },
 }))
 

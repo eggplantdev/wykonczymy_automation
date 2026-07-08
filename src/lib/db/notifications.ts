@@ -1,6 +1,6 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { Payload } from 'payload'
-import { getDb } from './sum-transfers'
+import { getDb } from './get-db'
 
 /** The only notification stream so far. When a second one lands, promote to an `as const` map. */
 const LEADS_STREAM = 'leads'

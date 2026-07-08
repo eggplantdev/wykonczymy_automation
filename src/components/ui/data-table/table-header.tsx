@@ -2,7 +2,7 @@
 
 import { flexRender, type HeaderGroup } from '@tanstack/react-table'
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
-import { cn } from '@/lib/cn'
+import { cn } from '@/lib/utils/cn'
 
 export function TableHeader<T>({ headerGroups }: { headerGroups: HeaderGroup<T>[] }) {
   return (

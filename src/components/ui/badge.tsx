@@ -1,5 +1,5 @@
-/*  */ import type { RoleT } from '@/lib/auth/roles'
-import { cn } from '@/lib/cn'
+import type { RoleT } from '@/lib/auth/roles'
+import { cn } from '@/lib/utils/cn'
 
 /** Shared pill base for the app's status/role badges — colors layer on top. */
 export const BADGE_BASE = 'inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium'

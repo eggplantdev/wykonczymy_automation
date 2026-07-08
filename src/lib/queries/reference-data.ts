@@ -6,17 +6,19 @@ import { CACHE_TAGS } from '@/lib/cache/tags'
 import type { RoleT } from '@/lib/auth/roles'
 import type { Where } from 'payload'
 import {
-  getDb,
   sumAllRegisterBalances,
   sumAllWorkerBalances,
   sumAllInvestmentFinancials,
   sumFilteredByType,
   sumCategoryByTypeSettled,
   deriveCategoryBreakdowns,
-  type InvestmentFinancialsT,
-  type TypeSettledTotalT,
-  type CategoryBreakdownsT,
 } from '@/lib/db/sum-transfers'
+import { getDb } from '@/lib/db/get-db'
+import type {
+  InvestmentFinancialsT,
+  TypeSettledTotalT,
+  CategoryBreakdownsT,
+} from '@/types/investment-financials'
 import { perfStart } from '@/lib/perf'
 
 import type {
@@ -31,16 +33,6 @@ import type {
 
 export const fetchReferenceData = unstable_cache(
   async (): Promise<ReferenceDataBaseT> => {
-    // 'use cache'
-    // cacheLife('max')
-    // cacheTag(
-    //   CACHE_TAGS.cashRegisters,
-    //   CACHE_TAGS.investments,
-    //   CACHE_TAGS.users,
-    //   CACHE_TAGS.otherCategories,
-    //   CACHE_TAGS.expenseCategories,
-    // )
-
     const elapsed = perfStart()
     const payload = await getPayload({ config })
     const db = await getDb(payload)
@@ -150,10 +142,6 @@ export type RegisterBalanceMapT = Record<string, number>
 
 export const fetchRegisterBalances = unstable_cache(
   async (): Promise<RegisterBalanceMapT> => {
-    // 'use cache'
-    // cacheLife('max')
-    // cacheTag(CACHE_TAGS.transfers)
-
     const elapsed = perfStart()
     const payload = await getPayload({ config })
     const map = await sumAllRegisterBalances(payload)
@@ -184,10 +172,6 @@ export type InvestmentFinancialsMapT = Record<string, InvestmentFinancialsT>
 
 export const fetchInvestmentFinancials = unstable_cache(
   async (): Promise<InvestmentFinancialsMapT> => {
-    // 'use cache'
-    // cacheLife('max')
-    // cacheTag(CACHE_TAGS.transfers)
-
     const elapsed = perfStart()
     const payload = await getPayload({ config })
     const map = await sumAllInvestmentFinancials(payload)
@@ -203,10 +187,6 @@ export const fetchInvestmentFinancials = unstable_cache(
 )
 
 export async function fetchFilteredByType(where: Where): Promise<TypeSettledTotalT[]> {
-  // 'use cache'
-  // cacheLife('max')
-  // cacheTag(CACHE_TAGS.transfers)
-
   return unstable_cache(
     async () => {
       const payload = await getPayload({ config })
@@ -218,10 +198,6 @@ export async function fetchFilteredByType(where: Where): Promise<TypeSettledTota
 }
 
 export async function fetchCategoryBreakdowns(where: Where): Promise<CategoryBreakdownsT> {
-  // 'use cache'
-  // cacheLife('max')
-  // cacheTag(CACHE_TAGS.transfers)
-
   return unstable_cache(
     async () => {
       const payload = await getPayload({ config })

@@ -1,5 +1,5 @@
-import { cn } from '@/lib/cn'
-import { serverEnv } from '@/lib/env.server'
+import { cn } from '@/lib/utils/cn'
+import { serverEnv } from '@/lib/env/server'
 
 // VERCEL_ENV is 'production' | 'preview' | 'development' on Vercel; undefined locally,
 // where NODE_ENV ('development') is the right signal. NODE_ENV alone can't tell a

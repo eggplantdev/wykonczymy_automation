@@ -1,6 +1,6 @@
 import { google } from 'googleapis'
 import { createServiceAccountJWT } from './auth'
-import { serverEnv } from '@/lib/env.server'
+import { serverEnv } from '@/lib/env/server'
 
 // The service-account email — what an owner must share a sheet with for the app
 // to read/sync it. Parsed from the same credential JSON the clients use.

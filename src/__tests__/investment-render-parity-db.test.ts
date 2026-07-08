@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import type { Payload } from 'payload'
 import {
-  getDb,
   sumAllInvestmentFinancials,
   sumFilteredByType,
   sumCategoryByTypeSettled,
   deriveFinancials,
   deriveCategoryBreakdowns,
 } from '@/lib/db/sum-transfers'
+import { getDb } from '@/lib/db/get-db'
 import { calculateBalance } from '@/lib/db/calculate-balance'
 import { calculateMargin } from '@/lib/db/calculate-margin'
 import { buildFinancialFields } from '@/lib/db/map-category-costs'

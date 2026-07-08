@@ -1,4 +1,4 @@
-import { clientSchema } from './env-schema'
+import { clientSchema } from './schema'
 
 // Public entry — safe to import anywhere, browser included. Each NEXT_PUBLIC_* is keyed
 // STATICALLY so the bundler can inline it; never `clientSchema.parse(process.env)` wholesale,

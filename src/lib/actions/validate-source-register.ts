@@ -1,17 +1,19 @@
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
-import { getDb } from '@/lib/db/sum-transfers'
-import type { SessionUserT } from '@/types/auth'
+import { getDb } from '@/lib/db/get-db'
 import type { CashRegisterRefT, CashRegisterTypeT } from '@/types/reference-data'
 
 export type ValidateSourceRegisterResultT =
   | { success: true; register: CashRegisterRefT }
   | { success: false; error: string }
 
-/** Checks that the register exists and the user has ownership rights to it. */
+/**
+ * Checks that the register exists and returns it. Does NOT enforce ownership:
+ * all management roles may transfer from any register (EMPLOYEE is blocked upstream
+ * by requireAuth(MANAGEMENT_ROLES) in protectedAction).
+ */
 export async function validateSourceRegister(
   cashRegisterId: number | undefined,
-  user: SessionUserT,
   payload: Payload,
 ): Promise<ValidateSourceRegisterResultT> {
   if (cashRegisterId === undefined) return { success: false, error: 'Kasa nie istnieje' }
@@ -34,9 +36,6 @@ export async function validateSourceRegister(
     active: row.active as boolean,
     ownerId: row.owner_id ? Number(row.owner_id) : undefined,
   }
-
-  // ADMIN, OWNER, MANAGER can transfer from any register.
-  // EMPLOYEE is blocked earlier by requireAuth(MANAGEMENT_ROLES) in protectedAction.
 
   return { success: true, register }
 }

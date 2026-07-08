@@ -42,7 +42,7 @@ flowchart TD
 ```
 
 - `materiały` = `Σ INVESTMENT_EXPENSE + Σ CORRECTION`, **excluding rows flagged `settled`**
-  (`investment-financials.ts:68`). Corrections fold into the material total.
+  (`investment-financials.ts:41`). Corrections fold into the material total.
 - `korekty` is the **same CORRECTION rows** surfaced as their own line. A CORRECTION can be
   negative (invoice credit).
 - `robocizna` = `Σ LABOR_COST`; `wypłaty` = `Σ PAYOUT`.
@@ -51,7 +51,7 @@ flowchart TD
 
 ## The two displayed numbers (current formulas)
 
-`deriveFinancials` (`investment-financials.ts:61`) is the single funnel — every `total_*`
+`deriveFinancials` (`investment-financials.ts:34`) is the single funnel — every `total_*`
 aggregate flows from there into the two formulas:
 
 - **Bilans inwestora** (`calculate-balance.ts:6-8`):

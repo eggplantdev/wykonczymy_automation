@@ -8,7 +8,7 @@
 import React from 'react'
 import { flexRender, type Row } from '@tanstack/react-table'
 import { useRouter } from 'next/navigation'
-import { cn } from '@/lib/cn'
+import { cn } from '@/lib/utils/cn'
 
 type DataTableRowPropsT<TData> = {
   row: Row<TData>

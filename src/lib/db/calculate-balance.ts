@@ -1,4 +1,4 @@
-import type { InvestmentFinancialsT } from '@/lib/db/sum-transfers'
+import type { InvestmentFinancialsT } from '@/types/investment-financials'
 
 // Bilans inwestora (investor balance) = income - material costs - labor costs + rabat.
 // Material costs already include corrections (negative corrections reduce costs).

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { RemoveButton } from '@/components/ui/remove-button'
 import { FileInput } from '@/components/ui/file-input'
 import { Label } from '@/components/ui/label'
-import { formatPLN } from '@/lib/format-currency'
+import { formatPLN } from '@/lib/utils/format-currency'
 import {
   EXPENSE_CATEGORY_LABEL,
   needsExpenseCategory,

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { FileInput } from '@/components/ui/file-input'
 import { Upload } from 'lucide-react'
 import { updateTransferInvoiceAction } from '@/lib/actions/transfers'
-import { uploadFileClient } from '@/lib/upload-file-client'
+import { uploadFileClient } from '@/lib/utils/upload-file-client'
 import { toastMessage } from '@/lib/utils/toast'
 
 type InvoiceUploadDialogPropsT = {

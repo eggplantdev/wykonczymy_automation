@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
-import { sanitizeFileName } from '@/lib/sanitize-filename'
+import { sanitizeFileName } from '@/lib/utils/sanitize-filename'
 
 export const Media: CollectionConfig = {
   slug: 'media',

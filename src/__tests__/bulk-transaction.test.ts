@@ -46,12 +46,14 @@ vi.mock('@/lib/cache/revalidate', () => ({
   revalidateCollections: vi.fn(),
 }))
 
-vi.mock('@/lib/db/sum-transfers', () => ({
+vi.mock('@/lib/db/get-db', () => ({
   getDb: vi.fn().mockResolvedValue({
     execute: vi.fn().mockResolvedValue({
       rows: [{ id: 1, name: 'Main', type: 'MAIN', active: true, owner_id: 1 }],
     }),
   }),
+}))
+vi.mock('@/lib/db/sum-transfers', () => ({
   sumRegisterBalance: vi.fn().mockResolvedValue(99999),
 }))
 

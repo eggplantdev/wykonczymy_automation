@@ -8,7 +8,7 @@ import { type HeaderGroup, type Row } from '@tanstack/react-table'
 import { type useVirtualizer } from '@tanstack/react-virtual'
 import { DataTableRow } from './data-table-row'
 import { TableHeader } from './table-header'
-import { EmptyRow } from './table-helpers'
+import { EmptyRow } from './empty-row'
 
 type VirtualizedTableBodyPropsT<TData> = {
   parentRef: React.RefObject<HTMLDivElement | null>

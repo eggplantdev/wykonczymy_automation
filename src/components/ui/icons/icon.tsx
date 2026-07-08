@@ -48,7 +48,7 @@ import UserIcon from './user-icon'
 import VideoIcon from './video-icon'
 import VolumeIcon from './volume-icon'
 import WriteIcon from './write-icon'
-import { cn } from '@/lib/cn'
+import { cn } from '@/lib/utils/cn'
 
 type PropsT = VariantProps<typeof iconVariants> & {
   wrapperClassName?: string

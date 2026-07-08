@@ -1,8 +1,8 @@
 import { z } from 'zod'
-import isValidUrl from './is-valid-url'
+import isValidUrl from '@/lib/utils/is-valid-url'
 
 // Pure schemas — NO side effects and NO `import 'server-only'`, so this file is safe to
-// import from both env entries (env.ts / env.server.ts) and from the Payload CLI graph.
+// import from both env entries (env/index.ts / env/server.ts) and from the Payload CLI graph.
 // Hard rule: every var is required (no `.default()`) so a missing one fails the build gate;
 // `.optional()` is only for vars that are genuinely absent in some environments.
 

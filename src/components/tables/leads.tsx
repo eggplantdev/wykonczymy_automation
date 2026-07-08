@@ -1,7 +1,7 @@
 'use client'
 
 import { createColumnHelper } from '@tanstack/react-table'
-import { formatPLDateTime } from '@/lib/format-date'
+import { formatPLDateTime } from '@/lib/utils/format-date'
 import { ContactLink } from '@/components/ui/contact-link'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
 import { InfoTooltip } from '@/components/ui/info-tooltip'

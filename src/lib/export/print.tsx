@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { TRANSFER_EXPORT_COLUMNS } from '@/lib/export/transfer-columns'
-import type { TransferRowT } from '@/components/tables/transfers'
+import type { TransferRowT } from '@/types/transfers'
 import type { HeaderFieldT } from '@/types/export'
 
 const PRINT_STYLES = `

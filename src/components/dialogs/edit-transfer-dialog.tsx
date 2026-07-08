@@ -6,8 +6,8 @@ import { SimpleTooltip } from '@/components/ui/tooltip'
 import { FormDialog } from '@/components/dialogs/form-dialog'
 import { EditTransferForm } from '@/components/forms/edit-transfer-form/edit-transfer-form'
 import { TRANSFER_TYPE_LABELS } from '@/lib/constants/transfers'
-import { formatPLN } from '@/lib/format-currency'
-import type { TransferRowT } from '@/components/tables/transfers'
+import { formatPLN } from '@/lib/utils/format-currency'
+import type { TransferRowT } from '@/types/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 
 type EditTransferDialogPropsT = {

@@ -9,7 +9,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import type { LeadAnswerT } from '@/lib/leads/lead-answers'
+import type { LeadAnswerT } from '@/types/leads'
 
 type LeadAnswersDialogPropsT = {
   name: string

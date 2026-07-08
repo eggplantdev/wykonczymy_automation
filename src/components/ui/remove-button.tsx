@@ -1,6 +1,6 @@
 import { X } from 'lucide-react'
 import { Button, type ButtonPropsT } from '@/components/ui/button'
-import { cn } from '@/lib/cn'
+import { cn } from '@/lib/utils/cn'
 
 type RemoveButtonPropsT = {
   onClick: () => void

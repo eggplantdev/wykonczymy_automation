@@ -3,8 +3,8 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import type { Payload, Where } from 'payload'
-import { buildPaginationMeta, type PaginationParamsT } from '@/lib/pagination'
-import { getDb } from '@/lib/db/sum-transfers'
+import { buildPaginationMeta, type PaginationParamsT } from '@/lib/utils/pagination'
+import { getDb } from '@/lib/db/get-db'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 import { perfStart } from '@/lib/perf'
 import { TRANSFER_TYPES, PAYMENT_METHODS } from '@/lib/constants/transfers'
@@ -23,10 +23,6 @@ export async function findTransfersRaw({
   limit,
   sort = '-id',
 }: FindTransfersOptsT) {
-  // 'use cache'
-  // cacheLife('max')
-  // cacheTag(CACHE_TAGS.transfers)
-
   return unstable_cache(
     async () => {
       const elapsed = perfStart()

@@ -2,10 +2,10 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { UrlPagination } from './url-pagination'
-import { buildUrlWithParams } from '@/lib/build-url-with-params'
+import { buildUrlWithParams } from '@/lib/utils/build-url-with-params'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select'
-import type { PaginationMetaT } from '@/lib/pagination'
-import { cn } from '../../lib/cn'
+import type { PaginationMetaT } from '@/lib/utils/pagination'
+import { cn } from '@/lib/utils/cn'
 
 const LIMIT_OPTIONS = [20, 50, 100] as const
 

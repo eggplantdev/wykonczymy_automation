@@ -10,7 +10,7 @@ type FormStoreHookT<TValues> = UseBoundStore<StoreApi<FormStoreT<TValues>>>
 
 type UseManagedFormArgsT<TValues, TData> = {
   formId: string
-  store: FormStoreHookT<TValues>
+  useFormStore: FormStoreHookT<TValues>
   schema: ZodType<unknown, TValues>
   defaultValues: TValues
   keepOpen?: boolean
@@ -30,7 +30,7 @@ type UseManagedFormArgsT<TValues, TData> = {
  */
 export function useManagedForm<TValues, TData>({
   formId,
-  store,
+  useFormStore,
   schema,
   defaultValues,
   keepOpen,
@@ -42,9 +42,9 @@ export function useManagedForm<TValues, TData>({
 }: UseManagedFormArgsT<TValues, TData>) {
   const { submit } = useFormSubmit(formId)
 
-  const storedValues = store((s) => s.formData)
-  const updateFormData = store((s) => s.updateFormData)
-  const resetFormData = store((s) => s.resetFormData)
+  const storedValues = useFormStore((s) => s.formData)
+  const updateFormData = useFormStore((s) => s.updateFormData)
+  const resetFormData = useFormStore((s) => s.resetFormData)
 
   const reset = () => {
     resetFormData()

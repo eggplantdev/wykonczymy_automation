@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import * as Collapsible from '@radix-ui/react-collapsible'
 import { ChevronDown } from 'lucide-react'
-import { cn } from '@/lib/cn'
+import { cn } from '@/lib/utils/cn'
 
 type CollapsibleSectionPropsT = {
   title: string

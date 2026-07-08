@@ -73,10 +73,6 @@ export async function fetchAllInvestments(): Promise<InvestmentRowT[]> {
 }
 
 export async function getInvestment(id: string) {
-  // 'use cache'
-  // cacheLife('max')
-  // cacheTag(CACHE_TAGS.investments, entityTag('investment', id))
-
   return unstable_cache(
     async () => {
       const elapsed = perfStart()

@@ -36,15 +36,13 @@ export default ts.config(
     },
   },
   {
-    // Read env only through the validated layer (env.ts / env.server.ts) — never raw
+    // Read env only through the validated layer (env/index.ts / env/server.ts) — never raw
     // process.env. Allowlist the env layer itself, payload.config and CLI scripts (both run
     // in the Payload CLI graph where `server-only` can't be imported), and tests (which seed
     // process.env).
     files: ['src/**/*.{ts,tsx}'],
     ignores: [
-      'src/lib/env.ts',
-      'src/lib/env.server.ts',
-      'src/lib/env-schema.ts',
+      'src/lib/env/**',
       'src/payload.config.ts',
       'src/scripts/**',
       'src/__tests__/**',
@@ -57,12 +55,38 @@ export default ts.config(
           selector:
             "MemberExpression[object.object.name='process'][object.property.name='env']:not([property.name='NODE_ENV'])",
           message:
-            'Read env through the validated env layer (env.ts / env.server.ts), never raw process.env.',
+            'Read env through the validated env layer (env/index.ts / env/server.ts), never raw process.env.',
         },
       ],
     },
   },
   {
-    ignores: ['.next/'],
+    // Payload hooks run in a Route Handler context where `updateTag` throws. `lib/cache/revalidate.ts`
+    // calls `updateTag`, so a hook must never import it — use `revalidateTag(tag, 'default')` directly.
+    // A bad import here builds and deploys green, then throws only on a live transfer create/delete.
+    files: ['src/hooks/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@/lib/cache/revalidate',
+              message:
+                "Hooks run in Route Handler context — use revalidateTag(tag, 'default'), not updateTag/revalidateCollection from lib/cache/revalidate.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // Root CommonJS configs (e.g. .dependency-cruiser.cjs) use module.exports; the flat config
+    // otherwise parses them as ESM and flags `module` as no-undef.
+    files: ['**/*.cjs'],
+    languageOptions: { sourceType: 'commonjs' },
+  },
+  {
+    ignores: ['.next/', '.next-e2e/'],
   },
 )

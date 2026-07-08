@@ -18,7 +18,6 @@ export const OtherCategories: CollectionConfig = {
     afterDelete: [makeRevalidateAfterDelete('otherCategories')],
   },
   access: {
-    // ADMIN/OWNER: full CRUD. MANAGER: read only.
     read: isAdminOrOwnerOrManager,
     create: isAdminOrOwnerOrManager,
     update: isAdminOrOwnerOrManager,

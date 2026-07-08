@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { cn } from '@/lib/cn'
+import { cn } from '@/lib/utils/cn'
 
 type SearchFilterInputPropsT = {
   value: string

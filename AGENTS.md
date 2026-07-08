@@ -131,13 +131,13 @@ Non-blocking refactor/cleanup findings live in Linear (project "Wykonczymy v2").
 
 ## Environment Variables
 
-Read env **only** through the validated layer in `src/lib/` — never raw `process.env` (an ESLint
+Read env **only** through the validated layer in `src/lib/env/` — never raw `process.env` (an ESLint
 `no-restricted-syntax` rule enforces it; `NODE_ENV` is the lone exception). Schemas live in
-`env-schema.ts`; client entry is `env.ts` (`FRONTEND_URL`), server entry `env.server.ts` (`serverEnv`).
+`env/schema.ts`; client entry is `env` (`env/index.ts`, `FRONTEND_URL`), server entry `env/server.ts` (`serverEnv`).
 
 Traps:
 
-- `env.server.ts` is `server-only` — **never import it from the Payload CLI graph** (`payload.config.ts`
+- `env/server.ts` is `server-only` — **never import it from the Payload CLI graph** (`payload.config.ts`
   / collections), where `server-only` throws under `payload generate:types`. That's why
   `payload.config.ts` is the one file allowlisted to read raw `process.env`.
 - `(frontend)/layout.tsx` imports both entries as the build gate (a missing var fails `next build`) —

@@ -18,7 +18,7 @@ import {
   type TabSyncPreviewT,
 } from '@/lib/actions/sheets-sync'
 import { setupSheetAction } from '@/lib/actions/investments'
-import { formatPLN } from '@/lib/format-currency'
+import { formatPLN } from '@/lib/utils/format-currency'
 
 export function SyncButton({ investmentId }: { investmentId: number }) {
   const [preview, setPreview] = useState<MaterialSyncPreviewT | null>(null)

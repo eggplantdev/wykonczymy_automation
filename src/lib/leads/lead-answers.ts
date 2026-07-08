@@ -1,6 +1,5 @@
 import type { LeadFieldT, LeadFormQuestionT } from './lead-schema'
-
-export type LeadAnswerT = { label: string; value: string }
+import type { LeadAnswerT } from '@/types/leads'
 
 // Fallback when a field has no label in the form's question map (e.g. a lead
 // captured before formQuestions existed): turn the raw key into something readable.

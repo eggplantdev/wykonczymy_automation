@@ -3,9 +3,9 @@ import {
   PAYMENT_METHOD_LABELS,
   EXPENSE_CATEGORY_LABEL,
 } from '@/lib/constants/transfers'
-import { formatPLN } from '@/lib/format-currency'
-import { formatPLDate, formatPLDateTime } from '@/lib/format-date'
-import type { TransferRowT } from '@/components/tables/transfers'
+import { formatPLN } from '@/lib/utils/format-currency'
+import { formatPLDate, formatPLDateTime } from '@/lib/utils/format-date'
+import type { TransferRowT } from '@/types/transfers'
 import type { TransferTypeT, PaymentMethodT } from '@/lib/constants/transfers'
 
 type ColumnDefT = {

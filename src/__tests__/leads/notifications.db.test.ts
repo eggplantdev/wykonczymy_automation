@@ -8,7 +8,7 @@ vi.mock('next/cache', () => ({ revalidateTag: () => {}, updateTag: () => {} }))
 
 import { storeLead, type StoreLeadInputT } from '@/lib/leads/store-lead'
 import { countUnreadLeads, markLeadsSeen } from '@/lib/db/notifications'
-import { getDb } from '@/lib/db/sum-transfers'
+import { getDb } from '@/lib/db/get-db'
 
 // Integration tests against the Payload Local API + local Postgres. Skips cleanly with
 // no DB, FAILS if env is set but the DB is unreachable — same gate as store-lead.db.test.

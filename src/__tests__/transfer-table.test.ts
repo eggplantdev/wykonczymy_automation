@@ -9,7 +9,7 @@ import {
   mapTransferRow,
   buildTransferLookups,
   type TransferLookupsT,
-} from '@/components/tables/transfers'
+} from '@/lib/queries/transfer-mapping'
 
 // ── Mock data ───────────────────────────────────────────────────────
 

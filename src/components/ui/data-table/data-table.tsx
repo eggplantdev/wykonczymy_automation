@@ -11,11 +11,12 @@ import {
   type VisibilityState,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { cn } from '@/lib/cn'
+import { cn } from '@/lib/utils/cn'
 import { DataTableRow } from './data-table-row'
 import { VirtualizedTableBody } from './virtualized-table-body'
 import { TableHeader } from './table-header'
-import { EmptyRow, readVisibility, writeVisibility } from './table-helpers'
+import { EmptyRow } from './empty-row'
+import { readVisibility, writeVisibility } from './column-visibility-storage'
 
 type DataTablePropsT<TData> = {
   data: TData[]

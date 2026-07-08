@@ -1,6 +1,6 @@
-import type { CategoryCostT, InvestmentFinancialsT } from '@/lib/db/sum-transfers'
+import type { CategoryCostT, InvestmentFinancialsT } from '@/types/investment-financials'
 import type { FinancialFieldT } from '@/types/export'
-import { formatPLN } from '@/lib/format-currency'
+import { formatPLN } from '@/lib/utils/format-currency'
 
 /** Amount booked to a given expense category, 0 when that category has no rows. */
 export function costForCategory(categoryCosts: CategoryCostT[], categoryId: number): number {

@@ -1,6 +1,6 @@
 import type { Payload } from 'payload'
 
-import { sanitizeFileName } from '@/lib/sanitize-filename'
+import { sanitizeFileName } from '@/lib/utils/sanitize-filename'
 
 function validateFile(file: File): string {
   const name = file.name?.trim()
