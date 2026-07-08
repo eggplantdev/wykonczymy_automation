@@ -36,14 +36,14 @@ export function WykonczymyAbout() {
       >
         <motion.span
           variants={FADE_UP}
-          className="inline-block rounded-full border border-[#e7e0d8] px-3 py-1 text-[0.625rem] tracking-[0.2em] text-[#78716c] uppercase"
+          className="border-wk-sand text-2xs tracking-wk text-wk-stone inline-block rounded-full border px-3 py-1 uppercase"
         >
           O nas
         </motion.span>
 
         <div className="mt-12 grid grid-cols-1 gap-16 md:grid-cols-12 md:gap-8">
           <motion.div variants={FADE_UP} className="md:col-span-5">
-            <h2 className="font-serif text-4xl leading-[1.1] font-normal tracking-tight text-[#1c1917] md:text-5xl">
+            <h2 className="text-wk-ink font-serif text-4xl leading-[1.1] font-normal tracking-tight md:text-5xl">
               Doskonale znamy się
               <br />
               <em className="font-light">na remontach</em>
@@ -51,18 +51,18 @@ export function WykonczymyAbout() {
           </motion.div>
 
           <motion.div variants={FADE_UP} className="md:col-span-6 md:col-start-7">
-            <p className="max-w-[55ch] text-base leading-relaxed text-[#78716c]">
+            <p className="text-wk-stone max-w-[55ch] text-base leading-relaxed">
               Wykonujemy kompleksowe remonty domów, mieszkań, biur, klatek schodowych i lokali
               usługowych. Od prac malarskich, przez montaż sufitów podwieszanych, po dekoracje ścian
               i montaż mebli — każdy projekt traktujemy z najwyższą starannością.
             </p>
-            <p className="mt-6 max-w-[55ch] text-base leading-relaxed text-[#78716c]">
+            <p className="text-wk-stone mt-6 max-w-[55ch] text-base leading-relaxed">
               Nasz zespół zawsze służy pomocą i doradztwem. Profesjonalne podejście, przejrzystość
               kosztów i terminowość to fundamenty naszej pracy. Realizujemy projekty szybciej niż
               obiecujemy — bo szanujemy Twój czas.
             </p>
 
-            <div className="mt-12 grid grid-cols-2 gap-x-8 gap-y-3 border-t border-[#e7e0d8] pt-8">
+            <div className="border-wk-sand mt-12 grid grid-cols-2 gap-x-8 gap-y-3 border-t pt-8">
               {[
                 'Prace malarskie',
                 'Tapetowanie',
@@ -73,7 +73,7 @@ export function WykonczymyAbout() {
                 'Szklane witryny',
                 'Instalacje dekoracyjne',
               ].map((service) => (
-                <motion.span key={service} variants={FADE_UP} className="text-sm text-[#78716c]">
+                <motion.span key={service} variants={FADE_UP} className="text-wk-stone text-sm">
                   {service}
                 </motion.span>
               ))}

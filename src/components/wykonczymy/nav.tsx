@@ -16,8 +16,8 @@ export function WykonczymyNav() {
   return (
     <>
       <nav className="fixed top-0 left-1/2 z-50 mt-6 -translate-x-1/2">
-        <div className="flex items-center gap-6 rounded-full border border-[#e7e0d8]/80 bg-[#fdfbf7]/80 px-6 py-3 shadow-[0_4px_24px_rgba(0,0,0,0.04)] backdrop-blur-xl">
-          <a href="#" className="text-sm font-medium tracking-tight text-[#1c1917]">
+        <div className="border-wk-sand/80 bg-wk-cream/80 shadow-wk flex items-center gap-6 rounded-full border px-6 py-3 backdrop-blur-xl">
+          <a href="#" className="text-wk-ink text-sm font-medium tracking-tight">
             Wykończymy
           </a>
 
@@ -26,7 +26,7 @@ export function WykonczymyNav() {
               <a
                 key={link.label}
                 href={link.href}
-                className="text-xs tracking-wide text-[#78716c] transition-colors duration-300 hover:text-[#1c1917]"
+                className="text-wk-stone hover:text-wk-ink text-xs tracking-wide transition-colors duration-300"
               >
                 {link.label}
               </a>
@@ -35,16 +35,16 @@ export function WykonczymyNav() {
 
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="relative flex h-6 w-6 flex-col items-center justify-center gap-[5px] md:hidden"
+            className="relative flex h-11 w-11 flex-col items-center justify-center gap-[5px] md:hidden"
             aria-label={isOpen ? 'Zamknij menu' : 'Otwórz menu'}
           >
             <motion.span
-              className="block h-px w-4 bg-[#1c1917]"
+              className="bg-wk-ink block h-px w-4"
               animate={isOpen ? { rotate: 45, y: 3, width: 16 } : { rotate: 0, y: 0, width: 16 }}
               transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
             />
             <motion.span
-              className="block h-px w-4 bg-[#1c1917]"
+              className="bg-wk-ink block h-px w-4"
               animate={isOpen ? { rotate: -45, y: -3, width: 16 } : { rotate: 0, y: 0, width: 16 }}
               transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
             />
@@ -55,7 +55,7 @@ export function WykonczymyNav() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="fixed inset-0 z-40 flex items-center justify-center bg-[#fdfbf7]/95"
+            className="bg-wk-cream/95 fixed inset-0 z-40 flex items-center justify-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -67,7 +67,7 @@ export function WykonczymyNav() {
                   key={link.label}
                   href={link.href}
                   onClick={() => setIsOpen(false)}
-                  className="font-serif text-4xl font-normal text-[#1c1917]"
+                  className="text-wk-ink font-serif text-4xl font-normal"
                   initial={{ opacity: 0, y: 48 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 24 }}

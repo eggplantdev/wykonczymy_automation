@@ -34,15 +34,15 @@ export function WykonczymyHero() {
             sizes="100vw"
             className="object-cover"
           />
-          <div className="absolute inset-0 bg-[#fdfbf7]/20" />
+          <div className="bg-wk-cream/20 absolute inset-0" />
         </motion.div>
 
         <motion.div
-          className="absolute inset-0 z-10 w-1/2 origin-left bg-[#fdfbf7]"
+          className="bg-wk-cream absolute inset-0 z-10 w-1/2 origin-left"
           style={{ x: leftX }}
         />
         <motion.div
-          className="absolute inset-0 left-1/2 z-10 w-1/2 origin-right bg-[#fdfbf7]"
+          className="bg-wk-cream absolute inset-0 left-1/2 z-10 w-1/2 origin-right"
           style={{ x: rightX }}
         />
 
@@ -51,15 +51,15 @@ export function WykonczymyHero() {
           style={{ y: textY, opacity: textOpacity }}
         >
           <div className="max-w-2xl">
-            <span className="mb-6 inline-block rounded-full border border-[#e7e0d8] px-3 py-1 text-[0.625rem] tracking-[0.2em] text-[#78716c] uppercase">
+            <span className="border-wk-sand text-2xs tracking-wk text-wk-stone mb-6 inline-block rounded-full border px-3 py-1 uppercase">
               Remonty i wykończenia — Warszawa
             </span>
-            <h1 className="font-serif text-5xl leading-[0.95] font-normal tracking-tight text-[#1c1917] md:text-7xl lg:text-8xl">
+            <h1 className="text-wk-ink font-serif text-5xl leading-[0.95] font-normal tracking-tight md:text-7xl lg:text-8xl">
               Twój dom,
               <br />
               <em className="font-light">nasze wykończenie</em>
             </h1>
-            <p className="mt-8 max-w-[45ch] text-base leading-relaxed text-[#78716c]">
+            <p className="text-wk-stone mt-8 max-w-[45ch] text-base leading-relaxed">
               Kompleksowe remonty domów, mieszkań i biur. Profesjonalne podejście, precyzja
               wykonania i doradztwo na każdym etapie.
             </p>
