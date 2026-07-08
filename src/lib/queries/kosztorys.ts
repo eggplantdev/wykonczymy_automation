@@ -39,9 +39,10 @@ export async function getKosztorysTree(investmentId: number): Promise<KosztorysT
     payload.findByID({ collection: 'investments', id: investmentId, depth: 0 }),
   ])
 
+  // Distinguish an unset coefficient from a legitimate 0 — `|| default` would rewrite a stored 0.
   const globalCoeffs = {
-    wTools: num(investment.wToolsCoeff) || 0.65,
-    ownTools: num(investment.ownToolsCoeff) || 0.55,
+    wTools: investment.wToolsCoeff == null ? 0.65 : num(investment.wToolsCoeff),
+    ownTools: investment.ownToolsCoeff == null ? 0.55 : num(investment.ownToolsCoeff),
   }
 
   const items: KosztorysItemT[] = itemsRes.docs.map((d) => ({
@@ -64,6 +65,15 @@ export async function getKosztorysTree(investmentId: number): Promise<KosztorysT
     note: d.note ?? null,
   }))
 
+  // Bucket items by section in one O(items) pass — a per-section filter would be O(sections × items),
+  // quadratic at the 1000+-row bar this editor targets.
+  const itemsBySection = new Map<number, KosztorysItemT[]>()
+  for (const it of items) {
+    const bucket = itemsBySection.get(it.sectionId)
+    if (bucket) bucket.push(it)
+    else itemsBySection.set(it.sectionId, [it])
+  }
+
   const sections = sectionsRes.docs.map((d): KosztorysSectionT & { items: KosztorysItemT[] } => ({
     id: d.id,
     name: d.name,
@@ -71,7 +81,7 @@ export async function getKosztorysTree(investmentId: number): Promise<KosztorysT
     defaultCostVariant: (d.defaultCostVariant as CostVariantT) ?? 'w_tools',
     wToolsCoeff: d.wToolsCoeff == null ? null : num(d.wToolsCoeff),
     ownToolsCoeff: d.ownToolsCoeff == null ? null : num(d.ownToolsCoeff),
-    items: items.filter((it) => it.sectionId === d.id),
+    items: itemsBySection.get(d.id) ?? [],
   }))
 
   return { sections, stages: [], progress: [], globalCoeffs, vatRate: 0 }

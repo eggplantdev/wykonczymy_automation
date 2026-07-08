@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Check, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { formatNet as fmt } from '@/lib/kosztorys/format'
 import type { SectionSubtotalT } from '@/types/kosztorys'
 
 type SectionCoeffsT = { wTools: number | null; ownTools: number | null }
@@ -26,9 +27,6 @@ type PropsT = {
     patch: { wToolsCoeff?: number | null; ownToolsCoeff?: number | null },
   ) => void
 }
-
-const fmt = (n: number) =>
-  n.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 // Markup-coefficient field. Uncontrolled + `key` on the value (remount after router.refresh),
 // commit on blur/Enter — no useEffect (project rule). Empty + nullable = inherit (null).

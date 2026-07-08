@@ -172,34 +172,6 @@ export async function removeItemAction(itemId: number) {
   )
 }
 
-const reorderItemsSchema = z.object({
-  sectionId: z.number(),
-  orderedItemIds: z.array(z.number()).min(1),
-})
-
-// Renumbers the display_order of a section's items from the full list of ids (not a two-item swap) — the server
-// receives the complete truth about the ordering and renumbers from zero. Reserved for a future
-// cross-section move; ▲▼ uses swapItemOrderAction (2 writes instead of N).
-export async function reorderItemsAction(
-  sectionId: number,
-  orderedItemIds: number[],
-): Promise<ActionResultT> {
-  return protectedAction(
-    'reorderItemsAction',
-    async ({ payload }) => {
-      const parsed = validateAction(reorderItemsSchema, { sectionId, orderedItemIds })
-      if (!parsed.success) return parsed
-      await Promise.all(
-        parsed.data.orderedItemIds.map((id, index) =>
-          payload.update({ collection: 'kosztorys-items', id, data: { displayOrder: index } }),
-        ),
-      )
-      return { success: true }
-    },
-    ['kosztorysItems'],
-  )
-}
-
 const itemOrderSchema = z.object({ id: z.number(), displayOrder: z.number() })
 const swapItemOrderSchema = z.object({ first: itemOrderSchema, second: itemOrderSchema })
 

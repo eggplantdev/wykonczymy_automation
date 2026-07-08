@@ -1,7 +1,5 @@
 import type {
-  CostVariantT,
   KosztorysItemT,
-  KosztorysSectionT,
   KosztorysV2RowT,
   SectionSubtotalT,
   ViewPricingT,
@@ -16,36 +14,10 @@ import type {
 // Discount ("rabat"): discountValue for 'percent' = percentage points (10 => 10%), for
 // 'amount' = an amount in PLN subtracted from the net value.
 
-export function effectiveCostVariant(
-  item: KosztorysItemT,
-  section: KosztorysSectionT,
-): CostVariantT {
-  return item.costVariant ?? section.defaultCostVariant
-}
-
 function applyDiscount(gross: number, item: KosztorysItemT): number {
   if (item.discountType === 'percent') return gross * (1 - (item.discountValue || 0) / 100)
   if (item.discountType === 'amount') return gross - (item.discountValue || 0)
   return gross
-}
-
-/** Net row value at the client price (measured qty × price − discount). */
-export function rowNet(item: KosztorysItemT): number {
-  return applyDiscount(item.measuredQty * item.clientPrice, item)
-}
-
-export function rowGross(item: KosztorysItemT, vatRate: number): number {
-  return rowNet(item) * (1 + vatRate)
-}
-
-/** Value of a single item stage (qty done × client price − discount). */
-export function stageValue(item: KosztorysItemT, qtyDoneInStage: number): number {
-  return applyDiscount(qtyDoneInStage * item.clientPrice, item)
-}
-
-/** Remaining to do = row net − Σ of completed-stage values. */
-export function rowRemaining(item: KosztorysItemT, doneNetTotal: number): number {
-  return rowNet(item) - doneNetTotal
 }
 
 // --- Price views (one dataset → three views: client / subcontractor with/without tools) ---

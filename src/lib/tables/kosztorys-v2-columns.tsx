@@ -6,6 +6,7 @@ import { Column, type CellProps, keyColumn, textColumn, floatColumn } from 'reac
 import { SortHeader } from '@/components/kosztorys/sort-header'
 import { ResizableHeader } from '@/components/kosztorys/column-resize-handle'
 import { rowNetForView, viewPrice, type PriceViewT } from '@/lib/kosztorys/calc'
+import { formatNet as fmt } from '@/lib/kosztorys/format'
 import { type SortDirT } from '@/lib/kosztorys/v2-rows'
 import type {
   DiscountTypeT,
@@ -13,9 +14,6 @@ import type {
   SubcontractorOverrideTypeT,
   ViewPricingT,
 } from '@/types/kosztorys'
-
-const fmt = (n: number) =>
-  n.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 const DISCOUNT_OPTIONS: { value: string; label: string }[] = [
   { value: '', label: '—' },
