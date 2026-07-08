@@ -234,10 +234,10 @@ None — no schema changes. The seeded user is data-plane only and idempotent; a
 
 #### Automated
 
-- [x] 1.1 Typecheck passes: `pnpm typecheck`
-- [x] 1.2 Lint passes: `pnpm lint`
-- [x] 1.3 `pnpm seed:e2e` creates the user and is idempotent on re-run
-- [x] 1.4 `pnpm test:e2e` passes with smoke + auth specs; `e2e/.auth/user.json` generated
+- [x] 1.1 Typecheck passes: `pnpm typecheck` — 6c941b6
+- [x] 1.2 Lint passes: `pnpm lint` — 6c941b6
+- [x] 1.3 `pnpm seed:e2e` creates the user and is idempotent on re-run — 6c941b6
+- [x] 1.4 `pnpm test:e2e` passes with smoke + auth specs; `e2e/.auth/user.json` generated — 6c941b6
 
 #### Manual
 
@@ -248,14 +248,25 @@ None — no schema changes. The seeded user is data-plane only and idempotent; a
 
 #### Automated
 
-- [ ] 2.1 Typecheck passes: `pnpm typecheck`
-- [ ] 2.2 Lint passes: `pnpm lint`
+- [x] 2.1 Typecheck passes: `pnpm typecheck`
+- [x] 2.2 Lint passes: `pnpm lint`
 - [ ] 2.3 `pnpm test:e2e` passes with all four specs
 
 #### Manual
 
 - [ ] 2.4 Specs not flaky across 3 consecutive runs
 - [ ] 2.5 Suite passes after a `pnpm db:import` DB reset
+
+> **WIP status (2026-07-08, branch switch):** auth + smoke specs GREEN and stable. Both mutation
+> specs (transfer-create, transfer-cancel) still RED: the created expense row never appears on the
+> `/kasa/[id]` page within the 20s `expect` timeout on a cold server — `getByRole('cell', {name:
+description})` times out with "element(s) not found" (see `test-results/…/error-context.md`). The
+> dialog closes (submit fires), so the write likely succeeds but the revalidate → router.refresh
+> round-trip doesn't surface the row on the register list within budget. Next: run against the WARM
+> server (`pnpm test:e2e:warm`, see `playwright.warm.config.ts`) to isolate cold-boot latency from a
+> genuine "row never renders" bug — if warm also fails, the assertion/selector is wrong, not slow.
+> DB isolation to 5435 is DONE and verified (scripts force `db-test`, config hard-throws without
+> `DB_POSTGRES_URL_TEST`).
 
 ### Phase 3: Doc correction — token lifetime
 

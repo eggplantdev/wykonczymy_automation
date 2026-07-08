@@ -12,7 +12,13 @@ export const STORAGE_STATE = 'e2e/.auth/user.json'
 // config graph → next/cache, which Playwright's module loader can't resolve. `pnpm seed:e2e`
 // runs under tsx where that resolves fine, and it's idempotent.
 export default async function globalSetup(config: FullConfig): Promise<void> {
-  execFileSync('pnpm', ['seed:e2e'], { stdio: 'inherit' })
+  // Seed into the SAME isolated test DB the webServer uses (5435), not the dev DB on 5433.
+  // seed:e2e's `node --env-file=.env` won't clobber this — an env var already set in the
+  // process takes precedence over the .env file.
+  execFileSync('pnpm', ['seed:e2e'], {
+    stdio: 'inherit',
+    env: { ...process.env, DB_POSTGRES_URL: process.env.DB_POSTGRES_URL_TEST },
+  })
 
   const baseURL = config.projects[0]?.use?.baseURL
   if (!baseURL) throw new Error('[global-setup] no baseURL configured')
