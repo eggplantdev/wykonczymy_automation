@@ -506,8 +506,8 @@ never by the agent (`payload-prod-migrate` skill). No data backfill required.
 
 #### Automated
 
-- [x] 2.1 Calc + rows unit tests pass (`vitest run` on both specs)
-- [x] 2.2 Type checking passes
+- [x] 2.1 Calc + rows unit tests pass (`vitest run` on both specs) — 76587b2
+- [x] 2.2 Type checking passes — 76587b2
 
 #### Manual
 
@@ -517,9 +517,9 @@ never by the agent (`payload-prod-migrate` skill). No data backfill required.
 
 #### Automated
 
-- [ ] 3.1 Type checking passes
-- [ ] 3.2 Lint passes
-- [ ] 3.3 Existing unit suite still green (`pnpm exec vitest run`)
+- [x] 3.1 Type checking passes
+- [x] 3.2 Lint passes
+- [x] 3.3 Existing unit suite still green (`pnpm exec vitest run`)
 
 #### Manual
 
