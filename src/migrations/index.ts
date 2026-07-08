@@ -39,6 +39,7 @@ import * as migration_20260611_1_add_loss_enum from './20260611_1_add_loss_enum'
 import * as migration_20260612_0_add_settled from './20260612_0_add_settled'
 import * as migration_20260707_add_leads from './20260707_add_leads'
 import * as migration_20260707_1_add_lead_form_questions from './20260707_1_add_lead_form_questions'
+import * as migration_20260708_add_notification_reads from './20260708_add_notification_reads'
 
 export const migrations = [
   {
@@ -245,5 +246,10 @@ export const migrations = [
     up: migration_20260707_1_add_lead_form_questions.up,
     down: migration_20260707_1_add_lead_form_questions.down,
     name: '20260707_1_add_lead_form_questions',
+  },
+  {
+    up: migration_20260708_add_notification_reads.up,
+    down: migration_20260708_add_notification_reads.down,
+    name: '20260708_add_notification_reads',
   },
 ]
