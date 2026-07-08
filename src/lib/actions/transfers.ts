@@ -37,7 +37,7 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
 
       if (needsSourceRegister(parsed.data.type)) {
         // For deposits, sourceRegister is actually the target (the register receiving money)
-        const validated = await validateSourceRegister(data.sourceRegister, user, payload)
+        const validated = await validateSourceRegister(data.sourceRegister, payload)
         console.log(`[PERF]   validateSourceRegister ${step()}ms`)
         if (!validated.success) return validated
 
@@ -90,7 +90,7 @@ export async function createBulkTransferAction(
 
       if (needsSourceRegister(parsed.data.type)) {
         // For deposits, sourceRegister is actually the target (the register receiving money)
-        const validated = await validateSourceRegister(parsed.data.sourceRegister, user, payload)
+        const validated = await validateSourceRegister(parsed.data.sourceRegister, payload)
         console.log(`[PERF]   validateSourceRegister ${step()}ms`)
         if (!validated.success) return validated
 

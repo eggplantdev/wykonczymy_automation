@@ -98,18 +98,18 @@ describe('validateAction', () => {
 describe('validateSourceRegister', () => {
   it('returns error when register not found', async () => {
     mockRegisterLookup(999)
-    const result = await validateSourceRegister(999, adminUser, fakePayload)
+    const result = await validateSourceRegister(999, fakePayload)
     expect(result).toEqual({ success: false, error: 'Kasa nie istnieje' })
   })
 
   it('returns error for undefined cashRegisterId', async () => {
-    const result = await validateSourceRegister(undefined, adminUser, fakePayload)
+    const result = await validateSourceRegister(undefined, fakePayload)
     expect(result).toEqual({ success: false, error: 'Kasa nie istnieje' })
   })
 
   it('ADMIN can access any register', async () => {
     mockRegisterLookup(1)
-    const result = await validateSourceRegister(1, adminUser, fakePayload)
+    const result = await validateSourceRegister(1, fakePayload)
     expect(result.success).toBe(true)
     if (result.success) {
       expect(result.register.id).toBe(1)
@@ -119,7 +119,7 @@ describe('validateSourceRegister', () => {
   it('MANAGER can access any register', async () => {
     // Register 3 has ownerId: 3, managerUser.id is 2
     mockRegisterLookup(3)
-    const result = await validateSourceRegister(3, managerUser, fakePayload)
+    const result = await validateSourceRegister(3, fakePayload)
     expect(result.success).toBe(true)
   })
 })
