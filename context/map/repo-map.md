@@ -1,9 +1,9 @@
 # Repo Map — onboarding guide
 
-> Synthesis of three Wide-Scan artifacts, **not** a re-derivation. Reads them together:
+> Synthesis of two Wide-Scan artifacts, **not** a re-derivation. Reads them together:
 > [`artifact-1-territory.md`](artifact-1-territory.md) (git activity) ·
-> [`artifact-2-structure.md`](artifact-2-structure.md) (dependency graph) ·
-> [`artifact-3-contributors.md`](artifact-3-contributors.md) (authorship).
+> [`artifact-2-structure.md`](artifact-2-structure.md) (dependency graph).
+> (The M4L2 contributors artifact was dropped — this is a solo repo, so it collapses; see §5.)
 > Window: full repo history, 2026-02-11 → 2026-07-08 (975 commits, ~5 months old).
 > Goal: after 15 minutes here you know where things live, what's dangerous, and where to start.
 
@@ -113,11 +113,10 @@ churn is just re-exports. `access/` coupling is **`unknown`** — the graph bare
 
 ## 5. Who to ask
 
-**One human — Konrad (ex-Plant) — for every area.** No knowledge distribution, no bus-factor
-redundancy (artifact-3). Practical substitute for "asking an expert": read the area's
-`context/` doc + relevant `AGENTS.md` section and pair with an agent — that is how 72% of the
-code was written. Colder areas (`auth`, `access`, older settlements) will need a re-read even
-by the author.
+Solo repo — one human (Konrad) for every area, so a contributor map doesn't apply. Bus-factor
+is 1, which is exactly why the durable docs (`AGENTS.md`, `context/`) are load-bearing: they're
+the only second source of truth. Substitute for "asking an expert": read the area's `context/`
+doc + `AGENTS.md` section and pair with an agent — how ~72% of the code was written.
 
 ## 6. First day — read these, in order
 

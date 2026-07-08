@@ -146,4 +146,5 @@ synthesis (per the M4L2 rule about generated vs hand-edited change).
 - **The Sheets and Payload-admin planes are under-represented** — much of the Sheets logic
   runs against live Google APIs and the Payload admin is config-driven; neither shows its
   true weight in file churn.
-- **Author attribution not analyzed here** — that's artifact-3 (contributors).
+- **Author attribution not analyzed** — a contributor map was skipped: this is a solo repo
+  (one human, Konrad), so it collapses to a single name. See `repo-map.md` §5.
