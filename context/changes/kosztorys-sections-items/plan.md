@@ -491,10 +491,10 @@ never by the agent (`payload-prod-migrate` skill). No data backfill required.
 
 #### Automated
 
-- [x] 1.1 Migration applies cleanly on local docker (`pnpm payload migrate`)
-- [x] 1.2 Types regenerate (`pnpm generate:types`)
-- [x] 1.3 Type checking passes (`pnpm typecheck`)
-- [x] 1.4 Lint passes (`pnpm lint`)
+- [x] 1.1 Migration applies cleanly on local docker (`pnpm payload migrate`) — a2dbebb
+- [x] 1.2 Types regenerate (`pnpm generate:types`) — a2dbebb
+- [x] 1.3 Type checking passes (`pnpm typecheck`) — a2dbebb
+- [x] 1.4 Lint passes (`pnpm lint`) — a2dbebb
 
 #### Manual
 
@@ -506,8 +506,8 @@ never by the agent (`payload-prod-migrate` skill). No data backfill required.
 
 #### Automated
 
-- [ ] 2.1 Calc + rows unit tests pass (`vitest run` on both specs)
-- [ ] 2.2 Type checking passes
+- [x] 2.1 Calc + rows unit tests pass (`vitest run` on both specs)
+- [x] 2.2 Type checking passes
 
 #### Manual
 
