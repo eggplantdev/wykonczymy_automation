@@ -36,15 +36,13 @@ export default ts.config(
     },
   },
   {
-    // Read env only through the validated layer (env.ts / env.server.ts) — never raw
+    // Read env only through the validated layer (env/index.ts / env/server.ts) — never raw
     // process.env. Allowlist the env layer itself, payload.config and CLI scripts (both run
     // in the Payload CLI graph where `server-only` can't be imported), and tests (which seed
     // process.env).
     files: ['src/**/*.{ts,tsx}'],
     ignores: [
-      'src/lib/env.ts',
-      'src/lib/env.server.ts',
-      'src/lib/env-schema.ts',
+      'src/lib/env/**',
       'src/payload.config.ts',
       'src/scripts/**',
       'src/__tests__/**',
@@ -57,7 +55,7 @@ export default ts.config(
           selector:
             "MemberExpression[object.object.name='process'][object.property.name='env']:not([property.name='NODE_ENV'])",
           message:
-            'Read env through the validated env layer (env.ts / env.server.ts), never raw process.env.',
+            'Read env through the validated env layer (env/index.ts / env/server.ts), never raw process.env.',
         },
       ],
     },

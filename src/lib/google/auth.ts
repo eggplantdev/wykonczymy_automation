@@ -1,5 +1,5 @@
 import { google } from 'googleapis'
-import { serverEnv } from '@/lib/env.server'
+import { serverEnv } from '@/lib/env/server'
 
 /**
  * Single source for the service-account credential parse + JWT construction.

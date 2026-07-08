@@ -1,4 +1,4 @@
-import { serverEnv } from '@/lib/env.server'
+import { serverEnv } from '@/lib/env/server'
 
 /**
  * Meta's webhook carries only a `leadgen_id`; the field data lives behind a

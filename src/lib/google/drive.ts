@@ -1,6 +1,6 @@
 import { google, drive_v3 } from 'googleapis'
 import { createServiceAccountJWT } from './auth'
-import { serverEnv } from '@/lib/env.server'
+import { serverEnv } from '@/lib/env/server'
 
 function getDriveClient(): drive_v3.Drive {
   const auth = createServiceAccountJWT(['https://www.googleapis.com/auth/drive.file'])

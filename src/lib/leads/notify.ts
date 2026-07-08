@@ -1,6 +1,6 @@
 import type { Payload } from 'payload'
 import type { Lead } from '@/payload-types'
-import { serverEnv } from '@/lib/env.server'
+import { serverEnv } from '@/lib/env/server'
 import { FRONTEND_URL } from '@/lib/env'
 import { renderBrandedEmail } from './email-template'
 import { buildLeadAnswers } from './lead-answers'
