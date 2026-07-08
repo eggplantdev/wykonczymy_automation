@@ -6,9 +6,18 @@ type: refactor-plan
 
 # Invariant Guardian Refactor — "An auxiliary register must not go negative"
 
+> **⚠️ SUPERSEDED — DO NOT IMPLEMENT.** This plan's premise is false. The
+> negative-balance guard was **not** an accidentally-dropped invariant; registers
+> are **allowed** to go negative by a deliberate **client decision** (git-confirmed:
+> dropped `76dd757`, flip-flopped 4×). EX-410, opened to build this plan, was
+> **canceled**. Kept only as a record of the DDD "guardian aggregate" exercise and
+> as a cautionary example: a commented-out guard is a _candidate_ finding, not a
+> verdict — confirm intent in git before ranking it. Current truth lives in
+> [`01-domain-distillation.md`](../../domain/01-domain-distillation.md) (KROK 4 #1).
+
 A **plan**, not an implementation. No production code is changed here. Every
 citation is verified `file:line`. Builds on
-[`01-domain-distillation.md`](./01-domain-distillation.md).
+[`01-domain-distillation.md`](../../domain/01-domain-distillation.md).
 
 ---
 
