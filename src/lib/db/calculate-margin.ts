@@ -8,7 +8,7 @@
 // Margin = laborCosts - payouts - rabat - loss - settled = profit still available.
 // Takes the whole financials object (symmetric with calculateBalance) so no call site
 // hand-passes five same-typed positional numbers that could be transposed.
-import type { InvestmentFinancialsT } from '@/lib/db/sum-transfers'
+import type { InvestmentFinancialsT } from '@/types/investment-financials'
 
 export const calculateMargin = (f: InvestmentFinancialsT) =>
   f.totalLaborCosts - f.totalPayouts - f.totalRabat - f.totalLoss - f.totalSettled

@@ -13,10 +13,12 @@ import {
   sumFilteredByType,
   sumCategoryByTypeSettled,
   deriveCategoryBreakdowns,
-  type InvestmentFinancialsT,
-  type TypeSettledTotalT,
-  type CategoryBreakdownsT,
 } from '@/lib/db/sum-transfers'
+import type {
+  InvestmentFinancialsT,
+  TypeSettledTotalT,
+  CategoryBreakdownsT,
+} from '@/types/investment-financials'
 import { perfStart } from '@/lib/perf'
 
 import type {

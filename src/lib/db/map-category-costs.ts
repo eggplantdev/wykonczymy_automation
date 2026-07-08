@@ -1,4 +1,4 @@
-import type { CategoryCostT, InvestmentFinancialsT } from '@/lib/db/sum-transfers'
+import type { CategoryCostT, InvestmentFinancialsT } from '@/types/investment-financials'
 import type { FinancialFieldT } from '@/types/export'
 import { formatPLN } from '@/lib/utils/format-currency'
 

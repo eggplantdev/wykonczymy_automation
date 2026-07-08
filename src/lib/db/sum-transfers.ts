@@ -1,26 +1,16 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { Payload, PayloadRequest, Where } from 'payload'
 import { perfStart } from '@/lib/perf'
-import {
-  deriveCategoryBreakdowns,
-  deriveFinancials,
-  type CategoryTypeSettledRowT,
-  type InvestmentFinancialsT,
-  type TypeSettledTotalT,
-} from '@/lib/db/investment-financials'
+import { deriveCategoryBreakdowns, deriveFinancials } from '@/lib/db/investment-financials'
+import type {
+  CategoryTypeSettledRowT,
+  InvestmentFinancialsT,
+  TypeSettledTotalT,
+} from '@/types/investment-financials'
 import { buildSqlConditions, isNoResultsSentinel } from '@/lib/db/where-to-sql'
 
-// Re-exported so the ~20 existing importers of these symbols keep resolving here.
-// The derive logic and Where→SQL translation now live in dedicated modules.
-export {
-  deriveCategoryBreakdowns,
-  deriveFinancials,
-  type CategoryBreakdownsT,
-  type CategoryCostT,
-  type CategoryTypeSettledRowT,
-  type InvestmentFinancialsT,
-  type TypeSettledTotalT,
-} from '@/lib/db/investment-financials'
+// Re-exported so the existing importers of the derive functions keep resolving here.
+export { deriveCategoryBreakdowns, deriveFinancials } from '@/lib/db/investment-financials'
 
 /** Minimal surface the callers use: run a raw SQL query and read its rows. */
 type DbExecutorT = {

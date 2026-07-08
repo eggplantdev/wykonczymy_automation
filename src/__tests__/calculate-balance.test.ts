@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { calculateBalance } from '@/lib/db/calculate-balance'
-import type { InvestmentFinancialsT } from '@/lib/db/sum-transfers'
+import type { InvestmentFinancialsT } from '@/types/investment-financials'
 
 const base: InvestmentFinancialsT = {
   categoryCosts: [],
