@@ -67,6 +67,10 @@ wnioski.md
 
 # playwright
 .playwright-mcp/
+/.next-e2e/
+/playwright-report/
+/test-results/
+/e2e/.auth/
 
 # payload
 src/payload-types.ts
