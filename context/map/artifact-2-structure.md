@@ -84,5 +84,5 @@ sheets-sync → … → config`, which depcruise splits into 3 overlapping paths
 
 ## Optional next step: graph render
 
-Only after selection. Candidate single-question render: the 7-node Payload-hook cycle, via
+Only after selection. Candidate single-question render: the Payload-hook cycle, via
 `depcruise --focus "hooks/transfers/sync-sheet" --output-type dot | dot -T svg`. Not the whole `src/` (hairball).
