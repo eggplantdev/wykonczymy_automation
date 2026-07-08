@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { buildPrintHtml } from '@/lib/export/print'
-import type { TransferRowT } from '@/components/tables/transfers'
+import type { TransferRowT } from '@/lib/queries/transfer-mapping'
 import type { HeaderFieldT } from '@/types/export'
 
 const makeRow = (overrides: Partial<TransferRowT> = {}): TransferRowT => ({

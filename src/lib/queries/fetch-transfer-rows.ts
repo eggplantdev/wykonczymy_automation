@@ -9,7 +9,7 @@ import {
   buildTransferLookups,
   type TransferRowT,
   type TransferDocT,
-} from '@/components/tables/transfers'
+} from '@/lib/queries/transfer-mapping'
 import type { RawTransferDocT } from '@/lib/queries/transfers'
 
 type BuildRowsOptsT = {

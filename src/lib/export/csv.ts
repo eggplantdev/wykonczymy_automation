@@ -1,5 +1,5 @@
 import { TRANSFER_EXPORT_COLUMNS } from '@/lib/export/transfer-columns'
-import type { TransferRowT } from '@/components/tables/transfers'
+import type { TransferRowT } from '@/lib/queries/transfer-mapping'
 
 function escapeCsv(value: string): string {
   if (value.includes(',') || value.includes('"') || value.includes('\n')) {
