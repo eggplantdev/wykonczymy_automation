@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { TRANSFER_TYPES, PAYMENT_METHODS } from '@/lib/constants/transfers'
-import { getAmountError, refineAmount, refineDate } from '@/lib/validation-utils'
+import { getAmountError, refineAmount, refineDate } from '@/lib/utils/validation'
 import {
   validateTransferFields,
   validateLineItemCategories,

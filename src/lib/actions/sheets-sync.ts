@@ -23,7 +23,7 @@ import {
   SHEET_TRANSFER_TAB_TYPES,
 } from '@/lib/constants/transfers'
 import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
-import { protectedAction } from './utils'
+import { protectedAction } from './run-action'
 
 // One tab's pending changes. `toUpdateCount`/`toRemoveCount` are what a confirm would
 // do BEYOND appends (refresh present rows, remove this investment's orphans) — surfaced

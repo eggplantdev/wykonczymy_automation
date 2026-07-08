@@ -42,12 +42,10 @@ Nothing E2E is automated or CI-runnable.
 
 Prior design work this PRD builds on:
 
-- `docs/superpowers/specs/2026-05-28-kosztorys-in-app-editor-design.md` — 13 locked
-  decisions (D1–D13), a draft six-table data shape, and ten open data-shape
-  questions (Q1–Q10).
-- `docs/kosztorys-sync.md` — the current mirror's authoritative behaviour.
-- `docs/kosztorys-sheet-inspection.md` — tooling that dumped the template's
-  structure.
+- `context/changes/kosztorys-poc-in-app/change.md` (on branch `poc-kosztorys-in-app`) —
+  the POC decision register that superseded the deleted 2026-05-28 design draft: its
+  D1–D13 decisions and draft data shape were resolved and built in the POC.
+- `context/reference/kosztorys-sync.md` — the current mirror's authoritative behaviour.
 
 ## Problem Statement & Motivation
 

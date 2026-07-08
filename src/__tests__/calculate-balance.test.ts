@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calculateBalance } from '@/lib/calculate-balance'
+import { calculateBalance } from '@/lib/db/calculate-balance'
 import type { InvestmentFinancialsT } from '@/lib/db/sum-transfers'
 
 const base: InvestmentFinancialsT = {

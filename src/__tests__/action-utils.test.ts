@@ -18,8 +18,8 @@ vi.mock('@/lib/db/sum-transfers', () => ({
 }))
 
 // TODO: re-add checkIfSufficientBalance when the negative-balance constraint is restored
-const { getErrorMessage, validateAction, validateSourceRegister } =
-  await import('@/lib/actions/utils')
+const { getErrorMessage, validateAction } = await import('@/lib/actions/run-action')
+const { validateSourceRegister } = await import('@/lib/actions/validate-source-register')
 
 const fakePayload = {} as Payload
 

@@ -1,6 +1,14 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner } from '@/access'
-import { canBeSettled } from '@/lib/constants/transfers'
+import {
+  canBeSettled,
+  needsExpenseCategory,
+  needsOtherCategory,
+  needsSourceRegister,
+  needsTargetRegister,
+  showsInvestment,
+  type TransferTypeT,
+} from '@/lib/constants/transfers'
 import { validateTransfer } from '@/hooks/transfers/validate'
 import { recalcAfterChange, recalcAfterDelete } from '@/hooks/transfers/recalculate-balances'
 import { syncSheetAfterChange, syncSheetAfterDelete } from '@/hooks/transfers/sync-sheet'
@@ -21,7 +29,16 @@ const TRANSFER_TYPES = [
   { label: { en: 'Other Expense', pl: 'Inny wydatek' }, value: 'OTHER' },
   { label: { en: 'Correction', pl: 'Korekta' }, value: 'CORRECTION' },
   { label: { en: 'Cancellation', pl: 'Anulowanie' }, value: 'CANCELLATION' },
-] as const
+] as const satisfies readonly { label: { en: string; pl: string }; value: TransferTypeT }[]
+
+// The `satisfies` above rejects any value outside the TransferTypeT union; this asserts
+// the reverse — every union member has an option here — so adding a type to the const
+// source without wiring its Payload option fails typecheck instead of drifting silently.
+type _AllTransferTypesCovered = TransferTypeT extends (typeof TRANSFER_TYPES)[number]['value']
+  ? true
+  : never
+const _assertAllTransferTypesCovered: _AllTransferTypesCovered = true
+void _assertAllTransferTypesCovered
 
 const PAYMENT_METHODS = [
   { label: { en: 'Cash', pl: 'Gotówka' }, value: 'CASH' },
@@ -30,29 +47,7 @@ const PAYMENT_METHODS = [
   { label: { en: 'Card', pl: 'Karta' }, value: 'CARD' },
 ] as const
 
-/** Show sourceRegister for all types except LABOR_COST, RABAT and LOSS (P&L figures, no cash movement) */
-const showSourceRegister = (data: Record<string, unknown>) =>
-  data?.type !== 'LABOR_COST' && data?.type !== 'RABAT' && data?.type !== 'LOSS'
-
-/** Show investment field for types that use it (required or optional) */
-const showInvestment = (data: Record<string, unknown>) =>
-  data?.type === 'INVESTOR_DEPOSIT' ||
-  data?.type === 'INVESTMENT_EXPENSE' ||
-  data?.type === 'LABOR_COST' ||
-  data?.type === 'RABAT' ||
-  data?.type === 'LOSS' ||
-  data?.type === 'PAYOUT' ||
-  data?.type === 'CORRECTION'
-
-/** Show targetRegister only for REGISTER_TRANSFER */
-const showTargetRegister = (data: Record<string, unknown>) => data?.type === 'REGISTER_TRANSFER'
-
-/** Show field when type is OTHER */
-const needsOtherCategory = (data: Record<string, unknown>) => data?.type === 'OTHER'
-
-/** Show expenseCategory for INVESTMENT_EXPENSE and CORRECTION */
-const showExpenseCategory = (data: Record<string, unknown>) =>
-  data?.type === 'INVESTMENT_EXPENSE' || data?.type === 'CORRECTION'
+const typeOf = (data: Record<string, unknown>) => String(data?.type)
 
 export const Transfers: CollectionConfig = {
   slug: 'transactions',
@@ -130,7 +125,7 @@ export const Transfers: CollectionConfig = {
       label: { en: 'Source Register', pl: 'Kasa' },
       access: { update: () => false },
       admin: {
-        condition: (data) => showSourceRegister(data),
+        condition: (data) => needsSourceRegister(typeOf(data)),
       },
     },
     {
@@ -140,7 +135,7 @@ export const Transfers: CollectionConfig = {
       label: { en: 'Target Register', pl: 'Kasa docelowa' },
       access: { update: () => false },
       admin: {
-        condition: (data) => showTargetRegister(data),
+        condition: (data) => needsTargetRegister(typeOf(data)),
       },
     },
     // --- Conditional fields based on type ---
@@ -150,7 +145,7 @@ export const Transfers: CollectionConfig = {
       relationTo: 'investments',
       label: { en: 'Investment', pl: 'Inwestycja' },
       admin: {
-        condition: (data) => showInvestment(data),
+        condition: (data) => showsInvestment(typeOf(data)),
       },
     },
     {
@@ -159,7 +154,7 @@ export const Transfers: CollectionConfig = {
       relationTo: 'expense-categories',
       label: { en: 'Investment Expense Type', pl: 'Typ wydatku inwestycyjnego' },
       admin: {
-        condition: (data) => showExpenseCategory(data),
+        condition: (data) => needsExpenseCategory(typeOf(data), !!data?.investment),
       },
     },
     {
@@ -178,7 +173,7 @@ export const Transfers: CollectionConfig = {
       relationTo: 'other-categories',
       label: { en: 'Category', pl: 'Kategoria' },
       admin: {
-        condition: (data) => needsOtherCategory(data),
+        condition: (data) => needsOtherCategory(typeOf(data)),
       },
     },
     {
@@ -186,7 +181,7 @@ export const Transfers: CollectionConfig = {
       type: 'textarea',
       label: { en: 'Category Description', pl: 'Opis kategorii' },
       admin: {
-        condition: (data) => needsOtherCategory(data),
+        condition: (data) => needsOtherCategory(typeOf(data)),
       },
     },
     // --- Invoice documentation ---

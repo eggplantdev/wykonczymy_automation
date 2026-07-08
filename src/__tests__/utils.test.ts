@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getMonthDateRange } from '@/lib/date-utils'
+import { getMonthDateRange } from '@/lib/utils/date'
 import {
   parsePagination,
   buildPaginationMeta,

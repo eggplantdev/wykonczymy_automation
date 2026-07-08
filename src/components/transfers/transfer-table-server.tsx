@@ -2,8 +2,8 @@ import {
   findTransfersRaw,
   buildCancellationOriginalsMap,
   enrichCancellationOriginals,
-  stripCancelledFilters,
 } from '@/lib/queries/transfers'
+import { stripCancelledFilters } from '@/lib/queries/transfer-filters'
 import { fetchReferenceData, fetchFilteredByType } from '@/lib/queries/reference-data'
 import { buildTransferRows } from '@/lib/queries/fetch-transfer-rows'
 import { TransferDataTable } from '@/components/transfers/transfer-data-table'

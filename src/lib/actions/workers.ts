@@ -1,7 +1,7 @@
 'use server'
 
-import { workerSchema, type WorkerFormDataT } from '@/lib/schemas/worker'
-import { validateAction, protectedAction } from './utils'
+import { workerSchema, type WorkerFormDataT } from '@/components/forms/worker-form/worker-schema'
+import { validateAction, protectedAction } from './run-action'
 
 export async function createWorkerAction(data: WorkerFormDataT) {
   return protectedAction(

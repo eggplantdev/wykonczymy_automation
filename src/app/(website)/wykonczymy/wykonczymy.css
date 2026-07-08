@@ -1,9 +1,9 @@
 .wykonczymy-page {
-  --wk-background: #fdfbf7;
-  --wk-foreground: #1c1917;
-  --wk-accent: #a3785f;
-  --wk-muted: #78716c;
-  --wk-border: #e7e0d8;
+  --wk-background: var(--color-wk-cream);
+  --wk-foreground: var(--color-wk-ink);
+  --wk-accent: var(--color-wk-accent);
+  --wk-muted: var(--color-wk-stone);
+  --wk-border: var(--color-wk-sand);
 
   overflow-x: hidden;
   background: var(--wk-background);

@@ -1,189 +1,43 @@
 import { google, sheets_v4 } from 'googleapis'
 import { createServiceAccountJWT } from './auth'
 import {
-  TRANSFERS_SUMMARY_TYPES,
-  TRANSFER_TYPE_LABELS,
-  CORRECTION_MOVED_LABEL,
-} from '@/lib/constants/transfers'
+  columnLetter,
+  colOf,
+  fieldsOf,
+  normalize,
+  tabRange,
+  MAX_HEADER_SCAN_ROWS,
+  type SheetTabConfigT,
+  type TabRowInputT,
+} from './sheet-configs'
+import { buildTabSummary, formulaArgSeparator } from './sheet-summary'
+import {
+  colorFor,
+  hexToRgb,
+  textOn,
+  tint,
+  BANNER_BG,
+  BANNER_ROW,
+  BANNER_TEXT,
+  DATA_START_ROW,
+  HEADER_BG,
+  HEADER_ROW,
+  MONEY_PATTERN,
+  RAZEM_BG,
+  WHITE,
+} from './sheet-format'
 
-// One row per transfer in a single long table, one app-managed tab per
-// SheetTabConfigT. Columns are located by header text (normalized,
-// keyword-contains) so the sheet layout — column order, extra columns, a summary
-// block — can change without touching this code. The id column is the join key
-// (one row per transferId). The row SYNC (append/read) only ever touches the
-// mapped fields; the header, the SUMIF summary and all formatting are written
-// once by setupTab.
-export type SheetTabConfigT = {
-  tabName: string
-  header: string[]
-  // Invariant: Object.keys(fieldMatchers)[i] must be the field that matches header[i]
-  // — field order drives cell-write order and column-letter derivation.
-  fieldMatchers: Record<string, (h: string) => boolean>
-  includeGrandTotal: boolean // RAZEM + =SUM(amount-col) — expenses only
-  // Label for the grand-total column when includeGrandTotal is set. Defaults to
-  // 'RAZEM'; the rozliczone tab overrides it to 'RAZEM rozliczone' so the two
-  // expense-shaped tabs read distinctly.
-  grandTotalLabel?: string
-  dataColWidths: number[]
-}
-
-// A row's cell values keyed by config field name; `transferId` doubles as the
-// id column value.
-export type TabRowInputT = { transferId: number } & Record<string, string | number>
-
-export const EXPENSES_TAB_CONFIG: SheetTabConfigT = {
-  tabName: 'wydatki inwestycyjne (tylko do odczytu)',
-  // The sync locates columns by keyword, so these exact labels aren't
-  // load-bearing for reads — but they must keep their keywords.
-  header: ['id', 'data', 'typ wydatku inwestycyjnego', 'opis', 'kwota', 'kategoria', 'notatka'],
-  fieldMatchers: {
-    id: (h) => h === 'id',
-    date: (h) => h.includes('data'),
-    typ: (h) => h.includes('typ'),
-    description: (h) => h.includes('opis'),
-    amount: (h) => h.includes('kwota'),
-    category: (h) => h.includes('kategoria'),
-    note: (h) => h.includes('notatka'),
-  },
-  includeGrandTotal: true,
-  dataColWidths: [60, 100, 200, 240, 110, 140, 180],
-}
-
-// The separate "rozliczone R+M" tab: same column shape and per-category SUMIF
-// summary as the expenses tab (a third instance of the same pattern), so it
-// mirrors settled expenses at their real amount with the category breakdown for
-// free. Only the tab name and the grand-total label differ.
-export const SETTLED_TAB_CONFIG: SheetTabConfigT = {
-  ...EXPENSES_TAB_CONFIG,
-  tabName: 'rozliczone R+M (tylko do odczytu)',
-  grandTotalLabel: 'RAZEM rozliczone',
-}
-
-// No grand total: summing money-in (INVESTOR_DEPOSIT) with money-out (PAYOUT)
-// with billing figures (LABOR_COST/RABAT/LOSS) and a signed CORRECTION produces
-// a number with no financial meaning — per-type subtotals only.
-export const TRANSFERS_TAB_CONFIG: SheetTabConfigT = {
-  tabName: 'transfery (tylko do odczytu)',
-  header: ['id', 'data', 'typ', 'opis', 'kwota', 'pracownik', 'kategoria', 'notatka'],
-  fieldMatchers: {
-    id: (h) => h === 'id',
-    date: (h) => h.includes('data'),
-    typ: (h) => h.includes('typ'),
-    description: (h) => h.includes('opis'),
-    amount: (h) => h.includes('kwota'),
-    worker: (h) => h.includes('pracownik'),
-    category: (h) => h.includes('kategoria'),
-    note: (h) => h.includes('notatka'),
-  },
-  includeGrandTotal: false,
-  dataColWidths: [60, 100, 160, 240, 110, 140, 140, 180],
-}
-
-// PL labels for the transfers tab's per-type SUMIF summary, in tab order. Driven
-// by the FIXED summary layout (incl. a now-zero Korekta column), NOT the routing
-// list — so a tab rebuild never shifts columns out from under existing formulas.
-export const transferSummaryKeys = (): string[] =>
-  TRANSFERS_SUMMARY_TYPES.map((t) =>
-    t === 'CORRECTION' ? CORRECTION_MOVED_LABEL : TRANSFER_TYPE_LABELS[t],
-  )
-
-const fieldsOf = (cfg: SheetTabConfigT): string[] => Object.keys(cfg.fieldMatchers)
-const colOf = (cfg: SheetTabConfigT, field: string): string =>
-  columnLetter(fieldsOf(cfg).indexOf(field))
-
-// Open-ended rows (A:Z, no row cap): a kosztorys can hold any number of rows,
-// and a fixed cap would make reads silently truncate — the reconciler would
-// then see un-read rows as orphans and delete them. Google trims trailing empties,
-// so an open range stays cheap. Columns are bounded at Z: the data block plus the
-// summary fit well within, and Z leaves ample room.
-const tabRange = (cfg: SheetTabConfigT) => `'${cfg.tabName}'!A:Z`
-const MAX_HEADER_SCAN_ROWS = 15
-
-const normalize = (cell: unknown): string =>
-  String(cell ?? '')
-    .trim()
-    .toLowerCase()
-
-// Google Sheets uses the spreadsheet locale's list separator inside formula
-// argument lists: locales whose decimal mark is a comma (pl_PL, most of the EU)
-// use ';', period-decimal locales (en_US, …) use ','. Detect the decimal mark via
-// Intl and pick accordingly, so a SUMIF written here parses on a non-PL sheet too.
-// Defaults to ';' if the locale is unknown/unparseable (the Polish-sheet case).
-export function formulaArgSeparator(locale: string | undefined): ';' | ',' {
-  try {
-    const decimal = new Intl.NumberFormat((locale ?? 'pl-PL').replace('_', '-'))
-      .formatToParts(1.1)
-      .find((p) => p.type === 'decimal')?.value
-    return decimal === ',' ? ';' : ','
-  } catch {
-    return ';'
-  }
-}
-
-// Build the summary row values: optional RAZEM (grand total) + one SUMIF per
-// summary key. Uses full-column ranges (C:C / E:E, derived from the config's typ
-// and amount columns) and a LITERAL criterion — NOT `C2:C` + a label-cell
-// reference like the old form did. That older form drifted: any row insert or a
-// sort spanning the summary columns shifted the formula and rewrote its criterion
-// to an empty cell, zeroing every per-type total. Full columns survive inserts
-// (the header text is ignored by SUM/SUMIF), and a literal criterion can't come
-// unstuck from a moved label cell. argSep follows the sheet locale. Key names are
-// double-quote-escaped for the formula string.
-export function buildTabSummary(
-  cfg: SheetTabConfigT,
-  summaryKeys: string[],
-  argSep: ';' | ',',
-): { labels: string[]; totals: string[] } {
-  const typCol = colOf(cfg, 'typ')
-  const amountCol = colOf(cfg, 'amount')
-  const labels = cfg.includeGrandTotal
-    ? [cfg.grandTotalLabel ?? 'RAZEM', ...summaryKeys]
-    : [...summaryKeys]
-  const totals = cfg.includeGrandTotal ? [`=SUM(${amountCol}:${amountCol})`] : []
-  for (const t of summaryKeys) {
-    const escaped = t.replace(/"/g, '""')
-    totals.push(
-      `=SUMIF(${typCol}:${typCol}${argSep} "${escaped}"${argSep} ${amountCol}:${amountCol})`,
-    )
-  }
-  return { labels, totals }
-}
-
-function columnLetter(index: number): string {
-  let n = index + 1
-  let letter = ''
-  while (n > 0) {
-    const rem = (n - 1) % 26
-    letter = String.fromCharCode(65 + rem) + letter
-    n = Math.floor((n - 1) / 26)
-  }
-  return letter
-}
-
-type RgbT = { red: number; green: number; blue: number }
-
-function hexToRgb(hex: string): RgbT {
-  const h = hex.replace('#', '')
-  const full = h.length === 3 ? [...h].map((c) => c + c).join('') : h
-  return {
-    red: parseInt(full.slice(0, 2), 16) / 255,
-    green: parseInt(full.slice(2, 4), 16) / 255,
-    blue: parseInt(full.slice(4, 6), 16) / 255,
-  }
-}
-
-// Heavily-whitened version of a color for whole-row backgrounds, so dark text
-// stays readable while the hue is still recognizable at a glance.
-function tint(rgb: RgbT, amount = 0.82): RgbT {
-  const mix = (c: number) => c + (1 - c) * amount
-  return { red: mix(rgb.red), green: mix(rgb.green), blue: mix(rgb.blue) }
-}
-
-// Black or white text for a solid swatch, picked by perceived luminance.
-function textOn(rgb: RgbT): RgbT {
-  const lum = 0.299 * rgb.red + 0.587 * rgb.green + 0.114 * rgb.blue
-  return lum > 0.6 ? { red: 0, green: 0, blue: 0 } : { red: 1, green: 1, blue: 1 }
-}
+// Config/type/summary symbols now live in dedicated modules; re-export the ones the
+// sync action and tests import from '@/lib/google/sheets' so their paths stay valid.
+export {
+  EXPENSES_TAB_CONFIG,
+  SETTLED_TAB_CONFIG,
+  TRANSFERS_TAB_CONFIG,
+  transferSummaryKeys,
+  type SheetTabConfigT,
+  type TabRowInputT,
+} from './sheet-configs'
+export { buildTabSummary, formulaArgSeparator } from './sheet-summary'
 
 function getClient(): sheets_v4.Sheets {
   const auth = createServiceAccountJWT(['https://www.googleapis.com/auth/spreadsheets'])
@@ -432,47 +286,6 @@ export async function removeTabRow(
     throw err
   }
 }
-
-// Color that brands each summary key across the sheet (row tint + summary
-// swatch), keyed by name. The three core expense types keep their hand-picked
-// brand colors; any other key gets a stable, distinct color derived from its name
-// (review T5.3) — so a category added in the admin is auto-colored, not gray, with
-// no code change or schema field.
-const TYPE_COLORS: Record<string, string> = {
-  'Materiały budowlane': '#3b82f6',
-  'Materiały wykończeniowe': '#22c55e',
-  'Pozostałe koszty': '#f59e0b',
-}
-// Palette for auto-assigned colors (distinct hues, all legible once tinted).
-const AUTO_COLORS = ['#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#0ea5e9', '#a3a635', '#ef4444']
-const colorFor = (typeName: string): string => {
-  if (TYPE_COLORS[typeName]) return TYPE_COLORS[typeName]
-  // Deterministic name → palette index (small string hash), so the same key
-  // always maps to the same color across syncs.
-  let hash = 0
-  for (let i = 0; i < typeName.length; i++) hash = (hash * 31 + typeName.charCodeAt(i)) | 0
-  return AUTO_COLORS[Math.abs(hash) % AUTO_COLORS.length]
-}
-
-const MONEY_PATTERN = '#,##0.00 "zł"'
-const HEADER_BG: RgbT = { red: 0.17, green: 0.24, blue: 0.31 }
-const RAZEM_BG: RgbT = { red: 0.93, green: 0.94, blue: 0.95 }
-const WHITE: RgbT = { red: 1, green: 1, blue: 1 }
-
-// Tab layout (0-indexed rows): row 1 holds a baked-in user-facing banner warning
-// that manual edits to this tab are overwritten on next sync, row 2 holds the
-// column headers, data starts at row 3. The banner is part of the table on purpose
-// — owners who open the sheet in a new tab (bypassing the in-app notice) still
-// see it. Reads/writes are header-driven (`resolveHeaders` scans for the header
-// row by keyword), so shifting the header down doesn't affect the sync paths —
-// only `setupTab`'s formatting math has to know these positions.
-const BANNER_ROW = 0
-const HEADER_ROW = 1
-const DATA_START_ROW = 2
-
-const BANNER_TEXT =
-  '⚠ Edycje rób w aplikacji — ręczne zmiany w tej zakładce zostaną nadpisane przy następnej synchronizacji.'
-const BANNER_BG: RgbT = { red: 1, green: 0.949, blue: 0.8 } // soft amber, contrasts the dark header below
 
 // Attach (or reset) an app-managed tab on an existing spreadsheet: ensure the tab
 // exists, write the header + summary (optional RAZEM + per-key SUMIF), then style

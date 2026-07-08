@@ -31,6 +31,18 @@
 
   /* Easing */
   --ease-snappy: cubic-bezier(0.2, 0, 0, 1);
+  --ease-wk: cubic-bezier(0.32, 0.72, 0, 1); /* wykonczymy marketing site */
+
+  /* Marketing site (wykonczymy) palette — warm stone/sand editorial theme */
+  --color-wk-cream: #fdfbf7;
+  --color-wk-ink: #1c1917;
+  --color-wk-ink-hover: #292524;
+  --color-wk-stone: #78716c;
+  --color-wk-sand: #e7e0d8;
+  --color-wk-accent: #a3785f;
+  --text-2xs: 0.625rem;
+  --tracking-wk: 0.2em;
+  --shadow-wk: 0 4px 24px rgb(0 0 0 / 0.04);
 
   /* Semantic Colors - Light Mode */
   --color-background: oklch(1 0 0);

@@ -1,5 +1,5 @@
 import type { SortingState } from '@tanstack/react-table'
-import type { TransferRowT } from '@/lib/tables/transfers'
+import type { TransferRowT } from '@/components/tables/transfers'
 
 /**
  * Maps table column IDs to TransferRowT accessor keys.

@@ -9,8 +9,11 @@ import { createSheetFromTemplate, isStorageQuotaError } from '@/lib/google/drive
 import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
 import { extractSheetId, serviceAccountEmail, verifySheetAccess } from '@/lib/google/sheet-access'
 import { stampAllTabs } from '@/lib/google/app-managed-tabs'
-import { investmentSchema, type InvestmentFormDataT } from '@/lib/schemas/investment'
-import { validateAction, protectedAction } from './utils'
+import {
+  investmentSchema,
+  type InvestmentFormDataT,
+} from '@/components/forms/investment-form/investment-schema'
+import { validateAction, protectedAction } from './run-action'
 
 // Attach (or reset) a fresh materiały tab on the investment's linked sheet.
 // Header + summary are written by the app — the owner builds nothing. Works on a

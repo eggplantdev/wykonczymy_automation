@@ -3,6 +3,9 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  // E2E builds into an isolated dir (NEXT_DIST_DIR=.next-e2e) so `pnpm build` for the
+  // Playwright webServer never fights the dev server's `.next` lock. Unset in normal runs.
+  ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
   // cacheComponents: true,
   experimental: {
     serverActions: {

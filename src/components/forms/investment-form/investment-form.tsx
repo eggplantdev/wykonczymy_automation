@@ -2,16 +2,14 @@
 
 import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
-import { useAppForm } from '@/components/forms/hooks/form-hooks'
-import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
-import useCheckFormErrors from '@/components/forms/hooks/use-check-form-errors'
+import { useManagedForm } from '@/components/forms/hooks/use-managed-form'
+import { FormShell } from '@/components/forms/form-components/form-shell'
 import FormFooter from '@/components/forms/form-components/form-footer'
-import { FormClearButton } from '@/components/forms/form-components/form-clear-button'
 import { investmentFormSchema, type InvestmentFormValuesT } from './investment-schema'
 import { useInvestmentFormStore } from '@/stores/form-stores'
-import type { InvestmentFormDataT } from '@/lib/schemas/investment'
+import type { InvestmentFormDataT } from './investment-schema'
 import type { AppFieldComponentsT } from '@/components/forms/types/form-types'
-import type { ActionResultT } from '@/lib/actions/utils'
+import type { ActionResultT } from '@/types/action'
 
 type InvestmentFormPropsT = {
   formId: string
@@ -34,111 +32,83 @@ export function InvestmentForm({
   onSubmitSuccess,
   keepOpen,
 }: InvestmentFormPropsT) {
-  const { submit } = useFormSubmit(formId)
-
-  const storedValues = useInvestmentFormStore((s) => s.formData)
-  const updateFormData = useInvestmentFormStore((s) => s.updateFormData)
-  const resetFormData = useInvestmentFormStore((s) => s.resetFormData)
-
-  const form = useAppForm({
-    defaultValues: storedValues ?? defaultValues,
-    validators: {
-      onSubmit: investmentFormSchema,
-    },
-    listeners: {
-      onChange: ({ formApi }) => updateFormData(formApi.state.values as InvestmentFormValuesT),
-      onChangeDebounceMs: 500,
-    },
-    onSubmit: async ({ value }) => {
-      const data: InvestmentFormDataT = {
-        name: value.name,
-        address: value.address,
-        phone: value.phone,
-        email: value.email,
-        contactPerson: value.contactPerson,
-        notes: value.notes,
-        review: value.review,
-        status: value.status,
-      }
-
-      await submit(!!keepOpen, {
-        form,
-        action: () => action(data),
-        successMessage,
-        onSubmitSuccess,
-        onReset: resetFormData,
-      })
-
-      return false
-    },
+  const { form, reset } = useManagedForm<InvestmentFormValuesT, InvestmentFormDataT>({
+    formId,
+    store: useInvestmentFormStore,
+    schema: investmentFormSchema,
+    defaultValues,
+    keepOpen,
+    successMessage,
+    onSubmitSuccess,
+    action,
+    toData: (value) => ({
+      name: value.name,
+      address: value.address,
+      phone: value.phone,
+      email: value.email,
+      contactPerson: value.contactPerson,
+      notes: value.notes,
+      review: value.review,
+      status: value.status,
+    }),
   })
 
-  useCheckFormErrors(form)
-
   return (
-    <form.AppForm>
-      <FormClearButton onReset={resetFormData} />
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          form.handleSubmit()
-        }}
-      >
-        <FieldGroup>
-          <form.AppField name="name">
-            {(field: AppFieldComponentsT) => (
-              <field.Input label="Nazwa" placeholder="Nazwa inwestycji" showError />
-            )}
-          </form.AppField>
+    <FormShell form={form} onReset={reset}>
+      <FieldGroup>
+        <form.AppField name="name">
+          {(field: AppFieldComponentsT) => (
+            <field.Input label="Nazwa" placeholder="Nazwa inwestycji" showError />
+          )}
+        </form.AppField>
 
-          <form.AppField name="address">
-            {(field: AppFieldComponentsT) => (
-              <field.Input label="Adres" placeholder="Adres inwestycji" showError />
-            )}
-          </form.AppField>
+        <form.AppField name="address">
+          {(field: AppFieldComponentsT) => (
+            <field.Input label="Adres" placeholder="Adres inwestycji" showError />
+          )}
+        </form.AppField>
 
-          <form.AppField name="phone">
-            {(field: AppFieldComponentsT) => (
-              <field.Input label="Telefon" placeholder="Numer telefonu" showError />
-            )}
-          </form.AppField>
+        <form.AppField name="phone">
+          {(field: AppFieldComponentsT) => (
+            <field.Input label="Telefon" placeholder="Numer telefonu" showError />
+          )}
+        </form.AppField>
 
-          <form.AppField name="email">
-            {(field: AppFieldComponentsT) => (
-              <field.Input label="Email" type="email" placeholder="Adres email" showError />
-            )}
-          </form.AppField>
+        <form.AppField name="email">
+          {(field: AppFieldComponentsT) => (
+            <field.Input label="Email" type="email" placeholder="Adres email" showError />
+          )}
+        </form.AppField>
 
-          <form.AppField name="contactPerson">
-            {(field: AppFieldComponentsT) => (
-              <field.Input label="Osoba kontaktowa" placeholder="Imię i nazwisko" showError />
-            )}
-          </form.AppField>
+        <form.AppField name="contactPerson">
+          {(field: AppFieldComponentsT) => (
+            <field.Input label="Osoba kontaktowa" placeholder="Imię i nazwisko" showError />
+          )}
+        </form.AppField>
 
-          <form.AppField name="notes">
-            {(field: AppFieldComponentsT) => (
-              <field.Textarea label="Notatki" placeholder="Notatki..." rows={3} showError />
-            )}
-          </form.AppField>
+        <form.AppField name="notes">
+          {(field: AppFieldComponentsT) => (
+            <field.Textarea label="Notatki" placeholder="Notatki..." rows={3} showError />
+          )}
+        </form.AppField>
 
-          <form.AppField name="review">
-            {(field: AppFieldComponentsT) => (
-              <field.Textarea label="Opinia" placeholder="Opinia..." rows={3} showError />
-            )}
-          </form.AppField>
+        <form.AppField name="review">
+          {(field: AppFieldComponentsT) => (
+            <field.Textarea label="Opinia" placeholder="Opinia..." rows={3} showError />
+          )}
+        </form.AppField>
 
-          <form.AppField name="status">
-            {(field: AppFieldComponentsT) => (
-              <field.Select label="Status" showError>
-                <SelectItem value="active">Aktywna</SelectItem>
-                <SelectItem value="completed">Zakończona</SelectItem>
-              </field.Select>
-            )}
-          </form.AppField>
-        </FieldGroup>
+        <form.AppField name="status">
+          {(field: AppFieldComponentsT) => (
+            <field.Select label="Status" showError>
+              <SelectItem value="active">Aktywna</SelectItem>
+              <SelectItem value="completed">Zakończona</SelectItem>
+            </field.Select>
+          )}
+        </form.AppField>
+      </FieldGroup>
 
-        <FormFooter label={submitLabel} submittingLabel={submittingLabel} className="mt-6" />
-      </form>
-    </form.AppForm>
+      <FormFooter label={submitLabel} submittingLabel={submittingLabel} className="mt-6" />
+    </FormShell>
   )
 }

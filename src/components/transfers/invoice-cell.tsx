@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 import { FileText, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { removeTransferInvoiceAction } from '@/lib/actions/transfers'
-import { toastMessage } from '@/components/toasts'
+import { toastMessage } from '@/lib/utils/toast'
 
 const InvoicePreviewDialog = dynamic(() =>
   import('@/components/dialogs/invoice-preview-dialog').then((m) => ({

@@ -6,7 +6,7 @@ import {
 import { isAdminOrOwnerRole, MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { requireAuth } from '@/lib/auth/require-auth'
 import type { CashRegisterRefT, WorkerRefT, CashRegisterTypeT } from '@/types/reference-data'
-import type { CashRegisterRowT } from '@/lib/tables/cash-registers'
+import type { CashRegisterRowT } from '@/components/tables/cash-registers'
 
 export function shapeCashRegisters(
   cashRegisters: CashRegisterRefT[],

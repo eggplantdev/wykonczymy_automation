@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import type { ActionResultT } from '@/lib/actions/utils'
+import type { ActionResultT } from '@/types/action'
 
 // ── Mocks ────────────────────────────────────────────────────────────────
 
 const mockToastMessage = vi.fn()
 
-vi.mock('@/components/toasts', () => ({
+vi.mock('@/lib/utils/toast', () => ({
   toastMessage: (...args: unknown[]) => mockToastMessage(...args),
 }))
 

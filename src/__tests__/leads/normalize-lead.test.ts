@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { normalizeLead } from '@/lib/leads/normalize-lead'
 
-// Mirrors form 899352536400611 ("komercyjnie - wwa - cold | 26") — see docs/facebook-leads-setup.md.
+// Mirrors form 899352536400611 ("komercyjnie - wwa - cold | 26") — see context/reference/facebook-leads-setup.md.
 const questions = [
   { key: 'z_jakiej_dzielnicy_warszawy_jesteś?', type: 'CUSTOM' },
   { key: 'jakie_pomieszczenie_chcesz_wyremontować?', type: 'CUSTOM' },

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildFinancialFields } from '@/lib/map-category-costs'
+import { buildFinancialFields } from '@/lib/db/map-category-costs'
 import type { InvestmentFinancialsT } from '@/lib/db/sum-transfers'
 
 const base: InvestmentFinancialsT = {

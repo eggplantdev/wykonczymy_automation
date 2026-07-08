@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { toastMessage } from '@/components/toasts'
+import { toastMessage } from '@/lib/utils/toast'
 import { linkSheetToInvestmentAction } from '@/lib/actions/sheets'
 
 type InvestmentOptionT = { id: number; name: string }

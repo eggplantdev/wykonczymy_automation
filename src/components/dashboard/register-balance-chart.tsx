@@ -1,8 +1,11 @@
-import { REGISTER_TYPE_BORDER_COLORS, REGISTER_TYPE_LABELS } from '@/lib/tables/cash-registers'
+import {
+  REGISTER_TYPE_BORDER_COLORS,
+  REGISTER_TYPE_LABELS,
+} from '@/components/tables/cash-registers'
 import { formatPLN } from '@/lib/format-currency'
 import { ToggleStatButtons } from '@/components/ui/toggle-stat-buttons'
 import type { StatEntryT } from '@/components/ui/toggle-stat-buttons'
-import type { CashRegisterRowT } from '@/lib/tables/cash-registers'
+import type { CashRegisterRowT } from '@/components/tables/cash-registers'
 import type { CashRegisterTypeT } from '@/types/reference-data'
 
 type RegisterBalanceChartPropsT = {

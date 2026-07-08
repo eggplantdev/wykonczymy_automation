@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+// Form-input layer: every field is a string as the HTML controls produce them.
 export const investmentFormSchema = z.object({
   name: z.string().min(1, 'Nazwa jest wymagana'),
   address: z.string(),
@@ -12,3 +13,19 @@ export const investmentFormSchema = z.object({
 })
 
 export type InvestmentFormValuesT = z.infer<typeof investmentFormSchema>
+
+// Domain layer the action validates: derived from the form schema so the field
+// list can't drift; optional text fields default to '' and email is validated.
+export const investmentSchema = investmentFormSchema.extend({
+  address: z.string().optional().default(''),
+  phone: z.string().optional().default(''),
+  email: z
+    .union([z.literal(''), z.string().email('Nieprawidłowy adres email')])
+    .optional()
+    .default(''),
+  contactPerson: z.string().optional().default(''),
+  notes: z.string().optional().default(''),
+  review: z.string().optional().default(''),
+})
+
+export type InvestmentFormDataT = z.infer<typeof investmentSchema>

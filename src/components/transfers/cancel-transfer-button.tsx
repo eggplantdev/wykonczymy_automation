@@ -12,7 +12,7 @@ import {
   CANCEL_REASON_MAX_LENGTH as REASON_MAX_LENGTH,
   CANCEL_REASON_MIN_LENGTH as REASON_MIN_LENGTH,
 } from '@/lib/schemas/transfer'
-import { toastMessage } from '@/components/toasts'
+import { toastMessage } from '@/lib/utils/toast'
 
 type CancelTransferButtonPropsT = {
   transactionId: number

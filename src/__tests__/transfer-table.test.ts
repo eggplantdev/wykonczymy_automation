@@ -5,7 +5,11 @@ vi.mock('server-only', () => ({}))
 vi.mock('@/components/transfers/invoice-cell', () => ({ InvoiceCell: () => null }))
 vi.mock('@/components/dialogs/note-dialog', () => ({ NoteCell: () => null }))
 
-import { mapTransferRow, buildTransferLookups, type TransferLookupsT } from '@/lib/tables/transfers'
+import {
+  mapTransferRow,
+  buildTransferLookups,
+  type TransferLookupsT,
+} from '@/components/tables/transfers'
 
 // ── Mock data ───────────────────────────────────────────────────────
 
@@ -54,6 +58,7 @@ const baseDoc = {
   invoice: null,
   invoiceNote: null,
   createdBy: 100,
+  createdAt: '2026-02-20T00:00:00.000Z',
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -77,15 +82,5 @@ describe('mapTransferRow — createdByName', () => {
     const lookups = buildTransferLookups(refData, emptyMediaMap)
     const row = mapTransferRow({ ...baseDoc, createdBy: 999 }, lookups)
     expect(row.createdByName).toBe('—')
-  })
-
-  it('resolves createdBy from populated object (no lookups)', () => {
-    const row = mapTransferRow({
-      ...baseDoc,
-      createdBy: { id: 100, name: 'Jan Kowalski' },
-      sourceRegister: { id: 1, name: 'Kasa główna' },
-      investment: { id: 10, name: 'Inwestycja A' },
-    })
-    expect(row.createdByName).toBe('Jan Kowalski')
   })
 })

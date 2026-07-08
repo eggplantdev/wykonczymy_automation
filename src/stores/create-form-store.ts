@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
-type FormStoreT<TValues> = {
+export type FormStoreT<TValues> = {
   formData: TValues | null
   updateFormData: (data: TValues) => void
   resetFormData: () => void

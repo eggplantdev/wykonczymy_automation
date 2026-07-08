@@ -9,7 +9,7 @@ import {
   needsExpenseCategory,
   canBeSettled,
 } from '@/lib/constants/transfers'
-import { getAmountError } from '@/lib/validation-utils'
+import { getAmountError } from '@/lib/utils/validation'
 
 type TransferData = Partial<Transaction>
 

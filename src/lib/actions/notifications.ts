@@ -1,6 +1,7 @@
 'use server'
 
-import { protectedAction, type ActionResultT } from './utils'
+import type { ActionResultT } from '@/types/action'
+import { protectedAction } from './run-action'
 import { countUnreadLeads } from '@/lib/db/notifications'
 
 /**

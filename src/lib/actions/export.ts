@@ -4,9 +4,9 @@ import type { Where } from 'payload'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { fetchAllTransferRows } from '@/lib/queries/fetch-transfer-rows'
-import type { TransferRowT } from '@/lib/tables/transfers'
-import type { ActionResultT } from '@/lib/actions/utils'
-import { getErrorMessage } from '@/lib/actions/utils'
+import type { TransferRowT } from '@/components/tables/transfers'
+import type { ActionResultT } from '@/types/action'
+import { getErrorMessage } from '@/lib/actions/run-action'
 import { perfStart } from '@/lib/perf'
 
 export async function fetchFilteredTransfers(where: Where): Promise<ActionResultT<TransferRowT[]>> {

@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { fetchFilteredTransfers } from '@/lib/actions/export'
 import { triggerDownload } from '@/lib/export/download'
 import { buildUniqueFilename, pluralizeInvoice } from '@/lib/export/invoice-zip'
-import { toastMessage } from '@/components/toasts'
+import { toastMessage } from '@/lib/utils/toast'
 
 type InvoiceDownloadButtonPropsT = {
   where: Where

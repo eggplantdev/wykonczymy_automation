@@ -1,7 +1,7 @@
 'use client'
 
 import type { SortingState, VisibilityState } from '@tanstack/react-table'
-import { getTransferColumns } from '@/lib/tables/transfers'
+import { getTransferColumns } from '@/components/tables/transfers'
 import { PrintButton } from '@/components/transfers/print-button'
 import { CsvButton } from '@/components/transfers/csv-button'
 import { InvoiceDownloadButton } from '@/components/transfers/invoice-download-button'

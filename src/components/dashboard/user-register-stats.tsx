@@ -4,7 +4,7 @@ import { formatPLN } from '@/lib/format-currency'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { ToggleStatButtons } from '@/components/ui/toggle-stat-buttons'
 import type { StatEntryT } from '@/components/ui/toggle-stat-buttons'
-import type { CashRegisterRowT } from '@/lib/tables/cash-registers'
+import type { CashRegisterRowT } from '@/components/tables/cash-registers'
 import { SaldoDisplay } from '@/components/ui/saldo-display'
 
 type UserRegisterStatsPropsT = {

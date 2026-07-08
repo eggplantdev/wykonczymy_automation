@@ -21,6 +21,7 @@ import { perfStart } from '@/lib/perf'
 
 import type {
   CashRegisterRefT,
+  CashRegisterTypeT,
   InvestmentRefT,
   WorkerRefT,
   OtherCategoryRefT,
@@ -84,17 +85,15 @@ export const fetchReferenceData = unstable_cache(
       expCatResult.rows.length
     console.log(`[PERF] query.fetchReferenceData ${elapsed()}ms (5 SQL, ${totalRows} rows)`)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw SQL rows
-    const cashRegisters: CashRegisterRefT[] = crResult.rows.map((row: any) => ({
+    const cashRegisters: CashRegisterRefT[] = crResult.rows.map((row) => ({
       id: Number(row.id),
       name: row.name as string,
-      type: (row.type as string) ?? 'AUXILIARY',
+      type: (row.type as CashRegisterTypeT) ?? 'AUXILIARY',
       active: row.active as boolean,
       ownerId: row.owner_id ? Number(row.owner_id) : undefined,
     }))
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const investments: InvestmentRefT[] = invResult.rows.map((row: any) => ({
+    const investments: InvestmentRefT[] = invResult.rows.map((row) => ({
       id: Number(row.id),
       name: row.name as string,
       status: (row.status as 'active' | 'completed') ?? 'active',
@@ -108,8 +107,7 @@ export const fetchReferenceData = unstable_cache(
       hasSheet: Boolean(row.has_sheet),
     }))
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const workers: WorkerRefT[] = usersResult.rows.map((row: any) => ({
+    const workers: WorkerRefT[] = usersResult.rows.map((row) => ({
       id: Number(row.id),
       name: row.name as string,
       role: (row.role as RoleT) ?? 'EMPLOYEE',
@@ -120,14 +118,12 @@ export const fetchReferenceData = unstable_cache(
         : undefined,
     }))
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const otherCategories: OtherCategoryRefT[] = catResult.rows.map((row: any) => ({
+    const otherCategories: OtherCategoryRefT[] = catResult.rows.map((row) => ({
       id: Number(row.id),
       name: row.name as string,
     }))
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const expenseCategories: ExpenseCategoryRefT[] = expCatResult.rows.map((row: any) => ({
+    const expenseCategories: ExpenseCategoryRefT[] = expCatResult.rows.map((row) => ({
       id: Number(row.id),
       name: row.name as string,
     }))
