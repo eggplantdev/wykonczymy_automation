@@ -12,7 +12,8 @@ Meta's webhook payload carries only a `leadgen_id` — never the lead fields. Th
 call to fetch the actual field data:
 
 ```
-GET https://graph.facebook.com/v21.0/{leadgen_id}?access_token={META_PAGE_ACCESS_TOKEN}
+GET https://graph.facebook.com/v21.0/{leadgen_id}
+Authorization: Bearer {META_PAGE_ACCESS_TOKEN}
 ```
 
 **What happens per lead** (`route.ts` → `captureLead`):
@@ -31,8 +32,8 @@ GET https://graph.facebook.com/v21.0/{leadgen_id}?access_token={META_PAGE_ACCESS
    a mail failure never loses a lead.
 
 Leads surface at **`/zgloszenia`** (table + editable follow-up status + a details modal
-rendering each form answer against its real question). Historical leads are loaded with the
-backfill script (below), not the webhook.
+rendering each form answer against its real question). Historical leads were loaded with the
+manual Graph `curl` calls below (no committed script), not the webhook.
 
 ## Key facts
 
