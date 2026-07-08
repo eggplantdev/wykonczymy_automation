@@ -25,7 +25,7 @@ async function getSecretKey(): Promise<Uint8Array> {
  * Wrapped with React cache() for deduplication within a single render pass.
  *
  * Requires `saveToJWT: true` on `name` and `role` fields in Users collection.
- * Trade-off: a deleted/disabled user stays valid until token expires (24h).
+ * Trade-off: a deleted/disabled user stays valid until token expires (7 days).
  */
 export const getCurrentUserJwt = cache(async (): Promise<SessionUserT | undefined> => {
   const cookieStore = await cookies()
