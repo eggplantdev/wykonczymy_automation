@@ -529,10 +529,10 @@ never by the agent (`payload-prod-migrate` skill). No data backfill required.
 
 #### Automated
 
-- [x] 4.1 Type checking passes
-- [x] 4.2 Lint passes
-- [x] 4.3 Unit suite green
-- [x] 4.4 Dev build compiles / clean dev start (`pnpm build`)
+- [x] 4.1 Type checking passes — 6b44f8f
+- [x] 4.2 Lint passes — 6b44f8f
+- [x] 4.3 Unit suite green — 6b44f8f
+- [x] 4.4 Dev build compiles / clean dev start (`pnpm build`) — 6b44f8f
 
 #### Manual
 
@@ -546,9 +546,9 @@ never by the agent (`payload-prod-migrate` skill). No data backfill required.
 
 #### Automated
 
-- [ ] 5.1 Type checking passes
-- [ ] 5.2 Lint passes
-- [ ] 5.3 Build passes (`pnpm build`)
+- [x] 5.1 Type checking passes
+- [x] 5.2 Lint passes
+- [x] 5.3 Build passes (`pnpm build`)
 
 #### Manual
 
