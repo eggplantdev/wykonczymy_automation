@@ -14,20 +14,26 @@ export const STORAGE_STATE = 'e2e/.auth/user.json'
 export default async function globalSetup(config: FullConfig): Promise<void> {
   // Seed into the SAME isolated test DB the webServer uses (5435), not the dev DB on 5433.
   // seed:e2e's `node --env-file=.env` won't clobber this — an env var already set in the
-  // process takes precedence over the .env file.
+  // process takes precedence over the .env file. Re-assert the test URL here rather than
+  // trust the playwright.config throw + load order: an unset var would set DB_POSTGRES_URL
+  // to undefined and let the seed fall back to the dev DB.
+  const testDbUrl = process.env.DB_POSTGRES_URL_TEST
+  if (!testDbUrl)
+    throw new Error('[global-setup] DB_POSTGRES_URL_TEST is not set — refusing to seed')
   execFileSync('pnpm', ['seed:e2e'], {
     stdio: 'inherit',
-    env: { ...process.env, DB_POSTGRES_URL: process.env.DB_POSTGRES_URL_TEST },
+    env: { ...process.env, DB_POSTGRES_URL: testDbUrl },
   })
 
   const baseURL = config.projects[0]?.use?.baseURL
   if (!baseURL) throw new Error('[global-setup] no baseURL configured')
 
   const browser = await chromium.launch({ channel: 'chrome' })
-  const page = await browser.newPage({ baseURL })
-
-  await login(page)
-
-  await page.context().storageState({ path: STORAGE_STATE })
-  await browser.close()
+  try {
+    const page = await browser.newPage({ baseURL })
+    await login(page)
+    await page.context().storageState({ path: STORAGE_STATE })
+  } finally {
+    await browser.close()
+  }
 }

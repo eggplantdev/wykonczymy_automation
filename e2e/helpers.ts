@@ -8,22 +8,27 @@ import { E2E_EMAIL, E2E_PASSWORD } from '@/scripts/e2e-user-credentials'
 // / — is a full document load that re-hydrates from scratch, not a soft client navigation.
 export async function waitForHydration(locator: Locator): Promise<void> {
   await locator.evaluate((element) => {
-    return new Promise<void>((resolve) => {
+    return new Promise<void>((resolve, reject) => {
       const isHydrated = () => Object.keys(element).some((key) => key.startsWith('__reactFiber$'))
       if (isHydrated()) return resolve()
+      let waited = 0
       const timer = setInterval(() => {
         if (isHydrated()) {
           clearInterval(timer)
           resolve()
+        } else if ((waited += 50) >= 10_000) {
+          // Bounded so a never-hydrating element fails fast with a clear message
+          // instead of hanging until the 120s test timeout.
+          clearInterval(timer)
+          reject(new Error('waitForHydration: element did not hydrate within 10s'))
         }
       }, 50)
     })
   })
 }
 
-// Drive the real login UI and resolve once the dashboard has rendered. Used by both
-// global-setup (to capture storageState) and the auth spec. Fills the controlled inputs only
-// after hydration, or hydration resets them to empty.
+// Used by both global-setup (to capture storageState) and the auth spec. Fills the controlled
+// inputs only after hydration, or hydration resets them to empty.
 export async function login(page: Page): Promise<void> {
   await page.goto('/zaloguj')
   const emailField = page.getByLabel('Email')
@@ -34,8 +39,9 @@ export async function login(page: Page): Promise<void> {
   await page.waitForURL('/')
 }
 
-// Real long-standing local-DB entities the expense specs select. They exist in the standard
-// Neon→local dump; a `pnpm db:import` preserves them. If a future dump drops them, update here.
+// Real long-standing entities the expense specs select. They exist in the standard Neon→local
+// dump; `pnpm db:import:test` restores them into the 5435 test DB. If a future dump drops them,
+// update here.
 export const EXPENSE_REGISTER = { id: 5, name: 'Kasa główna Bartek' }
 export const EXPENSE_INVESTMENT = 'Plac Hellera 3'
 export const EXPENSE_CATEGORY = 'Materiały budowlane'
@@ -46,7 +52,7 @@ export function parsePln(text: string): number {
   return Number(text.replace(/[^\d,-]/g, '').replace(',', '.'))
 }
 
-// Read the SaldoDisplay value on a /kasa/[id] page as a number.
+// The SaldoDisplay value on a /kasa/[id] page.
 export async function readSaldo(page: Page): Promise<number> {
   const saldo = page.getByText(/Saldo:/).first()
   await saldo.waitFor()
@@ -61,11 +67,13 @@ export async function readSaldoStable(page: Page): Promise<number> {
   let previous = NaN
   for (let attempt = 0; attempt < 20; attempt++) {
     const current = await readSaldo(page)
-    if (current === previous) return current
+    // NaN never equals itself, so an unparseable saldo can never satisfy the settle
+    // check — guard it explicitly rather than looping 20× and returning NaN.
+    if (!Number.isNaN(current) && current === previous) return current
     previous = current
     await page.waitForTimeout(150)
   }
-  return previous
+  throw new Error(`readSaldoStable: saldo never settled after 20 reads (last read: ${previous})`)
 }
 
 // Select an option in one of the expense form's Radix/cmdk comboboxes. The trigger's accessible
@@ -81,8 +89,17 @@ async function pickComboOption(page: Page, label: string, optionText: string): P
     // Each combo is a Radix Popover; its exit animation keeps the popper wrapper mounted and
     // pointer-events locked, so the next trigger click hangs on "stable". Wait for full detach.
     await popper.waitFor({ state: 'detached' })
-    await trigger.click()
-    await page.getByRole('option', { name: optionText, exact: true }).first().click()
+    try {
+      // Bounded so a slow-to-render option fails fast into the next retry attempt,
+      // instead of hanging on Playwright's default (test-timeout) action wait.
+      await trigger.click({ timeout: 5_000 })
+      await page
+        .getByRole('option', { name: optionText, exact: true })
+        .first()
+        .click({ timeout: 2_000 })
+    } catch {
+      continue
+    }
     await popper.waitFor({ state: 'detached' })
     const committed = await trigger
       .filter({ hasText: optionText })
