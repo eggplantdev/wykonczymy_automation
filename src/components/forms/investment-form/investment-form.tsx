@@ -9,7 +9,7 @@ import FormFooter from '@/components/forms/form-components/form-footer'
 import { FormClearButton } from '@/components/forms/form-components/form-clear-button'
 import { investmentFormSchema, type InvestmentFormValuesT } from './investment-schema'
 import { useInvestmentFormStore } from '@/stores/form-stores'
-import type { InvestmentFormDataT } from '@/lib/schemas/investment'
+import type { InvestmentFormDataT } from './investment-schema'
 import type { AppFieldComponentsT } from '@/components/forms/types/form-types'
 import type { ActionResultT } from '@/lib/actions/utils'
 
