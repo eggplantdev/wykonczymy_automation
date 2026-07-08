@@ -76,8 +76,10 @@ editor/migration code.
 
 ## Reconciliation delta vs current `roadmap.md`
 
-The roadmap (created 2026-06-12) predates the POC (2026-06-19), so S-01…S-10 never absorbed the
-POC decisions. Proposed changes (to be written into `roadmap.md` when the branch hold lifts):
+**Applied to `roadmap.md` on `main` (2026-07-08).** The roadmap now reflects every item below —
+S-05 cut, S-10 deferred, S-11…S-15 added, discount/robocizna folds recorded. Kept here as the
+rationale record. The roadmap (created 2026-06-12) predated the POC (2026-06-19), so S-01…S-10
+originally never absorbed the POC decisions; the delta that closed that gap:
 
 - **F-01 e2e-harness, S-01 sections-items (north star), S-02 financial-core-smoke, S-03 price
   models, S-04 stages, S-06 catalogue, S-07 export, S-08 editor-e2e, S-09 new-investment-no-sheet**
@@ -97,8 +99,9 @@ POC decisions. Proposed changes (to be written into `roadmap.md` when the branch
 
 ## Open items / pending decisions
 
-- **Branch base** — feature branch off `main` (agreed), but `main`'s `roadmap.md` is older than
-  this branch's; the reconciled roadmap will be re-authored on the build branch. On hold.
+- **Branch base** — feature branch off `main` (agreed). `main`'s `roadmap.md` is already
+  reconciled with the POC (2026-07-08), so no re-authoring on the build branch is needed. Hold
+  lifted 2026-07-08: building S-01 first.
 - **Settings-home UX** (decision 4) — unresolved.
 - **PR13 review doc** (`context/reference/plans/2026-05-27-kosztorys-pr13-simplify-review.md`) —
   predates the three-tab split, unverified; not load-bearing for MVP.

@@ -45,8 +45,8 @@ export async function validateSourceRegister(
  * Owner has main registers - he can do whatever he wants, so this applies only for auxiliary registers.
  */
 
-// TODO: negative-balance constraint on auxiliary registers temporarily dropped.
-// Re-enable this function, its callers in lib/actions/transfers.ts, a sumRegisterBalance
+// TODO: negative-balance constraint on auxiliary registers temporarily dropped - client decision.
+// Re-enable this function ONLY if it is reverted. its callers in lib/actions/transfers.ts, a sumRegisterBalance
 // import, and the tests in __tests__/action-utils.test.ts to bring it back.
 // export async function checkIfSufficientBalance(
 //   register: CashRegisterRefT,
