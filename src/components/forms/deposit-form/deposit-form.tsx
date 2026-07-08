@@ -2,8 +2,9 @@
 
 import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
-import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
-import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
+import { useStore } from '@/components/forms/hooks/form-hooks'
+import { useManagedForm } from '@/components/forms/hooks/use-managed-form'
+import { FormShell } from '@/components/forms/form-components/form-shell'
 import {
   DEPOSIT_UI_TYPES,
   TRANSFER_TYPE_LABELS,
@@ -23,9 +24,7 @@ import {
   DescriptionField,
   EntityComboboxField,
 } from '@/components/forms/form-fields'
-import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
-import { FormClearButton } from '../form-components/form-clear-button'
 import { createTransferAction } from '@/lib/actions/transfers'
 import { useDepositFormStore } from '@/stores/form-stores'
 
@@ -53,102 +52,68 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
     ? DEPOSIT_UI_TYPES
     : DEPOSIT_UI_TYPES.filter((t) => t !== 'COMPANY_FUNDING')
 
-  const { submit } = useFormSubmit(FORM_ID)
-
-  const storedValues = useDepositFormStore((s) => s.formData)
-  const updateFormData = useDepositFormStore((s) => s.updateFormData)
-  const resetFormData = useDepositFormStore((s) => s.resetFormData)
-
-  const form = useAppForm({
-    defaultValues:
-      storedValues ??
-      ({
-        description: '',
-        amount: '',
-        date: today(),
-        type: 'INVESTOR_DEPOSIT',
-        paymentMethod: 'CASH',
-        sourceRegister: getDefaultCashRegister(referenceData),
-        investment: '',
-      } as FormValuesT),
-    validators: {
-      onSubmit: expenseFormSchema,
+  const { form, reset } = useManagedForm<FormValuesT, CreateTransferFormT>({
+    formId: FORM_ID,
+    store: useDepositFormStore,
+    schema: expenseFormSchema,
+    defaultValues: {
+      description: '',
+      amount: '',
+      date: today(),
+      type: 'INVESTOR_DEPOSIT',
+      paymentMethod: 'CASH',
+      sourceRegister: getDefaultCashRegister(referenceData),
+      investment: '',
     },
-    listeners: {
-      onChange: ({ formApi }) => updateFormData(formApi.state.values as FormValuesT),
-      onChangeDebounceMs: 500,
-    },
-    onSubmit: async ({ value }) => {
-      const data: CreateTransferFormT = {
-        description: value.description,
-        amount: Number(value.amount),
-        date: value.date,
-        type: value.type as CreateTransferFormT['type'],
-        paymentMethod: value.paymentMethod as PaymentMethodT,
-        sourceRegister: Number(value.sourceRegister),
-        investment: value.investment ? Number(value.investment) : undefined,
-      }
-
-      await submit(!!keepOpen, {
-        form,
-        action: () => createTransferAction(data),
-        successMessage: 'Wpłata dodana',
-        onSubmitSuccess,
-        onReset: resetFormData,
-      })
-
-      return false
-    },
+    keepOpen,
+    successMessage: 'Wpłata dodana',
+    onSubmitSuccess,
+    action: createTransferAction,
+    toData: (value) => ({
+      description: value.description,
+      amount: Number(value.amount),
+      date: value.date,
+      type: value.type as CreateTransferFormT['type'],
+      paymentMethod: value.paymentMethod as PaymentMethodT,
+      sourceRegister: Number(value.sourceRegister),
+      investment: value.investment ? Number(value.investment) : undefined,
+    }),
   })
-
-  useCheckFormErrors(form)
 
   const currentType = useStore(form.store, (s) => s.values.type)
 
   return (
-    <form.AppForm>
-      <FormClearButton onReset={resetFormData} />
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          form.handleSubmit()
-        }}
-      >
-        <FieldGroup>
-          {/* Type */}
-          <form.AppField name="type" listeners={{ onChange: () => form.resetField('investment') }}>
-            {(field) => (
-              <field.Select label="Typ wpłaty" showError>
-                {depositTypes.map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {TRANSFER_TYPE_LABELS[t]}
-                  </SelectItem>
-                ))}
-              </field.Select>
-            )}
-          </form.AppField>
-
-          <DescriptionField form={form} placeholder="Opis wpłaty" />
-
-          <div className="flex items-start gap-4">
-            <AmountField form={form} fieldClassName="min-w-0 flex-1" />
-            <DateField form={form} fieldClassName="w-40" />
-          </div>
-
-          <CashRegisterField form={form} cashRegisters={referenceData.cashRegisters} />
-
-          {/* Conditional: Investment — required for INVESTOR_DEPOSIT, optional for others */}
-          {showsInvestment(currentType) && (
-            <EntityComboboxField
-              form={form}
-              variant="investment"
-              items={referenceData.investments}
-            />
+    <FormShell form={form} onReset={reset}>
+      <FieldGroup>
+        {/* Type */}
+        <form.AppField name="type" listeners={{ onChange: () => form.resetField('investment') }}>
+          {(field) => (
+            <field.Select label="Typ wpłaty" showError>
+              {depositTypes.map((t) => (
+                <SelectItem key={t} value={t}>
+                  {TRANSFER_TYPE_LABELS[t]}
+                </SelectItem>
+              ))}
+            </field.Select>
           )}
-        </FieldGroup>
+        </form.AppField>
 
-        <FormFooter className="mt-6" />
-      </form>
-    </form.AppForm>
+        <DescriptionField form={form} placeholder="Opis wpłaty" />
+
+        <div className="flex items-start gap-4">
+          <AmountField form={form} fieldClassName="min-w-0 flex-1" />
+          <DateField form={form} fieldClassName="w-40" />
+        </div>
+
+        <CashRegisterField form={form} cashRegisters={referenceData.cashRegisters} />
+
+        {/* Conditional: Investment — required for INVESTOR_DEPOSIT, optional for others */}
+        {showsInvestment(currentType) && (
+          <EntityComboboxField form={form} variant="investment" items={referenceData.investments} />
+        )}
+      </FieldGroup>
+
+      <FormFooter className="mt-6" />
+    </FormShell>
   )
 }

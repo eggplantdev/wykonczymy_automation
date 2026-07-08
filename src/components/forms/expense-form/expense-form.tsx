@@ -37,7 +37,7 @@ import {
 } from '@/components/forms/form-fields'
 import useCheckFormErrors from '../hooks/use-check-form-errors'
 import FormFooter from '../form-components/form-footer'
-import { FormClearButton } from '../form-components/form-clear-button'
+import { FormShell } from '../form-components/form-shell'
 import { SaldoSummary } from '../form-components/saldo-summary'
 import { useExpenseFormStore } from '@/stores/form-stores'
 
@@ -191,88 +191,76 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
   }
 
   return (
-    <form.AppForm>
-      <FormClearButton onReset={handleReset} />
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          form.handleSubmit()
-        }}
-      >
-        <FieldGroup>
-          <div className="flex items-start gap-4">
-            <form.AppField name="type" listeners={{ onChange: resetConditionalFields }}>
-              {(field) => (
-                <field.Select label="Typ wydatku" showError fieldClassName="min-w-0 flex-1">
-                  {TRANSACTION_TRANSFER_TYPES.map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {TRANSFER_TYPE_LABELS[t]}
-                    </SelectItem>
-                  ))}
-                </field.Select>
-              )}
-            </form.AppField>
-            <DateField form={form} fieldClassName="w-40" />
-          </div>
+    <FormShell form={form} onReset={handleReset}>
+      <FieldGroup>
+        <div className="flex items-start gap-4">
+          <form.AppField name="type" listeners={{ onChange: resetConditionalFields }}>
+            {(field) => (
+              <field.Select label="Typ wydatku" showError fieldClassName="min-w-0 flex-1">
+                {TRANSACTION_TRANSFER_TYPES.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {TRANSFER_TYPE_LABELS[t]}
+                  </SelectItem>
+                ))}
+              </field.Select>
+            )}
+          </form.AppField>
+          <DateField form={form} fieldClassName="w-40" />
+        </div>
 
-          {showsInvestment(currentType) && (
-            <EntityComboboxField
-              form={form}
-              variant="investment"
-              items={referenceData.investments}
-            />
-          )}
+        {showsInvestment(currentType) && (
+          <EntityComboboxField form={form} variant="investment" items={referenceData.investments} />
+        )}
 
-          {canBeSettled(currentType) && (
-            <form.AppField name="settled">
-              {(field) => (
-                <field.Checkbox label="Wliczone w robociznę (materiał w cenie robocizny — nie obciąża klienta)" />
-              )}
-            </form.AppField>
-          )}
+        {canBeSettled(currentType) && (
+          <form.AppField name="settled">
+            {(field) => (
+              <field.Checkbox label="Wliczone w robociznę (materiał w cenie robocizny — nie obciąża klienta)" />
+            )}
+          </form.AppField>
+        )}
 
-          {needsSourceRegister(currentType) && (
-            <SourceRegisterField
-              form={form}
-              cashRegisters={referenceData.cashRegisters}
-              saldo={saldo}
-              isSaldoLoading={isSaldoLoading}
-              fetchSaldo={fetchSaldo}
-            />
-          )}
+        {needsSourceRegister(currentType) && (
+          <SourceRegisterField
+            form={form}
+            cashRegisters={referenceData.cashRegisters}
+            saldo={saldo}
+            isSaldoLoading={isSaldoLoading}
+            fetchSaldo={fetchSaldo}
+          />
+        )}
 
-          {needsTargetRegister(currentType) && (
-            <CashRegisterField
-              form={form}
-              name="targetRegister"
-              label="Kasa docelowa"
-              placeholder="Wybierz kasę docelową"
-              cashRegisters={referenceData.cashRegisters}
-            />
-          )}
+        {needsTargetRegister(currentType) && (
+          <CashRegisterField
+            form={form}
+            name="targetRegister"
+            label="Kasa docelowa"
+            placeholder="Wybierz kasę docelową"
+            cashRegisters={referenceData.cashRegisters}
+          />
+        )}
 
-          {needsWorker(currentType) && (
-            <EntityComboboxField form={form} variant="worker" items={referenceData.workers} />
-          )}
+        {needsWorker(currentType) && (
+          <EntityComboboxField form={form} variant="worker" items={referenceData.workers} />
+        )}
 
-          {!isDepositType(currentType) && (
-            <LineItemsField
-              form={form}
-              total={total}
-              hasInvestment={!!currentInvestment}
-              onRemoveItem={handleRemoveLineItem}
-              onFileChange={handleFileChange}
-              fileInputKey={fileInputKey}
-              transferType={currentType}
-              referenceData={referenceData}
-            />
-          )}
-        </FieldGroup>
+        {!isDepositType(currentType) && (
+          <LineItemsField
+            form={form}
+            total={total}
+            hasInvestment={!!currentInvestment}
+            onRemoveItem={handleRemoveLineItem}
+            onFileChange={handleFileChange}
+            fileInputKey={fileInputKey}
+            transferType={currentType}
+            referenceData={referenceData}
+          />
+        )}
+      </FieldGroup>
 
-        {saldo !== null && <SaldoSummary saldo={saldo} total={total} />}
+      {saldo !== null && <SaldoSummary saldo={saldo} total={total} />}
 
-        <FormFooter className="mt-6" />
-      </form>
-    </form.AppForm>
+      <FormFooter className="mt-6" />
+    </FormShell>
   )
 }
