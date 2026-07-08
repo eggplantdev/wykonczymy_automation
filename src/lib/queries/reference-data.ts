@@ -6,7 +6,6 @@ import { CACHE_TAGS } from '@/lib/cache/tags'
 import type { RoleT } from '@/lib/auth/roles'
 import type { Where } from 'payload'
 import {
-  getDb,
   sumAllRegisterBalances,
   sumAllWorkerBalances,
   sumAllInvestmentFinancials,
@@ -14,6 +13,7 @@ import {
   sumCategoryByTypeSettled,
   deriveCategoryBreakdowns,
 } from '@/lib/db/sum-transfers'
+import { getDb } from '@/lib/db/get-db'
 import type {
   InvestmentFinancialsT,
   TypeSettledTotalT,

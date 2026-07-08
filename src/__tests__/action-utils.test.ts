@@ -12,8 +12,10 @@ vi.mock('server-only', () => ({}))
 const mockSumRegisterBalance = vi.fn()
 const mockDbExecute = vi.fn()
 
-vi.mock('@/lib/db/sum-transfers', () => ({
+vi.mock('@/lib/db/get-db', () => ({
   getDb: vi.fn().mockResolvedValue({ execute: (...args: unknown[]) => mockDbExecute(...args) }),
+}))
+vi.mock('@/lib/db/sum-transfers', () => ({
   sumRegisterBalance: (...args: unknown[]) => mockSumRegisterBalance(...args),
 }))
 
