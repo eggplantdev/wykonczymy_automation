@@ -1,7 +1,7 @@
 # Investment financials: how marża / materiały / robocizna / korekty connect
 
-> Source of truth for the numbers: `src/lib/db/sum-transfers.ts` (`deriveFinancials`),
-> `src/lib/calculate-margin.ts`, `src/lib/calculate-balance.ts`,
+> Source of truth for the numbers: `src/lib/db/investment-financials.ts` (`deriveFinancials`),
+> `src/lib/db/calculate-margin.ts`, `src/lib/db/calculate-balance.ts`,
 > `src/components/investments/financial-stats.tsx`.
 
 ## TL;DR — the one thing that's non-obvious
@@ -42,7 +42,7 @@ flowchart TD
 ```
 
 - `materiały` = `Σ INVESTMENT_EXPENSE + Σ CORRECTION`, **excluding rows flagged `settled`**
-  (`sum-transfers.ts:310`). Corrections fold into the material total.
+  (`investment-financials.ts:68`). Corrections fold into the material total.
 - `korekty` is the **same CORRECTION rows** surfaced as their own line. A CORRECTION can be
   negative (invoice credit).
 - `robocizna` = `Σ LABOR_COST`; `wypłaty` = `Σ PAYOUT`.
@@ -51,8 +51,8 @@ flowchart TD
 
 ## The two displayed numbers (current formulas)
 
-`deriveFinancials` (`sum-transfers.ts:303`) is the single funnel — every `total_*` aggregate
-flows from there into the two formulas:
+`deriveFinancials` (`investment-financials.ts:61`) is the single funnel — every `total_*`
+aggregate flows from there into the two formulas:
 
 - **Bilans inwestora** (`calculate-balance.ts:6-8`):
   `wpłaty − (materiały + robocizna) + rabat` — client-facing balance.
@@ -78,7 +78,7 @@ the exception — material the company eats, so it _does_ hit marża.
 | `CORRECTION` (korekta)    | optional        | —     | ↓/↑    | Folds into materiały; may be negative. Moves only the balance.                                                                                                                                                          |
 | `RABAT` (rabat)           | **none**        | ↓     | ↑      | Labour discount: company earns less, client owes less. Positive amount. Requires investment.                                                                                                                            |
 | `LOSS` (strata)           | **none**        | ↓     | —      | Company-absorbed cost. Positive amount, investment **optional** (unattached losses hit only the global marża on Raporty). Never touches bilans (a test pins this).                                                      |
-| `settled` flag on expense | required        | ↓     | —      | "Wliczone w robociznę": R+M material the company buys but already priced into robocizna. Leaves a register, lowers marża, off the client bill. Valid on `INVESTMENT_EXPENSE` and `CORRECTION` (`transfers.ts:232-244`). |
+| `settled` flag on expense | required        | ↓     | —      | "Wliczone w robociznę": R+M material the company buys but already priced into robocizna. Leaves a register, lowers marża, off the client bill. Valid on `INVESTMENT_EXPENSE` and `CORRECTION` (`transfers.ts:227-239`). |
 
 `RABAT` and `LOSS` are positive-amount types with **no source register** (billing figures,
 not cash movements). `settled` is a boolean on an otherwise normal material expense, so it
@@ -93,6 +93,6 @@ Display: `RABAT` is the green "Rabat" line, `LOSS` the purple "Strata" stat, and
 material its own block in `financial-stats.tsx`. `LOSS` is deliberately kept out of
 `buildFinancialFields` so it never enters the bilans toggle sum or the client-facing export.
 
-Specs: `context/reference/superpowers/plans/2026-06-11-investment-rabat.md`,
-`context/reference/superpowers/plans/2026-06-11-loss-strata-transfer-type.md`,
-`context/reference/superpowers/specs/2026-06-12-settled-internal-material-design.md`.
+Specs: `context/reference/superpowers/archive/2026-06-11-investment-rabat.md`,
+`context/reference/superpowers/archive/2026-06-11-loss-strata-transfer-type.md`,
+`context/reference/superpowers/archive/2026-06-12-settled-internal-material-design.md`.

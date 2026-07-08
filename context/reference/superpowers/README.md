@@ -2,8 +2,7 @@
 
 Historical `/10x` design specs and implementation plans — kept for the **rationale** behind
 decisions, not as current truth. For what the code does _now_, read the code and the living docs
-(`context/foundation/lessons.md`, the reviewed references under
-`context/reference/docs_reviewed_19_06/`).
+(`context/foundation/lessons.md`, the reviewed references under `context/reference/`).
 
 **Verify before quoting.** These predate later changes and some claims have drifted. Confirm any
 statement against current code before repeating it in a living doc (see the Doc-lifecycle rule in
