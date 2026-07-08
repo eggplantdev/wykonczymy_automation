@@ -1,9 +1,17 @@
 # Kosztorys ↔ Google Sheets
 
-> **Status: 2026-05-28.** Single source of truth for how the kosztorys ↔ sheet sync
-> behaves **right now**. Edit this doc when behaviour changes. Older docs in
-> `docs/plans/` capture rationale for individual redesigns and are not authoritative
-> for current behaviour.
+> ⚠️ **PARTIALLY STALE (flagged 2026-07-08).** The Sheets sync is still the live system, but
+> this doc drifted: it describes a **single** app-owned tab, whereas the code now stamps a
+> **three-tab registry** (`APP_MANAGED_TABS` = expenses / rozliczone R+M / transfers in
+> `src/lib/google/app-managed-tabs.ts`) plus `settled`/billing logic (`src/lib/google/tab-rows.ts`).
+> Several named primitives here are dead (`setupMaterialyTab`, `applyMaterialRowsBatch`,
+> `removeMaterialRow`, `SUMMARY_START_COL`). For the current **frozen-column contract**, trust
+> `context/foundation/lessons.md` — it is more up to date. Full rewrite deferred; a parked v2
+> (in-app editor) may replace the Sheets system entirely — see
+> `context/reference/superpowers/specs/2026-05-28-kosztorys-in-app-editor-design.md`.
+>
+> **Status: 2026-05-28.** Original intent: single source of truth for how the kosztorys ↔ sheet
+> sync behaves. Edit this doc when behaviour changes.
 
 ---
 
@@ -330,7 +338,7 @@ What we **don't** accept:
 | T2.1 | Two concurrent single-creates can collide on the computed append row | One overwrites the other; the reconciler heals it on next click. Lost the server-side row-allocation guarantee because `values.append` couldn't be used (see write-paths note).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 
 Full ledger of every finding, with status (☑ fixed · ⊘ won't-fix · accepted),
-lives in `docs/plans/2026-05-27-kosztorys-pr13-simplify-review.md`.
+lives in `context/reference/plans/2026-05-27-kosztorys-pr13-simplify-review.md`.
 
 ## What we explicitly did NOT build (and why)
 
@@ -358,7 +366,7 @@ lives in `docs/plans/2026-05-27-kosztorys-pr13-simplify-review.md`.
 
 Live tests on inv 6 (`1cFCFtplugpjJpq6xsABAdn7_pWBrji2V_E-9Kz33APs`) and inv 31
 through the real UI via Playwright, reading the sheet back through the Sheets API.
-Detailed log: `docs/plans/2026-05-27-kosztorys-active-costs-reconcile-plan.md`.
+The A–G pass log is summarised in the table above.
 
 ### Sync layer (sheet ↔ DB)
 
