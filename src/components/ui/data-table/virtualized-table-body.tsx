@@ -4,7 +4,7 @@
 // Spacer rows above/below simulate scroll height without rendering all DOM nodes.
 
 import React from 'react'
-import { type Row } from '@tanstack/react-table'
+import { type HeaderGroup, type Row } from '@tanstack/react-table'
 import { type useVirtualizer } from '@tanstack/react-virtual'
 import { DataTableRow } from './data-table-row'
 import { TableHeader } from './table-header'
@@ -13,8 +13,7 @@ import { EmptyRow } from './table-helpers'
 type VirtualizedTableBodyPropsT<TData> = {
   parentRef: React.RefObject<HTMLDivElement | null>
   containerHeight: number
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  headerGroups: any[]
+  headerGroups: HeaderGroup<TData>[]
   rows: Row<TData>[]
   virtualizer: ReturnType<typeof useVirtualizer<HTMLDivElement, Element>>
   colCount: number

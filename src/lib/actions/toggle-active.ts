@@ -3,33 +3,24 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { revalidateCollection } from '@/lib/cache/revalidate'
+import type { CACHE_TAGS } from '@/lib/cache/tags'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { type ActionResultT, getErrorMessage } from './utils'
 
-export async function toggleUserActive(id: number, active: boolean): Promise<ActionResultT> {
-  const session = await requireAuth(MANAGEMENT_ROLES)
-  if (!session.success) return session
-
-  try {
-    const payload = await getPayload({ config })
-    await payload.update({
-      collection: 'users',
-      id,
-      data: { active },
-      overrideAccess: true,
-    })
-
-    revalidateCollection('users')
-    return { success: true }
-  } catch (err) {
-    return { success: false, error: getErrorMessage(err) }
-  }
+type ToggleConfigT = {
+  collection: 'users' | 'cash-registers' | 'investments'
+  cacheTag: keyof typeof CACHE_TAGS
+  data: (active: boolean) => Record<string, unknown>
+  // Investments toggle their own `status` field and rely on Payload's default
+  // access; the other two flip a shared `active` flag with elevated access.
+  overrideAccess?: boolean
 }
 
-export async function toggleCashRegisterActive(
+async function toggleActive(
   id: number,
   active: boolean,
+  cfg: ToggleConfigT,
 ): Promise<ActionResultT> {
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) return session
@@ -37,34 +28,38 @@ export async function toggleCashRegisterActive(
   try {
     const payload = await getPayload({ config })
     await payload.update({
-      collection: 'cash-registers',
+      collection: cfg.collection,
       id,
-      data: { active },
-      overrideAccess: true,
+      data: cfg.data(active),
+      ...(cfg.overrideAccess ? { overrideAccess: true } : {}),
     })
 
-    revalidateCollection('cashRegisters')
+    revalidateCollection(cfg.cacheTag)
     return { success: true }
   } catch (err) {
     return { success: false, error: getErrorMessage(err) }
   }
 }
 
-export async function toggleInvestmentStatus(id: number, active: boolean): Promise<ActionResultT> {
-  const session = await requireAuth(MANAGEMENT_ROLES)
-  if (!session.success) return session
+export const toggleUserActive = (id: number, active: boolean) =>
+  toggleActive(id, active, {
+    collection: 'users',
+    cacheTag: 'users',
+    data: (active) => ({ active }),
+    overrideAccess: true,
+  })
 
-  try {
-    const payload = await getPayload({ config })
-    await payload.update({
-      collection: 'investments',
-      id,
-      data: { status: active ? 'active' : 'completed' },
-    })
+export const toggleCashRegisterActive = (id: number, active: boolean) =>
+  toggleActive(id, active, {
+    collection: 'cash-registers',
+    cacheTag: 'cashRegisters',
+    data: (active) => ({ active }),
+    overrideAccess: true,
+  })
 
-    revalidateCollection('investments')
-    return { success: true }
-  } catch (err) {
-    return { success: false, error: getErrorMessage(err) }
-  }
-}
+export const toggleInvestmentStatus = (id: number, active: boolean) =>
+  toggleActive(id, active, {
+    collection: 'investments',
+    cacheTag: 'investments',
+    data: (active) => ({ status: active ? 'active' : 'completed' }),
+  })

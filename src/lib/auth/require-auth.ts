@@ -6,7 +6,7 @@ import type { RoleT } from '@/lib/auth/roles'
 
 type AuthResultT =
   | { success: true; user: SessionUserT }
-  | { success: false; error: string; user: null }
+  | { success: false; error: string; user?: undefined }
 
 /**
  * Checks authentication and verifies the user has one of the allowed roles.
@@ -16,11 +16,11 @@ export async function requireAuth(allowedRoles: readonly RoleT[]): Promise<AuthR
   const user = await getCurrentUserJwt()
 
   if (!user) {
-    return { success: false, error: 'Nie jesteś zalogowany', user: null }
+    return { success: false, error: 'Nie jesteś zalogowany' }
   }
 
   if (!allowedRoles.includes(user.role)) {
-    return { success: false, error: 'Brak uprawnień', user: null }
+    return { success: false, error: 'Brak uprawnień' }
   }
 
   return { success: true, user }

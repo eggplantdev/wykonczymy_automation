@@ -1,14 +1,14 @@
 import { z } from 'zod'
 
 /**
- * Returns an error message if the amount is invalid for the given type, or null if valid.
+ * Returns an error message if the amount is invalid for the given type, or undefined if valid.
  * CORRECTION requires negative amounts (invoice corrections reduce costs).
  */
-export function getAmountError(amount: number, type: string): string | null {
+export function getAmountError(amount: number, type: string): string | undefined {
   if (type === 'CORRECTION') {
-    return amount >= 0 ? 'Korekta musi mieć ujemną kwotę' : null
+    return amount >= 0 ? 'Korekta musi mieć ujemną kwotę' : undefined
   }
-  return amount <= 0 ? 'Kwota musi być większa niż 0' : null
+  return amount <= 0 ? 'Kwota musi być większa niż 0' : undefined
 }
 
 /** Validates that a string amount is present and valid for the given type (Zod refinement). */

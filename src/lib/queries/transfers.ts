@@ -90,8 +90,7 @@ async function resolveAmountSearch(payload: Payload, where: Where): Promise<Wher
     WHERE amount::text LIKE ${search + '%'}
   `)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const ids = result.rows.map((r: any) => Number(r.id))
+  const ids = result.rows.map((row) => Number(row.id))
 
   if (ids.length === 0) return { ...rest, id: { equals: -1 } }
   return { ...rest, id: { in: ids } }

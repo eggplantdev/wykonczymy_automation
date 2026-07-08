@@ -1,17 +1,15 @@
 'use client'
 
-import { flexRender } from '@tanstack/react-table'
+import { flexRender, type HeaderGroup } from '@tanstack/react-table'
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function TableHeader({ headerGroups }: { headerGroups: any[] }) {
+export function TableHeader<T>({ headerGroups }: { headerGroups: HeaderGroup<T>[] }) {
   return (
     <thead>
       {headerGroups.map((headerGroup) => (
         <tr key={headerGroup.id} className="border-border bg-muted/50 border-b">
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          {headerGroup.headers.map((header: any) => {
+          {headerGroup.headers.map((header) => {
             const canSort = header.column.getCanSort()
             const sorted = header.column.getIsSorted()
             const align = header.column.columnDef.meta?.align

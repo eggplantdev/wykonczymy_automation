@@ -3,18 +3,22 @@ import type { Payload, PayloadRequest, Where } from 'payload'
 import { perfStart } from '@/lib/perf'
 import { DEPOSIT_TYPES, isExpensesTabType } from '@/lib/constants/transfers'
 
+/** Minimal surface the callers use: run a raw SQL query and read its rows. */
+type DbExecutorT = {
+  execute: (query: unknown) => Promise<{ rows: Record<string, unknown>[] }>
+}
+
 /**
  * Returns the transaction-scoped Drizzle instance when inside a hook
  * (where `req` carries a `transactionID`), or the default instance otherwise.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getDb = async (payload: Payload, req?: PayloadRequest): Promise<any> => {
+export const getDb = async (payload: Payload, req?: PayloadRequest): Promise<DbExecutorT> => {
   const adapter = payload.db as unknown as Record<string, unknown>
   const txId = req?.transactionID ? await req.transactionID : undefined
   const sessions = adapter.sessions as Record<string, { db?: unknown }> | undefined
 
-  if (txId && sessions?.[txId]?.db) return sessions[txId].db
-  return adapter.drizzle
+  if (txId && sessions?.[txId]?.db) return sessions[txId].db as DbExecutorT
+  return adapter.drizzle as DbExecutorT
 }
 
 /**
@@ -183,8 +187,12 @@ export const sumAllInvestmentFinancials = async (
   const rowsByInvestment = new Map<number, TypeSettledTotalT[]>()
   for (const row of totalsResult.rows) {
     const invId = Number(row.investment_id)
-    if (!rowsByInvestment.has(invId)) rowsByInvestment.set(invId, [])
-    rowsByInvestment.get(invId)!.push({
+    let list = rowsByInvestment.get(invId)
+    if (!list) {
+      list = []
+      rowsByInvestment.set(invId, list)
+    }
+    list.push({
       type: row.type as string,
       settled: row.settled === true,
       total: Number(row.total),
@@ -195,8 +203,12 @@ export const sumAllInvestmentFinancials = async (
   const categoryRowsByInvestment = new Map<number, CategoryTypeSettledRowT[]>()
   for (const row of categoryResult.rows) {
     const invId = Number(row.investment_id)
-    if (!categoryRowsByInvestment.has(invId)) categoryRowsByInvestment.set(invId, [])
-    categoryRowsByInvestment.get(invId)!.push({
+    let list = categoryRowsByInvestment.get(invId)
+    if (!list) {
+      list = []
+      categoryRowsByInvestment.set(invId, list)
+    }
+    list.push({
       categoryId: Number(row.expense_category_id),
       type: row.type as string,
       settled: row.settled === true,

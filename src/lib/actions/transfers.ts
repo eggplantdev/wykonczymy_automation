@@ -1,5 +1,7 @@
 'use server'
 
+import type { Payload } from 'payload'
+import type { Transaction } from '@/payload-types'
 import {
   createBulkExpenseSchema,
   type CreateBulkExpenseFormT,
@@ -166,12 +168,10 @@ export async function createBulkTransferAction(
 }
 
 type AuthErrorT = { error: string }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AuthSuccessT = { original: any }
+type AuthSuccessT = { original: Transaction }
 
 async function fetchAndAuthorize(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  payload: any,
+  payload: Payload,
   user: SessionUserT,
   transferId: number,
   errorVerb: string,
@@ -311,33 +311,43 @@ export async function updateTransferAction(
   )
 }
 
+/**
+ * Point a transfer's invoice at `invoiceMediaId` (or clear it with `null`), then
+ * best-effort delete the media it replaced so orphaned uploads don't accumulate.
+ */
+async function setTransferInvoice(
+  payload: Payload,
+  transferId: number,
+  invoiceMediaId: number | null,
+): Promise<{ success: true }> {
+  const step = perfStart()
+
+  const transfer = await payload.findByID({
+    collection: 'transactions',
+    id: transferId,
+    depth: 0,
+  })
+  const oldMediaId = typeof transfer.invoice === 'number' ? transfer.invoice : null
+  console.log(`[PERF]   findByID(${transferId}) ${step()}ms`)
+
+  await payload.update({
+    collection: 'transactions',
+    id: transferId,
+    data: { invoice: invoiceMediaId },
+  })
+  console.log(`[PERF]   payload.update(${transferId}) ${step()}ms`)
+
+  if (oldMediaId && oldMediaId !== invoiceMediaId) {
+    payload.delete({ collection: 'media', id: oldMediaId }).catch(console.error)
+  }
+
+  return { success: true }
+}
+
 export async function updateTransferInvoiceAction(transferId: number, invoiceMediaId: number) {
   return protectedAction(
     'updateTransferInvoiceAction',
-    async ({ payload }) => {
-      const step = perfStart()
-
-      const transfer = await payload.findByID({
-        collection: 'transactions',
-        id: transferId,
-        depth: 0,
-      })
-      const oldMediaId = typeof transfer.invoice === 'number' ? transfer.invoice : null
-      console.log(`[PERF]   findByID(${transferId}) ${step()}ms`)
-
-      await payload.update({
-        collection: 'transactions',
-        id: transferId,
-        data: { invoice: invoiceMediaId },
-      })
-      console.log(`[PERF]   payload.update(${transferId}) ${step()}ms`)
-
-      if (oldMediaId) {
-        payload.delete({ collection: 'media', id: oldMediaId }).catch(console.error)
-      }
-
-      return { success: true }
-    },
+    ({ payload }) => setTransferInvoice(payload, transferId, invoiceMediaId),
     ['transfers'],
   )
 }
@@ -345,31 +355,7 @@ export async function updateTransferInvoiceAction(transferId: number, invoiceMed
 export async function removeTransferInvoiceAction(transferId: number) {
   return protectedAction(
     'removeTransferInvoiceAction',
-    async ({ payload }) => {
-      const step = perfStart()
-
-      const transfer = await payload.findByID({
-        collection: 'transactions',
-        id: transferId,
-        depth: 0,
-      })
-
-      const mediaId = typeof transfer.invoice === 'number' ? transfer.invoice : null
-      console.log(`[PERF]   findByID(${transferId}) ${step()}ms`)
-
-      await payload.update({
-        collection: 'transactions',
-        id: transferId,
-        data: { invoice: null },
-      })
-      console.log(`[PERF]   clear invoice field ${step()}ms`)
-
-      if (mediaId) {
-        payload.delete({ collection: 'media', id: mediaId }).catch(console.error)
-      }
-
-      return { success: true }
-    },
+    ({ payload }) => setTransferInvoice(payload, transferId, null),
     ['transfers'],
   )
 }
