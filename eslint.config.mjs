@@ -61,6 +61,32 @@ export default ts.config(
     },
   },
   {
-    ignores: ['.next/'],
+    // Payload hooks run in a Route Handler context where `updateTag` throws. `lib/cache/revalidate.ts`
+    // calls `updateTag`, so a hook must never import it — use `revalidateTag(tag, 'default')` directly.
+    // A bad import here builds and deploys green, then throws only on a live transfer create/delete.
+    files: ['src/hooks/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@/lib/cache/revalidate',
+              message:
+                "Hooks run in Route Handler context — use revalidateTag(tag, 'default'), not updateTag/revalidateCollection from lib/cache/revalidate.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // Root CommonJS configs (e.g. .dependency-cruiser.cjs) use module.exports; the flat config
+    // otherwise parses them as ESM and flags `module` as no-undef.
+    files: ['**/*.cjs'],
+    languageOptions: { sourceType: 'commonjs' },
+  },
+  {
+    ignores: ['.next/', '.next-e2e/'],
   },
 )
