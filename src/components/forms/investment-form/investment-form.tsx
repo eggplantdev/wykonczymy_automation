@@ -34,7 +34,7 @@ export function InvestmentForm({
 }: InvestmentFormPropsT) {
   const { form, reset } = useManagedForm<InvestmentFormValuesT, InvestmentFormDataT>({
     formId,
-    store: useInvestmentFormStore,
+    useFormStore: useInvestmentFormStore,
     schema: investmentFormSchema,
     defaultValues,
     keepOpen,

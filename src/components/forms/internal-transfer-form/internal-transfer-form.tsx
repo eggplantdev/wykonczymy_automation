@@ -49,7 +49,7 @@ export function InternalTransferForm({
 
   const { form, reset } = useManagedForm<FormValuesT, CreateTransferFormT>({
     formId: FORM_ID,
-    store: useInternalTransferFormStore,
+    useFormStore: useInternalTransferFormStore,
     schema: internalTransferFormSchema,
     defaultValues: {
       description: '',

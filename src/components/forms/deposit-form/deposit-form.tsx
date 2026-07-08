@@ -54,7 +54,7 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
 
   const { form, reset } = useManagedForm<FormValuesT, CreateTransferFormT>({
     formId: FORM_ID,
-    store: useDepositFormStore,
+    useFormStore: useDepositFormStore,
     schema: expenseFormSchema,
     defaultValues: {
       description: '',

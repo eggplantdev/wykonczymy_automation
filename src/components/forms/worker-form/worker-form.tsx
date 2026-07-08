@@ -39,7 +39,7 @@ export function WorkerForm({
 }: WorkerFormPropsT) {
   const { form, reset } = useManagedForm<WorkerFormValuesT, WorkerFormDataT>({
     formId,
-    store: useWorkerFormStore,
+    useFormStore: useWorkerFormStore,
     schema: workerFormSchema,
     defaultValues,
     keepOpen,
