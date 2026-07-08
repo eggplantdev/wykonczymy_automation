@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { createColumnHelper } from '@tanstack/react-table'
 import { formatPLN } from '@/lib/format-currency'
-import { formatPLDate, formatPLDateTime } from '@/lib/format-date'
+import { formatPLDate, formatPLDateTime } from '@/lib/utils/format-date'
 import { getRelationName } from '@/lib/get-relation-name'
 import { InvoiceCell } from '@/components/transfers/invoice-cell'
 import { NoteCell } from '@/components/dialogs/note-dialog'
