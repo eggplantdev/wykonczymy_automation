@@ -11,10 +11,12 @@
 **Spec:** `docs/superpowers/specs/2026-06-11-investment-transfers-sheet-tab-design.md`
 
 **Deviations from spec (deliberate):**
+
 - `summaryKeys` is NOT in `SheetTabConfigT` — it's a runtime parameter of `setupTab`/`ensureTab`, because expenses summary keys are DB data (expense-category names) while the config is a static module constant. `includeGrandTotal` stays in the config.
 - `previewMaterialSync` is also made tab-aware (spec lists only the four write entry points). Reason: the confirm button is disabled when `pendingChanges === 0`; if the preview ignored the transfers tab, a pending transfers-only change would be unreachable through the Sync button (extension of review T3.1).
 
 **File map:**
+
 - Modify: `src/lib/constants/transfers.ts` — add `SHEET_TRANSFER_TAB_TYPES`
 - Modify: `src/lib/google/sheets.ts` — config-driven primitives, both tab configs
 - Create: `src/lib/google/tab-rows.ts` — pure row builders (`expenseRow`, `transferRow`) + shared coercion helpers
@@ -34,6 +36,7 @@
 ### Task 1: Golden characterization test on CURRENT code (criterion 1 baseline)
 
 **Files:**
+
 - Create: `src/__tests__/lib/google/sheets-golden.test.ts`
 
 The point: capture every Google API request the CURRENT expenses-tab code emits, snapshot it, commit. After the refactor only the test's call sites change (config arg) — the snapshot must remain byte-identical.
@@ -188,12 +191,12 @@ describe('GOLDEN: expenses tab emitted requests', () => {
 })
 ```
 
-- [x] **Step 2: Run it — must pass and write the snapshot** *(3 passed, 3 snapshots written — 1228 lines)*
+- [x] **Step 2: Run it — must pass and write the snapshot** _(3 passed, 3 snapshots written — 1228 lines)_
 
 Run: `pnpm exec vitest run src/__tests__/lib/google/sheets-golden.test.ts`
 Expected: 3 passed, snapshot file `src/__tests__/lib/google/__snapshots__/sheets-golden.test.ts.snap` written.
 
-- [x] **Step 3: Commit the golden baseline** *(e6bf2d7)*
+- [x] **Step 3: Commit the golden baseline** _(e6bf2d7)_
 
 ```bash
 git add src/__tests__/lib/google/sheets-golden.test.ts "src/__tests__/lib/google/__snapshots__/sheets-golden.test.ts.snap"
@@ -205,6 +208,7 @@ git commit -m "test: golden characterization of expenses-tab Google API requests
 ### Task 2: Constants — `SHEET_TRANSFER_TAB_TYPES`
 
 **Files:**
+
 - Modify: `src/lib/constants/transfers.ts`
 - Modify: `src/__tests__/transfer-constants.test.ts` (only if it asserts an exhaustive export list — check first)
 
@@ -226,7 +230,7 @@ export const SHEET_TRANSFER_TAB_TYPES = [
 export type SheetTransferTabTypeT = (typeof SHEET_TRANSFER_TAB_TYPES)[number]
 ```
 
-- [x] **Step 2: Typecheck + commit** *(d135c3a; transfer-constants.test.ts has no exhaustive export assertion — untouched)*
+- [x] **Step 2: Typecheck + commit** _(d135c3a; transfer-constants.test.ts has no exhaustive export assertion — untouched)_
 
 Run: `pnpm exec tsc --noEmit` → Expected: clean.
 
@@ -240,6 +244,7 @@ git commit -m "feat: define SHEET_TRANSFER_TAB_TYPES for the transfers sheet tab
 ### Task 3: Refactor `sheets.ts` to config-driven primitives (golden must stay green)
 
 **Files:**
+
 - Modify: `src/lib/google/sheets.ts`
 - Modify: `src/__tests__/lib/google/sheets.test.ts` (call sites get the config arg; assertions unchanged)
 - Modify: `src/__tests__/lib/google/sheets-golden.test.ts` (call sites ONLY; snapshot untouched)
@@ -330,14 +335,14 @@ ensureMaterialyTab(id, types)               → ensureTab(id, cfg, summaryKeys)
 
 - [x] **Step 3: Update test call sites** in `sheets.test.ts` and `sheets-golden.test.ts` — import new names, pass `EXPENSES_TAB_CONFIG`. Do NOT touch assertions or the snapshot. `buildMaterialySummary` tests → `buildTabSummary(EXPENSES_TAB_CONFIG, [...], ';')`.
 
-- [x] **Step 4: Run the full suite — golden snapshot must be UNCHANGED** *(601 passed, snapshot byte-identical, tsc clean)*
+- [x] **Step 4: Run the full suite — golden snapshot must be UNCHANGED** _(601 passed, snapshot byte-identical, tsc clean)_
 
 Run: `pnpm exec vitest run`
 Expected: all pass; `sheets-golden` passes WITHOUT `--update`. If the snapshot diffs, the refactor changed emitted requests — fix the refactor, never the snapshot.
 
 Run: `pnpm exec tsc --noEmit` → clean.
 
-- [x] **Step 5: Commit** *(c5fc9b6)*
+- [x] **Step 5: Commit** _(c5fc9b6)_
 
 ```bash
 git add src/lib/google/sheets.ts src/lib/actions/sheets-sync.ts src/lib/actions/sheets.ts src/lib/actions/investments.ts src/__tests__/lib/google/sheets.test.ts src/__tests__/lib/google/sheets-golden.test.ts
@@ -349,6 +354,7 @@ git commit -m "refactor: thread SheetTabConfigT through sheet primitives (expens
 ### Task 4: Pure row builders in `tab-rows.ts` + criterion-2 tests
 
 **Files:**
+
 - Create: `src/lib/google/tab-rows.ts`
 - Create: `src/__tests__/lib/google/tab-rows.test.ts`
 - Modify: `src/lib/actions/sheets-sync.ts` (delete local `isoDate`/`finiteAmount`/`expenseRow`/`TxDoc`, import from tab-rows)
@@ -493,7 +499,7 @@ describe('expenseRow (behavior unchanged by the refactor)', () => {
 
 - [x] **Step 2: Run to verify failure** — `pnpm exec vitest run src/__tests__/lib/google/tab-rows.test.ts` → FAIL (module missing).
 
-- [x] **Step 3: Implement `src/lib/google/tab-rows.ts`** *(transferSummaryKeys landed in sheets.ts next to the configs instead)* — move `isoDate`, `finiteAmount`, `TxDoc` (rename `TxDocT`), `expenseRow` verbatim from `sheets-sync.ts`; add:
+- [x] **Step 3: Implement `src/lib/google/tab-rows.ts`** _(transferSummaryKeys landed in sheets.ts next to the configs instead)_ — move `isoDate`, `finiteAmount`, `TxDoc` (rename `TxDocT`), `expenseRow` verbatim from `sheets-sync.ts`; add:
 
 ```ts
 import { getRelationName } from '@/lib/get-relation-name'
@@ -511,7 +517,9 @@ const isTransferTabType = (t: unknown): t is TransferTypeT =>
 
 // Row for the transfers tab: one of the six mirrored types → the 8-column shape.
 // `worker` is PAYOUT context, `category` is CORRECTION context — blank otherwise.
-export function transferRow(t: TxDocT & { type?: string; worker?: unknown }): TabRowInputT | undefined {
+export function transferRow(
+  t: TxDocT & { type?: string; worker?: unknown },
+): TabRowInputT | undefined {
   if (!isTransferTabType(t.type)) return undefined
   const amount = finiteAmount(t.amount)
   if (amount === undefined) {
@@ -539,7 +547,7 @@ export const transferSummaryKeys = (): string[] =>
 
 - [x] **Step 4: Run** — 610 passed full-suite, tsc clean (one interim Number() coercion in sync-button.tsx).
 
-- [x] **Step 5: Commit** *(see git log)*
+- [x] **Step 5: Commit** _(see git log)_
 
 ```bash
 git add src/lib/google/tab-rows.ts src/__tests__/lib/google/tab-rows.test.ts src/lib/actions/sheets-sync.ts
@@ -551,6 +559,7 @@ git commit -m "feat: transferRow builder + pure row module with totals-parity te
 ### Task 5: Dual-tab wiring in `sheets-sync.ts` + hooks
 
 **Files:**
+
 - Modify: `src/lib/actions/sheets-sync.ts`
 - Modify: `src/hooks/transfers/sync-sheet.ts`
 - Modify: `src/__tests__/lib/actions/sheets-sync.test.ts`, `src/__tests__/hooks/sync-sheet.test.ts`
@@ -573,6 +582,7 @@ function sheetGrids(expensesIds: number[], transfersIds: number[]) {
 ```
 
 New test cases (exact behaviors):
+
 - `applyMaterialSync` reconciles BOTH tabs: expenses upserts land on the expenses tab range, transfer upserts on the transfers tab range; returned counts are the sums across tabs.
 - `applyMaterialSync` orphan guard for the transfers tab queries `{ type: { in: [...SHEET_TRANSFER_TAB_TYPES] } }` + `{ investment: { equals } }` (same id-collision rationale as T1.1).
 - `applyMaterialSync` creates the transfers tab first when it is missing (spreadsheets.get shows no `'transfery (tylko do odczytu)'` → `ensureTab` setup requests fire before row writes; old sheets self-heal).
@@ -583,15 +593,21 @@ New test cases (exact behaviors):
 - `removeTransferFromSheet` routes by the new `type` param: `type: 'PAYOUT'` deletes from the transfers tab (`endColumnIndex: 8`), `type: 'INVESTMENT_EXPENSE'` from the expenses tab (`endColumnIndex: 7`).
 - Hooks: `syncSheetAfterChange`/`syncSheetAfterDelete` fire for each of the six (replace the old "skips non-expense types" with "skips non-sheet types: REGISTER_TRANSFER, OTHER, COMPANY_FUNDING, OTHER_DEPOSIT, CANCELLATION"); `removeTransferFromSheet` calls now carry `type`.
 
-- [x] **Step 2: Run new tests — verify they fail.** *(11 failed red)* `pnpm exec vitest run src/__tests__/lib/actions/sheets-sync.test.ts src/__tests__/hooks/sync-sheet.test.ts` → new cases FAIL.
+- [x] **Step 2: Run new tests — verify they fail.** _(11 failed red)_ `pnpm exec vitest run src/__tests__/lib/actions/sheets-sync.test.ts src/__tests__/hooks/sync-sheet.test.ts` → new cases FAIL.
 
-- [x] **Step 3: Implement the wiring.** *(TabSyncSpecT bundles cfg + typeWhere + buildRow; tabSyncForType routes)* Shape:
+- [x] **Step 3: Implement the wiring.** _(TabSyncSpecT bundles cfg + typeWhere + buildRow; tabSyncForType routes)_ Shape:
 
 ```ts
 // sheets-sync.ts — per-tab plumbing
 import {
-  applyTabRowsBatch, ensureTab, readTabTransferIds, removeTabRow,
-  EXPENSES_TAB_CONFIG, TRANSFERS_TAB_CONFIG, type SheetTabConfigT, type TabRowInputT,
+  applyTabRowsBatch,
+  ensureTab,
+  readTabTransferIds,
+  removeTabRow,
+  EXPENSES_TAB_CONFIG,
+  TRANSFERS_TAB_CONFIG,
+  type SheetTabConfigT,
+  type TabRowInputT,
 } from '@/lib/google/sheets'
 import { expenseRow, transferRow, transferSummaryKeys } from '@/lib/google/tab-rows'
 import { SHEET_TRANSFER_TAB_TYPES } from '@/lib/constants/transfers'
@@ -599,9 +615,11 @@ import { SHEET_TRANSFER_TAB_TYPES } from '@/lib/constants/transfers'
 const TRANSFER_TAB_TYPES = [...SHEET_TRANSFER_TAB_TYPES]
 const isTransfersTabType = (t: unknown) => TRANSFER_TAB_TYPES.includes(t as never)
 const tabConfigForType = (t: unknown): SheetTabConfigT | undefined =>
-  t === 'INVESTMENT_EXPENSE' ? EXPENSES_TAB_CONFIG
-  : isTransfersTabType(t) ? TRANSFERS_TAB_CONFIG
-  : undefined
+  t === 'INVESTMENT_EXPENSE'
+    ? EXPENSES_TAB_CONFIG
+    : isTransfersTabType(t)
+      ? TRANSFERS_TAB_CONFIG
+      : undefined
 
 // loadAppTransferRows mirrors loadAppMaterialRows with
 // { type: { in: TRANSFER_TAB_TYPES } } and transferRow().
@@ -656,7 +674,7 @@ const SHEET_SYNCED_TYPES: readonly string[] = ['INVESTMENT_EXPENSE', ...SHEET_TR
 // reassign path + afterDelete: removeTransferFromSheet({ transferId, investmentId, type: doc.type })
 ```
 
-- [x] **Step 4: Run the full suite** *(620 passed, tsc clean)* — `pnpm exec vitest run` → all pass (golden untouched). `pnpm exec tsc --noEmit` → clean.
+- [x] **Step 4: Run the full suite** _(620 passed, tsc clean)_ — `pnpm exec vitest run` → all pass (golden untouched). `pnpm exec tsc --noEmit` → clean.
 
 - [x] **Step 5: Commit**
 
@@ -670,6 +688,7 @@ git commit -m "feat: mirror the six investment transfer types onto the transfery
 ### Task 6: Link/setup flow + Sync button UI
 
 **Files:**
+
 - Modify: `src/lib/actions/investments.ts` (`setupSheetAction`, `linkSheetAction`)
 - Modify: `src/lib/actions/sheets.ts` (`addUnlinkedSheetAction`)
 - Modify: `src/components/sheets/sync-button.tsx`
@@ -685,7 +704,7 @@ git commit -m "feat: mirror the six investment transfer types onto the transfery
   - Reset-dialog copy: mention both tabs — „wydatki inwestycyjne (tylko do odczytu)" **i „transfery (tylko do odczytu)"** zostaną zbudowane od nowa.
   - Sync toast: keep combined counts (one line).
 
-- [x] **Step 3: Full suite + typecheck** *(620 passed, tsc clean)* — `pnpm exec vitest run && pnpm exec tsc --noEmit` → clean.
+- [x] **Step 3: Full suite + typecheck** _(620 passed, tsc clean)_ — `pnpm exec vitest run && pnpm exec tsc --noEmit` → clean.
 
 - [x] **Step 4: Commit**
 
