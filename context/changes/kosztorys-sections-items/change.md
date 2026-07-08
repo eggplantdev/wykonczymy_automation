@@ -1,7 +1,7 @@
 ---
 change_id: kosztorys-sections-items
 title: In-app kosztorys — sections + items with live totals (S-01 north star)
-status: implementing
+status: implemented
 created: 2026-07-08
 updated: 2026-07-08
 archived_at: null

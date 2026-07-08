@@ -546,9 +546,9 @@ never by the agent (`payload-prod-migrate` skill). No data backfill required.
 
 #### Automated
 
-- [x] 5.1 Type checking passes
-- [x] 5.2 Lint passes
-- [x] 5.3 Build passes (`pnpm build`)
+- [x] 5.1 Type checking passes — 33f8a8a
+- [x] 5.2 Lint passes — 33f8a8a
+- [x] 5.3 Build passes (`pnpm build`) — 33f8a8a
 
 #### Manual
 
