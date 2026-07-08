@@ -23,10 +23,6 @@ export async function findTransfersRaw({
   limit,
   sort = '-id',
 }: FindTransfersOptsT) {
-  // 'use cache'
-  // cacheLife('max')
-  // cacheTag(CACHE_TAGS.transfers)
-
   return unstable_cache(
     async () => {
       const elapsed = perfStart()
