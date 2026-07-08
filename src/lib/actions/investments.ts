@@ -1,8 +1,5 @@
 'use server'
 
-// Only used by the DISABLED auto-create block in createInvestmentAction (see below).
-// import { revalidateTag } from 'next/cache'
-// import { CACHE_TAGS } from '@/lib/cache/tags'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { createSheetFromTemplate, isStorageQuotaError } from '@/lib/google/drive'
@@ -44,42 +41,6 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
         collection: 'investments',
         data: parsed.data,
       })
-
-      // Fire-and-forget Drive provisioning. The investment create succeeds even
-      // when the copy fails — and on a personal-account SA it currently ALWAYS
-      // fails ("storage quota exceeded" — the SA has no Drive of its own; needs
-      // a Workspace Shared Drive). The no-sheet banner then surfaces the missing
-      // kosztorys and the user takes the working path: "Powiąż istniejący arkusz"
-      // via linkSheetAction (paste an owner-shared sheet).
-      // DISABLED (2026-05-29): auto-create never succeeds on the personal-account SA
-      // (always storageQuotaExceeded), so this block only produced console.error noise
-      // on every investment create. Link-existing ("Powiąż istniejący arkusz") is the
-      // working flow. Re-enable only with a Workspace Shared Drive — see drive.ts.
-      /*
-      void (async () => {
-        try {
-          const { sheetId } = await createSheetFromTemplate(created.name)
-          await payload.create({
-            collection: 'kosztoryses',
-            data: { googleSheetId: sheetId, name: created.name, investment: created.id },
-            overrideAccess: true,
-          })
-          // Revalidate again here: protectedAction already revalidated ['investments']
-          // when the handler returned, but this fire-and-forget write lands AFTER that,
-          // so without this the banner/listing keep showing hasSheet=false until an
-          // unrelated mutation invalidates the tag (review T2.8). revalidateTag (not
-          // updateTag) — this runs detached, past the action's execution context.
-          // Both tags need bumping: the kosztoryses listing reads from kosztoryses
-          // cache; the investments tables read hasSheet derived via JOIN, cached
-          // under the investments tag.
-          revalidateTag(CACHE_TAGS.kosztoryses, 'default')
-          revalidateTag(CACHE_TAGS.investments, 'default')
-          console.log(`[kosztorys-provision] investment #${created.id} → sheet provisioned`)
-        } catch (err) {
-          console.error(`[kosztorys-provision] investment #${created.id} failed (non-fatal):`, err)
-        }
-      })()
-      */
 
       return { success: true }
     },
