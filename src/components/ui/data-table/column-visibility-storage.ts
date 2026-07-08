@@ -1,7 +1,5 @@
 import { type VisibilityState } from '@tanstack/react-table'
 
-// --- Column visibility persistence (localStorage) ---
-
 const STORAGE_PREFIX = 'table-columns:'
 
 export function readVisibility(key: string): VisibilityState {
@@ -20,22 +18,4 @@ export function writeVisibility(key: string, state: VisibilityState) {
   } catch {
     // localStorage full or unavailable
   }
-}
-
-// --- Empty state ---
-
-export function EmptyRow({
-  colSpan,
-  message = 'Brak danych',
-}: {
-  colSpan: number
-  message?: string
-}) {
-  return (
-    <tr>
-      <td colSpan={colSpan} className="text-muted-foreground px-4 py-8 text-center">
-        {message}
-      </td>
-    </tr>
-  )
 }
