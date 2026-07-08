@@ -31,6 +31,15 @@ const TRANSFER_TYPES = [
   { label: { en: 'Cancellation', pl: 'Anulowanie' }, value: 'CANCELLATION' },
 ] as const satisfies readonly { label: { en: string; pl: string }; value: TransferTypeT }[]
 
+// The `satisfies` above rejects any value outside the TransferTypeT union; this asserts
+// the reverse — every union member has an option here — so adding a type to the const
+// source without wiring its Payload option fails typecheck instead of drifting silently.
+type _AllTransferTypesCovered = TransferTypeT extends (typeof TRANSFER_TYPES)[number]['value']
+  ? true
+  : never
+const _assertAllTransferTypesCovered: _AllTransferTypesCovered = true
+void _assertAllTransferTypesCovered
+
 const PAYMENT_METHODS = [
   { label: { en: 'Cash', pl: 'Gotówka' }, value: 'CASH' },
   { label: { en: 'BLIK', pl: 'BLIK' }, value: 'BLIK' },
