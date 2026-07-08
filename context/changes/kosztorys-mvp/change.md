@@ -18,7 +18,9 @@ editor/migration code.
 > NOT yet a `/10x-plan` output and NOT yet started. Branch creation + Linear mirroring are on
 > hold ("wait with branching off"). Sources: the POC decision register
 > `context/changes/kosztorys-poc-in-app/change.md` (on `poc-kosztorys-in-app`) and the current
-> `context/foundation/roadmap.md`.
+> `context/foundation/roadmap.md`. The POC's raw working docs (braindump, per-slice designs,
+> editor bake-off) are archived on the mainline at
+> `context/archive/kosztorys-poc-in-app/` — read there when the branch isn't checked out.
 
 ## POC verification — conclusions (2026-07-08, 3-agent sweep)
 
