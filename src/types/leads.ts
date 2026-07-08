@@ -1,4 +1,4 @@
-import type { LeadAnswerT } from '@/lib/leads/lead-answers'
+export type LeadAnswerT = { label: string; value: string }
 
 /**
  * A lead row as rendered in the `/zgloszenia` table. Cross-cutting: produced by
