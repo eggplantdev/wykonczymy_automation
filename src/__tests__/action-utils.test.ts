@@ -2,22 +2,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { z } from 'zod'
 import type { Payload } from 'payload'
 import type { SessionUserT } from '@/types/auth'
-// TODO: re-add when the checkIfSufficientBalance tests below are restored
-// import type { CashRegisterRefT } from '@/types/reference-data'
 
 // ── Mocks ────────────────────────────────────────────────────────────────
 
 vi.mock('server-only', () => ({}))
 
-const mockSumRegisterBalance = vi.fn()
 const mockDbExecute = vi.fn()
 
 vi.mock('@/lib/db/sum-transfers', () => ({
   getDb: vi.fn().mockResolvedValue({ execute: (...args: unknown[]) => mockDbExecute(...args) }),
-  sumRegisterBalance: (...args: unknown[]) => mockSumRegisterBalance(...args),
 }))
 
-// TODO: re-add checkIfSufficientBalance when the negative-balance constraint is restored
 const { getErrorMessage, validateAction } = await import('@/lib/actions/run-action')
 const { validateSourceRegister } = await import('@/lib/actions/validate-source-register')
 
@@ -41,7 +36,6 @@ function mockRegisterLookup(registerId: number | undefined) {
 }
 
 beforeEach(() => {
-  mockSumRegisterBalance.mockReset()
   mockDbExecute.mockReset()
 })
 
@@ -123,70 +117,3 @@ describe('validateSourceRegister', () => {
     expect(result.success).toBe(true)
   })
 })
-
-// ── checkIfSufficientBalance ──
-// TODO: negative-balance constraint on auxiliary registers temporarily dropped.
-// Re-enable this whole describe block (and checkIfSufficientBalance in lib/actions/utils.ts
-// + its callers in lib/actions/transfers.ts) to bring the constraint back.
-//
-// describe('checkIfSufficientBalance', () => {
-//   const auxiliaryRegister: CashRegisterRefT = {
-//     id: 1,
-//     name: 'Aux',
-//     type: 'AUXILIARY',
-//     active: true,
-//   }
-//   const mainRegister: CashRegisterRefT = { id: 2, name: 'Main', type: 'MAIN', active: true }
-//   const virtualRegister: CashRegisterRefT = {
-//     id: 3,
-//     name: 'Virtual',
-//     type: 'VIRTUAL',
-//     active: true,
-//   }
-//   const workerRegister: CashRegisterRefT = { id: 4, name: 'Worker', type: 'WORKER', active: true }
-//
-//   it('skips balance check for MAIN register', async () => {
-//     const result = await checkIfSufficientBalance(mainRegister, 999999, fakePayload)
-//     expect(result).toEqual({ success: true })
-//     expect(mockSumRegisterBalance).not.toHaveBeenCalled()
-//   })
-//
-//   it('skips balance check for VIRTUAL register', async () => {
-//     const result = await checkIfSufficientBalance(virtualRegister, 999999, fakePayload)
-//     expect(result).toEqual({ success: true })
-//     expect(mockSumRegisterBalance).not.toHaveBeenCalled()
-//   })
-//
-//   it('skips balance check for WORKER register', async () => {
-//     const result = await checkIfSufficientBalance(workerRegister, 999999, fakePayload)
-//     expect(result).toEqual({ success: true })
-//     expect(mockSumRegisterBalance).not.toHaveBeenCalled()
-//   })
-//
-//   it('succeeds when AUXILIARY balance > amount', async () => {
-//     mockSumRegisterBalance.mockResolvedValue(1000)
-//     const result = await checkIfSufficientBalance(auxiliaryRegister, 500, fakePayload)
-//     expect(result).toEqual({ success: true })
-//   })
-//
-//   it('succeeds when AUXILIARY balance === amount', async () => {
-//     mockSumRegisterBalance.mockResolvedValue(500)
-//     const result = await checkIfSufficientBalance(auxiliaryRegister, 500, fakePayload)
-//     expect(result).toEqual({ success: true })
-//   })
-//
-//   it('fails when AUXILIARY balance < amount', async () => {
-//     mockSumRegisterBalance.mockResolvedValue(100)
-//     const result = await checkIfSufficientBalance(auxiliaryRegister, 500, fakePayload)
-//     expect(result.success).toBe(false)
-//     if (!result.success) {
-//       expect(result.error).toContain('100.00')
-//     }
-//   })
-//
-//   it('fails when AUXILIARY balance is 0', async () => {
-//     mockSumRegisterBalance.mockResolvedValue(0)
-//     const result = await checkIfSufficientBalance(auxiliaryRegister, 1, fakePayload)
-//     expect(result.success).toBe(false)
-//   })
-// })

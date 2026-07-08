@@ -41,26 +41,6 @@ export async function validateSourceRegister(
   return { success: true, register }
 }
 
-/* Verifies the register has enough balance for the withdrawal. Only applies to Auxiliary registers.
- * Workers sometimes pays from their own money - meaning negative balance. Virtual is designed to have negative balance most of the time.
- * Owner has main registers - he can do whatever he wants, so this applies only for auxiliary registers.
- */
-
-// TODO: negative-balance constraint on auxiliary registers temporarily dropped.
-// Re-enable this function, its callers in lib/actions/transfers.ts, a sumRegisterBalance
-// import, and the tests in __tests__/action-utils.test.ts to bring it back.
-// export async function checkIfSufficientBalance(
-//   register: CashRegisterRefT,
-//   amount: number,
-//   payload: Payload,
-// ): Promise<ActionResultT> {
-//   if (register.type !== 'AUXILIARY') return { success: true }
-//   const currentBalance = await sumRegisterBalance(payload, register.id)
-//
-//   if (currentBalance >= amount) return { success: true }
-//
-//   return {
-//     success: false,
-//     error: `Niewystarczające saldo kasy (${currentBalance.toFixed(2)} zł). Najpierw dodaj środki.`,
-//   }
-// }
+// No sufficient-funds guard by design: registers (auxiliary included) may go
+// negative — a deliberate client decision. Do not re-add a balance check here or
+// in the transfer actions; the saldo preview in the form is advisory only.
