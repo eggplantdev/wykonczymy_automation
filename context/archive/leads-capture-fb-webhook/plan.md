@@ -419,7 +419,7 @@ ample. No virtualization needed initially (`DataTable` supports it later if the 
 
 ## References
 
-- Design spec: `docs/superpowers/specs/2026-07-06-leads-capture-design.md`
+- Design spec: `context/reference/superpowers/archive/2026-07-06-leads-capture-design.md`
 - Webhook/token/data-shape reference: `docs/facebook-leads-setup.md`
 - Collection skeleton: `src/collections/investments.ts`, `src/collections/expense-categories.ts`
 - Compound unique index migration: `src/migrations/20260527_add_unique_google_sheet_id.ts:8-18`

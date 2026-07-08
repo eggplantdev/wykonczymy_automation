@@ -24,6 +24,6 @@ DB: migration `20260707_1_add_lead_form_questions` (apply to prod before deploy)
 built later), Sentry, notification bell + websockets, cron sweeper for `notifyStatus`/
 `autoReplyStatus != 'sent'` (retry email out-of-band).
 
-Design: `docs/superpowers/specs/2026-07-06-leads-capture-design.md`
-Reference: `docs/facebook-leads-setup.md` (webhook/token/backfill/data-shape)
-Plan: `context/changes/leads-capture-fb-webhook/plan.md`
+Design: `context/reference/superpowers/archive/2026-07-06-leads-capture-design.md`
+Reference: `context/reference/facebook-leads-setup.md` (webhook/token/backfill/data-shape)
+Plan: `context/archive/leads-capture-fb-webhook/plan.md`

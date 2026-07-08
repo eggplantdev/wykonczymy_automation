@@ -1,7 +1,7 @@
 # Lead Capture — FB Lead Ads Webhook → Leads Store — Plan Brief
 
 > Full plan: `context/changes/leads-capture-fb-webhook/plan.md`
-> Design spec: `docs/superpowers/specs/2026-07-06-leads-capture-design.md`
+> Design spec: `context/reference/superpowers/archive/2026-07-06-leads-capture-design.md`
 
 ## What & Why
 
