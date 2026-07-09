@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
+import { DEFAULT_COEFFS } from '@/lib/kosztorys/constants'
 
 const STATUS_OPTIONS = [
   { label: { en: 'Active', pl: 'Aktywna' }, value: 'active' },
@@ -78,7 +79,7 @@ export const Investments: CollectionConfig = {
     {
       name: 'wToolsCoeff',
       type: 'number',
-      defaultValue: 0.65,
+      defaultValue: DEFAULT_COEFFS.wTools,
       label: {
         en: 'Subcontractor coeff (with tools)',
         pl: 'Współczynnik podwykonawcy (z narzędziami)',
@@ -87,7 +88,7 @@ export const Investments: CollectionConfig = {
     {
       name: 'ownToolsCoeff',
       type: 'number',
-      defaultValue: 0.55,
+      defaultValue: DEFAULT_COEFFS.ownTools,
       label: {
         en: 'Subcontractor coeff (own tools)',
         pl: 'Współczynnik podwykonawcy (bez narzędzi)',

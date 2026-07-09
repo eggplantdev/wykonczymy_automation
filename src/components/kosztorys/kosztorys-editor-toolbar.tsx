@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { SearchFilterInput } from '@/components/ui/search-filter-input'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 
 // Three views over one dataset: they only change the active price and its derived values.
@@ -51,11 +51,11 @@ export function KosztorysEditorToolbar({
           </Button>
         ))}
       </div>
-      <Input
-        placeholder="Szukaj pozycji / sekcji…"
+      <SearchFilterInput
         value={search}
-        onChange={(e) => onSearchChange(e.target.value)}
-        className="h-8 max-w-xs"
+        onChange={onSearchChange}
+        placeholder="Szukaj pozycji / sekcji…"
+        debounceMs={200}
       />
       {activeSectionId != null && (
         <Button size="sm" variant="outline" onClick={() => onAddItem(activeSectionId)}>

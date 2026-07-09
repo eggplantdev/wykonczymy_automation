@@ -132,9 +132,9 @@ export function revertField(
   })
 }
 
-// Default values for a new section. They MUST match addSectionAction in
-// src/lib/actions/kosztorys.ts — a 'use server' file may not export constants,
-// so we keep a mirror here and build the optimistic row from it (without waiting for a refresh).
+// Default values for a new section — the single source. addSectionAction imports these for the
+// server-side create, and the optimistic row is built from them here (without waiting for a
+// refresh). Lives in this non-server module because a 'use server' file may not export constants.
 export const NEW_SECTION_DEFAULTS = {
   name: 'Nowa sekcja',
   defaultCostVariant: 'w_tools',

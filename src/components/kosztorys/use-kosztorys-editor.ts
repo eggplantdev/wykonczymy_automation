@@ -106,6 +106,9 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     onCommitColumn: setWidth,
     onRemoveItem: handleRemoveItem,
     onReorderItem: handleReorderItem,
+    // Disables the trash button on a section's last item; the toast in handleRemoveItem stays as
+    // a defensive backstop. Same fresh-ref, event-time read as the handlers above.
+    getSectionItemCount,
   })
   const widthsKey = JSON.stringify(widths)
 
@@ -165,6 +168,11 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     })
     prevById.current.set(row.id, row)
     setRows((rs) => applyAddItem(rs, row))
+  }
+
+  // Fresh count of a section's items, read from prevById (the full dataset) at cell-render time.
+  function getSectionItemCount(sectionId: number) {
+    return sectionItemCount([...prevById.current.values()], sectionId)
   }
 
   function handleRemoveItem(row: KosztorysV2RowT) {

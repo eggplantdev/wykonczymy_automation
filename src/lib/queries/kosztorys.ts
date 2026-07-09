@@ -1,6 +1,7 @@
 import 'server-only'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { DEFAULT_COEFFS } from '@/lib/kosztorys/constants'
 import type {
   CostVariantT,
   DiscountTypeT,
@@ -41,8 +42,9 @@ export async function getKosztorysTree(investmentId: number): Promise<KosztorysT
 
   // Distinguish an unset coefficient from a legitimate 0 — `|| default` would rewrite a stored 0.
   const globalCoeffs = {
-    wTools: investment.wToolsCoeff == null ? 0.65 : num(investment.wToolsCoeff),
-    ownTools: investment.ownToolsCoeff == null ? 0.55 : num(investment.ownToolsCoeff),
+    wTools: investment.wToolsCoeff == null ? DEFAULT_COEFFS.wTools : num(investment.wToolsCoeff),
+    ownTools:
+      investment.ownToolsCoeff == null ? DEFAULT_COEFFS.ownTools : num(investment.ownToolsCoeff),
   }
 
   const items: KosztorysItemT[] = itemsRes.docs.map((d) => ({

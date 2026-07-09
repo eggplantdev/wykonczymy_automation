@@ -2,6 +2,7 @@
 
 import { z } from 'zod'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
+import { NEW_SECTION_DEFAULTS } from '@/lib/kosztorys/v2-rows'
 import type { ActionResultT } from '@/types/action'
 import type { ItemPatchT } from '@/types/kosztorys'
 
@@ -109,9 +110,9 @@ export async function addSectionAction(
         collection: 'kosztorys-sections',
         data: {
           investment: investmentId,
-          name: 'Nowa sekcja',
+          name: NEW_SECTION_DEFAULTS.name,
           displayOrder: count.totalDocs,
-          defaultCostVariant: 'w_tools',
+          defaultCostVariant: NEW_SECTION_DEFAULTS.defaultCostVariant,
         },
       })
       return { success: true, data: { id: created.id, displayOrder: count.totalDocs } }
