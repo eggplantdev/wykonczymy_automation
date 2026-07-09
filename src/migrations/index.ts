@@ -43,6 +43,7 @@ import * as migration_20260708_add_notification_reads from './20260708_add_notif
 import * as migration_20260708_1_drop_lead_is_test from './20260708_1_drop_lead_is_test'
 import * as migration_20260708_2_add_kosztorys_sections_items from './20260708_2_add_kosztorys_sections_items'
 import * as migration_20260709_add_kosztorys_stages from './20260709_add_kosztorys_stages'
+import * as migration_20260709_1_fix_locked_docs_kosztorys_rels from './20260709_1_fix_locked_docs_kosztorys_rels'
 
 export const migrations = [
   {
@@ -269,5 +270,10 @@ export const migrations = [
     up: migration_20260709_add_kosztorys_stages.up,
     down: migration_20260709_add_kosztorys_stages.down,
     name: '20260709_add_kosztorys_stages',
+  },
+  {
+    up: migration_20260709_1_fix_locked_docs_kosztorys_rels.up,
+    down: migration_20260709_1_fix_locked_docs_kosztorys_rels.down,
+    name: '20260709_1_fix_locked_docs_kosztorys_rels',
   },
 ]
