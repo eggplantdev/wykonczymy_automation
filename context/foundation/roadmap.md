@@ -13,7 +13,7 @@ top_blocker: none
 
 > Derived from `context/foundation/prd.md` (v1) + probed codebase baseline.
 > Edit-in-place; archive when superseded.
-> Slices below are listed in dependency order. The "At a glance" table is the index.
+> Slices are ordered by number (F-01, S-01…S-16), and the number _is_ the order — to reorder, renumber the slice, never move a row/block out of numeric sequence. The "At a glance" table is the index.
 
 > **Reconciled with the POC (2026-07-08).** This roadmap was written 2026-06-12, before the
 > in-app-editor POC (branch `poc-kosztorys-in-app`) built and settled the shape. The slice list
@@ -69,16 +69,16 @@ One row per F-NN / S-NN — the index and the backlog handoff in one place. **Pl
 | S-04     | kosztorys-stages                | manage stages (etapy) and record per-item, per-stage progress             | S-01                                                       | FR-004                        | proposed  | no         |
 | ~~S-05~~ | ~~kosztorys-rooms~~             | ~~room (pokoje) measurements~~ — **CUT** (pokoje out of scope)            | —                                                          | ~~FR-005~~                    | cut       | —          |
 | S-06     | kosztorys-catalogue             | maintain a work catalogue and add items via autocomplete                  | S-01                                                       | FR-006                        | proposed  | no         |
-| S-16     | kosztorys-preset                | seed a new kosztorys from a preset; save a kosztorys as a preset          | S-01                                                       | — (owner request)             | proposed  | no         |
 | S-07     | kosztorys-export                | CSV-export the kosztorys (WYSIWYG snapshot; no print/PDF)                 | S-01                                                       | FR-008                        | proposed  | no         |
+| S-08     | editor-e2e-coverage             | (gate) rely on automated E2E over the editor before release               | F-01, S-01, S-03, S-04, S-06, S-07, S-11, S-12, S-13, S-14 | FR-013                        | proposed  | no         |
+| S-09     | new-investment-no-sheet         | create a new investment with no Google Sheet, kosztorys app-only          | S-08, S-15                                                 | FR-009, FR-014, FR-016, US-01 | proposed  | no         |
+| S-10     | kosztorys-importer              | import an existing sheet kosztorys into the app — **DEFERRED** (post-MVP) | S-09                                                       | FR-010, FR-016                | deferred  | —          |
 | S-11     | kosztorys-subcontractor-pricing | price subcontractor work via markup coefficient + per-item override       | S-01, S-03                                                 | — (POC)                       | done      | no         |
 | S-12     | kosztorys-vat                   | set VAT per investment; enter net, compute gross                          | S-01                                                       | — (POC)                       | proposed  | no         |
 | S-13     | kosztorys-undo                  | undo the last editor edit(s)                                              | S-01                                                       | — (POC)                       | proposed  | no         |
 | S-14     | kosztorys-column-locking        | lock / pin editor columns                                                 | S-01                                                       | — (POC)                       | proposed  | no         |
-| S-08     | editor-e2e-coverage             | (gate) rely on automated E2E over the editor before release               | F-01, S-01, S-03, S-04, S-06, S-07, S-11, S-12, S-13, S-14 | FR-013                        | proposed  | no         |
 | S-15     | kosztorys-hardening             | quality / perf / a11y hardening pass before cutover                       | S-08                                                       | — (POC)                       | proposed  | no         |
-| S-09     | new-investment-no-sheet         | create a new investment with no Google Sheet, kosztorys app-only          | S-08, S-15                                                 | FR-009, FR-014, FR-016, US-01 | proposed  | no         |
-| S-10     | kosztorys-importer              | import an existing sheet kosztorys into the app — **DEFERRED** (post-MVP) | S-09                                                       | FR-010, FR-016                | deferred  | —          |
+| S-16     | kosztorys-preset                | seed a new kosztorys from a preset; save a kosztorys as a preset          | S-01                                                       | — (owner request)             | proposed  | no         |
 
 ## Streams
 
@@ -218,23 +218,6 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Risk:** Reuses the existing export infrastructure (transfers already CSV-export); only the kosztorys-shaped render is new — which is why this is cheap.
 - **Status:** proposed
 
-### S-16: Kosztorys presets (templates)
-
-- **Outcome:** a Manager+ user can (a) seed a new kosztorys from a preset — a reusable skeleton of sekcje + prace + prices — instead of starting blank, and (b) save an existing kosztorys back as a preset. Restores the legacy Sheets behaviour (`KOSZTORYS_TEMPLATE_SHEET_ID` seeded new sheets from a template) that the in-app editor dropped in S-01 — a parity gap the original roadmap never captured.
-- **Change ID:** kosztorys-preset
-- **PRD refs:** — (owner request, 2026-07-09; not in the original PRD)
-- **Prerequisites:** S-01
-- **Parallel with:** S-03, S-04, S-06, S-07, S-11, S-12, S-13, S-14
-- **Blockers:** —
-- **Settled shape (owner, 2026-07-09):**
-  - A preset = a kosztorys with the job-specific fields stripped. **Keep:** sekcje (structure), prace (opis), J.m., prices, coefficients/overrides. **Reset:** przedmiar/pomiar (amounts), rabat (discount), stage progress (S-04), note, hiddenInExport.
-  - **Snapshot pricing throughout.** Catalogue and preset prices are _seed-defaults only_ — copied in as an initial value, then owned/overwritable per item. Never a live source of truth. Rationale: the same work costs differently investment-to-investment (different team → different price), so a centralised/live price is wrong. This mirrors the PRD's catalogue snapshot rule (a later master-price change never touches existing items) and extends it to presets.
-  - **Decouples from S-06.** Because the preset embeds its own frozen prices, it needs no live catalogue at instantiation — this slice can ship independent of S-06. Any catalogue link is for autocomplete/traceability only, never pricing.
-- **Open (decision 9):** one global default preset vs a named library picked at create-time (owner leans library — "selecting from presets", plural). — Owner: user. Block: no.
-- **Open (decision 10):** save-as behaviour — always save-as-new vs overwrite an existing preset; and retroactivity (recommendation: kosztorysy already spawned from a preset stay frozen when the preset is later edited — same snapshot rule). — Owner: user. Block: no.
-- **Risk:** Overlaps S-06 conceptually (both are "reuse") but is a distinct data model — preset carries _structure_ (sekcje → prace), the catalogue is a _flat_ price list. Risk: letting a catalogue link become a live price authority reintroduces the centralisation the owner explicitly rejected. Keep prices embedded + overwritable.
-- **Status:** proposed
-
 ### S-08: Editor E2E coverage (release gate)
 
 - **Outcome:** the kosztorys editor flows are end-to-end-covered by the automated suite before the owner-facing release — sections/items/pricing/stages/subcontractor-pricing/VAT/undo/column-locking/catalogue/export exercised without a manual pass.
@@ -336,6 +319,23 @@ and the full decision register: `context/changes/kosztorys-mvp/change.md`.
 - **Parallel with:** —
 - **Blockers:** —
 - **Risk:** This is the gate between "feature-complete editor" and "safe to make it the only authoring path" (S-09). Risk: skipping it pushes POC-grade shortcuts into the cutover.
+- **Status:** proposed
+
+### S-16: Kosztorys presets (templates)
+
+- **Outcome:** a Manager+ user can (a) seed a new kosztorys from a preset — a reusable skeleton of sekcje + prace + prices — instead of starting blank, and (b) save an existing kosztorys back as a preset. Restores the legacy Sheets behaviour (`KOSZTORYS_TEMPLATE_SHEET_ID` seeded new sheets from a template) that the in-app editor dropped in S-01 — a parity gap the original roadmap never captured.
+- **Change ID:** kosztorys-preset
+- **PRD refs:** — (owner request, 2026-07-09; not in the original PRD)
+- **Prerequisites:** S-01
+- **Parallel with:** S-03, S-04, S-06, S-07, S-11, S-12, S-13, S-14
+- **Blockers:** —
+- **Settled shape (owner, 2026-07-09):**
+  - A preset = a kosztorys with the job-specific fields stripped. **Keep:** sekcje (structure), prace (opis), J.m., prices, coefficients/overrides. **Reset:** przedmiar/pomiar (amounts), rabat (discount), stage progress (S-04), note, hiddenInExport.
+  - **Snapshot pricing throughout.** Catalogue and preset prices are _seed-defaults only_ — copied in as an initial value, then owned/overwritable per item. Never a live source of truth. Rationale: the same work costs differently investment-to-investment (different team → different price), so a centralised/live price is wrong. This mirrors the PRD's catalogue snapshot rule (a later master-price change never touches existing items) and extends it to presets.
+  - **Decouples from S-06.** Because the preset embeds its own frozen prices, it needs no live catalogue at instantiation — this slice can ship independent of S-06. Any catalogue link is for autocomplete/traceability only, never pricing.
+- **Open (decision 9):** one global default preset vs a named library picked at create-time (owner leans library — "selecting from presets", plural). — Owner: user. Block: no.
+- **Open (decision 10):** save-as behaviour — always save-as-new vs overwrite an existing preset; and retroactivity (recommendation: kosztorysy already spawned from a preset stay frozen when the preset is later edited — same snapshot rule). — Owner: user. Block: no.
+- **Risk:** Overlaps S-06 conceptually (both are "reuse") but is a distinct data model — preset carries _structure_ (sekcje → prace), the catalogue is a _flat_ price list. Risk: letting a catalogue link become a live price authority reintroduces the centralisation the owner explicitly rejected. Keep prices embedded + overwritable.
 - **Status:** proposed
 
 ## Open Roadmap Questions
