@@ -227,12 +227,12 @@ phase.
 
 #### Automated
 
-- [x] 2.1 Type checking passes (`pnpm typecheck`)
-- [x] 2.2 Lint passes (`pnpm lint`)
-- [x] 2.3 Build compiles (`pnpm build`)
+- [x] 2.1 Type checking passes (`pnpm typecheck`) — f8b8278
+- [x] 2.2 Lint passes (`pnpm lint`) — f8b8278
+- [x] 2.3 Build compiles (`pnpm build`) — f8b8278
 
 #### Manual
 
-- [x] 2.4 Client view reads "Klient"; subcontractor labels unchanged
-- [x] 2.5 Tooltip renders and explains the three views + price mode
-- [x] 2.6 No grid layout regression from the added icon
+- [x] 2.4 Client view reads "Klient"; subcontractor labels unchanged — f8b8278
+- [x] 2.5 Tooltip renders and explains the three views + price mode — f8b8278
+- [x] 2.6 No grid layout regression from the added icon — f8b8278
