@@ -4,6 +4,7 @@ import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/re
 
 const SOURCE_OPTIONS = [
   { label: { en: 'Facebook Lead Ads', pl: 'Facebook Lead Ads' }, value: 'facebook_lead_ads' },
+  { label: { en: 'Website form', pl: 'Formularz WWW' }, value: 'website_form' },
 ] as const
 
 const CONTACT_STATUS_OPTIONS = [

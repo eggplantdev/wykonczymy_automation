@@ -6,7 +6,20 @@ import { ContactLink } from '@/components/ui/contact-link'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { LeadAnswersDialog } from '@/components/leads/lead-answers-dialog'
-import type { LeadRowT } from '@/types/leads'
+import { BADGE_BASE } from '@/components/ui/badge'
+import { cn } from '@/lib/utils/cn'
+import type { LeadRowT, LeadSourceT } from '@/types/leads'
+
+const SOURCE_BADGE: Record<LeadSourceT, { label: string; className: string }> = {
+  facebook_lead_ads: {
+    label: 'Facebook',
+    className: 'bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200',
+  },
+  website_form: {
+    label: 'Strona WWW',
+    className: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
+  },
+}
 
 // Header label + an (i) tooltip. The wrapper stops a click on the icon from
 // bubbling into the <th>'s sort handler on sortable columns.
@@ -35,6 +48,15 @@ export function getLeadColumns({ onToggle }: LeadColumnOptionsT) {
       header: 'Imię i nazwisko',
       meta: { canHide: false },
       cell: (info) => info.getValue() || '—',
+    }),
+    col.accessor('source', {
+      id: 'source',
+      header: 'Źródło',
+      enableSorting: true,
+      cell: (info) => {
+        const badge = SOURCE_BADGE[info.getValue()]
+        return <span className={cn(BADGE_BASE, badge.className)}>{badge.label}</span>
+      },
     }),
     col.accessor('email', {
       id: 'email',

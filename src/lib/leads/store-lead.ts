@@ -3,7 +3,7 @@ import type { Lead } from '@/payload-types'
 import type { LeadFieldT, LeadFormQuestionT } from './lead-schema'
 
 export type StoreLeadInputT = {
-  source: 'facebook_lead_ads'
+  source: 'facebook_lead_ads' | 'website_form'
   externalId?: string
   email?: string
   name?: string

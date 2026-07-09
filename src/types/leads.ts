@@ -5,8 +5,11 @@ export type LeadAnswerT = { label: string; value: string }
  * the server query (`lib/queries/leads.ts`) and consumed by the client columns
  * (`lib/tables/leads.tsx`), so it lives here rather than in either module.
  */
+export type LeadSourceT = 'facebook_lead_ads' | 'website_form'
+
 export type LeadRowT = {
   id: number
+  source: LeadSourceT
   name: string
   email: string
   phone: string

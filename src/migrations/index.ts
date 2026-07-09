@@ -44,6 +44,7 @@ import * as migration_20260708_1_drop_lead_is_test from './20260708_1_drop_lead_
 import * as migration_20260708_2_add_kosztorys_sections_items from './20260708_2_add_kosztorys_sections_items'
 import * as migration_20260709_add_kosztorys_stages from './20260709_add_kosztorys_stages'
 import * as migration_20260709_1_fix_locked_docs_kosztorys_rels from './20260709_1_fix_locked_docs_kosztorys_rels'
+import * as migration_20260709_2_add_website_form_source from './20260709_2_add_website_form_source'
 
 export const migrations = [
   {
@@ -275,5 +276,10 @@ export const migrations = [
     up: migration_20260709_1_fix_locked_docs_kosztorys_rels.up,
     down: migration_20260709_1_fix_locked_docs_kosztorys_rels.down,
     name: '20260709_1_fix_locked_docs_kosztorys_rels',
+  },
+  {
+    up: migration_20260709_2_add_website_form_source.up,
+    down: migration_20260709_2_add_website_form_source.down,
+    name: '20260709_2_add_website_form_source',
   },
 ]

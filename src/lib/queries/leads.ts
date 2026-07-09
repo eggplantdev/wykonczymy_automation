@@ -25,6 +25,7 @@ const getLeads = unstable_cache(
     console.log(`[PERF] query.getLeads ${elapsed()}ms`)
     return docs.map((lead) => ({
       id: lead.id,
+      source: lead.source,
       name: asString(lead.name),
       email: asString(lead.email),
       phone: asString(lead.phone),
