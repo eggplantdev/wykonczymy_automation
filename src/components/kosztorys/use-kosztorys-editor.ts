@@ -16,14 +16,17 @@ import {
   filterRows,
   NEW_SECTION_DEFAULTS,
   revertField,
+  rowDoneNetForView,
   sectionItemCount,
   sectionNeighbor,
   sortRows,
+  stageKey,
   swapItemInSection,
   treeToRows,
 } from '@/lib/kosztorys/v2-rows'
 import {
   rowNetForView,
+  rowRemainingForView,
   sectionSubtotalsForView,
   viewPrice,
   type PriceViewT,
@@ -31,24 +34,39 @@ import {
 import {
   addItemAction,
   addSectionAction,
+  addStageAction,
   removeItemAction,
   removeSectionAction,
+  removeStageAction,
+  setStageProgressAction,
   swapItemOrderAction,
   updateInvestmentCoeffsAction,
   updateItemFieldAction,
   updateSectionFieldAction,
+  updateStageFieldAction,
 } from '@/lib/actions/kosztorys'
-import type { ItemPatchT, KosztorysTreeT, KosztorysV2RowT } from '@/types/kosztorys'
+import type {
+  ItemPatchT,
+  KosztorysStageT,
+  KosztorysTreeT,
+  KosztorysV2RowT,
+} from '@/types/kosztorys'
 
 type ArgsT = { investmentId: number; tree: KosztorysTreeT }
 
-// Value to sort by for a given field — derived (price/net) according to the view.
-function sortValue(row: KosztorysV2RowT, field: string, view: PriceViewT): string | number {
+function sortValue(
+  row: KosztorysV2RowT,
+  field: string,
+  view: PriceViewT,
+  stages: KosztorysStageT[],
+): string | number {
   switch (field) {
     case 'price':
       return viewPrice(row, view)
     case 'net':
       return rowNetForView(row, view)
+    case 'remaining':
+      return rowRemainingForView(row, rowDoneNetForView(row, stages, view), view)
     default: {
       const v = row[field as keyof KosztorysV2RowT]
       return (typeof v === 'number' ? v : (v ?? '')) as string | number
@@ -65,6 +83,9 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   const save = useDebouncedSave(500)
   const [gridRef, gridHeight] = useElementHeight()
   const [rows, setRows] = useState<KosztorysV2RowT[]>(() => treeToRows(tree))
+  // Stages live in local state (like `rows`): add/remove optimistically add/drop a column, and
+  // `stagesKey` feeds the grid remount key (dsg freezes columns at mount).
+  const [stages, setStages] = useState<KosztorysStageT[]>(tree.stages)
   const [view, setView] = usePriceView(investmentId)
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<V2SortStateT>(null)
@@ -87,6 +108,11 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   const rowsRef = useRef(rows)
   // eslint-disable-next-line react-hooks/refs
   rowsRef.current = rows
+  // Same "latest value" ref for stages — the rename handler lives in the mount-frozen column
+  // closure, so its no-op guard must compare against the fresh label, not the mount snapshot.
+  const stagesRef = useRef(stages)
+  // eslint-disable-next-line react-hooks/refs
+  stagesRef.current = stages
 
   function toggleSort(field: string) {
     setSort((prev) => {
@@ -100,6 +126,9 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   // only from a cell's onClick, never during render, so passing them here is safe.
   const columns = buildV2Columns({
     view,
+    stages,
+    onRemoveStage: handleRemoveStage,
+    onRenameStage: handleRenameStage,
     sort,
     onToggleSort: toggleSort,
     widths,
@@ -112,6 +141,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     getSectionItemCount,
   })
   const widthsKey = JSON.stringify(widths)
+  const stagesKey = stages.map((s) => s.id).join(',')
 
   // View = filter + sort. Edits are mapped back into the full dataset by id.
   const viewRows = useMemo(() => {
@@ -119,8 +149,8 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       activeSectionId == null ? rows : rows.filter((r) => r.sectionId === activeSectionId)
     const filtered = filterRows(scoped, search)
     if (!sort) return filtered
-    return sortRows(filtered, (r) => sortValue(r, sort.field, view), sort.dir)
-  }, [rows, activeSectionId, search, sort, view])
+    return sortRows(filtered, (r) => sortValue(r, sort.field, view, stages), sort.dir)
+  }, [rows, activeSectionId, search, sort, view, stages])
 
   // Per-section subtotals: the FULL dataset (not viewRows) — a stable breakdown independent of
   // the filter/sort.
@@ -165,7 +195,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       sectionOwnToolsCoeff: sample?.sectionOwnToolsCoeff ?? null,
       globalWToolsCoeff: tree.globalCoeffs.wTools,
       globalOwnToolsCoeff: tree.globalCoeffs.ownTools,
-      stages: [],
+      stages,
     })
     prevById.current.set(row.id, row)
     setRows((rs) => applyAddItem(rs, row))
@@ -223,10 +253,68 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       sectionOwnToolsCoeff: null,
       globalWToolsCoeff: tree.globalCoeffs.wTools,
       globalOwnToolsCoeff: tree.globalCoeffs.ownTools,
-      stages: [],
+      stages,
     })
     prevById.current.set(row.id, row)
     setRows((rs) => applyAddItem(rs, row))
+  }
+
+  // --- Stages (etapy) ---
+
+  // A new stage adds a `stage_<id>: 0` key to every current row + snapshot (like patchRows for
+  // coeffs), so the column renders 0s (not blanks) and the first progress entry diffs correctly.
+  async function handleAddStage() {
+    const res = await addStageAction(investmentId)
+    if (!res.success) return
+    const { id, ordinal } = res.data
+    setStages((s) => [...s, { id, ordinal, label: null }])
+    patchRows(
+      () => true,
+      (r) => ({ ...r, [stageKey(id)]: 0 }),
+    )
+  }
+
+  async function handleRemoveStage(stageId: number) {
+    const res = await removeStageAction(stageId)
+    if (!res.success) {
+      // Server blocks a delete while the stage still holds recorded progress.
+      toastMessage(res.error ?? 'Nie udało się usunąć etapu', 'warning', 4000)
+      return
+    }
+    setStages((s) => s.filter((st) => st.id !== stageId))
+    const key = stageKey(stageId)
+    patchRows(
+      () => true,
+      (r) => {
+        const next = { ...r }
+        delete next[key]
+        return next
+      },
+    )
+  }
+
+  // Optimistic rename; an empty label reverts to null (the header shows the "Etap N" placeholder).
+  // Guard against a no-op write: the header's onBlur fires on every focus-out, so skip when the
+  // label is unchanged (the header has no diff of its own, unlike item cells via diffRow).
+  function handleRenameStage(stageId: number, label: string) {
+    const trimmed = label.trim()
+    const next = trimmed === '' ? null : trimmed
+    const current = stagesRef.current.find((st) => st.id === stageId)
+    if (current && current.label === next) return
+    const prevLabel = current?.label ?? null
+    setStages((s) => s.map((st) => (st.id === stageId ? { ...st, label: next } : st)))
+    // Route through the debounced saver for the same revert-on-error discipline as cell edits.
+    // The revert restores the prior label only if nothing newer was typed (label still === next).
+    save(
+      `stage-label:${stageId}`,
+      () => updateStageFieldAction(stageId, next),
+      () =>
+        setStages((s) =>
+          s.map((st) =>
+            st.id === stageId && st.label === next ? { ...st, label: prevLabel } : st,
+          ),
+        ),
+    )
   }
 
   function handleRemoveSection(sectionId: number) {
@@ -313,8 +401,18 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
             () => revertOne(row.id, key, prevVal, attempted),
           )
         }
-        changedById.set(row.id, row)
       }
+      // Stage progress is a distinct save dimension (sparse upsert), keyed per item×stage.
+      for (const sc of diff.stageChanges ?? []) {
+        const key = stageKey(sc.stageId)
+        const prevVal = prev[key]
+        save(
+          `progress:${row.id}:${sc.stageId}`,
+          () => setStageProgressAction(row.id, sc.stageId, sc.qty),
+          () => revertOne(row.id, key, prevVal, sc.qty),
+        )
+      }
+      if (diff.itemPatch || diff.stageChanges) changedById.set(row.id, row)
       prevById.current.set(row.id, row)
     }
     if (changedById.size > 0) {
@@ -335,6 +433,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     view,
     sort,
     widthsKey,
+    stagesKey,
     guideX,
     // subtotals + section panel
     subtotals,
@@ -352,6 +451,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     onChange,
     handleAddItem,
     handleAddSection,
+    handleAddStage,
     handleRenameSection,
     handleRemoveSection,
     handleGlobalCoeffChange,

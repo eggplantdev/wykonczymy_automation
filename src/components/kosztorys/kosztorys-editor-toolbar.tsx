@@ -29,6 +29,7 @@ type PropsT = {
   onSearchChange: (search: string) => void
   activeSectionId: number | null
   onAddItem: (sectionId: number) => void
+  onAddStage: () => void
   itemCount: number
   summaryOpen: boolean
   onToggleSummary: () => void
@@ -42,6 +43,7 @@ export function KosztorysEditorToolbar({
   onSearchChange,
   activeSectionId,
   onAddItem,
+  onAddStage,
   itemCount,
   summaryOpen,
   onToggleSummary,
@@ -73,6 +75,9 @@ export function KosztorysEditorToolbar({
           ＋ pozycja
         </Button>
       )}
+      <Button size="sm" variant="outline" onClick={onAddStage}>
+        ＋ etap
+      </Button>
       <span className="text-muted-foreground text-sm">{itemCount} pozycji</span>
       <div className="ml-auto flex items-center gap-1">
         <Button size="sm" variant={summaryOpen ? 'default' : 'outline'} onClick={onToggleSummary}>

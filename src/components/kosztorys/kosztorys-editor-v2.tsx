@@ -18,6 +18,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
     view,
     sort,
     widthsKey,
+    stagesKey,
     guideX,
     subtotals,
     totalNet,
@@ -32,6 +33,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
     onChange,
     handleAddItem,
     handleAddSection,
+    handleAddStage,
     handleRenameSection,
     handleRemoveSection,
     handleGlobalCoeffChange,
@@ -49,6 +51,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
         onSearchChange={setSearch}
         activeSectionId={activeSectionId}
         onAddItem={handleAddItem}
+        onAddStage={handleAddStage}
         itemCount={viewRows.length}
         summaryOpen={summaryOpen}
         onToggleSummary={() => setSummaryOpen((o) => !o)}
@@ -70,7 +73,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
             // all 3 views showed the client price, without `widthsKey` a resize didn't recompute the widths.
             // `sorted/natural`: the reorder arrows (grayed out while sorting) must rebuild
             // on entering/leaving sort — asc↔desc does not remount (arrow state unchanged).
-            key={`${view}:${sort ? 'sorted' : 'natural'}:${widthsKey}`}
+            key={`${view}:${sort ? 'sorted' : 'natural'}:${widthsKey}:${stagesKey}`}
             className="kosztorys-grid"
             value={viewRows}
             onChange={onChange}

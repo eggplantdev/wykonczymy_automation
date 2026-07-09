@@ -4,12 +4,19 @@ import type { ReactNode } from 'react'
 import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
 import { Column, type CellProps, keyColumn, textColumn, floatColumn } from 'react-datasheet-grid'
 import { SortHeader } from '@/components/kosztorys/sort-header'
+import { StageHeader } from '@/components/kosztorys/stage-header'
 import { ResizableHeader } from '@/components/kosztorys/column-resize-handle'
-import { rowNetForView, viewPrice, type PriceViewT } from '@/lib/kosztorys/calc'
+import {
+  rowNetForView,
+  rowRemainingForView,
+  viewPrice,
+  type PriceViewT,
+} from '@/lib/kosztorys/calc'
 import { formatNet as fmt } from '@/lib/kosztorys/format'
-import { type SortDirT } from '@/lib/kosztorys/v2-rows'
+import { rowDoneNetForView, stageKey, type SortDirT } from '@/lib/kosztorys/v2-rows'
 import type {
   DiscountTypeT,
+  KosztorysStageT,
   KosztorysV2RowT,
   SubcontractorOverrideTypeT,
   ViewPricingT,
@@ -42,6 +49,12 @@ export type V2SortStateT = { field: string; dir: SortDirT } | null
 
 export type BuildV2ColumnsOptsT = {
   view: PriceViewT
+  // Stages (etapy) render as dynamic editable columns; a trailing "Pozostało" reads out the
+  // remaining net. The set drives the columns, so the editor MUST include it in the grid remount
+  // key (dsg freezes columns at mount) — otherwise a new stage never gets a column.
+  stages: KosztorysStageT[]
+  onRemoveStage?: (stageId: number) => void
+  onRenameStage?: (stageId: number, label: string) => void
   sort?: V2SortStateT
   onToggleSort?: (field: string) => void
   // Resize: pinned column widths (id→px) + drag callbacks. When provided, every column
@@ -306,7 +319,7 @@ function actionColumn(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT> {
 }
 
 export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[] {
-  const { view } = opts
+  const { stages, view } = opts
   // Client view: a simple editable price. Subcontractor views: a "Tryb" column (override)
   // + "Cena" showing the derived/override price. (Remount on `view` in the editor — dsg freezes
   // columns at mount; see the lesson in lessons.md.)
@@ -358,6 +371,14 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
     }),
   ]
 
+  const stageCols: Column<KosztorysV2RowT>[] = stages.map((st) =>
+    keyCol(stageKey(st.id), floatColumn, {
+      id: stageKey(st.id),
+      title: <StageHeader stage={st} onRename={opts.onRenameStage} onRemove={opts.onRemoveStage} />,
+      minWidth: 80,
+    }),
+  )
+
   const computed: Column<KosztorysV2RowT>[] = [
     computedColumn(
       'net',
@@ -365,8 +386,11 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
       (r) => rowNetForView(r as unknown as ViewPricingT, view),
       'font-medium',
     ),
+    computedColumn('remaining', title('remaining', 'Pozostało', opts), (r) =>
+      rowRemainingForView(r as unknown as ViewPricingT, rowDoneNetForView(r, stages, view), view),
+    ),
   ]
 
-  const base = [...left, ...computed].map((c) => withResize(c, opts))
+  const base = [...left, ...stageCols, ...computed].map((c) => withResize(c, opts))
   return opts.onRemoveItem || opts.onReorderItem ? [actionColumn(opts), ...base] : base
 }

@@ -252,19 +252,23 @@ export async function updateStageFieldAction(
   )
 }
 
+const stageIdSchema = z.object({ stageId: z.number() })
+
 export async function removeStageAction(stageId: number): Promise<ActionResultT> {
   return protectedAction(
     'removeStageAction',
     async ({ payload }) => {
+      const parsed = validateAction(stageIdSchema, { stageId })
+      if (!parsed.success) return parsed
       const db = await getDb(payload)
       // Block: don't drop a stage that still has recorded progress (would silently lose it).
       const res = await db.execute(sql`
-        SELECT 1 FROM stage_progress WHERE stage_id = ${stageId} AND qty_done <> 0 LIMIT 1
+        SELECT 1 FROM stage_progress WHERE stage_id = ${parsed.data.stageId} AND qty_done <> 0 LIMIT 1
       `)
       if (res.rows.length > 0) {
         return { success: false, error: 'Najpierw wyczyść ilości wpisane w tym etapie' }
       }
-      await payload.delete({ collection: 'kosztorys-stages', id: stageId })
+      await payload.delete({ collection: 'kosztorys-stages', id: parsed.data.stageId })
       return { success: true }
     },
     ['kosztorysStages', 'stageProgress'],

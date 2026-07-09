@@ -454,22 +454,22 @@ human via `pnpm db:migrate:prod` **before** the code that needs it ships — nev
 
 #### Automated
 
-- [x] 3.1 Type checking passes
-- [x] 3.2 Lint passes
-- [x] 3.3 Unit suite still green
+- [x] 3.1 Type checking passes — 11d6028
+- [x] 3.2 Lint passes — 11d6028
+- [x] 3.3 Unit suite still green — 11d6028
 
 #### Manual
 
-- [x] 3.4 addStage yields N+1; setStageProgress upserts (no dup); removeStage guard blocks then allows
+- [x] 3.4 addStage yields N+1; setStageProgress upserts (no dup); removeStage guard blocks then allows — 11d6028
 
 ### Phase 4: Editor UI
 
 #### Automated
 
-- [ ] 4.1 Type checking passes
-- [ ] 4.2 Lint passes
-- [ ] 4.3 Unit suite green
-- [ ] 4.4 Build compiles (`pnpm build`)
+- [x] 4.1 Type checking passes
+- [x] 4.2 Lint passes
+- [x] 4.3 Unit suite green
+- [x] 4.4 Build compiles (`pnpm build`)
 
 #### Manual
 

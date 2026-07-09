@@ -100,20 +100,22 @@ export function filterRows(rows: KosztorysV2RowT[], query: string): KosztorysV2R
 export type SortDirT = 'asc' | 'desc'
 
 // Sort by the accessor's value; strings by locale (pl), numbers numerically. Returns a new array.
+// Decorate-sort-undecorate: getValue can be an O(stages) reduce (the "remaining" key), and calling
+// it inside the comparator would re-evaluate it ~2·n·log(n) times — compute it once per row instead.
 export function sortRows(
   rows: KosztorysV2RowT[],
   getValue: (row: KosztorysV2RowT) => string | number,
   dir: SortDirT,
 ): KosztorysV2RowT[] {
   const sign = dir === 'asc' ? 1 : -1
-  return [...rows].sort((a, b) => {
-    const va = getValue(a)
-    const vb = getValue(b)
-    if (typeof va === 'string' || typeof vb === 'string') {
-      return sign * String(va).localeCompare(String(vb), 'pl')
+  const decorated = rows.map((row) => ({ row, key: getValue(row) }))
+  decorated.sort((a, b) => {
+    if (typeof a.key === 'string' || typeof b.key === 'string') {
+      return sign * String(a.key).localeCompare(String(b.key), 'pl')
     }
-    return sign * (va - vb)
+    return sign * (a.key - b.key)
   })
+  return decorated.map((d) => d.row)
 }
 
 // Revert a row field to its pre-edit value (revert-on-error autosave), but ONLY

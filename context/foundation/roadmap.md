@@ -66,7 +66,7 @@ One row per F-NN / S-NN — the index and the backlog handoff in one place. **Pl
 | S-01     | kosztorys-sections-items        | author kosztorys sections + items in-app with live totals                 | —                                                          | FR-001, FR-002, FR-007, US-01 | in review | —          |
 | S-02     | financial-core-smoke            | trust an automated smoke that transfers update balances/figures           | F-01                                                       | FR-012, FR-011, FR-015, US-02 | deferred  | —          |
 | S-03     | kosztorys-price-models          | record three price models per item and toggle the pricing view            | S-01                                                       | FR-003                        | done      | no         |
-| S-04     | kosztorys-stages                | manage stages (etapy) and record per-item, per-stage progress             | S-01                                                       | FR-004                        | proposed  | no         |
+| S-04     | kosztorys-stages                | manage stages (etapy) and record per-item, per-stage progress             | S-01                                                       | FR-004                        | in review | —          |
 | ~~S-05~~ | ~~kosztorys-rooms~~             | ~~room (pokoje) measurements~~ — **CUT** (pokoje out of scope)            | —                                                          | ~~FR-005~~                    | cut       | —          |
 | S-06     | kosztorys-catalogue             | maintain a work catalogue and add items via autocomplete                  | S-01                                                       | FR-006                        | proposed  | no         |
 | S-07     | kosztorys-export                | CSV-export the kosztorys (WYSIWYG snapshot; no print/PDF)                 | S-01                                                       | FR-008                        | proposed  | no         |
@@ -180,7 +180,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Adds a stages table + per-item-per-stage progress join keyed off S-01's items. Variable stage count (not fixed 10 columns) is the parity requirement. Risk: progress totals interacting with the live-totals rule from S-01.
-- **Status:** proposed
+- **Status:** in review
 
 ### ~~S-05: Rooms (pokoje) measurements~~ — CUT
 
