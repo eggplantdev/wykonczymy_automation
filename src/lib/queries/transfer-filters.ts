@@ -17,21 +17,44 @@ function parseNumericIds(param: string | undefined): number[] {
   return param.split(',').map(Number).filter(Boolean)
 }
 
+type AmountSearchT = { mode: 'prefix'; text: string } | { mode: 'range'; low: number; high: number }
+
 /**
- * Canonicalize an amount search term to the text form the DB stores.
- * `amount` is unscaled `numeric` fed from JS numbers, so its `::text` form has no
- * trailing zeros (18.00 → "18", 72.40 → "72.4"). Accept the Polish comma separator
- * and round-trip through Number so a typed "18,00"/"18.00" prefix-matches an 18 row.
- * Assumes normal money magnitudes: astronomically large terms would stringify to
- * exponential form and stop matching, but no amount reaches that range.
- * Returns null for non-numeric input (filter skipped). EX-408.
+ * Parse an amount search term into one of two match modes (EX-408).
+ *
+ * The decimal separator is the mode switch:
+ *   • NO separator → textual PREFIX on `amount::text` ("18" → 18, 189, 18000…),
+ *     resolved downstream via raw SQL LIKE.
+ *   • separator present → numeric half-open RANGE [v, v + 10⁻ᵈ) where d = the count
+ *     of fractional digits typed. "18,00" → [18, 18.01) pins to a clean 18; "18,1"
+ *     → [18.1, 18.2) spans 18.10–18.19. Comparing by numeric VALUE (not text) is
+ *     why this beats the old prefix-LIKE: a stored 18.00 renders as "18", so no
+ *     text prefix of "18.00" could ever match it.
+ *
+ * The `numeric` column has max scale 2, so a 2-decimal term degrades to an exact
+ * match on its own — the range just happens to contain a single storable value.
+ * Boundaries are built in integer space and re-parsed via toFixed so they equal the
+ * canonical decimal double, keeping the exclusive `high` edge drift-free.
+ *
+ * Returns null for non-numeric input (filter skipped).
  */
-function normalizeAmountSearch(raw: string | undefined): string | null {
+function normalizeAmountSearch(raw: string | undefined): AmountSearchT | null {
   if (!raw) return null
   const dotted = raw.replace(',', '.')
-  if (!/^\d+\.?\d*$/.test(dotted)) return null
-  const n = Number(dotted)
-  return Number.isFinite(n) ? String(n) : null
+  if (!/^\d+([.,]\d*)?$/.test(raw)) return null
+
+  const hasSeparator = raw.includes(',') || raw.includes('.')
+  if (!hasSeparator) return { mode: 'prefix', text: raw }
+
+  const [intPart, fracPart = ''] = dotted.split('.')
+  const decimals = fracPart.length
+  const factor = 10 ** decimals
+  const scaledLow = Number(intPart + fracPart)
+  if (!Number.isFinite(scaledLow)) return null
+
+  const low = Number((scaledLow / factor).toFixed(decimals))
+  const high = Number(((scaledLow + 1) / factor).toFixed(decimals))
+  return { mode: 'range', low, high }
 }
 
 export function buildTransferFilters(
@@ -121,9 +144,14 @@ export function buildTransferFilters(
   if (otherCategoryIds.length > 0) where.otherCategory = { in: otherCategoryIds }
   else if (otherCategoryParam) where.id = NO_RESULTS
 
-  // Amount search — prefix LIKE on the numeric field (resolved via raw SQL downstream)
-  const amountLike = normalizeAmountSearch(getStringParam(searchParams.amount))
-  if (amountLike !== null) where.amount = { like: amountLike }
+  // Amount search — prefix LIKE (raw SQL downstream) or a numeric range (native Payload)
+  const amountSearch = normalizeAmountSearch(getStringParam(searchParams.amount))
+  if (amountSearch) {
+    where.amount =
+      amountSearch.mode === 'prefix'
+        ? { like: amountSearch.text }
+        : { greater_than_equal: amountSearch.low, less_than: amountSearch.high }
+  }
 
   // ID search — exact match. Defers to NO_RESULTS if another filter already short-circuited.
   const idParam = getStringParam(searchParams.id)

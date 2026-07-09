@@ -132,39 +132,86 @@ describe('buildTransferFilters — search params', () => {
 })
 
 // ── Amount search ────────────────────────────────────────────────────────
-// The `amount` column is unscaled `numeric`; every value is inserted from a JS
-// number, so its `::text` form carries NO trailing zeros (1000 → "1000",
-// 72.40 → "72.4"). The LIKE search must canonicalize the typed term to that
-// form, otherwise "18.00"/"18,00" prefix-match nothing. Regression: EX-408.
+// The `amount` column is `numeric` with max scale 2. Two search modes, switched
+// by the presence of a decimal separator (EX-408):
+//   • NO separator  → textual prefix on `amount::text` ("18" → 18, 189, 18000…).
+//   • separator      → numeric half-open range [v, v + 10⁻ᵈ) where d = fractional
+//     digits typed, so "18,00" pins to 18 (not 18949) and "18,1" spans 18.10–18.19.
+// The range compares by numeric VALUE, sidestepping the stored ::text form which
+// drops trailing zeros (a real 18.00 is stored "18").
 
-describe('buildTransferFilters — amount search', () => {
+describe('buildTransferFilters — amount search: prefix mode (no separator)', () => {
+  it('"18" → textual prefix matching everything that starts with 18', () => {
+    const where = buildTransferFilters({ amount: '18' }, managerCtx)
+    expect(where.amount).toEqual({ like: '18' })
+  })
+
   it('plain integer passes through unchanged', () => {
     const where = buildTransferFilters({ amount: '1000' }, managerCtx)
     expect(where.amount).toEqual({ like: '1000' })
   })
 
-  it('strips trailing-zero decimals so "18.00" matches an 18 row', () => {
-    const where = buildTransferFilters({ amount: '18.00' }, managerCtx)
-    expect(where.amount).toEqual({ like: '18' })
+  it('"18000" → prefix, so it never matches a stored 18 (18,00)', () => {
+    const where = buildTransferFilters({ amount: '18000' }, managerCtx)
+    expect(where.amount).toEqual({ like: '18000' })
   })
+})
 
-  it('accepts the Polish comma separator', () => {
+describe('buildTransferFilters — amount search: range mode (separator present)', () => {
+  it('"18,00" → [18, 18.01): finds a clean 18, excludes 18949 / 18000,99', () => {
     const where = buildTransferFilters({ amount: '18,00' }, managerCtx)
-    expect(where.amount).toEqual({ like: '18' })
+    expect(where.amount).toEqual({ greater_than_equal: 18, less_than: 18.01 })
   })
 
-  it('normalizes a comma decimal to a dot ("72,4" → "72.4")', () => {
+  it('"18.00" (dot) behaves identically to the comma form', () => {
+    const where = buildTransferFilters({ amount: '18.00' }, managerCtx)
+    expect(where.amount).toEqual({ greater_than_equal: 18, less_than: 18.01 })
+  })
+
+  it('"18,1" → [18.1, 18.2): 18 with a fraction starting 1 (18.10–18.19)', () => {
+    const where = buildTransferFilters({ amount: '18,1' }, managerCtx)
+    expect(where.amount).toEqual({ greater_than_equal: 18.1, less_than: 18.2 })
+  })
+
+  it('"18,11" → [18.11, 18.12): pins to 18,11 (2-decimal max ⇒ de facto exact)', () => {
+    const where = buildTransferFilters({ amount: '18,11' }, managerCtx)
+    expect(where.amount).toEqual({ greater_than_equal: 18.11, less_than: 18.12 })
+  })
+
+  it('"181,6" → [181.6, 181.7): matches 181,6 and 181,69', () => {
+    const where = buildTransferFilters({ amount: '181,6' }, managerCtx)
+    expect(where.amount).toEqual({ greater_than_equal: 181.6, less_than: 181.7 })
+  })
+
+  it('"181,69" → [181.69, 181.7): pins to 181,69', () => {
+    const where = buildTransferFilters({ amount: '181,69' }, managerCtx)
+    expect(where.amount).toEqual({ greater_than_equal: 181.69, less_than: 181.7 })
+  })
+
+  it('"72,4" → [72.4, 72.5)', () => {
     const where = buildTransferFilters({ amount: '72,4' }, managerCtx)
-    expect(where.amount).toEqual({ like: '72.4' })
+    expect(where.amount).toEqual({ greater_than_equal: 72.4, less_than: 72.5 })
   })
 
-  it('trims trailing zeros on a fractional value ("72,40" → "72.4")', () => {
+  it('"72,40" → [72.4, 72.41): the trailing zero narrows, not widens', () => {
     const where = buildTransferFilters({ amount: '72,40' }, managerCtx)
-    expect(where.amount).toEqual({ like: '72.4' })
+    expect(where.amount).toEqual({ greater_than_equal: 72.4, less_than: 72.41 })
   })
 
+  it('trailing separator with no fraction ("18,") pins the integer → [18, 19)', () => {
+    const where = buildTransferFilters({ amount: '18,' }, managerCtx)
+    expect(where.amount).toEqual({ greater_than_equal: 18, less_than: 19 })
+  })
+})
+
+describe('buildTransferFilters — amount search: rejected input', () => {
   it('ignores non-numeric input', () => {
     const where = buildTransferFilters({ amount: 'abc' }, managerCtx)
+    expect(where.amount).toBeUndefined()
+  })
+
+  it('ignores a leading separator with no integer part', () => {
+    const where = buildTransferFilters({ amount: ',5' }, managerCtx)
     expect(where.amount).toBeUndefined()
   })
 })
