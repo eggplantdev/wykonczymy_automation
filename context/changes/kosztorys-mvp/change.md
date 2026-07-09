@@ -74,6 +74,16 @@ editor/migration code.
    the VAT/subcontractor slices; owner said detail-inwestycji OR a future "Podsumowanie" panel,
    not the side panel.
 
+## Owner slice-shaping decisions (2026-07-09)
+
+5. **S-06 catalogue → folded into S-16 (preset), Model A.** No standalone catalogue slice/table.
+   Autocomplete (FR-006) sources from the union of `prace` across presets — a read-only
+   suggestion layer that snapshots opis + J.m. + price into the item on select (overwritable).
+   Matches the POC's own instinct (the "podpowiadarka" arrives _with szablony_; prices kept as
+   typed snapshots). Dissolves the seeding question (Q6). Consequences applied to `roadmap.md`:
+   S-06 status → `folded`; S-08 prereqs drop S-06, add S-16; S-16 inherits FR-006. New open q:
+   duplicate prace across presets at different prices — how to present in autocomplete.
+
 ## Reconciliation delta vs current `roadmap.md`
 
 **Applied to `roadmap.md` on `main` (2026-07-08).** The roadmap now reflects every item below —
