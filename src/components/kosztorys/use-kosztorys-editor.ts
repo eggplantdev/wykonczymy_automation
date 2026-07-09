@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDebouncedSave } from '@/components/kosztorys/use-debounced-save'
 import { useColumnWidths } from '@/components/kosztorys/use-column-widths'
+import { usePriceView } from '@/components/kosztorys/use-price-view'
 import { useElementHeight } from '@/hooks/use-element-height'
 import { toastMessage } from '@/lib/utils/toast'
 import { buildV2Columns, type V2SortStateT } from '@/lib/tables/kosztorys-v2-columns'
@@ -64,7 +65,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   const save = useDebouncedSave(500)
   const [gridRef, gridHeight] = useElementHeight()
   const [rows, setRows] = useState<KosztorysV2RowT[]>(() => treeToRows(tree))
-  const [view, setView] = useState<PriceViewT>('client')
+  const [view, setView] = usePriceView(investmentId)
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<V2SortStateT>(null)
   const [activeSectionId, setActiveSectionId] = useState<number | null>(null)
