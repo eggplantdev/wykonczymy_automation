@@ -1,10 +1,10 @@
 ---
 change_id: kosztorys-price-models
 title: Kosztorys — finish the price-view surface (S-03 residual: persist view + label/UX polish)
-status: impl_reviewed
+status: archived
 created: 2026-07-09
 updated: 2026-07-09
-archived_at: null
+archived_at: 2026-07-09T05:42:25Z
 ---
 
 ## Notes

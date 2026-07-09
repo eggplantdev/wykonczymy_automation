@@ -3,7 +3,7 @@ project: 'Wykonczymy — off-sheets phase 1'
 version: 1
 status: draft
 created: 2026-06-12
-updated: 2026-07-08
+updated: 2026-07-09
 prd_version: 1
 main_goal: quality
 top_blocker: none
@@ -65,13 +65,13 @@ One row per F-NN / S-NN — the index and the backlog handoff in one place. **Pl
 | F-01     | e2e-harness                     | (foundation) Playwright E2E harness, CI-runnable, isolated DB             | —                                                          | FR-011                        | ready     | yes        |
 | S-01     | kosztorys-sections-items        | author kosztorys sections + items in-app with live totals                 | —                                                          | FR-001, FR-002, FR-007, US-01 | in review | —          |
 | S-02     | financial-core-smoke            | trust an automated smoke that transfers update balances/figures           | F-01                                                       | FR-012, FR-011, FR-015, US-02 | deferred  | —          |
-| S-03     | kosztorys-price-models          | record three price models per item and toggle the pricing view            | S-01                                                       | FR-003                        | proposed  | no         |
+| S-03     | kosztorys-price-models          | record three price models per item and toggle the pricing view            | S-01                                                       | FR-003                        | done      | no         |
 | S-04     | kosztorys-stages                | manage stages (etapy) and record per-item, per-stage progress             | S-01                                                       | FR-004                        | proposed  | no         |
 | ~~S-05~~ | ~~kosztorys-rooms~~             | ~~room (pokoje) measurements~~ — **CUT** (pokoje out of scope)            | —                                                          | ~~FR-005~~                    | cut       | —          |
 | S-06     | kosztorys-catalogue             | maintain a work catalogue and add items via autocomplete                  | S-01                                                       | FR-006                        | proposed  | no         |
 | S-16     | kosztorys-preset                | seed a new kosztorys from a preset; save a kosztorys as a preset          | S-01                                                       | — (owner request)             | proposed  | no         |
 | S-07     | kosztorys-export                | CSV-export the kosztorys (WYSIWYG snapshot; no print/PDF)                 | S-01                                                       | FR-008                        | proposed  | no         |
-| S-11     | kosztorys-subcontractor-pricing | price subcontractor work via markup coefficient + per-item override       | S-01, S-03                                                 | — (POC)                       | proposed  | no         |
+| S-11     | kosztorys-subcontractor-pricing | price subcontractor work via markup coefficient + per-item override       | S-01, S-03                                                 | — (POC)                       | done      | no         |
 | S-12     | kosztorys-vat                   | set VAT per investment; enter net, compute gross                          | S-01                                                       | — (POC)                       | proposed  | no         |
 | S-13     | kosztorys-undo                  | undo the last editor edit(s)                                              | S-01                                                       | — (POC)                       | proposed  | no         |
 | S-14     | kosztorys-column-locking        | lock / pin editor columns                                                 | S-01                                                       | — (POC)                       | proposed  | no         |
@@ -168,7 +168,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
   (B2B? 23% vs 8%), tied to S-12's per-investment VAT rate — a determined rule, not an open
   question.
 - **Risk:** Extends the item price from one snapshotted value (S-01) to three views; totals must recompute under the selected view. Risk: snapshot semantics — a later catalogue price change must not retroactively alter existing items. dsg gotcha: the active view must be in the grid remount key (POC bug, see `lessons.md`).
-- **Status:** proposed
+- **Status:** done
 
 ### S-04: Stage progress (etapy)
 
@@ -290,7 +290,7 @@ and the full decision register: `context/changes/kosztorys-mvp/change.md`.
 - **Blockers:** —
 - **Open note (decision 4):** where the coefficients are edited (settings-home UX) is TBD — owner leans detail-inwestycji or a future "Podsumowanie" panel, not the side panel.
 - **Risk:** `clientPrice` stays the snapshot; the two other views are computed. Risk: override precedence (item > section > investment) must be unambiguous and the derived views must recompute under the S-03 toggle without re-snapshotting.
-- **Status:** proposed
+- **Status:** done
 
 ### S-12: VAT per investment (netto entry, brutto computed)
 
@@ -377,3 +377,6 @@ Lifted from PRD `## Non-Goals` — explicitly out of scope for this arc.
 ## Done
 
 (Empty on first generation. `/10x-archive` appends here when a change whose Change ID matches a roadmap item is archived.)
+
+- **S-03: Three price models + pricing-view toggle** — Archived 2026-07-09 → `context/archive/2026-07-09-kosztorys-price-models/`. Core (three views + toggle + coefficient/override derivation) shipped in S-01; this change closed the residual polish (per-kosztorys view persistence, "Klient" relabel, pricing-model explainer tooltip). Lesson: —.
+- **S-11: Subcontractor pricing (markup coefficient + override)** — Absorbed by S-01 (`kosztorys-sections-items`), which ported the POC's final `calc.ts` derivation verbatim; marked done here alongside the S-03 close (no separate change folder). Lesson: —.
