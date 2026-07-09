@@ -41,7 +41,8 @@ function writeView(investmentId: number, view: PriceViewT) {
   try {
     window.localStorage.setItem(storageKey(investmentId), view)
   } catch {
-    // no localStorage (SSR/private mode) — skip persistence, state lives in subscribers' memory
+    // no localStorage (SSR/private mode) — persistence skipped; since reads re-hit storage with
+    // no in-memory fallback, the selection reverts to the default and won't survive here
   }
   for (const l of listeners) l()
 }
