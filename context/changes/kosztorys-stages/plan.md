@@ -440,27 +440,27 @@ human via `pnpm db:migrate:prod` **before** the code that needs it ships — nev
 
 #### Automated
 
-- [x] 2.1 Types regenerate (`pnpm generate:types`)
-- [x] 2.2 Type checking passes
-- [x] 2.3 Lint passes
-- [x] 2.4 Existing unit suite still green (`pnpm exec vitest run`)
+- [x] 2.1 Types regenerate (`pnpm generate:types`) — 5323856
+- [x] 2.2 Type checking passes — 5323856
+- [x] 2.3 Lint passes — 5323856
+- [x] 2.4 Existing unit suite still green (`pnpm exec vitest run`) — 5323856
 
 #### Manual
 
-- [x] 2.5 Both collections appear under "Kosztorys"; stage + progress creatable in admin
-- [x] 2.6 `getKosztorysTree` returns ordered stages + progress rows
+- [x] 2.5 Both collections appear under "Kosztorys"; stage + progress creatable in admin — 5323856
+- [x] 2.6 `getKosztorysTree` returns ordered stages + progress rows — 5323856
 
 ### Phase 3: Server actions
 
 #### Automated
 
-- [ ] 3.1 Type checking passes
-- [ ] 3.2 Lint passes
-- [ ] 3.3 Unit suite still green
+- [x] 3.1 Type checking passes
+- [x] 3.2 Lint passes
+- [x] 3.3 Unit suite still green
 
 #### Manual
 
-- [ ] 3.4 addStage yields N+1; setStageProgress upserts (no dup); removeStage guard blocks then allows
+- [x] 3.4 addStage yields N+1; setStageProgress upserts (no dup); removeStage guard blocks then allows
 
 ### Phase 4: Editor UI
 

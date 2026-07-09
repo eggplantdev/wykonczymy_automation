@@ -1,7 +1,9 @@
 'use server'
 
 import { z } from 'zod'
+import { sql } from '@payloadcms/db-vercel-postgres'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
+import { getDb } from '@/lib/db/get-db'
 import { NEW_SECTION_DEFAULTS } from '@/lib/kosztorys/v2-rows'
 import type { ActionResultT } from '@/types/action'
 import type { ItemPatchT } from '@/types/kosztorys'
@@ -203,5 +205,99 @@ export async function swapItemOrderAction(
       return { success: true }
     },
     ['kosztorysItems'],
+  )
+}
+
+// --- Stages (etapy) ---
+
+export async function addStageAction(
+  investmentId: number,
+): Promise<ActionResultT<{ id: number; ordinal: number }>> {
+  return protectedAction(
+    'addStageAction',
+    async ({ payload }) => {
+      const existing = await payload.find({
+        collection: 'kosztorys-stages',
+        where: { investment: { equals: investmentId } },
+        sort: '-ordinal',
+        limit: 1,
+        depth: 0,
+      })
+      const nextOrdinal = (existing.docs[0]?.ordinal ?? 0) + 1
+      const created = await payload.create({
+        collection: 'kosztorys-stages',
+        data: { investment: investmentId, ordinal: nextOrdinal },
+      })
+      return { success: true, data: { id: created.id, ordinal: nextOrdinal } }
+    },
+    ['kosztorysStages'],
+  )
+}
+
+const stageLabelSchema = z.object({ label: z.string().nullable() })
+
+export async function updateStageFieldAction(
+  stageId: number,
+  label: string | null,
+): Promise<ActionResultT> {
+  return protectedAction(
+    'updateStageFieldAction',
+    async ({ payload }) => {
+      const parsed = validateAction(stageLabelSchema, { label })
+      if (!parsed.success) return parsed
+      await payload.update({ collection: 'kosztorys-stages', id: stageId, data: parsed.data })
+      return { success: true }
+    },
+    ['kosztorysStages'],
+  )
+}
+
+export async function removeStageAction(stageId: number): Promise<ActionResultT> {
+  return protectedAction(
+    'removeStageAction',
+    async ({ payload }) => {
+      const db = await getDb(payload)
+      // Block: don't drop a stage that still has recorded progress (would silently lose it).
+      const res = await db.execute(sql`
+        SELECT 1 FROM stage_progress WHERE stage_id = ${stageId} AND qty_done <> 0 LIMIT 1
+      `)
+      if (res.rows.length > 0) {
+        return { success: false, error: 'Najpierw wyczyść ilości wpisane w tym etapie' }
+      }
+      await payload.delete({ collection: 'kosztorys-stages', id: stageId })
+      return { success: true }
+    },
+    ['kosztorysStages', 'stageProgress'],
+  )
+}
+
+// --- Stage progress (upsert by item + stage; sparse — a missing row means 0) ---
+
+const stageProgressSchema = z.object({
+  itemId: z.number(),
+  stageId: z.number(),
+  qtyDone: z.coerce.number(),
+})
+
+export async function setStageProgressAction(
+  itemId: number,
+  stageId: number,
+  qtyDone: number,
+): Promise<ActionResultT> {
+  return protectedAction(
+    'setStageProgressAction',
+    async ({ payload }) => {
+      const parsed = validateAction(stageProgressSchema, { itemId, stageId, qtyDone })
+      if (!parsed.success) return parsed
+      const db = await getDb(payload)
+      await db.execute(sql`
+        INSERT INTO stage_progress (item_id, stage_id, qty_done, created_at, updated_at)
+        VALUES (${parsed.data.itemId}, ${parsed.data.stageId}, ${parsed.data.qtyDone}, now(), now())
+        ON CONFLICT (item_id, stage_id)
+        DO UPDATE SET qty_done = ${parsed.data.qtyDone}, updated_at = now()
+      `)
+      return { success: true }
+    },
+    ['stageProgress'],
   )
 }
