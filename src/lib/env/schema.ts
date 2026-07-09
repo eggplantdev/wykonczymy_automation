@@ -24,6 +24,7 @@ export const serverSchema = z.object({
   META_APP_TOKEN: z.string().min(1),
   META_VERIFY_TOKEN: z.string().min(1),
   META_PAGE_ACCESS_TOKEN: z.string().min(1),
+  META_PAGE_ID: z.string().min(1),
   // Recipient for new-lead heads-up notifications (sales inbox — not the lead)
   LEADS_NOTIFY_EMAIL: z.string().min(1),
   // Recipient for integration shape-alerts (ops/dev inbox — schema fail / no email extracted)
