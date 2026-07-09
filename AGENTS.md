@@ -4,7 +4,7 @@ Project-specific guidance for coding agents. Global conventions (response style,
 
 ## Project Overview
 
-Business management dashboard for cash registers, transfers, investments, and employees. Next.js + Payload CMS. **Polish UI, English code.** Versions in `@package.json`.
+Business management dashboard for cash registers, transfers, investments, and employees. Next.js + Payload CMS. **Polish UI, English code.** Code comments are always in English, even when the UI strings they sit next to are Polish. Versions in `@package.json`.
 
 ## Backlog & Task Tracking
 
@@ -40,6 +40,7 @@ Prefer hand-editing `@package.json` over `pnpm remove` / `pnpm install`. On this
 
 - **The real DB is Neon Postgres** — `DB_POSTGRES_URL_PROD` in `.env` is the live prod credential. **Never run SQL, migrations, or dumps-restores against the Neon URL**; a human applies prod migrations.
 - The local app points at the docker Postgres on 5433 (`DB_POSTGRES_URL`, db `wykonczymy-db`) — a copy restored from Neon dumps: `pnpm db:dump` (prod → `dumps/dump-latest.sql`, also run by the pre-push hook) and `pnpm db:import` (dump → local). Refreshable, but confirm before wiping it — a restore loses anything entered locally since the last dump.
+- The **E2E suite** runs against an isolated `db-test` container on **5435** (`DB_POSTGRES_URL_TEST`, db `wykonczymy-test`), never the dev DB. Populate/reset its fixtures with `pnpm db:import:test` (same dump → test DB). `pnpm test:e2e` starts the container (`--wait` on its healthcheck) but does **not** import — run `db:import:test` once after a fresh volume or to reset.
 - `GOOGLE_SERVICE_ACCOUNT_JSON` and `KOSZTORYS_TEMPLATE_SHEET_ID` in `.env` are real working credentials — Google Sheets writes hit live data.
 - Never `git push`; a human pushes to remotes.
 
@@ -68,7 +69,7 @@ Prefer hand-editing `@package.json` over `pnpm remove` / `pnpm install`. On this
 
 ## Auth And Roles
 
-JWT auth via Payload using the `payload-token` cookie (24h lifetime). Roles: `ADMIN`, `OWNER`, `MANAGER`, `EMPLOYEE`. Hierarchy in `src/lib/auth/roles.ts`; access control functions in `src/access`.
+JWT auth via Payload using the `payload-token` cookie (7-day lifetime). Roles: `ADMIN`, `OWNER`, `MANAGER`, `EMPLOYEE`. Hierarchy in `src/lib/auth/roles.ts`; access control functions in `src/access`.
 
 ## Mutation Pattern
 
@@ -109,13 +110,13 @@ How the financial figures (marża / materiały / robocizna / korekty) connect: `
 
 ## Testing
 
-Vitest unit specs under `src/__tests__` (aliases `@/*` → `./src/*`); single-file command in **Common Commands**. No E2E harness exists yet.
+Two test homes by layer: **unit** → Vitest specs under `src/__tests__` (aliases `@/*` → `./src/*`); single-file command in **Common Commands**. **Browser E2E** → Playwright specs under `e2e/` (`pnpm test:e2e`), against the isolated 5435 `db-test` container — see the harness in `context/changes/e2e-harness/`.
 
 Don't hand-roll tests or pick the layer by feel — route to a skill. Always start from a risk in test-plan.md, never from "cover this file"; the cheapest layer that gives a real signal wins. The trap behind every bad test — assert observable behavior, not the implementation under test — and the full anti-pattern lists are owned by the skills (/10x-tdd, /10x-e2e's references/) and test-plan.md; don't restate them here.
 
 - **New code, test-first** → **`/10x-tdd`** (when you can name the first failing test in one sentence and the impl isn't written yet).
 - **Protecting existing code** → `/10x-research` → `/10x-plan` → `/10x-implement`, anchored on the risk.
-- **Browser-level / multi-boundary risk** → **`/10x-e2e`** — but there is no Playwright setup in this repo yet, so setting one up is its own change, not a side effect of a test task // we will add playwright.
+- **Browser-level / multi-boundary risk** → **`/10x-e2e`** — Playwright harness lives in `e2e/` (`pnpm test:e2e`, isolated 5435 `db-test`); add browser specs there.
 - **A bug that slipped past the tests (test-driven debugging) — mandatory, not optional.** Reproduce it with a **failing test first**, then fix — never silently patch. Assert the **persisted / observable state, not the action's return value** — a success result can hide a failed write. The repro test stays as the regression guard for the path that had none.
 
 There is no `context/foundation/test-plan.md` here yet — for a larger test rollout, generate one with `/10x-test-plan` first and anchor new tests on its risks.

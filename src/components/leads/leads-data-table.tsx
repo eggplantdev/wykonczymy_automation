@@ -5,6 +5,7 @@ import { DataTable } from '@/components/ui/data-table/data-table'
 import { ColumnToggle } from '@/components/ui/column-toggle'
 import { SearchFilterInput } from '@/components/ui/search-filter-input'
 import { getLeadColumns } from '@/components/tables/leads'
+import { ReconcileLeadsButton } from '@/components/leads/reconcile-leads-button'
 import type { LeadRowT } from '@/types/leads'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle'
@@ -41,6 +42,7 @@ export function LeadsDataTable({ data }: { data: LeadRowT[] }) {
         <>
           <SearchFilterInput value={searchTerm} onChange={setSearchTerm} placeholder="Szukaj..." />
           <ColumnToggle table={table} columnVisibility={cv} />
+          <ReconcileLeadsButton />
         </>
       )}
     />

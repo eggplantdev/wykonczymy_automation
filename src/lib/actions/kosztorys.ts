@@ -1,0 +1,307 @@
+'use server'
+
+import { z } from 'zod'
+import { sql } from '@payloadcms/db-vercel-postgres'
+import { protectedAction, validateAction } from '@/lib/actions/run-action'
+import { getDb } from '@/lib/db/get-db'
+import { NEW_SECTION_DEFAULTS } from '@/lib/kosztorys/v2-rows'
+import type { ActionResultT } from '@/types/action'
+import type { ItemPatchT } from '@/types/kosztorys'
+
+// --- Patch schemas (all fields optional — autosave sends one field at a time) ---
+// itemPatchSchema is shaped to match ItemPatchT (a single source of the type in types/kosztorys.ts).
+
+const itemPatchSchema = z
+  .object({
+    description: z.string().nullable(),
+    unit: z.string().nullable(),
+    plannedQty: z.coerce.number(),
+    measuredQty: z.coerce.number(),
+    discountType: z.enum(['percent', 'amount']).nullable(),
+    discountValue: z.coerce.number(),
+    clientPrice: z.coerce.number(),
+    wToolsOverrideType: z.enum(['coeff', 'amount']).nullable(),
+    wToolsOverrideValue: z.coerce.number(),
+    ownToolsOverrideType: z.enum(['coeff', 'amount']).nullable(),
+    ownToolsOverrideValue: z.coerce.number(),
+    costVariant: z.enum(['w_tools', 'own_tools']).nullable(),
+    hiddenInExport: z.boolean(),
+    note: z.string().nullable(),
+  })
+  .partial()
+
+const sectionPatchSchema = z
+  .object({
+    name: z.string(),
+    defaultCostVariant: z.enum(['w_tools', 'own_tools']),
+    displayOrder: z.coerce.number(),
+    wToolsCoeff: z.coerce.number().nullable(),
+    ownToolsCoeff: z.coerce.number().nullable(),
+  })
+  .partial()
+
+// Investment markup coefficients (edited from the panel). VAT (S-12) is out of scope.
+const investmentCoeffsSchema = z
+  .object({
+    wToolsCoeff: z.coerce.number(),
+    ownToolsCoeff: z.coerce.number(),
+  })
+  .partial()
+
+export type SectionPatchT = z.infer<typeof sectionPatchSchema>
+export type InvestmentCoeffsPatchT = z.infer<typeof investmentCoeffsSchema>
+
+// --- Field updates (autosave) ---
+
+export async function updateItemFieldAction(itemId: number, patch: ItemPatchT) {
+  return protectedAction(
+    'updateItemFieldAction',
+    async ({ payload }) => {
+      const parsed = validateAction(itemPatchSchema, patch)
+      if (!parsed.success) return parsed
+      await payload.update({ collection: 'kosztorys-items', id: itemId, data: parsed.data })
+      return { success: true }
+    },
+    ['kosztorysItems'],
+  )
+}
+
+export async function updateSectionFieldAction(sectionId: number, patch: SectionPatchT) {
+  return protectedAction(
+    'updateSectionFieldAction',
+    async ({ payload }) => {
+      const parsed = validateAction(sectionPatchSchema, patch)
+      if (!parsed.success) return parsed
+      await payload.update({ collection: 'kosztorys-sections', id: sectionId, data: parsed.data })
+      return { success: true }
+    },
+    ['kosztorysSections'],
+  )
+}
+
+export async function updateInvestmentCoeffsAction(
+  investmentId: number,
+  patch: InvestmentCoeffsPatchT,
+) {
+  return protectedAction(
+    'updateInvestmentCoeffsAction',
+    async ({ payload }) => {
+      const parsed = validateAction(investmentCoeffsSchema, patch)
+      if (!parsed.success) return parsed
+      await payload.update({ collection: 'investments', id: investmentId, data: parsed.data })
+      return { success: true }
+    },
+    // A global coefficient changes the derived item prices → refresh the sheet cache.
+    ['kosztorysItems', 'kosztorysSections'],
+  )
+}
+
+// --- Structure: sections / items ---
+
+export async function addSectionAction(
+  investmentId: number,
+): Promise<ActionResultT<{ id: number; displayOrder: number }>> {
+  return protectedAction(
+    'addSectionAction',
+    async ({ payload }) => {
+      const count = await payload.count({
+        collection: 'kosztorys-sections',
+        where: { investment: { equals: investmentId } },
+      })
+      const created = await payload.create({
+        collection: 'kosztorys-sections',
+        data: {
+          investment: investmentId,
+          name: NEW_SECTION_DEFAULTS.name,
+          displayOrder: count.totalDocs,
+          defaultCostVariant: NEW_SECTION_DEFAULTS.defaultCostVariant,
+        },
+      })
+      return { success: true, data: { id: created.id, displayOrder: count.totalDocs } }
+    },
+    ['kosztorysSections'],
+  )
+}
+
+export async function removeSectionAction(sectionId: number) {
+  return protectedAction(
+    'removeSectionAction',
+    async ({ payload }) => {
+      await payload.delete({ collection: 'kosztorys-sections', id: sectionId })
+      return { success: true }
+    },
+    ['kosztorysSections', 'kosztorysItems'],
+  )
+}
+
+export async function addItemAction(
+  investmentId: number,
+  sectionId: number,
+): Promise<ActionResultT<{ id: number; displayOrder: number }>> {
+  return protectedAction(
+    'addItemAction',
+    async ({ payload }) => {
+      const count = await payload.count({
+        collection: 'kosztorys-items',
+        where: { section: { equals: sectionId } },
+      })
+      const created = await payload.create({
+        collection: 'kosztorys-items',
+        data: {
+          investment: investmentId,
+          section: sectionId,
+          displayOrder: count.totalDocs,
+          plannedQty: 0,
+          measuredQty: 0,
+          discountValue: 0,
+          clientPrice: 0,
+          hiddenInExport: false,
+        },
+      })
+      return { success: true, data: { id: created.id, displayOrder: count.totalDocs } }
+    },
+    ['kosztorysItems'],
+  )
+}
+
+export async function removeItemAction(itemId: number) {
+  return protectedAction(
+    'removeItemAction',
+    async ({ payload }) => {
+      await payload.delete({ collection: 'kosztorys-items', id: itemId })
+      return { success: true }
+    },
+    ['kosztorysItems'],
+  )
+}
+
+const itemOrderSchema = z.object({ id: z.number(), displayOrder: z.number() })
+const swapItemOrderSchema = z.object({ first: itemOrderSchema, second: itemOrderSchema })
+
+// Swaps the display_order of two (adjacent) items — 2 updates regardless of section size.
+// For the ▲▼ move (always a swap of neighbors) this suffices instead of renumbering the whole section.
+// Each argument carries the NEW display_order that the item should take on.
+export async function swapItemOrderAction(
+  first: { id: number; displayOrder: number },
+  second: { id: number; displayOrder: number },
+): Promise<ActionResultT> {
+  return protectedAction(
+    'swapItemOrderAction',
+    async ({ payload }) => {
+      const parsed = validateAction(swapItemOrderSchema, { first, second })
+      if (!parsed.success) return parsed
+      await Promise.all([
+        payload.update({
+          collection: 'kosztorys-items',
+          id: parsed.data.first.id,
+          data: { displayOrder: parsed.data.first.displayOrder },
+        }),
+        payload.update({
+          collection: 'kosztorys-items',
+          id: parsed.data.second.id,
+          data: { displayOrder: parsed.data.second.displayOrder },
+        }),
+      ])
+      return { success: true }
+    },
+    ['kosztorysItems'],
+  )
+}
+
+// --- Stages (etapy) ---
+
+export async function addStageAction(
+  investmentId: number,
+): Promise<ActionResultT<{ id: number; ordinal: number }>> {
+  return protectedAction(
+    'addStageAction',
+    async ({ payload }) => {
+      const existing = await payload.find({
+        collection: 'kosztorys-stages',
+        where: { investment: { equals: investmentId } },
+        sort: '-ordinal',
+        limit: 1,
+        depth: 0,
+      })
+      const nextOrdinal = (existing.docs[0]?.ordinal ?? 0) + 1
+      const created = await payload.create({
+        collection: 'kosztorys-stages',
+        data: { investment: investmentId, ordinal: nextOrdinal },
+      })
+      return { success: true, data: { id: created.id, ordinal: nextOrdinal } }
+    },
+    ['kosztorysStages'],
+  )
+}
+
+const stageLabelSchema = z.object({ label: z.string().nullable() })
+
+export async function updateStageFieldAction(
+  stageId: number,
+  label: string | null,
+): Promise<ActionResultT> {
+  return protectedAction(
+    'updateStageFieldAction',
+    async ({ payload }) => {
+      const parsed = validateAction(stageLabelSchema, { label })
+      if (!parsed.success) return parsed
+      await payload.update({ collection: 'kosztorys-stages', id: stageId, data: parsed.data })
+      return { success: true }
+    },
+    ['kosztorysStages'],
+  )
+}
+
+const stageIdSchema = z.object({ stageId: z.number() })
+
+export async function removeStageAction(stageId: number): Promise<ActionResultT> {
+  return protectedAction(
+    'removeStageAction',
+    async ({ payload }) => {
+      const parsed = validateAction(stageIdSchema, { stageId })
+      if (!parsed.success) return parsed
+      const db = await getDb(payload)
+      // Block: don't drop a stage that still has recorded progress (would silently lose it).
+      const res = await db.execute(sql`
+        SELECT 1 FROM stage_progress WHERE stage_id = ${parsed.data.stageId} AND qty_done <> 0 LIMIT 1
+      `)
+      if (res.rows.length > 0) {
+        return { success: false, error: 'Najpierw wyczyść ilości wpisane w tym etapie' }
+      }
+      await payload.delete({ collection: 'kosztorys-stages', id: parsed.data.stageId })
+      return { success: true }
+    },
+    ['kosztorysStages', 'stageProgress'],
+  )
+}
+
+// --- Stage progress (upsert by item + stage; sparse — a missing row means 0) ---
+
+const stageProgressSchema = z.object({
+  itemId: z.number(),
+  stageId: z.number(),
+  qtyDone: z.coerce.number(),
+})
+
+export async function setStageProgressAction(
+  itemId: number,
+  stageId: number,
+  qtyDone: number,
+): Promise<ActionResultT> {
+  return protectedAction(
+    'setStageProgressAction',
+    async ({ payload }) => {
+      const parsed = validateAction(stageProgressSchema, { itemId, stageId, qtyDone })
+      if (!parsed.success) return parsed
+      const db = await getDb(payload)
+      await db.execute(sql`
+        INSERT INTO stage_progress (item_id, stage_id, qty_done, created_at, updated_at)
+        VALUES (${parsed.data.itemId}, ${parsed.data.stageId}, ${parsed.data.qtyDone}, now(), now())
+        ON CONFLICT (item_id, stage_id)
+        DO UPDATE SET qty_done = ${parsed.data.qtyDone}, updated_at = now()
+      `)
+      return { success: true }
+    },
+    ['stageProgress'],
+  )
+}

@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
+import { DEFAULT_COEFFS } from '@/lib/kosztorys/constants'
 
 const STATUS_OPTIONS = [
   { label: { en: 'Active', pl: 'Aktywna' }, value: 'active' },
@@ -72,6 +73,26 @@ export const Investments: CollectionConfig = {
       defaultValue: 'active',
       label: { en: 'Status', pl: 'Status' },
       options: [...STATUS_OPTIONS],
+    },
+    // Global (per-investment) subcontractor markup coefficients — the defaults for the sheet;
+    // a section may override them, and an item may override them. Columns created in a migration with defaults.
+    {
+      name: 'wToolsCoeff',
+      type: 'number',
+      defaultValue: DEFAULT_COEFFS.wTools,
+      label: {
+        en: 'Subcontractor coeff (with tools)',
+        pl: 'Współczynnik podwykonawcy (z narzędziami)',
+      },
+    },
+    {
+      name: 'ownToolsCoeff',
+      type: 'number',
+      defaultValue: DEFAULT_COEFFS.ownTools,
+      label: {
+        en: 'Subcontractor coeff (own tools)',
+        pl: 'Współczynnik podwykonawcy (bez narzędzi)',
+      },
     },
   ],
 }

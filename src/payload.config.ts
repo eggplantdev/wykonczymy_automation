@@ -14,6 +14,10 @@ import { fileURLToPath } from 'url'
 import { AmountEdits } from '@/collections/amount-edits'
 import { CashRegisters } from '@/collections/cash-registers'
 import { Investments } from '@/collections/investments'
+import { KosztorysItems } from '@/collections/kosztorys-items'
+import { KosztorysSections } from '@/collections/kosztorys-sections'
+import { KosztorysStages } from '@/collections/kosztorys-stages'
+import { StageProgress } from '@/collections/stage-progress'
 import { Leads } from '@/collections/leads'
 import { Media } from '@/collections/media'
 import { ExpenseCategories } from '@/collections/expense-categories'
@@ -62,6 +66,10 @@ export default buildConfig({
     CashRegisters,
     Investments,
     Sheets,
+    KosztorysSections,
+    KosztorysItems,
+    KosztorysStages,
+    StageProgress,
     Transfers,
     OtherCategories,
     ExpenseCategories,
