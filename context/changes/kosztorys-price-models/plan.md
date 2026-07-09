@@ -212,27 +212,27 @@ phase.
 
 #### Automated
 
-- [x] 1.1 Type checking passes (`pnpm typecheck`)
-- [x] 1.2 Lint passes (`pnpm lint`)
-- [x] 1.3 Unit suite still green (`pnpm exec vitest run`)
-- [x] 1.4 Build compiles (`pnpm build`)
+- [x] 1.1 Type checking passes (`pnpm typecheck`) — fd5d31c
+- [x] 1.2 Lint passes (`pnpm lint`) — fd5d31c
+- [x] 1.3 Unit suite still green (`pnpm exec vitest run`) — fd5d31c
+- [x] 1.4 Build compiles (`pnpm build`) — fd5d31c
 
 #### Manual
 
-- [x] 1.5 Switch view → reload → view persists
-- [x] 1.6 Two investments remember views independently
-- [x] 1.7 Disabled localStorage → no crash, defaults to client
+- [x] 1.5 Switch view → reload → view persists — fd5d31c
+- [x] 1.6 Two investments remember views independently — fd5d31c
+- [x] 1.7 Disabled localStorage → no crash, defaults to client — fd5d31c
 
 ### Phase 2: Relabel client view + pricing-model explainer
 
 #### Automated
 
-- [ ] 2.1 Type checking passes (`pnpm typecheck`)
-- [ ] 2.2 Lint passes (`pnpm lint`)
-- [ ] 2.3 Build compiles (`pnpm build`)
+- [x] 2.1 Type checking passes (`pnpm typecheck`)
+- [x] 2.2 Lint passes (`pnpm lint`)
+- [x] 2.3 Build compiles (`pnpm build`)
 
 #### Manual
 
-- [ ] 2.4 Client view reads "Klient"; subcontractor labels unchanged
-- [ ] 2.5 Tooltip renders and explains the three views + price mode
-- [ ] 2.6 No grid layout regression from the added icon
+- [x] 2.4 Client view reads "Klient"; subcontractor labels unchanged
+- [x] 2.5 Tooltip renders and explains the three views + price mode
+- [x] 2.6 No grid layout regression from the added icon

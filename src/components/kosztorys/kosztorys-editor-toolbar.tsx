@@ -1,15 +1,25 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { SearchFilterInput } from '@/components/ui/search-filter-input'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 
 // Three views over one dataset: they only change the active price and its derived values.
 const VIEWS: { value: PriceViewT; label: string }[] = [
-  { value: 'client', label: 'Robocizna' },
+  { value: 'client', label: 'Klient' },
   { value: 'w_tools', label: 'Z narzędziami' },
   { value: 'own_tools', label: 'Bez narzędzi' },
 ]
+
+const VIEW_LEGEND = [
+  'Widoki cen:',
+  'Klient — cena dla klienta.',
+  'Z narzędziami / Bez narzędzi — ceny podwykonawcy, liczone ze współczynnika narzutu.',
+  '',
+  'Tryb ceny pozycji:',
+  'auto — ze współczynnika · × mnożnik ceny klienta · kwota (zł).',
+].join('\n')
 
 type PropsT = {
   investmentName: string
@@ -50,6 +60,7 @@ export function KosztorysEditorToolbar({
             {v.label}
           </Button>
         ))}
+        <InfoTooltip content={VIEW_LEGEND} label="Co oznaczają widoki cen" className="ml-0.5" />
       </div>
       <SearchFilterInput
         value={search}
