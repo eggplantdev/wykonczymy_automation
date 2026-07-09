@@ -7,7 +7,9 @@ import type {
   DiscountTypeT,
   KosztorysItemT,
   KosztorysSectionT,
+  KosztorysStageT,
   KosztorysTreeT,
+  StageProgressT,
   SubcontractorOverrideTypeT,
 } from '@/types/kosztorys'
 
@@ -17,12 +19,13 @@ const relId = (v: unknown): number =>
 const num = (v: unknown): number => Number(v ?? 0)
 
 // S-01: sections + items of a single investment, ordered by displayOrder → displayOrder.
-// Stages (S-04) and VAT (S-12) are out of scope: stages/progress = [], vatRate = 0.
+// S-04: stages (ordered by ordinal) + sparse per-item progress. VAT (S-12) is still out of
+// scope: vatRate = 0.
 export async function getKosztorysTree(investmentId: number): Promise<KosztorysTreeT> {
   const payload = await getPayload({ config })
   const where = { investment: { equals: investmentId } }
 
-  const [sectionsRes, itemsRes, investment] = await Promise.all([
+  const [sectionsRes, itemsRes, stagesRes, progressRes, investment] = await Promise.all([
     payload.find({
       collection: 'kosztorys-sections',
       where,
@@ -36,6 +39,21 @@ export async function getKosztorysTree(investmentId: number): Promise<KosztorysT
       depth: 0,
       limit: 5000,
       sort: 'displayOrder',
+    }),
+    payload.find({
+      collection: 'kosztorys-stages',
+      where,
+      depth: 0,
+      limit: 1000,
+      sort: 'ordinal',
+    }),
+    // Progress is filtered by the item's investment (stage-progress has no direct investment
+    // column); depth 0 keeps item/stage as ids.
+    payload.find({
+      collection: 'stage-progress',
+      where: { 'item.investment': { equals: investmentId } },
+      depth: 0,
+      limit: 100000,
     }),
     payload.findByID({ collection: 'investments', id: investmentId, depth: 0 }),
   ])
@@ -86,5 +104,17 @@ export async function getKosztorysTree(investmentId: number): Promise<KosztorysT
     items: itemsBySection.get(d.id) ?? [],
   }))
 
-  return { sections, stages: [], progress: [], globalCoeffs, vatRate: 0 }
+  const stages: KosztorysStageT[] = stagesRes.docs.map((d) => ({
+    id: d.id,
+    ordinal: num(d.ordinal),
+    label: d.label ?? null,
+  }))
+
+  const progress: StageProgressT[] = progressRes.docs.map((d) => ({
+    itemId: relId(d.item),
+    stageId: relId(d.stage),
+    qtyDone: num(d.qtyDone),
+  }))
+
+  return { sections, stages, progress, globalCoeffs, vatRate: 0 }
 }

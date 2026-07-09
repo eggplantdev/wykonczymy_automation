@@ -8,6 +8,8 @@ export const CACHE_TAGS = {
   kosztoryses: 'collection:kosztoryses',
   kosztorysSections: 'collection:kosztorys-sections',
   kosztorysItems: 'collection:kosztorys-items',
+  kosztorysStages: 'collection:kosztorys-stages',
+  stageProgress: 'collection:stage-progress',
   leads: 'collection:leads',
 } as const
 

@@ -427,28 +427,28 @@ human via `pnpm db:migrate:prod` **before** the code that needs it ships — nev
 
 #### Automated
 
-- [x] 1.1 Migration applies cleanly on local docker (`pnpm payload migrate`)
-- [x] 1.2 Types regenerate (`pnpm generate:types`)
-- [x] 1.3 Type checking passes (`pnpm typecheck`)
-- [x] 1.4 Lint passes (`pnpm lint`)
+- [x] 1.1 Migration applies cleanly on local docker (`pnpm payload migrate`) — 11cf980
+- [x] 1.2 Types regenerate (`pnpm generate:types`) — 11cf980
+- [x] 1.3 Type checking passes (`pnpm typecheck`) — 11cf980
+- [x] 1.4 Lint passes (`pnpm lint`) — 11cf980
 
 #### Manual
 
-- [x] 1.5 Both tables + UNIQUE constraints exist; no unexpected table changed
+- [x] 1.5 Both tables + UNIQUE constraints exist; no unexpected table changed — 11cf980
 
 ### Phase 2: Collections + query
 
 #### Automated
 
-- [ ] 2.1 Types regenerate (`pnpm generate:types`)
-- [ ] 2.2 Type checking passes
-- [ ] 2.3 Lint passes
-- [ ] 2.4 Existing unit suite still green (`pnpm exec vitest run`)
+- [x] 2.1 Types regenerate (`pnpm generate:types`)
+- [x] 2.2 Type checking passes
+- [x] 2.3 Lint passes
+- [x] 2.4 Existing unit suite still green (`pnpm exec vitest run`)
 
 #### Manual
 
-- [ ] 2.5 Both collections appear under "Kosztorys"; stage + progress creatable in admin
-- [ ] 2.6 `getKosztorysTree` returns ordered stages + progress rows
+- [x] 2.5 Both collections appear under "Kosztorys"; stage + progress creatable in admin
+- [x] 2.6 `getKosztorysTree` returns ordered stages + progress rows
 
 ### Phase 3: Server actions
 
