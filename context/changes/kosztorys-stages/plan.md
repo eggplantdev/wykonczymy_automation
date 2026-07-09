@@ -466,10 +466,10 @@ human via `pnpm db:migrate:prod` **before** the code that needs it ships — nev
 
 #### Automated
 
-- [x] 4.1 Type checking passes
-- [x] 4.2 Lint passes
-- [x] 4.3 Unit suite green
-- [x] 4.4 Build compiles (`pnpm build`)
+- [x] 4.1 Type checking passes — 8e3cb59
+- [x] 4.2 Lint passes — 8e3cb59
+- [x] 4.3 Unit suite green — 8e3cb59
+- [x] 4.4 Build compiles (`pnpm build`) — 8e3cb59
 
 #### Manual
 
