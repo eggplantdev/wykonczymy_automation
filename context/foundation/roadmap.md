@@ -1,5 +1,4 @@
-<!--  -->---
-
+---
 project: 'Wykonczymy — off-sheets phase 1'
 version: 1
 status: draft
@@ -8,7 +7,6 @@ updated: 2026-07-08
 prd_version: 1
 main_goal: quality
 top_blocker: none
-
 ---
 
 # Roadmap: Wykonczymy — off-sheets phase 1
