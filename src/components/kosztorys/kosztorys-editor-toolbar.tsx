@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { SearchFilterInput } from '@/components/ui/search-filter-input'
+import { SaveSnapshotButton } from '@/components/kosztorys/save-snapshot-button'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 
 // Three views over one dataset: they only change the active price and its derived values.
@@ -22,7 +23,9 @@ const VIEW_LEGEND = [
 ].join('\n')
 
 type PropsT = {
+  investmentId: number
   investmentName: string
+  onOpenVersions: () => void
   view: PriceViewT
   onViewChange: (view: PriceViewT) => void
   search: string
@@ -38,7 +41,9 @@ type PropsT = {
 }
 
 export function KosztorysEditorToolbar({
+  investmentId,
   investmentName,
+  onOpenVersions,
   view,
   onViewChange,
   search,
@@ -92,6 +97,10 @@ export function KosztorysEditorToolbar({
       </Button>
       <span className="text-muted-foreground text-sm">{itemCount} pozycji</span>
       <div className="ml-auto flex items-center gap-1">
+        <SaveSnapshotButton investmentId={investmentId} />
+        <Button size="sm" variant="outline" onClick={onOpenVersions}>
+          Wersje
+        </Button>
         <Button size="sm" variant={summaryOpen ? 'default' : 'outline'} onClick={onToggleSummary}>
           Sekcje
         </Button>

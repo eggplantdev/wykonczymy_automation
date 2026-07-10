@@ -1,11 +1,9 @@
 'use client'
 
-import 'react-datasheet-grid/dist/style.css'
-import { useEffect } from 'react'
-import { DataSheetGrid } from 'react-datasheet-grid'
-import { KosztorysSectionSummary } from '@/components/kosztorys/kosztorys-section-summary'
-import { KosztorysEditorToolbar } from '@/components/kosztorys/kosztorys-editor-toolbar'
-import { useKosztorysEditor } from '@/components/kosztorys/use-kosztorys-editor'
+import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { KosztorysEditorBody } from '@/components/kosztorys/kosztorys-editor-body'
+import { KosztorysVersionsDrawer } from '@/components/kosztorys/kosztorys-versions-drawer'
 import { snapshotAction } from '@/lib/actions/kosztorys'
 import type { KosztorysTreeT } from '@/types/kosztorys'
 
@@ -15,122 +13,59 @@ const AUTO_SNAPSHOT_INTERVAL_MS = 10 * 60 * 1000
 
 type PropsT = { investmentId: number; tree: KosztorysTreeT; investmentName: string }
 
+// Thin shell around the stateful editor body: owns the periodic snapshot interval, the "Wersje"
+// drawer, and the restore-driven remount. A restore reseeds the WHOLE grid, so it remounts the body
+// (fresh `key`) — a full remount is what restore wants (it intentionally discards
+// sort/filter/optimistic state), unlike an ordinary edit which patches rows in place (lessons.md:
+// never remount on a routine tree change).
 export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT) {
-  // Fire-and-forget periodic auto snapshot; a failed snapshot must never disrupt editing.
+  const router = useRouter()
+  const [versionsOpen, setVersionsOpen] = useState(false)
+  const [remountKey, setRemountKey] = useState(0)
+  // One-shot remount signal. After a restore we router.refresh() for the restored tree, then remount
+  // ONLY once the fresh prop actually lands — comparing the `tree` prop across renders fires the
+  // remount on the first change while a restore is pending, without a useEffect and without
+  // remounting on the routine totals-refresh that ordinary edits trigger (awaitingTree gates it).
+  const [awaitingTree, setAwaitingTree] = useState(false)
+  const prevTree = useRef(tree)
+  // Comparing/advancing the prev-prop ref during render is the documented "store info from previous
+  // render" pattern (the rule is too strict here) — same sanctioned use as use-kosztorys-editor.ts.
+  // eslint-disable-next-line react-hooks/refs
+  const treeChanged = tree !== prevTree.current
+  // eslint-disable-next-line react-hooks/refs
+  prevTree.current = tree
+  if (awaitingTree && treeChanged) {
+    setAwaitingTree(false)
+    setRemountKey((k) => k + 1)
+  }
+
+  // Fire-and-forget periodic auto snapshot; a failed snapshot must never disrupt editing. Lives in
+  // the shell so a restore remount doesn't restart the interval.
   useEffect(() => {
     const id = setInterval(() => void snapshotAction(investmentId), AUTO_SNAPSHOT_INTERVAL_MS)
     return () => clearInterval(id)
   }, [investmentId])
 
-  const {
-    gridRef,
-    gridHeight,
-    columns,
-    viewRows,
-    view,
-    sort,
-    widthsKey,
-    stagesKey,
-    guideX,
-    subtotals,
-    totalNet,
-    sectionCoeffs,
-    setView,
-    bruttoVisible,
-    toggleBrutto,
-    search,
-    setSearch,
-    activeSectionId,
-    setActiveSectionId,
-    summaryOpen,
-    setSummaryOpen,
-    onChange,
-    handleAddItem,
-    handleAddSection,
-    handleAddStage,
-    handleRenameSection,
-    handleRemoveSection,
-    isSectionPopulated,
-    handleGlobalCoeffChange,
-    handleSectionCoeffChange,
-    handleVatChange,
-  } = useKosztorysEditor({ investmentId, tree })
+  function handleRestored() {
+    router.refresh()
+    setAwaitingTree(true)
+  }
 
   return (
-    <div className="flex h-[calc(100dvh-3.5rem)] w-full flex-col overflow-hidden">
-      <KosztorysEditorToolbar
+    <>
+      <KosztorysEditorBody
+        key={remountKey}
+        investmentId={investmentId}
+        tree={tree}
         investmentName={investmentName}
-        view={view}
-        onViewChange={setView}
-        search={search}
-        onSearchChange={setSearch}
-        activeSectionId={activeSectionId}
-        onAddItem={handleAddItem}
-        onAddStage={handleAddStage}
-        itemCount={viewRows.length}
-        bruttoVisible={bruttoVisible}
-        onToggleBrutto={toggleBrutto}
-        summaryOpen={summaryOpen}
-        onToggleSummary={() => setSummaryOpen((o) => !o)}
+        onOpenVersions={() => setVersionsOpen(true)}
       />
-      {/* We measure the container height (flex-1) and pass it to the grid — datasheet-grid
-          needs px for virtualization; without it, it renders all 1000 rows.
-          The grid track `minmax(0,1fr)` gives a DEFINITE width (= viewport): the grid doesn't
-          stretch the container to the sum of the columns, it scrolls them internally instead. */}
-      <div className="relative flex min-h-0 flex-1 overflow-hidden">
-        {/* min-w-0 lets the wrapper shrink below its content in a flex context;
-            grid-cols-[minmax(0,1fr)] still gives the grid a definite width (anti-flicker). */}
-        <div
-          ref={gridRef}
-          className="grid min-h-0 min-w-0 flex-1 grid-cols-[minmax(0,1fr)] overflow-hidden"
-        >
-          <DataSheetGrid
-            // Remount on a change of view / widths / entering sort: dsg freezes `columns`
-            // at mount and picks up no change to their definition without a remount — without `view`
-            // all 3 views showed the client price, without `widthsKey` a resize didn't recompute the widths.
-            // `sorted/natural`: the reorder arrows (grayed out while sorting) must rebuild
-            // on entering/leaving sort — asc↔desc does not remount (arrow state unchanged).
-            key={`${view}:${sort ? 'sorted' : 'natural'}:${widthsKey}:${stagesKey}:${bruttoVisible}`}
-            className="kosztorys-grid"
-            value={viewRows}
-            onChange={onChange}
-            columns={columns}
-            height={gridHeight}
-            rowHeight={32}
-            headerRowHeight={32}
-            lockRows
-            rowKey={({ rowData }) => String(rowData.id)}
-          />
-        </div>
-        {summaryOpen && (
-          <KosztorysSectionSummary
-            subtotals={subtotals}
-            grandNet={totalNet}
-            activeSectionId={activeSectionId}
-            globalCoeffs={tree.globalCoeffs}
-            sectionCoeffs={sectionCoeffs}
-            vatRate={tree.vatRate}
-            bruttoVisible={bruttoVisible}
-            onClose={() => setSummaryOpen(false)}
-            onAddSection={handleAddSection}
-            onAddItem={handleAddItem}
-            onRenameSection={handleRenameSection}
-            onRemoveSection={handleRemoveSection}
-            isSectionPopulated={isSectionPopulated}
-            onFilterSection={setActiveSectionId}
-            onGlobalCoeffChange={handleGlobalCoeffChange}
-            onSectionCoeffChange={handleSectionCoeffChange}
-            onVatChange={handleVatChange}
-          />
-        )}
-      </div>
-      {/* Vertical guide while dragging a column edge (fixed = cursor X). */}
-      {guideX !== null && (
-        <div
-          className="bg-primary/70 pointer-events-none fixed inset-y-0 z-50 w-px"
-          style={{ left: guideX }}
-        />
-      )}
-    </div>
+      <KosztorysVersionsDrawer
+        investmentId={investmentId}
+        open={versionsOpen}
+        onOpenChange={setVersionsOpen}
+        onRestored={handleRestored}
+      />
+    </>
   )
 }
