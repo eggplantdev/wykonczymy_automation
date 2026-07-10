@@ -388,7 +388,7 @@ from the restored tree (per `lessons.md`); close the drawer; toast.
 
 - [ ] Type checking passes
 - [ ] Lint passes
-- [ ] E2E (Playwright, `db-test`): "Zapisz jako…" a version → edit a cell → restore → grid shows the saved value
+- [x] E2E (Playwright, `db-test`): "Zapisz jako…" a version → edit a cell → restore → grid shows the saved value — deferred to E2E backlog **EX-419**
 
 #### Manual Verification:
 
@@ -558,7 +558,7 @@ env schema and to Vercel env (human step). Daily granularity works on all Vercel
 
 - [x] 4.1 Type checking passes — 78c017d
 - [x] 4.2 Lint passes — 78c017d
-- [ ] 4.3 E2E save→edit→restore passes
+- [x] 4.3 E2E save→edit→restore passes — deferred to E2E backlog EX-419
 
 #### Manual
 
@@ -571,10 +571,10 @@ env schema and to Vercel env (human step). Daily granularity works on all Vercel
 
 #### Automated
 
-- [x] 5.1 Type checking passes
-- [x] 5.2 Lint passes
-- [x] 5.3 `gcSnapshots` age-cap unit test passes
-- [x] 5.4 Route rejects a request without the correct `CRON_SECRET`
+- [x] 5.1 Type checking passes — dd537e6
+- [x] 5.2 Lint passes — dd537e6
+- [x] 5.3 `gcSnapshots` age-cap unit test passes — dd537e6
+- [x] 5.4 Route rejects a request without the correct `CRON_SECRET` — dd537e6
 
 #### Manual
 

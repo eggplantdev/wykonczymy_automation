@@ -66,3 +66,39 @@ Pass ran clean — **no bugs found**, all five Phase-2 boxes ticked. No open fin
 
 - Test DB left dirty on investment 7 (one added-then-deleted blank item id 1001; one added-then-deleted "Nowa sekcja" id 11 — both net-zero; item/section id counters advanced). Reseedable via `perf-seed-kosztorys.ts` against `DB_POSTGRES_URL_TEST`. Row/stage/section content otherwise unchanged from the S-03 pass state.
 - **Test disposition (coverage) — already DONE.** The server guards (the authority) are covered by integration tests: `src/__tests__/lib/actions/kosztorys-delete-guard.test.ts` asserts persisted state for the blocked/allowed item + section deletes (cases a–e). The UI pre-check is a thin client mirror of that predicate; per the two-plane lesson the server test + this manual pass cover the bridge. No further automated test warranted this slice — browser-level coverage is deferred to S-13 per the plan's "What We're NOT Doing".
+
+## S-06 — kosztorys-snapshots
+
+**In review** — code + review + local migration verified; manual checks below pending. Setup: run the app against the **5435 test DB** (see intro), seed a kosztorys into it first (`perf-seed-kosztorys.ts` synthetic, or `seed-kosztorys.ts` realistic; point the seed at `DB_POSTGRES_URL_TEST`). Log in as **OWNER/MANAGER** (snapshots require MANAGEMENT_ROLES). Note: 4.3 (E2E save→edit→restore) was deferred to `/10x-e2e` and is not yet authored.
+
+### Phase 1: Schema + serialization/restore core
+
+- [ ] 1.5 On a seeded investment (`INV=6`), serialize → mutate → restore returns the tree to the serialized state
+- [ ] 1.6 An injected mid-restore error leaves the live tree intact (rollback), not half-wiped
+- [ ] 1.7 Restored subcontractor/brutto prices match pre-restore values (settings rewritten)
+
+### Phase 2: Capture triggers + inline pruning
+
+- [ ] 2.5 An open editor produces one `auto` snapshot per ~10-min interval; the interval clears on unmount
+- [ ] 2.6 "Zapisz jako…" with a name creates a `manual` row with that label
+- [ ] 2.7 Deleting a section/stage creates an `auto` row immediately before the delete, every time
+- [ ] 2.8 After 50+ auto snapshots on one investment, only the newest 50 remain
+
+### Phase 3: Restore action + forced pre-restore snapshot + listing
+
+- [ ] 3.5 Restore reverts the tree + prices; a following restore of the auto-created pre-restore snapshot returns to the pre-restore state (mis-restore recoverable)
+- [ ] 3.6 Restore fires revalidation — the editor shows restored data without a hard reload
+- [ ] 3.7 Restore never touches transfers/balances/marża (spot-check financial figures before/after)
+
+### Phase 4: "Wersje" drawer UI
+
+- [ ] 4.4 Drawer lists named manual versions prominently and auto snapshots as timestamped history, with author
+- [ ] 4.5 Restore shows the confirm dialog and, on confirm, the grid reflects the restored tree without a hard reload
+- [ ] 4.6 "Zapisz jako…" requires a name; the label appears in the list; canceling does nothing
+- [ ] 4.7 Restore of a ~1000-row kosztorys completes acceptably and re-renders correctly
+
+### Phase 5: Daily GC cron
+
+- [ ] 5.5 Hitting the endpoint with the secret prunes aged snapshots and returns a count
+- [ ] 5.6 A dormant kosztorys's aged `auto` snapshots are removed by the job (inline pruning never would)
+- [ ] 5.7 `CRON_SECRET` is set in Vercel and the scheduled run appears in Vercel cron logs (post-deploy)

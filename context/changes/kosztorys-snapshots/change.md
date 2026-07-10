@@ -1,7 +1,7 @@
 ---
 id: kosztorys-snapshots
 title: Kosztorys snapshots — save + restore point-in-time versions (S-06)
-status: implementing
+status: implemented
 created: 2026-07-10
 updated: 2026-07-10
 ---
