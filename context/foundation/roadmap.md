@@ -86,7 +86,7 @@ Bands: **editor parity S-01–S-08** (active) → **import/export S-09–S-10** 
 | S-02 | kosztorys-price-models          | record three price models per item and toggle the pricing view          | S-01               | FR-003                        | done      | —          |
 | S-03 | kosztorys-stages                | manage stages (etapy) and record per-item, per-stage progress           | S-01               | FR-004                        | in review | —          |
 | S-04 | kosztorys-subcontractor-pricing | price subcontractor work via markup coefficient + per-item override     | S-01, S-02         | — (POC)                       | done      | —          |
-| S-05 | kosztorys-vat                   | set VAT per investment; enter net, compute gross                        | S-01               | — (POC)                       | proposed  | yes        |
+| S-05 | kosztorys-vat                   | set VAT per investment; enter net, compute gross                        | S-01               | — (POC)                       | done      | yes        |
 | S-06 | kosztorys-undo                  | undo the last editor edit(s)                                            | S-01               | — (POC)                       | proposed  | yes        |
 | S-07 | kosztorys-column-locking        | lock / pin editor columns                                               | S-01               | — (POC)                       | proposed  | yes        |
 | S-08 | kosztorys-preset                | seed from a preset; save as preset; item autocomplete over preset prace | S-01               | FR-006, (owner request)       | proposed  | yes        |
@@ -213,7 +213,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Open note (decision 4):** where the rate is set (settings-home UX) is TBD — same placement question as S-04.
 - **Risk:** Additive column on `investments` + a computed brutto layer. Risk: robocizna netto/brutto derivation (client billing context, 23% vs 8%) is downstream of this rate — keep the rule in one place.
-- **Status:** proposed
+- **Status:** done
 
 ### S-06: Undo
 
@@ -403,3 +403,4 @@ Lifted from PRD `## Non-Goals` — explicitly out of scope for this arc.
 
 - **S-02: Three price models + pricing-view toggle** (was S-03) — Archived 2026-07-09 → `context/archive/2026-07-09-kosztorys-price-models/`. Core (three views + toggle + coefficient/override derivation) shipped in S-01; this change closed the residual polish (per-kosztorys view persistence, "Klient" relabel, pricing-model explainer tooltip). Lesson: —.
 - **S-04: Subcontractor pricing (markup coefficient + override)** (was S-11) — Absorbed by S-01 (`kosztorys-sections-items`), which ported the POC's final `calc.ts` derivation verbatim; marked done here (no separate change folder). Lesson: —.
+- **S-05: VAT per investment (netto entry, brutto computed)** — Archived 2026-07-10 → `context/archive/2026-07-10-kosztorys-vat/`. Lesson: a migration is "verified" only when the running app reads the new column — `payload migrate` "Done." is necessary, not sufficient.
