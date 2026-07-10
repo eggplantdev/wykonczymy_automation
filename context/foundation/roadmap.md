@@ -101,25 +101,25 @@ One row per F-NN / S-NN — the index and the backlog handoff in one place. **Pl
 
 Bands: **editor parity S-01–S-10** (active) → **import/export S-11–S-12** → **testing + hardening S-13–S-15** → **cutover S-16**.
 
-| ID   | Change ID                       | Outcome (user can …)                                                                   | Prerequisites      | PRD refs                      | Status      | Plan-ready |
-| ---- | ------------------------------- | -------------------------------------------------------------------------------------- | ------------------ | ----------------------------- | ----------- | ---------- |
-| F-01 | e2e-harness                     | (foundation) Playwright E2E harness, CI-runnable, isolated DB                          | —                  | FR-011                        | ready       | yes        |
-| S-01 | kosztorys-sections-items        | author kosztorys sections + items in-app with live totals                              | —                  | FR-001, FR-002, FR-007, US-01 | in review   | —          |
-| S-02 | kosztorys-price-models          | record three price models per item and toggle the pricing view                         | S-01               | FR-003                        | done        | —          |
-| S-03 | kosztorys-stages                | manage stages (etapy) and record per-item, per-stage progress                          | S-01               | FR-004                        | in review   | —          |
-| S-04 | kosztorys-subcontractor-pricing | price subcontractor work via markup coefficient + per-item override                    | S-01, S-02         | — (POC)                       | done        | —          |
-| S-05 | kosztorys-vat                   | set VAT per investment; enter net, compute gross                                       | S-01               | — (POC)                       | done        | yes        |
-| S-06 | kosztorys-snapshots             | save + restore point-in-time versions of a kosztorys (durable net)                     | S-01               | — (owner request)             | proposed    | yes        |
-| S-07 | kosztorys-undo                  | fast in-session undo/redo of the last editor edit(s)                                   | S-01               | — (owner request)             | proposed    | yes        |
-| S-08 | kosztorys-delete-guard          | hit a hard block when deleting a populated row / section / stage / column              | S-01               | — (owner request)             | in progress | yes        |
-| S-09 | kosztorys-preset                | seed from a preset; save as preset; item autocomplete over preset prace                | S-01               | FR-006, (owner request)       | proposed    | yes        |
-| S-10 | kosztorys-column-rbac           | restrict sensitive columns + rows (subcontractor cost/margin; sections) to OWNER/ADMIN | S-01, S-02, S-04   | — (POC P10)                   | proposed    | yes        |
-| S-11 | kosztorys-export                | CSV-export the kosztorys (WYSIWYG snapshot; no print/PDF)                              | S-01               | FR-008                        | deferred    | —          |
-| S-12 | kosztorys-importer              | import an existing sheet kosztorys into the app                                        | S-01 (full parity) | FR-010, FR-016                | deferred    | —          |
-| S-13 | editor-e2e-coverage             | (gate) rely on automated E2E over the editor before release                            | F-01, S-01…S-12    | FR-013                        | deferred    | —          |
-| S-14 | financial-core-smoke            | trust an automated smoke that transfers update balances/figures                        | F-01               | FR-012, FR-011, FR-015, US-02 | deferred    | —          |
-| S-15 | kosztorys-hardening             | quality / perf / a11y hardening pass before cutover                                    | S-13               | — (POC)                       | deferred    | —          |
-| S-16 | new-investment-no-sheet         | create a new investment with no Google Sheet, kosztorys app-only                       | S-13, S-15         | FR-009, FR-014, FR-016, US-01 | deferred    | —          |
+| ID   | Change ID                       | Outcome (user can …)                                                                   | Prerequisites      | PRD refs                      | Status    | Plan-ready |
+| ---- | ------------------------------- | -------------------------------------------------------------------------------------- | ------------------ | ----------------------------- | --------- | ---------- |
+| F-01 | e2e-harness                     | (foundation) Playwright E2E harness, CI-runnable, isolated DB                          | —                  | FR-011                        | ready     | yes        |
+| S-01 | kosztorys-sections-items        | author kosztorys sections + items in-app with live totals                              | —                  | FR-001, FR-002, FR-007, US-01 | in review | —          |
+| S-02 | kosztorys-price-models          | record three price models per item and toggle the pricing view                         | S-01               | FR-003                        | done      | —          |
+| S-03 | kosztorys-stages                | manage stages (etapy) and record per-item, per-stage progress                          | S-01               | FR-004                        | in review | —          |
+| S-04 | kosztorys-subcontractor-pricing | price subcontractor work via markup coefficient + per-item override                    | S-01, S-02         | — (POC)                       | done      | —          |
+| S-05 | kosztorys-vat                   | set VAT per investment; enter net, compute gross                                       | S-01               | — (POC)                       | done      | yes        |
+| S-06 | kosztorys-snapshots             | save + restore point-in-time versions of a kosztorys (durable net)                     | S-01               | — (owner request)             | proposed  | yes        |
+| S-07 | kosztorys-undo                  | fast in-session undo/redo of the last editor edit(s)                                   | S-01               | — (owner request)             | proposed  | yes        |
+| S-08 | kosztorys-delete-guard          | hit a hard block when deleting a populated row / section / stage / column              | S-01               | — (owner request)             | in review | yes        |
+| S-09 | kosztorys-preset                | seed from a preset; save as preset; item autocomplete over preset prace                | S-01               | FR-006, (owner request)       | proposed  | yes        |
+| S-10 | kosztorys-column-rbac           | restrict sensitive columns + rows (subcontractor cost/margin; sections) to OWNER/ADMIN | S-01, S-02, S-04   | — (POC P10)                   | proposed  | yes        |
+| S-11 | kosztorys-export                | CSV-export the kosztorys (WYSIWYG snapshot; no print/PDF)                              | S-01               | FR-008                        | deferred  | —          |
+| S-12 | kosztorys-importer              | import an existing sheet kosztorys into the app                                        | S-01 (full parity) | FR-010, FR-016                | deferred  | —          |
+| S-13 | editor-e2e-coverage             | (gate) rely on automated E2E over the editor before release                            | F-01, S-01…S-12    | FR-013                        | deferred  | —          |
+| S-14 | financial-core-smoke            | trust an automated smoke that transfers update balances/figures                        | F-01               | FR-012, FR-011, FR-015, US-02 | deferred  | —          |
+| S-15 | kosztorys-hardening             | quality / perf / a11y hardening pass before cutover                                    | S-13               | — (POC)                       | deferred  | —          |
+| S-16 | new-investment-no-sheet         | create a new investment with no Google Sheet, kosztorys app-only                       | S-13, S-15         | FR-009, FR-014, FR-016, US-01 | deferred  | —          |
 
 **Cut / folded (unnumbered):** `kosztorys-rooms` — CUT (pokoje out of scope, 2026-07-08). `kosztorys-catalogue` — FOLDED into S-09 (Model A: preset-sourced autocomplete, 2026-07-09). See [Cut & folded slices](#cut--folded-slices).
 
@@ -293,7 +293,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Scope (confirm the predicate at plan time):** what counts as "populated" per target — an **item** with any non-empty input (przedmiar / pomiar / price / rabat / stage progress); a **section** with ≥1 item; a **stage / stage-column** with any recorded `stage_progress` (the case already enforced). Complements the sheet's `addProtectedRange` model now that authoring moves in-app.
 - **Split note:** carved out of the old `kosztorys-column-locking` slice (2026-07-10); the role-based visibility half moved to **S-10 `kosztorys-column-rbac`**.
 - **Risk:** the guard must reject the delete **server-side** in the delete actions (`removeItemAction` / section / stage removal), not merely hide/disable the trash affordance — a client-only block is bypassable and races autosave. Risk: a too-aggressive predicate blocks legitimate cleanup; keep "populated" tight and give a clear "clear values first" message.
-- **Status:** in progress
+- **Status:** in review
 
 ### S-09: Kosztorys presets (templates) + autocomplete
 

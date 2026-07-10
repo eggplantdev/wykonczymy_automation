@@ -285,9 +285,9 @@ None — no schema change. Purely additive action logic + UI wiring.
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `pnpm exec tsc --noEmit`
-- [x] 2.2 Lint passes: `pnpm lint`
-- [x] 2.3 Existing kosztorys tests still pass: `pnpm exec vitest run src/__tests__`
+- [x] 2.1 Type checking passes: `pnpm exec tsc --noEmit` — eeba07b
+- [x] 2.2 Lint passes: `pnpm lint` — eeba07b
+- [x] 2.3 Existing kosztorys tests still pass: `pnpm exec vitest run src/__tests__` — eeba07b
 
 #### Manual
 
