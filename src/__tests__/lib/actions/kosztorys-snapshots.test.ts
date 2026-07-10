@@ -21,7 +21,7 @@ vi.mock('@/lib/auth/require-auth', () => ({
 }))
 vi.mock('@/lib/cache/revalidate', () => ({ revalidateCollections: vi.fn() }))
 
-const { saveSnapshotAction } = await import('@/lib/actions/kosztorys')
+const { saveSnapshotAction } = await import('@/lib/actions/kosztorys-snapshots')
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 

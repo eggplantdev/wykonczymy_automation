@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { saveSnapshotAction } from '@/lib/actions/kosztorys'
+import { saveSnapshotAction } from '@/lib/actions/kosztorys-snapshots'
 import { toastMessage } from '@/lib/utils/toast'
 
 // "Zapisz jako…" — capture a named manual snapshot. Self-contained: the save never remounts the

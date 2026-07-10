@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { KosztorysEditorBody } from '@/components/kosztorys/kosztorys-editor-body'
 import { KosztorysVersionsDrawer } from '@/components/kosztorys/kosztorys-versions-drawer'
-import { snapshotAction } from '@/lib/actions/kosztorys'
+import { snapshotAction } from '@/lib/actions/kosztorys-snapshots'
 import type { KosztorysTreeT } from '@/types/kosztorys'
 
 // S-06 durable net: while the editor is open, take an auto snapshot on a plain interval. Dumb by

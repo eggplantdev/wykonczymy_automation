@@ -7,7 +7,7 @@ import {
   listSnapshotsAction,
   restoreSnapshotAction,
   type SnapshotListItemT,
-} from '@/lib/actions/kosztorys'
+} from '@/lib/actions/kosztorys-snapshots'
 import { formatPLDateTime } from '@/lib/utils/format-date'
 import { toastMessage } from '@/lib/utils/toast'
 

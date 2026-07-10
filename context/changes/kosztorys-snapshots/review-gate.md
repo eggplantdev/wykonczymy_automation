@@ -11,8 +11,9 @@ Slice diff scope: `0e6cd47^..38a7472` (p1–p5 + epilogue) + uncommitted drawer 
 - [x] 🔴 CRITICAL · fixed · `src/components/kosztorys/kosztorys-versions-drawer.tsx` · "Wersje" drawer never loaded its list (programmatic open didn't trigger the fetch); list + restore entirely dead — fixed with a fetch-on-`open` effect (setState only in guarded async callback), re-verified full list→restore flow. Owes an e2e regression (folded into 4.3).
 - [ ] restore of ~1000 rows takes ~12.6s (row-by-row `payload.create`) — needs human call: batch or accept. Non-blocking (behind confirm, rare).
 - [ ] `restoreSnapshotAction`/`saveSnapshotAction` `[PERF] 0ms` mismeasures the ~12.5s work — needs human: check `protectedAction` perf span.
-- [ ] dev-only React "state update on unmounted component" warning from render-phase setState in `kosztorys-editor-v2.tsx:37-40` — needs human: move remount trigger to effect or accept. Dev-only.
-- [ ] 5.7 deploy gate: set `CRON_SECRET` in Vercel + confirm scheduled run in cron logs post-deploy.
+- [x] skipped · dev-only React "side-effect in render function that asynchronously tries to update" warning, logged once, from the render-phase conditional setState (`setAwaitingTree`/`setRemountKey`) in `kosztorys-editor-v2.tsx:37-40` — the documented "store info from previous render" remount pattern (NOT the drawer fetch fix, which sets state only in a guarded async callback). Dev-only console hygiene, pre-dates the drawer bug, non-blocking. Deliberately not moving the remount trigger into an effect. Test disposition: no automated test.
+- [x] deferred+filed (**EX-429**, non-blocking) · 5.7 deploy gate: set `CRON_SECRET` in Vercel + confirm scheduled run in cron logs post-deploy. Deploy-time follow-up, owed only when the code ships — not an archive blocker.
+- [x] deferred+filed (**EX-428**, `e2e-backlog`) · versions "Wersje" drawer + snapshot-restore **E2E** owed by this browser-level slice — Playwright spec under `e2e/`, authored via `/10x-e2e`. Backend integration coverage already runs in the pre-push gate; this is only the browser leg.
 
 ### From the review fan-out (Step 1)
 
@@ -30,7 +31,7 @@ Slice diff scope: `0e6cd47^..38a7472` (p1–p5 + epilogue) + uncommitted drawer 
 
 **Structural / style checks**
 
-- [ ] proposed · `src/lib/actions/kosztorys.ts:380-501` · module-cohesion: the 501-line action file holds 5 concerns; the snapshot block splits cleanly into `kosztorys-snapshots.ts` with no back-refs. Behavior-neutral refactor → user's call (larger move, propose separately).
+- [x] applied · `src/lib/actions/kosztorys.ts:380-501` · module-cohesion: split the snapshot block into `src/lib/actions/kosztorys-snapshots.ts` (the 4 snapshot actions + `SnapshotListItemT`) and hoisted the shared `captureAutoSnapshot` helper to `src/lib/kosztorys/capture-auto-snapshot.ts` (plain module — the two delete actions in `kosztorys.ts` still call it, and a `'use server'` export would have exposed it as an unauthenticated RPC, so the "no back-refs" note was inexact). `kosztorys.ts` down to 369 lines; 5 consumers repointed. Behavior-neutral; tsc + lint clean, integration suite 21/21 green.
 - [x] dismissed · `src/lib/db/snapshots.ts` · module-cohesion: types+constants+queries in one file — deliberate "single place that reads/writes the table" data-access module, cohesive. No action.
 - [x] fixed · `src/lib/kosztorys/serialize-kosztorys.ts:5` · comment-noise: lead sentence restates the fn name — trim lead, keep the "pure read / order preserved" why. Apply in /simplify.
 - [x] skipped · `src/lib/actions/kosztorys.ts:245` · comment-noise: narration lead on `swapItemOrderAction` — **out of S-06 scope** (reorder action, not this slice).
