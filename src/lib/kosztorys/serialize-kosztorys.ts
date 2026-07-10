@@ -2,8 +2,7 @@ import 'server-only'
 import { getKosztorysTree } from '@/lib/queries/kosztorys'
 import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from './snapshot-format'
 
-// Read the current committed tree + settings for an investment and produce a versioned snapshot
-// payload. Pure read — no writes. Reuses getKosztorysTree (the editor's read path) and flattens its
+// Pure read — no writes. Reuses getKosztorysTree (the editor's read path) and flattens its
 // section-nested items into a flat `items[]`; displayOrder/ordinal are preserved so restore rebuilds
 // order deterministically.
 export async function serializeKosztorys(investmentId: number): Promise<SnapshotPayloadT> {

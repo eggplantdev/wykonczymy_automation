@@ -101,7 +101,7 @@ Pass ran clean — **no bugs found**, all five Phase-2 boxes ticked. No open fin
 
 - [x] 5.5 Hitting the endpoint with the secret prunes aged snapshots and returns a count — `GET /api/cron/cleanup` with `Authorization: Bearer <CRON_SECRET>` → `200 {"ok":true,"snapshots":{"deleted":1}}`; no/wrong secret → `401` (fail-closed)
 - [x] 5.6 A dormant kosztorys's aged `auto` snapshots are removed by the job (inline pruning never would) — an 8-day-old `auto` and a 400-day-old `manual` are deleted; fresh `auto`/`manual` kept
-- [ ] 5.7 `CRON_SECRET` is set in Vercel and the scheduled run appears in Vercel cron logs (post-deploy) — **deploy-time gate, cannot verify locally.** Cron is registered (`vercel.json`: `/api/cron/cleanup` `0 3 * * *`) and the route auth is proven above. **Needs human:** after deploy, set `CRON_SECRET` in Vercel and confirm the scheduled run appears in the Vercel cron logs.
+- [ ] 5.7 `CRON_SECRET` is set in Vercel and the scheduled run appears in Vercel cron logs (post-deploy) — **deploy-time gate, cannot verify locally.** Cron is registered (`vercel.json`: `/api/cron/cleanup` `0 3 * * *`) and the route auth is proven above. `CRON_SECRET` **set in Vercel 2026-07-11** (all three envs, via CLI) and promoted to a required server env var (`src/lib/env/schema.ts`). **Still needs human:** after the code deploys, confirm the scheduled run appears in the Vercel cron logs (the run itself hasn't fired yet).
 
 ### Findings — 2026-07-10
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import {
@@ -28,21 +28,38 @@ export function KosztorysVersionsDrawer({ investmentId, open, onOpenChange, onRe
   const [snapshots, setSnapshots] = useState<SnapshotListItemT[] | null>(null)
   const [restoringId, setRestoringId] = useState<number | null>(null)
 
-  async function load() {
-    setSnapshots(null)
-    const res = await listSnapshotsAction(investmentId)
-    if (!res.success) {
-      toastMessage(res.error ?? 'Nie udało się wczytać wersji', 'error', 4000)
-      setSnapshots([])
-      return
+  // The drawer opens programmatically (parent toolbar sets `open`), so Radix's onOpenChange never
+  // fires with `true` — fetch on the `open` prop, or the list stays stuck on "Wczytywanie…". setState
+  // only from the async callback (never synchronously in the effect body): refetches on each open, and
+  // `active` drops a response that lands after a close/reopen.
+  useEffect(() => {
+    if (!open) return
+    let active = true
+    listSnapshotsAction(investmentId)
+      .then((res) => {
+        if (!active) return
+        if (!res.success) {
+          toastMessage(res.error ?? 'Nie udało się wczytać wersji', 'error', 4000)
+          setSnapshots([])
+          return
+        }
+        setSnapshots(res.data)
+      })
+      // A transport-level RPC rejection never resolves to {success:false}; without this the spinner
+      // would hang forever on a dropped request.
+      .catch(() => {
+        if (!active) return
+        toastMessage('Nie udało się wczytać wersji', 'error', 4000)
+        setSnapshots([])
+      })
+    return () => {
+      active = false
     }
-    setSnapshots(res.data)
-  }
+  }, [open, investmentId])
 
   function handleOpenChange(next: boolean) {
     onOpenChange(next)
-    if (next) void load()
-    else setSnapshots(null)
+    if (!next) setSnapshots(null)
   }
 
   async function handleRestore(snapshot: SnapshotListItemT) {
