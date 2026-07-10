@@ -21,7 +21,7 @@ duplicates of docs already living under `context/` on the mainline, and two unre
 
 ## Contents
 
-- `2026-06-19-kosztorys-poc-in-app-notes-BRAINDUMP.md` — the braindump (żywe notatki z brainstormu): goals, sheet inspection, schema, decisions.
+- The braindump (żywe notatki z brainstormu: goals, sheet inspection, schema, decisions) was distilled into `context/reference/kosztorys-editor-domain-notes.md` (its current durable home) rather than kept here.
 - `2026-06-19-kosztorys-poc-in-app-design.md` / `kosztorys-poc-in-app-change.md` / `kosztorys-poc-in-app-plan.md` — the POC change identity + spec + plan.
 - `2026-06-19-kosztorys-editor-grid-bakeoff-design.md` / `2026-06-19-kosztorys-editor-v2-datasheet-grid.md` — the editor grid bake-off (react-datasheet-grid won).
 - `2026-06-20-kosztorys-*` — per-slice designs + plans (add/remove struktura, reorder, section subtotals, subcontractor pricing, CSV export, VAT-per-investment).
