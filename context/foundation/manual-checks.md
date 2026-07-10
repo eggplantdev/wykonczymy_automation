@@ -1,12 +1,14 @@
 # Manual verification
 
-One living checklist for every slice — the project's QA registry. Each `##` section is a slice/change; tick boxes by hand (or point an agent at a section: "drive these checks with Playwright and report") as you verify. Lives in `context/foundation/` (not the change folder) so it survives `/10x-archive` and never freezes stale. A slice with unticked boxes here is **not `Done`** — manual checks are a hard blocker (see `/10x-implement`). Not gated by CI.
+One living checklist for every slice — the project's QA registry. Each `##` section is a slice/change; tick boxes by hand (or point an agent at a section: "drive these checks with Playwright and report" — the `verify-manual-checks` skill) as you verify. Lives in `context/foundation/` (not the change folder) so it survives `/10x-archive` and never freezes stale. A slice with unticked boxes here is **not `Done`** — manual checks are a hard blocker (see `/10x-implement`). Not gated by CI.
+
+**Run against the isolated test DB, not the dev DB.** Manual checks mutate data, so point the app at the `db-test` container on **5435** (`DB_POSTGRES_URL_TEST`, `wykonczymy-test`) — the same DB the E2E suite uses — never the dev DB (5433, holds un-dumped local work) and never prod. Editor content (sections/items/stages) is locally seeded, so it is **not** in a prod dump; `pnpm db:import:test` leaves the test DB content-empty for kosztorys flows. Seed it separately: `perf-seed-kosztorys.ts` for a synthetic set (no external deps) or `seed-kosztorys.ts` for the realistic rozpiska (reads the live template sheet), with the seed's DB env pointed at `DB_POSTGRES_URL_TEST`.
 
 ## S-03 — kosztorys-stages
 
 **In review** — pending author sign-off. Phases 1–3 manual rows already confirmed (1.5, 2.5, 2.6, 3.4); Phase 4 (Editor UI) below is the remaining gate.
 
-Setup: `pnpm dev` against local docker Postgres 5433 (S-03 migration already applied there; often lands on `:3001`). Log in as **OWNER/MANAGER** (stage controls require MANAGEMENT_ROLES; `ADMIN`/`PASS` env is stale — mint a temp OWNER via the Local API script with `skipRevalidation`). Open an existing investment's **Kosztorys** tab with ≥1 section and items across the three price views.
+Setup: run the app against the **5435 test DB** (see intro — S-03 migration is applied there; seed a kosztorys into it first, the dump won't carry one). Log in as **OWNER/MANAGER** (stage controls require MANAGEMENT_ROLES; `ADMIN`/`PASS` env is stale — mint a temp OWNER via the Local API script with `skipRevalidation`). Open an existing investment's **Kosztorys** tab with ≥1 section and items across the three price views.
 
 ### Phase 4: Editor UI — stages
 
