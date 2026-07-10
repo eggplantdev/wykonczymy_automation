@@ -26,11 +26,24 @@ pnpm generate:types  # regenerate src/payload-types.ts (gitignored — never `gi
 docker compose up -d  # local Postgres on port 5433
 ```
 
+### Seeding kosztorys test data (local dev DB)
+
+Two one-off scripts populate an investment's kosztorys with test rows (each wipes that
+investment's kosztorys first; `INV` selects the target investment):
+
+```bash
+INV=6 node --env-file=.env --import tsx src/scripts/seed-kosztorys.ts       # realistic rozpiska from the test sheet (~40 items)
+INV=7 node --env-file=.env --import tsx src/scripts/perf-seed-kosztorys.ts  # synthetic ~1000-item perf dataset
+```
+
+`seed-kosztorys.ts` reads a live Google Sheet (needs `GOOGLE_SERVICE_ACCOUNT_JSON`), so its
+shape tracks the sheet's current state. Domain background: `context/reference/kosztorys-editor-domain-notes.md`.
+
 ### Migrations
 
 `pnpm migrate:create` has emitted phantom drift since ~March 2026 (missing `.json` snapshots), so **hand-write migrations**: copy the structure of the latest file in `src/migrations/` and adjust FK constraints / internal Payload tables by hand. Don't trust an auto-generated migration blindly.
 
-**Migrations are NO LONGER run by the build.** `payload migrate` was removed from `pnpm build` so a Vercel deploy (incl. previews) can never touch the schema — code and schema are separate planes. Apply migrations to prod deliberately with **`pnpm db:migrate:prod`** (dumps Neon prod first, then `payload migrate` against `DB_POSTGRES_URL_PROD`), run by a **human**, never the agent. A `.husky/pre-push` gate reminds you on a push to `main` that adds `src/migrations/*.ts`. Order: migrate prod **before** pushing the code that needs it. Pattern owned by the `payload-prod-migrate` skill.
+**Migrations are NO LONGER run by the build.** `payload migrate` was removed from `pnpm build` so a Vercel deploy (incl. previews) can never touch the schema — code and schema are separate planes. Apply migrations to prod deliberately with **`pnpm db:migrate:prod`** (dumps Neon prod first, then `payload migrate` against `DB_POSTGRES_URL_PROD`), run by a **human**, never the agent. A `.husky/pre-push` gate reminds you on a push to `main` that adds `src/migrations/*.ts`. Order: migrate prod **before** pushing the code that needs it. This is a **deploy-time** gate, not a phase gate — writing the migration and the local code that reads the column is one continuous local task; do not stop implementation or mark a plan phase "blocked on prod" while nothing is being pushed. The prod step is owed only when the code actually ships. Pattern owned by the `payload-prod-migrate` skill.
 
 ### Dependencies
 
