@@ -1,15 +1,27 @@
 'use client'
 
 import 'react-datasheet-grid/dist/style.css'
+import { useEffect } from 'react'
 import { DataSheetGrid } from 'react-datasheet-grid'
 import { KosztorysSectionSummary } from '@/components/kosztorys/kosztorys-section-summary'
 import { KosztorysEditorToolbar } from '@/components/kosztorys/kosztorys-editor-toolbar'
 import { useKosztorysEditor } from '@/components/kosztorys/use-kosztorys-editor'
+import { snapshotAction } from '@/lib/actions/kosztorys'
 import type { KosztorysTreeT } from '@/types/kosztorys'
+
+// S-06 durable net: while the editor is open, take an auto snapshot on a plain interval. Dumb by
+// design — no dirty/activity check (deferred to S-07); the count cap + daily GC bound the table.
+const AUTO_SNAPSHOT_INTERVAL_MS = 10 * 60 * 1000
 
 type PropsT = { investmentId: number; tree: KosztorysTreeT; investmentName: string }
 
 export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT) {
+  // Fire-and-forget periodic auto snapshot; a failed snapshot must never disrupt editing.
+  useEffect(() => {
+    const id = setInterval(() => void snapshotAction(investmentId), AUTO_SNAPSHOT_INTERVAL_MS)
+    return () => clearInterval(id)
+  }, [investmentId])
+
   const {
     gridRef,
     gridHeight,

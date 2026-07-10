@@ -3,7 +3,9 @@
 import { z } from 'zod'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
-import { getDb } from '@/lib/db/get-db'
+import { getDb, type DbExecutorT } from '@/lib/db/get-db'
+import { insertSnapshot, pruneAutoCount } from '@/lib/db/snapshots'
+import { serializeKosztorys } from '@/lib/kosztorys/serialize-kosztorys'
 import { NEW_SECTION_DEFAULTS } from '@/lib/kosztorys/v2-rows'
 import type { ActionResultT } from '@/types/action'
 import type { ItemPatchT } from '@/types/kosztorys'
@@ -147,7 +149,7 @@ export async function addSectionAction(
 export async function removeSectionAction(sectionId: number) {
   return protectedAction(
     'removeSectionAction',
-    async ({ payload }) => {
+    async ({ payload, user }) => {
       const db = await getDb(payload)
       // Block: a section delete FK-cascades through its items into stage_progress, so
       // dropping a section with any populated item silently loses recorded work.
@@ -161,6 +163,13 @@ export async function removeSectionAction(sectionId: number) {
       if (res.rows.length > 0) {
         return { success: false, error: 'Najpierw wyczyść wartości w pozycjach tej sekcji' }
       }
+      // Forced pre-delete snapshot: the cascade is irrecoverable by in-session undo (S-07), so
+      // capture the exact current state first, every time.
+      const inv = await db.execute(
+        sql`SELECT investment_id FROM kosztorys_sections WHERE id = ${sectionId}`,
+      )
+      const investmentId = inv.rows[0]?.investment_id
+      if (investmentId != null) await captureAutoSnapshot(db, Number(investmentId), user.id)
       await payload.delete({ collection: 'kosztorys-sections', id: sectionId })
       return { success: true }
     },
@@ -304,7 +313,7 @@ const stageIdSchema = z.object({ stageId: z.number() })
 export async function removeStageAction(stageId: number): Promise<ActionResultT> {
   return protectedAction(
     'removeStageAction',
-    async ({ payload }) => {
+    async ({ payload, user }) => {
       const parsed = validateAction(stageIdSchema, { stageId })
       if (!parsed.success) return parsed
       const db = await getDb(payload)
@@ -315,6 +324,13 @@ export async function removeStageAction(stageId: number): Promise<ActionResultT>
       if (res.rows.length > 0) {
         return { success: false, error: 'Najpierw wyczyść ilości wpisane w tym etapie' }
       }
+      // Forced pre-delete snapshot (see removeSectionAction) — only fires on a genuinely-allowed
+      // delete, since the progress guard above already rejected a stage with recorded work.
+      const inv = await db.execute(
+        sql`SELECT investment_id FROM kosztorys_stages WHERE id = ${parsed.data.stageId}`,
+      )
+      const investmentId = inv.rows[0]?.investment_id
+      if (investmentId != null) await captureAutoSnapshot(db, Number(investmentId), user.id)
       await payload.delete({ collection: 'kosztorys-stages', id: parsed.data.stageId })
       return { success: true }
     },
@@ -351,4 +367,52 @@ export async function setStageProgressAction(
     },
     ['stageProgress'],
   )
+}
+
+// --- Snapshots (S-06): capture triggers ---
+
+// Take an unconditional auto snapshot of the investment's current tree + settings, then apply the
+// inline count cap. Used by the periodic client interval AND (forced) right before a cascade delete,
+// so a delete noticed a day later is recoverable. No throttle, no dedupe — the count cap + daily GC
+// bound the table (owner: keep it dead-simple now; the idle-suppression check lands with S-07).
+async function captureAutoSnapshot(
+  db: DbExecutorT,
+  investmentId: number,
+  takenBy: number | null,
+): Promise<void> {
+  const snapshot = await serializeKosztorys(investmentId)
+  await insertSnapshot(db, { investmentId, kind: 'auto', label: null, takenBy, payload: snapshot })
+  await pruneAutoCount(db, investmentId)
+}
+
+// Periodic auto snapshot — the client's 10-min interval calls this unconditionally (fire-and-forget).
+export async function snapshotAction(investmentId: number): Promise<ActionResultT> {
+  return protectedAction('snapshotAction', async ({ payload, user }) => {
+    const db = await getDb(payload)
+    await captureAutoSnapshot(db, investmentId, user.id)
+    return { success: true }
+  })
+}
+
+const saveSnapshotSchema = z.object({ label: z.string().trim().min(1, 'Podaj nazwę wersji') })
+
+// Named manual snapshot ("Zapisz jako…") — required label, exempt from the auto count cap.
+export async function saveSnapshotAction(
+  investmentId: number,
+  label: string,
+): Promise<ActionResultT> {
+  return protectedAction('saveSnapshotAction', async ({ payload, user }) => {
+    const parsed = validateAction(saveSnapshotSchema, { label })
+    if (!parsed.success) return parsed
+    const db = await getDb(payload)
+    const snapshot = await serializeKosztorys(investmentId)
+    await insertSnapshot(db, {
+      investmentId,
+      kind: 'manual',
+      label: parsed.data.label,
+      takenBy: user.id,
+      payload: snapshot,
+    })
+    return { success: true }
+  })
 }

@@ -510,10 +510,10 @@ env schema and to Vercel env (human step). Daily granularity works on all Vercel
 
 #### Automated
 
-- [x] 1.1 Migration applies cleanly against the local DB
-- [x] 1.2 Type checking passes
-- [x] 1.3 Lint passes
-- [x] 1.4 Serialize→restore round-trip identity test passes
+- [x] 1.1 Migration applies cleanly against the local DB — 0e6cd47
+- [x] 1.2 Type checking passes — 0e6cd47
+- [x] 1.3 Lint passes — 0e6cd47
+- [x] 1.4 Serialize→restore round-trip identity test passes — 0e6cd47
 
 #### Manual
 
@@ -525,10 +525,10 @@ env schema and to Vercel env (human step). Daily granularity works on all Vercel
 
 #### Automated
 
-- [ ] 2.1 Type checking passes
-- [ ] 2.2 Lint passes
-- [ ] 2.3 `pruneAutoCount` unit test passes
-- [ ] 2.4 `saveSnapshotAction` empty-label rejection test passes
+- [x] 2.1 Type checking passes
+- [x] 2.2 Lint passes
+- [x] 2.3 `pruneAutoCount` unit test passes
+- [x] 2.4 `saveSnapshotAction` empty-label rejection test passes
 
 #### Manual
 
