@@ -38,6 +38,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
     handleAddStage,
     handleRenameSection,
     handleRemoveSection,
+    isSectionPopulated,
     handleGlobalCoeffChange,
     handleSectionCoeffChange,
     handleVatChange,
@@ -103,6 +104,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
             onAddItem={handleAddItem}
             onRenameSection={handleRenameSection}
             onRemoveSection={handleRemoveSection}
+            isSectionPopulated={isSectionPopulated}
             onFilterSection={setActiveSectionId}
             onGlobalCoeffChange={handleGlobalCoeffChange}
             onSectionCoeffChange={handleSectionCoeffChange}

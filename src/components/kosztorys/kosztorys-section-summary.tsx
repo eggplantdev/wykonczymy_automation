@@ -5,6 +5,7 @@ import { Check, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { formatNet as fmt } from '@/lib/kosztorys/format'
+import { toastMessage } from '@/lib/utils/toast'
 import type { SectionSubtotalT } from '@/types/kosztorys'
 
 type SectionCoeffsT = { wTools: number | null; ownTools: number | null }
@@ -24,6 +25,8 @@ type PropsT = {
   onAddItem: (sectionId: number) => void
   onRenameSection: (sectionId: number, name: string) => void
   onRemoveSection: (sectionId: number) => void
+  // Mirrors the server delete-guard: a populated section is blocked with a toast (no confirm).
+  isSectionPopulated: (sectionId: number) => boolean
   onFilterSection: (sectionId: number | null) => void
   onGlobalCoeffChange: (patch: { wToolsCoeff?: number; ownToolsCoeff?: number }) => void
   onSectionCoeffChange: (
@@ -88,6 +91,7 @@ export function KosztorysSectionSummary({
   onAddItem,
   onRenameSection,
   onRemoveSection,
+  isSectionPopulated,
   onFilterSection,
   onGlobalCoeffChange,
   onSectionCoeffChange,
@@ -109,6 +113,11 @@ export function KosztorysSectionSummary({
   }
 
   function confirmRemove(s: SectionSubtotalT) {
+    // Block a populated section before the confirm — the server guard would reject it anyway.
+    if (isSectionPopulated(s.sectionId)) {
+      toastMessage('Najpierw wyczyść wartości w pozycjach tej sekcji', 'warning', 4000)
+      return
+    }
     if (window.confirm(`Usunąć sekcję „${s.sectionName}"? Usunie też ${s.itemCount} pozycji.`)) {
       onRemoveSection(s.sectionId)
     }

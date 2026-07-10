@@ -14,6 +14,8 @@ import {
   buildBlankRow,
   diffRow,
   filterRows,
+  isRowPopulated,
+  isSectionPopulated,
   NEW_SECTION_DEFAULTS,
   revertField,
   rowDoneNetForView,
@@ -211,7 +213,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     return sectionItemCount([...prevById.current.values()], sectionId)
   }
 
-  function handleRemoveItem(row: KosztorysV2RowT) {
+  async function handleRemoveItem(row: KosztorysV2RowT) {
     // Invariant: a section has ≥1 item. Count from prevById (fresh dataset, event-time read —
     // dsg columns are frozen at mount, so we enforce the rule here, not via a visual disabled state).
     if (sectionItemCount([...prevById.current.values()], row.sectionId) <= 1) {
@@ -222,9 +224,22 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       )
       return
     }
+    // Client mirror of the server delete-guard: block a populated row up front so it never
+    // optimistically vanishes then reappears. stagesRef is the fresh stage list (dsg column
+    // closure is mount-frozen). The server guard stays the authority — see the await below.
+    if (isRowPopulated(row, stagesRef.current)) {
+      toastMessage('Najpierw wyczyść wartości wpisane w tej pozycji', 'warning', 4000)
+      return
+    }
     prevById.current.delete(row.id)
     setRows((rs) => applyRemoveItem(rs, row.id))
-    void removeItemAction(row.id)
+    const res = await removeItemAction(row.id)
+    if (!res.success) {
+      // Server rejected (client/server predicate drift) — restore the row and surface the block.
+      prevById.current.set(row.id, row)
+      setRows((rs) => applyAddItem(rs, row))
+      toastMessage(res.error ?? 'Nie udało się usunąć pozycji', 'warning', 4000)
+    }
   }
 
   function handleReorderItem(row: KosztorysV2RowT, dir: 'up' | 'down') {
@@ -322,13 +337,36 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     )
   }
 
-  function handleRemoveSection(sectionId: number) {
+  // Bound to the fresh dataset/stages — the summary calls this before its confirm to skip the
+  // dialog (and toast) when the section holds recorded work, mirroring the server guard.
+  function sectionPopulated(sectionId: number) {
+    return isSectionPopulated(rowsRef.current, sectionId, stagesRef.current)
+  }
+
+  async function handleRemoveSection(sectionId: number) {
+    // Backstop for the summary's pre-check: block a populated section before the optimistic
+    // cascade removal (the section delete cascades items + stage_progress server-side).
+    if (sectionPopulated(sectionId)) {
+      toastMessage('Najpierw wyczyść wartości w pozycjach tej sekcji', 'warning', 4000)
+      return
+    }
+    const removed = rowsRef.current
+      .filter((r) => r.sectionId === sectionId)
+      .map((r) => prevById.current.get(r.id) ?? r)
     setRows((rs) => rs.filter((r) => r.sectionId !== sectionId))
     for (const [id, r] of prevById.current) {
       if (r.sectionId === sectionId) prevById.current.delete(id)
     }
-    if (activeSectionId === sectionId) setActiveSectionId(null)
-    void removeSectionAction(sectionId)
+    const wasActive = activeSectionId === sectionId
+    if (wasActive) setActiveSectionId(null)
+    const res = await removeSectionAction(sectionId)
+    if (!res.success) {
+      // Server rejected (predicate drift) — restore the section's rows and surface the block.
+      for (const r of removed) prevById.current.set(r.id, r)
+      setRows((rs) => [...rs, ...removed])
+      if (wasActive) setActiveSectionId(sectionId)
+      toastMessage(res.error ?? 'Nie udało się usunąć sekcji', 'warning', 4000)
+    }
   }
 
   function handleRenameSection(sectionId: number, name: string) {
@@ -474,6 +512,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     handleAddStage,
     handleRenameSection,
     handleRemoveSection,
+    isSectionPopulated: sectionPopulated,
     handleGlobalCoeffChange,
     handleSectionCoeffChange,
     handleVatChange,

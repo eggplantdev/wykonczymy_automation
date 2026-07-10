@@ -276,18 +276,18 @@ None — no schema change. Purely additive action logic + UI wiring.
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `pnpm exec tsc --noEmit`
-- [x] 1.2 Guard tests pass: `pnpm exec vitest run src/__tests__/lib/actions/kosztorys-delete-guard.test.ts`
-- [x] 1.3 Tests proven red before the guard code landed
-- [x] 1.4 Lint passes: `pnpm lint`
+- [x] 1.1 Type checking passes: `pnpm exec tsc --noEmit` — 2f6bde0
+- [x] 1.2 Guard tests pass: `pnpm exec vitest run src/__tests__/lib/actions/kosztorys-delete-guard.test.ts` — 2f6bde0
+- [x] 1.3 Tests proven red before the guard code landed — 2f6bde0
+- [x] 1.4 Lint passes: `pnpm lint` — 2f6bde0
 
 ### Phase 2: UI pre-check + block surfacing
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `pnpm exec tsc --noEmit`
-- [ ] 2.2 Lint passes: `pnpm lint`
-- [ ] 2.3 Existing kosztorys tests still pass: `pnpm exec vitest run src/__tests__`
+- [x] 2.1 Type checking passes: `pnpm exec tsc --noEmit`
+- [x] 2.2 Lint passes: `pnpm lint`
+- [x] 2.3 Existing kosztorys tests still pass: `pnpm exec vitest run src/__tests__`
 
 #### Manual
 
