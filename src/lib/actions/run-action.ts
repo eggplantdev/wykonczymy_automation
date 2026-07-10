@@ -36,6 +36,7 @@ export async function protectedAction<TData = undefined>(
   revalidate?: (keyof typeof CACHE_TAGS)[],
 ): Promise<ActionResultT<TData>> {
   const elapsed = perfStart()
+  const started = performance.now()
 
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) return { success: false, error: session.error } as ActionResultT<TData>
@@ -53,7 +54,7 @@ export async function protectedAction<TData = undefined>(
       console.log(`[PERF]   revalidateCollections ${elapsed()}ms`)
     }
 
-    console.log(`[PERF] ${label} ${elapsed()}ms`)
+    console.log(`[PERF] ${label} ${Math.round(performance.now() - started)}ms`)
     return result
   } catch (err) {
     console.error(`[ACTION_ERROR] ${label}`, err)

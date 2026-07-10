@@ -69,36 +69,43 @@ Pass ran clean — **no bugs found**, all five Phase-2 boxes ticked. No open fin
 
 ## S-06 — kosztorys-snapshots
 
-**In review** — code + review + local migration verified; manual checks below pending. Setup: run the app against the **5435 test DB** (see intro), seed a kosztorys into it first (`perf-seed-kosztorys.ts` synthetic, or `seed-kosztorys.ts` realistic; point the seed at `DB_POSTGRES_URL_TEST`). Log in as **OWNER/MANAGER** (snapshots require MANAGEMENT_ROLES). Note: 4.3 (E2E save→edit→restore) was deferred to `/10x-e2e` and is not yet authored.
+**In review** — verified 2026-07-10 (OWNER `e2e@wykonczymy.test`, investment 7 = 999-item perf seed, 5435 test DB, throwaway `.next-e2e` `:3010` server). All Phase 1–5 rows pass except 5.7 (post-deploy gate, open). Backend rows (1.x, 2.7, 2.8, 3.5, 3.7, 5.5, 5.6) driven via `src/scripts/verify-s06.ts` against `DB_POSTGRES_URL_TEST`; UI rows (2.6, 3.6, 4.x) driven in the browser. **One blocking bug found and fixed** during the pass (see Findings — the "Wersje" drawer never loaded its list). Note: 4.3 (E2E save→edit→restore) is still deferred to `/10x-e2e` and now MUST exercise the drawer through the real toolbar button (a pure server-action test would have missed the load-on-open bug).
 
 ### Phase 1: Schema + serialization/restore core
 
-- [ ] 1.5 On a seeded investment (`INV=6`), serialize → mutate → restore returns the tree to the serialized state
-- [ ] 1.6 An injected mid-restore error leaves the live tree intact (rollback), not half-wiped
-- [ ] 1.7 Restored subcontractor/brutto prices match pre-restore values (settings rewritten)
+- [x] 1.5 On a seeded investment, serialize → mutate → restore returns the tree to the serialized state — id-independent tree fingerprint matches after restore (mutated ≠ baseline, restored == baseline)
+- [x] 1.6 An injected mid-restore error leaves the live tree intact (rollback), not half-wiped — bad stage `ordinal` throws mid-restore; tree fingerprint unchanged after the throw
+- [x] 1.7 Restored subcontractor/brutto prices match pre-restore values (settings rewritten) — coeffs+VAT changed then restored back to baseline; round-trips at identical scale (no double-transform)
 
 ### Phase 2: Capture triggers + inline pruning
 
-- [ ] 2.5 An open editor produces one `auto` snapshot per ~10-min interval; the interval clears on unmount
-- [ ] 2.6 "Zapisz jako…" with a name creates a `manual` row with that label
-- [ ] 2.7 Deleting a section/stage creates an `auto` row immediately before the delete, every time
-- [ ] 2.8 After 50+ auto snapshots on one investment, only the newest 50 remain
+- [x] 2.5 An open editor produces one `auto` snapshot per ~10-min interval; the interval clears on unmount — verified by code (`kosztorys-editor-v2.tsx`: single `setInterval` at 10 min → `snapshotAction`, `clearInterval` in the effect cleanup, keyed on `investmentId`) + `snapshotAction` proven to write exactly one `auto` row. A live 10-min wait was not driven (impractical; failure mode structurally impossible)
+- [x] 2.6 "Zapisz jako…" with a name creates a `manual` row with that label — dialog saved "QA wersja testowa"; DB row id 64 `kind=manual label='QA wersja testowa' taken_by=62`(OWNER)
+- [x] 2.7 Deleting a section/stage creates an `auto` row immediately before the delete, every time — auto count +1 and the snapshot holds the full pre-delete tree (999 items) while the deleted section had 100
+- [x] 2.8 After 50+ auto snapshots on one investment, only the newest 50 remain — 55 inserts + inline prune → 50 auto rows
 
 ### Phase 3: Restore action + forced pre-restore snapshot + listing
 
-- [ ] 3.5 Restore reverts the tree + prices; a following restore of the auto-created pre-restore snapshot returns to the pre-restore state (mis-restore recoverable)
-- [ ] 3.6 Restore fires revalidation — the editor shows restored data without a hard reload
-- [ ] 3.7 Restore never touches transfers/balances/marża (spot-check financial figures before/after)
+- [x] 3.5 Restore reverts the tree + prices; a following restore of the auto-created pre-restore snapshot returns to the pre-restore state (mis-restore recoverable) — restore A matches state A, then restoring the pre-restore snapshot recovers state B
+- [x] 3.6 Restore fires revalidation — the editor shows restored data without a hard reload — a `window` marker survived the restore (soft `router.refresh` + remount, not a full reload); grid re-rendered
+- [x] 3.7 Restore never touches transfers/balances/marża — `transactions` (2833 rows), `cash_registers`, and investment core fields (name/address) all byte-identical before/after
 
 ### Phase 4: "Wersje" drawer UI
 
-- [ ] 4.4 Drawer lists named manual versions prominently and auto snapshots as timestamped history, with author
-- [ ] 4.5 Restore shows the confirm dialog and, on confirm, the grid reflects the restored tree without a hard reload
-- [ ] 4.6 "Zapisz jako…" requires a name; the label appears in the list; canceling does nothing
-- [ ] 4.7 Restore of a ~1000-row kosztorys completes acceptably and re-renders correctly
+- [x] 4.4 Drawer lists named manual versions prominently and auto snapshots as timestamped history, with author — "NAZWANE WERSJE" (label bold + timestamp + author "E2E User") and "HISTORIA AUTOMATYCZNA" (timestamp + "Auto · Temp Employee")
+- [x] 4.5 Restore shows the confirm dialog and, on confirm, the grid reflects the restored tree without a hard reload — `window.confirm` message correct; drawer auto-closed; grid re-rendered without a hard reload (marker survived)
+- [x] 4.6 "Zapisz jako…" requires a name; the label appears in the list; canceling does nothing — "Zapisz" disabled while the input is empty; label appears under "NAZWANE WERSJE"; Anuluj created no snapshot (count unchanged)
+- [x] 4.7 Restore of a ~1000-row kosztorys completes acceptably and re-renders correctly — 999-item restore completed and the grid re-rendered correctly (still 999 pozycji). **~12.6 s server time** — completes but slow; see Findings
 
 ### Phase 5: Daily GC cron
 
-- [ ] 5.5 Hitting the endpoint with the secret prunes aged snapshots and returns a count
-- [ ] 5.6 A dormant kosztorys's aged `auto` snapshots are removed by the job (inline pruning never would)
-- [ ] 5.7 `CRON_SECRET` is set in Vercel and the scheduled run appears in Vercel cron logs (post-deploy)
+- [x] 5.5 Hitting the endpoint with the secret prunes aged snapshots and returns a count — `GET /api/cron/cleanup` with `Authorization: Bearer <CRON_SECRET>` → `200 {"ok":true,"snapshots":{"deleted":1}}`; no/wrong secret → `401` (fail-closed)
+- [x] 5.6 A dormant kosztorys's aged `auto` snapshots are removed by the job (inline pruning never would) — an 8-day-old `auto` and a 400-day-old `manual` are deleted; fresh `auto`/`manual` kept
+- [ ] 5.7 `CRON_SECRET` is set in Vercel and the scheduled run appears in Vercel cron logs (post-deploy) — **deploy-time gate, cannot verify locally.** Cron is registered (`vercel.json`: `/api/cron/cleanup` `0 3 * * *`) and the route auth is proven above. **Needs human:** after deploy, set `CRON_SECRET` in Vercel and confirm the scheduled run appears in the Vercel cron logs.
+
+### Findings — 2026-07-10
+
+- [x] **"Wersje" drawer never loaded its list (list + restore entirely non-functional)** — the drawer opens _programmatically_ (toolbar `onOpenVersions` → `setVersionsOpen(true)`), but `load()` only ran inside `handleOpenChange`, which Radix's `onOpenChange` fires only on _user-initiated_ changes — so opening never triggered the fetch and the drawer sat on "Wczytywanie…" forever, at `src/components/kosztorys/kosztorys-versions-drawer.tsx`. **Fixed:** fetch on the `open` prop via `useEffect(() => { if (open) load() else setSnapshots(null) }, [open])`; re-verified the full list → confirm → restore flow. **Test disposition:** test-driven-debugging · e2e — the bug is invisible to a server-action test (the action is fine); the deferred 4.3 E2E must open the drawer through the real toolbar button and assert the list renders + a restore round-trips. File it against the `e2e-backlog` obligation for this slice.
+- [ ] **Restore of ~1000 rows takes ~12.6 s** — `restoreSnapshotAction` on the 999-item tree ran ~12.6 s server-side; it wipe-and-reinserts row-by-row via `payload.create` (sections → items → stages → progress) plus a forced pre-restore serialize, at `src/lib/kosztorys/restore-kosztorys.ts`. Completes correctly and is behind a confirm (rare, deliberate op), so not a blocker, but the user waits on a "Przywracanie…" button. **Needs human:** decide whether to batch the reinsert (bulk insert / `db`-level) or accept the latency. **Test disposition:** no automated test — a perf budget, not a correctness bug; covered functionally by the 4.3 E2E.
+- [ ] **Dev-only React warning: "state update on a component that hasn't mounted yet… side-effect in render function"** — logged once in the editor console; the message ("side-effect in render function that asynchronously tries to update") matches the render-phase conditional `setState` (`setAwaitingTree`/`setRemountKey`) in `src/components/kosztorys/kosztorys-editor-v2.tsx:37-40`, the documented "store info from previous render" remount pattern — **not** the drawer fetch fix (which sets state only in a guarded async callback). Dev-only, non-blocking, pre-dates the drawer bug. **Needs human:** decide whether the render-phase remount trigger should move into an effect to silence it. **Test disposition:** no automated test — dev-mode console hygiene.
+- [x] **`restoreSnapshotAction` / `saveSnapshotAction` PERF line reports `0 ms`** — **FIXED 2026-07-11.** Not a timing bug — a misread of a lap timer. `perfStart` (`src/lib/perf.ts`) returns ms since the _previous_ `elapsed()` call, so `protectedAction`'s summary line `[PERF] ${label}` printed the last lap (the empty gap after "handler done", ~0 ms for these two actions since they pass no `revalidate`), not the total. The real ~12.5 s was logged all along on the indented `[PERF]   handler done` split. The handler `await` IS inside the timed region — the work was measured correctly; only the summary line's semantics were wrong. **Fix:** added a `started = performance.now()` at entry and print `performance.now() - started` on the summary line (`src/lib/actions/run-action.ts`), so it now reports true total elapsed while the splits keep using the lap timer. Verified against the real `protectedAction` module (mocked deps, 300 ms handler, no-revalidate shape) → summary printed `302ms`, not `0ms`. **Test disposition:** no automated test — instrumentation accuracy, eyeball-level; verified with a throwaway test, not kept.
