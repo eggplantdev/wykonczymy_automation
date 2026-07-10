@@ -48,7 +48,9 @@ describe.skipIf(!ENV_READY)('countUnreadLeads + markLeadsSeen (DB)', () => {
     const users = await payload.find({ collection: 'users', limit: 1, overrideAccess: true })
     if (users.docs.length === 0) throw new Error('no user in local DB to attach a read cursor to')
     userId = users.docs[0].id
-  })
+    // 30s: first getPayload cold-inits Payload's schema; under the full integration suite the
+    // default 10s hook budget is too tight (observed ~8.6–10s).
+  }, 30000)
 
   afterAll(async () => {
     await clearCursor()

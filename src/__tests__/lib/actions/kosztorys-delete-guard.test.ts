@@ -13,11 +13,14 @@ vi.mock('server-only', () => ({}))
 // The action's own payload.delete fires the collection's afterDelete revalidate hook, which
 // calls next/cache's revalidateTag — that throws outside a request/static-generation store.
 vi.mock('next/cache', () => ({ revalidateTag: vi.fn(), updateTag: vi.fn() }))
+// A real user id (looked up in beforeAll), not a hardcoded 1: removeSectionAction now takes a
+// pre-delete snapshot whose taken_by FKs users.id, and a fresh prod-dump test DB has no user 1.
+const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockResolvedValue({
+  requireAuth: vi.fn().mockImplementation(async () => ({
     success: true,
-    user: { id: 1, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
-  }),
+    user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
+  })),
 }))
 vi.mock('@/lib/cache/revalidate', () => ({ revalidateCollections: vi.fn() }))
 
@@ -43,15 +46,27 @@ describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', 
     const config = (await import('@payload-config')).default
     payload = await getPayload({ config })
     db = await getDb(payload)
+    // sort by id (oldest, a prod-dump investment) — parallel S-06 specs create+delete transient
+    // investments with the highest ids, so an unsorted limit:1 can borrow one that vanishes mid-test.
     const inv = await payload.find({
       collection: 'investments',
       limit: 1,
+      sort: 'id',
       depth: 0,
       overrideAccess: true,
     })
     const first = inv.docs[0]
     if (!first) throw new Error('no investment in the DB to attach test fixtures to')
     investmentId = Number(first.id)
+    const users = await payload.find({
+      collection: 'users',
+      limit: 1,
+      depth: 0,
+      overrideAccess: true,
+    })
+    const firstUser = users.docs[0]
+    if (!firstUser) throw new Error('no user in the DB to attribute the pre-delete snapshot to')
+    authState.userId = Number(firstUser.id)
   })
 
   afterEach(async () => {
