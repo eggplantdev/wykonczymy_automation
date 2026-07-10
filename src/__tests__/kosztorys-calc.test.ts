@@ -53,6 +53,18 @@ describe('rowRemainingForView', () => {
     // w_tools net = 10 × 12 = 120; done = 36 → remaining 84
     expect(rowRemainingForView(item, 36, 'w_tools')).toBe(84)
   })
+
+  it('over-completion → ujemne pozostało (etapy przekraczają netto)', () => {
+    // client net = 200; done across stages = 380 → remaining −180. The editor renders this
+    // negative value verbatim (manual check 4.7), it is not clamped to 0.
+    expect(rowRemainingForView(item, 380, 'client')).toBe(-180)
+  })
+
+  it('pozostało uwzględnia rabat kwotowy w netto widoku', () => {
+    // amount discount 30: client net = 10 × 20 − 30 = 170; done 50 → remaining 120
+    const discounted = { ...item, discountType: 'amount' as const, discountValue: 30 }
+    expect(rowRemainingForView(discounted, 50, 'client')).toBe(120)
+  })
 })
 
 // fixture: 2 sections, A (id 10) has 2 items, B (id 20) has 1 item
