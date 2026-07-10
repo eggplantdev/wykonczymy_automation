@@ -49,4 +49,7 @@ export const serverSchema = z.object({
   KOSZTORYS_DRIVE_FOLDER_ID: z.string().optional(),
   // Vercel-injected at runtime; absent locally (where NODE_ENV is the right signal).
   VERCEL_ENV: z.enum(['production', 'preview', 'development']).optional(),
+  // Bearer secret guarding the daily cleanup cron. Genuinely absent locally (the cron only runs on
+  // Vercel), so `.optional()` — the route fails closed (rejects) when it's unset.
+  CRON_SECRET: z.string().min(1).optional(),
 })
