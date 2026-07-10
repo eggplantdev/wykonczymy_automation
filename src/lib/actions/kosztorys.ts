@@ -49,7 +49,9 @@ const investmentCoeffsSchema = z
   .partial()
 
 // Per-investment VAT rate, stored as a fraction (0.08 = 8%). Edited from the Sekcje panel.
-const investmentVatSchema = z.object({ vatRate: z.coerce.number() })
+// Fraction bounds: a per-investment VAT rate below 0% or above 100% is never valid, so reject it
+// at the action regardless of UI guarding — a bad rate feeds every brutto figure (net × (1 + vatRate)).
+const investmentVatSchema = z.object({ vatRate: z.coerce.number().min(0).max(1) })
 
 export type SectionPatchT = z.infer<typeof sectionPatchSchema>
 export type InvestmentCoeffsPatchT = z.infer<typeof investmentCoeffsSchema>
@@ -108,8 +110,9 @@ export async function updateInvestmentVatAction(investmentId: number, vatRate: n
       await payload.update({ collection: 'investments', id: investmentId, data: parsed.data })
       return { success: true }
     },
-    // The rate feeds every brutto figure; brutto is presentation-only, but bust the sheet cache
-    // for parity with the coeff action.
+    // vatRate is read from the investment and denormalized onto items only (getKosztorysTree),
+    // so items is the sole tag needed — no kosztorysSections, unlike the coeff action which also
+    // touches section-level figures.
     ['kosztorysItems'],
   )
 }
