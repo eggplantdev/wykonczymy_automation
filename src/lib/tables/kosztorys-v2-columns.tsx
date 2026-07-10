@@ -48,6 +48,10 @@ export type V2SortStateT = { field: string; dir: SortDirT } | null
 
 export type BuildV2ColumnsOptsT = {
   view: PriceViewT
+  // Brutto is a read-only per-row column (net × (1 + vatRate)) shown only when toggled on. The
+  // editor MUST include this flag in the grid remount key — dsg freezes columns at mount, so a
+  // toggle would otherwise never add/remove the column.
+  bruttoVisible: boolean
   // Stages (etapy) render as dynamic editable columns; a trailing "Pozostało" reads out the
   // remaining net. The set drives the columns, so the editor MUST include it in the grid remount
   // key (dsg freezes columns at mount) — otherwise a new stage never gets a column.
@@ -385,6 +389,17 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
       (r) => rowNetForView(r as unknown as ViewPricingT, view),
       'font-medium',
     ),
+    // Brutto = net × (1 + vatRate). VAT applies to post-discount net (rowNetForView already
+    // subtracts the discount). One rate per investment, denormalized onto every row.
+    ...(opts.bruttoVisible
+      ? [
+          computedColumn(
+            'gross',
+            title('gross', 'Brutto', opts),
+            (r) => rowNetForView(r as unknown as ViewPricingT, view) * (1 + r.vatRate),
+          ),
+        ]
+      : []),
     computedColumn('remaining', title('remaining', 'Pozostało', opts), (r) =>
       rowRemainingForView(r as unknown as ViewPricingT, rowDoneNetForView(r, stages, view), view),
     ),

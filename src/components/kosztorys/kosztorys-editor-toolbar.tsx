@@ -31,6 +31,8 @@ type PropsT = {
   onAddItem: (sectionId: number) => void
   onAddStage: () => void
   itemCount: number
+  bruttoVisible: boolean
+  onToggleBrutto: () => void
   summaryOpen: boolean
   onToggleSummary: () => void
 }
@@ -45,6 +47,8 @@ export function KosztorysEditorToolbar({
   onAddItem,
   onAddStage,
   itemCount,
+  bruttoVisible,
+  onToggleBrutto,
   summaryOpen,
   onToggleSummary,
 }: PropsT) {
@@ -64,6 +68,14 @@ export function KosztorysEditorToolbar({
         ))}
         <InfoTooltip content={VIEW_LEGEND} label="Co oznaczają widoki cen" className="ml-0.5" />
       </div>
+      <Button
+        size="sm"
+        variant={bruttoVisible ? 'default' : 'outline'}
+        onClick={onToggleBrutto}
+        title="Pokaż kolumnę i sumę brutto (netto × (1 + VAT))"
+      >
+        Brutto
+      </Button>
       <SearchFilterInput
         value={search}
         onChange={onSearchChange}

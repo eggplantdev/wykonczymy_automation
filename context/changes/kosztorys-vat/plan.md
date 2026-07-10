@@ -273,10 +273,10 @@ data migration. Human applies to prod before Phase 2 ships (`payload-prod-migrat
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `pnpm exec tsc --noEmit`
-- [x] 1.2 Lint passes: `pnpm lint`
-- [x] 1.3 Migration applies cleanly on local DB: `pnpm payload migrate`
-- [x] 1.4 Calc tests pass: `pnpm exec vitest run src/__tests__/kosztorys-calc.test.ts`
+- [x] 1.1 Type checking passes: `pnpm exec tsc --noEmit` — ea9b438
+- [x] 1.2 Lint passes: `pnpm lint` — ea9b438
+- [x] 1.3 Migration applies cleanly on local DB: `pnpm payload migrate` — ea9b438
+- [x] 1.4 Calc tests pass: `pnpm exec vitest run src/__tests__/kosztorys-calc.test.ts` — ea9b438
 
 #### Manual
 
@@ -288,10 +288,10 @@ data migration. Human applies to prod before Phase 2 ships (`payload-prod-migrat
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `pnpm exec tsc --noEmit`
-- [ ] 2.2 Lint passes: `pnpm lint`
-- [ ] 2.3 Build passes: `pnpm build`
-- [ ] 2.4 Calc tests pass with brutto assertion: `pnpm exec vitest run src/__tests__/kosztorys-calc.test.ts`
+- [x] 2.1 Type checking passes: `pnpm exec tsc --noEmit`
+- [x] 2.2 Lint passes: `pnpm lint`
+- [x] 2.3 Build passes: `pnpm build`
+- [x] 2.4 Calc tests pass with brutto assertion: `pnpm exec vitest run src/__tests__/kosztorys-calc.test.ts`
 
 #### Manual
 

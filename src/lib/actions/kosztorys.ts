@@ -40,13 +40,16 @@ const sectionPatchSchema = z
   })
   .partial()
 
-// Investment markup coefficients (edited from the panel). VAT (S-12) is out of scope.
+// Investment markup coefficients (edited from the panel).
 const investmentCoeffsSchema = z
   .object({
     wToolsCoeff: z.coerce.number(),
     ownToolsCoeff: z.coerce.number(),
   })
   .partial()
+
+// Per-investment VAT rate, stored as a fraction (0.08 = 8%). Edited from the Sekcje panel.
+const investmentVatSchema = z.object({ vatRate: z.coerce.number() })
 
 export type SectionPatchT = z.infer<typeof sectionPatchSchema>
 export type InvestmentCoeffsPatchT = z.infer<typeof investmentCoeffsSchema>
@@ -93,6 +96,21 @@ export async function updateInvestmentCoeffsAction(
     },
     // A global coefficient changes the derived item prices → refresh the sheet cache.
     ['kosztorysItems', 'kosztorysSections'],
+  )
+}
+
+export async function updateInvestmentVatAction(investmentId: number, vatRate: number) {
+  return protectedAction(
+    'updateInvestmentVatAction',
+    async ({ payload }) => {
+      const parsed = validateAction(investmentVatSchema, { vatRate })
+      if (!parsed.success) return parsed
+      await payload.update({ collection: 'investments', id: investmentId, data: parsed.data })
+      return { success: true }
+    },
+    // The rate feeds every brutto figure; brutto is presentation-only, but bust the sheet cache
+    // for parity with the coeff action.
+    ['kosztorysItems'],
   )
 }
 
