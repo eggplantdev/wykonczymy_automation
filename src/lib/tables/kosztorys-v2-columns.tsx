@@ -36,7 +36,6 @@ const SUB_MODE_OPTIONS: { value: string; label: string }[] = [
   { value: 'amount', label: 'kwota zł' },
 ]
 
-// Override fields per subcontractor view.
 const OVERRIDE_FIELDS: Record<
   'w_tools' | 'own_tools',
   { type: keyof KosztorysV2RowT; value: keyof KosztorysV2RowT }
