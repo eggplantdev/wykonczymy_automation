@@ -46,6 +46,7 @@ import * as migration_20260709_0_add_kosztorys_stages from './20260709_0_add_kos
 import * as migration_20260709_1_fix_locked_docs_kosztorys_rels from './20260709_1_fix_locked_docs_kosztorys_rels'
 import * as migration_20260709_2_add_website_form_source from './20260709_2_add_website_form_source'
 import * as migration_20260710_0_add_vat_rate_to_investments from './20260710_0_add_vat_rate_to_investments'
+import * as migration_20260710_1_add_kosztorys_snapshots from './20260710_1_add_kosztorys_snapshots'
 
 export const migrations = [
   {
@@ -287,5 +288,10 @@ export const migrations = [
     up: migration_20260710_0_add_vat_rate_to_investments.up,
     down: migration_20260710_0_add_vat_rate_to_investments.down,
     name: '20260710_0_add_vat_rate_to_investments',
+  },
+  {
+    up: migration_20260710_1_add_kosztorys_snapshots.up,
+    down: migration_20260710_1_add_kosztorys_snapshots.down,
+    name: '20260710_1_add_kosztorys_snapshots',
   },
 ]
