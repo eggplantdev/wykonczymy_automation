@@ -148,6 +148,19 @@ export async function removeSectionAction(sectionId: number) {
   return protectedAction(
     'removeSectionAction',
     async ({ payload }) => {
+      const db = await getDb(payload)
+      // Block: a section delete FK-cascades through its items into stage_progress, so
+      // dropping a section with any populated item silently loses recorded work.
+      const res = await db.execute(sql`
+        SELECT 1 FROM kosztorys_items i
+        WHERE i.section_id = ${sectionId}
+          AND (i.measured_qty <> 0
+               OR EXISTS (SELECT 1 FROM stage_progress sp WHERE sp.item_id = i.id AND sp.qty_done <> 0))
+        LIMIT 1
+      `)
+      if (res.rows.length > 0) {
+        return { success: false, error: 'Najpierw wyczyść wartości w pozycjach tej sekcji' }
+      }
       await payload.delete({ collection: 'kosztorys-sections', id: sectionId })
       return { success: true }
     },
@@ -189,6 +202,19 @@ export async function removeItemAction(itemId: number) {
   return protectedAction(
     'removeItemAction',
     async ({ payload }) => {
+      const db = await getDb(payload)
+      // Block: an item carries the on-site pomiar and cascades stage_progress on delete —
+      // dropping a populated row silently loses recorded work (mirrors removeStageAction).
+      const res = await db.execute(sql`
+        SELECT 1 FROM kosztorys_items i
+        WHERE i.id = ${itemId}
+          AND (i.measured_qty <> 0
+               OR EXISTS (SELECT 1 FROM stage_progress sp WHERE sp.item_id = i.id AND sp.qty_done <> 0))
+        LIMIT 1
+      `)
+      if (res.rows.length > 0) {
+        return { success: false, error: 'Najpierw wyczyść wartości wpisane w tej pozycji' }
+      }
       await payload.delete({ collection: 'kosztorys-items', id: itemId })
       return { success: true }
     },

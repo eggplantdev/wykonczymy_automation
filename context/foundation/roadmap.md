@@ -31,6 +31,28 @@ top_blocker: none
 > S-02→S-12 financial-core-smoke · S-15→S-13 hardening · S-09→S-14 new-investment-no-sheet.
 > Unnumbered (pulled out of sequence): S-05→cut rooms · S-06→folded catalogue (→S-08).
 
+> **Inserted snapshots slice (2026-07-10, owner).** Editor-safety recovery was split into **two
+> independent nets** after a design discussion (see each slice's body): **S-06 kosztorys-snapshots**
+> (durable point-in-time version history — restore the whole kosztorys to a saved/auto point) and
+> **S-07 kosztorys-undo** (fast in-session undo/redo of recent actions). Snapshots go first (owner
+> priority — the durable net catches the scarier "cascade delete noticed a day later" case); undo is
+> independent of it. Inserting snapshots as S-06 cascaded the tail by one: old S-06 undo→S-07,
+> S-07 column-locking→S-08, S-08 preset→S-09, S-09 export→S-10, S-10 importer→S-11,
+> S-11 e2e→S-12, S-12 smoke→S-13, S-13 hardening→S-14, S-14 cutover→S-15. Change-ids unchanged
+> (pure relabel). Downstream change-folder docs (`plan-brief.md`, `test-plan.md`) still cite the
+> pre-insertion numbers for undo — the **change-id `kosztorys-undo` is the stable key**, not the number.
+
+> **Split S-08 + inserted RBAC slice (2026-07-10, owner).** The old S-08 `kosztorys-column-locking`
+> conflated two unrelated concerns; the owner split them. (1) The easy edit-safety guard stays at
+> **S-08**, redefined as **`kosztorys-delete-guard`** — hard-block deleting a _populated_ row / section /
+> stage / column (generalises the existing "delete a stage with recorded progress = blocked" rule).
+> (2) The hard, security-shaped concern — **role-based column AND row visibility** (hide subcontractor
+> cost/margin price views, and whole sections/items, from MANAGER; OWNER/ADMIN only) — becomes a new
+> **S-10 `kosztorys-column-rbac`**, placed last in the editor band, before import/export. Inserting it
+> cascaded the tail by one: export S-10→S-11, importer S-11→S-12, e2e S-12→S-13, smoke S-13→S-14,
+> hardening S-14→S-15, cutover S-15→S-16. Change-ids are the stable key; `kosztorys-column-locking` is
+> retired in favour of the two new change-ids.
+
 > **Reconciled with the POC (2026-07-08).** This roadmap was written 2026-06-12, before the
 > in-app-editor POC (branch `poc-kosztorys-in-app`) built and settled the shape. Rooms (pokoje)
 > were **cut**, the catalogue was **folded** into the preset slice (S-08), and subcontractor
@@ -77,27 +99,29 @@ band is parity polish on top of it.
 
 One row per F-NN / S-NN — the index and the backlog handoff in one place. **Plan-ready** = ready to feed into `/10x-plan` now (prerequisites met and no blocking open decision); `no` means blocked, `—` means n/a (deferred). Run a ready slice with `/10x-plan <change-id>`.
 
-Bands: **editor parity S-01–S-08** (active) → **import/export S-09–S-10** → **testing + hardening S-11–S-13** → **cutover S-14**.
+Bands: **editor parity S-01–S-10** (active) → **import/export S-11–S-12** → **testing + hardening S-13–S-15** → **cutover S-16**.
 
-| ID   | Change ID                       | Outcome (user can …)                                                    | Prerequisites      | PRD refs                      | Status    | Plan-ready |
-| ---- | ------------------------------- | ----------------------------------------------------------------------- | ------------------ | ----------------------------- | --------- | ---------- |
-| F-01 | e2e-harness                     | (foundation) Playwright E2E harness, CI-runnable, isolated DB           | —                  | FR-011                        | ready     | yes        |
-| S-01 | kosztorys-sections-items        | author kosztorys sections + items in-app with live totals               | —                  | FR-001, FR-002, FR-007, US-01 | in review | —          |
-| S-02 | kosztorys-price-models          | record three price models per item and toggle the pricing view          | S-01               | FR-003                        | done      | —          |
-| S-03 | kosztorys-stages                | manage stages (etapy) and record per-item, per-stage progress           | S-01               | FR-004                        | in review | —          |
-| S-04 | kosztorys-subcontractor-pricing | price subcontractor work via markup coefficient + per-item override     | S-01, S-02         | — (POC)                       | done      | —          |
-| S-05 | kosztorys-vat                   | set VAT per investment; enter net, compute gross                        | S-01               | — (POC)                       | done      | yes        |
-| S-06 | kosztorys-undo                  | undo the last editor edit(s)                                            | S-01               | — (POC)                       | proposed  | yes        |
-| S-07 | kosztorys-column-locking        | lock / pin editor columns                                               | S-01               | — (POC)                       | proposed  | yes        |
-| S-08 | kosztorys-preset                | seed from a preset; save as preset; item autocomplete over preset prace | S-01               | FR-006, (owner request)       | proposed  | yes        |
-| S-09 | kosztorys-export                | CSV-export the kosztorys (WYSIWYG snapshot; no print/PDF)               | S-01               | FR-008                        | deferred  | —          |
-| S-10 | kosztorys-importer              | import an existing sheet kosztorys into the app                         | S-01 (full parity) | FR-010, FR-016                | deferred  | —          |
-| S-11 | editor-e2e-coverage             | (gate) rely on automated E2E over the editor before release             | F-01, S-01…S-10    | FR-013                        | deferred  | —          |
-| S-12 | financial-core-smoke            | trust an automated smoke that transfers update balances/figures         | F-01               | FR-012, FR-011, FR-015, US-02 | deferred  | —          |
-| S-13 | kosztorys-hardening             | quality / perf / a11y hardening pass before cutover                     | S-11               | — (POC)                       | deferred  | —          |
-| S-14 | new-investment-no-sheet         | create a new investment with no Google Sheet, kosztorys app-only        | S-11, S-13         | FR-009, FR-014, FR-016, US-01 | deferred  | —          |
+| ID   | Change ID                       | Outcome (user can …)                                                                   | Prerequisites      | PRD refs                      | Status      | Plan-ready |
+| ---- | ------------------------------- | -------------------------------------------------------------------------------------- | ------------------ | ----------------------------- | ----------- | ---------- |
+| F-01 | e2e-harness                     | (foundation) Playwright E2E harness, CI-runnable, isolated DB                          | —                  | FR-011                        | ready       | yes        |
+| S-01 | kosztorys-sections-items        | author kosztorys sections + items in-app with live totals                              | —                  | FR-001, FR-002, FR-007, US-01 | in review   | —          |
+| S-02 | kosztorys-price-models          | record three price models per item and toggle the pricing view                         | S-01               | FR-003                        | done        | —          |
+| S-03 | kosztorys-stages                | manage stages (etapy) and record per-item, per-stage progress                          | S-01               | FR-004                        | in review   | —          |
+| S-04 | kosztorys-subcontractor-pricing | price subcontractor work via markup coefficient + per-item override                    | S-01, S-02         | — (POC)                       | done        | —          |
+| S-05 | kosztorys-vat                   | set VAT per investment; enter net, compute gross                                       | S-01               | — (POC)                       | done        | yes        |
+| S-06 | kosztorys-snapshots             | save + restore point-in-time versions of a kosztorys (durable net)                     | S-01               | — (owner request)             | proposed    | yes        |
+| S-07 | kosztorys-undo                  | fast in-session undo/redo of the last editor edit(s)                                   | S-01               | — (owner request)             | proposed    | yes        |
+| S-08 | kosztorys-delete-guard          | hit a hard block when deleting a populated row / section / stage / column              | S-01               | — (owner request)             | in progress | yes        |
+| S-09 | kosztorys-preset                | seed from a preset; save as preset; item autocomplete over preset prace                | S-01               | FR-006, (owner request)       | proposed    | yes        |
+| S-10 | kosztorys-column-rbac           | restrict sensitive columns + rows (subcontractor cost/margin; sections) to OWNER/ADMIN | S-01, S-02, S-04   | — (POC P10)                   | proposed    | yes        |
+| S-11 | kosztorys-export                | CSV-export the kosztorys (WYSIWYG snapshot; no print/PDF)                              | S-01               | FR-008                        | deferred    | —          |
+| S-12 | kosztorys-importer              | import an existing sheet kosztorys into the app                                        | S-01 (full parity) | FR-010, FR-016                | deferred    | —          |
+| S-13 | editor-e2e-coverage             | (gate) rely on automated E2E over the editor before release                            | F-01, S-01…S-12    | FR-013                        | deferred    | —          |
+| S-14 | financial-core-smoke            | trust an automated smoke that transfers update balances/figures                        | F-01               | FR-012, FR-011, FR-015, US-02 | deferred    | —          |
+| S-15 | kosztorys-hardening             | quality / perf / a11y hardening pass before cutover                                    | S-13               | — (POC)                       | deferred    | —          |
+| S-16 | new-investment-no-sheet         | create a new investment with no Google Sheet, kosztorys app-only                       | S-13, S-15         | FR-009, FR-014, FR-016, US-01 | deferred    | —          |
 
-**Cut / folded (unnumbered):** `kosztorys-rooms` — CUT (pokoje out of scope, 2026-07-08). `kosztorys-catalogue` — FOLDED into S-08 (Model A: preset-sourced autocomplete, 2026-07-09). See [Cut & folded slices](#cut--folded-slices).
+**Cut / folded (unnumbered):** `kosztorys-rooms` — CUT (pokoje out of scope, 2026-07-08). `kosztorys-catalogue` — FOLDED into S-09 (Model A: preset-sourced autocomplete, 2026-07-09). See [Cut & folded slices](#cut--folded-slices).
 
 ## Bands
 
@@ -105,12 +129,12 @@ Navigation aid — the four execution bands and what gates the jump between them
 
 | Band | Theme                      | Slices                   | Gate to next band                                                                         |
 | ---- | -------------------------- | ------------------------ | ----------------------------------------------------------------------------------------- |
-| 1    | Editor parity (**active**) | `S-01` … `S-08`          | Editor feature-complete: every POC decision + braindump todo built.                       |
-| 2    | Import / export            | `S-09` → `S-10`          | Last feature work before the editor is locked with tests.                                 |
-| 3    | Testing + hardening        | `S-11` · `S-12` · `S-13` | E2E deferred to here on purpose — specs stabilise only once the editor direction settles. |
-| 4    | Cutover / release          | `S-14`                   | The release gate: new investments get no sheet. Needs E2E (`S-11`) + hardening (`S-13`).  |
+| 1    | Editor parity (**active**) | `S-01` … `S-10`          | Editor feature-complete: every POC decision + braindump todo built.                       |
+| 2    | Import / export            | `S-11` → `S-12`          | Last feature work before the editor is locked with tests.                                 |
+| 3    | Testing + hardening        | `S-13` · `S-14` · `S-15` | E2E deferred to here on purpose — specs stabilise only once the editor direction settles. |
+| 4    | Cutover / release          | `S-16`                   | The release gate: new investments get no sheet. Needs E2E (`S-13`) + hardening (`S-15`).  |
 
-Within band 1, `S-01` (north star) heads the track; `S-02`–`S-09` all build on it and run in parallel (`S-04` also needs `S-02`). `F-01` (harness) is independent and can run any time; it unblocks the band-3 test slices.
+Within band 1, `S-01` (north star) heads the track; `S-02`–`S-10` all build on it and run in parallel (`S-04` also needs `S-02`; `S-10` also needs `S-02` + `S-04`). `F-01` (harness) is independent and can run any time; it unblocks the band-3 test slices.
 
 ## Baseline
 
@@ -167,7 +191,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Change ID:** kosztorys-price-models
 - **PRD refs:** FR-003
 - **Prerequisites:** S-01
-- **Parallel with:** the other editor + export slices (S-03–S-09)
+- **Parallel with:** the other editor + export slices (S-03–S-10)
 - **Blockers:** —
 - **Scope note (POC):** S-02 is the **"one dataset, three views"** price-column toggle
   (Robocizna / z narzędziami / bez narzędzi) over one item set. The _derivation_ of the two
@@ -185,7 +209,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Change ID:** kosztorys-stages
 - **PRD refs:** FR-004
 - **Prerequisites:** S-01
-- **Parallel with:** the other editor + export slices (S-02, S-04–S-09)
+- **Parallel with:** the other editor + export slices (S-02, S-04–S-10)
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Adds a stages table + per-item-per-stage progress join keyed off S-01's items. Variable stage count (not fixed 10 columns) is the parity requirement. Risk: progress totals interacting with the live-totals rule from S-01.
@@ -197,7 +221,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Change ID:** kosztorys-subcontractor-pricing
 - **PRD refs:** — (POC decision)
 - **Prerequisites:** S-01, S-02
-- **Parallel with:** the other editor + export slices (S-03, S-05–S-09)
+- **Parallel with:** the other editor + export slices (S-03, S-05–S-10)
 - **Blockers:** —
 - **Open note (decision 4):** where the coefficients are edited (settings-home UX) is TBD — owner leans detail-inwestycji or a future "Podsumowanie" panel, not the side panel.
 - **Risk:** `clientPrice` stays the snapshot; the two other views are computed. Risk: override precedence (item > section > investment) must be unambiguous and the derived views must recompute under the S-02 toggle without re-snapshotting.
@@ -209,43 +233,76 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Change ID:** kosztorys-vat
 - **PRD refs:** — (PRD Q2)
 - **Prerequisites:** S-01
-- **Parallel with:** the other editor + export slices (S-02–S-04, S-06–S-09)
+- **Parallel with:** the other editor + export slices (S-02–S-04, S-06–S-10)
 - **Blockers:** —
 - **Open note (decision 4):** where the rate is set (settings-home UX) is TBD — same placement question as S-04.
 - **Risk:** Additive column on `investments` + a computed brutto layer. Risk: robocizna netto/brutto derivation (client billing context, 23% vs 8%) is downstream of this rate — keep the rule in one place.
 - **Status:** done
 
-### S-06: Undo
+### S-06: Snapshots (point-in-time version history)
 
-- **Outcome:** the editor supports undo for destructive/edit actions (row delete, cell edit, reorder), so the spreadsheet-parity bar includes recovering from a mistake.
+- **Outcome:** a Manager+ user can **save a named snapshot** of a kosztorys and later **restore** it, reverting the whole kosztorys (sections + items + stages + progress) to that saved point; the system also takes an **automatic snapshot before a destructive cascade delete** (section / stage delete) as a safety net. This is the **durable** recovery layer — snapshots survive reload and target the "a bad edit / a cascade delete noticed a day later, after the client may have seen it" failure that in-session undo (S-07) cannot catch.
+- **Change ID:** kosztorys-snapshots
+- **PRD refs:** — (owner request, 2026-07-10)
+- **Prerequisites:** S-01
+- **Parallel with:** the other editor + export slices (S-02–S-05, S-07–S-10). **Independent of S-07** — undo does not depend on snapshots and vice-versa.
+
+- **Chosen architecture — independent snapshots, NOT an event log (owner, 2026-07-10).**
+  A snapshot = one row `{ investment_id, taken_at, taken_by, label (nullable), kind: 'manual' | 'auto', payload jsonb }` where `payload` is the **serialized whole kosztorys tree**. **Restore = wipe the current tree → re-insert from the payload, in one transaction.** Coarse (whole-kosztorys, all-or-nothing) by design. We deliberately rejected the Event-Sourcing alternative (one append-only change log feeding both undo + history + a per-field "who changed what" audit): it forces every server action to append a correct, invertible log entry, makes replaying cascade deletes backward fiddly, and needs snapshots as a replay optimisation anyway (even Google Sheets, which _is_ event-sourced with OT, still materialises periodic snapshots). The app is **single-editor (lock, POC decision #10)**, so the one thing that forces event sourcing — live collaboration / OT — is out of scope. Owner confirmed: **no field-level "who changed a value" audit is needed — "just going back to a point in time is good enough."** So the simple snapshot table wins.
+- **Triggers:** **manual** ("Zapisz wersję", named, kept forever) **+ automatic** (unnamed, `kind:'auto'`, fired **right before a section-delete or stage-delete** — the FK-cascade operations that wipe a subtree; that is exactly when unrecoverable loss is possible).
+- **Retention:** keep every **manual** snapshot; **prune `auto` snapshots** to the last ~N (≈20) per kosztorys so the table stays bounded. Confirm N at plan time.
+- **Division of labour with S-07:** snapshots own the **heavy, rare, destructive** cases (cascade deletes, "restore yesterday"); undo owns the **frequent, cheap, reversible** ones. A cascade-delete undo is explicitly NOT built into S-07 — it is recovered by restoring the pre-delete auto-snapshot.
+- **Problems to solve at plan time:**
+  - **Payload shape + versioning:** exactly which tables/columns the `jsonb` captures (items, stage rows, per-investment VAT/coeffs?), and how a restore behaves if the schema changed since the snapshot was taken (a later slice added a column). Snapshot format needs a version tag.
+  - **Restore semantics on ids:** wipe-and-reinsert mints **new** primary keys — confirm nothing outside the kosztorys references item/stage ids (e.g. the `INVESTMENT_EXPENSE` materials mirror) in a way a restore would break.
+  - **Restore vs. live totals / mirror:** restoring must re-fire the same revalidation the editor actions do (cache tags) and, if materials are mirrored, keep the mirror consistent.
+  - **Auto-snapshot cost:** serialising a 1000+ row tree on every cascade delete — is it cheap enough inline, or does it need to be deferred?
+  - **Access:** who can restore (MANAGEMENT_ROLES) and does a restore itself get snapshotted (so a mistaken restore is also recoverable)?
+- **Risk:** Additive `kosztorys_snapshots` table + a restore path — the restore is the only dangerous write (it deletes the live tree). Guardrail: restore must be transactional and additive-only to the kosztorys tables — it must not touch transfers / balances / marża (FR-015). Risk: an under-captured payload restores a _partial_ tree; a snapshot is only trustworthy if its payload is complete. **Owner note: snapshots should be the easy slice** — keep restore dead-simple (wipe + rewrite), resist scope creep into diffing or partial restore.
+- **Status:** proposed
+
+### S-07: Fast undo / redo (in-session)
+
+- **Outcome:** the editor supports **undo/redo** of recent actions — cell edit, stage-progress edit, reorder, and single-row add/delete — via a toolbar button **and Cmd+Z / Cmd+Shift+Z**, so the spreadsheet-parity bar includes instantly reversing a fat-finger without reaching for a snapshot. In-session (the stack lives in the browser tab, gone on reload); durable recovery is S-06's job.
 - **Change ID:** kosztorys-undo
 - **PRD refs:** — (owner request)
 - **Prerequisites:** S-01
-- **Parallel with:** the other editor + export slices (S-02–S-05, S-07–S-09)
-- **Blockers:** —
-- **Risk:** Autosave is per-field/optimistic/debounced (POC), so undo must reconcile with the persisted state, not just local grid state. Risk: scope creep — bound it to a shallow action history, not a full command stack.
+- **Parallel with:** the other editor + export slices (S-02–S-06, S-08–S-10). **Independent of S-06.**
+
+- **Chosen approach — Command pattern over a stable client-identity map (owner leans B, 2026-07-10).**
+  Two in-memory stacks (undo / redo) of command objects, each a `{ do, undo }` pair. **Key wrinkle:** the editor already persists every edit within 500ms (per-field optimistic autosave via server actions), so a command's `undo` is **not** a local rewind — it **issues the inverse server mutation** (write the old value back / recreate the row / swap order back), reusing the existing actions (`updateItemFieldAction`, `addItemAction`, `removeItemAction`, `swapItemOrderAction`). **Identity-map indirection is the chosen design:** stamp every row with a session `uid` at load (in `treeToRows`), keep one `Map<uid, dbId>`, and have the undo stack reference **only `uid`** — never a raw DB id. When undoing a delete recreates a row with a **new** DB id, update the map entry; every other stack command still resolving that `uid` stays valid, so **the stack survives every action including deletes — no stack-clearing**. (Same pattern as React `key`s, dnd-kit item ids, and Fowler's Identity Map; a cousin of the editor's existing `display_order` decoupling.)
+- **Scope (owner leans B = also undo single-row add/delete), but ship-and-test order:** snapshots (S-06) ship **first**; then evaluate whether "restore a version" already covers the delete case in practice. If yes, S-07 can land at the simpler **cell-edit + reorder** scope and defer single-row delete-undo; if not, build the full identity-map version. Cell edits + stage progress + reorder are in scope either way (cheap, ids stable).
+- **Problems to solve at plan time (the hard ones — flag loudly):**
+  - **The cascade cases — section-delete / stage-delete.** These FK-cascade a whole subtree (all items + `stage_progress` of that stage/section). Undoing one means recreating the entire deleted set with fresh ids and re-pointing children — genuinely hard. **Decision from the design discussion: undo does NOT reconstruct a cascade delete — it is handed to S-06's auto-snapshot** (taken right before the delete). Plan must define what a cascade delete does to the undo stack (drop those commands / mark unrecoverable-by-undo) and how the UI signals "use restore for that."
+  - **Column delete** (stage-as-column work; gated by S-08 delete-guard): deleting a populated stage column is the same cascade class — same snapshot hand-off.
+  - **The one discipline:** nothing in the stack may cache a raw DB id — always the `uid`, resolved through the map at execution time. A single raw-id command dangles on recreate and reintroduces stack-clearing.
+  - **Redo invalidation:** a fresh edit clears the redo stack (standard). Confirm interaction with the debounced saver (an undo must reconcile with / cancel any in-flight save for the same field, not race it).
+  - **Stack depth cap** (~N) so memory stays bounded on a long session.
+  - **Reconcile with revert-on-error:** the existing `revertOne` (rollback on a rejected save) and an undo both mutate optimistic + persisted state — they must not fight.
+- **Risk:** Autosave is per-field/optimistic/debounced (POC), so undo reconciles with **persisted** state, not just local grid state — every undo is an inverse server write. Risk: scope creep into a full command stack that tries to reverse cascades; keep cascades on snapshots. Test priority #2 (formulas #1) per the POC braindump.
 - **Status:** proposed
 
-### S-07: Column locking
+### S-08: Delete-guard for populated rows / sections / stages / columns
 
-- **Outcome:** columns can be locked so managers don't accidentally edit protected fields (parity with the sheet's protected `materiały` range). Complements the sheet's `addProtectedRange` model now that authoring moves in-app.
-- **Change ID:** kosztorys-column-locking
-- **PRD refs:** — (owner request)
+- **Outcome:** deleting a kosztorys row (item), a section, a stage, or a stage-column that **still holds values** is **hard-blocked** — the user must clear the values first. Generalises the editor's existing "delete a stage with recorded progress = blocked (clear first)" rule to every destructive delete in the grid.
+- **Change ID:** kosztorys-delete-guard
+- **PRD refs:** — (owner request, 2026-07-10)
 - **Prerequisites:** S-01
-- **Parallel with:** the other editor + export slices (S-02–S-06, S-08–S-09)
+- **Parallel with:** the other editor + export slices (S-02–S-07, S-09, S-10)
 - **Blockers:** —
-- **Open note:** overlaps the POC follow-on P10 (hide sensitive subcontractor cost/margin columns from MANAGER — OWNER/ADMIN-only). Decide whether locking and column-visibility are one slice or two at plan time.
-- **Risk:** react-datasheet-grid column config is frozen on mount (same class of bug as the S-02 view toggle) — a lock toggle must go through the grid remount key. Risk: interaction with autosave (a locked cell must reject writes server-side, not just hide the input).
-- **Status:** proposed
+- **Scope (confirm the predicate at plan time):** what counts as "populated" per target — an **item** with any non-empty input (przedmiar / pomiar / price / rabat / stage progress); a **section** with ≥1 item; a **stage / stage-column** with any recorded `stage_progress` (the case already enforced). Complements the sheet's `addProtectedRange` model now that authoring moves in-app.
+- **Split note:** carved out of the old `kosztorys-column-locking` slice (2026-07-10); the role-based visibility half moved to **S-10 `kosztorys-column-rbac`**.
+- **Risk:** the guard must reject the delete **server-side** in the delete actions (`removeItemAction` / section / stage removal), not merely hide/disable the trash affordance — a client-only block is bypassable and races autosave. Risk: a too-aggressive predicate blocks legitimate cleanup; keep "populated" tight and give a clear "clear values first" message.
+- **Status:** in progress
 
-### S-08: Kosztorys presets (templates) + autocomplete
+### S-09: Kosztorys presets (templates) + autocomplete
 
 - **Outcome:** a Manager+ user can (a) seed a new kosztorys from a preset — a reusable skeleton of sekcje + prace + prices — instead of starting blank, (b) save an existing kosztorys back as a preset, and (c) **add items via autocomplete over preset prace** (FR-006, folded from the old catalogue slice on 2026-07-09), hand-typing always allowed. Restores the legacy Sheets behaviour (`KOSZTORYS_TEMPLATE_SHEET_ID` seeded new sheets from a template) that the in-app editor dropped in S-01 — a parity gap the original roadmap never captured.
 - **Change ID:** kosztorys-preset
 - **PRD refs:** FR-006 (folded from the catalogue slice); otherwise owner request (2026-07-09; not in the original PRD)
 - **Folded catalogue (Model A, owner 2026-07-09):** no separate catalogue table — autocomplete is a read-only view over the union of `prace` across presets, snapshotting opis + J.m. + price into the item on select (overwritable). Building presets _is_ seeding the suggestions, so there is no empty-catalogue risk. **Open (from the fold):** duplicate prace across presets at different prices — show each occurrence or dedupe by opis with a default price? Decide at plan time.
 - **Prerequisites:** S-01
-- **Parallel with:** the other editor + export slices (S-02–S-07, S-09)
+- **Parallel with:** the other editor + export slices (S-02–S-08, S-10–S-11)
 - **Blockers:** —
 - **Settled shape (owner, 2026-07-09):**
   - A preset = a kosztorys with the job-specific fields stripped. **Keep:** sekcje (structure), prace (opis), J.m., prices, coefficients/overrides. **Reset:** przedmiar/pomiar (amounts), rabat (discount), stage progress (S-03), note, hiddenInExport.
@@ -256,45 +313,63 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Risk:** The preset carries _structure_ (sekcje → prace) with embedded snapshot prices. Risk: letting a preset link become a live price authority reintroduces the centralisation the owner explicitly rejected. Keep prices embedded + overwritable.
 - **Status:** proposed
 
-### S-09: CSV export
+### S-10: Column + row RBAC (role-based visibility)
+
+- **Outcome:** sensitive **columns** — the subcontractor price views (z narzędziami / bez narzędzi = koszt/marża) — and sensitive **rows** (whole sections / items flagged restricted) are visible only to OWNER/ADMIN; a MANAGER never sees them. Enforced **server-side**: the derived subcontractor prices and restricted rows are withheld from a MANAGER's payload, and the price-view toggle does not offer the restricted views. Client price, przedmiar/pomiar, and stage progress stay visible to MANAGER.
+- **Change ID:** kosztorys-column-rbac
+- **PRD refs:** — (POC follow-on P10, `context/reference/kosztorys-editor-domain-notes.md:260`)
+- **Prerequisites:** S-01, S-02 (price-view toggle), S-04 (subcontractor price derivation — the columns being hidden)
+- **Parallel with:** the other editor slices — but sequenced **last in the editor band, before import/export** (owner, 2026-07-10): it is the hard, security-shaped slice, so it lands once the columns/rows it gates have settled.
+- **Blockers:** —
+- **Why this is the hard one:** unlike S-08 (a UX guard), this is **authorization**. The derived prices are computed in `calc.ts` and shipped in the row payload; hiding per-role means splitting what the server _sends_ per role, not toggling a CSS class — a client-only hide leaks the numbers in the network response. Same axis for restricted rows.
+- **Problems to solve at plan time:**
+  - **Column half:** MANAGER must not receive the z-narzędziami / bez-narzędzi derived prices at all; the `priceMode` toggle must drop those options for MANAGER; CSV export (S-11) must respect the same rule.
+  - **Row half:** what marks a section/item as restricted — a per-row `restricted` flag, or a fixed rule? Where and by whom (OWNER/ADMIN) is it set? A restricted row must not appear in a MANAGER's tree, totals, or export.
+  - **dsg gotcha:** the column set changes per role → must go through the grid remount `key` (same class as the S-02 view-toggle bug).
+  - **Totals under redaction:** do a MANAGER's section/grand totals include the hidden rows/costs, or recompute over the visible set? Decide — it changes what number the MANAGER trusts.
+- **Open (P10 scope, domain-notes:260):** confirm the exact hidden set = subcontractor cost/margin only; client price / przedmiar / pomiar / stage progress stay visible to MANAGER.
+- **Risk:** security slice — a leak (numbers in a payload a MANAGER can read via devtools) defeats the purpose. Guardrail: assert redaction at the **server boundary** (query/action), verified by a test that inspects the MANAGER payload, not just the rendered DOM.
+- **Status:** proposed
+
+### S-11: CSV export
 
 - **Outcome:** the owner can CSV-export the kosztorys. **Print/PDF is out of MVP scope** (POC, 2026-07-08) — the client-facing document polish is deferred; CSV is the release bar.
 - **Change ID:** kosztorys-export
 - **PRD refs:** FR-008
 - **Prerequisites:** S-01
-- **Parallel with:** the editor slices (S-02–S-08)
+- **Parallel with:** the editor slices (S-02–S-10)
 - **Blockers:** —
 - **Unknowns:**
   - CSV shape for nested data (sections → items → stages) — flatten how? — Owner: user. Block: no.
 - **Risk:** Reuses the existing export infrastructure (transfers already CSV-export); only the kosztorys-shaped render is new — which is why this is cheap.
 - **Status:** deferred — parked 2026-07-10 into band 2 (import/export, last feature work before the editor is locked with tests). The export scope (what to actually export, CSV shape) rides on open POC decisions not yet settled; pick back up once the export contract is decided.
 
-### S-10: Importer for existing sheet kosztorysy
+### S-12: Importer for existing sheet kosztorysy
 
 - **Outcome:** the owner can import an existing sheet kosztorys into the app, writing only the new kosztorys tables.
 - **Change ID:** kosztorys-importer
 - **PRD refs:** FR-010, FR-016
-- **Prerequisites:** S-01 (needs the editor schema; benefits from full parity S-01–S-08 to import every field)
-- **Parallel with:** S-09 (export)
+- **Prerequisites:** S-01 (needs the editor schema; benefits from full parity S-01–S-10 to import every field)
+- **Parallel with:** S-11 (export)
 - **Blockers:** —
 - **Unknowns:**
   - Importer trigger — what concretely triggers this second-release importer so "later" does not become "never"? Name a condition or date. (PRD Q8). — Owner: user. Block: no.
-- **Risk:** Reads sheets, writes only new tables (additive). Guardrail: live sheet data must survive untouched until safely imported (FR-016). Risk: without a named trigger this slips indefinitely — resolve the trigger question before planning. **Note (2026-07-10):** no longer depends on the cutover (S-14) — moved ahead of it into band 2 per the reorder; import now happens before, not after, new investments go sheet-less.
+- **Risk:** Reads sheets, writes only new tables (additive). Guardrail: live sheet data must survive untouched until safely imported (FR-016). Risk: without a named trigger this slips indefinitely — resolve the trigger question before planning. **Note (2026-07-10):** no longer depends on the cutover (S-16) — moved ahead of it into band 2 per the reorder; import now happens before, not after, new investments go sheet-less.
 - **Status:** deferred — band 2. Back-importing old sheet kosztorysy is unblocked only once the trigger question is answered.
 
-### S-11: Editor E2E coverage (release gate)
+### S-13: Editor E2E coverage (release gate)
 
-- **Outcome:** the kosztorys editor flows are end-to-end-covered by the automated suite before the owner-facing release — sections/items/pricing/stages/subcontractor-pricing/VAT/undo/column-locking/preset+autocomplete/export/import exercised without a manual pass.
+- **Outcome:** the kosztorys editor flows are end-to-end-covered by the automated suite before the owner-facing release — sections/items/pricing/stages/subcontractor-pricing/VAT/snapshots/undo/delete-guard/column-rbac/preset+autocomplete/export/import exercised without a manual pass.
 - **Change ID:** editor-e2e-coverage
 - **PRD refs:** FR-013
-- **Prerequisites:** F-01, S-01…S-10 (all editor + import/export slices)
-- **Parallel with:** S-12 (financial-core smoke)
+- **Prerequisites:** F-01, S-01…S-12 (all editor + import/export slices)
+- **Parallel with:** S-14 (financial-core smoke)
 - **Blockers:** —
 - **Unknowns:** —
-- **Risk:** This is the quality gate that lets the owner touch the editor only once it is verified. Deliberately deferred to band 3: the editor will churn heavily through band 1–2 while the direction settles, so standing specs up earlier only chases moving targets. Risk: once here, if coverage lags the slices it locks, the cutover gate (S-14) slips — write the specs close behind the settled editor.
-- **Status:** deferred — band 3. Waits until the editor + import/export are built and the direction is stable. Gates S-14 (cutover).
+- **Risk:** This is the quality gate that lets the owner touch the editor only once it is verified. Deliberately deferred to band 3: the editor will churn heavily through band 1–2 while the direction settles, so standing specs up earlier only chases moving targets. Risk: once here, if coverage lags the slices it locks, the cutover gate (S-16) slips — write the specs close behind the settled editor.
+- **Status:** deferred — band 3. Waits until the editor + import/export are built and the direction is stable. Gates S-16 (cutover).
 
-### S-12: Financial-core smoke spec
+### S-14: Financial-core smoke spec
 
 - **Outcome:** a developer/CI run signs in, creates a transfer, and asserts the register balance and investment figures update — automated, no human interaction, replacing the manual Playwright-MCP session for that flow.
 - **Change ID:** financial-core-smoke
@@ -307,28 +382,28 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Risk:** The regression guard for guardrail #1 (financial integrity). Risk: asserting the action's return value instead of persisted balances would hide a failed write — assert observable state.
 - **Status:** deferred — band 3. Blocks no editor slice; F-01 harness + the two existing transfer specs cover the flow in the interim. Safe to defer only while editor slices stay additive and don't touch transfer/balance/marża write paths (FR-015).
 
-### S-13: Pre-cutover hardening
+### S-15: Pre-cutover hardening
 
 - **Outcome:** the editor is hardened before the cutover gate — perf at 1000+ rows re-verified on the clean build, autosave failure/revert paths exercised, access rules (MANAGEMENT_ROLES full / EMPLOYEE none) enforced, and the POC shortcuts (per-browser localStorage, inv-7) removed.
 - **Change ID:** kosztorys-hardening
 - **PRD refs:** —
-- **Prerequisites:** S-11 (E2E coverage in place before hardening so regressions surface)
+- **Prerequisites:** S-13 (E2E coverage in place before hardening so regressions surface)
 - **Parallel with:** —
 - **Blockers:** —
-- **Risk:** This is the gate between "feature-complete editor" and "safe to make it the only authoring path" (S-14). Risk: skipping it pushes POC-grade shortcuts into the cutover.
+- **Risk:** This is the gate between "feature-complete editor" and "safe to make it the only authoring path" (S-16). Risk: skipping it pushes POC-grade shortcuts into the cutover.
 - **Status:** deferred — band 3.
 
-### S-14: New investments get no Google Sheet (cutover gate)
+### S-16: New investments get no Google Sheet (cutover gate)
 
 - **Outcome:** creating a new investment provisions no Google Sheet and nothing is synced; its kosztorys exists only in the app, authored through the editor.
 - **Change ID:** new-investment-no-sheet
 - **PRD refs:** FR-009, FR-014, FR-016, US-01
-- **Prerequisites:** S-11 (E2E gate), S-13 (hardening) — transitively: all editor + import/export slices
+- **Prerequisites:** S-13 (E2E gate), S-15 (hardening) — transitively: all editor + import/export slices
 - **Parallel with:** —
 - **Blockers:** —
 - **Unknowns:**
   - Escape hatch — does the owner ever want to opt a new investment back to a sheet, or is the cutover absolute? PRD resolved "stands as written" (no lingering sheet option); confirm at cutover. — Owner: user. Block: no.
-- **Risk:** The release gate — only flips once full parity is built, E2E-covered (S-11), and hardened (S-13). Guardrail: the materiały-mirror must keep syncing for investments still on sheets (FR-014), and existing sheet kosztorysy stay accessible (FR-016). Risk: a half-built editor behind this flag recreates the two-worlds problem.
+- **Risk:** The release gate — only flips once full parity is built, E2E-covered (S-13), and hardened (S-15). Guardrail: the materiały-mirror must keep syncing for investments still on sheets (FR-014), and existing sheet kosztorysy stay accessible (FR-016). Risk: a half-built editor behind this flag recreates the two-worlds problem.
 - **Status:** deferred — band 4 (release).
 
 ### Cut & folded slices
@@ -345,19 +420,19 @@ Kept for the record; pulled out of the numbered sequence because they carry no e
 - **Change ID:** kosztorys-rooms
 - **Was:** S-05 (pre-2026-07-10 numbering).
 
-#### kosztorys-catalogue — FOLDED into S-08
+#### kosztorys-catalogue — FOLDED into S-09
 
-- **FOLDED into S-08 (2026-07-09, owner).** FR-006 (add items via autocomplete, hand-typing
+- **FOLDED into S-09 (2026-07-09, owner).** FR-006 (add items via autocomplete, hand-typing
   always allowed) survives — it is **not cut** — but ships as part of the preset slice, not a
   standalone catalogue. Rationale: the POC already flagged the "podpowiadarka" as arriving _with
   szablony_ and deliberately kept prices as typed snapshots so a suggestion layer could sit on top
-  (`context/archive/kosztorys-poc-in-app/2026-06-19-...-notes-BRAINDUMP.md:185`).
+  (`context/reference/kosztorys-editor-domain-notes.md:179`).
 - **Chosen model: A (preset-sourced).** There is **no separate catalogue table.** The "master
   price list" _is_ the union of `prace` across presets; autocomplete is a read-only view over
   that data, snapshotting opis + J.m. + price into the new item on select (overwritable per the
   snapshot rule). This dissolves the old seeding question (Q6) — building presets _is_ seeding the
   suggestions.
-- **Change ID:** kosztorys-catalogue (retired; work tracked under kosztorys-preset / S-08).
+- **Change ID:** kosztorys-catalogue (retired; work tracked under kosztorys-preset / S-09).
 - **PRD refs:** FR-006.
 - **Was:** S-06 (pre-2026-07-10 numbering).
 
@@ -380,10 +455,10 @@ slice's Unknowns.
 **Still open:**
 
 6. ~~**Catalogue seeding.**~~ **Resolved (2026-07-09):** dissolved by folding the catalogue into S-08 with Model A — autocomplete sources from preset prace, so building presets _is_ seeding. No standalone catalogue to seed.
-7. **Importer trigger (FR-010).** What concretely triggers the deferred importer? — Owner: user. Gates: S-10.
+7. **Importer trigger (FR-010).** What concretely triggers the deferred importer? — Owner: user. Gates: S-12.
 8. **Settings-home UX.** Where VAT (S-05) + subcontractor coefficients (S-04) are edited — detail-inwestycji or a future "Podsumowanie" panel, not the side panel. — Owner: user. Gates: S-04, S-05.
-9. **Preset scope (S-08).** One global default preset vs a named library picked at create-time (owner leans library). — Owner: user. Gates: S-08.
-10. **Preset save-as + retroactivity (S-08).** Save-as-new vs overwrite; and whether editing a preset retroactively touches kosztorysy already spawned from it (rec: no — snapshot). — Owner: user. Gates: S-08.
+9. **Preset scope (S-09).** One global default preset vs a named library picked at create-time (owner leans library). — Owner: user. Gates: S-09.
+10. **Preset save-as + retroactivity (S-09).** Save-as-new vs overwrite; and whether editing a preset retroactively touches kosztorysy already spawned from it (rec: no — snapshot). — Owner: user. Gates: S-09.
 
 ## Parked
 
