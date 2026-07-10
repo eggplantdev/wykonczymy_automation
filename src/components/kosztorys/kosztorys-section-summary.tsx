@@ -15,6 +15,10 @@ type PropsT = {
   activeSectionId: number | null
   globalCoeffs: { wTools: number; ownTools: number }
   sectionCoeffs: Map<number, SectionCoeffsT>
+  // VAT rate as a fraction (0.08); the field shows/accepts a percent. bruttoVisible gates the
+  // Suma brutto line so it matches the grid's Brutto column.
+  vatRate: number
+  bruttoVisible: boolean
   onClose: () => void
   onAddSection: () => void
   onAddItem: (sectionId: number) => void
@@ -26,6 +30,7 @@ type PropsT = {
     sectionId: number,
     patch: { wToolsCoeff?: number | null; ownToolsCoeff?: number | null },
   ) => void
+  onVatChange: (vatRate: number) => void
 }
 
 // Markup-coefficient field. Uncontrolled + `key` on the value (remount after router.refresh),
@@ -76,6 +81,8 @@ export function KosztorysSectionSummary({
   activeSectionId,
   globalCoeffs,
   sectionCoeffs,
+  vatRate,
+  bruttoVisible,
   onClose,
   onAddSection,
   onAddItem,
@@ -84,6 +91,7 @@ export function KosztorysSectionSummary({
   onFilterSection,
   onGlobalCoeffChange,
   onSectionCoeffChange,
+  onVatChange,
 }: PropsT) {
   // Inline rename: id of the section being edited + name buffer. null = nothing is being edited.
   const [editId, setEditId] = useState<number | null>(null)
@@ -107,7 +115,7 @@ export function KosztorysSectionSummary({
   }
 
   return (
-    <aside className="border-border flex w-72 shrink-0 flex-col overflow-hidden border-l">
+    <aside className="border-border bg-background absolute inset-y-0 right-0 z-20 flex w-72 flex-col overflow-hidden border-l shadow-lg">
       <div className="border-border flex shrink-0 items-center justify-between border-b px-3 py-2">
         <h2 className="text-foreground text-sm font-medium">Sekcje</h2>
         <div className="flex items-center gap-1">
@@ -139,6 +147,15 @@ export function KosztorysSectionSummary({
             label="bez narzędzi"
             value={globalCoeffs.ownTools}
             onCommit={(n) => n != null && onGlobalCoeffChange({ ownToolsCoeff: n })}
+          />
+        </div>
+        {/* VAT is stored as a fraction but entered as a percent: show ×100, commit ÷100. */}
+        <div className="mt-2 flex flex-col gap-1">
+          <div className="text-muted-foreground mb-1 text-xs">Stawka VAT</div>
+          <CoeffField
+            label="VAT %"
+            value={vatRate * 100}
+            onCommit={(n) => n != null && onVatChange(n / 100)}
           />
         </div>
       </div>
@@ -259,6 +276,14 @@ export function KosztorysSectionSummary({
         <span className="text-foreground text-sm font-medium">Suma netto</span>
         <span className="text-foreground text-sm font-medium tabular-nums">{fmt(grandNet)}</span>
       </div>
+      {bruttoVisible && (
+        <div className="border-border flex shrink-0 items-baseline justify-between border-t px-3 py-2">
+          <span className="text-foreground text-sm font-medium">Suma brutto</span>
+          <span className="text-foreground text-sm font-medium tabular-nums">
+            {fmt(grandNet * (1 + vatRate))}
+          </span>
+        </div>
+      )}
     </aside>
   )
 }

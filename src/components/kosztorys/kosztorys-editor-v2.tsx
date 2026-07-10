@@ -24,6 +24,8 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
     totalNet,
     sectionCoeffs,
     setView,
+    bruttoVisible,
+    toggleBrutto,
     search,
     setSearch,
     activeSectionId,
@@ -38,11 +40,11 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
     handleRemoveSection,
     handleGlobalCoeffChange,
     handleSectionCoeffChange,
+    handleVatChange,
   } = useKosztorysEditor({ investmentId, tree })
 
   return (
-    // Full-height page like a spreadsheet view: a compact bar on top + the grid taking the rest.
-    <div className="flex h-full w-full flex-col overflow-hidden">
+    <div className="flex h-[calc(100dvh-3.5rem)] w-full flex-col overflow-hidden">
       <KosztorysEditorToolbar
         investmentName={investmentName}
         view={view}
@@ -53,6 +55,8 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
         onAddItem={handleAddItem}
         onAddStage={handleAddStage}
         itemCount={viewRows.length}
+        bruttoVisible={bruttoVisible}
+        onToggleBrutto={toggleBrutto}
         summaryOpen={summaryOpen}
         onToggleSummary={() => setSummaryOpen((o) => !o)}
       />
@@ -60,7 +64,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
           needs px for virtualization; without it, it renders all 1000 rows.
           The grid track `minmax(0,1fr)` gives a DEFINITE width (= viewport): the grid doesn't
           stretch the container to the sum of the columns, it scrolls them internally instead. */}
-      <div className="flex min-h-0 flex-1 overflow-hidden">
+      <div className="relative flex min-h-0 flex-1 overflow-hidden">
         {/* min-w-0 lets the wrapper shrink below its content in a flex context;
             grid-cols-[minmax(0,1fr)] still gives the grid a definite width (anti-flicker). */}
         <div
@@ -73,7 +77,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
             // all 3 views showed the client price, without `widthsKey` a resize didn't recompute the widths.
             // `sorted/natural`: the reorder arrows (grayed out while sorting) must rebuild
             // on entering/leaving sort — asc↔desc does not remount (arrow state unchanged).
-            key={`${view}:${sort ? 'sorted' : 'natural'}:${widthsKey}:${stagesKey}`}
+            key={`${view}:${sort ? 'sorted' : 'natural'}:${widthsKey}:${stagesKey}:${bruttoVisible}`}
             className="kosztorys-grid"
             value={viewRows}
             onChange={onChange}
@@ -92,6 +96,8 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
             activeSectionId={activeSectionId}
             globalCoeffs={tree.globalCoeffs}
             sectionCoeffs={sectionCoeffs}
+            vatRate={tree.vatRate}
+            bruttoVisible={bruttoVisible}
             onClose={() => setSummaryOpen(false)}
             onAddSection={handleAddSection}
             onAddItem={handleAddItem}
@@ -100,6 +106,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
             onFilterSection={setActiveSectionId}
             onGlobalCoeffChange={handleGlobalCoeffChange}
             onSectionCoeffChange={handleSectionCoeffChange}
+            onVatChange={handleVatChange}
           />
         )}
       </div>
