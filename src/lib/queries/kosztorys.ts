@@ -1,7 +1,7 @@
 import 'server-only'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { DEFAULT_COEFFS } from '@/lib/kosztorys/constants'
+import { DEFAULT_COEFFS, DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import type {
   CostVariantT,
   DiscountTypeT,
@@ -19,8 +19,7 @@ const relId = (v: unknown): number =>
 const num = (v: unknown): number => Number(v ?? 0)
 
 // S-01: sections + items of a single investment, ordered by displayOrder → displayOrder.
-// S-04: stages (ordered by ordinal) + sparse per-item progress. VAT (S-12) is still out of
-// scope: vatRate = 0.
+// S-04: stages (ordered by ordinal) + sparse per-item progress. S-05: per-investment VAT rate.
 export async function getKosztorysTree(investmentId: number): Promise<KosztorysTreeT> {
   const payload = await getPayload({ config })
   const where = { investment: { equals: investmentId } }
@@ -116,5 +115,5 @@ export async function getKosztorysTree(investmentId: number): Promise<KosztorysT
     qtyDone: num(d.qtyDone),
   }))
 
-  return { sections, stages, progress, globalCoeffs, vatRate: 0 }
+  return { sections, stages, progress, globalCoeffs, vatRate: investment.vatRate ?? DEFAULT_VAT }
 }

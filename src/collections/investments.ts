@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
-import { DEFAULT_COEFFS } from '@/lib/kosztorys/constants'
+import { DEFAULT_COEFFS, DEFAULT_VAT } from '@/lib/kosztorys/constants'
 
 const STATUS_OPTIONS = [
   { label: { en: 'Active', pl: 'Aktywna' }, value: 'active' },
@@ -93,6 +93,14 @@ export const Investments: CollectionConfig = {
         en: 'Subcontractor coeff (own tools)',
         pl: 'Współczynnik podwykonawcy (bez narzędzi)',
       },
+    },
+    // Per-investment VAT rate, stored as a fraction (0.08 = 8%). Kosztorys prices are netto;
+    // brutto is computed. Edited from the kosztorys editor (Sekcje panel), not typically here.
+    {
+      name: 'vatRate',
+      type: 'number',
+      defaultValue: DEFAULT_VAT,
+      label: { en: 'VAT rate (fraction)', pl: 'Stawka VAT (ułamek)' },
     },
   ],
 }
