@@ -525,10 +525,10 @@ env schema and to Vercel env (human step). Daily granularity works on all Vercel
 
 #### Automated
 
-- [x] 2.1 Type checking passes
-- [x] 2.2 Lint passes
-- [x] 2.3 `pruneAutoCount` unit test passes
-- [x] 2.4 `saveSnapshotAction` empty-label rejection test passes
+- [x] 2.1 Type checking passes — b3a8044
+- [x] 2.2 Lint passes — b3a8044
+- [x] 2.3 `pruneAutoCount` unit test passes — b3a8044
+- [x] 2.4 `saveSnapshotAction` empty-label rejection test passes — b3a8044
 
 #### Manual
 
@@ -541,10 +541,10 @@ env schema and to Vercel env (human step). Daily granularity works on all Vercel
 
 #### Automated
 
-- [ ] 3.1 Type checking passes
-- [ ] 3.2 Lint passes
-- [ ] 3.3 Restore integration test (persisted state + one forced auto snapshot) passes
-- [ ] 3.4 Restore access-gate test passes
+- [x] 3.1 Type checking passes
+- [x] 3.2 Lint passes
+- [x] 3.3 Restore integration test (persisted state + one forced auto snapshot) passes
+- [x] 3.4 Restore access-gate test passes
 
 #### Manual
 

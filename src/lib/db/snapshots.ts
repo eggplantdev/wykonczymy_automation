@@ -62,6 +62,21 @@ export async function pruneAutoCount(db: DbExecutorT, investmentId: number): Pro
   `)
 }
 
+// Load one snapshot's full payload by id (with its investment) — the restore path resolves the
+// target investment from the row itself rather than trusting a client-passed value. Returns null
+// when the id doesn't exist.
+export async function getSnapshot(
+  db: DbExecutorT,
+  snapshotId: number,
+): Promise<{ investmentId: number; payload: SnapshotPayloadT } | null> {
+  const res = await db.execute(sql`
+    SELECT investment_id, payload FROM kosztorys_snapshots WHERE id = ${snapshotId}
+  `)
+  const row = res.rows[0]
+  if (!row) return null
+  return { investmentId: Number(row.investment_id), payload: row.payload as SnapshotPayloadT }
+}
+
 export async function listSnapshots(
   db: DbExecutorT,
   investmentId: number,
