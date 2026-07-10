@@ -6,18 +6,28 @@ One living checklist for every slice — the project's QA registry. Each `##` se
 
 ## S-03 — kosztorys-stages
 
-**In review** — pending author sign-off. Phases 1–3 manual rows already confirmed (1.5, 2.5, 2.6, 3.4); Phase 4 (Editor UI) below is the remaining gate.
+**In review** — pending author sign-off. Phases 1–3 manual rows already confirmed (1.5, 2.5, 2.6, 3.4); Phase 4 (Editor UI) verified 2026-07-10 (OWNER `e2e@wykonczymy.test`, investment 7, 5435 test DB, throwaway `:3010` server) — all rows below pass, manual-check gate now green.
 
 Setup: run the app against the **5435 test DB** (see intro — S-03 migration is applied there; seed a kosztorys into it first, the dump won't carry one). Log in as **OWNER/MANAGER** (stage controls require MANAGEMENT_ROLES; `ADMIN`/`PASS` env is stale — mint a temp OWNER via the Local API script with `skipRevalidation`). Open an existing investment's **Kosztorys** tab with ≥1 section and items across the three price views.
 
 ### Phase 4: Editor UI — stages
 
-- [ ] **4.5 — Add stage → new column; second stage → existing rows show 0.** `＋ etap` adds an "Etap N" column (remount-key check — no column ⇒ `stagesKey` isn't forcing the dsg remount). Second `＋ etap` → second column; existing rows show `0`, not blanks.
-- [ ] **4.6 — Rename a stage via its header, persists across refresh.** Type a label, blur/Enter, reload → sticks. Empty label → header shows `Etap N` placeholder and persists `null`. Tabbing through with no change issues no write (no-op guard).
-- [ ] **4.7 — Progress entry → Pozostało recomputes live; view toggle recomputes.** Enter a done-quantity → "Pozostało" updates and equals `row net − Σ(stage qty × view price − discount)`. Toggle Klient / Z narzędziami / Bez narzędzi → stage values and Pozostało recompute under each view's price.
-- [ ] **4.8 — Progress persists across reload; no duplicate row on re-entry (upsert).** Reload → quantities persist. Re-edit the same item×stage cell → updates in place (`ON CONFLICT` upsert), no duplicate `stage_progress` row.
-- [ ] **4.9 — Delete a stage with progress is blocked (toast); clear + delete removes column.** Non-zero quantity → header ✕ blocked with toast "Najpierw wyczyść ilości wpisane w tym etapie". Clear all to 0 → ✕ removes the column.
-- [ ] **4.10 — EMPLOYEE no access; sections/items/reorder/discount unchanged; financials unchanged.** EMPLOYEE still can't open the editor. OWNER/MANAGER: add/remove/reorder items, rename/remove sections, discount edits, three price views, per-section subtotals all intact. Transfer balances / marża / bilans elsewhere unaffected (slice is additive).
+- [x] **4.5 — Add stage → new column; second stage → existing rows show 0.** `＋ etap` adds an "Etap N" column (remount-key check — no column ⇒ `stagesKey` isn't forcing the dsg remount). Second `＋ etap` → second column; existing rows show `0`, not blanks. _Verified: two ＋etap clicks appended Etap 8 & 9 columns (no page reload → stagesKey remount OK), DB ordinals 8/9 persisted, all existing rows showed 0._
+- [x] **4.6 — Rename a stage via its header, persists across refresh.** Type a label, blur/Enter, reload → sticks. Empty label → header shows `Etap N` placeholder and persists `null`. Tabbing through with no change issues no write (no-op guard). _Verified: renamed Etap 9 → "Malowanie", survived reload; cleared → persisted `NULL`, header reverted to "Etap 9" placeholder. No-op guard confirmed by code (`use-kosztorys-editor.ts:307`)._
+- [x] **4.7 — Progress entry → Pozostało recomputes live; view toggle recomputes.** Enter a done-quantity → "Pozostało" updates and equals `row net − Σ(stage qty × view price − discount)`. Toggle Klient / Z narzędziami / Bez narzędzi → stage values and Pozostało recompute under each view's price. _Verified: row 1 Etap3=2 → Pozostało −19,00→−57,00 live (=19 − 3×19). Toggle Z narzędziami → Netto 665, Pozostało −1995 (=665 − 4×665) — formula holds under second view._
+- [x] **4.8 — Progress persists across reload; no duplicate row on re-entry (upsert).** Reload → quantities persist. Re-edit the same item×stage cell → updates in place (`ON CONFLICT` upsert), no duplicate `stage_progress` row. _Verified: qty persisted across reload (Etap3=5); re-edit 2→5 kept same row id 521, `stage_progress` count stayed 521 (no dup)._
+- [x] **4.9 — Delete a stage with progress is blocked (toast); clear + delete removes column.** Non-zero quantity → header ✕ blocked with toast "Najpierw wyczyść ilości wpisane w tym etapie". Clear all to 0 → ✕ removes the column. _Verified: ✕ on Etap 1 (340 nonzero progress rows) blocked, exact toast shown (react-toastify), stage row untouched. ✕ on a clean stage (no non-zero progress) removed its column (9→8 stages)._
+- [x] **4.10 — EMPLOYEE no access; sections/items/reorder/discount unchanged; financials unchanged.** EMPLOYEE still can't open the editor. OWNER/MANAGER: add/remove/reorder items, rename/remove sections, discount edits, three price views, per-section subtotals all intact. Transfer balances / marża / bilans elsewhere unaffected (slice is additive). _Verified: temp EMPLOYEE hitting `/inwestycje/7/kosztorys` redirected to `/`. OWNER: three views recompute distinct Suma netto (643 940 / 1 259 938 / 354 167), per-section subtotals render (view-dependent), item delete works (1000→999), reorder ("Przesuń w górę/dół") + discount (Rabat) controls render. Financials additive-only — no transfer code touched (design-verified)._
+
+### Findings — 2026-07-10
+
+Pass ran clean — **no bugs found**, all six Phase-4 boxes ticked. No open findings; nothing blocks S-03 from `Done`.
+
+- Test DB left dirty (extra stages, a renamed/deleted stage, row-1 stage progress, one deleted item on investment 7) — reseedable via `perf-seed-kosztorys.ts` against `DB_POSTGRES_URL_TEST`. A temp EMPLOYEE (`temp-employee@wykonczymy.test`) was minted in the test DB for the access check.
+- **Test disposition (coverage) — DONE 2026-07-10.** Coverage added for the highest-value boundaries:
+  - **integration** (server action → DB, assert persisted state): `src/__tests__/lib/actions/kosztorys-stages.test.ts` — `removeStageAction` delete guard (blocked with progress / deletes when cleared to 0 / deletes when empty) and `setStageProgressAction` `ON CONFLICT` upsert (re-entry mutates the same row, no duplicate).
+  - **unit**: `src/__tests__/kosztorys-calc.test.ts` — `rowRemainingForView` over-completion (negative Pozostało, the 4.7 behavior) + amount-discount path.
+  - All green. DB tests gated on `DB_POSTGRES_URL`/`PAYLOAD_SECRET` (local dev DB, `--env-file=.env`), self-cleaning fixtures.
 
 ## S-05 — kosztorys-vat
 
@@ -37,3 +47,22 @@ Manual QA completed 2026-07-10 (OWNER, investment 6, fresh dev server on :3000).
 - [x] Editing VAT updates all brutto live and persists across reload
 - [x] Brutto consistent across all three price views
 - [x] No regressions to netto totals, coeffs, stages, autosave
+
+## S-08 — kosztorys-delete-guard
+
+**In review** — pending author sign-off. Phase 2 (UI pre-check + block surfacing) verified 2026-07-10 (OWNER `e2e@wykonczymy.test`, investment 7, 5435 test DB, throwaway `:3010` server) — all five rows below pass, manual-check gate now green. Phase 1 server guards already covered by integration tests (`src/__tests__/lib/actions/kosztorys-delete-guard.test.ts`).
+
+### Phase 2: UI pre-check + block surfacing
+
+- [x] Row with pomiar / recorded progress: blocked with toast, row stays. _Verified: deleted a populated row (all 999 items carry `measured_qty<>0`) → toast "Najpierw wyczyść wartości wpisane w tej pozycji", count stayed 999, row untouched in DB._
+- [x] Plan-only row (przedmiar/price only): still deletes instantly. _Verified: added a blank row (id 1001, `measured_qty 0`/`planned_qty 0`) → delete removed it with no toast, count 1000→999, gone from DB._
+- [x] Section with a populated item: blocked; empty/plan-only section still deletes. _Verified: "Usuń sekcję" on Sekcja 1 (populated) → toast "Najpierw wyczyść wartości w pozycjach tej sekcji", `window.confirm` never reached (pre-check short-circuits), section survives. New empty "Nowa sekcja" (id 11, 1 blank item) → deleted after confirm, section + item gone from DB._
+- [x] No vanish-then-reappear flicker on a blocked delete. _Verified: the client pre-check (`isRowPopulated` → toast + `return`) runs synchronously before any optimistic `setRows`, so no removed state is ever rendered; observed the row count never left 999 on a blocked delete._
+- [x] Stage (column) delete still blocks on recorded progress (regression). _Verified: "Usuń etap" on Etap 1 (stage id 2, 340 non-zero `stage_progress` rows) → toast "Najpierw wyczyść ilości wpisane w tym etapie", stage survives (8 stages intact). Unchanged from S-03 4.9._
+
+### Findings — 2026-07-10
+
+Pass ran clean — **no bugs found**, all five Phase-2 boxes ticked. No open findings; nothing blocks S-08 from `Done`.
+
+- Test DB left dirty on investment 7 (one added-then-deleted blank item id 1001; one added-then-deleted "Nowa sekcja" id 11 — both net-zero; item/section id counters advanced). Reseedable via `perf-seed-kosztorys.ts` against `DB_POSTGRES_URL_TEST`. Row/stage/section content otherwise unchanged from the S-03 pass state.
+- **Test disposition (coverage) — already DONE.** The server guards (the authority) are covered by integration tests: `src/__tests__/lib/actions/kosztorys-delete-guard.test.ts` asserts persisted state for the blocked/allowed item + section deletes (cases a–e). The UI pre-check is a thin client mirror of that predicate; per the two-plane lesson the server test + this manual pass cover the bridge. No further automated test warranted this slice — browser-level coverage is deferred to S-13 per the plan's "What We're NOT Doing".

@@ -291,8 +291,8 @@ None — no schema change. Purely additive action logic + UI wiring.
 
 #### Manual
 
-- [ ] 2.4 Row with pomiar / recorded progress: blocked with toast, row stays
-- [ ] 2.5 Plan-only row (przedmiar/price only): still deletes instantly
-- [ ] 2.6 Section with a populated item: blocked; empty/plan-only section still deletes
-- [ ] 2.7 No vanish-then-reappear flicker on a blocked delete
-- [ ] 2.8 Stage (column) delete still blocks on recorded progress (regression)
+- [x] 2.4 Row with pomiar / recorded progress: blocked with toast, row stays — verified 2026-07-10 (manual-checks.md S-08)
+- [x] 2.5 Plan-only row (przedmiar/price only): still deletes instantly — verified 2026-07-10
+- [x] 2.6 Section with a populated item: blocked; empty/plan-only section still deletes — verified 2026-07-10
+- [x] 2.7 No vanish-then-reappear flicker on a blocked delete — verified 2026-07-10
+- [x] 2.8 Stage (column) delete still blocks on recorded progress (regression) — verified 2026-07-10
