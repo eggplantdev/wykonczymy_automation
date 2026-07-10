@@ -288,10 +288,10 @@ data migration. Human applies to prod before Phase 2 ships (`payload-prod-migrat
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `pnpm exec tsc --noEmit`
-- [x] 2.2 Lint passes: `pnpm lint`
-- [x] 2.3 Build passes: `pnpm build`
-- [x] 2.4 Calc tests pass with brutto assertion: `pnpm exec vitest run src/__tests__/kosztorys-calc.test.ts`
+- [x] 2.1 Type checking passes: `pnpm exec tsc --noEmit` — 2ca5591
+- [x] 2.2 Lint passes: `pnpm lint` — 2ca5591
+- [x] 2.3 Build passes: `pnpm build` — 2ca5591
+- [x] 2.4 Calc tests pass with brutto assertion: `pnpm exec vitest run src/__tests__/kosztorys-calc.test.ts` — 2ca5591
 
 #### Manual
 

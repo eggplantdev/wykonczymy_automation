@@ -1,7 +1,7 @@
 ---
 change_id: kosztorys-vat
 title: VAT per investment — netto entry, brutto computed
-status: implementing
+status: implemented
 created: 2026-07-10
 updated: 2026-07-10
 archived_at: null
