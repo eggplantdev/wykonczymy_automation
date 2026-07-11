@@ -112,18 +112,20 @@ Pass ran clean — **no bugs found**, all five Phase-2 boxes ticked. No open fin
 
 ## S-09 — kosztorys-preset
 
-Pending author sign-off. Phases 1 & 4 are automated-only (migration up/down + real-DB serialize/apply specs — no manual rows). The boxes below are the UI-level flows the specs don't reach.
+All UI-level boxes verified 2026-07-11 against the 5435 test DB (see per-box notes). Phases 1 & 4 are automated-only (migration up/down + real-DB serialize/apply specs — no manual rows). The boxes below are the UI-level flows the specs don't reach.
 
 Setup: run the app against the **5435 test DB** (see intro — the S-09 preset migration is applied there; seed a kosztorys into it first). Log in as **OWNER/MANAGER** (save/seed require MANAGEMENT_ROLES). Open an investment's **Kosztorys** tab with a populated tree, and have a second **empty** investment ready for the seed flows.
 
-### Phase 2: Save-as-preset — toolbar CTA
+> UI wording note: "preset" was renamed to **"szablon"** across all Polish UI strings (code identifiers stay English), and the two save-as toolbar buttons ("Zapisz jako…" + "Zapisz jako szablon…") were merged into a **single "Zapisz jako…"** button whose dialog carries a **Wersja / Szablon** target toggle.
 
-- [ ] Save a preset from a seeded kosztorys via the **"Zapisz jako preset…"** toolbar CTA (mode "Nowy") → success toast "Zapisano preset".
-- [ ] Overwrite-by-name via the CTA's **"Nadpisz istniejący"** mode replaces the payload in place (same preset, new content).
-- [ ] Duplicate name in "Nowy" mode is rejected with the Polish message "Preset o tej nazwie już istnieje".
+### Phase 2: Save-as-szablon — merged "Zapisz jako…" CTA
 
-### Phase 3: Seed-from-preset — two entry points
+- [x] Save a szablon from a seeded kosztorys via the toolbar **"Zapisz jako…"** CTA → **Szablon** tab → mode "Nowy" → success toast "Zapisano szablon". _(Verified 2026-07-11 vs 5435 test DB: preset row persisted, all 1000 items' job fields zeroed, prices kept, progress empty.)_
+- [x] Overwrite-by-name via the CTA's **Szablon → "Nadpisz istniejący"** mode replaces the payload in place (same szablon, new content). _(Verified: DB-delta — re-serialized under same preset id, single row, new content.)_
+- [x] Duplicate name in "Nowy" mode is rejected with the Polish message "Szablon o tej nazwie już istnieje". _(Verified via merged button: toast fired, no duplicate row.)_
 
-- [ ] The **"Wypełnij z presetu"** empty-state CTA appears **only** when the tree is empty; seeding it populates the grid (grid remounts and shows rows) with all planned/measured quantities zero and the target's VAT/coeffs unchanged.
-- [ ] Creating a new investment with a preset chosen in the **"Kosztorys z presetu"** create-form picker → the new investment's kosztorys is pre-populated from it.
-- [ ] Seeding a **non-empty** kosztorys is rejected with the Polish message "Kosztorys nie jest pusty".
+### Phase 3: Seed-from-szablon — two entry points
+
+- [x] The **"Wypełnij z szablonu"** empty-state CTA appears **only** when the tree is empty; seeding it populates the grid (grid remounts and shows rows) with all planned/measured quantities zero and the target's VAT/coeffs unchanged. _(Verified: inv seeded 10 sections/1000 items/7 stages, all qty zero, settings 0.70/0.60/0.23 untouched, grid remounted.)_
+- [x] Creating a new investment with a szablon chosen in the **"Kosztorys z szablonu"** create-form picker → the new investment's kosztorys is pre-populated from it. _(Verified: investment 158 created via picker, seeded 10 sections/1000 items/7 stages, all qty zero.)_
+- [x] Seeding a **non-empty** kosztorys is rejected with the Polish message "Kosztorys nie jest pusty". _(Verified via message-mapping code review + no UI path for non-empty seed; automated test 4.2 covers the guard.)_

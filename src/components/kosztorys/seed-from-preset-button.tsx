@@ -20,7 +20,7 @@ type PropsT = {
   onSeeded: () => void
 }
 
-// "Wypełnij z presetu" — populate an empty kosztorys from a saved template. Shown only when the tree
+// "Wypełnij z szablonu" — populate an empty kosztorys from a saved template. Shown only when the tree
 // is empty (the shell gates it). Fetch-on-open preset list; on success the shell remounts the grid.
 export function SeedFromPresetButton({ investmentId, onSeeded }: PropsT) {
   const [open, setOpen] = useState(false)
@@ -43,10 +43,10 @@ export function SeedFromPresetButton({ investmentId, onSeeded }: PropsT) {
     const res = await seedFromPresetAction(investmentId, id)
     setSeeding(false)
     if (!res.success) {
-      toastMessage(res.error ?? 'Nie udało się wypełnić z presetu', 'error', 4000)
+      toastMessage(res.error ?? 'Nie udało się wypełnić z szablonu', 'error', 4000)
       return
     }
-    toastMessage('Wypełniono z presetu', 'success')
+    toastMessage('Wypełniono z szablonu', 'success')
     setOpen(false)
     onSeeded()
   }
@@ -54,20 +54,20 @@ export function SeedFromPresetButton({ investmentId, onSeeded }: PropsT) {
   return (
     <>
       <Button size="sm" variant="outline" onClick={() => void handleOpenChange(true)}>
-        Wypełnij z presetu
+        Wypełnij z szablonu
       </Button>
       <Dialog open={open} onOpenChange={(next) => void handleOpenChange(next)}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader
-            title="Wypełnij z presetu"
+            title="Wypełnij z szablonu"
             description="Utwórz kosztorys na podstawie zapisanego szablonu."
           />
           {presets.length === 0 ? (
-            <p className="text-muted-foreground text-sm">Brak zapisanych presetów.</p>
+            <p className="text-muted-foreground text-sm">Brak zapisanych szablonów.</p>
           ) : (
             <Select value={presetId} onValueChange={setPresetId}>
               <SelectTrigger>
-                <SelectValue placeholder="Wybierz preset" />
+                <SelectValue placeholder="Wybierz szablon" />
               </SelectTrigger>
               <SelectContent>
                 {presets.map((preset) => (

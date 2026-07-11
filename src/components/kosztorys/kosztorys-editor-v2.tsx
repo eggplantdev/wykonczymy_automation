@@ -67,7 +67,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
       {tree.sections.length === 0 && (
         <div className="border-border bg-muted/30 flex items-center justify-between gap-3 rounded-md border border-dashed px-4 py-3">
           <p className="text-muted-foreground text-sm">
-            Kosztorys jest pusty. Możesz wypełnić go z zapisanego presetu.
+            Kosztorys jest pusty. Możesz wypełnić go z zapisanego szablonu.
           </p>
           <SeedFromPresetButton investmentId={investmentId} onSeeded={handleRestored} />
         </div>

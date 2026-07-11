@@ -51,7 +51,7 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
       if (chosenPresetId) {
         const result = await seedInvestmentFromPreset(payload, Number(created.id), chosenPresetId)
         if (result === 'not-found') {
-          return { success: false, error: 'Utworzono inwestycję, ale nie znaleziono presetu.' }
+          return { success: false, error: 'Utworzono inwestycję, ale nie znaleziono szablonu.' }
         }
       }
 

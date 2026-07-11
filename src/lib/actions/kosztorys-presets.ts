@@ -9,7 +9,7 @@ import { serializeKosztorysAsPreset } from '@/lib/kosztorys/serialize-preset'
 import type { ActionResultT } from '@/types/action'
 
 const savePresetSchema = z.object({
-  name: z.string().trim().min(1, 'Podaj nazwę presetu'),
+  name: z.string().trim().min(1, 'Podaj nazwę szablonu'),
   mode: z.enum(['new', 'overwrite']),
 })
 
@@ -35,12 +35,12 @@ export async function savePresetAction(
     }
 
     const id = await insertPreset(db, { name: parsed.data.name, createdBy: user.id, payload: preset })
-    if (id == null) return { success: false, error: 'Preset o tej nazwie już istnieje' }
+    if (id == null) return { success: false, error: 'Szablon o tej nazwie już istnieje' }
     return { success: true }
   })
 }
 
-// Populate an EMPTY investment's kosztorys from a preset (empty-editor "Wypełnij z presetu"). The
+// Populate an EMPTY investment's kosztorys from a preset (empty-editor "Wypełnij z szablonu"). The
 // seed orchestration + empty-guard live in seedInvestmentFromPreset; this action owns auth and the
 // revalidation. Four tree tags only — NOT `investments`: settings (VAT/coeffs) are untouched, a
 // preset never carries one job's pricing config onto another.
@@ -52,7 +52,7 @@ export async function seedFromPresetAction(
     'seedFromPresetAction',
     async ({ payload }) => {
       const result = await seedInvestmentFromPreset(payload, investmentId, presetId)
-      if (result === 'not-found') return { success: false, error: 'Nie znaleziono presetu' }
+      if (result === 'not-found') return { success: false, error: 'Nie znaleziono szablonu' }
       if (result === 'not-empty') return { success: false, error: 'Kosztorys nie jest pusty' }
       return { success: true }
     },
