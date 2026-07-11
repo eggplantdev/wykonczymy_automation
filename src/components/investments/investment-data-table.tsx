@@ -13,6 +13,7 @@ import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle'
 import { toggleInvestmentStatus } from '@/lib/actions/toggle-active'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { AddInvestmentDialog } from '@/components/dialogs/add-investment-dialog'
+import type { PresetMetaT } from '@/lib/db/presets'
 
 const isActive = (row: InvestmentRowT) => row.status === 'active'
 const getStatusUpdate = (newActive: boolean) =>
@@ -21,9 +22,14 @@ const getStatusUpdate = (newActive: boolean) =>
 type InvestmentDataTablePropsT = {
   data: InvestmentRowT[]
   expenseCategories: ExpenseCategoryRefT[]
+  presets: PresetMetaT[]
 }
 
-export function InvestmentDataTable({ data, expenseCategories }: InvestmentDataTablePropsT) {
+export function InvestmentDataTable({
+  data,
+  expenseCategories,
+  presets,
+}: InvestmentDataTablePropsT) {
   const { role: userRole } = useCurrentUser()
   const { optimisticData, handleToggle } = useOptimisticToggle(
     data,
@@ -67,7 +73,7 @@ export function InvestmentDataTable({ data, expenseCategories }: InvestmentDataT
             activeLabel="Aktywne"
             allLabel="Wszystkie"
           />
-          <AddInvestmentDialog />
+          <AddInvestmentDialog presets={presets} />
           <ColumnToggle table={table} columnVisibility={cv} />
         </>
       )}

@@ -3,7 +3,8 @@
 import { z } from 'zod'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import { getDb } from '@/lib/db/get-db'
-import { insertPreset, listPresets, upsertPresetByName, type PresetMetaT } from '@/lib/db/presets'
+import { insertPreset, upsertPresetByName, type PresetMetaT } from '@/lib/db/presets'
+import { getPresets } from '@/lib/queries/presets'
 import { seedInvestmentFromPreset } from '@/lib/kosztorys/seed-from-preset'
 import { serializeKosztorysAsPreset } from '@/lib/kosztorys/serialize-preset'
 import type { ActionResultT } from '@/types/action'
@@ -16,28 +17,40 @@ const savePresetSchema = z.object({
 // "Zapisz jako preset" — serialize the current kosztorys with job fields stripped, then store it as
 // a named preset. `mode: 'new'` inserts under a fresh name (a taken name is rejected — insertPreset
 // returns null on conflict); `mode: 'overwrite'` upserts the payload of the existing name in place.
-// No cache tags: presets aren't read through a cached tree, and the picker fetches on open.
+// The only writer of presets, so it owns invalidation of the cached picker read (getPresets).
 export async function savePresetAction(
   investmentId: number,
   name: string,
   mode: 'new' | 'overwrite',
 ): Promise<ActionResultT> {
-  return protectedAction('savePresetAction', async ({ payload, user }) => {
-    const parsed = validateAction(savePresetSchema, { name, mode })
-    if (!parsed.success) return parsed
+  return protectedAction(
+    'savePresetAction',
+    async ({ payload, user }) => {
+      const parsed = validateAction(savePresetSchema, { name, mode })
+      if (!parsed.success) return parsed
 
-    const db = await getDb(payload)
-    const preset = await serializeKosztorysAsPreset(investmentId)
+      const db = await getDb(payload)
+      const preset = await serializeKosztorysAsPreset(investmentId)
 
-    if (parsed.data.mode === 'overwrite') {
-      await upsertPresetByName(db, { name: parsed.data.name, createdBy: user.id, payload: preset })
+      if (parsed.data.mode === 'overwrite') {
+        await upsertPresetByName(db, {
+          name: parsed.data.name,
+          createdBy: user.id,
+          payload: preset,
+        })
+        return { success: true }
+      }
+
+      const id = await insertPreset(db, {
+        name: parsed.data.name,
+        createdBy: user.id,
+        payload: preset,
+      })
+      if (id == null) return { success: false, error: 'Szablon o tej nazwie już istnieje' }
       return { success: true }
-    }
-
-    const id = await insertPreset(db, { name: parsed.data.name, createdBy: user.id, payload: preset })
-    if (id == null) return { success: false, error: 'Szablon o tej nazwie już istnieje' }
-    return { success: true }
-  })
+    },
+    ['presets'],
+  )
 }
 
 // Populate an EMPTY investment's kosztorys from a preset (empty-editor "Wypełnij z szablonu"). The
@@ -60,12 +73,11 @@ export async function seedFromPresetAction(
   )
 }
 
-// Preset metadata for the save/seed pickers — newest first, WITHOUT the jsonb payload. Fetch-on-open
-// (no cache): presets are a small, deliberately-curated library.
+// Preset metadata for the save/seed pickers — the client-side entry point (fetch-on-open) into the
+// same cached read the create-investment page uses server-side, so all pickers share one cache entry.
 export async function listPresetsAction(): Promise<ActionResultT<PresetMetaT[]>> {
-  return protectedAction('listPresetsAction', async ({ payload }) => {
-    const db = await getDb(payload)
-    const data = await listPresets(db)
+  return protectedAction('listPresetsAction', async () => {
+    const data = await getPresets()
     return { success: true, data }
   })
 }

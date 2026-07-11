@@ -20,6 +20,7 @@ import { ContactLink } from '@/components/ui/contact-link'
 import { FinancialStats } from '@/components/investments/financial-stats'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
 import { SheetButton } from '@/components/dialogs/sheet-button'
+import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-button'
 import type { HeaderFieldT } from '@/types/export'
 import type { DynamicPagePropsT } from '@/types/page'
 
@@ -86,6 +87,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
           investmentName={investment.name}
           hasSheet={investment.hasSheet}
         />
+        <OpenKosztorysV2Button investmentId={investmentId} />
       </div>
       <InfoList items={infoFields.filter((f) => f.value)} />
 

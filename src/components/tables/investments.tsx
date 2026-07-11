@@ -11,6 +11,7 @@ import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
 import { ContactLink } from '@/components/ui/contact-link'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
 import { SheetButton } from '@/components/dialogs/sheet-button'
+import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-button'
 
 export type InvestmentRowT = {
   id: number
@@ -157,6 +158,11 @@ export function getInvestmentColumns({
           hasSheet={!!info.getValue()}
         />
       ),
+    }),
+    col.display({
+      id: 'kosztorysV2',
+      header: 'Kosztorys_v2',
+      cell: (info) => <OpenKosztorysV2Button investmentId={info.row.original.id} label="Otwórz" />,
     }),
     col.display({
       id: 'actions',
