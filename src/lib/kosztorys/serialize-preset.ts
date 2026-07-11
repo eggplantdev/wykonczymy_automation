@@ -20,7 +20,7 @@ export async function serializeKosztorysAsPreset(investmentId: number): Promise<
       hiddenInExport: false,
       note: null,
     })),
-    // Keep stage labels/ordinals (structure); drop all recorded progress.
+    // Stages themselves (labels/ordinals) are structure and stay; only their recorded progress goes.
     progress: [],
   }
 }

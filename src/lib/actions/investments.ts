@@ -45,13 +45,28 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
         data: investmentData,
       })
 
-      // Seed the new (trivially empty) investment's kosztorys from the chosen preset. A bad presetId
-      // must not fail the create — the investment already exists; report the seed failure separately.
+      // Seed the new (trivially empty) investment's kosztorys from the chosen preset. Best-effort and
+      // NON-FATAL: the investment is already committed, so a seed failure must never flip the whole
+      // action to failure — that would skip the ['investments'] revalidation (hiding the just-created
+      // investment from the cached list) and invite a duplicate-creating retry. Mirror the non-fatal
+      // stampAllTabs handling in linkSheetAction: log and move on. Any non-'ok' outcome (preset
+      // deleted between form-load and submit, or a DB error) lands the user on an empty editor whose
+      // "Wypełnij z szablonu" CTA lets them retry the seed. No kosztorys* tree tags here — a fresh
+      // investment has no cached tree to invalidate yet.
       const chosenPresetId = presetId ? Number(presetId) : null
       if (chosenPresetId) {
-        const result = await seedInvestmentFromPreset(payload, Number(created.id), chosenPresetId)
-        if (result === 'not-found') {
-          return { success: false, error: 'Utworzono inwestycję, ale nie znaleziono szablonu.' }
+        try {
+          const result = await seedInvestmentFromPreset(payload, Number(created.id), chosenPresetId)
+          if (result !== 'ok') {
+            console.error(
+              `[create-investment] seed from preset ${chosenPresetId} skipped for #${created.id}: ${result}`,
+            )
+          }
+        } catch (err) {
+          console.error(
+            `[create-investment] seed from preset ${chosenPresetId} failed for #${created.id} (non-fatal):`,
+            err,
+          )
         }
       }
 

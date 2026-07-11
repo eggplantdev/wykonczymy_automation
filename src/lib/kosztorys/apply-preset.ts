@@ -22,7 +22,7 @@ export async function applyPreset(
   investmentId: number,
   preset: SnapshotPayloadT,
 ): Promise<void> {
-  const db = await getDb(payload, req) // transaction-scoped Drizzle handle (req carries transactionID)
+  const db = await getDb(payload, req)
 
   const sections = preset.sections ?? []
   const sectionIdMap = new Map<number, number>()

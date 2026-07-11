@@ -21,7 +21,7 @@ type InvestmentFormPropsT = {
   submittingLabel: string
   onSubmitSuccess: () => void
   keepOpen?: boolean
-  // Create-only: when provided, renders a "seed kosztorys from preset" picker. Omitted on edit.
+  // Create-only seed-from-szablon picker; omitted on edit.
   presetOptions?: PresetMetaT[]
 }
 
