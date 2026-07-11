@@ -21,16 +21,17 @@ Owner is a Google Sheets user — the fix follows Sheets conventions.
 
 Grounded against current code; Linear descriptions predated some of it (reconciled below).
 
-| Item                           | Linear                | File(s)                                                                                                       | Type        |
-| ------------------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------- | ----------- |
-| Add-position context menu      | _(new — file parent)_ | `use-kosztorys-editor.ts`, `kosztorys-v2-columns.tsx`, `lib/actions/kosztorys.ts`, `lib/kosztorys/v2-rows.ts` | Feature     |
-| Kosztorys/Arkusz → one toggle  | EX-427                | `kosztorys-tab-host.tsx`                                                                                      | Improvement |
-| View scope buttons → select    | EX-425                | `kosztorys-editor-toolbar.tsx`                                                                                | Improvement |
-| Brutto toggle: label + tooltip | EX-426                | `kosztorys-editor-toolbar.tsx`                                                                                | Improvement |
-| Toggle layout shift            | EX-421                | toolbar buttons                                                                                               | Bug         |
-| Table flicker on toggle        | EX-422                | `kosztorys-editor-body.tsx`                                                                                   | Bug         |
-| Column-resize shrink floor     | EX-424                | `kosztorys-v2-columns.tsx`                                                                                    | Bug         |
-| "Wersje" drawer stuck loading  | EX-423                | `kosztorys-versions-drawer.tsx`                                                                               | Bug         |
+| Item                            | Linear                | File(s)                                                                                                       | Type        |
+| ------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------- | ----------- |
+| Add-position context menu       | _(new — file parent)_ | `use-kosztorys-editor.ts`, `kosztorys-v2-columns.tsx`, `lib/actions/kosztorys.ts`, `lib/kosztorys/v2-rows.ts` | Feature     |
+| Kosztorys/Arkusz → one toggle   | EX-427                | `kosztorys-tab-host.tsx`                                                                                      | Improvement |
+| View scope buttons → select     | EX-425                | `kosztorys-editor-toolbar.tsx`                                                                                | Improvement |
+| Brutto toggle: label + tooltip  | EX-426                | `kosztorys-editor-toolbar.tsx`                                                                                | Improvement |
+| Toggle layout shift             | EX-421                | toolbar buttons                                                                                               | Bug         |
+| Table flicker on toggle         | EX-422                | `kosztorys-editor-body.tsx`                                                                                   | Bug         |
+| Column-resize shrink floor      | EX-424                | `kosztorys-v2-columns.tsx`                                                                                    | Bug         |
+| "Wersje" drawer stuck loading   | EX-423                | `kosztorys-versions-drawer.tsx`                                                                               | Bug         |
+| Save/version buttons → one menu | EX-437                | `kosztorys-editor-toolbar.tsx`, `save-snapshot-button.tsx`                                                    | Improvement |
 
 **Explicitly out:** EX-434 (kosztorys-item-autocomplete over preset prace) — a real feature with an
 open product decision; not UX polish.
@@ -38,7 +39,7 @@ open product decision; not UX polish.
 ## Structure
 
 - Parent Linear issue **"Kosztorys editor UX pass"** (project "Wykonczymy", team Ex-plant); the
-  eight items above are its sub-issues. Each sub-issue closes on its own.
+  nine items above are its sub-issues. Each sub-issue closes on its own.
 - One change folder (`this`). Full design per item: `design.md`.
 - Each item gets its own `/10x-plan` when picked up (they are independent). This is not one giant
   plan.

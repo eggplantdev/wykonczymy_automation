@@ -153,6 +153,21 @@ error surface, permanent spinner). The drawer opens _programmatically_ (`Kosztor
 **test-driven-debugging** territory — reproduce with a failing test first, then fix. May be the same
 root cause tracked by EX-428/EX-419/EX-420 (S-06 restore E2E).
 
+## 9. EX-437 · Consolidate save/version buttons into one menu
+
+Three separate toolbar controls → one dropdown menu:
+
+- **Zapisz jako…** — `SaveSnapshotButton` (`save-snapshot-button.tsx:35`, rendered at
+  `kosztorys-editor-toolbar.tsx:100`)
+- **Zapisz jako szablon** — NEW, being built on the parallel `kosztorys-preset` worktree/branch
+- **Wersje** — toolbar button (`kosztorys-editor-toolbar.tsx:101-103`), opens the versions drawer
+
+Each action keeps its behavior (dialog / drawer); only the trigger collapses to a single menu.
+**Dependency:** blocked on the `kosztorys-preset` branch landing on `main` — the "Zapisz jako
+szablon" entry must exist first. Coordinate so the menu absorbs that button at merge rather than
+letting it ship as a fourth standalone button. "Sekcje" (a view toggle, not a save/version action)
+stays separate.
+
 ---
 
 ## Sequencing (suggested)
@@ -164,5 +179,8 @@ root cause tracked by EX-428/EX-419/EX-420 (S-06 restore E2E).
 5. **EX-424** (resize floor) — isolated to columns.
 6. **EX-422** (flicker) — needs a spike; do after the view control settles (EX-425).
 7. **EX-423** (drawer) — independent bug; do any time (test-first).
+8. **EX-437** (save/version menu) — **last / on merge**; blocked on the `kosztorys-preset` branch
+   landing so the menu can absorb "Zapisz jako szablon".
 
-Order is a suggestion, not a hard chain — the only real coupling is EX-425/426 reducing EX-421/422.
+Order is a suggestion, not a hard chain. Real couplings: EX-425/426 reduce EX-421/422; EX-437 is
+blocked on the `kosztorys-preset` branch.
