@@ -20,6 +20,7 @@
     "migrate:create": "payload migrate:create",
     "db:migrate:prod": "pnpm db:dump && source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_PROD\" payload migrate",
     "db:migrate:test": "source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_TEST\" payload migrate",
+    "db:migrate:preview": "source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_PREVIEW\" payload migrate",
     "wt:new": "bash scripts/worktree-new.sh",
     "wt:rm": "bash scripts/worktree-rm.sh",
     "seed:transfers": "node --env-file=.env --import tsx src/scripts/seed-transfers.ts",
