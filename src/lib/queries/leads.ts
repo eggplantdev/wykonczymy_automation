@@ -5,6 +5,7 @@ import { CACHE_TAGS } from '@/lib/cache/tags'
 import { perfStart } from '@/lib/perf'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
+import { assertCompletePage } from '@/lib/queries/assert-complete-page'
 import { buildLeadAnswers } from '@/lib/leads/lead-answers'
 import { leadRawDataSchema, leadFormQuestionsSchema } from '@/lib/leads/lead-schema'
 import type { LeadRowT } from '@/types/leads'
@@ -15,15 +16,15 @@ const getLeads = unstable_cache(
   async (): Promise<LeadRowT[]> => {
     const elapsed = perfStart()
     const payload = await getPayload({ config })
-    const { docs } = await payload.find({
+    const result = await payload.find({
       collection: 'leads',
       sort: '-submittedAt',
-      limit: 1000,
+      limit: 5000,
       depth: 0,
       overrideAccess: true,
     })
     console.log(`[PERF] query.getLeads ${elapsed()}ms`)
-    return docs.map((lead) => ({
+    return assertCompletePage(result, 'getLeads').map((lead) => ({
       id: lead.id,
       source: lead.source,
       name: asString(lead.name),
