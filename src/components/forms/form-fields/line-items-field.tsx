@@ -52,12 +52,12 @@ type LineItemsFieldPropsT = {
   getFile: (index: number) => File | undefined
   // Bump to force-remount the uncontrolled file inputs (clears their selection).
   fileInputKey?: number
-  // Receipt-fill: scan every eligible row's image and fill its fields (see use-receipt-fill).
-  onFill?: () => void
-  isFilling?: boolean
-  fillingIndices?: Set<number>
+  // Receipt generation: scan every eligible row's image and populate its fields (see use-receipt-generation).
+  onGenerate?: () => void
+  isGenerating?: boolean
+  generatingIndices?: Set<number>
   failedIndices?: Set<number>
-  fillProgress?: { done: number; total: number } | null
+  generationProgress?: { done: number; total: number } | null
 }
 
 const otherCategoryConfig = (refData: ReferenceDataBaseT): CategoryFieldConfigT => ({
@@ -133,11 +133,11 @@ export function LineItemsField({
   onRegisterFiles,
   getFile,
   fileInputKey = 0,
-  onFill,
-  isFilling = false,
-  fillingIndices,
+  onGenerate,
+  isGenerating = false,
+  generatingIndices,
   failedIndices,
-  fillProgress,
+  generationProgress,
 }: LineItemsFieldPropsT) {
   const inlineCategory = getInlineCategory(transferType, referenceData, hasInvestment)
   const secondRowCategory = getSecondRowCategory(transferType, referenceData)
@@ -146,10 +146,10 @@ export function LineItemsField({
     : EMPTY_LINE_ITEM
   const receiptInputRef = useRef<HTMLInputElement>(null)
 
-  // Scan flow: add each picked receipt as a row (image attached) FIRST, then run the AI fill.
+  // Scan flow: add each picked receipt as a row (image attached) FIRST, then run the AI generation.
   // Order matters — rows persist even if extraction fails, so a failed scan still yields line
-  // items to fill by hand. Picker cancelled (no files) → skip the add and just re-run fill on
-  // any existing eligible rows.
+  // items to fill in by hand. Picker cancelled (no files) → skip the add and just re-run generation
+  // on any existing eligible rows.
   function handleScanReceipts(e: React.ChangeEvent<HTMLInputElement>, lineItemsField: ArrayFieldT) {
     const picked = Array.from(e.target.files ?? [])
     e.target.value = '' // allow re-picking the same files after a reset
@@ -164,7 +164,7 @@ export function LineItemsField({
       for (let i = 0; i < rowsToPush; i++) lineItemsField.pushValue(emptyItem)
       onRegisterFiles(startIndex, picked)
     }
-    onFill?.()
+    onGenerate?.()
   }
 
   return (
@@ -212,16 +212,16 @@ export function LineItemsField({
                     )}
                     {/* Delete lives in row 1, its height matching the inputs; the row being read
                       shows the loader in its slot and queued rows keep it disabled — removing a
-                      row mid-fill shifts the array under in-flight extraction tasks (captured
+                      row mid-generation shifts the array under in-flight extraction tasks (captured
                       index), landing a result on the wrong row. */}
                     <div className="flex size-9 shrink-0 items-center justify-center">
-                      {fillingIndices?.has(index) ? (
+                      {generatingIndices?.has(index) ? (
                         <GradientSpinner />
                       ) : (
                         <RemoveButton
                           icon={Trash2}
                           onClick={() => onRemoveItem(index, lineItemsField.removeValue)}
-                          disabled={isFilling || lineItemsField.state.value.length === 1}
+                          disabled={isGenerating || lineItemsField.state.value.length === 1}
                         />
                       )}
                     </div>
@@ -278,21 +278,21 @@ export function LineItemsField({
               className="sr-only"
               onChange={(e) => handleScanReceipts(e, lineItemsField)}
             />
-            {onFill && (
+            {onGenerate && (
               <Button
                 type="button"
                 variant="ai"
                 size="sm"
                 onClick={() => receiptInputRef.current?.click()}
-                disabled={isFilling}
+                disabled={isGenerating}
               >
-                {isFilling ? <GradientSpinner /> : <WandSparkles className="text-neon-cyan" />}
+                {isGenerating ? <GradientSpinner /> : <WandSparkles className="text-neon-cyan" />}
                 <span className="text-neon-cyan font-semibold">Dodaj paragony</span>
               </Button>
             )}
-            {fillProgress && (
+            {generationProgress && (
               <span className="text-muted-foreground self-center text-sm">
-                Odczytano {fillProgress.done}/{fillProgress.total}
+                Odczytano {generationProgress.done}/{generationProgress.total}
               </span>
             )}
           </div>

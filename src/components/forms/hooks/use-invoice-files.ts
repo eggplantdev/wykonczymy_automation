@@ -18,7 +18,7 @@ export function setFilesAt(map: Map<number, File>, startIndex: number, files: Fi
 
 export function useInvoiceFiles(initialFiles?: Map<number, File>) {
   const invoiceFilesRef = useRef<Map<number, File>>(initialFiles ?? new Map())
-  // Upload-once: an image the receipt-fill flow already uploaded stores its mediaId here,
+  // Upload-once: an image the receipt-generation flow already uploaded stores its mediaId here,
   // keyed by the same row index as the File map, so submit doesn't re-upload it.
   const mediaIdsRef = useRef<Map<number, number>>(new Map())
 

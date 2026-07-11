@@ -10,14 +10,14 @@ import { toastMessage } from '@/lib/utils/toast'
 import { UNREADABLE_RECEIPT } from '@/lib/ai/receipt-extraction-schema'
 import type { OtherCategoryRefT } from '@/types/reference-data'
 
-const FILL_CONCURRENCY = 4
+const GENERATION_CONCURRENCY = 4
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type FormT = any
 
 type LineItemRowT = { description: string; amount: string }
 
-type ReceiptFillDepsT = {
+type ReceiptGenerationDepsT = {
   form: FormT
   otherCategories: OtherCategoryRefT[]
   getFiles: () => Map<number, File>
@@ -33,20 +33,23 @@ function reindexSet(set: Set<number>, removedIndex: number): Set<number> {
   return new Set(reindexAfterRemoval(asMap, removedIndex).keys())
 }
 
-export function useReceiptFill({
+export function useReceiptGeneration({
   form,
   otherCategories,
   getFiles,
   getMediaId,
   setMediaId,
   renameFile,
-}: ReceiptFillDepsT) {
-  const [isFilling, setIsFilling] = useState(false)
-  const [fillingIndices, setFillingIndices] = useState<Set<number>>(new Set())
+}: ReceiptGenerationDepsT) {
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [generatingIndices, setGeneratingIndices] = useState<Set<number>>(new Set())
   const [failedIndices, setFailedIndices] = useState<Set<number>>(new Set())
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
+  const [generationProgress, setGenerationProgress] = useState<{
+    done: number
+    total: number
+  } | null>(null)
 
-  async function fillFromReceipts() {
+  async function generateFromReceipts() {
     const rows = (form.getFieldValue('lineItems') ?? []) as LineItemRowT[]
     const files = getFiles()
     // Eligible = has an attached file AND still-blank content, so a manually filled row is
@@ -57,9 +60,9 @@ export function useReceiptFill({
 
     if (eligible.length === 0) return
 
-    setIsFilling(true)
+    setIsGenerating(true)
     setFailedIndices(new Set())
-    setProgress({ done: 0, total: eligible.length })
+    setGenerationProgress({ done: 0, total: eligible.length })
     const otherCategoryNames = otherCategories.map((c) => c.name)
     const failed = new Set<number>()
     const failedMessages = new Set<string>()
@@ -69,8 +72,8 @@ export function useReceiptFill({
     // per-row marker. The server-side SENTRY-REQUIRED log carries the detail.
     let unreadable = 0
 
-    await mapWithConcurrency(eligible, FILL_CONCURRENCY, async ({ index }) => {
-      setFillingIndices((prev) => new Set(prev).add(index))
+    await mapWithConcurrency(eligible, GENERATION_CONCURRENCY, async ({ index }) => {
+      setGeneratingIndices((prev) => new Set(prev).add(index))
       try {
         let mediaId = getMediaId(index)
         if (mediaId === undefined) {
@@ -96,28 +99,28 @@ export function useReceiptFill({
           resolveExpenseCategoryId(data.otherCategoryName, otherCategories),
         )
         // Server renamed the stored file to the Opis; mirror it on the FV label (the row's
-        // fileInputKey is bumped once the whole fill finishes so the input re-reads the name).
+        // fileInputKey is bumped once the whole generation finishes so the input re-reads the name).
         if (data.filename) renameFile(index, data.filename)
       } catch (error) {
-        // SENTRY-REQUIRED (EX-449): per-receipt fill failures (upload + AI extraction) must
+        // SENTRY-REQUIRED (EX-449): per-receipt generation failures (upload + AI extraction) must
         // be captured once Sentry is wired — a failed row otherwise dies in a generic toast.
-        console.error(`[receipt-fill] row ${index} failed`, error)
+        console.error(`[receipt-generation] row ${index} failed`, error)
         failed.add(index)
         failedMessages.add(error instanceof Error ? error.message : String(error))
       } finally {
-        setFillingIndices((prev) => {
+        setGeneratingIndices((prev) => {
           const next = new Set(prev)
           next.delete(index)
           return next
         })
         done += 1
-        setProgress({ done, total: eligible.length })
+        setGenerationProgress({ done, total: eligible.length })
       }
     })
 
     setFailedIndices(failed)
-    setIsFilling(false)
-    setProgress(null)
+    setIsGenerating(false)
+    setGenerationProgress(null)
 
     const ok = eligible.length - failed.size - unreadable
     if (failed.size === 0) {
@@ -137,22 +140,22 @@ export function useReceiptFill({
   // wrong row after the array shifts.
   function onRowRemoved(index: number) {
     setFailedIndices((prev) => reindexSet(prev, index))
-    setFillingIndices((prev) => reindexSet(prev, index))
+    setGeneratingIndices((prev) => reindexSet(prev, index))
   }
 
-  function resetFill() {
+  function resetGeneration() {
     setFailedIndices(new Set())
-    setFillingIndices(new Set())
-    setProgress(null)
+    setGeneratingIndices(new Set())
+    setGenerationProgress(null)
   }
 
   return {
-    fillFromReceipts,
-    isFilling,
-    fillingIndices,
+    generateFromReceipts,
+    isGenerating,
+    generatingIndices,
     failedIndices,
-    progress,
+    generationProgress,
     onRowRemoved,
-    resetFill,
+    resetGeneration,
   }
 }

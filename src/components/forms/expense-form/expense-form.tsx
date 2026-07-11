@@ -5,7 +5,7 @@ import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
 import { useInvoiceFiles } from '@/components/forms/hooks/use-invoice-files'
-import { useReceiptFill } from '@/components/forms/hooks/use-receipt-fill'
+import { useReceiptGeneration } from '@/components/forms/hooks/use-receipt-generation'
 import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import { useSaldo } from '@/components/forms/hooks/use-saldo'
 import {
@@ -110,7 +110,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     setFileInputKey((k) => k + 1)
   }
 
-  // Re-align the fill markers (failed/in-flight) alongside the file maps on row removal.
+  // Re-align the generation markers (failed/in-flight) alongside the file maps on row removal.
   // Bump the key so surviving rows re-render and re-read their file from the reindexed ref —
   // otherwise a shifted-up row keeps showing the removed row's file input/thumbnail.
   function handleRemove(index: number, removeValue: (index: number) => void) {
@@ -123,7 +123,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     resetFormData()
     resetSaldo()
     resetInvoiceFiles()
-    resetFill()
+    resetGeneration()
     setFileInputKey((k) => k + 1)
   }
 
@@ -178,7 +178,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
           let invoiceMediaIds: (number | undefined)[] | undefined
           if (files.size > 0) {
             try {
-              // Rows scanned by the fill flow already hold a mediaId — the resolver reuses it
+              // Rows scanned by the generation flow already hold a mediaId — the resolver reuses it
               // and only uploads the rows that were never scanned, never both.
               invoiceMediaIds = await resolveInvoiceMediaIds(
                 value.lineItems.length,
@@ -205,14 +205,14 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
   useCheckFormErrors(form)
 
   const {
-    fillFromReceipts,
-    isFilling,
-    fillingIndices,
+    generateFromReceipts,
+    isGenerating,
+    generatingIndices,
     failedIndices,
-    progress: fillProgress,
+    generationProgress,
     onRowRemoved,
-    resetFill,
-  } = useReceiptFill({
+    resetGeneration,
+  } = useReceiptGeneration({
     form,
     otherCategories: referenceData.otherCategories,
     getFiles,
@@ -221,10 +221,10 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     renameFile,
   })
 
-  // Run the fill, then remount the uncontrolled file inputs so each re-reads its (possibly
+  // Run the generation, then remount the uncontrolled file inputs so each re-reads its (possibly
   // renamed) filename from the ref — the labels can't update in place.
-  async function handleFill() {
-    await fillFromReceipts()
+  async function handleGenerate() {
+    await generateFromReceipts()
     setFileInputKey((k) => k + 1)
   }
 
@@ -247,7 +247,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     // bump the key to remount the inputs — otherwise a file queued before the type
     // switch attaches to the wrong/nonexistent line item on submit.
     resetInvoiceFiles()
-    resetFill()
+    resetGeneration()
     setFileInputKey((k) => k + 1)
     resetSaldo()
   }
@@ -316,11 +316,11 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
             onRegisterFiles={handleRegisterFiles}
             getFile={getFile}
             fileInputKey={fileInputKey}
-            onFill={handleFill}
-            isFilling={isFilling}
-            fillingIndices={fillingIndices}
+            onGenerate={handleGenerate}
+            isGenerating={isGenerating}
+            generatingIndices={generatingIndices}
             failedIndices={failedIndices}
-            fillProgress={fillProgress}
+            generationProgress={generationProgress}
             transferType={currentType}
             referenceData={referenceData}
           />

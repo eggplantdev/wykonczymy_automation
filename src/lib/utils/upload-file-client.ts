@@ -1,7 +1,7 @@
 import { compressImage } from '@/lib/utils/compress-image'
 import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
 
-// Cap parallel uploads to match the receipt-fill path (FILL_CONCURRENCY): batch-add lets a user
+// Cap parallel uploads to match the receipt-generation path (GENERATION_CONCURRENCY): batch-add lets a user
 // attach 10-20+ receipts, and submitting them all at once would fire that many simultaneous
 // client-side compressions (main-thread) + upload requests.
 const UPLOAD_CONCURRENCY = 4
@@ -31,7 +31,7 @@ export async function uploadFileClient(file: File): Promise<number> {
 
 /**
  * Positional invoice-mediaId array for submit. Per row index: a mediaId already stored by
- * the receipt-fill upload-once path wins (no re-upload); otherwise upload the File; a row
+ * the receipt-generation upload-once path wins (no re-upload); otherwise upload the File; a row
  * with neither is `undefined`. `upload` is injectable for tests.
  */
 export async function resolveInvoiceMediaIds(
