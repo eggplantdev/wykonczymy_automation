@@ -17,21 +17,24 @@ export type PresetMetaT = {
   createdBy: number | null
 }
 
-// Save a preset under a new name. Relies on the UNIQUE(name) constraint to reject a duplicate —
-// the caller maps the thrown PG error to a friendly message.
+// Save a preset under a NEW name. `ON CONFLICT DO NOTHING` makes the duplicate-name case return no
+// row → null, so the caller maps it to a friendly message WITHOUT sniffing driver-specific PG error
+// shapes (and it's race-free — the UNIQUE(name) constraint is the arbiter, not a prior SELECT).
 export async function insertPreset(
   db: DbExecutorT,
   params: { name: string; createdBy: number | null; payload: SnapshotPayloadT },
-): Promise<number> {
+): Promise<number | null> {
   const res = await db.execute(sql`
     INSERT INTO kosztorys_presets (name, schema_version, payload, created_by)
     VALUES (
       ${params.name}, ${SNAPSHOT_SCHEMA_VERSION}, ${JSON.stringify(params.payload)}::jsonb,
       ${params.createdBy}
     )
+    ON CONFLICT (name) DO NOTHING
     RETURNING id
   `)
-  return Number(res.rows[0].id)
+  const row = res.rows[0]
+  return row ? Number(row.id) : null
 }
 
 // Overwrite the preset with this name in place (or create it if absent). Retargets the payload +

@@ -247,18 +247,18 @@ a failed write — the test-driven-debugging rule).
 
 #### Automated
 
-- [x] 1.1 Hand-write migration `<next>_add_kosztorys_presets.ts` (global, name UNIQUE, jsonb payload)
-- [x] 1.2 DAO `src/lib/db/presets.ts` (insertPreset / upsertPresetByName / getPreset / listPresets)
-- [x] 1.3 `pnpm generate:types` (gitignored — never `git add`)
-- [x] 1.4 Typecheck clean; migration `up` applies to local docker DB (5433) and `down` reverses it
+- [x] 1.1 Hand-write migration `<next>_add_kosztorys_presets.ts` (global, name UNIQUE, jsonb payload) — dfabd27
+- [x] 1.2 DAO `src/lib/db/presets.ts` (insertPreset / upsertPresetByName / getPreset / listPresets) — dfabd27
+- [x] 1.3 `pnpm generate:types` (gitignored — never `git add`) — dfabd27
+- [x] 1.4 Typecheck clean; migration `up` applies to local docker DB (5433) and `down` reverses it — dfabd27
 
 ### Phase 2: Save-as-preset (serialize + action + CTA)
 
 #### Automated
 
-- [ ] 2.1 `serializeKosztorysAsPreset` — wrap `serializeKosztorys`, strip job fields
-- [ ] 2.2 `savePresetAction(investmentId, name, mode)` in `src/lib/actions/kosztorys-presets.ts`
-- [ ] 2.3 `SavePresetButton` CTA in toolbar right cluster
+- [x] 2.1 `serializeKosztorysAsPreset` — wrap `serializeKosztorys`, strip job fields
+- [x] 2.2 `savePresetAction(investmentId, name, mode)` in `src/lib/actions/kosztorys-presets.ts`
+- [x] 2.3 `SavePresetButton` CTA in toolbar right cluster
 
 ### Phase 3: Seed-from-preset (applier + action + two entry points)
 
