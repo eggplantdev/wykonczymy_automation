@@ -5,7 +5,7 @@ import { WandSparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { RemoveButton } from '@/components/ui/remove-button'
-import { FileInput } from '@/components/ui/file-input'
+import { LineItemInvoiceField } from '@/components/forms/form-fields/line-item-invoice-field'
 import { Label } from '@/components/ui/label'
 import { formatPLN } from '@/lib/utils/format-currency'
 import {
@@ -48,8 +48,8 @@ type LineItemsFieldPropsT = {
   onFileChange: (index: number, e: React.ChangeEvent<HTMLInputElement>) => void
   // Batch-attach N receipt images: register each file at its row index (see use-invoice-files).
   onRegisterFiles: (startIndex: number, files: File[]) => void
-  // Read a row's attached filename so its file input can display it after a batch add.
-  getFileName: (index: number) => string | undefined
+  // Read a row's attached file so it can render a thumbnail preview (undefined → file input).
+  getFile: (index: number) => File | undefined
   // Bump to force-remount the uncontrolled file inputs (clears their selection).
   fileInputKey?: number
   // Receipt-fill: scan every eligible row's image and fill its fields (see use-receipt-fill).
@@ -132,7 +132,7 @@ export function LineItemsField({
   onRemoveItem,
   onFileChange,
   onRegisterFiles,
-  getFileName,
+  getFile,
   fileInputKey = 0,
   onFill,
   isFilling = false,
@@ -209,19 +209,23 @@ export function LineItemsField({
                       fieldClassName="min-w-0 flex-1"
                     />
                   )}
-                  {fillingIndices?.has(index) && <Spinner className="mb-2" />}
                   {failedIndices?.has(index) && (
                     <span className="text-destructive mb-2 shrink-0 text-xs whitespace-nowrap">
                       nie odczytano
                     </span>
                   )}
-                  <RemoveButton
-                    className="mb-0.5"
-                    onClick={() => onRemoveItem(index, lineItemsField.removeValue)}
-                    // Removing a row mid-fill shifts the array under in-flight extraction tasks
-                    // (which hold a captured index), landing a receipt's result on the wrong row.
-                    disabled={lineItemsField.state.value.length === 1 || isFilling}
-                  />
+                  {/* The row being read shows the loader in the remove button's slot; queued
+                      rows keep the X disabled — removing any row mid-fill shifts the array under
+                      in-flight extraction tasks (captured index), landing a result on the wrong row. */}
+                  {fillingIndices?.has(index) ? (
+                    <Spinner className="mb-0.5" />
+                  ) : (
+                    <RemoveButton
+                      className="mb-0.5"
+                      onClick={() => onRemoveItem(index, lineItemsField.removeValue)}
+                      disabled={lineItemsField.state.value.length === 1 || isFilling}
+                    />
+                  )}
                 </div>
                 <div className="flex items-start gap-2 pr-10 pl-8">
                   {secondRowCategory && (
@@ -232,24 +236,26 @@ export function LineItemsField({
                       fieldClassName="min-w-0 flex-1"
                     />
                   )}
+                  <LineItemInvoiceField
+                    index={index}
+                    file={getFile(index)}
+                    fieldClassName="min-w-0 flex-1"
+                    fileInputKey={fileInputKey}
+                    onFileChange={onFileChange}
+                  />
+                </div>
+                <div className="pr-10 pl-8">
                   <form.AppField name={`lineItems[${index}].invoiceNote`}>
                     {(field: AppFieldComponentsT) => (
-                      <field.Input
+                      <field.Textarea
                         label="Notatka"
                         placeholder="Opcjonalnie"
+                        rows={2}
                         showError
-                        fieldClassName="min-w-0 flex-1"
+                        fieldClassName="w-full"
                       />
                     )}
                   </form.AppField>
-                  <FileInput
-                    key={`file-${fileInputKey}-${index}`}
-                    label="FV"
-                    fieldClassName="min-w-0 flex-1"
-                    accept="image/*,application/pdf"
-                    initialFileName={getFileName(index)}
-                    onChange={(e) => onFileChange(index, e)}
-                  />
                 </div>
               </div>
             ))}

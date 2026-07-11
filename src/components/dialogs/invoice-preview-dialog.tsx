@@ -15,6 +15,8 @@ type InvoicePreviewDialogPropsT = {
   onOpenChange: (open: boolean) => void
   onReplace?: () => void
   onRemove?: () => void
+  // next/image can't run the optimizer on a local blob: URL (not-yet-uploaded file) — serve it raw.
+  unoptimized?: boolean
 }
 
 export function InvoicePreviewDialog({
@@ -25,6 +27,7 @@ export function InvoicePreviewDialog({
   onOpenChange,
   onReplace,
   onRemove,
+  unoptimized,
 }: InvoicePreviewDialogPropsT) {
   const isImage = mimeType?.startsWith('image/')
   const isPdf = mimeType === 'application/pdf'
@@ -66,6 +69,7 @@ export function InvoicePreviewDialog({
                 fill
                 sizes="(max-width:1200px) 90vw, 1000px"
                 quality={50}
+                unoptimized={unoptimized}
                 className="object-contain"
                 onLoad={() => setIsMediaLoading(false)}
                 onError={() => setIsMediaLoading(false)}
