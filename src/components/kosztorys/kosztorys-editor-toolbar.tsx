@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { SearchFilterInput } from '@/components/ui/search-filter-input'
-import { SaveSnapshotButton } from '@/components/kosztorys/save-snapshot-button'
+import { SaveAsButton } from '@/components/kosztorys/save-as-button'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 
 // Three views over one dataset: they only change the active price and its derived values.
@@ -97,7 +97,7 @@ export function KosztorysEditorToolbar({
       </Button>
       <span className="text-muted-foreground text-sm">{itemCount} pozycji</span>
       <div className="ml-auto flex items-center gap-1">
-        <SaveSnapshotButton investmentId={investmentId} />
+        <SaveAsButton investmentId={investmentId} />
         <Button size="sm" variant="outline" onClick={onOpenVersions}>
           Wersje
         </Button>
