@@ -2,6 +2,18 @@ import type { Payload } from 'payload'
 
 import { sanitizeFileName } from '@/lib/utils/sanitize-filename'
 
+// Keep the human-readable name, append a short random id before the extension so
+// re-uploads of the same receipt and concurrent uploads never collide. Relying on
+// Payload's auto-rename instead races under concurrency and throws ValidationError.
+function uniqueFileName(rawName: string): string {
+  const safeName = sanitizeFileName(rawName) || 'upload'
+  const shortId = crypto.randomUUID().slice(0, 6)
+  const dot = safeName.lastIndexOf('.')
+  return dot > 0
+    ? `${safeName.slice(0, dot)}-${shortId}${safeName.slice(dot)}`
+    : `${safeName}-${shortId}`
+}
+
 function validateFile(file: File): string {
   const name = file.name?.trim()
   if (!name) return 'Plik nie ma nazwy'
@@ -22,15 +34,13 @@ export async function uploadFile(payload: Payload, file: File): Promise<number> 
   const error = validateFile(file)
   if (error) throw new Error(error)
 
-  const safeName = sanitizeFileName(file.name) || `upload-${Date.now()}`
-
   const buffer = Buffer.from(await file.arrayBuffer())
   const media = await payload.create({
     collection: 'media',
     file: {
       data: buffer,
       mimetype: file.type,
-      name: safeName,
+      name: uniqueFileName(file.name),
       size: file.size,
     },
     data: {},
