@@ -65,7 +65,7 @@ export function FormDialog({
             {/* FormFooter renders the keep-open checkbox inline with the submit button via this
                 context; a form outside the provider (or with showKeepOpen off) simply omits it. */}
             <KeepOpenProvider value={showKeepOpen ? { keepOpen, setKeepOpen } : null}>
-              <div className="mt-4 pr-1">{children(handleSuccess, keepOpen)}</div>
+              <div className="mt-6 pr-1">{children(handleSuccess, keepOpen)}</div>
             </KeepOpenProvider>
           </div>
         </DialogContent>
