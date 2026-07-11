@@ -92,13 +92,14 @@ the optional `insertReturningIds` helper held for EX-430).
 
 One genuinely new item:
 
-- [ ] proposed · `.env.copy` (template) · `env/schema.ts:47` made `CRON_SECRET` **required**
-      (`.optional()` dropped), but the checked-in `.env.copy` has no `CRON_SECRET` entry. Held back because
-      `.env.copy` is **already a partial, feature-scoped template** (omits `PAYLOAD_SECRET`,
-      `DB_POSTGRES_URL`, `GOOGLE_SERVICE_ACCOUNT_JSON`, `KOSZTORYS_TEMPLATE_SHEET_ID` too), so adding only
-      `CRON_SECRET` is selective churn. Also **not strictly S-06** — the schema change is a parallel work
-      stream (commit 83729ea). **Needs your call:** make `.env.copy` mirror the full required-var contract,
-      or leave it feature-scoped. Not an auto-apply.
+- [x] resolved-by-deletion (2026-07-11) · `.env.copy` · `env/schema.ts:47` made `CRON_SECRET`
+      **required**, but the checked-in `.env.copy` had no `CRON_SECRET` entry. Rather than patch a
+      template that was **already partial** (it omitted `PAYLOAD_SECRET`, `DB_POSTGRES_URL`,
+      `GOOGLE_SERVICE_ACCOUNT_JSON`, `KOSZTORYS_TEMPLATE_SHEET_ID` too — a fresh clone never built from
+      it), **deleted `.env.copy`**: no tooling consumed it (grep found only prose + the `.gitignore`
+      `!.env.copy` negation). The env contract's single source of truth is `src/lib/env/schema.ts`.
+      Also dropped the dead `.gitignore` negation and repointed the `facebook-leads-setup.md` env-vars
+      reference at the schema.
 
 ### Finding surfaced by the suite run
 

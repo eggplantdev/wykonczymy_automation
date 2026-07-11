@@ -73,7 +73,7 @@ Served from `src/app/(legal)/`, exempted from the login redirect in `src/proxy.t
 - Data deletion: `https://wykonczymy.vercel.app/usuwanie-danych`
 - Terms: `https://wykonczymy.vercel.app/terms`
 
-## Env vars (see `.env.copy`)
+## Env vars (contract in `src/lib/env/schema.ts`)
 
 Meta: `META_APP_ID`, `META_APP_SECRET`, `META_APP_TOKEN`, `META_VERIFY_TOKEN`, `META_PAGE_ACCESS_TOKEN`.
 
