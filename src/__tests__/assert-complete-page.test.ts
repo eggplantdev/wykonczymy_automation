@@ -27,6 +27,6 @@ describe('assertCompletePage', () => {
   it('names the caller and the limit/total in the thrown message — the diagnostic is the point', () => {
     expect(() =>
       assertCompletePage(page({ hasNextPage: true, totalDocs: 9001, limit: 5000 }), 'getLeads'),
-    ).toThrow(/getLeads.*9001.*5000/s)
+    ).toThrow(/getLeads.*9001.*5000/)
   })
 })

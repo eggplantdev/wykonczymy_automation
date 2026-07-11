@@ -35,6 +35,11 @@ describe.skipIf(!ENV_READY)('assertCompletePage against Payload find (DB)', () =
           externalId: `${runTag}-${index}`,
           email: `lead${index}@example.com`,
           rawData: [],
+          // required-with-defaultValue fields: Payload fills the defaults at runtime, but its
+          // generated create-data type still marks them required, so spell them out to satisfy tsc.
+          contactStatus: 'new',
+          notifyStatus: 'pending',
+          autoReplyStatus: 'pending',
         },
         overrideAccess: true,
       })
