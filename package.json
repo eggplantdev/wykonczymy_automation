@@ -39,6 +39,7 @@
     "watch:deploy": "bash scripts/watch-deploy.sh"
   },
   "dependencies": {
+    "@openrouter/ai-sdk-provider": "^3.0.0",
     "@payloadcms/db-vercel-postgres": "3.73.0",
     "@payloadcms/email-nodemailer": "^3.73.0",
     "@payloadcms/next": "3.73.0",
@@ -58,6 +59,7 @@
     "@tanstack/react-form": "^1.27.7",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.18",
+    "ai": "^7.0.22",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

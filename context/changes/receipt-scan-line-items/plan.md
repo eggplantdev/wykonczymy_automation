@@ -13,7 +13,7 @@ attached) and are marked. The user reviews inline and saves via the existing bul
 ## Current State Analysis
 
 The add-expense flow is a bulk / line-items form built on a **positional-index contract**:
-`lineItems[i]` (form state) ↔ `invoiceFilesRef[i]` (a `File` held *outside* form state) ↔
+`lineItems[i]` (form state) ↔ `invoiceFilesRef[i]` (a `File` held _outside_ form state) ↔
 `invoiceMediaIds[i]` (uploaded at submit) ↔ created `transactions` row `i`. Adding a feature
 that produces `(row, image)` pairs slots directly into this contract.
 
@@ -37,7 +37,7 @@ that produces `(row, image)` pairs slots directly into this contract.
 - **Reference data** — `referenceData.expenseCategories` (`{id,name}[]`,
   `src/lib/queries/reference-data.ts:66-69`) already flows into the form and down to
   `LineItemsField`. There is **no** existing name→id lookup (the form stores id-as-string and maps
-  *back* to a number on submit via `map-line-item.ts`).
+  _back_ to a number on submit via `map-line-item.ts`).
 - **Category rules** — for `INVESTMENT_EXPENSE`, both `category` (optional "other") and
   `expenseCategory` (required) render; only `expenseCategory` is a required field
   (`transfer-rules.ts:71-73`, validated in `transfer-validation.ts:79-87`). Extraction targets
@@ -73,7 +73,7 @@ blank (never a wrong id); a forced extraction failure leaves the row blank+marke
 - Server action must take a `mediaId`, not a File (`upload-file/route.ts` comment 8-16).
 - `referenceData.expenseCategories` already in the form; name→id map is new, client-side, colocated.
 - `media` accepts `image/*` **and** `application/pdf` (`src/collections/media.ts`) — PDF is out of
-  scope for *extraction* in v1 but still attachable.
+  scope for _extraction_ in v1 but still attachable.
 
 ## What We're NOT Doing
 
@@ -214,7 +214,7 @@ expenseCategoryNames: string[] }): Promise<ActionResultT<ReceiptExtractionT>>` w
 **File**: colocated with the batch-scan feature (e.g.
 `src/components/forms/form-fields/resolve-expense-category-id.ts`, new)
 
-**Intent**: Map an extracted category *name* to an id, exact-match-or-blank, so a hallucinated name
+**Intent**: Map an extracted category _name_ to an id, exact-match-or-blank, so a hallucinated name
 can never reach the form.
 
 **Contract**: `resolveExpenseCategoryId(name: string, categories: ExpenseCategoryRefT[]): string`
@@ -431,9 +431,9 @@ existing `media` and `transactions` write paths.
 
 #### Automated
 
-- [ ] 1.1 Type checking passes (`pnpm generate:types && pnpm tsc --noEmit`)
-- [ ] 1.2 Dev CSS build still works after install (`pnpm dev` starts, no lightningcss error)
-- [ ] 1.3 Schema unit test passes (`receipt-extraction-schema.test.ts`)
+- [x] 1.1 Type checking passes (`pnpm generate:types && pnpm tsc --noEmit`)
+- [x] 1.2 Dev CSS build still works after install (`pnpm dev` starts, no lightningcss error)
+- [x] 1.3 Schema unit test passes (`receipt-extraction-schema.test.ts`)
 
 ### Phase 2: Server action + category name→id util
 

@@ -42,6 +42,11 @@ export const serverSchema = z.object({
     }, 'GOOGLE_SERVICE_ACCOUNT_JSON must be valid JSON with client_email and private_key'),
   KOSZTORYS_TEMPLATE_SHEET_ID: z.string().min(1, 'KOSZTORYS_TEMPLATE_SHEET_ID is required'),
   KOSZTORYS_DRIVE_FOLDER_ID: z.string().optional(),
+  // OpenRouter (receipt-scan vision extraction). Referer/app-name are optional attribution
+  // headers OpenRouter surfaces on its dashboard; only the key is required to make calls.
+  OPENROUTER_API_KEY: z.string().min(1),
+  OPENROUTER_HTTP_REFERER: z.string().optional(),
+  OPENROUTER_APP_NAME: z.string().optional(),
   // Vercel-injected at runtime; absent locally (where NODE_ENV is the right signal).
   VERCEL_ENV: z.enum(['production', 'preview', 'development']).optional(),
   CRON_SECRET: z.string().min(1),
