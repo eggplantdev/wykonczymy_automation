@@ -255,7 +255,9 @@ export function LineItemsField({
                     )}
                   </form.AppField>
                 </div>
-                <Separator orientation="horizontal" className="bg-foreground" />
+                {index < lineItemsField.state.value.length - 1 && (
+                  <Separator orientation="horizontal" className="bg-foreground" />
+                )}
               </Fragment>
             ))}
           </div>
