@@ -104,12 +104,13 @@ Bands: **editor parity S-01–S-10** (active) → **import/export S-11–S-12** 
 | ID   | Change ID                       | Outcome (user can …)                                                                   | Prerequisites      | PRD refs                      | Status    | Plan-ready |
 | ---- | ------------------------------- | -------------------------------------------------------------------------------------- | ------------------ | ----------------------------- | --------- | ---------- |
 | F-01 | e2e-harness                     | (foundation) Playwright E2E harness, CI-runnable, isolated DB                          | —                  | FR-011                        | ready     | yes        |
+| O-01 | sentry-observability            | capture prod errors + tracing + session replay in Sentry (standalone infra)            | —                  | — (owner request)             | proposed  | yes        |
 | S-01 | kosztorys-sections-items        | author kosztorys sections + items in-app with live totals                              | —                  | FR-001, FR-002, FR-007, US-01 | in review | —          |
 | S-02 | kosztorys-price-models          | record three price models per item and toggle the pricing view                         | S-01               | FR-003                        | done      | —          |
 | S-03 | kosztorys-stages                | manage stages (etapy) and record per-item, per-stage progress                          | S-01               | FR-004                        | in review | —          |
 | S-04 | kosztorys-subcontractor-pricing | price subcontractor work via markup coefficient + per-item override                    | S-01, S-02         | — (POC)                       | done      | —          |
 | S-05 | kosztorys-vat                   | set VAT per investment; enter net, compute gross                                       | S-01               | — (POC)                       | done      | yes        |
-| S-06 | kosztorys-snapshots             | save + restore point-in-time versions of a kosztorys (durable net)                     | S-01               | — (owner request)             | proposed  | yes        |
+| S-06 | kosztorys-snapshots             | save + restore point-in-time versions of a kosztorys (durable net)                     | S-01               | — (owner request)             | in review | yes        |
 | S-07 | kosztorys-undo                  | fast in-session undo/redo of the last editor edit(s)                                   | S-01               | — (owner request)             | proposed  | yes        |
 | S-08 | kosztorys-delete-guard          | hit a hard block when deleting a populated row / section / stage / column              | S-01               | — (owner request)             | in review | yes        |
 | S-09 | kosztorys-preset                | seed from a preset; save as preset; item autocomplete over preset prace                | S-01               | FR-006, (owner request)       | proposed  | yes        |
@@ -134,7 +135,7 @@ Navigation aid — the four execution bands and what gates the jump between them
 | 3    | Testing + hardening        | `S-13` · `S-14` · `S-15` | E2E deferred to here on purpose — specs stabilise only once the editor direction settles. |
 | 4    | Cutover / release          | `S-16`                   | The release gate: new investments get no sheet. Needs E2E (`S-13`) + hardening (`S-15`).  |
 
-Within band 1, `S-01` (north star) heads the track; `S-02`–`S-10` all build on it and run in parallel (`S-04` also needs `S-02`; `S-10` also needs `S-02` + `S-04`). `F-01` (harness) is independent and can run any time; it unblocks the band-3 test slices.
+Within band 1, `S-01` (north star) heads the track; `S-02`–`S-10` all build on it and run in parallel (`S-04` also needs `S-02`; `S-10` also needs `S-02` + `S-04`). `F-01` (harness) is independent and can run any time; it unblocks the band-3 test slices. `O-01` (Sentry observability) is likewise standalone infra — no dependency on any slice, ships any time.
 
 ## Baseline
 
@@ -165,6 +166,24 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - Test-data isolation strategy — self-seed unique per-run data against the dump-restored docker DB. — Owner: team. Block: no.
 - **Risk:** Every band-3 E2E slice depends on it and the financial core is guardrail #1. Risk: a flaky harness erodes trust in the suite — keep the first spec minimal and deterministic.
 - **Status:** ready
+
+### O-01: Sentry error tracking + tracing + session replay
+
+- **Outcome:** production runtime failures are captured and triageable — unhandled exceptions (client via `global-error.tsx`, server via the `protectedAction()` catch path + Payload route handlers), performance tracing spans, and session replays flow to a Sentry project. Replaces the current blind spot where a failed prod write is invisible unless a user reports it.
+- **Change ID:** sentry-observability
+- **PRD refs:** — (un-parks the parked "Observability / error tracking" non-goal; owner request 2026-07-11)
+- **Prerequisites:** — (independent of the whole S-arc, like F-01; can ship any time)
+- **Parallel with:** everything
+- **Placement:** standalone infra slice, outside S-01…S-16 — not renumbered into the editor arc.
+- **Scope:** `@sentry/nextjs` — errors + tracing + session replay, **production only** (gate init on env so preview/local stay silent and the free quota stays clean). Free Developer tier: 5k errors / 5M spans / 50 replays per month, 1 seat — sufficient for this low-traffic internal tool.
+- **Problems to solve at plan time:**
+  - **Env layer:** `SENTRY_AUTH_TOKEN` (build, source maps), `NEXT_PUBLIC_SENTRY_DSN`, and an env gate — all through `src/lib/env/schema.ts`, never raw `process.env` (AGENTS.md). `NEXT_PUBLIC_SENTRY_DSN` is client-side → `env/index.ts`; the token is build-only.
+  - **Replay privacy (load-bearing):** replay records real sessions containing financial data (registers, marża, client amounts). Must enable `maskAllText` / `blockAllMedia` and verify no money figures leak into replays before this ships. This is the main risk.
+  - **Source maps on Vercel:** the Sentry build plugin needs the auth token in the Vercel build env; confirm it doesn't fight the existing `generate:types` + `next build` pipeline.
+  - **Instrumentation surface:** `instrumentation.ts` + `sentry.client/server/edge.config.ts`; wire `global-error.tsx` (currently no reporter) and confirm `protectedAction()` errors surface (Next auto-instruments server actions, but verify).
+  - **Quota guard:** low `tracesSampleRate` / `replaysSessionSampleRate` so 5M spans / 50 replays aren't burned; keep `replaysOnErrorSampleRate` higher (replay only when something breaks).
+- **Risk:** additive, touches no financial write path. Primary risk is a **PII/financial-data leak via unmasked session replay** — the guardrail is verifying masking on a real prod-shaped session before enabling replay. Secondary: source-map upload misconfig makes stack traces useless (unminified verification needed). Seat limit (1 user) caps triage to the owner — acceptable now.
+- **Status:** proposed
 
 ## Slices
 
@@ -259,7 +278,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - **Auto-snapshot cost:** serialising a 1000+ row tree on every cascade delete — is it cheap enough inline, or does it need to be deferred?
   - **Access:** who can restore (MANAGEMENT_ROLES) and does a restore itself get snapshotted (so a mistaken restore is also recoverable)?
 - **Risk:** Additive `kosztorys_snapshots` table + a restore path — the restore is the only dangerous write (it deletes the live tree). Guardrail: restore must be transactional and additive-only to the kosztorys tables — it must not touch transfers / balances / marża (FR-015). Risk: an under-captured payload restores a _partial_ tree; a snapshot is only trustworthy if its payload is complete. **Owner note: snapshots should be the easy slice** — keep restore dead-simple (wipe + rewrite), resist scope creep into diffing or partial restore.
-- **Status:** proposed
+- **Status:** in review — implemented on `main` (change.md `implemented`, 2026-07-10). Not `done` until the manual checks (context/foundation/manual-checks.md § S-06) pass and the E2E (4.3) lands via `/10x-e2e`; `CRON_SECRET` + prod migration are deploy-time gates.
 
 ### S-07: Fast undo / redo (in-session)
 
@@ -278,6 +297,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - **The one discipline:** nothing in the stack may cache a raw DB id — always the `uid`, resolved through the map at execution time. A single raw-id command dangles on recreate and reintroduces stack-clearing.
   - **Redo invalidation:** a fresh edit clears the redo stack (standard). Confirm interaction with the debounced saver (an undo must reconcile with / cancel any in-flight save for the same field, not race it).
   - **Stack depth cap** (~N) so memory stays bounded on a long session.
+  - **Feed S-06's periodic snapshot an activity signal (deferred from S-06).** S-06 ships its 10-min periodic `auto` snapshot as a **plain interval that fires unconditionally, even on an idle open editor** — deliberately no dirty check, because there is no client edit-queue yet. This slice introduces exactly that (the identity-map / command stack tracks whether anything changed), so **add the "skip the snapshot when nothing changed since the last one" gate here** — gate the interval on the undo stack / dirty flag so an untouched editor stops writing identical snapshots. Small follow-up, not a new mechanism.
   - **Reconcile with revert-on-error:** the existing `revertOne` (rollback on a rejected save) and an undo both mutate optimistic + persisted state — they must not fight.
 - **Risk:** Autosave is per-field/optimistic/debounced (POC), so undo reconciles with **persisted** state, not just local grid state — every undo is an inverse server write. Risk: scope creep into a full command stack that tries to reverse cascades; keep cascades on snapshots. Test priority #2 (formulas #1) per the POC braindump.
 - **Status:** proposed
@@ -470,7 +490,7 @@ Lifted from PRD `## Non-Goals` — explicitly out of scope for this arc.
 - **Multi-currency** — Why parked: PLN only, confirmed non-goal.
 - **Multi-tenant catalogues** — Why parked: single shared catalogue; PRD non-goal.
 - **Schema-level customization** (per-investment custom columns / arbitrary-field sidecars) — Why parked: a free-text note field covers ad-hoc needs; PRD non-goal.
-- **Observability / error tracking** — Why parked: baseline is perf-logging only; wiring a reporter (Sentry/structured) is out of scope for this phase (tracked in Linear "Wykonczymy v2").
+- **Observability / error tracking** — ~~parked~~ **un-parked 2026-07-11** into standalone slice **O-01 `sentry-observability`** (Sentry errors + tracing + replay, prod only). Runs independently of the editor arc.
 
 ## Done
 
