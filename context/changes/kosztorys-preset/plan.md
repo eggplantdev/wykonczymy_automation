@@ -264,17 +264,17 @@ a failed write — the test-driven-debugging rule).
 
 #### Automated
 
-- [x] 3.1 `applyPreset` in `src/lib/kosztorys/apply-preset.ts` (no wipe, no settings write-back)
-- [x] 3.2 `seedFromPresetAction(investmentId, presetId)` with empty-guard + own transaction
-- [x] 3.3 `listPresetsAction()`
-- [x] 3.4 Entry point 1 — empty-editor picker CTA (remount grid via `key` on success)
-- [x] 3.5 Entry point 2 — optional `presetId` in investment-create form → `createInvestmentAction`
+- [x] 3.1 `applyPreset` in `src/lib/kosztorys/apply-preset.ts` (no wipe, no settings write-back) — 9e842d3
+- [x] 3.2 `seedFromPresetAction(investmentId, presetId)` with empty-guard + own transaction — 9e842d3
+- [x] 3.3 `listPresetsAction()` — 9e842d3
+- [x] 3.4 Entry point 1 — empty-editor picker CTA (remount grid via `key` on success) — 9e842d3
+- [x] 3.5 Entry point 2 — optional `presetId` in investment-create form → `createInvestmentAction` — 9e842d3
 
 ### Phase 4: Tests
 
 #### Automated
 
-- [ ] 4.1 serialize→apply roundtrip (structural equal; job fields zeroed; target VAT/coeffs unchanged)
-- [ ] 4.2 Empty-guard rejection writes nothing (assert persisted state)
-- [ ] 4.3 Unique-name / overwrite (dup rejected; overwrite replaces payload in place)
-- [ ] 4.4 Frozen-spawn (overwrite preset never propagates to spawned tree)
+- [x] 4.1 serialize→apply roundtrip (structural equal; job fields zeroed; target VAT/coeffs unchanged)
+- [x] 4.2 Empty-guard rejection writes nothing (assert persisted state)
+- [x] 4.3 Unique-name / overwrite (dup rejected; overwrite replaces payload in place)
+- [x] 4.4 Frozen-spawn (overwrite preset never propagates to spawned tree)
