@@ -1,12 +1,12 @@
 ---
 change_id: receipt-scan-line-items
 title: Scan receipts into investment-expense line items via LLM vision
-status: preparing
+status: planned
 created: 2026-07-11
 updated: 2026-07-11
 archived_at: null
-branch: null
-worktree: null
+branch: receipt-scan-line-items
+worktree: /Users/konradantonik/workspace/yolo/wykonczymy-receipt-scan
 ---
 
 ## Notes
