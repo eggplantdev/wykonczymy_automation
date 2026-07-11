@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
+import { KeepOpenProvider } from '@/components/forms/form-components/keep-open-context'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 
 type FormDialogPropsT = {
@@ -62,16 +62,11 @@ export function FormDialog({
         <DialogContent className={className}>
           <div className="h-auto">
             <DialogHeader title={title} description={description} />
-            <div className="mt-4 pr-1">{children(handleSuccess, keepOpen)}</div>
-            {showKeepOpen && (
-              <label className="flex cursor-pointer items-center gap-2 py-4 text-sm select-none">
-                <Checkbox
-                  checked={keepOpen}
-                  onCheckedChange={(checked) => setKeepOpen(checked === true)}
-                />
-                Nie zamykaj po zapisaniu
-              </label>
-            )}
+            {/* FormFooter renders the keep-open checkbox inline with the submit button via this
+                context; a form outside the provider (or with showKeepOpen off) simply omits it. */}
+            <KeepOpenProvider value={showKeepOpen ? { keepOpen, setKeepOpen } : null}>
+              <div className="mt-4 pr-1">{children(handleSuccess, keepOpen)}</div>
+            </KeepOpenProvider>
           </div>
         </DialogContent>
       </Dialog>
