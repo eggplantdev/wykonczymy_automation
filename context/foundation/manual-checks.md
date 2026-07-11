@@ -109,3 +109,21 @@ Pass ran clean — **no bugs found**, all five Phase-2 boxes ticked. No open fin
 - [x] **Restore of ~1000 rows takes ~12.6 s — FIXED 2026-07-11.** Rewrote `src/lib/kosztorys/restore-kosztorys.ts` from row-by-row `payload.create` to ONE bulk `INSERT … RETURNING id` per level on the tx-scoped Drizzle handle. Measured **~216 ms for 3030 rows** (~50–60× faster). Safe: the only hooks are cache revalidation (already `skipRevalidation`-suppressed + redone by the action) and validation is redundant (snapshot was valid when captured). Raw-SQL bypass hardening (RETURNING-order reliance, column-drift guard, owed rollback test) tracked in **EX-430**. **Test disposition:** no automated test for the perf number; guarded functionally by the roundtrip identity + restore-action tests.
 - [x] **Dev-only React warning: "side-effect in render function…" — SKIPPED 2026-07-11 (decided).** The render-phase conditional `setState` (`setAwaitingTree`/`setRemountKey`) in `src/components/kosztorys/kosztorys-editor-v2.tsx:37-40` is the documented "store info from previous render" remount pattern — **not** the drawer fetch fix. Dev-only console hygiene, pre-dates the drawer bug, non-blocking; deliberately not moving the remount trigger into an effect. **Test disposition:** no automated test.
 - [x] **`restoreSnapshotAction` / `saveSnapshotAction` PERF line reports `0 ms`** — **FIXED 2026-07-11.** Not a timing bug — a misread of a lap timer. `perfStart` (`src/lib/perf.ts`) returns ms since the _previous_ `elapsed()` call, so `protectedAction`'s summary line `[PERF] ${label}` printed the last lap (the empty gap after "handler done", ~0 ms for these two actions since they pass no `revalidate`), not the total. The real ~12.5 s was logged all along on the indented `[PERF]   handler done` split. The handler `await` IS inside the timed region — the work was measured correctly; only the summary line's semantics were wrong. **Fix:** added a `started = performance.now()` at entry and print `performance.now() - started` on the summary line (`src/lib/actions/run-action.ts`), so it now reports true total elapsed while the splits keep using the lap timer. Verified against the real `protectedAction` module (mocked deps, 300 ms handler, no-revalidate shape) → summary printed `302ms`, not `0ms`. **Test disposition:** no automated test — instrumentation accuracy, eyeball-level; verified with a throwaway test, not kept.
+
+## S-09 — kosztorys-preset
+
+Pending author sign-off. Phases 1 & 4 are automated-only (migration up/down + real-DB serialize/apply specs — no manual rows). The boxes below are the UI-level flows the specs don't reach.
+
+Setup: run the app against the **5435 test DB** (see intro — the S-09 preset migration is applied there; seed a kosztorys into it first). Log in as **OWNER/MANAGER** (save/seed require MANAGEMENT_ROLES). Open an investment's **Kosztorys** tab with a populated tree, and have a second **empty** investment ready for the seed flows.
+
+### Phase 2: Save-as-preset — toolbar CTA
+
+- [ ] Save a preset from a seeded kosztorys via the **"Zapisz jako preset…"** toolbar CTA (mode "Nowy") → success toast "Zapisano preset".
+- [ ] Overwrite-by-name via the CTA's **"Nadpisz istniejący"** mode replaces the payload in place (same preset, new content).
+- [ ] Duplicate name in "Nowy" mode is rejected with the Polish message "Preset o tej nazwie już istnieje".
+
+### Phase 3: Seed-from-preset — two entry points
+
+- [ ] The **"Wypełnij z presetu"** empty-state CTA appears **only** when the tree is empty; seeding it populates the grid (grid remounts and shows rows) with all planned/measured quantities zero and the target's VAT/coeffs unchanged.
+- [ ] Creating a new investment with a preset chosen in the **"Kosztorys z presetu"** create-form picker → the new investment's kosztorys is pre-populated from it.
+- [ ] Seeding a **non-empty** kosztorys is rejected with the Polish message "Kosztorys nie jest pusty".

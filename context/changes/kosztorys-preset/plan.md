@@ -274,7 +274,7 @@ a failed write — the test-driven-debugging rule).
 
 #### Automated
 
-- [x] 4.1 serialize→apply roundtrip (structural equal; job fields zeroed; target VAT/coeffs unchanged)
-- [x] 4.2 Empty-guard rejection writes nothing (assert persisted state)
-- [x] 4.3 Unique-name / overwrite (dup rejected; overwrite replaces payload in place)
-- [x] 4.4 Frozen-spawn (overwrite preset never propagates to spawned tree)
+- [x] 4.1 serialize→apply roundtrip (structural equal; job fields zeroed; target VAT/coeffs unchanged) — 1146916
+- [x] 4.2 Empty-guard rejection writes nothing (assert persisted state) — 1146916
+- [x] 4.3 Unique-name / overwrite (dup rejected; overwrite replaces payload in place) — 1146916
+- [x] 4.4 Frozen-spawn (overwrite preset never propagates to spawned tree) — 1146916

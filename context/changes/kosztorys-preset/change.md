@@ -1,7 +1,7 @@
 ---
 id: kosztorys-preset
 title: Kosztorys presets (templates) (S-09)
-status: implementing
+status: implemented
 created: 2026-07-11
 updated: 2026-07-11
 branch: kosztorys-preset

@@ -121,7 +121,7 @@ Bands: **editor parity S-01–S-10** (active) → **import/export S-11–S-12** 
 | S-06 | kosztorys-snapshots             | save + restore point-in-time versions of a kosztorys (durable net)                     | S-01               | — (owner request)             | in review | yes        |
 | S-07 | kosztorys-undo                  | fast in-session undo/redo of the last editor edit(s)                                   | S-01               | — (owner request)             | proposed  | yes        |
 | S-08 | kosztorys-delete-guard          | hit a hard block when deleting a populated row / section / stage / column              | S-01               | — (owner request)             | in review | yes        |
-| S-09 | kosztorys-preset                | seed a new kosztorys from a preset; save an existing kosztorys as a preset             | S-01               | (owner request)               | in progress | yes        |
+| S-09 | kosztorys-preset                | seed a new kosztorys from a preset; save an existing kosztorys as a preset             | S-01               | (owner request)               | in review   | yes        |
 | S-10 | kosztorys-column-rbac           | restrict sensitive columns + rows (subcontractor cost/margin; sections) to OWNER/ADMIN | S-01, S-02, S-04   | — (POC P10)                   | proposed  | yes        |
 | S-11 | kosztorys-export                | CSV-export the kosztorys (WYSIWYG snapshot; no print/PDF)                              | S-01               | FR-008                        | deferred  | —          |
 | S-12 | kosztorys-importer              | import an existing sheet kosztorys into the app                                        | S-01 (full parity) | FR-010, FR-016                | deferred  | —          |
@@ -337,7 +337,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Resolved (decision 9, owner 2026-07-11):** named library, one row per preset in a new global `kosztorys_presets` table (`{id, name, schema_version, payload jsonb, created_at, created_by}`); reuses the S-06 serialize/apply engine via a forked `restoreKosztorys`. See `context/changes/kosztorys-preset/change.md`.
 - **Resolved (decision 10, owner 2026-07-11):** save-as offers **both** save-new and overwrite-existing; kosztorysy already spawned from a preset stay **frozen** when the preset is later edited (snapshot rule). Seed target v1 = **empty kosztorys only** (insert-only, no wipe/append/pre-apply snapshot).
 - **Risk:** The preset carries _structure_ (sekcje → prace) with embedded snapshot prices. Risk: letting a preset link become a live price authority reintroduces the centralisation the owner explicitly rejected. Keep prices embedded + overwritable.
-- **Status:** proposed
+- **Status:** in review
 
 ### S-10: Column + row RBAC (role-based visibility)
 
