@@ -12,9 +12,15 @@ import { receiptPdfPlugins } from './receipt-pdf-plugins'
 // never pull it into the Payload CLI graph (payload.config.ts / collections), or
 // `payload generate:types` throws.
 
-// Cheapest vision model that reads Polish receipts acceptably. Isolated to one constant so
-// tuning cost/latency is a one-line swap once the DB-fixtures eval calibrates accuracy.
-export const RECEIPT_MODEL = 'openai/gpt-4o-mini'
+// Reads Polish receipts (images) AND PDFs natively — the latter matters because our real
+// invoices are Stimulsoft/Quartz PDFs with no text layer, which the free pdf-text parser
+// can't read; a PDF-native model handles them without the paid mistral-ocr engine. Isolated
+// to one constant so swapping cost/quality (e.g. back to openai/gpt-4o-mini for images-only)
+// is a one-line change.
+// google/gemini-2.5-flash — confirmed working (reads the Stimulsoft/Quartz PDFs + images);
+// keep as the known-good fallback while trialing the cheaper 3.1-flash-lite tier below.
+// export const RECEIPT_MODEL = 'google/gemini-2.5-flash'
+export const RECEIPT_MODEL = 'google/gemini-3.1-flash-lite'
 
 const openrouter = createOpenRouter({
   apiKey: serverEnv.OPENROUTER_API_KEY,
@@ -34,6 +40,7 @@ const openrouter = createOpenRouter({
 export async function extractReceipt(
   imageBytes: Uint8Array,
   mediaType: string,
+  filename: string,
   expenseCategoryNames: string[],
   otherCategoryNames: string[],
 ): Promise<ReceiptExtractionT> {
@@ -49,7 +56,7 @@ export async function extractReceipt(
     '  DD.MM.YYYY (e.g. "Castorama 05.03.2026"). Normalize the vendor to a clean',
     '  canonical name: Title Case, drop legal suffixes (SP. Z O.O., S.A., etc.). If',
     '  the date is unreadable, give the vendor name alone; if the vendor is',
-    '  unreadable, return "".',
+    `  unreadable, return "${UNREADABLE_RECEIPT}".`,
     '- amount: the gross total (total due) as a number; null if unreadable.',
     '- invoiceNote: the receipt/invoice number on its OWN line, then each purchased',
     '  line item (product/service name) on its OWN line below it — separate every',
@@ -70,7 +77,9 @@ export async function extractReceipt(
 
   try {
     const result = await generateObject({
-      // PDFs need the file-parser plugin (pdf-text) to be parsed server-side; images get none.
+      // The file-parser plugin routes PDFs to the `native` engine (RECEIPT_MODEL reads PDFs
+      // natively); images carry no plugin. Without an explicit engine OpenRouter would default
+      // PDFs to the paid mistral-ocr — see receipt-pdf-plugins.ts.
       model: openrouter(RECEIPT_MODEL, { plugins: receiptPdfPlugins(mediaType) }),
       schema: receiptExtractionSchema,
       messages: [
@@ -78,11 +87,24 @@ export async function extractReceipt(
           role: 'user',
           content: [
             { type: 'text', text: promptText },
-            { type: 'file', data: imageBytes, mediaType },
+            // `filename` is REQUIRED for PDFs: OpenRouter routes the file by its extension, and
+            // the provider sends filename:"" when it's absent — the PDF then reaches the model
+            // unrouted and comes back unreadable.
+            { type: 'file', data: imageBytes, mediaType, filename },
           ],
         },
       ],
     })
+
+    // SENTRY-REQUIRED (EX-449): an unreadable result is a silent AI failure — generateObject
+    // succeeded, so nothing throws and the user just sees the sentinel in the Opis. It must be
+    // captured as a Sentry error once Sentry is wired (mediaType included so PDF-specific
+    // parse failures are separable from genuinely illegible images).
+    if (result.object.description === UNREADABLE_RECEIPT) {
+      console.error(
+        `[receipt] unreadable extraction (mediaType=${mediaType}, filename=${filename}, bytes=${imageBytes.byteLength})`,
+      )
+    }
 
     return result.object
   } catch (error) {

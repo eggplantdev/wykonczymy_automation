@@ -6,6 +6,7 @@ import { resolveExpenseCategoryId } from '@/components/forms/form-fields/resolve
 import { uploadFileClient } from '@/lib/utils/upload-file-client'
 import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
 import { toastMessage } from '@/lib/utils/toast'
+import { UNREADABLE_RECEIPT } from '@/lib/ai/receipt-extraction-schema'
 import type { ExpenseCategoryRefT, OtherCategoryRefT } from '@/types/reference-data'
 
 const FILL_CONCURRENCY = 4
@@ -68,6 +69,10 @@ export function useReceiptFill({
     const failed = new Set<number>()
     const failedMessages = new Set<string>()
     let done = 0
+    // A row the model couldn't read still fills (the sentinel lands in the Opis) and isn't a
+    // hard failure, but it shouldn't count as read — it drops the tally (8/10) without a loud
+    // per-row marker. The server-side SENTRY-REQUIRED log carries the detail.
+    let unreadable = 0
 
     await mapWithConcurrency(eligible, FILL_CONCURRENCY, async ({ index }) => {
       setFillingIndices((prev) => new Set(prev).add(index))
@@ -85,6 +90,7 @@ export function useReceiptFill({
         if (!result.success) throw new Error(result.error)
 
         const data = result.data
+        if (data.description === UNREADABLE_RECEIPT) unreadable += 1
         form.setFieldValue(`lineItems[${index}].description`, data.description)
         form.setFieldValue(
           `lineItems[${index}].amount`,
@@ -123,7 +129,7 @@ export function useReceiptFill({
     setIsFilling(false)
     setProgress(null)
 
-    const ok = eligible.length - failed.size
+    const ok = eligible.length - failed.size - unreadable
     if (failed.size === 0) {
       toastMessage(`Odczytano ${ok} z ${eligible.length} paragonów`, 'success')
     } else {

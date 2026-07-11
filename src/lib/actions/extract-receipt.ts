@@ -45,9 +45,14 @@ export async function extractReceiptAction(
       return { success: false, error: `Nie udało się pobrać pliku (HTTP ${response.status})` }
     const imageBytes = new Uint8Array(await response.arrayBuffer())
 
+    // The file-parser plugin routes PDFs by extension, so the filename must carry one. Fall
+    // back to a synthetic name derived from the mime subtype when the media has none.
+    const parserFilename = currentName ?? `receipt.${mimeType.split('/')[1] ?? 'pdf'}`
+
     const data = await extractReceipt(
       imageBytes,
       mimeType,
+      parserFilename,
       input.expenseCategoryNames,
       input.otherCategoryNames,
     )

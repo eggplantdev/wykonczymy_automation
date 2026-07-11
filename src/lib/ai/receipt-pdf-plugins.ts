@@ -1,6 +1,8 @@
-// Free OpenRouter file-parser engine for text-layer PDFs (digital invoices). Isolated to one
-// constant so it can never silently drift to the paid mistral-ocr fallback ($2/1000 pages).
-export const RECEIPT_PDF_ENGINE = 'pdf-text'
+// 'native' hands the PDF to the model's own multimodal handling (RECEIPT_MODEL is PDF-native)
+// instead of extracting text server-side — needed because our invoices are Stimulsoft/Quartz
+// PDFs with no text layer, which the free 'pdf-text' engine returns empty for. Still avoids the
+// paid 'mistral-ocr' engine ($2/1000 pages); flip back to 'pdf-text' only with a non-PDF model.
+export const RECEIPT_PDF_ENGINE = 'native'
 
 type FileParserPluginT = { id: 'file-parser'; pdf: { engine: string } }
 
