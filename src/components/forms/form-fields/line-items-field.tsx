@@ -4,7 +4,7 @@ import { Fragment, useRef } from 'react'
 import { Trash2, WandSparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { Spinner } from '@/components/ui/spinner'
+import { GradientSpinner } from '@/components/ui/gradient-spinner'
 import { RemoveButton } from '@/components/ui/remove-button'
 import { LineItemInvoiceField } from '@/components/forms/form-fields/line-item-invoice-field'
 import { Label } from '@/components/ui/label'
@@ -216,7 +216,7 @@ export function LineItemsField({
                       index), landing a result on the wrong row. */}
                     <div className="flex size-9 shrink-0 items-center justify-center">
                       {fillingIndices?.has(index) ? (
-                        <Spinner />
+                        <GradientSpinner />
                       ) : (
                         <RemoveButton
                           icon={Trash2}
@@ -286,7 +286,7 @@ export function LineItemsField({
                 onClick={() => receiptInputRef.current?.click()}
                 disabled={isFilling}
               >
-                {isFilling ? <Spinner /> : <WandSparkles className="text-neon-cyan" />}
+                {isFilling ? <GradientSpinner /> : <WandSparkles className="text-neon-cyan" />}
                 <span className="text-neon-cyan font-semibold">Dodaj paragony</span>
               </Button>
             )}
