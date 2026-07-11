@@ -1,10 +1,10 @@
 ---
 change_id: receipt-scan-line-items
 title: Scan receipts into investment-expense line items via LLM vision
-status: in review
+status: archived
 created: 2026-07-11
 updated: 2026-07-11
-archived_at: null
+archived_at: 2026-07-11T22:13:31Z
 branch: receipt-scan-line-items
 worktree: /Users/konradantonik/workspace/yolo/wykonczymy-receipt-scan
 linear: EX-443

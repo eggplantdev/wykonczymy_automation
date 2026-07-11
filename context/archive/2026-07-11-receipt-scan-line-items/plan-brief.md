@@ -28,18 +28,18 @@ exactly once (no duplicate media).
 
 ## Key Decisions Made
 
-| Decision            | Choice                                              | Why (1 sentence)                                                                 | Source   |
-| ------------------- | --------------------------------------------------- | -------------------------------------------------------------------------------- | -------- |
-| Action input        | Typed `mediaId`, not a `File`                       | Repo never passes files through server actions (body-size limit).                | Research |
-| Add mechanic        | Batch multi-file → one row per image                | Drop 10 receipts, get 10 ready-to-fill rows — the core value.                     | Plan     |
-| Fill trigger        | One global "Wypełnij z paragonów" button            | Matches "add them, then a button"; skips rows filled by hand.                     | Plan     |
-| Upload reuse        | Upload once at fill → thread mediaId through submit  | True "one upload, two uses"; no duplicate media in Payload/Blob.                  | Plan     |
-| Partial failure     | Blank row (image attached) + marker + toast         | Upload already succeeded; user keeps the invoice and just types values.          | Plan     |
-| Fan-out             | Bounded pool of 4 concurrent                        | Avoids OpenRouter rate-limit bursts on large drops; steady streaming.            | Plan     |
-| Category name→id    | Exact-match-or-blank, client-side                   | A hallucinated category can never reach the form; id map already lives client.   | Research |
-| Amount              | Gross total (brutto)                                | Matches what users enter today for INVESTMENT_EXPENSE.                            | Plan     |
-| Provider            | OpenRouter via AI SDK `generateObject` + Zod        | Native structured output; matches repo Zod/server-action conventions.            | Change   |
-| Testing             | Unit-test pure pieces; defer accuracy eval          | Locks deterministic logic cheaply; real-accuracy eval needs live blob fetch.     | Plan     |
+| Decision         | Choice                                              | Why (1 sentence)                                                               | Source   |
+| ---------------- | --------------------------------------------------- | ------------------------------------------------------------------------------ | -------- |
+| Action input     | Typed `mediaId`, not a `File`                       | Repo never passes files through server actions (body-size limit).              | Research |
+| Add mechanic     | Batch multi-file → one row per image                | Drop 10 receipts, get 10 ready-to-fill rows — the core value.                  | Plan     |
+| Fill trigger     | One global "Wypełnij z paragonów" button            | Matches "add them, then a button"; skips rows filled by hand.                  | Plan     |
+| Upload reuse     | Upload once at fill → thread mediaId through submit | True "one upload, two uses"; no duplicate media in Payload/Blob.               | Plan     |
+| Partial failure  | Blank row (image attached) + marker + toast         | Upload already succeeded; user keeps the invoice and just types values.        | Plan     |
+| Fan-out          | Bounded pool of 4 concurrent                        | Avoids OpenRouter rate-limit bursts on large drops; steady streaming.          | Plan     |
+| Category name→id | Exact-match-or-blank, client-side                   | A hallucinated category can never reach the form; id map already lives client. | Research |
+| Amount           | Gross total (brutto)                                | Matches what users enter today for INVESTMENT_EXPENSE.                         | Plan     |
+| Provider         | OpenRouter via AI SDK `generateObject` + Zod        | Native structured output; matches repo Zod/server-action conventions.          | Change   |
+| Testing          | Unit-test pure pieces; defer accuracy eval          | Locks deterministic logic cheaply; real-accuracy eval needs live blob fetch.   | Plan     |
 
 ## Scope
 
@@ -61,12 +61,12 @@ client maps the returned category name → id.
 
 ## Phases at a Glance
 
-| Phase                    | What it delivers                                              | Key risk                                                    |
-| ------------------------ | ------------------------------------------------------------ | ----------------------------------------------------------- |
-| 1. Foundation            | Deps + env + AI client + extraction schema                   | arm64 lightningcss re-link breaking the CSS build           |
-| 2. Server action         | `extractReceiptAction` + name→id resolver                    | Vision message shape / PDF handling in `generateObject`     |
-| 3. Batch add             | N images → N rows with attached invoices (submit-time upload) | Row↔file index alignment on batch push + removal           |
-| 4. Fill orchestration    | Global button, upload-once threading, streaming, failure UX  | Double-upload / stale mediaId if maps drift; skip-non-empty |
+| Phase                 | What it delivers                                              | Key risk                                                    |
+| --------------------- | ------------------------------------------------------------- | ----------------------------------------------------------- |
+| 1. Foundation         | Deps + env + AI client + extraction schema                    | arm64 lightningcss re-link breaking the CSS build           |
+| 2. Server action      | `extractReceiptAction` + name→id resolver                     | Vision message shape / PDF handling in `generateObject`     |
+| 3. Batch add          | N images → N rows with attached invoices (submit-time upload) | Row↔file index alignment on batch push + removal            |
+| 4. Fill orchestration | Global button, upload-once threading, streaming, failure UX   | Double-upload / stale mediaId if maps drift; skip-non-empty |
 
 **Prerequisites:** `OPENROUTER_API_KEY` in `.env`; dev DB with real receipt media for manual checks.
 **Estimated effort:** ~2–3 sessions across the 4 phases.
