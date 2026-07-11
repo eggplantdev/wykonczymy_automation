@@ -68,6 +68,38 @@ Test authoring deferred to the user (their call — "I'll go back to these issue
 - **e2e / build** — not run (fast-legs only, user choice).
 - Confirms impl-review's gap: a restore-**revert** test exists; a restore-**rollback-on-error** test does not.
 
+### /simplify re-run (2026-07-11) — post-all-changes sweep
+
+Re-ran the 4-agent /simplify over `38a7472..HEAD` after the session's later edits (guard sweep,
+bulk-INSERT restore, actions split, run-action timer, drawer/latch). Report:
+`/var/folders/.../simplify-XXXXXX.sXMs1WrgiT.md`. Outcome **0 applied, 2 proposed, 6 dismissed** — the
+diff is clean at reuse/simplification/efficiency; all six dismissals were confirmations or false positives
+(dual timers, drawer close-reset, guard reindent, the guard's per-caller opt-in, the intended COUNT cost,
+the optional `insertReturningIds` helper held for EX-430).
+
+- [x] **fixed (2026-07-11)** — altitude · `kosztorys-editor-v2.tsx` · the drawer-close latch clear
+      (`handleVersionsOpenChange`, the earlier line-59 fix) was a bandaid over a remount-latch smell: it
+      keyed the restore remount on the `tree` **prop's object identity**, which `router.refresh()` reshapes
+      every time, so a restore returning identical-content tree never fired and left the latch stuck — the
+      clear-on-close only papered over the stuck window. **Deeper fix (user reversed the earlier reject):**
+      added a server **revision token** — `KosztorysTreeT.revision = investment.updatedAt`, computed for
+      free in `getKosztorysTree` (the investment is already fetched). A restore's final `payload.update`
+      always bumps `updatedAt`, so the shell keys its remount on `tree.revision !== prev` (render-phase,
+      flash-free) while `restorePending` is set. The latch now always fires on a restore and never sticks,
+      so the `handleVersionsOpenChange` bandaid is deleted (`onOpenChange={setVersionsOpen}`). Type-clean,
+      lint-clean, v2-rows unit test green. **Test disposition:** unit/integration on the remount gate if
+      pursued — deferred with the slice's other owed tests.
+
+One genuinely new item:
+
+- [ ] proposed · `.env.copy` (template) · `env/schema.ts:47` made `CRON_SECRET` **required**
+      (`.optional()` dropped), but the checked-in `.env.copy` has no `CRON_SECRET` entry. Held back because
+      `.env.copy` is **already a partial, feature-scoped template** (omits `PAYLOAD_SECRET`,
+      `DB_POSTGRES_URL`, `GOOGLE_SERVICE_ACCOUNT_JSON`, `KOSZTORYS_TEMPLATE_SHEET_ID` too), so adding only
+      `CRON_SECRET` is selective churn. Also **not strictly S-06** — the schema change is a parallel work
+      stream (commit 83729ea). **Needs your call:** make `.env.copy` mirror the full required-var contract,
+      or leave it feature-scoped. Not an auto-apply.
+
 ### Finding surfaced by the suite run
 
 - [x] **fixed — The S-06 restore/snapshot integration suite ran in no automatic gate** — no CI exists; the only gate is `.husky/pre-push`, which ran `pnpm vitest run` **bare** (no DB env → all `describe.skipIf(!ENV_READY)` DB tests skipped) and `pnpm test:parity` (dev DB only). So the restore safety suite silently skipped on every push. **Fix (2026-07-11):** added `scripts/test-integration.sh` + `pnpm test:integration`, wired into `.husky/pre-push`. It ups the isolated **5435** `db-test`, keeps its schema current (re-imports the prod dump **only** when the migration fingerprint changes or the `kosztorys_snapshots` sentinel table is absent — the specs self-provision fixtures, so fresh prod _content_ buys nothing), auto-discovers the DB-gated files by their shared `skipIf(!ENV_READY)` marker (minus parity, which keeps its own dev-DB leg), and runs them **serially** (`--no-file-parallelism`). Verified: 8 files / 21 tests green across 4 runs, ~24–30 s. **Test disposition:** infra/plumbing — no product test; this _is_ the gate that runs the tests.

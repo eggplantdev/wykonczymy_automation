@@ -125,5 +125,12 @@ export async function getKosztorysTree(investmentId: number): Promise<KosztorysT
     qtyDone: num(d.qtyDone),
   }))
 
-  return { sections, stages, progress, globalCoeffs, vatRate: investment.vatRate ?? DEFAULT_VAT }
+  return {
+    sections,
+    stages,
+    progress,
+    globalCoeffs,
+    vatRate: investment.vatRate ?? DEFAULT_VAT,
+    revision: investment.updatedAt,
+  }
 }

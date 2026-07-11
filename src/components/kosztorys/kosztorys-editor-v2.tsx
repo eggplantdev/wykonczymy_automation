@@ -23,19 +23,21 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
   const [versionsOpen, setVersionsOpen] = useState(false)
   const [remountKey, setRemountKey] = useState(0)
   // One-shot remount signal. After a restore we router.refresh() for the restored tree, then remount
-  // ONLY once the fresh prop actually lands — comparing the `tree` prop across renders fires the
-  // remount on the first change while a restore is pending, without a useEffect and without
-  // remounting on the routine totals-refresh that ordinary edits trigger (awaitingTree gates it).
-  const [awaitingTree, setAwaitingTree] = useState(false)
-  const prevTree = useRef(tree)
-  // Comparing/advancing the prev-prop ref during render is the documented "store info from previous
+  // ONLY once the fresh prop actually lands — keyed on the server revision token (investment.updatedAt),
+  // which a restore always bumps, rather than on the `tree` prop's object identity (router.refresh
+  // reshapes that on every refresh, so a restore returning an identical-content tree would never fire
+  // an identity compare, leaving the latch stuck). restorePending gates it so the routine totals-refresh
+  // an ordinary edit triggers doesn't remount. No useEffect: this render-phase compare is flash-free.
+  const [restorePending, setRestorePending] = useState(false)
+  const prevRevision = useRef(tree.revision)
+  // Comparing/advancing the prev-value ref during render is the documented "store info from previous
   // render" pattern (the rule is too strict here) — same sanctioned use as use-kosztorys-editor.ts.
   // eslint-disable-next-line react-hooks/refs
-  const treeChanged = tree !== prevTree.current
+  const revisionChanged = tree.revision !== prevRevision.current
   // eslint-disable-next-line react-hooks/refs
-  prevTree.current = tree
-  if (awaitingTree && treeChanged) {
-    setAwaitingTree(false)
+  prevRevision.current = tree.revision
+  if (restorePending && revisionChanged) {
+    setRestorePending(false)
     setRemountKey((k) => k + 1)
   }
 
@@ -48,16 +50,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
 
   function handleRestored() {
     router.refresh()
-    setAwaitingTree(true)
-  }
-
-  function handleVersionsOpenChange(open: boolean) {
-    setVersionsOpen(open)
-    // Drop a pending remount latch on close. If a restore's refresh returned a referentially
-    // identical tree, `treeChanged` never fired and `awaitingTree` would stay stuck true — then a
-    // later ordinary edit's refresh would wrongly remount mid-edit. An identical tree means there is
-    // nothing to remount for, so clearing here loses no real restore.
-    if (!open) setAwaitingTree(false)
+    setRestorePending(true)
   }
 
   return (
@@ -72,7 +65,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
       <KosztorysVersionsDrawer
         investmentId={investmentId}
         open={versionsOpen}
-        onOpenChange={handleVersionsOpenChange}
+        onOpenChange={setVersionsOpen}
         onRestored={handleRestored}
       />
     </>
