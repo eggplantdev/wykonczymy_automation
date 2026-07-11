@@ -111,8 +111,8 @@ function FileInput({
           className,
         )}
       >
-        <Upload className="size-4" />
-        <span className="text-sm">{fileName ?? placeholder}</span>
+        <Upload className="size-4 shrink-0" />
+        <span className="line-clamp-1 min-w-0 text-sm break-all">{fileName ?? placeholder}</span>
 
         <input
           ref={setRefs}

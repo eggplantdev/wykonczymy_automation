@@ -43,8 +43,8 @@ export function useInvoiceFiles(initialFiles?: Map<number, File>) {
     files.forEach((_, offset) => mediaIdsRef.current.delete(startIndex + offset))
   }
 
-  function getFileName(index: number): string | undefined {
-    return invoiceFilesRef.current.get(index)?.name
+  function getFile(index: number): File | undefined {
+    return invoiceFilesRef.current.get(index)
   }
 
   function getFiles(): Map<number, File> {
@@ -57,6 +57,15 @@ export function useInvoiceFiles(initialFiles?: Map<number, File>) {
 
   function setMediaId(index: number, mediaId: number) {
     mediaIdsRef.current.set(index, mediaId)
+  }
+
+  // Swap a row's File for a same-bytes clone under a new name so the FV label can mirror the
+  // server-side receipt rename. Display-only — the upload already happened (mediaId is tracked),
+  // so this never re-uploads; the caller bumps fileInputKey to re-read the name.
+  function renameFile(index: number, newName: string) {
+    const existing = invoiceFilesRef.current.get(index)
+    if (!existing) return
+    invoiceFilesRef.current.set(index, new File([existing], newName, { type: existing.type }))
   }
 
   function getMediaIds(): Map<number, number> {
@@ -72,10 +81,11 @@ export function useInvoiceFiles(initialFiles?: Map<number, File>) {
     handleRemoveLineItem,
     handleFileChange,
     registerFilesAt,
-    getFileName,
+    getFile,
     getFiles,
     getMediaId,
     setMediaId,
+    renameFile,
     getMediaIds,
     reset,
   }
