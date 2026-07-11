@@ -35,7 +35,6 @@ beforeEach(() => {
     description: 'Castorama',
     amount: 12.5,
     invoiceNote: '',
-    expenseCategoryName: 'Materiały budowlane',
     otherCategoryName: '',
   })
   vi.stubGlobal(
@@ -50,7 +49,6 @@ describe('extractReceiptAction', () => {
 
     await extractReceiptAction({
       mediaId: 1,
-      expenseCategoryNames: ['Materiały budowlane'],
       otherCategoryNames: [],
     })
 
@@ -62,7 +60,6 @@ describe('extractReceiptAction', () => {
 
     const result = await extractReceiptAction({
       mediaId: 1,
-      expenseCategoryNames: ['A'],
       otherCategoryNames: [],
     })
 
@@ -81,7 +78,6 @@ describe('extractReceiptAction', () => {
 
     const result = await extractReceiptAction({
       mediaId: 1,
-      expenseCategoryNames: [],
       otherCategoryNames: [],
     })
 

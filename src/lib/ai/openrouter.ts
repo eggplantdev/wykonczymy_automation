@@ -15,12 +15,13 @@ import { receiptPdfPlugins } from './receipt-pdf-plugins'
 // Reads Polish receipts (images) AND PDFs natively — the latter matters because our real
 // invoices are Stimulsoft/Quartz PDFs with no text layer, which the free pdf-text parser
 // can't read; a PDF-native model handles them without the paid mistral-ocr engine. Isolated
-// to one constant so swapping cost/quality (e.g. back to openai/gpt-4o-mini for images-only)
-// is a one-line change.
-// google/gemini-2.5-flash — confirmed working (reads the Stimulsoft/Quartz PDFs + images);
-// keep as the known-good fallback while trialing the cheaper 3.1-flash-lite tier below.
-// export const RECEIPT_MODEL = 'google/gemini-2.5-flash'
+// to one constant so swapping cost/quality is a one-line change. On-trial cheaper tier.
 export const RECEIPT_MODEL = 'google/gemini-3.1-flash-lite'
+
+// Known-good fallback: extractReceipt retries once with this when the (cheaper, on-trial)
+// primary throws, so a wrong/unavailable RECEIPT_MODEL id degrades to slower-but-working
+// instead of failing every scan. Confirmed reads the Stimulsoft/Quartz PDFs + images.
+export const FALLBACK_MODEL = 'google/gemini-2.5-flash'
 
 const openrouter = createOpenRouter({
   apiKey: serverEnv.OPENROUTER_API_KEY,
@@ -41,10 +42,8 @@ export async function extractReceipt(
   imageBytes: Uint8Array,
   mediaType: string,
   filename: string,
-  expenseCategoryNames: string[],
   otherCategoryNames: string[],
 ): Promise<ReceiptExtractionT> {
-  const categoryList = expenseCategoryNames.length > 0 ? expenseCategoryNames.join('\n') : '(none)'
   const otherCategoryList = otherCategoryNames.length > 0 ? otherCategoryNames.join('\n') : '(none)'
 
   const promptText = [
@@ -62,25 +61,19 @@ export async function extractReceipt(
     '  line item (product/service name) on its OWN line below it — separate every',
     '  line with a newline ("\\n"), e.g. "FV 123/2026\\nCement 25kg\\nGrunt 5l".',
     '  Include whichever part is legible; "" if neither is.',
-    '- expenseCategoryName: pick EXACTLY one of the expense types below, copied',
-    '  verbatim, or "" if none fit. Do not invent a new value.',
     '- otherCategoryName: pick EXACTLY one of the categories below, copied',
-    '  verbatim, or "" if none fit. Do not invent a new value. This is an',
-    '  independent classification from expenseCategoryName — choose each on its own.',
-    '',
-    'Available expense types (for expenseCategoryName):',
-    categoryList,
+    '  verbatim, or "" if none fit. Do not invent a new value.',
     '',
     'Available categories (for otherCategoryName):',
     otherCategoryList,
   ].join('\n')
 
-  try {
+  async function callModel(model: string): Promise<ReceiptExtractionT> {
     const result = await generateObject({
-      // The file-parser plugin routes PDFs to the `native` engine (RECEIPT_MODEL reads PDFs
+      // The file-parser plugin routes PDFs to the `native` engine (the model reads PDFs
       // natively); images carry no plugin. Without an explicit engine OpenRouter would default
       // PDFs to the paid mistral-ocr — see receipt-pdf-plugins.ts.
-      model: openrouter(RECEIPT_MODEL, { plugins: receiptPdfPlugins(mediaType) }),
+      model: openrouter(model, { plugins: receiptPdfPlugins(mediaType) }),
       schema: receiptExtractionSchema,
       messages: [
         {
@@ -95,18 +88,32 @@ export async function extractReceipt(
         },
       ],
     })
+    return result.object
+  }
+
+  try {
+    let object: ReceiptExtractionT
+    try {
+      object = await callModel(RECEIPT_MODEL)
+    } catch (primaryError) {
+      // SENTRY-REQUIRED (EX-449): the primary (on-trial) model failed — retry once with the
+      // known-good FALLBACK_MODEL so a bad/unavailable primary id doesn't kill every scan. Log
+      // the primary failure since a silent fallback hides that the trial tier is broken.
+      console.error(`[receipt] primary model ${RECEIPT_MODEL} failed — falling back`, primaryError)
+      object = await callModel(FALLBACK_MODEL)
+    }
 
     // SENTRY-REQUIRED (EX-449): an unreadable result is a silent AI failure — generateObject
     // succeeded, so nothing throws and the user just sees the sentinel in the Opis. It must be
     // captured as a Sentry error once Sentry is wired (mediaType included so PDF-specific
     // parse failures are separable from genuinely illegible images).
-    if (result.object.description === UNREADABLE_RECEIPT) {
+    if (object.description === UNREADABLE_RECEIPT) {
       console.error(
         `[receipt] unreadable extraction (mediaType=${mediaType}, filename=${filename}, bytes=${imageBytes.byteLength})`,
       )
     }
 
-    return result.object
+    return object
   } catch (error) {
     // SENTRY-REQUIRED (EX-449): receipt extraction failures must be captured once Sentry is
     // wired — they are silent AI/provider errors users can't self-report.

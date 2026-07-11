@@ -7,10 +7,10 @@ describe('receiptExtractionSchema', () => {
       description: 'Castorama — farba',
       amount: 129.99,
       invoiceNote: 'FV/2026/07/11',
-      expenseCategoryName: 'Materiały',
+      otherCategoryName: 'Remont',
     })
     expect(parsed.amount).toBe(129.99)
-    expect(parsed.expenseCategoryName).toBe('Materiały')
+    expect(parsed.otherCategoryName).toBe('Remont')
   })
 
   it('allows amount to be null (total not legible)', () => {
@@ -18,7 +18,7 @@ describe('receiptExtractionSchema', () => {
       description: 'paragon',
       amount: null,
       invoiceNote: '',
-      expenseCategoryName: '',
+      otherCategoryName: '',
     })
     expect(parsed.amount).toBeNull()
   })
@@ -27,7 +27,7 @@ describe('receiptExtractionSchema', () => {
     const result = receiptExtractionSchema.safeParse({
       description: 'x',
       invoiceNote: '',
-      expenseCategoryName: '',
+      otherCategoryName: '',
     })
     expect(result.success).toBe(false)
   })
@@ -37,7 +37,7 @@ describe('receiptExtractionSchema', () => {
       description: 'x',
       amount: '129.99',
       invoiceNote: '',
-      expenseCategoryName: '',
+      otherCategoryName: '',
     })
     expect(result.success).toBe(false)
   })

@@ -7,7 +7,7 @@ import { uploadFileClient } from '@/lib/utils/upload-file-client'
 import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
 import { toastMessage } from '@/lib/utils/toast'
 import { UNREADABLE_RECEIPT } from '@/lib/ai/receipt-extraction-schema'
-import type { ExpenseCategoryRefT, OtherCategoryRefT } from '@/types/reference-data'
+import type { OtherCategoryRefT } from '@/types/reference-data'
 
 const FILL_CONCURRENCY = 4
 
@@ -18,7 +18,6 @@ type LineItemRowT = { description: string; amount: string }
 
 type ReceiptFillDepsT = {
   form: FormT
-  categories: ExpenseCategoryRefT[]
   otherCategories: OtherCategoryRefT[]
   getFiles: () => Map<number, File>
   getMediaId: (index: number) => number | undefined
@@ -38,7 +37,6 @@ function reindexSet(set: Set<number>, removedIndex: number): Set<number> {
 
 export function useReceiptFill({
   form,
-  categories,
   otherCategories,
   getFiles,
   getMediaId,
@@ -64,7 +62,6 @@ export function useReceiptFill({
     setIsFilling(true)
     setFailedIndices(new Set())
     setProgress({ done: 0, total: eligible.length })
-    const categoryNames = categories.map((c) => c.name)
     const otherCategoryNames = otherCategories.map((c) => c.name)
     const failed = new Set<number>()
     const failedMessages = new Set<string>()
@@ -84,7 +81,6 @@ export function useReceiptFill({
         }
         const result = await extractReceiptAction({
           mediaId,
-          expenseCategoryNames: categoryNames,
           otherCategoryNames,
         })
         if (!result.success) throw new Error(result.error)
@@ -97,10 +93,6 @@ export function useReceiptFill({
           data.amount === null ? '' : String(data.amount),
         )
         form.setFieldValue(`lineItems[${index}].invoiceNote`, data.invoiceNote)
-        form.setFieldValue(
-          `lineItems[${index}].expenseCategory`,
-          resolveExpenseCategoryId(data.expenseCategoryName, categories),
-        )
         form.setFieldValue(
           `lineItems[${index}].category`,
           resolveExpenseCategoryId(data.otherCategoryName, otherCategories),

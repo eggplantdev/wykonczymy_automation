@@ -9,7 +9,6 @@ import { buildReceiptFileName } from '@/lib/utils/receipt-filename'
 
 type ExtractReceiptInputT = {
   mediaId: number
-  expenseCategoryNames: string[]
   otherCategoryNames: string[]
 }
 
@@ -53,7 +52,6 @@ export async function extractReceiptAction(
       imageBytes,
       mimeType,
       parserFilename,
-      input.expenseCategoryNames,
       input.otherCategoryNames,
     )
 

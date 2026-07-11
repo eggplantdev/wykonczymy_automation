@@ -214,7 +214,6 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     resetFill,
   } = useReceiptFill({
     form,
-    categories: referenceData.expenseCategories,
     otherCategories: referenceData.otherCategories,
     getFiles,
     getMediaId,

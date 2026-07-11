@@ -11,7 +11,6 @@ export const receiptExtractionSchema = z.object({
   description: z.string(),
   amount: z.number().nullable(),
   invoiceNote: z.string(),
-  expenseCategoryName: z.string(),
   otherCategoryName: z.string(),
 })
 
