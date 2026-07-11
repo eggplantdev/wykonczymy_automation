@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import { getDb } from '@/lib/db/get-db'
 import { insertPreset, listPresets, upsertPresetByName, type PresetMetaT } from '@/lib/db/presets'
+import { seedInvestmentFromPreset } from '@/lib/kosztorys/seed-from-preset'
 import { serializeKosztorysAsPreset } from '@/lib/kosztorys/serialize-preset'
 import type { ActionResultT } from '@/types/action'
 
@@ -37,6 +38,26 @@ export async function savePresetAction(
     if (id == null) return { success: false, error: 'Preset o tej nazwie już istnieje' }
     return { success: true }
   })
+}
+
+// Populate an EMPTY investment's kosztorys from a preset (empty-editor "Wypełnij z presetu"). The
+// seed orchestration + empty-guard live in seedInvestmentFromPreset; this action owns auth and the
+// revalidation. Four tree tags only — NOT `investments`: settings (VAT/coeffs) are untouched, a
+// preset never carries one job's pricing config onto another.
+export async function seedFromPresetAction(
+  investmentId: number,
+  presetId: number,
+): Promise<ActionResultT> {
+  return protectedAction(
+    'seedFromPresetAction',
+    async ({ payload }) => {
+      const result = await seedInvestmentFromPreset(payload, investmentId, presetId)
+      if (result === 'not-found') return { success: false, error: 'Nie znaleziono presetu' }
+      if (result === 'not-empty') return { success: false, error: 'Kosztorys nie jest pusty' }
+      return { success: true }
+    },
+    ['kosztorysSections', 'kosztorysItems', 'kosztorysStages', 'stageProgress'],
+  )
 }
 
 // Preset metadata for the save/seed pickers — newest first, WITHOUT the jsonb payload. Fetch-on-open

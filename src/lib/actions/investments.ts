@@ -10,6 +10,7 @@ import {
   investmentSchema,
   type InvestmentFormDataT,
 } from '@/components/forms/investment-form/investment-schema'
+import { seedInvestmentFromPreset } from '@/lib/kosztorys/seed-from-preset'
 import { validateAction, protectedAction } from './run-action'
 
 // Attach (or reset) a fresh materiały tab on the investment's linked sheet.
@@ -37,10 +38,22 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
       const parsed = validateAction(investmentSchema, data)
       if (!parsed.success) return parsed
 
-      await payload.create({
+      // presetId is a form-only field (seed source), never an investments column.
+      const { presetId, ...investmentData } = parsed.data
+      const created = await payload.create({
         collection: 'investments',
-        data: parsed.data,
+        data: investmentData,
       })
+
+      // Seed the new (trivially empty) investment's kosztorys from the chosen preset. A bad presetId
+      // must not fail the create — the investment already exists; report the seed failure separately.
+      const chosenPresetId = presetId ? Number(presetId) : null
+      if (chosenPresetId) {
+        const result = await seedInvestmentFromPreset(payload, Number(created.id), chosenPresetId)
+        if (result === 'not-found') {
+          return { success: false, error: 'Utworzono inwestycję, ale nie znaleziono presetu.' }
+        }
+      }
 
       return { success: true }
     },
@@ -207,10 +220,12 @@ export async function updateInvestmentAction(id: number, data: InvestmentFormDat
       const parsed = validateAction(investmentSchema, data)
       if (!parsed.success) return parsed
 
+      // presetId is a create-only seed field; the edit form always sends '' — never write it.
+      const { presetId: _presetId, ...investmentData } = parsed.data
       await payload.update({
         collection: 'investments',
         id,
-        data: parsed.data,
+        data: investmentData,
       })
 
       return { success: true }

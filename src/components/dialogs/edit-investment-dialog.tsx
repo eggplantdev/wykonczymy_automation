@@ -39,6 +39,7 @@ export function EditInvestmentDialog({ investment }: EditInvestmentDialogPropsT)
             notes: investment.notes,
             review: investment.review,
             status: investment.status,
+            presetId: '',
           }}
           action={(data) => updateInvestmentAction(investment.id, data)}
           successMessage="Inwestycja zaktualizowana"

@@ -256,19 +256,19 @@ a failed write — the test-driven-debugging rule).
 
 #### Automated
 
-- [x] 2.1 `serializeKosztorysAsPreset` — wrap `serializeKosztorys`, strip job fields
-- [x] 2.2 `savePresetAction(investmentId, name, mode)` in `src/lib/actions/kosztorys-presets.ts`
-- [x] 2.3 `SavePresetButton` CTA in toolbar right cluster
+- [x] 2.1 `serializeKosztorysAsPreset` — wrap `serializeKosztorys`, strip job fields — 1cc0edd
+- [x] 2.2 `savePresetAction(investmentId, name, mode)` in `src/lib/actions/kosztorys-presets.ts` — 1cc0edd
+- [x] 2.3 `SavePresetButton` CTA in toolbar right cluster — 1cc0edd
 
 ### Phase 3: Seed-from-preset (applier + action + two entry points)
 
 #### Automated
 
-- [ ] 3.1 `applyPreset` in `src/lib/kosztorys/apply-preset.ts` (no wipe, no settings write-back)
-- [ ] 3.2 `seedFromPresetAction(investmentId, presetId)` with empty-guard + own transaction
-- [ ] 3.3 `listPresetsAction()`
-- [ ] 3.4 Entry point 1 — empty-editor picker CTA (remount grid via `key` on success)
-- [ ] 3.5 Entry point 2 — optional `presetId` in investment-create form → `createInvestmentAction`
+- [x] 3.1 `applyPreset` in `src/lib/kosztorys/apply-preset.ts` (no wipe, no settings write-back)
+- [x] 3.2 `seedFromPresetAction(investmentId, presetId)` with empty-guard + own transaction
+- [x] 3.3 `listPresetsAction()`
+- [x] 3.4 Entry point 1 — empty-editor picker CTA (remount grid via `key` on success)
+- [x] 3.5 Entry point 2 — optional `presetId` in investment-create form → `createInvestmentAction`
 
 ### Phase 4: Tests
 
