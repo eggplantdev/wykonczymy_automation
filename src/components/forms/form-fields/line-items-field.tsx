@@ -146,20 +146,25 @@ export function LineItemsField({
     : EMPTY_LINE_ITEM
   const receiptInputRef = useRef<HTMLInputElement>(null)
 
-  function handleAddReceipts(e: React.ChangeEvent<HTMLInputElement>, lineItemsField: ArrayFieldT) {
+  // Scan flow: add each picked receipt as a row (image attached) FIRST, then run the AI fill.
+  // Order matters — rows persist even if extraction fails, so a failed scan still yields line
+  // items to fill by hand. Picker cancelled (no files) → skip the add and just re-run fill on
+  // any existing eligible rows.
+  function handleScanReceipts(e: React.ChangeEvent<HTMLInputElement>, lineItemsField: ArrayFieldT) {
     const picked = Array.from(e.target.files ?? [])
     e.target.value = '' // allow re-picking the same files after a reset
-    if (picked.length === 0) return
+    if (picked.length > 0) {
+      // Reuse the lone initial blank row for the first image so the first receipt lands on
+      // row 0 rather than after an empty row; otherwise append after the existing rows.
+      const rows = lineItemsField.state.value as { description: string; amount: string }[]
+      const reuseFirstRow = rows.length === 1 && !rows[0].description && !rows[0].amount
+      const startIndex = reuseFirstRow ? 0 : rows.length
+      const rowsToPush = reuseFirstRow ? picked.length - 1 : picked.length
 
-    // Reuse the lone initial blank row for the first image so the first receipt lands on
-    // row 0 rather than after an empty row; otherwise append after the existing rows.
-    const rows = lineItemsField.state.value as { description: string; amount: string }[]
-    const reuseFirstRow = rows.length === 1 && !rows[0].description && !rows[0].amount
-    const startIndex = reuseFirstRow ? 0 : rows.length
-    const rowsToPush = reuseFirstRow ? picked.length - 1 : picked.length
-
-    for (let i = 0; i < rowsToPush; i++) lineItemsField.pushValue(emptyItem)
-    onRegisterFiles(startIndex, picked)
+      for (let i = 0; i < rowsToPush; i++) lineItemsField.pushValue(emptyItem)
+      onRegisterFiles(startIndex, picked)
+    }
+    onFill?.()
   }
 
   return (
@@ -259,35 +264,21 @@ export function LineItemsField({
             >
               Dodaj pozycję
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => receiptInputRef.current?.click()}
-            >
-              Dodaj paragony
-            </Button>
             <input
               ref={receiptInputRef}
               type="file"
               accept="image/*"
               multiple
               className="sr-only"
-              onChange={(e) => handleAddReceipts(e, lineItemsField)}
+              onChange={(e) => handleScanReceipts(e, lineItemsField)}
             />
             {onFill && (
               <Button
                 type="button"
-                variant="outline"
+                variant="ai"
                 size="sm"
-                onClick={onFill}
-                disabled={
-                  isFilling ||
-                  !lineItemsField.state.value.some(
-                    (row: { description: string; amount: string }, i: number) =>
-                      getFileName(i) && !row.description && !row.amount,
-                  )
-                }
+                onClick={() => receiptInputRef.current?.click()}
+                disabled={isFilling}
               >
                 {isFilling && <Loader2 className="size-4 animate-spin" />}
                 Wypełnij z paragonów
