@@ -1,4 +1,4 @@
-import { X } from 'lucide-react'
+import { X, type LucideIcon } from 'lucide-react'
 import { Button, type ButtonPropsT } from '@/components/ui/button'
 import { cn } from '@/lib/utils/cn'
 
@@ -6,6 +6,7 @@ type RemoveButtonPropsT = {
   onClick: () => void
   disabled?: boolean
   variant?: ButtonPropsT['variant']
+  icon?: LucideIcon
   className?: string
   'aria-label'?: string
 }
@@ -14,6 +15,7 @@ export function RemoveButton({
   onClick,
   disabled,
   variant = 'ghostDestructive',
+  icon: Icon = X,
   className,
   'aria-label': ariaLabel = 'Usuń',
 }: RemoveButtonPropsT) {
@@ -27,7 +29,7 @@ export function RemoveButton({
       aria-label={ariaLabel}
       className={cn('shrink-0', className)}
     >
-      <X className="size-4" />
+      <Icon className="size-4" />
     </Button>
   )
 }

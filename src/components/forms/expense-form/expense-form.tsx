@@ -87,24 +87,32 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     handleRemoveLineItem,
     handleFileChange,
     registerFilesAt,
-    getFileName,
+    getFile,
     getFiles,
     getMediaId,
     setMediaId,
+    renameFile,
     getMediaIds,
     reset: resetInvoiceFiles,
   } = useInvoiceFiles(recoveredFiles)
 
-  // Bump the key after a batch add so the reused row-0 input (and any already-attached
-  // rows) remount and display their filename from the ref via initialFileName.
+  // Bump the key after a batch add so the affected rows re-render and swap their file
+  // input for the attached-file thumbnail.
   function handleRegisterFiles(startIndex: number, files: File[]) {
     registerFilesAt(startIndex, files)
     setFileInputKey((k) => k + 1)
   }
 
+  // Files live in a ref (no re-render on mutation) — bump the key so the row re-renders
+  // and reveals its preview button once a file is attached.
+  function handleAttachFile(index: number, e: React.ChangeEvent<HTMLInputElement>) {
+    handleFileChange(index, e)
+    setFileInputKey((k) => k + 1)
+  }
+
   // Re-align the fill markers (failed/in-flight) alongside the file maps on row removal.
-  // Bump the key so the surviving uncontrolled FileInputs remount and re-read their filename
-  // from the reindexed ref — otherwise a shifted-up row keeps showing the removed file's name.
+  // Bump the key so surviving rows re-render and re-read their file from the reindexed ref —
+  // otherwise a shifted-up row keeps showing the removed row's file input/thumbnail.
   function handleRemove(index: number, removeValue: (index: number) => void) {
     handleRemoveLineItem(index, removeValue)
     onRowRemoved(index)
@@ -207,10 +215,19 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
   } = useReceiptFill({
     form,
     categories: referenceData.expenseCategories,
+    otherCategories: referenceData.otherCategories,
     getFiles,
     getMediaId,
     setMediaId,
+    renameFile,
   })
+
+  // Run the fill, then remount the uncontrolled file inputs so each re-reads its (possibly
+  // renamed) filename from the ref — the labels can't update in place.
+  async function handleFill() {
+    await fillFromReceipts()
+    setFileInputKey((k) => k + 1)
+  }
 
   const currentType = useStore(form.store, (s) => s.values.type)
   const currentInvestment = useStore(form.store, (s) => s.values.investment)
@@ -296,11 +313,11 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
             total={total}
             hasInvestment={!!currentInvestment}
             onRemoveItem={handleRemove}
-            onFileChange={handleFileChange}
+            onFileChange={handleAttachFile}
             onRegisterFiles={handleRegisterFiles}
-            getFileName={getFileName}
+            getFile={getFile}
             fileInputKey={fileInputKey}
-            onFill={fillFromReceipts}
+            onFill={handleFill}
             isFilling={isFilling}
             fillingIndices={fillingIndices}
             failedIndices={failedIndices}
@@ -313,7 +330,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
 
       {saldo !== null && <SaldoSummary saldo={saldo} total={total} />}
 
-      <FormFooter className="mt-6" />
+      <FormFooter className="mt-6" label="Zapisz" />
     </FormShell>
   )
 }

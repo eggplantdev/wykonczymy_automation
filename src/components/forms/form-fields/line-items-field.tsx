@@ -1,8 +1,9 @@
 'use client'
 
-import { useRef } from 'react'
-import { WandSparkles } from 'lucide-react'
+import { Fragment, useRef } from 'react'
+import { Trash2, WandSparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 import { Spinner } from '@/components/ui/spinner'
 import { RemoveButton } from '@/components/ui/remove-button'
 import { LineItemInvoiceField } from '@/components/forms/form-fields/line-item-invoice-field'
@@ -40,7 +41,6 @@ type LineItemsFieldPropsT = {
   form: FormT
   transferType: string
   referenceData: ReferenceDataBaseT
-  label?: string
   defaultExpenseCategory?: string
   total: number
   hasInvestment?: boolean
@@ -125,7 +125,6 @@ export function LineItemsField({
   form,
   transferType,
   referenceData,
-  label = 'Pozycje',
   defaultExpenseCategory = '',
   total,
   hasInvestment,
@@ -172,79 +171,78 @@ export function LineItemsField({
     <form.Field name="lineItems" mode="array">
       {(lineItemsField: ArrayFieldT) => (
         <div className="space-y-4">
-          <Label>{label}</Label>
-          <div className="space-y-4">
+          <div className="space-y-6">
             {lineItemsField.state.value.map((_: unknown, index: number) => (
-              <div key={index} className="space-y-2">
-                <div className="flex items-end gap-2">
-                  <span className="text-muted-foreground mb-2 w-6 shrink-0 text-center text-sm font-medium">
-                    {index + 1}.
-                  </span>
-                  <form.AppField name={`lineItems[${index}].amount`}>
-                    {(field: AppFieldComponentsT) => (
-                      <field.Input
-                        label="Kwota"
-                        placeholder="0.00 PLN"
-                        type="number"
-                        showError
-                        fieldClassName="w-28"
-                      />
-                    )}
-                  </form.AppField>
-                  <form.AppField name={`lineItems[${index}].description`}>
-                    {(field: AppFieldComponentsT) => (
-                      <field.Input
-                        label="Opis"
-                        placeholder="Opcjonalnie"
-                        showError
+              <Fragment key={index}>
+                <div className="space-y-2">
+                  <div className="flex items-end gap-2">
+                    <form.AppField name={`lineItems[${index}].amount`}>
+                      {(field: AppFieldComponentsT) => (
+                        <field.Input
+                          label="Kwota"
+                          placeholder="0.00 PLN"
+                          type="number"
+                          showError
+                          fieldClassName="w-28"
+                        />
+                      )}
+                    </form.AppField>
+                    <form.AppField name={`lineItems[${index}].description`}>
+                      {(field: AppFieldComponentsT) => (
+                        <field.Input
+                          label="Opis"
+                          placeholder="Opcjonalnie"
+                          showError
+                          fieldClassName="min-w-0 flex-1"
+                        />
+                      )}
+                    </form.AppField>
+                    {inlineCategory && (
+                      <CategorySelect
+                        form={form}
+                        index={index}
+                        config={inlineCategory}
                         fieldClassName="min-w-0 flex-1"
                       />
                     )}
-                  </form.AppField>
-                  {inlineCategory && (
-                    <CategorySelect
-                      form={form}
+                    {failedIndices?.has(index) && (
+                      <span className="text-destructive mb-2 shrink-0 text-xs whitespace-nowrap">
+                        nie odczytano
+                      </span>
+                    )}
+                    {/* Delete lives in row 1, its height matching the inputs; the row being read
+                      shows the loader in its slot and queued rows keep it disabled — removing a
+                      row mid-fill shifts the array under in-flight extraction tasks (captured
+                      index), landing a result on the wrong row. */}
+                    <div className="flex size-9 shrink-0 items-center justify-center">
+                      {fillingIndices?.has(index) ? (
+                        <Spinner />
+                      ) : (
+                        <RemoveButton
+                          icon={Trash2}
+                          onClick={() => onRemoveItem(index, lineItemsField.removeValue)}
+                          disabled={isFilling}
+                        />
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    {secondRowCategory && (
+                      <CategorySelect
+                        form={form}
+                        index={index}
+                        config={secondRowCategory}
+                        fieldClassName="min-w-0 flex-1"
+                      />
+                    )}
+                    <LineItemInvoiceField
                       index={index}
-                      config={inlineCategory}
+                      file={getFile(index)}
                       fieldClassName="min-w-0 flex-1"
+                      fileInputKey={fileInputKey}
+                      onFileChange={onFileChange}
                     />
-                  )}
-                  {failedIndices?.has(index) && (
-                    <span className="text-destructive mb-2 shrink-0 text-xs whitespace-nowrap">
-                      nie odczytano
-                    </span>
-                  )}
-                  {/* The row being read shows the loader in the remove button's slot; queued
-                      rows keep the X disabled — removing any row mid-fill shifts the array under
-                      in-flight extraction tasks (captured index), landing a result on the wrong row. */}
-                  {fillingIndices?.has(index) ? (
-                    <Spinner className="mb-0.5" />
-                  ) : (
-                    <RemoveButton
-                      className="mb-0.5"
-                      onClick={() => onRemoveItem(index, lineItemsField.removeValue)}
-                      disabled={lineItemsField.state.value.length === 1 || isFilling}
-                    />
-                  )}
-                </div>
-                <div className="flex items-start gap-2 pr-10 pl-8">
-                  {secondRowCategory && (
-                    <CategorySelect
-                      form={form}
-                      index={index}
-                      config={secondRowCategory}
-                      fieldClassName="min-w-0 flex-1"
-                    />
-                  )}
-                  <LineItemInvoiceField
-                    index={index}
-                    file={getFile(index)}
-                    fieldClassName="min-w-0 flex-1"
-                    fileInputKey={fileInputKey}
-                    onFileChange={onFileChange}
-                  />
-                </div>
-                <div className="pr-10 pl-8">
+                  </div>
                   <form.AppField name={`lineItems[${index}].invoiceNote`}>
                     {(field: AppFieldComponentsT) => (
                       <field.Textarea
@@ -257,7 +255,8 @@ export function LineItemsField({
                     )}
                   </form.AppField>
                 </div>
-              </div>
+                <Separator orientation="horizontal" className="bg-foreground" />
+              </Fragment>
             ))}
           </div>
           <div className="flex gap-2">
