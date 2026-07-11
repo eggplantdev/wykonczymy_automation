@@ -1,17 +1,11 @@
 import type { Payload } from 'payload'
 
 import { sanitizeFileName } from '@/lib/utils/sanitize-filename'
+import { appendShortId, splitExtension } from '@/lib/utils/append-short-id'
 
-// Keep the human-readable name, append a short random id before the extension so
-// re-uploads of the same receipt and concurrent uploads never collide. Relying on
-// Payload's auto-rename instead races under concurrency and throws ValidationError.
 function uniqueFileName(rawName: string): string {
-  const safeName = sanitizeFileName(rawName) || 'upload'
-  const shortId = crypto.randomUUID().slice(0, 6)
-  const dot = safeName.lastIndexOf('.')
-  return dot > 0
-    ? `${safeName.slice(0, dot)}-${shortId}${safeName.slice(dot)}`
-    : `${safeName}-${shortId}`
+  const { base, ext } = splitExtension(sanitizeFileName(rawName) || 'upload')
+  return appendShortId(base, ext)
 }
 
 function validateFile(file: File): string {

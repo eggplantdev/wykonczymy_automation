@@ -33,8 +33,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ mediaId })
   } catch (err) {
-    // TEMP DEBUG — remove before merge. Payload ValidationError nests the real per-field
-    // reason under `.data`, which the default console print collapses to `[Object]`.
+    // SENTRY-REQUIRED (EX-449): Payload ValidationError nests the real per-field reason under
+    // `.data`, which the default console print collapses to `[Object]`. Kept until Sentry
+    // captures upload failures in prod — this console line is the only failure visibility now.
     console.error(
       '[upload-file] Upload failed:',
       err instanceof Error ? err.message : err,

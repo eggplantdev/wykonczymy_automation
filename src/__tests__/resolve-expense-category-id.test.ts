@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { resolveExpenseCategoryId } from '@/components/forms/form-fields/resolve-expense-category-id'
+import { resolveExpenseCategoryId } from '@/components/forms/expense-form/resolve-expense-category-id'
 import type { ExpenseCategoryRefT } from '@/types/reference-data'
 
 const categories: ExpenseCategoryRefT[] = [

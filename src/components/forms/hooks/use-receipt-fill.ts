@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { extractReceiptAction } from '@/lib/actions/extract-receipt'
-import { resolveExpenseCategoryId } from '@/components/forms/form-fields/resolve-expense-category-id'
+import { resolveExpenseCategoryId } from '@/components/forms/expense-form/resolve-expense-category-id'
+import { reindexAfterRemoval } from '@/components/forms/hooks/use-invoice-files'
 import { uploadFileClient } from '@/lib/utils/upload-file-client'
 import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
 import { toastMessage } from '@/lib/utils/toast'
@@ -25,14 +26,11 @@ type ReceiptFillDepsT = {
   renameFile: (index: number, newName: string) => void
 }
 
-// Mirrors reindexAfterRemoval for the file maps, kept aligned with the line-items array.
+// The row-marker Sets are just the key-set of an index-keyed map, so route the shift through
+// the same reindexAfterRemoval algebra the file maps use — one primitive, not two copies.
 function reindexSet(set: Set<number>, removedIndex: number): Set<number> {
-  const next = new Set<number>()
-  set.forEach((i) => {
-    if (i < removedIndex) next.add(i)
-    else if (i > removedIndex) next.add(i - 1)
-  })
-  return next
+  const asMap = new Map([...set].map((i) => [i, true as const]))
+  return new Set(reindexAfterRemoval(asMap, removedIndex).keys())
 }
 
 export function useReceiptFill({
@@ -126,8 +124,9 @@ export function useReceiptFill({
       toastMessage(`Odczytano ${ok} z ${eligible.length} paragonów`, 'success')
     } else {
       toastMessage(`Nie odczytano ${failed.size} z ${eligible.length} paragonów`, 'warning')
-      // TEMP DEBUG — dev/test only: surface the actual provider/upload error text so failures
-      // are diagnosable without opening devtools. Longer autoClose since these are long.
+      // SENTRY-REQUIRED (EX-449): dev/test only — surface the actual provider/upload error text
+      // so failures are diagnosable without devtools. Kept until Sentry carries this in prod;
+      // NODE_ENV-gated so it never leaks to users. Longer autoClose since these are long.
       if (process.env.NODE_ENV !== 'production') {
         failedMessages.forEach((message) => toastMessage(message, 'error', 10000))
       }

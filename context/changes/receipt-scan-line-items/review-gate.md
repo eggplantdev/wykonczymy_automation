@@ -1,73 +1,82 @@
-# Review-gate ledger — receipt-scan-line-items (EX-443) · 2026-07-11
+# Review-gate ledger — receipt-scan-line-items (EX-443) · 2026-07-11 (full re-review @ df180e3)
 
-Fan-out: impl-review, code-review, tailwind-v4-audit, feature-first-structure, module-cohesion-audit, structure-scatter-audit, comment-noise-audit (7, all read-only). tailwind + scatter = no findings.
+Re-ran the full read-only fan-out on the WHOLE change (branch diff `main...HEAD`, 47 files / 2762 ins)
+after ~13 commits landed past the prior gate. Prior ledger preserved at `review-gate-prior-2026-07-11.md`.
+
+Fan-out (7, all read-only): impl-review, code-review (HIGH), tailwind-v4-audit, feature-first-structure,
+module-cohesion-audit, structure-scatter-audit, comment-noise-audit. tailwind + scatter = no actionable findings.
 
 ## Findings
 
-<!-- ONE checkbox per finding. Format: [box] [severity, bug-checks only] · disposition · `source` · `file:line` · what — reason -->
+<!-- [box] [severity, bug-checks only] · disposition · `source` · `file:line` · what — reason -->
 
 ### Correctness / safety
 
-- [x] 🟡 WARNING · fixed(code) + e2e filed · `impl-review`+`code-review` · `line-items-field.tsx:214` / `use-receipt-fill.ts:67-100` · Removing a row mid-fill writes the extraction to the wrong row — `RemoveButton` wasn't disabled during `isFilling`, so an in-flight worker's captured index goes stale after the array shifts. **Fixed:** `disabled={… || isFilling}`.
-      test: test-driven-debugging · e2e — filed as **EX-447** (e2e-backlog): batch-fill in flight → remove earlier row → assert removal blocked / result on correct row.
-- [ ] 🔵 OBSERVATION · proposed · `code-review` · `openrouter.ts:37-58` · No timeout/`abortSignal` on the vision call — one hung request never settles, so `mapWithConcurrency`'s `Promise.all` wedges and `isFilling` stays true (spinner never clears). Held for your call: add `AbortSignal.timeout(N)` so a stuck receipt fails into `failedIndices` instead of freezing the batch — needs a timeout value decision.
-      test: test-driven-debugging · unit — mock `generateObject` to hang; assert the call rejects/aborts and the row lands in `failedIndices`.
-- [x] 🔵 OBSERVATION · dismissed · `impl-review`(F6)+`code-review` · `extract-receipt.ts:20` · No ownership scoping on `media.findByID` — benign: behind `protectedAction`/`requireAuth(MANAGEMENT_ROLES)`, read-only over already-uploaded blobs, consistent with the upload route. Revisit only if media becomes tenant-sensitive.
-- [x] 🔵 OBSERVATION · dismissed · `code-review` · `expense-form.tsx:174-183` · Submit mid-fill can re-upload a not-yet-stored file — result is a valid mediaId, only a redundant upload. Harmless.
-- [x] 🔵 OBSERVATION · dismissed · `code-review` · `openrouter.ts:35` · Public blob URLs of receipts are fetched by OpenRouter/OpenAI — intended architecture (design note in change.md), not a defect.
-- [x] 🔵 OBSERVATION · skipped · `code-review` · `use-receipt-fill.ts:38-42` / `extract-receipt.ts:24` · Per-row PDF fails as generic "nie odczytano" with no "scanner is image-only" hint — caught safely; UX polish not worth the churn this slice. Revisit if users hit it.
+- [x] 🔴 CRITICAL · fixed · `impl-review`(F1) · `receipt-pdf-plugins.test.ts:9` + `receipt-extraction-schema.test.ts` · Unit suite RED at HEAD (3 fail): pdf-plugins spec pinned `engine:'pdf-text'` (code now `native`); schema fixtures predate the required `otherCategoryName`. Prior ledger's "unit green" was stale. **Fixed:** updated the 3 assertions to the deliberately-changed behavior; both specs now green.
+      test: test-driven-debugging · unit — the specs ARE the regression guard; updated to assert the new native-engine + dual-category contract.
+- [x] 🔵 OBSERVATION(↓ from code-review WARNING) · fixed · `code-review`(1) · `line-items-field.tsx:224` · Last-row delete guard dropped (`length===1` → `isFilling`). Reviewer's "empty submit passes" scenario is **overstated** — `expense-schema.ts:66` superRefine rejects `lineItems.length===0`, so integrity is intact; it's a UX regression only. **Fixed:** `disabled={isFilling || length===1}`.
+      test: no automated test · unit — data-integrity path already guarded by the schema superRefine; the restored UI guard is cosmetic, not worth a spec.
+- [x] 🟡 WARNING · fixed · `code-review`(2)+`impl-review`(F5,F7) · `openrouter.ts:23` · `RECEIPT_MODEL` shipped as the unverified trial `google/gemini-3.1-flash-lite` with no fallback → a bad/unavailable id would throw on every scan. **Fixed (user's call — runtime auto-fallback):** `extractReceipt` retries once with the new `FALLBACK_MODEL = gemini-2.5-flash` when the primary throws; a dead trial id now degrades to slower-but-working. New constant + try/catch swap.
+      test: TDD · unit — `openrouter-fallback.test.ts` (3 cases): primary-throws→fallback returns; primary-ok→fallback skipped; both-fail→throws. Green.
+- [x] 🔵 OBSERVATION · dismissed · `code-review`(5) · `receipt-filename.ts:9` · `url`-fallback extension parse breaks on a query-string blob URL (`.2?token=…`). Benign: `media.filename` is set for every uploaded Payload doc, so `currentName ?? url` never reaches the `url` branch in practice. Harden only if that invariant changes.
+- [x] 🔵 OBSERVATION · dismissed · `code-review`(6) · `line-items-field.tsx:handleScanReceipts` · Relies on TanStack `pushValue` flushing synchronously before `onFill` reads `lineItems`. Benign: TanStack's array store is synchronous and the batch-scan flow works in practice; no async gap observed.
 
-### Plan drift (doc-only)
+### Plan drift (deliberate, functionally sound — doc-only)
 
-- [x] 🟡 WARNING · dismissed · `impl-review`(F2,F4,F5) · `package.json:62` / `line-items-field.tsx:271` / `openrouter.ts:26` · Code diverges from plan.md in three benign ways: `ai` is v7 (plan said v6, API used works on v7); batch picker `accept="image/*"` (plan said +pdf — PDFs aren't scannable, per-row input still takes pdf); `extractReceipt` has an extra `mediaType` arg the AI SDK `file` part requires. All functionally correct — plan.md archives with the slice, not reconciling.
+- [x] 🟡 WARNING · dismissed · `impl-review`(F2) · `receipt-extraction-schema.ts:15` · Dual-category (`otherCategoryName`) extraction crosses the plan's "NOT doing category(other)" boundary. Deliberate (committed `a3148de`/`8e78ada`); exact-match-or-blank mapping keeps hallucinated ids out of the form. plan.md archives with the slice.
+- [x] 🟡 WARNING · dismissed · `impl-review`(F3) · `extract-receipt.ts:60-88` · "Pure read" action now mutates media (Opis rename) with `overrideAccess:true`. Deliberate (committed `8e78ada`); comment justifies the bypass (MANAGER runs the fill; media update is admin/owner-only; internal side effect of an authorized flow). Sound.
+- [x] 🔵 · deferred → filed (EX-443 comment) · `impl-review`(F4 + delta F1/F2/F3) · Consolidated doc-reconciliation note owed on EX-443, covering: (a) large adjacent surface — nav-credits, env-badge, form-dialog polish, spinner, globals.css, notatka popover `dialogs/note-dialog.tsx` (`1ab8bb7`, `feat(transfers)`, out-of-slice); (b) **extraction inverted vs plan** — `a5c4dc4` drops `expenseCategory` AI-fill, keeps only `otherCategoryName`, contradicting plan.md:83/42-44/60/173/213 (deliberate product call, plan archives with slice); (c) model swap to on-trial `gemini-3.1-flash-lite` + runtime fallback, undocumented in the commit. Box checks once noted on EX-443.
 
-### Structure / cohesion (judgment — reviewers disagree)
+**Delta re-review (df180e3..HEAD, resumed after the user's refactor):** code-review = 0 correctness bugs (removal complete/consistent, notatka popover clean, fallback intact); impl-review = 3 findings, all benign doc-reconciliation → folded into the EX-443 note above. No new code fixes.
 
-- [x] 🟡 · fixed(simplify) · `impl-review`(F3) · `upload-file-client.ts:27-38` · Orphaned `uploadFilesClient` (zero call sites after the Phase-4 submit rewrite) — dead code, delete gated on tsc.
-- [ ] proposed · `feature-first` · `form-fields/resolve-expense-category-id.ts` · A pure `.ts` domain helper living in a folder of `*-field.tsx` components → move to `expense-form/` (next to `map-line-item.ts`). Held: cohesion/scatter audits call it acceptable colocation; your call.
-- [ ] proposed · `feature-first` · `upload-file-client.ts` (`resolveInvoiceMediaIds`) · Single-consumer invoice-domain logic in a generic utils file → move to `expense-form/`. Held: cohesion audit judged the file cohesive (all upload-topic); disagreement → your call.
-- [ ] proposed · `module-cohesion` · `use-invoice-files.ts:6,15` · Pure map helpers (`reindexAfterRemoval`, `setFilesAt`) mixed with the hook → optional split to `lib/utils/reindex-map.ts`. Low severity, optional.
-- [x] dismissed · `feature-first` · `forms/hooks/use-receipt-fill.ts` · "Should be under `expense-form/` per AGENTS.md" — matches the existing `use-invoice-files.ts` precedent (also single-consumer, in `forms/hooks/`); consistent with repo convention, not this slice's problem to fix.
+### TEMP DEBUG (self-flagged code, not just comments)
 
-### Comment noise
+- [x] 🟡 WARNING · skipped (kept, user's call) · `code-review`(3)+`impl-review`(F6)+`comment-noise` · `upload-file/route.ts:36` + `use-receipt-fill.ts:137-142` · Two TEMP DEBUG blocks. **Kept until Sentry (EX-449) is wired** — the only failure visibility for now; route block is console-only, toast block is `NODE_ENV`-gated (no prod leak). Retagged the misleading "remove before merge" markers to point at EX-449 so the deliberate-keep intent is recorded.
 
-- [x] fixed(simplify) · `comment-noise` · `receipt-extraction-schema.ts:3` · Narration head ("output contract… drives typing") over an exported zod schema — trim, keep the load-bearing nullability why.
-- [x] fixed(simplify) · `comment-noise` · `use-receipt-fill.ts:26` · Leading clause narrates the loop verbatim — trim, keep the cross-file "mirrors reindexAfterRemoval" tail.
-- [ ] proposed · `comment-noise` · `line-items-field.tsx:48,50,54` · Three prop-doc comments lean toward restating the prop name + signature; only the cross-refs carry weight. Held: your call on trim-vs-keep.
+### Structure / placement (low, /simplify or defer)
 
-### From /simplify (applied)
+- [x] fixed · `simplify`(reuse/scatter/module-cohesion) · `form-fields/resolve-expense-category-id.ts` · Pure `.ts` helper misplaced among `*-field.tsx` components; sole consumer `use-receipt-fill.ts` (+ its spec). **Moved** to `expense-form/resolve-expense-category-id.ts` (sibling of `map-line-item.ts`); both imports updated; stale "used for both selects" comment trimmed. tsc + spec green.
+- [x] skipped · `module-cohesion` · `use-invoice-files.ts:6,15` · Split pure `reindexAfterRemoval`/`setFilesAt` out of the hook. Skipped: cohesion acceptable — already exported + unit-tested; the whole index-keyed apparatus is slated for rewrite in EX-448 (uuid identity), so a split now is throwaway churn.
+- [x] skipped · `module-cohesion` · `upload-file-client.ts:31` · Split `resolveInvoiceMediaIds` out of `uploadFileClient`. Skipped: same file, one small concern each; the concurrency fix below is the substantive change. Not worth a new file.
 
-- [x] fixed · `simplify` · `upload-file-client.ts:27` · deleted orphaned `uploadFilesClient` (tsc-gated). [dup of the F3 structure finding above]
-- [x] fixed · `simplify` · `receipt-extraction-schema.ts:3` · trimmed narration head. [dup of comment-noise finding above]
-- [x] fixed · `simplify` · `use-receipt-fill.ts:26` · trimmed loop-narration clause. [dup of comment-noise finding above]
+### Comment noise (all /simplify candidates)
 
-### From /simplify (proposed — your call, all open)
+- [x] fixed · `comment-noise` · `button.tsx:30` · Deleted the `AI-accent: fuchsia→cyan…` color narration — the `gradient-border neon-glow-duo` classes encode it.
+- [x] dismissed · `comment-noise` · `line-item-invoice-field.tsx:54,86` · Kept: `:54` names the empty-row branch intent, `:86` explains why a second hidden file input exists (the modal "Zamień" path). Both carry a why the code doesn't say.
+- [x] fixed · `comment-noise`+TEMP-DEBUG · `upload-file/route.ts:36`, `use-receipt-fill.ts:129` · Retagged both `TEMP DEBUG` markers to `SENTRY-REQUIRED (EX-449)` with the keep-until-Sentry rationale (per user's call), instead of deleting. `line-items-field.tsx:213` layout comment left as-is (load-bearing: explains the mid-fill remove-guard).
 
-- [ ] proposed · `simplify` · `use-receipt-fill.ts:56` vs `line-items-field.tsx:286` · Fill-eligibility predicate written twice with a subtle `files.has` vs `getFileName` divergence → extract one shared predicate. **Correctness-adjacent** (the two could drift).
-- [ ] proposed · `simplify` · `upload-file-client.ts` (`resolveInvoiceMediaIds`) · Unbounded `Promise.all` on uploads vs the fill path's `mapWithConcurrency(4)` → route through the cap.
-- [ ] proposed · `simplify` · `use-receipt-fill.ts:28` · `reindexSet` duplicates `reindexAfterRemoval` → delegate the Set through the Map helper. (Overlaps the module-cohesion split proposal.)
-- [ ] proposed · `simplify` · `use-receipt-fill.ts:44` · `isFilling` derivable as `progress !== null` — held because it now feeds the correctness guard.
-- [ ] proposed · `simplify` · `use-receipt-fill.ts:13` · `FormT = any` escape hatch → use `form-shell.tsx`'s structural type.
-- [ ] proposed · `simplify` · `expense-form.tsx` (4 `fileInputKey` bump sites) + `file-input.tsx:29` · Global remount-key sledgehammer → control filename from `getFileName(index)` to drop the key. (Root-cause-adjacent — see refactor below.)
-- [ ] proposed · `simplify` · `line-items-field.tsx:156,287` · Inline row-type literal repeated → export one shared row type.
+### Cleanups (/simplify)
 
-### Root-cause refactor (deferred — filed as tech debt)
-
-- [x] deferred + filed · `simplify` · `use-invoice-files.ts` / `use-receipt-fill.ts` / `expense-form.tsx` · **Index-as-row-identity** is the shared root cause of the F1 fill race, the P3.2 stale-filename display, and the whole reindex/remount apparatus (`reindexAfterRemoval`, `reindexSet`, `fileInputKey` bumps, `onRowRemoved`). Deep fix = stable per-row uuids. Larger refactor, out of scope — filed as tech debt **EX-448**.
+- [x] fixed · `simplify`(reuse/simplification/altitude)+`code-review`(7) · `use-receipt-fill.ts:29 reindexSet` dup of `use-invoice-files.ts reindexAfterRemoval` · **Routed** the Set shift through the shared `reindexAfterRemoval` (Set = key-set of an index map). Removes the correctness-adjacent drift the comment admitted. tsc + specs green.
+- [x] fixed · `simplify`(reuse/simplification/altitude) · `receipt-filename.ts:9` + `upload-file.ts:8` · `buildReceiptFileName` & `uniqueFileName` each hand-rolled the same "splice short id before ext" collision guard. **Extracted** `appendShortId`/`splitExtension` (`lib/utils/append-short-id.ts`); both callers delegate. Behavior preserved (buildReceipt still lowercases ext). tsc green.
+- [x] fixed · `simplify`(efficiency) · `upload-file-client.ts:37 resolveInvoiceMediaIds` · Submit uploaded every attached-but-unscanned row via unbounded `Promise.all` while the fill path caps at 4; batch-add lets 10-20+ fire at once (main-thread compress + request burst). **Routed** through `mapWithConcurrency(…, 4)` (order preserved → positional `lineItems[i]↔mediaId[i]` intact; injectable `upload` seam intact).
+- [x] deferred → filed EX-451 · `simplify`(altitude) · `extract-receipt.ts:37-40` · Absolute-URL rebuild hand-rolls proto+host from request headers instead of the canonical `FRONTEND_URL`. Defensible (preview deploy must resolve `media.url` against the running host, not prod `FRONTEND_URL`) and the comment documents it, but the divergence deserves a named `getRequestOrigin()` helper so it reads as intentional. Low; file as tech debt.
+- [x] deferred → filed EX-452 · `simplify`(reuse) · `ui/spinner.tsx` vs `ui/loader/spinner.tsx` · Two components both exported as `Spinner`; import paths disambiguate (no build clash) but it's a readability trap. Rename the new one (e.g. `GradientSpinner`) or fold as a loader variant. Low; file as tech debt.
+- [x] 🔵 · dismissed · `code-review`(8)/`simplify`(efficiency) · `nav-credits.tsx:18` · Wallet balance refetched every mount (`cache:'no-store'`). Confirmed benign by the efficiency pass: `NavCredits` lives in the persistent `(frontend)/layout.tsx`, so the effect fires once per full load, not per client nav; server-side fetch would block layout render up to the 4s OpenRouter timeout. Current design is the cheaper one.
+- [x] 🔵 · dismissed · `code-review`(4) · `env/schema.ts` · `OPENROUTER_API_KEY` unconditionally required. **Consistent with repo convention** (every var required, no default). Deploy note: add the key to all Vercel preview branches (see `feedback_vercel_env_add_preview_all_branches`).
 
 ## Simplify pass
 
-Ran /simplify (receipt-scan worktree) — **3 applied, 7 proposed, 2 dismissed**; tsc green. Each finding folded into ## Findings (tagged `simplify`). The 3 applied = the gate's fix-now items. Report: `/var/folders/cf/bs0zn0gj1lgbc2n7ps0z211h0000gn/T/simplify-XXXXXX.WbIXRM75Zw.md`
+Ran /simplify (4 cleanup agents: reuse / simplification / efficiency / altitude) over `main...HEAD` +
+working tree — **6 applied, 2 proposed (deferred → Linear), 4 skipped/dismissed**; each folded into
+`## Findings` above (tagged `simplify`). No second finding list here.
+
+Applied: `appendShortId`/`splitExtension` dedup · `reindexSet`→`reindexAfterRemoval` dedup ·
+`resolveInvoiceMediaIds` concurrency cap · helper move to `expense-form/` · TEMP DEBUG retag ·
+`button.tsx` comment delete. Deferred: `getRequestOrigin()` extraction · `Spinner` name collision.
+Skipped: two hook cohesion-splits (EX-448 will rewrite the apparatus), two invoice-field comments (carry a why).
+
+Post-pass gate: `pnpm typecheck` clean; affected specs (resolve-expense-category-id, openrouter-fallback,
+receipt-extraction-schema, receipt-pdf-plugins) 13/13 green.
 
 ## Tests & suite
 
-Fast legs only (user's call — e2e would reset the 5435 db-test container the manual pass was using):
-
-- **typecheck** — ✅ green (`tsc --noEmit`, also re-confirmed post-/simplify).
-- **unit (vitest)** — ✅ green: 822 passed, 24 skipped. Slice specs all pass (receipt-extraction-schema, resolve-expense-category-id, use-invoice-files, map-with-concurrency, invoice-media-resolve).
-- **lint** — ❌ red (15 errors) but **pre-existing, not slice-introduced**: all 15 are `no-undef` (`process`/`console`) in `scripts/inspect-sheet.mjs`, a POC script on `main` (commit 9266d4b "add poc artifacts"), untouched by this slice. **0 lint errors in any slice file.** Not a slice regression; tracked below.
-- **e2e / build** — not run (fast-legs scope). e2e obligations filed as EX-447.
-
-### Suite finding
-
-- [ ] pre-existing · `suite` · `scripts/inspect-sheet.mjs` · Repo lint is red (15 `no-undef` errors — eslint lacks Node env for this `.mjs` POC script). Predates this slice; blocks a clean `pnpm lint` repo-wide but not this slice's correctness. **Not sweeping it into the receipt-scan diff** (unrelated). Decide: quick eslint-env fix now, or file as its own tech-debt issue.
+- Fixed 3 RED specs (Step 1) — `receipt-pdf-plugins` + `receipt-extraction-schema` now green.
+- Post-/simplify affected specs: 13/13 green; typecheck clean.
+- Step 3 — remaining tests: none new. The /simplify dedups are behavior-preserving and covered by the
+  existing `append-short-id`-fed callers' specs + the reindex/fallback specs; the receipt-scan **browser**
+  risk is already filed as E2E backlog **EX-447**. Notatka popover is low-risk UI, no spec owed.
+- Full suite (user chose **fast legs**): `typecheck` clean · `lint` = 15 errors, all pre-existing `no-undef`
+  (console/process) in `scripts/*.mjs` untouched by this branch, **0 in slice files** · unit `vitest run` =
+  **830 passed, 24 skipped** (DB-integration specs skip without a live DB). `test:e2e` + `build` deferred to
+  the user.

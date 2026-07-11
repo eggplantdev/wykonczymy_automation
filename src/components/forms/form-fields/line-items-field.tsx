@@ -221,7 +221,7 @@ export function LineItemsField({
                         <RemoveButton
                           icon={Trash2}
                           onClick={() => onRemoveItem(index, lineItemsField.removeValue)}
-                          disabled={isFilling}
+                          disabled={isFilling || lineItemsField.state.value.length === 1}
                         />
                       )}
                     </div>

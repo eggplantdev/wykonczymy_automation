@@ -1,8 +1,7 @@
 // Map an extracted category NAME to the id-as-string the category fields expect (see
-// expense-category-field.tsx — items use `String(cat.id)`). Used for both the expenseCategory
-// and the otherCategory selects, so the param is the minimal shared shape. Exact-match-or-blank:
-// a hallucinated name resolves to '' so the required-field validation forces a manual pick —
-// a wrong category id can never be written.
+// expense-category-field.tsx — items use `String(cat.id)`). Exact-match-or-blank: a hallucinated
+// name resolves to '' so the required-field validation forces a manual pick — a wrong category id
+// can never be written.
 export function resolveExpenseCategoryId(
   name: string,
   categories: { id: number; name: string }[],
