@@ -7,6 +7,7 @@ updated: 2026-07-11
 archived_at: null
 branch: receipt-scan-line-items
 worktree: /Users/konradantonik/workspace/yolo/wykonczymy-receipt-scan
+linear: EX-443
 ---
 
 ## Notes
