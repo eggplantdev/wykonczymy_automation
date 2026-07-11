@@ -542,6 +542,6 @@ existing `media` and `transactions` write paths.
 
 #### Automated
 
-- [x] 5.1 Plugin-decision unit test passes (`receipt-pdf-plugins.test.ts`)
-- [x] 5.2 Type checking passes (`pnpm tsc --noEmit`)
-- [x] 5.3 Full unit suite green (`pnpm exec vitest run`)
+- [x] 5.1 Plugin-decision unit test passes (`receipt-pdf-plugins.test.ts`) — 466881f
+- [x] 5.2 Type checking passes (`pnpm tsc --noEmit`) — 466881f
+- [x] 5.3 Full unit suite green (`pnpm exec vitest run`) — 466881f
