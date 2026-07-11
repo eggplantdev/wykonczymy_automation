@@ -29,6 +29,27 @@ Pass ran clean — **no bugs found**, all six Phase-4 boxes ticked. No open find
   - **unit**: `src/__tests__/kosztorys-calc.test.ts` — `rowRemainingForView` over-completion (negative Pozostało, the 4.7 behavior) + amount-discount path.
   - All green. DB tests gated on `DB_POSTGRES_URL`/`PAYLOAD_SECRET` (local dev DB, `--env-file=.env`), self-cleaning fixtures.
 
+## receipt-scan-line-items (EX-443)
+
+**In review** — all automated checks green (tsc + 5 unit specs, 22 tests); the boxes below are the human gate. Standalone change (investment-expense dialog), not a kosztorys slice.
+
+> **Prereq (deferred setup, blocks the whole section):** `OPENROUTER_API_KEY` in `.env` is a placeholder (`sk-or-v1-REPLACE-WITH-REAL-KEY`). Replace it with a real OpenRouter key before any of these checks can pass — without it every extraction call fails. The key gates the fill flow, nothing else.
+
+Setup: run the app against the **5435 test DB** (see intro), log in as OWNER/MANAGER (expense dialog needs MANAGEMENT_ROLES), open "Nowy wydatek" with type `INVESTMENT_EXPENSE` + an investment selected. Have a few receipt image files ready.
+
+### Phase 3: Batch multi-file add
+
+- [ ] "Dodaj paragony" picks N images → N line-item rows, each showing its filename in the FV input; the first image reuses the lone initial blank row (no leading empty row).
+- [ ] Removing a middle row keeps every other row's attached image aligned to its row (no off-by-one on save).
+
+### Phase 4: Fill orchestration
+
+- [ ] Batch-add the receipts, click "Wypełnij z paragonów": rows stream in with correct description / amount (brutto) / category; the "Odczytano X/M" counter advances; per-row spinner shows while in flight.
+- [ ] A receipt with an unrecognizable / hallucinated category yields a **blank** `expenseCategory` (never a wrong one); the required-field validation forces a manual pick.
+- [ ] Force one extraction failure (e.g. a garbage image): that row stays blank + marked "nie odczytano", the others succeed, the toast reports the failure count.
+- [ ] Manually filling a row's description/amount before clicking leaves that row untouched (skip-non-empty).
+- [ ] Save: each scanned row's `transactions.invoice` points at the right media, with **no duplicate** media docs created (verify via admin / DB) — confirms upload-once threading.
+
 ## S-05 — kosztorys-vat
 
 Manual QA completed 2026-07-10 (OWNER, investment 6, fresh dev server on :3000).
