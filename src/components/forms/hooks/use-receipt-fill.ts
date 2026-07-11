@@ -48,8 +48,8 @@ export function useReceiptFill({
   async function fillFromReceipts() {
     const rows = (form.getFieldValue('lineItems') ?? []) as LineItemRowT[]
     const files = getFiles()
-    // Eligible = attached image AND still-blank content, so a manually filled row is never
-    // overwritten (skip-non-empty).
+    // Eligible = has an attached file AND still-blank content, so a manually filled row is
+    // never overwritten (skip-non-empty).
     const eligible = rows
       .map((row, index) => ({ row, index }))
       .filter(({ row, index }) => files.has(index) && !row.description && !row.amount)
@@ -61,6 +61,7 @@ export function useReceiptFill({
     setProgress({ done: 0, total: eligible.length })
     const categoryNames = categories.map((c) => c.name)
     const failed = new Set<number>()
+    const failedMessages = new Set<string>()
     let done = 0
 
     await mapWithConcurrency(eligible, FILL_CONCURRENCY, async ({ index }) => {
@@ -85,8 +86,12 @@ export function useReceiptFill({
           `lineItems[${index}].expenseCategory`,
           resolveExpenseCategoryId(data.expenseCategoryName, categories),
         )
-      } catch {
+      } catch (error) {
+        // SENTRY-REQUIRED (EX-449): per-receipt fill failures (upload + AI extraction) must
+        // be captured once Sentry is wired — a failed row otherwise dies in a generic toast.
+        console.error(`[receipt-fill] row ${index} failed`, error)
         failed.add(index)
+        failedMessages.add(error instanceof Error ? error.message : String(error))
       } finally {
         setFillingIndices((prev) => {
           const next = new Set(prev)
@@ -103,8 +108,16 @@ export function useReceiptFill({
     setProgress(null)
 
     const ok = eligible.length - failed.size
-    if (failed.size === 0) toastMessage(`Odczytano ${ok} z ${eligible.length} paragonów`, 'success')
-    else toastMessage(`Nie odczytano ${failed.size} z ${eligible.length} paragonów`, 'warning')
+    if (failed.size === 0) {
+      toastMessage(`Odczytano ${ok} z ${eligible.length} paragonów`, 'success')
+    } else {
+      toastMessage(`Nie odczytano ${failed.size} z ${eligible.length} paragonów`, 'warning')
+      // TEMP DEBUG — dev/test only: surface the actual provider/upload error text so failures
+      // are diagnosable without opening devtools. Longer autoClose since these are long.
+      if (process.env.NODE_ENV !== 'production') {
+        failedMessages.forEach((message) => toastMessage(message, 'error', 10000))
+      }
+    }
   }
 
   // Re-align the failed/in-flight markers when a row is removed so they don't point at the

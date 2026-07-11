@@ -72,14 +72,17 @@ blank (never a wrong id); a forced extraction failure leaves the row blank+marke
 - Positional-index contract is the spine — reuse it (`line-items-field.tsx`, `use-invoice-files.ts`).
 - Server action must take a `mediaId`, not a File (`upload-file/route.ts` comment 8-16).
 - `referenceData.expenseCategories` already in the form; name→id map is new, client-side, colocated.
-- `media` accepts `image/*` **and** `application/pdf` (`src/collections/media.ts`) — PDF is out of
-  scope for _extraction_ in v1 but still attachable.
+- `media` accepts `image/*` **and** `application/pdf` (`src/collections/media.ts`); most stored
+  invoices are in fact PDFs (479 PDF vs 470 image media rows in the restored dev DB). PDF
+  extraction was deferred out of Phases 1–4 and lands in **Phase 5** via OpenRouter's file-parser
+  plugin (closes research Open Question #3 — no client-side rasterization needed).
 
 ## What We're NOT Doing
 
 - No edit-transfer form support — **add-flow only**.
 - No `category` ("other") extraction — only `expenseCategory`.
-- No PDF extraction — PDFs can be attached but are skipped by the fill button (row stays blank).
+- ~~No PDF extraction — PDFs can be attached but are skipped by the fill button.~~ **Added in
+  Phase 5**: PDFs are extracted via OpenRouter's file-parser (`pdf-text` engine), same model.
 - No accuracy eval harness — the DB-fixtures eval (fetch real blob bytes, score vs persisted
   fields) is a deliberate follow-up; see research Open Questions.
 - No per-row re-read button, no drag-drop dropzone — global fill button + multi-file picker only.
@@ -376,6 +379,84 @@ confirmation before considering the change complete.
 
 ---
 
+## Phase 5: PDF extraction (OpenRouter file-parser)
+
+### Overview
+
+Let the scanner read `application/pdf` invoices — the majority of stored media — without a new
+model or client-side rasterization. OpenRouter's `file-parser` plugin (`pdf-text` engine, free)
+parses the PDF server-side and feeds the text to the existing `RECEIPT_MODEL` (`gpt-4o-mini`).
+Closes research Open Question #3. Also strips the leftover `TEMP DEBUG — remove before merge`
+logging in `openrouter.ts` and `use-receipt-fill.ts` in the same pass.
+
+### Changes Required:
+
+#### 1. PDF-plugin decision helper (the TDD'd unit)
+
+**File**: `src/lib/ai/receipt-pdf-plugins.ts` (new, colocated with the AI client)
+
+**Intent**: Encode the one decision with cost consequences — a PDF gets the free `pdf-text`
+file-parser engine; an image gets no plugin (plain vision call). Kept a pure function in its own
+file so it's unit-testable without the `server-only` `openrouter.ts` graph, and so the engine
+choice can never silently drift to the paid `mistral-ocr` fallback.
+
+**Contract**: exports `RECEIPT_PDF_ENGINE = 'pdf-text'` and
+`receiptPdfPlugins(mediaType: string): FileParserPluginT[] | undefined` — returns
+`[{ id: 'file-parser', pdf: { engine: RECEIPT_PDF_ENGINE } }]` for `'application/pdf'`, else
+`undefined`.
+
+#### 2. Wire the plugin into extraction + strip debug logging
+
+**File**: `src/lib/ai/openrouter.ts`
+
+**Intent**: Pass the file-parser plugin to the model for PDFs; leave the image path untouched.
+
+**Contract**: `openrouter(RECEIPT_MODEL, { plugins: receiptPdfPlugins(mediaType) })`
+(`undefined` plugins for images = today's behavior). Remove the `TEMP DEBUG` HEAD-probe block,
+the `openrouterImageUrlRegex`, and the request/response/failure `console.*` dumps.
+
+#### 3. Drop the PDF rejection in the action
+
+**File**: `src/lib/actions/extract-receipt.ts`
+
+**Intent**: Stop short-circuiting PDFs; the extractor now handles them.
+
+**Contract**: Remove the `if (!mimeType.startsWith('image/')) return { success:false, error:'Nie
+można odczytać pliku PDF' }` branch. Keep the `!url || !mimeType` guard. `mimeType` still flows to
+`extractReceipt` as `mediaType`.
+
+#### 4. Allow PDFs in the scan picker + strip debug logging
+
+**Files**: `src/components/forms/form-fields/line-items-field.tsx`,
+`src/components/forms/hooks/use-receipt-fill.ts`
+
+**Intent**: Let the user pick PDFs in "Dodaj paragony"; drop the stale "image only" filter comment
+and the temp per-row `console.error`.
+
+**Contract**: Scan `<input>` `accept="image/*"` → `accept="image/*,application/pdf"`
+(`line-items-field.tsx:268`). In `use-receipt-fill.ts`, remove the `TEMP DEBUG` `console.error`
+and correct the "Eligible = attached image" comment (eligibility is file-present + blank, not
+image-typed).
+
+### Success Criteria:
+
+#### Automated Verification:
+
+- Type checking passes: `pnpm tsc --noEmit`
+- Plugin-decision unit test passes:
+  `pnpm exec vitest run src/__tests__/receipt-pdf-plugins.test.ts` (PDF → `pdf-text` file-parser
+  plugin; image types → `undefined`)
+- Full unit suite green: `pnpm exec vitest run`
+
+#### Manual Verification:
+
+- "Dodaj paragony" now lets you select the `WV-4-*.pdf` invoices (no longer greyed out).
+- Batch-add a real PDF invoice from the dev DB + "Wypełnij z paragonów": the row fills with
+  plausible description/amount(brutto)/category (previously stayed blank + "nie odczytano").
+- An image receipt still fills exactly as before (no regression on the non-PDF path).
+
+---
+
 ## Testing Strategy
 
 ### Unit Tests:
@@ -456,3 +537,11 @@ existing `media` and `transactions` write paths.
 - [x] 4.1 Type checking passes (`pnpm tsc --noEmit`)
 - [x] 4.2 Concurrency helper unit test passes (`map-with-concurrency.test.ts`)
 - [x] 4.3 Submit-resolver unit test passes (`invoice-media-resolve.test.ts`)
+
+### Phase 5: PDF extraction (OpenRouter file-parser)
+
+#### Automated
+
+- [x] 5.1 Plugin-decision unit test passes (`receipt-pdf-plugins.test.ts`)
+- [x] 5.2 Type checking passes (`pnpm tsc --noEmit`)
+- [x] 5.3 Full unit suite green (`pnpm exec vitest run`)
