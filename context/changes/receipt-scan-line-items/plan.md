@@ -439,8 +439,8 @@ existing `media` and `transactions` write paths.
 
 #### Automated
 
-- [ ] 2.1 Type checking passes (`pnpm tsc --noEmit`)
-- [ ] 2.2 Resolver unit test passes (`resolve-expense-category-id.test.ts`)
+- [x] 2.1 Type checking passes (`pnpm tsc --noEmit`)
+- [x] 2.2 Resolver unit test passes (`resolve-expense-category-id.test.ts`)
 
 ### Phase 3: Batch multi-file add (rows + attached images)
 
