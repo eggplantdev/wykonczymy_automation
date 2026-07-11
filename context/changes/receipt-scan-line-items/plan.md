@@ -446,8 +446,8 @@ existing `media` and `transactions` write paths.
 
 #### Automated
 
-- [ ] 3.1 Type checking passes (`pnpm tsc --noEmit`)
-- [ ] 3.2 File-map alignment unit test passes (`use-invoice-files.test.ts`)
+- [x] 3.1 Type checking passes (`pnpm tsc --noEmit`)
+- [x] 3.2 File-map alignment unit test passes (`use-invoice-files.test.ts`)
 
 ### Phase 4: Fill orchestration (global button, upload-once, streaming, failure UX)
 

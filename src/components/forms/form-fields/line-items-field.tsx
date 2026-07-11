@@ -1,5 +1,6 @@
 'use client'
 
+import { useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { RemoveButton } from '@/components/ui/remove-button'
 import { FileInput } from '@/components/ui/file-input'
@@ -43,6 +44,10 @@ type LineItemsFieldPropsT = {
   hasInvestment?: boolean
   onRemoveItem: (index: number, removeValue: (index: number) => void) => void
   onFileChange: (index: number, e: React.ChangeEvent<HTMLInputElement>) => void
+  // Batch-attach N receipt images: register each file at its row index (see use-invoice-files).
+  onRegisterFiles: (startIndex: number, files: File[]) => void
+  // Read a row's attached filename so its file input can display it after a batch add.
+  getFileName: (index: number) => string | undefined
   // Bump to force-remount the uncontrolled file inputs (clears their selection).
   fileInputKey?: number
 }
@@ -118,6 +123,8 @@ export function LineItemsField({
   hasInvestment,
   onRemoveItem,
   onFileChange,
+  onRegisterFiles,
+  getFileName,
   fileInputKey = 0,
 }: LineItemsFieldPropsT) {
   const inlineCategory = getInlineCategory(transferType, referenceData, hasInvestment)
@@ -125,6 +132,23 @@ export function LineItemsField({
   const emptyItem = defaultExpenseCategory
     ? { ...EMPTY_LINE_ITEM, expenseCategory: defaultExpenseCategory }
     : EMPTY_LINE_ITEM
+  const receiptInputRef = useRef<HTMLInputElement>(null)
+
+  function handleAddReceipts(e: React.ChangeEvent<HTMLInputElement>, lineItemsField: ArrayFieldT) {
+    const picked = Array.from(e.target.files ?? [])
+    e.target.value = '' // allow re-picking the same files after a reset
+    if (picked.length === 0) return
+
+    // Reuse the lone initial blank row for the first image so the first receipt lands on
+    // row 0 rather than after an empty row; otherwise append after the existing rows.
+    const rows = lineItemsField.state.value as { description: string; amount: string }[]
+    const reuseFirstRow = rows.length === 1 && !rows[0].description && !rows[0].amount
+    const startIndex = reuseFirstRow ? 0 : rows.length
+    const rowsToPush = reuseFirstRow ? picked.length - 1 : picked.length
+
+    for (let i = 0; i < rowsToPush; i++) lineItemsField.pushValue(emptyItem)
+    onRegisterFiles(startIndex, picked)
+  }
 
   return (
     <form.Field name="lineItems" mode="array">
@@ -197,20 +221,39 @@ export function LineItemsField({
                     label="FV"
                     fieldClassName="min-w-0 flex-1"
                     accept="image/*,application/pdf"
+                    initialFileName={getFileName(index)}
                     onChange={(e) => onFileChange(index, e)}
                   />
                 </div>
               </div>
             ))}
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => lineItemsField.pushValue(emptyItem)}
-          >
-            Dodaj pozycję
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => lineItemsField.pushValue(emptyItem)}
+            >
+              Dodaj pozycję
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => receiptInputRef.current?.click()}
+            >
+              Dodaj paragony
+            </Button>
+            <input
+              ref={receiptInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="sr-only"
+              onChange={(e) => handleAddReceipts(e, lineItemsField)}
+            />
+          </div>
           <Label>Suma: {formatPLN(total)}</Label>
         </div>
       )}

@@ -10,6 +10,9 @@ type FileInputPropsT = React.ComponentProps<'input'> & {
   label?: string
   placeholder?: string
   fieldClassName?: string
+  // Seeds the displayed name for a file attached outside this uncontrolled input
+  // (batch-registered receipts). Only read at mount — remount via key to update it.
+  initialFileName?: string
 }
 
 function FileInput({
@@ -19,11 +22,12 @@ function FileInput({
   fieldClassName,
   onChange,
   accept = 'image/*,application/pdf',
+  initialFileName,
   ref,
   ...props
 }: FileInputPropsT) {
   const [isDragOver, setIsDragOver] = useState(false)
-  const [fileName, setFileName] = useState<string>()
+  const [fileName, setFileName] = useState<string | undefined>(initialFileName)
   const [error, setError] = useState<string>()
   const inputRef = React.useRef<HTMLInputElement | null>(null)
 

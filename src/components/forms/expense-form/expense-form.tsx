@@ -85,9 +85,18 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
   const {
     handleRemoveLineItem,
     handleFileChange,
+    registerFilesAt,
+    getFileName,
     getFiles,
     reset: resetInvoiceFiles,
   } = useInvoiceFiles(recoveredFiles)
+
+  // Bump the key after a batch add so the reused row-0 input (and any already-attached
+  // rows) remount and display their filename from the ref via initialFileName.
+  function handleRegisterFiles(startIndex: number, files: File[]) {
+    registerFilesAt(startIndex, files)
+    setFileInputKey((k) => k + 1)
+  }
 
   function handleReset() {
     resetFormData()
@@ -251,6 +260,8 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
             hasInvestment={!!currentInvestment}
             onRemoveItem={handleRemoveLineItem}
             onFileChange={handleFileChange}
+            onRegisterFiles={handleRegisterFiles}
+            getFileName={getFileName}
             fileInputKey={fileInputKey}
             transferType={currentType}
             referenceData={referenceData}
