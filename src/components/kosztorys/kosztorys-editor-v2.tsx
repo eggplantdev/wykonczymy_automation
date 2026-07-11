@@ -51,6 +51,15 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
     setAwaitingTree(true)
   }
 
+  function handleVersionsOpenChange(open: boolean) {
+    setVersionsOpen(open)
+    // Drop a pending remount latch on close. If a restore's refresh returned a referentially
+    // identical tree, `treeChanged` never fired and `awaitingTree` would stay stuck true — then a
+    // later ordinary edit's refresh would wrongly remount mid-edit. An identical tree means there is
+    // nothing to remount for, so clearing here loses no real restore.
+    if (!open) setAwaitingTree(false)
+  }
+
   return (
     <>
       <KosztorysEditorBody
@@ -63,7 +72,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
       <KosztorysVersionsDrawer
         investmentId={investmentId}
         open={versionsOpen}
-        onOpenChange={setVersionsOpen}
+        onOpenChange={handleVersionsOpenChange}
         onRestored={handleRestored}
       />
     </>
