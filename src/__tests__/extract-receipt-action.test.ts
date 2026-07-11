@@ -36,6 +36,7 @@ beforeEach(() => {
     amount: 12.5,
     invoiceNote: '',
     expenseCategoryName: 'Materiały budowlane',
+    otherCategoryName: '',
   })
   vi.stubGlobal(
     'fetch',
@@ -47,7 +48,11 @@ describe('extractReceiptAction', () => {
   it('resolves a relative media.url against the request origin before fetching', async () => {
     findByID.mockResolvedValue({ url: '/api/media/file/receipt-x.png', mimeType: 'image/png' })
 
-    await extractReceiptAction({ mediaId: 1, expenseCategoryNames: ['Materiały budowlane'] })
+    await extractReceiptAction({
+      mediaId: 1,
+      expenseCategoryNames: ['Materiały budowlane'],
+      otherCategoryNames: [],
+    })
 
     expect(fetch).toHaveBeenCalledWith('http://localhost:3000/api/media/file/receipt-x.png')
   })
@@ -55,7 +60,11 @@ describe('extractReceiptAction', () => {
   it('passes image BYTES to the model, not the URL string', async () => {
     findByID.mockResolvedValue({ url: '/api/media/file/receipt-x.png', mimeType: 'image/png' })
 
-    const result = await extractReceiptAction({ mediaId: 1, expenseCategoryNames: ['A'] })
+    const result = await extractReceiptAction({
+      mediaId: 1,
+      expenseCategoryNames: ['A'],
+      otherCategoryNames: [],
+    })
 
     expect(result.success).toBe(true)
     const firstArg = extractReceiptSpy.mock.calls[0]?.[0]
@@ -70,7 +79,11 @@ describe('extractReceiptAction', () => {
       vi.fn(async () => ({ ok: false, status: 404, arrayBuffer: async () => new ArrayBuffer(0) })),
     )
 
-    const result = await extractReceiptAction({ mediaId: 1, expenseCategoryNames: [] })
+    const result = await extractReceiptAction({
+      mediaId: 1,
+      expenseCategoryNames: [],
+      otherCategoryNames: [],
+    })
 
     expect(result.success).toBe(false)
     expect(extractReceiptSpy).not.toHaveBeenCalled()

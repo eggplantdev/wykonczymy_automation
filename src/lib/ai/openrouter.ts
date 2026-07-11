@@ -1,7 +1,11 @@
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { generateObject } from 'ai'
 import { serverEnv } from '@/lib/env/server'
-import { receiptExtractionSchema, type ReceiptExtractionT } from './receipt-extraction-schema'
+import {
+  receiptExtractionSchema,
+  UNREADABLE_RECEIPT,
+  type ReceiptExtractionT,
+} from './receipt-extraction-schema'
 import { receiptPdfPlugins } from './receipt-pdf-plugins'
 
 // Importing `serverEnv` (which is `import 'server-only'`) makes this module server-only too:
@@ -31,19 +35,37 @@ export async function extractReceipt(
   imageBytes: Uint8Array,
   mediaType: string,
   expenseCategoryNames: string[],
+  otherCategoryNames: string[],
 ): Promise<ReceiptExtractionT> {
   const categoryList = expenseCategoryNames.length > 0 ? expenseCategoryNames.join('\n') : '(none)'
+  const otherCategoryList = otherCategoryNames.length > 0 ? otherCategoryNames.join('\n') : '(none)'
 
   const promptText = [
-    'Read this receipt or invoice (the document is in Polish) and fill in the fields:',
-    '- description: a short description of the purchase (vendor or main item).',
+    'Read this receipt or invoice (the document is in Polish) and fill in the fields.',
+    'If the image is not a legible receipt or invoice (blank, noise, a photo of',
+    `something else), set description to exactly "${UNREADABLE_RECEIPT}", amount to`,
+    'null, and the other text fields to "" — do NOT guess or echo these instructions.',
+    '- description: the seller/vendor name, a space, then the document date as',
+    '  DD.MM.YYYY (e.g. "Castorama 05.03.2026"). Normalize the vendor to a clean',
+    '  canonical name: Title Case, drop legal suffixes (SP. Z O.O., S.A., etc.). If',
+    '  the date is unreadable, give the vendor name alone; if the vendor is',
+    '  unreadable, return "".',
     '- amount: the gross total (total due) as a number; null if unreadable.',
-    '- invoiceNote: the receipt/invoice number or another relevant note; "" if none.',
-    '- expenseCategoryName: pick EXACTLY one of the categories below, copied',
-    '  verbatim, or "" if none fit. Do not invent a new category.',
+    '- invoiceNote: the receipt/invoice number on its OWN line, then each purchased',
+    '  line item (product/service name) on its OWN line below it — separate every',
+    '  line with a newline ("\\n"), e.g. "FV 123/2026\\nCement 25kg\\nGrunt 5l".',
+    '  Include whichever part is legible; "" if neither is.',
+    '- expenseCategoryName: pick EXACTLY one of the expense types below, copied',
+    '  verbatim, or "" if none fit. Do not invent a new value.',
+    '- otherCategoryName: pick EXACTLY one of the categories below, copied',
+    '  verbatim, or "" if none fit. Do not invent a new value. This is an',
+    '  independent classification from expenseCategoryName — choose each on its own.',
     '',
-    'Available categories:',
+    'Available expense types (for expenseCategoryName):',
     categoryList,
+    '',
+    'Available categories (for otherCategoryName):',
+    otherCategoryList,
   ].join('\n')
 
   try {
