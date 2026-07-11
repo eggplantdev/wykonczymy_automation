@@ -505,6 +505,10 @@ env schema and to Vercel env (human step). Daily granularity works on all Vercel
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.
+>
+> Manual verification is NOT tracked here — it lives once in the living QA registry
+> `context/foundation/manual-checks.md` → `## S-06 — kosztorys-snapshots` (signed off there, with evidence).
+> Only the automated, SHA-stamped steps are tracked below.
 
 ### Phase 1: Schema + serialization/restore core
 
