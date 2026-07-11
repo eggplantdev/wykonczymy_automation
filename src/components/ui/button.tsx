@@ -27,9 +27,8 @@ const buttonVariants = cva(
         teal: 'border border-chart-teal text-chart-teal hover:bg-chart-teal hover:text-white',
         turquoise:
           'border border-chart-turquoise text-chart-turquoise hover:bg-chart-turquoise hover:text-white',
-        // AI-accent: gradient border + fuchsia/cyan glow. Stays lit when disabled
-        // (disabled:opacity-100) so a read-only balance chip keeps the glow.
-        ai: 'gradient-border neon-glow-fuchsia hover:neon-glow-fuchsia-hit transition-shadow disabled:opacity-100',
+        // AI-accent: fuchsia→cyan gradient border + soft two-tone halo.
+        ai: 'gradient-border neon-glow-duo hover:neon-glow-duo-hit transition-shadow disabled:opacity-100',
       },
       size: {
         default: 'h-9 px-4 py-2',

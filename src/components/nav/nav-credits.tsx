@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { WandSparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils/cn'
 import { getOpenRouterCreditsAction } from '@/lib/actions/openrouter-credits'
 import type { OpenRouterCreditsT } from '@/lib/ai/openrouter-credits'
 
@@ -31,11 +31,14 @@ export function NavCredits({ className }: { className?: string }) {
       type="button"
       variant="ai"
       size="sm"
-      className={cn('tabular-nums', className)}
-      title={`OpenRouter: ${usd(credits.used)} wykorzystane z ${usd(credits.total)}`}
+      className={className}
+      title={`Saldo OpenRouter: ${usd(credits.remaining)} z ${usd(credits.total)}`}
       data-testid="nav-openrouter-credits"
     >
-      Balance {usd(credits.remaining)}
+      <WandSparkles className="text-neon-cyan" />
+      <span className="text-neon-cyan font-semibold tabular-nums">
+        Saldo {usd(credits.remaining)}
+      </span>
     </Button>
   )
 }

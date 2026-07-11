@@ -1,8 +1,9 @@
 'use client'
 
 import { useRef } from 'react'
-import { Loader2 } from 'lucide-react'
+import { WandSparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
 import { RemoveButton } from '@/components/ui/remove-button'
 import { FileInput } from '@/components/ui/file-input'
 import { Label } from '@/components/ui/label'
@@ -208,9 +209,7 @@ export function LineItemsField({
                       fieldClassName="min-w-0 flex-1"
                     />
                   )}
-                  {fillingIndices?.has(index) && (
-                    <Loader2 className="text-muted-foreground mb-2 size-4 shrink-0 animate-spin" />
-                  )}
+                  {fillingIndices?.has(index) && <Spinner className="mb-2" />}
                   {failedIndices?.has(index) && (
                     <span className="text-destructive mb-2 shrink-0 text-xs whitespace-nowrap">
                       nie odczytano
@@ -267,7 +266,7 @@ export function LineItemsField({
             <input
               ref={receiptInputRef}
               type="file"
-              accept="image/*"
+              accept="image/*,application/pdf"
               multiple
               className="sr-only"
               onChange={(e) => handleScanReceipts(e, lineItemsField)}
@@ -280,8 +279,8 @@ export function LineItemsField({
                 onClick={() => receiptInputRef.current?.click()}
                 disabled={isFilling}
               >
-                {isFilling && <Loader2 className="size-4 animate-spin" />}
-                Wypełnij z paragonów
+                {isFilling ? <Spinner /> : <WandSparkles className="text-neon-cyan" />}
+                <span className="text-neon-cyan font-semibold">Dodaj paragony</span>
               </Button>
             )}
             {fillProgress && (
