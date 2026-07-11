@@ -4,6 +4,7 @@ import { DepositDialog } from '@/components/dialogs/deposit-dialog'
 import { InternalTransferDialog } from '@/components/dialogs/internal-transfer-dialog'
 import { ExpenseDialog } from '@/components/dialogs/expense-dialog'
 import { Button } from '@/components/ui/button'
+import { NavCredits } from '@/components/nav/nav-credits'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
@@ -38,6 +39,7 @@ export function TopNav({ referenceData }: TopNavPropsT) {
       )}
       {/* Right: action buttons */}
       <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+        <NavCredits />
         {referenceData && (
           <>
             <DepositDialog referenceData={referenceData} />

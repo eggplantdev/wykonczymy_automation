@@ -76,6 +76,10 @@
   --color-chart-teal: #3ae2d1;
   --color-chart-purple: #976cdf;
 
+  /* AI-accent hues for the `ai` button variant (OpenRouter balance) — ported from 10x_devs. */
+  --color-neon-cyan: #00e5ff;
+  --color-neon-fuchsia: #d946ef;
+
   /* Sidebar Colors */
   --color-sidebar: oklch(0.985 0 0);
   --color-sidebar-foreground: oklch(0.145 0 0);
@@ -147,6 +151,27 @@
   &::-webkit-scrollbar {
     display: none;
   }
+}
+
+/* AI-accent glow + gradient border for the `ai` button variant. Ported from 10x_devs; the
+   gradient border reads wykonczymy's `--color-card` token (10x_devs used `--card`). */
+@utility neon-glow-fuchsia {
+  box-shadow:
+    0 0 12px color-mix(in oklch, var(--color-neon-cyan) 85%, transparent),
+    0 0 22px color-mix(in oklch, var(--color-neon-fuchsia) 50%, transparent);
+}
+
+@utility neon-glow-fuchsia-hit {
+  box-shadow:
+    0 0 16px color-mix(in oklch, var(--color-neon-cyan) 95%, transparent),
+    0 0 30px color-mix(in oklch, var(--color-neon-fuchsia) 65%, transparent);
+}
+
+@utility gradient-border {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--color-card), var(--color-card)) padding-box,
+    linear-gradient(to right, var(--color-neon-green, #1dc083), var(--color-neon-cyan)) border-box;
 }
 
 @media print {
