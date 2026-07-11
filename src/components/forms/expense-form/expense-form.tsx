@@ -103,9 +103,12 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
   }
 
   // Re-align the fill markers (failed/in-flight) alongside the file maps on row removal.
+  // Bump the key so the surviving uncontrolled FileInputs remount and re-read their filename
+  // from the reindexed ref — otherwise a shifted-up row keeps showing the removed file's name.
   function handleRemove(index: number, removeValue: (index: number) => void) {
     handleRemoveLineItem(index, removeValue)
     onRowRemoved(index)
+    setFileInputKey((k) => k + 1)
   }
 
   function handleReset() {

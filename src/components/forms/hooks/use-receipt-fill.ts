@@ -23,8 +23,7 @@ type ReceiptFillDepsT = {
   setMediaId: (index: number, mediaId: number) => void
 }
 
-// Drop `removedIndex` and shift higher indices down by one — keeps a row-index Set aligned
-// with the line-items array after a removal, mirroring reindexAfterRemoval for the file maps.
+// Mirrors reindexAfterRemoval for the file maps, kept aligned with the line-items array.
 function reindexSet(set: Set<number>, removedIndex: number): Set<number> {
   const next = new Set<number>()
   set.forEach((i) => {

@@ -23,20 +23,6 @@ export async function uploadFileClient(file: File): Promise<number> {
   return data.mediaId
 }
 
-/** Upload multiple files in parallel. Returns array of mediaIds (undefined for missing slots). */
-export async function uploadFilesClient(
-  files: Map<number, File>,
-  count: number,
-): Promise<(number | undefined)[]> {
-  return Promise.all(
-    Array.from({ length: count }, async (_, i) => {
-      const file = files.get(i)
-      if (!file) return undefined
-      return uploadFileClient(file)
-    }),
-  )
-}
-
 /**
  * Positional invoice-mediaId array for submit. Per row index: a mediaId already stored by
  * the receipt-fill upload-once path wins (no re-upload); otherwise upload the File; a row

@@ -214,7 +214,9 @@ export function LineItemsField({
                   <RemoveButton
                     className="mb-0.5"
                     onClick={() => onRemoveItem(index, lineItemsField.removeValue)}
-                    disabled={lineItemsField.state.value.length === 1}
+                    // Removing a row mid-fill shifts the array under in-flight extraction tasks
+                    // (which hold a captured index), landing a receipt's result on the wrong row.
+                    disabled={lineItemsField.state.value.length === 1 || isFilling}
                   />
                 </div>
                 <div className="flex items-start gap-2 pr-10 pl-8">
