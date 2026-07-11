@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
+import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { RemoveButton } from '@/components/ui/remove-button'
 import { FileInput } from '@/components/ui/file-input'
@@ -50,6 +51,12 @@ type LineItemsFieldPropsT = {
   getFileName: (index: number) => string | undefined
   // Bump to force-remount the uncontrolled file inputs (clears their selection).
   fileInputKey?: number
+  // Receipt-fill: scan every eligible row's image and fill its fields (see use-receipt-fill).
+  onFill?: () => void
+  isFilling?: boolean
+  fillingIndices?: Set<number>
+  failedIndices?: Set<number>
+  fillProgress?: { done: number; total: number } | null
 }
 
 const otherCategoryConfig = (refData: ReferenceDataBaseT): CategoryFieldConfigT => ({
@@ -126,6 +133,11 @@ export function LineItemsField({
   onRegisterFiles,
   getFileName,
   fileInputKey = 0,
+  onFill,
+  isFilling = false,
+  fillingIndices,
+  failedIndices,
+  fillProgress,
 }: LineItemsFieldPropsT) {
   const inlineCategory = getInlineCategory(transferType, referenceData, hasInvestment)
   const secondRowCategory = getSecondRowCategory(transferType, referenceData)
@@ -191,6 +203,14 @@ export function LineItemsField({
                       fieldClassName="min-w-0 flex-1"
                     />
                   )}
+                  {fillingIndices?.has(index) && (
+                    <Loader2 className="text-muted-foreground mb-2 size-4 shrink-0 animate-spin" />
+                  )}
+                  {failedIndices?.has(index) && (
+                    <span className="text-destructive mb-2 shrink-0 text-xs whitespace-nowrap">
+                      nie odczytano
+                    </span>
+                  )}
                   <RemoveButton
                     className="mb-0.5"
                     onClick={() => onRemoveItem(index, lineItemsField.removeValue)}
@@ -253,6 +273,29 @@ export function LineItemsField({
               className="sr-only"
               onChange={(e) => handleAddReceipts(e, lineItemsField)}
             />
+            {onFill && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onFill}
+                disabled={
+                  isFilling ||
+                  !lineItemsField.state.value.some(
+                    (row: { description: string; amount: string }, i: number) =>
+                      getFileName(i) && !row.description && !row.amount,
+                  )
+                }
+              >
+                {isFilling && <Loader2 className="size-4 animate-spin" />}
+                Wypełnij z paragonów
+              </Button>
+            )}
+            {fillProgress && (
+              <span className="text-muted-foreground self-center text-sm">
+                Odczytano {fillProgress.done}/{fillProgress.total}
+              </span>
+            )}
           </div>
           <Label>Suma: {formatPLN(total)}</Label>
         </div>

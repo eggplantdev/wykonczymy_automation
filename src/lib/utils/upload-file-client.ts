@@ -36,3 +36,25 @@ export async function uploadFilesClient(
     }),
   )
 }
+
+/**
+ * Positional invoice-mediaId array for submit. Per row index: a mediaId already stored by
+ * the receipt-fill upload-once path wins (no re-upload); otherwise upload the File; a row
+ * with neither is `undefined`. `upload` is injectable for tests.
+ */
+export async function resolveInvoiceMediaIds(
+  count: number,
+  files: Map<number, File>,
+  mediaIds: Map<number, number>,
+  upload: (file: File) => Promise<number> = uploadFileClient,
+): Promise<(number | undefined)[]> {
+  return Promise.all(
+    Array.from({ length: count }, async (_, i) => {
+      const stored = mediaIds.get(i)
+      if (stored !== undefined) return stored
+      const file = files.get(i)
+      if (!file) return undefined
+      return upload(file)
+    }),
+  )
+}

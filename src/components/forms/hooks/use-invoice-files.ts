@@ -18,14 +18,20 @@ export function setFilesAt(map: Map<number, File>, startIndex: number, files: Fi
 
 export function useInvoiceFiles(initialFiles?: Map<number, File>) {
   const invoiceFilesRef = useRef<Map<number, File>>(initialFiles ?? new Map())
+  // Upload-once: an image the receipt-fill flow already uploaded stores its mediaId here,
+  // keyed by the same row index as the File map, so submit doesn't re-upload it.
+  const mediaIdsRef = useRef<Map<number, number>>(new Map())
 
   function handleRemoveLineItem(index: number, removeValue: (index: number) => void) {
     invoiceFilesRef.current = reindexAfterRemoval(invoiceFilesRef.current, index)
+    mediaIdsRef.current = reindexAfterRemoval(mediaIdsRef.current, index)
     removeValue(index)
   }
 
   function handleFileChange(index: number, e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
+    // A new File at this row invalidates any previously uploaded mediaId for it.
+    mediaIdsRef.current.delete(index)
     if (file) invoiceFilesRef.current.set(index, file)
     else invoiceFilesRef.current.delete(index)
   }
@@ -34,6 +40,7 @@ export function useInvoiceFiles(initialFiles?: Map<number, File>) {
   // becomes that row's invoice via the same positional submit path as a per-row pick.
   function registerFilesAt(startIndex: number, files: File[]) {
     setFilesAt(invoiceFilesRef.current, startIndex, files)
+    files.forEach((_, offset) => mediaIdsRef.current.delete(startIndex + offset))
   }
 
   function getFileName(index: number): string | undefined {
@@ -44,9 +51,32 @@ export function useInvoiceFiles(initialFiles?: Map<number, File>) {
     return new Map(invoiceFilesRef.current)
   }
 
-  function reset() {
-    invoiceFilesRef.current = new Map()
+  function getMediaId(index: number): number | undefined {
+    return mediaIdsRef.current.get(index)
   }
 
-  return { handleRemoveLineItem, handleFileChange, registerFilesAt, getFileName, getFiles, reset }
+  function setMediaId(index: number, mediaId: number) {
+    mediaIdsRef.current.set(index, mediaId)
+  }
+
+  function getMediaIds(): Map<number, number> {
+    return new Map(mediaIdsRef.current)
+  }
+
+  function reset() {
+    invoiceFilesRef.current = new Map()
+    mediaIdsRef.current = new Map()
+  }
+
+  return {
+    handleRemoveLineItem,
+    handleFileChange,
+    registerFilesAt,
+    getFileName,
+    getFiles,
+    getMediaId,
+    setMediaId,
+    getMediaIds,
+    reset,
+  }
 }

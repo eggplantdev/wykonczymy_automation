@@ -453,6 +453,6 @@ existing `media` and `transactions` write paths.
 
 #### Automated
 
-- [ ] 4.1 Type checking passes (`pnpm tsc --noEmit`)
-- [ ] 4.2 Concurrency helper unit test passes (`map-with-concurrency.test.ts`)
-- [ ] 4.3 Submit-resolver unit test passes (`invoice-media-resolve.test.ts`)
+- [x] 4.1 Type checking passes (`pnpm tsc --noEmit`)
+- [x] 4.2 Concurrency helper unit test passes (`map-with-concurrency.test.ts`)
+- [x] 4.3 Submit-resolver unit test passes (`invoice-media-resolve.test.ts`)

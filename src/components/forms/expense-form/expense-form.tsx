@@ -5,6 +5,7 @@ import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
 import { useInvoiceFiles } from '@/components/forms/hooks/use-invoice-files'
+import { useReceiptFill } from '@/components/forms/hooks/use-receipt-fill'
 import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import { useSaldo } from '@/components/forms/hooks/use-saldo'
 import {
@@ -21,7 +22,7 @@ import {
 } from '@/lib/constants/transfers'
 import { createBulkTransferAction } from '@/lib/actions/transfers'
 import { mapLineItem } from '@/components/forms/expense-form/map-line-item'
-import { uploadFilesClient } from '@/lib/utils/upload-file-client'
+import { resolveInvoiceMediaIds } from '@/lib/utils/upload-file-client'
 import {
   bulkExpenseFormSchema,
   type CreateBulkExpenseFormT,
@@ -88,6 +89,9 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     registerFilesAt,
     getFileName,
     getFiles,
+    getMediaId,
+    setMediaId,
+    getMediaIds,
     reset: resetInvoiceFiles,
   } = useInvoiceFiles(recoveredFiles)
 
@@ -98,10 +102,17 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     setFileInputKey((k) => k + 1)
   }
 
+  // Re-align the fill markers (failed/in-flight) alongside the file maps on row removal.
+  function handleRemove(index: number, removeValue: (index: number) => void) {
+    handleRemoveLineItem(index, removeValue)
+    onRowRemoved(index)
+  }
+
   function handleReset() {
     resetFormData()
     resetSaldo()
     resetInvoiceFiles()
+    resetFill()
     setFileInputKey((k) => k + 1)
   }
 
@@ -156,7 +167,13 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
           let invoiceMediaIds: (number | undefined)[] | undefined
           if (files.size > 0) {
             try {
-              invoiceMediaIds = await uploadFilesClient(files, value.lineItems.length)
+              // Rows scanned by the fill flow already hold a mediaId — the resolver reuses it
+              // and only uploads the rows that were never scanned, never both.
+              invoiceMediaIds = await resolveInvoiceMediaIds(
+                value.lineItems.length,
+                files,
+                getMediaIds(),
+              )
             } catch (err) {
               const message = err instanceof Error ? err.message : 'Nie udało się przesłać plików'
               return { success: false, error: message }
@@ -175,6 +192,22 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
   })
 
   useCheckFormErrors(form)
+
+  const {
+    fillFromReceipts,
+    isFilling,
+    fillingIndices,
+    failedIndices,
+    progress: fillProgress,
+    onRowRemoved,
+    resetFill,
+  } = useReceiptFill({
+    form,
+    categories: referenceData.expenseCategories,
+    getFiles,
+    getMediaId,
+    setMediaId,
+  })
 
   const currentType = useStore(form.store, (s) => s.values.type)
   const currentInvestment = useStore(form.store, (s) => s.values.investment)
@@ -195,6 +228,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     // bump the key to remount the inputs — otherwise a file queued before the type
     // switch attaches to the wrong/nonexistent line item on submit.
     resetInvoiceFiles()
+    resetFill()
     setFileInputKey((k) => k + 1)
     resetSaldo()
   }
@@ -258,11 +292,16 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
             form={form}
             total={total}
             hasInvestment={!!currentInvestment}
-            onRemoveItem={handleRemoveLineItem}
+            onRemoveItem={handleRemove}
             onFileChange={handleFileChange}
             onRegisterFiles={handleRegisterFiles}
             getFileName={getFileName}
             fileInputKey={fileInputKey}
+            onFill={fillFromReceipts}
+            isFilling={isFilling}
+            fillingIndices={fillingIndices}
+            failedIndices={failedIndices}
+            fillProgress={fillProgress}
             transferType={currentType}
             referenceData={referenceData}
           />
