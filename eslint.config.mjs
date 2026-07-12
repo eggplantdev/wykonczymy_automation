@@ -99,6 +99,8 @@ export default ts.config(
     languageOptions: { sourceType: 'commonjs' },
   },
   {
-    ignores: ['.next/', '.next-e2e/'],
+    // scripts/inspect-sheet.mjs is a one-off POC sheet-inspection tool (plain Node .mjs), not app
+    // code — its process/console use trips no-undef and it's not worth a Node-globals config block.
+    ignores: ['.next/', '.next-e2e/', 'scripts/inspect-sheet.mjs'],
   },
 )

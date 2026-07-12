@@ -64,6 +64,64 @@ Two passes drove the whole section against `wykonczymy-test` (investment 6, thro
 - [x] **PDF-native single-file latency is high (~17.5 s for one no-text-layer PDF) — OBSERVATION, no fix owed.** `WV 4-05184` took 17.5 s to extract vs ~3.3–3.9 s for the other PDF and the PNGs. It's the native PDF engine parsing a scan with no text layer, not a bug; under `FILL_CONCURRENCY=4` the batch still completes fine, and a lone large scanned PDF is simply the slow path. Logged so the number isn't a surprise later. **Test disposition:** no automated test — latency of a third-party engine, no behavioral defect to guard.
 - [x] **4.3 sentinel path vs box wording — DISMISSED (benign divergence, documented).** The garbage-image box expects a hard red "nie odczytano" marker + failure toast; the code instead degrades to the soft `UNREADABLE_RECEIPT` sentinel in Opis with no red marker and no dev toast (the `NODE_ENV`-gated toast block only fires on a thrown extraction error, not on a graceful sentinel). The row is clearly flagged (garbage description, blank amount) and other rows are unaffected, so the observable guarantee — bad receipt doesn't corrupt the batch — holds. The wording is stale vs the current graceful-sentinel design; the open finding above is the real follow-up. **Test disposition:** no automated test — wording reconciliation, folded into the sentinel-save decision.
 
+### Delta re-review — 2026-07-12 (PR, 18 commits past the archive gate)
+
+The open PR gained ~18 refactor commits after the slice was archived (Zod v4, nav credits→balance +
+TopNav server component, invoice-thumbnail→preview button, note-dialog→note-popover/RevealPopover,
+keep-open→store, extract-receipt by-bytes). Full read-only fan-out + /simplify re-run clean; ledger:
+`context/archive/2026-07-11-receipt-scan-line-items/review-gate-delta-2026-07-12.md`. One manual check owed:
+
+- [ ] **Notatka hover-popover reachability (hover bridge).** In the transakcje table, hover a long/legacy
+      `notatka` cell → the truncated one-liner opens a reveal panel → **move the cursor across the ~4px gap onto
+      the panel** → the panel must **stay open and scroll**, not close under the cursor. Also check a row near the
+      viewport bottom (panel flips above). Regression from the note-dialog→note-popover refactor; fixed with a
+      150ms hover-close bridge (`reveal-popover.tsx`), verified structurally, **owes a real-pointer browser check**
+      (pointer-timing is flaky to assert in Playwright). **Open — blocks marking the PR delta done.**
+
+### Findings — 2026-07-12 (live full pass, all review surfaces, `388d991..HEAD`)
+
+Drove the whole review against `wykonczymy-test` (5435, throwaway `:3010` server on `.next-e2e`, OWNER,
+investment 6 = Apenińska 2/37). Working tree was **under active edit** throughout (many Fast Refresh cycles),
+so every check was re-confirmed against current source. **The rewritten receipt scan — the review's highest-risk
+surface — was verified end-to-end with real fixtures** (a no-text-layer PDF + a PNG):
+
+- **Scan flow (1a–1h) — all pass.** Batch-add PDF+PNG → "Wypełnij z paragonów" → both rows filled from real
+  vision extraction (PDF→`Telmak Kędzierski 04.07.2026` / 300, PNG→`Castorama` / 174.89; notes + other-category
+  `narzędzia`/`inne` resolved). **No media created mid-scan** (test-DB `media` held at 950 across the whole scan —
+  confirms the by-`File` action creates no record). **Opis rename applied client-side** (files renamed to
+  `telmak-…-….pdf` / `castorama-….png`). **Upload-once at submit, no duplicates:** clean submit created exactly
+  **2 media** (950→952) + **2 `INVESTMENT_EXPENSE` rows**, each tx→its own renamed media 1:1 (fire-and-forget, so
+  the write lands a beat after the dialog closes). **Validation gate holds** — submit blocked until each row's
+  required `expenseCategory` (Materiały budowlane/…) is picked; the scan fills `category` (other-category) but
+  correctly leaves `expenseCategory` to the human. 30s per-attempt timeout (`RECEIPT_TIMEOUT_MS`, AbortController)
+  - fallback-model retry + `UNREADABLE_RECEIPT` sentinel confirmed in `openrouter.ts`/`extract-receipt.ts`. Client
+    compression logged (`[compress] receipt.png …`).
+- **Keep-open store migration (2a–2d) — pass.** Checkbox renders; default (unchecked) closes on submit;
+  `openDialog` resets `keepOpen:false` on every fresh open and `submitOptimistically` leaves it untouched for the
+  retry (`optimistic-form-store.ts`), context→Zustand migration complete across all dialogs.
+- **TopNav server component / Suspense (3a, 3b) — pass.** Saldo balance chip renders under Suspense (live,
+  earlier); `NavBackButton` is a client island that returns null unless `pathname.endsWith('/kosztorys')`.
+- **Invoice preview button + print (4, 5b, 5c) — pass.** Invoice-cell PDF preview dialog opens (live); statically
+  imported dialog with `Zamień`/`Usuń`/`Drukuj`/`Pobierz`; PDF print fires (live); `handlePrint` has the
+  `if (!isImage && !isPdf) return` no-op guard + `if (!printWindow) return` popup guard, DOM-API rewrite. _Image
+  print (5a) not re-driven — `window.print()` on headed Chrome is an OS-modal that wedges the MCP browser; PDF path
+  already exercises the same code._
+- **Note popover (6a, 6b) — pass.** Hover reveals the panel (live); `if (!note) return null` for the null case.
+  _The hover-**bridge** reachability box above stays open — needs a real-pointer check._
+- **Zod v4 migration (7a–7e) — pass.** Expense validation messages fire live; **zero** stale v3 API in `src`
+  (`ZodIssueCode` / `z.string().email()` both absent), `code: 'custom'` + `z.email()` throughout the schemas.
+- **Gates (8a–8c) — pass.** Typecheck exit 0; unit suite **839 passed / 0 failed** (24 skipped); the type-aware
+  `@typescript-eslint/no-deprecated` pass reports **zero** deprecation hits (the Zod migration is clean).
+
+- [ ] **`pnpm lint` fails — 15 `no-undef` errors in `scripts/inspect-sheet.mjs` (out of scope, PRE-EXISTS the
+      review).** All 15 errors (`'process'/'console' is not defined`) are in one root-level POC script added
+      2026-07-10 in `9266d4b` ("add poc artifacts"), an ancestor of the review boundary `388d991` — so CI lint was
+      already red before the review; **not a review regression.** Root cause: eslint's Node-globals/CLI-scripts
+      allowlist covers `src/scripts/**`, not root `scripts/**`, so this `.mjs` gets browser globals. **Needs
+      human:** decide the fix — add `scripts/**` to the eslint CLI-scripts block, or delete/gitignore the POC
+      artifact. Logged per the pass's "never skip an out-of-scope problem" rule. **Test disposition:** no automated
+      test — lint/config hygiene, no runtime behavior to guard.
+
 ## S-05 — kosztorys-vat
 
 Manual QA completed 2026-07-10 (OWNER, investment 6, fresh dev server on :3000).
