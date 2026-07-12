@@ -134,32 +134,33 @@ export async function extractReceipt(
   } catch (error) {
     // TODO(EX-449) SENTRY-REQUIRED: receipt extraction failures must be captured once Sentry is
     // wired — they are silent AI/provider errors users can't self-report.
-    const err = error as {
-      name?: string
-      message?: string
-      text?: string
-      statusCode?: number
-      responseBody?: string
-      finishReason?: string
-      usage?: unknown
-      cause?: unknown
-      response?: { body?: unknown }
-    }
-    // Re-throw with the provider's actual reason folded into the message so it survives
-    // protectedAction (which returns only `err.message`) and reaches the client toast.
-    const providerBody = err.responseBody ?? err.response?.body
-    const detail = [
-      err.message ?? 'Błąd odczytu paragonu',
-      err.statusCode ? `HTTP ${err.statusCode}` : undefined,
-      providerBody
-        ? typeof providerBody === 'string'
-          ? providerBody
-          : JSON.stringify(providerBody)
-        : undefined,
-      err.text ? `model: ${err.text}` : undefined,
-    ]
-      .filter(Boolean)
-      .join(' · ')
-    throw new Error(detail)
+    throw new Error(receiptErrorDetail(error))
   }
+}
+
+// TEMPORARY (TODO(EX-449)): with no Sentry yet, this flattens the provider's real failure reason
+// into the toast string so it survives protectedAction (which returns only `err.message`) and
+// reaches the client. Once Sentry is wired the raw fields (statusCode/responseBody/text) move into
+// the capture and the toast shrinks to a clean Polish message.
+function receiptErrorDetail(error: unknown): string {
+  const err = error as {
+    message?: string
+    text?: string
+    statusCode?: number
+    responseBody?: string
+    response?: { body?: unknown }
+  }
+  const providerBody = err.responseBody ?? err.response?.body
+  return [
+    err.message ?? 'Błąd odczytu paragonu',
+    err.statusCode ? `HTTP ${err.statusCode}` : undefined,
+    providerBody
+      ? typeof providerBody === 'string'
+        ? providerBody
+        : JSON.stringify(providerBody)
+      : undefined,
+    err.text ? `model: ${err.text}` : undefined,
+  ]
+    .filter(Boolean)
+    .join(' · ')
 }
