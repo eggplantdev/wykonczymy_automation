@@ -113,7 +113,7 @@ Bands: **editor parity S-01–S-10** (active) → **import/export S-11–S-12** 
 | S-06 | kosztorys-snapshots             | save + restore point-in-time versions of a kosztorys (durable net)                     | S-01               | — (owner request)             | in review | yes        |
 | S-07 | kosztorys-undo                  | fast in-session undo/redo of the last editor edit(s)                                   | S-01               | — (owner request)             | proposed  | yes        |
 | S-08 | kosztorys-delete-guard          | hit a hard block when deleting a populated row / section / stage / column              | S-01               | — (owner request)             | in review | yes        |
-| S-09 | kosztorys-preset                | seed from a preset; save as preset; item autocomplete over preset prace                | S-01               | FR-006, (owner request)       | proposed  | yes        |
+| S-09 | kosztorys-preset                | seed from a preset; save as preset (autocomplete carved out → EX-434)                  | S-01               | (owner request)               | done      | yes        |
 | S-10 | kosztorys-column-rbac           | restrict sensitive columns + rows (subcontractor cost/margin; sections) to OWNER/ADMIN | S-01, S-02, S-04   | — (POC P10)                   | proposed  | yes        |
 | S-11 | kosztorys-export                | CSV-export the kosztorys (WYSIWYG snapshot; no print/PDF)                              | S-01               | FR-008                        | deferred  | —          |
 | S-12 | kosztorys-importer              | import an existing sheet kosztorys into the app                                        | S-01 (full parity) | FR-010, FR-016                | deferred  | —          |
@@ -317,7 +317,8 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 ### S-09: Kosztorys presets (templates) + autocomplete
 
-- **Outcome:** a Manager+ user can (a) seed a new kosztorys from a preset — a reusable skeleton of sekcje + prace + prices — instead of starting blank, (b) save an existing kosztorys back as a preset, and (c) **add items via autocomplete over preset prace** (FR-006, folded from the old catalogue slice on 2026-07-09), hand-typing always allowed. Restores the legacy Sheets behaviour (`KOSZTORYS_TEMPLATE_SHEET_ID` seeded new sheets from a template) that the in-app editor dropped in S-01 — a parity gap the original roadmap never captured.
+- **Outcome:** a Manager+ user can (a) seed a new kosztorys from a preset — a reusable skeleton of sekcje + prace + prices — instead of starting blank, and (b) save an existing kosztorys back as a preset. Restores the legacy Sheets behaviour (`KOSZTORYS_TEMPLATE_SHEET_ID` seeded new sheets from a template) that the in-app editor dropped in S-01 — a parity gap the original roadmap never captured.
+- **Shipped 2026-07-11 (EX-414, Done).** The autocomplete-over-preset-prace part (FR-006, item (c)) was **carved out** at plan time (owner, 2026-07-11) into a separate deferred slice → **EX-434** (`kosztorys-item-autocomplete`); S-09 shipped presets-only. Review gate filed EX-438/439/440/441 (tech-debt) and EX-442 (owed E2E, `e2e-backlog`).
 - **Change ID:** kosztorys-preset
 - **PRD refs:** FR-006 (folded from the catalogue slice); otherwise owner request (2026-07-09; not in the original PRD)
 - **Folded catalogue (Model A, owner 2026-07-09):** no separate catalogue table — autocomplete is a read-only view over the union of `prace` across presets, snapshotting opis + J.m. + price into the item on select (overwritable). Building presets _is_ seeding the suggestions, so there is no empty-catalogue risk. **Open (from the fold):** duplicate prace across presets at different prices — show each occurrence or dedupe by opis with a default price? Decide at plan time.
@@ -331,7 +332,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Open (decision 9):** one global default preset vs a named library picked at create-time (owner leans library — "selecting from presets", plural). — Owner: user. Block: no.
 - **Open (decision 10):** save-as behaviour — always save-as-new vs overwrite an existing preset; and retroactivity (recommendation: kosztorysy already spawned from a preset stay frozen when the preset is later edited — same snapshot rule). — Owner: user. Block: no.
 - **Risk:** The preset carries _structure_ (sekcje → prace) with embedded snapshot prices. Risk: letting a preset link become a live price authority reintroduces the centralisation the owner explicitly rejected. Keep prices embedded + overwritable.
-- **Status:** proposed
+- **Status:** done
 
 ### S-10: Column + row RBAC (role-based visibility)
 
