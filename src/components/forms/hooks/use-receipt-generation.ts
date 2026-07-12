@@ -9,16 +9,12 @@ import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
 import { toastMessage } from '@/lib/utils/toast'
 import { UNREADABLE_RECEIPT } from '@/lib/ai/receipt-extraction-schema'
 import type { OtherCategoryRefT } from '@/types/reference-data'
+import type { BulkExpenseFormApiT } from '@/components/forms/expense-form/bulk-expense-form'
 
 const GENERATION_CONCURRENCY = 4
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type FormT = any
-
-type LineItemRowT = { description: string; amount: string }
-
 type ReceiptGenerationDepsT = {
-  form: FormT
+  form: BulkExpenseFormApiT
   otherCategories: OtherCategoryRefT[]
   getFiles: () => Map<number, File>
   renameFile: (index: number, newName: string) => void
@@ -46,7 +42,7 @@ export function useReceiptGeneration({
   } | null>(null)
 
   async function generateFromReceipts() {
-    const rows = (form.getFieldValue('lineItems') ?? []) as LineItemRowT[]
+    const rows = form.getFieldValue('lineItems') ?? []
     const files = getFiles()
     // Eligible = has an attached file AND still-blank content, so a manually filled row is
     // never overwritten (skip-non-empty).
