@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { FileText, Search } from 'lucide-react'
 import { FileInput } from '@/components/ui/file-input'
 import { FieldLabel } from '@/components/ui/field'
 import { InvoicePreviewDialog } from '@/components/dialogs/invoice-preview-dialog'
+import { InvoicePreviewTrigger } from '@/components/invoice-preview-trigger'
 import { cn } from '@/lib/utils/cn'
 
 // A picked file has no URL yet — mint a blob URL for the preview and revoke it when the
@@ -62,19 +62,11 @@ export function LineItemInvoiceField({
   return (
     <div className={cn('flex w-full flex-col gap-1', fieldClassName)}>
       <FieldLabel>FV</FieldLabel>
-      <button
-        type="button"
+      <InvoicePreviewTrigger
+        isImage={isImage}
+        label={file.name}
         onClick={() => setPreviewOpen(true)}
-        aria-label={`Podgląd: ${file.name}`}
-        className="border-input text-muted-foreground hover:border-primary/50 hover:text-foreground hover:bg-muted/50 flex h-9 w-full min-w-0 cursor-pointer items-center gap-2 rounded-md border px-3 transition-colors"
-      >
-        {isImage ? (
-          <Search className="size-4 shrink-0" />
-        ) : (
-          <FileText className="size-4 shrink-0" />
-        )}
-        <span className="truncate text-sm">{file.name}</span>
-      </button>
+      />
 
       {/* Swap the receipt from inside the preview modal (Zamień). */}
       <input
