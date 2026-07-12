@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { InvoicePreviewButton } from '@/components/invoice-preview-button'
+import { InvoicePreviewButton } from '@/components/dialogs/invoice-preview-button'
 import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
 import { FileInput } from '@/components/ui/file-input'

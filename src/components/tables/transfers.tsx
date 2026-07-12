@@ -105,6 +105,7 @@ const allColumns = [
     id: 'invoice',
     header: 'Faktura',
     enableSorting: false,
+    meta: { align: 'center' },
     cell: (info) => {
       const row = info.row.original
       return (
@@ -121,6 +122,7 @@ const allColumns = [
     id: 'invoiceNote',
     header: 'Notatka',
     enableSorting: false,
+    meta: { align: 'center' },
     cell: (info) => <NotePopover note={info.getValue()} />,
   }),
 

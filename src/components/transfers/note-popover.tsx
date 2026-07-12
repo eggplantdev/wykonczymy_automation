@@ -1,28 +1,27 @@
 'use client'
 
-import { MessageSquareText } from 'lucide-react'
-import { RevealPopover } from '@/components/ui/reveal-popover'
+import { Info } from 'lucide-react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 type NotePopoverPropsT = {
   note: string | null
 }
 
-// Notes are multi-line (FV number + one line per purchased item) and legacy ones can be a single
-// very long string — either blows the auto-layout table column open, so the trigger truncates to one line.
 export function NotePopover({ note }: NotePopoverPropsT) {
   if (!note) return null
 
   return (
-    <RevealPopover
-      triggerClassName="hover:text-foreground flex max-w-64 items-center gap-1 text-sm transition-colors"
-      trigger={
-        <>
-          <MessageSquareText className="text-muted-foreground h-4 w-4 shrink-0" />
-          <span className="min-w-0 truncate">{note}</span>
-        </>
-      }
-    >
-      <p className="text-sm break-words whitespace-pre-line">{note}</p>
-    </RevealPopover>
+    <Popover>
+      <PopoverTrigger
+        aria-label="Pokaż notatkę"
+        // Match InvoiceCell's ghost icon-button footprint so the adjacent Faktura/Notatka icons align.
+        className="text-muted-foreground hover:bg-accent hover:text-foreground inline-flex size-9 cursor-pointer items-center justify-center rounded-md transition-colors outline-none"
+      >
+        <Info className="h-4 w-4 shrink-0" />
+      </PopoverTrigger>
+      <PopoverContent align="start" className="max-h-80 w-80 overflow-y-auto">
+        <p className="text-sm wrap-break-word whitespace-pre-line">{note}</p>
+      </PopoverContent>
+    </Popover>
   )
 }

@@ -69,7 +69,11 @@ export function DataTableRow<TData>({
           return (
             <td
               key={cell.id}
-              className={cn('text-foreground px-3 py-2', align === 'right' && 'text-right')}
+              className={cn(
+                'text-foreground px-3 py-2',
+                align === 'right' && 'text-right',
+                align === 'center' && 'text-center',
+              )}
             >
               {flexRender(cell.column.columnDef.cell, cell.getContext())}
             </td>

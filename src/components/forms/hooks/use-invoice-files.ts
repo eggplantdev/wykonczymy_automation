@@ -60,8 +60,8 @@ export function useInvoiceFiles(initialFiles?: Map<number, File>) {
   }
 
   // Swap a row's File for a same-bytes clone under a new name so the FV label can mirror the
-  // server-side receipt rename. Display-only — the upload already happened (mediaId is tracked),
-  // so this never re-uploads; the caller bumps fileInputKey to re-read the name.
+  // Opis-based receipt rename. Display-only — the (single, submit-time) upload uses this renamed
+  // File; the caller bumps fileInputKey to re-read the name.
   function renameFile(index: number, newName: string) {
     const existing = invoiceFilesRef.current.get(index)
     if (!existing) return

@@ -9,9 +9,8 @@ type OpenRouterBalanceT = {
   used: number
 }
 
-// Reads the shared OpenRouter wallet via /credits with the server key. Returns null when the live
-// call fails or times out — callers render null as "nothing to show", so a slow/flaky OpenRouter
-// can never block or break render.
+// Returns null on failure/timeout — callers render null as "nothing to show", so a slow/flaky
+// OpenRouter can never block or break render.
 export async function getOpenRouterBalance(): Promise<OpenRouterBalanceT | null> {
   try {
     const res = await fetch('https://openrouter.ai/api/v1/credits', {

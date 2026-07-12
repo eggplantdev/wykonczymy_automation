@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { InvoicePreviewDialog } from '@/components/dialogs/invoice-preview-dialog'
-import { InvoicePreviewTrigger } from '@/components/invoice-preview-trigger'
+import { InvoicePreviewTrigger } from '@/components/ui/invoice-preview-trigger'
 
 type InvoicePreviewButtonPropsT = {
   url: string

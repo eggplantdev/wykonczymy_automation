@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { FileInput } from '@/components/ui/file-input'
 import { FieldLabel } from '@/components/ui/field'
 import { InvoicePreviewDialog } from '@/components/dialogs/invoice-preview-dialog'
-import { InvoicePreviewTrigger } from '@/components/invoice-preview-trigger'
+import { InvoicePreviewTrigger } from '@/components/ui/invoice-preview-trigger'
 import { cn } from '@/lib/utils/cn'
 
 // A picked file has no URL yet — mint a blob URL for the preview and revoke it when the

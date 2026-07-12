@@ -4,9 +4,8 @@ import { getOpenRouterBalance } from '@/lib/ai/openrouter-balance'
 
 const usd = (n: number) => `$${n.toFixed(2)}`
 
-// Async server component: reads the shared OpenRouter wallet with the server-only key and streams in
-// under Suspense. Renders nothing unless a balance resolves — a flaky or unreachable OpenRouter
-// simply shows no chip, never a broken state.
+// Renders nothing unless a balance resolves — a flaky or unreachable OpenRouter shows no chip,
+// never a broken/error state.
 export async function NavOpenRouterBalance({ className }: { className?: string }) {
   const balance = await getOpenRouterBalance()
 

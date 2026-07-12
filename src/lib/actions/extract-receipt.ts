@@ -25,7 +25,7 @@ export async function extractReceiptAction(
   return protectedAction('extractReceiptAction', async () => {
     const { file, otherCategoryNames } = input
     const mimeType = file.type
-    if (!mimeType) return { success: false, error: 'Nie znaleziono pliku' }
+    if (!mimeType) return { success: false, error: 'Nieobsługiwany typ pliku' }
 
     const imageBytes = new Uint8Array(await file.arrayBuffer())
     // The file-parser plugin routes PDFs by extension, so the filename must carry one. Fall
