@@ -76,6 +76,10 @@
   --color-chart-teal: #3ae2d1;
   --color-chart-purple: #976cdf;
 
+  /* AI-accent hues for the `ai` button variant's fuchsia→cyan gradient border. */
+  --color-neon-fuchsia: #d946ef;
+  --color-neon-cyan: #00e5ff;
+
   /* Sidebar Colors */
   --color-sidebar: oklch(0.985 0 0);
   --color-sidebar-foreground: oklch(0.145 0 0);
@@ -147,6 +151,53 @@
   &::-webkit-scrollbar {
     display: none;
   }
+}
+
+/* AI-accent gradient border for the `ai` button variant — over wykonczymy's `--color-card`
+   token, fading fuchsia → cyan. */
+@utility gradient-border {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--color-card), var(--color-card)) padding-box,
+    linear-gradient(to right, var(--color-neon-fuchsia), var(--color-neon-cyan)) border-box;
+}
+
+/* Soft two-tone halo matching the border direction: fuchsia bleeds left, cyan bleeds right.
+   Low opacity + modest blur keeps it a subtle accent, not a heavy bloom. */
+@utility neon-glow-duo {
+  box-shadow:
+    -3px 0 10px color-mix(in oklch, var(--color-neon-fuchsia) 40%, transparent),
+    3px 0 10px color-mix(in oklch, var(--color-neon-cyan) 40%, transparent);
+}
+
+@utility neon-glow-duo-hit {
+  box-shadow:
+    -3px 0 14px color-mix(in oklch, var(--color-neon-fuchsia) 55%, transparent),
+    3px 0 14px color-mix(in oklch, var(--color-neon-cyan) 55%, transparent);
+}
+
+/* Fuchsia→cyan gradient ring (the `ai`-accent hues) as a masked conic-gradient — a branded
+   spin loader that reads in the AI colours, versus a flat Lucide icon. `--spinner-w` sets the
+   ring thickness; default size-4 matches inline icon spinners. */
+@utility gradient-spinner {
+  --spinner-w: 2px;
+  border-radius: 9999px;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    var(--color-neon-fuchsia) 45%,
+    var(--color-neon-cyan) 100%
+  );
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - var(--spinner-w)),
+    #000 calc(100% - var(--spinner-w))
+  );
+  mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - var(--spinner-w)),
+    #000 calc(100% - var(--spinner-w))
+  );
 }
 
 @media print {

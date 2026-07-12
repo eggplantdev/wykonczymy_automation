@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { SearchFilterInput } from '@/components/ui/search-filter-input'
+import { SaveAsButton } from '@/components/kosztorys/save-as-button'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 
 // Three views over one dataset: they only change the active price and its derived values.
@@ -22,7 +23,9 @@ const VIEW_LEGEND = [
 ].join('\n')
 
 type PropsT = {
+  investmentId: number
   investmentName: string
+  onOpenVersions: () => void
   view: PriceViewT
   onViewChange: (view: PriceViewT) => void
   search: string
@@ -31,12 +34,16 @@ type PropsT = {
   onAddItem: (sectionId: number) => void
   onAddStage: () => void
   itemCount: number
+  bruttoVisible: boolean
+  onToggleBrutto: () => void
   summaryOpen: boolean
   onToggleSummary: () => void
 }
 
 export function KosztorysEditorToolbar({
+  investmentId,
   investmentName,
+  onOpenVersions,
   view,
   onViewChange,
   search,
@@ -45,6 +52,8 @@ export function KosztorysEditorToolbar({
   onAddItem,
   onAddStage,
   itemCount,
+  bruttoVisible,
+  onToggleBrutto,
   summaryOpen,
   onToggleSummary,
 }: PropsT) {
@@ -64,6 +73,14 @@ export function KosztorysEditorToolbar({
         ))}
         <InfoTooltip content={VIEW_LEGEND} label="Co oznaczają widoki cen" className="ml-0.5" />
       </div>
+      <Button
+        size="sm"
+        variant={bruttoVisible ? 'default' : 'outline'}
+        onClick={onToggleBrutto}
+        title="Pokaż kolumnę i sumę brutto (netto × (1 + VAT))"
+      >
+        Brutto
+      </Button>
       <SearchFilterInput
         value={search}
         onChange={onSearchChange}
@@ -80,6 +97,10 @@ export function KosztorysEditorToolbar({
       </Button>
       <span className="text-muted-foreground text-sm">{itemCount} pozycji</span>
       <div className="ml-auto flex items-center gap-1">
+        <SaveAsButton investmentId={investmentId} />
+        <Button size="sm" variant="outline" onClick={onOpenVersions}>
+          Wersje
+        </Button>
         <Button size="sm" variant={summaryOpen ? 'default' : 'outline'} onClick={onToggleSummary}>
           Sekcje
         </Button>

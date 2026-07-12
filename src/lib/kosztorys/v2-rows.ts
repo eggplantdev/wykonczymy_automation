@@ -11,6 +11,23 @@ export function stageKey(stageId: number): `stage_${number}` {
   return `stage_${stageId}`
 }
 
+// Client mirror of the server delete-guard predicate (removeItemAction/removeSectionAction).
+// A row is "populated" iff it holds a pomiar (measuredQty <> 0) or any recorded stage progress
+// (qty <> 0). Server SQL stays the authority; this only drives the pre-check + toast so a
+// populated delete never optimistically vanishes. Field names must match the server predicate.
+export function isRowPopulated(row: KosztorysV2RowT, stages: KosztorysStageT[]): boolean {
+  if (row.measuredQty !== 0) return true
+  return stages.some((st) => (row[stageKey(st.id)] ?? 0) !== 0)
+}
+
+export function isSectionPopulated(
+  rows: KosztorysV2RowT[],
+  sectionId: number,
+  stages: KosztorysStageT[],
+): boolean {
+  return rows.some((r) => r.sectionId === sectionId && isRowPopulated(r, stages))
+}
+
 // Item fields editable in the grid (= the keys of ItemPatchT). The diff compares only these.
 const ITEM_FIELDS = [
   'description',

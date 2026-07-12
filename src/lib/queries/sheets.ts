@@ -3,6 +3,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 import { perfStart } from '@/lib/perf'
+import { assertCompletePage } from '@/lib/queries/assert-complete-page'
 
 // Row shape served to the listing page. `investment` is undefined for an
 // unlinked kosztorys (registered before the project is committed).
@@ -26,13 +27,13 @@ export const fetchAllSheets = unstable_cache(
     const result = await payload.find({
       collection: 'kosztoryses',
       depth: 1,
-      limit: 0,
+      limit: 1000,
       sort: '-updatedAt',
       overrideAccess: true,
     })
     console.log(`[PERF] query.fetchAllSheets ${elapsed()}ms (${result.docs.length} rows)`)
 
-    return result.docs.map((doc) => {
+    return assertCompletePage(result, 'fetchAllSheets').map((doc) => {
       const investmentRel = doc.investment
       const investment =
         investmentRel && typeof investmentRel === 'object'

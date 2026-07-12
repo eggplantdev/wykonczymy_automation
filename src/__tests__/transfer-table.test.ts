@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest'
 // Mock modules that fail in test environment (server-only, CSS, React components)
 vi.mock('server-only', () => ({}))
 vi.mock('@/components/transfers/invoice-cell', () => ({ InvoiceCell: () => null }))
-vi.mock('@/components/dialogs/note-dialog', () => ({ NoteCell: () => null }))
+vi.mock('@/components/transfers/note-popover', () => ({ NotePopover: () => null }))
 
 import {
   mapTransferRow,

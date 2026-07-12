@@ -1,7 +1,6 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 .env*
-!.env.copy
 
 .mcp.json
 
@@ -88,3 +87,6 @@ dump.sql
 
 # kosztorys template source — kept locally by the owner, not tracked
 /Kopia kosztorys wzór dla konrada do testów.xlsx
+
+# Temp manual-test assets (HEIC + oversize) — not for commit
+tmp-heic-test/

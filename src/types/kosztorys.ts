@@ -93,6 +93,10 @@ export type KosztorysTreeT = {
   globalCoeffs: KosztorysGlobalCoeffsT
   // A single VAT rate per investment — carried through the tree (like globalCoeffs), denormalized onto each row.
   vatRate: number
+  // Server-supplied change token = investment.updatedAt (ISO). A restore always bumps it (its final
+  // payload.update stamps updatedAt), so the editor shell can key its restore remount on this token
+  // changing rather than on the `tree` prop's object identity, which router.refresh reshapes every time.
+  revision: string
 }
 
 // --- v2 variant (react-datasheet-grid): a flat row with stages flattened

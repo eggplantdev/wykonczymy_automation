@@ -1,4 +1,5 @@
 import type { Payload } from 'payload'
+import { assertCompletePage } from '@/lib/queries/assert-complete-page'
 
 // Expense-category names that drive the per-category summary columns / row coloring
 // on the expense-shaped sheet tabs (wydatki inwestycyjne + rozliczone R+M). Shared by
@@ -7,8 +8,10 @@ import type { Payload } from 'payload'
 export async function getExpenseTypeNames(payload: Payload): Promise<string[]> {
   const cats = await payload.find({
     collection: 'expense-categories',
-    limit: 100,
+    limit: 1000,
     overrideAccess: true,
   })
-  return cats.docs.map((c) => (c as { name?: string }).name).filter((n): n is string => !!n)
+  return assertCompletePage(cats, 'getExpenseTypeNames')
+    .map((c) => (c as { name?: string }).name)
+    .filter((n): n is string => !!n)
 }

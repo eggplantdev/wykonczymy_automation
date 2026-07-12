@@ -1,0 +1,120 @@
+'use server'
+
+import { z } from 'zod'
+import type { PayloadRequest } from 'payload'
+import { protectedAction, validateAction } from '@/lib/actions/run-action'
+import { getDb } from '@/lib/db/get-db'
+import { getSnapshot, insertSnapshot, listSnapshots, type SnapshotMetaT } from '@/lib/db/snapshots'
+import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
+import { restoreKosztorys } from '@/lib/kosztorys/restore-kosztorys'
+import { serializeKosztorys } from '@/lib/kosztorys/serialize-kosztorys'
+import type { ActionResultT } from '@/types/action'
+
+// --- Capture triggers ---
+
+// Periodic auto snapshot — the client's 10-min interval calls this unconditionally (fire-and-forget).
+export async function snapshotAction(investmentId: number): Promise<ActionResultT> {
+  return protectedAction('snapshotAction', async ({ payload, user }) => {
+    const db = await getDb(payload)
+    await captureAutoSnapshot(db, investmentId, user.id)
+    return { success: true }
+  })
+}
+
+const saveSnapshotSchema = z.object({ label: z.string().trim().min(1, 'Podaj nazwę wersji') })
+
+// Named manual snapshot ("Zapisz jako…") — required label, exempt from the auto count cap.
+export async function saveSnapshotAction(
+  investmentId: number,
+  label: string,
+): Promise<ActionResultT> {
+  return protectedAction('saveSnapshotAction', async ({ payload, user }) => {
+    const parsed = validateAction(saveSnapshotSchema, { label })
+    if (!parsed.success) return parsed
+    const db = await getDb(payload)
+    const snapshot = await serializeKosztorys(investmentId)
+    await insertSnapshot(db, {
+      investmentId,
+      kind: 'manual',
+      label: parsed.data.label,
+      takenBy: user.id,
+      payload: snapshot,
+    })
+    return { success: true }
+  })
+}
+
+// --- Restore + listing ---
+
+const snapshotIdSchema = z.object({ snapshotId: z.number() })
+
+// Restore a snapshot by id: resolve its investment from the row (never trust a client-passed one),
+// then in ONE transaction take a forced pre-restore auto snapshot (so a mis-restore is itself
+// recoverable) and wipe-and-reinsert the tree. On any throw the transaction rolls back and the live
+// tree is untouched. `skipRevalidation` suppresses the per-op collection hooks (~1000 rows would
+// otherwise fire revalidateTag each) — the action's revalidate list bumps every tag once after commit.
+export async function restoreSnapshotAction(snapshotId: number): Promise<ActionResultT> {
+  return protectedAction(
+    'restoreSnapshotAction',
+    async ({ payload, user }) => {
+      const parsed = validateAction(snapshotIdSchema, { snapshotId })
+      if (!parsed.success) return parsed
+
+      const snapshot = await getSnapshot(await getDb(payload), parsed.data.snapshotId)
+      if (!snapshot) return { success: false, error: 'Nie znaleziono wersji' }
+
+      const transactionId = await payload.db.beginTransaction()
+      if (!transactionId) throw new Error('Failed to start transaction')
+      const req = {
+        transactionID: transactionId,
+        context: { skipRevalidation: true },
+      } as unknown as PayloadRequest
+      try {
+        const txDb = await getDb(payload, req)
+        await captureAutoSnapshot(txDb, snapshot.investmentId, user.id)
+        await restoreKosztorys(payload, req, snapshot.investmentId, snapshot.payload)
+        await payload.db.commitTransaction(transactionId)
+      } catch (err) {
+        await payload.db.rollbackTransaction(transactionId)
+        throw err
+      }
+      return { success: true }
+    },
+    // Settings (VAT/coeffs) change too, so bump investments alongside the four tree tags.
+    ['kosztorysSections', 'kosztorysItems', 'kosztorysStages', 'stageProgress', 'investments'],
+  )
+}
+
+export type SnapshotListItemT = SnapshotMetaT & { takenByName: string | null }
+
+// Snapshot metadata for the "Wersje" drawer — newest first, WITHOUT the jsonb payload, with
+// taken_by resolved to a display name for attribution.
+export async function listSnapshotsAction(
+  investmentId: number,
+): Promise<ActionResultT<SnapshotListItemT[]>> {
+  return protectedAction('listSnapshotsAction', async ({ payload }) => {
+    const db = await getDb(payload)
+    const snapshots = await listSnapshots(db, investmentId)
+
+    const userIds = [
+      ...new Set(snapshots.map((s) => s.takenBy).filter((id): id is number => id != null)),
+    ]
+    const nameById = new Map<number, string>()
+    if (userIds.length > 0) {
+      const users = await payload.find({
+        collection: 'users',
+        where: { id: { in: userIds } },
+        limit: userIds.length,
+        depth: 0,
+        overrideAccess: true,
+      })
+      for (const u of users.docs) nameById.set(Number(u.id), u.name ?? u.email)
+    }
+
+    const data = snapshots.map((s) => ({
+      ...s,
+      takenByName: s.takenBy == null ? null : (nameById.get(s.takenBy) ?? null),
+    }))
+    return { success: true, data }
+  })
+}

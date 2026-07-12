@@ -1,7 +1,8 @@
 import 'server-only'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { DEFAULT_COEFFS } from '@/lib/kosztorys/constants'
+import { DEFAULT_COEFFS, DEFAULT_VAT } from '@/lib/kosztorys/constants'
+import { assertCompletePage } from '@/lib/queries/assert-complete-page'
 import type {
   CostVariantT,
   DiscountTypeT,
@@ -19,8 +20,7 @@ const relId = (v: unknown): number =>
 const num = (v: unknown): number => Number(v ?? 0)
 
 // S-01: sections + items of a single investment, ordered by displayOrder → displayOrder.
-// S-04: stages (ordered by ordinal) + sparse per-item progress. VAT (S-12) is still out of
-// scope: vatRate = 0.
+// S-04: stages (ordered by ordinal) + sparse per-item progress. S-05: per-investment VAT rate.
 export async function getKosztorysTree(investmentId: number): Promise<KosztorysTreeT> {
   const payload = await getPayload({ config })
   const where = { investment: { equals: investmentId } }
@@ -65,25 +65,27 @@ export async function getKosztorysTree(investmentId: number): Promise<KosztorysT
       investment.ownToolsCoeff == null ? DEFAULT_COEFFS.ownTools : num(investment.ownToolsCoeff),
   }
 
-  const items: KosztorysItemT[] = itemsRes.docs.map((d) => ({
-    id: d.id,
-    sectionId: relId(d.section),
-    displayOrder: num(d.displayOrder),
-    description: d.description ?? null,
-    unit: d.unit ?? null,
-    plannedQty: num(d.plannedQty),
-    measuredQty: num(d.measuredQty),
-    discountType: (d.discountType as DiscountTypeT | null) ?? null,
-    discountValue: num(d.discountValue),
-    clientPrice: num(d.clientPrice),
-    wToolsOverrideType: (d.wToolsOverrideType as SubcontractorOverrideTypeT | null) ?? null,
-    wToolsOverrideValue: num(d.wToolsOverrideValue),
-    ownToolsOverrideType: (d.ownToolsOverrideType as SubcontractorOverrideTypeT | null) ?? null,
-    ownToolsOverrideValue: num(d.ownToolsOverrideValue),
-    costVariant: (d.costVariant as CostVariantT | null) ?? null,
-    hiddenInExport: Boolean(d.hiddenInExport),
-    note: d.note ?? null,
-  }))
+  const items: KosztorysItemT[] = assertCompletePage(itemsRes, 'getKosztorysTree items').map(
+    (d) => ({
+      id: d.id,
+      sectionId: relId(d.section),
+      displayOrder: num(d.displayOrder),
+      description: d.description ?? null,
+      unit: d.unit ?? null,
+      plannedQty: num(d.plannedQty),
+      measuredQty: num(d.measuredQty),
+      discountType: (d.discountType as DiscountTypeT | null) ?? null,
+      discountValue: num(d.discountValue),
+      clientPrice: num(d.clientPrice),
+      wToolsOverrideType: (d.wToolsOverrideType as SubcontractorOverrideTypeT | null) ?? null,
+      wToolsOverrideValue: num(d.wToolsOverrideValue),
+      ownToolsOverrideType: (d.ownToolsOverrideType as SubcontractorOverrideTypeT | null) ?? null,
+      ownToolsOverrideValue: num(d.ownToolsOverrideValue),
+      costVariant: (d.costVariant as CostVariantT | null) ?? null,
+      hiddenInExport: Boolean(d.hiddenInExport),
+      note: d.note ?? null,
+    }),
+  )
 
   // Bucket items by section in one O(items) pass — a per-section filter would be O(sections × items),
   // quadratic at the 1000+-row bar this editor targets.
@@ -94,27 +96,41 @@ export async function getKosztorysTree(investmentId: number): Promise<KosztorysT
     else itemsBySection.set(it.sectionId, [it])
   }
 
-  const sections = sectionsRes.docs.map((d): KosztorysSectionT & { items: KosztorysItemT[] } => ({
-    id: d.id,
-    name: d.name,
-    displayOrder: num(d.displayOrder),
-    defaultCostVariant: (d.defaultCostVariant as CostVariantT) ?? 'w_tools',
-    wToolsCoeff: d.wToolsCoeff == null ? null : num(d.wToolsCoeff),
-    ownToolsCoeff: d.ownToolsCoeff == null ? null : num(d.ownToolsCoeff),
-    items: itemsBySection.get(d.id) ?? [],
-  }))
+  const sections = assertCompletePage(sectionsRes, 'getKosztorysTree sections').map(
+    (d): KosztorysSectionT & { items: KosztorysItemT[] } => ({
+      id: d.id,
+      name: d.name,
+      displayOrder: num(d.displayOrder),
+      defaultCostVariant: (d.defaultCostVariant as CostVariantT) ?? 'w_tools',
+      wToolsCoeff: d.wToolsCoeff == null ? null : num(d.wToolsCoeff),
+      ownToolsCoeff: d.ownToolsCoeff == null ? null : num(d.ownToolsCoeff),
+      items: itemsBySection.get(d.id) ?? [],
+    }),
+  )
 
-  const stages: KosztorysStageT[] = stagesRes.docs.map((d) => ({
-    id: d.id,
-    ordinal: num(d.ordinal),
-    label: d.label ?? null,
-  }))
+  const stages: KosztorysStageT[] = assertCompletePage(stagesRes, 'getKosztorysTree stages').map(
+    (d) => ({
+      id: d.id,
+      ordinal: num(d.ordinal),
+      label: d.label ?? null,
+    }),
+  )
 
-  const progress: StageProgressT[] = progressRes.docs.map((d) => ({
+  const progress: StageProgressT[] = assertCompletePage(
+    progressRes,
+    'getKosztorysTree progress',
+  ).map((d) => ({
     itemId: relId(d.item),
     stageId: relId(d.stage),
     qtyDone: num(d.qtyDone),
   }))
 
-  return { sections, stages, progress, globalCoeffs, vatRate: 0 }
+  return {
+    sections,
+    stages,
+    progress,
+    globalCoeffs,
+    vatRate: investment.vatRate ?? DEFAULT_VAT,
+    revision: investment.updatedAt,
+  }
 }

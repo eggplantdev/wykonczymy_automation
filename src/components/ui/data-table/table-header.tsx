@@ -20,6 +20,7 @@ export function TableHeader<T>({ headerGroups }: { headerGroups: HeaderGroup<T>[
                 className={cn(
                   'text-muted-foreground px-3 py-2 text-left text-sm font-medium',
                   align === 'right' && 'text-right',
+                  align === 'center' && 'text-center',
                   canSort && 'cursor-pointer select-none',
                 )}
                 onClick={canSort ? header.column.getToggleSortingHandler() : undefined}

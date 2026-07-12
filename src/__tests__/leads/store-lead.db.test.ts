@@ -36,7 +36,9 @@ describe.skipIf(!ENV_READY)('storeLead + captureLead (DB)', () => {
     const { getPayload } = await import('payload')
     const config = (await import('@payload-config')).default
     payload = await getPayload({ config })
-  })
+    // 30s: first getPayload cold-inits Payload's schema; under the full integration suite the
+    // default 10s hook budget is too tight (observed ~8.6–10s).
+  }, 30000)
 
   afterAll(async () => {
     for (const id of createdIds) {

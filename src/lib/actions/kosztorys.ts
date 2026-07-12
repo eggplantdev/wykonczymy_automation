@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import { getDb } from '@/lib/db/get-db'
+import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { NEW_SECTION_DEFAULTS } from '@/lib/kosztorys/v2-rows'
 import type { ActionResultT } from '@/types/action'
 import type { ItemPatchT } from '@/types/kosztorys'
@@ -40,13 +41,18 @@ const sectionPatchSchema = z
   })
   .partial()
 
-// Investment markup coefficients (edited from the panel). VAT (S-12) is out of scope.
+// Investment markup coefficients (edited from the panel).
 const investmentCoeffsSchema = z
   .object({
     wToolsCoeff: z.coerce.number(),
     ownToolsCoeff: z.coerce.number(),
   })
   .partial()
+
+// Per-investment VAT rate, stored as a fraction (0.08 = 8%). Edited from the Sekcje panel.
+// Fraction bounds: a per-investment VAT rate below 0% or above 100% is never valid, so reject it
+// at the action regardless of UI guarding — a bad rate feeds every brutto figure (net × (1 + vatRate)).
+const investmentVatSchema = z.object({ vatRate: z.coerce.number().min(0).max(1) })
 
 export type SectionPatchT = z.infer<typeof sectionPatchSchema>
 export type InvestmentCoeffsPatchT = z.infer<typeof investmentCoeffsSchema>
@@ -96,6 +102,22 @@ export async function updateInvestmentCoeffsAction(
   )
 }
 
+export async function updateInvestmentVatAction(investmentId: number, vatRate: number) {
+  return protectedAction(
+    'updateInvestmentVatAction',
+    async ({ payload }) => {
+      const parsed = validateAction(investmentVatSchema, { vatRate })
+      if (!parsed.success) return parsed
+      await payload.update({ collection: 'investments', id: investmentId, data: parsed.data })
+      return { success: true }
+    },
+    // vatRate is read from the investment and denormalized onto items only (getKosztorysTree),
+    // so items is the sole tag needed — no kosztorysSections, unlike the coeff action which also
+    // touches section-level figures.
+    ['kosztorysItems'],
+  )
+}
+
 // --- Structure: sections / items ---
 
 export async function addSectionAction(
@@ -126,7 +148,27 @@ export async function addSectionAction(
 export async function removeSectionAction(sectionId: number) {
   return protectedAction(
     'removeSectionAction',
-    async ({ payload }) => {
+    async ({ payload, user }) => {
+      const db = await getDb(payload)
+      // Block: a section delete FK-cascades through its items into stage_progress, so
+      // dropping a section with any populated item silently loses recorded work.
+      const res = await db.execute(sql`
+        SELECT 1 FROM kosztorys_items i
+        WHERE i.section_id = ${sectionId}
+          AND (i.measured_qty <> 0
+               OR EXISTS (SELECT 1 FROM stage_progress sp WHERE sp.item_id = i.id AND sp.qty_done <> 0))
+        LIMIT 1
+      `)
+      if (res.rows.length > 0) {
+        return { success: false, error: 'Najpierw wyczyść wartości w pozycjach tej sekcji' }
+      }
+      // Forced pre-delete snapshot: the cascade is irrecoverable by in-session undo (S-07), so
+      // capture the exact current state first, every time.
+      const inv = await db.execute(
+        sql`SELECT investment_id FROM kosztorys_sections WHERE id = ${sectionId}`,
+      )
+      const investmentId = inv.rows[0]?.investment_id
+      if (investmentId != null) await captureAutoSnapshot(db, Number(investmentId), user.id)
       await payload.delete({ collection: 'kosztorys-sections', id: sectionId })
       return { success: true }
     },
@@ -168,6 +210,19 @@ export async function removeItemAction(itemId: number) {
   return protectedAction(
     'removeItemAction',
     async ({ payload }) => {
+      const db = await getDb(payload)
+      // Block: an item carries the on-site pomiar and cascades stage_progress on delete —
+      // dropping a populated row silently loses recorded work (mirrors removeStageAction).
+      const res = await db.execute(sql`
+        SELECT 1 FROM kosztorys_items i
+        WHERE i.id = ${itemId}
+          AND (i.measured_qty <> 0
+               OR EXISTS (SELECT 1 FROM stage_progress sp WHERE sp.item_id = i.id AND sp.qty_done <> 0))
+        LIMIT 1
+      `)
+      if (res.rows.length > 0) {
+        return { success: false, error: 'Najpierw wyczyść wartości wpisane w tej pozycji' }
+      }
       await payload.delete({ collection: 'kosztorys-items', id: itemId })
       return { success: true }
     },
@@ -257,7 +312,7 @@ const stageIdSchema = z.object({ stageId: z.number() })
 export async function removeStageAction(stageId: number): Promise<ActionResultT> {
   return protectedAction(
     'removeStageAction',
-    async ({ payload }) => {
+    async ({ payload, user }) => {
       const parsed = validateAction(stageIdSchema, { stageId })
       if (!parsed.success) return parsed
       const db = await getDb(payload)
@@ -268,6 +323,13 @@ export async function removeStageAction(stageId: number): Promise<ActionResultT>
       if (res.rows.length > 0) {
         return { success: false, error: 'Najpierw wyczyść ilości wpisane w tym etapie' }
       }
+      // Forced pre-delete snapshot (see removeSectionAction) — only fires on a genuinely-allowed
+      // delete, since the progress guard above already rejected a stage with recorded work.
+      const inv = await db.execute(
+        sql`SELECT investment_id FROM kosztorys_stages WHERE id = ${parsed.data.stageId}`,
+      )
+      const investmentId = inv.rows[0]?.investment_id
+      if (investmentId != null) await captureAutoSnapshot(db, Number(investmentId), user.id)
       await payload.delete({ collection: 'kosztorys-stages', id: parsed.data.stageId })
       return { success: true }
     },

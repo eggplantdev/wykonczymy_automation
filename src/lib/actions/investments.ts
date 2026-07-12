@@ -10,6 +10,7 @@ import {
   investmentSchema,
   type InvestmentFormDataT,
 } from '@/components/forms/investment-form/investment-schema'
+import { seedInvestmentFromPreset } from '@/lib/kosztorys/seed-from-preset'
 import { validateAction, protectedAction } from './run-action'
 
 // Attach (or reset) a fresh materiały tab on the investment's linked sheet.
@@ -37,10 +38,37 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
       const parsed = validateAction(investmentSchema, data)
       if (!parsed.success) return parsed
 
-      await payload.create({
+      // presetId is a form-only field (seed source), never an investments column.
+      const { presetId, ...investmentData } = parsed.data
+      const created = await payload.create({
         collection: 'investments',
-        data: parsed.data,
+        data: investmentData,
       })
+
+      // Seed the new (trivially empty) investment's kosztorys from the chosen preset. Best-effort and
+      // NON-FATAL: the investment is already committed, so a seed failure must never flip the whole
+      // action to failure — that would skip the ['investments'] revalidation (hiding the just-created
+      // investment from the cached list) and invite a duplicate-creating retry. Mirror the non-fatal
+      // stampAllTabs handling in linkSheetAction: log and move on. Any non-'ok' outcome (preset
+      // deleted between form-load and submit, or a DB error) lands the user on an empty editor whose
+      // "Wypełnij z szablonu" CTA lets them retry the seed. No kosztorys* tree tags here — a fresh
+      // investment has no cached tree to invalidate yet.
+      const chosenPresetId = presetId ? Number(presetId) : null
+      if (chosenPresetId) {
+        try {
+          const result = await seedInvestmentFromPreset(payload, Number(created.id), chosenPresetId)
+          if (result !== 'ok') {
+            console.error(
+              `[create-investment] seed from preset ${chosenPresetId} skipped for #${created.id}: ${result}`,
+            )
+          }
+        } catch (err) {
+          console.error(
+            `[create-investment] seed from preset ${chosenPresetId} failed for #${created.id} (non-fatal):`,
+            err,
+          )
+        }
+      }
 
       return { success: true }
     },
@@ -207,10 +235,12 @@ export async function updateInvestmentAction(id: number, data: InvestmentFormDat
       const parsed = validateAction(investmentSchema, data)
       if (!parsed.success) return parsed
 
+      // presetId is a create-only seed field; the edit form always sends '' — never write it.
+      const { presetId: _presetId, ...investmentData } = parsed.data
       await payload.update({
         collection: 'investments',
         id,
-        data: parsed.data,
+        data: investmentData,
       })
 
       return { success: true }

@@ -10,6 +10,9 @@ export const investmentFormSchema = z.object({
   notes: z.string(),
   review: z.string(),
   status: z.enum(['active', 'completed']),
+  // Optional seed template, only meaningful on create ('' = start empty). Not an investments
+  // column — createInvestmentAction strips it and seeds the new investment's kosztorys from it.
+  presetId: z.string(),
 })
 
 export type InvestmentFormValuesT = z.infer<typeof investmentFormSchema>
@@ -20,7 +23,7 @@ export const investmentSchema = investmentFormSchema.extend({
   address: z.string().optional().default(''),
   phone: z.string().optional().default(''),
   email: z
-    .union([z.literal(''), z.string().email('Nieprawidłowy adres email')])
+    .union([z.literal(''), z.email('Nieprawidłowy adres email')])
     .optional()
     .default(''),
   contactPerson: z.string().optional().default(''),

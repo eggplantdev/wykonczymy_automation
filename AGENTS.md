@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Project-specific guidance for coding agents. Global conventions (response style, TypeScript / React / Next.js / Tailwind rules, git, tooling, personas) live in the user's global rules and are **not** repeated here. This file is only what's true for THIS repo and not inferable from the framework or `@package.json`.
+Only what's true for THIS repo and not inferable from the framework or `@package.json`. Global conventions (style, TS/React/Next/Tailwind, git, personas) live in the user's global rules.
 
 ## Project Overview
 
@@ -26,11 +26,24 @@ pnpm generate:types  # regenerate src/payload-types.ts (gitignored — never `gi
 docker compose up -d  # local Postgres on port 5433
 ```
 
+### Seeding kosztorys test data (local dev DB)
+
+Two one-off scripts populate an investment's kosztorys with test rows (each wipes that
+investment's kosztorys first; `INV` selects the target investment):
+
+```bash
+INV=6 node --env-file=.env --import tsx src/scripts/seed-kosztorys.ts       # realistic rozpiska from the test sheet (~40 items)
+INV=7 node --env-file=.env --import tsx src/scripts/perf-seed-kosztorys.ts  # synthetic ~1000-item perf dataset
+```
+
+`seed-kosztorys.ts` reads a live Google Sheet (needs `GOOGLE_SERVICE_ACCOUNT_JSON`), so its
+shape tracks the sheet's current state. Domain background: `context/reference/kosztorys-editor-domain-notes.md`.
+
 ### Migrations
 
 `pnpm migrate:create` has emitted phantom drift since ~March 2026 (missing `.json` snapshots), so **hand-write migrations**: copy the structure of the latest file in `src/migrations/` and adjust FK constraints / internal Payload tables by hand. Don't trust an auto-generated migration blindly.
 
-**Migrations are NO LONGER run by the build.** `payload migrate` was removed from `pnpm build` so a Vercel deploy (incl. previews) can never touch the schema — code and schema are separate planes. Apply migrations to prod deliberately with **`pnpm db:migrate:prod`** (dumps Neon prod first, then `payload migrate` against `DB_POSTGRES_URL_PROD`), run by a **human**, never the agent. A `.husky/pre-push` gate reminds you on a push to `main` that adds `src/migrations/*.ts`. Order: migrate prod **before** pushing the code that needs it. Pattern owned by the `payload-prod-migrate` skill.
+**Migrations are NO LONGER run by the build.** `payload migrate` was removed from `pnpm build` so a Vercel deploy (incl. previews) can never touch the schema — code and schema are separate planes. Apply migrations to prod deliberately with **`pnpm db:migrate:prod`** (dumps Neon prod first, then `payload migrate` against `DB_POSTGRES_URL_PROD`), run by a **human**, never the agent. A `.husky/pre-push` gate reminds you on a push to `main` that adds `src/migrations/*.ts`. Order: migrate prod **before** pushing the code that needs it. This is a **deploy-time** gate, not a phase gate — writing the migration and the local code that reads the column is one continuous local task; do not stop implementation or mark a plan phase "blocked on prod" while nothing is being pushed. The prod step is owed only when the code actually ships. Pattern owned by the `payload-prod-migrate` skill.
 
 ### Dependencies
 
@@ -54,18 +67,11 @@ Prefer hand-editing `@package.json` over `pnpm remove` / `pnpm install`. On this
 
 ### Important Directories
 
-- `src/collections` — Payload collection configs
-- `src/access` — role-based access control
-- `src/lib/actions` — server actions for mutations
-- `src/lib/queries` — server-side fetching and cached reference data
-- `src/lib/auth` — JWT auth and roles
-- `src/lib/db` — raw SQL financial calculations
-- `src/lib/cache` — cache tags and revalidation helpers
-- `src/components/forms` — TanStack React Form setup
-- `src/components/ui` — Shadcn UI components
-- `src/stores` — Zustand stores
-- `src/types` — **cross-feature** TypeScript types only; a component's own contract types (its `PropsT` + the shapes those props require) colocate with the component, and per-feature schemas/hooks stay under `src/components/forms/<form>/`
-- `src/migrations` — Payload migrations
+Most are self-describing (`src/collections`, `src/access`, `src/stores`, …). The non-obvious ones:
+
+- `src/lib/db` — raw SQL financial calculations (not `src/lib/actions`, which is server actions for mutations)
+- `src/lib/cache` — cache tags + revalidation helpers
+- Per-feature schemas/hooks live under `src/components/forms/<form>/`, not in `src/types` (which is cross-feature only)
 
 ## Auth And Roles
 
@@ -83,9 +89,8 @@ All mutations go through `protectedAction()` in `src/lib/actions`:
 
 ## Data Fetching And Cache
 
-- Server components use `getPayload({ config })` or `fetchReferenceData()`
-- Financial calculations use raw SQL via `@vercel/postgres`
-- Cache uses `unstable_cache` with tag-based invalidation; `cacheComponents` and `'use cache'` are disabled because of a documented Vercel bug (see `docs/vercel-server-action-bug-report.md` - currently in git commit history)
+- Financial calculations use raw SQL via `@vercel/postgres` (in `src/lib/db`), not the Payload ORM.
+- Cache uses `unstable_cache` with tag-based invalidation; `cacheComponents` and `'use cache'` are disabled due to a Vercel bug.
 - Revalidation differs by context: in **server actions** (`lib/actions`, `lib/cache/revalidate.ts`) use `updateTag()` for immediate expiration; in **Payload hooks** (`hooks/`) use `revalidateTag()` — hooks run in a Route Handler context where `updateTag` throws. Never import `lib/cache/revalidate.ts` from a Payload hook.
 
 ## Forms
@@ -116,7 +121,7 @@ Don't hand-roll tests or pick the layer by feel — route to a skill. Always sta
 
 - **New code, test-first** → **`/10x-tdd`** (when you can name the first failing test in one sentence and the impl isn't written yet).
 - **Protecting existing code** → `/10x-research` → `/10x-plan` → `/10x-implement`, anchored on the risk.
-- **Browser-level / multi-boundary risk** → **`/10x-e2e`** — Playwright harness lives in `e2e/` (`pnpm test:e2e`, isolated 5435 `db-test`); add browser specs there.
+- **Browser-level / multi-boundary risk** → **`/10x-e2e`** — Playwright harness lives in `e2e/` (`pnpm test:e2e`, isolated 5435 `db-test`); add browser specs there. A browser-level slice **owes** its E2E: author it at the review gate, or defer it into the **E2E backlog** — a Linear issue labelled `e2e-backlog` in project "Wykonczymy" (`slice-review-gate` Step 3 blocks archive until the E2E box is authored or filed with that issue id). "Deferred to `/10x-e2e`" in a commit message does **not** discharge it.
 - **A bug that slipped past the tests (test-driven debugging) — mandatory, not optional.** Reproduce it with a **failing test first**, then fix — never silently patch. Assert the **persisted / observable state, not the action's return value** — a success result can hide a failed write. The repro test stays as the regression guard for the path that had none.
 
 There is no `context/foundation/test-plan.md` here yet — for a larger test rollout, generate one with `/10x-test-plan` first and anchor new tests on its risks.
@@ -129,6 +134,7 @@ Non-blocking refactor/cleanup findings live in Linear (project "Wykonczymy v2").
 
 - React Compiler is enabled — don't hand-write `useMemo` / `useCallback` for things it handles
 - `src/app/(payload)/layout.tsx` must include `importMap`, `serverFunction`, and `handleServerFunctions`
+- A `console.error` that must become a Sentry capture once Sentry is wired gets a `// TODO(EX-449) SENTRY-REQUIRED:` marker (greppable + shows in the IDE TODO panel) — never a bare comment
 
 ## Environment Variables
 

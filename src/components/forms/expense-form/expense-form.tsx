@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
-import { useInvoiceFiles } from '@/components/forms/hooks/use-invoice-files'
+import { useInvoiceFiles, type IngestResultT } from '@/components/forms/hooks/use-invoice-files'
+import { useReceiptGeneration } from '@/components/forms/hooks/use-receipt-generation'
 import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import { useSaldo } from '@/components/forms/hooks/use-saldo'
 import {
@@ -21,7 +22,10 @@ import {
 } from '@/lib/constants/transfers'
 import { createBulkTransferAction } from '@/lib/actions/transfers'
 import { mapLineItem } from '@/components/forms/expense-form/map-line-item'
-import { uploadFilesClient } from '@/lib/utils/upload-file-client'
+import type { BulkExpenseFormValuesT } from '@/components/forms/expense-form/bulk-expense-form'
+import { resolveInvoiceMediaIds } from '@/lib/utils/upload-file-client'
+import { MAX_UPLOAD_BYTES, type BlockedFileError } from '@/lib/utils/process-upload-file'
+import { toastMessage } from '@/lib/utils/toast'
 import {
   bulkExpenseFormSchema,
   type CreateBulkExpenseFormT,
@@ -49,25 +53,29 @@ type TransferFormPropsT = {
 
 // Form state uses strings since HTML inputs/selects work with strings.
 // Numeric conversion happens in the server action.
-type FormValuesT = {
-  date: string
-  type: string
-  paymentMethod: string
-  sourceRegister: string
-  targetRegister: string
-  investment: string
-  worker: string
-  settled: boolean
-  lineItems: {
-    description: string
-    amount: string
-    invoiceNote: string
-    category: string
-    expenseCategory: string
-  }[]
-}
+type FormValuesT = BulkExpenseFormValuesT
 
 const FORM_ID = 'expense'
+
+const MAX_UPLOAD_MB = MAX_UPLOAD_BYTES / (1024 * 1024)
+
+// One Polish line per blocked file (unconvertible HEIC / oversize) in a single toast so one bad
+// file in a batch never spams N toasts. Rendered as JSX rather than a "\n"-joined string because
+// react-toastify collapses newlines in HTML — a multi-file block would otherwise run together. The
+// MB figure tracks MAX_UPLOAD_BYTES (the guard), not the raw 4.5 MB Vercel cap.
+function blockedFilesMessage(blocked: BlockedFileError[]) {
+  return (
+    <div>
+      {blocked.map((error, index) => (
+        <p key={index}>
+          {error.reason === 'too-large'
+            ? `Plik „${error.filename}” przekracza ${MAX_UPLOAD_MB} MB — zmniejsz go i spróbuj ponownie.`
+            : `Nie udało się przekonwertować „${error.filename}” — zapisz jako JPG i spróbuj ponownie.`}
+        </p>
+      ))}
+    </div>
+  )
+}
 
 export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: TransferFormPropsT) {
   const { recoveredFiles, submit } = useFormSubmit(FORM_ID)
@@ -82,17 +90,80 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
   // native files and internal filename state — form.reset() can't reach them.
   const [fileInputKey, setFileInputKey] = useState(0)
 
+  // Rows whose picked file is still being processed at ingest (HEIC convert can take ~1-2 s). The
+  // row shows a spinner and its actions are disabled meanwhile, and a batch scan waits for ingest
+  // before running the AI generation.
+  const [ingestingIndices, setIngestingIndices] = useState<Set<number>>(new Set())
+
+  function markIngesting(indices: number[], busy: boolean) {
+    setIngestingIndices((prev) => {
+      const next = new Set(prev)
+      indices.forEach((index) => (busy ? next.add(index) : next.delete(index)))
+      return next
+    })
+  }
+
+  const isIngesting = ingestingIndices.size > 0
+
+  function reportBlocked(blocked: BlockedFileError[]) {
+    if (blocked.length === 0) return
+    // TODO(EX-449) SENTRY-REQUIRED: blocked-file ingest failures (unconvertible HEIC / oversize)
+    // must be captured once Sentry is wired — currently surfaced only as a per-item user toast.
+    toastMessage(blockedFilesMessage(blocked), 'error', 8000)
+  }
+
   const {
     handleRemoveLineItem,
     handleFileChange,
+    registerFilesAt,
+    getFile,
     getFiles,
+    renameFile,
     reset: resetInvoiceFiles,
   } = useInvoiceFiles(recoveredFiles)
+
+  // Run one ingest batch: mark the rows busy, report any blocked files, and — crucially — always
+  // clear the spinner and bump the key in `finally`. The finally is load-bearing: an unexpected
+  // ingest rejection (e.g. a chunk-load failure on the lazy import) must still release the rows, or
+  // they stay busy forever and wedge the whole form. Blocked files enter no map; the row stays empty.
+  async function runIngest(indices: number[], ingest: () => Promise<IngestResultT>) {
+    markIngesting(indices, true)
+    try {
+      reportBlocked((await ingest()).blocked)
+    } catch {
+      // TODO(EX-449) SENTRY-REQUIRED: unexpected ingest failure (not a BlockedFileError) — capture
+      // once Sentry is wired; for now the user gets a generic retry toast.
+      toastMessage('Nie udało się przetworzyć pliku — spróbuj ponownie.', 'error', 6000)
+    } finally {
+      markIngesting(indices, false)
+      // Re-render the affected rows so they swap the file input for the attached-file thumbnail.
+      setFileInputKey((k) => k + 1)
+    }
+  }
+
+  function handleRegisterFiles(startIndex: number, files: File[]) {
+    const indices = files.map((_, offset) => startIndex + offset)
+    return runIngest(indices, () => registerFilesAt(startIndex, files))
+  }
+
+  function handleAttachFile(index: number, e: React.ChangeEvent<HTMLInputElement>) {
+    return runIngest([index], () => handleFileChange(index, e))
+  }
+
+  // Re-align the generation markers (failed/in-flight) alongside the file maps on row removal.
+  // Bump the key so surviving rows re-render and re-read their file from the reindexed ref —
+  // otherwise a shifted-up row keeps showing the removed row's file input/thumbnail.
+  function handleRemove(index: number, removeValue: (index: number) => void) {
+    handleRemoveLineItem(index, removeValue)
+    onRowRemoved(index)
+    setFileInputKey((k) => k + 1)
+  }
 
   function handleReset() {
     resetFormData()
     resetSaldo()
     resetInvoiceFiles()
+    resetGeneration()
     setFileInputKey((k) => k + 1)
   }
 
@@ -126,6 +197,14 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
       onChangeDebounceMs: 500,
     },
     onSubmit: async ({ value }) => {
+      // Backstop to the disabled submit button (a keyboard Enter can bypass it): a row still
+      // ingesting hasn't stored its processed file yet, so getFiles() would read undefined for it
+      // and the line item would save without its receipt — silent loss.
+      if (isIngesting) {
+        toastMessage('Poczekaj na przetworzenie plików.', 'warning', 4000)
+        return false
+      }
+
       const type = value.type as TransferTypeT
       const data: CreateBulkExpenseFormT = {
         date: value.date,
@@ -147,7 +226,9 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
           let invoiceMediaIds: (number | undefined)[] | undefined
           if (files.size > 0) {
             try {
-              invoiceMediaIds = await uploadFilesClient(files, value.lineItems.length)
+              // Submit is the only upload site: the AI scan sends raw bytes and persists nothing, so
+              // every attached file is uploaded once here.
+              invoiceMediaIds = await resolveInvoiceMediaIds(value.lineItems.length, files)
             } catch (err) {
               const message = err instanceof Error ? err.message : 'Nie udało się przesłać plików'
               return { success: false, error: message }
@@ -166,6 +247,28 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
   })
 
   useCheckFormErrors(form)
+
+  const {
+    generateFromReceipts,
+    isGenerating,
+    generatingIndices,
+    failedIndices,
+    generationProgress,
+    onRowRemoved,
+    resetGeneration,
+  } = useReceiptGeneration({
+    form,
+    otherCategories: referenceData.otherCategories,
+    getFiles,
+    renameFile,
+  })
+
+  // Run the generation, then remount the uncontrolled file inputs so each re-reads its (possibly
+  // renamed) filename from the ref — the labels can't update in place.
+  async function handleGenerate() {
+    await generateFromReceipts()
+    setFileInputKey((k) => k + 1)
+  }
 
   const currentType = useStore(form.store, (s) => s.values.type)
   const currentInvestment = useStore(form.store, (s) => s.values.investment)
@@ -186,6 +289,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     // bump the key to remount the inputs — otherwise a file queued before the type
     // switch attaches to the wrong/nonexistent line item on submit.
     resetInvoiceFiles()
+    resetGeneration()
     setFileInputKey((k) => k + 1)
     resetSaldo()
   }
@@ -249,9 +353,17 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
             form={form}
             total={total}
             hasInvestment={!!currentInvestment}
-            onRemoveItem={handleRemoveLineItem}
-            onFileChange={handleFileChange}
+            onRemoveItem={handleRemove}
+            onFileChange={handleAttachFile}
+            onRegisterFiles={handleRegisterFiles}
+            getFile={getFile}
             fileInputKey={fileInputKey}
+            onGenerate={handleGenerate}
+            isGenerating={isGenerating}
+            generatingIndices={generatingIndices}
+            ingestingIndices={ingestingIndices}
+            failedIndices={failedIndices}
+            generationProgress={generationProgress}
             transferType={currentType}
             referenceData={referenceData}
           />
@@ -260,7 +372,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
 
       {saldo !== null && <SaldoSummary saldo={saldo} total={total} />}
 
-      <FormFooter className="mt-6" />
+      <FormFooter className="mt-6" label="Zapisz" disabled={isIngesting} />
     </FormShell>
   )
 }

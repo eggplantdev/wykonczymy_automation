@@ -1,36 +1,29 @@
-# Kosztorys POC — in-app transition — WORKING NOTES (brain dump)
+# Kosztorys editor — domain notes
 
-> **Status (2026-06-19): ŻYWE NOTATKI z brainstormu. NIE finalny spec.**
-> Dokładane na bieżąco w trakcie rozmowy. Decyzje mogą się jeszcze zmienić.
-> Nie zaczynać implementacji z tego dokumentu — najpierw promocja do spec + akceptacja.
+> Working notes from the design brainstorm behind the in-app kosztorys editor
+> (sections/items/stages/pricing/VAT/export). Still a valid reference for the
+> domain shape, verified facts, closed decisions, and the open questions in
+> `context/foundation/roadmap.md` — read alongside it, not a replacement.
 
 ## Cel
 
-POC „pełnego przejścia z Google Sheets do aplikacji". End-to-end replacement:
+Pełne przejście z Google Sheets do aplikacji. End-to-end replacement:
 edytowalny kosztorys robocizny w aplikacji, czysty start (bez importu arkuszy),
-zero kontaktu z Sheets dla nowych robót. Jakość POC — wolno iść skrótami.
-
-## Środowisko (zrobione)
-
-- **Worktree:** `.claude/worktrees/poc-kosztorys-in-app`, gałąź
-  `worktree-poc-kosztorys-in-app` (zsync do lokalnego main `8d419ac`).
-- **Nowa baza:** `wykonczymy-poc` w lokalnym Dockerze (kontener `wykonczymy`,
-  port 5433), seed z dumpa Neona 2026-06-19 17:38 (2468 tx, 80 inwestycji,
-  34 kosztorysy). `wykonczymy-db` nietknięta. Worktree `.env`
-  `DB_POSTGRES_URL → wykonczymy-poc`.
-- **Uwaga:** nie odpalać `docker compose up` z worktree (próbuje stawiać
-  konkurencyjny projekt; kontener jest współdzielony).
-- Skrypt inspekcji: `scripts/inspect-sheet.mjs` (formuły + wartości, pełne
-  wiersze, litery kolumn AA+). Read-only.
+zero kontaktu z Sheets dla nowych robót.
 
 ## Zweryfikowane fakty (inspekcja realnych arkuszy: `testy_full_kosztorys` + Siennicka 160)
+
+> Read-only sheet inspector: `scripts/inspect-sheet.mjs` (dumps formuły + wartości,
+> pełne wiersze, litery kolumn AA+). Run:
+> `SHEET_ID=<id> node --env-file=./.env scripts/inspect-sheet.mjs > /tmp/dump.txt`
+> (needs `GOOGLE_SERVICE_ACCOUNT_JSON`; defaults to `KOSZTORYS_TEMPLATE_SHEET_ID`).
 
 - **Arkusz = actuals z appki (mirror) + ręczna rozpiska robocizny.**
 - Aplikacja **już** liczy wszystkie actuals z transakcji: wydatki inwestycyjne,
   wpłaty, wypłaty, materiały, korekty, straty. Zakładki `wydatki (ro)` i
   `transfery (ro)` to zrzuty appki (formuły SUMIF w arkuszu).
 - **Materiały w arkuszu = rejestr zakupów = INVESTMENT_EXPENSE** (już w appce).
-  Brak osobnej tabeli materiałów w POC.
+  Brak osobnej tabeli materiałów.
 - **Arkusz dryfuje od bazy (NIE 1:1):**
   - Siennicka `wydatki`: 5 z 17 wydatków (brak backfillu; hook dopisuje tylko
     nowe po podpięciu).
@@ -57,7 +50,7 @@ P–U 1–6 etap wartość | V pozostało do rozliczenia / bilans
   inne ceny (cennik z narzędziami N, bez narzędzi P). Ceny podwykonawcy NIE są
   stałym % klienta (raz 65%, raz 58%) → niezależne.
 
-## Schemat POC (rdzeń robocizny)
+## Schemat (rdzeń robocizny)
 
 ```
 kosztorys_sections   investment_id, name, display_order
@@ -159,11 +152,11 @@ kosztorys i ręcznie ukrywa wybrane pozycje przed klientem. Odwzorowanie:
 
 Otwarte: która ilość na ofercie — przedmiar (oferta wstępna) czy pomiar
 (rozliczenie) → P13. Drugi tryb wydruku „raport postępu" (wewnętrzny, z etapami)
-— poza POC, do rozważenia.
+— do rozważenia.
 
 ## Decyzje zamknięte
 
-- **Dostęp (POC prosto):** **ADMIN, OWNER, MANAGER** — widzą i edytują wszystko.
+- **Dostęp (prosto):** **ADMIN, OWNER, MANAGER** — widzą i edytują wszystko.
   **EMPLOYEE — zero dostępu, nie widzi kosztorysu w ogóle.** **Follow-on:**
   ukrycie wrażliwych komórek (najpewniej ceny podwykonawcy = koszt/marża) przed
   MANAGEREM — tylko OWNER/ADMIN (P10).
@@ -182,7 +175,7 @@ Otwarte: która ilość na ofercie — przedmiar (oferta wstępna) czy pomiar
 - **Ceny:** każda cena wariantu per pozycja = **niezależna, edytowalna liczba
   (snapshot)**. Relacja nie jest formułą (czasem %, czasem inna absolutna,
   czasem niezwiązana). Źródło prawdy = wpisana liczba.
-- **Default ceny = cienka podpowiedź, ODŁOŻONA.** W POC wpisujemy ceny ręcznie.
+- **Default ceny = cienka podpowiedź, ODŁOŻONA.** Ceny wpisywane ręcznie.
   Podpowiadarka przyjdzie z szablonami.
 - **VAT (netto/brutto):** ceny wpisywane **netto**; **brutto = netto × (1 + vat)**
   liczone, nie przechowywane. Nadpisuje wcześniejsze „netto bez VAT".
@@ -194,19 +187,19 @@ Otwarte: która ilość na ofercie — przedmiar (oferta wstępna) czy pomiar
   - procent: `wartość = ilość × cena × (1 − %)`
   - kwota: `wartość = ilość × cena − kwota`
 
-## Domyślne POC
+## Domyślne
 
 PLN • netto+brutto z `vat_rate` per pozycja • hard-delete • reorder strzałkami
 (bez drag) • etapy zmienne (zwykle 6) • współistnienie z zakładką „Arkusz" •
 bez `work_catalogue`.
 
-## Otwarte / odłożone (jawnie POZA POC)
+## Otwarte / odłożone
 
 - **A vs B (przechowywanie cen):** 3 sztywne kolumny vs dynamiczna tabela
   `price_variants` + `item_prices`. Rekomendacja A (taniej, migracja A→B
   mechaniczna). User skłania się ku elastyczności. **NIEROZSTRZYGNIĘTE.**
 - **Linkage `LABOR_COST`:** czy suma rozpiski steruje `LABOR_COST`, czy stoi
-  obok (plan vs actual)? **OTWARTE.** POC nie wymaga rozstrzygnięcia.
+  obok (plan vs actual)? **OTWARTE.**
 - **Szablony / „wzorzec":** seed nowego kosztorysu z wzorca. Podejście wybrane
   przez usera (najbardziej elastyczne): **bierzemy konkretny istniejący
   kosztorys jako wzorzec i „czyścimy do defaultów"** z granularnymi opcjami:
@@ -219,12 +212,14 @@ bez `work_catalogue`.
     zaznaczony** na liście wyboru przy tworzeniu nowego kosztorysu — user i tak
     potwierdza („użyj"), ale nie musi za każdym razem szukać; można wybrać inny.
 - Auto-tworzenie kosztorysu przy dodaniu (sub)inwestycji.
-- `work_catalogue`, multi-waluta, drag-reorder, teardown Sheets (Phase 3b),
-  synchronizacja dwukierunkowa.
+- `work_catalogue`, multi-waluta, drag-reorder, teardown Sheets, synchronizacja
+  dwukierunkowa.
 
 ## Pytania do właściciela (do rozstrzygnięcia biznesowo)
 
 Pytania wymagające wiedzy domenowej właściciela — nie do rozstrzygnięcia z kodu.
+Tracked live in `context/foundation/roadmap.md` (Open Roadmap Questions) —
+this section is the original phrasing/context for those questions.
 
 ### Pokoje
 
@@ -277,7 +272,3 @@ Pytania wymagające wiedzy domenowej właściciela — nie do rozstrzygnięcia z
   (reguła: np. wiersze zerowe/puste, pozycje wewnętrzne, konkretne sekcje?)
 - **P13.** Oferta drukuje ilość z **przedmiaru** (oferta wstępna) czy **pomiaru**
   (rozliczenie)? Jeden tryb czy przełącznik?
-
-```
-
-```

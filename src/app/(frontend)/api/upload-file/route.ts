@@ -33,7 +33,14 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ mediaId })
   } catch (err) {
-    console.error('[upload-file] Upload failed:', err)
+    // TODO(EX-449) SENTRY-REQUIRED: Payload ValidationError nests the real per-field reason under
+    // `.data`, which the default console print collapses to `[Object]`. Kept until Sentry
+    // captures upload failures in prod — this console line is the only failure visibility now.
+    console.error(
+      '[upload-file] Upload failed:',
+      err instanceof Error ? err.message : err,
+      JSON.stringify((err as { data?: unknown; cause?: unknown })?.data ?? null, null, 2),
+    )
     const message = err instanceof Error ? err.message : 'Upload nie powiódł się'
     return NextResponse.json({ error: message }, { status: 500 })
   }

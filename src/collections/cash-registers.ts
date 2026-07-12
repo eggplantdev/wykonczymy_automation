@@ -15,12 +15,14 @@ const enforceAuxiliaryForManager: CollectionBeforeValidateHook = ({ data, req })
 
 /** Block deletion if any transactions reference this register. */
 const preventDeleteWithTransactions: CollectionBeforeDeleteHook = async ({ id, req }) => {
+  // limit: 1 — only totalDocs is read; Payload computes it via a separate count query, so
+  // a single-row page still yields the true total without hydrating every referencing row.
   const { totalDocs } = await req.payload.find({
     collection: 'transactions',
     where: {
       or: [{ sourceRegister: { equals: id } }, { targetRegister: { equals: id } }],
     },
-    limit: 0,
+    limit: 1,
   })
 
   if (totalDocs > 0) {

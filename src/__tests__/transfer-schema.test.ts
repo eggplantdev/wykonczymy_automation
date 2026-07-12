@@ -2,9 +2,11 @@ import { describe, it, expect } from 'vitest'
 import {
   createTransferSchema,
   createBulkExpenseSchema,
+  bulkExpenseFormSchema,
   expenseFormSchema,
 } from '@/components/forms/expense-form/expense-schema'
 import { validateLineItemCategories } from '@/lib/schemas/transfer'
+import { UNREADABLE_RECEIPT } from '@/lib/ai/receipt-extraction-schema'
 
 describe('validateLineItemCategories — CORRECTION (investment-conditional)', () => {
   const collect = () => {
@@ -375,6 +377,68 @@ describe('expenseFormSchema — missing required fields', () => {
     const result = expenseFormSchema.safeParse(payload)
     expect(result.success).toBe(false)
     expect(errorPaths(result)).toContain('date')
+  })
+})
+
+// ── Unreadable-receipt sentinel — a row the model couldn't read must not save ──
+
+describe('bulk expense — UNREADABLE_RECEIPT sentinel row is blocked', () => {
+  const validClient = {
+    date: '2026-02-25',
+    type: 'OTHER' as const,
+    paymentMethod: 'CASH' as const,
+    sourceRegister: '1',
+    targetRegister: '',
+    investment: '',
+    worker: '',
+    settled: false,
+    lineItems: [
+      {
+        description: 'Normalny opis',
+        amount: '100',
+        invoiceNote: '',
+        category: '',
+        expenseCategory: '',
+      },
+    ],
+  }
+  const validServer = {
+    date: '2026-02-25',
+    type: 'OTHER' as const,
+    paymentMethod: 'CASH' as const,
+    sourceRegister: 1,
+    lineItems: [{ description: 'Item', amount: 100 }],
+  }
+
+  it('client: a normal description passes (control)', () => {
+    expect(bulkExpenseFormSchema.safeParse(validClient).success).toBe(true)
+  })
+
+  it('client: a sentinel description → error on that row description', () => {
+    const result = bulkExpenseFormSchema.safeParse({
+      ...validClient,
+      lineItems: [{ ...validClient.lineItems[0], description: UNREADABLE_RECEIPT }],
+    })
+    expect(result.success).toBe(false)
+    expect(errorPaths(result)).toContain('lineItems.0.description')
+  })
+
+  it('client: sentinel WITH a valid positive amount is still blocked (amount guard would pass)', () => {
+    const result = bulkExpenseFormSchema.safeParse({
+      ...validClient,
+      lineItems: [{ ...validClient.lineItems[0], description: UNREADABLE_RECEIPT, amount: '300' }],
+    })
+    expect(result.success).toBe(false)
+    expect(errorPaths(result)).toContain('lineItems.0.description')
+  })
+
+  it('server: sentinel description with a positive amount → error on description', () => {
+    const result = createBulkExpenseSchema.safeParse({
+      ...validServer,
+      lineItems: [{ description: UNREADABLE_RECEIPT, amount: 300 }],
+    })
+    expect(result.success).toBe(false)
+    expect(errorPaths(result)).toContain('lineItems.0.description')
   })
 })
 

@@ -36,9 +36,17 @@ fi
 pnpm run typecheck
 pnpm vitest run
 
-# DB-backed listing-vs-detail parity sweep over every real investment. Loads .env so it
-# actually runs (the plain vitest run above skips it for lack of DB env), and fails the
-# push if the local DB is unreachable — a skipped parity check is false confidence.
+# DB-backed integration specs (restore/snapshot wipe-and-reinsert, delete guards, leads) against
+# the ISOLATED 5435 test DB. The plain `vitest run` above skips every one of them for lack of a DB
+# env (they gate on `describe.skipIf(!ENV_READY)`), so without this leg the destructive restore path
+# never runs before a push. The script ups db-test, keeps its schema current (re-imports the prod
+# dump only when migrations changed), and runs the specs serially. See scripts/test-integration.sh.
+pnpm test:integration
+
+# DB-backed listing-vs-detail parity sweep over every real investment, against the SAME isolated
+# 5435 test DB (prod-dump content) that test:integration just brought up and kept schema-current —
+# not the dev DB. Overrides DB_POSTGRES_URL to the test URL; fails the push if that DB is unreachable
+# (a skipped parity check is false confidence).
 pnpm test:parity
 
 echo "Dumping production DB from Neon..."

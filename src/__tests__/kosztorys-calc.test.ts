@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  rowNetForView,
   rowRemainingForView,
   sectionSubtotalsForView,
   stageValueForView,
@@ -52,6 +53,18 @@ describe('rowRemainingForView', () => {
     // w_tools net = 10 × 12 = 120; done = 36 → remaining 84
     expect(rowRemainingForView(item, 36, 'w_tools')).toBe(84)
   })
+
+  it('over-completion → ujemne pozostało (etapy przekraczają netto)', () => {
+    // client net = 200; done across stages = 380 → remaining −180. The editor renders this
+    // negative value verbatim (manual check 4.7), it is not clamped to 0.
+    expect(rowRemainingForView(item, 380, 'client')).toBe(-180)
+  })
+
+  it('pozostało uwzględnia rabat kwotowy w netto widoku', () => {
+    // amount discount 30: client net = 10 × 20 − 30 = 170; done 50 → remaining 120
+    const discounted = { ...item, discountType: 'amount' as const, discountValue: 30 }
+    expect(rowRemainingForView(discounted, 50, 'client')).toBe(120)
+  })
 })
 
 // fixture: 2 sections, A (id 10) has 2 items, B (id 20) has 1 item
@@ -86,6 +99,34 @@ const v2Rows: KosztorysV2RowT[] = [
     clientPrice: 100, // 10×100 = 1000
   },
 ]
+
+// Brutto is the grid's read-only Brutto column + Suma brutto: gross = net × (1 + vatRate), on the
+// post-discount net (rowNetForView already subtracts the discount). One rate per investment.
+const gross = (row: ViewPricingT, view: Parameters<typeof rowNetForView>[1], vatRate: number) =>
+  rowNetForView(row, view) * (1 + vatRate)
+
+describe('brutto = netto × (1 + vatRate)', () => {
+  it('plain row, 8%', () => {
+    // client net = 10 × 20 = 200 → brutto 216
+    expect(gross(item, 'client', 0.08)).toBeCloseTo(216, 10)
+  })
+
+  it('post-discount net (VAT on the discounted amount)', () => {
+    const discounted = { ...item, discountType: 'percent' as const, discountValue: 10 }
+    // net = 200 − 10% = 180 → brutto 180 × 1.08 = 194.4
+    expect(gross(discounted, 'client', 0.08)).toBeCloseTo(194.4, 10)
+  })
+
+  it('consistent across price views (VAT on the active net)', () => {
+    // w_tools net = 10 × 12 = 120 → 129.6; own_tools net = 10 × 10 = 100 → 108
+    expect(gross(item, 'w_tools', 0.08)).toBeCloseTo(129.6, 10)
+    expect(gross(item, 'own_tools', 0.08)).toBeCloseTo(108, 10)
+  })
+
+  it('23% rate', () => {
+    expect(gross(item, 'client', 0.23)).toBeCloseTo(246, 10)
+  })
+})
 
 describe('sectionSubtotalsForView', () => {
   it('sumuje netto per sekcja, nie miesza sekcji', () => {

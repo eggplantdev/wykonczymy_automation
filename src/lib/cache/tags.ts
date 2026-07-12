@@ -11,6 +11,7 @@ export const CACHE_TAGS = {
   kosztorysStages: 'collection:kosztorys-stages',
   stageProgress: 'collection:stage-progress',
   leads: 'collection:leads',
+  presets: 'collection:kosztorys-presets',
 } as const
 
 export const entityTag = (collection: string, id: number | string) => `${collection}:${id}` as const

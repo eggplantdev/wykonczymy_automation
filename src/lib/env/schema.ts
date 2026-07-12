@@ -4,7 +4,6 @@ import isValidUrl from '@/lib/utils/is-valid-url'
 // Pure schemas — NO side effects and NO `import 'server-only'`, so this file is safe to
 // import from both env entries (env/index.ts / env/server.ts) and from the Payload CLI graph.
 // Hard rule: every var is required (no `.default()`) so a missing one fails the build gate;
-// `.optional()` is only for vars that are genuinely absent in some environments.
 
 export const clientSchema = z.object({
   // Public (inlined into the browser bundle) — read via statically-keyed object in env.ts.
@@ -25,13 +24,9 @@ export const serverSchema = z.object({
   META_VERIFY_TOKEN: z.string().min(1),
   META_PAGE_ACCESS_TOKEN: z.string().min(1),
   META_PAGE_ID: z.string().min(1),
-  // Shared secret the WordPress/WPForms forwarder sends as X-Webhook-Secret.
   WPFORMS_WEBHOOK_SECRET: z.string().min(1),
-  // Recipient for new-lead heads-up notifications (sales inbox — not the lead)
   LEADS_NOTIFY_EMAIL: z.string().min(1),
-  // Recipient for integration shape-alerts (ops/dev inbox — schema fail / no email extracted)
   LEADS_ALERT_EMAIL: z.string().min(1),
-  // From-address on the customer-facing auto-reply confirmation (needs SPF/DKIM on its domain)
   LEADS_REPLY_FROM: z.string().min(1),
   // Google (Sheets + Drive for kosztorys integration)
   GOOGLE_SERVICE_ACCOUNT_JSON: z
@@ -47,6 +42,12 @@ export const serverSchema = z.object({
     }, 'GOOGLE_SERVICE_ACCOUNT_JSON must be valid JSON with client_email and private_key'),
   KOSZTORYS_TEMPLATE_SHEET_ID: z.string().min(1, 'KOSZTORYS_TEMPLATE_SHEET_ID is required'),
   KOSZTORYS_DRIVE_FOLDER_ID: z.string().optional(),
+  // OpenRouter (receipt-scan vision extraction). Referer/app-name are optional attribution
+  // headers OpenRouter surfaces on its dashboard; only the key is required to make calls.
+  OPENROUTER_API_KEY: z.string().min(1),
+  OPENROUTER_HTTP_REFERER: z.string().optional(),
+  OPENROUTER_APP_NAME: z.string().optional(),
   // Vercel-injected at runtime; absent locally (where NODE_ENV is the right signal).
   VERCEL_ENV: z.enum(['production', 'preview', 'development']).optional(),
+  CRON_SECRET: z.string().min(1),
 })
