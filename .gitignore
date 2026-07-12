@@ -87,3 +87,6 @@ dump.sql
 
 # kosztorys template source — kept locally by the owner, not tracked
 /Kopia kosztorys wzór dla konrada do testów.xlsx
+
+# Temp manual-test assets (HEIC + oversize) — not for commit
+tmp-heic-test/
