@@ -20,8 +20,11 @@ type ReceiptGenerationDepsT = {
   renameFile: (index: number, newName: string) => void
 }
 
-// The row-marker Sets are just the key-set of an index-keyed map, so route the shift through
-// the same reindexAfterRemoval algebra the file maps use — one primitive, not two copies.
+// failedIndices / generatingIndices store row POSITIONS. Deleting a row shifts every later
+// position down by one, so a stored marker must shift with it — otherwise it highlights the
+// wrong row. A set of positions is the same shape as the keys of a position→value map, so
+// wrap it as a map, reuse the file map's reindexAfterRemoval shift, then take the keys back
+// (rather than re-deriving the same off-by-one arithmetic here). The map values are filler.
 function reindexSet(set: Set<number>, removedIndex: number): Set<number> {
   const asMap = new Map([...set].map((i) => [i, true as const]))
   return new Set(reindexAfterRemoval(asMap, removedIndex).keys())
