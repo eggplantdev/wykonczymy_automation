@@ -23,6 +23,22 @@ export const RECEIPT_MODEL = 'google/gemini-3.1-flash-lite'
 // instead of failing every scan. Confirmed reads the Stimulsoft/Quartz PDFs + images.
 export const FALLBACK_MODEL = 'google/gemini-2.5-flash'
 
+// Per-attempt ceiling on the vision call. Without it a hung upstream request never settles, so
+// the batch fill's Promise.all wedges and isFilling never clears (spinner stuck forever). On
+// timeout the attempt aborts and throws, so the row degrades into failedIndices like any other
+// failure. Built from AbortController + setTimeout (not AbortSignal.timeout) so it's fakeable.
+export const RECEIPT_TIMEOUT_MS = 30_000
+
+function timeoutSignal(ms: number): AbortSignal {
+  const controller = new AbortController()
+  const timer = setTimeout(
+    () => controller.abort(new Error(`receipt extraction timed out after ${ms}ms`)),
+    ms,
+  )
+  timer.unref?.() // don't keep the process alive on the timer alone
+  return controller.signal
+}
+
 const openrouter = createOpenRouter({
   apiKey: serverEnv.OPENROUTER_API_KEY,
   // Attribution headers OpenRouter surfaces on its dashboard; omitted when unset.
@@ -74,6 +90,7 @@ export async function extractReceipt(
       // natively); images carry no plugin. Without an explicit engine OpenRouter would default
       // PDFs to the paid mistral-ocr — see receipt-pdf-plugins.ts.
       model: openrouter(model, { plugins: receiptPdfPlugins(mediaType) }),
+      abortSignal: timeoutSignal(RECEIPT_TIMEOUT_MS),
       schema: receiptExtractionSchema,
       messages: [
         {

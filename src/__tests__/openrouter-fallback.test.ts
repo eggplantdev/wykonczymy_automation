@@ -12,7 +12,12 @@ vi.mock('@openrouter/ai-sdk-provider', () => ({
   createOpenRouter: () => (model: string) => ({ __model: model }),
 }))
 
-import { extractReceipt, RECEIPT_MODEL, FALLBACK_MODEL } from '@/lib/ai/openrouter'
+import {
+  extractReceipt,
+  RECEIPT_MODEL,
+  FALLBACK_MODEL,
+  RECEIPT_TIMEOUT_MS,
+} from '@/lib/ai/openrouter'
 
 const OK = {
   description: 'Castorama 05.03.2026',
@@ -53,5 +58,38 @@ describe('extractReceipt runtime fallback', () => {
 
     await expect(extractReceipt(BYTES, 'image/png', 'r.png', [])).rejects.toThrow()
     expect(generateObject).toHaveBeenCalledTimes(2)
+  })
+
+  // Regression guard: a hung vision request must abort (not hang forever), otherwise the batch
+  // fill's Promise.all wedges and isFilling never clears (spinner stuck). Both attempts hang
+  // until their own abortSignal fires; advancing past each timeout must reject.
+  it('aborts a hung request via the per-attempt timeout instead of hanging forever', async () => {
+    vi.useFakeTimers()
+    try {
+      generateObject.mockImplementation(
+        ({ abortSignal }: { abortSignal: AbortSignal }) =>
+          new Promise((_, reject) => {
+            abortSignal.addEventListener('abort', () =>
+              reject(abortSignal.reason ?? new Error('aborted')),
+            )
+          }),
+      )
+
+      let settled = false
+      const p = extractReceipt(BYTES, 'image/png', 'r.png', [])
+      p.catch(() => {}).finally(() => (settled = true)) // silence unhandled-rejection; track settlement
+
+      await vi.advanceTimersByTimeAsync(RECEIPT_TIMEOUT_MS - 1)
+      expect(settled).toBe(false) // still pending: only the timeout, not a synchronous throw, ends it
+      expect(generateObject.mock.calls[0]?.[0].abortSignal).toBeInstanceOf(AbortSignal)
+
+      await vi.advanceTimersByTimeAsync(2) // primary times out → fallback fires
+      await vi.advanceTimersByTimeAsync(RECEIPT_TIMEOUT_MS) // fallback times out → reject
+
+      await expect(p).rejects.toThrow()
+      expect(generateObject).toHaveBeenCalledTimes(2)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

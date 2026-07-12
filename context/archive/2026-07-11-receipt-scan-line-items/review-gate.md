@@ -80,3 +80,22 @@ receipt-extraction-schema, receipt-pdf-plugins) 13/13 green.
   (console/process) in `scripts/*.mjs` untouched by this branch, **0 in slice files** · unit `vitest run` =
   **830 passed, 24 skipped** (DB-integration specs skip without a live DB). `test:e2e` + `build` deferred to
   the user.
+
+## Post-archive follow-up · 2026-07-12 (PR review)
+
+Reconciled the **prior** ledger's remaining open `[ ]` boxes against this authoritative re-review. Most
+were already resolved here (helper move, `resolveInvoiceMediaIds` cap, `reindexSet` dedup, `use-invoice-files`
+split → EX-448, `FormT` typed via `1f0d27a`, `fileInputKey` → EX-448). Two were genuinely unaddressed:
+
+- [x] 🔵 → 🟡 · **fixed** · `openrouter.ts` · No timeout/abort on the vision call — a hung upstream request
+      never settles, so the batch fill's `Promise.all` wedges and `isFilling` stays true (spinner stuck
+      forever). The runtime `FALLBACK_MODEL` retry only catches a _throw_, not a hang. **Fixed:** each attempt
+      (primary + fallback) now runs under `abortSignal: timeoutSignal(RECEIPT_TIMEOUT_MS = 30_000)`; on timeout
+      the attempt aborts and throws, so the row degrades into `failedIndices` like any other failure.
+      test: test-driven-debugging · unit — `openrouter-fallback.test.ts` "aborts a hung request via the
+      per-attempt timeout": both attempts hang until their `abortSignal` fires, fake timers advance past each
+      ceiling, extractReceipt rejects (2 calls). Hardened against false-green (asserts pending-before-timeout +
+      `abortSignal instanceof AbortSignal`). Green; typecheck clean on changed files.
+- [x] · **skipped (leave dropped, user's call)** · the low-value nits the re-review never re-listed — shared
+      fill-eligibility predicate, `isFilling` derive-from-progress, inline row-type literal, prop-doc comment
+      trims. Cosmetic; branch already shipped + archived. Not filed, not fixed.
