@@ -1,13 +1,15 @@
--- Reset every owned sequence to its table's MAX(id) after a dump restore.
+-- Resync every owned sequence in the public schema to its table's MAX(id) after a dump restore.
 --
--- Why: the prod dump can carry a `setval` that lags the table's real max id (prod's own
--- sequence drifted behind, e.g. after manual inserts), and pg_dump copies that stale value
--- verbatim. A restored DB then hands out an already-used id on the next INSERT, which Payload
--- surfaces as the misleading `ValidationError: id`. Run this right after `db:import:test` so the
--- test DB always lands consistent — for every collection, not just the one that happened to break.
+-- Why: pg_dump copies prod's setval() verbatim. A restored local/test DB whose sequence lags
+-- MAX(id) — prod drifted behind, or locally-seeded rows went past prod's max — hands out an
+-- already-used id on the next INSERT, which Payload surfaces as the misleading "ValidationError: id".
+-- Run this after every import (e.g. db:import:test) so the desync is unreachable, for every collection.
 --
 -- setval(seq, MAX(col), rows_exist): with rows, is_called=true → nextval = MAX+1; empty table,
 -- is_called=false → nextval = 1.
+--
+-- NEVER point this at DB_POSTGRES_URL_PROD — prod sequences are authoritative and a human owns any
+-- prod-side reset (Linear EX-446).
 DO $$
 DECLARE
   rec RECORD;

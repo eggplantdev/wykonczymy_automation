@@ -20,6 +20,7 @@
     "migrate:create": "payload migrate:create",
     "db:migrate:prod": "pnpm db:dump && source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_PROD\" payload migrate",
     "db:migrate:test": "source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_TEST\" payload migrate",
+    "db:migrate:preview": "source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_PREVIEW\" payload migrate",
     "wt:new": "bash scripts/worktree-new.sh",
     "wt:rm": "bash scripts/worktree-rm.sh",
     "seed:transfers": "node --env-file=.env --import tsx src/scripts/seed-transfers.ts",
@@ -38,6 +39,7 @@
     "watch:deploy": "bash scripts/watch-deploy.sh"
   },
   "dependencies": {
+    "@openrouter/ai-sdk-provider": "^3.0.0",
     "@payloadcms/db-vercel-postgres": "3.73.0",
     "@payloadcms/email-nodemailer": "^3.73.0",
     "@payloadcms/next": "3.73.0",
@@ -57,6 +59,7 @@
     "@tanstack/react-form": "^1.27.7",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.18",
+    "ai": "^7.0.22",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

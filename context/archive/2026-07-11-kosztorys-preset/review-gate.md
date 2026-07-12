@@ -7,6 +7,7 @@ Post-implementation refinements added and verified live this session: UI rename 
 save-as buttons merged into one `SaveAsButton` (Wersja/Szablon toggle).
 
 ## Findings
+
 <!-- ONE checkbox per finding. Format: [box] [severity, bug-checks only] · disposition · `source` · `file:line` · what — reason -->
 
 - [x] 🟡 WARNING · fixed · code-review + impl-review (F1) · `src/lib/actions/investments.ts:48` · Seed failure after investment create returned `{success:false}`, skipping `['investments']` revalidation → invisible investment + duplicate on retry. **Fixed:** seed is now best-effort in try/catch, returns `success:true` (revalidation runs), logs non-'ok'/throw. Mirrors the non-fatal `stampAllTabs` pattern in `linkSheetAction`. **Regression test (test-driven-debugging, integration):** `src/__tests__/lib/actions/create-investment-preset.test.ts` — bad `presetId` → real `createInvestmentAction` returns `success:true` AND the investment row persists with an empty tree. Asserts persisted state, not the return value. Passes @5435.

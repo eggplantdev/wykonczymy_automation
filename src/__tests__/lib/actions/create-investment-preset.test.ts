@@ -37,7 +37,12 @@ describe.skipIf(!ENV_READY)('createInvestmentAction — non-fatal preset seed (D
     const config = (await import('@payload-config')).default
     payload = await getPayload({ config })
     db = await getDb(payload)
-    const users = await payload.find({ collection: 'users', limit: 1, depth: 0, overrideAccess: true })
+    const users = await payload.find({
+      collection: 'users',
+      limit: 1,
+      depth: 0,
+      overrideAccess: true,
+    })
     const firstUser = users.docs[0]
     if (!firstUser) throw new Error('no user in the DB to attribute the action to')
     authState.userId = Number(firstUser.id)

@@ -27,6 +27,7 @@ const buttonVariants = cva(
         teal: 'border border-chart-teal text-chart-teal hover:bg-chart-teal hover:text-white',
         turquoise:
           'border border-chart-turquoise text-chart-turquoise hover:bg-chart-turquoise hover:text-white',
+        ai: 'gradient-border neon-glow-duo hover:neon-glow-duo-hit transition-shadow disabled:opacity-100',
       },
       size: {
         default: 'h-9 px-4 py-2',

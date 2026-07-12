@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { TRANSFER_TYPES, PAYMENT_METHODS } from '@/lib/constants/transfers'
 import { getAmountError, refineAmount, refineDate } from '@/lib/utils/validation'
+import { UNREADABLE_RECEIPT } from '@/lib/ai/receipt-extraction-schema'
 import {
   validateTransferFields,
   validateLineItemCategories,
@@ -65,16 +66,23 @@ export const bulkExpenseFormSchema = z
 
     if (data.lineItems.length === 0) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: 'Dodaj co najmniej jedną pozycję',
         path: ['lineItems'],
       })
     }
 
     data.lineItems.forEach((item, index) => {
+      if (item.description === UNREADABLE_RECEIPT) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Nie udało się odczytać tego paragonu — popraw pozycję ręcznie',
+          path: ['lineItems', index, 'description'],
+        })
+      }
       if (!item.amount) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           message: 'Kwota musi być większa niż 0',
           path: ['lineItems', index, 'amount'],
         })
@@ -83,7 +91,7 @@ export const bulkExpenseFormSchema = z
       const err = getAmountError(Number(item.amount), data.type)
       if (err) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           message: err,
           path: ['lineItems', index, 'amount'],
         })
@@ -121,10 +129,17 @@ export const createBulkExpenseSchema = z
     validateTransferFields(data, ctx)
 
     data.lineItems.forEach((item, index) => {
+      if (item.description === UNREADABLE_RECEIPT) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Nie udało się odczytać tego paragonu — popraw pozycję ręcznie',
+          path: ['lineItems', index, 'description'],
+        })
+      }
       const err = getAmountError(item.amount, data.type)
       if (err) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           message: err,
           path: ['lineItems', index, 'amount'],
         })

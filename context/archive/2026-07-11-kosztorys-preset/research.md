@@ -4,7 +4,7 @@ researcher: ex-Plant
 git_commit: 83729ea30696ff6b69563591d42fb4e1e4593d1d
 branch: main
 repository: wykonczymy
-topic: "S-09 kosztorys-preset — presets/templates + autocomplete over preset prace"
+topic: 'S-09 kosztorys-preset — presets/templates + autocomplete over preset prace'
 tags: [research, codebase, kosztorys, preset, snapshots, serialize, autocomplete]
 status: complete
 last_updated: 2026-07-11
@@ -29,7 +29,7 @@ snapshots serialize/restore the tree — since a preset is a stripped-down seria
 
 ## Summary
 
-**A preset is structurally a snapshot payload minus the job-specific fields, applied to a *different*
+**A preset is structurally a snapshot payload minus the job-specific fields, applied to a _different_
 investment.** The S-06 snapshot subsystem already implements ~80% of the machinery:
 `SnapshotPayloadT` (the flat serialized tree), `serializeKosztorys` (read → flat payload), and the
 bulk-insert + index-based id-remap engine in `restoreKosztorys` (apply a flat tree to an investment).
@@ -134,7 +134,7 @@ only in `createSheetFromTemplate(investmentName)` (`src/lib/google/drive.ts:10-2
 `drive.files.copy({fileId: templateId})` — a **whole-spreadsheet Drive copy** of a pre-built master.
 The master carried the entire structure (sections, rows, columns, formulas); the app wrote nothing
 structural. This is the "start from a skeleton" behaviour S-09 restores in-app.
-(`sheets-sync.ts` / `collections/sheets.ts` are a *different* concern — expense/transfer mirroring —
+(`sheets-sync.ts` / `collections/sheets.ts` are a _different_ concern — expense/transfer mirroring —
 not kosztorys-structure seeding.)
 
 ### S-06 snapshot subsystem — the reuse target
@@ -144,9 +144,9 @@ Files: `snapshot-format.ts`, `serialize-kosztorys.ts`, `restore-kosztorys.ts`,
 (the raw DAO), migration `20260710_1_add_kosztorys_snapshots.ts`.
 
 - **`SnapshotPayloadT`** (`snapshot-format.ts:24-31`) — flat: `{schemaVersion, sections[], items[]
-  (each with OLD sectionId), stages[], progress[] (OLD item/stage ids), settings:{wToolsCoeff,
-  ownToolsCoeff, vatRate}}`. `SNAPSHOT_SCHEMA_VERSION = 1` written to both a `schema_version` column
-  and the payload. **No version-checking on restore** — the contract is *tolerant deserialization*
+(each with OLD sectionId), stages[], progress[] (OLD item/stage ids), settings:{wToolsCoeff,
+ownToolsCoeff, vatRate}}`. `SNAPSHOT_SCHEMA_VERSION = 1` written to both a `schema_version` column
+  and the payload. **No version-checking on restore** — the contract is _tolerant deserialization_
   (default missing, skip orphan children); a differing version still restores best-effort.
 - **`serializeKosztorys(investmentId)`** (`serialize-kosztorys.ts:8-26`) — pure read, output is
   investment-agnostic. Directly reusable as a preset serializer base (then strip job fields).
@@ -164,7 +164,7 @@ Files: `snapshot-format.ts`, `serialize-kosztorys.ts`, `restore-kosztorys.ts`,
   `beginTransaction` → fake `req` with `transactionID` + `context:{skipRevalidation:true}` →
   forced pre-restore `captureAutoSnapshot` → restore → `commitTransaction` (rollback+rethrow on
   error); post-commit revalidates `['kosztorysSections','kosztorysItems','kosztorysStages',
-  'stageProgress','investments']`.
+'stageProgress','investments']`.
 - **No external FK into the kosztorys tree** — the `INVESTMENT_EXPENSE` materials mirror keys on
   expense categories + investment, not item ids; `kosztoryses` (Sheets registry) keys on
   `investment_id`. So wipe-and-reinsert (and a preset insert) collide with nothing external.
@@ -214,7 +214,7 @@ Files: `snapshot-format.ts`, `serialize-kosztorys.ts`, `restore-kosztorys.ts`,
 ## Architecture Insights
 
 - **Reuse vs fork for the preset apply**: reuse `serializeKosztorys` + the bulk-insert/id-remap
-  engine + the tx wrapper; **fork** these — (1) drop the unconditional wipe (a preset *appends*/seeds,
+  engine + the tx wrapper; **fork** these — (1) drop the unconditional wipe (a preset _appends_/seeds,
   it doesn't obliterate the target unless the target is empty); (2) **strip/zero job-specific fields**
   at serialize time (progress, measuredQty, plannedQty, discount, note, hiddenInExport); (3) **do not
   write back the preset's VAT/coeffs** onto a different target investment (or make it opt-in);
@@ -265,8 +265,8 @@ Load-bearing, for the owner at plan time (carried from roadmap S-09):
    snapshot engine almost verbatim) vs normalized preset-sections/preset-items tables (cleaner for
    "union of prace" autocomplete queries, more migration work). Recommend jsonb to match the reuse.
 5. **Does "seed from preset" wipe or append?** Seeding a fresh/empty kosztorys is an append; offering
-   it on a *non-empty* kosztorys needs a wipe-or-merge decision (mirror the snapshot restore confirm +
+   it on a _non-empty_ kosztorys needs a wipe-or-merge decision (mirror the snapshot restore confirm +
    pre-apply auto snapshot for safety).
 6. **Stages in a preset?** A preset carries structure; stages are progress-tracking scaffolding.
-   Decide whether a preset seeds stage *labels* (structure) while resetting all `qtyDone` (progress),
+   Decide whether a preset seeds stage _labels_ (structure) while resetting all `qtyDone` (progress),
    or omits stages entirely.

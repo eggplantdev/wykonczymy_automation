@@ -115,7 +115,11 @@ export function InvestmentForm({
         {presetOptions && presetOptions.length > 0 && (
           <form.AppField name="presetId">
             {(field: AppFieldComponentsT) => (
-              <field.Select label="Kosztorys z szablonu" placeholder="— pusty kosztorys —" showError>
+              <field.Select
+                label="Kosztorys z szablonu"
+                placeholder="— pusty kosztorys —"
+                showError
+              >
                 {presetOptions.map((preset) => (
                   <SelectItem key={preset.id} value={String(preset.id)}>
                     {preset.name}

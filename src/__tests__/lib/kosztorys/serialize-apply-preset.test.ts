@@ -45,7 +45,9 @@ function canonicalTree(snap: SnapshotPayloadT) {
     }))
     .sort((a, b) => a.sectionOrder - b.sectionOrder || a.displayOrder - b.displayOrder)
 
-  const stages = [...snap.stages].sort((a, b) => a.ordinal - b.ordinal).map(({ id: _id, ...r }) => r)
+  const stages = [...snap.stages]
+    .sort((a, b) => a.ordinal - b.ordinal)
+    .map(({ id: _id, ...r }) => r)
 
   const progress = snap.progress
     .map((entry) => {
@@ -59,7 +61,9 @@ function canonicalTree(snap: SnapshotPayloadT) {
     })
     .sort(
       (a, b) =>
-        a.sectionOrder - b.sectionOrder || a.itemOrder - b.itemOrder || a.stageOrdinal - b.stageOrdinal,
+        a.sectionOrder - b.sectionOrder ||
+        a.itemOrder - b.itemOrder ||
+        a.stageOrdinal - b.stageOrdinal,
     )
 
   return { sections, items, stages, progress }

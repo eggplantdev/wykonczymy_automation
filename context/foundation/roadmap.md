@@ -121,7 +121,7 @@ Bands: **editor parity S-01–S-10** (active) → **import/export S-11–S-12** 
 | S-06 | kosztorys-snapshots             | save + restore point-in-time versions of a kosztorys (durable net)                     | S-01               | — (owner request)             | in review | yes        |
 | S-07 | kosztorys-undo                  | fast in-session undo/redo of the last editor edit(s)                                   | S-01               | — (owner request)             | proposed  | yes        |
 | S-08 | kosztorys-delete-guard          | hit a hard block when deleting a populated row / section / stage / column              | S-01               | — (owner request)             | in review | yes        |
-| S-09 | kosztorys-preset                | seed a new kosztorys from a preset; save an existing kosztorys as a preset             | S-01               | (owner request)               | done        | yes        |
+| S-09 | kosztorys-preset                | seed a new kosztorys from a preset; save an existing kosztorys as a preset             | S-01               | (owner request)               | done      | yes        |
 | S-10 | kosztorys-column-rbac           | restrict sensitive columns + rows (subcontractor cost/margin; sections) to OWNER/ADMIN | S-01, S-02, S-04   | — (POC P10)                   | proposed  | yes        |
 | S-11 | kosztorys-export                | CSV-export the kosztorys (WYSIWYG snapshot; no print/PDF)                              | S-01               | FR-008                        | deferred  | —          |
 | S-12 | kosztorys-importer              | import an existing sheet kosztorys into the app                                        | S-01 (full parity) | FR-010, FR-016                | deferred  | —          |

@@ -43,7 +43,7 @@ that the in-app editor dropped in S-01. A Manager+ user can:
 
 - **D9 — preset scope + storage: named library, jsonb payload.** New `kosztorys_presets` table;
   each preset = one row `{id, name, schema_version, payload jsonb (stripped tree), created_at,
-  created_by}`. Reuses the S-06 serialize/apply engine — a forked `restoreKosztorys` (no wipe,
+created_by}`. Reuses the S-06 serialize/apply engine — a forked `restoreKosztorys` (no wipe,
   target `investmentId`, job fields already zeroed in the payload). Pick a preset by name at
   create-time / in the empty editor.
 - **D10 — save-as: new OR overwrite existing; spawned kosztorysy frozen.** "Zapisz jako preset"
@@ -55,7 +55,7 @@ that the in-app editor dropped in S-01. A Manager+ user can:
 
 ## Still open (plan-time detail, not schema-gating)
 
-- **Stages in a preset:** seed stage *labels* (structure) with all `qtyDone` reset, or omit stages
+- **Stages in a preset:** seed stage _labels_ (structure) with all `qtyDone` reset, or omit stages
   entirely? Recommend seed labels, reset progress.
 
 _(Duplicate-prace-in-autocomplete moved to the carved-out `kosztorys-item-autocomplete` slice.)_

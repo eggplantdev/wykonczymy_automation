@@ -15,7 +15,7 @@ export function getAmountError(amount: number, type: string): string | undefined
 export function refineAmount(data: { amount: string; type?: string }, ctx: z.RefinementCtx) {
   if (!data.amount) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       message: 'Kwota musi być większa niż 0',
       path: ['amount'],
     })
@@ -24,7 +24,7 @@ export function refineAmount(data: { amount: string; type?: string }, ctx: z.Ref
   const error = getAmountError(Number(data.amount), data.type ?? '')
   if (error) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       message: error,
       path: ['amount'],
     })
@@ -35,7 +35,7 @@ export function refineAmount(data: { amount: string; type?: string }, ctx: z.Ref
 export function refineDate(data: { date: string }, ctx: z.RefinementCtx) {
   if (!data.date) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       message: 'Data jest wymagana',
       path: ['date'],
     })

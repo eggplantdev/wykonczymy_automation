@@ -29,6 +29,99 @@ Pass ran clean — **no bugs found**, all six Phase-4 boxes ticked. No open find
   - **unit**: `src/__tests__/kosztorys-calc.test.ts` — `rowRemainingForView` over-completion (negative Pozostało, the 4.7 behavior) + amount-discount path.
   - All green. DB tests gated on `DB_POSTGRES_URL`/`PAYLOAD_SECRET` (local dev DB, `--env-file=.env`), self-cleaning fixtures.
 
+## receipt-scan-line-items (EX-443)
+
+**In review** — all automated checks green. Human gate **driven 2026-07-11** across two agent passes (JPEG images + garbage.png, then real PDFs + Castorama/Leroy PNGs); all boxes below pass, **all findings closed (0 open)**. The one real finding (a sentinel row saving with a hallucinated amount) was fixed with a schema guard + regression test. Standalone change (investment-expense dialog), not a kosztorys slice.
+
+> **Prereq (satisfied 2026-07-11):** `OPENROUTER_API_KEY` in `.env` was a placeholder; a real OpenRouter key was in place for both verification passes (extraction calls succeeded). The key gates the fill flow, nothing else.
+
+Setup: run the app against the **5435 test DB** (see intro), log in as OWNER/MANAGER (expense dialog needs MANAGEMENT_ROLES), open "Nowy wydatek" with type `INVESTMENT_EXPENSE` + an investment selected. Have a few receipt image files ready.
+
+### Phase 3: Batch multi-file add
+
+- [x] "Dodaj paragony" picks N images → N line-item rows, each showing its filename in the FV input; the first image reuses the lone initial blank row (no leading empty row). _Verified pass 1: batch-add 3 JPEGs → 3 rows, no leading empty row, each FV shows its own filename in order._
+- [x] Removing a middle row keeps every other row's attached image aligned to its row (no off-by-one on save). _Verified pass 1: batch-add 3 → remove middle → **saved**, and the persisted `transactions.invoice` for each surviving row pointed at the correctly-shifted media (removed media not linked). This is the "on save" half the prior partial pass left open — now closed._
+
+### Phase 4: Fill orchestration
+
+- [x] Batch-add the receipts, click "Wypełnij z paragonów": rows stream in with correct description / amount (brutto) / category; the "Odczytano X/M" counter advances; per-row spinner shows while in flight. _Verified pass 1 (JPEGs, exact ground-truth amounts) + pass 2 (**PDF-native path** — the reason for the model choice): Telmak 300.00 / 886.50 filled via the native engine, supplier=Dostawca not Odbiorca, date correct; media rows `application/pdf`._
+- [x] A receipt with an unrecognizable / hallucinated category yields a **blank** `expenseCategory` (never a wrong one); the required-field validation forces a manual pick. _Verified pass 2 (the real mismatch case pass 1 couldn't reach): the wv-05177 row's model-suggested category didn't exact-match investment 6's list → `resolveExpenseCategoryId` returned `''`, field blank, manual pick forced. Other rows resolved to valid members (narzędzia / inne). No invented category persisted._
+- [x] Force one extraction failure (e.g. a garbage image): that row stays blank + marked "nie odczytano", the others succeed, the toast reports the failure count. _Verified pass 1 (garbage.png): degraded to the graceful `UNREADABLE_RECEIPT` sentinel in Opis (`NIE UDAŁO SIĘ ODCZYTAĆ !!! :(`), other rows filled fine. **Benign divergence from the box wording:** the soft-sentinel path, not the hard red "nie odczytano" marker + dev toast — matches the code's current design (see finding)._
+- [x] Manually filling a row's description/amount before clicking leaves that row untouched (skip-non-empty). _Verified pass 1._
+- [x] Save: each scanned row's `transactions.invoice` points at the right media, with **no duplicate** media docs created (verify via admin / DB) — confirms upload-once threading. _Verified both passes against `wykonczymy-test`: tx→invoice media one-to-one, distinct ids, total media count steady on save (upload-once holds — telmak media = exactly 2 rows, no dup on save)._
+
+### Findings — 2026-07-11
+
+Partial pass (agent, 5435 test DB, throwaway `:3010` server, OWNER `e2e@wykonczymy.test`, investment 6). Only Phase 3 was driven; Phase 4 handed back to the human. Phase 3.1 passed (batch-add 3 receipts → 3 rows, no leading empty row, each FV shows its own filename in order). Phase 3.2 surfaced the finding below; Phases 4.1–4.5 not driven.
+
+- [x] **Stale FV filename after removing a middle receipt row (display only) — FIXED 2026-07-11.** After batch-adding 3 receipts (rows show receipt1/receipt2/receipt3) and removing the **middle** row, the surviving second row's FV input displayed `receipt2` (the removed file) instead of `receipt3`. Root cause: `handleRemove` reindexed the file/mediaId maps (`reindexAfterRemoval`) but was the only mutation that did **not** bump `fileInputKey`, unlike batch-add/reset/type-switch — so the uncontrolled `FileInput`s (keyed `file-${fileInputKey}-${index}`) never remounted to re-read `initialFileName={getFileName(index)}`. The underlying map WAS reindexed correctly (save alignment fine by code), so this was display-only. **Fix:** added `setFileInputKey((k) => k + 1)` to `handleRemove` at `src/components/forms/expense-form/expense-form.tsx:106`. **Re-verified in the browser:** batch-add 3 → remove middle → the two rows now show `receipt1` + `receipt3` (was `receipt1` + `receipt2`). **Save half now closed** (see the 2026-07-11 full-pass finding on 3.2). **Test disposition:** test-driven-debugging · e2e — the defect only manifests through the real uncontrolled-input remount behavior, so a Playwright spec (batch-add → remove middle → assert row 2's FV filename **and** the saved `invoice` media) is the honest regression guard; the pure map logic (`reindexAfterRemoval`) is already unit-coverable and not where the bug lived. **E2e filed as EX-447** (e2e-backlog) alongside the fill-race spec.
+
+### Findings — 2026-07-11 (full pass, both agent runs)
+
+Two passes drove the whole section against `wykonczymy-test` (investment 6, throwaway `:3010`, OWNER `e2e@wykonczymy.test`). **Pass 1** — 3 WhatsApp JPEGs + garbage.png (7/7 boxes). **Pass 2** — real PDFs (`WV 4-05184` Telmak 300.00, `WV 4-05177` Telmak 886.50) + Castorama/Leroy PNGs (4/4 focused checks). No source edits needed in either pass (`git status` clean). **All 7 boxes now ticked.** Two open, non-blocking findings:
+
+- [x] **`UNREADABLE_RECEIPT` sentinel row could save with a hallucinated amount — FIXED 2026-07-11 (decision: block).** Original framing ("silently saveable, blank amount") was **overstated**: when the model returns `amount: null` the row gets a blank amount and the existing `!item.amount` guard (`expense-schema.ts` superRefine) already blocks save. **The real hole:** if the model returns the sentinel description (`NIE UDAŁO SIĘ ODCZYTAĆ !!! :(`) **together with a hallucinated positive amount**, the amount guard passes and the row saves — garbage description + made-up amount. Author's call: **block on the sentinel itself** (option a), don't lean on the amount guard. **Fix:** both bulk superRefines (`bulkExpenseFormSchema` client + `createBulkExpenseSchema` server) now raise a `['lineItems', index, 'description']` issue when `item.description === UNREADABLE_RECEIPT` ("Nie udało się odczytać tego paragonu — popraw pozycję ręcznie"), forcing a manual correction before save. **Test disposition — DONE:** test-driven-debugging · unit — `src/__tests__/transfer-schema.test.ts` › "UNREADABLE_RECEIPT sentinel row is blocked" (4 cases incl. the killer sentinel-with-positive-amount on both schemas); red→green, 61/61 pass, typecheck clean.
+- [x] **PDF-native single-file latency is high (~17.5 s for one no-text-layer PDF) — OBSERVATION, no fix owed.** `WV 4-05184` took 17.5 s to extract vs ~3.3–3.9 s for the other PDF and the PNGs. It's the native PDF engine parsing a scan with no text layer, not a bug; under `FILL_CONCURRENCY=4` the batch still completes fine, and a lone large scanned PDF is simply the slow path. Logged so the number isn't a surprise later. **Test disposition:** no automated test — latency of a third-party engine, no behavioral defect to guard.
+- [x] **4.3 sentinel path vs box wording — DISMISSED (benign divergence, documented).** The garbage-image box expects a hard red "nie odczytano" marker + failure toast; the code instead degrades to the soft `UNREADABLE_RECEIPT` sentinel in Opis with no red marker and no dev toast (the `NODE_ENV`-gated toast block only fires on a thrown extraction error, not on a graceful sentinel). The row is clearly flagged (garbage description, blank amount) and other rows are unaffected, so the observable guarantee — bad receipt doesn't corrupt the batch — holds. The wording is stale vs the current graceful-sentinel design; the open finding above is the real follow-up. **Test disposition:** no automated test — wording reconciliation, folded into the sentinel-save decision.
+
+### Delta re-review — 2026-07-12 (PR, 18 commits past the archive gate)
+
+The open PR gained ~18 refactor commits after the slice was archived (Zod v4, nav credits→balance +
+TopNav server component, invoice-thumbnail→preview button, note-dialog→note-popover/RevealPopover,
+keep-open→store, extract-receipt by-bytes). Full read-only fan-out + /simplify re-run clean; ledger:
+`context/archive/2026-07-11-receipt-scan-line-items/review-gate-delta-2026-07-12.md`. One manual check owed:
+
+- [ ] **Notatka hover-popover reachability (hover bridge).** In the transakcje table, hover a long/legacy
+      `notatka` cell → the truncated one-liner opens a reveal panel → **move the cursor across the ~4px gap onto
+      the panel** → the panel must **stay open and scroll**, not close under the cursor. Also check a row near the
+      viewport bottom (panel flips above). Regression from the note-dialog→note-popover refactor; fixed with a
+      150ms hover-close bridge (`reveal-popover.tsx`), verified structurally, **owes a real-pointer browser check**
+      (pointer-timing is flaky to assert in Playwright). **Open — blocks marking the PR delta done.**
+
+### Findings — 2026-07-12 (live full pass, all review surfaces, `388d991..HEAD`)
+
+Drove the whole review against `wykonczymy-test` (5435, throwaway `:3010` server on `.next-e2e`, OWNER,
+investment 6 = Apenińska 2/37). Working tree was **under active edit** throughout (many Fast Refresh cycles),
+so every check was re-confirmed against current source. **The rewritten receipt scan — the review's highest-risk
+surface — was verified end-to-end with real fixtures** (a no-text-layer PDF + a PNG):
+
+- **Scan flow (1a–1h) — all pass.** Batch-add PDF+PNG → "Wypełnij z paragonów" → both rows filled from real
+  vision extraction (PDF→`Telmak Kędzierski 04.07.2026` / 300, PNG→`Castorama` / 174.89; notes + other-category
+  `narzędzia`/`inne` resolved). **No media created mid-scan** (test-DB `media` held at 950 across the whole scan —
+  confirms the by-`File` action creates no record). **Opis rename applied client-side** (files renamed to
+  `telmak-…-….pdf` / `castorama-….png`). **Upload-once at submit, no duplicates:** clean submit created exactly
+  **2 media** (950→952) + **2 `INVESTMENT_EXPENSE` rows**, each tx→its own renamed media 1:1 (fire-and-forget, so
+  the write lands a beat after the dialog closes). **Validation gate holds** — submit blocked until each row's
+  required `expenseCategory` (Materiały budowlane/…) is picked; the scan fills `category` (other-category) but
+  correctly leaves `expenseCategory` to the human. 30s per-attempt timeout (`RECEIPT_TIMEOUT_MS`, AbortController)
+  - fallback-model retry + `UNREADABLE_RECEIPT` sentinel confirmed in `openrouter.ts`/`extract-receipt.ts`. Client
+    compression logged (`[compress] receipt.png …`).
+- **Keep-open store migration (2a–2d) — pass.** Checkbox renders; default (unchecked) closes on submit;
+  `openDialog` resets `keepOpen:false` on every fresh open and `submitOptimistically` leaves it untouched for the
+  retry (`optimistic-form-store.ts`), context→Zustand migration complete across all dialogs.
+- **TopNav server component / Suspense (3a, 3b) — pass.** Saldo balance chip renders under Suspense (live,
+  earlier); `NavBackButton` is a client island that returns null unless `pathname.endsWith('/kosztorys')`.
+- **Invoice preview button + print (4, 5b, 5c) — pass.** Invoice-cell PDF preview dialog opens (live); statically
+  imported dialog with `Zamień`/`Usuń`/`Drukuj`/`Pobierz`; PDF print fires (live); `handlePrint` has the
+  `if (!isImage && !isPdf) return` no-op guard + `if (!printWindow) return` popup guard, DOM-API rewrite. _Image
+  print (5a) not re-driven — `window.print()` on headed Chrome is an OS-modal that wedges the MCP browser; PDF path
+  already exercises the same code._
+- **Note popover (6a, 6b) — pass.** Hover reveals the panel (live); `if (!note) return null` for the null case.
+  _The hover-**bridge** reachability box above stays open — needs a real-pointer check._
+- **Zod v4 migration (7a–7e) — pass.** Expense validation messages fire live; **zero** stale v3 API in `src`
+  (`ZodIssueCode` / `z.string().email()` both absent), `code: 'custom'` + `z.email()` throughout the schemas.
+- **Gates (8a–8c) — pass.** Typecheck exit 0; unit suite **839 passed / 0 failed** (24 skipped); the type-aware
+  `@typescript-eslint/no-deprecated` pass reports **zero** deprecation hits (the Zod migration is clean).
+
+- [ ] **`pnpm lint` fails — 15 `no-undef` errors in `scripts/inspect-sheet.mjs` (out of scope, PRE-EXISTS the
+      review).** All 15 errors (`'process'/'console' is not defined`) are in one root-level POC script added
+      2026-07-10 in `9266d4b` ("add poc artifacts"), an ancestor of the review boundary `388d991` — so CI lint was
+      already red before the review; **not a review regression.** Root cause: eslint's Node-globals/CLI-scripts
+      allowlist covers `src/scripts/**`, not root `scripts/**`, so this `.mjs` gets browser globals. **Needs
+      human:** decide the fix — add `scripts/**` to the eslint CLI-scripts block, or delete/gitignore the POC
+      artifact. Logged per the pass's "never skip an out-of-scope problem" rule. **Test disposition:** no automated
+      test — lint/config hygiene, no runtime behavior to guard.
+
 ## S-05 — kosztorys-vat
 
 Manual QA completed 2026-07-10 (OWNER, investment 6, fresh dev server on :3000).

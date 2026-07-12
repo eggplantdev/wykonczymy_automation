@@ -16,7 +16,12 @@ const store = () => useOptimisticFormStore.getState()
 beforeEach(() => {
   mockToastMessage.mockReset()
   // Reset store to initial state
-  useOptimisticFormStore.setState({ openFormId: null, submission: null })
+  useOptimisticFormStore.setState({
+    openFormId: null,
+    submission: null,
+    keepOpen: false,
+    showKeepOpen: false,
+  })
 })
 
 // ── Dialog state ─────────────────────────────────────────────────────────
@@ -37,6 +42,26 @@ describe('dialog state', () => {
     store().openDialog('transfer')
     store().openDialog('deposit')
     expect(store().openFormId).toBe('deposit')
+  })
+
+  it('openDialog resets keepOpen and sets showKeepOpen (default true)', () => {
+    store().setKeepOpen(true)
+    store().openDialog('transfer')
+    expect(store().keepOpen).toBe(false)
+    expect(store().showKeepOpen).toBe(true)
+  })
+
+  it('openDialog with showKeepOpen=false hides the checkbox', () => {
+    store().openDialog('editTransfer', false)
+    expect(store().showKeepOpen).toBe(false)
+  })
+
+  it('a failed submit reopens without resetting keepOpen (choice preserved for retry)', () => {
+    store().openDialog('transfer')
+    store().setKeepOpen(true)
+    // submitOptimistically reopens via a direct set, bypassing openDialog's reset
+    useOptimisticFormStore.setState({ openFormId: 'transfer' })
+    expect(store().keepOpen).toBe(true)
   })
 })
 

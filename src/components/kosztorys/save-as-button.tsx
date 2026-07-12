@@ -43,7 +43,8 @@ export function SaveAsButton({ investmentId }: { investmentId: number }) {
   }
 
   const presetTargetName = presetMode === 'new' ? name.trim() : overwriteName
-  const canSave = (target === 'version' ? name.trim().length > 0 : presetTargetName.length > 0) && !saving
+  const canSave =
+    (target === 'version' ? name.trim().length > 0 : presetTargetName.length > 0) && !saving
 
   async function handleSave() {
     if (!canSave) return

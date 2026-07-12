@@ -15,7 +15,15 @@ export function FormClearButton({ onReset }: FormClearButtonPropsT) {
   }
 
   return (
-    <Button type="button" variant="blue" size="sm" className="mb-4" onClick={handleClear}>
+    <Button
+      type="button"
+      variant="blue"
+      size="sm"
+      // Float top-right beside the dialog's X (right-2, ~48px box) — anchored to the fixed
+      // DialogContent, no positioned ancestor in between.
+      className="absolute top-4 right-14 z-10"
+      onClick={handleClear}
+    >
       <RotateCcw className="size-3.5" />
       Wyczyść formularz
     </Button>

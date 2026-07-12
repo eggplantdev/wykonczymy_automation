@@ -46,15 +46,15 @@ Autocomplete over preset prace (FR-006) is **carved out** into the deferred slic
 
 ## Design decisions (owner-settled)
 
-| Decision | Resolution |
-| --- | --- |
-| **Storage (D9)** | New **global** `kosztorys_presets` raw table (no Payload collection), one row per preset: `{id, name UNIQUE, schema_version, payload jsonb, created_at, created_by}`. jsonb payload mirrors the snapshot shape. |
-| **Preset names** | **Unique** — the name is the preset's identity. Save-as offers save-new (fails on duplicate name) and overwrite-existing-by-name. |
-| **Save-as retroactivity (D10)** | Editing/overwriting a preset **never** touches kosztorysy already seeded from it — spawned trees are frozen seed-defaults (the whole-slice snapshot rule). No FK from a kosztorys back to its source preset. |
-| **Seed target** | **Empty kosztorys only (v1)** — insert-only, no wipe. The CTA is offered only when the tree is empty; server re-checks emptiness and rejects otherwise. |
-| **Investment settings on seed** | **Leave the target's VAT/coeffs untouched** — the preset applier drops the `restoreKosztorys` settings write-back (`:100-109`). A preset does not carry job pricing config onto a different investment. |
-| **Stages** | Seed stage **labels** (structure) with all `qtyDone` reset. A preset is only ever created via save-as from a real kosztorys, so "add a stage to a preset" = add it in a kosztorys, then overwrite the preset. |
-| **Seed entry points** | **Both** — (1) a picker CTA in the empty editor, and (2) an optional preset select in the investment-create form, seeding via `createInvestmentAction`. |
+| Decision                        | Resolution                                                                                                                                                                                                      |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Storage (D9)**                | New **global** `kosztorys_presets` raw table (no Payload collection), one row per preset: `{id, name UNIQUE, schema_version, payload jsonb, created_at, created_by}`. jsonb payload mirrors the snapshot shape. |
+| **Preset names**                | **Unique** — the name is the preset's identity. Save-as offers save-new (fails on duplicate name) and overwrite-existing-by-name.                                                                               |
+| **Save-as retroactivity (D10)** | Editing/overwriting a preset **never** touches kosztorysy already seeded from it — spawned trees are frozen seed-defaults (the whole-slice snapshot rule). No FK from a kosztorys back to its source preset.    |
+| **Seed target**                 | **Empty kosztorys only (v1)** — insert-only, no wipe. The CTA is offered only when the tree is empty; server re-checks emptiness and rejects otherwise.                                                         |
+| **Investment settings on seed** | **Leave the target's VAT/coeffs untouched** — the preset applier drops the `restoreKosztorys` settings write-back (`:100-109`). A preset does not carry job pricing config onto a different investment.         |
+| **Stages**                      | Seed stage **labels** (structure) with all `qtyDone` reset. A preset is only ever created via save-as from a real kosztorys, so "add a stage to a preset" = add it in a kosztorys, then overwrite the preset.   |
+| **Seed entry points**           | **Both** — (1) a picker CTA in the empty editor, and (2) an optional preset select in the investment-create form, seeding via `createInvestmentAction`.                                                         |
 
 ## What we're NOT doing
 
@@ -130,7 +130,7 @@ reverses it. (Prod migration is owed only at push time — do not block the phas
    `src/lib/actions/kosztorys-presets.ts` — `protectedAction` (MANAGEMENT_ROLES default), Zod-validate
    a trimmed non-empty name, serialize, then `insertPreset` (new) or `upsertPresetByName` (overwrite).
    On a UNIQUE violation in `'new'` mode return `{success:false, error:'Preset o tej nazwie już
-   istnieje'}`. No cache tags to revalidate (presets aren't read via a cached tree) — but revalidate a
+istnieje'}`. No cache tags to revalidate (presets aren't read via a cached tree) — but revalidate a
    `['kosztorysPresets']` tag if the picker list is cached; otherwise the picker fetches on open (see
    Phase 3) and no tag is needed.
 3. **CTA** — `SavePresetButton` in `src/components/kosztorys/save-preset-button.tsx`, mirroring
@@ -153,15 +153,15 @@ investment-create time.
 
 1. **`applyPreset`** in `src/lib/kosztorys/apply-preset.ts` — fork of `restoreKosztorys`: no wipe, no
    settings write-back, insert sections → items → stages (progress `[]`). Reuse the exact bulk-insert
-   + index-remap blocks.
+   - index-remap blocks.
 2. **`seedFromPresetAction(investmentId, presetId)`** — `protectedAction`, own the transaction like
    `restoreSnapshotAction` (`beginTransaction` → fake `req` with `skipRevalidation` → work → commit).
    **Empty-guard:** before applying, re-check the target tree is empty
    (`getKosztorysTree(investmentId)` has no sections, or a cheap `SELECT 1 FROM kosztorys_sections
-   WHERE investment_id = ...`); reject non-empty with `{success:false, error:'Kosztorys nie jest
-   pusty'}`. Load the preset via `getPreset` (resolve payload from the row, never trust a
+WHERE investment_id = ...`); reject non-empty with `{success:false, error:'Kosztorys nie jest
+pusty'}`. Load the preset via `getPreset` (resolve payload from the row, never trust a
    client-passed payload). Revalidate `['kosztorysSections','kosztorysItems','kosztorysStages',
-   'stageProgress']` (NOT `investments` — settings untouched).
+'stageProgress']` (NOT `investments` — settings untouched).
 3. **`listPresetsAction()`** — `protectedAction`, returns `PresetMetaT[]` (fetch-on-open, no cache).
 4. **Entry point 1 — empty editor picker:** a "Seed z presetu" CTA shown only when the tree is empty
    (mirror the Wersje drawer's fetch-on-open list; per-row "Użyj"). On success the shell **remounts**
@@ -230,12 +230,12 @@ a failed write — the test-driven-debugging rule).
 
 ## Phasing summary
 
-| Phase | Deliverable | Gate |
-| --- | --- | --- |
-| 1 | Global `kosztorys_presets` table + DAO | typecheck; migration up/down local |
-| 2 | Serialize-as-preset + `savePresetAction` + CTA | preset row lands job-zeroed; overwrite + dup-name work |
-| 3 | `applyPreset` + seed action + two entry points | empty seed works both ways; non-empty rejected; settings untouched |
-| 4 | Real-DB roundtrip / guard / unique / frozen-spawn tests | green |
+| Phase | Deliverable                                             | Gate                                                               |
+| ----- | ------------------------------------------------------- | ------------------------------------------------------------------ |
+| 1     | Global `kosztorys_presets` table + DAO                  | typecheck; migration up/down local                                 |
+| 2     | Serialize-as-preset + `savePresetAction` + CTA          | preset row lands job-zeroed; overwrite + dup-name work             |
+| 3     | `applyPreset` + seed action + two entry points          | empty seed works both ways; non-empty rejected; settings untouched |
+| 4     | Real-DB roundtrip / guard / unique / frozen-spawn tests | green                                                              |
 
 ---
 
