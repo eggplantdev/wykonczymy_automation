@@ -3,7 +3,7 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDate, formatPLDateTime } from '@/lib/utils/format-date'
 import { InvoiceCell } from '@/components/transfers/invoice-cell'
-import { NoteCell } from '@/components/dialogs/note-dialog'
+import { NotePopover } from '@/components/transfers/note-popover'
 import { CancelTransferButton } from '@/components/transfers/cancel-transfer-button'
 import { EditTransferDialog } from '@/components/dialogs/edit-transfer-dialog'
 import { canMutateTransfer, type RoleT } from '@/lib/auth/roles'
@@ -121,7 +121,7 @@ const allColumns = [
     id: 'invoiceNote',
     header: 'Notatka',
     enableSorting: false,
-    cell: (info) => <NoteCell note={info.getValue()} />,
+    cell: (info) => <NotePopover note={info.getValue()} />,
   }),
 
   col.accessor('sourceRegisterName', {
