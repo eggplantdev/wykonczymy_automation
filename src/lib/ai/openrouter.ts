@@ -113,14 +113,14 @@ export async function extractReceipt(
     try {
       object = await callModel(RECEIPT_MODEL)
     } catch (primaryError) {
-      // SENTRY-REQUIRED (EX-449): the primary (on-trial) model failed — retry once with the
+      // TODO(EX-449) SENTRY-REQUIRED: the primary (on-trial) model failed — retry once with the
       // known-good FALLBACK_MODEL so a bad/unavailable primary id doesn't kill every scan. Log
       // the primary failure since a silent fallback hides that the trial tier is broken.
       console.error(`[receipt] primary model ${RECEIPT_MODEL} failed — falling back`, primaryError)
       object = await callModel(FALLBACK_MODEL)
     }
 
-    // SENTRY-REQUIRED (EX-449): an unreadable result is a silent AI failure — generateObject
+    // TODO(EX-449) SENTRY-REQUIRED: an unreadable result is a silent AI failure — generateObject
     // succeeded, so nothing throws and the user just sees the sentinel in the Opis. It must be
     // captured as a Sentry error once Sentry is wired (mediaType included so PDF-specific
     // parse failures are separable from genuinely illegible images).
@@ -132,7 +132,7 @@ export async function extractReceipt(
 
     return object
   } catch (error) {
-    // SENTRY-REQUIRED (EX-449): receipt extraction failures must be captured once Sentry is
+    // TODO(EX-449) SENTRY-REQUIRED: receipt extraction failures must be captured once Sentry is
     // wired — they are silent AI/provider errors users can't self-report.
     const err = error as {
       name?: string
