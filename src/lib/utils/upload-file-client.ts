@@ -1,19 +1,15 @@
-import { compressImage } from '@/lib/utils/compress-image'
 import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
 
 // Cap parallel uploads to match the receipt-generation path (GENERATION_CONCURRENCY): batch-add lets a user
-// attach 10-20+ receipts, and submitting them all at once would fire that many simultaneous
-// client-side compressions (main-thread) + upload requests.
+// attach 10-20+ receipts, and submitting them all at once would fire that many simultaneous upload requests.
 const UPLOAD_CONCURRENCY = 4
 
 type UploadResultT = { mediaId: number }
 
-/** Compress (if image) and upload a file via the API route. Returns the media ID. */
+/** Upload a file (already processed at ingest) via the API route. Returns the media ID. */
 export async function uploadFileClient(file: File): Promise<number> {
-  const compressed = await compressImage(file)
-
   const formData = new FormData()
-  formData.set('file', compressed)
+  formData.set('file', file)
 
   const res = await fetch('/api/upload-file', {
     method: 'POST',

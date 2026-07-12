@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { extractReceiptAction } from '@/lib/actions/extract-receipt'
 import { resolveExpenseCategoryId } from '@/components/forms/expense-form/resolve-expense-category-id'
 import { reindexAfterRemoval } from '@/components/forms/hooks/use-invoice-files'
-import { compressImage } from '@/lib/utils/compress-image'
 import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
 import { toastMessage } from '@/lib/utils/toast'
 import { UNREADABLE_RECEIPT } from '@/lib/ai/receipt-extraction-schema'
@@ -70,11 +69,10 @@ export function useReceiptGeneration({
     await mapWithConcurrency(eligible, GENERATION_CONCURRENCY, async ({ index }) => {
       setGeneratingIndices((prev) => new Set(prev).add(index))
       try {
-        // Compress client-side (as the submit upload does) so the scan payload stays under the
-        // serverAction body limit; the model reads the smaller image fine.
-        const compressed = await compressImage(files.get(index)!)
+        // The map already holds the file processed at ingest (compressed / HEIC-converted), so the
+        // scan payload is under the serverAction body limit without re-compressing here.
         const result = await extractReceiptAction({
-          file: compressed,
+          file: files.get(index)!,
           otherCategoryNames,
         })
         if (!result.success) throw new Error(result.error)

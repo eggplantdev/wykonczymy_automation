@@ -79,16 +79,16 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
   } = useInvoiceFiles(recoveredFiles)
 
   // Bump the key after a batch add so the affected rows re-render and swap their file
-  // input for the attached-file thumbnail.
-  function handleRegisterFiles(startIndex: number, files: File[]) {
-    registerFilesAt(startIndex, files)
+  // input for the attached-file thumbnail. Ingest is async (HEIC-convert / compress / guard).
+  async function handleRegisterFiles(startIndex: number, files: File[]) {
+    await registerFilesAt(startIndex, files)
     setFileInputKey((k) => k + 1)
   }
 
   // Files live in a ref (no re-render on mutation) — bump the key so the row re-renders
-  // and reveals its preview button once a file is attached.
-  function handleAttachFile(index: number, e: React.ChangeEvent<HTMLInputElement>) {
-    handleFileChange(index, e)
+  // and reveals its preview button once a file is attached. Ingest is async.
+  async function handleAttachFile(index: number, e: React.ChangeEvent<HTMLInputElement>) {
+    await handleFileChange(index, e)
     setFileInputKey((k) => k + 1)
   }
 
