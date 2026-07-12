@@ -224,9 +224,9 @@ discharge it.
 
 #### Automated
 
-- [x] 1.1 Type checking passes after dead-cache removal (`pnpm generate:types && pnpm tsc --noEmit`)
-- [x] 1.2 `resolveInvoiceMediaIds` unit test passes — uploads each file positionally, gaps → `undefined` (`invoice-media-resolve.test.ts`)
-- [x] 1.3 `reindexAfterRemoval` unit test still passes on the files map alone (`use-invoice-files.test.ts`)
+- [x] 1.1 Type checking passes after dead-cache removal (`pnpm generate:types && pnpm tsc --noEmit`) — c1952e6
+- [x] 1.2 `resolveInvoiceMediaIds` unit test passes — uploads each file positionally, gaps → `undefined` (`invoice-media-resolve.test.ts`) — c1952e6
+- [x] 1.3 `reindexAfterRemoval` unit test still passes on the files map alone (`use-invoice-files.test.ts`) — c1952e6
 
 ### Phase 2 — Process-at-ingest pipeline
 
