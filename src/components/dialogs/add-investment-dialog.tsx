@@ -6,6 +6,7 @@ import { FormDialog } from '@/components/dialogs/form-dialog'
 import { InvestmentForm } from '@/components/forms/investment-form/investment-form'
 import { createInvestmentAction } from '@/lib/actions/investments'
 import type { InvestmentFormValuesT } from '@/components/forms/investment-form/investment-schema'
+import type { PresetMetaT } from '@/lib/db/presets'
 
 const EMPTY_DEFAULTS: InvestmentFormValuesT = {
   name: '',
@@ -16,9 +17,10 @@ const EMPTY_DEFAULTS: InvestmentFormValuesT = {
   notes: '',
   review: '',
   status: 'active',
+  presetId: '',
 }
 
-export function AddInvestmentDialog() {
+export function AddInvestmentDialog({ presets }: { presets: PresetMetaT[] }) {
   return (
     <FormDialog
       formId="add-investment"
@@ -40,6 +42,7 @@ export function AddInvestmentDialog() {
           submittingLabel="Dodawanie..."
           onSubmitSuccess={onSubmitSuccess}
           keepOpen={keepOpen}
+          presetOptions={presets}
         />
       )}
     </FormDialog>

@@ -1,30 +1,31 @@
--- Resync every owned sequence in the public schema to its column's MAX(value).
+-- Resync every owned sequence in the public schema to its table's MAX(id) after a dump restore.
 --
--- Why: pg_dump copies prod's setval() verbatim. When a dump-restored local/test
--- DB later gets locally-seeded rows past prod's max, the restored sequence sits
--- BEHIND MAX(id). The next nextval() then returns an already-used id, Postgres
--- raises a PK collision, and Payload mislabels it as "ValidationError: id".
--- Running this after every import makes the desync unreachable.
+-- Why: pg_dump copies prod's setval() verbatim. A restored local/test DB whose sequence lags
+-- MAX(id) — prod drifted behind, or locally-seeded rows went past prod's max — hands out an
+-- already-used id on the next INSERT, which Payload surfaces as the misleading "ValidationError: id".
+-- Run this after every import (e.g. db:import:test) so the desync is unreachable, for every collection.
 --
--- NEVER point this at DB_POSTGRES_URL_PROD — prod sequences are authoritative
--- and a human owns any prod-side reset (Linear EX-446).
+-- setval(seq, MAX(col), rows_exist): with rows, is_called=true → nextval = MAX+1; empty table,
+-- is_called=false → nextval = 1.
+--
+-- NEVER point this at DB_POSTGRES_URL_PROD — prod sequences are authoritative and a human owns any
+-- prod-side reset (Linear EX-446).
 DO $$
 DECLARE
   rec RECORD;
-  max_val BIGINT;
 BEGIN
   FOR rec IN
-    SELECT
-      pg_get_serial_sequence(quote_ident(c.table_schema) || '.' || quote_ident(c.table_name), c.column_name) AS seq,
-      quote_ident(c.table_schema) || '.' || quote_ident(c.table_name) AS tbl,
-      quote_ident(c.column_name) AS col
-    FROM information_schema.columns c
-    WHERE c.table_schema = 'public'
-      AND pg_get_serial_sequence(quote_ident(c.table_schema) || '.' || quote_ident(c.table_name), c.column_name) IS NOT NULL
+    SELECT s.relname AS seq, t.relname AS tbl, a.attname AS col
+    FROM pg_class s
+    JOIN pg_depend d ON d.objid = s.oid AND d.deptype = 'a'
+    JOIN pg_class t ON t.oid = d.refobjid
+    JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = d.refobjsubid
+    JOIN pg_namespace n ON n.oid = s.relnamespace
+    WHERE s.relkind = 'S' AND n.nspname = 'public'
   LOOP
-    EXECUTE format('SELECT COALESCE(MAX(%s), 0) FROM %s', rec.col, rec.tbl) INTO max_val;
-    -- is_called = (max_val > 0): with a MAX, next value is max+1; on an empty
-    -- table, seed at 1 with is_called=false so the first insert gets id 1.
-    PERFORM setval(rec.seq, GREATEST(max_val, 1), max_val > 0);
+    EXECUTE format(
+      'SELECT setval(%L, COALESCE((SELECT MAX(%I) FROM public.%I), 1), (SELECT COUNT(*) > 0 FROM public.%I))',
+      rec.seq, rec.col, rec.tbl, rec.tbl
+    );
   END LOOP;
 END $$;

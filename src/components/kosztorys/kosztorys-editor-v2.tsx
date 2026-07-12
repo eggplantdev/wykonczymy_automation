@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { KosztorysEditorBody } from '@/components/kosztorys/kosztorys-editor-body'
 import { KosztorysVersionsDrawer } from '@/components/kosztorys/kosztorys-versions-drawer'
+import { SeedFromPresetButton } from '@/components/kosztorys/seed-from-preset-button'
 import { snapshotAction } from '@/lib/actions/kosztorys-snapshots'
 import type { KosztorysTreeT } from '@/types/kosztorys'
 
@@ -30,13 +31,21 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
   // an ordinary edit triggers doesn't remount. No useEffect: this render-phase compare is flash-free.
   const [restorePending, setRestorePending] = useState(false)
   const prevRevision = useRef(tree.revision)
+  const prevEmpty = useRef(tree.sections.length === 0)
   // Comparing/advancing the prev-value ref during render is the documented "store info from previous
   // render" pattern (the rule is too strict here) — same sanctioned use as use-kosztorys-editor.ts.
   // eslint-disable-next-line react-hooks/refs
   const revisionChanged = tree.revision !== prevRevision.current
   // eslint-disable-next-line react-hooks/refs
   prevRevision.current = tree.revision
-  if (restorePending && revisionChanged) {
+  // A seed-from-preset inserts the whole tree but does NOT write the investment row, so `revision`
+  // (investment.updatedAt) is unchanged — the empty→populated transition is that path's fresh-tree
+  // signal instead.
+  // eslint-disable-next-line react-hooks/refs
+  const becamePopulated = prevEmpty.current && tree.sections.length > 0
+  // eslint-disable-next-line react-hooks/refs
+  prevEmpty.current = tree.sections.length === 0
+  if (restorePending && (revisionChanged || becamePopulated)) {
     setRestorePending(false)
     setRemountKey((k) => k + 1)
   }
@@ -55,6 +64,14 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
 
   return (
     <>
+      {tree.sections.length === 0 && (
+        <div className="border-border bg-muted/30 flex items-center justify-between gap-3 rounded-md border border-dashed px-4 py-3">
+          <p className="text-muted-foreground text-sm">
+            Kosztorys jest pusty. Możesz wypełnić go z zapisanego szablonu.
+          </p>
+          <SeedFromPresetButton investmentId={investmentId} onSeeded={handleRestored} />
+        </div>
+      )}
       <KosztorysEditorBody
         key={remountKey}
         investmentId={investmentId}

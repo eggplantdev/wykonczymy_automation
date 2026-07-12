@@ -8,6 +8,7 @@ import FormFooter from '@/components/forms/form-components/form-footer'
 import { investmentFormSchema, type InvestmentFormValuesT } from './investment-schema'
 import { useInvestmentFormStore } from '@/stores/form-stores'
 import type { InvestmentFormDataT } from './investment-schema'
+import type { PresetMetaT } from '@/lib/db/presets'
 import type { AppFieldComponentsT } from '@/components/forms/types/form-types'
 import type { ActionResultT } from '@/types/action'
 
@@ -20,6 +21,8 @@ type InvestmentFormPropsT = {
   submittingLabel: string
   onSubmitSuccess: () => void
   keepOpen?: boolean
+  // Create-only seed-from-szablon picker; omitted on edit.
+  presetOptions?: PresetMetaT[]
 }
 
 export function InvestmentForm({
@@ -31,6 +34,7 @@ export function InvestmentForm({
   submittingLabel,
   onSubmitSuccess,
   keepOpen,
+  presetOptions,
 }: InvestmentFormPropsT) {
   const { form, reset } = useManagedForm<InvestmentFormValuesT, InvestmentFormDataT>({
     formId,
@@ -50,6 +54,7 @@ export function InvestmentForm({
       notes: value.notes,
       review: value.review,
       status: value.status,
+      presetId: value.presetId,
     }),
   })
 
@@ -106,6 +111,24 @@ export function InvestmentForm({
             </field.Select>
           )}
         </form.AppField>
+
+        {presetOptions && presetOptions.length > 0 && (
+          <form.AppField name="presetId">
+            {(field: AppFieldComponentsT) => (
+              <field.Select
+                label="Kosztorys z szablonu"
+                placeholder="— pusty kosztorys —"
+                showError
+              >
+                {presetOptions.map((preset) => (
+                  <SelectItem key={preset.id} value={String(preset.id)}>
+                    {preset.name}
+                  </SelectItem>
+                ))}
+              </field.Select>
+            )}
+          </form.AppField>
+        )}
       </FieldGroup>
 
       <FormFooter label={submitLabel} submittingLabel={submittingLabel} className="mt-6" />
