@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
-import { useInvoiceFiles } from '@/components/forms/hooks/use-invoice-files'
+import { useInvoiceFiles, type IngestResultT } from '@/components/forms/hooks/use-invoice-files'
 import { useReceiptGeneration } from '@/components/forms/hooks/use-receipt-generation'
 import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import { useSaldo } from '@/components/forms/hooks/use-saldo'
@@ -59,17 +59,22 @@ const FORM_ID = 'expense'
 
 const MAX_UPLOAD_MB = MAX_UPLOAD_BYTES / (1024 * 1024)
 
-// One Polish line per blocked file (unconvertible HEIC / oversize), joined into a single toast so
-// one bad file in a batch never spams N toasts. The MB figure tracks MAX_UPLOAD_BYTES (the guard),
-// not the raw 4.5 MB Vercel cap.
-function blockedFilesMessage(blocked: BlockedFileError[]): string {
-  return blocked
-    .map((error) =>
-      error.reason === 'too-large'
-        ? `Plik „${error.filename}” przekracza ${MAX_UPLOAD_MB} MB — zmniejsz go i spróbuj ponownie.`
-        : `Nie udało się przekonwertować „${error.filename}” — zapisz jako JPG i spróbuj ponownie.`,
-    )
-    .join('\n')
+// One Polish line per blocked file (unconvertible HEIC / oversize) in a single toast so one bad
+// file in a batch never spams N toasts. Rendered as JSX rather than a "\n"-joined string because
+// react-toastify collapses newlines in HTML — a multi-file block would otherwise run together. The
+// MB figure tracks MAX_UPLOAD_BYTES (the guard), not the raw 4.5 MB Vercel cap.
+function blockedFilesMessage(blocked: BlockedFileError[]) {
+  return (
+    <div>
+      {blocked.map((error, index) => (
+        <p key={index}>
+          {error.reason === 'too-large'
+            ? `Plik „${error.filename}” przekracza ${MAX_UPLOAD_MB} MB — zmniejsz go i spróbuj ponownie.`
+            : `Nie udało się przekonwertować „${error.filename}” — zapisz jako JPG i spróbuj ponownie.`}
+        </p>
+      ))}
+    </div>
+  )
 }
 
 export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: TransferFormPropsT) {
@@ -98,6 +103,8 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     })
   }
 
+  const isIngesting = ingestingIndices.size > 0
+
   function reportBlocked(blocked: BlockedFileError[]) {
     if (blocked.length === 0) return
     // TODO(EX-449) SENTRY-REQUIRED: blocked-file ingest failures (unconvertible HEIC / oversize)
@@ -115,27 +122,32 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     reset: resetInvoiceFiles,
   } = useInvoiceFiles(recoveredFiles)
 
-  // Bump the key after a batch add so the affected rows re-render and swap their file input for the
-  // attached-file thumbnail. Ingest is async (HEIC-convert / compress / guard) and processes each
-  // file at its fixed position; blocked files are reported and never enter the map.
-  async function handleRegisterFiles(startIndex: number, files: File[]) {
-    const indices = files.map((_, offset) => startIndex + offset)
+  // Run one ingest batch: mark the rows busy, report any blocked files, and — crucially — always
+  // clear the spinner and bump the key in `finally`. The finally is load-bearing: an unexpected
+  // ingest rejection (e.g. a chunk-load failure on the lazy import) must still release the rows, or
+  // they stay busy forever and wedge the whole form. Blocked files enter no map; the row stays empty.
+  async function runIngest(indices: number[], ingest: () => Promise<IngestResultT>) {
     markIngesting(indices, true)
-    const { blocked } = await registerFilesAt(startIndex, files)
-    markIngesting(indices, false)
-    setFileInputKey((k) => k + 1)
-    reportBlocked(blocked)
+    try {
+      reportBlocked((await ingest()).blocked)
+    } catch {
+      // TODO(EX-449) SENTRY-REQUIRED: unexpected ingest failure (not a BlockedFileError) — capture
+      // once Sentry is wired; for now the user gets a generic retry toast.
+      toastMessage('Nie udało się przetworzyć pliku — spróbuj ponownie.', 'error', 6000)
+    } finally {
+      markIngesting(indices, false)
+      // Re-render the affected rows so they swap the file input for the attached-file thumbnail.
+      setFileInputKey((k) => k + 1)
+    }
   }
 
-  // Files live in a ref (no re-render on mutation) — bump the key so the row re-renders and reveals
-  // its preview button once a file is attached. Ingest is async; a blocked file is reported and the
-  // row is left empty.
-  async function handleAttachFile(index: number, e: React.ChangeEvent<HTMLInputElement>) {
-    markIngesting([index], true)
-    const { blocked } = await handleFileChange(index, e)
-    markIngesting([index], false)
-    setFileInputKey((k) => k + 1)
-    reportBlocked(blocked)
+  function handleRegisterFiles(startIndex: number, files: File[]) {
+    const indices = files.map((_, offset) => startIndex + offset)
+    return runIngest(indices, () => registerFilesAt(startIndex, files))
+  }
+
+  function handleAttachFile(index: number, e: React.ChangeEvent<HTMLInputElement>) {
+    return runIngest([index], () => handleFileChange(index, e))
   }
 
   // Re-align the generation markers (failed/in-flight) alongside the file maps on row removal.
@@ -185,6 +197,14 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
       onChangeDebounceMs: 500,
     },
     onSubmit: async ({ value }) => {
+      // Backstop to the disabled submit button (a keyboard Enter can bypass it): a row still
+      // ingesting hasn't stored its processed file yet, so getFiles() would read undefined for it
+      // and the line item would save without its receipt — silent loss.
+      if (isIngesting) {
+        toastMessage('Poczekaj na przetworzenie plików.', 'warning', 4000)
+        return false
+      }
+
       const type = value.type as TransferTypeT
       const data: CreateBulkExpenseFormT = {
         date: value.date,
@@ -206,8 +226,8 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
           let invoiceMediaIds: (number | undefined)[] | undefined
           if (files.size > 0) {
             try {
-              // Upload every attached file once, here at submit — the AI scan no longer persists
-              // anything, so there is nothing pre-uploaded to reuse.
+              // Submit is the only upload site: the AI scan sends raw bytes and persists nothing, so
+              // every attached file is uploaded once here.
               invoiceMediaIds = await resolveInvoiceMediaIds(value.lineItems.length, files)
             } catch (err) {
               const message = err instanceof Error ? err.message : 'Nie udało się przesłać plików'
@@ -352,7 +372,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
 
       {saldo !== null && <SaldoSummary saldo={saldo} total={total} />}
 
-      <FormFooter className="mt-6" label="Zapisz" />
+      <FormFooter className="mt-6" label="Zapisz" disabled={isIngesting} />
     </FormShell>
   )
 }

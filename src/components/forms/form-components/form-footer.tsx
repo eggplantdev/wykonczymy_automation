@@ -9,12 +9,16 @@ type FormFooterPropsT = {
   label?: string
   submittingLabel?: string
   className?: string
+  // Block submit on top of the form's own isSubmitting — e.g. while files are still ingesting, so a
+  // row can't save before its processed file lands in the ref (would upload nothing for that row).
+  disabled?: boolean
 }
 
 export default function FormFooter({
   label = 'Dodaj',
   submittingLabel,
   className,
+  disabled = false,
 }: FormFooterPropsT) {
   const form = useFormContext()
   const keepOpen = useOptimisticFormStore((s) => s.keepOpen)
@@ -27,7 +31,7 @@ export default function FormFooter({
     <>
       <footer className={className}>
         <div className="flex items-center gap-4">
-          <Button disabled={isSubmitting} type="submit">
+          <Button disabled={isSubmitting || disabled} type="submit">
             {isSubmitting && submittingLabel ? submittingLabel : label}
           </Button>
           {showKeepOpen && (
