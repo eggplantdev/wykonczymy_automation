@@ -22,6 +22,7 @@ import {
 } from '@/lib/constants/transfers'
 import { createBulkTransferAction } from '@/lib/actions/transfers'
 import { mapLineItem } from '@/components/forms/expense-form/map-line-item'
+import type { BulkExpenseFormValuesT } from '@/components/forms/expense-form/bulk-expense-form'
 import { resolveInvoiceMediaIds } from '@/lib/utils/upload-file-client'
 import {
   bulkExpenseFormSchema,
@@ -50,23 +51,7 @@ type TransferFormPropsT = {
 
 // Form state uses strings since HTML inputs/selects work with strings.
 // Numeric conversion happens in the server action.
-type FormValuesT = {
-  date: string
-  type: string
-  paymentMethod: string
-  sourceRegister: string
-  targetRegister: string
-  investment: string
-  worker: string
-  settled: boolean
-  lineItems: {
-    description: string
-    amount: string
-    invoiceNote: string
-    category: string
-    expenseCategory: string
-  }[]
-}
+type FormValuesT = BulkExpenseFormValuesT
 
 const FORM_ID = 'expense'
 

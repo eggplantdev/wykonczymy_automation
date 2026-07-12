@@ -16,20 +16,28 @@ import {
 } from '@/lib/constants/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import type { AppFieldComponentsT } from '@/components/forms/types/form-types'
+import type {
+  BulkExpenseFormApiT,
+  BulkExpenseFormValuesT,
+} from '@/components/forms/expense-form/bulk-expense-form'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type FormT = any
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ArrayFieldT = any
+// The TanStack array-field API this component drives (`form.Field name="lineItems" mode="array"`).
+// Structural on purpose — same convention as AppFieldComponentsT: name only the members we call,
+// since the full FieldApi generic is unnameable and the real inferred field is assignable to this.
+type LineItemsArrayFieldT = {
+  state: { value: BulkExpenseFormValuesT['lineItems'] }
+  pushValue: (value: BulkExpenseFormValuesT['lineItems'][number]) => void
+  removeValue: (index: number) => void
+}
 
 type CategoryFieldConfigT = {
-  fieldName: string
+  fieldName: 'category' | 'expenseCategory'
   label: string
   placeholder: string
   options: { id: number; name: string }[]
 }
 
-const EMPTY_LINE_ITEM: Record<string, string> = {
+const EMPTY_LINE_ITEM: BulkExpenseFormValuesT['lineItems'][number] = {
   description: '',
   amount: '',
   invoiceNote: '',
@@ -38,7 +46,7 @@ const EMPTY_LINE_ITEM: Record<string, string> = {
 }
 
 type LineItemsFieldPropsT = {
-  form: FormT
+  form: BulkExpenseFormApiT
   transferType: string
   referenceData: ReferenceDataBaseT
   defaultExpenseCategory?: string
@@ -99,7 +107,7 @@ function CategorySelect({
   config,
   fieldClassName,
 }: {
-  form: FormT
+  form: BulkExpenseFormApiT
   index: number
   config: CategoryFieldConfigT
   fieldClassName?: string
@@ -150,13 +158,16 @@ export function LineItemsField({
   // Order matters — rows persist even if extraction fails, so a failed scan still yields line
   // items to fill in by hand. Picker cancelled (no files) → skip the add and just re-run generation
   // on any existing eligible rows.
-  function handleScanReceipts(e: React.ChangeEvent<HTMLInputElement>, lineItemsField: ArrayFieldT) {
+  function handleScanReceipts(
+    e: React.ChangeEvent<HTMLInputElement>,
+    lineItemsField: LineItemsArrayFieldT,
+  ) {
     const picked = Array.from(e.target.files ?? [])
     e.target.value = '' // allow re-picking the same files after a reset
     if (picked.length > 0) {
       // Reuse the lone initial blank row for the first image so the first receipt lands on
       // row 0 rather than after an empty row; otherwise append after the existing rows.
-      const rows = lineItemsField.state.value as { description: string; amount: string }[]
+      const rows = lineItemsField.state.value
       const reuseFirstRow = rows.length === 1 && !rows[0].description && !rows[0].amount
       const startIndex = reuseFirstRow ? 0 : rows.length
       const rowsToPush = reuseFirstRow ? picked.length - 1 : picked.length
@@ -169,7 +180,7 @@ export function LineItemsField({
 
   return (
     <form.Field name="lineItems" mode="array">
-      {(lineItemsField: ArrayFieldT) => (
+      {(lineItemsField: LineItemsArrayFieldT) => (
         <div className="space-y-4">
           <div className="space-y-6">
             {lineItemsField.state.value.map((_: unknown, index: number) => (
