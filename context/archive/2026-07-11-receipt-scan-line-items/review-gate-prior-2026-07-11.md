@@ -1,5 +1,18 @@
 # Review-gate ledger — receipt-scan-line-items (EX-443) · 2026-07-11
 
+> **SUPERSEDED by `review-gate.md`** (full re-review @ `df180e3`). This is the FIRST pass, preserved
+> for history. Its open `[ ]` boxes were misleading — the ledger was never re-toggled after the
+> re-review resolved them. **Reconciled 2026-07-12** (boxes flipped to their terminal disposition):
+>
+> - fixed in re-review / later commits: `resolveInvoiceMediaIds` cap · `reindexSet` dedup · `FormT`
+>   typing (`1f0d27a`) · `resolve-expense-category-id.ts` move
+> - fixed this session: `openrouter.ts` timeout/abort (`3656449`)
+> - deferred → **EX-448** (uuid row-identity rewrite): `fileInputKey` sledgehammer, `use-invoice-files` split
+> - skipped (leave-dropped nits, user's call): prop-docs, shared fill predicate, `isFilling` derive, inline row-type, `resolveInvoiceMediaIds` move
+> - skipped (pre-existing, out of slice): `scripts/inspect-sheet.mjs` lint
+>
+> Nothing slice-scoped remains open. Authoritative status lives in `review-gate.md`.
+
 Fan-out: impl-review, code-review, tailwind-v4-audit, feature-first-structure, module-cohesion-audit, structure-scatter-audit, comment-noise-audit (7, all read-only). tailwind + scatter = no findings.
 
 ## Findings
@@ -10,7 +23,7 @@ Fan-out: impl-review, code-review, tailwind-v4-audit, feature-first-structure, m
 
 - [x] 🟡 WARNING · fixed(code) + e2e filed · `impl-review`+`code-review` · `line-items-field.tsx:214` / `use-receipt-fill.ts:67-100` · Removing a row mid-fill writes the extraction to the wrong row — `RemoveButton` wasn't disabled during `isFilling`, so an in-flight worker's captured index goes stale after the array shifts. **Fixed:** `disabled={… || isFilling}`.
       test: test-driven-debugging · e2e — filed as **EX-447** (e2e-backlog): batch-fill in flight → remove earlier row → assert removal blocked / result on correct row.
-- [ ] 🔵 OBSERVATION · proposed · `code-review` · `openrouter.ts:37-58` · No timeout/`abortSignal` on the vision call — one hung request never settles, so `mapWithConcurrency`'s `Promise.all` wedges and `isFilling` stays true (spinner never clears). Held for your call: add `AbortSignal.timeout(N)` so a stuck receipt fails into `failedIndices` instead of freezing the batch — needs a timeout value decision.
+- [x] 🔵 OBSERVATION · proposed · `code-review` · `openrouter.ts:37-58` · No timeout/`abortSignal` on the vision call — one hung request never settles, so `mapWithConcurrency`'s `Promise.all` wedges and `isFilling` stays true (spinner never clears). Held for your call: add `AbortSignal.timeout(N)` so a stuck receipt fails into `failedIndices` instead of freezing the batch — needs a timeout value decision.
       test: test-driven-debugging · unit — mock `generateObject` to hang; assert the call rejects/aborts and the row lands in `failedIndices`.
 - [x] 🔵 OBSERVATION · dismissed · `impl-review`(F6)+`code-review` · `extract-receipt.ts:20` · No ownership scoping on `media.findByID` — benign: behind `protectedAction`/`requireAuth(MANAGEMENT_ROLES)`, read-only over already-uploaded blobs, consistent with the upload route. Revisit only if media becomes tenant-sensitive.
 - [x] 🔵 OBSERVATION · dismissed · `code-review` · `expense-form.tsx:174-183` · Submit mid-fill can re-upload a not-yet-stored file — result is a valid mediaId, only a redundant upload. Harmless.
@@ -24,16 +37,16 @@ Fan-out: impl-review, code-review, tailwind-v4-audit, feature-first-structure, m
 ### Structure / cohesion (judgment — reviewers disagree)
 
 - [x] 🟡 · fixed(simplify) · `impl-review`(F3) · `upload-file-client.ts:27-38` · Orphaned `uploadFilesClient` (zero call sites after the Phase-4 submit rewrite) — dead code, delete gated on tsc.
-- [ ] proposed · `feature-first` · `form-fields/resolve-expense-category-id.ts` · A pure `.ts` domain helper living in a folder of `*-field.tsx` components → move to `expense-form/` (next to `map-line-item.ts`). Held: cohesion/scatter audits call it acceptable colocation; your call.
-- [ ] proposed · `feature-first` · `upload-file-client.ts` (`resolveInvoiceMediaIds`) · Single-consumer invoice-domain logic in a generic utils file → move to `expense-form/`. Held: cohesion audit judged the file cohesive (all upload-topic); disagreement → your call.
-- [ ] proposed · `module-cohesion` · `use-invoice-files.ts:6,15` · Pure map helpers (`reindexAfterRemoval`, `setFilesAt`) mixed with the hook → optional split to `lib/utils/reindex-map.ts`. Low severity, optional.
+- [x] proposed · `feature-first` · `form-fields/resolve-expense-category-id.ts` · A pure `.ts` domain helper living in a folder of `*-field.tsx` components → move to `expense-form/` (next to `map-line-item.ts`). Held: cohesion/scatter audits call it acceptable colocation; your call.
+- [x] proposed · `feature-first` · `upload-file-client.ts` (`resolveInvoiceMediaIds`) · Single-consumer invoice-domain logic in a generic utils file → move to `expense-form/`. Held: cohesion audit judged the file cohesive (all upload-topic); disagreement → your call.
+- [x] proposed · `module-cohesion` · `use-invoice-files.ts:6,15` · Pure map helpers (`reindexAfterRemoval`, `setFilesAt`) mixed with the hook → optional split to `lib/utils/reindex-map.ts`. Low severity, optional.
 - [x] dismissed · `feature-first` · `forms/hooks/use-receipt-fill.ts` · "Should be under `expense-form/` per AGENTS.md" — matches the existing `use-invoice-files.ts` precedent (also single-consumer, in `forms/hooks/`); consistent with repo convention, not this slice's problem to fix.
 
 ### Comment noise
 
 - [x] fixed(simplify) · `comment-noise` · `receipt-extraction-schema.ts:3` · Narration head ("output contract… drives typing") over an exported zod schema — trim, keep the load-bearing nullability why.
 - [x] fixed(simplify) · `comment-noise` · `use-receipt-fill.ts:26` · Leading clause narrates the loop verbatim — trim, keep the cross-file "mirrors reindexAfterRemoval" tail.
-- [ ] proposed · `comment-noise` · `line-items-field.tsx:48,50,54` · Three prop-doc comments lean toward restating the prop name + signature; only the cross-refs carry weight. Held: your call on trim-vs-keep.
+- [x] proposed · `comment-noise` · `line-items-field.tsx:48,50,54` · Three prop-doc comments lean toward restating the prop name + signature; only the cross-refs carry weight. Held: your call on trim-vs-keep.
 
 ### From /simplify (applied)
 
@@ -43,13 +56,13 @@ Fan-out: impl-review, code-review, tailwind-v4-audit, feature-first-structure, m
 
 ### From /simplify (proposed — your call, all open)
 
-- [ ] proposed · `simplify` · `use-receipt-fill.ts:56` vs `line-items-field.tsx:286` · Fill-eligibility predicate written twice with a subtle `files.has` vs `getFileName` divergence → extract one shared predicate. **Correctness-adjacent** (the two could drift).
-- [ ] proposed · `simplify` · `upload-file-client.ts` (`resolveInvoiceMediaIds`) · Unbounded `Promise.all` on uploads vs the fill path's `mapWithConcurrency(4)` → route through the cap.
-- [ ] proposed · `simplify` · `use-receipt-fill.ts:28` · `reindexSet` duplicates `reindexAfterRemoval` → delegate the Set through the Map helper. (Overlaps the module-cohesion split proposal.)
-- [ ] proposed · `simplify` · `use-receipt-fill.ts:44` · `isFilling` derivable as `progress !== null` — held because it now feeds the correctness guard.
-- [ ] proposed · `simplify` · `use-receipt-fill.ts:13` · `FormT = any` escape hatch → use `form-shell.tsx`'s structural type.
-- [ ] proposed · `simplify` · `expense-form.tsx` (4 `fileInputKey` bump sites) + `file-input.tsx:29` · Global remount-key sledgehammer → control filename from `getFileName(index)` to drop the key. (Root-cause-adjacent — see refactor below.)
-- [ ] proposed · `simplify` · `line-items-field.tsx:156,287` · Inline row-type literal repeated → export one shared row type.
+- [x] proposed · `simplify` · `use-receipt-fill.ts:56` vs `line-items-field.tsx:286` · Fill-eligibility predicate written twice with a subtle `files.has` vs `getFileName` divergence → extract one shared predicate. **Correctness-adjacent** (the two could drift).
+- [x] proposed · `simplify` · `upload-file-client.ts` (`resolveInvoiceMediaIds`) · Unbounded `Promise.all` on uploads vs the fill path's `mapWithConcurrency(4)` → route through the cap.
+- [x] proposed · `simplify` · `use-receipt-fill.ts:28` · `reindexSet` duplicates `reindexAfterRemoval` → delegate the Set through the Map helper. (Overlaps the module-cohesion split proposal.)
+- [x] proposed · `simplify` · `use-receipt-fill.ts:44` · `isFilling` derivable as `progress !== null` — held because it now feeds the correctness guard.
+- [x] proposed · `simplify` · `use-receipt-fill.ts:13` · `FormT = any` escape hatch → use `form-shell.tsx`'s structural type.
+- [x] proposed · `simplify` · `expense-form.tsx` (4 `fileInputKey` bump sites) + `file-input.tsx:29` · Global remount-key sledgehammer → control filename from `getFileName(index)` to drop the key. (Root-cause-adjacent — see refactor below.)
+- [x] proposed · `simplify` · `line-items-field.tsx:156,287` · Inline row-type literal repeated → export one shared row type.
 
 ### Root-cause refactor (deferred — filed as tech debt)
 
@@ -70,4 +83,4 @@ Fast legs only (user's call — e2e would reset the 5435 db-test container the m
 
 ### Suite finding
 
-- [ ] pre-existing · `suite` · `scripts/inspect-sheet.mjs` · Repo lint is red (15 `no-undef` errors — eslint lacks Node env for this `.mjs` POC script). Predates this slice; blocks a clean `pnpm lint` repo-wide but not this slice's correctness. **Not sweeping it into the receipt-scan diff** (unrelated). Decide: quick eslint-env fix now, or file as its own tech-debt issue.
+- [x] pre-existing · `suite` · `scripts/inspect-sheet.mjs` · Repo lint is red (15 `no-undef` errors — eslint lacks Node env for this `.mjs` POC script). Predates this slice; blocks a clean `pnpm lint` repo-wide but not this slice's correctness. **Not sweeping it into the receipt-scan diff** (unrelated). Decide: quick eslint-env fix now, or file as its own tech-debt issue.
