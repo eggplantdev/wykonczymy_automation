@@ -74,8 +74,6 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     registerFilesAt,
     getFile,
     getFiles,
-    getMediaId,
-    setMediaId,
     renameFile,
     getMediaIds,
     reset: resetInvoiceFiles,
@@ -163,8 +161,8 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
           let invoiceMediaIds: (number | undefined)[] | undefined
           if (files.size > 0) {
             try {
-              // Rows scanned by the generation flow already hold a mediaId — the resolver reuses it
-              // and only uploads the rows that were never scanned, never both.
+              // Upload every attached file once, here at submit — the AI scan no longer persists
+              // anything, so there are no pre-scanned mediaIds to reuse (the map stays empty).
               invoiceMediaIds = await resolveInvoiceMediaIds(
                 value.lineItems.length,
                 files,
@@ -201,8 +199,6 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     form,
     otherCategories: referenceData.otherCategories,
     getFiles,
-    getMediaId,
-    setMediaId,
     renameFile,
   })
 

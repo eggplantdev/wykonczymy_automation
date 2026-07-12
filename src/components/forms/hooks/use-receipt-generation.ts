@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { extractReceiptAction } from '@/lib/actions/extract-receipt'
 import { resolveExpenseCategoryId } from '@/components/forms/expense-form/resolve-expense-category-id'
 import { reindexAfterRemoval } from '@/components/forms/hooks/use-invoice-files'
-import { uploadFileClient } from '@/lib/utils/upload-file-client'
+import { compressImage } from '@/lib/utils/compress-image'
 import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
 import { toastMessage } from '@/lib/utils/toast'
 import { UNREADABLE_RECEIPT } from '@/lib/ai/receipt-extraction-schema'
@@ -21,8 +21,6 @@ type ReceiptGenerationDepsT = {
   form: FormT
   otherCategories: OtherCategoryRefT[]
   getFiles: () => Map<number, File>
-  getMediaId: (index: number) => number | undefined
-  setMediaId: (index: number, mediaId: number) => void
   renameFile: (index: number, newName: string) => void
 }
 
@@ -37,8 +35,6 @@ export function useReceiptGeneration({
   form,
   otherCategories,
   getFiles,
-  getMediaId,
-  setMediaId,
   renameFile,
 }: ReceiptGenerationDepsT) {
   const [isGenerating, setIsGenerating] = useState(false)
@@ -75,13 +71,11 @@ export function useReceiptGeneration({
     await mapWithConcurrency(eligible, GENERATION_CONCURRENCY, async ({ index }) => {
       setGeneratingIndices((prev) => new Set(prev).add(index))
       try {
-        let mediaId = getMediaId(index)
-        if (mediaId === undefined) {
-          mediaId = await uploadFileClient(files.get(index)!)
-          setMediaId(index, mediaId)
-        }
+        // Compress client-side (as the submit upload does) so the scan payload stays under the
+        // serverAction body limit; the model reads the smaller image fine.
+        const compressed = await compressImage(files.get(index)!)
         const result = await extractReceiptAction({
-          mediaId,
+          file: compressed,
           otherCategoryNames,
         })
         if (!result.success) throw new Error(result.error)
@@ -98,12 +92,13 @@ export function useReceiptGeneration({
           `lineItems[${index}].category`,
           resolveExpenseCategoryId(data.otherCategoryName, otherCategories),
         )
-        // Server renamed the stored file to the Opis; mirror it on the FV label (the row's
-        // fileInputKey is bumped once the whole generation finishes so the input re-reads the name).
+        // Apply the Opis-based name to the file now so it uploads under that name at submit, and
+        // mirror it on the FV label (fileInputKey is bumped once generation finishes so the
+        // uncontrolled input re-reads the name).
         if (data.filename) renameFile(index, data.filename)
       } catch (error) {
-        // SENTRY-REQUIRED (EX-449): per-receipt generation failures (upload + AI extraction) must
-        // be captured once Sentry is wired — a failed row otherwise dies in a generic toast.
+        // TODO(EX-449) SENTRY-REQUIRED: per-receipt AI extraction failures must be captured once
+        // Sentry is wired — a failed row otherwise dies in a generic toast.
         console.error(`[receipt-generation] row ${index} failed`, error)
         failed.add(index)
         failedMessages.add(error instanceof Error ? error.message : String(error))
@@ -127,7 +122,7 @@ export function useReceiptGeneration({
       toastMessage(`Odczytano ${ok} z ${eligible.length} paragonów`, 'success')
     } else {
       toastMessage(`Nie odczytano ${failed.size} z ${eligible.length} paragonów`, 'warning')
-      // SENTRY-REQUIRED (EX-449): dev/test only — surface the actual provider/upload error text
+      // TODO(EX-449) SENTRY-REQUIRED: dev/test only — surface the actual provider/upload error text
       // so failures are diagnosable without devtools. Kept until Sentry carries this in prod;
       // NODE_ENV-gated so it never leaks to users. Longer autoClose since these are long.
       if (process.env.NODE_ENV !== 'production') {

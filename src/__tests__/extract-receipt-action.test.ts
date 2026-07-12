@@ -1,33 +1,33 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// Regression guard for the relative-URL → base64 bug (EX-449 context): media.url is a
-// RELATIVE path on the local Payload route (`/api/media/file/…`). The old code handed that
-// string straight to the vision model, which mis-encoded it as base64 → OpenAI 400
-// (invalid_base64 / invalid_image_format). The fix resolves it to an absolute URL, fetches
-// the file, and sends the model BYTES. These tests pin that behavior.
+// The receipt scan is byte-in / persist-nothing: extractReceiptAction takes the picked File,
+// hands the model its BYTES, and creates NO media record — media is persisted only at submit.
+// This pins that contract; the orphaned-media bug came from persisting a file during the scan
+// that was then never linked to an expense (row removed, receipt swapped, form abandoned).
 
-const { findByID, extractReceiptSpy } = vi.hoisted(() => ({
-  findByID: vi.fn(),
+const { extractReceiptSpy, payloadSpy } = vi.hoisted(() => ({
   extractReceiptSpy: vi.fn(),
+  payloadSpy: { create: vi.fn(), update: vi.fn(), findByID: vi.fn() },
 }))
 
-// Bypass auth/payload wiring: run the handler directly with a stub payload.
+// Bypass auth/payload wiring: run the handler directly with a spied payload so we can assert
+// the scan never touches persistence.
 vi.mock('@/lib/actions/run-action', () => ({
   protectedAction: (_label: string, handler: (ctx: { payload: unknown }) => unknown) =>
-    handler({ payload: { findByID } }),
+    handler({ payload: payloadSpy }),
 }))
 
 vi.mock('@/lib/ai/openrouter', () => ({
   extractReceipt: extractReceiptSpy,
 }))
 
-vi.mock('next/headers', () => ({
-  headers: async () => new Map([['host', 'localhost:3000']]),
-}))
-
 import { extractReceiptAction } from '@/lib/actions/extract-receipt'
 
 const PNG_BYTES = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a])
+
+function receiptFile() {
+  return new File([PNG_BYTES], 'receipt-x.png', { type: 'image/png' })
+}
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -37,51 +37,47 @@ beforeEach(() => {
     invoiceNote: '',
     otherCategoryName: '',
   })
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(async () => ({ ok: true, status: 200, arrayBuffer: async () => PNG_BYTES.buffer })),
-  )
 })
 
 describe('extractReceiptAction', () => {
-  it('resolves a relative media.url against the request origin before fetching', async () => {
-    findByID.mockResolvedValue({ url: '/api/media/file/receipt-x.png', mimeType: 'image/png' })
-
-    await extractReceiptAction({
-      mediaId: 1,
-      otherCategoryNames: [],
-    })
-
-    expect(fetch).toHaveBeenCalledWith('http://localhost:3000/api/media/file/receipt-x.png')
-  })
-
-  it('passes image BYTES to the model, not the URL string', async () => {
-    findByID.mockResolvedValue({ url: '/api/media/file/receipt-x.png', mimeType: 'image/png' })
-
-    const result = await extractReceiptAction({
-      mediaId: 1,
-      otherCategoryNames: [],
-    })
+  it('passes the File BYTES (not a URL) to the model', async () => {
+    const result = await extractReceiptAction({ file: receiptFile(), otherCategoryNames: [] })
 
     expect(result.success).toBe(true)
-    const firstArg = extractReceiptSpy.mock.calls[0]?.[0]
-    expect(firstArg).toBeInstanceOf(Uint8Array)
-    expect(Array.from(firstArg as Uint8Array)).toEqual(Array.from(PNG_BYTES))
+    const [bytes, mimeType, filename] = extractReceiptSpy.mock.calls[0] ?? []
+    expect(bytes).toBeInstanceOf(Uint8Array)
+    expect(Array.from(bytes as Uint8Array)).toEqual(Array.from(PNG_BYTES))
+    expect(mimeType).toBe('image/png')
+    expect(filename).toBe('receipt-x.png')
   })
 
-  it('fails cleanly when the file cannot be fetched', async () => {
-    findByID.mockResolvedValue({ url: '/api/media/file/gone.png', mimeType: 'image/png' })
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => ({ ok: false, status: 404, arrayBuffer: async () => new ArrayBuffer(0) })),
-    )
+  it('writes nothing to storage during a scan', async () => {
+    await extractReceiptAction({ file: receiptFile(), otherCategoryNames: [] })
 
-    const result = await extractReceiptAction({
-      mediaId: 1,
-      otherCategoryNames: [],
+    expect(payloadSpy.create).not.toHaveBeenCalled()
+    expect(payloadSpy.update).not.toHaveBeenCalled()
+    expect(payloadSpy.findByID).not.toHaveBeenCalled()
+  })
+
+  it('returns an Opis-based filename for the client to apply at submit', async () => {
+    const result = await extractReceiptAction({ file: receiptFile(), otherCategoryNames: [] })
+
+    expect(result.success && result.data.filename).toBeTruthy()
+    // Derived from the extracted Opis, not the original upload name.
+    expect(result.success && result.data.filename).not.toBe('receipt-x.png')
+  })
+
+  it('keeps the original name (no rename) when the receipt is unreadable', async () => {
+    const { UNREADABLE_RECEIPT } = await import('@/lib/ai/receipt-extraction-schema')
+    extractReceiptSpy.mockResolvedValue({
+      description: UNREADABLE_RECEIPT,
+      amount: null,
+      invoiceNote: '',
+      otherCategoryName: '',
     })
 
-    expect(result.success).toBe(false)
-    expect(extractReceiptSpy).not.toHaveBeenCalled()
+    const result = await extractReceiptAction({ file: receiptFile(), otherCategoryNames: [] })
+
+    expect(result.success && result.data.filename).toBeUndefined()
   })
 })

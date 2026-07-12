@@ -1,6 +1,5 @@
 'use server'
 
-import { headers } from 'next/headers'
 import type { ActionResultT } from '@/types/action'
 import { protectedAction } from './run-action'
 import { extractReceipt } from '@/lib/ai/openrouter'
@@ -8,82 +7,39 @@ import { UNREADABLE_RECEIPT, type ReceiptExtractionT } from '@/lib/ai/receipt-ex
 import { buildReceiptFileName } from '@/lib/utils/receipt-filename'
 
 type ExtractReceiptInputT = {
-  mediaId: number
+  file: File
   otherCategoryNames: string[]
 }
 
-// `filename` is the media's new stored name after the Opis-based rename (undefined if the
-// rename was skipped or failed), so the client can mirror it on the FV label.
+// `filename` is the Opis-based name the client applies to the file before its submit-time upload
+// (undefined when the receipt was unreadable). A scan persists NOTHING — the file is uploaded
+// once, at submit — so this rename lands there, never as a mid-scan storage write.
 export type ReceiptFillResultT = ReceiptExtractionT & { filename?: string }
 
-// Resolve an already-uploaded media doc, fetch its bytes, run vision extraction, then rename
-// the stored file to match the extracted Opis so the receipt is identifiable in storage.
-// Takes a mediaId (never a File) — the repo uploads via the /api/upload-file route, so Files
-// never travel through a server action.
+// Takes the picked File and hands the model its bytes — no media record is created (that would
+// orphan on the server the moment the user removes the row or abandons the form). The 10mb
+// serverAction body limit + client-side compression keep the File under the boundary.
 export async function extractReceiptAction(
   input: ExtractReceiptInputT,
 ): Promise<ActionResultT<ReceiptFillResultT>> {
-  return protectedAction('extractReceiptAction', async ({ payload }) => {
-    const media = await payload.findByID({ collection: 'media', id: input.mediaId, depth: 0 })
-    const url = media?.url
-    const mimeType = media?.mimeType
-    const currentName = media?.filename
-    if (!url || !mimeType) return { success: false, error: 'Nie znaleziono pliku' }
+  return protectedAction('extractReceiptAction', async () => {
+    const { file, otherCategoryNames } = input
+    const mimeType = file.type
+    if (!mimeType) return { success: false, error: 'Nie znaleziono pliku' }
 
-    // media.url is relative on the local Payload route and absolute on blob storage.
-    // Absolutize against the request origin so the fetch works in both, then hand the
-    // model bytes — a URL the provider can't reach gets mis-encoded as base64. PDFs ride the
-    // same path; OpenRouter's file-parser plugin (see extractReceipt) parses them server-side.
-    const requestHeaders = await headers()
-    const host = requestHeaders.get('host')
-    const proto = requestHeaders.get('x-forwarded-proto') ?? 'http'
-    const absoluteUrl = host ? new URL(url, `${proto}://${host}`).toString() : url
-
-    const response = await fetch(absoluteUrl)
-    if (!response.ok)
-      return { success: false, error: `Nie udało się pobrać pliku (HTTP ${response.status})` }
-    const imageBytes = new Uint8Array(await response.arrayBuffer())
-
+    const imageBytes = new Uint8Array(await file.arrayBuffer())
     // The file-parser plugin routes PDFs by extension, so the filename must carry one. Fall
-    // back to a synthetic name derived from the mime subtype when the media has none.
-    const parserFilename = currentName ?? `receipt.${mimeType.split('/')[1] ?? 'pdf'}`
+    // back to a synthetic name derived from the mime subtype when the File has none.
+    const parserFilename = file.name || `receipt.${mimeType.split('/')[1] ?? 'pdf'}`
 
-    const data = await extractReceipt(
-      imageBytes,
-      mimeType,
-      parserFilename,
-      input.otherCategoryNames,
-    )
+    const data = await extractReceipt(imageBytes, mimeType, parserFilename, otherCategoryNames)
 
-    // Rename the stored file to the extracted Opis (re-supply the bytes so the storage adapter
-    // moves the blob and drops the old one; a filename-only update would strand it). Skip when
-    // the Opis is empty or the unreadable sentinel — keep the original upload name.
-    let filename: string | undefined
-    if (data.description && data.description !== UNREADABLE_RECEIPT) {
-      try {
-        const newName = buildReceiptFileName(data.description, currentName ?? url)
-        await payload.update({
-          collection: 'media',
-          id: input.mediaId,
-          data: { filename: newName },
-          file: {
-            data: Buffer.from(imageBytes),
-            mimetype: mimeType,
-            name: newName,
-            size: imageBytes.byteLength,
-          },
-          // MANAGER can run the fill but the collection's `update` is admin/owner-only — bypass
-          // it here so the rename (an internal side effect of a flow they're authorized for)
-          // still lands, without opening media editing in the admin panel to managers.
-          overrideAccess: true,
-        })
-        filename = newName
-      } catch (renameError) {
-        // SENTRY-REQUIRED (EX-449): a rename failure must not fail extraction — the Opis/amount
-        // are the valuable output, a stale filename is cosmetic. Log and keep the original name.
-        console.error('[receipt] media rename failed', renameError)
-      }
-    }
+    // Derive the Opis-based name for the client to apply before upload; skip on the unreadable
+    // sentinel or an empty Opis so the original filename is kept.
+    const filename =
+      data.description && data.description !== UNREADABLE_RECEIPT
+        ? buildReceiptFileName(data.description, parserFilename)
+        : undefined
 
     return { success: true, data: { ...data, filename } }
   })
