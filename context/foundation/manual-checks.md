@@ -222,3 +222,14 @@ Setup: run the app against the **5435 test DB** (see intro — the S-09 preset m
 - [x] The **"Wypełnij z szablonu"** empty-state CTA appears **only** when the tree is empty; seeding it populates the grid (grid remounts and shows rows) with all planned/measured quantities zero and the target's VAT/coeffs unchanged. _(Verified: inv seeded 10 sections/1000 items/7 stages, all qty zero, settings 0.70/0.60/0.23 untouched, grid remounted.)_
 - [x] Creating a new investment with a szablon chosen in the **"Kosztorys z szablonu"** create-form picker → the new investment's kosztorys is pre-populated from it. _(Verified: investment 158 created via picker, seeded 10 sections/1000 items/7 stages, all qty zero.)_
 - [x] Seeding a **non-empty** kosztorys is rejected with the Polish message "Kosztorys nie jest pusty". _(Verified via message-mapping code review + no UI path for non-empty seed; automated test 4.2 covers the guard.)_
+
+## receipt-scan-heic-and-filesize (EX-457)
+
+**In review** — all automated checks green (tsc, eslint, unit 14/14). The boxes below are the load-bearing device/platform gates that headless CI cannot cover; **none ticked yet**. The Safari-native HEIC spike is the highest-value one — the whole majority path (client native-first conversion via the OS HEVC codec) rests on it.
+
+Setup: run the app against the **5435 test DB** (see intro), log in as OWNER/MANAGER (expense dialog needs MANAGEMENT_ROLES), open "Nowy wydatek" with an investment selected. Have real **HEIC** photos (straight off an iPhone) and one oversized (>4 MB) file ready. Item 4 must be checked on a **Vercel preview deploy**, not local — the 4.5 MB cap is a platform behavior dev can't reproduce.
+
+- [ ] **Safari-native HEIC spike (load-bearing).** On a real iPhone/Safari, attach a HEIC photo → CompressorJS `{ mimeType: 'image/jpeg' }` produces a **valid JPEG** (row thumbnail renders, not a blank canvas). If this fails, the WASM fallback must cover Safari too.
+- [ ] **Chrome/Firefox desktop lazy fallback.** Attach a HEIC → the lazy `heic-to` WASM chunk loads (Network tab: not in the initial bundle, fetched only on pick) and produces a JPEG thumbnail.
+- [ ] **Preview + sharp derivative render.** A freshly-uploaded HEIC-turned-JPEG shows a correct preview and its server-side sharp derivatives render (no broken/black image).
+- [ ] **Oversize guard on a Vercel preview deploy.** Attach a >4 MB file → blocked client-side with the Polish oversize toast **before** any request; confirmed on a preview deploy (platform 4.5 MB cap), not just local.

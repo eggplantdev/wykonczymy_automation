@@ -242,4 +242,4 @@ discharge it.
 
 #### Automated
 
-- [x] 3.1 Type checking passes (`pnpm tsc --noEmit`)
+- [x] 3.1 Type checking passes (`pnpm tsc --noEmit`) — 508e76f

@@ -1,7 +1,7 @@
 ---
 change_id: receipt-scan-heic-and-filesize
 title: EX-457 receipt-scan HEIC handling + file-size hardening
-status: implementing
+status: implemented
 created: 2026-07-12
 updated: 2026-07-12
 archived_at: null
