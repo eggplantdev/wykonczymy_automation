@@ -81,9 +81,10 @@ export default buildConfig({
     vercelBlobStorage({
       collections: { media: true },
       token: process.env.BLOB_READ_WRITE_TOKEN,
-      // Unique blob key per upload — the store is shared across environments, so a
-      // deterministic key lets a test/local write silently overwrite a prod asset.
-      addRandomSuffix: true,
+      // Do NOT set addRandomSuffix: true — the plugin rewrites Payload's `filename` field to the
+      // suffixed blob key, polluting the user-facing label with a ~30-char token (EX-457 follow-up).
+      // Cross-env key uniqueness is already handled by appendShortId at the upload boundary
+      // (uploadFile → uniqueFileName).
     }),
   ],
 

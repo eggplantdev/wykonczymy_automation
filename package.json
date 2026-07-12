@@ -67,6 +67,7 @@
     "date-fns": "^4.1.0",
     "framer-motion": "^12.26.2",
     "googleapis": "^172.0.0",
+    "heic-to": "^1.5.2",
     "jose": "^5.9.6",
     "jszip": "^3.10.1",
     "lucide-react": "^0.563.0",

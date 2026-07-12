@@ -9,7 +9,10 @@ const nextConfig: NextConfig = {
   // cacheComponents: true,
   experimental: {
     serverActions: {
-      bodySizeLimit: '10mb',
+      // Vercel hard-caps function/action request bodies at 4.5 MB (413 FUNCTION_PAYLOAD_TOO_LARGE,
+      // thrown by the platform before our code runs — uncatchable in-function). This must not exceed
+      // it: a higher value is a lie on prod and only "works" locally where there is no platform cap.
+      bodySizeLimit: '4.5mb',
     },
   },
   // Cache rendered pages in the client Router Cache for 5 min.

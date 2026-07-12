@@ -39,3 +39,21 @@ export async function compressImage(originalFile: File, quality = QUALITY): Prom
     return originalFile
   }
 }
+
+// Transcode to JPEG via CompressorJS (canvas). On Safari the canvas decodes HEIC through the OS
+// HEVC codec, so forcing `mimeType: 'image/jpeg'` both decodes and resizes in one pass. Unlike
+// compressImage, this REJECTS on failure (Chrome/Firefox can't decode HEIC on canvas) so the
+// caller can fall back to a WASM decoder — it never silently returns the undecoded original.
+export function compressToJpeg(originalFile: File, quality = QUALITY): Promise<File> {
+  return new Promise<File>((resolve, reject) => {
+    new Compressor(originalFile, {
+      quality,
+      maxWidth: MAX_WIDTH,
+      maxHeight: MAX_HEIGHT,
+      mimeType: 'image/jpeg',
+      success: (compressed) =>
+        resolve(new File([compressed], originalFile.name, { type: 'image/jpeg' })),
+      error: (err) => reject(err),
+    })
+  })
+}

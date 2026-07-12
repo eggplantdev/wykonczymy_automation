@@ -224,22 +224,22 @@ discharge it.
 
 #### Automated
 
-- [ ] 1.1 Type checking passes after dead-cache removal (`pnpm generate:types && pnpm tsc --noEmit`)
-- [ ] 1.2 `resolveInvoiceMediaIds` unit test passes — uploads each file positionally, gaps → `undefined` (`invoice-media-resolve.test.ts`)
-- [ ] 1.3 `reindexAfterRemoval` unit test still passes on the files map alone (`use-invoice-files.test.ts`)
+- [x] 1.1 Type checking passes after dead-cache removal (`pnpm generate:types && pnpm tsc --noEmit`) — c1952e6
+- [x] 1.2 `resolveInvoiceMediaIds` unit test passes — uploads each file positionally, gaps → `undefined` (`invoice-media-resolve.test.ts`) — c1952e6
+- [x] 1.3 `reindexAfterRemoval` unit test still passes on the files map alone (`use-invoice-files.test.ts`) — c1952e6
 
 ### Phase 2 — Process-at-ingest pipeline
 
 #### Automated
 
-- [ ] 2.1 Type checking passes (`pnpm tsc --noEmit`)
-- [ ] 2.2 Dev CSS build still works after `heic-to` install (`pnpm dev` starts, no lightningcss error)
-- [x] 2.3 Classification unit test passes — HEIC-by-extension with empty `File.type` treated as image (`process-upload-file.test.ts`)
-- [x] 2.4 Filename/type rewrite unit test passes — `.heic → .jpg`, type `image/jpeg` (`process-upload-file.test.ts`)
-- [x] 2.5 Size-guard boundary unit test passes — `MAX_UPLOAD_BYTES` (4 MB) → `BlockedFileError('too-large')` (`process-upload-file.test.ts`)
+- [x] 2.1 Type checking passes (`pnpm tsc --noEmit`) — 69c5c37
+- [x] 2.2 Dev CSS build still works after `heic-to` install (`pnpm dev` starts, no lightningcss error) — 69c5c37
+- [x] 2.3 Classification unit test passes — HEIC-by-extension with empty `File.type` treated as image (`process-upload-file.test.ts`) — 8e342f7
+- [x] 2.4 Filename/type rewrite unit test passes — `.heic → .jpg`, type `image/jpeg` (`process-upload-file.test.ts`) — 8e342f7
+- [x] 2.5 Size-guard boundary unit test passes — `MAX_UPLOAD_BYTES` (4 MB) → `BlockedFileError('too-large')` (`process-upload-file.test.ts`) — 8e342f7
 
 ### Phase 3 — Guard UX & Polish messaging
 
 #### Automated
 
-- [ ] 3.1 Type checking passes (`pnpm tsc --noEmit`)
+- [x] 3.1 Type checking passes (`pnpm tsc --noEmit`) — 508e76f

@@ -68,9 +68,21 @@ function renameToJpg(name: string): string {
 
 const defaultDeps: ProcessUploadDepsT = {
   compressImage: (file) => import('@/lib/utils/compress-image').then((m) => m.compressImage(file)),
-  // TODO(EX-457): /10x-implement wires the real Safari-native → heic-to WASM decoder here (Phase 2).
-  convertHeicToJpeg: async () => {
-    throw new Error('HEIC decoder not wired')
+  // Native-first: Safari's canvas decodes HEIC via the OS HEVC codec, so CompressorJS with jpeg
+  // output both decodes and resizes in one pass. Chrome/Firefox can't decode HEIC on canvas →
+  // CompressorJS rejects → fall back to the lazy WASM decoder (heic-to, ~1.3 MB, only pulled when a
+  // HEIC is actually picked on a non-Safari browser), then resize the JPEG. Any throw here becomes a
+  // BlockedFileError('heic-unconvertible') in processUploadFile.
+  convertHeicToJpeg: async (file) => {
+    const { compressToJpeg, compressImage } = await import('@/lib/utils/compress-image')
+    try {
+      return await compressToJpeg(file)
+    } catch {
+      const { heicTo } = await import('heic-to')
+      const converted = await heicTo({ blob: file, type: 'image/jpeg', quality: 0.6 })
+      if (!(converted instanceof Blob)) throw new Error('heic-to did not return a JPEG blob')
+      return compressImage(new File([converted], file.name, { type: 'image/jpeg' }))
+    }
   },
 }
 
