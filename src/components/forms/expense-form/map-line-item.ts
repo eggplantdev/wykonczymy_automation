@@ -16,9 +16,8 @@ type PayloadLineItemT = {
   expenseCategory: number | undefined
 }
 
-/** Map one form line item (string fields) to the server shape. expenseCategory
- *  ("typ wydatku inwestycyjnego") rides only for types that use it — for a CORRECTION,
- *  only once the transfer has an investment. */
+/** expenseCategory ("typ wydatku inwestycyjnego") rides only for types that use it —
+ *  for a CORRECTION, only once the transfer has an investment. */
 export function mapLineItem(
   item: FormLineItemT,
   type: TransferTypeT,

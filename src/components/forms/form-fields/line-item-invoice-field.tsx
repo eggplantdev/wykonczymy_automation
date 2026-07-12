@@ -51,7 +51,6 @@ export function LineItemInvoiceField({
   const [previewOpen, setPreviewOpen] = useState(false)
   const replaceInputRef = useRef<HTMLInputElement>(null)
 
-  // Empty row → the plain upload control (click or drag to attach).
   if (!file || !url) {
     return (
       <FileInput
