@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useFormContext } from '../hooks/form-hooks'
 import { useFormStatus } from '../hooks/use-form-status'
-import { useKeepOpen } from './keep-open-context'
+import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import { Loader } from '@/components/ui/loader/loader'
 
 type FormFooterPropsT = {
@@ -17,7 +17,9 @@ export default function FormFooter({
   className,
 }: FormFooterPropsT) {
   const form = useFormContext()
-  const keepOpen = useKeepOpen()
+  const keepOpen = useOptimisticFormStore((s) => s.keepOpen)
+  const showKeepOpen = useOptimisticFormStore((s) => s.showKeepOpen)
+  const setKeepOpen = useOptimisticFormStore((s) => s.setKeepOpen)
 
   const { isInvalid, isSubmitting } = useFormStatus(form)
 
@@ -28,11 +30,11 @@ export default function FormFooter({
           <Button disabled={isSubmitting} type="submit">
             {isSubmitting && submittingLabel ? submittingLabel : label}
           </Button>
-          {keepOpen && (
+          {showKeepOpen && (
             <label className="ml-auto flex cursor-pointer items-center gap-2 text-sm select-none">
               <Checkbox
-                checked={keepOpen.keepOpen}
-                onCheckedChange={(checked) => keepOpen.setKeepOpen(checked === true)}
+                checked={keepOpen}
+                onCheckedChange={(checked) => setKeepOpen(checked === true)}
               />
               Nie zamykaj po zapisaniu
             </label>
