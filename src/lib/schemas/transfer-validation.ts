@@ -65,7 +65,7 @@ const transferFieldRules: FieldRuleT[] = [
 export function validateTransferFields(data: TransferFieldsT, ctx: z.RefinementCtx) {
   for (const rule of transferFieldRules) {
     if (rule.invalid(data)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: rule.message, path: [rule.path] })
+      ctx.addIssue({ code: 'custom', message: rule.message, path: [rule.path] })
     }
   }
 }
@@ -79,7 +79,7 @@ export function validateLineItemCategories(
   lineItems.forEach((item, index) => {
     if (needsExpenseCategory(type, hasInvestment) && !item.expenseCategory) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: `${EXPENSE_CATEGORY_LABEL} jest wymagany`,
         path: ['lineItems', index, 'expenseCategory'],
       })

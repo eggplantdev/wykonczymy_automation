@@ -20,7 +20,7 @@ export const investmentSchema = investmentFormSchema.extend({
   address: z.string().optional().default(''),
   phone: z.string().optional().default(''),
   email: z
-    .union([z.literal(''), z.string().email('Nieprawidłowy adres email')])
+    .union([z.literal(''), z.email('Nieprawidłowy adres email')])
     .optional()
     .default(''),
   contactPerson: z.string().optional().default(''),
