@@ -2,16 +2,16 @@
 
 import type { ActionResultT } from '@/types/action'
 import { protectedAction } from './run-action'
-import { getOpenRouterCredits, type OpenRouterCreditsT } from '@/lib/ai/openrouter-credits'
+import { getOpenRouterBalance, type OpenRouterBalanceT } from '@/lib/ai/openrouter-balance'
 
 // Read-only: expose the shared OpenRouter wallet balance to authenticated users so the nav can show
 // remaining credit. TopNav is a client component, so it reaches the server-only key through here.
 // No mutation, no cache revalidation.
-export async function getOpenRouterCreditsAction(): Promise<
-  ActionResultT<OpenRouterCreditsT | null>
+export async function getOpenRouterBalanceAction(): Promise<
+  ActionResultT<OpenRouterBalanceT | null>
 > {
-  return protectedAction('getOpenRouterCreditsAction', async () => {
-    const credits = await getOpenRouterCredits()
-    return { success: true, data: credits }
+  return protectedAction('getOpenRouterBalanceAction', async () => {
+    const balance = await getOpenRouterBalance()
+    return { success: true, data: balance }
   })
 }

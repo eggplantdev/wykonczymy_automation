@@ -3,28 +3,28 @@
 import { useEffect, useState } from 'react'
 import { WandSparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { getOpenRouterCreditsAction } from '@/lib/actions/openrouter-credits'
-import type { OpenRouterCreditsT } from '@/lib/ai/openrouter-credits'
+import { getOpenRouterBalanceAction } from '@/lib/actions/openrouter-balance'
+import type { OpenRouterBalanceT } from '@/lib/ai/openrouter-balance'
 
 const usd = (n: number) => `$${n.toFixed(2)}`
 
 // Fetches the shared OpenRouter wallet on mount via a server action (TopNav is a client component,
 // so it can't read the server-only key directly). Renders nothing until/unless a balance resolves —
 // a flaky or unreachable OpenRouter simply shows no chip, never a broken state.
-export function NavCredits({ className }: { className?: string }) {
-  const [credits, setCredits] = useState<OpenRouterCreditsT | null>(null)
+export function NavOpenRouterBalance({ className }: { className?: string }) {
+  const [balance, setBalance] = useState<OpenRouterBalanceT | null>(null)
 
   useEffect(() => {
     let active = true
-    getOpenRouterCreditsAction().then((res) => {
-      if (active && res.success && res.data) setCredits(res.data)
+    getOpenRouterBalanceAction().then((res) => {
+      if (active && res.success && res.data) setBalance(res.data)
     })
     return () => {
       active = false
     }
   }, [])
 
-  if (!credits) return null
+  if (!balance) return null
 
   return (
     <Button
@@ -32,12 +32,12 @@ export function NavCredits({ className }: { className?: string }) {
       variant="ai"
       size="sm"
       className={className}
-      title={`Saldo OpenRouter: ${usd(credits.remaining)} z ${usd(credits.total)}`}
-      data-testid="nav-openrouter-credits"
+      title={`Saldo OpenRouter: ${usd(balance.remaining)} z ${usd(balance.total)}`}
+      data-testid="nav-openrouter-balance"
     >
       <WandSparkles className="text-neon-cyan" />
       <span className="text-neon-cyan font-semibold tabular-nums">
-        Saldo {usd(credits.remaining)}
+        Saldo {usd(balance.remaining)}
       </span>
     </Button>
   )
