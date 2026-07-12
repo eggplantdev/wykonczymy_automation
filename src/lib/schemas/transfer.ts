@@ -30,7 +30,7 @@ export const createTransferSchema = z
   .superRefine((data, ctx) => {
     const amountErr = getAmountError(data.amount, data.type)
     if (amountErr) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: amountErr, path: ['amount'] })
+      ctx.addIssue({ code: 'custom', message: amountErr, path: ['amount'] })
     }
     validateTransferFields(data, ctx)
   })

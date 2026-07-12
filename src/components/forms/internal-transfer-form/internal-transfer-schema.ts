@@ -14,7 +14,7 @@ export const createInternalTransferSchema = z
   .superRefine((data, ctx) => {
     if (data.targetRegister === data.sourceRegister) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: 'Kasa docelowa musi być inna niż kasa źródłowa',
         path: ['targetRegister'],
       })
@@ -40,7 +40,7 @@ export const internalTransferFormSchema = z
 
     if (!data.sourceRegister) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: 'Kasa źródłowa jest wymagana',
         path: ['sourceRegister'],
       })
@@ -48,7 +48,7 @@ export const internalTransferFormSchema = z
 
     if (!data.targetRegister) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: 'Kasa docelowa jest wymagana',
         path: ['targetRegister'],
       })
@@ -56,7 +56,7 @@ export const internalTransferFormSchema = z
 
     if (data.targetRegister && data.sourceRegister && data.targetRegister === data.sourceRegister) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: 'Kasa docelowa musi być inna niż kasa źródłowa',
         path: ['targetRegister'],
       })

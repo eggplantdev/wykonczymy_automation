@@ -1,0 +1,83 @@
+'use server'
+
+import { z } from 'zod'
+import { protectedAction, validateAction } from '@/lib/actions/run-action'
+import { getDb } from '@/lib/db/get-db'
+import { insertPreset, upsertPresetByName, type PresetMetaT } from '@/lib/db/presets'
+import { getPresets } from '@/lib/queries/presets'
+import { seedInvestmentFromPreset } from '@/lib/kosztorys/seed-from-preset'
+import { serializeKosztorysAsPreset } from '@/lib/kosztorys/serialize-preset'
+import type { ActionResultT } from '@/types/action'
+
+const savePresetSchema = z.object({
+  name: z.string().trim().min(1, 'Podaj nazwę szablonu'),
+  mode: z.enum(['new', 'overwrite']),
+})
+
+// "Zapisz jako preset" — serialize the current kosztorys with job fields stripped, then store it as
+// a named preset. `mode: 'new'` inserts under a fresh name (a taken name is rejected — insertPreset
+// returns null on conflict); `mode: 'overwrite'` upserts the payload of the existing name in place.
+// The only writer of presets, so it owns invalidation of the cached picker read (getPresets).
+export async function savePresetAction(
+  investmentId: number,
+  name: string,
+  mode: 'new' | 'overwrite',
+): Promise<ActionResultT> {
+  return protectedAction(
+    'savePresetAction',
+    async ({ payload, user }) => {
+      const parsed = validateAction(savePresetSchema, { name, mode })
+      if (!parsed.success) return parsed
+
+      const db = await getDb(payload)
+      const preset = await serializeKosztorysAsPreset(investmentId)
+
+      if (parsed.data.mode === 'overwrite') {
+        await upsertPresetByName(db, {
+          name: parsed.data.name,
+          createdBy: user.id,
+          payload: preset,
+        })
+        return { success: true }
+      }
+
+      const id = await insertPreset(db, {
+        name: parsed.data.name,
+        createdBy: user.id,
+        payload: preset,
+      })
+      if (id == null) return { success: false, error: 'Szablon o tej nazwie już istnieje' }
+      return { success: true }
+    },
+    ['presets'],
+  )
+}
+
+// Populate an EMPTY investment's kosztorys from a preset (empty-editor "Wypełnij z szablonu"). The
+// seed orchestration + empty-guard live in seedInvestmentFromPreset; this action owns auth and the
+// revalidation. Four tree tags only — NOT `investments`: settings (VAT/coeffs) are untouched, a
+// preset never carries one job's pricing config onto another.
+export async function seedFromPresetAction(
+  investmentId: number,
+  presetId: number,
+): Promise<ActionResultT> {
+  return protectedAction(
+    'seedFromPresetAction',
+    async ({ payload }) => {
+      const result = await seedInvestmentFromPreset(payload, investmentId, presetId)
+      if (result === 'not-found') return { success: false, error: 'Nie znaleziono szablonu' }
+      if (result === 'not-empty') return { success: false, error: 'Kosztorys nie jest pusty' }
+      return { success: true }
+    },
+    ['kosztorysSections', 'kosztorysItems', 'kosztorysStages', 'stageProgress'],
+  )
+}
+
+// Preset metadata for the save/seed pickers — the client-side entry point (fetch-on-open) into the
+// same cached read the create-investment page uses server-side, so all pickers share one cache entry.
+export async function listPresetsAction(): Promise<ActionResultT<PresetMetaT[]>> {
+  return protectedAction('listPresetsAction', async () => {
+    const data = await getPresets()
+    return { success: true, data }
+  })
+}

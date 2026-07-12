@@ -134,6 +134,7 @@ Non-blocking refactor/cleanup findings live in Linear (project "Wykonczymy v2").
 
 - React Compiler is enabled — don't hand-write `useMemo` / `useCallback` for things it handles
 - `src/app/(payload)/layout.tsx` must include `importMap`, `serverFunction`, and `handleServerFunctions`
+- A `console.error` that must become a Sentry capture once Sentry is wired gets a `// TODO(EX-449) SENTRY-REQUIRED:` marker (greppable + shows in the IDE TODO panel) — never a bare comment
 
 ## Environment Variables
 

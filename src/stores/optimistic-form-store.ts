@@ -12,8 +12,14 @@ type PendingSubmissionT = {
 type OptimisticFormStoreT = {
   // Dialog open/close — which formId is currently open (null = all closed)
   openFormId: string | null
-  openDialog: (formId: string) => void
+  openDialog: (formId: string, showKeepOpen?: boolean) => void
   closeDialog: () => void
+
+  // "Keep dialog open after save" toggle — dialog UI state, read by FormFooter (the checkbox)
+  // and FormDialog (handleSuccess). Only one dialog is open at a time, so a single field suffices.
+  keepOpen: boolean
+  showKeepOpen: boolean
+  setKeepOpen: (keepOpen: boolean) => void
 
   // Submission state
   submission: PendingSubmissionT | null
@@ -30,9 +36,16 @@ type OptimisticFormStoreT = {
 export const useOptimisticFormStore = create<OptimisticFormStoreT>()((set) => ({
   openFormId: null,
   submission: null,
+  keepOpen: false,
+  showKeepOpen: false,
 
-  openDialog: (formId) => set({ openFormId: formId }),
+  // Reset keepOpen on every fresh open so a prior "keep open" choice doesn't stick across reopens
+  // (the Dialog is always mounted, so local state would persist). A failed submit reopens via
+  // submitOptimistically, which leaves keepOpen untouched — preserving the choice for the retry.
+  openDialog: (formId, showKeepOpen = true) =>
+    set({ openFormId: formId, keepOpen: false, showKeepOpen }),
   closeDialog: () => set({ openFormId: null, submission: null }),
+  setKeepOpen: (keepOpen) => set({ keepOpen }),
 
   submitOptimistically: (formId, invoiceFiles, action, successMessage, onSuccess) => {
     // Close dialog + save file snapshot

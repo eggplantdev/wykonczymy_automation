@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { InvoiceThumbnail } from '@/components/invoice-thumbnail'
+import { InvoicePreviewButton } from '@/components/dialogs/invoice-preview-button'
 import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
 import { FileInput } from '@/components/ui/file-input'
@@ -173,7 +173,7 @@ export function EditTransferForm({
 
           <div className="space-y-2">
             {row.invoiceUrl && !selectedFileName && (
-              <InvoiceThumbnail
+              <InvoicePreviewButton
                 url={row.invoiceUrl}
                 filename={row.invoiceFilename}
                 mimeType={row.invoiceMimeType}

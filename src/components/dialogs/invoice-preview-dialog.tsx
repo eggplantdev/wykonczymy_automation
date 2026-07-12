@@ -15,6 +15,8 @@ type InvoicePreviewDialogPropsT = {
   onOpenChange: (open: boolean) => void
   onReplace?: () => void
   onRemove?: () => void
+  // next/image can't run the optimizer on a local blob: URL (not-yet-uploaded file) — serve it raw.
+  unoptimized?: boolean
 }
 
 export function InvoicePreviewDialog({
@@ -25,6 +27,7 @@ export function InvoicePreviewDialog({
   onOpenChange,
   onReplace,
   onRemove,
+  unoptimized,
 }: InvoicePreviewDialogPropsT) {
   const isImage = mimeType?.startsWith('image/')
   const isPdf = mimeType === 'application/pdf'
@@ -32,19 +35,40 @@ export function InvoicePreviewDialog({
   const [isMediaLoading, setIsMediaLoading] = useState(true)
 
   function handlePrint() {
+    if (!isImage && !isPdf) return
+    // Must open a blank window (about:blank inherits our origin + base URL), then build the
+    // document with DOM APIs. Loading the window from a blob:/data: URL instead gives it an
+    // opaque origin where `url` — a relative Payload path OR a not-yet-uploaded blob: preview —
+    // no longer resolves, so the media never loads and print never fires.
     const printWindow = window.open('', '_blank')
     if (!printWindow) return
 
-    const content = isImage
-      ? `<img src="${url}" alt="${displayName}" style="max-width:100%;height:auto" onload="window.print();window.close()" />`
-      : isPdf
-        ? `<iframe src="${url}" style="width:100%;height:100vh;border:none" onload="window.print();window.close()"></iframe>`
-        : ''
+    const doc = printWindow.document
+    doc.title = displayName
+    doc.body.style.margin = '0'
 
-    printWindow.document.write(
-      `<!DOCTYPE html><html><head><title>${displayName}</title></head><body style="margin:0">${content}</body></html>`,
-    )
-    printWindow.document.close()
+    let media: HTMLImageElement | HTMLIFrameElement
+    if (isImage) {
+      const img = doc.createElement('img')
+      img.src = url
+      img.alt = displayName
+      img.style.maxWidth = '100%'
+      img.style.height = 'auto'
+      media = img
+    } else {
+      const frame = doc.createElement('iframe')
+      frame.src = url
+      frame.style.width = '100%'
+      frame.style.height = '100vh'
+      frame.style.border = 'none'
+      media = frame
+    }
+
+    media.addEventListener('load', () => {
+      printWindow.print()
+      printWindow.close()
+    })
+    doc.body.appendChild(media)
   }
 
   return (
@@ -66,6 +90,7 @@ export function InvoicePreviewDialog({
                 fill
                 sizes="(max-width:1200px) 90vw, 1000px"
                 quality={50}
+                unoptimized={unoptimized}
                 className="object-contain"
                 onLoad={() => setIsMediaLoading(false)}
                 onError={() => setIsMediaLoading(false)}

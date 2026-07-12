@@ -5,6 +5,7 @@ import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
 import { useInvoiceFiles } from '@/components/forms/hooks/use-invoice-files'
+import { useReceiptGeneration } from '@/components/forms/hooks/use-receipt-generation'
 import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import { useSaldo } from '@/components/forms/hooks/use-saldo'
 import {
@@ -21,7 +22,8 @@ import {
 } from '@/lib/constants/transfers'
 import { createBulkTransferAction } from '@/lib/actions/transfers'
 import { mapLineItem } from '@/components/forms/expense-form/map-line-item'
-import { uploadFilesClient } from '@/lib/utils/upload-file-client'
+import type { BulkExpenseFormValuesT } from '@/components/forms/expense-form/bulk-expense-form'
+import { resolveInvoiceMediaIds } from '@/lib/utils/upload-file-client'
 import {
   bulkExpenseFormSchema,
   type CreateBulkExpenseFormT,
@@ -49,23 +51,7 @@ type TransferFormPropsT = {
 
 // Form state uses strings since HTML inputs/selects work with strings.
 // Numeric conversion happens in the server action.
-type FormValuesT = {
-  date: string
-  type: string
-  paymentMethod: string
-  sourceRegister: string
-  targetRegister: string
-  investment: string
-  worker: string
-  settled: boolean
-  lineItems: {
-    description: string
-    amount: string
-    invoiceNote: string
-    category: string
-    expenseCategory: string
-  }[]
-}
+type FormValuesT = BulkExpenseFormValuesT
 
 const FORM_ID = 'expense'
 
@@ -85,14 +71,42 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
   const {
     handleRemoveLineItem,
     handleFileChange,
+    registerFilesAt,
+    getFile,
     getFiles,
+    renameFile,
+    getMediaIds,
     reset: resetInvoiceFiles,
   } = useInvoiceFiles(recoveredFiles)
+
+  // Bump the key after a batch add so the affected rows re-render and swap their file
+  // input for the attached-file thumbnail.
+  function handleRegisterFiles(startIndex: number, files: File[]) {
+    registerFilesAt(startIndex, files)
+    setFileInputKey((k) => k + 1)
+  }
+
+  // Files live in a ref (no re-render on mutation) — bump the key so the row re-renders
+  // and reveals its preview button once a file is attached.
+  function handleAttachFile(index: number, e: React.ChangeEvent<HTMLInputElement>) {
+    handleFileChange(index, e)
+    setFileInputKey((k) => k + 1)
+  }
+
+  // Re-align the generation markers (failed/in-flight) alongside the file maps on row removal.
+  // Bump the key so surviving rows re-render and re-read their file from the reindexed ref —
+  // otherwise a shifted-up row keeps showing the removed row's file input/thumbnail.
+  function handleRemove(index: number, removeValue: (index: number) => void) {
+    handleRemoveLineItem(index, removeValue)
+    onRowRemoved(index)
+    setFileInputKey((k) => k + 1)
+  }
 
   function handleReset() {
     resetFormData()
     resetSaldo()
     resetInvoiceFiles()
+    resetGeneration()
     setFileInputKey((k) => k + 1)
   }
 
@@ -147,7 +161,13 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
           let invoiceMediaIds: (number | undefined)[] | undefined
           if (files.size > 0) {
             try {
-              invoiceMediaIds = await uploadFilesClient(files, value.lineItems.length)
+              // Upload every attached file once, here at submit — the AI scan no longer persists
+              // anything, so there are no pre-scanned mediaIds to reuse (the map stays empty).
+              invoiceMediaIds = await resolveInvoiceMediaIds(
+                value.lineItems.length,
+                files,
+                getMediaIds(),
+              )
             } catch (err) {
               const message = err instanceof Error ? err.message : 'Nie udało się przesłać plików'
               return { success: false, error: message }
@@ -166,6 +186,28 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
   })
 
   useCheckFormErrors(form)
+
+  const {
+    generateFromReceipts,
+    isGenerating,
+    generatingIndices,
+    failedIndices,
+    generationProgress,
+    onRowRemoved,
+    resetGeneration,
+  } = useReceiptGeneration({
+    form,
+    otherCategories: referenceData.otherCategories,
+    getFiles,
+    renameFile,
+  })
+
+  // Run the generation, then remount the uncontrolled file inputs so each re-reads its (possibly
+  // renamed) filename from the ref — the labels can't update in place.
+  async function handleGenerate() {
+    await generateFromReceipts()
+    setFileInputKey((k) => k + 1)
+  }
 
   const currentType = useStore(form.store, (s) => s.values.type)
   const currentInvestment = useStore(form.store, (s) => s.values.investment)
@@ -186,6 +228,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     // bump the key to remount the inputs — otherwise a file queued before the type
     // switch attaches to the wrong/nonexistent line item on submit.
     resetInvoiceFiles()
+    resetGeneration()
     setFileInputKey((k) => k + 1)
     resetSaldo()
   }
@@ -249,9 +292,16 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
             form={form}
             total={total}
             hasInvestment={!!currentInvestment}
-            onRemoveItem={handleRemoveLineItem}
-            onFileChange={handleFileChange}
+            onRemoveItem={handleRemove}
+            onFileChange={handleAttachFile}
+            onRegisterFiles={handleRegisterFiles}
+            getFile={getFile}
             fileInputKey={fileInputKey}
+            onGenerate={handleGenerate}
+            isGenerating={isGenerating}
+            generatingIndices={generatingIndices}
+            failedIndices={failedIndices}
+            generationProgress={generationProgress}
             transferType={currentType}
             referenceData={referenceData}
           />
@@ -260,7 +310,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
 
       {saldo !== null && <SaldoSummary saldo={saldo} total={total} />}
 
-      <FormFooter className="mt-6" />
+      <FormFooter className="mt-6" label="Zapisz" />
     </FormShell>
   )
 }

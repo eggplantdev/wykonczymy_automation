@@ -11,7 +11,7 @@ import { FormSelect } from '../form-components/form-select'
 import { FormTextarea } from '../form-components/form-textarea'
 import { FormInput } from '../form-components/form-input'
 // Create the full form hook with field components
-const { useAppForm } = createFormHook({
+const { useAppForm, withForm } = createFormHook({
   fieldComponents: {
     Input: FormInput,
     Select: FormSelect,
@@ -28,4 +28,4 @@ const { useAppForm } = createFormHook({
 export { useFieldContext, useFormContext, useStore }
 
 // Export form hook
-export { useAppForm }
+export { useAppForm, withForm }

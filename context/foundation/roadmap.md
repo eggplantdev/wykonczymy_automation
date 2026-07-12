@@ -3,7 +3,7 @@ project: 'Wykonczymy — off-sheets phase 1'
 version: 1
 status: draft
 created: 2026-06-12
-updated: 2026-07-10
+updated: 2026-07-11
 prd_version: 1
 main_goal: quality
 top_blocker: none
@@ -30,6 +30,14 @@ top_blocker: none
 > S-16→S-08 preset · S-07→S-09 export · S-10→S-10 importer · S-08→S-11 editor-e2e-coverage ·
 > S-02→S-12 financial-core-smoke · S-15→S-13 hardening · S-09→S-14 new-investment-no-sheet.
 > Unnumbered (pulled out of sequence): S-05→cut rooms · S-06→folded catalogue (→S-08).
+
+> **Carved autocomplete out of S-09 (2026-07-11, owner).** FR-006 (add items via autocomplete over
+> preset prace) — folded into the preset slice on 2026-07-09 — was carved back out into its own
+> **deferred, unsequenced** slice `kosztorys-item-autocomplete`. S-09 narrows to preset **seed +
+> save-as**. Reason: autocomplete is the highest-UI-risk / lowest-marginal-value part (custom dsg
+> cell, no async-combobox precedent) and is strictly downstream of preset storage, so it can ship
+> later with zero rework. The owner is still deciding whether/when to build it; it gets a number
+> (tail renumber) only on commit. Detail in [Cut & folded slices](#cut--folded-slices).
 
 > **Inserted snapshots slice (2026-07-10, owner).** Editor-safety recovery was split into **two
 > independent nets** after a design discussion (see each slice's body): **S-06 kosztorys-snapshots**
@@ -122,7 +130,7 @@ Bands: **editor parity S-01–S-10** (active) → **import/export S-11–S-12** 
 | S-15 | kosztorys-hardening             | quality / perf / a11y hardening pass before cutover                                    | S-13               | — (POC)                       | deferred  | —          |
 | S-16 | new-investment-no-sheet         | create a new investment with no Google Sheet, kosztorys app-only                       | S-13, S-15         | FR-009, FR-014, FR-016, US-01 | deferred  | —          |
 
-**Cut / folded (unnumbered):** `kosztorys-rooms` — CUT (pokoje out of scope, 2026-07-08). `kosztorys-catalogue` — FOLDED into S-09 (Model A: preset-sourced autocomplete, 2026-07-09). See [Cut & folded slices](#cut--folded-slices).
+**Cut / folded (unnumbered):** `kosztorys-rooms` — CUT (pokoje out of scope, 2026-07-08). `kosztorys-catalogue` — FOLDED into S-09 (2026-07-09), then the autocomplete carved back out as `kosztorys-item-autocomplete` — DEFERRED, unsequenced (owner still deciding, 2026-07-11). See [Cut & folded slices](#cut--folded-slices).
 
 ## Bands
 
@@ -315,22 +323,20 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Risk:** the guard must reject the delete **server-side** in the delete actions (`removeItemAction` / section / stage removal), not merely hide/disable the trash affordance — a client-only block is bypassable and races autosave. Risk: a too-aggressive predicate blocks legitimate cleanup; keep "populated" tight and give a clear "clear values first" message.
 - **Status:** in review
 
-### S-09: Kosztorys presets (templates) + autocomplete
+### S-09: Kosztorys presets (templates)
 
 - **Outcome:** a Manager+ user can (a) seed a new kosztorys from a preset — a reusable skeleton of sekcje + prace + prices — instead of starting blank, and (b) save an existing kosztorys back as a preset. Restores the legacy Sheets behaviour (`KOSZTORYS_TEMPLATE_SHEET_ID` seeded new sheets from a template) that the in-app editor dropped in S-01 — a parity gap the original roadmap never captured.
 - **Shipped 2026-07-11 (EX-414, Done).** The autocomplete-over-preset-prace part (FR-006, item (c)) was **carved out** at plan time (owner, 2026-07-11) into a separate deferred slice → **EX-434** (`kosztorys-item-autocomplete`); S-09 shipped presets-only. Review gate filed EX-438/439/440/441 (tech-debt) and EX-442 (owed E2E, `e2e-backlog`).
 - **Change ID:** kosztorys-preset
-- **PRD refs:** FR-006 (folded from the catalogue slice); otherwise owner request (2026-07-09; not in the original PRD)
-- **Folded catalogue (Model A, owner 2026-07-09):** no separate catalogue table — autocomplete is a read-only view over the union of `prace` across presets, snapshotting opis + J.m. + price into the item on select (overwritable). Building presets _is_ seeding the suggestions, so there is no empty-catalogue risk. **Open (from the fold):** duplicate prace across presets at different prices — show each occurrence or dedupe by opis with a default price? Decide at plan time.
+- **PRD refs:** owner request (2026-07-09; not in the original PRD). FR-006 (autocomplete) was folded in here on 2026-07-09, then **carved back out** on 2026-07-11 (owner) as its own deferred slice — see [Cut & folded slices](#cut--folded-slices). S-09 no longer ships autocomplete.
 - **Prerequisites:** S-01
 - **Parallel with:** the other editor + export slices (S-02–S-08, S-10–S-11)
 - **Blockers:** —
 - **Settled shape (owner, 2026-07-09):**
   - A preset = a kosztorys with the job-specific fields stripped. **Keep:** sekcje (structure), prace (opis), J.m., prices, coefficients/overrides. **Reset:** przedmiar/pomiar (amounts), rabat (discount), stage progress (S-03), note, hiddenInExport.
-  - **Snapshot pricing throughout.** Catalogue and preset prices are _seed-defaults only_ — copied in as an initial value, then owned/overwritable per item. Never a live source of truth. Rationale: the same work costs differently investment-to-investment (different team → different price), so a centralised/live price is wrong. This mirrors the PRD's catalogue snapshot rule (a later master-price change never touches existing items) and extends it to presets.
-  - **Absorbs the catalogue (autocomplete), no live price authority.** Because the preset embeds its own frozen prices, autocomplete over preset prace is a _suggestion + seed-default_ layer only — the snapshotted item price stays overwritable and is never re-read from the source. Never a centralised/live price.
-- **Open (decision 9):** one global default preset vs a named library picked at create-time (owner leans library — "selecting from presets", plural). — Owner: user. Block: no.
-- **Open (decision 10):** save-as behaviour — always save-as-new vs overwrite an existing preset; and retroactivity (recommendation: kosztorysy already spawned from a preset stay frozen when the preset is later edited — same snapshot rule). — Owner: user. Block: no.
+  - **Snapshot pricing throughout.** Preset prices are _seed-defaults only_ — copied in as an initial value, then owned/overwritable per item. Never a live source of truth. Rationale: the same work costs differently investment-to-investment (different team → different price), so a centralised/live price is wrong. This mirrors the PRD's catalogue snapshot rule (a later master-price change never touches existing items) and extends it to presets.
+- **Resolved (decision 9, owner 2026-07-11):** named library, one row per preset in a new global `kosztorys_presets` table (`{id, name, schema_version, payload jsonb, created_at, created_by}`); reuses the S-06 serialize/apply engine via a forked `restoreKosztorys`. See `context/changes/kosztorys-preset/change.md`.
+- **Resolved (decision 10, owner 2026-07-11):** save-as offers **both** save-new and overwrite-existing; kosztorysy already spawned from a preset stay **frozen** when the preset is later edited (snapshot rule). Seed target v1 = **empty kosztorys only** (insert-only, no wipe/append/pre-apply snapshot).
 - **Risk:** The preset carries _structure_ (sekcje → prace) with embedded snapshot prices. Risk: letting a preset link become a live price authority reintroduces the centralisation the owner explicitly rejected. Keep prices embedded + overwritable.
 - **Status:** done
 
@@ -380,7 +386,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 ### S-13: Editor E2E coverage (release gate)
 
-- **Outcome:** the kosztorys editor flows are end-to-end-covered by the automated suite before the owner-facing release — sections/items/pricing/stages/subcontractor-pricing/VAT/snapshots/undo/delete-guard/column-rbac/preset+autocomplete/export/import exercised without a manual pass.
+- **Outcome:** the kosztorys editor flows are end-to-end-covered by the automated suite before the owner-facing release — sections/items/pricing/stages/subcontractor-pricing/VAT/snapshots/undo/delete-guard/column-rbac/preset/export/import exercised without a manual pass (autocomplete once its deferred slice ships).
 - **Change ID:** editor-e2e-coverage
 - **PRD refs:** FR-013
 - **Prerequisites:** F-01, S-01…S-12 (all editor + import/export slices)
@@ -441,7 +447,7 @@ Kept for the record; pulled out of the numbered sequence because they carry no e
 - **Change ID:** kosztorys-rooms
 - **Was:** S-05 (pre-2026-07-10 numbering).
 
-#### kosztorys-catalogue — FOLDED into S-09
+#### kosztorys-catalogue — FOLDED into S-09, then autocomplete CARVED OUT
 
 - **FOLDED into S-09 (2026-07-09, owner).** FR-006 (add items via autocomplete, hand-typing
   always allowed) survives — it is **not cut** — but ships as part of the preset slice, not a
@@ -453,9 +459,20 @@ Kept for the record; pulled out of the numbered sequence because they carry no e
   that data, snapshotting opis + J.m. + price into the new item on select (overwritable per the
   snapshot rule). This dissolves the old seeding question (Q6) — building presets _is_ seeding the
   suggestions.
-- **Change ID:** kosztorys-catalogue (retired; work tracked under kosztorys-preset / S-09).
+- **CARVED BACK OUT of S-09 (2026-07-11, owner).** S-09 narrowed to preset **seed + save-as**; the
+  autocomplete (FR-006) becomes its own deferred slice **`kosztorys-item-autocomplete`**. Reasoning:
+  it is the highest-UI-risk, lowest-marginal-value part (custom `react-datasheet-grid` cell — the
+  repo has no async-search combobox precedent — plus the remount-`key`/frozen-columns dsg traps),
+  and it is a strictly downstream, read-only view over preset `prace`, so it needs preset storage
+  (which S-09 builds) to exist first and can land later with zero rework to the preset engine. With
+  "seed-then-tweak" as the primary flow (seed on empty only), per-item suggestions barely get
+  exercised. Model A (preset-sourced, snapshot-into-item) still stands; open question — duplicate
+  prace across presets (show each vs dedupe by opis) — moves to that slice.
+- **Change ID:** kosztorys-item-autocomplete (FR-006). **Status: deferred, unsequenced** — owner
+  still deciding whether/when to build. To be numbered (renumber the tail, per the strict-numeric
+  convention) into the editor band after S-09 when the owner commits.
 - **PRD refs:** FR-006.
-- **Was:** S-06 (pre-2026-07-10 numbering).
+- **Was:** S-06 (pre-2026-07-10 numbering; as kosztorys-catalogue).
 
 ## Open Roadmap Questions
 
@@ -478,8 +495,9 @@ slice's Unknowns.
 6. ~~**Catalogue seeding.**~~ **Resolved (2026-07-09):** dissolved by folding the catalogue into S-08 with Model A — autocomplete sources from preset prace, so building presets _is_ seeding. No standalone catalogue to seed.
 7. **Importer trigger (FR-010).** What concretely triggers the deferred importer? — Owner: user. Gates: S-12.
 8. **Settings-home UX.** Where VAT (S-05) + subcontractor coefficients (S-04) are edited — detail-inwestycji or a future "Podsumowanie" panel, not the side panel. — Owner: user. Gates: S-04, S-05.
-9. **Preset scope (S-09).** One global default preset vs a named library picked at create-time (owner leans library). — Owner: user. Gates: S-09.
-10. **Preset save-as + retroactivity (S-09).** Save-as-new vs overwrite; and whether editing a preset retroactively touches kosztorysy already spawned from it (rec: no — snapshot). — Owner: user. Gates: S-09.
+9. ~~**Preset scope (S-09).**~~ **Resolved (2026-07-11):** named library (`kosztorys_presets` table), picked by name at seed-time.
+10. ~~**Preset save-as + retroactivity (S-09).**~~ **Resolved (2026-07-11):** save-as offers both new + overwrite; spawned kosztorysy stay frozen (snapshot).
+11. **Duplicate prace across presets (`kosztorys-item-autocomplete`).** When autocomplete unions `prace` across presets, show each occurrence or dedupe by opis with a default price? — Owner: user. Gates: the deferred autocomplete slice (FR-006), not S-09.
 
 ## Parked
 
@@ -496,6 +514,8 @@ Lifted from PRD `## Non-Goals` — explicitly out of scope for this arc.
 ## Done
 
 (`/10x-archive` appends here when a change whose Change ID matches a roadmap item is archived.)
+
+- **S-09: Kosztorys presets (templates)** — Archived 2026-07-11 → `context/archive/2026-07-11-kosztorys-preset/`. Named `kosztorys_presets` library (seed-new-from-preset + save-as-preset new/overwrite), reusing the S-06 serialize/apply engine; UI renamed preset→szablon, two save-as buttons merged into one. Lesson: a seed that runs after the parent row commits must be non-fatal — flipping the whole action to failure skips revalidation and invites a duplicate-creating retry. Browser E2E deferred → EX-442.
 
 - **S-02: Three price models + pricing-view toggle** (was S-03) — Archived 2026-07-09 → `context/archive/2026-07-09-kosztorys-price-models/`. Core (three views + toggle + coefficient/override derivation) shipped in S-01; this change closed the residual polish (per-kosztorys view persistence, "Klient" relabel, pricing-model explainer tooltip). Lesson: —.
 - **S-04: Subcontractor pricing (markup coefficient + override)** (was S-11) — Absorbed by S-01 (`kosztorys-sections-items`), which ported the POC's final `calc.ts` derivation verbatim; marked done here (no separate change folder). Lesson: —.

@@ -4,14 +4,9 @@ import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { FileText, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { InvoicePreviewDialog } from '@/components/dialogs/invoice-preview-dialog'
 import { removeTransferInvoiceAction } from '@/lib/actions/transfers'
 import { toastMessage } from '@/lib/utils/toast'
-
-const InvoicePreviewDialog = dynamic(() =>
-  import('@/components/dialogs/invoice-preview-dialog').then((m) => ({
-    default: m.InvoicePreviewDialog,
-  })),
-)
 
 const InvoiceUploadDialog = dynamic(() =>
   import('@/components/dialogs/invoice-upload-dialog').then((m) => ({

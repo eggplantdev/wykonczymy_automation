@@ -1,9 +1,7 @@
 'use client'
 
-import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 
@@ -26,7 +24,7 @@ export function FormDialog({
   className,
   children,
 }: FormDialogPropsT) {
-  const [keepOpen, setKeepOpen] = useState(false)
+  const keepOpen = useOptimisticFormStore((s) => s.keepOpen)
   const isOpen = useOptimisticFormStore((s) => s.openFormId === formId)
   const isPending = useOptimisticFormStore(
     (s) => s.submission?.formId === formId && s.submission.status === 'pending',
@@ -37,7 +35,7 @@ export function FormDialog({
   function handleOpenChange(open: boolean) {
     if (open) {
       if (isPending) return
-      openDialog(formId)
+      openDialog(formId, showKeepOpen)
     } else {
       closeDialog()
     }
@@ -55,23 +53,14 @@ export function FormDialog({
           Zapisywanie...
         </Button>
       ) : (
-        <span onClick={() => openDialog(formId)}>{trigger}</span>
+        <span onClick={() => openDialog(formId, showKeepOpen)}>{trigger}</span>
       )}
 
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogContent className={className}>
           <div className="h-auto">
             <DialogHeader title={title} description={description} />
-            <div className="mt-4 pr-1">{children(handleSuccess, keepOpen)}</div>
-            {showKeepOpen && (
-              <label className="flex cursor-pointer items-center gap-2 py-4 text-sm select-none">
-                <Checkbox
-                  checked={keepOpen}
-                  onCheckedChange={(checked) => setKeepOpen(checked === true)}
-                />
-                Nie zamykaj po zapisaniu
-              </label>
-            )}
+            <div className="mt-6 pr-1">{children(handleSuccess, keepOpen)}</div>
           </div>
         </DialogContent>
       </Dialog>

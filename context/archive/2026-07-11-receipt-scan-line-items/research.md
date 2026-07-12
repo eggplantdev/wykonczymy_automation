@@ -289,9 +289,11 @@ domain (transfers/AI). This is the first research artifact for the AI-extraction
 2. **Blob-byte availability for the eval.** Confirm the sampled blob URLs still resolve (not
    rotated/deleted). If flaky, snapshot a fixed set of images into a local fixtures dir once so the
    eval is deterministic and offline.
-3. **PDF inputs.** `media` accepts `application/pdf` and users evidently attach some. Does the
-   chosen vision model accept PDF, or must we rasterize the first page? Decide model + input
-   handling accordingly.
+3. **PDF inputs.** ✅ **RESOLVED (Phase 5, `466881f`).** No rasterization and no model change:
+   OpenRouter's `file-parser` plugin (`pdf-text` engine, free) parses the PDF server-side and
+   feeds the text to the existing `gpt-4o-mini`. Wired via `receiptPdfPlugins(mediaType)` — PDFs
+   get the plugin, images stay a plain vision call. (PDFs are in fact the majority of stored
+   invoices: 479 PDF vs 470 image media rows in the restored dev DB.)
 4. **Model choice / cost.** change.md starts at `~openai/gpt-4o-mini`; the eval set (Q1) is what
    turns "cheapest that works" from a guess into a measurement — one-line const swap to tune.
 5. **Amount semantics.** Which amount does a receipt map to — gross total, per the row's `amount`
