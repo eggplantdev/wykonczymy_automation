@@ -81,6 +81,18 @@ export default ts.config(
     },
   },
   {
+    // Type-aware pass, scoped to app source — the ONLY reliable way to catch `@deprecated`
+    // symbol usage repo-wide. tsc never emits deprecation diagnostics and the editor computes
+    // them only for open files, so this rule is the source of truth (runs in CI via `pnpm lint`).
+    files: ['src/**/*.{ts,tsx}'],
+    languageOptions: {
+      parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
+    },
+    rules: {
+      '@typescript-eslint/no-deprecated': 'warn',
+    },
+  },
+  {
     // Root CommonJS configs (e.g. .dependency-cruiser.cjs) use module.exports; the flat config
     // otherwise parses them as ESM and flags `module` as no-undef.
     files: ['**/*.cjs'],
