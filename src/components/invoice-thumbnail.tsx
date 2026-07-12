@@ -1,15 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import { FileText } from 'lucide-react'
-
-const InvoicePreviewDialog = dynamic(() =>
-  import('@/components/dialogs/invoice-preview-dialog').then((m) => ({
-    default: m.InvoicePreviewDialog,
-  })),
-)
+import { InvoicePreviewDialog } from '@/components/dialogs/invoice-preview-dialog'
 
 type InvoiceThumbnailPropsT = {
   url: string
