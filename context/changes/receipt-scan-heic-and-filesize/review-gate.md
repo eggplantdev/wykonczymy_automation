@@ -36,6 +36,8 @@ Touched source files:
 - [x] · skipped · `simplify` · `process-upload-file.ts:53` · `isImageFile` re-implements the image-MIME predicate from `compress-image.ts:9` — deduping forces a static import of `compress-image` (eager `compressorjs`, regressing the deliberate lazy-load), a dependency inversion, or a new micro-file for one boolean; all disproportionate to a single duplicated expression
 - [x] · dismissed · `simplify` · `compress-image.ts:47` · `compressToJpeg` repeats the `new Compressor(...)` scaffold from `compressImage` — different contracts (throw-vs-return-original is the load-bearing divergence for the WASM fallback); extracting a shared core adds more complexity than it removes
 - [x] · dismissed · `simplify` · `use-invoice-files.ts:57,74` · impl-review's "dead re-throw guard" claim is wrong — the non-HEIC `compressImage` path is unwrapped, so a chunk-load `Error` propagates un-wrapped and these guards route it to the component's generic-error catch; keep
+- [x] 🟡 WARNING · fixed · `manual-checks` · `payload.config.ts:84` / `receipt-filename.ts` · **post-gate follow-up** — media labels polluted with a ~30-char blob token (`addRandomSuffix: true` from `1da49ed` made the vercel-blob plugin rewrite `filename` with the suffixed key) + a pre-existing double `appendShortId` (extraction + upload) stacking a second hex — fixed in `560aa35`: reverted `addRandomSuffix`, deduped the id to the upload boundary. Documented on **EX-394**. Re-verified end-to-end on staging (`large-9f7604.jpg` — one hex, no blob token)
+      test: TDD · unit — `src/__tests__/receipt-filename.test.ts` guards the dedupe; the plugin-rewrite half is config-only, observable only end-to-end (verified on staging)
 
 ## Simplify pass
 
@@ -50,3 +52,10 @@ Ran in-loop during review/simplify fixes:
 - unit: `process-upload-file.test.ts` + `invoice-media-resolve.test.ts` → 14/14 green
 
 Full suite (`typecheck && lint && test && test:e2e && build`) — **not auto-run**; the gate defers the full-suite run to a user decision (see close-out). E2E leg deferred with the owed HEIC spec → **EX-460** (e2e-backlog).
+
+Re-run post label-fix (`560aa35`, 2026-07-12):
+
+- `pnpm tsc --noEmit` → exit 0 (clean)
+- `pnpm lint` → 0 errors (87 pre-existing migration warnings, none from this slice)
+- unit: `receipt-filename.test.ts` (3) + `process-upload-file.test.ts` (6) → 9/9 green
+- `build` leg — see close-out; `test:e2e` → EX-460.
