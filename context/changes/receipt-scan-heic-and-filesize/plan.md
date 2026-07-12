@@ -232,8 +232,8 @@ discharge it.
 
 #### Automated
 
-- [x] 2.1 Type checking passes (`pnpm tsc --noEmit`)
-- [x] 2.2 Dev CSS build still works after `heic-to` install (`pnpm dev` starts, no lightningcss error)
+- [x] 2.1 Type checking passes (`pnpm tsc --noEmit`) — 69c5c37
+- [x] 2.2 Dev CSS build still works after `heic-to` install (`pnpm dev` starts, no lightningcss error) — 69c5c37
 - [x] 2.3 Classification unit test passes — HEIC-by-extension with empty `File.type` treated as image (`process-upload-file.test.ts`) — 8e342f7
 - [x] 2.4 Filename/type rewrite unit test passes — `.heic → .jpg`, type `image/jpeg` (`process-upload-file.test.ts`) — 8e342f7
 - [x] 2.5 Size-guard boundary unit test passes — `MAX_UPLOAD_BYTES` (4 MB) → `BlockedFileError('too-large')` (`process-upload-file.test.ts`) — 8e342f7
@@ -242,4 +242,4 @@ discharge it.
 
 #### Automated
 
-- [ ] 3.1 Type checking passes (`pnpm tsc --noEmit`)
+- [x] 3.1 Type checking passes (`pnpm tsc --noEmit`)

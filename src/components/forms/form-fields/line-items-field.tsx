@@ -55,7 +55,8 @@ type LineItemsFieldPropsT = {
   onRemoveItem: (index: number, removeValue: (index: number) => void) => void
   onFileChange: (index: number, e: React.ChangeEvent<HTMLInputElement>) => void
   // Batch-attach N receipt images: register each file at its row index (see use-invoice-files).
-  onRegisterFiles: (startIndex: number, files: File[]) => void
+  // Async (ingest processing) — awaited before generation so the files map is populated first.
+  onRegisterFiles: (startIndex: number, files: File[]) => Promise<void>
   // Read a row's attached file so it can render a thumbnail preview (undefined → file input).
   getFile: (index: number) => File | undefined
   // Bump to force-remount the uncontrolled file inputs (clears their selection).
@@ -64,6 +65,8 @@ type LineItemsFieldPropsT = {
   onGenerate?: () => void
   isGenerating?: boolean
   generatingIndices?: Set<number>
+  // Rows whose picked file is still being processed at ingest — show a spinner, disable actions.
+  ingestingIndices?: Set<number>
   failedIndices?: Set<number>
   generationProgress?: { done: number; total: number } | null
 }
@@ -144,6 +147,7 @@ export function LineItemsField({
   onGenerate,
   isGenerating = false,
   generatingIndices,
+  ingestingIndices,
   failedIndices,
   generationProgress,
 }: LineItemsFieldPropsT) {
@@ -153,12 +157,14 @@ export function LineItemsField({
     ? { ...EMPTY_LINE_ITEM, expenseCategory: defaultExpenseCategory }
     : EMPTY_LINE_ITEM
   const receiptInputRef = useRef<HTMLInputElement>(null)
+  const isIngesting = (ingestingIndices?.size ?? 0) > 0
 
   // Scan flow: add each picked receipt as a row (image attached) FIRST, then run the AI generation.
   // Order matters — rows persist even if extraction fails, so a failed scan still yields line
-  // items to fill in by hand. Picker cancelled (no files) → skip the add and just re-run generation
-  // on any existing eligible rows.
-  function handleScanReceipts(
+  // items to fill in by hand. Ingest is async (HEIC-convert / compress / guard), so AWAIT it before
+  // generation — otherwise generation reads an empty files map. Picker cancelled (no files) → skip
+  // the add and just re-run generation on any existing eligible rows.
+  async function handleScanReceipts(
     e: React.ChangeEvent<HTMLInputElement>,
     lineItemsField: LineItemsArrayFieldT,
   ) {
@@ -173,7 +179,7 @@ export function LineItemsField({
       const rowsToPush = reuseFirstRow ? picked.length - 1 : picked.length
 
       for (let i = 0; i < rowsToPush; i++) lineItemsField.pushValue(emptyItem)
-      onRegisterFiles(startIndex, picked)
+      await onRegisterFiles(startIndex, picked)
     }
     onGenerate?.()
   }
@@ -226,13 +232,15 @@ export function LineItemsField({
                       row mid-generation shifts the array under in-flight extraction tasks (captured
                       index), landing a result on the wrong row. */}
                     <div className="flex size-9 shrink-0 items-center justify-center">
-                      {generatingIndices?.has(index) ? (
+                      {generatingIndices?.has(index) || ingestingIndices?.has(index) ? (
                         <GradientSpinner />
                       ) : (
                         <RemoveButton
                           icon={Trash2}
                           onClick={() => onRemoveItem(index, lineItemsField.removeValue)}
-                          disabled={isGenerating || lineItemsField.state.value.length === 1}
+                          disabled={
+                            isGenerating || isIngesting || lineItemsField.state.value.length === 1
+                          }
                         />
                       )}
                     </div>
@@ -295,9 +303,13 @@ export function LineItemsField({
                 variant="ai"
                 size="sm"
                 onClick={() => receiptInputRef.current?.click()}
-                disabled={isGenerating}
+                disabled={isGenerating || isIngesting}
               >
-                {isGenerating ? <GradientSpinner /> : <WandSparkles className="text-neon-cyan" />}
+                {isGenerating || isIngesting ? (
+                  <GradientSpinner />
+                ) : (
+                  <WandSparkles className="text-neon-cyan" />
+                )}
                 <span className="text-neon-cyan font-semibold">Dodaj paragony</span>
               </Button>
             )}

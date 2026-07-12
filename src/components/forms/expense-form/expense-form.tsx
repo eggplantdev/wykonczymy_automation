@@ -24,6 +24,8 @@ import { createBulkTransferAction } from '@/lib/actions/transfers'
 import { mapLineItem } from '@/components/forms/expense-form/map-line-item'
 import type { BulkExpenseFormValuesT } from '@/components/forms/expense-form/bulk-expense-form'
 import { resolveInvoiceMediaIds } from '@/lib/utils/upload-file-client'
+import { MAX_UPLOAD_BYTES, type BlockedFileError } from '@/lib/utils/process-upload-file'
+import { toastMessage } from '@/lib/utils/toast'
 import {
   bulkExpenseFormSchema,
   type CreateBulkExpenseFormT,
@@ -55,6 +57,21 @@ type FormValuesT = BulkExpenseFormValuesT
 
 const FORM_ID = 'expense'
 
+const MAX_UPLOAD_MB = MAX_UPLOAD_BYTES / (1024 * 1024)
+
+// One Polish line per blocked file (unconvertible HEIC / oversize), joined into a single toast so
+// one bad file in a batch never spams N toasts. The MB figure tracks MAX_UPLOAD_BYTES (the guard),
+// not the raw 4.5 MB Vercel cap.
+function blockedFilesMessage(blocked: BlockedFileError[]): string {
+  return blocked
+    .map((error) =>
+      error.reason === 'too-large'
+        ? `Plik „${error.filename}” przekracza ${MAX_UPLOAD_MB} MB — zmniejsz go i spróbuj ponownie.`
+        : `Nie udało się przekonwertować „${error.filename}” — zapisz jako JPG i spróbuj ponownie.`,
+    )
+    .join('\n')
+}
+
 export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: TransferFormPropsT) {
   const { recoveredFiles, submit } = useFormSubmit(FORM_ID)
 
@@ -68,6 +85,26 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
   // native files and internal filename state — form.reset() can't reach them.
   const [fileInputKey, setFileInputKey] = useState(0)
 
+  // Rows whose picked file is still being processed at ingest (HEIC convert can take ~1-2 s). The
+  // row shows a spinner and its actions are disabled meanwhile, and a batch scan waits for ingest
+  // before running the AI generation.
+  const [ingestingIndices, setIngestingIndices] = useState<Set<number>>(new Set())
+
+  function markIngesting(indices: number[], busy: boolean) {
+    setIngestingIndices((prev) => {
+      const next = new Set(prev)
+      indices.forEach((index) => (busy ? next.add(index) : next.delete(index)))
+      return next
+    })
+  }
+
+  function reportBlocked(blocked: BlockedFileError[]) {
+    if (blocked.length === 0) return
+    // TODO(EX-449) SENTRY-REQUIRED: blocked-file ingest failures (unconvertible HEIC / oversize)
+    // must be captured once Sentry is wired — currently surfaced only as a per-item user toast.
+    toastMessage(blockedFilesMessage(blocked), 'error', 8000)
+  }
+
   const {
     handleRemoveLineItem,
     handleFileChange,
@@ -78,18 +115,27 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     reset: resetInvoiceFiles,
   } = useInvoiceFiles(recoveredFiles)
 
-  // Bump the key after a batch add so the affected rows re-render and swap their file
-  // input for the attached-file thumbnail. Ingest is async (HEIC-convert / compress / guard).
+  // Bump the key after a batch add so the affected rows re-render and swap their file input for the
+  // attached-file thumbnail. Ingest is async (HEIC-convert / compress / guard) and processes each
+  // file at its fixed position; blocked files are reported and never enter the map.
   async function handleRegisterFiles(startIndex: number, files: File[]) {
-    await registerFilesAt(startIndex, files)
+    const indices = files.map((_, offset) => startIndex + offset)
+    markIngesting(indices, true)
+    const { blocked } = await registerFilesAt(startIndex, files)
+    markIngesting(indices, false)
     setFileInputKey((k) => k + 1)
+    reportBlocked(blocked)
   }
 
-  // Files live in a ref (no re-render on mutation) — bump the key so the row re-renders
-  // and reveals its preview button once a file is attached. Ingest is async.
+  // Files live in a ref (no re-render on mutation) — bump the key so the row re-renders and reveals
+  // its preview button once a file is attached. Ingest is async; a blocked file is reported and the
+  // row is left empty.
   async function handleAttachFile(index: number, e: React.ChangeEvent<HTMLInputElement>) {
-    await handleFileChange(index, e)
+    markIngesting([index], true)
+    const { blocked } = await handleFileChange(index, e)
+    markIngesting([index], false)
     setFileInputKey((k) => k + 1)
+    reportBlocked(blocked)
   }
 
   // Re-align the generation markers (failed/in-flight) alongside the file maps on row removal.
@@ -295,6 +341,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
             onGenerate={handleGenerate}
             isGenerating={isGenerating}
             generatingIndices={generatingIndices}
+            ingestingIndices={ingestingIndices}
             failedIndices={failedIndices}
             generationProgress={generationProgress}
             transferType={currentType}
