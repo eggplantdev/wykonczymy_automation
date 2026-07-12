@@ -81,6 +81,9 @@ export default buildConfig({
     vercelBlobStorage({
       collections: { media: true },
       token: process.env.BLOB_READ_WRITE_TOKEN,
+      // Unique blob key per upload — the store is shared across environments, so a
+      // deterministic key lets a test/local write silently overwrite a prod asset.
+      addRandomSuffix: true,
     }),
   ],
 
