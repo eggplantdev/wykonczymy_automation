@@ -1,17 +1,11 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import dynamic from 'next/dynamic'
 import { FileText, Search } from 'lucide-react'
 import { FileInput } from '@/components/ui/file-input'
 import { FieldLabel } from '@/components/ui/field'
+import { InvoicePreviewDialog } from '@/components/dialogs/invoice-preview-dialog'
 import { cn } from '@/lib/utils/cn'
-
-const InvoicePreviewDialog = dynamic(() =>
-  import('@/components/dialogs/invoice-preview-dialog').then((m) => ({
-    default: m.InvoicePreviewDialog,
-  })),
-)
 
 // A picked file has no URL yet — mint a blob URL for the preview and revoke it when the
 // file changes/unmounts. Create AND revoke in the same effect so StrictMode's mount→cleanup→
