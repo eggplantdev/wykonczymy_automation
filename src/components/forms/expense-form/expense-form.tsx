@@ -75,7 +75,6 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     getFile,
     getFiles,
     renameFile,
-    getMediaIds,
     reset: resetInvoiceFiles,
   } = useInvoiceFiles(recoveredFiles)
 
@@ -162,12 +161,8 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
           if (files.size > 0) {
             try {
               // Upload every attached file once, here at submit — the AI scan no longer persists
-              // anything, so there are no pre-scanned mediaIds to reuse (the map stays empty).
-              invoiceMediaIds = await resolveInvoiceMediaIds(
-                value.lineItems.length,
-                files,
-                getMediaIds(),
-              )
+              // anything, so there is nothing pre-uploaded to reuse.
+              invoiceMediaIds = await resolveInvoiceMediaIds(value.lineItems.length, files)
             } catch (err) {
               const message = err instanceof Error ? err.message : 'Nie udało się przesłać plików'
               return { success: false, error: message }

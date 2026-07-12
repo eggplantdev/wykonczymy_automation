@@ -9,47 +9,34 @@ import { resolveInvoiceMediaIds } from '@/lib/utils/upload-file-client'
 const file = (name: string) => ({ name }) as File
 
 describe('resolveInvoiceMediaIds', () => {
-  it('uses a stored mediaId and does NOT upload that row', async () => {
-    const upload = vi.fn(async () => 999)
-    const files = new Map<number, File>([[0, file('a.jpg')]])
-    const mediaIds = new Map<number, number>([[0, 42]])
-
-    const result = await resolveInvoiceMediaIds(1, files, mediaIds, upload)
-
-    expect(result).toEqual([42])
-    expect(upload).not.toHaveBeenCalled()
-  })
-
-  it('uploads a row that has a File but no stored mediaId', async () => {
+  it('uploads the File attached at a row', async () => {
     const upload = vi.fn(async () => 777)
     const files = new Map<number, File>([[0, file('a.jpg')]])
-    const mediaIds = new Map<number, number>()
 
-    const result = await resolveInvoiceMediaIds(1, files, mediaIds, upload)
+    const result = await resolveInvoiceMediaIds(1, files, upload)
 
     expect(result).toEqual([777])
     expect(upload).toHaveBeenCalledTimes(1)
   })
 
-  it('returns undefined for a row with neither a File nor a stored mediaId', async () => {
+  it('returns undefined for a row with no File', async () => {
     const upload = vi.fn(async () => 1)
-    const result = await resolveInvoiceMediaIds(1, new Map(), new Map(), upload)
+    const result = await resolveInvoiceMediaIds(1, new Map(), upload)
 
     expect(result).toEqual([undefined])
     expect(upload).not.toHaveBeenCalled()
   })
 
-  it('resolves each row independently across a mixed set, preserving positions', async () => {
-    const upload = vi.fn(async () => 500)
+  it('uploads each row independently across a sparse set, preserving positions', async () => {
+    const upload = vi.fn(async (f: File) => (f.name === 'b.jpg' ? 500 : 600))
     const files = new Map<number, File>([
       [1, file('b.jpg')],
       [2, file('c.jpg')],
     ])
-    const mediaIds = new Map<number, number>([[2, 88]])
 
-    const result = await resolveInvoiceMediaIds(3, files, mediaIds, upload)
+    const result = await resolveInvoiceMediaIds(3, files, upload)
 
-    expect(result).toEqual([undefined, 500, 88])
-    expect(upload).toHaveBeenCalledTimes(1)
+    expect(result).toEqual([undefined, 500, 600])
+    expect(upload).toHaveBeenCalledTimes(2)
   })
 })

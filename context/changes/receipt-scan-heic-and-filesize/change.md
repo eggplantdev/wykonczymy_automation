@@ -5,7 +5,7 @@ status: implementing
 created: 2026-07-12
 updated: 2026-07-12
 archived_at: null
-branch: null
+branch: receipt-scan-heic-and-filesize
 worktree: null
 ---
 

@@ -30,22 +30,18 @@ export async function uploadFileClient(file: File): Promise<number> {
 }
 
 /**
- * Positional invoice-mediaId array for submit. Per row index: a mediaId already stored by
- * the receipt-generation upload-once path wins (no re-upload); otherwise upload the File; a row
- * with neither is `undefined`. `upload` is injectable for tests.
+ * Positional invoice-mediaId array for submit. Per row index: upload the attached File; a row
+ * with no File is `undefined`. `upload` is injectable for tests.
  */
 export async function resolveInvoiceMediaIds(
   count: number,
   files: Map<number, File>,
-  mediaIds: Map<number, number>,
   upload: (file: File) => Promise<number> = uploadFileClient,
 ): Promise<(number | undefined)[]> {
   return mapWithConcurrency(
     Array.from({ length: count }, (_, i) => i),
     UPLOAD_CONCURRENCY,
     async (i) => {
-      const stored = mediaIds.get(i)
-      if (stored !== undefined) return stored
       const file = files.get(i)
       if (!file) return undefined
       return upload(file)
