@@ -6,7 +6,7 @@ import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import { getDb } from '@/lib/db/get-db'
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { seedBlankKosztorys } from '@/lib/kosztorys/seed-blank'
-import { NEW_SECTION_DEFAULTS } from '@/lib/kosztorys/v2-rows'
+import { NEW_SECTION_DEFAULTS } from '@/lib/kosztorys/constants'
 import type { ActionResultT } from '@/types/action'
 import type { ItemPatchT } from '@/types/kosztorys'
 

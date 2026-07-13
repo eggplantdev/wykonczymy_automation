@@ -18,7 +18,6 @@ import {
   insertDisplayOrder,
   isRowPopulated,
   isSectionPopulated,
-  NEW_SECTION_DEFAULTS,
   revertField,
   rowDoneNetForView,
   sectionItemCount,
@@ -29,6 +28,7 @@ import {
   treeToRows,
   type SortDirT,
 } from '@/lib/kosztorys/v2-rows'
+import { NEW_SECTION_DEFAULTS } from '@/lib/kosztorys/constants'
 import {
   rowNetForView,
   rowRemainingForView,

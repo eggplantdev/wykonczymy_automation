@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { SeedFromPresetButton } from '@/components/kosztorys/seed-from-preset-button'
 import { seedBlankSectionAction } from '@/lib/actions/kosztorys'
-import { NEW_SECTION_DEFAULTS } from '@/lib/kosztorys/v2-rows'
+import { NEW_SECTION_DEFAULTS } from '@/lib/kosztorys/constants'
 import { toastMessage } from '@/lib/utils/toast'
 
 type PropsT = {
