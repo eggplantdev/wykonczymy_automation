@@ -219,6 +219,14 @@
   }
 }
 
+/* react-datasheet-grid shrink-wraps its scroll viewport to the row count when the rows don't fill
+   the given height. With fewer rows than fit, the horizontal scrollbar then lands on the last row's
+   baseline and covers it. Forcing the viewport to fill its (fixed-height) wrapper drops the
+   scrollbar to the bottom of the empty space instead. Overrides dsg's inline height. */
+.kosztorys-grid .dsg-container {
+  height: 100% !important;
+}
+
 /*https://tailwindcss.com/docs/adding-custom-styles/*
 
 
