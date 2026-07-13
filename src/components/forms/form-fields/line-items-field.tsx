@@ -293,7 +293,7 @@ export function LineItemsField({
                         fieldClassName="w-full"
                         // A long scanned note (30+ item invoices) would grow the
                         // field-sizing-content textarea unbounded — cap it and scroll within.
-                        className="max-h-48 overflow-y-auto"
+                        className="max-h-24 overflow-y-auto"
                       />
                     )}
                   </form.AppField>
