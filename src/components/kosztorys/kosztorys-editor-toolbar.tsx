@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import { SearchFilterInput } from '@/components/ui/search-filter-input'
 import { ToggleGroup } from '@/components/ui/toggle-group'
-import { SaveAsButton } from '@/components/kosztorys/save-as-button'
+import { KosztorysActionsMenu } from '@/components/kosztorys/kosztorys-actions-menu'
 import { Slash, User, Wrench } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
@@ -99,10 +99,7 @@ export function KosztorysEditorToolbar({
         ＋ etap
       </Button>
       <div className="ml-auto flex items-center gap-1">
-        <SaveAsButton investmentId={investmentId} />
-        <Button size="sm" variant="outline" onClick={onOpenVersions}>
-          Wersje
-        </Button>
+        <KosztorysActionsMenu investmentId={investmentId} onOpenVersions={onOpenVersions} />
         <Button size="sm" variant={summaryOpen ? 'default' : 'outline'} onClick={onToggleSummary}>
           Sekcje
         </Button>
