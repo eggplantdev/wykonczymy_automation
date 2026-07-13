@@ -206,6 +206,50 @@ export async function addItemAction(
   )
 }
 
+const insertItemSchema = z.object({
+  sectionId: z.number(),
+  atDisplayOrder: z.coerce.number().int().min(0),
+})
+
+// Insert a blank item at a specific display_order within a section (right-click → Wstaw pozycję
+// powyżej/poniżej). Shifts the section's tail down by one to open the slot, then creates the row
+// there. The shift is bounded by SECTION size — the whole-sheet concern that made ▲▼ reorder a
+// neighbor-swap (1000+ rows) doesn't apply to one section. A create failure after the shift only
+// leaves a harmless gap in display_order (order is relative); addItemAction (append) is unchanged.
+export async function insertItemAction(
+  investmentId: number,
+  sectionId: number,
+  atDisplayOrder: number,
+): Promise<ActionResultT<{ id: number; displayOrder: number }>> {
+  return protectedAction(
+    'insertItemAction',
+    async ({ payload }) => {
+      const parsed = validateAction(insertItemSchema, { sectionId, atDisplayOrder })
+      if (!parsed.success) return parsed
+      const db = await getDb(payload)
+      await db.execute(sql`
+        UPDATE kosztorys_items SET display_order = display_order + 1
+        WHERE section_id = ${parsed.data.sectionId} AND display_order >= ${parsed.data.atDisplayOrder}
+      `)
+      const created = await payload.create({
+        collection: 'kosztorys-items',
+        data: {
+          investment: investmentId,
+          section: parsed.data.sectionId,
+          displayOrder: parsed.data.atDisplayOrder,
+          plannedQty: 0,
+          measuredQty: 0,
+          discountValue: 0,
+          clientPrice: 0,
+          hiddenInExport: false,
+        },
+      })
+      return { success: true, data: { id: created.id, displayOrder: parsed.data.atDisplayOrder } }
+    },
+    ['kosztorysItems'],
+  )
+}
+
 export async function removeItemAction(itemId: number) {
   return protectedAction(
     'removeItemAction',

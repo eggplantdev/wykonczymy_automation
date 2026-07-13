@@ -10,10 +10,12 @@ import { toastMessage } from '@/lib/utils/toast'
 import { buildV2Columns, type V2SortStateT } from '@/lib/tables/kosztorys-v2-columns'
 import {
   applyAddItem,
+  applyInsertItem,
   applyRemoveItem,
   buildBlankRow,
   diffRow,
   filterRows,
+  insertDisplayOrder,
   isRowPopulated,
   isSectionPopulated,
   NEW_SECTION_DEFAULTS,
@@ -37,6 +39,7 @@ import {
   addItemAction,
   addSectionAction,
   addStageAction,
+  insertItemAction,
   removeItemAction,
   removeSectionAction,
   removeStageAction,
@@ -143,6 +146,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     onCommitColumn: setWidth,
     onRemoveItem: handleRemoveItem,
     onReorderItem: handleReorderItem,
+    onInsertItem: handleInsertItem,
     // Disables the trash button on a section's last item; the toast in handleRemoveItem stays as
     // a defensive backstop. Same fresh-ref, event-time read as the handlers above.
     getSectionItemCount,
@@ -206,6 +210,40 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     })
     prevById.current.set(row.id, row)
     setRows((rs) => applyAddItem(rs, row))
+  }
+
+  // ⋯ menu → Wstaw pozycję powyżej/poniżej. Inserts a blank row at the anchor's display slot
+  // (±1) within the anchor's section. "Above/below" has no meaning against a price-sorted view, so
+  // it's a no-op while a column sort is active (the menu also disables it). Denormalized section
+  // fields come from any existing row of that section (as in handleAddItem).
+  async function handleInsertItem(anchorRow: KosztorysV2RowT, dir: 'above' | 'below') {
+    if (sort) return
+    const at = insertDisplayOrder(anchorRow, dir)
+    const res = await insertItemAction(investmentId, anchorRow.sectionId, at)
+    if (!res.success) return
+    const sample =
+      [...prevById.current.values()].find((r) => r.sectionId === anchorRow.sectionId) ?? anchorRow
+    const row = buildBlankRow({
+      id: res.data.id,
+      displayOrder: res.data.displayOrder,
+      sectionId: anchorRow.sectionId,
+      sectionName: sample.sectionName,
+      vatRate: tree.vatRate,
+      sectionDefaultCostVariant: sample.sectionDefaultCostVariant,
+      sectionWToolsCoeff: sample.sectionWToolsCoeff,
+      sectionOwnToolsCoeff: sample.sectionOwnToolsCoeff,
+      globalWToolsCoeff: tree.globalCoeffs.wTools,
+      globalOwnToolsCoeff: tree.globalCoeffs.ownTools,
+      stages,
+    })
+    // Mirror the section-tail display_order bump in prevById so a later insert/▲▼ diffs correctly.
+    for (const [id, r] of prevById.current) {
+      if (r.sectionId === row.sectionId && r.displayOrder >= at) {
+        prevById.current.set(id, { ...r, displayOrder: r.displayOrder + 1 })
+      }
+    }
+    prevById.current.set(row.id, row)
+    setRows((rs) => applyInsertItem(rs, anchorRow.id, row, dir))
   }
 
   // Fresh count of a section's items, read from prevById (the full dataset) at cell-render time.

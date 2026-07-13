@@ -215,6 +215,36 @@ export function applyRemoveItem(rows: KosztorysV2RowT[], itemId: number): Koszto
   return rows.filter((r) => r.id !== itemId)
 }
 
+// display_order the inserted row takes: "above" claims the anchor's slot, "below" the next one.
+// Mirrors insertItemAction's server-side insert point.
+export function insertDisplayOrder(anchor: KosztorysV2RowT, dir: 'above' | 'below'): number {
+  return dir === 'above' ? anchor.displayOrder : anchor.displayOrder + 1
+}
+
+// Splice a blank row into the display sequence at the anchor (±1) and bump the local display_order
+// of same-section rows at/after the insert point — the client mirror of insertItemAction's
+// section-tail shift, so a later ▲▼/insert stays consistent with the server without a refresh.
+// Array position (not display_order) drives the unsorted grid render, so the row lands at the
+// anchor's array index; the display_order bump only keeps the persisted-order mirror correct.
+// `newRow.displayOrder` MUST be the insert point (from insertDisplayOrder) before calling.
+export function applyInsertItem(
+  rows: KosztorysV2RowT[],
+  anchorId: number,
+  newRow: KosztorysV2RowT,
+  dir: 'above' | 'below',
+): KosztorysV2RowT[] {
+  const anchorIdx = rows.findIndex((r) => r.id === anchorId)
+  if (anchorIdx < 0) return rows
+  const at = newRow.displayOrder
+  const bumped = rows.map((r) =>
+    r.sectionId === newRow.sectionId && r.displayOrder >= at
+      ? { ...r, displayOrder: r.displayOrder + 1 }
+      : r,
+  )
+  const insertIdx = dir === 'above' ? anchorIdx : anchorIdx + 1
+  return [...bumped.slice(0, insertIdx), newRow, ...bumped.slice(insertIdx)]
+}
+
 // Count of a section's items in the full dataset — guards the invariant "a section has ≥1 item".
 export function sectionItemCount(rows: KosztorysV2RowT[], sectionId: number): number {
   return rows.reduce((n, r) => (r.sectionId === sectionId ? n + 1 : n), 0)

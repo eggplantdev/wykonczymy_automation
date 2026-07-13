@@ -1,10 +1,11 @@
 'use client'
 
-import type { ReactNode } from 'react'
-import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
+import { MoreHorizontal } from 'lucide-react'
 import { Column, type CellProps, keyColumn, textColumn, floatColumn } from 'react-datasheet-grid'
 import { SortHeader } from '@/components/kosztorys/sort-header'
 import { StageHeader } from '@/components/kosztorys/stage-header'
+import { KosztorysRowActionsMenu } from '@/components/kosztorys/kosztorys-row-actions-menu'
 import { ResizableHeader } from '@/components/kosztorys/column-resize-handle'
 import {
   rowNetForView,
@@ -70,9 +71,11 @@ export type BuildV2ColumnsOptsT = {
   // `columns` at mount, so the closure MUST read current data, not a snapshot from mount.
   onRemoveItem?: (row: KosztorysV2RowT) => void
   getSectionItemCount?: (sectionId: number) => number
-  // Reordering items within a section (▲/▼). Reads fresh `rows` from the editor (ref) — because
-  // dsg freezes `columns` at mount. Greyed out while a column sort is active (see `sort`).
+  // Reordering items within a section (Przesuń w górę/dół). Reads fresh `rows` from the editor
+  // (ref) — because dsg freezes `columns` at mount. Greyed out while a column sort is active.
   onReorderItem?: (row: KosztorysV2RowT, dir: 'up' | 'down') => void
+  // Inserting a blank item above/below the row within its section. Same fresh-ref, event-time read.
+  onInsertItem?: (row: KosztorysV2RowT, dir: 'above' | 'below') => void
 }
 
 // keyColumn requires column: Column<Row[K]>. floatColumn/textColumn are nullable
@@ -262,62 +265,70 @@ function withResize(
   }
 }
 
-// Action column: ▲▼ reorder items within a section + a trash icon removing the item. Rigid 64px,
-// non-resizable. The trash is disabled when it's the last item in the section (the "a section has
-// ≥1 item" invariant). The arrows are greyed out while a column sort is active — "up" relative to
-// a list sorted by price has no mapping in display_order; remove the sort first.
-function actionColumn(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT> {
-  const onRemove = opts.onRemoveItem
-  const onReorder = opts.onReorderItem
-  const getCount = opts.getSectionItemCount
+// The ⋯ actions cell: a single button opening KosztorysRowActionsMenu (Wstaw powyżej/poniżej,
+// Przesuń w górę/dół, Usuń). Menu open-state is local per cell; the menu portals to body at the
+// button's bottom-left. Insert + move are disabled while a column sort is active ("above/up" has
+// no mapping in display_order against a price-sorted view); delete is disabled on a section's last
+// item (the "≥1 item" invariant). The handlers read fresh editor state via refs (dsg freezes
+// `columns` at mount), so a stale closure never fires against the wrong row.
+function RowActionsCell({
+  rowData,
+  opts,
+}: {
+  rowData: KosztorysV2RowT
+  opts: BuildV2ColumnsOptsT
+}) {
+  const [menuPos, setMenuPos] = useState<{ x: number; y: number } | null>(null)
   const sortActive = opts.sort != null
+  const canRemove = opts.getSectionItemCount
+    ? opts.getSectionItemCount(rowData.sectionId) > 1
+    : true
+
+  // The button fills the whole cell so the entire actions column is one click target — a small
+  // centered icon left most of the cell dead (and dsg still let you select the empty area).
+  return (
+    <>
+      <button
+        type="button"
+        title="Akcje wiersza"
+        onClick={(e) => {
+          const r = e.currentTarget.getBoundingClientRect()
+          setMenuPos({ x: r.left, y: r.bottom })
+        }}
+        className="text-muted-foreground hover:text-foreground hover:bg-accent flex size-full cursor-pointer items-center justify-center"
+      >
+        <MoreHorizontal className="h-4 w-4" />
+      </button>
+      {menuPos && (
+        <KosztorysRowActionsMenu
+          x={menuPos.x}
+          y={menuPos.y}
+          sortActive={sortActive}
+          canRemove={canRemove}
+          onInsertAbove={() => opts.onInsertItem?.(rowData, 'above')}
+          onInsertBelow={() => opts.onInsertItem?.(rowData, 'below')}
+          onMoveUp={() => opts.onReorderItem?.(rowData, 'up')}
+          onMoveDown={() => opts.onReorderItem?.(rowData, 'down')}
+          onRemove={() => opts.onRemoveItem?.(rowData)}
+          onClose={() => setMenuPos(null)}
+        />
+      )}
+    </>
+  )
+}
+
+// Action column: a single ⋯ button per row (see RowActionsCell). Rigid 48px, non-resizable.
+function actionColumn(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT> {
   return {
     id: 'actions',
     title: '',
-    basis: 64,
+    basis: 48,
     grow: 0,
     shrink: 0,
-    minWidth: 64,
-    maxWidth: 64,
+    minWidth: 48,
+    maxWidth: 48,
     disabled: true,
-    component: ({ rowData }) => {
-      const isLast = getCount ? getCount(rowData.sectionId) <= 1 : false
-      return (
-        <div className="flex size-full items-center justify-center gap-1">
-          {onReorder && (
-            <div className="flex flex-col leading-none">
-              <button
-                type="button"
-                disabled={sortActive}
-                title={sortActive ? 'Najpierw zdejmij sortowanie kolumną' : 'Przesuń w górę'}
-                onClick={() => onReorder(rowData, 'up')}
-                className="text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
-              >
-                <ChevronUp className="h-3 w-3" />
-              </button>
-              <button
-                type="button"
-                disabled={sortActive}
-                title={sortActive ? 'Najpierw zdejmij sortowanie kolumną' : 'Przesuń w dół'}
-                onClick={() => onReorder(rowData, 'down')}
-                className="text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
-              >
-                <ChevronDown className="h-3 w-3" />
-              </button>
-            </div>
-          )}
-          <button
-            type="button"
-            disabled={isLast}
-            title={isLast ? 'Sekcja musi mieć co najmniej jedną pozycję' : 'Usuń pozycję'}
-            onClick={() => onRemove?.(rowData)}
-            className="text-muted-foreground hover:text-destructive disabled:cursor-not-allowed disabled:opacity-30"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
-        </div>
-      )
-    },
+    component: ({ rowData }) => <RowActionsCell rowData={rowData} opts={opts} />,
   }
 }
 

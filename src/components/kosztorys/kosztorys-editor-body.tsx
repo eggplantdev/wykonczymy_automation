@@ -1,6 +1,7 @@
 'use client'
 
 import 'react-datasheet-grid/dist/style.css'
+import { createPortal } from 'react-dom'
 import { DataSheetGrid } from 'react-datasheet-grid'
 import { KosztorysSectionSummary } from '@/components/kosztorys/kosztorys-section-summary'
 import { KosztorysEditorToolbar } from '@/components/kosztorys/kosztorys-editor-toolbar'
@@ -67,7 +68,7 @@ export function KosztorysEditorBody({
         onViewChange={setView}
         search={search}
         onSearchChange={setSearch}
-        activeSectionId={activeSectionId}
+        addItemSectionId={activeSectionId ?? subtotals.at(-1)?.sectionId ?? null}
         onAddItem={handleAddItem}
         onAddStage={handleAddStage}
         itemCount={viewRows.length}
@@ -127,13 +128,18 @@ export function KosztorysEditorBody({
           />
         )}
       </div>
-      {/* Vertical guide while dragging a column edge (fixed = cursor X). */}
-      {guideX !== null && (
-        <div
-          className="bg-primary/70 pointer-events-none fixed inset-y-0 z-50 w-px"
-          style={{ left: guideX }}
-        />
-      )}
+      {/* Vertical guide while dragging a column edge (left = cursor viewport X). Portaled to body:
+          <main> uses transform-gpu, which would otherwise make this `fixed` element measure `left`
+          from <main> (sidebar-offset) instead of the viewport — same containing-block trap as the
+          context menu. */}
+      {guideX !== null &&
+        createPortal(
+          <div
+            className="bg-primary/70 pointer-events-none fixed inset-y-0 z-50 w-px"
+            style={{ left: guideX }}
+          />,
+          document.body,
+        )}
     </div>
   )
 }

@@ -30,7 +30,10 @@ type PropsT = {
   onViewChange: (view: PriceViewT) => void
   search: string
   onSearchChange: (search: string) => void
-  activeSectionId: number | null
+  // Section the ＋ pozycja button adds to: the filtered section if one is active, else the last
+  // section (resolved by the caller). Always set while ≥1 section exists, so the button stays
+  // visible on a fresh single-section kosztorys instead of hiding until a filter is picked (EX-463).
+  addItemSectionId: number | null
   onAddItem: (sectionId: number) => void
   onAddStage: () => void
   itemCount: number
@@ -48,7 +51,7 @@ export function KosztorysEditorToolbar({
   onViewChange,
   search,
   onSearchChange,
-  activeSectionId,
+  addItemSectionId,
   onAddItem,
   onAddStage,
   itemCount,
@@ -87,8 +90,8 @@ export function KosztorysEditorToolbar({
         placeholder="Szukaj pozycji / sekcji…"
         debounceMs={200}
       />
-      {activeSectionId != null && (
-        <Button size="sm" variant="outline" onClick={() => onAddItem(activeSectionId)}>
+      {addItemSectionId != null && (
+        <Button size="sm" variant="outline" onClick={() => onAddItem(addItemSectionId)}>
           ＋ pozycja
         </Button>
       )}
