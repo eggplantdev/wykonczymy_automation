@@ -16,10 +16,8 @@ type PropsT = {
   onOpenVersions: () => void
 }
 
-// One toolbar control for the save/version actions (EX-437): a dropdown fronting the "Zapisz jako…"
-// dialog and the versions drawer. The dialog is rendered as a controlled sibling of the menu —
-// onSelect closes the menu, so opening the dialog from inside DropdownMenuContent would fight it for
-// focus.
+// The Save-as dialog is a controlled sibling of the menu, not a child of DropdownMenuContent —
+// onSelect closes the menu, so opening the dialog from inside it would fight the menu for focus.
 export function KosztorysActionsMenu({ investmentId, onOpenVersions }: PropsT) {
   const [saveOpen, setSaveOpen] = useState(false)
 

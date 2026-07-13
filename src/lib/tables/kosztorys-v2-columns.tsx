@@ -331,7 +331,6 @@ function RowActionsCell({
   )
 }
 
-// Action column: a single ⋯ button per row (see RowActionsCell). Rigid 48px, non-resizable.
 function actionColumn(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT> {
   return {
     id: 'actions',

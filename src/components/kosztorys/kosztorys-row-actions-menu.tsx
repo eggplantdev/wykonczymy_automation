@@ -39,8 +39,8 @@ export function KosztorysRowActionsMenu({
   onMoveDown,
   onRemove,
 }: PropsT) {
-  // Insert/move are meaningless against a sorted view. Disabled items are pointer-events-none, so
-  // the group is wrapped in a tooltip trigger (which catches the hover the items pass through).
+  // Disabled items are pointer-events-none, so the group is wrapped in a tooltip trigger
+  // (which catches the hover the disabled items would otherwise pass through).
   const insertMoveItems = (
     <>
       <DropdownMenuItem disabled={sortActive} onSelect={onInsertAbove}>

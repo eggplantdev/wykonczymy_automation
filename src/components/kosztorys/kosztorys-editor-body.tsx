@@ -78,11 +78,8 @@ export function KosztorysEditorBody({
           stretch the container to the sum of the columns, it scrolls them internally instead. */}
       <div className="relative flex min-h-0 flex-1 overflow-hidden">
         {/* min-w-0 lets the wrapper shrink below its content in a flex context;
-            grid-cols-[minmax(0,1fr)] still gives the grid a definite width (anti-flicker). */}
-        <div
-          ref={gridRef}
-          className="grid min-h-0 min-w-0 flex-1 grid-cols-[minmax(0,1fr)] overflow-hidden"
-        >
+            grid-cols-1 still gives the grid a definite width (anti-flicker). */}
+        <div ref={gridRef} className="grid min-h-0 min-w-0 flex-1 grid-cols-1 overflow-hidden">
           <DataSheetGrid
             // Remount on a change of view / widths / entering sort: dsg freezes `columns`
             // at mount and picks up no change to their definition without a remount — without `view`
