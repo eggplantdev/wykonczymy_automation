@@ -54,8 +54,7 @@ type SimpleTooltipPropsT = {
   content: string
   children: React.ReactNode
   className?: string
-  // ms to hover before the tooltip opens. Omitted → the provider default (0 = instant).
-  delayDuration?: number
+  delayDuration?: number // hover ms before open; omitted → 0 (instant)
 }
 
 function SimpleTooltip({ content, children, className, delayDuration }: SimpleTooltipPropsT) {

@@ -265,12 +265,8 @@ function withResize(
   }
 }
 
-// The ⋯ actions cell: a single button opening KosztorysRowActionsMenu (Wstaw powyżej/poniżej,
-// Przesuń w górę/dół, Usuń). Menu open-state is local per cell; the menu portals to body at the
-// button's bottom-left. Insert + move are disabled while a column sort is active ("above/up" has
-// no mapping in display_order against a price-sorted view); delete is disabled on a section's last
-// item (the "≥1 item" invariant). The handlers read fresh editor state via refs (dsg freezes
-// `columns` at mount), so a stale closure never fires against the wrong row.
+// Insert/move disabled under an active sort (no display_order mapping); delete disabled on a
+// section's last item (≥1-item invariant).
 function RowActionsCell({
   rowData,
   opts,
@@ -284,8 +280,7 @@ function RowActionsCell({
     ? opts.getSectionItemCount(rowData.sectionId) > 1
     : true
 
-  // The button fills the whole cell so the entire actions column is one click target — a small
-  // centered icon left most of the cell dead (and dsg still let you select the empty area).
+  // size-full: whole cell is the click target, else dsg selects the dead space around the icon.
   return (
     <>
       <button

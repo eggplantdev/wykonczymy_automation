@@ -167,8 +167,70 @@ reconciliation / remount stability), not in `handleRemoveItem`. → parking lot.
 
 ---
 
+## 7. Row actions consolidated into a ⋯ menu (replaces §2b right-click) 🟢 committed
+
+**Decision.** Right-click was undiscoverable (§2c). Replaced it with a visible per-row **⋯ button**
+(fills the whole actions cell) opening one menu: Wstaw powyżej/poniżej, Przesuń w górę/dół, Usuń.
+Owner call: **replace** right-click (not keep both), and include **Move up/down now**.
+
+**Key realisation:** Move up/down already existed as `handleReorderItem`/`swapItemOrderAction` (the
+old ▲▼ arrows) — so this was a _consolidation_, not new plumbing. Three scattered affordances
+(▲▼ + 🗑 + hidden right-click) → one ⋯ menu.
+
+- New `KosztorysRowActionsMenu` (button-triggered, portaled to body — same containing-block fix);
+  dropped `kosztorys-row-context-menu.tsx` + all `onContextMenu`/`activeCellRef` grid wiring.
+- Whole cell is the click target (`size-full` button) — a small centred icon left dead space.
+- Insert/move disabled while a column sort is active; delete disabled on a section's last item.
+- Committed **956c853** (EX-436). Toolbar `＋ pozycja` stays as the primary visible add path.
+
+---
+
+## 8. Brutto toggle: ambiguous state + no explanation (EX-426) 🟢 In Progress
+
+**Symptom.** A plain "Brutto" button (highlight when on) — can't tell if it means "showing brutto"
+or "click to show brutto", and no hint what it affects.
+
+**Correction to the issue's premise.** EX-426 called it a "Brutto/Netto mode switch." It isn't — it
+**show/hides an additive Brutto column** (`net × (1 + VAT)`); netto is always visible. Confirmed
+against the umbrella (EX-435 lists it "option A: keep additive Brutto column"). So no mode label.
+
+**Fix.**
+
+- Label states the action + state: **Pokaż brutto** (outline) ↔ **Ukryj brutto** (filled,
+  `aria-pressed`). Same width both ways → no layout shift (helps EX-421).
+- Real hover tooltip via `SimpleTooltip` (Radix, portaled) instead of native `title`; the
+  `asChild` trigger doesn't intercept the button's `onClick`, so no `stopPropagation` needed.
+- Added an optional `delayDuration` to `SimpleTooltip` (default 0 = unchanged for all other
+  callers); Brutto uses **500 ms** hover-delay.
+
+**Note:** the Brutto column renders far-right (after Netto, before Pozostało) — owner had to scroll
+to find it. Open question parked: pin Brutto next to Netto or as a sticky end-column? For now it's a
+normal in-flow column.
+
+---
+
+## 9. Grid outer top + left frame removed 🟢 confirmed
+
+**Want.** Drop the editor grid's outermost top and left border lines.
+
+**Two wrong turns, then the fix.**
+
+1. Zeroed `border-top`/`left` on header + gutter cells → no visible change.
+2. Zeroed them on **every** `.dsg-cell` → killed _all_ interior lines (rows went borderless).
+   Learning: dsg draws every grid line as a per-cell top/left **border**; the mirror bottom/right
+   box-shadows are **covered by the cells' opaque backgrounds**, so they only show on the outer
+   right/bottom edge — they do NOT back up the interior lines.
+3. **Fix that stuck:** shift the whole grid up-and-left by 1px (`margin-top/left: -1px` on
+   `.dsg-container`) so the outer top/left border falls outside the wrapper's `overflow-hidden`
+   clip. Interior lines + right/bottom frame untouched. (`globals.css`.)
+
+---
+
 ## Parking lot (⚪ noticed, not touched)
 
 - Grid virtualization repaint flicker on delete (§6) — cosmetic; fix at DSG render level if it grates.
 
-- Visible per-row `+` insert affordance (§2c) — build when add-flow is locked.
+- Visible per-row `+` insert affordance (§2c) — superseded by the ⋯ menu (§7); the visible add is now
+  the ⋯ menu + toolbar `＋ pozycja`.
+
+- Brutto column placement (§8) — pin next to Netto or as a sticky end-column vs. leave in-flow.
