@@ -69,7 +69,6 @@ export function KosztorysEditorBody({
         addItemSectionId={activeSectionId ?? subtotals.at(-1)?.sectionId ?? null}
         onAddItem={handleAddItem}
         onAddStage={handleAddStage}
-        itemCount={viewRows.length}
         summaryOpen={summaryOpen}
         onToggleSummary={() => setSummaryOpen((o) => !o)}
       />
