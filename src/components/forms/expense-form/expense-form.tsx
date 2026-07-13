@@ -373,8 +373,6 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
 
       {saldo !== null && <SaldoSummary saldo={saldo} total={total} />}
 
-      {/* Same in-flight pill as the optimistic submit, reused while receipts are being read into
-          line items — the per-row / button spinners stay; this is the persistent global signal. */}
       {isGenerating && <SubmitPill label="Odczytywanie paragonów…" />}
 
       <FormFooter className="mt-6" label="Zapisz" disabled={isIngesting} />

@@ -7,13 +7,9 @@ type SubmitPillPropsT = {
   label: string
 }
 
-// Fixed, non-blocking bottom-center pill in the app's fuchsia→cyan AI-accent language. Signals
-// any in-flight background work on a form (optimistic submit, receipt generation) without blocking
-// interaction. Driven by whatever flag the caller passes; it holds no state of its own.
-//
-// Portaled to document.body so it anchors to the viewport like the toasts do — a `fixed` element
-// rendered inside the dialog would instead anchor to the dialog's transformed content box (a
-// transformed ancestor becomes the containing block for `position: fixed`).
+// Portaled to document.body: a `fixed` element rendered inside the dialog would anchor to the
+// dialog's transformed box instead of the viewport (a transformed ancestor becomes the containing
+// block for `position: fixed`).
 export function SubmitPill({ label }: SubmitPillPropsT) {
   if (typeof document === 'undefined') return null
 

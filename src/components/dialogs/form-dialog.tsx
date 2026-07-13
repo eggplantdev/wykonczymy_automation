@@ -45,8 +45,6 @@ export function FormDialog({
 
   return (
     <>
-      {/* In-flight feedback is the global PendingSubmitIndicator; the trigger only guards against
-          reopening the same form while its optimistic save is still running. */}
       <span onClick={() => !isPending && openDialog(formId, showKeepOpen)}>{trigger}</span>
 
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
