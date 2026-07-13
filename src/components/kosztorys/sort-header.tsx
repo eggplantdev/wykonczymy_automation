@@ -25,7 +25,10 @@ export function SortHeader({ label, active, onSort }: PropsT) {
     <DropdownMenu>
       <DropdownMenuTrigger
         title="Sortuj kolumnę"
-        className="hover:bg-accent flex h-full w-full cursor-pointer items-center gap-1 rounded px-1 text-left font-medium outline-none"
+        className={cn(
+          'hover:bg-accent flex h-full w-full cursor-pointer items-center gap-1 rounded px-1 text-left font-medium outline-none',
+          active && 'text-primary font-semibold',
+        )}
       >
         <span className="truncate">{label}</span>
         <Icon className={cn('size-4 shrink-0', active ? 'opacity-100' : 'opacity-50')} />

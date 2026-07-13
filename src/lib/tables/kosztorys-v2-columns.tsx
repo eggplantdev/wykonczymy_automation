@@ -2,6 +2,7 @@
 
 import { type ReactNode } from 'react'
 import { Column, type CellProps, keyColumn, textColumn, floatColumn } from 'react-datasheet-grid'
+import { CellSelectMenu } from '@/components/kosztorys/cell-select-menu'
 import { SortHeader } from '@/components/kosztorys/sort-header'
 import { StageHeader } from '@/components/kosztorys/stage-header'
 import { KosztorysRowActionsMenu } from '@/components/kosztorys/kosztorys-row-actions-menu'
@@ -114,22 +115,13 @@ function computedColumn(
 // Discount-type select cell (—/%/zł). setRowData feeds the diff → autosave.
 function DiscountTypeCell({ rowData, setRowData }: CellProps<KosztorysV2RowT, unknown>) {
   return (
-    <select
-      className="size-full bg-transparent px-2 text-sm outline-none"
+    <CellSelectMenu
       value={rowData.discountType ?? ''}
-      onChange={(e) =>
-        setRowData({
-          ...rowData,
-          discountType: (e.target.value || null) as DiscountTypeT | null,
-        })
+      options={DISCOUNT_OPTIONS}
+      onChange={(next) =>
+        setRowData({ ...rowData, discountType: (next || null) as DiscountTypeT | null })
       }
-    >
-      {DISCOUNT_OPTIONS.map((o) => (
-        <option key={o.value} value={o.value}>
-          {o.label}
-        </option>
-      ))}
-    </select>
+    />
   )
 }
 
@@ -206,24 +198,18 @@ function subcontractorModeColumn(
     minWidth: 150,
     keepFocus: true,
     component: ({ rowData, setRowData }: CellProps<KosztorysV2RowT, unknown>) => (
-      <select
-        className="size-full bg-transparent px-2 text-sm outline-none"
+      <CellSelectMenu
         value={(rowData[typeField] as string | null) ?? ''}
-        onChange={(e) => {
-          const next = (e.target.value || null) as SubcontractorOverrideTypeT | null
+        options={SUB_MODE_OPTIONS}
+        onChange={(value) => {
+          const next = (value || null) as SubcontractorOverrideTypeT | null
           setRowData({
             ...rowData,
             [typeField]: next,
             ...(next === null ? { [valueField]: 0 } : {}),
           })
         }}
-      >
-        {SUB_MODE_OPTIONS.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
+      />
     ),
     copyValue: ({ rowData }) => (rowData[typeField] as string | null) ?? '',
     deleteValue: ({ rowData }) => ({ ...rowData, [typeField]: null, [valueField]: 0 }),
