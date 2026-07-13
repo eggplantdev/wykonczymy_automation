@@ -125,16 +125,22 @@ export function InvoicePreviewDialog({
               Zamień
             </Button>
           )}
-          <Button variant="outline" onClick={handlePrint}>
-            <Printer />
-            Drukuj
-          </Button>
-          <Button variant="outline" asChild>
-            <a href={url} download={filename ?? ''} target="_blank" rel="noopener noreferrer">
-              <Download />
-              Pobierz
-            </a>
-          </Button>
+          {/* PDFs render in the browser's native viewer, which already has print + download in
+              its toolbar — a footer pair would duplicate them. Keep them for images / unknown types. */}
+          {!isPdf && (
+            <>
+              <Button variant="outline" onClick={handlePrint}>
+                <Printer />
+                Drukuj
+              </Button>
+              <Button variant="outline" asChild>
+                <a href={url} download={filename ?? ''} target="_blank" rel="noopener noreferrer">
+                  <Download />
+                  Pobierz
+                </a>
+              </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
