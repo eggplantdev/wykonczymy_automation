@@ -19,7 +19,7 @@ preset is chosen, so you always land on a typable row.
 
 - `createInvestmentAction` (no-preset branch) → `seedBlankKosztorys()` (`src/lib/kosztorys/seed-blank.ts`)
 - Non-fatal, mirrors the preset-seed path. Existing empty investments NOT backfilled (→ import slice).
-- Linear **EX-463**.
+- Linear **EX-463** — committed `4bbe53a`, In Progress (not merged).
 
 ---
 
@@ -146,7 +146,7 @@ Same portal fix as the context menu (§3).
 **Fix.** Clamp a user-dragged width to a small hard floor `RESIZE_MIN_PX = 40` instead of the design
 min (`column-resize-handle.tsx`). Below the design min but non-zero, so a column can't become an
 unhittable 0-width sliver. The design `minWidth` still governs the grid's flex layout for unpinned
-columns. Linear **EX-424**.
+columns. Linear **EX-424** — committed `bdbeac4`, In Progress (owner-confirmed, not merged).
 
 ---
 
@@ -185,27 +185,30 @@ old ▲▼ arrows) — so this was a _consolidation_, not new plumbing. Three sc
 
 ---
 
-## 8. Brutto toggle: ambiguous state + no explanation (EX-426) 🟢 In Progress
+## 8. Brutto toggle: REMOVED — always show Brutto (EX-426 canceled) ✅
 
 **Symptom.** A plain "Brutto" button (highlight when on) — can't tell if it means "showing brutto"
 or "click to show brutto", and no hint what it affects.
 
-**Correction to the issue's premise.** EX-426 called it a "Brutto/Netto mode switch." It isn't — it
-**show/hides an additive Brutto column** (`net × (1 + VAT)`); netto is always visible. Confirmed
-against the umbrella (EX-435 lists it "option A: keep additive Brutto column"). So no mode label.
+**Resolution (2026-07-13): removed the toggle, Brutto is always shown.** Chasing the label/tooltip
+fix surfaced the real question — _why is there a toggle at all?_ The decision trail
+(`context/archive/2026-07-10-kosztorys-vat/`) shows research **recommended always-on, no toggle**
+(to avoid the DSG remount-key cost); it flipped to toggleable only as an unexplained "Owner
+decision" (`plan-brief.md:33`), with no user-facing rationale for hiding Brutto ever recorded. So
+the toggle was pure cost. Dropped it: the additive Brutto column + `Suma brutto` are now
+unconditional. Removed `bruttoVisible` state + button + prop threading across the five editor files;
+`gross` column unconditional in `buildV2Columns`. `tsc` clean.
 
-**Fix.**
+Side benefit: `bruttoVisible` left the grid remount `key`, killing one of EX-422's two flicker
+triggers (view-switch remount remains — EX-422 scoped down to that).
 
-- Label states the action + state: **Pokaż brutto** (outline) ↔ **Ukryj brutto** (filled,
-  `aria-pressed`). Same width both ways → no layout shift (helps EX-421).
-- Real hover tooltip via `SimpleTooltip` (Radix, portaled) instead of native `title`; the
-  `asChild` trigger doesn't intercept the button's `onClick`, so no `stopPropagation` needed.
-- Added an optional `delayDuration` to `SimpleTooltip` (default 0 = unchanged for all other
-  callers); Brutto uses **500 ms** hover-delay.
+**Superseded work.** The `SimpleTooltip` + `delayDuration` (500 ms) addition shipped in `4bbe53a`
+stays (general-purpose, still used by the price-view legend). The Pokaż/Ukryj brutto button and its
+tooltip are gone.
 
-**Note:** the Brutto column renders far-right (after Netto, before Pozostało) — owner had to scroll
-to find it. Open question parked: pin Brutto next to Netto or as a sticky end-column? For now it's a
-normal in-flow column.
+**Parked note (still open):** column placement — Brutto renders far-right (after Netto, before
+Pozostało), owner had to scroll to find it. Pin next to Netto or as a sticky end-column? Now that
+it's always visible this matters more, not less. Still a normal in-flow column for now.
 
 ---
 
@@ -222,7 +225,8 @@ normal in-flow column.
    right/bottom edge — they do NOT back up the interior lines.
 3. **Fix that stuck:** shift the whole grid up-and-left by 1px (`margin-top/left: -1px` on
    `.dsg-container`) so the outer top/left border falls outside the wrapper's `overflow-hidden`
-   clip. Interior lines + right/bottom frame untouched. (`globals.css`.)
+   clip. Interior lines + right/bottom frame untouched. (`globals.css`, committed `f275541`.) No
+   dedicated Linear issue — loose dogfooding fix under the EX-435 umbrella.
 
 ---
 
