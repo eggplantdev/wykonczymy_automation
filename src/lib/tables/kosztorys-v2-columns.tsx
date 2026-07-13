@@ -24,6 +24,13 @@ import type {
   ViewPricingT,
 } from '@/types/kosztorys'
 
+// floatColumn right-aligns by default; the grid reads cleaner with every cell left-aligned under
+// its (left-aligned) header, so numbers don't float at the far edge of wide columns.
+const floatColumnLeft = {
+  ...floatColumn,
+  columnData: { ...floatColumn.columnData, alignRight: false },
+}
+
 const DISCOUNT_OPTIONS: { value: string; label: string }[] = [
   { value: '', label: 'Bez rabatu' },
   { value: 'percent', label: 'Procent (%)' },
@@ -115,23 +122,10 @@ const HEADER_TIPS: Record<string, string> = {
     'Pozostało = Netto − suma wartości ukończonych etapów.\nIle z wartości pozycji nie zostało jeszcze rozliczone etapami.',
 }
 
-// Fields whose cells render right-aligned (floatColumn's alignRight / computed text-right): their
-// headers align right too, so each column's label sits over its values.
-const RIGHT_ALIGNED_FIELDS = new Set([
-  'plannedQty',
-  'measuredQty',
-  'price',
-  'discountValue',
-  'net',
-  'gross',
-  'remaining',
-])
-
 // Column title as a sort-menu header (when onSetSort is provided), wrapped in an explanatory
 // tooltip when the field has one in HEADER_TIPS.
 function title(field: string, label: string, opts: BuildV2ColumnsOptsT): ReactNode {
   const active = opts.sort?.field === field ? opts.sort.dir : null
-  const align = RIGHT_ALIGNED_FIELDS.has(field) ? 'right' : 'left'
   const tip = HEADER_TIPS[field]
   // The tip goes ONTO the sort trigger (same element), not around it — a second wrapping trigger
   // would fight the dropdown for the click. Plain-label columns have no trigger, so wrap directly.
@@ -140,15 +134,12 @@ function title(field: string, label: string, opts: BuildV2ColumnsOptsT): ReactNo
       <SortHeader
         label={label}
         active={active}
-        align={align}
         tip={tip}
         onSort={(dir) => opts.onSetSort?.(field, dir)}
       />
     )
   }
-  const node = (
-    <span className={align === 'right' ? 'block w-full text-right' : undefined}>{label}</span>
-  )
+  const node = <span>{label}</span>
   if (!tip) return node
   return (
     <SimpleTooltip
@@ -173,7 +164,7 @@ function computedColumn(
     title: titleNode,
     disabled: true,
     component: ({ rowData }) => (
-      <span className={`block w-full pr-2 text-right ${className}`}>{fmt(compute(rowData))}</span>
+      <span className={`block w-full px-2 text-left ${className}`}>{fmt(compute(rowData))}</span>
     ),
   }
 }
@@ -230,7 +221,7 @@ function subcontractorPriceColumn(
       const price = viewPrice(rowData as unknown as ViewPricingT, view)
       return (
         <input
-          className={`size-full bg-transparent px-2 text-right text-sm outline-none ${derived ? 'text-muted-foreground italic' : ''}`}
+          className={`size-full bg-transparent px-2 text-left text-sm outline-none ${derived ? 'text-muted-foreground italic' : ''}`}
           value={derived ? '' : String(rowData[valueField] ?? '')}
           placeholder={derived ? fmt(price) : ''}
           inputMode="decimal"
@@ -344,12 +335,12 @@ function RowActionsCell({
 function actionColumn(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT> {
   return {
     id: 'actions',
-    title: '',
-    basis: 48,
+    title: <span className="px-1 font-medium">Akcje</span>,
+    basis: 64,
     grow: 0,
     shrink: 0,
-    minWidth: 48,
-    maxWidth: 48,
+    minWidth: 64,
+    maxWidth: 64,
     disabled: true,
     component: ({ rowData }) => <RowActionsCell rowData={rowData} opts={opts} />,
   }
@@ -363,7 +354,7 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
   const priceCols: Column<KosztorysV2RowT>[] =
     view === 'client'
       ? [
-          keyCol('clientPrice', floatColumn, {
+          keyCol('clientPrice', floatColumnLeft, {
             id: 'price',
             title: title('price', 'Cena', opts),
             minWidth: 90,
@@ -389,19 +380,19 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
       grow: 2,
     }),
     keyCol('unit', textColumn, { id: 'unit', title: title('unit', 'J.m.', opts), minWidth: 64 }),
-    keyCol('plannedQty', floatColumn, {
+    keyCol('plannedQty', floatColumnLeft, {
       id: 'plannedQty',
       title: title('plannedQty', 'Przedmiar', opts),
       minWidth: 90,
     }),
-    keyCol('measuredQty', floatColumn, {
+    keyCol('measuredQty', floatColumnLeft, {
       id: 'measuredQty',
       title: title('measuredQty', 'Pomiar', opts),
       minWidth: 90,
     }),
     ...priceCols,
     discountTypeColumn(title('discountType', 'Rabat', opts)),
-    keyCol('discountValue', floatColumn, {
+    keyCol('discountValue', floatColumnLeft, {
       id: 'discountValue',
       title: title('discountValue', 'Rabat wart.', opts),
       minWidth: 80,
@@ -409,7 +400,7 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
   ]
 
   const stageCols: Column<KosztorysV2RowT>[] = stages.map((st) =>
-    keyCol(stageKey(st.id), floatColumn, {
+    keyCol(stageKey(st.id), floatColumnLeft, {
       id: stageKey(st.id),
       title: (
         <StageHeader

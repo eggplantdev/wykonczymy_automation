@@ -18,7 +18,7 @@ export function StageHeader({ stage, onRename, onRemove, tip }: PropsT) {
   const row = (
     <div className="flex size-full items-center gap-1">
       <input
-        className="min-w-0 flex-1 bg-transparent text-right text-sm outline-none"
+        className="min-w-0 flex-1 bg-transparent text-sm outline-none"
         defaultValue={stage.label ?? ''}
         placeholder={`Etap ${stage.ordinal}`}
         onBlur={(e) => onRename?.(stage.id, e.target.value)}
