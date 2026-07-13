@@ -5,6 +5,7 @@ import { Column, type CellProps, keyColumn, textColumn, floatColumn } from 'reac
 import { CellSelectMenu } from '@/components/kosztorys/cell-select-menu'
 import { SortHeader } from '@/components/kosztorys/sort-header'
 import { StageHeader } from '@/components/kosztorys/stage-header'
+import { SimpleTooltip } from '@/components/ui/tooltip'
 import { KosztorysRowActionsMenu } from '@/components/kosztorys/kosztorys-row-actions-menu'
 import { ResizableHeader } from '@/components/kosztorys/column-resize-handle'
 import {
@@ -24,9 +25,9 @@ import type {
 } from '@/types/kosztorys'
 
 const DISCOUNT_OPTIONS: { value: string; label: string }[] = [
-  { value: '', label: '—' },
-  { value: 'percent', label: '%' },
-  { value: 'amount', label: 'zł' },
+  { value: '', label: 'Bez rabatu' },
+  { value: 'percent', label: 'Procent (%)' },
+  { value: 'amount', label: 'Kwota (zł)' },
 ]
 
 // Subcontractor price calculation mode (a column in the subcontractor views). Descriptive
@@ -88,11 +89,46 @@ function keyCol(
   return { ...(keyColumn(key, column) as Column<KosztorysV2RowT>), ...rest }
 }
 
-// Column title as a sort-menu header (when onSetSort is provided).
+// Audit aid (may be temporary): each header explains the column's intent + the formula that
+// drives it, so mismatches between intent and calc are visible. Netto/wartości liczone są z
+// POMIARU (measuredQty); PRZEDMIAR (plannedQty) nie wchodzi obecnie do żadnego obliczenia.
+const HEADER_TIPS: Record<string, string> = {
+  sectionName:
+    'Sekcja — nazwa sekcji kosztorysu.\nTylko do odczytu (zmieniana z panelu sekcji). Wartość zdenormalizowana na każdym wierszu.',
+  description: 'Opis — nazwa/opis pozycji robót lub materiału. Nie wchodzi do obliczeń.',
+  unit: 'J.m. — jednostka miary (m², szt., mb…). Etykieta, nie wchodzi do obliczeń.',
+  plannedQty:
+    'Przedmiar — ilość planowana (z przedmiaru/oferty).\nUWAGA: obecnie NIE wchodzi do żadnego obliczenia. Netto liczone jest z Pomiaru, nie z Przedmiaru. Pole czysto informacyjne.',
+  measuredQty:
+    'Pomiar — ilość zmierzona / rzeczywista.\nTo ona napędza wszystkie wartości: Netto = Pomiar × Cena − Rabat.',
+  price: 'Cena — cena jednostkowa przy aktywnym widoku cen (klient lub podwykonawca).',
+  priceMode:
+    'Tryb liczenia ceny (podwykonawca):\nauto = Cena klienta × współczynnik narzutu;\n× mnożnik = Cena klienta × wpisany mnożnik;\nkwota zł = cena stała.',
+  discountType: 'Rabat — typ rabatu: — brak · % procent · zł kwota.',
+  discountValue:
+    'Rabat wart. — wartość rabatu.\nDla % = punkty procentowe (10 = 10%); dla zł = kwota odjęta od Netto.',
+  net: 'Netto = Pomiar × Cena − Rabat. Wartość pozycji przy aktywnym widoku cen.',
+  gross: 'Brutto = Netto × (1 + VAT). Jedna stawka VAT na inwestycję, zdenormalizowana na wierszu.',
+  remaining:
+    'Pozostało = Netto − suma wartości ukończonych etapów.\nIle z wartości pozycji nie zostało jeszcze rozliczone etapami.',
+}
+
+// Column title as a sort-menu header (when onSetSort is provided), wrapped in an explanatory
+// tooltip when the field has one in HEADER_TIPS.
 function title(field: string, label: string, opts: BuildV2ColumnsOptsT): ReactNode {
-  if (!opts.onSetSort) return label
   const active = opts.sort?.field === field ? opts.sort.dir : null
-  return <SortHeader label={label} active={active} onSort={(dir) => opts.onSetSort?.(field, dir)} />
+  const node = opts.onSetSort ? (
+    <SortHeader label={label} active={active} onSort={(dir) => opts.onSetSort?.(field, dir)} />
+  ) : (
+    <span>{label}</span>
+  )
+  const tip = HEADER_TIPS[field]
+  if (!tip) return node
+  return (
+    <SimpleTooltip content={tip} delayDuration={300} className="max-w-xs whitespace-pre-line">
+      <span className="flex h-full w-full items-center">{node}</span>
+    </SimpleTooltip>
+  )
 }
 
 // Computed, read-only column: a custom component rendering the value from calc.
@@ -118,6 +154,7 @@ function DiscountTypeCell({ rowData, setRowData }: CellProps<KosztorysV2RowT, un
     <CellSelectMenu
       value={rowData.discountType ?? ''}
       options={DISCOUNT_OPTIONS}
+      hideChevron
       onChange={(next) =>
         setRowData({ ...rowData, discountType: (next || null) as DiscountTypeT | null })
       }
@@ -129,7 +166,7 @@ function discountTypeColumn(titleNode: ReactNode): Column<KosztorysV2RowT> {
   return {
     id: 'discountType',
     title: titleNode,
-    minWidth: 70,
+    minWidth: 110,
     component: DiscountTypeCell,
     keepFocus: true,
     copyValue: ({ rowData }) => rowData.discountType ?? '',
@@ -344,7 +381,19 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
   const stageCols: Column<KosztorysV2RowT>[] = stages.map((st) =>
     keyCol(stageKey(st.id), floatColumn, {
       id: stageKey(st.id),
-      title: <StageHeader stage={st} onRename={opts.onRenameStage} onRemove={opts.onRemoveStage} />,
+      title: (
+        <SimpleTooltip
+          content={
+            'Etap — ilość wykonana w tym etapie (wpisywana w wierszu).\nWartość etapu = ilość × Cena − Rabat. Suma ukończonych etapów pomniejsza kolumnę Pozostało.'
+          }
+          delayDuration={300}
+          className="max-w-xs whitespace-pre-line"
+        >
+          <span className="flex h-full w-full items-center">
+            <StageHeader stage={st} onRename={opts.onRenameStage} onRemove={opts.onRemoveStage} />
+          </span>
+        </SimpleTooltip>
+      ),
       minWidth: 80,
     }),
   )
