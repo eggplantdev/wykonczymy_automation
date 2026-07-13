@@ -107,7 +107,7 @@ const HEADER_TIPS: Record<string, string> = {
   description: 'Opis — nazwa/opis pozycji robót lub materiału. Nie wchodzi do obliczeń.',
   unit: 'J.m. — jednostka miary (m², szt., mb…). Etykieta, nie wchodzi do obliczeń.',
   plannedQty:
-    'Przedmiar — ilość planowana (z przedmiaru/oferty).\nUWAGA: obecnie NIE wchodzi do żadnego obliczenia. Netto liczone jest z Pomiaru, nie z Przedmiaru. Pole czysto informacyjne.',
+    'Przedmiar — ilość planowana (z przedmiaru/oferty).\nPole informacyjne — z założenia nie wchodzi do obliczeń. Netto liczone jest z Pomiaru.',
   measuredQty:
     'Pomiar — ilość zmierzona / rzeczywista.\nTo ona napędza wszystkie wartości: Netto = Pomiar × Cena − Rabat.',
   price: 'Cena — cena jednostkowa przy aktywnym widoku cen (klient lub podwykonawca).',
