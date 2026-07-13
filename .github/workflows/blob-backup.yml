@@ -1,0 +1,129 @@
+# ============================================================================
+# Daily Vercel Blob → FTP mirror (EX-459)
+# ============================================================================
+# Why: invoice/receipt files live in Vercel Blob with no versioning / no undelete.
+# The DB dump (db-backup.yml) backs up only the `media` POINTER rows, not the bytes.
+# This mirrors the bytes so a DB restore has files to resolve against. Recovery
+# procedure + rationale: context/changes/blob-backup/runbook.md.
+#
+# Strategy — Rung 3 "manifest-diff", MIRROR-ONLY:
+#   1. Pull the latest manifest from FTP  (the set already backed up)
+#   2. scripts/blob-mirror.mjs: list() Vercel, diff in-memory, download ONLY new blobs
+#   3. Upload the new files + refreshed manifest. NEVER delete — a blob that vanished
+#      from Vercel must stay in the backup (that is the whole point / threat #1).
+# So there is deliberately NO retention/prune on media/ (unlike db-backup's 30d prune).
+#
+# Daily (not hourly): invoices are low-frequency + immutable.
+#
+# Secrets required (repo → Settings → Secrets):
+#   BLOB_READ_WRITE_TOKEN : Vercel Blob token — in CI only feeds list(); downloads are anonymous
+#   FTP_HOST / FTP_USER / FTP_PASS : same FTPS server as db-backup.yml
+#
+# Manual runs (workflow_dispatch) default to a test/ dir so they never touch the real
+# mirror; the daily schedule writes to the prod dir.
+# ============================================================================
+
+name: Backup Vercel Blob
+
+on:
+  schedule:
+    # daily 03:30 UTC. Off the hourly db-backup window (04–22) to avoid FTP contention.
+    - cron: '30 3 * * *'
+  workflow_dispatch:
+    inputs:
+      target_dir:
+        description: 'Remote base dir (leave default for safe test runs)'
+        required: false
+        default: '/blob_backups/test/'
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      # Scheduled runs have no inputs -> real dir. Manual runs default to test/.
+      REMOTE_BASE: ${{ github.event.inputs.target_dir || '/blob_backups/' }}
+      MIN_BLOBS: '1500' # floor: fail if list() returns fewer (catches empty/wrong store)
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install LFTP
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      # ---- 1. pull the latest manifest (set already backed up) -----------
+      - name: Fetch previous manifest from FTP
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+        run: |
+          LFTP_OPTS="set ftp:ssl-auth TLS; set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no; set xfer:clobber on;"
+          MANIFEST_DIR="${REMOTE_BASE}manifests/"
+          : > prev.json  # empty default => full seed if no prior manifest
+
+          # newest manifest by lexical sort (filenames are timestamped). cd to a
+          # missing dir -> empty list. lftp lists; the shell sorts (lftp's pipe parsing is flaky).
+          PREV_NAME=$(lftp -c "
+            $LFTP_OPTS
+            open -u '$FTP_USER','$FTP_PASS' '$FTP_HOST';
+            cd '$MANIFEST_DIR';
+            cls -1 manifest-*.json
+          " 2>/dev/null | sort | tail -1 || true)
+
+          if [ -z "$PREV_NAME" ]; then
+            echo "ℹ️ no previous manifest in $MANIFEST_DIR — full seed run"
+          else
+            echo "🔁 previous manifest: $PREV_NAME"
+            lftp -c "
+              $LFTP_OPTS
+              open -u '$FTP_USER','$FTP_PASS' '$FTP_HOST';
+              cd '$MANIFEST_DIR';
+              get '$PREV_NAME' -o prev.json
+            "
+          fi
+
+      # ---- 2. diff + download only new blobs -----------------------------
+      - name: Mirror new blobs to local dir
+        env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+        run: |
+          export SNAPSHOT_STAMP=$(date +%Y%m%d-%H%M%S)
+          echo "STAMP=$SNAPSHOT_STAMP" >> "$GITHUB_ENV"
+          node scripts/blob-mirror.mjs \
+            --prev-manifest prev.json \
+            --out ./blob-out \
+            --min-blobs "$MIN_BLOBS"
+
+      # ---- 3. upload new files + manifest (mirror-only, NO prune) ---------
+      - name: Upload new blobs and manifest via FTPS
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+        run: |
+          LFTP_OPTS="set ftp:ssl-auth TLS; set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no; set ftp:passive-mode on;"
+          MEDIA_DIR="${REMOTE_BASE}media/"
+          MANIFEST_DIR="${REMOTE_BASE}manifests/"
+
+          # mirror -R (local -> remote) WITHOUT --delete: additive only. Local blob-out/media
+          # holds just this run's new files, so exactly those upload; the existing remote
+          # mirror is never touched or pruned.
+          # lcd INTO the source + mirror `.` so files land FLAT in MEDIA_DIR. `mirror -R <dir>`
+          # (with a path arg) recreates <dir>'s basename remotely -> media/media/ nesting.
+          lftp -c "
+            $LFTP_OPTS
+            open -u '$FTP_USER','$FTP_PASS' '$FTP_HOST';
+            mkdir -p -f '$MEDIA_DIR';
+            mkdir -p -f '$MANIFEST_DIR';
+            lcd ./blob-out/media;
+            mirror -R --no-perms . '$MEDIA_DIR';
+            put -O '$MANIFEST_DIR' ./blob-out/manifest-${STAMP}.json;
+            bye
+          "
+          echo "✅ Uploaded new blobs + manifest-${STAMP}.json to $REMOTE_BASE"
