@@ -5,22 +5,34 @@ import { SimpleTooltip } from '@/components/ui/tooltip'
 import { SearchFilterInput } from '@/components/ui/search-filter-input'
 import { ToggleGroup } from '@/components/ui/toggle-group'
 import { SaveAsButton } from '@/components/kosztorys/save-as-button'
+import { Slash, User, Wrench } from 'lucide-react'
+import type { ReactNode } from 'react'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 
 // Three views over one dataset: they only change the active price and its derived values.
-const VIEWS: { value: PriceViewT; label: string }[] = [
-  { value: 'client', label: 'Klient' },
-  { value: 'w_tools', label: 'Z narzędziami' },
-  { value: 'own_tools', label: 'Bez narzędzi' },
+const ICON_CLASS = 'size-4'
+const VIEWS: { value: PriceViewT; label: string; icon: ReactNode }[] = [
+  { value: 'client', label: 'Klient', icon: <User className={ICON_CLASS} /> },
+  { value: 'w_tools', label: 'Z narzędziami', icon: <Wrench className={ICON_CLASS} /> },
+  {
+    value: 'own_tools',
+    label: 'Bez narzędzi',
+    // No native crossed-wrench glyph — overlay two mirrored Slashes into an X to read as "tools off".
+    icon: (
+      <span className="relative inline-flex">
+        <Wrench className={ICON_CLASS} />
+        <Slash className="absolute inset-0 size-4" />
+        <Slash className="absolute inset-0 size-4 -scale-x-100" />
+      </span>
+    ),
+  },
 ]
 
 const VIEW_LEGEND = [
   'Widoki cen:',
-  'Klient — cena dla klienta.',
-  'Z narzędziami / Bez narzędzi — ceny podwykonawcy, liczone ze współczynnika narzutu.',
-  '',
-  'Tryb ceny pozycji:',
-  'auto — ze współczynnika · × mnożnik ceny klienta · kwota (zł).',
+  '👤 Klient — cena dla klienta.',
+  '🔧 Stawka wykonawcy z narzędziami.',
+  '🚫 Stawka wykonawcy bez narzędzi.',
 ].join('\n')
 
 type PropsT = {
@@ -37,9 +49,6 @@ type PropsT = {
   addItemSectionId: number | null
   onAddItem: (sectionId: number) => void
   onAddStage: () => void
-  itemCount: number
-  bruttoVisible: boolean
-  onToggleBrutto: () => void
   summaryOpen: boolean
   onToggleSummary: () => void
 }
@@ -55,9 +64,6 @@ export function KosztorysEditorToolbar({
   addItemSectionId,
   onAddItem,
   onAddStage,
-  itemCount,
-  bruttoVisible,
-  onToggleBrutto,
   summaryOpen,
   onToggleSummary,
 }: PropsT) {
@@ -78,20 +84,6 @@ export function KosztorysEditorToolbar({
           />
         </span>
       </SimpleTooltip>
-      {/* Show/hides the additive Brutto column; netto always stays (EX-426). */}
-      <SimpleTooltip
-        content="Pokazuje/ukrywa kolumnę i sumę brutto (netto × (1 + VAT)). Netto pozostaje widoczne."
-        delayDuration={500}
-      >
-        <Button
-          size="sm"
-          variant={bruttoVisible ? 'default' : 'outline'}
-          aria-pressed={bruttoVisible}
-          onClick={onToggleBrutto}
-        >
-          {bruttoVisible ? 'Ukryj brutto' : 'Pokaż brutto'}
-        </Button>
-      </SimpleTooltip>
       <SearchFilterInput
         value={search}
         onChange={onSearchChange}
@@ -106,7 +98,6 @@ export function KosztorysEditorToolbar({
       <Button size="sm" variant="outline" onClick={onAddStage}>
         ＋ etap
       </Button>
-      <span className="text-muted-foreground text-sm">{itemCount} pozycji</span>
       <div className="ml-auto flex items-center gap-1">
         <SaveAsButton investmentId={investmentId} />
         <Button size="sm" variant="outline" onClick={onOpenVersions}>
