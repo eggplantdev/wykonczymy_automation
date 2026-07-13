@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, useRef } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import { Trash2, WandSparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -8,6 +8,7 @@ import { GradientSpinner } from '@/components/ui/gradient-spinner'
 import { RemoveButton } from '@/components/ui/remove-button'
 import { LineItemInvoiceField } from '@/components/forms/form-fields/line-item-invoice-field'
 import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
 import {
   EXPENSE_CATEGORY_LABEL,
@@ -36,6 +37,10 @@ type CategoryFieldConfigT = {
   placeholder: string
   options: { id: number; name: string }[]
 }
+
+// Mirrors the receipt picker's accept="image/*,application/pdf" for dropped files, which carry no filter.
+const isReceiptFile = (file: File) =>
+  file.type.startsWith('image/') || file.type === 'application/pdf'
 
 const EMPTY_LINE_ITEM: BulkExpenseFormValuesT['lineItems'][number] = {
   description: '',
@@ -158,18 +163,14 @@ export function LineItemsField({
     : EMPTY_LINE_ITEM
   const receiptInputRef = useRef<HTMLInputElement>(null)
   const isIngesting = (ingestingIndices?.size ?? 0) > 0
+  const [isDragOver, setIsDragOver] = useState(false)
 
   // Scan flow: add each picked receipt as a row (image attached) FIRST, then run the AI generation.
   // Order matters — rows persist even if extraction fails, so a failed scan still yields line
   // items to fill in by hand. Ingest is async (HEIC-convert / compress / guard), so AWAIT it before
-  // generation — otherwise generation reads an empty files map. Picker cancelled (no files) → skip
-  // the add and just re-run generation on any existing eligible rows.
-  async function handleScanReceipts(
-    e: React.ChangeEvent<HTMLInputElement>,
-    lineItemsField: LineItemsArrayFieldT,
-  ) {
-    const picked = Array.from(e.target.files ?? [])
-    e.target.value = '' // allow re-picking the same files after a reset
+  // generation — otherwise generation reads an empty files map. Empty picked list → skip the add
+  // and just re-run generation on any existing eligible rows (picker cancelled).
+  async function scanReceipts(picked: File[], lineItemsField: LineItemsArrayFieldT) {
     if (picked.length > 0) {
       // Reuse the lone initial blank row for the first image so the first receipt lands on
       // row 0 rather than after an empty row; otherwise append after the existing rows.
@@ -182,6 +183,26 @@ export function LineItemsField({
       await onRegisterFiles(startIndex, picked)
     }
     onGenerate?.()
+  }
+
+  function handleScanReceipts(
+    e: React.ChangeEvent<HTMLInputElement>,
+    lineItemsField: LineItemsArrayFieldT,
+  ) {
+    const picked = Array.from(e.target.files ?? [])
+    e.target.value = '' // allow re-picking the same files after a reset
+    return scanReceipts(picked, lineItemsField)
+  }
+
+  // Drop mirrors the picker but drops carry no `accept` filter, so keep only receipt files and bail
+  // on an empty result — unlike the picker, an unmatched drop must NOT re-run generation on existing rows.
+  function handleDropReceipts(e: React.DragEvent, lineItemsField: LineItemsArrayFieldT) {
+    e.preventDefault()
+    setIsDragOver(false)
+    if (isGenerating || isIngesting) return
+    const picked = Array.from(e.dataTransfer.files).filter(isReceiptFile)
+    if (picked.length === 0) return
+    return scanReceipts(picked, lineItemsField)
   }
 
   return (
@@ -304,6 +325,16 @@ export function LineItemsField({
                 size="sm"
                 onClick={() => receiptInputRef.current?.click()}
                 disabled={isGenerating || isIngesting}
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  setIsDragOver(true)
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault()
+                  setIsDragOver(false)
+                }}
+                onDrop={(e) => handleDropReceipts(e, lineItemsField)}
+                className={cn(isDragOver && 'ring-neon-cyan ring-2')}
               >
                 {isGenerating || isIngesting ? (
                   <GradientSpinner />
