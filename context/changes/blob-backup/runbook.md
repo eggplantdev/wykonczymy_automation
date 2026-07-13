@@ -247,6 +247,22 @@ immutable invoices. Phase 2's paired manifest+dump timestamp minimizes it.
     `lcd` into the source and `mirror -R . <remote>` so files land flat. The initial seed nested;
     repaired server-side with fast dir renames (no re-upload). **Workflow upload step corrected to
     the `lcd .` idiom** so the daily CI run won't reproduce the nesting.
-- **Still owed before CI goes live:** add GitHub secret **`BLOB_READ_WRITE_TOKEN`**; first
-  `workflow_dispatch` run should target the default `test/` dir to confirm green end-to-end before
-  the daily schedule writes to the real `/blob_backups/`.
+- **2026-07-13** — **`BLOB_READ_WRITE_TOKEN` secret added** to repo `eggplantdev/wykonczymy_automation`
+  (Vercel Blob has no scoped read-only token — the rw token is used, but only ever feeds `list()`;
+  downloads are anonymous). Branch `worktree-ex-459-blob-backup` pushed.
+- **2026-07-13** — **Local end-to-end test PASS.** Ran the exact CI pipeline by hand into
+  `/blob_backups/test/` (seeded `test/manifests/` with the baseline first, so it's a small delta,
+  not a cold start): mirror script listed Vercel (1783), diffed vs baseline (1771 known), downloaded
+  the **12**-file delta, merged manifest → 1783, floor+completeness OK; upload landed all 12 **flat**
+  in `test/media/` (confirmed no `media/media/`), manifest in `test/manifests/`. Two more gotchas
+  caught + fixed here:
+  - `workflow_dispatch` can't run until the workflow file is on the **default branch** — GitHub
+    gates the dispatch trigger on `main`. So the CI dispatch test can only happen post-merge; the
+    pre-merge confidence comes from this local run.
+  - **Manifest `put` path broke after the `lcd`.** `lcd ./blob-out/media` changes lftp's *local*
+    cwd, so the following `put ./blob-out/manifest-*.json` resolved to `blob-out/media/blob-out/...`
+    (ENOENT) — the manifest silently wouldn't upload. Fix: **`put` the manifest BEFORE the `lcd`.**
+    Workflow corrected. (Also caught: my local harness missed `set xfer:clobber on`, so `get` of
+    prev.json no-op'd and forced a full seed — the workflow already has that flag; harness-only.)
+- **Still owed:** open PR → merge to `main` → `workflow_dispatch` (defaults to `test/`) to confirm
+  green on the GitHub runner (Node 24 + `apt lftp`) → clean up `/blob_backups/test/`.

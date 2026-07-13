@@ -116,14 +116,16 @@ jobs:
           # mirror is never touched or pruned.
           # lcd INTO the source + mirror `.` so files land FLAT in MEDIA_DIR. `mirror -R <dir>`
           # (with a path arg) recreates <dir>'s basename remotely -> media/media/ nesting.
+          # put the manifest BEFORE the lcd: after `lcd ./blob-out/media`, lftp's local cwd is the
+          # media dir, so a `./blob-out/...` path would resolve to blob-out/media/blob-out/... (ENOENT).
           lftp -c "
             $LFTP_OPTS
             open -u '$FTP_USER','$FTP_PASS' '$FTP_HOST';
             mkdir -p -f '$MEDIA_DIR';
             mkdir -p -f '$MANIFEST_DIR';
+            put -O '$MANIFEST_DIR' ./blob-out/manifest-${STAMP}.json;
             lcd ./blob-out/media;
             mirror -R --no-perms . '$MEDIA_DIR';
-            put -O '$MANIFEST_DIR' ./blob-out/manifest-${STAMP}.json;
             bye
           "
           echo "✅ Uploaded new blobs + manifest-${STAMP}.json to $REMOTE_BASE"
