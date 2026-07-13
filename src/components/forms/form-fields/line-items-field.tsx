@@ -129,7 +129,8 @@ function CategorySelect({
           searchPlaceholder={`Szukaj: ${config.label.toLowerCase()}...`}
           emptyMessage="Nie znaleziono."
           items={config.options.map((opt) => ({ value: String(opt.id), label: opt.name }))}
-          showError
+          // No error text — the red aria-invalid border is signal enough, and the message
+          // reflowed the row (pushing sibling fields down). Border stays; message dropped.
           fieldClassName={fieldClassName}
         />
       )}

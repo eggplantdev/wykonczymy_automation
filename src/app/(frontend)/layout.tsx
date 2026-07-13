@@ -15,6 +15,7 @@ import { AppFooter } from '@/components/nav/app-footer'
 import { CurrentUserProvider } from '@/hooks/use-current-user'
 import { Loader } from '@/components/ui/loader/loader'
 import { EnvBadge } from '@/components/ui/env-badge'
+import { PendingSubmitIndicator } from '@/components/forms/pending-submit-indicator'
 
 export default function FrontendLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -34,6 +35,7 @@ export default function FrontendLayout({ children }: { children: React.ReactNode
           <AuthenticatedShell>{children}</AuthenticatedShell>
         </Suspense>
         <ToastContainer style={{ zIndex: 10001 }} />
+        <PendingSubmitIndicator />
         <EnvBadge />
       </body>
     </html>

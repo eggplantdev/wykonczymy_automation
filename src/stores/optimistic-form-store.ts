@@ -44,7 +44,14 @@ export const useOptimisticFormStore = create<OptimisticFormStoreT>()((set) => ({
   // submitOptimistically, which leaves keepOpen untouched — preserving the choice for the retry.
   openDialog: (formId, showKeepOpen = true) =>
     set({ openFormId: formId, keepOpen: false, showKeepOpen }),
-  closeDialog: () => set({ openFormId: null, submission: null }),
+  // Closing the dialog must not abort in-flight work: the optimistic submit path closes the
+  // dialog *while* the save runs, so a 'pending' submission has to survive (the global indicator
+  // reads it). Only a settled/failed submission clears on dismiss.
+  closeDialog: () =>
+    set((state) => ({
+      openFormId: null,
+      submission: state.submission?.status === 'pending' ? state.submission : null,
+    })),
   setKeepOpen: (keepOpen) => set({ keepOpen }),
 
   submitOptimistically: (formId, invoiceFiles, action, successMessage, onSuccess) => {

@@ -1,8 +1,6 @@
 'use client'
 
-import { Loader2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 
 type FormDialogPropsT = {
@@ -47,14 +45,9 @@ export function FormDialog({
 
   return (
     <>
-      {isPending ? (
-        <Button variant="outline" size="sm" disabled>
-          <Loader2 className="size-3.5 animate-spin" />
-          Zapisywanie...
-        </Button>
-      ) : (
-        <span onClick={() => openDialog(formId, showKeepOpen)}>{trigger}</span>
-      )}
+      {/* In-flight feedback is the global PendingSubmitIndicator; the trigger only guards against
+          reopening the same form while its optimistic save is still running. */}
+      <span onClick={() => !isPending && openDialog(formId, showKeepOpen)}>{trigger}</span>
 
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogContent className={className}>

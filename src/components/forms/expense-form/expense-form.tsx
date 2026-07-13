@@ -8,6 +8,7 @@ import { useInvoiceFiles, type IngestResultT } from '@/components/forms/hooks/us
 import { useReceiptGeneration } from '@/components/forms/hooks/use-receipt-generation'
 import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import { useSaldo } from '@/components/forms/hooks/use-saldo'
+import { SubmitPill } from '@/components/forms/submit-pill'
 import {
   TRANSACTION_TRANSFER_TYPES,
   TRANSFER_TYPE_LABELS,
@@ -371,6 +372,10 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
       </FieldGroup>
 
       {saldo !== null && <SaldoSummary saldo={saldo} total={total} />}
+
+      {/* Same in-flight pill as the optimistic submit, reused while receipts are being read into
+          line items — the per-row / button spinners stay; this is the persistent global signal. */}
+      {isGenerating && <SubmitPill label="Odczytywanie paragonów…" />}
 
       <FormFooter className="mt-6" label="Zapisz" disabled={isIngesting} />
     </FormShell>
