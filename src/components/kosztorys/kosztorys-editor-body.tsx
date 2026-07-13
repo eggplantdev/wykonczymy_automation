@@ -38,8 +38,6 @@ export function KosztorysEditorBody({
     totalNet,
     sectionCoeffs,
     setView,
-    bruttoVisible,
-    toggleBrutto,
     search,
     setSearch,
     activeSectionId,
@@ -72,8 +70,6 @@ export function KosztorysEditorBody({
         onAddItem={handleAddItem}
         onAddStage={handleAddStage}
         itemCount={viewRows.length}
-        bruttoVisible={bruttoVisible}
-        onToggleBrutto={toggleBrutto}
         summaryOpen={summaryOpen}
         onToggleSummary={() => setSummaryOpen((o) => !o)}
       />
@@ -94,7 +90,7 @@ export function KosztorysEditorBody({
             // all 3 views showed the client price, without `widthsKey` a resize didn't recompute the widths.
             // `sorted/natural`: the reorder arrows (grayed out while sorting) must rebuild
             // on entering/leaving sort — asc↔desc does not remount (arrow state unchanged).
-            key={`${view}:${sort ? 'sorted' : 'natural'}:${widthsKey}:${stagesKey}:${bruttoVisible}`}
+            key={`${view}:${sort ? 'sorted' : 'natural'}:${widthsKey}:${stagesKey}`}
             className="kosztorys-grid"
             value={viewRows}
             onChange={onChange}
@@ -114,7 +110,6 @@ export function KosztorysEditorBody({
             globalCoeffs={tree.globalCoeffs}
             sectionCoeffs={sectionCoeffs}
             vatRate={tree.vatRate}
-            bruttoVisible={bruttoVisible}
             onClose={() => setSummaryOpen(false)}
             onAddSection={handleAddSection}
             onAddItem={handleAddItem}

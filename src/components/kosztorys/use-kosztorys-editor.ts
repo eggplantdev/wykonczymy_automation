@@ -93,9 +93,6 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   // `stagesKey` feeds the grid remount key (dsg freezes columns at mount).
   const [stages, setStages] = useState<KosztorysStageT[]>(tree.stages)
   const [view, setView] = usePriceView(investmentId)
-  // Brutto column toggle (local, not persisted). Folded into the grid remount key below — dsg
-  // freezes columns at mount, so toggling has to remount to add/drop the Brutto column.
-  const [bruttoVisible, setBruttoVisible] = useState(false)
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<V2SortStateT>(null)
   const [activeSectionId, setActiveSectionId] = useState<number | null>(null)
@@ -135,7 +132,6 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   // only from a cell's onClick, never during render, so passing them here is safe.
   const columns = buildV2Columns({
     view,
-    bruttoVisible,
     stages,
     onRemoveStage: handleRemoveStage,
     onRenameStage: handleRenameStage,
@@ -535,8 +531,6 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     sectionCoeffs,
     // toolbar / panel state
     setView,
-    bruttoVisible,
-    toggleBrutto: () => setBruttoVisible((b) => !b),
     search,
     setSearch,
     activeSectionId,

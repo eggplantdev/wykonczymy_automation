@@ -1,8 +1,9 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { InfoTooltip } from '@/components/ui/info-tooltip'
+import { SimpleTooltip } from '@/components/ui/tooltip'
 import { SearchFilterInput } from '@/components/ui/search-filter-input'
+import { ToggleGroup } from '@/components/ui/toggle-group'
 import { SaveAsButton } from '@/components/kosztorys/save-as-button'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 
@@ -63,27 +64,34 @@ export function KosztorysEditorToolbar({
   return (
     <div className="border-border flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b px-4 py-2">
       <h1 className="text-foreground text-sm font-medium">Kosztorys — {investmentName}</h1>
-      <div className="flex items-center gap-1">
-        {VIEWS.map((v) => (
-          <Button
-            key={v.value}
-            size="sm"
-            variant={v.value === view ? 'default' : 'outline'}
-            onClick={() => onViewChange(v.value)}
-          >
-            {v.label}
-          </Button>
-        ))}
-        <InfoTooltip content={VIEW_LEGEND} label="Co oznaczają widoki cen" className="ml-0.5" />
-      </div>
-      <Button
-        size="sm"
-        variant={bruttoVisible ? 'default' : 'outline'}
-        onClick={onToggleBrutto}
-        title="Pokaż kolumnę i sumę brutto (netto × (1 + VAT))"
+      <SimpleTooltip
+        content={VIEW_LEGEND}
+        delayDuration={500}
+        className="max-w-xs whitespace-pre-line"
       >
-        Brutto
-      </Button>
+        <span className="inline-flex">
+          <ToggleGroup
+            options={VIEWS}
+            value={view}
+            onChange={onViewChange}
+            aria-label="Widok cen"
+          />
+        </span>
+      </SimpleTooltip>
+      {/* Show/hides the additive Brutto column; netto always stays (EX-426). */}
+      <SimpleTooltip
+        content="Pokazuje/ukrywa kolumnę i sumę brutto (netto × (1 + VAT)). Netto pozostaje widoczne."
+        delayDuration={500}
+      >
+        <Button
+          size="sm"
+          variant={bruttoVisible ? 'default' : 'outline'}
+          aria-pressed={bruttoVisible}
+          onClick={onToggleBrutto}
+        >
+          {bruttoVisible ? 'Ukryj brutto' : 'Pokaż brutto'}
+        </Button>
+      </SimpleTooltip>
       <SearchFilterInput
         value={search}
         onChange={onSearchChange}

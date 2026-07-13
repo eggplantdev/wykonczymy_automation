@@ -16,10 +16,8 @@ type PropsT = {
   activeSectionId: number | null
   globalCoeffs: { wTools: number; ownTools: number }
   sectionCoeffs: Map<number, SectionCoeffsT>
-  // VAT rate as a fraction (0.08); the field shows/accepts a percent. bruttoVisible gates the
-  // Suma brutto line so it matches the grid's Brutto column.
+  // VAT rate as a fraction (0.08); the field shows/accepts a percent.
   vatRate: number
-  bruttoVisible: boolean
   onClose: () => void
   onAddSection: () => void
   onAddItem: (sectionId: number) => void
@@ -85,7 +83,6 @@ export function KosztorysSectionSummary({
   globalCoeffs,
   sectionCoeffs,
   vatRate,
-  bruttoVisible,
   onClose,
   onAddSection,
   onAddItem,
@@ -285,14 +282,12 @@ export function KosztorysSectionSummary({
         <span className="text-foreground text-sm font-medium">Suma netto</span>
         <span className="text-foreground text-sm font-medium tabular-nums">{fmt(grandNet)}</span>
       </div>
-      {bruttoVisible && (
-        <div className="border-border flex shrink-0 items-baseline justify-between border-t px-3 py-2">
-          <span className="text-foreground text-sm font-medium">Suma brutto</span>
-          <span className="text-foreground text-sm font-medium tabular-nums">
-            {fmt(grandNet * (1 + vatRate))}
-          </span>
-        </div>
-      )}
+      <div className="border-border flex shrink-0 items-baseline justify-between border-t px-3 py-2">
+        <span className="text-foreground text-sm font-medium">Suma brutto</span>
+        <span className="text-foreground text-sm font-medium tabular-nums">
+          {fmt(grandNet * (1 + vatRate))}
+        </span>
+      </div>
     </aside>
   )
 }
