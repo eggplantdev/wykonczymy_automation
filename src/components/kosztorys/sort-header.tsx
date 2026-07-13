@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react'
 
 import {
@@ -10,30 +11,38 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils/cn'
-import { SimpleTooltip } from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import type { SortDirT } from '@/lib/kosztorys/v2-rows'
 
 type PropsT = {
   label: string
   active: SortDirT | null
   onSort: (dir: SortDirT | null) => void
-  // Match the column's cell alignment (numbers right, text left) so the label sits over its values.
-  align?: 'left' | 'right'
   // Explanatory tooltip composed ONTO the trigger (not a wrapping element) — a second wrapping
   // trigger would fight the dropdown for the click.
   tip?: string
 }
 
-export function SortHeader({ label, active, onSort, align = 'left', tip }: PropsT) {
+export function SortHeader({ label, active, onSort, tip }: PropsT) {
   const Icon = active === 'asc' ? ArrowUp : active === 'desc' ? ArrowDown : ChevronsUpDown
-  const alignRight = align === 'right'
+
+  // Suppress the hover tooltip while the sort menu is open — otherwise it lingers over the
+  // just-opened dropdown. Opening the menu also clears the stale hover flag: Radix never fires the
+  // tooltip's close (it's already forced shut), so without this it would pop back the moment the
+  // menu closes, cursor gone.
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [tipHovered, setTipHovered] = useState(false)
+
+  const onMenuOpenChange = (open: boolean) => {
+    setMenuOpen(open)
+    if (open) setTipHovered(false)
+  }
 
   const trigger = (
     <DropdownMenuTrigger
       title={tip ? undefined : 'Sortuj kolumnę'}
       className={cn(
-        'hover:bg-accent flex h-full w-full cursor-pointer items-center gap-1 rounded px-1 font-medium outline-none',
-        alignRight ? 'flex-row-reverse text-right' : 'text-left',
+        'hover:bg-accent flex h-full w-full cursor-pointer items-center gap-1 rounded px-1 text-left font-medium outline-none',
         active && 'text-primary font-semibold',
       )}
     >
@@ -43,15 +52,24 @@ export function SortHeader({ label, active, onSort, align = 'left', tip }: Props
   )
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={menuOpen} onOpenChange={onMenuOpenChange}>
       {tip ? (
-        <SimpleTooltip content={tip} delayDuration={600} className="max-w-xs whitespace-pre-line">
-          {trigger}
-        </SimpleTooltip>
+        <TooltipProvider delayDuration={600}>
+          <Tooltip open={tipHovered && !menuOpen} onOpenChange={setTipHovered}>
+            <TooltipTrigger asChild>{trigger}</TooltipTrigger>
+            <TooltipContent className="max-w-xs whitespace-pre-line">{tip}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       ) : (
         trigger
       )}
-      <DropdownMenuContent align="start" className="min-w-40">
+      {/* Don't refocus the trigger on close — a Radix Tooltip opens on focus, so the returned
+          focus would re-pop the tip after a click-outside. */}
+      <DropdownMenuContent
+        align="start"
+        className="min-w-40"
+        onCloseAutoFocus={(e) => e.preventDefault()}
+      >
         <DropdownMenuItem onSelect={() => onSort('asc')}>
           <ArrowUp className={cn('size-4', active === 'asc' ? 'opacity-100' : 'opacity-50')} />
           Sortuj rosnąco
