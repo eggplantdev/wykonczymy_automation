@@ -227,6 +227,15 @@
   margin-left: -1px;
 }
 
+/* Retint dsg's native selection blue to the app's monochrome theme (border = primary,
+   faint primary-tinted fill), so the selection rect / active cell / row+col markers all
+   track light/dark via the theme tokens instead of a hardcoded rgb(69,128,230). */
+.kosztorys-grid {
+  --dsg-selection-border-color: var(--color-ring);
+  --dsg-selection-border-width: 1px;
+  --dsg-selection-background-color: color-mix(in oklab, var(--color-primary) 4%, transparent);
+}
+
 /*https://tailwindcss.com/docs/adding-custom-styles/*
 
 
