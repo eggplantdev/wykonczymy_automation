@@ -27,6 +27,7 @@ import {
   stageKey,
   swapItemInSection,
   treeToRows,
+  type SortDirT,
 } from '@/lib/kosztorys/v2-rows'
 import {
   rowNetForView,
@@ -120,12 +121,8 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   // eslint-disable-next-line react-hooks/refs
   stagesRef.current = stages
 
-  function toggleSort(field: string) {
-    setSort((prev) => {
-      if (prev?.field !== field) return { field, dir: 'asc' }
-      if (prev.dir === 'asc') return { field, dir: 'desc' }
-      return null
-    })
+  function setSortField(field: string, dir: SortDirT | null) {
+    setSort(dir ? { field, dir } : null)
   }
 
   // onRemoveItem/onReorderItem read prevById.current / rowsRef.current — stable refs —
@@ -136,7 +133,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     onRemoveStage: handleRemoveStage,
     onRenameStage: handleRenameStage,
     sort,
-    onToggleSort: toggleSort,
+    onSetSort: setSortField,
     widths,
     onGuide: setGuideX,
     onCommitColumn: setWidth,

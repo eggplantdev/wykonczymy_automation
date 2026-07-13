@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
-import { MoreHorizontal } from 'lucide-react'
+import { type ReactNode } from 'react'
 import { Column, type CellProps, keyColumn, textColumn, floatColumn } from 'react-datasheet-grid'
 import { SortHeader } from '@/components/kosztorys/sort-header'
 import { StageHeader } from '@/components/kosztorys/stage-header'
@@ -56,7 +55,7 @@ export type BuildV2ColumnsOptsT = {
   onRemoveStage?: (stageId: number) => void
   onRenameStage?: (stageId: number, label: string) => void
   sort?: V2SortStateT
-  onToggleSort?: (field: string) => void
+  onSetSort?: (field: string, dir: SortDirT | null) => void
   // Resize: pinned column widths (id→px) + drag callbacks. When provided, every column
   // gets a handle; pinned ones get basis/grow:0 (the rest stay on flex).
   widths?: Record<string, number>
@@ -88,11 +87,11 @@ function keyCol(
   return { ...(keyColumn(key, column) as Column<KosztorysV2RowT>), ...rest }
 }
 
-// Column title as a clickable sorting header (when onToggleSort is provided).
+// Column title as a sort-menu header (when onSetSort is provided).
 function title(field: string, label: string, opts: BuildV2ColumnsOptsT): ReactNode {
-  if (!opts.onToggleSort) return label
+  if (!opts.onSetSort) return label
   const active = opts.sort?.field === field ? opts.sort.dir : null
-  return <SortHeader label={label} active={active} onToggle={() => opts.onToggleSort?.(field)} />
+  return <SortHeader label={label} active={active} onSort={(dir) => opts.onSetSort?.(field, dir)} />
 }
 
 // Computed, read-only column: a custom component rendering the value from calc.
@@ -270,41 +269,21 @@ function RowActionsCell({
   rowData: KosztorysV2RowT
   opts: BuildV2ColumnsOptsT
 }) {
-  const [menuPos, setMenuPos] = useState<{ x: number; y: number } | null>(null)
   const sortActive = opts.sort != null
   const canRemove = opts.getSectionItemCount
     ? opts.getSectionItemCount(rowData.sectionId) > 1
     : true
 
-  // size-full: whole cell is the click target, else dsg selects the dead space around the icon.
   return (
-    <>
-      <button
-        type="button"
-        title="Akcje wiersza"
-        onClick={(e) => {
-          const r = e.currentTarget.getBoundingClientRect()
-          setMenuPos({ x: r.left, y: r.bottom })
-        }}
-        className="text-muted-foreground hover:text-foreground hover:bg-accent flex size-full cursor-pointer items-center justify-center"
-      >
-        <MoreHorizontal className="h-4 w-4" />
-      </button>
-      {menuPos && (
-        <KosztorysRowActionsMenu
-          x={menuPos.x}
-          y={menuPos.y}
-          sortActive={sortActive}
-          canRemove={canRemove}
-          onInsertAbove={() => opts.onInsertItem?.(rowData, 'above')}
-          onInsertBelow={() => opts.onInsertItem?.(rowData, 'below')}
-          onMoveUp={() => opts.onReorderItem?.(rowData, 'up')}
-          onMoveDown={() => opts.onReorderItem?.(rowData, 'down')}
-          onRemove={() => opts.onRemoveItem?.(rowData)}
-          onClose={() => setMenuPos(null)}
-        />
-      )}
-    </>
+    <KosztorysRowActionsMenu
+      sortActive={sortActive}
+      canRemove={canRemove}
+      onInsertAbove={() => opts.onInsertItem?.(rowData, 'above')}
+      onInsertBelow={() => opts.onInsertItem?.(rowData, 'below')}
+      onMoveUp={() => opts.onReorderItem?.(rowData, 'up')}
+      onMoveDown={() => opts.onReorderItem?.(rowData, 'down')}
+      onRemove={() => opts.onRemoveItem?.(rowData)}
+    />
   )
 }
 
