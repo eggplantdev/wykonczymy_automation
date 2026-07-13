@@ -92,26 +92,25 @@ The gated toolbar **"＋ pozycja"** button and its `activeSectionId != null` con
 
 ---
 
-## 2. EX-427 · Kosztorys/Arkusz → one toggle
+## 2. EX-427 · Kosztorys/Arkusz → one toggle _(cancelled — obsolete)_
 
-`kosztorys-tab-host.tsx:24-40` — two `Button`s. Collapse to a single toggle that flips
-`kosztorys ⇄ arkusz` and shows the current view. Behavior/views unchanged. Watch the same layout-shift
-trap as EX-421 (see below) — the toggle must not resize on state change.
+Cancelled: the Kosztorys/Arkusz tab buttons no longer exist, so there is nothing to collapse.
 
-## 3. EX-425 · View scope buttons → select
+## 3. EX-425 · View scope buttons → toggle group _(shipped)_
 
-`kosztorys-editor-toolbar.tsx:10,64-73` — the three view buttons (Klient / Z narzędziami / Bez
-narzędzi) are mutually exclusive; replace with a shadcn `Select`. Same `PriceViewT` values, same
-persisted `usePriceView`. Frees horizontal space and sidesteps the toggle layout/flicker issues.
-Keep the `InfoTooltip` legend.
+The three view buttons (Klient / Z narzędziami / Bez narzędzi) collapsed into a single
+`ToggleGroup` (`ui/toggle-group.tsx`, Radix ToggleGroup + a CSS sliding pill), not the originally-
+proposed `Select` — dogfooding preferred a one-glance toggle over a dropdown. Same `PriceViewT`
+values, same persisted `usePriceView`. The legend moved from a standalone `InfoTooltip` icon to a
+`SimpleTooltip` wrapping the whole control.
 
-## 4. EX-426 · Brutto toggle: label + tooltip (option A)
+## 4. EX-426 · Brutto toggle — REMOVED (superseded 2026-07-13)
 
-Keep the **additive** Brutto behavior (`bruttoVisible` adds a column + Suma brutto line; netto always
-shown). Fixes: (a) the button label always reflects state (e.g. checkbox-style / "Brutto: wł/wył")
-so it's never a guess; (b) add a tooltip explaining it shows the gross column (netto × (1 + VAT)).
-No mode-switch. (The existing `title` at `kosztorys-editor-toolbar.tsx:80` is a start; make the
-state legible in the label itself.)
+Dropped instead of relabeled. Dogfooding found no rationale for ever hiding Brutto (the only
+recorded reasoning — the DSG remount-key cost — argued *against* a toggle). The additive Brutto
+column + `Suma brutto` line are now **always shown**; `bruttoVisible` state, the toolbar button, and
+the prop threading are gone (`gross` column is unconditional in `buildV2Columns`). EX-426 canceled.
+This also eliminated one of the two §6 flicker triggers for free.
 
 ## 5. EX-421 · Toggle layout shift
 
@@ -123,19 +122,18 @@ remove two of the offending toggles outright, shrinking this bug's surface — s
 
 ## 6. EX-422 · Table flicker on toggle
 
-Root cause found: the grid's `key` includes `view` and `bruttoVisible`
-(`kosztorys-editor-body.tsx:96`), so toggling either **remounts the whole grid** → flicker. The
-remount exists because DSG freezes columns at mount. Options, cheapest first:
+Root cause found: the grid's `key` includes `view` and (formerly) `bruttoVisible`, so changing
+either **remounts the whole grid** → flicker. The remount exists because DSG freezes columns at
+mount.
 
-- **View** becomes a `Select` (EX-425) but still needs the column set to change → still needs a
-  remount today. Investigate whether the column _set_ actually changes per view (client vs
+**Brutto trigger removed (2026-07-13):** the Brutto toggle is gone (§4), so `bruttoVisible` no longer
+feeds the key. Residual scope is the **view-switch** remount only:
+
+- **View** (Klient / Z narzędziami / Bez narzędzi) still changes the column set per view → still
+  remounts today. Investigate whether the column _set_ actually changes per view (client vs
   subcontractor columns differ — `buildV2Columns`), or only cell rendering. If only rendering, drive
-  it via `columnData` instead of a remount.
-- **Brutto** adds/removes one column. A full remount for one column is the heavy part — explore
-  keeping the Brutto column always mounted but width-collapsed / hidden via `columnData`, so the
-  toggle is a cheap re-render.
-  This one needs a spike in its own plan; don't hand-wave the fix. If a clean decouple isn't cheap,
-  the fallback is a crossfade/opacity mask so the remount doesn't read as a flicker.
+  it via `columnData` instead of a remount. Fallback: a crossfade/opacity mask so the remount doesn't
+  read as a flicker.
 
 ## 7. EX-424 · Column-resize shrink floor
 

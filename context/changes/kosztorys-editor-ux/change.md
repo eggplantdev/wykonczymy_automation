@@ -24,8 +24,8 @@ Grounded against current code; Linear descriptions predated some of it (reconcil
 | Item                            | Linear                | File(s)                                                                                                       | Type        |
 | ------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------- | ----------- |
 | Add-position context menu       | _(new — file parent)_ | `use-kosztorys-editor.ts`, `kosztorys-v2-columns.tsx`, `lib/actions/kosztorys.ts`, `lib/kosztorys/v2-rows.ts` | Feature     |
-| Kosztorys/Arkusz → one toggle   | EX-427                | `kosztorys-tab-host.tsx`                                                                                      | Improvement |
-| View scope buttons → select     | EX-425                | `kosztorys-editor-toolbar.tsx`                                                                                | Improvement |
+| Kosztorys/Arkusz → one toggle   | EX-427 _(cancelled)_  | `kosztorys-tab-host.tsx`                                                                                      | Improvement |
+| View scope buttons → toggle group | EX-425 _(shipped)_  | `kosztorys-editor-toolbar.tsx`, `ui/toggle-group.tsx`                                                        | Improvement |
 | Brutto toggle: label + tooltip  | EX-426                | `kosztorys-editor-toolbar.tsx`                                                                                | Improvement |
 | Toggle layout shift             | EX-421                | toolbar buttons                                                                                               | Bug         |
 | Table flicker on toggle         | EX-422                | `kosztorys-editor-body.tsx`                                                                                   | Bug         |
