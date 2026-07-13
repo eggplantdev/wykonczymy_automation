@@ -1,8 +1,6 @@
 'use client'
 
-import { Loader2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 
 type FormDialogPropsT = {
@@ -47,14 +45,7 @@ export function FormDialog({
 
   return (
     <>
-      {isPending ? (
-        <Button variant="outline" size="sm" disabled>
-          <Loader2 className="size-3.5 animate-spin" />
-          Zapisywanie...
-        </Button>
-      ) : (
-        <span onClick={() => openDialog(formId, showKeepOpen)}>{trigger}</span>
-      )}
+      <span onClick={() => !isPending && openDialog(formId, showKeepOpen)}>{trigger}</span>
 
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogContent className={className}>

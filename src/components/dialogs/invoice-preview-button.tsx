@@ -30,6 +30,9 @@ export function InvoicePreviewButton({ url, filename, mimeType }: InvoicePreview
           mimeType={mimeType}
           open={previewOpen}
           onOpenChange={setPreviewOpen}
+          // Stored file is already ingest-compressed (≤1920px, q0.6) — skip the Next optimizer
+          // and its cold-start round-trip; serve straight from the Blob CDN.
+          unoptimized
         />
       )}
     </>

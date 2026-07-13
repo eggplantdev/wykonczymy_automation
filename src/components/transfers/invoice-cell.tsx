@@ -77,6 +77,9 @@ export function InvoiceCell({ transactionId, url, filename, mimeType }: InvoiceC
           onOpenChange={setPreviewOpen}
           onReplace={handleReplace}
           onRemove={handleRemove}
+          // Stored file is already ingest-compressed (≤1920px, q0.6) — skip the Next optimizer
+          // and its cold-start round-trip; serve straight from the Blob CDN.
+          unoptimized
         />
       )}
 
