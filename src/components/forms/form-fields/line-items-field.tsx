@@ -129,8 +129,6 @@ function CategorySelect({
           searchPlaceholder={`Szukaj: ${config.label.toLowerCase()}...`}
           emptyMessage="Nie znaleziono."
           items={config.options.map((opt) => ({ value: String(opt.id), label: opt.name }))}
-          // No error text — the red aria-invalid border is signal enough, and the message
-          // reflowed the row (pushing sibling fields down). Border stays; message dropped.
           fieldClassName={fieldClassName}
         />
       )}
@@ -292,8 +290,6 @@ export function LineItemsField({
                         rows={2}
                         showError
                         fieldClassName="w-full"
-                        // A long scanned note (30+ item invoices) would grow the
-                        // field-sizing-content textarea unbounded — cap it and scroll within.
                         className="max-h-24 overflow-y-auto"
                       />
                     )}
