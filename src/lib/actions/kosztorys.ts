@@ -5,6 +5,7 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import { getDb } from '@/lib/db/get-db'
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
+import { seedBlankKosztorys } from '@/lib/kosztorys/seed-blank'
 import { NEW_SECTION_DEFAULTS } from '@/lib/kosztorys/v2-rows'
 import type { ActionResultT } from '@/types/action'
 import type { ItemPatchT } from '@/types/kosztorys'
@@ -142,6 +143,22 @@ export async function addSectionAction(
       return { success: true, data: { id: created.id, displayOrder: count.totalDocs } }
     },
     ['kosztorysSections'],
+  )
+}
+
+// Cold-start unblock for an empty kosztorys: create one named section + one blank item (a 0-item
+// section renders as 0 rows). Shares seedBlankKosztorys with the EX-463 new-investment auto-seed.
+export async function seedBlankSectionAction(
+  investmentId: number,
+  name?: string,
+): Promise<ActionResultT<Record<string, never>>> {
+  return protectedAction(
+    'seedBlankSectionAction',
+    async ({ payload }) => {
+      await seedBlankKosztorys(payload, investmentId, name?.trim() || undefined)
+      return { success: true, data: {} }
+    },
+    ['kosztorysSections', 'kosztorysItems'],
   )
 }
 

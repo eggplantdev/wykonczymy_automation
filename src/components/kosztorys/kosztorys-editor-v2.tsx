@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { EmptyKosztorysDialog } from '@/components/kosztorys/empty-kosztorys-dialog'
 import { KosztorysEditorBody } from '@/components/kosztorys/kosztorys-editor-body'
 import { KosztorysVersionsDrawer } from '@/components/kosztorys/kosztorys-versions-drawer'
-import { SeedFromPresetButton } from '@/components/kosztorys/seed-from-preset-button'
 import { snapshotAction } from '@/lib/actions/kosztorys-snapshots'
 import type { KosztorysTreeT } from '@/types/kosztorys'
 
@@ -65,12 +65,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
   return (
     <>
       {tree.sections.length === 0 && (
-        <div className="border-border bg-muted/30 flex items-center justify-between gap-3 rounded-md border border-dashed px-4 py-3">
-          <p className="text-muted-foreground text-sm">
-            Kosztorys jest pusty. Możesz wypełnić go z zapisanego szablonu.
-          </p>
-          <SeedFromPresetButton investmentId={investmentId} onSeeded={handleRestored} />
-        </div>
+        <EmptyKosztorysDialog investmentId={investmentId} onCreated={handleRestored} />
       )}
       <KosztorysEditorBody
         key={remountKey}

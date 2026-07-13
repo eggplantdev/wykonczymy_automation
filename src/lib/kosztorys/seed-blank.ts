@@ -6,12 +6,16 @@ import { NEW_SECTION_DEFAULTS } from '@/lib/kosztorys/v2-rows'
 // on a typable row instead of an empty grid (EX-463). Field shapes mirror addSectionAction /
 // addItemAction — a fresh investment has no sections/items, so displayOrder is always 0. The caller
 // owns the non-fatal try/catch and revalidation (the investment isn't cached yet, so no tag here).
-export async function seedBlankKosztorys(payload: Payload, investmentId: number): Promise<void> {
+export async function seedBlankKosztorys(
+  payload: Payload,
+  investmentId: number,
+  name: string = NEW_SECTION_DEFAULTS.name,
+): Promise<void> {
   const section = await payload.create({
     collection: 'kosztorys-sections',
     data: {
       investment: investmentId,
-      name: NEW_SECTION_DEFAULTS.name,
+      name,
       displayOrder: 0,
       defaultCostVariant: NEW_SECTION_DEFAULTS.defaultCostVariant,
     },
