@@ -5,10 +5,16 @@ import { useRef } from 'react'
 
 // Handle for dragging the right edge of a column header. datasheet-grid has no native
 // resize, and its internal memo won't recompute widths without a remount —
-// so we do NOT change the width live. During the drag we only show a vertical
-// guide (onGuide = the cursor's X coordinate) and commit the actual width on release
-// (onCommit), which remounts the grid with the new width. The starting width is measured from the
-// header cell's DOM (closest('.dsg-cell-header')) — this also works for columns not yet pinned.
+// so we do NOT change the width live. During the drag we show a vertical guide (onGuide = the
+// cursor's X coordinate) and commit the actual width on release (onCommit), which remounts the grid
+// with the new width. The starting width is measured from the header cell's DOM
+// (closest('.dsg-cell-header')) — this also works for columns not yet pinned.
+
+// Hard floor for a USER-dragged width — deliberately below every column's design `minWidth` so
+// shrinking isn't blocked at the design min (EX-424). Small but non-zero so a column can't become a
+// 0-width, unhittable sliver. The design `minWidth` still governs the grid's own flex layout for
+// columns the user hasn't pinned.
+const RESIZE_MIN_PX = 40
 
 type PropsT = {
   colId: string
@@ -43,7 +49,7 @@ export function ResizableHeader({ colId, minWidth, onGuide, onCommit, children }
 
   function onPointerUp(e: PointerEvent<HTMLElement>) {
     if (!drag.current) return
-    const width = Math.max(minWidth, Math.round(drag.current.w + (e.clientX - drag.current.x)))
+    const width = Math.max(RESIZE_MIN_PX, Math.round(drag.current.w + (e.clientX - drag.current.x)))
     drag.current = null
     e.currentTarget.releasePointerCapture(e.pointerId)
     onGuide(null)
