@@ -92,6 +92,8 @@ function keyCol(
 // Audit aid (may be temporary): each header explains the column's intent + the formula that
 // drives it, so mismatches between intent and calc are visible. Netto/wartości liczone są z
 // POMIARU (measuredQty); PRZEDMIAR (plannedQty) nie wchodzi obecnie do żadnego obliczenia.
+const HEADER_TIP_DELAY = 600
+
 const HEADER_TIPS: Record<string, string> = {
   sectionName:
     'Sekcja — nazwa sekcji kosztorysu.\nTylko do odczytu (zmieniana z panelu sekcji). Wartość zdenormalizowana na każdym wierszu.',
@@ -113,19 +115,47 @@ const HEADER_TIPS: Record<string, string> = {
     'Pozostało = Netto − suma wartości ukończonych etapów.\nIle z wartości pozycji nie zostało jeszcze rozliczone etapami.',
 }
 
+// Fields whose cells render right-aligned (floatColumn's alignRight / computed text-right): their
+// headers align right too, so each column's label sits over its values.
+const RIGHT_ALIGNED_FIELDS = new Set([
+  'plannedQty',
+  'measuredQty',
+  'price',
+  'discountValue',
+  'net',
+  'gross',
+  'remaining',
+])
+
 // Column title as a sort-menu header (when onSetSort is provided), wrapped in an explanatory
 // tooltip when the field has one in HEADER_TIPS.
 function title(field: string, label: string, opts: BuildV2ColumnsOptsT): ReactNode {
   const active = opts.sort?.field === field ? opts.sort.dir : null
-  const node = opts.onSetSort ? (
-    <SortHeader label={label} active={active} onSort={(dir) => opts.onSetSort?.(field, dir)} />
-  ) : (
-    <span>{label}</span>
-  )
+  const align = RIGHT_ALIGNED_FIELDS.has(field) ? 'right' : 'left'
   const tip = HEADER_TIPS[field]
+  // The tip goes ONTO the sort trigger (same element), not around it — a second wrapping trigger
+  // would fight the dropdown for the click. Plain-label columns have no trigger, so wrap directly.
+  if (opts.onSetSort) {
+    return (
+      <SortHeader
+        label={label}
+        active={active}
+        align={align}
+        tip={tip}
+        onSort={(dir) => opts.onSetSort?.(field, dir)}
+      />
+    )
+  }
+  const node = (
+    <span className={align === 'right' ? 'block w-full text-right' : undefined}>{label}</span>
+  )
   if (!tip) return node
   return (
-    <SimpleTooltip content={tip} delayDuration={300} className="max-w-xs whitespace-pre-line">
+    <SimpleTooltip
+      content={tip}
+      delayDuration={HEADER_TIP_DELAY}
+      className="max-w-xs whitespace-pre-line"
+    >
       <span className="flex h-full w-full items-center">{node}</span>
     </SimpleTooltip>
   )
@@ -382,17 +412,14 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
     keyCol(stageKey(st.id), floatColumn, {
       id: stageKey(st.id),
       title: (
-        <SimpleTooltip
-          content={
+        <StageHeader
+          stage={st}
+          onRename={opts.onRenameStage}
+          onRemove={opts.onRemoveStage}
+          tip={
             'Etap — ilość wykonana w tym etapie (wpisywana w wierszu).\nWartość etapu = ilość × Cena − Rabat. Suma ukończonych etapów pomniejsza kolumnę Pozostało.'
           }
-          delayDuration={300}
-          className="max-w-xs whitespace-pre-line"
-        >
-          <span className="flex h-full w-full items-center">
-            <StageHeader stage={st} onRename={opts.onRenameStage} onRemove={opts.onRemoveStage} />
-          </span>
-        </SimpleTooltip>
+        />
       ),
       minWidth: 80,
     }),
