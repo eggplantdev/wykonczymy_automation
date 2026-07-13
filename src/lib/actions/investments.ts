@@ -11,6 +11,7 @@ import {
   type InvestmentFormDataT,
 } from '@/components/forms/investment-form/investment-schema'
 import { seedInvestmentFromPreset } from '@/lib/kosztorys/seed-from-preset'
+import { seedBlankKosztorys } from '@/lib/kosztorys/seed-blank'
 import { validateAction, protectedAction } from './run-action'
 
 // Attach (or reset) a fresh materiały tab on the investment's linked sheet.
@@ -65,6 +66,19 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
         } catch (err) {
           console.error(
             `[create-investment] seed from preset ${chosenPresetId} failed for #${created.id} (non-fatal):`,
+            err,
+          )
+        }
+      } else {
+        // No preset chosen → the editor would otherwise open on a blank grid: treeToRows emits rows
+        // only from section.items, and the "＋ pozycja" button needs an active section that doesn't
+        // exist yet — a dead cold-start (EX-463). Seed one section + one blank item so the user lands
+        // on a typable row. Same non-fatal contract as the preset path above.
+        try {
+          await seedBlankKosztorys(payload, Number(created.id))
+        } catch (err) {
+          console.error(
+            `[create-investment] blank kosztorys seed failed for #${created.id} (non-fatal):`,
             err,
           )
         }
