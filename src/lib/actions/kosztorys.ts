@@ -127,20 +127,23 @@ export async function addSectionAction(
   return protectedAction(
     'addSectionAction',
     async ({ payload }) => {
-      const count = await payload.count({
-        collection: 'kosztorys-sections',
-        where: { investment: { equals: investmentId } },
-      })
+      const db = await getDb(payload)
+      // Append slot = MAX(display_order)+1, not count (see addItemAction): a delete leaves a gap.
+      const res = await db.execute(sql`
+        SELECT COALESCE(MAX(display_order) + 1, 0) AS next
+        FROM kosztorys_sections WHERE investment_id = ${investmentId}
+      `)
+      const displayOrder = Number(res.rows[0]?.next ?? 0)
       const created = await payload.create({
         collection: 'kosztorys-sections',
         data: {
           investment: investmentId,
           name: NEW_SECTION_DEFAULTS.name,
-          displayOrder: count.totalDocs,
+          displayOrder,
           defaultCostVariant: NEW_SECTION_DEFAULTS.defaultCostVariant,
         },
       })
-      return { success: true, data: { id: created.id, displayOrder: count.totalDocs } }
+      return { success: true, data: { id: created.id, displayOrder } }
     },
     ['kosztorysSections'],
   )
@@ -155,6 +158,14 @@ export async function seedBlankSectionAction(
   return protectedAction(
     'seedBlankSectionAction',
     async ({ payload }) => {
+      // Idempotency guard: the client only opens the seeding dialog on an empty kosztorys, but a
+      // double-submit / stale tab could reach here after a section exists — seeding again would add
+      // a duplicate section at display_order 0. Bail as a no-op.
+      const existing = await payload.count({
+        collection: 'kosztorys-sections',
+        where: { investment: { equals: investmentId } },
+      })
+      if (existing.totalDocs > 0) return { success: true, data: {} }
       await seedBlankKosztorys(payload, investmentId, name?.trim() || undefined)
       return { success: true, data: {} }
     },
@@ -200,16 +211,20 @@ export async function addItemAction(
   return protectedAction(
     'addItemAction',
     async ({ payload }) => {
-      const count = await payload.count({
-        collection: 'kosztorys-items',
-        where: { section: { equals: sectionId } },
-      })
+      const db = await getDb(payload)
+      // Append slot = MAX(display_order)+1, not count: removeItemAction leaves gaps, so a
+      // count-based order collides with a surviving row after any middle delete.
+      const res = await db.execute(sql`
+        SELECT COALESCE(MAX(display_order) + 1, 0) AS next
+        FROM kosztorys_items WHERE section_id = ${sectionId}
+      `)
+      const displayOrder = Number(res.rows[0]?.next ?? 0)
       const created = await payload.create({
         collection: 'kosztorys-items',
         data: {
           investment: investmentId,
           section: sectionId,
-          displayOrder: count.totalDocs,
+          displayOrder,
           plannedQty: 0,
           measuredQty: 0,
           discountValue: 0,
@@ -217,7 +232,7 @@ export async function addItemAction(
           hiddenInExport: false,
         },
       })
-      return { success: true, data: { id: created.id, displayOrder: count.totalDocs } }
+      return { success: true, data: { id: created.id, displayOrder } }
     },
     ['kosztorysItems'],
   )
