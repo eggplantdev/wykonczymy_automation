@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Check, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { CoeffField } from '@/components/kosztorys/coeff-field'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Input } from '@/components/ui/input'
 import { SimpleTooltip } from '@/components/ui/tooltip'
@@ -16,9 +17,11 @@ type PropsT = {
   subtotals: SectionSubtotalT[]
   grandNet: number
   activeSectionId: number | null
+  // Only to render the inherited value as each section field's placeholder — the global coeffs are
+  // edited in the toolbar's settings row, not here.
   globalCoeffs: { wTools: number; ownTools: number }
   sectionCoeffs: Map<number, SectionCoeffsT>
-  // VAT rate as a fraction (0.08); the field shows/accepts a percent.
+  // VAT rate as a fraction (0.08) — read-only here, drives the Suma brutto readout.
   vatRate: number
   onClose: () => void
   onAddSection: () => void
@@ -28,54 +31,10 @@ type PropsT = {
   // Mirrors the server delete-guard: a populated section is blocked with a toast (no confirm).
   isSectionPopulated: (sectionId: number) => boolean
   onFilterSection: (sectionId: number | null) => void
-  onGlobalCoeffChange: (patch: { wToolsCoeff?: number; ownToolsCoeff?: number }) => void
   onSectionCoeffChange: (
     sectionId: number,
     patch: { wToolsCoeff?: number | null; ownToolsCoeff?: number | null },
   ) => void
-  onVatChange: (vatRate: number) => void
-}
-
-// Markup-coefficient field. Uncontrolled + `key` on the value (remount after router.refresh),
-// commit on blur/Enter — no useEffect (project rule). Empty + nullable = inherit (null).
-function CoeffField({
-  label,
-  value,
-  placeholder,
-  nullable,
-  onCommit,
-}: {
-  label: string
-  value: number | null
-  placeholder?: number
-  nullable?: boolean
-  onCommit: (n: number | null) => void
-}) {
-  return (
-    <label className="text-muted-foreground flex items-center gap-1 text-xs">
-      {label}
-      <input
-        key={value == null ? 'null' : String(value)}
-        type="text"
-        inputMode="decimal"
-        defaultValue={value == null ? '' : String(value)}
-        placeholder={placeholder != null ? String(placeholder) : ''}
-        className="border-border h-6 w-14 rounded border bg-transparent px-1 text-right text-xs outline-none"
-        onBlur={(e) => {
-          const raw = e.target.value.trim().replace(',', '.')
-          if (raw === '') {
-            if (nullable) onCommit(null)
-            return
-          }
-          const n = Number(raw)
-          if (!Number.isNaN(n)) onCommit(n)
-        }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
-        }}
-      />
-    </label>
-  )
 }
 
 export function KosztorysSectionSummary({
@@ -92,9 +51,7 @@ export function KosztorysSectionSummary({
   onRemoveSection,
   isSectionPopulated,
   onFilterSection,
-  onGlobalCoeffChange,
   onSectionCoeffChange,
-  onVatChange,
 }: PropsT) {
   // Inline rename: id of the section being edited + name buffer. null = nothing is being edited.
   const [editId, setEditId] = useState<number | null>(null)
@@ -140,41 +97,6 @@ export function KosztorysSectionSummary({
           <Button size="icon" variant="ghost" className="h-6 w-6" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
-        </div>
-      </div>
-
-      <div className="border-border shrink-0 border-b px-3 py-2">
-        <SimpleTooltip
-          delayDuration={600}
-          className="max-w-xs whitespace-pre-line"
-          content={
-            'Domyślny mnożnik ceny klienta. \nCena wykonawcy = cena klienta × mnożnik.\n0,65 = wykonawca dostaje 65% ceny klienta.\nDziedziczą go pozycje ze źródłem ceny „auto".\nSekcja może go nadpisać - możesz ustawić inny mnożnik dla każdej sekcji. \nMożesz go też nadpisać per pozycja własnym mnożnikiem lub kwotą stałą.'
-          }
-        >
-          <div className="text-muted-foreground mb-1 w-fit cursor-help text-xs">
-            Domyślny mnożnik ceny klienta
-          </div>
-        </SimpleTooltip>
-        <div className="flex flex-col gap-1">
-          <CoeffField
-            label="z narzędziami"
-            value={globalCoeffs.wTools}
-            onCommit={(n) => n != null && onGlobalCoeffChange({ wToolsCoeff: n })}
-          />
-          <CoeffField
-            label="bez narzędzi"
-            value={globalCoeffs.ownTools}
-            onCommit={(n) => n != null && onGlobalCoeffChange({ ownToolsCoeff: n })}
-          />
-        </div>
-        {/* VAT is stored as a fraction but entered as a percent: show ×100, commit ÷100. */}
-        <div className="mt-2 flex flex-col gap-1">
-          <div className="text-muted-foreground mb-1 text-xs">Stawka VAT</div>
-          <CoeffField
-            label="VAT %"
-            value={vatRate * 100}
-            onCommit={(n) => n != null && onVatChange(n / 100)}
-          />
         </div>
       </div>
 

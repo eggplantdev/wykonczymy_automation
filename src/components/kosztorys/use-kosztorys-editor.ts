@@ -4,10 +4,15 @@ import { useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDebouncedSave } from '@/components/kosztorys/use-debounced-save'
 import { useColumnWidths } from '@/components/kosztorys/use-column-widths'
+import { useHiddenColumns } from '@/components/kosztorys/use-hidden-columns'
 import { usePriceView } from '@/components/kosztorys/use-price-view'
 import { useElementHeight } from '@/hooks/use-element-height'
 import { toastMessage } from '@/lib/utils/toast'
-import { buildV2Columns, type V2SortStateT } from '@/lib/tables/kosztorys-v2-columns'
+import {
+  buildV2Columns,
+  buildV2ToggleItems,
+  type V2SortStateT,
+} from '@/lib/tables/kosztorys-v2-columns'
 import {
   applyAddItem,
   applyInsertItem,
@@ -81,41 +86,41 @@ function sortValue(
 }
 
 // All editor state, derived data, and handlers for the in-app kosztorys grid. Kept out of the
-// component so the component is only composition + markup. The dsg constraints live here: the
-// grid freezes `columns` at mount, so handlers read fresh state through refs (prevById / rowsRef)
-// and never fire an action from inside a setRows updater (that would move the Router during render).
+// component so the component is only composition + markup. Handlers never fire an action from
+// inside a setRows updater — that would move the Router during render.
 export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   const router = useRouter()
   const save = useDebouncedSave(500)
   const [gridRef, gridHeight] = useElementHeight()
   const [rows, setRows] = useState<KosztorysV2RowT[]>(() => treeToRows(tree))
-  // Stages live in local state (like `rows`): add/remove optimistically add/drop a column, and
-  // `stagesKey` feeds the grid remount key (dsg freezes columns at mount).
+  // Stages live in local state (like `rows`): add/remove optimistically add/drop a column.
   const [stages, setStages] = useState<KosztorysStageT[]>(tree.stages)
   const [view, setView] = usePriceView(investmentId)
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<V2SortStateT>(null)
   const [activeSectionId, setActiveSectionId] = useState<number | null>(null)
   const [summaryOpen, setSummaryOpen] = useState(true)
-  // Column widths: persisted in localStorage. Commit (on handle release) saves and, via
-  // `key`, remounts the grid with the new width — react-datasheet-grid does not recompute
-  // sizing without a remount (its internal memo). During the drag we only show a vertical
-  // guide (guideX = cursor X), without touching the grid.
-  const { widths, setWidth } = useColumnWidths()
+  // Column widths: persisted in localStorage, committed on handle release (not per pointermove —
+  // that would be a write per pixel). During the drag we only show a vertical guide
+  // (guideX = cursor X), without touching the grid.
+  const { widths, setWidth, dropWidth } = useColumnWidths()
+  const { isHidden, toggleColumn } = useHiddenColumns()
   const [guideX, setGuideX] = useState<number | null>(null)
   // Snapshot of the previous rows for diffing (keyed by item id) — the full dataset, not the view.
   // It also serves as the "fresh dataset" read by structural event handlers (section count):
   // kept in sync on every add/remove/edit, so no separate ref for rows is needed.
   const prevById = useRef(new Map(rows.map((r) => [r.id, r])))
-  // "Latest value" ref: the fresh `rows` (display order) read during an event-time reorder.
-  // The dsg column closure is frozen at mount, so the render's `rows` can be stale, and firing
-  // an action inside the setRows updater would update the Router during render (a React error).
-  // Writing a ref during render is the well-known, safe "latest value" pattern — the rule is too strict.
+  // "Latest value" ref: the fresh `rows` (display order) read during an event-time reorder, since
+  // firing an action inside the setRows updater would update the Router during render (a React
+  // error). Writing a ref during render is the well-known, safe "latest value" pattern.
+  // NOTE (EX-422): these two refs were introduced to dodge a mount-frozen column closure, which no
+  // longer exists — the grid is on the reactive `DynamicDataSheetGrid` export as of `ee497cb`, so
+  // its closures are rebuilt each render. Kept deliberately as the rollback path; whether they are
+  // still load-bearing is EX-422's own follow-up, not a freebie to delete alongside it.
   const rowsRef = useRef(rows)
   // eslint-disable-next-line react-hooks/refs
   rowsRef.current = rows
-  // Same "latest value" ref for stages — the rename handler lives in the mount-frozen column
-  // closure, so its no-op guard must compare against the fresh label, not the mount snapshot.
+  // Same, for the stage-rename handler's no-op guard (compares against the fresh label).
   const stagesRef = useRef(stages)
   // eslint-disable-next-line react-hooks/refs
   stagesRef.current = stages
@@ -126,13 +131,14 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
 
   // onRemoveItem/onReorderItem read prevById.current / rowsRef.current — stable refs —
   // only from a cell's onClick, never during render, so passing them here is safe.
-  const columns = buildV2Columns({
+  const columnOpts = {
     view,
     stages,
     onRemoveStage: handleRemoveStage,
     onRenameStage: handleRenameStage,
     sort,
     onSetSort: setSortField,
+    isHidden,
     widths,
     onGuide: setGuideX,
     onCommitColumn: setWidth,
@@ -140,7 +146,9 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     onReorderItem: handleReorderItem,
     onInsertItem: handleInsertItem,
     getRemoveBlockReason,
-  })
+  }
+  const columns = buildV2Columns(columnOpts)
+  const columnToggleItems = buildV2ToggleItems(columnOpts)
   const widthsKey = JSON.stringify(widths)
   const stagesKey = stages.map((s) => s.id).join(',')
 
@@ -236,11 +244,9 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     setRows((rs) => applyInsertItem(rs, anchorRow.id, row, dir))
   }
 
-  // Why a row can't be deleted, or undefined if it can — read from fresh refs at cell-render time
-  // (prevById = full dataset, stagesRef = current stages; dsg columns are frozen at mount).
-  // Single source for both the disabled tooltip and the handler backstop below.
-  // Fresh-ref read of the removal plan (prevById = full dataset, stagesRef = current stages;
-  // dsg columns are frozen at mount). Drives both the disabled tooltip and the handler below.
+  // Why a row can't be deleted, or undefined if it can — read at cell-render time from the full
+  // dataset (prevById), not the view. Single source for both the disabled tooltip and the
+  // handler backstop below.
   function removalPlan(row: KosztorysV2RowT) {
     return planItemRemoval([...prevById.current.values()], row, stagesRef.current)
   }
@@ -337,6 +343,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     }
     setStages((s) => s.filter((st) => st.id !== stageId))
     const key = stageKey(stageId)
+    dropWidth(key)
     patchRows(
       () => true,
       (r) => {
@@ -519,6 +526,8 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     gridRef,
     gridHeight,
     columns,
+    columnToggleItems,
+    toggleColumn,
     viewRows,
     view,
     sort,

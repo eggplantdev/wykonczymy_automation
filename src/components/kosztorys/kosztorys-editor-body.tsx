@@ -30,6 +30,8 @@ export function KosztorysEditorBody({
     gridRef,
     gridHeight,
     columns,
+    columnToggleItems,
+    toggleColumn,
     viewRows,
     view,
     guideX,
@@ -70,7 +72,14 @@ export function KosztorysEditorBody({
         onSearchChange={setSearch}
         addItemSectionId={activeSectionId ?? subtotals.at(-1)?.sectionId ?? null}
         onAddItem={handleAddItem}
+        onAddSection={handleAddSection}
         onAddStage={handleAddStage}
+        columnToggleItems={columnToggleItems}
+        onToggleColumn={toggleColumn}
+        globalCoeffs={tree.globalCoeffs}
+        vatRate={tree.vatRate}
+        onGlobalCoeffChange={handleGlobalCoeffChange}
+        onVatChange={handleVatChange}
         summaryOpen={summaryOpen}
         onToggleSummary={() => setSummaryOpen((o) => !o)}
       />
@@ -109,9 +118,7 @@ export function KosztorysEditorBody({
             onRemoveSection={handleRemoveSection}
             isSectionPopulated={isSectionPopulated}
             onFilterSection={setActiveSectionId}
-            onGlobalCoeffChange={handleGlobalCoeffChange}
             onSectionCoeffChange={handleSectionCoeffChange}
-            onVatChange={handleVatChange}
           />
         )}
       </div>
