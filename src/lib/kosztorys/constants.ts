@@ -21,3 +21,33 @@ export const NEW_SECTION_DEFAULTS = {
   name: 'Nowa sekcja',
   defaultCostVariant: 'w_tools',
 } as const satisfies { name: string; defaultCostVariant: CostVariantT }
+
+// Grid column labels — the single source for both the header and the column picker, so a rename
+// can't leave the two disagreeing about what a column is called.
+export const COLUMN_LABELS: Record<string, string> = {
+  sectionName: 'Sekcja',
+  description: 'Opis prac',
+  plannedQty: 'Przedmiar',
+  measuredQty: 'Pomiar',
+  unit: 'J.m.',
+  priceMode: 'Źródło ceny wykonawcy',
+  priceCoeff: 'Mnożnik',
+  price: 'Cena j.m. netto',
+  priceGross: 'Cena j.m. brutto',
+  discountType: 'Rabat',
+  discountValue: 'Rabat wart.',
+  net: 'Netto',
+  gross: 'Brutto',
+  remaining: 'Pozostało netto',
+  remainingGross: 'Pozostało brutto',
+  stages: 'Etapy',
+}
+
+// All stage columns hide under ONE picker entry rather than one per `stage_<id>`: a row per stage is
+// noise, and it keeps stage ids out of the visibility map — Postgres can reissue a deleted stage's
+// id, and a new stage inheriting the dead one's hidden state would be a ghost.
+export const STAGES_COLUMN_GROUP = 'stages'
+
+// Columns the picker must never offer: without an Opis prac a row is unidentifiable. The actions
+// column isn't listed because it never enters the toggleable set.
+export const NON_HIDEABLE_COLUMNS: ReadonlySet<string> = new Set(['description'])

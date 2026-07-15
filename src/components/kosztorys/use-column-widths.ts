@@ -40,6 +40,7 @@ function writeWidths(widths: Record<string, number>) {
 export function useColumnWidths(): {
   widths: Record<string, number>
   setWidth: (id: string, width: number) => void
+  dropWidth: (id: string) => void
 } {
   const json = useSyncExternalStore(subscribe, readJson, () => SERVER_SNAPSHOT)
   const widths = useMemo(() => JSON.parse(json) as Record<string, number>, [json])
@@ -48,5 +49,15 @@ export function useColumnWidths(): {
     writeWidths({ ...widths, [id]: width })
   }
 
-  return { widths, setWidth }
+  // A stage column's id is derived from its DB id, which Postgres can hand out again after the
+  // stage is deleted — so a leftover entry would silently pin a brand-new stage to the dead one's
+  // width. Called when a stage goes away.
+  function dropWidth(id: string) {
+    if (!(id in widths)) return
+    const next = { ...widths }
+    delete next[id]
+    writeWidths(next)
+  }
+
+  return { widths, setWidth, dropWidth }
 }

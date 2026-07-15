@@ -230,6 +230,141 @@ it's always visible this matters more, not less. Still a normal in-flow column f
 
 ---
 
+## 10. Grid flicker on the price-view toggle — the wrong import all along (EX-422) 🟡 in review
+
+**Symptom.** Toggling Klient / Z narzędziami / Bez narzędzi flickered the whole grid.
+
+**Cause chain (four workarounds for one bug).** `4dc6d32` ("fix migotania") switched the import from
+`DynamicDataSheetGrid` to `DataSheetGrid` — but dsg 4.11.6 **aliases the public names**
+(`dist/index.js:6-7`): the plain `DataSheetGrid` export IS `StaticDataSheetGrid`, which snapshots
+`columns` via `useState` at mount. That froze the columns, which caused the "all 3 views show the
+client price" bug, which got a remount `key` as a workaround — **and that remount was the flicker.**
+All four `key` segments (`view`, `sorted/natural`, `widthsKey`, `stagesKey`) existed only to paper
+over the wrong import.
+
+**Fix shipped `ee497cb`.** Import `DynamicDataSheetGrid`, drop the whole `key`. The original
+ResizeObserver width-oscillation that `4dc6d32` was really chasing already has its own fix — the
+`grid-cols-1` definite-width container (`kosztorys-editor-body.tsx:85`). Toggle flicker confirmed
+gone by hand.
+
+**`widthsKey` proved unnecessary** — measured under Playwright (grow, shrink, other column, slow
+drags, release outside the grid, 3px nudge, three rapid drags): every one commits, persists, applies
+live, no remount. The width path is reactive end-to-end (`useSyncExternalStore` → fresh `columns` →
+dsg rehashes on `basis/minWidth/maxWidth` → `Grid.js:79-81` re-measures the col virtualizer).
+
+**Stuck resize guide — pre-existing, fixed.** The guide only cleared in `onPointerUp`; on
+`pointercancel` no `pointerup` ever arrives, so it hung at the last cursor X and the commit was lost.
+Added `abortDrag` on `onPointerCancel` + `onLostPointerCapture` (`column-resize-handle.tsx`).
+Synthetic `pointercancel` does NOT trigger a real `lostpointercapture` — hence both handlers, not one.
+
+**Still open 🔴 — resize is intermittent.** Owner: "sometimes it works, sometimes not", still true
+after the pointercancel fix. Not reproducible with any synthetic input. Ruled out: `remountKey` (only
+bumps on restore), stale `widths` closure. Remaining suspects: real trackpad gesture cancellation;
+the debounced save (500ms) / `router.refresh()` (700ms) landing mid-drag. **Next move: instrument the
+live app to capture the event sequence on a real failure — not more synthetic drags.** EX-422 parked
+In Progress + `[in review]`; owner owns the manual loop.
+
+**Lesson (bought expensively).** Three times this session a detailed theory got built before
+reproducing anything — and one screenshot from the owner did more diagnostic work than four files of
+library source. Reproduce first, explain second. Also: a repro that shows _zero_ events is a broken
+repro, not evidence (a Radix overlay was eating `pointerdown` — that nearly "confirmed" a false
+theory).
+
+**Correction (later the same day) — `stagesKey` was NOT unnecessary. 🔴 It was hiding a bug.**
+`StageHeader` renders an **uncontrolled** `<input defaultValue={stage.label}>`, and dsg keys header
+cells by **column index** (`Grid.js:98`, the virtualizer's `col.key` — no stable identity). Deleting
+a stage slides every later stage one index left onto a DOM node that keeps the previous stage's
+text; the next blur then fires `onRename(nextStage.id, previousStageLabel)` — it renames the wrong
+stage. `stagesKey`'s whole-grid remount reinitialized every header input, which masked it. Fixed
+with `key={stage.id}` on the input — correct regardless of the remount question.
+**Mechanism read from source; not yet reproduced by hand** — owner verification owed (name 2+ stages
+distinctly, delete the first, check the labels). Test disposition on EX-422.
+
+**Doc contradiction resolved.** EX-422's description and this section read as contradicting each
+other; they don't. Both are right about **different exports** — `StaticDataSheetGrid` genuinely
+freezes, `DynamicDataSheetGrid` genuinely doesn't (`useColumns` = `useMemo` on the `columns` array
+identity). The retraction was written ~11:58, `ee497cb` landed 12:09 and applied that issue's own
+Proposed fix — so the description is **stale, not wrong**. Full trail in EX-422's resolution comment.
+
+**Docs corrected.** `lessons.md:119` was true about the freeze but blamed the library generally —
+that generalisation _is_ what caused the misdiagnosis; rewritten around the real mechanism, the
+**export-aliasing trap**. Stale "dsg freezes columns" reasons stripped from `use-kosztorys-editor.ts`,
+`kosztorys-v2-columns.tsx`, `stage-header.tsx`. `rowsRef`/`stagesRef` + `widthsKey`/`stagesKey` kept
+as the rollback path — their stated reason is gone, but that's EX-422's step 4, not a freebie.
+
+**Owed:** no automated test covers any of this. Two dispositions on EX-422 — unit/RTL: (a) a `view`
+change updates the rendered price column WITHOUT a remount (mount counter on a cell); (b) deleting a
+stage leaves each remaining header showing its own label (pins the regression above).
+
+---
+
+## 11. Column order now mirrors the source sheet 🟢 committed
+
+**Want.** Owner: "przestawmy ustawienie kolumn tak, żeby odpowiadało temu co jest w arkuszu."
+
+**Order shipped** (`85ceecc`, `kosztorys-v2-columns.tsx`):
+
+```
+Akcje | Sekcja | Opis prac | etapy (ilość) | Przedmiar | Pomiar | J.m.
+| [Źródło ceny] | Cena | Rabat | Rabat wart. | Netto | Brutto | Pozostało
+```
+
+Two moves: **etapy jump from before-`computed` to right after Opis prac**, and **J.m. moves behind
+Pomiar** (sheet: B opis → C–H etapy → I Przedmiar → J Pomiar → K j.m.). Mechanically this is a split
+of `left` into `identity` + `pricing` so the stage columns can land between them.
+
+**Owner decisions:**
+
+- **Etapy right after Opis prac — 1:1 with the sheet.** Overrode the agent's recommendation to leave
+  them at the end (argument: 6 stages push Przedmiar/Pomiar off-screen, and those are the
+  most-typed fields). Sheet parity won; revisit if horizontal scrolling actually bites.
+- **Sekcja stays first** — it IS the sheet's column A (carries the section name on header rows,
+  `kosztorys-editor-domain-notes.md:47`). The agent wrongly claimed it doesn't exist in the sheet.
+- **Źródło ceny wykonawcy** renders only in subcontractor views (`view !== 'client'`) — that's why
+  it's invisible in the Klient view, not a bug.
+
+**Column widths survive the reorder** — `useColumnWidths` keys by `col.id`, not position, and no id
+changed. (Had it been a position-indexed array this refactor would have been a silent bug: Przedmiar's
+width landing on the first stage.)
+
+**Sheet columns we don't have** (raised, not resolved): `O komentarz`, `P–U etapy (wartość)` — we
+carry one `Netto` instead. **Ours the sheet lacks:** `Akcje`, `Brutto`, `Źródło ceny`, and our Rabat
+is split in two (typ + wartość) vs the sheet's single `M rabat %`. Notes:
+`context/changes/kosztorys-column-order-sheet-parity/change.md`.
+
+**Note on §8's parked question:** Brutto is still far-right. The reorder didn't address it — the
+sheet has no per-row Brutto to copy, so there's no parity answer to lean on. Still open.
+
+---
+
+## 12. Global mnożniki + VAT moved out of the Sekcje panel into a second toolbar row 🟢 confirmed by hand
+
+**Symptom.** The investment-wide settings — default client-price multipliers + the VAT rate — lived
+_inside_ the "Sekcje" drawer, above the section list. They are not per-section, and the drawer is
+toggleable, so the values were invisible by default.
+
+**This closed a standing roadmap decision.** Open Roadmap Question #8 ("Settings-home UX") had been
+parked since 2026-07-10 with two candidate homes — detail-inwestycji or a future "Podsumowanie"
+panel — and one explicit constraint: **not the side panel**. Owner picked a **third** option: a
+second row in the editor toolbar. Reasoning that killed the alternatives: the whole point of moving
+them is that they be _seen_; detail-inwestycji is a click away and a popover just re-hides them
+somewhere new. A rejected middle option — show only the multiplier relevant to the active price
+view — was clever but loses the at-a-glance comparison of both.
+
+**Shipped** (EX-478): `kosztorys-global-settings.tsx` (the row) + `coeff-field.tsx` (`CoeffField`
+extracted, now shared with the per-section overrides). The global block was **deleted** from the
+panel, not duplicated — two homes for one field is a future bug. The panel keeps `globalCoeffs` only
+to render the inherited value as each section field's placeholder, and `vatRate` read-only for
+`Suma brutto`. Per-section overrides stay put: they're attached to a section row.
+
+Same pass, separate concern: a **`＋ sekcja`** toolbar button — adding a section no longer requires
+opening the panel.
+
+**Owner-confirmed by hand.** Toolbar was already crowded (title + view toggle + search + three ＋
+buttons + menu + Sekcje); the second row is what made room without a popover.
+
+---
+
 ## Parking lot (⚪ noticed, not touched)
 
 - Grid virtualization repaint flicker on delete (§6) — cosmetic; fix at DSG render level if it grates.
@@ -237,4 +372,15 @@ it's always visible this matters more, not less. Still a normal in-flow column f
 - Visible per-row `+` insert affordance (§2c) — superseded by the ⋯ menu (§7); the visible add is now
   the ⋯ menu + toolbar `＋ pozycja`.
 
-- Brutto column placement (§8) — pin next to Netto or as a sticky end-column vs. leave in-flow.
+- Brutto column placement (§8, §11) — pin next to Netto or as a sticky end-column vs. leave in-flow.
+  The sheet-parity pass didn't settle it: the sheet has no per-row Brutto.
+
+- Intermittent column resize (§10) — live 🔴. Owner testing by hand; next step is
+  instrumentation on a real failure, not synthetic drags.
+
+- Stage-header label regression from `ee497cb` (§10 correction) — fix applied (`key={stage.id}`),
+  but **mechanism-only, never reproduced**. Owed: name 2+ stages distinctly, delete the first, check
+  each remaining header shows its own label and a blur doesn't rename the wrong stage.
+
+- Horizontal reach after the reorder (§11) — with 6 stages, Przedmiar/Pomiar/Cena sit far right.
+  Sheet parity was the explicit call; if scrolling grates, sticky Opis prac is the lever.
