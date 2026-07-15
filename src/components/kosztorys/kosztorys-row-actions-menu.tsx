@@ -21,8 +21,10 @@ import { SimpleTooltip } from '@/components/ui/tooltip'
 type PropsT = {
   // Insert + move have no meaning against a price-sorted view — disabled with a hint.
   sortActive: boolean
-  // False on a section's last item (the "≥1 item per section" invariant) — delete disabled.
-  canRemove: boolean
+  // Why delete is blocked (last item in a section, or a populated row), or undefined if removable.
+  // Present → delete disabled with the reason in a tooltip (disabled items are pointer-events-none,
+  // so a native title never fires).
+  removeBlockReason?: string
   onInsertAbove: () => void
   onInsertBelow: () => void
   onMoveUp: () => void
@@ -32,7 +34,7 @@ type PropsT = {
 
 export function KosztorysRowActionsMenu({
   sortActive,
-  canRemove,
+  removeBlockReason,
   onInsertAbove,
   onInsertBelow,
   onMoveUp,
@@ -63,6 +65,17 @@ export function KosztorysRowActionsMenu({
     </>
   )
 
+  const removeItem = (
+    <DropdownMenuItem
+      variant="destructive"
+      disabled={removeBlockReason != null}
+      onSelect={onRemove}
+    >
+      <Trash2 className="size-4" />
+      Usuń pozycję
+    </DropdownMenuItem>
+  )
+
   return (
     <DropdownMenu>
       {/* size-full: whole cell is the click target, else dsg selects the dead space around the icon. */}
@@ -81,15 +94,13 @@ export function KosztorysRowActionsMenu({
           insertMoveItems
         )}
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          variant="destructive"
-          disabled={!canRemove}
-          title={canRemove ? undefined : 'Sekcja musi mieć co najmniej jedną pozycję'}
-          onSelect={onRemove}
-        >
-          <Trash2 className="size-4" />
-          Usuń pozycję
-        </DropdownMenuItem>
+        {removeBlockReason == null ? (
+          removeItem
+        ) : (
+          <SimpleTooltip content={removeBlockReason}>
+            <div>{removeItem}</div>
+          </SimpleTooltip>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

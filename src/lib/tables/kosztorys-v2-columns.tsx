@@ -79,10 +79,15 @@ export type BuildV2ColumnsOptsT = {
   // "≥1 item" invariant). Both read fresh state from the editor (ref) — because dsg freezes
   // `columns` at mount, so the closure MUST read current data, not a snapshot from mount.
   onRemoveItem?: (row: KosztorysV2RowT) => void
-  getSectionItemCount?: (sectionId: number) => number
+  // Reason the row's delete is blocked (disabled + tooltip), or undefined if removable.
+  getRemoveBlockReason?: (row: KosztorysV2RowT) => string | undefined
   // Reordering items within a section (Przesuń w górę/dół). Reads fresh `rows` from the editor
   // (ref) — because dsg freezes `columns` at mount. Greyed out while a column sort is active.
   onReorderItem?: (row: KosztorysV2RowT, dir: 'up' | 'down') => void
+  // The section panel overlays the grid's right edge, so the columns under it are unreachable.
+  // While it's open we append a spacer column of exactly its width — the only scrollable slack
+  // that lets the last real column travel out from under it.
+  summaryOpen?: boolean
   // Inserting a blank item above/below the row within its section. Same fresh-ref, event-time read.
   onInsertItem?: (row: KosztorysV2RowT, dir: 'above' | 'below') => void
 }
@@ -337,8 +342,8 @@ function withResize(
   }
 }
 
-// Insert/move disabled under an active sort (no display_order mapping); delete disabled on a
-// section's last item (≥1-item invariant).
+// Insert/move disabled under an active sort (no display_order mapping); delete disabled with a
+// reason (last item in a section, or a populated row) surfaced via tooltip.
 function RowActionsCell({
   rowData,
   opts,
@@ -347,14 +352,12 @@ function RowActionsCell({
   opts: BuildV2ColumnsOptsT
 }) {
   const sortActive = opts.sort != null
-  const canRemove = opts.getSectionItemCount
-    ? opts.getSectionItemCount(rowData.sectionId) > 1
-    : true
+  const removeBlockReason = opts.getRemoveBlockReason?.(rowData)
 
   return (
     <KosztorysRowActionsMenu
       sortActive={sortActive}
-      canRemove={canRemove}
+      removeBlockReason={removeBlockReason}
       onInsertAbove={() => opts.onInsertItem?.(rowData, 'above')}
       onInsertBelow={() => opts.onInsertItem?.(rowData, 'below')}
       onMoveUp={() => opts.onReorderItem?.(rowData, 'up')}
@@ -376,6 +379,22 @@ function actionColumn(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT> {
     disabled: true,
     component: ({ rowData }) => <RowActionsCell rowData={rowData} opts={opts} />,
   }
+}
+
+// Width MUST track KosztorysSectionSummary's `w-72`: the spacer's job is to reserve the panel's
+// exact footprint, so a narrower one leaves a column stranded underneath.
+const SUMMARY_PANEL_WIDTH = 288
+
+const spacerColumn: Column<KosztorysV2RowT> = {
+  id: 'summarySpacer',
+  title: '',
+  basis: SUMMARY_PANEL_WIDTH,
+  grow: 0,
+  shrink: 0,
+  minWidth: SUMMARY_PANEL_WIDTH,
+  maxWidth: SUMMARY_PANEL_WIDTH,
+  disabled: true,
+  component: () => null,
 }
 
 export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[] {
@@ -467,6 +486,8 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
     ),
   ]
 
+  // The spacer stays outside `withResize` — it isn't a real column and must not get a drag handle.
   const base = [...left, ...stageCols, ...computed].map((c) => withResize(c, opts))
-  return opts.onRemoveItem || opts.onReorderItem ? [actionColumn(opts), ...base] : base
+  const withSpacer = opts.summaryOpen ? [...base, spacerColumn] : base
+  return opts.onRemoveItem || opts.onReorderItem ? [actionColumn(opts), ...withSpacer] : withSpacer
 }

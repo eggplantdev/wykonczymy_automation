@@ -7,6 +7,9 @@ import {
   sortRows,
   rowDoneNetForView,
   revertField,
+  planItemRemoval,
+  REMOVE_BLOCK_LAST_ITEM,
+  REMOVE_BLOCK_POPULATED,
 } from '@/lib/kosztorys/v2-rows'
 import { rowNetForView } from '@/lib/kosztorys/calc'
 import type { KosztorysTreeT, KosztorysV2RowT } from '@/types/kosztorys'
@@ -170,6 +173,54 @@ describe('rowDoneNetForView', () => {
     const [row] = treeToRows(tree) // stage 100 qty=2, stage 101 qty=0; clientPrice 20
     expect(rowDoneNetForView(row, tree.stages, 'client')).toBe(40) // 2 × 20
     expect(rowDoneNetForView(row, tree.stages, 'w_tools')).toBe(24) // 2 × 12
+  })
+})
+
+describe('planItemRemoval', () => {
+  const stages = [{ id: 100, ordinal: 1, label: null }]
+  const row = (id: number, sectionId: number, over: Partial<KosztorysV2RowT> = {}) =>
+    ({ id, sectionId, measuredQty: 0, [stageKey(100)]: 0, ...over }) as unknown as KosztorysV2RowT
+
+  it('środek sekcji (sekcja ma >1 pozycję) → usuń pozycję', () => {
+    const rows = [row(1, 10), row(2, 10), row(3, 20)]
+    expect(planItemRemoval(rows, rows[0], stages)).toEqual({ kind: 'remove-item' })
+  })
+
+  it('ostatnia pozycja sekcji (są inne sekcje) → kaskadowo usuń sekcję', () => {
+    const rows = [row(1, 10), row(2, 20)]
+    expect(planItemRemoval(rows, rows[1], stages)).toEqual({ kind: 'cascade-section' })
+  })
+
+  it('ostatni wiersz całego kosztorysu → zablokowane (próg pustego arkusza)', () => {
+    const rows = [row(1, 10)]
+    expect(planItemRemoval(rows, rows[0], stages)).toEqual({
+      kind: 'blocked',
+      reason: REMOVE_BLOCK_LAST_ITEM,
+    })
+  })
+
+  it('wiersz z pomiarem → zablokowane', () => {
+    const rows = [row(1, 10, { measuredQty: 3 }), row(2, 20)]
+    expect(planItemRemoval(rows, rows[0], stages)).toEqual({
+      kind: 'blocked',
+      reason: REMOVE_BLOCK_POPULATED,
+    })
+  })
+
+  it('wiersz z postępem etapu → zablokowane', () => {
+    const rows = [row(1, 10, { [stageKey(100)]: 2 }), row(2, 20)]
+    expect(planItemRemoval(rows, rows[0], stages)).toEqual({
+      kind: 'blocked',
+      reason: REMOVE_BLOCK_POPULATED,
+    })
+  })
+
+  it('próg pustego arkusza ma pierwszeństwo nad blokadą wypełnienia', () => {
+    const rows = [row(1, 10, { measuredQty: 5 })]
+    expect(planItemRemoval(rows, rows[0], stages)).toEqual({
+      kind: 'blocked',
+      reason: REMOVE_BLOCK_LAST_ITEM,
+    })
   })
 })
 

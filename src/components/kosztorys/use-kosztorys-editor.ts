@@ -16,11 +16,10 @@ import {
   diffRow,
   filterRows,
   insertDisplayOrder,
-  isRowPopulated,
   isSectionPopulated,
+  planItemRemoval,
   revertField,
   rowDoneNetForView,
-  sectionItemCount,
   sectionNeighbor,
   sortRows,
   stageKey,
@@ -140,9 +139,8 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     onRemoveItem: handleRemoveItem,
     onReorderItem: handleReorderItem,
     onInsertItem: handleInsertItem,
-    // Disables the trash button on a section's last item; the toast in handleRemoveItem stays as
-    // a defensive backstop. Same fresh-ref, event-time read as the handlers above.
-    getSectionItemCount,
+    getRemoveBlockReason,
+    summaryOpen,
   })
   const widthsKey = JSON.stringify(widths)
   const stagesKey = stages.map((s) => s.id).join(',')
@@ -239,27 +237,30 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     setRows((rs) => applyInsertItem(rs, anchorRow.id, row, dir))
   }
 
-  // Fresh count of a section's items, read from prevById (the full dataset) at cell-render time.
-  function getSectionItemCount(sectionId: number) {
-    return sectionItemCount([...prevById.current.values()], sectionId)
+  // Why a row can't be deleted, or undefined if it can — read from fresh refs at cell-render time
+  // (prevById = full dataset, stagesRef = current stages; dsg columns are frozen at mount).
+  // Single source for both the disabled tooltip and the handler backstop below.
+  // Fresh-ref read of the removal plan (prevById = full dataset, stagesRef = current stages;
+  // dsg columns are frozen at mount). Drives both the disabled tooltip and the handler below.
+  function removalPlan(row: KosztorysV2RowT) {
+    return planItemRemoval([...prevById.current.values()], row, stagesRef.current)
+  }
+
+  function getRemoveBlockReason(row: KosztorysV2RowT): string | undefined {
+    const plan = removalPlan(row)
+    return plan.kind === 'blocked' ? plan.reason : undefined
   }
 
   async function handleRemoveItem(row: KosztorysV2RowT) {
-    // Invariant: a section has ≥1 item. Count from prevById (fresh dataset, event-time read —
-    // dsg columns are frozen at mount, so we enforce the rule here, not via a visual disabled state).
-    if (sectionItemCount([...prevById.current.values()], row.sectionId) <= 1) {
-      toastMessage(
-        'Sekcja musi mieć co najmniej jedną pozycję. Aby ją usunąć, użyj kosza sekcji w panelu.',
-        'warning',
-        4000,
-      )
+    const plan = removalPlan(row)
+    // Backstop: the trash button is disabled when a reason exists, so this is normally unreachable.
+    if (plan.kind === 'blocked') {
+      toastMessage(plan.reason, 'warning', 4000)
       return
     }
-    // Client mirror of the server delete-guard: block a populated row up front so it never
-    // optimistically vanishes then reappears. stagesRef is the fresh stage list (dsg column
-    // closure is mount-frozen). The server guard stays the authority — see the await below.
-    if (isRowPopulated(row, stagesRef.current)) {
-      toastMessage('Najpierw wyczyść wartości wpisane w tej pozycji', 'warning', 4000)
+    // Last item in its section → cascade-delete the section so no orphaned 0-row section is left.
+    if (plan.kind === 'cascade-section') {
+      await handleRemoveSection(row.sectionId)
       return
     }
     prevById.current.delete(row.id)
@@ -308,6 +309,9 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     })
     prevById.current.set(row.id, row)
     setRows((rs) => applyAddItem(rs, row))
+    // Drop a section filter: the new section's row lives outside it, so keeping the filter would
+    // make the add look like a no-op (nothing visibly happens).
+    setActiveSectionId(null)
   }
 
   // --- Stages (etapy) ---
