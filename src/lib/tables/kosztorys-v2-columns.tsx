@@ -379,9 +379,8 @@ function actionColumn(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT> {
 
 export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[] {
   const { stages, view } = opts
-  // Client view: a simple editable price. Subcontractor views: a "Tryb" column (override)
-  // + "Cena" showing the derived/override price. (Remount on `view` in the editor — dsg freezes
-  // columns at mount; see the lesson in lessons.md.)
+  // Client view: a simple editable price. Subcontractor views: a "Źródło ceny" column (override)
+  // + "Cena" showing the derived/override price.
   const priceCols: Column<KosztorysV2RowT>[] =
     view === 'client'
       ? [
@@ -395,7 +394,7 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
           subcontractorModeColumn(view, title('priceMode', 'Źródło ceny wykonawcy', opts)),
           subcontractorPriceColumn(view, title('price', 'Cena', opts)),
         ]
-  const left: Column<KosztorysV2RowT>[] = [
+  const identity: Column<KosztorysV2RowT>[] = [
     keyCol('sectionName', textColumn, {
       id: 'sectionName',
       title: title('sectionName', 'Sekcja', opts),
@@ -410,7 +409,9 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
       minWidth: 240,
       grow: 2,
     }),
-    unitColumn(title('unit', 'J.m.', opts)),
+  ]
+
+  const pricing: Column<KosztorysV2RowT>[] = [
     keyCol('plannedQty', floatColumnLeft, {
       id: 'plannedQty',
       title: title('plannedQty', 'Przedmiar', opts),
@@ -421,6 +422,7 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
       title: title('measuredQty', 'Pomiar', opts),
       minWidth: 90,
     }),
+    unitColumn(title('unit', 'J.m.', opts)),
     ...priceCols,
     discountTypeColumn(title('discountType', 'Rabat', opts)),
     keyCol('discountValue', floatColumnLeft, {
@@ -466,6 +468,7 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
     ),
   ]
 
-  const base = [...left, ...stageCols, ...computed].map((c) => withResize(c, opts))
+  // Column order mirrors the source sheet: opis → etapy (ilość) → przedmiar/pomiar/j.m. → cena.
+  const base = [...identity, ...stageCols, ...pricing, ...computed].map((c) => withResize(c, opts))
   return opts.onRemoveItem || opts.onReorderItem ? [actionColumn(opts), ...base] : base
 }
