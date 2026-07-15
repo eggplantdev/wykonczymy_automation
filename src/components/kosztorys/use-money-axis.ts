@@ -6,9 +6,9 @@ import { MONEY_AXIS_DEFAULT, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 // Active money axis, persisted globally in localStorage: it's a reading preference of the person, not
 // of one kosztorys, so unlike usePriceView the key carries no investment id. Filed under the
 // `table-columns:` family because it answers "which columns do I want" — clearing the picker's memory
-// should clear this too. Same useSyncExternalStore shape as its siblings: a string snapshot (stable
-// equality → no render loop), server and first client render agree → zero hydration mismatch, own
-// subscription (the storage event doesn't fire in the same tab).
+// should clear this too. The snapshot is a string (stable equality → no render loop), server and first
+// client render agree → zero hydration mismatch, and the subscription is our own because the storage
+// event doesn't fire in the same tab.
 
 const STORAGE_KEY = 'table-columns:kosztorys-axis'
 const VALID_AXES: readonly MoneyAxisT[] = ['net', 'gross', 'both']

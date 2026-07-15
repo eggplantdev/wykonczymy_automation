@@ -54,6 +54,16 @@ what makes that true.
 - **Census correction:** `COLUMN_LABELS` holds **22** keys, not 21 — the split is 6 netto / 6 brutto /
   **10** neutral. The 12 tagged (11 moved, `price` exempt) is unchanged.
 
+### Settled at the review gate (2026-07-15)
+
+- **The third option is labelled `Bez filtra`, not `Oba`** (owner, mid-gate). The `MoneyAxisT` value
+  stays `'both'` — this is UI copy only. `plan.md` / `plan-brief.md` predate the rename and still say
+  `Oba`; they are a record of the plan, not of the shipped UI. `manual-checks.md` is the live copy.
+- **`Brutto` on the default picker shows no per-stage value column at all** — `stageValueGross` is in
+  `DEFAULT_HIDDEN_COLUMNS`, `stageValueNet` is dropped by the axis. Each half is correct alone;
+  the composition is an owner call, routed to dogfooding (manual check) and pinned by a spec so it
+  can't be "fixed" by accident. Ticking `Etapy — kwota brutto` in the picker resolves it for good.
+
 ### Still open — for dogfooding, not for code
 
 - The select **only narrows, it never guarantees**: with `Brutto` picker-hidden and the select on

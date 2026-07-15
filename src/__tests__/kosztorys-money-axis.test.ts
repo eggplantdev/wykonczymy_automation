@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { COLUMN_LABELS, COLUMN_MONEY_AXIS, AXIS_EXEMPT_COLUMNS } from '@/lib/kosztorys/constants'
+import {
+  COLUMN_LABELS,
+  COLUMN_MONEY_AXIS,
+  AXIS_EXEMPT_COLUMNS,
+  DEFAULT_HIDDEN_COLUMNS,
+} from '@/lib/kosztorys/constants'
 import { buildV2Columns } from '@/lib/tables/kosztorys-v2-columns'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { KosztorysStageT } from '@/types/kosztorys'
@@ -27,6 +32,13 @@ describe('buildV2Columns — oś netto/brutto', () => {
     expect(ids('both')).toEqual(buildV2Columns({ view: 'client', stages: STAGES }).map((c) => c.id))
   })
 
+  // Bez tego „oba" przeszłoby też wtedy, gdyby axisAllows odrzucało wszystko: obie strony
+  // porównania zwężyłyby się tak samo. Sprawdzamy więc obecność, nie tylko równość.
+  it('„oba" naprawdę pokazuje obie strony pary', () => {
+    const visible = ids('both')
+    for (const id of [...NET_IDS, ...GROSS_IDS, 'price']) expect(visible).toContain(id)
+  })
+
   it('„netto" zdejmuje każdą kolumnę brutto', () => {
     const visible = ids('net')
     for (const id of GROSS_IDS) expect(visible).not.toContain(id)
@@ -42,12 +54,23 @@ describe('buildV2Columns — oś netto/brutto', () => {
 
   it('kolumny bez osi przeżywają każdy tryb (fail-open)', () => {
     for (const axis of ['net', 'gross', 'both'] as const) {
-      for (const id of NEUTRAL_IDS) expect(ids(axis)).toContain(id)
+      const visible = ids(axis)
+      for (const id of NEUTRAL_IDS) expect(visible).toContain(id)
     }
   })
 
   it('piker wygrywa nad osią, która by kolumnę dopuściła', () => {
     expect(ids('gross', (id) => id === 'gross')).not.toContain('gross')
+  })
+
+  // Na domyślnym pikerze (a nie przy pikerze otwartym na oścież, jak reszta testów) „brutto" zdejmuje
+  // OBIE strony bloku „Etapy — kwota": brutto chowa DEFAULT_HIDDEN_COLUMNS, netto zdejmuje oś. Każda
+  // połowa jest poprawna z osobna; złożenie idzie na dogfooding (manual-checks EX-485), więc pinujemy
+  // je tu jako świadomy stan, żeby nikt nie „naprawił" go przypadkiem.
+  it('„brutto" na domyślnym pikerze nie zostawia żadnej kolumny wartości etapu', () => {
+    const visible = ids('gross', (id) => DEFAULT_HIDDEN_COLUMNS.has(id))
+    expect(visible.filter((id) => id.startsWith('stageValue'))).toEqual([])
+    expect(ids('net', (id) => DEFAULT_HIDDEN_COLUMNS.has(id))).toContain('stageValueNet_7')
   })
 
   it('kolumny etapów zwijają się po grupie, nie po id etapu', () => {
