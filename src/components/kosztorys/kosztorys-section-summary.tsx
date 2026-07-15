@@ -7,7 +7,7 @@ import { CoeffField } from '@/components/kosztorys/coeff-field'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Input } from '@/components/ui/input'
 import { SimpleTooltip } from '@/components/ui/tooltip'
-import { formatNet as fmt } from '@/lib/kosztorys/format'
+import { formatNet as fmt, formatPercentPrecise } from '@/lib/kosztorys/format'
 import { toastMessage } from '@/lib/utils/toast'
 import type { SectionSubtotalT } from '@/types/kosztorys'
 
@@ -16,6 +16,10 @@ type SectionCoeffsT = { wTools: number | null; ownTools: number | null }
 type PropsT = {
   subtotals: SectionSubtotalT[]
   grandNet: number
+  // Done value per section id, at the same price view as the subtotals. Kept a sibling map rather
+  // than a field on SectionSubtotalT: the subtotal is a pure money breakdown, and stage progress is
+  // a different dimension that only this panel and the toolbar counter read.
+  sectionDoneNet: Map<number, number>
   activeSectionId: number | null
   // Only to render the inherited value as each section field's placeholder — the global coeffs are
   // edited in the toolbar's settings row, not here.
@@ -40,6 +44,7 @@ type PropsT = {
 export function KosztorysSectionSummary({
   subtotals,
   grandNet,
+  sectionDoneNet,
   activeSectionId,
   globalCoeffs,
   sectionCoeffs,
@@ -136,11 +141,14 @@ export function KosztorysSectionSummary({
                   delayDuration={600}
                   className="max-w-xs whitespace-pre-line"
                   content={
-                    'Liczba pozycji w sekcji oraz udział sekcji w wartości kosztorysu.\n\nProcent liczy się od wartości, nie od liczby pozycji.\nZależy od aktywnego widoku cen.'
+                    'Liczba pozycji w sekcji, udział sekcji w wartości kosztorysu oraz jej wykonanie.\n\nUdział = wartość sekcji ÷ wartość kosztorysu.\nWyk. = wartość wykonanych etapów w sekcji ÷ wartość sekcji.\n\nOba procenty liczą się od wartości, nie od liczby pozycji, i zależą od aktywnego widoku cen.\n„—" przy wyk. = sekcja nie ma jeszcze wartości.'
                   }
                 >
                   <span className="cursor-help">
-                    {s.itemCount} poz. · {(s.share * 100).toFixed(1)}%
+                    {s.itemCount} poz. · {(s.share * 100).toFixed(1)}% · wyk.{' '}
+                    {formatPercentPrecise(
+                      s.net > 0 ? (sectionDoneNet.get(s.sectionId) ?? 0) / s.net : null,
+                    )}
                   </span>
                 </SimpleTooltip>
                 <div className="flex items-center gap-0.5">

@@ -24,9 +24,11 @@ import {
   filterRows,
   insertDisplayOrder,
   isSectionPopulated,
+  kosztorysDoneNetForView,
   planItemRemoval,
   revertField,
   rowDoneNetForView,
+  sectionDoneNetForView,
   sectionNeighbor,
   sortRows,
   stageKey,
@@ -176,6 +178,13 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   // the filter/sort.
   const subtotals = useMemo(() => sectionSubtotalsForView(rows, view), [rows, view])
   const totalNet = useMemo(() => subtotals.reduce((s, x) => s + x.net, 0), [subtotals])
+  // Done value, same full-dataset rule as the subtotals: the counter and the section rows answer for
+  // the whole kosztorys, so a search or a section filter must not move them.
+  const doneNet = useMemo(() => kosztorysDoneNetForView(rows, stages, view), [rows, stages, view])
+  const sectionDoneNet = useMemo(
+    () => sectionDoneNetForView(rows, stages, view),
+    [rows, stages, view],
+  )
 
   // Section coefficients (null = inherits the global) for the panel — from the tree, keyed by section id.
   const sectionCoeffs = new Map(
@@ -557,6 +566,8 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     // subtotals + section panel
     subtotals,
     totalNet,
+    doneNet,
+    sectionDoneNet,
     sectionCoeffs,
     // toolbar / panel state
     setView,

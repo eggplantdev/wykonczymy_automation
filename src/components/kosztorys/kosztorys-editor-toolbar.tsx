@@ -6,11 +6,13 @@ import { SearchFilterInput } from '@/components/ui/search-filter-input'
 import { ToggleGroup } from '@/components/ui/toggle-group'
 import { KosztorysActionsMenu } from '@/components/kosztorys/kosztorys-actions-menu'
 import { KosztorysGlobalSettings } from '@/components/kosztorys/kosztorys-global-settings'
+import { KosztorysProgressCounter } from '@/components/kosztorys/kosztorys-progress-counter'
 import { ColumnToggleMenu, type ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
 import { Slash, User, Wrench } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
+import type { ProgressDisplayT } from '@/lib/kosztorys/progress-display'
 
 // Three views over one dataset: they only change the active price and its derived values.
 const ICON_CLASS = 'size-4'
@@ -38,22 +40,28 @@ const VIEW_LEGEND = [
   '🚫 Stawka wykonawcy bez narzędzi.',
 ].join('\n')
 
-// The grid's second reading axis: netto settles the subcontractor, brutto invoices the client, and
-// the two never matter in one sitting — so one side is always dead weight on screen.
-const MONEY_AXES: { value: MoneyAxisT; label: string }[] = [
-  { value: 'net', label: 'Netto' },
-  { value: 'gross', label: 'Brutto' },
-  { value: 'both', label: 'Oba' },
+const MONEY_AXES: { value: MoneyAxisT; label: string; hint: string }[] = [
+  { value: 'net', label: 'Netto', hint: 'chowa kolumny brutto' },
+  { value: 'gross', label: 'Brutto', hint: 'chowa kolumny netto' },
+  { value: 'both', label: 'Bez filtra', hint: 'pokazuje netto i brutto' },
 ]
 
 const AXIS_LEGEND = [
   'Kwoty w tabeli:',
-  'Netto — chowa kolumny brutto.',
-  'Brutto — chowa kolumny netto.',
-  'Oba — bez zawężania.',
+  ...MONEY_AXES.map((axis) => `${axis.label} — ${axis.hint}.`),
+].join('\n')
+
+const PROGRESS_DISPLAYS: { value: ProgressDisplayT; label: string; hint: string }[] = [
+  { value: 'values', label: 'Kwoty', hint: 'etapy pokazują kwoty' },
+  { value: 'percent', label: '% wykonania', hint: 'etapy pokazują procent zamiast kwot' },
+]
+
+const PROGRESS_DISPLAY_LEGEND = [
+  'Etapy w tabeli:',
+  ...PROGRESS_DISPLAYS.map((display) => `${display.label} — ${display.hint}.`),
   '',
-  'Cena j.m. netto zostaje zawsze — to jedyne pole cenowe do wpisywania.',
-  'Tryb tylko zawęża to, co dopuszcza wybór kolumn; nie odkrywa ukrytych.',
+  'W trybie procentowym każdy etap ma jedną kolumnę zamiast pary netto/brutto — procent jest ten sam po obu stronach.',
+  'Kolumna „% wykonania" (całej pozycji) jest dostępna w obu trybach.',
 ].join('\n')
 
 type PropsT = {
@@ -64,6 +72,11 @@ type PropsT = {
   onViewChange: (view: PriceViewT) => void
   moneyAxis: MoneyAxisT
   onMoneyAxisChange: (axis: MoneyAxisT) => void
+  progressDisplay: ProgressDisplayT
+  onProgressDisplayChange: (display: ProgressDisplayT) => void
+  // Whole-kosztorys progress at the active price view, both netto — the counter applies the axis.
+  doneNet: number
+  totalNet: number
   search: string
   onSearchChange: (search: string) => void
   // Section the ＋ pozycja button adds to: the filtered section if one is active, else the last
@@ -91,6 +104,10 @@ export function KosztorysEditorToolbar({
   onViewChange,
   moneyAxis,
   onMoneyAxisChange,
+  progressDisplay,
+  onProgressDisplayChange,
+  doneNet,
+  totalNet,
   search,
   onSearchChange,
   addItemSectionId,
@@ -138,6 +155,20 @@ export function KosztorysEditorToolbar({
             />
           </span>
         </SimpleTooltip>
+        <SimpleTooltip
+          content={PROGRESS_DISPLAY_LEGEND}
+          delayDuration={500}
+          className="max-w-xs whitespace-pre-line"
+        >
+          <span className="inline-flex">
+            <ToggleGroup
+              options={PROGRESS_DISPLAYS}
+              value={progressDisplay}
+              onChange={onProgressDisplayChange}
+              aria-label="Etapy w tabeli"
+            />
+          </span>
+        </SimpleTooltip>
         <SearchFilterInput
           value={search}
           onChange={onSearchChange}
@@ -156,6 +187,12 @@ export function KosztorysEditorToolbar({
           ＋ etap
         </Button>
         <div className="ml-auto flex items-center gap-1">
+          <KosztorysProgressCounter
+            doneNet={doneNet}
+            totalNet={totalNet}
+            vatRate={vatRate}
+            moneyAxis={moneyAxis}
+          />
           <KosztorysActionsMenu investmentId={investmentId} onOpenVersions={onOpenVersions} />
           {/* ml-0: the picker's default ml-auto is for flat toolbars — this group is already
               floated right. */}

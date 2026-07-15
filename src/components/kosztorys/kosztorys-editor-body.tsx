@@ -34,11 +34,15 @@ export function KosztorysEditorBody({
     toggleColumn,
     moneyAxis,
     setMoneyAxis,
+    progressDisplay,
+    setProgressDisplay,
     viewRows,
     view,
     guideX,
     subtotals,
     totalNet,
+    doneNet,
+    sectionDoneNet,
     sectionCoeffs,
     setView,
     search,
@@ -72,6 +76,10 @@ export function KosztorysEditorBody({
         onViewChange={setView}
         moneyAxis={moneyAxis}
         onMoneyAxisChange={setMoneyAxis}
+        progressDisplay={progressDisplay}
+        onProgressDisplayChange={setProgressDisplay}
+        doneNet={doneNet}
+        totalNet={totalNet}
         search={search}
         onSearchChange={setSearch}
         addItemSectionId={activeSectionId ?? subtotals.at(-1)?.sectionId ?? null}
@@ -111,6 +119,7 @@ export function KosztorysEditorBody({
           <KosztorysSectionSummary
             subtotals={subtotals}
             grandNet={totalNet}
+            sectionDoneNet={sectionDoneNet}
             activeSectionId={activeSectionId}
             globalCoeffs={tree.globalCoeffs}
             sectionCoeffs={sectionCoeffs}
