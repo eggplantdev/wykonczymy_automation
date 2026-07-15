@@ -55,8 +55,11 @@ export function KosztorysEditorBody({
     handleVatChange,
   } = useKosztorysEditor({ investmentId, tree })
 
+  // Viewport minus the shell's chrome: the h-14 TopNav always, plus the h-14 AppFooter, which only
+  // renders below `lg` (hence the two calcs — subtracting it at every width would leave a dead band
+  // where no footer exists).
   return (
-    <div className="flex h-[calc(100dvh-3.5rem)] w-full flex-col overflow-hidden">
+    <div className="flex h-[calc(100dvh-7rem)] w-full flex-col overflow-hidden lg:h-[calc(100dvh-3.5rem)]">
       <KosztorysEditorToolbar
         investmentId={investmentId}
         investmentName={investmentName}

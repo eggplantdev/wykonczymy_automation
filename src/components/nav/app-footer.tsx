@@ -20,9 +20,11 @@ export function AppFooter() {
     startTransition(() => logoutAction())
   }
 
+  // h-14 is load-bearing, not cosmetic: the kosztorys editor subtracts this exact height from the
+  // viewport below `lg`, where this footer renders. Change one, change the other.
   return (
-    <footer className="border-border bg-background border-t px-3 py-2 lg:hidden">
-      <div className="flex items-center justify-between">
+    <footer className="border-border bg-background flex h-14 items-center border-t px-3 lg:hidden">
+      <div className="flex w-full items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-foreground text-sm font-medium">{user.name}</span>
           <RoleBadge role={user.role}>{ROLE_LABELS[user.role].pl}</RoleBadge>
