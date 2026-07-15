@@ -37,7 +37,7 @@ function writeDisplay(display: ProgressDisplayT) {
   } catch {
     // no localStorage (SSR/private mode) — persistence skipped; the selection reverts to the default
   }
-  for (const l of listeners) l()
+  for (const listener of listeners) listener()
 }
 
 export function useProgressDisplay(): [ProgressDisplayT, (display: ProgressDisplayT) => void] {

@@ -145,7 +145,7 @@ export function KosztorysSectionSummary({
                   }
                 >
                   <span className="cursor-help">
-                    {s.itemCount} poz. · {(s.share * 100).toFixed(1)}% · wyk.{' '}
+                    {s.itemCount} poz. · {formatPercentPrecise(s.share)} · wyk.{' '}
                     {formatPercentPrecise(
                       s.net > 0 ? (sectionDoneNet.get(s.sectionId) ?? 0) / s.net : null,
                     )}
