@@ -33,6 +33,7 @@ import {
   stageValueGrossKey,
   stageValueNetKey,
 } from '@/lib/kosztorys/constants'
+import { MONEY_AXIS_DEFAULT, axisAllows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import { formatNet as fmt } from '@/lib/kosztorys/format'
 import { rowDoneNetForView, stageKey, type SortDirT } from '@/lib/kosztorys/v2-rows'
 import type {
@@ -88,6 +89,9 @@ export type BuildV2ColumnsOptsT = {
   // DEFAULT_HIDDEN_COLUMNS, which the caller resolves; the two are indistinguishable here. Keyed by
   // column id, except stage columns, which answer to one of the three stage groups (constants.ts).
   isHidden?: (id: string) => boolean
+  // Money axis: narrows the picker's answer further, never widens it. Omitted = 'both' = every
+  // column the picker allows, which is what buildV2ToggleItems (axis-blind by design) assumes.
+  moneyAxis?: MoneyAxisT
   // Resize: pinned column widths (id→px) + drag callbacks. When provided, every column
   // gets a handle; pinned ones get basis/grow:0 (the rest stay on flex).
   widths?: Record<string, number>
@@ -692,8 +696,12 @@ function toggleKey(columnId: string): string {
 }
 
 export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[] {
+  const axis = opts.moneyAxis ?? MONEY_AXIS_DEFAULT
   const base = assembleV2Columns(opts)
-    .filter((c) => !opts.isHidden?.(toggleKey(c.id ?? '')))
+    .filter((c) => {
+      const key = toggleKey(c.id ?? '')
+      return !opts.isHidden?.(key) && axisAllows(key, axis)
+    })
     .map((c) => withResize(c, opts))
   return opts.onRemoveItem || opts.onReorderItem ? [actionColumn(opts), ...base] : base
 }

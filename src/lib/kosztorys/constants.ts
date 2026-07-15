@@ -74,6 +74,30 @@ export function stageValueGrossKey(stageId: number): string {
   return `${STAGE_VALUE_GROSS_COLUMN_GROUP}_${stageId}`
 }
 
+// Which side of the netto/brutto pair a money column reports, keyed by the picker's toggleKey
+// (`stageValueNet`, never `stageValueNet_7`) so the per-stage namespace collapses to one entry and no
+// stage id enters the map — the same ghost-id reasoning as the picker groups above. A column absent
+// from this map is neutral: axisAllows fails open, so a forgotten tag shows a column, never hides one.
+export const COLUMN_MONEY_AXIS: Record<string, 'net' | 'gross'> = {
+  price: 'net',
+  priceGross: 'gross',
+  discountAmount: 'net',
+  discountAmountGross: 'gross',
+  plannedNet: 'net',
+  plannedGross: 'gross',
+  net: 'net',
+  gross: 'gross',
+  remaining: 'net',
+  remainingGross: 'gross',
+  [STAGE_VALUE_NET_COLUMN_GROUP]: 'net',
+  [STAGE_VALUE_GROSS_COLUMN_GROUP]: 'gross',
+}
+
+// `price` is the only editable money cell — the owner types prices while reading brutto, so the mode
+// must never take it away. It stays tagged `net` above because it IS a netto figure; the exemption is
+// policy layered on the tag, the way NON_HIDEABLE_COLUMNS layers on COLUMN_LABELS.
+export const AXIS_EXEMPT_COLUMNS: ReadonlySet<string> = new Set(['price'])
+
 // Without an Opis prac a row is unidentifiable, so the picker must never offer to hide it. The
 // actions column isn't listed because it never enters the toggleable set.
 export const NON_HIDEABLE_COLUMNS: ReadonlySet<string> = new Set(['description'])

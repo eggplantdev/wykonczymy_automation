@@ -1,11 +1,11 @@
 ---
 change_id: kosztorys-netto-brutto-select
 title: Netto / brutto / both select over the grid's money columns
-status: new
+status: implementing
 created: 2026-07-15
 updated: 2026-07-15
 archived_at: null
-branch: null
+branch: dogfooding/kosztorys-editor-ux
 worktree: null
 ---
 
@@ -43,10 +43,19 @@ is a netto/brutto tag per column + a filter over the existing `useHiddenColumns`
 (one entry: `stageValueGross`) lives in the picker layer and **survives unchanged** — decision 2 is
 what makes that true.
 
-### Open for the frame/plan
+### Settled by the plan (2026-07-15)
 
-- What it does to `sectionSubtotalsForView` and the footer's `Suma netto` / `Suma brutto` —
-  unconditional today, independent of the picker by design.
+- **The footer is untouched** — `Suma netto` and `Suma brutto` both stay in every mode (owner). So
+  `sectionSubtotalsForView` and `kosztorys-section-summary.tsx` are out of scope entirely; the open
+  question closed by exclusion, not by implementation.
+- **The picker's menu is untouched** — an axis-hidden column still reads as checked (owner). Zero code
+  in the picker layer.
+- The control is a `ToggleGroup` beside the price-view group (owner).
+- **Census correction:** `COLUMN_LABELS` holds **22** keys, not 21 — the split is 6 netto / 6 brutto /
+  **10** neutral. The 12 tagged (11 moved, `price` exempt) is unchanged.
+
+### Still open — for dogfooding, not for code
+
 - The select **only narrows, it never guarantees**: with `Brutto` picker-hidden and the select on
   `brutto`, that column stays off screen. Correct by the model, but check during dogfooding that it
   doesn't read as a broken control.
