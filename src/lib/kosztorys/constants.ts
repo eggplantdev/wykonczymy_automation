@@ -44,13 +44,30 @@ export const COLUMN_LABELS: Record<string, string> = {
   gross: 'Brutto',
   remaining: 'Pozostało netto',
   remainingGross: 'Pozostało brutto',
-  stages: 'Etapy',
+  stages: 'Etapy — ilość',
+  stageValueNet: 'Etapy — kwota netto',
+  stageValueGross: 'Etapy — kwota brutto',
 }
 
-// All stage columns hide under ONE picker entry rather than one per `stage_<id>`: a row per stage is
+// Each stage axis hides under ONE picker entry rather than one per `stage_<id>`: a row per stage is
 // noise, and it keeps stage ids out of the visibility map — Postgres can reissue a deleted stage's
-// id, and a new stage inheriting the dead one's hidden state would be a ghost.
+// id, and a new stage inheriting the dead one's hidden state would be a ghost. Three groups, so the
+// qty axis and each value axis hide independently.
 export const STAGES_COLUMN_GROUP = 'stages'
+export const STAGE_VALUE_NET_COLUMN_GROUP = 'stageValueNet'
+export const STAGE_VALUE_GROSS_COLUMN_GROUP = 'stageValueGross'
+
+// Column ids for the per-stage value columns. Deliberately NOT under the `stage_` prefix: that
+// prefix means "an editable qty field on the row" — diffRow (v2-rows.ts) classifies every key by it
+// and would parse `Number('valueNet_7')` → NaN into a save against a nonexistent stage. Kept beside
+// the groups so the namespace, its group, and its label are decided in one place.
+export function stageValueNetKey(stageId: number): string {
+  return `${STAGE_VALUE_NET_COLUMN_GROUP}_${stageId}`
+}
+
+export function stageValueGrossKey(stageId: number): string {
+  return `${STAGE_VALUE_GROSS_COLUMN_GROUP}_${stageId}`
+}
 
 // Columns the picker must never offer: without an Opis prac a row is unidentifiable. The actions
 // column isn't listed because it never enters the toggleable set.

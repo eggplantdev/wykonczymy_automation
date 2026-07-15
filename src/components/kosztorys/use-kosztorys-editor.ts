@@ -32,7 +32,11 @@ import {
   treeToRows,
   type SortDirT,
 } from '@/lib/kosztorys/v2-rows'
-import { NEW_SECTION_DEFAULTS } from '@/lib/kosztorys/constants'
+import {
+  NEW_SECTION_DEFAULTS,
+  stageValueGrossKey,
+  stageValueNetKey,
+} from '@/lib/kosztorys/constants'
 import {
   rowNetForView,
   rowRemainingForView,
@@ -343,7 +347,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     }
     setStages((s) => s.filter((st) => st.id !== stageId))
     const key = stageKey(stageId)
-    dropWidth(key)
+    dropWidth(key, stageValueNetKey(stageId), stageValueGrossKey(stageId))
     patchRows(
       () => true,
       (r) => {

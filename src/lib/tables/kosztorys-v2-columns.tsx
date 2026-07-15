@@ -14,6 +14,7 @@ import {
   rowNetForView,
   rowPlannedNetForView,
   rowRemainingForView,
+  stageValueForView,
   viewPrice,
   type PriceViewT,
 } from '@/lib/kosztorys/calc'
@@ -23,8 +24,12 @@ import { type ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
 import {
   COLUMN_LABELS,
   NON_HIDEABLE_COLUMNS,
+  STAGE_VALUE_GROSS_COLUMN_GROUP,
+  STAGE_VALUE_NET_COLUMN_GROUP,
   STAGES_COLUMN_GROUP,
   UNIT_SUGGESTIONS,
+  stageValueGrossKey,
+  stageValueNetKey,
 } from '@/lib/kosztorys/constants'
 import { formatNet as fmt } from '@/lib/kosztorys/format'
 import { rowDoneNetForView, stageKey, type SortDirT } from '@/lib/kosztorys/v2-rows'
@@ -78,7 +83,7 @@ export type BuildV2ColumnsOptsT = {
   sort?: V2SortStateT
   onSetSort?: (field: string, dir: SortDirT | null) => void
   // Column picker: true = the user switched this column off. Keyed by column id, except stage
-  // columns, which all answer to STAGES_COLUMN_GROUP.
+  // columns, which answer to one of the three stage groups (constants.ts).
   isHidden?: (id: string) => boolean
   // Resize: pinned column widths (id→px) + drag callbacks. When provided, every column
   // gets a handle; pinned ones get basis/grow:0 (the rest stay on flex).
@@ -194,6 +199,15 @@ function computedColumn(
       <span className={`block w-full px-2 text-left ${className}`}>{fmt(compute(rowData))}</span>
     ),
   }
+}
+
+// Header of a per-stage value column: a read-only mirror of the stage's name. One source for the
+// name, so a rename moves all three of the stage's headers and a delete takes all three columns.
+// Deliberately not `title(...)` — sort is wired only for price/net/remaining (see sortValue in
+// use-kosztorys-editor), so a sort trigger here would render an arrow that does nothing. Deliberately
+// not `StageHeader` — a mirror carries no rename/delete affordance of its own.
+function stageValueHeader(stage: KosztorysStageT, suffix: string): ReactNode {
+  return <span>{`${stage.label || `Etap ${stage.ordinal}`} — ${suffix}`}</span>
 }
 
 // Discount-type select cell (—/%/zł). setRowData feeds the diff → autosave.
@@ -528,7 +542,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     }),
   ]
 
-  const pricing: Column<KosztorysV2RowT>[] = [
+  const measure: Column<KosztorysV2RowT>[] = [
     keyCol('plannedQty', floatColumnLeft, {
       id: 'plannedQty',
       title: title('plannedQty', COLUMN_LABELS.plannedQty, opts),
@@ -540,6 +554,9 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       minWidth: 90,
     }),
     unitColumn(title('unit', COLUMN_LABELS.unit, opts)),
+  ]
+
+  const pricing: Column<KosztorysV2RowT>[] = [
     ...priceCols,
     computedColumn(
       'priceGross',
@@ -577,6 +594,23 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     }),
   )
 
+  // The sheet's V–AE: the value of each stage's recorded qty at the view's price, post-discount.
+  // Computed at render and NEVER a row field — a `stage_`-prefixed key on the row is what diffRow
+  // saves as stage progress, which is why these ids sit in their own namespace (constants.ts).
+  const stageValueNetCols: Column<KosztorysV2RowT>[] = stages.map((st) =>
+    computedColumn(stageValueNetKey(st.id), stageValueHeader(st, 'netto'), (r) =>
+      stageValueForView(r, r[stageKey(st.id)] ?? 0, view),
+    ),
+  )
+
+  const stageValueGrossCols: Column<KosztorysV2RowT>[] = stages.map((st) =>
+    computedColumn(
+      stageValueGrossKey(st.id),
+      stageValueHeader(st, 'brutto'),
+      (r) => stageValueForView(r, r[stageKey(st.id)] ?? 0, view) * (1 + r.vatRate),
+    ),
+  )
+
   const computed: Column<KosztorysV2RowT>[] = [
     computedColumn('plannedNet', title('plannedNet', COLUMN_LABELS.plannedNet, opts), (r) =>
       rowPlannedNetForView(r as unknown as ViewPricingT, view),
@@ -599,6 +633,9 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       title('gross', COLUMN_LABELS.gross, opts),
       (r) => rowNetForView(r as unknown as ViewPricingT, view) * (1 + r.vatRate),
     ),
+  ]
+
+  const remaining: Column<KosztorysV2RowT>[] = [
     computedColumn('remaining', title('remaining', COLUMN_LABELS.remaining, opts), (r) =>
       rowRemainingForView(r as unknown as ViewPricingT, rowDoneNetForView(r, stages, view), view),
     ),
@@ -615,12 +652,29 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     ),
   ]
 
-  // Column order mirrors the source sheet: opis → etapy (ilość) → przedmiar/pomiar/j.m. → cena.
-  return [...identity, ...stageCols, ...pricing, ...computed]
+  // The value block keeps sheet order (V–AE right before AF "pozostało"). The qty block does not:
+  // the sheet puts it first (D–M), but the owner wants it after J.m., next to the pomiar it is
+  // entered against.
+  return [
+    ...identity,
+    ...measure,
+    ...stageCols,
+    ...pricing,
+    ...computed,
+    ...stageValueNetCols,
+    ...stageValueGrossCols,
+    ...remaining,
+  ]
 }
 
-// A stage column answers to the shared "Etapy" picker entry, not to its own id.
+// A stage column answers to its axis's shared "Etapy — …" picker entry, not to its own id. The three
+// prefixes are mutually exclusive (none is a prefix of another), so the order of these tests carries
+// no meaning — `stage_` last is not load-bearing.
 function toggleKey(columnId: string): string {
+  if (columnId.startsWith(`${STAGE_VALUE_NET_COLUMN_GROUP}_`)) return STAGE_VALUE_NET_COLUMN_GROUP
+  if (columnId.startsWith(`${STAGE_VALUE_GROSS_COLUMN_GROUP}_`)) {
+    return STAGE_VALUE_GROSS_COLUMN_GROUP
+  }
   return columnId.startsWith('stage_') ? STAGES_COLUMN_GROUP : columnId
 }
 
@@ -632,7 +686,7 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
 }
 
 // Picker entries for the columns this view actually has, in grid order. Stage columns collapse into
-// the single "Etapy" entry — hence the dedupe.
+// their axis's "Etapy — …" entry — hence the dedupe.
 export function buildV2ToggleItems(opts: BuildV2ColumnsOptsT): ColumnToggleItemT[] {
   const items: ColumnToggleItemT[] = []
   for (const col of assembleV2Columns(opts)) {
