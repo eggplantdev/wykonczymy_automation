@@ -1,15 +1,16 @@
 import { stageValueForView, type PriceViewT } from '@/lib/kosztorys/calc'
-import { DEFAULT_UNIT } from '@/lib/kosztorys/constants'
+import { DEFAULT_UNIT, STAGE_QTY_PREFIX } from '@/lib/kosztorys/constants'
 import type {
   CostVariantT,
   ItemPatchT,
   KosztorysStageT,
   KosztorysTreeT,
   KosztorysV2RowT,
+  StageKeyT,
 } from '@/types/kosztorys'
 
-export function stageKey(stageId: number): `stage_${number}` {
-  return `stage_${stageId}`
+export function stageKey(stageId: number): StageKeyT {
+  return `${STAGE_QTY_PREFIX}${stageId}`
 }
 
 // Client mirror of the server delete-guard predicate (removeItemAction/removeSectionAction).
@@ -90,10 +91,13 @@ export function diffRow(prev: KosztorysV2RowT, next: KosztorysV2RowT): RowDiffT 
 
   const stageChanges: { stageId: number; qty: number }[] = []
   for (const k of Object.keys(next)) {
-    if (!k.startsWith('stage_')) continue
-    const nextVal = next[k as `stage_${number}`]
-    if (prev[k as `stage_${number}`] !== nextVal) {
-      stageChanges.push({ stageId: Number(k.slice('stage_'.length)), qty: Number(nextVal) || 0 })
+    if (!k.startsWith(STAGE_QTY_PREFIX)) continue
+    const nextVal = next[k as StageKeyT]
+    if (prev[k as StageKeyT] !== nextVal) {
+      stageChanges.push({
+        stageId: Number(k.slice(STAGE_QTY_PREFIX.length)),
+        qty: Number(nextVal) || 0,
+      })
     }
   }
 

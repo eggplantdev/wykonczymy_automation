@@ -57,10 +57,15 @@ export const STAGES_COLUMN_GROUP = 'stages'
 export const STAGE_VALUE_NET_COLUMN_GROUP = 'stageValueNet'
 export const STAGE_VALUE_GROSS_COLUMN_GROUP = 'stageValueGross'
 
-// Column ids for the per-stage value columns. Deliberately NOT under the `stage_` prefix: that
-// prefix means "an editable qty field on the row" — diffRow (v2-rows.ts) classifies every key by it
-// and would parse `Number('valueNet_7')` → NaN into a save against a nonexistent stage. Kept beside
-// the groups so the namespace, its group, and its label are decided in one place.
+// The qty axis's prefix — the one axis whose key IS a row field. diffRow (v2-rows.ts) classifies
+// every key on the row by it, so it decides what gets saved as stage progress; the two value
+// namespaces below are defined against it and must never collide with or prefix it.
+export const STAGE_QTY_PREFIX = 'stage_'
+
+// Column ids for the per-stage value columns. Deliberately NOT under STAGE_QTY_PREFIX: that prefix
+// means "an editable qty field on the row", so a value column wearing it would reach diffRow, which
+// would parse `Number('ValueNet_7')` → NaN into a save against a nonexistent stage. Kept beside the
+// groups so the namespace, its group, and its label are decided in one place.
 export function stageValueNetKey(stageId: number): string {
   return `${STAGE_VALUE_NET_COLUMN_GROUP}_${stageId}`
 }
@@ -69,12 +74,11 @@ export function stageValueGrossKey(stageId: number): string {
   return `${STAGE_VALUE_GROSS_COLUMN_GROUP}_${stageId}`
 }
 
-// Columns the picker must never offer: without an Opis prac a row is unidentifiable. The actions
-// column isn't listed because it never enters the toggleable set.
+// Without an Opis prac a row is unidentifiable, so the picker must never offer to hide it. The
+// actions column isn't listed because it never enters the toggleable set.
 export const NON_HIDEABLE_COLUMNS: ReadonlySet<string> = new Set(['description'])
 
-// Columns that start hidden. The stage axis triples the grid's stage block, and brutto per stage is
-// the least-read of the three — derivable from the netto beside it at a fixed rate. Declared here
-// rather than seeded into the stored map, so the default stays changeable later and a stored
-// preference remains distinguishable from a default (useHiddenColumns: absent = default).
+// The stage axis triples the grid's stage block, and brutto per stage is the least-read of the three
+// — derivable from the netto beside it at a fixed rate. Declared here rather than seeded into the
+// stored map; useHiddenColumns owns that argument.
 export const DEFAULT_HIDDEN_COLUMNS: ReadonlySet<string> = new Set([STAGE_VALUE_GROSS_COLUMN_GROUP])

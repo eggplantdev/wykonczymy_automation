@@ -43,6 +43,15 @@ export function viewPrice(row: ViewPricingT, view: PriceViewT): number {
   return row.clientPrice
 }
 
+/**
+ * Brutto from any netto figure. VAT applies to the POST-discount net, and one rate covers the whole
+ * investment — so this is a render transform, never a stored field. Here rather than inline at each
+ * column so a future rounding rule (grosze) is one edit, not six.
+ */
+export function toGross(net: number, vatRate: number): number {
+  return net * (1 + vatRate)
+}
+
 /** Row net at the selected view's price (measured qty × view price − discount). */
 export function rowNetForView(row: ViewPricingT, view: PriceViewT): number {
   return applyDiscount(row.measuredQty * viewPrice(row, view), row)
@@ -73,13 +82,27 @@ export function rowDiscountForView(row: ViewPricingT, view: PriceViewT): number 
   return row.measuredQty * viewPrice(row, view) - rowNetForView(row, view)
 }
 
-/** Value of a single stage at the view's price (qty done × view price − discount). */
+/**
+ * Value of a single stage at the view's price: the stage's qty SHARE of the row's net.
+ *
+ * The share is what makes an 'amount' rabat behave — it discounts the whole row (owner,
+ * 2026-07-15), so charging the full amount against every stage would subtract it once per stage:
+ * an untouched stage rendered negative, and the stage values stopped summing to rowNetForView —
+ * the reconciliation the sheet's V–AE block exists to allow. Written as a share of the net, that
+ * reconciliation holds by construction rather than by cancellation. 'percent' is unaffected: being
+ * multiplicative, its share was always proportional (asserted in kosztorys-calc.test.ts).
+ *
+ * Not sheet parity — the sheet's V = D*$Q-(D*$Q*$R) is rate-based, so it only ever knew percent.
+ * The 'amount' rabat is ours, and this is its rule.
+ */
 export function stageValueForView(
   row: ViewPricingT,
   qtyDoneInStage: number,
   view: PriceViewT,
 ): number {
-  return applyDiscount(qtyDoneInStage * viewPrice(row, view), row)
+  // No pomiar = no share to take (and nothing to divide by): the stage stands on its own qty.
+  if (row.measuredQty === 0) return qtyDoneInStage * viewPrice(row, view)
+  return rowNetForView(row, view) * (qtyDoneInStage / row.measuredQty)
 }
 
 /** Remaining by view = view net − Σ of completed-stage values by view. */

@@ -45,6 +45,42 @@ describe('stageValueForView', () => {
     const discounted = { ...item, discountType: 'percent' as const, discountValue: 10 }
     expect(stageValueForView(discounted, 3, 'client')).toBe(54) // 60 − 10%
   })
+
+  // Rabat kwotowy jest rabatem OD CAŁOŚCI wiersza (właściciel, 2026-07-15), więc etap niesie tylko
+  // swój udział w nim — inaczej cały rabat schodziłby raz na KAŻDY etap. Arkusz nie rozstrzyga:
+  // jego V = D*$Q-(D*$Q*$R) jest oparte o stawkę, czyli zna wyłącznie procent.
+  describe('rabat kwotowy — rozkłada się proporcjonalnie do ilości etapu', () => {
+    const discounted = { ...item, discountType: 'amount' as const, discountValue: 100 }
+    // pomiar 10 × cena 20 = 200 brutto; rabat 100 zł ⇒ netto 100
+
+    it('etap bez postępu ma wartość 0, nie ujemną', () => {
+      expect(stageValueForView(discounted, 0, 'client')).toBe(0)
+    })
+
+    it('etap niesie swój udział w rabacie', () => {
+      expect(stageValueForView(discounted, 5, 'client')).toBe(50) // 100 − (100 × 5/10)
+    })
+
+    it('wartości etapów sumują się do netto wiersza', () => {
+      const stages = [5, 5, 0].map((qty) => stageValueForView(discounted, qty, 'client'))
+      const sum = stages.reduce((acc, value) => acc + value, 0)
+      expect(sum).toBeCloseTo(rowNetForView(discounted, 'client'), 10)
+    })
+
+    it('rekoncyliacja trzyma się w widokach podwykonawcy', () => {
+      for (const view of ['w_tools', 'own_tools'] as const) {
+        const stages = [3, 7].map((qty) => stageValueForView(discounted, qty, view))
+        const sum = stages.reduce((acc, value) => acc + value, 0)
+        expect(sum).toBeCloseTo(rowNetForView(discounted, view), 10)
+      }
+    })
+
+    // Dzielenie przez pomiar: bez strażnika etap na wierszu bez pomiaru dałby NaN/Infinity w komórce.
+    it('nie dzieli przez zero przy pustym pomiarze', () => {
+      const noMeasure = { ...discounted, measuredQty: 0 }
+      expect(Number.isFinite(stageValueForView(noMeasure, 3, 'client'))).toBe(true)
+    })
+  })
 })
 
 describe('rowPlannedNetForView', () => {

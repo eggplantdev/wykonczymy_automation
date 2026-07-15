@@ -15,6 +15,7 @@ import {
   rowPlannedNetForView,
   rowRemainingForView,
   stageValueForView,
+  toGross,
   viewPrice,
   type PriceViewT,
 } from '@/lib/kosztorys/calc'
@@ -24,6 +25,7 @@ import { type ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
 import {
   COLUMN_LABELS,
   NON_HIDEABLE_COLUMNS,
+  STAGE_QTY_PREFIX,
   STAGE_VALUE_GROSS_COLUMN_GROUP,
   STAGE_VALUE_NET_COLUMN_GROUP,
   STAGES_COLUMN_GROUP,
@@ -82,8 +84,9 @@ export type BuildV2ColumnsOptsT = {
   onRenameStage?: (stageId: number, label: string) => void
   sort?: V2SortStateT
   onSetSort?: (field: string, dir: SortDirT | null) => void
-  // Column picker: true = the user switched this column off. Keyed by column id, except stage
-  // columns, which answer to one of the three stage groups (constants.ts).
+  // Column picker: true = this column is off — by the user's stored choice OR by
+  // DEFAULT_HIDDEN_COLUMNS, which the caller resolves; the two are indistinguishable here. Keyed by
+  // column id, except stage columns, which answer to one of the three stage groups (constants.ts).
   isHidden?: (id: string) => boolean
   // Resize: pinned column widths (id→px) + drag callbacks. When provided, every column
   // gets a handle; pinned ones get basis/grow:0 (the rest stay on flex).
@@ -152,6 +155,26 @@ const HEADER_TIPS: Record<string, string> = {
   remaining:
     'Pozostało netto = Netto − suma wartości etapów wpisanych w tym wierszu.\nIle z wartości pozycji nie zostało jeszcze rozliczone etapami. Pusty wiersz etapów = całe Netto zostaje.',
   remainingGross: 'Pozostało brutto = Pozostało netto × (1 + VAT).',
+  // The three stage axes key by column GROUP, not by column id — every stage's column shares its
+  // axis's tip, because the only thing that differs between them is the stage's name.
+  [STAGES_COLUMN_GROUP]:
+    'Etap — ilość wykonana w tym etapie (wpisywana w wierszu).\nWartość etapu = ilość × Cena − udział etapu w rabacie (proporcjonalny do ilości). Suma ukończonych etapów pomniejsza kolumnę Pozostało.',
+  [STAGE_VALUE_NET_COLUMN_GROUP]:
+    'Etap — kwota netto = ilość wykonana w tym etapie × Cena j.m. − udział etapu w rabacie.\nUdział jest proporcjonalny do ilości (rabat zł jest rabatem od całego wiersza, więc etap niesie tylko swoją część). Kwoty wszystkich etapów sumują się do Netto pozycji.\nZależy od aktywnego widoku cen.',
+  [STAGE_VALUE_GROSS_COLUMN_GROUP]: 'Etap — kwota brutto = Etap — kwota netto × (1 + VAT).',
+}
+
+// Header-tip presentation (delay, width, pre-line) in one place, so retuning it is one edit.
+function withTip(node: ReactNode, tip: string): ReactNode {
+  return (
+    <SimpleTooltip
+      content={tip}
+      delayDuration={HEADER_TIP_DELAY}
+      className="max-w-xs whitespace-pre-line"
+    >
+      <span className="flex size-full items-center">{node}</span>
+    </SimpleTooltip>
+  )
 }
 
 // Column title as a sort-menu header (when onSetSort is provided), wrapped in an explanatory
@@ -172,19 +195,9 @@ function title(field: string, label: string, opts: BuildV2ColumnsOptsT): ReactNo
     )
   }
   const node = <span>{label}</span>
-  if (!tip) return node
-  return (
-    <SimpleTooltip
-      content={tip}
-      delayDuration={HEADER_TIP_DELAY}
-      className="max-w-xs whitespace-pre-line"
-    >
-      <span className="flex h-full w-full items-center">{node}</span>
-    </SimpleTooltip>
-  )
+  return tip ? withTip(node, tip) : node
 }
 
-// Computed, read-only column: a custom component rendering the value from calc.
 function computedColumn(
   id: string,
   titleNode: ReactNode,
@@ -206,8 +219,13 @@ function computedColumn(
 // Deliberately not `title(...)` — sort is wired only for price/net/remaining (see sortValue in
 // use-kosztorys-editor), so a sort trigger here would render an arrow that does nothing. Deliberately
 // not `StageHeader` — a mirror carries no rename/delete affordance of its own.
-function stageValueHeader(stage: KosztorysStageT, suffix: string): ReactNode {
-  return <span>{`${stage.label || `Etap ${stage.ordinal}`} — ${suffix}`}</span>
+function stageValueHeader(stage: KosztorysStageT, suffix: string, tip: string): ReactNode {
+  // truncate, not wrap: the label is the user's free text and the suffix trails it, so an
+  // unbounded header would push the row's height around as stages get renamed.
+  return withTip(
+    <span className="truncate text-sm">{`${stage.label || `Etap ${stage.ordinal}`} — ${suffix}`}</span>,
+    tip,
+  )
 }
 
 // Discount-type select cell (—/%/zł). setRowData feeds the diff → autosave.
@@ -558,10 +576,8 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
 
   const pricing: Column<KosztorysV2RowT>[] = [
     ...priceCols,
-    computedColumn(
-      'priceGross',
-      title('priceGross', COLUMN_LABELS.priceGross, opts),
-      (r) => viewPrice(r as unknown as ViewPricingT, view) * (1 + r.vatRate),
+    computedColumn('priceGross', title('priceGross', COLUMN_LABELS.priceGross, opts), (r) =>
+      toGross(viewPrice(r as unknown as ViewPricingT, view), r.vatRate),
     ),
     discountValueColumn(title('discountValue', COLUMN_LABELS.discountValue, opts)),
     discountTypeColumn(title('discountType', COLUMN_LABELS.discountType, opts)),
@@ -573,7 +589,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     computedColumn(
       'discountAmountGross',
       title('discountAmountGross', COLUMN_LABELS.discountAmountGross, opts),
-      (r) => rowDiscountForView(r as unknown as ViewPricingT, view) * (1 + r.vatRate),
+      (r) => toGross(rowDiscountForView(r as unknown as ViewPricingT, view), r.vatRate),
     ),
   ]
 
@@ -585,9 +601,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
           stage={st}
           onRename={opts.onRenameStage}
           onRemove={opts.onRemoveStage}
-          tip={
-            'Etap — ilość wykonana w tym etapie (wpisywana w wierszu).\nWartość etapu = ilość × Cena − Rabat. Suma ukończonych etapów pomniejsza kolumnę Pozostało.'
-          }
+          tip={HEADER_TIPS[STAGES_COLUMN_GROUP]}
         />
       ),
       minWidth: 80,
@@ -595,30 +609,31 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   )
 
   // The sheet's V–AE: the value of each stage's recorded qty at the view's price, post-discount.
-  // Computed at render and NEVER a row field — a `stage_`-prefixed key on the row is what diffRow
-  // saves as stage progress, which is why these ids sit in their own namespace (constants.ts).
-  const stageValueNetCols: Column<KosztorysV2RowT>[] = stages.map((st) =>
-    computedColumn(stageValueNetKey(st.id), stageValueHeader(st, 'netto'), (r) =>
-      stageValueForView(r, r[stageKey(st.id)] ?? 0, view),
-    ),
-  )
+  // Computed at render, never a row field — hence the separate id namespace (constants.ts).
+  const stageValueNetCols: Column<KosztorysV2RowT>[] = stages.map((st) => {
+    const qtyKey = stageKey(st.id)
+    return computedColumn(
+      stageValueNetKey(st.id),
+      stageValueHeader(st, 'netto', HEADER_TIPS[STAGE_VALUE_NET_COLUMN_GROUP]),
+      (r) => stageValueForView(r, r[qtyKey] ?? 0, view),
+    )
+  })
 
-  const stageValueGrossCols: Column<KosztorysV2RowT>[] = stages.map((st) =>
-    computedColumn(
+  const stageValueGrossCols: Column<KosztorysV2RowT>[] = stages.map((st) => {
+    const qtyKey = stageKey(st.id)
+    return computedColumn(
       stageValueGrossKey(st.id),
-      stageValueHeader(st, 'brutto'),
-      (r) => stageValueForView(r, r[stageKey(st.id)] ?? 0, view) * (1 + r.vatRate),
-    ),
-  )
+      stageValueHeader(st, 'brutto', HEADER_TIPS[STAGE_VALUE_GROSS_COLUMN_GROUP]),
+      (r) => toGross(stageValueForView(r, r[qtyKey] ?? 0, view), r.vatRate),
+    )
+  })
 
   const computed: Column<KosztorysV2RowT>[] = [
     computedColumn('plannedNet', title('plannedNet', COLUMN_LABELS.plannedNet, opts), (r) =>
       rowPlannedNetForView(r as unknown as ViewPricingT, view),
     ),
-    computedColumn(
-      'plannedGross',
-      title('plannedGross', COLUMN_LABELS.plannedGross, opts),
-      (r) => rowPlannedNetForView(r as unknown as ViewPricingT, view) * (1 + r.vatRate),
+    computedColumn('plannedGross', title('plannedGross', COLUMN_LABELS.plannedGross, opts), (r) =>
+      toGross(rowPlannedNetForView(r as unknown as ViewPricingT, view), r.vatRate),
     ),
     computedColumn(
       'net',
@@ -626,12 +641,8 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       (r) => rowNetForView(r as unknown as ViewPricingT, view),
       'font-medium',
     ),
-    // Brutto = net × (1 + vatRate). VAT applies to post-discount net (rowNetForView already
-    // subtracts the discount). One rate per investment, denormalized onto every row.
-    computedColumn(
-      'gross',
-      title('gross', COLUMN_LABELS.gross, opts),
-      (r) => rowNetForView(r as unknown as ViewPricingT, view) * (1 + r.vatRate),
+    computedColumn('gross', title('gross', COLUMN_LABELS.gross, opts), (r) =>
+      toGross(rowNetForView(r as unknown as ViewPricingT, view), r.vatRate),
     ),
   ]
 
@@ -643,12 +654,14 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       'remainingGross',
       title('remainingGross', COLUMN_LABELS.remainingGross, opts),
       (r) =>
-        rowRemainingForView(
-          r as unknown as ViewPricingT,
-          rowDoneNetForView(r, stages, view),
-          view,
-        ) *
-        (1 + r.vatRate),
+        toGross(
+          rowRemainingForView(
+            r as unknown as ViewPricingT,
+            rowDoneNetForView(r, stages, view),
+            view,
+          ),
+          r.vatRate,
+        ),
     ),
   ]
 
@@ -669,13 +682,13 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
 
 // A stage column answers to its axis's shared "Etapy — …" picker entry, not to its own id. The three
 // prefixes are mutually exclusive (none is a prefix of another), so the order of these tests carries
-// no meaning — `stage_` last is not load-bearing.
+// no meaning — the qty prefix last is not load-bearing.
 function toggleKey(columnId: string): string {
   if (columnId.startsWith(`${STAGE_VALUE_NET_COLUMN_GROUP}_`)) return STAGE_VALUE_NET_COLUMN_GROUP
   if (columnId.startsWith(`${STAGE_VALUE_GROSS_COLUMN_GROUP}_`)) {
     return STAGE_VALUE_GROSS_COLUMN_GROUP
   }
-  return columnId.startsWith('stage_') ? STAGES_COLUMN_GROUP : columnId
+  return columnId.startsWith(STAGE_QTY_PREFIX) ? STAGES_COLUMN_GROUP : columnId
 }
 
 export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[] {

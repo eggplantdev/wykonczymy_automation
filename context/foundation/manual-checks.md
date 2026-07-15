@@ -247,7 +247,9 @@ Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, se
 
 ### Phase 1: Stage value columns + grid reorder
 
-- [ ] **Stage netto tracks Pozostało.** Type a qty into a stage on a row with a known price and no rabat → `Etap N — netto` shows `qty × cena − rabat`, and `Pozostało netto` drops by the same amount. Add a percent rabat to that row → the stage value drops proportionally (it is post-discount).
+- [ ] **Stage netto tracks Pozostało.** Type a qty into a stage on a row with a known price and no rabat → `Etap N — netto` shows `qty × cena`, and `Pozostało netto` drops by the same amount. Add a percent rabat to that row → the stage value drops proportionally (it is post-discount).
+- [ ] **Rabat kwotowy (zł) spreads across stages, never goes negative.** On a row with a `zł` rabat and 2–3 stages: a stage with **no** qty reads `0` (not a negative number), and the stage netto values **sum to the row's `Netto`** — with `Pozostało netto` hitting `0` once the stages cover the full `Pomiar`. This is the CRITICAL the review caught; the local dev DB already holds `amount` rows, but the seed script emits only `percent`, so **check this on a hand-entered zł rabat**, not on seeded data.
+- [ ] **Tooltip copy reads right (owner's call).** Hover `Etapy — kwota netto` / `— brutto` and the qty stage header. The Polish wording is mine, not reviewed — say if the discount-share explanation is wrong or overlong for what you want in a tooltip.
 - [ ] **Brutto is the netto × rate.** `Etap N — brutto` = `Etap N — netto` × 1.08 at the default VAT rate.
 - [ ] **Rename a stage → all three headers update**; the qty header stays editable, both value headers do not.
 - [ ] **Delete a stage → all three columns disappear**, and the remaining stages keep their own labels (the wrong-stage-rename class — dsg keys header cells by index).
@@ -258,7 +260,7 @@ Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, se
 - [ ] **Fresh profile default.** With no prior localStorage (fresh profile / cleared `table-columns:kosztorys`): the grid opens with `Etapy — kwota netto` visible and `Etapy — kwota brutto` hidden.
 - [ ] **The picker shows `Etapy — kwota brutto` unchecked**; checking it reveals the columns and survives a reload.
 - [ ] **Un-checking it again hides them** and survives a reload.
-- [ ] **No regression from the invariant change.** An existing profile with columns already hidden keeps exactly those columns hidden (absent now means "default", not "visible" — stored maps only ever held `true`).
+- [ ] **No regression from the invariant change.** An existing profile with columns already hidden keeps exactly those columns hidden (absent means "ask the default", where it used to mean "visible" — stored maps only ever held `true`, so this is safe on paper; confirm on a real profile).
 
 ### Phase 3: Doc reconciliation
 

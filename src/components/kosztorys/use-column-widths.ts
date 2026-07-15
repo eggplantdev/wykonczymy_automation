@@ -37,6 +37,15 @@ function writeWidths(widths: Record<string, number>) {
   for (const l of listeners) l()
 }
 
+// Returns the map without `ids`, or the SAME reference when none of them were pinned — identity is
+// how the caller tells "nothing to drop" from "dropped", so it can skip a pointless write + notify.
+export function dropKeys(widths: Record<string, number>, ids: string[]): Record<string, number> {
+  if (!ids.some((id) => id in widths)) return widths
+  const next = { ...widths }
+  for (const id of ids) delete next[id]
+  return next
+}
+
 export function useColumnWidths(): {
   widths: Record<string, number>
   setWidth: (id: string, width: number) => void
@@ -56,10 +65,8 @@ export function useColumnWidths(): {
   // write rebuilds the whole map from the render's `widths`: dropping them one call at a time would
   // have every call read the same pre-delete map, so the last write would resurrect the others.
   function dropWidth(...ids: string[]) {
-    if (!ids.some((id) => id in widths)) return
-    const next = { ...widths }
-    for (const id of ids) delete next[id]
-    writeWidths(next)
+    const next = dropKeys(widths, ids)
+    if (next !== widths) writeWidths(next)
   }
 
   return { widths, setWidth, dropWidth }

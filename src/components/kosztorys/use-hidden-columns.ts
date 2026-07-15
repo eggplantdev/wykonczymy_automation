@@ -9,9 +9,6 @@ import { DEFAULT_HIDDEN_COLUMNS } from '@/lib/kosztorys/constants'
 // freeze them into every user's localStorage and make a seeded default indistinguishable from a
 // deliberate choice.
 //
-// Backwards compatible: stored maps only ever contained `true` entries, and `true` still means
-// hidden. Only the meaning of ABSENT changed (was: visible).
-//
 // The `table-columns:` prefix is shared with the TanStack tables (transfers, investments…) so every
 // "which columns do I want" preference clears as one family. The mechanism deliberately is NOT
 // theirs: they read in an effect after hydration to dodge an SSR mismatch, whereas
@@ -51,8 +48,10 @@ function writeHidden(hidden: Record<string, boolean>) {
   for (const l of listeners) l()
 }
 
+// The raw map is deliberately NOT returned: an absent key means "ask DEFAULT_HIDDEN_COLUMNS", so a
+// caller reading hidden[id] would silently get the pre-default answer. isHidden is the only honest
+// reader of it.
 export function useHiddenColumns(): {
-  hidden: Record<string, boolean>
   isHidden: (id: string) => boolean
   toggleColumn: (id: string) => void
 } {
@@ -63,11 +62,11 @@ export function useHiddenColumns(): {
     return hidden[id] ?? DEFAULT_HIDDEN_COLUMNS.has(id)
   }
 
-  // Writes an explicit boolean either way: deleting the key would now mean "revert to default", not
-  // "show" — which for a default-hidden column would undo the very toggle that asked to show it.
+  // Writes an explicit boolean either way: deleting the key means "revert to default", not "show" —
+  // which for a default-hidden column would undo the very toggle that asked to show it.
   function toggleColumn(id: string) {
     writeHidden({ ...hidden, [id]: !isHidden(id) })
   }
 
-  return { hidden, isHidden, toggleColumn }
+  return { isHidden, toggleColumn }
 }

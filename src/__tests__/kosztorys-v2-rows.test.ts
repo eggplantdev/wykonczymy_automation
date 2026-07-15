@@ -12,6 +12,13 @@ import {
   REMOVE_BLOCK_POPULATED,
 } from '@/lib/kosztorys/v2-rows'
 import { rowNetForView } from '@/lib/kosztorys/calc'
+import {
+  STAGE_QTY_PREFIX,
+  STAGE_VALUE_GROSS_COLUMN_GROUP,
+  STAGE_VALUE_NET_COLUMN_GROUP,
+  stageValueGrossKey,
+  stageValueNetKey,
+} from '@/lib/kosztorys/constants'
 import type { KosztorysTreeT, KosztorysV2RowT } from '@/types/kosztorys'
 
 const baseItem = {
@@ -89,6 +96,28 @@ describe('diffRow', () => {
   it('bez zmian → pusty diff', () => {
     const [prev] = treeToRows(tree)
     expect(diffRow(prev, { ...prev })).toEqual({})
+  })
+
+  // diffRow klasyfikuje KAŻDY klucz wiersza po prefiksie ilości, bez białej listy. Gdyby któryś
+  // namespace kwotowy zaczynał się od tamtego (albo odwrotnie), kolumna kwotowa trafiłaby tu jako
+  // postęp etapu i poszłaby do zapisu jako Number('ValueNet_7') → NaN na nieistniejący etap.
+  it('nie bierze kolumn kwotowych za postęp etapu', () => {
+    const [prev] = treeToRows(tree)
+    const next = { ...prev, [stageValueNetKey(101)]: 999, [stageValueGrossKey(101)]: 999 }
+    expect(diffRow(prev, next)).toEqual({})
+  })
+
+  it('prefiksy etapowe są parami rozłączne', () => {
+    const prefixes = [
+      STAGE_QTY_PREFIX,
+      STAGE_VALUE_NET_COLUMN_GROUP,
+      STAGE_VALUE_GROSS_COLUMN_GROUP,
+    ]
+    for (const a of prefixes) {
+      for (const b of prefixes) {
+        if (a !== b) expect(a.startsWith(b)).toBe(false)
+      }
+    }
   })
 })
 

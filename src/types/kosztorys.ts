@@ -3,6 +3,8 @@
 // VAT is a single rate per investment (KosztorysTreeT.vatRate), not per section/item;
 // in S-01 it is carried as 0 (VAT arrives in S-12).
 
+import type { STAGE_QTY_PREFIX } from '@/lib/kosztorys/constants'
+
 export type DiscountTypeT = 'percent' | 'amount'
 export type CostVariantT = 'w_tools' | 'own_tools'
 // Per-item subcontractor price override: 'coeff' = client × value (tracks the client
@@ -113,8 +115,13 @@ export type KosztorysV2RowBaseT = KosztorysItemT & {
   globalOwnToolsCoeff: number
 }
 
+// Keyed off the constant so the type and diffRow's runtime `startsWith` can never drift apart.
+// `import type` on a value import keeps this erased — no runtime cycle with constants.ts, which
+// imports types from here.
+export type StageKeyT = `${typeof STAGE_QTY_PREFIX}${number}`
+
 export type KosztorysV2RowT = KosztorysV2RowBaseT & {
-  [stageKey: `stage_${number}`]: number
+  [stageKey: StageKeyT]: number
 }
 
 export type SectionSubtotalT = {
