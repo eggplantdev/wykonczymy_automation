@@ -530,7 +530,7 @@ slice's Unknowns.
 
 6. ~~**Catalogue seeding.**~~ **Resolved (2026-07-09):** dissolved by folding the catalogue into S-08 with Model A — autocomplete sources from preset prace, so building presets _is_ seeding. No standalone catalogue to seed.
 7. **Importer trigger (FR-010).** What concretely triggers the deferred importer? — Owner: user. Gates: S-12.
-8. **Settings-home UX.** Where VAT (S-05) + subcontractor coefficients (S-04) are edited — detail-inwestycji or a future "Podsumowanie" panel, not the side panel. — Owner: user. Gates: S-04, S-05.
+8. ~~**Settings-home UX.**~~ **Resolved (2026-07-15):** a **second row in the editor toolbar** — neither anticipated option (detail-inwestycji / a "Podsumowanie" panel). The global multipliers + VAT rate are always visible there; the Sekcje panel keeps only the per-section overrides. EX-478.
 9. ~~**Preset scope (S-09).**~~ **Resolved (2026-07-11):** named library (`kosztorys_presets` table), picked by name at seed-time.
 10. ~~**Preset save-as + retroactivity (S-09).**~~ **Resolved (2026-07-11):** save-as offers both new + overwrite; spawned kosztorysy stay frozen (snapshot).
 11. **Duplicate prace across presets (`kosztorys-item-autocomplete`).** When autocomplete unions `prace` across presets, show each occurrence or dedupe by opis with a default price? — Owner: user. Gates: the deferred autocomplete slice (FR-006), not S-09.
