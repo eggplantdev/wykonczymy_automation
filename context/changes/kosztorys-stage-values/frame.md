@@ -121,6 +121,13 @@ Piece 2 is then a separate change, and its plan should start from the **mode** f
 bulk-hide one: `netto | brutto | both` over the 5 money pairs, with `price` inside the mode rather
 than exempted from it. Do not treat it as a picker shortcut — that shape is falsified.
 
+> **SUPERSEDED (owner, 2026-07-15).** `price` **is** exempt from the mode — always visible, the way
+> `description` is already exempt from the picker. That reinstates the bulk-hide framing this
+> paragraph rejects: the rejection rested entirely on `price` being the lone editable money cell, and
+> exempting it removes the write-transform, the VAT round-trip, and the rounding question in one move.
+> The other 11 netto/brutto columns are computed read-only. Piece 2 starts from the picker-shortcut
+> framing after all. Canonical record: `change.md` → "Not this change (2)".
+
 Open decisions /10x-plan inherits (from `research.md`): the stage-value id namespace (must **not**
 start with `stage_` — `diffRow:91-98` would feed `NaN` into `setStageProgressAction`); sortability
 of the new columns; `dropWidth` must now drop 3 keys per stage, not 1.

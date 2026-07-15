@@ -57,15 +57,47 @@ Shaping preserved for whoever opens it as its own change:
 
 - Owner wants `netto | brutto | both` as a **multiselect**, `both` reachable. **Global**, one setting
   across all three price views — per-view memory was raised and **rejected** (owner, 2026-07-15).
-- `/10x-frame` falsified its original shape. It is **not** "a shortcut over the column picker":
-  "hide all netto" hides `price`, the only editable price cell, and the owner types prices while
-  reading brutto. Three states is a **display mode over the 5 money pairs**, with `price` inside the
-  mode (write-transform precedent exists 3× — `subcontractorPriceColumn`, `subcontractorCoeffColumn`,
-  `DiscountValueCell`). Start piece 2's plan from that framing, not the bulk-hide one.
+- **`price` is exempt from the mode (owner, 2026-07-15) — it is always visible, like `description` is
+  already exempt from the picker via `NON_HIDEABLE_COLUMNS`.** This resolves the one question the
+  piece actually had, and it **reinstates the bulk-hide framing** `/10x-frame` had rejected.
+  The rejection ("it is not a shortcut over the column picker — 'hide all netto' hides `price`, the
+  only editable price cell, and the owner types prices while reading brutto") rested entirely on that
+  single cell, and generalized it into "a display mode over the money pairs" with a VAT write-transform
+  on input. Exempting `price` deletes that whole branch: no write-transform, no round-trip through
+  `/(1 + VAT)`, no rounding question. The other 11 netto/brutto columns are computed and read-only, so
+  the mode only ever decides what is on screen.
+  Count that settles the size: of 21 columns, **6 are netto, 6 brutto, 9 neutral** (`Opis prac`,
+  `Przedmiar`, `J.m.`, `Rabat`, `Rabat wart.`, `Etapy — ilość`, …) — neutral columns ignore the mode.
+  So the piece is a netto/brutto tag per column + a filter over the existing `useHiddenColumns`.
+  (The 3× write-transform precedent — `subcontractorPriceColumn`, `subcontractorCoeffColumn`,
+  `DiscountValueCell` — is noted only in case a later owner reverses the exemption. Not needed now.)
 - It depends on this change only for two string constants (the stage picker-group ids). Nothing else.
+- **The picker stays the source of truth; the select filters only what the picker already allows
+  (owner, 2026-07-15)** — answering "whether it and the per-column picker can disagree, and which
+  wins". **They cannot disagree, because they don't answer the same question.** They compose:
+
+      visible(col) = pickerAllows(col) AND selectAllowsAxis(col)
+
+  The picker means "I never want to see this column, in any mode" — a hard, durable filter. The select
+  means "of the columns I do want, show the netto side / the brutto side / both". Neutral columns have
+  no axis, so `selectAllowsAxis` is trivially true for them and the select cannot touch them.
+  Two things this framing dissolves that a truth-bearing select would have cost:
+  - **No collision with `DEFAULT_HIDDEN_COLUMNS`** (which THIS change introduced, holding one entry:
+    `stageValueGross`). It lives in the picker layer, which is exactly where it already is — a
+    per-column default the select then respects. Under a select-as-truth model the two rules would
+    have contradicted on "does `both` reveal stage brutto?"; under AND-composition the question
+    doesn't arise. **The constant survives piece 2 unchanged.**
+  - **No loss of per-column control.** All 21 columns stay individually hideable, so "hide only
+    `Pozostało brutto`, keep the rest of the brutto axis" remains expressible — via the picker, which
+    is precisely what the picker is for.
+
+  Consequence to carry into the plan: with picker-hidden `Brutto` and select = `brutto`, that column
+  stays off screen. Correct by the model (the user said never), but it means the select is not a
+  guarantee that anything in particular is visible — it only ever _narrows_. Worth a look during
+  dogfooding to check it doesn't read as a broken control.
+
 - Open for its frame/plan: what it does to `sectionSubtotalsForView` and the footer's
-  `Suma netto`/`Suma brutto` (unconditional today, independent of the picker by design); whether it
-  and the per-column picker can disagree, and which wins.
+  `Suma netto`/`Suma brutto` (unconditional today, independent of the picker by design).
 - The adjacent **parked POC TODO** (`context/archive/kosztorys-poc-in-app/2026-06-20-kosztorys-add-remove-struktura-slice1-design.md:104`)
   travels with it — but is now **partly obsolete**: it demands a netto/brutto mode for the Sekcje
   panel + a toolbar counter; the footer already shows both, and the counter was never built. What
