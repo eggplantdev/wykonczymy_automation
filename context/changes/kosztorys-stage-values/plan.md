@@ -391,18 +391,18 @@ preferences carry over unchanged and no migration or seed is required.
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `pnpm typecheck`
-- [x] 1.2 Linting passes: `pnpm lint`
-- [x] 1.3 Existing calc tests still pass: `pnpm exec vitest run src/__tests__/kosztorys-calc.test.ts`
-- [x] 1.4 Existing row tests still pass: `pnpm exec vitest run src/__tests__/kosztorys-v2-rows.test.ts`
+- [x] 1.1 Type checking passes: `pnpm typecheck` — 870f883
+- [x] 1.2 Linting passes: `pnpm lint` — 870f883
+- [x] 1.3 Existing calc tests still pass: `pnpm exec vitest run src/__tests__/kosztorys-calc.test.ts` — 870f883
+- [x] 1.4 Existing row tests still pass: `pnpm exec vitest run src/__tests__/kosztorys-v2-rows.test.ts` — 870f883
 
 ### Phase 2: Default-hidden columns
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `pnpm typecheck`
-- [ ] 2.2 Linting passes: `pnpm lint`
-- [ ] 2.3 Full unit suite passes: `pnpm exec vitest run`
+- [x] 2.1 Type checking passes: `pnpm typecheck`
+- [x] 2.2 Linting passes: `pnpm lint`
+- [x] 2.3 Full unit suite passes: `pnpm exec vitest run`
 
 ### Phase 3: Doc reconciliation
 

@@ -1,9 +1,16 @@
 'use client'
 
 import { useMemo, useSyncExternalStore } from 'react'
+import { DEFAULT_HIDDEN_COLUMNS } from '@/lib/kosztorys/constants'
 
-// Which grid columns the user hid, persisted in localStorage. Sparse: only columns explicitly
-// switched off get an entry, so a new column ships visible without a migration.
+// Which grid columns the user hid, persisted in localStorage. Sparse: an absent key means "whatever
+// DEFAULT_HIDDEN_COLUMNS says", so a new column ships at its declared default without a migration
+// and the default stays changeable in code afterwards. Seeding defaults into the map instead would
+// freeze them into every user's localStorage and make a seeded default indistinguishable from a
+// deliberate choice.
+//
+// Backwards compatible: stored maps only ever contained `true` entries, and `true` still means
+// hidden. Only the meaning of ABSENT changed (was: visible).
 //
 // The `table-columns:` prefix is shared with the TanStack tables (transfers, investments…) so every
 // "which columns do I want" preference clears as one family. The mechanism deliberately is NOT
@@ -53,14 +60,13 @@ export function useHiddenColumns(): {
   const hidden = useMemo(() => JSON.parse(json) as Record<string, boolean>, [json])
 
   function isHidden(id: string) {
-    return hidden[id] === true
+    return hidden[id] ?? DEFAULT_HIDDEN_COLUMNS.has(id)
   }
 
+  // Writes an explicit boolean either way: deleting the key would now mean "revert to default", not
+  // "show" — which for a default-hidden column would undo the very toggle that asked to show it.
   function toggleColumn(id: string) {
-    const next = { ...hidden }
-    if (next[id]) delete next[id]
-    else next[id] = true
-    writeHidden(next)
+    writeHidden({ ...hidden, [id]: !isHidden(id) })
   }
 
   return { hidden, isHidden, toggleColumn }
