@@ -17,6 +17,13 @@ zero kontaktu z Sheets dla nowych robót.
 > pełne wiersze, litery kolumn AA+). Run:
 > `SHEET_ID=<id> node --env-file=./.env scripts/inspect-sheet.mjs > /tmp/dump.txt`
 > (needs `GOOGLE_SERVICE_ACCOUNT_JSON`; defaults to `KOSZTORYS_TEMPLATE_SHEET_ID`).
+>
+> **Dostęp (2026-07-15):** service account
+> `kosztorys-sheets@wykonczymy-kosztorys-bk.iam.gserviceaccount.com` ma **Viewera** na
+> `KOSZTORYS_TEMPLATE_SHEET_ID`. Wcześniej inspector zwracał `403 PERMISSION_DENIED` —
+> jeśli znowu zwróci, arkusz stracił udostępnienie (nadaj Viewera w UI, SA nie zrobi tego samo).
+> **Nie zgaduj ze screenshotów — odpal inspector.** Ten plik był już raz źle „poprawiony"
+> na podstawie przyciętego obrazka.
 
 - **Arkusz = actuals z appki (mirror) + ręczna rozpiska robocizny.**
 - Aplikacja **już** liczy wszystkie actuals z transakcji: wydatki inwestycyjne,
@@ -38,17 +45,69 @@ zero kontaktu z Sheets dla nowych robót.
 
 ## Mapa kolumn arkusza `kosztorys_robocizny` (klient)
 
+**Zweryfikowane na formułach 2026-07-15** (inspector, nie screenshot). Etapów jest **10, nie 6** —
+poprzednia wersja tej mapy (`C–H` / `P–U`, 6 etapów) była nieaktualna i przesunięta o kolumnę.
+
 ```
-A ordinal | B opis | C–H 1–6 etap ilość (wykonano) | I Przedmiar | J Pomiar z natury
-K j.m. | L Cena j.m. (klient) | M rabat % | N Wartość netto | O komentarz
-P–U 1–6 etap wartość | V pozostało do rozliczenia / bilans
+A sekcja | B ordinal (na wierszu sekcji: nazwa sekcji) | C opis
+D–M   1–10 etap ilość (wykonano)      ← inputy
+N Przedmiar | O Pomiar z natury | P j.m. | Q Cena j.m. (klient) | R rabat %
+S wartość przedmiaru | T Wartość netto | U komentarz
+V–AE  1–10 etap wartość               ← liczone
+AF    pozostało do rozliczenia / bilans
 ```
 
-- Wiersz-nagłówek sekcji: A = nazwa sekcji, N = suma sekcji.
-- Wartość = **pomiar (J)** × cena (np. 57 m² × 70 = 3990), nie przedmiar.
+- **Wiersz-nagłówek sekcji:** A/B/C = nazwa sekcji, `T4 = SUM(T5:T21)` = suma sekcji,
+  `U4 = T4` (lustro — po `U` sumuje `SUMIF` z zakładki `Podsumowanie`).
+  Kolumny etapów (`V`–`AE`) w wierszu sekcji są **puste** — patrz niżej.
+- Wartość = **pomiar (O)** × cena (np. 57 m² × 70 = 3990), nie przedmiar.
+
+### Formuły (dosłownie z arkusza, wiersz 390)
+
+```
+T  = O*Q - (Q*R)*O                     wartość netto  = pomiar × cena − rabat
+V  = D*$Q - (D*$Q*$R)                  wartość etapu  = ilość_wykonana × cena − rabat
+AF = T - V - W - X - Y - Z - AA…AE     bilans         = wartość − Σ etapów
+```
+
+Appka jest z tym **1:1**: `stageValueForView` = `V`, `rowRemainingForView` = `AF`
+(`src/lib/kosztorys/calc.ts:52,61`). Potwierdza P9.
+
+### BRAK sumy per etap — zweryfikowane
+
+Arkusz **nie sumuje osi etapów nigdzie**: 0 formuł `SUM` nad `V`–`AE` w całych 464 wierszach.
+Sumuje wyłącznie oś sekcji (`T4`) i sekcje w zakładce `Podsumowanie`. Czyli „podsumowanie etapu"
+(ile zapłacić za dany etap) to **nowa figura, nie parytet** — nie ma czego skopiować, wymaga
+decyzji właściciela (cena klienta = faktura vs cena podwykonawcy = wypłata). Roadmap: pytanie 12b.
+
 - Zakładki `zakres pracy z narzędziami` / `bez narzędzi` = te same pozycje,
   inne ceny (cennik z narzędziami N, bez narzędzi P). Ceny podwykonawcy NIE są
   stałym % klienta (raz 65%, raz 58%) → niezależne.
+
+## Zakładka `Podsumowanie` (2026-07-15 — wcześniej nieudokumentowana)
+
+Pełna lista zakładek: `kosztorys_robocizny` · `zakres pracy z narzędziami` ·
+`zakres pracy z bez narzędzi` · **`Podsumowanie`** · `materiały` · `pokoje`.
+
+```
+Robocizna / Materiały / Łącznie      (B6 = robocizny!T395, B7 = robocizny!T398)
+Prace dodatkowe            8 400 zł   54,9%
+Wyburzenia i demontaże     6 900 zł   45,1%
+… 13 sekcji …
+Łącznie                   15 300 zł   (=SUM(B11:B23))
+```
+
+- Suma per sekcja: `=SUMIF(kosztorys_robocizny!B:B; <nazwa sekcji>; kosztorys_robocizny!U:U)` —
+  stąd lustro `U4 = T4` w wierszu sekcji.
+- **Udział %** per sekcja (`=B11/$B$25`) — appka tego nie ma.
+- Rozbicie **Robocizna / Materiały / Łącznie** — appka tego nie ma.
+- Panel sum w appce (`kosztorys-section-summary.tsx`) pokrywa tylko sumy sekcji + Suma netto/brutto.
+  Reszta = luka parytetu, bez slice'a. Roadmap: pytanie 12a.
+
+**Uwaga — w szablonie te referencje są zepsute:** `B6`/`B7` wskazują na `T395`/`T398`, czyli
+**wiersze pozycji** (pusta pozycja w „Kuchnia", „Sufit podwieszany" w „Wiatrołap"), a nie na sumy
+całkowite → `Robocizna = 0 zł` i `#DIV/0!` w udziale, a wiersz `check, ok` (`B26 = B25-B6`) kłamie.
+Ręczne referencje gniją przy wstawianiu wierszy — argument za liczeniem tych sum w kodzie.
 
 ## Schemat (rdzeń robocizny)
 
@@ -86,7 +145,7 @@ powierzchnia malowania = Σ ścian − ściany pomieszczeń mokrych (łazienki/W
 ## Wartości liczone (nie przechowywane)
 
 - wartość wiersza = `pomiar × cena` minus rabat (procent lub kwota — patrz wyżej)
-- „pozostało/bilans" (V) = wartość pozycji − Σ wartości wykonanych etapów
+- „pozostało/bilans" (AF) = wartość pozycji − Σ wartości wykonanych etapów
   = **kontrola postępu robót** (ile zostało do wykonania); informacyjna (P9)
 - sumy sekcja / całość = redukcja w kodzie
 - plan-vs-actual = porównanie na odczyt (patrz sekcja „Panel plan-vs-actual").
@@ -190,7 +249,7 @@ Otwarte: która ilość na ofercie — przedmiar (oferta wstępna) czy pomiar
 ## Domyślne
 
 PLN • netto+brutto z `vat_rate` per pozycja • hard-delete • reorder strzałkami
-(bez drag) • etapy zmienne (zwykle 6) • współistnienie z zakładką „Arkusz" •
+(bez drag) • etapy zmienne (w szablonie 10) • współistnienie z zakładką „Arkusz" •
 bez `work_catalogue`.
 
 ## Otwarte / odłożone
@@ -242,7 +301,7 @@ this section is the original phrasing/context for those questions.
 
 ### Pozostało do rozliczenia / bilans
 
-- **P9. [ROZSTRZYGNIĘTE]** Kolumna „pozostało do rozliczenia" (V) = **kontrola
+- **P9. [ROZSTRZYGNIĘTE — potwierdzone formułą `AF` 2026-07-15]** Kolumna „pozostało do rozliczenia" (AF) = **kontrola
   postępu robót**: ile wartościowo zostało do zrobienia w pozycji. Nie figura
   rozliczeniowa z klientem — wskaźnik „jak idzie robota". Formuła: wartość
   pozycji − Σ wartości wykonanych etapów. W aplikacji: kolumna wyliczana
