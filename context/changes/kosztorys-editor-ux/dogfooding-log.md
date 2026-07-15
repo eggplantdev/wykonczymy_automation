@@ -384,3 +384,10 @@ buttons + menu + Sekcje); the second row is what made room without a popover.
 
 - Horizontal reach after the reorder (§11) — with 6 stages, Przedmiar/Pomiar/Cena sit far right.
   Sheet parity was the explicit call; if scrolling grates, sticky Opis prac is the lever.
+
+- Kwota ↔ procent toggle + procent wykonania, per item and per stage — filed **EX-479**, parked
+  before any code. Pure presentation: `rowDoneNetForView / rowNetForView`, both already exist.
+  I first filed it as a data-model change, reading "z pomiaru z natury" as a quantity base — the
+  owner corrected it. Price is constant within a row, so the value ratio already IS the pomiar
+  ratio; only a zł (flat) discount breaks that equivalence. Lesson: an owner's phrasing describes
+  what they want to see, not the formula to compute it — don't escalate a slice off one word.
