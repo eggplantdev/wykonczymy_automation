@@ -61,6 +61,9 @@ AF    pozostało do rozliczenia / bilans
   `U4 = T4` (lustro — po `U` sumuje `SUMIF` z zakładki `Podsumowanie`).
   Kolumny etapów (`V`–`AE`) w wierszu sekcji są **puste** — patrz niżej.
 - Wartość = **pomiar (O)** × cena (np. 57 m² × 70 = 3990), nie przedmiar.
+- Zakładki `zakres pracy z narzędziami` / `bez narzędzi` = te same pozycje,
+  inne ceny (cennik z narzędziami N, bez narzędzi P). Ceny podwykonawcy NIE są
+  stałym % klienta (raz 65%, raz 58%) → niezależne.
 
 ### Formuły (dosłownie z arkusza, wiersz 390)
 
@@ -79,10 +82,6 @@ Arkusz **nie sumuje osi etapów nigdzie**: 0 formuł `SUM` nad `V`–`AE` w cał
 Sumuje wyłącznie oś sekcji (`T4`) i sekcje w zakładce `Podsumowanie`. Czyli „podsumowanie etapu"
 (ile zapłacić za dany etap) to **nowa figura, nie parytet** — nie ma czego skopiować, wymaga
 decyzji właściciela (cena klienta = faktura vs cena podwykonawcy = wypłata). Roadmap: pytanie 12b.
-
-- Zakładki `zakres pracy z narzędziami` / `bez narzędzi` = te same pozycje,
-  inne ceny (cennik z narzędziami N, bez narzędzi P). Ceny podwykonawcy NIE są
-  stałym % klienta (raz 65%, raz 58%) → niezależne.
 
 ## Zakładka `Podsumowanie` (2026-07-15 — wcześniej nieudokumentowana)
 
