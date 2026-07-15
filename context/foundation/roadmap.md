@@ -33,7 +33,14 @@ top_blocker: none
 >
 > - **10 etapów, not 6.** The reference's `C–H 1–6 etap` column map is stale. Real layout:
 >   `D–M` = 1–10 etap ilość (wykonano) · `N` przedmiar · `O` pomiar · `Q` cena · `R` rabat ·
->   `T` wartość netto · `U` komentarz · `V–AE` = 1–10 etap wartość · `AF` pozostało/bilans.
+>   `S` wartość przedmiaru (header only — see below) · `T` wartość netto · `U` komentarz ·
+>   `V–AE` = 1–10 etap wartość · `AF` pozostało/bilans.
+> - **`S` "wartość przedmiaru" is a header with no formula and no values in any of the 464 rows**
+>   (this map originally skipped `R` → `T` and missed it entirely — corrected 2026-07-15). Likely
+>   never wired because `O` (pomiar) is `=N`, so `S` would duplicate `T` until pomiar is overridden
+>   by hand. Our przedmiar/pomiar are independent, so the column is meaningful here: **built as
+>   `Wartość przedmiaru netto/brutto`** (`rowPlannedNetForView`), rabat applied, so it differs from
+>   `Netto` by qty alone. New work, not parity — there was no sheet behaviour to copy.
 > - **The app's stage math is 1:1 with the sheet.** `T = O*Q-(Q*R)*O`, `V = D*$Q-(D*$Q*$R)`,
 >   `AF = T-V-W-…-AE` — matching `stageValueForView` / `rowRemainingForView` exactly. `AF`
 >   ("pozostało do rozliczenia") is progress control, not a billing figure — confirms P9.

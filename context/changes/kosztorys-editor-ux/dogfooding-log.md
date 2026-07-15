@@ -365,6 +365,67 @@ buttons + menu + Sekcje); the second row is what made room without a popover.
 
 ---
 
+## 13. Wartość przedmiaru netto/brutto — the sheet column nobody filled in 🟡 built, unverified by hand
+
+**Want.** Owner: "względem reference arkusza brakuje nam wartości przedmiaru" — netto + brutto.
+
+**What the sheet actually says.** `S = "wartość przedmiaru"` exists, between `R rabat` and
+`T wartość netto` — and **it is a header with zero formulas and zero values across all 464 rows.**
+The roadmap's own column map, stamped "Verified against the live sheet 2026-07-15 (formulas, not
+screenshots)", jumped `R → T` and missed the column entirely. Both corrected.
+
+**Why it was never wired (best read).** The sheet's `O` (pomiar) is `=N` (przedmiar), so pomiar
+defaults to przedmiar and `S` would render identical to `T` until someone overrides pomiar by hand
+— it looks like a duplicate column. **Our przedmiar/pomiar are two independent inputs** (S-01
+decision), so the distinction is real from the first row: `Wartość przedmiaru` = offer value,
+`Netto` = as-measured value.
+
+**So this is new work, not parity** — same class as open roadmap question #12(b) (per-etap total).
+There was no sheet behaviour to copy, so the formula was a decision, not a reading.
+
+**Decision: rabat does NOT apply (owner).** `Wartość przedmiaru netto = Przedmiar × Cena`.
+
+The agent shipped the opposite first (rabat applied, mirroring `rowNetForView`) on the argument
+that the two columns should then differ by quantity alone — a clean comparison. **Owner overrode
+it on domain grounds:** przedmiar is the **pre-negotiation valuation**; rabat is a settlement-time
+concession and has no business touching the offer figure. So the gap `Netto − Wartość przedmiaru`
+deliberately carries **both** the qty revision and the rabat — that's the honest picture of what
+happened to the position, not a defect.
+
+**Lesson:** "which formula makes the two columns compare cleanly" is a UI-symmetry argument; the
+owner picks on what the number _means_ in the business. Symmetry lost, and should have — the
+agent's rationale never asked what przedmiar represents.
+
+**Shipped.** `rowPlannedNetForView` in `calc.ts` (sibling of `rowNetForView`) + two computed
+columns at the head of the `computed` group — which lands them right before `Netto`, matching the
+sheet's `S` slot. No migration, no new data: `plannedQty`, `viewPrice`, `vatRate` were all already
+on the row. `tsc` clean, existing 13 calc tests green.
+
+**Stale docs corrected in the same pass:** `kosztorys-v2-columns.tsx` stated in two places that
+przedmiar "nie wchodzi do żadnego obliczenia" — true until this change, false after it.
+
+**To verify by hand:**
+
+- [ ] Set przedmiar ≠ pomiar on a rabat-free row → columns diverge by exactly Δqty × cena.
+- [ ] Brutto column = netto × (1 + VAT) at the investment's rate.
+- [ ] Switch price view (Klient / z narzędziami / bez narzędzi) → both columns re-price.
+- [ ] **Rabat % and rabat zł leave Wartość przedmiaru untouched** and move only Netto.
+- [ ] Column picker hides/shows both; widths persist.
+
+**Tested** (owner asked for it once the formula was locked by a decision — the earlier defer was
+about not chasing a moving target, and it stopped moving). 5 cases in `kosztorys-calc.test.ts`:
+przedmiar-not-pomiar, per-view pricing, rabat-%-doesn't-touch-it, rabat-zł-doesn't-touch-it, brutto.
+
+Two things the tests had to get right:
+
+- The fixture's `plannedQty === measuredQty`, so every case **drives them apart** — otherwise a
+  formula reading the wrong qty passes anyway.
+- **Verified by mutation, not by going green:** flipping the formula back to `applyDiscount(...)`
+  failed exactly the two rabat cases and nothing else. A test that can't fail pins nothing — and
+  the asymmetry with `rowNetForView` is precisely what a future reader would "tidy up".
+
+---
+
 ## Parking lot (⚪ noticed, not touched)
 
 - Grid virtualization repaint flicker on delete (§6) — cosmetic; fix at DSG render level if it grates.
