@@ -273,3 +273,19 @@ Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, se
 This change ships the horizontal cost **unmitigated by design** — the frame found the argument for pre-emptively mitigating it (a netto/brutto display mode) circular. At 10 stages the client view carries ~47 columns. Dogfood it before opening that follow-up.
 
 - [ ] **Perf + width sanity at scale.** Seed ~1000 rows (`INV=<id> node --env-file=.env --import tsx src/scripts/perf-seed-kosztorys.ts`), then scroll the grid with all three stage groups visible — no scroll jank, and record whether the width is actually tolerable in use.
+
+## kosztorys-netto-brutto-select — Netto | Brutto | Oba (EX-485)
+
+**In review** — automated checks green (`c385ad1`, `e76d45c`); the boxes below are the human gate. "Piece 2" of the pair `/10x-frame` split: piece 1 (`kosztorys-stage-values`) shipped the columns this mode hides. localStorage-only — no migration, so the 5435 test DB needs nothing beyond the usual seed.
+
+Setup: run the app against the **5435 test DB** (see intro), log in as OWNER/MANAGER, open an investment's **Kosztorys** tab with ≥1 section, items, and ≥1 stage. The control sits beside the price-view toggle. Clear `table-columns:kosztorys-axis` in localStorage to start from the default (`Oba`).
+
+- [ ] **Netto drops every brutto column; the price stays.** Pick `Netto` → `Cena j.m. brutto`, `Rabat kwota brutto`, `Wartość przedmiaru brutto`, `Brutto`, `Pozostało brutto` and the per-stage brutto block all leave the grid. `Cena j.m. netto` stays.
+- [ ] **Brutto drops the netto columns; the price still stays.** Pick `Brutto` → `Wartość przedmiaru netto`, `Netto`, `Pozostało netto`, `Rabat kwota netto` and the per-stage netto block leave — and `Cena j.m. netto` is still there and still editable.
+- [ ] **Oba restores exactly what the picker allows.** Back to `Oba` → every column returns except the per-stage brutto block, which stays hidden by `DEFAULT_HIDDEN_COLUMNS` (the picker's default, not the mode).
+- [ ] **The mode survives a reload.** Pick `Netto`, reload → still `Netto`, still narrowed.
+- [ ] **The mode holds across all three price views.** Switch Klient / Z narzędziami / Bez narzędzi → the mode doesn't reset; it's one global setting, not per-view.
+- [ ] **The column picker's menu is unchanged in every mode.** A column the mode hid still reads as _checked_ in the picker — the picker answers "never show this", the mode answers "which side".
+- [ ] **The Sekcje footer is untouched.** `Suma netto` and `Suma brutto` both stay in every mode (owner decision: the footer is a summary, not a view).
+- [ ] **No flicker, no scroll jump at scale.** On ~1000 rows (`INV=7`, `perf-seed-kosztorys.ts`) switch modes repeatedly — the grid must not flash or lose scroll position. This is EX-422's regression surface: the fix was deleting the remount `key`, and this change deliberately did not add one back.
+- [ ] **The non-guarantee reads acceptably (a judgement call, not a bug).** Hide `Brutto` in the picker, then pick mode `Brutto` → the column stays off screen. Correct by the model — the mode only _narrows_, it never reveals. Confirm it doesn't read as a broken control; if it does, that's a follow-up, not a fix here.

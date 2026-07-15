@@ -1,7 +1,7 @@
 ---
 change_id: kosztorys-netto-brutto-select
 title: Netto / brutto / both select over the grid's money columns
-status: implementing
+status: implemented
 created: 2026-07-15
 updated: 2026-07-15
 archived_at: null

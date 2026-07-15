@@ -300,6 +300,6 @@ today's behaviour — every existing user lands on the current grid until they t
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `pnpm typecheck`
-- [x] 2.2 Linting passes: `pnpm lint`
-- [x] 2.3 Full unit suite passes: `pnpm test`
+- [x] 2.1 Type checking passes: `pnpm typecheck` — e76d45c
+- [x] 2.2 Linting passes: `pnpm lint` — e76d45c
+- [x] 2.3 Full unit suite passes: `pnpm test` — e76d45c
