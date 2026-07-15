@@ -10,6 +10,7 @@ import { ColumnToggleMenu, type ColumnToggleItemT } from '@/components/ui/column
 import { Slash, User, Wrench } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
+import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 
 // Three views over one dataset: they only change the active price and its derived values.
 const ICON_CLASS = 'size-4'
@@ -37,12 +38,32 @@ const VIEW_LEGEND = [
   '🚫 Stawka wykonawcy bez narzędzi.',
 ].join('\n')
 
+// The grid's second reading axis: netto settles the subcontractor, brutto invoices the client, and
+// the two never matter in one sitting — so one side is always dead weight on screen.
+const MONEY_AXES: { value: MoneyAxisT; label: string }[] = [
+  { value: 'net', label: 'Netto' },
+  { value: 'gross', label: 'Brutto' },
+  { value: 'both', label: 'Oba' },
+]
+
+const AXIS_LEGEND = [
+  'Kwoty w tabeli:',
+  'Netto — chowa kolumny brutto.',
+  'Brutto — chowa kolumny netto.',
+  'Oba — bez zawężania.',
+  '',
+  'Cena j.m. netto zostaje zawsze — to jedyne pole cenowe do wpisywania.',
+  'Tryb tylko zawęża to, co dopuszcza wybór kolumn; nie odkrywa ukrytych.',
+].join('\n')
+
 type PropsT = {
   investmentId: number
   investmentName: string
   onOpenVersions: () => void
   view: PriceViewT
   onViewChange: (view: PriceViewT) => void
+  moneyAxis: MoneyAxisT
+  onMoneyAxisChange: (axis: MoneyAxisT) => void
   search: string
   onSearchChange: (search: string) => void
   // Section the ＋ pozycja button adds to: the filtered section if one is active, else the last
@@ -68,6 +89,8 @@ export function KosztorysEditorToolbar({
   onOpenVersions,
   view,
   onViewChange,
+  moneyAxis,
+  onMoneyAxisChange,
   search,
   onSearchChange,
   addItemSectionId,
@@ -98,6 +121,20 @@ export function KosztorysEditorToolbar({
               value={view}
               onChange={onViewChange}
               aria-label="Widok cen"
+            />
+          </span>
+        </SimpleTooltip>
+        <SimpleTooltip
+          content={AXIS_LEGEND}
+          delayDuration={500}
+          className="max-w-xs whitespace-pre-line"
+        >
+          <span className="inline-flex">
+            <ToggleGroup
+              options={MONEY_AXES}
+              value={moneyAxis}
+              onChange={onMoneyAxisChange}
+              aria-label="Kwoty w tabeli"
             />
           </span>
         </SimpleTooltip>

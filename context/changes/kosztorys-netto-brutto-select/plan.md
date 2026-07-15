@@ -291,15 +291,15 @@ today's behaviour — every existing user lands on the current grid until they t
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `pnpm typecheck`
-- [x] 1.2 Linting passes: `pnpm lint`
-- [x] 1.3 New axis specs pass: `pnpm exec vitest run src/__tests__/kosztorys-money-axis.test.ts`
-- [x] 1.4 The existing kosztorys suites still pass
+- [x] 1.1 Type checking passes: `pnpm typecheck` — c385ad1
+- [x] 1.2 Linting passes: `pnpm lint` — c385ad1
+- [x] 1.3 New axis specs pass: `pnpm exec vitest run src/__tests__/kosztorys-money-axis.test.ts` — c385ad1
+- [x] 1.4 The existing kosztorys suites still pass — c385ad1
 
 ### Phase 2: The toolbar control
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `pnpm typecheck`
-- [ ] 2.2 Linting passes: `pnpm lint`
-- [ ] 2.3 Full unit suite passes: `pnpm test`
+- [x] 2.1 Type checking passes: `pnpm typecheck`
+- [x] 2.2 Linting passes: `pnpm lint`
+- [x] 2.3 Full unit suite passes: `pnpm test`

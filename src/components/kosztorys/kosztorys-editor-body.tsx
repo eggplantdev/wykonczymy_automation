@@ -32,6 +32,8 @@ export function KosztorysEditorBody({
     columns,
     columnToggleItems,
     toggleColumn,
+    moneyAxis,
+    setMoneyAxis,
     viewRows,
     view,
     guideX,
@@ -68,6 +70,8 @@ export function KosztorysEditorBody({
         onOpenVersions={onOpenVersions}
         view={view}
         onViewChange={setView}
+        moneyAxis={moneyAxis}
+        onMoneyAxisChange={setMoneyAxis}
         search={search}
         onSearchChange={setSearch}
         addItemSectionId={activeSectionId ?? subtotals.at(-1)?.sectionId ?? null}

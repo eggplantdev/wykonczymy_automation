@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useDebouncedSave } from '@/components/kosztorys/use-debounced-save'
 import { useColumnWidths } from '@/components/kosztorys/use-column-widths'
 import { useHiddenColumns } from '@/components/kosztorys/use-hidden-columns'
+import { useMoneyAxis } from '@/components/kosztorys/use-money-axis'
 import { usePriceView } from '@/components/kosztorys/use-price-view'
 import { useElementHeight } from '@/hooks/use-element-height'
 import { toastMessage } from '@/lib/utils/toast'
@@ -109,6 +110,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   // (guideX = cursor X), without touching the grid.
   const { widths, setWidth, dropWidth } = useColumnWidths()
   const { isHidden, toggleColumn } = useHiddenColumns()
+  const [moneyAxis, setMoneyAxis] = useMoneyAxis()
   const [guideX, setGuideX] = useState<number | null>(null)
   // Snapshot of the previous rows for diffing (keyed by item id) — the full dataset, not the view.
   // It also serves as the "fresh dataset" read by structural event handlers (section count):
@@ -143,6 +145,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     sort,
     onSetSort: setSortField,
     isHidden,
+    moneyAxis,
     widths,
     onGuide: setGuideX,
     onCommitColumn: setWidth,
@@ -532,6 +535,8 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     columns,
     columnToggleItems,
     toggleColumn,
+    moneyAxis,
+    setMoneyAxis,
     viewRows,
     view,
     sort,
