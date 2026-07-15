@@ -1,7 +1,7 @@
 ---
 change_id: kosztorys-progress-percent
 title: Kosztorys v2 progress percentages with a values/percent display toggle
-status: implementing
+status: implemented
 created: 2026-07-15
 updated: 2026-07-15
 archived_at: null

@@ -294,6 +294,6 @@ None — no schema or stored-data changes. The new localStorage key is self-init
 
 #### Automated
 
-- [x] 3.1 Full unit suite passes: `pnpm test`
-- [x] 3.2 Type checking passes: `pnpm typecheck`
-- [x] 3.3 Linting passes: `pnpm lint`
+- [x] 3.1 Full unit suite passes: `pnpm test` — b77baa1
+- [x] 3.2 Type checking passes: `pnpm typecheck` — b77baa1
+- [x] 3.3 Linting passes: `pnpm lint` — b77baa1

@@ -291,3 +291,29 @@ Setup: run the app against the **5435 test DB** (see intro), log in as OWNER/MAN
 - [ ] **The non-guarantee reads acceptably (a judgement call, not a bug).** Hide `Brutto` in the picker, then pick mode `Brutto` → the column stays off screen. Correct by the model — the mode only _narrows_, it never reveals. Confirm it doesn't read as a broken control; if it does, that's a follow-up, not a fix here.
 - [ ] **`Brutto` leaves you with NO per-stage value column at all — is that liveable?** (code-review 🟡, deliberately shipped as-is.) On the default picker state, `stageValueGross` is hidden by `DEFAULT_HIDDEN_COLUMNS` and `stageValueNet` is dropped by the mode, so `Brutto` — the mode you'd invoice the client from — shows neither side of `Etapy — kwota`, while the picker still reads "Etapy — kwota netto ✓". Each half is correct on its own; the composition is the question. Ticking `Etapy — kwota brutto` in the picker fixes it for good. Decide whether the default should do that for you.
 - [ ] **No flash of the wide grid on reload.** With `Netto` stored, hard-reload → the grid must not paint all columns for a frame before dropping to the narrow set. The hook reads localStorage in `getSnapshot`, so server and first client render both use the default — same shape as `usePriceView`, whose flash only changes numbers in place; this one changes the _column set_, which is a layout shift. If it's visible, it's a follow-up across all three sibling hooks, not a fix here.
+
+## kosztorys-progress-percent — Kwoty / % wykonania + progress counter (EX-479)
+
+**In review** — automated checks green (`63c8a32`, `7ee38ee`, `b77baa1`); the boxes below are the human gate. Third reading axis over the same grid, composing with the money axis (`kosztorys-netto-brutto-select`) rather than replacing it. localStorage-only — no migration, so the 5435 test DB needs nothing beyond the usual seed.
+
+Setup: run the app against the **5435 test DB** (see intro), log in as OWNER/MANAGER, open an investment's **Kosztorys** tab with ≥1 section, items, and ≥2 stages carrying recorded progress. The control sits beside the netto/brutto toggle. Clear `table-columns:kosztorys-progress-display` in localStorage to start from the default (`Kwoty`).
+
+### Phase 2: Grid columns
+
+- [ ] **Percent mode swaps the stage block.** Pick `% wykonania` → every `Etap N — netto` / `— brutto` column leaves and exactly one `Etap N — %` column appears per stage. Everything outside the stage block (Netto, Pozostało, Cena…) is unchanged.
+- [ ] **`% wykonania` (per row) is visible by default in BOTH modes** and can be hidden via the column picker.
+- [ ] **No denominator → a dash, not a fake 0%.** A row with `Pomiar = 0` renders "—" in every % cell (row and per-stage), not `0%`.
+- [ ] **Overshoot shows raw.** A row with a stage qty above its `Pomiar` renders >100% literally (unclamped) — it is the only signal that the measurement or the entry is wrong.
+- [ ] **No grid flicker/remount when switching modes** (EX-422 class — the fix was deleting the remount `key`, and this change deliberately did not add one back).
+
+### Phase 3: Toolbar toggle, counter, section %
+
+- [ ] **The toggle switches instantly and survives a reload**, independently of the money axis and the price view (three separate global settings, not one).
+- [ ] **The counter reads sensibly.** `Wykonano: X% · done / total` matches the Sekcje footer's `Suma netto` as its denominator; an empty/valueless kosztorys shows "—".
+- [ ] **The counter follows the money axis for its values only.** Pick `Brutto` → the value pair switches to brutto (and says so); the percent is unchanged, because it is the same figure on either side of the VAT.
+- [ ] **The counter ignores search and the section filter.** Type in the search box / filter to one section → the counter does not move (it answers for the whole kosztorys, by design).
+- [ ] **Section rows show `wyk. %` consistent with their rows**; a section with no value shows "—".
+- [ ] **The three surfaces agree.** On a hand-checkable dataset (e.g. seeded `INV=6`), the row %, the section %, and the counter tell the same story — and the per-stage % columns sum to the row's `% wykonania`.
+- [ ] **Percent is view-independent.** Switch Klient / Z narzędziami / Bez narzędzi in percent mode → every % figure is unchanged (only the counter's value pair moves). This is the change's core claim: price and rabat cancel out of the fraction.
+- [ ] **The picker still wins.** In percent mode, hide `Etapy — % wykonania` and `% wykonania` via the picker → they stay off screen. The mode only narrows; it never reveals.
+- [ ] **No layout breakage in the toolbar at narrow widths** (it is a `flex-wrap` row that now carries a third toggle plus the counter).
