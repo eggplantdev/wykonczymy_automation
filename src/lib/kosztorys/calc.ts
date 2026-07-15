@@ -48,6 +48,15 @@ export function rowNetForView(row: ViewPricingT, view: PriceViewT): number {
   return applyDiscount(row.measuredQty * viewPrice(row, view), row)
 }
 
+/**
+ * Discount actually taken off the row, in PLN at the view's price. Derived rather than read from
+ * discountValue, which is only the raw input: under 'percent' it holds percentage points, and under
+ * either type it says nothing until it meets a price — which changes per view.
+ */
+export function rowDiscountForView(row: ViewPricingT, view: PriceViewT): number {
+  return row.measuredQty * viewPrice(row, view) - rowNetForView(row, view)
+}
+
 /** Value of a single stage at the view's price (qty done × view price − discount). */
 export function stageValueForView(
   row: ViewPricingT,

@@ -10,12 +10,14 @@ import { KosztorysRowActionsMenu } from '@/components/kosztorys/kosztorys-row-ac
 import { ResizableHeader } from '@/components/kosztorys/column-resize-handle'
 import {
   effectiveCoeff,
+  rowDiscountForView,
   rowNetForView,
   rowRemainingForView,
   viewPrice,
   type PriceViewT,
 } from '@/lib/kosztorys/calc'
 import { Combobox } from '@/components/ui/combobox'
+import { discountFromType, discountFromValue } from '@/lib/kosztorys/discount-edit'
 import { type ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
 import {
   COLUMN_LABELS,
@@ -42,8 +44,8 @@ const floatColumnLeft = {
 
 const DISCOUNT_OPTIONS: { value: string; label: string }[] = [
   { value: '', label: 'Bez rabatu' },
-  { value: 'percent', label: 'Procent (%)' },
-  { value: 'amount', label: 'Kwota (zł)' },
+  { value: 'percent', label: '%' },
+  { value: 'amount', label: 'zł' },
 ]
 
 // Where the subcontractor price comes from (a column in the subcontractor views). Labels name the
@@ -128,9 +130,13 @@ const HEADER_TIPS: Record<string, string> = {
     'Mnożnik — przez ile mnożona jest Cena klienta, by dać cenę wykonawcy.\n1 = tyle co Cena klienta · 0.65 = 65% ceny klienta · 1.2 = 120% ceny klienta.\n\nSzary kursywą = dziedziczony (z sekcji, a gdy nieustawiony — domyślny z inwestycji). Wpisanie własnego przestawia wiersz na „własny mnożnik".\n„—" przy „kwota stała": cena jest wpisana wprost, mnożnik się nie stosuje.',
   priceMode:
     'Źródło ceny wykonawcy — skąd bierze się mnożnik.\n\nAuto = mnożnik dziedziczony: z sekcji, a gdy nieustawiony — domyślny z inwestycji.\nWłasny mnożnik = mnożnik wpisany w tym wierszu.\nKwota stała = cena wpisana wprost, nie podąża za Ceną klienta.\n\nAuto i własny mnożnik liczą tak samo (Cena klienta × mnożnik) — różni je tylko pochodzenie mnożnika.',
-  discountType: 'Rabat — typ rabatu: — brak · % procent · zł kwota.',
+  discountType:
+    'Rabat — typ rabatu: — brak · % procent · zł kwota.\nUstawienie „Bez rabatu" czyści też Rabat wart.',
   discountValue:
-    'Rabat wart. — wartość rabatu.\nDla % = punkty procentowe (10 = 10%); dla zł = kwota odjęta od Netto.',
+    'Rabat wart. — wartość rabatu.\nDla % = punkty procentowe (10 = 10%); dla zł = kwota odjęta od Netto.\nWpisanie wartości przy „Bez rabatu" ustawia typ na %. Wyczyszczenie pola kasuje rabat.',
+  discountAmount:
+    'Rabat kwota netto — ile złotych faktycznie schodzi z tej pozycji (Pomiar × Cena j.m. − Netto).\nPrzy rabacie % przelicza punkty procentowe na złotówki; przy rabacie zł jest równy wpisanej kwocie.\nZależy od aktywnego widoku cen — ten sam rabat % daje inną kwotę przy cenie klienta i przy cenie wykonawcy.',
+  discountAmountGross: 'Rabat kwota brutto = Rabat kwota netto × (1 + VAT).',
   priceGross:
     'Cena j.m. brutto = Cena j.m. netto × (1 + VAT).\nStawka VAT jest jedna na całą inwestycję — ta kolumna to przelicznik, nie osobna dana.',
   net: 'Netto = Pomiar × Cena − Rabat. Wartość pozycji przy aktywnym widoku cen.',
@@ -188,6 +194,7 @@ function computedColumn(
 }
 
 // Discount-type select cell (—/%/zł). setRowData feeds the diff → autosave.
+// The type/value transitions live in discount-edit.ts — see there for why they're paired.
 function DiscountTypeCell({ rowData, setRowData }: CellProps<KosztorysV2RowT, unknown>) {
   return (
     <CellSelectMenu
@@ -195,10 +202,41 @@ function DiscountTypeCell({ rowData, setRowData }: CellProps<KosztorysV2RowT, un
       options={DISCOUNT_OPTIONS}
       hideChevron
       onChange={(next) =>
-        setRowData({ ...rowData, discountType: (next || null) as DiscountTypeT | null })
+        setRowData({
+          ...rowData,
+          ...discountFromType(rowData, (next || null) as DiscountTypeT | null),
+        })
       }
     />
   )
+}
+
+// Discount-value cell: a hand-rolled input rather than floatColumn, because an edit here has to
+// reach discountType too (discount-edit.ts), which a keyColumn can't do.
+function DiscountValueCell({ rowData, setRowData }: CellProps<KosztorysV2RowT, unknown>) {
+  return (
+    <input
+      className="size-full bg-transparent px-2 text-left text-sm outline-none"
+      value={String(rowData.discountValue ?? '')}
+      inputMode="decimal"
+      onChange={(e) => {
+        const next = discountFromValue(rowData, e.target.value)
+        if (next) setRowData({ ...rowData, ...next })
+      }}
+    />
+  )
+}
+
+function discountValueColumn(titleNode: ReactNode): Column<KosztorysV2RowT> {
+  return {
+    id: 'discountValue',
+    title: titleNode,
+    minWidth: 80,
+    keepFocus: true,
+    component: DiscountValueCell,
+    copyValue: ({ rowData }) => String(rowData.discountValue ?? ''),
+    deleteValue: ({ rowData }) => ({ ...rowData, discountType: null, discountValue: 0 }),
+  }
 }
 
 // Unit (j.m.) creatable combobox cell: pick a canonical unit or type a custom one.
@@ -505,12 +543,18 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       title('priceGross', COLUMN_LABELS.priceGross, opts),
       (r) => viewPrice(r as unknown as ViewPricingT, view) * (1 + r.vatRate),
     ),
+    discountValueColumn(title('discountValue', COLUMN_LABELS.discountValue, opts)),
     discountTypeColumn(title('discountType', COLUMN_LABELS.discountType, opts)),
-    keyCol('discountValue', floatColumnLeft, {
-      id: 'discountValue',
-      title: title('discountValue', COLUMN_LABELS.discountValue, opts),
-      minWidth: 80,
-    }),
+    computedColumn(
+      'discountAmount',
+      title('discountAmount', COLUMN_LABELS.discountAmount, opts),
+      (r) => rowDiscountForView(r as unknown as ViewPricingT, view),
+    ),
+    computedColumn(
+      'discountAmountGross',
+      title('discountAmountGross', COLUMN_LABELS.discountAmountGross, opts),
+      (r) => rowDiscountForView(r as unknown as ViewPricingT, view) * (1 + r.vatRate),
+    ),
   ]
 
   const stageCols: Column<KosztorysV2RowT>[] = stages.map((st) =>
