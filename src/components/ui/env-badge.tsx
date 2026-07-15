@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils/cn'
+import { EnvBadgeShell } from '@/components/ui/env-badge-shell'
 import { serverEnv } from '@/lib/env/server'
 
 // VERCEL_ENV is 'production' | 'preview' | 'development' on Vercel; undefined locally,
@@ -43,19 +43,11 @@ export function EnvBadge() {
   if (ENV === 'production') return null
 
   return (
-    <div
-      className={cn(
-        'fixed top-1/2 right-0 z-10000 flex -translate-y-1/2 items-center gap-2 rounded-l-lg px-3 py-2',
-        'font-mono font-bold tracking-widest uppercase shadow-xl select-none',
-        '[writing-mode:vertical-rl]',
-        ENV_STYLES[ENV] ?? ENV_STYLES.production,
-      )}
+    <EnvBadgeShell
+      label={ENV_LABELS[ENV] ?? ENV}
+      db={DB}
       title={DB ? `Środowisko: ${ENV} · DB: ${DB}` : `Środowisko: ${ENV}`}
-    >
-      <span className="text-lg">{ENV_LABELS[ENV] ?? ENV}</span>
-      {DB && (
-        <span className="text-xs font-normal tracking-normal normal-case opacity-80">{DB}</span>
-      )}
-    </div>
+      className={ENV_STYLES[ENV] ?? ENV_STYLES.production}
+    />
   )
 }
