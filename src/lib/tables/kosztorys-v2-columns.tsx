@@ -39,12 +39,15 @@ const DISCOUNT_OPTIONS: { value: string; label: string }[] = [
   { value: 'amount', label: 'Kwota (zł)' },
 ]
 
-// Subcontractor price calculation mode (a column in the subcontractor views). Descriptive
-// labels — the model is non-obvious (an explanation above the table is a UX follow-up).
+// Where the subcontractor price comes from (a column in the subcontractor views). Labels name the
+// SOURCE of the multiplier, not the arithmetic: auto and 'coeff' both compute clientPrice × n and
+// differ only in whether n is inherited — labels describing the maths read as synonyms.
+// No effective value in the 'auto' label: these options are shared by every row, so a literal
+// number here would misreport rows whose section overrides the investment default.
 const SUB_MODE_OPTIONS: { value: string; label: string }[] = [
-  { value: '', label: 'auto (z współczynnika)' },
-  { value: 'coeff', label: '× mnożnik ceny klienta' },
-  { value: 'amount', label: 'kwota zł' },
+  { value: '', label: 'auto (domyślny mnożnik)' },
+  { value: 'coeff', label: 'własny mnożnik' },
+  { value: 'amount', label: 'kwota stała' },
 ]
 
 const OVERRIDE_FIELDS: Record<
@@ -114,7 +117,7 @@ const HEADER_TIPS: Record<string, string> = {
     'Pomiar — ilość zmierzona / rzeczywista.\nTo ona napędza wszystkie wartości: Netto = Pomiar × Cena − Rabat.',
   price: 'Cena — cena jednostkowa przy aktywnym widoku cen (klient lub podwykonawca).',
   priceMode:
-    'Tryb liczenia ceny (podwykonawca):\nauto = Cena klienta × współczynnik narzutu;\n× mnożnik = Cena klienta × wpisany mnożnik;\nkwota zł = cena stała.',
+    'Źródło ceny wykonawcy — skąd bierze się mnożnik.\n\nAuto = mnożnik dziedziczony: z sekcji, a gdy nieustawiony — domyślny z inwestycji.\nWłasny mnożnik = mnożnik wpisany w tym wierszu.\nKwota stała = cena wpisana wprost, nie podąża za Ceną klienta.\n\nAuto i własny mnożnik liczą tak samo (Cena klienta × mnożnik) — różni je tylko pochodzenie mnożnika.',
   discountType: 'Rabat — typ rabatu: — brak · % procent · zł kwota.',
   discountValue:
     'Rabat wart. — wartość rabatu.\nDla % = punkty procentowe (10 = 10%); dla zł = kwota odjęta od Netto.',
@@ -273,7 +276,6 @@ function subcontractorPriceColumn(
   }
 }
 
-// The "Tryb" column for the subcontractor price override: auto (null) / × (coeff) / zł (amount).
 // Switching to auto zeroes the override value.
 function subcontractorModeColumn(
   view: 'w_tools' | 'own_tools',
@@ -283,7 +285,8 @@ function subcontractorModeColumn(
   return {
     id: 'priceMode',
     title: titleNode,
-    minWidth: 150,
+    // Fits the header label next to the sort icon — below this the title truncates.
+    minWidth: 185,
     keepFocus: true,
     component: ({ rowData, setRowData }: CellProps<KosztorysV2RowT, unknown>) => (
       <CellSelectMenu
@@ -390,7 +393,7 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
           }),
         ]
       : [
-          subcontractorModeColumn(view, title('priceMode', 'Tryb liczenia ceny', opts)),
+          subcontractorModeColumn(view, title('priceMode', 'Źródło ceny wykonawcy', opts)),
           subcontractorPriceColumn(view, title('price', 'Cena', opts)),
         ]
   const left: Column<KosztorysV2RowT>[] = [

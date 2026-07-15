@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Check, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { SimpleTooltip } from '@/components/ui/tooltip'
 import { formatNet as fmt } from '@/lib/kosztorys/format'
 import { toastMessage } from '@/lib/utils/toast'
 import type { SectionSubtotalT } from '@/types/kosztorys'
@@ -142,7 +143,17 @@ export function KosztorysSectionSummary({
       </div>
 
       <div className="border-border shrink-0 border-b px-3 py-2">
-        <div className="text-muted-foreground mb-1 text-xs">Domyślny współczynnik narzutu</div>
+        <SimpleTooltip
+          delayDuration={600}
+          className="max-w-xs whitespace-pre-line"
+          content={
+            'Domyślny mnożnik ceny klienta. \nCena wykonawcy = cena klienta × mnożnik.\n0,65 = wykonawca dostaje 65% ceny klienta.\nDziedziczą go pozycje ze źródłem ceny „auto".\nSekcja może go nadpisać - możesz ustawić inny mnożnik dla każdej sekcji. \nMożesz go też nadpisać per pozycja własnym mnożnikiem lub kwotą stałą.'
+          }
+        >
+          <div className="text-muted-foreground mb-1 w-fit cursor-help text-xs">
+            Domyślny mnożnik ceny klienta
+          </div>
+        </SimpleTooltip>
         <div className="flex flex-col gap-1">
           <CoeffField
             label="z narzędziami"
@@ -198,9 +209,17 @@ export function KosztorysSectionSummary({
               </div>
 
               <div className="text-muted-foreground mt-1 flex items-center justify-between text-xs">
-                <span>
-                  {s.itemCount} poz. · {(s.share * 100).toFixed(1)}%
-                </span>
+                <SimpleTooltip
+                  delayDuration={600}
+                  className="max-w-xs whitespace-pre-line"
+                  content={
+                    'Liczba pozycji w sekcji oraz udział sekcji w wartości kosztorysu.\n\nProcent liczy się od wartości, nie od liczby pozycji.\nZależy od aktywnego widoku cen.'
+                  }
+                >
+                  <span className="cursor-help">
+                    {s.itemCount} poz. · {(s.share * 100).toFixed(1)}%
+                  </span>
+                </SimpleTooltip>
                 <div className="flex items-center gap-0.5">
                   {isEditing ? (
                     <>
