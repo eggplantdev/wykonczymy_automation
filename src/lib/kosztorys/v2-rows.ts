@@ -1,4 +1,5 @@
 import { stageValueForView, type PriceViewT } from '@/lib/kosztorys/calc'
+import { DEFAULT_UNIT } from '@/lib/kosztorys/constants'
 import type {
   CostVariantT,
   ItemPatchT,
@@ -175,7 +176,7 @@ export function buildBlankRow(input: BlankRowInputT): KosztorysV2RowT {
     sectionId: input.sectionId,
     displayOrder: input.displayOrder,
     description: null,
-    unit: null,
+    unit: DEFAULT_UNIT,
     plannedQty: 0,
     measuredQty: 0,
     discountType: null,

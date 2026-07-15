@@ -14,6 +14,8 @@ import {
   viewPrice,
   type PriceViewT,
 } from '@/lib/kosztorys/calc'
+import { Combobox } from '@/components/ui/combobox'
+import { UNIT_SUGGESTIONS } from '@/lib/kosztorys/constants'
 import { formatNet as fmt } from '@/lib/kosztorys/format'
 import { rowDoneNetForView, stageKey, type SortDirT } from '@/lib/kosztorys/v2-rows'
 import type {
@@ -181,6 +183,34 @@ function DiscountTypeCell({ rowData, setRowData }: CellProps<KosztorysV2RowT, un
       }
     />
   )
+}
+
+// Unit (j.m.) creatable combobox cell: pick a canonical unit or type a custom one.
+// setRowData feeds the diff → autosave.
+function UnitCell({ rowData, setRowData }: CellProps<KosztorysV2RowT, unknown>) {
+  return (
+    <Combobox
+      value={rowData.unit ?? ''}
+      onChange={(next) => setRowData({ ...rowData, unit: next || null })}
+      options={UNIT_SUGGESTIONS}
+      allowCustom
+      hideChevron
+      className="hover:bg-accent size-full cursor-pointer px-2"
+    />
+  )
+}
+
+function unitColumn(titleNode: ReactNode): Column<KosztorysV2RowT> {
+  return {
+    id: 'unit',
+    title: titleNode,
+    minWidth: 64,
+    component: UnitCell,
+    keepFocus: true,
+    copyValue: ({ rowData }) => rowData.unit ?? '',
+    deleteValue: ({ rowData }) => ({ ...rowData, unit: null }),
+    pasteValue: ({ rowData, value }) => ({ ...rowData, unit: value.trim() || null }),
+  }
 }
 
 function discountTypeColumn(titleNode: ReactNode): Column<KosztorysV2RowT> {
@@ -378,7 +408,7 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
       minWidth: 240,
       grow: 2,
     }),
-    keyCol('unit', textColumn, { id: 'unit', title: title('unit', 'J.m.', opts), minWidth: 64 }),
+    unitColumn(title('unit', 'J.m.', opts)),
     keyCol('plannedQty', floatColumnLeft, {
       id: 'plannedQty',
       title: title('plannedQty', 'Przedmiar', opts),

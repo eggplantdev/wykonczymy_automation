@@ -1,6 +1,6 @@
 import 'server-only'
 import type { Payload } from 'payload'
-import { NEW_SECTION_DEFAULTS } from '@/lib/kosztorys/constants'
+import { DEFAULT_UNIT, NEW_SECTION_DEFAULTS } from '@/lib/kosztorys/constants'
 
 // Cold-start seed for a preset-less new investment: one section + one blank item, so the editor opens
 // on a typable row instead of an empty grid (EX-463). Field shapes mirror addSectionAction /
@@ -26,6 +26,7 @@ export async function seedBlankKosztorys(
       investment: investmentId,
       section: section.id,
       displayOrder: 0,
+      unit: DEFAULT_UNIT,
       plannedQty: 0,
       measuredQty: 0,
       discountValue: 0,

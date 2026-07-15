@@ -10,6 +10,11 @@ export const DEFAULT_COEFFS = { wTools: 0.65, ownTools: 0.55 } as const
 // fallback (src/lib/queries/kosztorys.ts). Prices are netto; brutto = net × (1 + vatRate).
 export const DEFAULT_VAT = 0.08
 
+// Unit (j.m.) combobox: suggestions cover ~97% of the real data; the cell stays creatable, so any
+// custom unit is still enterable. DEFAULT_UNIT pre-fills every new item so no row lands blank.
+export const UNIT_SUGGESTIONS = ['m²', 'szt', 'mb', 'kpl', 'pkt'] as const
+export const DEFAULT_UNIT = 'szt'
+
 // Default values for a new section — the single source. addSectionAction and the empty-editor seed
 // import these for the server-side create; the optimistic row is built from them client-side.
 export const NEW_SECTION_DEFAULTS = {
