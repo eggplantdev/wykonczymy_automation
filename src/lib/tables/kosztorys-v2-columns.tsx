@@ -407,7 +407,7 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
     }),
     keyCol('description', textColumn, {
       id: 'description',
-      title: title('description', 'Opis', opts),
+      title: title('description', 'Opis prac', opts),
       minWidth: 240,
       grow: 2,
     }),
