@@ -84,10 +84,6 @@ export type BuildV2ColumnsOptsT = {
   // Reordering items within a section (Przesuń w górę/dół). Reads fresh `rows` from the editor
   // (ref) — because dsg freezes `columns` at mount. Greyed out while a column sort is active.
   onReorderItem?: (row: KosztorysV2RowT, dir: 'up' | 'down') => void
-  // The section panel overlays the grid's right edge, so the columns under it are unreachable.
-  // While it's open we append a spacer column of exactly its width — the only scrollable slack
-  // that lets the last real column travel out from under it.
-  summaryOpen?: boolean
   // Inserting a blank item above/below the row within its section. Same fresh-ref, event-time read.
   onInsertItem?: (row: KosztorysV2RowT, dir: 'above' | 'below') => void
 }
@@ -381,22 +377,6 @@ function actionColumn(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT> {
   }
 }
 
-// Width MUST track KosztorysSectionSummary's `w-72`: the spacer's job is to reserve the panel's
-// exact footprint, so a narrower one leaves a column stranded underneath.
-const SUMMARY_PANEL_WIDTH = 288
-
-const spacerColumn: Column<KosztorysV2RowT> = {
-  id: 'summarySpacer',
-  title: '',
-  basis: SUMMARY_PANEL_WIDTH,
-  grow: 0,
-  shrink: 0,
-  minWidth: SUMMARY_PANEL_WIDTH,
-  maxWidth: SUMMARY_PANEL_WIDTH,
-  disabled: true,
-  component: () => null,
-}
-
 export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[] {
   const { stages, view } = opts
   // Client view: a simple editable price. Subcontractor views: a "Tryb" column (override)
@@ -486,8 +466,6 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
     ),
   ]
 
-  // The spacer stays outside `withResize` — it isn't a real column and must not get a drag handle.
   const base = [...left, ...stageCols, ...computed].map((c) => withResize(c, opts))
-  const withSpacer = opts.summaryOpen ? [...base, spacerColumn] : base
-  return opts.onRemoveItem || opts.onReorderItem ? [actionColumn(opts), ...withSpacer] : withSpacer
+  return opts.onRemoveItem || opts.onReorderItem ? [actionColumn(opts), ...base] : base
 }
