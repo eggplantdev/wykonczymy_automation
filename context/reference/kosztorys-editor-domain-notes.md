@@ -295,8 +295,14 @@ this section is the original phrasing/context for those questions.
 - **P4.** Zestaw modeli ceny to stałe 3 (klient / podwyk. z narzędziami / bez),
   czy spodziewasz się dodawać/usuwać warianty? (decyduje schemat: A vs B)
 - **P7.** Domyślna stawka VAT dla nowej pozycji (8% remont mieszkań vs 23%)?
-- **P8.** Brutto/VAT dotyczy **wszystkich** wariantów ceny (też podwykonawcy),
-  czy tylko ceny klienta (oferta)?
+- **P8. [ROZSTRZYGNIĘTE — właściciel 2026-07-15]** Brutto/VAT dotyczy
+  **wszystkich trzech** wariantów ceny (klient + oba podwykonawcy), po stawce
+  inwestycji. Uzasadnienie właściciela: „czytam brutto podwykonawcy".
+  Rozstrzyga sprzeczność w zapisach slice'u S-05: `plan-brief.md:33`
+  (`context/archive/2026-07-10-kosztorys-vat/`) nazywał brutto „figurą decyzji
+  klienta" (sugerując tylko widok klienta), a wdrożony `plan.md:232` tego samego
+  slice'u mówi „Brutto consistent across all three price views" — **wygrywa
+  zachowanie wdrożone**, które jest zgodne z odpowiedzią właściciela.
 
 ### Pozostało do rozliczenia / bilans
 

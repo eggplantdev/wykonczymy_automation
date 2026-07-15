@@ -283,6 +283,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Adds a stages table + per-item-per-stage progress join keyed off S-01's items. Variable stage count (not fixed 10 columns) is the parity requirement. Risk: progress totals interacting with the live-totals rule from S-01.
+- **Shipped adjacent, not part of this slice:** the stage **value** axis (the sheet's `V–AE`) — a computed `kwota netto` + `kwota brutto` column per stage, brutto hidden by default. `context/changes/kosztorys-stage-values/`, 2026-07-15. It reverses S-03's plan's "no brutto column" exclusion; S-03's own scope is unchanged. Distinct from open question 12(b), which is a total **along** the stage axis and stays open.
 - **Status:** in review
 
 ### S-04: Subcontractor pricing (markup coefficient + override)

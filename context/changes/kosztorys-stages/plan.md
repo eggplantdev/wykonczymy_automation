@@ -44,11 +44,14 @@ downstream is stubbed empty. Verified on branch `kosztorys-sections-items`:
 
 - **The pure core is done — this is a wiring slice, not a logic slice.** The risk sits entirely
   in persistence + UI integration, not in formulas.
-- **dsg freezes `columns` at mount** — the load-bearing gotcha (already documented in
+- **[SUPERSEDED by `ee497cb` — see `context/foundation/lessons.md:119-135`]** ~~**dsg freezes
+  `columns` at mount** — the load-bearing gotcha (already documented in
   `context/foundation/lessons.md`). The stage set shapes the columns, so a **`stagesKey`
   (e.g. `stages.map(s => s.id).join(',')`) MUST be added to the grid remount `key`**, or adding
   a stage silently renders no new column. The current key is
-  `` `${view}:${sort?'sorted':'natural'}:${widthsKey}` `` (`kosztorys-editor-v2.tsx`).
+  `` `${view}:${sort?'sorted':'natural'}:${widthsKey}` `` (`kosztorys-editor-v2.tsx`).~~ The editor
+  is on the reactive `DynamicDataSheetGrid`, the whole remount `key` was deleted, and re-adding one
+  would reintroduce EX-422's flicker. Column-set changes are free.
 - **Stage progress is a NEW save dimension.** Item edits save per-field via `updateItemFieldAction`
   keyed `item:${id}:${field}`. Stage cells produce `diff.stageChanges` (an array), which must save
   via `setStageProgressAction(itemId, stageId, qty)` keyed `progress:${itemId}:${stageId}` — a
@@ -79,8 +82,10 @@ behave exactly as before.
 
 - **Stage reordering** — stages append by `ordinal`; no ▲▼ / drag on stage columns.
 - **Per-stage dates, deadlines, statuses, or notes** — a stage is `ordinal` + optional `label` only.
-- **VAT / brutto on stage values (S-12)** — stage values are netto, under the active view; no
-  brutto column.
+- **[SUPERSEDED by `context/changes/kosztorys-stage-values/`]** ~~**VAT / brutto on stage values
+  (S-12)** — stage values are netto, under the active view; no brutto column.~~ The owner reversed
+  this 2026-07-15: each stage now carries a computed `kwota netto` **and** `kwota brutto` column
+  (brutto hidden by default).
 - **Hiding stage columns from MANAGER / column-locking (S-14), CSV export of stages (S-07),
   undo (S-13)** — later slices.
 - **Any change to transfers, balances, marża/bilans, or the sheet mirror.** Additive only.
@@ -99,10 +104,11 @@ here logic lives in `use-kosztorys-editor.ts` and columns in `kosztorys-v2-colum
 
 ## Critical Implementation Details
 
-- **Grid remount key (Phase 4):** add `stagesKey` to the `key` on the `DataSheetGrid` in
-  `kosztorys-editor-v2.tsx`. Without it, `addStageAction` succeeds server-side but no column
-  appears (dsg froze `columns` at mount). asc↔desc still doesn't remount; adding/removing a
-  stage must.
+- **[SUPERSEDED by `ee497cb` — see `context/foundation/lessons.md:119-135`]** ~~**Grid remount key
+  (Phase 4):** add `stagesKey` to the `key` on the `DataSheetGrid` in `kosztorys-editor-v2.tsx`.
+  Without it, `addStageAction` succeeds server-side but no column appears (dsg froze `columns` at
+  mount). asc↔desc still doesn't remount; adding/removing a stage must.~~ There is no remount `key`
+  to extend — `DynamicDataSheetGrid` picks up a new column set on its own.
 - **No action inside a `setRows` updater (Phase 4):** the stage-progress save fires from
   `onChange` (event context), never from a `setRows` callback — same rule as item edits (the
   action's cache revalidation would move the Router during render).
@@ -285,7 +291,8 @@ qty_done = …, updated_at = now()`. Tag `['stageProgress']`. Zod-validate the n
 ### Overview
 
 Render dynamic stage columns + a "Pozostało" column, add/rename/delete-stage controls, and wire
-per-cell stage-progress autosave — honoring the dsg remount-key and no-action-in-updater rules.
+per-cell stage-progress autosave — honoring the ~~dsg remount-key and~~ no-action-in-updater rules
+(remount-key superseded by `ee497cb`).
 
 ### Changes Required:
 
@@ -332,16 +339,17 @@ progress action, and keep blank rows/snapshots stage-aware.
 - `sortValue`: add a `case 'remaining'` returning `rowRemainingForView(row,
 rowDoneNetForView(row, stages, view), view)` (needs `stages` in the closure/deps).
 
-#### 3. Grid remount key + add-stage button
+#### 3. ~~Grid remount key +~~ add-stage button
 
-**File**: `src/components/kosztorys/kosztorys-editor-v2.tsx`,
+**File**: ~~`src/components/kosztorys/kosztorys-editor-v2.tsx`,~~
 `src/components/kosztorys/kosztorys-editor-toolbar.tsx`
 
-**Intent**: Force a remount when the stage set changes and expose the `＋ etap` control.
+**Intent**: ~~Force a remount when the stage set changes and~~ Expose the `＋ etap` control.
 
-**Contract**: Extend the grid `key` to
-`` `${view}:${sort?'sorted':'natural'}:${widthsKey}:${stagesKey}` ``. Add a `＋ etap` button to
-the toolbar wired to `handleAddStage` (sibling of the existing add-section control).
+**Contract**: **[remount half SUPERSEDED by `ee497cb` — `context/foundation/lessons.md:119-135`]**
+~~Extend the grid `key` to `` `${view}:${sort?'sorted':'natural'}:${widthsKey}:${stagesKey}` ``.~~
+The grid has no remount `key`; leave it that way. Add a `＋ etap` button to the toolbar wired to
+`handleAddStage` (sibling of the existing add-section control).
 
 ### Success Criteria:
 
@@ -354,8 +362,8 @@ the toolbar wired to `handleAddStage` (sibling of the existing add-section contr
 
 #### Manual Verification:
 
-- Add a stage → a new "Etap N" column appears (remount-key check); add a second stage → second
-  column, existing rows show 0s.
+- Add a stage → a new "Etap N" column appears; add a second stage → second column, existing rows
+  show 0s.
 - Rename a stage via its header → title updates and persists across `router.refresh()`.
 - Enter done-quantities → "Pozostało" recomputes live and matches hand computation; toggle the
   three price views → stage values + Pozostało recompute.
@@ -394,8 +402,9 @@ covered manually here and by S-08 E2E later).
 ## Performance Considerations
 
 Stage columns add K editable columns and a Pozostało reduce per row. At 1000+ rows the
-Pozostało column is one O(stages) reduce per row per render — acceptable with React Compiler on;
-watch the dsg remount cost when adding a stage at large row counts during manual verification.
+Pozostało column is one O(stages) reduce per row per render — acceptable with React Compiler on.
+~~Watch the dsg remount cost when adding a stage at large row counts during manual verification.~~
+(No remount cost to watch — `ee497cb` removed the key.)
 Progress saves are per-cell debounced (`useDebouncedSave(500)`), keyed
 `progress:${itemId}:${stageId}`, so only the touched pair writes (the "writes = real change"
 lesson).
@@ -417,7 +426,7 @@ human via `pnpm db:migrate:prod` **before** the code that needs it ships — nev
   `:stage-progress.ts`, `src/lib/actions/kosztorys.ts` (stage actions),
   `src/migrations/20260620_add_kosztorys_tables.ts` (stage DDL),
   `src/lib/tables/kosztorys-v2-columns.tsx` (stage columns), `src/components/kosztorys/kosztorys-editor-v2.tsx`
-- dsg remount-key lesson: `context/foundation/lessons.md`
+- dsg reactive-columns lesson (supersedes the remount key): `context/foundation/lessons.md:119-135`
 
 ## Progress
 
@@ -473,7 +482,7 @@ human via `pnpm db:migrate:prod` **before** the code that needs it ships — nev
 
 #### Manual
 
-- [ ] 4.5 Add stage → new column (remount-key); second stage → existing rows show 0
+- [ ] 4.5 Add stage → new column; second stage → existing rows show 0
 - [ ] 4.6 Rename stage via header persists across refresh
 - [ ] 4.7 Progress entry → Pozostało recomputes live; view toggle recomputes
 - [ ] 4.8 Progress persists across reload; no duplicate row on re-entry (upsert)

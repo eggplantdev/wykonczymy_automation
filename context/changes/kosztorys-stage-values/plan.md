@@ -400,12 +400,12 @@ preferences carry over unchanged and no migration or seed is required.
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `pnpm typecheck`
-- [x] 2.2 Linting passes: `pnpm lint`
-- [x] 2.3 Full unit suite passes: `pnpm exec vitest run`
+- [x] 2.1 Type checking passes: `pnpm typecheck` — a93a7ac
+- [x] 2.2 Linting passes: `pnpm lint` — a93a7ac
+- [x] 2.3 Full unit suite passes: `pnpm exec vitest run` — a93a7ac
 
 ### Phase 3: Doc reconciliation
 
 #### Automated
 
-- [ ] 3.1 Linting passes: `pnpm lint`
+- [x] 3.1 Linting passes: `pnpm lint`
