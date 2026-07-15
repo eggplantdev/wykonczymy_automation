@@ -2,7 +2,9 @@
 
 import 'react-datasheet-grid/dist/style.css'
 import { createPortal } from 'react-dom'
-import { DataSheetGrid } from 'react-datasheet-grid'
+// `DynamicDataSheetGrid`, not `DataSheetGrid`: the library aliases the plain name to
+// StaticDataSheetGrid, which snapshots `columns` via useState at mount (EX-422).
+import { DynamicDataSheetGrid } from 'react-datasheet-grid'
 import { KosztorysSectionSummary } from '@/components/kosztorys/kosztorys-section-summary'
 import { KosztorysEditorToolbar } from '@/components/kosztorys/kosztorys-editor-toolbar'
 import { useKosztorysEditor } from '@/components/kosztorys/use-kosztorys-editor'
@@ -30,9 +32,6 @@ export function KosztorysEditorBody({
     columns,
     viewRows,
     view,
-    sort,
-    widthsKey,
-    stagesKey,
     guideX,
     subtotals,
     totalNet,
@@ -80,13 +79,7 @@ export function KosztorysEditorBody({
         {/* min-w-0 lets the wrapper shrink below its content in a flex context;
             grid-cols-1 still gives the grid a definite width (anti-flicker). */}
         <div ref={gridRef} className="grid min-h-0 min-w-0 flex-1 grid-cols-1 overflow-hidden">
-          <DataSheetGrid
-            // Remount on a change of view / widths / entering sort: dsg freezes `columns`
-            // at mount and picks up no change to their definition without a remount — without `view`
-            // all 3 views showed the client price, without `widthsKey` a resize didn't recompute the widths.
-            // `sorted/natural`: the reorder arrows (grayed out while sorting) must rebuild
-            // on entering/leaving sort — asc↔desc does not remount (arrow state unchanged).
-            key={`${view}:${sort ? 'sorted' : 'natural'}:${widthsKey}:${stagesKey}`}
+          <DynamicDataSheetGrid
             className="kosztorys-grid"
             value={viewRows}
             onChange={onChange}
