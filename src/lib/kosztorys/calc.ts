@@ -8,8 +8,8 @@ import type {
 // VAT: a single rate per investment (vatRate), carried on the row. No section→item cascade.
 
 // The single source of the breakdown formulas. Pure functions — we persist only the
-// inputs and compute everything below live. Value is computed from measuredQty (the
-// measured qty, "pomiar"), not plannedQty.
+// inputs and compute everything below live. Settlement values (net, stages, remaining) come from
+// measuredQty ("pomiar"); plannedQty ("przedmiar") feeds only rowPlannedNetForView, the offer figure.
 //
 // Discount ("rabat"): discountValue for 'percent' = percentage points (10 => 10%), for
 // 'amount' = an amount in PLN subtracted from the net value.
@@ -46,6 +46,22 @@ export function viewPrice(row: ViewPricingT, view: PriceViewT): number {
 /** Row net at the selected view's price (measured qty × view price − discount). */
 export function rowNetForView(row: ViewPricingT, view: PriceViewT): number {
   return applyDiscount(row.measuredQty * viewPrice(row, view), row)
+}
+
+/**
+ * Row value at the PLANNED qty ("wartość przedmiaru") — the offer figure priced straight off the
+ * przedmiar, against which rowNetForView is the as-measured, post-discount one.
+ *
+ * NO discount by design (owner, 2026-07-15): przedmiar is the pre-negotiation valuation, and rabat
+ * only enters at settlement. So this is deliberately NOT a mirror of rowNetForView — the gap
+ * between the two columns carries both the qty revision and the discount.
+ *
+ * Not sheet parity: the sheet's column S carries this header but no formula in any row, because
+ * there `pomiar` defaults to `=przedmiar`, making the two columns identical until someone overrides
+ * pomiar by hand. Our przedmiar/pomiar are independent inputs, so the distinction is real.
+ */
+export function rowPlannedNetForView(row: ViewPricingT, view: PriceViewT): number {
+  return row.plannedQty * viewPrice(row, view)
 }
 
 /**

@@ -12,6 +12,7 @@ import {
   effectiveCoeff,
   rowDiscountForView,
   rowNetForView,
+  rowPlannedNetForView,
   rowRemainingForView,
   viewPrice,
   type PriceViewT,
@@ -111,8 +112,7 @@ function keyCol(
 }
 
 // Audit aid (may be temporary): each header explains the column's intent + the formula that
-// drives it, so mismatches between intent and calc are visible. Netto/wartości liczone są z
-// POMIARU (measuredQty); PRZEDMIAR (plannedQty) nie wchodzi obecnie do żadnego obliczenia.
+// drives it, so mismatches between intent and calc are visible.
 const HEADER_TIP_DELAY = 600
 
 const HEADER_TIPS: Record<string, string> = {
@@ -121,7 +121,7 @@ const HEADER_TIPS: Record<string, string> = {
   description: 'Opis — nazwa/opis pozycji robót lub materiału. Nie wchodzi do obliczeń.',
   unit: 'J.m. — jednostka miary (m², szt., mb…). Etykieta, nie wchodzi do obliczeń.',
   plannedQty:
-    'Przedmiar — ilość planowana (z przedmiaru/oferty).\nPole informacyjne — z założenia nie wchodzi do obliczeń. Netto liczone jest z Pomiaru.',
+    'Przedmiar — ilość planowana (z przedmiaru/oferty).\nNapędza Wartość przedmiaru (= Przedmiar × Cena, bez rabatu). Netto liczone jest z Pomiaru.',
   measuredQty:
     'Pomiar — ilość zmierzona / rzeczywista.\nTo ona napędza wszystkie wartości: Netto = Pomiar × Cena − Rabat.',
   price:
@@ -139,6 +139,9 @@ const HEADER_TIPS: Record<string, string> = {
   discountAmountGross: 'Rabat kwota brutto = Rabat kwota netto × (1 + VAT).',
   priceGross:
     'Cena j.m. brutto = Cena j.m. netto × (1 + VAT).\nStawka VAT jest jedna na całą inwestycję — ta kolumna to przelicznik, nie osobna dana.',
+  plannedNet:
+    'Wartość przedmiaru netto = Przedmiar × Cena. Wartość ofertowa pozycji — ile miało wejść wg przedmiaru, przed negocjacją.\nBEZ rabatu — rabat wchodzi dopiero w Netto (rozliczenie). Różnica Netto − Wartość przedmiaru zawiera więc i korektę ilości, i rabat.',
+  plannedGross: 'Wartość przedmiaru brutto = Wartość przedmiaru netto × (1 + VAT).',
   net: 'Netto = Pomiar × Cena − Rabat. Wartość pozycji przy aktywnym widoku cen.',
   gross: 'Brutto = Netto × (1 + VAT). Jedna stawka VAT na inwestycję, zdenormalizowana na wierszu.',
   remaining:
@@ -575,6 +578,14 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   )
 
   const computed: Column<KosztorysV2RowT>[] = [
+    computedColumn('plannedNet', title('plannedNet', COLUMN_LABELS.plannedNet, opts), (r) =>
+      rowPlannedNetForView(r as unknown as ViewPricingT, view),
+    ),
+    computedColumn(
+      'plannedGross',
+      title('plannedGross', COLUMN_LABELS.plannedGross, opts),
+      (r) => rowPlannedNetForView(r as unknown as ViewPricingT, view) * (1 + r.vatRate),
+    ),
     computedColumn(
       'net',
       title('net', COLUMN_LABELS.net, opts),

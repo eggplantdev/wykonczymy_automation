@@ -38,6 +38,8 @@ export const COLUMN_LABELS: Record<string, string> = {
   discountValue: 'Rabat wart.',
   discountAmount: 'Rabat kwota netto',
   discountAmountGross: 'Rabat kwota brutto',
+  plannedNet: 'Wartość przedmiaru netto',
+  plannedGross: 'Wartość przedmiaru brutto',
   net: 'Netto',
   gross: 'Brutto',
   remaining: 'Pozostało netto',

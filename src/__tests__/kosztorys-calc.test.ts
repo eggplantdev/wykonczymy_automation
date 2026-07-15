@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   rowNetForView,
+  rowPlannedNetForView,
   rowRemainingForView,
   sectionSubtotalsForView,
   stageValueForView,
@@ -43,6 +44,37 @@ describe('stageValueForView', () => {
   it('uwzględnia rabat procentowy', () => {
     const discounted = { ...item, discountType: 'percent' as const, discountValue: 10 }
     expect(stageValueForView(discounted, 3, 'client')).toBe(54) // 60 − 10%
+  })
+})
+
+describe('rowPlannedNetForView', () => {
+  // The fixture's plannedQty === measuredQty, which would pass even if the formula read the wrong
+  // one — every case here must drive them apart.
+  const planned12 = { ...item, plannedQty: 12, measuredQty: 10 }
+
+  it('liczy z przedmiaru, nie z pomiaru', () => {
+    expect(rowPlannedNetForView(planned12, 'client')).toBe(240) // 12 × 20
+    expect(rowNetForView(planned12, 'client')).toBe(200) // 10 × 20 — pomiar
+  })
+
+  it('wg ceny aktywnego widoku', () => {
+    expect(rowPlannedNetForView(planned12, 'w_tools')).toBe(144) // 12 × 12
+    expect(rowPlannedNetForView(planned12, 'own_tools')).toBe(120) // 12 × 10
+  })
+
+  // The owner's call (2026-07-15): przedmiar is the pre-negotiation valuation, so rabat must not
+  // touch it — it lands only at settlement (Netto). This asymmetry with rowNetForView is the whole
+  // point of the column and is the thing most likely to get "fixed" back by mistake.
+  it('rabat procentowy NIE rusza wartości przedmiaru, rusza tylko netto', () => {
+    const discounted = { ...planned12, discountType: 'percent' as const, discountValue: 10 }
+    expect(rowPlannedNetForView(discounted, 'client')).toBe(240) // bez zmian
+    expect(rowNetForView(discounted, 'client')).toBe(180) // 200 − 10%
+  })
+
+  it('rabat kwotowy NIE rusza wartości przedmiaru, rusza tylko netto', () => {
+    const discounted = { ...planned12, discountType: 'amount' as const, discountValue: 30 }
+    expect(rowPlannedNetForView(discounted, 'client')).toBe(240) // bez zmian
+    expect(rowNetForView(discounted, 'client')).toBe(170) // 200 − 30
   })
 })
 
@@ -125,6 +157,17 @@ describe('brutto = netto × (1 + vatRate)', () => {
 
   it('23% rate', () => {
     expect(gross(item, 'client', 0.23)).toBeCloseTo(246, 10)
+  })
+
+  it('wartość przedmiaru brutto = wartość przedmiaru netto × (1 + VAT), rabat bez wpływu', () => {
+    const discounted = {
+      ...item,
+      plannedQty: 12,
+      discountType: 'percent' as const,
+      discountValue: 10,
+    }
+    // planned net = 12 × 20 = 240 (rabat nie wchodzi) → brutto 240 × 1.08 = 259.2
+    expect(rowPlannedNetForView(discounted, 'client') * 1.08).toBeCloseTo(259.2, 10)
   })
 })
 
