@@ -5,14 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FileSpreadsheet, Unlink, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { toastMessage } from '@/lib/utils/toast'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
@@ -81,43 +74,27 @@ export function LinkedSheetActions({ sheetId, investmentId, investmentName }: Pr
         </Button>
       )}
 
-      <AlertDialog
+      <ConfirmDialog
         open={dialog === 'unlink'}
-        onOpenChange={(open) => !open && setDialog(undefined)}
-      >
-        <AlertDialogContent>
-          <AlertDialogTitle>Odłączyć kosztorys od inwestycji?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Arkusz Google nie zostanie usunięty — pozostanie na liście jako kosztorys bez inwestycji
-            i można go później powiązać ponownie.
-          </AlertDialogDescription>
-          <div className="mt-4 flex justify-end gap-2">
-            <AlertDialogCancel disabled={pending}>Anuluj</AlertDialogCancel>
-            <AlertDialogAction onClick={onUnlink} disabled={pending}>
-              {pending ? 'Odłączam…' : 'Odłącz'}
-            </AlertDialogAction>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
+        title="Odłączyć kosztorys od inwestycji?"
+        description="Arkusz Google nie zostanie usunięty — pozostanie na liście jako kosztorys bez inwestycji i można go później powiązać ponownie."
+        confirmLabel="Odłącz"
+        pending={pending}
+        pendingLabel="Odłączam…"
+        onConfirm={onUnlink}
+        onCancel={() => setDialog(undefined)}
+      />
 
-      <AlertDialog
+      <ConfirmDialog
         open={dialog === 'delete'}
-        onOpenChange={(open) => !open && setDialog(undefined)}
-      >
-        <AlertDialogContent>
-          <AlertDialogTitle>Usunąć kosztorys?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Usunięty zostanie tylko wpis w aplikacji. Arkusz Google pozostanie nienaruszony na
-            Dysku. Tej operacji nie można cofnąć.
-          </AlertDialogDescription>
-          <div className="mt-4 flex justify-end gap-2">
-            <AlertDialogCancel disabled={pending}>Anuluj</AlertDialogCancel>
-            <AlertDialogAction onClick={onDelete} disabled={pending}>
-              {pending ? 'Usuwam…' : 'Usuń'}
-            </AlertDialogAction>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
+        title="Usunąć kosztorys?"
+        description="Usunięty zostanie tylko wpis w aplikacji. Arkusz Google pozostanie nienaruszony na Dysku. Tej operacji nie można cofnąć."
+        confirmLabel="Usuń"
+        pending={pending}
+        pendingLabel="Usuwam…"
+        onConfirm={onDelete}
+        onCancel={() => setDialog(undefined)}
+      />
     </div>
   )
 }

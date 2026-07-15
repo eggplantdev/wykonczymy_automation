@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import {
   listSnapshotsAction,
@@ -20,13 +21,14 @@ type PropsT = {
 }
 
 // History panel: named manual versions are the prominent targetable entries; auto snapshots are the
-// ambient timestamped history below them. Restore is a single window.confirm (the codebase's
-// established destructive-confirm pattern, cf. kosztorys-section-summary) — the pre-restore auto
+// ambient timestamped history below them. Restore gates behind a ConfirmDialog — the pre-restore auto
 // snapshot the action takes makes a mis-restore itself recoverable.
 export function KosztorysVersionsDrawer({ investmentId, open, onOpenChange, onRestored }: PropsT) {
   // null = not loaded yet (spinner); [] = loaded, empty.
   const [snapshots, setSnapshots] = useState<SnapshotListItemT[] | null>(null)
   const [restoringId, setRestoringId] = useState<number | null>(null)
+  // Snapshot pending restore-confirmation (drives the ConfirmDialog). null = nothing pending.
+  const [pendingRestore, setPendingRestore] = useState<SnapshotListItemT | null>(null)
 
   // The drawer opens programmatically (parent toolbar sets `open`), so Radix's onOpenChange never
   // fires with `true` — fetch on the `open` prop, or the list stays stuck on "Wczytywanie…". setState
@@ -63,14 +65,7 @@ export function KosztorysVersionsDrawer({ investmentId, open, onOpenChange, onRe
   }
 
   async function handleRestore(snapshot: SnapshotListItemT) {
-    const when = formatPLDateTime(snapshot.takenAt)
-    if (
-      !window.confirm(
-        `Przywrócić wersję z ${when}? Obecny stan zostanie zapisany jako punkt przywracania.`,
-      )
-    ) {
-      return
-    }
+    setPendingRestore(null)
     setRestoringId(snapshot.id)
     const res = await restoreSnapshotAction(snapshot.id)
     setRestoringId(null)
@@ -108,7 +103,7 @@ export function KosztorysVersionsDrawer({ investmentId, open, onOpenChange, onRe
                     snapshot={s}
                     primary
                     restoring={restoringId === s.id}
-                    onRestore={() => handleRestore(s)}
+                    onRestore={() => setPendingRestore(s)}
                   />
                 ))}
               </section>
@@ -123,7 +118,7 @@ export function KosztorysVersionsDrawer({ investmentId, open, onOpenChange, onRe
                     key={s.id}
                     snapshot={s}
                     restoring={restoringId === s.id}
-                    onRestore={() => handleRestore(s)}
+                    onRestore={() => setPendingRestore(s)}
                   />
                 ))}
               </section>
@@ -131,6 +126,19 @@ export function KosztorysVersionsDrawer({ investmentId, open, onOpenChange, onRe
           </div>
         )}
       </DialogContent>
+
+      <ConfirmDialog
+        open={pendingRestore != null}
+        title={
+          pendingRestore ? `Przywrócić wersję z ${formatPLDateTime(pendingRestore.takenAt)}?` : ''
+        }
+        description="Obecny stan zostanie zapisany jako punkt przywracania."
+        confirmLabel="Przywróć"
+        pending={restoringId != null}
+        pendingLabel="Przywracanie…"
+        onConfirm={() => pendingRestore && handleRestore(pendingRestore)}
+        onCancel={() => setPendingRestore(null)}
+      />
     </Dialog>
   )
 }

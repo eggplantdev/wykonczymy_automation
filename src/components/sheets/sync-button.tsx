@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
   Dialog,
   DialogContent,
@@ -94,32 +95,26 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
         {pending ? 'Synchronizuję…' : 'Synchronizuj wydatki inwestycyjne'}
       </Button>
 
-      <Dialog open={setupOpen} onOpenChange={setSetupOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Zresetować zakładki synchronizowane z aplikacją?</DialogTitle>
-            <DialogDescription>
-              Zakładki <strong>wydatki inwestycyjne (tylko do odczytu)</strong>,{' '}
-              <strong>rozliczone R+M (tylko do odczytu)</strong> i{' '}
-              <strong>transfery (tylko do odczytu)</strong> zostaną zbudowane od nowa: aplikacja
-              wyczyści całą ich zawartość, w tym wiersze dodane ręcznie (spoza aplikacji). Tej
-              operacji nie można cofnąć.
-              <strong>
-                Jeśli chcesz zachować ręcznie dodane dane, najpierw zrób kopię zakładki
-              </strong>
-              — aplikacja nie zmienia innych kart, więc taka kopia pozostanie nienaruszona.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSetupOpen(false)} disabled={pending}>
-              Anuluj
-            </Button>
-            <Button variant="destructive" onClick={onSetupConfirm} disabled={pending}>
-              {pending ? 'Pracuję…' : 'Zresetuj zakładkę'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={setupOpen}
+        title="Zresetować zakładki synchronizowane z aplikacją?"
+        description={
+          <>
+            Zakładki <strong>wydatki inwestycyjne (tylko do odczytu)</strong>,{' '}
+            <strong>rozliczone R+M (tylko do odczytu)</strong> i{' '}
+            <strong>transfery (tylko do odczytu)</strong> zostaną zbudowane od nowa: aplikacja
+            wyczyści całą ich zawartość, w tym wiersze dodane ręcznie (spoza aplikacji). Tej
+            operacji nie można cofnąć.
+            <strong>Jeśli chcesz zachować ręcznie dodane dane, najpierw zrób kopię zakładki</strong>
+            — aplikacja nie zmienia innych kart, więc taka kopia pozostanie nienaruszona.
+          </>
+        }
+        confirmLabel="Zresetuj zakładkę"
+        pending={pending}
+        pendingLabel="Pracuję…"
+        onConfirm={onSetupConfirm}
+        onCancel={() => setSetupOpen(false)}
+      />
       <Dialog open={preview !== null} onOpenChange={(open) => !open && setPreview(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Check, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Input } from '@/components/ui/input'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import { formatNet as fmt } from '@/lib/kosztorys/format'
@@ -98,6 +99,8 @@ export function KosztorysSectionSummary({
   // Inline rename: id of the section being edited + name buffer. null = nothing is being edited.
   const [editId, setEditId] = useState<number | null>(null)
   const [draft, setDraft] = useState('')
+  // Section pending delete-confirmation (drives the AlertDialog). null = nothing pending.
+  const [pendingRemove, setPendingRemove] = useState<SectionSubtotalT | null>(null)
 
   function startEdit(sectionId: number, name: string) {
     setEditId(sectionId)
@@ -116,9 +119,7 @@ export function KosztorysSectionSummary({
       toastMessage('Najpierw wyczyść wartości w pozycjach tej sekcji', 'warning', 4000)
       return
     }
-    if (window.confirm(`Usunąć sekcję „${s.sectionName}"? Usunie też ${s.itemCount} pozycji.`)) {
-      onRemoveSection(s.sectionId)
-    }
+    setPendingRemove(s)
   }
 
   return (
@@ -307,6 +308,18 @@ export function KosztorysSectionSummary({
           {fmt(grandNet * (1 + vatRate))}
         </span>
       </div>
+
+      <ConfirmDialog
+        open={pendingRemove != null}
+        title={`Usunąć sekcję „${pendingRemove?.sectionName}"?`}
+        description={`Usunie też ${pendingRemove?.itemCount} pozycji. Tej operacji nie można cofnąć.`}
+        confirmLabel="Usuń"
+        onConfirm={() => {
+          if (pendingRemove) onRemoveSection(pendingRemove.sectionId)
+          setPendingRemove(null)
+        }}
+        onCancel={() => setPendingRemove(null)}
+      />
     </aside>
   )
 }
