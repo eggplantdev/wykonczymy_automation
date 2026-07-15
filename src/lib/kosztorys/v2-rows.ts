@@ -1,4 +1,4 @@
-import { stageValueForView, type PriceViewT } from '@/lib/kosztorys/calc'
+import { rowNetForView, stageValueForView, type PriceViewT } from '@/lib/kosztorys/calc'
 import { DEFAULT_UNIT, STAGE_QTY_PREFIX } from '@/lib/kosztorys/constants'
 import type {
   CostVariantT,
@@ -6,6 +6,7 @@ import type {
   KosztorysStageT,
   KosztorysTreeT,
   KosztorysV2RowT,
+  SectionSubtotalT,
   StageKeyT,
 } from '@/types/kosztorys'
 
@@ -313,7 +314,6 @@ export function sectionNeighbor(
   return sameSection[neighborPos]
 }
 
-// Σ of completed-stage values for a v2 row at the view's price (for the "Pozostało" column).
 export function rowDoneNetForView(
   row: KosztorysV2RowT,
   stages: KosztorysStageT[],
@@ -325,9 +325,86 @@ export function rowDoneNetForView(
   )
 }
 
-// Σ of the row's recorded stage quantities — the numerator of the row's overall done fraction.
 export function rowTotalQtyDone(row: KosztorysV2RowT, stages: KosztorysStageT[]): number {
   return stages.reduce((sum, st) => sum + (row[stageKey(st.id)] ?? 0), 0)
+}
+
+/**
+ * The row's settlement value at the view's price — what every "wartość" surface must divide by.
+ *
+ * Not simply rowNetForView (EX-489). The pomiar is a measurement and the stages are the work
+ * actually recorded; the two routinely disagree, and work entered without a pomiar still has value
+ * (owner, 2026-07-15) — the value the stages state. rowNetForView reads `pomiar × cena`, so it
+ * answers 0 for such a row while stageValueForView happily bills its stages: the row vanished from
+ * the denominator but not the numerator, and the counter read 150% over honest data.
+ *
+ * This is the reason the settlement layer lives here and not in calc.ts: the row's value now depends
+ * on its stages, and calc.ts is the pricing layer — pure ViewPricingT, structurally stage-blind.
+ * Every "wartość" figure (Netto, Pozostało, subtotals, the counter) resolves through this function;
+ * calc.ts still owns the price beneath it.
+ */
+export function rowValueForView(
+  row: KosztorysV2RowT,
+  stages: KosztorysStageT[],
+  view: PriceViewT,
+): number {
+  if (row.measuredQty > 0) return rowNetForView(row, view)
+  return rowDoneNetForView(row, stages, view)
+}
+
+/** Remaining by view = the row's settlement value − the value of the stages already done. */
+export function rowRemainingForView(
+  row: KosztorysV2RowT,
+  stages: KosztorysStageT[],
+  view: PriceViewT,
+): number {
+  return rowValueForView(row, stages, view) - rowDoneNetForView(row, stages, view)
+}
+
+/**
+ * Does the pomiar fail to account for the recorded work? Drives the row's red highlight (EX-489).
+ *
+ * Deliberately NOT "pomiar ≠ Σ etapów": a half-finished row is normal work in progress, and flagging
+ * it would paint the whole grid red on a healthy kosztorys. Red marks only the two states where the
+ * measurement cannot EXPLAIN the work — stages overshooting the pomiar, or work billed against no
+ * pomiar at all. Both settle at 100% by construction now, so the highlight is the only place left
+ * that says the underlying numbers still need a human.
+ */
+export function hasMeasurementMismatch(row: KosztorysV2RowT, stages: KosztorysStageT[]): boolean {
+  const qtyDone = rowTotalQtyDone(row, stages)
+  if (!(row.measuredQty > 0)) return qtyDone !== 0
+  return qtyDone > row.measuredQty
+}
+
+/**
+ * Net subtotals per section for the active price view, over the full dataset (ignores filter/sort).
+ * Order = first occurrence of each section in `rows` (treeToRows already yields section→displayOrder).
+ */
+export function sectionSubtotalsForView(
+  rows: KosztorysV2RowT[],
+  stages: KosztorysStageT[],
+  view: PriceViewT,
+): SectionSubtotalT[] {
+  const bySection = new Map<number, SectionSubtotalT>()
+  for (const row of rows) {
+    let acc = bySection.get(row.sectionId)
+    if (!acc) {
+      acc = {
+        sectionId: row.sectionId,
+        sectionName: row.sectionName,
+        net: 0,
+        share: 0,
+        itemCount: 0,
+      }
+      bySection.set(row.sectionId, acc)
+    }
+    acc.net += rowValueForView(row, stages, view)
+    acc.itemCount += 1
+  }
+  const result = [...bySection.values()]
+  const grandNet = result.reduce((sum, s) => sum + s.net, 0)
+  if (grandNet > 0) for (const s of result) s.share = s.net / grandNet
+  return result
 }
 
 // Value of the work done across the whole kosztorys at the view's price — the progress counter's

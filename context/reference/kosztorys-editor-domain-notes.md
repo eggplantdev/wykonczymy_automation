@@ -143,7 +143,8 @@ powierzchnia malowania = Σ ścian − ściany pomieszczeń mokrych (łazienki/W
 
 ## Wartości liczone (nie przechowywane)
 
-- wartość wiersza = `pomiar × cena` minus rabat (procent lub kwota — patrz wyżej)
+- wartość wiersza = `pomiar × cena` minus rabat (procent lub kwota — patrz wyżej),
+  **a przy braku pomiaru = Σ wartości etapów** — patrz „Pomiar ≠ etapy" niżej
 - „pozostało/bilans" (AF) = wartość pozycji − Σ wartości wykonanych etapów
   = **kontrola postępu robót** (ile zostało do wykonania); informacyjna (P9)
 - sumy sekcja / całość = redukcja w kodzie
@@ -225,6 +226,31 @@ Otwarte: która ilość na ofercie — przedmiar (oferta wstępna) czy pomiar
   niezależne. Przedmiar = ilość z wyceny; pomiar z natury = ilość zmierzona.
   **Wartość liczy się z pomiaru.** Bez „nadpisywania", bez dwóch sum (w szablonie
   pomiar startuje skopiowany z przedmiaru, żeby nie był pusty — to wszystko).
+- **Pomiar ≠ etapy to stan normalny, nie błąd** (właściciel, 2026-07-15; EX-489).
+  Pomiar jest pomiarem, etapy są zapisem faktycznie wykonanej pracy — rozjeżdżają
+  się rutynowo. Stąd reguła: **praca wpisana bez pomiaru MA wartość, i jest nią to,
+  co stoi w etapach.** Więc wartość wiersza to `pomiar × cena − rabat`, ale przy
+  pomiarze 0 (albo wyczyszczonym) — `Σ wartości etapów`.
+
+  Dlaczego to nie kosmetyka: wcześniej taki wiersz wchodził do **licznika** ułamka
+  „Wykonano" (etapy się liczyły), ale nie do **mianownika** (`pomiar × cena` = 0).
+  Kosztorys zrobiony w całości czytał `150%`, a „Pozostało" pokazywało `−500` na
+  wierszu, w którym nic nie zostało do zrobienia — przy w pełni poprawnych danych.
+
+  Konsekwencja architektoniczna: wartość wiersza zależy teraz od etapów, więc
+  `calc.ts` (czysta warstwa cenowa, `ViewPricingT` nie widzi etapów) **nie może** jej
+  policzyć. Warstwa rozliczeniowa — `rowValueForView`, `rowRemainingForView`,
+  `sectionSubtotalsForView` — mieszka w `v2-rows.ts`, które etapy zna. `rowNetForView`
+  zostaje w `calc.ts` i odpowiada **wyłącznie** „ile wart jest pomiar przy tej cenie";
+  nigdy nie jest wartością wiersza.
+
+  Rozjazd zostaje **widoczny, nie wygładzony**: kolumna `% wykonania` świeci na
+  czerwono (`hasMeasurementMismatch`), gdy pomiar nie tłumaczy pracy — etapy go
+  przekraczają albo praca stoi bez pomiaru. Częściowo zrobiony wiersz to normalna
+  praca w toku i czerwony **nie** jest — inaczej cała siatka świeciłaby na zdrowym
+  kosztorysie. Skoro kwoty się teraz zgadzają, ta komórka jest jedynym miejscem,
+  które mówi, że dane wciąż wymagają człowieka.
+
 - **Lista prac dynamiczna** (wiersze, bez limitu).
 - **Etapy dynamiczne** (wiersze `kosztorys_stages`; kolumny siatki renderowane
   z danych). Usunięcie etapu z wpisanym postępem → **BLOKADA** (najpierw wyczyść).

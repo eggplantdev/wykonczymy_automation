@@ -24,12 +24,13 @@ import {
   filterRows,
   insertDisplayOrder,
   isSectionPopulated,
-  kosztorysDoneNetForView,
   planItemRemoval,
   revertField,
-  rowDoneNetForView,
+  rowRemainingForView,
+  rowValueForView,
   sectionDoneNetForView,
   sectionNeighbor,
+  sectionSubtotalsForView,
   sortRows,
   stageKey,
   swapItemInSection,
@@ -42,13 +43,7 @@ import {
   stageValueNetKey,
   stageValuePercentKey,
 } from '@/lib/kosztorys/constants'
-import {
-  rowNetForView,
-  rowRemainingForView,
-  sectionSubtotalsForView,
-  viewPrice,
-  type PriceViewT,
-} from '@/lib/kosztorys/calc'
+import { viewPrice, type PriceViewT } from '@/lib/kosztorys/calc'
 import {
   addItemAction,
   addSectionAction,
@@ -84,9 +79,9 @@ function sortValue(
     case 'price':
       return viewPrice(row, view)
     case 'net':
-      return rowNetForView(row, view)
+      return rowValueForView(row, stages, view)
     case 'remaining':
-      return rowRemainingForView(row, rowDoneNetForView(row, stages, view), view)
+      return rowRemainingForView(row, stages, view)
     default: {
       const v = row[field as keyof KosztorysV2RowT]
       return (typeof v === 'number' ? v : (v ?? '')) as string | number
@@ -176,14 +171,18 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
 
   // Per-section subtotals: the FULL dataset (not viewRows) — a stable breakdown independent of
   // the filter/sort.
-  const subtotals = useMemo(() => sectionSubtotalsForView(rows, view), [rows, view])
+  const subtotals = useMemo(() => sectionSubtotalsForView(rows, stages, view), [rows, stages, view])
   const totalNet = useMemo(() => subtotals.reduce((s, x) => s + x.net, 0), [subtotals])
   // Done value, same full-dataset rule as the subtotals: the counter and the section rows answer for
-  // the whole kosztorys, so a search or a section filter must not move them.
-  const doneNet = useMemo(() => kosztorysDoneNetForView(rows, stages, view), [rows, stages, view])
+  // the whole kosztorys, so a search or a section filter must not move them. The total derives from
+  // the per-section map rather than re-walking rows × stages — same idiom as totalNet above.
   const sectionDoneNet = useMemo(
     () => sectionDoneNetForView(rows, stages, view),
     [rows, stages, view],
+  )
+  const doneNet = useMemo(
+    () => [...sectionDoneNet.values()].reduce((sum, net) => sum + net, 0),
+    [sectionDoneNet],
   )
 
   // Section coefficients (null = inherits the global) for the panel — from the tree, keyed by section id.

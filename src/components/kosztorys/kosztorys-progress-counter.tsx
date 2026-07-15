@@ -19,6 +19,7 @@ const LEGEND = [
   '',
   'Procent = wartość wykonanych etapów ÷ wartość kosztorysu. Kwoty liczone przy aktywnym widoku cen.',
   'Netto/brutto podąża za przełącznikiem kwot; procent jest ten sam po obu stronach.',
+  'Pozycja bez Pomiaru wchodzi po obu stronach ułamka — jest warta tyle, co jej etapy.',
   '„—" = kosztorys nie ma jeszcze wartości, więc nie ma czego dzielić.',
 ].join('\n')
 

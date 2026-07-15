@@ -3,10 +3,9 @@
 export const formatNet = (n: number) =>
   n.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-// A fraction (0.746) as a percentage. `null` means there was no denominator to divide by, which
-// renders as a dash rather than 0% — "not measurable" and "nothing done" are different answers.
-// Two precisions: integer for the dense grid cells, one decimal for the headline figures where the
-// whole kosztorys hangs on a single number.
+// A fraction (0.746) as a percentage; `null` (no denominator — see stageDoneFraction) renders as a
+// dash. Two precisions: integer for the dense grid cells, one decimal for the headline figures where
+// the whole kosztorys hangs on a single number.
 const percentFormat = (fraction: number | null, fractionDigits: number) =>
   fraction == null
     ? '—'

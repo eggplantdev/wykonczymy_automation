@@ -1,15 +1,15 @@
-import type {
-  KosztorysItemT,
-  KosztorysV2RowT,
-  SectionSubtotalT,
-  ViewPricingT,
-} from '@/types/kosztorys'
+import type { KosztorysItemT, ViewPricingT } from '@/types/kosztorys'
 
 // VAT: a single rate per investment (vatRate), carried on the row. No section→item cascade.
 
-// The single source of the breakdown formulas. Pure functions — we persist only the
-// inputs and compute everything below live. Settlement values (net, stages, remaining) come from
-// measuredQty ("pomiar"); plannedQty ("przedmiar") feeds only rowPlannedNetForView, the offer figure.
+// The pricing layer: what a row is worth per unit, and what its pomiar is worth at that price. Pure
+// functions over ViewPricingT — we persist only the inputs and compute everything below live.
+// plannedQty ("przedmiar") feeds only rowPlannedNetForView, the offer figure.
+//
+// Structurally stage-blind, on purpose. Since EX-489 a row's SETTLEMENT value depends on its stages
+// (work without a pomiar is worth what the stages say), so that figure — rowValueForView, remaining,
+// subtotals — lives one layer up in v2-rows.ts, which knows stages and imports this. Everything here
+// answers "at this price, what is the pomiar worth"; never treat rowNetForView as the row's value.
 //
 // Discount ("rabat"): discountValue for 'percent' = percentage points (10 => 10%), for
 // 'amount' = an amount in PLN subtracted from the net value.
@@ -100,8 +100,11 @@ export function stageValueForView(
   qtyDoneInStage: number,
   view: PriceViewT,
 ): number {
-  // No pomiar = no share to take (and nothing to divide by): the stage stands on its own qty.
-  if (row.measuredQty === 0) return qtyDoneInStage * viewPrice(row, view)
+  // No pomiar = no share to take (and nothing to divide by): the stage stands on its own qty. That
+  // is what makes such work worth something, and rowValueForView (v2-rows) is what makes the row's
+  // value agree with it — the two must keep answering together (EX-489). `> 0` rather than `=== 0`:
+  // a cleared Pomiar cell writes null, which strict equality walks past into a divide.
+  if (!(row.measuredQty > 0)) return qtyDoneInStage * viewPrice(row, view)
   return rowNetForView(row, view) * (qtyDoneInStage / row.measuredQty)
 }
 
@@ -113,56 +116,25 @@ export function stageValueForView(
  * so stageValue/rowNet reduces to qtyDone/measuredQty — the price and the rabat cancel out, and the
  * percentage is the same figure under every price view and under netto or brutto alike.
  *
- * Deliberately unclamped: a qtyDone over the pomiar means the measurement or the entry is wrong, and
- * a >100% reading is the only place that says so.
+ * Deliberately unclamped: pomiar and stages disagree routinely (EX-489), so a >100% reading is not
+ * an error to hide but the row saying its two numbers don't line up. The grid pairs it with a red
+ * cell (hasMeasurementMismatch); clamping here would erase both signals.
  */
 export function stageDoneFraction(row: ViewPricingT, qtyDoneInStage: number): number | null {
-  if (row.measuredQty === 0) return null
-  return qtyDoneInStage / row.measuredQty
+  return doneFraction(row, qtyDoneInStage)
 }
 
 /** The row's overall completion, same shape and same reasoning as stageDoneFraction. */
 export function rowDoneFraction(row: ViewPricingT, totalQtyDone: number): number | null {
-  if (row.measuredQty === 0) return null
-  return totalQtyDone / row.measuredQty
-}
-
-/** Remaining by view = view net − Σ of completed-stage values by view. */
-export function rowRemainingForView(
-  row: ViewPricingT,
-  doneNetTotal: number,
-  view: PriceViewT,
-): number {
-  return rowNetForView(row, view) - doneNetTotal
+  return doneFraction(row, totalQtyDone)
 }
 
 /**
- * Net subtotals per section for the active price view. Computed over the full
- * dataset (ignores filter/sort). Order = first occurrence of each section in
- * `rows` (treeToRows already yields section→displayOrder order).
+ * The guard is `> 0`, not `=== 0`: clearing the Pomiar cell writes `null` (the grid's float column
+ * is `Column<number|null>`), which a strict-equality check walks straight past into `qty / null` —
+ * NaN or Infinity rendered verbatim in the cell. This also covers `undefined` and a negative pomiar.
  */
-export function sectionSubtotalsForView(
-  rows: KosztorysV2RowT[],
-  view: PriceViewT,
-): SectionSubtotalT[] {
-  const bySection = new Map<number, SectionSubtotalT>()
-  for (const row of rows) {
-    let acc = bySection.get(row.sectionId)
-    if (!acc) {
-      acc = {
-        sectionId: row.sectionId,
-        sectionName: row.sectionName,
-        net: 0,
-        share: 0,
-        itemCount: 0,
-      }
-      bySection.set(row.sectionId, acc)
-    }
-    acc.net += rowNetForView(row, view)
-    acc.itemCount += 1
-  }
-  const result = [...bySection.values()]
-  const grandNet = result.reduce((sum, s) => sum + s.net, 0)
-  if (grandNet > 0) for (const s of result) s.share = s.net / grandNet
-  return result
+function doneFraction(row: ViewPricingT, qtyDone: number): number | null {
+  if (!(row.measuredQty > 0)) return null
+  return qtyDone / row.measuredQty
 }

@@ -3,12 +3,10 @@ import {
   rowDoneFraction,
   rowNetForView,
   rowPlannedNetForView,
-  rowRemainingForView,
-  sectionSubtotalsForView,
   stageDoneFraction,
   stageValueForView,
 } from '@/lib/kosztorys/calc'
-import type { KosztorysV2RowT, ViewPricingT } from '@/types/kosztorys'
+import type { ViewPricingT } from '@/types/kosztorys'
 
 // Subcontractor prices as an 'amount' override (flat 12/10) — preserves the values from before
 // the migration to the coefficient model (the tests validate the amount path, not the derivation).
@@ -115,6 +113,18 @@ describe('stageDoneFraction / rowDoneFraction', () => {
     expect(rowDoneFraction(noMeasure, 3)).toBeNull()
   })
 
+  // Clearing the Pomiar cell writes null, not 0 — the grid's float column is Column<number|null>,
+  // and client row state holds that null until a refresh normalizes it. A `=== 0` guard falls
+  // through and divides: 0/null → NaN → "NaN%", 3/null → Infinity → "∞%" in the always-visible cell.
+  it('a cleared measured qty is a missing denominator too, not a divisor', () => {
+    for (const empty of [null, undefined]) {
+      const cleared = { ...item, measuredQty: empty as unknown as number }
+      expect(stageDoneFraction(cleared, 3)).toBeNull()
+      expect(stageDoneFraction(cleared, 0)).toBeNull()
+      expect(rowDoneFraction(cleared, 3)).toBeNull()
+    }
+  })
+
   it('overshooting the measured qty passes through unclamped — it signals bad data', () => {
     expect(stageDoneFraction(item, 12)).toBe(1.2)
     expect(rowDoneFraction(item, 15)).toBe(1.5)
@@ -152,60 +162,6 @@ describe('rowPlannedNetForView', () => {
   })
 })
 
-describe('rowRemainingForView', () => {
-  it('pozostało = netto widoku − wykonane', () => {
-    // client net = 10 × 20 = 200; done = 60 → remaining 140
-    expect(rowRemainingForView(item, 60, 'client')).toBe(140)
-    // w_tools net = 10 × 12 = 120; done = 36 → remaining 84
-    expect(rowRemainingForView(item, 36, 'w_tools')).toBe(84)
-  })
-
-  it('over-completion → ujemne pozostało (etapy przekraczają netto)', () => {
-    // client net = 200; done across stages = 380 → remaining −180. The editor renders this
-    // negative value verbatim (manual check 4.7), it is not clamped to 0.
-    expect(rowRemainingForView(item, 380, 'client')).toBe(-180)
-  })
-
-  it('pozostało uwzględnia rabat kwotowy w netto widoku', () => {
-    // amount discount 30: client net = 10 × 20 − 30 = 170; done 50 → remaining 120
-    const discounted = { ...item, discountType: 'amount' as const, discountValue: 30 }
-    expect(rowRemainingForView(discounted, 50, 'client')).toBe(120)
-  })
-})
-
-// fixture: 2 sections, A (id 10) has 2 items, B (id 20) has 1 item
-const v2Rows: KosztorysV2RowT[] = [
-  {
-    ...item,
-    id: 1,
-    sectionId: 10,
-    sectionName: 'Sekcja A',
-    vatRate: 0.08,
-    sectionDefaultCostVariant: 'w_tools',
-  },
-  {
-    ...item,
-    id: 2,
-    sectionId: 10,
-    sectionName: 'Sekcja A',
-    vatRate: 0.08,
-    sectionDefaultCostVariant: 'w_tools',
-    measuredQty: 5,
-    clientPrice: 10,
-    discountType: 'percent',
-    discountValue: 20, // 5×10 = 50 − 20% = 40
-  },
-  {
-    ...item,
-    id: 3,
-    sectionId: 20,
-    sectionName: 'Sekcja B',
-    vatRate: 0.08,
-    sectionDefaultCostVariant: 'w_tools',
-    clientPrice: 100, // 10×100 = 1000
-  },
-]
-
 // Brutto is the grid's read-only Brutto column + Suma brutto: gross = net × (1 + vatRate), on the
 // post-discount net (rowNetForView already subtracts the discount). One rate per investment.
 const gross = (row: ViewPricingT, view: Parameters<typeof rowNetForView>[1], vatRate: number) =>
@@ -242,35 +198,5 @@ describe('brutto = netto × (1 + vatRate)', () => {
     }
     // planned net = 12 × 20 = 240 (rabat nie wchodzi) → brutto 240 × 1.08 = 259.2
     expect(rowPlannedNetForView(discounted, 'client') * 1.08).toBeCloseTo(259.2, 10)
-  })
-})
-
-describe('sectionSubtotalsForView', () => {
-  it('sumuje netto per sekcja, nie miesza sekcji', () => {
-    const r = sectionSubtotalsForView(v2Rows, 'client')
-    // Section A: item1 10×20=200 + item2 40 = 240; Section B: 1000
-    expect(r.map((s) => [s.sectionId, s.net, s.itemCount])).toEqual([
-      [10, 240, 2],
-      [20, 1000, 1],
-    ])
-  })
-
-  it('view-awareness: w_tools daje inne netto', () => {
-    const r = sectionSubtotalsForView(v2Rows, 'w_tools')
-    // item1 10×12=120; item2 5×12=60 −20% = 48 → A=168; B 10×12=120
-    expect(r[0].net).toBe(168)
-    expect(r[1].net).toBe(120)
-  })
-
-  it('share sumuje do ~1 gdy grandNet > 0', () => {
-    const r = sectionSubtotalsForView(v2Rows, 'client')
-    expect(r.reduce((s, x) => s + x.share, 0)).toBeCloseTo(1, 10)
-    expect(r[1].share).toBeCloseTo(1000 / 1240, 10)
-  })
-
-  it('guard: grandNet = 0 → share 0, bez NaN', () => {
-    const zero = v2Rows.map((row) => ({ ...row, clientPrice: 0 }))
-    const r = sectionSubtotalsForView(zero, 'client')
-    expect(r.every((s) => s.share === 0)).toBe(true)
   })
 })

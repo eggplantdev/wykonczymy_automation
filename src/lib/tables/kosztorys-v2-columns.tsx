@@ -12,9 +12,7 @@ import {
   effectiveCoeff,
   rowDiscountForView,
   rowDoneFraction,
-  rowNetForView,
   rowPlannedNetForView,
-  rowRemainingForView,
   stageDoneFraction,
   stageValueForView,
   toGross,
@@ -45,8 +43,10 @@ import {
 } from '@/lib/kosztorys/progress-display'
 import { formatNet as fmt, formatPercent } from '@/lib/kosztorys/format'
 import {
-  rowDoneNetForView,
+  hasMeasurementMismatch,
+  rowRemainingForView,
   rowTotalQtyDone,
+  rowValueForView,
   stageKey,
   type SortDirT,
 } from '@/lib/kosztorys/v2-rows'
@@ -171,13 +171,13 @@ const HEADER_TIPS: Record<string, string> = {
   plannedNet:
     'Wartość przedmiaru netto = Przedmiar × Cena. Wartość ofertowa pozycji — ile miało wejść wg przedmiaru, przed negocjacją.\nBEZ rabatu — rabat wchodzi dopiero w Netto (rozliczenie). Różnica Netto − Wartość przedmiaru zawiera więc i korektę ilości, i rabat.',
   plannedGross: 'Wartość przedmiaru brutto = Wartość przedmiaru netto × (1 + VAT).',
-  net: 'Netto = Pomiar × Cena − Rabat. Wartość pozycji przy aktywnym widoku cen.',
+  net: 'Netto = Pomiar × Cena − Rabat. Wartość pozycji przy aktywnym widoku cen.\nGdy Pomiaru nie ma, wartością pozycji jest suma wartości jej etapów — praca wpisana bez Pomiaru nadal jest warta swoje.',
   gross: 'Brutto = Netto × (1 + VAT). Jedna stawka VAT na inwestycję, zdenormalizowana na wierszu.',
   remaining:
-    'Pozostało netto = Netto − suma wartości etapów wpisanych w tym wierszu.\nIle z wartości pozycji nie zostało jeszcze rozliczone etapami. Pusty wiersz etapów = całe Netto zostaje.',
+    'Pozostało netto = Netto − suma wartości etapów wpisanych w tym wierszu.\nIle z wartości pozycji nie zostało jeszcze rozliczone etapami. Pusty wiersz etapów = całe Netto zostaje.\nPraca bez Pomiaru jest warta tyle, co jej etapy, więc taki wiersz jest domknięty (0), nie na minusie.',
   remainingGross: 'Pozostało brutto = Pozostało netto × (1 + VAT).',
   donePercent:
-    '% wykonania = suma ilości ze wszystkich etapów ÷ Pomiar.\nIle procent pozycji jest zrobione. Nie zależy od widoku cen ani od netto/brutto — cena i rabat się skracają.\n„—" = brak Pomiaru, więc nie ma czego dzielić (to nie to samo co 0%). Powyżej 100% = wpisano więcej niż wynosi Pomiar; wartość nie jest przycinana, bo to sygnał błędu w danych.',
+    '% wykonania = suma ilości ze wszystkich etapów ÷ Pomiar.\nIle procent pozycji jest zrobione. Nie zależy od widoku cen ani od netto/brutto — cena i rabat się skracają.\n„—" = brak Pomiaru, więc nie ma czego dzielić (to nie to samo co 0%). Powyżej 100% = wpisano więcej niż wynosi Pomiar; wartość nie jest przycinana, bo to sygnał błędu w danych.\nNa czerwono = Pomiar nie tłumaczy wpisanej pracy: etapy go przekraczają albo praca jest wpisana bez Pomiaru. Kwoty się zgadzają, ale dane warto sprawdzić.',
   // The three stage axes key by column GROUP, not by column id — every stage's column shares its
   // axis's tip, because the only thing that differs between them is the stage's name.
   [STAGES_COLUMN_GROUP]:
@@ -231,7 +231,7 @@ function computedColumn(
   id: string,
   titleNode: ReactNode,
   compute: (r: KosztorysV2RowT) => number | null,
-  className = 'text-muted-foreground',
+  className: string | ((r: KosztorysV2RowT) => string) = 'text-muted-foreground',
   format: (value: number | null) => string = fmtOrDash,
 ): Column<KosztorysV2RowT> {
   return {
@@ -239,7 +239,11 @@ function computedColumn(
     title: titleNode,
     disabled: true,
     component: ({ rowData }) => (
-      <span className={`block w-full px-2 text-left ${className}`}>{format(compute(rowData))}</span>
+      <span
+        className={`block w-full px-2 text-left ${typeof className === 'function' ? className(rowData) : className}`}
+      >
+        {format(compute(rowData))}
+      </span>
     ),
   }
 }
@@ -678,7 +682,13 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       'donePercent',
       title('donePercent', COLUMN_LABELS.donePercent, opts),
       (r) => rowDoneFraction(r as unknown as ViewPricingT, rowTotalQtyDone(r, stages)),
-      'font-medium',
+      // Red = the pomiar cannot explain the recorded work (EX-489). Since the settlement value now
+      // follows the stages, such a row reads a perfectly innocent 100% (or "—") in every figure —
+      // this cell is the only place left that says the inputs still need a human.
+      (r) =>
+        hasMeasurementMismatch(r, stages)
+          ? 'text-destructive font-medium'
+          : 'text-muted-foreground font-medium',
       formatPercent,
     ),
   ]
@@ -693,30 +703,22 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     computedColumn(
       'net',
       title('net', COLUMN_LABELS.net, opts),
-      (r) => rowNetForView(r as unknown as ViewPricingT, view),
-      'font-medium',
+      (r) => rowValueForView(r, stages, view),
+      'text-muted-foreground font-medium',
     ),
     computedColumn('gross', title('gross', COLUMN_LABELS.gross, opts), (r) =>
-      toGross(rowNetForView(r as unknown as ViewPricingT, view), r.vatRate),
+      toGross(rowValueForView(r, stages, view), r.vatRate),
     ),
   ]
 
   const remaining: Column<KosztorysV2RowT>[] = [
     computedColumn('remaining', title('remaining', COLUMN_LABELS.remaining, opts), (r) =>
-      rowRemainingForView(r as unknown as ViewPricingT, rowDoneNetForView(r, stages, view), view),
+      rowRemainingForView(r, stages, view),
     ),
     computedColumn(
       'remainingGross',
       title('remainingGross', COLUMN_LABELS.remainingGross, opts),
-      (r) =>
-        toGross(
-          rowRemainingForView(
-            r as unknown as ViewPricingT,
-            rowDoneNetForView(r, stages, view),
-            view,
-          ),
-          r.vatRate,
-        ),
+      (r) => toGross(rowRemainingForView(r, stages, view), r.vatRate),
     ),
   ]
 
