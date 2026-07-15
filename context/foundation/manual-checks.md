@@ -238,3 +238,36 @@ Setup: run the app against the **5435 test DB** (see intro), log in as OWNER/MAN
 
 - [x] **Media labels polluted with a ~30-char blob token** (e.g. `praga-17-06-2026-ed13f6-5b4d4f-3fyR3xjeRHZWrztkEQ4KkRZpKaMhxh.jpg`). Root cause: `addRandomSuffix: true` (commit `1da49ed`) made `@payloadcms/storage-vercel-blob` rewrite the `filename` field with the suffixed blob key; a _separate_ pre-existing double `appendShortId` (extraction + upload) added the second hex. **Fixed** 2026-07-12: reverted `addRandomSuffix`, deduped the short id to the upload boundary. Documented on **EX-394** (corrects its "overwrite risk closed by addRandomSuffix" claim). `test: TDD · unit` — `src/__tests__/receipt-filename.test.ts` guards the dedupe; the `addRandomSuffix` label-rewrite is plugin-level (config revert), **observable only end-to-end** → still owes the upload-a-receipt-and-check-stored-filename verification below.
 - [x] **Re-verify clean label after fix.** Upload a fresh receipt (scan path) → stored `filename` / opened-image label is `<opis>-<one-6hex>.<ext>` with **no** 30-char token and **no** double hex. — 2026-07-12, confirmed on **staging**: `large.heic` stored as `large-9f7604.jpg` — one 6-hex id, **no** 30-char blob token. This exercises a _direct_ upload (not the scan path), which validates the harder-to-test half end-to-end: the `addRandomSuffix` revert (the plugin-level rewrite no unit test can reach). The scan-path double-hex dedupe is deterministic and covered by `src/__tests__/receipt-filename.test.ts` — `buildReceiptFileName` adds no id, so a scan gets exactly the one id from `uniqueFileName`.
+
+## kosztorys-stage-values — per-stage value columns (netto+brutto)
+
+**In review** — automated checks green (tsc, eslint, full unit suite). Nothing below is covered by CI: the delta is column wiring and a localStorage default, and the math it renders (`stageValueForView`, `× (1 + vatRate)`) is already unit-tested. Adjacent to S-03 `kosztorys-stages` but **not part of it** — this section is this change's to discharge.
+
+Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, seed a kosztorys into it (`INV=<id> node --env-file=.env --import tsx src/scripts/seed-kosztorys.ts` with the seed's DB env pointed at `DB_POSTGRES_URL_TEST`), and add 2–3 stages.
+
+### Phase 1: Stage value columns + grid reorder
+
+- [ ] **Stage netto tracks Pozostało.** Type a qty into a stage on a row with a known price and no rabat → `Etap N — netto` shows `qty × cena − rabat`, and `Pozostało netto` drops by the same amount. Add a percent rabat to that row → the stage value drops proportionally (it is post-discount).
+- [ ] **Brutto is the netto × rate.** `Etap N — brutto` = `Etap N — netto` × 1.08 at the default VAT rate.
+- [ ] **Rename a stage → all three headers update**; the qty header stays editable, both value headers do not.
+- [ ] **Delete a stage → all three columns disappear**, and the remaining stages keep their own labels (the wrong-stage-rename class — dsg keys header cells by index).
+- [ ] **Price view switch reprices.** Klient / Z narzędziami / Bez narzędzi → stage values reprice, no flicker, no scroll or selection loss.
+
+### Phase 2: Default-hidden columns
+
+- [ ] **Fresh profile default.** With no prior localStorage (fresh profile / cleared `table-columns:kosztorys`): the grid opens with `Etapy — kwota netto` visible and `Etapy — kwota brutto` hidden.
+- [ ] **The picker shows `Etapy — kwota brutto` unchecked**; checking it reveals the columns and survives a reload.
+- [ ] **Un-checking it again hides them** and survives a reload.
+- [ ] **No regression from the invariant change.** An existing profile with columns already hidden keeps exactly those columns hidden (absent now means "default", not "visible" — stored maps only ever held `true`).
+
+### Phase 3: Doc reconciliation
+
+- [ ] `context/reference/kosztorys-editor-domain-notes.md` no longer lists P8 as open, and its answer names the date and the resolved contradiction.
+- [ ] `context/changes/kosztorys-stages/plan.md` no longer asserts a remount key is needed, and its brutto exclusion is marked superseded.
+- [ ] No living doc still claims stage values are netto-only.
+
+### Width cost at scale (the check the change exists to test)
+
+This change ships the horizontal cost **unmitigated by design** — the frame found the argument for pre-emptively mitigating it (a netto/brutto display mode) circular. At 10 stages the client view carries ~47 columns. Dogfood it before opening that follow-up.
+
+- [ ] **Perf + width sanity at scale.** Seed ~1000 rows (`INV=<id> node --env-file=.env --import tsx src/scripts/perf-seed-kosztorys.ts`), then scroll the grid with all three stage groups visible — no scroll jank, and record whether the width is actually tolerable in use.

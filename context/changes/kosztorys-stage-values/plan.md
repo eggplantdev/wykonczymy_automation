@@ -408,4 +408,4 @@ preferences carry over unchanged and no migration or seed is required.
 
 #### Automated
 
-- [x] 3.1 Linting passes: `pnpm lint`
+- [x] 3.1 Linting passes: `pnpm lint` — 8dcfdf3
