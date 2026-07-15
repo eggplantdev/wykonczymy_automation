@@ -105,6 +105,28 @@ export function stageValueForView(
   return rowNetForView(row, view) * (qtyDoneInStage / row.measuredQty)
 }
 
+/**
+ * How far along a stage is, as a fraction (0.75 = 75%) — `null` when there is no denominator to
+ * divide by, so render code never divides and never fakes a 0%.
+ *
+ * View-independent by construction: stageValueForView takes the stage's qty SHARE of the row net,
+ * so stageValue/rowNet reduces to qtyDone/measuredQty — the price and the rabat cancel out, and the
+ * percentage is the same figure under every price view and under netto or brutto alike.
+ *
+ * Deliberately unclamped: a qtyDone over the pomiar means the measurement or the entry is wrong, and
+ * a >100% reading is the only place that says so.
+ */
+export function stageDoneFraction(row: ViewPricingT, qtyDoneInStage: number): number | null {
+  if (row.measuredQty === 0) return null
+  return qtyDoneInStage / row.measuredQty
+}
+
+/** The row's overall completion, same shape and same reasoning as stageDoneFraction. */
+export function rowDoneFraction(row: ViewPricingT, totalQtyDone: number): number | null {
+  if (row.measuredQty === 0) return null
+  return totalQtyDone / row.measuredQty
+}
+
 /** Remaining by view = view net − Σ of completed-stage values by view. */
 export function rowRemainingForView(
   row: ViewPricingT,

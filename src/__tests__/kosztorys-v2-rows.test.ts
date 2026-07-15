@@ -6,6 +6,9 @@ import {
   filterRows,
   sortRows,
   rowDoneNetForView,
+  rowTotalQtyDone,
+  kosztorysDoneNetForView,
+  sectionDoneNetForView,
   revertField,
   planItemRemoval,
   REMOVE_BLOCK_LAST_ITEM,
@@ -19,7 +22,7 @@ import {
   stageValueGrossKey,
   stageValueNetKey,
 } from '@/lib/kosztorys/constants'
-import type { KosztorysTreeT, KosztorysV2RowT } from '@/types/kosztorys'
+import type { KosztorysStageT, KosztorysTreeT, KosztorysV2RowT } from '@/types/kosztorys'
 
 const baseItem = {
   id: 1,
@@ -202,6 +205,51 @@ describe('rowDoneNetForView', () => {
     const [row] = treeToRows(tree) // stage 100 qty=2, stage 101 qty=0; clientPrice 20
     expect(rowDoneNetForView(row, tree.stages, 'client')).toBe(40) // 2 × 20
     expect(rowDoneNetForView(row, tree.stages, 'w_tools')).toBe(24) // 2 × 12
+  })
+})
+
+describe('rowTotalQtyDone', () => {
+  it('sums the quantities across every stage of the row', () => {
+    const [row] = treeToRows(tree) // stage 100 = 2, stage 101 = 0
+    expect(rowTotalQtyDone(row, tree.stages)).toBe(2)
+  })
+
+  // A stage added after the row was built carries no key on it — without ?? 0 the sum would be NaN.
+  it('counts a stage missing its key on the row as zero', () => {
+    const [row] = treeToRows(tree)
+    const withGhost = [...tree.stages, { id: 999, ordinal: 3, label: null }]
+    expect(rowTotalQtyDone(row, withGhost)).toBe(2)
+  })
+})
+
+describe('kosztorysDoneNetForView / sectionDoneNetForView', () => {
+  const stages: KosztorysStageT[] = [{ id: 100, ordinal: 1, label: null }]
+  // measuredQty 10 × price 20 = 200 net; qtyDone set per row
+  const row = (id: number, sectionId: number, qtyDone: number) =>
+    ({
+      ...baseItem,
+      id,
+      sectionId,
+      measuredQty: 10,
+      [stageKey(100)]: qtyDone,
+    }) as unknown as KosztorysV2RowT
+
+  const rows = [row(1, 10, 5), row(2, 10, 10), row(3, 20, 0)]
+
+  it('sums the whole kosztorys done value at the view price', () => {
+    expect(kosztorysDoneNetForView(rows, stages, 'client')).toBe(300) // 100 + 200 + 0
+    expect(kosztorysDoneNetForView(rows, stages, 'w_tools')).toBe(180) // price 12: 60 + 120 + 0
+  })
+
+  it('groups the done value by section', () => {
+    const bySection = sectionDoneNetForView(rows, stages, 'client')
+    expect(bySection.get(10)).toBe(300)
+    expect(bySection.get(20)).toBe(0)
+  })
+
+  it('empty kosztorys → zero and an empty map', () => {
+    expect(kosztorysDoneNetForView([], stages, 'client')).toBe(0)
+    expect(sectionDoneNetForView([], stages, 'client').size).toBe(0)
   })
 })
 

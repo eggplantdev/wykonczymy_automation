@@ -324,3 +324,32 @@ export function rowDoneNetForView(
     0,
   )
 }
+
+// Σ of the row's recorded stage quantities — the numerator of the row's overall done fraction.
+export function rowTotalQtyDone(row: KosztorysV2RowT, stages: KosztorysStageT[]): number {
+  return stages.reduce((sum, st) => sum + (row[stageKey(st.id)] ?? 0), 0)
+}
+
+// Value of the work done across the whole kosztorys at the view's price — the progress counter's
+// numerator. Computed over the full dataset (ignores filter/sort), like sectionSubtotalsForView.
+export function kosztorysDoneNetForView(
+  rows: KosztorysV2RowT[],
+  stages: KosztorysStageT[],
+  view: PriceViewT,
+): number {
+  return rows.reduce((sum, row) => sum + rowDoneNetForView(row, stages, view), 0)
+}
+
+// The same figure per section, keyed by sectionId — the section summary's done-% numerator.
+export function sectionDoneNetForView(
+  rows: KosztorysV2RowT[],
+  stages: KosztorysStageT[],
+  view: PriceViewT,
+): Map<number, number> {
+  const bySection = new Map<number, number>()
+  for (const row of rows) {
+    const done = rowDoneNetForView(row, stages, view)
+    bySection.set(row.sectionId, (bySection.get(row.sectionId) ?? 0) + done)
+  }
+  return bySection
+}

@@ -47,6 +47,8 @@ export const COLUMN_LABELS: Record<string, string> = {
   stages: 'Etapy — ilość',
   stageValueNet: 'Etapy — kwota netto',
   stageValueGross: 'Etapy — kwota brutto',
+  stageValuePercent: 'Etapy — % wykonania',
+  donePercent: '% wykonania',
 }
 
 // Each stage axis hides under ONE picker entry rather than one per `stage_<id>`: a row per stage is
@@ -56,6 +58,7 @@ export const COLUMN_LABELS: Record<string, string> = {
 export const STAGES_COLUMN_GROUP = 'stages'
 export const STAGE_VALUE_NET_COLUMN_GROUP = 'stageValueNet'
 export const STAGE_VALUE_GROSS_COLUMN_GROUP = 'stageValueGross'
+export const STAGE_VALUE_PERCENT_COLUMN_GROUP = 'stageValuePercent'
 
 // The qty axis's prefix — the one axis whose key IS a row field. diffRow (v2-rows.ts) classifies
 // every key on the row by it, so it decides what gets saved as stage progress; the two value
@@ -72,6 +75,10 @@ export function stageValueNetKey(stageId: number): string {
 
 export function stageValueGrossKey(stageId: number): string {
   return `${STAGE_VALUE_GROSS_COLUMN_GROUP}_${stageId}`
+}
+
+export function stageValuePercentKey(stageId: number): string {
+  return `${STAGE_VALUE_PERCENT_COLUMN_GROUP}_${stageId}`
 }
 
 // Which side of the netto/brutto pair a money column reports, keyed by the picker's toggleKey
@@ -91,6 +98,16 @@ export const COLUMN_MONEY_AXIS: Record<string, 'net' | 'gross'> = {
   remainingGross: 'gross',
   [STAGE_VALUE_NET_COLUMN_GROUP]: 'net',
   [STAGE_VALUE_GROSS_COLUMN_GROUP]: 'gross',
+}
+
+// Which reading of stage progress a column is — money or percentage. Same toggleKey keying and
+// fail-open contract as COLUMN_MONEY_AXIS above. `stageValuePercent` is deliberately absent from
+// COLUMN_MONEY_AXIS: a percentage is the same number netto or brutto, so it survives every axis.
+// The per-row `donePercent` is untagged too — it is the headline figure, not a mode's alternative.
+export const COLUMN_PROGRESS_DISPLAY: Record<string, 'values' | 'percent'> = {
+  [STAGE_VALUE_NET_COLUMN_GROUP]: 'values',
+  [STAGE_VALUE_GROSS_COLUMN_GROUP]: 'values',
+  [STAGE_VALUE_PERCENT_COLUMN_GROUP]: 'percent',
 }
 
 // `price` is the only editable money cell — the owner types prices while reading brutto, so the mode

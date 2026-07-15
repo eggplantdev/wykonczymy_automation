@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
+  rowDoneFraction,
   rowNetForView,
   rowPlannedNetForView,
   rowRemainingForView,
   sectionSubtotalsForView,
+  stageDoneFraction,
   stageValueForView,
 } from '@/lib/kosztorys/calc'
 import type { KosztorysV2RowT, ViewPricingT } from '@/types/kosztorys'
@@ -80,6 +82,42 @@ describe('stageValueForView', () => {
       const noMeasure = { ...discounted, measuredQty: 0 }
       expect(Number.isFinite(stageValueForView(noMeasure, 3, 'client'))).toBe(true)
     })
+  })
+})
+
+describe('stageDoneFraction / rowDoneFraction', () => {
+  it('fraction = stage qty / measured qty', () => {
+    expect(stageDoneFraction(item, 3)).toBe(0.3) // 3 / 10
+    expect(rowDoneFraction(item, 7)).toBe(0.7)
+  })
+
+  // The whole reason the fraction is computed from QUANTITIES: price and discount cancel out in the
+  // share, so one percentage holds across every view — otherwise "75%" would mean a different thing
+  // in each of them.
+  it('agrees with the value share — discount included', () => {
+    for (const discounted of [
+      item,
+      { ...item, discountType: 'percent' as const, discountValue: 10 },
+      // 40, not 100: an amount discount at/over a view's gross drives that view's net to 0, and the
+      // value share then has no denominator — the quantity fraction still holds, which is the point.
+      { ...item, discountType: 'amount' as const, discountValue: 40 },
+    ]) {
+      for (const view of ['client', 'w_tools', 'own_tools'] as const) {
+        const valueShare = stageValueForView(discounted, 3, view) / rowNetForView(discounted, view)
+        expect(stageDoneFraction(discounted, 3)).toBeCloseTo(valueShare, 10)
+      }
+    }
+  })
+
+  it('no measured qty → null (no denominator), never zero and never Infinity', () => {
+    const noMeasure = { ...item, measuredQty: 0 }
+    expect(stageDoneFraction(noMeasure, 3)).toBeNull()
+    expect(rowDoneFraction(noMeasure, 3)).toBeNull()
+  })
+
+  it('overshooting the measured qty passes through unclamped — it signals bad data', () => {
+    expect(stageDoneFraction(item, 12)).toBe(1.2)
+    expect(rowDoneFraction(item, 15)).toBe(1.5)
   })
 })
 
