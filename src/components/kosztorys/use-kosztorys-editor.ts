@@ -7,6 +7,7 @@ import { useColumnWidths } from '@/components/kosztorys/use-column-widths'
 import { useHiddenColumns } from '@/components/kosztorys/use-hidden-columns'
 import { useMoneyAxis } from '@/components/kosztorys/use-money-axis'
 import { usePriceView } from '@/components/kosztorys/use-price-view'
+import { useProgressDisplay } from '@/components/kosztorys/use-progress-display'
 import { useElementHeight } from '@/hooks/use-element-height'
 import { toastMessage } from '@/lib/utils/toast'
 import {
@@ -37,6 +38,7 @@ import {
   NEW_SECTION_DEFAULTS,
   stageValueGrossKey,
   stageValueNetKey,
+  stageValuePercentKey,
 } from '@/lib/kosztorys/constants'
 import {
   rowNetForView,
@@ -111,6 +113,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   const { widths, setWidth, dropWidth } = useColumnWidths()
   const { isHidden, toggleColumn } = useHiddenColumns()
   const [moneyAxis, setMoneyAxis] = useMoneyAxis()
+  const [progressDisplay, setProgressDisplay] = useProgressDisplay()
   const [guideX, setGuideX] = useState<number | null>(null)
   // Snapshot of the previous rows for diffing (keyed by item id) — the full dataset, not the view.
   // It also serves as the "fresh dataset" read by structural event handlers (section count):
@@ -146,6 +149,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     onSetSort: setSortField,
     isHidden,
     moneyAxis,
+    progressDisplay,
     widths,
     onGuide: setGuideX,
     onCommitColumn: setWidth,
@@ -350,7 +354,12 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     }
     setStages((s) => s.filter((st) => st.id !== stageId))
     const key = stageKey(stageId)
-    dropWidth(key, stageValueNetKey(stageId), stageValueGrossKey(stageId))
+    dropWidth(
+      key,
+      stageValueNetKey(stageId),
+      stageValueGrossKey(stageId),
+      stageValuePercentKey(stageId),
+    )
     patchRows(
       () => true,
       (r) => {
@@ -537,6 +546,8 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     toggleColumn,
     moneyAxis,
     setMoneyAxis,
+    progressDisplay,
+    setProgressDisplay,
     viewRows,
     view,
     sort,

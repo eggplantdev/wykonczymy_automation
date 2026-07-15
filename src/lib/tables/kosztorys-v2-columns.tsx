@@ -11,9 +11,11 @@ import { ResizableHeader } from '@/components/kosztorys/column-resize-handle'
 import {
   effectiveCoeff,
   rowDiscountForView,
+  rowDoneFraction,
   rowNetForView,
   rowPlannedNetForView,
   rowRemainingForView,
+  stageDoneFraction,
   stageValueForView,
   toGross,
   viewPrice,
@@ -28,14 +30,26 @@ import {
   STAGE_QTY_PREFIX,
   STAGE_VALUE_GROSS_COLUMN_GROUP,
   STAGE_VALUE_NET_COLUMN_GROUP,
+  STAGE_VALUE_PERCENT_COLUMN_GROUP,
   STAGES_COLUMN_GROUP,
   UNIT_SUGGESTIONS,
   stageValueGrossKey,
   stageValueNetKey,
+  stageValuePercentKey,
 } from '@/lib/kosztorys/constants'
 import { MONEY_AXIS_DEFAULT, axisAllows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
-import { formatNet as fmt } from '@/lib/kosztorys/format'
-import { rowDoneNetForView, stageKey, type SortDirT } from '@/lib/kosztorys/v2-rows'
+import {
+  PROGRESS_DISPLAY_DEFAULT,
+  progressDisplayAllows,
+  type ProgressDisplayT,
+} from '@/lib/kosztorys/progress-display'
+import { formatNet as fmt, formatPercent } from '@/lib/kosztorys/format'
+import {
+  rowDoneNetForView,
+  rowTotalQtyDone,
+  stageKey,
+  type SortDirT,
+} from '@/lib/kosztorys/v2-rows'
 import type {
   DiscountTypeT,
   KosztorysStageT,
@@ -92,6 +106,9 @@ export type BuildV2ColumnsOptsT = {
   // Money axis: narrows the picker's answer further, never widens it. Omitted = 'both' = every
   // column the picker allows, which is what buildV2ToggleItems (axis-blind by design) assumes.
   moneyAxis?: MoneyAxisT
+  // Progress display: narrows the same way the money axis does, on the other axis — a stage's
+  // progress reads either as money or as a percentage, never as both at once.
+  progressDisplay?: ProgressDisplayT
   // Resize: pinned column widths (id→px) + drag callbacks. When provided, every column
   // gets a handle; pinned ones get basis/grow:0 (the rest stay on flex).
   widths?: Record<string, number>
@@ -159,6 +176,8 @@ const HEADER_TIPS: Record<string, string> = {
   remaining:
     'Pozostało netto = Netto − suma wartości etapów wpisanych w tym wierszu.\nIle z wartości pozycji nie zostało jeszcze rozliczone etapami. Pusty wiersz etapów = całe Netto zostaje.',
   remainingGross: 'Pozostało brutto = Pozostało netto × (1 + VAT).',
+  donePercent:
+    '% wykonania = suma ilości ze wszystkich etapów ÷ Pomiar.\nIle procent pozycji jest zrobione. Nie zależy od widoku cen ani od netto/brutto — cena i rabat się skracają.\n„—" = brak Pomiaru, więc nie ma czego dzielić (to nie to samo co 0%). Powyżej 100% = wpisano więcej niż wynosi Pomiar; wartość nie jest przycinana, bo to sygnał błędu w danych.',
   // The three stage axes key by column GROUP, not by column id — every stage's column shares its
   // axis's tip, because the only thing that differs between them is the stage's name.
   [STAGES_COLUMN_GROUP]:
@@ -166,6 +185,8 @@ const HEADER_TIPS: Record<string, string> = {
   [STAGE_VALUE_NET_COLUMN_GROUP]:
     'Etap — kwota netto = ilość wykonana w tym etapie × Cena j.m. − udział etapu w rabacie.\nUdział jest proporcjonalny do ilości (rabat zł jest rabatem od całego wiersza, więc etap niesie tylko swoją część). Kwoty wszystkich etapów sumują się do Netto pozycji.\nZależy od aktywnego widoku cen.',
   [STAGE_VALUE_GROSS_COLUMN_GROUP]: 'Etap — kwota brutto = Etap — kwota netto × (1 + VAT).',
+  [STAGE_VALUE_PERCENT_COLUMN_GROUP]:
+    'Etap — % wykonania = ilość wykonana w tym etapie ÷ Pomiar.\nTa sama liczba przy każdym widoku cen i po obu stronach netto/brutto — cena i rabat się skracają. Kolumny procentowe etapów sumują się do kolumny „% wykonania".\n„—" = brak Pomiaru.',
 }
 
 // Header-tip presentation (delay, width, pre-line) in one place, so retuning it is one edit.
@@ -202,18 +223,23 @@ function title(field: string, label: string, opts: BuildV2ColumnsOptsT): ReactNo
   return tip ? withTip(node, tip) : node
 }
 
+// `null` = the figure has no answer for this row (no denominator), rendered as a dash by every
+// formatter here rather than as a 0 that would read as a real measurement.
+const fmtOrDash = (value: number | null) => (value == null ? '—' : fmt(value))
+
 function computedColumn(
   id: string,
   titleNode: ReactNode,
-  compute: (r: KosztorysV2RowT) => number,
+  compute: (r: KosztorysV2RowT) => number | null,
   className = 'text-muted-foreground',
+  format: (value: number | null) => string = fmtOrDash,
 ): Column<KosztorysV2RowT> {
   return {
     id,
     title: titleNode,
     disabled: true,
     component: ({ rowData }) => (
-      <span className={`block w-full px-2 text-left ${className}`}>{fmt(compute(rowData))}</span>
+      <span className={`block w-full px-2 text-left ${className}`}>{format(compute(rowData))}</span>
     ),
   }
 }
@@ -632,6 +658,31 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     )
   })
 
+  // The percent reading of the same stage block: one column per stage instead of the netto/brutto
+  // pair, since a percentage is the same figure on either side of the VAT.
+  const stageValuePercentCols: Column<KosztorysV2RowT>[] = stages.map((st) => {
+    const qtyKey = stageKey(st.id)
+    return computedColumn(
+      stageValuePercentKey(st.id),
+      stageValueHeader(st, '%', HEADER_TIPS[STAGE_VALUE_PERCENT_COLUMN_GROUP]),
+      (r) => stageDoneFraction(r as unknown as ViewPricingT, r[qtyKey] ?? 0),
+      'text-muted-foreground',
+      formatPercent,
+    )
+  })
+
+  // The row's headline figure — available in both display modes, hence untagged: it answers "how far
+  // along is this position", which the money columns never say outright.
+  const donePercent: Column<KosztorysV2RowT>[] = [
+    computedColumn(
+      'donePercent',
+      title('donePercent', COLUMN_LABELS.donePercent, opts),
+      (r) => rowDoneFraction(r as unknown as ViewPricingT, rowTotalQtyDone(r, stages)),
+      'font-medium',
+      formatPercent,
+    ),
+  ]
+
   const computed: Column<KosztorysV2RowT>[] = [
     computedColumn('plannedNet', title('plannedNet', COLUMN_LABELS.plannedNet, opts), (r) =>
       rowPlannedNetForView(r as unknown as ViewPricingT, view),
@@ -680,6 +731,8 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     ...computed,
     ...stageValueNetCols,
     ...stageValueGrossCols,
+    ...stageValuePercentCols,
+    ...donePercent,
     ...remaining,
   ]
 }
@@ -692,15 +745,19 @@ function toggleKey(columnId: string): string {
   if (columnId.startsWith(`${STAGE_VALUE_GROSS_COLUMN_GROUP}_`)) {
     return STAGE_VALUE_GROSS_COLUMN_GROUP
   }
+  if (columnId.startsWith(`${STAGE_VALUE_PERCENT_COLUMN_GROUP}_`)) {
+    return STAGE_VALUE_PERCENT_COLUMN_GROUP
+  }
   return columnId.startsWith(STAGE_QTY_PREFIX) ? STAGES_COLUMN_GROUP : columnId
 }
 
 export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[] {
   const axis = opts.moneyAxis ?? MONEY_AXIS_DEFAULT
+  const display = opts.progressDisplay ?? PROGRESS_DISPLAY_DEFAULT
   const base = assembleV2Columns(opts)
     .filter((c) => {
       const key = toggleKey(c.id ?? '')
-      return !opts.isHidden?.(key) && axisAllows(key, axis)
+      return !opts.isHidden?.(key) && axisAllows(key, axis) && progressDisplayAllows(key, display)
     })
     .map((c) => withResize(c, opts))
   return opts.onRemoveItem || opts.onReorderItem ? [actionColumn(opts), ...base] : base

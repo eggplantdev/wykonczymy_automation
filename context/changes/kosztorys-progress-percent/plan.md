@@ -278,17 +278,17 @@ None — no schema or stored-data changes. The new localStorage key is self-init
 
 #### Automated
 
-- [x] 1.1 New/extended unit tests pass: `pnpm exec vitest run src/__tests__/kosztorys-progress-display.test.ts src/__tests__/kosztorys-calc.test.ts src/__tests__/kosztorys-v2-rows.test.ts`
-- [x] 1.2 Type checking passes: `pnpm typecheck`
-- [x] 1.3 Linting passes: `pnpm lint`
+- [x] 1.1 New/extended unit tests pass: `pnpm exec vitest run src/__tests__/kosztorys-progress-display.test.ts src/__tests__/kosztorys-calc.test.ts src/__tests__/kosztorys-v2-rows.test.ts` — 63c8a32
+- [x] 1.2 Type checking passes: `pnpm typecheck` — 63c8a32
+- [x] 1.3 Linting passes: `pnpm lint` — 63c8a32
 
 ### Phase 2: Grid columns react to the display mode
 
 #### Automated
 
-- [ ] 2.1 Full unit suite passes: `pnpm test`
-- [ ] 2.2 Type checking passes: `pnpm typecheck`
-- [ ] 2.3 Linting passes: `pnpm lint`
+- [x] 2.1 Full unit suite passes: `pnpm test`
+- [x] 2.2 Type checking passes: `pnpm typecheck`
+- [x] 2.3 Linting passes: `pnpm lint`
 
 ### Phase 3: Toolbar toggle + progress counter + section done %
 
