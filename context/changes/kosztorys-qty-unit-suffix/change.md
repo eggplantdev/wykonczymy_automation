@@ -1,18 +1,18 @@
 ---
 change-id: kosztorys-qty-unit-suffix
-status: parked
+status: cancelled
 created: 2026-07-15
-updated: 2026-07-15
+updated: 2026-07-16
 ---
 
 # Sufiks jednostki w komórce Pomiar (prototyp)
 
-> **Zaparkowane 2026-07-15.** Prototyp był zaimplementowany i przechodził typecheck + lint, ale
-> nigdy nie został obejrzany na żywo — sufiks wycofano z kolumny Pomiar, zanim zdążył zarobić na
-> siebie wizualnie. Kod cofnięty; kolumna to znów `keyCol('measuredQty', floatColumnLeft, …)`.
-> Dokument zostaje dla **mechaniki**, nie dla decyzji produktowej — patrz „Mechanika do reużycia"
-> niżej i `plan.md` (Key Discoveries). Wzorzec przyda się wszędzie tam, gdzie komórka dsg musi
-> czytać więcej niż jedno pole wiersza.
+> **Trwale anulowane 2026-07-16.** Właściciel obejrzał sufiks na żywo (POC na kolumnach etapów) i
+> ocenił, że wygląda źle — pomysł jest zamknięty, nie wraca. POC cofnięty, nic nie wylądowało.
+> Dokument zostaje wyłącznie jako zapis **mechaniki dsg** (patrz niżej i `plan.md` Key Discoveries),
+> nie jako otwarta decyzja produktowa. Uwaga: pierwotny cel (`measuredQty` / kolumna Pomiar) już nie
+> istnieje jako pole edytowalne — [[project_kosztorys_stages_truth_ready]] zamienił Pomiar z natury na
+> kolumnę wyliczaną i usunął `measured_qty`.
 
 ## Mechanika do reużycia
 
