@@ -85,8 +85,11 @@ decyzji właściciela (cena klienta = faktura vs cena podwykonawcy = wypłata). 
 
 ## Zakładka `Podsumowanie` (2026-07-15 — wcześniej nieudokumentowana)
 
-Pełna lista zakładek: `kosztorys_robocizny` · `zakres pracy z narzędziami` ·
-`zakres pracy z bez narzędzi` · **`Podsumowanie`** · `materiały` · `pokoje`.
+Pełna lista zakładek (9, zweryfikowana na żywym arkuszu 2026-07-15 — wcześniej
+wymienialiśmy 6, bez luster): `kosztorys_robocizny` · **`Podsumowanie`** ·
+`materiały` · `pokoje` · `zakres pracy z narzędziami` · `zakres pracy z bez narzędzi` ·
+`wydatki inwestycyjne (tylko do odczytu)` · `transfery (tylko do odczytu)` ·
+`rozliczone R+M (tylko do odczytu)`.
 
 ```
 Robocizna / Materiały / Łącznie      (B6 = robocizny!T395, B7 = robocizny!T398)
@@ -102,6 +105,17 @@ Wyburzenia i demontaże     6 900 zł   45,1%
 - Rozbicie **Robocizna / Materiały / Łącznie** — appka tego nie ma.
 - Panel sum w appce (`kosztorys-section-summary.tsx`) pokrywa tylko sumy sekcji + Suma netto/brutto.
   Reszta = luka parytetu, bez slice'a. Roadmap: pytanie 12a.
+
+- **`Materiały` (`B7`) ciągnie z lustra, nie z zakładki `materiały`** — widoczne dopiero na żywym
+  arkuszu (Altowa 12, 2026-07-15): `B7 → kosztorys_robocizny!S459 → 'wydatki inwestycyjne (tylko do
+odczytu)'!H3 → =SUM(E:E)`. Czyli klient w V1 **już** widzi wydatki z apki, a v2 nie odtwarza
+  połączenia od zera, tylko przenosi je do bazy. Lustro ma gotowy rozbiór `Materiały budowlane` /
+  `Pozostałe koszty` — kandydat na kształt figury w v2.
+- **`transfery!K3 = SUMIF(C:C; "Rabat"; E:E)` istnieje i nikt go nie czyta** — żadna formuła nie
+  sięga po tę sumę. Miejsce na podpięcie rabatu stoi gotowe i puste.
+- **Rabatu za całość w V1 nie ma** (sprawdzone na wzorcu i na żywym arkuszu): `Podsumowanie` to
+  `Robocizna + Materiały = Łącznie`, jedyny działający rabat to `R` — procent per wiersz. Globalny
+  rabat (`kosztorys-global-discount`) jest więc **nową robotą bez parytetu**.
 
 **Uwaga — w szablonie te referencje są zepsute:** `B6`/`B7` wskazują na `T395`/`T398`, czyli
 **wiersze pozycji** (pusta pozycja w „Kuchnia", „Sufit podwieszany" w „Wiatrołap"), a nie na sumy
@@ -339,6 +353,26 @@ this section is the original phrasing/context for those questions.
   (informacyjna, postępowa). Rozważyć nazwę „pozostało do wykonania".
 
 ### Robocizna ↔ rozliczenia
+
+- **Kosztorys = dokument dla klienta; docelowo wchłania całe koszty inwestycji**
+  (właściciel, 2026-07-15). „To kosztorys finalnie trafia do klienta. Tam mamy
+  wszystkie prace, plus wydatki na materiały i tak dalej, plus koszt robocizny."
+  Czyli rozpiska prac to **część** docelowego kosztorysu, nie całość: dochodzą
+  materiały (`INVESTMENT_EXPENSE`) i robocizna (`LABOR_COST`).
+
+  **Oderwany jest edytor v2 — nie V1**, gdzie lustro `INVESTMENT_EXPENSE` (PRD
+  FR-014, `prd.md:30`) już te koszty wnosi. Skutek dla v2, ważny przy każdej
+  figurze pieniężnej w edytorze: **marża liczy się wyłącznie z transferów**
+  (`robocizna − wypłaty − rabat − strata`), a kosztorys v2 w nią nie wchodzi —
+  rabat wpisany w edytorze obniża tylko wartość kosztorysu. To nie bug edytora,
+  to nieodtworzone połączenie. Pierwszy kawałek = parytet `Podsumowania`
+  (roadmap 12a); slice'a na samo łączenie brak.
+
+  Konsekwencja dla P5 niżej: to nie jest wąskie pytanie „czy suma ustawia
+  `LABOR_COST`", tylko **kierunek zależności między dwiema płaszczyznami**, które
+  mają się zejść. Parytet zakładki `Podsumowanie` (roadmap 12a, `roadmap.md:546`)
+  jest tego pierwszym kawałkiem — arkusz **już** dzieli na Robocizna/Materiały/
+  Łącznie, appka ma tylko sumy sekcji. Brak slice'a na samo łączenie.
 
 - **P5.** Czy suma rozpiski robocizny ma **automatycznie** ustawiać kwotę
   `LABOR_COST` (Koszty robocizny), czy zostaje ona osobną, ręczną transakcją

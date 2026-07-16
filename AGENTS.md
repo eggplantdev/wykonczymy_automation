@@ -6,6 +6,53 @@ Only what's true for THIS repo and not inferable from the framework or `@package
 
 Business management dashboard for cash registers, transfers, investments, and employees. Next.js + Payload CMS. **Polish UI, English code.** Code comments are always in English, even when the UI strings they sit next to are Polish. Versions in `@package.json`.
 
+## The Owner's Reference Sheet (read this before touching kosztorys)
+
+The kosztorys editor is a port of a live Google Sheet. **The sheet is the domain authority** — when a
+question is "what does this figure mean to the business", read the sheet's formulas, don't reason from
+our code. Ours is the copy; theirs is the original.
+
+**One register per message — never mixed.** Talk kosztorys in the sheet's names: „Przedmiar", „Pomiar
+z natury", „etapy", „Cena j.m.", „rabat", „Wartość netto przedmiar". **Never** `plannedQty` /
+`measuredQty` / `rowValueForView`, and never both registers in one message — not even as a
+parenthetical gloss or a mapping column. Sheet names for any domain/design conversation; code
+identifiers only in code review, implementation notes, and commits. The user reasons about the
+business, so translating between the two is the agent's job, silently — the mapping belongs in
+`context/reference/kosztorys-editor-domain-notes.md`, not in the conversation.
+
+**Current reference** — _"Kopia aktualny arkusz 16 lipca 2026 - wersja w jakiej klient dostaje to
+wstępnie"_, i.e. the state a client receives as an initial offer:
+
+```
+1kEWaMv9KRRXVaSMu3AJRw_ptxucnF4oafLR74VWeRHg    # tab kosztorys_robocizny, gid=70964819
+```
+
+Shared read-only with the service account in `GOOGLE_SERVICE_ACCOUNT_JSON`. Read it with the existing
+inspector — it dumps **formulas and values side by side**, which is the whole point (a formula is
+evidence, a rendered number is only a hint):
+
+```bash
+SHEET_ID=1kEWaMv9KRRXVaSMu3AJRw_ptxucnF4oafLR74VWeRHg TABS="kosztorys_robocizny" MAX_ROWS=464 \
+  node --env-file=./.env scripts/inspect-sheet.mjs > /tmp/sheet.txt
+```
+
+Screenshots of the client-facing offer view (which columns/rows the owner hides before sending, and
+the summary block at the bottom) — the target state the app must reach:
+
+- `context/reference/kosztorys-sheet/offer-view-rows.png` — filtered item rows
+- `context/reference/kosztorys-sheet/offer-view-footer.png` — summary block + section pie chart
+
+**Load-bearing structural facts** (verified across all 435 item rows, 2026-07-16):
+
+- `N` **Przedmiar** is typed by hand — the offered scope. `S` = `N × cena − rabat` = **the offer**.
+- `O` **Pomiar z natury** is **not typed — it is a formula**: `=SUM(D:M)`, the ten stage-quantity
+  columns. So in the owner's model **pomiar IS the stage sum**, and `T` = `O × cena − rabat` is what
+  has actually been executed. This is the fact EX-494 turns on.
+- The footer keeps `wartość netto` (`T456`) and `R netto - suma prac wykonannych` (`T463`) as separate
+  named rows — read them before assuming which figure the UI's "total" should be.
+
+Domain background (prose, may lag the sheet — verify against it): `context/reference/kosztorys-editor-domain-notes.md`.
+
 ## Backlog & Task Tracking
 
 - **Slices:** `context/foundation/roadmap.md` is the source of truth — the v2 arc (`F-01`, `S-01`…`S-10`) in dependency order, each with a `Status` field (`ready` / `proposed` / `blocked` / `done`). Start here for what to build next. Built from `context/foundation/prd.md` via `/10x-roadmap`; per-change plans land in `context/changes/<change-id>/` via `/10x-plan`.
