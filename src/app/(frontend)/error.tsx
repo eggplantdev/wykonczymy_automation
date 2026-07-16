@@ -17,7 +17,7 @@ export default function Error({
   }, [error])
 
   return (
-    <EmptyState title="Coś poszło nie tak" className="min-h-full">
+    <EmptyState title="Coś poszło nie tak">
       <Button variant="outline" onClick={() => reset()}>
         Spróbuj ponownie
       </Button>

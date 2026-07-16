@@ -55,7 +55,9 @@ async function AuthenticatedShell({ children }: { children: React.ReactNode }) {
           {/* transform-gpu forces a compositing layer: Safari otherwise fails to
               repaint content streamed into this overflow scroll container after
               the initial paint (blank until you scroll / move the cursor). */}
-          <main className="min-h-0 flex-1 transform-gpu overflow-y-auto">{children}</main>
+          <main className="flex min-h-0 flex-1 transform-gpu flex-col overflow-y-auto">
+            {children}
+          </main>
           <AppFooter />
         </div>
       </div>
