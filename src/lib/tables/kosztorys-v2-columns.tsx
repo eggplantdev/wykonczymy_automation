@@ -732,13 +732,12 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     ),
   ]
 
-  // The value block keeps sheet order (V–AE right before AF "pozostało"). The qty block does not:
-  // the sheet puts it first (D–M), but the owner wants it after J.m., next to the pomiar it is
-  // entered against.
+  // Both blocks keep sheet order: the stage qty columns lead (the sheet's D–M), then Przedmiar (N)
+  // and Pomiar z natury (O), then the value block (V–AE right before AF "pozostało").
   return [
     ...identity,
-    ...measure,
     ...stageCols,
+    ...measure,
     ...pricing,
     ...computed,
     ...stageValueNetCols,
