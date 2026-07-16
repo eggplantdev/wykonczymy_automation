@@ -96,7 +96,7 @@ describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', 
 
   async function createItem(
     sectionId: number,
-    data: { measuredQty?: number; plannedQty?: number; clientPrice?: number } = {},
+    data: { plannedQty?: number; clientPrice?: number } = {},
   ): Promise<number> {
     const item = await payload.create({
       collection: 'kosztorys-items',
@@ -105,7 +105,6 @@ describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', 
         section: sectionId,
         displayOrder: 0,
         plannedQty: data.plannedQty ?? 0,
-        measuredQty: data.measuredQty ?? 0,
         discountValue: 0,
         clientPrice: data.clientPrice ?? 0,
         hiddenInExport: false,
@@ -137,11 +136,10 @@ describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', 
     return res.rows.length > 0
   }
 
-  // Stage progress is the only thing "populated" means now. A leftover measured_qty must NOT wall
-  // the row off: nobody can type that number any more, so blocking on it would be a dead end.
-  it('(a) deletes an item carrying only a stale measured_qty (no stage progress)', async () => {
+  // Recorded stage progress is the only thing "populated" means — a row without it always deletes.
+  it('(a) deletes an item with no stage progress', async () => {
     const sectionId = await createSection()
-    const itemId = await createItem(sectionId, { measuredQty: 5 })
+    const itemId = await createItem(sectionId, { plannedQty: 5 })
 
     const res = await removeItemAction(itemId)
 

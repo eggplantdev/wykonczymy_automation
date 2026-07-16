@@ -151,7 +151,7 @@ const HEADER_TIPS: Record<string, string> = {
   unit: 'J.m. — jednostka miary (m², szt., mb…). Etykieta, nie wchodzi do obliczeń.',
   plannedQty:
     'Przedmiar — ilość planowana (z przedmiaru/oferty).\nNapędza Wartość przedmiaru (= Przedmiar × Cena − Rabat). Netto liczone jest z Pomiaru.',
-  measuredQty:
+  stageQtySum:
     'Pomiar — ilość faktycznie wykonana.\nTylko do odczytu: liczona automatycznie jako suma ilości ze wszystkich etapów. Napędza Netto = Pomiar × Cena − Rabat.',
   price:
     'Cena j.m. — cena jednostkowa przy aktywnym widoku cen (klient lub podwykonawca).\nW widokach wykonawcy edytowalna tylko przy „kwota stała" — w pozostałych trybach jest wyliczana (Cena klienta × Mnożnik).',
@@ -601,7 +601,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       minWidth: 90,
     }),
     {
-      ...computedColumn('measuredQty', title('measuredQty', COLUMN_LABELS.measuredQty, opts), (r) =>
+      ...computedColumn('stageQtySum', title('stageQtySum', COLUMN_LABELS.stageQtySum, opts), (r) =>
         rowTotalQtyDone(r, stages),
       ),
       minWidth: 90,

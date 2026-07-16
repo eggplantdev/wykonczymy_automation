@@ -652,13 +652,15 @@ Commit fazy 2: `1f0d93e`
 - [x] 3.3 Typecheck przechodzi: `pnpm typecheck`
 - [x] 3.4 Lint przechodzi: `pnpm lint`
 
+Commit fazy 3: `f01fd95`
+
 ### Phase 4: Sprzątanie martwego modelu
 
 #### Automated
 
-- [ ] 4.1 Migracja stosuje się lokalnie: `pnpm payload migrate`
-- [ ] 4.2 Typecheck po `pnpm generate:types` przechodzi: `pnpm typecheck`
-- [ ] 4.3 Cała suita jednostkowa przechodzi: `pnpm test`
-- [ ] 4.4 Lint przechodzi: `pnpm lint`
-- [ ] 4.5 Build przechodzi: `pnpm build`
-- [ ] 4.6 `grep -rn "measuredQty\|measured_qty" src/` nic nie zwraca
+- [x] 4.1 Migracja stosuje się lokalnie: `pnpm payload migrate`
+- [x] 4.2 Typecheck po `pnpm generate:types` przechodzi: `pnpm typecheck`
+- [x] 4.3 Cała suita jednostkowa przechodzi: `pnpm test`
+- [x] 4.4 Lint przechodzi: `pnpm lint`
+- [x] 4.5 Build przechodzi: `pnpm build`
+- [x] 4.6 `grep -rn "measuredQty\|measured_qty" src/` nic nie zwraca (pozostają tylko pliki migracji — DDL musi nazwać kolumnę)

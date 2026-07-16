@@ -32,7 +32,6 @@ const baseItem = {
   description: 'Malowanie',
   unit: 'm2',
   plannedQty: 5,
-  measuredQty: 5,
   discountType: null,
   discountValue: 0,
   clientPrice: 20,
@@ -157,11 +156,11 @@ describe('filterRows', () => {
 
 describe('sortRows', () => {
   const rows: KosztorysV2RowT[] = [
-    { id: 1, measuredQty: 3 } as KosztorysV2RowT,
-    { id: 2, measuredQty: 1 } as KosztorysV2RowT,
-    { id: 3, measuredQty: 2 } as KosztorysV2RowT,
+    { id: 1, plannedQty: 3 } as KosztorysV2RowT,
+    { id: 2, plannedQty: 1 } as KosztorysV2RowT,
+    { id: 3, plannedQty: 2 } as KosztorysV2RowT,
   ]
-  const get = (r: KosztorysV2RowT) => r.measuredQty
+  const get = (r: KosztorysV2RowT) => r.plannedQty
 
   it('asc / desc', () => {
     expect(sortRows(rows, get, 'asc').map((r) => r.id)).toEqual([2, 3, 1])
@@ -230,7 +229,6 @@ describe('wartość wiersza idzie za etapami', () => {
       globalWToolsCoeff: 0.65,
       globalOwnToolsCoeff: 0.55,
       clientPrice: 100,
-      measuredQty: 10,
       discountType: null,
       discountValue: 0,
       [stageKey(100)]: 0,
@@ -240,14 +238,6 @@ describe('wartość wiersza idzie za etapami', () => {
 
   const measured = row({ [stageKey(100)]: 4 }) // 4 zrobione → 400 netto
   const blank = row({}) // zero etapów
-
-  // Scaffolding: the field can still hold a stale number until phase 4 drops the column, so the rule
-  // "pomiar IS Σ stages" has to be asserted against a row where the two openly contradict. Once the
-  // field is gone the type carries this and the test goes with it.
-  it('wartość idzie za etapami nawet gdy pole pomiaru im przeczy', () => {
-    const conflicting = row({ plannedQty: 10, measuredQty: 999, [stageKey(100)]: 4 })
-    expect(rowValueForView(conflicting, stages, 'client')).toBe(400)
-  })
 
   describe('rowValueForView', () => {
     it('wartość to suma etapów × cena, wg ceny widoku', () => {
@@ -435,13 +425,6 @@ describe('planItemRemoval', () => {
     })
   })
 
-  // Postęp etapu to jedyne, co „wypełnia" wiersz — zostawiona liczba w pomiarze nie może go
-  // zamurować, bo nikt jej już nie wpisuje ani nie wyczyści.
-  it('wiersz z samą starą liczbą w pomiarze → usuwalny', () => {
-    const rows = [row(1, 10, { measuredQty: 3 }), row(2, 10), row(3, 20)]
-    expect(planItemRemoval(rows, rows[0], stages)).toEqual({ kind: 'remove-item' })
-  })
-
   it('wiersz z postępem etapu → zablokowane', () => {
     const rows = [row(1, 10, { [stageKey(100)]: 2 }), row(2, 20)]
     expect(planItemRemoval(rows, rows[0], stages)).toEqual({
@@ -461,23 +444,23 @@ describe('planItemRemoval', () => {
 
 describe('revertField', () => {
   const rows: KosztorysV2RowT[] = [
-    { id: 1, measuredQty: 8 } as KosztorysV2RowT,
-    { id: 2, measuredQty: 3 } as KosztorysV2RowT,
+    { id: 1, plannedQty: 8 } as KosztorysV2RowT,
+    { id: 2, plannedQty: 3 } as KosztorysV2RowT,
   ]
 
   it('cofa pole do wartości sprzed edycji, gdy current === attempted', () => {
-    const out = revertField(rows, 1, 'measuredQty', 5, 8) // 8 was entered, server rejected it → revert to 5
-    expect(out[0].measuredQty).toBe(5)
-    expect(out[1].measuredQty).toBe(3) // other row untouched
+    const out = revertField(rows, 1, 'plannedQty', 5, 8) // 8 was entered, server rejected it → revert to 5
+    expect(out[0].plannedQty).toBe(5)
+    expect(out[1].plannedQty).toBe(3) // other row untouched
   })
 
   it('nie nadpisuje świeższej edycji (current !== attempted)', () => {
-    const out = revertField(rows, 1, 'measuredQty', 5, 99) // since the error the user entered 8, not 99
-    expect(out[0].measuredQty).toBe(8)
+    const out = revertField(rows, 1, 'plannedQty', 5, 99) // since the error the user entered 8, not 99
+    expect(out[0].plannedQty).toBe(8)
   })
 
   it('nie rusza wierszy o innym id', () => {
-    const out = revertField(rows, 99, 'measuredQty', 0, 8)
+    const out = revertField(rows, 99, 'plannedQty', 0, 8)
     expect(out).toEqual(rows)
   })
 })

@@ -108,7 +108,6 @@ describe.skipIf(!ENV_READY)('restoreSnapshotAction — persisted state (DB)', ()
         section: section.id,
         displayOrder: 0,
         plannedQty: 0,
-        measuredQty: 0,
         discountValue: 0,
         clientPrice: 0,
         hiddenInExport: false,

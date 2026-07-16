@@ -18,7 +18,6 @@ const item: ViewPricingT = {
   description: 'Malowanie',
   unit: 'm2',
   plannedQty: 10,
-  measuredQty: 10,
   discountType: null,
   discountValue: 0,
   clientPrice: 20,
@@ -70,7 +69,7 @@ describe('stageValueForView', () => {
 // The share's denominator is now the stage sum handed in from the settlement layer, not a field on
 // the row: pomiar IS Σ stages, so a stage can only ever be a share of that sum.
 describe('netForQtyForView / stageValueForView — share of the stage sum', () => {
-  const totalQty = 8 // Σ etapów, deliberately ≠ plannedQty and ≠ measuredQty (both 10)
+  const totalQty = 8 // Σ etapów, deliberately ≠ plannedQty (10)
 
   for (const discount of [
     { discountType: 'percent' as const, discountValue: 10 },
@@ -97,9 +96,9 @@ describe('netForQtyForView / stageValueForView — share of the stage sum', () =
 })
 
 describe('stageDoneFraction / rowDoneFraction', () => {
-  // Fixture's plannedQty === measuredQty, which would pass with either denominator — every case that
-  // pins the anchor must drive them apart.
-  const planned20 = { ...item, plannedQty: 20, measuredQty: 10 }
+  // The denominator is the Przedmiar; the stage qty passed in is the numerator. They must differ, or
+  // the fraction would pass even if it divided by the wrong one.
+  const planned20 = { ...item, plannedQty: 20 }
 
   it('ułamek liczy się z Przedmiaru, nie z sumy etapów', () => {
     expect(rowDoneFraction(planned20, 19)).toBe(0.95) // 19 / 20
@@ -151,7 +150,7 @@ describe('stageDoneFraction / rowDoneFraction', () => {
 describe('rowPlannedNetForView', () => {
   // The fixture's plannedQty === the stage sum, which would pass even if the formula read the wrong
   // one — every case here must drive them apart.
-  const planned12 = { ...item, plannedQty: 12, measuredQty: 10 }
+  const planned12 = { ...item, plannedQty: 12 }
 
   it('liczy z przedmiaru, nie z sumy etapów', () => {
     expect(rowPlannedNetForView(planned12, 'client')).toBe(240) // 12 × 20

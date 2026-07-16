@@ -189,7 +189,6 @@ export function buildBlankRow(input: BlankRowInputT): KosztorysV2RowT {
     description: null,
     unit: DEFAULT_UNIT,
     plannedQty: 0,
-    measuredQty: 0,
     discountType: null,
     discountValue: 0,
     clientPrice: 0,

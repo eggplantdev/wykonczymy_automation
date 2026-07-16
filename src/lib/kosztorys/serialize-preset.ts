@@ -14,7 +14,6 @@ export async function serializeKosztorysAsPreset(investmentId: number): Promise<
     items: snapshot.items.map((item) => ({
       ...item,
       plannedQty: 0,
-      measuredQty: 0,
       discountType: null,
       discountValue: 0,
       hiddenInExport: false,

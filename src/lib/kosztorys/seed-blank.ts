@@ -28,7 +28,6 @@ export async function seedBlankKosztorys(
       displayOrder: 0,
       unit: DEFAULT_UNIT,
       plannedQty: 0,
-      measuredQty: 0,
       discountValue: 0,
       clientPrice: 0,
       hiddenInExport: false,

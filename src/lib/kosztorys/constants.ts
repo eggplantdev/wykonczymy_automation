@@ -28,7 +28,7 @@ export const COLUMN_LABELS: Record<string, string> = {
   sectionName: 'Sekcja',
   description: 'Opis prac',
   plannedQty: 'Przedmiar',
-  measuredQty: 'Pomiar',
+  stageQtySum: 'Pomiar',
   unit: 'J.m.',
   priceMode: 'Źródło ceny wykonawcy',
   priceCoeff: 'Mnożnik',

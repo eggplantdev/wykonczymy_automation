@@ -58,11 +58,11 @@ export async function restoreKosztorys(
   if (items.length > 0) {
     const rows = items.map(
       (it) =>
-        sql`(${investmentId}, ${sectionIdMap.get(it.sectionId)}, ${it.displayOrder}, ${it.description ?? null}, ${it.unit ?? null}, ${it.plannedQty}, ${it.measuredQty}, ${it.discountType ?? null}, ${it.discountValue}, ${it.clientPrice}, ${it.wToolsOverrideType ?? null}, ${it.wToolsOverrideValue}, ${it.ownToolsOverrideType ?? null}, ${it.ownToolsOverrideValue}, ${it.costVariant ?? null}, ${it.hiddenInExport}, ${it.note ?? null})`,
+        sql`(${investmentId}, ${sectionIdMap.get(it.sectionId)}, ${it.displayOrder}, ${it.description ?? null}, ${it.unit ?? null}, ${it.plannedQty}, ${it.discountType ?? null}, ${it.discountValue}, ${it.clientPrice}, ${it.wToolsOverrideType ?? null}, ${it.wToolsOverrideValue}, ${it.ownToolsOverrideType ?? null}, ${it.ownToolsOverrideValue}, ${it.costVariant ?? null}, ${it.hiddenInExport}, ${it.note ?? null})`,
     )
     const res = await db.execute(sql`
       INSERT INTO kosztorys_items
-        (investment_id, section_id, display_order, description, unit, planned_qty, measured_qty,
+        (investment_id, section_id, display_order, description, unit, planned_qty,
          discount_type, discount_value, client_price, w_tools_override_type, w_tools_override_value,
          own_tools_override_type, own_tools_override_value, cost_variant, hidden_in_export, note)
       VALUES ${sql.join(rows, sql.raw(', '))}

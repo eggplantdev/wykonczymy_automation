@@ -28,7 +28,6 @@ export type KosztorysItemT = {
   description: string | null
   unit: string | null
   plannedQty: number
-  measuredQty: number
   discountType: DiscountTypeT | null
   discountValue: number
   clientPrice: number

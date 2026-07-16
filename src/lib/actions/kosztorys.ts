@@ -225,7 +225,6 @@ export async function addItemAction(
           displayOrder,
           unit: DEFAULT_UNIT,
           plannedQty: 0,
-          measuredQty: 0,
           discountValue: 0,
           clientPrice: 0,
           hiddenInExport: false,
@@ -270,7 +269,6 @@ export async function insertItemAction(
           displayOrder: parsed.data.atDisplayOrder,
           unit: DEFAULT_UNIT,
           plannedQty: 0,
-          measuredQty: 0,
           discountValue: 0,
           clientPrice: 0,
           hiddenInExport: false,
@@ -289,8 +287,7 @@ export async function removeItemAction(itemId: number) {
       const db = await getDb(payload)
       // Block: an item cascades stage_progress on delete — dropping a row that carries recorded
       // work silently loses it (mirrors removeStageAction). Recorded stage progress is the whole
-      // test: a leftover measured_qty is no longer an input, so blocking on it would wall the row
-      // off behind a value nobody can clear.
+      // test — it is the only per-item value a user cannot otherwise clear from the grid.
       const res = await db.execute(sql`
         SELECT 1 FROM kosztorys_items i
         WHERE i.id = ${itemId}

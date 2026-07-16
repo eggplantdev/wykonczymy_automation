@@ -127,7 +127,8 @@ Ręczne referencje gniją przy wstawianiu wierszy — argument za liczeniem tych
 ```
 kosztorys_sections   investment_id, name, display_order
 kosztorys_items      investment_id, section_id, display_order,
-                     description, unit, planned_qty (przedmiar), measured_qty (pomiar),
+                     description, unit, planned_qty (przedmiar),
+                     -- „pomiar z natury" NIE jest kolumną: = Σ stage_progress.qty_done (arkusz: O=SUM(D:M))
                      discount_type (%|kwota) + discount_value (rabat),
                      vat_rate? (override per pozycja — otwarte),
                      <CENY: patrz decyzja A/B otwarta>, note
@@ -236,34 +237,29 @@ Otwarte: która ilość na ofercie — przedmiar (oferta wstępna) czy pomiar
 - **Sekcje w pełni edytowalne:** dodawanie, zmiana nazwy, zmiana kolejności
   (`display_order`); nagłówek + suma sekcji (liczona). Dowolna liczba pozycji
   w sekcji (bez limitu).
-- **Przedmiar vs pomiar = dwie zwykłe kolumny**, obie edytowalne, obie zapisane,
-  niezależne. Przedmiar = ilość z wyceny; pomiar z natury = ilość zmierzona.
-  **Wartość liczy się z pomiaru.** Bez „nadpisywania", bez dwóch sum (w szablonie
-  pomiar startuje skopiowany z przedmiaru, żeby nie był pusty — to wszystko).
-- **Pomiar ≠ etapy to stan normalny, nie błąd** (właściciel, 2026-07-15; EX-489).
-  Pomiar jest pomiarem, etapy są zapisem faktycznie wykonanej pracy — rozjeżdżają
-  się rutynowo. Stąd reguła: **praca wpisana bez pomiaru MA wartość, i jest nią to,
-  co stoi w etapach.** Więc wartość wiersza to `pomiar × cena − rabat`, ale przy
-  pomiarze 0 (albo wyczyszczonym) — `Σ wartości etapów`.
+- **Dwa wejścia, nie trzy** (arkusz właściciela; EX-494, 2026-07-16). Właściciel wpisuje
+  **Przedmiar** (oferowany zakres) i **etapy** (faktycznie wykonana ilość). „Pomiar z natury"
+  **nie jest wpisywany** — w arkuszu to formuła `O = SUM(D:M)`, czyli **suma etapów**; nasz
+  edytor pokazuje ją jako kolumnę read-only. Wcześniej mieliśmy tu czwarte, niezależne pole
+  (`measured_qty`) — usunięte, bo dublowało sumę etapów i rozjeżdżało się z nią po cichu.
+  Kanon domenowy: `AGENTS.md` → „The Owner's Reference Sheet".
 
-  Dlaczego to nie kosmetyka: wcześniej taki wiersz wchodził do **licznika** ułamka
-  „Wykonano" (etapy się liczyły), ale nie do **mianownika** (`pomiar × cena` = 0).
-  Kosztorys zrobiony w całości czytał `150%`, a „Pozostało" pokazywało `−500` na
-  wierszu, w którym nic nie zostało do zrobienia — przy w pełni poprawnych danych.
+- **Oferta i wykonanie to dwie równoległe kwoty** (arkusz: `S` i `T`):
+  - **„Wartość netto przedmiar"** = `applyDiscount(Przedmiar × cena)` = arkuszowe `S` — oferta.
+  - **„Wartość netto"** = `applyDiscount(Σ etapów × cena)` = arkuszowe `T` — wykonanie.
+  - **„Pozostało do rozliczenia"** = `S − T`; przy pustym Przedmiarze „—" (brak mianownika).
+  - **„% wykonania"** = `Σ etapów / Przedmiar` (nie z sumy etapów — inaczej `Σ/Σ = 100%` wszędzie).
 
-  Konsekwencja architektoniczna: wartość wiersza zależy teraz od etapów, więc
-  `calc.ts` (czysta warstwa cenowa, `ViewPricingT` nie widzi etapów) **nie może** jej
-  policzyć. Warstwa rozliczeniowa — `rowValueForView`, `rowRemainingForView`,
-  `sectionSubtotalsForView` — mieszka w `v2-rows.ts`, które etapy zna. `rowNetForView`
-  zostaje w `calc.ts` i odpowiada **wyłącznie** „ile wart jest pomiar przy tej cenie";
-  nigdy nie jest wartością wiersza.
+  Konsekwencja architektoniczna: wartość wykonania zależy od etapów, więc `calc.ts` (czysta
+  warstwa cenowa, `ViewPricingT` nie widzi etapów) **nie może** jej policzyć. Warstwa
+  rozliczeniowa — `rowValueForView`, `rowRemainingForView`, `sectionSubtotalsForView` — mieszka
+  w `v2-rows.ts`, które etapy zna. `rowPlannedNetForView` (oferta = z Przedmiaru) zostaje w
+  `calc.ts`, bo jej ilością jest Przedmiar, a nie etapy.
 
-  Rozjazd zostaje **widoczny, nie wygładzony**: kolumna `% wykonania` świeci na
-  czerwono (`hasMeasurementMismatch`), gdy pomiar nie tłumaczy pracy — etapy go
-  przekraczają albo praca stoi bez pomiaru. Częściowo zrobiony wiersz to normalna
-  praca w toku i czerwony **nie** jest — inaczej cała siatka świeciłaby na zdrowym
-  kosztorysie. Skoro kwoty się teraz zgadzają, ta komórka jest jedynym miejscem,
-  które mówi, że dane wciąż wymagają człowieka.
+  Rozjazd zostaje **widoczny, nie wygładzony**: komórka `% wykonania` świeci na czerwono
+  (`hasStagesOverPlanned`), gdy `Σ etapów > Przedmiar` — praca przekroczyła oferowany zakres.
+  Częściowo zrobiony wiersz (`Σ etapów < Przedmiar`) to normalna praca w toku i czerwony **nie**
+  jest — inaczej cała siatka świeciłaby na zdrowym kosztorysie.
 
 - **Lista prac dynamiczna** (wiersze, bez limitu).
 - **Etapy dynamiczne** (wiersze `kosztorys_stages`; kolumny siatki renderowane

@@ -124,7 +124,6 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
         description: 'Malowanie',
         unit: 'm2',
         plannedQty: 10,
-        measuredQty: 8,
         clientPrice: 100,
         discountValue: 0,
         hiddenInExport: false,
@@ -141,7 +140,6 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
         description: 'Gruntowanie',
         unit: 'm2',
         plannedQty: 5,
-        measuredQty: 3,
         clientPrice: 40,
         discountType: 'percent',
         discountValue: 10,
@@ -158,7 +156,6 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
         description: 'Płytki',
         unit: 'm2',
         plannedQty: 20,
-        measuredQty: 20,
         clientPrice: 250,
         discountValue: 0,
         hiddenInExport: false,
@@ -233,7 +230,6 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     // Job fields are zeroed everywhere — proven on the PERSISTED tree, not just the preset payload.
     for (const item of after.items) {
       expect(item.plannedQty).toBe(0)
-      expect(item.measuredQty).toBe(0)
       expect(item.discountType).toBeNull()
       expect(item.discountValue).toBe(0)
       expect(item.hiddenInExport).toBe(false)
