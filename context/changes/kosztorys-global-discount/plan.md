@@ -408,16 +408,16 @@ throwaway pre-dogfooding). Apply locally with `pnpm payload migrate`; prod is a 
 
 #### Automated
 
-- [x] 2.1 Unit tests pass: `pnpm exec vitest run src/__tests__/kosztorys-calc.test.ts`
-- [x] 2.2 Type checking passes: `pnpm exec tsc --noEmit`
+- [x] 2.1 Unit tests pass: `pnpm exec vitest run src/__tests__/kosztorys-calc.test.ts` — 0b83052
+- [x] 2.2 Type checking passes: `pnpm exec tsc --noEmit` — 0b83052
 
 ### Phase 3: Action, editor wiring, column hiding
 
 #### Automated
 
-- [ ] 3.1 Type checking passes: `pnpm exec tsc --noEmit`
-- [ ] 3.2 Build passes: `pnpm build`
-- [ ] 3.3 Unit tests pass: `pnpm exec vitest run`
+- [x] 3.1 Type checking passes: `pnpm exec tsc --noEmit`
+- [x] 3.2 Build passes: `pnpm build`
+- [x] 3.3 Unit tests pass: `pnpm exec vitest run`
 
 ### Phase 4: UI — discount control + two total surfaces
 

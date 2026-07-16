@@ -54,8 +54,16 @@ const investmentCoeffsSchema = z
 // at the action regardless of UI guarding — a bad rate feeds every brutto figure (net × (1 + vatRate)).
 const investmentVatSchema = z.object({ vatRate: z.coerce.number().min(0).max(1) })
 
+// Per-investment global discount over the whole kosztorys. type null = none (clears the discount).
+// value is netto PLN ('amount') or percentage points ('percent'); never negative.
+const investmentGlobalDiscountSchema = z.object({
+  globalDiscountType: z.enum(['percent', 'amount']).nullable(),
+  globalDiscountValue: z.coerce.number().min(0),
+})
+
 export type SectionPatchT = z.infer<typeof sectionPatchSchema>
 export type InvestmentCoeffsPatchT = z.infer<typeof investmentCoeffsSchema>
+export type InvestmentGlobalDiscountPatchT = z.infer<typeof investmentGlobalDiscountSchema>
 
 // --- Field updates (autosave) ---
 
@@ -114,6 +122,24 @@ export async function updateInvestmentVatAction(investmentId: number, vatRate: n
     // vatRate is read from the investment and denormalized onto items only (getKosztorysTree),
     // so items is the sole tag needed — no kosztorysSections, unlike the coeff action which also
     // touches section-level figures.
+    ['kosztorysItems'],
+  )
+}
+
+export async function updateInvestmentGlobalDiscountAction(
+  investmentId: number,
+  patch: InvestmentGlobalDiscountPatchT,
+) {
+  return protectedAction(
+    'updateInvestmentGlobalDiscountAction',
+    async ({ payload }) => {
+      const parsed = validateAction(investmentGlobalDiscountSchema, patch)
+      if (!parsed.success) return parsed
+      await payload.update({ collection: 'investments', id: investmentId, data: parsed.data })
+      return { success: true }
+    },
+    // The active flag is denormalized onto items only (getKosztorysTree → globalDiscountActive),
+    // like vatRate — items is the sole tag needed.
     ['kosztorysItems'],
   )
 }

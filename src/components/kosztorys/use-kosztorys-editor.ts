@@ -44,7 +44,7 @@ import {
   stageValueNetKey,
   stageValuePercentKey,
 } from '@/lib/kosztorys/constants'
-import { viewPrice, type PriceViewT } from '@/lib/kosztorys/calc'
+import { globalDiscountAmount, viewPrice, type PriceViewT } from '@/lib/kosztorys/calc'
 import {
   addItemAction,
   addSectionAction,
@@ -56,12 +56,14 @@ import {
   setStageProgressAction,
   swapItemOrderAction,
   updateInvestmentCoeffsAction,
+  updateInvestmentGlobalDiscountAction,
   updateInvestmentVatAction,
   updateItemFieldAction,
   updateSectionFieldAction,
   updateStageFieldAction,
 } from '@/lib/actions/kosztorys'
 import type {
+  GlobalDiscountT,
   ItemPatchT,
   KosztorysStageT,
   KosztorysTreeT,
@@ -157,6 +159,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     onReorderItem: handleReorderItem,
     onInsertItem: handleInsertItem,
     getRemoveBlockReason,
+    globalDiscountActive: isGlobalDiscountActive(tree.globalDiscount),
   }
   const columns = buildV2Columns(columnOpts)
   const columnToggleItems = buildV2ToggleItems(columnOpts)
@@ -183,6 +186,16 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     () => subtotals.reduce((s, x) => s + x.plannedNet, 0),
     [subtotals],
   )
+
+  // Global discount amount + "do zapłaty", computed ONCE here off the executed total. Both total
+  // surfaces (the Sekcje Suma block and the totals bar) read these props — neither recomputes, so
+  // they can never disagree. When no discount is set the amount is 0 and doZaplaty === totalNet.
+  const globalDiscount = tree.globalDiscount
+  const discountAmount = useMemo(
+    () => globalDiscountAmount(totalNet, globalDiscount),
+    [totalNet, globalDiscount],
+  )
+  const doZaplatyNet = totalNet - discountAmount
 
   // Section coefficients (null = inherits the global) for the panel — from the tree, keyed by section id.
   const sectionCoeffs = new Map(
@@ -489,6 +502,22 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     if (res.success) router.refresh()
   }
 
+  // Setting/clearing the global discount flips per-item rabat on or off for every row. The active
+  // flag is denormalized on every row, so patch them all optimistically (same reason as vatRate);
+  // then persist + refresh so the panel, the derived totals, and column visibility (from `tree`) reconcile.
+  async function handleGlobalDiscountChange(next: GlobalDiscountT) {
+    const active = isGlobalDiscountActive(next)
+    patchRows(
+      () => true,
+      (r) => ({ ...r, globalDiscountActive: active }),
+    )
+    const res = await updateInvestmentGlobalDiscountAction(investmentId, {
+      globalDiscountType: next.type,
+      globalDiscountValue: next.value,
+    })
+    if (res.success) router.refresh()
+  }
+
   // Section coefficient (null = inherits the global) — patch only the rows of that section.
   async function handleSectionCoeffChange(
     sectionId: number,
@@ -571,6 +600,10 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     totalNet,
     totalPlannedNet,
     sectionCoeffs,
+    // global discount: one source for both total surfaces
+    globalDiscount,
+    discountAmount,
+    doZaplatyNet,
     // toolbar / panel state
     setView,
     search,
@@ -590,5 +623,6 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     handleGlobalCoeffChange,
     handleSectionCoeffChange,
     handleVatChange,
+    handleGlobalDiscountChange,
   }
 }

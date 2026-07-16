@@ -127,7 +127,18 @@ export type BuildV2ColumnsOptsT = {
   onReorderItem?: (row: KosztorysV2RowT, dir: 'up' | 'down') => void
   // Inserting a blank item above/below the row within its section.
   onInsertItem?: (row: KosztorysV2RowT, dir: 'above' | 'below') => void
+  // Global discount active → the four per-item discount columns are overridden, so drop them from
+  // the grid and the picker (the underlying data stays and returns when the discount is cleared).
+  globalDiscountActive?: boolean
 }
+
+// The four per-item rabat columns hidden while the global discount overrides them.
+const DISCOUNT_COLUMN_IDS = new Set([
+  'discountValue',
+  'discountType',
+  'discountAmount',
+  'discountAmountGross',
+])
 
 // keyColumn requires column: Column<Row[K]>. floatColumn/textColumn are nullable
 // (Column<number|null> / <string|null>), whereas the item fields are non-null. The cell type is
@@ -772,6 +783,7 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
   const base = assembleV2Columns(opts)
     .filter((c) => {
       const key = toggleKey(c.id ?? '')
+      if (opts.globalDiscountActive && DISCOUNT_COLUMN_IDS.has(key)) return false
       return (
         !opts.isHidden?.(key) &&
         axisAllows(key, axis) &&
@@ -790,6 +802,7 @@ export function buildV2ToggleItems(opts: BuildV2ColumnsOptsT): ColumnToggleItemT
   for (const col of assembleV2Columns(opts)) {
     const id = toggleKey(col.id ?? '')
     if (NON_HIDEABLE_COLUMNS.has(id) || items.some((i) => i.id === id)) continue
+    if (opts.globalDiscountActive && DISCOUNT_COLUMN_IDS.has(id)) continue
     items.push({ id, label: COLUMN_LABELS[id] ?? id, visible: !opts.isHidden?.(id) })
   }
   return items
