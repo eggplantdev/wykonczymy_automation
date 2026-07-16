@@ -1,5 +1,6 @@
 'use client'
 
+import type { FocusEvent, KeyboardEvent } from 'react'
 import { HintTooltip } from '@/components/ui/tooltip'
 
 type PropsT = {
@@ -15,6 +16,20 @@ type PropsT = {
 // Markup-coefficient field. Uncontrolled + `key` on the value (remount after router.refresh),
 // commit on blur/Enter — no useEffect (project rule). Empty + nullable = inherit (null).
 export function CoeffField({ label, hint, value, placeholder, nullable, onCommit }: PropsT) {
+  const commit = (e: FocusEvent<HTMLInputElement>) => {
+    const raw = e.target.value.trim().replace(',', '.')
+    if (raw === '') {
+      if (nullable) onCommit(null)
+      return
+    }
+    const n = Number(raw)
+    if (!Number.isNaN(n)) onCommit(n)
+  }
+
+  const commitOnEnter = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') e.currentTarget.blur()
+  }
+
   return (
     <label className="text-muted-foreground flex items-center gap-1 text-xs">
       {hint ? <HintTooltip content={hint}>{label}</HintTooltip> : label}
@@ -25,18 +40,8 @@ export function CoeffField({ label, hint, value, placeholder, nullable, onCommit
         defaultValue={value == null ? '' : String(value)}
         placeholder={placeholder != null ? String(placeholder) : ''}
         className="border-border h-6 w-14 rounded border bg-transparent px-1 text-right text-xs outline-none"
-        onBlur={(e) => {
-          const raw = e.target.value.trim().replace(',', '.')
-          if (raw === '') {
-            if (nullable) onCommit(null)
-            return
-          }
-          const n = Number(raw)
-          if (!Number.isNaN(n)) onCommit(n)
-        }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
-        }}
+        onBlur={commit}
+        onKeyDown={commitOnEnter}
       />
     </label>
   )
