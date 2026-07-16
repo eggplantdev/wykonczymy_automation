@@ -407,3 +407,16 @@ Setup: run the app against the **5435 test DB** (see intro). Log in as **OWNER/M
 ### Findings
 
 _(pending first pass)_
+
+## kosztorys-section-inline-rename — edytowalna komórka Sekcja
+
+**In review** — automated checks green (Phase 1 `abc1a1d`; typecheck/lint/unit clean). E2E deferred (patrz Testing Strategy w planie).
+
+### Phase 1: Editable Sekcja cell
+
+- [ ] Edycja komórki Sekcja i wyjście z pola (blur) zmienia nazwę na **każdym** wierszu tej sekcji w siatce.
+- [ ] Enter zatwierdza; Escape cofa do poprzedniej nazwy bez zapisu.
+- [ ] Panel sekcji pokazuje nową nazwę po zmianie z siatki.
+- [ ] Nowa nazwa przeżywa przeładowanie strony (zapisana).
+- [ ] Zaznaczenie komórki Sekcja i wciśnięcie Delete NIE czyści nazwy sekcji.
+- [ ] Ukrywanie/pokazywanie i zmiana szerokości kolumny Sekcja nadal działają.

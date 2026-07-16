@@ -1,7 +1,7 @@
 ---
 change_id: kosztorys-section-inline-rename
 title: Make the grid's Sekcja cell rename the whole section
-status: implementing
+status: implemented
 created: 2026-07-16
 updated: 2026-07-16
 archived_at: null

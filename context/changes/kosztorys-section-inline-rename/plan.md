@@ -171,6 +171,6 @@ before archiving.
 
 #### Automated
 
-- [x] 1.1 Type checking passes
-- [x] 1.2 Linting passes
-- [x] 1.3 Existing kosztorys unit tests pass
+- [x] 1.1 Type checking passes — abc1a1d
+- [x] 1.2 Linting passes — abc1a1d
+- [x] 1.3 Existing kosztorys unit tests pass — abc1a1d
