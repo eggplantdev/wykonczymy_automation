@@ -28,8 +28,6 @@ import { Combobox } from '@/components/ui/combobox'
 import { discountFromType, discountFromValue } from '@/lib/kosztorys/discount-edit'
 import { type ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
 import {
-  COLUMN_LABELS,
-  NON_HIDEABLE_COLUMNS,
   STAGE_QTY_PREFIX,
   STAGE_VALUE_GROSS_COLUMN_GROUP,
   STAGE_VALUE_NET_COLUMN_GROUP,
@@ -41,6 +39,7 @@ import {
   stageValueNetKey,
   stageValuePercentKey,
 } from '@/lib/kosztorys/constants'
+import { COLUMN_LABELS, NON_HIDEABLE_COLUMNS } from '@/lib/kosztorys/column-config'
 import { HEADER_TIPS } from '@/lib/kosztorys/header-tips'
 import { LAYER_DEFAULT, layerAllows } from '@/lib/kosztorys/layer'
 import { MONEY_AXIS_DEFAULT, axisAllows } from '@/lib/kosztorys/money-axis'

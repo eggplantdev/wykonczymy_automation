@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useSyncExternalStore } from 'react'
-import { DEFAULT_HIDDEN_COLUMNS } from '@/lib/kosztorys/constants'
+import { DEFAULT_HIDDEN_COLUMNS } from '@/lib/kosztorys/column-config'
 
 // Which grid columns the user hid, persisted in localStorage. Sparse: an absent key means "whatever
 // DEFAULT_HIDDEN_COLUMNS says", so a new column ships at its declared default without a migration

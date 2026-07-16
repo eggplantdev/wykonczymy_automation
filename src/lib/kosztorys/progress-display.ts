@@ -1,4 +1,4 @@
-import { COLUMN_PROGRESS_DISPLAY } from '@/lib/kosztorys/constants'
+import { COLUMN_PROGRESS_DISPLAY } from '@/lib/kosztorys/column-config'
 
 // The grid's third reading axis: a stage's progress reads as money or as a percentage. Modelled as a
 // checkbox pair (like the money and layer axes), so both readings can show at once or neither — `both`

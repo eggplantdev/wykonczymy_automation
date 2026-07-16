@@ -3,7 +3,7 @@ import {
   COLUMN_LABELS,
   COLUMN_MONEY_AXIS,
   COLUMN_PROGRESS_DISPLAY,
-} from '@/lib/kosztorys/constants'
+} from '@/lib/kosztorys/column-config'
 import { formatPercent, formatPercentPrecise } from '@/lib/kosztorys/format'
 import { progressDisplayAllows, type ProgressDisplayT } from '@/lib/kosztorys/progress-display'
 

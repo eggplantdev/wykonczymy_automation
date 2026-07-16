@@ -1,4 +1,4 @@
-import { COLUMN_LAYER, LAYER_NEUTRAL_COLUMNS } from '@/lib/kosztorys/constants'
+import { COLUMN_LAYER, LAYER_NEUTRAL_COLUMNS } from '@/lib/kosztorys/column-config'
 
 // The grid's fourth reading axis: a column belongs either to the work layer (the offer + its execution
 // value, plus the etapy-ilość inputs) or to the progress tracker (per-etap wartości, % wykonania,
