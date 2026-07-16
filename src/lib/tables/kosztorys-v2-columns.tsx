@@ -21,6 +21,7 @@ import {
 } from '@/lib/kosztorys/calc'
 import { Combobox } from '@/components/ui/combobox'
 import { discountFromType, discountFromValue } from '@/lib/kosztorys/discount-edit'
+import { parseDecimalInput } from '@/lib/kosztorys/parse-decimal-input'
 import { type ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
 import {
   COLUMN_LABELS,
@@ -450,14 +451,13 @@ function subcontractorCoeffColumn(
           }
           inputMode="decimal"
           onChange={(e) => {
-            const raw = e.target.value.trim().replace(',', '.')
-            if (raw === '') {
+            const parsed = parseDecimalInput(e.target.value)
+            if (parsed.kind === 'empty') {
               setRowData({ ...rowData, [typeField]: null, [valueField]: 0 })
               return
             }
-            const n = Number(raw)
-            if (Number.isNaN(n)) return
-            setRowData({ ...rowData, [typeField]: 'coeff', [valueField]: n })
+            if (parsed.kind === 'invalid') return
+            setRowData({ ...rowData, [typeField]: 'coeff', [valueField]: parsed.value })
           }}
         />
       )
@@ -494,14 +494,13 @@ function subcontractorPriceColumn(
           value={String(rowData[valueField] ?? '')}
           inputMode="decimal"
           onChange={(e) => {
-            const raw = e.target.value.trim().replace(',', '.')
-            if (raw === '') {
+            const parsed = parseDecimalInput(e.target.value)
+            if (parsed.kind === 'empty') {
               setRowData({ ...rowData, [typeField]: null, [valueField]: 0 })
               return
             }
-            const n = Number(raw)
-            if (Number.isNaN(n)) return
-            setRowData({ ...rowData, [typeField]: 'amount', [valueField]: n })
+            if (parsed.kind === 'invalid') return
+            setRowData({ ...rowData, [typeField]: 'amount', [valueField]: parsed.value })
           }}
         />
       )

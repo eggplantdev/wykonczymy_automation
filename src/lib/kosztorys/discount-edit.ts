@@ -1,3 +1,4 @@
+import { parseDecimalInput } from '@/lib/kosztorys/parse-decimal-input'
 import type { DiscountTypeT } from '@/types/kosztorys'
 
 // discountType and discountValue are two independent fields, and applyDiscount reads the type
@@ -12,12 +13,11 @@ const IMPLIED_TYPE: DiscountTypeT = 'percent'
 
 /** Editing the value: a number with no type set implies one; clearing the field drops the discount. */
 export function discountFromValue(current: DiscountPairT, raw: string): DiscountPairT | null {
-  const trimmed = raw.trim().replace(',', '.')
-  if (trimmed === '') return { discountType: null, discountValue: 0 }
-  const discountValue = Number(trimmed)
+  const parsed = parseDecimalInput(raw)
+  if (parsed.kind === 'empty') return { discountType: null, discountValue: 0 }
   // Reject rather than clear: mid-typing garbage ("1e", "-") must not wipe the row's discount.
-  if (Number.isNaN(discountValue)) return null
-  return { discountType: current.discountType ?? IMPLIED_TYPE, discountValue }
+  if (parsed.kind === 'invalid') return null
+  return { discountType: current.discountType ?? IMPLIED_TYPE, discountValue: parsed.value }
 }
 
 /** Editing the type: clearing it clears the value, so no orphan can be left behind. */
