@@ -6,7 +6,11 @@ import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import { getDb } from '@/lib/db/get-db'
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { seedBlankKosztorys } from '@/lib/kosztorys/seed-blank'
-import { DEFAULT_UNIT, NEW_SECTION_DEFAULTS } from '@/lib/kosztorys/constants'
+import {
+  DEFAULT_ITEM_DESCRIPTION,
+  DEFAULT_UNIT,
+  NEW_SECTION_DEFAULTS,
+} from '@/lib/kosztorys/constants'
 import type { ActionResultT } from '@/types/action'
 import type { ItemPatchT } from '@/types/kosztorys'
 
@@ -249,6 +253,7 @@ export async function addItemAction(
           investment: investmentId,
           section: sectionId,
           displayOrder,
+          description: DEFAULT_ITEM_DESCRIPTION,
           unit: DEFAULT_UNIT,
           plannedQty: 0,
           discountValue: 0,
@@ -293,6 +298,7 @@ export async function insertItemAction(
           investment: investmentId,
           section: parsed.data.sectionId,
           displayOrder: parsed.data.atDisplayOrder,
+          description: DEFAULT_ITEM_DESCRIPTION,
           unit: DEFAULT_UNIT,
           plannedQty: 0,
           discountValue: 0,

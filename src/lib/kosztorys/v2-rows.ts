@@ -4,7 +4,7 @@ import {
   rowPlannedNetForView,
   type PriceViewT,
 } from '@/lib/kosztorys/calc'
-import { DEFAULT_UNIT, STAGE_QTY_PREFIX } from '@/lib/kosztorys/constants'
+import { DEFAULT_ITEM_DESCRIPTION, DEFAULT_UNIT, STAGE_QTY_PREFIX } from '@/lib/kosztorys/constants'
 import type {
   CostVariantT,
   ItemPatchT,
@@ -195,7 +195,7 @@ export function buildBlankRow(input: BlankRowInputT): KosztorysV2RowT {
     id: input.id,
     sectionId: input.sectionId,
     displayOrder: input.displayOrder,
-    description: null,
+    description: DEFAULT_ITEM_DESCRIPTION,
     unit: DEFAULT_UNIT,
     plannedQty: 0,
     discountType: null,
