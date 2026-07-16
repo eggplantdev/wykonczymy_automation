@@ -1,7 +1,6 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { ColumnToggleMenu } from '@/components/ui/column-toggle-menu'
 import { KosztorysActionsMenu } from '@/components/kosztorys/kosztorys-actions-menu'
 import { KosztorysProgressCounter } from '@/components/kosztorys/kosztorys-progress-counter'
 import { useKosztorysEditorContext } from '@/components/kosztorys/use-kosztorys-editor-context'
@@ -14,8 +13,6 @@ export function KosztorysToolbarActions() {
     moneyAxis,
     investmentId,
     onOpenVersions,
-    columnToggleItems,
-    toggleColumn,
     summaryOpen,
     setSummaryOpen,
   } = useKosztorysEditorContext()
@@ -30,9 +27,6 @@ export function KosztorysToolbarActions() {
         moneyAxis={moneyAxis}
       />
       <KosztorysActionsMenu investmentId={investmentId} onOpenVersions={onOpenVersions} />
-      {/* ml-0: the picker's default ml-auto is for flat toolbars — this group is already
-          floated right. */}
-      <ColumnToggleMenu items={columnToggleItems} onToggle={toggleColumn} className="ml-0" />
       <Button
         size="sm"
         variant={summaryOpen ? 'default' : 'outline'}

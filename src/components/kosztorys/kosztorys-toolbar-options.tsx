@@ -2,9 +2,7 @@ import {
   Activity,
   Banknote,
   Coins,
-  Columns2,
   Hammer,
-  Layers,
   Percent,
   Receipt,
   Slash,
@@ -12,6 +10,7 @@ import {
   Wrench,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
+import type { PairAxisConfigT } from '@/lib/kosztorys/axis-checkboxes'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { LayerT } from '@/lib/kosztorys/layer'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
@@ -44,94 +43,47 @@ export const VIEW_LEGEND = [
   '🚫 Stawka wykonawcy bez narzędzi.',
 ].join('\n')
 
+// Two checkbox rows, not a tri-state toggle: both checked = the old „Bez filtra". The implicit
+// „both" value lives in MONEY_PAIR_CONFIG, not as a fourth option.
 export const MONEY_AXES: {
   value: MoneyAxisT
   label: string
-  hint: string
   icon: ReactNode
 }[] = [
-  {
-    value: 'net',
-    label: 'Netto',
-    hint: 'chowa kolumny brutto',
-    icon: <Coins className={ICON_CLASS} />,
-  },
-  {
-    value: 'gross',
-    label: 'Brutto',
-    hint: 'netto + VAT; chowa kolumny netto',
-    icon: <Receipt className={ICON_CLASS} />,
-  },
-  {
-    value: 'both',
-    label: 'Bez filtra',
-    hint: 'pokazuje netto i brutto obok siebie',
-    icon: <Columns2 className={ICON_CLASS} />,
-  },
+  { value: 'net', label: 'Netto', icon: <Coins className={ICON_CLASS} /> },
+  { value: 'gross', label: 'Brutto', icon: <Receipt className={ICON_CLASS} /> },
 ]
 
-export const AXIS_LEGEND = [
-  'Kwoty w tabeli:',
-  ...MONEY_AXES.map((axis) => `${axis.label} — ${axis.hint}.`),
-].join('\n')
+// Maps the Netto/Brutto checkbox pair onto the tri-state money axis (a=net, b=gross, both).
+export const MONEY_PAIR_CONFIG: PairAxisConfigT<MoneyAxisT> = {
+  a: 'net',
+  b: 'gross',
+  both: 'both',
+}
 
+// Single-select (a stage column is money OR percent) — stays a radio, not a checkbox pair.
 export const PROGRESS_DISPLAYS: {
   value: ProgressDisplayT
   label: string
-  hint: string
   icon: ReactNode
 }[] = [
-  {
-    value: 'values',
-    label: 'Kwoty',
-    hint: 'etapy pokazują kwoty',
-    icon: <Banknote className={ICON_CLASS} />,
-  },
-  {
-    value: 'percent',
-    label: '% wykonania',
-    hint: 'etapy pokazują procent zamiast kwot',
-    icon: <Percent className={ICON_CLASS} />,
-  },
+  { value: 'values', label: 'Kwoty', icon: <Banknote className={ICON_CLASS} /> },
+  { value: 'percent', label: '% wykonania', icon: <Percent className={ICON_CLASS} /> },
 ]
 
-export const PROGRESS_DISPLAY_LEGEND = [
-  'Etapy w tabeli:',
-  ...PROGRESS_DISPLAYS.map((display) => `${display.label} — ${display.hint}.`),
-  '',
-  'W trybie procentowym każdy etap ma jedną kolumnę zamiast pary netto/brutto — procent jest ten sam po obu stronach.',
-  'Kolumna „% wykonania" (całej pozycji) jest dostępna w obu trybach.',
-].join('\n')
-
+// Two checkbox rows, mirroring MONEY_AXES: both checked = the old „Bez filtra".
 export const LAYERS: {
   value: LayerT
   label: string
-  hint: string
   icon: ReactNode
 }[] = [
-  {
-    value: 'work',
-    label: 'Praca',
-    hint: 'chowa kolumny postępu (wartości etapów, % wykonania, pozostało)',
-    icon: <Hammer className={ICON_CLASS} />,
-  },
-  {
-    value: 'progress',
-    label: 'Postęp',
-    hint: 'chowa kolumny pracy, zostawia tracker postępu',
-    icon: <Activity className={ICON_CLASS} />,
-  },
-  {
-    value: 'both',
-    label: 'Bez filtra',
-    hint: 'pokazuje kolumny pracy i postępu razem',
-    icon: <Layers className={ICON_CLASS} />,
-  },
+  { value: 'work', label: 'Praca', icon: <Hammer className={ICON_CLASS} /> },
+  { value: 'progress', label: 'Postęp', icon: <Activity className={ICON_CLASS} /> },
 ]
 
-export const LAYER_LEGEND = [
-  'Widok tabeli:',
-  ...LAYERS.map((layer) => `${layer.label} — ${layer.hint}.`),
-  '',
-  'Sekcja, Opis prac i Pomiar są zawsze widoczne, niezależnie od trybu.',
-].join('\n')
+// Maps the Praca/Postęp checkbox pair onto the tri-state layer axis (a=work, b=progress, both).
+export const LAYER_PAIR_CONFIG: PairAxisConfigT<LayerT> = {
+  a: 'work',
+  b: 'progress',
+  both: 'both',
+}

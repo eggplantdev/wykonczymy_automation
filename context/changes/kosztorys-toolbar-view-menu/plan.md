@@ -234,14 +234,14 @@ no longer destructured here.
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit`
-- [x] 1.2 New unit test passes: `pnpm exec vitest run src/__tests__/kosztorys-axis-checkboxes.test.ts`
-- [x] 1.3 Linting passes: `pnpm lint`
+- [x] 1.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit` — 31b3e49
+- [x] 1.2 New unit test passes: `pnpm exec vitest run src/__tests__/kosztorys-axis-checkboxes.test.ts` — 31b3e49
+- [x] 1.3 Linting passes: `pnpm lint` — 31b3e49
 
 ### Phase 2: `KosztorysViewMenu` + toolbar rewire
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit`
-- [ ] 2.2 Full unit suite passes: `pnpm exec vitest run`
-- [ ] 2.3 Linting passes: `pnpm lint`
+- [x] 2.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit` (clean for this slice; global tree red only on an unrelated parallel-agent WIP file `link-sheet-to-investment-dialog.tsx` — verified via stash isolation)
+- [x] 2.2 Full unit suite passes: `pnpm exec vitest run` (946 passed, 31 skipped)
+- [x] 2.3 Linting passes: `pnpm lint` (0 errors)
