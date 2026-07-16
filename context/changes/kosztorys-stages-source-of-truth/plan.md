@@ -664,3 +664,5 @@ Commit fazy 3: `f01fd95`
 - [x] 4.4 Lint przechodzi: `pnpm lint`
 - [x] 4.5 Build przechodzi: `pnpm build`
 - [x] 4.6 `grep -rn "measuredQty\|measured_qty" src/` nic nie zwraca (pozostają tylko pliki migracji — DDL musi nazwać kolumnę)
+
+Commit fazy 4: `c09fbcf`

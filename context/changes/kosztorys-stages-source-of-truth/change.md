@@ -1,7 +1,7 @@
 ---
 change_id: kosztorys-stages-source-of-truth
 title: „Pomiar z natury" liczony z sumy etapów; „Pozostało" zakotwiczone w Przedmiarze
-status: implementing
+status: implemented
 created: 2026-07-15
 updated: 2026-07-16
 archived_at: null

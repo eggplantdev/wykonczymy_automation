@@ -317,3 +317,29 @@ Setup: run the app against the **5435 test DB** (see intro), log in as OWNER/MAN
 - [ ] **Percent is view-independent.** Switch Klient / Z narzędziami / Bez narzędzi in percent mode → every % figure is unchanged (only the counter's value pair moves). This is the change's core claim: price and rabat cancel out of the fraction.
 - [ ] **The picker still wins.** In percent mode, hide `Etapy — % wykonania` and `% wykonania` via the picker → they stay off screen. The mode only narrows; it never reveals.
 - [ ] **No layout breakage in the toolbar at narrow widths** (it is a `flex-wrap` row that now carries a third toggle plus the counter).
+
+## kosztorys-stages-source-of-truth — „Pomiar z natury" = Σ etapów; „Pozostało" kotwiczone w Przedmiarze (EX-489, EX-495)
+
+**In review** — automated checks green (`c8dea6f`, `1f0d93e`, `f01fd95`, `c09fbcf`; typecheck, unit 914, integration 30, lint, build). Unblocked by EX-494 (the owner's sheet has `O = SUM(D:M)`, verified 435/435 rows). Kills the third input: „Pomiar z natury" is no longer a typed field, it is computed live as the stage sum. The boxes below are the human gate — the read-only „Pomiar z natury" column has no browser-level regression test yet (deferred to the E2E backlog as **EX-497**).
+
+Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, seed a kosztorys into it (`INV=<id> node --env-file=.env --import tsx src/scripts/seed-kosztorys.ts` with the seed's DB env pointed at `DB_POSTGRES_URL_TEST`), and ensure ≥2 stages carry recorded progress.
+
+### Phase 1: „Pomiar z natury" staje się sumą etapów
+
+- [ ] „Pomiar z natury" nie przyjmuje wpisu; edycja etapu zmienia go natychmiast
+- [ ] Wiersz z zerowymi etapami da się skasować, nawet jeśli ma za sobą historię pomiaru
+
+### Phase 2: Kotwica w Przedmiarze
+
+- [ ] Wiersz z etapami przekraczającymi Przedmiar: „Pozostało" ujemne, komórka czerwona, licznik > 100%
+- [ ] Wiersz bez Przedmiaru: „Pozostało" = „—", brak czerwieni, sortowanie spycha go na koniec
+- [ ] Przełączanie widoku ceny nie zmienia żadnego procentu
+
+### Phase 3: Rabat w wartości przedmiaru
+
+- [ ] „Wartość netto przedmiar" przy rabacie 10% jest o 10% niższa niż `Przedmiar × cena`, a tooltip mówi dlaczego
+
+### Phase 4: Sprzątanie martwego modelu
+
+- [ ] Po `INV=6 … seed-kosztorys.ts` zaseedowany kosztorys ma niezerowy „Pomiar z natury" w wierszach z robotą
+- [ ] Odtworzenie kopii zapasowej przywraca etapy, a „Pomiar z natury" liczy się z nich
