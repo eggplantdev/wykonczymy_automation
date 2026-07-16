@@ -234,9 +234,9 @@ no longer destructured here.
 
 #### Automated
 
-- [ ] 1.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit`
-- [ ] 1.2 New unit test passes: `pnpm exec vitest run src/__tests__/kosztorys-axis-checkboxes.test.ts`
-- [ ] 1.3 Linting passes: `pnpm lint`
+- [x] 1.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit`
+- [x] 1.2 New unit test passes: `pnpm exec vitest run src/__tests__/kosztorys-axis-checkboxes.test.ts`
+- [x] 1.3 Linting passes: `pnpm lint`
 
 ### Phase 2: `KosztorysViewMenu` + toolbar rewire
 

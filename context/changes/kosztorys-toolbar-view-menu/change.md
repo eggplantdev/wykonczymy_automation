@@ -1,7 +1,7 @@
 ---
 change_id: kosztorys-toolbar-view-menu
 title: Consolidate kosztorys editor toolbar toggles into one "Widok" popover
-status: planned
+status: implementing
 created: 2026-07-16
 updated: 2026-07-16
 archived_at: null
