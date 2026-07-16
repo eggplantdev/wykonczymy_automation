@@ -23,6 +23,10 @@ type PropsT = {
   sectionCoeffs: Map<number, SectionCoeffsT>
   // VAT rate as a fraction (0.08) — read-only here, drives the Suma brutto readout.
   vatRate: number
+  // Global discount off the executed total + the resulting "do zapłaty", both from the editor hook's
+  // single source (no recompute here). amount 0 = no discount → the block stays as plain Suma.
+  discountAmount: number
+  doZaplatyNet: number
   onClose: () => void
   onAddSection: () => void
   onAddItem: (sectionId: number) => void
@@ -44,6 +48,8 @@ export function KosztorysSectionSummary({
   globalCoeffs,
   sectionCoeffs,
   vatRate,
+  discountAmount,
+  doZaplatyNet,
   onClose,
   onAddSection,
   onAddItem,
@@ -225,10 +231,26 @@ export function KosztorysSectionSummary({
         <span className="text-foreground text-sm font-medium">Suma netto</span>
         <span className="text-foreground text-sm font-medium tabular-nums">{fmt(grandNet)}</span>
       </div>
+      {discountAmount > 0 && (
+        <>
+          <div className="text-muted-foreground flex shrink-0 items-baseline justify-between px-3 pb-1 text-xs">
+            <span>− Rabat globalny</span>
+            <span className="tabular-nums">{fmt(discountAmount)}</span>
+          </div>
+          <div className="border-border flex shrink-0 items-baseline justify-between border-t px-3 py-2">
+            <span className="text-foreground text-sm font-medium">Do zapłaty netto</span>
+            <span className="text-foreground text-sm font-medium tabular-nums">
+              {fmt(doZaplatyNet)}
+            </span>
+          </div>
+        </>
+      )}
       <div className="border-border flex shrink-0 items-baseline justify-between border-t px-3 py-2">
-        <span className="text-foreground text-sm font-medium">Suma brutto</span>
+        <span className="text-foreground text-sm font-medium">
+          {discountAmount > 0 ? 'Do zapłaty brutto' : 'Suma brutto'}
+        </span>
         <span className="text-foreground text-sm font-medium tabular-nums">
-          {fmt(grandNet * (1 + vatRate))}
+          {fmt(doZaplatyNet * (1 + vatRate))}
         </span>
       </div>
 

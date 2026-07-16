@@ -2,6 +2,7 @@
 
 import { CoeffField } from '@/components/kosztorys/coeff-field'
 import { SimpleTooltip } from '@/components/ui/tooltip'
+import type { DiscountTypeT, GlobalDiscountT } from '@/types/kosztorys'
 
 const COEFF_TIP = [
   'Domyślny mnożnik ceny klienta.',
@@ -17,19 +18,29 @@ const VAT_TIP = [
   'Ceny wpisujesz netto — Brutto i Suma brutto liczą się z tej stawki.',
 ].join('\n')
 
+const DISCOUNT_TIP = [
+  'Rabat za całość wykonanych prac, wpisywany raz na cały kosztorys.',
+  'Gdy ustawiony, nadpisuje rabaty per pozycja — ich kolumny znikają i przestają liczyć (dane zostają).',
+  'Odejmuje się raz od sumy wykonanych prac; wpisujesz netto (kwota) lub punkty procentowe.',
+].join('\n')
+
 type PropsT = {
   globalCoeffs: { wTools: number; ownTools: number }
   // VAT rate as a fraction (0.08); the field shows/accepts a percent.
   vatRate: number
+  globalDiscount: GlobalDiscountT
   onGlobalCoeffChange: (patch: { wToolsCoeff?: number; ownToolsCoeff?: number }) => void
   onVatChange: (vatRate: number) => void
+  onGlobalDiscountChange: (next: GlobalDiscountT) => void
 }
 
 export function KosztorysGlobalSettings({
   globalCoeffs,
   vatRate,
+  globalDiscount,
   onGlobalCoeffChange,
   onVatChange,
+  onGlobalDiscountChange,
 }: PropsT) {
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -64,6 +75,36 @@ export function KosztorysGlobalSettings({
           />
         </span>
       </SimpleTooltip>
+      <div className="flex items-center gap-2">
+        <SimpleTooltip
+          delayDuration={500}
+          className="max-w-xs whitespace-pre-line"
+          content={DISCOUNT_TIP}
+        >
+          <span className="text-muted-foreground cursor-help text-xs">Rabat globalny</span>
+        </SimpleTooltip>
+        {/* Mode select: "brak" clears the discount (type null); the value field shows only once a
+            mode is chosen. Value entered netto (kwota) or as percentage points (procent). */}
+        <select
+          value={globalDiscount.type ?? ''}
+          onChange={(e) => {
+            const type = (e.target.value || null) as DiscountTypeT | null
+            onGlobalDiscountChange({ type, value: type == null ? 0 : globalDiscount.value })
+          }}
+          className="border-border h-6 rounded border bg-transparent px-1 text-xs outline-none"
+        >
+          <option value="">brak</option>
+          <option value="percent">procent %</option>
+          <option value="amount">kwota zł</option>
+        </select>
+        {globalDiscount.type != null && (
+          <CoeffField
+            label={globalDiscount.type === 'percent' ? '%' : 'zł'}
+            value={globalDiscount.value}
+            onCommit={(n) => onGlobalDiscountChange({ type: globalDiscount.type, value: n ?? 0 })}
+          />
+        )}
+      </div>
     </div>
   )
 }

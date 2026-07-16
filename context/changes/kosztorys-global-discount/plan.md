@@ -415,14 +415,14 @@ throwaway pre-dogfooding). Apply locally with `pnpm payload migrate`; prod is a 
 
 #### Automated
 
-- [x] 3.1 Type checking passes: `pnpm exec tsc --noEmit`
-- [x] 3.2 Build passes: `pnpm build`
-- [x] 3.3 Unit tests pass: `pnpm exec vitest run`
+- [x] 3.1 Type checking passes: `pnpm exec tsc --noEmit` — 424a43f
+- [x] 3.2 Build passes: `pnpm build` — 424a43f
+- [x] 3.3 Unit tests pass: `pnpm exec vitest run` — 424a43f
 
 ### Phase 4: UI — discount control + two total surfaces
 
 #### Automated
 
-- [ ] 4.1 Build passes: `pnpm build`
-- [ ] 4.2 Type checking passes: `pnpm exec tsc --noEmit`
-- [ ] 4.3 Lint passes: `pnpm lint`
+- [x] 4.1 Build passes: `pnpm build`
+- [x] 4.2 Type checking passes: `pnpm exec tsc --noEmit`
+- [x] 4.3 Lint passes: `pnpm lint`

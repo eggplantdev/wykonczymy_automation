@@ -354,3 +354,17 @@ Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, se
 - [ ] „Postęp": kolumny pracy (Przedmiar, ceny, rabat, Wartość przedmiaru, Netto/Brutto, etapy-ilość) znikają; Sekcja, Opis prac i Pomiar zostają, a tracker postępu jest widoczny
 - [ ] Wybór przeżywa odświeżenie strony
 - [ ] Składa się z osiami netto/brutto i kwoty/% oraz z pikerem kolumn — żadna kolumna nie zostaje zablokowana widoczna/ukryta
+
+## kosztorys-global-discount — Globalny rabat (EX-501)
+
+Setup: run the app against the **5435 test DB** (see intro; migration applied there, seed a kosztorys first — the dump carries none). Log in as **OWNER/MANAGER** (editor needs MANAGEMENT_ROLES). Open an investment's **Kosztorys** tab with ≥1 section and items carrying per-pozycja rabaty, so the override is observable.
+
+### Phase 4: UI — kontrolka rabatu + dwie sumy
+
+- [ ] **Rabat procentowy → nadpisanie.** Wybierz „procent %", wpisz np. 10 → cztery kolumny rabatu per pozycja znikają (i z pikera kolumn), figury per wiersz są brutto rabatu per pozycja, a „Rabat globalny" odejmuje 10% od sumy wykonanych prac.
+- [ ] **Obie sumy zgodne.** Blok „Suma" w panelu Sekcje i pasek sum pod siatką pokazują identyczne „Do zapłaty netto" i „Do zapłaty brutto".
+- [ ] **Oś netto/brutto.** Przełącznik Netto/Brutto działa na pasku sum (netto-only / brutto-only / oba).
+- [ ] **Rabat kwotowy → płaskie odjęcie.** Wybierz „kwota zł", wpisz kwotę → to samo nadpisanie, a rabat to płaskie odjęcie tej kwoty (nie procent).
+- [ ] **Wyczyszczenie rabatu → powrót.** Wybierz „brak" → kolumny i rabaty per pozycja wracają, sumy wracają do „Suma netto/brutto".
+- [ ] **Snapshot + odtworzenie.** Zrób wersję kosztorysu z rabatem, odtwórz ją → rabat globalny zachowany.
+- [ ] **Marża karty inwestycji bez zmian** (poza zakresem — kosztorys odłączony od księgi).

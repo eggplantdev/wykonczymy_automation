@@ -8,8 +8,16 @@ import { KosztorysToolbarViewToggles } from '@/components/kosztorys/kosztorys-to
 import { useKosztorysEditorContext } from '@/components/kosztorys/use-kosztorys-editor-context'
 
 export function KosztorysEditorToolbar() {
-  const { investmentName, search, setSearch, tree, handleGlobalCoeffChange, handleVatChange } =
-    useKosztorysEditorContext()
+  const {
+    investmentName,
+    search,
+    setSearch,
+    tree,
+    globalDiscount,
+    handleGlobalCoeffChange,
+    handleVatChange,
+    handleGlobalDiscountChange,
+  } = useKosztorysEditorContext()
 
   return (
     <div className="border-border shrink-0 border-b">
@@ -29,8 +37,10 @@ export function KosztorysEditorToolbar() {
         <KosztorysGlobalSettings
           globalCoeffs={tree.globalCoeffs}
           vatRate={tree.vatRate}
+          globalDiscount={globalDiscount}
           onGlobalCoeffChange={handleGlobalCoeffChange}
           onVatChange={handleVatChange}
+          onGlobalDiscountChange={handleGlobalDiscountChange}
         />
       </div>
     </div>

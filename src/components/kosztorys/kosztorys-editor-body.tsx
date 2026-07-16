@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom'
 // StaticDataSheetGrid, which snapshots `columns` via useState at mount (EX-422).
 import { DynamicDataSheetGrid } from 'react-datasheet-grid'
 import { KosztorysSectionSummary } from '@/components/kosztorys/kosztorys-section-summary'
+import { KosztorysTotalsBar } from '@/components/kosztorys/kosztorys-totals-bar'
 import { KosztorysEditorToolbar } from '@/components/kosztorys/kosztorys-editor-toolbar'
 import { useKosztorysEditor } from '@/components/kosztorys/use-kosztorys-editor'
 import { KosztorysEditorProvider } from '@/components/kosztorys/use-kosztorys-editor-context'
@@ -36,6 +37,9 @@ export function KosztorysEditorBody({
     guideX,
     subtotals,
     totalNet,
+    discountAmount,
+    doZaplatyNet,
+    moneyAxis,
     sectionCoeffs,
     activeSectionId,
     setActiveSectionId,
@@ -87,6 +91,8 @@ export function KosztorysEditorBody({
               globalCoeffs={tree.globalCoeffs}
               sectionCoeffs={sectionCoeffs}
               vatRate={tree.vatRate}
+              discountAmount={discountAmount}
+              doZaplatyNet={doZaplatyNet}
               onClose={() => setSummaryOpen(false)}
               onAddSection={handleAddSection}
               onAddItem={handleAddItem}
@@ -98,6 +104,13 @@ export function KosztorysEditorBody({
             />
           )}
         </div>
+        <KosztorysTotalsBar
+          totalNet={totalNet}
+          discountAmount={discountAmount}
+          doZaplatyNet={doZaplatyNet}
+          vatRate={tree.vatRate}
+          moneyAxis={moneyAxis}
+        />
         {/* Vertical guide while dragging a column edge (left = cursor viewport X). Portaled to body:
             <main> uses transform-gpu, which would otherwise make this `fixed` element measure `left`
             from <main> (sidebar-offset) instead of the viewport — same containing-block trap as the
