@@ -46,22 +46,31 @@ export async function saveSnapshotAction(
 
 // --- Restore + listing ---
 
-const snapshotIdSchema = z.object({ snapshotId: z.number() })
+const restoreSchema = z.object({ snapshotId: z.number(), investmentId: z.number() })
 
-// Restore a snapshot by id: resolve its investment from the row (never trust a client-passed one),
-// then in ONE transaction take a forced pre-restore auto snapshot (so a mis-restore is itself
-// recoverable) and wipe-and-reinsert the tree. On any throw the transaction rolls back and the live
-// tree is untouched. `skipRevalidation` suppresses the per-op collection hooks (~1000 rows would
-// otherwise fire revalidateTag each) — the action's revalidate list bumps every tag once after commit.
-export async function restoreSnapshotAction(snapshotId: number): Promise<ActionResultT> {
+// Restore a snapshot into the CURRENT investment: `investmentId` is the editor's open context and the
+// snapshot must belong to it — a snapshot from another investment is refused as "not found" (a bare
+// snapshotId with no such check would wipe-and-reinsert whatever investment the row happens to point
+// at, unbounded by what the user is looking at). Then, in ONE transaction, take a forced pre-restore
+// auto snapshot (so a mis-restore is itself recoverable) and wipe-and-reinsert the tree. On any throw
+// the transaction rolls back and the live tree is untouched. `skipRevalidation` suppresses the per-op
+// collection hooks (~1000 rows would otherwise fire revalidateTag each) — the action's revalidate list
+// bumps every tag once after commit.
+export async function restoreSnapshotAction(
+  snapshotId: number,
+  investmentId: number,
+): Promise<ActionResultT> {
   return protectedAction(
     'restoreSnapshotAction',
     async ({ payload, user }) => {
-      const parsed = validateAction(snapshotIdSchema, { snapshotId })
+      const parsed = validateAction(restoreSchema, { snapshotId, investmentId })
       if (!parsed.success) return parsed
 
       const snapshot = await getSnapshot(await getDb(payload), parsed.data.snapshotId)
-      if (!snapshot) return { success: false, error: 'Nie znaleziono wersji' }
+      // Not found, or scoped to a different investment — indistinguishable on purpose (no existence leak).
+      if (!snapshot || snapshot.investmentId !== parsed.data.investmentId) {
+        return { success: false, error: 'Nie znaleziono wersji' }
+      }
 
       const transactionId = await payload.db.beginTransaction()
       if (!transactionId) throw new Error('Failed to start transaction')
