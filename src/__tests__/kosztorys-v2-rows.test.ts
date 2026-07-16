@@ -253,6 +253,14 @@ describe('wartość wiersza idzie za etapami', () => {
     it('brak etapów → zero', () => {
       expect(rowValueForView(blank, stages, 'client')).toBe(0)
     })
+
+    // A flat 'amount' rabat subtracts a fixed PLN sum; at zero executed quantity there is nothing
+    // for it to come off of, so the value is 0 — not −discountValue. Without the qty guard the row
+    // reads negative and stops matching Σ stageValueForView (each of which is already 0 here).
+    it('brak etapów przy rabacie kwotowym → zero, nie wartość ujemna', () => {
+      const blankDiscounted = row({ discountType: 'amount', discountValue: 500 })
+      expect(rowValueForView(blankDiscounted, stages, 'client')).toBe(0)
+    })
   })
 
   // "Pozostało" anchors on the przedmiar — the offer — not on what was executed. Anchored on the

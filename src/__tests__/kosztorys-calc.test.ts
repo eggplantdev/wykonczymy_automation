@@ -176,6 +176,22 @@ describe('rowPlannedNetForView', () => {
   })
 })
 
+// A flat 'amount' rabat is a fixed subtraction, so at qty 0 applyDiscount(0) would return
+// −discountValue — a row priced at zero quantity reading negative. Zero quantity is worth zero; the
+// flat rabat has nothing to come off of. 'percent' (0 × (1−x) = 0) is already safe, but the guard
+// covers both, and it keeps rowPlannedNetForView (przedmiar 0) and rowValueForView (no stages) at 0.
+describe('netForQtyForView — zerowa ilość nie niesie wartości ani rabatu', () => {
+  it('rabat kwotowy przy zerowej ilości → 0, nie ujemna', () => {
+    const discounted = { ...item, discountType: 'amount' as const, discountValue: 500 }
+    expect(netForQtyForView(discounted, 0, 'client')).toBe(0)
+  })
+
+  it('rabat procentowy przy zerowej ilości → 0', () => {
+    const discounted = { ...item, discountType: 'percent' as const, discountValue: 10 }
+    expect(netForQtyForView(discounted, 0, 'client')).toBe(0)
+  })
+})
+
 // Brutto is the grid's read-only Brutto column + Suma brutto: gross = net × (1 + vatRate), on the
 // post-discount net (netForQtyForView already subtracts the discount). One rate per investment.
 const gross = (row: ViewPricingT, view: PriceViewT, vatRate: number) =>

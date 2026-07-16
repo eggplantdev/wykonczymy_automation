@@ -52,8 +52,13 @@ export function toGross(net: number, vatRate: number): number {
   return net * (1 + vatRate)
 }
 
-/** What any quantity of this row is worth at the view's price, post-discount. */
+/**
+ * What any quantity of this row is worth at the view's price, post-discount. Zero quantity is worth
+ * zero: `> 0` rather than a truthiness check because a cleared cell writes null, and an 'amount' rabat
+ * would otherwise turn `applyDiscount(0)` into −discountValue — a row priced at zero reading negative.
+ */
 export function netForQtyForView(row: ViewPricingT, qty: number, view: PriceViewT): number {
+  if (!(qty > 0)) return 0
   return applyDiscount(qty * viewPrice(row, view), row)
 }
 
