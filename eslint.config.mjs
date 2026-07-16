@@ -101,7 +101,7 @@ export default ts.config(
   {
     // One-off plain-Node .mjs tools (not app code) — their process/console use trips no-undef and
     // it's not worth a Node-globals config block. scripts/inspect-sheet.mjs = sheet-inspection POC;
-    // context/changes/blob-backup/blob-snapshot.mjs = EX-459 blob backup/recovery tool.
-    ignores: ['.next/', '.next-e2e/', 'scripts/inspect-sheet.mjs', 'scripts/blob-mirror.mjs', 'context/changes/blob-backup/blob-snapshot.mjs'],
+    // scripts/blob-snapshot.mjs = EX-459 blob backup/recovery tool.
+    ignores: ['.next/', '.next-e2e/', 'scripts/inspect-sheet.mjs', 'scripts/blob-mirror.mjs', 'scripts/blob-snapshot.mjs'],
   },
 )

@@ -112,7 +112,7 @@ All verified against code + the local dump DB (5433). Re-verify before trusting 
 
 ### Phase 1 — Manual snapshot (NOW, the immediate safety net)
 
-- Script: `context/changes/blob-backup/blob-snapshot.mjs` (one-off, hand-run). **Dependency-free**
+- Script: `scripts/blob-snapshot.mjs` (one-off, hand-run). **Dependency-free**
   — Node built-ins + the Blob REST API only, so it runs even if `node_modules` is broken (a
   recovery tool must not depend on the thing that might be broken).
 - REST `list` (read-only) → anonymous `fetch` each blob → write to `~/backups/wykonczymy-blob/blob-snapshot-<stamp>/`.
@@ -191,6 +191,7 @@ ideally time-aligned.
    - Same-store repair (partial loss) → prod store token.
    - New store (account/project loss) → new store token; also set it as the app's env var.
 3. **Re-upload the backup**, for every file in the snapshot:
+
    ```js
    put(filename, bytes, { access: 'public', addRandomSuffix: false, token })
    ```
@@ -198,6 +199,7 @@ ideally time-aligned.
    - `addRandomSuffix: false` is **mandatory** (§2 config invariant).
    - Mirror-only: for a partial loss, uploading files that already exist just overwrites with
      identical bytes — safe. Never `del()`.
+
 4. **No DB URL rewrite** — `media.url` is relative and filename-resolved (§2). Do not touch it.
 5. **Verify:** open a transaction whose `invoice_id` is set → invoice renders. Spot-check a
    thumbnail (`sizes_thumbnail_filename`) too. Optionally reconcile: every
@@ -259,7 +261,7 @@ immutable invoices. Phase 2's paired manifest+dump timestamp minimizes it.
   - `workflow_dispatch` can't run until the workflow file is on the **default branch** — GitHub
     gates the dispatch trigger on `main`. So the CI dispatch test can only happen post-merge; the
     pre-merge confidence comes from this local run.
-  - **Manifest `put` path broke after the `lcd`.** `lcd ./blob-out/media` changes lftp's *local*
+  - **Manifest `put` path broke after the `lcd`.** `lcd ./blob-out/media` changes lftp's _local_
     cwd, so the following `put ./blob-out/manifest-*.json` resolved to `blob-out/media/blob-out/...`
     (ENOENT) — the manifest silently wouldn't upload. Fix: **`put` the manifest BEFORE the `lcd`.**
     Workflow corrected. (Also caught: my local harness missed `set xfer:clobber on`, so `get` of
