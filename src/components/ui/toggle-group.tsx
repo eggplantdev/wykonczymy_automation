@@ -6,7 +6,7 @@ import { ToggleGroup as ToggleGroupPrimitive } from 'radix-ui'
 import { cn } from '@/lib/utils/cn'
 
 // `label` stays required as the accessible name even when `icon` replaces it visually.
-type OptionT<T extends string> = { value: T; label: string; icon?: ReactNode }
+export type OptionT<T extends string> = { value: T; label: string; icon?: ReactNode }
 
 type PropsT<T extends string> = {
   options: OptionT<T>[]
