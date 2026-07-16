@@ -8,8 +8,8 @@ import { useKosztorysEditorContext } from '@/components/kosztorys/use-kosztorys-
 
 export function KosztorysToolbarActions() {
   const {
-    doneNet,
     totalNet,
+    totalPlannedNet,
     tree,
     moneyAxis,
     investmentId,
@@ -24,8 +24,8 @@ export function KosztorysToolbarActions() {
     <div className="ml-auto flex items-center gap-1">
       {/* Whole-kosztorys progress at the active price view, both netto — the counter applies the axis. */}
       <KosztorysProgressCounter
-        doneNet={doneNet}
-        totalNet={totalNet}
+        doneNet={totalNet}
+        plannedNet={totalPlannedNet}
         vatRate={tree.vatRate}
         moneyAxis={moneyAxis}
       />

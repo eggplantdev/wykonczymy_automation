@@ -9,7 +9,7 @@ type PropsT = {
   // Both figures are netto at the active price view, over the FULL dataset — the counter answers for
   // the whole kosztorys, so the caller must not pass the filtered/sorted view.
   doneNet: number
-  totalNet: number
+  plannedNet: number
   vatRate: number
   moneyAxis: MoneyAxisT
 }
@@ -17,13 +17,13 @@ type PropsT = {
 const LEGEND = [
   'Wykonano — postęp całego kosztorysu, niezależnie od wyszukiwania i filtra sekcji.',
   '',
-  'Procent = wartość wykonanych etapów ÷ wartość kosztorysu. Kwoty liczone przy aktywnym widoku cen.',
+  'Procent = wartość wykonanych etapów ÷ wartość przedmiaru. Kwoty liczone przy aktywnym widoku cen.',
   'Netto/brutto podąża za przełącznikiem kwot; procent jest ten sam po obu stronach.',
-  'Pozycja bez Pomiaru wchodzi po obu stronach ułamka — jest warta tyle, co jej etapy.',
-  '„—" = kosztorys nie ma jeszcze wartości, więc nie ma czego dzielić.',
+  'Powyżej 100% = zrobiono więcej, niż przewidywał przedmiar.',
+  '„—" = kosztorys nie ma jeszcze przedmiaru, więc nie ma czego dzielić.',
 ].join('\n')
 
-export function KosztorysProgressCounter({ doneNet, totalNet, vatRate, moneyAxis }: PropsT) {
+export function KosztorysProgressCounter({ doneNet, plannedNet, vatRate, moneyAxis }: PropsT) {
   // 'both' has no single answer for which side to print — netto is the figure the rest of the
   // toolbar defaults to, so only an explicit 'gross' switches the pair.
   const asGross = moneyAxis === 'gross'
@@ -32,8 +32,8 @@ export function KosztorysProgressCounter({ doneNet, totalNet, vatRate, moneyAxis
   return (
     <SimpleTooltip content={LEGEND} delayDuration={500} className="max-w-xs whitespace-pre-line">
       <span className="text-muted-foreground cursor-help text-xs tabular-nums">
-        Wykonano: {formatPercentPrecise(totalNet > 0 ? doneNet / totalNet : null)} ·{' '}
-        {fmt(toAxis(doneNet))} / {fmt(toAxis(totalNet))} {asGross ? 'brutto' : 'netto'}
+        Wykonano: {formatPercentPrecise(plannedNet > 0 ? doneNet / plannedNet : null)} ·{' '}
+        {fmt(toAxis(doneNet))} / {fmt(toAxis(plannedNet))} {asGross ? 'brutto' : 'netto'}
       </span>
     </SimpleTooltip>
   )

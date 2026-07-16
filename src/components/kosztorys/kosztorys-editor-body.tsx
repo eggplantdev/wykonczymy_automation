@@ -36,7 +36,6 @@ export function KosztorysEditorBody({
     guideX,
     subtotals,
     totalNet,
-    sectionDoneNet,
     sectionCoeffs,
     activeSectionId,
     setActiveSectionId,
@@ -84,7 +83,6 @@ export function KosztorysEditorBody({
             <KosztorysSectionSummary
               subtotals={subtotals}
               grandNet={totalNet}
-              sectionDoneNet={sectionDoneNet}
               activeSectionId={activeSectionId}
               globalCoeffs={tree.globalCoeffs}
               sectionCoeffs={sectionCoeffs}

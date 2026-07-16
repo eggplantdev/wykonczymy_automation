@@ -8,15 +8,14 @@ import {
   rowTotalQtyDone,
   rowValueForView,
   rowRemainingForView,
-  hasMeasurementMismatch,
-  kosztorysDoneNetForView,
-  sectionDoneNetForView,
+  hasStagesOverPlanned,
   sectionSubtotalsForView,
   revertField,
   planItemRemoval,
   REMOVE_BLOCK_LAST_ITEM,
   REMOVE_BLOCK_POPULATED,
 } from '@/lib/kosztorys/v2-rows'
+import { rowDoneFraction } from '@/lib/kosztorys/calc'
 import {
   STAGE_QTY_PREFIX,
   STAGE_VALUE_GROSS_COLUMN_GROUP,
@@ -181,6 +180,20 @@ describe('sortRows', () => {
     ]
     expect(sortRows(strRows, (r) => r.description ?? '', 'asc').map((r) => r.id)).toEqual([2, 1])
   })
+
+  // „Pozostało" bez Przedmiaru to null → w UI kreska. W gałęzi numerycznej null sortowałby się jak 0,
+  // czyli kreska udawałaby wiersz domknięty. Kreska nie ma miejsca w porządku, więc idzie na koniec —
+  // w OBU kierunkach, inaczej „desc" wypycha ją na samą górę.
+  it('null zawsze na końcu, niezależnie od kierunku', () => {
+    const withNulls: KosztorysV2RowT[] = [
+      { id: 1, plannedQty: 3 } as KosztorysV2RowT,
+      { id: 2, plannedQty: null } as unknown as KosztorysV2RowT,
+      { id: 3, plannedQty: 1 } as KosztorysV2RowT,
+    ]
+    const key = (r: KosztorysV2RowT) => r.plannedQty as number | null
+    expect(sortRows(withNulls, key, 'asc').map((r) => r.id)).toEqual([3, 1, 2])
+    expect(sortRows(withNulls, key, 'desc').map((r) => r.id)).toEqual([1, 3, 2])
+  })
 })
 
 describe('rowTotalQtyDone', () => {
@@ -194,37 +207,6 @@ describe('rowTotalQtyDone', () => {
     const [row] = treeToRows(tree)
     const withGhost = [...tree.stages, { id: 999, ordinal: 3, label: null }]
     expect(rowTotalQtyDone(row, withGhost)).toBe(2)
-  })
-})
-
-describe('kosztorysDoneNetForView / sectionDoneNetForView', () => {
-  const stages: KosztorysStageT[] = [{ id: 100, ordinal: 1, label: null }]
-  // measuredQty 10 × price 20 = 200 net; qtyDone set per row
-  const row = (id: number, sectionId: number, qtyDone: number) =>
-    ({
-      ...baseItem,
-      id,
-      sectionId,
-      measuredQty: 10,
-      [stageKey(100)]: qtyDone,
-    }) as unknown as KosztorysV2RowT
-
-  const rows = [row(1, 10, 5), row(2, 10, 10), row(3, 20, 0)]
-
-  it('sums the whole kosztorys done value at the view price', () => {
-    expect(kosztorysDoneNetForView(rows, stages, 'client')).toBe(300) // 100 + 200 + 0
-    expect(kosztorysDoneNetForView(rows, stages, 'w_tools')).toBe(180) // price 12: 60 + 120 + 0
-  })
-
-  it('groups the done value by section', () => {
-    const bySection = sectionDoneNetForView(rows, stages, 'client')
-    expect(bySection.get(10)).toBe(300)
-    expect(bySection.get(20)).toBe(0)
-  })
-
-  it('empty kosztorys → zero and an empty map', () => {
-    expect(kosztorysDoneNetForView([], stages, 'client')).toBe(0)
-    expect(sectionDoneNetForView([], stages, 'client').size).toBe(0)
   })
 })
 
@@ -257,8 +239,7 @@ describe('wartość wiersza idzie za etapami', () => {
     }) as unknown as KosztorysV2RowT
 
   const measured = row({ [stageKey(100)]: 4 }) // 4 zrobione → 400 netto
-  const unmeasured = row({ measuredQty: 0, [stageKey(100)]: 5 }) // 5 zrobione → 500 netto
-  const blank = row({ measuredQty: 0 }) // zero etapów
+  const blank = row({}) // zero etapów
 
   // Scaffolding: the field can still hold a stale number until phase 4 drops the column, so the rule
   // "pomiar IS Σ stages" has to be asserted against a row where the two openly contradict. Once the
@@ -284,43 +265,65 @@ describe('wartość wiersza idzie za etapami', () => {
     })
   })
 
-  // Both terms of "Pozostało" are the same figure until phase 2 anchors it on the przedmiar — the
-  // sheet's dead AF column, reproduced. Pinned so the re-anchoring is a visible transition.
-  describe('rowRemainingForView — skamielina do fazy 2', () => {
-    it('kotwica w wykonaniu daje zero na każdym wierszu', () => {
-      expect(rowRemainingForView(measured, stages, 'client')).toBe(0)
-      expect(rowRemainingForView(row({ [stageKey(100)]: 13 }), stages, 'client')).toBe(0)
+  // "Pozostało" anchors on the przedmiar — the offer — not on what was executed. Anchored on the
+  // latter it would read value − value ≡ 0 on every row: the sheet's dead AF column. This is the one
+  // place we knowingly break sheet parity, so the numbers below are the whole justification.
+  describe('rowRemainingForView', () => {
+    // Przedmiar 100, cena 50 → oferta 5000; etapy 95 → wykonane 4750.
+    const offered = (over: Partial<KosztorysV2RowT> = {}) =>
+      row({ plannedQty: 100, clientPrice: 50, [stageKey(100)]: 95, ...over })
+
+    it('ile z oferty zostało', () => {
+      expect(rowRemainingForView(offered(), stages, 'client')).toBe(250)
+    })
+
+    it('etapy ponad Przedmiar → ujemne, bez clampowania', () => {
+      expect(rowRemainingForView(offered({ [stageKey(100)]: 105 }), stages, 'client')).toBe(-250)
+    })
+
+    // Bez Przedmiaru nie ma oferty, od której cokolwiek odejmować — 0 kłamałoby, że wiersz jest
+    // domknięty. Wyczyszczona komórka zapisuje null, którego `=== 0` by nie złapał.
+    it('brak Przedmiaru → null, nie zero', () => {
+      expect(rowRemainingForView(offered({ plannedQty: 0 }), stages, 'client')).toBeNull()
+      expect(
+        rowRemainingForView(offered({ plannedQty: null as unknown as number }), stages, 'client'),
+      ).toBeNull()
     })
   })
 
   // Most między dwoma algorytmami jednej historii postępu: komórka wiersza to ułamek ILOŚCI,
   // a licznik i sekcje to stosunek WARTOŚCI. Każdy był przypięty osobno, nic nie sprawdzało, że
   // po zsumowaniu się zgadzają — i dokładnie w tej szczelinie siedział błąd 150%.
+  //
+  // Fixture MUSI mieć Σ etapów ≠ Przedmiar w każdym wierszu: na kosztorysie domkniętym obie strony
+  // czytają tę samą liczbę i test przechodzi, nawet gdy licznik dzieli przez samego siebie.
   describe('most: licznik „Wykonano" a wiersze siatki', () => {
-    const rows = [unmeasured, row({ id: 2, sectionId: 20, [stageKey(100)]: 10 })]
+    const rows = [
+      row({ id: 1, plannedQty: 10, [stageKey(100)]: 5 }), // oferta 1000, wykonane 500
+      row({ id: 2, sectionId: 20, plannedQty: 20, [stageKey(100)]: 5 }), // oferta 2000, wykonane 500
+    ]
 
-    it('kosztorys zrobiony w całości czyta 100%, nie 150%', () => {
-      const doneNet = kosztorysDoneNetForView(rows, stages, 'client')
-      const totalNet = sectionSubtotalsForView(rows, stages, 'client').reduce(
-        (s, x) => s + x.net,
-        0,
+    it('licznik dzieli wykonane przez ofertę, nie przez samego siebie', () => {
+      const subtotals = sectionSubtotalsForView(rows, stages, 'client')
+      const doneNet = subtotals.reduce((sum, s) => sum + s.net, 0)
+      const plannedNet = subtotals.reduce((sum, s) => sum + s.plannedNet, 0)
+      expect(doneNet).toBe(1000)
+      expect(plannedNet).toBe(3000)
+      expect(doneNet / plannedNet).toBeCloseTo(1 / 3, 10)
+    })
+
+    it('procent wiersza i procent kosztorysu opowiadają tę samą historię', () => {
+      const subtotals = sectionSubtotalsForView([rows[0]], stages, 'client')
+      expect(subtotals[0].net / subtotals[0].plannedNet).toBeCloseTo(
+        rowDoneFraction(rows[0], rowTotalQtyDone(rows[0], stages)) as number,
+        10,
       )
-      expect(doneNet).toBe(1500) // 500 + 1000
-      expect(totalNet).toBe(1500)
-      expect(doneNet / totalNet).toBe(1)
     })
 
-    it('procent sekcji nigdy nie przebija 100% na wierszach bez nadmiaru', () => {
-      const done = sectionDoneNetForView(rows, stages, 'client')
-      for (const section of sectionSubtotalsForView(rows, stages, 'client')) {
-        expect((done.get(section.sectionId) ?? 0) / section.net).toBeLessThanOrEqual(1)
-      }
-    })
-
-    it('sekcja z jednym wierszem ma cały udział, nie „—"', () => {
-      const [section] = sectionSubtotalsForView([unmeasured], stages, 'client')
-      expect(section.net).toBe(500)
-      expect(section.share).toBe(1)
+    it('sekcja bez ani jednego etapu nie ma udziału w wykonaniu, ale ma ofertę', () => {
+      const [section] = sectionSubtotalsForView([row({ plannedQty: 10 })], stages, 'client')
+      expect(section.net).toBe(0)
+      expect(section.plannedNet).toBe(1000)
     })
   })
 
@@ -350,6 +353,13 @@ describe('wartość wiersza idzie za etapami', () => {
       ])
     })
 
+    // Arkusz trzyma S456 i T456 równolegle — oferta i wykonanie to dwie figury, nie wybór.
+    it('niesie ofertę sekcji obok wykonania', () => {
+      const subtotals = sectionSubtotalsForView(subtotalRows, stages, 'client')
+      // Przedmiar 5 z baseItem: 5 × 20 = 100 oraz 5 × 10 = 50 (rabat dochodzi w fazie 3)
+      expect(subtotals.map((s) => s.plannedNet)).toEqual([150, 500])
+    })
+
     it('view-awareness: w_tools daje inne netto', () => {
       const subtotals = sectionSubtotalsForView(subtotalRows, stages, 'w_tools')
       expect(subtotals[0].net).toBe(168) // 10×12=120; 5×12=60 −20% = 48
@@ -368,29 +378,36 @@ describe('wartość wiersza idzie za etapami', () => {
     })
   })
 
-  describe('hasMeasurementMismatch', () => {
-    it('częściowo zrobiony wiersz to normalna praca w toku, nie rozjazd', () => {
-      expect(hasMeasurementMismatch(measured, stages)).toBe(false)
-      expect(hasMeasurementMismatch(row({ [stageKey(100)]: 10 }), stages)).toBe(false)
+  // Czerwień = „zrobiono więcej, niż oferowano". Wcześniej porównywała etapy z pomiarem — po EX-494
+  // byłaby to liczba porównana sama ze sobą, czyli sygnał martwy PO CICHU.
+  describe('hasStagesOverPlanned', () => {
+    const offered = (over: Partial<KosztorysV2RowT> = {}) => row({ plannedQty: 10, ...over })
+
+    it('robota w granicach Przedmiaru się nie świeci', () => {
+      expect(hasStagesOverPlanned(offered({ [stageKey(100)]: 4 }), stages)).toBe(false)
+      expect(hasStagesOverPlanned(offered({ [stageKey(100)]: 10 }), stages)).toBe(false)
     })
 
-    it('etapy ponad pomiar → rozjazd', () => {
-      expect(hasMeasurementMismatch(row({ [stageKey(100)]: 11 }), stages)).toBe(true)
+    it('etapy ponad Przedmiar → czerwień', () => {
+      expect(hasStagesOverPlanned(offered({ [stageKey(100)]: 11 }), stages)).toBe(true)
     })
 
-    it('praca bez pomiaru → rozjazd', () => {
-      expect(hasMeasurementMismatch(unmeasured, stages)).toBe(true)
+    // „Robota bez oferty" nie jest osobną gałęzią — to po prostu Przedmiar 0, czyli każdy etap go
+    // przekracza. Wyczyszczona komórka zapisuje null, którego gałąź `> 0` musi złapać tak samo.
+    it('robota bez Przedmiaru → czerwień', () => {
+      expect(hasStagesOverPlanned(offered({ plannedQty: 0, [stageKey(100)]: 5 }), stages)).toBe(
+        true,
+      )
+      expect(
+        hasStagesOverPlanned(
+          offered({ plannedQty: null as unknown as number, [stageKey(100)]: 5 }),
+          stages,
+        ),
+      ).toBe(true)
     })
 
     it('pusty wiersz nie świeci się na czerwono', () => {
-      expect(hasMeasurementMismatch(blank, stages)).toBe(false)
-    })
-
-    // Wyczyszczenie komórki Pomiar zapisuje null (grid: Column<number|null>), nie 0.
-    it('wyczyszczony pomiar zachowuje się jak brak pomiaru', () => {
-      const cleared = row({ measuredQty: null as unknown as number, [stageKey(100)]: 5 })
-      expect(hasMeasurementMismatch(cleared, stages)).toBe(true)
-      expect(rowValueForView(cleared, stages, 'client')).toBe(500)
+      expect(hasStagesOverPlanned(offered({ plannedQty: 0 }), stages)).toBe(false)
     })
   })
 })

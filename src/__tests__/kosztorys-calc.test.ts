@@ -97,50 +97,52 @@ describe('netForQtyForView / stageValueForView — share of the stage sum', () =
 })
 
 describe('stageDoneFraction / rowDoneFraction', () => {
-  it('fraction = stage qty / measured qty', () => {
+  // Fixture's plannedQty === measuredQty, which would pass with either denominator — every case that
+  // pins the anchor must drive them apart.
+  const planned20 = { ...item, plannedQty: 20, measuredQty: 10 }
+
+  it('ułamek liczy się z Przedmiaru, nie z sumy etapów', () => {
+    expect(rowDoneFraction(planned20, 19)).toBe(0.95) // 19 / 20
+    expect(stageDoneFraction(planned20, 5)).toBe(0.25) // 5 / 20
+  })
+
+  it('fraction = stage qty / planned qty', () => {
     expect(stageDoneFraction(item, 3)).toBe(0.3) // 3 / 10
     expect(rowDoneFraction(item, 7)).toBe(0.7)
   })
 
-  // The whole reason the fraction is computed from QUANTITIES: price and discount cancel out in the
-  // share, so one percentage holds across every view — otherwise "75%" would mean a different thing
-  // in each of them.
-  it('agrees with the value share — discount included', () => {
+  // The percent is a ratio of QUANTITIES, so neither the price view nor the rabat can move it —
+  // otherwise "75%" would mean a different thing in each view, and the grid shows one figure.
+  it('cena i rabat nie ruszają procentu', () => {
     for (const discounted of [
-      item,
+      { ...item, clientPrice: 999 },
       { ...item, discountType: 'percent' as const, discountValue: 10 },
-      // 40, not 100: an amount discount at/over a view's gross drives that view's net to 0, and the
-      // value share then has no denominator — the quantity fraction still holds, which is the point.
       { ...item, discountType: 'amount' as const, discountValue: 40 },
     ]) {
-      for (const view of ['client', 'w_tools', 'own_tools'] as const) {
-        const valueShare =
-          stageValueForView(discounted, 3, TOTAL_QTY, view) /
-          netForQtyForView(discounted, TOTAL_QTY, view)
-        expect(stageDoneFraction(discounted, 3)).toBeCloseTo(valueShare, 10)
-      }
+      expect(stageDoneFraction(discounted, 3)).toBe(0.3)
+      expect(rowDoneFraction(discounted, 7)).toBe(0.7)
     }
   })
 
-  it('no measured qty → null (no denominator), never zero and never Infinity', () => {
-    const noMeasure = { ...item, measuredQty: 0 }
-    expect(stageDoneFraction(noMeasure, 3)).toBeNull()
-    expect(rowDoneFraction(noMeasure, 3)).toBeNull()
+  it('no planned qty → null (no denominator), never zero and never Infinity', () => {
+    const noPlan = { ...item, plannedQty: 0 }
+    expect(stageDoneFraction(noPlan, 3)).toBeNull()
+    expect(rowDoneFraction(noPlan, 3)).toBeNull()
   })
 
-  // Clearing the Pomiar cell writes null, not 0 — the grid's float column is Column<number|null>,
+  // Clearing the Przedmiar cell writes null, not 0 — the grid's float column is Column<number|null>,
   // and client row state holds that null until a refresh normalizes it. A `=== 0` guard falls
   // through and divides: 0/null → NaN → "NaN%", 3/null → Infinity → "∞%" in the always-visible cell.
-  it('a cleared measured qty is a missing denominator too, not a divisor', () => {
+  it('a cleared planned qty is a missing denominator too, not a divisor', () => {
     for (const empty of [null, undefined]) {
-      const cleared = { ...item, measuredQty: empty as unknown as number }
+      const cleared = { ...item, plannedQty: empty as unknown as number }
       expect(stageDoneFraction(cleared, 3)).toBeNull()
       expect(stageDoneFraction(cleared, 0)).toBeNull()
       expect(rowDoneFraction(cleared, 3)).toBeNull()
     }
   })
 
-  it('overshooting the measured qty passes through unclamped — it signals bad data', () => {
+  it('overshooting the planned qty passes through unclamped — it signals bad data', () => {
     expect(stageDoneFraction(item, 12)).toBe(1.2)
     expect(rowDoneFraction(item, 15)).toBe(1.5)
   })

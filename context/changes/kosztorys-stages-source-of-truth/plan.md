@@ -624,20 +624,22 @@ To jest cel, nie skutek uboczny — ale właściciel ma wiedzieć, kiedy to wejd
 
 - [x] 1.1 Czerwone testy napisane i **padają** przed implementacją (wartość za etapami przy sprzecznym pomiarze; niezmiennik udziału; guard `Σ = 0`; kasowalność wiersza)
 - [x] 1.2 Testy jednostkowe przechodzą: `pnpm exec vitest run src/__tests__/kosztorys-calc.test.ts src/__tests__/kosztorys-v2-rows.test.ts`
-- [x] 1.3 Blokada kasowania przechodzi: `pnpm exec vitest run src/__tests__/lib/actions/kosztorys-delete-guard.test.ts`
+- [x] 1.3 Blokada kasowania przechodzi — uruchomione przez `pnpm test:integration` (30/30); podany w planie `pnpm exec vitest run src/__tests__/lib/actions/kosztorys-delete-guard.test.ts` ten spec **pomija** (`describe.skipIf(!ENV_READY)`), więc nie daje sygnału
 - [x] 1.4 Typecheck przechodzi: `pnpm typecheck`
 - [x] 1.5 Lint przechodzi: `pnpm lint`
+
+Commit fazy 1: `c8dea6f`
 
 ### Phase 2: Kotwica w Przedmiarze
 
 #### Automated
 
-- [ ] 2.1 Czerwone testy napisane i **padają** przed implementacją (Pozostało 250/−250/null; sortowanie null na końcu; % wykonania 0.95; czerwień; licznik na nie-domkniętym kosztorysie)
-- [ ] 2.2 Blok `kosztorys-v2-rows.test.ts:329-357` **przepisany** na fixture z `Σ etapów ≠ Przedmiar`
-- [ ] 2.3 Cała suita jednostkowa przechodzi: `pnpm test`
-- [ ] 2.4 `sectionDoneNetForView` / `kosztorysDoneNetForView` usunięte, typecheck zielony
-- [ ] 2.5 Typecheck przechodzi: `pnpm typecheck`
-- [ ] 2.6 Lint przechodzi: `pnpm lint`
+- [x] 2.1 Czerwone testy napisane i **padają** przed implementacją (Pozostało 250/−250/null; sortowanie null na końcu; % wykonania 0.95; czerwień; licznik na nie-domkniętym kosztorysie)
+- [x] 2.2 Blok `kosztorys-v2-rows.test.ts:329-357` **przepisany** na fixture z `Σ etapów ≠ Przedmiar`
+- [x] 2.3 Cała suita jednostkowa przechodzi: `pnpm test`
+- [x] 2.4 `sectionDoneNetForView` / `kosztorysDoneNetForView` usunięte, typecheck zielony
+- [x] 2.5 Typecheck przechodzi: `pnpm typecheck`
+- [x] 2.6 Lint przechodzi: `pnpm lint`
 
 ### Phase 3: Rabat w wartości przedmiaru
 

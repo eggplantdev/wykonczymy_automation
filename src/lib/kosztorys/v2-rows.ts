@@ -1,4 +1,4 @@
-import { netForQtyForView, type PriceViewT } from '@/lib/kosztorys/calc'
+import { netForQtyForView, rowPlannedNetForView, type PriceViewT } from '@/lib/kosztorys/calc'
 import { DEFAULT_UNIT, STAGE_QTY_PREFIX } from '@/lib/kosztorys/constants'
 import type {
   CostVariantT,
@@ -123,14 +123,22 @@ export type SortDirT = 'asc' | 'desc'
 // Sort by the accessor's value; strings by locale (pl), numbers numerically. Returns a new array.
 // Decorate-sort-undecorate: getValue can be an O(stages) reduce (the "remaining" key), and calling
 // it inside the comparator would re-evaluate it ~2·n·log(n) times — compute it once per row instead.
+//
+// A null key renders as "—" (fmtOrDash), so it has no place in the order: sorted numerically it
+// would land as 0 and the dash would masquerade as a settled row. Nulls sink to the bottom under
+// BOTH directions — `sign` deliberately does not touch that branch, or "desc" would float them up.
 export function sortRows(
   rows: KosztorysV2RowT[],
-  getValue: (row: KosztorysV2RowT) => string | number,
+  getValue: (row: KosztorysV2RowT) => string | number | null,
   dir: SortDirT,
 ): KosztorysV2RowT[] {
   const sign = dir === 'asc' ? 1 : -1
   const decorated = rows.map((row) => ({ row, key: getValue(row) }))
   decorated.sort((a, b) => {
+    if (a.key == null || b.key == null) {
+      if (a.key == null && b.key == null) return 0
+      return a.key == null ? 1 : -1
+    }
     if (typeof a.key === 'string' || typeof b.key === 'string') {
       return sign * String(a.key).localeCompare(String(b.key), 'pl')
     }
@@ -338,37 +346,44 @@ export function rowValueForView(
 }
 
 /**
- * Remaining by view = the row's settlement value − the value of the stages already done.
+ * How much of the OFFER is left: the przedmiar's value minus what the stages have executed.
  *
- * Both terms are now the same figure, so this reads 0 on every row — the sheet's dead AF column,
- * reproduced. Anchoring it on the przedmiar (the offer) is phase 2 of this change.
+ * This is where we knowingly break parity with the sheet. Its AF anchors on T — the executed value —
+ * and since O IS the stage sum, AF = T − Σ(V:AE) is identically zero: a dead column. Anchored on S
+ * instead, the figure says something ("how much of the offer is left") and can go negative, which is
+ * also information: more was executed than was offered.
+ *
+ * `null`, not 0, when there is no przedmiar — 0 would claim the row is settled. The guard is `> 0`
+ * rather than `=== 0` because a cleared cell writes null, which strict equality walks past.
  */
 export function rowRemainingForView(
   row: KosztorysV2RowT,
   stages: KosztorysStageT[],
   view: PriceViewT,
-): number {
-  return rowValueForView(row, stages, view) - rowValueForView(row, stages, view)
+): number | null {
+  if (!(row.plannedQty > 0)) return null
+  return rowPlannedNetForView(row, view) - rowValueForView(row, stages, view)
 }
 
 /**
- * Does the pomiar fail to account for the recorded work? Drives the row's red highlight (EX-489).
+ * Was more executed than was offered? Drives the row's red highlight.
  *
- * Deliberately NOT "pomiar ≠ Σ etapów": a half-finished row is normal work in progress, and flagging
- * it would paint the whole grid red on a healthy kosztorys. Red marks only the two states where the
- * measurement cannot EXPLAIN the work — stages overshooting the pomiar, or work billed against no
- * pomiar at all. Both settle at 100% by construction now, so the highlight is the only place left
- * that says the underlying numbers still need a human.
+ * Deliberately NOT "przedmiar ≠ Σ etapów": a half-finished row is normal work in progress, and
+ * flagging it would paint the whole grid red on a healthy kosztorys. Work recorded against no
+ * przedmiar at all is not a separate branch — it is the przedmiar-is-0 case, which every stage
+ * overshoots.
  */
-export function hasMeasurementMismatch(row: KosztorysV2RowT, stages: KosztorysStageT[]): boolean {
-  const qtyDone = rowTotalQtyDone(row, stages)
-  if (!(row.measuredQty > 0)) return qtyDone !== 0
-  return qtyDone > row.measuredQty
+export function hasStagesOverPlanned(row: KosztorysV2RowT, stages: KosztorysStageT[]): boolean {
+  return rowTotalQtyDone(row, stages) > (row.plannedQty ?? 0)
 }
 
 /**
- * Net subtotals per section for the active price view, over the full dataset (ignores filter/sort).
+ * Subtotals per section for the active price view, over the full dataset (ignores filter/sort).
  * Order = first occurrence of each section in `rows` (treeToRows already yields section→displayOrder).
+ *
+ * Carries BOTH figures, the way the sheet's footer keeps S456 and T456 side by side: `plannedNet` is
+ * what was offered, `net` what has been executed. Nothing has to choose between them, and the
+ * progress counter divides one by the other.
  */
 export function sectionSubtotalsForView(
   rows: KosztorysV2RowT[],
@@ -383,40 +398,18 @@ export function sectionSubtotalsForView(
         sectionId: row.sectionId,
         sectionName: row.sectionName,
         net: 0,
+        plannedNet: 0,
         share: 0,
         itemCount: 0,
       }
       bySection.set(row.sectionId, acc)
     }
     acc.net += rowValueForView(row, stages, view)
+    acc.plannedNet += rowPlannedNetForView(row, view)
     acc.itemCount += 1
   }
   const result = [...bySection.values()]
   const grandNet = result.reduce((sum, s) => sum + s.net, 0)
   if (grandNet > 0) for (const s of result) s.share = s.net / grandNet
   return result
-}
-
-// Value of the work done across the whole kosztorys at the view's price — the progress counter's
-// numerator. Computed over the full dataset (ignores filter/sort), like sectionSubtotalsForView.
-export function kosztorysDoneNetForView(
-  rows: KosztorysV2RowT[],
-  stages: KosztorysStageT[],
-  view: PriceViewT,
-): number {
-  return rows.reduce((sum, row) => sum + rowValueForView(row, stages, view), 0)
-}
-
-// The same figure per section, keyed by sectionId — the section summary's done-% numerator.
-export function sectionDoneNetForView(
-  rows: KosztorysV2RowT[],
-  stages: KosztorysStageT[],
-  view: PriceViewT,
-): Map<number, number> {
-  const bySection = new Map<number, number>()
-  for (const row of rows) {
-    const done = rowValueForView(row, stages, view)
-    bySection.set(row.sectionId, (bySection.get(row.sectionId) ?? 0) + done)
-  }
-  return bySection
 }

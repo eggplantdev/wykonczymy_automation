@@ -126,7 +126,8 @@ export type KosztorysV2RowT = KosztorysV2RowBaseT & {
 export type SectionSubtotalT = {
   sectionId: number
   sectionName: string
-  net: number
+  net: number // executed (the sheet's T)
+  plannedNet: number // offered (the sheet's S)
   share: number // 0..1, share of the combined net total of all sections
   itemCount: number
 }

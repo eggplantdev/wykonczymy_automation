@@ -16,10 +16,6 @@ type SectionCoeffsT = { wTools: number | null; ownTools: number | null }
 type PropsT = {
   subtotals: SectionSubtotalT[]
   grandNet: number
-  // Done value per section id, at the same price view as the subtotals. Kept a sibling map rather
-  // than a field on SectionSubtotalT: the subtotal is a pure money breakdown, and stage progress is
-  // a different dimension that only this panel and the toolbar counter read.
-  sectionDoneNet: Map<number, number>
   activeSectionId: number | null
   // Only to render the inherited value as each section field's placeholder — the global coeffs are
   // edited in the toolbar's settings row, not here.
@@ -44,7 +40,6 @@ type PropsT = {
 export function KosztorysSectionSummary({
   subtotals,
   grandNet,
-  sectionDoneNet,
   activeSectionId,
   globalCoeffs,
   sectionCoeffs,
@@ -141,14 +136,12 @@ export function KosztorysSectionSummary({
                   delayDuration={600}
                   className="max-w-xs whitespace-pre-line"
                   content={
-                    'Liczba pozycji w sekcji, udział sekcji w wartości kosztorysu oraz jej wykonanie.\n\nUdział = wartość sekcji ÷ wartość kosztorysu.\nWyk. = wartość wykonanych etapów w sekcji ÷ wartość sekcji.\n\nOba procenty liczą się od wartości, nie od liczby pozycji, i zależą od aktywnego widoku cen.\n„—" przy wyk. = sekcja nie ma jeszcze wartości.'
+                    'Liczba pozycji w sekcji, udział sekcji w wartości kosztorysu oraz jej wykonanie.\n\nUdział = wartość sekcji ÷ wartość kosztorysu.\nWyk. = wartość wykonanych etapów w sekcji ÷ wartość przedmiaru sekcji.\n\nOba procenty liczą się od wartości, nie od liczby pozycji, i zależą od aktywnego widoku cen.\n„—" przy wyk. = sekcja nie ma jeszcze przedmiaru.'
                   }
                 >
                   <span className="cursor-help">
                     {s.itemCount} poz. · {formatPercentPrecise(s.share)} · wyk.{' '}
-                    {formatPercentPrecise(
-                      s.net > 0 ? (sectionDoneNet.get(s.sectionId) ?? 0) / s.net : null,
-                    )}
+                    {formatPercentPrecise(s.plannedNet > 0 ? s.net / s.plannedNet : null)}
                   </span>
                 </SimpleTooltip>
                 <div className="flex items-center gap-0.5">

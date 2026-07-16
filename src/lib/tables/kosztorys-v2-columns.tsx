@@ -43,7 +43,7 @@ import {
 } from '@/lib/kosztorys/progress-display'
 import { formatNet as fmt, formatPercent } from '@/lib/kosztorys/format'
 import {
-  hasMeasurementMismatch,
+  hasStagesOverPlanned,
   rowRemainingForView,
   rowTotalQtyDone,
   rowValueForView,
@@ -174,10 +174,10 @@ const HEADER_TIPS: Record<string, string> = {
   net: 'Netto = Pomiar × Cena − Rabat. Wartość pozycji przy aktywnym widoku cen.\nPomiar jest sumą etapów, więc Netto mówi, ile faktycznie wykonano — pusta pozycja jest warta 0.',
   gross: 'Brutto = Netto × (1 + VAT). Jedna stawka VAT na inwestycję, zdenormalizowana na wierszu.',
   remaining:
-    'Pozostało netto = Netto − suma wartości etapów wpisanych w tym wierszu.\nIle z wartości pozycji nie zostało jeszcze rozliczone etapami. Pusty wiersz etapów = całe Netto zostaje.\nPraca bez Pomiaru jest warta tyle, co jej etapy, więc taki wiersz jest domknięty (0), nie na minusie.',
+    'Pozostało netto = Wartość netto przedmiar − Netto.\nIle z oferty nie zostało jeszcze wykonane. Pusty wiersz etapów = cała oferta zostaje.\nNa minusie = zrobiono więcej, niż przewidywał Przedmiar. „—" = pozycja nie ma Przedmiaru, więc nie ma oferty, od której odejmować.',
   remainingGross: 'Pozostało brutto = Pozostało netto × (1 + VAT).',
   donePercent:
-    '% wykonania = suma ilości ze wszystkich etapów ÷ Pomiar.\nIle procent pozycji jest zrobione. Nie zależy od widoku cen ani od netto/brutto — cena i rabat się skracają.\n„—" = brak Pomiaru, więc nie ma czego dzielić (to nie to samo co 0%). Powyżej 100% = wpisano więcej niż wynosi Pomiar; wartość nie jest przycinana, bo to sygnał błędu w danych.\nNa czerwono = Pomiar nie tłumaczy wpisanej pracy: etapy go przekraczają albo praca jest wpisana bez Pomiaru. Kwoty się zgadzają, ale dane warto sprawdzić.',
+    '% wykonania = suma ilości ze wszystkich etapów ÷ Przedmiar.\nIle procent oferty jest zrobione. Nie zależy od widoku cen ani od netto/brutto — to stosunek ilości, cena i rabat go nie ruszają.\n„—" = brak Przedmiaru, więc nie ma czego dzielić (to nie to samo co 0%). Powyżej 100% = zrobiono więcej, niż przewidywał Przedmiar; wartość nie jest przycinana, bo to jest ta informacja.\nNa czerwono = to samo przekroczenie, widoczne z daleka.',
   // The three stage axes key by column GROUP, not by column id — every stage's column shares its
   // axis's tip, because the only thing that differs between them is the stage's name.
   [STAGES_COLUMN_GROUP]:
@@ -186,7 +186,7 @@ const HEADER_TIPS: Record<string, string> = {
     'Etap — kwota netto = ilość wykonana w tym etapie × Cena j.m. − udział etapu w rabacie.\nUdział jest proporcjonalny do ilości (rabat zł jest rabatem od całego wiersza, więc etap niesie tylko swoją część). Kwoty wszystkich etapów sumują się do Netto pozycji.\nZależy od aktywnego widoku cen.',
   [STAGE_VALUE_GROSS_COLUMN_GROUP]: 'Etap — kwota brutto = Etap — kwota netto × (1 + VAT).',
   [STAGE_VALUE_PERCENT_COLUMN_GROUP]:
-    'Etap — % wykonania = ilość wykonana w tym etapie ÷ Pomiar.\nTa sama liczba przy każdym widoku cen i po obu stronach netto/brutto — cena i rabat się skracają. Kolumny procentowe etapów sumują się do kolumny „% wykonania".\n„—" = brak Pomiaru.',
+    'Etap — % wykonania = ilość wykonana w tym etapie ÷ Przedmiar.\nIle z oferty dowiózł ten etap. Ta sama liczba przy każdym widoku cen i po obu stronach netto/brutto — to stosunek ilości. Kolumny procentowe etapów sumują się do kolumny „% wykonania".\n„—" = brak Przedmiaru.',
 }
 
 // Header-tip presentation (delay, width, pre-line) in one place, so retuning it is one edit.
@@ -688,11 +688,10 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       'donePercent',
       title('donePercent', COLUMN_LABELS.donePercent, opts),
       (r) => rowDoneFraction(r as unknown as ViewPricingT, rowTotalQtyDone(r, stages)),
-      // Red = the pomiar cannot explain the recorded work (EX-489). Since the settlement value now
-      // follows the stages, such a row reads a perfectly innocent 100% (or "—") in every figure —
-      // this cell is the only place left that says the inputs still need a human.
+      // Red = more was executed than was offered. The percentage says so too (>100%), but only this
+      // cell says it at a glance across a thousand rows.
       (r) =>
-        hasMeasurementMismatch(r, stages)
+        hasStagesOverPlanned(r, stages)
           ? 'text-destructive font-medium'
           : 'text-muted-foreground font-medium',
       formatPercent,
@@ -724,7 +723,12 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     computedColumn(
       'remainingGross',
       title('remainingGross', COLUMN_LABELS.remainingGross, opts),
-      (r) => toGross(rowRemainingForView(r, stages, view), r.vatRate),
+      // The dash must survive the VAT step: toGross(null) would read 0 — "settled" — on a row that
+      // has no przedmiar to settle against.
+      (r) => {
+        const net = rowRemainingForView(r, stages, view)
+        return net === null ? null : toGross(net, r.vatRate)
+      },
     ),
   ]
 

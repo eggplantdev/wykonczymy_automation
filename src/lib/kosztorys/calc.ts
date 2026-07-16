@@ -110,16 +110,19 @@ export function stageValueForView(
 }
 
 /**
- * How far along a stage is, as a fraction (0.75 = 75%) — `null` when there is no denominator to
- * divide by, so render code never divides and never fakes a 0%.
+ * How much of the OFFER this stage has delivered, as a fraction (0.75 = 75%) — `null` when there is
+ * no denominator to divide by, so render code never divides and never fakes a 0%.
  *
- * View-independent by construction: stageValueForView takes the stage's qty SHARE of the row net,
- * so stageValue/rowNet reduces to qtyDone/measuredQty — the price and the rabat cancel out, and the
- * percentage is the same figure under every price view and under netto or brutto alike.
+ * The denominator is the przedmiar, not the stage sum. Against the stage sum the stages' percentages
+ * would always add up to 100% — they would say "what share of the work fell to this stage" instead
+ * of "how much of the offer this stage delivered", and the row's own percentage would read 100%
+ * everywhere, being a number divided by itself.
  *
- * Deliberately unclamped: pomiar and stages disagree routinely (EX-489), so a >100% reading is not
- * an error to hide but the row saying its two numbers don't line up. The grid pairs it with a red
- * cell (hasMeasurementMismatch); clamping here would erase both signals.
+ * View-independent because it is a ratio of QUANTITIES — nothing here reads a price, so no view and
+ * no rabat can move it, and the one figure the grid shows means the same thing in all of them.
+ *
+ * Deliberately unclamped: stages routinely overshoot the przedmiar, and a >100% reading is the row
+ * saying so. The grid pairs it with a red cell (hasStagesOverPlanned); clamping would erase both.
  */
 export function stageDoneFraction(row: ViewPricingT, qtyDoneInStage: number): number | null {
   return doneFraction(row, qtyDoneInStage)
@@ -131,11 +134,12 @@ export function rowDoneFraction(row: ViewPricingT, totalQtyDone: number): number
 }
 
 /**
- * The guard is `> 0`, not `=== 0`: clearing the Pomiar cell writes `null` (the grid's float column
- * is `Column<number|null>`), which a strict-equality check walks straight past into `qty / null` —
- * NaN or Infinity rendered verbatim in the cell. This also covers `undefined` and a negative pomiar.
+ * The guard is `> 0`, not `=== 0`: clearing the Przedmiar cell writes `null` (the grid's float
+ * column is `Column<number|null>`), which a strict-equality check walks straight past into
+ * `qty / null` — NaN or Infinity rendered verbatim in the cell. Also covers `undefined` and a
+ * negative przedmiar.
  */
 function doneFraction(row: ViewPricingT, qtyDone: number): number | null {
-  if (!(row.measuredQty > 0)) return null
-  return qtyDone / row.measuredQty
+  if (!(row.plannedQty > 0)) return null
+  return qtyDone / row.plannedQty
 }

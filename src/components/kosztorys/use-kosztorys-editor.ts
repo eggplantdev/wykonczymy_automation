@@ -28,7 +28,6 @@ import {
   revertField,
   rowRemainingForView,
   rowValueForView,
-  sectionDoneNetForView,
   sectionNeighbor,
   sectionSubtotalsForView,
   sortRows,
@@ -74,7 +73,7 @@ function sortValue(
   field: string,
   view: PriceViewT,
   stages: KosztorysStageT[],
-): string | number {
+): string | number | null {
   switch (field) {
     case 'price':
       return viewPrice(row, view)
@@ -172,17 +171,13 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   // Per-section subtotals: the FULL dataset (not viewRows) — a stable breakdown independent of
   // the filter/sort.
   const subtotals = useMemo(() => sectionSubtotalsForView(rows, stages, view), [rows, stages, view])
+  // Executed and offered, both derived from the subtotals rather than re-walking rows × stages.
+  // Same full-dataset rule as the subtotals: the counter answers for the whole kosztorys, so a
+  // search or a section filter must not move it.
   const totalNet = useMemo(() => subtotals.reduce((s, x) => s + x.net, 0), [subtotals])
-  // Done value, same full-dataset rule as the subtotals: the counter and the section rows answer for
-  // the whole kosztorys, so a search or a section filter must not move them. The total derives from
-  // the per-section map rather than re-walking rows × stages — same idiom as totalNet above.
-  const sectionDoneNet = useMemo(
-    () => sectionDoneNetForView(rows, stages, view),
-    [rows, stages, view],
-  )
-  const doneNet = useMemo(
-    () => [...sectionDoneNet.values()].reduce((sum, net) => sum + net, 0),
-    [sectionDoneNet],
+  const totalPlannedNet = useMemo(
+    () => subtotals.reduce((s, x) => s + x.plannedNet, 0),
+    [subtotals],
   )
 
   // Section coefficients (null = inherits the global) for the panel — from the tree, keyed by section id.
@@ -565,8 +560,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     // subtotals + section panel
     subtotals,
     totalNet,
-    doneNet,
-    sectionDoneNet,
+    totalPlannedNet,
     sectionCoeffs,
     // toolbar / panel state
     setView,
