@@ -641,14 +641,16 @@ Commit fazy 1: `c8dea6f`
 - [x] 2.5 Typecheck przechodzi: `pnpm typecheck`
 - [x] 2.6 Lint przechodzi: `pnpm lint`
 
+Commit fazy 2: `1f0d93e`
+
 ### Phase 3: Rabat w wartości przedmiaru
 
 #### Automated
 
-- [ ] 3.1 Czerwony test napisany i **pada** przed implementacją (rabat 10% → 4500; rabat kwotowy 300 → 4700)
-- [ ] 3.2 Cała suita jednostkowa przechodzi: `pnpm test`
-- [ ] 3.3 Typecheck przechodzi: `pnpm typecheck`
-- [ ] 3.4 Lint przechodzi: `pnpm lint`
+- [x] 3.1 Czerwony test napisany i **pada** przed implementacją (rabat % 10% → 216; rabat kwotowy 30 → 210 — na fixture planned12 × cena 20; 3/3 czerwone przed zmianą)
+- [x] 3.2 Cała suita jednostkowa przechodzi: `pnpm test` (916 passed)
+- [x] 3.3 Typecheck przechodzi: `pnpm typecheck`
+- [x] 3.4 Lint przechodzi: `pnpm lint`
 
 ### Phase 4: Sprzątanie martwego modelu
 

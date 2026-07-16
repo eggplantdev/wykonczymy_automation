@@ -58,19 +58,18 @@ export function netForQtyForView(row: ViewPricingT, qty: number, view: PriceView
 }
 
 /**
- * Row value at the PLANNED qty ("wartość przedmiaru") — the offer figure priced straight off the
- * przedmiar, against which the settlement figure (v2-rows' rowValueForView) is what was executed.
+ * Row value at the PLANNED qty ("wartość netto przedmiar") — the OFFER figure, the sheet's
+ * S = N×Q − N×Q×R. It prices the przedmiar and carries the rabat, exactly like the settlement figure
+ * (v2-rows' rowValueForView) prices the stage sum; the two differ only in which quantity they read.
  *
- * NO discount by design (owner, 2026-07-15): przedmiar is the pre-negotiation valuation, and rabat
- * only enters at settlement. So this is deliberately NOT netForQtyForView at the przedmiar — the gap
- * between the two columns carries both the qty revision and the discount.
+ * The rabat is IN by construction: this goes through netForQtyForView, so the offer figure has no
+ * arithmetic of its own and cannot drift from the sheet by silently dropping the discount.
  *
- * Not sheet parity: the sheet's column S carries this header but no formula in any row, because
- * there `pomiar` defaults to `=przedmiar`, making the two columns identical until someone overrides
- * pomiar by hand. Our przedmiar/pomiar are independent inputs, so the distinction is real.
+ * Owner flagged the "rabat in the offer" call as a small open question (2026-07-16, EX-495) — a
+ * revert is one commit, so nothing downstream leans on it.
  */
 export function rowPlannedNetForView(row: ViewPricingT, view: PriceViewT): number {
-  return row.plannedQty * viewPrice(row, view)
+  return netForQtyForView(row, row.plannedQty, view)
 }
 
 /**

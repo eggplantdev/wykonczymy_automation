@@ -163,19 +163,17 @@ describe('rowPlannedNetForView', () => {
     expect(rowPlannedNetForView(planned12, 'own_tools')).toBe(120) // 12 × 10
   })
 
-  // The owner's call (2026-07-15): przedmiar is the pre-negotiation valuation, so rabat must not
-  // touch it — it lands only at settlement (Netto). This asymmetry with the settlement figure is the
-  // whole point of the column and is the thing most likely to get "fixed" back by mistake.
-  it('rabat procentowy NIE rusza wartości przedmiaru, rusza tylko netto', () => {
+  // The owner's call (2026-07-16, EX-494 follow-up): the offer figure carries the rabat, matching the
+  // sheet's S = N×Q − N×Q×R. This is the single guardian of that decision — asserted outright, not
+  // derived from an invariant. Flagged a "small question mark" by the owner: a revert is one commit.
+  it('rabat procentowy wchodzi w wartość przedmiaru', () => {
     const discounted = { ...planned12, discountType: 'percent' as const, discountValue: 10 }
-    expect(rowPlannedNetForView(discounted, 'client')).toBe(240) // bez zmian
-    expect(netForQtyForView(discounted, TOTAL_QTY, 'client')).toBe(180) // 200 − 10%
+    expect(rowPlannedNetForView(discounted, 'client')).toBe(216) // 240 − 10%
   })
 
-  it('rabat kwotowy NIE rusza wartości przedmiaru, rusza tylko netto', () => {
+  it('rabat kwotowy wchodzi w wartość przedmiaru', () => {
     const discounted = { ...planned12, discountType: 'amount' as const, discountValue: 30 }
-    expect(rowPlannedNetForView(discounted, 'client')).toBe(240) // bez zmian
-    expect(netForQtyForView(discounted, TOTAL_QTY, 'client')).toBe(170) // 200 − 30
+    expect(rowPlannedNetForView(discounted, 'client')).toBe(210) // 240 − 30
   })
 })
 
@@ -206,14 +204,14 @@ describe('brutto = netto × (1 + vatRate)', () => {
     expect(gross(item, 'client', 0.23)).toBeCloseTo(246, 10)
   })
 
-  it('wartość przedmiaru brutto = wartość przedmiaru netto × (1 + VAT), rabat bez wpływu', () => {
+  it('wartość przedmiaru brutto = wartość przedmiaru netto × (1 + VAT), rabat w kwocie', () => {
     const discounted = {
       ...item,
       plannedQty: 12,
       discountType: 'percent' as const,
       discountValue: 10,
     }
-    // planned net = 12 × 20 = 240 (rabat nie wchodzi) → brutto 240 × 1.08 = 259.2
-    expect(rowPlannedNetForView(discounted, 'client') * 1.08).toBeCloseTo(259.2, 10)
+    // planned net = 12 × 20 − 10% = 216 → brutto 216 × 1.08 = 233.28
+    expect(rowPlannedNetForView(discounted, 'client') * 1.08).toBeCloseTo(233.28, 10)
   })
 })

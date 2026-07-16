@@ -150,7 +150,7 @@ const HEADER_TIPS: Record<string, string> = {
   description: 'Opis — nazwa/opis pozycji robót lub materiału. Nie wchodzi do obliczeń.',
   unit: 'J.m. — jednostka miary (m², szt., mb…). Etykieta, nie wchodzi do obliczeń.',
   plannedQty:
-    'Przedmiar — ilość planowana (z przedmiaru/oferty).\nNapędza Wartość przedmiaru (= Przedmiar × Cena, bez rabatu). Netto liczone jest z Pomiaru.',
+    'Przedmiar — ilość planowana (z przedmiaru/oferty).\nNapędza Wartość przedmiaru (= Przedmiar × Cena − Rabat). Netto liczone jest z Pomiaru.',
   measuredQty:
     'Pomiar — ilość faktycznie wykonana.\nTylko do odczytu: liczona automatycznie jako suma ilości ze wszystkich etapów. Napędza Netto = Pomiar × Cena − Rabat.',
   price:
@@ -169,7 +169,7 @@ const HEADER_TIPS: Record<string, string> = {
   priceGross:
     'Cena j.m. brutto = Cena j.m. netto × (1 + VAT).\nStawka VAT jest jedna na całą inwestycję — ta kolumna to przelicznik, nie osobna dana.',
   plannedNet:
-    'Wartość przedmiaru netto = Przedmiar × Cena. Wartość ofertowa pozycji — ile miało wejść wg przedmiaru, przed negocjacją.\nBEZ rabatu — rabat wchodzi dopiero w Netto (rozliczenie). Różnica Netto − Wartość przedmiaru zawiera więc i korektę ilości, i rabat.',
+    'Wartość przedmiaru netto = Przedmiar × Cena − Rabat. Wartość ofertowa pozycji — ile miało wejść wg przedmiaru.\nRabat jest w kwocie zawarty (jak w arkuszu). Różnica Netto − Wartość przedmiaru to sama korekta ilości: obie kwoty niosą już rabat.',
   plannedGross: 'Wartość przedmiaru brutto = Wartość przedmiaru netto × (1 + VAT).',
   net: 'Netto = Pomiar × Cena − Rabat. Wartość pozycji przy aktywnym widoku cen.\nPomiar jest sumą etapów, więc Netto mówi, ile faktycznie wykonano — pusta pozycja jest warta 0.',
   gross: 'Brutto = Netto × (1 + VAT). Jedna stawka VAT na inwestycję, zdenormalizowana na wierszu.',

@@ -356,8 +356,8 @@ describe('wartość wiersza idzie za etapami', () => {
     // Arkusz trzyma S456 i T456 równolegle — oferta i wykonanie to dwie figury, nie wybór.
     it('niesie ofertę sekcji obok wykonania', () => {
       const subtotals = sectionSubtotalsForView(subtotalRows, stages, 'client')
-      // Przedmiar 5 z baseItem: 5 × 20 = 100 oraz 5 × 10 = 50 (rabat dochodzi w fazie 3)
-      expect(subtotals.map((s) => s.plannedNet)).toEqual([150, 500])
+      // Przedmiar 5 z baseItem: 5 × 20 = 100; 5 × 10 = 50 − 20% = 40 (rabat w kwocie) → 140. Sekcja B: 5 × 100 = 500.
+      expect(subtotals.map((s) => s.plannedNet)).toEqual([140, 500])
     })
 
     it('view-awareness: w_tools daje inne netto', () => {
