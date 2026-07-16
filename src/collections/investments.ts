@@ -102,5 +102,19 @@ export const Investments: CollectionConfig = {
       defaultValue: DEFAULT_VAT,
       label: { en: 'VAT rate (fraction)', pl: 'Stawka VAT (ułamek)' },
     },
+    // Global kosztorys discount: overrides per-item discounts and is subtracted once from the
+    // executed total. `type` null = no global discount (per-item discounts apply). Edited from the
+    // kosztorys editor settings bar, not typically here.
+    {
+      name: 'globalDiscountType',
+      type: 'text',
+      label: { en: 'Global discount type', pl: 'Rabat globalny — typ' },
+    },
+    {
+      name: 'globalDiscountValue',
+      type: 'number',
+      defaultValue: 0,
+      label: { en: 'Global discount value', pl: 'Rabat globalny — wartość' },
+    },
   ],
 }

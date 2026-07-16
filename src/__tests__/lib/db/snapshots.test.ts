@@ -17,7 +17,13 @@ const emptyPayload: SnapshotPayloadT = {
   items: [],
   stages: [],
   progress: [],
-  settings: { wToolsCoeff: 0, ownToolsCoeff: 0, vatRate: 0 },
+  settings: {
+    wToolsCoeff: 0,
+    ownToolsCoeff: 0,
+    vatRate: 0,
+    globalDiscountType: null,
+    globalDiscountValue: 0,
+  },
 }
 
 describe.skipIf(!ENV_READY)('pruneAutoCount (DB)', () => {

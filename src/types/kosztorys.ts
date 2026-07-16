@@ -6,6 +6,10 @@
 import type { STAGE_QTY_PREFIX } from '@/lib/kosztorys/constants'
 
 export type DiscountTypeT = 'percent' | 'amount'
+// Per-investment global discount over the whole kosztorys. type null = none (per-item discounts
+// apply). When set, per-item discounts are overridden and this is subtracted once from the executed
+// total. Same two modes as the per-item rabat: percent = percentage points, amount = PLN (netto).
+export type GlobalDiscountT = { type: DiscountTypeT | null; value: number }
 export type CostVariantT = 'w_tools' | 'own_tools'
 // Per-item subcontractor price override: 'coeff' = client × value (tracks the client
 // price), 'amount' = flat frozen amount, null = derive from the effective coefficient.
@@ -93,6 +97,9 @@ export type KosztorysTreeT = {
   globalCoeffs: KosztorysGlobalCoeffsT
   // A single VAT rate per investment — carried through the tree (like globalCoeffs), denormalized onto each row.
   vatRate: number
+  // A single global discount per investment — its `active` flag is denormalized onto each row (see
+  // KosztorysV2RowBaseT.globalDiscountActive), the amount is subtracted once at the total level.
+  globalDiscount: GlobalDiscountT
   // Server-supplied change token = investment.updatedAt (ISO). A restore always bumps it (its final
   // payload.update stamps updatedAt), so the editor shell can key its restore remount on this token
   // changing rather than on the `tree` prop's object identity, which router.refresh reshapes every time.

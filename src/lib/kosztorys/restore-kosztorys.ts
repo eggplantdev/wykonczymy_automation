@@ -105,6 +105,9 @@ export async function restoreKosztorys(
       wToolsCoeff: snapshot.settings.wToolsCoeff,
       ownToolsCoeff: snapshot.settings.ownToolsCoeff,
       vatRate: snapshot.settings.vatRate,
+      // Tolerant: a snapshot captured before these fields existed defaults to "no global discount".
+      globalDiscountType: snapshot.settings.globalDiscountType ?? null,
+      globalDiscountValue: snapshot.settings.globalDiscountValue ?? 0,
     },
   })
 }

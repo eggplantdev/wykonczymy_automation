@@ -400,9 +400,9 @@ throwaway pre-dogfooding). Apply locally with `pnpm payload migrate`; prod is a 
 
 #### Automated
 
-- [ ] 1.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit`
-- [ ] 1.2 Migration applies cleanly against local docker Postgres: `pnpm payload migrate`
-- [ ] 1.3 Build passes: `pnpm build`
+- [x] 1.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit`
+- [x] 1.2 Migration applies cleanly against local docker Postgres: `pnpm payload migrate`
+- [x] 1.3 Build passes: `pnpm build`
 
 ### Phase 2: Pricing override + total (TDD)
 

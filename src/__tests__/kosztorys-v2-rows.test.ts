@@ -64,6 +64,7 @@ const tree: KosztorysTreeT = {
   progress: [{ itemId: 1, stageId: 100, qtyDone: 2 }],
   globalCoeffs: { wTools: 0.65, ownTools: 0.55 },
   vatRate: 0.08,
+  globalDiscount: { type: null, value: 0 },
   revision: '2026-01-01T00:00:00.000Z',
 }
 

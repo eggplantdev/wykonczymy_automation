@@ -1,11 +1,11 @@
 ---
 change_id: kosztorys-global-discount
 title: Globalny rabat na kosztorysie, nadpisujący rabaty per pozycja
-status: planned
+status: implementing
 created: 2026-07-15
 updated: 2026-07-16
 archived_at: null
-branch: null
+branch: dogfooding/kosztorys-editor-ux
 worktree: null
 ---
 

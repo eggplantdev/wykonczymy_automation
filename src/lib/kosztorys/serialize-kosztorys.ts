@@ -21,6 +21,8 @@ export async function serializeKosztorys(investmentId: number): Promise<Snapshot
       wToolsCoeff: tree.globalCoeffs.wTools,
       ownToolsCoeff: tree.globalCoeffs.ownTools,
       vatRate: tree.vatRate,
+      globalDiscountType: tree.globalDiscount.type,
+      globalDiscountValue: tree.globalDiscount.value,
     },
   }
 }
