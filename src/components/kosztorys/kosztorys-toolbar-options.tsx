@@ -1,4 +1,4 @@
-import { Banknote, Percent, Slash, User, Wrench } from 'lucide-react'
+import { Banknote, Coins, Columns2, Percent, Receipt, Slash, User, Wrench } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
@@ -31,10 +31,30 @@ export const VIEW_LEGEND = [
   '🚫 Stawka wykonawcy bez narzędzi.',
 ].join('\n')
 
-export const MONEY_AXES: { value: MoneyAxisT; label: string; hint: string }[] = [
-  { value: 'net', label: 'Netto', hint: 'chowa kolumny brutto' },
-  { value: 'gross', label: 'Brutto', hint: 'chowa kolumny netto' },
-  { value: 'both', label: 'Bez filtra', hint: 'pokazuje netto i brutto' },
+export const MONEY_AXES: {
+  value: MoneyAxisT
+  label: string
+  hint: string
+  icon: ReactNode
+}[] = [
+  {
+    value: 'net',
+    label: 'Netto',
+    hint: 'chowa kolumny brutto',
+    icon: <Coins className={ICON_CLASS} />,
+  },
+  {
+    value: 'gross',
+    label: 'Brutto',
+    hint: 'netto + VAT; chowa kolumny netto',
+    icon: <Receipt className={ICON_CLASS} />,
+  },
+  {
+    value: 'both',
+    label: 'Bez filtra',
+    hint: 'pokazuje netto i brutto obok siebie',
+    icon: <Columns2 className={ICON_CLASS} />,
+  },
 ]
 
 export const AXIS_LEGEND = [
