@@ -1,25 +1,25 @@
 import { describe, expect, it } from 'vitest'
+import { treeToRows, diffRow } from '@/lib/kosztorys/v2-rows'
+import { filterRows, sortRows } from '@/lib/kosztorys/row-view'
 import {
-  treeToRows,
-  diffRow,
-  stageKey,
-  filterRows,
-  sortRows,
   rowTotalQtyDone,
   rowValueForView,
   rowRemainingForView,
   hasStagesOverPlanned,
   sectionSubtotalsForView,
-  revertField,
+} from '@/lib/kosztorys/settlement'
+import { revertField } from '@/lib/kosztorys/row-ops'
+import {
   planItemRemoval,
   REMOVE_BLOCK_LAST_ITEM,
   REMOVE_BLOCK_POPULATED,
-} from '@/lib/kosztorys/v2-rows'
+} from '@/lib/kosztorys/delete-policy'
 import { rowDoneFraction } from '@/lib/kosztorys/calc'
 import {
   STAGE_QTY_PREFIX,
   STAGE_VALUE_GROSS_COLUMN_GROUP,
   STAGE_VALUE_NET_COLUMN_GROUP,
+  stageKey,
   stageValueGrossKey,
   stageValueNetKey,
 } from '@/lib/kosztorys/constants'

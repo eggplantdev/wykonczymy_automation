@@ -1,4 +1,4 @@
-import type { CostVariantT } from '@/types/kosztorys'
+import type { CostVariantT, StageKeyT } from '@/types/kosztorys'
 
 // Default subcontractor markup coefficients for an investment — the single source for both the
 // Payload column `defaultValue` (src/collections/investments.ts) and the query fallback
@@ -68,6 +68,13 @@ export const STAGE_VALUE_PERCENT_COLUMN_GROUP = 'stageValuePercent'
 // every key on the row by it, so it decides what gets saved as stage progress; the two value
 // namespaces below are defined against it and must never collide with or prefix it.
 export const STAGE_QTY_PREFIX = 'stage_'
+
+// The editable stage-qty field key for a stage id (the row's `stage_<id>`). Lives here beside the
+// prefix that defines it — every row/column/settlement module keys stage cells through this one
+// function, so its home is the namespace, not v2-rows.
+export function stageKey(stageId: number): StageKeyT {
+  return `${STAGE_QTY_PREFIX}${stageId}`
+}
 
 // Column ids for the per-stage value columns. Deliberately NOT under STAGE_QTY_PREFIX: that prefix
 // means "an editable qty field on the row", so a value column wearing it would reach diffRow, which

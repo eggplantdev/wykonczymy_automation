@@ -32,6 +32,7 @@ import {
   STAGE_VALUE_PERCENT_COLUMN_GROUP,
   STAGES_COLUMN_GROUP,
   UNIT_SUGGESTIONS,
+  stageKey,
   stageValueGrossKey,
   stageValueNetKey,
   stageValuePercentKey,
@@ -49,9 +50,8 @@ import {
   rowRemainingForView,
   rowTotalQtyDone,
   rowValueForView,
-  stageKey,
-  type SortDirT,
-} from '@/lib/kosztorys/v2-rows'
+} from '@/lib/kosztorys/settlement'
+import { type SortDirT } from '@/lib/kosztorys/row-view'
 import type {
   DiscountTypeT,
   KosztorysStageT,

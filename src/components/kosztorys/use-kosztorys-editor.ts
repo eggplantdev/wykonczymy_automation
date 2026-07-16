@@ -12,31 +12,32 @@ import { useProgressDisplay } from '@/components/kosztorys/use-progress-display'
 import { useElementHeight } from '@/hooks/use-element-height'
 import { toastMessage } from '@/lib/utils/toast'
 import { buildV2Grid, type V2SortStateT } from '@/lib/tables/kosztorys-v2-columns'
+import { diffRow, treeToRows } from '@/lib/kosztorys/v2-rows'
 import {
   applyAddItem,
   applyInsertItem,
   applyRemoveItem,
   buildBlankRow,
-  diffRow,
-  filterRows,
   insertDisplayOrder,
+  revertField,
+  sectionNeighbor,
+  swapItemInSection,
+} from '@/lib/kosztorys/row-ops'
+import {
   isSectionPopulated,
   planItemRemoval,
   planItemRemovalFromCounts,
-  revertField,
+  sectionItemCounts,
+} from '@/lib/kosztorys/delete-policy'
+import {
   rowRemainingForView,
   rowValueForView,
-  sectionItemCounts,
-  sectionNeighbor,
   sectionSubtotalsForView,
-  sortRows,
-  stageKey,
-  swapItemInSection,
-  treeToRows,
-  type SortDirT,
-} from '@/lib/kosztorys/v2-rows'
+} from '@/lib/kosztorys/settlement'
+import { filterRows, sortRows, type SortDirT } from '@/lib/kosztorys/row-view'
 import {
   NEW_SECTION_DEFAULTS,
+  stageKey,
   stageValueGrossKey,
   stageValueNetKey,
   stageValuePercentKey,
