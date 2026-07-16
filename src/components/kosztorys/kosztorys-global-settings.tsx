@@ -109,7 +109,7 @@ export function KosztorysGlobalSettings({
             onGlobalDiscountChange({ type, value: type == null ? 0 : globalDiscount.value })
           }}
           options={DISCOUNT_MODE_OPTIONS}
-          className="h-6 w-fit gap-1 text-xs"
+          variant="soft"
         />
       </div>
     </div>
