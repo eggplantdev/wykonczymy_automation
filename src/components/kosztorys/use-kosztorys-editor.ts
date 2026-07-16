@@ -169,7 +169,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     onReorderItem: handleReorderItem,
     onInsertItem: handleInsertItem,
     getRemoveBlockReason,
-    globalDiscountActive: isGlobalDiscountActive(tree.globalDiscount),
+    globalDiscountActive,
   }
   const columns = buildV2Columns(columnOpts)
   const columnToggleItems = buildV2ToggleItems(columnOpts)
