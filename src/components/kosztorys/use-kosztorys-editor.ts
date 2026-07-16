@@ -11,7 +11,8 @@ import { usePriceView } from '@/components/kosztorys/use-price-view'
 import { useProgressDisplay } from '@/components/kosztorys/use-progress-display'
 import { useElementHeight } from '@/hooks/use-element-height'
 import { toastMessage } from '@/lib/utils/toast'
-import { buildV2Grid, type V2SortStateT } from '@/lib/tables/kosztorys-v2-columns'
+import { buildV2Grid } from '@/components/kosztorys/kosztorys-v2-columns'
+import { type V2SortStateT } from '@/components/kosztorys/kosztorys-v2-column-opts'
 import { diffRow, treeToRows } from '@/lib/kosztorys/v2-rows'
 import {
   applyAddItem,

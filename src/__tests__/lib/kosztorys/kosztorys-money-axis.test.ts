@@ -5,7 +5,7 @@ import {
   AXIS_EXEMPT_COLUMNS,
   DEFAULT_HIDDEN_COLUMNS,
 } from '@/lib/kosztorys/constants'
-import { buildV2Columns } from '@/lib/tables/kosztorys-v2-columns'
+import { buildV2Columns } from '@/components/kosztorys/kosztorys-v2-columns'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { KosztorysStageT } from '@/types/kosztorys'
 
