@@ -14,6 +14,7 @@ import { toastMessage } from '@/lib/utils/toast'
 
 type PropsT = {
   investmentId: number
+  investmentName: string
   open: boolean
   onOpenChange: (open: boolean) => void
   // Called after a successful restore so the parent can refresh + remount the editor.
@@ -23,7 +24,13 @@ type PropsT = {
 // History panel: named manual versions are the prominent targetable entries; auto snapshots are the
 // ambient timestamped history below them. Restore gates behind a ConfirmDialog — the pre-restore auto
 // snapshot the action takes makes a mis-restore itself recoverable.
-export function KosztorysVersionsDrawer({ investmentId, open, onOpenChange, onRestored }: PropsT) {
+export function KosztorysVersionsDrawer({
+  investmentId,
+  investmentName,
+  open,
+  onOpenChange,
+  onRestored,
+}: PropsT) {
   // null = not loaded yet (spinner); [] = loaded, empty.
   const [snapshots, setSnapshots] = useState<SnapshotListItemT[] | null>(null)
   const [restoringId, setRestoringId] = useState<number | null>(null)
@@ -67,7 +74,7 @@ export function KosztorysVersionsDrawer({ investmentId, open, onOpenChange, onRe
   async function handleRestore(snapshot: SnapshotListItemT) {
     setPendingRestore(null)
     setRestoringId(snapshot.id)
-    const res = await restoreSnapshotAction(snapshot.id)
+    const res = await restoreSnapshotAction(snapshot.id, investmentId)
     setRestoringId(null)
     if (!res.success) {
       toastMessage(res.error ?? 'Nie udało się przywrócić wersji', 'error', 4000)
@@ -101,6 +108,7 @@ export function KosztorysVersionsDrawer({ investmentId, open, onOpenChange, onRe
                   <SnapshotRow
                     key={s.id}
                     snapshot={s}
+                    investmentName={investmentName}
                     primary
                     restoring={restoringId === s.id}
                     onRestore={() => setPendingRestore(s)}
@@ -117,6 +125,7 @@ export function KosztorysVersionsDrawer({ investmentId, open, onOpenChange, onRe
                   <SnapshotRow
                     key={s.id}
                     snapshot={s}
+                    investmentName={investmentName}
                     restoring={restoringId === s.id}
                     onRestore={() => setPendingRestore(s)}
                   />
@@ -145,11 +154,13 @@ export function KosztorysVersionsDrawer({ investmentId, open, onOpenChange, onRe
 
 function SnapshotRow({
   snapshot,
+  investmentName,
   primary,
   restoring,
   onRestore,
 }: {
   snapshot: SnapshotListItemT
+  investmentName: string
   primary?: boolean
   restoring: boolean
   onRestore: () => void
@@ -165,6 +176,7 @@ function SnapshotRow({
         <div className="text-muted-foreground truncate text-xs">
           {primary ? formatPLDateTime(snapshot.takenAt) : 'Auto'}
           {snapshot.takenByName ? ` · ${snapshot.takenByName}` : ''}
+          {` · ${investmentName}`}
         </div>
       </div>
       <Button size="sm" variant="outline" onClick={onRestore} disabled={restoring}>

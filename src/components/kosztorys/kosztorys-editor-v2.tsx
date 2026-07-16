@@ -76,6 +76,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
       />
       <KosztorysVersionsDrawer
         investmentId={investmentId}
+        investmentName={investmentName}
         open={versionsOpen}
         onOpenChange={setVersionsOpen}
         onRestored={handleRestored}

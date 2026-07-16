@@ -11,10 +11,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { SavePresetDialog } from '@/components/kosztorys/save-preset-dialog'
+import { SaveVersionDialog } from '@/components/kosztorys/save-version-dialog'
 import { listPresetsAction } from '@/lib/actions/kosztorys-presets'
-import { saveSnapshotAction } from '@/lib/actions/kosztorys-snapshots'
 import type { PresetMetaT } from '@/lib/db/presets'
-import { toastMessage } from '@/lib/utils/toast'
 
 type PropsT = {
   investmentId: number
@@ -36,17 +35,8 @@ function MenuItemBody({ label, description }: { label: string; description: stri
 // onSelect closes the menu, so opening the dialog from inside it would fight the menu for focus.
 export function KosztorysActionsMenu({ investmentId, onOpenVersions }: PropsT) {
   const [presetOpen, setPresetOpen] = useState(false)
+  const [versionOpen, setVersionOpen] = useState(false)
   const [existingPresets, setExistingPresets] = useState<PresetMetaT[]>([])
-
-  // Direct save — a named snapshot auto-labelled with the current timestamp; rename later in "Wczytaj".
-  async function handleSaveVersion() {
-    const label = new Date().toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })
-    const res = await saveSnapshotAction(investmentId, label)
-    toastMessage(
-      res.success ? 'Zapisano wersję' : (res.error ?? 'Nie udało się zapisać wersji'),
-      res.success ? 'success' : 'error',
-    )
-  }
 
   function handleOpenPreset() {
     setPresetOpen(true)
@@ -65,11 +55,11 @@ export function KosztorysActionsMenu({ investmentId, onOpenVersions }: PropsT) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-64">
-          <DropdownMenuItem onSelect={() => void handleSaveVersion()}>
+          <DropdownMenuItem onSelect={() => setVersionOpen(true)}>
             <Save />
             <MenuItemBody
               label="Zapisz"
-              description="Zapisz bieżący stan jako punkt, do którego możesz wrócić."
+              description="Zapisz bieżący stan jako nazwany punkt, do którego możesz wrócić."
             />
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={onOpenVersions}>
@@ -89,6 +79,11 @@ export function KosztorysActionsMenu({ investmentId, onOpenVersions }: PropsT) {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <SaveVersionDialog
+        investmentId={investmentId}
+        open={versionOpen}
+        onOpenChange={setVersionOpen}
+      />
       <SavePresetDialog
         investmentId={investmentId}
         open={presetOpen}
