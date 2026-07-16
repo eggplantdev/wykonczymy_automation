@@ -6,10 +6,11 @@ import {
   NEW_SECTION_DEFAULTS,
 } from '@/lib/kosztorys/constants'
 
-// Cold-start seed for a preset-less new investment: one section + one blank item, so the editor opens
-// on a typable row instead of an empty grid (EX-463). Field shapes mirror addSectionAction /
-// addItemAction — a fresh investment has no sections/items, so displayOrder is always 0. The caller
-// owns the non-fatal try/catch and revalidation (the investment isn't cached yet, so no tag here).
+// Cold-start seed for a preset-less new investment: one section + one blank item + one blank etap, so
+// the editor opens on a typable row instead of an empty grid (EX-463) and a kosztorys always has at
+// least one etap. Field shapes mirror addSectionAction / addItemAction — a fresh investment has no
+// sections/items, so displayOrder is always 0. The caller owns the non-fatal try/catch and
+// revalidation (the investment isn't cached yet, so no tag here).
 export async function seedBlankKosztorys(
   payload: Payload,
   investmentId: number,
@@ -37,5 +38,9 @@ export async function seedBlankKosztorys(
       clientPrice: 0,
       hiddenInExport: false,
     },
+  })
+  await payload.create({
+    collection: 'kosztorys-stages',
+    data: { investment: investmentId, ordinal: 1 },
   })
 }

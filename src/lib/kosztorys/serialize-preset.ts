@@ -19,7 +19,9 @@ export async function serializeKosztorysAsPreset(investmentId: number): Promise<
       hiddenInExport: false,
       note: null,
     })),
-    // Stages themselves (labels/ordinals) are structure and stay; only their recorded progress goes.
+    // Etapy (stages + their recorded progress) are per-job execution structure, not reusable scope —
+    // a preset carries none. The seed installs one fresh blank etap on the target instead.
+    stages: [],
     progress: [],
   }
 }

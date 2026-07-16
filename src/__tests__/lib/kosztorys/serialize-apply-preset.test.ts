@@ -247,6 +247,30 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     })
   })
 
+  it('seed from a preset yields exactly one blank etap and no progress, whatever the source stages were', async () => {
+    const sourceId = await createInvestment(`${PRESET_PREFIX}source-oneetap`, 0.23, 0.7, 0.5)
+    await buildSourceTree(sourceId) // source has 2 stages + progress
+
+    const preset = await serializeKosztorysAsPreset(sourceId)
+    // A preset carries no etapy — they are per-job execution structure, not reusable scope.
+    expect(preset.stages).toEqual([])
+    expect(preset.progress).toEqual([])
+
+    const presetId = await insertPreset(db, {
+      name: `${PRESET_PREFIX}oneetap`,
+      createdBy: null,
+      payload: preset,
+    })
+    const spawnId = await createInvestment(`${PRESET_PREFIX}spawn-oneetap`, 0.23, 0.7, 0.5)
+    expect(await seedInvestmentFromPreset(payload, spawnId, presetId!)).toBe('ok')
+
+    const after = await serializeKosztorys(spawnId)
+    expect(after.stages).toHaveLength(1)
+    expect(after.stages[0].ordinal).toBe(1)
+    expect(after.stages[0].label).toBeNull()
+    expect(after.progress).toEqual([])
+  })
+
   it('seed rejects a non-empty investment and writes nothing', async () => {
     const targetId = await createInvestment(`${PRESET_PREFIX}source-guard`, 0.23, 0.7, 0.5)
     await buildSourceTree(targetId)
