@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils/cn'
 
-export type SelectOptionT = { value: string; label: ReactNode }
+export type SelectOptionT = { value: string; label: ReactNode; className?: string }
 export type SelectVariantT = 'default' | 'soft' | 'pill'
 
 // Complete trigger presets — each variant carries its whole look (height, radius, text, gap, width)
@@ -52,7 +52,7 @@ export function SimpleSelect({
       </SelectTrigger>
       <SelectContent>
         {options.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
+          <SelectItem key={option.value} value={option.value} className={option.className}>
             {option.label}
           </SelectItem>
         ))}

@@ -9,7 +9,7 @@ import type { DiscountTypeT, GlobalDiscountT } from '@/types/kosztorys'
 const NONE = 'none'
 
 const DISCOUNT_MODE_OPTIONS = [
-  { value: NONE, label: 'brak' },
+  { value: NONE, label: 'brak', className: 'text-muted-foreground' },
   { value: 'amount', label: 'zł' },
   { value: 'percent', label: '%' },
 ]
@@ -110,6 +110,7 @@ export function KosztorysGlobalSettings({
           }}
           options={DISCOUNT_MODE_OPTIONS}
           variant="soft"
+          className={globalDiscount.type == null ? 'text-muted-foreground' : undefined}
         />
       </div>
     </div>
