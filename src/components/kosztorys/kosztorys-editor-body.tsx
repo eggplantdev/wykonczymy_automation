@@ -8,6 +8,7 @@ import { DynamicDataSheetGrid } from 'react-datasheet-grid'
 import { KosztorysSectionSummary } from '@/components/kosztorys/kosztorys-section-summary'
 import { KosztorysEditorToolbar } from '@/components/kosztorys/kosztorys-editor-toolbar'
 import { useKosztorysEditor } from '@/components/kosztorys/use-kosztorys-editor'
+import { KosztorysEditorProvider } from '@/components/kosztorys/use-kosztorys-editor-context'
 import type { KosztorysTreeT } from '@/types/kosztorys'
 
 type PropsT = {
@@ -26,27 +27,17 @@ export function KosztorysEditorBody({
   investmentName,
   onOpenVersions,
 }: PropsT) {
+  const editor = useKosztorysEditor({ investmentId, tree })
   const {
     gridRef,
     gridHeight,
     columns,
-    columnToggleItems,
-    toggleColumn,
-    moneyAxis,
-    setMoneyAxis,
-    progressDisplay,
-    setProgressDisplay,
     viewRows,
-    view,
     guideX,
     subtotals,
     totalNet,
-    doneNet,
     sectionDoneNet,
     sectionCoeffs,
-    setView,
-    search,
-    setSearch,
     activeSectionId,
     setActiveSectionId,
     summaryOpen,
@@ -54,99 +45,74 @@ export function KosztorysEditorBody({
     onChange,
     handleAddItem,
     handleAddSection,
-    handleAddStage,
     handleRenameSection,
     handleRemoveSection,
     isSectionPopulated,
-    handleGlobalCoeffChange,
     handleSectionCoeffChange,
-    handleVatChange,
-  } = useKosztorysEditor({ investmentId, tree })
+  } = editor
 
   // Viewport minus the shell's chrome: the h-14 TopNav always, plus the h-14 AppFooter, which only
   // renders below `lg` (hence the two calcs — subtracting it at every width would leave a dead band
   // where no footer exists).
   return (
-    <div className="flex h-[calc(100dvh-7rem)] w-full flex-col overflow-hidden lg:h-[calc(100dvh-3.5rem)]">
-      <KosztorysEditorToolbar
-        investmentId={investmentId}
-        investmentName={investmentName}
-        onOpenVersions={onOpenVersions}
-        view={view}
-        onViewChange={setView}
-        moneyAxis={moneyAxis}
-        onMoneyAxisChange={setMoneyAxis}
-        progressDisplay={progressDisplay}
-        onProgressDisplayChange={setProgressDisplay}
-        doneNet={doneNet}
-        totalNet={totalNet}
-        search={search}
-        onSearchChange={setSearch}
-        addItemSectionId={activeSectionId ?? subtotals.at(-1)?.sectionId ?? null}
-        onAddItem={handleAddItem}
-        onAddSection={handleAddSection}
-        onAddStage={handleAddStage}
-        columnToggleItems={columnToggleItems}
-        onToggleColumn={toggleColumn}
-        globalCoeffs={tree.globalCoeffs}
-        vatRate={tree.vatRate}
-        onGlobalCoeffChange={handleGlobalCoeffChange}
-        onVatChange={handleVatChange}
-        summaryOpen={summaryOpen}
-        onToggleSummary={() => setSummaryOpen((o) => !o)}
-      />
-      {/* We measure the container height (flex-1) and pass it to the grid — datasheet-grid
-          needs px for virtualization; without it, it renders all 1000 rows.
-          The grid track `minmax(0,1fr)` gives a DEFINITE width (= viewport): the grid doesn't
-          stretch the container to the sum of the columns, it scrolls them internally instead. */}
-      <div className="relative flex min-h-0 flex-1 overflow-hidden">
-        {/* min-w-0 lets the wrapper shrink below its content in a flex context;
-            grid-cols-1 still gives the grid a definite width (anti-flicker). */}
-        <div ref={gridRef} className="grid min-h-0 min-w-0 flex-1 grid-cols-1 overflow-hidden">
-          <DynamicDataSheetGrid
-            className="kosztorys-grid"
-            value={viewRows}
-            onChange={onChange}
-            columns={columns}
-            height={gridHeight}
-            rowHeight={32}
-            headerRowHeight={32}
-            lockRows
-            rowKey={({ rowData }) => String(rowData.id)}
-          />
+    <KosztorysEditorProvider
+      editor={{ ...editor, investmentId, investmentName, tree, onOpenVersions }}
+    >
+      <div className="flex h-[calc(100dvh-7rem)] w-full flex-col overflow-hidden lg:h-[calc(100dvh-3.5rem)]">
+        <KosztorysEditorToolbar />
+        {/* We measure the container height (flex-1) and pass it to the grid — datasheet-grid
+            needs px for virtualization; without it, it renders all 1000 rows.
+            The grid track `minmax(0,1fr)` gives a DEFINITE width (= viewport): the grid doesn't
+            stretch the container to the sum of the columns, it scrolls them internally instead. */}
+        <div className="relative flex min-h-0 flex-1 overflow-hidden">
+          {/* min-w-0 lets the wrapper shrink below its content in a flex context;
+              grid-cols-1 still gives the grid a definite width (anti-flicker). */}
+          <div ref={gridRef} className="grid min-h-0 min-w-0 flex-1 grid-cols-1 overflow-hidden">
+            <DynamicDataSheetGrid
+              className="kosztorys-grid"
+              value={viewRows}
+              onChange={onChange}
+              columns={columns}
+              height={gridHeight}
+              rowHeight={32}
+              headerRowHeight={32}
+              lockRows
+              rowKey={({ rowData }) => String(rowData.id)}
+            />
+          </div>
+          {summaryOpen && (
+            <KosztorysSectionSummary
+              subtotals={subtotals}
+              grandNet={totalNet}
+              sectionDoneNet={sectionDoneNet}
+              activeSectionId={activeSectionId}
+              globalCoeffs={tree.globalCoeffs}
+              sectionCoeffs={sectionCoeffs}
+              vatRate={tree.vatRate}
+              onClose={() => setSummaryOpen(false)}
+              onAddSection={handleAddSection}
+              onAddItem={handleAddItem}
+              onRenameSection={handleRenameSection}
+              onRemoveSection={handleRemoveSection}
+              isSectionPopulated={isSectionPopulated}
+              onFilterSection={setActiveSectionId}
+              onSectionCoeffChange={handleSectionCoeffChange}
+            />
+          )}
         </div>
-        {summaryOpen && (
-          <KosztorysSectionSummary
-            subtotals={subtotals}
-            grandNet={totalNet}
-            sectionDoneNet={sectionDoneNet}
-            activeSectionId={activeSectionId}
-            globalCoeffs={tree.globalCoeffs}
-            sectionCoeffs={sectionCoeffs}
-            vatRate={tree.vatRate}
-            onClose={() => setSummaryOpen(false)}
-            onAddSection={handleAddSection}
-            onAddItem={handleAddItem}
-            onRenameSection={handleRenameSection}
-            onRemoveSection={handleRemoveSection}
-            isSectionPopulated={isSectionPopulated}
-            onFilterSection={setActiveSectionId}
-            onSectionCoeffChange={handleSectionCoeffChange}
-          />
-        )}
+        {/* Vertical guide while dragging a column edge (left = cursor viewport X). Portaled to body:
+            <main> uses transform-gpu, which would otherwise make this `fixed` element measure `left`
+            from <main> (sidebar-offset) instead of the viewport — same containing-block trap as the
+            context menu. */}
+        {guideX !== null &&
+          createPortal(
+            <div
+              className="bg-primary/70 pointer-events-none fixed inset-y-0 z-50 w-px"
+              style={{ left: guideX }}
+            />,
+            document.body,
+          )}
       </div>
-      {/* Vertical guide while dragging a column edge (left = cursor viewport X). Portaled to body:
-          <main> uses transform-gpu, which would otherwise make this `fixed` element measure `left`
-          from <main> (sidebar-offset) instead of the viewport — same containing-block trap as the
-          context menu. */}
-      {guideX !== null &&
-        createPortal(
-          <div
-            className="bg-primary/70 pointer-events-none fixed inset-y-0 z-50 w-px"
-            style={{ left: guideX }}
-          />,
-          document.body,
-        )}
-    </div>
+    </KosztorysEditorProvider>
   )
 }
