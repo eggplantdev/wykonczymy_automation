@@ -4,6 +4,8 @@ import { KosztorysToolbarToggle } from '@/components/kosztorys/kosztorys-toolbar
 import { useKosztorysEditorContext } from '@/components/kosztorys/use-kosztorys-editor-context'
 import {
   AXIS_LEGEND,
+  LAYERS,
+  LAYER_LEGEND,
   MONEY_AXES,
   PROGRESS_DISPLAYS,
   PROGRESS_DISPLAY_LEGEND,
@@ -12,8 +14,16 @@ import {
 } from '@/components/kosztorys/kosztorys-toolbar-options'
 
 export function KosztorysToolbarViewToggles() {
-  const { view, setView, moneyAxis, setMoneyAxis, progressDisplay, setProgressDisplay } =
-    useKosztorysEditorContext()
+  const {
+    view,
+    setView,
+    moneyAxis,
+    setMoneyAxis,
+    progressDisplay,
+    setProgressDisplay,
+    layer,
+    setLayer,
+  } = useKosztorysEditorContext()
 
   return (
     <>
@@ -37,6 +47,13 @@ export function KosztorysToolbarViewToggles() {
         value={progressDisplay}
         onChange={setProgressDisplay}
         aria-label="Etapy w tabeli"
+      />
+      <KosztorysToolbarToggle
+        legend={LAYER_LEGEND}
+        options={LAYERS}
+        value={layer}
+        onChange={setLayer}
+        aria-label="Widok tabeli"
       />
     </>
   )

@@ -291,15 +291,15 @@ None — no schema or data changes. Kosztorys data is throwaway pre-`main` regar
 
 #### Automated
 
-- [x] 1.1 Type checking passes
-- [x] 1.2 Linting passes
-- [x] 1.3 New unit test passes (`kosztorys-layer.test.ts`)
-- [x] 1.4 Existing axis tests still pass (`kosztorys-money-axis.test.ts`)
+- [x] 1.1 Type checking passes — 4ee8c91
+- [x] 1.2 Linting passes — 4ee8c91
+- [x] 1.3 New unit test passes (`kosztorys-layer.test.ts`) — 4ee8c91
+- [x] 1.4 Existing axis tests still pass (`kosztorys-money-axis.test.ts`) — 4ee8c91
 
 ### Phase 2: UI toggle + editor wiring
 
 #### Automated
 
-- [ ] 2.1 Type checking passes
-- [ ] 2.2 Linting passes
-- [ ] 2.3 Full unit suite passes
+- [x] 2.1 Type checking passes
+- [x] 2.2 Linting passes
+- [x] 2.3 Full unit suite passes

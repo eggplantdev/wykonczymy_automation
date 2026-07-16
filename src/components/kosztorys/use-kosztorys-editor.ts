@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useDebouncedSave } from '@/components/kosztorys/use-debounced-save'
 import { useColumnWidths } from '@/components/kosztorys/use-column-widths'
 import { useHiddenColumns } from '@/components/kosztorys/use-hidden-columns'
+import { useLayer } from '@/components/kosztorys/use-layer'
 import { useMoneyAxis } from '@/components/kosztorys/use-money-axis'
 import { usePriceView } from '@/components/kosztorys/use-price-view'
 import { useProgressDisplay } from '@/components/kosztorys/use-progress-display'
@@ -110,6 +111,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   const { isHidden, toggleColumn } = useHiddenColumns()
   const [moneyAxis, setMoneyAxis] = useMoneyAxis()
   const [progressDisplay, setProgressDisplay] = useProgressDisplay()
+  const [layer, setLayer] = useLayer()
   const [guideX, setGuideX] = useState<number | null>(null)
   // Snapshot of the previous rows for diffing (keyed by item id) — the full dataset, not the view.
   // It also serves as the "fresh dataset" read by structural event handlers (section count):
@@ -146,6 +148,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     isHidden,
     moneyAxis,
     progressDisplay,
+    layer,
     widths,
     onGuide: setGuideX,
     onCommitColumn: setWidth,
@@ -551,6 +554,8 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     setMoneyAxis,
     progressDisplay,
     setProgressDisplay,
+    layer,
+    setLayer,
     viewRows,
     view,
     sort,

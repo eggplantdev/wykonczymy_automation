@@ -1,6 +1,19 @@
-import { Banknote, Coins, Columns2, Percent, Receipt, Slash, User, Wrench } from 'lucide-react'
+import {
+  Activity,
+  Banknote,
+  Coins,
+  Columns2,
+  Hammer,
+  Layers,
+  Percent,
+  Receipt,
+  Slash,
+  User,
+  Wrench,
+} from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
+import type { LayerT } from '@/lib/kosztorys/layer'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { ProgressDisplayT } from '@/lib/kosztorys/progress-display'
 
@@ -88,4 +101,37 @@ export const PROGRESS_DISPLAY_LEGEND = [
   '',
   'W trybie procentowym każdy etap ma jedną kolumnę zamiast pary netto/brutto — procent jest ten sam po obu stronach.',
   'Kolumna „% wykonania" (całej pozycji) jest dostępna w obu trybach.',
+].join('\n')
+
+export const LAYERS: {
+  value: LayerT
+  label: string
+  hint: string
+  icon: ReactNode
+}[] = [
+  {
+    value: 'work',
+    label: 'Praca',
+    hint: 'chowa kolumny postępu (wartości etapów, % wykonania, pozostało)',
+    icon: <Hammer className={ICON_CLASS} />,
+  },
+  {
+    value: 'progress',
+    label: 'Postęp',
+    hint: 'chowa kolumny pracy, zostawia tracker postępu',
+    icon: <Activity className={ICON_CLASS} />,
+  },
+  {
+    value: 'both',
+    label: 'Bez filtra',
+    hint: 'pokazuje kolumny pracy i postępu razem',
+    icon: <Layers className={ICON_CLASS} />,
+  },
+]
+
+export const LAYER_LEGEND = [
+  'Widok tabeli:',
+  ...LAYERS.map((layer) => `${layer.label} — ${layer.hint}.`),
+  '',
+  'Sekcja, Opis prac i Pomiar są zawsze widoczne, niezależnie od trybu.',
 ].join('\n')
