@@ -498,6 +498,10 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   }
 
   function handleRenameSection(sectionId: number, name: string) {
+    // Skip a no-op write: the cell's onBlur fires on every focus-out, so bail when the name is
+    // unchanged (the Sekcja cell has no diff of its own, like handleRenameStage for etap labels).
+    const current = rowsRef.current.find((r) => r.sectionId === sectionId)?.sectionName ?? ''
+    if (current === name) return
     // The name is denormalized on every row of the section — overwrite them all locally.
     setRows((rs) => rs.map((r) => (r.sectionId === sectionId ? { ...r, sectionName: name } : r)))
     for (const [id, r] of prevById.current) {
