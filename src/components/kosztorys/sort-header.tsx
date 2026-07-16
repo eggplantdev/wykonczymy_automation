@@ -11,7 +11,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils/cn'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+  TOOLTIP_DELAY,
+} from '@/components/ui/tooltip'
 import type { SortDirT } from '@/lib/kosztorys/v2-rows'
 
 type PropsT = {
@@ -54,10 +60,10 @@ export function SortHeader({ label, active, onSort, tip }: PropsT) {
   return (
     <DropdownMenu open={menuOpen} onOpenChange={onMenuOpenChange}>
       {tip ? (
-        <TooltipProvider delayDuration={600}>
+        <TooltipProvider delayDuration={TOOLTIP_DELAY}>
           <Tooltip open={tipHovered && !menuOpen} onOpenChange={setTipHovered}>
             <TooltipTrigger asChild>{trigger}</TooltipTrigger>
-            <TooltipContent className="max-w-xs whitespace-pre-line">{tip}</TooltipContent>
+            <TooltipContent>{tip}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       ) : (

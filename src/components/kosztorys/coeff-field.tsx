@@ -1,7 +1,11 @@
 'use client'
 
+import { HintTooltip } from '@/components/ui/tooltip'
+
 type PropsT = {
   label: string
+  // Optional explanatory tooltip on the LABEL only — the input stays a clean text field.
+  hint?: string
   value: number | null
   placeholder?: number
   nullable?: boolean
@@ -10,10 +14,10 @@ type PropsT = {
 
 // Markup-coefficient field. Uncontrolled + `key` on the value (remount after router.refresh),
 // commit on blur/Enter — no useEffect (project rule). Empty + nullable = inherit (null).
-export function CoeffField({ label, value, placeholder, nullable, onCommit }: PropsT) {
+export function CoeffField({ label, hint, value, placeholder, nullable, onCommit }: PropsT) {
   return (
     <label className="text-muted-foreground flex items-center gap-1 text-xs">
-      {label}
+      {hint ? <HintTooltip content={hint}>{label}</HintTooltip> : label}
       <input
         key={value == null ? 'null' : String(value)}
         type="text"

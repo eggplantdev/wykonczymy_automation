@@ -19,7 +19,7 @@ export function KosztorysToolbarToggle<T extends string>({
   'aria-label': ariaLabel,
 }: PropsT<T>) {
   return (
-    <SimpleTooltip content={legend} delayDuration={500} className="max-w-xs whitespace-pre-line">
+    <SimpleTooltip content={legend}>
       {/* SimpleTooltip's trigger is `asChild`, so Radix clones this child and hands it a ref —
           it needs a DOM node. ToggleGroup is a plain function component that never forwards one,
           hence the span. `inline-flex` keeps it from disturbing the toolbar's layout. */}

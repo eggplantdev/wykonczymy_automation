@@ -1,6 +1,6 @@
 import { Info } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
-import { SimpleTooltip } from '@/components/ui/tooltip'
+import { HintTooltip } from '@/components/ui/tooltip'
 
 type InfoTooltipPropsT = {
   content: string
@@ -10,25 +10,21 @@ type InfoTooltipPropsT = {
   className?: string
 }
 
-// An (i) icon that reveals `content` on hover/focus. Width-capped and honours
-// newlines in `content` so multi-line explanations format predictably.
+// The (i)-icon flavor of HintTooltip: an icon that reveals `content` on hover/focus.
 export function InfoTooltip({
   content,
   label = 'Więcej informacji',
   className,
 }: InfoTooltipPropsT) {
   return (
-    <SimpleTooltip content={content} className="max-w-xs whitespace-pre-line">
+    <HintTooltip content={content} className={cn('align-middle', className)}>
       <button
         type="button"
         aria-label={label}
-        className={cn(
-          'text-muted-foreground hover:text-foreground inline-flex align-middle',
-          className,
-        )}
+        className="text-muted-foreground hover:text-foreground inline-flex"
       >
         <Info className="size-3.5" />
       </button>
-    </SimpleTooltip>
+    </HintTooltip>
   )
 }

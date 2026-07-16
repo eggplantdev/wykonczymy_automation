@@ -156,8 +156,6 @@ function keyCol(
 
 // Audit aid (may be temporary): each header explains the column's intent + the formula that
 // drives it, so mismatches between intent and calc are visible.
-const HEADER_TIP_DELAY = 600
-
 const HEADER_TIPS: Record<string, string> = {
   sectionName:
     'Sekcja — nazwa sekcji kosztorysu.\nTylko do odczytu (zmieniana z panelu sekcji). Wartość zdenormalizowana na każdym wierszu.',
@@ -203,14 +201,9 @@ const HEADER_TIPS: Record<string, string> = {
     'Etap — % wykonania = ilość wykonana w tym etapie ÷ Przedmiar.\nIle z oferty dowiózł ten etap. Ta sama liczba przy każdym widoku cen i po obu stronach netto/brutto — to stosunek ilości. Kolumny procentowe etapów sumują się do kolumny „% wykonania".\n„—" = brak Przedmiaru.',
 }
 
-// Header-tip presentation (delay, width, pre-line) in one place, so retuning it is one edit.
 function withTip(node: ReactNode, tip: string): ReactNode {
   return (
-    <SimpleTooltip
-      content={tip}
-      delayDuration={HEADER_TIP_DELAY}
-      className="max-w-xs whitespace-pre-line"
-    >
+    <SimpleTooltip content={tip}>
       <span className="flex size-full items-center">{node}</span>
     </SimpleTooltip>
   )

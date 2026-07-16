@@ -44,9 +44,5 @@ export function StageHeader({ stage, onRename, onRemove, tip }: PropsT) {
     </div>
   )
   if (!tip) return row
-  return (
-    <SimpleTooltip content={tip} delayDuration={600} className="max-w-xs whitespace-pre-line">
-      {row}
-    </SimpleTooltip>
-  )
+  return <SimpleTooltip content={tip}>{row}</SimpleTooltip>
 }

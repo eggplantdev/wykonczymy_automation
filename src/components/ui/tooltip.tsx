@@ -38,7 +38,7 @@ function TooltipContent({
         data-slot="tooltip-content"
         sideOffset={sideOffset}
         className={cn(
-          'animate-in bg-foreground text-background fade-in-0 zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs text-balance',
+          'animate-in bg-foreground text-background fade-in-0 zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 z-50 w-fit max-w-xs origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs text-balance whitespace-pre-line',
           className,
         )}
         {...props}
@@ -50,14 +50,24 @@ function TooltipContent({
   )
 }
 
+// Shared hover delay for every app tooltip, so retuning it is one edit.
+const TOOLTIP_DELAY = 500
+
 type SimpleTooltipPropsT = {
   content: string
   children: React.ReactNode
   className?: string
-  delayDuration?: number // hover ms before open; omitted → 0 (instant)
+  delayDuration?: number // hover ms before open
 }
 
-function SimpleTooltip({ content, children, className, delayDuration }: SimpleTooltipPropsT) {
+// Base tooltip. Use directly on INTERACTIVE triggers (buttons, toggles, sortable headers) — the
+// trigger keeps its own cursor. For a read-only explanation on plain text/fields use HintTooltip.
+function SimpleTooltip({
+  content,
+  children,
+  className,
+  delayDuration = TOOLTIP_DELAY,
+}: SimpleTooltipPropsT) {
   return (
     <TooltipProvider delayDuration={delayDuration}>
       <Tooltip>
@@ -68,4 +78,25 @@ function SimpleTooltip({ content, children, className, delayDuration }: SimpleTo
   )
 }
 
-export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider, SimpleTooltip }
+type HintTooltipPropsT = SimpleTooltipPropsT
+
+// Read-only explanation on non-interactive content: wraps the trigger in a `cursor-help` span so the
+// `?` cursor signals "hint, not control". `className` styles that wrapper (pass the trigger's own
+// text classes here). InfoTooltip is the icon flavor of the same thing.
+function HintTooltip({ children, className, ...props }: HintTooltipPropsT) {
+  return (
+    <SimpleTooltip {...props}>
+      <span className={cn('inline-flex cursor-help', className)}>{children}</span>
+    </SimpleTooltip>
+  )
+}
+
+export {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+  SimpleTooltip,
+  HintTooltip,
+  TOOLTIP_DELAY,
+}

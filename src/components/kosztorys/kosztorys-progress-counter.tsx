@@ -1,6 +1,6 @@
 'use client'
 
-import { SimpleTooltip } from '@/components/ui/tooltip'
+import { HintTooltip } from '@/components/ui/tooltip'
 import { toGross } from '@/lib/kosztorys/calc'
 import { formatNet as fmt, formatPercentPrecise } from '@/lib/kosztorys/format'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
@@ -30,11 +30,9 @@ export function KosztorysProgressCounter({ doneNet, plannedNet, vatRate, moneyAx
   const toAxis = (net: number) => (asGross ? toGross(net, vatRate) : net)
 
   return (
-    <SimpleTooltip content={LEGEND} delayDuration={500} className="max-w-xs whitespace-pre-line">
-      <span className="text-muted-foreground cursor-help text-xs tabular-nums">
-        Wykonano: {formatPercentPrecise(plannedNet > 0 ? doneNet / plannedNet : null)} ·{' '}
-        {fmt(toAxis(doneNet))} / {fmt(toAxis(plannedNet))} {asGross ? 'brutto' : 'netto'}
-      </span>
-    </SimpleTooltip>
+    <HintTooltip content={LEGEND} className="text-muted-foreground text-xs tabular-nums">
+      Wykonano: {formatPercentPrecise(plannedNet > 0 ? doneNet / plannedNet : null)} ·{' '}
+      {fmt(toAxis(doneNet))} / {fmt(toAxis(plannedNet))} {asGross ? 'brutto' : 'netto'}
+    </HintTooltip>
   )
 }
