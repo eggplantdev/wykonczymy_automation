@@ -238,6 +238,28 @@ function title(field: string, label: string, opts: BuildV2ColumnsOptsT): ReactNo
 // formatter here rather than as a 0 that would read as a real measurement.
 const fmtOrDash = (value: number | null) => (value == null ? '—' : fmt(value))
 
+type ComputedCellDataT = {
+  compute: (r: KosztorysV2RowT) => number | null
+  className: string | ((r: KosztorysV2RowT) => string)
+  format: (value: number | null) => string
+}
+
+// Module-level so every computed column shares ONE component identity. An inline `component:
+// ({rowData}) => …` is a fresh function type on each assembleV2Columns call (every render), which
+// makes react-datasheet-grid remount each computed cell's DOM instead of reconciling it — the
+// per-cell compute/format travels via `columnData` instead. Not a remount `key` (see EX-422,
+// lessons.md:119-135): identity is stabilised, the grid stays reactive.
+function ComputedCell({ rowData, columnData }: CellProps<KosztorysV2RowT, ComputedCellDataT>) {
+  const { compute, className, format } = columnData
+  return (
+    <span
+      className={`block w-full px-2 text-left ${typeof className === 'function' ? className(rowData) : className}`}
+    >
+      {format(compute(rowData))}
+    </span>
+  )
+}
+
 function computedColumn(
   id: string,
   titleNode: ReactNode,
@@ -249,13 +271,8 @@ function computedColumn(
     id,
     title: titleNode,
     disabled: true,
-    component: ({ rowData }) => (
-      <span
-        className={`block w-full px-2 text-left ${typeof className === 'function' ? className(rowData) : className}`}
-      >
-        {format(compute(rowData))}
-      </span>
-    ),
+    columnData: { compute, className, format },
+    component: ComputedCell,
   }
 }
 
@@ -826,11 +843,16 @@ function toggleKey(columnId: string): string {
   return columnId.startsWith(STAGE_QTY_PREFIX) ? STAGES_COLUMN_GROUP : columnId
 }
 
-export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[] {
+// Hide/axis/resize selection over an already-assembled column list. Split from the assembly so the
+// grid and the picker can share ONE assembleV2Columns pass (buildV2Grid) instead of two.
+function selectV2Columns(
+  assembled: Column<KosztorysV2RowT>[],
+  opts: BuildV2ColumnsOptsT,
+): Column<KosztorysV2RowT>[] {
   const axis = opts.moneyAxis ?? MONEY_AXIS_DEFAULT
   const display = opts.progressDisplay ?? PROGRESS_DISPLAY_DEFAULT
   const layer = opts.layer ?? LAYER_DEFAULT
-  const base = assembleV2Columns(opts)
+  const base = assembled
     .filter((c) => {
       const key = toggleKey(c.id ?? '')
       if (opts.globalDiscountActive && DISCOUNT_COLUMN_IDS.has(key)) return false
@@ -847,13 +869,38 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
 
 // Picker entries for the columns this view actually has, in grid order. Stage columns collapse into
 // their axis's "Etapy — …" entry — hence the dedupe.
-export function buildV2ToggleItems(opts: BuildV2ColumnsOptsT): ColumnToggleItemT[] {
+function selectV2ToggleItems(
+  assembled: Column<KosztorysV2RowT>[],
+  opts: BuildV2ColumnsOptsT,
+): ColumnToggleItemT[] {
   const items: ColumnToggleItemT[] = []
-  for (const col of assembleV2Columns(opts)) {
+  for (const col of assembled) {
     const id = toggleKey(col.id ?? '')
     if (NON_HIDEABLE_COLUMNS.has(id) || items.some((i) => i.id === id)) continue
     if (opts.globalDiscountActive && DISCOUNT_COLUMN_IDS.has(id)) continue
     items.push({ id, label: COLUMN_LABELS[id] ?? id, visible: !opts.isHidden?.(id) })
   }
   return items
+}
+
+export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[] {
+  return selectV2Columns(assembleV2Columns(opts), opts)
+}
+
+export function buildV2ToggleItems(opts: BuildV2ColumnsOptsT): ColumnToggleItemT[] {
+  return selectV2ToggleItems(assembleV2Columns(opts), opts)
+}
+
+// The grid + its picker in one assembly pass — assembleV2Columns is the O(columns·stages) build, and
+// running it twice per render (once per export) was pure waste. Callers that need only one still use
+// the single-purpose exports above.
+export function buildV2Grid(opts: BuildV2ColumnsOptsT): {
+  columns: Column<KosztorysV2RowT>[]
+  columnToggleItems: ColumnToggleItemT[]
+} {
+  const assembled = assembleV2Columns(opts)
+  return {
+    columns: selectV2Columns(assembled, opts),
+    columnToggleItems: selectV2ToggleItems(assembled, opts),
+  }
 }

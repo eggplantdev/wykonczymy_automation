@@ -207,23 +207,25 @@ export async function removeSectionAction(sectionId: number) {
     'removeSectionAction',
     async ({ payload, user }) => {
       const db = await getDb(payload)
-      // Block: a section delete FK-cascades through its items into stage_progress, so
-      // dropping a section with any populated item silently loses recorded work.
+      // One round-trip for the delete guard AND the snapshot's investment id. Block: a section
+      // delete FK-cascades through its items into stage_progress, so dropping a section with any
+      // populated item silently loses recorded work. Snapshot: the cascade is irrecoverable by
+      // in-session undo (S-07), so capture the exact current state first, every time.
       const res = await db.execute(sql`
-        SELECT 1 FROM kosztorys_items i
-        WHERE i.section_id = ${sectionId}
-          AND EXISTS (SELECT 1 FROM stage_progress sp WHERE sp.item_id = i.id AND sp.qty_done <> 0)
-        LIMIT 1
+        SELECT s.investment_id,
+          EXISTS (
+            SELECT 1 FROM kosztorys_items i
+            WHERE i.section_id = s.id
+              AND EXISTS (SELECT 1 FROM stage_progress sp WHERE sp.item_id = i.id AND sp.qty_done <> 0)
+          ) AS populated
+        FROM kosztorys_sections s
+        WHERE s.id = ${sectionId}
       `)
-      if (res.rows.length > 0) {
+      const row = res.rows[0]
+      if (row?.populated) {
         return { success: false, error: 'Najpierw wyczyść wartości w pozycjach tej sekcji' }
       }
-      // Forced pre-delete snapshot: the cascade is irrecoverable by in-session undo (S-07), so
-      // capture the exact current state first, every time.
-      const inv = await db.execute(
-        sql`SELECT investment_id FROM kosztorys_sections WHERE id = ${sectionId}`,
-      )
-      const investmentId = inv.rows[0]?.investment_id
+      const investmentId = row?.investment_id
       if (investmentId != null) await captureAutoSnapshot(db, Number(investmentId), user.id)
       await payload.delete({ collection: 'kosztorys-sections', id: sectionId })
       return { success: true }
@@ -317,24 +319,22 @@ export async function removeItemAction(itemId: number) {
     'removeItemAction',
     async ({ payload, user }) => {
       const db = await getDb(payload)
-      // Block: an item cascades stage_progress on delete — dropping a row that carries recorded
-      // work silently loses it (mirrors removeStageAction). Recorded stage progress is the whole
-      // test — it is the only per-item value a user cannot otherwise clear from the grid.
+      // One round-trip for the delete guard AND the snapshot's investment id. Block: an item
+      // cascades stage_progress on delete — dropping a row that carries recorded work silently
+      // loses it (mirrors removeStageAction); recorded stage progress is the only per-item value a
+      // user cannot otherwise clear from the grid. Snapshot: an allowed delete still drops the row's
+      // opis/przedmiar/cena/rabat, irrecoverable by in-session undo (S-07) — capture first.
       const res = await db.execute(sql`
-        SELECT investment_id FROM kosztorys_items i
+        SELECT i.investment_id,
+          EXISTS (SELECT 1 FROM stage_progress sp WHERE sp.item_id = i.id AND sp.qty_done <> 0) AS populated
+        FROM kosztorys_items i
         WHERE i.id = ${itemId}
-          AND EXISTS (SELECT 1 FROM stage_progress sp WHERE sp.item_id = i.id AND sp.qty_done <> 0)
-        LIMIT 1
       `)
-      if (res.rows.length > 0) {
+      const row = res.rows[0]
+      if (row?.populated) {
         return { success: false, error: 'Najpierw wyczyść wartości wpisane w tej pozycji' }
       }
-      // Forced pre-delete snapshot: an allowed delete still drops the row's opis/przedmiar/cena/rabat,
-      // irrecoverable by in-session undo (S-07) — capture first, exactly like removeSectionAction.
-      const inv = await db.execute(
-        sql`SELECT investment_id FROM kosztorys_items WHERE id = ${itemId}`,
-      )
-      const investmentId = inv.rows[0]?.investment_id
+      const investmentId = row?.investment_id
       if (investmentId != null) await captureAutoSnapshot(db, Number(investmentId), user.id)
       await payload.delete({ collection: 'kosztorys-items', id: itemId })
       return { success: true }
@@ -429,19 +429,21 @@ export async function removeStageAction(stageId: number): Promise<ActionResultT>
       const parsed = validateAction(stageIdSchema, { stageId })
       if (!parsed.success) return parsed
       const db = await getDb(payload)
-      // Block: don't drop a stage that still has recorded progress (would silently lose it).
+      // One round-trip for the delete guard AND the snapshot's investment id. Block: don't drop a
+      // stage that still has recorded progress (would silently lose it). Snapshot (see
+      // removeSectionAction) only fires on a genuinely-allowed delete — the guard already rejected
+      // a stage with recorded work.
       const res = await db.execute(sql`
-        SELECT 1 FROM stage_progress WHERE stage_id = ${parsed.data.stageId} AND qty_done <> 0 LIMIT 1
+        SELECT s.investment_id,
+          EXISTS (SELECT 1 FROM stage_progress sp WHERE sp.stage_id = s.id AND sp.qty_done <> 0) AS populated
+        FROM kosztorys_stages s
+        WHERE s.id = ${parsed.data.stageId}
       `)
-      if (res.rows.length > 0) {
+      const row = res.rows[0]
+      if (row?.populated) {
         return { success: false, error: 'Najpierw wyczyść ilości wpisane w tym etapie' }
       }
-      // Forced pre-delete snapshot (see removeSectionAction) — only fires on a genuinely-allowed
-      // delete, since the progress guard above already rejected a stage with recorded work.
-      const inv = await db.execute(
-        sql`SELECT investment_id FROM kosztorys_stages WHERE id = ${parsed.data.stageId}`,
-      )
-      const investmentId = inv.rows[0]?.investment_id
+      const investmentId = row?.investment_id
       if (investmentId != null) await captureAutoSnapshot(db, Number(investmentId), user.id)
       await payload.delete({ collection: 'kosztorys-stages', id: parsed.data.stageId })
       return { success: true }

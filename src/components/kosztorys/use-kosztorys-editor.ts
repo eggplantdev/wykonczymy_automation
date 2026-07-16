@@ -11,11 +11,7 @@ import { usePriceView } from '@/components/kosztorys/use-price-view'
 import { useProgressDisplay } from '@/components/kosztorys/use-progress-display'
 import { useElementHeight } from '@/hooks/use-element-height'
 import { toastMessage } from '@/lib/utils/toast'
-import {
-  buildV2Columns,
-  buildV2ToggleItems,
-  type V2SortStateT,
-} from '@/lib/tables/kosztorys-v2-columns'
+import { buildV2Grid, type V2SortStateT } from '@/lib/tables/kosztorys-v2-columns'
 import {
   applyAddItem,
   applyInsertItem,
@@ -26,9 +22,11 @@ import {
   insertDisplayOrder,
   isSectionPopulated,
   planItemRemoval,
+  planItemRemovalFromCounts,
   revertField,
   rowRemainingForView,
   rowValueForView,
+  sectionItemCounts,
   sectionNeighbor,
   sectionSubtotalsForView,
   sortRows,
@@ -152,6 +150,9 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     setSort(dir ? { field, dir } : null)
   }
 
+  // One O(n) pass feeding the render-hot getRemoveBlockReason (see below) an O(1) per-row lookup.
+  const removalCounts = sectionItemCounts(rows)
+
   // onRemoveItem/onReorderItem read prevById.current / rowsRef.current — stable refs —
   // only from a cell's onClick, never during render, so passing them here is safe.
   const columnOpts = {
@@ -175,8 +176,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     getRemoveBlockReason,
     globalDiscountActive,
   }
-  const columns = buildV2Columns(columnOpts)
-  const columnToggleItems = buildV2ToggleItems(columnOpts)
+  const { columns, columnToggleItems } = buildV2Grid(columnOpts)
   const widthsKey = JSON.stringify(widths)
   const stagesKey = stages.map((s) => s.id).join(',')
 
@@ -302,8 +302,16 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     return planItemRemoval([...prevById.current.values()], row, stagesRef.current)
   }
 
+  // Render-hot: called per cell. Counts are precomputed once per render (removalCounts below), so this
+  // is O(1) per row — going through removalPlan (which spreads prevById and rescans per row) here would
+  // make the whole grid's disabled-delete reason O(n²).
   function getRemoveBlockReason(row: KosztorysV2RowT): string | undefined {
-    const plan = removalPlan(row)
+    const plan = planItemRemovalFromCounts(
+      rows.length,
+      removalCounts.get(row.sectionId) ?? 0,
+      row,
+      stagesRef.current,
+    )
     return plan.kind === 'blocked' ? plan.reason : undefined
   }
 
