@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode } from 'react'
+import { type ReactNode, useRef, useState } from 'react'
 import { Column, type CellProps, keyColumn, textColumn, floatColumn } from 'react-datasheet-grid'
 import { CellSelectMenu } from '@/components/kosztorys/cell-select-menu'
 import { SortHeader } from '@/components/kosztorys/sort-header'
@@ -127,6 +127,9 @@ export type BuildV2ColumnsOptsT = {
   onReorderItem?: (row: KosztorysV2RowT, dir: 'up' | 'down') => void
   // Inserting a blank item above/below the row within its section.
   onInsertItem?: (row: KosztorysV2RowT, dir: 'above' | 'below') => void
+  // Renaming the whole section from its (denormalized) name cell. Routes through the same fan-out
+  // as the section panel — never a per-row setRowData, which would desync the other rows' copies.
+  onRenameSection?: (sectionId: number, name: string) => void
   // Global discount active → the four per-item discount columns are overridden, so drop them from
   // the grid and the picker (the underlying data stays and returns when the discount is cleared).
   globalDiscountActive?: boolean
@@ -158,7 +161,7 @@ function keyCol(
 // drives it, so mismatches between intent and calc are visible.
 const HEADER_TIPS: Record<string, string> = {
   sectionName:
-    'Sekcja — nazwa sekcji kosztorysu.\nTylko do odczytu (zmieniana z panelu sekcji). Wartość zdenormalizowana na każdym wierszu.',
+    'Sekcja — nazwa sekcji kosztorysu.\nEdycja tutaj zmienia nazwę całej sekcji (wartość jest zdenormalizowana na każdym wierszu). Zatwierdź Enterem lub wyjściem z pola, Escape cofa.',
   description: 'Opis — nazwa/opis pozycji robót lub materiału. Nie wchodzi do obliczeń.',
   unit: 'J.m. — jednostka miary (m², szt., mb…). Etykieta, nie wchodzi do obliczeń.',
   plannedQty:
@@ -341,6 +344,56 @@ function unitColumn(titleNode: ReactNode): Column<KosztorysV2RowT> {
     deleteValue: ({ rowData }) => ({ ...rowData, unit: null }),
     pasteValue: ({ rowData, value }) => ({ ...rowData, unit: value.trim() || null }),
   }
+}
+
+// Section-name cell: renames the WHOLE section, so it commits through opts.onRenameSection (the same
+// fan-out the section panel uses) — never setRowData, which would rewrite only this row's copy of the
+// denormalized name. Local draft while editing; the row's canonical value shows otherwise, so an
+// external rename (from the panel) is reflected without a mount-time snapshot going stale. Enter/blur
+// commit, Escape reverts. A stray grid Delete is a no-op (deleteValue returns the row) so it can't
+// blank the section.
+function SectionNameCell({
+  rowData,
+  opts,
+}: {
+  rowData: KosztorysV2RowT
+  opts: BuildV2ColumnsOptsT
+}) {
+  const [draft, setDraft] = useState('')
+  const [editing, setEditing] = useState(false)
+  // Escape sets this before blur so the shared onBlur commit knows to skip the rename.
+  const cancelRef = useRef(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  return (
+    <input
+      ref={inputRef}
+      className="size-full bg-transparent px-2 text-left text-sm outline-none"
+      value={editing ? draft : (rowData.sectionName ?? '')}
+      onFocus={() => {
+        cancelRef.current = false
+        setDraft(rowData.sectionName ?? '')
+        setEditing(true)
+      }}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={() => {
+        if (editing && !cancelRef.current) opts.onRenameSection?.(rowData.sectionId, draft)
+        setEditing(false)
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          e.stopPropagation()
+          inputRef.current?.blur()
+        } else if (e.key === 'Escape') {
+          e.preventDefault()
+          e.stopPropagation()
+          cancelRef.current = true
+          inputRef.current?.blur()
+        }
+      }}
+    />
+  )
 }
 
 function discountTypeColumn(titleNode: ReactNode): Column<KosztorysV2RowT> {
@@ -585,14 +638,19 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
           subcontractorPriceColumn(view, title('price', COLUMN_LABELS.price, opts)),
         ]
   const identity: Column<KosztorysV2RowT>[] = [
-    keyCol('sectionName', textColumn, {
+    {
       id: 'sectionName',
       title: title('sectionName', COLUMN_LABELS.sectionName, opts),
       minWidth: 140,
-      // The section name is changed only from the panel — a per-row edit would change only this
-      // row's copy (a denormalized field), not the section. Hence read-only.
-      disabled: true,
-    }),
+      keepFocus: true,
+      component: ({ rowData }: CellProps<KosztorysV2RowT, unknown>) => (
+        <SectionNameCell rowData={rowData} opts={opts} />
+      ),
+      copyValue: ({ rowData }) => rowData.sectionName ?? '',
+      // Delete on a selected Sekcja cell is a no-op — an accidental keypress must not blank a whole
+      // section. Only an explicit in-cell clear-and-commit renames it.
+      deleteValue: ({ rowData }) => rowData,
+    },
     keyCol('description', textColumn, {
       id: 'description',
       title: title('description', COLUMN_LABELS.description, opts),

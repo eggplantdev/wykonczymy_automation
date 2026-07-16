@@ -171,6 +171,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     onRemoveItem: handleRemoveItem,
     onReorderItem: handleReorderItem,
     onInsertItem: handleInsertItem,
+    onRenameSection: handleRenameSection,
     getRemoveBlockReason,
     globalDiscountActive,
   }
