@@ -35,6 +35,7 @@ import {
   stageValueNetKey,
   stageValuePercentKey,
 } from '@/lib/kosztorys/constants'
+import { LAYER_DEFAULT, layerAllows, type LayerT } from '@/lib/kosztorys/layer'
 import { MONEY_AXIS_DEFAULT, axisAllows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import {
   PROGRESS_DISPLAY_DEFAULT,
@@ -109,6 +110,8 @@ export type BuildV2ColumnsOptsT = {
   // Progress display: narrows the same way the money axis does, on the other axis — a stage's
   // progress reads either as money or as a percentage, never as both at once.
   progressDisplay?: ProgressDisplayT
+  // Layer: narrows to the working columns or the progress tracker. Omitted = 'both' = no narrowing.
+  layer?: LayerT
   // Resize: pinned column widths (id→px) + drag callbacks. When provided, every column
   // gets a handle; pinned ones get basis/grow:0 (the rest stay on flex).
   widths?: Record<string, number>
@@ -765,10 +768,16 @@ function toggleKey(columnId: string): string {
 export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[] {
   const axis = opts.moneyAxis ?? MONEY_AXIS_DEFAULT
   const display = opts.progressDisplay ?? PROGRESS_DISPLAY_DEFAULT
+  const layer = opts.layer ?? LAYER_DEFAULT
   const base = assembleV2Columns(opts)
     .filter((c) => {
       const key = toggleKey(c.id ?? '')
-      return !opts.isHidden?.(key) && axisAllows(key, axis) && progressDisplayAllows(key, display)
+      return (
+        !opts.isHidden?.(key) &&
+        axisAllows(key, axis) &&
+        progressDisplayAllows(key, display) &&
+        layerAllows(key, layer)
+      )
     })
     .map((c) => withResize(c, opts))
   return opts.onRemoveItem || opts.onReorderItem ? [actionColumn(opts), ...base] : base

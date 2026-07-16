@@ -110,6 +110,28 @@ export const COLUMN_PROGRESS_DISPLAY: Record<string, 'values' | 'percent'> = {
   [STAGE_VALUE_PERCENT_COLUMN_GROUP]: 'percent',
 }
 
+// The grid's fourth reading axis: which layer of the table a column belongs to — the working columns
+// (the offer: Przedmiar, ceny, rabat, Wartość przedmiar, Netto/Brutto, etapy-ilość) or the progress
+// tracker (per-etap wartości, % wykonania, Pozostało). Only the progress side is tagged; every
+// untagged column that isn't in LAYER_NEUTRAL_COLUMNS counts as "work" — that split is what lets the
+// "Postęp" mode hide the untagged work columns (layer.ts derives all three buckets from this one map).
+export const COLUMN_LAYER: Record<string, 'work' | 'progress'> = {
+  [STAGE_VALUE_NET_COLUMN_GROUP]: 'progress',
+  [STAGE_VALUE_GROSS_COLUMN_GROUP]: 'progress',
+  [STAGE_VALUE_PERCENT_COLUMN_GROUP]: 'progress',
+  donePercent: 'progress',
+  remaining: 'progress',
+  remainingGross: 'progress',
+}
+
+// Always-visible context: identity that names the row plus Pomiar z natury (the execution total), so
+// they survive every layer mode — the way AXIS_EXEMPT_COLUMNS layers policy over COLUMN_MONEY_AXIS.
+export const LAYER_NEUTRAL_COLUMNS: ReadonlySet<string> = new Set([
+  'sectionName',
+  'description',
+  'stageQtySum',
+])
+
 // `price` is the only editable money cell — the owner types prices while reading brutto, so the mode
 // must never take it away. It stays tagged `net` above because it IS a netto figure; the exemption is
 // policy layered on the tag, the way NON_HIDEABLE_COLUMNS layers on COLUMN_LABELS.
