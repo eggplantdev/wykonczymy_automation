@@ -7,7 +7,6 @@ import { CoeffField } from '@/components/kosztorys/coeff-field'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Input } from '@/components/ui/input'
 import { SimpleTooltip } from '@/components/ui/tooltip'
-import { toGross } from '@/lib/kosztorys/calc'
 import { formatNet as fmt, formatPercentPrecise } from '@/lib/kosztorys/format'
 import { toastMessage } from '@/lib/utils/toast'
 import type { SectionSubtotalT } from '@/types/kosztorys'
@@ -16,18 +15,11 @@ type SectionCoeffsT = { wTools: number | null; ownTools: number | null }
 
 type PropsT = {
   subtotals: SectionSubtotalT[]
-  grandNet: number
   activeSectionId: number | null
   // Only to render the inherited value as each section field's placeholder — the global coeffs are
   // edited in the toolbar's settings row, not here.
   globalCoeffs: { wTools: number; ownTools: number }
   sectionCoeffs: Map<number, SectionCoeffsT>
-  // VAT rate as a fraction (0.08) — read-only here, drives the Suma brutto readout.
-  vatRate: number
-  // Global discount off the executed total + the resulting "do zapłaty", both from the editor hook's
-  // single source (no recompute here). amount 0 = no discount → the block stays as plain Suma.
-  discountAmount: number
-  doZaplatyNet: number
   onClose: () => void
   onAddSection: () => void
   onAddItem: (sectionId: number) => void
@@ -44,13 +36,9 @@ type PropsT = {
 
 export function KosztorysSectionSummary({
   subtotals,
-  grandNet,
   activeSectionId,
   globalCoeffs,
   sectionCoeffs,
-  vatRate,
-  discountAmount,
-  doZaplatyNet,
   onClose,
   onAddSection,
   onAddItem,
@@ -227,32 +215,6 @@ export function KosztorysSectionSummary({
         <Button size="sm" variant="outline" className="w-full" onClick={onAddSection}>
           <Plus className="mr-1 h-4 w-4" /> Nowa sekcja
         </Button>
-      </div>
-      <div className="border-border flex shrink-0 items-baseline justify-between border-t px-3 py-2">
-        <span className="text-foreground text-sm font-medium">Suma netto</span>
-        <span className="text-foreground text-sm font-medium tabular-nums">{fmt(grandNet)}</span>
-      </div>
-      {discountAmount > 0 && (
-        <>
-          <div className="text-muted-foreground flex shrink-0 items-baseline justify-between px-3 pb-1 text-xs">
-            <span>− Rabat globalny</span>
-            <span className="tabular-nums">{fmt(discountAmount)}</span>
-          </div>
-          <div className="border-border flex shrink-0 items-baseline justify-between border-t px-3 py-2">
-            <span className="text-foreground text-sm font-medium">Do zapłaty netto</span>
-            <span className="text-foreground text-sm font-medium tabular-nums">
-              {fmt(doZaplatyNet)}
-            </span>
-          </div>
-        </>
-      )}
-      <div className="border-border flex shrink-0 items-baseline justify-between border-t px-3 py-2">
-        <span className="text-foreground text-sm font-medium">
-          {discountAmount > 0 ? 'Do zapłaty brutto' : 'Suma brutto'}
-        </span>
-        <span className="text-foreground text-sm font-medium tabular-nums">
-          {fmt(toGross(doZaplatyNet, vatRate))}
-        </span>
       </div>
 
       <ConfirmDialog

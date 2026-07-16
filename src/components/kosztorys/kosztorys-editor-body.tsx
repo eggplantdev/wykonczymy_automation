@@ -86,13 +86,9 @@ export function KosztorysEditorBody({
           {summaryOpen && (
             <KosztorysSectionSummary
               subtotals={subtotals}
-              grandNet={totalNet}
               activeSectionId={activeSectionId}
               globalCoeffs={tree.globalCoeffs}
               sectionCoeffs={sectionCoeffs}
-              vatRate={tree.vatRate}
-              discountAmount={discountAmount}
-              doZaplatyNet={doZaplatyNet}
               onClose={() => setSummaryOpen(false)}
               onAddSection={handleAddSection}
               onAddItem={handleAddItem}
