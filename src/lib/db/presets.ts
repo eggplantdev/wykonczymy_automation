@@ -17,6 +17,17 @@ export type PresetMetaT = {
   createdBy: number | null
 }
 
+// One row per section across ALL presets — the "append a section from a szablon" picker's data.
+// `sectionId` is the section's id INSIDE the preset payload (the OLD id), paired with `presetId` so
+// the append action can resolve it back to the payload; never a live kosztorys_sections id.
+export type PresetSectionMetaT = {
+  presetId: number
+  presetName: string
+  sectionId: number
+  sectionName: string
+  itemCount: number
+}
+
 // Save a preset under a NEW name. `ON CONFLICT DO NOTHING` makes the duplicate-name case return no
 // row → null, so the caller maps it to a friendly message WITHOUT sniffing driver-specific PG error
 // shapes (and it's race-free — the UNIQUE(name) constraint is the arbiter, not a prior SELECT).
@@ -71,6 +82,39 @@ export async function getPreset(
   const row = res.rows[0]
   if (!row) return null
   return { payload: row.payload as SnapshotPayloadT }
+}
+
+// Flatten every preset's sections into pickable metas — read the payloads server-side and map in TS
+// (few presets, each ≤ a few hundred KB jsonb). The jsonb payload never crosses the wire: the "no
+// full tree to the client" rule is about the picker's HTTP response, not this server-side read.
+// Order matches listPresets (preset created_at DESC, id DESC) then displayOrder within each preset.
+export async function listPresetSections(db: DbExecutorT): Promise<PresetSectionMetaT[]> {
+  const res = await db.execute(sql`
+    SELECT id, name, payload
+    FROM kosztorys_presets
+    ORDER BY created_at DESC, id DESC
+  `)
+  const metas: PresetSectionMetaT[] = []
+  for (const row of res.rows) {
+    const presetId = Number(row.id)
+    const presetName = String(row.name)
+    const payload = row.payload as SnapshotPayloadT
+    const itemCountBySection = new Map<number, number>()
+    for (const item of payload.items ?? []) {
+      itemCountBySection.set(item.sectionId, (itemCountBySection.get(item.sectionId) ?? 0) + 1)
+    }
+    const sections = [...(payload.sections ?? [])].sort((a, b) => a.displayOrder - b.displayOrder)
+    for (const section of sections) {
+      metas.push({
+        presetId,
+        presetName,
+        sectionId: section.id,
+        sectionName: section.name,
+        itemCount: itemCountBySection.get(section.id) ?? 0,
+      })
+    }
+  }
+  return metas
 }
 
 export async function listPresets(db: DbExecutorT): Promise<PresetMetaT[]> {
