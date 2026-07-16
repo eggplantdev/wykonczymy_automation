@@ -1,7 +1,7 @@
 ---
 change_id: kosztorys-layer-toggle
 title: Work/progress column reading-axis toggle for the kosztorys v2 editor
-status: implementing
+status: implemented
 created: 2026-07-16
 updated: 2026-07-16
 archived_at: null

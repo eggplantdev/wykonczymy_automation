@@ -300,6 +300,6 @@ None — no schema or data changes. Kosztorys data is throwaway pre-`main` regar
 
 #### Automated
 
-- [x] 2.1 Type checking passes
-- [x] 2.2 Linting passes
-- [x] 2.3 Full unit suite passes
+- [x] 2.1 Type checking passes — 451fe13
+- [x] 2.2 Linting passes — 451fe13
+- [x] 2.3 Full unit suite passes — 451fe13

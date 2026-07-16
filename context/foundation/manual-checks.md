@@ -343,3 +343,14 @@ Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, se
 
 - [ ] Po `INV=6 … seed-kosztorys.ts` zaseedowany kosztorys ma niezerowy „Pomiar z natury" w wierszach z robotą
 - [ ] Odtworzenie kopii zapasowej przywraca etapy, a „Pomiar z natury" liczy się z nich
+
+## kosztorys-layer-toggle — Praca / Postęp / Bez filtra (widok tabeli)
+
+### Phase 2: UI toggle + editor wiring
+
+- [ ] Czwarty przełącznik renderuje się po przełączniku „Etapy" z segmentami Praca / Postęp / Bez filtra
+- [ ] „Bez filtra": wszystkie kolumny widoczne (jak dotychczas)
+- [ ] „Praca": kolumny per-etap kwoty/brutto/%, „% wykonania" i „Pozostało" znikają; Przedmiar, ceny, Netto/Brutto i etapy-ilość zostają
+- [ ] „Postęp": kolumny pracy (Przedmiar, ceny, rabat, Wartość przedmiaru, Netto/Brutto, etapy-ilość) znikają; Sekcja, Opis prac i Pomiar zostają, a tracker postępu jest widoczny
+- [ ] Wybór przeżywa odświeżenie strony
+- [ ] Składa się z osiami netto/brutto i kwoty/% oraz z pikerem kolumn — żadna kolumna nie zostaje zablokowana widoczna/ukryta
