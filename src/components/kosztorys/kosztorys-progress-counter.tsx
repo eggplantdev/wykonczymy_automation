@@ -32,7 +32,6 @@ export function KosztorysProgressCounter({ doneNet, plannedNet, vatRate, moneyAx
   // Bar caps at full; the percent text still shows the real >100% overrun.
   const barPct = Math.min(ratio, 1) * 100
 
-  // Amounts live only in the tooltip now — the toolbar shows the percentage alone.
   const amounts = `${fmt(toAxis(doneNet))} / ${fmt(toAxis(plannedNet))} ${asGross ? 'brutto' : 'netto'}`
   const tooltip = [amounts, '', LEGEND].join('\n')
 

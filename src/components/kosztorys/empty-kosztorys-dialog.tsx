@@ -20,8 +20,7 @@ type PropsT = {
 // (S-12) cover every empty kosztorys; also drop its render in kosztorys-editor-v2.tsx.
 // Temporary dogfooding stopgap: a fresh/empty kosztorys is a dead end — no section means the
 // toolbar's "＋ pozycja" is hidden and there's no discoverable way in. This non-dismissible dialog
-// forces the first section (named) or a preset seed before the editor is usable. Superseded by the
-// durable new-investment auto-seed once the import slice (S-12) covers existing empties.
+// forces the first section (named) or a preset seed before the editor is usable.
 export function EmptyKosztorysDialog({ investmentId, onCreated }: PropsT) {
   const [name, setName] = useState<string>(NEW_SECTION_DEFAULTS.name)
   const [creating, setCreating] = useState(false)

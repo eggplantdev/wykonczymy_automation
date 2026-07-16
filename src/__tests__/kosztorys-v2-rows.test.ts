@@ -326,8 +326,8 @@ describe('wartość wiersza idzie za etapami', () => {
     })
   })
 
-  // Przeniesione z kosztorys-calc.test.ts razem z funkcją: podsumowanie sekcji sumuje WARTOŚCI
-  // wierszy, a te od EX-489 zależą od etapów — więc nie mieszka już w czysto cenowym calc.ts.
+  // Section subtotals sum row VALUES, which since EX-489 depend on the stages — so this lives here,
+  // not in the purely price-based calc.ts.
   describe('sectionSubtotalsForView', () => {
     // A computed stage key next to a string field widens the literal's index signature to
     // `string | number`, which no longer satisfies KosztorysV2RowT — spread it in separately.

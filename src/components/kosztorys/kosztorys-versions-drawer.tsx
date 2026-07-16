@@ -34,13 +34,16 @@ export function KosztorysVersionsDrawer({
   // null = not loaded yet (spinner); [] = loaded, empty.
   const [snapshots, setSnapshots] = useState<SnapshotListItemT[] | null>(null)
   const [restoringId, setRestoringId] = useState<number | null>(null)
-  // Snapshot pending restore-confirmation (drives the ConfirmDialog). null = nothing pending.
   const [pendingRestore, setPendingRestore] = useState<SnapshotListItemT | null>(null)
 
-  // The drawer opens programmatically (parent toolbar sets `open`), so Radix's onOpenChange never
-  // fires with `true` — fetch on the `open` prop, or the list stays stuck on "Wczytywanie…". setState
-  // only from the async callback (never synchronously in the effect body): refetches on each open, and
-  // `active` drops a response that lands after a close/reopen.
+  // Fetch is keyed on the `open` prop, deliberately NOT on a click handler, because this drawer never
+  // sees the click: `open` is controlled by the parent toolbar, so the opening click happens up there.
+  // Radix can't help either — a controlled Dialog with no internal <Dialog.Trigger> fires onOpenChange
+  // only on dismiss (Escape/overlay → `false`), never with `true` on the programmatic open. Keying on
+  // the visibility *state* (not a DOM event) also means the fetch fires for EVERY path that opens the
+  // drawer — today the toolbar, tomorrow a programmatic open (e.g. auto-open after a restore) — which a
+  // trigger-click handler would silently miss. `active` drops a response that lands after a close/reopen
+  // so a stale fetch can't populate the reopened list.
   useEffect(() => {
     if (!open) return
     let active = true

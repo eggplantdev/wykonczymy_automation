@@ -25,8 +25,7 @@ type PropsT = {
   onCancel: () => void
 }
 
-// Controlled confirm dialog: the app-styled replacement for window.confirm. Drive it with a
-// single `open` boolean and react to onConfirm / onCancel.
+// Controlled confirm dialog: the app-styled replacement for window.confirm.
 export function ConfirmDialog({
   open,
   title,
