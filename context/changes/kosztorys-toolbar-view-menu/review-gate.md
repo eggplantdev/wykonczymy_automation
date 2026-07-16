@@ -27,7 +27,7 @@ Files (mine, by explicit path):
       test: no automated test · unit — not worth the localStorage/useSyncExternalStore mock for a one-line merge.
 - [x] fixed · verify · `money-axis.test.ts`, `layer.test.ts` · newly-reachable `none` state was untested — added a `none`-hides-both-sides case + extended the fail-open loop through `none` in both (mirrors progress-display).
       test: TDD · unit — added with the four-state change; 46 axis tests green.
-- [ ] proposed · simplify · `kosztorys-view-menu.tsx:55-133` · the three checkbox-pair `.map` blocks (Kwoty/Warstwy/Etapy) are near-identical — extractable to one `<AxisSection>` helper. PRE-EXISTING triplication (this diff only added `none` to it), so out of scope for a dogfooding commit; needs the user's call on whether to file.
+- [x] fixed · simplify · `kosztorys-view-menu.tsx` · extracted the three near-identical checkbox-pair `.map` blocks into one generic `<AxisSection<T>>` helper — the three call sites now differ only by label/options/value/config/onChange. TSC clean, axis unit tests still green.
 
 ## Simplify pass
 

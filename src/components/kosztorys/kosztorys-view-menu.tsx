@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { Eye, Info, SlidersHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -22,11 +23,52 @@ import {
   PROGRESS_DISPLAYS,
   PROGRESS_PAIR_CONFIG,
 } from '@/components/kosztorys/kosztorys-toolbar-options'
-import { derivePairChecks, togglePairAxis } from '@/lib/kosztorys/axis-checkboxes'
+import {
+  derivePairChecks,
+  togglePairAxis,
+  type PairAxisConfigT,
+} from '@/lib/kosztorys/axis-checkboxes'
 
 // preventDefault keeps the menu open so several axes / columns can be flipped in one visit
 // (the same trick the shared ColumnToggleMenu uses).
 const keepOpen = (event: Event) => event.preventDefault()
+
+// One axis (Kwoty / Warstwy / Etapy) as a labelled checkbox pair over its four-state union: each box
+// flips its side via togglePairAxis, both checked = show all, both unchecked = hide the axis.
+function AxisSection<T extends string>({
+  label,
+  options,
+  value,
+  config,
+  onChange,
+}: {
+  label: string
+  options: { value: T; label: string; icon?: ReactNode }[]
+  value: T
+  config: PairAxisConfigT<T>
+  onChange: (next: T) => void
+}) {
+  const checks = derivePairChecks(value, config)
+  return (
+    <>
+      <DropdownMenuLabel>{label}</DropdownMenuLabel>
+      {options.map((option) => {
+        const box = option.value === config.a ? 'a' : 'b'
+        return (
+          <DropdownMenuCheckboxItem
+            key={option.value}
+            checked={checks[box]}
+            onSelect={keepOpen}
+            onCheckedChange={() => onChange(togglePairAxis(value, box, config))}
+          >
+            {option.label}
+            {option.icon && <span className="ml-auto">{option.icon}</span>}
+          </DropdownMenuCheckboxItem>
+        )
+      })}
+    </>
+  )
+}
 
 // One popover replacing four toolbar toggles + the Kolumny picker. Kwoty / Warstwy / Etapy are
 // union filters skinned as checkbox pairs (both checked = show all, both unchecked = hide the axis).
@@ -43,9 +85,6 @@ export function KosztorysViewMenu() {
     showAllColumns,
   } = useKosztorysEditorContext()
 
-  const moneyChecks = derivePairChecks(moneyAxis, MONEY_PAIR_CONFIG)
-  const layerChecks = derivePairChecks(layer, LAYER_PAIR_CONFIG)
-  const progressChecks = derivePairChecks(progressDisplay, PROGRESS_PAIR_CONFIG)
   const allColumnsVisible = columnToggleItems.every((item) => item.visible)
 
   return (
@@ -57,59 +96,31 @@ export function KosztorysViewMenu() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
-        <DropdownMenuLabel>Kwoty</DropdownMenuLabel>
-        {MONEY_AXES.map((option) => {
-          const box = option.value === MONEY_PAIR_CONFIG.a ? 'a' : 'b'
-          return (
-            <DropdownMenuCheckboxItem
-              key={option.value}
-              checked={moneyChecks[box]}
-              onSelect={keepOpen}
-              onCheckedChange={() =>
-                setMoneyAxis(togglePairAxis(moneyAxis, box, MONEY_PAIR_CONFIG))
-              }
-            >
-              {option.label}
-              {option.icon && <span className="ml-auto">{option.icon}</span>}
-            </DropdownMenuCheckboxItem>
-          )
-        })}
+        <AxisSection
+          label="Kwoty"
+          options={MONEY_AXES}
+          value={moneyAxis}
+          config={MONEY_PAIR_CONFIG}
+          onChange={setMoneyAxis}
+        />
 
         <DropdownMenuSeparator />
-        <DropdownMenuLabel>Warstwy</DropdownMenuLabel>
-        {LAYERS.map((option) => {
-          const box = option.value === LAYER_PAIR_CONFIG.a ? 'a' : 'b'
-          return (
-            <DropdownMenuCheckboxItem
-              key={option.value}
-              checked={layerChecks[box]}
-              onSelect={keepOpen}
-              onCheckedChange={() => setLayer(togglePairAxis(layer, box, LAYER_PAIR_CONFIG))}
-            >
-              {option.label}
-              {option.icon && <span className="ml-auto">{option.icon}</span>}
-            </DropdownMenuCheckboxItem>
-          )
-        })}
+        <AxisSection
+          label="Warstwy"
+          options={LAYERS}
+          value={layer}
+          config={LAYER_PAIR_CONFIG}
+          onChange={setLayer}
+        />
 
         <DropdownMenuSeparator />
-        <DropdownMenuLabel>Etapy</DropdownMenuLabel>
-        {PROGRESS_DISPLAYS.map((option) => {
-          const box = option.value === PROGRESS_PAIR_CONFIG.a ? 'a' : 'b'
-          return (
-            <DropdownMenuCheckboxItem
-              key={option.value}
-              checked={progressChecks[box]}
-              onSelect={keepOpen}
-              onCheckedChange={() =>
-                setProgressDisplay(togglePairAxis(progressDisplay, box, PROGRESS_PAIR_CONFIG))
-              }
-            >
-              {option.label}
-              {option.icon && <span className="ml-auto">{option.icon}</span>}
-            </DropdownMenuCheckboxItem>
-          )
-        })}
+        <AxisSection
+          label="Etapy"
+          options={PROGRESS_DISPLAYS}
+          value={progressDisplay}
+          config={PROGRESS_PAIR_CONFIG}
+          onChange={setProgressDisplay}
+        />
 
         {columnToggleItems.length > 0 && (
           <>
