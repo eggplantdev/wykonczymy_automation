@@ -3,13 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { SimpleSelect } from '@/components/ui/simple-select'
 import { listPresetsAction, seedFromPresetAction } from '@/lib/actions/kosztorys-presets'
 import type { PresetMetaT } from '@/lib/db/presets'
 import { toastMessage } from '@/lib/utils/toast'
@@ -65,18 +59,12 @@ export function SeedFromPresetButton({ investmentId, onSeeded }: PropsT) {
           {presets.length === 0 ? (
             <p className="text-muted-foreground text-sm">Brak zapisanych szablonów.</p>
           ) : (
-            <Select value={presetId} onValueChange={setPresetId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Wybierz szablon" />
-              </SelectTrigger>
-              <SelectContent>
-                {presets.map((preset) => (
-                  <SelectItem key={preset.id} value={String(preset.id)}>
-                    {preset.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SimpleSelect
+              value={presetId}
+              onValueChange={setPresetId}
+              placeholder="Wybierz szablon"
+              options={presets.map((preset) => ({ value: String(preset.id), label: preset.name }))}
+            />
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>

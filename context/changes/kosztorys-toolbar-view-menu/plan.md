@@ -242,6 +242,6 @@ no longer destructured here.
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit` (clean for this slice; global tree red only on an unrelated parallel-agent WIP file `link-sheet-to-investment-dialog.tsx` — verified via stash isolation)
-- [x] 2.2 Full unit suite passes: `pnpm exec vitest run` (946 passed, 31 skipped)
-- [x] 2.3 Linting passes: `pnpm lint` (0 errors)
+- [x] 2.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit` — a74abd7 (clean for this slice; global tree red only on an unrelated parallel-agent WIP file `link-sheet-to-investment-dialog.tsx` — verified via stash isolation)
+- [x] 2.2 Full unit suite passes: `pnpm exec vitest run` — a74abd7 (946 passed, 31 skipped)
+- [x] 2.3 Linting passes: `pnpm lint` — a74abd7 (0 errors)

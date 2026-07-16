@@ -355,6 +355,25 @@ Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, se
 - [ ] Wybór przeżywa odświeżenie strony
 - [ ] Składa się z osiami netto/brutto i kwoty/% oraz z pikerem kolumn — żadna kolumna nie zostaje zablokowana widoczna/ukryta
 
+## kosztorys-toolbar-view-menu — jeden popover „Widok" zamiast pięciu przełączników (EX-435)
+
+**In review** — automated checks green (`31b3e49`, `a74abd7`; typecheck clean for this slice via stash-isolation — global tree was red only on an unrelated parallel-agent WIP file, unit 946, lint 0 errors). Toolbar-surface reshape only: no persisted state, no new storage key, axis semantics untouched (`buildV2Columns` nie ruszany). Ad-hoc change pod parasolem EX-435 (brak własnej karty). Jedyna nowa logika — czysty mapper tri-state↔checkbox — jest pokryta unitem; poniższe boxy to dogfooding okablowania popovera.
+
+Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, seed a kosztorys into it (`INV=<id> node --env-file=.env --import tsx src/scripts/seed-kosztorys.ts` with the seed's DB env pointed at `DB_POSTGRES_URL_TEST`), open the **Kosztorys** tab with ≥1 section, items, ≥2 stages, and clear `table-columns:kosztorys-axis` / `…-layer` w localStorage, żeby startować od `both`.
+
+### Phase 2: Popover „Widok" + przebudowa toolbaru
+
+- [ ] **Lewy klaster to dwie kontrolki.** Toolbar pokazuje `Widok cen` (segmenty) + przycisk `Widok ▾`; nie ma osobnych przełączników Kwoty / Etapy / Warstwy, a grupa po prawej nie ma już przycisku `Kolumny`.
+- [ ] **Cztery sekcje.** `Widok ▾` otwiera: Etapy (radio Kwoty / % wykonania), Kwoty (☑ Netto ☑ Brutto), Warstwy (☑ Praca ☑ Postęp), Kolumny (checkboxy kolumn) — każdy wiersz z ikoną i etykietą.
+- [ ] **Kwoty jako checkboxy z gwarancją min-1.** Odznaczenie Netto chowa kolumny netto; odznaczenie ostatniego zaznaczonego boxa jest odrzucone (zawsze zostaje jeden). To samo dla Warstwy (Praca / Postęp).
+- [ ] **Etapy radio przełącza blok etapów** między kwotami a `% wykonania` (single-select, dokładnie jak stary przełącznik).
+- [ ] **Kolumny nie zamykają menu.** Przełączenie kilku kolumn pod rząd zostawia popover otwarty; kolumny znikają/wracają na bieżąco.
+- [ ] **Wybory przeżywają odświeżenie** dokładnie jak przed zmianą (te same klucze localStorage — brak migracji).
+
+### Findings
+
+_(pending first pass)_
+
 ## kosztorys-global-discount — Globalny rabat (EX-501)
 
 Setup: run the app against the **5435 test DB** (see intro; migration applied there, seed a kosztorys first — the dump carries none). Log in as **OWNER/MANAGER** (editor needs MANAGEMENT_ROLES). Open an investment's **Kosztorys** tab with ≥1 section and items carrying per-pozycja rabaty, so the override is observable.

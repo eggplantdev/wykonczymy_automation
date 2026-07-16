@@ -5,13 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { ToggleGroup } from '@/components/ui/toggle-group'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { SimpleSelect } from '@/components/ui/simple-select'
 import { listPresetsAction, savePresetAction } from '@/lib/actions/kosztorys-presets'
 import { saveSnapshotAction } from '@/lib/actions/kosztorys-snapshots'
 import type { PresetMetaT } from '@/lib/db/presets'
@@ -107,18 +101,12 @@ export function SaveAsDialog({ investmentId, open, onOpenChange }: PropsT) {
         )}
 
         {target === 'preset' && presetMode === 'overwrite' ? (
-          <Select value={overwriteName} onValueChange={setOverwriteName}>
-            <SelectTrigger>
-              <SelectValue placeholder="Wybierz szablon do nadpisania" />
-            </SelectTrigger>
-            <SelectContent>
-              {existing.map((preset) => (
-                <SelectItem key={preset.id} value={preset.name}>
-                  {preset.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SimpleSelect
+            value={overwriteName}
+            onValueChange={setOverwriteName}
+            placeholder="Wybierz szablon do nadpisania"
+            options={existing.map((preset) => ({ value: preset.name, label: preset.name }))}
+          />
         ) : null}
 
         {target === 'preset' && presetMode === 'overwrite' && (

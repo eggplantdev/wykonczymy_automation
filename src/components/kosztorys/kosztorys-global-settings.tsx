@@ -1,8 +1,18 @@
 'use client'
 
 import { CoeffField } from '@/components/kosztorys/coeff-field'
+import { SimpleSelect } from '@/components/ui/simple-select'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import type { DiscountTypeT, GlobalDiscountT } from '@/types/kosztorys'
+
+// Radix Select rejects an empty-string item value, so "brak" (clear the discount) carries this.
+const NONE = 'none'
+
+const DISCOUNT_MODE_OPTIONS = [
+  { value: NONE, label: 'brak' },
+  { value: 'amount', label: 'zł' },
+  { value: 'percent', label: '%' },
+]
 
 const COEFF_TIP = [
   'Domyślny mnożnik ceny klienta.',
@@ -83,27 +93,24 @@ export function KosztorysGlobalSettings({
         >
           <span className="text-muted-foreground cursor-help text-xs">Rabat globalny</span>
         </SimpleTooltip>
-        {/* Mode select: "brak" clears the discount (type null); the value field shows only once a
-            mode is chosen. Value entered netto (kwota) or as percentage points (procent). */}
-        <select
-          value={globalDiscount.type ?? ''}
-          onChange={(e) => {
-            const type = (e.target.value || null) as DiscountTypeT | null
-            onGlobalDiscountChange({ type, value: type == null ? 0 : globalDiscount.value })
-          }}
-          className="border-border h-6 rounded border bg-transparent px-1 text-xs outline-none"
-        >
-          <option value="">brak</option>
-          <option value="amount">kwota zł</option>
-          <option value="percent">procent %</option>
-        </select>
         {globalDiscount.type != null && (
           <CoeffField
-            label={globalDiscount.type === 'percent' ? '%' : 'zł'}
+            label=""
             value={globalDiscount.value}
             onCommit={(n) => onGlobalDiscountChange({ type: globalDiscount.type, value: n ?? 0 })}
           />
         )}
+        {/* "brak" clears the discount (type null); the value field shows only once a mode is
+            chosen. Value entered netto (zł) or as percentage points (%). */}
+        <SimpleSelect
+          value={globalDiscount.type ?? NONE}
+          onValueChange={(v) => {
+            const type = v === NONE ? null : (v as DiscountTypeT)
+            onGlobalDiscountChange({ type, value: type == null ? 0 : globalDiscount.value })
+          }}
+          options={DISCOUNT_MODE_OPTIONS}
+          className="h-6 w-fit gap-1 text-xs"
+        />
       </div>
     </div>
   )

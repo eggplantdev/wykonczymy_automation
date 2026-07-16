@@ -3,11 +3,11 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { UrlPagination } from './url-pagination'
 import { buildUrlWithParams } from '@/lib/utils/build-url-with-params'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select'
+import { SimpleSelect } from './simple-select'
 import type { PaginationMetaT } from '@/lib/utils/pagination'
 import { cn } from '@/lib/utils/cn'
 
-const LIMIT_OPTIONS = [20, 50, 100] as const
+const LIMIT_OPTIONS = [20, 50, 100].map((n) => ({ value: String(n), label: n }))
 
 type PaginationFooterPropsT = {
   paginationMeta: PaginationMetaT
@@ -31,18 +31,12 @@ export function PaginationFooter({ paginationMeta, baseUrl, className }: Paginat
         <p className="text-muted-foreground text-sm">{paginationMeta.totalDocs} wyników</p>
         <div className="flex items-center gap-2">
           <span className="text-muted-foreground text-sm">Pokaż</span>
-          <Select value={String(paginationMeta.limit)} onValueChange={handleLimitChange}>
-            <SelectTrigger className="h-8 w-20">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {LIMIT_OPTIONS.map((opt) => (
-                <SelectItem key={opt} value={String(opt)}>
-                  {opt}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SimpleSelect
+            value={String(paginationMeta.limit)}
+            onValueChange={handleLimitChange}
+            options={LIMIT_OPTIONS}
+            className="h-8 w-20"
+          />
         </div>
       </div>
 
