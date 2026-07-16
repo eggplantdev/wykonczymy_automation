@@ -7,6 +7,7 @@ import { CoeffField } from '@/components/kosztorys/coeff-field'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Input } from '@/components/ui/input'
 import { SimpleTooltip } from '@/components/ui/tooltip'
+import { toGross } from '@/lib/kosztorys/calc'
 import { formatNet as fmt, formatPercentPrecise } from '@/lib/kosztorys/format'
 import { toastMessage } from '@/lib/utils/toast'
 import type { SectionSubtotalT } from '@/types/kosztorys'
@@ -250,7 +251,7 @@ export function KosztorysSectionSummary({
           {discountAmount > 0 ? 'Do zapłaty brutto' : 'Suma brutto'}
         </span>
         <span className="text-foreground text-sm font-medium tabular-nums">
-          {fmt(doZaplatyNet * (1 + vatRate))}
+          {fmt(toGross(doZaplatyNet, vatRate))}
         </span>
       </div>
 

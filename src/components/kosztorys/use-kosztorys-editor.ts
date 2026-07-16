@@ -24,7 +24,6 @@ import {
   diffRow,
   filterRows,
   insertDisplayOrder,
-  isGlobalDiscountActive,
   isSectionPopulated,
   planItemRemoval,
   revertField,
@@ -44,7 +43,12 @@ import {
   stageValueNetKey,
   stageValuePercentKey,
 } from '@/lib/kosztorys/constants'
-import { globalDiscountAmount, viewPrice, type PriceViewT } from '@/lib/kosztorys/calc'
+import {
+  globalDiscountAmount,
+  isGlobalDiscountActive,
+  viewPrice,
+  type PriceViewT,
+} from '@/lib/kosztorys/calc'
 import {
   addItemAction,
   addSectionAction,
@@ -102,6 +106,12 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   const [rows, setRows] = useState<KosztorysV2RowT[]>(() => treeToRows(tree))
   // Stages live in local state (like `rows`): add/remove optimistically add/drop a column.
   const [stages, setStages] = useState<KosztorysStageT[]>(tree.stages)
+  // Global discount in local state (like `rows`/`stages`): the toggle patches it optimistically so
+  // the derived total, column visibility, and per-item suppression all move in one render. Reading
+  // `tree.globalDiscount` instead would leave the total + columns lagging the row flag until
+  // router.refresh() lands — the transient the "never disagree" invariant below forbids.
+  const [globalDiscount, setGlobalDiscount] = useState<GlobalDiscountT>(tree.globalDiscount)
+  const globalDiscountActive = isGlobalDiscountActive(globalDiscount)
   const [view, setView] = usePriceView(investmentId)
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<V2SortStateT>(null)
@@ -189,8 +199,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
 
   // Global discount amount + "do zapłaty", computed ONCE here off the executed total. Both total
   // surfaces (the Sekcje Suma block and the totals bar) read these props — neither recomputes, so
-  // they can never disagree. When no discount is set the amount is 0 and doZaplaty === totalNet.
-  const globalDiscount = tree.globalDiscount
+  // they can never disagree.
   const discountAmount = useMemo(
     () => globalDiscountAmount(totalNet, globalDiscount),
     [totalNet, globalDiscount],
@@ -229,7 +238,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       sectionId,
       sectionName: sample?.sectionName ?? NEW_SECTION_DEFAULTS.name,
       vatRate: tree.vatRate,
-      globalDiscountActive: isGlobalDiscountActive(tree.globalDiscount),
+      globalDiscountActive,
       sectionDefaultCostVariant:
         sample?.sectionDefaultCostVariant ?? NEW_SECTION_DEFAULTS.defaultCostVariant,
       sectionWToolsCoeff: sample?.sectionWToolsCoeff ?? null,
@@ -259,7 +268,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       sectionId: anchorRow.sectionId,
       sectionName: sample.sectionName,
       vatRate: tree.vatRate,
-      globalDiscountActive: isGlobalDiscountActive(tree.globalDiscount),
+      globalDiscountActive,
       sectionDefaultCostVariant: sample.sectionDefaultCostVariant,
       sectionWToolsCoeff: sample.sectionWToolsCoeff,
       sectionOwnToolsCoeff: sample.sectionOwnToolsCoeff,
@@ -338,7 +347,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       sectionId: sec.data.id,
       sectionName: NEW_SECTION_DEFAULTS.name,
       vatRate: tree.vatRate,
-      globalDiscountActive: isGlobalDiscountActive(tree.globalDiscount),
+      globalDiscountActive,
       sectionDefaultCostVariant: NEW_SECTION_DEFAULTS.defaultCostVariant,
       sectionWToolsCoeff: null,
       sectionOwnToolsCoeff: null,
@@ -502,11 +511,12 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     if (res.success) router.refresh()
   }
 
-  // Setting/clearing the global discount flips per-item rabat on or off for every row. The active
-  // flag is denormalized on every row, so patch them all optimistically (same reason as vatRate);
-  // then persist + refresh so the panel, the derived totals, and column visibility (from `tree`) reconcile.
+  // Setting/clearing the global discount flips per-item rabat on or off for every row. Update the
+  // local discount (drives the derived totals + column visibility) and patch the denormalized active
+  // flag on every row in the same render, so all three surfaces move together; then persist + refresh.
   async function handleGlobalDiscountChange(next: GlobalDiscountT) {
     const active = isGlobalDiscountActive(next)
+    setGlobalDiscount(next)
     patchRows(
       () => true,
       (r) => ({ ...r, globalDiscountActive: active }),
@@ -600,7 +610,6 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     totalNet,
     totalPlannedNet,
     sectionCoeffs,
-    // global discount: one source for both total surfaces
     globalDiscount,
     discountAmount,
     doZaplatyNet,

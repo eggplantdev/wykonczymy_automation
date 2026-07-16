@@ -14,6 +14,14 @@ import type { GlobalDiscountT, ViewPricingT } from '@/types/kosztorys'
 // Discount ("rabat"): discountValue for 'percent' = percentage points (10 => 10%), for
 // 'amount' = an amount in PLN subtracted from the net value.
 
+// Active only when a mode is chosen AND the value is non-zero — a zero-value discount is
+// indistinguishable from none, so it must not suppress per-item rabat. The explicit mode check
+// fails closed on a persisted value that isn't a known mode (tolerant restore / out-of-band write):
+// otherwise the flag would go active while globalDiscountAmount subtracts nothing.
+export function isGlobalDiscountActive({ type, value }: GlobalDiscountT): boolean {
+  return (type === 'percent' || type === 'amount') && value > 0
+}
+
 function applyDiscount(gross: number, item: ViewPricingT): number {
   // Global discount overrides per-item rabat: when it is active the row prices gross-of-its-own
   // discount (the per-item fields stay in the DB, untouched), and the global discount is subtracted

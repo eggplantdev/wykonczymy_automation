@@ -1,8 +1,12 @@
-import { netForQtyForView, rowPlannedNetForView, type PriceViewT } from '@/lib/kosztorys/calc'
+import {
+  isGlobalDiscountActive,
+  netForQtyForView,
+  rowPlannedNetForView,
+  type PriceViewT,
+} from '@/lib/kosztorys/calc'
 import { DEFAULT_UNIT, STAGE_QTY_PREFIX } from '@/lib/kosztorys/constants'
 import type {
   CostVariantT,
-  GlobalDiscountT,
   ItemPatchT,
   KosztorysStageT,
   KosztorysTreeT,
@@ -13,13 +17,6 @@ import type {
 
 export function stageKey(stageId: number): StageKeyT {
   return `${STAGE_QTY_PREFIX}${stageId}`
-}
-
-// The global discount applies only when a mode is chosen AND its value is non-zero — a zero-value
-// discount is indistinguishable from none, so it must not suppress per-item rabat. Denormalized onto
-// every row (globalDiscountActive) so the stage-blind pricing layer can read it without the tree.
-export function isGlobalDiscountActive({ type, value }: GlobalDiscountT): boolean {
-  return type != null && value > 0
 }
 
 // Client mirror of the server delete-guard predicate (removeItemAction/removeSectionAction).

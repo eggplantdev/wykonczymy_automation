@@ -115,7 +115,6 @@ export type KosztorysV2RowBaseT = KosztorysItemT & {
   sectionName: string
   // Denormalized investment VAT rate (one for the whole kosztorys) — gross = net × (1 + vatRate).
   vatRate: number
-  // Denormalized "global discount is active" flag (see ViewPricingT.globalDiscountActive).
   globalDiscountActive: boolean
   sectionDefaultCostVariant: CostVariantT
   // Denormalized coefficients for deriving the subcontractor price on the row (ViewPricingT).

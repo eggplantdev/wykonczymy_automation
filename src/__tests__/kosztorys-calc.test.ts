@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   globalDiscountAmount,
+  isGlobalDiscountActive,
   netForQtyForView,
   rowDoneFraction,
   rowPlannedNetForView,
@@ -277,5 +278,24 @@ describe('globalDiscountAmount / do zapłaty', () => {
     const totalNet = 1000
     expect(totalNet - globalDiscountAmount(totalNet, { type: 'percent', value: 10 })).toBe(900)
     expect(totalNet - globalDiscountAmount(totalNet, { type: 'amount', value: 250 })).toBe(750)
+  })
+})
+
+describe('isGlobalDiscountActive', () => {
+  it('aktywny tylko dla znanego trybu z niezerową wartością', () => {
+    expect(isGlobalDiscountActive({ type: 'percent', value: 10 })).toBe(true)
+    expect(isGlobalDiscountActive({ type: 'amount', value: 250 })).toBe(true)
+  })
+
+  it('brak trybu lub zerowa wartość → nieaktywny', () => {
+    expect(isGlobalDiscountActive({ type: null, value: 0 })).toBe(false)
+    expect(isGlobalDiscountActive({ type: 'percent', value: 0 })).toBe(false)
+    expect(isGlobalDiscountActive({ type: null, value: 500 })).toBe(false)
+  })
+
+  it('nieznany, uszkodzony tryb → fail closed (nieaktywny)', () => {
+    // A persisted value that isn't 'percent'/'amount' (tolerant restore / out-of-band write) must
+    // NOT go active — otherwise per-item rabat is suppressed while nothing is subtracted.
+    expect(isGlobalDiscountActive({ type: 'bogus' as never, value: 100 })).toBe(false)
   })
 })

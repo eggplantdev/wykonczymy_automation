@@ -14,8 +14,7 @@ type PropsT = {
   moneyAxis: MoneyAxisT
 }
 
-// Persistent totals bar under the grid: the same figures as the Sekcje Suma block, honoring the
-// netto/brutto axis toggle. Pure render — no math beyond toGross/axis selection.
+// The same figures as the Sekcje Suma block — read as props so the two surfaces can't disagree.
 export function KosztorysTotalsBar({
   totalNet,
   discountAmount,
@@ -31,7 +30,7 @@ export function KosztorysTotalsBar({
 
   return (
     <div className="border-border text-foreground flex shrink-0 flex-wrap items-baseline justify-end gap-x-6 gap-y-1 border-t px-4 py-1.5 text-sm">
-      {hasDiscount && (
+      {hasDiscount && showNet && (
         <span className="text-muted-foreground text-xs">
           Suma netto <span className="tabular-nums">{fmt(totalNet)}</span> · − Rabat{' '}
           <span className="tabular-nums">{fmt(discountAmount)}</span>

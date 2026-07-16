@@ -94,8 +94,8 @@ export function KosztorysGlobalSettings({
           className="border-border h-6 rounded border bg-transparent px-1 text-xs outline-none"
         >
           <option value="">brak</option>
-          <option value="percent">procent %</option>
           <option value="amount">kwota zł</option>
+          <option value="percent">procent %</option>
         </select>
         {globalDiscount.type != null && (
           <CoeffField
