@@ -238,7 +238,13 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     expect(after.progress).toEqual([])
 
     // Target's own settings survive the apply untouched (a preset carries no pricing config).
-    expect(after.settings).toEqual({ wToolsCoeff: 0.9, ownToolsCoeff: 0.6, vatRate: 0.08 })
+    expect(after.settings).toEqual({
+      wToolsCoeff: 0.9,
+      ownToolsCoeff: 0.6,
+      vatRate: 0.08,
+      globalDiscountType: null,
+      globalDiscountValue: 0,
+    })
   })
 
   it('seed rejects a non-empty investment and writes nothing', async () => {
