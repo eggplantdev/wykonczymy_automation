@@ -315,13 +315,13 @@ export async function insertItemAction(
 export async function removeItemAction(itemId: number) {
   return protectedAction(
     'removeItemAction',
-    async ({ payload }) => {
+    async ({ payload, user }) => {
       const db = await getDb(payload)
       // Block: an item cascades stage_progress on delete — dropping a row that carries recorded
       // work silently loses it (mirrors removeStageAction). Recorded stage progress is the whole
       // test — it is the only per-item value a user cannot otherwise clear from the grid.
       const res = await db.execute(sql`
-        SELECT 1 FROM kosztorys_items i
+        SELECT investment_id FROM kosztorys_items i
         WHERE i.id = ${itemId}
           AND EXISTS (SELECT 1 FROM stage_progress sp WHERE sp.item_id = i.id AND sp.qty_done <> 0)
         LIMIT 1
@@ -329,6 +329,13 @@ export async function removeItemAction(itemId: number) {
       if (res.rows.length > 0) {
         return { success: false, error: 'Najpierw wyczyść wartości wpisane w tej pozycji' }
       }
+      // Forced pre-delete snapshot: an allowed delete still drops the row's opis/przedmiar/cena/rabat,
+      // irrecoverable by in-session undo (S-07) — capture first, exactly like removeSectionAction.
+      const inv = await db.execute(
+        sql`SELECT investment_id FROM kosztorys_items WHERE id = ${itemId}`,
+      )
+      const investmentId = inv.rows[0]?.investment_id
+      if (investmentId != null) await captureAutoSnapshot(db, Number(investmentId), user.id)
       await payload.delete({ collection: 'kosztorys-items', id: itemId })
       return { success: true }
     },

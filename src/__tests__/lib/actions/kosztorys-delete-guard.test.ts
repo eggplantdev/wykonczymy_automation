@@ -136,6 +136,14 @@ describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', 
     return res.rows.length > 0
   }
 
+  async function autoSnapshotCount(): Promise<number> {
+    const res = await db.execute(sql`
+      SELECT count(*)::int AS n FROM kosztorys_snapshots
+      WHERE investment_id = ${investmentId} AND kind = 'auto'
+    `)
+    return Number(res.rows[0].n)
+  }
+
   // Recorded stage progress is the only thing "populated" means — a row without it always deletes.
   it('(a) deletes an item with no stage progress', async () => {
     const sectionId = await createSection()
@@ -170,6 +178,20 @@ describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', 
 
     expect(res.success).toBe(true)
     expect(await itemExists(itemId)).toBe(false)
+  })
+
+  // A plan-only item's opis/przedmiar/cena/rabat is irrecoverable by in-session undo once deleted,
+  // so removeItemAction must capture a pre-delete auto snapshot first — mirroring removeSectionAction.
+  it('(c2) captures a pre-delete auto snapshot when deleting a plan-only item', async () => {
+    const sectionId = await createSection()
+    const itemId = await createItem(sectionId, { plannedQty: 10, clientPrice: 99 })
+    const before = await autoSnapshotCount()
+
+    const res = await removeItemAction(itemId)
+
+    expect(res.success).toBe(true)
+    expect(await itemExists(itemId)).toBe(false)
+    expect(await autoSnapshotCount()).toBe(before + 1)
   })
 
   it('(d) blocks deleting a section holding an item with stage progress — section + item survive', async () => {
