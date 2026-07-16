@@ -41,8 +41,6 @@ export function KosztorysEditorBody({
     doZaplatyNet,
     moneyAxis,
     sectionCoeffs,
-    activeSectionId,
-    setActiveSectionId,
     summaryOpen,
     setSummaryOpen,
     onChange,
@@ -86,7 +84,6 @@ export function KosztorysEditorBody({
           {summaryOpen && (
             <KosztorysSectionSummary
               subtotals={subtotals}
-              activeSectionId={activeSectionId}
               globalCoeffs={tree.globalCoeffs}
               sectionCoeffs={sectionCoeffs}
               onClose={() => setSummaryOpen(false)}
@@ -95,7 +92,6 @@ export function KosztorysEditorBody({
               onRenameSection={handleRenameSection}
               onRemoveSection={handleRemoveSection}
               isSectionPopulated={isSectionPopulated}
-              onFilterSection={setActiveSectionId}
               onSectionCoeffChange={handleSectionCoeffChange}
             />
           )}

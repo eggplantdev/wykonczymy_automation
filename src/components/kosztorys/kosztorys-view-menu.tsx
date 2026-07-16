@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { Eye, Info, SlidersHorizontal } from 'lucide-react'
+import { Eye, SlidersHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { SimpleTooltip } from '@/components/ui/tooltip'
+import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { useKosztorysEditorContext } from '@/components/kosztorys/use-kosztorys-editor-context'
 import {
   KOLUMNY_HINT,
@@ -127,13 +127,7 @@ export function KosztorysViewMenu() {
             <DropdownMenuSeparator />
             <DropdownMenuLabel className="flex items-center justify-between gap-2">
               Kolumny
-              <SimpleTooltip
-                content={KOLUMNY_HINT}
-                delayDuration={300}
-                className="max-w-xs whitespace-pre-line"
-              >
-                <Info className="text-muted-foreground size-3.5 shrink-0" />
-              </SimpleTooltip>
+              <InfoTooltip content={KOLUMNY_HINT} className="shrink-0" />
             </DropdownMenuLabel>
             <DropdownMenuItem
               disabled={allColumnsVisible}

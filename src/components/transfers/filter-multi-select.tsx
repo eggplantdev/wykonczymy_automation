@@ -24,6 +24,10 @@ type FilterMultiSelectPropsT = {
   label: string
   icon?: LucideIcon
   searchable?: boolean
+  triggerClassName?: string
+  // Render just the icon (no label / count) — for tight surfaces where a tooltip carries the meaning.
+  iconOnly?: boolean
+  title?: string
 }
 
 // URL param encoding: [] = all selected (no filter), ['__none__'] = nothing selected
@@ -37,6 +41,9 @@ export function FilterMultiSelect({
   label,
   icon: Icon,
   searchable = false,
+  triggerClassName,
+  iconOnly = false,
+  title,
 }: FilterMultiSelectPropsT) {
   const [open, setOpen] = useState(false)
   const [localSelected, setLocalSelected] = useState<string[] | null>(null)
@@ -111,9 +118,18 @@ export function FilterMultiSelect({
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
-        <FilterTriggerButton active={!allSelected} icon={Icon}>
-          {label}
-          {allSelected ? '' : ` (${selected.length})`}
+        <FilterTriggerButton
+          active={!allSelected}
+          icon={Icon}
+          className={triggerClassName}
+          title={title}
+        >
+          {iconOnly ? null : (
+            <>
+              {label}
+              {allSelected ? '' : ` (${selected.length})`}
+            </>
+          )}
         </FilterTriggerButton>
       </PopoverTrigger>
       <PopoverContent className="w-56 p-0" align="start">

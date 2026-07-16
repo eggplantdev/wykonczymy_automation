@@ -2,7 +2,8 @@
 
 import { CoeffField } from '@/components/kosztorys/coeff-field'
 import { SimpleSelect } from '@/components/ui/simple-select'
-import { SimpleTooltip } from '@/components/ui/tooltip'
+import { HintTooltip } from '@/components/ui/tooltip'
+import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { DiscountTypeT, GlobalDiscountT } from '@/types/kosztorys'
 
 // Radix Select rejects an empty-string item value, so "brak" (clear the discount) carries this.
@@ -39,6 +40,9 @@ type PropsT = {
   // VAT rate as a fraction (0.08); the field shows/accepts a percent.
   vatRate: number
   globalDiscount: GlobalDiscountT
+  // Active price view — the mnożnik feeds the wykonawca price, so the „Klient" view has no use for
+  // it, and each wykonawca view only edits its own coefficient.
+  view: PriceViewT
   onGlobalCoeffChange: (patch: { wToolsCoeff?: number; ownToolsCoeff?: number }) => void
   onVatChange: (vatRate: number) => void
   onGlobalDiscountChange: (next: GlobalDiscountT) => void
@@ -48,51 +52,40 @@ export function KosztorysGlobalSettings({
   globalCoeffs,
   vatRate,
   globalDiscount,
+  view,
   onGlobalCoeffChange,
   onVatChange,
   onGlobalDiscountChange,
 }: PropsT) {
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <SimpleTooltip
-          delayDuration={500}
-          className="max-w-xs whitespace-pre-line"
-          content={COEFF_TIP}
-        >
-          <span className="text-muted-foreground w-fit cursor-help text-xs">
-            Domyślny mnożnik ceny klienta
-          </span>
-        </SimpleTooltip>
+      {view === 'w_tools' && (
         <CoeffField
-          label="z narzędziami"
+          label="Mnożnik ceny wykonawcy z narzędziami"
+          hint={COEFF_TIP}
           value={globalCoeffs.wTools}
           onCommit={(n) => n != null && onGlobalCoeffChange({ wToolsCoeff: n })}
         />
+      )}
+      {view === 'own_tools' && (
         <CoeffField
-          label="bez narzędzi"
+          label="Mnożnik ceny wykonawcy bez narzędzi"
+          hint={COEFF_TIP}
           value={globalCoeffs.ownTools}
           onCommit={(n) => n != null && onGlobalCoeffChange({ ownToolsCoeff: n })}
         />
-      </div>
+      )}
       {/* VAT is stored as a fraction but entered as a percent: show ×100, commit ÷100. */}
-      <SimpleTooltip delayDuration={500} className="max-w-xs whitespace-pre-line" content={VAT_TIP}>
-        <span className="inline-flex">
-          <CoeffField
-            label="VAT %"
-            value={vatRate * 100}
-            onCommit={(n) => n != null && onVatChange(n / 100)}
-          />
-        </span>
-      </SimpleTooltip>
+      <CoeffField
+        label="VAT %"
+        hint={VAT_TIP}
+        value={vatRate * 100}
+        onCommit={(n) => n != null && onVatChange(n / 100)}
+      />
       <div className="flex items-center gap-2">
-        <SimpleTooltip
-          delayDuration={500}
-          className="max-w-xs whitespace-pre-line"
-          content={DISCOUNT_TIP}
-        >
-          <span className="text-muted-foreground cursor-help text-xs">Rabat globalny</span>
-        </SimpleTooltip>
+        <HintTooltip content={DISCOUNT_TIP} className="text-muted-foreground text-xs">
+          Rabat globalny
+        </HintTooltip>
         {globalDiscount.type != null && (
           <CoeffField
             label=""

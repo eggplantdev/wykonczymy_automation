@@ -1,12 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { Check, Pencil, Plus, Trash2, X } from 'lucide-react'
+import { Check, Pencil, Plus, SlidersHorizontal, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CoeffField } from '@/components/kosztorys/coeff-field'
+import { KosztorysSectionFilterMenu } from '@/components/kosztorys/kosztorys-section-filter-menu'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Input } from '@/components/ui/input'
-import { SimpleTooltip } from '@/components/ui/tooltip'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { HintTooltip } from '@/components/ui/tooltip'
 import { formatNet as fmt, formatPercentPrecise } from '@/lib/kosztorys/format'
 import { toastMessage } from '@/lib/utils/toast'
 import type { SectionSubtotalT } from '@/types/kosztorys'
@@ -15,7 +17,6 @@ type SectionCoeffsT = { wTools: number | null; ownTools: number | null }
 
 type PropsT = {
   subtotals: SectionSubtotalT[]
-  activeSectionId: number | null
   // Only to render the inherited value as each section field's placeholder — the global coeffs are
   // edited in the toolbar's settings row, not here.
   globalCoeffs: { wTools: number; ownTools: number }
@@ -27,7 +28,6 @@ type PropsT = {
   onRemoveSection: (sectionId: number) => void
   // Mirrors the server delete-guard: a populated section is blocked with a toast (no confirm).
   isSectionPopulated: (sectionId: number) => boolean
-  onFilterSection: (sectionId: number | null) => void
   onSectionCoeffChange: (
     sectionId: number,
     patch: { wToolsCoeff?: number | null; ownToolsCoeff?: number | null },
@@ -36,7 +36,6 @@ type PropsT = {
 
 export function KosztorysSectionSummary({
   subtotals,
-  activeSectionId,
   globalCoeffs,
   sectionCoeffs,
   onClose,
@@ -45,7 +44,6 @@ export function KosztorysSectionSummary({
   onRenameSection,
   onRemoveSection,
   isSectionPopulated,
-  onFilterSection,
   onSectionCoeffChange,
 }: PropsT) {
   // Inline rename: id of the section being edited + name buffer. null = nothing is being edited.
@@ -77,30 +75,20 @@ export function KosztorysSectionSummary({
   return (
     <aside className="border-border bg-background absolute inset-y-0 right-0 z-20 flex w-72 flex-col overflow-hidden border-l shadow-lg">
       <div className="border-border flex shrink-0 items-center justify-between border-b px-3 py-2">
-        <h2 className="text-foreground text-sm font-medium">Sekcje</h2>
-        <div className="flex items-center gap-1">
-          {activeSectionId != null && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-6 px-2 text-xs"
-              onClick={() => onFilterSection(null)}
-            >
-              Pokaż wszystkie
-            </Button>
-          )}
-          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
+        <div className="flex items-center gap-1.5">
+          <h2 className="text-foreground text-sm font-medium">Sekcje</h2>
+          <KosztorysSectionFilterMenu />
         </div>
+        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={onClose}>
+          <X className="h-4 w-4" />
+        </Button>
       </div>
 
       <ul className="divide-border min-h-0 flex-1 divide-y overflow-y-auto">
         {subtotals.map((s) => {
-          const isActive = s.sectionId === activeSectionId
           const isEditing = s.sectionId === editId
           return (
-            <li key={s.sectionId} className={`px-3 py-2 ${isActive ? 'bg-accent/40' : ''}`}>
+            <li key={s.sectionId} className="px-3 py-2">
               <div className="flex items-baseline justify-between gap-2">
                 {isEditing ? (
                   <Input
@@ -116,9 +104,9 @@ export function KosztorysSectionSummary({
                 ) : (
                   <button
                     type="button"
-                    onClick={() => onFilterSection(isActive ? null : s.sectionId)}
+                    onClick={() => startEdit(s.sectionId, s.sectionName)}
                     className="text-foreground truncate text-left text-sm hover:underline"
-                    title="Filtruj do tej sekcji"
+                    title="Zmień nazwę"
                   >
                     {s.sectionName}
                   </button>
@@ -126,19 +114,7 @@ export function KosztorysSectionSummary({
                 <span className="text-foreground shrink-0 text-sm tabular-nums">{fmt(s.net)}</span>
               </div>
 
-              <div className="text-muted-foreground mt-1 flex items-center justify-between text-xs">
-                <SimpleTooltip
-                  delayDuration={600}
-                  className="max-w-xs whitespace-pre-line"
-                  content={
-                    'Liczba pozycji w sekcji, udział sekcji w wartości kosztorysu oraz jej wykonanie.\n\nUdział = wartość sekcji ÷ wartość kosztorysu.\nWyk. = wartość wykonanych etapów w sekcji ÷ wartość przedmiaru sekcji.\n\nOba procenty liczą się od wartości, nie od liczby pozycji, i zależą od aktywnego widoku cen.\n„—" przy wyk. = sekcja nie ma jeszcze przedmiaru.'
-                  }
-                >
-                  <span className="cursor-help">
-                    {s.itemCount} poz. · {formatPercentPrecise(s.share)} · wyk.{' '}
-                    {formatPercentPrecise(s.plannedNet > 0 ? s.net / s.plannedNet : null)}
-                  </span>
-                </SimpleTooltip>
+              <div className="text-muted-foreground mt-1 flex flex-col gap-1 text-xs">
                 <div className="flex items-center gap-0.5">
                   {isEditing ? (
                     <>
@@ -148,7 +124,7 @@ export function KosztorysSectionSummary({
                         title="Zapisz nazwę"
                         className="hover:text-foreground p-1"
                       >
-                        <Check className="h-3.5 w-3.5" />
+                        <Check className="size-4" />
                       </button>
                       <button
                         type="button"
@@ -156,18 +132,57 @@ export function KosztorysSectionSummary({
                         title="Anuluj"
                         className="hover:text-foreground p-1"
                       >
-                        <X className="h-3.5 w-3.5" />
+                        <X className="size-4" />
                       </button>
                     </>
                   ) : (
                     <>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button
+                            type="button"
+                            title="Mnożnik ceny wykonawcy dla sekcji"
+                            className="hover:text-foreground p-1"
+                          >
+                            <SlidersHorizontal className="size-4" />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent align="end" className="w-56 p-3">
+                          <p className="text-foreground mb-2 text-xs font-medium">
+                            Mnożnik ceny wykonawcy
+                          </p>
+                          <p className="text-muted-foreground mb-2 text-xs">
+                            Puste = dziedziczy mnożnik globalny.
+                          </p>
+                          <div className="flex flex-col gap-1">
+                            <CoeffField
+                              label="z narzędziami"
+                              nullable
+                              value={sectionCoeffs.get(s.sectionId)?.wTools ?? null}
+                              placeholder={globalCoeffs.wTools}
+                              onCommit={(n) =>
+                                onSectionCoeffChange(s.sectionId, { wToolsCoeff: n })
+                              }
+                            />
+                            <CoeffField
+                              label="bez narzędzi"
+                              nullable
+                              value={sectionCoeffs.get(s.sectionId)?.ownTools ?? null}
+                              placeholder={globalCoeffs.ownTools}
+                              onCommit={(n) =>
+                                onSectionCoeffChange(s.sectionId, { ownToolsCoeff: n })
+                              }
+                            />
+                          </div>
+                        </PopoverContent>
+                      </Popover>
                       <button
                         type="button"
                         onClick={() => onAddItem(s.sectionId)}
                         title="Dodaj pozycję"
                         className="hover:text-foreground p-1"
                       >
-                        <Plus className="h-3.5 w-3.5" />
+                        <Plus className="size-4" />
                       </button>
                       <button
                         type="button"
@@ -175,7 +190,7 @@ export function KosztorysSectionSummary({
                         title="Zmień nazwę"
                         className="hover:text-foreground p-1"
                       >
-                        <Pencil className="h-3.5 w-3.5" />
+                        <Pencil className="size-4" />
                       </button>
                       <button
                         type="button"
@@ -183,28 +198,25 @@ export function KosztorysSectionSummary({
                         title="Usuń sekcję"
                         className="hover:text-destructive p-1"
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Trash2 className="size-4" />
                       </button>
                     </>
                   )}
                 </div>
-              </div>
 
-              <div className="mt-1 flex flex-col gap-1">
-                <CoeffField
-                  label="z narzędziami"
-                  nullable
-                  value={sectionCoeffs.get(s.sectionId)?.wTools ?? null}
-                  placeholder={globalCoeffs.wTools}
-                  onCommit={(n) => onSectionCoeffChange(s.sectionId, { wToolsCoeff: n })}
-                />
-                <CoeffField
-                  label="bez narzędzi"
-                  nullable
-                  value={sectionCoeffs.get(s.sectionId)?.ownTools ?? null}
-                  placeholder={globalCoeffs.ownTools}
-                  onCommit={(n) => onSectionCoeffChange(s.sectionId, { ownToolsCoeff: n })}
-                />
+                <HintTooltip
+                  className="w-fit flex-col gap-0.5"
+                  content={
+                    'Liczba prac w sekcji, udział sekcji w wartości kosztorysu oraz jej wykonanie.\n\nUdział = wartość sekcji ÷ wartość kosztorysu.\nWykonano = wartość wykonanych etapów w sekcji ÷ wartość przedmiaru sekcji.\n\nOba procenty liczą się od wartości, nie od liczby pozycji, i zależą od aktywnego widoku cen.\n„—" przy wykonaniu = sekcja nie ma jeszcze przedmiaru.'
+                  }
+                >
+                  <span>{s.itemCount} prac</span>
+                  <span>Sekcja stanowi {formatPercentPrecise(s.share)} kosztów</span>
+                  <span>
+                    Wykonano {formatPercentPrecise(s.plannedNet > 0 ? s.net / s.plannedNet : null)}{' '}
+                    sekcji
+                  </span>
+                </HintTooltip>
               </div>
             </li>
           )

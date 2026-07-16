@@ -4,13 +4,14 @@ import { Button } from '@/components/ui/button'
 import { useKosztorysEditorContext } from '@/components/kosztorys/use-kosztorys-editor-context'
 
 export function KosztorysToolbarAddButtons() {
-  const { activeSectionId, subtotals, handleAddItem, handleAddSection, handleAddStage } =
+  const { shownSectionIds, subtotals, handleAddItem, handleAddSection, handleAddStage } =
     useKosztorysEditorContext()
 
-  // Section the ＋ pozycja button adds to: the filtered section if one is active, else the last
-  // section. Always set while ≥1 section exists, so the button stays visible on a fresh
-  // single-section kosztorys instead of hiding until a filter is picked (EX-463).
-  const addItemSectionId = activeSectionId ?? subtotals.at(-1)?.sectionId ?? null
+  // Section the ＋ pozycja button adds to: the single shown section when the filter isolates exactly
+  // one, else the last section. Always set while ≥1 section exists, so the button stays visible on a
+  // fresh single-section kosztorys instead of hiding until a filter is picked (EX-463).
+  const onlyShown = shownSectionIds?.size === 1 ? [...shownSectionIds][0] : undefined
+  const addItemSectionId = onlyShown ?? subtotals.at(-1)?.sectionId ?? null
 
   return (
     <>

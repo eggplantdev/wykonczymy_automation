@@ -115,7 +115,10 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   const [view, setView] = usePriceView(investmentId)
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<V2SortStateT>(null)
-  const [activeSectionId, setActiveSectionId] = useState<number | null>(null)
+  // Section filter, three states: null = no filter (all sections), a Set = show exactly those, an
+  // empty Set = show none. The „show none" state is why this can't be a plain Set with empty=all —
+  // the FilterMultiSelect toggle-all needs a distinct „Odznacz wszystkie" target.
+  const [shownSectionIds, setShownSectionIds] = useState<Set<number> | null>(null)
   const [summaryOpen, setSummaryOpen] = useState(true)
   // Column widths: persisted in localStorage, committed on handle release (not per pointermove —
   // that would be a write per pixel). During the drag we only show a vertical guide
@@ -179,11 +182,11 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   // View = filter + sort. Edits are mapped back into the full dataset by id.
   const viewRows = useMemo(() => {
     const scoped =
-      activeSectionId == null ? rows : rows.filter((r) => r.sectionId === activeSectionId)
+      shownSectionIds === null ? rows : rows.filter((r) => shownSectionIds.has(r.sectionId))
     const filtered = filterRows(scoped, search)
     if (!sort) return filtered
     return sortRows(filtered, (r) => sortValue(r, sort.field, view, stages), sort.dir)
-  }, [rows, activeSectionId, search, sort, view, stages])
+  }, [rows, shownSectionIds, search, sort, view, stages])
 
   // Per-section subtotals: the FULL dataset (not viewRows) — a stable breakdown independent of
   // the filter/sort.
@@ -249,6 +252,11 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     })
     prevById.current.set(row.id, row)
     setRows((rs) => applyAddItem(rs, row))
+    // With a section filter active, a row added to a hidden section would be invisible — pull its
+    // section into the filter so the add is visible.
+    setShownSectionIds((prev) =>
+      prev === null || prev.has(sectionId) ? prev : new Set(prev).add(sectionId),
+    )
   }
 
   // ⋯ menu → Wstaw pozycję powyżej/poniżej. Inserts a blank row at the anchor's display slot
@@ -359,7 +367,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     setRows((rs) => applyAddItem(rs, row))
     // Drop a section filter: the new section's row lives outside it, so keeping the filter would
     // make the add look like a no-op (nothing visibly happens).
-    setActiveSectionId(null)
+    setShownSectionIds(null)
   }
 
   // --- Stages (etapy) ---
@@ -446,14 +454,22 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     for (const [id, r] of prevById.current) {
       if (r.sectionId === sectionId) prevById.current.delete(id)
     }
-    const wasActive = activeSectionId === sectionId
-    if (wasActive) setActiveSectionId(null)
+    const wasShown = shownSectionIds?.has(sectionId) ?? false
+    if (wasShown) {
+      setShownSectionIds((prev) => {
+        if (prev === null) return prev
+        const next = new Set(prev)
+        next.delete(sectionId)
+        return next
+      })
+    }
     const res = await removeSectionAction(sectionId)
     if (!res.success) {
       // Server rejected (predicate drift) — restore the section's rows and surface the block.
       for (const r of removed) prevById.current.set(r.id, r)
       setRows((rs) => [...rs, ...removed])
-      if (wasActive) setActiveSectionId(sectionId)
+      if (wasShown)
+        setShownSectionIds((prev) => (prev === null ? prev : new Set(prev).add(sectionId)))
       toastMessage(res.error ?? 'Nie udało się usunąć sekcji', 'warning', 4000)
     }
   }
@@ -618,8 +634,8 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     setView,
     search,
     setSearch,
-    activeSectionId,
-    setActiveSectionId,
+    shownSectionIds,
+    setShownSectionIds,
     summaryOpen,
     setSummaryOpen,
     // handlers
