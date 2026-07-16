@@ -2,6 +2,7 @@ import { netForQtyForView, rowPlannedNetForView, type PriceViewT } from '@/lib/k
 import { DEFAULT_UNIT, STAGE_QTY_PREFIX } from '@/lib/kosztorys/constants'
 import type {
   CostVariantT,
+  GlobalDiscountT,
   ItemPatchT,
   KosztorysStageT,
   KosztorysTreeT,
@@ -12,6 +13,13 @@ import type {
 
 export function stageKey(stageId: number): StageKeyT {
   return `${STAGE_QTY_PREFIX}${stageId}`
+}
+
+// The global discount applies only when a mode is chosen AND its value is non-zero — a zero-value
+// discount is indistinguishable from none, so it must not suppress per-item rabat. Denormalized onto
+// every row (globalDiscountActive) so the stage-blind pricing layer can read it without the tree.
+export function isGlobalDiscountActive({ type, value }: GlobalDiscountT): boolean {
+  return type != null && value > 0
 }
 
 // Client mirror of the server delete-guard predicate (removeItemAction/removeSectionAction).
@@ -55,6 +63,8 @@ export function treeToRows(tree: KosztorysTreeT): KosztorysV2RowT[] {
     progressByItem.set(p.itemId, m)
   }
 
+  const globalDiscountActive = isGlobalDiscountActive(tree.globalDiscount)
+
   const rows: KosztorysV2RowT[] = []
   for (const section of tree.sections) {
     for (const item of section.items) {
@@ -65,6 +75,7 @@ export function treeToRows(tree: KosztorysTreeT): KosztorysV2RowT[] {
         ...item,
         sectionName: section.name,
         vatRate: tree.vatRate,
+        globalDiscountActive,
         sectionDefaultCostVariant: section.defaultCostVariant,
         sectionWToolsCoeff: section.wToolsCoeff,
         sectionOwnToolsCoeff: section.ownToolsCoeff,
@@ -169,6 +180,7 @@ export type BlankRowInputT = {
   sectionId: number
   sectionName: string
   vatRate: number
+  globalDiscountActive: boolean
   sectionDefaultCostVariant: CostVariantT
   sectionWToolsCoeff: number | null
   sectionOwnToolsCoeff: number | null
@@ -201,6 +213,7 @@ export function buildBlankRow(input: BlankRowInputT): KosztorysV2RowT {
     note: null,
     sectionName: input.sectionName,
     vatRate: input.vatRate,
+    globalDiscountActive: input.globalDiscountActive,
     sectionDefaultCostVariant: input.sectionDefaultCostVariant,
     sectionWToolsCoeff: input.sectionWToolsCoeff,
     sectionOwnToolsCoeff: input.sectionOwnToolsCoeff,

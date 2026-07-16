@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  globalDiscountAmount,
   netForQtyForView,
   rowDoneFraction,
   rowPlannedNetForView,
@@ -28,6 +29,7 @@ const item: ViewPricingT = {
   costVariant: null,
   hiddenInExport: false,
   note: null,
+  globalDiscountActive: false,
   sectionWToolsCoeff: null,
   sectionOwnToolsCoeff: null,
   globalWToolsCoeff: 0.65,
@@ -228,5 +230,52 @@ describe('brutto = netto × (1 + vatRate)', () => {
     }
     // planned net = 12 × 20 − 10% = 216 → brutto 216 × 1.08 = 233.28
     expect(rowPlannedNetForView(discounted, 'client') * 1.08).toBeCloseTo(233.28, 10)
+  })
+})
+
+// Global (whole-kosztorys) discount OVERRIDES per-item rabat: when it is active, every row prices
+// gross-of-its-own-rabat (the per-item discount stays in the DB but stops applying), and the global
+// discount is subtracted once at the total level — never distributed onto rows/stages.
+describe('rabat globalny — nadpisuje rabat per pozycja', () => {
+  it('aktywny globalny rabat → wiersz liczy się bez własnego rabatu (przedmiar i wykonanie)', () => {
+    for (const perItem of [
+      { discountType: 'percent' as const, discountValue: 10 },
+      { discountType: 'amount' as const, discountValue: 50 },
+    ]) {
+      const row = { ...item, plannedQty: 12, ...perItem, globalDiscountActive: true }
+      // Gross of its own rabat: przedmiar 12 × 20 = 240, wykonanie Σetapów 10 × 20 = 200.
+      expect(rowPlannedNetForView(row, 'client')).toBe(240)
+      expect(netForQtyForView(row, TOTAL_QTY, 'client')).toBe(200)
+      expect(stageValueForView(row, 5, TOTAL_QTY, 'client')).toBe(100) // 200 × 5/10, no rabat
+    }
+  })
+
+  it('nieaktywny globalny rabat → rabat per pozycja liczy normalnie', () => {
+    const row = { ...item, discountType: 'percent' as const, discountValue: 10 }
+    expect(netForQtyForView(row, TOTAL_QTY, 'client')).toBe(180) // 200 − 10%
+  })
+})
+
+// The discount amount off the executed total, and "do zapłaty" = total − amount. Single source both
+// total surfaces share (Sekcje Suma block + totals bar). Not clamped below zero.
+describe('globalDiscountAmount / do zapłaty', () => {
+  it('procent skaluje sumę', () => {
+    expect(globalDiscountAmount(1000, { type: 'percent', value: 10 })).toBe(100)
+  })
+
+  it('kwota jest płaska', () => {
+    expect(globalDiscountAmount(1000, { type: 'amount', value: 250 })).toBe(250)
+  })
+
+  it('brak rabatu / zero → 0', () => {
+    expect(globalDiscountAmount(1000, { type: null, value: 0 })).toBe(0)
+    expect(globalDiscountAmount(1000, { type: 'percent', value: 0 })).toBe(0)
+    expect(globalDiscountAmount(1000, { type: 'amount', value: 0 })).toBe(0)
+  })
+
+  it('do zapłaty = suma − rabat', () => {
+    const totalNet = 1000
+    expect(totalNet - globalDiscountAmount(totalNet, { type: 'percent', value: 10 })).toBe(900)
+    expect(totalNet - globalDiscountAmount(totalNet, { type: 'amount', value: 250 })).toBe(750)
   })
 })

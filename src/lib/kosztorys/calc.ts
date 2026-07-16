@@ -1,4 +1,4 @@
-import type { KosztorysItemT, ViewPricingT } from '@/types/kosztorys'
+import type { GlobalDiscountT, ViewPricingT } from '@/types/kosztorys'
 
 // VAT: a single rate per investment (vatRate), carried on the row. No section→item cascade.
 
@@ -14,7 +14,11 @@ import type { KosztorysItemT, ViewPricingT } from '@/types/kosztorys'
 // Discount ("rabat"): discountValue for 'percent' = percentage points (10 => 10%), for
 // 'amount' = an amount in PLN subtracted from the net value.
 
-function applyDiscount(gross: number, item: KosztorysItemT): number {
+function applyDiscount(gross: number, item: ViewPricingT): number {
+  // Global discount overrides per-item rabat: when it is active the row prices gross-of-its-own
+  // discount (the per-item fields stay in the DB, untouched), and the global discount is subtracted
+  // once at the total level. Short-circuit BEFORE reading discountType so nothing per-item applies.
+  if (item.globalDiscountActive) return gross
   if (item.discountType === 'percent') return gross * (1 - (item.discountValue || 0) / 100)
   if (item.discountType === 'amount') return gross - (item.discountValue || 0)
   return gross
@@ -146,4 +150,16 @@ export function rowDoneFraction(row: ViewPricingT, totalQtyDone: number): number
 function doneFraction(row: ViewPricingT, qtyDone: number): number | null {
   if (!(row.plannedQty > 0)) return null
   return qtyDone / row.plannedQty
+}
+
+/**
+ * The global (whole-kosztorys) discount in PLN off the executed total. 'percent' scales the total,
+ * 'amount' is flat, none/zero is 0. Not distributed onto rows or stages — subtracted once here so
+ * `do zapłaty = totalNet − globalDiscountAmount(totalNet, discount)`. Not clamped below zero; a
+ * discount larger than the total is bad input to surface, not to silently floor.
+ */
+export function globalDiscountAmount(totalNet: number, discount: GlobalDiscountT): number {
+  if (discount.type === 'percent') return (totalNet * discount.value) / 100
+  if (discount.type === 'amount') return discount.value
+  return 0
 }

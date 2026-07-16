@@ -72,6 +72,9 @@ export type KosztorysGlobalCoeffsT = { wTools: number; ownTools: number }
 // Minimal shape for deriving the view price — KosztorysV2RowT satisfies it
 // (KosztorysItemT + denormalized section and global coefficients).
 export type ViewPricingT = KosztorysItemT & {
+  // Denormalized: the investment's global discount is set — per-item discounts stop applying
+  // (applyDiscount returns gross), the global discount is subtracted once at the total level.
+  globalDiscountActive: boolean
   sectionWToolsCoeff: number | null
   sectionOwnToolsCoeff: number | null
   globalWToolsCoeff: number
@@ -112,6 +115,8 @@ export type KosztorysV2RowBaseT = KosztorysItemT & {
   sectionName: string
   // Denormalized investment VAT rate (one for the whole kosztorys) — gross = net × (1 + vatRate).
   vatRate: number
+  // Denormalized "global discount is active" flag (see ViewPricingT.globalDiscountActive).
+  globalDiscountActive: boolean
   sectionDefaultCostVariant: CostVariantT
   // Denormalized coefficients for deriving the subcontractor price on the row (ViewPricingT).
   sectionWToolsCoeff: number | null

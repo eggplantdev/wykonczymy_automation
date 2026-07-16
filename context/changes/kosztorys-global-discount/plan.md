@@ -400,16 +400,16 @@ throwaway pre-dogfooding). Apply locally with `pnpm payload migrate`; prod is a 
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit`
-- [x] 1.2 Migration applies cleanly against local docker Postgres: `pnpm payload migrate`
-- [x] 1.3 Build passes: `pnpm build`
+- [x] 1.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit` — 9841624
+- [x] 1.2 Migration applies cleanly against local docker Postgres: `pnpm payload migrate` — 9841624
+- [x] 1.3 Build passes: `pnpm build` — 9841624
 
 ### Phase 2: Pricing override + total (TDD)
 
 #### Automated
 
-- [ ] 2.1 Unit tests pass: `pnpm exec vitest run src/__tests__/kosztorys-calc.test.ts`
-- [ ] 2.2 Type checking passes: `pnpm exec tsc --noEmit`
+- [x] 2.1 Unit tests pass: `pnpm exec vitest run src/__tests__/kosztorys-calc.test.ts`
+- [x] 2.2 Type checking passes: `pnpm exec tsc --noEmit`
 
 ### Phase 3: Action, editor wiring, column hiding
 
