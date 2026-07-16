@@ -1,7 +1,7 @@
 ---
 change_id: kosztorys-section-append
 title: Append a section from a szablon into an existing kosztorys
-status: implementing
+status: implemented
 created: 2026-07-16
 updated: 2026-07-16
 archived_at: null

@@ -389,3 +389,21 @@ Setup: run the app against the **5435 test DB** (see intro; migration applied th
 - [ ] **Wyczyszczenie rabatu → powrót.** Wybierz „brak" → kolumny i rabaty per pozycja wracają, sumy wracają do „Suma netto/brutto".
 - [ ] **Snapshot + odtworzenie.** Zrób wersję kosztorysu z rabatem, odtwórz ją → rabat globalny zachowany.
 - [ ] **Marża karty inwestycji bez zmian** (poza zakresem — kosztorys odłączony od księgi).
+
+## kosztorys-section-append — Dodaj sekcję z szablonu (EX-503)
+
+**In review** — automated checks green (Phase 1 `8be1d07`, Phase 2 `f86b98c`; integration specs a–e + unit/typecheck/lint clean). Ad-hoc slice pod EX-503.
+
+Setup: run the app against the **5435 test DB** (see intro). Log in as **OWNER/MANAGER** (editor wymaga MANAGEMENT_ROLES). Najpierw zapisz **dwa różne szablony** z sekcjami: zseeduj kosztorys, „Zapisz jako szablon" pod dwiema nazwami (najlepiej z różnymi sekcjami, w tym jedną o powtórzonej nazwie jak „Łazienka"). Otwórz **Kosztorys** inwestycji z ≥1 sekcją do testu „niepustego".
+
+### Phase 2: Picker + oba wejścia + patch siatki
+
+- [ ] **Niepusty kosztorys, bez przeładowania.** „Dodaj" → „Sekcja z szablonu…" → zaznacz dwie sekcje z **dwóch różnych szablonów** → obie pojawiają się na końcu siatki z pracami, cenami j.m. i współczynnikami, przedmiary = 0, bez przeładowania strony; lista sekcji w panelu bocznym je pokazuje.
+- [ ] **Pusty kosztorys → kompozycja à-la-carte.** Blokujący dialog pustego kosztorysu oferuje „Dodaj sekcje z szablonu"; złożenie z dwóch wybranych sekcji ląduje w wypełnionym edytorze (ścieżka remountu) bez śmieciowej pustej sekcji.
+- [ ] **Wyszukiwarka + nagłówki grup + liczniki.** Szukanie w pikerze filtruje po wszystkich szablonach; nagłówki grup pokazują źródłowy szablon; liczniki „N poz." są poprawne.
+- [ ] **Duplikat nazwy dozwolony.** Dodanie „Łazienka" do kosztorysu, który już ma „Łazienka", daje dwie sekcje — obie edytowalne.
+- [ ] **Brak szablonów → stan pusty.** Bez zapisanych szablonów piker pokazuje „Brak zapisanych szablonów.", a „Dodaj" jest nieaktywne.
+
+### Findings
+
+_(pending first pass)_

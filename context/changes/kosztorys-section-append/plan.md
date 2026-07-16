@@ -227,6 +227,6 @@ None — no schema change. Kosztorys data is throwaway until dogfooding merges (
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `pnpm exec tsc --noEmit`
-- [x] 2.2 Linting passes: `pnpm lint`
-- [x] 2.3 Unit/integration suites still pass: `pnpm test`
+- [x] 2.1 Type checking passes: `pnpm exec tsc --noEmit` — f86b98c
+- [x] 2.2 Linting passes: `pnpm lint` — f86b98c
+- [x] 2.3 Unit/integration suites still pass: `pnpm test` — f86b98c
