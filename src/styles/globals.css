@@ -219,6 +219,14 @@
   }
 }
 
+/* The DSG root is a grid item in a definite-height cell. Its default `min-height: auto` lets it grow
+   PAST that cell to its content height, so with enough rows it overflows the viewport and the last
+   rows are clipped with no way to scroll to them. Pinning `min-height: 0` holds it to the cell, so
+   the datasheet scrolls its rows internally instead of expanding. */
+.kosztorys-grid {
+  min-height: 0;
+}
+
 /* height: fills the wrapper so the h-scrollbar can't cover the last row (dsg shrink-wraps otherwise).
    Negative margins clip the grid's outer top/left border out of the wrapper's overflow-hidden. */
 .kosztorys-grid .dsg-container {
