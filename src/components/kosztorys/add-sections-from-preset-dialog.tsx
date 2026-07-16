@@ -33,8 +33,7 @@ type PropsT = {
 // A meta's stable identity across all presets — a section id is only unique WITHIN its preset.
 const metaKey = (meta: PresetSectionMetaT) => `${meta.presetId}:${meta.sectionId}`
 
-// „Dodaj sekcję z szablonu": a searchable multi-select over every section in every saved szablon.
-// Toggling a row keeps the dialog open (multi-select is why this is a cmdk list, not a combobox);
+// Multi-select is why this is a cmdk list, not a combobox: toggling a row keeps the dialog open and
 // one confirm appends all checked sections. Fetch-on-open, mirroring seed-from-preset-button.
 export function AddSectionsFromPresetDialog({
   investmentId,
@@ -42,25 +41,35 @@ export function AddSectionsFromPresetDialog({
   onOpenChange,
   onAppended,
 }: PropsT) {
-  const [sections, setSections] = useState<PresetSectionMetaT[]>([])
+  // null = not yet loaded (distinct from [] = loaded-but-empty), so the „Brak szablonów" empty-state
+  // never flashes during the fetch and a failed load isn't mistaken for a genuinely empty library.
+  const [sections, setSections] = useState<PresetSectionMetaT[] | null>(null)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [pending, setPending] = useState(false)
 
   // Fetch-on-open: the picker can be opened programmatically (from the „Dodaj" menu item, bypassing
   // Radix's own open trigger), so syncing the load to the `open` prop is the one reliable seam. Only
-  // the async list write happens here — the selection reset lives in the close handler (a synchronous
+  // the async list write happens here — the reset-to-null lives in the close handler (a synchronous
   // setState in an effect body is a cascading-render smell the lint forbids).
   useEffect(() => {
     if (!open) return
     void listPresetSectionsAction().then((res) => {
       if (res.success) setSections(res.data)
+      else {
+        setSections([])
+        toastMessage(res.error ?? 'Nie udało się wczytać szablonów', 'error', 4000)
+      }
     })
   }, [open])
 
-  // Every close routes through here (cancel / esc / overlay / post-confirm), so resetting the
-  // selection on close guarantees the next open starts clean without an in-effect setState.
+  // Every close routes through here (cancel / esc / overlay / post-confirm), so resetting on close
+  // guarantees the next open re-fetches fresh instead of showing the previous list — without an
+  // in-effect setState.
   function handleOpenChange(next: boolean) {
-    if (!next) setSelected(new Set())
+    if (!next) {
+      setSelected(new Set())
+      setSections(null)
+    }
     onOpenChange(next)
   }
 
@@ -75,14 +84,14 @@ export function AddSectionsFromPresetDialog({
 
   // Consecutive metas sharing a presetId form one group (the listing is already ordered that way).
   const groups: { presetId: number; presetName: string; metas: PresetSectionMetaT[] }[] = []
-  for (const meta of sections) {
+  for (const meta of sections ?? []) {
     const last = groups.at(-1)
     if (last && last.presetId === meta.presetId) last.metas.push(meta)
     else groups.push({ presetId: meta.presetId, presetName: meta.presetName, metas: [meta] })
   }
 
   async function handleConfirm() {
-    const selections = sections
+    const selections = (sections ?? [])
       .filter((meta) => selected.has(metaKey(meta)))
       .map((meta) => ({ presetId: meta.presetId, sectionId: meta.sectionId }))
     if (selections.length === 0) return
@@ -108,7 +117,9 @@ export function AddSectionsFromPresetDialog({
           title="Dodaj sekcję z szablonu"
           description="Wybierz sekcje z zapisanych szablonów. Zostaną dodane z pracami i cenami, bez przedmiaru."
         />
-        {sections.length === 0 ? (
+        {sections === null ? (
+          <p className="text-muted-foreground px-4 py-6 text-sm">Ładowanie szablonów…</p>
+        ) : sections.length === 0 ? (
           <p className="text-muted-foreground px-4 py-6 text-sm">Brak zapisanych szablonów.</p>
         ) : (
           <Command className="mt-3" shouldFilter>

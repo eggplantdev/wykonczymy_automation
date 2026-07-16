@@ -104,6 +104,7 @@ export async function listPresetSectionsAction(): Promise<ActionResultT<PresetSe
 }
 
 const appendSectionsSchema = z.object({
+  investmentId: z.number().int().positive(),
   selections: z
     .array(
       z.object({ presetId: z.number().int().positive(), sectionId: z.number().int().positive() }),
@@ -123,7 +124,7 @@ export async function appendPresetSectionsAction(
   return protectedAction(
     'appendPresetSectionsAction',
     async ({ payload }) => {
-      const parsed = validateAction(appendSectionsSchema, { selections })
+      const parsed = validateAction(appendSectionsSchema, { investmentId, selections })
       if (!parsed.success) return parsed
 
       // Resolve each preset payload once (a preset can contribute several sections), preserving the
@@ -136,9 +137,9 @@ export async function appendPresetSectionsAction(
         const preset = presetCache.get(presetId)
         if (!preset) return { success: false, error: 'Nie znaleziono szablonu' }
 
-        const section = preset.payload.sections.find((s) => s.id === sectionId)
+        const section = (preset.payload.sections ?? []).find((s) => s.id === sectionId)
         if (!section) return { success: false, error: 'Nie znaleziono sekcji w szablonie' }
-        const items = preset.payload.items.filter((it) => it.sectionId === sectionId)
+        const items = (preset.payload.items ?? []).filter((it) => it.sectionId === sectionId)
         slices.push({ section, items })
       }
 
@@ -149,7 +150,7 @@ export async function appendPresetSectionsAction(
         context: { skipRevalidation: true },
       } as unknown as PayloadRequest
       try {
-        const created = await appendPresetSections(payload, req, investmentId, slices)
+        const created = await appendPresetSections(payload, req, parsed.data.investmentId, slices)
         await payload.db.commitTransaction(tx)
         return { success: true, data: created }
       } catch (error) {
