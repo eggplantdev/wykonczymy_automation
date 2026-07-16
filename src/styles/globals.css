@@ -176,6 +176,11 @@
     3px 0 14px color-mix(in oklch, var(--color-neon-cyan) 55%, transparent);
 }
 
+/* Aurora glow for the kosztorys progress fill — halo in the fill's own green→cyan ramp. */
+@utility progress-glow {
+  box-shadow: 0 0 8px color-mix(in oklch, var(--color-chart-turquoise) 65%, transparent);
+}
+
 /* Fuchsia→cyan gradient ring (the `ai`-accent hues) as a masked conic-gradient — a branded
    spin loader that reads in the AI colours, versus a flat Lucide icon. `--spinner-w` sets the
    ring thickness; default size-4 matches inline icon spinners. */
