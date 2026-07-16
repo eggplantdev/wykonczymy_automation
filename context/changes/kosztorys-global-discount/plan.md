@@ -423,6 +423,6 @@ throwaway pre-dogfooding). Apply locally with `pnpm payload migrate`; prod is a 
 
 #### Automated
 
-- [x] 4.1 Build passes: `pnpm build`
-- [x] 4.2 Type checking passes: `pnpm exec tsc --noEmit`
-- [x] 4.3 Lint passes: `pnpm lint`
+- [x] 4.1 Build passes: `pnpm build` — 17b0e81
+- [x] 4.2 Type checking passes: `pnpm exec tsc --noEmit` — 17b0e81
+- [x] 4.3 Lint passes: `pnpm lint` — 17b0e81
