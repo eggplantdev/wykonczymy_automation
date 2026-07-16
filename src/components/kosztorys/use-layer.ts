@@ -10,7 +10,7 @@ import { LAYER_DEFAULT, type LayerT } from '@/lib/kosztorys/layer'
 // mismatch).
 
 const STORAGE_KEY = 'table-columns:kosztorys-layer'
-const VALID_LAYERS: readonly LayerT[] = ['work', 'progress', 'both']
+const VALID_LAYERS: readonly LayerT[] = ['work', 'progress', 'both', 'none']
 
 const listeners = new Set<() => void>()
 

@@ -11,7 +11,7 @@ import { MONEY_AXIS_DEFAULT, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 // event doesn't fire in the same tab.
 
 const STORAGE_KEY = 'table-columns:kosztorys-axis'
-const VALID_AXES: readonly MoneyAxisT[] = ['net', 'gross', 'both']
+const VALID_AXES: readonly MoneyAxisT[] = ['net', 'gross', 'both', 'none']
 
 const listeners = new Set<() => void>()
 

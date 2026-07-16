@@ -7,18 +7,19 @@ import {
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { LayerT } from '@/lib/kosztorys/layer'
 
-const MONEY: PairAxisConfigT<MoneyAxisT> = { a: 'net', b: 'gross', both: 'both' }
-const LAYER: PairAxisConfigT<LayerT> = { a: 'work', b: 'progress', both: 'both' }
+const MONEY: PairAxisConfigT<MoneyAxisT> = { a: 'net', b: 'gross', both: 'both', none: 'none' }
+const LAYER: PairAxisConfigT<LayerT> = { a: 'work', b: 'progress', both: 'both', none: 'none' }
 
 // One suite per config: the mapper is generic, but both real call sites must round-trip.
 describe.each([
   { name: 'oś kwot (netto/brutto)', config: MONEY },
   { name: 'oś warstw (praca/postęp)', config: LAYER },
 ])('derivePairChecks + togglePairAxis — $name', ({ config }) => {
-  it('derivePairChecks mapuje trzy wartości na pary boolean', () => {
+  it('derivePairChecks mapuje cztery wartości na pary boolean', () => {
     expect(derivePairChecks(config.both, config)).toEqual({ a: true, b: true })
     expect(derivePairChecks(config.a, config)).toEqual({ a: true, b: false })
     expect(derivePairChecks(config.b, config)).toEqual({ a: false, b: true })
+    expect(derivePairChecks(config.none, config)).toEqual({ a: false, b: false })
   })
 
   it('odznaczenie jednej strony z „oba" zawęża do drugiej', () => {
@@ -31,14 +32,21 @@ describe.each([
     expect(togglePairAxis(config.b, 'a', config)).toBe(config.both)
   })
 
-  it('odznaczenie jedynej zaznaczonej strony to no-op (min-1)', () => {
-    expect(togglePairAxis(config.a, 'a', config)).toBe(config.a)
-    expect(togglePairAxis(config.b, 'b', config)).toBe(config.b)
+  it('odznaczenie jedynej zaznaczonej strony schodzi do „none" (bez blokady)', () => {
+    expect(togglePairAxis(config.a, 'a', config)).toBe(config.none)
+    expect(togglePairAxis(config.b, 'b', config)).toBe(config.none)
   })
 
-  it('round-trip: oba → odznacz a → a → zaznacz a → oba', () => {
+  it('zaznaczenie strony z „none" włącza tylko tę stronę', () => {
+    expect(togglePairAxis(config.none, 'a', config)).toBe(config.a)
+    expect(togglePairAxis(config.none, 'b', config)).toBe(config.b)
+  })
+
+  it('round-trip: oba → odznacz a → b → odznacz b → none → zaznacz a → a', () => {
     const narrowed = togglePairAxis(config.both, 'a', config)
     expect(narrowed).toBe(config.b)
-    expect(togglePairAxis(narrowed, 'a', config)).toBe(config.both)
+    const emptied = togglePairAxis(narrowed, 'b', config)
+    expect(emptied).toBe(config.none)
+    expect(togglePairAxis(emptied, 'a', config)).toBe(config.a)
   })
 })

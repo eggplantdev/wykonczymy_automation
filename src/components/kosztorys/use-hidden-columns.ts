@@ -54,6 +54,7 @@ function writeHidden(hidden: Record<string, boolean>) {
 export function useHiddenColumns(): {
   isHidden: (id: string) => boolean
   toggleColumn: (id: string) => void
+  showAllColumns: (ids: string[]) => void
 } {
   const json = useSyncExternalStore(subscribe, readJson, () => SERVER_SNAPSHOT)
   const hidden = useMemo(() => JSON.parse(json) as Record<string, boolean>, [json])
@@ -68,5 +69,11 @@ export function useHiddenColumns(): {
     writeHidden({ ...hidden, [id]: !isHidden(id) })
   }
 
-  return { isHidden, toggleColumn }
+  // Reveals every passed column. The caller supplies the id set (from the picker) because the map is
+  // sparse — the hook alone can't enumerate default-hidden columns to un-hide.
+  function showAllColumns(ids: string[]) {
+    writeHidden({ ...hidden, ...Object.fromEntries(ids.map((id) => [id, false])) })
+  }
+
+  return { isHidden, toggleColumn, showAllColumns }
 }

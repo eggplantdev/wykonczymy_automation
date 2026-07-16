@@ -11,12 +11,13 @@ import { COLUMN_LAYER, LAYER_NEUTRAL_COLUMNS } from '@/lib/kosztorys/constants'
 // context plus everything NOT tagged progress (the untagged work columns). Without the neutral
 // allowlist, "Postęp" could not hide the untagged work columns while keeping the row identifiable.
 
-export type LayerT = 'work' | 'progress' | 'both'
+export type LayerT = 'work' | 'progress' | 'both' | 'none'
 
 export const LAYER_DEFAULT: LayerT = 'both'
 
 export function layerAllows(toggleKey: string, layer: LayerT): boolean {
-  if (layer === 'both' || LAYER_NEUTRAL_COLUMNS.has(toggleKey)) return true
+  if (LAYER_NEUTRAL_COLUMNS.has(toggleKey) || layer === 'both') return true
+  if (layer === 'none') return false
 
   const isProgress = COLUMN_LAYER[toggleKey] === 'progress'
   return layer === 'progress' ? isProgress : !isProgress

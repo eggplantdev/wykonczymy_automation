@@ -5,13 +5,15 @@ import { AXIS_EXEMPT_COLUMNS, COLUMN_MONEY_AXIS } from '@/lib/kosztorys/constant
 // than replacing it — visible(col) = pickerAllows(col) AND axisAllows(col) — so the two answer
 // different questions and can't contradict.
 
-export type MoneyAxisT = 'net' | 'gross' | 'both'
+export type MoneyAxisT = 'net' | 'gross' | 'both' | 'none'
 
 export const MONEY_AXIS_DEFAULT: MoneyAxisT = 'both'
 
 export function axisAllows(toggleKey: string, axis: MoneyAxisT): boolean {
-  if (axis === 'both' || AXIS_EXEMPT_COLUMNS.has(toggleKey)) return true
+  if (AXIS_EXEMPT_COLUMNS.has(toggleKey) || axis === 'both') return true
 
   const columnAxis = COLUMN_MONEY_AXIS[toggleKey]
-  return columnAxis === undefined || columnAxis === axis
+  if (columnAxis === undefined) return true
+  if (axis === 'none') return false
+  return columnAxis === axis
 }

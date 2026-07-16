@@ -20,9 +20,21 @@ describe('progressDisplayAllows', () => {
     expect(progressDisplayAllows('stageValuePercent', 'percent')).toBe(true)
   })
 
-  it('untagged columns survive both modes (fail-open)', () => {
+  it('"both" keeps every stage-value column (kwoty + %)', () => {
+    expect(progressDisplayAllows('stageValueNet', 'both')).toBe(true)
+    expect(progressDisplayAllows('stageValueGross', 'both')).toBe(true)
+    expect(progressDisplayAllows('stageValuePercent', 'both')).toBe(true)
+  })
+
+  it('"none" hides every tagged stage-value column', () => {
+    expect(progressDisplayAllows('stageValueNet', 'none')).toBe(false)
+    expect(progressDisplayAllows('stageValueGross', 'none')).toBe(false)
+    expect(progressDisplayAllows('stageValuePercent', 'none')).toBe(false)
+  })
+
+  it('untagged columns survive every mode except stay-open (fail-open)', () => {
     const untagged = ['stages', 'net', 'gross', 'remaining', 'donePercent', 'description']
-    for (const display of ['values', 'percent'] as ProgressDisplayT[]) {
+    for (const display of ['values', 'percent', 'both', 'none'] as ProgressDisplayT[]) {
       for (const key of untagged) expect(progressDisplayAllows(key, display)).toBe(true)
     }
   })

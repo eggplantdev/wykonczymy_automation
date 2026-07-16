@@ -9,7 +9,7 @@ import { PROGRESS_DISPLAY_DEFAULT, type ProgressDisplayT } from '@/lib/kosztorys
 // hand-rolled rather than a storage-event subscription.
 
 const STORAGE_KEY = 'table-columns:kosztorys-progress-display'
-const VALID_DISPLAYS: readonly ProgressDisplayT[] = ['values', 'percent']
+const VALID_DISPLAYS: readonly ProgressDisplayT[] = ['values', 'percent', 'both', 'none']
 
 const listeners = new Set<() => void>()
 

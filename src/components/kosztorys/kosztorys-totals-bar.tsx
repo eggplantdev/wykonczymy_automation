@@ -23,8 +23,8 @@ export function KosztorysTotalsBar({
   moneyAxis,
 }: PropsT) {
   const hasDiscount = discountAmount > 0
-  const showNet = moneyAxis !== 'gross'
-  const showGross = moneyAxis !== 'net'
+  const showNet = moneyAxis === 'net' || moneyAxis === 'both'
+  const showGross = moneyAxis === 'gross' || moneyAxis === 'both'
   const netLabel = hasDiscount ? 'Do zapłaty netto' : 'Suma netto'
   const grossLabel = hasDiscount ? 'Do zapłaty brutto' : 'Suma brutto'
 

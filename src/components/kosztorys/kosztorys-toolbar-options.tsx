@@ -43,8 +43,6 @@ export const VIEW_LEGEND = [
   '🚫 Stawka wykonawcy bez narzędzi.',
 ].join('\n')
 
-// Two checkbox rows, not a tri-state toggle: both checked = the old „Bez filtra". The implicit
-// „both" value lives in MONEY_PAIR_CONFIG, not as a fourth option.
 export const MONEY_AXES: {
   value: MoneyAxisT
   label: string
@@ -54,24 +52,35 @@ export const MONEY_AXES: {
   { value: 'gross', label: 'Brutto', icon: <Receipt className={ICON_CLASS} /> },
 ]
 
-// Maps the Netto/Brutto checkbox pair onto the tri-state money axis (a=net, b=gross, both).
 export const MONEY_PAIR_CONFIG: PairAxisConfigT<MoneyAxisT> = {
   a: 'net',
   b: 'gross',
   both: 'both',
+  none: 'none',
 }
 
-// Single-select (a stage column is money OR percent) — stays a radio, not a checkbox pair.
+// The Kolumny toggle is the strictest gate: an unchecked column is ANDed out in buildV2Columns
+// before any axis predicate runs, so it stays hidden regardless of the Kwoty/Warstwy/Etapy options.
+export const KOLUMNY_HINT =
+  'Jeśli odznaczysz którąś kolumnę, nie będzie widoczna niezależnie od wybranych opcji powyżej.'
+
+// Governs the stage-value block (kwoty + % columns), unlike the other axes.
 export const PROGRESS_DISPLAYS: {
   value: ProgressDisplayT
   label: string
   icon: ReactNode
 }[] = [
-  { value: 'values', label: 'Kwoty', icon: <Banknote className={ICON_CLASS} /> },
-  { value: 'percent', label: '% wykonania', icon: <Percent className={ICON_CLASS} /> },
+  { value: 'values', label: 'PLN', icon: <Banknote className={ICON_CLASS} /> },
+  { value: 'percent', label: 'Procent', icon: <Percent className={ICON_CLASS} /> },
 ]
 
-// Two checkbox rows, mirroring MONEY_AXES: both checked = the old „Bez filtra".
+export const PROGRESS_PAIR_CONFIG: PairAxisConfigT<ProgressDisplayT> = {
+  a: 'values',
+  b: 'percent',
+  both: 'both',
+  none: 'none',
+}
+
 export const LAYERS: {
   value: LayerT
   label: string
@@ -81,9 +90,9 @@ export const LAYERS: {
   { value: 'progress', label: 'Postęp', icon: <Activity className={ICON_CLASS} /> },
 ]
 
-// Maps the Praca/Postęp checkbox pair onto the tri-state layer axis (a=work, b=progress, both).
 export const LAYER_PAIR_CONFIG: PairAxisConfigT<LayerT> = {
   a: 'work',
   b: 'progress',
   both: 'both',
+  none: 'none',
 }

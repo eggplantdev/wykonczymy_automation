@@ -20,10 +20,17 @@ Design brief: `design.md` in this folder.
 
 ## Epilogue
 
-Implemented in two phases (`31b3e49` mapper + unit test, `a74abd7` menu + toolbar rewire).
-Toolbar went from five reading controls to two: `Widok cen` stays out, everything else folds into
-one grouped `Widok` popover. No persisted state changed — the Kwoty/Warstwy checkbox pairs are a
-skin over the existing tri-state hooks via the min-1-guarded mapper in `src/lib/kosztorys/axis-checkboxes.ts`.
+Implemented in two phases (`31b3e49` mapper + unit test, `a74abd7` menu + toolbar rewire), then a
+dogfooding follow-up. Toolbar went from five reading controls to two: `Widok cen` stays out,
+everything else folds into one grouped `Widok` popover.
+
+Dogfooding follow-up (owner-driven): the min-1 guard was removed, so each axis (Kwoty / Warstwy /
+Etapy) now carries a fourth `none` state — both boxes unchecked hides that axis' columns, an empty
+table being a legitimate view. Etapy moved from a single-select radio to a checkbox pair (PLN /
+Procent); sections were reordered to Kwoty → Warstwy → Etapy → Kolumny; section tooltips were
+stripped to Kolumny only; Kolumny gained a „Pokaż wszystkie" action. The pairs are a skin over the
+existing persisted hooks via the four-state mapper in `src/lib/kosztorys/axis-checkboxes.ts`; the
+localStorage `VALID_*` arrays gained `none`. No new storage key, no migration.
 
 Manual dogfooding gate: `context/foundation/manual-checks.md` → `## kosztorys-toolbar-view-menu`
-(6 boxes, pending first pass — hard blocker before this is `Done`).
+(8 boxes, pending first pass — hard blocker before this is `Done`).

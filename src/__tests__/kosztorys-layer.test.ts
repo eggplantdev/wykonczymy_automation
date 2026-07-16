@@ -59,9 +59,15 @@ describe('buildV2Columns — oś praca/postęp', () => {
     for (const id of NEUTRAL_IDS) expect(visible).toContain(id)
   })
 
+  it('„none" zdejmuje obie warstwy, zostawia tylko kontekst', () => {
+    const visible = ids('none')
+    for (const id of [...WORK_IDS, ...PROGRESS_IDS]) expect(visible).not.toContain(id)
+    for (const id of NEUTRAL_IDS) expect(visible).toContain(id)
+  })
+
   it('kolumny kontekstu przeżywają każdy tryb', () => {
     expect(NEUTRAL_IDS.length).toBeGreaterThan(0)
-    for (const layer of ['work', 'progress', 'both'] as const) {
+    for (const layer of ['work', 'progress', 'both', 'none'] as const) {
       const visible = ids(layer)
       for (const id of NEUTRAL_IDS) expect(visible).toContain(id)
     }

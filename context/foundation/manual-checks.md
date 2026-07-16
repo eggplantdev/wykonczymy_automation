@@ -357,16 +357,18 @@ Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, se
 
 ## kosztorys-toolbar-view-menu — jeden popover „Widok" zamiast pięciu przełączników (EX-435)
 
-**In review** — automated checks green (`31b3e49`, `a74abd7`; typecheck clean for this slice via stash-isolation — global tree was red only on an unrelated parallel-agent WIP file, unit 946, lint 0 errors). Toolbar-surface reshape only: no persisted state, no new storage key, axis semantics untouched (`buildV2Columns` nie ruszany). Ad-hoc change pod parasolem EX-435 (brak własnej karty). Jedyna nowa logika — czysty mapper tri-state↔checkbox — jest pokryta unitem; poniższe boxy to dogfooding okablowania popovera.
+**In review** — automated checks green (`31b3e49`, `a74abd7` + dogfooding follow-up; unit green, typecheck clean for this slice). Ad-hoc change pod parasolem EX-435 (brak własnej karty). Dogfooding follow-up rozszerzył model: każda oś (Kwoty / Warstwy / Etapy) ma teraz czwarty stan `none` (oba boxy odznaczone chowają oś — brak dawnej blokady min-1), Etapy przeszły z radio na parę checkboxów, sekcje przełożone na Kwoty → Warstwy → Etapy → Kolumny, a Kolumny dostały „Pokaż wszystkie". Mapper czterostanowy (`axis-checkboxes.ts`) i predykaty osi (`none → false`) są pokryte unitami.
 
 Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, seed a kosztorys into it (`INV=<id> node --env-file=.env --import tsx src/scripts/seed-kosztorys.ts` with the seed's DB env pointed at `DB_POSTGRES_URL_TEST`), open the **Kosztorys** tab with ≥1 section, items, ≥2 stages, and clear `table-columns:kosztorys-axis` / `…-layer` w localStorage, żeby startować od `both`.
 
 ### Phase 2: Popover „Widok" + przebudowa toolbaru
 
 - [ ] **Lewy klaster to dwie kontrolki.** Toolbar pokazuje `Widok cen` (segmenty) + przycisk `Widok ▾`; nie ma osobnych przełączników Kwoty / Etapy / Warstwy, a grupa po prawej nie ma już przycisku `Kolumny`.
-- [ ] **Cztery sekcje.** `Widok ▾` otwiera: Etapy (radio Kwoty / % wykonania), Kwoty (☑ Netto ☑ Brutto), Warstwy (☑ Praca ☑ Postęp), Kolumny (checkboxy kolumn) — każdy wiersz z ikoną i etykietą.
-- [ ] **Kwoty jako checkboxy z gwarancją min-1.** Odznaczenie Netto chowa kolumny netto; odznaczenie ostatniego zaznaczonego boxa jest odrzucone (zawsze zostaje jeden). To samo dla Warstwy (Praca / Postęp).
-- [ ] **Etapy radio przełącza blok etapów** między kwotami a `% wykonania` (single-select, dokładnie jak stary przełącznik).
+- [ ] **Cztery sekcje w kolejności Kwoty → Warstwy → Etapy → Kolumny.** `Widok ▾` otwiera: Kwoty (☑ Netto ☑ Brutto), Warstwy (☑ Praca ☑ Postęp), Etapy (☑ PLN ☑ Procent), Kolumny (checkboxy kolumn + „Pokaż wszystkie") — ikona wiersza po prawej stronie etykiety.
+- [ ] **Checkboxy bez blokady min-1.** Można odznaczyć oba boxy w Kwoty / Warstwy / Etapy — nic nie jest odrzucane; odznaczenie obu chowa kolumny tej osi (pusta tabela jest dozwolonym widokiem). Ponowne zaznaczenie wraca.
+- [ ] **Etapy to para checkboxów** (PLN / Procent), nie radio: oba / jeden / żaden są dozwolone, blok etapów pokazuje kwoty, procenty, oba lub nic.
+- [ ] **Tylko Kolumny ma tooltip.** Info-ikona jest przy nagłówku Kolumny (hint o niezależnym ukrywaniu); Kwoty / Warstwy / Etapy mają czyste nagłówki.
+- [ ] **„Pokaż wszystkie" w Kolumny.** Ukryj kilka kolumn, kliknij „Pokaż wszystkie" → wszystkie wracają; pozycja jest wyszarzona, gdy nic nie jest ukryte; menu zostaje otwarte.
 - [ ] **Kolumny nie zamykają menu.** Przełączenie kilku kolumn pod rząd zostawia popover otwarty; kolumny znikają/wracają na bieżąco.
 - [ ] **Wybory przeżywają odświeżenie** dokładnie jak przed zmianą (te same klucze localStorage — brak migracji).
 
