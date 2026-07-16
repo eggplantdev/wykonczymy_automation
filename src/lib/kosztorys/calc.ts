@@ -2,14 +2,14 @@ import type { KosztorysItemT, ViewPricingT } from '@/types/kosztorys'
 
 // VAT: a single rate per investment (vatRate), carried on the row. No section→item cascade.
 
-// The pricing layer: what a row is worth per unit, and what its pomiar is worth at that price. Pure
-// functions over ViewPricingT — we persist only the inputs and compute everything below live.
-// plannedQty ("przedmiar") feeds only rowPlannedNetForView, the offer figure.
+// The pricing layer: what a row is worth per unit, and what ANY quantity of it is worth at that
+// price. Pure functions over ViewPricingT — we persist only the inputs and compute everything live.
 //
-// Structurally stage-blind, on purpose. Since EX-489 a row's SETTLEMENT value depends on its stages
-// (work without a pomiar is worth what the stages say), so that figure — rowValueForView, remaining,
-// subtotals — lives one layer up in v2-rows.ts, which knows stages and imports this. Everything here
-// answers "at this price, what is the pomiar worth"; never treat rowNetForView as the row's value.
+// Structurally stage-blind, on purpose. Which quantity is the truth is a settlement question (the
+// stages answer it), so it is decided one layer up in v2-rows.ts, which knows stages and imports
+// this. Here every figure takes its quantity as a PARAMETER — nothing in this file reads a qty off
+// the row except rowPlannedNetForView, the offer figure, whose quantity is the przedmiar by
+// definition.
 //
 // Discount ("rabat"): discountValue for 'percent' = percentage points (10 => 10%), for
 // 'amount' = an amount in PLN subtracted from the net value.
@@ -52,17 +52,17 @@ export function toGross(net: number, vatRate: number): number {
   return net * (1 + vatRate)
 }
 
-/** Row net at the selected view's price (measured qty × view price − discount). */
-export function rowNetForView(row: ViewPricingT, view: PriceViewT): number {
-  return applyDiscount(row.measuredQty * viewPrice(row, view), row)
+/** What any quantity of this row is worth at the view's price, post-discount. */
+export function netForQtyForView(row: ViewPricingT, qty: number, view: PriceViewT): number {
+  return applyDiscount(qty * viewPrice(row, view), row)
 }
 
 /**
  * Row value at the PLANNED qty ("wartość przedmiaru") — the offer figure priced straight off the
- * przedmiar, against which rowNetForView is the as-measured, post-discount one.
+ * przedmiar, against which the settlement figure (v2-rows' rowValueForView) is what was executed.
  *
  * NO discount by design (owner, 2026-07-15): przedmiar is the pre-negotiation valuation, and rabat
- * only enters at settlement. So this is deliberately NOT a mirror of rowNetForView — the gap
+ * only enters at settlement. So this is deliberately NOT netForQtyForView at the przedmiar — the gap
  * between the two columns carries both the qty revision and the discount.
  *
  * Not sheet parity: the sheet's column S carries this header but no formula in any row, because
@@ -78,16 +78,17 @@ export function rowPlannedNetForView(row: ViewPricingT, view: PriceViewT): numbe
  * discountValue, which is only the raw input: under 'percent' it holds percentage points, and under
  * either type it says nothing until it meets a price — which changes per view.
  */
-export function rowDiscountForView(row: ViewPricingT, view: PriceViewT): number {
-  return row.measuredQty * viewPrice(row, view) - rowNetForView(row, view)
+export function rowDiscountForView(row: ViewPricingT, qty: number, view: PriceViewT): number {
+  return qty * viewPrice(row, view) - netForQtyForView(row, qty, view)
 }
 
 /**
- * Value of a single stage at the view's price: the stage's qty SHARE of the row's net.
+ * Value of a single stage at the view's price: the stage's qty SHARE of what the whole stage sum
+ * (`totalQty`, handed in by the settlement layer) is worth.
  *
  * The share is what makes an 'amount' rabat behave — it discounts the whole row (owner,
  * 2026-07-15), so charging the full amount against every stage would subtract it once per stage:
- * an untouched stage rendered negative, and the stage values stopped summing to rowNetForView —
+ * an untouched stage rendered negative, and the stage values stopped summing to the row's value —
  * the reconciliation the sheet's V–AE block exists to allow. Written as a share of the net, that
  * reconciliation holds by construction rather than by cancellation. 'percent' is unaffected: being
  * multiplicative, its share was always proportional (asserted in kosztorys-calc.test.ts).
@@ -98,14 +99,14 @@ export function rowDiscountForView(row: ViewPricingT, view: PriceViewT): number 
 export function stageValueForView(
   row: ViewPricingT,
   qtyDoneInStage: number,
+  totalQty: number,
   view: PriceViewT,
 ): number {
-  // No pomiar = no share to take (and nothing to divide by): the stage stands on its own qty. That
-  // is what makes such work worth something, and rowValueForView (v2-rows) is what makes the row's
-  // value agree with it — the two must keep answering together (EX-489). `> 0` rather than `=== 0`:
-  // a cleared Pomiar cell writes null, which strict equality walks past into a divide.
-  if (!(row.measuredQty > 0)) return qtyDoneInStage * viewPrice(row, view)
-  return rowNetForView(row, view) * (qtyDoneInStage / row.measuredQty)
+  // A zero sum means every stage in it is zero, this one included — so 0 is the stage's actual
+  // value, not a fallback. `> 0` rather than `=== 0`: a cleared cell writes null, which strict
+  // equality walks past into a divide.
+  if (!(totalQty > 0)) return 0
+  return netForQtyForView(row, totalQty, view) * (qtyDoneInStage / totalQty)
 }
 
 /**

@@ -152,7 +152,7 @@ const HEADER_TIPS: Record<string, string> = {
   plannedQty:
     'Przedmiar — ilość planowana (z przedmiaru/oferty).\nNapędza Wartość przedmiaru (= Przedmiar × Cena, bez rabatu). Netto liczone jest z Pomiaru.',
   measuredQty:
-    'Pomiar — ilość zmierzona / rzeczywista.\nTo ona napędza wszystkie wartości: Netto = Pomiar × Cena − Rabat.',
+    'Pomiar — ilość faktycznie wykonana.\nTylko do odczytu: liczona automatycznie jako suma ilości ze wszystkich etapów. Napędza Netto = Pomiar × Cena − Rabat.',
   price:
     'Cena j.m. — cena jednostkowa przy aktywnym widoku cen (klient lub podwykonawca).\nW widokach wykonawcy edytowalna tylko przy „kwota stała" — w pozostałych trybach jest wyliczana (Cena klienta × Mnożnik).',
   priceCoeff:
@@ -171,7 +171,7 @@ const HEADER_TIPS: Record<string, string> = {
   plannedNet:
     'Wartość przedmiaru netto = Przedmiar × Cena. Wartość ofertowa pozycji — ile miało wejść wg przedmiaru, przed negocjacją.\nBEZ rabatu — rabat wchodzi dopiero w Netto (rozliczenie). Różnica Netto − Wartość przedmiaru zawiera więc i korektę ilości, i rabat.',
   plannedGross: 'Wartość przedmiaru brutto = Wartość przedmiaru netto × (1 + VAT).',
-  net: 'Netto = Pomiar × Cena − Rabat. Wartość pozycji przy aktywnym widoku cen.\nGdy Pomiaru nie ma, wartością pozycji jest suma wartości jej etapów — praca wpisana bez Pomiaru nadal jest warta swoje.',
+  net: 'Netto = Pomiar × Cena − Rabat. Wartość pozycji przy aktywnym widoku cen.\nPomiar jest sumą etapów, więc Netto mówi, ile faktycznie wykonano — pusta pozycja jest warta 0.',
   gross: 'Brutto = Netto × (1 + VAT). Jedna stawka VAT na inwestycję, zdenormalizowana na wierszu.',
   remaining:
     'Pozostało netto = Netto − suma wartości etapów wpisanych w tym wierszu.\nIle z wartości pozycji nie zostało jeszcze rozliczone etapami. Pusty wiersz etapów = całe Netto zostaje.\nPraca bez Pomiaru jest warta tyle, co jej etapy, więc taki wiersz jest domknięty (0), nie na minusie.',
@@ -600,11 +600,12 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       title: title('plannedQty', COLUMN_LABELS.plannedQty, opts),
       minWidth: 90,
     }),
-    keyCol('measuredQty', floatColumnLeft, {
-      id: 'measuredQty',
-      title: title('measuredQty', COLUMN_LABELS.measuredQty, opts),
+    {
+      ...computedColumn('measuredQty', title('measuredQty', COLUMN_LABELS.measuredQty, opts), (r) =>
+        rowTotalQtyDone(r, stages),
+      ),
       minWidth: 90,
-    }),
+    },
     unitColumn(title('unit', COLUMN_LABELS.unit, opts)),
   ]
 
@@ -618,12 +619,16 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     computedColumn(
       'discountAmount',
       title('discountAmount', COLUMN_LABELS.discountAmount, opts),
-      (r) => rowDiscountForView(r as unknown as ViewPricingT, view),
+      (r) => rowDiscountForView(r as unknown as ViewPricingT, rowTotalQtyDone(r, stages), view),
     ),
     computedColumn(
       'discountAmountGross',
       title('discountAmountGross', COLUMN_LABELS.discountAmountGross, opts),
-      (r) => toGross(rowDiscountForView(r as unknown as ViewPricingT, view), r.vatRate),
+      (r) =>
+        toGross(
+          rowDiscountForView(r as unknown as ViewPricingT, rowTotalQtyDone(r, stages), view),
+          r.vatRate,
+        ),
     ),
   ]
 
@@ -649,7 +654,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     return computedColumn(
       stageValueNetKey(st.id),
       stageValueHeader(st, 'netto', HEADER_TIPS[STAGE_VALUE_NET_COLUMN_GROUP]),
-      (r) => stageValueForView(r, r[qtyKey] ?? 0, view),
+      (r) => stageValueForView(r, r[qtyKey] ?? 0, rowTotalQtyDone(r, stages), view),
     )
   })
 
@@ -658,7 +663,8 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     return computedColumn(
       stageValueGrossKey(st.id),
       stageValueHeader(st, 'brutto', HEADER_TIPS[STAGE_VALUE_GROSS_COLUMN_GROUP]),
-      (r) => toGross(stageValueForView(r, r[qtyKey] ?? 0, view), r.vatRate),
+      (r) =>
+        toGross(stageValueForView(r, r[qtyKey] ?? 0, rowTotalQtyDone(r, stages), view), r.vatRate),
     )
   })
 

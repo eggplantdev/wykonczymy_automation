@@ -50,7 +50,6 @@ export type ItemPatchT = Partial<
     | 'description'
     | 'unit'
     | 'plannedQty'
-    | 'measuredQty'
     | 'discountType'
     | 'discountValue'
     | 'clientPrice'

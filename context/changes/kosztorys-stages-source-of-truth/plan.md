@@ -622,11 +622,11 @@ To jest cel, nie skutek uboczny — ale właściciel ma wiedzieć, kiedy to wejd
 
 #### Automated
 
-- [ ] 1.1 Czerwone testy napisane i **padają** przed implementacją (wartość za etapami przy sprzecznym pomiarze; niezmiennik udziału; guard `Σ = 0`; kasowalność wiersza)
-- [ ] 1.2 Testy jednostkowe przechodzą: `pnpm exec vitest run src/__tests__/kosztorys-calc.test.ts src/__tests__/kosztorys-v2-rows.test.ts`
-- [ ] 1.3 Blokada kasowania przechodzi: `pnpm exec vitest run src/__tests__/lib/actions/kosztorys-delete-guard.test.ts`
-- [ ] 1.4 Typecheck przechodzi: `pnpm typecheck`
-- [ ] 1.5 Lint przechodzi: `pnpm lint`
+- [x] 1.1 Czerwone testy napisane i **padają** przed implementacją (wartość za etapami przy sprzecznym pomiarze; niezmiennik udziału; guard `Σ = 0`; kasowalność wiersza)
+- [x] 1.2 Testy jednostkowe przechodzą: `pnpm exec vitest run src/__tests__/kosztorys-calc.test.ts src/__tests__/kosztorys-v2-rows.test.ts`
+- [x] 1.3 Blokada kasowania przechodzi: `pnpm exec vitest run src/__tests__/lib/actions/kosztorys-delete-guard.test.ts`
+- [x] 1.4 Typecheck przechodzi: `pnpm typecheck`
+- [x] 1.5 Lint przechodzi: `pnpm lint`
 
 ### Phase 2: Kotwica w Przedmiarze
 

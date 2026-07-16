@@ -137,14 +137,16 @@ describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', 
     return res.rows.length > 0
   }
 
-  it('(a) blocks deleting an item with a pomiar (measured_qty <> 0) — row survives', async () => {
+  // Stage progress is the only thing "populated" means now. A leftover measured_qty must NOT wall
+  // the row off: nobody can type that number any more, so blocking on it would be a dead end.
+  it('(a) deletes an item carrying only a stale measured_qty (no stage progress)', async () => {
     const sectionId = await createSection()
     const itemId = await createItem(sectionId, { measuredQty: 5 })
 
     const res = await removeItemAction(itemId)
 
-    expect(res.success).toBe(false)
-    expect(await itemExists(itemId)).toBe(true)
+    expect(res.success).toBe(true)
+    expect(await itemExists(itemId)).toBe(false)
   })
 
   it('(b) blocks deleting an item with recorded stage progress (qty_done <> 0) — row survives', async () => {
@@ -172,9 +174,14 @@ describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', 
     expect(await itemExists(itemId)).toBe(false)
   })
 
-  it('(d) blocks deleting a section holding a populated item — section + item survive', async () => {
+  it('(d) blocks deleting a section holding an item with stage progress — section + item survive', async () => {
     const sectionId = await createSection()
-    const itemId = await createItem(sectionId, { measuredQty: 7 })
+    const itemId = await createItem(sectionId)
+    const stageId = await createStage()
+    await db.execute(sql`
+      INSERT INTO stage_progress (item_id, stage_id, qty_done, created_at, updated_at)
+      VALUES (${itemId}, ${stageId}, 7, now(), now())
+    `)
 
     const res = await removeSectionAction(sectionId)
 

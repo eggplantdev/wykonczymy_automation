@@ -5,7 +5,6 @@ import {
   stageKey,
   filterRows,
   sortRows,
-  rowDoneNetForView,
   rowTotalQtyDone,
   rowValueForView,
   rowRemainingForView,
@@ -18,7 +17,6 @@ import {
   REMOVE_BLOCK_LAST_ITEM,
   REMOVE_BLOCK_POPULATED,
 } from '@/lib/kosztorys/v2-rows'
-import { rowNetForView } from '@/lib/kosztorys/calc'
 import {
   STAGE_QTY_PREFIX,
   STAGE_VALUE_GROSS_COLUMN_GROUP,
@@ -90,8 +88,8 @@ describe('treeToRows', () => {
 describe('diffRow', () => {
   it('wykrywa zmianę pola pozycji', () => {
     const [prev] = treeToRows(tree)
-    const next = { ...prev, measuredQty: 8 }
-    expect(diffRow(prev, next)).toEqual({ itemPatch: { measuredQty: 8 } })
+    const next = { ...prev, plannedQty: 8 }
+    expect(diffRow(prev, next)).toEqual({ itemPatch: { plannedQty: 8 } })
   })
 
   it('wykrywa zmianę ilości etapu', () => {
@@ -125,25 +123,6 @@ describe('diffRow', () => {
         if (a !== b) expect(a.startsWith(b)).toBe(false)
       }
     }
-  })
-})
-
-describe('rowNetForView', () => {
-  const item = {
-    ...baseItem,
-    measuredQty: 10,
-    clientPrice: 20,
-    discountType: null,
-    discountValue: 0,
-    sectionWToolsCoeff: null,
-    sectionOwnToolsCoeff: null,
-    globalWToolsCoeff: 0.65,
-    globalOwnToolsCoeff: 0.55,
-  }
-  it('liczy netto wg ceny widoku', () => {
-    expect(rowNetForView(item, 'client')).toBe(200)
-    expect(rowNetForView(item, 'w_tools')).toBe(120)
-    expect(rowNetForView(item, 'own_tools')).toBe(100)
   })
 })
 
@@ -204,14 +183,6 @@ describe('sortRows', () => {
   })
 })
 
-describe('rowDoneNetForView', () => {
-  it('sumuje wartości etapów wg ceny widoku', () => {
-    const [row] = treeToRows(tree) // stage 100 qty=2, stage 101 qty=0; clientPrice 20
-    expect(rowDoneNetForView(row, tree.stages, 'client')).toBe(40) // 2 × 20
-    expect(rowDoneNetForView(row, tree.stages, 'w_tools')).toBe(24) // 2 × 12
-  })
-})
-
 describe('rowTotalQtyDone', () => {
   it('sums the quantities across every stage of the row', () => {
     const [row] = treeToRows(tree) // stage 100 = 2, stage 101 = 0
@@ -257,10 +228,9 @@ describe('kosztorysDoneNetForView / sectionDoneNetForView', () => {
   })
 })
 
-// EX-489. The pomiar is a measurement, the stages are the work actually recorded — the owner's rule
-// is that the two routinely disagree, and that work without a pomiar still HAS value: whatever the
-// stages say. Everything below pins that rule at the layer that settles it.
-describe('wartość wiersza gdy pomiar nie zgadza się z etapami', () => {
+// EX-494. The pomiar IS the stage sum (the sheet's O = SUM(D:M)), so the row's value can only ever
+// be what the stages say. Everything below pins that rule at the layer that settles it.
+describe('wartość wiersza idzie za etapami', () => {
   const stages: KosztorysStageT[] = [
     { id: 100, ordinal: 1, label: null },
     { id: 101, ordinal: 2, label: null },
@@ -286,40 +256,40 @@ describe('wartość wiersza gdy pomiar nie zgadza się z etapami', () => {
       ...over,
     }) as unknown as KosztorysV2RowT
 
-  const measured = row({ [stageKey(100)]: 4 }) // pomiar 10 → 1000 netto, wykonane 400
-  const unmeasured = row({ measuredQty: 0, [stageKey(100)]: 5 }) // brak pomiaru, 5 zrobione
-  const blank = row({ measuredQty: 0 })
+  const measured = row({ [stageKey(100)]: 4 }) // 4 zrobione → 400 netto
+  const unmeasured = row({ measuredQty: 0, [stageKey(100)]: 5 }) // 5 zrobione → 500 netto
+  const blank = row({ measuredQty: 0 }) // zero etapów
+
+  // Scaffolding: the field can still hold a stale number until phase 4 drops the column, so the rule
+  // "pomiar IS Σ stages" has to be asserted against a row where the two openly contradict. Once the
+  // field is gone the type carries this and the test goes with it.
+  it('wartość idzie za etapami nawet gdy pole pomiaru im przeczy', () => {
+    const conflicting = row({ plannedQty: 10, measuredQty: 999, [stageKey(100)]: 4 })
+    expect(rowValueForView(conflicting, stages, 'client')).toBe(400)
+  })
 
   describe('rowValueForView', () => {
-    it('pomiar > 0 → wartość to pomiar × cena, jak dotąd', () => {
-      expect(rowValueForView(measured, stages, 'client')).toBe(1000)
-      expect(rowValueForView(measured, stages, 'w_tools')).toBe(120) // flat 12 × 10
+    it('wartość to suma etapów × cena, wg ceny widoku', () => {
+      expect(rowValueForView(measured, stages, 'client')).toBe(400) // 4 × 100
+      expect(rowValueForView(measured, stages, 'w_tools')).toBe(48) // flat 12 × 4
     })
 
-    it('praca bez pomiaru ma wartość — tę, która stoi w etapach', () => {
-      expect(rowValueForView(unmeasured, stages, 'client')).toBe(500) // 5 × 100
-      expect(rowValueForView(unmeasured, stages, 'w_tools')).toBe(60) // 5 × 12
+    it('sumuje etapy, nie bierze tylko pierwszego', () => {
+      const twoStages = row({ [stageKey(100)]: 4, [stageKey(101)]: 3 })
+      expect(rowValueForView(twoStages, stages, 'client')).toBe(700)
     })
 
-    it('brak pomiaru i brak etapów → nadal zero', () => {
+    it('brak etapów → zero', () => {
       expect(rowValueForView(blank, stages, 'client')).toBe(0)
     })
   })
 
-  describe('rowRemainingForView', () => {
-    it('pozostało = wartość − wykonane', () => {
-      expect(rowRemainingForView(measured, stages, 'client')).toBe(600) // 1000 − 400
-    })
-
-    // Przed EX-489 mianownik był 0, a licznik 500 → „Pozostało" pokazywało −500 na wierszu,
-    // w którym nic nie zostało do zrobienia.
-    it('wiersz bez pomiaru jest domknięty, nie na minusie', () => {
-      expect(rowRemainingForView(unmeasured, stages, 'client')).toBe(0)
-    })
-
-    it('etapy ponad pomiar → ujemne pozostało, bez clampowania', () => {
-      const overshoot = row({ [stageKey(100)]: 13 }) // 1300 zrobione przy 1000 wartości
-      expect(rowRemainingForView(overshoot, stages, 'client')).toBe(-300)
+  // Both terms of "Pozostało" are the same figure until phase 2 anchors it on the przedmiar — the
+  // sheet's dead AF column, reproduced. Pinned so the re-anchoring is a visible transition.
+  describe('rowRemainingForView — skamielina do fazy 2', () => {
+    it('kotwica w wykonaniu daje zero na każdym wierszu', () => {
+      expect(rowRemainingForView(measured, stages, 'client')).toBe(0)
+      expect(rowRemainingForView(row({ [stageKey(100)]: 13 }), stages, 'client')).toBe(0)
     })
   })
 
@@ -336,7 +306,7 @@ describe('wartość wiersza gdy pomiar nie zgadza się z etapami', () => {
         0,
       )
       expect(doneNet).toBe(1500) // 500 + 1000
-      expect(totalNet).toBe(1500) // wcześniej 1000 — wiersz bez pomiaru wnosił zero
+      expect(totalNet).toBe(1500)
       expect(doneNet / totalNet).toBe(1)
     })
 
@@ -347,9 +317,7 @@ describe('wartość wiersza gdy pomiar nie zgadza się z etapami', () => {
       }
     })
 
-    // Sekcja złożona wyłącznie z pracy bez pomiaru miała netto 0 → summary chowało realną
-    // wykonaną wartość za „—", zamiast pokazać 100%.
-    it('sekcja bez ani jednego pomiaru pokazuje swoją wartość, nie „—"', () => {
+    it('sekcja z jednym wierszem ma cały udział, nie „—"', () => {
       const [section] = sectionSubtotalsForView([unmeasured], stages, 'client')
       expect(section.net).toBe(500)
       expect(section.share).toBe(1)
@@ -359,16 +327,19 @@ describe('wartość wiersza gdy pomiar nie zgadza się z etapami', () => {
   // Przeniesione z kosztorys-calc.test.ts razem z funkcją: podsumowanie sekcji sumuje WARTOŚCI
   // wierszy, a te od EX-489 zależą od etapów — więc nie mieszka już w czysto cenowym calc.ts.
   describe('sectionSubtotalsForView', () => {
+    // A computed stage key next to a string field widens the literal's index signature to
+    // `string | number`, which no longer satisfies KosztorysV2RowT — spread it in separately.
+    const done = (qty: number) => ({ [stageKey(100)]: qty })
     const subtotalRows = [
-      row({ id: 1, clientPrice: 20, [stageKey(100)]: 0 }), // 10 × 20 = 200
+      row({ id: 1, clientPrice: 20, ...done(10) }), // 10 × 20 = 200
       row({
         id: 2,
-        measuredQty: 5,
         clientPrice: 10,
         discountType: 'percent',
-        discountValue: 20, // 5 × 10 = 50 − 20% = 40
+        discountValue: 20,
+        ...done(5), // 5 × 10 = 50 − 20% = 40
       }),
-      row({ id: 3, sectionId: 20, sectionName: 'Sekcja B', clientPrice: 100 }), // 10 × 100 = 1000
+      row({ id: 3, sectionId: 20, sectionName: 'Sekcja B', clientPrice: 100, ...done(10) }), // 10 × 100 = 1000
     ]
 
     it('sumuje netto per sekcja, nie miesza sekcji', () => {
@@ -427,7 +398,7 @@ describe('wartość wiersza gdy pomiar nie zgadza się z etapami', () => {
 describe('planItemRemoval', () => {
   const stages = [{ id: 100, ordinal: 1, label: null }]
   const row = (id: number, sectionId: number, over: Partial<KosztorysV2RowT> = {}) =>
-    ({ id, sectionId, measuredQty: 0, [stageKey(100)]: 0, ...over }) as unknown as KosztorysV2RowT
+    ({ id, sectionId, [stageKey(100)]: 0, ...over }) as unknown as KosztorysV2RowT
 
   it('środek sekcji (sekcja ma >1 pozycję) → usuń pozycję', () => {
     const rows = [row(1, 10), row(2, 10), row(3, 20)]
@@ -447,12 +418,11 @@ describe('planItemRemoval', () => {
     })
   })
 
-  it('wiersz z pomiarem → zablokowane', () => {
-    const rows = [row(1, 10, { measuredQty: 3 }), row(2, 20)]
-    expect(planItemRemoval(rows, rows[0], stages)).toEqual({
-      kind: 'blocked',
-      reason: REMOVE_BLOCK_POPULATED,
-    })
+  // Postęp etapu to jedyne, co „wypełnia" wiersz — zostawiona liczba w pomiarze nie może go
+  // zamurować, bo nikt jej już nie wpisuje ani nie wyczyści.
+  it('wiersz z samą starą liczbą w pomiarze → usuwalny', () => {
+    const rows = [row(1, 10, { measuredQty: 3 }), row(2, 10), row(3, 20)]
+    expect(planItemRemoval(rows, rows[0], stages)).toEqual({ kind: 'remove-item' })
   })
 
   it('wiersz z postępem etapu → zablokowane', () => {
@@ -464,7 +434,7 @@ describe('planItemRemoval', () => {
   })
 
   it('próg pustego arkusza ma pierwszeństwo nad blokadą wypełnienia', () => {
-    const rows = [row(1, 10, { measuredQty: 5 })]
+    const rows = [row(1, 10, { [stageKey(100)]: 5 })]
     expect(planItemRemoval(rows, rows[0], stages)).toEqual({
       kind: 'blocked',
       reason: REMOVE_BLOCK_LAST_ITEM,

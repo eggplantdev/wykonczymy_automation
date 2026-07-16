@@ -18,7 +18,6 @@ const itemPatchSchema = z
     description: z.string().nullable(),
     unit: z.string().nullable(),
     plannedQty: z.coerce.number(),
-    measuredQty: z.coerce.number(),
     discountType: z.enum(['percent', 'amount']).nullable(),
     discountValue: z.coerce.number(),
     clientPrice: z.coerce.number(),
@@ -183,8 +182,7 @@ export async function removeSectionAction(sectionId: number) {
       const res = await db.execute(sql`
         SELECT 1 FROM kosztorys_items i
         WHERE i.section_id = ${sectionId}
-          AND (i.measured_qty <> 0
-               OR EXISTS (SELECT 1 FROM stage_progress sp WHERE sp.item_id = i.id AND sp.qty_done <> 0))
+          AND EXISTS (SELECT 1 FROM stage_progress sp WHERE sp.item_id = i.id AND sp.qty_done <> 0)
         LIMIT 1
       `)
       if (res.rows.length > 0) {
@@ -289,13 +287,14 @@ export async function removeItemAction(itemId: number) {
     'removeItemAction',
     async ({ payload }) => {
       const db = await getDb(payload)
-      // Block: an item carries the on-site pomiar and cascades stage_progress on delete —
-      // dropping a populated row silently loses recorded work (mirrors removeStageAction).
+      // Block: an item cascades stage_progress on delete — dropping a row that carries recorded
+      // work silently loses it (mirrors removeStageAction). Recorded stage progress is the whole
+      // test: a leftover measured_qty is no longer an input, so blocking on it would wall the row
+      // off behind a value nobody can clear.
       const res = await db.execute(sql`
         SELECT 1 FROM kosztorys_items i
         WHERE i.id = ${itemId}
-          AND (i.measured_qty <> 0
-               OR EXISTS (SELECT 1 FROM stage_progress sp WHERE sp.item_id = i.id AND sp.qty_done <> 0))
+          AND EXISTS (SELECT 1 FROM stage_progress sp WHERE sp.item_id = i.id AND sp.qty_done <> 0)
         LIMIT 1
       `)
       if (res.rows.length > 0) {

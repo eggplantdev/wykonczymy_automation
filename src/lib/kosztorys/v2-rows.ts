@@ -1,4 +1,4 @@
-import { rowNetForView, stageValueForView, type PriceViewT } from '@/lib/kosztorys/calc'
+import { netForQtyForView, type PriceViewT } from '@/lib/kosztorys/calc'
 import { DEFAULT_UNIT, STAGE_QTY_PREFIX } from '@/lib/kosztorys/constants'
 import type {
   CostVariantT,
@@ -15,11 +15,10 @@ export function stageKey(stageId: number): StageKeyT {
 }
 
 // Client mirror of the server delete-guard predicate (removeItemAction/removeSectionAction).
-// A row is "populated" iff it holds a pomiar (measuredQty <> 0) or any recorded stage progress
-// (qty <> 0). Server SQL stays the authority; this only drives the pre-check + toast so a
+// A row is "populated" iff it holds recorded stage progress (qty <> 0) — that is the only work a
+// delete would destroy. Server SQL stays the authority; this only drives the pre-check + toast so a
 // populated delete never optimistically vanishes. Field names must match the server predicate.
 export function isRowPopulated(row: KosztorysV2RowT, stages: KosztorysStageT[]): boolean {
-  if (row.measuredQty !== 0) return true
   return stages.some((st) => (row[stageKey(st.id)] ?? 0) !== 0)
 }
 
@@ -36,7 +35,6 @@ const ITEM_FIELDS = [
   'description',
   'unit',
   'plannedQty',
-  'measuredQty',
   'discountType',
   'discountValue',
   'clientPrice',
@@ -314,51 +312,43 @@ export function sectionNeighbor(
   return sameSection[neighborPos]
 }
 
-export function rowDoneNetForView(
-  row: KosztorysV2RowT,
-  stages: KosztorysStageT[],
-  view: PriceViewT,
-): number {
-  return stages.reduce(
-    (sum, st) => sum + stageValueForView(row, row[stageKey(st.id)] ?? 0, view),
-    0,
-  )
-}
-
+/** The "Pomiar z natury" itself — the sheet's O = SUM(D:M), not a stored field (EX-494). */
 export function rowTotalQtyDone(row: KosztorysV2RowT, stages: KosztorysStageT[]): number {
   return stages.reduce((sum, st) => sum + (row[stageKey(st.id)] ?? 0), 0)
 }
 
 /**
- * The row's settlement value at the view's price — what every "wartość" surface must divide by.
+ * The row's settlement value at the view's price — the sheet's T: what has actually been executed.
  *
- * Not simply rowNetForView (EX-489). The pomiar is a measurement and the stages are the work
- * actually recorded; the two routinely disagree, and work entered without a pomiar still has value
- * (owner, 2026-07-15) — the value the stages state. rowNetForView reads `pomiar × cena`, so it
- * answers 0 for such a row while stageValueForView happily bills its stages: the row vanished from
- * the denominator but not the numerator, and the counter read 150% over honest data.
+ * There is no choice of quantity to make here (EX-494): the pomiar IS the stage sum, so a branch
+ * "pomiar or stages?" would be picking between a number and itself. This is the reason the
+ * settlement layer lives here and not in calc.ts — the quantity comes from the stages, and calc.ts
+ * is the pricing layer, structurally stage-blind. It owns the price beneath this; we own the
+ * quantity above it.
  *
- * This is the reason the settlement layer lives here and not in calc.ts: the row's value now depends
- * on its stages, and calc.ts is the pricing layer — pure ViewPricingT, structurally stage-blind.
- * Every "wartość" figure (Netto, Pozostało, subtotals, the counter) resolves through this function;
- * calc.ts still owns the price beneath it.
+ * Straight from the primitive rather than Σ stageValueForView: the shares sum to 1, so the reduce
+ * would buy the same figure at O(stages) and a rounding error.
  */
 export function rowValueForView(
   row: KosztorysV2RowT,
   stages: KosztorysStageT[],
   view: PriceViewT,
 ): number {
-  if (row.measuredQty > 0) return rowNetForView(row, view)
-  return rowDoneNetForView(row, stages, view)
+  return netForQtyForView(row, rowTotalQtyDone(row, stages), view)
 }
 
-/** Remaining by view = the row's settlement value − the value of the stages already done. */
+/**
+ * Remaining by view = the row's settlement value − the value of the stages already done.
+ *
+ * Both terms are now the same figure, so this reads 0 on every row — the sheet's dead AF column,
+ * reproduced. Anchoring it on the przedmiar (the offer) is phase 2 of this change.
+ */
 export function rowRemainingForView(
   row: KosztorysV2RowT,
   stages: KosztorysStageT[],
   view: PriceViewT,
 ): number {
-  return rowValueForView(row, stages, view) - rowDoneNetForView(row, stages, view)
+  return rowValueForView(row, stages, view) - rowValueForView(row, stages, view)
 }
 
 /**
@@ -414,7 +404,7 @@ export function kosztorysDoneNetForView(
   stages: KosztorysStageT[],
   view: PriceViewT,
 ): number {
-  return rows.reduce((sum, row) => sum + rowDoneNetForView(row, stages, view), 0)
+  return rows.reduce((sum, row) => sum + rowValueForView(row, stages, view), 0)
 }
 
 // The same figure per section, keyed by sectionId — the section summary's done-% numerator.
@@ -425,7 +415,7 @@ export function sectionDoneNetForView(
 ): Map<number, number> {
   const bySection = new Map<number, number>()
   for (const row of rows) {
-    const done = rowDoneNetForView(row, stages, view)
+    const done = rowValueForView(row, stages, view)
     bySection.set(row.sectionId, (bySection.get(row.sectionId) ?? 0) + done)
   }
   return bySection
