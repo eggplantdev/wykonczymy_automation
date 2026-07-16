@@ -370,6 +370,28 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     setShownSectionIds(null)
   }
 
+  // Append the sections returned by appendPresetSectionsAction to the grid without a reload. The rows
+  // are built through treeToRows (the same denormalization as the initial load), using the CURRENT
+  // stages + global discount so the appended rows carry today's stage columns and rabat flag — the
+  // action already committed with real ids, so no temp-id reconciliation. router.refresh() alone
+  // can't add them (mount-frozen `rows`, EX-441); it still runs for the prop-reading surfaces.
+  function handleAppendedSections(slice: KosztorysTreeT['sections']) {
+    const appended = treeToRows({
+      sections: slice,
+      stages,
+      progress: [],
+      globalCoeffs: tree.globalCoeffs,
+      vatRate: tree.vatRate,
+      globalDiscount,
+      revision: tree.revision,
+    })
+    for (const row of appended) prevById.current.set(row.id, row)
+    setRows((rs) => [...rs, ...appended])
+    // The appended sections live outside any active filter — clear it so they're visible.
+    setShownSectionIds(null)
+    router.refresh()
+  }
+
   // --- Stages (etapy) ---
 
   // A new stage adds a `stage_<id>: 0` key to every current row + snapshot (like patchRows for
@@ -642,6 +664,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     onChange,
     handleAddItem,
     handleAddSection,
+    handleAppendedSections,
     handleAddStage,
     handleRenameSection,
     handleRemoveSection,

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { SeedFromPresetButton } from '@/components/kosztorys/seed-from-preset-button'
+import { AddSectionsFromPresetDialog } from '@/components/kosztorys/add-sections-from-preset-dialog'
 import { seedBlankSectionAction } from '@/lib/actions/kosztorys'
 import { NEW_SECTION_DEFAULTS } from '@/lib/kosztorys/constants'
 import { toastMessage } from '@/lib/utils/toast'
@@ -24,6 +25,7 @@ type PropsT = {
 export function EmptyKosztorysDialog({ investmentId, onCreated }: PropsT) {
   const [name, setName] = useState<string>(NEW_SECTION_DEFAULTS.name)
   const [creating, setCreating] = useState(false)
+  const [pickerOpen, setPickerOpen] = useState(false)
 
   const canCreate = name.trim().length > 0 && !creating
 
@@ -70,7 +72,18 @@ export function EmptyKosztorysDialog({ investmentId, onCreated }: PropsT) {
           <span className="bg-border h-px flex-1" />
         </div>
         <SeedFromPresetButton investmentId={investmentId} onSeeded={onCreated} />
+        <Button size="sm" variant="outline" onClick={() => setPickerOpen(true)}>
+          Dodaj sekcje z szablonu
+        </Button>
       </DialogContent>
+      {/* On an empty kosztorys there's no grid to patch — route success through onCreated, which
+          refreshes + remounts the editor (becamePopulated), same as the blank-section/seed paths. */}
+      <AddSectionsFromPresetDialog
+        investmentId={investmentId}
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        onAppended={onCreated}
+      />
     </Dialog>
   )
 }

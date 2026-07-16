@@ -218,15 +218,15 @@ None — no schema change. Kosztorys data is throwaway until dogfooding merges (
 
 #### Automated
 
-- [x] 1.1 New integration tests pass: `pnpm exec vitest run src/__tests__/lib/kosztorys/append-preset-sections.test.ts`
-- [x] 1.2 Existing preset tests still pass: `pnpm exec vitest run src/__tests__/lib/kosztorys/serialize-apply-preset.test.ts`
-- [x] 1.3 Type checking passes: `pnpm exec tsc --noEmit`
-- [x] 1.4 Linting passes: `pnpm lint`
+- [x] 1.1 New integration tests pass: `pnpm exec vitest run src/__tests__/lib/kosztorys/append-preset-sections.test.ts` — 8be1d07
+- [x] 1.2 Existing preset tests still pass: `pnpm exec vitest run src/__tests__/lib/kosztorys/serialize-apply-preset.test.ts` — 8be1d07
+- [x] 1.3 Type checking passes: `pnpm exec tsc --noEmit` — 8be1d07
+- [x] 1.4 Linting passes: `pnpm lint` — 8be1d07
 
 ### Phase 2: UI — picker dialog + entry points + grid patch
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `pnpm exec tsc --noEmit`
-- [ ] 2.2 Linting passes: `pnpm lint`
-- [ ] 2.3 Unit/integration suites still pass: `pnpm test`
+- [x] 2.1 Type checking passes: `pnpm exec tsc --noEmit`
+- [x] 2.2 Linting passes: `pnpm lint`
+- [x] 2.3 Unit/integration suites still pass: `pnpm test`
