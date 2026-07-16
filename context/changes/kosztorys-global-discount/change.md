@@ -1,9 +1,9 @@
 ---
 change_id: kosztorys-global-discount
 title: Globalny rabat na kosztorysie, nadpisujący rabaty per pozycja
-status: new
+status: planned
 created: 2026-07-15
-updated: 2026-07-15
+updated: 2026-07-16
 archived_at: null
 branch: null
 worktree: null
@@ -54,8 +54,8 @@ potwierdza:**
 
 `RABAT` powstał **8 dni przed** pierwszym schematem kosztorysu w bazie — gdy kosztorys był wyłącznie
 arkuszem, więc rabatu na robociznę nie było gdzie zapisać poza transferami. Treść commita potwierdza
-od drugiej strony: całe uzasadnienie to „RABAT mirrors LABOR_COST cash semantics: no source register,
-requires an investment" — mechanika, zero powodu, dla którego rabat miałby _być_ transferem.
+od drugiej strony: całe uzasadnienie to „RABAT mirrors LABOR*COST cash semantics: no source register,
+requires an investment" — mechanika, zero powodu, dla którego rabat miałby \_być* transferem.
 
 **Dowód z żywych danych (lokalna kopia proda, 2026-07-15).** 9 wierszy `type='RABAT'` w `transactions`
 (1 z nich `cancelled` — test typu na inwestycji-wzorcu 90 tego samego dnia). Dwa fakty:

@@ -90,3 +90,6 @@ dump.sql
 
 # Temp manual-test assets (HEIC + oversize) — not for commit
 tmp-heic-test/
+
+# Personal learning notes — temporary, not for commit (see Linear EX-474)
+tmp-lessons/
