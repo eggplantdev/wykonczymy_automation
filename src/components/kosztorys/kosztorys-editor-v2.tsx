@@ -9,8 +9,9 @@ import { UndoRedoContext, useUndoRedo } from '@/components/kosztorys/use-undo-re
 import { snapshotAction } from '@/lib/actions/kosztorys-snapshots'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 
-// S-06 durable net: while the editor is open, take an auto snapshot on a plain interval. Dumb by
-// design — no dirty/activity check (deferred to S-07); the count cap + daily GC bound the table.
+// S-06 durable net: while the editor is open, take an auto snapshot on a plain interval, gated on the
+// undo-stack revision (S-07) so an idle editor stops writing identical snapshots. The count cap +
+// daily GC still bound the table.
 const AUTO_SNAPSHOT_INTERVAL_MS = 10 * 60 * 1000
 
 type PropsT = { investmentId: number; tree: KosztorysTreeT; investmentName: string }
@@ -55,10 +56,24 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
     setRemountKey((k) => k + 1)
   }
 
+  // Live stack revision for the interval closure (which captures values at setup time, so it can't
+  // read the render-fresh `undoRedo.revision`). The eslint rule is too strict for this "latest value"
+  // ref write — same sanctioned use as the restore-latch above.
+  const revisionRef = useRef(undoRedo.revision)
+  // eslint-disable-next-line react-hooks/refs
+  revisionRef.current = undoRedo.revision
+  // Marker: the revision captured at the last auto-snapshot. A tick snapshots only when the revision
+  // moved since (something was edited/undone/redone) — an untouched editor writes nothing.
+  const lastSnapshotRevision = useRef(undoRedo.revision)
+
   // Fire-and-forget periodic auto snapshot; a failed snapshot must never disrupt editing. Lives in
-  // the shell so a restore remount doesn't restart the interval.
+  // the shell so a restore remount doesn't restart the interval. Skips a tick when nothing changed.
   useEffect(() => {
-    const id = setInterval(() => void snapshotAction(investmentId), AUTO_SNAPSHOT_INTERVAL_MS)
+    const id = setInterval(() => {
+      if (revisionRef.current === lastSnapshotRevision.current) return
+      lastSnapshotRevision.current = revisionRef.current
+      void snapshotAction(investmentId)
+    }, AUTO_SNAPSHOT_INTERVAL_MS)
     return () => clearInterval(id)
   }, [investmentId])
 
@@ -68,6 +83,10 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
     // Restore reseeds the whole grid via a body remount — drop the stack whose commands close over
     // the outgoing body's state.
     undoRedo.reset()
+    // reset() bumps the revision by one (guarded by the use-undo-redo unit test). The restored tree
+    // is a known-good baseline, not a user edit, so advance the marker past that bump — otherwise the
+    // next tick would snapshot the just-restored state.
+    lastSnapshotRevision.current = revisionRef.current + 1
   }
 
   return (
