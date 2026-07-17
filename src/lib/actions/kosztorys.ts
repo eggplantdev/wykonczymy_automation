@@ -6,6 +6,7 @@ import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import { getDb } from '@/lib/db/get-db'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
+import { nextSectionDisplayOrder } from '@/lib/kosztorys/insert-rows'
 import { seedBlankKosztorys } from '@/lib/kosztorys/seed-blank'
 import {
   DEFAULT_ITEM_DESCRIPTION,
@@ -158,12 +159,7 @@ export async function addSectionAction(
     'addSectionAction',
     async ({ payload }) => {
       const db = await getDb(payload)
-      // Append slot = MAX(display_order)+1, not count (see addItemAction): a delete leaves a gap.
-      const res = await db.execute(sql`
-        SELECT COALESCE(MAX(display_order) + 1, 0) AS next
-        FROM kosztorys_sections WHERE investment_id = ${investmentId}
-      `)
-      const displayOrder = Number(res.rows[0]?.next ?? 0)
+      const displayOrder = await nextSectionDisplayOrder(db, investmentId)
       const created = await payload.create({
         collection: 'kosztorys-sections',
         data: {

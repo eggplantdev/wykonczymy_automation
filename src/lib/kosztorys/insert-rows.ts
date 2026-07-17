@@ -1,9 +1,7 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-vercel-postgres'
-import type { getDb } from '@/lib/db/get-db'
+import type { DbExecutorT } from '@/lib/db/get-db'
 import type { KosztorysItemT, KosztorysSectionT } from '@/lib/kosztorys/types'
-
-export type DbHandleT = Awaited<ReturnType<typeof getDb>>
 
 // The two shared bulk-insert primitives for a kosztorys tree's section and item rows — the low-level
 // mechanism that insertKosztorysTree (restore/apply) and appendPresetSections both compose. Kept in
@@ -15,8 +13,22 @@ export type DbHandleT = Awaited<ReturnType<typeof getDb>>
 // and return the new ids in VALUES order (Postgres returns RETURNING rows in VALUES order for a single
 // INSERT), which is what lets a caller map new ids back to inputs positionally.
 
+// Append slot for a new top-level section = MAX(display_order)+1, not COUNT — a delete leaves a gap,
+// so counting would collide with a surviving row. Shared by addSectionAction (single append) and
+// appendPresetSections (base offset for a run of preset sections) so the rule lives in one place.
+export async function nextSectionDisplayOrder(
+  db: DbExecutorT,
+  investmentId: number,
+): Promise<number> {
+  const res = await db.execute(sql`
+    SELECT COALESCE(MAX(display_order) + 1, 0) AS next
+    FROM kosztorys_sections WHERE investment_id = ${investmentId}
+  `)
+  return Number(res.rows[0]?.next ?? 0)
+}
+
 export async function insertSections(
-  db: DbHandleT,
+  db: DbExecutorT,
   investmentId: number,
   rows: { displayOrder: number; section: KosztorysSectionT }[],
 ): Promise<number[]> {
@@ -39,7 +51,7 @@ export async function insertSections(
 // so this inserts exactly what it is given. Items keep their own display_order (the section-level
 // offset an append applies is a section concern only).
 export async function insertItems(
-  db: DbHandleT,
+  db: DbExecutorT,
   investmentId: number,
   rows: { sectionId: number; item: KosztorysItemT }[],
 ): Promise<number[]> {

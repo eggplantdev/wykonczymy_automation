@@ -1,7 +1,8 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-vercel-postgres'
+import type { DbExecutorT } from '@/lib/db/get-db'
 import type { SnapshotPayloadT } from './snapshot-format'
-import { insertItems, insertSections, type DbHandleT } from './insert-rows'
+import { insertItems, insertSections } from './insert-rows'
 
 // Bulk-insert a serialized kosztorys tree onto an investment, on a caller-owned transaction handle.
 // Shared by restoreKosztorys (wipe → insert → settings) and applyPreset (insert-only) — each caller
@@ -15,7 +16,7 @@ import { insertItems, insertSections, type DbHandleT } from './insert-rows'
 // deserialization: missing arrays default to empty; a child whose parent is absent is skipped rather
 // than orphaned, so an older payload survives an additive migration.
 export async function insertKosztorysTree(
-  db: DbHandleT,
+  db: DbExecutorT,
   investmentId: number,
   tree: SnapshotPayloadT,
 ): Promise<void> {

@@ -2,7 +2,7 @@ import 'server-only'
 import type { Payload, PayloadRequest } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
-import { insertItems, insertSections } from '@/lib/kosztorys/insert-rows'
+import { insertItems, insertSections, nextSectionDisplayOrder } from '@/lib/kosztorys/insert-rows'
 import type { KosztorysItemT, KosztorysSectionT } from '@/lib/kosztorys/types'
 
 // One section from a preset payload + its items, ready to append. `section`/`items` still carry the
@@ -32,11 +32,7 @@ export async function appendPresetSections(
   if (slices.length === 0) return []
   const db = await getDb(payload, req)
 
-  const baseRes = await db.execute(sql`
-    SELECT COALESCE(MAX(display_order) + 1, 0) AS next
-    FROM kosztorys_sections WHERE investment_id = ${investmentId}
-  `)
-  const base = Number(baseRes.rows[0]?.next ?? 0)
+  const base = await nextSectionDisplayOrder(db, investmentId)
 
   const newSectionIds = await insertSections(
     db,
