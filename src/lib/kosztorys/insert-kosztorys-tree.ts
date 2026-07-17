@@ -1,9 +1,7 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-vercel-postgres'
-import type { getDb } from '@/lib/db/get-db'
 import type { SnapshotPayloadT } from './snapshot-format'
-
-type DbHandleT = Awaited<ReturnType<typeof getDb>>
+import { insertItems, insertSections, type DbHandleT } from './insert-rows'
 
 // Bulk-insert a serialized kosztorys tree onto an investment, on a caller-owned transaction handle.
 // Shared by restoreKosztorys (wipe → insert → settings) and applyPreset (insert-only) — each caller
@@ -22,39 +20,21 @@ export async function insertKosztorysTree(
   tree: SnapshotPayloadT,
 ): Promise<void> {
   const sections = tree.sections ?? []
-  const sectionIdMap = new Map<number, number>()
-  if (sections.length > 0) {
-    const rows = sections.map(
-      (s) =>
-        sql`(${investmentId}, ${s.name}, ${s.displayOrder}, ${s.defaultCostVariant}, ${s.wToolsCoeff ?? null}, ${s.ownToolsCoeff ?? null})`,
-    )
-    const res = await db.execute(sql`
-      INSERT INTO kosztorys_sections
-        (investment_id, name, display_order, default_cost_variant, w_tools_coeff, own_tools_coeff)
-      VALUES ${sql.join(rows, sql.raw(', '))}
-      RETURNING id
-    `)
-    res.rows.forEach((row, i) => sectionIdMap.set(sections[i].id, Number(row.id)))
-  }
+  const sectionIds = await insertSections(
+    db,
+    investmentId,
+    sections.map((section) => ({ displayOrder: section.displayOrder, section })),
+  )
+  const sectionIdMap = new Map(sections.map((s, i) => [s.id, sectionIds[i]]))
 
-  // Skip an item whose parent section is absent from the payload (would orphan the FK).
-  const items = (tree.items ?? []).filter((it) => sectionIdMap.has(it.sectionId))
-  const itemIdMap = new Map<number, number>()
-  if (items.length > 0) {
-    const rows = items.map(
-      (it) =>
-        sql`(${investmentId}, ${sectionIdMap.get(it.sectionId)}, ${it.displayOrder}, ${it.description ?? null}, ${it.unit ?? null}, ${it.plannedQty}, ${it.discountType ?? null}, ${it.discountValue}, ${it.clientPrice}, ${it.wToolsOverrideType ?? null}, ${it.wToolsOverrideValue}, ${it.ownToolsOverrideType ?? null}, ${it.ownToolsOverrideValue}, ${it.costVariant ?? null}, ${it.hiddenInExport}, ${it.note ?? null})`,
-    )
-    const res = await db.execute(sql`
-      INSERT INTO kosztorys_items
-        (investment_id, section_id, display_order, description, unit, planned_qty,
-         discount_type, discount_value, client_price, w_tools_override_type, w_tools_override_value,
-         own_tools_override_type, own_tools_override_value, cost_variant, hidden_in_export, note)
-      VALUES ${sql.join(rows, sql.raw(', '))}
-      RETURNING id
-    `)
-    res.rows.forEach((row, i) => itemIdMap.set(items[i].id, Number(row.id)))
-  }
+  // flatMap folds both concerns the primitive stays out of: drop an item whose parent section is
+  // absent (would orphan the FK), and resolve the survivor's old section id to the new one.
+  const itemRows = (tree.items ?? []).flatMap((item) => {
+    const sectionId = sectionIdMap.get(item.sectionId)
+    return sectionId === undefined ? [] : [{ sectionId, item }]
+  })
+  const itemIds = await insertItems(db, investmentId, itemRows)
+  const itemIdMap = new Map(itemRows.map(({ item }, i) => [item.id, itemIds[i]]))
 
   const stages = tree.stages ?? []
   const stageIdMap = new Map<number, number>()

@@ -2,6 +2,7 @@ import 'server-only'
 import type { Payload, PayloadRequest } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
+import { insertItems, insertSections } from '@/lib/kosztorys/insert-rows'
 import type { KosztorysItemT, KosztorysSectionT } from '@/lib/kosztorys/types'
 
 // One section from a preset payload + its items, ready to append. `section`/`items` still carry the
@@ -15,8 +16,8 @@ export type AppendedSliceT = (KosztorysSectionT & { items: KosztorysItemT[] })[]
 // Append the chosen sections + their items to a (possibly non-empty) kosztorys, after the last
 // section. Deliberately NOT a fork of applyPreset (EX-438): sections+items only — a section append
 // has no stages/progress/settings. THE CALLER OWNS THE TRANSACTION (`req` carries the transactionID);
-// a throw anywhere rolls it all back. Same bulk `INSERT … RETURNING id` + VALUES-order id remap as
-// apply-preset.ts (Postgres returns RETURNING rows in VALUES order for a single INSERT).
+// a throw anywhere rolls it all back. Shares the bulk insert + VALUES-order id remap with
+// insertKosztorysTree via insertSections/insertItems (Postgres returns RETURNING rows in VALUES order).
 //
 // displayOrder base = MAX(display_order)+1 read inside the same transaction, then base+i per section.
 // Concurrent appends can read the same base (no lock on a MAX select, no UNIQUE) — accepted, same
@@ -37,40 +38,18 @@ export async function appendPresetSections(
   `)
   const base = Number(baseRes.rows[0]?.next ?? 0)
 
-  const sectionRows = slices.map(({ section: s }, i) => {
-    return sql`(${investmentId}, ${s.name}, ${base + i}, ${s.defaultCostVariant}, ${s.wToolsCoeff ?? null}, ${s.ownToolsCoeff ?? null})`
-  })
-  const sectionRes = await db.execute(sql`
-    INSERT INTO kosztorys_sections
-      (investment_id, name, display_order, default_cost_variant, w_tools_coeff, own_tools_coeff)
-    VALUES ${sql.join(sectionRows, sql.raw(', '))}
-    RETURNING id
-  `)
-  const newSectionIds = sectionRes.rows.map((row) => Number(row.id))
+  const newSectionIds = await insertSections(
+    db,
+    investmentId,
+    slices.map(({ section }, i) => ({ displayOrder: base + i, section })),
+  )
 
   // Flatten items in slice order with their NEW section id (items keep the preset's per-section
   // display_order — the offset is a section-level concern only).
-  const flatItems: { newSectionId: number; item: KosztorysItemT }[] = []
-  slices.forEach((slice, i) => {
-    for (const item of slice.items) flatItems.push({ newSectionId: newSectionIds[i], item })
-  })
-
-  const newItemIds: number[] = []
-  if (flatItems.length > 0) {
-    const itemRows = flatItems.map(
-      ({ newSectionId, item: it }) =>
-        sql`(${investmentId}, ${newSectionId}, ${it.displayOrder}, ${it.description ?? null}, ${it.unit ?? null}, ${it.plannedQty}, ${it.discountType ?? null}, ${it.discountValue}, ${it.clientPrice}, ${it.wToolsOverrideType ?? null}, ${it.wToolsOverrideValue}, ${it.ownToolsOverrideType ?? null}, ${it.ownToolsOverrideValue}, ${it.costVariant ?? null}, ${it.hiddenInExport}, ${it.note ?? null})`,
-    )
-    const itemRes = await db.execute(sql`
-      INSERT INTO kosztorys_items
-        (investment_id, section_id, display_order, description, unit, planned_qty,
-         discount_type, discount_value, client_price, w_tools_override_type, w_tools_override_value,
-         own_tools_override_type, own_tools_override_value, cost_variant, hidden_in_export, note)
-      VALUES ${sql.join(itemRows, sql.raw(', '))}
-      RETURNING id
-    `)
-    itemRes.rows.forEach((row) => newItemIds.push(Number(row.id)))
-  }
+  const itemRows = slices.flatMap((slice, i) =>
+    slice.items.map((item) => ({ sectionId: newSectionIds[i], item })),
+  )
+  const newItemIds = await insertItems(db, investmentId, itemRows)
 
   // Rebuild the nested slice with the new ids, consuming newItemIds in the same order they were inserted.
   let cursor = 0
