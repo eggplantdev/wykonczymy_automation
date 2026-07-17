@@ -2,7 +2,7 @@ import {
   STAGE_VALUE_GROSS_COLUMN_GROUP,
   STAGE_VALUE_NET_COLUMN_GROUP,
   STAGE_VALUE_PERCENT_COLUMN_GROUP,
-} from '@/lib/kosztorys/constants'
+} from '@/lib/kosztorys/stage-keys'
 
 // Grid column labels — the single source for both the header and the column picker, so a rename
 // can't leave the two disagreeing about what a column is called.

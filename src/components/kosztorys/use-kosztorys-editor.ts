@@ -36,13 +36,13 @@ import {
   sectionSubtotalsForView,
 } from '@/lib/kosztorys/settlement'
 import { filterRows, sortRows, type SortDirT } from '@/lib/kosztorys/row-view'
+import { NEW_SECTION_DEFAULTS } from '@/lib/kosztorys/constants'
 import {
-  NEW_SECTION_DEFAULTS,
   stageKey,
   stageValueGrossKey,
   stageValueNetKey,
   stageValuePercentKey,
-} from '@/lib/kosztorys/constants'
+} from '@/lib/kosztorys/stage-keys'
 import {
   globalDiscountAmount,
   isGlobalDiscountActive,

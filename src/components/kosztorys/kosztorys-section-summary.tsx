@@ -42,7 +42,6 @@ export function KosztorysSectionSummary({
   onRemoveSection,
   onSectionCoeffChange,
 }: PropsT) {
-  // Inline rename: id of the section being edited + name buffer. null = nothing is being edited.
   const [editId, setEditId] = useState<number | null>(null)
   const [draft, setDraft] = useState('')
   const [pendingRemove, setPendingRemove] = useState<SectionSubtotalT | null>(null)

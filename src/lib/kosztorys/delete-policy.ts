@@ -1,4 +1,4 @@
-import { stageKey } from '@/lib/kosztorys/constants'
+import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/types/kosztorys'
 
 // Client mirror of the server delete-guard predicate (removeItemAction/removeSectionAction).
@@ -9,7 +9,7 @@ export function isRowPopulated(row: KosztorysV2RowT, stages: KosztorysStageT[]):
   return stages.some((st) => (row[stageKey(st.id)] ?? 0) !== 0)
 }
 
-// Count of a section's items in the full dataset — guards the invariant "a section has ≥1 item".
+// Guards the invariant "a section has ≥1 item".
 export function sectionItemCount(rows: KosztorysV2RowT[], sectionId: number): number {
   return rows.reduce((n, r) => (r.sectionId === sectionId ? n + 1 : n), 0)
 }

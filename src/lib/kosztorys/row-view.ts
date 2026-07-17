@@ -1,6 +1,6 @@
 import type { KosztorysV2RowT } from '@/types/kosztorys'
 
-// Toolbar filter: search over description / section / unit (parity with v1). Empty/whitespace → no filter.
+// Parity with v1.
 export function filterRows(rows: KosztorysV2RowT[], query: string): KosztorysV2RowT[] {
   const q = query.trim().toLowerCase()
   if (!q) return rows

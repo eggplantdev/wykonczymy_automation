@@ -3,7 +3,7 @@ import {
   STAGE_VALUE_NET_COLUMN_GROUP,
   STAGE_VALUE_PERCENT_COLUMN_GROUP,
   STAGES_COLUMN_GROUP,
-} from '@/lib/kosztorys/constants'
+} from '@/lib/kosztorys/stage-keys'
 
 // Audit aid (may be temporary): each header explains the column's intent + the formula that
 // drives it, so mismatches between intent and calc are visible.

@@ -1,5 +1,5 @@
 import { isGlobalDiscountActive } from '@/lib/kosztorys/calc'
-import { STAGE_QTY_PREFIX, stageKey } from '@/lib/kosztorys/constants'
+import { STAGE_QTY_PREFIX, stageKey } from '@/lib/kosztorys/stage-keys'
 import type { ItemPatchT, KosztorysTreeT, KosztorysV2RowT, StageKeyT } from '@/types/kosztorys'
 
 // Item fields editable in the grid (= the keys of ItemPatchT). The diff compares only these.

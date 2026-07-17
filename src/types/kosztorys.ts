@@ -3,7 +3,7 @@
 // VAT is a single rate per investment (KosztorysTreeT.vatRate), not per section/item;
 // in S-01 it is carried as 0 (VAT arrives in S-12).
 
-import type { STAGE_QTY_PREFIX } from '@/lib/kosztorys/constants'
+import type { STAGE_QTY_PREFIX } from '@/lib/kosztorys/stage-keys'
 
 export type DiscountTypeT = 'percent' | 'amount'
 // Per-investment global discount over the whole kosztorys. type null = none (per-item discounts

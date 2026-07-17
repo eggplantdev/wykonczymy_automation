@@ -1,4 +1,5 @@
-import { DEFAULT_ITEM_DESCRIPTION, DEFAULT_UNIT, stageKey } from '@/lib/kosztorys/constants'
+import { DEFAULT_ITEM_DESCRIPTION, DEFAULT_UNIT } from '@/lib/kosztorys/constants'
+import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { CostVariantT, KosztorysStageT, KosztorysV2RowT } from '@/types/kosztorys'
 
 // Revert a row field to its pre-edit value (revert-on-error autosave), but ONLY

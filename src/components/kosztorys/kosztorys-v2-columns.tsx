@@ -1,8 +1,7 @@
 'use client'
 
-import { type ReactNode, useRef, useState } from 'react'
+import { type ReactNode } from 'react'
 import { Column, type CellProps, keyColumn, textColumn, floatColumn } from 'react-datasheet-grid'
-import { CellSelectMenu } from '@/components/kosztorys/cell-select-menu'
 import { SortHeader } from '@/components/kosztorys/sort-header'
 import { StageHeader } from '@/components/kosztorys/stage-header'
 import { SimpleTooltip } from '@/components/ui/tooltip'
@@ -24,8 +23,12 @@ import {
   toGross,
   viewPrice,
 } from '@/lib/kosztorys/calc'
-import { Combobox } from '@/components/ui/combobox'
-import { discountFromType, discountFromValue } from '@/lib/kosztorys/discount-edit'
+import {
+  discountValueColumn,
+  discountTypeColumn,
+} from '@/components/kosztorys/cells/discount-columns'
+import { unitColumn } from '@/components/kosztorys/cells/unit-column'
+import { SectionNameCell } from '@/components/kosztorys/cells/section-name-cell'
 import { type ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
 import {
   STAGE_QTY_PREFIX,
@@ -33,12 +36,11 @@ import {
   STAGE_VALUE_NET_COLUMN_GROUP,
   STAGE_VALUE_PERCENT_COLUMN_GROUP,
   STAGES_COLUMN_GROUP,
-  UNIT_SUGGESTIONS,
   stageKey,
   stageValueGrossKey,
   stageValueNetKey,
   stageValuePercentKey,
-} from '@/lib/kosztorys/constants'
+} from '@/lib/kosztorys/stage-keys'
 import { COLUMN_LABELS, NON_HIDEABLE_COLUMNS } from '@/lib/kosztorys/column-config'
 import { HEADER_TIPS } from '@/lib/kosztorys/header-tips'
 import { LAYER_DEFAULT, layerAllows } from '@/lib/kosztorys/layer'
@@ -51,12 +53,7 @@ import {
   rowTotalQtyDone,
   rowValueForView,
 } from '@/lib/kosztorys/settlement'
-import type {
-  DiscountTypeT,
-  KosztorysStageT,
-  KosztorysV2RowT,
-  ViewPricingT,
-} from '@/types/kosztorys'
+import type { KosztorysStageT, KosztorysV2RowT, ViewPricingT } from '@/types/kosztorys'
 
 // floatColumn right-aligns by default; the grid reads cleaner with every cell left-aligned under
 // its (left-aligned) header, so numbers don't float at the far edge of wide columns.
@@ -64,12 +61,6 @@ const floatColumnLeft = {
   ...floatColumn,
   columnData: { ...floatColumn.columnData, alignRight: false },
 }
-
-const DISCOUNT_OPTIONS: { value: string; label: string }[] = [
-  { value: '', label: 'Bez rabatu' },
-  { value: 'percent', label: '%' },
-  { value: 'amount', label: 'zł' },
-]
 
 // The four per-item rabat columns hidden while the global discount overrides them.
 const DISCOUNT_COLUMN_IDS = new Set([
@@ -136,150 +127,6 @@ function stageValueHeader(stage: KosztorysStageT, suffix: string, tip: string): 
   )
 }
 
-// Discount-type select cell (—/%/zł). setRowData feeds the diff → autosave.
-// The type/value transitions live in discount-edit.ts — see there for why they're paired.
-function DiscountTypeCell({ rowData, setRowData }: CellProps<KosztorysV2RowT, unknown>) {
-  return (
-    <CellSelectMenu
-      value={rowData.discountType ?? ''}
-      options={DISCOUNT_OPTIONS}
-      hideChevron
-      onChange={(next) =>
-        setRowData({
-          ...rowData,
-          ...discountFromType(rowData, (next || null) as DiscountTypeT | null),
-        })
-      }
-    />
-  )
-}
-
-// Discount-value cell: a hand-rolled input rather than floatColumn, because an edit here has to
-// reach discountType too (discount-edit.ts), which a keyColumn can't do.
-function DiscountValueCell({ rowData, setRowData }: CellProps<KosztorysV2RowT, unknown>) {
-  return (
-    <input
-      className="size-full bg-transparent px-2 text-left text-sm outline-none"
-      value={String(rowData.discountValue ?? '')}
-      inputMode="decimal"
-      onChange={(e) => {
-        const next = discountFromValue(rowData, e.target.value)
-        if (next) setRowData({ ...rowData, ...next })
-      }}
-    />
-  )
-}
-
-function discountValueColumn(titleNode: ReactNode): Column<KosztorysV2RowT> {
-  return {
-    id: 'discountValue',
-    title: titleNode,
-    minWidth: 80,
-    keepFocus: true,
-    component: DiscountValueCell,
-    copyValue: ({ rowData }) => String(rowData.discountValue ?? ''),
-    deleteValue: ({ rowData }) => ({ ...rowData, discountType: null, discountValue: 0 }),
-  }
-}
-
-// Unit (j.m.) creatable combobox cell: pick a canonical unit or type a custom one.
-// setRowData feeds the diff → autosave.
-function UnitCell({ rowData, setRowData }: CellProps<KosztorysV2RowT, unknown>) {
-  return (
-    <Combobox
-      value={rowData.unit ?? ''}
-      onChange={(next) => setRowData({ ...rowData, unit: next || null })}
-      options={UNIT_SUGGESTIONS}
-      allowCustom
-      hideChevron
-      className="hover:bg-accent size-full cursor-pointer px-2"
-    />
-  )
-}
-
-function unitColumn(titleNode: ReactNode): Column<KosztorysV2RowT> {
-  return {
-    id: 'unit',
-    title: titleNode,
-    minWidth: 64,
-    component: UnitCell,
-    keepFocus: true,
-    copyValue: ({ rowData }) => rowData.unit ?? '',
-    deleteValue: ({ rowData }) => ({ ...rowData, unit: null }),
-    pasteValue: ({ rowData, value }) => ({ ...rowData, unit: value.trim() || null }),
-  }
-}
-
-// Section-name cell: renames the WHOLE section, so it commits through opts.onRenameSection (the same
-// fan-out the section panel uses) — never setRowData, which would rewrite only this row's copy of the
-// denormalized name. Local draft while editing; the row's canonical value shows otherwise, so an
-// external rename (from the panel) is reflected without a mount-time snapshot going stale. Enter/blur
-// commit, Escape reverts. A stray grid Delete is a no-op (deleteValue returns the row) so it can't
-// blank the section.
-function SectionNameCell({
-  rowData,
-  opts,
-}: {
-  rowData: KosztorysV2RowT
-  opts: BuildV2ColumnsOptsT
-}) {
-  const [draft, setDraft] = useState('')
-  const [editing, setEditing] = useState(false)
-  // Escape sets this before blur so the shared onBlur commit knows to skip the rename.
-  const cancelRef = useRef(false)
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  return (
-    <input
-      ref={inputRef}
-      className="size-full bg-transparent px-2 text-left text-sm outline-none"
-      value={editing ? draft : (rowData.sectionName ?? '')}
-      onFocus={() => {
-        cancelRef.current = false
-        setDraft(rowData.sectionName ?? '')
-        setEditing(true)
-      }}
-      onChange={(e) => setDraft(e.target.value)}
-      onBlur={() => {
-        if (editing && !cancelRef.current) opts.onRenameSection?.(rowData.sectionId, draft)
-        setEditing(false)
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault()
-          e.stopPropagation()
-          inputRef.current?.blur()
-        } else if (e.key === 'Escape') {
-          e.preventDefault()
-          e.stopPropagation()
-          cancelRef.current = true
-          inputRef.current?.blur()
-        }
-      }}
-    />
-  )
-}
-
-function discountTypeColumn(titleNode: ReactNode): Column<KosztorysV2RowT> {
-  return {
-    id: 'discountType',
-    title: titleNode,
-    minWidth: 110,
-    component: DiscountTypeCell,
-    keepFocus: true,
-    copyValue: ({ rowData }) => rowData.discountType ?? '',
-    deleteValue: ({ rowData }) => ({ ...rowData, discountType: null }),
-    pasteValue: ({ rowData, value }) => ({
-      ...rowData,
-      discountType: (value === 'percent' || value === 'amount'
-        ? value
-        : null) as DiscountTypeT | null,
-    }),
-  }
-}
-
-// Applies a pinned width (basis/grow:0) to a column and wraps its title in a resize handle.
-// Without the drag callbacks (onResizeColumn) it returns the column unchanged — resize disabled.
 function withResize(
   col: Column<KosztorysV2RowT>,
   opts: BuildV2ColumnsOptsT,
@@ -378,7 +225,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       minWidth: 140,
       keepFocus: true,
       component: ({ rowData }: CellProps<KosztorysV2RowT, unknown>) => (
-        <SectionNameCell rowData={rowData} opts={opts} />
+        <SectionNameCell rowData={rowData} onRename={opts.onRenameSection} />
       ),
       copyValue: ({ rowData }) => rowData.sectionName ?? '',
       // Delete on a selected Sekcja cell is a no-op — an accidental keypress must not blank a whole

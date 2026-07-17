@@ -43,7 +43,6 @@ export type BuildV2ColumnsOptsT = {
   // Reordering items within a section (Przesuń w górę/dół). Greyed out while a column sort is
   // active — "up/down" has no meaning against a price-sorted list.
   onReorderItem?: (row: KosztorysV2RowT, dir: 'up' | 'down') => void
-  // Inserting a blank item above/below the row within its section.
   onInsertItem?: (row: KosztorysV2RowT, dir: 'above' | 'below') => void
   // Renaming the whole section from its (denormalized) name cell. Routes through the same fan-out
   // as the section panel — never a per-row setRowData, which would desync the other rows' copies.
