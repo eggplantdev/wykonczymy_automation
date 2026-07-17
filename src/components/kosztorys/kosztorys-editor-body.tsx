@@ -36,7 +36,6 @@ export function KosztorysEditorBody({
     viewRows,
     guideX,
     subtotals,
-    totalNet,
     discountAmount,
     doZaplatyNet,
     moneyAxis,
@@ -95,7 +94,6 @@ export function KosztorysEditorBody({
           )}
         </div>
         <KosztorysTotalsBar
-          totalNet={totalNet}
           discountAmount={discountAmount}
           doZaplatyNet={doZaplatyNet}
           vatRate={tree.vatRate}

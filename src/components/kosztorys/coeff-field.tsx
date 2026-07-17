@@ -11,12 +11,22 @@ type PropsT = {
   value: number | null
   placeholder?: number
   nullable?: boolean
+  // Colours the value only; a direct color on the input overrides the muted colour the label inherits.
+  valueClassName?: string
   onCommit: (n: number | null) => void
 }
 
 // Markup-coefficient field. Uncontrolled + `key` on the value (remount after router.refresh),
 // commit on blur/Enter — no useEffect (project rule). Empty + nullable = inherit (null).
-export function CoeffField({ label, hint, value, placeholder, nullable, onCommit }: PropsT) {
+export function CoeffField({
+  label,
+  hint,
+  value,
+  placeholder,
+  nullable,
+  valueClassName,
+  onCommit,
+}: PropsT) {
   const commit = (e: FocusEvent<HTMLInputElement>) => {
     const parsed = parseDecimalInput(e.target.value)
     if (parsed.kind === 'empty') {
@@ -39,7 +49,7 @@ export function CoeffField({ label, hint, value, placeholder, nullable, onCommit
         inputMode="decimal"
         defaultValue={value == null ? '' : String(value)}
         placeholder={placeholder != null ? String(placeholder) : ''}
-        className="border-border h-6 w-14 rounded border bg-transparent px-1 text-right text-xs outline-none"
+        className={`border-border h-6 w-14 rounded border bg-transparent px-1 text-right text-xs outline-none ${valueClassName ?? ''}`}
         onBlur={commit}
         onKeyDown={commitOnEnter}
       />
