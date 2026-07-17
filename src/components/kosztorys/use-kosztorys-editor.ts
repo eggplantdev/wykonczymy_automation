@@ -329,13 +329,18 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       await handleRemoveSection(row.sectionId)
       return
     }
+    const removedAt = rowsRef.current.findIndex((r) => r.id === row.id)
     prevById.current.delete(row.id)
     setRows((rs) => applyRemoveItem(rs, row.id))
     const res = await removeItemAction(row.id)
     if (!res.success) {
-      // Server rejected (client/server predicate drift) — restore the row and surface the block.
+      // Server rejected (client/server predicate drift) — restore the row at its original position
+      // and surface the block. applyAddItem would re-append it at the grid's end.
       prevById.current.set(row.id, row)
-      setRows((rs) => applyAddItem(rs, row))
+      setRows((rs) => {
+        const at = removedAt < 0 ? rs.length : Math.min(removedAt, rs.length)
+        return [...rs.slice(0, at), row, ...rs.slice(at)]
+      })
       toastMessage(res.error ?? 'Nie udało się usunąć pozycji', 'warning', 4000)
     }
   }
@@ -556,18 +561,29 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   // useState initializer runs once at mount); then persist + refresh for the panel. `vatRate` is a
   // fraction (0.08), converted from the panel's percent input at the commit site.
   async function handleVatChange(vatRate: number) {
+    const prevVatRate = rowsRef.current[0]?.vatRate
     patchRows(
       () => true,
       (r) => ({ ...r, vatRate }),
     )
     const res = await updateInvestmentVatAction(investmentId, vatRate)
-    if (res.success) router.refresh()
+    if (res.success) {
+      router.refresh()
+    } else if (prevVatRate !== undefined) {
+      // Persist failed — roll the optimistic VAT back so the grid doesn't show an unsaved rate.
+      patchRows(
+        () => true,
+        (r) => ({ ...r, vatRate: prevVatRate }),
+      )
+      toastMessage(res.error ?? 'Nie udało się zapisać stawki VAT', 'warning', 4000)
+    }
   }
 
   // Setting/clearing the global discount flips per-item rabat on or off for every row. Update the
   // local discount (drives the derived totals + column visibility) and patch the denormalized active
   // flag on every row in the same render, so all three surfaces move together; then persist + refresh.
   async function handleGlobalDiscountChange(next: GlobalDiscountT) {
+    const prevDiscount = globalDiscount
     const active = isGlobalDiscountActive(next)
     setGlobalDiscount(next)
     patchRows(
@@ -578,7 +594,17 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       globalDiscountType: next.type,
       globalDiscountValue: next.value,
     })
-    if (res.success) router.refresh()
+    if (res.success) {
+      router.refresh()
+    } else {
+      // Persist failed — roll all three surfaces back so they don't disagree on an unsaved discount.
+      setGlobalDiscount(prevDiscount)
+      patchRows(
+        () => true,
+        (r) => ({ ...r, globalDiscountActive: isGlobalDiscountActive(prevDiscount) }),
+      )
+      toastMessage(res.error ?? 'Nie udało się zapisać rabatu', 'warning', 4000)
+    }
   }
 
   // Section coefficient (null = inherits the global) — patch only the rows of that section.
