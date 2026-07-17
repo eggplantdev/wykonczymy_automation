@@ -2,7 +2,7 @@
 
 import { Rocket } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { FormDialog } from '@/components/dialogs/form-dialog'
+import { FormDialog } from '@/components/ui/form-dialog'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { ExpenseForm } from '@/components/forms/expense-form/expense-form'
 
