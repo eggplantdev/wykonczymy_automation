@@ -1,9 +1,9 @@
 'use server'
 
 import { z } from 'zod'
-import type { PayloadRequest } from 'payload'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import { getDb } from '@/lib/db/get-db'
+import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import {
   getPreset,
   insertPreset,
@@ -143,20 +143,10 @@ export async function appendPresetSectionsAction(
         slices.push({ section, items })
       }
 
-      const tx = await payload.db.beginTransaction()
-      if (!tx) return { success: false, error: 'Nie udało się rozpocząć transakcji' }
-      const req = {
-        transactionID: tx,
-        context: { skipRevalidation: true },
-      } as unknown as PayloadRequest
-      try {
-        const created = await appendPresetSections(payload, req, parsed.data.investmentId, slices)
-        await payload.db.commitTransaction(tx)
-        return { success: true, data: created }
-      } catch (error) {
-        await payload.db.rollbackTransaction(tx)
-        throw error
-      }
+      const created = await withPayloadTransaction(payload, (req) =>
+        appendPresetSections(payload, req, parsed.data.investmentId, slices),
+      )
+      return { success: true, data: created }
     },
     ['kosztorysSections', 'kosztorysItems'],
   )

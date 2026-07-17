@@ -1,9 +1,9 @@
 'use server'
 
 import { z } from 'zod'
-import type { PayloadRequest } from 'payload'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import { getDb } from '@/lib/db/get-db'
+import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { getSnapshot, insertSnapshot, listSnapshots, type SnapshotMetaT } from '@/lib/db/snapshots'
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { restoreKosztorys } from '@/lib/kosztorys/restore-kosztorys'
@@ -72,21 +72,11 @@ export async function restoreSnapshotAction(
         return { success: false, error: 'Nie znaleziono wersji' }
       }
 
-      const transactionId = await payload.db.beginTransaction()
-      if (!transactionId) throw new Error('Failed to start transaction')
-      const req = {
-        transactionID: transactionId,
-        context: { skipRevalidation: true },
-      } as unknown as PayloadRequest
-      try {
+      await withPayloadTransaction(payload, async (req) => {
         const txDb = await getDb(payload, req)
         await captureAutoSnapshot(txDb, snapshot.investmentId, user.id)
         await restoreKosztorys(payload, req, snapshot.investmentId, snapshot.payload)
-        await payload.db.commitTransaction(transactionId)
-      } catch (err) {
-        await payload.db.rollbackTransaction(transactionId)
-        throw err
-      }
+      })
       return { success: true }
     },
     // Settings (VAT/coeffs) change too, so bump investments alongside the four tree tags.

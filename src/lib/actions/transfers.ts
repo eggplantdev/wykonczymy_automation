@@ -9,6 +9,7 @@ import {
 import { canMutateTransfer } from '@/lib/auth/roles'
 import { canBeSettled } from '@/lib/constants/transfers'
 import { perfStart } from '@/lib/perf'
+import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import {
   cancelTransferSchema,
   createTransferSchema,
@@ -41,7 +42,7 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
         if (!validated.success) return validated
       }
 
-      const created = await payload.create({
+      await payload.create({
         collection: 'transactions',
         data: {
           ...data,
@@ -80,45 +81,42 @@ export async function createBulkTransferAction(
         if (!validated.success) return validated
       }
 
-      const transactionId = await payload.db.beginTransaction()
-      if (!transactionId) throw new Error('Failed to start transaction')
       // skipSheetSync: the per-row afterChange hook must NOT sync each created
       // row one-by-one — this action batches them all in a single sheet write below
       // (review T4.2). The flag rides on req.context, which Payload passes to hooks.
-      const req = { transactionID: transactionId, context: { skipSheetSync: true } }
-
-      const createdIds: number[] = []
-      try {
-        for (let i = 0; i < parsed.data.lineItems.length; i++) {
-          const item = parsed.data.lineItems[i]
-          const created = await payload.create({
-            collection: 'transactions',
-            req,
-            data: {
-              description: item.description,
-              amount: item.amount,
-              date: parsed.data.date,
-              type: parsed.data.type,
-              paymentMethod: parsed.data.paymentMethod,
-              sourceRegister: parsed.data.sourceRegister,
-              targetRegister: parsed.data.targetRegister,
-              investment: parsed.data.investment,
-              worker: parsed.data.worker,
-              expenseCategory: item.expenseCategory,
-              otherCategory: item.category,
-              invoice: invoiceMediaIds?.[i],
-              invoiceNote: item.invoiceNote,
-              settled: canBeSettled(parsed.data.type) && parsed.data.settled === true,
-              createdBy: user.id,
-            },
-          })
-          createdIds.push(created.id)
-        }
-        await payload.db.commitTransaction(transactionId)
-      } catch (err) {
-        await payload.db.rollbackTransaction(transactionId)
-        throw err
-      }
+      const createdIds = await withPayloadTransaction(
+        payload,
+        async (req) => {
+          const ids: number[] = []
+          for (let i = 0; i < parsed.data.lineItems.length; i++) {
+            const item = parsed.data.lineItems[i]
+            const created = await payload.create({
+              collection: 'transactions',
+              req,
+              data: {
+                description: item.description,
+                amount: item.amount,
+                date: parsed.data.date,
+                type: parsed.data.type,
+                paymentMethod: parsed.data.paymentMethod,
+                sourceRegister: parsed.data.sourceRegister,
+                targetRegister: parsed.data.targetRegister,
+                investment: parsed.data.investment,
+                worker: parsed.data.worker,
+                expenseCategory: item.expenseCategory,
+                otherCategory: item.category,
+                invoice: invoiceMediaIds?.[i],
+                invoiceNote: item.invoiceNote,
+                settled: canBeSettled(parsed.data.type) && parsed.data.settled === true,
+                createdBy: user.id,
+              },
+            })
+            ids.push(created.id)
+          }
+          return ids
+        },
+        { skipSheetSync: true },
+      )
       console.log(`[PERF]   payload.create x${lineCount} ${step()}ms`)
 
       // Post-response sync after commit — never before, else a rolled-back row would
@@ -193,7 +191,7 @@ export async function cancelTransferAction(transferId: number, data: CancelTrans
 
       // Create CANCELLATION audit row
       const today = new Date().toISOString().split('T')[0]
-      const cancellation = await payload.create({
+      await payload.create({
         collection: 'transactions',
         data: {
           type: 'CANCELLATION',

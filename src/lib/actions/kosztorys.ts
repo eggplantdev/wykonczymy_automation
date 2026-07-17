@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import { getDb } from '@/lib/db/get-db'
+import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { seedBlankKosztorys } from '@/lib/kosztorys/seed-blank'
 import {
@@ -12,7 +13,6 @@ import {
   NEW_SECTION_DEFAULTS,
 } from '@/lib/kosztorys/constants'
 import type { ActionResultT } from '@/types/action'
-import type { PayloadRequest } from 'payload'
 import type { ItemPatchT } from '@/lib/kosztorys/types'
 
 // --- Patch schemas (all fields optional — autosave sends one field at a time) ---
@@ -293,19 +293,13 @@ export async function insertItemAction(
       if (investmentId == null) return { success: false, error: 'Sekcja nie istnieje.' }
       // Shift + create must be atomic: a double-fired insert at the same index could otherwise
       // interleave and land two rows on one display_order (EX-464).
-      const tx = await payload.db.beginTransaction()
-      if (!tx) return { success: false, error: 'Nie udało się rozpocząć transakcji.' }
-      const req = {
-        transactionID: tx,
-        context: { skipRevalidation: true },
-      } as unknown as PayloadRequest
-      try {
+      const created = await withPayloadTransaction(payload, async (req) => {
         const txDb = await getDb(payload, req)
         await txDb.execute(sql`
           UPDATE kosztorys_items SET display_order = display_order + 1
           WHERE section_id = ${parsed.data.sectionId} AND display_order >= ${parsed.data.atDisplayOrder}
         `)
-        const created = await payload.create({
+        return payload.create({
           collection: 'kosztorys-items',
           req,
           data: {
@@ -320,12 +314,8 @@ export async function insertItemAction(
             hiddenInExport: false,
           },
         })
-        await payload.db.commitTransaction(tx)
-        return { success: true, data: { id: created.id, displayOrder: parsed.data.atDisplayOrder } }
-      } catch (error) {
-        await payload.db.rollbackTransaction(tx)
-        throw error
-      }
+      })
+      return { success: true, data: { id: created.id, displayOrder: parsed.data.atDisplayOrder } }
     },
     ['kosztorysItems'],
   )
