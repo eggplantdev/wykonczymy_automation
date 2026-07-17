@@ -1,10 +1,11 @@
 ---
 id: kosztorys-editor-compile-fix
 title: Restore React Compiler memoization to useKosztorysEditor + clear the verified EX-496 tail
-status: implemented
+status: archived
 branch: staging
 created: 2026-07-17
 updated: 2026-07-17
+archived_at: 2026-07-17T13:35:54Z
 ---
 
 # Kosztorys editor — React Compiler unblock + EX-496 cleanup tail (EX-496)
