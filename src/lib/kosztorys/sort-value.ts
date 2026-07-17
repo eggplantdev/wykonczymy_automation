@@ -7,7 +7,7 @@ import {
   type PriceViewT,
 } from '@/lib/kosztorys/calc'
 import { rowRemainingForView, rowTotalQtyDone, rowValueForView } from '@/lib/kosztorys/settlement'
-import type { KosztorysStageT, KosztorysV2RowT, ViewPricingT } from '@/lib/kosztorys/types'
+import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // The sort key for a grid column. Most columns in kosztorys-v2-columns.tsx are COMPUTED — their
 // value is derived at render from calc/settlement, never stored on the row — so a `row[field]` read
@@ -22,29 +22,28 @@ export function columnSortValue(
   view: PriceViewT,
   stages: KosztorysStageT[],
 ): string | number | null {
-  const pricing = row as unknown as ViewPricingT
   switch (field) {
     // Editable (client) / subcontractor price column: the value is the view's price, not a stored field.
     case 'price':
-      return viewPrice(pricing, view)
+      return viewPrice(row, view)
     case 'priceGross':
-      return toGross(viewPrice(pricing, view), row.vatRate)
+      return toGross(viewPrice(row, view), row.vatRate)
     case 'plannedNet':
-      return rowPlannedNetForView(pricing, view)
+      return rowPlannedNetForView(row, view)
     case 'plannedGross':
-      return toGross(rowPlannedNetForView(pricing, view), row.vatRate)
+      return toGross(rowPlannedNetForView(row, view), row.vatRate)
     case 'net':
       return rowValueForView(row, stages, view)
     case 'gross':
       return toGross(rowValueForView(row, stages, view), row.vatRate)
     case 'discountAmount':
-      return rowDiscountForView(pricing, rowTotalQtyDone(row, stages), view)
+      return rowDiscountForView(row, rowTotalQtyDone(row, stages), view)
     case 'discountAmountGross':
-      return toGross(rowDiscountForView(pricing, rowTotalQtyDone(row, stages), view), row.vatRate)
+      return toGross(rowDiscountForView(row, rowTotalQtyDone(row, stages), view), row.vatRate)
     case 'stageQtySum':
       return rowTotalQtyDone(row, stages)
     case 'donePercent':
-      return rowDoneFraction(pricing, rowTotalQtyDone(row, stages))
+      return rowDoneFraction(row, rowTotalQtyDone(row, stages))
     case 'remaining':
       return rowRemainingForView(row, stages, view)
     case 'remainingGross': {

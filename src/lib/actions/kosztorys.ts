@@ -111,9 +111,9 @@ export async function updateInvestmentCoeffsAction(
       await payload.update({ collection: 'investments', id: investmentId, data: parsed.data })
       return { success: true }
     },
-    // A global coefficient changes the derived item prices → refresh the sheet cache.
-    // 'investments' bumps the mutated source row's own cache too (the item/section tags only
-    // cover its denormalized copy) — don't rely on the investments afterChange hook for it.
+    // Coeffs re-derive item and section figures, so bump their collection tags. 'investments'
+    // also invalidates the cached readers of the mutated source row (getInvestment,
+    // fetchReferenceData) immediately, rather than waiting on the investments afterChange hook.
     ['kosztorysItems', 'kosztorysSections', 'investments'],
   )
 }
@@ -127,9 +127,9 @@ export async function updateInvestmentVatAction(investmentId: number, vatRate: n
       await payload.update({ collection: 'investments', id: investmentId, data: parsed.data })
       return { success: true }
     },
-    // vatRate is denormalized onto items only (getKosztorysTree) — no kosztorysSections, unlike
-    // the coeff action which also touches section-level figures. 'investments' additionally bumps
-    // the mutated source row's own cache; the item tag only covers its denormalized copy.
+    // vatRate is denormalized onto items only (not sections, unlike coeffs). 'investments' also
+    // invalidates the cached readers of the mutated source row (getInvestment, fetchReferenceData)
+    // immediately, rather than waiting on the investments afterChange hook.
     ['kosztorysItems', 'investments'],
   )
 }
@@ -147,8 +147,8 @@ export async function updateInvestmentGlobalDiscountAction(
       return { success: true }
     },
     // The active flag is denormalized onto items only (getKosztorysTree → globalDiscountActive),
-    // like vatRate. 'investments' additionally bumps the mutated source row's own cache; the item
-    // tag only covers its denormalized copy.
+    // like vatRate. 'investments' also invalidates the cached readers of the mutated source row
+    // (getInvestment, fetchReferenceData) immediately, rather than waiting on the afterChange hook.
     ['kosztorysItems', 'investments'],
   )
 }

@@ -440,4 +440,4 @@ inwestycji z ≥1 sekcją i ≥1 etapem oraz kilkoma pozycjami.
 
 ### Ustawienia globalne (guard #4 — cache tag, NIE cofnięte)
 
-- [ ] Zmiana **stawki VAT / współczynnika globalnego / rabatu globalnego** odzwierciedla się w siatce i sumach **bez ręcznego przeładowania**.
+- [x] Zmiana **stawki VAT / współczynnika globalnego / rabatu globalnego** odzwierciedla się w siatce i sumach **bez ręcznego przeładowania** (potwierdzone ręcznie przez ownera, 2026-07-17).
