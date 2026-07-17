@@ -63,6 +63,14 @@ verification remains a Step 4 close-out blocker (registry has 82 unticked boxes)
 - [x] proposed (filed EX-515) · module-cohesion · `src/lib/tables/kosztorys-v2-columns.tsx` · grab-bag (861 lines / 4 kinds). Split HEADER_TIPS / cells / toggles. Filed EX-515 (item 2).
 - [x] proposed (filed EX-515) · module-cohesion · `src/components/kosztorys/use-kosztorys-editor.ts` · god hook (678 lines, 6 responsibilities). Split into composed sub-hooks. Filed EX-515 (item 3); also unblocks the EX-509 optimistic-revert test gap.
 - [x] proposed (filed EX-515) · module-cohesion · `src/lib/kosztorys/constants.ts` · mixes domain defaults with grid column policy. Split column policy → column-config.ts. Filed EX-515 (item 4).
+
+  > **EX-515 outcome** (branch `refactor/kosztorys-dogfooding-followups`, 2026-07-16/17) — 3 of 4 shipped, all behavior-preserving:
+  >
+  > - item 1 `v2-rows.ts` → `settlement.ts` / `row-ops.ts` / `row-view.ts` / `delete-policy.ts`; `stageKey` → `constants.ts` (dissolves the EX-467 cycle). commit `5141253`
+  > - item 2 `lib/tables/kosztorys-v2-columns.tsx` → relocated to `components/kosztorys/` + extracted `header-tips.ts`, `kosztorys-v2-column-opts.ts`, `cells/computed-cell.tsx`, `cells/subcontractor-columns.tsx`. commit `0fc65ab`
+  > - item 4 `constants.ts` → grid column policy carved to `column-config.ts`. commit `c8b1558`
+  > - **item 3 `use-kosztorys-editor.ts` DEFERRED, not skipped** — a cohesive stateful unit (shared `rows`/`stages`/`prevById` + render-phase refs under the "no action inside a setRows updater" invariant, EX-422), zero test coverage. A blind split just threads shared state through parameter lists (structure-scatter) at real regression risk. Prerequisite: stand up a renderHook harness (`/10x-tdd`, which also unblocks the EX-509 revert test gaps), then split under green tests. EX-515 stays In Progress with only item 3 open. Rationale saved to memory `project_kosztorys_god_module_splits_ex515`.
+
 - [x] fixed · comment-noise · `kosztorys-progress-counter.tsx:35` · DELETE vanished-state+restatement ("Amounts live only in the tooltip now…"). Apply in /simplify.
 - [x] fixed · comment-noise · `kosztorys-section-summary.tsx:52` · DELETE restatement of `pendingRemove` type. Apply in /simplify.
 - [x] fixed · comment-noise · `kosztorys-versions-drawer.tsx:37` · DELETE restatement of `pendingRestore` type. Apply in /simplify.
