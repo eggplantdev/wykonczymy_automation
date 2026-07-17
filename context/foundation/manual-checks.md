@@ -341,7 +341,7 @@ Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, se
 ### Phase 1: „Pomiar z natury" staje się sumą etapów
 
 - [x] „Pomiar z natury" nie przyjmuje wpisu; edycja etapu zmienia go natychmiast _Verified 2026-07-17: the `measured_qty` column is **gone** from `kosztorys_items` (migration `20260716_0_drop_kosztorys_measured_qty` applied on the test DB), so Pomiar has no stored field to type into — it is computed as Σ stage qty. Item 392 reads Pomiar = 2 = Σetapów (2 stages at 1). Live recompute-on-stage-edit is the same computed-cell path as S-03 4.7 (already verified there)._
-- [ ] Wiersz z zerowymi etapami da się skasować, nawet jeśli ma za sobą historię pomiaru **Needs human:** delete-flow drive — a row cleared to zero stages should delete despite past pomiar. The guard now keys on `stage_progress`, not the dropped `measured_qty` (so structurally satisfied), but the UI delete was not driven this pass. **Test disposition:** integration (server action → DB) — covered in spirit by `kosztorys-delete-guard.test.ts`; the source-of-truth variant (zero stages + history) owes one assertion.
+- [x] Wiersz z zerowymi etapami da się skasować, nawet jeśli ma za sobą historię pomiaru _Verified 2026-07-17 (inv 7, `:3010` test DB): took item 405 (Pozycja 1.14, had stage qty 1), zeroed its `stage_progress` to simulate a row cleared after recording pomiar, reloaded → the row read all-zero etapy / Pomiar `0,00`. `Usuń pozycję` was enabled (no hard block), deleted with **no confirmation dialog** (`isRowPopulated`=false → `requiresConfirm`=false), the row left the grid, and the DB confirms full removal — 0 `kosztorys_items` id=405 rows and 0 orphaned `stage_progress` rows (cascade clean). **Test disposition:** integration — the zero-stage delete path is covered by `kosztorys-delete-guard.test.ts`; this drive confirms the source-of-truth variant (guard keys on `stage_progress`, not the dropped `measured_qty`)._
 
 ### Phase 2: Kotwica w Przedmiarze
 
@@ -360,7 +360,7 @@ Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, se
 
 ### Findings — 2026-07-17 (agent axis pass)
 
-Verified against `wykonczymy-test` (inv 7 perf seed). The kill of the third input („Pomiar z natury" no longer typed) is confirmed at the schema level — `measured_qty` is dropped, so Pomiar is Σetapów by construction, not by a UI convention that could regress. The anchor-in-Przedmiar behavior (negative Pozostało + red + >100%) is confirmed on a live overshoot row. **Two boxes stay open for lack of a no-Przedmiar fixture row and one delete-flow drive; one Phase-3 box awaits the owner's tooltip-copy call.** Browser-level regression owed as **EX-497** (`e2e-backlog`).
+Verified against `wykonczymy-test` (inv 7 perf seed). The kill of the third input („Pomiar z natury" no longer typed) is confirmed at the schema level — `measured_qty` is dropped, so Pomiar is Σetapów by construction, not by a UI convention that could regress. The anchor-in-Przedmiar behavior (negative Pozostało + red + >100%) is confirmed on a live overshoot row. The delete-flow (zero-stage row deletes despite past pomiar) and the no-Przedmiar dash/no-red were driven/verified 2026-07-17. **The one box still open is Phase-3's tooltip copy — an owner wording call, not agent-verifiable.** Sort-to-bottom ordering is owed as browser-level regression **EX-497** (`e2e-backlog`).
 
 ## kosztorys-layer-toggle — Praca / Postęp / Bez filtra (widok tabeli)
 
