@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { dropKeys } from '@/components/kosztorys/use-column-widths'
 
 // Postgres reissues a deleted stage's id, so a leftover width entry would pin a brand-new stage to
-// the dead one's width. One stage owns three columns, and every write rebuilds the map from the
-// render's `widths` — so all three ids must go in ONE call, or the last write resurrects the others.
+// the dead one's width. dropKeys returns the same reference on a no-op so the store can skip the
+// write; the multi-write-safety of the drop itself is covered in create-json-map-store.test.ts.
 describe('dropKeys', () => {
   const widths = { stage_7: 100, stageValueNet_7: 120, stageValueGross_7: 140, description: 300 }
 
