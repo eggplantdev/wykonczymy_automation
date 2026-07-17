@@ -384,17 +384,22 @@ None. No schema, no data, no API contract change.
 
 #### Automated
 
-- [x] 3.1 Type checking passes: `pnpm typecheck`
-- [x] 3.2 Linting passes: `pnpm lint`
-- [x] 3.3 Full unit suite passes: `pnpm exec vitest run`
-- [x] 3.4 Compile-assert guard still passes
+- [x] 3.1 Type checking passes: `pnpm typecheck` — 0e4bd16
+- [x] 3.2 Linting passes: `pnpm lint` — 0e4bd16
+- [x] 3.3 Full unit suite passes: `pnpm exec vitest run` — 0e4bd16
+- [x] 3.4 Compile-assert guard still passes — 0e4bd16
 
 ### Phase 4: Structural Extractions
 
 #### Automated
 
-- [ ] 4.1 Type checking passes: `pnpm typecheck`
-- [ ] 4.2 Linting passes: `pnpm lint`
-- [ ] 4.3 Full unit suite passes: `pnpm exec vitest run`
-- [ ] 4.4 Compile-assert guard still passes
-- [ ] 4.5 `settlement.ts` exists and `v2-rows.ts` imports from it (no duplicate definitions)
+- [x] 4.1 Type checking passes: `pnpm typecheck`
+- [x] 4.2 Linting passes: `pnpm lint`
+- [x] 4.3 Full unit suite passes: `pnpm exec vitest run`
+- [x] 4.4 Compile-assert guard still passes
+- [x] 4.5 `settlement.ts` exists and `v2-rows.ts` imports from it (no duplicate definitions)
+
+> Note: extractions #1 (`settlement.ts`) and #2 (`header-tips.ts`) already landed in the EX-515
+> split (both are real modules, no duplicate defs in `v2-rows.ts`/`kosztorys-v2-columns.tsx`). Only
+> #3 (Pick<>-narrow) was authored here — the two leaf consumers (`title`, `withResize`); the
+> assembly/select functions keep the full bag since they thread it downstream.

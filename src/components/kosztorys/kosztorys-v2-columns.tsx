@@ -100,7 +100,7 @@ function withTip(node: ReactNode, tip: string): ReactNode {
 function title(
   field: string,
   label: string,
-  opts: BuildV2ColumnsOptsT,
+  opts: Pick<BuildV2ColumnsOptsT, 'sort' | 'onSetSort'>,
   sortable = true,
 ): ReactNode {
   const active = opts.sort?.field === field ? opts.sort.dir : null
@@ -137,7 +137,7 @@ function stageValueHeader(stage: KosztorysStageT, suffix: string, tip: string): 
 
 function withResize(
   col: Column<KosztorysV2RowT>,
-  opts: BuildV2ColumnsOptsT,
+  opts: Pick<BuildV2ColumnsOptsT, 'onGuide' | 'onCommitColumn' | 'widths'>,
 ): Column<KosztorysV2RowT> {
   if (!opts.onGuide || !opts.onCommitColumn || !col.id) return col
   const min = col.minWidth ?? 100
