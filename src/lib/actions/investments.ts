@@ -2,7 +2,6 @@
 
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
-import { createSheetFromTemplate, isStorageQuotaError } from '@/lib/google/drive'
 import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
 import { extractSheetId, serviceAccountEmail, verifySheetAccess } from '@/lib/google/sheet-access'
 import { stampAllTabs } from '@/lib/google/app-managed-tabs'
@@ -102,62 +101,11 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
 }
 
 /**
- * Manual counterpart to the auto-provision in createInvestmentAction. Wired to
- * the "Utwórz nowy kosztorys" CTA on the no-sheet banner (Task 9). Synchronous
- * — the user is staring at a button, so we wait for Drive to land before
- * returning so the UI can refresh and show the iframe.
- */
-export async function provisionSheetAction(investmentId: number) {
-  return protectedAction<{ sheetId: string }>(
-    'provisionSheetAction',
-    async ({ payload }) => {
-      const investment = await payload.findByID({
-        collection: 'investments',
-        id: investmentId,
-        overrideAccess: true,
-      })
-      if (!investment) return { success: false, error: 'Inwestycja nie istnieje.' }
-
-      const existing = await getInvestmentSheetId(payload, investmentId)
-      if (existing) {
-        return { success: false, error: 'Ta inwestycja ma już kosztorys.' }
-      }
-
-      let sheetId: string
-      try {
-        ;({ sheetId } = await createSheetFromTemplate(investment.name))
-      } catch (err) {
-        const msg = String(err)
-        if (isStorageQuotaError(err)) {
-          return {
-            success: false,
-            error:
-              'Nie można utworzyć nowego arkusza — konto usługi Google nie ma miejsca na dysku. ' +
-              'Tworzenie nowych kosztorysów będzie możliwe po skonfigurowaniu Dysku współdzielonego ' +
-              '(Google Workspace). Na razie użyj opcji „Powiąż istniejący arkusz”.',
-          }
-        }
-        return { success: false, error: `Nie udało się utworzyć arkusza: ${msg}` }
-      }
-
-      await payload.create({
-        collection: 'kosztoryses',
-        data: { googleSheetId: sheetId, name: investment.name, investment: investmentId },
-        overrideAccess: true,
-      })
-
-      return { success: true, data: { sheetId } }
-    },
-    // Affects both the kosztoryses listing and the investments table (hasSheet flips true).
-    ['kosztoryses', 'investments'],
-  )
-}
-
-/**
  * Link an EXISTING Google Sheet to an investment. Accepts a pasted sheet URL or a
  * raw id; verifies the service account can actually open it (else the sync/iframe
- * would silently fail), then stores its id. The working alternative to
- * provisionSheetAction while new-file creation is blocked by SA Drive quota.
+ * would silently fail), then stores its id. New-file creation from a template is
+ * not offered — the service account has no Drive quota, so linking an existing
+ * sheet is the only supported path.
  */
 // The service-account email a user must share their sheet with before linking.
 // Non-secret; surfaced in the setup dialog so the share step is clear up front
