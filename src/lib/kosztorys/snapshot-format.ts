@@ -11,6 +11,18 @@ import type {
 // restore-kosztorys.ts for the tolerant deserialization contract.
 export const SNAPSHOT_SCHEMA_VERSION = 1 as const
 
+// Gate a stored payload at read time. Because the version bumps ONLY on a non-additive change, any
+// mismatch (an old row written before that change, or a future row from newer code) means the
+// tolerant mapper would seed wrong/missing columns — so reject loudly instead of silently applying.
+// Never bumped yet, so this rejects nothing today; it's the guard that arms on the first bump.
+export function assertReadableSchemaVersion(version: number, kind: 'preset' | 'snapshot'): void {
+  if (version === SNAPSHOT_SCHEMA_VERSION) return
+  const label = kind === 'preset' ? 'szablonu' : 'wersji'
+  throw new Error(
+    `Nie można wczytać ${label}: zapisano w formacie ${version}, aplikacja obsługuje ${SNAPSHOT_SCHEMA_VERSION}.`,
+  )
+}
+
 // The three investment editor-settings that shape computed prices — captured so a restore is
 // faithful (restore rewrites them). Kept off the tree because they live on `investments`.
 export type SnapshotSettingsT = {

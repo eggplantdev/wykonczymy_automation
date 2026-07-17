@@ -1,6 +1,10 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-vercel-postgres'
-import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
+import {
+  SNAPSHOT_SCHEMA_VERSION,
+  assertReadableSchemaVersion,
+  type SnapshotPayloadT,
+} from '@/lib/kosztorys/snapshot-format'
 import type { DbExecutorT } from './get-db'
 
 // The single place that reads/writes the raw kosztorys_snapshots table (no Payload collection —
@@ -70,10 +74,11 @@ export async function getSnapshot(
   snapshotId: number,
 ): Promise<{ investmentId: number; payload: SnapshotPayloadT } | null> {
   const res = await db.execute(sql`
-    SELECT investment_id, payload FROM kosztorys_snapshots WHERE id = ${snapshotId}
+    SELECT investment_id, schema_version, payload FROM kosztorys_snapshots WHERE id = ${snapshotId}
   `)
   const row = res.rows[0]
   if (!row) return null
+  assertReadableSchemaVersion(Number(row.schema_version), 'snapshot')
   return { investmentId: Number(row.investment_id), payload: row.payload as SnapshotPayloadT }
 }
 

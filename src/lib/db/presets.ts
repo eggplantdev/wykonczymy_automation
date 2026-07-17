@@ -1,6 +1,10 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-vercel-postgres'
-import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
+import {
+  SNAPSHOT_SCHEMA_VERSION,
+  assertReadableSchemaVersion,
+  type SnapshotPayloadT,
+} from '@/lib/kosztorys/snapshot-format'
 import type { DbExecutorT } from './get-db'
 
 // The single place that reads/writes the raw kosztorys_presets table (no Payload collection —
@@ -77,10 +81,11 @@ export async function getPreset(
   presetId: number,
 ): Promise<{ payload: SnapshotPayloadT } | null> {
   const res = await db.execute(sql`
-    SELECT payload FROM kosztorys_presets WHERE id = ${presetId}
+    SELECT schema_version, payload FROM kosztorys_presets WHERE id = ${presetId}
   `)
   const row = res.rows[0]
   if (!row) return null
+  assertReadableSchemaVersion(Number(row.schema_version), 'preset')
   return { payload: row.payload as SnapshotPayloadT }
 }
 
