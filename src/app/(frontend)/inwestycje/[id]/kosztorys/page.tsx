@@ -46,7 +46,7 @@ export default async function InvestmentKosztorysPage({
       <p className="text-muted-foreground text-sm">
         Inwestycja <strong>{investment.name}</strong> nie ma jeszcze arkusza.
       </p>
-      <SheetButton investmentId={investmentId} investmentName={investment.name} hasSheet={false} />
+      <SheetButton investmentId={investmentId} hasSheet={false} />
     </div>
   )
 }

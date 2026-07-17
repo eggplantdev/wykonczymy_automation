@@ -82,11 +82,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
     <PageWrapper title={investment.name}>
       <div className="flex flex-wrap items-center gap-2">
         <EditInvestmentDialog investment={investment} />
-        <SheetButton
-          investmentId={investmentId}
-          investmentName={investment.name}
-          hasSheet={investment.hasSheet}
-        />
+        <SheetButton investmentId={investmentId} hasSheet={investment.hasSheet} />
         <OpenKosztorysV2Button investmentId={investmentId} />
       </div>
       <InfoList items={infoFields.filter((f) => f.value)} />

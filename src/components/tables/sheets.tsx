@@ -127,7 +127,6 @@ export function getInvestmentWithoutSheetColumns() {
         return (
           <SheetSetupDialog
             investmentId={row.investmentId}
-            investmentName={row.name}
             trigger={
               <Button size="sm" variant="outline">
                 Dodaj kosztorys
