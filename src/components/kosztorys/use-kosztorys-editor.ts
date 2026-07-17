@@ -20,7 +20,12 @@ import { useElementHeight } from '@/hooks/use-element-height'
 import { toastMessage } from '@/lib/utils/toast'
 import { buildV2Grid } from '@/components/kosztorys/kosztorys-v2-columns'
 import { type V2SortStateT } from '@/components/kosztorys/kosztorys-v2-column-opts'
-import { diffRow, treeToRows } from '@/lib/kosztorys/v2-rows'
+import {
+  diffRow,
+  inverseGlobalCoeffPatch,
+  inverseSectionCoeffPatch,
+  treeToRows,
+} from '@/lib/kosztorys/v2-rows'
 import {
   applyAddItem,
   applyInsertItem,
@@ -624,17 +629,28 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     }
   }
 
+  // The name is denormalized on every row of the section — patch them all (rows + prevById) and
+  // persist. Extracted so an undo/redo can re-run it with the before/after name (unlike a grid cell,
+  // the rename fires the action directly, not via the debounced saver — nothing to cancel on undo).
+  function applySectionRename(sectionId: number, name: string) {
+    patchRows(
+      (r) => r.sectionId === sectionId,
+      (r) => ({ ...r, sectionName: name }),
+    )
+    void updateSectionFieldAction(sectionId, { name })
+  }
+
   function handleRenameSection(sectionId: number, name: string) {
     // Skip a no-op write: the cell's onBlur fires on every focus-out, so bail when the name is
     // unchanged (the Sekcja cell has no diff of its own, like handleRenameStage for etap labels).
-    const current = rowsRef.current.find((r) => r.sectionId === sectionId)?.sectionName ?? ''
-    if (current === name) return
-    // The name is denormalized on every row of the section — overwrite them all locally.
-    setRows((rs) => rs.map((r) => (r.sectionId === sectionId ? { ...r, sectionName: name } : r)))
-    for (const [id, r] of prevById.current) {
-      if (r.sectionId === sectionId) prevById.current.set(id, { ...r, sectionName: name })
-    }
-    void updateSectionFieldAction(sectionId, { name })
+    const before = rowsRef.current.find((r) => r.sectionId === sectionId)?.sectionName
+    if (before === undefined || before === name) return
+    applySectionRename(sectionId, name)
+    pushCommand({
+      label: 'Zmiana nazwy sekcji',
+      undo: () => applySectionRename(sectionId, before),
+      redo: () => applySectionRename(sectionId, name),
+    })
   }
 
   // Optimistic patch of a denormalized field on the matching rows + prevById (like
@@ -672,9 +688,10 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     toastMessage(res.error ?? errorMessage, 'warning', 4000)
   }
 
-  // Changing the global coefficient recomputes the derived prices of all non-overridden
-  // items. Optimistic patch on the rows + a refresh for the panel (which reads from `tree`).
-  async function handleGlobalCoeffChange(patch: { wToolsCoeff?: number; ownToolsCoeff?: number }) {
+  // Changing the global coefficient recomputes the derived prices of all non-overridden items.
+  // Optimistic patch on the rows + a refresh for the panel (which reads from `tree`). Extracted so
+  // undo/redo can re-run it with a before/after patch of the same keys.
+  async function applyGlobalCoeff(patch: { wToolsCoeff?: number; ownToolsCoeff?: number }) {
     // patchRows builds fresh row objects, so `sample` still holds the pre-patch coefficients for the
     // revert. Only the coefficients present in `patch` map to their denormalized row fields.
     const sample = rowsRef.current[0]
@@ -703,11 +720,21 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     )
   }
 
+  async function handleGlobalCoeffChange(patch: { wToolsCoeff?: number; ownToolsCoeff?: number }) {
+    const before = inverseGlobalCoeffPatch(patch, rowsRef.current[0])
+    await applyGlobalCoeff(patch)
+    pushCommand({
+      label: 'Zmiana współczynnika',
+      undo: () => applyGlobalCoeff(before),
+      redo: () => applyGlobalCoeff(patch),
+    })
+  }
+
   // Changing the per-investment VAT rate recomputes every brutto figure. vatRate is denormalized
   // on every row, so patch them all optimistically (router.refresh alone won't reseed `rows` — the
   // useState initializer runs once at mount); then persist + refresh for the panel. `vatRate` is a
   // fraction (0.08), converted from the panel's percent input at the commit site.
-  async function handleVatChange(vatRate: number) {
+  async function applyVat(vatRate: number) {
     const prevVatRate = rowsRef.current[0]?.vatRate
     patchRows(
       () => true,
@@ -726,6 +753,18 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       },
       'Nie udało się zapisać stawki VAT',
     )
+  }
+
+  async function handleVatChange(vatRate: number) {
+    const before = rowsRef.current[0]?.vatRate ?? tree.vatRate
+    await applyVat(vatRate)
+    if (before !== vatRate) {
+      pushCommand({
+        label: 'Zmiana stawki VAT',
+        undo: () => applyVat(before),
+        redo: () => applyVat(vatRate),
+      })
+    }
   }
 
   // Setting/clearing the global discount flips per-item rabat on or off for every row. Update the
@@ -758,7 +797,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   }
 
   // Section coefficient (null = inherits the global) — patch only the rows of that section.
-  async function handleSectionCoeffChange(
+  async function applySectionCoeff(
     sectionId: number,
     patch: { wToolsCoeff?: number | null; ownToolsCoeff?: number | null },
   ) {
@@ -785,6 +824,20 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       },
       'Nie udało się zapisać współczynnika sekcji',
     )
+  }
+
+  async function handleSectionCoeffChange(
+    sectionId: number,
+    patch: { wToolsCoeff?: number | null; ownToolsCoeff?: number | null },
+  ) {
+    const sample = rowsRef.current.find((r) => r.sectionId === sectionId)
+    const before = inverseSectionCoeffPatch(patch, sample)
+    await applySectionCoeff(sectionId, patch)
+    pushCommand({
+      label: 'Zmiana współczynnika sekcji',
+      undo: () => applySectionCoeff(sectionId, before),
+      redo: () => applySectionCoeff(sectionId, patch),
+    })
   }
 
   function onChange(next: KosztorysV2RowT[]) {

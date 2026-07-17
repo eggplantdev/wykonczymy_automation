@@ -385,17 +385,17 @@ None. No schema, no migration, no data.
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `pnpm exec tsc --noEmit`
-- [x] 1.2 Linting passes: `pnpm lint`
-- [x] 1.3 Ported unit suites pass (use-undo-redo + undo-coalesce)
+- [x] 1.1 Type checking passes: `pnpm exec tsc --noEmit` — 88504da
+- [x] 1.2 Linting passes: `pnpm lint` — 88504da
+- [x] 1.3 Ported unit suites pass (use-undo-redo + undo-coalesce) — 88504da
 
 ### Phase 2: Panel-edit commands (rename / VAT / coefficients)
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `pnpm exec tsc --noEmit`
-- [ ] 2.2 Linting passes: `pnpm lint`
-- [ ] 2.3 Ported inverse-coeff unit suite passes
+- [x] 2.1 Type checking passes: `pnpm exec tsc --noEmit`
+- [x] 2.2 Linting passes: `pnpm lint`
+- [x] 2.3 Ported inverse-coeff unit suite passes
 
 ### Phase 3: S-06 idle-snapshot dirty-flag gate
 
