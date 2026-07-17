@@ -12,6 +12,7 @@ import {
   NEW_SECTION_DEFAULTS,
 } from '@/lib/kosztorys/constants'
 import type { ActionResultT } from '@/types/action'
+import type { PayloadRequest } from 'payload'
 import type { ItemPatchT } from '@/types/kosztorys'
 
 // --- Patch schemas (all fields optional — autosave sends one field at a time) ---
@@ -290,25 +291,41 @@ export async function insertItemAction(
       `)
       const investmentId = owner.rows[0]?.investment_id
       if (investmentId == null) return { success: false, error: 'Sekcja nie istnieje.' }
-      await db.execute(sql`
-        UPDATE kosztorys_items SET display_order = display_order + 1
-        WHERE section_id = ${parsed.data.sectionId} AND display_order >= ${parsed.data.atDisplayOrder}
-      `)
-      const created = await payload.create({
-        collection: 'kosztorys-items',
-        data: {
-          investment: Number(investmentId),
-          section: parsed.data.sectionId,
-          displayOrder: parsed.data.atDisplayOrder,
-          description: DEFAULT_ITEM_DESCRIPTION,
-          unit: DEFAULT_UNIT,
-          plannedQty: 0,
-          discountValue: 0,
-          clientPrice: 0,
-          hiddenInExport: false,
-        },
-      })
-      return { success: true, data: { id: created.id, displayOrder: parsed.data.atDisplayOrder } }
+      // Shift + create must be atomic: a double-fired insert at the same index could otherwise
+      // interleave and land two rows on one display_order (EX-464).
+      const tx = await payload.db.beginTransaction()
+      if (!tx) return { success: false, error: 'Nie udało się rozpocząć transakcji.' }
+      const req = {
+        transactionID: tx,
+        context: { skipRevalidation: true },
+      } as unknown as PayloadRequest
+      try {
+        const txDb = await getDb(payload, req)
+        await txDb.execute(sql`
+          UPDATE kosztorys_items SET display_order = display_order + 1
+          WHERE section_id = ${parsed.data.sectionId} AND display_order >= ${parsed.data.atDisplayOrder}
+        `)
+        const created = await payload.create({
+          collection: 'kosztorys-items',
+          req,
+          data: {
+            investment: Number(investmentId),
+            section: parsed.data.sectionId,
+            displayOrder: parsed.data.atDisplayOrder,
+            description: DEFAULT_ITEM_DESCRIPTION,
+            unit: DEFAULT_UNIT,
+            plannedQty: 0,
+            discountValue: 0,
+            clientPrice: 0,
+            hiddenInExport: false,
+          },
+        })
+        await payload.db.commitTransaction(tx)
+        return { success: true, data: { id: created.id, displayOrder: parsed.data.atDisplayOrder } }
+      } catch (error) {
+        await payload.db.rollbackTransaction(tx)
+        throw error
+      }
     },
     ['kosztorysItems'],
   )
