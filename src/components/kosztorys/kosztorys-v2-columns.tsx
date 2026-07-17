@@ -464,8 +464,8 @@ export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2Row
   return selectV2Columns(assembleV2Columns(opts), opts)
 }
 
-// The grid + its picker in one assembly pass — assembleV2Columns is the O(columns·stages) build, and
-// running it twice per render (once per export) was pure waste.
+// The grid + its picker in one assembly pass — assembleV2Columns is the O(columns·stages) build, so
+// it runs once and returns both instead of once per export.
 export function buildV2Grid(opts: BuildV2ColumnsOptsT): {
   columns: Column<KosztorysV2RowT>[]
   columnToggleItems: ColumnToggleItemT[]

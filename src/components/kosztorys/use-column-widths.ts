@@ -29,8 +29,8 @@ export function useColumnWidths(): {
 
   // A stage column's id is derived from its DB id, which Postgres can hand out again after the stage
   // is deleted — so a leftover entry would silently pin a brand-new stage to the dead one's width.
-  // Called when a stage goes away. Variadic so a stage's several columns (ilość + kwota netto +
-  // brutto + %) drop in one write instead of one re-render each.
+  // Variadic so a stage's several columns (ilość + kwota netto + brutto + %) drop in one write
+  // instead of one re-render each.
   function dropWidth(...ids: string[]) {
     store.update((prev) => dropKeys(prev, ids))
   }
