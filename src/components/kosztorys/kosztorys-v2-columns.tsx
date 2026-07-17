@@ -458,17 +458,14 @@ function selectV2ToggleItems(
   return items
 }
 
+// Columns-only assemble — the grid path goes through buildV2Grid; kept for the column-set unit specs
+// (money-axis / layer), which assert which ids survive a predicate without the picker.
 export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[] {
   return selectV2Columns(assembleV2Columns(opts), opts)
 }
 
-export function buildV2ToggleItems(opts: BuildV2ColumnsOptsT): ColumnToggleItemT[] {
-  return selectV2ToggleItems(assembleV2Columns(opts), opts)
-}
-
 // The grid + its picker in one assembly pass — assembleV2Columns is the O(columns·stages) build, and
-// running it twice per render (once per export) was pure waste. Callers that need only one still use
-// the single-purpose exports above.
+// running it twice per render (once per export) was pure waste.
 export function buildV2Grid(opts: BuildV2ColumnsOptsT): {
   columns: Column<KosztorysV2RowT>[]
   columnToggleItems: ColumnToggleItemT[]
