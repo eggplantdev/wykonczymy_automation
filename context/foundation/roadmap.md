@@ -161,7 +161,7 @@ Bands: **editor parity S-01–S-10** (active) → **import/export S-11–S-12** 
 | S-03 | kosztorys-stages                | manage stages (etapy) and record per-item, per-stage progress                           | S-01               | FR-004                        | in review | —          |
 | S-04 | kosztorys-subcontractor-pricing | price subcontractor work via markup coefficient + per-item override                     | S-01, S-02         | — (POC)                       | done      | —          |
 | S-05 | kosztorys-vat                   | set VAT per investment; enter net, compute gross                                        | S-01               | — (POC)                       | done      | yes        |
-| S-06 | kosztorys-snapshots             | save + restore point-in-time versions of a kosztorys (durable net)                      | S-01               | — (owner request)             | in review | yes        |
+| S-06 | kosztorys-snapshots             | save + restore point-in-time versions of a kosztorys (durable net)                      | S-01               | — (owner request)             | done      | yes        |
 | S-07 | kosztorys-undo                  | fast in-session undo/redo of the last editor edit(s)                                    | S-01               | — (owner request)             | proposed  | yes        |
 | S-08 | kosztorys-delete-guard          | confirm-then-snapshot when deleting a populated row / section / stage / column (EX-477) | S-01               | — (owner request)             | done      | yes        |
 | S-09 | kosztorys-preset                | seed from a preset; save as preset (autocomplete carved out → EX-434)                   | S-01               | (owner request)               | done      | yes        |
@@ -330,7 +330,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - **Auto-snapshot cost:** serialising a 1000+ row tree on every cascade delete — is it cheap enough inline, or does it need to be deferred?
   - **Access:** who can restore (MANAGEMENT_ROLES) and does a restore itself get snapshotted (so a mistaken restore is also recoverable)?
 - **Risk:** Additive `kosztorys_snapshots` table + a restore path — the restore is the only dangerous write (it deletes the live tree). Guardrail: restore must be transactional and additive-only to the kosztorys tables — it must not touch transfers / balances / marża (FR-015). Risk: an under-captured payload restores a _partial_ tree; a snapshot is only trustworthy if its payload is complete. **Owner note: snapshots should be the easy slice** — keep restore dead-simple (wipe + rewrite), resist scope creep into diffing or partial restore.
-- **Status:** in review — implemented on `main` (change.md `implemented`, 2026-07-10). Not `done` until the manual checks (context/foundation/manual-checks.md § S-06) pass and the E2E (4.3) lands via `/10x-e2e`; `CRON_SECRET` + prod migration are deploy-time gates.
+- **Status:** done (EX-418 closed 2026-07-17). Implemented on `main` (change.md `implemented`, 2026-07-10). Deferred E2E → EX-428 (`e2e-backlog`); `CRON_SECRET` deploy gate → EX-429; both orthogonal to slice completion.
 
 ### S-07: Fast undo / redo (in-session)
 
