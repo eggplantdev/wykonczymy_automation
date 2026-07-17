@@ -5,7 +5,7 @@ import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react'
 import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils/cn'
 import { HeaderMenu } from '@/components/kosztorys/header-menu'
-import type { SortDirT } from '@/lib/kosztorys/v2-rows'
+import type { SortDirT } from '@/lib/kosztorys/row-view'
 
 type PropsT = {
   label: string

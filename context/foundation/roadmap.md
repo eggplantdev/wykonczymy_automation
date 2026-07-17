@@ -95,8 +95,8 @@ top_blocker: none
 
 > **Split S-08 + inserted RBAC slice (2026-07-10, owner).** The old S-08 `kosztorys-column-locking`
 > conflated two unrelated concerns; the owner split them. (1) The easy edit-safety guard stays at
-> **S-08**, redefined as **`kosztorys-delete-guard`** — hard-block deleting a _populated_ row / section /
-> stage / column (generalises the existing "delete a stage with recorded progress = blocked" rule).
+> **S-08**, redefined as **`kosztorys-delete-guard`** — originally hard-block deleting a _populated_ row /
+> section / stage / column, **reversed by EX-477 (2026-07-17) to confirm-then-snapshot** (see S-08 below).
 > (2) The hard, security-shaped concern — **role-based column AND row visibility** (hide subcontractor
 > cost/margin price views, and whole sections/items, from MANAGER; OWNER/ADMIN only) — becomes a new
 > **S-10 `kosztorys-column-rbac`**, placed last in the editor band, before import/export. Inserting it
@@ -152,26 +152,26 @@ One row per F-NN / S-NN — the index and the backlog handoff in one place. **Pl
 
 Bands: **editor parity S-01–S-10** (active) → **import/export S-11–S-12** → **testing + hardening S-13–S-15** → **cutover S-16**.
 
-| ID   | Change ID                       | Outcome (user can …)                                                                   | Prerequisites      | PRD refs                      | Status    | Plan-ready |
-| ---- | ------------------------------- | -------------------------------------------------------------------------------------- | ------------------ | ----------------------------- | --------- | ---------- |
-| F-01 | e2e-harness                     | (foundation) Playwright E2E harness, CI-runnable, isolated DB                          | —                  | FR-011                        | ready     | yes        |
-| O-01 | sentry-observability            | capture prod errors + tracing + session replay in Sentry (standalone infra)            | —                  | — (owner request)             | proposed  | yes        |
-| S-01 | kosztorys-sections-items        | author kosztorys sections + items in-app with live totals                              | —                  | FR-001, FR-002, FR-007, US-01 | in review | —          |
-| S-02 | kosztorys-price-models          | record three price models per item and toggle the pricing view                         | S-01               | FR-003                        | done      | —          |
-| S-03 | kosztorys-stages                | manage stages (etapy) and record per-item, per-stage progress                          | S-01               | FR-004                        | in review | —          |
-| S-04 | kosztorys-subcontractor-pricing | price subcontractor work via markup coefficient + per-item override                    | S-01, S-02         | — (POC)                       | done      | —          |
-| S-05 | kosztorys-vat                   | set VAT per investment; enter net, compute gross                                       | S-01               | — (POC)                       | done      | yes        |
-| S-06 | kosztorys-snapshots             | save + restore point-in-time versions of a kosztorys (durable net)                     | S-01               | — (owner request)             | in review | yes        |
-| S-07 | kosztorys-undo                  | fast in-session undo/redo of the last editor edit(s)                                   | S-01               | — (owner request)             | proposed  | yes        |
-| S-08 | kosztorys-delete-guard          | hit a hard block when deleting a populated row / section / stage / column              | S-01               | — (owner request)             | in review | yes        |
-| S-09 | kosztorys-preset                | seed from a preset; save as preset (autocomplete carved out → EX-434)                  | S-01               | (owner request)               | done      | yes        |
-| S-10 | kosztorys-column-rbac           | restrict sensitive columns + rows (subcontractor cost/margin; sections) to OWNER/ADMIN | S-01, S-02, S-04   | — (POC P10)                   | proposed  | yes        |
-| S-11 | kosztorys-export                | CSV-export the kosztorys (WYSIWYG snapshot; no print/PDF)                              | S-01               | FR-008                        | deferred  | —          |
-| S-12 | kosztorys-importer              | import an existing sheet kosztorys into the app                                        | S-01 (full parity) | FR-010, FR-016                | deferred  | —          |
-| S-13 | editor-e2e-coverage             | (gate) rely on automated E2E over the editor before release                            | F-01, S-01…S-12    | FR-013                        | deferred  | —          |
-| S-14 | financial-core-smoke            | trust an automated smoke that transfers update balances/figures                        | F-01               | FR-012, FR-011, FR-015, US-02 | deferred  | —          |
-| S-15 | kosztorys-hardening             | quality / perf / a11y hardening pass before cutover                                    | S-13               | — (POC)                       | deferred  | —          |
-| S-16 | new-investment-no-sheet         | create a new investment with no Google Sheet, kosztorys app-only                       | S-13, S-15         | FR-009, FR-014, FR-016, US-01 | deferred  | —          |
+| ID   | Change ID                       | Outcome (user can …)                                                                    | Prerequisites      | PRD refs                      | Status    | Plan-ready |
+| ---- | ------------------------------- | --------------------------------------------------------------------------------------- | ------------------ | ----------------------------- | --------- | ---------- |
+| F-01 | e2e-harness                     | (foundation) Playwright E2E harness, CI-runnable, isolated DB                           | —                  | FR-011                        | ready     | yes        |
+| O-01 | sentry-observability            | capture prod errors + tracing + session replay in Sentry (standalone infra)             | —                  | — (owner request)             | proposed  | yes        |
+| S-01 | kosztorys-sections-items        | author kosztorys sections + items in-app with live totals                               | —                  | FR-001, FR-002, FR-007, US-01 | in review | —          |
+| S-02 | kosztorys-price-models          | record three price models per item and toggle the pricing view                          | S-01               | FR-003                        | done      | —          |
+| S-03 | kosztorys-stages                | manage stages (etapy) and record per-item, per-stage progress                           | S-01               | FR-004                        | in review | —          |
+| S-04 | kosztorys-subcontractor-pricing | price subcontractor work via markup coefficient + per-item override                     | S-01, S-02         | — (POC)                       | done      | —          |
+| S-05 | kosztorys-vat                   | set VAT per investment; enter net, compute gross                                        | S-01               | — (POC)                       | done      | yes        |
+| S-06 | kosztorys-snapshots             | save + restore point-in-time versions of a kosztorys (durable net)                      | S-01               | — (owner request)             | in review | yes        |
+| S-07 | kosztorys-undo                  | fast in-session undo/redo of the last editor edit(s)                                    | S-01               | — (owner request)             | proposed  | yes        |
+| S-08 | kosztorys-delete-guard          | confirm-then-snapshot when deleting a populated row / section / stage / column (EX-477) | S-01               | — (owner request)             | done      | yes        |
+| S-09 | kosztorys-preset                | seed from a preset; save as preset (autocomplete carved out → EX-434)                   | S-01               | (owner request)               | done      | yes        |
+| S-10 | kosztorys-column-rbac           | restrict sensitive columns + rows (subcontractor cost/margin; sections) to OWNER/ADMIN  | S-01, S-02, S-04   | — (POC P10)                   | proposed  | yes        |
+| S-11 | kosztorys-export                | CSV-export the kosztorys (WYSIWYG snapshot; no print/PDF)                               | S-01               | FR-008                        | deferred  | —          |
+| S-12 | kosztorys-importer              | import an existing sheet kosztorys into the app                                         | S-01 (full parity) | FR-010, FR-016                | deferred  | —          |
+| S-13 | editor-e2e-coverage             | (gate) rely on automated E2E over the editor before release                             | F-01, S-01…S-12    | FR-013                        | deferred  | —          |
+| S-14 | financial-core-smoke            | trust an automated smoke that transfers update balances/figures                         | F-01               | FR-012, FR-011, FR-015, US-02 | deferred  | —          |
+| S-15 | kosztorys-hardening             | quality / perf / a11y hardening pass before cutover                                     | S-13               | — (POC)                       | deferred  | —          |
+| S-16 | new-investment-no-sheet         | create a new investment with no Google Sheet, kosztorys app-only                        | S-13, S-15         | FR-009, FR-014, FR-016, US-01 | deferred  | —          |
 
 **Cut / folded (unnumbered):** `kosztorys-rooms` — CUT (pokoje out of scope, 2026-07-08). `kosztorys-catalogue` — FOLDED into S-09 (2026-07-09), then the autocomplete carved back out as `kosztorys-item-autocomplete` — DEFERRED, unsequenced (owner still deciding, 2026-07-11). See [Cut & folded slices](#cut--folded-slices).
 
@@ -345,7 +345,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Scope (owner leans B = also undo single-row add/delete), but ship-and-test order:** snapshots (S-06) ship **first**; then evaluate whether "restore a version" already covers the delete case in practice. If yes, S-07 can land at the simpler **cell-edit + reorder** scope and defer single-row delete-undo; if not, build the full identity-map version. Cell edits + stage progress + reorder are in scope either way (cheap, ids stable).
 - **Problems to solve at plan time (the hard ones — flag loudly):**
   - **The cascade cases — section-delete / stage-delete.** These FK-cascade a whole subtree (all items + `stage_progress` of that stage/section). Undoing one means recreating the entire deleted set with fresh ids and re-pointing children — genuinely hard. **Decision from the design discussion: undo does NOT reconstruct a cascade delete — it is handed to S-06's auto-snapshot** (taken right before the delete). Plan must define what a cascade delete does to the undo stack (drop those commands / mark unrecoverable-by-undo) and how the UI signals "use restore for that."
-  - **Column delete** (stage-as-column work; gated by S-08 delete-guard): deleting a populated stage column is the same cascade class — same snapshot hand-off.
+  - **Column delete** (stage-as-column work; confirm-gated per S-08/EX-477): deleting a populated stage column is the same cascade class — same pre-delete snapshot hand-off.
   - **The one discipline:** nothing in the stack may cache a raw DB id — always the `uid`, resolved through the map at execution time. A single raw-id command dangles on recreate and reintroduces stack-clearing.
   - **Redo invalidation:** a fresh edit clears the redo stack (standard). Confirm interaction with the debounced saver (an undo must reconcile with / cancel any in-flight save for the same field, not race it).
   - **Stack depth cap** (~N) so memory stays bounded on a long session.
@@ -354,18 +354,27 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Risk:** Autosave is per-field/optimistic/debounced (POC), so undo reconciles with **persisted** state, not just local grid state — every undo is an inverse server write. Risk: scope creep into a full command stack that tries to reverse cascades; keep cascades on snapshots. Test priority #2 (formulas #1) per the POC braindump.
 - **Status:** proposed
 
-### S-08: Delete-guard for populated rows / sections / stages / columns
+### S-08: Confirm-gated delete for populated rows / sections / stages / columns
 
-- **Outcome:** deleting a kosztorys row (item), a section, a stage, or a stage-column that **still holds values** is **hard-blocked** — the user must clear the values first. Generalises the editor's existing "delete a stage with recorded progress = blocked (clear first)" rule to every destructive delete in the grid.
-- **Change ID:** kosztorys-delete-guard
-- **PRD refs:** — (owner request, 2026-07-10)
+> **Policy reversed by EX-477 (2026-07-17, owner).** The original "hard-block a populated delete,
+> clear the values first" rule was **too rigid** — the owner wants to delete a whole populated
+> section/item/stage in one move. New rule: a populated delete is **allowed behind a confirmation
+> dialog**, and every destructive delete that can take child data with it (item, section, stage/column)
+> takes an **auto snapshot right before deleting** (`captureAutoSnapshot`), so it is recoverable via
+> S-06 restore. The server actions no longer reject a populated delete; the client owns the confirm.
+> The empty-sheet floor (a kosztorys keeps ≥1 item) is the one remaining hard block.
+> Change doc: `context/changes/kosztorys-delete-confirm/`.
+
+- **Outcome:** deleting a kosztorys row (item), a section, a stage, or a stage-column that **holds recorded work** goes through a **confirm dialog**, then deletes after taking a pre-delete auto snapshot. No populated delete is hard-blocked anymore (only the last remaining item is).
+- **Change ID:** kosztorys-delete-guard (superseded by `kosztorys-delete-confirm` — EX-477)
+- **PRD refs:** — (owner request, 2026-07-10; policy reversed 2026-07-17)
 - **Prerequisites:** S-01
 - **Parallel with:** the other editor + export slices (S-02–S-07, S-09, S-10)
 - **Blockers:** —
-- **Scope (confirm the predicate at plan time):** what counts as "populated" per target — an **item** with any non-empty input (przedmiar / pomiar / price / rabat / stage progress); a **section** with ≥1 item; a **stage / stage-column** with any recorded `stage_progress` (the case already enforced). Complements the sheet's `addProtectedRange` model now that authoring moves in-app.
-- **Split note:** carved out of the old `kosztorys-column-locking` slice (2026-07-10); the role-based visibility half moved to **S-10 `kosztorys-column-rbac`**.
-- **Risk:** the guard must reject the delete **server-side** in the delete actions (`removeItemAction` / section / stage removal), not merely hide/disable the trash affordance — a client-only block is bypassable and races autosave. Risk: a too-aggressive predicate blocks legitimate cleanup; keep "populated" tight and give a clear "clear values first" message.
-- **Status:** in review
+- **Scope:** the confirm-and-snapshot flow covers an **item** (`RowActionsMenu`), a **section** (`SectionSummary`, cascades its items + `stage_progress`), and a **stage/column** (`StageHeader`, cascades its `stage_progress`). "Populated" = the row/subtree holds recorded `stage_progress` — that is the only work a delete destroys and the only case that pops the confirm; a plan-only row deletes without a prompt.
+- **Split note:** carved out of the old `kosztorys-column-locking` slice (2026-07-10); the role-based visibility half moved to **S-10 `kosztorys-column-rbac`**. The hard-block half then reversed to confirm-gated (EX-477).
+- **Risk:** the snapshot must be taken **inside the server action, before** the cascade delete — a client-only snapshot races autosave and misses the pre-delete state. The confirm is client-side UX; recoverability is the server's job.
+- **Status:** done (EX-477)
 
 ### S-09: Kosztorys presets (templates)
 

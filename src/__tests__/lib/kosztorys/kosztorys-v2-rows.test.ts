@@ -1,28 +1,24 @@
 import { describe, expect, it } from 'vitest'
+import { treeToRows, diffRow } from '@/lib/kosztorys/v2-rows'
+import { filterRows, sortRows } from '@/lib/kosztorys/row-view'
 import {
-  treeToRows,
-  diffRow,
-  stageKey,
-  filterRows,
-  sortRows,
   rowTotalQtyDone,
   rowValueForView,
   rowRemainingForView,
   hasStagesOverPlanned,
   sectionSubtotalsForView,
-  revertField,
-  planItemRemoval,
-  REMOVE_BLOCK_LAST_ITEM,
-  REMOVE_BLOCK_POPULATED,
-} from '@/lib/kosztorys/v2-rows'
+} from '@/lib/kosztorys/settlement'
+import { applyRestoreItem, revertField } from '@/lib/kosztorys/row-ops'
+import { planItemRemoval, REMOVE_BLOCK_LAST_ITEM } from '@/lib/kosztorys/delete-policy'
 import { rowDoneFraction } from '@/lib/kosztorys/calc'
 import {
   STAGE_QTY_PREFIX,
   STAGE_VALUE_GROSS_COLUMN_GROUP,
   STAGE_VALUE_NET_COLUMN_GROUP,
+  stageKey,
   stageValueGrossKey,
   stageValueNetKey,
-} from '@/lib/kosztorys/constants'
+} from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysTreeT, KosztorysV2RowT } from '@/types/kosztorys'
 
 const baseItem = {
@@ -416,14 +412,20 @@ describe('planItemRemoval', () => {
   const row = (id: number, sectionId: number, over: Partial<KosztorysV2RowT> = {}) =>
     ({ id, sectionId, [stageKey(100)]: 0, ...over }) as unknown as KosztorysV2RowT
 
-  it('środek sekcji (sekcja ma >1 pozycję) → usuń pozycję', () => {
+  it('środek sekcji (sekcja ma >1 pozycję) → usuń pozycję, bez potwierdzenia', () => {
     const rows = [row(1, 10), row(2, 10), row(3, 20)]
-    expect(planItemRemoval(rows, rows[0], stages)).toEqual({ kind: 'remove-item' })
+    expect(planItemRemoval(rows, rows[0], stages)).toEqual({
+      kind: 'remove-item',
+      requiresConfirm: false,
+    })
   })
 
-  it('ostatnia pozycja sekcji (są inne sekcje) → kaskadowo usuń sekcję', () => {
+  it('ostatnia pozycja sekcji (są inne sekcje) → kaskadowo usuń sekcję, bez potwierdzenia', () => {
     const rows = [row(1, 10), row(2, 20)]
-    expect(planItemRemoval(rows, rows[1], stages)).toEqual({ kind: 'cascade-section' })
+    expect(planItemRemoval(rows, rows[1], stages)).toEqual({
+      kind: 'cascade-section',
+      requiresConfirm: false,
+    })
   })
 
   it('ostatni wiersz całego kosztorysu → zablokowane (próg pustego arkusza)', () => {
@@ -434,11 +436,11 @@ describe('planItemRemoval', () => {
     })
   })
 
-  it('wiersz z postępem etapu → zablokowane', () => {
+  it('wiersz z postępem etapu → usuwalny, ale wymaga potwierdzenia', () => {
     const rows = [row(1, 10, { [stageKey(100)]: 2 }), row(2, 20)]
     expect(planItemRemoval(rows, rows[0], stages)).toEqual({
-      kind: 'blocked',
-      reason: REMOVE_BLOCK_POPULATED,
+      kind: 'cascade-section',
+      requiresConfirm: true,
     })
   })
 
@@ -471,5 +473,32 @@ describe('revertField', () => {
   it('nie rusza wierszy o innym id', () => {
     const out = revertField(rows, 99, 'plannedQty', 0, 8)
     expect(out).toEqual(rows)
+  })
+})
+
+describe('applyRestoreItem — reinsert a removed row after a failed delete', () => {
+  const row = (id: number) => ({ id }) as KosztorysV2RowT
+
+  it('wstawia usunięty wiersz z powrotem za sąsiada, którego wcześniej następował', () => {
+    const removed = row(2)
+    const after = applyRestoreItem([row(1), row(3), row(4)], removed, 1)
+    expect(after.map((r) => r.id)).toEqual([1, 2, 3, 4])
+  })
+
+  it('wstawia na początek, gdy wiersz był pierwszy (afterId === null)', () => {
+    const after = applyRestoreItem([row(2), row(3)], row(1), null)
+    expect(after.map((r) => r.id)).toEqual([1, 2, 3])
+  })
+
+  it('trafia we właściwe miejsce mimo współbieżnej edycji podczas await', () => {
+    // Row 2 was removed after row 1; while the delete was in flight the user inserted row 9 at the
+    // front. A stale absolute index would misplace 2 — anchoring on afterId=1 keeps it correct.
+    const after = applyRestoreItem([row(9), row(1), row(3)], row(2), 1)
+    expect(after.map((r) => r.id)).toEqual([9, 1, 2, 3])
+  })
+
+  it('dokleja na koniec, gdy sąsiad zniknął w międzyczasie', () => {
+    const after = applyRestoreItem([row(3), row(4)], row(2), 1)
+    expect(after.map((r) => r.id)).toEqual([3, 4, 2])
   })
 })

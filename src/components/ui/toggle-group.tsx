@@ -51,7 +51,7 @@ export function ToggleGroup<T extends string>({
           value={option.value}
           aria-label={option.icon ? option.label : undefined}
           title={option.icon ? option.label : undefined}
-          className="focus-visible:ring-ring/50 text-muted-foreground hover:text-foreground data-[state=on]:text-primary-foreground relative z-10 flex h-full cursor-pointer items-center justify-center rounded-sm px-3 text-xs font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-[3px]"
+          className="focus-visible:ring-ring/50 text-muted-foreground hover:text-foreground data-[state=on]:text-primary-foreground relative z-10 flex h-full cursor-pointer items-center justify-center rounded-sm px-3 text-xs font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-3"
         >
           {option.icon ?? option.label}
         </ToggleGroupPrimitive.Item>

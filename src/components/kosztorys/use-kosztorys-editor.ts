@@ -11,38 +11,39 @@ import { usePriceView } from '@/components/kosztorys/use-price-view'
 import { useProgressDisplay } from '@/components/kosztorys/use-progress-display'
 import { useElementHeight } from '@/hooks/use-element-height'
 import { toastMessage } from '@/lib/utils/toast'
-import {
-  buildV2Columns,
-  buildV2ToggleItems,
-  type V2SortStateT,
-} from '@/lib/tables/kosztorys-v2-columns'
+import { buildV2Grid } from '@/components/kosztorys/kosztorys-v2-columns'
+import { type V2SortStateT } from '@/components/kosztorys/kosztorys-v2-column-opts'
+import { diffRow, treeToRows } from '@/lib/kosztorys/v2-rows'
 import {
   applyAddItem,
   applyInsertItem,
   applyRemoveItem,
+  applyRestoreItem,
   buildBlankRow,
-  diffRow,
-  filterRows,
   insertDisplayOrder,
-  isSectionPopulated,
-  planItemRemoval,
   revertField,
+  sectionNeighbor,
+  swapItemInSection,
+} from '@/lib/kosztorys/row-ops'
+import {
+  planItemRemoval,
+  planItemRemovalFromCounts,
+  sectionItemCounts,
+  type ItemRemovalPlanT,
+} from '@/lib/kosztorys/delete-policy'
+import {
   rowRemainingForView,
   rowValueForView,
-  sectionNeighbor,
   sectionSubtotalsForView,
-  sortRows,
-  stageKey,
-  swapItemInSection,
-  treeToRows,
-  type SortDirT,
-} from '@/lib/kosztorys/v2-rows'
+} from '@/lib/kosztorys/settlement'
+import { filterRows, sortRows, type SortDirT } from '@/lib/kosztorys/row-view'
+import { NEW_SECTION_DEFAULTS } from '@/lib/kosztorys/constants'
 import {
-  NEW_SECTION_DEFAULTS,
+  stageKey,
   stageValueGrossKey,
   stageValueNetKey,
   stageValuePercentKey,
-} from '@/lib/kosztorys/constants'
+} from '@/lib/kosztorys/stage-keys'
 import {
   globalDiscountAmount,
   isGlobalDiscountActive,
@@ -152,6 +153,9 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     setSort(dir ? { field, dir } : null)
   }
 
+  // One O(n) pass feeding the render-hot getRemovePlan (see below) an O(1) per-row lookup.
+  const removalCounts = sectionItemCounts(rows)
+
   // onRemoveItem/onReorderItem read prevById.current / rowsRef.current — stable refs —
   // only from a cell's onClick, never during render, so passing them here is safe.
   const columnOpts = {
@@ -172,11 +176,10 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     onReorderItem: handleReorderItem,
     onInsertItem: handleInsertItem,
     onRenameSection: handleRenameSection,
-    getRemoveBlockReason,
+    getRemovePlan,
     globalDiscountActive,
   }
-  const columns = buildV2Columns(columnOpts)
-  const columnToggleItems = buildV2ToggleItems(columnOpts)
+  const { columns, columnToggleItems } = buildV2Grid(columnOpts)
   const widthsKey = JSON.stringify(widths)
   const stagesKey = stages.map((s) => s.id).join(',')
 
@@ -295,16 +298,22 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     setRows((rs) => applyInsertItem(rs, anchorRow.id, row, dir))
   }
 
-  // Why a row can't be deleted, or undefined if it can — read at cell-render time from the full
-  // dataset (prevById), not the view. Single source for both the disabled tooltip and the
-  // handler backstop below.
+  // What deleting a row does — read at event time from the full dataset (prevById), not the view,
+  // so the handler decides on accurate counts. The render-hot per-cell path uses getRemovePlan.
   function removalPlan(row: KosztorysV2RowT) {
     return planItemRemoval([...prevById.current.values()], row, stagesRef.current)
   }
 
-  function getRemoveBlockReason(row: KosztorysV2RowT): string | undefined {
-    const plan = removalPlan(row)
-    return plan.kind === 'blocked' ? plan.reason : undefined
+  // Render-hot: called per cell. Counts are precomputed once per render (removalCounts below), so this
+  // is O(1) per row — going through removalPlan (which spreads prevById and rescans per row) here would
+  // make the whole grid's per-row delete plan O(n²).
+  function getRemovePlan(row: KosztorysV2RowT): ItemRemovalPlanT {
+    return planItemRemovalFromCounts(
+      rows.length,
+      removalCounts.get(row.sectionId) ?? 0,
+      row,
+      stagesRef.current,
+    )
   }
 
   async function handleRemoveItem(row: KosztorysV2RowT) {
@@ -319,13 +328,18 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       await handleRemoveSection(row.sectionId)
       return
     }
+    const rowsAtRemoval = rowsRef.current
+    const removedAt = rowsAtRemoval.findIndex((r) => r.id === row.id)
+    const afterId = removedAt > 0 ? rowsAtRemoval[removedAt - 1].id : null
     prevById.current.delete(row.id)
     setRows((rs) => applyRemoveItem(rs, row.id))
     const res = await removeItemAction(row.id)
     if (!res.success) {
-      // Server rejected (client/server predicate drift) — restore the row and surface the block.
+      // Server rejected (client/server predicate drift) — restore the row after the neighbor it
+      // followed, resolved against the current rows so a concurrent edit during the await can't
+      // misplace it (applyAddItem would re-append it at the grid's end).
       prevById.current.set(row.id, row)
-      setRows((rs) => applyAddItem(rs, row))
+      setRows((rs) => applyRestoreItem(rs, row, afterId))
       toastMessage(res.error ?? 'Nie udało się usunąć pozycji', 'warning', 4000)
     }
   }
@@ -411,7 +425,6 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   async function handleRemoveStage(stageId: number) {
     const res = await removeStageAction(stageId)
     if (!res.success) {
-      // Server blocks a delete while the stage still holds recorded progress.
       toastMessage(res.error ?? 'Nie udało się usunąć etapu', 'warning', 4000)
       return
     }
@@ -457,19 +470,9 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     )
   }
 
-  // Bound to the fresh dataset/stages — the summary calls this before its confirm to skip the
-  // dialog (and toast) when the section holds recorded work, mirroring the server guard.
-  function sectionPopulated(sectionId: number) {
-    return isSectionPopulated(rowsRef.current, sectionId, stagesRef.current)
-  }
-
   async function handleRemoveSection(sectionId: number) {
-    // Backstop for the summary's pre-check: block a populated section before the optimistic
-    // cascade removal (the section delete cascades items + stage_progress server-side).
-    if (sectionPopulated(sectionId)) {
-      toastMessage('Najpierw wyczyść wartości w pozycjach tej sekcji', 'warning', 4000)
-      return
-    }
+    // The summary confirms before calling here (EX-477); a populated section cascade-deletes its
+    // items + stage_progress server-side, guarded only by the confirm dialog, not a block.
     const removed = rowsRef.current
       .filter((r) => r.sectionId === sectionId)
       .map((r) => prevById.current.get(r.id) ?? r)
@@ -546,18 +549,33 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   // useState initializer runs once at mount); then persist + refresh for the panel. `vatRate` is a
   // fraction (0.08), converted from the panel's percent input at the commit site.
   async function handleVatChange(vatRate: number) {
+    const prevVatRate = rowsRef.current[0]?.vatRate
     patchRows(
       () => true,
       (r) => ({ ...r, vatRate }),
     )
     const res = await updateInvestmentVatAction(investmentId, vatRate)
-    if (res.success) router.refresh()
+    if (res.success) {
+      router.refresh()
+      return
+    }
+    // Persist failed — roll the optimistic VAT back so the grid doesn't show an unsaved rate (a no-op
+    // when there were no rows to patch), and always surface it. The toast must NOT hang off prevVatRate:
+    // an empty kosztorys has no rows[0], so gating the toast on it would swallow the failure silently.
+    if (prevVatRate !== undefined) {
+      patchRows(
+        () => true,
+        (r) => ({ ...r, vatRate: prevVatRate }),
+      )
+    }
+    toastMessage(res.error ?? 'Nie udało się zapisać stawki VAT', 'warning', 4000)
   }
 
   // Setting/clearing the global discount flips per-item rabat on or off for every row. Update the
   // local discount (drives the derived totals + column visibility) and patch the denormalized active
   // flag on every row in the same render, so all three surfaces move together; then persist + refresh.
   async function handleGlobalDiscountChange(next: GlobalDiscountT) {
+    const prevDiscount = globalDiscount
     const active = isGlobalDiscountActive(next)
     setGlobalDiscount(next)
     patchRows(
@@ -568,7 +586,17 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       globalDiscountType: next.type,
       globalDiscountValue: next.value,
     })
-    if (res.success) router.refresh()
+    if (res.success) {
+      router.refresh()
+    } else {
+      // Persist failed — roll all three surfaces back so they don't disagree on an unsaved discount.
+      setGlobalDiscount(prevDiscount)
+      patchRows(
+        () => true,
+        (r) => ({ ...r, globalDiscountActive: isGlobalDiscountActive(prevDiscount) }),
+      )
+      toastMessage(res.error ?? 'Nie udało się zapisać rabatu', 'warning', 4000)
+    }
   }
 
   // Section coefficient (null = inherits the global) — patch only the rows of that section.
@@ -673,7 +701,6 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     handleAddStage,
     handleRenameSection,
     handleRemoveSection,
-    isSectionPopulated: sectionPopulated,
     handleGlobalCoeffChange,
     handleSectionCoeffChange,
     handleVatChange,

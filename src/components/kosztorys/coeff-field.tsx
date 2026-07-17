@@ -2,6 +2,7 @@
 
 import type { FocusEvent, KeyboardEvent } from 'react'
 import { HintTooltip } from '@/components/ui/tooltip'
+import { parseDecimalInput } from '@/lib/utils/parse-decimal-input'
 
 type PropsT = {
   label: string
@@ -17,13 +18,12 @@ type PropsT = {
 // commit on blur/Enter — no useEffect (project rule). Empty + nullable = inherit (null).
 export function CoeffField({ label, hint, value, placeholder, nullable, onCommit }: PropsT) {
   const commit = (e: FocusEvent<HTMLInputElement>) => {
-    const raw = e.target.value.trim().replace(',', '.')
-    if (raw === '') {
+    const parsed = parseDecimalInput(e.target.value)
+    if (parsed.kind === 'empty') {
       if (nullable) onCommit(null)
       return
     }
-    const n = Number(raw)
-    if (!Number.isNaN(n)) onCommit(n)
+    if (parsed.kind === 'value') onCommit(parsed.value)
   }
 
   const commitOnEnter = (e: KeyboardEvent<HTMLInputElement>) => {

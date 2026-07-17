@@ -1,4 +1,4 @@
-import { AXIS_EXEMPT_COLUMNS, COLUMN_MONEY_AXIS } from '@/lib/kosztorys/constants'
+import { AXIS_EXEMPT_COLUMNS, COLUMN_MONEY_AXIS } from '@/lib/kosztorys/column-config'
 
 // The grid's second reading axis: the owner reads netto when settling with a subcontractor and brutto
 // when invoicing the client, and never both in one sitting. It composes with the column picker rather

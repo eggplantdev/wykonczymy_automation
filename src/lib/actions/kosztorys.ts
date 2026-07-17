@@ -207,23 +207,13 @@ export async function removeSectionAction(sectionId: number) {
     'removeSectionAction',
     async ({ payload, user }) => {
       const db = await getDb(payload)
-      // Block: a section delete FK-cascades through its items into stage_progress, so
-      // dropping a section with any populated item silently loses recorded work.
+      // Deleting a populated section is allowed (EX-477) — the UI gates it behind a confirm. A
+      // section delete FK-cascades through its items into stage_progress, irrecoverable by in-session
+      // undo (S-07), so capture the exact current state as a snapshot first, every time.
       const res = await db.execute(sql`
-        SELECT 1 FROM kosztorys_items i
-        WHERE i.section_id = ${sectionId}
-          AND EXISTS (SELECT 1 FROM stage_progress sp WHERE sp.item_id = i.id AND sp.qty_done <> 0)
-        LIMIT 1
+        SELECT investment_id FROM kosztorys_sections WHERE id = ${sectionId}
       `)
-      if (res.rows.length > 0) {
-        return { success: false, error: 'Najpierw wyczyść wartości w pozycjach tej sekcji' }
-      }
-      // Forced pre-delete snapshot: the cascade is irrecoverable by in-session undo (S-07), so
-      // capture the exact current state first, every time.
-      const inv = await db.execute(
-        sql`SELECT investment_id FROM kosztorys_sections WHERE id = ${sectionId}`,
-      )
-      const investmentId = inv.rows[0]?.investment_id
+      const investmentId = res.rows[0]?.investment_id
       if (investmentId != null) await captureAutoSnapshot(db, Number(investmentId), user.id)
       await payload.delete({ collection: 'kosztorys-sections', id: sectionId })
       return { success: true }
@@ -317,24 +307,13 @@ export async function removeItemAction(itemId: number) {
     'removeItemAction',
     async ({ payload, user }) => {
       const db = await getDb(payload)
-      // Block: an item cascades stage_progress on delete — dropping a row that carries recorded
-      // work silently loses it (mirrors removeStageAction). Recorded stage progress is the whole
-      // test — it is the only per-item value a user cannot otherwise clear from the grid.
+      // Deleting a populated item is allowed (EX-477) — the UI gates it behind a confirm. A delete
+      // still drops the row's opis/przedmiar/cena/rabat (and cascades stage_progress), irrecoverable
+      // by in-session undo (S-07), so capture a snapshot first, every time.
       const res = await db.execute(sql`
-        SELECT investment_id FROM kosztorys_items i
-        WHERE i.id = ${itemId}
-          AND EXISTS (SELECT 1 FROM stage_progress sp WHERE sp.item_id = i.id AND sp.qty_done <> 0)
-        LIMIT 1
+        SELECT investment_id FROM kosztorys_items WHERE id = ${itemId}
       `)
-      if (res.rows.length > 0) {
-        return { success: false, error: 'Najpierw wyczyść wartości wpisane w tej pozycji' }
-      }
-      // Forced pre-delete snapshot: an allowed delete still drops the row's opis/przedmiar/cena/rabat,
-      // irrecoverable by in-session undo (S-07) — capture first, exactly like removeSectionAction.
-      const inv = await db.execute(
-        sql`SELECT investment_id FROM kosztorys_items WHERE id = ${itemId}`,
-      )
-      const investmentId = inv.rows[0]?.investment_id
+      const investmentId = res.rows[0]?.investment_id
       if (investmentId != null) await captureAutoSnapshot(db, Number(investmentId), user.id)
       await payload.delete({ collection: 'kosztorys-items', id: itemId })
       return { success: true }
@@ -429,19 +408,13 @@ export async function removeStageAction(stageId: number): Promise<ActionResultT>
       const parsed = validateAction(stageIdSchema, { stageId })
       if (!parsed.success) return parsed
       const db = await getDb(payload)
-      // Block: don't drop a stage that still has recorded progress (would silently lose it).
+      // Deleting a populated stage is allowed (EX-477) — the UI gates it behind a confirm. Dropping
+      // the stage cascades its stage_progress, irrecoverable by in-session undo (S-07), so capture a
+      // snapshot first, every time.
       const res = await db.execute(sql`
-        SELECT 1 FROM stage_progress WHERE stage_id = ${parsed.data.stageId} AND qty_done <> 0 LIMIT 1
+        SELECT investment_id FROM kosztorys_stages WHERE id = ${parsed.data.stageId}
       `)
-      if (res.rows.length > 0) {
-        return { success: false, error: 'Najpierw wyczyść ilości wpisane w tym etapie' }
-      }
-      // Forced pre-delete snapshot (see removeSectionAction) — only fires on a genuinely-allowed
-      // delete, since the progress guard above already rejected a stage with recorded work.
-      const inv = await db.execute(
-        sql`SELECT investment_id FROM kosztorys_stages WHERE id = ${parsed.data.stageId}`,
-      )
-      const investmentId = inv.rows[0]?.investment_id
+      const investmentId = res.rows[0]?.investment_id
       if (investmentId != null) await captureAutoSnapshot(db, Number(investmentId), user.id)
       await payload.delete({ collection: 'kosztorys-stages', id: parsed.data.stageId })
       return { success: true }

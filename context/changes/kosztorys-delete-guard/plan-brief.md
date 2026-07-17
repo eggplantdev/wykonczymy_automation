@@ -1,5 +1,10 @@
 # Kosztorys Delete-Guard (S-08) — Plan Brief
 
+> **SUPERSEDED by EX-477 (2026-07-17).** The hard-block policy this doc describes was reversed to
+> **confirm-then-snapshot** — a populated item/section/stage now deletes behind a confirm dialog
+> after a pre-delete auto snapshot, instead of being rejected. Current truth:
+> `context/changes/kosztorys-delete-confirm/change.md`. This doc is kept for history only.
+
 > Full plan: `context/changes/kosztorys-delete-guard/plan.md`
 
 ## What & Why

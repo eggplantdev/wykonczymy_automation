@@ -1,5 +1,9 @@
 # Kosztorys Delete-Guard Implementation Plan
 
+> **SUPERSEDED by EX-477 (2026-07-17).** The hard-block policy below was reversed to
+> confirm-then-snapshot. Current truth: `context/changes/kosztorys-delete-confirm/change.md`.
+> Kept for history only.
+
 ## Overview
 
 Hard-block deleting a kosztorys **item (row)** or **section** that still holds measured/executed

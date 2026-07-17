@@ -112,7 +112,7 @@ All verified against code + the local dump DB (5433). Re-verify before trusting 
 
 ### Phase 1 — Manual snapshot (NOW, the immediate safety net)
 
-- Script: `context/changes/blob-backup/blob-snapshot.mjs` (one-off, hand-run). **Dependency-free**
+- Script: `scripts/blob-snapshot.mjs` (one-off, hand-run). **Dependency-free**
   — Node built-ins + the Blob REST API only, so it runs even if `node_modules` is broken (a
   recovery tool must not depend on the thing that might be broken).
 - REST `list` (read-only) → anonymous `fetch` each blob → write to `~/backups/wykonczymy-blob/blob-snapshot-<stamp>/`.

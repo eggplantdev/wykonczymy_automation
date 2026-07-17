@@ -14,6 +14,11 @@ import { seedInvestmentFromPreset } from '@/lib/kosztorys/seed-from-preset'
 import { seedBlankKosztorys } from '@/lib/kosztorys/seed-blank'
 import { validateAction, protectedAction } from './run-action'
 
+const SEED_PRESET_WARNING =
+  'Inwestycja utworzona, ale nie udało się wypełnić kosztorysu z szablonu. Otwórz edytor i uzupełnij ręcznie.'
+const SEED_BLANK_WARNING =
+  'Inwestycja utworzona, ale nie udało się przygotować kosztorysu. Otwórz edytor, aby dodać pozycje.'
+
 // Attach (or reset) a fresh materiały tab on the investment's linked sheet.
 // Header + summary are written by the app — the owner builds nothing. Works on a
 // personal Google account because it never creates a new file (see approach A).
@@ -49,25 +54,29 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
       // Seed the new (trivially empty) investment's kosztorys from the chosen preset. Best-effort and
       // NON-FATAL: the investment is already committed, so a seed failure must never flip the whole
       // action to failure — that would skip the ['investments'] revalidation (hiding the just-created
-      // investment from the cached list) and invite a duplicate-creating retry. Mirror the non-fatal
-      // stampAllTabs handling in linkSheetAction: log and move on. Any non-'ok' outcome (preset
-      // deleted between form-load and submit, or a DB error) lands the user on an empty editor whose
-      // "Wypełnij z szablonu" CTA lets them retry the seed. No kosztorys* tree tags here — a fresh
+      // investment from the cached list) and invite a duplicate-creating retry. Instead we surface a
+      // `warning` the form toasts, so the user isn't left staring at a silently-empty kosztorys (the
+      // "Wypełnij z szablonu" CTA still lets them retry). No kosztorys* tree tags here — a fresh
       // investment has no cached tree to invalidate yet.
+      let warning: string | undefined
       const chosenPresetId = presetId ? Number(presetId) : null
       if (chosenPresetId) {
         try {
           const result = await seedInvestmentFromPreset(payload, Number(created.id), chosenPresetId)
           if (result !== 'ok') {
+            // TODO(EX-449) SENTRY-REQUIRED: silent seed skip the user can't self-report.
             console.error(
               `[create-investment] seed from preset ${chosenPresetId} skipped for #${created.id}: ${result}`,
             )
+            warning = SEED_PRESET_WARNING
           }
         } catch (err) {
+          // TODO(EX-449) SENTRY-REQUIRED: silent seed failure the user can't self-report.
           console.error(
             `[create-investment] seed from preset ${chosenPresetId} failed for #${created.id} (non-fatal):`,
             err,
           )
+          warning = SEED_PRESET_WARNING
         }
       } else {
         // No preset chosen → the editor would otherwise open on a blank grid: treeToRows emits rows
@@ -77,14 +86,16 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
         try {
           await seedBlankKosztorys(payload, Number(created.id))
         } catch (err) {
+          // TODO(EX-449) SENTRY-REQUIRED: silent blank-seed failure the user can't self-report.
           console.error(
             `[create-investment] blank kosztorys seed failed for #${created.id} (non-fatal):`,
             err,
           )
+          warning = SEED_BLANK_WARNING
         }
       }
 
-      return { success: true }
+      return { success: true, warning }
     },
     ['investments'],
   )

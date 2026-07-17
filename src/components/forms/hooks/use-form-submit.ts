@@ -30,6 +30,7 @@ export function useFormSubmit(formId: string) {
       const result = await opts.action()
       if (result.success) {
         toastMessage(opts.successMessage, 'success')
+        if (result.warning) toastMessage(result.warning, 'warning', 6000)
         opts.form.reset()
         opts.onReset?.()
         // The server action revalidates the cache tag; refresh re-renders the RSC
