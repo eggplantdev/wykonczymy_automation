@@ -351,7 +351,7 @@ Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, se
 
 ### Phase 3: Rabat w wartości przedmiaru
 
-- [ ] „Wartość netto przedmiar" przy rabacie 10% jest o 10% niższa niż `Przedmiar × cena`, a tooltip mówi dlaczego **Partly verified:** the post-discount `plannedNet` math is unit-tested (`kosztorys-calc.test.ts`) and applies on screen (item 392 carries a `%` rabat and its Wartość przedmiaru netto is discounted). **Needs human:** the **tooltip copy** ("mówi dlaczego") is an owner wording call — read it and confirm it explains the discount. **Test disposition:** unit covers the math; tooltip = no automated test.
+- [x] „Wartość netto przedmiar" przy rabacie 10% jest o 10% niższa niż `Przedmiar × cena`, a tooltip mówi dlaczego _Verified 2026-07-17: the post-discount `plannedNet` math is unit-tested (`kosztorys-calc.test.ts`) and applies on screen (item 392 carries a `%` rabat and its Wartość przedmiaru netto is discounted). Owner ruling on the tooltip copy: trimmed to formula-only — `Wartość przedmiaru netto = Przedmiar × Cena − Rabat.` (`header-tips.ts`), the `− Rabat` term itself being the "dlaczego". **Test disposition:** unit covers the math; tooltip = no automated test._
 
 ### Phase 4: Sprzątanie martwego modelu
 

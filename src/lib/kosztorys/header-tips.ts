@@ -31,8 +31,7 @@ export const HEADER_TIPS: Record<string, string> = {
   discountAmountGross: 'Rabat kwota brutto = Rabat kwota netto × (1 + VAT).',
   priceGross:
     'Cena j.m. brutto = Cena j.m. netto × (1 + VAT).\nStawka VAT jest jedna na całą inwestycję — ta kolumna to przelicznik, nie osobna dana.',
-  plannedNet:
-    'Wartość przedmiaru netto = Przedmiar × Cena − Rabat. Wartość ofertowa pozycji — ile miało wejść wg przedmiaru.\nRabat jest w kwocie zawarty (jak w arkuszu). Różnica Netto − Wartość przedmiaru to sama korekta ilości: obie kwoty niosą już rabat.',
+  plannedNet: 'Wartość przedmiaru netto = Przedmiar × Cena − Rabat.',
   plannedGross: 'Wartość przedmiaru brutto = Wartość przedmiaru netto × (1 + VAT).',
   net: 'Netto = Pomiar × Cena − Rabat. Wartość pozycji przy aktywnym widoku cen.\nPomiar jest sumą etapów, więc Netto mówi, ile faktycznie wykonano — pusta pozycja jest warta 0.',
   gross: 'Brutto = Netto × (1 + VAT). Jedna stawka VAT na inwestycję, zdenormalizowana na wierszu.',
