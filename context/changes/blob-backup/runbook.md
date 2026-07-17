@@ -191,6 +191,7 @@ ideally time-aligned.
    - Same-store repair (partial loss) → prod store token.
    - New store (account/project loss) → new store token; also set it as the app's env var.
 3. **Re-upload the backup**, for every file in the snapshot:
+
    ```js
    put(filename, bytes, { access: 'public', addRandomSuffix: false, token })
    ```
@@ -198,6 +199,7 @@ ideally time-aligned.
    - `addRandomSuffix: false` is **mandatory** (§2 config invariant).
    - Mirror-only: for a partial loss, uploading files that already exist just overwrites with
      identical bytes — safe. Never `del()`.
+
 4. **No DB URL rewrite** — `media.url` is relative and filename-resolved (§2). Do not touch it.
 5. **Verify:** open a transaction whose `invoice_id` is set → invoice renders. Spot-check a
    thumbnail (`sizes_thumbnail_filename`) too. Optionally reconcile: every
@@ -259,10 +261,23 @@ immutable invoices. Phase 2's paired manifest+dump timestamp minimizes it.
   - `workflow_dispatch` can't run until the workflow file is on the **default branch** — GitHub
     gates the dispatch trigger on `main`. So the CI dispatch test can only happen post-merge; the
     pre-merge confidence comes from this local run.
-  - **Manifest `put` path broke after the `lcd`.** `lcd ./blob-out/media` changes lftp's *local*
+  - **Manifest `put` path broke after the `lcd`.** `lcd ./blob-out/media` changes lftp's _local_
     cwd, so the following `put ./blob-out/manifest-*.json` resolved to `blob-out/media/blob-out/...`
     (ENOENT) — the manifest silently wouldn't upload. Fix: **`put` the manifest BEFORE the `lcd`.**
     Workflow corrected. (Also caught: my local harness missed `set xfer:clobber on`, so `get` of
     prev.json no-op'd and forced a full seed — the workflow already has that flag; harness-only.)
-- **Still owed:** open PR → merge to `main` → `workflow_dispatch` (defaults to `test/`) to confirm
-  green on the GitHub runner (Node 24 + `apt lftp`) → clean up `/blob_backups/test/`.
+- **2026-07-13** — **CI dispatch validated on the GitHub runner. Phase 2 shipped.** PR #22 merged
+  to `main` (`3f9acb9` + `75d4723`). Two `workflow_dispatch` runs green on the runner (Node 24 +
+  `apt lftp`), both into `/blob_backups/test/`:
+  - run `29247462934` — plumbing pass (FTPS connect → pull baseline manifest → mirror). New-count 0
+    (test/ already held the full set from the local run), so this only proved the pipeline runs green.
+  - run `29247587515` — **forced 12-file delta** (reset `test/manifests/` to the 1771 baseline +
+    emptied `test/media/` first): downloaded 12, uploaded them **flat** to `test/media/` (verified
+    no `media/media/` nesting via FTP `cls`), manifest written to `test/manifests/`.
+  - `/blob_backups/test/` cleaned up afterward — only real `media/` (1771) + `manifests/` baseline remain.
+- **Still owed (→ Done):**
+  1. **Confirm the first _unattended_ cron run** — daily `30 3 * * *` (03:30 UTC / 05:30 CEST) firing
+     into `/blob_backups/` (not `test/`). Verify: `gh run list --workflow "Backup Vercel Blob"` shows
+     a `schedule`-triggered `success` + a fresh `/blob_backups/manifests/manifest-*.json`.
+  2. **Phase 3 restore drill** (§1 / Phase 3 above) — seed a preview-branch Blob store from these
+     backup files and map to preview transactions, proving end-to-end recovery.
