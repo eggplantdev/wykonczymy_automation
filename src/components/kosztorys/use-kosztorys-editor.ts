@@ -1,8 +1,15 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDebouncedSave } from '@/components/kosztorys/use-debounced-save'
+import {
+  coalesceFieldChanges,
+  coalesceStageChanges,
+  type FieldChangeT,
+  type StageChangeT,
+} from '@/lib/kosztorys/undo-coalesce'
+import { useUndoRedoContext } from '@/components/kosztorys/use-undo-redo'
 import { useColumnWidths } from '@/components/kosztorys/use-column-widths'
 import { useHiddenColumns } from '@/components/kosztorys/use-hidden-columns'
 import { useLayer } from '@/components/kosztorys/use-layer'
@@ -69,12 +76,24 @@ import type {
 
 type ArgsT = { investmentId: number; tree: KosztorysTreeT }
 
+// A reorder command records the two rows' ids and pre-swap orders. FieldChangeT/StageChangeT (the
+// per-field / per-stage before+after a grid batch records) live with the burst-coalescing reducer.
+type OrderRefT = { id: number; order: number }
+
+// Grace period after the last keystroke before a grid edit burst becomes one undo entry. Longer
+// than the debounced save (500ms) so a command is captured only once the writes for the burst have
+// been scheduled — never mid-typing.
+const UNDO_COALESCE_MS = 700
+
 // All editor state, derived data, and handlers for the in-app kosztorys grid. Kept out of the
 // component so the component is only composition + markup. Handlers never fire an action from
 // inside a setRows updater — that would move the Router during render.
 export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   const router = useRouter()
-  const save = useDebouncedSave(500)
+  const { save, cancel } = useDebouncedSave(500)
+  // Per-mount undo/redo stack, provided by the shell (KosztorysEditorV2). Capture pushes here;
+  // the toolbar + keyboard call undo/redo (re-exported below).
+  const { push, undo, redo, canUndo, canRedo } = useUndoRedoContext()
   const [gridRef, gridHeight] = useElementHeight()
   const [rows, setRows] = useState<KosztorysV2RowT[]>(() => treeToRows(tree))
   // Stages live in local state (like `rows`): add/remove optimistically add/drop a column.
@@ -120,6 +139,47 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   const stagesRef = useRef(stages)
   // eslint-disable-next-line react-hooks/refs
   stagesRef.current = stages
+
+  // Grid edit burst awaiting a coalesced undo entry (see UNDO_COALESCE_MS). onChange appends each
+  // keystroke's changes here; the flush timer collapses them into a single command once typing stops.
+  const pendingFields = useRef<FieldChangeT[]>([])
+  const pendingStages = useRef<StageChangeT[]>([])
+  const flushTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Collapse the buffered burst into one undo command (before=first seen, after=last), dropping a
+  // net-zero burst (type-then-revert) entirely so it never lands a dead entry on the stack.
+  function flushUndoBuffer() {
+    if (flushTimer.current) {
+      clearTimeout(flushTimer.current)
+      flushTimer.current = null
+    }
+    const fields = coalesceFieldChanges(pendingFields.current)
+    const stages = coalesceStageChanges(pendingStages.current)
+    pendingFields.current = []
+    pendingStages.current = []
+    if (fields.length === 0 && stages.length === 0) return
+    push({
+      label: 'Edycja',
+      undo: () => runGridReversal(fields, stages, 'undo'),
+      redo: () => runGridReversal(fields, stages, 'redo'),
+    })
+  }
+
+  // A restore remounts the body; drop any dangling burst timer so a pending flush can't push a
+  // command closing over the outgoing mount's setRows/prevById.
+  useEffect(() => {
+    return () => {
+      if (flushTimer.current) clearTimeout(flushTimer.current)
+    }
+  }, [])
+
+  // Push a structural command (reorder / rename / coeff / VAT) — flushing any still-buffering grid
+  // edit first, so a burst typed just before the structural action keeps its correct chronological
+  // (LIFO) place on the stack instead of being pushed after it.
+  function pushCommand(cmd: Parameters<typeof push>[0]) {
+    flushUndoBuffer()
+    push(cmd)
+  }
 
   function setSortField(field: string, dir: SortDirT | null) {
     setSort(dir ? { field, dir } : null)
@@ -224,6 +284,71 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     if (snap && snap[field] === attempted) {
       prevById.current.set(id, { ...snap, [field]: prevVal } as KosztorysV2RowT)
     }
+  }
+
+  // Apply one direction of a captured grid-edit batch (undo → `before`, redo → `after`). Unlike an
+  // autosave, an undo is a deliberate user action: it pre-empts any pending debounced save for the
+  // key (so a stale forward write can't race the inverse), writes the target value immediately, and
+  // updates `rows` + `prevById` in lockstep so the next onChange diff doesn't re-fire the write.
+  async function runGridReversal(
+    fields: FieldChangeT[],
+    stages: StageChangeT[],
+    dir: 'undo' | 'redo',
+  ) {
+    // Merge every change of one row into a single patch so multi-field/-stage rows apply at once.
+    const patchById = new Map<number, Record<string, unknown>>()
+    for (const c of fields) {
+      cancel(`item:${c.id}:${String(c.field)}`)
+      const patch = patchById.get(c.id) ?? {}
+      patch[c.field as string] = dir === 'undo' ? c.before : c.after
+      patchById.set(c.id, patch)
+    }
+    for (const c of stages) {
+      cancel(`progress:${c.id}:${c.stageId}`)
+      const patch = patchById.get(c.id) ?? {}
+      patch[stageKey(c.stageId)] = dir === 'undo' ? c.before : c.after
+      patchById.set(c.id, patch)
+    }
+    setRows((rs) =>
+      rs.map((r) =>
+        patchById.has(r.id) ? ({ ...r, ...patchById.get(r.id) } as KosztorysV2RowT) : r,
+      ),
+    )
+    for (const [id, patch] of patchById) {
+      const snap = prevById.current.get(id)
+      if (snap) prevById.current.set(id, { ...snap, ...patch } as KosztorysV2RowT)
+    }
+    const writes: Promise<unknown>[] = []
+    for (const c of fields) {
+      const value = dir === 'undo' ? c.before : c.after
+      writes.push(updateItemFieldAction(c.id, { [c.field]: value } as ItemPatchT))
+    }
+    for (const c of stages) {
+      const value = dir === 'undo' ? c.before : c.after
+      writes.push(setStageProgressAction(c.id, c.stageId, value))
+    }
+    await Promise.all(writes)
+    // Pull recomputed section/stage totals once the inverse writes have committed.
+    router.refresh()
+  }
+
+  // Reverse (or replay) a ▲▼ swap: exchange the two rows' array positions and re-issue the
+  // display_order swap. Self-inverse — undo restores each row's pre-swap order, redo re-applies the
+  // original. Matches handleReorderItem: no prevById touch (display_order isn't a diffed field) and
+  // no totals refresh (a reorder doesn't change any figure).
+  function runReorderReversal(a: OrderRefT, b: OrderRefT, dir: 'undo' | 'redo') {
+    setRows((rs) => {
+      const ia = rs.findIndex((r) => r.id === a.id)
+      const ib = rs.findIndex((r) => r.id === b.id)
+      if (ia < 0 || ib < 0) return rs
+      const next = [...rs]
+      ;[next[ia], next[ib]] = [next[ib], next[ia]]
+      return next
+    })
+    void swapItemOrderAction(
+      { id: a.id, displayOrder: dir === 'undo' ? a.order : b.order },
+      { id: b.id, displayOrder: dir === 'undo' ? b.order : a.order },
+    )
   }
 
   async function handleAddItem(sectionId: number) {
@@ -348,6 +473,13 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       { id: row.id, displayOrder: neighbor.displayOrder },
       { id: neighbor.id, displayOrder: row.displayOrder },
     )
+    const a: OrderRefT = { id: row.id, order: row.displayOrder }
+    const b: OrderRefT = { id: neighbor.id, order: neighbor.displayOrder }
+    pushCommand({
+      label: 'Zmiana kolejności',
+      undo: () => runReorderReversal(a, b, 'undo'),
+      redo: () => runReorderReversal(a, b, 'redo'),
+    })
   }
 
   async function handleAddSection() {
@@ -657,6 +789,10 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
 
   function onChange(next: KosztorysV2RowT[]) {
     const changedById = new Map<number, KosztorysV2RowT>()
+    // One onChange batch (incl. a multi-cell paste) = one composite undo entry; accumulate every
+    // field/stage change here and buffer a single coalesced command after the loop.
+    const fieldChanges: FieldChangeT[] = []
+    const stageChanges: StageChangeT[] = []
     for (const row of next) {
       const prev = prevById.current.get(row.id)
       if (!prev) continue
@@ -672,6 +808,12 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
             () => updateItemFieldAction(row.id, { [field]: patch[field as keyof ItemPatchT] }),
             () => revertOne(row.id, key, prevVal, attempted),
           )
+          fieldChanges.push({
+            id: row.id,
+            field: field as keyof ItemPatchT,
+            before: prevVal,
+            after: attempted,
+          })
         }
       }
       // Stage progress is a distinct save dimension (sparse upsert), keyed per item×stage.
@@ -683,9 +825,22 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
           () => setStageProgressAction(row.id, sc.stageId, sc.qty),
           () => revertOne(row.id, key, prevVal, sc.qty),
         )
+        stageChanges.push({
+          id: row.id,
+          stageId: sc.stageId,
+          before: Number(prevVal) || 0,
+          after: sc.qty,
+        })
       }
       if (diff.itemPatch || diff.stageChanges) changedById.set(row.id, row)
       prevById.current.set(row.id, row)
+    }
+    if (fieldChanges.length > 0 || stageChanges.length > 0) {
+      // Buffer this keystroke's changes; one coalesced command is pushed once the burst quiets.
+      pendingFields.current.push(...fieldChanges)
+      pendingStages.current.push(...stageChanges)
+      if (flushTimer.current) clearTimeout(flushTimer.current)
+      flushTimer.current = setTimeout(flushUndoBuffer, UNDO_COALESCE_MS)
     }
     if (changedById.size > 0) {
       // Merge the view's changes into the full dataset by id (so filter/sort don't lose hidden rows).
@@ -743,5 +898,18 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     handleSectionCoeffChange,
     handleVatChange,
     handleGlobalDiscountChange,
+    // undo/redo (stack lives in the shell; consumed by the toolbar + keyboard). Both flush a
+    // still-buffering edit burst first, so an undo pops the just-typed edit (correct LIFO) rather
+    // than an older command that the un-pushed burst is sitting in front of.
+    undo: () => {
+      flushUndoBuffer()
+      undo()
+    },
+    redo: () => {
+      flushUndoBuffer()
+      redo()
+    },
+    canUndo,
+    canRedo,
   }
 }

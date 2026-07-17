@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { EmptyKosztorysDialog } from '@/components/kosztorys/empty-kosztorys-dialog'
 import { KosztorysEditorBody } from '@/components/kosztorys/kosztorys-editor-body'
 import { KosztorysVersionsDrawer } from '@/components/kosztorys/kosztorys-versions-drawer'
+import { UndoRedoContext, useUndoRedo } from '@/components/kosztorys/use-undo-redo'
 import { snapshotAction } from '@/lib/actions/kosztorys-snapshots'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 
@@ -21,6 +22,10 @@ type PropsT = { investmentId: number; tree: KosztorysTreeT; investmentName: stri
 // never remount on a routine tree change).
 export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT) {
   const router = useRouter()
+  // One undo/redo stack per editor mount, shared with the body via context. It outlives the body's
+  // restore remount (the shell doesn't remount), so a restore must reset() it — the stale commands
+  // close over the unmounted body's setRows/refs.
+  const undoRedo = useUndoRedo()
   const [versionsOpen, setVersionsOpen] = useState(false)
   const [remountKey, setRemountKey] = useState(0)
   // One-shot remount signal. After a restore we router.refresh() for the restored tree, then remount
@@ -60,10 +65,13 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
   function handleRestored() {
     router.refresh()
     setRestorePending(true)
+    // Restore reseeds the whole grid via a body remount — drop the stack whose commands close over
+    // the outgoing body's state.
+    undoRedo.reset()
   }
 
   return (
-    <>
+    <UndoRedoContext.Provider value={undoRedo}>
       {tree.sections.length === 0 && (
         <EmptyKosztorysDialog investmentId={investmentId} onCreated={handleRestored} />
       )}
@@ -81,6 +89,6 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
         onOpenChange={setVersionsOpen}
         onRestored={handleRestored}
       />
-    </>
+    </UndoRedoContext.Provider>
   )
 }

@@ -15,7 +15,7 @@ export function useDebouncedSave(delay = 500) {
     return () => map.forEach((t) => clearTimeout(t))
   }, [])
 
-  return useCallback(
+  const save = useCallback(
     (key: string, run: () => Promise<ActionResultT>, onError?: () => void) => {
       const existing = timers.current.get(key)
       if (existing) clearTimeout(existing)
@@ -34,4 +34,16 @@ export function useDebouncedSave(delay = 500) {
     },
     [delay],
   )
+
+  // Drop a key's pending timer so an undo can pre-empt an in-flight forward save and write the
+  // inverse itself — otherwise the stale debounced save would race (and win over) the undo.
+  const cancel = useCallback((key: string) => {
+    const existing = timers.current.get(key)
+    if (existing) {
+      clearTimeout(existing)
+      timers.current.delete(key)
+    }
+  }, [])
+
+  return { save, cancel }
 }
