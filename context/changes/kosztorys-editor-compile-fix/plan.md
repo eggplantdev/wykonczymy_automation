@@ -371,14 +371,16 @@ None. No schema, no data, no API contract change.
 - [x] 1.2 Test fails on current code, naming the missing `_c` / the bail (red confirmed) — 563859e
 - [x] 1.3 Type checking passes: `pnpm typecheck` — 563859e
 
-### Phase 2: React Compiler Unblock (green)
+### Phase 2: React Compiler Unblock (green) — REVERTED
 
-#### Automated
+> **Reverted 2026-07-17** (`git revert 4c7a1cd`). The context-routing this phase introduced caused a
+> per-keystroke re-render regression (owner-confirmed by manual A/B); the compile-assert guard (p1) was
+> deleted with it. EX-496 #1 (memoize the hook) is reopened, blocked on EX-521. See `change.md`.
 
-- [x] 2.1 Compile-assert test passes: `pnpm exec vitest run src/__tests__/use-kosztorys-editor.compile.test.ts` — 4c7a1cd
-- [x] 2.2 Full unit suite passes: `pnpm exec vitest run` — 4c7a1cd
-- [x] 2.3 Type checking passes: `pnpm typecheck` — 4c7a1cd
-- [x] 2.4 Linting passes: `pnpm lint` — 4c7a1cd
+- [x] 2.1 Compile-assert test passes: `pnpm exec vitest run src/__tests__/use-kosztorys-editor.compile.test.ts` — 4c7a1cd (reverted)
+- [x] 2.2 Full unit suite passes: `pnpm exec vitest run` — 4c7a1cd (reverted)
+- [x] 2.3 Type checking passes: `pnpm typecheck` — 4c7a1cd (reverted)
+- [x] 2.4 Linting passes: `pnpm lint` — 4c7a1cd (reverted)
 
 ### Phase 3: Dead Code + Casts + Cache-Tag Verify
 

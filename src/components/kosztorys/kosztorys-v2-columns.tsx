@@ -29,7 +29,6 @@ import {
 } from '@/components/kosztorys/cells/discount-columns'
 import { unitColumn } from '@/components/kosztorys/cells/unit-column'
 import { SectionNameCell } from '@/components/kosztorys/cells/section-name-cell'
-import { useKosztorysEditorContext } from '@/components/kosztorys/use-kosztorys-editor-context'
 import { type ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
 import {
   STAGE_QTY_PREFIX,
@@ -164,32 +163,34 @@ function withResize(
 }
 
 // Insert/move disabled under an active sort (no display_order mapping); delete disabled with a
-// reason (last item in a section, or a populated row) surfaced via tooltip. Handlers come from the
-// editor context, not column opts — a ref-capturing closure threaded through the plain buildV2Grid
-// call would silently de-opt React Compiler (EX-496).
-function RowActionsCell({ rowData }: { rowData: KosztorysV2RowT }) {
-  const { sort, getRemovePlan, handleInsertItem, handleReorderItem, handleRemoveItem } =
-    useKosztorysEditorContext()
-  const sortActive = sort != null
-  const plan = getRemovePlan(rowData)
-  const removeBlockReason = plan.kind === 'blocked' ? plan.reason : undefined
-  const removeNeedsConfirm = plan.kind !== 'blocked' && plan.requiresConfirm
+// reason (last item in a section, or a populated row) surfaced via tooltip.
+function RowActionsCell({
+  rowData,
+  opts,
+}: {
+  rowData: KosztorysV2RowT
+  opts: BuildV2ColumnsOptsT
+}) {
+  const sortActive = opts.sort != null
+  const plan = opts.getRemovePlan?.(rowData)
+  const removeBlockReason = plan?.kind === 'blocked' ? plan.reason : undefined
+  const removeNeedsConfirm = plan != null && plan.kind !== 'blocked' && plan.requiresConfirm
 
   return (
     <KosztorysRowActionsMenu
       sortActive={sortActive}
       removeBlockReason={removeBlockReason}
       removeNeedsConfirm={removeNeedsConfirm}
-      onInsertAbove={() => handleInsertItem(rowData, 'above')}
-      onInsertBelow={() => handleInsertItem(rowData, 'below')}
-      onMoveUp={() => handleReorderItem(rowData, 'up')}
-      onMoveDown={() => handleReorderItem(rowData, 'down')}
-      onRemove={() => handleRemoveItem(rowData)}
+      onInsertAbove={() => opts.onInsertItem?.(rowData, 'above')}
+      onInsertBelow={() => opts.onInsertItem?.(rowData, 'below')}
+      onMoveUp={() => opts.onReorderItem?.(rowData, 'up')}
+      onMoveDown={() => opts.onReorderItem?.(rowData, 'down')}
+      onRemove={() => opts.onRemoveItem?.(rowData)}
     />
   )
 }
 
-function actionColumn(): Column<KosztorysV2RowT> {
+function actionColumn(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT> {
   return {
     id: 'actions',
     title: <span className="px-1 font-medium">Akcje</span>,
@@ -199,28 +200,8 @@ function actionColumn(): Column<KosztorysV2RowT> {
     minWidth: 64,
     maxWidth: 64,
     disabled: true,
-    component: ({ rowData }) => <RowActionsCell rowData={rowData} />,
+    component: ({ rowData }) => <RowActionsCell rowData={rowData} opts={opts} />,
   }
-}
-
-// Section-name cell in grid position: reads the whole-section rename off the editor context and
-// hands it to the presentational SectionNameCell (kept context-free so its unit specs stay simple).
-function SectionNameGridCell({ rowData }: { rowData: KosztorysV2RowT }) {
-  const { handleRenameSection } = useKosztorysEditorContext()
-  return <SectionNameCell rowData={rowData} onRename={handleRenameSection} />
-}
-
-// Stage column header wired to the editor context (rename/remove), same split as SectionNameGridCell.
-function StageHeaderCell({ stage }: { stage: KosztorysStageT }) {
-  const { handleRenameStage, handleRemoveStage } = useKosztorysEditorContext()
-  return (
-    <StageHeader
-      stage={stage}
-      onRename={handleRenameStage}
-      onRemove={handleRemoveStage}
-      tip={HEADER_TIPS[STAGES_COLUMN_GROUP]}
-    />
-  )
 }
 
 // Every data column in sheet order, before any hiding. Split out from buildV2Columns so the picker
@@ -254,7 +235,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       minWidth: 140,
       keepFocus: true,
       component: ({ rowData }: CellProps<KosztorysV2RowT, unknown>) => (
-        <SectionNameGridCell rowData={rowData} />
+        <SectionNameCell rowData={rowData} onRename={opts.onRenameSection} />
       ),
       copyValue: ({ rowData }) => rowData.sectionName ?? '',
       // Delete on a selected Sekcja cell is a no-op — an accidental keypress must not blank a whole
@@ -306,7 +287,14 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   const stageCols: Column<KosztorysV2RowT>[] = stages.map((st) =>
     keyCol(stageKey(st.id), floatColumnLeft, {
       id: stageKey(st.id),
-      title: <StageHeaderCell stage={st} />,
+      title: (
+        <StageHeader
+          stage={st}
+          onRename={opts.onRenameStage}
+          onRemove={opts.onRemoveStage}
+          tip={HEADER_TIPS[STAGES_COLUMN_GROUP]}
+        />
+      ),
       minWidth: 80,
     }),
   )
@@ -447,7 +435,7 @@ function selectV2Columns(
       )
     })
     .map((c) => withResize(c, opts))
-  return opts.rowActions ? [actionColumn(), ...base] : base
+  return opts.onRemoveItem || opts.onReorderItem ? [actionColumn(opts), ...base] : base
 }
 
 // Picker entries for the columns this view actually has, in grid order. Stage columns collapse into

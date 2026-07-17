@@ -421,27 +421,23 @@ _(pending first pass)_
 - [ ] Zaznaczenie komórki Sekcja i wciśnięcie Delete NIE czyści nazwy sekcji.
 - [ ] Ukrywanie/pokazywanie i zmiana szerokości kolumny Sekcja nadal działają.
 
-## kosztorys-editor-compile-fix — React Compiler unblock + EX-496 tail (EX-496)
+## kosztorys-editor-compile-fix — EX-496 cleanup tail (EX-496)
 
-**In review** — automated checks green (Phase 1 `563859e`, Phase 2 `4c7a1cd`, Phase 3 `0e4bd16`, Phase 4 `5e6a9a6`; compile guard + typecheck/lint/unit clean). Identity-stability + cleanup change, **no intended behavior change** — the one observable shift is that the grid's interactive cell handlers (akcje wiersza, zmiana nazwy sekcji/etapu) now docierają do komórek przez `KosztorysEditorProvider` zamiast przez opts kolumn. Te checki potwierdzają, że wszystko działa **jak wcześniej**.
+**In review** — the React-Compiler memoization attempt (Phase 2, `4c7a1cd`) was **reverted**: routing
+cell handlers through `KosztorysEditorProvider` context churned the context value every render and
+re-rendered every visible cell (context bypasses `React.memo` / grid per-row memoization) → "slow and
+jumpy". Owner confirmed by manual A/B that the reverted (props-path) editor is smooth again. Only the
+cleanup fixes remain: #4 cache tag (`aa35411`), #6/#7 dead-code + cast removal (`0e4bd16`), `Pick<>`
+narrowing (`5e6a9a6`). The row-action / rename behaviors are back to the pre-change (already-shipped,
+already-working) code, so they need no re-verification.
 
-Setup: uruchom app przeciw dev DB (5433), zaloguj się jako OWNER/MANAGER, otwórz **Kosztorys** inwestycji z ≥1 sekcją i ≥1 etapem oraz kilkoma pozycjami.
+Setup: uruchom app przeciw dev DB (5433), zaloguj się jako OWNER/MANAGER, otwórz **Kosztorys**
+inwestycji z ≥1 sekcją i ≥1 etapem oraz kilkoma pozycjami.
 
-### Akcje wiersza (menu ⋯) — przez kontekst
+### Wydajność (regresja p2 — cofnięta)
 
-- [ ] **Wstaw pozycję powyżej/poniżej** dodaje pusty wiersz w odpowiednim miejscu sekcji (bez przeładowania); zablokowane przy aktywnym sortowaniu kolumny.
-- [ ] **Przesuń w górę/dół** zamienia sąsiednie pozycje w sekcji; na krawędzi bloku to no-op.
-- [ ] **Usuń pozycję** działa; ostatnia pozycja sekcji → kaskadowe usunięcie sekcji (po potwierdzeniu); przycisk usuwania jest wyszarzony z tooltipem, gdy usunięcie jest zablokowane.
+- [x] Edytor jest płynny przy pisaniu w komórkach — bez „lag/jumpy" — po cofnięciu p2 (potwierdzone ręcznie przez ownera, 2026-07-17).
 
-### Nazwy — przez kontekst
-
-- [ ] **Zmiana nazwy sekcji** w komórce Sekcja (blur/Enter) zmienia nazwę na każdym wierszu tej sekcji; Escape cofa; panel sekcji odzwierciedla zmianę.
-- [ ] **Zmiana nazwy etapu** w nagłówku etapu zapisuje się (pusta nazwa → placeholder „Etap N"); **Usuń etap** za potwierdzeniem usuwa kolumnę etapu i wpisane ilości.
-
-### Ustawienia globalne (guard #4 — cache tag)
+### Ustawienia globalne (guard #4 — cache tag, NIE cofnięte)
 
 - [ ] Zmiana **stawki VAT / współczynnika globalnego / rabatu globalnego** odzwierciedla się w siatce i sumach **bez ręcznego przeładowania**.
-
-### Regresja identyczności
-
-- [ ] Brak nowych ostrzeżeń w konsoli; siatka nie renderuje się widocznie częściej niż wcześniej przy pisaniu w komórkach (memoizacja przywrócona).

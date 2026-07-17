@@ -2,8 +2,9 @@ import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { LayerT } from '@/lib/kosztorys/layer'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { ProgressDisplayT } from '@/lib/kosztorys/progress-display'
+import type { ItemRemovalPlanT } from '@/lib/kosztorys/delete-policy'
 import type { SortDirT } from '@/lib/kosztorys/row-view'
-import type { KosztorysStageT } from '@/lib/kosztorys/types'
+import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 export type V2SortStateT = { field: string; dir: SortDirT } | null
 
@@ -12,6 +13,8 @@ export type BuildV2ColumnsOptsT = {
   // Stages (etapy) render as dynamic editable columns; a trailing "Pozostało" reads out the
   // remaining net.
   stages: KosztorysStageT[]
+  onRemoveStage?: (stageId: number) => void
+  onRenameStage?: (stageId: number, label: string) => void
   sort?: V2SortStateT
   onSetSort?: (field: string, dir: SortDirT | null) => void
   // Column picker: true = this column is off — by the user's stored choice OR by
@@ -31,12 +34,19 @@ export type BuildV2ColumnsOptsT = {
   widths?: Record<string, number>
   onGuide?: (x: number | null) => void
   onCommitColumn?: (id: string, width: number) => void
-  // Whether to prepend the row-actions column. The interactive cell handlers themselves
-  // (insert/reorder/remove item, rename/remove section+stage) no longer thread through here — the
-  // cells read them from useKosztorysEditorContext(), so passing ref-capturing closures into this
-  // plain builder during render can't de-opt React Compiler (EX-496). This flag is the one bit the
-  // builder still needs: the grid sets it, the column-set unit specs omit it (no actions column).
-  rowActions?: boolean
+  // Row actions: removing an item + reading a section's item count (to enforce the
+  // "≥1 item" invariant).
+  onRemoveItem?: (row: KosztorysV2RowT) => void
+  // What deleting this row does: a hard block (disabled + tooltip reason) for the empty-sheet floor,
+  // or a removable plan carrying whether a populated-row confirm is required first.
+  getRemovePlan?: (row: KosztorysV2RowT) => ItemRemovalPlanT
+  // Reordering items within a section (Przesuń w górę/dół). Greyed out while a column sort is
+  // active — "up/down" has no meaning against a price-sorted list.
+  onReorderItem?: (row: KosztorysV2RowT, dir: 'up' | 'down') => void
+  onInsertItem?: (row: KosztorysV2RowT, dir: 'above' | 'below') => void
+  // Renaming the whole section from its (denormalized) name cell. Routes through the same fan-out
+  // as the section panel — never a per-row setRowData, which would desync the other rows' copies.
+  onRenameSection?: (sectionId: number, name: string) => void
   // Global discount active → the four per-item discount columns are overridden, so drop them from
   // the grid and the picker (the underlying data stays and returns when the discount is cleared).
   globalDiscountActive?: boolean

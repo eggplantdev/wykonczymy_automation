@@ -30,32 +30,41 @@ under an automated guard, then clears the still-open EX-496 cleanup tail.
 - **Still open:** the three compiler bails (#1), the 13 no-op `ViewPricingT` casts (#6), dead
   `widthsKey`/`stagesKey` (#7), plus the three structural extractions (settlement.ts / HEADER_TIPS / Pick<>).
 
-- **Phase 2 widened beyond the plan's "surgical" premise (owner decision, 2026-07-17).** The plan
-  modeled three bail fixes. Two landed as written (computed-key hoist; `handleRemoveSection` forward
-  ref). Bail #3's premise was wrong: the render-phase ref access wasn't reads-only — the `rowsRef`/
-  `stagesRef` mirror **writes** bailed too, so the refs were removed entirely (reads rewritten to
-  `rows`/`stages`). Removing them then exposed the real blocker the plan had fenced as EX-521: the
-  interactive cell handlers (which capture `prevById`, a ref) were bundled into `columnOpts` and passed
-  to the **plain function** `buildV2Grid` during render — React Compiler bails when a ref-capturing
-  closure crosses a plain-function call in render (proven: the same closure as a JSX prop to a component
-  compiles). Fix (chosen over defer-to-EX-521): the interactive handlers now reach their cells through
-  the existing `KosztorysEditorProvider` context; `buildV2Grid` receives only pure display config plus a
-  `rowActions` boolean. A fourth bail then surfaced (`PruneHoistedContexts`: `patchRows` was forward-
-  referenced by `handleAddStage`/`handleRemoveStage`) — fixed by hoisting `patchRows` above its callers.
-  Net: the hook now emits `_c` slots, guard green, typecheck/lint/suite clean. Touched:
-  `use-kosztorys-editor.ts`, `kosztorys-v2-columns.tsx`, `kosztorys-v2-column-opts.ts`.
+- **Phase 2 (the compiler unblock) was tried, then REVERTED — it caused a perf regression (owner
+  confirmed by manual A/B, 2026-07-17).** The compiler bail could only be cleared by removing the
+  `rowsRef`/`stagesRef` mirrors (their render-phase read AND write both bailed) and moving the
+  interactive cell handlers off `columnOpts` into the `KosztorysEditorProvider` context so they no
+  longer cross a plain-function (`buildV2Grid`) call during render. That wiring backfired: the context
+  **value is the whole hook return object, whose identity churns every render**, and **React re-renders
+  every context consumer on a value-identity change — `React.memo` / datasheet-grid's per-row
+  memoization does not stop it.** So `RowActionsCell` / `SectionNameGridCell` / `StageHeaderCell`
+  (per-row / per-header) all re-rendered on every keystroke instead of only the edited cell → "slow and
+  jumpy" on a grid that can hit 1000+ rows. The un-memoized hook had been smooth for its whole life; the
+  memoization it was chasing was never the bottleneck, and the fix introduced a real one. Reverted p2's
+  runtime change (props path + refs restored) via `git revert 4c7a1cd`; p3/p4 cleanups auto-merged
+  around it and stayed. The p1 compile-assert guard was deleted with it — its premise (hook emits `_c`)
+  is exactly what we gave up.
+  - **Deeper reason it can't be salvaged cheaply:** compiler memoization needs _no_ refs, but stable
+    handler identity (what would keep the context value from churning) _needs_ refs — and
+    `getRemovePlan` closes over render-fresh `rows` regardless. Reconciling the two is the cohesive
+    stateful-unit restructuring already scoped as **EX-521**. So EX-496 #1 (memoize the hook) is
+    **reopened, blocked on EX-521**, not achievable as a standalone surgical fix.
 
 Plan: `plan.md` · Brief: `plan-brief.md`.
 
-## Status: implemented, pre-review
+## Status: implemented (cleanups only), pre-review
 
-All phases are committed (p1 `563859e`, p2 `4c7a1cd`, p3 `0e4bd16`, p4 `5e6a9a6`, close-out
-`7fd332e`) with automated checks green. **The `slice-review-gate` has NOT run yet** — no review
-fan-out, no `/simplify` pass, no `review-gate.md` ledger for this change. EX-496 sits `[in review]`
-(the team has no `In Review` state) and manual-checks remain unticked, so it is **not** `Done` and
-**must not be archived** until the gate runs and its findings + manual checks are resolved.
+**What shipped and stands:** #4 `investments` cache tag (`aa35411`), #6 no-op `ViewPricingT` cast
+removal + #7 dead `widthsKey`/`stagesKey` removal (p3 `0e4bd16`), and the `Pick<>` opts narrowing (p4
+`5e6a9a6`). **What was reverted:** #1 the React-Compiler memoization (p2 `4c7a1cd` + the p1 guard) —
+see the bullet above; reopened as blocked-on-EX-521.
+
+The revert is **uncommitted-then-committed here**; automated `pnpm typecheck` clean, and the owner
+manually confirmed the editor is smooth again. **The `slice-review-gate` has NOT run yet** — no review
+fan-out, no `/simplify` pass, no `review-gate.md` ledger. EX-496 is **not** `Done` and **must not be
+archived** until the gate runs.
 
 **Change B (EX-521, the god-hook split) is PARKED** — not started (owner, 2026-07-17). It carries a
 dependency-install prerequisite (`@testing-library/react` + a DOM env, which the repo currently
 lacks and which trips the arm64 `lightningcss` hazard) and real architectural risk, so it is not an
-ad-hoc follow-on to A.
+ad-hoc follow-on to A. EX-496 #1 now waits on it.
