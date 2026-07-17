@@ -420,3 +420,28 @@ _(pending first pass)_
 - [ ] Nowa nazwa przeżywa przeładowanie strony (zapisana).
 - [ ] Zaznaczenie komórki Sekcja i wciśnięcie Delete NIE czyści nazwy sekcji.
 - [ ] Ukrywanie/pokazywanie i zmiana szerokości kolumny Sekcja nadal działają.
+
+## kosztorys-editor-compile-fix — React Compiler unblock + EX-496 tail (EX-496)
+
+**In review** — automated checks green (Phase 1 `563859e`, Phase 2 `4c7a1cd`, Phase 3 `0e4bd16`, Phase 4 `5e6a9a6`; compile guard + typecheck/lint/unit clean). Identity-stability + cleanup change, **no intended behavior change** — the one observable shift is that the grid's interactive cell handlers (akcje wiersza, zmiana nazwy sekcji/etapu) now docierają do komórek przez `KosztorysEditorProvider` zamiast przez opts kolumn. Te checki potwierdzają, że wszystko działa **jak wcześniej**.
+
+Setup: uruchom app przeciw dev DB (5433), zaloguj się jako OWNER/MANAGER, otwórz **Kosztorys** inwestycji z ≥1 sekcją i ≥1 etapem oraz kilkoma pozycjami.
+
+### Akcje wiersza (menu ⋯) — przez kontekst
+
+- [ ] **Wstaw pozycję powyżej/poniżej** dodaje pusty wiersz w odpowiednim miejscu sekcji (bez przeładowania); zablokowane przy aktywnym sortowaniu kolumny.
+- [ ] **Przesuń w górę/dół** zamienia sąsiednie pozycje w sekcji; na krawędzi bloku to no-op.
+- [ ] **Usuń pozycję** działa; ostatnia pozycja sekcji → kaskadowe usunięcie sekcji (po potwierdzeniu); przycisk usuwania jest wyszarzony z tooltipem, gdy usunięcie jest zablokowane.
+
+### Nazwy — przez kontekst
+
+- [ ] **Zmiana nazwy sekcji** w komórce Sekcja (blur/Enter) zmienia nazwę na każdym wierszu tej sekcji; Escape cofa; panel sekcji odzwierciedla zmianę.
+- [ ] **Zmiana nazwy etapu** w nagłówku etapu zapisuje się (pusta nazwa → placeholder „Etap N"); **Usuń etap** za potwierdzeniem usuwa kolumnę etapu i wpisane ilości.
+
+### Ustawienia globalne (guard #4 — cache tag)
+
+- [ ] Zmiana **stawki VAT / współczynnika globalnego / rabatu globalnego** odzwierciedla się w siatce i sumach **bez ręcznego przeładowania**.
+
+### Regresja identyczności
+
+- [ ] Brak nowych ostrzeżeń w konsoli; siatka nie renderuje się widocznie częściej niż wcześniej przy pisaniu w komórkach (memoizacja przywrócona).
