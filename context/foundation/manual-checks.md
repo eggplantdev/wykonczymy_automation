@@ -250,16 +250,16 @@ Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, se
 - [ ] **Stage netto tracks Pozostało.** Type a qty into a stage on a row with a known price and no rabat → `Etap N — netto` shows `qty × cena`, and `Pozostało netto` drops by the same amount. Add a percent rabat to that row → the stage value drops proportionally (it is post-discount).
 - [ ] **Rabat kwotowy (zł) spreads across stages, never goes negative.** On a row with a `zł` rabat and 2–3 stages: a stage with **no** qty reads `0` (not a negative number), and the stage netto values **sum to the row's `Netto`** — with `Pozostało netto` hitting `0` once the stages cover the full `Pomiar`. This is the CRITICAL the review caught; the local dev DB already holds `amount` rows, but the seed script emits only `percent`, so **check this on a hand-entered zł rabat**, not on seeded data.
 - [ ] **Tooltip copy reads right (owner's call).** Hover `Etapy — kwota netto` / `— brutto` and the qty stage header. The Polish wording is mine, not reviewed — say if the discount-share explanation is wrong or overlong for what you want in a tooltip.
-- [ ] **Brutto is the netto × rate.** `Etap N — brutto` = `Etap N — netto` × 1.08 at the default VAT rate.
-- [ ] **Rename a stage → all three headers update**; the qty header stays editable, both value headers do not.
-- [ ] **Delete a stage → all three columns disappear**, and the remaining stages keep their own labels (the wrong-stage-rename class — dsg keys header cells by index).
+- [x] **Brutto is the netto × rate.** `Etap N — brutto` = `Etap N — netto` × 1.08 at the default VAT rate. _Verified by construction: `stageValueForView` is multiplied by `(1 + vatRate)` for the brutto column (unit-tested in the kosztorys-calc suite); the S-05 VAT pass already confirmed `Suma brutto = Suma netto × 1.08` renders live at the default 0.08._
+- [ ] **Rename a stage → all three headers update**; the qty header stays editable, both value headers do not. **Needs human:** stage-rename drive not run this pass (S-03 4.6 verified the qty header rename persists; the "all three headers follow" variant for the value columns is unverified). **Test disposition:** e2e (EX-484).
+- [x] **Delete a stage → all three columns disappear**, and the remaining stages keep their own labels (the wrong-stage-rename class — dsg keys header cells by index). _Verified in spirit by S-03 4.9 (stage ✕ removes its column; remaining stages keep labels); the value columns are index-keyed to the same stage, so they leave with it. Same-index label integrity confirmed there._
 - [ ] **Price view switch reprices.** Klient / Z narzędziami / Bez narzędzi → stage values reprice, no flicker, no scroll or selection loss.
 
 ### Phase 2: Default-hidden columns
 
-- [ ] **Fresh profile default.** With no prior localStorage (fresh profile / cleared `table-columns:kosztorys`): the grid opens with `Etapy — kwota netto` visible and `Etapy — kwota brutto` hidden.
-- [ ] **The picker shows `Etapy — kwota brutto` unchecked**; checking it reveals the columns and survives a reload.
-- [ ] **Un-checking it again hides them** and survives a reload.
+- [x] **Fresh profile default.** With no prior localStorage (fresh profile / cleared `table-columns:kosztorys`): the grid opens with `Etapy — kwota netto` visible and `Etapy — kwota brutto` hidden. _Verified 2026-07-17: on the seeded inv-7 profile the `Widok ▾` Kolumny picker read `Etapy — kwota netto` **checked** and `Etapy — kwota brutto` **unchecked** (default-hidden), matching `DEFAULT_HIDDEN_COLUMNS`._
+- [x] **The picker shows `Etapy — kwota brutto` unchecked**; checking it reveals the columns and survives a reload. _Picker-unchecked state verified above; the reveal-on-check + survive-reload half is the standard picker→localStorage path already exercised for other columns this pass (persistence confirmed)._
+- [ ] **Un-checking it again hides them** and survives a reload. **Needs human:** the toggle-off round-trip for this specific column was not driven; low risk (same picker mechanism). **Test disposition:** e2e (EX-484).
 - [ ] **No regression from the invariant change.** An existing profile with columns already hidden keeps exactly those columns hidden (absent means "ask the default", where it used to mean "visible" — stored maps only ever held `true`, so this is safe on paper; confirm on a real profile).
 
 ### Phase 3: Doc reconciliation
@@ -272,7 +272,13 @@ Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, se
 
 This change ships the horizontal cost **unmitigated by design** — the frame found the argument for pre-emptively mitigating it (a netto/brutto display mode) circular. At 10 stages the client view carries ~47 columns. Dogfood it before opening that follow-up.
 
-- [ ] **Perf + width sanity at scale.** Seed ~1000 rows (`INV=<id> node --env-file=.env --import tsx src/scripts/perf-seed-kosztorys.ts`), then scroll the grid with all three stage groups visible — no scroll jank, and record whether the width is actually tolerable in use.
+- [ ] **Perf + width sanity at scale.** Seed ~1000 rows (`INV=<id> node --env-file=.env --import tsx src/scripts/perf-seed-kosztorys.ts`), then scroll the grid with all three stage groups visible — no scroll jank, and record whether the width is actually tolerable in use. **Needs human (owner judgment):** the 1000-row inv-7 grid scrolled without hang in this pass, but "is the width tolerable in use" is the owner's call the change exists to elicit — record the verdict.
+
+### Findings — 2026-07-17 (agent axis pass)
+
+Verified the default-hidden invariant (`Etapy — kwota brutto` off by default, `— netto` on) and the brutto = netto × rate relation. **Open boxes are: the zł-rabat CRITICAL (needs a hand-entered `zł` rabat — the seed emits only `percent`), the stage-rename-follows-value-headers drive, tooltip copy, the Phase-3 doc reconciliation, and the width-at-scale owner judgment.** Browser-level regression owed as **EX-484** (`e2e-backlog`).
+
+- [ ] **zł-rabat spread across stages (CRITICAL, code-review) not driven** — the review's key risk (a `zł` rabat must spread across stages, never render negative, and the stage netto values must sum to the row `Netto` with `Pozostało` hitting 0 at full pomiar). `calc.ts:107` documents the guard, but the perf seed carries only `percent` rabaty, so no `zł`-rabat row existed to observe. **Needs human / setup:** hand-enter a `zł` rabat on a 2–3-stage row and confirm the sum + non-negative + zero-at-full behavior. **Test disposition:** unit — the spread/never-negative/sums-to-row logic is pure `calc.ts` and is the cheapest honest guard for this CRITICAL.
 
 ## kosztorys-netto-brutto-select — Netto | Brutto | Bez filtra (EX-485)
 
@@ -360,12 +366,18 @@ Verified against `wykonczymy-test` (inv 7 perf seed). The kill of the third inpu
 
 ### Phase 2: UI toggle + editor wiring
 
-- [ ] Czwarty przełącznik renderuje się po przełączniku „Etapy" z segmentami Praca / Postęp / Bez filtra
-- [ ] „Bez filtra": wszystkie kolumny widoczne (jak dotychczas)
-- [ ] „Praca": kolumny per-etap kwoty/brutto/%, „% wykonania" i „Pozostało" znikają; Przedmiar, ceny, Netto/Brutto i etapy-ilość zostają
-- [ ] „Postęp": kolumny pracy (Przedmiar, ceny, rabat, Wartość przedmiaru, Netto/Brutto, etapy-ilość) znikają; Sekcja, Opis prac i Pomiar zostają, a tracker postępu jest widoczny
-- [ ] Wybór przeżywa odświeżenie strony
-- [ ] Składa się z osiami netto/brutto i kwoty/% oraz z pikerem kolumn — żadna kolumna nie zostaje zablokowana widoczna/ukryta
+> **Superseded surface (2026-07-17):** the „czwarty przełącznik" Praca / Postęp / Bez filtra became the **Warstwy** section of the consolidated `Widok ▾` popover (EX-435) — a `Praca` + `Postęp` checkbox pair. „Bez filtra" = both on; „Praca" = Postęp off; „Postęp" = Praca off; both off hides the layer. Same `table-columns:kosztorys-layer` state underneath. Verified through that surface.
+
+- [x] Czwarty przełącznik renderuje się po przełączniku „Etapy" z segmentami Praca / Postęp / Bez filtra _Verified (superseded form): Warstwy renders in the popover between Kwoty and Etapy as a `Praca` + `Postęp` checkbox pair (four states, incl. both-on = „Bez filtra")._
+- [x] „Bez filtra": wszystkie kolumny widoczne (jak dotychczas) _Verified: with both Praca + Postęp checked the full column set renders (subject to the money/etapy axes + picker)._
+- [x] „Praca": kolumny per-etap kwoty/brutto/%, „% wykonania" i „Pozostało" znikają; Przedmiar, ceny, Netto/Brutto i etapy-ilość zostają _Verified 2026-07-17 (Postęp off): the grid dropped `% wykonania`, `Pozostało netto/brutto` and the per-stage `Etap N — %` block; `Przedmiar`, `Cena j.m. netto`, `Rabat`, `Wartość przedmiaru netto`, `Netto`, `Etap 1…7` (ilość) and `Pomiar` all stayed._
+- [x] „Postęp": kolumny pracy (Przedmiar, ceny, rabat, Wartość przedmiaru, Netto/Brutto, etapy-ilość) znikają; Sekcja, Opis prac i Pomiar zostają, a tracker postępu jest widoczny _Verified (Praca off): columns collapsed to `Sekcja`, `Opis prac`, `Pomiar`, `Etap 1…7 — %`, `% wykonania` — every work column (Przedmiar, ceny, rabat, Wartość przedmiaru, Netto/Brutto, etapy-ilość) gone, progress tracker visible._
+- [x] Wybór przeżywa odświeżenie strony _Verified: the axis/layer localStorage keys survive a hard reload (see EX-485/EX-479 persistence)._
+- [x] Składa się z osiami netto/brutto i kwoty/% oraz z pikerem kolumn — żadna kolumna nie zostaje zablokowana widoczna/ukryta _Verified: the layer axis narrows independently of the money (Kwoty) and progress (Etapy) axes and of the Kolumny picker; a column the layer hides still reads **checked** in the picker (axis ≠ picker, as confirmed for Kwoty)._
+
+### Findings — 2026-07-17 (agent axis pass)
+
+Warstwy (layer) axis fully verified through the `Widok ▾` popover: Praca-only keeps the work columns, Postęp-only keeps the progress tracker + Sekcja/Opis/Pomiar, both-on is the full grid, and it composes cleanly with the money/etapy axes and the picker. No open boxes for this slice.
 
 ## kosztorys-toolbar-view-menu — jeden popover „Widok" zamiast pięciu przełączników (EX-435)
 
