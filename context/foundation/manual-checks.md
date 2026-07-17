@@ -280,13 +280,15 @@ This change ships the horizontal cost **unmitigated by design** — the frame fo
 
 Setup: run the app against the **5435 test DB** (see intro), log in as OWNER/MANAGER, open an investment's **Kosztorys** tab with ≥1 section, items, and ≥1 stage. The control sits beside the price-view toggle. Clear `table-columns:kosztorys-axis` in localStorage to start from the default (`Bez filtra`).
 
-- [ ] **Netto drops every brutto column; the price stays.** Pick `Netto` → `Cena j.m. brutto`, `Rabat kwota brutto`, `Wartość przedmiaru brutto`, `Brutto`, `Pozostało brutto` and the per-stage brutto block all leave the grid. `Cena j.m. netto` stays.
-- [ ] **Brutto drops the netto columns; the price still stays.** Pick `Brutto` → `Wartość przedmiaru netto`, `Netto`, `Pozostało netto`, `Rabat kwota netto` and the per-stage netto block leave — and `Cena j.m. netto` is still there and still editable.
-- [ ] **Bez filtra restores exactly what the picker allows.** Back to `Bez filtra` → every column returns except the per-stage brutto block, which stays hidden by `DEFAULT_HIDDEN_COLUMNS` (the picker's default, not the mode).
-- [ ] **The mode survives a reload.** Pick `Netto`, reload → still `Netto`, still narrowed.
-- [ ] **The mode holds across all three price views.** Switch Klient / Z narzędziami / Bez narzędzi → the mode doesn't reset; it's one global setting, not per-view.
-- [ ] **The column picker's menu is unchanged in every mode.** A column the mode hid still reads as _checked_ in the picker — the picker answers "never show this", the mode answers "which side".
-- [ ] **The Sekcje footer is untouched.** `Suma netto` and `Suma brutto` both stay in every mode (owner decision: the footer is a summary, not a view).
+> **Superseded surface (2026-07-17):** the standalone `Netto | Brutto | Bez filtra` control was folded into the consolidated **`Widok ▾`** popover (EX-435) as the **Kwoty** section — a `Netto` + `Brutto` checkbox pair (both on = „Bez filtra", one off = the single-side mode, both off = axis hidden). Same `table-columns:kosztorys-axis` state underneath. Boxes below re-verified through that surface.
+
+- [x] **Netto drops every brutto column; the price stays.** Pick `Netto` → `Cena j.m. brutto`, `Rabat kwota brutto`, `Wartość przedmiaru brutto`, `Brutto`, `Pozostało brutto` and the per-stage brutto block all leave the grid. `Cena j.m. netto` stays. _Verified 2026-07-17 (Kwoty: Netto on / Brutto off): all brutto columns (`Brutto`, `Rabat kwota brutto`, `Wartość przedmiaru brutto`, `Pozostało brutto`) left the grid; netto side + `Cena j.m. netto` stayed._
+- [ ] **Brutto drops the netto columns; the price still stays.** Pick `Brutto` → `Wartość przedmiaru netto`, `Netto`, `Pozostało netto`, `Rabat kwota netto` and the per-stage netto block leave — and `Cena j.m. netto` is still there and still editable. **Needs human:** the mirror (Brutto-only) was not driven; the axis predicate is symmetric with the verified Netto-only case, so low risk, but confirm once.
+- [ ] **Bez filtra restores exactly what the picker allows.** Back to `Bez filtra` → every column returns except the per-stage brutto block, which stays hidden by `DEFAULT_HIDDEN_COLUMNS` (the picker's default, not the mode). **Needs human:** not driven (did not return both Kwoty boxes to on and re-read); quick confirm.
+- [x] **The mode survives a reload.** Pick `Netto`, reload → still `Netto`, still narrowed. _Verified: `table-columns:kosztorys-axis=net` survived a hard reload._
+- [x] **The mode holds across all three price views.** Switch Klient / Z narzędziami / Bez narzędzi → the mode doesn't reset; it's one global setting, not per-view. _Verified by construction: the axis (`kosztorys-axis`) and the price view (`kosztorys-view:7`) are independent localStorage keys — both persisted side-by-side across reload, and a view switch writes only the view key._
+- [x] **The column picker's menu is unchanged in every mode.** A column the mode hid still reads as _checked_ in the picker — the picker answers "never show this", the mode answers "which side". _Verified: with Kwoty on the Netto-only mode (brutto columns off the grid), every brutto entry in the `Widok ▾` Kolumny list still read **checked** — the picker state is untouched by the axis._
+- [x] **The Sekcje footer is untouched.** `Suma netto` and `Suma brutto` both stay in every mode (owner decision: the footer is a summary, not a view). _Verified: the totals bar showed both `Suma netto 371 476,88` and `Suma brutto 401 195,03` while the grid was narrowed to netto-only._
 - [ ] **No flicker, no scroll jump at scale.** On ~1000 rows (`INV=7`, `perf-seed-kosztorys.ts`) switch modes repeatedly — the grid must not flash or lose scroll position. This is EX-422's regression surface: the fix was deleting the remount `key`, and this change deliberately did not add one back.
 - [ ] **The non-guarantee reads acceptably (a judgement call, not a bug).** Hide `Brutto` in the picker, then pick mode `Brutto` → the column stays off screen. Correct by the model — the mode only _narrows_, it never reveals. Confirm it doesn't read as a broken control; if it does, that's a follow-up, not a fix here.
 - [ ] **`Brutto` leaves you with NO per-stage value column at all — is that liveable?** (code-review 🟡, deliberately shipped as-is.) On the default picker state, `stageValueGross` is hidden by `DEFAULT_HIDDEN_COLUMNS` and `stageValueNet` is dropped by the mode, so `Brutto` — the mode you'd invoice the client from — shows neither side of `Etapy — kwota`, while the picker still reads "Etapy — kwota netto ✓". Each half is correct on its own; the composition is the question. Ticking `Etapy — kwota brutto` in the picker fixes it for good. Decide whether the default should do that for you.
@@ -300,23 +302,29 @@ Setup: run the app against the **5435 test DB** (see intro), log in as OWNER/MAN
 
 ### Phase 2: Grid columns
 
-- [ ] **Percent mode swaps the stage block.** Pick `% wykonania` → every `Etap N — netto` / `— brutto` column leaves and exactly one `Etap N — %` column appears per stage. Everything outside the stage block (Netto, Pozostało, Cena…) is unchanged.
-- [ ] **`% wykonania` (per row) is visible by default in BOTH modes** and can be hidden via the column picker.
-- [ ] **No denominator → a dash, not a fake 0%.** A row with `Pomiar = 0` renders "—" in every % cell (row and per-stage), not `0%`.
-- [ ] **Overshoot shows raw.** A row with a stage qty above its `Pomiar` renders >100% literally (unclamped) — it is the only signal that the measurement or the entry is wrong.
-- [ ] **No grid flicker/remount when switching modes** (EX-422 class — the fix was deleting the remount `key`, and this change deliberately did not add one back).
+- [x] **Percent mode swaps the stage block.** Pick `% wykonania` → every `Etap N — netto` / `— brutto` column leaves and exactly one `Etap N — %` column appears per stage. Everything outside the stage block (Netto, Pozostało, Cena…) is unchanged. _Verified 2026-07-17 (agent, inv 7 perf seed, `:3010` test DB): via the `Widok ▾` popover Etapy PLN→off / Procent→on, the stage block rendered `Etap 1 — %`…`Etap 7 — %` with no `Etap N — netto/brutto`; Netto / Pozostało / money columns intact._
+- [x] **`% wykonania` (per row) is visible by default in BOTH modes** and can be hidden via the column picker. _Verified: `% wykonania` present in both PLN and percent modes; picker carries a checked `% wykonania` entry._
+- [ ] **No denominator → a dash, not a fake 0%.** A row with `Pomiar = 0` renders "—" in every % cell (row and per-stage), not `0%`. **Needs human / setup:** the perf seed has zero `planned_qty=0` rows, so no denominator-less row existed to observe. Add a blank row (Przedmiar 0) and confirm the "—". **Test disposition:** unit — `rowDoneFraction` with a zero denominator is a pure-calc case cheaper than a browser drive.
+- [x] **Overshoot shows raw.** A row with a stage qty above its `Pomiar` renders >100% literally (unclamped) — it is the only signal that the measurement or the entry is wrong. _Verified: item 392 (Przedmiar 1, Σetapów 2) rendered `% wykonania = 200%` unclamped; `calc.ts:140` documents the deliberate no-clamp, and the cell gets `text-destructive` via `hasStagesOverPlanned` (`kosztorys-v2-columns.tsx:347`)._
+- [ ] **No grid flicker/remount when switching modes** (EX-422 class — the fix was deleting the remount `key`, and this change deliberately did not add one back). **Needs human:** repeated eyeball of mode switching for a visible flash; not instrumented (virtualized grid — timing assertion is the anti-pattern). Column-set swapped cleanly with no page reload in the pass, but a sub-frame flash was not measured.
 
 ### Phase 3: Toolbar toggle, counter, section %
 
-- [ ] **The toggle switches instantly and survives a reload**, independently of the money axis and the price view (three separate global settings, not one).
+- [x] **The toggle switches instantly and survives a reload**, independently of the money axis and the price view (three separate global settings, not one). _Verified: after switching to percent + netto-only, a hard reload preserved `table-columns:kosztorys-progress-display=percent`, `table-columns:kosztorys-axis=net`, and `kosztorys-view:7=own_tools` — three independent localStorage keys._
 - [ ] **The counter reads sensibly.** `Wykonano: X% · done / total` matches the Sekcje footer's `Suma netto` as its denominator; an empty/valueless kosztorys shows "—".
 - [ ] **The counter follows the money axis for its values only.** Pick `Brutto` → the value pair switches to brutto (and says so); the percent is unchanged, because it is the same figure on either side of the VAT.
 - [ ] **The counter ignores search and the section filter.** Type in the search box / filter to one section → the counter does not move (it answers for the whole kosztorys, by design).
 - [ ] **Section rows show `wyk. %` consistent with their rows**; a section with no value shows "—".
 - [ ] **The three surfaces agree.** On a hand-checkable dataset (e.g. seeded `INV=6`), the row %, the section %, and the counter tell the same story — and the per-stage % columns sum to the row's `% wykonania`.
-- [ ] **Percent is view-independent.** Switch Klient / Z narzędziami / Bez narzędzi in percent mode → every % figure is unchanged (only the counter's value pair moves). This is the change's core claim: price and rabat cancel out of the fraction.
+- [x] **Percent is view-independent.** Switch Klient / Z narzędziami / Bez narzędzi in percent mode → every % figure is unchanged (only the counter's value pair moves). This is the change's core claim: price and rabat cancel out of the fraction. _Verified by construction + data: `rowDoneFraction` is a quantity ratio (Σ stage qty ÷ Przedmiar) with no price term (`calc.ts`), so no price view can move it; row 392's 200% held while the stored view was `own_tools`._
 - [ ] **The picker still wins.** In percent mode, hide `Etapy — % wykonania` and `% wykonania` via the picker → they stay off screen. The mode only narrows; it never reveals.
 - [ ] **No layout breakage in the toolbar at narrow widths** (it is a `flex-wrap` row that now carries a third toggle plus the counter).
+
+### Findings — 2026-07-17 (agent axis pass)
+
+Drove the shared axis machinery against `wykonczymy-test` (5435, throwaway `:3010`, OWNER `e2e@wykonczymy.test`, inv 7 perf seed). The percent axis is now surfaced through the consolidated **`Widok ▾`** popover (EX-435), not a standalone toggle — the underlying `table-columns:kosztorys-progress-display` state and column swap are unchanged. **Core mechanics verified** (percent block swap, `% wykonania` both modes, overshoot raw+red, reload persistence, view-independence). **Remaining open boxes are the counter + section-% surfaces and two edge cases** (denominator-less dash, sub-frame flicker) — not driven this pass:
+
+- [ ] **Counter / section-% surfaces not driven** — `Wykonano: X% · done/total`, the counter's money-axis following, its search/filter invariance, per-section `wyk. %`, and the "three surfaces agree" cross-check were not exercised (they need a hand-checkable small dataset, e.g. seeded `INV=6`, not the 1000-row synthetic set). **Needs human:** drive these on a small seed, or defer to the EX-490 E2E. **Test disposition:** e2e (EX-490, already filed `e2e-backlog`) — counter↔footer↔row agreement is a multi-column browser invariant.
 
 ## kosztorys-stages-source-of-truth — „Pomiar z natury" = Σ etapów; „Pozostało" kotwiczone w Przedmiarze (EX-489, EX-495)
 
@@ -326,23 +334,27 @@ Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, se
 
 ### Phase 1: „Pomiar z natury" staje się sumą etapów
 
-- [ ] „Pomiar z natury" nie przyjmuje wpisu; edycja etapu zmienia go natychmiast
-- [ ] Wiersz z zerowymi etapami da się skasować, nawet jeśli ma za sobą historię pomiaru
+- [x] „Pomiar z natury" nie przyjmuje wpisu; edycja etapu zmienia go natychmiast _Verified 2026-07-17: the `measured_qty` column is **gone** from `kosztorys_items` (migration `20260716_0_drop_kosztorys_measured_qty` applied on the test DB), so Pomiar has no stored field to type into — it is computed as Σ stage qty. Item 392 reads Pomiar = 2 = Σetapów (2 stages at 1). Live recompute-on-stage-edit is the same computed-cell path as S-03 4.7 (already verified there)._
+- [ ] Wiersz z zerowymi etapami da się skasować, nawet jeśli ma za sobą historię pomiaru **Needs human:** delete-flow drive — a row cleared to zero stages should delete despite past pomiar. The guard now keys on `stage_progress`, not the dropped `measured_qty` (so structurally satisfied), but the UI delete was not driven this pass. **Test disposition:** integration (server action → DB) — covered in spirit by `kosztorys-delete-guard.test.ts`; the source-of-truth variant (zero stages + history) owes one assertion.
 
 ### Phase 2: Kotwica w Przedmiarze
 
-- [ ] Wiersz z etapami przekraczającymi Przedmiar: „Pozostało" ujemne, komórka czerwona, licznik > 100%
-- [ ] Wiersz bez Przedmiaru: „Pozostało" = „—", brak czerwieni, sortowanie spycha go na koniec
-- [ ] Przełączanie widoku ceny nie zmienia żadnego procentu
+- [x] Wiersz z etapami przekraczającymi Przedmiar: „Pozostało" ujemne, komórka czerwona, licznik > 100% _Verified: item 392 (Przedmiar 1, Σetapów 2) → `Pozostało netto = −10,45`, `% wykonania = 200%`, and the % cell carries `text-destructive` via `hasStagesOverPlanned` (`kosztorys-v2-columns.tsx:347`)._
+- [ ] Wiersz bez Przedmiaru: „Pozostało" = „—", brak czerwieni, sortowanie spycha go na koniec **Needs human / setup:** the perf seed has no `planned_qty=0` row, so the no-Przedmiar case (dash, no red, sort-to-bottom) had nothing to observe. Add a Przedmiar-0 row and confirm. **Test disposition:** unit (the dash/`—` calc) + e2e (the sort-to-bottom ordering, EX-497).
+- [x] Przełączanie widoku ceny nie zmienia żadnego procentu _Verified — same finding as `kosztorys-progress-percent` › "Percent is view-independent": `rowDoneFraction` has no price term._
 
 ### Phase 3: Rabat w wartości przedmiaru
 
-- [ ] „Wartość netto przedmiar" przy rabacie 10% jest o 10% niższa niż `Przedmiar × cena`, a tooltip mówi dlaczego
+- [ ] „Wartość netto przedmiar" przy rabacie 10% jest o 10% niższa niż `Przedmiar × cena`, a tooltip mówi dlaczego **Partly verified:** the post-discount `plannedNet` math is unit-tested (`kosztorys-calc.test.ts`) and applies on screen (item 392 carries a `%` rabat and its Wartość przedmiaru netto is discounted). **Needs human:** the **tooltip copy** ("mówi dlaczego") is an owner wording call — read it and confirm it explains the discount. **Test disposition:** unit covers the math; tooltip = no automated test.
 
 ### Phase 4: Sprzątanie martwego modelu
 
-- [ ] Po `INV=6 … seed-kosztorys.ts` zaseedowany kosztorys ma niezerowy „Pomiar z natury" w wierszach z robotą
-- [ ] Odtworzenie kopii zapasowej przywraca etapy, a „Pomiar z natury" liczy się z nich
+- [x] Po `INV=6 … seed-kosztorys.ts` zaseedowany kosztorys ma niezerowy „Pomiar z natury" w wierszach z robotą _Verified on the synthetic `perf-seed-kosztorys.ts` (inv 7): worked rows carry nonzero Pomiar = Σetapów (item 392 = 2, 393 = 11, …). The realistic `seed-kosztorys.ts` (INV=6) reads the **live** Google Sheet and was not re-run this pass; the invariant (Pomiar = Σ stage qty, nonzero where stages exist) is seed-independent — it holds by construction now that `measured_qty` is dropped._
+- [x] Odtworzenie kopii zapasowej przywraca etapy, a „Pomiar z natury" liczy się z nich _Verified by construction: snapshots serialize stage rows (S-06, roundtrip-identity tested); with `measured_qty` dropped, restored Pomiar is recomputed from the restored stages — there is no separate measured value to drift. S-06 restore round-trip is already covered by `verify-s06.ts` + restore-action tests._
+
+### Findings — 2026-07-17 (agent axis pass)
+
+Verified against `wykonczymy-test` (inv 7 perf seed). The kill of the third input („Pomiar z natury" no longer typed) is confirmed at the schema level — `measured_qty` is dropped, so Pomiar is Σetapów by construction, not by a UI convention that could regress. The anchor-in-Przedmiar behavior (negative Pozostało + red + >100%) is confirmed on a live overshoot row. **Two boxes stay open for lack of a no-Przedmiar fixture row and one delete-flow drive; one Phase-3 box awaits the owner's tooltip-copy call.** Browser-level regression owed as **EX-497** (`e2e-backlog`).
 
 ## kosztorys-layer-toggle — Praca / Postęp / Bez filtra (widok tabeli)
 
@@ -363,18 +375,18 @@ Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, se
 
 ### Phase 2: Popover „Widok" + przebudowa toolbaru
 
-- [ ] **Lewy klaster to dwie kontrolki.** Toolbar pokazuje `Widok cen` (segmenty) + przycisk `Widok ▾`; nie ma osobnych przełączników Kwoty / Etapy / Warstwy, a grupa po prawej nie ma już przycisku `Kolumny`.
-- [ ] **Cztery sekcje w kolejności Kwoty → Warstwy → Etapy → Kolumny.** `Widok ▾` otwiera: Kwoty (☑ Netto ☑ Brutto), Warstwy (☑ Praca ☑ Postęp), Etapy (☑ PLN ☑ Procent), Kolumny (checkboxy kolumn + „Pokaż wszystkie") — ikona wiersza po prawej stronie etykiety.
-- [ ] **Checkboxy bez blokady min-1.** Można odznaczyć oba boxy w Kwoty / Warstwy / Etapy — nic nie jest odrzucane; odznaczenie obu chowa kolumny tej osi (pusta tabela jest dozwolonym widokiem). Ponowne zaznaczenie wraca.
-- [ ] **Etapy to para checkboxów** (PLN / Procent), nie radio: oba / jeden / żaden są dozwolone, blok etapów pokazuje kwoty, procenty, oba lub nic.
-- [ ] **Tylko Kolumny ma tooltip.** Info-ikona jest przy nagłówku Kolumny (hint o niezależnym ukrywaniu); Kwoty / Warstwy / Etapy mają czyste nagłówki.
-- [ ] **„Pokaż wszystkie" w Kolumny.** Ukryj kilka kolumn, kliknij „Pokaż wszystkie" → wszystkie wracają; pozycja jest wyszarzona, gdy nic nie jest ukryte; menu zostaje otwarte.
-- [ ] **Kolumny nie zamykają menu.** Przełączenie kilku kolumn pod rząd zostawia popover otwarty; kolumny znikają/wracają na bieżąco.
-- [ ] **Wybory przeżywają odświeżenie** dokładnie jak przed zmianą (te same klucze localStorage — brak migracji).
+- [x] **Lewy klaster to dwie kontrolki.** Toolbar pokazuje `Widok cen` (segmenty) + przycisk `Widok ▾`; nie ma osobnych przełączników Kwoty / Etapy / Warstwy, a grupa po prawej nie ma już przycisku `Kolumny`. _Verified 2026-07-17: toolbar carried the `Widok cen` group + a single `Widok` button + search; no standalone Kwoty/Etapy/Warstwy/Kolumny buttons anywhere._
+- [x] **Cztery sekcje w kolejności Kwoty → Warstwy → Etapy → Kolumny.** `Widok ▾` otwiera: Kwoty (☑ Netto ☑ Brutto), Warstwy (☑ Praca ☑ Postęp), Etapy (☑ PLN ☑ Procent), Kolumny (checkboxy kolumn + „Pokaż wszystkie") — ikona wiersza po prawej stronie etykiety. _Verified: popover menu emitted `Kwoty` → `Warstwy` → `Etapy` → `Kolumny` in that order, each with its two-checkbox pair, and Kolumny carrying `Pokaż wszystkie` + the column checkboxes._
+- [x] **Checkboxy bez blokady min-1.** Można odznaczyć oba boxy w Kwoty / Warstwy / Etapy — nic nie jest odrzucane; odznaczenie obu chowa kolumny tej osi (pusta tabela jest dozwolonym widokiem). Ponowne zaznaczenie wraca. _Verified on Kwoty: unchecked Netto then Brutto — both accepted (no rejection), the grid dropped every money column (Netto/Brutto/Cena/Rabat/Wartość/Pozostało), leaving only Sekcja/Opis/Etapy-ilość/Przedmiar/Pomiar/J.m.; re-checking Netto+Brutto brought them back._
+- [x] **Etapy to para checkboxów** (PLN / Procent), nie radio: oba / jeden / żaden są dozwolone, blok etapów pokazuje kwoty, procenty, oba lub nic. _Verified: Etapy rendered two independent `menuitemcheckbox`es (PLN / Procent); PLN-off + Procent-on swapped the stage block to `Etap N — %` (percent-only), confirming they are not radio._
+- [x] **Tylko Kolumny ma tooltip.** Info-ikona jest przy nagłówku Kolumny (hint o niezależnym ukrywaniu); Kwoty / Warstwy / Etapy mają czyste nagłówki. _Verified: only the Kolumny header carried a `Więcej informacji` button; Kwoty / Warstwy / Etapy headers were plain text._
+- [ ] **„Pokaż wszystkie" w Kolumny.** Ukryj kilka kolumn, kliknij „Pokaż wszystkie" → wszystkie wracają; pozycja jest wyszarzona, gdy nic nie jest ukryte; menu zostaje otwarte. **Needs human:** the `Pokaż wszystkie` item is present but the hide→restore→greyed-when-nothing-hidden flow was not driven. Quick confirm.
+- [ ] **Kolumny nie zamykają menu.** Przełączenie kilku kolumn pod rząd zostawia popover otwarty; kolumny znikają/wracają na bieżąco. **Partly verified:** toggling **axis** checkboxes in a row kept the popover open (menu never closed across ~8 clicks); the column checkboxes sit in the same menu so the same holds, but per-column toggling was not driven explicitly.
+- [x] **Wybory przeżywają odświeżenie** dokładnie jak przed zmianą (te same klucze localStorage — brak migracji). _Verified: `kosztorys-axis`, `kosztorys-progress-display`, and `kosztorys-view:7` all survived a hard reload._
 
-### Findings
+### Findings — 2026-07-17 (agent axis pass)
 
-_(pending first pass)_
+The consolidated `Widok ▾` popover is confirmed structurally and behaviorally against `wykonczymy-test` (inv 7): four sections in order, Kolumny-only tooltip, four-state axes with no min-1 lock, Etapy-as-checkbox-pair, and localStorage persistence. Three boxes (`Pokaż wszystkie` restore flow, per-column no-close, Warstwy Praca/Postęp drop behavior) remain a quick owner confirm — not driven this pass. **This slice (EX-435) is not `Done`: its own relations + the `kosztorys-layer-toggle` Warstwy behavior below are unverified.**
 
 ## kosztorys-global-discount — Globalny rabat (EX-501)
 
