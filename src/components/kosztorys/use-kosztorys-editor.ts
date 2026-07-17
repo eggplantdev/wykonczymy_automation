@@ -235,7 +235,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   }
 
   async function handleAddItem(sectionId: number) {
-    const res = await addItemAction(investmentId, sectionId)
+    const res = await addItemAction(sectionId)
     if (!res.success) return
     // Take the denormalized section fields from any existing row of that section.
     const sample = [...prevById.current.values()].find((r) => r.sectionId === sectionId)
@@ -270,7 +270,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   async function handleInsertItem(anchorRow: KosztorysV2RowT, dir: 'above' | 'below') {
     if (sort) return
     const at = insertDisplayOrder(anchorRow, dir)
-    const res = await insertItemAction(investmentId, anchorRow.sectionId, at)
+    const res = await insertItemAction(anchorRow.sectionId, at)
     if (!res.success) return
     const sample =
       [...prevById.current.values()].find((r) => r.sectionId === anchorRow.sectionId) ?? anchorRow
@@ -362,7 +362,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     const sec = await addSectionAction(investmentId)
     if (!sec.success) return
     // A new section immediately gets a blank item (an empty section = 0 rows = invisible).
-    const item = await addItemAction(investmentId, sec.data.id)
+    const item = await addItemAction(sec.data.id)
     if (!item.success) return
     const row = buildBlankRow({
       id: item.data.id,

@@ -223,7 +223,6 @@ export async function removeSectionAction(sectionId: number) {
 }
 
 export async function addItemAction(
-  investmentId: number,
   sectionId: number,
 ): Promise<ActionResultT<{ id: number; displayOrder: number }>> {
   return protectedAction(
@@ -231,16 +230,23 @@ export async function addItemAction(
     async ({ payload }) => {
       const db = await getDb(payload)
       // Append slot = MAX(display_order)+1, not count: removeItemAction leaves gaps, so a
-      // count-based order collides with a surviving row after any middle delete.
+      // count-based order collides with a surviving row after any middle delete. The section is the
+      // single source of investment ownership — derive it here rather than trust a caller-passed id,
+      // so the item's investment and section FKs can never disagree.
       const res = await db.execute(sql`
-        SELECT COALESCE(MAX(display_order) + 1, 0) AS next
-        FROM kosztorys_items WHERE section_id = ${sectionId}
+        SELECT s.investment_id AS investment, COALESCE(MAX(i.display_order) + 1, 0) AS next
+        FROM kosztorys_sections s
+        LEFT JOIN kosztorys_items i ON i.section_id = s.id
+        WHERE s.id = ${sectionId}
+        GROUP BY s.investment_id
       `)
-      const displayOrder = Number(res.rows[0]?.next ?? 0)
+      const section = res.rows[0]
+      if (!section) return { success: false, error: 'Sekcja nie istnieje.' }
+      const displayOrder = Number(section.next ?? 0)
       const created = await payload.create({
         collection: 'kosztorys-items',
         data: {
-          investment: investmentId,
+          investment: Number(section.investment),
           section: sectionId,
           displayOrder,
           description: DEFAULT_ITEM_DESCRIPTION,
@@ -268,7 +274,6 @@ const insertItemSchema = z.object({
 // neighbor-swap (1000+ rows) doesn't apply to one section. A create failure after the shift only
 // leaves a harmless gap in display_order (order is relative); addItemAction (append) is unchanged.
 export async function insertItemAction(
-  investmentId: number,
   sectionId: number,
   atDisplayOrder: number,
 ): Promise<ActionResultT<{ id: number; displayOrder: number }>> {
@@ -278,6 +283,13 @@ export async function insertItemAction(
       const parsed = validateAction(insertItemSchema, { sectionId, atDisplayOrder })
       if (!parsed.success) return parsed
       const db = await getDb(payload)
+      // Derive investment from the section (single source of ownership), so the item's investment
+      // and section FKs can never disagree — see addItemAction.
+      const owner = await db.execute(sql`
+        SELECT investment_id FROM kosztorys_sections WHERE id = ${parsed.data.sectionId}
+      `)
+      const investmentId = owner.rows[0]?.investment_id
+      if (investmentId == null) return { success: false, error: 'Sekcja nie istnieje.' }
       await db.execute(sql`
         UPDATE kosztorys_items SET display_order = display_order + 1
         WHERE section_id = ${parsed.data.sectionId} AND display_order >= ${parsed.data.atDisplayOrder}
@@ -285,7 +297,7 @@ export async function insertItemAction(
       const created = await payload.create({
         collection: 'kosztorys-items',
         data: {
-          investment: investmentId,
+          investment: Number(investmentId),
           section: parsed.data.sectionId,
           displayOrder: parsed.data.atDisplayOrder,
           description: DEFAULT_ITEM_DESCRIPTION,

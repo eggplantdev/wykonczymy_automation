@@ -133,9 +133,9 @@ describe.skipIf(!ENV_READY)('kosztorys create-order integrity (DB)', () => {
       const sectionId = await createSection()
 
       // Add 3 blank items → display_order 0,1,2.
-      await addItemAction(sharedInvestmentId, sectionId)
-      const middle = await addItemAction(sharedInvestmentId, sectionId)
-      await addItemAction(sharedInvestmentId, sectionId)
+      await addItemAction(sectionId)
+      const middle = await addItemAction(sectionId)
+      await addItemAction(sectionId)
       expect(middle.success).toBe(true)
 
       // Delete the middle one (blank → passes the delete guard) → leaves {0,2}, a gap.
@@ -143,7 +143,7 @@ describe.skipIf(!ENV_READY)('kosztorys create-order integrity (DB)', () => {
       expect(del.success).toBe(true)
 
       // Append again. Count-based order would reuse 2 and collide with the surviving order-2 row.
-      const appended = await addItemAction(sharedInvestmentId, sectionId)
+      const appended = await addItemAction(sectionId)
       expect(appended.success).toBe(true)
 
       const orders = await sectionItemOrders(sectionId)
