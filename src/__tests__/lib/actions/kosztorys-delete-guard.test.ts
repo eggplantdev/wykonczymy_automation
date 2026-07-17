@@ -96,7 +96,7 @@ describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', 
 
   async function createItem(
     sectionId: number,
-    data: { measuredQty?: number; plannedQty?: number; clientPrice?: number } = {},
+    data: { plannedQty?: number; clientPrice?: number } = {},
   ): Promise<number> {
     const item = await payload.create({
       collection: 'kosztorys-items',
@@ -105,7 +105,6 @@ describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', 
         section: sectionId,
         displayOrder: 0,
         plannedQty: data.plannedQty ?? 0,
-        measuredQty: data.measuredQty ?? 0,
         discountValue: 0,
         clientPrice: data.clientPrice ?? 0,
         hiddenInExport: false,
@@ -137,14 +136,23 @@ describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', 
     return res.rows.length > 0
   }
 
-  it('(a) blocks deleting an item with a pomiar (measured_qty <> 0) — row survives', async () => {
+  async function autoSnapshotCount(): Promise<number> {
+    const res = await db.execute(sql`
+      SELECT count(*)::int AS n FROM kosztorys_snapshots
+      WHERE investment_id = ${investmentId} AND kind = 'auto'
+    `)
+    return Number(res.rows[0].n)
+  }
+
+  // Recorded stage progress is the only thing "populated" means — a row without it always deletes.
+  it('(a) deletes an item with no stage progress', async () => {
     const sectionId = await createSection()
-    const itemId = await createItem(sectionId, { measuredQty: 5 })
+    const itemId = await createItem(sectionId, { plannedQty: 5 })
 
     const res = await removeItemAction(itemId)
 
-    expect(res.success).toBe(false)
-    expect(await itemExists(itemId)).toBe(true)
+    expect(res.success).toBe(true)
+    expect(await itemExists(itemId)).toBe(false)
   })
 
   it('(b) blocks deleting an item with recorded stage progress (qty_done <> 0) — row survives', async () => {
@@ -172,9 +180,28 @@ describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', 
     expect(await itemExists(itemId)).toBe(false)
   })
 
-  it('(d) blocks deleting a section holding a populated item — section + item survive', async () => {
+  // A plan-only item's opis/przedmiar/cena/rabat is irrecoverable by in-session undo once deleted,
+  // so removeItemAction must capture a pre-delete auto snapshot first — mirroring removeSectionAction.
+  it('(c2) captures a pre-delete auto snapshot when deleting a plan-only item', async () => {
     const sectionId = await createSection()
-    const itemId = await createItem(sectionId, { measuredQty: 7 })
+    const itemId = await createItem(sectionId, { plannedQty: 10, clientPrice: 99 })
+    const before = await autoSnapshotCount()
+
+    const res = await removeItemAction(itemId)
+
+    expect(res.success).toBe(true)
+    expect(await itemExists(itemId)).toBe(false)
+    expect(await autoSnapshotCount()).toBe(before + 1)
+  })
+
+  it('(d) blocks deleting a section holding an item with stage progress — section + item survive', async () => {
+    const sectionId = await createSection()
+    const itemId = await createItem(sectionId)
+    const stageId = await createStage()
+    await db.execute(sql`
+      INSERT INTO stage_progress (item_id, stage_id, qty_done, created_at, updated_at)
+      VALUES (${itemId}, ${stageId}, 7, now(), now())
+    `)
 
     const res = await removeSectionAction(sectionId)
 

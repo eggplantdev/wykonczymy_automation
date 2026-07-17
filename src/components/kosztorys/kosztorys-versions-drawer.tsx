@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import {
   listSnapshotsAction,
@@ -13,6 +14,7 @@ import { toastMessage } from '@/lib/utils/toast'
 
 type PropsT = {
   investmentId: number
+  investmentName: string
   open: boolean
   onOpenChange: (open: boolean) => void
   // Called after a successful restore so the parent can refresh + remount the editor.
@@ -20,18 +22,28 @@ type PropsT = {
 }
 
 // History panel: named manual versions are the prominent targetable entries; auto snapshots are the
-// ambient timestamped history below them. Restore is a single window.confirm (the codebase's
-// established destructive-confirm pattern, cf. kosztorys-section-summary) — the pre-restore auto
+// ambient timestamped history below them. Restore gates behind a ConfirmDialog — the pre-restore auto
 // snapshot the action takes makes a mis-restore itself recoverable.
-export function KosztorysVersionsDrawer({ investmentId, open, onOpenChange, onRestored }: PropsT) {
+export function KosztorysVersionsDrawer({
+  investmentId,
+  investmentName,
+  open,
+  onOpenChange,
+  onRestored,
+}: PropsT) {
   // null = not loaded yet (spinner); [] = loaded, empty.
   const [snapshots, setSnapshots] = useState<SnapshotListItemT[] | null>(null)
   const [restoringId, setRestoringId] = useState<number | null>(null)
+  const [pendingRestore, setPendingRestore] = useState<SnapshotListItemT | null>(null)
 
-  // The drawer opens programmatically (parent toolbar sets `open`), so Radix's onOpenChange never
-  // fires with `true` — fetch on the `open` prop, or the list stays stuck on "Wczytywanie…". setState
-  // only from the async callback (never synchronously in the effect body): refetches on each open, and
-  // `active` drops a response that lands after a close/reopen.
+  // Fetch is keyed on the `open` prop, deliberately NOT on a click handler, because this drawer never
+  // sees the click: `open` is controlled by the parent toolbar, so the opening click happens up there.
+  // Radix can't help either — a controlled Dialog with no internal <Dialog.Trigger> fires onOpenChange
+  // only on dismiss (Escape/overlay → `false`), never with `true` on the programmatic open. Keying on
+  // the visibility *state* (not a DOM event) also means the fetch fires for EVERY path that opens the
+  // drawer — today the toolbar, tomorrow a programmatic open (e.g. auto-open after a restore) — which a
+  // trigger-click handler would silently miss. `active` drops a response that lands after a close/reopen
+  // so a stale fetch can't populate the reopened list.
   useEffect(() => {
     if (!open) return
     let active = true
@@ -63,16 +75,9 @@ export function KosztorysVersionsDrawer({ investmentId, open, onOpenChange, onRe
   }
 
   async function handleRestore(snapshot: SnapshotListItemT) {
-    const when = formatPLDateTime(snapshot.takenAt)
-    if (
-      !window.confirm(
-        `Przywrócić wersję z ${when}? Obecny stan zostanie zapisany jako punkt przywracania.`,
-      )
-    ) {
-      return
-    }
+    setPendingRestore(null)
     setRestoringId(snapshot.id)
-    const res = await restoreSnapshotAction(snapshot.id)
+    const res = await restoreSnapshotAction(snapshot.id, investmentId)
     setRestoringId(null)
     if (!res.success) {
       toastMessage(res.error ?? 'Nie udało się przywrócić wersji', 'error', 4000)
@@ -106,9 +111,10 @@ export function KosztorysVersionsDrawer({ investmentId, open, onOpenChange, onRe
                   <SnapshotRow
                     key={s.id}
                     snapshot={s}
+                    investmentName={investmentName}
                     primary
                     restoring={restoringId === s.id}
-                    onRestore={() => handleRestore(s)}
+                    onRestore={() => setPendingRestore(s)}
                   />
                 ))}
               </section>
@@ -122,8 +128,9 @@ export function KosztorysVersionsDrawer({ investmentId, open, onOpenChange, onRe
                   <SnapshotRow
                     key={s.id}
                     snapshot={s}
+                    investmentName={investmentName}
                     restoring={restoringId === s.id}
-                    onRestore={() => handleRestore(s)}
+                    onRestore={() => setPendingRestore(s)}
                   />
                 ))}
               </section>
@@ -131,17 +138,32 @@ export function KosztorysVersionsDrawer({ investmentId, open, onOpenChange, onRe
           </div>
         )}
       </DialogContent>
+
+      <ConfirmDialog
+        open={pendingRestore != null}
+        title={
+          pendingRestore ? `Przywrócić wersję z ${formatPLDateTime(pendingRestore.takenAt)}?` : ''
+        }
+        description="Obecny stan zostanie zapisany jako punkt przywracania."
+        confirmLabel="Przywróć"
+        pending={restoringId != null}
+        pendingLabel="Przywracanie…"
+        onConfirm={() => pendingRestore && handleRestore(pendingRestore)}
+        onCancel={() => setPendingRestore(null)}
+      />
     </Dialog>
   )
 }
 
 function SnapshotRow({
   snapshot,
+  investmentName,
   primary,
   restoring,
   onRestore,
 }: {
   snapshot: SnapshotListItemT
+  investmentName: string
   primary?: boolean
   restoring: boolean
   onRestore: () => void
@@ -157,6 +179,7 @@ function SnapshotRow({
         <div className="text-muted-foreground truncate text-xs">
           {primary ? formatPLDateTime(snapshot.takenAt) : 'Auto'}
           {snapshot.takenByName ? ` · ${snapshot.takenByName}` : ''}
+          {` · ${investmentName}`}
         </div>
       </div>
       <Button size="sm" variant="outline" onClick={onRestore} disabled={restoring}>

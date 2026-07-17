@@ -15,6 +15,7 @@ import { AppFooter } from '@/components/nav/app-footer'
 import { CurrentUserProvider } from '@/hooks/use-current-user'
 import { Loader } from '@/components/ui/loader/loader'
 import { EnvBadge } from '@/components/ui/env-badge'
+import { PendingSubmitIndicator } from '@/components/forms/pending-submit-indicator'
 
 export default function FrontendLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -34,6 +35,7 @@ export default function FrontendLayout({ children }: { children: React.ReactNode
           <AuthenticatedShell>{children}</AuthenticatedShell>
         </Suspense>
         <ToastContainer style={{ zIndex: 10001 }} />
+        <PendingSubmitIndicator />
         <EnvBadge />
       </body>
     </html>
@@ -53,7 +55,9 @@ async function AuthenticatedShell({ children }: { children: React.ReactNode }) {
           {/* transform-gpu forces a compositing layer: Safari otherwise fails to
               repaint content streamed into this overflow scroll container after
               the initial paint (blank until you scroll / move the cursor). */}
-          <main className="min-h-0 flex-1 transform-gpu overflow-y-auto">{children}</main>
+          <main className="flex min-h-0 flex-1 transform-gpu flex-col overflow-y-auto">
+            {children}
+          </main>
           <AppFooter />
         </div>
       </div>

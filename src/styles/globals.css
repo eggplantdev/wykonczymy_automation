@@ -176,6 +176,11 @@
     3px 0 14px color-mix(in oklch, var(--color-neon-cyan) 55%, transparent);
 }
 
+/* Aurora glow for the kosztorys progress fill — halo in the fill's own green→cyan ramp. */
+@utility progress-glow {
+  box-shadow: 0 0 8px color-mix(in oklch, var(--color-chart-turquoise) 65%, transparent);
+}
+
 /* Fuchsia→cyan gradient ring (the `ai`-accent hues) as a masked conic-gradient — a branded
    spin loader that reads in the AI colours, versus a flat Lucide icon. `--spinner-w` sets the
    ring thickness; default size-4 matches inline icon spinners. */
@@ -217,6 +222,31 @@
   * {
     box-shadow: none !important;
   }
+}
+
+/* The DSG root is a grid item in a definite-height cell. Its default `min-height: auto` lets it grow
+   PAST that cell to its content height, so with enough rows it overflows the viewport and the last
+   rows are clipped with no way to scroll to them. Pinning `min-height: 0` holds it to the cell, so
+   the datasheet scrolls its rows internally instead of expanding. */
+.kosztorys-grid {
+  min-height: 0;
+}
+
+/* height: fills the wrapper so the h-scrollbar can't cover the last row (dsg shrink-wraps otherwise).
+   Negative margins clip the grid's outer top/left border out of the wrapper's overflow-hidden. */
+.kosztorys-grid .dsg-container {
+  height: 100% !important;
+  margin-top: -1px;
+  margin-left: -1px;
+}
+
+/* Retint dsg's native selection blue to the app's monochrome theme (border = primary,
+   faint primary-tinted fill), so the selection rect / active cell / row+col markers all
+   track light/dark via the theme tokens instead of a hardcoded rgb(69,128,230). */
+.kosztorys-grid {
+  --dsg-selection-border-color: var(--color-ring);
+  --dsg-selection-border-width: 1px;
+  --dsg-selection-background-color: color-mix(in oklab, var(--color-primary) 4%, transparent);
 }
 
 /*https://tailwindcss.com/docs/adding-custom-styles/*

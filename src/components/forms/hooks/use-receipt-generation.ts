@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { extractReceiptAction } from '@/lib/actions/extract-receipt'
-import { resolveExpenseCategoryId } from '@/components/forms/expense-form/resolve-expense-category-id'
 import { reindexAfterRemoval } from '@/components/forms/hooks/use-invoice-files'
 import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
 import { toastMessage } from '@/lib/utils/toast'
@@ -85,10 +84,8 @@ export function useReceiptGeneration({
           data.amount === null ? '' : String(data.amount),
         )
         form.setFieldValue(`lineItems[${index}].invoiceNote`, data.invoiceNote)
-        form.setFieldValue(
-          `lineItems[${index}].category`,
-          resolveExpenseCategoryId(data.otherCategoryName, otherCategories),
-        )
+        // Category is left blank for the user to pick — the model's category inference wasn't
+        // reliable enough (frequent mismatches), so we no longer auto-assign it from the scan.
         // Apply the Opis-based name to the file now so it uploads under that name at submit, and
         // mirror it on the FV label (fileInputKey is bumped once generation finishes so the
         // uncontrolled input re-reads the name).

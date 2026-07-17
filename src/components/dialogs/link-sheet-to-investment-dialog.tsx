@@ -12,13 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { SimpleSelect } from '@/components/ui/simple-select'
 import { toastMessage } from '@/lib/utils/toast'
 import { linkSheetToInvestmentAction } from '@/lib/actions/sheets'
 
@@ -82,18 +76,16 @@ export function LinkSheetToInvestmentDialog({
               Brak inwestycji bez kosztorysu. Dodaj inwestycję albo odepnij istniejący kosztorys.
             </p>
           ) : (
-            <Select value={selectedId} onValueChange={setSelectedId} disabled={pending}>
-              <SelectTrigger>
-                <SelectValue placeholder="Wybierz inwestycję…" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableInvestments.map((inv) => (
-                  <SelectItem key={inv.id} value={String(inv.id)}>
-                    {inv.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SimpleSelect
+              value={selectedId}
+              onValueChange={setSelectedId}
+              disabled={pending}
+              placeholder="Wybierz inwestycję…"
+              options={availableInvestments.map((inv) => ({
+                value: String(inv.id),
+                label: inv.name,
+              }))}
+            />
           )}
         </div>
 

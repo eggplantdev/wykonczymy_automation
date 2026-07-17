@@ -3,12 +3,17 @@
 import type { PointerEvent, ReactNode } from 'react'
 import { useRef } from 'react'
 
-// Handle for dragging the right edge of a column header. datasheet-grid has no native
-// resize, and its internal memo won't recompute widths without a remount —
-// so we do NOT change the width live. During the drag we only show a vertical
-// guide (onGuide = the cursor's X coordinate) and commit the actual width on release
-// (onCommit), which remounts the grid with the new width. The starting width is measured from the
+// Handle for dragging the right edge of a column header. datasheet-grid has no native resize.
+// We deliberately do NOT change the width live: during the drag we only show a vertical guide
+// (onGuide = the cursor's X coordinate) and commit the width on release (onCommit), so a drag
+// costs one re-layout instead of one per pointermove. The starting width is measured from the
 // header cell's DOM (closest('.dsg-cell-header')) — this also works for columns not yet pinned.
+
+// Hard floor for a USER-dragged width — deliberately below every column's design `minWidth` so
+// shrinking isn't blocked at the design min (EX-424). Small but non-zero so a column can't become a
+// 0-width, unhittable sliver. The design `minWidth` still governs the grid's own flex layout for
+// columns the user hasn't pinned.
+const RESIZE_MIN_PX = 40
 
 type PropsT = {
   colId: string
@@ -43,11 +48,21 @@ export function ResizableHeader({ colId, minWidth, onGuide, onCommit, children }
 
   function onPointerUp(e: PointerEvent<HTMLElement>) {
     if (!drag.current) return
-    const width = Math.max(minWidth, Math.round(drag.current.w + (e.clientX - drag.current.x)))
+    const width = Math.max(RESIZE_MIN_PX, Math.round(drag.current.w + (e.clientX - drag.current.x)))
     drag.current = null
     e.currentTarget.releasePointerCapture(e.pointerId)
     onGuide(null)
     onCommit(colId, width)
+  }
+
+  // The browser can cancel the gesture (pointercancel) — then no pointerup ever arrives and the
+  // guide would hang at the last cursor X until the next drag. lostpointercapture is the backstop
+  // for capture lost without a cancel event; after a normal release onPointerUp has already
+  // cleared `drag`, so both are no-ops there. A cancelled drag commits nothing — the width stays.
+  function abortDrag() {
+    if (!drag.current) return
+    drag.current = null
+    onGuide(null)
   }
 
   // The wrapper is deliberately NOT position:relative — the handle (absolute) should anchor
@@ -62,6 +77,8 @@ export function ResizableHeader({ colId, minWidth, onGuide, onCommit, children }
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
+        onPointerCancel={abortDrag}
+        onLostPointerCapture={abortDrag}
         onClick={(e) => e.stopPropagation()}
         className="hover:bg-primary/40 absolute top-0 -right-1 z-10 h-full w-2 cursor-col-resize"
       />

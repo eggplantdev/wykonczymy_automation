@@ -1,22 +1,29 @@
-import { stageValueForView, type PriceViewT } from '@/lib/kosztorys/calc'
+import {
+  isGlobalDiscountActive,
+  netForQtyForView,
+  rowPlannedNetForView,
+  type PriceViewT,
+} from '@/lib/kosztorys/calc'
+import { DEFAULT_ITEM_DESCRIPTION, DEFAULT_UNIT, STAGE_QTY_PREFIX } from '@/lib/kosztorys/constants'
 import type {
   CostVariantT,
   ItemPatchT,
   KosztorysStageT,
   KosztorysTreeT,
   KosztorysV2RowT,
+  SectionSubtotalT,
+  StageKeyT,
 } from '@/types/kosztorys'
 
-export function stageKey(stageId: number): `stage_${number}` {
-  return `stage_${stageId}`
+export function stageKey(stageId: number): StageKeyT {
+  return `${STAGE_QTY_PREFIX}${stageId}`
 }
 
 // Client mirror of the server delete-guard predicate (removeItemAction/removeSectionAction).
-// A row is "populated" iff it holds a pomiar (measuredQty <> 0) or any recorded stage progress
-// (qty <> 0). Server SQL stays the authority; this only drives the pre-check + toast so a
+// A row is "populated" iff it holds recorded stage progress (qty <> 0) — that is the only work a
+// delete would destroy. Server SQL stays the authority; this only drives the pre-check + toast so a
 // populated delete never optimistically vanishes. Field names must match the server predicate.
 export function isRowPopulated(row: KosztorysV2RowT, stages: KosztorysStageT[]): boolean {
-  if (row.measuredQty !== 0) return true
   return stages.some((st) => (row[stageKey(st.id)] ?? 0) !== 0)
 }
 
@@ -33,7 +40,6 @@ const ITEM_FIELDS = [
   'description',
   'unit',
   'plannedQty',
-  'measuredQty',
   'discountType',
   'discountValue',
   'clientPrice',
@@ -54,6 +60,8 @@ export function treeToRows(tree: KosztorysTreeT): KosztorysV2RowT[] {
     progressByItem.set(p.itemId, m)
   }
 
+  const globalDiscountActive = isGlobalDiscountActive(tree.globalDiscount)
+
   const rows: KosztorysV2RowT[] = []
   for (const section of tree.sections) {
     for (const item of section.items) {
@@ -64,6 +72,7 @@ export function treeToRows(tree: KosztorysTreeT): KosztorysV2RowT[] {
         ...item,
         sectionName: section.name,
         vatRate: tree.vatRate,
+        globalDiscountActive,
         sectionDefaultCostVariant: section.defaultCostVariant,
         sectionWToolsCoeff: section.wToolsCoeff,
         sectionOwnToolsCoeff: section.ownToolsCoeff,
@@ -89,10 +98,13 @@ export function diffRow(prev: KosztorysV2RowT, next: KosztorysV2RowT): RowDiffT 
 
   const stageChanges: { stageId: number; qty: number }[] = []
   for (const k of Object.keys(next)) {
-    if (!k.startsWith('stage_')) continue
-    const nextVal = next[k as `stage_${number}`]
-    if (prev[k as `stage_${number}`] !== nextVal) {
-      stageChanges.push({ stageId: Number(k.slice('stage_'.length)), qty: Number(nextVal) || 0 })
+    if (!k.startsWith(STAGE_QTY_PREFIX)) continue
+    const nextVal = next[k as StageKeyT]
+    if (prev[k as StageKeyT] !== nextVal) {
+      stageChanges.push({
+        stageId: Number(k.slice(STAGE_QTY_PREFIX.length)),
+        qty: Number(nextVal) || 0,
+      })
     }
   }
 
@@ -119,14 +131,22 @@ export type SortDirT = 'asc' | 'desc'
 // Sort by the accessor's value; strings by locale (pl), numbers numerically. Returns a new array.
 // Decorate-sort-undecorate: getValue can be an O(stages) reduce (the "remaining" key), and calling
 // it inside the comparator would re-evaluate it ~2·n·log(n) times — compute it once per row instead.
+//
+// A null key renders as "—" (fmtOrDash), so it has no place in the order: sorted numerically it
+// would land as 0 and the dash would masquerade as a settled row. Nulls sink to the bottom under
+// BOTH directions — `sign` deliberately does not touch that branch, or "desc" would float them up.
 export function sortRows(
   rows: KosztorysV2RowT[],
-  getValue: (row: KosztorysV2RowT) => string | number,
+  getValue: (row: KosztorysV2RowT) => string | number | null,
   dir: SortDirT,
 ): KosztorysV2RowT[] {
   const sign = dir === 'asc' ? 1 : -1
   const decorated = rows.map((row) => ({ row, key: getValue(row) }))
   decorated.sort((a, b) => {
+    if (a.key == null || b.key == null) {
+      if (a.key == null && b.key == null) return 0
+      return a.key == null ? 1 : -1
+    }
     if (typeof a.key === 'string' || typeof b.key === 'string') {
       return sign * String(a.key).localeCompare(String(b.key), 'pl')
     }
@@ -151,20 +171,13 @@ export function revertField(
   })
 }
 
-// Default values for a new section — the single source. addSectionAction imports these for the
-// server-side create, and the optimistic row is built from them here (without waiting for a
-// refresh). Lives in this non-server module because a 'use server' file may not export constants.
-export const NEW_SECTION_DEFAULTS = {
-  name: 'Nowa sekcja',
-  defaultCostVariant: 'w_tools',
-} as const satisfies { name: string; defaultCostVariant: CostVariantT }
-
 export type BlankRowInputT = {
   id: number
   displayOrder: number
   sectionId: number
   sectionName: string
   vatRate: number
+  globalDiscountActive: boolean
   sectionDefaultCostVariant: CostVariantT
   sectionWToolsCoeff: number | null
   sectionOwnToolsCoeff: number | null
@@ -182,10 +195,9 @@ export function buildBlankRow(input: BlankRowInputT): KosztorysV2RowT {
     id: input.id,
     sectionId: input.sectionId,
     displayOrder: input.displayOrder,
-    description: null,
-    unit: null,
+    description: DEFAULT_ITEM_DESCRIPTION,
+    unit: DEFAULT_UNIT,
     plannedQty: 0,
-    measuredQty: 0,
     discountType: null,
     discountValue: 0,
     clientPrice: 0,
@@ -198,6 +210,7 @@ export function buildBlankRow(input: BlankRowInputT): KosztorysV2RowT {
     note: null,
     sectionName: input.sectionName,
     vatRate: input.vatRate,
+    globalDiscountActive: input.globalDiscountActive,
     sectionDefaultCostVariant: input.sectionDefaultCostVariant,
     sectionWToolsCoeff: input.sectionWToolsCoeff,
     sectionOwnToolsCoeff: input.sectionOwnToolsCoeff,
@@ -215,9 +228,64 @@ export function applyRemoveItem(rows: KosztorysV2RowT[], itemId: number): Koszto
   return rows.filter((r) => r.id !== itemId)
 }
 
+// display_order the inserted row takes: "above" claims the anchor's slot, "below" the next one.
+// Mirrors insertItemAction's server-side insert point.
+export function insertDisplayOrder(anchor: KosztorysV2RowT, dir: 'above' | 'below'): number {
+  return dir === 'above' ? anchor.displayOrder : anchor.displayOrder + 1
+}
+
+// Splice a blank row into the display sequence at the anchor (±1) and bump the local display_order
+// of same-section rows at/after the insert point — the client mirror of insertItemAction's
+// section-tail shift, so a later ▲▼/insert stays consistent with the server without a refresh.
+// Array position (not display_order) drives the unsorted grid render, so the row lands at the
+// anchor's array index; the display_order bump only keeps the persisted-order mirror correct.
+// `newRow.displayOrder` MUST be the insert point (from insertDisplayOrder) before calling.
+export function applyInsertItem(
+  rows: KosztorysV2RowT[],
+  anchorId: number,
+  newRow: KosztorysV2RowT,
+  dir: 'above' | 'below',
+): KosztorysV2RowT[] {
+  const anchorIdx = rows.findIndex((r) => r.id === anchorId)
+  if (anchorIdx < 0) return rows
+  const at = newRow.displayOrder
+  const bumped = rows.map((r) =>
+    r.sectionId === newRow.sectionId && r.displayOrder >= at
+      ? { ...r, displayOrder: r.displayOrder + 1 }
+      : r,
+  )
+  const insertIdx = dir === 'above' ? anchorIdx : anchorIdx + 1
+  return [...bumped.slice(0, insertIdx), newRow, ...bumped.slice(insertIdx)]
+}
+
 // Count of a section's items in the full dataset — guards the invariant "a section has ≥1 item".
 export function sectionItemCount(rows: KosztorysV2RowT[], sectionId: number): number {
   return rows.reduce((n, r) => (r.sectionId === sectionId ? n + 1 : n), 0)
+}
+
+export const REMOVE_BLOCK_LAST_ITEM = 'Kosztorys musi mieć co najmniej jedną pozycję'
+export const REMOVE_BLOCK_POPULATED = 'Najpierw wyczyść wartości wpisane w tej pozycji'
+
+export type ItemRemovalPlanT =
+  | { kind: 'blocked'; reason: string }
+  | { kind: 'cascade-section' }
+  | { kind: 'remove-item' }
+
+// What deleting `row` does, given the whole sheet `rows` + `stages`. Pure so the disabled-tooltip
+// reason and the delete handler share one source of truth (use-kosztorys-editor).
+export function planItemRemoval(
+  rows: KosztorysV2RowT[],
+  row: KosztorysV2RowT,
+  stages: KosztorysStageT[],
+): ItemRemovalPlanT {
+  // Floor: keep ≥1 item in the whole sheet so the editor never goes fully empty. Checked before the
+  // populated guard — the final row stays blocked even once its values are cleared.
+  if (rows.length <= 1) return { kind: 'blocked', reason: REMOVE_BLOCK_LAST_ITEM }
+  // A populated row would optimistically vanish then reappear; the server guard stays the authority.
+  if (isRowPopulated(row, stages)) return { kind: 'blocked', reason: REMOVE_BLOCK_POPULATED }
+  // Last item in its section → cascade-delete the section so no orphaned 0-row section is left.
+  if (sectionItemCount(rows, row.sectionId) <= 1) return { kind: 'cascade-section' }
+  return { kind: 'remove-item' }
 }
 
 // Move an item one place within ITS section (▲/▼). Operates on the display sequence
@@ -261,14 +329,96 @@ export function sectionNeighbor(
   return sameSection[neighborPos]
 }
 
-// Σ of completed-stage values for a v2 row at the view's price (for the "Pozostało" column).
-export function rowDoneNetForView(
+/** The "Pomiar z natury" itself — the sheet's O = SUM(D:M), not a stored field (EX-494). */
+export function rowTotalQtyDone(row: KosztorysV2RowT, stages: KosztorysStageT[]): number {
+  return stages.reduce((sum, st) => sum + (row[stageKey(st.id)] ?? 0), 0)
+}
+
+/**
+ * The row's settlement value at the view's price — the sheet's T: what has actually been executed.
+ *
+ * There is no choice of quantity to make here (EX-494): the pomiar IS the stage sum, so a branch
+ * "pomiar or stages?" would be picking between a number and itself. This is the reason the
+ * settlement layer lives here and not in calc.ts — the quantity comes from the stages, and calc.ts
+ * is the pricing layer, structurally stage-blind. It owns the price beneath this; we own the
+ * quantity above it.
+ *
+ * Straight from the primitive rather than Σ stageValueForView: the shares sum to 1, so the reduce
+ * would buy the same figure at O(stages) and a rounding error.
+ */
+export function rowValueForView(
   row: KosztorysV2RowT,
   stages: KosztorysStageT[],
   view: PriceViewT,
 ): number {
-  return stages.reduce(
-    (sum, st) => sum + stageValueForView(row, row[stageKey(st.id)] ?? 0, view),
-    0,
-  )
+  return netForQtyForView(row, rowTotalQtyDone(row, stages), view)
+}
+
+/**
+ * How much of the OFFER is left: the przedmiar's value minus what the stages have executed.
+ *
+ * This is where we knowingly break parity with the sheet. Its AF anchors on T — the executed value —
+ * and since O IS the stage sum, AF = T − Σ(V:AE) is identically zero: a dead column. Anchored on S
+ * instead, the figure says something ("how much of the offer is left") and can go negative, which is
+ * also information: more was executed than was offered.
+ *
+ * `null`, not 0, when there is no przedmiar — 0 would claim the row is settled. The guard is `> 0`
+ * rather than `=== 0` because a cleared cell writes null, which strict equality walks past.
+ */
+export function rowRemainingForView(
+  row: KosztorysV2RowT,
+  stages: KosztorysStageT[],
+  view: PriceViewT,
+): number | null {
+  if (!(row.plannedQty > 0)) return null
+  return rowPlannedNetForView(row, view) - rowValueForView(row, stages, view)
+}
+
+/**
+ * Was more executed than was offered? Drives the row's red highlight.
+ *
+ * Deliberately NOT "przedmiar ≠ Σ etapów": a half-finished row is normal work in progress, and
+ * flagging it would paint the whole grid red on a healthy kosztorys. Work recorded against no
+ * przedmiar at all is not a separate branch — it is the przedmiar-is-0 case, which every stage
+ * overshoots.
+ */
+export function hasStagesOverPlanned(row: KosztorysV2RowT, stages: KosztorysStageT[]): boolean {
+  return rowTotalQtyDone(row, stages) > (row.plannedQty ?? 0)
+}
+
+/**
+ * Subtotals per section for the active price view, over the full dataset (ignores filter/sort).
+ * Order = first occurrence of each section in `rows` (treeToRows already yields section→displayOrder).
+ *
+ * Carries BOTH figures, the way the sheet's footer keeps S456 and T456 side by side: `plannedNet` is
+ * what was offered, `net` what has been executed. Nothing has to choose between them, and the
+ * progress counter divides one by the other.
+ */
+export function sectionSubtotalsForView(
+  rows: KosztorysV2RowT[],
+  stages: KosztorysStageT[],
+  view: PriceViewT,
+): SectionSubtotalT[] {
+  const bySection = new Map<number, SectionSubtotalT>()
+  for (const row of rows) {
+    let acc = bySection.get(row.sectionId)
+    if (!acc) {
+      acc = {
+        sectionId: row.sectionId,
+        sectionName: row.sectionName,
+        net: 0,
+        plannedNet: 0,
+        share: 0,
+        itemCount: 0,
+      }
+      bySection.set(row.sectionId, acc)
+    }
+    acc.net += rowValueForView(row, stages, view)
+    acc.plannedNet += rowPlannedNetForView(row, view)
+    acc.itemCount += 1
+  }
+  const result = [...bySection.values()]
+  const grandNet = result.reduce((sum, s) => sum + s.net, 0)
+  if (grandNet > 0) for (const s of result) s.share = s.net / grandNet
+  return result
 }

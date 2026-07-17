@@ -73,7 +73,6 @@ export async function getKosztorysTree(investmentId: number): Promise<KosztorysT
       description: d.description ?? null,
       unit: d.unit ?? null,
       plannedQty: num(d.plannedQty),
-      measuredQty: num(d.measuredQty),
       discountType: (d.discountType as DiscountTypeT | null) ?? null,
       discountValue: num(d.discountValue),
       clientPrice: num(d.clientPrice),
@@ -131,6 +130,10 @@ export async function getKosztorysTree(investmentId: number): Promise<KosztorysT
     progress,
     globalCoeffs,
     vatRate: investment.vatRate ?? DEFAULT_VAT,
+    globalDiscount: {
+      type: (investment.globalDiscountType as DiscountTypeT | null) ?? null,
+      value: num(investment.globalDiscountValue),
+    },
     revision: investment.updatedAt,
   }
 }

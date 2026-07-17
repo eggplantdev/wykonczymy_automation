@@ -1,0 +1,33 @@
+import { describe, expect, it } from 'vitest'
+import { dropKeys } from '@/components/kosztorys/use-column-widths'
+
+// Postgres reissues a deleted stage's id, so a leftover width entry would pin a brand-new stage to
+// the dead one's width. One stage owns three columns, and every write rebuilds the map from the
+// render's `widths` — so all three ids must go in ONE call, or the last write resurrects the others.
+describe('dropKeys', () => {
+  const widths = { stage_7: 100, stageValueNet_7: 120, stageValueGross_7: 140, description: 300 }
+
+  it('usuwa wszystkie kolumny etapu naraz, nie ruszając reszty', () => {
+    expect(dropKeys(widths, ['stage_7', 'stageValueNet_7', 'stageValueGross_7'])).toEqual({
+      description: 300,
+    })
+  })
+
+  it('usuwa te id, które są przypięte, i ignoruje nieprzypięte', () => {
+    expect(dropKeys(widths, ['stage_7', 'stage_99'])).toEqual({
+      stageValueNet_7: 120,
+      stageValueGross_7: 140,
+      description: 300,
+    })
+  })
+
+  it('nie mutuje wejścia', () => {
+    dropKeys(widths, ['stage_7'])
+    expect(widths.stage_7).toBe(100)
+  })
+
+  it('brak trafień → ta sama referencja (sygnał „nie zapisuj")', () => {
+    expect(dropKeys(widths, ['stage_99'])).toBe(widths)
+    expect(dropKeys(widths, [])).toBe(widths)
+  })
+})

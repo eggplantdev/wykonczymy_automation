@@ -1,4 +1,5 @@
 import type {
+  DiscountTypeT,
   KosztorysItemT,
   KosztorysSectionT,
   KosztorysStageT,
@@ -16,6 +17,8 @@ export type SnapshotSettingsT = {
   wToolsCoeff: number
   ownToolsCoeff: number
   vatRate: number
+  globalDiscountType: DiscountTypeT | null
+  globalDiscountValue: number
 }
 
 // One serialized kosztorys, flat (no nested items) so restore can rebuild the FK graph by remapping

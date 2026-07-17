@@ -4,32 +4,48 @@ import { useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDebouncedSave } from '@/components/kosztorys/use-debounced-save'
 import { useColumnWidths } from '@/components/kosztorys/use-column-widths'
+import { useHiddenColumns } from '@/components/kosztorys/use-hidden-columns'
+import { useLayer } from '@/components/kosztorys/use-layer'
+import { useMoneyAxis } from '@/components/kosztorys/use-money-axis'
 import { usePriceView } from '@/components/kosztorys/use-price-view'
+import { useProgressDisplay } from '@/components/kosztorys/use-progress-display'
 import { useElementHeight } from '@/hooks/use-element-height'
 import { toastMessage } from '@/lib/utils/toast'
-import { buildV2Columns, type V2SortStateT } from '@/lib/tables/kosztorys-v2-columns'
+import {
+  buildV2Columns,
+  buildV2ToggleItems,
+  type V2SortStateT,
+} from '@/lib/tables/kosztorys-v2-columns'
 import {
   applyAddItem,
+  applyInsertItem,
   applyRemoveItem,
   buildBlankRow,
   diffRow,
   filterRows,
-  isRowPopulated,
+  insertDisplayOrder,
   isSectionPopulated,
-  NEW_SECTION_DEFAULTS,
+  planItemRemoval,
   revertField,
-  rowDoneNetForView,
-  sectionItemCount,
+  rowRemainingForView,
+  rowValueForView,
   sectionNeighbor,
+  sectionSubtotalsForView,
   sortRows,
   stageKey,
   swapItemInSection,
   treeToRows,
+  type SortDirT,
 } from '@/lib/kosztorys/v2-rows'
 import {
-  rowNetForView,
-  rowRemainingForView,
-  sectionSubtotalsForView,
+  NEW_SECTION_DEFAULTS,
+  stageValueGrossKey,
+  stageValueNetKey,
+  stageValuePercentKey,
+} from '@/lib/kosztorys/constants'
+import {
+  globalDiscountAmount,
+  isGlobalDiscountActive,
   viewPrice,
   type PriceViewT,
 } from '@/lib/kosztorys/calc'
@@ -37,18 +53,21 @@ import {
   addItemAction,
   addSectionAction,
   addStageAction,
+  insertItemAction,
   removeItemAction,
   removeSectionAction,
   removeStageAction,
   setStageProgressAction,
   swapItemOrderAction,
   updateInvestmentCoeffsAction,
+  updateInvestmentGlobalDiscountAction,
   updateInvestmentVatAction,
   updateItemFieldAction,
   updateSectionFieldAction,
   updateStageFieldAction,
 } from '@/lib/actions/kosztorys'
 import type {
+  GlobalDiscountT,
   ItemPatchT,
   KosztorysStageT,
   KosztorysTreeT,
@@ -62,14 +81,14 @@ function sortValue(
   field: string,
   view: PriceViewT,
   stages: KosztorysStageT[],
-): string | number {
+): string | number | null {
   switch (field) {
     case 'price':
       return viewPrice(row, view)
     case 'net':
-      return rowNetForView(row, view)
+      return rowValueForView(row, stages, view)
     case 'remaining':
-      return rowRemainingForView(row, rowDoneNetForView(row, stages, view), view)
+      return rowRemainingForView(row, stages, view)
     default: {
       const v = row[field as keyof KosztorysV2RowT]
       return (typeof v === 'number' ? v : (v ?? '')) as string | number
@@ -78,91 +97,118 @@ function sortValue(
 }
 
 // All editor state, derived data, and handlers for the in-app kosztorys grid. Kept out of the
-// component so the component is only composition + markup. The dsg constraints live here: the
-// grid freezes `columns` at mount, so handlers read fresh state through refs (prevById / rowsRef)
-// and never fire an action from inside a setRows updater (that would move the Router during render).
+// component so the component is only composition + markup. Handlers never fire an action from
+// inside a setRows updater — that would move the Router during render.
 export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   const router = useRouter()
   const save = useDebouncedSave(500)
   const [gridRef, gridHeight] = useElementHeight()
   const [rows, setRows] = useState<KosztorysV2RowT[]>(() => treeToRows(tree))
-  // Stages live in local state (like `rows`): add/remove optimistically add/drop a column, and
-  // `stagesKey` feeds the grid remount key (dsg freezes columns at mount).
+  // Stages live in local state (like `rows`): add/remove optimistically add/drop a column.
   const [stages, setStages] = useState<KosztorysStageT[]>(tree.stages)
+  // Global discount in local state (like `rows`/`stages`): the toggle patches it optimistically so
+  // the derived total, column visibility, and per-item suppression all move in one render. Reading
+  // `tree.globalDiscount` instead would leave the total + columns lagging the row flag until
+  // router.refresh() lands — the transient the "never disagree" invariant below forbids.
+  const [globalDiscount, setGlobalDiscount] = useState<GlobalDiscountT>(tree.globalDiscount)
+  const globalDiscountActive = isGlobalDiscountActive(globalDiscount)
   const [view, setView] = usePriceView(investmentId)
-  // Brutto column toggle (local, not persisted). Folded into the grid remount key below — dsg
-  // freezes columns at mount, so toggling has to remount to add/drop the Brutto column.
-  const [bruttoVisible, setBruttoVisible] = useState(false)
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<V2SortStateT>(null)
-  const [activeSectionId, setActiveSectionId] = useState<number | null>(null)
+  // Section filter, three states: null = no filter (all sections), a Set = show exactly those, an
+  // empty Set = show none. The „show none" state is why this can't be a plain Set with empty=all —
+  // the FilterMultiSelect toggle-all needs a distinct „Odznacz wszystkie" target.
+  const [shownSectionIds, setShownSectionIds] = useState<Set<number> | null>(null)
   const [summaryOpen, setSummaryOpen] = useState(true)
-  // Column widths: persisted in localStorage. Commit (on handle release) saves and, via
-  // `key`, remounts the grid with the new width — react-datasheet-grid does not recompute
-  // sizing without a remount (its internal memo). During the drag we only show a vertical
-  // guide (guideX = cursor X), without touching the grid.
-  const { widths, setWidth } = useColumnWidths()
+  // Column widths: persisted in localStorage, committed on handle release (not per pointermove —
+  // that would be a write per pixel). During the drag we only show a vertical guide
+  // (guideX = cursor X), without touching the grid.
+  const { widths, setWidth, dropWidth } = useColumnWidths()
+  const { isHidden, toggleColumn, showAllColumns } = useHiddenColumns()
+  const [moneyAxis, setMoneyAxis] = useMoneyAxis()
+  const [progressDisplay, setProgressDisplay] = useProgressDisplay()
+  const [layer, setLayer] = useLayer()
   const [guideX, setGuideX] = useState<number | null>(null)
   // Snapshot of the previous rows for diffing (keyed by item id) — the full dataset, not the view.
   // It also serves as the "fresh dataset" read by structural event handlers (section count):
   // kept in sync on every add/remove/edit, so no separate ref for rows is needed.
   const prevById = useRef(new Map(rows.map((r) => [r.id, r])))
-  // "Latest value" ref: the fresh `rows` (display order) read during an event-time reorder.
-  // The dsg column closure is frozen at mount, so the render's `rows` can be stale, and firing
-  // an action inside the setRows updater would update the Router during render (a React error).
-  // Writing a ref during render is the well-known, safe "latest value" pattern — the rule is too strict.
+  // "Latest value" ref: the fresh `rows` (display order) read during an event-time reorder, since
+  // firing an action inside the setRows updater would update the Router during render (a React
+  // error). Writing a ref during render is the well-known, safe "latest value" pattern.
+  // NOTE (EX-422): these two refs were introduced to dodge a mount-frozen column closure, which no
+  // longer exists — the grid is on the reactive `DynamicDataSheetGrid` export as of `ee497cb`, so
+  // its closures are rebuilt each render. Kept deliberately as the rollback path; whether they are
+  // still load-bearing is EX-422's own follow-up, not a freebie to delete alongside it.
   const rowsRef = useRef(rows)
   // eslint-disable-next-line react-hooks/refs
   rowsRef.current = rows
-  // Same "latest value" ref for stages — the rename handler lives in the mount-frozen column
-  // closure, so its no-op guard must compare against the fresh label, not the mount snapshot.
+  // Same, for the stage-rename handler's no-op guard (compares against the fresh label).
   const stagesRef = useRef(stages)
   // eslint-disable-next-line react-hooks/refs
   stagesRef.current = stages
 
-  function toggleSort(field: string) {
-    setSort((prev) => {
-      if (prev?.field !== field) return { field, dir: 'asc' }
-      if (prev.dir === 'asc') return { field, dir: 'desc' }
-      return null
-    })
+  function setSortField(field: string, dir: SortDirT | null) {
+    setSort(dir ? { field, dir } : null)
   }
 
   // onRemoveItem/onReorderItem read prevById.current / rowsRef.current — stable refs —
   // only from a cell's onClick, never during render, so passing them here is safe.
-  const columns = buildV2Columns({
+  const columnOpts = {
     view,
-    bruttoVisible,
     stages,
     onRemoveStage: handleRemoveStage,
     onRenameStage: handleRenameStage,
     sort,
-    onToggleSort: toggleSort,
+    onSetSort: setSortField,
+    isHidden,
+    moneyAxis,
+    progressDisplay,
+    layer,
     widths,
     onGuide: setGuideX,
     onCommitColumn: setWidth,
     onRemoveItem: handleRemoveItem,
     onReorderItem: handleReorderItem,
-    // Disables the trash button on a section's last item; the toast in handleRemoveItem stays as
-    // a defensive backstop. Same fresh-ref, event-time read as the handlers above.
-    getSectionItemCount,
-  })
+    onInsertItem: handleInsertItem,
+    onRenameSection: handleRenameSection,
+    getRemoveBlockReason,
+    globalDiscountActive,
+  }
+  const columns = buildV2Columns(columnOpts)
+  const columnToggleItems = buildV2ToggleItems(columnOpts)
   const widthsKey = JSON.stringify(widths)
   const stagesKey = stages.map((s) => s.id).join(',')
 
   // View = filter + sort. Edits are mapped back into the full dataset by id.
   const viewRows = useMemo(() => {
     const scoped =
-      activeSectionId == null ? rows : rows.filter((r) => r.sectionId === activeSectionId)
+      shownSectionIds === null ? rows : rows.filter((r) => shownSectionIds.has(r.sectionId))
     const filtered = filterRows(scoped, search)
     if (!sort) return filtered
     return sortRows(filtered, (r) => sortValue(r, sort.field, view, stages), sort.dir)
-  }, [rows, activeSectionId, search, sort, view, stages])
+  }, [rows, shownSectionIds, search, sort, view, stages])
 
   // Per-section subtotals: the FULL dataset (not viewRows) — a stable breakdown independent of
   // the filter/sort.
-  const subtotals = useMemo(() => sectionSubtotalsForView(rows, view), [rows, view])
+  const subtotals = useMemo(() => sectionSubtotalsForView(rows, stages, view), [rows, stages, view])
+  // Executed and offered, both derived from the subtotals rather than re-walking rows × stages.
+  // Same full-dataset rule as the subtotals: the counter answers for the whole kosztorys, so a
+  // search or a section filter must not move it.
   const totalNet = useMemo(() => subtotals.reduce((s, x) => s + x.net, 0), [subtotals])
+  const totalPlannedNet = useMemo(
+    () => subtotals.reduce((s, x) => s + x.plannedNet, 0),
+    [subtotals],
+  )
+
+  // Global discount amount + "do zapłaty", computed ONCE here off the executed total. Both total
+  // surfaces (the Sekcje Suma block and the totals bar) read these props — neither recomputes, so
+  // they can never disagree.
+  const discountAmount = useMemo(
+    () => globalDiscountAmount(totalNet, globalDiscount),
+    [totalNet, globalDiscount],
+  )
+  const doZaplatyNet = totalNet - discountAmount
 
   // Section coefficients (null = inherits the global) for the panel — from the tree, keyed by section id.
   const sectionCoeffs = new Map(
@@ -196,6 +242,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       sectionId,
       sectionName: sample?.sectionName ?? NEW_SECTION_DEFAULTS.name,
       vatRate: tree.vatRate,
+      globalDiscountActive,
       sectionDefaultCostVariant:
         sample?.sectionDefaultCostVariant ?? NEW_SECTION_DEFAULTS.defaultCostVariant,
       sectionWToolsCoeff: sample?.sectionWToolsCoeff ?? null,
@@ -206,29 +253,70 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     })
     prevById.current.set(row.id, row)
     setRows((rs) => applyAddItem(rs, row))
+    // With a section filter active, a row added to a hidden section would be invisible — pull its
+    // section into the filter so the add is visible.
+    setShownSectionIds((prev) =>
+      prev === null || prev.has(sectionId) ? prev : new Set(prev).add(sectionId),
+    )
   }
 
-  // Fresh count of a section's items, read from prevById (the full dataset) at cell-render time.
-  function getSectionItemCount(sectionId: number) {
-    return sectionItemCount([...prevById.current.values()], sectionId)
+  // ⋯ menu → Wstaw pozycję powyżej/poniżej. Inserts a blank row at the anchor's display slot
+  // (±1) within the anchor's section. "Above/below" has no meaning against a price-sorted view, so
+  // it's a no-op while a column sort is active (the menu also disables it). Denormalized section
+  // fields come from any existing row of that section (as in handleAddItem).
+  async function handleInsertItem(anchorRow: KosztorysV2RowT, dir: 'above' | 'below') {
+    if (sort) return
+    const at = insertDisplayOrder(anchorRow, dir)
+    const res = await insertItemAction(investmentId, anchorRow.sectionId, at)
+    if (!res.success) return
+    const sample =
+      [...prevById.current.values()].find((r) => r.sectionId === anchorRow.sectionId) ?? anchorRow
+    const row = buildBlankRow({
+      id: res.data.id,
+      displayOrder: res.data.displayOrder,
+      sectionId: anchorRow.sectionId,
+      sectionName: sample.sectionName,
+      vatRate: tree.vatRate,
+      globalDiscountActive,
+      sectionDefaultCostVariant: sample.sectionDefaultCostVariant,
+      sectionWToolsCoeff: sample.sectionWToolsCoeff,
+      sectionOwnToolsCoeff: sample.sectionOwnToolsCoeff,
+      globalWToolsCoeff: tree.globalCoeffs.wTools,
+      globalOwnToolsCoeff: tree.globalCoeffs.ownTools,
+      stages,
+    })
+    // Mirror the section-tail display_order bump in prevById so a later insert/▲▼ diffs correctly.
+    for (const [id, r] of prevById.current) {
+      if (r.sectionId === row.sectionId && r.displayOrder >= at) {
+        prevById.current.set(id, { ...r, displayOrder: r.displayOrder + 1 })
+      }
+    }
+    prevById.current.set(row.id, row)
+    setRows((rs) => applyInsertItem(rs, anchorRow.id, row, dir))
+  }
+
+  // Why a row can't be deleted, or undefined if it can — read at cell-render time from the full
+  // dataset (prevById), not the view. Single source for both the disabled tooltip and the
+  // handler backstop below.
+  function removalPlan(row: KosztorysV2RowT) {
+    return planItemRemoval([...prevById.current.values()], row, stagesRef.current)
+  }
+
+  function getRemoveBlockReason(row: KosztorysV2RowT): string | undefined {
+    const plan = removalPlan(row)
+    return plan.kind === 'blocked' ? plan.reason : undefined
   }
 
   async function handleRemoveItem(row: KosztorysV2RowT) {
-    // Invariant: a section has ≥1 item. Count from prevById (fresh dataset, event-time read —
-    // dsg columns are frozen at mount, so we enforce the rule here, not via a visual disabled state).
-    if (sectionItemCount([...prevById.current.values()], row.sectionId) <= 1) {
-      toastMessage(
-        'Sekcja musi mieć co najmniej jedną pozycję. Aby ją usunąć, użyj kosza sekcji w panelu.',
-        'warning',
-        4000,
-      )
+    const plan = removalPlan(row)
+    // Backstop: the trash button is disabled when a reason exists, so this is normally unreachable.
+    if (plan.kind === 'blocked') {
+      toastMessage(plan.reason, 'warning', 4000)
       return
     }
-    // Client mirror of the server delete-guard: block a populated row up front so it never
-    // optimistically vanishes then reappears. stagesRef is the fresh stage list (dsg column
-    // closure is mount-frozen). The server guard stays the authority — see the await below.
-    if (isRowPopulated(row, stagesRef.current)) {
-      toastMessage('Najpierw wyczyść wartości wpisane w tej pozycji', 'warning', 4000)
+    // Last item in its section → cascade-delete the section so no orphaned 0-row section is left.
+    if (plan.kind === 'cascade-section') {
+      await handleRemoveSection(row.sectionId)
       return
     }
     prevById.current.delete(row.id)
@@ -268,6 +356,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       sectionId: sec.data.id,
       sectionName: NEW_SECTION_DEFAULTS.name,
       vatRate: tree.vatRate,
+      globalDiscountActive,
       sectionDefaultCostVariant: NEW_SECTION_DEFAULTS.defaultCostVariant,
       sectionWToolsCoeff: null,
       sectionOwnToolsCoeff: null,
@@ -277,6 +366,31 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     })
     prevById.current.set(row.id, row)
     setRows((rs) => applyAddItem(rs, row))
+    // Drop a section filter: the new section's row lives outside it, so keeping the filter would
+    // make the add look like a no-op (nothing visibly happens).
+    setShownSectionIds(null)
+  }
+
+  // Append the sections returned by appendPresetSectionsAction to the grid without a reload. The rows
+  // are built through treeToRows (the same denormalization as the initial load), using the CURRENT
+  // stages + global discount so the appended rows carry today's stage columns and rabat flag — the
+  // action already committed with real ids, so no temp-id reconciliation. router.refresh() alone
+  // can't add them (mount-frozen `rows`, EX-441); it still runs for the prop-reading surfaces.
+  function handleAppendedSections(slice: KosztorysTreeT['sections']) {
+    const appended = treeToRows({
+      sections: slice,
+      stages,
+      progress: [],
+      globalCoeffs: tree.globalCoeffs,
+      vatRate: tree.vatRate,
+      globalDiscount,
+      revision: tree.revision,
+    })
+    for (const row of appended) prevById.current.set(row.id, row)
+    setRows((rs) => [...rs, ...appended])
+    // The appended sections live outside any active filter — clear it so they're visible.
+    setShownSectionIds(null)
+    router.refresh()
   }
 
   // --- Stages (etapy) ---
@@ -303,6 +417,12 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     }
     setStages((s) => s.filter((st) => st.id !== stageId))
     const key = stageKey(stageId)
+    dropWidth(
+      key,
+      stageValueNetKey(stageId),
+      stageValueGrossKey(stageId),
+      stageValuePercentKey(stageId),
+    )
     patchRows(
       () => true,
       (r) => {
@@ -357,19 +477,31 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     for (const [id, r] of prevById.current) {
       if (r.sectionId === sectionId) prevById.current.delete(id)
     }
-    const wasActive = activeSectionId === sectionId
-    if (wasActive) setActiveSectionId(null)
+    const wasShown = shownSectionIds?.has(sectionId) ?? false
+    if (wasShown) {
+      setShownSectionIds((prev) => {
+        if (prev === null) return prev
+        const next = new Set(prev)
+        next.delete(sectionId)
+        return next
+      })
+    }
     const res = await removeSectionAction(sectionId)
     if (!res.success) {
       // Server rejected (predicate drift) — restore the section's rows and surface the block.
       for (const r of removed) prevById.current.set(r.id, r)
       setRows((rs) => [...rs, ...removed])
-      if (wasActive) setActiveSectionId(sectionId)
+      if (wasShown)
+        setShownSectionIds((prev) => (prev === null ? prev : new Set(prev).add(sectionId)))
       toastMessage(res.error ?? 'Nie udało się usunąć sekcji', 'warning', 4000)
     }
   }
 
   function handleRenameSection(sectionId: number, name: string) {
+    // Skip a no-op write: the cell's onBlur fires on every focus-out, so bail when the name is
+    // unchanged (the Sekcja cell has no diff of its own, like handleRenameStage for etap labels).
+    const current = rowsRef.current.find((r) => r.sectionId === sectionId)?.sectionName ?? ''
+    if (current === name) return
     // The name is denormalized on every row of the section — overwrite them all locally.
     setRows((rs) => rs.map((r) => (r.sectionId === sectionId ? { ...r, sectionName: name } : r)))
     for (const [id, r] of prevById.current) {
@@ -419,6 +551,23 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       (r) => ({ ...r, vatRate }),
     )
     const res = await updateInvestmentVatAction(investmentId, vatRate)
+    if (res.success) router.refresh()
+  }
+
+  // Setting/clearing the global discount flips per-item rabat on or off for every row. Update the
+  // local discount (drives the derived totals + column visibility) and patch the denormalized active
+  // flag on every row in the same render, so all three surfaces move together; then persist + refresh.
+  async function handleGlobalDiscountChange(next: GlobalDiscountT) {
+    const active = isGlobalDiscountActive(next)
+    setGlobalDiscount(next)
+    patchRows(
+      () => true,
+      (r) => ({ ...r, globalDiscountActive: active }),
+    )
+    const res = await updateInvestmentGlobalDiscountAction(investmentId, {
+      globalDiscountType: next.type,
+      globalDiscountValue: next.value,
+    })
     if (res.success) router.refresh()
   }
 
@@ -485,6 +634,15 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     gridRef,
     gridHeight,
     columns,
+    columnToggleItems,
+    toggleColumn,
+    showAllColumns,
+    moneyAxis,
+    setMoneyAxis,
+    progressDisplay,
+    setProgressDisplay,
+    layer,
+    setLayer,
     viewRows,
     view,
     sort,
@@ -494,21 +652,24 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     // subtotals + section panel
     subtotals,
     totalNet,
+    totalPlannedNet,
     sectionCoeffs,
+    globalDiscount,
+    discountAmount,
+    doZaplatyNet,
     // toolbar / panel state
     setView,
-    bruttoVisible,
-    toggleBrutto: () => setBruttoVisible((b) => !b),
     search,
     setSearch,
-    activeSectionId,
-    setActiveSectionId,
+    shownSectionIds,
+    setShownSectionIds,
     summaryOpen,
     setSummaryOpen,
     // handlers
     onChange,
     handleAddItem,
     handleAddSection,
+    handleAppendedSections,
     handleAddStage,
     handleRenameSection,
     handleRemoveSection,
@@ -516,5 +677,6 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     handleGlobalCoeffChange,
     handleSectionCoeffChange,
     handleVatChange,
+    handleGlobalDiscountChange,
   }
 }

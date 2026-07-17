@@ -37,9 +37,19 @@ function writeWidths(widths: Record<string, number>) {
   for (const l of listeners) l()
 }
 
+// Returns the map without `ids`, or the SAME reference when none of them were pinned — identity is
+// how the caller tells "nothing to drop" from "dropped", so it can skip a pointless write + notify.
+export function dropKeys(widths: Record<string, number>, ids: string[]): Record<string, number> {
+  if (!ids.some((id) => id in widths)) return widths
+  const next = { ...widths }
+  for (const id of ids) delete next[id]
+  return next
+}
+
 export function useColumnWidths(): {
   widths: Record<string, number>
   setWidth: (id: string, width: number) => void
+  dropWidth: (...ids: string[]) => void
 } {
   const json = useSyncExternalStore(subscribe, readJson, () => SERVER_SNAPSHOT)
   const widths = useMemo(() => JSON.parse(json) as Record<string, number>, [json])
@@ -48,5 +58,16 @@ export function useColumnWidths(): {
     writeWidths({ ...widths, [id]: width })
   }
 
-  return { widths, setWidth }
+  // A stage column's id is derived from its DB id, which Postgres can hand out again after the
+  // stage is deleted — so a leftover entry would silently pin a brand-new stage to the dead one's
+  // width. Called when a stage goes away.
+  // Variadic because one stage owns several columns (ilość + kwota netto + kwota brutto) and each
+  // write rebuilds the whole map from the render's `widths`: dropping them one call at a time would
+  // have every call read the same pre-delete map, so the last write would resurrect the others.
+  function dropWidth(...ids: string[]) {
+    const next = dropKeys(widths, ids)
+    if (next !== widths) writeWidths(next)
+  }
+
+  return { widths, setWidth, dropWidth }
 }

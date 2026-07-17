@@ -124,7 +124,6 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
         description: 'Malowanie',
         unit: 'm2',
         plannedQty: 10,
-        measuredQty: 8,
         clientPrice: 100,
         discountValue: 0,
         hiddenInExport: false,
@@ -141,7 +140,6 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
         description: 'Gruntowanie',
         unit: 'm2',
         plannedQty: 5,
-        measuredQty: 3,
         clientPrice: 40,
         discountType: 'percent',
         discountValue: 10,
@@ -158,7 +156,6 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
         description: 'Płytki',
         unit: 'm2',
         plannedQty: 20,
-        measuredQty: 20,
         clientPrice: 250,
         discountValue: 0,
         hiddenInExport: false,
@@ -233,7 +230,6 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     // Job fields are zeroed everywhere — proven on the PERSISTED tree, not just the preset payload.
     for (const item of after.items) {
       expect(item.plannedQty).toBe(0)
-      expect(item.measuredQty).toBe(0)
       expect(item.discountType).toBeNull()
       expect(item.discountValue).toBe(0)
       expect(item.hiddenInExport).toBe(false)
@@ -242,7 +238,37 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     expect(after.progress).toEqual([])
 
     // Target's own settings survive the apply untouched (a preset carries no pricing config).
-    expect(after.settings).toEqual({ wToolsCoeff: 0.9, ownToolsCoeff: 0.6, vatRate: 0.08 })
+    expect(after.settings).toEqual({
+      wToolsCoeff: 0.9,
+      ownToolsCoeff: 0.6,
+      vatRate: 0.08,
+      globalDiscountType: null,
+      globalDiscountValue: 0,
+    })
+  })
+
+  it('seed from a preset yields exactly one blank etap and no progress, whatever the source stages were', async () => {
+    const sourceId = await createInvestment(`${PRESET_PREFIX}source-oneetap`, 0.23, 0.7, 0.5)
+    await buildSourceTree(sourceId) // source has 2 stages + progress
+
+    const preset = await serializeKosztorysAsPreset(sourceId)
+    // A preset carries no etapy — they are per-job execution structure, not reusable scope.
+    expect(preset.stages).toEqual([])
+    expect(preset.progress).toEqual([])
+
+    const presetId = await insertPreset(db, {
+      name: `${PRESET_PREFIX}oneetap`,
+      createdBy: null,
+      payload: preset,
+    })
+    const spawnId = await createInvestment(`${PRESET_PREFIX}spawn-oneetap`, 0.23, 0.7, 0.5)
+    expect(await seedInvestmentFromPreset(payload, spawnId, presetId!)).toBe('ok')
+
+    const after = await serializeKosztorys(spawnId)
+    expect(after.stages).toHaveLength(1)
+    expect(after.stages[0].ordinal).toBe(1)
+    expect(after.stages[0].label).toBeNull()
+    expect(after.progress).toEqual([])
   })
 
   it('seed rejects a non-empty investment and writes nothing', async () => {

@@ -238,3 +238,185 @@ Setup: run the app against the **5435 test DB** (see intro), log in as OWNER/MAN
 
 - [x] **Media labels polluted with a ~30-char blob token** (e.g. `praga-17-06-2026-ed13f6-5b4d4f-3fyR3xjeRHZWrztkEQ4KkRZpKaMhxh.jpg`). Root cause: `addRandomSuffix: true` (commit `1da49ed`) made `@payloadcms/storage-vercel-blob` rewrite the `filename` field with the suffixed blob key; a _separate_ pre-existing double `appendShortId` (extraction + upload) added the second hex. **Fixed** 2026-07-12: reverted `addRandomSuffix`, deduped the short id to the upload boundary. Documented on **EX-394** (corrects its "overwrite risk closed by addRandomSuffix" claim). `test: TDD · unit` — `src/__tests__/receipt-filename.test.ts` guards the dedupe; the `addRandomSuffix` label-rewrite is plugin-level (config revert), **observable only end-to-end** → still owes the upload-a-receipt-and-check-stored-filename verification below.
 - [x] **Re-verify clean label after fix.** Upload a fresh receipt (scan path) → stored `filename` / opened-image label is `<opis>-<one-6hex>.<ext>` with **no** 30-char token and **no** double hex. — 2026-07-12, confirmed on **staging**: `large.heic` stored as `large-9f7604.jpg` — one 6-hex id, **no** 30-char blob token. This exercises a _direct_ upload (not the scan path), which validates the harder-to-test half end-to-end: the `addRandomSuffix` revert (the plugin-level rewrite no unit test can reach). The scan-path double-hex dedupe is deterministic and covered by `src/__tests__/receipt-filename.test.ts` — `buildReceiptFileName` adds no id, so a scan gets exactly the one id from `uniqueFileName`.
+
+## kosztorys-stage-values — per-stage value columns (netto+brutto)
+
+**In review** — automated checks green (tsc, eslint, full unit suite). Nothing below is covered by CI: the delta is column wiring and a localStorage default, and the math it renders (`stageValueForView`, `× (1 + vatRate)`) is already unit-tested. Adjacent to S-03 `kosztorys-stages` but **not part of it** — this section is this change's to discharge.
+
+Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, seed a kosztorys into it (`INV=<id> node --env-file=.env --import tsx src/scripts/seed-kosztorys.ts` with the seed's DB env pointed at `DB_POSTGRES_URL_TEST`), and add 2–3 stages.
+
+### Phase 1: Stage value columns + grid reorder
+
+- [ ] **Stage netto tracks Pozostało.** Type a qty into a stage on a row with a known price and no rabat → `Etap N — netto` shows `qty × cena`, and `Pozostało netto` drops by the same amount. Add a percent rabat to that row → the stage value drops proportionally (it is post-discount).
+- [ ] **Rabat kwotowy (zł) spreads across stages, never goes negative.** On a row with a `zł` rabat and 2–3 stages: a stage with **no** qty reads `0` (not a negative number), and the stage netto values **sum to the row's `Netto`** — with `Pozostało netto` hitting `0` once the stages cover the full `Pomiar`. This is the CRITICAL the review caught; the local dev DB already holds `amount` rows, but the seed script emits only `percent`, so **check this on a hand-entered zł rabat**, not on seeded data.
+- [ ] **Tooltip copy reads right (owner's call).** Hover `Etapy — kwota netto` / `— brutto` and the qty stage header. The Polish wording is mine, not reviewed — say if the discount-share explanation is wrong or overlong for what you want in a tooltip.
+- [ ] **Brutto is the netto × rate.** `Etap N — brutto` = `Etap N — netto` × 1.08 at the default VAT rate.
+- [ ] **Rename a stage → all three headers update**; the qty header stays editable, both value headers do not.
+- [ ] **Delete a stage → all three columns disappear**, and the remaining stages keep their own labels (the wrong-stage-rename class — dsg keys header cells by index).
+- [ ] **Price view switch reprices.** Klient / Z narzędziami / Bez narzędzi → stage values reprice, no flicker, no scroll or selection loss.
+
+### Phase 2: Default-hidden columns
+
+- [ ] **Fresh profile default.** With no prior localStorage (fresh profile / cleared `table-columns:kosztorys`): the grid opens with `Etapy — kwota netto` visible and `Etapy — kwota brutto` hidden.
+- [ ] **The picker shows `Etapy — kwota brutto` unchecked**; checking it reveals the columns and survives a reload.
+- [ ] **Un-checking it again hides them** and survives a reload.
+- [ ] **No regression from the invariant change.** An existing profile with columns already hidden keeps exactly those columns hidden (absent means "ask the default", where it used to mean "visible" — stored maps only ever held `true`, so this is safe on paper; confirm on a real profile).
+
+### Phase 3: Doc reconciliation
+
+- [ ] `context/reference/kosztorys-editor-domain-notes.md` no longer lists P8 as open, and its answer names the date and the resolved contradiction.
+- [ ] `context/changes/kosztorys-stages/plan.md` no longer asserts a remount key is needed, and its brutto exclusion is marked superseded.
+- [ ] No living doc still claims stage values are netto-only.
+
+### Width cost at scale (the check the change exists to test)
+
+This change ships the horizontal cost **unmitigated by design** — the frame found the argument for pre-emptively mitigating it (a netto/brutto display mode) circular. At 10 stages the client view carries ~47 columns. Dogfood it before opening that follow-up.
+
+- [ ] **Perf + width sanity at scale.** Seed ~1000 rows (`INV=<id> node --env-file=.env --import tsx src/scripts/perf-seed-kosztorys.ts`), then scroll the grid with all three stage groups visible — no scroll jank, and record whether the width is actually tolerable in use.
+
+## kosztorys-netto-brutto-select — Netto | Brutto | Bez filtra (EX-485)
+
+**In review** — automated checks green (`c385ad1`, `e76d45c`); the boxes below are the human gate. "Piece 2" of the pair `/10x-frame` split: piece 1 (`kosztorys-stage-values`) shipped the columns this mode hides. localStorage-only — no migration, so the 5435 test DB needs nothing beyond the usual seed.
+
+Setup: run the app against the **5435 test DB** (see intro), log in as OWNER/MANAGER, open an investment's **Kosztorys** tab with ≥1 section, items, and ≥1 stage. The control sits beside the price-view toggle. Clear `table-columns:kosztorys-axis` in localStorage to start from the default (`Bez filtra`).
+
+- [ ] **Netto drops every brutto column; the price stays.** Pick `Netto` → `Cena j.m. brutto`, `Rabat kwota brutto`, `Wartość przedmiaru brutto`, `Brutto`, `Pozostało brutto` and the per-stage brutto block all leave the grid. `Cena j.m. netto` stays.
+- [ ] **Brutto drops the netto columns; the price still stays.** Pick `Brutto` → `Wartość przedmiaru netto`, `Netto`, `Pozostało netto`, `Rabat kwota netto` and the per-stage netto block leave — and `Cena j.m. netto` is still there and still editable.
+- [ ] **Bez filtra restores exactly what the picker allows.** Back to `Bez filtra` → every column returns except the per-stage brutto block, which stays hidden by `DEFAULT_HIDDEN_COLUMNS` (the picker's default, not the mode).
+- [ ] **The mode survives a reload.** Pick `Netto`, reload → still `Netto`, still narrowed.
+- [ ] **The mode holds across all three price views.** Switch Klient / Z narzędziami / Bez narzędzi → the mode doesn't reset; it's one global setting, not per-view.
+- [ ] **The column picker's menu is unchanged in every mode.** A column the mode hid still reads as _checked_ in the picker — the picker answers "never show this", the mode answers "which side".
+- [ ] **The Sekcje footer is untouched.** `Suma netto` and `Suma brutto` both stay in every mode (owner decision: the footer is a summary, not a view).
+- [ ] **No flicker, no scroll jump at scale.** On ~1000 rows (`INV=7`, `perf-seed-kosztorys.ts`) switch modes repeatedly — the grid must not flash or lose scroll position. This is EX-422's regression surface: the fix was deleting the remount `key`, and this change deliberately did not add one back.
+- [ ] **The non-guarantee reads acceptably (a judgement call, not a bug).** Hide `Brutto` in the picker, then pick mode `Brutto` → the column stays off screen. Correct by the model — the mode only _narrows_, it never reveals. Confirm it doesn't read as a broken control; if it does, that's a follow-up, not a fix here.
+- [ ] **`Brutto` leaves you with NO per-stage value column at all — is that liveable?** (code-review 🟡, deliberately shipped as-is.) On the default picker state, `stageValueGross` is hidden by `DEFAULT_HIDDEN_COLUMNS` and `stageValueNet` is dropped by the mode, so `Brutto` — the mode you'd invoice the client from — shows neither side of `Etapy — kwota`, while the picker still reads "Etapy — kwota netto ✓". Each half is correct on its own; the composition is the question. Ticking `Etapy — kwota brutto` in the picker fixes it for good. Decide whether the default should do that for you.
+- [ ] **No flash of the wide grid on reload.** With `Netto` stored, hard-reload → the grid must not paint all columns for a frame before dropping to the narrow set. The hook reads localStorage in `getSnapshot`, so server and first client render both use the default — same shape as `usePriceView`, whose flash only changes numbers in place; this one changes the _column set_, which is a layout shift. If it's visible, it's a follow-up across all three sibling hooks, not a fix here.
+
+## kosztorys-progress-percent — Kwoty / % wykonania + progress counter (EX-479)
+
+**In review** — automated checks green (`63c8a32`, `7ee38ee`, `b77baa1`); the boxes below are the human gate. Third reading axis over the same grid, composing with the money axis (`kosztorys-netto-brutto-select`) rather than replacing it. localStorage-only — no migration, so the 5435 test DB needs nothing beyond the usual seed.
+
+Setup: run the app against the **5435 test DB** (see intro), log in as OWNER/MANAGER, open an investment's **Kosztorys** tab with ≥1 section, items, and ≥2 stages carrying recorded progress. The control sits beside the netto/brutto toggle. Clear `table-columns:kosztorys-progress-display` in localStorage to start from the default (`Kwoty`).
+
+### Phase 2: Grid columns
+
+- [ ] **Percent mode swaps the stage block.** Pick `% wykonania` → every `Etap N — netto` / `— brutto` column leaves and exactly one `Etap N — %` column appears per stage. Everything outside the stage block (Netto, Pozostało, Cena…) is unchanged.
+- [ ] **`% wykonania` (per row) is visible by default in BOTH modes** and can be hidden via the column picker.
+- [ ] **No denominator → a dash, not a fake 0%.** A row with `Pomiar = 0` renders "—" in every % cell (row and per-stage), not `0%`.
+- [ ] **Overshoot shows raw.** A row with a stage qty above its `Pomiar` renders >100% literally (unclamped) — it is the only signal that the measurement or the entry is wrong.
+- [ ] **No grid flicker/remount when switching modes** (EX-422 class — the fix was deleting the remount `key`, and this change deliberately did not add one back).
+
+### Phase 3: Toolbar toggle, counter, section %
+
+- [ ] **The toggle switches instantly and survives a reload**, independently of the money axis and the price view (three separate global settings, not one).
+- [ ] **The counter reads sensibly.** `Wykonano: X% · done / total` matches the Sekcje footer's `Suma netto` as its denominator; an empty/valueless kosztorys shows "—".
+- [ ] **The counter follows the money axis for its values only.** Pick `Brutto` → the value pair switches to brutto (and says so); the percent is unchanged, because it is the same figure on either side of the VAT.
+- [ ] **The counter ignores search and the section filter.** Type in the search box / filter to one section → the counter does not move (it answers for the whole kosztorys, by design).
+- [ ] **Section rows show `wyk. %` consistent with their rows**; a section with no value shows "—".
+- [ ] **The three surfaces agree.** On a hand-checkable dataset (e.g. seeded `INV=6`), the row %, the section %, and the counter tell the same story — and the per-stage % columns sum to the row's `% wykonania`.
+- [ ] **Percent is view-independent.** Switch Klient / Z narzędziami / Bez narzędzi in percent mode → every % figure is unchanged (only the counter's value pair moves). This is the change's core claim: price and rabat cancel out of the fraction.
+- [ ] **The picker still wins.** In percent mode, hide `Etapy — % wykonania` and `% wykonania` via the picker → they stay off screen. The mode only narrows; it never reveals.
+- [ ] **No layout breakage in the toolbar at narrow widths** (it is a `flex-wrap` row that now carries a third toggle plus the counter).
+
+## kosztorys-stages-source-of-truth — „Pomiar z natury" = Σ etapów; „Pozostało" kotwiczone w Przedmiarze (EX-489, EX-495)
+
+**In review** — automated checks green (`c8dea6f`, `1f0d93e`, `f01fd95`, `c09fbcf`; typecheck, unit 914, integration 30, lint, build). Unblocked by EX-494 (the owner's sheet has `O = SUM(D:M)`, verified 435/435 rows). Kills the third input: „Pomiar z natury" is no longer a typed field, it is computed live as the stage sum. The boxes below are the human gate — the read-only „Pomiar z natury" column has no browser-level regression test yet (deferred to the E2E backlog as **EX-497**).
+
+Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, seed a kosztorys into it (`INV=<id> node --env-file=.env --import tsx src/scripts/seed-kosztorys.ts` with the seed's DB env pointed at `DB_POSTGRES_URL_TEST`), and ensure ≥2 stages carry recorded progress.
+
+### Phase 1: „Pomiar z natury" staje się sumą etapów
+
+- [ ] „Pomiar z natury" nie przyjmuje wpisu; edycja etapu zmienia go natychmiast
+- [ ] Wiersz z zerowymi etapami da się skasować, nawet jeśli ma za sobą historię pomiaru
+
+### Phase 2: Kotwica w Przedmiarze
+
+- [ ] Wiersz z etapami przekraczającymi Przedmiar: „Pozostało" ujemne, komórka czerwona, licznik > 100%
+- [ ] Wiersz bez Przedmiaru: „Pozostało" = „—", brak czerwieni, sortowanie spycha go na koniec
+- [ ] Przełączanie widoku ceny nie zmienia żadnego procentu
+
+### Phase 3: Rabat w wartości przedmiaru
+
+- [ ] „Wartość netto przedmiar" przy rabacie 10% jest o 10% niższa niż `Przedmiar × cena`, a tooltip mówi dlaczego
+
+### Phase 4: Sprzątanie martwego modelu
+
+- [ ] Po `INV=6 … seed-kosztorys.ts` zaseedowany kosztorys ma niezerowy „Pomiar z natury" w wierszach z robotą
+- [ ] Odtworzenie kopii zapasowej przywraca etapy, a „Pomiar z natury" liczy się z nich
+
+## kosztorys-layer-toggle — Praca / Postęp / Bez filtra (widok tabeli)
+
+### Phase 2: UI toggle + editor wiring
+
+- [ ] Czwarty przełącznik renderuje się po przełączniku „Etapy" z segmentami Praca / Postęp / Bez filtra
+- [ ] „Bez filtra": wszystkie kolumny widoczne (jak dotychczas)
+- [ ] „Praca": kolumny per-etap kwoty/brutto/%, „% wykonania" i „Pozostało" znikają; Przedmiar, ceny, Netto/Brutto i etapy-ilość zostają
+- [ ] „Postęp": kolumny pracy (Przedmiar, ceny, rabat, Wartość przedmiaru, Netto/Brutto, etapy-ilość) znikają; Sekcja, Opis prac i Pomiar zostają, a tracker postępu jest widoczny
+- [ ] Wybór przeżywa odświeżenie strony
+- [ ] Składa się z osiami netto/brutto i kwoty/% oraz z pikerem kolumn — żadna kolumna nie zostaje zablokowana widoczna/ukryta
+
+## kosztorys-toolbar-view-menu — jeden popover „Widok" zamiast pięciu przełączników (EX-435)
+
+**In review** — automated checks green (`31b3e49`, `a74abd7` + dogfooding follow-up; unit green, typecheck clean for this slice). Ad-hoc change pod parasolem EX-435 (brak własnej karty). Dogfooding follow-up rozszerzył model: każda oś (Kwoty / Warstwy / Etapy) ma teraz czwarty stan `none` (oba boxy odznaczone chowają oś — brak dawnej blokady min-1), Etapy przeszły z radio na parę checkboxów, sekcje przełożone na Kwoty → Warstwy → Etapy → Kolumny, a Kolumny dostały „Pokaż wszystkie". Mapper czterostanowy (`axis-checkboxes.ts`) i predykaty osi (`none → false`) są pokryte unitami.
+
+Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, seed a kosztorys into it (`INV=<id> node --env-file=.env --import tsx src/scripts/seed-kosztorys.ts` with the seed's DB env pointed at `DB_POSTGRES_URL_TEST`), open the **Kosztorys** tab with ≥1 section, items, ≥2 stages, and clear `table-columns:kosztorys-axis` / `…-layer` w localStorage, żeby startować od `both`.
+
+### Phase 2: Popover „Widok" + przebudowa toolbaru
+
+- [ ] **Lewy klaster to dwie kontrolki.** Toolbar pokazuje `Widok cen` (segmenty) + przycisk `Widok ▾`; nie ma osobnych przełączników Kwoty / Etapy / Warstwy, a grupa po prawej nie ma już przycisku `Kolumny`.
+- [ ] **Cztery sekcje w kolejności Kwoty → Warstwy → Etapy → Kolumny.** `Widok ▾` otwiera: Kwoty (☑ Netto ☑ Brutto), Warstwy (☑ Praca ☑ Postęp), Etapy (☑ PLN ☑ Procent), Kolumny (checkboxy kolumn + „Pokaż wszystkie") — ikona wiersza po prawej stronie etykiety.
+- [ ] **Checkboxy bez blokady min-1.** Można odznaczyć oba boxy w Kwoty / Warstwy / Etapy — nic nie jest odrzucane; odznaczenie obu chowa kolumny tej osi (pusta tabela jest dozwolonym widokiem). Ponowne zaznaczenie wraca.
+- [ ] **Etapy to para checkboxów** (PLN / Procent), nie radio: oba / jeden / żaden są dozwolone, blok etapów pokazuje kwoty, procenty, oba lub nic.
+- [ ] **Tylko Kolumny ma tooltip.** Info-ikona jest przy nagłówku Kolumny (hint o niezależnym ukrywaniu); Kwoty / Warstwy / Etapy mają czyste nagłówki.
+- [ ] **„Pokaż wszystkie" w Kolumny.** Ukryj kilka kolumn, kliknij „Pokaż wszystkie" → wszystkie wracają; pozycja jest wyszarzona, gdy nic nie jest ukryte; menu zostaje otwarte.
+- [ ] **Kolumny nie zamykają menu.** Przełączenie kilku kolumn pod rząd zostawia popover otwarty; kolumny znikają/wracają na bieżąco.
+- [ ] **Wybory przeżywają odświeżenie** dokładnie jak przed zmianą (te same klucze localStorage — brak migracji).
+
+### Findings
+
+_(pending first pass)_
+
+## kosztorys-global-discount — Globalny rabat (EX-501)
+
+Setup: run the app against the **5435 test DB** (see intro; migration applied there, seed a kosztorys first — the dump carries none). Log in as **OWNER/MANAGER** (editor needs MANAGEMENT_ROLES). Open an investment's **Kosztorys** tab with ≥1 section and items carrying per-pozycja rabaty, so the override is observable.
+
+### Phase 4: UI — kontrolka rabatu + dwie sumy
+
+- [ ] **Rabat procentowy → nadpisanie.** Wybierz „procent %", wpisz np. 10 → cztery kolumny rabatu per pozycja znikają (i z pikera kolumn), figury per wiersz są brutto rabatu per pozycja, a „Rabat globalny" odejmuje 10% od sumy wykonanych prac.
+- [ ] **Obie sumy zgodne.** Blok „Suma" w panelu Sekcje i pasek sum pod siatką pokazują identyczne „Do zapłaty netto" i „Do zapłaty brutto".
+- [ ] **Oś netto/brutto.** Przełącznik Netto/Brutto działa na pasku sum (netto-only / brutto-only / oba).
+- [ ] **Rabat kwotowy → płaskie odjęcie.** Wybierz „kwota zł", wpisz kwotę → to samo nadpisanie, a rabat to płaskie odjęcie tej kwoty (nie procent).
+- [ ] **Wyczyszczenie rabatu → powrót.** Wybierz „brak" → kolumny i rabaty per pozycja wracają, sumy wracają do „Suma netto/brutto".
+- [ ] **Snapshot + odtworzenie.** Zrób wersję kosztorysu z rabatem, odtwórz ją → rabat globalny zachowany.
+- [ ] **Marża karty inwestycji bez zmian** (poza zakresem — kosztorys odłączony od księgi).
+
+## kosztorys-section-append — Dodaj sekcję z szablonu (EX-503)
+
+**In review** — automated checks green (Phase 1 `8be1d07`, Phase 2 `f86b98c`; integration specs a–e + unit/typecheck/lint clean). Ad-hoc slice pod EX-503.
+
+Setup: run the app against the **5435 test DB** (see intro). Log in as **OWNER/MANAGER** (editor wymaga MANAGEMENT_ROLES). Najpierw zapisz **dwa różne szablony** z sekcjami: zseeduj kosztorys, „Zapisz jako szablon" pod dwiema nazwami (najlepiej z różnymi sekcjami, w tym jedną o powtórzonej nazwie jak „Łazienka"). Otwórz **Kosztorys** inwestycji z ≥1 sekcją do testu „niepustego".
+
+### Phase 2: Picker + oba wejścia + patch siatki
+
+- [ ] **Niepusty kosztorys, bez przeładowania.** „Dodaj" → „Sekcja z szablonu…" → zaznacz dwie sekcje z **dwóch różnych szablonów** → obie pojawiają się na końcu siatki z pracami, cenami j.m. i współczynnikami, przedmiary = 0, bez przeładowania strony; lista sekcji w panelu bocznym je pokazuje.
+- [ ] **Pusty kosztorys → kompozycja à-la-carte.** Blokujący dialog pustego kosztorysu oferuje „Dodaj sekcje z szablonu"; złożenie z dwóch wybranych sekcji ląduje w wypełnionym edytorze (ścieżka remountu) bez śmieciowej pustej sekcji.
+- [ ] **Wyszukiwarka + nagłówki grup + liczniki.** Szukanie w pikerze filtruje po wszystkich szablonach; nagłówki grup pokazują źródłowy szablon; liczniki „N poz." są poprawne.
+- [ ] **Duplikat nazwy dozwolony.** Dodanie „Łazienka" do kosztorysu, który już ma „Łazienka", daje dwie sekcje — obie edytowalne.
+- [ ] **Brak szablonów → stan pusty.** Bez zapisanych szablonów piker pokazuje „Brak zapisanych szablonów.", a „Dodaj" jest nieaktywne.
+
+### Findings
+
+_(pending first pass)_
+
+## kosztorys-section-inline-rename — edytowalna komórka Sekcja
+
+**In review** — automated checks green (Phase 1 `abc1a1d`; typecheck/lint/unit clean). E2E deferred (patrz Testing Strategy w planie).
+
+### Phase 1: Editable Sekcja cell
+
+- [ ] Edycja komórki Sekcja i wyjście z pola (blur) zmienia nazwę na **każdym** wierszu tej sekcji w siatce.
+- [ ] Enter zatwierdza; Escape cofa do poprzedniej nazwy bez zapisu.
+- [ ] Panel sekcji pokazuje nową nazwę po zmianie z siatki.
+- [ ] Nowa nazwa przeżywa przeładowanie strony (zapisana).
+- [ ] Zaznaczenie komórki Sekcja i wciśnięcie Delete NIE czyści nazwy sekcji.
+- [ ] Ukrywanie/pokazywanie i zmiana szerokości kolumny Sekcja nadal działają.

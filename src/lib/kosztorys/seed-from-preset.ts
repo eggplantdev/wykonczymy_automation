@@ -40,6 +40,11 @@ export async function seedInvestmentFromPreset(
       return 'not-empty'
     }
     await applyPreset(payload, req, investmentId, preset.payload)
+    // A preset carries no etapy; a kosztorys must always have at least one. Install the single blank
+    // starting etap so a preset-seeded tree opens identically to a hand-started one.
+    await txDb.execute(
+      sql`INSERT INTO kosztorys_stages (investment_id, ordinal, label) VALUES (${investmentId}, 1, NULL)`,
+    )
     await payload.db.commitTransaction(transactionId)
   } catch (err) {
     await payload.db.rollbackTransaction(transactionId)

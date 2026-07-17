@@ -3,7 +3,13 @@
 // VAT is a single rate per investment (KosztorysTreeT.vatRate), not per section/item;
 // in S-01 it is carried as 0 (VAT arrives in S-12).
 
+import type { STAGE_QTY_PREFIX } from '@/lib/kosztorys/constants'
+
 export type DiscountTypeT = 'percent' | 'amount'
+// Per-investment global discount over the whole kosztorys. type null = none (per-item discounts
+// apply). When set, per-item discounts are overridden and this is subtracted once from the executed
+// total. Same two modes as the per-item rabat: percent = percentage points, amount = PLN (netto).
+export type GlobalDiscountT = { type: DiscountTypeT | null; value: number }
 export type CostVariantT = 'w_tools' | 'own_tools'
 // Per-item subcontractor price override: 'coeff' = client × value (tracks the client
 // price), 'amount' = flat frozen amount, null = derive from the effective coefficient.
@@ -26,7 +32,6 @@ export type KosztorysItemT = {
   description: string | null
   unit: string | null
   plannedQty: number
-  measuredQty: number
   discountType: DiscountTypeT | null
   discountValue: number
   clientPrice: number
@@ -48,7 +53,6 @@ export type ItemPatchT = Partial<
     | 'description'
     | 'unit'
     | 'plannedQty'
-    | 'measuredQty'
     | 'discountType'
     | 'discountValue'
     | 'clientPrice'
@@ -68,6 +72,9 @@ export type KosztorysGlobalCoeffsT = { wTools: number; ownTools: number }
 // Minimal shape for deriving the view price — KosztorysV2RowT satisfies it
 // (KosztorysItemT + denormalized section and global coefficients).
 export type ViewPricingT = KosztorysItemT & {
+  // Denormalized: the investment's global discount is set — per-item discounts stop applying
+  // (applyDiscount returns gross), the global discount is subtracted once at the total level.
+  globalDiscountActive: boolean
   sectionWToolsCoeff: number | null
   sectionOwnToolsCoeff: number | null
   globalWToolsCoeff: number
@@ -93,6 +100,9 @@ export type KosztorysTreeT = {
   globalCoeffs: KosztorysGlobalCoeffsT
   // A single VAT rate per investment — carried through the tree (like globalCoeffs), denormalized onto each row.
   vatRate: number
+  // A single global discount per investment — its `active` flag is denormalized onto each row (see
+  // KosztorysV2RowBaseT.globalDiscountActive), the amount is subtracted once at the total level.
+  globalDiscount: GlobalDiscountT
   // Server-supplied change token = investment.updatedAt (ISO). A restore always bumps it (its final
   // payload.update stamps updatedAt), so the editor shell can key its restore remount on this token
   // changing rather than on the `tree` prop's object identity, which router.refresh reshapes every time.
@@ -105,6 +115,7 @@ export type KosztorysV2RowBaseT = KosztorysItemT & {
   sectionName: string
   // Denormalized investment VAT rate (one for the whole kosztorys) — gross = net × (1 + vatRate).
   vatRate: number
+  globalDiscountActive: boolean
   sectionDefaultCostVariant: CostVariantT
   // Denormalized coefficients for deriving the subcontractor price on the row (ViewPricingT).
   sectionWToolsCoeff: number | null
@@ -113,14 +124,20 @@ export type KosztorysV2RowBaseT = KosztorysItemT & {
   globalOwnToolsCoeff: number
 }
 
+// Keyed off the constant so the type and diffRow's runtime `startsWith` can never drift apart.
+// `import type` on a value import keeps this erased — no runtime cycle with constants.ts, which
+// imports types from here.
+export type StageKeyT = `${typeof STAGE_QTY_PREFIX}${number}`
+
 export type KosztorysV2RowT = KosztorysV2RowBaseT & {
-  [stageKey: `stage_${number}`]: number
+  [stageKey: StageKeyT]: number
 }
 
 export type SectionSubtotalT = {
   sectionId: number
   sectionName: string
-  net: number
+  net: number // executed (the sheet's T)
+  plannedNet: number // offered (the sheet's S)
   share: number // 0..1, share of the combined net total of all sections
   itemCount: number
 }

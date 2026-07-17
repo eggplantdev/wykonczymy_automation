@@ -15,6 +15,49 @@ top_blocker: none
 > Edit-in-place; archive when superseded.
 > Slices are ordered by number (F-01, S-01…S-14), and the number _is_ the order — to reorder, renumber the slice, never move a row/block out of numeric sequence. The "At a glance" table is the index.
 
+> **Sheet-parity reference — read before designing any editor slice.**
+> `context/reference/kosztorys-editor-domain-notes.md` is the domain reference for the original
+> spreadsheet (column map, closed decisions, open owner questions). **Verify its claims against the
+> live sheet before trusting them** — parts of it are stale (see below).
+>
+> The source sheet is readable again: the service account
+> `kosztorys-sheets@wykonczymy-kosztorys-bk.iam.gserviceaccount.com` was granted Viewer on
+> `KOSZTORYS_TEMPLATE_SHEET_ID` (2026-07-15), so the read-only inspector works:
+>
+> ```bash
+> MAX_ROWS=464 TABS=kosztorys_robocizny node --env-file=.env scripts/inspect-sheet.mjs
+> ```
+>
+> **Verified against the live sheet 2026-07-15** (formulas, not screenshots) — supersedes the
+> reference where they disagree:
+>
+> - **10 etapów, not 6.** The reference's `C–H 1–6 etap` column map is stale. Real layout:
+>   `D–M` = 1–10 etap ilość (wykonano) · `N` przedmiar · `O` pomiar · `Q` cena · `R` rabat ·
+>   `S` wartość przedmiaru (header only — see below) · `T` wartość netto · `U` komentarz ·
+>   `V–AE` = 1–10 etap wartość · `AF` pozostało/bilans.
+> - **`S` "wartość przedmiaru" is a header with no formula and no values in any of the 464 rows**
+>   (this map originally skipped `R` → `T` and missed it entirely — corrected 2026-07-15). Likely
+>   never wired because `O` (pomiar) is `=N`, so `S` would duplicate `T` until pomiar is overridden
+>   by hand. Our przedmiar/pomiar are independent, so the column is meaningful here: **built as
+>   `Wartość przedmiaru netto/brutto`** (`rowPlannedNetForView`), rabat applied, so it differs from
+>   `Netto` by qty alone. New work, not parity — there was no sheet behaviour to copy.
+> - **The app's stage math is 1:1 with the sheet.** `T = O*Q-(Q*R)*O`, `V = D*$Q-(D*$Q*$R)`,
+>   `AF = T-V-W-…-AE` — matching `stageValueForView` / `rowRemainingForView` exactly. `AF`
+>   ("pozostało do rozliczenia") is progress control, not a billing figure — confirms P9.
+> - **Section total** = `T4 = SUM(T5:T21)` on the section header row; `U4 = T4` mirrors it so the
+>   `Podsumowanie` tab's `SUMIF` can find it.
+> - **No per-etap total exists anywhere.** Zero formulas sum the etap axis (`V–AE`) across all 464
+>   rows. A per-etap figure is therefore **new work, not parity** — it has no sheet behaviour to
+>   copy, so it needs an owner decision (client price = invoice vs. subcontractor price = payout).
+> - **Undocumented `Podsumowanie` tab** — per-section totals + **% share**, plus a
+>   Robocizna/Materiały/Łącznie split. Mechanic:
+>   `=SUMIF(kosztorys_robocizny!B:B; <section>; kosztorys_robocizny!U:U)`. The app's section-summary
+>   panel covers the per-section totals but **not** the % share or the Robocizna/Materiały split.
+>   Not covered by any slice — see [Open Roadmap Questions](#open-roadmap-questions).
+> - The template's own `Podsumowanie!B6`/`B7` point at item rows (`T395`/`T398`) instead of grand
+>   totals, so its Robocizna reads `0 zł` and the % column is `#DIV/0!` — the sheet's hand-kept
+>   references rot as rows shift. An argument for deriving these in code.
+
 > **Reordered into execution bands (2026-07-10, owner).** The arc is now sequenced the way it
 > will actually be built: **editor parity first** (S-01–S-08 — the full in-app editor with every
 > POC decision + braindump todo), **then import/export** (S-09–S-10), **then testing + hardening**
@@ -240,6 +283,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Adds a stages table + per-item-per-stage progress join keyed off S-01's items. Variable stage count (not fixed 10 columns) is the parity requirement. Risk: progress totals interacting with the live-totals rule from S-01.
+- **Shipped adjacent, not part of this slice:** the stage **value** axis (the sheet's `V–AE`) — a computed `kwota netto` + `kwota brutto` column per stage, brutto hidden by default. `context/changes/kosztorys-stage-values/`, 2026-07-15. It reverses S-03's plan's "no brutto column" exclusion; S-03's own scope is unchanged. Distinct from open question 12(b), which is a total **along** the stage axis and stays open.
 - **Status:** in review
 
 ### S-04: Subcontractor pricing (markup coefficient + override)
@@ -494,10 +538,13 @@ slice's Unknowns.
 
 6. ~~**Catalogue seeding.**~~ **Resolved (2026-07-09):** dissolved by folding the catalogue into S-08 with Model A — autocomplete sources from preset prace, so building presets _is_ seeding. No standalone catalogue to seed.
 7. **Importer trigger (FR-010).** What concretely triggers the deferred importer? — Owner: user. Gates: S-12.
-8. **Settings-home UX.** Where VAT (S-05) + subcontractor coefficients (S-04) are edited — detail-inwestycji or a future "Podsumowanie" panel, not the side panel. — Owner: user. Gates: S-04, S-05.
+8. ~~**Settings-home UX.**~~ **Resolved (2026-07-15):** a **second row in the editor toolbar** — neither anticipated option (detail-inwestycji / a "Podsumowanie" panel). The global multipliers + VAT rate are always visible there; the Sekcje panel keeps only the per-section overrides. EX-478.
 9. ~~**Preset scope (S-09).**~~ **Resolved (2026-07-11):** named library (`kosztorys_presets` table), picked by name at seed-time.
 10. ~~**Preset save-as + retroactivity (S-09).**~~ **Resolved (2026-07-11):** save-as offers both new + overwrite; spawned kosztorysy stay frozen (snapshot).
 11. **Duplicate prace across presets (`kosztorys-item-autocomplete`).** When autocomplete unions `prace` across presets, show each occurrence or dedupe by opis with a default price? — Owner: user. Gates: the deferred autocomplete slice (FR-006), not S-09.
+12. **`Podsumowanie` parity + per-etap total (2026-07-15).** Two separate gaps, surfaced by inspecting the live sheet:
+    - **(a) `Podsumowanie` tab has no slice.** Per-section totals + % share + Robocizna/Materiały/Łącznie. The app's section-summary panel covers the totals but not the % share or the split. Pure parity — the sheet's behaviour is the spec. Needs a slice number.
+    - **(b) Per-etap total does not exist in the sheet.** New work, no parity to copy: decide whether "suma etapu" is an invoice figure (client price) or a payout figure (subcontractor price, under the active price view), and whether it's global or per-section. That answer decides whether it's a cheap `Σ V` readout or a distinct figure. — Owner: user. Gates: (b) blocks its own slice; (a) is plannable now.
 
 ## Parked
 

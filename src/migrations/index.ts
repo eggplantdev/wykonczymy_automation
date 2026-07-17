@@ -48,6 +48,8 @@ import * as migration_20260709_2_add_website_form_source from './20260709_2_add_
 import * as migration_20260710_0_add_vat_rate_to_investments from './20260710_0_add_vat_rate_to_investments'
 import * as migration_20260710_1_add_kosztorys_snapshots from './20260710_1_add_kosztorys_snapshots'
 import * as migration_20260711_0_add_kosztorys_presets from './20260711_0_add_kosztorys_presets'
+import * as migration_20260716_0_drop_kosztorys_measured_qty from './20260716_0_drop_kosztorys_measured_qty'
+import * as migration_20260716_1_add_global_discount_to_investments from './20260716_1_add_global_discount_to_investments'
 
 export const migrations = [
   {
@@ -299,5 +301,15 @@ export const migrations = [
     up: migration_20260711_0_add_kosztorys_presets.up,
     down: migration_20260711_0_add_kosztorys_presets.down,
     name: '20260711_0_add_kosztorys_presets',
+  },
+  {
+    up: migration_20260716_0_drop_kosztorys_measured_qty.up,
+    down: migration_20260716_0_drop_kosztorys_measured_qty.down,
+    name: '20260716_0_drop_kosztorys_measured_qty',
+  },
+  {
+    up: migration_20260716_1_add_global_discount_to_investments.up,
+    down: migration_20260716_1_add_global_discount_to_investments.down,
+    name: '20260716_1_add_global_discount_to_investments',
   },
 ]
