@@ -289,28 +289,32 @@ export async function insertItemAction(
       if (investmentId == null) return { success: false, error: 'Sekcja nie istnieje.' }
       // Shift + create must be atomic: a double-fired insert at the same index could otherwise
       // interleave and land two rows on one display_order (EX-464).
-      const created = await withPayloadTransaction(payload, async (req) => {
-        const txDb = await getDb(payload, req)
-        await txDb.execute(sql`
+      const created = await withPayloadTransaction(
+        payload,
+        async (req) => {
+          const txDb = await getDb(payload, req)
+          await txDb.execute(sql`
           UPDATE kosztorys_items SET display_order = display_order + 1
           WHERE section_id = ${parsed.data.sectionId} AND display_order >= ${parsed.data.atDisplayOrder}
         `)
-        return payload.create({
-          collection: 'kosztorys-items',
-          req,
-          data: {
-            investment: Number(investmentId),
-            section: parsed.data.sectionId,
-            displayOrder: parsed.data.atDisplayOrder,
-            description: DEFAULT_ITEM_DESCRIPTION,
-            unit: DEFAULT_UNIT,
-            plannedQty: 0,
-            discountValue: 0,
-            clientPrice: 0,
-            hiddenInExport: false,
-          },
-        })
-      })
+          return payload.create({
+            collection: 'kosztorys-items',
+            req,
+            data: {
+              investment: Number(investmentId),
+              section: parsed.data.sectionId,
+              displayOrder: parsed.data.atDisplayOrder,
+              description: DEFAULT_ITEM_DESCRIPTION,
+              unit: DEFAULT_UNIT,
+              plannedQty: 0,
+              discountValue: 0,
+              clientPrice: 0,
+              hiddenInExport: false,
+            },
+          })
+        },
+        { skipRevalidation: true },
+      )
       return { success: true, data: { id: created.id, displayOrder: parsed.data.atDisplayOrder } }
     },
     ['kosztorysItems'],

@@ -72,11 +72,15 @@ export async function restoreSnapshotAction(
         return { success: false, error: 'Nie znaleziono wersji' }
       }
 
-      await withPayloadTransaction(payload, async (req) => {
-        const txDb = await getDb(payload, req)
-        await captureAutoSnapshot(txDb, snapshot.investmentId, user.id)
-        await restoreKosztorys(payload, req, snapshot.investmentId, snapshot.payload)
-      })
+      await withPayloadTransaction(
+        payload,
+        async (req) => {
+          const txDb = await getDb(payload, req)
+          await captureAutoSnapshot(txDb, snapshot.investmentId, user.id)
+          await restoreKosztorys(payload, req, snapshot.investmentId, snapshot.payload)
+        },
+        { skipRevalidation: true },
+      )
       return { success: true }
     },
     // Settings (VAT/coeffs) change too, so bump investments alongside the four tree tags.

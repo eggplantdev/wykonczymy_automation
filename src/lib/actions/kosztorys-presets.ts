@@ -143,8 +143,10 @@ export async function appendPresetSectionsAction(
         slices.push({ section, items })
       }
 
-      const created = await withPayloadTransaction(payload, (req) =>
-        appendPresetSections(payload, req, parsed.data.investmentId, slices),
+      const created = await withPayloadTransaction(
+        payload,
+        (req) => appendPresetSections(payload, req, parsed.data.investmentId, slices),
+        { skipRevalidation: true },
       )
       return { success: true, data: created }
     },
