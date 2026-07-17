@@ -186,6 +186,12 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     push(cmd)
   }
 
+  // A structural command whose reversal is just re-running one `apply` with the before/after state —
+  // direction is expressed by which argument is replayed, so undo and redo share the same function.
+  function pushReversible<T>(label: string, apply: (state: T) => void, before: T, after: T) {
+    pushCommand({ label, undo: () => apply(before), redo: () => apply(after) })
+  }
+
   function setSortField(field: string, dir: SortDirT | null) {
     setSort(dir ? { field, dir } : null)
   }
@@ -646,11 +652,12 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     const before = rowsRef.current.find((r) => r.sectionId === sectionId)?.sectionName
     if (before === undefined || before === name) return
     applySectionRename(sectionId, name)
-    pushCommand({
-      label: 'Zmiana nazwy sekcji',
-      undo: () => applySectionRename(sectionId, before),
-      redo: () => applySectionRename(sectionId, name),
-    })
+    pushReversible(
+      'Zmiana nazwy sekcji',
+      (n: string) => applySectionRename(sectionId, n),
+      before,
+      name,
+    )
   }
 
   // Optimistic patch of a denormalized field on the matching rows + prevById (like
@@ -723,11 +730,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   async function handleGlobalCoeffChange(patch: { wToolsCoeff?: number; ownToolsCoeff?: number }) {
     const before = inverseGlobalCoeffPatch(patch, rowsRef.current[0])
     await applyGlobalCoeff(patch)
-    pushCommand({
-      label: 'Zmiana współczynnika',
-      undo: () => applyGlobalCoeff(before),
-      redo: () => applyGlobalCoeff(patch),
-    })
+    pushReversible('Zmiana współczynnika', applyGlobalCoeff, before, patch)
   }
 
   // Changing the per-investment VAT rate recomputes every brutto figure. vatRate is denormalized
@@ -758,13 +761,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   async function handleVatChange(vatRate: number) {
     const before = rowsRef.current[0]?.vatRate ?? tree.vatRate
     await applyVat(vatRate)
-    if (before !== vatRate) {
-      pushCommand({
-        label: 'Zmiana stawki VAT',
-        undo: () => applyVat(before),
-        redo: () => applyVat(vatRate),
-      })
-    }
+    if (before !== vatRate) pushReversible('Zmiana stawki VAT', applyVat, before, vatRate)
   }
 
   // Setting/clearing the global discount flips per-item rabat on or off for every row. Update the
@@ -833,11 +830,12 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     const sample = rowsRef.current.find((r) => r.sectionId === sectionId)
     const before = inverseSectionCoeffPatch(patch, sample)
     await applySectionCoeff(sectionId, patch)
-    pushCommand({
-      label: 'Zmiana współczynnika sekcji',
-      undo: () => applySectionCoeff(sectionId, before),
-      redo: () => applySectionCoeff(sectionId, patch),
-    })
+    pushReversible(
+      'Zmiana współczynnika sekcji',
+      (p: typeof patch) => applySectionCoeff(sectionId, p),
+      before,
+      patch,
+    )
   }
 
   function onChange(next: KosztorysV2RowT[]) {
@@ -889,7 +887,6 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       prevById.current.set(row.id, row)
     }
     if (fieldChanges.length > 0 || stageChanges.length > 0) {
-      // Buffer this keystroke's changes; one coalesced command is pushed once the burst quiets.
       pendingFields.current.push(...fieldChanges)
       pendingStages.current.push(...stageChanges)
       if (flushTimer.current) clearTimeout(flushTimer.current)

@@ -12,10 +12,13 @@ import type { ItemPatchT } from '@/lib/kosztorys/types'
 export type FieldChangeT = { id: number; field: keyof ItemPatchT; before: unknown; after: unknown }
 export type StageChangeT = { id: number; stageId: number; before: number; after: number }
 
-export function coalesceFieldChanges(seq: readonly FieldChangeT[]): FieldChangeT[] {
-  const byKey = new Map<string, FieldChangeT>()
+function coalesceBy<T extends { before: unknown; after: unknown }>(
+  seq: readonly T[],
+  keyOf: (change: T) => string,
+): T[] {
+  const byKey = new Map<string, T>()
   for (const c of seq) {
-    const key = `${c.id}:${String(c.field)}`
+    const key = keyOf(c)
     const merged = byKey.get(key)
     if (merged) merged.after = c.after
     else byKey.set(key, { ...c })
@@ -23,13 +26,8 @@ export function coalesceFieldChanges(seq: readonly FieldChangeT[]): FieldChangeT
   return [...byKey.values()].filter((c) => c.before !== c.after)
 }
 
-export function coalesceStageChanges(seq: readonly StageChangeT[]): StageChangeT[] {
-  const byKey = new Map<string, StageChangeT>()
-  for (const c of seq) {
-    const key = `${c.id}:${c.stageId}`
-    const merged = byKey.get(key)
-    if (merged) merged.after = c.after
-    else byKey.set(key, { ...c })
-  }
-  return [...byKey.values()].filter((c) => c.before !== c.after)
-}
+export const coalesceFieldChanges = (seq: readonly FieldChangeT[]): FieldChangeT[] =>
+  coalesceBy(seq, (c) => `${c.id}:${String(c.field)}`)
+
+export const coalesceStageChanges = (seq: readonly StageChangeT[]): StageChangeT[] =>
+  coalesceBy(seq, (c) => `${c.id}:${c.stageId}`)

@@ -24,6 +24,9 @@ export function useDebouncedSave(delay = 500) {
         onError?.()
       }
       const t = setTimeout(() => {
+        // Drop the fired timer so `cancel` never inspects a dead entry and the map can't grow across
+        // a session. Guard on identity: a `save` for the same key mid-flight may have replaced it.
+        if (timers.current.get(key) === t) timers.current.delete(key)
         run()
           .then((res) => {
             if (!res.success) fail(res.error)

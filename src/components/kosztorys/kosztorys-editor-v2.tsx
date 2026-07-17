@@ -67,7 +67,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
   const lastSnapshotRevision = useRef(undoRedo.revision)
 
   // Fire-and-forget periodic auto snapshot; a failed snapshot must never disrupt editing. Lives in
-  // the shell so a restore remount doesn't restart the interval. Skips a tick when nothing changed.
+  // the shell so a restore remount doesn't restart the interval.
   useEffect(() => {
     const id = setInterval(() => {
       if (revisionRef.current === lastSnapshotRevision.current) return
