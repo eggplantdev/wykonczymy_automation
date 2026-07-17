@@ -516,16 +516,33 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   // Changing the global coefficient recomputes the derived prices of all non-overridden
   // items. Optimistic patch on the rows + a refresh for the panel (which reads from `tree`).
   async function handleGlobalCoeffChange(patch: { wToolsCoeff?: number; ownToolsCoeff?: number }) {
+    // patchRows builds fresh row objects, so `sample` still holds the pre-patch coefficients for the
+    // revert. Only the coefficients present in `patch` map to their denormalized row fields.
+    const sample = rowsRef.current[0]
+    const applied: { globalWToolsCoeff?: number; globalOwnToolsCoeff?: number } = {}
+    if (patch.wToolsCoeff != null) applied.globalWToolsCoeff = patch.wToolsCoeff
+    if (patch.ownToolsCoeff != null) applied.globalOwnToolsCoeff = patch.ownToolsCoeff
     patchRows(
       () => true,
-      (r) => ({
-        ...r,
-        ...(patch.wToolsCoeff != null ? { globalWToolsCoeff: patch.wToolsCoeff } : {}),
-        ...(patch.ownToolsCoeff != null ? { globalOwnToolsCoeff: patch.ownToolsCoeff } : {}),
-      }),
+      (r) => ({ ...r, ...applied }),
     )
     const res = await updateInvestmentCoeffsAction(investmentId, patch)
-    if (res.success) router.refresh()
+    if (res.success) {
+      router.refresh()
+      return
+    }
+    // Persist failed — roll the optimistic coefficients back so the grid doesn't show an unsaved
+    // price (the once-only useState seed means a plain refresh can't reseed it), and surface it.
+    if (sample) {
+      const restored: { globalWToolsCoeff?: number; globalOwnToolsCoeff?: number } = {}
+      if (patch.wToolsCoeff != null) restored.globalWToolsCoeff = sample.globalWToolsCoeff
+      if (patch.ownToolsCoeff != null) restored.globalOwnToolsCoeff = sample.globalOwnToolsCoeff
+      patchRows(
+        () => true,
+        (r) => ({ ...r, ...restored }),
+      )
+    }
+    toastMessage(res.error ?? 'Nie udało się zapisać współczynnika', 'warning', 4000)
   }
 
   // Changing the per-investment VAT rate recomputes every brutto figure. vatRate is denormalized
@@ -588,16 +605,28 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     sectionId: number,
     patch: { wToolsCoeff?: number | null; ownToolsCoeff?: number | null },
   ) {
-    patchRows(
-      (r) => r.sectionId === sectionId,
-      (r) => ({
-        ...r,
-        ...('wToolsCoeff' in patch ? { sectionWToolsCoeff: patch.wToolsCoeff ?? null } : {}),
-        ...('ownToolsCoeff' in patch ? { sectionOwnToolsCoeff: patch.ownToolsCoeff ?? null } : {}),
-      }),
-    )
+    // `in` (not `!= null`): a null coefficient means "inherit the global" — a valid value to write,
+    // distinct from "this field wasn't touched". Mirrors handleGlobalCoeffChange.
+    const sample = rowsRef.current.find((r) => r.sectionId === sectionId)
+    const inSection = (r: KosztorysV2RowT) => r.sectionId === sectionId
+    const applied: { sectionWToolsCoeff?: number | null; sectionOwnToolsCoeff?: number | null } = {}
+    if ('wToolsCoeff' in patch) applied.sectionWToolsCoeff = patch.wToolsCoeff ?? null
+    if ('ownToolsCoeff' in patch) applied.sectionOwnToolsCoeff = patch.ownToolsCoeff ?? null
+    patchRows(inSection, (r) => ({ ...r, ...applied }))
     const res = await updateSectionFieldAction(sectionId, patch)
-    if (res.success) router.refresh()
+    if (res.success) {
+      router.refresh()
+      return
+    }
+    // Persist failed — restore the section's prior coefficients so the grid doesn't show an unsaved price.
+    if (sample) {
+      const restored: { sectionWToolsCoeff?: number | null; sectionOwnToolsCoeff?: number | null } =
+        {}
+      if ('wToolsCoeff' in patch) restored.sectionWToolsCoeff = sample.sectionWToolsCoeff
+      if ('ownToolsCoeff' in patch) restored.sectionOwnToolsCoeff = sample.sectionOwnToolsCoeff
+      patchRows(inSection, (r) => ({ ...r, ...restored }))
+    }
+    toastMessage(res.error ?? 'Nie udało się zapisać współczynnika sekcji', 'warning', 4000)
   }
 
   function onChange(next: KosztorysV2RowT[]) {
