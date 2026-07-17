@@ -4,7 +4,7 @@ import { CoeffField } from '@/components/kosztorys/coeff-field'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { HintTooltip } from '@/components/ui/tooltip'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
-import type { DiscountTypeT, GlobalDiscountT } from '@/types/kosztorys'
+import type { DiscountTypeT, GlobalDiscountT } from '@/lib/kosztorys/types'
 
 // Radix Select rejects an empty-string item value, so "brak" (clear the discount) carries this.
 const NONE = 'none'

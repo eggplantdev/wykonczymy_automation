@@ -1,4 +1,4 @@
-import type { KosztorysV2RowT } from '@/types/kosztorys'
+import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // Parity with v1.
 export function filterRows(rows: KosztorysV2RowT[], query: string): KosztorysV2RowT[] {

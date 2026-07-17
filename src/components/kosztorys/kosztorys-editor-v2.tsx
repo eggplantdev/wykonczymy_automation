@@ -6,7 +6,7 @@ import { EmptyKosztorysDialog } from '@/components/kosztorys/empty-kosztorys-dia
 import { KosztorysEditorBody } from '@/components/kosztorys/kosztorys-editor-body'
 import { KosztorysVersionsDrawer } from '@/components/kosztorys/kosztorys-versions-drawer'
 import { snapshotAction } from '@/lib/actions/kosztorys-snapshots'
-import type { KosztorysTreeT } from '@/types/kosztorys'
+import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 
 // S-06 durable net: while the editor is open, take an auto snapshot on a plain interval. Dumb by
 // design — no dirty/activity check (deferred to S-07); the count cap + daily GC bound the table.

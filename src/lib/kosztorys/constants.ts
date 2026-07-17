@@ -1,4 +1,4 @@
-import type { CostVariantT } from '@/types/kosztorys'
+import type { CostVariantT } from '@/lib/kosztorys/types'
 
 // Default subcontractor markup coefficients for an investment — the single source for both the
 // Payload column `defaultValue` (src/collections/investments.ts) and the query fallback

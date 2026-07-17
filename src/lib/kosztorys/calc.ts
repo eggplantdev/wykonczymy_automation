@@ -1,4 +1,4 @@
-import type { GlobalDiscountT, ViewPricingT } from '@/types/kosztorys'
+import type { GlobalDiscountT, ViewPricingT } from '@/lib/kosztorys/types'
 
 // VAT: a single rate per investment (vatRate), carried on the row. No section→item cascade.
 

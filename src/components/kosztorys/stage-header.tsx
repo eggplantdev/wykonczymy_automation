@@ -7,7 +7,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { HeaderMenu } from '@/components/kosztorys/header-menu'
 import { cn } from '@/lib/utils/cn'
-import type { KosztorysStageT } from '@/types/kosztorys'
+import type { KosztorysStageT } from '@/lib/kosztorys/types'
 
 type PropsT = {
   stage: KosztorysStageT

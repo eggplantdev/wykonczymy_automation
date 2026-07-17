@@ -12,7 +12,7 @@ import type {
   KosztorysTreeT,
   StageProgressT,
   SubcontractorOverrideTypeT,
-} from '@/types/kosztorys'
+} from '@/lib/kosztorys/types'
 
 // Relationships arrive as a number (depth 0) or an object — we normalize to the id.
 const relId = (v: unknown): number =>

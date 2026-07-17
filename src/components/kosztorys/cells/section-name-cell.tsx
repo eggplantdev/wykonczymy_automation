@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import type { KosztorysV2RowT } from '@/types/kosztorys'
+import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // Renames the WHOLE section, so it commits through onRename (the same fan-out the section panel uses)
 // — never setRowData, which would rewrite only this row's copy of the denormalized name. Local draft

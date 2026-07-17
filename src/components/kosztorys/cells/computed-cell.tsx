@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Column, type CellProps } from 'react-datasheet-grid'
 import { formatNet as fmt } from '@/lib/kosztorys/format'
-import type { KosztorysV2RowT } from '@/types/kosztorys'
+import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // `null` = the figure has no answer for this row (no denominator), rendered as a dash by every
 // formatter here rather than as a 0 that would read as a real measurement.

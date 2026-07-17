@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { HintTooltip } from '@/components/ui/tooltip'
 import { formatNet as fmt, formatPercentPrecise } from '@/lib/kosztorys/format'
-import type { SectionSubtotalT } from '@/types/kosztorys'
+import type { SectionSubtotalT } from '@/lib/kosztorys/types'
 
 type SectionCoeffsT = { wTools: number | null; ownTools: number | null }
 

@@ -1,5 +1,5 @@
 import { parseDecimalInput } from '@/lib/utils/parse-decimal-input'
-import type { DiscountTypeT } from '@/types/kosztorys'
+import type { DiscountTypeT } from '@/lib/kosztorys/types'
 
 // discountType and discountValue are two independent fields, and applyDiscount reads the type
 // first — so a value with no type is inert: it sits in the grid looking like a live discount while

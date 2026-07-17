@@ -13,10 +13,10 @@ import {
 } from '@/lib/kosztorys/constants'
 import type { ActionResultT } from '@/types/action'
 import type { PayloadRequest } from 'payload'
-import type { ItemPatchT } from '@/types/kosztorys'
+import type { ItemPatchT } from '@/lib/kosztorys/types'
 
 // --- Patch schemas (all fields optional — autosave sends one field at a time) ---
-// itemPatchSchema is shaped to match ItemPatchT (a single source of the type in types/kosztorys.ts).
+// itemPatchSchema is shaped to match ItemPatchT (a single source of the type in lib/kosztorys/types.ts).
 
 const itemPatchSchema = z
   .object({

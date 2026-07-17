@@ -19,7 +19,7 @@ import {
   stageValueGrossKey,
   stageValueNetKey,
 } from '@/lib/kosztorys/stage-keys'
-import type { KosztorysStageT, KosztorysTreeT, KosztorysV2RowT } from '@/types/kosztorys'
+import type { KosztorysStageT, KosztorysTreeT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 const baseItem = {
   id: 1,

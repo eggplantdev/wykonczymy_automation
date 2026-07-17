@@ -73,7 +73,7 @@ import type {
   KosztorysStageT,
   KosztorysTreeT,
   KosztorysV2RowT,
-} from '@/types/kosztorys'
+} from '@/lib/kosztorys/types'
 
 type ArgsT = { investmentId: number; tree: KosztorysTreeT }
 

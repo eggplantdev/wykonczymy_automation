@@ -1,4 +1,4 @@
-import type { StageKeyT } from '@/types/kosztorys'
+import type { StageKeyT } from '@/lib/kosztorys/types'
 
 // The stage-column key namespace: the string prefixes each stage axis lives under, and the builders
 // that turn a stage id into a concrete column key. One home so the prefix, its group, and its key

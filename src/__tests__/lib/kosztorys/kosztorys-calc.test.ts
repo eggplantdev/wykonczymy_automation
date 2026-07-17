@@ -9,7 +9,7 @@ import {
   stageValueForView,
   type PriceViewT,
 } from '@/lib/kosztorys/calc'
-import type { ViewPricingT } from '@/types/kosztorys'
+import type { ViewPricingT } from '@/lib/kosztorys/types'
 
 // Subcontractor prices as an 'amount' override (flat 12/10) — preserves the values from before
 // the migration to the coefficient model (the tests validate the amount path, not the derivation).

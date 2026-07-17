@@ -53,7 +53,7 @@ import {
   rowTotalQtyDone,
   rowValueForView,
 } from '@/lib/kosztorys/settlement'
-import type { KosztorysStageT, KosztorysV2RowT, ViewPricingT } from '@/types/kosztorys'
+import type { KosztorysStageT, KosztorysV2RowT, ViewPricingT } from '@/lib/kosztorys/types'
 
 // floatColumn right-aligns by default; the grid reads cleaner with every cell left-aligned under
 // its (left-aligned) header, so numbers don't float at the far edge of wide columns.

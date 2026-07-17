@@ -3,7 +3,11 @@ import { CellSelectMenu } from '@/components/kosztorys/cell-select-menu'
 import { effectiveCoeff, viewPrice } from '@/lib/kosztorys/calc'
 import { parseDecimalInput } from '@/lib/utils/parse-decimal-input'
 import { formatNet as fmt } from '@/lib/kosztorys/format'
-import type { KosztorysV2RowT, SubcontractorOverrideTypeT, ViewPricingT } from '@/types/kosztorys'
+import type {
+  KosztorysV2RowT,
+  SubcontractorOverrideTypeT,
+  ViewPricingT,
+} from '@/lib/kosztorys/types'
 import type { ReactNode } from 'react'
 
 // Where the subcontractor price comes from (a column in the subcontractor views). Labels name the

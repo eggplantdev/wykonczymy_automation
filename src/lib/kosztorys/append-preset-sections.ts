@@ -2,7 +2,7 @@ import 'server-only'
 import type { Payload, PayloadRequest } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
-import type { KosztorysItemT, KosztorysSectionT } from '@/types/kosztorys'
+import type { KosztorysItemT, KosztorysSectionT } from '@/lib/kosztorys/types'
 
 // One section from a preset payload + its items, ready to append. `section`/`items` still carry the
 // preset's OLD ids — this helper mints new ones and returns the remapped slice.

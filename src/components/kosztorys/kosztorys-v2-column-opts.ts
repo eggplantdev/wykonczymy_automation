@@ -4,7 +4,7 @@ import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { ProgressDisplayT } from '@/lib/kosztorys/progress-display'
 import type { ItemRemovalPlanT } from '@/lib/kosztorys/delete-policy'
 import type { SortDirT } from '@/lib/kosztorys/row-view'
-import type { KosztorysStageT, KosztorysV2RowT } from '@/types/kosztorys'
+import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 export type V2SortStateT = { field: string; dir: SortDirT } | null
 

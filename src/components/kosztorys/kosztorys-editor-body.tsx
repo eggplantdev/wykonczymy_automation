@@ -10,7 +10,7 @@ import { KosztorysTotalsBar } from '@/components/kosztorys/kosztorys-totals-bar'
 import { KosztorysEditorToolbar } from '@/components/kosztorys/kosztorys-editor-toolbar'
 import { useKosztorysEditor } from '@/components/kosztorys/use-kosztorys-editor'
 import { KosztorysEditorProvider } from '@/components/kosztorys/use-kosztorys-editor-context'
-import type { KosztorysTreeT } from '@/types/kosztorys'
+import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 
 type PropsT = {
   investmentId: number

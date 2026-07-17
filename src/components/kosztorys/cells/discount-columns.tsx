@@ -2,7 +2,7 @@ import { type ReactNode } from 'react'
 import { Column, type CellProps } from 'react-datasheet-grid'
 import { CellSelectMenu } from '@/components/kosztorys/cell-select-menu'
 import { discountFromType, discountFromValue } from '@/lib/kosztorys/discount-edit'
-import type { DiscountTypeT, KosztorysV2RowT } from '@/types/kosztorys'
+import type { DiscountTypeT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 const DISCOUNT_OPTIONS: { value: string; label: string }[] = [
   { value: '', label: 'Bez rabatu' },

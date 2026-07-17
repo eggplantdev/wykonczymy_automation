@@ -2,7 +2,7 @@
 
 import { createContext, use, type ReactNode } from 'react'
 import type { useKosztorysEditor } from '@/components/kosztorys/use-kosztorys-editor'
-import type { KosztorysTreeT } from '@/types/kosztorys'
+import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 
 // Everything the editor hook owns plus the four values its caller supplies. The toolbar and its
 // controls read straight from here, so KosztorysEditorBody relays none of it.

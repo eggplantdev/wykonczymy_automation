@@ -1,6 +1,6 @@
 import { netForQtyForView, rowPlannedNetForView, type PriceViewT } from '@/lib/kosztorys/calc'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
-import type { KosztorysStageT, KosztorysV2RowT, SectionSubtotalT } from '@/types/kosztorys'
+import type { KosztorysStageT, KosztorysV2RowT, SectionSubtotalT } from '@/lib/kosztorys/types'
 
 /** The "Pomiar z natury" itself — the sheet's O = SUM(D:M), not a stored field (EX-494). */
 export function rowTotalQtyDone(row: KosztorysV2RowT, stages: KosztorysStageT[]): number {

@@ -4,7 +4,7 @@ import type {
   KosztorysSectionT,
   KosztorysStageT,
   StageProgressT,
-} from '@/types/kosztorys'
+} from '@/lib/kosztorys/types'
 
 // Bump only on a non-additive payload change (a renamed/dropped field). Additive fields need no
 // bump — the restore mapper defaults anything missing, so an old snapshot still restores. See

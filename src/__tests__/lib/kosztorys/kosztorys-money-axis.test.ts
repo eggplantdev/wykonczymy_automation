@@ -7,7 +7,7 @@ import {
 } from '@/lib/kosztorys/column-config'
 import { buildV2Columns } from '@/components/kosztorys/kosztorys-v2-columns'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
-import type { KosztorysStageT } from '@/types/kosztorys'
+import type { KosztorysStageT } from '@/lib/kosztorys/types'
 
 // Asserts the RENDERED column ids rather than axisAllows' verdicts: the ids are what the user sees,
 // and going through buildV2Columns is what proves the predicate reaches the stage namespace at all.

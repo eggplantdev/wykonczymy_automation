@@ -1,5 +1,5 @@
 import { stageKey } from '@/lib/kosztorys/stage-keys'
-import type { KosztorysStageT, KosztorysV2RowT } from '@/types/kosztorys'
+import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // Client mirror of the server delete-guard predicate (removeItemAction/removeSectionAction).
 // A row is "populated" iff it holds recorded stage progress (qty <> 0) — that is the only work a
