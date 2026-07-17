@@ -3,14 +3,8 @@
 import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { DialogActions } from '@/components/ui/dialog-actions'
+import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { toastMessage } from '@/lib/utils/toast'
 import {
   applyMaterialSync,
@@ -117,14 +111,10 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
       />
       <Dialog open={preview !== null} onOpenChange={(open) => !open && setPreview(null)}>
         <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Synchronizacja wydatków inwestycyjnych</DialogTitle>
-            <DialogDescription>
-              Do arkusza zostaną dodane nowe wydatki inwestycyjne, a istniejące wiersze zostaną
-              odświeżone, aby pasowały do danych z aplikacji. Wiersze dodane ręcznie (spoza
-              aplikacji) pozostają bez zmian.
-            </DialogDescription>
-          </DialogHeader>
+          <DialogHeader
+            title="Synchronizacja wydatków inwestycyjnych"
+            description="Do arkusza zostaną dodane nowe wydatki inwestycyjne, a istniejące wiersze zostaną odświeżone, aby pasowały do danych z aplikacji. Wiersze dodane ręcznie (spoza aplikacji) pozostają bez zmian."
+          />
           {preview && (
             <div className="space-y-4 text-sm">
               {pendingChanges(preview) === 0 ? (
@@ -151,17 +141,12 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
               )}
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setPreview(null)}>
-              Anuluj
-            </Button>
-            <Button
-              onClick={onConfirm}
-              disabled={pending || !preview || pendingChanges(preview) === 0}
-            >
-              Zsynchronizuj arkusz
-            </Button>
-          </DialogFooter>
+          <DialogActions
+            confirmLabel="Zsynchronizuj arkusz"
+            onConfirm={onConfirm}
+            onCancel={() => setPreview(null)}
+            confirmDisabled={pending || !preview || pendingChanges(preview) === 0}
+          />
         </DialogContent>
       </Dialog>
     </>
