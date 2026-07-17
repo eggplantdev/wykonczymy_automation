@@ -1,4 +1,4 @@
-import { requireInvestmentOr404 } from '@/lib/queries/investments'
+import { parseInvestmentId, requireInvestmentOr404 } from '@/lib/queries/investments'
 import { getKosztorysTree } from '@/lib/queries/kosztorys'
 import { KosztorysEditorV2 } from '@/components/kosztorys/kosztorys-editor-v2'
 
@@ -10,8 +10,13 @@ export default async function InvestmentKosztorysV2Page({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const { investmentId, investment } = await requireInvestmentOr404(id)
-  const tree = await getKosztorysTree(investmentId)
+  const investmentId = parseInvestmentId(id)
+
+  // Kick the heavy tree read off concurrently with the auth+investment guard — they don't depend on
+  // each other, and awaiting the tree only after the guard keeps auth failure short-circuiting render.
+  const treePromise = getKosztorysTree(investmentId)
+  const { investment } = await requireInvestmentOr404(id)
+  const tree = await treePromise
 
   return (
     <KosztorysEditorV2 investmentId={investmentId} tree={tree} investmentName={investment.name} />

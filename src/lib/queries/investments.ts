@@ -73,14 +73,22 @@ export async function fetchAllInvestments(): Promise<InvestmentRowT[]> {
   return shapeInvestments(refData.investments, financials)
 }
 
+// Parse a route id to a positive investment id, notFound() on anything else. The single home for the
+// id-validity rule so a page that needs the number before the guard (to fire a fetch concurrently)
+// doesn't re-inline the check and drift from it.
+export function parseInvestmentId(id: string): number {
+  const investmentId = Number(id)
+  if (!Number.isFinite(investmentId) || investmentId <= 0) notFound()
+  return investmentId
+}
+
 // Shared page guard: parse the route id, require a management session, and load the investment —
 // bouncing to notFound() on a bad/missing id and to the login page on a failed auth. Returns the
 // investment (non-null past this point) plus the numeric id the page needs. Pages that already hold
 // the investment from another fetch (e.g. the detail page's refData) don't use this — it would double
 // the load.
 export async function requireInvestmentOr404(id: string) {
-  const investmentId = Number(id)
-  if (!Number.isFinite(investmentId) || investmentId <= 0) notFound()
+  const investmentId = parseInvestmentId(id)
 
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) redirect('/zaloguj')
