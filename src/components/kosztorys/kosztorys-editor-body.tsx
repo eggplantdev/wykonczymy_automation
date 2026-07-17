@@ -48,7 +48,6 @@ export function KosztorysEditorBody({
     handleAddSection,
     handleRenameSection,
     handleRemoveSection,
-    isSectionPopulated,
     handleSectionCoeffChange,
   } = editor
 
@@ -91,7 +90,6 @@ export function KosztorysEditorBody({
               onAddItem={handleAddItem}
               onRenameSection={handleRenameSection}
               onRemoveSection={handleRemoveSection}
-              isSectionPopulated={isSectionPopulated}
               onSectionCoeffChange={handleSectionCoeffChange}
             />
           )}

@@ -9,11 +9,7 @@ import {
   sectionSubtotalsForView,
 } from '@/lib/kosztorys/settlement'
 import { revertField } from '@/lib/kosztorys/row-ops'
-import {
-  planItemRemoval,
-  REMOVE_BLOCK_LAST_ITEM,
-  REMOVE_BLOCK_POPULATED,
-} from '@/lib/kosztorys/delete-policy'
+import { planItemRemoval, REMOVE_BLOCK_LAST_ITEM } from '@/lib/kosztorys/delete-policy'
 import { rowDoneFraction } from '@/lib/kosztorys/calc'
 import {
   STAGE_QTY_PREFIX,
@@ -416,14 +412,20 @@ describe('planItemRemoval', () => {
   const row = (id: number, sectionId: number, over: Partial<KosztorysV2RowT> = {}) =>
     ({ id, sectionId, [stageKey(100)]: 0, ...over }) as unknown as KosztorysV2RowT
 
-  it('środek sekcji (sekcja ma >1 pozycję) → usuń pozycję', () => {
+  it('środek sekcji (sekcja ma >1 pozycję) → usuń pozycję, bez potwierdzenia', () => {
     const rows = [row(1, 10), row(2, 10), row(3, 20)]
-    expect(planItemRemoval(rows, rows[0], stages)).toEqual({ kind: 'remove-item' })
+    expect(planItemRemoval(rows, rows[0], stages)).toEqual({
+      kind: 'remove-item',
+      requiresConfirm: false,
+    })
   })
 
-  it('ostatnia pozycja sekcji (są inne sekcje) → kaskadowo usuń sekcję', () => {
+  it('ostatnia pozycja sekcji (są inne sekcje) → kaskadowo usuń sekcję, bez potwierdzenia', () => {
     const rows = [row(1, 10), row(2, 20)]
-    expect(planItemRemoval(rows, rows[1], stages)).toEqual({ kind: 'cascade-section' })
+    expect(planItemRemoval(rows, rows[1], stages)).toEqual({
+      kind: 'cascade-section',
+      requiresConfirm: false,
+    })
   })
 
   it('ostatni wiersz całego kosztorysu → zablokowane (próg pustego arkusza)', () => {
@@ -434,11 +436,11 @@ describe('planItemRemoval', () => {
     })
   })
 
-  it('wiersz z postępem etapu → zablokowane', () => {
+  it('wiersz z postępem etapu → usuwalny, ale wymaga potwierdzenia', () => {
     const rows = [row(1, 10, { [stageKey(100)]: 2 }), row(2, 20)]
     expect(planItemRemoval(rows, rows[0], stages)).toEqual({
-      kind: 'blocked',
-      reason: REMOVE_BLOCK_POPULATED,
+      kind: 'cascade-section',
+      requiresConfirm: true,
     })
   })
 

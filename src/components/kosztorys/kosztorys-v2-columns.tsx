@@ -318,12 +318,15 @@ function RowActionsCell({
   opts: BuildV2ColumnsOptsT
 }) {
   const sortActive = opts.sort != null
-  const removeBlockReason = opts.getRemoveBlockReason?.(rowData)
+  const plan = opts.getRemovePlan?.(rowData)
+  const removeBlockReason = plan?.kind === 'blocked' ? plan.reason : undefined
+  const removeNeedsConfirm = plan != null && plan.kind !== 'blocked' && plan.requiresConfirm
 
   return (
     <KosztorysRowActionsMenu
       sortActive={sortActive}
       removeBlockReason={removeBlockReason}
+      removeNeedsConfirm={removeNeedsConfirm}
       onInsertAbove={() => opts.onInsertItem?.(rowData, 'above')}
       onInsertBelow={() => opts.onInsertItem?.(rowData, 'below')}
       onMoveUp={() => opts.onReorderItem?.(rowData, 'up')}

@@ -2,6 +2,7 @@ import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { LayerT } from '@/lib/kosztorys/layer'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { ProgressDisplayT } from '@/lib/kosztorys/progress-display'
+import type { ItemRemovalPlanT } from '@/lib/kosztorys/delete-policy'
 import type { SortDirT } from '@/lib/kosztorys/row-view'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/types/kosztorys'
 
@@ -36,8 +37,9 @@ export type BuildV2ColumnsOptsT = {
   // Row actions: removing an item + reading a section's item count (to enforce the
   // "≥1 item" invariant).
   onRemoveItem?: (row: KosztorysV2RowT) => void
-  // Reason the row's delete is blocked (disabled + tooltip), or undefined if removable.
-  getRemoveBlockReason?: (row: KosztorysV2RowT) => string | undefined
+  // What deleting this row does: a hard block (disabled + tooltip reason) for the empty-sheet floor,
+  // or a removable plan carrying whether a populated-row confirm is required first.
+  getRemovePlan?: (row: KosztorysV2RowT) => ItemRemovalPlanT
   // Reordering items within a section (Przesuń w górę/dół). Greyed out while a column sort is
   // active — "up/down" has no meaning against a price-sorted list.
   onReorderItem?: (row: KosztorysV2RowT, dir: 'up' | 'down') => void

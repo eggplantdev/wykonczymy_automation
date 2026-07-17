@@ -127,6 +127,17 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
     return res.rows.length > 0
   }
 
+  // Newest auto-snapshot id, or 0 if none. A capture is proven by this rising — total count is
+  // useless here because pruneAutoCount holds auto snapshots at AUTO_KEEP, so an insert on a
+  // saturated investment nets zero rows even though a fresh snapshot was written.
+  async function latestAutoSnapshotId(): Promise<number> {
+    const res = await db.execute(sql`
+      SELECT coalesce(max(id), 0)::int AS id FROM kosztorys_snapshots
+      WHERE investment_id = ${investmentId} AND kind = 'auto'
+    `)
+    return Number(res.rows[0].id)
+  }
+
   async function progressRows(itemId: number, stageId: number) {
     const res = await db.execute(
       sql`SELECT id, qty_done FROM stage_progress WHERE item_id = ${itemId} AND stage_id = ${stageId}`,
@@ -135,7 +146,9 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
   }
 
   describe('removeStageAction — delete guard', () => {
-    it('blocks a stage with recorded progress (qty_done <> 0) — stage survives, exact toast error', async () => {
+    // EX-477: a populated stage is no longer blocked — the StageHeader gates it behind a confirm
+    // dialog; the action snapshots first, then deletes the column (cascading its progress rows).
+    it('deletes a stage with recorded progress (qty_done <> 0) and snapshots first', async () => {
       const sectionId = await createSection()
       const itemId = await createItem(sectionId)
       const stageId = await createStage()
@@ -143,14 +156,13 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
         INSERT INTO stage_progress (item_id, stage_id, qty_done, created_at, updated_at)
         VALUES (${itemId}, ${stageId}, 4, now(), now())
       `)
+      const before = await latestAutoSnapshotId()
 
       const res = await removeStageAction(stageId)
 
-      expect(res.success).toBe(false)
-      expect(res.success === false && res.error).toBe(
-        'Najpierw wyczyść ilości wpisane w tym etapie',
-      )
-      expect(await stageExists(stageId)).toBe(true)
+      expect(res.success).toBe(true)
+      expect(await stageExists(stageId)).toBe(false)
+      expect(await latestAutoSnapshotId()).toBeGreaterThan(before)
     })
 
     it('deletes a stage whose progress is all cleared to 0 (qty_done = 0 does not block)', async () => {

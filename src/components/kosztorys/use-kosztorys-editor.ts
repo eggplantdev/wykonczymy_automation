@@ -25,10 +25,10 @@ import {
   swapItemInSection,
 } from '@/lib/kosztorys/row-ops'
 import {
-  isSectionPopulated,
   planItemRemoval,
   planItemRemovalFromCounts,
   sectionItemCounts,
+  type ItemRemovalPlanT,
 } from '@/lib/kosztorys/delete-policy'
 import {
   rowRemainingForView,
@@ -152,7 +152,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     setSort(dir ? { field, dir } : null)
   }
 
-  // One O(n) pass feeding the render-hot getRemoveBlockReason (see below) an O(1) per-row lookup.
+  // One O(n) pass feeding the render-hot getRemovePlan (see below) an O(1) per-row lookup.
   const removalCounts = sectionItemCounts(rows)
 
   // onRemoveItem/onReorderItem read prevById.current / rowsRef.current — stable refs —
@@ -175,7 +175,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     onReorderItem: handleReorderItem,
     onInsertItem: handleInsertItem,
     onRenameSection: handleRenameSection,
-    getRemoveBlockReason,
+    getRemovePlan,
     globalDiscountActive,
   }
   const { columns, columnToggleItems } = buildV2Grid(columnOpts)
@@ -297,24 +297,22 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     setRows((rs) => applyInsertItem(rs, anchorRow.id, row, dir))
   }
 
-  // Why a row can't be deleted, or undefined if it can — read at cell-render time from the full
-  // dataset (prevById), not the view. Single source for both the disabled tooltip and the
-  // handler backstop below.
+  // What deleting a row does — read at event time from the full dataset (prevById), not the view,
+  // so the handler decides on accurate counts. The render-hot per-cell path uses getRemovePlan.
   function removalPlan(row: KosztorysV2RowT) {
     return planItemRemoval([...prevById.current.values()], row, stagesRef.current)
   }
 
   // Render-hot: called per cell. Counts are precomputed once per render (removalCounts below), so this
   // is O(1) per row — going through removalPlan (which spreads prevById and rescans per row) here would
-  // make the whole grid's disabled-delete reason O(n²).
-  function getRemoveBlockReason(row: KosztorysV2RowT): string | undefined {
-    const plan = planItemRemovalFromCounts(
+  // make the whole grid's per-row delete plan O(n²).
+  function getRemovePlan(row: KosztorysV2RowT): ItemRemovalPlanT {
+    return planItemRemovalFromCounts(
       rows.length,
       removalCounts.get(row.sectionId) ?? 0,
       row,
       stagesRef.current,
     )
-    return plan.kind === 'blocked' ? plan.reason : undefined
   }
 
   async function handleRemoveItem(row: KosztorysV2RowT) {
@@ -426,7 +424,6 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   async function handleRemoveStage(stageId: number) {
     const res = await removeStageAction(stageId)
     if (!res.success) {
-      // Server blocks a delete while the stage still holds recorded progress.
       toastMessage(res.error ?? 'Nie udało się usunąć etapu', 'warning', 4000)
       return
     }
@@ -472,19 +469,9 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     )
   }
 
-  // Bound to the fresh dataset/stages — the summary calls this before its confirm to skip the
-  // dialog (and toast) when the section holds recorded work, mirroring the server guard.
-  function sectionPopulated(sectionId: number) {
-    return isSectionPopulated(rowsRef.current, sectionId, stagesRef.current)
-  }
-
   async function handleRemoveSection(sectionId: number) {
-    // Backstop for the summary's pre-check: block a populated section before the optimistic
-    // cascade removal (the section delete cascades items + stage_progress server-side).
-    if (sectionPopulated(sectionId)) {
-      toastMessage('Najpierw wyczyść wartości w pozycjach tej sekcji', 'warning', 4000)
-      return
-    }
+    // The summary confirms before calling here (EX-477); a populated section cascade-deletes its
+    // items + stage_progress server-side, guarded only by the confirm dialog, not a block.
     const removed = rowsRef.current
       .filter((r) => r.sectionId === sectionId)
       .map((r) => prevById.current.get(r.id) ?? r)
@@ -709,7 +696,6 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     handleAddStage,
     handleRenameSection,
     handleRemoveSection,
-    isSectionPopulated: sectionPopulated,
     handleGlobalCoeffChange,
     handleSectionCoeffChange,
     handleVatChange,

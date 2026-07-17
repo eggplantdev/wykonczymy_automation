@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { HintTooltip } from '@/components/ui/tooltip'
 import { formatNet as fmt, formatPercentPrecise } from '@/lib/kosztorys/format'
-import { toastMessage } from '@/lib/utils/toast'
 import type { SectionSubtotalT } from '@/types/kosztorys'
 
 type SectionCoeffsT = { wTools: number | null; ownTools: number | null }
@@ -26,8 +25,6 @@ type PropsT = {
   onAddItem: (sectionId: number) => void
   onRenameSection: (sectionId: number, name: string) => void
   onRemoveSection: (sectionId: number) => void
-  // Mirrors the server delete-guard: a populated section is blocked with a toast (no confirm).
-  isSectionPopulated: (sectionId: number) => boolean
   onSectionCoeffChange: (
     sectionId: number,
     patch: { wToolsCoeff?: number | null; ownToolsCoeff?: number | null },
@@ -43,7 +40,6 @@ export function KosztorysSectionSummary({
   onAddItem,
   onRenameSection,
   onRemoveSection,
-  isSectionPopulated,
   onSectionCoeffChange,
 }: PropsT) {
   // Inline rename: id of the section being edited + name buffer. null = nothing is being edited.
@@ -63,11 +59,6 @@ export function KosztorysSectionSummary({
   }
 
   function confirmRemove(s: SectionSubtotalT) {
-    // Block a populated section before the confirm — the server guard would reject it anyway.
-    if (isSectionPopulated(s.sectionId)) {
-      toastMessage('Najpierw wyczyść wartości w pozycjach tej sekcji', 'warning', 4000)
-      return
-    }
     setPendingRemove(s)
   }
 
@@ -231,7 +222,7 @@ export function KosztorysSectionSummary({
       <ConfirmDialog
         open={pendingRemove != null}
         title={`Usunąć sekcję „${pendingRemove?.sectionName}"?`}
-        description={`Usunie też ${pendingRemove?.itemCount} pozycji. Tej operacji nie można cofnąć.`}
+        description={`Usunie też ${pendingRemove?.itemCount} pozycji wraz z wpisanymi w nich ilościami etapów. Tej operacji nie można cofnąć.`}
         confirmLabel="Usuń"
         onConfirm={() => {
           if (pendingRemove) onRemoveSection(pendingRemove.sectionId)
