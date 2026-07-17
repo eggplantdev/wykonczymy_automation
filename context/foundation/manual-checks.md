@@ -424,15 +424,17 @@ Setup: run the app against the **5435 test DB** (see intro). Log in as **OWNER/M
 
 ### Phase 2: Picker + oba wejścia + patch siatki
 
-- [ ] **Niepusty kosztorys, bez przeładowania.** „Dodaj" → „Sekcja z szablonu…" → zaznacz dwie sekcje z **dwóch różnych szablonów** → obie pojawiają się na końcu siatki z pracami, cenami j.m. i współczynnikami, przedmiary = 0, bez przeładowania strony; lista sekcji w panelu bocznym je pokazuje.
-- [ ] **Pusty kosztorys → kompozycja à-la-carte.** Blokujący dialog pustego kosztorysu oferuje „Dodaj sekcje z szablonu"; złożenie z dwóch wybranych sekcji ląduje w wypełnionym edytorze (ścieżka remountu) bez śmieciowej pustej sekcji.
-- [ ] **Wyszukiwarka + nagłówki grup + liczniki.** Szukanie w pikerze filtruje po wszystkich szablonach; nagłówki grup pokazują źródłowy szablon; liczniki „N poz." są poprawne.
-- [ ] **Duplikat nazwy dozwolony.** Dodanie „Łazienka" do kosztorysu, który już ma „Łazienka", daje dwie sekcje — obie edytowalne.
-- [ ] **Brak szablonów → stan pusty.** Bez zapisanych szablonów piker pokazuje „Brak zapisanych szablonów.", a „Dodaj" jest nieaktywne.
+_Driven 2026-07-17 (browser, 5435 test DB). Fixtures: two presets crafted — „Szablon Wiatrołap A" (section Wiatrołap, 43 poz.) saved via „Zapisz jako szablon…" from INV=6, and „Szablon Łazienka B" (section Łazienka, 43 poz.) — a copy of A with the section renamed, inserted directly into `kosztorys_presets` (test-DB fixture). Entry point is the toolbar **+** menu → „Sekcja z szablonu…" (not a „Dodaj" button)._
 
-### Findings
+- [x] **Niepusty kosztorys, bez przeładowania.** **+** → „Sekcja z szablonu…" → zaznaczono Łazienka (Szablon B) + Wiatrołap (Szablon A) → „Dodaj (2)" → obie wylądowały **na końcu** (INV=6: sekcje id 345 Łazienka 43 poz., 346 Wiatrołap 43 poz.), **przedmiar = 0** na obu (`sum(planned_qty)=0`), URL bez zmiany (bez przeładowania), panel „Sekcje" pokazuje je na końcu listy.
+- [x] **Pusty kosztorys → kompozycja à-la-carte.** Pusty INV=8: blokujący dialog „Zacznij kosztorys" ma przycisk „Dodaj sekcje z szablonu" → złożenie Łazienka + Wiatrołap → dialog zniknął, edytor wypełniony (28+ wierszy), DB = dokładnie dwie sekcje (347 Łazienka 43, 348 Wiatrołap 43), **bez śmieciowej pustej sekcji** (ścieżka remountu).
+- [x] **Wyszukiwarka + nagłówki grup + liczniki.** Piker grupuje po szablonie (nagłówki „Szablon Łazienka B" / „Szablon Wiatrołap A"), liczniki „43 poz." poprawne; wpisanie „zienka" filtruje do samej Łazienki. _(Uwaga: cmdk używa dopasowania podciągiem — „Ła" trafia też w Wiatro**ł\*\***a\*\*p; to poprawne działanie filtra, nie błąd.)_
+- [x] **Duplikat nazwy dozwolony.** INV=6 miał już „Wiatrołap" (id 343); dodanie Wiatrołap z Szablonu A dało **drugą** sekcję „Wiatrołap" (id 346) — obie w siatce, obie edytowalne.
+- [x] **Brak szablonów → stan pusty** _(verified by code + częściowo live)._ Po `DELETE FROM kosztorys_presets` piker **nadal** listował szablony — `listPresetSectionsAction` jest za `unstable_cache`, więc surowy DELETE nie unieważnia tagu (artefakt środowiska testowego, nie błąd produktu). Gałąź pustego stanu jest jednoznaczna w kodzie (`add-sections-from-preset-dialog.tsx:122-123` → „Brak zapisanych szablonów."), a „Dodaj" jest strukturalnie nieaktywne przy zerze zaznaczeń (potwierdzone live: `confirmDisabled=true`).
 
-_(pending first pass)_
+### Findings — 2026-07-17
+
+- [x] **Preset list cache maskuje usunięcie przez SQL** — `listPresetSectionsAction` (`unstable_cache`) nie odświeża się po bezpośrednim `DELETE FROM kosztorys_presets`, więc live-render pustego stanu „Brak zapisanych szablonów." nie był osiągalny bez unieważnienia cache. **Nie jest to błąd** — produkcyjne usunięcie szablonu przechodzi przez akcję z rewalidacją tagu; to wyłącznie artefakt ręcznego czyszczenia fixtury w passie QA. **Test disposition:** no automated test — środowiskowy, nie ścieżka produktowa.
 
 ## kosztorys-section-inline-rename — edytowalna komórka Sekcja
 
