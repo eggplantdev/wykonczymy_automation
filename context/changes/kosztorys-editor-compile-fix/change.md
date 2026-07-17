@@ -46,3 +46,16 @@ under an automated guard, then clears the still-open EX-496 cleanup tail.
   `use-kosztorys-editor.ts`, `kosztorys-v2-columns.tsx`, `kosztorys-v2-column-opts.ts`.
 
 Plan: `plan.md` · Brief: `plan-brief.md`.
+
+## Status: implemented, pre-review
+
+All phases are committed (p1 `563859e`, p2 `4c7a1cd`, p3 `0e4bd16`, p4 `5e6a9a6`, close-out
+`7fd332e`) with automated checks green. **The `slice-review-gate` has NOT run yet** — no review
+fan-out, no `/simplify` pass, no `review-gate.md` ledger for this change. EX-496 sits `[in review]`
+(the team has no `In Review` state) and manual-checks remain unticked, so it is **not** `Done` and
+**must not be archived** until the gate runs and its findings + manual checks are resolved.
+
+**Change B (EX-521, the god-hook split) is PARKED** — not started (owner, 2026-07-17). It carries a
+dependency-install prerequisite (`@testing-library/react` + a DOM env, which the repo currently
+lacks and which trips the arm64 `lightningcss` hazard) and real architectural risk, so it is not an
+ad-hoc follow-on to A.
