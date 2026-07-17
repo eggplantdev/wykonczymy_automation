@@ -152,11 +152,7 @@ export function getInvestmentColumns({
       header: 'Kosztorys',
       enableSorting: true,
       cell: (info) => (
-        <SheetButton
-          investmentId={info.row.original.id}
-          investmentName={info.row.original.name}
-          hasSheet={!!info.getValue()}
-        />
+        <SheetButton investmentId={info.row.original.id} hasSheet={!!info.getValue()} />
       ),
     }),
     col.display({

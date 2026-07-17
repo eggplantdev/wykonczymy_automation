@@ -2,7 +2,7 @@
 
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { FormDialog } from '@/components/dialogs/form-dialog'
+import { FormDialog } from '@/components/ui/form-dialog'
 import { WorkerForm } from '@/components/forms/worker-form/worker-form'
 import { createWorkerAction } from '@/lib/actions/workers'
 import type { WorkerFormValuesT } from '@/components/forms/worker-form/worker-schema'

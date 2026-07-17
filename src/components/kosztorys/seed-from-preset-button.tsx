@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
+import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { listPresetsAction, seedFromPresetAction } from '@/lib/actions/kosztorys-presets'
 import type { PresetMetaT } from '@/lib/db/presets'
@@ -50,32 +50,26 @@ export function SeedFromPresetButton({ investmentId, onSeeded }: PropsT) {
       <Button size="sm" variant="outline" onClick={() => void handleOpenChange(true)}>
         Wypełnij z szablonu
       </Button>
-      <Dialog open={open} onOpenChange={(next) => void handleOpenChange(next)}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader
-            title="Wypełnij z szablonu"
-            description="Utwórz kosztorys na podstawie zapisanego szablonu."
+      <FormDialogShell
+        open={open}
+        onOpenChange={(next) => void handleOpenChange(next)}
+        title="Wypełnij z szablonu"
+        description="Utwórz kosztorys na podstawie zapisanego szablonu."
+        confirmLabel="Wypełnij"
+        onConfirm={() => void handleSeed()}
+        confirmDisabled={!presetId || seeding}
+      >
+        {presets.length === 0 ? (
+          <p className="text-muted-foreground text-sm">Brak zapisanych szablonów.</p>
+        ) : (
+          <SimpleSelect
+            value={presetId}
+            onValueChange={setPresetId}
+            placeholder="Wybierz szablon"
+            options={presets.map((preset) => ({ value: String(preset.id), label: preset.name }))}
           />
-          {presets.length === 0 ? (
-            <p className="text-muted-foreground text-sm">Brak zapisanych szablonów.</p>
-          ) : (
-            <SimpleSelect
-              value={presetId}
-              onValueChange={setPresetId}
-              placeholder="Wybierz szablon"
-              options={presets.map((preset) => ({ value: String(preset.id), label: preset.name }))}
-            />
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>
-              Anuluj
-            </Button>
-            <Button onClick={() => void handleSeed()} disabled={!presetId || seeding}>
-              Wypełnij
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        )}
+      </FormDialogShell>
     </>
   )
 }

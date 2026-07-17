@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
+import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { Input } from '@/components/ui/input'
 import { saveSnapshotAction } from '@/lib/actions/kosztorys-snapshots'
 import { toastMessage } from '@/lib/utils/toast'
@@ -45,30 +44,24 @@ export function SaveVersionDialog({ investmentId, open, onOpenChange }: PropsT) 
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader
-          title="Zapisz wersję"
-          description="Nazwany punkt, do którego możesz wrócić."
-        />
-        <Input
-          autoFocus
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Nazwa wersji"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && canSave) void handleSave()
-          }}
-        />
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Anuluj
-          </Button>
-          <Button onClick={() => void handleSave()} disabled={!canSave}>
-            Zapisz
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <FormDialogShell
+      open={open}
+      onOpenChange={handleOpenChange}
+      title="Zapisz wersję"
+      description="Nazwany punkt, do którego możesz wrócić."
+      confirmLabel="Zapisz"
+      onConfirm={() => void handleSave()}
+      confirmDisabled={!canSave}
+    >
+      <Input
+        autoFocus
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Nazwa wersji"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && canSave) void handleSave()
+        }}
+      />
+    </FormDialogShell>
   )
 }

@@ -1,13 +1,6 @@
 'use client'
 
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog'
+import { Dialog, DialogTrigger, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import type { LeadAnswerT } from '@/types/leads'
 
@@ -26,10 +19,10 @@ export function LeadAnswersDialog({ name, formName, answers }: LeadAnswersDialog
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{name || 'Zgłoszenie'}</DialogTitle>
-          <DialogDescription>{formName || 'Odpowiedzi z formularza'}</DialogDescription>
-        </DialogHeader>
+        <DialogHeader
+          title={name || 'Zgłoszenie'}
+          description={formName || 'Odpowiedzi z formularza'}
+        />
         <dl className="divide-border divide-y text-sm">
           {answers.map((answer, index) => (
             <div key={index} className="grid grid-cols-[1fr_1.5fr] gap-3 py-2">

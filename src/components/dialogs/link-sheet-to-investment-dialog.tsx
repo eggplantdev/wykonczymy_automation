@@ -6,10 +6,8 @@ import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { SimpleSelect } from '@/components/ui/simple-select'
@@ -62,13 +60,10 @@ export function LinkSheetToInvestmentDialog({
         )}
       </DialogTrigger>
       <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Dodaj kosztorys do inwestycji</DialogTitle>
-          <DialogDescription>
-            Wybierz inwestycję bez kosztorysu. Po dodaniu, wydatki inwestycji zostaną
-            zsynchronizowane do kosztorysu.
-          </DialogDescription>
-        </DialogHeader>
+        <DialogHeader
+          title="Dodaj kosztorys do inwestycji"
+          description="Wybierz inwestycję bez kosztorysu. Po dodaniu, wydatki inwestycji zostaną zsynchronizowane do kosztorysu."
+        />
 
         <div className="space-y-2 text-sm">
           {availableInvestments.length === 0 ? (

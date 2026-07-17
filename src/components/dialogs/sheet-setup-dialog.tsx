@@ -4,33 +4,21 @@ import { type ReactNode, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog'
 import { toastMessage } from '@/lib/utils/toast'
-import {
-  getServiceAccountEmailAction,
-  linkSheetAction,
-  provisionSheetAction,
-} from '@/lib/actions/investments'
+import { getServiceAccountEmailAction, linkSheetAction } from '@/lib/actions/investments'
 import { ExternalLink } from '../ui/external-link'
 import { ALL_SHEETS_URL } from '@/lib/constants/sheets'
 
 type PropsT = {
   investmentId: number
-  investmentName?: string
   trigger?: ReactNode
 }
 
-// Two ways to give an investment a kosztorys: create a fresh sheet from the
-// template, or link an existing one by pasting its URL/id. Shared by the
-// investment page banner and the investments table cell.
-export function SheetSetupDialog({ investmentId, investmentName, trigger }: PropsT) {
+// Give an investment a kosztorys by linking an existing Google Sheet (paste its URL/id). Shared by
+// the investment page banner and the investments table cell. Create-from-template is not offered:
+// the service account has no Drive quota to create sheets.
+export function SheetSetupDialog({ investmentId, trigger }: PropsT) {
   const [open, setOpen] = useState(false)
   const [link, setLink] = useState('')
   const [saEmail, setSaEmail] = useState('')
@@ -54,14 +42,6 @@ export function SheetSetupDialog({ investmentId, investmentName, trigger }: Prop
     router.refresh()
   }
 
-  const onCreate = () => {
-    startTransition(async () => {
-      const res = await provisionSheetAction(investmentId)
-      if (!res.success) return toastMessage(res.error, 'error')
-      finish(`Utworzono kosztorys${investmentName ? ` dla „${investmentName}”` : ''}.`)
-    })
-  }
-
   const onLink = () => {
     if (!link.trim()) return
     startTransition(async () => {
@@ -75,24 +55,9 @@ export function SheetSetupDialog({ investmentId, investmentName, trigger }: Prop
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{trigger ?? <Button size="sm">Dodaj kosztorys</Button>}</DialogTrigger>
       <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Kosztorys inwestycji</DialogTitle>
-          <DialogDescription>Dodaj istniejący arkusz Google.</DialogDescription>
-        </DialogHeader>
+        <DialogHeader title="Kosztorys inwestycji" description="Dodaj istniejący arkusz Google." />
 
         <div className="space-y-6 text-sm">
-          {/* <section className="space-y-2">
-            <h3 className="font-medium">Nowy kosztorys</h3>
-            <p className="text-muted-foreground text-xs">
-              Tworzy kopię szablonu i przypisuje ją do tej inwestycji.
-            </p>
-            <Button onClick={onCreate} disabled={pending} className="w-full">
-              {pending ? 'Pracuję…' : 'Utwórz nowy kosztorys'}
-            </Button>
-          </section> */}
-
-          {/* <div className="border-t" /> */}
-
           <section className="space-y-2">
             <p>
               <ExternalLink href={ALL_SHEETS_URL}>Otwórz arkusze google ↗</ExternalLink>

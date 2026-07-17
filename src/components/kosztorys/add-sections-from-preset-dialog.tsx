@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { Check } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
+import { DialogActions } from '@/components/ui/dialog-actions'
 import {
   Command,
   CommandEmpty,
@@ -148,14 +148,13 @@ export function AddSectionsFromPresetDialog({
             </CommandList>
           </Command>
         )}
-        <DialogFooter className="px-4 pt-3 pb-4">
-          <Button variant="outline" onClick={() => handleOpenChange(false)}>
-            Anuluj
-          </Button>
-          <Button onClick={() => void handleConfirm()} disabled={count === 0 || pending}>
-            Dodaj{count > 0 ? ` (${count})` : ''}
-          </Button>
-        </DialogFooter>
+        <DialogActions
+          className="px-4 pt-3 pb-4"
+          confirmLabel={`Dodaj${count > 0 ? ` (${count})` : ''}`}
+          onConfirm={() => void handleConfirm()}
+          onCancel={() => handleOpenChange(false)}
+          confirmDisabled={count === 0 || pending}
+        />
       </DialogContent>
     </Dialog>
   )

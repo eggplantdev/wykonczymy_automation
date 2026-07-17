@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
+import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { Input } from '@/components/ui/input'
 import { ToggleGroup } from '@/components/ui/toggle-group'
 import { SimpleSelect } from '@/components/ui/simple-select'
@@ -51,60 +50,51 @@ export function SavePresetDialog({ investmentId, open, onOpenChange, existingPre
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader title="Zapisz jako szablon…" />
-        <p className="text-muted-foreground text-xs">
-          Szablon — wzór kosztorysu wielokrotnego użytku, niezależny od tej inwestycji. Posłuży do
-          szybkiego założenia kosztorysu na innych inwestycjach.
+    <FormDialogShell
+      open={open}
+      onOpenChange={handleOpenChange}
+      title="Zapisz jako szablon…"
+      description="Szablon — wzór kosztorysu wielokrotnego użytku, niezależny od tej inwestycji. Posłuży do szybkiego założenia kosztorysu na innych inwestycjach."
+      confirmLabel="Zapisz"
+      onConfirm={() => void handleSave()}
+      confirmDisabled={!canSave}
+    >
+      {existingPresets.length > 0 && (
+        <ToggleGroup
+          options={[
+            { value: 'new', label: 'Nowy' },
+            { value: 'overwrite', label: 'Nadpisz istniejący' },
+          ]}
+          value={mode}
+          onChange={setMode}
+          aria-label="Tryb zapisu szablonu"
+        />
+      )}
+
+      {mode === 'overwrite' ? (
+        <SimpleSelect
+          value={overwriteName}
+          onValueChange={setOverwriteName}
+          placeholder="Wybierz szablon do nadpisania"
+          options={existingPresets.map((preset) => ({ value: preset.name, label: preset.name }))}
+        />
+      ) : (
+        <Input
+          autoFocus
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Nazwa szablonu"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && canSave) void handleSave()
+          }}
+        />
+      )}
+
+      {mode === 'overwrite' && (
+        <p className="text-destructive text-xs">
+          Nadpisanie trwale zastąpi zawartość wybranego szablonu — tej operacji nie można cofnąć.
         </p>
-
-        {existingPresets.length > 0 && (
-          <ToggleGroup
-            options={[
-              { value: 'new', label: 'Nowy' },
-              { value: 'overwrite', label: 'Nadpisz istniejący' },
-            ]}
-            value={mode}
-            onChange={setMode}
-            aria-label="Tryb zapisu szablonu"
-          />
-        )}
-
-        {mode === 'overwrite' ? (
-          <SimpleSelect
-            value={overwriteName}
-            onValueChange={setOverwriteName}
-            placeholder="Wybierz szablon do nadpisania"
-            options={existingPresets.map((preset) => ({ value: preset.name, label: preset.name }))}
-          />
-        ) : (
-          <Input
-            autoFocus
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Nazwa szablonu"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && canSave) void handleSave()
-            }}
-          />
-        )}
-
-        {mode === 'overwrite' && (
-          <p className="text-destructive text-xs">
-            Nadpisanie trwale zastąpi zawartość wybranego szablonu — tej operacji nie można cofnąć.
-          </p>
-        )}
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Anuluj
-          </Button>
-          <Button onClick={() => void handleSave()} disabled={!canSave}>
-            Zapisz
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      )}
+    </FormDialogShell>
   )
 }

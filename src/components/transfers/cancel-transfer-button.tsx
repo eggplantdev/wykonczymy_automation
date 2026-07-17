@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
 import { RemoveButton } from '@/components/ui/remove-button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
+import { DialogActions } from '@/components/ui/dialog-actions'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { cancelTransferAction } from '@/lib/actions/transfers'
@@ -77,18 +77,16 @@ export function CancelTransferButton({ transactionId }: CancelTransferButtonProp
             </p>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={isPending}>
-              Nie
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleConfirm}
-              disabled={isPending || !isReasonValid}
-            >
-              {isPending ? 'Anulowanie...' : 'Tak, anuluj'}
-            </Button>
-          </DialogFooter>
+          <DialogActions
+            cancelLabel="Nie"
+            confirmLabel="Tak, anuluj"
+            confirmVariant="destructive"
+            pending={isPending}
+            pendingLabel="Anulowanie..."
+            confirmDisabled={!isReasonValid}
+            onConfirm={handleConfirm}
+            onCancel={() => handleOpenChange(false)}
+          />
         </DialogContent>
       </Dialog>
     </>

@@ -2,7 +2,7 @@
 
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { FormDialog } from '@/components/dialogs/form-dialog'
+import { FormDialog } from '@/components/ui/form-dialog'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { DepositForm } from '@/components/forms/deposit-form/deposit-form'
 
