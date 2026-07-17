@@ -106,20 +106,6 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   // It also serves as the "fresh dataset" read by structural event handlers (section count):
   // kept in sync on every add/remove/edit, so no separate ref for rows is needed.
   const prevById = useRef(new Map(rows.map((r) => [r.id, r])))
-  // "Latest value" ref: the fresh `rows` (display order) read during an event-time reorder, since
-  // firing an action inside the setRows updater would update the Router during render (a React
-  // error). Writing a ref during render is the well-known, safe "latest value" pattern.
-  // NOTE (EX-422): these two refs were introduced to dodge a mount-frozen column closure, which no
-  // longer exists — the grid is on the reactive `DynamicDataSheetGrid` export as of `ee497cb`, so
-  // its closures are rebuilt each render. Kept deliberately as the rollback path; whether they are
-  // still load-bearing is EX-422's own follow-up, not a freebie to delete alongside it.
-  const rowsRef = useRef(rows)
-  // eslint-disable-next-line react-hooks/refs
-  rowsRef.current = rows
-  // Same, for the stage-rename handler's no-op guard (compares against the fresh label).
-  const stagesRef = useRef(stages)
-  // eslint-disable-next-line react-hooks/refs
-  stagesRef.current = stages
 
   function setSortField(field: string, dir: SortDirT | null) {
     setSort(dir ? { field, dir } : null)
@@ -128,13 +114,13 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   // One O(n) pass feeding the render-hot getRemovePlan (see below) an O(1) per-row lookup.
   const removalCounts = sectionItemCounts(rows)
 
-  // onRemoveItem/onReorderItem read prevById.current / rowsRef.current — stable refs —
-  // only from a cell's onClick, never during render, so passing them here is safe.
+  // Only pure display config threads through buildV2Grid — a plain function called during render.
+  // The interactive cell handlers (which capture prevById, a ref) reach their cells via the editor
+  // context instead; a ref-capturing closure passed into this call would silently de-opt React
+  // Compiler for the whole hook (EX-496). `rowActions` is the one bit the builder still needs.
   const columnOpts = {
     view,
     stages,
-    onRemoveStage: handleRemoveStage,
-    onRenameStage: handleRenameStage,
     sort,
     onSetSort: setSortField,
     isHidden,
@@ -144,11 +130,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     widths,
     onGuide: setGuideX,
     onCommitColumn: setWidth,
-    onRemoveItem: handleRemoveItem,
-    onReorderItem: handleReorderItem,
-    onInsertItem: handleInsertItem,
-    onRenameSection: handleRenameSection,
-    getRemovePlan,
+    rowActions: true,
     globalDiscountActive,
   }
   const { columns, columnToggleItems } = buildV2Grid(columnOpts)
@@ -284,8 +266,10 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
 
   // What deleting a row does — read at event time from the full dataset (prevById), not the view,
   // so the handler decides on accurate counts. The render-hot per-cell path uses getRemovePlan.
+  // stages (state) is read directly, not via stagesRef — getRemovePlan runs during render, and a
+  // ref read there bails React Compiler; handlers re-close over fresh stages each render regardless.
   function removalPlan(row: KosztorysV2RowT) {
-    return planItemRemoval([...prevById.current.values()], row, stagesRef.current)
+    return planItemRemoval([...prevById.current.values()], row, stages)
   }
 
   // Render-hot: called per cell. Counts are precomputed once per render (removalCounts below), so this
@@ -296,8 +280,38 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       rows.length,
       removalCounts.get(row.sectionId) ?? 0,
       row,
-      stagesRef.current,
+      stages,
     )
+  }
+
+  async function handleRemoveSection(sectionId: number) {
+    // The summary confirms before calling here (EX-477); a populated section cascade-deletes its
+    // items + stage_progress server-side, guarded only by the confirm dialog, not a block.
+    const removed = rows
+      .filter((r) => r.sectionId === sectionId)
+      .map((r) => prevById.current.get(r.id) ?? r)
+    setRows((rs) => rs.filter((r) => r.sectionId !== sectionId))
+    for (const [id, r] of prevById.current) {
+      if (r.sectionId === sectionId) prevById.current.delete(id)
+    }
+    const wasShown = shownSectionIds?.has(sectionId) ?? false
+    if (wasShown) {
+      setShownSectionIds((prev) => {
+        if (prev === null) return prev
+        const next = new Set(prev)
+        next.delete(sectionId)
+        return next
+      })
+    }
+    const res = await removeSectionAction(sectionId)
+    if (!res.success) {
+      // Server rejected (predicate drift) — restore the section's rows and surface the block.
+      for (const r of removed) prevById.current.set(r.id, r)
+      setRows((rs) => [...rs, ...removed])
+      if (wasShown)
+        setShownSectionIds((prev) => (prev === null ? prev : new Set(prev).add(sectionId)))
+      toastMessage(res.error ?? 'Nie udało się usunąć sekcji', 'warning', 4000)
+    }
   }
 
   async function handleRemoveItem(row: KosztorysV2RowT) {
@@ -312,7 +326,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       await handleRemoveSection(row.sectionId)
       return
     }
-    const rowsAtRemoval = rowsRef.current
+    const rowsAtRemoval = rows
     const removedAt = rowsAtRemoval.findIndex((r) => r.id === row.id)
     const afterId = removedAt > 0 ? rowsAtRemoval[removedAt - 1].id : null
     prevById.current.delete(row.id)
@@ -329,7 +343,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   }
 
   function handleReorderItem(row: KosztorysV2RowT, dir: 'up' | 'down') {
-    const rs = rowsRef.current
+    const rs = rows
     const neighbor = sectionNeighbor(rs, row.id, dir)
     if (!neighbor) return // edge of the block → no-op
     setRows(swapItemInSection(rs, row.id, dir))
@@ -391,6 +405,24 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     router.refresh()
   }
 
+  // Optimistic patch of a denormalized field on the matching rows + prevById (like
+  // handleRenameSection for sectionName). The markup coefficients are denormalized on
+  // EVERY row, but they are changed OUTSIDE the grid (the panel). router.refresh() alone won't
+  // pick them up: `rows` lives in useState with an initializer that runs once at mount, so a
+  // refreshed `tree` prop does not reinitialize the rows — without this patch the "Cena" column
+  // would show the stale value until a reload. Declared ahead of the stage/settings handlers that
+  // call it: a forward reference to this hoisted function trips React Compiler's PruneHoistedContexts
+  // pass and de-opts the whole hook (EX-496).
+  function patchRows(
+    match: (row: KosztorysV2RowT) => boolean,
+    patch: (row: KosztorysV2RowT) => KosztorysV2RowT,
+  ) {
+    setRows((rs) => rs.map((r) => (match(r) ? patch(r) : r)))
+    for (const [id, r] of prevById.current) {
+      if (match(r)) prevById.current.set(id, patch(r))
+    }
+  }
+
   // --- Stages (etapy) ---
 
   // A new stage adds a `stage_<id>: 0` key to every current row + snapshot (like patchRows for
@@ -400,9 +432,10 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     if (!res.success) return
     const { id, ordinal } = res.data
     setStages((s) => [...s, { id, ordinal, label: null }])
+    const key = stageKey(id)
     patchRows(
       () => true,
-      (r) => ({ ...r, [stageKey(id)]: 0 }),
+      (r) => ({ ...r, [key]: 0 }),
     )
   }
 
@@ -436,7 +469,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   function handleRenameStage(stageId: number, label: string) {
     const trimmed = label.trim()
     const next = trimmed === '' ? null : trimmed
-    const current = stagesRef.current.find((st) => st.id === stageId)
+    const current = stages.find((st) => st.id === stageId)
     if (current && current.label === next) return
     const prevLabel = current?.label ?? null
     setStages((s) => s.map((st) => (st.id === stageId ? { ...st, label: next } : st)))
@@ -454,40 +487,10 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     )
   }
 
-  async function handleRemoveSection(sectionId: number) {
-    // The summary confirms before calling here (EX-477); a populated section cascade-deletes its
-    // items + stage_progress server-side, guarded only by the confirm dialog, not a block.
-    const removed = rowsRef.current
-      .filter((r) => r.sectionId === sectionId)
-      .map((r) => prevById.current.get(r.id) ?? r)
-    setRows((rs) => rs.filter((r) => r.sectionId !== sectionId))
-    for (const [id, r] of prevById.current) {
-      if (r.sectionId === sectionId) prevById.current.delete(id)
-    }
-    const wasShown = shownSectionIds?.has(sectionId) ?? false
-    if (wasShown) {
-      setShownSectionIds((prev) => {
-        if (prev === null) return prev
-        const next = new Set(prev)
-        next.delete(sectionId)
-        return next
-      })
-    }
-    const res = await removeSectionAction(sectionId)
-    if (!res.success) {
-      // Server rejected (predicate drift) — restore the section's rows and surface the block.
-      for (const r of removed) prevById.current.set(r.id, r)
-      setRows((rs) => [...rs, ...removed])
-      if (wasShown)
-        setShownSectionIds((prev) => (prev === null ? prev : new Set(prev).add(sectionId)))
-      toastMessage(res.error ?? 'Nie udało się usunąć sekcji', 'warning', 4000)
-    }
-  }
-
   function handleRenameSection(sectionId: number, name: string) {
     // Skip a no-op write: the cell's onBlur fires on every focus-out, so bail when the name is
     // unchanged (the Sekcja cell has no diff of its own, like handleRenameStage for etap labels).
-    const current = rowsRef.current.find((r) => r.sectionId === sectionId)?.sectionName ?? ''
+    const current = rows.find((r) => r.sectionId === sectionId)?.sectionName ?? ''
     if (current === name) return
     // The name is denormalized on every row of the section — overwrite them all locally.
     setRows((rs) => rs.map((r) => (r.sectionId === sectionId ? { ...r, sectionName: name } : r)))
@@ -495,22 +498,6 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       if (r.sectionId === sectionId) prevById.current.set(id, { ...r, sectionName: name })
     }
     void updateSectionFieldAction(sectionId, { name })
-  }
-
-  // Optimistic patch of a denormalized field on the matching rows + prevById (like
-  // handleRenameSection for sectionName). The markup coefficients are denormalized on
-  // EVERY row, but they are changed OUTSIDE the grid (the panel). router.refresh() alone won't
-  // pick them up: `rows` lives in useState with an initializer that runs once at mount, so a
-  // refreshed `tree` prop does not reinitialize the rows — without this patch the "Cena" column
-  // would show the stale value until a reload.
-  function patchRows(
-    match: (row: KosztorysV2RowT) => boolean,
-    patch: (row: KosztorysV2RowT) => KosztorysV2RowT,
-  ) {
-    setRows((rs) => rs.map((r) => (match(r) ? patch(r) : r)))
-    for (const [id, r] of prevById.current) {
-      if (match(r)) prevById.current.set(id, patch(r))
-    }
   }
 
   // Shared tail of every optimistic settings write (global coeff / VAT / discount / section coeff).
@@ -537,7 +524,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   async function handleGlobalCoeffChange(patch: { wToolsCoeff?: number; ownToolsCoeff?: number }) {
     // patchRows builds fresh row objects, so `sample` still holds the pre-patch coefficients for the
     // revert. Only the coefficients present in `patch` map to their denormalized row fields.
-    const sample = rowsRef.current[0]
+    const sample = rows[0]
     const applied: { globalWToolsCoeff?: number; globalOwnToolsCoeff?: number } = {}
     if (patch.wToolsCoeff != null) applied.globalWToolsCoeff = patch.wToolsCoeff
     if (patch.ownToolsCoeff != null) applied.globalOwnToolsCoeff = patch.ownToolsCoeff
@@ -568,7 +555,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   // useState initializer runs once at mount); then persist + refresh for the panel. `vatRate` is a
   // fraction (0.08), converted from the panel's percent input at the commit site.
   async function handleVatChange(vatRate: number) {
-    const prevVatRate = rowsRef.current[0]?.vatRate
+    const prevVatRate = rows[0]?.vatRate
     patchRows(
       () => true,
       (r) => ({ ...r, vatRate }),
@@ -624,7 +611,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   ) {
     // `in` (not `!= null`): a null coefficient means "inherit the global" — a valid value to write,
     // distinct from "this field wasn't touched". Mirrors handleGlobalCoeffChange.
-    const sample = rowsRef.current.find((r) => r.sectionId === sectionId)
+    const sample = rows.find((r) => r.sectionId === sectionId)
     const inSection = (r: KosztorysV2RowT) => r.sectionId === sectionId
     const applied: { sectionWToolsCoeff?: number | null; sectionOwnToolsCoeff?: number | null } = {}
     if ('wToolsCoeff' in patch) applied.sectionWToolsCoeff = patch.wToolsCoeff ?? null
@@ -736,5 +723,13 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     handleSectionCoeffChange,
     handleVatChange,
     handleGlobalDiscountChange,
+    // per-cell interactive handlers — consumed by the grid cells through the editor context
+    // (kosztorys-v2-columns), kept off buildV2Grid's opts so React Compiler still memoizes the hook.
+    getRemovePlan,
+    handleRemoveItem,
+    handleReorderItem,
+    handleInsertItem,
+    handleRenameStage,
+    handleRemoveStage,
   }
 }

@@ -367,18 +367,18 @@ None. No schema, no data, no API contract change.
 
 #### Automated
 
-- [x] 1.1 New test file exists and runs: `pnpm exec vitest run src/__tests__/use-kosztorys-editor.compile.test.ts`
-- [x] 1.2 Test fails on current code, naming the missing `_c` / the bail (red confirmed)
-- [x] 1.3 Type checking passes: `pnpm typecheck`
+- [x] 1.1 New test file exists and runs: `pnpm exec vitest run src/__tests__/use-kosztorys-editor.compile.test.ts` — 563859e
+- [x] 1.2 Test fails on current code, naming the missing `_c` / the bail (red confirmed) — 563859e
+- [x] 1.3 Type checking passes: `pnpm typecheck` — 563859e
 
 ### Phase 2: React Compiler Unblock (green)
 
 #### Automated
 
-- [ ] 2.1 Compile-assert test passes: `pnpm exec vitest run src/__tests__/use-kosztorys-editor.compile.test.ts`
-- [ ] 2.2 Full unit suite passes: `pnpm exec vitest run`
-- [ ] 2.3 Type checking passes: `pnpm typecheck`
-- [ ] 2.4 Linting passes: `pnpm lint`
+- [x] 2.1 Compile-assert test passes: `pnpm exec vitest run src/__tests__/use-kosztorys-editor.compile.test.ts`
+- [x] 2.2 Full unit suite passes: `pnpm exec vitest run`
+- [x] 2.3 Type checking passes: `pnpm typecheck`
+- [x] 2.4 Linting passes: `pnpm lint`
 
 ### Phase 3: Dead Code + Casts + Cache-Tag Verify
 

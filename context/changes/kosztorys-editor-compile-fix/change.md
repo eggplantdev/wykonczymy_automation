@@ -30,4 +30,19 @@ under an automated guard, then clears the still-open EX-496 cleanup tail.
 - **Still open:** the three compiler bails (#1), the 13 no-op `ViewPricingT` casts (#6), dead
   `widthsKey`/`stagesKey` (#7), plus the three structural extractions (settlement.ts / HEADER_TIPS / Pick<>).
 
+- **Phase 2 widened beyond the plan's "surgical" premise (owner decision, 2026-07-17).** The plan
+  modeled three bail fixes. Two landed as written (computed-key hoist; `handleRemoveSection` forward
+  ref). Bail #3's premise was wrong: the render-phase ref access wasn't reads-only — the `rowsRef`/
+  `stagesRef` mirror **writes** bailed too, so the refs were removed entirely (reads rewritten to
+  `rows`/`stages`). Removing them then exposed the real blocker the plan had fenced as EX-521: the
+  interactive cell handlers (which capture `prevById`, a ref) were bundled into `columnOpts` and passed
+  to the **plain function** `buildV2Grid` during render — React Compiler bails when a ref-capturing
+  closure crosses a plain-function call in render (proven: the same closure as a JSX prop to a component
+  compiles). Fix (chosen over defer-to-EX-521): the interactive handlers now reach their cells through
+  the existing `KosztorysEditorProvider` context; `buildV2Grid` receives only pure display config plus a
+  `rowActions` boolean. A fourth bail then surfaced (`PruneHoistedContexts`: `patchRows` was forward-
+  referenced by `handleAddStage`/`handleRemoveStage`) — fixed by hoisting `patchRows` above its callers.
+  Net: the hook now emits `_c` slots, guard green, typecheck/lint/suite clean. Touched:
+  `use-kosztorys-editor.ts`, `kosztorys-v2-columns.tsx`, `kosztorys-v2-column-opts.ts`.
+
 Plan: `plan.md` · Brief: `plan-brief.md`.
