@@ -1,9 +1,9 @@
 ---
 change_id: investment-planowana-status
 title: Add a third investment status „Planowana" so a kosztorys can be built for an undecided prospect
-status: planned
+status: plan_reviewed
 created: 2026-07-16
-updated: 2026-07-16
+updated: 2026-07-17
 archived_at: null
 branch: null
 worktree: null

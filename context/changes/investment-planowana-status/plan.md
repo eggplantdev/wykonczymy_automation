@@ -28,6 +28,11 @@ the owner promotes the investment to `aktywna` (the existing status); the koszto
     completed.**
   - `inwestycje/[id]/page.tsx:78` — status label is a 2-way ternary.
   - `inwestycje/page.tsx:20` — `activeCount = filter(status === 'active')`.
+  - **Two consumers of the derived `active` boolean hide inactive investments:**
+    `components/forms/form-fields/entity-combobox-field.tsx:51-55` (transfer/expense/deposit
+    investment selects, `activeOnly` default true, toggleable) and `lib/queries/dashboard.ts:15`
+    (manager dashboard investment filter, no toggle). A prospect deriving `active: false` would be
+    hidden from both.
 - **The financial plane self-handles.** `sum-transfers.ts:130` (`sumAllInvestmentFinancials`) is keyed
   on the `transactions` table and only emits a row for an investment that _has_ transactions. A
   prospect has none → contributes 0 to every rollup/margin/dashboard. No financial-layer change owed.
@@ -47,7 +52,10 @@ the owner promotes the investment to `aktywna` (the existing status); the koszto
 - `toggle-active.ts:67` and `investment-data-table.tsx:20` are dead-ends for a 3-state world; they are
   **removed**, not extended. Deleting the inline toggle removes the silent-overwrite footgun entirely.
 - Keep `InvestmentRefT.active` as a derived convenience (`status === 'active'`) so existing consumers
-  don't churn — just stop it being a _write_ path.
+  don't churn — just stop it being a _write_ path. **Owner decision (plan-review F2):** a prospect
+  deriving `active: false` is intended — no money is booked against a planowana investment; to add
+  transfers the owner promotes it to Aktywna first. So a prospect hidden from the default transfer
+  combobox view and from the manager dashboard filter is correct behavior, not a gap.
 - Auto-seed means the "create a proposal" entry point already exists: the Dodaj form with status set to
   Planowana. No new creation flow.
 
@@ -61,6 +69,10 @@ the owner promotes the investment to `aktywna` (the existing status); the koszto
   (Wszystkie / Planowane / Aktywne / Zakończone); the default view shows Aktywne + Planowane.
 - Status is changed only via Edytuj (a deliberate action). There is no inline one-click status toggle.
 - A Planowana investment contributes 0 to every financial figure and is excluded from `activeCount`.
+- A Planowana investment is **not** offered where money gets booked: hidden from the default
+  transfer/expense/deposit combobox view (reachable via the "aktywne" toggle) and absent from the
+  manager dashboard's investment filter. Booking money against it requires promoting it to Aktywna
+  first — by design.
 - `toggleInvestmentStatus` no longer exists; `toggleUserActive` / `toggleCashRegisterActive` are
   untouched.
 
@@ -95,7 +107,7 @@ only adds the value (no row writes with it), so it is safe. `down()` cannot remo
 (Postgres has no `DROP VALUE`) without recreating the type and its dependent column — make `down()` a
 documented no-op. Apply to prod with `pnpm db:migrate:prod` (human) before the code that reads it ships.
 
-## Phase 1: Enum value exists end-to-end (schema, migration, types, read path)
+## Phase 1: Enum value exists end-to-end
 
 ### Overview
 
@@ -141,9 +153,13 @@ stays `active`.
 `src/lib/queries/reference-data.ts:91` (cast).
 
 **Intent**: Add `'planowana'` to each union / cast. Leave `active: row.status === 'active'` (line 92)
-as-is — a prospect derives `active: false`, which is correct (it is not an active job).
+as-is — a prospect derives `active: false`, which is intended: it is hidden from the default
+transfer/expense/deposit combobox view (`entity-combobox-field.tsx:55`) and the manager dashboard
+filter (`dashboard.ts:15`); money is booked only after promotion to Aktywna (owner decision,
+plan-review F2).
 
-**Contract**: `status: 'active' | 'completed' | 'planowana'` in both types and the SQL-row cast.
+**Contract**: `status: 'active' | 'completed' | 'planowana'` in both types and the SQL-row cast;
+`active` derivation unchanged.
 
 ### Success Criteria:
 
@@ -382,6 +398,8 @@ Aktywna → moves to Aktywne; status badge is not clickable. Record the issue id
 2. Confirm the prospect's Koszty/Bilans/Marża are all 0 and it is not in the Aktywne count.
 3. Edytuj → Aktywna → it moves to the Aktywne filter.
 4. Confirm clicking the row status badge does nothing.
+5. Open the Wydatek form → the prospect is absent from the investment combobox's default "aktywne"
+   view; after promoting it to Aktywna it appears there and in the manager dashboard filter.
 
 ## Performance Considerations
 

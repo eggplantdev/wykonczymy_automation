@@ -25,14 +25,15 @@ is promoted to Aktywna via the edit dialog. There is no one-click status toggle 
 
 ## Key Decisions Made
 
-| Decision                         | Choice                                             | Why                                                                                  | Source           |
-| -------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------ | ---------------- |
-| Container for a pre-job proposal | Third investment status `planowana`                | Keeps the kosztorys wiring untouched; avoids re-homing VAT/coeffs/discount + new URL | Frame/discussion |
-| Add-form default status          | Stays `active`                                     | Real jobs are still added directly; pick Planowana for a prospect                    | Owner            |
-| List filter shape                | 3-way status filter (default: Aktywne + Planowane) | Direct "navigate/select by status" — the stated goal                                 | Owner            |
-| Status change mechanism          | Edit dialog only; row badge read-only              | Removes the silent prospect→completed overwrite footgun                              | Owner            |
-| Financial-layer changes          | None                                               | `sum-transfers.ts` is transaction-keyed; a prospect (0 transactions) contributes 0   | Research         |
-| Shared binary helpers            | Left intact; investment list decoupled from them   | Users/cash-registers unaffected                                                      | Research         |
+| Decision                            | Choice                                             | Why                                                                                                                              | Source           |
+| ----------------------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| Container for a pre-job proposal    | Third investment status `planowana`                | Keeps the kosztorys wiring untouched; avoids re-homing VAT/coeffs/discount + new URL                                             | Frame/discussion |
+| Add-form default status             | Stays `active`                                     | Real jobs are still added directly; pick Planowana for a prospect                                                                | Owner            |
+| List filter shape                   | 3-way status filter (default: Aktywne + Planowane) | Direct "navigate/select by status" — the stated goal                                                                             | Owner            |
+| Status change mechanism             | Edit dialog only; row badge read-only              | Removes the silent prospect→completed overwrite footgun                                                                          | Owner            |
+| Financial-layer changes             | None                                               | `sum-transfers.ts` is transaction-keyed; a prospect (0 transactions) contributes 0                                               | Research         |
+| Shared binary helpers               | Left intact; investment list decoupled from them   | Users/cash-registers unaffected                                                                                                  | Research         |
+| Derived `active` on investment refs | Unchanged (`status === 'active'`)                  | No money booked against a prospect — promote to Aktywna first; hiding it from transfer comboboxes + dashboard filter is intended | Plan review (F2) |
 
 ## Scope
 
