@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation'
 import { EmptyKosztorysDialog } from '@/components/kosztorys/empty-kosztorys-dialog'
 import { KosztorysEditorBody } from '@/components/kosztorys/kosztorys-editor-body'
 import { KosztorysVersionsDrawer } from '@/components/kosztorys/kosztorys-versions-drawer'
+import { UndoRedoContext, useUndoRedo } from '@/components/kosztorys/use-undo-redo'
 import { snapshotAction } from '@/lib/actions/kosztorys-snapshots'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 
-// S-06 durable net: while the editor is open, take an auto snapshot on a plain interval. Dumb by
-// design — no dirty/activity check (deferred to S-07); the count cap + daily GC bound the table.
+// S-06 durable net: while the editor is open, take an auto snapshot on a plain interval, gated on the
+// undo-stack revision (S-07) so an idle editor stops writing identical snapshots. The count cap +
+// daily GC still bound the table.
 const AUTO_SNAPSHOT_INTERVAL_MS = 10 * 60 * 1000
 
 type PropsT = { investmentId: number; tree: KosztorysTreeT; investmentName: string }
@@ -21,6 +23,10 @@ type PropsT = { investmentId: number; tree: KosztorysTreeT; investmentName: stri
 // never remount on a routine tree change).
 export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT) {
   const router = useRouter()
+  // One undo/redo stack per editor mount, shared with the body via context. It outlives the body's
+  // restore remount (the shell doesn't remount), so a restore must reset() it — the stale commands
+  // close over the unmounted body's setRows/refs.
+  const undoRedo = useUndoRedo()
   const [versionsOpen, setVersionsOpen] = useState(false)
   const [remountKey, setRemountKey] = useState(0)
   // One-shot remount signal. After a restore we router.refresh() for the restored tree, then remount
@@ -50,20 +56,41 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
     setRemountKey((k) => k + 1)
   }
 
+  // Live stack revision for the interval closure (which captures values at setup time, so it can't
+  // read the render-fresh `undoRedo.revision`). The eslint rule is too strict for this "latest value"
+  // ref write — same sanctioned use as the restore-latch above.
+  const revisionRef = useRef(undoRedo.revision)
+  // eslint-disable-next-line react-hooks/refs
+  revisionRef.current = undoRedo.revision
+  // Marker: the revision captured at the last auto-snapshot. A tick snapshots only when the revision
+  // moved since (something was edited/undone/redone) — an untouched editor writes nothing.
+  const lastSnapshotRevision = useRef(undoRedo.revision)
+
   // Fire-and-forget periodic auto snapshot; a failed snapshot must never disrupt editing. Lives in
-  // the shell so a restore remount doesn't restart the interval.
+  // the shell so a restore remount doesn't restart the interval. Skips a tick when nothing changed.
   useEffect(() => {
-    const id = setInterval(() => void snapshotAction(investmentId), AUTO_SNAPSHOT_INTERVAL_MS)
+    const id = setInterval(() => {
+      if (revisionRef.current === lastSnapshotRevision.current) return
+      lastSnapshotRevision.current = revisionRef.current
+      void snapshotAction(investmentId)
+    }, AUTO_SNAPSHOT_INTERVAL_MS)
     return () => clearInterval(id)
   }, [investmentId])
 
   function handleRestored() {
     router.refresh()
     setRestorePending(true)
+    // Restore reseeds the whole grid via a body remount — drop the stack whose commands close over
+    // the outgoing body's state.
+    undoRedo.reset()
+    // reset() bumps the revision by one (guarded by the use-undo-redo unit test). The restored tree
+    // is a known-good baseline, not a user edit, so advance the marker past that bump — otherwise the
+    // next tick would snapshot the just-restored state.
+    lastSnapshotRevision.current = revisionRef.current + 1
   }
 
   return (
-    <>
+    <UndoRedoContext.Provider value={undoRedo}>
       {tree.sections.length === 0 && (
         <EmptyKosztorysDialog investmentId={investmentId} onCreated={handleRestored} />
       )}
@@ -81,6 +108,6 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
         onOpenChange={setVersionsOpen}
         onRestored={handleRestored}
       />
-    </>
+    </UndoRedoContext.Provider>
   )
 }

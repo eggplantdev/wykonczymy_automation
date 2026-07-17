@@ -1,12 +1,12 @@
 ---
 change_id: kosztorys-undo
 title: Kosztorys in-session undo / redo (re-integration onto staging)
-status: planned
+status: implemented
 created: 2026-07-17
 updated: 2026-07-17
 archived_at: null
-branch: staging
-worktree: null
+branch: kosztorys-undo
+worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/kosztorys-undo
 ---
 
 ## Notes

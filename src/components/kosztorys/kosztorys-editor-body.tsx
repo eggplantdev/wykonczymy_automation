@@ -10,6 +10,7 @@ import { KosztorysTotalsBar } from '@/components/kosztorys/kosztorys-totals-bar'
 import { KosztorysEditorToolbar } from '@/components/kosztorys/kosztorys-editor-toolbar'
 import { useKosztorysEditor } from '@/components/kosztorys/use-kosztorys-editor'
 import { KosztorysEditorProvider } from '@/components/kosztorys/use-kosztorys-editor-context'
+import { useUndoKeyboard } from '@/components/kosztorys/use-undo-keyboard'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 
 type PropsT = {
@@ -49,6 +50,8 @@ export function KosztorysEditorBody({
     handleRemoveSection,
     handleSectionCoeffChange,
   } = editor
+
+  useUndoKeyboard(editor.undo, editor.redo)
 
   // Viewport minus the shell's chrome: the h-14 TopNav always, plus the h-14 AppFooter, which only
   // renders below `lg` (hence the two calcs — subtracting it at every width would leave a dead band
