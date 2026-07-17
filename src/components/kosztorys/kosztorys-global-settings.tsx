@@ -80,16 +80,18 @@ export function KosztorysGlobalSettings({
         label="VAT %"
         hint={VAT_TIP}
         value={vatRate * 100}
+        valueClassName="text-foreground"
         onCommit={(n) => n != null && onVatChange(n / 100)}
       />
       <div className="flex items-center gap-2">
         <HintTooltip content={DISCOUNT_TIP} className="text-muted-foreground text-xs">
-          Rabat globalny
+          Rabat
         </HintTooltip>
         {globalDiscount.type != null && (
           <CoeffField
             label=""
             value={globalDiscount.value}
+            valueClassName="text-chart-green"
             onCommit={(n) => onGlobalDiscountChange({ type: globalDiscount.type, value: n ?? 0 })}
           />
         )}
