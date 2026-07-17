@@ -1,7 +1,7 @@
 ---
 change_id: kosztorys-undo
 title: Kosztorys in-session undo / redo (re-integration onto staging)
-status: implementing
+status: implemented
 created: 2026-07-17
 updated: 2026-07-17
 archived_at: null

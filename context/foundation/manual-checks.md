@@ -469,3 +469,40 @@ inwestycji z ≥1 sekcją i ≥1 etapem oraz kilkoma pozycjami.
 ### Ustawienia globalne (guard #4 — cache tag, NIE cofnięte)
 
 - [x] Zmiana **stawki VAT / współczynnika globalnego / rabatu globalnego** odzwierciedla się w siatce i sumach **bez ręcznego przeładowania** (potwierdzone ręcznie przez ownera, 2026-07-17).
+
+## S-07 — kosztorys-undo (re-integracja na staging)
+
+**Owed — nie zweryfikowane na staging.** Cała ta lista (14 pozycji) przeszła na gałęzi
+`feat/kosztorys-undo` (2026-07-12, DB `db-test` 5435, inwestycja 7, ~1000 pozycji). Ten slice to
+**re-integracja** zweryfikowanych plików silnika + re-implementacja integracji edytora (~249 linii)
+na obecnym kształcie staging (po EX-515). Testy automatyczne przechodzą (tsc/eslint/unit); poniższe
+checki trzeba przejść ponownie **na kodzie staging**, bo integracja jest napisana od nowa. Każdy
+check potwierdza **utrwalony stan DB** (odczyt psql), nie tylko wartość na ekranie — undo uzgadnia
+żywy debounced saver + `prevById` i wysyła realne odwrotne zapisy serwerowe. To jedyny blocker do
+`Done`; przeglądowy E2E jest osobno odroczony (EX-525, `e2e-backlog`).
+
+Setup: app przeciw dev DB (5433), zalogowany jako OWNER/MANAGER, otwarty **Kosztorys** inwestycji
+z ≥1 sekcją, ≥1 etapem i kilkoma pozycjami.
+
+### Faza 1: undo edycji siatki i zmiany kolejności
+
+- [ ] 1.a Edytuj komórkę → Cmd+Z cofa wartość w siatce **i** w DB; Cmd+Shift+Z ponawia.
+- [ ] 1.b Edytuj postęp etapu → undo/redo odwraca/przywraca zmianę, sumy sekcji (Pozostało / Suma) przeliczają się.
+- [ ] 1.c ▲▼ zmień kolejność wiersza → undo przywraca pierwotną kolejność (`display_order` w DB), redo ponawia.
+- [ ] 1.d Przyciski paska ⟲/⟳ robią to samo i poprawnie się wyłączają na końcach stosu (pusty undo / pusty redo).
+- [ ] 1.e **Współistnienie z Cmd+Z:** podczas pisania w komórce Cmd+Z robi natywne cofnięcie znaku (nie zdejmuje ze stosu); po zatwierdzeniu/blur Cmd+Z zdejmuje ze stosu.
+- [ ] 1.f Wklejenie wielu komórek cofa **jedno** Cmd+Z (jeden batch `onChange` = jeden wpis; burst-coalescing).
+
+### Faza 2: undo edycji z panelu
+
+- [ ] 2.a Zmień nazwę sekcji → undo przywraca starą nazwę w nagłówku i w DB; redo ponawia.
+- [ ] 2.b Zmień VAT inwestycji → undo przywraca stawkę; Brutto każdego wiersza przelicza się z powrotem.
+- [ ] 2.c Zmień współczynnik globalny i sekcji → undo przywraca każdy; pochodne ceny podwykonawców przeliczają się z powrotem. **Edge:** współczynnik sekcji ustawiony z **null** (dziedziczenie) → undo wraca do **null**, nie 0.
+- [ ] 2.d Przeplataj edycję panelu z edycjami siatki i cofaj przez granicę w ścisłym LIFO.
+
+### Faza 3: bramka „dirty" bezczynnego snapshotu
+
+- [ ] 3.a Otwórz edytor i zostaw bezczynny przez ≥1 tick interwału → **żaden** nowy snapshot `auto` się nie pojawia (Wersje / DB).
+- [ ] 3.b Zrób jedną edycję, poczekaj tick → **dokładnie jeden** nowy snapshot `auto`; ponowna bezczynność → brak kolejnych.
+- [ ] 3.c Po restore bezczynny tick **nie** tworzy snapshotu właśnie przywróconego drzewa (marker przesunięty za bump z reset()).
+- [ ] 3.d Wymuszony snapshot przed usunięciem (usuń pusty etap/sekcję) nadal powstaje mimo aktywnej bramki.

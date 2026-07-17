@@ -401,6 +401,6 @@ None. No schema, no migration, no data.
 
 #### Automated
 
-- [x] 3.1 Type checking passes: `pnpm exec tsc --noEmit`
-- [x] 3.2 Linting passes: `pnpm lint`
-- [x] 3.3 Full kosztorys unit suite passes
+- [x] 3.1 Type checking passes: `pnpm exec tsc --noEmit` — 6b2a2e1
+- [x] 3.2 Linting passes: `pnpm lint` — 6b2a2e1
+- [x] 3.3 Full kosztorys unit suite passes — 6b2a2e1
