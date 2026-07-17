@@ -146,8 +146,6 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     columns.map((c) => c.id).filter((id): id is string => id != null),
   )
   if (reconcileSort(sort, renderedFieldIds) !== sort) setSort(null)
-  const widthsKey = JSON.stringify(widths)
-  const stagesKey = stages.map((s) => s.id).join(',')
 
   // View = filter + sort. Edits are mapped back into the full dataset by id.
   const viewRows = useMemo(() => {
@@ -692,8 +690,6 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     viewRows,
     view,
     sort,
-    widthsKey,
-    stagesKey,
     guideX,
     // subtotals + section panel
     subtotals,

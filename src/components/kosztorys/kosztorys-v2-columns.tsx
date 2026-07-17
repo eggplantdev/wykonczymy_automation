@@ -54,7 +54,7 @@ import {
   rowTotalQtyDone,
   rowValueForView,
 } from '@/lib/kosztorys/settlement'
-import type { KosztorysStageT, KosztorysV2RowT, ViewPricingT } from '@/lib/kosztorys/types'
+import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // floatColumn right-aligns by default; the grid reads cleaner with every cell left-aligned under
 // its (left-aligned) header, so numbers don't float at the far edge of wide columns.
@@ -287,23 +287,19 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   const pricing: Column<KosztorysV2RowT>[] = [
     ...priceCols,
     computedColumn('priceGross', title('priceGross', COLUMN_LABELS.priceGross, opts), (r) =>
-      toGross(viewPrice(r as unknown as ViewPricingT, view), r.vatRate),
+      toGross(viewPrice(r, view), r.vatRate),
     ),
     discountValueColumn(title('discountValue', COLUMN_LABELS.discountValue, opts)),
     discountTypeColumn(title('discountType', COLUMN_LABELS.discountType, opts)),
     computedColumn(
       'discountAmount',
       title('discountAmount', COLUMN_LABELS.discountAmount, opts),
-      (r) => rowDiscountForView(r as unknown as ViewPricingT, rowTotalQtyDone(r, stages), view),
+      (r) => rowDiscountForView(r, rowTotalQtyDone(r, stages), view),
     ),
     computedColumn(
       'discountAmountGross',
       title('discountAmountGross', COLUMN_LABELS.discountAmountGross, opts),
-      (r) =>
-        toGross(
-          rowDiscountForView(r as unknown as ViewPricingT, rowTotalQtyDone(r, stages), view),
-          r.vatRate,
-        ),
+      (r) => toGross(rowDiscountForView(r, rowTotalQtyDone(r, stages), view), r.vatRate),
     ),
   ]
 
@@ -343,7 +339,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     return computedColumn(
       stageValuePercentKey(st.id),
       stageValueHeader(st, '%', HEADER_TIPS[STAGE_VALUE_PERCENT_COLUMN_GROUP]),
-      (r) => stageDoneFraction(r as unknown as ViewPricingT, r[qtyKey] ?? 0),
+      (r) => stageDoneFraction(r, r[qtyKey] ?? 0),
       'text-muted-foreground',
       formatPercent,
     )
@@ -355,7 +351,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     computedColumn(
       'donePercent',
       title('donePercent', COLUMN_LABELS.donePercent, opts),
-      (r) => rowDoneFraction(r as unknown as ViewPricingT, rowTotalQtyDone(r, stages)),
+      (r) => rowDoneFraction(r, rowTotalQtyDone(r, stages)),
       // Red = more was executed than was offered. The percentage says so too (>100%), but only this
       // cell says it at a glance across a thousand rows.
       (r) =>
@@ -368,10 +364,10 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
 
   const computed: Column<KosztorysV2RowT>[] = [
     computedColumn('plannedNet', title('plannedNet', COLUMN_LABELS.plannedNet, opts), (r) =>
-      rowPlannedNetForView(r as unknown as ViewPricingT, view),
+      rowPlannedNetForView(r, view),
     ),
     computedColumn('plannedGross', title('plannedGross', COLUMN_LABELS.plannedGross, opts), (r) =>
-      toGross(rowPlannedNetForView(r as unknown as ViewPricingT, view), r.vatRate),
+      toGross(rowPlannedNetForView(r, view), r.vatRate),
     ),
     computedColumn(
       'net',

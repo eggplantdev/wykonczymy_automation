@@ -375,19 +375,19 @@ None. No schema, no data, no API contract change.
 
 #### Automated
 
-- [x] 2.1 Compile-assert test passes: `pnpm exec vitest run src/__tests__/use-kosztorys-editor.compile.test.ts`
-- [x] 2.2 Full unit suite passes: `pnpm exec vitest run`
-- [x] 2.3 Type checking passes: `pnpm typecheck`
-- [x] 2.4 Linting passes: `pnpm lint`
+- [x] 2.1 Compile-assert test passes: `pnpm exec vitest run src/__tests__/use-kosztorys-editor.compile.test.ts` — 4c7a1cd
+- [x] 2.2 Full unit suite passes: `pnpm exec vitest run` — 4c7a1cd
+- [x] 2.3 Type checking passes: `pnpm typecheck` — 4c7a1cd
+- [x] 2.4 Linting passes: `pnpm lint` — 4c7a1cd
 
 ### Phase 3: Dead Code + Casts + Cache-Tag Verify
 
 #### Automated
 
-- [ ] 3.1 Type checking passes: `pnpm typecheck`
-- [ ] 3.2 Linting passes: `pnpm lint`
-- [ ] 3.3 Full unit suite passes: `pnpm exec vitest run`
-- [ ] 3.4 Compile-assert guard still passes
+- [x] 3.1 Type checking passes: `pnpm typecheck`
+- [x] 3.2 Linting passes: `pnpm lint`
+- [x] 3.3 Full unit suite passes: `pnpm exec vitest run`
+- [x] 3.4 Compile-assert guard still passes
 
 ### Phase 4: Structural Extractions
 
