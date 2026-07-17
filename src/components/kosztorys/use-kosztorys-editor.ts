@@ -513,6 +513,25 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     }
   }
 
+  // Shared tail of every optimistic settings write (global coeff / VAT / discount / section coeff).
+  // The caller has already applied its optimistic patch and captured whatever `revert` needs; this
+  // persists, then on success refreshes so the panel re-reads `tree`, or on failure runs `revert` and
+  // surfaces the error. Tail-only on purpose: the optimistic apply and the pre-patch capture differ
+  // per setting and stay at the call site — only this success-or-rollback tail was identical.
+  async function optimisticSettingSave(
+    persist: () => Promise<{ success: boolean; error?: string }>,
+    revert: () => void,
+    errorMessage: string,
+  ) {
+    const res = await persist()
+    if (res.success) {
+      router.refresh()
+      return
+    }
+    revert()
+    toastMessage(res.error ?? errorMessage, 'warning', 4000)
+  }
+
   // Changing the global coefficient recomputes the derived prices of all non-overridden
   // items. Optimistic patch on the rows + a refresh for the panel (which reads from `tree`).
   async function handleGlobalCoeffChange(patch: { wToolsCoeff?: number; ownToolsCoeff?: number }) {
@@ -526,23 +545,22 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       () => true,
       (r) => ({ ...r, ...applied }),
     )
-    const res = await updateInvestmentCoeffsAction(investmentId, patch)
-    if (res.success) {
-      router.refresh()
-      return
-    }
-    // Persist failed — roll the optimistic coefficients back so the grid doesn't show an unsaved
-    // price (the once-only useState seed means a plain refresh can't reseed it), and surface it.
-    if (sample) {
-      const restored: { globalWToolsCoeff?: number; globalOwnToolsCoeff?: number } = {}
-      if (patch.wToolsCoeff != null) restored.globalWToolsCoeff = sample.globalWToolsCoeff
-      if (patch.ownToolsCoeff != null) restored.globalOwnToolsCoeff = sample.globalOwnToolsCoeff
-      patchRows(
-        () => true,
-        (r) => ({ ...r, ...restored }),
-      )
-    }
-    toastMessage(res.error ?? 'Nie udało się zapisać współczynnika', 'warning', 4000)
+    await optimisticSettingSave(
+      () => updateInvestmentCoeffsAction(investmentId, patch),
+      () => {
+        // Roll the optimistic coefficients back so the grid doesn't show an unsaved price (the
+        // once-only useState seed means a plain refresh can't reseed it). No-op on an empty kosztorys.
+        if (!sample) return
+        const restored: { globalWToolsCoeff?: number; globalOwnToolsCoeff?: number } = {}
+        if (patch.wToolsCoeff != null) restored.globalWToolsCoeff = sample.globalWToolsCoeff
+        if (patch.ownToolsCoeff != null) restored.globalOwnToolsCoeff = sample.globalOwnToolsCoeff
+        patchRows(
+          () => true,
+          (r) => ({ ...r, ...restored }),
+        )
+      },
+      'Nie udało się zapisać współczynnika',
+    )
   }
 
   // Changing the per-investment VAT rate recomputes every brutto figure. vatRate is denormalized
@@ -555,21 +573,19 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       () => true,
       (r) => ({ ...r, vatRate }),
     )
-    const res = await updateInvestmentVatAction(investmentId, vatRate)
-    if (res.success) {
-      router.refresh()
-      return
-    }
-    // Persist failed — roll the optimistic VAT back so the grid doesn't show an unsaved rate (a no-op
-    // when there were no rows to patch), and always surface it. The toast must NOT hang off prevVatRate:
-    // an empty kosztorys has no rows[0], so gating the toast on it would swallow the failure silently.
-    if (prevVatRate !== undefined) {
-      patchRows(
-        () => true,
-        (r) => ({ ...r, vatRate: prevVatRate }),
-      )
-    }
-    toastMessage(res.error ?? 'Nie udało się zapisać stawki VAT', 'warning', 4000)
+    await optimisticSettingSave(
+      () => updateInvestmentVatAction(investmentId, vatRate),
+      () => {
+        // Roll the optimistic VAT back (no-op when there were no rows to patch). The toast still fires
+        // regardless — it lives in optimisticSettingSave, so an empty kosztorys can't swallow the failure.
+        if (prevVatRate === undefined) return
+        patchRows(
+          () => true,
+          (r) => ({ ...r, vatRate: prevVatRate }),
+        )
+      },
+      'Nie udało się zapisać stawki VAT',
+    )
   }
 
   // Setting/clearing the global discount flips per-item rabat on or off for every row. Update the
@@ -583,21 +599,22 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       () => true,
       (r) => ({ ...r, globalDiscountActive: active }),
     )
-    const res = await updateInvestmentGlobalDiscountAction(investmentId, {
-      globalDiscountType: next.type,
-      globalDiscountValue: next.value,
-    })
-    if (res.success) {
-      router.refresh()
-    } else {
-      // Persist failed — roll all three surfaces back so they don't disagree on an unsaved discount.
-      setGlobalDiscount(prevDiscount)
-      patchRows(
-        () => true,
-        (r) => ({ ...r, globalDiscountActive: isGlobalDiscountActive(prevDiscount) }),
-      )
-      toastMessage(res.error ?? 'Nie udało się zapisać rabatu', 'warning', 4000)
-    }
+    await optimisticSettingSave(
+      () =>
+        updateInvestmentGlobalDiscountAction(investmentId, {
+          globalDiscountType: next.type,
+          globalDiscountValue: next.value,
+        }),
+      () => {
+        // Roll all three surfaces back so they don't disagree on an unsaved discount.
+        setGlobalDiscount(prevDiscount)
+        patchRows(
+          () => true,
+          (r) => ({ ...r, globalDiscountActive: isGlobalDiscountActive(prevDiscount) }),
+        )
+      },
+      'Nie udało się zapisać rabatu',
+    )
   }
 
   // Section coefficient (null = inherits the global) — patch only the rows of that section.
@@ -613,20 +630,21 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     if ('wToolsCoeff' in patch) applied.sectionWToolsCoeff = patch.wToolsCoeff ?? null
     if ('ownToolsCoeff' in patch) applied.sectionOwnToolsCoeff = patch.ownToolsCoeff ?? null
     patchRows(inSection, (r) => ({ ...r, ...applied }))
-    const res = await updateSectionFieldAction(sectionId, patch)
-    if (res.success) {
-      router.refresh()
-      return
-    }
-    // Persist failed — restore the section's prior coefficients so the grid doesn't show an unsaved price.
-    if (sample) {
-      const restored: { sectionWToolsCoeff?: number | null; sectionOwnToolsCoeff?: number | null } =
-        {}
-      if ('wToolsCoeff' in patch) restored.sectionWToolsCoeff = sample.sectionWToolsCoeff
-      if ('ownToolsCoeff' in patch) restored.sectionOwnToolsCoeff = sample.sectionOwnToolsCoeff
-      patchRows(inSection, (r) => ({ ...r, ...restored }))
-    }
-    toastMessage(res.error ?? 'Nie udało się zapisać współczynnika sekcji', 'warning', 4000)
+    await optimisticSettingSave(
+      () => updateSectionFieldAction(sectionId, patch),
+      () => {
+        // Restore the section's prior coefficients so the grid doesn't show an unsaved price.
+        if (!sample) return
+        const restored: {
+          sectionWToolsCoeff?: number | null
+          sectionOwnToolsCoeff?: number | null
+        } = {}
+        if ('wToolsCoeff' in patch) restored.sectionWToolsCoeff = sample.sectionWToolsCoeff
+        if ('ownToolsCoeff' in patch) restored.sectionOwnToolsCoeff = sample.sectionOwnToolsCoeff
+        patchRows(inSection, (r) => ({ ...r, ...restored }))
+      },
+      'Nie udało się zapisać współczynnika sekcji',
+    )
   }
 
   function onChange(next: KosztorysV2RowT[]) {
