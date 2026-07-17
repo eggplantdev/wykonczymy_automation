@@ -11,6 +11,6 @@ export function parseDecimalInput(raw: string): DecimalInputParseT {
   const trimmed = raw.trim().replace(',', '.')
   if (trimmed === '') return { kind: 'empty' }
   const value = Number(trimmed)
-  if (Number.isNaN(value)) return { kind: 'invalid' }
+  if (!Number.isFinite(value)) return { kind: 'invalid' }
   return { kind: 'value', value }
 }

@@ -2,7 +2,7 @@
 
 import type { FocusEvent, KeyboardEvent } from 'react'
 import { HintTooltip } from '@/components/ui/tooltip'
-import { parseDecimalInput } from '@/lib/kosztorys/parse-decimal-input'
+import { parseDecimalInput } from '@/lib/utils/parse-decimal-input'
 
 type PropsT = {
   label: string

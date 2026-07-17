@@ -1,7 +1,7 @@
 import { Column, type CellProps } from 'react-datasheet-grid'
 import { CellSelectMenu } from '@/components/kosztorys/cell-select-menu'
 import { effectiveCoeff, viewPrice } from '@/lib/kosztorys/calc'
-import { parseDecimalInput } from '@/lib/kosztorys/parse-decimal-input'
+import { parseDecimalInput } from '@/lib/utils/parse-decimal-input'
 import { formatNet as fmt } from '@/lib/kosztorys/format'
 import type { KosztorysV2RowT, SubcontractorOverrideTypeT, ViewPricingT } from '@/types/kosztorys'
 import type { ReactNode } from 'react'

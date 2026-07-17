@@ -1,4 +1,4 @@
-import { parseDecimalInput } from '@/lib/kosztorys/parse-decimal-input'
+import { parseDecimalInput } from '@/lib/utils/parse-decimal-input'
 import type { DiscountTypeT } from '@/types/kosztorys'
 
 // discountType and discountValue are two independent fields, and applyDiscount reads the type
@@ -11,7 +11,6 @@ export type DiscountPairT = { discountType: DiscountTypeT | null; discountValue:
 // Percent, not amount: a rabat is asked for in % far more often than in zł.
 const IMPLIED_TYPE: DiscountTypeT = 'percent'
 
-/** Editing the value: a number with no type set implies one; clearing the field drops the discount. */
 export function discountFromValue(current: DiscountPairT, raw: string): DiscountPairT | null {
   const parsed = parseDecimalInput(raw)
   if (parsed.kind === 'empty') return { discountType: null, discountValue: 0 }
@@ -20,7 +19,6 @@ export function discountFromValue(current: DiscountPairT, raw: string): Discount
   return { discountType: current.discountType ?? IMPLIED_TYPE, discountValue: parsed.value }
 }
 
-/** Editing the type: clearing it clears the value, so no orphan can be left behind. */
 export function discountFromType(
   current: DiscountPairT,
   next: DiscountTypeT | null,
