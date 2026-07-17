@@ -1,9 +1,6 @@
-import { notFound, redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { requireAuth } from '@/lib/auth/require-auth'
-import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
-import { getInvestment } from '@/lib/queries/investments'
+import { requireInvestmentOr404 } from '@/lib/queries/investments'
 import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
 import { SheetButton } from '@/components/dialogs/sheet-button'
 import { SheetIframeView } from '@/components/sheets/iframe-view'
@@ -17,14 +14,7 @@ export default async function InvestmentKosztorysPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const investmentId = Number(id)
-  if (!Number.isFinite(investmentId) || investmentId <= 0) notFound()
-
-  const session = await requireAuth(MANAGEMENT_ROLES)
-  if (!session.success) redirect('/')
-
-  const investment = await getInvestment(id)
-  if (!investment) notFound()
+  const { investmentId, investment } = await requireInvestmentOr404(id)
 
   // Sheet id lives on the kosztoryses collection, not on investments.
   const payload = await getPayload({ config })

@@ -1,7 +1,4 @@
-import { notFound, redirect } from 'next/navigation'
-import { requireAuth } from '@/lib/auth/require-auth'
-import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
-import { getInvestment } from '@/lib/queries/investments'
+import { requireInvestmentOr404 } from '@/lib/queries/investments'
 import { getKosztorysTree } from '@/lib/queries/kosztorys'
 import { KosztorysEditorV2 } from '@/components/kosztorys/kosztorys-editor-v2'
 
@@ -13,14 +10,8 @@ export default async function InvestmentKosztorysV2Page({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const investmentId = Number(id)
-  if (!Number.isFinite(investmentId) || investmentId <= 0) notFound()
-
-  const session = await requireAuth(MANAGEMENT_ROLES)
-  if (!session.success) redirect('/')
-
-  const [investment, tree] = await Promise.all([getInvestment(id), getKosztorysTree(investmentId)])
-  if (!investment) notFound()
+  const { investmentId, investment } = await requireInvestmentOr404(id)
+  const tree = await getKosztorysTree(investmentId)
 
   return (
     <KosztorysEditorV2 investmentId={investmentId} tree={tree} investmentName={investment.name} />

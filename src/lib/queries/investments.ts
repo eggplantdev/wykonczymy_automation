@@ -1,4 +1,5 @@
 import { unstable_cache, cacheLife, cacheTag } from 'next/cache'
+import { notFound, redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { CACHE_TAGS, entityTag } from '@/lib/cache/tags'
@@ -70,6 +71,24 @@ export async function fetchAllInvestments(): Promise<InvestmentRowT[]> {
     fetchInvestmentFinancials(),
   ])
   return shapeInvestments(refData.investments, financials)
+}
+
+// Shared page guard: parse the route id, require a management session, and load the investment —
+// bouncing to notFound() on a bad/missing id and to the login page on a failed auth. Returns the
+// investment (non-null past this point) plus the numeric id the page needs. Pages that already hold
+// the investment from another fetch (e.g. the detail page's refData) don't use this — it would double
+// the load.
+export async function requireInvestmentOr404(id: string) {
+  const investmentId = Number(id)
+  if (!Number.isFinite(investmentId) || investmentId <= 0) notFound()
+
+  const session = await requireAuth(MANAGEMENT_ROLES)
+  if (!session.success) redirect('/zaloguj')
+
+  const investment = await getInvestment(id)
+  if (!investment) notFound()
+
+  return { investmentId, investment }
 }
 
 export async function getInvestment(id: string) {
