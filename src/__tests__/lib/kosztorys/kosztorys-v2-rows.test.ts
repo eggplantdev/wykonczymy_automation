@@ -405,6 +405,96 @@ describe('wartość wiersza idzie za etapami', () => {
       expect(hasStagesOverPlanned(offered({ plannedQty: 0 }), stages)).toBe(false)
     })
   })
+
+  // Regresja (widoki cen): „Wykonano %" to postęp robót, nie figura pieniężna — musi czytać tak samo
+  // w każdym widoku cen. Wcześniej sekcja i licznik dzieliły wartość netto AKTYWNEGO widoku, więc ten
+  // sam postęp pokazywał 108 / 266 / 43% zależnie od cennika. Fixture: jedna sekcja, dwa wiersze z
+  // per-item override'ami 'amount', tak dobranymi, że stosunek WARTOŚCI sekcji skacze po widoku
+  // (75% / 119,8% / 30,2%), a completionRatio ma zostać 75% wszędzie.
+  describe('completionRatio jest przypięty do ceny klienta (niezależny od widoku)', () => {
+    // Computed stage key next to string fields widens the literal's index signature — spread it apart.
+    const done = (qty: number) => ({ [stageKey(100)]: qty })
+    const rows = [
+      row({
+        id: 1,
+        clientPrice: 100,
+        plannedQty: 10,
+        wToolsOverrideType: 'amount',
+        wToolsOverrideValue: 500,
+        ownToolsOverrideType: 'amount',
+        ownToolsOverrideValue: 1,
+        ...done(12),
+      }),
+      row({
+        id: 2,
+        clientPrice: 100,
+        plannedQty: 10,
+        wToolsOverrideType: 'amount',
+        wToolsOverrideValue: 1,
+        ownToolsOverrideType: 'amount',
+        ownToolsOverrideValue: 500,
+        ...done(3),
+      }),
+    ]
+
+    it('procent wykonania sekcji nie idzie za cennikiem', () => {
+      for (const view of ['client', 'w_tools', 'own_tools'] as const) {
+        const [section] = sectionSubtotalsForView(rows, stages, view)
+        expect(section.completionRatio).toBeCloseTo(0.75, 10) // 1500 wykonane / 2000 oferta (cena klienta)
+      }
+    })
+
+    it('wartość netto sekcji NADAL idzie za widokiem — postęp nie', () => {
+      const asClient = sectionSubtotalsForView(rows, stages, 'client')[0]
+      const asWtools = sectionSubtotalsForView(rows, stages, 'w_tools')[0]
+      expect(asClient.net).toBe(1500)
+      expect(asWtools.net).toBe(6003) // pieniądze idą za widokiem…
+      expect(asWtools.completionRatio).toBeCloseTo(asClient.completionRatio as number, 10) // …postęp nie
+    })
+  })
+
+  // „Udział" (ile sekcja stanowi wykonanych kosztów) to też figura strukturalna, nie pieniężna — nie
+  // może skakać po zmianie cennika. Dwie sekcje, każda jeden wiersz z per-item override'em 'amount'
+  // tak dobranym, że przy cenie wykonawcy jedna sekcja puchnie względem drugiej; udział ma zostać
+  // 50/50 (cena klienta) w każdym widoku.
+  describe('share jest przypięty do ceny klienta (niezależny od widoku)', () => {
+    const done = (qty: number) => ({ [stageKey(100)]: qty })
+    const rows = [
+      row({
+        id: 1,
+        sectionId: 10,
+        clientPrice: 100,
+        wToolsOverrideType: 'amount',
+        wToolsOverrideValue: 500,
+        ...done(10),
+      }),
+      row({
+        id: 2,
+        sectionId: 20,
+        sectionName: 'Sekcja B',
+        clientPrice: 100,
+        wToolsOverrideType: 'amount',
+        wToolsOverrideValue: 1,
+        ...done(10),
+      }),
+    ]
+
+    it('udział sekcji nie idzie za cennikiem', () => {
+      for (const view of ['client', 'w_tools', 'own_tools'] as const) {
+        const [a, b] = sectionSubtotalsForView(rows, stages, view)
+        expect(a.share).toBeCloseTo(0.5, 10)
+        expect(b.share).toBeCloseTo(0.5, 10)
+      }
+    })
+
+    it('wartość netto NADAL idzie za widokiem — udział nie', () => {
+      const [aClient] = sectionSubtotalsForView(rows, stages, 'client')
+      const [aWtools] = sectionSubtotalsForView(rows, stages, 'w_tools')
+      expect(aClient.net).toBe(1000)
+      expect(aWtools.net).toBe(5000) // pieniądze idą za widokiem…
+      expect(aWtools.share).toBeCloseTo(aClient.share, 10) // …udział nie
+    })
+  })
 })
 
 describe('planItemRemoval', () => {

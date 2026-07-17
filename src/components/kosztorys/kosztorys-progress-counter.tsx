@@ -14,10 +14,7 @@ type PropsT = {
   moneyAxis: MoneyAxisT
 }
 
-const LEGEND = [
-  'Procent = wartość wykonanych etapów ÷ wartość przedmiaru.',
-  'Powyżej 100% = zrobiono więcej, niż przewidywał przedmiar.',
-].join('\n')
+const LEGEND = 'Procent = wartość wykonanych etapów ÷ wartość przedmiaru wg ceny klienta.'
 
 export function KosztorysProgressCounter({ doneNet, plannedNet, vatRate, moneyAxis }: PropsT) {
   // No przedmiar → nothing to divide by, so the whole counter is meaningless — render nothing.
@@ -38,7 +35,7 @@ export function KosztorysProgressCounter({ doneNet, plannedNet, vatRate, moneyAx
   return (
     <HintTooltip content={tooltip} className="flex items-center gap-2">
       <span className="text-muted-foreground text-xs tabular-nums">
-        Wykonano: {formatPercentPrecise(ratio)}
+        Postęp prac: {formatPercentPrecise(ratio)}
       </span>
       <span
         role="progressbar"

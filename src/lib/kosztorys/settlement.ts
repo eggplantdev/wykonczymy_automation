@@ -73,6 +73,11 @@ export function sectionSubtotalsForView(
   view: PriceViewT,
 ): SectionSubtotalT[] {
   const bySection = new Map<number, SectionSubtotalT>()
+  // completionRatio AND share are progress/structure figures, so both are weighted at the client price
+  // regardless of `view`: per-item price overrides shift a section's executed VALUE against the others,
+  // so the same physical progress and the same cost split must not read differently per view.
+  // Accumulated apart from the money net above, which does follow the view.
+  const clientBySection = new Map<number, { executed: number; offered: number }>()
   for (const row of rows) {
     let acc = bySection.get(row.sectionId)
     if (!acc) {
@@ -82,16 +87,26 @@ export function sectionSubtotalsForView(
         net: 0,
         plannedNet: 0,
         share: 0,
+        completionRatio: null,
         itemCount: 0,
       }
       bySection.set(row.sectionId, acc)
+      clientBySection.set(row.sectionId, { executed: 0, offered: 0 })
     }
     acc.net += rowValueForView(row, stages, view)
     acc.plannedNet += rowPlannedNetForView(row, view)
     acc.itemCount += 1
+    const client = clientBySection.get(row.sectionId)!
+    client.executed += rowValueForView(row, stages, 'client')
+    client.offered += rowPlannedNetForView(row, 'client')
   }
   const result = [...bySection.values()]
-  const grandNet = result.reduce((sum, s) => sum + s.net, 0)
-  if (grandNet > 0) for (const s of result) s.share = s.net / grandNet
+  for (const s of result) {
+    const client = clientBySection.get(s.sectionId)!
+    s.completionRatio = client.offered > 0 ? client.executed / client.offered : null
+  }
+  const grandClientNet = [...clientBySection.values()].reduce((sum, c) => sum + c.executed, 0)
+  if (grandClientNet > 0)
+    for (const s of result) s.share = clientBySection.get(s.sectionId)!.executed / grandClientNet
   return result
 }

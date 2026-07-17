@@ -136,8 +136,13 @@ export type KosztorysV2RowT = KosztorysV2RowBaseT & {
 export type SectionSubtotalT = {
   sectionId: number
   sectionName: string
-  net: number // executed (the sheet's T)
-  plannedNet: number // offered (the sheet's S)
-  share: number // 0..1, share of the combined net total of all sections
+  net: number // executed (the sheet's T), at the active price view — a MONEY figure
+  plannedNet: number // offered (the sheet's S), at the active price view — a MONEY figure
+  // 0..1, the section's share of all sections' executed value — weighted at the CLIENT price only, so
+  // like completionRatio it is a STRUCTURE figure that must not move with the price view.
+  share: number
+  // Completion (executed ÷ offered) weighted at the CLIENT price only — a PROGRESS figure, so it
+  // must not move with the price view. `null` when there is no offer to divide by.
+  completionRatio: number | null
   itemCount: number
 }

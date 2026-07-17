@@ -94,10 +94,11 @@ export function KosztorysSectionSummary({
                   <button
                     type="button"
                     onClick={() => startEdit(s.sectionId, s.sectionName)}
-                    className="text-foreground truncate text-left text-sm hover:underline"
-                    title="Zmień nazwę"
+                    className="group text-foreground flex min-w-0 items-center gap-1 text-left text-sm"
+                    title="Edytuj nazwę"
                   >
-                    {s.sectionName}
+                    <span className="truncate">{s.sectionName}</span>
+                    <Pencil className="text-muted-foreground size-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
                   </button>
                 )}
                 <span className="text-foreground shrink-0 text-sm tabular-nums">{fmt(s.net)}</span>
@@ -175,14 +176,6 @@ export function KosztorysSectionSummary({
                       </button>
                       <button
                         type="button"
-                        onClick={() => startEdit(s.sectionId, s.sectionName)}
-                        title="Zmień nazwę"
-                        className="hover:text-foreground p-1"
-                      >
-                        <Pencil className="size-4" />
-                      </button>
-                      <button
-                        type="button"
                         onClick={() => confirmRemove(s)}
                         title="Usuń sekcję"
                         className="hover:text-destructive p-1"
@@ -195,16 +188,15 @@ export function KosztorysSectionSummary({
 
                 <HintTooltip
                   className="w-fit flex-col gap-0.5"
-                  content={
-                    'Liczba prac w sekcji, udział sekcji w wartości kosztorysu oraz jej wykonanie.\n\nUdział = wartość sekcji ÷ wartość kosztorysu.\nWykonano = wartość wykonanych etapów w sekcji ÷ wartość przedmiaru sekcji.\n\nOba procenty liczą się od wartości, nie od liczby pozycji, i zależą od aktywnego widoku cen.\n„—" przy wykonaniu = sekcja nie ma jeszcze przedmiaru.'
-                  }
+                  content={'Wartości liczone po cenie klienta.'}
                 >
-                  <span>{s.itemCount} prac</span>
-                  <span>Sekcja stanowi {formatPercentPrecise(s.share)} kosztów</span>
-                  <span>
-                    Wykonano {formatPercentPrecise(s.plannedNet > 0 ? s.net / s.plannedNet : null)}{' '}
-                    sekcji
-                  </span>
+                  <span>Ilość pozycji: {s.itemCount}</span>
+                  {s.completionRatio !== null && (
+                    <>
+                      <span>Udział w całości kosztorysu: {formatPercentPrecise(s.share)}</span>
+                      <span>Wykonano {formatPercentPrecise(s.completionRatio)}</span>
+                    </>
+                  )}
                 </HintTooltip>
               </div>
             </li>

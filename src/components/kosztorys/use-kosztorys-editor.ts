@@ -177,13 +177,23 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   // Per-section subtotals: the FULL dataset (not viewRows) — a stable breakdown independent of
   // the filter/sort.
   const subtotals = useMemo(() => sectionSubtotalsForView(rows, stages, view), [rows, stages, view])
-  // Executed and offered, both derived from the subtotals rather than re-walking rows × stages.
-  // Same full-dataset rule as the subtotals: the counter answers for the whole kosztorys, so a
-  // search or a section filter must not move it.
+  // Executed total at the active view — the money the totals bar shows and the base the global
+  // discount comes off. Full-dataset (like the subtotals): a search or section filter must not move it.
   const totalNet = useMemo(() => subtotals.reduce((s, x) => s + x.net, 0), [subtotals])
-  const totalPlannedNet = useMemo(
-    () => subtotals.reduce((s, x) => s + x.plannedNet, 0),
-    [subtotals],
+  // The progress counter is a PROGRESS figure, not money — it must read the same in every price view,
+  // so its executed/offered are weighted at the client price (a separate client-priced pass), never
+  // the active `view`. Same client basis as each section's completionRatio.
+  const progressSubtotals = useMemo(
+    () => sectionSubtotalsForView(rows, stages, 'client'),
+    [rows, stages],
+  )
+  const doneNet = useMemo(
+    () => progressSubtotals.reduce((s, x) => s + x.net, 0),
+    [progressSubtotals],
+  )
+  const plannedNet = useMemo(
+    () => progressSubtotals.reduce((s, x) => s + x.plannedNet, 0),
+    [progressSubtotals],
   )
 
   // Global discount amount + "do zapłaty", computed ONCE here off the executed total. Both total
@@ -707,7 +717,8 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     // subtotals + section panel
     subtotals,
     totalNet,
-    totalPlannedNet,
+    doneNet,
+    plannedNet,
     sectionCoeffs,
     globalDiscount,
     discountAmount,

@@ -16,8 +16,8 @@ export function KosztorysEditorToolbar() {
     tree,
     view,
     globalDiscount,
-    totalNet,
-    totalPlannedNet,
+    doneNet,
+    plannedNet,
     moneyAxis,
     handleGlobalCoeffChange,
     handleVatChange,
@@ -51,8 +51,8 @@ export function KosztorysEditorToolbar() {
         />
         <div className="ml-auto">
           <KosztorysProgressCounter
-            doneNet={totalNet}
-            plannedNet={totalPlannedNet}
+            doneNet={doneNet}
+            plannedNet={plannedNet}
             vatRate={tree.vatRate}
             moneyAxis={moneyAxis}
           />
