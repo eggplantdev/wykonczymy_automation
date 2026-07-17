@@ -8,7 +8,7 @@ import {
   hasStagesOverPlanned,
   sectionSubtotalsForView,
 } from '@/lib/kosztorys/settlement'
-import { revertField } from '@/lib/kosztorys/row-ops'
+import { applyRestoreItem, revertField } from '@/lib/kosztorys/row-ops'
 import { planItemRemoval, REMOVE_BLOCK_LAST_ITEM } from '@/lib/kosztorys/delete-policy'
 import { rowDoneFraction } from '@/lib/kosztorys/calc'
 import {
@@ -18,7 +18,7 @@ import {
   stageKey,
   stageValueGrossKey,
   stageValueNetKey,
-} from '@/lib/kosztorys/constants'
+} from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysTreeT, KosztorysV2RowT } from '@/types/kosztorys'
 
 const baseItem = {
@@ -473,5 +473,32 @@ describe('revertField', () => {
   it('nie rusza wierszy o innym id', () => {
     const out = revertField(rows, 99, 'plannedQty', 0, 8)
     expect(out).toEqual(rows)
+  })
+})
+
+describe('applyRestoreItem — reinsert a removed row after a failed delete', () => {
+  const row = (id: number) => ({ id }) as KosztorysV2RowT
+
+  it('wstawia usunięty wiersz z powrotem za sąsiada, którego wcześniej następował', () => {
+    const removed = row(2)
+    const after = applyRestoreItem([row(1), row(3), row(4)], removed, 1)
+    expect(after.map((r) => r.id)).toEqual([1, 2, 3, 4])
+  })
+
+  it('wstawia na początek, gdy wiersz był pierwszy (afterId === null)', () => {
+    const after = applyRestoreItem([row(2), row(3)], row(1), null)
+    expect(after.map((r) => r.id)).toEqual([1, 2, 3])
+  })
+
+  it('trafia we właściwe miejsce mimo współbieżnej edycji podczas await', () => {
+    // Row 2 was removed after row 1; while the delete was in flight the user inserted row 9 at the
+    // front. A stale absolute index would misplace 2 — anchoring on afterId=1 keeps it correct.
+    const after = applyRestoreItem([row(9), row(1), row(3)], row(2), 1)
+    expect(after.map((r) => r.id)).toEqual([9, 1, 2, 3])
+  })
+
+  it('dokleja na koniec, gdy sąsiad zniknął w międzyczasie', () => {
+    const after = applyRestoreItem([row(3), row(4)], row(2), 1)
+    expect(after.map((r) => r.id)).toEqual([3, 4, 2])
   })
 })

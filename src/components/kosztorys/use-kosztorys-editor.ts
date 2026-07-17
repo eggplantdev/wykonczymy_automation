@@ -18,6 +18,7 @@ import {
   applyAddItem,
   applyInsertItem,
   applyRemoveItem,
+  applyRestoreItem,
   buildBlankRow,
   insertDisplayOrder,
   revertField,
@@ -327,18 +328,18 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       await handleRemoveSection(row.sectionId)
       return
     }
-    const removedAt = rowsRef.current.findIndex((r) => r.id === row.id)
+    const rowsAtRemoval = rowsRef.current
+    const removedAt = rowsAtRemoval.findIndex((r) => r.id === row.id)
+    const afterId = removedAt > 0 ? rowsAtRemoval[removedAt - 1].id : null
     prevById.current.delete(row.id)
     setRows((rs) => applyRemoveItem(rs, row.id))
     const res = await removeItemAction(row.id)
     if (!res.success) {
-      // Server rejected (client/server predicate drift) — restore the row at its original position
-      // and surface the block. applyAddItem would re-append it at the grid's end.
+      // Server rejected (client/server predicate drift) — restore the row after the neighbor it
+      // followed, resolved against the current rows so a concurrent edit during the await can't
+      // misplace it (applyAddItem would re-append it at the grid's end).
       prevById.current.set(row.id, row)
-      setRows((rs) => {
-        const at = removedAt < 0 ? rs.length : Math.min(removedAt, rs.length)
-        return [...rs.slice(0, at), row, ...rs.slice(at)]
-      })
+      setRows((rs) => applyRestoreItem(rs, row, afterId))
       toastMessage(res.error ?? 'Nie udało się usunąć pozycji', 'warning', 4000)
     }
   }
@@ -556,14 +557,18 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     const res = await updateInvestmentVatAction(investmentId, vatRate)
     if (res.success) {
       router.refresh()
-    } else if (prevVatRate !== undefined) {
-      // Persist failed — roll the optimistic VAT back so the grid doesn't show an unsaved rate.
+      return
+    }
+    // Persist failed — roll the optimistic VAT back so the grid doesn't show an unsaved rate (a no-op
+    // when there were no rows to patch), and always surface it. The toast must NOT hang off prevVatRate:
+    // an empty kosztorys has no rows[0], so gating the toast on it would swallow the failure silently.
+    if (prevVatRate !== undefined) {
       patchRows(
         () => true,
         (r) => ({ ...r, vatRate: prevVatRate }),
       )
-      toastMessage(res.error ?? 'Nie udało się zapisać stawki VAT', 'warning', 4000)
     }
+    toastMessage(res.error ?? 'Nie udało się zapisać stawki VAT', 'warning', 4000)
   }
 
   // Setting/clearing the global discount flips per-item rabat on or off for every row. Update the

@@ -75,6 +75,21 @@ export function applyRemoveItem(rows: KosztorysV2RowT[], itemId: number): Koszto
   return rows.filter((r) => r.id !== itemId)
 }
 
+// Put a removed row back after a failed delete. `afterId` is the id the row followed at removal time
+// (null = it was first). Resolved against the CURRENT array, not a stale index, so a concurrent
+// add/remove/reorder during the delete's await can't misplace it: land right after `afterId` if it's
+// still present, at the front if the row was first, else append.
+export function applyRestoreItem(
+  rows: KosztorysV2RowT[],
+  row: KosztorysV2RowT,
+  afterId: number | null,
+): KosztorysV2RowT[] {
+  if (afterId === null) return [row, ...rows]
+  const anchor = rows.findIndex((r) => r.id === afterId)
+  const at = anchor < 0 ? rows.length : anchor + 1
+  return [...rows.slice(0, at), row, ...rows.slice(at)]
+}
+
 // display_order the inserted row takes: "above" claims the anchor's slot, "below" the next one.
 // Mirrors insertItemAction's server-side insert point.
 export function insertDisplayOrder(anchor: KosztorysV2RowT, dir: 'above' | 'below'): number {
