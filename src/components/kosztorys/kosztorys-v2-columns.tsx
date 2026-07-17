@@ -94,12 +94,19 @@ function withTip(node: ReactNode, tip: string): ReactNode {
 
 // Column title as a sort-menu header (when onSetSort is provided), wrapped in an explanatory
 // tooltip when the field has one in HEADER_TIPS.
-function title(field: string, label: string, opts: BuildV2ColumnsOptsT): ReactNode {
+// `sortable: false` for columns whose value is categorical or dash-laden (the subcontractor
+// „źródło ceny" pair) — a sort trigger there would render a caret over a sort nothing can resolve.
+function title(
+  field: string,
+  label: string,
+  opts: BuildV2ColumnsOptsT,
+  sortable = true,
+): ReactNode {
   const active = opts.sort?.field === field ? opts.sort.dir : null
   const tip = HEADER_TIPS[field]
   // The tip goes ONTO the sort trigger (same element), not around it — a second wrapping trigger
   // would fight the dropdown for the click. Plain-label columns have no trigger, so wrap directly.
-  if (opts.onSetSort) {
+  if (opts.onSetSort && sortable) {
     return (
       <SortHeader
         label={label}
@@ -115,9 +122,9 @@ function title(field: string, label: string, opts: BuildV2ColumnsOptsT): ReactNo
 
 // Header of a per-stage value column: a read-only mirror of the stage's name. One source for the
 // name, so a rename moves all three of the stage's headers and a delete takes all three columns.
-// Deliberately not `title(...)` — sort is wired only for price/net/remaining (see sortValue in
-// use-kosztorys-editor), so a sort trigger here would render an arrow that does nothing. Deliberately
-// not `StageHeader` — a mirror carries no rename/delete affordance of its own.
+// Deliberately not `title(...)` — these columns carry per-stage dynamic ids that columnSortValue
+// (lib/kosztorys/sort-value) has no case for, so a sort trigger here would render an arrow that does
+// nothing. Deliberately not `StageHeader` — a mirror carries no rename/delete affordance of its own.
 function stageValueHeader(stage: KosztorysStageT, suffix: string, tip: string): ReactNode {
   // truncate, not wrap: the label is the user's free text and the suffix trails it, so an
   // unbounded header would push the row's height around as stages get renamed.
@@ -214,8 +221,11 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
           }),
         ]
       : [
-          subcontractorModeColumn(view, title('priceMode', COLUMN_LABELS.priceMode, opts)),
-          subcontractorCoeffColumn(view, title('priceCoeff', COLUMN_LABELS.priceCoeff, opts)),
+          subcontractorModeColumn(view, title('priceMode', COLUMN_LABELS.priceMode, opts, false)),
+          subcontractorCoeffColumn(
+            view,
+            title('priceCoeff', COLUMN_LABELS.priceCoeff, opts, false),
+          ),
           subcontractorPriceColumn(view, title('price', COLUMN_LABELS.price, opts)),
         ]
   const identity: Column<KosztorysV2RowT>[] = [

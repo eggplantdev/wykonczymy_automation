@@ -31,12 +31,9 @@ import {
   sectionItemCounts,
   type ItemRemovalPlanT,
 } from '@/lib/kosztorys/delete-policy'
-import {
-  rowRemainingForView,
-  rowValueForView,
-  sectionSubtotalsForView,
-} from '@/lib/kosztorys/settlement'
+import { sectionSubtotalsForView } from '@/lib/kosztorys/settlement'
 import { filterRows, sortRows, type SortDirT } from '@/lib/kosztorys/row-view'
+import { columnSortValue, reconcileSort } from '@/lib/kosztorys/sort-value'
 import { NEW_SECTION_DEFAULTS } from '@/lib/kosztorys/constants'
 import {
   stageKey,
@@ -44,12 +41,7 @@ import {
   stageValueNetKey,
   stageValuePercentKey,
 } from '@/lib/kosztorys/stage-keys'
-import {
-  globalDiscountAmount,
-  isGlobalDiscountActive,
-  viewPrice,
-  type PriceViewT,
-} from '@/lib/kosztorys/calc'
+import { globalDiscountAmount, isGlobalDiscountActive } from '@/lib/kosztorys/calc'
 import {
   addItemAction,
   addSectionAction,
@@ -76,26 +68,6 @@ import type {
 } from '@/lib/kosztorys/types'
 
 type ArgsT = { investmentId: number; tree: KosztorysTreeT }
-
-function sortValue(
-  row: KosztorysV2RowT,
-  field: string,
-  view: PriceViewT,
-  stages: KosztorysStageT[],
-): string | number | null {
-  switch (field) {
-    case 'price':
-      return viewPrice(row, view)
-    case 'net':
-      return rowValueForView(row, stages, view)
-    case 'remaining':
-      return rowRemainingForView(row, stages, view)
-    default: {
-      const v = row[field as keyof KosztorysV2RowT]
-      return (typeof v === 'number' ? v : (v ?? '')) as string | number
-    }
-  }
-}
 
 // All editor state, derived data, and handlers for the in-app kosztorys grid. Kept out of the
 // component so the component is only composition + markup. Handlers never fire an action from
@@ -180,6 +152,18 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     globalDiscountActive,
   }
   const { columns, columnToggleItems } = buildV2Grid(columnOpts)
+  // A column sort must not outlive its column. A money-axis or view toggle can drop the sorted
+  // column, taking its SortHeader — the only control that clears the sort — with it, while the sort
+  // state lingers: the rows freeze in an unexplained order and the row actions stay disabled with no
+  // way to re-enable them (EX-486). Forget the sort when its field stops rendering. Cleared as real
+  // state, not derived, so it does not resurrect if the column later returns (owner, 2026-07-17).
+  // setState during render is React's sanctioned "adjust state on an input change" path: the
+  // condition bails the loop, and this render (its columns built with the stale sort) is discarded
+  // before commit — the column set is sort-independent, so the retry rebuilds the same columns.
+  const renderedFieldIds = new Set(
+    columns.map((c) => c.id).filter((id): id is string => id != null),
+  )
+  if (reconcileSort(sort, renderedFieldIds) !== sort) setSort(null)
   const widthsKey = JSON.stringify(widths)
   const stagesKey = stages.map((s) => s.id).join(',')
 
@@ -189,7 +173,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       shownSectionIds === null ? rows : rows.filter((r) => shownSectionIds.has(r.sectionId))
     const filtered = filterRows(scoped, search)
     if (!sort) return filtered
-    return sortRows(filtered, (r) => sortValue(r, sort.field, view, stages), sort.dir)
+    return sortRows(filtered, (r) => columnSortValue(r, sort.field, view, stages), sort.dir)
   }, [rows, shownSectionIds, search, sort, view, stages])
 
   // Per-section subtotals: the FULL dataset (not viewRows) — a stable breakdown independent of
