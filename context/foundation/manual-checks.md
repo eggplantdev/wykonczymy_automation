@@ -406,13 +406,15 @@ Setup: run the app against the **5435 test DB** (see intro; migration applied th
 
 ### Phase 4: UI — kontrolka rabatu + dwie sumy
 
-- [ ] **Rabat procentowy → nadpisanie.** Wybierz „procent %", wpisz np. 10 → cztery kolumny rabatu per pozycja znikają (i z pikera kolumn), figury per wiersz są brutto rabatu per pozycja, a „Rabat globalny" odejmuje 10% od sumy wykonanych prac.
-- [ ] **Obie sumy zgodne.** Blok „Suma" w panelu Sekcje i pasek sum pod siatką pokazują identyczne „Do zapłaty netto" i „Do zapłaty brutto".
-- [ ] **Oś netto/brutto.** Przełącznik Netto/Brutto działa na pasku sum (netto-only / brutto-only / oba).
-- [ ] **Rabat kwotowy → płaskie odjęcie.** Wybierz „kwota zł", wpisz kwotę → to samo nadpisanie, a rabat to płaskie odjęcie tej kwoty (nie procent).
-- [ ] **Wyczyszczenie rabatu → powrót.** Wybierz „brak" → kolumny i rabaty per pozycja wracają, sumy wracają do „Suma netto/brutto".
-- [ ] **Snapshot + odtworzenie.** Zrób wersję kosztorysu z rabatem, odtwórz ją → rabat globalny zachowany.
-- [ ] **Marża karty inwestycji bez zmian** (poza zakresem — kosztorys odłączony od księgi).
+_Driven 2026-07-17 (browser, 5435 test DB, INV=6 seed 43 poz., VAT 8%, Suma netto 1940,00 / brutto 2095,20)._
+
+- [x] **Rabat procentowy → nadpisanie.** „%" + 10 → cztery kolumny rabatu per pozycja znikają z siatki i z pikera „Widok", a pasek sum pokazuje Rabat −194,00 / Do zapłaty netto 1746,00 / brutto 1885,68.
+- [x] **~~Obie sumy zgodne~~ → jedno źródło, jeden pasek.** Premisa nieaktualna: duplikat „Suma" w panelu Sekcje **celowo usunięto** (commit c6dc24e — „two totals one source"). Jest jeden pasek sum pod siatką (`kosztorys-totals-bar.tsx`), zasilany jednym `doZaplatyNet` z hooka edytora; `kosztorys-section-summary.tsx` renderuje tylko podsumy per sekcja, bez agregatu. Zweryfikowano brak drugiego bloku „Suma". _(Naprawiono przy okazji 2 nieaktualne komentarze wskazujące usunięty blok — Step 2.)_
+- [x] **Oś netto/brutto.** Widok → odznaczenie „Netto" zwija pasek do brutto-only („Suma brutto 2095,20 / Rabat −194,00 / Do zapłaty brutto 1885,68"); oba zaznaczone = netto+brutto. Napędza go `moneyAxis` (`showNet`/`showGross`).
+- [x] **Rabat kwotowy → płaskie odjęcie.** „kwota zł" + 200 → Do zapłaty netto 1740,00 (płaskie −200, nie procent).
+- [x] **Wyczyszczenie rabatu → powrót.** „brak" → cztery kolumny rabatu per pozycja wracają do siatki, pasek wraca do „Suma netto 1940,00 / Suma brutto 2095,20".
+- [x] **Snapshot + odtworzenie.** Zapisano wersję „rabat-10pct-test" z rabatem 10% (payload `settings.globalDiscountType=percent, globalDiscountValue=10`), wyczyszczono rabat do „brak", odtworzono → rabat wrócił (pasek 1746,00; `investments` id=6 → `percent|10`). Round-trip przez `snapshot-format.ts` → `restore-kosztorys.ts`.
+- [x] **Marża karty inwestycji bez zmian** (poza zakresem). Potwierdzone przez kod: `globalDiscount` czytany **wyłącznie** przez ścieżki edytora kosztorysu (query/calc/serialize/restore); żadna kalkulacja finansowa w `src/lib/db/` nie odwołuje się do `global_discount` — marża liczona z transferów, strukturalnie odłączona.
 
 ## kosztorys-section-append — Dodaj sekcję z szablonu (EX-503)
 
