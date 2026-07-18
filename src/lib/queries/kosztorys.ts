@@ -1,6 +1,8 @@
 import 'server-only'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
+import { requireAuth } from '@/lib/auth/require-auth'
 import { DEFAULT_COEFFS, DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import { assertCompletePage } from '@/lib/queries/assert-complete-page'
 import type {
@@ -22,6 +24,11 @@ const num = (v: unknown): number => Number(v ?? 0)
 // S-01: sections + items of a single investment, ordered by displayOrder → displayOrder.
 // S-04: stages (ordered by ordinal) + sparse per-item progress. S-05: per-investment VAT rate.
 export async function getKosztorysTree(investmentId: number): Promise<KosztorysTreeT> {
+  // DAL guard: the read authorizes itself rather than trusting its caller. requireAuth's session
+  // lookup is React-cache()'d, so a page that already guards pays for this only once.
+  const session = await requireAuth(MANAGEMENT_ROLES)
+  if (!session.success) throw new Error(session.error)
+
   const payload = await getPayload({ config })
   const where = { investment: { equals: investmentId } }
 
