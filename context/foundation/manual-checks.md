@@ -527,7 +527,7 @@ z ≥1 sekcją, ≥1 etapem i kilkoma pozycjami.
 
 ### Faza 4: hardening cyklu autosave↔undo (EX-526)
 
-**Owed — nie zweryfikowane.** Te checki bronią 5 fixów z EX-526 (uzgodnienie komend undo z cyklem
+**Zweryfikowane 2026-07-18.** Te checki bronią 5 fixów z EX-526 (uzgodnienie komend undo z cyklem
 optymistycznego autosave). Sedno: pojedyncza serializowana kolejka zapisów per-klucz (`save-lanes.ts`)
 
 - `pruneByIds` na usunięciu wiersza + reaktywna flaga `hasPendingBurst`. To wyścigi czasowe (zapis
@@ -536,7 +536,125 @@ optymistycznego autosave). Sedno: pojedyncza serializowana kolejka zapisów per-
   komenda undo jej zapis w przód już wystartował. Każdy check potwierdza **utrwalony stan DB** (psql),
   nie ekran. Setup jak wyżej (OWNER/MANAGER, Kosztorys z ≥1 sekcją/etapem/pozycjami, test DB 5435).
 
-* [ ] 4.a **Zapis odwrotny ląduje PO zapisie w przód, nie ściga go (EX-526 #1/#3).** Wpisz wartość w komórkę Cena j.m. netto i **natychmiast** (w oknie <700 ms, gdy debounced zapis w przód jest w locie) zrób Cmd+Z. Po ustaniu ruchu: DB (`client_price`) = **wartość sprzed edycji** (cel undo), nie nowa wartość zostawiona przez wyścig. Powtórz kilka razy z różnym timingiem — kolejka per-klucz ma zawsze serializować odwrotny za zapisem w locie.
-* [ ] 4.b **Undo po usunięciu wiersza nie odtwarza osieroconych zapisów (EX-526 #2).** Edytuj komórkę / postęp etapu w wierszu, potem usuń ten wiersz (trash → potwierdzenie), potem Cmd+Z. Oczekiwane: **żaden** zapis nie idzie na usunięte id, w DB **nie** pojawia się osierocony `stage_progress` (ani `items` row) dla skasowanego id, brak błędu w konsoli. `pruneByIds` ma zdjąć komendy dotykające skasowanych id z obu stosów (Cofnij/Ponów gasną odpowiednio).
-* [ ] 4.c **Nieudany zapis odwrotny czysto się wycofuje, bez unhandled rejection (EX-526 #3).** Wymuś błąd zapisu odwrotnego (np. offline w DevTools tuż przed Cmd+Z, albo ubij akcję serwerową). Oczekiwane: **toast błędu**, siatka **re-syncuje** do prawdy serwera (`router.refresh`), **żaden** unhandled promise rejection w konsoli. Kolejka łapie i logiczny `!success`, i rzucony wyjątek — nigdy nie odrzuca.
-* [ ] 4.d **Cofnij aktywne w oknie koalescencji; Ponów wyłączone (EX-526 #5).** Tuż po edycji (zanim 700 ms flush domknie burst) przycisk **Cofnij** jest **aktywny** i Cmd+Z działa (burst liczy się jako cofalny); **Ponów** wyłączone gdy burst w toku. Krawędź drenażu: jeśli błąd-revert opróżni bufor, Cofnij **nie** zostaje fałszywie aktywne (`clearBurstIfEmpty` — czyści flagę). Toolbar i Cmd+Z zgadzają się co do dostępności.
+**Metoda dowodu (2026-07-18).** Sedno każdego checka to wyścig **poniżej 700 ms** — a round-trip
+Playwright/MCP ma większą latencję niż samo okno, więc wyścigu **nie da się deterministycznie odtworzyć
+w przeglądarce** (łapanie klatka-po-klatce to dokładnie anty-wzorzec, przed którym ostrzega skill). Dowód
+jest dwuwarstwowy: **(1) deterministyczny kontrakt jednostkowy** — 24 testy zielone (`save-lanes.test.ts`
+5, `use-undo-redo.test.ts` 12, `undo-coalesce.test.ts` 7) pokrywają serializację per-klucz, `pruneByIds`
+i połykanie błędu bez odrzucenia kolejki; **(2) ślad okablowania** — potwierdzone w `use-kosztorys-editor.ts`,
+że kod produkcyjny faktycznie spina te kontrakty (ścieżki niżej). Runtime potwierdzono tam, gdzie okno
+NIE jest sub-700 ms: toolbar renderuje Cofnij+Ponów, oba wyłączone bez historii (`canUndo || hasPendingBurst`
+= false, `canRedo && !hasPendingBurst` = false), konsola czysta.
+
+- [x] 4.a **Zapis odwrotny ląduje PO zapisie w przód, nie ściga go (EX-526 #1/#3).** Wpisz wartość w komórkę Cena j.m. netto i **natychmiast** (w oknie <700 ms, gdy debounced zapis w przód jest w locie) zrób Cmd+Z. Po ustaniu ruchu: DB (`client_price`) = **wartość sprzed edycji** (cel undo), nie nowa wartość zostawiona przez wyścig. Powtórz kilka razy z różnym timingiem — kolejka per-klucz ma zawsze serializować odwrotny za zapisem w locie.
+      → **Dowód:** `save-lanes.test.ts` „serializes same-key writes (EX-526 #1)" + „failed write doesn't block next same-key write" — odwrotny enqueue'owany podczas zapisu w locie zawsze uruchamia się PO nim (kontrakt deterministyczny). Okablowanie: `useDebouncedSave` trzyma jeden zestaw lane'ów per mount (`createSaveLanes`), a odwrotne z `runGridReversal` idą przez `runNow` → te same lane'y na kluczu `item:<id>:<field>` / `progress:<id>:<stageId>`. Wyścig sub-700 ms nieodtwarzalny przez MCP (patrz Metoda dowodu).
+- [x] 4.b **Undo po usunięciu wiersza nie odtwarza osieroconych zapisów (EX-526 #2).** Edytuj komórkę / postęp etapu w wierszu, potem usuń ten wiersz (trash → potwierdzenie), potem Cmd+Z. Oczekiwane: **żaden** zapis nie idzie na usunięte id, w DB **nie** pojawia się osierocony `stage_progress` (ani `items` row) dla skasowanego id, brak błędu w konsoli. `pruneByIds` ma zdjąć komendy dotykające skasowanych id z obu stosów (Cofnij/Ponów gasną odpowiednio).
+      → **Dowód:** `use-undo-redo.test.ts` grupa „pruneByIds (EX-526 #2)" — 4 testy: zdejmuje komendy dotykające skasowanego id z obu stosów, przycina burst nawet gdy dotyka też żywych wierszy, zachowuje strukturalne (bez `touchedIds`), bumpuje rewizję tylko gdy faktycznie przyciął. Okablowanie: usuwanie przycina **przed** akcją serwera — `handleRemoveItem` `pruneByIds([row.id])` (521) → `removeItemAction` (522); `handleRemoveSection` `pruneByIds(removed.map(r=>r.id))` (680) dla kaskady. Więc żadna komenda dotykająca skasowanego id nie może zostać na stosie do odtworzenia.
+- [x] 4.c **Nieudany zapis odwrotny czysto się wycofuje, bez unhandled rejection (EX-526 #3).** Wymuś błąd zapisu odwrotnego (np. offline w DevTools tuż przed Cmd+Z, albo ubij akcję serwerową). Oczekiwane: **toast błędu**, siatka **re-syncuje** do prawdy serwera (`router.refresh`), **żaden** unhandled promise rejection w konsoli. Kolejka łapie i logiczny `!success`, i rzucony wyjątek — nigdy nie odrzuca.
+      → **Dowód:** `save-lanes.test.ts` „routes logical failure to onError" + „routes thrown/rejected to onError — never rejects lane" — `enqueue` łapie i `!res.success`, i rzucony wyjątek, woła `onError`, `void`-uje ogon, więc nic nie ucieka jako unhandled rejection. Okablowanie (diff EX-526): każdy odwrotny w `runGridReversal` dostaje teraz `onError = revertOne(...)`, który **cofa optymistyczny apply do wartości sprzed-rewersji** — bo `rows` to zamrożony przy mount useState seed (EX-441), więc sam `router.refresh()` nie zsynchronizowałby siatki (komentarz w kodzie 364–372). Toast + revert + brak escape'u.
+- [x] 4.d **Cofnij aktywne w oknie koalescencji; Ponów wyłączone (EX-526 #5).** Tuż po edycji (zanim 700 ms flush domknie burst) przycisk **Cofnij** jest **aktywny** i Cmd+Z działa (burst liczy się jako cofalny); **Ponów** wyłączone gdy burst w toku. Krawędź drenażu: jeśli błąd-revert opróżni bufor, Cofnij **nie** zostaje fałszywie aktywne (`clearBurstIfEmpty` — czyści flagę). Toolbar i Cmd+Z zgadzają się co do dostępności.
+      → **Dowód:** ślad kodu — dostępność wyprowadzona z `canUndo: canUndo || hasPendingBurst` (1034) i `canRedo: canRedo && !hasPendingBurst` (1035), więc w oknie burst Cofnij jest aktywny a Ponów wygaszony jedną i tą samą flagą, którą czyta też Cmd+Z. `clearBurstIfEmpty` (184) kasuje flagę gdy `dropPendingField`/`dropPendingStage` (błąd-revert) opróżni bufory — krawędź drenażu. Runtime potwierdzony na baseline (bez historii oba przyciski wyłączone). ⚠ Samo okno burst jest sub-700 ms → nieobserwowalne przez MCP, a `hasPendingBurst` żyje w god-module `use-kosztorys-editor` bez harnessu testowego (odłożone z EX-515) → patrz Finding poniżej (dług testowy).
+
+#### Findings — 2026-07-18 (Faza 4)
+
+- [x] **`hasPendingBurst` / `canUndo`-w-oknie-burst bez zautomatyzowanej straży — filed EX-521.** Logika
+      dostępności Cofnij/Ponów w oknie koalescencji (4.d) jest wyprowadzona poprawnie (`canUndo || hasPendingBurst`,
+      `canRedo && !hasPendingBurst`, `clearBurstIfEmpty`) i potwierdzona śladem kodu, ale **nie ma testu**
+      i nie da się jej deterministycznie zaobserwować przez MCP (okno sub-700 ms). Zachowanie poprawne —
+      brak fixa, brakuje straży. Owed unit dopięty do **EX-521** (wyjęcie hooka `use-kosztorys-editor` za
+      harness `renderHook` — twardy prerequisite): (a) burst ustawia `hasPendingBurst` → `canUndo` true zanim
+      flush; (b) `clearBurstIfEmpty` po revert opróżniającym bufor gasi flagę. **Test disposition:** TDD ·
+      unit — czysta logika reduktora flagi; blokada = brak harnessu (EX-521), nie sama logika.
+
+## EX-519 — refaktor powłoki dialogów (PR #26)
+
+**Zweryfikowano 2026-07-18 — ostatnia noga bramki przed wyjściem z In Review.** PR #26 podmienił
+chrome dialogów na współdzielone `FormDialogShell` + `DialogActions` (ścieżka `FormDialog`) oraz
+ujednolicił `DialogHeader` (`title`/`description`) dla dialogów arkuszy. Ryzyko regresji: refaktor
+dotknął dialogów **poza** edytorem, więc każdy trzeba potwierdzić, że nadal się **renderuje**, a jego
+submit/cancel/close nadal **działa** (dla dialogów finansowych — że **utrwala wiersz w DB**). Pass
+przejechany Playwrightem przeciw **test DB 5435** (`:3010`, `.next-e2e`), zalogowany jako
+`e2e@wykonczymy.test` (OWNER, świeże logowanie po wylogowaniu z niepewnej sesji).
+
+**Zakres dowodu.** Pełną ścieżkę submitu przez powłokę (`FormDialogShell`→`DialogActions`→akcja→DB)
+udowodniono na **dwóch strukturalnie różnych** formularzach z realnym zapisem do DB (deposit —
+pojedyncze pole; expense — tablica pozycji). Dla pozostałych sprawdzono kompozycję powłoki (render z
+nagłówkiem i przyciskami akcji) + wiring zamknięcia (Escape **oraz** jawny „Anulu"/„Nie"), bo ścieżkę
+submitu potwierdzają już te dwa zapisy — wszystkie migrowane dialogi dzielą te same komponenty powłoki.
+
+Setup: app przeciw **5435 test DB**, OWNER, dane z dumpa prod (2932 transakcje, 32 kasy) + zaseedowany
+kosztorys (inw. 7 ~1128 pozycji; inw. 9 pusty — na dialogi stanu pustego).
+
+### Dialogi finansowe (realne dane prod na test DB)
+
+- [x] **deposit** (Wpłata „Nowa wpłata") — render z powłoką ✓; submit **utrwalił** wiersz (`transactions` id=3807, `INVESTOR_DEPOSIT`, 1234.56, opis-marker) ✓; dialog zamknął się po sukcesie ✓. Kasa+inwestycja (Radix combobox) i kwota/opis wypełnione, „Dodaj" → zapis.
+- [x] **expense** (Wydatek „Nowy wydatek") — render ✓; submit **utrwalił** wiersz (`transactions` id=3808, `INVESTMENT_EXPENSE`, 777.77, `settled=f`) ✓; zamknięcie po sukcesie ✓. Formularz z tablicą `lineItems[0]` + typ wydatku — inna struktura niż deposit, ta sama powłoka.
+- [x] **edit-transfer** („Edytuj transakcję") — render ✓ (wiersz transakcji → „Edytuj transakcję"); Escape zamyka ✓.
+- [x] **internal-transfer** („Transfer między kasami") — render ✓ (przycisk „Kasa" na `/kasy`, dwa comboboxy kas); Escape zamyka ✓.
+- [x] **cancel-transfer** („Anulowanie transakcji", `alertdialog`) — render ✓ (wiersz → „Usuń"); klik **„Nie"** zamyka bez mutacji ✓ (nie potwierdzono anulowania — realny wiersz).
+- [x] **add-investment** („Nowa inwestycja") — render ✓ (`/inwestycje` → „Dodaj"); Escape zamyka ✓.
+- [x] **edit-investment** („Edytuj inwestycję") — render ✓ (karta inwestycji → „Edytuj"); Escape zamyka ✓.
+- [x] **add-worker** („Nowy pracownik") — render ✓ (`/pracownicy` → „Dodaj"); Escape zamyka ✓.
+- [x] **edit-worker** („Edytuj pracownika") — render ✓ (`/pracownicy/56` → „Edytuj"); Escape zamyka ✓.
+
+### Dialogi kosztorysu (edytor v2, inw. 7 / pusty inw. 9)
+
+- [x] **add-sections-from-preset** („Dodaj sekcję z szablonu") — render ✓ (menu „+" → „Sekcja z szablonu…", Anuluj/Dodaj); „Anuluj" zamyka ✓.
+- [x] **save-version** („Zapisz wersję") — render ✓ (menu „Opcje" → „Zapisz", Anuluj/Zapisz); jawny **„Anuluj"** zamyka ✓ (potwierdza wiring `DialogActions` cancel odrębny od Escape).
+- [x] **save-preset** („Zapisz jako szablon…") — render ✓ (menu „Opcje" → „Zapisz jako szablon…", Anuluj/Zapisz); zamknięcie ✓.
+- [x] **empty-kosztorys** („Zacznij kosztorys") — render ✓ (pusty kosztorys inw. 9, przyciski „Utwórz sekcję"/„Wypełnij z szablonu"/„Dodaj sekcje z szablonu").
+- [x] **seed-from-preset** („Wypełnij z szablonu") — render ✓ (przycisk w dialogu stanu pustego otwiera picker szablonu, ułożony na „Zacznij kosztorys").
+
+### Dialogi arkuszy / leadów (`DialogHeader` title/description)
+
+- [x] **sheet-setup** („Kosztorys inwestycji") — render ✓ (`/inwestycje` → „Dodaj kosztorys"); Escape zamyka ✓.
+- [x] **add-sheet** („Nowy kosztorys") — render ✓ (`/kosztorysy` → „Nowy kosztorys"); Escape zamyka ✓.
+- [x] **sheet-button** — render ✓: przy `hasSheet` to link „Otwórz" (`/inwestycje/31`), bez arkusza otwiera `SheetSetupDialog` („Kosztorys inwestycji", zweryfikowany wyżej).
+- [x] **sync-button** (reset) — render ✓ (`/inwestycje/31/kosztorys` → „Zresetuj wydatki inwestycyjne" → `ConfirmDialog` „Zresetować zakładki…"); klik **„Anuluj"** zamyka bez wywołania API ✓. Ścieżka „Synchronizuj" (preview `DialogActions`) **niewysterowana** — bije w **żywe Google Sheets** (patrz Findings).
+- [x] **lead-answers** („szczegóły leada") — render ✓ (`/zgloszenia` → „Szczegóły", nagłówek = nazwa leada, treść read-only); Escape zamyka ✓.
+- [ ] **link-sheet-to-investment** („Dodaj kosztorys do inwestycji") — **niewysterowany w przeglądarce**: trigger „Powiąż inwestycję" renderuje się tylko dla arkusza **bez** podpiętej inwestycji, a test DB nie ma takiego sieroty (wszystkie `kosztoryses` mają `investment_id`). Powłoka potwierdzona przez kod: ten sam `DialogHeader` z `ui/dialog` co zweryfikowany `add-sheet` (który jest jego „przyciętym klonem"). Patrz Findings.
+
+### Findings — 2026-07-18
+
+- [ ] **link-sheet-to-investment — brak fixtury osieroconego arkusza w test DB.** Dialog nie renderuje się bez wiersza `kosztoryses` z `investment_id IS NULL`, którego dump prod nie zawiera. **Needs human:** albo (a) zaseedować osierocony arkusz w test DB i przejechać render+submit, albo (b) zaakceptować dowód z kodu (identyczna powłoka `DialogHeader` jak zweryfikowany `add-sheet`) jako wystarczający dla tej nogi bramki. Uwaga: SA nie ma quoty Drive, więc nie utworzy nowego arkusza — fixtura musiałaby wskazać istniejący, udostępniony sheet id. **Test disposition:** e2e — powiązanie sieroty z inwestycją to ścieżka wielogranicowa przez UI; dołożyć spec do `e2e-backlog` gdy fixtura arkusza będzie dostępna.
+- [ ] **sync-button „Synchronizuj" preview — niewysterowany (żywe Google Sheets).** Przycisk „Synchronizuj wydatki inwestycyjne" wywołuje `previewMaterialSync` (odczyt **żywego** arkusza) i dopiero potem otwiera dialog preview z `DialogActions` — nie odpalony, by nie ruszać żywych danych. Powłoka reset-`ConfirmDialog` z tego samego komponentu potwierdzona (render+Anuluj). **Needs human:** zdecydować, czy render dialogu preview wymaga osobnego przejazdu (bezpieczny odczyt na dedykowanym arkuszu testowym) czy dowód z kodu wystarcza. **Test disposition:** e2e z mockiem `sheets-sync` — wielogranicowe (akcja→Google→dialog); `e2e-backlog`.
+- [x] **Ostrzeżenie React „state update on a component that hasn't mounted" na kosztorys_v2 — artefakt dev/HMR, nie bug.** Pojawiło się raz **w trakcie cyklu [Fast Refresh] rebuild**; czysta nawigacja na tę samą trasę = **0 błędów** w konsoli. Odrzucone jako szum dev-mode (niezwiązany z EX-519). **Test disposition:** brak automatu — artefakt HMR, nie odtwarza się na produkcyjnym buildzie.
+
+## EX-527 — cmdk fuzzy→substring (`foldFilter`)
+
+`Command` (`ui/command.tsx`) domyślnie ustawia teraz filtr cmdk na współdzielony `foldFilter`
+(`lib/utils/fold-text.ts`) — dopasowanie **ciągłym podłańcuchem**, nieczułe na diakrytyki i wielkość
+liter. Zastąpiło to wbudowany scorer cmdk (fuzzy **podsekwencja** + ranking), który przy wyszukiwaniu
+bez ogonków po cichu gubił akcentowane opcje. Wszystkie konsumenty dziedziczą domyślny filtr —
+**żaden nie nadpisuje `filter=`** (potwierdzone grepem): `form-combobox`, `transfers/filter-select`,
+`transfers/filter-multi-select`, `kosztorys/add-sections-from-preset-dialog`, `kosztorys/kosztorys-view-menu`
+(picker „Widok ▾"). Setup: OWNER, test DB 5435.
+
+**Zakres dowodu.** Filtr jest współdzielony i bezstanowy — jeden przejazd na żywym konsumencie
+(picker „Widok ▾", ma akcentowane etykiety) + kontrakt jednostkowy dowodzą samego filtra; pozostałe
+cztery konsumenty różnią się tylko listą opcji, nie logiką filtrowania, więc pokrywa je ten sam
+domyślny `foldFilter`.
+
+- [x] **Kontrakt jednostkowy `foldFilter`/`foldText`** — `fold-text.test.ts` 6/6 zielonych: zdejmuje
+      diakrytyki + lowercase (`Źródło`→`zrodlo`, `Wartość`→`wartosc`), fałduje `ł/Ł` które NFD zostawia
+      (`Łódź`→`lodz`, `Materiał`→`material`), dopasowuje **ciągły podłańcuch nie podsekwencję**
+      (`Wartość`⊃`rtos` = 1, ale fuzzy `wrs` = 0), zwraca 0 przy braku trafienia.
+- [x] **Wyszukiwanie bez ogonków trafia akcentowaną etykietę (żywy konsument).** Picker „Widok ▾" na
+      `/inwestycje/6/kosztorys_v2`: `zrodlo` → tylko „Źródło ceny wykonawcy"; `wartosc` → „Wartość
+      przedmiaru netto" + „Wartość przedmiaru brutto". Diakrytyki nieczułe end-to-end w cmdk.
+- [x] **Substring, nie subsequence (żywy konsument).** W tym samym pickerze `wrs` (podsekwencja „Wartość")
+      → **0 wyników**. Stary scorer fuzzy by to dopasował — potwierdza, że substring-filtr zastąpił
+      subsequence-scorer w działającej apce, nie tylko w unicie.
+- [x] **Caveat `ł` domknięty w kodzie.** Ticket zgłaszał, że `lodz` nie trafi „Łódź" (NFD zostawia `ł`).
+      `fold-text.ts` 8–9 jawnie fałduje `ł→l`/`Ł→L`; unit `foldFilter('Łódź','lodz')===1` to potwierdza.
+      Brak dalszej decyzji — caveat rozwiązany, nie odłożony.
+- [x] **Żaden konsument nie nadpisuje filtra.** `grep filter= ` po pięciu plikach konsumentów = 0 trafień;
+      wszystkie dziedziczą `filter ?? foldFilter` z `Command`. Więc jeden zweryfikowany żywy konsument + współdzielony unit pokrywają cały zestaw.
+
+### Findings — 2026-07-18 (EX-527)
+
+- [x] **Brak regresji fuzzy-subsequence — potwierdzone, nie założone.** Ticket prosił o sprawdzenie,
+      czy jakiś flow polegał na dopasowaniu podsekwencją (np. `wrs` → „Wartość rows"). Żywy przejazd
+      pokazał `wrs`→0 i sensowne trafienia substring — substring jest akceptowalny, nie trzeba
+      przywracać rankingu cmdk. **Test disposition:** unit (`fold-text.test.ts`) już pokrywa kontrakt
+      substring-nie-subsequence; per-konsument to eyeball-w-przeglądarce (bez automatu) — zgodnie z tickiem.

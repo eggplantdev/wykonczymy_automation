@@ -14,7 +14,6 @@ import type { ActionResultT } from '@/types/action'
 // inverse write reliably land *after* an in-flight forward save instead of racing it (EX-526 #1).
 export function useDebouncedSave(delay = 500) {
   const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>())
-  // One lane set per hook mount.
   const lanesRef = useRef<ReturnType<typeof createSaveLanes> | null>(null)
   lanesRef.current ??= createSaveLanes()
   const lanes = lanesRef.current

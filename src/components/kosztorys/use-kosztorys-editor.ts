@@ -335,8 +335,9 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   // autosave, an undo is a deliberate user action: it writes the target value immediately and updates
   // `rows` + `prevById` in lockstep so the next onChange diff doesn't re-fire the write. Each inverse
   // write goes through `runNow`, which serializes it on the cell's lane behind any in-flight forward
-  // save (EX-526 #1) and routes a failed inverse through the same toast+resync path as a forward save
-  // (EX-526 #3) — so a rejected write can't escape as an unhandled rejection or diverge grid from DB.
+  // save (EX-526 #1) and routes a failed inverse through the same toast + `revertOne` rollback as a
+  // forward save (EX-526 #3) — so a rejected write can't escape as an unhandled rejection or leave the
+  // grid diverged from the DB.
   async function runGridReversal(
     fields: FieldChangeT[],
     stages: StageChangeT[],
@@ -363,22 +364,30 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       const snap = prevById.current.get(id)
       if (snap) prevById.current.set(id, { ...snap, ...patch } as KosztorysV2RowT)
     }
-    // Each inverse goes through its cell's lane, which toasts on failure. No per-write revert: the
-    // unconditional refresh below resyncs the grid to server truth whether the writes succeeded or not.
+    // Each inverse goes through its cell's lane. On failure the lane toasts AND we roll the optimistic
+    // apply back to its pre-reversal value via `revertOne` — the trailing `router.refresh()` can't do it
+    // (`rows` is the mount-frozen useState seed, EX-441, so refresh reseeds the prop surfaces but not the
+    // grid), so without this a rejected inverse would leave the grid diverged from the DB behind a toast.
     const writes: Promise<void>[] = []
     for (const c of fields) {
       const value = dir === 'undo' ? c.before : c.after
+      const restore = dir === 'undo' ? c.after : c.before
       writes.push(
-        runNow(`item:${c.id}:${String(c.field)}`, () =>
-          updateItemFieldAction(c.id, { [c.field]: value } as ItemPatchT),
+        runNow(
+          `item:${c.id}:${String(c.field)}`,
+          () => updateItemFieldAction(c.id, { [c.field]: value } as ItemPatchT),
+          () => revertOne(c.id, c.field as keyof KosztorysV2RowT, restore, value),
         ),
       )
     }
     for (const c of stages) {
       const value = dir === 'undo' ? c.before : c.after
+      const restore = dir === 'undo' ? c.after : c.before
       writes.push(
-        runNow(`progress:${c.id}:${c.stageId}`, () =>
-          setStageProgressAction(c.id, c.stageId, value),
+        runNow(
+          `progress:${c.id}:${c.stageId}`,
+          () => setStageProgressAction(c.id, c.stageId, value),
+          () => revertOne(c.id, stageKey(c.stageId) as keyof KosztorysV2RowT, restore, value),
         ),
       )
     }
