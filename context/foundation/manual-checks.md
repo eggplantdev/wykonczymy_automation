@@ -677,3 +677,24 @@ domyślny `foldFilter`.
       pokazał `wrs`→0 i sensowne trafienia substring — substring jest akceptowalny, nie trzeba
       przywracać rankingu cmdk. **Test disposition:** unit (`fold-text.test.ts`) już pokrywa kontrakt
       substring-nie-subsequence; per-konsument to eyeball-w-przeglądarce (bez automatu) — zgodnie z tickiem.
+
+## investment-planowana-status — „Planowana" investment status (EX-506)
+
+**Verified 2026-07-18** — full Playwright + DB pass against the 5435 test DB, logged in as E2E User (OWNER). Created prospect id 309 „EX506 Prospekt Test". All checks green.
+
+Setup: app on 5435 test DB (migrated with `pnpm db:migrate:test` so `enum_investments_status` carries `planowana`); log in through the form as OWNER.
+
+- [x] **Payload admin status field** offers Planowana / Aktywna / Zakończona (`/admin/collections/investments/309`, react-select dropdown).
+- [x] **Local (test) DB enum includes `planowana`** — `pg_enum` for `enum_investments_status` = active, completed, planowana; prospect persists with `status=planowana`.
+- [x] **Dodaj inwestycję → status Planowana → persists** — lands under Planowane with a „Planowana" badge; its Kosztorys_v2 opens on a typable auto-seeded grid (section 351 „Nowa sekcja" + item 1695 „Nowa praca", editable cells).
+- [x] **Edytuj status transition persists** — edit dialog: Planowana → Aktywna → Zapisz → DB shows `309|active` (reverted to planowana after).
+- [x] **List shows read-only color-coded badge; clicking does nothing** — status cell is a `<span>` badge (no `<button>`, no click handler).
+- [x] **Status filter** — default „W toku" (active+planowana, hides completed) = 37 rows; Planowane = 1 (only prospect); Aktywne = 36 (all active, no prospect); Zakończone = 58 (all completed); Wszystkie = 95 (36+58+1, all statuses).
+- [x] **Search + filter compose** — Wszystkie + „EX506" → only prospect; Aktywne + „EX506" → „Brak danych" (intersection hides prospect).
+- [x] **Detail page shows „Planowana"** — `/inwestycje/309` Status = Planowana (not Aktywna).
+- [x] **Aktywne count excludes prospects** — list header „36 aktywnych" (would be 37 if the prospect counted).
+- [x] **Prospect figures all 0** — list row + detail page: Koszty / Bilans / Marża / Wpłaty / Wypłaty all `0,00 zł`.
+
+### Findings — 2026-07-18
+
+_None. All checks passed; no bugs, regressions, or console errors surfaced during the pass._

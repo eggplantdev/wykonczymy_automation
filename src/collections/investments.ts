@@ -4,6 +4,7 @@ import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/re
 import { DEFAULT_COEFFS, DEFAULT_VAT } from '@/lib/kosztorys/constants'
 
 const STATUS_OPTIONS = [
+  { label: { en: 'Planned', pl: 'Planowana' }, value: 'planowana' },
   { label: { en: 'Active', pl: 'Aktywna' }, value: 'active' },
   { label: { en: 'Completed', pl: 'Zakończona' }, value: 'completed' },
 ] as const

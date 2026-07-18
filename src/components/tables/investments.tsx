@@ -3,11 +3,11 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { isAdminOrOwnerRole, type RoleT } from '@/lib/auth/roles'
-import type { ExpenseCategoryRefT } from '@/types/reference-data'
+import type { ExpenseCategoryRefT, InvestmentStatusT } from '@/types/reference-data'
 import type { CategoryCostT } from '@/types/investment-financials'
 import { costForCategory } from '@/lib/db/map-category-costs'
 import { BalanceCell } from '@/components/ui/balance-cell'
-import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
+import { InvestmentStatusBadge } from '@/components/investments/investment-status-badge'
 import { ContactLink } from '@/components/ui/contact-link'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
 import { SheetButton } from '@/components/dialogs/sheet-button'
@@ -16,7 +16,7 @@ import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-
 export type InvestmentRowT = {
   id: number
   name: string
-  status: 'active' | 'completed'
+  status: InvestmentStatusT
   totalCosts: number
   totalMaterialCosts: number
   totalIncome: number
@@ -38,16 +38,11 @@ export type InvestmentRowT = {
 const col = createColumnHelper<InvestmentRowT>()
 
 type InvestmentColumnOptionsT = {
-  onToggle: (id: number, newActive: boolean) => void
   userRole: RoleT
   expenseCategories: ExpenseCategoryRefT[]
 }
 
-export function getInvestmentColumns({
-  onToggle,
-  userRole,
-  expenseCategories,
-}: InvestmentColumnOptionsT) {
+export function getInvestmentColumns({ userRole, expenseCategories }: InvestmentColumnOptionsT) {
   const isAdminOrOwner = isAdminOrOwnerRole(userRole)
   return [
     col.accessor('name', {
@@ -137,15 +132,7 @@ export function getInvestmentColumns({
       header: 'Status',
       meta: { align: 'right' },
       enableSorting: true,
-      cell: (info) => (
-        <ActiveToggleBadge
-          id={info.row.original.id}
-          isActive={info.getValue() === 'active'}
-          onToggle={onToggle}
-          activeLabel="Aktywna"
-          inactiveLabel="Zakończona"
-        />
-      ),
+      cell: (info) => <InvestmentStatusBadge status={info.getValue()} />,
     }),
     col.accessor('hasSheet', {
       id: 'hasSheet',

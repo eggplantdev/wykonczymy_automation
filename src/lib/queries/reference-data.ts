@@ -25,6 +25,7 @@ import type {
   CashRegisterRefT,
   CashRegisterTypeT,
   InvestmentRefT,
+  InvestmentStatusT,
   WorkerRefT,
   OtherCategoryRefT,
   ExpenseCategoryRefT,
@@ -88,7 +89,7 @@ export const fetchReferenceData = unstable_cache(
     const investments: InvestmentRefT[] = invResult.rows.map((row) => ({
       id: Number(row.id),
       name: row.name as string,
-      status: (row.status as 'active' | 'completed') ?? 'active',
+      status: (row.status as InvestmentStatusT) ?? 'active',
       active: row.status === 'active',
       address: (row.address as string) ?? '',
       phone: (row.phone as string) ?? '',

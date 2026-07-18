@@ -10,11 +10,9 @@ import type { ActionResultT } from '@/types/action'
 import { getErrorMessage } from './run-action'
 
 type ToggleConfigT = {
-  collection: 'users' | 'cash-registers' | 'investments'
+  collection: 'users' | 'cash-registers'
   cacheTag: keyof typeof CACHE_TAGS
   data: (active: boolean) => Record<string, unknown>
-  // Investments toggle their own `status` field and rely on Payload's default
-  // access; the other two flip a shared `active` flag with elevated access.
   overrideAccess?: boolean
 }
 
@@ -57,13 +55,5 @@ export async function toggleCashRegisterActive(id: number, active: boolean) {
     cacheTag: 'cashRegisters',
     data: (active) => ({ active }),
     overrideAccess: true,
-  })
-}
-
-export async function toggleInvestmentStatus(id: number, active: boolean) {
-  return toggleActive(id, active, {
-    collection: 'investments',
-    cacheTag: 'investments',
-    data: (active) => ({ status: active ? 'active' : 'completed' }),
   })
 }

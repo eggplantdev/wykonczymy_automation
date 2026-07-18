@@ -106,6 +106,7 @@ export function InvestmentForm({
         <form.AppField name="status">
           {(field: AppFieldComponentsT) => (
             <field.Select label="Status" showError>
+              <SelectItem value="planowana">Planowana</SelectItem>
               <SelectItem value="active">Aktywna</SelectItem>
               <SelectItem value="completed">Zakończona</SelectItem>
             </field.Select>
