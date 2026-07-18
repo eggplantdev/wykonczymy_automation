@@ -23,6 +23,7 @@ import { isLaborCost, needsSourceRegister } from '../constants/transfers'
 import { syncBulkExpensesToSheet } from './sheets-sync'
 import { validateAction, protectedAction } from './run-action'
 import { validateSourceRegister } from './validate-source-register'
+import { logError } from '@/lib/utils/log-error'
 
 export async function createTransferAction(data: CreateTransferFormT, invoiceMediaId?: number) {
   return protectedAction(
@@ -304,7 +305,9 @@ async function setTransferInvoice(
   console.log(`[PERF]   payload.update(${transferId}) ${step()}ms`)
 
   if (oldMediaId && oldMediaId !== invoiceMediaId) {
-    payload.delete({ collection: 'media', id: oldMediaId }).catch(console.error)
+    payload
+      .delete({ collection: 'media', id: oldMediaId })
+      .catch((err) => logError('[transfers] delete old invoice media failed', err))
   }
 
   return { success: true }

@@ -12,6 +12,7 @@ import {
 } from '@/components/forms/investment-form/investment-schema'
 import { seedInvestmentFromPreset } from '@/lib/kosztorys/seed-from-preset'
 import { validateAction, protectedAction } from './run-action'
+import { logError } from '@/lib/utils/log-error'
 
 // Attach (or reset) a fresh materiały tab on the investment's linked sheet.
 // Header + summary are written by the app — the owner builds nothing. Works on a
@@ -58,12 +59,12 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
         try {
           const result = await seedInvestmentFromPreset(payload, Number(created.id), chosenPresetId)
           if (result !== 'ok') {
-            console.error(
+            logError(
               `[create-investment] seed from preset ${chosenPresetId} skipped for #${created.id}: ${result}`,
             )
           }
         } catch (err) {
-          console.error(
+          logError(
             `[create-investment] seed from preset ${chosenPresetId} failed for #${created.id} (non-fatal):`,
             err,
           )
@@ -218,7 +219,7 @@ export async function linkSheetAction(investmentId: number, input: string) {
       try {
         await stampAllTabs(sheetId, payload, 'ensure')
       } catch (err) {
-        console.error(`[link-sheet] ensureTab failed for #${investmentId} (non-fatal):`, err)
+        logError(`[link-sheet] ensureTab failed for #${investmentId} (non-fatal):`, err)
       }
 
       return { success: true, data: { title: access.title } }

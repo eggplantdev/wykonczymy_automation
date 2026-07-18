@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { logError } from '@/lib/utils/log-error'
 
 export default function GlobalError({
   error,
@@ -12,7 +13,7 @@ export default function GlobalError({
   useEffect(() => {
     // Surfaces the root-layout crash in Vercel logs; `digest` correlates with the
     // server-side stack Next redacts from the client.
-    console.error('[GLOBAL_ERROR]', { message: error.message, digest: error.digest })
+    logError('[GLOBAL_ERROR]', error, { digest: error.digest })
   }, [error])
 
   return (

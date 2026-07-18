@@ -9,6 +9,7 @@ import { fetchFilteredTransfers } from '@/lib/actions/export'
 import { buildTransferCsv } from '@/lib/export/csv'
 import { triggerDownload } from '@/lib/export/download'
 import { sortTransferRows } from '@/lib/export/sort-rows'
+import { logError } from '@/lib/utils/log-error'
 
 type CsvButtonPropsT = {
   where: Where
@@ -24,7 +25,7 @@ export function CsvButton({ where, visibleColumnIds, sorting }: CsvButtonPropsT)
     try {
       const result = await fetchFilteredTransfers(where)
       if (!result.success) {
-        console.error('Export failed:', result.error)
+        logError('Export failed:', result.error)
         return
       }
       const sorted = sortTransferRows(result.data, sorting)
