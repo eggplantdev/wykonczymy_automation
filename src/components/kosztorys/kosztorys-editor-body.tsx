@@ -13,7 +13,9 @@ import { useKosztorysEditor } from '@/components/kosztorys/use-kosztorys-editor'
 import { KosztorysEditorProvider } from '@/components/kosztorys/use-kosztorys-editor-context'
 import { useUndoKeyboard } from '@/components/kosztorys/use-undo-keyboard'
 import {
+  makeSpacerRow,
   makeTotalsRow,
+  SPACER_ROW_ID,
   TOTALS_ROW_ID,
   withTotalsRow,
 } from '@/components/kosztorys/kosztorys-totals-row'
@@ -99,7 +101,8 @@ export function KosztorysEditorBody({
     () => columns.map((column) => withTotalsRow(column, columnTotals)),
     [columns, columnTotals],
   )
-  const gridRows = useMemo(() => [...viewRows, makeTotalsRow()], [viewRows])
+  const gridRows = useMemo(() => [...viewRows, makeSpacerRow(), makeTotalsRow()], [viewRows])
+  const isSyntheticRow = (id: number) => id === SPACER_ROW_ID || id === TOTALS_ROW_ID
 
   // Viewport minus the shell's chrome: the h-14 TopNav always, plus the h-14 AppFooter, which only
   // renders below `lg` (hence the two calcs — subtracting it at every width would leave a dead band
@@ -121,8 +124,8 @@ export function KosztorysEditorBody({
             <DynamicDataSheetGrid
               className="kosztorys-grid"
               value={gridRows}
-              // Strip the appended „Razem" row before the editor's diff sees it — it's display-only.
-              onChange={(rows) => onChange(rows.filter((row) => row.id !== TOTALS_ROW_ID))}
+              // Strip the appended spacer + „Razem" rows before the editor's diff sees them — display-only.
+              onChange={(rows) => onChange(rows.filter((row) => !isSyntheticRow(row.id)))}
               columns={gridColumns}
               height={gridHeight}
               rowHeight={32}

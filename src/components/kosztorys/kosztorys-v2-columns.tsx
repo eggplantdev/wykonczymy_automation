@@ -458,17 +458,28 @@ function selectV2Columns(
   return markLayerBoundary(base)
 }
 
-// Divider between the work-layer block and the progress-layer block: a left border on the first
+// A narrow, non-editable empty column — the visible gap between the „Praca" and „Postęp" blocks.
+const layerGapColumn: Column<KosztorysV2RowT> = {
+  id: 'layerGap',
+  title: <span />,
+  basis: 24,
+  grow: 0,
+  shrink: 0,
+  minWidth: 24,
+  maxWidth: 24,
+  disabled: true,
+  headerClassName: 'border-l border-border',
+  cellClassName: 'border-l border-border',
+  component: () => null,
+}
+
+// Divider between the work-layer block and the progress-layer block: an empty gap column at the first
 // visible progress column, so the eye sees where „Praca" ends and „Postęp" begins. Derived from the
 // filtered list (not a fixed index) so it lands correctly whatever the money/etapy axes have hidden.
 function markLayerBoundary(columns: Column<KosztorysV2RowT>[]): Column<KosztorysV2RowT>[] {
   const first = columns.findIndex((c) => COLUMN_LAYER[toggleKey(c.id ?? '')] === 'progress')
   if (first <= 0) return columns
-  return columns.with(first, {
-    ...columns[first],
-    headerClassName: 'border-l border-border',
-    cellClassName: 'border-l border-border',
-  })
+  return [...columns.slice(0, first), layerGapColumn, ...columns.slice(first)]
 }
 
 // Picker entries for the columns this view actually has, in grid order. Stage columns collapse into

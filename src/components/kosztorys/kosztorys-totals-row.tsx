@@ -10,6 +10,8 @@ import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 // the price of that is that dsg renders EVERY column's cell against it, so `withTotalsRow` wraps each
 // column to render a baked total on this row (and its normal cell on every real row).
 export const TOTALS_ROW_ID = -1
+// A blank spacer row directly above „Razem", separating the data rows from the totals.
+export const SPACER_ROW_ID = -2
 
 // The label column (widest identity column) carries the „Razem" caption instead of a number.
 const LABEL_COLUMN_ID = 'description'
@@ -20,11 +22,15 @@ export function makeTotalsRow(): KosztorysV2RowT {
   return { id: TOTALS_ROW_ID } as unknown as KosztorysV2RowT
 }
 
+export function makeSpacerRow(): KosztorysV2RowT {
+  return { id: SPACER_ROW_ID } as unknown as KosztorysV2RowT
+}
+
 function TotalsRowCell({ content, isLabel }: { content: string; isLabel: boolean }) {
   return (
     <div
       className={cn(
-        'bg-muted/60 text-foreground flex size-full items-center px-2 text-xs font-medium tabular-nums',
+        'bg-muted/60 text-foreground flex size-full items-center px-2 text-base font-medium tabular-nums',
         isLabel ? 'justify-start' : 'justify-end',
       )}
     >
@@ -45,11 +51,11 @@ export function withTotalsRow(
   const content = isLabel ? 'Razem' : total != null ? formatNet(total) : ''
   return {
     ...column,
-    component: (props) =>
-      props.rowData.id === TOTALS_ROW_ID ? (
-        <TotalsRowCell content={content} isLabel={isLabel} />
-      ) : Base ? (
-        <Base {...props} />
-      ) : null,
+    component: (props) => {
+      if (props.rowData.id === SPACER_ROW_ID) return <div className="bg-background size-full" />
+      if (props.rowData.id === TOTALS_ROW_ID)
+        return <TotalsRowCell content={content} isLabel={isLabel} />
+      return Base ? <Base {...props} /> : null
+    },
   }
 }
