@@ -18,6 +18,7 @@ import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
 import { ContactLink } from '@/components/ui/contact-link'
 import { FinancialStats } from '@/components/investments/financial-stats'
+import { STATUS_LABELS } from '@/components/investments/investment-status-badge'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
 import { SheetButton } from '@/components/dialogs/sheet-button'
 import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-button'
@@ -75,7 +76,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
     { label: 'Osoba kontaktowa', value: investment.contactPerson },
     { label: 'Notatki', value: investment.notes },
     { label: 'Opinia', value: investment.review || '—' },
-    { label: 'Status', value: investment.status === 'active' ? 'Aktywna' : 'Zakończona' },
+    { label: 'Status', value: STATUS_LABELS[investment.status] },
   ]
 
   return (

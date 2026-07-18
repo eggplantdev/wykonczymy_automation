@@ -32,8 +32,7 @@ vi.mock('@/lib/cache/revalidate', () => ({
 
 // ── Import actions under test ────────────────────────────────────────────
 
-const { toggleUserActive, toggleCashRegisterActive, toggleInvestmentStatus } =
-  await import('@/lib/actions/toggle-active')
+const { toggleUserActive, toggleCashRegisterActive } = await import('@/lib/actions/toggle-active')
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
@@ -177,70 +176,6 @@ describe('toggleCashRegisterActive', () => {
     const result = await toggleCashRegisterActive(5, false)
 
     expect(result).toEqual({ success: false, error: 'Unique constraint violated' })
-    expect(mockRevalidateCollection).not.toHaveBeenCalled()
-  })
-})
-
-// ═════════════════════════════════════════════════════════════════════════
-// toggleInvestmentStatus
-// ═════════════════════════════════════════════════════════════════════════
-
-describe('toggleInvestmentStatus', () => {
-  it('active=true → updates with status="active"', async () => {
-    const result = await toggleInvestmentStatus(3, true)
-
-    expect(result).toEqual({ success: true })
-    expect(mockUpdate).toHaveBeenCalledWith({
-      collection: 'investments',
-      id: 3,
-      data: { status: 'active' },
-    })
-  })
-
-  it('active=false → updates with status="completed"', async () => {
-    const result = await toggleInvestmentStatus(3, false)
-
-    expect(result).toEqual({ success: true })
-    expect(mockUpdate).toHaveBeenCalledWith({
-      collection: 'investments',
-      id: 3,
-      data: { status: 'completed' },
-    })
-  })
-
-  it('calls payload.update with collection="investments" without overrideAccess', async () => {
-    await toggleInvestmentStatus(7, true)
-
-    expect(mockUpdate).toHaveBeenCalledOnce()
-
-    const callArgs = mockUpdate.mock.calls[0][0]
-    expect(callArgs.collection).toBe('investments')
-    expect(callArgs).not.toHaveProperty('overrideAccess')
-  })
-
-  it('revalidates "investments" collection on success', async () => {
-    await toggleInvestmentStatus(3, true)
-
-    expect(mockRevalidateCollection).toHaveBeenCalledOnce()
-    expect(mockRevalidateCollection).toHaveBeenCalledWith('investments')
-  })
-
-  it('auth failure → returns error without update', async () => {
-    mockRequireAuth.mockResolvedValueOnce({ success: false, error: 'Unauthorized' })
-
-    const result = await toggleInvestmentStatus(3, true)
-
-    expect(result).toEqual({ success: false, error: 'Unauthorized' })
-    expect(mockUpdate).not.toHaveBeenCalled()
-    expect(mockRevalidateCollection).not.toHaveBeenCalled()
-  })
-
-  it('payload.update throws → returns error', async () => {
-    mockUpdate.mockRejectedValueOnce(new Error('Timeout exceeded'))
-
-    const result = await toggleInvestmentStatus(3, false)
-
-    expect(result).toEqual({ success: false, error: 'Timeout exceeded' })
     expect(mockRevalidateCollection).not.toHaveBeenCalled()
   })
 })

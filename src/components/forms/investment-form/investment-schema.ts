@@ -9,7 +9,7 @@ export const investmentFormSchema = z.object({
   contactPerson: z.string(),
   notes: z.string(),
   review: z.string(),
-  status: z.enum(['active', 'completed']),
+  status: z.enum(['active', 'completed', 'planowana']),
   // Optional seed template, only meaningful on create ('' = start empty). Not an investments
   // column — createInvestmentAction strips it and seeds the new investment's kosztorys from it.
   presetId: z.string(),

@@ -410,30 +410,30 @@ None. One added enum value, one client-side filter swap. No new queries.
 
 #### Automated
 
-- [ ] 1.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit`
-- [ ] 1.2 Lint passes: `pnpm lint`
-- [ ] 1.3 Migration file present and registered in `src/migrations/index.ts`
+- [x] 1.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit`
+- [x] 1.2 Lint passes: `pnpm lint`
+- [x] 1.3 Migration file present and registered in `src/migrations/index.ts`
 
 ### Phase 2: Status is settable through the form
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `pnpm exec tsc --noEmit`
-- [ ] 2.2 Lint passes: `pnpm lint`
+- [x] 2.1 Type checking passes: `pnpm exec tsc --noEmit`
+- [x] 2.2 Lint passes: `pnpm lint`
 
 ### Phase 3: Decouple the list UI from the shared binary helpers
 
 #### Automated
 
-- [ ] 3.1 Type checking passes: `pnpm exec tsc --noEmit`
-- [ ] 3.2 Lint passes: `pnpm lint`
-- [ ] 3.3 `useStatusFilter` unit test passes: `pnpm exec vitest run src/__tests__/use-status-filter.test.ts`
+- [x] 3.1 Type checking passes: `pnpm exec tsc --noEmit`
+- [x] 3.2 Lint passes: `pnpm lint`
+- [x] 3.3 `useStatusFilter` unit test passes: `pnpm exec vitest run src/__tests__/use-status-filter.test.ts`
 
 ### Phase 4: Delete the dead binary write path, fix display spots, tests
 
 #### Automated
 
-- [ ] 4.1 Type checking passes: `pnpm exec tsc --noEmit`
-- [ ] 4.2 Lint passes: `pnpm lint`
-- [ ] 4.3 Tests pass: `pnpm exec vitest run src/__tests__/use-status-filter.test.ts src/__tests__/toggle-actions.test.ts`
-- [ ] 4.4 No dangling references: `grep -rn "toggleInvestmentStatus" src/` returns nothing
+- [x] 4.1 Type checking passes: `pnpm exec tsc --noEmit`
+- [x] 4.2 Lint passes: `pnpm lint`
+- [x] 4.3 Tests pass: `pnpm exec vitest run src/__tests__/use-status-filter.test.ts src/__tests__/toggle-actions.test.ts`
+- [x] 4.4 No dangling references: `grep -rn "toggleInvestmentStatus" src/` returns nothing
