@@ -347,15 +347,15 @@ deploy-time gate, not a phase gate.
 
 #### Automated
 
-- [x] 2.1 Unit tests: `stageTotalsForView` — ea58d64f
-- [x] 2.2 `pnpm typecheck` and `pnpm lint` pass — ea58d64f
+- [x] 2.1 Unit tests: `stageTotalsForView` — aa2146f7
+- [x] 2.2 `pnpm typecheck` and `pnpm lint` pass — aa2146f7
 
 ### Phase 3: Komentarz column
 
 #### Automated
 
-- [ ] 3.1 `pnpm typecheck` and `pnpm lint` pass
-- [ ] 3.2 Existing kosztorys row/diff unit tests green
+- [x] 3.1 `pnpm typecheck` and `pnpm lint` pass
+- [x] 3.2 Existing kosztorys row/diff unit tests green
 
 ### Phase 4: Zaliczki — etap tag on deposits
 

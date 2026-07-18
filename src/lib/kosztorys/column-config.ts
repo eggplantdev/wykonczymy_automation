@@ -32,6 +32,7 @@ export const COLUMN_LABELS: Record<string, string> = {
   stageValueGross: 'Etapy — kwota brutto',
   stageValuePercent: 'Etapy — % wykonania',
   donePercent: '% wykonania',
+  note: 'Komentarz',
 }
 
 // Which side of the netto/brutto pair a money column reports, keyed by the picker's toggleKey
@@ -86,6 +87,9 @@ export const LAYER_NEUTRAL_COLUMNS: ReadonlySet<string> = new Set([
   'sectionName',
   'description',
   'stageQtySum',
+  // Komentarz (sheet col T): annotation that reads the same in Praca and Postęp, so the layer axis
+  // must not drop it — same reasoning as `description`.
+  'note',
 ])
 
 // `price` is the only editable money cell — the owner types prices while reading brutto, so the mode

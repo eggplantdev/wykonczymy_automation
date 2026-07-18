@@ -371,6 +371,17 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     ),
   ]
 
+  // Komentarz (sheet col T): the row's free-text note. Plain text column — the `note` field is
+  // already diffed/persisted; this only surfaces it in the grid.
+  const komentarz: Column<KosztorysV2RowT>[] = [
+    keyCol('note', textColumn, {
+      id: 'note',
+      title: title('note', COLUMN_LABELS.note, opts, false),
+      minWidth: 200,
+      grow: 1,
+    }),
+  ]
+
   const remaining: Column<KosztorysV2RowT>[] = [
     computedColumn('remaining', title('remaining', COLUMN_LABELS.remaining, opts), (r) =>
       rowRemainingForView(r, stages, view),
@@ -402,6 +413,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     ...stageValuePercentCols,
     ...donePercent,
     ...remaining,
+    ...komentarz,
   ]
   return opts.onRemoveItem || opts.onReorderItem
     ? [actionColumn(opts), ...dataColumns]
