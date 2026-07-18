@@ -1,6 +1,6 @@
 import { parseInvestmentId, requireInvestmentOr404 } from '@/lib/queries/investments'
 import { getKosztorysTree } from '@/lib/queries/kosztorys'
-import { fetchFilteredByType } from '@/lib/queries/reference-data'
+import { fetchFilteredByType, fetchZaliczkiByStage } from '@/lib/queries/reference-data'
 import { deriveFinancials } from '@/lib/db/sum-transfers'
 import { KosztorysEditorV2 } from '@/components/kosztorys/kosztorys-editor-v2'
 
@@ -18,8 +18,14 @@ export default async function InvestmentKosztorysV2Page({
   // Read-only bridge to the financial plane: the investment's live material spend (unsettled
   // INVESTMENT_EXPENSE + CORRECTION), summed via the same cached path the detail page uses.
   const financialsPromise = fetchFilteredByType({ investment: { equals: investmentId } })
+  // Per-etap zaliczki (tagged deposits) — same cached transfers plane, read-only.
+  const zaliczkiPromise = fetchZaliczkiByStage(investmentId)
   const { investment } = await requireInvestmentOr404(id)
-  const [tree, typeDistribution] = await Promise.all([treePromise, financialsPromise])
+  const [tree, typeDistribution, zaliczkiByStage] = await Promise.all([
+    treePromise,
+    financialsPromise,
+    zaliczkiPromise,
+  ])
   const materialsNet = deriveFinancials(typeDistribution).totalMaterialCosts
 
   return (
@@ -28,6 +34,7 @@ export default async function InvestmentKosztorysV2Page({
       tree={tree}
       investmentName={investment.name}
       materialsNet={materialsNet}
+      zaliczkiByStage={zaliczkiByStage}
     />
   )
 }

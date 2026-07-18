@@ -15,12 +15,19 @@ type PropsT = {
   tree: KosztorysTreeT
   investmentName: string
   materialsNet: number
+  zaliczkiByStage: Record<number, number>
 }
 
 // Thin shell around the stateful editor body: owns the auto-snapshot interval, the "Wersje" drawer, and
 // the restore-driven remount. Each of the three lives here so a restore's body remount doesn't disturb
 // them.
-export function KosztorysEditorV2({ investmentId, tree, investmentName, materialsNet }: PropsT) {
+export function KosztorysEditorV2({
+  investmentId,
+  tree,
+  investmentName,
+  materialsNet,
+  zaliczkiByStage,
+}: PropsT) {
   const router = useRouter()
   // One undo/redo stack per editor mount, shared with the body via context. It outlives the body's
   // restore remount (the shell doesn't remount), so a restore must reset() it — the stale commands
@@ -58,6 +65,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName, material
         tree={tree}
         investmentName={investmentName}
         materialsNet={materialsNet}
+        zaliczkiByStage={zaliczkiByStage}
         onOpenVersions={() => setVersionsOpen(true)}
       />
       <KosztorysVersionsDrawer

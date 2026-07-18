@@ -43,6 +43,23 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
         if (!validated.success) return validated
       }
 
+      if (parsed.data.kosztorysStage != null) {
+        // The schema already gates the tag to deposit types; here we confirm the etap actually
+        // belongs to the tagged investment's kosztorys — a stage from another investment is a
+        // client bug or stale form state, never a valid zaliczka.
+        const stage = await payload.findByID({
+          collection: 'kosztorys-stages',
+          id: parsed.data.kosztorysStage,
+          depth: 0,
+        })
+        const stageInvestment =
+          typeof stage?.investment === 'number' ? stage.investment : stage?.investment?.id
+        if (!stage || stageInvestment !== parsed.data.investment) {
+          return { success: false, error: 'Wybrany etap nie należy do tej inwestycji.' }
+        }
+        console.log(`[PERF]   validate kosztorysStage ${step()}ms`)
+      }
+
       await payload.create({
         collection: 'transactions',
         data: {

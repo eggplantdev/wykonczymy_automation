@@ -20,6 +20,7 @@ type PropsT = {
   tree: KosztorysTreeT
   investmentName: string
   materialsNet: number
+  zaliczkiByStage: Record<number, number>
   onOpenVersions: () => void
 }
 
@@ -31,6 +32,7 @@ export function KosztorysEditorBody({
   tree,
   investmentName,
   materialsNet,
+  zaliczkiByStage,
   onOpenVersions,
 }: PropsT) {
   const editor = useKosztorysEditor({ investmentId, tree })
@@ -106,6 +108,7 @@ export function KosztorysEditorBody({
         <KosztorysEtapTotals
           stages={stages}
           stageTotals={stageTotals}
+          zaliczkiByStage={zaliczkiByStage}
           wykonaneNet={totalNet}
           vatRate={tree.vatRate}
           moneyAxis={moneyAxis}

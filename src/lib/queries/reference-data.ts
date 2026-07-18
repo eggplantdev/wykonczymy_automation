@@ -11,8 +11,10 @@ import {
   sumAllInvestmentFinancials,
   sumFilteredByType,
   sumCategoryByTypeSettled,
+  sumDepositRowsForInvestment,
   deriveCategoryBreakdowns,
 } from '@/lib/db/sum-transfers'
+import { sumZaliczkiByStage } from '@/lib/kosztorys/zaliczki'
 import { getDb } from '@/lib/db/get-db'
 import type {
   InvestmentFinancialsT,
@@ -29,6 +31,7 @@ import type {
   WorkerRefT,
   OtherCategoryRefT,
   ExpenseCategoryRefT,
+  KosztorysStageRefT,
   ReferenceDataBaseT,
 } from '@/types/reference-data'
 
@@ -38,16 +41,17 @@ export const fetchReferenceData = unstable_cache(
     const payload = await getPayload({ config })
     const db = await getDb(payload)
 
-    const [crResult, invResult, usersResult, catResult, expCatResult] = await Promise.all([
-      db.execute(sql`
+    const [crResult, invResult, usersResult, catResult, expCatResult, stageResult] =
+      await Promise.all([
+        db.execute(sql`
         SELECT id, name, type::text, active::boolean, owner_id::integer
         FROM cash_registers
         ORDER BY name
       `),
-      // The sheet id lives on kosztoryses now (1:1 via partial unique index on
-      // investment_id). LEFT JOIN so investments without a kosztorys still appear,
-      // and we project a boolean instead of leaking the sheet id into the cache.
-      db.execute(sql`
+        // The sheet id lives on kosztoryses now (1:1 via partial unique index on
+        // investment_id). LEFT JOIN so investments without a kosztorys still appear,
+        // and we project a boolean instead of leaking the sheet id into the cache.
+        db.execute(sql`
         SELECT i.id, i.name, i.status::text,
                i.address, i.phone, i.email, i.contact_person, i.notes, i.review,
                (k.google_sheet_id IS NOT NULL) AS has_sheet
@@ -55,20 +59,24 @@ export const fetchReferenceData = unstable_cache(
         LEFT JOIN kosztoryses k ON k.investment_id = i.id
         ORDER BY i.name
       `),
-      db.execute(sql`
+        db.execute(sql`
         SELECT id, name, role::text, active::boolean, email, default_cash_register_id::integer
         FROM users
         ORDER BY name
       `),
-      db.execute(sql`
+        db.execute(sql`
         SELECT id, name FROM other_categories
         ORDER BY name
       `),
-      db.execute(sql`
+        db.execute(sql`
         SELECT id, name FROM expense_categories
         ORDER BY name
       `),
-    ])
+        db.execute(sql`
+        SELECT id, investment_id, ordinal, label FROM kosztorys_stages
+        ORDER BY investment_id, ordinal
+      `),
+      ])
 
     const totalRows =
       crResult.rows.length +
@@ -121,7 +129,26 @@ export const fetchReferenceData = unstable_cache(
       name: row.name as string,
     }))
 
-    return { cashRegisters, investments, workers, otherCategories, expenseCategories }
+    const kosztorysStagesByInvestment: Record<number, KosztorysStageRefT[]> = {}
+    for (const row of stageResult.rows) {
+      const invId = Number(row.investment_id)
+      const ordinal = Number(row.ordinal)
+      const stage: KosztorysStageRefT = {
+        id: Number(row.id),
+        ordinal,
+        label: (row.label as string) ?? `Etap ${ordinal}`,
+      }
+      ;(kosztorysStagesByInvestment[invId] ??= []).push(stage)
+    }
+
+    return {
+      cashRegisters,
+      investments,
+      workers,
+      otherCategories,
+      expenseCategories,
+      kosztorysStagesByInvestment,
+    }
   },
   ['reference-data'],
   {
@@ -194,6 +221,21 @@ export async function fetchFilteredByType(where: Where): Promise<TypeSettledTota
       return sumFilteredByType(payload, where)
     },
     ['filtered-by-type', JSON.stringify(where)],
+    { tags: [CACHE_TAGS.transfers] },
+  )()
+}
+
+// Per-etap zaliczka sums for one investment (tagged deposits), keyed stage id → cash.
+// Cached under CACHE_TAGS.transfers so deposit mutations keep the editor's join live.
+// Record (not Map) — plain object crosses the server→client prop boundary.
+export async function fetchZaliczkiByStage(investmentId: number): Promise<Record<number, number>> {
+  return unstable_cache(
+    async () => {
+      const payload = await getPayload({ config })
+      const rows = await sumDepositRowsForInvestment(payload, investmentId)
+      return Object.fromEntries(sumZaliczkiByStage(rows))
+    },
+    ['zaliczki-by-stage', String(investmentId)],
     { tags: [CACHE_TAGS.transfers] },
   )()
 }

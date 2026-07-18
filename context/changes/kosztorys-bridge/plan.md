@@ -354,17 +354,17 @@ deploy-time gate, not a phase gate.
 
 #### Automated
 
-- [x] 3.1 `pnpm typecheck` and `pnpm lint` pass
-- [x] 3.2 Existing kosztorys row/diff unit tests green
+- [x] 3.1 `pnpm typecheck` and `pnpm lint` pass — 48847a6f
+- [x] 3.2 Existing kosztorys row/diff unit tests green — 48847a6f
 
 ### Phase 4: Zaliczki — etap tag on deposits
 
 #### Automated
 
-- [ ] 4.1 Migration applies cleanly: `pnpm payload migrate`
-- [ ] 4.2 Unit test: per-etap zaliczka aggregation
-- [ ] 4.3 Action validation test: tag rejected on non-deposit types
-- [ ] 4.4 `pnpm typecheck`, `pnpm lint`, `pnpm exec vitest run` pass
+- [x] 4.1 Migration applies cleanly: `pnpm payload migrate`
+- [x] 4.2 Unit test: per-etap zaliczka aggregation
+- [x] 4.3 Action validation test: tag rejected on non-deposit types
+- [x] 4.4 `pnpm typecheck`, `pnpm lint`, `pnpm exec vitest run` pass
 
 ### Phase 5: Footer „aktualnie do zapłaty R + M"
 

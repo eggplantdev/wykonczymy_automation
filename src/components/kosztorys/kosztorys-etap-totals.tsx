@@ -9,6 +9,9 @@ type PropsT = {
   stages: KosztorysStageT[]
   // Per-etap „suma transzy" netto at the active view (stage id → net). Σ equals wykonaneNet.
   stageTotals: Map<number, number>
+  // Per-etap zaliczki (tagged deposit cash), stage id → summed amount. A single cash figure —
+  // not a netto/brutto pair — so it renders on one row regardless of the money axis.
+  zaliczkiByStage: Record<number, number>
   // R netto — suma prac wykonanych: the executed total at the active view (Σ of the etap totals).
   wykonaneNet: number
   vatRate: number
@@ -20,6 +23,7 @@ type PropsT = {
 export function KosztorysEtapTotals({
   stages,
   stageTotals,
+  zaliczkiByStage,
   wykonaneNet,
   vatRate,
   moneyAxis,
@@ -28,6 +32,8 @@ export function KosztorysEtapTotals({
   const showNet = moneyAxis === 'net' || moneyAxis === 'both'
   const showGross = moneyAxis === 'gross' || moneyAxis === 'both'
   const money = (net: number, gross: boolean) => formatNet(gross ? toGross(net, vatRate) : net)
+
+  const zaliczkiTotal = stages.reduce((sum, st) => sum + (zaliczkiByStage[st.id] ?? 0), 0)
 
   return (
     <div className="border-border text-foreground shrink-0 overflow-x-auto border-t px-4 py-2 text-sm">
@@ -67,6 +73,19 @@ export function KosztorysEtapTotals({
               ))}
               <td className="py-0.5 text-right font-medium tabular-nums">
                 {money(wykonaneNet, true)}
+              </td>
+            </tr>
+          )}
+          {zaliczkiTotal > 0 && (
+            <tr>
+              <td className="py-0.5 pr-6">Zaliczki</td>
+              {stages.map((st) => (
+                <td key={st.id} className="py-0.5 pr-6 text-right tabular-nums">
+                  {formatNet(zaliczkiByStage[st.id] ?? 0)}
+                </td>
+              ))}
+              <td className="py-0.5 text-right font-medium tabular-nums">
+                {formatNet(zaliczkiTotal)}
               </td>
             </tr>
           )}

@@ -42,7 +42,11 @@ type FormValuesT = {
   paymentMethod: string
   sourceRegister: string
   investment?: string
+  // '' = not a zaliczka; otherwise a kosztorys stage id.
+  kosztorysStage?: string
 }
+
+const NO_STAGE = ''
 
 const FORM_ID = 'deposit'
 
@@ -64,6 +68,7 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
       paymentMethod: 'CASH',
       sourceRegister: getDefaultCashRegister(referenceData),
       investment: '',
+      kosztorysStage: NO_STAGE,
     },
     keepOpen,
     successMessage: 'Wpłata dodana',
@@ -77,16 +82,29 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
       paymentMethod: value.paymentMethod as PaymentMethodT,
       sourceRegister: Number(value.sourceRegister),
       investment: value.investment ? Number(value.investment) : undefined,
+      kosztorysStage: value.kosztorysStage ? Number(value.kosztorysStage) : undefined,
     }),
   })
 
   const currentType = useStore(form.store, (s) => s.values.type)
+  const currentInvestment = useStore(form.store, (s) => s.values.investment)
+  const investmentStages = currentInvestment
+    ? (referenceData.kosztorysStagesByInvestment[Number(currentInvestment)] ?? [])
+    : []
 
   return (
     <FormShell form={form} onReset={reset}>
       <FieldGroup>
         {/* Type */}
-        <form.AppField name="type" listeners={{ onChange: () => form.resetField('investment') }}>
+        <form.AppField
+          name="type"
+          listeners={{
+            onChange: () => {
+              form.resetField('investment')
+              form.resetField('kosztorysStage')
+            },
+          }}
+        >
           {(field) => (
             <field.Select label="Typ wpłaty" showError>
               {depositTypes.map((t) => (
@@ -109,7 +127,28 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
 
         {/* Conditional: Investment — required for INVESTOR_DEPOSIT, optional for others */}
         {showsInvestment(currentType) && (
-          <EntityComboboxField form={form} variant="investment" items={referenceData.investments} />
+          <EntityComboboxField
+            form={form}
+            variant="investment"
+            items={referenceData.investments}
+            listeners={{ onChange: () => form.resetField('kosztorysStage') }}
+          />
+        )}
+
+        {/* Optional zaliczka tag — only when the chosen investment has kosztorys etapy */}
+        {showsInvestment(currentType) && investmentStages.length > 0 && (
+          <form.AppField name="kosztorysStage">
+            {(field) => (
+              <field.Select label="Zaliczka na etap (opcjonalnie)">
+                <SelectItem value={NO_STAGE}>— brak —</SelectItem>
+                {investmentStages.map((stage) => (
+                  <SelectItem key={stage.id} value={String(stage.id)}>
+                    {stage.label}
+                  </SelectItem>
+                ))}
+              </field.Select>
+            )}
+          </form.AppField>
         )}
       </FieldGroup>
 
