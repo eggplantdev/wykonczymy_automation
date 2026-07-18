@@ -339,16 +339,16 @@ deploy-time gate, not a phase gate.
 
 #### Automated
 
-- [x] 1.1 Type check passes: `pnpm typecheck`
-- [x] 1.2 Lint passes: `pnpm lint`
-- [x] 1.3 Unit test: Podsumowanie split math
+- [x] 1.1 Type check passes: `pnpm typecheck` — 3d445a6a
+- [x] 1.2 Lint passes: `pnpm lint` — 3d445a6a
+- [x] 1.3 Unit test: Podsumowanie split math — 3d445a6a
 
 ### Phase 2: Etap axis — suma transzy + suma prac wykonanych
 
 #### Automated
 
-- [ ] 2.1 Unit tests: `stageTotalsForView`
-- [ ] 2.2 `pnpm typecheck` and `pnpm lint` pass
+- [x] 2.1 Unit tests: `stageTotalsForView` — ea58d64f
+- [x] 2.2 `pnpm typecheck` and `pnpm lint` pass — ea58d64f
 
 ### Phase 3: Komentarz column
 

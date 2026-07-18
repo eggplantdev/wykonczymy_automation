@@ -1,4 +1,9 @@
-import { netForQtyForView, rowPlannedNetForView, type PriceViewT } from '@/lib/kosztorys/calc'
+import {
+  netForQtyForView,
+  rowPlannedNetForView,
+  stageValueForView,
+  type PriceViewT,
+} from '@/lib/kosztorys/calc'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT, SectionSubtotalT } from '@/lib/kosztorys/types'
 
@@ -57,6 +62,34 @@ export function rowRemainingForView(
  */
 export function hasStagesOverPlanned(row: KosztorysV2RowT, stages: KosztorysStageT[]): boolean {
   return rowTotalQtyDone(row, stages) > (row.plannedQty ?? 0)
+}
+
+/**
+ * The etap axis: per-stage column total across all rows at the active view's price — the sheet's
+ * `SUM(<stage col>)` per etap (filled r396/r397). The suma transzy: how much value each etap has
+ * executed. Every stage in `stages` gets an entry (0 when no row touched it).
+ *
+ * Uses the same `stageValueForView` primitive the grid's per-stage cells show — each stage's value
+ * is its qty share of the row's executed net — so Σ over the stages equals the row's executed value,
+ * and Σ over all stages equals the executed total (the 'amount'-rabat reconciliation the sheet's
+ * V–AE block exists for holds here by construction).
+ */
+export function stageTotalsForView(
+  rows: KosztorysV2RowT[],
+  stages: KosztorysStageT[],
+  view: PriceViewT,
+): Map<number, number> {
+  const totals = new Map<number, number>(stages.map((st) => [st.id, 0]))
+  for (const row of rows) {
+    const totalQty = rowTotalQtyDone(row, stages)
+    if (!(totalQty > 0)) continue
+    for (const st of stages) {
+      const qtyInStage = row[stageKey(st.id)] ?? 0
+      if (!qtyInStage) continue
+      totals.set(st.id, totals.get(st.id)! + stageValueForView(row, qtyInStage, totalQty, view))
+    }
+  }
+  return totals
 }
 
 /**

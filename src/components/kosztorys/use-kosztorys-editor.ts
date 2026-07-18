@@ -43,7 +43,7 @@ import {
   sectionItemCounts,
   type ItemRemovalPlanT,
 } from '@/lib/kosztorys/delete-policy'
-import { sectionSubtotalsForView } from '@/lib/kosztorys/settlement'
+import { sectionSubtotalsForView, stageTotalsForView } from '@/lib/kosztorys/settlement'
 import { filterRows, sortRows, type SortDirT } from '@/lib/kosztorys/row-view'
 import { columnSortValue, reconcileSort } from '@/lib/kosztorys/sort-value'
 import { NEW_SECTION_DEFAULTS } from '@/lib/kosztorys/constants'
@@ -285,6 +285,10 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   // Executed total at the active view — the money the totals bar shows and the base the global
   // discount comes off. Full-dataset (like the subtotals): a search or section filter must not move it.
   const totalNet = useMemo(() => subtotals.reduce((s, x) => s + x.net, 0), [subtotals])
+  // Per-etap „suma transzy" at the active view — the executed value each stage delivered. Full-dataset
+  // (like the subtotals): Σ over stages equals totalNet, so the etap totals and the wykonane readout
+  // reconcile by construction.
+  const stageTotals = useMemo(() => stageTotalsForView(rows, stages, view), [rows, stages, view])
   // The progress counter is a PROGRESS figure, not money — it must read the same in every price view,
   // so its executed/offered are weighted at the client price (a separate client-priced pass), never
   // the active `view`. Same client basis as each section's completionRatio.
@@ -992,6 +996,8 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     // subtotals + section panel
     subtotals,
     totalNet,
+    stageTotals,
+    stages,
     doneNet,
     plannedNet,
     sectionCoeffs,

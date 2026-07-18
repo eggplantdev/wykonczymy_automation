@@ -7,6 +7,7 @@ import { createPortal } from 'react-dom'
 import { DynamicDataSheetGrid } from 'react-datasheet-grid'
 import { KosztorysSectionSummary } from '@/components/kosztorys/kosztorys-section-summary'
 import { KosztorysPodsumowanie } from '@/components/kosztorys/kosztorys-podsumowanie'
+import { KosztorysEtapTotals } from '@/components/kosztorys/kosztorys-etap-totals'
 import { KosztorysTotalsBar } from '@/components/kosztorys/kosztorys-totals-bar'
 import { KosztorysEditorToolbar } from '@/components/kosztorys/kosztorys-editor-toolbar'
 import { useKosztorysEditor } from '@/components/kosztorys/use-kosztorys-editor'
@@ -40,6 +41,9 @@ export function KosztorysEditorBody({
     viewRows,
     guideX,
     subtotals,
+    stageTotals,
+    stages,
+    totalNet,
     discountAmount,
     doZaplatyNet,
     moneyAxis,
@@ -99,6 +103,13 @@ export function KosztorysEditorBody({
             />
           )}
         </div>
+        <KosztorysEtapTotals
+          stages={stages}
+          stageTotals={stageTotals}
+          wykonaneNet={totalNet}
+          vatRate={tree.vatRate}
+          moneyAxis={moneyAxis}
+        />
         <KosztorysPodsumowanie
           robociznaNet={doZaplatyNet}
           materialyNet={materialsNet}
