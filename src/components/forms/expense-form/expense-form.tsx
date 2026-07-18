@@ -27,7 +27,11 @@ import {
   makeLineItem,
   type BulkExpenseFormValuesT,
 } from '@/components/forms/expense-form/bulk-expense-form'
-import { resolveInvoiceMediaIds } from '@/lib/utils/upload-file-client'
+import {
+  filesByRowId,
+  positionalFiles,
+  resolveInvoiceMediaIds,
+} from '@/lib/utils/upload-file-client'
 import { MAX_UPLOAD_BYTES, type BlockedFileError } from '@/lib/utils/process-upload-file'
 import { toastMessage } from '@/lib/utils/toast'
 import {
@@ -96,18 +100,18 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
 
   // Rows whose picked file is still being processed at ingest (HEIC convert can take ~1-2 s). The
   // row shows a spinner and its actions are disabled meanwhile, and a batch scan waits for ingest
-  // before running the AI generation.
-  const [ingestingIndices, setIngestingIndices] = useState<Set<number>>(new Set())
+  // before running the AI generation. Keyed on each row's stable id (EX-448).
+  const [ingestingIds, setIngestingIds] = useState<Set<string>>(new Set())
 
-  function markIngesting(indices: number[], busy: boolean) {
-    setIngestingIndices((prev) => {
+  function markIngesting(ids: string[], busy: boolean) {
+    setIngestingIds((prev) => {
       const next = new Set(prev)
-      indices.forEach((index) => (busy ? next.add(index) : next.delete(index)))
+      ids.forEach((id) => (busy ? next.add(id) : next.delete(id)))
       return next
     })
   }
 
-  const isIngesting = ingestingIndices.size > 0
+  const isIngesting = ingestingIds.size > 0
 
   function reportBlocked(blocked: BlockedFileError[]) {
     if (blocked.length === 0) return
@@ -115,6 +119,14 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     // must be captured once Sentry is wired — currently surfaced only as a per-item user toast.
     toastMessage(blockedFilesMessage(blocked), 'error', 8000)
   }
+
+  // recoveredFiles is the previous submit's positional Map<number,File> (wire order). Re-key it to
+  // id-space against the recovered rows (same order) so the restored form stays id-keyed — ids
+  // survive the submit→fail→restore round-trip via storedValues.
+  const recoveredFilesById =
+    recoveredFiles && storedValues?.lineItems
+      ? filesByRowId(storedValues.lineItems, recoveredFiles)
+      : undefined
 
   const {
     handleRemoveLineItem,
@@ -124,14 +136,14 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     getFiles,
     renameFile,
     reset: resetInvoiceFiles,
-  } = useInvoiceFiles(recoveredFiles)
+  } = useInvoiceFiles(recoveredFilesById)
 
   // Run one ingest batch: mark the rows busy, report any blocked files, and — crucially — always
   // clear the spinner and bump the key in `finally`. The finally is load-bearing: an unexpected
   // ingest rejection (e.g. a chunk-load failure on the lazy import) must still release the rows, or
   // they stay busy forever and wedge the whole form. Blocked files enter no map; the row stays empty.
-  async function runIngest(indices: number[], ingest: () => Promise<IngestResultT>) {
-    markIngesting(indices, true)
+  async function runIngest(ids: string[], ingest: () => Promise<IngestResultT>) {
+    markIngesting(ids, true)
     try {
       reportBlocked((await ingest()).blocked)
     } catch {
@@ -139,27 +151,24 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
       // once Sentry is wired; for now the user gets a generic retry toast.
       toastMessage('Nie udało się przetworzyć pliku — spróbuj ponownie.', 'error', 6000)
     } finally {
-      markIngesting(indices, false)
+      markIngesting(ids, false)
       // Re-render the affected rows so they swap the file input for the attached-file thumbnail.
       setFileInputKey((k) => k + 1)
     }
   }
 
-  function handleRegisterFiles(startIndex: number, files: File[]) {
-    const indices = files.map((_, offset) => startIndex + offset)
-    return runIngest(indices, () => registerFilesAt(startIndex, files))
+  function handleRegisterFiles(ids: string[], files: File[]) {
+    return runIngest(ids, () => registerFilesAt(ids, files))
   }
 
-  function handleAttachFile(index: number, e: React.ChangeEvent<HTMLInputElement>) {
-    return runIngest([index], () => handleFileChange(index, e))
+  function handleAttachFile(id: string, e: React.ChangeEvent<HTMLInputElement>) {
+    return runIngest([id], () => handleFileChange(id, e))
   }
 
-  // Re-align the generation markers (failed/in-flight) alongside the file maps on row removal.
-  // Bump the key so surviving rows re-render and re-read their file from the reindexed ref —
-  // otherwise a shifted-up row keeps showing the removed row's file input/thumbnail.
-  function handleRemove(index: number, removeValue: (index: number) => void) {
-    handleRemoveLineItem(index, removeValue)
-    onRowRemoved(index)
+  // Drop the row's out-of-form file by id; the id keying means surviving rows' markers/files need
+  // no shift. Bump the key so the removed row's uncontrolled input remounts clean.
+  function handleRemove(id: string, index: number, removeValue: (index: number) => void) {
+    handleRemoveLineItem(id, index, removeValue)
     setFileInputKey((k) => k + 1)
   }
 
@@ -214,7 +223,9 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
         lineItems: value.lineItems.map((item) => mapLineItem(item, type, !!value.investment)),
       }
 
-      const files = getFiles()
+      // Cross the id→position seam once, here: the upload contract and the optimistic-store
+      // snapshot (persisted for recovery) are both positional (mediaIds[i] ↔ lineItems[i]).
+      const files = positionalFiles(value.lineItems, getFiles())
 
       await submit(!!keepOpen, {
         form,
@@ -247,10 +258,9 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
   const {
     generateFromReceipts,
     isGenerating,
-    generatingIndices,
-    failedIndices,
+    generatingIds,
+    failedIds,
     generationProgress,
-    onRowRemoved,
     resetGeneration,
   } = useReceiptGeneration({
     form,
@@ -356,9 +366,9 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
             fileInputKey={fileInputKey}
             onGenerate={handleGenerate}
             isGenerating={isGenerating}
-            generatingIndices={generatingIndices}
-            ingestingIndices={ingestingIndices}
-            failedIndices={failedIndices}
+            generatingIds={generatingIds}
+            ingestingIds={ingestingIds}
+            failedIds={failedIds}
             generationProgress={generationProgress}
             transferType={currentType}
             referenceData={referenceData}

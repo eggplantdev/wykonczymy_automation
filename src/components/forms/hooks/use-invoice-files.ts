@@ -9,67 +9,49 @@ import { BlockedFileError, processUploadFile } from '@/lib/utils/process-upload-
 const INGEST_CONCURRENCY = 4
 
 // Files that couldn't enter the map (unconvertible HEIC / oversize) — surfaced to the caller so
-// it can show a per-item Polish message. A blocked file leaves its row's position without a File.
+// it can show a per-item Polish message. A blocked file leaves its row without a File.
 export type IngestResultT = { blocked: BlockedFileError[] }
 
-// Pure index-keyed map algebra for the positional add-expense contract (lineItems[i] ↔
-// file[i]). Exported standalone so they're unit-testable without a React renderer.
-// Generic over the value so the receipt-generation failed/in-flight index sets (wrapped as
-// maps) reuse the same shift.
-export function reindexAfterRemoval<V>(map: Map<number, V>, removedIndex: number): Map<number, V> {
-  const next = new Map<number, V>()
-  map.forEach((value, i) => {
-    if (i < removedIndex) next.set(i, value)
-    else if (i > removedIndex) next.set(i - 1, value)
-  })
-  return next
-}
+export function useInvoiceFiles(initialFiles?: Map<string, File>) {
+  const invoiceFilesRef = useRef<Map<string, File>>(initialFiles ?? new Map())
 
-export function setFilesAt(map: Map<number, File>, startIndex: number, files: File[]): void {
-  files.forEach((file, offset) => map.set(startIndex + offset, file))
-}
-
-export function useInvoiceFiles(initialFiles?: Map<number, File>) {
-  const invoiceFilesRef = useRef<Map<number, File>>(initialFiles ?? new Map())
-
-  function handleRemoveLineItem(index: number, removeValue: (index: number) => void) {
-    invoiceFilesRef.current = reindexAfterRemoval(invoiceFilesRef.current, index)
+  function handleRemoveLineItem(id: string, index: number, removeValue: (index: number) => void) {
+    invoiceFilesRef.current.delete(id)
     removeValue(index)
   }
 
   // Process the picked file at ingest (HEIC-convert / compress / size-guard) and store the
   // processed File, so both consumers (scan + submit) read the already-processed bytes. A
-  // blocked file is not stored (and any prior File at this row is cleared) and returned to the
+  // blocked file is not stored (and any prior File on this row is cleared) and returned to the
   // caller for messaging.
   async function handleFileChange(
-    index: number,
+    id: string,
     e: React.ChangeEvent<HTMLInputElement>,
   ): Promise<IngestResultT> {
     const file = e.target.files?.[0]
     if (!file) {
-      invoiceFilesRef.current.delete(index)
+      invoiceFilesRef.current.delete(id)
       return { blocked: [] }
     }
     try {
-      invoiceFilesRef.current.set(index, await processUploadFile(file))
+      invoiceFilesRef.current.set(id, await processUploadFile(file))
       return { blocked: [] }
     } catch (error) {
       if (!(error instanceof BlockedFileError)) throw error
-      invoiceFilesRef.current.delete(index)
+      invoiceFilesRef.current.delete(id)
       return { blocked: [error] }
     }
   }
 
-  // Register N batch-picked receipts at N consecutive indices in one call — each becomes that
-  // row's invoice via the same positional submit path as a per-row pick. Each file is processed
-  // at its FIXED startIndex + offset position (never a reindex/shift on a blocked file — that
-  // would misalign every later row's receipt); successes are stored, blocked files are collected
-  // and returned so one bad file in a batch never discards the others.
-  async function registerFilesAt(startIndex: number, files: File[]): Promise<IngestResultT> {
+  // Register N batch-picked receipts against N row ids in one call — each becomes that row's
+  // invoice, paired to its row by stable id (never a positional shift, so a blocked file can't
+  // misalign later rows). `ids[i]` is the row for `files[i]`; successes are stored, blocked files
+  // are collected and returned so one bad file in a batch never discards the others.
+  async function registerFilesAt(ids: string[], files: File[]): Promise<IngestResultT> {
     const blocked: BlockedFileError[] = []
     await mapWithConcurrency(files, INGEST_CONCURRENCY, async (file, offset) => {
       try {
-        invoiceFilesRef.current.set(startIndex + offset, await processUploadFile(file))
+        invoiceFilesRef.current.set(ids[offset], await processUploadFile(file))
       } catch (error) {
         if (!(error instanceof BlockedFileError)) throw error
         blocked.push(error)
@@ -78,21 +60,21 @@ export function useInvoiceFiles(initialFiles?: Map<number, File>) {
     return { blocked }
   }
 
-  function getFile(index: number): File | undefined {
-    return invoiceFilesRef.current.get(index)
+  function getFile(id: string): File | undefined {
+    return invoiceFilesRef.current.get(id)
   }
 
-  function getFiles(): Map<number, File> {
+  function getFiles(): Map<string, File> {
     return new Map(invoiceFilesRef.current)
   }
 
   // Swap a row's File for a same-bytes clone under a new name so the FV label can mirror the
   // Opis-based receipt rename. Display-only — the (single, submit-time) upload uses this renamed
   // File; the caller bumps fileInputKey to re-read the name.
-  function renameFile(index: number, newName: string) {
-    const existing = invoiceFilesRef.current.get(index)
+  function renameFile(id: string, newName: string) {
+    const existing = invoiceFilesRef.current.get(id)
     if (!existing) return
-    invoiceFilesRef.current.set(index, new File([existing], newName, { type: existing.type }))
+    invoiceFilesRef.current.set(id, new File([existing], newName, { type: existing.type }))
   }
 
   function reset() {

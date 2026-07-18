@@ -413,16 +413,16 @@ None. Rows are ephemeral client state; `id` never persists and the server contra
 
 #### Automated
 
-- [x] 1.1 Type checking passes
-- [x] 1.2 Linting passes
-- [x] 1.3 Existing use-invoice-files + invoice-media-resolve tests still pass
+- [x] 1.1 Type checking passes — a2786f19
+- [x] 1.2 Linting passes — a2786f19
+- [x] 1.3 Existing use-invoice-files + invoice-media-resolve tests still pass — a2786f19
 
 ### Phase 2: Rekey by id (+ submit/recovery boundary)
 
 #### Automated
 
-- [ ] 2.1 Type checking passes
-- [ ] 2.2 Linting passes
+- [x] 2.1 Type checking passes (production code green; the two old use-invoice-files tests reference deleted exports — rewritten in Phase 4)
+- [x] 2.2 Linting passes
 
 ### Phase 3: Retire fileInputKey
 

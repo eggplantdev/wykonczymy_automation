@@ -50,22 +50,23 @@ type LineItemsFieldPropsT = {
   defaultExpenseCategory?: string
   total: number
   hasInvestment?: boolean
-  onRemoveItem: (index: number, removeValue: (index: number) => void) => void
-  onFileChange: (index: number, e: React.ChangeEvent<HTMLInputElement>) => void
-  // Batch-attach N receipt images: register each file at its row index (see use-invoice-files).
+  onRemoveItem: (id: string, index: number, removeValue: (index: number) => void) => void
+  onFileChange: (id: string, e: React.ChangeEvent<HTMLInputElement>) => void
+  // Batch-attach N receipt images: register `files[i]` against row `ids[i]` (see use-invoice-files).
   // Async (ingest processing) — awaited before generation so the files map is populated first.
-  onRegisterFiles: (startIndex: number, files: File[]) => Promise<void>
+  onRegisterFiles: (ids: string[], files: File[]) => Promise<void>
   // Read a row's attached file so it can render a thumbnail preview (undefined → file input).
-  getFile: (index: number) => File | undefined
+  getFile: (id: string) => File | undefined
   // Bump to force-remount the uncontrolled file inputs (clears their selection).
   fileInputKey?: number
   // Receipt generation: scan every eligible row's image and populate its fields (see use-receipt-generation).
   onGenerate?: () => void
   isGenerating?: boolean
-  generatingIndices?: Set<number>
+  // Marker sets key on each row's stable id (EX-448), not its position.
+  generatingIds?: Set<string>
   // Rows whose picked file is still being processed at ingest — show a spinner, disable actions.
-  ingestingIndices?: Set<number>
-  failedIndices?: Set<number>
+  ingestingIds?: Set<string>
+  failedIds?: Set<string>
   generationProgress?: { done: number; total: number } | null
 }
 
@@ -143,9 +144,9 @@ export function LineItemsField({
   fileInputKey = 0,
   onGenerate,
   isGenerating = false,
-  generatingIndices,
-  ingestingIndices,
-  failedIndices,
+  generatingIds,
+  ingestingIds,
+  failedIds,
   generationProgress,
 }: LineItemsFieldPropsT) {
   const inlineCategory = getInlineCategory(transferType, referenceData, hasInvestment)
@@ -154,7 +155,7 @@ export function LineItemsField({
   const newItem = () =>
     makeLineItem(defaultExpenseCategory ? { expenseCategory: defaultExpenseCategory } : undefined)
   const receiptInputRef = useRef<HTMLInputElement>(null)
-  const isIngesting = (ingestingIndices?.size ?? 0) > 0
+  const isIngesting = (ingestingIds?.size ?? 0) > 0
   const [isDragOver, setIsDragOver] = useState(false)
 
   // Scan flow: add each picked receipt as a row (image attached) FIRST, then run the AI generation.
@@ -165,14 +166,18 @@ export function LineItemsField({
   async function scanReceipts(picked: File[], lineItemsField: LineItemsArrayFieldT) {
     if (picked.length > 0) {
       // Reuse the lone initial blank row for the first image so the first receipt lands on
-      // row 0 rather than after an empty row; otherwise append after the existing rows.
+      // row 0 rather than after an empty row; otherwise append after the existing rows. Mint the
+      // new rows up front so we know their ids (pushValue is async in the form's state) and can
+      // pair each picked file to its row by id — `ids[i]` holds `picked[i]`.
       const rows = lineItemsField.state.value
       const reuseFirstRow = rows.length === 1 && !rows[0].description && !rows[0].amount
-      const startIndex = reuseFirstRow ? 0 : rows.length
-      const rowsToPush = reuseFirstRow ? picked.length - 1 : picked.length
-
-      for (let i = 0; i < rowsToPush; i++) lineItemsField.pushValue(newItem())
-      await onRegisterFiles(startIndex, picked)
+      const newRows = Array.from(
+        { length: reuseFirstRow ? picked.length - 1 : picked.length },
+        () => newItem(),
+      )
+      for (const row of newRows) lineItemsField.pushValue(row)
+      const ids = (reuseFirstRow ? [rows[0], ...newRows] : newRows).map((row) => row.id)
+      await onRegisterFiles(ids, picked)
     }
     onGenerate?.()
   }
@@ -235,7 +240,7 @@ export function LineItemsField({
                         fieldClassName="min-w-0 flex-1"
                       />
                     )}
-                    {failedIndices?.has(index) && (
+                    {failedIds?.has(item.id) && (
                       <span className="text-destructive mb-2 shrink-0 text-xs whitespace-nowrap">
                         nie odczytano
                       </span>
@@ -245,12 +250,12 @@ export function LineItemsField({
                       row mid-generation shifts the array under in-flight extraction tasks (captured
                       index), landing a result on the wrong row. */}
                     <div className="flex size-9 shrink-0 items-center justify-center">
-                      {generatingIndices?.has(index) || ingestingIndices?.has(index) ? (
+                      {generatingIds?.has(item.id) || ingestingIds?.has(item.id) ? (
                         <GradientSpinner />
                       ) : (
                         <RemoveButton
                           icon={Trash2}
-                          onClick={() => onRemoveItem(index, lineItemsField.removeValue)}
+                          onClick={() => onRemoveItem(item.id, index, lineItemsField.removeValue)}
                           disabled={
                             isGenerating || isIngesting || lineItemsField.state.value.length === 1
                           }
@@ -268,8 +273,9 @@ export function LineItemsField({
                       />
                     )}
                     <LineItemInvoiceField
+                      id={item.id}
                       index={index}
-                      file={getFile(index)}
+                      file={getFile(item.id)}
                       fieldClassName="min-w-0 flex-1"
                       fileInputKey={fileInputKey}
                       onFileChange={onFileChange}

@@ -25,6 +25,40 @@ export async function uploadFileClient(file: File): Promise<number> {
   return data.mediaId
 }
 
+// Out-of-form invoice files are keyed by each row's stable client id (EX-448), but the submit
+// contract (resolveInvoiceMediaIds / createBulkTransferAction) is positional: mediaIds[i] belongs
+// to lineItems[i]. These two pure projections bridge id-space ↔ position-space at that seam and
+// nowhere else, so the whole in-form apparatus stays id-keyed while the wire stays positional.
+
+/** id-space → position-space: project the id-keyed file map onto row positions for submit. */
+export function positionalFiles(
+  lineItems: { id: string }[],
+  byId: Map<string, File>,
+): Map<number, File> {
+  const positional = new Map<number, File>()
+  lineItems.forEach((item, index) => {
+    const file = byId.get(item.id)
+    if (file) positional.set(index, file)
+  })
+  return positional
+}
+
+/**
+ * position-space → id-space: re-key a positionally-persisted file map (a recovered optimistic
+ * submission, still in wire order) onto the recovered rows' ids so the restored form is id-keyed.
+ */
+export function filesByRowId(
+  lineItems: { id: string }[],
+  positional: Map<number, File>,
+): Map<string, File> {
+  const byId = new Map<string, File>()
+  lineItems.forEach((item, index) => {
+    const file = positional.get(index)
+    if (file) byId.set(item.id, file)
+  })
+  return byId
+}
+
 /**
  * Positional invoice-mediaId array for submit. Per row index: upload the attached File; a row
  * with no File is `undefined`. `upload` is injectable for tests.
