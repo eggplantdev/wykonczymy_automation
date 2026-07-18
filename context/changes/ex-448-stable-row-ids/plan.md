@@ -421,16 +421,16 @@ None. Rows are ephemeral client state; `id` never persists and the server contra
 
 #### Automated
 
-- [x] 2.1 Type checking passes (production code green; the two old use-invoice-files tests reference deleted exports — rewritten in Phase 4)
-- [x] 2.2 Linting passes
+- [x] 2.1 Type checking passes (production code green; the two old use-invoice-files tests reference deleted exports — rewritten in Phase 4) — a0bf2b83
+- [x] 2.2 Linting passes — a0bf2b83
 
 ### Phase 3: Retire fileInputKey
 
 #### Automated
 
-- [ ] 3.1 Type checking passes
-- [ ] 3.2 Linting passes
-- [ ] 3.3 `grep -rn fileInputKey src/` returns nothing
+- [x] 3.1 Type checking passes (production green; two old use-invoice-files tests still red — Phase 4)
+- [x] 3.2 Linting passes
+- [x] 3.3 `grep -rn fileInputKey src/` returns nothing in the expense line-items flow. DEVIATION: `edit-transfer-form.tsx` keeps its own `fileInputKey` — it's a separate single-file transfer-edit form with no line-item row array, so its remount-to-clear pattern is out of EX-448's scope (stable per-**row** ids). Migrating it is unrelated code churn; left untouched.
 
 ### Phase 4: Tests
 

@@ -57,8 +57,6 @@ type LineItemsFieldPropsT = {
   onRegisterFiles: (ids: string[], files: File[]) => Promise<void>
   // Read a row's attached file so it can render a thumbnail preview (undefined → file input).
   getFile: (id: string) => File | undefined
-  // Bump to force-remount the uncontrolled file inputs (clears their selection).
-  fileInputKey?: number
   // Receipt generation: scan every eligible row's image and populate its fields (see use-receipt-generation).
   onGenerate?: () => void
   isGenerating?: boolean
@@ -141,7 +139,6 @@ export function LineItemsField({
   onFileChange,
   onRegisterFiles,
   getFile,
-  fileInputKey = 0,
   onGenerate,
   isGenerating = false,
   generatingIds,
@@ -274,10 +271,8 @@ export function LineItemsField({
                     )}
                     <LineItemInvoiceField
                       id={item.id}
-                      index={index}
                       file={getFile(item.id)}
                       fieldClassName="min-w-0 flex-1"
-                      fileInputKey={fileInputKey}
                       onFileChange={onFileChange}
                     />
                   </div>

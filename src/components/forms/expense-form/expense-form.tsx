@@ -94,10 +94,6 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
 
   const { saldo, isSaldoLoading, fetchSaldo, resetSaldo } = useSaldo()
 
-  // Bumped on reset to remount the (uncontrolled) file inputs, clearing their
-  // native files and internal filename state — form.reset() can't reach them.
-  const [fileInputKey, setFileInputKey] = useState(0)
-
   // Rows whose picked file is still being processed at ingest (HEIC convert can take ~1-2 s). The
   // row shows a spinner and its actions are disabled meanwhile, and a batch scan waits for ingest
   // before running the AI generation. Keyed on each row's stable id (EX-448).
@@ -139,9 +135,10 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
   } = useInvoiceFiles(recoveredFilesById)
 
   // Run one ingest batch: mark the rows busy, report any blocked files, and — crucially — always
-  // clear the spinner and bump the key in `finally`. The finally is load-bearing: an unexpected
-  // ingest rejection (e.g. a chunk-load failure on the lazy import) must still release the rows, or
-  // they stay busy forever and wedge the whole form. Blocked files enter no map; the row stays empty.
+  // clear the spinner in `finally`. The finally is load-bearing: an unexpected ingest rejection
+  // (e.g. a chunk-load failure on the lazy import) must still release the rows, or they stay busy
+  // forever and wedge the whole form. Blocked files enter no map; the row stays empty. The reactive
+  // file store re-renders attached rows (input → thumbnail) on its own — no remount key.
   async function runIngest(ids: string[], ingest: () => Promise<IngestResultT>) {
     markIngesting(ids, true)
     try {
@@ -152,8 +149,6 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
       toastMessage('Nie udało się przetworzyć pliku — spróbuj ponownie.', 'error', 6000)
     } finally {
       markIngesting(ids, false)
-      // Re-render the affected rows so they swap the file input for the attached-file thumbnail.
-      setFileInputKey((k) => k + 1)
     }
   }
 
@@ -166,18 +161,20 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
   }
 
   // Drop the row's out-of-form file by id; the id keying means surviving rows' markers/files need
-  // no shift. Bump the key so the removed row's uncontrolled input remounts clean.
+  // no shift, and the reactive store re-renders the removed row on its own.
   function handleRemove(id: string, index: number, removeValue: (index: number) => void) {
     handleRemoveLineItem(id, index, removeValue)
-    setFileInputKey((k) => k + 1)
   }
 
+  // FormClearButton runs form.reset() (restores the mount-time default, whose row id is stale) and
+  // then this. Mint a fresh-id blank row so its React key changes and the row — with its uncontrolled
+  // FileInput — remounts, clearing any native FileList that form.reset() can't reach.
   function handleReset() {
     resetFormData()
     resetSaldo()
     resetInvoiceFiles()
     resetGeneration()
-    setFileInputKey((k) => k + 1)
+    form.setFieldValue('lineItems', [makeLineItem()])
   }
 
   const form = useAppForm({
@@ -269,12 +266,9 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     renameFile,
   })
 
-  // Run the generation, then remount the uncontrolled file inputs so each re-reads its (possibly
-  // renamed) filename from the ref — the labels can't update in place.
-  async function handleGenerate() {
-    await generateFromReceipts()
-    setFileInputKey((k) => k + 1)
-  }
+  // The reactive file store re-renders each FV label as generateFromReceipts renames its file — no
+  // remount needed, so this is just the scan.
+  const handleGenerate = generateFromReceipts
 
   const currentType = useStore(form.store, (s) => s.values.type)
   const currentInvestment = useStore(form.store, (s) => s.values.investment)
@@ -289,14 +283,13 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
   function resetConditionalFields() {
     conditionalFields.forEach((field) => form.resetField(field))
     form.resetField('sourceRegister')
-    form.resetField('lineItems')
-    // resetField('lineItems') drops the line-item rows, but the queued files live
-    // outside the form (invoiceFilesRef + uncontrolled inputs). Clear them too and
-    // bump the key to remount the inputs — otherwise a file queued before the type
-    // switch attaches to the wrong/nonexistent line item on submit.
+    // resetField('lineItems') would restore the stale-id mount default; set a fresh-id blank row
+    // instead so the row (and its uncontrolled FileInput) remounts. The queued files live outside
+    // the form, so clear them too — otherwise a file queued before the type switch attaches to the
+    // wrong/nonexistent line item on submit.
+    form.setFieldValue('lineItems', [makeLineItem()])
     resetInvoiceFiles()
     resetGeneration()
-    setFileInputKey((k) => k + 1)
     resetSaldo()
   }
 
@@ -363,7 +356,6 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
             onFileChange={handleAttachFile}
             onRegisterFiles={handleRegisterFiles}
             getFile={getFile}
-            fileInputKey={fileInputKey}
             onGenerate={handleGenerate}
             isGenerating={isGenerating}
             generatingIds={generatingIds}

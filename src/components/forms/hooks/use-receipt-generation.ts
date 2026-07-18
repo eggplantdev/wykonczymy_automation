@@ -80,9 +80,8 @@ export function useReceiptGeneration({
         form.setFieldValue(`lineItems[${index}].invoiceNote`, data.invoiceNote)
         // Category is left blank for the user to pick — the model's category inference wasn't
         // reliable enough (frequent mismatches), so we no longer auto-assign it from the scan.
-        // Apply the Opis-based name to the file now so it uploads under that name at submit, and
-        // mirror it on the FV label (fileInputKey is bumped once generation finishes so the
-        // uncontrolled input re-reads the name).
+        // Apply the Opis-based name to the file now so it uploads under that name at submit; the
+        // reactive file store re-renders the FV label to match.
         if (data.filename) renameFile(id, data.filename)
       } catch (error) {
         // TODO(EX-449) SENTRY-REQUIRED: per-receipt AI extraction failures must be captured once

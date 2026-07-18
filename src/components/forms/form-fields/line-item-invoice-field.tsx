@@ -27,20 +27,15 @@ function useObjectUrl(file?: File): string | undefined {
 
 type LineItemInvoiceFieldPropsT = {
   id: string
-  index: number
   file?: File
   fieldClassName?: string
-  // Bumped to remount the (uncontrolled) FileInput so it re-reads its filename from the ref.
-  fileInputKey: number
   onFileChange: (id: string, e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
 export function LineItemInvoiceField({
   id,
-  index,
   file,
   fieldClassName,
-  fileInputKey,
   onFileChange,
 }: LineItemInvoiceFieldPropsT) {
   const url = useObjectUrl(file)
@@ -50,7 +45,6 @@ export function LineItemInvoiceField({
   if (!file || !url) {
     return (
       <FileInput
-        key={`file-${fileInputKey}-${index}`}
         label="FV"
         fieldClassName={fieldClassName}
         accept="image/*,application/pdf"
