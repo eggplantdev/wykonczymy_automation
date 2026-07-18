@@ -12,12 +12,29 @@ export type BulkExpenseFormValuesT = {
   worker: string
   settled: boolean
   lineItems: {
+    id: string
     description: string
     amount: string
     invoiceNote: string
     category: string
     expenseCategory: string
   }[]
+}
+
+export type BulkLineItemT = BulkExpenseFormValuesT['lineItems'][number]
+
+// A fresh row with a stable client-side `id` that keys its out-of-form state (invoice file,
+// generation markers). Call it per push — reusing one object would collide ids across rows.
+export function makeLineItem(overrides?: Partial<BulkLineItemT>): BulkLineItemT {
+  return {
+    id: crypto.randomUUID(),
+    description: '',
+    amount: '',
+    invoiceNote: '',
+    category: '',
+    expenseCategory: '',
+    ...overrides,
+  }
 }
 
 export const bulkExpenseFormOptions = formOptions({
@@ -30,9 +47,7 @@ export const bulkExpenseFormOptions = formOptions({
     investment: '',
     worker: '',
     settled: false,
-    lineItems: [
-      { description: '', amount: '', invoiceNote: '', category: '', expenseCategory: '' },
-    ],
+    lineItems: [makeLineItem()],
     // `as` (not `satisfies`) so TFormData is exactly BulkExpenseFormValuesT — `satisfies` would
     // keep `settled: false` as a literal and reject the parent form's `settled: boolean`.
   } as BulkExpenseFormValuesT,

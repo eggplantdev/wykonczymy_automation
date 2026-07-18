@@ -23,7 +23,10 @@ import {
 } from '@/lib/constants/transfers'
 import { createBulkTransferAction } from '@/lib/actions/transfers'
 import { mapLineItem } from '@/components/forms/expense-form/map-line-item'
-import type { BulkExpenseFormValuesT } from '@/components/forms/expense-form/bulk-expense-form'
+import {
+  makeLineItem,
+  type BulkExpenseFormValuesT,
+} from '@/components/forms/expense-form/bulk-expense-form'
 import { resolveInvoiceMediaIds } from '@/lib/utils/upload-file-client'
 import { MAX_UPLOAD_BYTES, type BlockedFileError } from '@/lib/utils/process-upload-file'
 import { toastMessage } from '@/lib/utils/toast'
@@ -180,15 +183,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
         investment: '',
         worker: '',
         settled: false,
-        lineItems: [
-          {
-            description: '',
-            amount: '',
-            invoiceNote: '',
-            category: '',
-            expenseCategory: '',
-          },
-        ],
+        lineItems: [makeLineItem()],
       } as FormValuesT),
     validators: {
       onSubmit: bulkExpenseFormSchema,

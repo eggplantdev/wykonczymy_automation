@@ -413,9 +413,9 @@ None. Rows are ephemeral client state; `id` never persists and the server contra
 
 #### Automated
 
-- [ ] 1.1 Type checking passes
-- [ ] 1.2 Linting passes
-- [ ] 1.3 Existing use-invoice-files + invoice-media-resolve tests still pass
+- [x] 1.1 Type checking passes
+- [x] 1.2 Linting passes
+- [x] 1.3 Existing use-invoice-files + invoice-media-resolve tests still pass
 
 ### Phase 2: Rekey by id (+ submit/recovery boundary)
 

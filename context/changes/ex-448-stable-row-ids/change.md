@@ -1,8 +1,9 @@
 # EX-448 — Stable per-row ids for expense line-items
 
 - **Linear:** EX-448 (parent EX-443)
-- **Status:** planned
+- **Status:** implementing
 - **Updated:** 2026-07-18
+- **Branch:** konradantonik/ex-448-stable-row-ids (off main; plan docs cherry-picked from S-07's 669e024b)
 
 ## Summary
 

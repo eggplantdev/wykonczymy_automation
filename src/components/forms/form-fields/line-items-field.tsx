@@ -17,9 +17,10 @@ import {
 } from '@/lib/constants/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import type { AppFieldComponentsT } from '@/components/forms/types/form-types'
-import type {
-  BulkExpenseFormApiT,
-  BulkExpenseFormValuesT,
+import {
+  makeLineItem,
+  type BulkExpenseFormApiT,
+  type BulkExpenseFormValuesT,
 } from '@/components/forms/expense-form/bulk-expense-form'
 
 // The TanStack array-field API this component drives (`form.Field name="lineItems" mode="array"`).
@@ -41,14 +42,6 @@ type CategoryFieldConfigT = {
 // Mirrors the receipt picker's accept="image/*,application/pdf" for dropped files, which carry no filter.
 const isReceiptFile = (file: File) =>
   file.type.startsWith('image/') || file.type === 'application/pdf'
-
-const EMPTY_LINE_ITEM: BulkExpenseFormValuesT['lineItems'][number] = {
-  description: '',
-  amount: '',
-  invoiceNote: '',
-  category: '',
-  expenseCategory: '',
-}
 
 type LineItemsFieldPropsT = {
   form: BulkExpenseFormApiT
@@ -157,9 +150,9 @@ export function LineItemsField({
 }: LineItemsFieldPropsT) {
   const inlineCategory = getInlineCategory(transferType, referenceData, hasInvestment)
   const secondRowCategory = getSecondRowCategory(transferType, referenceData)
-  const emptyItem = defaultExpenseCategory
-    ? { ...EMPTY_LINE_ITEM, expenseCategory: defaultExpenseCategory }
-    : EMPTY_LINE_ITEM
+  // Fresh per call — each pushed row needs its own `id` (a shared object would collide ids).
+  const newItem = () =>
+    makeLineItem(defaultExpenseCategory ? { expenseCategory: defaultExpenseCategory } : undefined)
   const receiptInputRef = useRef<HTMLInputElement>(null)
   const isIngesting = (ingestingIndices?.size ?? 0) > 0
   const [isDragOver, setIsDragOver] = useState(false)
@@ -178,7 +171,7 @@ export function LineItemsField({
       const startIndex = reuseFirstRow ? 0 : rows.length
       const rowsToPush = reuseFirstRow ? picked.length - 1 : picked.length
 
-      for (let i = 0; i < rowsToPush; i++) lineItemsField.pushValue(emptyItem)
+      for (let i = 0; i < rowsToPush; i++) lineItemsField.pushValue(newItem())
       await onRegisterFiles(startIndex, picked)
     }
     onGenerate?.()
@@ -209,8 +202,8 @@ export function LineItemsField({
       {(lineItemsField: LineItemsArrayFieldT) => (
         <div className="space-y-4">
           <div className="space-y-6">
-            {lineItemsField.state.value.map((_: unknown, index: number) => (
-              <Fragment key={index}>
+            {lineItemsField.state.value.map((item, index: number) => (
+              <Fragment key={item.id}>
                 <div className="space-y-2">
                   <div className="flex items-end gap-2">
                     <form.AppField name={`lineItems[${index}].amount`}>
@@ -306,7 +299,7 @@ export function LineItemsField({
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => lineItemsField.pushValue(emptyItem)}
+              onClick={() => lineItemsField.pushValue(newItem())}
             >
               Dodaj pozycję
             </Button>

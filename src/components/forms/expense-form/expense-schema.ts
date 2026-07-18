@@ -41,6 +41,7 @@ export const expenseFormSchema = z
 // ---------------------------------------------------------------------------
 
 const lineItemClientSchema = z.object({
+  id: z.string(),
   description: z.string(),
   amount: z.string(),
   invoiceNote: z.string(),
