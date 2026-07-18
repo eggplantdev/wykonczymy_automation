@@ -1,5 +1,7 @@
 import { parseInvestmentId, requireInvestmentOr404 } from '@/lib/queries/investments'
 import { getKosztorysTree } from '@/lib/queries/kosztorys'
+import { fetchFilteredByType } from '@/lib/queries/reference-data'
+import { deriveFinancials } from '@/lib/db/sum-transfers'
 import { KosztorysEditorV2 } from '@/components/kosztorys/kosztorys-editor-v2'
 
 // The in-app kosztorys editor ("kosztorys_v2"). Always available — every investment has one,
@@ -13,10 +15,19 @@ export default async function InvestmentKosztorysV2Page({
   const investmentId = parseInvestmentId(id)
 
   const treePromise = getKosztorysTree(investmentId)
+  // Read-only bridge to the financial plane: the investment's live material spend (unsettled
+  // INVESTMENT_EXPENSE + CORRECTION), summed via the same cached path the detail page uses.
+  const financialsPromise = fetchFilteredByType({ investment: { equals: investmentId } })
   const { investment } = await requireInvestmentOr404(id)
-  const tree = await treePromise
+  const [tree, typeDistribution] = await Promise.all([treePromise, financialsPromise])
+  const materialsNet = deriveFinancials(typeDistribution).totalMaterialCosts
 
   return (
-    <KosztorysEditorV2 investmentId={investmentId} tree={tree} investmentName={investment.name} />
+    <KosztorysEditorV2
+      investmentId={investmentId}
+      tree={tree}
+      investmentName={investment.name}
+      materialsNet={materialsNet}
+    />
   )
 }

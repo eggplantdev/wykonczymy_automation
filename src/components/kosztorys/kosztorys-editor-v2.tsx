@@ -10,12 +10,17 @@ import { useRestoreRemount } from '@/components/kosztorys/use-restore-remount'
 import { UndoRedoContext, useUndoRedo } from '@/components/kosztorys/use-undo-redo'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 
-type PropsT = { investmentId: number; tree: KosztorysTreeT; investmentName: string }
+type PropsT = {
+  investmentId: number
+  tree: KosztorysTreeT
+  investmentName: string
+  materialsNet: number
+}
 
 // Thin shell around the stateful editor body: owns the auto-snapshot interval, the "Wersje" drawer, and
 // the restore-driven remount. Each of the three lives here so a restore's body remount doesn't disturb
 // them.
-export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT) {
+export function KosztorysEditorV2({ investmentId, tree, investmentName, materialsNet }: PropsT) {
   const router = useRouter()
   // One undo/redo stack per editor mount, shared with the body via context. It outlives the body's
   // restore remount (the shell doesn't remount), so a restore must reset() it — the stale commands
@@ -52,6 +57,7 @@ export function KosztorysEditorV2({ investmentId, tree, investmentName }: PropsT
         investmentId={investmentId}
         tree={tree}
         investmentName={investmentName}
+        materialsNet={materialsNet}
         onOpenVersions={() => setVersionsOpen(true)}
       />
       <KosztorysVersionsDrawer

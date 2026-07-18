@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom'
 // StaticDataSheetGrid, which snapshots `columns` via useState at mount (EX-422).
 import { DynamicDataSheetGrid } from 'react-datasheet-grid'
 import { KosztorysSectionSummary } from '@/components/kosztorys/kosztorys-section-summary'
+import { KosztorysPodsumowanie } from '@/components/kosztorys/kosztorys-podsumowanie'
 import { KosztorysTotalsBar } from '@/components/kosztorys/kosztorys-totals-bar'
 import { KosztorysEditorToolbar } from '@/components/kosztorys/kosztorys-editor-toolbar'
 import { useKosztorysEditor } from '@/components/kosztorys/use-kosztorys-editor'
@@ -17,6 +18,7 @@ type PropsT = {
   investmentId: number
   tree: KosztorysTreeT
   investmentName: string
+  materialsNet: number
   onOpenVersions: () => void
 }
 
@@ -27,6 +29,7 @@ export function KosztorysEditorBody({
   investmentId,
   tree,
   investmentName,
+  materialsNet,
   onOpenVersions,
 }: PropsT) {
   const editor = useKosztorysEditor({ investmentId, tree })
@@ -96,6 +99,12 @@ export function KosztorysEditorBody({
             />
           )}
         </div>
+        <KosztorysPodsumowanie
+          robociznaNet={doZaplatyNet}
+          materialyNet={materialsNet}
+          vatRate={tree.vatRate}
+          moneyAxis={moneyAxis}
+        />
         <KosztorysTotalsBar
           discountAmount={discountAmount}
           doZaplatyNet={doZaplatyNet}
