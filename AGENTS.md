@@ -36,6 +36,20 @@ SHEET_ID=1kEWaMv9KRRXVaSMu3AJRw_ptxucnF4oafLR74VWeRHg TABS="kosztorys_robocizny"
   node --env-file=./.env scripts/inspect-sheet.mjs > /tmp/sheet.txt
 ```
 
+**Filled test sheet** (better for testing than the canonical, which is a blank initial offer) —
+_„wypełniony kosztorys do testów"_, real values across all figures **plus** the three v1-sync mirror
+tabs (`wydatki inwestycyjne` / `transfery` / `rozliczone R+M`) baked in:
+
+```
+1qN68vcevWgq0fXckdh4cuyBJ4iGZNlivVuHDvLuzWy4    # tab kosztorys_robocizny, gid=70964819
+```
+
+Also shared read-only with the service account. Nine tabs (adds `materiały`, `pokoje`, `Podsumowanie`,
+the two `zakres pracy z/bez narzędzi` catalogues). Its layout carries column `T = „komentarz"` and the
+`U–AE` per-etap wartość axis (`AE` = bilans), so it's the canonical fixture for parity/import work.
+**Caveat (owner):** some formulas in this test sheet are broken here and there — treat it as a rich
+_shape/layout_ fixture, and cross-check any figure against the canonical sheet before trusting it as spec.
+
 Screenshots of the client-facing offer view (which columns/rows the owner hides before sending, and
 the summary block at the bottom) — the target state the app must reach:
 
