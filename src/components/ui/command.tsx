@@ -13,7 +13,19 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 
-function Command({ className, ...props }: React.ComponentProps<typeof CommandPrimitive>) {
+// Fold diacritics + case so an ASCII query ("wartosc", "zrodlo") matches a Polish label ("Wartość",
+// "Źródło"). cmdk's built-in scorer compares raw strings, so accented options silently drop out of a
+// Polish search typed without accents. This is Command's default filter (see below).
+const foldText = (text: string) =>
+  text
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+
+const foldFilter = (value: string, search: string) =>
+  foldText(value).includes(foldText(search)) ? 1 : 0
+
+function Command({ className, filter, ...props }: React.ComponentProps<typeof CommandPrimitive>) {
   return (
     <CommandPrimitive
       data-slot="command"
@@ -21,6 +33,7 @@ function Command({ className, ...props }: React.ComponentProps<typeof CommandPri
         'bg-popover text-popover-foreground flex h-full w-full flex-col overflow-hidden rounded-md',
         className,
       )}
+      filter={filter ?? foldFilter}
       {...props}
     />
   )
@@ -62,8 +75,11 @@ function CommandInput({
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.Input>) {
   return (
-    <div data-slot="command-input-wrapper" className="flex h-9 items-center gap-2 border-b px-3">
-      <SearchIcon className="size-4 shrink-0 opacity-50" />
+    <div
+      data-slot="command-input-wrapper"
+      className="border-border flex h-9 items-center gap-2 border-b px-3"
+    >
+      <SearchIcon className="shrink-0 opacity-50" />
       <CommandPrimitive.Input
         data-slot="command-input"
         className={cn(

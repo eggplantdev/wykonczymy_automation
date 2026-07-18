@@ -121,7 +121,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   // that would be a write per pixel). During the drag we only show a vertical guide
   // (guideX = cursor X), without touching the grid.
   const { widths, setWidth, dropWidth } = useColumnWidths()
-  const { isHidden, toggleColumn, showAllColumns } = useHiddenColumns()
+  const { isHidden, toggleColumn, setAllColumns } = useHiddenColumns()
   const [moneyAxis, setMoneyAxis] = useMoneyAxis()
   const [progressDisplay, setProgressDisplay] = useProgressDisplay()
   const [layer, setLayer] = useLayer()
@@ -908,7 +908,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     columns,
     columnToggleItems,
     toggleColumn,
-    showAllColumns,
+    setAllColumns,
     moneyAxis,
     setMoneyAxis,
     progressDisplay,

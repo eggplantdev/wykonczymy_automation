@@ -21,7 +21,7 @@ const store = createJsonMapStore<boolean>('table-columns:kosztorys')
 export function useHiddenColumns(): {
   isHidden: (id: string) => boolean
   toggleColumn: (id: string) => void
-  showAllColumns: (ids: string[]) => void
+  setAllColumns: (ids: string[], hidden: boolean) => void
 } {
   const hidden = useJsonMap(store)
 
@@ -37,11 +37,12 @@ export function useHiddenColumns(): {
     store.update((prev) => ({ ...prev, [id]: !(prev[id] ?? DEFAULT_HIDDEN_COLUMNS.has(id)) }))
   }
 
-  // Reveals every passed column. The caller supplies the id set (from the picker) because the map is
-  // sparse — the hook alone can't enumerate default-hidden columns to un-hide.
-  function showAllColumns(ids: string[]) {
-    store.update((prev) => ({ ...prev, ...Object.fromEntries(ids.map((id) => [id, false])) }))
+  // Writes an explicit boolean per id — never deletes, since an absent key falls back to the column's
+  // default (not "hidden"), the same sparse-map honesty as toggleColumn. The caller supplies the id
+  // set (from the picker) because the map is sparse — the hook alone can't enumerate every column.
+  function setAllColumns(ids: string[], hidden: boolean) {
+    store.update((prev) => ({ ...prev, ...Object.fromEntries(ids.map((id) => [id, hidden])) }))
   }
 
-  return { isHidden, toggleColumn, showAllColumns }
+  return { isHidden, toggleColumn, setAllColumns }
 }

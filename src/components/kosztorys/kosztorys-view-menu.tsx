@@ -1,18 +1,25 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { Eye, SlidersHorizontal } from 'lucide-react'
+import { CheckIcon, Eye, EyeOff, SlidersHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
+import {
+  Command,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import { cn } from '@/lib/utils/cn'
 import { useKosztorysEditorContext } from '@/components/kosztorys/use-kosztorys-editor-context'
 import {
   KOLUMNY_HINT,
@@ -32,6 +39,10 @@ import {
 // preventDefault keeps the menu open so several axes / columns can be flipped in one visit
 // (the same trick the shared ColumnToggleMenu uses).
 const keepOpen = (event: Event) => event.preventDefault()
+
+// Below this the list fits on screen and a search box is just noise; above it (stages push the
+// column count toward ~50) filtering earns its place.
+const COLUMN_SEARCH_THRESHOLD = 8
 
 // One axis (Kwoty / Warstwy / Etapy) as a labelled checkbox pair over its four-state union: each box
 // flips its side via togglePairAxis, both checked = show all, both unchecked = hide the axis.
@@ -82,16 +93,17 @@ export function KosztorysViewMenu() {
     setLayer,
     columnToggleItems,
     toggleColumn,
-    showAllColumns,
+    setAllColumns,
   } = useKosztorysEditorContext()
 
   const allColumnsVisible = columnToggleItems.every((item) => item.visible)
+  const showColumnSearch = columnToggleItems.length > COLUMN_SEARCH_THRESHOLD
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="gap-1.5">
-          <SlidersHorizontal className="size-4" />
+          <SlidersHorizontal />
           Widok
         </Button>
       </DropdownMenuTrigger>
@@ -129,26 +141,48 @@ export function KosztorysViewMenu() {
               Kolumny
               <InfoTooltip content={KOLUMNY_HINT} className="shrink-0" />
             </DropdownMenuLabel>
-            <DropdownMenuItem
-              disabled={allColumnsVisible}
-              onSelect={(event) => {
-                event.preventDefault()
-                showAllColumns(columnToggleItems.map((item) => item.id))
+            {/* cmdk owns the search + arrow-nav for the column list; stop keydowns from reaching the
+                Radix menu so its typeahead/focus-roving doesn't fight cmdk. Escape still passes so
+                the menu stays Escape-closable. */}
+            <div
+              onKeyDown={(event) => {
+                if (event.key !== 'Escape') event.stopPropagation()
               }}
             >
-              <Eye className="size-4" />
-              Pokaż wszystkie
-            </DropdownMenuItem>
-            {columnToggleItems.map((item) => (
-              <DropdownMenuCheckboxItem
-                key={item.id}
-                checked={item.visible}
-                onSelect={keepOpen}
-                onCheckedChange={() => toggleColumn(item.id)}
-              >
-                {item.label}
-              </DropdownMenuCheckboxItem>
-            ))}
+              <Command>
+                {showColumnSearch && (
+                  <CommandInput placeholder="Szukaj kolumny..." className="h-8" />
+                )}
+                <CommandList>
+                  {/* forceMount keeps the show/hide-all action visible under any search — it's a
+                      command, not a filterable column. Riding cmdk's selection model (not a Radix
+                      item) also means exactly one row is ever highlighted. */}
+                  <CommandItem
+                    forceMount
+                    onSelect={() =>
+                      setAllColumns(
+                        columnToggleItems.map((item) => item.id),
+                        allColumnsVisible,
+                      )
+                    }
+                  >
+                    {allColumnsVisible ? <EyeOff /> : <Eye />}
+                    {allColumnsVisible ? 'Ukryj wszystkie' : 'Pokaż wszystkie'}
+                  </CommandItem>
+                  <CommandEmpty>Brak kolumn</CommandEmpty>
+                  {columnToggleItems.map((item) => (
+                    <CommandItem
+                      key={item.id}
+                      value={item.label}
+                      onSelect={() => toggleColumn(item.id)}
+                    >
+                      <CheckIcon className={cn('size-4', !item.visible && 'opacity-0')} />
+                      {item.label}
+                    </CommandItem>
+                  ))}
+                </CommandList>
+              </Command>
+            </div>
           </>
         )}
       </DropdownMenuContent>
