@@ -2,7 +2,7 @@
 
 import { toGross } from '@/lib/kosztorys/calc'
 import { formatNet } from '@/lib/kosztorys/format'
-import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
+import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 
 type PropsT = {
@@ -29,11 +29,23 @@ export function KosztorysEtapTotals({
   moneyAxis,
 }: PropsT) {
   if (stages.length === 0) return null
-  const showNet = moneyAxis === 'net' || moneyAxis === 'both'
-  const showGross = moneyAxis === 'gross' || moneyAxis === 'both'
+  const { net: showNet, gross: showGross } = axisShows(moneyAxis)
   const money = (net: number, gross: boolean) => formatNet(gross ? toGross(net, vatRate) : net)
 
   const zaliczkiTotal = stages.reduce((sum, st) => sum + (zaliczkiByStage[st.id] ?? 0), 0)
+
+  // Netto / Brutto / Zaliczki share one shape — a label, a per-etap cell, and the row total.
+  const row = (label: string, cell: (st: KosztorysStageT) => string, total: string) => (
+    <tr>
+      <td className="py-0.5 pr-6">{label}</td>
+      {stages.map((st) => (
+        <td key={st.id} className="py-0.5 pr-6 text-right tabular-nums">
+          {cell(st)}
+        </td>
+      ))}
+      <td className="py-0.5 text-right font-medium tabular-nums">{total}</td>
+    </tr>
+  )
 
   return (
     <div className="border-border text-foreground shrink-0 overflow-x-auto border-t px-4 py-2 text-sm">
@@ -50,45 +62,24 @@ export function KosztorysEtapTotals({
           </tr>
         </thead>
         <tbody>
-          {showNet && (
-            <tr>
-              <td className="py-0.5 pr-6">Netto</td>
-              {stages.map((st) => (
-                <td key={st.id} className="py-0.5 pr-6 text-right tabular-nums">
-                  {money(stageTotals.get(st.id) ?? 0, false)}
-                </td>
-              ))}
-              <td className="py-0.5 text-right font-medium tabular-nums">
-                {money(wykonaneNet, false)}
-              </td>
-            </tr>
-          )}
-          {showGross && (
-            <tr>
-              <td className="py-0.5 pr-6">Brutto</td>
-              {stages.map((st) => (
-                <td key={st.id} className="py-0.5 pr-6 text-right tabular-nums">
-                  {money(stageTotals.get(st.id) ?? 0, true)}
-                </td>
-              ))}
-              <td className="py-0.5 text-right font-medium tabular-nums">
-                {money(wykonaneNet, true)}
-              </td>
-            </tr>
-          )}
-          {zaliczkiTotal > 0 && (
-            <tr>
-              <td className="py-0.5 pr-6">Zaliczki</td>
-              {stages.map((st) => (
-                <td key={st.id} className="py-0.5 pr-6 text-right tabular-nums">
-                  {formatNet(zaliczkiByStage[st.id] ?? 0)}
-                </td>
-              ))}
-              <td className="py-0.5 text-right font-medium tabular-nums">
-                {formatNet(zaliczkiTotal)}
-              </td>
-            </tr>
-          )}
+          {showNet &&
+            row(
+              'Netto',
+              (st) => money(stageTotals.get(st.id) ?? 0, false),
+              money(wykonaneNet, false),
+            )}
+          {showGross &&
+            row(
+              'Brutto',
+              (st) => money(stageTotals.get(st.id) ?? 0, true),
+              money(wykonaneNet, true),
+            )}
+          {zaliczkiTotal > 0 &&
+            row(
+              'Zaliczki',
+              (st) => formatNet(zaliczkiByStage[st.id] ?? 0),
+              formatNet(zaliczkiTotal),
+            )}
         </tbody>
       </table>
     </div>

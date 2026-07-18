@@ -1,9 +1,4 @@
-import {
-  netForQtyForView,
-  rowPlannedNetForView,
-  stageValueForView,
-  type PriceViewT,
-} from '@/lib/kosztorys/calc'
+import { netForQtyForView, rowPlannedNetForView, type PriceViewT } from '@/lib/kosztorys/calc'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT, SectionSubtotalT } from '@/lib/kosztorys/types'
 
@@ -83,10 +78,13 @@ export function stageTotalsForView(
   for (const row of rows) {
     const totalQty = rowTotalQtyDone(row, stages)
     if (!(totalQty > 0)) continue
+    // Price the row's executed net once, then split it by each stage's qty share — same figure
+    // stageValueForView yields per cell, but without re-pricing the row on every stage.
+    const rowNet = netForQtyForView(row, totalQty, view)
     for (const st of stages) {
       const qtyInStage = row[stageKey(st.id)] ?? 0
       if (!qtyInStage) continue
-      totals.set(st.id, totals.get(st.id)! + stageValueForView(row, qtyInStage, totalQty, view))
+      totals.set(st.id, (totals.get(st.id) ?? 0) + rowNet * (qtyInStage / totalQty))
     }
   }
   return totals

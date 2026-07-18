@@ -3,10 +3,11 @@
 import {
   computeDoZaplatyRM,
   computePodsumowanie,
+  type MoneyPairT,
   type SummaryLineT,
 } from '@/lib/kosztorys/summary-economics'
 import { formatNet, formatPercent } from '@/lib/kosztorys/format'
-import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
+import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 
 type PropsT = {
   // Robocizna wartość netto — client-side, reacts to unsaved edits (the editor's do-zapłaty total).
@@ -31,10 +32,10 @@ export function KosztorysPodsumowanie({
 }: PropsT) {
   const { robocizna, materialy, lacznie } = computePodsumowanie(robociznaNet, materialyNet, vatRate)
   const doZaplatyRM = computeDoZaplatyRM(robociznaNet, zaliczkiNet, materialyNet, vatRate)
-  const showNet = moneyAxis === 'net' || moneyAxis === 'both'
-  const showGross = moneyAxis === 'gross' || moneyAxis === 'both'
+  const { net: showNet, gross: showGross } = axisShows(moneyAxis)
 
-  const row = (label: string, line: SummaryLineT, emphasize = false) => (
+  // A line with no `share` (the R+M footer) renders an empty udział cell rather than a percent.
+  const row = (label: string, line: SummaryLineT | MoneyPairT, emphasize = false) => (
     <tr className={emphasize ? 'border-border border-t font-medium' : undefined}>
       <td className="py-0.5 pr-6">{label}</td>
       {showNet && <td className="py-0.5 pr-6 text-right tabular-nums">{formatNet(line.net)}</td>}
@@ -42,7 +43,7 @@ export function KosztorysPodsumowanie({
         <td className="py-0.5 pr-6 text-right tabular-nums">{formatNet(line.gross)}</td>
       )}
       <td className="text-muted-foreground py-0.5 text-right tabular-nums">
-        {formatPercent(line.share)}
+        {'share' in line ? formatPercent(line.share) : ''}
       </td>
     </tr>
   )
@@ -62,18 +63,7 @@ export function KosztorysPodsumowanie({
           {row('Robocizna', robocizna)}
           {row('Materiały', materialy)}
           {row('Łącznie', lacznie, true)}
-          <tr className="border-border border-t font-medium">
-            <td className="py-0.5 pr-6">Aktualnie do zapłaty (R + M)</td>
-            {showNet && (
-              <td className="py-0.5 pr-6 text-right tabular-nums">{formatNet(doZaplatyRM.net)}</td>
-            )}
-            {showGross && (
-              <td className="py-0.5 pr-6 text-right tabular-nums">
-                {formatNet(doZaplatyRM.gross)}
-              </td>
-            )}
-            <td />
-          </tr>
+          {row('Aktualnie do zapłaty (R + M)', doZaplatyRM, true)}
         </tbody>
       </table>
     </div>

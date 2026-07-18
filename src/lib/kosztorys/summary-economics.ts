@@ -1,8 +1,14 @@
 import { toGross } from '@/lib/kosztorys/calc'
 
-export type SummaryLineT = {
-  net: number
-  gross: number
+export type MoneyPairT = { net: number; gross: number }
+
+// A net figure paired with its brutto at the investment's VAT rate — the shared shape behind every
+// row's netto/brutto columns.
+export function moneyPair(net: number, vatRate: number): MoneyPairT {
+  return { net, gross: toGross(net, vatRate) }
+}
+
+export type SummaryLineT = MoneyPairT & {
   // Fraction of Łącznie netto (0..1); 0 when Łącznie is 0. Null-safe by construction.
   share: number
 }
@@ -23,8 +29,7 @@ export function computePodsumowanie(
 ): PodsumowanieT {
   const lacznieNet = robociznaNet + materialyNet
   const line = (net: number): SummaryLineT => ({
-    net,
-    gross: toGross(net, vatRate),
+    ...moneyPair(net, vatRate),
     share: lacznieNet > 0 ? net / lacznieNet : 0,
   })
   return {
@@ -33,8 +38,6 @@ export function computePodsumowanie(
     lacznie: line(lacznieNet),
   }
 }
-
-export type MoneyPairT = { net: number; gross: number }
 
 // „Aktualnie do zapłaty R + M" (sheet footer r456–464): the headline still-owed figure —
 // robocizna do zapłaty, less advances already paid (zaliczki), plus materiały. Zaliczki net
@@ -47,6 +50,5 @@ export function computeDoZaplatyRM(
   materialyNet: number,
   vatRate: number,
 ): MoneyPairT {
-  const net = robociznaNet - zaliczkiNet + materialyNet
-  return { net, gross: toGross(net, vatRate) }
+  return moneyPair(robociznaNet - zaliczkiNet + materialyNet, vatRate)
 }

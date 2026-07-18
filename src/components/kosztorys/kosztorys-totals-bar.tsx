@@ -2,7 +2,7 @@
 
 import { toGross } from '@/lib/kosztorys/calc'
 import { formatNet as fmt } from '@/lib/kosztorys/format'
-import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
+import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 
 type PropsT = {
   // Global discount off the executed total (net złoty, already resolved from % or zł mode), from the
@@ -15,8 +15,7 @@ type PropsT = {
 
 export function KosztorysTotalsBar({ discountAmount, doZaplatyNet, vatRate, moneyAxis }: PropsT) {
   const hasDiscount = discountAmount > 0
-  const showNet = moneyAxis === 'net' || moneyAxis === 'both'
-  const showGross = moneyAxis === 'gross' || moneyAxis === 'both'
+  const { net: showNet, gross: showGross } = axisShows(moneyAxis)
   // Suma is the total before rabat; doZaplatyNet already has it subtracted.
   const sumaNet = doZaplatyNet + discountAmount
 
