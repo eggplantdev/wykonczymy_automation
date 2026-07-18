@@ -33,3 +33,20 @@ export function computePodsumowanie(
     lacznie: line(lacznieNet),
   }
 }
+
+export type MoneyPairT = { net: number; gross: number }
+
+// „Aktualnie do zapłaty R + M" (sheet footer r456–464): the headline still-owed figure —
+// robocizna do zapłaty, less advances already paid (zaliczki), plus materiały. Zaliczki net
+// against the R portion before materiały is added, per the owner's netting order. Can dip below
+// materiały (even negative) when advances exceed robocizna — that is a real overpaid state, not
+// clamped here.
+export function computeDoZaplatyRM(
+  robociznaNet: number,
+  zaliczkiNet: number,
+  materialyNet: number,
+  vatRate: number,
+): MoneyPairT {
+  const net = robociznaNet - zaliczkiNet + materialyNet
+  return { net, gross: toGross(net, vatRate) }
+}

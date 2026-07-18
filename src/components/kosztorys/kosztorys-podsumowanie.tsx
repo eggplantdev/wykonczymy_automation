@@ -1,6 +1,10 @@
 'use client'
 
-import { computePodsumowanie, type SummaryLineT } from '@/lib/kosztorys/summary-economics'
+import {
+  computeDoZaplatyRM,
+  computePodsumowanie,
+  type SummaryLineT,
+} from '@/lib/kosztorys/summary-economics'
 import { formatNet, formatPercent } from '@/lib/kosztorys/format'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 
@@ -9,14 +13,24 @@ type PropsT = {
   robociznaNet: number
   // Materiały netto — live server sum of the investment's unsettled transactions.
   materialyNet: number
+  // Σ zaliczki (tagged deposits, cash) — netted against robocizna in „do zapłaty R + M".
+  zaliczkiNet: number
   vatRate: number
   moneyAxis: MoneyAxisT
 }
 
 // Podsumowanie Robocizna / Materiały / Łącznie (sheet Podsumowanie r06–08): the split between
-// the kosztorys robocizna and the investment's real material spend, with udział % of Łącznie.
-export function KosztorysPodsumowanie({ robociznaNet, materialyNet, vatRate, moneyAxis }: PropsT) {
+// the kosztorys robocizna and the investment's real material spend, with udział % of Łącznie —
+// plus the „aktualnie do zapłaty R + M" footer (Łącznie less advances already paid).
+export function KosztorysPodsumowanie({
+  robociznaNet,
+  materialyNet,
+  zaliczkiNet,
+  vatRate,
+  moneyAxis,
+}: PropsT) {
   const { robocizna, materialy, lacznie } = computePodsumowanie(robociznaNet, materialyNet, vatRate)
+  const doZaplatyRM = computeDoZaplatyRM(robociznaNet, zaliczkiNet, materialyNet, vatRate)
   const showNet = moneyAxis === 'net' || moneyAxis === 'both'
   const showGross = moneyAxis === 'gross' || moneyAxis === 'both'
 
@@ -48,6 +62,18 @@ export function KosztorysPodsumowanie({ robociznaNet, materialyNet, vatRate, mon
           {row('Robocizna', robocizna)}
           {row('Materiały', materialy)}
           {row('Łącznie', lacznie, true)}
+          <tr className="border-border border-t font-medium">
+            <td className="py-0.5 pr-6">Aktualnie do zapłaty (R + M)</td>
+            {showNet && (
+              <td className="py-0.5 pr-6 text-right tabular-nums">{formatNet(doZaplatyRM.net)}</td>
+            )}
+            {showGross && (
+              <td className="py-0.5 pr-6 text-right tabular-nums">
+                {formatNet(doZaplatyRM.gross)}
+              </td>
+            )}
+            <td />
+          </tr>
         </tbody>
       </table>
     </div>

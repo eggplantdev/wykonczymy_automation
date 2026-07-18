@@ -116,6 +116,7 @@ export function KosztorysEditorBody({
         <KosztorysPodsumowanie
           robociznaNet={doZaplatyNet}
           materialyNet={materialsNet}
+          zaliczkiNet={Object.values(zaliczkiByStage).reduce((sum, amount) => sum + amount, 0)}
           vatRate={tree.vatRate}
           moneyAxis={moneyAxis}
         />

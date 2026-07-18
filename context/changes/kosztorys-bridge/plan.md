@@ -361,14 +361,14 @@ deploy-time gate, not a phase gate.
 
 #### Automated
 
-- [x] 4.1 Migration applies cleanly: `pnpm payload migrate`
-- [x] 4.2 Unit test: per-etap zaliczka aggregation
-- [x] 4.3 Action validation test: tag rejected on non-deposit types
-- [x] 4.4 `pnpm typecheck`, `pnpm lint`, `pnpm exec vitest run` pass
+- [x] 4.1 Migration applies cleanly: `pnpm payload migrate` — 47849ff2
+- [x] 4.2 Unit test: per-etap zaliczka aggregation — 47849ff2
+- [x] 4.3 Action validation test: tag rejected on non-deposit types — 47849ff2
+- [x] 4.4 `pnpm typecheck`, `pnpm lint`, `pnpm exec vitest run` pass — 47849ff2
 
 ### Phase 5: Footer „aktualnie do zapłaty R + M"
 
 #### Automated
 
-- [ ] 5.1 Unit test: composition math (zero-zaliczki, zaliczki > robocizna)
-- [ ] 5.2 `pnpm typecheck`, `pnpm lint`, `pnpm exec vitest run` pass
+- [x] 5.1 Unit test: composition math (zero-zaliczki, zaliczki > robocizna)
+- [x] 5.2 `pnpm typecheck`, `pnpm lint`, `pnpm exec vitest run` pass

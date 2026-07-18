@@ -83,8 +83,9 @@ export const fetchReferenceData = unstable_cache(
       invResult.rows.length +
       usersResult.rows.length +
       catResult.rows.length +
-      expCatResult.rows.length
-    console.log(`[PERF] query.fetchReferenceData ${elapsed()}ms (5 SQL, ${totalRows} rows)`)
+      expCatResult.rows.length +
+      stageResult.rows.length
+    console.log(`[PERF] query.fetchReferenceData ${elapsed()}ms (6 SQL, ${totalRows} rows)`)
 
     const cashRegisters: CashRegisterRefT[] = crResult.rows.map((row) => ({
       id: Number(row.id),

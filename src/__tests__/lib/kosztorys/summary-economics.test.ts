@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { computePodsumowanie } from '@/lib/kosztorys/summary-economics'
+import { computeDoZaplatyRM, computePodsumowanie } from '@/lib/kosztorys/summary-economics'
 
 describe('computePodsumowanie', () => {
   it('Robocizna + Materiały = Łącznie (netto and brutto)', () => {
@@ -30,5 +30,29 @@ describe('computePodsumowanie', () => {
     expect(p.robocizna.share).toBe(0)
     expect(p.materialy.share).toBe(1)
     expect(p.materialy.gross).toBeCloseTo(500 * 1.08)
+  })
+})
+
+describe('computeDoZaplatyRM', () => {
+  it('robocizna − zaliczki + materiały (netto and brutto)', () => {
+    const r = computeDoZaplatyRM(1000, 300, 400, 0.23)
+    expect(r.net).toBe(1100)
+    expect(r.gross).toBeCloseTo(1100 * 1.23)
+  })
+
+  it('zero zaliczki: equals Łącznie (robocizna + materiały)', () => {
+    const r = computeDoZaplatyRM(1000, 0, 400, 0.23)
+    expect(r.net).toBe(1400)
+  })
+
+  it('zaliczki exceeding robocizna nets below materiały (can reach or pass zero)', () => {
+    const r = computeDoZaplatyRM(1000, 1500, 500, 0.23)
+    expect(r.net).toBe(0)
+  })
+
+  it('zaliczki exceeding robocizna + materiały goes negative (overpaid)', () => {
+    const r = computeDoZaplatyRM(1000, 1800, 500, 0.23)
+    expect(r.net).toBe(-300)
+    expect(r.gross).toBeCloseTo(-300 * 1.23)
   })
 })
