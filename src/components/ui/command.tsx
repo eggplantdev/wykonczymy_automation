@@ -5,6 +5,7 @@ import { Command as CommandPrimitive } from 'cmdk'
 import { SearchIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils/cn'
+import { foldFilter } from '@/lib/utils/fold-text'
 import {
   Dialog,
   DialogContent,
@@ -12,18 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-
-// Fold diacritics + case so an ASCII query ("wartosc", "zrodlo") matches a Polish label ("Wartość",
-// "Źródło"). cmdk's built-in scorer compares raw strings, so accented options silently drop out of a
-// Polish search typed without accents. This is Command's default filter (see below).
-const foldText = (text: string) =>
-  text
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .toLowerCase()
-
-const foldFilter = (value: string, search: string) =>
-  foldText(value).includes(foldText(search)) ? 1 : 0
 
 function Command({ className, filter, ...props }: React.ComponentProps<typeof CommandPrimitive>) {
   return (
