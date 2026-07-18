@@ -428,14 +428,14 @@ None. Rows are ephemeral client state; `id` never persists and the server contra
 
 #### Automated
 
-- [x] 3.1 Type checking passes (production green; two old use-invoice-files tests still red — Phase 4)
-- [x] 3.2 Linting passes
-- [x] 3.3 `grep -rn fileInputKey src/` returns nothing in the expense line-items flow. DEVIATION: `edit-transfer-form.tsx` keeps its own `fileInputKey` — it's a separate single-file transfer-edit form with no line-item row array, so its remount-to-clear pattern is out of EX-448's scope (stable per-**row** ids). Migrating it is unrelated code churn; left untouched.
+- [x] 3.1 Type checking passes (production green; two old use-invoice-files tests still red — Phase 4) — 7ac7cbc7
+- [x] 3.2 Linting passes — 7ac7cbc7
+- [x] 3.3 `grep -rn fileInputKey src/` returns nothing in the expense line-items flow. — 7ac7cbc7 DEVIATION: `edit-transfer-form.tsx` keeps its own `fileInputKey` — it's a separate single-file transfer-edit form with no line-item row array, so its remount-to-clear pattern is out of EX-448's scope (stable per-**row** ids). Migrating it is unrelated code churn; left untouched.
 
 ### Phase 4: Tests
 
 #### Automated
 
-- [ ] 4.1 Targeted vitest files pass
-- [ ] 4.2 Type checking passes
-- [ ] 4.3 Linting passes
+- [x] 4.1 Targeted vitest files pass. DEVIATION: after Phase 3 the id-keyed API moved _inside_ `useInvoiceFiles` (a React hook) — the repo has no hook renderer (no `@testing-library/react` / jsdom, and adding one risks the documented lightningcss arm64 break), and the old pure exports (`reindexAfterRemoval`/`setFilesAt`) are deleted. So `use-invoice-files.test.ts` is removed and the alignment logic that actually carries the refactor — the pure `positionalFiles`/`filesByRowId` projections plus the remove-mid-batch id-stability regression guard — is covered in new `src/__tests__/invoice-files-projection.test.ts`. Command: `pnpm exec vitest run src/__tests__/invoice-files-projection.test.ts src/__tests__/invoice-media-resolve.test.ts` (10 tests).
+- [x] 4.2 Type checking passes
+- [x] 4.3 Linting passes
