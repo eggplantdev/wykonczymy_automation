@@ -26,7 +26,7 @@ export function AddInvestmentDialog({ presets }: { presets: PresetMetaT[] }) {
       formId="add-investment"
       trigger={
         <Button variant="outline" size="sm">
-          <Plus className="size-4" />
+          <Plus />
           Dodaj
         </Button>
       }

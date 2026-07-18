@@ -32,7 +32,7 @@ export function DateFilterButton({ label, value, onChange }: DateFilterButtonPro
           size="sm"
           className="min-w-40 justify-start gap-1.5"
         >
-          <CalendarIcon className="size-4" />
+          <CalendarIcon />
           {selected ? format(selected, 'd MMM yyyy', { locale: pl }) : label}
         </Button>
       </PopoverTrigger>

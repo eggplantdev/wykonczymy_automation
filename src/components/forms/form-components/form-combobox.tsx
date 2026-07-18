@@ -80,7 +80,7 @@ export function FormCombobox({
                     {item.label}
                     <CheckIcon
                       className={cn(
-                        'ml-auto size-4',
+                        'ml-auto',
                         field.state.value === item.value ? 'opacity-100' : 'opacity-0',
                       )}
                     />

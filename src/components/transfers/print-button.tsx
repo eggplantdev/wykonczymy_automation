@@ -59,7 +59,7 @@ export function PrintButton({ config, visibleColumnIds, sorting }: PrintButtonPr
       disabled={isLoading}
       aria-label="Drukuj transfery"
     >
-      {isLoading ? <Loader2 className="size-4 animate-spin" /> : <Printer className="size-4" />}
+      {isLoading ? <Loader2 className="animate-spin" /> : <Printer />}
       Drukuj
     </Button>
   )

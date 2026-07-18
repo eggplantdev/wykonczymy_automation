@@ -17,7 +17,7 @@ export function InternalTransferDialog({ referenceData }: InternalTransferDialog
       trigger={
         <Button variant="turquoise" size="sm">
           <span className="hidden lg:block">Kasa</span>
-          <ArrowLeftRight className="size-4" />
+          <ArrowLeftRight />
           <span className="hidden lg:block">Kasa</span>
         </Button>
       }

@@ -4,6 +4,16 @@
 /* @source helps tailwind with scanning files - needed because i have styles inside a directory not project root */
 @source '..';
 
+/* Lucide ships icons at 24px; our app default is 16px, so nearly every call site was restating
+   size-4. Flip the default here — every Lucide svg carries the `.lucide` class. In @layer base so
+   an explicit size utility (size-3, size-5, …) at an exception site still overrides it. */
+@layer base {
+  svg.lucide {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
 @theme {
   /* Font Families - using next/font CSS variables with fallbacks */
   --font-display: 'Satoshi', sans-serif;

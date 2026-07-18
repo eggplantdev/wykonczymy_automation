@@ -67,10 +67,10 @@ export function WykonczymyContact() {
             href="tel:+48505805425"
             className="group bg-wk-ink text-wk-cream ease-wk hover:bg-wk-ink-hover inline-flex items-center gap-3 rounded-full py-3 pr-3 pl-6 text-sm font-medium transition-all duration-500 active:scale-[0.98]"
           >
-            <Phone size={16} strokeWidth={1.5} />
+            <Phone className="size-4" strokeWidth={1.5} />
             <span>+48 505 805 425</span>
             <span className="ease-wk ml-auto flex h-8 w-8 items-center justify-center rounded-full bg-white/10 transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-px group-hover:scale-105">
-              <ArrowUpRight size={14} strokeWidth={1.5} />
+              <ArrowUpRight className="size-3.5" strokeWidth={1.5} />
             </span>
           </a>
 
@@ -78,10 +78,10 @@ export function WykonczymyContact() {
             href="mailto:biuro@wykonczymy.com.pl"
             className="group border-wk-sand text-wk-ink ease-wk hover:bg-wk-ink/5 inline-flex w-fit items-center gap-3 rounded-full border bg-transparent py-3 pr-3 pl-6 text-sm font-medium transition-all duration-500 active:scale-[0.98]"
           >
-            <Mail size={16} strokeWidth={1.5} />
+            <Mail className="size-4" strokeWidth={1.5} />
             <span>biuro@wykonczymy.com.pl</span>
             <span className="bg-wk-ink/5 ease-wk flex h-8 w-8 items-center justify-center rounded-full transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-px group-hover:scale-105">
-              <ArrowUpRight size={14} strokeWidth={1.5} />
+              <ArrowUpRight className="size-3.5" strokeWidth={1.5} />
             </span>
           </a>
         </motion.div>
@@ -90,7 +90,7 @@ export function WykonczymyContact() {
           variants={FADE_UP}
           className="text-wk-stone mt-8 flex items-center gap-2 text-sm"
         >
-          <MapPin size={14} strokeWidth={1.5} />
+          <MapPin className="size-3.5" strokeWidth={1.5} />
           <span>ul. Terespolska 2, 03-813 Warszawa</span>
         </motion.div>
 

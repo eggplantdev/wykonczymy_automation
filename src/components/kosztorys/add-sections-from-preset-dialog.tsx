@@ -137,7 +137,7 @@ export function AddSectionsFromPresetDialog({
                         value={`${meta.sectionName} ${meta.presetName} ${key}`}
                         onSelect={() => toggle(key)}
                       >
-                        <Check className={cn('size-4', isSelected ? 'opacity-100' : 'opacity-0')} />
+                        <Check className={cn(isSelected ? 'opacity-100' : 'opacity-0')} />
                         <span className="flex-1">{meta.sectionName}</span>
                         <span className="text-muted-foreground text-xs">{meta.itemCount} poz.</span>
                       </CommandItem>

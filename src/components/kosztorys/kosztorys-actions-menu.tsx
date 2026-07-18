@@ -51,7 +51,7 @@ export function KosztorysActionsMenu({ investmentId, onOpenVersions }: PropsT) {
         <DropdownMenuTrigger asChild>
           <Button size="sm" variant="outline">
             Opcje
-            <ChevronDown className="size-4" />
+            <ChevronDown />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-64">

@@ -38,7 +38,7 @@ export function ColumnToggleMenu({ items, onToggle, className }: PropsT) {
         {/* ml-auto floats the trigger right in a flat toolbar; a caller that already groups its
             right-hand controls passes ml-0 to opt out. */}
         <Button variant="outline" size="sm" className={cn('ml-auto gap-1.5', className)}>
-          <Settings2 className="size-4" />
+          <Settings2 />
           Kolumny
         </Button>
       </DropdownMenuTrigger>
@@ -53,7 +53,7 @@ export function ColumnToggleMenu({ items, onToggle, className }: PropsT) {
             onSelect={(e) => e.preventDefault()}
             onClick={() => onToggle(item.id)}
           >
-            <CheckIcon className={cn('size-4', !item.visible && 'opacity-0')} />
+            <CheckIcon className={cn(!item.visible && 'opacity-0')} />
             {item.label}
           </DropdownMenuItem>
         ))}

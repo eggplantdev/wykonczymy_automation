@@ -16,7 +16,7 @@ export function ClearButton({ onClick, disabled, children }: ClearButtonPropsT) 
       onClick={onClick}
       disabled={disabled}
     >
-      <X className="size-4" />
+      <X />
       {children}
     </Button>
   )

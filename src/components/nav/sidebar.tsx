@@ -54,7 +54,7 @@ export function Sidebar() {
         {showUsers && (
           <Button variant="ghost" size="sm" className="justify-start" asChild>
             <Link href="/kosztorysy">
-              <FileSpreadsheet className="size-4" />
+              <FileSpreadsheet />
               Kosztorysy
             </Link>
           </Button>
@@ -62,7 +62,7 @@ export function Sidebar() {
         {showUsers && (
           <Button variant="ghost" size="sm" className="justify-start" asChild>
             <Link href="/pracownicy">
-              <Users className="size-4" />
+              <Users />
               Pracownicy
             </Link>
           </Button>
@@ -70,7 +70,7 @@ export function Sidebar() {
         {showReports && (
           <Button variant="ghost" size="sm" className="justify-start" asChild>
             <Link href="/raporty">
-              <FileBarChart className="size-4" />
+              <FileBarChart />
               Raporty
             </Link>
           </Button>
@@ -89,23 +89,23 @@ export function Sidebar() {
             disabled={isRefreshing}
             aria-label="Odśwież dane"
           >
-            <RefreshCw className={isRefreshing ? 'size-4 animate-spin' : 'size-4'} />
+            <RefreshCw className={isRefreshing ? 'animate-spin' : ''} />
             Odśwież dane
           </Button>
           <Button size="sm" asChild aria-label="Panel administracyjny">
             <Link href="/admin" target="_blank">
-              <Shield className="size-4" />
+              <Shield />
               Admin
             </Link>
           </Button>
           <Button variant="outline" size="sm" asChild aria-label="Poczta (Roundcube)">
             <Link href={roundcubeUrl} target="_blank" rel="noopener noreferrer">
-              <Mail className="size-4" />
+              <Mail />
               Poczta
             </Link>
           </Button>
           <Button variant="outline" size="sm" onClick={handleLogout} disabled={isPending}>
-            <LogOut className="size-4" />
+            <LogOut />
             Wyloguj
           </Button>
         </div>

@@ -55,19 +55,19 @@ export function StageHeader({ stage, onRename, onRemove, tip }: PropsT) {
             {label}
           </span>
         }
-        icon={<ChevronDown className="size-4 shrink-0 opacity-50" />}
+        icon={<ChevronDown className="shrink-0 opacity-50" />}
         triggerTitle="Opcje etapu"
         tip={tip}
       >
         <DropdownMenuItem onSelect={() => setEditing(true)}>
-          <Pencil className="size-4 opacity-70" />
+          <Pencil className="opacity-70" />
           Zmień nazwę
         </DropdownMenuItem>
         {onRemove && (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onSelect={() => setConfirmOpen(true)}>
-              <Trash2 className="size-4" />
+              <Trash2 />
               Usuń etap
             </DropdownMenuItem>
           </>

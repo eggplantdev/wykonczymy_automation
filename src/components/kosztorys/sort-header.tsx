@@ -28,16 +28,16 @@ export function SortHeader({ label, active, onSort, tip }: PropsT) {
       tip={tip}
     >
       <DropdownMenuItem onSelect={() => onSort('asc')}>
-        <ArrowUp className={cn('size-4', active === 'asc' ? 'opacity-100' : 'opacity-50')} />
+        <ArrowUp className={cn(active === 'asc' ? 'opacity-100' : 'opacity-50')} />
         Sortuj rosnąco
       </DropdownMenuItem>
       <DropdownMenuItem onSelect={() => onSort('desc')}>
-        <ArrowDown className={cn('size-4', active === 'desc' ? 'opacity-100' : 'opacity-50')} />
+        <ArrowDown className={cn(active === 'desc' ? 'opacity-100' : 'opacity-50')} />
         Sortuj malejąco
       </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem disabled={!active} onSelect={() => onSort(null)}>
-        <ChevronsUpDown className="size-4 opacity-50" />
+        <ChevronsUpDown className="opacity-50" />
         Wyczyść sortowanie
       </DropdownMenuItem>
     </HeaderMenu>

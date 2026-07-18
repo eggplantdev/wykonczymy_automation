@@ -69,7 +69,7 @@ export function KosztorysSectionSummary({
           <KosztorysSectionFilterMenu />
         </div>
         <Button size="icon" variant="ghost" className="h-6 w-6" onClick={onClose}>
-          <X className="h-4 w-4" />
+          <X />
         </Button>
       </div>
 
@@ -114,7 +114,7 @@ export function KosztorysSectionSummary({
                         title="Zapisz nazwę"
                         className="hover:text-foreground p-1"
                       >
-                        <Check className="size-4" />
+                        <Check />
                       </button>
                       <button
                         type="button"
@@ -122,7 +122,7 @@ export function KosztorysSectionSummary({
                         title="Anuluj"
                         className="hover:text-foreground p-1"
                       >
-                        <X className="size-4" />
+                        <X />
                       </button>
                     </>
                   ) : (
@@ -134,7 +134,7 @@ export function KosztorysSectionSummary({
                             title="Mnożnik ceny wykonawcy dla sekcji"
                             className="hover:text-foreground p-1"
                           >
-                            <SlidersHorizontal className="size-4" />
+                            <SlidersHorizontal />
                           </button>
                         </PopoverTrigger>
                         <PopoverContent align="end" className="w-56 p-3">
@@ -172,7 +172,7 @@ export function KosztorysSectionSummary({
                         title="Dodaj pozycję"
                         className="hover:text-foreground p-1"
                       >
-                        <Plus className="size-4" />
+                        <Plus />
                       </button>
                       <button
                         type="button"
@@ -180,7 +180,7 @@ export function KosztorysSectionSummary({
                         title="Usuń sekcję"
                         className="hover:text-destructive p-1"
                       >
-                        <Trash2 className="size-4" />
+                        <Trash2 />
                       </button>
                     </>
                   )}
@@ -206,7 +206,7 @@ export function KosztorysSectionSummary({
 
       <div className="border-border shrink-0 border-t p-2">
         <Button size="sm" variant="outline" className="w-full" onClick={onAddSection}>
-          <Plus className="mr-1 h-4 w-4" /> Nowa sekcja
+          <Plus className="mr-1" /> Nowa sekcja
         </Button>
       </div>
 

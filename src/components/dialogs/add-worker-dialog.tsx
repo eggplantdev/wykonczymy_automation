@@ -26,7 +26,7 @@ export function AddWorkerDialog({ cashRegisters }: AddWorkerDialogPropsT) {
       formId="add-worker"
       trigger={
         <Button variant="outline" size="sm">
-          <Plus className="size-4" />
+          <Plus />
           Dodaj
         </Button>
       }

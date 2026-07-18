@@ -52,20 +52,20 @@ export function KosztorysRowActionsMenu({
   const insertMoveItems = (
     <>
       <DropdownMenuItem disabled={sortActive} onSelect={onInsertAbove}>
-        <ArrowUpToLine className="size-4" />
+        <ArrowUpToLine />
         Wstaw pozycję powyżej
       </DropdownMenuItem>
       <DropdownMenuItem disabled={sortActive} onSelect={onInsertBelow}>
-        <ArrowDownToLine className="size-4" />
+        <ArrowDownToLine />
         Wstaw pozycję poniżej
       </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem disabled={sortActive} onSelect={onMoveUp}>
-        <ArrowUp className="size-4" />
+        <ArrowUp />
         Przesuń w górę
       </DropdownMenuItem>
       <DropdownMenuItem disabled={sortActive} onSelect={onMoveDown}>
-        <ArrowDown className="size-4" />
+        <ArrowDown />
         Przesuń w dół
       </DropdownMenuItem>
     </>
@@ -77,7 +77,7 @@ export function KosztorysRowActionsMenu({
       disabled={removeBlockReason != null}
       onSelect={() => (removeNeedsConfirm ? setConfirmOpen(true) : onRemove())}
     >
-      <Trash2 className="size-4" />
+      <Trash2 />
       Usuń pozycję
     </DropdownMenuItem>
   )
@@ -90,7 +90,7 @@ export function KosztorysRowActionsMenu({
           title="Akcje wiersza"
           className="text-muted-foreground hover:text-foreground hover:bg-accent flex size-full cursor-pointer items-center justify-center outline-none"
         >
-          <MoreHorizontal className="h-4 w-4" />
+          <MoreHorizontal />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="min-w-44">
           {sortActive ? (

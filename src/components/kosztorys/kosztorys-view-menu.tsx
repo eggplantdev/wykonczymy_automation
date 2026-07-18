@@ -176,7 +176,7 @@ export function KosztorysViewMenu() {
                       value={item.label}
                       onSelect={() => toggleColumn(item.id)}
                     >
-                      <CheckIcon className={cn('size-4', !item.visible && 'opacity-0')} />
+                      <CheckIcon className={cn(!item.visible && 'opacity-0')} />
                       {item.label}
                     </CommandItem>
                   ))}

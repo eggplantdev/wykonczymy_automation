@@ -19,7 +19,7 @@ export function NavBackButton() {
   return (
     <Button variant="outline" size="sm" asChild>
       <Link href={investmentHref}>
-        <ArrowLeft className="size-4" />
+        <ArrowLeft />
         Wróć do inwestycji
       </Link>
     </Button>

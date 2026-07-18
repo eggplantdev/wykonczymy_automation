@@ -21,7 +21,7 @@ export function EditWorkerDialog({ worker, cashRegisters }: EditWorkerDialogProp
       showKeepOpen={false}
       trigger={
         <Button size="sm" variant="outline" aria-label="Edytuj pracownika">
-          <Pencil className="size-4" />
+          <Pencil />
           <span>Edytuj</span>
         </Button>
       }

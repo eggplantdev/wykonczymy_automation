@@ -20,7 +20,7 @@ export function EditInvestmentDialog({ investment }: EditInvestmentDialogPropsT)
       showKeepOpen={false}
       trigger={
         <Button size="sm" variant="outline" aria-label="Edytuj inwestycję">
-          <Pencil className="size-4" />
+          <Pencil />
           <span>Edytuj</span>
         </Button>
       }

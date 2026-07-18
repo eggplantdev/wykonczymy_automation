@@ -35,7 +35,7 @@ export function KosztorysAddMenu() {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button size="sm" variant="outline">
-            <Plus className="size-4" />
+            <Plus />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
@@ -43,19 +43,19 @@ export function KosztorysAddMenu() {
             disabled={addItemSectionId == null}
             onSelect={() => addItemSectionId != null && handleAddItem(addItemSectionId)}
           >
-            <Hammer className="size-4" />
+            <Hammer />
             Praca
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={handleAddStage}>
-            <Columns3 className="size-4" />
+            <Columns3 />
             Etap
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={handleAddSection}>
-            <FolderPlus className="size-4" />
+            <FolderPlus />
             Sekcja
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => setPickerOpen(true)}>
-            <LibraryBig className="size-4" />
+            <LibraryBig />
             Sekcja z szablonu…
           </DropdownMenuItem>
         </DropdownMenuContent>

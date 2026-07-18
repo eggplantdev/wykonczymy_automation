@@ -57,19 +57,19 @@ export function LinkedSheetActions({ sheetId, investmentId, investmentName }: Pr
     <div className="flex items-center justify-end gap-2">
       <Button size="sm" asChild>
         <Link href={`/inwestycje/${investmentId}/kosztorys`}>
-          <FileSpreadsheet className="size-4" />
+          <FileSpreadsheet />
           Otwórz
         </Link>
       </Button>
 
       <Button size="sm" variant="outline" onClick={() => setDialog('unlink')}>
-        <Unlink className="size-4" />
+        <Unlink />
         Odłącz
       </Button>
 
       {canDelete && (
         <Button size="sm" variant="destructive" onClick={() => setDialog('delete')}>
-          <Trash2 className="size-4" />
+          <Trash2 />
           Usuń
         </Button>
       )}

@@ -45,7 +45,7 @@ export function CsvButton({ where, visibleColumnIds, sorting }: CsvButtonPropsT)
       disabled={isLoading}
       aria-label="Pobierz CSV"
     >
-      {isLoading ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
+      {isLoading ? <Loader2 className="animate-spin" /> : <Download />}
       CSV
     </Button>
   )

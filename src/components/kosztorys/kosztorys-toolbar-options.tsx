@@ -29,8 +29,8 @@ export const VIEWS: { value: PriceViewT; label: string; icon: ReactNode }[] = [
     icon: (
       <span className="relative inline-flex">
         <Wrench className={ICON_CLASS} />
-        <Slash className="absolute inset-0 size-4" />
-        <Slash className="absolute inset-0 size-4 -scale-x-100" />
+        <Slash className="absolute inset-0" />
+        <Slash className="absolute inset-0 -scale-x-100" />
       </span>
     ),
   },

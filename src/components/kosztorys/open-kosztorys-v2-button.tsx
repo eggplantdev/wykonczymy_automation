@@ -13,7 +13,7 @@ export function OpenKosztorysV2Button({ investmentId, label = 'Otwórz kosztorys
   return (
     <Button size="sm" variant="outline" asChild>
       <Link href={`/inwestycje/${investmentId}/kosztorys_v2`}>
-        <Table2 className="size-4" />
+        <Table2 />
         {label}
       </Link>
     </Button>

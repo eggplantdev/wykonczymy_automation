@@ -59,7 +59,7 @@ export function FilterSelect({
                   value={opt.label}
                   onSelect={() => handleSelect(opt.value)}
                 >
-                  <CheckIcon className={cn('size-4', opt.value !== value && 'opacity-0')} />
+                  <CheckIcon className={cn(opt.value !== value && 'opacity-0')} />
                   {opt.label}
                 </CommandItem>
               ))}

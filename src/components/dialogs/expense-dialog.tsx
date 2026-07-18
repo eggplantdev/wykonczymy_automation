@@ -17,7 +17,7 @@ export function ExpenseDialog({ referenceData }: ExpenseDialogPropsT) {
       className="max-w-[min(90vw,900px)]"
       trigger={
         <Button variant="red" size="sm">
-          <Rocket className="size-4" />
+          <Rocket />
           <span className="hidden lg:block">Wydatek </span>
         </Button>
       }

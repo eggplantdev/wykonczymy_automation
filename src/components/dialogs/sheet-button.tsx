@@ -16,7 +16,7 @@ export function SheetButton({ investmentId, hasSheet }: PropsT) {
     return (
       <Button size="sm" asChild>
         <Link href={`/inwestycje/${investmentId}/kosztorys`}>
-          <FileSpreadsheet className="size-4" />
+          <FileSpreadsheet />
           Otwórz
         </Link>
       </Button>
@@ -28,7 +28,7 @@ export function SheetButton({ investmentId, hasSheet }: PropsT) {
       investmentId={investmentId}
       trigger={
         <Button size="sm" variant="outline">
-          <FileSpreadsheet className="size-4" />
+          <FileSpreadsheet />
           Dodaj kosztorys
         </Button>
       }

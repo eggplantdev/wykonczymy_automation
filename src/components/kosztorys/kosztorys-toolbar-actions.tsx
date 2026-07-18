@@ -28,7 +28,7 @@ export function KosztorysToolbarActions() {
         title="Cofnij (Cmd/Ctrl+Z)"
         aria-label="Cofnij"
       >
-        <Undo2 className="size-4" />
+        <Undo2 />
       </Button>
       <Button
         size="sm"
@@ -38,7 +38,7 @@ export function KosztorysToolbarActions() {
         title="Ponów (Cmd/Ctrl+Shift+Z)"
         aria-label="Ponów"
       >
-        <Redo2 className="size-4" />
+        <Redo2 />
       </Button>
       <KosztorysActionsMenu investmentId={investmentId} onOpenVersions={onOpenVersions} />
       <Button

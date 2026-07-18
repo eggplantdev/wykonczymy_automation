@@ -115,7 +115,7 @@ export function InvoiceDownloadButton({ where }: InvoiceDownloadButtonPropsT) {
       disabled={isPending}
       aria-label="Pobierz faktury"
     >
-      {isPending ? <Loader2 className="size-4 animate-spin" /> : <FileArchive className="size-4" />}
+      {isPending ? <Loader2 className="animate-spin" /> : <FileArchive />}
       Faktury
     </Button>
   )

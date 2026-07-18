@@ -32,7 +32,7 @@ export function AppFooter() {
         <div className="flex items-center gap-2">
           <Button asChild aria-label="Panel administracyjny">
             <Link href={`${FRONTEND_URL}/admin`} target="_blank" aria-label="Panel administracyjny">
-              <Shield className="size-4" />
+              <Shield />
               <span className="hidden sm:inline">Admin</span>
             </Link>
           </Button>
@@ -44,7 +44,7 @@ export function AppFooter() {
             disabled={isPending}
             aria-label="Wyloguj"
           >
-            <LogOut className="size-4" />
+            <LogOut />
             <span className="hidden sm:inline">Wyloguj</span>
           </Button>
         </div>

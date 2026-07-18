@@ -138,7 +138,7 @@ export function FilterMultiSelect({
           <CommandList>
             <CommandGroup>
               <CommandItem onSelect={toggleAll} className="font-medium">
-                <CheckIcon className={cn('size-4', !allSelected && 'opacity-0')} />
+                <CheckIcon className={cn(!allSelected && 'opacity-0')} />
                 {allSelected ? 'Odznacz wszystkie' : 'Zaznacz wszystkie'}
               </CommandItem>
             </CommandGroup>
@@ -150,9 +150,7 @@ export function FilterMultiSelect({
                   value={opt.label}
                   onSelect={() => toggleValue(opt.value)}
                 >
-                  <CheckIcon
-                    className={cn('size-4', !selected.includes(opt.value) && 'opacity-0')}
-                  />
+                  <CheckIcon className={cn(!selected.includes(opt.value) && 'opacity-0')} />
                   {opt.label}
                 </CommandItem>
               ))}

@@ -37,7 +37,7 @@ export function EnvBadgeShell({ label, db, title, className }: PropsT) {
           )}
         </>
       )}
-      {isOpen ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />}
+      {isOpen ? <ChevronDown /> : <ChevronUp />}
     </button>
   )
 }

@@ -40,7 +40,7 @@ export function KosztorysDataTable({ data, availableInvestments }: PropsT) {
           <AddSheetDialog
             trigger={
               <Button size="sm">
-                <Plus className="size-4" />
+                <Plus />
                 Nowy kosztorys
               </Button>
             }
