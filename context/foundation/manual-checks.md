@@ -698,3 +698,18 @@ Setup: app on 5435 test DB (migrated with `pnpm db:migrate:test` so `enum_invest
 ### Findings — 2026-07-18
 
 _None. All checks passed; no bugs, regressions, or console errors surfaced during the pass._
+
+## kosztorys-bridge — Podsumowanie R/M, etap axis, komentarz, zaliczki, R+M footer (EX-530)
+
+**Verified 2026-07-18** — Playwright + DB pass against the 5435 test DB, logged in as E2E User (OWNER), on `/inwestycje/6/kosztorys_v2` (seeded rozpiska, 43 items, 6 etapy, VAT 8%, rabat 10%). Migration `20260718_1_add_kosztorys_stage_to_transactions` applied clean with `pnpm db:migrate:test` (also the prod dry-run). One bug found + fixed on the spot.
+
+- [x] **Phase 1 — Podsumowanie split** — Robocizna 1134,90 / Materiały 25 223,57 / Łącznie 26 358,47; 1134,90 + 25 223,57 = 26 358,47; udział 4% / 96% / 100%. Robocizna netto == „Do zapłaty netto" in the totals bar.
+- [x] **Phase 2 — etap axis** — „Suma transzy" table Etap 1–6 + „Suma prac wykonanych": netto 0 / 122,85 / 257,40 / 637,00 / 0 / 243,75 summing to 1261,00 = Suma prac wykonanych; brutto row present and consistent (×1.08).
+- [x] **Phase 3 — Komentarz column** — present in the „Widok" → Kolumny picker; toggling it on renders „Komentarz" as the rightmost editable grid column (`note`, textColumn). (`note` plumbing pre-existed; only the column registration is new.)
+- [x] **Phase 4 — zaliczki tag end-to-end** — Wpłata (INVESTOR_DEPOSIT) → investment Apenińska → „Zaliczka na etap" select renders Etap 1–6 + „— brak —"; tagged 500 zł to Etap 2 → persisted (`transactions.kosztorys_stage_id = 176`, ordinal 2) → editor „Zaliczki" row shows 500,00 under Etap 2 (total 500,00).
+- [x] **Phase 5 — R+M footer nets zaliczki** — „Aktualnie do zapłaty (R + M)" = 25 858,47 netto = robocizna 1134,90 − zaliczki 500 + materiały 25 223,57; brutto 27 927,15 (×1.08). With zero zaliczki it equals Łącznie (26 358,47); Łącznie itself is unaffected by zaliczki (split vs. footer separation confirmed).
+
+### Findings — 2026-07-18
+
+- [x] **Empty-string SelectItem crashes the deposit „Zaliczka na etap" select** — the „— brak —" option used `value=""`, which Radix Select forbids, throwing a Runtime Error the moment an investment with etapy was chosen in the Wpłata form. Fixed at `src/components/forms/deposit-form/deposit-form.tsx:49` (sentinel `NO_STAGE = 'none'`, mapped back to `undefined` in `toData`). Re-verified: select opens, tags a deposit, no crash.
+      **Test disposition:** test-driven-debugging · e2e — the defect is a browser-only render crash (Radix invariant) not reachable from a unit test; guard belongs in the slice's owed Playwright spec (open Wpłata → pick investment with etapy → assert stage select renders + tags). Recorded so the regression guard travels with the E2E.

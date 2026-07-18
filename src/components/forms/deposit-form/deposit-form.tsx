@@ -42,11 +42,12 @@ type FormValuesT = {
   paymentMethod: string
   sourceRegister: string
   investment?: string
-  // '' = not a zaliczka; otherwise a kosztorys stage id.
+  // NO_STAGE sentinel = not a zaliczka; otherwise a kosztorys stage id. Radix Select forbids an
+  // empty-string SelectItem value, so the "no stage" option carries a non-empty sentinel.
   kosztorysStage?: string
 }
 
-const NO_STAGE = ''
+const NO_STAGE = 'none'
 
 const FORM_ID = 'deposit'
 
@@ -82,7 +83,10 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
       paymentMethod: value.paymentMethod as PaymentMethodT,
       sourceRegister: Number(value.sourceRegister),
       investment: value.investment ? Number(value.investment) : undefined,
-      kosztorysStage: value.kosztorysStage ? Number(value.kosztorysStage) : undefined,
+      kosztorysStage:
+        value.kosztorysStage && value.kosztorysStage !== NO_STAGE
+          ? Number(value.kosztorysStage)
+          : undefined,
     }),
   })
 

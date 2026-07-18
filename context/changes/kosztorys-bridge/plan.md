@@ -370,5 +370,5 @@ deploy-time gate, not a phase gate.
 
 #### Automated
 
-- [x] 5.1 Unit test: composition math (zero-zaliczki, zaliczki > robocizna)
-- [x] 5.2 `pnpm typecheck`, `pnpm lint`, `pnpm exec vitest run` pass
+- [x] 5.1 Unit test: composition math (zero-zaliczki, zaliczki > robocizna) — aeb27fd4
+- [x] 5.2 `pnpm typecheck`, `pnpm lint`, `pnpm exec vitest run` pass — aeb27fd4
