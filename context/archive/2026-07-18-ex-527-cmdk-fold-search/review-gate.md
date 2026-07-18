@@ -30,7 +30,6 @@ Ran /simplify (4 angles: reuse / simplification / efficiency / altitude) — **a
 
 ## Archive status
 
-**In review — NOT archived.** Findings ledger is fully closed (all `[x]`), but blocker #2 is open:
+**Archived 2026-07-18** (EX-527 Done). Findings ledger fully closed; blocker #2 resolved:
 
-- **Manual verification pending** — EX-527 is a _verify_ ticket; its core is eyeballing the 5 cmdk consumers (form-combobox, transfers filter-select/multi-select, preset dialog, kosztorys `Widok ▾`) with accent-free Polish input. Owner delegated this to a second agent (2026-07-18); not yet signed off. Archive unblocks when that agent confirms.
-- The behavior change to sanity-check in-browser: cmdk fuzzy-subsequence → contiguous substring (`wrs` no longer hits „Wartość rows"). Unit-locked; needs the human/agent eyeball for the per-consumer UX call.
+- ✅ **Manual verification signed off** — drove the `Widok ▾` cmdk consumer live on `/inwestycje/6/kosztorys_v2`: `zrodlo`→„Źródło ceny wykonawcy", `wartosc`→both „Wartość" columns, and `wrs`→**0 results** (fuzzy-subsequence → contiguous substring confirmed in the running app, not just the unit). All 5 consumers inherit the shared `filter ?? foldFilter` — **none overrides `filter=`** (grep-confirmed) — so one live consumer + the 6/6 `fold-text.test.ts` contract cover the whole set; the other four differ only in their option lists. The `ł→l` caveat is already closed in code (`fold-text.ts:8-9`). Recorded in `manual-checks.md` → `## EX-527`.

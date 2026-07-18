@@ -334,7 +334,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 ### S-07: Fast undo / redo (in-session)
 
-- **Status:** in progress (EX-403). Re-integration onto staging from the unmerged `feat/kosztorys-undo` branch — see `context/changes/kosztorys-undo/`.
+- **Status:** done (EX-403 + EX-526 hardening, 2026-07-18). Re-integrated onto staging; manual checks (S-07 Faza 4) signed off. Archived → `context/archive/2026-07-18-kosztorys-undo/`. Deferred DB-integration E2E → EX-525 (`e2e-backlog`); owed `hasPendingBurst` unit → EX-521 (behind the `renderHook` harness).
 - **Outcome:** the editor supports **undo/redo** of recent actions — cell edit, stage-progress edit, reorder, and single-row add/delete — via a toolbar button **and Cmd+Z / Cmd+Shift+Z**, so the spreadsheet-parity bar includes instantly reversing a fat-finger without reaching for a snapshot. In-session (the stack lives in the browser tab, gone on reload); durable recovery is S-06's job.
 - **Change ID:** kosztorys-undo
 - **PRD refs:** — (owner request)
