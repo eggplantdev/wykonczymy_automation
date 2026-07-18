@@ -1,14 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
-import {
-  listSnapshotsAction,
-  restoreSnapshotAction,
-  type SnapshotListItemT,
-} from '@/lib/actions/kosztorys-snapshots'
+import { useSnapshotList } from '@/components/kosztorys/use-snapshot-list'
+import { restoreSnapshotAction, type SnapshotListItemT } from '@/lib/actions/kosztorys-snapshots'
 import { formatPLDateTime } from '@/lib/utils/format-date'
 import { toastMessage } from '@/lib/utils/toast'
 
@@ -31,47 +28,13 @@ export function KosztorysVersionsDrawer({
   onOpenChange,
   onRestored,
 }: PropsT) {
-  // null = not loaded yet (spinner); [] = loaded, empty.
-  const [snapshots, setSnapshots] = useState<SnapshotListItemT[] | null>(null)
+  const { snapshots, reset: resetSnapshots } = useSnapshotList(investmentId, open)
   const [restoringId, setRestoringId] = useState<number | null>(null)
   const [pendingRestore, setPendingRestore] = useState<SnapshotListItemT | null>(null)
 
-  // Fetch is keyed on the `open` prop, deliberately NOT on a click handler, because this drawer never
-  // sees the click: `open` is controlled by the parent toolbar, so the opening click happens up there.
-  // Radix can't help either — a controlled Dialog with no internal <Dialog.Trigger> fires onOpenChange
-  // only on dismiss (Escape/overlay → `false`), never with `true` on the programmatic open. Keying on
-  // the visibility *state* (not a DOM event) also means the fetch fires for EVERY path that opens the
-  // drawer — today the toolbar, tomorrow a programmatic open (e.g. auto-open after a restore) — which a
-  // trigger-click handler would silently miss. `active` drops a response that lands after a close/reopen
-  // so a stale fetch can't populate the reopened list.
-  useEffect(() => {
-    if (!open) return
-    let active = true
-    listSnapshotsAction(investmentId)
-      .then((res) => {
-        if (!active) return
-        if (!res.success) {
-          toastMessage(res.error ?? 'Nie udało się wczytać wersji', 'error', 4000)
-          setSnapshots([])
-          return
-        }
-        setSnapshots(res.data)
-      })
-      // A transport-level RPC rejection never resolves to {success:false}; without this the spinner
-      // would hang forever on a dropped request.
-      .catch(() => {
-        if (!active) return
-        toastMessage('Nie udało się wczytać wersji', 'error', 4000)
-        setSnapshots([])
-      })
-    return () => {
-      active = false
-    }
-  }, [open, investmentId])
-
   function handleOpenChange(next: boolean) {
     onOpenChange(next)
-    if (!next) setSnapshots(null)
+    if (!next) resetSnapshots()
   }
 
   async function handleRestore(snapshot: SnapshotListItemT) {
@@ -85,7 +48,7 @@ export function KosztorysVersionsDrawer({
     }
     toastMessage('Przywrócono wersję', 'success')
     onOpenChange(false)
-    setSnapshots(null)
+    resetSnapshots()
     onRestored()
   }
 
