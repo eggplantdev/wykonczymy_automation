@@ -5,6 +5,7 @@ import { ADMIN_OR_OWNER_ROLES } from '@/lib/auth/roles'
 import { extractSheetId, serviceAccountEmail, verifySheetAccess } from '@/lib/google/sheet-access'
 import { stampAllTabs } from '@/lib/google/app-managed-tabs'
 import { protectedAction } from './run-action'
+import { logError } from '@/lib/utils/log-error'
 
 /**
  * Register an existing Google Sheet as a sheet record WITHOUT linking it to an
@@ -67,7 +68,7 @@ export async function addUnlinkedSheetAction(input: string, name?: string) {
       try {
         await stampAllTabs(googleSheetId, payload, 'setup')
       } catch (err) {
-        console.error(`[sheets] setupTab failed for ${googleSheetId} (non-fatal):`, err)
+        logError(`[sheets] setupTab failed for ${googleSheetId} (non-fatal):`, err)
       }
 
       return { success: true, data: { sheetId: created.id as number, name: created.name } }
@@ -130,7 +131,7 @@ export async function linkSheetToInvestmentAction(sheetId: number, investmentId:
       // in place. Fire-and-forget: a slow Google round-trip mustn't keep the
       // UI spinner up — and a sync failure shouldn't undo the link.
       void applyMaterialSync(investmentId).catch((err) => {
-        console.error(`[sheets] post-link sync for investment #${investmentId} failed:`, err)
+        logError(`[sheets] post-link sync for investment #${investmentId} failed:`, err)
       })
 
       return { success: true }

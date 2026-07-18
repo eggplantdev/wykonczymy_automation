@@ -11,6 +11,7 @@ import { leadSchema, type LeadFormQuestionT } from '@/lib/leads/lead-schema'
 import { normalizeLead } from '@/lib/leads/normalize-lead'
 import { captureLead } from '@/lib/leads/capture-lead'
 import { notifyShapeAlert } from '@/lib/leads/notify'
+import { logError } from '@/lib/utils/log-error'
 
 /**
  * GET /api/webhooks/facebook-leads
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
   try {
     body = JSON.parse(raw)
   } catch {
-    console.error('[facebook-leads] Body was not valid JSON — acking to stop retries')
+    logError('[facebook-leads] Body was not valid JSON — acking to stop retries')
     return NextResponse.json({ received: true }, { status: 200 })
   }
 
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
             leadgenId: String(leadgenId),
             reason: `Lead failed schema validation: ${parsed.error.message}`,
             raw: fetched,
-          }).catch((err) => console.error('[facebook-leads] Shape alert failed', err))
+          }).catch((err) => logError('[facebook-leads] Shape alert failed', err))
           continue
         }
 
@@ -102,7 +103,7 @@ export async function POST(request: NextRequest) {
             leadgenId: String(leadgenId),
             reason: 'No email could be extracted from the lead',
             raw: parsed.data,
-          }).catch((err) => console.error('[facebook-leads] Shape alert failed', err))
+          }).catch((err) => logError('[facebook-leads] Shape alert failed', err))
         }
 
         await captureLead(payload, {
@@ -122,7 +123,7 @@ export async function POST(request: NextRequest) {
         // whole batch. The store is idempotent, so already-captured siblings this
         // request won't duplicate — only this failed leadgen_id retries.
         hadUnexpectedError = true
-        console.error(`[facebook-leads] Failed to process leadgen_id ${leadgenId}`, err)
+        logError(`[facebook-leads] Failed to process leadgen_id ${leadgenId}`, err)
       }
     }
   }

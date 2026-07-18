@@ -12,6 +12,7 @@ import {
 import { seedInvestmentFromPreset } from '@/lib/kosztorys/seed-from-preset'
 import { seedBlankKosztorys } from '@/lib/kosztorys/seed-blank'
 import { validateAction, protectedAction } from './run-action'
+import { logError } from '@/lib/utils/log-error'
 
 const SEED_PRESET_WARNING =
   'Inwestycja utworzona, ale nie udało się wypełnić kosztorysu z szablonu. Otwórz edytor i uzupełnij ręcznie.'
@@ -64,14 +65,14 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
           const result = await seedInvestmentFromPreset(payload, Number(created.id), chosenPresetId)
           if (result !== 'ok') {
             // TODO(EX-449) SENTRY-REQUIRED: silent seed skip the user can't self-report.
-            console.error(
+            logError(
               `[create-investment] seed from preset ${chosenPresetId} skipped for #${created.id}: ${result}`,
             )
             warning = SEED_PRESET_WARNING
           }
         } catch (err) {
           // TODO(EX-449) SENTRY-REQUIRED: silent seed failure the user can't self-report.
-          console.error(
+          logError(
             `[create-investment] seed from preset ${chosenPresetId} failed for #${created.id} (non-fatal):`,
             err,
           )
@@ -86,7 +87,7 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
           await seedBlankKosztorys(payload, Number(created.id))
         } catch (err) {
           // TODO(EX-449) SENTRY-REQUIRED: silent blank-seed failure the user can't self-report.
-          console.error(
+          logError(
             `[create-investment] blank kosztorys seed failed for #${created.id} (non-fatal):`,
             err,
           )
@@ -191,7 +192,7 @@ export async function linkSheetAction(investmentId: number, input: string) {
       try {
         await stampAllTabs(sheetId, payload, 'ensure')
       } catch (err) {
-        console.error(`[link-sheet] ensureTab failed for #${investmentId} (non-fatal):`, err)
+        logError(`[link-sheet] ensureTab failed for #${investmentId} (non-fatal):`, err)
       }
 
       return { success: true, data: { title: access.title } }

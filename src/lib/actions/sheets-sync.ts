@@ -23,6 +23,7 @@ import {
   SHEET_TRANSFER_TAB_TYPES,
 } from '@/lib/constants/transfers'
 import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
+import { logError } from '@/lib/utils/log-error'
 import { protectedAction } from './run-action'
 
 // One tab's pending changes. `toUpdateCount`/`toRemoveCount` are what a confirm would
@@ -297,7 +298,7 @@ export async function removeTransferFromSheet(params: {
     for (const tab of tabs) await removeTabRow(sheetId, tab.cfg, params.transferId)
     console.log(`[sheets-sync] remove transfer #${params.transferId} from sheet ${sheetId}`)
   } catch (err) {
-    console.error('[sheets-sync] removeTransferFromSheet failed (non-fatal):', err)
+    logError('[sheets-sync] removeTransferFromSheet failed (non-fatal):', err)
   }
 }
 
@@ -378,7 +379,7 @@ export async function syncSingleTransferToSheet(params: { transferId: number }):
       )
     }
   } catch (err) {
-    console.error('[sheets-sync] failed (non-fatal):', err)
+    logError('[sheets-sync] failed (non-fatal):', err)
   }
 }
 
@@ -432,6 +433,6 @@ export async function syncBulkExpensesToSheet(transferIds: number[]): Promise<vo
       }
     }
   } catch (err) {
-    console.error('[sheets-sync] syncBulkExpensesToSheet failed (non-fatal):', err)
+    logError('[sheets-sync] syncBulkExpensesToSheet failed (non-fatal):', err)
   }
 }

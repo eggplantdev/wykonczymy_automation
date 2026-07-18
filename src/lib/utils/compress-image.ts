@@ -1,4 +1,5 @@
 import Compressor from 'compressorjs'
+import { logError } from '@/lib/utils/log-error'
 
 const MAX_WIDTH = 1920
 const MAX_HEIGHT = 1080
@@ -35,7 +36,7 @@ export async function compressImage(originalFile: File, quality = QUALITY): Prom
       })
     })
   } catch (error) {
-    console.error('Image compression failed, using original:', error)
+    logError('Image compression failed, using original:', error)
     return originalFile
   }
 }

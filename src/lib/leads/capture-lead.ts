@@ -2,6 +2,7 @@ import type { Payload } from 'payload'
 import type { Lead } from '@/payload-types'
 import { storeLead, type StoreLeadInputT } from './store-lead'
 import { notifyNewLead, sendAutoReply } from './notify'
+import { logError } from '@/lib/utils/log-error'
 
 const NOTIFY_ATTEMPTS = 3
 
@@ -12,7 +13,7 @@ async function sendWithRetry(send: () => Promise<void>, label: string): Promise<
       await send()
       return true
     } catch (err) {
-      console.error(`[capture-lead] ${label} attempt ${attempt}/${NOTIFY_ATTEMPTS} failed`, err)
+      logError(`[capture-lead] ${label} attempt ${attempt}/${NOTIFY_ATTEMPTS} failed`, err)
     }
   }
   return false

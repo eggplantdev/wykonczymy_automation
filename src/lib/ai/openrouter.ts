@@ -7,6 +7,7 @@ import {
   type ReceiptExtractionT,
 } from './receipt-extraction-schema'
 import { receiptPdfPlugins } from './receipt-pdf-plugins'
+import { logError } from '@/lib/utils/log-error'
 
 // Importing `serverEnv` (which is `import 'server-only'`) makes this module server-only too:
 // never pull it into the Payload CLI graph (payload.config.ts / collections), or
@@ -116,7 +117,7 @@ export async function extractReceipt(
       // TODO(EX-449) SENTRY-REQUIRED: the primary (on-trial) model failed — retry once with the
       // known-good FALLBACK_MODEL so a bad/unavailable primary id doesn't kill every scan. Log
       // the primary failure since a silent fallback hides that the trial tier is broken.
-      console.error(`[receipt] primary model ${RECEIPT_MODEL} failed — falling back`, primaryError)
+      logError(`[receipt] primary model ${RECEIPT_MODEL} failed — falling back`, primaryError)
       object = await callModel(FALLBACK_MODEL)
     }
 
@@ -125,7 +126,7 @@ export async function extractReceipt(
     // captured as a Sentry error once Sentry is wired (mediaType included so PDF-specific
     // parse failures are separable from genuinely illegible images).
     if (object.description === UNREADABLE_RECEIPT) {
-      console.error(
+      logError(
         `[receipt] unreadable extraction (mediaType=${mediaType}, filename=${filename}, bytes=${imageBytes.byteLength})`,
       )
     }

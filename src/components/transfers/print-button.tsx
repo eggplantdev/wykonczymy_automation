@@ -8,6 +8,7 @@ import { fetchFilteredTransfers } from '@/lib/actions/export'
 import { buildPrintHtml } from '@/lib/export/print'
 import { printViaIframe } from '@/lib/export/print-iframe'
 import { formatPLN } from '@/lib/utils/format-currency'
+import { logError } from '@/lib/utils/log-error'
 import { BILANS_LABEL, calculateBalance } from '@/lib/export/header-fields'
 import { sortTransferRows } from '@/lib/export/sort-rows'
 import { useHeaderFieldsStore } from '@/stores/header-fields-store'
@@ -39,7 +40,7 @@ export function PrintButton({ config, visibleColumnIds, sorting }: PrintButtonPr
     try {
       const result = await fetchFilteredTransfers(query.where)
       if (!result.success) {
-        console.error('Print fetch failed:', result.error)
+        logError('Print fetch failed:', result.error)
         return
       }
       const sorted = sortTransferRows(result.data, sorting)

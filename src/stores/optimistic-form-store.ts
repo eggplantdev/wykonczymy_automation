@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { toastMessage } from '@/lib/utils/toast'
+import { logError } from '@/lib/utils/log-error'
 import type { ActionResultT } from '@/types/action'
 
 type PendingSubmissionT = {
@@ -81,7 +82,7 @@ export const useOptimisticFormStore = create<OptimisticFormStoreT>()((set) => ({
         }
       })
       .catch((err) => {
-        console.error('[OPTIMISTIC_SUBMIT]', err)
+        logError('[OPTIMISTIC_SUBMIT]', err)
         const errorMessage = err instanceof Error ? err.message : 'Wystąpił nieoczekiwany błąd'
         set((state) => ({
           openFormId: formId,

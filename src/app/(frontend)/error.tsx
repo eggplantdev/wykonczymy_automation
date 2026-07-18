@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
+import { logError } from '@/lib/utils/log-error'
 
 export default function Error({
   error,
@@ -12,8 +13,7 @@ export default function Error({
   reset: () => void
 }) {
   useEffect(() => {
-    // Log the error to an error reporting service
-    console.error(error)
+    logError('[ROUTE_ERROR]', error)
   }, [error])
 
   return (

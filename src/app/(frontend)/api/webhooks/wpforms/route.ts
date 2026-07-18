@@ -7,6 +7,7 @@ import { CACHE_TAGS } from '@/lib/cache/tags'
 import { wpformsSubmissionSchema, wpformsToStoreLeadInput } from '@/lib/leads/wpforms'
 import { captureLead } from '@/lib/leads/capture-lead'
 import { notifyShapeAlert } from '@/lib/leads/notify'
+import { logError } from '@/lib/utils/log-error'
 
 /**
  * POST /api/webhooks/wpforms
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
   try {
     json = JSON.parse(raw)
   } catch {
-    console.error('[wpforms] Body was not valid JSON', raw.slice(0, 500))
+    logError('[wpforms] Body was not valid JSON', raw.slice(0, 500))
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
@@ -42,12 +43,12 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) {
     // The forwarder's shape drifted (form rebuilt, snippet changed) — alert loudly
     // rather than swallow the lead. 400 so a monitoring eye sees it; WP won't retry.
-    console.error('[wpforms] Submission failed schema validation', parsed.error.message)
+    logError('[wpforms] Submission failed schema validation', parsed.error.message)
     await notifyShapeAlert(payload, {
       leadgenId: 'wpforms',
       reason: `WPForms submission failed schema validation: ${parsed.error.message}`,
       raw: json,
-    }).catch((err) => console.error('[wpforms] Shape alert failed', err))
+    }).catch((err) => logError('[wpforms] Shape alert failed', err))
     return NextResponse.json({ error: 'Bad shape' }, { status: 400 })
   }
 
@@ -61,13 +62,13 @@ export async function POST(request: NextRequest) {
       leadgenId: `wpforms form ${input.formId ?? '?'}`,
       reason: 'No email could be extracted from the WPForms submission',
       raw: parsed.data,
-    }).catch((err) => console.error('[wpforms] Shape alert failed', err))
+    }).catch((err) => logError('[wpforms] Shape alert failed', err))
   }
 
   try {
     await captureLead(payload, input)
   } catch (err) {
-    console.error('[wpforms] Failed to capture lead', err)
+    logError('[wpforms] Failed to capture lead', err)
     return NextResponse.json({ error: 'Capture failed' }, { status: 500 })
   }
 

@@ -8,6 +8,7 @@ import config from '@payload-config'
 import type { RoleT } from '@/lib/auth/roles'
 import { ROLES } from '@/lib/auth/roles'
 import type { SessionUserT } from '@/types/auth'
+import { logError } from '@/lib/utils/log-error'
 
 let cachedSecretKey: Uint8Array | undefined
 
@@ -50,7 +51,7 @@ export const getCurrentUserJwt = cache(async (): Promise<SessionUserT | undefine
 
     return { id, email, name, role: role as RoleT }
   } catch (err) {
-    console.error('[getCurrentUserJwt] JWT verify failed:', err)
+    logError('[getCurrentUserJwt] JWT verify failed:', err)
     return undefined
   }
 })

@@ -5,6 +5,7 @@ import { extractReceiptAction } from '@/lib/actions/extract-receipt'
 import { reindexAfterRemoval } from '@/components/forms/hooks/use-invoice-files'
 import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
 import { toastMessage } from '@/lib/utils/toast'
+import { logError } from '@/lib/utils/log-error'
 import { UNREADABLE_RECEIPT } from '@/lib/ai/receipt-extraction-schema'
 import type { OtherCategoryRefT } from '@/types/reference-data'
 import type { BulkExpenseFormApiT } from '@/components/forms/expense-form/bulk-expense-form'
@@ -93,7 +94,7 @@ export function useReceiptGeneration({
       } catch (error) {
         // TODO(EX-449) SENTRY-REQUIRED: per-receipt AI extraction failures must be captured once
         // Sentry is wired — a failed row otherwise dies in a generic toast.
-        console.error(`[receipt-generation] row ${index} failed`, error)
+        logError(`[receipt-generation] row ${index} failed`, error)
         failed.add(index)
         failedMessages.add(error instanceof Error ? error.message : String(error))
       } finally {

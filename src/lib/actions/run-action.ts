@@ -9,6 +9,7 @@ import type { CACHE_TAGS } from '@/lib/cache/tags'
 import { perfStart } from '@/lib/perf'
 import type { SessionUserT } from '@/types/auth'
 import type { ActionResultT } from '@/types/action'
+import { logError } from '@/lib/utils/log-error'
 
 type ActionCtxT = { payload: Payload; user: SessionUserT }
 
@@ -57,7 +58,7 @@ export async function protectedAction<TData = undefined>(
     console.log(`[PERF] ${label} ${Math.round(performance.now() - started)}ms`)
     return result
   } catch (err) {
-    console.error(`[ACTION_ERROR] ${label}`, err)
+    logError(`[ACTION_ERROR] ${label}`, err)
     return { success: false, error: getErrorMessage(err) } as ActionResultT<TData>
   }
 }
