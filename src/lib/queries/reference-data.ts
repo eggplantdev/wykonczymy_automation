@@ -163,6 +163,10 @@ export const fetchReferenceData = unstable_cache(
       // create/link/unlink/delete too, otherwise the listing's "kosztorys" badge
       // stays stale.
       CACHE_TAGS.kosztoryses,
+      // kosztorysStagesByInvestment feeds the deposit form's „Zaliczka na etap"
+      // select — a stage add/rename/delete must bust this blob or the dropdown
+      // serves a stale etap list.
+      CACHE_TAGS.kosztorysStages,
     ],
   },
 )
@@ -227,7 +231,9 @@ export async function fetchFilteredByType(where: Where): Promise<TypeSettledTota
 }
 
 // Per-etap zaliczka sums for one investment (tagged deposits), keyed stage id → cash.
-// Cached under CACHE_TAGS.transfers so deposit mutations keep the editor's join live.
+// Cached under CACHE_TAGS.transfers so deposit mutations keep the editor's join live,
+// and CACHE_TAGS.kosztorysStages because a stage delete (ON DELETE SET NULL) untags its
+// deposits without touching the transfers tag — this blob would otherwise stay stale.
 // Record (not Map) — plain object crosses the server→client prop boundary.
 export async function fetchZaliczkiByStage(investmentId: number): Promise<Record<number, number>> {
   return unstable_cache(
@@ -237,7 +243,7 @@ export async function fetchZaliczkiByStage(investmentId: number): Promise<Record
       return Object.fromEntries(sumZaliczkiByStage(rows))
     },
     ['zaliczki-by-stage', String(investmentId)],
-    { tags: [CACHE_TAGS.transfers] },
+    { tags: [CACHE_TAGS.transfers, CACHE_TAGS.kosztorysStages] },
   )()
 }
 

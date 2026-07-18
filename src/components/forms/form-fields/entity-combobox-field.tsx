@@ -45,8 +45,8 @@ type EntityComboboxFieldPropsT = {
   form: any
   variant: keyof typeof VARIANT_CONFIG
   items: EntityItemT[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  listeners?: any
+  // Forwarded to the inner AppField; only onChange is used at call sites (reset a dependent field).
+  listeners?: { onChange?: () => void }
 }
 
 export function EntityComboboxField({

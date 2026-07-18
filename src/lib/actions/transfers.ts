@@ -46,12 +46,15 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
       if (parsed.data.kosztorysStage != null) {
         // The schema already gates the tag to deposit types; here we confirm the etap actually
         // belongs to the tagged investment's kosztorys — a stage from another investment is a
-        // client bug or stale form state, never a valid zaliczka.
-        const stage = await payload.findByID({
+        // client bug or stale form state, never a valid zaliczka. `find` (not `findByID`) so a
+        // stale/deleted id yields an empty result, not Payload's English NotFound throw.
+        const { docs } = await payload.find({
           collection: 'kosztorys-stages',
-          id: parsed.data.kosztorysStage,
+          where: { id: { equals: parsed.data.kosztorysStage } },
           depth: 0,
+          limit: 1,
         })
+        const stage = docs[0]
         const stageInvestment =
           typeof stage?.investment === 'number' ? stage.investment : stage?.investment?.id
         if (!stage || stageInvestment !== parsed.data.investment) {
