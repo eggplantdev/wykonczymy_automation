@@ -289,6 +289,21 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   // (like the subtotals): Σ over stages equals totalNet, so the etap totals and the wykonane readout
   // reconcile by construction.
   const stageTotals = useMemo(() => stageTotalsForView(rows, stages, view), [rows, stages, view])
+  // Σ recorded qty per etap (the „Pomiar z natury" the column footer totals) — full-dataset, price-
+  // independent, so a search/section filter or a view switch never moves it.
+  const stageQtyTotals = useMemo(() => {
+    const totals = new Map<number, number>()
+    for (const stage of stages)
+      totals.set(
+        stage.id,
+        rows.reduce((sum, row) => sum + ((row[stageKey(stage.id)] as number | undefined) ?? 0), 0),
+      )
+    return totals
+  }, [rows, stages])
+  const plannedQtyTotal = useMemo(
+    () => rows.reduce((sum, row) => sum + (row.plannedQty ?? 0), 0),
+    [rows],
+  )
   // The progress counter is a PROGRESS figure, not money — it must read the same in every price view,
   // so its executed/offered are weighted at the client price (a separate client-priced pass), never
   // the active `view`. Same client basis as each section's completionRatio.
@@ -313,6 +328,15 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     [totalNet, globalDiscount],
   )
   const doZaplatyNet = totalNet - discountAmount
+  // The single explicit rabat figure the totals show. Global and per-item rabat are mutually
+  // exclusive (a live global discount forces every row gross, zeroing its per-item rabat), so
+  // summing them yields whichever mode is active without a branch. `discountAmount` still drives
+  // `doZaplatyNet`; `rabatAmount` is display-only (= discountAmount when global, Σ item-rabat otherwise).
+  const itemRabatTotal = useMemo(
+    () => subtotals.reduce((sum, s) => sum + s.discount, 0),
+    [subtotals],
+  )
+  const rabatAmount = discountAmount + itemRabatTotal
 
   // Section coefficients (null = inherits the global) for the panel — from the tree, keyed by section id.
   const sectionCoeffs = new Map(
@@ -997,12 +1021,15 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     subtotals,
     totalNet,
     stageTotals,
+    stageQtyTotals,
+    plannedQtyTotal,
     stages,
     doneNet,
     plannedNet,
     sectionCoeffs,
     globalDiscount,
     discountAmount,
+    rabatAmount,
     doZaplatyNet,
     // toolbar / panel state
     setView,

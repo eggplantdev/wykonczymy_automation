@@ -138,6 +138,10 @@ export type SectionSubtotalT = {
   sectionName: string
   net: number // executed (the sheet's T), at the active price view — a MONEY figure
   plannedNet: number // offered (the sheet's S), at the active price view — a MONEY figure
+  // Σ per-item rabat actually taken on the executed qty, at the active price view — a MONEY figure.
+  // 0 when the global discount is active (it overrides per-item rabat). Lets the totals show one
+  // explicit „Rabat" figure without re-deriving it from pre/post-rabat totals.
+  discount: number
   // 0..1, the section's share of all sections' executed value — weighted at the CLIENT price only, so
   // like completionRatio it is a STRUCTURE figure that must not move with the price view.
   share: number

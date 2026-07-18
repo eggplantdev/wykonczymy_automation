@@ -1,4 +1,9 @@
-import { netForQtyForView, rowPlannedNetForView, type PriceViewT } from '@/lib/kosztorys/calc'
+import {
+  netForQtyForView,
+  rowDiscountForView,
+  rowPlannedNetForView,
+  type PriceViewT,
+} from '@/lib/kosztorys/calc'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT, SectionSubtotalT } from '@/lib/kosztorys/types'
 
@@ -117,6 +122,7 @@ export function sectionSubtotalsForView(
         sectionName: row.sectionName,
         net: 0,
         plannedNet: 0,
+        discount: 0,
         share: 0,
         completionRatio: null,
         itemCount: 0,
@@ -126,6 +132,8 @@ export function sectionSubtotalsForView(
     }
     acc.net += rowValueForView(row, stages, view)
     acc.plannedNet += rowPlannedNetForView(row, view)
+    // Rabat taken on the executed qty (the same qty `net` prices) — 0 under a global discount.
+    acc.discount += rowDiscountForView(row, rowTotalQtyDone(row, stages), view)
     acc.itemCount += 1
     const client = clientBySection.get(row.sectionId)!
     client.executed += rowValueForView(row, stages, 'client')

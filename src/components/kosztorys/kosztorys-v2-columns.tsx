@@ -41,7 +41,7 @@ import {
   stageValueNetKey,
   stageValuePercentKey,
 } from '@/lib/kosztorys/stage-keys'
-import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
+import { COLUMN_LABELS, COLUMN_LAYER } from '@/lib/kosztorys/column-config'
 import { HEADER_TIPS } from '@/lib/kosztorys/header-tips'
 import { LAYER_DEFAULT, layerAllows } from '@/lib/kosztorys/layer'
 import { MONEY_AXIS_DEFAULT, axisAllows } from '@/lib/kosztorys/money-axis'
@@ -455,7 +455,20 @@ function selectV2Columns(
       )
     })
     .map((c) => withResize(c, opts))
-  return base
+  return markLayerBoundary(base)
+}
+
+// Divider between the work-layer block and the progress-layer block: a left border on the first
+// visible progress column, so the eye sees where „Praca" ends and „Postęp" begins. Derived from the
+// filtered list (not a fixed index) so it lands correctly whatever the money/etapy axes have hidden.
+function markLayerBoundary(columns: Column<KosztorysV2RowT>[]): Column<KosztorysV2RowT>[] {
+  const first = columns.findIndex((c) => COLUMN_LAYER[toggleKey(c.id ?? '')] === 'progress')
+  if (first <= 0) return columns
+  return columns.with(first, {
+    ...columns[first],
+    headerClassName: 'border-l border-border',
+    cellClassName: 'border-l border-border',
+  })
 }
 
 // Picker entries for the columns this view actually has, in grid order. Stage columns collapse into

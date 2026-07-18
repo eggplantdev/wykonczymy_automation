@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
-import { rowValueForView, stageTotalsForView } from '@/lib/kosztorys/settlement'
+import {
+  rowValueForView,
+  sectionSubtotalsForView,
+  stageTotalsForView,
+} from '@/lib/kosztorys/settlement'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 
 const baseItem = {
@@ -89,5 +93,22 @@ describe('stageTotalsForView', () => {
     const client = stageTotalsForView(rows, tree.stages, 'client')
     const wTools = stageTotalsForView(rows, tree.stages, 'w_tools')
     expect(wTools.get(100)).not.toBeCloseTo(client.get(100)!)
+  })
+})
+
+describe('sectionSubtotalsForView › discount (per-item rabat aggregate)', () => {
+  it('sums the per-item rabat actually taken on the executed qty', () => {
+    const rows = treeToRows(tree)
+    const [section] = sectionSubtotalsForView(rows, tree.stages, 'client')
+    // Only item 2 carries a rabat (flat 8 on the whole row), and it executes 4 of its 4 planned qty,
+    // so the full 8 is taken; item 1 has none → section discount = 8.
+    expect(section.discount).toBeCloseTo(8)
+  })
+
+  it('reads 0 when the global discount is active (it overrides per-item rabat)', () => {
+    const globalTree = { ...tree, globalDiscount: { type: 'percent' as const, value: 10 } }
+    const rows = treeToRows(globalTree)
+    const [section] = sectionSubtotalsForView(rows, globalTree.stages, 'client')
+    expect(section.discount).toBeCloseTo(0)
   })
 })
