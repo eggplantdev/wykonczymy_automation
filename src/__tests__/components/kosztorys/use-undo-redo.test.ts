@@ -6,6 +6,10 @@ function cmd(label: string): UndoCommandT {
   return { label, undo: vi.fn(), redo: vi.fn() }
 }
 
+function scopedCmd(label: string, touchedIds: number[]): UndoCommandT {
+  return { label, undo: vi.fn(), redo: vi.fn(), touchedIds }
+}
+
 describe('createUndoRedoStack', () => {
   it('undo/redo are LIFO and hand back the right command', () => {
     const stack = createUndoRedoStack()
@@ -100,6 +104,54 @@ describe('createUndoRedoStack', () => {
     expect(stack.canRedo).toBe(false)
     expect(stack.undo()).toBeUndefined()
     expect(stack.redo()).toBeUndefined()
+  })
+
+  describe('pruneByIds (EX-526 #2 — stale command after row delete)', () => {
+    it('drops commands touching a deleted id from both stacks', () => {
+      const stack = createUndoRedoStack()
+      const edit1 = scopedCmd('edit row 1', [1])
+      const edit2 = scopedCmd('edit row 2', [2])
+      stack.push(edit1)
+      stack.push(edit2)
+      stack.undo() // edit2 → redo stack
+
+      stack.pruneByIds([1]) // delete row 1
+
+      expect(stack.undo()).toBeUndefined() // edit1 (touched 1) pruned from undo stack
+      expect(stack.redo()).toBe(edit2) // edit2 (touched 2) survives on redo stack
+    })
+
+    it('prunes a burst that touches a deleted id even if it also touched live rows', () => {
+      const stack = createUndoRedoStack()
+      const burst = scopedCmd('paste over 1 and 2', [1, 2])
+      stack.push(burst)
+
+      stack.pruneByIds([2])
+
+      expect(stack.undo()).toBeUndefined() // any dead id in the burst removes it
+    })
+
+    it('keeps structural (no touchedIds) commands regardless of the delete', () => {
+      const stack = createUndoRedoStack()
+      const vat = cmd('change VAT') // no touchedIds
+      stack.push(vat)
+
+      stack.pruneByIds([1, 2, 3])
+
+      expect(stack.undo()).toBe(vat)
+    })
+
+    it('only bumps the revision when something is actually pruned', () => {
+      const stack = createUndoRedoStack()
+      stack.push(scopedCmd('edit row 5', [5]))
+      const before = stack.revision
+
+      stack.pruneByIds([99]) // touches nothing on the stack
+      expect(stack.revision).toBe(before)
+
+      stack.pruneByIds([5])
+      expect(stack.revision).toBe(before + 1)
+    })
   })
 
   it('a composite batch command is a single undo entry (coalescing)', () => {

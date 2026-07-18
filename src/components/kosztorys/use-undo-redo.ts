@@ -10,6 +10,11 @@ export type UndoCommandT = {
   label: string
   undo: () => void | Promise<void>
   redo: () => void | Promise<void>
+  // Item ids this command reads/writes. A command whose touched rows are deleted must be pruned from
+  // the stack (EX-526 #2): replaying it would fire writes against a dead id (and `setStageProgressAction`
+  // is an absolute upsert that would recreate an orphan row). Omitted for structural commands (global
+  // coeff / VAT / discount) that aren't tied to a specific deletable item.
+  touchedIds?: number[]
 }
 
 export type UndoRedoApiT = {
@@ -22,6 +27,8 @@ export type UndoRedoApiT = {
   // (a tick with an unchanged revision means nothing was edited/undone/redone since the last one).
   revision: number
   reset: () => void
+  // Drop every command (from both stacks) that touches any of these now-deleted ids (EX-526 #2).
+  pruneByIds: (ids: number[]) => void
 }
 
 // Bound so a long session can't grow the stack without limit; the oldest entry is evicted first.
@@ -60,6 +67,21 @@ export function createUndoRedoStack(maxDepth = MAX_DEPTH) {
     reset() {
       undoStack = []
       redoStack = []
+      revision++
+    },
+    // Prune commands referencing a deleted id from both stacks. A command with no `touchedIds`
+    // (structural) is never id-scoped, so it survives. Only bumps the revision if something was
+    // actually removed, so an unrelated delete doesn't churn the snapshot dirty-gate.
+    pruneByIds(ids: number[]) {
+      if (ids.length === 0) return
+      const deleted = new Set(ids)
+      const touchesDeleted = (command: UndoCommandT) =>
+        command.touchedIds?.some((id) => deleted.has(id)) ?? false
+      const undoKept = undoStack.filter((command) => !touchesDeleted(command))
+      const redoKept = redoStack.filter((command) => !touchesDeleted(command))
+      if (undoKept.length === undoStack.length && redoKept.length === redoStack.length) return
+      undoStack = undoKept
+      redoStack = redoKept
       revision++
     },
     get canUndo() {
@@ -110,11 +132,17 @@ export function useUndoRedo(): UndoRedoApiT {
     rerender()
   }
 
+  function pruneByIds(ids: number[]) {
+    stack.pruneByIds(ids)
+    rerender()
+  }
+
   return {
     push,
     undo,
     redo,
     reset,
+    pruneByIds,
     canUndo: stack.canUndo,
     canRedo: stack.canRedo,
     revision: stack.revision,

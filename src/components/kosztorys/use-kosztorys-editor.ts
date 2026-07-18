@@ -95,10 +95,10 @@ const UNDO_COALESCE_MS = 700
 // inside a setRows updater — that would move the Router during render.
 export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   const router = useRouter()
-  const { save, cancel } = useDebouncedSave(500)
+  const { save, runNow } = useDebouncedSave(500)
   // Per-mount undo/redo stack, provided by the shell (KosztorysEditorV2). Capture pushes here;
   // the toolbar + keyboard call undo/redo (re-exported below).
-  const { push, undo, redo, canUndo, canRedo } = useUndoRedoContext()
+  const { push, undo, redo, canUndo, canRedo, pruneByIds } = useUndoRedoContext()
   const [gridRef, gridHeight] = useElementHeight()
   const [rows, setRows] = useState<KosztorysV2RowT[]>(() => treeToRows(tree))
   // Stages live in local state (like `rows`): add/remove optimistically add/drop a column.
@@ -150,6 +150,11 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   const pendingFields = useRef<FieldChangeT[]>([])
   const pendingStages = useRef<StageChangeT[]>([])
   const flushTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Reactive mirror of "a burst is buffering" (the refs above aren't reactive). Drives canUndo during
+  // the ≤700ms coalesce window so the toolbar button and keyboard Cmd+Z agree: a first-edit keystroke
+  // enables Undo immediately (Cmd+Z flushes-then-undoes), instead of the button staying greyed until
+  // flush while the shortcut already works (EX-526 #5).
+  const [hasPendingBurst, setHasPendingBurst] = useState(false)
 
   // Collapse the buffered burst into one undo command (before=first seen, after=last), dropping a
   // net-zero burst (type-then-revert) entirely so it never lands a dead entry on the stack.
@@ -162,12 +167,41 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     const stages = coalesceStageChanges(pendingStages.current)
     pendingFields.current = []
     pendingStages.current = []
+    setHasPendingBurst(false)
     if (fields.length === 0 && stages.length === 0) return
+    const touchedIds = [...new Set([...fields.map((c) => c.id), ...stages.map((c) => c.id)])]
     push({
       label: 'Edycja',
       undo: () => runGridReversal(fields, stages, 'undo'),
       redo: () => runGridReversal(fields, stages, 'redo'),
+      touchedIds,
     })
+  }
+
+  // A failed save can filter the last entry out of the burst buffers; if that empties them, cancel the
+  // pending flush and clear the reactive flag so canUndo stops reporting a burst that no longer exists
+  // (otherwise the Undo button stays enabled for the rest of the window but has nothing to flush).
+  function clearBurstIfEmpty() {
+    if (pendingFields.current.length > 0 || pendingStages.current.length > 0) return
+    if (flushTimer.current) {
+      clearTimeout(flushTimer.current)
+      flushTimer.current = null
+    }
+    setHasPendingBurst(false)
+  }
+
+  // A failed save's revert calls one of these to pull its now-reverted change out of the buffered
+  // burst (EX-526 #4), then re-checks whether that emptied the buffer.
+  function dropPendingField(id: number, field: keyof ItemPatchT) {
+    pendingFields.current = pendingFields.current.filter((c) => !(c.id === id && c.field === field))
+    clearBurstIfEmpty()
+  }
+
+  function dropPendingStage(id: number, stageId: number) {
+    pendingStages.current = pendingStages.current.filter(
+      (c) => !(c.id === id && c.stageId === stageId),
+    )
+    clearBurstIfEmpty()
   }
 
   // A restore remounts the body; drop any dangling burst timer so a pending flush can't push a
@@ -298,9 +332,11 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   }
 
   // Apply one direction of a captured grid-edit batch (undo → `before`, redo → `after`). Unlike an
-  // autosave, an undo is a deliberate user action: it pre-empts any pending debounced save for the
-  // key (so a stale forward write can't race the inverse), writes the target value immediately, and
-  // updates `rows` + `prevById` in lockstep so the next onChange diff doesn't re-fire the write.
+  // autosave, an undo is a deliberate user action: it writes the target value immediately and updates
+  // `rows` + `prevById` in lockstep so the next onChange diff doesn't re-fire the write. Each inverse
+  // write goes through `runNow`, which serializes it on the cell's lane behind any in-flight forward
+  // save (EX-526 #1) and routes a failed inverse through the same toast+resync path as a forward save
+  // (EX-526 #3) — so a rejected write can't escape as an unhandled rejection or diverge grid from DB.
   async function runGridReversal(
     fields: FieldChangeT[],
     stages: StageChangeT[],
@@ -309,13 +345,11 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     // Merge every change of one row into a single patch so multi-field/-stage rows apply at once.
     const patchById = new Map<number, Record<string, unknown>>()
     for (const c of fields) {
-      cancel(`item:${c.id}:${String(c.field)}`)
       const patch = patchById.get(c.id) ?? {}
       patch[c.field as string] = dir === 'undo' ? c.before : c.after
       patchById.set(c.id, patch)
     }
     for (const c of stages) {
-      cancel(`progress:${c.id}:${c.stageId}`)
       const patch = patchById.get(c.id) ?? {}
       patch[stageKey(c.stageId)] = dir === 'undo' ? c.before : c.after
       patchById.set(c.id, patch)
@@ -329,14 +363,24 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       const snap = prevById.current.get(id)
       if (snap) prevById.current.set(id, { ...snap, ...patch } as KosztorysV2RowT)
     }
-    const writes: Promise<unknown>[] = []
+    // Each inverse goes through its cell's lane, which toasts on failure. No per-write revert: the
+    // unconditional refresh below resyncs the grid to server truth whether the writes succeeded or not.
+    const writes: Promise<void>[] = []
     for (const c of fields) {
       const value = dir === 'undo' ? c.before : c.after
-      writes.push(updateItemFieldAction(c.id, { [c.field]: value } as ItemPatchT))
+      writes.push(
+        runNow(`item:${c.id}:${String(c.field)}`, () =>
+          updateItemFieldAction(c.id, { [c.field]: value } as ItemPatchT),
+        ),
+      )
     }
     for (const c of stages) {
       const value = dir === 'undo' ? c.before : c.after
-      writes.push(setStageProgressAction(c.id, c.stageId, value))
+      writes.push(
+        runNow(`progress:${c.id}:${c.stageId}`, () =>
+          setStageProgressAction(c.id, c.stageId, value),
+        ),
+      )
     }
     await Promise.all(writes)
     // Pull recomputed section/stage totals once the inverse writes have committed.
@@ -461,11 +505,17 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     const afterId = removedAt > 0 ? rowsAtRemoval[removedAt - 1].id : null
     prevById.current.delete(row.id)
     setRows((rs) => applyRemoveItem(rs, row.id))
+    // Flush any still-buffering burst into a command first, then drop every stack command touching the
+    // deleted row — otherwise undoing one would fire writes against a dead id and `setStageProgressAction`
+    // (an absolute upsert) could recreate an orphan stage row (EX-526 #2).
+    flushUndoBuffer()
+    pruneByIds([row.id])
     const res = await removeItemAction(row.id)
     if (!res.success) {
       // Server rejected (client/server predicate drift) — restore the row after the neighbor it
       // followed, resolved against the current rows so a concurrent edit during the await can't
-      // misplace it (applyAddItem would re-append it at the grid's end).
+      // misplace it (applyAddItem would re-append it at the grid's end). The pruned undo history for
+      // this row stays gone — a rare failure path on throwaway data, not worth reconstructing.
       prevById.current.set(row.id, row)
       setRows((rs) => applyRestoreItem(rs, row, afterId))
       toastMessage(res.error ?? 'Nie udało się usunąć pozycji', 'warning', 4000)
@@ -490,6 +540,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       label: 'Zmiana kolejności',
       undo: () => runReorderReversal(a, b, 'undo'),
       redo: () => runReorderReversal(a, b, 'redo'),
+      touchedIds: [a.id, b.id],
     })
   }
 
@@ -615,6 +666,9 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     for (const [id, r] of prevById.current) {
       if (r.sectionId === sectionId) prevById.current.delete(id)
     }
+    // Drop stack commands touching any of the cascade-deleted rows (EX-526 #2) — see handleRemoveItem.
+    flushUndoBuffer()
+    pruneByIds(removed.map((r) => r.id))
     const wasShown = shownSectionIds?.has(sectionId) ?? false
     if (wasShown) {
       setShownSectionIds((prev) => {
@@ -857,7 +911,10 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
           save(
             `item:${row.id}:${field}`,
             () => updateItemFieldAction(row.id, { [field]: patch[field as keyof ItemPatchT] }),
-            () => revertOne(row.id, key, prevVal, attempted),
+            () => {
+              revertOne(row.id, key, prevVal, attempted)
+              dropPendingField(row.id, field as keyof ItemPatchT)
+            },
           )
           fieldChanges.push({
             id: row.id,
@@ -874,7 +931,10 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
         save(
           `progress:${row.id}:${sc.stageId}`,
           () => setStageProgressAction(row.id, sc.stageId, sc.qty),
-          () => revertOne(row.id, key, prevVal, sc.qty),
+          () => {
+            revertOne(row.id, key, prevVal, sc.qty)
+            dropPendingStage(row.id, sc.stageId)
+          },
         )
         stageChanges.push({
           id: row.id,
@@ -889,6 +949,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     if (fieldChanges.length > 0 || stageChanges.length > 0) {
       pendingFields.current.push(...fieldChanges)
       pendingStages.current.push(...stageChanges)
+      setHasPendingBurst(true)
       if (flushTimer.current) clearTimeout(flushTimer.current)
       flushTimer.current = setTimeout(flushUndoBuffer, UNDO_COALESCE_MS)
     }
@@ -959,7 +1020,9 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
       flushUndoBuffer()
       redo()
     },
-    canUndo,
-    canRedo,
+    // A buffering burst counts as undoable (it flushes to a command on undo) and, being a fresh edit,
+    // will clear the redo path on flush — so surface it as "can undo, can't redo" during the window.
+    canUndo: canUndo || hasPendingBurst,
+    canRedo: canRedo && !hasPendingBurst,
   }
 }
