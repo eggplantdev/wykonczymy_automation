@@ -3,11 +3,7 @@ import { CellSelectMenu } from '@/components/kosztorys/cell-select-menu'
 import { effectiveCoeff, viewPrice } from '@/lib/kosztorys/calc'
 import { parseDecimalInput } from '@/lib/utils/parse-decimal-input'
 import { formatNet as fmt } from '@/lib/kosztorys/format'
-import type {
-  KosztorysV2RowT,
-  SubcontractorOverrideTypeT,
-  ViewPricingT,
-} from '@/lib/kosztorys/types'
+import type { KosztorysV2RowT, SubcontractorOverrideTypeT } from '@/lib/kosztorys/types'
 import type { ReactNode } from 'react'
 
 // Where the subcontractor price comes from (a column in the subcontractor views). Labels name the
@@ -58,9 +54,7 @@ export function subcontractorCoeffColumn(
         <input
           className={`size-full bg-transparent px-2 text-left text-sm outline-none ${inherited ? 'text-muted-foreground italic' : ''}`}
           value={inherited ? '' : String(rowData[valueField] ?? '')}
-          placeholder={
-            inherited ? String(effectiveCoeff(rowData as unknown as ViewPricingT, view)) : ''
-          }
+          placeholder={inherited ? String(effectiveCoeff(rowData, view)) : ''}
           inputMode="decimal"
           onChange={(e) => {
             const parsed = parseDecimalInput(e.target.value)
@@ -77,7 +71,7 @@ export function subcontractorCoeffColumn(
     copyValue: ({ rowData }) =>
       (rowData[typeField] as string | null) === 'amount'
         ? ''
-        : String(effectiveCoeff(rowData as unknown as ViewPricingT, view)),
+        : String(effectiveCoeff(rowData, view)),
     deleteValue: ({ rowData }) => ({ ...rowData, [typeField]: null, [valueField]: 0 }),
   }
 }
@@ -94,7 +88,7 @@ export function subcontractorPriceColumn(
     keepFocus: true,
     component: ({ rowData, setRowData }: CellProps<KosztorysV2RowT, unknown>) => {
       const type = rowData[typeField] as SubcontractorOverrideTypeT | null
-      const price = viewPrice(rowData as unknown as ViewPricingT, view)
+      const price = viewPrice(rowData, view)
       if (type !== 'amount') {
         return (
           <span className="text-muted-foreground block w-full px-2 text-left">{fmt(price)}</span>
@@ -117,7 +111,7 @@ export function subcontractorPriceColumn(
         />
       )
     },
-    copyValue: ({ rowData }) => String(viewPrice(rowData as unknown as ViewPricingT, view)),
+    copyValue: ({ rowData }) => String(viewPrice(rowData, view)),
     deleteValue: ({ rowData }) => ({ ...rowData, [typeField]: null, [valueField]: 0 }),
   }
 }
@@ -143,7 +137,7 @@ export function subcontractorModeColumn(
           const next = (value || null) as SubcontractorOverrideTypeT | null
           const seed =
             next === 'coeff' && !rowData[valueField]
-              ? { [valueField]: effectiveCoeff(rowData as unknown as ViewPricingT, view) }
+              ? { [valueField]: effectiveCoeff(rowData, view) }
               : {}
           setRowData({
             ...rowData,
