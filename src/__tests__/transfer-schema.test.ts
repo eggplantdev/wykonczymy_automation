@@ -394,6 +394,7 @@ describe('bulk expense — UNREADABLE_RECEIPT sentinel row is blocked', () => {
     settled: false,
     lineItems: [
       {
+        id: 'row-1',
         description: 'Normalny opis',
         amount: '100',
         invoiceNote: '',

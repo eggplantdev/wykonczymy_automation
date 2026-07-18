@@ -23,6 +23,8 @@ Touched (11 files): `expense-form.tsx`, `line-items-field.tsx`, `line-item-invoi
 - [x] skipped · `simplify`(altitude) · `use-receipt-generation.ts:74` · AI write-back still positional behind the generation-disable guard — behavior-uncertain hardening (resolve index-by-id at write time), review-worthy, out of slice core. Same latent finding code-review dropped.
 - [x] dropped · `simplify` · `upload-file-client.ts` generic re-key helper; `use-invoice-files.ts:24` extract `useStateRef` — both defer/less-readable, not worth churn.
 - [x] dismissed · `simplify`(altitude) · `expense-form.tsx:122/225` · seam knows both coordinate spaces — right layer.
+- [x] fixed · `suite` · `transfer-schema.test.ts:395` · client fixture `validClient.lineItems[0]` omitted the now-required `id`, so all 3 bulk-sentinel specs failed on `lineItems.0.id` (control included) — added `id: 'row-1'`; spread-based sentinel specs inherit it. Caught by the full-suite pre-push run.
+      test: n/a — fixture repair, not a behavior finding; the schema requirement is already asserted by these specs now passing.
 
 ## Simplify pass
 
@@ -33,5 +35,5 @@ Ran /simplify — 1 applied (`deleteFile` dedup), 0 proposed, 2 dropped + 1 dism
 - `tsc --noEmit` → exit 0 (after write-through fix + `deleteFile` dedup).
 - `eslint src/components/forms/hooks/use-invoice-files.ts` → 0 (the `react-hooks/refs` disable is gone).
 - `vitest run invoice-files-projection + invoice-media-resolve` → 10/10 green.
-- Full suite (`typecheck && lint && test && test:e2e && build`) — **not run yet; owed before archive.** Ask user before running (long; e2e needs the 5435 container). Pre-existing red specs known: transfer-create/cancel (EX-473), root `scripts/inspect-sheet.mjs` lint (out of scope).
+- Full unit suite (pre-push `test` leg) → **1069 tests, all green after the `transfer-schema.test.ts` fixture repair** (was 3 failing on the missing `id`). e2e/build legs not separately run; pre-push gate covers typecheck + unit tests + db:dump.
 - Regression guard for the 🔴 → filed **EX-447 §3** (browser-level; no unit repro without a hook renderer).
