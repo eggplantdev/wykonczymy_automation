@@ -41,7 +41,7 @@ import {
   stageValueNetKey,
   stageValuePercentKey,
 } from '@/lib/kosztorys/stage-keys'
-import { COLUMN_LABELS, NON_HIDEABLE_COLUMNS } from '@/lib/kosztorys/column-config'
+import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
 import { HEADER_TIPS } from '@/lib/kosztorys/header-tips'
 import { LAYER_DEFAULT, layerAllows } from '@/lib/kosztorys/layer'
 import { MONEY_AXIS_DEFAULT, axisAllows } from '@/lib/kosztorys/money-axis'
@@ -139,6 +139,9 @@ function withResize(
   opts: Pick<BuildV2ColumnsOptsT, 'onGuide' | 'onCommitColumn' | 'widths'>,
 ): Column<KosztorysV2RowT> {
   if (!opts.onGuide || !opts.onCommitColumn || !col.id) return col
+  // A fixed-width column (min === max, e.g. the row-actions column) has nothing to drag — skip the
+  // resizable header rather than hang a dead handle on it.
+  if (col.minWidth != null && col.minWidth === col.maxWidth) return col
   const min = col.minWidth ?? 100
   const pinned = opts.widths?.[col.id]
   // Pinning = a rigid width independent of dsg's flex algorithm: min=max=basis=W,
@@ -385,8 +388,10 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   ]
 
   // Both blocks keep sheet order: the stage qty columns lead (the sheet's D–M), then Przedmiar (N)
-  // and Pomiar z natury (O), then the value block (V–AE right before AF "pozostało").
-  return [
+  // and Pomiar z natury (O), then the value block (V–AE right before AF "pozostało"). The row-actions
+  // column leads the whole grid when editing is enabled — it rides the same assemble→hide→toggle
+  // pipeline as every data column (no special-casing), so the picker can hide it like any other.
+  const dataColumns = [
     ...identity,
     ...stageCols,
     ...measure,
@@ -398,6 +403,9 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     ...donePercent,
     ...remaining,
   ]
+  return opts.onRemoveItem || opts.onReorderItem
+    ? [actionColumn(opts), ...dataColumns]
+    : dataColumns
 }
 
 // A stage column answers to its axis's shared "Etapy — …" picker entry, not to its own id. The three
@@ -435,7 +443,7 @@ function selectV2Columns(
       )
     })
     .map((c) => withResize(c, opts))
-  return opts.onRemoveItem || opts.onReorderItem ? [actionColumn(opts), ...base] : base
+  return base
 }
 
 // Picker entries for the columns this view actually has, in grid order. Stage columns collapse into
@@ -447,7 +455,7 @@ function selectV2ToggleItems(
   const items: ColumnToggleItemT[] = []
   for (const col of assembled) {
     const id = toggleKey(col.id ?? '')
-    if (NON_HIDEABLE_COLUMNS.has(id) || items.some((i) => i.id === id)) continue
+    if (items.some((i) => i.id === id)) continue
     if (opts.globalDiscountActive && DISCOUNT_COLUMN_IDS.has(id)) continue
     items.push({ id, label: COLUMN_LABELS[id] ?? id, visible: !opts.isHidden?.(id) })
   }

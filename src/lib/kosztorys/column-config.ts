@@ -7,6 +7,7 @@ import {
 // Grid column labels — the single source for both the header and the column picker, so a rename
 // can't leave the two disagreeing about what a column is called.
 export const COLUMN_LABELS: Record<string, string> = {
+  actions: 'Akcje',
   sectionName: 'Sekcja',
   description: 'Opis prac',
   plannedQty: 'Przedmiar',
@@ -76,9 +77,12 @@ export const COLUMN_LAYER: Record<string, 'work' | 'progress'> = {
   remainingGross: 'progress',
 }
 
-// Always-visible context: identity that names the row plus Pomiar z natury (the execution total), so
-// they survive every layer mode — the way AXIS_EXEMPT_COLUMNS layers policy over COLUMN_MONEY_AXIS.
+// Context that survives every reading mode: row identity + Pomiar z natury (the execution total) +
+// the row-actions column, so switching Praca/Postęp never yanks them. Layer-neutral is orthogonal to
+// the hide picker — a user can still hide any of these explicitly; this only keeps the *axis* from
+// dropping them. Mirrors how AXIS_EXEMPT_COLUMNS layers policy over COLUMN_MONEY_AXIS.
 export const LAYER_NEUTRAL_COLUMNS: ReadonlySet<string> = new Set([
+  'actions',
   'sectionName',
   'description',
   'stageQtySum',
@@ -86,12 +90,8 @@ export const LAYER_NEUTRAL_COLUMNS: ReadonlySet<string> = new Set([
 
 // `price` is the only editable money cell — the owner types prices while reading brutto, so the mode
 // must never take it away. It stays tagged `net` above because it IS a netto figure; the exemption is
-// policy layered on the tag, the way NON_HIDEABLE_COLUMNS layers on COLUMN_LABELS.
+// policy layered on the tag.
 export const AXIS_EXEMPT_COLUMNS: ReadonlySet<string> = new Set(['price'])
-
-// Without an Opis prac a row is unidentifiable, so the picker must never offer to hide it. The
-// actions column isn't listed because it never enters the toggleable set.
-export const NON_HIDEABLE_COLUMNS: ReadonlySet<string> = new Set(['description'])
 
 // The stage axis triples the grid's stage block, and brutto per stage is the least-read of the three
 // — derivable from the netto beside it at a fixed rate. Declared here rather than seeded into the
