@@ -43,5 +43,5 @@ export function TableHeader<T>({ headerGroups }: { headerGroups: HeaderGroup<T>[
 function SortIcon({ sorted }: { sorted: false | 'asc' | 'desc' }) {
   if (sorted === 'asc') return <ArrowUp className="size-3.5" />
   if (sorted === 'desc') return <ArrowDown className="size-3.5" />
-  return <ArrowUpDown className="size-3.5 shrink-0 opacity-40" />
+  return <ArrowUpDown className="size-3.5 opacity-40" />
 }

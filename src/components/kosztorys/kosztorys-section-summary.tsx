@@ -98,7 +98,7 @@ export function KosztorysSectionSummary({
                     title="Edytuj nazwę"
                   >
                     <span className="truncate">{s.sectionName}</span>
-                    <Pencil className="text-muted-foreground size-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
+                    <Pencil className="text-muted-foreground size-3 opacity-0 transition-opacity group-hover:opacity-100" />
                   </button>
                 )}
                 <span className="text-foreground shrink-0 text-sm tabular-nums">{fmt(s.net)}</span>

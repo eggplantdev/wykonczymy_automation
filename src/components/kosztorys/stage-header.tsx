@@ -55,7 +55,7 @@ export function StageHeader({ stage, onRename, onRemove, tip }: PropsT) {
             {label}
           </span>
         }
-        icon={<ChevronDown className="shrink-0 opacity-50" />}
+        icon={<ChevronDown className="opacity-50" />}
         triggerTitle="Opcje etapu"
         tip={tip}
       >

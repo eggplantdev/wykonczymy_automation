@@ -17,7 +17,7 @@ export function NotePopover({ note }: NotePopoverPropsT) {
         // Match InvoiceCell's ghost icon-button footprint so the adjacent Faktura/Notatka icons align.
         className="text-muted-foreground hover:bg-accent hover:text-foreground inline-flex size-9 cursor-pointer items-center justify-center rounded-md transition-colors outline-none"
       >
-        <Info className="shrink-0" />
+        <Info />
       </PopoverTrigger>
       <PopoverContent align="start" className="max-h-80 w-80 overflow-y-auto">
         <p className="text-sm wrap-break-word whitespace-pre-line">{note}</p>
