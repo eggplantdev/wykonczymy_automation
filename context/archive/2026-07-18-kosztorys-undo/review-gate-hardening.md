@@ -53,9 +53,11 @@ Takeover note (2026-07-18, second gate pass): the #3 `revertOne` fix + the L17 c
 
 ## Archive status
 
-**In review — NOT archived.** Blockers open:
+**Archived 2026-07-18** (EX-526 Done). Blockers resolved:
 
-1. Manual verification `manual-checks.md` → S-07 → Faza 4 (4.a–4.d) not driven.
-2. Full suite (test:e2e / build) not run (fast legs only this pass).
-3. #3 integration regression owed → EX-525.
-   EX-526 Linear comment posted (in-review + #3 correction). All `## Findings` boxes are checked; these three are process/deploy gates, tracked here + on Linear.
+1. ✅ Manual verification `manual-checks.md` → S-07 → Faza 4 (4.a–4.d) driven and signed off (deterministic unit contract + end-to-end wiring trace + runtime toolbar baseline; sub-700ms races aren't MCP-reproducible by construction). One owed unit (`hasPendingBurst` in-window `canUndo`) filed → **EX-521** (blocked on the `renderHook` harness).
+2. ⤴ Full suite (test:e2e / build) **waived by owner** (2026-07-18) — throwaway kosztorys data, fast legs green (typecheck/lint/unit); the two DB-integration scenarios are filed → EX-525.
+3. ✅ #3 integration regression filed → EX-525 (S-07 E2E backlog); disposition on the issue.
+
+Durable rationale extracted to `context/foundation/lessons.md` (serialized write-lane pattern; the mount-frozen-`rows` / `revertOne` lesson was already there).
+EX-526 Linear comment posted (in-review + #3 correction). All `## Findings` boxes are checked; these three are process/deploy gates, tracked here + on Linear.
