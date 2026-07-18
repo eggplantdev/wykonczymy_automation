@@ -712,4 +712,8 @@ _None. All checks passed; no bugs, regressions, or console errors surfaced durin
 ### Findings — 2026-07-18
 
 - [x] **Empty-string SelectItem crashes the deposit „Zaliczka na etap" select** — the „— brak —" option used `value=""`, which Radix Select forbids, throwing a Runtime Error the moment an investment with etapy was chosen in the Wpłata form. Fixed at `src/components/forms/deposit-form/deposit-form.tsx:49` (sentinel `NO_STAGE = 'none'`, mapped back to `undefined` in `toData`). Re-verified: select opens, tags a deposit, no crash.
-      **Test disposition:** test-driven-debugging · e2e — the defect is a browser-only render crash (Radix invariant) not reachable from a unit test; guard belongs in the slice's owed Playwright spec (open Wpłata → pick investment with etapy → assert stage select renders + tags). Recorded so the regression guard travels with the E2E.
+      **Test disposition:** test-driven-debugging · e2e — the defect is a browser-only render crash (Radix invariant) not reachable from a unit test; regression guard filed to `e2e-backlog` as **EX-531** (deposit → zaliczka flow), where the regression assertion travels with the eventual spec.
+
+### Owner sign-off — 2026-07-18
+
+- [x] **Robocizna base / R+M netting semantics confirmed** — owner ruled the „Podsumowanie" Robocizna row stays on **executed work** (suma prac wykonanych, `T`-derived `doZaplatyNet`), and „Aktualnie do zapłaty (R + M)" nets `executed − zaliczki + Materiały`. No code change. This was the last archive blocker (review-gate F3).
