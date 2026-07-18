@@ -33,24 +33,26 @@ export function KosztorysProgressCounter({ doneNet, plannedNet, vatRate, moneyAx
   const tooltip = [amounts, '', LEGEND].join('\n')
 
   return (
-    <HintTooltip content={tooltip} className="flex items-center gap-2">
-      <span className="text-muted-foreground text-xs tabular-nums">
-        Postęp prac: {formatPercentPrecise(ratio)}
-      </span>
-      <span
-        role="progressbar"
-        aria-label="Wykonano"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={Math.round(barPct)}
-        className="bg-border h-1.5 w-24 shrink-0 rounded-full"
-      >
-        {/* Dynamic percentage width — the one value Tailwind can't express as a token. */}
+    <div className="ml-auto">
+      <HintTooltip content={tooltip} className="flex items-center gap-2">
+        <span className="text-muted-foreground text-xs tabular-nums">
+          Postęp prac: {formatPercentPrecise(ratio)}
+        </span>
         <span
-          className="from-chart-green via-chart-teal to-chart-turquoise progress-glow block h-full rounded-full bg-linear-to-r transition-[width]"
-          style={{ width: `${barPct}%` }}
-        />
-      </span>
-    </HintTooltip>
+          role="progressbar"
+          aria-label="Wykonano"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(barPct)}
+          className="bg-border h-1.5 w-24 shrink-0 rounded-full"
+        >
+          {/* Dynamic percentage width — the one value Tailwind can't express as a token. */}
+          <span
+            className="from-chart-green via-chart-teal to-chart-turquoise progress-glow block h-full rounded-full bg-linear-to-r transition-[width]"
+            style={{ width: `${barPct}%` }}
+          />
+        </span>
+      </HintTooltip>
+    </div>
   )
 }

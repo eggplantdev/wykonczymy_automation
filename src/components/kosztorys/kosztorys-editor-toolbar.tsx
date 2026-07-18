@@ -49,14 +49,12 @@ export function KosztorysEditorToolbar() {
           onVatChange={handleVatChange}
           onGlobalDiscountChange={handleGlobalDiscountChange}
         />
-        <div className="ml-auto">
-          <KosztorysProgressCounter
-            doneNet={doneNet}
-            plannedNet={plannedNet}
-            vatRate={tree.vatRate}
-            moneyAxis={moneyAxis}
-          />
-        </div>
+        <KosztorysProgressCounter
+          doneNet={doneNet}
+          plannedNet={plannedNet}
+          vatRate={tree.vatRate}
+          moneyAxis={moneyAxis}
+        />
       </div>
     </div>
   )

@@ -12,8 +12,6 @@ export default async function InvestmentKosztorysV2Page({
   const { id } = await params
   const investmentId = parseInvestmentId(id)
 
-  // Kick the heavy tree read off concurrently with the auth+investment guard — they don't depend on
-  // each other, and awaiting the tree only after the guard keeps auth failure short-circuiting render.
   const treePromise = getKosztorysTree(investmentId)
   const { investment } = await requireInvestmentOr404(id)
   const tree = await treePromise
