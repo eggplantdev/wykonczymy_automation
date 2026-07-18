@@ -79,7 +79,7 @@ export function useReceiptGeneration({
         )
         form.setFieldValue(`lineItems[${index}].invoiceNote`, data.invoiceNote)
         // Category is left blank for the user to pick — the model's category inference wasn't
-        // reliable enough (frequent mismatches), so we no longer auto-assign it from the scan.
+        // reliable enough (frequent mismatches).
         // Apply the Opis-based name to the file now so it uploads under that name at submit; the
         // reactive file store re-renders the FV label to match.
         if (data.filename) renameFile(id, data.filename)

@@ -1,7 +1,7 @@
 # EX-448 — Stable per-row ids for expense line-items
 
 - **Linear:** EX-448 (parent EX-443)
-- **Status:** implementing
+- **Status:** implemented
 - **Updated:** 2026-07-18
 - **Branch:** konradantonik/ex-448-stable-row-ids (branched off `main`, but **merges to `staging`** — rebase onto `staging` before opening the PR; plan docs cherry-picked from S-07's 669e024b)
 

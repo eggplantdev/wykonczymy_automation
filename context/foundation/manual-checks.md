@@ -132,6 +132,25 @@ surface — was verified end-to-end with real fixtures** (a no-text-layer PDF + 
       lint config unrelated to any slice under verification (out of scope for this pass). **Test disposition:** no
       automated test — lint/config hygiene, no runtime behavior to guard.
 
+## EX-448 — stable per-row ids for expense line-items
+
+**In review** — all automated checks green (tsc 0, eslint 0, unit 10/10). Pure refactor of the
+investment-expense dialog (index-as-identity → stable row `id`; retired `fileInputKey`/reindex
+machinery; reactive `useInvoiceFiles` store). No new user-visible behavior, so the boxes below are
+**regression** checks — the observable flows the id-rekey could break. **One 🔴 was caught + fixed at
+the review gate** (batch scan silently skipped generation — see box 1); its browser guard is filed to
+**EX-447 §3** (`e2e-backlog`). Standalone change (not a kosztorys slice); merges to **staging**.
+
+Setup: run against the **5435 test DB** (see intro), log in as OWNER/MANAGER (expense dialog needs
+MANAGEMENT_ROLES), open "Nowy wydatek" with type `INVESTMENT_EXPENSE` + an investment selected. Need a
+real `OPENROUTER_API_KEY` in `.env` for the scan/fill boxes. Have ≥3 receipt images ready.
+
+- [ ] **Batch scan → generate populates rows (the fixed 🔴).** "Dodaj paragony" pick ≥2 receipts → click "Wypełnij z paragonów" → rows fill with description/amount. **Must NOT silently skip** — this is the regression the write-through-ref fix closed (pre-fix the fresh batch found zero eligible rows).
+- [ ] **Remove a middle row keeps every other row's file + FV label aligned.** Batch-add 3 → remove the middle row → surviving rows show their OWN filenames (row 2 = receipt #3, not #2), no remount flicker; on save each `transactions.invoice` points at the correctly-aligned media (no off-by-one).
+- [ ] **Attach / replace / remove a single row's FV updates the label in place.** Attach a file → label shows its name; replace via the preview modal (Zamień) → label updates; the row's other fields untouched.
+- [ ] **Reset / clear mints a fresh blank row.** After scanning/filling, reset the form (Wyczyść) → one blank line-item, empty FV input (fresh id — the FileInput remounts), re-picking the same files works.
+- [ ] **AI rename applies to the uploaded file.** Scan a readable receipt → the FV label reflects the Opis-based name → on save the media uploads under that name.
+
 ## S-05 — kosztorys-vat
 
 Manual QA completed 2026-07-10 (OWNER, investment 6, fresh dev server on :3000).

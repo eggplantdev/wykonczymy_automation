@@ -13,25 +13,32 @@ const INGEST_CONCURRENCY = 4
 export type IngestResultT = { blocked: BlockedFileError[] }
 
 export function useInvoiceFiles(initialFiles?: Map<string, File>) {
-  // Reactive so attach/rename/remove re-render the FV label in place (no remount key). A mirror
-  // ref, synced every render, backs the reads: getFiles()/getFile() run inside async paths (submit,
-  // scan) after awaits, where the `files` closure would be stale — the ref always holds the latest
-  // committed map. Writes go through functional setFiles so concurrent batch-ingest tasks compose.
-  const [files, setFiles] = useState<Map<string, File>>(initialFiles ?? new Map())
-  // Latest-value mirror: getFiles()/getFile() are read inside async paths (submit, scan) whose
-  // closure — held by the TanStack form's onSubmit — can lag behind the current render. Mirroring
-  // state into the ref each render keeps those reads current without an effect (which would lag by
-  // a render). Read-only of `.current`; the value tracks `files` exactly, so this is safe.
+  // Reactive `files` re-renders the FV label in place (no remount key); `filesRef` is the
+  // write-through source of truth the reads use. getFiles()/getFile() run inside async paths
+  // (submit, and scan → generate in the SAME turn as the just-registered files) where a render
+  // hasn't committed yet, so a render-synced mirror would be stale — commit() updates the ref
+  // synchronously, ahead of React, so those reads always see the latest map. Every writer routes
+  // through commit(), and because it's synchronous (no await) concurrent batch-ingest tasks
+  // compose without losing writes.
+  const [files, setFiles] = useState<Map<string, File>>(() => initialFiles ?? new Map())
   const filesRef = useRef(files)
-  // eslint-disable-next-line react-hooks/refs -- intentional latest-value mirror, see above
-  filesRef.current = files
 
-  function handleRemoveLineItem(id: string, index: number, removeValue: (index: number) => void) {
-    setFiles((prev) => {
+  function commit(update: (prev: Map<string, File>) => Map<string, File>) {
+    const next = update(filesRef.current)
+    filesRef.current = next
+    setFiles(next)
+  }
+
+  function deleteFile(id: string) {
+    commit((prev) => {
       const next = new Map(prev)
       next.delete(id)
       return next
     })
+  }
+
+  function handleRemoveLineItem(id: string, index: number, removeValue: (index: number) => void) {
+    deleteFile(id)
     removeValue(index)
   }
 
@@ -45,24 +52,16 @@ export function useInvoiceFiles(initialFiles?: Map<string, File>) {
   ): Promise<IngestResultT> {
     const file = e.target.files?.[0]
     if (!file) {
-      setFiles((prev) => {
-        const next = new Map(prev)
-        next.delete(id)
-        return next
-      })
+      deleteFile(id)
       return { blocked: [] }
     }
     try {
       const processed = await processUploadFile(file)
-      setFiles((prev) => new Map(prev).set(id, processed))
+      commit((prev) => new Map(prev).set(id, processed))
       return { blocked: [] }
     } catch (error) {
       if (!(error instanceof BlockedFileError)) throw error
-      setFiles((prev) => {
-        const next = new Map(prev)
-        next.delete(id)
-        return next
-      })
+      deleteFile(id)
       return { blocked: [error] }
     }
   }
@@ -77,7 +76,7 @@ export function useInvoiceFiles(initialFiles?: Map<string, File>) {
     await mapWithConcurrency(picked, INGEST_CONCURRENCY, async (file, offset) => {
       try {
         const processed = await processUploadFile(file)
-        setFiles((prev) => new Map(prev).set(ids[offset], processed))
+        commit((prev) => new Map(prev).set(ids[offset], processed))
       } catch (error) {
         if (!(error instanceof BlockedFileError)) throw error
         blocked.push(error)
@@ -97,7 +96,7 @@ export function useInvoiceFiles(initialFiles?: Map<string, File>) {
   // Swap a row's File for a same-bytes clone under a new name so the FV label can mirror the
   // Opis-based receipt rename. The reactive store re-renders the label in place.
   function renameFile(id: string, newName: string) {
-    setFiles((prev) => {
+    commit((prev) => {
       const existing = prev.get(id)
       if (!existing) return prev
       return new Map(prev).set(id, new File([existing], newName, { type: existing.type }))
@@ -105,7 +104,7 @@ export function useInvoiceFiles(initialFiles?: Map<string, File>) {
   }
 
   function reset() {
-    setFiles(new Map())
+    commit(() => new Map())
   }
 
   return {
