@@ -9,9 +9,11 @@ import { computeDoZaplatyRM } from '@/lib/kosztorys/summary-economics'
 import { KosztorysEtapTotals } from '@/components/kosztorys/kosztorys-etap-totals'
 import { KosztorysPodsumowanie } from '@/components/kosztorys/kosztorys-podsumowanie'
 import { useTotalsPanelOpen } from '@/components/kosztorys/use-totals-panel-open'
+import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 
 type PropsT = {
+  investmentId: number
   stages: KosztorysStageT[]
   stageTotals: Map<number, number>
   zaliczkiByStage: Record<number, number>
@@ -20,8 +22,11 @@ type PropsT = {
   // Robocizna do zapłaty — executed total AFTER rabat; the Podsumowanie Robocizna row base.
   doZaplatyNet: number
   materialyNet: number
-  // Σ zaliczki (advances already paid) — subtracted to reach the still-owed „Do zapłaty" total.
-  zaliczkiNet: number
+  // Per-expense-category split of materialyNet (v1 parity); Σ === materialyNet.
+  materialyBreakdown: MaterialyBreakdownRowT[]
+  // Investor's wpłaty (totalIncome — every deposit on the investment) — subtracted to reach the
+  // still-owed „Do zapłaty" total. Distinct from zaliczkiByStage (the sparser per-etap tagged subset).
+  wplatyNet: number
   rabatAmount: number
   vatRate: number
   moneyAxis: MoneyAxisT
@@ -31,20 +36,22 @@ type PropsT = {
 // Rabat → Robocizna / Materiały / Łącznie − Zaliczki), folded into one collapsible panel.
 // Collapsed, it keeps the still-owed „Do zapłaty" total visible so the headline never disappears.
 export function KosztorysTotalsPanel({
+  investmentId,
   stages,
   stageTotals,
   zaliczkiByStage,
   totalNet,
   doZaplatyNet,
   materialyNet,
-  zaliczkiNet,
+  materialyBreakdown,
+  wplatyNet,
   rabatAmount,
   vatRate,
   moneyAxis,
 }: PropsT) {
   const [open, setOpen] = useTotalsPanelOpen()
   const { net: showNet, gross: showGross } = axisShows(moneyAxis)
-  const doZaplaty = computeDoZaplatyRM(doZaplatyNet, zaliczkiNet, materialyNet, vatRate)
+  const doZaplaty = computeDoZaplatyRM(doZaplatyNet, wplatyNet, materialyNet, vatRate)
 
   return (
     <Collapsible.Root
@@ -81,6 +88,7 @@ export function KosztorysTotalsPanel({
       </Collapsible.Trigger>
       <Collapsible.Content className="data-[state=closed]:animate-collapse-up data-[state=open]:animate-collapse-down overflow-hidden">
         <KosztorysEtapTotals
+          investmentId={investmentId}
           stages={stages}
           stageTotals={stageTotals}
           zaliczkiByStage={zaliczkiByStage}
@@ -89,9 +97,11 @@ export function KosztorysTotalsPanel({
           moneyAxis={moneyAxis}
         />
         <KosztorysPodsumowanie
+          investmentId={investmentId}
           robociznaNet={doZaplatyNet}
           materialyNet={materialyNet}
-          zaliczkiNet={zaliczkiNet}
+          materialyBreakdown={materialyBreakdown}
+          wplatyNet={wplatyNet}
           rabatAmount={rabatAmount}
           vatRate={vatRate}
           moneyAxis={moneyAxis}

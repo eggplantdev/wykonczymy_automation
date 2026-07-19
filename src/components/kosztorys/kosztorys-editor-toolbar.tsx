@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+
 import { SearchFilterInput } from '@/components/ui/search-filter-input'
 import { KosztorysAddMenu } from '@/components/kosztorys/kosztorys-add-menu'
 import { KosztorysGlobalSettings } from '@/components/kosztorys/kosztorys-global-settings'
@@ -10,6 +12,7 @@ import { useKosztorysEditorContext } from '@/components/kosztorys/use-kosztorys-
 
 export function KosztorysEditorToolbar() {
   const {
+    investmentId,
     investmentName,
     search,
     setSearch,
@@ -27,7 +30,11 @@ export function KosztorysEditorToolbar() {
   return (
     <div className="border-border shrink-0 border-b">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2">
-        <h1 className="text-foreground text-sm font-medium">Kosztorys — {investmentName}</h1>
+        <h1 className="text-foreground text-sm font-medium">
+          <Link href={`/inwestycje/${investmentId}`} className="hover:underline">
+            {investmentName}
+          </Link>
+        </h1>
         <KosztorysToolbarViewToggles />
 
         <KosztorysAddMenu />

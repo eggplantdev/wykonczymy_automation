@@ -1,11 +1,17 @@
 'use client'
 
+import Link from 'next/link'
+import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
 import { toGross } from '@/lib/kosztorys/calc'
 import { formatNet } from '@/lib/kosztorys/format'
 import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
+import { SUMMARY_LABEL_COL, SUMMARY_VALUE_COL } from '@/components/kosztorys/summary-grid'
+import { Fragment, type ReactNode } from 'react'
+import { cn } from '@/lib/utils/cn'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 
 type PropsT = {
+  investmentId: number
   stages: KosztorysStageT[]
   // Per-etap „suma transzy" netto at the active view (stage id → net). Σ equals wykonaneNet.
   stageTotals: Map<number, number>
@@ -21,6 +27,7 @@ type PropsT = {
 // Suma transzy per etap + the „R netto / R brutto — suma prac wykonanych" readout (sheet r396/r397).
 // Read-only: the executed value each etap delivered, at the active price view, netto and brutto.
 export function KosztorysEtapTotals({
+  investmentId,
   stages,
   stageTotals,
   zaliczkiByStage,
@@ -34,34 +41,43 @@ export function KosztorysEtapTotals({
 
   const zaliczkiTotal = stages.reduce((sum, st) => sum + (zaliczkiByStage[st.id] ?? 0), 0)
 
-  // Netto / Brutto / Zaliczki share one shape — a label, a per-etap cell, and the row total.
-  const row = (label: string, cell: (st: KosztorysStageT) => string, total: string) => (
-    <tr>
-      <td className="py-0.5 pr-6">{label}</td>
+  // Same track system as the Podsumowanie block — a shared first (label) track, then equal-width
+  // value tracks (one per etap + the row total) — so both grids run on one 13rem + 7rem·n rhythm
+  // and every column lines up down the panel.
+  const gridTemplateColumns = `${SUMMARY_LABEL_COL} repeat(${stages.length + 1}, ${SUMMARY_VALUE_COL})`
+
+  // All cells are direct children of ONE grid so `gap-px` over a `bg-border` container paints a
+  // 1px separator between every column and row; each cell repaints `bg-background` on top.
+  const labelCell = 'bg-background px-3 py-1'
+  const valueCell = 'bg-background px-3 py-1 text-right tabular-nums'
+
+  // Netto / Brutto / Zaliczki share one shape — a label, a per-etap cell, and the bold row total.
+  const row = (label: ReactNode, cell: (st: KosztorysStageT) => string, total: string) => (
+    <Fragment>
+      <span className={labelCell}>{label}</span>
       {stages.map((st) => (
-        <td key={st.id} className="py-0.5 pr-6 text-right tabular-nums">
+        <span key={st.id} className={valueCell}>
           {cell(st)}
-        </td>
+        </span>
       ))}
-      <td className="py-0.5 text-right font-medium tabular-nums">{total}</td>
-    </tr>
+      <span className={cn(valueCell, 'font-medium')}>{total}</span>
+    </Fragment>
   )
 
   return (
-    <div className="border-border text-foreground shrink-0 overflow-x-auto border-t px-4 py-2 text-sm">
-      <table className="w-auto">
-        <thead className="text-muted-foreground text-xs">
-          <tr>
-            <th className="pr-6 text-left font-normal">Suma transzy</th>
-            {stages.map((st) => (
-              <th key={st.id} className="pr-6 text-right font-normal">
-                {st.label ?? `Etap ${st.ordinal}`}
-              </th>
-            ))}
-            <th className="text-right font-normal">Suma prac wykonanych</th>
-          </tr>
-        </thead>
-        <tbody>
+    <div className="border-border text-foreground shrink-0 border-t px-4 pt-4 pb-2 text-sm">
+      <div className="overflow-x-auto">
+        <div
+          style={{ gridTemplateColumns }}
+          className="border-border bg-border grid w-max gap-px border"
+        >
+          <span className={cn(labelCell, 'text-muted-foreground text-xs')}>Suma transzy</span>
+          {stages.map((st) => (
+            <span key={st.id} className={cn(valueCell, 'text-muted-foreground text-xs')}>
+              {st.label ?? `Etap ${st.ordinal}`}
+            </span>
+          ))}
+          <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Razem</span>
           {showNet &&
             row(
               'Netto',
@@ -76,12 +92,17 @@ export function KosztorysEtapTotals({
             )}
           {zaliczkiTotal > 0 &&
             row(
-              'Zaliczki',
+              <Link
+                href={`/inwestycje/${investmentId}?type=${DEPOSIT_TYPES.join(',')}`}
+                className="hover:underline"
+              >
+                Zaliczki
+              </Link>,
               (st) => formatNet(zaliczkiByStage[st.id] ?? 0),
               formatNet(zaliczkiTotal),
             )}
-        </tbody>
-      </table>
+        </div>
+      </div>
     </div>
   )
 }

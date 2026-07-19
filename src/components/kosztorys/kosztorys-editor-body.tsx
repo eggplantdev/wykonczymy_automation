@@ -21,6 +21,7 @@ import {
 } from '@/components/kosztorys/kosztorys-totals-row'
 import { toGross } from '@/lib/kosztorys/calc'
 import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
+import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 
 type PropsT = {
@@ -28,6 +29,8 @@ type PropsT = {
   tree: KosztorysTreeT
   investmentName: string
   materialsNet: number
+  materialyBreakdown: MaterialyBreakdownRowT[]
+  wplatyNet: number
   zaliczkiByStage: Record<number, number>
   onOpenVersions: () => void
 }
@@ -40,6 +43,8 @@ export function KosztorysEditorBody({
   tree,
   investmentName,
   materialsNet,
+  materialyBreakdown,
+  wplatyNet,
   zaliczkiByStage,
   onOpenVersions,
 }: PropsT) {
@@ -150,13 +155,15 @@ export function KosztorysEditorBody({
           {/* Overlays the grid's bottom edge instead of consuming a flex track — the grid keeps its
               full height and its last rows scroll under the (opaque) panel rather than being pushed up. */}
           <KosztorysTotalsPanel
+            investmentId={investmentId}
             stages={stages}
             stageTotals={stageTotals}
             zaliczkiByStage={zaliczkiByStage}
             totalNet={totalNet}
             doZaplatyNet={doZaplatyNet}
             materialyNet={materialsNet}
-            zaliczkiNet={stages.reduce((sum, stage) => sum + (zaliczkiByStage[stage.id] ?? 0), 0)}
+            materialyBreakdown={materialyBreakdown}
+            wplatyNet={wplatyNet}
             rabatAmount={rabatAmount}
             vatRate={tree.vatRate}
             moneyAxis={moneyAxis}
