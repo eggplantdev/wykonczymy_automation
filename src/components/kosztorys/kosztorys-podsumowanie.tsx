@@ -1,23 +1,33 @@
 'use client'
 
+import { Fragment, type ReactNode } from 'react'
+import Link from 'next/link'
+import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
 import {
   computeDoZaplatyRM,
   computePodsumowanie,
   moneyPair,
+  summaryLine,
   type MoneyPairT,
   type SummaryLineT,
 } from '@/lib/kosztorys/summary-economics'
 import { formatNet, formatPercent } from '@/lib/kosztorys/format'
 import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
+import { SUMMARY_LABEL_COL, SUMMARY_VALUE_COL } from '@/components/kosztorys/summary-grid'
+import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import { cn } from '@/lib/utils/cn'
 
 type PropsT = {
+  investmentId: number
   // Robocizna wartość netto (do zapłaty, po rabacie) — client-side, reacts to unsaved edits.
   robociznaNet: number
   // Materiały netto — live server sum of the investment's unsettled transactions.
   materialyNet: number
-  // Zaliczki netto — advances already paid; subtracted from Łącznie to reach the still-owed total.
-  zaliczkiNet: number
+  // Per-expense-category split of materialyNet (v1 parity); Σ === materialyNet.
+  materialyBreakdown: MaterialyBreakdownRowT[]
+  // Wpłaty netto — the investor's deposits on this investment (totalIncome); subtracted from
+  // Łącznie to reach „Do zapłaty". Matches the investment page's „Wpłaty" by construction.
+  wplatyNet: number
   // The rabat actually taken off the executed robocizna (net zł): the global discount when active,
   // else Σ per-item rabat. Unified upstream so this table shows one explicit „Rabat" line. 0 = none.
   rabatAmount: number
@@ -25,66 +35,124 @@ type PropsT = {
   moneyAxis: MoneyAxisT
 }
 
-type RowOptsT = { emphasize?: boolean; discount?: boolean; negative?: boolean }
+type RowOptsT = {
+  emphasize?: boolean
+  bold?: boolean
+  discount?: boolean
+  danger?: boolean
+  hideShare?: boolean
+}
 
-// The single bottom summary table: the robocizna waterfall (Suma prac wykonanych → Rabat →
+// The single bottom summary block: the robocizna waterfall (Suma prac wykonanych → Rabat →
 // Robocizna) merged with the sheet Podsumowanie split (Robocizna / Materiały / Łącznie, udział %
-// of Łącznie), then Zaliczki subtracted to reach „Do zapłaty" — one table, no separate totals bar.
+// of Łącznie), then Wpłaty subtracted to reach „Do zapłaty" — one grid, no separate totals bar.
 export function KosztorysPodsumowanie({
+  investmentId,
   robociznaNet,
   materialyNet,
-  zaliczkiNet,
+  materialyBreakdown,
+  wplatyNet,
   rabatAmount,
   vatRate,
   moneyAxis,
 }: PropsT) {
-  const { robocizna, materialy, lacznie } = computePodsumowanie(robociznaNet, materialyNet, vatRate)
-  const doZaplaty = computeDoZaplatyRM(robociznaNet, zaliczkiNet, materialyNet, vatRate)
+  // Łącznie is the pre-rabat total (Suma prac + Materiały), so the rows above it reconcile to it;
+  // Rabat then deducts from Łącznie down to „Do zapłaty" as its own waterfall line below. robociznaNet
+  // arrives already net of rabat, so add it back for the Łącznie/udział base.
+  const sumaPracNet = robociznaNet + rabatAmount
+  const { lacznie } = computePodsumowanie(sumaPracNet, materialyNet, vatRate)
+  const doZaplaty = computeDoZaplatyRM(robociznaNet, wplatyNet, materialyNet, vatRate)
   const { net: showNet, gross: showGross } = axisShows(moneyAxis)
   const hasDiscount = rabatAmount > 0
-  const hasZaliczki = zaliczkiNet > 0
-  // Suma prac wykonanych — the executed robocizna before rabat; robociznaNet already nets it off.
-  const sumaPrac = moneyPair(robociznaNet + rabatAmount, vatRate)
+  const sumaPrac = summaryLine(sumaPracNet, lacznie.net, vatRate)
   const rabat = moneyPair(rabatAmount, vatRate)
-  const zaliczki = moneyPair(zaliczkiNet, vatRate)
+  const wplaty = moneyPair(wplatyNet, vatRate)
 
-  // A line with no `share` (the waterfall + total rows) renders an empty udział cell.
-  const row = (label: string, line: SummaryLineT | MoneyPairT, opts: RowOptsT = {}) => {
-    const cell = (value: number) => (opts.negative ? `−${formatNet(value)}` : formatNet(value))
-    const money = cn('py-0.5 pr-6 text-right tabular-nums', opts.discount && 'text-chart-green')
+  // First track shared with the etap-totals block so both grids' label columns align; the money
+  // tracks appear only for the axis that's shown.
+  const gridTemplateColumns = [
+    SUMMARY_LABEL_COL,
+    showNet && SUMMARY_VALUE_COL,
+    showGross && SUMMARY_VALUE_COL,
+    SUMMARY_VALUE_COL,
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  // All cells are direct children of ONE grid so `gap-px` over a `bg-border` container paints a
+  // 1px separator between every column and row; each cell repaints `bg-background` on top.
+  const labelCell = 'bg-background px-3 py-1'
+  const valueCell = 'bg-background px-3 py-1 text-right tabular-nums'
+
+  // A line with no `share` (the total rows) renders an empty udział cell. `emphasize` keeps the
+  // summary rows bold now that the shared gridlines already draw every row separator.
+  const row = (label: ReactNode, line: SummaryLineT | MoneyPairT, opts: RowOptsT = {}) => {
+    const money = cn(
+      valueCell,
+      opts.emphasize && 'font-medium',
+      opts.bold && 'font-bold',
+      opts.discount && 'text-chart-green',
+      opts.danger && 'text-destructive',
+    )
     return (
-      <tr className={opts.emphasize ? 'border-border border-t font-medium' : undefined}>
-        <td className="py-0.5 pr-6">{label}</td>
-        {showNet && <td className={money}>{cell(line.net)}</td>}
-        {showGross && <td className={money}>{cell(line.gross)}</td>}
-        <td className="text-muted-foreground py-0.5 text-right tabular-nums">
-          {'share' in line ? formatPercent(line.share) : ''}
-        </td>
-      </tr>
+      <Fragment>
+        <span className={cn(labelCell, opts.emphasize && 'font-medium', opts.bold && 'font-bold')}>
+          {label}
+        </span>
+        {showNet && <span className={money}>{formatNet(line.net)}</span>}
+        {showGross && <span className={money}>{formatNet(line.gross)}</span>}
+        <span className={cn(valueCell, 'text-muted-foreground', opts.emphasize && 'font-medium')}>
+          {'share' in line && !opts.hideShare ? formatPercent(line.share) : ''}
+        </span>
+      </Fragment>
     )
   }
 
   return (
-    <div className="text-foreground px-4 py-2 text-sm">
-      <table className="w-auto">
-        <thead className="text-muted-foreground text-xs">
-          <tr>
-            <th className="pr-6 text-left font-normal">Podsumowanie</th>
-            {showNet && <th className="pr-6 text-right font-normal">Netto</th>}
-            {showGross && <th className="pr-6 text-right font-normal">Brutto</th>}
-            <th className="text-right font-normal">Udział</th>
-          </tr>
-        </thead>
-        <tbody>
-          {hasDiscount && row('Suma prac wykonanych', sumaPrac)}
-          {hasDiscount && row('Rabat', rabat, { discount: true, negative: true })}
-          {row('Robocizna', robocizna)}
-          {row('Materiały', materialy)}
-          {row('Łącznie', lacznie, { emphasize: true })}
-          {hasZaliczki && row('Zaliczki', zaliczki, { discount: true, negative: true })}
-          {hasZaliczki && row('Do zapłaty', doZaplaty, { emphasize: true })}
-        </tbody>
-      </table>
+    <div className="text-foreground flex w-fit flex-col gap-4 px-4 pt-2 pb-10 text-sm">
+      <div style={{ gridTemplateColumns }} className="border-border bg-border grid gap-px border">
+        <span className={cn(labelCell, 'text-muted-foreground text-xs')}>Podsumowanie</span>
+        {showNet && <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Netto</span>}
+        {showGross && (
+          <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Brutto</span>
+        )}
+        <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Udział</span>
+        {row('Suma prac wykonanych', sumaPrac)}
+        {materialyBreakdown
+          .filter((item) => item.net !== 0)
+          .map((item) => (
+            <Fragment key={item.id ?? 'korekta'}>
+              {row(
+                item.id !== null ? (
+                  <Link
+                    href={`/inwestycje/${investmentId}?expenseCategory=${item.id}`}
+                    className="hover:underline"
+                  >
+                    {item.label}
+                  </Link>
+                ) : (
+                  item.label
+                ),
+                summaryLine(item.net, lacznie.net, vatRate),
+              )}
+            </Fragment>
+          ))}
+        {row('Łącznie', lacznie, { emphasize: true, hideShare: true })}
+      </div>
+      <div style={{ gridTemplateColumns }} className="border-border bg-border grid gap-px border">
+        {hasDiscount && row('Rabat', rabat, { discount: true })}
+        {row(
+          <Link
+            href={`/inwestycje/${investmentId}?type=${DEPOSIT_TYPES.join(',')}`}
+            className="hover:underline"
+          >
+            Wpłaty
+          </Link>,
+          wplaty,
+          { discount: true },
+        )}
+        {row('Do zapłaty', doZaplaty, { bold: true, danger: doZaplaty.net > 0 })}
+      </div>
     </div>
   )
 }
