@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { kosztorysClientTotals } from '@/lib/kosztorys/settlement'
 import { buildKosztorysReconciliation } from '@/lib/kosztorys/reconciliation'
-import { toGross } from '@/lib/kosztorys/calc'
 import { deriveFinancials } from '@/lib/db/investment-financials'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 import type { TypeSettledTotalT } from '@/types/investment-financials'
@@ -79,12 +78,13 @@ function clientTotals(tree: KosztorysTreeT) {
 }
 
 // A correctly-populated investment: one LABOR_COST + one RABAT transfer equal to the kosztorys client
-// figures grossed at the tree's VAT (the transfer schema has no VAT axis, so robocizna/rabat are gross).
+// NETS. VAT is a client-pricing concept only — the ledger plane (LABOR_COST/RABAT) is netto, so the
+// synced transactions equal the client nets directly, with no grossing.
 function syncedTransactions(tree: KosztorysTreeT): TypeSettledTotalT[] {
   const { sumaPracNet, rabatClientNet } = clientTotals(tree)
   return [
-    { type: 'LABOR_COST', settled: false, total: toGross(sumaPracNet, tree.vatRate) },
-    { type: 'RABAT', settled: false, total: toGross(rabatClientNet, tree.vatRate) },
+    { type: 'LABOR_COST', settled: false, total: sumaPracNet },
+    { type: 'RABAT', settled: false, total: rabatClientNet },
   ]
 }
 
@@ -96,7 +96,6 @@ function reconcile(tree: KosztorysTreeT, txns: TypeSettledTotalT[]) {
   return buildKosztorysReconciliation({
     sumaPracNet,
     rabatClientNet,
-    vatRate: tree.vatRate,
     investmentRobocizna: financials.totalLaborCosts,
     investmentRabat: financials.totalRabat,
   })
@@ -166,23 +165,50 @@ describe('robocizna compares the PRE-rabat suma prac (EX-535 regression)', () =>
     const silent = buildKosztorysReconciliation({
       sumaPracNet,
       rabatClientNet,
-      vatRate: tree.vatRate,
-      investmentRobocizna: toGross(sumaPracNet, tree.vatRate),
-      investmentRabat: toGross(rabatClientNet, tree.vatRate),
+      investmentRobocizna: sumaPracNet,
+      investmentRabat: rabatClientNet,
     })
     expect(silent.robocizna.mismatch).toBe(false)
 
-    // The old code's basis (post-rabat executed net = 132) grosses to a different figure, so a
-    // correctly-populated LABOR_COST (from the pre-rabat 140) must NOT equal it — proving the two are
-    // genuinely different numbers and the pre/post choice is load-bearing.
+    // The old code's basis (post-rabat executed net = 132) is a different number from the pre-rabat
+    // 140, so a correctly-populated LABOR_COST (the pre-rabat 140) must NOT equal it — proving the two
+    // are genuinely different and the pre/post choice is load-bearing.
     const postRabatNet = sumaPracNet - rabatClientNet
     expect(postRabatNet).toBeCloseTo(132)
-    expect(toGross(postRabatNet, tree.vatRate)).not.toBeCloseTo(toGross(sumaPracNet, tree.vatRate))
+    expect(postRabatNet).not.toBeCloseTo(sumaPracNet)
+  })
+})
+
+describe('reconciliation compares netto ↔ netto — the ledger plane carries no VAT (EX-535)', () => {
+  // VAT is a client-pricing concept (prace only); LABOR_COST/RABAT transactions are netto. So a
+  // kosztorys rabat of 100 reconciles against a netto RABAT of 100 — NOT a grossed 102. This is the
+  // regression guard for the „rabat 100 vs 102" false-fire: we no longer gross the kosztorys side.
+  // (context/reference/kosztorys-editor-domain-notes.md, „VAT dotyczy wyłącznie prac".)
+  it('rabat 100 reconciles against a netto RABAT of 100, and robocizna net-to-net is silent', () => {
+    const verdict = buildKosztorysReconciliation({
+      sumaPracNet: 5000,
+      rabatClientNet: 100,
+      investmentRobocizna: 5000,
+      investmentRabat: 100,
+    })
+    expect(verdict.rabat.expected).toBeCloseTo(100)
+    expect(verdict.rabat.mismatch).toBe(false)
+    expect(verdict.robocizna.mismatch).toBe(false)
+  })
+
+  it('a grossed RABAT (102) now FALSE-fires — proving the kosztorys side is no longer grossed', () => {
+    const verdict = buildKosztorysReconciliation({
+      sumaPracNet: 5000,
+      rabatClientNet: 100,
+      investmentRobocizna: 5000,
+      investmentRabat: 102,
+    })
+    expect(verdict.rabat.mismatch).toBe(true)
   })
 })
 
 describe('grosz-exact tolerance (no fuzzy epsilon)', () => {
-  const base = { vatRate: 0, rabatClientNet: 0, investmentRabat: 0 }
+  const base = { rabatClientNet: 0, investmentRabat: 0 }
 
   it('equal to the grosz → no mismatch', () => {
     const verdict = buildKosztorysReconciliation({

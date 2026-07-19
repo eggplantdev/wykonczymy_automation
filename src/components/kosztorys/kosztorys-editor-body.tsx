@@ -129,19 +129,19 @@ export function KosztorysEditorBody({
   const gridRows = useMemo(() => [...viewRows, makeSpacerRow(), makeTotalsRow()], [viewRows])
   const isSyntheticRow = (id: number) => id === SPACER_ROW_ID || id === TOTALS_ROW_ID
 
-  // Reconciliation verdict for the Podsumowanie scream: kosztorys client-view gross (sumaPracNet /
-  // rabatClientNet, view-independent) vs the investment's transaction sums. Built via the shared lib
-  // fn — the same one the investment page calls — so the two surfaces can't disagree.
+  // Reconciliation verdict for the Podsumowanie scream: kosztorys client-view nets (sumaPracNet /
+  // rabatClientNet, view-independent) vs the investment's transaction sums — net to net, since the
+  // ledger carries no VAT. Built via the shared lib fn — the same one the investment page calls — so
+  // the two surfaces can't disagree.
   const reconciliation = useMemo(
     () =>
       buildKosztorysReconciliation({
         sumaPracNet,
         rabatClientNet,
-        vatRate: tree.vatRate,
         investmentRobocizna,
         investmentRabat,
       }),
-    [sumaPracNet, rabatClientNet, tree.vatRate, investmentRobocizna, investmentRabat],
+    [sumaPracNet, rabatClientNet, investmentRobocizna, investmentRabat],
   )
 
   // Viewport minus the shell's chrome: the h-14 TopNav always, plus the h-14 AppFooter, which only

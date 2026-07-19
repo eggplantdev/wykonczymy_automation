@@ -296,8 +296,9 @@ BOTH surfaces.
 
 **Contract**: (a) mismatch — investment with kosztorys executed work and a deliberately different
 `LABOR_COST` sum → editor Podsumowanie shows the `!` on „Suma prac wykonanych" AND the investment page's
-„z kosztorysu" robocizna screams, both tooltips naming both figures; (b) match — transfer sum set to
-exactly `toGross(client executed net)` → neither surface screams; (c) parity — the kosztorys figure on
+„z kosztorysu" robocizna screams, both tooltips naming both figures; (b) match — `LABOR_COST` sum set to
+exactly the client executed net (netto ↔ netto — the ledger plane carries no VAT, so no `toGross`) →
+neither surface screams; (c) parity — the kosztorys figure on
 the investment page equals the editor's Podsumowanie figure for that investment; (d) stability — on the
 mismatch investment, toggle the editor price view → the indicator remains. Seeding follows the existing
 E2E fixture pattern (reset with `pnpm db:import:test`).
@@ -402,4 +403,4 @@ None. Read-only; no schema, no data change. Kosztorys data is throwaway pre-dogf
 
 #### Automated
 
-- [ ] 4.1 E2E suite passes: `pnpm test:e2e`
+- [x] 4.1 E2E suite passes: `pnpm test:e2e`

@@ -78,7 +78,6 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
     reconciliation = buildKosztorysReconciliation({
       sumaPracNet,
       rabatClientNet,
-      vatRate: kosztorysTree.vatRate,
       investmentRobocizna: financials.totalLaborCosts,
       investmentRabat: financials.totalRabat,
     })

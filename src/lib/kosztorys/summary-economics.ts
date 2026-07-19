@@ -2,10 +2,17 @@ import { toGross } from '@/lib/kosztorys/calc'
 
 export type MoneyPairT = { net: number; gross: number }
 
-// A net figure paired with its brutto at the investment's VAT rate — the shared shape behind every
-// row's netto/brutto columns.
+// A net figure paired with its brutto at the investment's VAT rate — the shape behind a PRACE row's
+// netto/brutto columns. VAT is a prace-only concept: use this only for robocizna / prace figures.
 export function moneyPair(net: number, vatRate: number): MoneyPairT {
   return { net, gross: toGross(net, vatRate) }
+}
+
+// A no-VAT figure: brutto === netto. For everything off the prace plane — materiały, korekta, wpłaty
+// (context/reference/kosztorys-editor-domain-notes.md, „VAT dotyczy wyłącznie prac"). Without this,
+// grossing an expense would invent VAT that never existed on the ledger.
+export function faceValue(net: number): MoneyPairT {
+  return { net, gross: net }
 }
 
 export type SummaryLineT = MoneyPairT & {
@@ -13,10 +20,16 @@ export type SummaryLineT = MoneyPairT & {
   share: number
 }
 
-// A net figure as a summary row: its netto/brutto pair plus its udział as a fraction of Łącznie.
-// The one home for the udział-base math — the per-category materiały rows share this denominator.
+// A PRACE net figure as a summary row: its netto/brutto pair (VAT-grossed) plus its udział as a
+// fraction of Łącznie. The one home for the udział-base math.
 export function summaryLine(net: number, lacznieNet: number, vatRate: number): SummaryLineT {
   return { ...moneyPair(net, vatRate), share: lacznieNet > 0 ? net / lacznieNet : 0 }
+}
+
+// A no-VAT summary row (brutto === netto) with its udział — for the materiały/korekta category rows,
+// which carry no VAT but still take an udział of Łącznie.
+export function summaryLineFace(net: number, lacznieNet: number): SummaryLineT {
+  return { ...faceValue(net), share: lacznieNet > 0 ? net / lacznieNet : 0 }
 }
 
 export type PodsumowanieT = {
@@ -35,10 +48,15 @@ export function computePodsumowanie(
   vatRate: number,
 ): PodsumowanieT {
   const lacznieNet = robociznaNet + materialyNet
-  return {
-    robocizna: summaryLine(robociznaNet, lacznieNet, vatRate),
-    lacznie: summaryLine(lacznieNet, lacznieNet, vatRate),
+  const robocizna = summaryLine(robociznaNet, lacznieNet, vatRate)
+  // Łącznie brutto = robocizna grossed + materiały at face value. Only prace carries VAT, so this is
+  // NOT toGross(lacznieNet) — grossing the whole sum would invent VAT on the materiały component.
+  const lacznie: SummaryLineT = {
+    net: lacznieNet,
+    gross: robocizna.gross + materialyNet,
+    share: lacznieNet > 0 ? 1 : 0,
   }
+  return { robocizna, lacznie }
 }
 
 // „Aktualnie do zapłaty R + M" (sheet footer r456–464): the headline still-owed figure —
@@ -52,5 +70,9 @@ export function computeDoZaplatyRM(
   materialyNet: number,
   vatRate: number,
 ): MoneyPairT {
-  return moneyPair(robociznaNet - wplatyNet + materialyNet, vatRate)
+  const net = robociznaNet - wplatyNet + materialyNet
+  // Only robocizna (prace) carries VAT; wpłaty and materiały enter at face value. Grossing the whole
+  // net would invent VAT on the deposits and the expenses.
+  const gross = toGross(robociznaNet, vatRate) - wplatyNet + materialyNet
+  return { net, gross }
 }

@@ -9,6 +9,7 @@ import { SaldoDisplay } from '@/components/ui/saldo-display'
 import { StatButton } from '@/components/ui/stat-button'
 import { Description } from '@/components/ui/description'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
+import { Separator } from '@/components/ui/separator'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { SETTLED_TYPE } from '@/lib/constants/transfers'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
@@ -61,6 +62,11 @@ const TOOLTIPS = {
     'Marża = Robocizna − Wypłaty − Rabat − Strata − materiały wliczone w robociznę.\n' +
     'Ile firma zarabia na inwestycji.' +
     RESTRICTED_NOTE,
+  zKosztorysu:
+    'Robocizna i rabat wyliczone z kosztorysu (ceny klienta, netto) — do porównania z sumą ' +
+    'transakcji powyżej (Σ robocizny / Σ rabatu, też netto). Porównanie idzie netto ↔ netto. ' +
+    'Czerwony wykrzyknik oznacza rozjazd między kosztorysem a transakcjami; zweryfikuj przed ' +
+    'oznaczeniem inwestycji jako rozliczonej.',
 } as const
 
 type FinancialStatsPropsT = {
@@ -118,14 +124,6 @@ export function FinancialStats({
     ...(incomeRow.length > 0 ? [incomeRow] : []),
   ]
 
-  // A zero-on-both-sides line (typically rabat with no discount anywhere) is noise — show a line only
-  // when it carries a value or actually mismatches.
-  const reconLines = reconciliation
-    ? RECON_LINES.map((line) => ({ ...line, recon: reconciliation[line.key] })).filter(
-        (l) => l.recon.expectedGross > 0 || l.recon.actualGross > 0 || l.recon.mismatch,
-      )
-    : []
-
   return (
     <div className="space-y-2">
       <ToggleStatButtons
@@ -136,28 +134,6 @@ export function FinancialStats({
         onToggle={toggle}
         summaryTooltip={TOOLTIPS.bilans}
       />
-
-      {reconLines.length > 0 && (
-        <div className="text-muted-foreground space-y-1 text-sm">
-          <Description>z kosztorysu</Description>
-          {reconLines.map(({ label, key, recon, subject }) => (
-            <div key={key} className="flex items-center gap-2">
-              <span>{label}</span>
-              <span className={cn('tabular-nums', recon.mismatch && 'text-destructive font-bold')}>
-                {formatPLN(recon.expectedGross)}
-              </span>
-              {recon.mismatch && (
-                <HintTooltip
-                  content={reconciliationTooltip(recon, subject, formatPLN)}
-                  className="text-destructive"
-                >
-                  <TriangleAlert className="size-3.5" aria-label="Niezgodność z transakcjami" />
-                </HintTooltip>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
 
       {totalLoss !== 0 && (
         <div className="text-muted-foreground space-y-1 text-sm">
@@ -196,6 +172,43 @@ export function FinancialStats({
           />
           <SaldoDisplay saldo={margin} label="Marża" tooltip={TOOLTIPS.marza} />
         </div>
+      )}
+
+      {reconciliation && (
+        <>
+          <Separator orientation="horizontal" className="mt-3" />
+          <div className="text-muted-foreground space-y-1 text-sm">
+            <Description>
+              z kosztorysu (netto)
+              <InfoTooltip
+                content={TOOLTIPS.zKosztorysu}
+                label="Co to jest: z kosztorysu"
+                className="ml-1"
+              />
+            </Description>
+            {RECON_LINES.map(({ label, key, subject }) => {
+              const recon = reconciliation[key]
+              return (
+                <div key={key} className="flex items-center gap-2">
+                  <span>{label}</span>
+                  <span
+                    className={cn('tabular-nums', recon.mismatch && 'text-destructive font-bold')}
+                  >
+                    {formatPLN(recon.expected)}
+                  </span>
+                  {recon.mismatch && (
+                    <HintTooltip
+                      content={reconciliationTooltip(recon, subject, formatPLN)}
+                      className="text-destructive"
+                    >
+                      <TriangleAlert className="size-3.5" aria-label="Niezgodność z transakcjami" />
+                    </HintTooltip>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </>
       )}
     </div>
   )

@@ -2,14 +2,16 @@
 
 import { Fragment, type ReactNode } from 'react'
 import Link from 'next/link'
-import { TriangleAlert } from 'lucide-react'
+import { Info, TriangleAlert } from 'lucide-react'
 import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
 import { HintTooltip } from '@/components/ui/tooltip'
 import {
   computeDoZaplatyRM,
   computePodsumowanie,
+  faceValue,
   moneyPair,
   summaryLine,
+  summaryLineFace,
   type MoneyPairT,
   type SummaryLineT,
 } from '@/lib/kosztorys/summary-economics'
@@ -54,7 +56,18 @@ type RowOptsT = {
   bold?: boolean
   discount?: boolean
   danger?: boolean
+  // Drops the udział cell entirely. Only for the waterfall block, whose grid has no udział track —
+  // every line there is off the Łącznie base.
+  noShareCell?: boolean
+  // Blanks the udział cell without dropping it. For Łącznie, which IS the udział base: a
+  // self-referential 100% is meaningless, but the cell has to stay — remove it and the container's
+  // bg-border shows through the uncovered track as a grey gap.
   hideShare?: boolean
+  // No-VAT figure: one amount, no netto/brutto axis. The sheet gives brutto its own row only for
+  // prace + the R+M total; materiały/korekta/wpłaty have no brutto figure at all. The Brutto cell
+  // repeats the netto amount rather than blanking, which also keeps the row readable in a
+  // brutto-only widok, where blanking dropped its only value.
+  noBrutto?: boolean
   // When set, the figure screams: bold red value + a red `!` whose tooltip is this string.
   mismatch?: string
 }
@@ -83,21 +96,24 @@ export function KosztorysPodsumowanie({
   // Force-show the „Rabat" row even at kosztorys-rabat 0, so a RABAT transfer with no kosztorys rabat
   // can't hide the mismatch — otherwise the one gap population most needs to catch stays invisible.
   const showRabat =
-    rabatAmount > 0 || reconciliation.rabat.actualGross > 0 || reconciliation.rabat.mismatch
+    rabatAmount > 0 || reconciliation.rabat.actual > 0 || reconciliation.rabat.mismatch
   const sumaPrac = summaryLine(sumaPracNet, lacznie.net, vatRate)
+  // Rabat is an obniżka of prace, so it lives on the prace plane and grosses — brutto = rabat×(1+VAT).
+  // Grossing it keeps the brutto waterfall exact: Łącznie − rabat − wpłaty = Do zapłaty on both axes
+  // (toGross is linear). Wpłaty stays face value — it's a cash deposit, not prace.
   const rabat = moneyPair(rabatAmount, vatRate)
-  const wplaty = moneyPair(wplatyNet, vatRate)
+  const wplaty = faceValue(wplatyNet)
 
   // First track shared with the etap-totals block so both grids' label columns align; the money
   // tracks appear only for the axis that's shown.
-  const gridTemplateColumns = [
+  const moneyCols = [
     SUMMARY_LABEL_COL,
     showNet && SUMMARY_VALUE_COL,
     showGross && SUMMARY_VALUE_COL,
-    SUMMARY_VALUE_COL,
   ]
     .filter(Boolean)
     .join(' ')
+  const gridTemplateColumns = `${moneyCols} ${SUMMARY_VALUE_COL}`
 
   // All cells are direct children of ONE grid so `gap-px` over a `bg-border` container paints a
   // 1px separator between every column and row; each cell repaints `bg-background` on top.
@@ -107,6 +123,7 @@ export function KosztorysPodsumowanie({
   // A line with no `share` (the total rows) renders an empty udział cell. `emphasize` keeps the
   // summary rows bold now that the shared gridlines already draw every row separator.
   const row = (label: ReactNode, line: SummaryLineT | MoneyPairT, opts: RowOptsT = {}) => {
+    const hasShare = 'share' in line && !opts.hideShare
     const money = cn(
       valueCell,
       opts.emphasize && 'font-medium',
@@ -125,13 +142,29 @@ export function KosztorysPodsumowanie({
                 <TriangleAlert className="size-3.5" aria-label="Niezgodność z transakcjami" />
               </HintTooltip>
             )}
+            {/* The row's brutto cell repeats its netto figure — flagged here so the repetition reads
+                as „ta pozycja nie ma VAT-u", not as a rendering slip. */}
+            {opts.noBrutto && showGross && (
+              <HintTooltip
+                content="Pozycja bez VAT — kwota brutto równa się netto"
+                className="text-muted-foreground"
+              >
+                <Info className="size-3.5" aria-label="Pozycja bez VAT" />
+              </HintTooltip>
+            )}
           </span>
         </span>
         {showNet && <span className={money}>{formatNet(line.net)}</span>}
-        {showGross && <span className={money}>{formatNet(line.gross)}</span>}
-        <span className={cn(valueCell, 'text-muted-foreground', opts.emphasize && 'font-medium')}>
-          {'share' in line && !opts.hideShare ? formatPercent(line.share) : ''}
-        </span>
+        {showGross && (
+          // A no-VAT row repeats its netto figure here rather than blanking: the amount IS the
+          // brutto (VAT doesn't apply), so restating it reads clearer than an absence.
+          <span className={money}>{formatNet(opts.noBrutto ? line.net : line.gross)}</span>
+        )}
+        {!opts.noShareCell && (
+          <span className={cn(valueCell, 'text-muted-foreground', opts.emphasize && 'font-medium')}>
+            {hasShare ? formatPercent(line.share) : ''}
+          </span>
+        )}
       </Fragment>
     )
   }
@@ -165,16 +198,21 @@ export function KosztorysPodsumowanie({
                 ) : (
                   item.label
                 ),
-                summaryLine(item.net, lacznie.net, vatRate),
+                summaryLineFace(item.net, lacznie.net),
+                { noBrutto: true },
               )}
             </Fragment>
           ))}
         {row('Łącznie', lacznie, { emphasize: true, hideShare: true })}
       </div>
-      <div style={{ gridTemplateColumns }} className="border-border bg-border grid gap-px border">
+      <div
+        style={{ gridTemplateColumns: moneyCols }}
+        className="border-border bg-border grid w-fit gap-px border"
+      >
         {showRabat &&
           row('Rabat', rabat, {
             discount: true,
+            noShareCell: true,
             mismatch: reconciliation.rabat.mismatch
               ? mismatchTooltip(reconciliation.rabat, 'Transakcje rabatu')
               : undefined,
@@ -187,9 +225,9 @@ export function KosztorysPodsumowanie({
             Wpłaty
           </Link>,
           wplaty,
-          { discount: true },
+          { discount: true, noBrutto: true, noShareCell: true },
         )}
-        {row('Do zapłaty', doZaplaty, { bold: true, danger: doZaplaty.net > 0 })}
+        {row('Do zapłaty', doZaplaty, { bold: true, danger: doZaplaty.net > 0, noShareCell: true })}
       </div>
     </div>
   )
