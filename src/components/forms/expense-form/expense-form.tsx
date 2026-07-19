@@ -177,20 +177,23 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     form.setFieldValue('lineItems', [makeLineItem()])
   }
 
+  // Held in state, not rebuilt inline: makeLineItem() mints a fresh uuid, so an inline literal
+  // handed to useAppForm was a new defaultValues on every render — the form re-applied it, which
+  // re-rendered, which minted another id → "Maximum update depth exceeded" the moment the dialog opened.
+  const [blankValues] = useState<FormValuesT>(() => ({
+    date: today(),
+    type: 'INVESTMENT_EXPENSE',
+    paymentMethod: 'CASH',
+    sourceRegister: '',
+    targetRegister: '',
+    investment: '',
+    worker: '',
+    settled: false,
+    lineItems: [makeLineItem()],
+  }))
+
   const form = useAppForm({
-    defaultValues:
-      storedValues ??
-      ({
-        date: today(),
-        type: 'INVESTMENT_EXPENSE',
-        paymentMethod: 'CASH',
-        sourceRegister: '',
-        targetRegister: '',
-        investment: '',
-        worker: '',
-        settled: false,
-        lineItems: [makeLineItem()],
-      } as FormValuesT),
+    defaultValues: storedValues ?? blankValues,
     validators: {
       onSubmit: bulkExpenseFormSchema,
     },
