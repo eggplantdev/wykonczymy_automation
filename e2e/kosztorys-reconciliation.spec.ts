@@ -104,14 +104,19 @@ test('cross-surface parity: kosztorys robocizna equals the seed on both surfaces
   await expect(page.getByText(formatNet(seed.sumaPracNet)).first()).toBeVisible()
 })
 
-test('mismatch scream survives a price-view toggle (view-independent figure)', async ({ page }) => {
+test('mismatch scream shows only in the client price view (EX-541)', async ({ page }) => {
   await gotoEditor(page, seed.mismatch)
+  // Default view is „Klient" — the scream compares client-view nets, so it renders here.
   await expect(page.getByLabel(MISMATCH_LABEL).first()).toBeVisible()
 
-  // The scream is built from client-view nets, not the active price view; switching to the
-  // subcontractor „Z narzędziami" price must not change or hide it. Were it wired to the active-view
-  // total, this toggle would move the compared number. The view control is a ToggleGroup (Radix
-  // single = radiogroup); its icon-only items carry the option label as their accessible name.
+  // Switching to the subcontractor „Z narzędziami" price reprices the displayed „Suma prac"/„Rabat"
+  // figure; the client-view-fixed scream would then sit next to a number it isn't comparing, so it
+  // is suppressed. The view control is a ToggleGroup (Radix single = radiogroup); its icon-only items
+  // carry the option label as their accessible name.
   await page.getByRole('radio', { name: 'Z narzędziami' }).click()
+  await expect(page.getByLabel(MISMATCH_LABEL)).toHaveCount(0)
+
+  // Back in the client view it returns — the verdict itself never changed, only its visibility.
+  await page.getByRole('radio', { name: 'Klient' }).click()
   await expect(page.getByLabel(MISMATCH_LABEL).first()).toBeVisible()
 })

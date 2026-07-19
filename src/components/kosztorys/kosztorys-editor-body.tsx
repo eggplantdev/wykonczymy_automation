@@ -73,6 +73,7 @@ export function KosztorysEditorBody({
     plannedNet,
     rabatAmount,
     doZaplatyNet,
+    view,
     moneyAxis,
     sectionCoeffs,
     summaryOpen,
@@ -201,6 +202,7 @@ export function KosztorysEditorBody({
             wplatyNet={wplatyNet}
             rabatAmount={rabatAmount}
             reconciliation={reconciliation}
+            priceView={view}
             vatRate={tree.vatRate}
             moneyAxis={moneyAxis}
           />

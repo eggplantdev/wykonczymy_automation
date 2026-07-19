@@ -204,6 +204,14 @@ is passed.
 (Podsumowanie-style block from the DTO totals), and the existing section pie. `onChange` no-op.
 Imports only `ClientKosztorysViewT` — never the tree type or `calc.ts` subcontractor fns.
 
+**Must NOT render the EX-535 reconciliation scream** (the red `TriangleAlert` + „Niezgodność z
+transakcjami" tooltip on „Suma prac wykonanych"/„Rabat"). It's an owner-internal check comparing the
+kosztorys against the transaction ledger — a client must never see it. **The EX-541 `priceView ===
+'client'` gate does NOT protect this surface**: the client view pins `view: 'client'`, so that gate
+would leave the scream ON. The client payload therefore carries **no reconciliation at all** — the
+footer is built from the DTO totals only, never `KosztorysTotalsPanel`/`KosztorysPodsumowanie` with a
+live `reconciliation` prop. Verify on the payload (no recon field), not the DOM.
+
 ### Success Criteria
 
 #### Automated Verification

@@ -10,8 +10,8 @@ then `/simplify` (reuse/simplification/efficiency/altitude, mutating).
 
 <!-- ONE checkbox per finding. severity tag = bug-finding checks only. source ∈ impl-review | code-review | comment-noise | structure-scatter | simplify. Most-severe first. -->
 
-- [x] 🟡 WARNING · filed EX-541 · `code-review`+`impl-review` (F4) · `kosztorys-podsumowanie.tsx:181` · Recon scream sits next to the **active-view** „Suma prac"/„Rabat" figure while the verdict is client-view-fixed → the screamed number diverges from the tooltip's compared number in non-client price views. Verdict boolean stays correct (Phase-4 E2E guards it). Behavior-changing + owner design call (suppress? relabel? leave?) → deferred.
-      test: e2e — assert displayed figure == tooltip's compared figure after a price-view toggle; author with the fix (recorded in EX-541).
+- [x] 🟡 WARNING · fixed (EX-541) · `code-review`+`impl-review` (F4) · `kosztorys-podsumowanie.tsx:104` · Recon scream sat next to the **active-view** „Suma prac"/„Rabat" figure while the verdict is client-view-fixed → the screamed number diverged from the tooltip's compared number in non-client price views. **Resolved (option b — suppress in non-client views):** threaded `priceView` (from `useKosztorysEditor`'s `view`) through editor-body → totals-panel → podsumowanie; gated the scream on `reconVisible = priceView === 'client'`. Verdict unchanged, only visibility. EX-541 → In Progress (cold e2e run pending).
+      test: e2e — Phase-4 4th spec flipped to `mismatch scream shows only in the client price view (EX-541)`; authored + green in unit/typecheck, cold run deferred by user.
 - [x] 🟡 WARNING · fixed · `impl-review` (F1) · `plan.md:1` · Plan body still specified gross↔gross while shipped code is net↔net (self-contradicts Phase-4b). Added a correction banner at the top pointing to `reconciliation.ts` as the authority; left the historical body intact.
 - [x] 🔵 OBSERVATION · dismissed · `impl-review` (F2) · `reconciliation.ts` · Recon bakes in the net-entry assumption that EX-536/EX-539 question. Not hidden — documented, tracked, and both blockers gate archive. No code owed.
 - [x] 🔵 OBSERVATION · fixed · `code-review`+`impl-review` (F3) · `financial-stats.tsx:80`, `page.tsx:67` · Comments said "client-view gross"; model is net. Reworded both to "client-view net".
@@ -35,8 +35,9 @@ Ran `/simplify` — 1 applied (badge extraction), 1 filed (EX-540), 2 dismissed,
 
 - Moved `reconciliation.test.ts` → 11/11 green post-move.
 - Phase-4 E2E `e2e/kosztorys-reconciliation.spec.ts` (4 tests) authored + green cold in Phase 4; badge extraction is behavior-preserving and the E2E asserts the shared aria-label on both surfaces, so it covers the /simplify change — no new test owed.
-- typecheck: clean. lint (touched files): clean.
-- Full suite (`typecheck && lint && test && test:e2e && build`): pending user go.
+- typecheck: clean. lint: 0 errors (85 pre-existing warnings, none in touched files).
+- Unit suite (`pnpm test`): 1065 passed, 40 skipped, 0 failed.
+- `test:e2e` + `build`: deferred by user (cold e2e ~6min); Phase-4 cold e2e run stands as the authoritative browser pass.
 
 ## Archive gate
 
@@ -44,4 +45,4 @@ Blocked — stays **In Review**, NOT archived:
 
 - **EX-536** (zaliczka netto/brutto) + **EX-539** (RABAT transaction netto/brutto) — parked domain blockers, both Urgent, both block EX-535 archive.
 - Manual verification (impl-review F5) — owed at Step 4.
-  Deferred findings EX-540 / EX-541 are filed (boxes checked), so they do not block.
+  EX-540 is filed (box checked); EX-541 is now resolved in-code (In Progress, cold e2e pending). Neither blocks.

@@ -17,6 +17,7 @@ import {
 } from '@/lib/kosztorys/summary-economics'
 import { formatNet, formatPercent } from '@/lib/kosztorys/format'
 import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
+import type { PriceViewT } from '@/lib/kosztorys/calc'
 import { SUMMARY_LABEL_COL, SUMMARY_VALUE_COL } from '@/components/kosztorys/summary-grid'
 import { ReconMismatchBadge } from '@/components/kosztorys/recon-mismatch-badge'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
@@ -48,6 +49,9 @@ type PropsT = {
   rabatAmount: number
   // Robocizna/rabat reconciliation verdict — the mismatch scream renders off this.
   reconciliation: KosztorysReconciliationT
+  // Active price view. The verdict compares client-view nets, so the scream only reads correctly in
+  // 'client'; a subcontractor view reprices the displayed figure, so the scream is suppressed there.
+  priceView: PriceViewT
   vatRate: number
   moneyAxis: MoneyAxisT
 }
@@ -84,6 +88,7 @@ export function KosztorysPodsumowanie({
   wplatyNet,
   rabatAmount,
   reconciliation,
+  priceView,
   vatRate,
   moneyAxis,
 }: PropsT) {
@@ -94,10 +99,15 @@ export function KosztorysPodsumowanie({
   const { lacznie } = computePodsumowanie(sumaPracNet, materialyNet, vatRate)
   const doZaplaty = computeDoZaplatyRM(robociznaNet, wplatyNet, materialyNet, vatRate)
   const { net: showNet, gross: showGross } = axisShows(moneyAxis)
+  // The scream compares client-view nets; a subcontractor view reprices the displayed figure, so the
+  // scream would sit next to a number it isn't comparing. Show it only in the client view.
+  const reconVisible = priceView === 'client'
   // Force-show the „Rabat" row even at kosztorys-rabat 0, so a RABAT transfer with no kosztorys rabat
   // can't hide the mismatch — otherwise the one gap population most needs to catch stays invisible.
+  // Only while the scream is visible; otherwise the row follows the normal „rabat > 0" rule.
   const showRabat =
-    rabatAmount > 0 || reconciliation.rabat.actual > 0 || reconciliation.rabat.mismatch
+    rabatAmount > 0 ||
+    (reconVisible && (reconciliation.rabat.actual > 0 || reconciliation.rabat.mismatch))
   const sumaPrac = summaryLine(sumaPracNet, lacznie.net, vatRate)
   // Rabat is an obniżka of prace, so it lives on the prace plane and grosses — brutto = rabat×(1+VAT).
   // Grossing it keeps the brutto waterfall exact: Łącznie − rabat − wpłaty = Do zapłaty on both axes
@@ -176,9 +186,10 @@ export function KosztorysPodsumowanie({
         )}
         <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Udział</span>
         {row('Suma prac wykonanych', sumaPrac, {
-          mismatch: reconciliation.robocizna.mismatch
-            ? mismatchTooltip(reconciliation.robocizna, 'Transakcje robocizny')
-            : undefined,
+          mismatch:
+            reconVisible && reconciliation.robocizna.mismatch
+              ? mismatchTooltip(reconciliation.robocizna, 'Transakcje robocizny')
+              : undefined,
         })}
         {materialyBreakdown
           .filter((item) => item.net !== 0)
@@ -210,9 +221,10 @@ export function KosztorysPodsumowanie({
           row('Rabat', rabat, {
             discount: true,
             noShareCell: true,
-            mismatch: reconciliation.rabat.mismatch
-              ? mismatchTooltip(reconciliation.rabat, 'Transakcje rabatu')
-              : undefined,
+            mismatch:
+              reconVisible && reconciliation.rabat.mismatch
+                ? mismatchTooltip(reconciliation.rabat, 'Transakcje rabatu')
+                : undefined,
           })}
         {row(
           <Link

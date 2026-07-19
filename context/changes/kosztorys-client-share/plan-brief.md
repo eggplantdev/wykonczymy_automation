@@ -73,6 +73,10 @@ Safety is verified on the payload, never the DOM.
   added editor-side defaults to _hidden_ from the client only if `clientVisible` is opt-in (verify
   the flag defaults closed).
 - Browser-level E2E is owed — author at the review gate or file to the `e2e-backlog`.
+- The EX-535 reconciliation scream (red „Niezgodność z transakcjami" on „Suma prac"/„Rabat") is
+  owner-internal and must be absent from the client view. The EX-541 `priceView === 'client'` gate
+  does **not** cover this — the client view pins `view: 'client'`, so the client payload must carry
+  no reconciliation at all (see Phase 2 #3).
 
 ## Success Criteria (Summary)
 

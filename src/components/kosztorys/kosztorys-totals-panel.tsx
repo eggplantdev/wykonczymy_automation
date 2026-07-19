@@ -5,6 +5,7 @@ import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { formatNet } from '@/lib/kosztorys/format'
 import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
+import type { PriceViewT } from '@/lib/kosztorys/calc'
 import { computeDoZaplatyRM } from '@/lib/kosztorys/summary-economics'
 import { KosztorysEtapTotals } from '@/components/kosztorys/kosztorys-etap-totals'
 import { KosztorysPodsumowanie } from '@/components/kosztorys/kosztorys-podsumowanie'
@@ -31,6 +32,9 @@ type PropsT = {
   rabatAmount: number
   // Robocizna/rabat reconciliation verdict — drives the Podsumowanie mismatch scream.
   reconciliation: KosztorysReconciliationT
+  // Active price view. The recon verdict is client-view-fixed, so the scream only shows in 'client';
+  // in a subcontractor view the displayed figure is repriced and the scream would misread.
+  priceView: PriceViewT
   vatRate: number
   moneyAxis: MoneyAxisT
 }
@@ -50,6 +54,7 @@ export function KosztorysTotalsPanel({
   wplatyNet,
   rabatAmount,
   reconciliation,
+  priceView,
   vatRate,
   moneyAxis,
 }: PropsT) {
@@ -109,6 +114,7 @@ export function KosztorysTotalsPanel({
           wplatyNet={wplatyNet}
           rabatAmount={rabatAmount}
           reconciliation={reconciliation}
+          priceView={priceView}
           vatRate={vatRate}
           moneyAxis={moneyAxis}
         />
