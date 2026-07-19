@@ -14,8 +14,7 @@ import { formatPLN } from '@/lib/utils/format-currency'
 import { SETTLED_TYPE } from '@/lib/constants/transfers'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { useCurrentUser } from '@/hooks/use-current-user'
-import { TriangleAlert } from 'lucide-react'
-import { HintTooltip } from '@/components/ui/tooltip'
+import { ReconMismatchBadge } from '@/components/kosztorys/recon-mismatch-badge'
 import {
   reconciliationTooltip,
   type KosztorysReconciliationT,
@@ -77,7 +76,7 @@ type FinancialStatsPropsT = {
   totalPayouts?: number
   totalLoss?: number
   settledFields?: FinancialFieldT[]
-  // Kosztorys-derived robocizna/rabat (client-view gross) vs the transaction sums. Present only when
+  // Kosztorys-derived robocizna/rabat (client-view net) vs the transaction sums. Present only when
   // the investment has a kosztorys; drives the separated „z kosztorysu" verification block.
   reconciliation?: KosztorysReconciliationT
 }
@@ -197,12 +196,9 @@ export function FinancialStats({
                     {formatPLN(recon.expected)}
                   </span>
                   {recon.mismatch && (
-                    <HintTooltip
+                    <ReconMismatchBadge
                       content={reconciliationTooltip(recon, subject, formatPLN)}
-                      className="text-destructive"
-                    >
-                      <TriangleAlert className="size-3.5" aria-label="Niezgodność z transakcjami" />
-                    </HintTooltip>
+                    />
                   )}
                 </div>
               )

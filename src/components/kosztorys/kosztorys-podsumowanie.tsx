@@ -2,7 +2,7 @@
 
 import { Fragment, type ReactNode } from 'react'
 import Link from 'next/link'
-import { Info, TriangleAlert } from 'lucide-react'
+import { Info } from 'lucide-react'
 import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
 import { HintTooltip } from '@/components/ui/tooltip'
 import {
@@ -18,6 +18,7 @@ import {
 import { formatNet, formatPercent } from '@/lib/kosztorys/format'
 import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import { SUMMARY_LABEL_COL, SUMMARY_VALUE_COL } from '@/components/kosztorys/summary-grid'
+import { ReconMismatchBadge } from '@/components/kosztorys/recon-mismatch-badge'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import {
   reconciliationTooltip,
@@ -45,7 +46,7 @@ type PropsT = {
   // The rabat actually taken off the executed robocizna (net zł): the global discount when active,
   // else Σ per-item rabat. Unified upstream so this table shows one explicit „Rabat" line. 0 = none.
   rabatAmount: number
-  // Robocizna/rabat reconciliation verdict — the mismatch scream renders off this (Phase 2).
+  // Robocizna/rabat reconciliation verdict — the mismatch scream renders off this.
   reconciliation: KosztorysReconciliationT
   vatRate: number
   moneyAxis: MoneyAxisT
@@ -137,11 +138,7 @@ export function KosztorysPodsumowanie({
         <span className={cn(labelCell, opts.emphasize && 'font-medium', opts.bold && 'font-bold')}>
           <span className="inline-flex items-center gap-1">
             {label}
-            {opts.mismatch && (
-              <HintTooltip content={opts.mismatch} className="text-destructive">
-                <TriangleAlert className="size-3.5" aria-label="Niezgodność z transakcjami" />
-              </HintTooltip>
-            )}
+            {opts.mismatch && <ReconMismatchBadge content={opts.mismatch} />}
             {/* The row's brutto cell repeats its netto figure — flagged here so the repetition reads
                 as „ta pozycja nie ma VAT-u", not as a rendering slip. */}
             {opts.noBrutto && showGross && (

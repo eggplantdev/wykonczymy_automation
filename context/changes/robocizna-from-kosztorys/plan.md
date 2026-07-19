@@ -1,5 +1,12 @@
 # Screaming Reconciliation Indicator Implementation Plan
 
+> **Model revised in Phase 4 — net↔net, not gross↔gross.** The body below (Comparison basis,
+> Phase 1–3 contracts, `ReconT` field names) records the ORIGINAL gross↔gross design. The shipped
+> code compares kosztorys **client-view nets** against the raw transaction sums: the ledger carries no
+> VAT axis, so grossing the kosztorys side would false-fire by the whole VAT amount. `ReconT` is
+> `{ expected; actual; mismatch }` (no `…Gross` suffix, no `vatRate`); `buildKosztorysReconciliation`
+> dropped `vatRate`. Read `src/lib/kosztorys/reconciliation.ts` as the authority, not this body.
+
 ## Overview
 
 During the transition from manual `LABOR_COST`/`RABAT` transfers to reading robocizna/rabat from the

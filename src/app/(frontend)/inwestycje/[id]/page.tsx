@@ -64,7 +64,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
     breakdowns.settledCategoryCosts,
   )
 
-  // Second verification surface (client-view gross vs the transaction sums), computed server-side
+  // Second verification surface (client-view net vs the transaction sums), computed server-side
   // through the SAME settlement path the editor Podsumowanie uses so the two planes can't drift.
   // No kosztorys rows ⇒ `undefined`, and the „z kosztorysu" block is skipped.
   const kosztorysRows = treeToRows(kosztorysTree)
