@@ -43,7 +43,11 @@ import {
   sectionItemCounts,
   type ItemRemovalPlanT,
 } from '@/lib/kosztorys/delete-policy'
-import { sectionSubtotalsForView, stageTotalsForView } from '@/lib/kosztorys/settlement'
+import {
+  kosztorysClientTotals,
+  sectionSubtotalsForView,
+  stageTotalsForView,
+} from '@/lib/kosztorys/settlement'
 import { filterRows, sortRows, type SortDirT } from '@/lib/kosztorys/row-view'
 import { columnSortValue, reconcileSort } from '@/lib/kosztorys/sort-value'
 import { NEW_SECTION_DEFAULTS } from '@/lib/kosztorys/constants'
@@ -311,9 +315,12 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     () => sectionSubtotalsForView(rows, stages, 'client'),
     [rows, stages],
   )
-  const doneNet = useMemo(
-    () => progressSubtotals.reduce((s, x) => s + x.net, 0),
-    [progressSubtotals],
+  // doneNet + rabatClientNet route through the shared helper the investment page also calls, so the
+  // two verification surfaces can't drift (reconciliation, lessons.md). rabatClientNet is client-view
+  // and view-independent — the rabat comparison must not move with the price-view toggle.
+  const { doneNet, rabatClientNet } = useMemo(
+    () => kosztorysClientTotals(rows, stages, globalDiscount),
+    [rows, stages, globalDiscount],
   )
   const plannedNet = useMemo(
     () => progressSubtotals.reduce((s, x) => s + x.plannedNet, 0),
@@ -1025,6 +1032,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     plannedQtyTotal,
     stages,
     doneNet,
+    rabatClientNet,
     plannedNet,
     sectionCoeffs,
     globalDiscount,

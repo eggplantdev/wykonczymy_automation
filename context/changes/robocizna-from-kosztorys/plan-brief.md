@@ -36,8 +36,10 @@ verdict is locked to client view — the price-view toggle never changes it.
 ## Scope
 
 **In scope:** thread two investment figures from the server page; add one client-view rabat net to the
-hook; assemble a reconciliation verdict in the editor; render the scream in Podsumowanie; a unit test for
-the reconciliation helper.
+hook; assemble a reconciliation verdict in a real lib module the editor body calls; render the scream in
+Podsumowanie; a cross-boundary parity test running the REAL settlement chain vs the REAL
+`deriveFinancials` (per the parity lesson — no stand-ins, proven red); browser E2E owed at the review
+gate.
 
 **Out of scope:** the read-switch (marża/bilans sourcing), the per-investment verified flag, disabling
 transfer types, `deriveFinancials`/schema/Sheets changes.
@@ -54,9 +56,10 @@ new hook figure (`rabatClientNet`), one comparison helper.
 | ------------------- | --------------------------------------------------- | -------------------------------------------- |
 | 1. Wire + reconcile | Both sides meet in the editor; verdict object built | Client-view rabat derived off the wrong pass |
 | 2. Render scream    | Bold-red `!` + tooltip in Podsumowanie              | Force-showing the rabat row disturbs layout  |
+| 3. Browser E2E      | Seeded mismatch/match/stability specs in `e2e/`     | Prop-plumbing gaps unit tests can't see      |
 
 **Prerequisites:** none — all anchors verified.
-**Estimated effort:** ~1 session across 2 phases.
+**Estimated effort:** ~1-2 sessions across 3 phases.
 
 ## Open Risks & Assumptions
 

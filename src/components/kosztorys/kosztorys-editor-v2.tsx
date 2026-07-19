@@ -19,6 +19,8 @@ type PropsT = {
   materialyBreakdown: MaterialyBreakdownRowT[]
   wplatyNet: number
   zaliczkiByStage: Record<number, number>
+  investmentRobocizna: number
+  investmentRabat: number
 }
 
 // Thin shell around the stateful editor body: owns the auto-snapshot interval, the "Wersje" drawer, and
@@ -32,6 +34,8 @@ export function KosztorysEditorV2({
   materialyBreakdown,
   wplatyNet,
   zaliczkiByStage,
+  investmentRobocizna,
+  investmentRabat,
 }: PropsT) {
   const router = useRouter()
   // One undo/redo stack per editor mount, shared with the body via context. It outlives the body's
@@ -73,6 +77,8 @@ export function KosztorysEditorV2({
         materialyBreakdown={materialyBreakdown}
         wplatyNet={wplatyNet}
         zaliczkiByStage={zaliczkiByStage}
+        investmentRobocizna={investmentRobocizna}
+        investmentRabat={investmentRabat}
         onOpenVersions={() => setVersionsOpen(true)}
       />
       <KosztorysVersionsDrawer

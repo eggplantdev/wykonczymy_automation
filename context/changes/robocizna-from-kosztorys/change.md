@@ -1,7 +1,7 @@
 ---
 change_id: robocizna-from-kosztorys
 title: Derive investment robocizna from the kosztorys executed-work total (retire the manual LABOR_COST workaround)
-status: planned
+status: implementing
 created: 2026-07-19
 updated: 2026-07-19
 archived_at: null
@@ -56,3 +56,26 @@ Compare within 1 grosz (tolerance, not exact float equality). Comparison basis m
 gross/gross — verify whether `LABOR_COST`/`RABAT` amounts are stored net or gross before writing the
 check, or the icon lies. Own slice, taken through plan → implement (needs the investment figures wired
 into the editor as props — they are not there today).
+
+### Second surface — investment-page mismatch (owner, 2026-07-19) — IN this slice
+
+The owner also wants the mismatch visible on the **investment page**, where the transition dual-display
+(both robocizna values, both rabat values) will live. That page shows only the transaction figure today
+and does **not** load the kosztorys tree. But surfacing the kosztorys figure there is not the scary
+"listing-scale" derivation — it is **one** investment's tree loaded once (`getKosztorysTree`) and run
+through the same pure settlement (`sectionSubtotalsForView(rows, stages, 'client')`) server-side. Two
+scalars out, reusing the same `buildKosztorysReconciliation` verdict and the same visual language (bold
+red + `!` + tooltip). So it rides EX-535, not a later slice.
+
+**Parity discipline (load-bearing).** The editor computes the kosztorys figure **client-side** (live
+rows, reacts to unsaved edits); the investment page computes it **server-side** (persisted rows). To
+keep those from drifting — the exact two-planes-both-green failure `lessons.md:19` records — both call
+**one** shared pure function (`kosztorysClientTotals(rows, stages, globalDiscount)` →
+`{ doneNet, rabatClientNet }`). The hook and the server page are two call sites of that one function, not
+two copies of the formula.
+
+**Visual separation (owner).** On the investment page the kosztorys-derived robocizna/rabat must be
+**clearly separated** from the transaction totals — a distinct „z kosztorysu" block/badge, not silently
+merged into the existing figure — so during transition it is obvious which number is which. Only render
+it when the investment actually has a kosztorys. The listing-page aggregate (all investments at once)
+stays out of scope — that is the only genuinely heavy case and belongs to the read-switch slice.

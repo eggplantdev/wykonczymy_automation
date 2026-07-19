@@ -10,6 +10,7 @@ import { KosztorysEtapTotals } from '@/components/kosztorys/kosztorys-etap-total
 import { KosztorysPodsumowanie } from '@/components/kosztorys/kosztorys-podsumowanie'
 import { useTotalsPanelOpen } from '@/components/kosztorys/use-totals-panel-open'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
+import type { KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 
 type PropsT = {
@@ -28,6 +29,8 @@ type PropsT = {
   // still-owed „Do zapłaty" total. Distinct from zaliczkiByStage (the sparser per-etap tagged subset).
   wplatyNet: number
   rabatAmount: number
+  // Robocizna/rabat reconciliation verdict — drives the Podsumowanie mismatch scream.
+  reconciliation: KosztorysReconciliationT
   vatRate: number
   moneyAxis: MoneyAxisT
 }
@@ -46,6 +49,7 @@ export function KosztorysTotalsPanel({
   materialyBreakdown,
   wplatyNet,
   rabatAmount,
+  reconciliation,
   vatRate,
   moneyAxis,
 }: PropsT) {
@@ -104,6 +108,7 @@ export function KosztorysTotalsPanel({
           materialyBreakdown={materialyBreakdown}
           wplatyNet={wplatyNet}
           rabatAmount={rabatAmount}
+          reconciliation={reconciliation}
           vatRate={vatRate}
           moneyAxis={moneyAxis}
         />

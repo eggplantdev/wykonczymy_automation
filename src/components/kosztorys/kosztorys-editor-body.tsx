@@ -20,6 +20,7 @@ import {
   withTotalsRow,
 } from '@/components/kosztorys/kosztorys-totals-row'
 import { toGross } from '@/lib/kosztorys/calc'
+import { buildKosztorysReconciliation } from '@/lib/kosztorys/reconciliation'
 import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
@@ -32,6 +33,9 @@ type PropsT = {
   materialyBreakdown: MaterialyBreakdownRowT[]
   wplatyNet: number
   zaliczkiByStage: Record<number, number>
+  // Transaction-sourced robocizna/rabat (Σ LABOR_COST / Σ RABAT) — the reconciliation "actual" side.
+  investmentRobocizna: number
+  investmentRabat: number
   onOpenVersions: () => void
 }
 
@@ -46,6 +50,8 @@ export function KosztorysEditorBody({
   materialyBreakdown,
   wplatyNet,
   zaliczkiByStage,
+  investmentRobocizna,
+  investmentRabat,
   onOpenVersions,
 }: PropsT) {
   const editor = useKosztorysEditor({ investmentId, tree })
@@ -61,6 +67,8 @@ export function KosztorysEditorBody({
     plannedQtyTotal,
     stages,
     totalNet,
+    doneNet,
+    rabatClientNet,
     plannedNet,
     rabatAmount,
     doZaplatyNet,
@@ -108,6 +116,21 @@ export function KosztorysEditorBody({
   )
   const gridRows = useMemo(() => [...viewRows, makeSpacerRow(), makeTotalsRow()], [viewRows])
   const isSyntheticRow = (id: number) => id === SPACER_ROW_ID || id === TOTALS_ROW_ID
+
+  // Reconciliation verdict for the Podsumowanie scream: kosztorys client-view gross (doneNet /
+  // rabatClientNet, view-independent) vs the investment's transaction sums. Built via the shared lib
+  // fn — the same one the investment page calls — so the two surfaces can't disagree.
+  const reconciliation = useMemo(
+    () =>
+      buildKosztorysReconciliation({
+        doneNet,
+        rabatClientNet,
+        vatRate: tree.vatRate,
+        investmentRobocizna,
+        investmentRabat,
+      }),
+    [doneNet, rabatClientNet, tree.vatRate, investmentRobocizna, investmentRabat],
+  )
 
   // Viewport minus the shell's chrome: the h-14 TopNav always, plus the h-14 AppFooter, which only
   // renders below `lg` (hence the two calcs — subtracting it at every width would leave a dead band
@@ -165,6 +188,7 @@ export function KosztorysEditorBody({
             materialyBreakdown={materialyBreakdown}
             wplatyNet={wplatyNet}
             rabatAmount={rabatAmount}
+            reconciliation={reconciliation}
             vatRate={tree.vatRate}
             moneyAxis={moneyAxis}
           />

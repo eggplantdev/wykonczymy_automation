@@ -15,6 +15,7 @@ import { formatNet, formatPercent } from '@/lib/kosztorys/format'
 import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import { SUMMARY_LABEL_COL, SUMMARY_VALUE_COL } from '@/components/kosztorys/summary-grid'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
+import type { KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
 import { cn } from '@/lib/utils/cn'
 
 type PropsT = {
@@ -31,6 +32,8 @@ type PropsT = {
   // The rabat actually taken off the executed robocizna (net zł): the global discount when active,
   // else Σ per-item rabat. Unified upstream so this table shows one explicit „Rabat" line. 0 = none.
   rabatAmount: number
+  // Robocizna/rabat reconciliation verdict — the mismatch scream renders off this (Phase 2).
+  reconciliation: KosztorysReconciliationT
   vatRate: number
   moneyAxis: MoneyAxisT
 }

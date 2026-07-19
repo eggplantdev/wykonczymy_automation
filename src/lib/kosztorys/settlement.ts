@@ -1,11 +1,48 @@
 import {
+  globalDiscountAmount,
   netForQtyForView,
   rowDiscountForView,
   rowPlannedNetForView,
   type PriceViewT,
 } from '@/lib/kosztorys/calc'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
-import type { KosztorysStageT, KosztorysV2RowT, SectionSubtotalT } from '@/lib/kosztorys/types'
+import type {
+  GlobalDiscountT,
+  KosztorysStageT,
+  KosztorysV2RowT,
+  SectionSubtotalT,
+} from '@/lib/kosztorys/types'
+
+export type KosztorysClientTotalsT = {
+  // „Suma prac wykonanych" at client prices, pre-rabat — Σ executed net.
+  doneNet: number
+  // The client-view rabat: the global discount when active, else Σ per-item rabat. The two are
+  // mutually exclusive (a live global discount forces every row gross, zeroing its per-item rabat),
+  // so their sum is whichever mode is active.
+  rabatClientNet: number
+}
+
+/**
+ * The two client-view figures the robocizna/rabat reconciliation compares against, computed here so
+ * BOTH verification surfaces share one code path: the editor (client-side, live rows) and the
+ * investment page (server-side, persisted rows). A second copy of this formula on either surface is
+ * exactly the two-planes-both-green drift `context/foundation/lessons.md` records — so there is one.
+ *
+ * Client view, not the active price view: robocizna is a client-billing figure, so the price-view
+ * toggle must never move it.
+ */
+export function kosztorysClientTotals(
+  rows: KosztorysV2RowT[],
+  stages: KosztorysStageT[],
+  globalDiscount: GlobalDiscountT,
+): KosztorysClientTotalsT {
+  const subtotals = sectionSubtotalsForView(rows, stages, 'client')
+  const doneNet = subtotals.reduce((sum, s) => sum + s.net, 0)
+  const rabatClientNet =
+    globalDiscountAmount(doneNet, globalDiscount) +
+    subtotals.reduce((sum, s) => sum + s.discount, 0)
+  return { doneNet, rabatClientNet }
+}
 
 /** The "Pomiar z natury" itself — the sheet's O = SUM(D:M), not a stored field (EX-494). */
 export function rowTotalQtyDone(row: KosztorysV2RowT, stages: KosztorysStageT[]): number {

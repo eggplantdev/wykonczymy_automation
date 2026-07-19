@@ -59,6 +59,10 @@ export default async function InvestmentKosztorysV2Page({
       materialyBreakdown={materialyBreakdown}
       wplatyNet={wplatyNet}
       zaliczkiByStage={zaliczkiByStage}
+      // Transaction-sourced robocizna/rabat (Σ LABOR_COST / Σ RABAT) for the in-editor reconciliation
+      // scream — compared against the kosztorys figures during the population/verification transition.
+      investmentRobocizna={financials.totalLaborCosts}
+      investmentRabat={financials.totalRabat}
     />
   )
 }
