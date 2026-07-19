@@ -13,10 +13,24 @@ import { formatPLN } from '@/lib/utils/format-currency'
 import { SETTLED_TYPE } from '@/lib/constants/transfers'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { useCurrentUser } from '@/hooks/use-current-user'
+import { TriangleAlert } from 'lucide-react'
+import { HintTooltip } from '@/components/ui/tooltip'
+import {
+  reconciliationTooltip,
+  type KosztorysReconciliationT,
+} from '@/lib/kosztorys/reconciliation'
+import { cn } from '@/lib/utils/cn'
 
 const INCOME_LABEL = 'Wpłaty'
 const LABOR_LABEL = 'Robocizna'
 const RABAT_LABEL = 'Rabat'
+
+// The kosztorys-side rows shown in the separated „z kosztorysu" verification block. Each names its
+// transaction counterpart for the mismatch tooltip.
+const RECON_LINES = [
+  { label: LABOR_LABEL, key: 'robocizna', subject: 'Transakcje robocizny' },
+  { label: RABAT_LABEL, key: 'rabat', subject: 'Transakcje rabatu' },
+] as const
 
 // Both figures render only inside the isAdminOrOwnerRole(...) block below, so this
 // note is shown exclusively to Admin/Owner — flags the figure as owner-level.
@@ -57,6 +71,9 @@ type FinancialStatsPropsT = {
   totalPayouts?: number
   totalLoss?: number
   settledFields?: FinancialFieldT[]
+  // Kosztorys-derived robocizna/rabat (client-view gross) vs the transaction sums. Present only when
+  // the investment has a kosztorys; drives the separated „z kosztorysu" verification block.
+  reconciliation?: KosztorysReconciliationT
 }
 
 export function FinancialStats({
@@ -65,6 +82,7 @@ export function FinancialStats({
   totalPayouts = 0,
   totalLoss = 0,
   settledFields = [],
+  reconciliation,
 }: FinancialStatsPropsT) {
   const { role: userRole } = useCurrentUser()
   const toggle = useHeaderFieldsStore((s) => s.toggle)
@@ -100,6 +118,14 @@ export function FinancialStats({
     ...(incomeRow.length > 0 ? [incomeRow] : []),
   ]
 
+  // A zero-on-both-sides line (typically rabat with no discount anywhere) is noise — show a line only
+  // when it carries a value or actually mismatches.
+  const reconLines = reconciliation
+    ? RECON_LINES.map((line) => ({ ...line, recon: reconciliation[line.key] })).filter(
+        (l) => l.recon.expectedGross > 0 || l.recon.actualGross > 0 || l.recon.mismatch,
+      )
+    : []
+
   return (
     <div className="space-y-2">
       <ToggleStatButtons
@@ -110,6 +136,28 @@ export function FinancialStats({
         onToggle={toggle}
         summaryTooltip={TOOLTIPS.bilans}
       />
+
+      {reconLines.length > 0 && (
+        <div className="text-muted-foreground space-y-1 text-sm">
+          <Description>z kosztorysu</Description>
+          {reconLines.map(({ label, key, recon, subject }) => (
+            <div key={key} className="flex items-center gap-2">
+              <span>{label}</span>
+              <span className={cn('tabular-nums', recon.mismatch && 'text-destructive font-bold')}>
+                {formatPLN(recon.expectedGross)}
+              </span>
+              {recon.mismatch && (
+                <HintTooltip
+                  content={reconciliationTooltip(recon, subject, formatPLN)}
+                  className="text-destructive"
+                >
+                  <TriangleAlert className="size-3.5" aria-label="Niezgodność z transakcjami" />
+                </HintTooltip>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       {totalLoss !== 0 && (
         <div className="text-muted-foreground space-y-1 text-sm">

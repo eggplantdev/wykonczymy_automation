@@ -17,19 +17,17 @@ import { formatNet, formatPercent } from '@/lib/kosztorys/format'
 import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import { SUMMARY_LABEL_COL, SUMMARY_VALUE_COL } from '@/components/kosztorys/summary-grid'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
-import type { KosztorysReconciliationT, ReconT } from '@/lib/kosztorys/reconciliation'
+import {
+  reconciliationTooltip,
+  type KosztorysReconciliationT,
+  type ReconT,
+} from '@/lib/kosztorys/reconciliation'
 import { cn } from '@/lib/utils/cn'
 
-// The scream's tooltip: names both compared figures (kosztorys client-view gross vs the transaction
-// sum) and the różnica, so the owner knows what to fix before flipping the investment to rozliczona.
-function mismatchTooltip(recon: ReconT, transactionSubject: string): string {
-  return [
-    `Kosztorys (brutto, ceny klienta): ${formatNet(recon.expectedGross)}`,
-    `${transactionSubject}: ${formatNet(recon.actualGross)}`,
-    `Różnica: ${formatNet(recon.actualGross - recon.expectedGross)}`,
-    'Zweryfikuj przed oznaczeniem inwestycji jako rozliczonej.',
-  ].join('\n')
-}
+// The scream's tooltip names both compared figures + the różnica; formatNet because this surface shows
+// kosztorys nets. Shared copy with the investment page (reconciliationTooltip).
+const mismatchTooltip = (recon: ReconT, subject: string) =>
+  reconciliationTooltip(recon, subject, formatNet)
 
 type PropsT = {
   investmentId: number

@@ -43,6 +43,24 @@ function reconcile(expectedGross: number, actualGross: number): ReconT {
  * A real lib function (not a colocated closure) so the parity test exercises the exact code the
  * surfaces render (`context/foundation/lessons.md`).
  */
+/**
+ * The scream's tooltip copy, shared by both surfaces (the editor Podsumowanie and the investment page)
+ * so the wording can't drift. Format-agnostic: the caller passes its own money formatter — the editor
+ * shows kosztorys nets via `formatNet`, the investment page złoty via `formatPLN`.
+ */
+export function reconciliationTooltip(
+  recon: ReconT,
+  transactionSubject: string,
+  format: (value: number) => string,
+): string {
+  return [
+    `Kosztorys (brutto, ceny klienta): ${format(recon.expectedGross)}`,
+    `${transactionSubject}: ${format(recon.actualGross)}`,
+    `Różnica: ${format(recon.actualGross - recon.expectedGross)}`,
+    'Zweryfikuj przed oznaczeniem inwestycji jako rozliczonej.',
+  ].join('\n')
+}
+
 export function buildKosztorysReconciliation({
   sumaPracNet,
   rabatClientNet,

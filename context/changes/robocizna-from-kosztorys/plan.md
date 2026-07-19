@@ -387,16 +387,16 @@ None. Read-only; no schema, no data change. Kosztorys data is throwaway pre-dogf
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit` — PENDING_SHA
-- [x] 2.2 Linting passes: `pnpm lint` — PENDING_SHA
-- [x] 2.3 Unit test passes: `pnpm exec vitest run src/__tests__/kosztorys-reconciliation.test.ts` — PENDING_SHA
+- [x] 2.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit` — 8a00f85b
+- [x] 2.2 Linting passes: `pnpm lint` — 8a00f85b
+- [x] 2.3 Unit test passes: `pnpm exec vitest run src/__tests__/kosztorys-reconciliation.test.ts` — 8a00f85b
 
 ### Phase 3: Investment-page dual display (visually separated) + mismatch
 
 #### Automated
 
-- [ ] 3.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit`
-- [ ] 3.2 Linting passes: `pnpm lint`
+- [x] 3.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit`
+- [x] 3.2 Linting passes: `pnpm lint`
 
 ### Phase 4: Browser E2E — seeded sync verification (both surfaces)
 
