@@ -45,6 +45,7 @@ import {
 } from '@/lib/kosztorys/delete-policy'
 import {
   kosztorysClientTotals,
+  rowRemainingForView,
   sectionSubtotalsForView,
   stageTotalsForView,
 } from '@/lib/kosztorys/settlement'
@@ -57,7 +58,7 @@ import {
   stageValueNetKey,
   stageValuePercentKey,
 } from '@/lib/kosztorys/stage-keys'
-import { globalDiscountAmount, isGlobalDiscountActive } from '@/lib/kosztorys/calc'
+import { globalDiscountAmount, isGlobalDiscountActive, toGross } from '@/lib/kosztorys/calc'
 import {
   addItemAction,
   addSectionAction,
@@ -308,6 +309,21 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     () => rows.reduce((sum, row) => sum + (row.plannedQty ?? 0), 0),
     [rows],
   )
+  // Σ of the „Pozostało" columns for the grid's Razem row. Rows with no przedmiar read `null` — no
+  // offer to subtract from — and are skipped, so the total is the sum of what the column actually
+  // shows rather than of a 0 it never claimed. Gross accumulates each row's own VAT instead of
+  // grossing the net sum once, so a row-level vatRate can't drift the two apart.
+  const remainingTotals = useMemo(() => {
+    let net = 0
+    let gross = 0
+    for (const row of rows) {
+      const rowNet = rowRemainingForView(row, stages, view)
+      if (rowNet === null) continue
+      net += rowNet
+      gross += toGross(rowNet, row.vatRate)
+    }
+    return { net, gross }
+  }, [rows, stages, view])
   // The progress counter is a PROGRESS figure, not money — it must read the same in every price view,
   // so its executed/offered are weighted at the client price (a separate client-priced pass), never
   // the active `view`. Same client basis as each section's completionRatio.
@@ -1032,6 +1048,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     stageTotals,
     stageQtyTotals,
     plannedQtyTotal,
+    remainingTotals,
     stages,
     doneNet,
     sumaPracNet,

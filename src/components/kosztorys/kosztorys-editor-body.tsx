@@ -65,6 +65,7 @@ export function KosztorysEditorBody({
     stageTotals,
     stageQtyTotals,
     plannedQtyTotal,
+    remainingTotals,
     stages,
     totalNet,
     sumaPracNet,
@@ -95,6 +96,8 @@ export function KosztorysEditorBody({
     totals.set('gross', toGross(totalNet, tree.vatRate))
     totals.set('plannedNet', plannedNet)
     totals.set('plannedGross', toGross(plannedNet, tree.vatRate))
+    totals.set('remaining', remainingTotals.net)
+    totals.set('remainingGross', remainingTotals.gross)
     // Qty (Pomiar z natury): per-etap column, their sum, and the offered przedmiar column.
     let qtySum = 0
     for (const stage of stages) {
@@ -108,7 +111,16 @@ export function KosztorysEditorBody({
     totals.set('stageQtySum', qtySum)
     totals.set('plannedQty', plannedQtyTotal)
     return totals
-  }, [stages, stageTotals, stageQtyTotals, plannedQtyTotal, totalNet, plannedNet, tree.vatRate])
+  }, [
+    stages,
+    stageTotals,
+    stageQtyTotals,
+    plannedQtyTotal,
+    remainingTotals,
+    totalNet,
+    plannedNet,
+    tree.vatRate,
+  ])
 
   const gridColumns = useMemo(
     () => columns.map((column) => withTotalsRow(column, columnTotals)),
