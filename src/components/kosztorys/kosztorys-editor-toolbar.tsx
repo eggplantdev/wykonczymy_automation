@@ -3,6 +3,7 @@
 import Link from 'next/link'
 
 import { SearchFilterInput } from '@/components/ui/search-filter-input'
+import { SimpleTooltip } from '@/components/ui/tooltip'
 import { KosztorysAddMenu } from '@/components/kosztorys/kosztorys-add-menu'
 import { KosztorysGlobalSettings } from '@/components/kosztorys/kosztorys-global-settings'
 import { KosztorysProgressCounter } from '@/components/kosztorys/kosztorys-progress-counter'
@@ -38,12 +39,17 @@ export function KosztorysEditorToolbar() {
         <KosztorysToolbarViewToggles />
 
         <KosztorysAddMenu />
-        <SearchFilterInput
-          value={search}
-          onChange={setSearch}
-          placeholder="Szukaj pozycji / sekcji…"
-          debounceMs={200}
-        />
+        <SimpleTooltip content="Szukaj pozycji / sekcji">
+          {/* SearchFilterInput takes no ref, so the tooltip anchors to a wrapper */}
+          <div>
+            <SearchFilterInput
+              value={search}
+              onChange={setSearch}
+              placeholder="Szukaj…"
+              debounceMs={200}
+            />
+          </div>
+        </SimpleTooltip>
         <KosztorysToolbarActions />
       </div>
       <div className="border-border flex flex-wrap items-center gap-x-4 gap-y-2 border-t px-4 py-1.5">
