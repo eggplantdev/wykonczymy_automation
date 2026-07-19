@@ -30,8 +30,21 @@ Decisions locked in shaping (2026-07-18, owner):
   the zaliczka model is decided.
 - Timeline: aggressive — starts today.
 
-Open questions carried in: zaliczka data model (etap-tagged transfers vs kosztorys-side
-entries; several per etap) · udział % base (Przedmiar vs executed) · per-etap price base
+Zaliczka model — **decided 2026-07-19 (owner)** by reading the balance calc, not by picking
+an option. `calculate-balance.ts`: `Bilans inwestora = totalIncome − (materiały + robocizna) +
+rabat`, where `totalIncome` = every deposit type attached to the investment (`INVESTOR_DEPOSIT`
+
+- `COMPANY_FUNDING` + `OTHER_DEPOSIT`). So "wpłaty inwestora" = the money added to the investor
+  balance = `totalIncome`. Podsumowanie therefore shows **„Wpłaty"** = `totalIncome` (matches the
+  investment page by construction) and **„Do zapłaty"** = (robocizna po rabacie + materiały) −
+  Wpłaty = `−Bilans`, both rendered unconditionally. The **etap tag** (`kosztorysStage` on a
+  deposit) stays a separate, sparser signal — the per-etap „Zaliczki" row on the „Suma transzy"
+  table only — and remains taggable on any investment-attached deposit type (the deposit form
+  already gates it on `showsInvestment && stages.length > 0`, which covers all three deposit
+  types). Dropped the old etap-tagged-Σ source for the podsumowanie total (`fetchZaliczkiByStage`
+  returned {} for nearly every investment → „Wpłaty" silently absent).
+
+Open questions carried in: udział % base (Przedmiar vs executed) · per-etap price base
 (client vs subcontractor) · Brutto column placement · „pozostało/bilans" formula still under
 owner discussion — don't harden dependents.
 

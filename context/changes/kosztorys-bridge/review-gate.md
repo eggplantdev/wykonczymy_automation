@@ -45,6 +45,46 @@ Catalogued the repo's primitive homes (`components/ui`, `hooks`, `lib/**`, `type
 - [x] dropped · reuse-scan · `kosztorys-etap-totals.tsx:38` + `kosztorys-podsumowanie.tsx:38` · two local `row` helpers — structurally distinct tables (per-etap columns vs fixed netto/brutto/udział); a forced shared primitive would be worse, not a dupe.
 - [x] dropped · reuse-scan · `kosztorys-totals-bar.tsx` · repo has two parallel net-money formatters (`lib/kosztorys/format.ts › formatNet` vs `lib/utils/format-currency.ts › formatPLN`) — pre-existing; this diff introduced neither, so out of the scan's diff-scoped remit. Noted for a future consolidation pass, not filed here.
 
+---
+
+# Increment 2 — materiały per-category breakdown + „Wpłaty"/„Do zapłaty" · 2026-07-19
+
+Scope: 7 uncommitted files (+107/−27) adding the v1-parity „Materiały" split
+(budowlane / wykończeniowe / Pozostałe koszty + „Korekta (bez kategorii)" remainder)
+and the unconditional „Wpłaty"/„Do zapłaty" rows. Fan-out: code-review, impl-review,
+comment-noise, 3 file-org audits, tailwind-v4 — all read-only, diff-scoped.
+
+## Findings (increment 2)
+
+- [x] 🟡 WARNING · fixed · code-review · `kosztorys-podsumowanie.tsx:94` · React key was the free-text category `name` (+ literal „Korekta…") — two same-named categories collide → dup keys, wrong-row DOM updates. Carried category `id` through `MaterialyBreakdownRowT` (null for the remainder) and keyed on `item.id ?? 'korekta'`.
+      test: test-driven-debugging · unit — added `buildMaterialyBreakdown` spec "every category row carries a stable, distinct id even when names collide" (+ Σ-reconcile + signed-remainder specs). Green.
+- [x] 🔵 OBSERVATION · dismissed · code-review · `map-category-costs.ts` · a `categoryCost` id absent from `expenseCategories` would drop from every visible row instead of the remainder. Benign: `fetchReferenceData` does an unfiltered `SELECT id,name FROM expense_categories` (all live ids present) and both sums exclude NULL-category rows in SQL. No soft-delete exists → not a reachable path.
+      test: no automated test — defensive-only, no real trigger; would warrant one only if categories become soft-deletable.
+- [x] 🔵 OBSERVATION · fixed · impl-review · `summary-economics.ts:37` · `computePodsumowanie` still returned a `materialy: SummaryLineT` line the sole caller no longer reads (dead since the caller computes per-category shares itself). Trimmed the field from `PodsumowanieT` + the return; updated the spec to recover materiały as `lacznie − robocizna`.
+- [x] fixed · comment-noise · `kosztorys-podsumowanie.tsx:21` · prop comment carried vanished-state narration ("Replaces the single „Materiały" row") + a category re-enumeration already in `buildMaterialyBreakdown`'s docstring. Trimmed to the load-bearing `Σ === materialyNet` clause.
+- [x] fixed · comment-noise · `page.tsx:47` · same parenthetical category list, duplicative of the producer's docstring. Dropped the parenthetical, kept the `Σ === materialsNet` rationale.
+- [x] fixed · feature-first-structure · `map-category-costs.ts:10` · `MaterialyBreakdownRowT` is cross-cutting (produced in `lib/db`, consumed by 4 `components/kosztorys/*`), yet colocated with its producer while the sibling `FinancialFieldT` is already routed through `types/`. Moved it to `@/types/investment-financials` (beside its `CategoryCostT`/`InvestmentFinancialsT` inputs); repointed all 4 component imports.
+- [x] fixed · module-cohesion · `map-category-costs.ts:25` · the uncategorised-remainder computation + the magic „Korekta (bez kategorii)" label were duplicated between `buildMaterialyBreakdown` and `buildFinancialFields`. Extracted `uncategorisedRemainder(financials)` helper + a `KOREKTA_LABEL` const; both call sites use them.
+- [x] dismissed · tailwind-v4 · `kosztorys-podsumowanie.tsx` · new rows reuse the pre-existing `row()` helper — zero new class strings, no arbitrary values. Clean.
+
+## Simplify pass (increment 2)
+
+Ran /simplify (reuse / simplification / efficiency / altitude lens) on the post-fix diff — 1 applied, 0 proposed, 1 dropped. Verified the four triage cleanups landed. Typecheck + 15 slice specs green.
+
+- [x] fixed · simplify · `summary-economics.ts` + `kosztorys-podsumowanie.tsx:50` · the component's `materialLine` reinvented `computePodsumowanie`'s private `line` (identical `{...moneyPair, share: net/lacznieNet}` shape) — the udział-base formula living at the wrong altitude (in the view, not the economics layer). Extracted+exported `summaryLine(net, lacznieNet, vatRate)`; `computePodsumowanie` and the per-category rows both delegate to it.
+- [x] dropped · simplify · `kosztorys-podsumowanie.tsx:94` · the `<Fragment>` around each `row()` `<tr>` exists only to carry the key — removing it means giving `row()` a key param, cosmetic churn against a correct stable key. Not worth it.
+
+---
+
+## Tests & suite (increment 2)
+
+- Slice specs: `map-category-costs` (7, incl. 3 new `buildMaterialyBreakdown`) + `summary-economics` (8, updated for the trimmed `materialy` field) — 15 green.
+- Fast legs (user opted, 2026-07-19): `pnpm typecheck` clean · eslint on all 10 changed files clean · full unit suite `pnpm exec vitest run` → **1053 passed, 40 skipped** (DB-integration/nodemailer-gated, pre-existing). Green.
+- Heavy legs (`test:e2e`, `next build`) NOT run — deferred to pre-merge with increment 1's, same as before (slice parked in review pending owner sign-off).
+- Browser E2E: the podsumowanie render (materiały split + „Wpłaty"/„Do zapłaty") folds into the slice's already-filed browser coverage **EX-531** (e2e-backlog); no separate new issue.
+
+---
+
 ## Simplify pass
 
 Ran /simplify (4 cleanup agents: reuse / simplification / efficiency / altitude) — 2 applied, 0 proposed, 4 dropped/dismissed; each folded into ## Findings above (tagged simplify). Typecheck + settlement/summary/zaliczki specs green.
