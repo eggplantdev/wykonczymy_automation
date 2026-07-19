@@ -92,6 +92,7 @@ export function KosztorysTotalsPanel({
           stages={stages}
           stageTotals={stageTotals}
           zaliczkiByStage={zaliczkiByStage}
+          wplatyNet={wplatyNet}
           wykonaneNet={totalNet}
           vatRate={vatRate}
           moneyAxis={moneyAxis}

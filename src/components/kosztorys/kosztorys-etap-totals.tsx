@@ -18,6 +18,9 @@ type PropsT = {
   // Per-etap zaliczki (tagged deposit cash), stage id → summed amount. A single cash figure —
   // not a netto/brutto pair — so it renders on one row regardless of the money axis.
   zaliczkiByStage: Record<number, number>
+  // Wpłaty netto — every deposit on the investment (totalIncome). The remainder over the tagged
+  // zaliczki is shown in a „Bez etapu" column so the Zaliczki row reconciles to the full Wpłaty.
+  wplatyNet: number
   // R netto — suma prac wykonanych: the executed total at the active view (Σ of the etap totals).
   wykonaneNet: number
   vatRate: number
@@ -31,6 +34,7 @@ export function KosztorysEtapTotals({
   stages,
   stageTotals,
   zaliczkiByStage,
+  wplatyNet,
   wykonaneNet,
   vatRate,
   moneyAxis,
@@ -40,19 +44,29 @@ export function KosztorysEtapTotals({
   const money = (net: number, gross: boolean) => formatNet(gross ? toGross(net, vatRate) : net)
 
   const zaliczkiTotal = stages.reduce((sum, st) => sum + (zaliczkiByStage[st.id] ?? 0), 0)
+  // Deposits not pinned to any etap — the gap between the tagged zaliczki and the full Wpłaty.
+  const pozaEtapem = wplatyNet - zaliczkiTotal
+  const showPoza = pozaEtapem > 0
 
   // Same track system as the Podsumowanie block — a shared first (label) track, then equal-width
-  // value tracks (one per etap + the row total) — so both grids run on one 13rem + 7rem·n rhythm
-  // and every column lines up down the panel.
-  const gridTemplateColumns = `${SUMMARY_LABEL_COL} repeat(${stages.length + 1}, ${SUMMARY_VALUE_COL})`
+  // value tracks (one per etap, an optional „Bez etapu" bucket, and the row total) — so both grids
+  // run on one 13rem + 7rem·n rhythm and every column lines up down the panel.
+  const valueTrackCount = stages.length + (showPoza ? 2 : 1)
+  const gridTemplateColumns = `${SUMMARY_LABEL_COL} repeat(${valueTrackCount}, ${SUMMARY_VALUE_COL})`
 
   // All cells are direct children of ONE grid so `gap-px` over a `bg-border` container paints a
   // 1px separator between every column and row; each cell repaints `bg-background` on top.
   const labelCell = 'bg-background px-3 py-1'
   const valueCell = 'bg-background px-3 py-1 text-right tabular-nums'
 
-  // Netto / Brutto / Zaliczki share one shape — a label, a per-etap cell, and the bold row total.
-  const row = (label: ReactNode, cell: (st: KosztorysStageT) => string, total: string) => (
+  // Netto / Brutto / Zaliczki share one shape — a label, a per-etap cell, an optional „Bez etapu"
+  // cell, and the bold row total.
+  const row = (
+    label: ReactNode,
+    cell: (st: KosztorysStageT) => string,
+    total: string,
+    poza = '',
+  ) => (
     <Fragment>
       <span className={labelCell}>{label}</span>
       {stages.map((st) => (
@@ -60,6 +74,7 @@ export function KosztorysEtapTotals({
           {cell(st)}
         </span>
       ))}
+      {showPoza && <span className={valueCell}>{poza}</span>}
       <span className={cn(valueCell, 'font-medium')}>{total}</span>
     </Fragment>
   )
@@ -77,6 +92,9 @@ export function KosztorysEtapTotals({
               {st.label ?? `Etap ${st.ordinal}`}
             </span>
           ))}
+          {showPoza && (
+            <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Bez etapu</span>
+          )}
           <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Razem</span>
           {showNet &&
             row(
@@ -90,7 +108,7 @@ export function KosztorysEtapTotals({
               (st) => money(stageTotals.get(st.id) ?? 0, true),
               money(wykonaneNet, true),
             )}
-          {zaliczkiTotal > 0 &&
+          {(zaliczkiTotal > 0 || showPoza) &&
             row(
               <Link
                 href={`/inwestycje/${investmentId}?type=${DEPOSIT_TYPES.join(',')}`}
@@ -99,7 +117,8 @@ export function KosztorysEtapTotals({
                 Zaliczki
               </Link>,
               (st) => formatNet(zaliczkiByStage[st.id] ?? 0),
-              formatNet(zaliczkiTotal),
+              formatNet(zaliczkiTotal + pozaEtapem),
+              formatNet(pozaEtapem),
             )}
         </div>
       </div>
