@@ -126,6 +126,26 @@ describe('validateTransfer — auto-clear behavior', () => {
     const result = validateTransfer(hookArgs(data))
     expect(result.sourceRegister).toBeNull()
   })
+
+  // An investment-linked OTHER reaches no deriveFinancials bucket, yet still leaves the
+  // register — cash and margin silently diverge. The form never offers the field
+  // (showsInvestment), so only a script or the API can plant one.
+  it('OTHER → investment set to null', () => {
+    const data = { ...VALID_DATA.OTHER, investment: 31 }
+    const result = validateTransfer(hookArgs(data))
+    expect(result.investment).toBeNull()
+  })
+
+  it('REGISTER_TRANSFER → investment set to null', () => {
+    const data = { ...VALID_DATA.REGISTER_TRANSFER, investment: 31 }
+    const result = validateTransfer(hookArgs(data))
+    expect(result.investment).toBeNull()
+  })
+
+  it('INVESTMENT_EXPENSE → investment preserved', () => {
+    const result = validateTransfer(hookArgs(VALID_DATA.INVESTMENT_EXPENSE))
+    expect(result.investment).toBe(1)
+  })
 })
 
 // ═══════════════════════════════════════════════════════════════════════

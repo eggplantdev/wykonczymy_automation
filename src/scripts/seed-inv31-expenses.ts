@@ -7,8 +7,12 @@ import config from '../payload.config'
 const INVESTMENT_ID = 31
 const SOURCE_REGISTER_ID = 5
 const MATERIALY_WYKONCZENIOWE = 2
-const OTHER_CATEGORY_INNE = 6
 
+// Every row here must be an investment-linked type (showsInvestment). This script once
+// seeded OTHER rows with an investment — a shape the form cannot produce and that reaches
+// no deriveFinancials bucket, so it left the register while marża and bilans stayed blind
+// to it. validateTransfer now clears the field; the rows are gone from here so the fixture
+// stops modelling a state the domain rejects.
 const rows = [
   {
     type: 'INVESTMENT_EXPENSE',
@@ -27,13 +31,6 @@ const rows = [
     description: 'Płytki łazienkowe',
     amount: 3100,
     expenseCategory: MATERIALY_WYKONCZENIOWE,
-  },
-  { type: 'OTHER', description: 'Wywóz gruzu', amount: 600, otherCategory: OTHER_CATEGORY_INNE },
-  {
-    type: 'OTHER',
-    description: 'Drobne materiały pomocnicze',
-    amount: 340,
-    otherCategory: OTHER_CATEGORY_INNE,
   },
 ] as const
 

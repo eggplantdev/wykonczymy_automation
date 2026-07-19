@@ -3,6 +3,7 @@ import type { Transaction } from '@/payload-types'
 import {
   needsSourceRegister,
   requiresInvestment,
+  showsInvestment,
   needsTargetRegister,
   needsOtherCategory,
   needsWorker,
@@ -63,6 +64,14 @@ export const validateTransfer: CollectionBeforeValidateHook = ({ data, req, oper
   // investment — required for INVESTOR_DEPOSIT, INVESTMENT_EXPENSE, LABOR_COST
   if (requiresInvestment(type) && !d.investment) {
     errors.push('Investment is required for this transfer type.')
+  }
+
+  // Auto-clear investment for types that never carry one. deriveFinancials buckets by
+  // type, so an investment-linked OTHER lands in no bucket — invisible to marża and
+  // bilans while still leaving the register. The form hides the field (showsInvestment),
+  // so only the API or a script can plant one; this is the server-side counterpart.
+  if (!showsInvestment(type)) {
+    d.investment = null
   }
 
   // targetRegister — required for REGISTER_TRANSFER, must differ from source
