@@ -2,7 +2,6 @@
 
 import { type CellProps, type Column } from 'react-datasheet-grid'
 import { formatNet } from '@/lib/kosztorys/format'
-import { cn } from '@/lib/utils/cn'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // A single „Razem" row pinned as the grid's last row — the familiar spreadsheet SUM under each
@@ -26,14 +25,11 @@ export function makeSpacerRow(): KosztorysV2RowT {
   return { id: SPACER_ROW_ID } as unknown as KosztorysV2RowT
 }
 
-function TotalsRowCell({ content, isLabel }: { content: string; isLabel: boolean }) {
+// Left-aligned like the data cells (computed-cell.tsx / floatColumnLeft are `text-left px-2`), so a
+// column's total sits directly under its values.
+function TotalsRowCell({ content }: { content: string }) {
   return (
-    <div
-      className={cn(
-        'bg-muted/60 text-foreground flex size-full items-center px-2 text-base font-medium tabular-nums',
-        isLabel ? 'justify-start' : 'justify-end',
-      )}
-    >
+    <div className="bg-muted text-foreground border-border flex size-full items-center border-t-2 px-2 text-base font-semibold tabular-nums">
       {content}
     </div>
   )
@@ -44,7 +40,6 @@ function TotalsRowCell({ content, isLabel }: { content: string; isLabel: boolean
 // floatColumn, …); Column's default C already widens it, so no explicit `any` is needed.
 type TotalsColumnDataT = {
   content: string
-  isLabel: boolean
   base: Column<KosztorysV2RowT>['component']
 }
 
@@ -58,7 +53,7 @@ type TotalsColumnDataT = {
 function TotalsAwareCell(props: CellProps<KosztorysV2RowT, TotalsColumnDataT>) {
   if (props.rowData.id === SPACER_ROW_ID) return <div className="bg-background size-full" />
   if (props.rowData.id === TOTALS_ROW_ID)
-    return <TotalsRowCell content={props.columnData.content} isLabel={props.columnData.isLabel} />
+    return <TotalsRowCell content={props.columnData.content} />
   const Base = props.columnData.base
   return Base ? <Base {...props} /> : null
 }
@@ -77,6 +72,6 @@ export function withTotalsRow(
     component: TotalsAwareCell as Column<KosztorysV2RowT>['component'],
     // Merge over the wrapped column's own columnData so a delegated base cell (e.g. keyColumn's
     // KeyComponent, which reads columnData.key/original) still finds what it needs.
-    columnData: { ...column.columnData, content, isLabel, base: column.component },
+    columnData: { ...column.columnData, content, base: column.component },
   }
 }
