@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { useHeaderFieldsStore } from '@/stores/header-fields-store'
 import { ToggleStatButtons } from '@/components/ui/toggle-stat-buttons'
 import type { StatEntryT } from '@/components/ui/toggle-stat-buttons'
@@ -9,28 +9,14 @@ import { SaldoDisplay } from '@/components/ui/saldo-display'
 import { StatButton } from '@/components/ui/stat-button'
 import { Description } from '@/components/ui/description'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
-import { Separator } from '@/components/ui/separator'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { SETTLED_TYPE } from '@/lib/constants/transfers'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { useCurrentUser } from '@/hooks/use-current-user'
-import { ReconMismatchBadge } from '@/components/kosztorys/recon-mismatch-badge'
-import {
-  reconciliationTooltip,
-  type KosztorysReconciliationT,
-} from '@/lib/kosztorys/reconciliation'
-import { cn } from '@/lib/utils/cn'
 
 const INCOME_LABEL = 'Wpłaty'
 const LABOR_LABEL = 'Robocizna'
 const RABAT_LABEL = 'Rabat'
-
-// The kosztorys-side rows shown in the separated „z kosztorysu" verification block. Each names its
-// transaction counterpart for the mismatch tooltip.
-const RECON_LINES = [
-  { label: LABOR_LABEL, key: 'robocizna', subject: 'Transakcje robocizny' },
-  { label: RABAT_LABEL, key: 'rabat', subject: 'Transakcje rabatu' },
-] as const
 
 // Both figures render only inside the isAdminOrOwnerRole(...) block below, so this
 // note is shown exclusively to Admin/Owner — flags the figure as owner-level.
@@ -61,11 +47,6 @@ const TOOLTIPS = {
     'Marża = Robocizna − Wypłaty − Rabat − Strata − materiały wliczone w robociznę.\n' +
     'Ile firma zarabia na inwestycji.' +
     RESTRICTED_NOTE,
-  zKosztorysu:
-    'Robocizna i rabat wyliczone z kosztorysu (ceny klienta, netto) — do porównania z sumą ' +
-    'transakcji powyżej (Σ robocizny / Σ rabatu, też netto). Porównanie idzie netto ↔ netto. ' +
-    'Czerwony wykrzyknik oznacza rozjazd między kosztorysem a transakcjami; zweryfikuj przed ' +
-    'oznaczeniem inwestycji jako rozliczonej.',
 } as const
 
 type FinancialStatsPropsT = {
@@ -76,9 +57,10 @@ type FinancialStatsPropsT = {
   totalPayouts?: number
   totalLoss?: number
   settledFields?: FinancialFieldT[]
-  // Kosztorys-derived robocizna/rabat (client-view net) vs the transaction sums. Present only when
-  // the investment has a kosztorys; drives the separated „z kosztorysu" verification block.
-  reconciliation?: KosztorysReconciliationT
+  // The „z kosztorysu" reconciliation block, streamed in behind <Suspense> by the page so its
+  // kosztorys-tree fetch stays off the critical render path. A slot (not data) because the fetch +
+  // compute now live in the async InvestmentReconBlock server component.
+  recon?: ReactNode
 }
 
 export function FinancialStats({
@@ -87,7 +69,7 @@ export function FinancialStats({
   totalPayouts = 0,
   totalLoss = 0,
   settledFields = [],
-  reconciliation,
+  recon,
 }: FinancialStatsPropsT) {
   const { role: userRole } = useCurrentUser()
   const toggle = useHeaderFieldsStore((s) => s.toggle)
@@ -173,39 +155,7 @@ export function FinancialStats({
         </div>
       )}
 
-      {reconciliation && (
-        <>
-          <Separator orientation="horizontal" className="mt-3" />
-          <div className="text-muted-foreground space-y-1 text-sm">
-            <Description>
-              z kosztorysu (netto)
-              <InfoTooltip
-                content={TOOLTIPS.zKosztorysu}
-                label="Co to jest: z kosztorysu"
-                className="ml-1"
-              />
-            </Description>
-            {RECON_LINES.map(({ label, key, subject }) => {
-              const recon = reconciliation[key]
-              return (
-                <div key={key} className="flex items-center gap-2">
-                  <span>{label}</span>
-                  <span
-                    className={cn('tabular-nums', recon.mismatch && 'text-destructive font-bold')}
-                  >
-                    {formatPLN(recon.expected)}
-                  </span>
-                  {recon.mismatch && (
-                    <ReconMismatchBadge
-                      content={reconciliationTooltip(recon, subject, formatPLN)}
-                    />
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </>
-      )}
+      {recon}
     </div>
   )
 }

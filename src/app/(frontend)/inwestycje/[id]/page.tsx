@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
@@ -9,10 +10,8 @@ import {
 } from '@/lib/queries/reference-data'
 import { deriveFinancials } from '@/lib/db/sum-transfers'
 import { calculateMargin } from '@/lib/db/calculate-margin'
-import { getKosztorysTree } from '@/lib/queries/kosztorys'
-import { treeToRows } from '@/lib/kosztorys/v2-rows'
-import { kosztorysClientTotals } from '@/lib/kosztorys/settlement'
-import { buildKosztorysReconciliation } from '@/lib/kosztorys/reconciliation'
+import { InvestmentReconBlock } from '@/components/investments/investment-recon-block'
+import { InvestmentReconBlockSkeleton } from '@/components/investments/investment-recon-block-skeleton'
 import { buildTransferFilters, stripCancelledFilters } from '@/lib/queries/transfer-filters'
 import { buildFinancialFields, buildSettledFields } from '@/lib/db/map-category-costs'
 import { perfStart } from '@/lib/perf'
@@ -47,11 +46,10 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   // Stats ignore cancelled toggle — SQL already excludes cancelled via hardcoded WHERE clause
   const statsWhere = stripCancelledFilters(transferWhere)
 
-  const [refData, typeDistribution, breakdowns, kosztorysTree] = await Promise.all([
+  const [refData, typeDistribution, breakdowns] = await Promise.all([
     fetchReferenceData(),
     fetchFilteredByType(statsWhere),
     fetchCategoryBreakdowns(statsWhere),
-    getKosztorysTree(investmentId),
   ])
   console.log(`[PERF] inwestycje/${id} data fetch ${step()}ms`)
 
@@ -63,25 +61,6 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
     breakdowns.categoryCosts,
     breakdowns.settledCategoryCosts,
   )
-
-  // Second verification surface (client-view net vs the transaction sums), computed server-side
-  // through the SAME settlement path the editor Podsumowanie uses so the two planes can't drift.
-  // No kosztorys rows ⇒ `undefined`, and the „z kosztorysu" block is skipped.
-  const kosztorysRows = treeToRows(kosztorysTree)
-  let reconciliation
-  if (kosztorysRows.length > 0) {
-    const { sumaPracNet, rabatClientNet } = kosztorysClientTotals(
-      kosztorysRows,
-      kosztorysTree.stages,
-      kosztorysTree.globalDiscount,
-    )
-    reconciliation = buildKosztorysReconciliation({
-      sumaPracNet,
-      rabatClientNet,
-      investmentRobocizna: financials.totalLaborCosts,
-      investmentRabat: financials.totalRabat,
-    })
-  }
 
   const financialFields = buildFinancialFields(financials, refData.expenseCategories)
   const settledFields = buildSettledFields(
@@ -118,7 +97,17 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
         totalPayouts={financials.totalPayouts}
         totalLoss={financials.totalLoss}
         settledFields={settledFields}
-        reconciliation={reconciliation}
+        recon={
+          // Streamed off the critical path: only this block awaits the kosztorys tree (the page's
+          // long-pole fetch); the rest renders immediately. Transaction sums pass in as props.
+          <Suspense fallback={<InvestmentReconBlockSkeleton />}>
+            <InvestmentReconBlock
+              investmentId={investmentId}
+              investmentRobocizna={financials.totalLaborCosts}
+              investmentRabat={financials.totalRabat}
+            />
+          </Suspense>
+        }
       />
 
       {/* Transactions table */}
