@@ -66,16 +66,17 @@ export function KosztorysEtapTotals({
     cell: (st: KosztorysStageT) => string,
     total: string,
     poza = '',
+    valueClass = '',
   ) => (
     <Fragment>
       <span className={labelCell}>{label}</span>
       {stages.map((st) => (
-        <span key={st.id} className={valueCell}>
+        <span key={st.id} className={cn(valueCell, valueClass)}>
           {cell(st)}
         </span>
       ))}
-      {showPoza && <span className={valueCell}>{poza}</span>}
-      <span className={cn(valueCell, 'font-medium')}>{total}</span>
+      {showPoza && <span className={cn(valueCell, valueClass)}>{poza}</span>}
+      <span className={cn(valueCell, 'font-medium', valueClass)}>{total}</span>
     </Fragment>
   )
 
@@ -119,6 +120,7 @@ export function KosztorysEtapTotals({
               (st) => formatNet(zaliczkiByStage[st.id] ?? 0),
               formatNet(zaliczkiTotal + pozaEtapem),
               formatNet(pozaEtapem),
+              'text-chart-green',
             )}
         </div>
       </div>
