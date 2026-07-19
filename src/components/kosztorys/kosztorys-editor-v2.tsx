@@ -8,6 +8,7 @@ import { KosztorysVersionsDrawer } from '@/components/kosztorys/kosztorys-versio
 import { useAutoSnapshot } from '@/components/kosztorys/use-auto-snapshot'
 import { useRestoreRemount } from '@/components/kosztorys/use-restore-remount'
 import { UndoRedoContext, useUndoRedo } from '@/components/kosztorys/use-undo-redo'
+import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 
 type PropsT = {
@@ -15,6 +16,8 @@ type PropsT = {
   tree: KosztorysTreeT
   investmentName: string
   materialsNet: number
+  materialyBreakdown: MaterialyBreakdownRowT[]
+  wplatyNet: number
   zaliczkiByStage: Record<number, number>
 }
 
@@ -26,6 +29,8 @@ export function KosztorysEditorV2({
   tree,
   investmentName,
   materialsNet,
+  materialyBreakdown,
+  wplatyNet,
   zaliczkiByStage,
 }: PropsT) {
   const router = useRouter()
@@ -65,6 +70,8 @@ export function KosztorysEditorV2({
         tree={tree}
         investmentName={investmentName}
         materialsNet={materialsNet}
+        materialyBreakdown={materialyBreakdown}
+        wplatyNet={wplatyNet}
         zaliczkiByStage={zaliczkiByStage}
         onOpenVersions={() => setVersionsOpen(true)}
       />

@@ -16,6 +16,10 @@ export type InvestmentFinancialsT = {
   settledCategoryCosts: CategoryCostT[]
 }
 
+/** One row of the kosztorys „Materiały" split — a per-expense-category cost (`id` = the
+ *  category), or the uncategorised remainder (`id` = null). Σ net === totalMaterialCosts. */
+export type MaterialyBreakdownRowT = { id: number | null; label: string; net: number }
+
 export type CategoryTypeSettledRowT = {
   categoryId: number
   type: string

@@ -13,42 +13,44 @@ export type SummaryLineT = MoneyPairT & {
   share: number
 }
 
+// A net figure as a summary row: its netto/brutto pair plus its udział as a fraction of Łącznie.
+// The one home for the udział-base math — the per-category materiały rows share this denominator.
+export function summaryLine(net: number, lacznieNet: number, vatRate: number): SummaryLineT {
+  return { ...moneyPair(net, vatRate), share: lacznieNet > 0 ? net / lacznieNet : 0 }
+}
+
 export type PodsumowanieT = {
   robocizna: SummaryLineT
-  materialy: SummaryLineT
   lacznie: SummaryLineT
 }
 
-// The Podsumowanie split (sheet Podsumowanie r06–08): Robocizna (kosztorys wartość netto) +
-// Materiały (live sum of the investment's unsettled transactions) = Łącznie, each with brutto
-// and udział % of Łącznie. Robocizna reacts to unsaved editor edits; materiały is a server prop.
+// The Podsumowanie split (sheet Podsumowanie r06–08): Robocizna (kosztorys wartość netto) plus
+// Materiały = Łącznie, each carrying its udział % of Łącznie. Materiały enters only via the
+// Łącznie denominator here — the per-category materiały rows are built by the caller, which shares
+// `lacznie.net` as their udział base. Robocizna reacts to unsaved editor edits; materiały is a
+// server prop.
 export function computePodsumowanie(
   robociznaNet: number,
   materialyNet: number,
   vatRate: number,
 ): PodsumowanieT {
   const lacznieNet = robociznaNet + materialyNet
-  const line = (net: number): SummaryLineT => ({
-    ...moneyPair(net, vatRate),
-    share: lacznieNet > 0 ? net / lacznieNet : 0,
-  })
   return {
-    robocizna: line(robociznaNet),
-    materialy: line(materialyNet),
-    lacznie: line(lacznieNet),
+    robocizna: summaryLine(robociznaNet, lacznieNet, vatRate),
+    lacznie: summaryLine(lacznieNet, lacznieNet, vatRate),
   }
 }
 
 // „Aktualnie do zapłaty R + M" (sheet footer r456–464): the headline still-owed figure —
-// robocizna do zapłaty, less advances already paid (zaliczki), plus materiały. Zaliczki net
-// against the R portion before materiały is added, per the owner's netting order. Can dip below
-// materiały (even negative) when advances exceed robocizna — that is a real overpaid state, not
-// clamped here.
+// robocizna do zapłaty plus materiały, less the investor's wpłaty (every deposit attached to
+// the investment — the same `totalIncome` that raises Bilans inwestora in calculate-balance.ts).
+// So this equals −Bilans on the R+M base. Can go negative when wpłaty exceed R+M — a real
+// overpaid state, not clamped here.
 export function computeDoZaplatyRM(
   robociznaNet: number,
-  zaliczkiNet: number,
+  wplatyNet: number,
   materialyNet: number,
   vatRate: number,
 ): MoneyPairT {
-  return moneyPair(robociznaNet - zaliczkiNet + materialyNet, vatRate)
+  return moneyPair(robociznaNet - wplatyNet + materialyNet, vatRate)
 }

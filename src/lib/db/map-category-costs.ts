@@ -1,10 +1,43 @@
-import type { CategoryCostT, InvestmentFinancialsT } from '@/types/investment-financials'
+import type {
+  CategoryCostT,
+  InvestmentFinancialsT,
+  MaterialyBreakdownRowT,
+} from '@/types/investment-financials'
 import type { FinancialFieldT } from '@/types/export'
 import { formatPLN } from '@/lib/utils/format-currency'
+
+// Material spend not attributed to any expense category — in practice legacy corrections
+// entered before the category became required. It counts toward totalMaterialCosts, so it
+// MUST surface as its own row wherever the category split is shown, or the sum drifts below
+// the listing's bilans.
+const KOREKTA_LABEL = 'Korekta (bez kategorii)'
 
 /** Amount booked to a given expense category, 0 when that category has no rows. */
 export function costForCategory(categoryCosts: CategoryCostT[], categoryId: number): number {
   return categoryCosts.find((c) => c.categoryId === categoryId)?.total ?? 0
+}
+
+function uncategorisedRemainder(financials: InvestmentFinancialsT): number {
+  const categorised = financials.categoryCosts.reduce((sum, c) => sum + c.total, 0)
+  return financials.totalMaterialCosts - categorised
+}
+
+/** The kosztorys „Materiały" split — one row per expense category (v1 mirror parity:
+ *  Materiały budowlane / wykończeniowe / Pozostałe koszty), plus the uncategorised remainder,
+ *  so Σ rows === totalMaterialCosts and the podsumowanie reconciles with the investment page's
+ *  materiały byte-for-byte. */
+export function buildMaterialyBreakdown(
+  financials: InvestmentFinancialsT,
+  expenseCategories: { id: number; name: string }[],
+): MaterialyBreakdownRowT[] {
+  const rows: MaterialyBreakdownRowT[] = expenseCategories.map((cat) => ({
+    id: cat.id,
+    label: cat.name,
+    net: costForCategory(financials.categoryCosts, cat.id),
+  }))
+  const uncategorised = uncategorisedRemainder(financials)
+  if (uncategorised !== 0) rows.push({ id: null, label: KOREKTA_LABEL, net: uncategorised })
+  return rows
 }
 
 /** Map ALL expense categories to header fields, showing 0 for categories with no transactions. */
@@ -23,21 +56,15 @@ export function buildFinancialFields(
   financials: InvestmentFinancialsT,
   expenseCategories: { id: number; name: string }[],
 ): FinancialFieldT[] {
-  const { categoryCosts, totalIncome, totalLaborCosts, totalRabat, totalMaterialCosts } = financials
-
-  // Material costs not attributed to any expense category — in practice legacy
-  // corrections entered before the category became required. They count toward
-  // totalMaterialCosts (and thus the listing's bilans), so they MUST appear here too,
-  // otherwise the detail bilans (sum of these fields) drifts below the listing's.
-  const categorised = categoryCosts.reduce((sum, c) => sum + c.total, 0)
-  const uncategorised = totalMaterialCosts - categorised
+  const { categoryCosts, totalIncome, totalLaborCosts, totalRabat } = financials
+  const uncategorised = uncategorisedRemainder(financials)
 
   return [
     ...mapCategoryCostsToFields(categoryCosts, expenseCategories),
     ...(uncategorised !== 0
       ? [
           {
-            label: 'Korekta (bez kategorii)',
+            label: KOREKTA_LABEL,
             value: formatPLN(uncategorised),
             amount: -uncategorised,
           },
