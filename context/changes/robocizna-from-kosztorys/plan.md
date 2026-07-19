@@ -380,16 +380,16 @@ None. Read-only; no schema, no data change. Kosztorys data is throwaway pre-dogf
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit`
-- [x] 1.2 Linting passes: `pnpm lint`
+- [x] 1.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit` — 13a81a1f
+- [x] 1.2 Linting passes: `pnpm lint` — 13a81a1f
 
 ### Phase 2: Render the scream in Podsumowanie
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit`
-- [ ] 2.2 Linting passes: `pnpm lint`
-- [ ] 2.3 Unit test passes: `pnpm exec vitest run src/__tests__/kosztorys-reconciliation.test.ts`
+- [x] 2.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit` — PENDING_SHA
+- [x] 2.2 Linting passes: `pnpm lint` — PENDING_SHA
+- [x] 2.3 Unit test passes: `pnpm exec vitest run src/__tests__/kosztorys-reconciliation.test.ts` — PENDING_SHA
 
 ### Phase 3: Investment-page dual display (visually separated) + mismatch
 

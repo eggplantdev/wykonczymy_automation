@@ -2,7 +2,9 @@
 
 import { Fragment, type ReactNode } from 'react'
 import Link from 'next/link'
+import { TriangleAlert } from 'lucide-react'
 import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
+import { HintTooltip } from '@/components/ui/tooltip'
 import {
   computeDoZaplatyRM,
   computePodsumowanie,
@@ -15,8 +17,19 @@ import { formatNet, formatPercent } from '@/lib/kosztorys/format'
 import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import { SUMMARY_LABEL_COL, SUMMARY_VALUE_COL } from '@/components/kosztorys/summary-grid'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
-import type { KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
+import type { KosztorysReconciliationT, ReconT } from '@/lib/kosztorys/reconciliation'
 import { cn } from '@/lib/utils/cn'
+
+// The scream's tooltip: names both compared figures (kosztorys client-view gross vs the transaction
+// sum) and the różnica, so the owner knows what to fix before flipping the investment to rozliczona.
+function mismatchTooltip(recon: ReconT, transactionSubject: string): string {
+  return [
+    `Kosztorys (brutto, ceny klienta): ${formatNet(recon.expectedGross)}`,
+    `${transactionSubject}: ${formatNet(recon.actualGross)}`,
+    `Różnica: ${formatNet(recon.actualGross - recon.expectedGross)}`,
+    'Zweryfikuj przed oznaczeniem inwestycji jako rozliczonej.',
+  ].join('\n')
+}
 
 type PropsT = {
   investmentId: number
@@ -44,6 +57,8 @@ type RowOptsT = {
   discount?: boolean
   danger?: boolean
   hideShare?: boolean
+  // When set, the figure screams: bold red value + a red `!` whose tooltip is this string.
+  mismatch?: string
 }
 
 // The single bottom summary block: the robocizna waterfall (Suma prac wykonanych → Rabat →
@@ -56,6 +71,7 @@ export function KosztorysPodsumowanie({
   materialyBreakdown,
   wplatyNet,
   rabatAmount,
+  reconciliation,
   vatRate,
   moneyAxis,
 }: PropsT) {
@@ -66,7 +82,10 @@ export function KosztorysPodsumowanie({
   const { lacznie } = computePodsumowanie(sumaPracNet, materialyNet, vatRate)
   const doZaplaty = computeDoZaplatyRM(robociznaNet, wplatyNet, materialyNet, vatRate)
   const { net: showNet, gross: showGross } = axisShows(moneyAxis)
-  const hasDiscount = rabatAmount > 0
+  // Force-show the „Rabat" row even at kosztorys-rabat 0, so a RABAT transfer with no kosztorys rabat
+  // can't hide the mismatch — otherwise the one gap population most needs to catch stays invisible.
+  const showRabat =
+    rabatAmount > 0 || reconciliation.rabat.actualGross > 0 || reconciliation.rabat.mismatch
   const sumaPrac = summaryLine(sumaPracNet, lacznie.net, vatRate)
   const rabat = moneyPair(rabatAmount, vatRate)
   const wplaty = moneyPair(wplatyNet, vatRate)
@@ -96,11 +115,19 @@ export function KosztorysPodsumowanie({
       opts.bold && 'font-bold',
       opts.discount && 'text-chart-green',
       opts.danger && 'text-destructive',
+      opts.mismatch && 'text-destructive font-bold',
     )
     return (
       <Fragment>
         <span className={cn(labelCell, opts.emphasize && 'font-medium', opts.bold && 'font-bold')}>
-          {label}
+          <span className="inline-flex items-center gap-1">
+            {label}
+            {opts.mismatch && (
+              <HintTooltip content={opts.mismatch} className="text-destructive">
+                <TriangleAlert className="size-3.5" aria-label="Niezgodność z transakcjami" />
+              </HintTooltip>
+            )}
+          </span>
         </span>
         {showNet && <span className={money}>{formatNet(line.net)}</span>}
         {showGross && <span className={money}>{formatNet(line.gross)}</span>}
@@ -120,7 +147,11 @@ export function KosztorysPodsumowanie({
           <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Brutto</span>
         )}
         <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Udział</span>
-        {row('Suma prac wykonanych', sumaPrac)}
+        {row('Suma prac wykonanych', sumaPrac, {
+          mismatch: reconciliation.robocizna.mismatch
+            ? mismatchTooltip(reconciliation.robocizna, 'Transakcje robocizny')
+            : undefined,
+        })}
         {materialyBreakdown
           .filter((item) => item.net !== 0)
           .map((item) => (
@@ -143,7 +174,13 @@ export function KosztorysPodsumowanie({
         {row('Łącznie', lacznie, { emphasize: true, hideShare: true })}
       </div>
       <div style={{ gridTemplateColumns }} className="border-border bg-border grid gap-px border">
-        {hasDiscount && row('Rabat', rabat, { discount: true })}
+        {showRabat &&
+          row('Rabat', rabat, {
+            discount: true,
+            mismatch: reconciliation.rabat.mismatch
+              ? mismatchTooltip(reconciliation.rabat, 'Transakcje rabatu')
+              : undefined,
+          })}
         {row(
           <Link
             href={`/inwestycje/${investmentId}?type=${DEPOSIT_TYPES.join(',')}`}

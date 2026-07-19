@@ -315,10 +315,12 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     () => sectionSubtotalsForView(rows, stages, 'client'),
     [rows, stages],
   )
-  // doneNet + rabatClientNet route through the shared helper the investment page also calls, so the
-  // two verification surfaces can't drift (reconciliation, lessons.md). rabatClientNet is client-view
-  // and view-independent — the rabat comparison must not move with the price-view toggle.
-  const { doneNet, rabatClientNet } = useMemo(
+  // doneNet feeds the progress counter (÷ plannedNet, both post-rabat); sumaPracNet + rabatClientNet
+  // feed the reconciliation and route through the shared helper the investment page also calls, so the
+  // two verification surfaces can't drift (reconciliation, lessons.md). All three are client-view and
+  // view-independent — the progress ratio and the robocizna/rabat comparison must not move with the
+  // price-view toggle.
+  const { doneNet, sumaPracNet, rabatClientNet } = useMemo(
     () => kosztorysClientTotals(rows, stages, globalDiscount),
     [rows, stages, globalDiscount],
   )
@@ -1032,6 +1034,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     plannedQtyTotal,
     stages,
     doneNet,
+    sumaPracNet,
     rabatClientNet,
     plannedNet,
     sectionCoeffs,

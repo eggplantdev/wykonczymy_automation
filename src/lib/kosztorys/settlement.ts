@@ -14,8 +14,14 @@ import type {
 } from '@/lib/kosztorys/types'
 
 export type KosztorysClientTotalsT = {
-  // „Suma prac wykonanych" at client prices, pre-rabat — Σ executed net.
+  // Executed value at client prices, POST-rabat (Σ section net). The progress counter divides it by
+  // the equally post-rabat plannedNet, so both sides of the ratio carry the rabat consistently.
   doneNet: number
+  // „Suma prac wykonanych" at client prices, PRE-rabat — the executed value before any discount, so
+  // it lines up with Σ LABOR_COST (a pre-rabat billing figure; rabat is a separate transfer). Under a
+  // global discount the rows are already gross, so this is Σ net; under per-item rabat it adds the
+  // taken discount back (Σ net + Σ discount) — the same figure the Podsumowanie „Suma prac" row shows.
+  sumaPracNet: number
   // The client-view rabat: the global discount when active, else Σ per-item rabat. The two are
   // mutually exclusive (a live global discount forces every row gross, zeroing its per-item rabat),
   // so their sum is whichever mode is active.
@@ -37,11 +43,16 @@ export function kosztorysClientTotals(
   globalDiscount: GlobalDiscountT,
 ): KosztorysClientTotalsT {
   const subtotals = sectionSubtotalsForView(rows, stages, 'client')
+  // `net` is post-rabat (netForQtyForView applies the discount); `discount` is the rabat taken. The
+  // global discount comes off the executed work, so its base is the post-item-rabat net (which under a
+  // global discount is the full gross, per-item rabat being zeroed).
   const doneNet = subtotals.reduce((sum, s) => sum + s.net, 0)
-  const rabatClientNet =
-    globalDiscountAmount(doneNet, globalDiscount) +
-    subtotals.reduce((sum, s) => sum + s.discount, 0)
-  return { doneNet, rabatClientNet }
+  const itemRabatNet = subtotals.reduce((sum, s) => sum + s.discount, 0)
+  return {
+    doneNet,
+    sumaPracNet: doneNet + itemRabatNet,
+    rabatClientNet: globalDiscountAmount(doneNet, globalDiscount) + itemRabatNet,
+  }
 }
 
 /** The "Pomiar z natury" itself — the sheet's O = SUM(D:M), not a stored field (EX-494). */

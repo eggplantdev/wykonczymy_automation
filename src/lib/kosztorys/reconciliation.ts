@@ -17,8 +17,8 @@ export type KosztorysReconciliationT = {
 }
 
 type InputT = {
-  // „Suma prac wykonanych" at client prices, pre-rabat (net).
-  doneNet: number
+  // „Suma prac wykonanych" at client prices, pre-rabat (net) — lines up with Σ LABOR_COST.
+  sumaPracNet: number
   // The client-view rabat (net) — global discount when active, else Σ per-item rabat.
   rabatClientNet: number
   vatRate: number
@@ -44,14 +44,14 @@ function reconcile(expectedGross: number, actualGross: number): ReconT {
  * surfaces render (`context/foundation/lessons.md`).
  */
 export function buildKosztorysReconciliation({
-  doneNet,
+  sumaPracNet,
   rabatClientNet,
   vatRate,
   investmentRobocizna,
   investmentRabat,
 }: InputT): KosztorysReconciliationT {
   return {
-    robocizna: reconcile(toGross(doneNet, vatRate), investmentRobocizna),
+    robocizna: reconcile(toGross(sumaPracNet, vatRate), investmentRobocizna),
     rabat: reconcile(toGross(rabatClientNet, vatRate), investmentRabat),
   }
 }
