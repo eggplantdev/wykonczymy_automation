@@ -5,7 +5,12 @@ import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
 import { toGross } from '@/lib/kosztorys/calc'
 import { formatNet } from '@/lib/kosztorys/format'
 import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
-import { SUMMARY_LABEL_COL, SUMMARY_VALUE_COL } from '@/components/kosztorys/summary-grid'
+import {
+  NOT_APPLICABLE,
+  NOT_APPLICABLE_CELL,
+  SUMMARY_LABEL_COL,
+  SUMMARY_VALUE_COL,
+} from '@/components/kosztorys/summary-grid'
 import { Fragment, type ReactNode } from 'react'
 import { cn } from '@/lib/utils/cn'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
@@ -19,7 +24,8 @@ type PropsT = {
   // not a netto/brutto pair — so it renders on one row regardless of the money axis.
   zaliczkiByStage: Record<number, number>
   // Wpłaty netto — every deposit on the investment (totalIncome). The remainder over the tagged
-  // zaliczki is shown in a „Bez etapu" column so the Zaliczki row reconciles to the full Wpłaty.
+  // zaliczki is shown in a „Bez etapu" column so the row reconciles to the full Wpłaty — which is
+  // why the row is labelled „Wpłaty", not „Zaliczki": its Razem is every deposit, tagged or not.
   wplatyNet: number
   // R netto — suma prac wykonanych: the executed total at the active view (Σ of the etap totals).
   wykonaneNet: number
@@ -59,7 +65,7 @@ export function KosztorysEtapTotals({
   const labelCell = 'bg-background px-3 py-1'
   const valueCell = 'bg-background px-3 py-1 text-right tabular-nums'
 
-  // Netto / Brutto / Zaliczki share one shape — a label, a per-etap cell, an optional „Bez etapu"
+  // Netto / Brutto / Wpłaty share one shape — a label, a per-etap cell, an optional „Bez etapu"
   // cell, and the bold row total.
   const row = (
     label: ReactNode,
@@ -75,7 +81,13 @@ export function KosztorysEtapTotals({
           {cell(st)}
         </span>
       ))}
-      {showPoza && <span className={cn(valueCell, valueClass)}>{poza}</span>}
+      {/* Netto/Brutto pass no `poza` — those figures only exist per etap. Spelled out rather than
+          left blank: an empty cell reads as „nie policzyliśmy", not „nie liczymy tego tutaj". */}
+      {showPoza && (
+        <span className={cn(valueCell, poza ? valueClass : NOT_APPLICABLE_CELL)}>
+          {poza || NOT_APPLICABLE}
+        </span>
+      )}
       <span className={cn(valueCell, 'font-medium', valueClass)}>{total}</span>
     </Fragment>
   )
@@ -115,7 +127,7 @@ export function KosztorysEtapTotals({
                 href={`/inwestycje/${investmentId}?type=${DEPOSIT_TYPES.join(',')}`}
                 className="hover:underline"
               >
-                Zaliczki
+                Wpłaty
               </Link>,
               (st) => formatNet(zaliczkiByStage[st.id] ?? 0),
               formatNet(zaliczkiTotal + pozaEtapem),
