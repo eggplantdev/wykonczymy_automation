@@ -6,7 +6,34 @@ Only what's true for THIS repo and not inferable from the framework or `@package
 
 Business management dashboard for cash registers, transfers, investments, and employees. Next.js + Payload CMS. **Polish UI, English code.** Code comments are always in English, even when the UI strings they sit next to are Polish. Versions in `@package.json`.
 
-**English-code carve-out — sheet proper nouns only.** The one class of Polish identifier allowed is a **name of a specific artifact in the owner's sheet** with **no faithful English equivalent** (`kosztorys`, `przedmiar`, `pomiar`…), kept as ubiquitous language. The test is the English equivalent, not "the sheet says it in Polish" — the sheet also says `etapy` / `rabat` / `robocizna`, all of which DO have clean English words. **Everything else is English** — generic figures are NOT sheet nouns: use `balance` / `margin` / `discount` / `deposit` / `payout` / `loss` / `laborCosts` / `stage`, never `bilans` / `marza` / `rabat` / `wplaty` / `wyplaty` / `strata` / `robocizna` / `etap` (`robocizna`→`laborCosts` and `etap`→`stage` were treated as proper nouns until it turned out each has a clean English equivalent already dominant in code — `stage*` outnumbers `etap`-identifiers ~15:1 — so they're Polish in UI labels and prose only). The cardinal sin is **one concept, two names**: a figure must carry the _same_ identifier in kosztorys as on the transfers side (`src/collections/transfers.ts`, `src/lib/db`), so nobody translates across the recon seam. **No half-translated identifiers** — a Polish root welded to an English affix (`robociznaNet`, `zaliczkiByStage`, `wplatyNet`, `rabatClientNet`) is banned outright; one identifier is one language, and per the rule above that language is English. The canonical identifier per concept, the App↔Code translation, and the drift still to fix live in the glossary `@context/domain/02-glossary.md` (backed by **EX-548**) — consult it before naming a financial figure.
+### Naming a financial figure
+
+Canonical identifiers, the App↔Code translation, and the drift still to fix live in the glossary
+`@context/domain/02-glossary.md` (backed by **EX-548**) — **consult it before naming a figure.** The
+four rules it enforces:
+
+1. **Polish only for sheet proper nouns.** A Polish identifier survives only as the name of a
+   specific artifact in the owner's sheet with **no clean English equivalent** (`kosztorys`,
+   `przedmiar`, `pomiar`). The test is the English equivalent, not "the sheet says it in Polish" —
+   the sheet also says `etapy` / `robocizna`, which are `stage` / `laborCosts` in code and stay
+   Polish in UI labels and prose only.
+2. **Everything else is English.** A generic figure is not a sheet noun: `balance` / `margin` /
+   `discount` / `deposit` / `payout` / `loss` — never `bilans` / `marza` / `rabat` / `wplaty` /
+   `wyplaty` / `strata`.
+3. **No half-translated identifiers.** A Polish root welded to an English affix (`robociznaNet`,
+   `zaliczkiByStage`, `wplatyNet`) is banned outright — one identifier is one language, and that
+   language is English.
+4. **One concept, one name** — the cardinal sin is two. A figure carries the _same_ identifier in
+   kosztorys as on the transfers side (`src/collections/transfers.ts`, `src/lib/db`), so nobody
+   translates across the recon seam.
+
+**Plane suffix — the only exception to rule 4.** Where a concept genuinely exists on _both_ the
+kosztorys and the transactions plane and the reconciliation compares the two, keep the base name
+identical and append `FromKosztorys` / `FromTransactions` — `laborCostsNetFromKosztorys` /
+`laborCostsNetFromTransactions`. The shared prefix keeps the pair legible as one concept.
+**Only where two planes actually collide:** a one-plane figure stays bare (`depositsByStage`), as
+does an aggregate at its own source (`totalLaborCosts`). The suffix warns that a twin exists —
+hang it on everything and it stops warning.
 
 ## The Owner's Reference Sheet (read this before touching kosztorys)
 
