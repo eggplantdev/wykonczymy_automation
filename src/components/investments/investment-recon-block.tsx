@@ -12,7 +12,7 @@ import { formatPLN } from '@/lib/utils/format-currency'
 import { cn } from '@/lib/utils/cn'
 
 const RECON_LINES = [
-  { label: 'Robocizna', key: 'robocizna', subject: 'Transakcje robocizny' },
+  { label: 'Robocizna', key: 'laborCosts', subject: 'Transakcje robocizny' },
   { label: 'Rabat', key: 'rabat', subject: 'Transakcje rabatu' },
 ] as const
 
@@ -50,7 +50,7 @@ export async function InvestmentReconBlock({ investmentId }: PropsT) {
   const reconciliation = buildKosztorysReconciliation({
     sumaPracNet,
     rabatClientNet,
-    investmentRobocizna: financials.totalLaborCosts,
+    investmentLaborCosts: financials.totalLaborCosts,
     investmentRabat: financials.totalRabat,
   })
 

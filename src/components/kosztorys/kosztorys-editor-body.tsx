@@ -34,7 +34,7 @@ type PropsT = {
   wplatyNet: number
   zaliczkiByStage: Record<number, number>
   // Transaction-sourced robocizna/rabat (Σ LABOR_COST / Σ RABAT) — the reconciliation "actual" side.
-  investmentRobocizna: number
+  investmentLaborCosts: number
   investmentRabat: number
   onOpenVersions: () => void
 }
@@ -50,7 +50,7 @@ export function KosztorysEditorBody({
   materialyBreakdown,
   wplatyNet,
   zaliczkiByStage,
-  investmentRobocizna,
+  investmentLaborCosts,
   investmentRabat,
   onOpenVersions,
 }: PropsT) {
@@ -71,7 +71,7 @@ export function KosztorysEditorBody({
     sumaPracNet,
     rabatClientNet,
     rabatAmount,
-    doZaplatyNet,
+    laborCostsNet,
     view,
     moneyAxis,
     sectionCoeffs,
@@ -141,10 +141,10 @@ export function KosztorysEditorBody({
       buildKosztorysReconciliation({
         sumaPracNet,
         rabatClientNet,
-        investmentRobocizna,
+        investmentLaborCosts,
         investmentRabat,
       }),
-    [sumaPracNet, rabatClientNet, investmentRobocizna, investmentRabat],
+    [sumaPracNet, rabatClientNet, investmentLaborCosts, investmentRabat],
   )
 
   // Viewport minus the shell's chrome: the h-14 TopNav always, plus the h-14 AppFooter, which only
@@ -198,7 +198,7 @@ export function KosztorysEditorBody({
             stageTotals={stageTotals}
             zaliczkiByStage={zaliczkiByStage}
             totalNet={totalNet}
-            doZaplatyNet={doZaplatyNet}
+            laborCostsNet={laborCostsNet}
             materialyNet={materialsNet}
             materialyBreakdown={materialyBreakdown}
             wplatyNet={wplatyNet}

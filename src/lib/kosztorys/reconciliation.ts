@@ -14,7 +14,7 @@ export type ReconT = {
 }
 
 export type KosztorysReconciliationT = {
-  robocizna: ReconT
+  laborCosts: ReconT
   rabat: ReconT
 }
 
@@ -24,7 +24,7 @@ type InputT = {
   // The client-view rabat (net) — global discount when active, else Σ per-item rabat.
   rabatClientNet: number
   // Transaction-sourced robocizna: Σ LABOR_COST on the investment (netto).
-  investmentRobocizna: number
+  investmentLaborCosts: number
   // Transaction-sourced rabat: Σ RABAT on the investment (netto).
   investmentRabat: number
 }
@@ -66,11 +66,11 @@ export function reconciliationTooltip(
 export function buildKosztorysReconciliation({
   sumaPracNet,
   rabatClientNet,
-  investmentRobocizna,
+  investmentLaborCosts,
   investmentRabat,
 }: InputT): KosztorysReconciliationT {
   return {
-    robocizna: reconcile(sumaPracNet, investmentRobocizna),
+    laborCosts: reconcile(sumaPracNet, investmentLaborCosts),
     rabat: reconcile(rabatClientNet, investmentRabat),
   }
 }
