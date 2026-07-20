@@ -1,18 +1,11 @@
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
 import { after } from 'next/server'
 import { EXPENSES_TAB_TYPES, SHEET_TRANSFER_TAB_TYPES } from '@/lib/constants/transfers'
+import { resolveId } from '@/lib/utils/resolve-id'
 
 // sheets-sync is a 'use server' module (it pulls in `server-only` + the Payload
 // config), so it's imported LAZILY inside after() — a static import here would poison
 // the transactions collection's import graph for client/test contexts that load it.
-
-const resolveId = (value: unknown): number | undefined => {
-  if (typeof value === 'number') return value
-  if (typeof value === 'object' && value !== null && 'id' in value) {
-    return (value as { id: number }).id
-  }
-  return undefined
-}
 
 // Mirror transaction mutations into the kosztorys sheet from the COLLECTION layer,
 // so EVERY mutation path is covered — the server actions AND direct Payload admin
