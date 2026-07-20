@@ -195,6 +195,14 @@ describe('validateTransfer — auto-clear behavior', () => {
     expect(result.kosztorysStage).toBe(7)
   })
 
+  it('investment moved AND the etap re-picked → the new tag is respected, not cleared', () => {
+    const data = { ...VALID_DATA.INVESTOR_DEPOSIT, investment: 2, kosztorysStage: 9 }
+    const result = validateTransfer(
+      hookArgs(data, { operation: 'update', originalDoc: { investment: 1, kosztorysStage: 7 } }),
+    )
+    expect(result.kosztorysStage).toBe(9)
+  })
+
   it('create with no originalDoc → tag untouched', () => {
     const data = { ...VALID_DATA.INVESTOR_DEPOSIT, kosztorysStage: 7 }
     const result = validateTransfer(hookArgs(data, { operation: 'create' }))

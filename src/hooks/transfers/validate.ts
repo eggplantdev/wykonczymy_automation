@@ -112,13 +112,16 @@ export const validateTransfer: CollectionBeforeValidateHook = ({
     d.kosztorysStage = null
   }
 
-  // An etap belongs to exactly one investment's kosztorys, and create proved the tag was valid
-  // for the investment it was filed under — so moving the transfer to a different investment is
-  // itself proof the tag is now orphaned, no membership lookup needed. Payload hands `data` as
-  // the FULL merged doc on update, so a missing investment here means cleared, not untouched.
+  // An etap belongs to exactly one investment's kosztorys, so moving the transfer to a different
+  // investment orphans a tag it CARRIED OVER: create proved that tag valid for the old investment,
+  // which is itself proof it is wrong for the new one — no membership lookup needed. Payload hands
+  // `data` as the FULL merged doc on update, so `investment` here is already the new value.
+  // A write that re-picks the etap is the caller retargeting it deliberately (the admin panel can
+  // change both at once); leave that alone or it silently eats a valid re-tag.
   if (operation === 'update' && originalDoc && d.kosztorysStage != null) {
     const previous = originalDoc as TransferData
-    if (resolveId(d.investment) !== resolveId(previous.investment)) {
+    const carriedOver = resolveId(d.kosztorysStage) === resolveId(previous.kosztorysStage)
+    if (carriedOver && resolveId(d.investment) !== resolveId(previous.investment)) {
       d.kosztorysStage = null
     }
   }

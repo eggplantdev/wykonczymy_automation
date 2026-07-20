@@ -109,4 +109,27 @@ describe.skipIf(!ENV_READY)('orphaned etap tag on investment change (DB)', () =>
     expect(persisted.description).toBe('zaliczka po edycji')
     expect(persisted.kosztorysStage).toBe(stageId)
   })
+
+  it('investment moved AND the etap re-picked in one write → the new tag survives', async () => {
+    const id = await makeTaggedDeposit()
+    const stageB = await payload.create({
+      collection: 'kosztorys-stages',
+      data: { investment: investmentB, ordinal: 9912, label: 'etap inwestycji B' },
+      depth: 0,
+    })
+
+    await payload.update({
+      collection: 'transactions',
+      id,
+      data: { investment: investmentB, kosztorysStage: stageB.id },
+      depth: 0,
+    })
+
+    const persisted = await payload.findByID({ collection: 'transactions', id, depth: 0 })
+    expect(persisted.investment).toBe(investmentB)
+    expect(persisted.kosztorysStage).toBe(stageB.id)
+
+    await payload.delete({ collection: 'transactions', id })
+    await payload.delete({ collection: 'kosztorys-stages', id: stageB.id })
+  })
 })
