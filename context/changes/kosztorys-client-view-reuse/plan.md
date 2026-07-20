@@ -182,7 +182,7 @@ None — kosztorys share data is throwaway until dogfooding; no backfill or comp
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `pnpm typecheck`
-- [x] 2.2 Linting passes: `pnpm lint`
-- [x] 2.3 Unit tests pass: `pnpm test`
-- [x] 2.4 Production build succeeds: `pnpm build`
+- [x] 2.1 Type checking passes: `pnpm typecheck` — d270ff22
+- [x] 2.2 Linting passes: `pnpm lint` — d270ff22
+- [x] 2.3 Unit tests pass: `pnpm test` — d270ff22
+- [x] 2.4 Production build succeeds: `pnpm build` — d270ff22

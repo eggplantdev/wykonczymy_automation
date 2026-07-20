@@ -761,3 +761,31 @@ Run against the dev app (5433 DB) as OWNER, plus one genuinely logged-out browse
       side by side.
 - [ ] **MANAGER cannot share** — as a MANAGER, „Udostępnij" → „Wygeneruj link" is refused with the
       Polish error; no row appears in `kosztorys_shares`.
+
+## kosztorys-client-view-reuse (S-13 / EX-532)
+
+**Owed 2026-07-20** — implemented, automated checks green (typecheck, lint, 1082 unit tests, build).
+This change replaces the bespoke `ClientKosztorysView`/`ClientKosztorysFooter` render with a read-only
+reuse of the admin `KosztorysEditorBody` in `clientView` mode. The share-link lifecycle boxes in the
+**kosztorys-client-share** section above still stand (that machinery is untouched); the boxes here are
+the render-swap facts those don't cover. Run as OWNER against the dev app plus one logged-out profile.
+
+- [ ] **`/k/<token>` renders the owner grid + footer, read-only** — the real editor grid and totals
+      panel render; **no toolbar** (owner actions/versions), **no section sidebar/summary**, the slim
+      header shows only the investment name + the money-axis toggle.
+- [ ] **Recon scream absent** — the reconciliation mismatch badge (`ReconMismatchBadge`) never appears
+      in the footer, even when the owner editor would show it for the same investment.
+- [ ] **Internal links are plain text** — the materiały category and wpłaty labels render as text, not
+      `<Link>` (no navigation, no href).
+- [ ] **Every cell is non-editable** — clicking any cell opens no editor, typing does nothing; the
+      action column is gone (no add/remove/reorder affordance).
+- [ ] **No save/snapshot network request from the client page** — with DevTools Network open, interact
+      with the grid: **zero** `updateItemField` / autosave / snapshot calls fire (the `clientView`
+      persistence kill-switch holds).
+- [ ] **Section pie is gone from the client view** — the `section-pie` chart no longer renders on the
+      client/preview page (its component is preserved in the codebase but unmounted here — separate
+      slice).
+- [ ] **Owner preview matches the public view** — „Podgląd dla klienta" and `/k/<token>` render
+      identically (same grid, columns, footer), both via the reused body.
+- [ ] **Live owner editor unchanged** — open the normal Kosztorys tab as OWNER: full toolbar, editable
+      grid, section summary, recon scream, versions — all intact (the `clientView` flag defaults off).
