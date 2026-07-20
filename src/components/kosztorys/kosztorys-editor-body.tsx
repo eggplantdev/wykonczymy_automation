@@ -9,6 +9,7 @@ import { DynamicDataSheetGrid } from 'react-datasheet-grid'
 import { KosztorysSectionSummary } from '@/components/kosztorys/kosztorys-section-summary'
 import { KosztorysTotalsPanel } from '@/components/kosztorys/kosztorys-totals-panel'
 import { KosztorysEditorToolbar } from '@/components/kosztorys/kosztorys-editor-toolbar'
+import { MoneyAxisToggle } from '@/components/kosztorys/client/money-axis-toggle'
 import { useKosztorysEditor } from '@/components/kosztorys/use-kosztorys-editor'
 import { KosztorysEditorProvider } from '@/components/kosztorys/use-kosztorys-editor-context'
 import { useUndoKeyboard } from '@/components/kosztorys/use-undo-keyboard'
@@ -36,7 +37,10 @@ type PropsT = {
   // Transaction-sourced robocizna/rabat (Σ LABOR_COST / Σ RABAT) — the reconciliation "actual" side.
   investmentRobocizna: number
   investmentRabat: number
-  onOpenVersions: () => void
+  // Read-only public/preview render: hides the mutation chrome, swaps the toolbar for a slim axis
+  // header, kills persistence, and gates the footer's owner-only bits. The owner path leaves it unset.
+  clientView?: boolean
+  onOpenVersions?: () => void
 }
 
 // The stateful editor: seeds the grid from `tree` at mount (useKosztorysEditor's useState
@@ -52,9 +56,10 @@ export function KosztorysEditorBody({
   zaliczkiByStage,
   investmentRobocizna,
   investmentRabat,
+  clientView = false,
   onOpenVersions,
 }: PropsT) {
-  const editor = useKosztorysEditor({ investmentId, tree })
+  const editor = useKosztorysEditor({ investmentId, tree, clientView })
   const {
     gridRef,
     gridHeight,
@@ -74,6 +79,7 @@ export function KosztorysEditorBody({
     doZaplatyNet,
     view,
     moneyAxis,
+    setMoneyAxis,
     sectionCoeffs,
     summaryOpen,
     setSummaryOpen,
@@ -155,7 +161,14 @@ export function KosztorysEditorBody({
       editor={{ ...editor, investmentId, investmentName, tree, onOpenVersions }}
     >
       <div className="flex h-[calc(100dvh-7rem)] w-full flex-col overflow-hidden lg:h-[calc(100dvh-3.5rem)]">
-        <KosztorysEditorToolbar />
+        {clientView ? (
+          <header className="flex items-center justify-between gap-2 border-b px-3 py-2">
+            <h1 className="truncate text-base font-medium">{investmentName}</h1>
+            <MoneyAxisToggle value={moneyAxis} onChange={setMoneyAxis} />
+          </header>
+        ) : (
+          <KosztorysEditorToolbar />
+        )}
         {/* We measure the container height (flex-1) and pass it to the grid — datasheet-grid
             needs px for virtualization; without it, it renders all 1000 rows.
             The grid track `minmax(0,1fr)` gives a DEFINITE width (= viewport): the grid doesn't
@@ -177,7 +190,7 @@ export function KosztorysEditorBody({
               rowKey={({ rowData }) => String(rowData.id)}
             />
           </div>
-          {summaryOpen && (
+          {!clientView && summaryOpen && (
             <KosztorysSectionSummary
               subtotals={subtotals}
               globalCoeffs={tree.globalCoeffs}
@@ -207,6 +220,7 @@ export function KosztorysEditorBody({
             priceView={view}
             vatRate={tree.vatRate}
             moneyAxis={moneyAxis}
+            clientView={clientView}
           />
         </div>
         {/* Vertical guide while dragging a column edge (left = cursor viewport X). Portaled to body:

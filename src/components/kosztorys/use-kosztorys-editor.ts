@@ -84,7 +84,7 @@ import type {
   KosztorysV2RowT,
 } from '@/lib/kosztorys/types'
 
-type ArgsT = { investmentId: number; tree: KosztorysTreeT }
+type ArgsT = { investmentId: number; tree: KosztorysTreeT; clientView?: boolean }
 
 // A reorder command records the two rows' ids and pre-swap orders. FieldChangeT/StageChangeT (the
 // per-field / per-stage before+after a grid batch records) live with the burst-coalescing reducer.
@@ -98,7 +98,7 @@ const UNDO_COALESCE_MS = 700
 // All editor state, derived data, and handlers for the in-app kosztorys grid. Kept out of the
 // component so the component is only composition + markup. Handlers never fire an action from
 // inside a setRows updater — that would move the Router during render.
-export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
+export function useKosztorysEditor({ investmentId, tree, clientView = false }: ArgsT) {
   const router = useRouter()
   const { save, runNow } = useDebouncedSave(500)
   // Per-mount undo/redo stack, provided by the shell (KosztorysEditorV2). Capture pushes here;
@@ -128,6 +128,9 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   const { widths, setWidth, dropWidth } = useColumnWidths()
   const { isHidden, toggleColumn, setAllColumns } = useHiddenColumns()
   const [moneyAxis, setMoneyAxis] = useMoneyAxis()
+  // A client never gets the 'none' axis — it hides every price column, leaving quantities alone. The
+  // slim client header only offers net/brutto/both, so normalize a stored 'none' up to 'both'.
+  const effectiveMoneyAxis = clientView && moneyAxis === 'none' ? 'both' : moneyAxis
   const [progressDisplay, setProgressDisplay] = useProgressDisplay()
   const [layer, setLayer] = useLayer()
   const [guideX, setGuideX] = useState<number | null>(null)
@@ -240,26 +243,31 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
 
   // onRemoveItem/onReorderItem read prevById.current / rowsRef.current — stable refs —
   // only from a cell's onClick, never during render, so passing them here is safe.
+  // In clientView the grid is read-only (buildV2Grid disables every cell + drops the action column)
+  // and column-filtered to the client-visible set, so every mutation/resize callback is dropped —
+  // there is no control left that could fire them.
   const columnOpts = {
     view,
     stages,
-    onRemoveStage: handleRemoveStage,
-    onRenameStage: handleRenameStage,
+    onRemoveStage: clientView ? undefined : handleRemoveStage,
+    onRenameStage: clientView ? undefined : handleRenameStage,
     sort,
     onSetSort: setSortField,
     isHidden,
-    moneyAxis,
+    moneyAxis: effectiveMoneyAxis,
     progressDisplay,
     layer,
     widths,
-    onGuide: setGuideX,
-    onCommitColumn: setWidth,
-    onRemoveItem: handleRemoveItem,
-    onReorderItem: handleReorderItem,
-    onInsertItem: handleInsertItem,
-    onRenameSection: handleRenameSection,
-    getRemovePlan,
+    onGuide: clientView ? undefined : setGuideX,
+    onCommitColumn: clientView ? undefined : setWidth,
+    onRemoveItem: clientView ? undefined : handleRemoveItem,
+    onReorderItem: clientView ? undefined : handleReorderItem,
+    onInsertItem: clientView ? undefined : handleInsertItem,
+    onRenameSection: clientView ? undefined : handleRenameSection,
+    getRemovePlan: clientView ? undefined : getRemovePlan,
     globalDiscountActive,
+    readOnly: clientView || undefined,
+    clientVisible: clientView || undefined,
   }
   const { columns, columnToggleItems } = buildV2Grid(columnOpts)
   // A column sort must not outlive its column. A money-axis or view toggle can drop the sorted
@@ -955,6 +963,9 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   }
 
   function onChange(next: KosztorysV2RowT[]) {
+    // The load-bearing persistence kill-switch: a clientView grid is read-only, but this guards the
+    // one path that could still POST — so no save, undo capture, or refresh ever fires on the public page.
+    if (clientView) return
     const changedById = new Map<number, KosztorysV2RowT>()
     // One onChange batch (incl. a multi-cell paste) = one composite undo entry; accumulate every
     // field/stage change here and buffer a single coalesced command after the loop.
@@ -1032,7 +1043,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     columnToggleItems,
     toggleColumn,
     setAllColumns,
-    moneyAxis,
+    moneyAxis: effectiveMoneyAxis,
     setMoneyAxis,
     progressDisplay,
     setProgressDisplay,

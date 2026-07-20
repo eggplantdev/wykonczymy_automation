@@ -55,13 +55,18 @@ type PropsT = {
   // The rabat actually taken off the executed robocizna (net zł): the global discount when active,
   // else Σ per-item rabat. Unified upstream so this table shows one explicit „Rabat" line. 0 = none.
   rabatAmount: number
-  // Robocizna/rabat reconciliation verdict — the mismatch scream renders off this.
-  reconciliation: KosztorysReconciliationT
+  // Robocizna/rabat reconciliation verdict — the mismatch scream renders off this. Optional:
+  // clientView suppresses the scream, so the client render need not supply it.
+  reconciliation?: KosztorysReconciliationT
   // Active price view. The verdict compares client-view nets, so the scream only reads correctly in
   // 'client'; a subcontractor view reprices the displayed figure, so the scream is suppressed there.
   priceView: PriceViewT
   vatRate: number
   moneyAxis: MoneyAxisT
+  // Read-only client render: the mismatch scream is an owner-internal signal (a client's view is
+  // always 'client', which is exactly when the scream would fire), and the internal drill-down links
+  // point at owner-only pages — so gate the scream off and render those labels as plain text.
+  clientView?: boolean
 }
 
 // The single bottom summary block: the robocizna waterfall (Suma prac wykonanych → Rabat →
@@ -78,6 +83,7 @@ export function KosztorysPodsumowanie({
   priceView,
   vatRate,
   moneyAxis,
+  clientView = false,
 }: PropsT) {
   // Łącznie is the pre-rabat total (Suma prac + Materiały), so the rows above it reconcile to it;
   // Rabat then deducts from Łącznie down to „Do zapłaty" as its own waterfall line below. robociznaNet
@@ -88,13 +94,15 @@ export function KosztorysPodsumowanie({
   const { net: showNet, gross: showGross } = axisShows(moneyAxis)
   // The scream compares client-view nets; a subcontractor view reprices the displayed figure, so the
   // scream would sit next to a number it isn't comparing. Show it only in the client view.
-  const reconVisible = priceView === 'client'
+  const reconVisible = clientView ? false : priceView === 'client'
   // Force-show the „Rabat" row even at kosztorys-rabat 0, so a RABAT transfer with no kosztorys rabat
   // can't hide the mismatch — otherwise the one gap population most needs to catch stays invisible.
   // Only while the scream is visible; otherwise the row follows the normal „rabat > 0" rule.
   const showRabat =
     rabatAmount > 0 ||
-    (reconVisible && (reconciliation.rabat.actual > 0 || reconciliation.rabat.mismatch))
+    (reconVisible &&
+      !!reconciliation &&
+      (reconciliation.rabat.actual > 0 || reconciliation.rabat.mismatch))
   const sumaPrac = summaryLine(sumaPracNet, lacznie.net, vatRate)
   // Rabat is an obniżka of prace, so it lives on the prace plane and grosses — brutto = rabat×(1+VAT).
   // Grossing it keeps the brutto waterfall exact: Łącznie − rabat − wpłaty = Do zapłaty on both axes
@@ -123,7 +131,7 @@ export function KosztorysPodsumowanie({
         <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Udział</span>
         {row('Suma prac wykonanych', sumaPrac, {
           mismatch:
-            reconVisible && reconciliation.robocizna.mismatch
+            reconVisible && reconciliation?.robocizna.mismatch
               ? mismatchTooltip(reconciliation.robocizna, 'Transakcje robocizny')
               : undefined,
         })}
@@ -132,7 +140,7 @@ export function KosztorysPodsumowanie({
           .map((item) => (
             <Fragment key={item.id ?? 'korekta'}>
               {row(
-                item.id !== null ? (
+                item.id !== null && !clientView ? (
                   <Link
                     href={`/inwestycje/${investmentId}?expenseCategory=${item.id}`}
                     className="hover:underline"
@@ -158,17 +166,21 @@ export function KosztorysPodsumowanie({
             discount: true,
             noShareCell: true,
             mismatch:
-              reconVisible && reconciliation.rabat.mismatch
+              reconVisible && reconciliation?.rabat.mismatch
                 ? mismatchTooltip(reconciliation.rabat, 'Transakcje rabatu')
                 : undefined,
           })}
         {row(
-          <Link
-            href={`/inwestycje/${investmentId}?type=${DEPOSIT_TYPES.join(',')}`}
-            className="hover:underline"
-          >
-            Wpłaty
-          </Link>,
+          clientView ? (
+            'Wpłaty'
+          ) : (
+            <Link
+              href={`/inwestycje/${investmentId}?type=${DEPOSIT_TYPES.join(',')}`}
+              className="hover:underline"
+            >
+              Wpłaty
+            </Link>
+          ),
           wplaty,
           { discount: true, noBrutto: true, noShareCell: true },
         )}
