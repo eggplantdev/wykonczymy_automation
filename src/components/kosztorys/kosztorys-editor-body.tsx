@@ -1,22 +1,41 @@
 'use client'
 
 import 'react-datasheet-grid/dist/style.css'
+import { useMemo } from 'react'
 import { createPortal } from 'react-dom'
 // `DynamicDataSheetGrid`, not `DataSheetGrid`: the library aliases the plain name to
 // StaticDataSheetGrid, which snapshots `columns` via useState at mount (EX-422).
 import { DynamicDataSheetGrid } from 'react-datasheet-grid'
 import { KosztorysSectionSummary } from '@/components/kosztorys/kosztorys-section-summary'
-import { KosztorysTotalsBar } from '@/components/kosztorys/kosztorys-totals-bar'
+import { KosztorysTotalsPanel } from '@/components/kosztorys/kosztorys-totals-panel'
 import { KosztorysEditorToolbar } from '@/components/kosztorys/kosztorys-editor-toolbar'
 import { useKosztorysEditor } from '@/components/kosztorys/use-kosztorys-editor'
 import { KosztorysEditorProvider } from '@/components/kosztorys/use-kosztorys-editor-context'
 import { useUndoKeyboard } from '@/components/kosztorys/use-undo-keyboard'
+import {
+  makeSpacerRow,
+  makeTotalsRow,
+  SPACER_ROW_ID,
+  TOTALS_ROW_ID,
+  withTotalsRow,
+} from '@/components/kosztorys/kosztorys-totals-row'
+import { toGross } from '@/lib/kosztorys/calc'
+import { buildKosztorysReconciliation } from '@/lib/kosztorys/reconciliation'
+import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
+import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 
 type PropsT = {
   investmentId: number
   tree: KosztorysTreeT
   investmentName: string
+  materialsNet: number
+  materialyBreakdown: MaterialyBreakdownRowT[]
+  wplatyNet: number
+  zaliczkiByStage: Record<number, number>
+  // Transaction-sourced robocizna/rabat (Σ LABOR_COST / Σ RABAT) — the reconciliation "actual" side.
+  laborCostsNetFromTransactions: number
+  investmentRabat: number
   onOpenVersions: () => void
 }
 
@@ -27,6 +46,12 @@ export function KosztorysEditorBody({
   investmentId,
   tree,
   investmentName,
+  materialsNet,
+  materialyBreakdown,
+  wplatyNet,
+  zaliczkiByStage,
+  laborCostsNetFromTransactions,
+  investmentRabat,
   onOpenVersions,
 }: PropsT) {
   const editor = useKosztorysEditor({ investmentId, tree })
@@ -37,8 +62,17 @@ export function KosztorysEditorBody({
     viewRows,
     guideX,
     subtotals,
-    discountAmount,
-    doZaplatyNet,
+    stageTotals,
+    stageQtyTotals,
+    plannedQtyTotal,
+    remainingTotals,
+    stages,
+    totalNet,
+    sumaPracNet,
+    rabatClientNet,
+    rabatAmount,
+    laborCostsNetFromKosztorys,
+    view,
     moneyAxis,
     sectionCoeffs,
     summaryOpen,
@@ -52,6 +86,66 @@ export function KosztorysEditorBody({
   } = editor
 
   useUndoKeyboard(editor.undo, editor.redo)
+
+  // The „Razem" totals row is a real last grid row, so per-column sums stay aligned and scroll with
+  // the grid for free. columnTotals bakes one sum per summable column id; withTotalsRow renders it.
+  const columnTotals = useMemo(() => {
+    const totals = new Map<string, number>()
+    // Money: executed value + offered przedmiar, net and gross. The Przedmiar „Razem" must track
+    // the active price view (its column reprices per view), so sum the view-aware subtotals — NOT
+    // the hook's `plannedNet`, which is fixed to client prices for the progress counter.
+    const plannedNetForView = subtotals.reduce((sum, section) => sum + section.plannedNet, 0)
+    totals.set('net', totalNet)
+    totals.set('gross', toGross(totalNet, tree.vatRate))
+    totals.set('plannedNet', plannedNetForView)
+    totals.set('plannedGross', toGross(plannedNetForView, tree.vatRate))
+    totals.set('remaining', remainingTotals.net)
+    totals.set('remainingGross', remainingTotals.gross)
+    // Qty (Pomiar z natury): per-etap column, their sum, and the offered przedmiar column.
+    let qtySum = 0
+    for (const stage of stages) {
+      const stageQty = stageQtyTotals.get(stage.id) ?? 0
+      qtySum += stageQty
+      totals.set(stageKey(stage.id), stageQty)
+      const stageNet = stageTotals.get(stage.id) ?? 0
+      totals.set(stageValueNetKey(stage.id), stageNet)
+      totals.set(stageValueGrossKey(stage.id), toGross(stageNet, tree.vatRate))
+    }
+    totals.set('stageQtySum', qtySum)
+    totals.set('plannedQty', plannedQtyTotal)
+    return totals
+  }, [
+    stages,
+    stageTotals,
+    stageQtyTotals,
+    plannedQtyTotal,
+    remainingTotals,
+    totalNet,
+    subtotals,
+    tree.vatRate,
+  ])
+
+  const gridColumns = useMemo(
+    () => columns.map((column) => withTotalsRow(column, columnTotals)),
+    [columns, columnTotals],
+  )
+  const gridRows = useMemo(() => [...viewRows, makeSpacerRow(), makeTotalsRow()], [viewRows])
+  const isSyntheticRow = (id: number) => id === SPACER_ROW_ID || id === TOTALS_ROW_ID
+
+  // Reconciliation verdict for the Podsumowanie scream: kosztorys client-view nets (sumaPracNet /
+  // rabatClientNet, view-independent) vs the investment's transaction sums — net to net, since the
+  // ledger carries no VAT. Built via the shared lib fn — the same one the investment page calls — so
+  // the two surfaces can't disagree.
+  const reconciliation = useMemo(
+    () =>
+      buildKosztorysReconciliation({
+        sumaPracNet,
+        rabatClientNet,
+        laborCostsNetFromTransactions,
+        investmentRabat,
+      }),
+    [sumaPracNet, rabatClientNet, laborCostsNetFromTransactions, investmentRabat],
+  )
 
   // Viewport minus the shell's chrome: the h-14 TopNav always, plus the h-14 AppFooter, which only
   // renders below `lg` (hence the two calcs — subtracting it at every width would leave a dead band
@@ -72,9 +166,10 @@ export function KosztorysEditorBody({
           <div ref={gridRef} className="grid min-h-0 min-w-0 flex-1 grid-cols-1 overflow-hidden">
             <DynamicDataSheetGrid
               className="kosztorys-grid"
-              value={viewRows}
-              onChange={onChange}
-              columns={columns}
+              value={gridRows}
+              // Strip the appended spacer + „Razem" rows before the editor's diff sees them — display-only.
+              onChange={(rows) => onChange(rows.filter((row) => !isSyntheticRow(row.id)))}
+              columns={gridColumns}
               height={gridHeight}
               rowHeight={32}
               headerRowHeight={32}
@@ -95,13 +190,25 @@ export function KosztorysEditorBody({
               onSectionCoeffChange={handleSectionCoeffChange}
             />
           )}
+          {/* Overlays the grid's bottom edge instead of consuming a flex track — the grid keeps its
+              full height and its last rows scroll under the (opaque) panel rather than being pushed up. */}
+          <KosztorysTotalsPanel
+            investmentId={investmentId}
+            stages={stages}
+            stageTotals={stageTotals}
+            zaliczkiByStage={zaliczkiByStage}
+            totalNet={totalNet}
+            laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
+            materialyNet={materialsNet}
+            materialyBreakdown={materialyBreakdown}
+            wplatyNet={wplatyNet}
+            rabatAmount={rabatAmount}
+            reconciliation={reconciliation}
+            priceView={view}
+            vatRate={tree.vatRate}
+            moneyAxis={moneyAxis}
+          />
         </div>
-        <KosztorysTotalsBar
-          discountAmount={discountAmount}
-          doZaplatyNet={doZaplatyNet}
-          vatRate={tree.vatRate}
-          moneyAxis={moneyAxis}
-        />
         {/* Vertical guide while dragging a column edge (left = cursor viewport X). Portaled to body:
             <main> uses transform-gpu, which would otherwise make this `fixed` element measure `left`
             from <main> (sidebar-offset) instead of the viewport — same containing-block trap as the

@@ -6,13 +6,17 @@ Only what's true for THIS repo and not inferable from the framework or `@package
 
 Business management dashboard for cash registers, transfers, investments, and employees. Next.js + Payload CMS. **Polish UI, English code.** Code comments are always in English, even when the UI strings they sit next to are Polish. Versions in `@package.json`.
 
+**English-code carve-out — sheet proper nouns only.** The one class of Polish identifier allowed is a **name of a specific artifact in the owner's sheet** with **no faithful English equivalent** (`kosztorys`, `przedmiar`, `pomiar`…), kept as ubiquitous language. The test is the English equivalent, not "the sheet says it in Polish" — the sheet also says `etapy` / `rabat` / `robocizna`, all of which DO have clean English words. **Everything else is English** — generic figures are NOT sheet nouns: use `balance` / `margin` / `discount` / `deposit` / `payout` / `loss` / `laborCosts` / `stage`, never `bilans` / `marza` / `rabat` / `wplaty` / `wyplaty` / `strata` / `robocizna` / `etap` (`robocizna`→`laborCosts` and `etap`→`stage` were treated as proper nouns until it turned out each has a clean English equivalent already dominant in code — `stage*` outnumbers `etap`-identifiers ~15:1 — so they're Polish in UI labels and prose only). The cardinal sin is **one concept, two names**: a figure must carry the _same_ identifier in kosztorys as on the transfers side (`src/collections/transfers.ts`, `src/lib/db`), so nobody translates across the recon seam. **No half-translated identifiers** — a Polish root welded to an English affix (`robociznaNet`, `zaliczkiByStage`, `wplatyNet`, `rabatClientNet`) is banned outright; one identifier is one language, and per the rule above that language is English. The canonical identifier per concept, the App↔Code translation, and the drift still to fix live in the glossary `@context/domain/02-glossary.md` (backed by **EX-548**) — consult it before naming a financial figure.
+
 ## The Owner's Reference Sheet (read this before touching kosztorys)
 
 The kosztorys editor is a port of a live Google Sheet. **The sheet is the domain authority** — when a
 question is "what does this figure mean to the business", read the sheet's formulas, don't reason from
 our code. Ours is the copy; theirs is the original.
 
-**One register per message — never mixed.** Talk kosztorys in the sheet's names: „Przedmiar", „Pomiar
+**One register per message — never mixed.** This governs **how the agent talks to the owner**, not
+identifier naming — that's the `Polish UI, English code` rule above; never read this as license for
+Polish code identifiers. Talk kosztorys in the sheet's names: „Przedmiar", „Pomiar
 z natury", „etapy", „Cena j.m.", „rabat", „Wartość netto przedmiar". **Never** `plannedQty` /
 `measuredQty` / `rowValueForView`, and never both registers in one message — not even as a
 parenthetical gloss or a mapping column. Sheet names for any domain/design conversation; code

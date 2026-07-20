@@ -59,6 +59,7 @@ const mockRefData: ReferenceDataBaseT = {
   ],
   otherCategories: [],
   expenseCategories: [],
+  kosztorysStagesByInvestment: {},
 }
 
 vi.mock('@/lib/queries/reference-data', () => ({

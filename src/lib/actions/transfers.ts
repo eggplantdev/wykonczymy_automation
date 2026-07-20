@@ -25,6 +25,7 @@ import { syncBulkExpensesToSheet } from './sheets-sync'
 import { validateAction, protectedAction } from './run-action'
 import { validateSourceRegister } from './validate-source-register'
 import { logError } from '@/lib/utils/log-error'
+import { resolveId } from '@/lib/utils/resolve-id'
 
 export async function createTransferAction(data: CreateTransferFormT, invoiceMediaId?: number) {
   return protectedAction(
@@ -41,6 +42,24 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
         const validated = await validateSourceRegister(data.sourceRegister, payload)
         console.log(`[PERF]   validateSourceRegister ${step()}ms`)
         if (!validated.success) return validated
+      }
+
+      if (parsed.data.kosztorysStage != null) {
+        // The schema already gates the tag to deposit types; here we confirm the etap actually
+        // belongs to the tagged investment's kosztorys — a stage from another investment is a
+        // client bug or stale form state, never a valid zaliczka. `find` (not `findByID`) so a
+        // stale/deleted id yields an empty result, not Payload's English NotFound throw.
+        const { docs } = await payload.find({
+          collection: 'kosztorys-stages',
+          where: { id: { equals: parsed.data.kosztorysStage } },
+          depth: 0,
+          limit: 1,
+        })
+        const stage = docs[0]
+        if (!stage || resolveId(stage.investment) !== parsed.data.investment) {
+          return { success: false, error: 'Wybrany etap nie należy do tej inwestycji.' }
+        }
+        console.log(`[PERF]   validate kosztorysStage ${step()}ms`)
       }
 
       await payload.create({
@@ -151,8 +170,7 @@ async function fetchAndAuthorize(
   if (original.cancelled) return { error: 'Transakcja jest już anulowana.' }
   if (original.type === 'CANCELLATION') return { error: 'Nie można edytować anulowania.' }
 
-  const creatorId =
-    typeof original.createdBy === 'number' ? original.createdBy : original.createdBy?.id
+  const creatorId = resolveId(original.createdBy)
   const allowed = canMutateTransfer({
     role: user.role,
     userId: user.id,
@@ -240,6 +258,9 @@ export async function updateTransferAction(
       const { amount, ...fields } = parsed.data
       const newAmount = isLaborCost(original.type) ? amount : undefined
       const amountChanged = newAmount !== undefined && newAmount !== original.amount
+
+      // Moving a zaliczka to another investment orphans its etap tag; the collection's
+      // beforeValidate hook clears it, so every write path is covered, not just this action.
 
       await payload.update({
         collection: 'transactions',

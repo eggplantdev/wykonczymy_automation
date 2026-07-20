@@ -277,6 +277,37 @@ Otwarte: która ilość na ofercie — przedmiar (oferta wstępna) czy pomiar
   kategoria/sekcja** → pozycja **dziedziczy** stawkę swojej sekcji. Czyli
   `vat_rate` siedzi na `kosztorys_sections` (+ globalny default w konfiguracji),
   nie na pozycji. (Otwarte: czy potrzebny też override per pojedyncza pozycja.)
+- **VAT dotyczy WYŁĄCZNIE prac (robocizna) — dwie płaszczyzny** (właściciel, 2026-07-19).
+  Oś netto/brutto jest pojęciem **cennika prac**, nie księgi. Rozstrzyga powracające
+  zamieszanie (rabat „100 vs 102", brutto na wydatkach):
+  - **Płaszczyzna cen klienta (prace):** ceny wpisywane netto, `brutto = netto × (1 + vat)`
+    liczone. Oś netto/brutto istnieje TYLKO tu i obejmuje wszystkie 3 warianty ceny
+    (klient + oba podwykonawcy) po stawce inwestycji — spójne z P8 (2026-07-15).
+  - **Płaszczyzna księgi (actuals):** transakcje i wydatki są **netto, bez VAT** — schemat
+    transferów nie ma osi VAT. `LABOR_COST`, `RABAT`, materiały (`INVESTMENT_EXPENSE`),
+    korekty (`CORRECTION`), wpłaty, wypłaty — wszystkie renderują się w **wartości nominalnej,
+    bez doliczania VAT**. „Wpłaty to pieniądze już wpłacone przez inwestora — nie ma czego
+    gruntować"; korekta i wydatki tak samo.
+  - **Rabat też jest na płaszczyźnie prac — gruntuje się** (właściciel, 2026-07-19). Rabat to
+    **obniżka prac**, a nie ruch gotówki ani koszt materiału, więc dzieli oś netto/brutto z
+    pracami: `rabat_brutto = rabat_netto × (1 + vat)`. Dowód z arkusza: `S = N × cena − rabat`,
+    a na osi brutto cała ta linia gruntuje, więc efektywny rabat brutto = `rabat × (1+vat)`.
+    To **odróżnia rabat** od materiałów / korekty / wpłat (te są nominalne). Bez tego brutto-
+    kaskada się nie spina: „Suma prac" brutto − rabat nominalny ≠ „Robocizna" brutto.
+  - **Skutek dla `Podsumowania` (edytor):** kolumna brutto dotyczy wierszy z płaszczyzny prac —
+    „Suma prac wykonanych", **„Rabat"** oraz „Robocizna/Do zapłaty" (gruntowana po rabacie).
+    Materiały budowlane/wykończeniowe, korekta i wpłaty = wartość nominalna (brak wiersza
+    brutto). (Bug 1: wcześniej wszystko gruntowane hurtem przez `toGross(cały net)`; bug 2:
+    rabat błędnie zrzucony do `faceValue` — powinien `moneyPair(…, vatRate)`.)
+  - **Skutek dla rekoncyliacji (strona inwestycji „z kosztorysu", EX-535):** porównanie idzie
+    **netto ↔ netto** dla obu figur — kosztorys suma prac (netto) ↔ Σ `LABOR_COST`, kosztorys
+    rabat (netto) ↔ Σ `RABAT`. Strony kosztorysowej **nie gruntujemy**. To usuwa fałszywy
+    rozjazd o VAT (rabat 100 netto mylnie porównywany z „102 brutto") — sygnalizacja świeci
+    tylko przy realnej różnicy ≥ 1 gr. **Założenie do potwierdzenia:** że transakcja `RABAT`
+    (i `LABOR_COST`) jest wpisywana **netto**. Jeśli właściciel wpisuje rabat myśląc brutto
+    („100% z brutto"), rekoncyliacja musiałaby gruntować stronę kosztorysową dla rabatu —
+    otwarte pytanie EX-539, siostra EX-536 (zaliczka netto/brutto). Patrz
+    `context/changes/robocizna-from-kosztorys/open-questions.md` (Q2).
 - **Rabat dwutrybowy:** `discount_type` ∈ {procent, kwota} + `discount_value`.
   - procent: `wartość = ilość × cena × (1 − %)`
   - kwota: `wartość = ilość × cena − kwota`

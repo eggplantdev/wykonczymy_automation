@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
@@ -9,6 +10,7 @@ import {
 } from '@/lib/queries/reference-data'
 import { deriveFinancials } from '@/lib/db/sum-transfers'
 import { calculateMargin } from '@/lib/db/calculate-margin'
+import { InvestmentReconBlock } from '@/components/investments/investment-recon-block'
 import { buildTransferFilters, stripCancelledFilters } from '@/lib/queries/transfer-filters'
 import { buildFinancialFields, buildSettledFields } from '@/lib/db/map-category-costs'
 import { perfStart } from '@/lib/perf'
@@ -94,6 +96,14 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
         totalPayouts={financials.totalPayouts}
         totalLoss={financials.totalLoss}
         settledFields={settledFields}
+        recon={
+          // Streamed off the critical path: only this block awaits the kosztorys tree (the page's
+          // long-pole fetch); the rest renders immediately. It fetches its own investment-wide
+          // transaction sums so the reconciliation never inherits this page's URL filters.
+          <Suspense fallback={null}>
+            <InvestmentReconBlock investmentId={investmentId} />
+          </Suspense>
+        }
       />
 
       {/* Transactions table */}

@@ -244,11 +244,15 @@
 }
 
 /* height: fills the wrapper so the h-scrollbar can't cover the last row (dsg shrink-wraps otherwise).
-   Negative margins clip the grid's outer top/left border out of the wrapper's overflow-hidden. */
+   Negative margins clip the grid's outer top/left border out of the wrapper's overflow-hidden.
+   padding-bottom extends the scroll extent past the last row by a full viewport, so the „Razem" row
+   can be scrolled up to anywhere on screen rather than only just clearing the floating Podsumowanie
+   panel that overlays the grid's bottom edge. */
 .kosztorys-grid .dsg-container {
   height: 100% !important;
   margin-top: -1px;
   margin-left: -1px;
+  padding-bottom: 100dvh;
 }
 
 /* Retint dsg's native selection blue to the app's monochrome theme (border = primary,

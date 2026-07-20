@@ -371,6 +371,20 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     ),
   ]
 
+  // Komentarz (sheet col T): the row's free-text note. Plain text column — the `note` field is
+  // already diffed/persisted; this only surfaces it in the grid. Sits at the Praca/Postęp seam and
+  // carries the left border, so it doubles as the block divider (layer-neutral → always visible).
+  const komentarz: Column<KosztorysV2RowT>[] = [
+    keyCol('note', textColumn, {
+      id: 'note',
+      title: title('note', COLUMN_LABELS.note, opts, false),
+      minWidth: 200,
+      grow: 1,
+      headerClassName: 'border-l border-border',
+      cellClassName: 'border-l border-border',
+    }),
+  ]
+
   const remaining: Column<KosztorysV2RowT>[] = [
     computedColumn('remaining', title('remaining', COLUMN_LABELS.remaining, opts), (r) =>
       rowRemainingForView(r, stages, view),
@@ -388,15 +402,18 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   ]
 
   // Both blocks keep sheet order: the stage qty columns lead (the sheet's D–M), then Przedmiar (N)
-  // and Pomiar z natury (O), then the value block (V–AE right before AF "pozostało"). The row-actions
-  // column leads the whole grid when editing is enabled — it rides the same assemble→hide→toggle
-  // pipeline as every data column (no special-casing), so the picker can hide it like any other.
+  // and Pomiar z natury (O), then Komentarz (T) at the work/progress seam, then the value block
+  // (U–AE right before AF "pozostało"). The row-actions column leads the whole grid when editing is
+  // enabled — it rides the same assemble→hide→toggle pipeline as every data column (no special-casing),
+  // so the picker can hide it like any other.
   const dataColumns = [
     ...identity,
     ...stageCols,
     ...measure,
     ...pricing,
     ...computed,
+    // Komentarz at the work/progress seam — it is the visual divider now (see the trailing gap column).
+    ...komentarz,
     ...stageValueNetCols,
     ...stageValueGrossCols,
     ...stageValuePercentCols,
@@ -443,7 +460,35 @@ function selectV2Columns(
       )
     })
     .map((c) => withResize(c, opts))
-  return base
+  return appendTrailingGap(base, opts)
+}
+
+// A trailing empty spacer column pinned to the far right of the grid. Resizable (min ≠ max) so its
+// width is the user's call; 48 is only the default basis. The Praca/Postęp divider is now „Komentarz"
+// itself (which carries the border and sits at the seam) — this is just the end-of-grid gap.
+const layerGapColumn: Column<KosztorysV2RowT> = {
+  id: 'layerGap',
+  title: <span />,
+  basis: 48,
+  grow: 0,
+  shrink: 0,
+  minWidth: 24,
+  maxWidth: 400,
+  disabled: true,
+  headerClassName: 'border-l border-border',
+  cellClassName: 'border-l border-border',
+  component: () => null,
+}
+
+// Append the empty spacer to the far right of the visible grid. Inserted here, post-filter, so it
+// never appears in the column picker and always shows. Wrapped in withResize (not in the assembly
+// map, which runs before this append) so it gets a drag handle. The Praca/Postęp divider itself is
+// „Komentarz" at the seam — see assembleV2Columns.
+function appendTrailingGap(
+  columns: Column<KosztorysV2RowT>[],
+  opts: Pick<BuildV2ColumnsOptsT, 'onGuide' | 'onCommitColumn' | 'widths'>,
+): Column<KosztorysV2RowT>[] {
+  return [...columns, withResize(layerGapColumn, opts)]
 }
 
 // Picker entries for the columns this view actually has, in grid order. Stage columns collapse into

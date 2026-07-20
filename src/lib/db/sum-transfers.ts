@@ -9,9 +9,17 @@ import type {
 } from '@/types/investment-financials'
 import { buildSqlConditions, isNoResultsSentinel } from '@/lib/db/where-to-sql'
 import { getDb } from '@/lib/db/get-db'
+import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
 
 // Re-exported so the existing importers of the derive functions keep resolving here.
 export { deriveCategoryBreakdowns, deriveFinancials } from '@/lib/db/investment-financials'
+
+// Parameterized `(type, …)` IN-list derived from the single DEPOSIT_TYPES source, so the
+// deposit-vs-expense split isn't re-inlined as a literal in every balance query.
+const depositTypesInList = sql`(${sql.join(
+  DEPOSIT_TYPES.map((type) => sql`${type}`),
+  sql.raw(', '),
+)})`
 
 /**
  * SUM balance for a cash register using SQL aggregation.
@@ -30,7 +38,7 @@ export const sumRegisterBalance = async (
     SELECT
       COALESCE(SUM(
         CASE
-          WHEN type IN ('INVESTOR_DEPOSIT', 'COMPANY_FUNDING', 'OTHER_DEPOSIT')
+          WHEN type IN ${depositTypesInList}
             THEN amount
           ELSE -amount
         END
@@ -63,7 +71,7 @@ export const sumAllRegisterBalances = async (payload: Payload): Promise<Map<numb
       SELECT source_register_id AS register_id,
         COALESCE(SUM(
           CASE
-            WHEN type IN ('INVESTOR_DEPOSIT', 'COMPANY_FUNDING', 'OTHER_DEPOSIT')
+            WHEN type IN ${depositTypesInList}
               THEN amount
             ELSE -amount
           END
@@ -237,6 +245,32 @@ export const sumCategoryByTypeSettled = async (
     type: row.type as string,
     settled: row.settled === true,
     total: Number(row.total),
+  }))
+}
+
+/**
+ * Fetch the investment's deposit rows (cancelled excluded) with their etap tag. Deposit
+ * count per investment is small, so we return raw rows and let sumZaliczkiByStage filter +
+ * group — keeping the untagged-exclusion rule in one testable pure place.
+ */
+export const sumDepositRowsForInvestment = async (
+  payload: Payload,
+  investmentId: number,
+): Promise<{ type: string; amount: number; kosztorysStage: number | null }[]> => {
+  const db = await getDb(payload)
+
+  const result = await db.execute(sql`
+    SELECT type::text AS type, amount, kosztorys_stage_id
+    FROM transactions
+    WHERE investment_id = ${investmentId}
+      AND cancelled IS NOT TRUE
+      AND type IN ${depositTypesInList}
+  `)
+
+  return result.rows.map((row) => ({
+    type: row.type as string,
+    amount: Number(row.amount),
+    kosztorysStage: row.kosztorys_stage_id == null ? null : Number(row.kosztorys_stage_id),
   }))
 }
 

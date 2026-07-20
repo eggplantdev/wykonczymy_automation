@@ -9,6 +9,15 @@ export type MoneyAxisT = 'net' | 'gross' | 'both' | 'none'
 
 export const MONEY_AXIS_DEFAULT: MoneyAxisT = 'both'
 
+// Netto/brutto visibility flags for a footer/readout at this axis. Shared so every summary block
+// derives them one way.
+export function axisShows(axis: MoneyAxisT): { net: boolean; gross: boolean } {
+  return {
+    net: axis === 'net' || axis === 'both',
+    gross: axis === 'gross' || axis === 'both',
+  }
+}
+
 export function axisAllows(toggleKey: string, axis: MoneyAxisT): boolean {
   if (AXIS_EXEMPT_COLUMNS.has(toggleKey) || axis === 'both') return true
 

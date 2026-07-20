@@ -2,15 +2,7 @@ import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'paylo
 import { revalidateTag } from 'next/cache'
 import { CACHE_TAGS, entityTag } from '@/lib/cache/tags'
 import { perfStart } from '@/lib/perf'
-
-/** Resolve relationship value to a numeric ID (handles populated objects). */
-const resolveId = (value: unknown): number | undefined => {
-  if (typeof value === 'number') return value
-  if (typeof value === 'object' && value !== null && 'id' in value) {
-    return (value as { id: number }).id
-  }
-  return undefined
-}
+import { resolveId } from '@/lib/utils/resolve-id'
 
 /**
  * afterChange — revalidate caches after a transaction is created or updated.

@@ -43,12 +43,20 @@ export type ExpenseCategoryRefT = {
   name: string
 }
 
+export type KosztorysStageRefT = {
+  id: number
+  ordinal: number
+  label: string
+}
+
 export type ReferenceDataBaseT = {
   cashRegisters: CashRegisterRefT[]
   investments: InvestmentRefT[]
   workers: WorkerRefT[]
   otherCategories: OtherCategoryRefT[]
   expenseCategories: ExpenseCategoryRefT[]
+  // Kosztorys etapy per investment (id → stages), for the deposit form's „Zaliczka na etap" tag.
+  kosztorysStagesByInvestment: Record<number, KosztorysStageRefT[]>
 }
 
 export type ReferenceDataT = ReferenceDataBaseT & {

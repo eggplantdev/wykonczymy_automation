@@ -45,9 +45,16 @@ type EntityComboboxFieldPropsT = {
   form: any
   variant: keyof typeof VARIANT_CONFIG
   items: EntityItemT[]
+  // Forwarded to the inner AppField; only onChange is used at call sites (reset a dependent field).
+  listeners?: { onChange?: () => void }
 }
 
-export function EntityComboboxField({ form, variant, items }: EntityComboboxFieldPropsT) {
+export function EntityComboboxField({
+  form,
+  variant,
+  items,
+  listeners,
+}: EntityComboboxFieldPropsT) {
   const [activeOnly, setActiveOnly] = useState(true)
   const config = VARIANT_CONFIG[variant]
 
@@ -59,7 +66,7 @@ export function EntityComboboxField({ form, variant, items }: EntityComboboxFiel
   const labelExtra = <ActiveFilterLabel activeOnly={activeOnly} onToggle={setActiveOnly} />
 
   return (
-    <form.AppField name={config.name}>
+    <form.AppField name={config.name} listeners={listeners}>
       {(field: AppFieldComponentsT) =>
         filtered.length > 0 ? (
           <field.Combobox

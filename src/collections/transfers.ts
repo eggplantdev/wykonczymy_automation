@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner } from '@/access'
 import {
   canBeSettled,
+  isDepositType,
   needsExpenseCategory,
   needsOtherCategory,
   needsSourceRegister,
@@ -146,6 +147,18 @@ export const Transfers: CollectionConfig = {
       label: { en: 'Investment', pl: 'Inwestycja' },
       admin: {
         condition: (data) => showsInvestment(typeOf(data)),
+      },
+    },
+    {
+      // Read-only bridge to the kosztorys plane: tagging a deposit with an etap declares it a
+      // zaliczka against that stage. Meaningful only for deposit types; the kosztorys editor
+      // reads these sums but never writes here (FR-015 write firewall stays).
+      name: 'kosztorysStage',
+      type: 'relationship',
+      relationTo: 'kosztorys-stages',
+      label: { en: 'Advance for stage', pl: 'Zaliczka na etap' },
+      admin: {
+        condition: (data) => isDepositType(typeOf(data)),
       },
     },
     {

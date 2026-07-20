@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { useHeaderFieldsStore } from '@/stores/header-fields-store'
 import { ToggleStatButtons } from '@/components/ui/toggle-stat-buttons'
 import type { StatEntryT } from '@/components/ui/toggle-stat-buttons'
@@ -22,28 +22,28 @@ const RABAT_LABEL = 'Rabat'
 // note is shown exclusively to Admin/Owner — flags the figure as owner-level.
 const RESTRICTED_NOTE = '\nWidoczność — właściciel'
 const TOOLTIPS = {
-  kosztyInwestora:
+  investorCosts:
     'Materiały kupione na inwestycję, w podziale na kategorie. ' +
     'Zawierają korekty — korekta obniża koszt. Obniżają bilans inwestora.',
-  robocizna:
+  laborCosts:
     'Kwota, którą inwestor płaci firmie za pracę. ' +
     'Obniża bilans inwestora i jest podstawą marży.',
-  wplaty: 'Wpłaty inwestora, finansowanie firmy i inne wpłaty. Podnoszą bilans inwestora.',
-  rabat:
+  deposits: 'Wpłaty inwestora, finansowanie firmy i inne wpłaty. Podnoszą bilans inwestora.',
+  discount:
     'Rabat na robociznę — obniża dług klienta, więc podnosi bilans inwestora. ' +
     'Jednocześnie obniża marżę firmy.',
-  wyplaty:
+  payouts:
     'Kwoty wypłacone pracownikom. Obniżają marżę. Nie wchodzą do bilansu inwestora.' +
     RESTRICTED_NOTE,
-  strata: 'Koszt pokrywany przez firmę. Obniża marżę. Nie wchodzi do bilansu inwestora.',
-  materialyWliczone:
+  loss: 'Koszt pokrywany przez firmę. Obniża marżę. Nie wchodzi do bilansu inwestora.',
+  settledMaterials:
     'Materiały kupione przez firmę, wliczone w robociznę. ' +
     'Obniżają marżę, ale nie obciążają bilansu inwestora.',
-  bilans:
+  balance:
     'Bilans inwestora = Wpłaty − Materiały − Robocizna + Rabat.\n' +
     'Jeśli minus — inwestor wisi pieniądze.\n' +
     'Dynamiczny: odznaczenie kafelka usuwa go z wyliczenia i z wydruku.',
-  marza:
+  margin:
     'Marża = Robocizna − Wypłaty − Rabat − Strata − materiały wliczone w robociznę.\n' +
     'Ile firma zarabia na inwestycji.' +
     RESTRICTED_NOTE,
@@ -57,6 +57,10 @@ type FinancialStatsPropsT = {
   totalPayouts?: number
   totalLoss?: number
   settledFields?: FinancialFieldT[]
+  // The „z kosztorysu" reconciliation block, streamed in behind <Suspense> by the page so its
+  // kosztorys-tree fetch stays off the critical render path. A slot (not data) because the fetch +
+  // compute now live in the async InvestmentReconBlock server component.
+  recon?: ReactNode
 }
 
 export function FinancialStats({
@@ -65,6 +69,7 @@ export function FinancialStats({
   totalPayouts = 0,
   totalLoss = 0,
   settledFields = [],
+  recon,
 }: FinancialStatsPropsT) {
   const { role: userRole } = useCurrentUser()
   const toggle = useHeaderFieldsStore((s) => s.toggle)
@@ -85,13 +90,13 @@ export function FinancialStats({
 
   const laborRow = fields
     .filter((f) => f.label === LABOR_LABEL)
-    .map((f) => ({ ...addBtnBorderColor(f, 'border-chart-orange'), tooltip: TOOLTIPS.robocizna }))
+    .map((f) => ({ ...addBtnBorderColor(f, 'border-chart-orange'), tooltip: TOOLTIPS.laborCosts }))
 
   const incomeRow = fields
     .filter((f) => f.label === INCOME_LABEL || f.label === RABAT_LABEL)
     .map((f) => ({
       ...addBtnBorderColor(f, 'border-chart-green'),
-      tooltip: f.label === RABAT_LABEL ? TOOLTIPS.rabat : TOOLTIPS.wplaty,
+      tooltip: f.label === RABAT_LABEL ? TOOLTIPS.discount : TOOLTIPS.deposits,
     }))
 
   const rows = [
@@ -105,10 +110,10 @@ export function FinancialStats({
       <ToggleStatButtons
         rows={rows}
         rowLabels={['Koszty inwestora']}
-        rowTooltips={[TOOLTIPS.kosztyInwestora]}
+        rowTooltips={[TOOLTIPS.investorCosts]}
         summaryLabel="Bilans inwestora"
         onToggle={toggle}
-        summaryTooltip={TOOLTIPS.bilans}
+        summaryTooltip={TOOLTIPS.balance}
       />
 
       {totalLoss !== 0 && (
@@ -117,7 +122,7 @@ export function FinancialStats({
             label="Strata"
             value={formatPLN(totalLoss)}
             className="border-chart-purple"
-            tooltip={TOOLTIPS.strata}
+            tooltip={TOOLTIPS.loss}
           />
         </div>
       )}
@@ -127,7 +132,7 @@ export function FinancialStats({
           <Description>
             {SETTLED_TYPE.label}
             <InfoTooltip
-              content={TOOLTIPS.materialyWliczone}
+              content={TOOLTIPS.settledMaterials}
               label={`Co to jest: ${SETTLED_TYPE.label}`}
               className="ml-1"
             />
@@ -144,11 +149,13 @@ export function FinancialStats({
             label="Wypłaty"
             value={formatPLN(totalPayouts)}
             className="border-chart-red"
-            tooltip={TOOLTIPS.wyplaty}
+            tooltip={TOOLTIPS.payouts}
           />
-          <SaldoDisplay saldo={margin} label="Marża" tooltip={TOOLTIPS.marza} />
+          <SaldoDisplay saldo={margin} label="Marża" tooltip={TOOLTIPS.margin} />
         </div>
       )}
+
+      {recon}
     </div>
   )
 }

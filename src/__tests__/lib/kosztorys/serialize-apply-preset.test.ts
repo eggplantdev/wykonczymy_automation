@@ -17,6 +17,11 @@ import type { SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 // Cache revalidation touches next/cache outside a request context; stub it so any collection hooks
 // fired during apply don't throw in node.
 vi.mock('next/cache', () => ({ revalidateTag: vi.fn(), updateTag: vi.fn() }))
+// serializeKosztorys reads through getKosztorysTree, whose DAL guard self-authorizes via requireAuth →
+// cookies(), which has no request scope in node. Stub it success like the sibling DB specs.
+vi.mock('@/lib/auth/require-auth', () => ({
+  requireAuth: vi.fn(async () => ({ success: true, user: { id: 1, role: 'OWNER' } })),
+}))
 
 // Gated like the sibling DB specs: skips with no DB env, FAILS if env is set but the DB is
 // unreachable. Discovered by the `skipIf(!ENV_READY)` marker and run against 5435 by test-integration.

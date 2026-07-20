@@ -698,3 +698,40 @@ Setup: app on 5435 test DB (migrated with `pnpm db:migrate:test` so `enum_invest
 ### Findings — 2026-07-18
 
 _None. All checks passed; no bugs, regressions, or console errors surfaced during the pass._
+
+## kosztorys-bridge — Podsumowanie R/M, etap axis, komentarz, zaliczki, R+M footer (EX-530)
+
+**Verified 2026-07-18** — Playwright + DB pass against the 5435 test DB, logged in as E2E User (OWNER), on `/inwestycje/6/kosztorys_v2` (seeded rozpiska, 43 items, 6 etapy, VAT 8%, rabat 10%). Migration `20260718_1_add_kosztorys_stage_to_transactions` applied clean with `pnpm db:migrate:test` (also the prod dry-run). One bug found + fixed on the spot.
+
+- [x] **Phase 1 — Podsumowanie split** — Robocizna 1134,90 / Materiały 25 223,57 / Łącznie 26 358,47; 1134,90 + 25 223,57 = 26 358,47; udział 4% / 96% / 100%. Robocizna netto == „Do zapłaty netto" in the totals bar.
+- [x] **Phase 2 — etap axis** — „Suma transzy" table Etap 1–6 + „Suma prac wykonanych": netto 0 / 122,85 / 257,40 / 637,00 / 0 / 243,75 summing to 1261,00 = Suma prac wykonanych; brutto row present and consistent (×1.08).
+- [x] **Phase 3 — Komentarz column** — present in the „Widok" → Kolumny picker; toggling it on renders „Komentarz" as the rightmost editable grid column (`note`, textColumn). (`note` plumbing pre-existed; only the column registration is new.)
+- [x] **Phase 4 — zaliczki tag end-to-end** — Wpłata (INVESTOR_DEPOSIT) → investment Apenińska → „Zaliczka na etap" select renders Etap 1–6 + „— brak —"; tagged 500 zł to Etap 2 → persisted (`transactions.kosztorys_stage_id = 176`, ordinal 2) → editor „Zaliczki" row shows 500,00 under Etap 2 (total 500,00).
+- [x] **Phase 5 — R+M footer nets zaliczki** — „Aktualnie do zapłaty (R + M)" = 25 858,47 netto = robocizna 1134,90 − zaliczki 500 + materiały 25 223,57; brutto 27 927,15 (×1.08). With zero zaliczki it equals Łącznie (26 358,47); Łącznie itself is unaffected by zaliczki (split vs. footer separation confirmed).
+
+### Findings — 2026-07-18
+
+- [x] **Empty-string SelectItem crashes the deposit „Zaliczka na etap" select** — the „— brak —" option used `value=""`, which Radix Select forbids, throwing a Runtime Error the moment an investment with etapy was chosen in the Wpłata form. Fixed at `src/components/forms/deposit-form/deposit-form.tsx:49` (sentinel `NO_STAGE = 'none'`, mapped back to `undefined` in `toData`). Re-verified: select opens, tags a deposit, no crash.
+      **Test disposition:** test-driven-debugging · e2e — the defect is a browser-only render crash (Radix invariant) not reachable from a unit test; regression guard filed to `e2e-backlog` as **EX-531** (deposit → zaliczka flow), where the regression assertion travels with the eventual spec.
+
+### Owner sign-off — 2026-07-18
+
+- [x] **Robocizna base / R+M netting semantics confirmed** — owner ruled the „Podsumowanie" Robocizna row stays on **executed work** (suma prac wykonanych, `T`-derived `doZaplatyNet`), and „Aktualnie do zapłaty (R + M)" nets `executed − zaliczki + Materiały`. No code change. This was the last archive blocker (review-gate F3).
+
+## robocizna-from-kosztorys + summary-charts + recon-suspense (branch-wide gate re-cover)
+
+**Verified 2026-07-19** — light Playwright + curl + DB smoke pass against the 5435 test DB, logged in as E2E User (OWNER). W1 on the seeded recon fixtures (investments 117–132, „E2E Recon mismatch …", each with a 1-item kosztorys + LABOR_COST/RABAT tx); summary charts on `/inwestycje/14/kosztorys_v2` after seeding a small kosztorys (3 sekcje × 6 pozycji, 3 etapy) onto investment 14 via direct SQL (the `perf-seed-kosztorys.ts` Payload boot hung — see note). Render + no-false-scream-under-filter only; **no domain sign-off** (the mismatch figures are fixture-designed to diverge).
+
+- [x] **W1 — recon block renders + verdict is filter-independent.** `/inwestycje/117`: „z kosztorysu (netto)" renders without crash — Robocizna 500,00 (RED „Niezgodność"), Rabat 0,00 (RED). Adding `?type=LABOR_COST` (page stats correctly changed: Bilans −420→−450, Rabat row dropped, table 2→1 rows, wybranych 6/6→5/5) left the recon block **identical** — both mismatch badges still present. Verdict stable across the filter ⇒ the fix holds (block fetches investment-wide `fetchFilteredByType({investment})` + `deriveFinancials`, not the page's URL `where`). _Note: a raw `page.evaluate` momentarily read 0 badges — a Suspense-streaming timing artifact; the authoritative accessibility snapshot (waits for stability) confirmed both badges persist under the filter._
+- [x] **W2 — Suspense skeleton is neutral and resolves, no layout jump.** Server-streamed HTML of `/inwestycje/14` (curl w/ session cookie) contains the neutral fallback „Wczytywanie z kosztorysu…" (spinner, `GradientSpinner`), the string „zgodne" appears **0×** anywhere (no false green cue while loading), and „z kosztorysu (netto)" streams in 6× (boundary resolves to the real block). Skeleton and resolved block share the same outer shape (`Separator` + `Description` „z kosztorysu (netto)" + row), so no heading jump on resolve; resolved block visually confirmed on 117 & 14. _The transient fallback wasn't photographed live: the 18-item tree resolves server-side sub-100ms, and heavy client CDP throttling stalls the whole dev RSC payload instead of exposing the gap — curling the raw stream is the honest, deterministic evidence for a server-streamed fallback._
+- [x] **W3 — summary breakdown / section charts render clean.** `/inwestycje/14/kosztorys_v2` Podsumowanie renders with **0 console errors/warnings**: Materiały breakdown (Materiały budowlane 21 280,19 / 32%, Materiały wykończeniowe 43 363,00 / 66%, Łącznie 66 176,19), „Suma transzy" per-etap netto/brutto table, section shares (Udział w całości kosztorysu 33,3% ×3), „Suma prac wykonanych" 1533,00 (RED mismatch), Rabat 0,00 (RED), Wpłaty 159 421,00, Do zapłaty −93 244,81. _No literal SVG pie chart exists in this editor view — the „section chart" is the Udział % breakdown (`kosztorys-podsumowanie.tsx` renders tables, not recharts); the offer-view pie in `offer-view-footer.png` is a not-yet-built target state, so its absence is not a defect._
+
+### Findings — 2026-07-19
+
+Pass ran clean — **no bugs found**, all three checks pass, W1 verdict-stability confirmed. **0 open findings**; nothing blocks these slices from `Done` on rendering grounds. Any judgment on whether a given robocizna/rabat/materiały figure is domain-correct remains an owner call (the 117/14 figures are fixture mismatches by design and were not signed off).
+
+- [ ] **`perf-seed-kosztorys.ts` Payload boot hangs against the 5435 test DB** — two runs (foreground + background) sat >5 min with 0 rows written (stuck before the first `payload.create`, no stdout), so the 1000-item synthetic seed never completed; worked around with a direct-SQL small seed onto investment 14. **Needs human:** confirm whether `getPayload({ config })` in a standalone `node --import tsx` script reliably boots against `DB_POSTGRES_URL_TEST` (5435) — if this is a real regression it also blocks the documented seed path in AGENTS.md, not just this pass. **Test disposition:** no automated test — a dev-tooling/seed-script boot issue, not product behavior; cheaper to reproduce by hand than to guard, but worth a human confirm before trusting the seed docs.
+
+### Housekeeping — 2026-07-19
+
+- Test DB left dirty: investment 14 now carries a synthetic 3-section / 18-item / 3-stage kosztorys (direct SQL, no `kosztoryses` sheet-link row) plus its stage_progress; the 117–132 E2E recon fixtures are untouched. Reseed/reset via `pnpm db:import:test` + `pnpm db:migrate:test` (kosztorys content is throwaway).

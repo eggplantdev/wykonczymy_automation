@@ -1,6 +1,72 @@
-import { netForQtyForView, rowPlannedNetForView, type PriceViewT } from '@/lib/kosztorys/calc'
+import {
+  globalDiscountAmount,
+  netForQtyForView,
+  rowDiscountForView,
+  rowPlannedNetForView,
+  type PriceViewT,
+} from '@/lib/kosztorys/calc'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
-import type { KosztorysStageT, KosztorysV2RowT, SectionSubtotalT } from '@/lib/kosztorys/types'
+import type {
+  GlobalDiscountT,
+  KosztorysStageT,
+  KosztorysV2RowT,
+  SectionSubtotalT,
+} from '@/lib/kosztorys/types'
+
+export type KosztorysClientTotalsT = {
+  // Executed value at client prices, POST-rabat (Σ section net). The progress counter divides it by
+  // the equally post-rabat plannedNet, so both sides of the ratio carry the rabat consistently.
+  doneNet: number
+  // „Suma prac wykonanych" at client prices, PRE-rabat — the executed value before any discount, so
+  // it lines up with Σ LABOR_COST (a pre-rabat billing figure; rabat is a separate transfer). Under a
+  // global discount the rows are already gross, so this is Σ net; under per-item rabat it adds the
+  // taken discount back (Σ net + Σ discount) — the same figure the Podsumowanie „Suma prac" row shows.
+  sumaPracNet: number
+  // The client-view rabat: the global discount when active, else Σ per-item rabat. The two are
+  // mutually exclusive (a live global discount forces every row gross, zeroing its per-item rabat),
+  // so their sum is whichever mode is active.
+  rabatClientNet: number
+}
+
+/**
+ * The two client-view figures the robocizna/rabat reconciliation compares against, computed here so
+ * BOTH verification surfaces share one code path: the editor (client-side, live rows) and the
+ * investment page (server-side, persisted rows). A second copy of this formula on either surface is
+ * exactly the two-planes-both-green drift `context/foundation/lessons.md` records — so there is one.
+ *
+ * Client view, not the active price view: robocizna is a client-billing figure, so the price-view
+ * toggle must never move it.
+ */
+export function kosztorysClientTotals(
+  rows: KosztorysV2RowT[],
+  stages: KosztorysStageT[],
+  globalDiscount: GlobalDiscountT,
+): KosztorysClientTotalsT {
+  return clientTotalsFromSubtotals(sectionSubtotalsForView(rows, stages, 'client'), globalDiscount)
+}
+
+/**
+ * The formula core, split from the rows-based entry so a caller that ALREADY holds the client-view
+ * subtotals (the editor hook computes them for the progress counter) reuses them instead of running
+ * the full client-view pass twice per render — on a 1000+ row grid that second pass is not free. The
+ * server recon block has only rows, so it goes through `kosztorysClientTotals`; both funnel here, so
+ * the single-source-of-truth invariant holds.
+ */
+export function clientTotalsFromSubtotals(
+  clientSubtotals: SectionSubtotalT[],
+  globalDiscount: GlobalDiscountT,
+): KosztorysClientTotalsT {
+  // `net` is post-rabat (netForQtyForView applies the discount); `discount` is the rabat taken. The
+  // global discount comes off the executed work, so its base is the post-item-rabat net (which under a
+  // global discount is the full gross, per-item rabat being zeroed).
+  const doneNet = clientSubtotals.reduce((sum, s) => sum + s.net, 0)
+  const itemRabatNet = clientSubtotals.reduce((sum, s) => sum + s.discount, 0)
+  return {
+    doneNet,
+    sumaPracNet: doneNet + itemRabatNet,
+    rabatClientNet: globalDiscountAmount(doneNet, globalDiscount) + itemRabatNet,
+  }
+}
 
 /** The "Pomiar z natury" itself — the sheet's O = SUM(D:M), not a stored field (EX-494). */
 export function rowTotalQtyDone(row: KosztorysV2RowT, stages: KosztorysStageT[]): number {
@@ -60,6 +126,37 @@ export function hasStagesOverPlanned(row: KosztorysV2RowT, stages: KosztorysStag
 }
 
 /**
+ * The etap axis: per-stage column total across all rows at the active view's price — the sheet's
+ * `SUM(<stage col>)` per etap (filled r396/r397). The suma transzy: how much value each etap has
+ * executed. Every stage in `stages` gets an entry (0 when no row touched it).
+ *
+ * Uses the same `stageValueForView` primitive the grid's per-stage cells show — each stage's value
+ * is its qty share of the row's executed net — so Σ over the stages equals the row's executed value,
+ * and Σ over all stages equals the executed total (the 'amount'-rabat reconciliation the sheet's
+ * V–AE block exists for holds here by construction).
+ */
+export function stageTotalsForView(
+  rows: KosztorysV2RowT[],
+  stages: KosztorysStageT[],
+  view: PriceViewT,
+): Map<number, number> {
+  const totals = new Map<number, number>(stages.map((st) => [st.id, 0]))
+  for (const row of rows) {
+    const totalQty = rowTotalQtyDone(row, stages)
+    if (!(totalQty > 0)) continue
+    // Price the row's executed net once, then split it by each stage's qty share — same figure
+    // stageValueForView yields per cell, but without re-pricing the row on every stage.
+    const rowNet = netForQtyForView(row, totalQty, view)
+    for (const st of stages) {
+      const qtyInStage = row[stageKey(st.id)] ?? 0
+      if (!qtyInStage) continue
+      totals.set(st.id, (totals.get(st.id) ?? 0) + rowNet * (qtyInStage / totalQty))
+    }
+  }
+  return totals
+}
+
+/**
  * Subtotals per section for the active price view, over the full dataset (ignores filter/sort).
  * Order = first occurrence of each section in `rows` (treeToRows already yields section→displayOrder).
  *
@@ -86,6 +183,7 @@ export function sectionSubtotalsForView(
         sectionName: row.sectionName,
         net: 0,
         plannedNet: 0,
+        discount: 0,
         share: 0,
         completionRatio: null,
         itemCount: 0,
@@ -95,6 +193,8 @@ export function sectionSubtotalsForView(
     }
     acc.net += rowValueForView(row, stages, view)
     acc.plannedNet += rowPlannedNetForView(row, view)
+    // Rabat taken on the executed qty (the same qty `net` prices) — 0 under a global discount.
+    acc.discount += rowDiscountForView(row, rowTotalQtyDone(row, stages), view)
     acc.itemCount += 1
     const client = clientBySection.get(row.sectionId)!
     client.executed += rowValueForView(row, stages, 'client')

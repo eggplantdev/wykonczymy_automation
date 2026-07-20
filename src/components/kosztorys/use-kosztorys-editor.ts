@@ -43,7 +43,12 @@ import {
   sectionItemCounts,
   type ItemRemovalPlanT,
 } from '@/lib/kosztorys/delete-policy'
-import { sectionSubtotalsForView } from '@/lib/kosztorys/settlement'
+import {
+  clientTotalsFromSubtotals,
+  rowRemainingForView,
+  sectionSubtotalsForView,
+  stageTotalsForView,
+} from '@/lib/kosztorys/settlement'
 import { filterRows, sortRows, type SortDirT } from '@/lib/kosztorys/row-view'
 import { columnSortValue, reconcileSort } from '@/lib/kosztorys/sort-value'
 import { NEW_SECTION_DEFAULTS } from '@/lib/kosztorys/constants'
@@ -53,7 +58,7 @@ import {
   stageValueNetKey,
   stageValuePercentKey,
 } from '@/lib/kosztorys/stage-keys'
-import { globalDiscountAmount, isGlobalDiscountActive } from '@/lib/kosztorys/calc'
+import { globalDiscountAmount, isGlobalDiscountActive, toGross } from '@/lib/kosztorys/calc'
 import {
   addItemAction,
   addSectionAction,
@@ -285,6 +290,40 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   // Executed total at the active view — the money the totals bar shows and the base the global
   // discount comes off. Full-dataset (like the subtotals): a search or section filter must not move it.
   const totalNet = useMemo(() => subtotals.reduce((s, x) => s + x.net, 0), [subtotals])
+  // Per-etap „suma transzy" at the active view — the executed value each stage delivered. Full-dataset
+  // (like the subtotals): Σ over stages equals totalNet, so the etap totals and the wykonane readout
+  // reconcile by construction.
+  const stageTotals = useMemo(() => stageTotalsForView(rows, stages, view), [rows, stages, view])
+  // Σ recorded qty per etap (the „Pomiar z natury" the column footer totals) — full-dataset, price-
+  // independent, so a search/section filter or a view switch never moves it.
+  const stageQtyTotals = useMemo(() => {
+    const totals = new Map<number, number>()
+    for (const stage of stages)
+      totals.set(
+        stage.id,
+        rows.reduce((sum, row) => sum + ((row[stageKey(stage.id)] as number | undefined) ?? 0), 0),
+      )
+    return totals
+  }, [rows, stages])
+  const plannedQtyTotal = useMemo(
+    () => rows.reduce((sum, row) => sum + (row.plannedQty ?? 0), 0),
+    [rows],
+  )
+  // Σ of the „Pozostało" columns for the grid's Razem row. Rows with no przedmiar read `null` — no
+  // offer to subtract from — and are skipped, so the total is the sum of what the column actually
+  // shows rather than of a 0 it never claimed. Gross accumulates each row's own VAT instead of
+  // grossing the net sum once, so a row-level vatRate can't drift the two apart.
+  const remainingTotals = useMemo(() => {
+    let net = 0
+    let gross = 0
+    for (const row of rows) {
+      const rowNet = rowRemainingForView(row, stages, view)
+      if (rowNet === null) continue
+      net += rowNet
+      gross += toGross(rowNet, row.vatRate)
+    }
+    return { net, gross }
+  }, [rows, stages, view])
   // The progress counter is a PROGRESS figure, not money — it must read the same in every price view,
   // so its executed/offered are weighted at the client price (a separate client-priced pass), never
   // the active `view`. Same client basis as each section's completionRatio.
@@ -292,23 +331,39 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     () => sectionSubtotalsForView(rows, stages, 'client'),
     [rows, stages],
   )
-  const doneNet = useMemo(
-    () => progressSubtotals.reduce((s, x) => s + x.net, 0),
-    [progressSubtotals],
+  // doneNet feeds the progress counter (÷ plannedNet, both post-rabat); sumaPracNet + rabatClientNet
+  // feed the reconciliation and route through the shared helper the investment page also calls, so the
+  // two verification surfaces can't drift (reconciliation, lessons.md). All three are client-view and
+  // view-independent — the progress ratio and the robocizna/rabat comparison must not move with the
+  // price-view toggle.
+  const { doneNet, sumaPracNet, rabatClientNet } = useMemo(
+    () => clientTotalsFromSubtotals(progressSubtotals, globalDiscount),
+    [progressSubtotals, globalDiscount],
   )
   const plannedNet = useMemo(
     () => progressSubtotals.reduce((s, x) => s + x.plannedNet, 0),
     [progressSubtotals],
   )
 
-  // Global discount amount + "do zapłaty", computed ONCE here off the executed total. Both total
-  // surfaces (the Sekcje Suma block and the totals bar) read these props — neither recomputes, so
-  // they can never disagree.
+  // Global discount amount + the post-rabat robocizna, computed ONCE here off the executed total.
+  // Both total surfaces (the Sekcje Suma block and the totals bar) read these props — neither
+  // recomputes, so they can never disagree.
   const discountAmount = useMemo(
     () => globalDiscountAmount(totalNet, globalDiscount),
     [totalNet, globalDiscount],
   )
-  const doZaplatyNet = totalNet - discountAmount
+  // NOT the „Do zapłaty" the UI shows — that one adds materiały and subtracts wpłaty
+  // (computeDoZaplatyRM). This is robocizna alone, after rabat.
+  const laborCostsNetFromKosztorys = totalNet - discountAmount
+  // The single explicit rabat figure the totals show. Global and per-item rabat are mutually
+  // exclusive (a live global discount forces every row gross, zeroing its per-item rabat), so
+  // summing them yields whichever mode is active without a branch. `discountAmount` still drives
+  // `laborCostsNetFromKosztorys`; `rabatAmount` is display-only (= discountAmount when global, Σ item-rabat otherwise).
+  const itemRabatTotal = useMemo(
+    () => subtotals.reduce((sum, s) => sum + s.discount, 0),
+    [subtotals],
+  )
+  const rabatAmount = discountAmount + itemRabatTotal
 
   // Section coefficients (null = inherits the global) for the panel — from the tree, keyed by section id.
   const sectionCoeffs = new Map(
@@ -992,12 +1047,20 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     // subtotals + section panel
     subtotals,
     totalNet,
+    stageTotals,
+    stageQtyTotals,
+    plannedQtyTotal,
+    remainingTotals,
+    stages,
     doneNet,
+    sumaPracNet,
+    rabatClientNet,
     plannedNet,
     sectionCoeffs,
     globalDiscount,
     discountAmount,
-    doZaplatyNet,
+    rabatAmount,
+    laborCostsNetFromKosztorys,
     // toolbar / panel state
     setView,
     search,

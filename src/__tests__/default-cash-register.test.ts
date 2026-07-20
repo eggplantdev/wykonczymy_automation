@@ -15,6 +15,7 @@ const baseRefData: ReferenceDataT = {
   workers: [],
   otherCategories: [],
   expenseCategories: [],
+  kosztorysStagesByInvestment: {},
 }
 
 const makeRefData = (overrides: Partial<ReferenceDataT>): ReferenceDataT => ({

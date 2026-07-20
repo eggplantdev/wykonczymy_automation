@@ -1,6 +1,9 @@
 'use client'
 
+import Link from 'next/link'
+
 import { SearchFilterInput } from '@/components/ui/search-filter-input'
+import { SimpleTooltip } from '@/components/ui/tooltip'
 import { KosztorysAddMenu } from '@/components/kosztorys/kosztorys-add-menu'
 import { KosztorysGlobalSettings } from '@/components/kosztorys/kosztorys-global-settings'
 import { KosztorysProgressCounter } from '@/components/kosztorys/kosztorys-progress-counter'
@@ -10,6 +13,7 @@ import { useKosztorysEditorContext } from '@/components/kosztorys/use-kosztorys-
 
 export function KosztorysEditorToolbar() {
   const {
+    investmentId,
     investmentName,
     search,
     setSearch,
@@ -27,16 +31,25 @@ export function KosztorysEditorToolbar() {
   return (
     <div className="border-border shrink-0 border-b">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2">
-        <h1 className="text-foreground text-sm font-medium">Kosztorys — {investmentName}</h1>
+        <h1 className="text-foreground text-sm font-medium">
+          <Link href={`/inwestycje/${investmentId}`} className="hover:underline">
+            {investmentName}
+          </Link>
+        </h1>
         <KosztorysToolbarViewToggles />
 
         <KosztorysAddMenu />
-        <SearchFilterInput
-          value={search}
-          onChange={setSearch}
-          placeholder="Szukaj pozycji / sekcji…"
-          debounceMs={200}
-        />
+        <SimpleTooltip content="Szukaj pozycji / sekcji">
+          {/* SearchFilterInput takes no ref, so the tooltip anchors to a wrapper */}
+          <div>
+            <SearchFilterInput
+              value={search}
+              onChange={setSearch}
+              placeholder="Szukaj…"
+              debounceMs={200}
+            />
+          </div>
+        </SimpleTooltip>
         <KosztorysToolbarActions />
       </div>
       <div className="border-border flex flex-wrap items-center gap-x-4 gap-y-2 border-t px-4 py-1.5">

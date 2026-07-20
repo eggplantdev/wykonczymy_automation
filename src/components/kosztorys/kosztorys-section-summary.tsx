@@ -62,7 +62,7 @@ export function KosztorysSectionSummary({
   }
 
   return (
-    <aside className="border-border bg-background absolute inset-y-0 right-0 z-20 flex w-72 flex-col overflow-hidden border-l shadow-lg">
+    <aside className="border-border bg-background absolute inset-y-0 right-0 z-30 flex w-72 flex-col overflow-hidden border-l shadow-lg">
       <div className="border-border flex shrink-0 items-center justify-between border-b px-3 py-2">
         <div className="flex items-center gap-1.5">
           <h2 className="text-foreground text-sm font-medium">Sekcje</h2>
