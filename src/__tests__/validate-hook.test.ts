@@ -6,15 +6,18 @@ import { validateTransfer } from '@/hooks/transfers/validate'
 /** Build a minimal Payload hook args object for validateTransfer. */
 function hookArgs(
   data: Record<string, unknown>,
-  opts: { operation?: 'create' | 'update'; userId?: number } = {},
+  opts: {
+    operation?: 'create' | 'update'
+    userId?: number
+    originalDoc?: Record<string, unknown>
+  } = {},
 ) {
-  const { operation = 'create', userId } = opts
+  const { operation = 'create', userId, originalDoc } = opts
   return {
     data,
     operation,
     req: userId ? { user: { id: userId } } : { user: null },
-    // validateTransfer only uses data, operation, req — other args unused
-    originalDoc: undefined,
+    originalDoc,
     collection: undefined,
     context: {},
   } as unknown as Parameters<typeof validateTransfer>[0]
@@ -159,6 +162,42 @@ describe('validateTransfer — auto-clear behavior', () => {
   it('INVESTOR_DEPOSIT → kosztorysStage preserved', () => {
     const data = { ...VALID_DATA.INVESTOR_DEPOSIT, kosztorysStage: 7 }
     const result = validateTransfer(hookArgs(data))
+    expect(result.kosztorysStage).toBe(7)
+  })
+
+  // An etap belongs to one investment's kosztorys, so moving the transfer orphans the tag —
+  // it would keep pointing into the PREVIOUS investment's kosztorys for the reporting layer.
+  // Payload hands the full merged doc as `data` on update, so `investment` here is the new value.
+  it('deposit moved to another investment → kosztorysStage cleared', () => {
+    const data = { ...VALID_DATA.INVESTOR_DEPOSIT, investment: 2, kosztorysStage: 7 }
+    const result = validateTransfer(
+      hookArgs(data, { operation: 'update', originalDoc: { investment: 1, kosztorysStage: 7 } }),
+    )
+    expect(result.kosztorysStage).toBeNull()
+  })
+
+  it('deposit edited without touching the investment → kosztorysStage kept', () => {
+    const data = { ...VALID_DATA.INVESTOR_DEPOSIT, description: 'edited', kosztorysStage: 7 }
+    const result = validateTransfer(
+      hookArgs(data, { operation: 'update', originalDoc: { investment: 1, kosztorysStage: 7 } }),
+    )
+    expect(result.kosztorysStage).toBe(7)
+  })
+
+  it('populated investment relation on the original → compared by id, tag kept', () => {
+    const data = { ...VALID_DATA.INVESTOR_DEPOSIT, kosztorysStage: 7 }
+    const result = validateTransfer(
+      hookArgs(data, {
+        operation: 'update',
+        originalDoc: { investment: { id: 1, name: 'Inwestycja' }, kosztorysStage: 7 },
+      }),
+    )
+    expect(result.kosztorysStage).toBe(7)
+  })
+
+  it('create with no originalDoc → tag untouched', () => {
+    const data = { ...VALID_DATA.INVESTOR_DEPOSIT, kosztorysStage: 7 }
+    const result = validateTransfer(hookArgs(data, { operation: 'create' }))
     expect(result.kosztorysStage).toBe(7)
   })
 })

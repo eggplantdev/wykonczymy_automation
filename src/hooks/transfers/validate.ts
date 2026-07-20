@@ -12,6 +12,7 @@ import {
   isDepositType,
 } from '@/lib/constants/transfers'
 import { getAmountError } from '@/lib/utils/validation'
+import { resolveId } from '@/lib/utils/resolve-id'
 
 type TransferData = Partial<Transaction>
 
@@ -20,7 +21,12 @@ type TransferData = Partial<Transaction>
  * Enforces required relationships based on transaction type
  * and auto-clears inapplicable fields.
  */
-export const validateTransfer: CollectionBeforeValidateHook = ({ data, req, operation }) => {
+export const validateTransfer: CollectionBeforeValidateHook = ({
+  data,
+  req,
+  operation,
+  originalDoc,
+}) => {
   const d = data as TransferData
   console.log('[validateTransfer] Start', { operation, type: d.type, amount: d.amount })
 
@@ -104,6 +110,17 @@ export const validateTransfer: CollectionBeforeValidateHook = ({ data, req, oper
   // layer never sees an etap tag on a non-zaliczka row.
   if (!isDepositType(type)) {
     d.kosztorysStage = null
+  }
+
+  // An etap belongs to exactly one investment's kosztorys, and create proved the tag was valid
+  // for the investment it was filed under — so moving the transfer to a different investment is
+  // itself proof the tag is now orphaned, no membership lookup needed. Payload hands `data` as
+  // the FULL merged doc on update, so a missing investment here means cleared, not untouched.
+  if (operation === 'update' && originalDoc && d.kosztorysStage != null) {
+    const previous = originalDoc as TransferData
+    if (resolveId(d.investment) !== resolveId(previous.investment)) {
+      d.kosztorysStage = null
+    }
   }
 
   // settled (wliczone w robociznę) only applies to material expenses and their

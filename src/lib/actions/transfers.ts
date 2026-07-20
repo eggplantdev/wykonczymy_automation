@@ -259,19 +259,14 @@ export async function updateTransferAction(
       const newAmount = isLaborCost(original.type) ? amount : undefined
       const amountChanged = newAmount !== undefined && newAmount !== original.amount
 
-      // Create already proved the etap belongs to the investment it was tagged under, and this
-      // form edits the investment but never the etap — so a changed investment is proof enough
-      // that the tag is now orphaned, no membership lookup needed. Drop it rather than reject:
-      // the etap isn't a field the user is editing here.
-      const investmentChanged = fields.investment !== resolveId(original.investment)
-      const orphanedStage = original.kosztorysStage != null && investmentChanged
+      // Moving a zaliczka to another investment orphans its etap tag; the collection's
+      // beforeValidate hook clears it, so every write path is covered, not just this action.
 
       await payload.update({
         collection: 'transactions',
         id: transferId,
         data: {
           ...fields,
-          ...(orphanedStage && { kosztorysStage: null }),
           ...(newAmount !== undefined && { amount: newAmount }),
           ...(invoiceMediaId !== undefined && { invoice: invoiceMediaId }),
           updatedBy: user.id,
