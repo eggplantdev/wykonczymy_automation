@@ -237,8 +237,8 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       title: title('sectionName', COLUMN_LABELS.sectionName, opts),
       minWidth: 140,
       keepFocus: true,
-      component: ({ rowData }: CellProps<KosztorysV2RowT, unknown>) => (
-        <SectionNameCell rowData={rowData} onRename={opts.onRenameSection} />
+      component: ({ rowData, disabled }: CellProps<KosztorysV2RowT, unknown>) => (
+        <SectionNameCell rowData={rowData} onRename={opts.onRenameSection} disabled={disabled} />
       ),
       copyValue: ({ rowData }) => rowData.sectionName ?? '',
       // Delete on a selected Sekcja cell is a no-op — an accidental keypress must not blank a whole

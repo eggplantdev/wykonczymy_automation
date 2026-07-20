@@ -5,7 +5,9 @@ import { UNIT_SUGGESTIONS } from '@/lib/kosztorys/constants'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // Creatable combobox cell: pick a canonical unit or type a custom one. setRowData feeds the diff → autosave.
-function UnitCell({ rowData, setRowData }: CellProps<KosztorysV2RowT, unknown>) {
+function UnitCell({ rowData, setRowData, disabled }: CellProps<KosztorysV2RowT, unknown>) {
+  if (disabled)
+    return <span className="block size-full truncate px-2 text-sm">{rowData.unit ?? ''}</span>
   return (
     <Combobox
       value={rowData.unit ?? ''}

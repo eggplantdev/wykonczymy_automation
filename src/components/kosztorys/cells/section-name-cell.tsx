@@ -9,15 +9,22 @@ import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 export function SectionNameCell({
   rowData,
   onRename,
+  disabled,
 }: {
   rowData: KosztorysV2RowT
   onRename?: (sectionId: number, name: string) => void
+  disabled?: boolean
 }) {
   const [draft, setDraft] = useState('')
   const [editing, setEditing] = useState(false)
   // Escape sets this before blur so the shared onBlur commit knows to skip the rename.
   const cancelRef = useRef(false)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  if (disabled)
+    return (
+      <span className="block size-full truncate px-2 text-sm">{rowData.sectionName ?? ''}</span>
+    )
 
   return (
     <input

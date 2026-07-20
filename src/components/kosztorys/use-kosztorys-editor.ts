@@ -244,22 +244,24 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false }: A
   // onRemoveItem/onReorderItem read prevById.current / rowsRef.current — stable refs —
   // only from a cell's onClick, never during render, so passing them here is safe.
   // In clientView the grid is read-only (buildV2Grid disables every cell + drops the action column)
-  // and column-filtered to the client-visible set, so every mutation/resize callback is dropped —
-  // there is no control left that could fire them.
+  // and column-filtered to the client-visible set, so every DATA-MUTATION callback is dropped — there
+  // is no control left that could fire them. Column resize (onGuide/onCommitColumn) is the exception:
+  // it only moves a localStorage width, never touches the server, so a client keeps it for readability.
+  // Sort is dropped (headers render as plain labels) — the client sees a fixed, non-interactive order.
   const columnOpts = {
     view,
     stages,
     onRemoveStage: clientView ? undefined : handleRemoveStage,
     onRenameStage: clientView ? undefined : handleRenameStage,
     sort,
-    onSetSort: setSortField,
+    onSetSort: clientView ? undefined : setSortField,
     isHidden,
     moneyAxis: effectiveMoneyAxis,
     progressDisplay,
     layer,
     widths,
-    onGuide: clientView ? undefined : setGuideX,
-    onCommitColumn: clientView ? undefined : setWidth,
+    onGuide: setGuideX,
+    onCommitColumn: setWidth,
     onRemoveItem: clientView ? undefined : handleRemoveItem,
     onReorderItem: clientView ? undefined : handleReorderItem,
     onInsertItem: clientView ? undefined : handleInsertItem,
