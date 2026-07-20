@@ -66,6 +66,28 @@ verdict and the Podsumowanie split → `laborCosts`. Polish stays in UI labels (
 transfers side while `rabatAmount` / `rabatClientNet` / `rabatNet` sit in kosztorys. The canonical
 would be `discount`. Awaiting the owner's call.
 
+### Plane suffixes — the exception to "one concept, one name"
+
+Two figures can be the **same concept on different planes** and still be **different values by
+design**. The recon seam is built to scream when they disagree (`buildKosztorysReconciliation`), so
+collapsing them onto one bare name destroys the distinction the alarm rests on.
+
+**The rule (owner, 2026-07-20): keep the canonical base name identical on both sides, and append
+`FromKosztorys` / `FromTransactions`.** The shared prefix is what makes the pair legible as one
+concept; the suffix is the only thing that differs, so a reader can't mistake which side they hold.
+
+| Concept      | kosztorys plane              | transactions plane                               |
+| ------------ | ---------------------------- | ------------------------------------------------ |
+| labor charge | `laborCostsNetFromKosztorys` | `laborCostsNetFromTransactions` (Σ `LABOR_COST`) |
+
+`totalLaborCosts` on `investment-financials` keeps its name — it's the ledger aggregate at its own
+source, not a recon operand. The suffix applies where the two meet.
+
+Two prior passes got this wrong: `robociznaNet` → `laborCostsNet` fixed the language but dropped the
+plane; `laborFromKosztorysNet` carried the plane but mangled the base name, so the pair no longer
+shared a prefix. **A language ruling does not settle the plane question — check this section before
+renaming anything the reconciliation compares.**
+
 ---
 
 ## 2. Kosztorys — editor domain
