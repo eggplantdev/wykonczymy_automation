@@ -118,6 +118,10 @@ export const validateTransfer: CollectionBeforeValidateHook = ({
   // `data` as the FULL merged doc on update, so `investment` here is already the new value.
   // A write that re-picks the etap is the caller retargeting it deliberately (the admin panel can
   // change both at once); leave that alone or it silently eats a valid re-tag.
+  // Deliberately NOT a membership check (that the etap belongs to this investment): the read path
+  // is scoped `WHERE investment_id`, so a foreign tag is unreadable and renders as „Bez etapu" —
+  // identical to untagged. Making this hook async to look it up buys nothing. See lessons.md
+  // "Before filing „X isn't validated", follow X to its READ path" before reopening (EX-547).
   if (operation === 'update' && originalDoc && d.kosztorysStage != null) {
     const previous = originalDoc as TransferData
     const carriedOver = resolveId(d.kosztorysStage) === resolveId(previous.kosztorysStage)
