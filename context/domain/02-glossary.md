@@ -46,7 +46,7 @@ drift is where kosztorys code re-typed the same figure in Polish.
 | deposit (income)       | Wpłaty               | —           | `deposit`                        | B   | `wplaty`, `wplatyNet`                                | `transfers.ts:58` (`DEPOSIT_TYPES`)                      |
 | payout                 | Wypłaty              | —           | `payout` (`PAYOUT`)              | B   | `wyplaty`                                            | `calculate-margin.ts:14`                                 |
 | labor charge           | Robocizna            | „robocizna" | `laborCosts` (`LABOR_COST`)      | B   | — (resolved 2026-07-20)                              | `calculate-margin.ts:14`; `transfer-rules.ts:52`         |
-| discount               | Rabat                | „rabat %"   | `discount` (`RABAT`)             | A?  | `rabat`, `rabatNet`, `rabatAmount`, `rabatClientNet` | `calculate-margin.ts:14`; `kosztorys-editor-body.tsx:73` |
+| discount               | Rabat                | „rabat %"   | `discount` (`RABAT`)             | B   | `rabat`, `rabatNet`, `rabatAmount`, `rabatClientNet` | `calculate-margin.ts:14`; `kosztorys-editor-body.tsx:73` |
 | loss                   | Strata               | —           | `loss` (`LOSS`)                  | B   | `strata`                                             | `calculate-margin.ts:5`                                  |
 | correction             | Korekta              | —           | `correction` (`CORRECTION`)      | B   | —                                                    | `validation.ts:7`                                        |
 | materials              | Materiały            | „materiały" | `materials`                      | B   | (`materiały` in labels only)                         | `investment-financials.ts:41`                            |
@@ -62,9 +62,17 @@ verdict and the summary split → `laborCosts`; the two recon operands take the 
 Polish stays in UI labels („Robocizna",
 „Transakcje robocizny", „Wliczone w robociznę") and in prose comments naming the domain concept.
 
-**Still gray (`A?`) — `rabat`.** Same shape, not yet ruled: `RABAT` / `totalRabat` live on the
-transfers side while `rabatAmount` / `rabatClientNet` / `rabatNet` sit in kosztorys. The canonical
-would be `discount`. Awaiting the owner's call.
+**`bilans` / `marza` — ruled `balance` / `margin` (owner, 2026-07-20).** Common words, no proper-noun
+claim ("nothing special about them"). Verified **symbol-only**: local vars + the `{ bilans, marza }`
+delta shape in two test/script files + one `print-button.tsx` local — **no** SQL column, Payload field,
+or migration column carries these names (the canonical functions are already `calculateBalance` /
+`calculateMargin`), so the rename touches **no columns**. Prose („bilans inwestora" tooltips) stays.
+
+**`rabat` — ruled `discount` (owner, 2026-07-20).** Same shape as the others: `discount` is a clean
+equivalent and `RABAT` / `totalRabat` already exist on the transfers side. The lowercase Polish code
+forms → `discount*` (`rabat` → `discount`, `rabatNet` → `discountNet`, `rabatAmount` → `discountAmount`,
+`rabatClientNet` → `discountClientNet`). The **uppercase `RABAT`** transfer-type enum value **stays** —
+it's the canonical DB enum constant, not drift. Polish stays in UI labels („rabat %", „Rabat").
 
 ### Plane suffixes — the exception to "one concept, one name"
 
