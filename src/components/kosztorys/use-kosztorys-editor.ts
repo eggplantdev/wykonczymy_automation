@@ -9,7 +9,7 @@ import {
   type FieldChangeT,
   type StageChangeT,
 } from '@/lib/kosztorys/undo-coalesce'
-import { useUndoRedoContext } from '@/components/kosztorys/use-undo-redo'
+import { useUndoRedoContextOrNoop } from '@/components/kosztorys/use-undo-redo'
 import { useColumnWidths } from '@/components/kosztorys/use-column-widths'
 import { useHiddenColumns } from '@/components/kosztorys/use-hidden-columns'
 import { useLayer } from '@/components/kosztorys/use-layer'
@@ -103,7 +103,7 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false }: A
   const { save, runNow } = useDebouncedSave(500)
   // Per-mount undo/redo stack, provided by the shell (KosztorysEditorV2). Capture pushes here;
   // the toolbar + keyboard call undo/redo (re-exported below).
-  const { push, undo, redo, canUndo, canRedo, pruneByIds } = useUndoRedoContext()
+  const { push, undo, redo, canUndo, canRedo, pruneByIds } = useUndoRedoContextOrNoop(clientView)
   const [gridRef, gridHeight] = useElementHeight()
   const [rows, setRows] = useState<KosztorysV2RowT[]>(() => treeToRows(tree))
   // Stages live in local state (like `rows`): add/remove optimistically add/drop a column.

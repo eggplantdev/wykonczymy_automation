@@ -159,3 +159,24 @@ export function useUndoRedoContext(): UndoRedoApiT {
     throw new Error('useUndoRedoContext must be used within an UndoRedoContext provider')
   return context
 }
+
+// A client-view mount renders KosztorysEditorBody without the KosztorysEditorV2 shell, so no provider
+// exists — and nothing on that page is mutable, so undo/redo collapse to no-ops rather than requiring a
+// provider that would never do anything. Owner mounts still demand the real provider.
+const NOOP_UNDO_REDO: UndoRedoApiT = {
+  push: () => {},
+  undo: () => {},
+  redo: () => {},
+  canUndo: false,
+  canRedo: false,
+  revision: 0,
+  reset: () => {},
+  pruneByIds: () => {},
+}
+
+export function useUndoRedoContextOrNoop(clientView: boolean): UndoRedoApiT {
+  const context = useContext(UndoRedoContext)
+  if (context) return context
+  if (clientView) return NOOP_UNDO_REDO
+  throw new Error('useUndoRedoContext must be used within an UndoRedoContext provider')
+}
