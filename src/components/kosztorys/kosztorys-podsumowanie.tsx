@@ -18,7 +18,12 @@ import {
 import { formatNet, formatPercent } from '@/lib/kosztorys/format'
 import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
-import { SUMMARY_LABEL_COL, SUMMARY_VALUE_COL } from '@/components/kosztorys/summary-grid'
+import {
+  SUMMARY_LABEL_CELL,
+  SUMMARY_LABEL_COL,
+  SUMMARY_VALUE_CELL,
+  SUMMARY_VALUE_COL,
+} from '@/components/kosztorys/summary-grid'
 import { ReconMismatchBadge } from '@/components/kosztorys/recon-mismatch-badge'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import {
@@ -126,10 +131,8 @@ export function KosztorysPodsumowanie({
     .join(' ')
   const gridTemplateColumns = `${moneyCols} ${SUMMARY_VALUE_COL}`
 
-  // All cells are direct children of ONE grid so `gap-px` over a `bg-border` container paints a
-  // 1px separator between every column and row; each cell repaints `bg-background` on top.
-  const labelCell = 'bg-background px-3 py-1'
-  const valueCell = 'bg-background px-3 py-1 text-right tabular-nums'
+  const labelCell = SUMMARY_LABEL_CELL
+  const valueCell = SUMMARY_VALUE_CELL
 
   // A line with no `share` (the total rows) renders an empty udział cell. `emphasize` keeps the
   // summary rows bold now that the shared gridlines already draw every row separator.

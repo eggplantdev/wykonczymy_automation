@@ -44,7 +44,7 @@ import {
   type ItemRemovalPlanT,
 } from '@/lib/kosztorys/delete-policy'
 import {
-  kosztorysClientTotals,
+  clientTotalsFromSubtotals,
   rowRemainingForView,
   sectionSubtotalsForView,
   stageTotalsForView,
@@ -337,8 +337,8 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   // view-independent — the progress ratio and the robocizna/rabat comparison must not move with the
   // price-view toggle.
   const { doneNet, sumaPracNet, rabatClientNet } = useMemo(
-    () => kosztorysClientTotals(rows, stages, globalDiscount),
-    [rows, stages, globalDiscount],
+    () => clientTotalsFromSubtotals(progressSubtotals, globalDiscount),
+    [progressSubtotals, globalDiscount],
   )
   const plannedNet = useMemo(
     () => progressSubtotals.reduce((s, x) => s + x.plannedNet, 0),

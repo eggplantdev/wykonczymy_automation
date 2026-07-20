@@ -42,12 +42,25 @@ export function kosztorysClientTotals(
   stages: KosztorysStageT[],
   globalDiscount: GlobalDiscountT,
 ): KosztorysClientTotalsT {
-  const subtotals = sectionSubtotalsForView(rows, stages, 'client')
+  return clientTotalsFromSubtotals(sectionSubtotalsForView(rows, stages, 'client'), globalDiscount)
+}
+
+/**
+ * The formula core, split from the rows-based entry so a caller that ALREADY holds the client-view
+ * subtotals (the editor hook computes them for the progress counter) reuses them instead of running
+ * the full client-view pass twice per render — on a 1000+ row grid that second pass is not free. The
+ * server recon block has only rows, so it goes through `kosztorysClientTotals`; both funnel here, so
+ * the single-source-of-truth invariant holds.
+ */
+export function clientTotalsFromSubtotals(
+  clientSubtotals: SectionSubtotalT[],
+  globalDiscount: GlobalDiscountT,
+): KosztorysClientTotalsT {
   // `net` is post-rabat (netForQtyForView applies the discount); `discount` is the rabat taken. The
   // global discount comes off the executed work, so its base is the post-item-rabat net (which under a
   // global discount is the full gross, per-item rabat being zeroed).
-  const doneNet = subtotals.reduce((sum, s) => sum + s.net, 0)
-  const itemRabatNet = subtotals.reduce((sum, s) => sum + s.discount, 0)
+  const doneNet = clientSubtotals.reduce((sum, s) => sum + s.net, 0)
+  const itemRabatNet = clientSubtotals.reduce((sum, s) => sum + s.discount, 0)
   return {
     doneNet,
     sumaPracNet: doneNet + itemRabatNet,

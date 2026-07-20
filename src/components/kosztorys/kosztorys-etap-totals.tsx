@@ -8,7 +8,9 @@ import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import {
   NOT_APPLICABLE,
   NOT_APPLICABLE_CELL,
+  SUMMARY_LABEL_CELL,
   SUMMARY_LABEL_COL,
+  SUMMARY_VALUE_CELL,
   SUMMARY_VALUE_COL,
 } from '@/components/kosztorys/summary-grid'
 import { Fragment, type ReactNode } from 'react'
@@ -60,10 +62,8 @@ export function KosztorysEtapTotals({
   const valueTrackCount = stages.length + (showPoza ? 2 : 1)
   const gridTemplateColumns = `${SUMMARY_LABEL_COL} repeat(${valueTrackCount}, ${SUMMARY_VALUE_COL})`
 
-  // All cells are direct children of ONE grid so `gap-px` over a `bg-border` container paints a
-  // 1px separator between every column and row; each cell repaints `bg-background` on top.
-  const labelCell = 'bg-background px-3 py-1'
-  const valueCell = 'bg-background px-3 py-1 text-right tabular-nums'
+  const labelCell = SUMMARY_LABEL_CELL
+  const valueCell = SUMMARY_VALUE_CELL
 
   // Netto / Brutto / Wpłaty share one shape — a label, a per-etap cell, an optional „Bez etapu"
   // cell, and the bold row total.
