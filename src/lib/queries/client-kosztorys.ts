@@ -7,14 +7,30 @@ import { requireAuth } from '@/lib/auth/require-auth'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 import { buildMaterialyBreakdown } from '@/lib/db/map-category-costs'
 import { deriveFinancials } from '@/lib/db/sum-transfers'
-import { toClientView } from '@/lib/kosztorys/to-client-view'
-import type { ClientKosztorysViewT } from '@/lib/kosztorys/types'
+import type { KosztorysTreeT } from '@/lib/kosztorys/types'
+import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import { buildKosztorysTree } from '@/lib/queries/kosztorys'
 import {
   fetchCategoryBreakdowns,
   fetchExpenseCategories,
   fetchFilteredByType,
+  fetchZaliczkiByStage,
 } from '@/lib/queries/reference-data'
+
+// The read-only render mounts the real KosztorysEditorBody, so the client read builds exactly the
+// props that body needs — the same set the admin kosztorys page assembles, minus the owner-only
+// versions callback. No projection/stripping: the owner accepted the leak, so the full tree ships.
+export type ClientKosztorysEditorDataT = {
+  investmentId: number
+  tree: KosztorysTreeT
+  investmentName: string
+  materialsNet: number
+  materialyBreakdown: MaterialyBreakdownRowT[]
+  wplatyNet: number
+  zaliczkiByStage: Record<number, number>
+  investmentRobocizna: number
+  investmentRabat: number
+}
 
 // Every read below is invalidated by the same collections the editor writes, so a client who
 // reloads the share link sees the owner's latest etap entries — the whole point of a live view.
@@ -32,33 +48,43 @@ const KOSZTORYS_TAGS = [
 
 // Unexported: the only two ways in are the guarded entrances below. This one is deliberately
 // authorization-free, so exporting it would hand any caller an unauthenticated read of a kosztorys.
-async function buildClientKosztorysView(investmentId: number): Promise<ClientKosztorysViewT> {
+// Mirrors the admin page's fetches (kosztorys_v2/page.tsx) so the client body reads the same figures.
+async function buildClientKosztorysEditorData(
+  investmentId: number,
+): Promise<ClientKosztorysEditorDataT> {
   const investmentWhere = { investment: { equals: investmentId } }
   const payload = await getPayload({ config })
-  const [tree, investment, typeDistribution, breakdowns, expenseCategories] = await Promise.all([
-    buildKosztorysTree(investmentId),
-    payload.findByID({ collection: 'investments', id: investmentId, depth: 0 }),
-    fetchFilteredByType(investmentWhere),
-    fetchCategoryBreakdowns(investmentWhere),
-    fetchExpenseCategories(),
-  ])
+  const [tree, investment, typeDistribution, breakdowns, expenseCategories, zaliczkiByStage] =
+    await Promise.all([
+      buildKosztorysTree(investmentId),
+      payload.findByID({ collection: 'investments', id: investmentId, depth: 0 }),
+      fetchFilteredByType(investmentWhere),
+      fetchCategoryBreakdowns(investmentWhere),
+      fetchExpenseCategories(),
+      fetchZaliczkiByStage(investmentId),
+    ])
   const financials = deriveFinancials(typeDistribution, breakdowns.categoryCosts)
 
-  return toClientView(tree, {
+  return {
+    investmentId,
+    tree,
     investmentName: investment.name,
     materialsNet: financials.totalMaterialCosts,
-    materialsBreakdown: buildMaterialyBreakdown(financials, expenseCategories),
-    depositsNet: financials.totalIncome,
-  })
+    materialyBreakdown: buildMaterialyBreakdown(financials, expenseCategories),
+    wplatyNet: financials.totalIncome,
+    zaliczkiByStage,
+    investmentRobocizna: financials.totalLaborCosts,
+    investmentRabat: financials.totalRabat,
+  }
 }
 
 // One cache entry per investment, shared by both entrances — so the owner's preview and the
 // client's link are the same bytes, not two independently-cached derivations that could disagree.
 // The guard cannot live inside here: `requireAuth` reads cookies, and a dynamic API inside an
 // unstable_cache callback throws.
-const cachedClientKosztorysView = unstable_cache(
-  buildClientKosztorysView,
-  ['client-kosztorys-view'],
+const cachedClientKosztorysEditorData = unstable_cache(
+  buildClientKosztorysEditorData,
+  ['client-kosztorys-editor-data'],
   { tags: KOSZTORYS_TAGS },
 )
 
@@ -72,7 +98,7 @@ const cachedClientKosztorysView = unstable_cache(
  */
 export async function getClientKosztorysByToken(
   token: string,
-): Promise<ClientKosztorysViewT | null> {
+): Promise<ClientKosztorysEditorDataT | null> {
   const payload = await getPayload({ config })
   const shares = await payload.find({
     collection: 'kosztorys-shares',
@@ -88,7 +114,7 @@ export async function getClientKosztorysByToken(
 
   const investmentId =
     typeof share.investment === 'object' ? share.investment.id : Number(share.investment)
-  return cachedClientKosztorysView(investmentId)
+  return cachedClientKosztorysEditorData(investmentId)
 }
 
 /**
@@ -99,9 +125,9 @@ export async function getClientKosztorysByToken(
  */
 export async function getClientKosztorysPreview(
   investmentId: number,
-): Promise<ClientKosztorysViewT> {
+): Promise<ClientKosztorysEditorDataT> {
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) throw new Error(session.error)
 
-  return cachedClientKosztorysView(investmentId)
+  return cachedClientKosztorysEditorData(investmentId)
 }

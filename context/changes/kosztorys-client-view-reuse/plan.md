@@ -174,15 +174,15 @@ None — kosztorys share data is throwaway until dogfooding; no backfill or comp
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `pnpm typecheck`
-- [x] 1.2 Linting passes: `pnpm lint`
-- [x] 1.3 Unit tests pass: `pnpm test`
+- [x] 1.1 Type checking passes: `pnpm typecheck` — 4af855c0
+- [x] 1.2 Linting passes: `pnpm lint` — 4af855c0
+- [x] 1.3 Unit tests pass: `pnpm test` — 4af855c0
 
 ### Phase 2: Mount the body on the client page; tear out the bespoke render
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `pnpm typecheck`
-- [ ] 2.2 Linting passes: `pnpm lint`
-- [ ] 2.3 Unit tests pass: `pnpm test`
-- [ ] 2.4 Production build succeeds: `pnpm build`
+- [x] 2.1 Type checking passes: `pnpm typecheck`
+- [x] 2.2 Linting passes: `pnpm lint`
+- [x] 2.3 Unit tests pass: `pnpm test`
+- [x] 2.4 Production build succeeds: `pnpm build`
