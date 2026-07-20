@@ -185,7 +185,9 @@ export function KosztorysEditorBody({
               columns={gridColumns}
               height={gridHeight}
               rowHeight={32}
-              headerRowHeight={32}
+              // Client view carries the verbose column labels („Pozostało netto (względem
+              // przedmiaru)" etc.); a two-row-tall header lets them wrap instead of truncating.
+              headerRowHeight={clientView ? 64 : 32}
               lockRows
               rowKey={({ rowData }) => String(rowData.id)}
             />
