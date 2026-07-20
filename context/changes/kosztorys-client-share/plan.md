@@ -429,14 +429,14 @@ via `pnpm db:migrate:prod`.
 
 #### Automated
 
-- [x] 3.1 Type checking passes (`tsc --noEmit`)
-- [x] 3.2 Lint passes (`pnpm lint`)
-- [x] 3.3 Preview read is auth-gated (anonymous call rejects)
+- [x] 3.1 Type checking passes (`tsc --noEmit`) — 218383c4
+- [x] 3.2 Lint passes (`pnpm lint`) — 218383c4
+- [x] 3.3 Preview read is auth-gated (anonymous call rejects) — 218383c4
 
 ### Phase 4: Public (share) route + owner share controls
 
 #### Automated
 
-- [ ] 4.1 Type checking passes (`tsc --noEmit`)
-- [ ] 4.2 Build compiles the public route (`pnpm build`)
-- [ ] 4.3 Share-link lifecycle + access test passes
+- [x] 4.1 Type checking passes (`tsc --noEmit`)
+- [x] 4.2 Build compiles the public route (`pnpm build`)
+- [x] 4.3 Share-link lifecycle + access test passes

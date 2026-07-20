@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Eye, Redo2, Undo2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { KosztorysActionsMenu } from '@/components/kosztorys/kosztorys-actions-menu'
+import { KosztorysShareDialog } from '@/components/kosztorys/kosztorys-share-dialog'
 import { useKosztorysEditorContext } from '@/components/kosztorys/use-kosztorys-editor-context'
 import { cn } from '@/lib/utils/cn'
 
@@ -49,6 +50,7 @@ export function KosztorysToolbarActions() {
           Podgląd
         </Link>
       </Button>
+      <KosztorysShareDialog investmentId={investmentId} />
       <KosztorysActionsMenu investmentId={investmentId} onOpenVersions={onOpenVersions} />
       <Button
         size="sm"
