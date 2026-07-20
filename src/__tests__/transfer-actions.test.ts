@@ -821,6 +821,74 @@ describe('updateTransferAction', () => {
     )
   })
 
+  it('deposit moved to another investment → clears the now-orphaned kosztorysStage', async () => {
+    mockFindByID.mockResolvedValueOnce(
+      makeOriginalTransfer({
+        createdBy: adminUser.id,
+        type: 'INVESTOR_DEPOSIT',
+        investment: 2,
+        kosztorysStage: 7,
+      }),
+    )
+
+    await updateTransferAction(10, makeUpdateData({ investment: 3 }))
+
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ investment: 3, kosztorysStage: null }),
+      }),
+    )
+  })
+
+  it('deposit investment cleared → clears the now-orphaned kosztorysStage', async () => {
+    mockFindByID.mockResolvedValueOnce(
+      makeOriginalTransfer({
+        createdBy: adminUser.id,
+        type: 'INVESTOR_DEPOSIT',
+        investment: 2,
+        kosztorysStage: 7,
+      }),
+    )
+
+    await updateTransferAction(10, makeUpdateData({ investment: undefined }))
+
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ kosztorysStage: null }),
+      }),
+    )
+  })
+
+  it('deposit investment unchanged → leaves the kosztorysStage tag alone', async () => {
+    mockFindByID.mockResolvedValueOnce(
+      makeOriginalTransfer({
+        createdBy: adminUser.id,
+        type: 'INVESTOR_DEPOSIT',
+        investment: 2,
+        kosztorysStage: 7,
+      }),
+    )
+
+    await updateTransferAction(10, makeUpdateData({ investment: 2 }))
+
+    expect(mockUpdate.mock.calls[0][0].data).not.toHaveProperty('kosztorysStage')
+  })
+
+  it('populated investment relation (depth ≥ 1) → same-investment edit keeps the tag', async () => {
+    mockFindByID.mockResolvedValueOnce(
+      makeOriginalTransfer({
+        createdBy: adminUser.id,
+        type: 'INVESTOR_DEPOSIT',
+        investment: { id: 2, name: 'Inwestycja' },
+        kosztorysStage: 7,
+      }),
+    )
+
+    await updateTransferAction(10, makeUpdateData({ investment: 2 }))
+
+    expect(mockUpdate.mock.calls[0][0].data).not.toHaveProperty('kosztorysStage')
+  })
+
   // Sheet sync moved to the transactions collection afterChange hook (review T2.2),
   // so updateTransferAction no longer calls it directly. The edit / investment-move /
   // non-expense-skip behavior is covered in hooks/sync-kosztorys-sheet.test.ts.

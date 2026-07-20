@@ -25,6 +25,7 @@ import { syncBulkExpensesToSheet } from './sheets-sync'
 import { validateAction, protectedAction } from './run-action'
 import { validateSourceRegister } from './validate-source-register'
 import { logError } from '@/lib/utils/log-error'
+import { resolveId } from '@/lib/utils/resolve-id'
 
 export async function createTransferAction(data: CreateTransferFormT, invoiceMediaId?: number) {
   return protectedAction(
@@ -55,9 +56,7 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
           limit: 1,
         })
         const stage = docs[0]
-        const stageInvestment =
-          typeof stage?.investment === 'number' ? stage.investment : stage?.investment?.id
-        if (!stage || stageInvestment !== parsed.data.investment) {
+        if (!stage || resolveId(stage.investment) !== parsed.data.investment) {
           return { success: false, error: 'Wybrany etap nie należy do tej inwestycji.' }
         }
         console.log(`[PERF]   validate kosztorysStage ${step()}ms`)
@@ -171,8 +170,7 @@ async function fetchAndAuthorize(
   if (original.cancelled) return { error: 'Transakcja jest już anulowana.' }
   if (original.type === 'CANCELLATION') return { error: 'Nie można edytować anulowania.' }
 
-  const creatorId =
-    typeof original.createdBy === 'number' ? original.createdBy : original.createdBy?.id
+  const creatorId = resolveId(original.createdBy)
   const allowed = canMutateTransfer({
     role: user.role,
     userId: user.id,
@@ -261,11 +259,19 @@ export async function updateTransferAction(
       const newAmount = isLaborCost(original.type) ? amount : undefined
       const amountChanged = newAmount !== undefined && newAmount !== original.amount
 
+      // Create already proved the etap belongs to the investment it was tagged under, and this
+      // form edits the investment but never the etap — so a changed investment is proof enough
+      // that the tag is now orphaned, no membership lookup needed. Drop it rather than reject:
+      // the etap isn't a field the user is editing here.
+      const investmentChanged = fields.investment !== resolveId(original.investment)
+      const orphanedStage = original.kosztorysStage != null && investmentChanged
+
       await payload.update({
         collection: 'transactions',
         id: transferId,
         data: {
           ...fields,
+          ...(orphanedStage && { kosztorysStage: null }),
           ...(newAmount !== undefined && { amount: newAmount }),
           ...(invoiceMediaId !== undefined && { invoice: invoiceMediaId }),
           updatedBy: user.id,
