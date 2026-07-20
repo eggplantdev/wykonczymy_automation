@@ -15,6 +15,13 @@ was actually verified. Nothing is named that the sources don't name.
 `fin` = `context/foundation/investment-financials-and-discount.md` · `sync` =
 `context/reference/kosztorys-sync.md`
 
+**Method (10x_devs M4L5 — DDD legacy modernization):** this map + its follow-up refactors
+were driven by the course prompts in `.claude/prompts/` — `m4l5-1-domain-distillation.md`
+(this doc), `m4l5-2-invariant-aggregate-refactor.md` (the Kosztorys Item aggregate),
+`m4l5-3-anti-corruption-layer.md` (the transfers↔kosztorys recon seam — the ACL that keeps
+one concept from becoming two names, i.e. the EX-548 drift). Lesson write-up:
+`~/workspace/10x_devs/lessons/m4/m4_l5_modernizacja-legacy-z-ddd-wydzielaj-domeny-potem-deleguj-agentowi.md`.
+
 ---
 
 ## KROK 0 — Project context
