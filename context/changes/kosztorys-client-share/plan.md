@@ -437,6 +437,6 @@ via `pnpm db:migrate:prod`.
 
 #### Automated
 
-- [x] 4.1 Type checking passes (`tsc --noEmit`)
-- [x] 4.2 Build compiles the public route (`pnpm build`)
-- [x] 4.3 Share-link lifecycle + access test passes
+- [x] 4.1 Type checking passes (`tsc --noEmit`) — ec12f15f
+- [x] 4.2 Build compiles the public route (`pnpm build`) — ec12f15f
+- [x] 4.3 Share-link lifecycle + access test passes — ec12f15f
