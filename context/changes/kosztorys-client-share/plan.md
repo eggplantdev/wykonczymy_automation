@@ -2,7 +2,7 @@
 
 ## Overview
 
-Ship a **live, read-only, token-gated client-facing view** of a kosztorys (roadmap S-11,
+Ship a **live, read-only, token-gated client-facing view** of a kosztorys (roadmap S-13,
 EX-532). The owner shares a URL; the client reopens it over the life of the job and sees
 current per-etap progress. The subcontractor cost view (z narzędziami / bez narzędzi) is
 **never** leaked — structurally, by pinning the price view to `'client'` so subcontractor
@@ -358,7 +358,10 @@ unconditional and independent of share state.
 - Build compiles the public route: `pnpm build`
 - Action test: generate creates a row, rotate replaces the token, revoke deletes it, non-OWNER is
   rejected, unknown token reads null:
-  `pnpm exec vitest run src/__tests__/kosztorys/share-token.test.ts`
+  `pnpm exec vitest run src/__tests__/lib/queries/client-kosztorys-token.test.ts`
+  **These specs `skipIf(!ENV_READY)`** — without `DB_POSTGRES_URL` + `PAYLOAD_SECRET` in the
+  environment the run is green because it skipped, not because it passed. Confirm the reported
+  test count is non-zero before treating this box as met.
 
 #### Manual Verification
 
@@ -400,7 +403,7 @@ via `pnpm db:migrate:prod`.
 ## References
 
 - Design: `context/changes/kosztorys-client-share/design.md`
-- Roadmap slice: `context/foundation/roadmap.md` → S-11
+- Roadmap slice: `context/foundation/roadmap.md` → S-13
 - Grid/route research: this session (Explore agent), summarized in Current State Analysis
 - Reuse precedent: `buildV2Grid` (`kosztorys-v2-columns.tsx:508`), `(legal)/layout.tsx`
 

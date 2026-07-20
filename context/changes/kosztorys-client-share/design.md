@@ -1,7 +1,7 @@
 # Kosztorys client share view — design
 
 **Change ID:** `kosztorys-client-share`
-**Slice:** S-11 (band 2 — import/export)
+**Slice:** S-13 (band 2 — import/export)
 **Linear:** EX-532
 **Date:** 2026-07-18
 **Status:** active — resumed 2026-07-20 (owner: domain rework "mostly settled"; the editor

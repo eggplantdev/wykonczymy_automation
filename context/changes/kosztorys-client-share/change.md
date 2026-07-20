@@ -1,6 +1,6 @@
 ---
 id: kosztorys-client-share
-slice: S-11
+slice: S-13
 linear: EX-532
 status: implemented
 branch: konradantonik/ex-532-kosztorys-client-share
