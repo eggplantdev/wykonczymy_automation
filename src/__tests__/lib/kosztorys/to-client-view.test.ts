@@ -66,8 +66,8 @@ const tree: KosztorysTreeT = {
 
 const financials = {
   investmentName: 'Testowa',
-  materialyNet: 1000,
-  materialyBreakdown: [],
+  materialsNet: 1000,
+  materialsBreakdown: [],
   depositsNet: 250,
 }
 
@@ -135,7 +135,7 @@ describe('toClientView — what the client does get', () => {
 
   it('passes the financial-plane figures through untouched', () => {
     const view = toClientView(tree, financials)
-    expect(view.totals.materialyNet).toBe(1000)
+    expect(view.totals.materialsNet).toBe(1000)
     expect(view.totals.depositsNet).toBe(250)
     expect(view.investmentName).toBe('Testowa')
     expect(view.vatRate).toBe(0.08)

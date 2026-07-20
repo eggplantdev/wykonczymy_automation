@@ -43,8 +43,8 @@ async function buildClientKosztorysView(investmentId: number): Promise<ClientKos
 
   return toClientView(tree, {
     investmentName: investment.name,
-    materialyNet: financials.totalMaterialCosts,
-    materialyBreakdown: buildMaterialyBreakdown(financials, refData.expenseCategories),
+    materialsNet: financials.totalMaterialCosts,
+    materialsBreakdown: buildMaterialyBreakdown(financials, refData.expenseCategories),
     depositsNet: financials.totalIncome,
   })
 }

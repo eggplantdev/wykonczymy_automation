@@ -40,11 +40,11 @@ type PropsT = {
 export function ClientKosztorysFooter({ view, moneyAxis }: PropsT) {
   const { totals, vatRate } = view
   const { net: showNet, gross: showGross } = axisShows(moneyAxis)
-  const { lacznie } = computePodsumowanie(totals.sumaPracNet, totals.materialyNet, vatRate)
+  const { lacznie } = computePodsumowanie(totals.sumaPracNet, totals.materialsNet, vatRate)
   const amountDue = computeDoZaplatyRM(
     totals.robociznaNet,
     totals.depositsNet,
-    totals.materialyNet,
+    totals.materialsNet,
     vatRate,
   )
 
@@ -66,7 +66,7 @@ export function ClientKosztorysFooter({ view, moneyAxis }: PropsT) {
       noShareCell?: boolean
       hideShare?: boolean
       // No-VAT figure (materials, deposits): brutto repeats netto rather than blanking, so the cell
-      // still reads as an amount in a brutto-only widok.
+      // still reads as an amount in a brutto-only view.
       noBrutto?: boolean
     } = {},
   ) => {
@@ -118,10 +118,10 @@ export function ClientKosztorysFooter({ view, moneyAxis }: PropsT) {
         )}
         <span className={cn(SUMMARY_VALUE_CELL, 'text-muted-foreground text-xs')}>Udział</span>
         {row('Suma prac wykonanych', summaryLine(totals.sumaPracNet, lacznie.net, vatRate))}
-        {totals.materialyBreakdown
+        {totals.materialsBreakdown
           .filter((item) => item.net !== 0)
           .map((item) => (
-            <Fragment key={item.id ?? 'korekta'}>
+            <Fragment key={item.id ?? 'correction'}>
               {row(item.label, summaryLineFace(item.net, lacznie.net), { noBrutto: true })}
             </Fragment>
           ))}

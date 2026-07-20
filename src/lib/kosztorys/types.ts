@@ -175,8 +175,8 @@ export type ClientKosztorysTotalsT = {
   sumaPracNet: number
   discountNet: number
   robociznaNet: number
-  materialyNet: number
-  materialyBreakdown: MaterialyBreakdownRowT[]
+  materialsNet: number
+  materialsBreakdown: MaterialyBreakdownRowT[]
   depositsNet: number
   // Suma transzy: value executed per etap, in `stages` order.
   stageTotals: { stageId: number; net: number }[]

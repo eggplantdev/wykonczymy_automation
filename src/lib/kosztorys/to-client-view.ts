@@ -22,8 +22,8 @@ const CLIENT_VIEW: PriceViewT = 'client'
 // so the caller reads them and hands them in.
 type FinancialsT = {
   investmentName: string
-  materialyNet: number
-  materialyBreakdown: MaterialyBreakdownRowT[]
+  materialsNet: number
+  materialsBreakdown: MaterialyBreakdownRowT[]
   depositsNet: number
 }
 
@@ -79,8 +79,8 @@ export function toClientView(tree: KosztorysTreeT, financials: FinancialsT): Cli
       discountNet: rabatClientNet,
       // Executed work after discount — what the footer bills, and what „Do zapłaty" nets deposits off.
       robociznaNet: doneNet,
-      materialyNet: financials.materialyNet,
-      materialyBreakdown: financials.materialyBreakdown,
+      materialsNet: financials.materialsNet,
+      materialsBreakdown: financials.materialsBreakdown,
       depositsNet: financials.depositsNet,
       stageTotals: tree.stages.map((stage) => ({
         stageId: stage.id,
