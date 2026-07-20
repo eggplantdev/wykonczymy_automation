@@ -57,9 +57,9 @@ drift is where kosztorys code re-typed the same figure in Polish.
 
 **Robocizna — ruled `laborCosts` (owner, 2026-07-20).** The transfers side already owned an English
 form (`LABOR_COST`, `totalLaborCosts`), and a figure may not carry two names across the recon seam,
-so the English form wins over the sheet-noun defense. Renamed: `robociznaNet` → `laborCostsNet`,
-`investmentRobocizna` → `investmentLaborCosts`, and the `robocizna` key on both the reconciliation
-verdict and the Podsumowanie split → `laborCosts`. Polish stays in UI labels („Robocizna",
+so the English form wins over the sheet-noun defense. The `robocizna` key on both the reconciliation
+verdict and the summary split → `laborCosts`; the two recon operands take the plane suffixes below.
+Polish stays in UI labels („Robocizna",
 „Transakcje robocizny", „Wliczone w robociznę") and in prose comments naming the domain concept.
 
 **Still gray (`A?`) — `rabat`.** Same shape, not yet ruled: `RABAT` / `totalRabat` live on the
