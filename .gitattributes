@@ -2,3 +2,8 @@
 # "Files changed" view. They carry plans/rationale, not line-by-line-reviewable logic.
 context/**        linguist-generated=true
 .review-gate/**   linguist-generated=true
+
+# Tests — collapsed in the PR diff on request to keep "Files changed" focused on
+# the production code under review.
+src/__tests__/**  linguist-generated=true
+e2e/**            linguist-generated=true
