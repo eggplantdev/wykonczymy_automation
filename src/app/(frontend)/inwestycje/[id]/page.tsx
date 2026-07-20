@@ -99,13 +99,10 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
         settledFields={settledFields}
         recon={
           // Streamed off the critical path: only this block awaits the kosztorys tree (the page's
-          // long-pole fetch); the rest renders immediately. Transaction sums pass in as props.
+          // long-pole fetch); the rest renders immediately. It fetches its own investment-wide
+          // transaction sums so the reconciliation never inherits this page's URL filters.
           <Suspense fallback={<InvestmentReconBlockSkeleton />}>
-            <InvestmentReconBlock
-              investmentId={investmentId}
-              investmentRobocizna={financials.totalLaborCosts}
-              investmentRabat={financials.totalRabat}
-            />
+            <InvestmentReconBlock investmentId={investmentId} />
           </Suspense>
         }
       />

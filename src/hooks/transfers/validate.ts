@@ -9,6 +9,7 @@ import {
   needsWorker,
   needsExpenseCategory,
   canBeSettled,
+  isDepositType,
 } from '@/lib/constants/transfers'
 import { getAmountError } from '@/lib/utils/validation'
 
@@ -96,6 +97,13 @@ export const validateTransfer: CollectionBeforeValidateHook = ({ data, req, oper
   // Auto-clear worker for types that don't need it
   if (!needsWorker(type)) {
     d.worker = null
+  }
+
+  // kosztorysStage (zaliczka etap tag) only applies to deposit types. The schema + form gate it,
+  // so only the admin panel / REST can plant one on another type; clear it here so the reporting
+  // layer never sees an etap tag on a non-zaliczka row.
+  if (!isDepositType(type)) {
+    d.kosztorysStage = null
   }
 
   // settled (wliczone w robociznę) only applies to material expenses and their

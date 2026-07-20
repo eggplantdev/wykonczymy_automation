@@ -1,4 +1,6 @@
 import { getKosztorysTree } from '@/lib/queries/kosztorys'
+import { fetchFilteredByType } from '@/lib/queries/reference-data'
+import { deriveFinancials } from '@/lib/db/sum-transfers'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { kosztorysClientTotals } from '@/lib/kosztorys/settlement'
 import { buildKosztorysReconciliation, reconciliationTooltip } from '@/lib/kosztorys/reconciliation'
@@ -22,24 +24,23 @@ const ZKOSZTORYSU_TOOLTIP =
 
 type PropsT = {
   investmentId: number
-  // Transaction-sourced robocizna/rabat (Σ LABOR_COST / Σ RABAT, netto) — computed cheaply on the
-  // page from the transactions it already fetches, so this block re-fetches only the kosztorys tree.
-  investmentRobocizna: number
-  investmentRabat: number
 }
 
 // Async server component: the second reconciliation surface (client-view net vs the transaction sums),
 // through the SAME `kosztorysClientTotals` path the editor Podsumowanie uses so the two planes can't
 // drift. Rendered behind <Suspense> so its kosztorys-tree fetch (the page's long-pole query) stays off
 // the critical render path. No kosztorys rows ⇒ null (the block is simply absent).
-export async function InvestmentReconBlock({
-  investmentId,
-  investmentRobocizna,
-  investmentRabat,
-}: PropsT) {
+export async function InvestmentReconBlock({ investmentId }: PropsT) {
   const tree = await getKosztorysTree(investmentId)
   const rows = treeToRows(tree)
   if (rows.length === 0) return null
+
+  // Transaction sums are fetched investment-wide here (never through the page's URL-filtered
+  // `where`) so this surface can't diverge from the editor's Podsumowanie, which also compares
+  // against the whole investment. Cancelled rows are excluded in SQL already.
+  const financials = deriveFinancials(
+    await fetchFilteredByType({ investment: { equals: investmentId } }),
+  )
 
   const { sumaPracNet, rabatClientNet } = kosztorysClientTotals(
     rows,
@@ -49,8 +50,8 @@ export async function InvestmentReconBlock({
   const reconciliation = buildKosztorysReconciliation({
     sumaPracNet,
     rabatClientNet,
-    investmentRobocizna,
-    investmentRabat,
+    investmentRobocizna: financials.totalLaborCosts,
+    investmentRabat: financials.totalRabat,
   })
 
   return (

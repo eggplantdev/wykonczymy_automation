@@ -137,7 +137,7 @@ export const fetchReferenceData = unstable_cache(
       const stage: KosztorysStageRefT = {
         id: Number(row.id),
         ordinal,
-        label: (row.label as string) ?? `Etap ${ordinal}`,
+        label: (row.label as string) || `Etap ${ordinal}`,
       }
       ;(kosztorysStagesByInvestment[invId] ??= []).push(stage)
     }

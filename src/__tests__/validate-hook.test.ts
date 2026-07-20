@@ -146,6 +146,21 @@ describe('validateTransfer — auto-clear behavior', () => {
     const result = validateTransfer(hookArgs(VALID_DATA.INVESTMENT_EXPENSE))
     expect(result.investment).toBe(1)
   })
+
+  // The zaliczka etap tag only applies to deposit types. The form + schema gate it, so only the
+  // admin panel / REST can plant one on a non-deposit row; the hook must clear it or the reporting
+  // layer sees an etap tag on a non-zaliczka transaction.
+  it('INVESTMENT_EXPENSE → kosztorysStage set to null', () => {
+    const data = { ...VALID_DATA.INVESTMENT_EXPENSE, kosztorysStage: 7 }
+    const result = validateTransfer(hookArgs(data))
+    expect(result.kosztorysStage).toBeNull()
+  })
+
+  it('INVESTOR_DEPOSIT → kosztorysStage preserved', () => {
+    const data = { ...VALID_DATA.INVESTOR_DEPOSIT, kosztorysStage: 7 }
+    const result = validateTransfer(hookArgs(data))
+    expect(result.kosztorysStage).toBe(7)
+  })
 })
 
 // ═══════════════════════════════════════════════════════════════════════

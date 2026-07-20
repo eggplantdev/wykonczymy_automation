@@ -70,7 +70,6 @@ export function KosztorysEditorBody({
     totalNet,
     sumaPracNet,
     rabatClientNet,
-    plannedNet,
     rabatAmount,
     doZaplatyNet,
     view,
@@ -92,11 +91,14 @@ export function KosztorysEditorBody({
   // the grid for free. columnTotals bakes one sum per summable column id; withTotalsRow renders it.
   const columnTotals = useMemo(() => {
     const totals = new Map<string, number>()
-    // Money: executed value + offered przedmiar, net and gross.
+    // Money: executed value + offered przedmiar, net and gross. The Przedmiar „Razem" must track
+    // the active price view (its column reprices per view), so sum the view-aware subtotals — NOT
+    // the hook's `plannedNet`, which is fixed to client prices for the progress counter.
+    const plannedNetForView = subtotals.reduce((sum, section) => sum + section.plannedNet, 0)
     totals.set('net', totalNet)
     totals.set('gross', toGross(totalNet, tree.vatRate))
-    totals.set('plannedNet', plannedNet)
-    totals.set('plannedGross', toGross(plannedNet, tree.vatRate))
+    totals.set('plannedNet', plannedNetForView)
+    totals.set('plannedGross', toGross(plannedNetForView, tree.vatRate))
     totals.set('remaining', remainingTotals.net)
     totals.set('remainingGross', remainingTotals.gross)
     // Qty (Pomiar z natury): per-etap column, their sum, and the offered przedmiar column.
@@ -119,7 +121,7 @@ export function KosztorysEditorBody({
     plannedQtyTotal,
     remainingTotals,
     totalNet,
-    plannedNet,
+    subtotals,
     tree.vatRate,
   ])
 
