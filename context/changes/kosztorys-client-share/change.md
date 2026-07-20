@@ -2,7 +2,7 @@
 id: kosztorys-client-share
 slice: S-11
 linear: EX-532
-status: implementing
+status: implemented
 branch: konradantonik/ex-532-kosztorys-client-share
 worktree: .claude/worktrees/ex-532-client-share
 created: 2026-07-20
