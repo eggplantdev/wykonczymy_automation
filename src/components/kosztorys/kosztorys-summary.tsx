@@ -40,7 +40,7 @@ const mismatchTooltip = (recon: ReconT, subject: string) =>
 type PropsT = {
   investmentId: number
   // Robocizna wartość netto (po rabacie) — client-side, reacts to unsaved edits.
-  laborCostsNet: number
+  laborCostsNetFromKosztorys: number
   // The „Do zapłaty" pair (robocizna + materiały − wpłaty), computed by the panel so its collapsed
   // headline and this table's bottom row can't drift apart.
   doZaplaty: MoneyPairT
@@ -89,7 +89,7 @@ type RowOptsT = {
 // of Łącznie), then Wpłaty subtracted to reach „Do zapłaty" — one grid, no separate totals bar.
 export function KosztorysSummary({
   investmentId,
-  laborCostsNet,
+  laborCostsNetFromKosztorys,
   doZaplaty,
   materialyNet,
   materialyBreakdown,
@@ -102,8 +102,8 @@ export function KosztorysSummary({
 }: PropsT) {
   // Łącznie is the pre-rabat total (Suma prac + Materiały), so the rows above it reconcile to it;
   // Rabat then deducts from Łącznie down to „Do zapłaty" as its own waterfall line below.
-  // laborCostsNet arrives already net of rabat, so add it back for the Łącznie/udział base.
-  const sumaPracNet = laborCostsNet + rabatAmount
+  // laborCostsNetFromKosztorys arrives already net of rabat, so add it back for the Łącznie/udział base.
+  const sumaPracNet = laborCostsNetFromKosztorys + rabatAmount
   const { combined } = computeSummarySplit(sumaPracNet, materialyNet, vatRate)
   const { net: showNet, gross: showGross } = axisShows(moneyAxis)
   // The scream compares client-view nets; a subcontractor view reprices the displayed figure, so the

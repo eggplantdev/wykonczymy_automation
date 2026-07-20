@@ -22,7 +22,7 @@ type PropsT = {
   // Suma prac wykonanych — the executed total BEFORE rabat (Σ etap totals); EtapTotals' readout.
   totalNet: number
   // Robocizna wartość netto — executed total AFTER rabat; the Podsumowanie waterfall's base.
-  laborCostsNet: number
+  laborCostsNetFromKosztorys: number
   materialyNet: number
   // Per-expense-category split of materialyNet (v1 parity); Σ === materialyNet.
   materialyBreakdown: MaterialyBreakdownRowT[]
@@ -48,7 +48,7 @@ export function KosztorysTotalsPanel({
   stageTotals,
   zaliczkiByStage,
   totalNet,
-  laborCostsNet,
+  laborCostsNetFromKosztorys,
   materialyNet,
   materialyBreakdown,
   wplatyNet,
@@ -62,7 +62,7 @@ export function KosztorysTotalsPanel({
   const { net: showNet, gross: showGross } = axisShows(moneyAxis)
   // Computed here and passed down: the collapsed headline and the Podsumowanie row show the same
   // „Do zapłaty", so it has one source rather than two calls that must be kept in step.
-  const doZaplaty = computeDoZaplatyRM(laborCostsNet, wplatyNet, materialyNet, vatRate)
+  const doZaplaty = computeDoZaplatyRM(laborCostsNetFromKosztorys, wplatyNet, materialyNet, vatRate)
 
   return (
     <Collapsible.Root
@@ -110,7 +110,7 @@ export function KosztorysTotalsPanel({
         />
         <KosztorysSummary
           investmentId={investmentId}
-          laborCostsNet={laborCostsNet}
+          laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
           doZaplaty={doZaplaty}
           materialyNet={materialyNet}
           materialyBreakdown={materialyBreakdown}

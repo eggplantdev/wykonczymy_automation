@@ -354,11 +354,11 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
   )
   // NOT the „Do zapłaty" the UI shows — that one adds materiały and subtracts wpłaty
   // (computeDoZaplatyRM). This is robocizna alone, after rabat.
-  const laborCostsNet = totalNet - discountAmount
+  const laborCostsNetFromKosztorys = totalNet - discountAmount
   // The single explicit rabat figure the totals show. Global and per-item rabat are mutually
   // exclusive (a live global discount forces every row gross, zeroing its per-item rabat), so
   // summing them yields whichever mode is active without a branch. `discountAmount` still drives
-  // `laborCostsNet`; `rabatAmount` is display-only (= discountAmount when global, Σ item-rabat otherwise).
+  // `laborCostsNetFromKosztorys`; `rabatAmount` is display-only (= discountAmount when global, Σ item-rabat otherwise).
   const itemRabatTotal = useMemo(
     () => subtotals.reduce((sum, s) => sum + s.discount, 0),
     [subtotals],
@@ -1060,7 +1060,7 @@ export function useKosztorysEditor({ investmentId, tree }: ArgsT) {
     globalDiscount,
     discountAmount,
     rabatAmount,
-    laborCostsNet,
+    laborCostsNetFromKosztorys,
     // toolbar / panel state
     setView,
     search,

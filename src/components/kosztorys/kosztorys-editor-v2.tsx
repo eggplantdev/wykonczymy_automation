@@ -19,7 +19,7 @@ type PropsT = {
   materialyBreakdown: MaterialyBreakdownRowT[]
   wplatyNet: number
   zaliczkiByStage: Record<number, number>
-  investmentLaborCosts: number
+  laborCostsNetFromTransactions: number
   investmentRabat: number
 }
 
@@ -34,7 +34,7 @@ export function KosztorysEditorV2({
   materialyBreakdown,
   wplatyNet,
   zaliczkiByStage,
-  investmentLaborCosts,
+  laborCostsNetFromTransactions,
   investmentRabat,
 }: PropsT) {
   const router = useRouter()
@@ -77,7 +77,7 @@ export function KosztorysEditorV2({
         materialyBreakdown={materialyBreakdown}
         wplatyNet={wplatyNet}
         zaliczkiByStage={zaliczkiByStage}
-        investmentLaborCosts={investmentLaborCosts}
+        laborCostsNetFromTransactions={laborCostsNetFromTransactions}
         investmentRabat={investmentRabat}
         onOpenVersions={() => setVersionsOpen(true)}
       />

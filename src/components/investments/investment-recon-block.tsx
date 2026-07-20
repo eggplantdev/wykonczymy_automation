@@ -50,7 +50,7 @@ export async function InvestmentReconBlock({ investmentId }: PropsT) {
   const reconciliation = buildKosztorysReconciliation({
     sumaPracNet,
     rabatClientNet,
-    investmentLaborCosts: financials.totalLaborCosts,
+    laborCostsNetFromTransactions: financials.totalLaborCosts,
     investmentRabat: financials.totalRabat,
   })
 

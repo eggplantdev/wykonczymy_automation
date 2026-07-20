@@ -73,17 +73,17 @@ describe('computeDoZaplatyRM', () => {
 // faceValue(rabat) left it off by rabat × VAT.
 describe('Podsumowanie brutto waterfall (rabat grosses)', () => {
   it('Łącznie − Rabat − Wpłaty === Do zapłaty on BOTH axes', () => {
-    const laborCostsNet = 800 // do zapłaty, po rabacie
+    const laborCostsNetFromKosztorys = 800 // do zapłaty, po rabacie
     const rabatNet = 200
     const materialyNet = 400
     const wplatyNet = 300
     const vat = 0.23
 
-    const sumaPracNet = laborCostsNet + rabatNet // 1000, pre-rabat
+    const sumaPracNet = laborCostsNetFromKosztorys + rabatNet // 1000, pre-rabat
     const { combined } = computeSummarySplit(sumaPracNet, materialyNet, vat)
     const rabat = moneyPair(rabatNet, vat)
     const wplaty = faceValue(wplatyNet)
-    const doZaplaty = computeDoZaplatyRM(laborCostsNet, wplatyNet, materialyNet, vat)
+    const doZaplaty = computeDoZaplatyRM(laborCostsNetFromKosztorys, wplatyNet, materialyNet, vat)
 
     expect(combined.net - rabat.net - wplaty.net).toBeCloseTo(doZaplaty.net)
     expect(combined.gross - rabat.gross - wplaty.gross).toBeCloseTo(doZaplaty.gross)

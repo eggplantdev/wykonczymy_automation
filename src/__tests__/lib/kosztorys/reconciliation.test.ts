@@ -96,7 +96,7 @@ function reconcile(tree: KosztorysTreeT, txns: TypeSettledTotalT[]) {
   return buildKosztorysReconciliation({
     sumaPracNet,
     rabatClientNet,
-    investmentLaborCosts: financials.totalLaborCosts,
+    laborCostsNetFromTransactions: financials.totalLaborCosts,
     investmentRabat: financials.totalRabat,
   })
 }
@@ -165,7 +165,7 @@ describe('robocizna compares the PRE-rabat suma prac (EX-535 regression)', () =>
     const silent = buildKosztorysReconciliation({
       sumaPracNet,
       rabatClientNet,
-      investmentLaborCosts: sumaPracNet,
+      laborCostsNetFromTransactions: sumaPracNet,
       investmentRabat: rabatClientNet,
     })
     expect(silent.laborCosts.mismatch).toBe(false)
@@ -188,7 +188,7 @@ describe('reconciliation compares netto ↔ netto — the ledger plane carries n
     const verdict = buildKosztorysReconciliation({
       sumaPracNet: 5000,
       rabatClientNet: 100,
-      investmentLaborCosts: 5000,
+      laborCostsNetFromTransactions: 5000,
       investmentRabat: 100,
     })
     expect(verdict.rabat.expected).toBeCloseTo(100)
@@ -200,7 +200,7 @@ describe('reconciliation compares netto ↔ netto — the ledger plane carries n
     const verdict = buildKosztorysReconciliation({
       sumaPracNet: 5000,
       rabatClientNet: 100,
-      investmentLaborCosts: 5000,
+      laborCostsNetFromTransactions: 5000,
       investmentRabat: 102,
     })
     expect(verdict.rabat.mismatch).toBe(true)
@@ -214,7 +214,7 @@ describe('grosz-exact tolerance (no fuzzy epsilon)', () => {
     const verdict = buildKosztorysReconciliation({
       ...base,
       sumaPracNet: 100,
-      investmentLaborCosts: 100,
+      laborCostsNetFromTransactions: 100,
     })
     expect(verdict.laborCosts.mismatch).toBe(false)
   })
@@ -223,7 +223,7 @@ describe('grosz-exact tolerance (no fuzzy epsilon)', () => {
     const verdict = buildKosztorysReconciliation({
       ...base,
       sumaPracNet: 100,
-      investmentLaborCosts: 100.01,
+      laborCostsNetFromTransactions: 100.01,
     })
     expect(verdict.laborCosts.mismatch).toBe(true)
   })
@@ -232,7 +232,7 @@ describe('grosz-exact tolerance (no fuzzy epsilon)', () => {
     const verdict = buildKosztorysReconciliation({
       ...base,
       sumaPracNet: 100.002,
-      investmentLaborCosts: 100.001,
+      laborCostsNetFromTransactions: 100.001,
     })
     expect(verdict.laborCosts.mismatch).toBe(false)
   })

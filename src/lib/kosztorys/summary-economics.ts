@@ -43,12 +43,12 @@ export type SummaryT = {
 // `combined.net` as their udział base. Robocizna reacts to unsaved editor edits; materiały is a
 // server prop.
 export function computeSummarySplit(
-  laborCostsNet: number,
+  laborCostsNetFromKosztorys: number,
   materialyNet: number,
   vatRate: number,
 ): SummaryT {
-  const combinedNet = laborCostsNet + materialyNet
-  const laborCosts = summaryLine(laborCostsNet, combinedNet, vatRate)
+  const combinedNet = laborCostsNetFromKosztorys + materialyNet
+  const laborCosts = summaryLine(laborCostsNetFromKosztorys, combinedNet, vatRate)
   // Łącznie brutto = robocizna grossed + materiały at face value. Only prace carries VAT, so this is
   // NOT toGross(combinedNet) — grossing the whole sum would invent VAT on the materiały component.
   const combined: SummaryLineT = {
@@ -65,14 +65,14 @@ export function computeSummarySplit(
 // So this equals −Bilans on the R+M base. Can go negative when wpłaty exceed R+M — a real
 // overpaid state, not clamped here.
 export function computeDoZaplatyRM(
-  laborCostsNet: number,
+  laborCostsNetFromKosztorys: number,
   wplatyNet: number,
   materialyNet: number,
   vatRate: number,
 ): MoneyPairT {
-  const net = laborCostsNet - wplatyNet + materialyNet
+  const net = laborCostsNetFromKosztorys - wplatyNet + materialyNet
   // Only robocizna (prace) carries VAT; wpłaty and materiały enter at face value. Grossing the whole
   // net would invent VAT on the deposits and the expenses.
-  const gross = toGross(laborCostsNet, vatRate) - wplatyNet + materialyNet
+  const gross = toGross(laborCostsNetFromKosztorys, vatRate) - wplatyNet + materialyNet
   return { net, gross }
 }
