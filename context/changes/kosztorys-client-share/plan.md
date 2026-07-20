@@ -421,17 +421,17 @@ via `pnpm db:migrate:prod`.
 
 #### Automated
 
-- [x] 2.1 Type checking passes (`tsc --noEmit`)
-- [x] 2.2 Lint passes (`pnpm lint`)
-- [x] 2.3 Read-only columns test passes (all disabled, no actions column)
+- [x] 2.1 Type checking passes (`tsc --noEmit`) — 88fcf326
+- [x] 2.2 Lint passes (`pnpm lint`) — 88fcf326
+- [x] 2.3 Read-only columns test passes (all disabled, no actions column) — 88fcf326
 
 ### Phase 3: Always-on client preview (authenticated)
 
 #### Automated
 
-- [ ] 3.1 Type checking passes (`tsc --noEmit`)
-- [ ] 3.2 Lint passes (`pnpm lint`)
-- [ ] 3.3 Preview read is auth-gated (anonymous call rejects)
+- [x] 3.1 Type checking passes (`tsc --noEmit`)
+- [x] 3.2 Lint passes (`pnpm lint`)
+- [x] 3.3 Preview read is auth-gated (anonymous call rejects)
 
 ### Phase 4: Public (share) route + owner share controls
 

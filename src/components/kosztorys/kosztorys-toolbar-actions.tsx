@@ -1,6 +1,7 @@
 'use client'
 
-import { Redo2, Undo2 } from 'lucide-react'
+import Link from 'next/link'
+import { Eye, Redo2, Undo2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { KosztorysActionsMenu } from '@/components/kosztorys/kosztorys-actions-menu'
 import { useKosztorysEditorContext } from '@/components/kosztorys/use-kosztorys-editor-context'
@@ -39,6 +40,14 @@ export function KosztorysToolbarActions() {
         aria-label="Ponów"
       >
         <Redo2 />
+      </Button>
+      {/* Always available, independent of whether a link is currently shared — the owner needs to see
+          what a client would see before deciding to share, and after revoking. */}
+      <Button size="sm" variant="outline" asChild title="Podgląd dla klienta">
+        <Link href={`/inwestycje/${investmentId}/kosztorys_v2/podglad-klienta`} target="_blank">
+          <Eye />
+          Podgląd
+        </Link>
       </Button>
       <KosztorysActionsMenu investmentId={investmentId} onOpenVersions={onOpenVersions} />
       <Button
