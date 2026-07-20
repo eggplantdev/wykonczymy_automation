@@ -29,6 +29,14 @@ export async function getKosztorysTree(investmentId: number): Promise<KosztorysT
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) throw new Error(session.error)
 
+  return buildKosztorysTree(investmentId)
+}
+
+// The tree-building body, split from the guard above so the client-share read paths
+// (lib/queries/client-kosztorys.ts) — one of which is deliberately unauthenticated — reach the same
+// tree through the same code. Two copies of this mapping would drift, and the client projection
+// would then be projecting a different tree from the one the owner edits.
+export async function buildKosztorysTree(investmentId: number): Promise<KosztorysTreeT> {
   const payload = await getPayload({ config })
   const where = { investment: { equals: investmentId } }
 

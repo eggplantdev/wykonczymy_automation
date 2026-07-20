@@ -4,6 +4,7 @@
 // in S-01 it is carried as 0 (VAT arrives in S-12).
 
 import type { STAGE_QTY_PREFIX } from '@/lib/kosztorys/stage-keys'
+import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 
 export type DiscountTypeT = 'percent' | 'amount'
 // Per-investment global discount over the whole kosztorys. type null = none (per-item discounts
@@ -131,6 +132,66 @@ export type StageKeyT = `${typeof STAGE_QTY_PREFIX}${number}`
 
 export type KosztorysV2RowT = KosztorysV2RowBaseT & {
   [stageKey: StageKeyT]: number
+}
+
+// --- The client-facing projection (S-11 / EX-532) ---
+//
+// The leak boundary. These types carry NO costVariant, NO coefficients and NO *Override* field, so
+// the inputs a subcontractor price is derived from never enter the client render's module graph.
+// What the client receives is the client-price plane only; `toClientView` computes every money
+// figure at the literal view 'client', so a subcontractor price is not filtered out — it is never
+// computed. Adding a field here is the one place to ask "may the client see this?".
+
+export type ClientKosztorysRowT = {
+  id: number
+  sectionId: number
+  sectionName: string
+  description: string | null
+  unit: string | null
+  plannedQty: number
+  clientPrice: number
+  discountType: DiscountTypeT | null
+  discountValue: number
+  note: string | null
+  // Per-etap recorded quantity, keyed by stage id — the sheet's D:M. Pomiar z natury is their sum,
+  // derived at render like every other figure, never carried as a second copy.
+  stageQty: Record<number, number>
+}
+
+// A section's slice of the executed work, for the pie: the same figures the editor's section panel
+// shows, weighted at the client price.
+export type ClientSectionShareT = {
+  sectionId: number
+  sectionName: string
+  net: number
+  share: number
+}
+
+// The footer block (sheet Podsumowanie): the prace waterfall plus the materiały/wpłaty lines the
+// client is billed. Server-computed — these cross the kosztorys/transactions boundary, which the
+// row plane cannot see. Deliberately carries NO reconciliation verdict: that is the owner's
+// internal check against the transaction ledger (EX-535) and must never reach a client.
+export type ClientKosztorysTotalsT = {
+  sumaPracNet: number
+  rabatNet: number
+  robociznaNet: number
+  materialyNet: number
+  materialyBreakdown: MaterialyBreakdownRowT[]
+  wplatyNet: number
+  // Suma transzy: value executed per etap, in `stages` order.
+  stageTotals: { stageId: number; net: number }[]
+}
+
+export type ClientKosztorysViewT = {
+  investmentName: string
+  vatRate: number
+  // Per-item rabat is overridden while this is on — the grid drops those columns, exactly as the
+  // editor does, and the discount lands once on the footer's „Rabat" line.
+  globalDiscountActive: boolean
+  stages: KosztorysStageT[]
+  rows: ClientKosztorysRowT[]
+  sections: ClientSectionShareT[]
+  totals: ClientKosztorysTotalsT
 }
 
 export type SectionSubtotalT = {

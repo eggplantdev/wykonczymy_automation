@@ -52,6 +52,7 @@ import * as migration_20260716_0_drop_kosztorys_measured_qty from './20260716_0_
 import * as migration_20260716_1_add_global_discount_to_investments from './20260716_1_add_global_discount_to_investments'
 import * as migration_20260718_0_add_planowana_investment_status from './20260718_0_add_planowana_investment_status'
 import * as migration_20260718_1_add_kosztorys_stage_to_transactions from './20260718_1_add_kosztorys_stage_to_transactions'
+import * as migration_20260720_0_add_kosztorys_shares from './20260720_0_add_kosztorys_shares'
 
 export const migrations = [
   {
@@ -323,5 +324,10 @@ export const migrations = [
     up: migration_20260718_1_add_kosztorys_stage_to_transactions.up,
     down: migration_20260718_1_add_kosztorys_stage_to_transactions.down,
     name: '20260718_1_add_kosztorys_stage_to_transactions',
+  },
+  {
+    up: migration_20260720_0_add_kosztorys_shares.up,
+    down: migration_20260720_0_add_kosztorys_shares.down,
+    name: '20260720_0_add_kosztorys_shares',
   },
 ]
