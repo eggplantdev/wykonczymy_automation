@@ -4,6 +4,51 @@ import nextPlugin from '@next/eslint-plugin-next'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import { fixupPluginRules } from '@eslint/compat'
 
+// TODO(EX-548): re-enable the domain-name drift guard once the glossary audit + the ~268-site rename
+// refactor land. Commented out (not deleted) deliberately — turning it on now paints `pnpm lint` red on
+// every un-renamed site, blocking unrelated work before the renames exist. The rule + its config block
+// below stay verbatim so re-enabling is a pure uncomment. Canonicals + rationale: context/domain/02-glossary.md.
+//
+// Domain-name drift guard. One business concept must carry ONE English identifier across the whole
+// app — never a Polish generic re-typed per subsystem (the recon seam is where `marza`/`balance` etc.
+// used to collide). Scoped to Identifier AST nodes so the heavy Polish UI strings and comments carrying
+// these same words are invisible — only code identifiers are flagged. Each regex matches the Polish stem
+// only at a camelCase word boundary (`^stem` or `Stem`), which keeps English collisions out
+// (`strategy` ≠ `strata`, `metaphor` ≠ `etap`) AND lets the uppercase enum constants through
+// (`RABAT`/`LOSS` have no lowercase stem, so they pass — those are the canonical DB values, not drift).
+//
+// const DOMAIN_DRIFT = [
+//   [/^bilans|Bilans/, 'bilans* → balance*'],
+//   [/^marza|Marza/, 'marza* → margin*'],
+//   [/^rabat|Rabat/, 'rabat* → discount* (the uppercase RABAT enum value stays)'],
+//   [/^zaliczk|Zaliczk/, 'zaliczki* → deposit* / stageDeposit*'],
+//   [/^wplat|Wplat/, 'wplaty* → deposit*'],
+//   [/^wyplat|Wyplat/, 'wyplaty* → payout*'],
+//   [/^robocizn|Robocizn/, 'robocizna* → laborCosts*'],
+//   [/^strata|Strata|^straty|Straty/, 'strata* → loss*'],
+//   [/^etap|Etap/, 'etap* → stage*'],
+// ]
+//
+// const noDomainDriftRule = {
+//   meta: {
+//     type: 'problem',
+//     docs: { description: 'Enforce one English identifier per domain concept; flag Polish-generic drift.' },
+//     schema: [],
+//     messages: {
+//       drift:
+//         'Domain-name drift: {{fix}}. One concept, one English name — see context/domain/02-glossary.md.',
+//     },
+//   },
+//   create(context) {
+//     return {
+//       Identifier(node) {
+//         const hit = DOMAIN_DRIFT.find(([re]) => re.test(node.name))
+//         if (hit) context.report({ node, messageId: 'drift', data: { fix: hit[1] } })
+//       },
+//     }
+//   },
+// }
+
 export default ts.config(
   {
     extends: [js.configs.recommended, ...ts.configs.recommended],
@@ -92,6 +137,15 @@ export default ts.config(
       '@typescript-eslint/no-deprecated': 'warn',
     },
   },
+  // TODO(EX-548): re-enable together with the rule + DOMAIN_DRIFT array above. Whole app INCLUDING
+  // tests + scripts — the bilans/marza drift lives in test/script files, so unlike the env rule this
+  // one does not exempt them. Migrations are exempt: their identifiers mirror frozen DB enum values.
+  // {
+  //   files: ['src/**/*.{ts,tsx}'],
+  //   ignores: ['src/migrations/**'],
+  //   plugins: { local: { rules: { 'no-domain-drift': noDomainDriftRule } } },
+  //   rules: { 'local/no-domain-drift': 'error' },
+  // },
   {
     // Root CommonJS configs (e.g. .dependency-cruiser.cjs) use module.exports; the flat config
     // otherwise parses them as ESM and flags `module` as no-undef.
@@ -102,6 +156,6 @@ export default ts.config(
     // One-off plain-Node .mjs tools (not app code) — their process/console use trips no-undef and
     // it's not worth a Node-globals config block. scripts/inspect-sheet.mjs = sheet-inspection POC;
     // scripts/blob-snapshot.mjs = EX-459 blob backup/recovery tool.
-    ignores: ['.next/', '.next-e2e/', 'scripts/inspect-sheet.mjs', 'scripts/blob-mirror.mjs', 'scripts/blob-snapshot.mjs'],
+    ignores: ['.next/', '.next-e2e/', '.claude/', 'scripts/inspect-sheet.mjs', 'scripts/blob-mirror.mjs', 'scripts/blob-snapshot.mjs'],
   },
 )
