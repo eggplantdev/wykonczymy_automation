@@ -88,8 +88,12 @@ concept; the suffix is the only thing that differs, so a reader can't mistake wh
 | ------------ | ---------------------------- | ------------------------------------------------ |
 | labor charge | `laborCostsNetFromKosztorys` | `laborCostsNetFromTransactions` (Σ `LABOR_COST`) |
 
-`totalLaborCosts` on `investment-financials` keeps its name — it's the ledger aggregate at its own
-source, not a recon operand. The suffix applies where the two meet.
+**A figure that exists on only one plane stays bare** (owner, 2026-07-20) — `depositsByStage`, not
+`depositsByStageFromKosztorys`. The suffix is a warning that a twin exists; hanging it on everything
+turns it into noise that stops warning. Add it when the second plane appears, not before.
+
+`totalLaborCosts` on `investment-financials` keeps its name for the same reason — it's the ledger
+aggregate at its own source, not a recon operand. The suffix applies where the two meet.
 
 Two prior passes got this wrong: `robociznaNet` → `laborCostsNet` fixed the language but dropped the
 plane; `laborFromKosztorysNet` carried the plane but mangled the base name, so the pair no longer
