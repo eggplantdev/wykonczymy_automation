@@ -9,7 +9,7 @@ import { useElementHeight } from '@/hooks/use-element-height'
 import { useMoneyAxis } from '@/components/kosztorys/use-money-axis'
 import { buildV2Grid } from '@/components/kosztorys/kosztorys-v2-columns'
 import { ClientKosztorysFooter } from '@/components/kosztorys/client/client-kosztorys-footer'
-import { toGridRows } from '@/components/kosztorys/client/to-grid-rows'
+import { toGridRows } from '@/lib/kosztorys/to-grid-rows'
 import { MoneyAxisToggle } from '@/components/kosztorys/client/money-axis-toggle'
 import type { ClientKosztorysViewT } from '@/lib/kosztorys/types'
 
@@ -58,12 +58,9 @@ export function ClientKosztorysView({ view }: PropsT) {
       </header>
 
       {/* The grid needs a px height for virtualization (otherwise it renders every row) and a
-          definite width, which `grid-cols-[minmax(0,1fr)]` gives it — without it the grid stretches
+          definite width, which the single min-width-0 track gives it — without it the grid stretches
           its container to the sum of the columns instead of scrolling them internally. */}
-      <div
-        ref={gridRef}
-        className="grid min-h-0 min-w-0 flex-1 grid-cols-[minmax(0,1fr)] overflow-hidden"
-      >
+      <div ref={gridRef} className="grid min-h-0 min-w-0 flex-1 grid-cols-1 overflow-hidden">
         <DynamicDataSheetGrid
           className="kosztorys-grid"
           value={rows}

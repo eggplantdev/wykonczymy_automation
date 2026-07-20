@@ -23,6 +23,9 @@ import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_CELL,
   SUMMARY_VALUE_COL,
+  SummaryRow,
+  summaryMoneyCols,
+  type SummaryRowOptsT,
 } from '@/components/kosztorys/summary-grid'
 import { ReconMismatchBadge } from '@/components/kosztorys/recon-mismatch-badge'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
@@ -59,27 +62,6 @@ type PropsT = {
   priceView: PriceViewT
   vatRate: number
   moneyAxis: MoneyAxisT
-}
-
-type RowOptsT = {
-  emphasize?: boolean
-  bold?: boolean
-  discount?: boolean
-  danger?: boolean
-  // Drops the udział cell entirely. Only for the waterfall block, whose grid has no udział track —
-  // every line there is off the Łącznie base.
-  noShareCell?: boolean
-  // Blanks the udział cell without dropping it. For Łącznie, which IS the udział base: a
-  // self-referential 100% is meaningless, but the cell has to stay — remove it and the container's
-  // bg-border shows through the uncovered track as a grey gap.
-  hideShare?: boolean
-  // No-VAT figure: one amount, no netto/brutto axis. The sheet gives brutto its own row only for
-  // prace + the R+M total; materiały/korekta/wpłaty have no brutto figure at all. The Brutto cell
-  // repeats the netto amount rather than blanking, which also keeps the row readable in a
-  // brutto-only widok, where blanking dropped its only value.
-  noBrutto?: boolean
-  // When set, the figure screams: bold red value + a red `!` whose tooltip is this string.
-  mismatch?: string
 }
 
 // The single bottom summary block: the robocizna waterfall (Suma prac wykonanych → Rabat →
@@ -120,64 +102,15 @@ export function KosztorysPodsumowanie({
   const rabat = moneyPair(rabatAmount, vatRate)
   const wplaty = faceValue(wplatyNet)
 
-  // First track shared with the etap-totals block so both grids' label columns align; the money
-  // tracks appear only for the axis that's shown.
-  const moneyCols = [
-    SUMMARY_LABEL_COL,
-    showNet && SUMMARY_VALUE_COL,
-    showGross && SUMMARY_VALUE_COL,
-  ]
-    .filter(Boolean)
-    .join(' ')
+  const moneyCols = summaryMoneyCols(moneyAxis)
   const gridTemplateColumns = `${moneyCols} ${SUMMARY_VALUE_COL}`
 
   const labelCell = SUMMARY_LABEL_CELL
   const valueCell = SUMMARY_VALUE_CELL
 
-  // A line with no `share` (the total rows) renders an empty udział cell. `emphasize` keeps the
-  // summary rows bold now that the shared gridlines already draw every row separator.
-  const row = (label: ReactNode, line: SummaryLineT | MoneyPairT, opts: RowOptsT = {}) => {
-    const hasShare = 'share' in line && !opts.hideShare
-    const money = cn(
-      valueCell,
-      opts.emphasize && 'font-medium',
-      opts.bold && 'font-bold',
-      opts.discount && 'text-chart-green',
-      opts.danger && 'text-destructive',
-      opts.mismatch && 'text-destructive font-bold',
-    )
-    return (
-      <Fragment>
-        <span className={cn(labelCell, opts.emphasize && 'font-medium', opts.bold && 'font-bold')}>
-          <span className="inline-flex items-center gap-1">
-            {label}
-            {opts.mismatch && <ReconMismatchBadge content={opts.mismatch} />}
-            {/* The row's brutto cell repeats its netto figure — flagged here so the repetition reads
-                as „ta pozycja nie ma VAT-u", not as a rendering slip. */}
-            {opts.noBrutto && showGross && (
-              <HintTooltip
-                content="Pozycja bez VAT — kwota brutto równa się netto"
-                className="text-muted-foreground"
-              >
-                <Info className="size-3.5" aria-label="Pozycja bez VAT" />
-              </HintTooltip>
-            )}
-          </span>
-        </span>
-        {showNet && <span className={money}>{formatNet(line.net)}</span>}
-        {showGross && (
-          // A no-VAT row repeats its netto figure here rather than blanking: the amount IS the
-          // brutto (VAT doesn't apply), so restating it reads clearer than an absence.
-          <span className={money}>{formatNet(opts.noBrutto ? line.net : line.gross)}</span>
-        )}
-        {!opts.noShareCell && (
-          <span className={cn(valueCell, 'text-muted-foreground', opts.emphasize && 'font-medium')}>
-            {hasShare ? formatPercent(line.share) : ''}
-          </span>
-        )}
-      </Fragment>
-    )
-  }
+  const row = (label: ReactNode, line: SummaryLineT | MoneyPairT, opts: SummaryRowOptsT = {}) => (
+    <SummaryRow label={label} line={line} axis={moneyAxis} {...opts} />
+  )
 
   return (
     <div className="text-foreground flex w-fit flex-col gap-4 px-4 pt-2 pb-10 text-sm">

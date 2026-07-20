@@ -420,9 +420,6 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     ...donePercent,
     ...remaining,
   ]
-  // Read-only stamps `disabled` on every data cell — react-datasheet-grid otherwise lets a
-  // callback-less cell take focus and open its editor, which on a client-facing grid reads as
-  // "you may type here" and silently eats the keystroke. The actions column goes with it.
   if (opts.readOnly) return dataColumns.map((c) => ({ ...c, disabled: true }))
   return opts.onRemoveItem || opts.onReorderItem
     ? [actionColumn(opts), ...dataColumns]

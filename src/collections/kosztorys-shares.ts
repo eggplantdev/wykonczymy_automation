@@ -1,6 +1,5 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
-import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 
 // One live public link per investment's kosztorys. Its own table rather than a column on an
 // existing entity: revoke is a row delete, and sharing gets a lifecycle (expiry, multiple links)
@@ -22,10 +21,8 @@ export const KosztorysShares: CollectionConfig = {
     defaultColumns: ['investment', 'token', 'updatedAt'],
     group: { en: 'Kosztorys', pl: 'Kosztorys' },
   },
-  hooks: {
-    afterChange: [makeRevalidateAfterChange('kosztorysShares')],
-    afterDelete: [makeRevalidateAfterDelete('kosztorysShares')],
-  },
+  // No revalidation hooks: the token lookup is deliberately uncached (revoking has to bite on the
+  // next request), so nothing is stored under a `kosztorys-shares` tag for a write to bust.
   access: {
     read: isAdminOrOwnerOrManager,
     create: isAdminOrOwner,

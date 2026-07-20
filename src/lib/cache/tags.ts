@@ -10,7 +10,6 @@ export const CACHE_TAGS = {
   kosztorysItems: 'collection:kosztorys-items',
   kosztorysStages: 'collection:kosztorys-stages',
   stageProgress: 'collection:stage-progress',
-  kosztorysShares: 'collection:kosztorys-shares',
   leads: 'collection:leads',
   presets: 'collection:kosztorys-presets',
 } as const

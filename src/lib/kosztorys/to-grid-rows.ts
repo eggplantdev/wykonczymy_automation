@@ -20,8 +20,6 @@ const NO_SUBCONTRACTOR_PRICING = {
 } as const
 
 /**
- * Adapt the client DTO into the grid's row shape at the render boundary.
- *
  * The alternative — having the DTO carry pre-computed money figures — would give the client view a
  * second source of truth for every net/brutto/pozostało cell, drifting from the editor's. Instead the
  * payload carries the same raw inputs the editor's rows do (minus the subcontractor plane) and the
@@ -50,8 +48,9 @@ export function toGridRows(
       clientPrice: row.clientPrice,
       discountType: row.discountType,
       discountValue: row.discountValue,
+      // Already filtered out upstream — a hidden row never reaches this payload.
       hiddenInExport: false,
-      note: row.note,
+      note: null,
       vatRate,
       globalDiscountActive,
       ...stageFields,

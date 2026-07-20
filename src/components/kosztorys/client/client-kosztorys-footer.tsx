@@ -2,7 +2,8 @@
 
 import { Fragment } from 'react'
 import { toGross } from '@/lib/kosztorys/calc'
-import { formatNet, formatPercent } from '@/lib/kosztorys/format'
+import { formatNet } from '@/lib/kosztorys/format'
+import { SectionPie } from '@/components/kosztorys/client/section-pie'
 import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import {
   computeDoZaplatyRM,
@@ -19,6 +20,9 @@ import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_CELL,
   SUMMARY_VALUE_COL,
+  SummaryRow,
+  summaryMoneyCols,
+  type SummaryRowOptsT,
 } from '@/components/kosztorys/summary-grid'
 import { cn } from '@/lib/utils/cn'
 import type { ClientKosztorysViewT } from '@/lib/kosztorys/types'
@@ -29,8 +33,6 @@ type PropsT = {
 }
 
 /**
- * The client's footer: the Podsumowanie waterfall, the per-etap suma transzy, and the section split.
- *
  * A deliberate near-twin of `KosztorysPodsumowanie` rather than a reuse of it — that component takes
  * a live `reconciliation` prop and renders the EX-535 mismatch scream, an owner-internal check
  * against the transaction ledger. Its suppression gate is `priceView !== 'client'`, and this surface
@@ -48,58 +50,13 @@ export function ClientKosztorysFooter({ view, moneyAxis }: PropsT) {
     vatRate,
   )
 
-  const moneyCols = [
-    SUMMARY_LABEL_COL,
-    showNet && SUMMARY_VALUE_COL,
-    showGross && SUMMARY_VALUE_COL,
-  ]
-    .filter(Boolean)
-    .join(' ')
+  const moneyCols = summaryMoneyCols(moneyAxis)
 
-  const row = (
-    label: string,
-    line: SummaryLineT | MoneyPairT,
-    opts: {
-      emphasize?: boolean
-      bold?: boolean
-      discount?: boolean
-      noShareCell?: boolean
-      hideShare?: boolean
-      // No-VAT figure (materials, deposits): brutto repeats netto rather than blanking, so the cell
-      // still reads as an amount in a brutto-only view.
-      noBrutto?: boolean
-    } = {},
-  ) => {
-    const hasShare = 'share' in line && !opts.hideShare
-    const money = cn(
-      SUMMARY_VALUE_CELL,
-      opts.emphasize && 'font-medium',
-      opts.bold && 'font-bold',
-      opts.discount && 'text-chart-green',
-    )
-    return (
-      <Fragment>
-        <span
-          className={cn(
-            SUMMARY_LABEL_CELL,
-            opts.emphasize && 'font-medium',
-            opts.bold && 'font-bold',
-          )}
-        >
-          {label}
-        </span>
-        {showNet && <span className={money}>{formatNet(line.net)}</span>}
-        {showGross && (
-          <span className={money}>{formatNet(opts.noBrutto ? line.net : line.gross)}</span>
-        )}
-        {!opts.noShareCell && (
-          <span className={cn(SUMMARY_VALUE_CELL, 'text-muted-foreground')}>
-            {hasShare ? formatPercent(line.share) : ''}
-          </span>
-        )}
-      </Fragment>
-    )
-  }
+  // Same row primitive the owner's Podsumowanie uses; `mismatch` is simply never passed, which is
+  // what keeps the EX-535 reconciliation scream off a client-facing surface.
+  const row = (label: string, line: SummaryLineT | MoneyPairT, opts: SummaryRowOptsT = {}) => (
+    <SummaryRow label={label} line={line} axis={moneyAxis} {...opts} />
+  )
 
   return (
     <div className="text-foreground flex w-fit flex-col gap-4 px-4 pt-2 pb-10 text-sm">
@@ -195,27 +152,7 @@ export function ClientKosztorysFooter({ view, moneyAxis }: PropsT) {
         </div>
       )}
 
-      {view.sections.length > 1 && (
-        <div
-          style={{
-            gridTemplateColumns: `${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL} ${SUMMARY_VALUE_COL}`,
-          }}
-          className="border-border bg-border grid w-fit gap-px border"
-        >
-          <span className={cn(SUMMARY_LABEL_CELL, 'text-muted-foreground text-xs')}>Sekcje</span>
-          <span className={cn(SUMMARY_VALUE_CELL, 'text-muted-foreground text-xs')}>Netto</span>
-          <span className={cn(SUMMARY_VALUE_CELL, 'text-muted-foreground text-xs')}>Udział</span>
-          {view.sections.map((section) => (
-            <Fragment key={section.sectionId}>
-              <span className={SUMMARY_LABEL_CELL}>{section.sectionName}</span>
-              <span className={SUMMARY_VALUE_CELL}>{formatNet(section.net)}</span>
-              <span className={cn(SUMMARY_VALUE_CELL, 'text-muted-foreground')}>
-                {formatPercent(section.share)}
-              </span>
-            </Fragment>
-          ))}
-        </div>
-      )}
+      {view.sections.length > 1 && <SectionPie sections={view.sections} />}
     </div>
   )
 }
