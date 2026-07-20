@@ -412,18 +412,18 @@ via `pnpm db:migrate:prod`.
 
 #### Automated
 
-- [x] 1.1 Type checking passes (`generate:types` + `tsc --noEmit`)
-- [x] 1.2 Migration applies cleanly (`payload migrate`)
-- [x] 1.3 Projection safety test passes (no subcontractor keys/numbers)
-- [x] 1.4 Unknown/absent token → null read
+- [x] 1.1 Type checking passes (`generate:types` + `tsc --noEmit`) — fe143fbe
+- [x] 1.2 Migration applies cleanly (`payload migrate`) — fe143fbe
+- [x] 1.3 Projection safety test passes (no subcontractor keys/numbers) — fe143fbe
+- [x] 1.4 Unknown/absent token → null read — fe143fbe
 
 ### Phase 2: Read-only grid opt + clientVisible filter + render
 
 #### Automated
 
-- [ ] 2.1 Type checking passes (`tsc --noEmit`)
-- [ ] 2.2 Lint passes (`pnpm lint`)
-- [ ] 2.3 Read-only columns test passes (all disabled, no actions column)
+- [x] 2.1 Type checking passes (`tsc --noEmit`)
+- [x] 2.2 Lint passes (`pnpm lint`)
+- [x] 2.3 Read-only columns test passes (all disabled, no actions column)
 
 ### Phase 3: Always-on client preview (authenticated)
 

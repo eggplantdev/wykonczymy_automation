@@ -1,4 +1,5 @@
 import {
+  STAGES_COLUMN_GROUP,
   STAGE_VALUE_GROSS_COLUMN_GROUP,
   STAGE_VALUE_NET_COLUMN_GROUP,
   STAGE_VALUE_PERCENT_COLUMN_GROUP,
@@ -96,6 +97,37 @@ export const LAYER_NEUTRAL_COLUMNS: ReadonlySet<string> = new Set([
 // must never take it away. It stays tagged `net` above because it IS a netto figure; the exemption is
 // policy layered on the tag.
 export const AXIS_EXEMPT_COLUMNS: ReadonlySet<string> = new Set(['price'])
+
+// What a client may see on the share view — an ALLOWLIST, keyed by toggleKey like the maps above.
+// Allowlist, not a denylist: a column added later is invisible to clients until someone puts it here,
+// so the disclosure decision is forced at definition time rather than discovered as a leak. The
+// subcontractor columns (`priceMode`, `priceCoeff`) are absent — and on the client render they are
+// never built at all, since that grid pins view: 'client'. This is the second lock, not the first.
+export const CLIENT_VISIBLE_COLUMNS: ReadonlySet<string> = new Set([
+  'sectionName',
+  'description',
+  'plannedQty',
+  'stageQtySum',
+  'unit',
+  'price',
+  'priceGross',
+  'discountType',
+  'discountValue',
+  'discountAmount',
+  'discountAmountGross',
+  'plannedNet',
+  'plannedGross',
+  'net',
+  'gross',
+  'remaining',
+  'remainingGross',
+  'note',
+  STAGES_COLUMN_GROUP,
+  STAGE_VALUE_NET_COLUMN_GROUP,
+  STAGE_VALUE_GROSS_COLUMN_GROUP,
+  STAGE_VALUE_PERCENT_COLUMN_GROUP,
+  'donePercent',
+])
 
 // The stage axis triples the grid's stage block, and brutto per stage is the least-read of the three
 // — derivable from the netto beside it at a fixed rate. Declared here rather than seeded into the

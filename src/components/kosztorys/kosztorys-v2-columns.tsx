@@ -41,7 +41,7 @@ import {
   stageValueNetKey,
   stageValuePercentKey,
 } from '@/lib/kosztorys/stage-keys'
-import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
+import { CLIENT_VISIBLE_COLUMNS, COLUMN_LABELS } from '@/lib/kosztorys/column-config'
 import { HEADER_TIPS } from '@/lib/kosztorys/header-tips'
 import { LAYER_DEFAULT, layerAllows } from '@/lib/kosztorys/layer'
 import { MONEY_AXIS_DEFAULT, axisAllows } from '@/lib/kosztorys/money-axis'
@@ -420,6 +420,10 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     ...donePercent,
     ...remaining,
   ]
+  // Read-only stamps `disabled` on every data cell — react-datasheet-grid otherwise lets a
+  // callback-less cell take focus and open its editor, which on a client-facing grid reads as
+  // "you may type here" and silently eats the keystroke. The actions column goes with it.
+  if (opts.readOnly) return dataColumns.map((c) => ({ ...c, disabled: true }))
   return opts.onRemoveItem || opts.onReorderItem
     ? [actionColumn(opts), ...dataColumns]
     : dataColumns
@@ -451,6 +455,7 @@ function selectV2Columns(
   const base = assembled
     .filter((c) => {
       const key = toggleKey(c.id ?? '')
+      if (opts.clientVisible && !CLIENT_VISIBLE_COLUMNS.has(key)) return false
       if (opts.globalDiscountActive && DISCOUNT_COLUMN_IDS.has(key)) return false
       return (
         !opts.isHidden?.(key) &&
@@ -501,6 +506,7 @@ function selectV2ToggleItems(
   for (const col of assembled) {
     const id = toggleKey(col.id ?? '')
     if (items.some((i) => i.id === id)) continue
+    if (opts.clientVisible && !CLIENT_VISIBLE_COLUMNS.has(id)) continue
     if (opts.globalDiscountActive && DISCOUNT_COLUMN_IDS.has(id)) continue
     items.push({ id, label: COLUMN_LABELS[id] ?? id, visible: !opts.isHidden?.(id) })
   }
