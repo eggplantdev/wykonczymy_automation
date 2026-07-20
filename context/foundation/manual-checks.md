@@ -754,7 +754,7 @@ Run against the dev app (5433 DB) as OWNER, plus one genuinely logged-out browse
 - [ ] **Rotate invalidates the old URL** — „Wygeneruj nowy" while the old link is open in the private
       window: reload → 404; the new link works.
 - [ ] **Revoke kills the link, preview survives** — „Wyłącz link" → old URL 404s, and
-      „Podgląd" (`/inwestycje/<id>/kosztorys_v2/podglad-klienta`) still renders for the owner.
+      „Podgląd" (`/podglad-klienta/<id>`) still renders for the owner.
 - [ ] **It is live, not a snapshot** — change a per-etap quantity in the editor, reload the public
       URL: the new figure and the recomputed totals are there.
 - [ ] **Preview and public URL render identically** — same rows, same columns, same footer figures,
