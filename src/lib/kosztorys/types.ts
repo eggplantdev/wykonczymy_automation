@@ -167,17 +167,17 @@ export type ClientSectionShareT = {
   share: number
 }
 
-// The footer block (sheet Podsumowanie): the prace waterfall plus the materiały/wpłaty lines the
+// The footer block (sheet Podsumowanie): the work waterfall plus the materials and deposit lines the
 // client is billed. Server-computed — these cross the kosztorys/transactions boundary, which the
 // row plane cannot see. Deliberately carries NO reconciliation verdict: that is the owner's
 // internal check against the transaction ledger (EX-535) and must never reach a client.
 export type ClientKosztorysTotalsT = {
   sumaPracNet: number
-  rabatNet: number
+  discountNet: number
   robociznaNet: number
   materialyNet: number
   materialyBreakdown: MaterialyBreakdownRowT[]
-  wplatyNet: number
+  depositsNet: number
   // Suma transzy: value executed per etap, in `stages` order.
   stageTotals: { stageId: number; net: number }[]
 }
@@ -185,8 +185,8 @@ export type ClientKosztorysTotalsT = {
 export type ClientKosztorysViewT = {
   investmentName: string
   vatRate: number
-  // Per-item rabat is overridden while this is on — the grid drops those columns, exactly as the
-  // editor does, and the discount lands once on the footer's „Rabat" line.
+  // Per-item discounts are overridden while this is on — the grid drops those columns, exactly as
+  // the editor does, and the discount lands once on the footer's „Rabat" line.
   globalDiscountActive: boolean
   stages: KosztorysStageT[]
   rows: ClientKosztorysRowT[]

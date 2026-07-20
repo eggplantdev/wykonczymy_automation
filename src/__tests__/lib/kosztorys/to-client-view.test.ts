@@ -68,7 +68,7 @@ const financials = {
   investmentName: 'Testowa',
   materialyNet: 1000,
   materialyBreakdown: [],
-  wplatyNet: 250,
+  depositsNet: 250,
 }
 
 // Every key name that would indicate a subcontractor figure rode along. Matched case-insensitively
@@ -136,7 +136,7 @@ describe('toClientView — what the client does get', () => {
   it('passes the financial-plane figures through untouched', () => {
     const view = toClientView(tree, financials)
     expect(view.totals.materialyNet).toBe(1000)
-    expect(view.totals.wplatyNet).toBe(250)
+    expect(view.totals.depositsNet).toBe(250)
     expect(view.investmentName).toBe('Testowa')
     expect(view.vatRate).toBe(0.08)
   })

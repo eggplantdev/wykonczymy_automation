@@ -45,7 +45,7 @@ async function buildClientKosztorysView(investmentId: number): Promise<ClientKos
     investmentName: investment.name,
     materialyNet: financials.totalMaterialCosts,
     materialyBreakdown: buildMaterialyBreakdown(financials, refData.expenseCategories),
-    wplatyNet: financials.totalIncome,
+    depositsNet: financials.totalIncome,
   })
 }
 

@@ -41,9 +41,9 @@ export function ClientKosztorysFooter({ view, moneyAxis }: PropsT) {
   const { totals, vatRate } = view
   const { net: showNet, gross: showGross } = axisShows(moneyAxis)
   const { lacznie } = computePodsumowanie(totals.sumaPracNet, totals.materialyNet, vatRate)
-  const doZaplaty = computeDoZaplatyRM(
+  const amountDue = computeDoZaplatyRM(
     totals.robociznaNet,
-    totals.wplatyNet,
+    totals.depositsNet,
     totals.materialyNet,
     vatRate,
   )
@@ -65,7 +65,7 @@ export function ClientKosztorysFooter({ view, moneyAxis }: PropsT) {
       discount?: boolean
       noShareCell?: boolean
       hideShare?: boolean
-      // No-VAT figure (materiały, wpłaty): brutto repeats netto rather than blanking, so the cell
+      // No-VAT figure (materials, deposits): brutto repeats netto rather than blanking, so the cell
       // still reads as an amount in a brutto-only widok.
       noBrutto?: boolean
     } = {},
@@ -132,17 +132,17 @@ export function ClientKosztorysFooter({ view, moneyAxis }: PropsT) {
         style={{ gridTemplateColumns: moneyCols }}
         className="border-border bg-border grid w-fit gap-px border"
       >
-        {totals.rabatNet > 0 &&
-          row('Rabat', moneyPair(totals.rabatNet, vatRate), {
+        {totals.discountNet > 0 &&
+          row('Rabat', moneyPair(totals.discountNet, vatRate), {
             discount: true,
             noShareCell: true,
           })}
-        {row('Wpłaty', faceValue(totals.wplatyNet), {
+        {row('Wpłaty', faceValue(totals.depositsNet), {
           discount: true,
           noBrutto: true,
           noShareCell: true,
         })}
-        {row('Do zapłaty', doZaplaty, { bold: true, noShareCell: true })}
+        {row('Do zapłaty', amountDue, { bold: true, noShareCell: true })}
       </div>
 
       {view.stages.length > 0 && (

@@ -24,7 +24,7 @@ type FinancialsT = {
   investmentName: string
   materialyNet: number
   materialyBreakdown: MaterialyBreakdownRowT[]
-  wplatyNet: number
+  depositsNet: number
 }
 
 /**
@@ -76,12 +76,12 @@ export function toClientView(tree: KosztorysTreeT, financials: FinancialsT): Cli
     })),
     totals: {
       sumaPracNet,
-      rabatNet: rabatClientNet,
-      // Post-rabat executed work — what the footer bills, and what „Do zapłaty" subtracts wpłaty from.
+      discountNet: rabatClientNet,
+      // Executed work after discount — what the footer bills, and what „Do zapłaty" nets deposits off.
       robociznaNet: doneNet,
       materialyNet: financials.materialyNet,
       materialyBreakdown: financials.materialyBreakdown,
-      wplatyNet: financials.wplatyNet,
+      depositsNet: financials.depositsNet,
       stageTotals: tree.stages.map((stage) => ({
         stageId: stage.id,
         net: stageTotals.get(stage.id) ?? 0,
