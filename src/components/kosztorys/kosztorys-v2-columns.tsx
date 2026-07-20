@@ -125,19 +125,11 @@ function title(
 // Deliberately not `title(...)` — these columns carry per-stage dynamic ids that columnSortValue
 // (lib/kosztorys/sort-value) has no case for, so a sort trigger here would render an arrow that does
 // nothing. Deliberately not `StageHeader` — a mirror carries no rename/delete affordance of its own.
-function stageValueHeader(
-  stage: KosztorysStageT,
-  suffix: string,
-  tip: string,
-  readOnly: boolean,
-): ReactNode {
-  // Owner grid: truncate — the label is free text with a trailing suffix, so an unbounded header
-  // would jog the whole header-row height every time a stage is renamed. Client view has a taller,
-  // fixed header row (KosztorysEditorBody) and verbose labels, so there it wraps to match the rest.
+function stageValueHeader(stage: KosztorysStageT, suffix: string, tip: string): ReactNode {
+  // Wraps (no truncate) into the fixed, taller header row (KosztorysEditorBody) — same behavior as
+  // every other header, owner and client alike.
   return withTip(
-    <span
-      className={readOnly ? 'text-sm' : 'truncate text-sm'}
-    >{`${stage.label || `Etap ${stage.ordinal}`} — ${suffix}`}</span>,
+    <span className="text-sm">{`${stage.label || `Etap ${stage.ordinal}`} ${suffix}`}</span>,
     tip,
   )
 }
@@ -316,7 +308,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     const qtyKey = stageKey(st.id)
     return computedColumn(
       stageValueNetKey(st.id),
-      stageValueHeader(st, 'netto', HEADER_TIPS[STAGE_VALUE_NET_COLUMN_GROUP], !!opts.readOnly),
+      stageValueHeader(st, 'netto', HEADER_TIPS[STAGE_VALUE_NET_COLUMN_GROUP]),
       (r) => stageValueForView(r, r[qtyKey] ?? 0, rowTotalQtyDone(r, stages), view),
     )
   })
@@ -325,7 +317,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     const qtyKey = stageKey(st.id)
     return computedColumn(
       stageValueGrossKey(st.id),
-      stageValueHeader(st, 'brutto', HEADER_TIPS[STAGE_VALUE_GROSS_COLUMN_GROUP], !!opts.readOnly),
+      stageValueHeader(st, 'brutto', HEADER_TIPS[STAGE_VALUE_GROSS_COLUMN_GROUP]),
       (r) =>
         toGross(stageValueForView(r, r[qtyKey] ?? 0, rowTotalQtyDone(r, stages), view), r.vatRate),
     )
@@ -337,7 +329,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     const qtyKey = stageKey(st.id)
     return computedColumn(
       stageValuePercentKey(st.id),
-      stageValueHeader(st, '%', HEADER_TIPS[STAGE_VALUE_PERCENT_COLUMN_GROUP], !!opts.readOnly),
+      stageValueHeader(st, '%', HEADER_TIPS[STAGE_VALUE_PERCENT_COLUMN_GROUP]),
       (r) => stageDoneFraction(r, r[qtyKey] ?? 0),
       'text-muted-foreground',
       formatPercent,

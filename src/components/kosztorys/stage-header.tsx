@@ -60,11 +60,7 @@ export function StageHeader({ stage, onRename, onRemove, tip }: PropsT) {
   return (
     <>
       <HeaderMenu
-        label={
-          <span className={cn('truncate', stage.label == null && 'text-muted-foreground')}>
-            {label}
-          </span>
-        }
+        label={<span className={cn(stage.label == null && 'text-muted-foreground')}>{label}</span>}
         icon={<ChevronDown className="opacity-50" />}
         triggerTitle="Opcje etapu"
         tip={tip}
