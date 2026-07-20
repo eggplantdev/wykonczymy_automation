@@ -100,9 +100,13 @@ export const AXIS_EXEMPT_COLUMNS: ReadonlySet<string> = new Set(['price'])
 
 // What a client may see on the share view — an ALLOWLIST, keyed by toggleKey like the maps above.
 // Allowlist, not a denylist: a column added later is invisible to clients until someone puts it here,
-// so the disclosure decision is forced at definition time rather than discovered as a leak. The
-// subcontractor columns (`priceMode`, `priceCoeff`) are absent — and on the client render they are
-// never built at all, since that grid pins view: 'client'. This is the second lock, not the first.
+// so the disclosure decision is forced at definition time rather than discovered as a leak.
+//
+// Its reach is column IDENTITY, not price plane. `price`/`net`/`gross` are allowlisted and compute at
+// whatever `view` the caller passes, so this set drops the subcontractor-only columns (`priceMode`,
+// `priceCoeff`) but does NOT by itself keep a subcontractor figure off the page. The locks that do:
+// the client payload carries no coefficients or overrides at all, and `toClientView` pins view
+// 'client' as a literal.
 export const CLIENT_VISIBLE_COLUMNS: ReadonlySet<string> = new Set([
   'sectionName',
   'description',
@@ -121,7 +125,8 @@ export const CLIENT_VISIBLE_COLUMNS: ReadonlySet<string> = new Set([
   'gross',
   'remaining',
   'remainingGross',
-  'note',
+  // No `note`: the sheet's „komentarz" is owner-authored internal free text (owner ruling,
+  // 2026-07-20) — the client DTO drops it too, so this is the matching half of that decision.
   STAGES_COLUMN_GROUP,
   STAGE_VALUE_NET_COLUMN_GROUP,
   STAGE_VALUE_GROSS_COLUMN_GROUP,

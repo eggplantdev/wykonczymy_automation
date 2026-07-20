@@ -1,7 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-vercel-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// S-11/EX-532 client share view: one row = one live public link to an investment's kosztorys.
+// S-13/EX-532 client share view: one row = one live public link to an investment's kosztorys.
 // `investment_id` is UNIQUE (one link per kosztorys; rotate overwrites the token in place) and
 // ON DELETE CASCADE so deleting an investment can never strand a live public URL.
 // `payload_locked_documents_rels` gets its `kosztorys_shares_id` column here — Payload's

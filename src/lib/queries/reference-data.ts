@@ -35,6 +35,23 @@ import type {
   ReferenceDataBaseT,
 } from '@/types/reference-data'
 
+// Categories alone, for callers that need only these. `fetchReferenceData` also returns every user
+// (name, role, email) and every investment (address, phone, email, notes) — company-wide PII that
+// must not be one identifier away on the unauthenticated share path.
+export const fetchExpenseCategories = unstable_cache(
+  async (): Promise<ExpenseCategoryRefT[]> => {
+    const payload = await getPayload({ config })
+    const db = await getDb(payload)
+    const result = await db.execute(sql`
+      SELECT id, name FROM expense_categories
+      ORDER BY name
+    `)
+    return result.rows.map((row) => ({ id: Number(row.id), name: row.name as string }))
+  },
+  ['expense-categories'],
+  { tags: [CACHE_TAGS.expenseCategories] },
+)
+
 export const fetchReferenceData = unstable_cache(
   async (): Promise<ReferenceDataBaseT> => {
     const elapsed = perfStart()

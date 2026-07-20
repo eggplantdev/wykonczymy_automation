@@ -141,3 +141,49 @@ describe('toClientView — what the client does get', () => {
     expect(view.vatRate).toBe(0.08)
   })
 })
+
+describe('toClientView — hiddenInExport', () => {
+  // A hidden row must vanish from the projection AND from every total derived from it — dropping it
+  // from the row list alone would leave the client's visible rows summing to one figure while the
+  // footer showed another. The fixture hides one row in Sekcja A and asserts the whole section it
+  // shared collapses to just its surviving sibling.
+  const withHidden: KosztorysTreeT = {
+    ...tree,
+    sections: tree.sections.map((section) =>
+      section.id === 10
+        ? {
+            ...section,
+            items: section.items.map((item) =>
+              item.id === 1 ? { ...item, hiddenInExport: true } : item,
+            ),
+          }
+        : section,
+    ),
+  }
+
+  it('drops the hidden row from the projected rows', () => {
+    const view = toClientView(withHidden, financials)
+    expect(view.rows.map((r) => r.id)).toEqual([2, 3])
+  })
+
+  it('excludes the hidden row from section subtotals, shares and stage totals', () => {
+    const full = toClientView(tree, financials)
+    const view = toClientView(withHidden, financials)
+
+    // The visible payload must match what the editor's own client-view subtotals compute over the
+    // SAME visible rows — the totals are recomputed, not merely re-filtered after the fact.
+    const visibleRows = treeToRows(withHidden).filter((r) => !r.hiddenInExport)
+    const expected = sectionSubtotalsForView(visibleRows, withHidden.stages, 'client')
+    expect(view.sections.map((s) => s.sectionId)).toEqual(expected.map((s) => s.sectionId))
+    view.sections.forEach((section, index) => {
+      expect(section.net).toBeCloseTo(expected[index].net)
+      expect(section.share).toBeCloseTo(expected[index].share)
+    })
+
+    // And the executed total actually fell — row 1 carried real quantities, so hiding it is not a
+    // no-op the subtotal comparison could pass vacuously.
+    expect(view.totals.robociznaNet).toBeLessThan(full.totals.robociznaNet)
+    const stageSum = view.totals.stageTotals.reduce((sum, s) => sum + s.net, 0)
+    expect(stageSum).toBeCloseTo(view.totals.robociznaNet)
+  })
+})

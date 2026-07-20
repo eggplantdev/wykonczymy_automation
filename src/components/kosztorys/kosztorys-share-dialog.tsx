@@ -16,8 +16,6 @@ import { toastMessage } from '@/lib/utils/toast'
 type PropsT = { investmentId: number }
 
 /**
- * Mint / copy / rotate / revoke the public `/k/<token>` link.
- *
  * The current token is fetched when the dialog opens rather than threaded down from the page: the
  * editor's server page would otherwise carry a secret it never renders, and the state is only ever
  * looked at here. Same lazy-on-open shape as KosztorysActionsMenu's preset list.
@@ -34,10 +32,18 @@ export function KosztorysShareDialog({ investmentId }: PropsT) {
     setOpen(next)
     if (!next) return
     setLoaded(false)
-    void getShareLinkAction(investmentId).then((res) => {
-      if (res.success) setToken(res.data)
-      setLoaded(true)
-    })
+    // Clear on every failure path. Keeping a token from a previous open would render a link that
+    // may since have been rotated or revoked elsewhere as though it were still live.
+    void getShareLinkAction(investmentId)
+      .then((res) => {
+        setToken(res.success ? res.data : null)
+        if (!res.success) toastMessage(res.error, 'error')
+      })
+      .catch(() => {
+        setToken(null)
+        toastMessage('Nie udało się sprawdzić linku', 'error')
+      })
+      .finally(() => setLoaded(true))
   }
 
   const generate = () =>

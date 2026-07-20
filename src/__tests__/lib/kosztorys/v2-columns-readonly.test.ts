@@ -34,17 +34,23 @@ describe('readOnly', () => {
 })
 
 describe('clientVisible', () => {
-  it('drops the subcontractor columns even when the grid is built at a subcontractor view', () => {
-    // Belt AND braces: the client render pins view 'client' so these are never assembled, but the
-    // filter must hold on its own — it is the lock that survives a future caller passing a view.
+  it('drops the subcontractor-only columns even when the grid is built at a subcontractor view', () => {
+    // What the allowlist actually guarantees: columns that exist ONLY to edit the subcontractor
+    // plane are never assembled. It does NOT neutralize `view` — `price`/`net` are allowlisted and
+    // still compute at whatever view is passed. Those are held by the payload (no coefficients) and
+    // by toClientView pinning 'client'.
     const columns = ids({ ...editorOpts, view: 'w_tools', clientVisible: true, readOnly: true })
     expect(columns).not.toContain('priceMode')
     expect(columns).not.toContain('priceCoeff')
   })
 
+  it('withholds the owner-authored komentarz', () => {
+    expect(ids({ ...editorOpts, clientVisible: true, readOnly: true })).not.toContain('note')
+  })
+
   it('keeps the offer + progress columns the client is meant to read', () => {
     const columns = ids({ ...editorOpts, clientVisible: true, readOnly: true })
-    for (const id of ['description', 'plannedQty', 'unit', 'price', 'net', 'stageQtySum', 'note']) {
+    for (const id of ['description', 'plannedQty', 'unit', 'price', 'net', 'stageQtySum']) {
       expect(columns).toContain(id)
     }
     // Per-etap quantity columns are namespaced per stage id, not by the group key.

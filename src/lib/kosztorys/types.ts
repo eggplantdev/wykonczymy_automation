@@ -134,7 +134,7 @@ export type KosztorysV2RowT = KosztorysV2RowBaseT & {
   [stageKey: StageKeyT]: number
 }
 
-// --- The client-facing projection (S-11 / EX-532) ---
+// --- The client-facing projection (S-13 / EX-532) ---
 //
 // The leak boundary. These types carry NO costVariant, NO coefficients and NO *Override* field, so
 // the inputs a subcontractor price is derived from never enter the client render's module graph.
@@ -152,7 +152,8 @@ export type ClientKosztorysRowT = {
   clientPrice: number
   discountType: DiscountTypeT | null
   discountValue: number
-  note: string | null
+  // No `note`: the sheet's „komentarz" is owner-authored free text with no review step between
+  // typing it and a client reading it (owner ruling, 2026-07-20).
   // Per-etap recorded quantity, keyed by stage id — the sheet's D:M. Pomiar z natury is their sum,
   // derived at render like every other figure, never carried as a second copy.
   stageQty: Record<number, number>

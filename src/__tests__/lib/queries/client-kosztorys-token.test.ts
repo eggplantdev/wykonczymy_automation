@@ -17,7 +17,9 @@ const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SEC
 describe.skipIf(!ENV_READY)('getClientKosztorysByToken (DB)', () => {
   let payload: Payload
   let investmentId: number
-  const token = 'test-token-ex532-share'
+  // Per-run suffix: `token` is globally unique, so a crash between beforeAll and afterAll would
+  // leave a row that wedges every later run of this spec until someone deletes it by hand.
+  const token = `test-token-ex532-share-${process.pid}-${Date.now()}`
 
   beforeAll(async () => {
     const { getPayload } = await import('payload')

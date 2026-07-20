@@ -28,23 +28,25 @@ type FinancialsT = {
 }
 
 /**
- * Project the owner's editable tree onto the client-facing payload (S-11).
- *
  * The projection is the security boundary: it copies field-by-field onto `ClientKosztorysRowT`
  * rather than spreading the row and deleting the sensitive keys. A spread-then-omit would leak every
  * field added to `KosztorysItemT` later by default; this direction fails closed — a new field is
  * absent until someone writes it in.
  */
 export function toClientView(tree: KosztorysTreeT, financials: FinancialsT): ClientKosztorysViewT {
-  const allRows = treeToRows(tree)
-  const subtotals = sectionSubtotalsForView(allRows, tree.stages, CLIENT_VIEW)
+  // The owner's per-row "keep this out of what I send" flag — the sheet's hidden rows in the offer
+  // view. Dropped before the subtotals, not just before the row projection: a hidden row still
+  // counted in the totals would leave the client's visible rows summing to one figure while the
+  // footer showed another.
+  const visibleRows = treeToRows(tree).filter((row) => !row.hiddenInExport)
+  const subtotals = sectionSubtotalsForView(visibleRows, tree.stages, CLIENT_VIEW)
   const { sumaPracNet, rabatClientNet, doneNet } = clientTotalsFromSubtotals(
     subtotals,
     tree.globalDiscount,
   )
-  const stageTotals = stageTotalsForView(allRows, tree.stages, CLIENT_VIEW)
+  const stageTotals = stageTotalsForView(visibleRows, tree.stages, CLIENT_VIEW)
 
-  const rows: ClientKosztorysRowT[] = allRows.map((row) => {
+  const rows: ClientKosztorysRowT[] = visibleRows.map((row) => {
     const stageQty: Record<number, number> = {}
     for (const stage of tree.stages) stageQty[stage.id] = row[stageKey(stage.id)] ?? 0
     return {
@@ -57,7 +59,6 @@ export function toClientView(tree: KosztorysTreeT, financials: FinancialsT): Cli
       clientPrice: row.clientPrice,
       discountType: row.discountType,
       discountValue: row.discountValue,
-      note: row.note,
       stageQty,
     }
   })

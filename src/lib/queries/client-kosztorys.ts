@@ -12,8 +12,8 @@ import type { ClientKosztorysViewT } from '@/lib/kosztorys/types'
 import { buildKosztorysTree } from '@/lib/queries/kosztorys'
 import {
   fetchCategoryBreakdowns,
+  fetchExpenseCategories,
   fetchFilteredByType,
-  fetchReferenceData,
 } from '@/lib/queries/reference-data'
 
 // Every read below is invalidated by the same collections the editor writes, so a client who
@@ -25,6 +25,9 @@ const KOSZTORYS_TAGS = [
   CACHE_TAGS.stageProgress,
   CACHE_TAGS.investments,
   CACHE_TAGS.transfers,
+  // Category NAMES are baked into the cached payload's materials breakdown, so a rename has to
+  // bust this entry — there is no `revalidate`, tags are the only invalidation.
+  CACHE_TAGS.expenseCategories,
 ]
 
 // Unexported: the only two ways in are the guarded entrances below. This one is deliberately
@@ -32,19 +35,19 @@ const KOSZTORYS_TAGS = [
 async function buildClientKosztorysView(investmentId: number): Promise<ClientKosztorysViewT> {
   const investmentWhere = { investment: { equals: investmentId } }
   const payload = await getPayload({ config })
-  const [tree, investment, typeDistribution, breakdowns, refData] = await Promise.all([
+  const [tree, investment, typeDistribution, breakdowns, expenseCategories] = await Promise.all([
     buildKosztorysTree(investmentId),
     payload.findByID({ collection: 'investments', id: investmentId, depth: 0 }),
     fetchFilteredByType(investmentWhere),
     fetchCategoryBreakdowns(investmentWhere),
-    fetchReferenceData(),
+    fetchExpenseCategories(),
   ])
   const financials = deriveFinancials(typeDistribution, breakdowns.categoryCosts)
 
   return toClientView(tree, {
     investmentName: investment.name,
     materialsNet: financials.totalMaterialCosts,
-    materialsBreakdown: buildMaterialyBreakdown(financials, refData.expenseCategories),
+    materialsBreakdown: buildMaterialyBreakdown(financials, expenseCategories),
     depositsNet: financials.totalIncome,
   })
 }
