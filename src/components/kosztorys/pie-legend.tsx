@@ -8,7 +8,7 @@ export function PieSliceLegend({ slices }: { slices: PieSliceT[] }) {
   return (
     <ul className="flex flex-col gap-1 text-sm">
       {slices.map((slice) => (
-        <li key={slice.name} className="flex items-center gap-2">
+        <li key={slice.id} className="flex items-center gap-2">
           <span className="size-3 shrink-0 rounded-xs" style={{ backgroundColor: slice.fill }} />
           <span className="truncate">{slice.name}</span>
           <span className="text-muted-foreground ml-auto pl-4 tabular-nums">

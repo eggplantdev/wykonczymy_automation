@@ -27,6 +27,16 @@ describe('sectionPieSlices', () => {
     expect(slices.map((s) => s.name)).toEqual(['Łazienka', 'Podłogi'])
   })
 
+  it('gives colliding section names distinct stable ids (React key safety)', () => {
+    const collide: SectionSliceInputT[] = [
+      { sectionId: 7, sectionName: 'Łazienka', plannedNet: 100, net: 0 },
+      { sectionId: 9, sectionName: 'Łazienka', plannedNet: 200, net: 0 },
+    ]
+    const ids = sectionPieSlices(collide, 'przedmiar').map((s) => s.id)
+    expect(new Set(ids).size).toBe(2)
+    expect(ids).toEqual(['section-7', 'section-9'])
+  })
+
   it('assigns fills by index, cycling the palette', () => {
     const many: SectionSliceInputT[] = Array.from({ length: CHART_FILLS.length + 1 }, (_, i) => ({
       sectionId: i,
@@ -66,5 +76,11 @@ describe('costPieSlices', () => {
   it('assigns fills by index from the palette', () => {
     const slices = costPieSlices(5000, materialy)
     expect(slices.map((s) => s.fill)).toEqual([CHART_FILLS[0], CHART_FILLS[1], CHART_FILLS[2]])
+  })
+
+  it('gives each slice a stable unique id, korekta bucket keyed distinctly (React key safety)', () => {
+    const ids = costPieSlices(5000, materialy).map((s) => s.id)
+    expect(ids).toEqual(['robocizna', 'materialy-1', 'korekta'])
+    expect(new Set(ids).size).toBe(ids.length)
   })
 })

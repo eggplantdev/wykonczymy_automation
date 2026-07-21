@@ -818,22 +818,57 @@ For the client-share row, mint a share token and open `/k/<token>`.
 
 ### Phase 1: Restore the charting stack
 
-- [ ] `pnpm dev` starts and the editor renders unchanged (no visual/behaviour delta before the pies mount).
-- [ ] No lightningcss/Tailwind CSS build error after the `recharts` install (the arm64 trap).
+- [x] `pnpm dev` starts and the editor renders unchanged (no visual/behaviour delta before the pies mount).
+- [x] No lightningcss/Tailwind CSS build error after the `recharts` install (the arm64 trap).
 
 ### Phase 3: Mount both pies in the footer
 
-- [ ] **Both pies render beside the summary table.** The „Podsumowanie" footer shows the section pie +
+- [x] **Both pies render beside the summary table.** The „Podsumowanie" footer shows the section pie +
       the cost pie to the right of the summary grid (wrapping below on a narrow window); the collapsed
       panel still shows the „Do zapłaty" headline.
-- [ ] **Section slices match the panel + sum to 100%.** Each section's slice equals its per-section value
+- [x] **Section slices match the panel + sum to 100%.** Each section's slice equals its per-section value
       in the section-summary panel at the client price, and the slices sum to the whole (100%).
-- [ ] **Przedmiar ↔ Wykonane toggle re-partitions.** Flipping the section-pie base re-slices the pie and
+- [x] **Przedmiar ↔ Wykonane toggle re-partitions.** Flipping the section-pie base re-slices the pie and
       updates the legend heading („Udział sekcji — przedmiar" / „— wykonane"); **no money figure in the
       summary table moves** (the pie is view-invariant, the table is not the pie's source).
-- [ ] **Cost pie matches the summary rows.** The cost pie's Robocizna + per-category materiały slices
+- [x] **Cost pie matches the summary rows.** The cost pie's Robocizna + per-category materiały slices
       equal the summary table's corresponding rows (agreement by construction — same figures).
-- [ ] **Client-share parity, no owner-only leakage.** `/k/<token>` renders the same two pies with no
+- [x] **Client-share parity, no owner-only leakage.** `/k/<token>` renders the same two pies with no
       internal `<Link>`s and no mismatch scream — parity with the owner view minus the owner-only chrome.
-- [ ] **Fresh offer (executed = 0) renders under the default Przedmiar base.** On a kosztorys with no
+- [x] **Fresh offer (executed = 0) renders under the default Przedmiar base.** On a kosztorys with no
       executed work, the section pie still renders (przedmiar-priced), not a blank/empty chart.
+- [x] **Negative korekta in the cost pie (owner policy) — RESOLVED, leave as-is (owner, 2026-07-21).**
+      A negative korekta / „Pozostałe koszty" (`CORRECTION` credit) is a **legacy artifact blocked in
+      new investments** — it exists only on archived investments (~1% of data, e.g. inv 31). Owner
+      ruling: leave the pie as-is (it mirrors the summary table, incl. the credit row — correct
+      behavior). No code change; no guard owed (the edge is only reachable on frozen archive data no
+      new flow writes).
+
+### Findings — 2026-07-21 (verify-manual-checks pass, OWNER, 5435 test DB)
+
+Driven against inv 6 (perf-seed, 10 sections × 100 items, executed present, materiały + wpłaty
+transactions), inv 7 (perf-seed with stage_progress stripped → executed = 0), and inv 31 (real
+transactions incl. 9 `CORRECTION` credits). View-invariance verified explicitly: toggling the widok
+cen z narzędziami → Klient left the section-pie slices at 86 984,25 while the summary table + section
+panel re-priced — the pie is view-invariant as designed (`progressSubtotals` is fixed to `'client'`
+and not memoized on `view`, `use-kosztorys-editor.ts:346`).
+
+Cross-checks that passed by exact value (not just eyeball): cost-pie Robocizna 1 373 774,00 /
+Materiały budowlane 24 805,57 / Materiały wykończeniowe 418,00 == the summary rows byte-for-byte;
+section-pie **Wykonane** slice 67 541,25 == the Sekcje panel's client-priced net 67 541,25
+(= przedmiar 86 984,25 × 77,6% executed); the przedmiar↔wykonane toggle left the summary grid text
+byte-identical before/after.
+
+- [x] **Negative korekta reaches the cost pie — reproduced on real data, RESOLVED (owner, 2026-07-21).**
+      On inv 31 the „Struktura kosztów" pie + summary both show „Korekta (bez kategorii) **-300,00**"
+      with a **„-0%"** legend row (`cost-structure-pie.tsx` → `costPieSlices`, `chart-slices.ts:45`).
+      **Owner ruling: leave as-is** — negative korekta is a legacy artifact blocked in new investments,
+      present only on archived data (~1%), and the pie correctly mirrors the summary table. No code
+      change; no test owed (the edge is unreachable by any new flow).
+- [x] **0-value Robocizna slice shows in the cost-pie legend on a fresh offer (benign).** With executed
+      = 0 (inv 7) the cost pie lists „Robocizna 0% 0,00" while zero-value _materiały_ categories are
+      filtered out (`chart-slices.ts:51` filters `item.net !== 0`, but robocizna is always pushed). The
+      asymmetry is intentional-looking (robocizna is the headline cost category and reads fine at 0) and
+      recharts draws no arc for a 0 value, so nothing is visually broken. Dismissed as benign — not
+      fixed to avoid a judgment call on whether a 0 robocizna row should ever hide.
+      **Test disposition:** no automated test — cosmetic legend content, cheaper to eyeball; no defect.

@@ -1,7 +1,9 @@
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import type { SectionSubtotalT } from '@/lib/kosztorys/types'
 
-export type PieSliceT = { name: string; value: number; fill: string }
+// `id` is a stable React key — section names / materiały labels are free-typed and can collide,
+// so keying a Cell/legend row on `name` risks duplicate keys (mis-reconcile on the base toggle).
+export type PieSliceT = { id: string; name: string; value: number; fill: string }
 
 // Positional palette — order preserved from the old conic pie's SLICE_COLORS. recharts fills a slice
 // with the raw CSS var; Tailwind never scans these, so no bg-chart-* utility is needed.
@@ -33,6 +35,7 @@ export function sectionPieSlices(
   base: SectionPieBaseT,
 ): PieSliceT[] {
   return subtotals.map((section, index) => ({
+    id: `section-${section.sectionId}`,
     name: section.sectionName,
     value: base === 'przedmiar' ? section.plannedNet : section.net,
     fill: fillAt(index),
@@ -43,11 +46,15 @@ export function costPieSlices(
   sumaPracNet: number,
   materialyBreakdown: readonly MaterialyBreakdownRowT[],
 ): PieSliceT[] {
-  const rows: { name: string; value: number }[] = [
-    { name: 'Robocizna', value: sumaPracNet },
+  const rows: { id: string; name: string; value: number }[] = [
+    { id: 'robocizna', name: 'Robocizna', value: sumaPracNet },
     ...materialyBreakdown
       .filter((item) => item.net !== 0)
-      .map((item) => ({ name: item.label, value: item.net })),
+      .map((item) => ({
+        id: item.id !== null ? `materialy-${item.id}` : 'korekta',
+        name: item.label,
+        value: item.net,
+      })),
   ]
   return rows.map((row, index) => ({ ...row, fill: fillAt(index) }))
 }

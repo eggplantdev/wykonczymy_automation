@@ -5,8 +5,6 @@ import * as RechartsPrimitive from 'recharts'
 
 import { cn } from '@/lib/utils/cn'
 
-// ── Container ────────────────────────────────────────────────────────────
-
 function ChartContainer({
   className,
   children,
@@ -28,8 +26,6 @@ function ChartContainer({
   )
 }
 
-// ── Tooltip ──────────────────────────────────────────────────────────────
-
 const ChartTooltip = RechartsPrimitive.Tooltip
 
 function ChartTooltipContent({
@@ -50,15 +46,12 @@ function ChartTooltipContent({
         className,
       )}
     >
-      {payload.map((item) => {
+      {payload.map((item, index) => {
         const color = item.payload?.fill || item.color
 
         return (
-          <div key={item.name} className="flex items-center gap-2">
-            <div
-              className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
-              style={{ backgroundColor: color }}
-            />
+          <div key={index} className="flex items-center gap-2">
+            <div className="h-2.5 w-2.5 shrink-0 rounded-xs" style={{ backgroundColor: color }} />
             <span className="text-muted-foreground">{item.name}</span>
             <span className="text-foreground ml-auto font-mono font-medium tabular-nums">
               {valueFormatter ? valueFormatter(item.value) : item.value}
@@ -70,35 +63,4 @@ function ChartTooltipContent({
   )
 }
 
-// ── Legend ────────────────────────────────────────────────────────────────
-
-const ChartLegend = RechartsPrimitive.Legend
-
-function ChartLegendContent({
-  className,
-  payload,
-  verticalAlign = 'bottom',
-}: React.ComponentProps<'div'> & Pick<RechartsPrimitive.LegendProps, 'payload' | 'verticalAlign'>) {
-  if (!payload?.length) return null
-
-  return (
-    <div
-      className={cn(
-        'flex items-center justify-center gap-4',
-        verticalAlign === 'top' ? 'pb-3' : 'pt-3',
-        className,
-      )}
-    >
-      {payload.map((item) => (
-        <div key={item.value} className="flex items-center gap-1.5">
-          <div className="h-2 w-2 shrink-0 rounded-[2px]" style={{ backgroundColor: item.color }} />
-          {item.value}
-        </div>
-      ))}
-    </div>
-  )
-}
-
-// ── Exports ──────────────────────────────────────────────────────────────
-
-export { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent }
+export { ChartContainer, ChartTooltip, ChartTooltipContent }
