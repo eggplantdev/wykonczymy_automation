@@ -10,6 +10,7 @@ import {
   TRANSFER_TYPE_LABELS,
   showsInvestment,
   type PaymentMethodT,
+  type VatPlaneT,
 } from '@/lib/constants/transfers'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { expenseFormSchema } from '@/components/forms/expense-form/expense-schema'
@@ -24,6 +25,7 @@ import {
   DescriptionField,
   EntityComboboxField,
   PaymentMethodField,
+  VatPlaneField,
 } from '@/components/forms/form-fields'
 import FormFooter from '../form-components/form-footer'
 import { createTransferAction } from '@/lib/actions/transfers'
@@ -41,6 +43,7 @@ type FormValuesT = {
   date: string
   type: string
   paymentMethod: string
+  vatPlane?: string
   sourceRegister: string
   investment?: string
 }
@@ -63,6 +66,7 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
       date: today(),
       type: 'INVESTOR_DEPOSIT',
       paymentMethod: 'CASH',
+      vatPlane: '',
       sourceRegister: getDefaultCashRegister(referenceData),
       investment: '',
     },
@@ -76,6 +80,7 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
       date: value.date,
       type: value.type as CreateTransferFormT['type'],
       paymentMethod: value.paymentMethod as PaymentMethodT,
+      vatPlane: value.vatPlane ? (value.vatPlane as VatPlaneT) : undefined,
       sourceRegister: Number(value.sourceRegister),
       investment: value.investment ? Number(value.investment) : undefined,
     }),
@@ -116,6 +121,8 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
         <CashRegisterField form={form} cashRegisters={referenceData.cashRegisters} />
 
         <PaymentMethodField form={form} />
+
+        {currentType === 'INVESTOR_DEPOSIT' && <VatPlaneField form={form} />}
 
         {/* Conditional: Investment — required for INVESTOR_DEPOSIT, optional for others */}
         {showsInvestment(currentType) && (

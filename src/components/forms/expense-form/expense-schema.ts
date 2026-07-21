@@ -29,6 +29,7 @@ export const expenseFormSchema = z
     worker: z.string().optional().default(''),
     otherDescription: z.string().optional().default(''),
     invoiceNote: z.string().optional().default(''),
+    vatPlane: z.string().optional().default(''),
   })
   .superRefine((data, ctx) => {
     refineAmount(data, ctx)

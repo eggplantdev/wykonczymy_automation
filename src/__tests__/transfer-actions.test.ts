@@ -114,6 +114,7 @@ function makeDepositData(overrides = {}) {
     date: '2026-02-25',
     type: 'INVESTOR_DEPOSIT' as const,
     paymentMethod: 'CASH' as const,
+    vatPlane: 'NET' as const,
     sourceRegister: 1,
     investment: 1,
     ...overrides,
