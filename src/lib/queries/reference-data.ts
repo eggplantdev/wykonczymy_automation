@@ -13,6 +13,7 @@ import {
   sumCategoryByTypeSettled,
   sumDepositRowsForInvestment,
   sumPayoutsByWorkerForInvestment,
+  getPayoutTransactionsForInvestment,
   deriveCategoryBreakdowns,
 } from '@/lib/db/sum-transfers'
 import { sumZaliczkiByStage } from '@/lib/kosztorys/zaliczki'
@@ -35,6 +36,7 @@ import type {
   KosztorysStageRefT,
   ReferenceDataBaseT,
   PayoutByWorkerT,
+  PayoutTransactionRowT,
 } from '@/types/reference-data'
 
 // Categories alone, for callers that need only these. `fetchReferenceData` also returns every user
@@ -278,6 +280,21 @@ export async function fetchPayoutsByWorkerForInvestment(
       return sumPayoutsByWorkerForInvestment(payload, investmentId)
     },
     ['payouts-by-worker', String(investmentId)],
+    { tags: [CACHE_TAGS.transfers] },
+  )()
+}
+
+// The un-summed PAYOUT rows for the subcontractor block's sortable wypłaty list. Same cache contract
+// as the per-worker sum above (transfers tag, names joined at the page).
+export async function fetchPayoutTransactionsForInvestment(
+  investmentId: number,
+): Promise<PayoutTransactionRowT[]> {
+  return unstable_cache(
+    async () => {
+      const payload = await getPayload({ config })
+      return getPayoutTransactionsForInvestment(payload, investmentId)
+    },
+    ['payout-transactions', String(investmentId)],
     { tags: [CACHE_TAGS.transfers] },
   )()
 }

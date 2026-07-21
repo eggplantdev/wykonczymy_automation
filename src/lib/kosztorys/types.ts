@@ -5,7 +5,7 @@
 
 import type { STAGE_QTY_PREFIX } from '@/lib/kosztorys/stage-keys'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
-import type { SubcontractorPayoutRowT } from '@/types/reference-data'
+import type { SubcontractorPayoutRowT, PayoutTransactionRowT } from '@/types/reference-data'
 
 export type DiscountTypeT = 'percent' | 'amount'
 // Per-investment global discount over the whole kosztorys. type null = none (per-item discounts
@@ -129,6 +129,9 @@ export type KosztorysEditorDataT = {
   // Realized PAYOUTs per worker for the subcontractor summary block. Optional (default []) because the
   // two client-view share entry points never render that block and don't supply it.
   payoutsByWorker?: SubcontractorPayoutRowT[]
+  // Individual realized PAYOUT rows for the subcontractor block's sortable wypłaty list. Optional
+  // (default []) — same reason as payoutsByWorker.
+  payoutTransactions?: PayoutTransactionRowT[]
 }
 
 // --- v2 variant (react-datasheet-grid): a flat row with stages flattened

@@ -4,6 +4,7 @@ import {
   fetchCategoryBreakdowns,
   fetchFilteredByType,
   fetchPayoutsByWorkerForInvestment,
+  fetchPayoutTransactionsForInvestment,
   fetchReferenceData,
   fetchZaliczkiByStage,
 } from '@/lib/queries/reference-data'
@@ -32,17 +33,26 @@ export default async function InvestmentKosztorysV2Page({
   const zaliczkiPromise = fetchZaliczkiByStage(investmentId)
   // Realized PAYOUTs per worker (null-worker bucket kept) for the subcontractor summary block.
   const payoutsPromise = fetchPayoutsByWorkerForInvestment(investmentId)
+  // The individual realized PAYOUT rows — feed the subcontractor block's sortable wypłaty list.
+  const payoutTxPromise = fetchPayoutTransactionsForInvestment(investmentId)
   const { investment } = await requireInvestmentOr404(id)
-  const [tree, typeDistribution, breakdowns, refData, zaliczkiByStage, payouts] = await Promise.all(
-    [
-      treePromise,
-      financialsPromise,
-      breakdownsPromise,
-      fetchReferenceData(),
-      zaliczkiPromise,
-      payoutsPromise,
-    ],
-  )
+  const [
+    tree,
+    typeDistribution,
+    breakdowns,
+    refData,
+    zaliczkiByStage,
+    payouts,
+    payoutTransactions,
+  ] = await Promise.all([
+    treePromise,
+    financialsPromise,
+    breakdownsPromise,
+    fetchReferenceData(),
+    zaliczkiPromise,
+    payoutsPromise,
+    payoutTxPromise,
+  ])
   // categoryCosts feed the Materiały split; settledCategoryCosts stay unused here — settled
   // material („wliczone w robociznę") is an owner/margin figure, deliberately kept off the
   // client-facing offer (v1 parity).
@@ -80,6 +90,7 @@ export default async function InvestmentKosztorysV2Page({
       laborCostsNetFromTransactions={financials.totalLaborCosts}
       investmentRabat={financials.totalRabat}
       payoutsByWorker={payoutsByWorker}
+      payoutTransactions={payoutTransactions}
     />
   )
 }

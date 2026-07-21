@@ -48,6 +48,15 @@ export type SubcontractorPayoutRowT = PayoutByWorkerT & {
   name: string
 }
 
+// One realized PAYOUT transaction, for the subcontractor block's sortable wypłaty list. Worker name
+// resolves at render from the SubcontractorPayoutRowT set.
+export type PayoutTransactionRowT = {
+  workerId: number | null
+  date: string
+  amount: number
+  description: string | null
+}
+
 export type OtherCategoryRefT = {
   id: number
   name: string

@@ -7,7 +7,7 @@ import type {
   InvestmentFinancialsT,
   TypeSettledTotalT,
 } from '@/types/investment-financials'
-import type { PayoutByWorkerT } from '@/types/reference-data'
+import type { PayoutByWorkerT, PayoutTransactionRowT } from '@/types/reference-data'
 import { buildSqlConditions, isNoResultsSentinel } from '@/lib/db/where-to-sql'
 import { getDb } from '@/lib/db/get-db'
 import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
@@ -305,6 +305,40 @@ export const sumPayoutsByWorkerForInvestment = async (
   }))
   console.log(
     `[PERF] query.sumPayoutsByWorkerForInvestment ${elapsed()}ms (${rows.length} workers)`,
+  )
+  return rows
+}
+
+/**
+ * The individual realized PAYOUT rows for an investment — the un-summed twin of
+ * `sumPayoutsByWorkerForInvestment`, so the subcontractor block can list each wypłata
+ * (data · pracownik · opis · kwota), sortable, alongside the per-worker totals. Same filter
+ * (PAYOUT, this investment, not cancelled), null worker kept. Names resolve at the page.
+ */
+export const getPayoutTransactionsForInvestment = async (
+  payload: Payload,
+  investmentId: number,
+): Promise<PayoutTransactionRowT[]> => {
+  const elapsed = perfStart()
+  const db = await getDb(payload)
+
+  const result = await db.execute(sql`
+    SELECT worker_id, date, amount, description
+    FROM transactions
+    WHERE type = 'PAYOUT'
+      AND investment_id = ${investmentId}
+      AND cancelled IS NOT TRUE
+    ORDER BY date DESC, id DESC
+  `)
+
+  const rows = result.rows.map((row) => ({
+    workerId: row.worker_id == null ? null : Number(row.worker_id),
+    date: String(row.date),
+    amount: Number(row.amount),
+    description: row.description == null ? null : String(row.description),
+  }))
+  console.log(
+    `[PERF] query.getPayoutTransactionsForInvestment ${elapsed()}ms (${rows.length} rows)`,
   )
   return rows
 }

@@ -16,7 +16,7 @@ import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import type { KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import type { SectionSliceInputT } from '@/lib/kosztorys/chart-slices'
-import type { SubcontractorPayoutRowT } from '@/types/reference-data'
+import type { SubcontractorPayoutRowT, PayoutTransactionRowT } from '@/types/reference-data'
 
 type PropsT = {
   investmentId: number
@@ -25,6 +25,8 @@ type PropsT = {
   zaliczkiByStage: Record<number, number>
   // Realized PAYOUTs per worker — feeds the subcontractor summary block (Z/Bez narzędzi views only).
   payoutsByWorker: SubcontractorPayoutRowT[]
+  // Individual realized PAYOUT rows — feed the subcontractor block's sortable wypłaty list.
+  payoutTransactions: PayoutTransactionRowT[]
   // „Suma wykonanej pracy" (należne) at the active view's subcontractor price, pre-rabat — the
   // subcontractor block's headline figure. Ignored in the client view.
   subcontractorDueNet: number
@@ -63,6 +65,7 @@ export function KosztorysTotalsPanel({
   stageTotals,
   zaliczkiByStage,
   payoutsByWorker,
+  payoutTransactions,
   subcontractorDueNet,
   totalNet,
   laborCostsNetFromKosztorys,
@@ -137,38 +140,43 @@ export function KosztorysTotalsPanel({
           ))}
       </Collapsible.Trigger>
       <Collapsible.Content className="data-[state=closed]:animate-collapse-up data-[state=open]:animate-collapse-down overflow-hidden">
-        <KosztorysEtapTotals
-          investmentId={investmentId}
-          stages={stages}
-          stageTotals={stageTotals}
-          zaliczkiByStage={zaliczkiByStage}
-          wplatyNet={wplatyNet}
-          wykonaneNet={totalNet}
-          vatRate={vatRate}
-          moneyAxis={moneyAxis}
-          clientView={clientView}
-        />
         {isClientPlane ? (
-          <KosztorysSummary
-            investmentId={investmentId}
-            laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
-            doZaplaty={doZaplaty}
-            materialyNet={materialyNet}
-            materialyBreakdown={materialyBreakdown}
-            sectionSubtotals={sectionSubtotals}
-            wplatyNet={wplatyNet}
-            rabatAmount={rabatAmount}
-            reconciliation={reconciliation}
-            priceView={priceView}
-            vatRate={vatRate}
-            moneyAxis={moneyAxis}
-            clientView={clientView}
-          />
+          <>
+            {/* „Suma transzy" (per-etap, Netto/Brutto) is a client/VAT figure — the subcontractor plane
+                has no VAT axis (EX-558), so it renders only here. */}
+            <KosztorysEtapTotals
+              investmentId={investmentId}
+              stages={stages}
+              stageTotals={stageTotals}
+              zaliczkiByStage={zaliczkiByStage}
+              wplatyNet={wplatyNet}
+              wykonaneNet={totalNet}
+              vatRate={vatRate}
+              moneyAxis={moneyAxis}
+              clientView={clientView}
+            />
+            <KosztorysSummary
+              investmentId={investmentId}
+              laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
+              doZaplaty={doZaplaty}
+              materialyNet={materialyNet}
+              materialyBreakdown={materialyBreakdown}
+              sectionSubtotals={sectionSubtotals}
+              wplatyNet={wplatyNet}
+              rabatAmount={rabatAmount}
+              reconciliation={reconciliation}
+              priceView={priceView}
+              vatRate={vatRate}
+              moneyAxis={moneyAxis}
+              clientView={clientView}
+            />
+          </>
         ) : (
           <SubcontractorSummary
             investmentId={investmentId}
             dueNet={subcontractorDueNet}
             payouts={payoutsByWorker}
+            payoutTransactions={payoutTransactions}
           />
         )}
       </Collapsible.Content>
