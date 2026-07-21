@@ -288,6 +288,12 @@ Otwarte: która ilość na ofercie — przedmiar (oferta wstępna) czy pomiar
     korekty (`CORRECTION`), wpłaty, wypłaty — wszystkie renderują się w **wartości nominalnej,
     bez doliczania VAT**. „Wpłaty to pieniądze już wpłacone przez inwestora — nie ma czego
     gruntować"; korekta i wydatki tak samo.
+    - **WYJĄTEK — zaliczka (deposit) (właściciel, 2026-07-21, EX-536): obie osie, netto I brutto.**
+      Odpowiedź na „zaliczka netto czy brutto" = **obie**. Dziś przy dodawaniu transakcji typu
+      deposit **nie ma** wyboru netto/brutto — trzeba to dodać. To rewiduje regułę „wpłaty face
+      value" **tylko dla zaliczki/deposit**. **Mechanika (jak dokładnie zaliczka niesie obie
+      osie — przechowywane obie, wybór per wpłata gotówka/faktura, czy jedna wyliczana z drugiej)
+      jest do rozstrzygnięcia w dedykowanym change (EX-536, full change.md) — nie zgadywać tutaj.**
   - **Rabat też jest na płaszczyźnie prac — gruntuje się** (właściciel, 2026-07-19). Rabat to
     **obniżka prac**, a nie ruch gotówki ani koszt materiału, więc dzieli oś netto/brutto z
     pracami: `rabat_brutto = rabat_netto × (1 + vat)`. Dowód z arkusza: `S = N × cena − rabat`,
@@ -303,11 +309,17 @@ Otwarte: która ilość na ofercie — przedmiar (oferta wstępna) czy pomiar
     **netto ↔ netto** dla obu figur — kosztorys suma prac (netto) ↔ Σ `LABOR_COST`, kosztorys
     rabat (netto) ↔ Σ `RABAT`. Strony kosztorysowej **nie gruntujemy**. To usuwa fałszywy
     rozjazd o VAT (rabat 100 netto mylnie porównywany z „102 brutto") — sygnalizacja świeci
-    tylko przy realnej różnicy ≥ 1 gr. **Założenie do potwierdzenia:** że transakcja `RABAT`
-    (i `LABOR_COST`) jest wpisywana **netto**. Jeśli właściciel wpisuje rabat myśląc brutto
-    („100% z brutto"), rekoncyliacja musiałaby gruntować stronę kosztorysową dla rabatu —
-    otwarte pytanie EX-539, siostra EX-536 (zaliczka netto/brutto). Patrz
-    `context/changes/robocizna-from-kosztorys/open-questions.md` (Q2).
+    tylko przy realnej różnicy ≥ 1 gr.
+
+    **POTWIERDZONE (właściciel, 2026-07-21): transakcja `RABAT` w zasadzie znika.**
+    Rabat nie jest już ręczną transakcją — staje się kwotą **readonly z arkusza**
+    (kosztorysu), pokazywaną w **widoku inwestycji** i wchodzącą w **podsumowanie tej
+    inwestycji**. Skutek: nie ma już `Σ RABAT` do rekoncyliacji — rabat inwestycji =
+    rabat kosztorysowy wprost. **To rozpuszcza otwarte pytanie EX-539** (transakcja
+    `RABAT` netto vs brutto) — bez ręcznej transakcji `RABAT` nie ma osi wpisu do
+    rozstrzygnięcia. (EX-536 / zaliczka pozostaje osobno.) Do zbudowania w widoku
+    inwestycji — należy do EX-535.
+
 - **Rabat dwutrybowy:** `discount_type` ∈ {procent, kwota} + `discount_value`.
   - procent: `wartość = ilość × cena × (1 − %)`
   - kwota: `wartość = ilość × cena − kwota`
@@ -380,6 +392,29 @@ this section is the original phrasing/context for those questions.
   (informacyjna, postępowa). Rozważyć nazwę „pozostało do wykonania".
 
 ### Robocizna ↔ rozliczenia
+
+- **POTWIERDZONE (właściciel, 2026-07-21, EX-551): robocizna = cena klienta za
+  prace, PO RABACIE.** Model marży spinający kosztorys z inwestycją:
+  - **robocizna** = Σ ceny klienta wykonanych prac, **po rabacie** (widok „Klient").
+  - **wypłaty** = cena podwykonawcy = cena klienta × współczynnik (domyślnie `0,65`
+    z narzędziami / `0,55` bez; override na sekcji / pozycji) = to, co właściciel
+    płaci ekipie.
+  - **marża** = robocizna − wypłaty (przy domyślnym współczynniku strukturalnie
+    35% / 45% wartości oferty — nigdy 0).
+
+  **POTWIERDZONE (właściciel, 2026-07-21): wypłaty należne = ceny podwykonawcy z
+  kosztorysu; realne wypłaty (`PAYOUT`) zmniejszają „kwotę do zapłaty
+  podwykonawcy".** Czyli istnieją **obie** figury i wchodzą w relację spłaty:
+  - **wypłaty należne** = Σ cena podwykonawcy (z kosztorysu) — ile ekipie się należy,
+  - **kwota do zapłaty podwykonawcy** = należne − Σ zrealizowanych `PAYOUT` —
+    każda realna wypłata spłaca to, co ekipie należne z kosztorysu.
+
+  To domyka otwarty wcześniej wybór „należne vs wypłacone" z EX-551: nie jest to
+  albo/albo — cena podwykonawcy definiuje należne, `PAYOUT` je spłaca.
+
+  **DO ZBUDOWANIA (właściciel, 2026-07-21):** figury „kwota do zapłaty
+  podwykonawcy" jeszcze nie ma — trzeba ją dodać do **`Podsumowania`** edytora.
+  Linear: EX-554.
 
 - **Kosztorys = dokument dla klienta; docelowo wchłania całe koszty inwestycji**
   (właściciel, 2026-07-15). „To kosztorys finalnie trafia do klienta. Tam mamy
