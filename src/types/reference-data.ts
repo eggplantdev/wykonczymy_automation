@@ -1,4 +1,5 @@
 import type { RoleT } from '@/lib/auth/roles'
+import type { VatPlaneT } from '@/lib/constants/transfers'
 
 export type ReferenceItemT = {
   id: number
@@ -55,6 +56,16 @@ export type PayoutTransactionRowT = {
   date: string
   amount: number
   description: string | null
+}
+
+// One investment deposit row. `vatPlane` classifies it into a netto/brutto bucket; NULL is a legacy
+// deposit created before the flag existed. Reduced to DepositBucketsT for the „Do zapłaty" model and
+// listed per-row on the wpłaty surface.
+export type DepositRowT = {
+  id: number
+  date: string
+  amount: number
+  vatPlane: VatPlaneT | null
 }
 
 export type OtherCategoryRefT = {

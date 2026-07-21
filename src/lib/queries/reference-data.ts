@@ -13,6 +13,7 @@ import {
   sumCategoryByTypeSettled,
   sumPayoutsByWorkerForInvestment,
   getPayoutTransactionsForInvestment,
+  sumDepositRowsForInvestment,
   deriveCategoryBreakdowns,
 } from '@/lib/db/sum-transfers'
 import { getDb } from '@/lib/db/get-db'
@@ -34,6 +35,7 @@ import type {
   ReferenceDataBaseT,
   PayoutByWorkerT,
   PayoutTransactionRowT,
+  DepositRowT,
 } from '@/types/reference-data'
 
 // Categories alone, for callers that need only these. `fetchReferenceData` also returns every user
@@ -251,6 +253,19 @@ export async function fetchPayoutTransactionsForInvestment(
       return getPayoutTransactionsForInvestment(payload, investmentId)
     },
     ['payout-transactions', String(investmentId)],
+    { tags: [CACHE_TAGS.transfers] },
+  )()
+}
+
+// The investment's deposit rows (newest first), for the „Do zapłaty" bucket model and the wpłaty
+// list. Same cache contract as the payout reads — transfers tag, busted by every transfer mutation.
+export async function fetchDepositRowsForInvestment(investmentId: number): Promise<DepositRowT[]> {
+  return unstable_cache(
+    async () => {
+      const payload = await getPayload({ config })
+      return sumDepositRowsForInvestment(payload, investmentId)
+    },
+    ['deposit-rows', String(investmentId)],
     { tags: [CACHE_TAGS.transfers] },
   )()
 }

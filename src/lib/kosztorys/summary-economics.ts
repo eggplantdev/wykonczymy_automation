@@ -1,6 +1,23 @@
 import { toGross } from '@/lib/kosztorys/calc'
+import type { DepositRowT } from '@/types/reference-data'
 
 export type MoneyPairT = { net: number; gross: number }
+
+// The investor's deposits split by plane: `sumNet`/`sumGross` are the flagged buckets; `legacySum`
+// is the pre-flag (NULL) deposits, which the „Do zapłaty" model subtracts at face on both axes.
+export type DepositBucketsT = { sumNet: number; sumGross: number; legacySum: number }
+
+// Reduce raw deposit rows into the three buckets: vatPlane 'NET' → sumNet, 'GROSS' → sumGross,
+// NULL → legacySum. Pure — the read supplies the rows, this classifies them.
+export function reduceDepositBuckets(rows: DepositRowT[]): DepositBucketsT {
+  const buckets: DepositBucketsT = { sumNet: 0, sumGross: 0, legacySum: 0 }
+  for (const row of rows) {
+    if (row.vatPlane === 'NET') buckets.sumNet += row.amount
+    else if (row.vatPlane === 'GROSS') buckets.sumGross += row.amount
+    else buckets.legacySum += row.amount
+  }
+  return buckets
+}
 
 // A net figure paired with its brutto at the investment's VAT rate — the shape behind a PRACE row's
 // netto/brutto columns. VAT is a prace-only concept: use this only for robocizna / prace figures.
@@ -59,20 +76,24 @@ export function computeSummarySplit(
   return { laborCosts, combined }
 }
 
-// „Aktualnie do zapłaty R + M" (sheet footer r456–464): the headline still-owed figure —
-// robocizna do zapłaty plus materiały, less the investor's wpłaty (every deposit attached to
-// the investment — the same `totalIncome` that raises Bilans inwestora in calculate-balance.ts).
-// So this equals −Bilans on the R+M base. Can go negative when wpłaty exceed R+M — a real
-// overpaid state, not clamped here.
+// „Aktualnie do zapłaty R + M" (sheet footer r456–464): the headline still-owed figure — robocizna
+// do zapłaty plus materiały, less the investor's deposits, split by plane. Sequential model:
+//   baseLeft = robocizna − sumNet          (netto-flagged deposits reduce the base pre-VAT)
+//   net      = baseLeft − legacySum + M
+//   gross    = baseLeft×(1+VAT) − sumGross − legacySum + M
+// Only baseLeft is grossed. A netto deposit reduces before VAT, so it shaves `sumNet×VAT` off the
+// brutto owed; a brutto deposit is already gross, so it subtracts once from the gross axis; legacy
+// (pre-flag) subtracts at face on BOTH axes — identical to the old `R − wplaty` / `toGross(R) − wplaty`,
+// so an all-legacy investment is unchanged. Can go negative (overpaid) — not clamped.
 export function computeDoZaplatyRM(
   laborCostsNetFromKosztorys: number,
-  wplatyNet: number,
+  deposits: DepositBucketsT,
   materialyNet: number,
   vatRate: number,
 ): MoneyPairT {
-  const net = laborCostsNetFromKosztorys - wplatyNet + materialyNet
-  // Only robocizna (prace) carries VAT; wpłaty and materiały enter at face value. Grossing the whole
-  // net would invent VAT on the deposits and the expenses.
-  const gross = toGross(laborCostsNetFromKosztorys, vatRate) - wplatyNet + materialyNet
+  const { sumNet, sumGross, legacySum } = deposits
+  const baseLeft = laborCostsNetFromKosztorys - sumNet
+  const net = baseLeft - legacySum + materialyNet
+  const gross = toGross(baseLeft, vatRate) - sumGross - legacySum + materialyNet
   return { net, gross }
 }

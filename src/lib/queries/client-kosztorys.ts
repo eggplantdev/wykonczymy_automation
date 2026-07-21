@@ -7,10 +7,12 @@ import { requireAuth } from '@/lib/auth/require-auth'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 import { buildMaterialyBreakdown } from '@/lib/db/map-category-costs'
 import { deriveFinancials } from '@/lib/db/sum-transfers'
+import { reduceDepositBuckets } from '@/lib/kosztorys/summary-economics'
 import type { KosztorysEditorDataT } from '@/lib/kosztorys/types'
 import { buildKosztorysTree } from '@/lib/queries/kosztorys'
 import {
   fetchCategoryBreakdowns,
+  fetchDepositRowsForInvestment,
   fetchExpenseCategories,
   fetchFilteredByType,
 } from '@/lib/queries/reference-data'
@@ -40,13 +42,15 @@ const KOSZTORYS_TAGS = [
 async function buildClientKosztorysEditorData(investmentId: number): Promise<KosztorysEditorDataT> {
   const investmentWhere = { investment: { equals: investmentId } }
   const payload = await getPayload({ config })
-  const [tree, investment, typeDistribution, breakdowns, expenseCategories] = await Promise.all([
-    buildKosztorysTree(investmentId),
-    payload.findByID({ collection: 'investments', id: investmentId, depth: 0 }),
-    fetchFilteredByType(investmentWhere),
-    fetchCategoryBreakdowns(investmentWhere),
-    fetchExpenseCategories(),
-  ])
+  const [tree, investment, typeDistribution, breakdowns, expenseCategories, depositRows] =
+    await Promise.all([
+      buildKosztorysTree(investmentId),
+      payload.findByID({ collection: 'investments', id: investmentId, depth: 0 }),
+      fetchFilteredByType(investmentWhere),
+      fetchCategoryBreakdowns(investmentWhere),
+      fetchExpenseCategories(),
+      fetchDepositRowsForInvestment(investmentId),
+    ])
   const financials = deriveFinancials(typeDistribution, breakdowns.categoryCosts)
 
   return {
@@ -55,7 +59,7 @@ async function buildClientKosztorysEditorData(investmentId: number): Promise<Kos
     investmentName: investment.name,
     materialsNet: financials.totalMaterialCosts,
     materialyBreakdown: buildMaterialyBreakdown(financials, expenseCategories),
-    wplatyNet: financials.totalIncome,
+    depositBuckets: reduceDepositBuckets(depositRows),
     laborCostsNetFromTransactions: financials.totalLaborCosts,
     investmentRabat: financials.totalRabat,
   }

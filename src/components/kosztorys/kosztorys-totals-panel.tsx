@@ -4,9 +4,10 @@ import * as Collapsible from '@radix-ui/react-collapsible'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { formatNet } from '@/lib/kosztorys/format'
-import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
+import { type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
-import { computeDoZaplatyRM } from '@/lib/kosztorys/summary-economics'
+import { computeDoZaplatyRM, type DepositBucketsT } from '@/lib/kosztorys/summary-economics'
+import { KosztorysDoZaplatyBlock } from '@/components/kosztorys/kosztorys-do-zaplaty-block'
 import { KosztorysEtapTotals } from '@/components/kosztorys/kosztorys-etap-totals'
 import { KosztorysSummary } from '@/components/kosztorys/kosztorys-summary'
 import { SubcontractorSummary } from '@/components/kosztorys/subcontractor-summary'
@@ -38,9 +39,8 @@ type PropsT = {
   materialyBreakdown: MaterialyBreakdownRowT[]
   // Client-priced, view-invariant per-section subtotals — the section pie's structure source.
   sectionSubtotals: SectionSliceInputT[]
-  // Investor's wpłaty (totalIncome — every deposit on the investment) — subtracted to reach the
-  // still-owed „Do zapłaty" total.
-  wplatyNet: number
+  // Investor deposits split by plane — subtracted (per the sequential model) to reach „Do zapłaty".
+  depositBuckets: DepositBucketsT
   rabatAmount: number
   // Robocizna/rabat reconciliation verdict — drives the Podsumowanie mismatch scream. Always supplied
   // (the body computes it unconditionally); clientView suppresses the scream downstream, not by
@@ -56,8 +56,9 @@ type PropsT = {
 }
 
 // The bottom totals block: Suma transzy per etap + the merged Podsumowanie table (Suma prac →
-// Rabat → Robocizna / Materiały / Łącznie − Zaliczki), folded into one collapsible panel.
-// Collapsed, it keeps the still-owed „Do zapłaty" total visible so the headline never disappears.
+// Rabat → Robocizna / Materiały / Łącznie) plus the hide-exempt Wpłaty / Do zapłaty block, folded
+// into one collapsible panel. Collapsed, it keeps those four figures visible so the headline never
+// disappears.
 export function KosztorysTotalsPanel({
   investmentId,
   stages,
@@ -70,7 +71,7 @@ export function KosztorysTotalsPanel({
   materialyNet,
   materialyBreakdown,
   sectionSubtotals,
-  wplatyNet,
+  depositBuckets,
   rabatAmount,
   reconciliation,
   priceView,
@@ -79,13 +80,17 @@ export function KosztorysTotalsPanel({
   clientView = false,
 }: PropsT) {
   const [open, setOpen] = useTotalsPanelOpen()
-  const { net: showNet, gross: showGross } = axisShows(moneyAxis)
   // The subcontractor plane (Z/Bez narzędzi) has no VAT axis and its own headline figure, so the
   // client „Do zapłaty" only applies in the client view.
   const isClientPlane = priceView === 'client'
-  // Computed here and passed down: the collapsed headline and the Podsumowanie row show the same
+  // Computed here and passed down: the collapsed headline and the Podsumowanie block show the same
   // „Do zapłaty", so it has one source rather than two calls that must be kept in step.
-  const doZaplaty = computeDoZaplatyRM(laborCostsNetFromKosztorys, wplatyNet, materialyNet, vatRate)
+  const doZaplaty = computeDoZaplatyRM(
+    laborCostsNetFromKosztorys,
+    depositBuckets,
+    materialyNet,
+    vatRate,
+  )
   // Subcontractor headline: „Pozostało do wypłaty" (należne − zaliczki), shown collapsed in place of
   // the client „Do zapłaty".
   const { remaining: subcontractorRemaining } = computeSubcontractorSummary(
@@ -109,24 +114,13 @@ export function KosztorysTotalsPanel({
         <span className="font-medium">
           {isClientPlane ? 'Podsumowanie' : 'Podsumowanie podwykonawców'}
         </span>
-        {/* Collapsed: keep the headline figure visible; open: the table carries it. Client plane =
-            robocizna „Do zapłaty" (netto/brutto); subcontractor plane = „Pozostało do wypłaty" (no VAT axis). */}
+        {/* Collapsed: keep the headline figures visible; open: the table carries them. Client plane =
+            the four hide-exempt Wpłaty / Do zapłaty figures (same block as the expanded state);
+            subcontractor plane = „Pozostało do wypłaty" (no VAT axis). */}
         {!open &&
           (isClientPlane ? (
-            <span className="text-muted-foreground ml-auto flex items-baseline gap-x-4 tabular-nums">
-              <span>Do zapłaty</span>
-              {showNet && (
-                <span className="flex items-baseline gap-x-1.5">
-                  <span className="text-muted-foreground text-xs">netto</span>
-                  <span className="text-foreground font-medium">{formatNet(doZaplaty.net)}</span>
-                </span>
-              )}
-              {showGross && (
-                <span className="flex items-baseline gap-x-1.5">
-                  <span className="text-muted-foreground text-xs">brutto</span>
-                  <span className="text-foreground font-medium">{formatNet(doZaplaty.gross)}</span>
-                </span>
-              )}
+            <span className="ml-auto">
+              <KosztorysDoZaplatyBlock deposits={depositBuckets} doZaplaty={doZaplaty} />
             </span>
           ) : (
             <span className="text-muted-foreground ml-auto flex items-baseline gap-x-1.5 tabular-nums">
@@ -156,7 +150,7 @@ export function KosztorysTotalsPanel({
               materialyNet={materialyNet}
               materialyBreakdown={materialyBreakdown}
               sectionSubtotals={sectionSubtotals}
-              wplatyNet={wplatyNet}
+              deposits={depositBuckets}
               rabatAmount={rabatAmount}
               reconciliation={reconciliation}
               priceView={priceView}

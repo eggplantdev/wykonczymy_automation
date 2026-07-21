@@ -4,17 +4,17 @@ import { Fragment, type ReactNode } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { Info } from 'lucide-react'
-import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
 import { HintTooltip } from '@/components/ui/tooltip'
 import {
   computeSummarySplit,
-  faceValue,
   moneyPair,
   summaryLine,
   summaryLineFace,
+  type DepositBucketsT,
   type MoneyPairT,
   type SummaryLineT,
 } from '@/lib/kosztorys/summary-economics'
+import { KosztorysDoZaplatyBlock } from '@/components/kosztorys/kosztorys-do-zaplaty-block'
 import { formatNet, formatPercent } from '@/lib/kosztorys/format'
 import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
@@ -66,9 +66,8 @@ type PropsT = {
   materialyBreakdown: MaterialyBreakdownRowT[]
   // Client-priced, view-invariant per-section subtotals — the section pie's structure source.
   sectionSubtotals: SectionSliceInputT[]
-  // Wpłaty netto — the investor's deposits on this investment (totalIncome); subtracted from
-  // Łącznie to reach „Do zapłaty". Matches the investment page's „Wpłaty" by construction.
-  wplatyNet: number
+  // The investor's deposits split by plane — feeds the hide-exempt Wpłaty / Do zapłaty block.
+  deposits: DepositBucketsT
   // The rabat actually taken off the executed robocizna (net zł): the global discount when active,
   // else Σ per-item rabat. Unified upstream so this table shows one explicit „Rabat" line. 0 = none.
   rabatAmount: number
@@ -89,7 +88,7 @@ type PropsT = {
 
 // The single bottom summary block: the robocizna waterfall (Suma prac wykonanych → Rabat →
 // Robocizna) merged with the sheet Podsumowanie split (Robocizna / Materiały / Łącznie, udział %
-// of Łącznie), then Wpłaty subtracted to reach „Do zapłaty" — one grid, no separate totals bar.
+// of Łącznie), then the hide-exempt Wpłaty / Do zapłaty block below the waterfall grid.
 export function KosztorysSummary({
   investmentId,
   laborCostsNetFromKosztorys,
@@ -97,7 +96,7 @@ export function KosztorysSummary({
   materialyNet,
   materialyBreakdown,
   sectionSubtotals,
-  wplatyNet,
+  deposits,
   rabatAmount,
   reconciliation,
   priceView,
@@ -122,10 +121,11 @@ export function KosztorysSummary({
     (reconVisible && (reconciliation.rabat.actual > 0 || reconciliation.rabat.mismatch))
   const sumaPrac = summaryLine(sumaPracNet, combined.net, vatRate)
   // Rabat is an obniżka of prace, so it lives on the prace plane and grosses — brutto = rabat×(1+VAT).
-  // Grossing it keeps the brutto waterfall exact: Łącznie − rabat − wpłaty = Do zapłaty on both axes
-  // (toGross is linear). Wpłaty stays face value — it's a cash deposit, not prace.
+  // NOTE: the visible waterfall no longer „foots" to Do zapłaty on the brutto axis — under the
+  // sequential deposit model (computeDoZaplatyRM) a netto-flagged wpłata reduces the base pre-VAT, so
+  // the gross Do zapłaty is short of `Łącznie − rabat − wpłaty` by `sumNet×VAT` by design. The four
+  // Wpłaty / Do zapłaty figures come from that model, in the block below — not from column subtraction.
   const rabat = moneyPair(rabatAmount, vatRate)
-  const wplaty = faceValue(wplatyNet)
 
   const moneyCols = summaryMoneyCols(moneyAxis)
   const gridTemplateColumns = `${moneyCols} ${SUMMARY_VALUE_COL}`
@@ -175,12 +175,12 @@ export function KosztorysSummary({
             ))}
           {row('Łącznie', combined, { emphasize: true, hideShare: true })}
         </div>
-        <div
-          style={{ gridTemplateColumns: moneyCols }}
-          className="border-border bg-border grid w-fit gap-px border"
-        >
-          {showRabat &&
-            row('Rabat', rabat, {
+        {showRabat && (
+          <div
+            style={{ gridTemplateColumns: moneyCols }}
+            className="border-border bg-border grid w-fit gap-px border"
+          >
+            {row('Rabat', rabat, {
               discount: true,
               noShareCell: true,
               mismatch:
@@ -188,26 +188,12 @@ export function KosztorysSummary({
                   ? mismatchTooltip(reconciliation.rabat, 'Transakcje rabatu')
                   : undefined,
             })}
-          {row(
-            clientView ? (
-              'Wpłaty'
-            ) : (
-              <Link
-                href={`/inwestycje/${investmentId}?type=${DEPOSIT_TYPES.join(',')}`}
-                className="hover:underline"
-              >
-                Wpłaty
-              </Link>
-            ),
-            wplaty,
-            { discount: true, noBrutto: true, noShareCell: true },
-          )}
-          {row('Do zapłaty', doZaplaty, {
-            bold: true,
-            danger: doZaplaty.net > 0,
-            noShareCell: true,
-          })}
-        </div>
+          </div>
+        )}
+        {/* The four Wpłaty / Do zapłaty figures — one locked, hide-exempt block (same source as the
+            collapsed headline), lifted out of the axis-gated waterfall so the MoneyAxisToggle can't
+            hide any of them. */}
+        <KosztorysDoZaplatyBlock deposits={deposits} doZaplaty={doZaplaty} />
       </div>
 
       {/* disabled temporarily do not remove */}

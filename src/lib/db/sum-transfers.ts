@@ -7,7 +7,8 @@ import type {
   InvestmentFinancialsT,
   TypeSettledTotalT,
 } from '@/types/investment-financials'
-import type { PayoutByWorkerT, PayoutTransactionRowT } from '@/types/reference-data'
+import type { DepositRowT, PayoutByWorkerT, PayoutTransactionRowT } from '@/types/reference-data'
+import type { VatPlaneT } from '@/lib/constants/transfers'
 import { buildSqlConditions, isNoResultsSentinel } from '@/lib/db/where-to-sql'
 import { getDb } from '@/lib/db/get-db'
 import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
@@ -250,26 +251,31 @@ export const sumCategoryByTypeSettled = async (
 }
 
 /**
- * Fetch the investment's deposit rows (cancelled excluded). Deposit count per investment is
- * small, so we return raw rows and let pure helpers downstream group them.
+ * Fetch the investment's deposit rows (cancelled excluded), newest first. Deposit count per
+ * investment is small, so we return raw rows and let pure helpers downstream bucket them
+ * (reduceDepositBuckets) or list them per-wpłata. `vat_plane` is NULL for legacy deposits.
  */
 export const sumDepositRowsForInvestment = async (
   payload: Payload,
   investmentId: number,
-): Promise<{ type: string; amount: number }[]> => {
+): Promise<DepositRowT[]> => {
   const db = await getDb(payload)
 
   const result = await db.execute(sql`
-    SELECT type::text AS type, amount
+    SELECT id, date, amount, vat_plane
     FROM transactions
     WHERE investment_id = ${investmentId}
       AND cancelled IS NOT TRUE
       AND type IN ${depositTypesInList}
+    ORDER BY date DESC, id DESC
   `)
 
   return result.rows.map((row) => ({
-    type: row.type as string,
+    id: Number(row.id),
+    // Same year-first timestamptz string as the payout read — lexically sortable as-is.
+    date: String(row.date),
     amount: Number(row.amount),
+    vatPlane: (row.vat_plane as VatPlaneT | null) ?? null,
   }))
 }
 

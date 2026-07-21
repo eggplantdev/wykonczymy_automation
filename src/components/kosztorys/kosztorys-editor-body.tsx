@@ -44,7 +44,7 @@ export function KosztorysEditorBody({
   investmentName,
   materialsNet,
   materialyBreakdown,
-  wplatyNet,
+  depositBuckets,
   laborCostsNetFromTransactions,
   investmentRabat,
   payoutsByWorker = [],
@@ -215,7 +215,7 @@ export function KosztorysEditorBody({
             materialyNet={materialsNet}
             materialyBreakdown={materialyBreakdown}
             sectionSubtotals={progressSubtotals}
-            wplatyNet={wplatyNet}
+            depositBuckets={depositBuckets}
             rabatAmount={rabatAmount}
             reconciliation={reconciliation}
             priceView={view}
