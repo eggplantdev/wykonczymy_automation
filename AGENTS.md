@@ -72,11 +72,13 @@ _„wypełniony kosztorys do testów"_, real values across all figures **plus** 
 tabs (`wydatki inwestycyjne` / `transfery` / `rozliczone R+M`) baked in:
 
 ```
-1qN68vcevWgq0fXckdh4cuyBJ4iGZNlivVuHDvLuzWy4    # tab kosztorys_robocizny, gid=70964819
+1qN68vcevWgq0fXckdh4cuyBJ4iGZNlivVuHDvLuzWy4    # tab kosztorys_robocizny,        gid=70964819
+                                                # tab zakres pracy z narzędziami,  gid=509680339
+                                                # tab zakres pracy bez narzędzi,   gid=514076888  (cennik podwykonawcy)
 ```
 
 Also shared read-only with the service account. Nine tabs (adds `materiały`, `pokoje`, `Podsumowanie`,
-the two `zakres pracy z/bez narzędzi` catalogues). Its layout carries column `T = „komentarz"` and the
+the two `zakres pracy z/bez narzędzi` catalogues — the subcontractor price books). Its layout carries column `T = „komentarz"` and the
 `U–AE` per-etap wartość axis (`AE` = bilans), so it's the canonical fixture for parity/import work.
 **Caveat (owner):** some formulas in this test sheet are broken here and there — treat it as a rich
 _shape/layout_ fixture, and cross-check any figure against the canonical sheet before trusting it as spec.

@@ -141,74 +141,80 @@ export function KosztorysSummary({
     <div className="text-foreground flex flex-wrap items-start gap-x-12 gap-y-8 px-4 pt-2 pb-10 text-sm">
       <div className="flex w-fit flex-col gap-4">
         <div style={{ gridTemplateColumns }} className="border-border bg-border grid gap-px border">
-        <span className={cn(labelCell, 'text-muted-foreground text-xs')}>Podsumowanie</span>
-        {showNet && <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Netto</span>}
-        {showGross && (
-          <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Brutto</span>
-        )}
-        <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Udział</span>
-        {row('Suma prac wykonanych', sumaPrac, {
-          mismatch:
-            reconVisible && reconciliation.laborCosts.mismatch
-              ? mismatchTooltip(reconciliation.laborCosts, 'Transakcje robocizny')
-              : undefined,
-        })}
-        {materialyBreakdown
-          .filter((item) => item.net !== 0)
-          .map((item) => (
-            <Fragment key={item.id ?? 'korekta'}>
-              {row(
-                item.id !== null && !clientView ? (
-                  <Link
-                    href={`/inwestycje/${investmentId}?expenseCategory=${item.id}`}
-                    className="hover:underline"
-                  >
-                    {item.label}
-                  </Link>
-                ) : (
-                  item.label
-                ),
-                summaryLineFace(item.net, combined.net),
-                { noBrutto: true },
-              )}
-            </Fragment>
-          ))}
-        {row('Łącznie', combined, { emphasize: true, hideShare: true })}
-      </div>
-      <div
-        style={{ gridTemplateColumns: moneyCols }}
-        className="border-border bg-border grid w-fit gap-px border"
-      >
-        {showRabat &&
-          row('Rabat', rabat, {
-            discount: true,
-            noShareCell: true,
+          <span className={cn(labelCell, 'text-muted-foreground text-xs')}>Podsumowanie</span>
+          {showNet && <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Netto</span>}
+          {showGross && (
+            <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Brutto</span>
+          )}
+          <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Udział</span>
+          {row('Suma prac wykonanych', sumaPrac, {
             mismatch:
-              reconVisible && reconciliation.rabat.mismatch
-                ? mismatchTooltip(reconciliation.rabat, 'Transakcje rabatu')
+              reconVisible && reconciliation.laborCosts.mismatch
+                ? mismatchTooltip(reconciliation.laborCosts, 'Transakcje robocizny')
                 : undefined,
           })}
-        {row(
-          clientView ? (
-            'Wpłaty'
-          ) : (
-            <Link
-              href={`/inwestycje/${investmentId}?type=${DEPOSIT_TYPES.join(',')}`}
-              className="hover:underline"
-            >
-              Wpłaty
-            </Link>
-          ),
-          wplaty,
-          { discount: true, noBrutto: true, noShareCell: true },
-        )}
-        {row('Do zapłaty', doZaplaty, { bold: true, danger: doZaplaty.net > 0, noShareCell: true })}
+          {materialyBreakdown
+            .filter((item) => item.net !== 0)
+            .map((item) => (
+              <Fragment key={item.id ?? 'korekta'}>
+                {row(
+                  item.id !== null && !clientView ? (
+                    <Link
+                      href={`/inwestycje/${investmentId}?expenseCategory=${item.id}`}
+                      className="hover:underline"
+                    >
+                      {item.label}
+                    </Link>
+                  ) : (
+                    item.label
+                  ),
+                  summaryLineFace(item.net, combined.net),
+                  { noBrutto: true },
+                )}
+              </Fragment>
+            ))}
+          {row('Łącznie', combined, { emphasize: true, hideShare: true })}
+        </div>
+        <div
+          style={{ gridTemplateColumns: moneyCols }}
+          className="border-border bg-border grid w-fit gap-px border"
+        >
+          {showRabat &&
+            row('Rabat', rabat, {
+              discount: true,
+              noShareCell: true,
+              mismatch:
+                reconVisible && reconciliation.rabat.mismatch
+                  ? mismatchTooltip(reconciliation.rabat, 'Transakcje rabatu')
+                  : undefined,
+            })}
+          {row(
+            clientView ? (
+              'Wpłaty'
+            ) : (
+              <Link
+                href={`/inwestycje/${investmentId}?type=${DEPOSIT_TYPES.join(',')}`}
+                className="hover:underline"
+              >
+                Wpłaty
+              </Link>
+            ),
+            wplaty,
+            { discount: true, noBrutto: true, noShareCell: true },
+          )}
+          {row('Do zapłaty', doZaplaty, {
+            bold: true,
+            danger: doZaplaty.net > 0,
+            noShareCell: true,
+          })}
         </div>
       </div>
-      <div className="flex flex-wrap items-start gap-x-12 gap-y-8">
-        <SectionSharePie subtotals={sectionSubtotals} />
-        <CostStructurePie sumaPracNet={sumaPracNet} materialyBreakdown={materialyBreakdown} />
-      </div>
+
+      {/* disabled temporarily do not remove */}
+      {/* <div className="flex flex-wrap items-start gap-x-12 gap-y-8"> */}
+      {/* <SectionSharePie subtotals={sectionSubtotals} /> */}
+      {/* <CostStructurePie sumaPracNet={sumaPracNet} materialyBreakdown={materialyBreakdown} /> */}
+      {/* </div> */}
     </div>
   )
 }

@@ -134,22 +134,28 @@ surface — was verified end-to-end with real fixtures** (a no-text-layer PDF + 
 
 ## EX-448 — stable per-row ids for expense line-items
 
-**In review** — all automated checks green (tsc 0, eslint 0, unit 10/10). Pure refactor of the
+**Verified 2026-07-21** (agent pass, 5435 test DB, inv 6 "Apenińska 2/37", live OpenRouter, 3
+synthetic receipts). All automated checks green (tsc 0, eslint 0, unit 10/10). Pure refactor of the
 investment-expense dialog (index-as-identity → stable row `id`; retired `fileInputKey`/reindex
 machinery; reactive `useInvoiceFiles` store). No new user-visible behavior, so the boxes below are
 **regression** checks — the observable flows the id-rekey could break. **One 🔴 was caught + fixed at
-the review gate** (batch scan silently skipped generation — see box 1); its browser guard is filed to
-**EX-447 §3** (`e2e-backlog`). Standalone change (not a kosztorys slice); merges to **staging**.
+the review gate** (batch scan silently skipped generation — see box 1, now verified passing); its
+automated guard is filed to **EX-447 §3** (`e2e-backlog`). Standalone change (not a kosztorys slice);
+merges to **staging**.
 
 Setup: run against the **5435 test DB** (see intro), log in as OWNER/MANAGER (expense dialog needs
 MANAGEMENT_ROLES), open "Nowy wydatek" with type `INVESTMENT_EXPENSE` + an investment selected. Need a
 real `OPENROUTER_API_KEY` in `.env` for the scan/fill boxes. Have ≥3 receipt images ready.
 
-- [ ] **Batch scan → generate populates rows (the fixed 🔴).** "Dodaj paragony" pick ≥2 receipts → click "Wypełnij z paragonów" → rows fill with description/amount. **Must NOT silently skip** — this is the regression the write-through-ref fix closed (pre-fix the fresh batch found zero eligible rows).
-- [ ] **Remove a middle row keeps every other row's file + FV label aligned.** Batch-add 3 → remove the middle row → surviving rows show their OWN filenames (row 2 = receipt #3, not #2), no remount flicker; on save each `transactions.invoice` points at the correctly-aligned media (no off-by-one).
-- [ ] **Attach / replace / remove a single row's FV updates the label in place.** Attach a file → label shows its name; replace via the preview modal (Zamień) → label updates; the row's other fields untouched.
-- [ ] **Reset / clear mints a fresh blank row.** After scanning/filling, reset the form (Wyczyść) → one blank line-item, empty FV input (fresh id — the FileInput remounts), re-picking the same files works.
-- [ ] **AI rename applies to the uploaded file.** Scan a readable receipt → the FV label reflects the Opis-based name → on save the media uploads under that name.
+- [x] **Batch scan → generate populates rows (the fixed 🔴).** "Dodaj paragony" pick ≥2 receipts → generation runs → rows fill with description/amount. **Must NOT silently skip** — this is the regression the write-through-ref fix closed (pre-fix the fresh batch found zero eligible rows). _Verified: batch-added 3 receipts → auto-generation found all 3 eligible rows ("Odczytano 3/3"), each row populated (189.99/245.5/312, Suma 747,49 zł). The scan found the just-registered files (write-through ref) — no silent skip._
+- [x] **Remove a middle row keeps every other row's file + FV label aligned.** Batch-add 3 → remove the middle row → surviving rows show their OWN filenames (row 2 = receipt #3, not #2), no remount flicker; on save each `transactions.invoice` points at the correctly-aligned media (no off-by-one). _Verified: removed middle row (hurt-pol/245.5) → 2 rows left aligned (market-bud/189.99 + elektro-max/312, Suma 501,99 zł); saved → DB `transactions` 3908=189.99→market-bud-…png, 3909=312→elektro-max-…png. No off-by-one at the persisted layer._
+- [x] **Attach / replace / remove a single row's FV updates the label in place.** Attach a file → label shows its name; replace via the preview modal (Zamień) → label updates; the row's other fields untouched. _Verified: attached receipt1.png → FV label "receipt1.png" in place; preview modal → Zamień → receipt2.png → label updated to "receipt2.png"; Kwota/Notatka stayed empty, Suma 0,00 zł._
+- [x] **Reset / clear mints a fresh blank row.** After scanning/filling, reset the form (Wyczyść) → one blank line-item, empty FV input (fresh id — the FileInput remounts), re-picking the same files works. _Verified: "Wyczyść formularz" collapsed the 2-row draft to one blank line-item (empty Kwota/Notatka/FV, Suma 0,00 zł); re-attaching a file to the fresh row worked._
+- [x] **AI rename applies to the uploaded file.** Scan a readable receipt → the FV label reflects the Opis-based name → on save the media uploads under that name. _Verified: FV labels renamed from receiptN.png → market-bud-/hurt-pol-/elektro-max-…png (Opis-based), row-aligned; saved media persisted as `market-bud-21-07-2026-5f6bd8.png` / `elektro-max-21-07-2026-09ee37.png` (DB `media.filename`)._
+
+### Findings — 2026-07-21
+
+- [x] **Draft persists after a successful save (stale form on reopen) — PARKED 2026-07-21 (EX-556).** After a successful submit (dialog closed, transactions 3908/3909 created) with "Nie zamykaj po zapisaniu" **unchecked**, reopening "Nowy wydatek" still showed the just-saved 2-row draft (Suma 501,99 zł) instead of a blank form. Reset (Wyczyść) clears it, so no data corruption. **Owner decision (2026-07-21): keep the behavior for now**, box passed. The product question — should a successful non-`keepOpen` submit clear the draft, or is pre-filling the next entry intended — is parked to **[EX-556](https://linear.app/ex-plant/issue/EX-556)** (`parked` label). Mechanism: draft autosaves into the Zustand store (`use-managed-form.ts`); the `keepOpen` branch clears it synchronously, the default branch defers the clear into the optimistic success callback (`use-form-submit.ts:29-54`). **Test disposition:** deferred with EX-556 — if ruled a bug, test-driven-debugging · e2e (submit → reopen → assert blank form).
 
 ## S-05 — kosztorys-vat
 
@@ -928,3 +934,40 @@ byte-identical before/after.
       recharts draws no arc for a 0 value, so nothing is visually broken. Dismissed as benign — not
       fixed to avoid a judgment call on whether a 0 robocizna row should ever hide.
       **Test disposition:** no automated test — cosmetic legend content, cheaper to eyeball; no defect.
+
+## podsumowanie-podwykonawcow (EX-554)
+
+**In review** — automated checks green (tsc 0, eslint 0 errors, full unit suite 1103 passed incl. the
+new `executedWorkNetPreRabat` + `computeSubcontractorSummary` specs). New „Podsumowanie podwykonawców"
+footer block for the Z narzędziami / Bez narzędzi views; the Klient view is untouched. The boxes below
+are the browser-level flows CI can't reach; the pure math (należne pre-rabat, płatności razem, remaining)
+is unit-covered. E2E deferred to the `e2e-backlog` (see Findings). Realizes EX-554, closes EX-551.
+
+Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, on an investment whose
+kosztorys has executed progress **and** several `PAYOUT` transfers across different workers (plus at
+least one PAYOUT with no worker assigned, to exercise the null bucket). Open the **Kosztorys** tab and
+toggle the price view.
+
+- [ ] **Block appears only in the subcontractor views.** Toggling the widok cen to **Z narzędziami** or
+      **Bez narzędzi** replaces the client Podsumowanie with „Podsumowanie podwykonawców" (one „Kwota"
+      column, no netto/brutto); switching back to **Klient** restores the unchanged client block.
+- [ ] **Suma wykonanej pracy = należne (pre-rabat, active view's price).** It equals the executed-work
+      value at the active subcontractor price **without** any rabat, changes with the view toggle
+      (Z narzędziami ≠ Bez narzędzi), and recomputes live on a progress edit.
+- [ ] **Zaliczki per worker + reconciliation.** Each worker row shows its PAYOUT total (negative) and
+      links to `/inwestycje/{id}?type=PAYOUT&worker=<id>` (opens that worker's payouts on this
+      investment); a PAYOUT with no worker appears under „Bez przypisanego pracownika" (no link, pinned
+      last); „Zaliczki (wypłaty) razem" = Σ rows and „Pozostało do wypłaty" = należne − razem (negative
+      shows visually distinct).
+- [ ] **Collapsed headline switches plane.** Collapsed, the panel headline reads „Pozostało do wypłaty"
+      (single amount, no netto/brutto) in the subcontractor views, and „Do zapłaty" (netto/brutto) in
+      Klient.
+- [ ] **netto/brutto control hidden.** In the subcontractor views the „Kwoty" (netto/brutto) section is
+      absent from the Widok ▾ menu; it returns in the Klient view.
+
+### Findings — podsumowanie-podwykonawcow
+
+- E2E deferred to the **`e2e-backlog`** as **[EX-559](https://linear.app/ex-plant/issue/EX-559)** (label
+  `e2e-backlog`, project „Wykonczymy") per AGENTS.md — the browser render is a low-risk plumbing surface.
+  Author the Playwright spec (toggle view → assert block swaps + per-worker link target + toggle hidden)
+  when the backlog item is picked up.

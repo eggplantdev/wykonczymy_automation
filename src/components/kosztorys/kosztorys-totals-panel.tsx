@@ -25,7 +25,7 @@ type PropsT = {
   zaliczkiByStage: Record<number, number>
   // Realized PAYOUTs per worker — feeds the subcontractor summary block (Z/Bez narzędzi views only).
   payoutsByWorker: SubcontractorPayoutRowT[]
-  // Individual realized PAYOUT rows — feed the subcontractor block's sortable wypłaty list.
+  // TEMP (design spike): individual PAYOUT rows for the per-worker expand + flat „wszystkie wypłaty" list.
   payoutTransactions: PayoutTransactionRowT[]
   // „Suma wykonanej pracy" (należne) at the active view's subcontractor price, pre-rabat — the
   // subcontractor block's headline figure. Ignored in the client view.
