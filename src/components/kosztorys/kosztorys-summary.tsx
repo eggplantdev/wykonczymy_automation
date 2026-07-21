@@ -8,7 +8,6 @@ import { HintTooltip } from '@/components/ui/tooltip'
 import {
   computeSummarySplit,
   moneyPair,
-  summaryLine,
   summaryLineFace,
   type DepositBucketsT,
   type MoneyPairT,
@@ -108,7 +107,7 @@ export function KosztorysSummary({
   // Rabat then deducts from Łącznie down to „Do zapłaty" as its own waterfall line below.
   // laborCostsNetFromKosztorys arrives already net of rabat, so add it back for the Łącznie/udział base.
   const sumaPracNet = laborCostsNetFromKosztorys + rabatAmount
-  const { combined } = computeSummarySplit(sumaPracNet, materialyNet, vatRate)
+  const { laborCosts: sumaPrac, combined } = computeSummarySplit(sumaPracNet, materialyNet, vatRate)
   const { net: showNet, gross: showGross } = axisShows(moneyAxis)
   // The scream compares client-view nets; a subcontractor view reprices the displayed figure, so the
   // scream would sit next to a number it isn't comparing. Show it only in the client view.
@@ -119,7 +118,6 @@ export function KosztorysSummary({
   const showRabat =
     rabatAmount > 0 ||
     (reconVisible && (reconciliation.rabat.actual > 0 || reconciliation.rabat.mismatch))
-  const sumaPrac = summaryLine(sumaPracNet, combined.net, vatRate)
   // Rabat is an obniżka of prace, so it lives on the prace plane and grosses — brutto = rabat×(1+VAT).
   // NOTE: the visible waterfall no longer „foots" to Do zapłaty on the brutto axis — under the
   // sequential deposit model (computeDoZaplatyRM) a netto-flagged wpłata reduces the base pre-VAT, so

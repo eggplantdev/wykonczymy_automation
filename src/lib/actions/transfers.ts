@@ -241,9 +241,6 @@ export async function updateTransferAction(
       const newAmount = isLaborCost(original.type) ? amount : undefined
       const amountChanged = newAmount !== undefined && newAmount !== original.amount
 
-      // Moving a zaliczka to another investment orphans its etap tag; the collection's
-      // beforeValidate hook clears it, so every write path is covered, not just this action.
-
       await payload.update({
         collection: 'transactions',
         id: transferId,

@@ -23,7 +23,7 @@ function planeTag(vatPlane: DepositRowT['vatPlane']) {
   return { label: VAT_PLANE_LABELS[vatPlane], className: 'text-chart-green' }
 }
 
-// The per-wpłata list under the Podsumowanie — every INVESTOR_DEPOSIT for the investment, newest first,
+// The per-wpłata list under the Podsumowanie — every wpłata (deposit) for the investment, newest first,
 // with its netto/brutto/legacy plane tag. Each row links to the investment's filtered deposit view
 // (owner only; the client preview renders plain text). Reduced-to-buckets counterpart lives in the
 // Wpłaty / Do zapłaty block — this surface shows the individual movements behind those sums.

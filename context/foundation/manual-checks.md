@@ -974,7 +974,8 @@ toggle the price view.
 
 ## kosztorys-zaliczka-netto-brutto (EX-536)
 
-**In review** — automated checks green (tsc: only the pre-existing unrelated `seed-investment-from-sheet.ts`
+**Manual pass complete 2026-07-21 — all 8 boxes ticked, no open findings** (`:3010`, 5435 test DB, logged in
+as OWNER). Automated checks green (tsc: only the pre-existing unrelated `seed-investment-from-sheet.ts`
 error; eslint 0 errors; full unit suite 1097 passed incl. the bucket-reducer + sequential `computeDoZaplatyRM`
 specs). Wpłaty (INVESTOR_DEPOSIT) now carry a three-state `vatPlane` (NET/GROSS/legacy NULL); the deposit→etap
 link is gone; the Podsumowanie shows Wpłaty netto/brutto + Do zapłaty netto/brutto as one always-visible block,
@@ -990,25 +991,68 @@ Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, on
 seeded kosztorys (executed progress + a robocizna figure). Create INVESTOR_DEPOSIT wpłaty as noted below,
 then open the **Kosztorys** tab, Klient view, and expand the Podsumowanie.
 
-- [ ] **Migrations applied clean.** Both migrations run against the test DB without error; `transactions`
+- [x] **Migrations applied clean.** Both migrations run against the test DB without error; `transactions`
       has no `kosztorys_stage` column and gained a nullable `vat_plane` (`enum_transactions_vat_plane`).
-- [ ] **Deposit form: no stage Select, plane + method required.** The wpłata dialog offers only „Wpłata od
+      _Verified 2026-07-21 (`:3010`, test DB): `pnpm db:migrate:test` ran both cleanly; `kosztorys_stage`
+      is gone (a SELECT on it errors „column does not exist"), `vat_plane` is a nullable NET/GROSS enum._
+- [x] **Deposit form: no stage Select, plane + method required.** The wpłata dialog offers only „Wpłata od
       inwestora", forces a netto/brutto choice (omitting it blocks submit), and shows a paymentMethod picker
       defaulting to **Gotówka** (Przelew selectable). No etap Select anywhere on the form.
-- [ ] **Stored row shape.** A saved INVESTOR_DEPOSIT persists `vat_plane` = the chosen plane and its
+      _Verified: dialog type-select carries only „Wpłata od inwestora"; submitting with plane left „Wybierz"
+      leaves the dialog open with `aria-invalid=true` on the plane field; Metoda defaults Gotówka, options
+      trimmed to Gotówka/Przelew (BLIK/Karta gone); no etap Select present._
+- [x] **Stored row shape.** A saved INVESTOR*DEPOSIT persists `vat_plane` = the chosen plane and its
       `payment_method`; a non-deposit transaction leaves `vat_plane` NULL.
-- [ ] **Sequential model (owner example).** Robocizna 2000 + one **netto**-flagged wpłata 1000 → Wpłaty netto
+      \_Verified via DB: form-created rows 3929 (`vat_plane=NET`, `payment_method=CASH`) and 3930
+      (`GROSS`, `TRANSFER`) on inv 66; `select count(*) … where type<>'INVESTOR_DEPOSIT' and vat_plane
+    is not null` = 0.*
+- [x] **Sequential model (owner example).** Robocizna 2000 + one **netto**-flagged wpłata 1000 → Wpłaty netto
       1000, Do zapłaty netto 1000, Do zapłaty brutto 1080. A later **brutto**-flagged wpłata 1080 drives Do
       zapłaty brutto to 0.
-- [ ] **Four figures are one locked block, axis-independent.** Toggling `MoneyAxisToggle` (Netto / Brutto /
+      _Verified two ways. Unit (`summary-economics.test.ts`, 14 green): the exact owner case
+      `computeDoZaplatyRM(2000,{sumNet:1000},0,0.08)` → net 1000, gross 1080, plus the brutto-bucket case
+      (gross axis − sumGross). Live (inv 66 Podsumowanie, VAT 0.08): with R post-rabat 675 412,50,
+      sumNet 1000, sumGross 500, legacy 185 276, M 44 584,84, the rendered Do zapłaty netto 533 721,34 /
+      brutto 587 174,34 match the formula to the grosz._
+- [x] **Four figures are one locked block, axis-independent.** Toggling `MoneyAxisToggle` (Netto / Brutto /
       pokaż wszystko) never hides the Wpłaty netto/brutto + Do zapłaty netto/brutto set; the collapsed
       headline and the expanded Podsumowanie show the **same** numbers.
-- [ ] **Legacy (NULL plane) at face on both axes.** An investment with only a legacy wpłata (no plane flag,
+      _Verified (`/podglad-klienta/66`): cycling the toggle through all three settings renders the identical
+      four-figure block each time (Wpłaty netto 1000 / brutto 500, Do zapłaty netto 533 721,34 /
+      brutto 587 174,34) plus the amber legacy line — none of the four is ever hidden._
+- [x] **Legacy (NULL plane) at face on both axes.** An investment with only a legacy wpłata (no plane flag,
       e.g. an existing `OTHER_DEPOSIT`-era row) shows Do zapłaty netto = R − legacy and brutto = R×1,08 −
       legacy (identical to the pre-change code); the legacy amount surfaces as its own amber
       „bez oznaczenia" line that **subtracts**, not excludes.
-- [ ] **Wpłaty list.** Below the etap totals, each wpłata renders date + amount + its plane tag
+      _Verified (`/podglad-klienta/7`, legacy-only, Wpłaty netto/brutto both 0): R post-rabat 675 412,50,
+      M 20 976,55, legacy 122 508 → Do zapłaty netto 573 881,05 (= R − legacy + M) and brutto 627 914,05
+      (= R×1,08 − legacy + M), both matching. Legacy subtracts unmultiplied on both axes; the amber
+      „Wpłaty bez oznaczenia netto/brutto: 122 508,00" line is present and subtracts._
+- [x] **Wpłaty list.** Below the etap totals, each wpłata renders date + amount + its plane tag
       (netto/brutto green, legacy amber) and links to `/inwestycje/{id}?type=INVESTOR_DEPOSIT` (owner) /
       plain text (client preview). The list reconciles with the Podsumowanie Wpłaty netto/brutto sums plus
       the amber legacy line.
-- [ ] **No console/SQL error** on the kosztorys page or the investment transactions view after the changes.
+      _Verified: inv 66 editor renders each row date + tag + amount with per-row links; the client preview
+      renders the same rows as plain text (no `<a>`). Tags: Netto/Brutto green, „bez oznaczenia" amber.
+      The list reconciles — a **cancelled** legacy deposit (id 2303, 21 600) is correctly excluded from
+      both the list and the legacySum, so 8 active legacy rows sum to the block's 185 276._
+- [x] **No console/SQL error** on the kosztorys page or the investment transactions view after the changes.
+      _Verified: browser console 0 errors across every page driven; no SQL error in the server log. One
+      benign background `fetch failed (ETIMEDOUT)` appears — the pre-existing `[sheets-sync]` append of the
+      new deposit to the live Google mirror sheet timed out once from the local box; the deposit persisted
+      (POST 200) and the append succeeded on retry. Environmental, not an EX-536 defect._
+
+### Findings — 2026-07-21
+
+No open findings. All 8 checks pass. Notes captured inline above:
+
+- **Sheet-sync timeout (dismissed, environmental).** Deposit create fires a live Google Sheets append
+  (`[sheets-sync] … → transfery`); one call hit `ETIMEDOUT` from the local test box. The transaction
+  committed and the append retried successfully. Not a defect, not caused by this change.
+  **Test disposition:** no automated test — external-network flakiness against a live sheet; the write
+  path is already integration-covered elsewhere and a timeout guard is out of this change's scope.
+- **Cancelled deposits excluded from wpłaty list + buckets (verified-correct, untested).** The deposit
+  read drops `cancelled = true` rows (id 2303 on inv 66), so the list and `legacySum` reconcile.
+  Behaviour is correct but has no dedicated guard.
+  **Test disposition:** TDD · integration — assert the `depositRows` query excludes a cancelled
+  INVESTOR_DEPOSIT; cheap regression guard for the recon seam. Not blocking Done; not yet filed.
