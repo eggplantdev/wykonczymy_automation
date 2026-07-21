@@ -7,7 +7,7 @@ import { KosztorysEditorBody } from '@/components/kosztorys/kosztorys-editor-bod
 import { KosztorysVersionsDrawer } from '@/components/kosztorys/kosztorys-versions-drawer'
 import { useAutoSnapshot } from '@/components/kosztorys/use-auto-snapshot'
 import { useRestoreRemount } from '@/components/kosztorys/use-restore-remount'
-import { UndoRedoContext, useUndoRedo } from '@/components/kosztorys/use-undo-redo'
+import { useUndoRedo } from '@/components/kosztorys/use-undo-redo'
 import type { KosztorysEditorDataT } from '@/lib/kosztorys/types'
 
 type PropsT = KosztorysEditorDataT
@@ -53,7 +53,7 @@ export function KosztorysEditorV2({
   }
 
   return (
-    <UndoRedoContext.Provider value={undoRedo}>
+    <>
       {tree.sections.length === 0 && (
         <EmptyKosztorysDialog investmentId={investmentId} onCreated={handleRestored} />
       )}
@@ -68,6 +68,7 @@ export function KosztorysEditorV2({
         zaliczkiByStage={zaliczkiByStage}
         laborCostsNetFromTransactions={laborCostsNetFromTransactions}
         investmentRabat={investmentRabat}
+        undoRedo={undoRedo}
         onOpenVersions={() => setVersionsOpen(true)}
       />
       <KosztorysVersionsDrawer
@@ -77,6 +78,6 @@ export function KosztorysEditorV2({
         onOpenChange={setVersionsOpen}
         onRestored={handleRestored}
       />
-    </UndoRedoContext.Provider>
+    </>
   )
 }

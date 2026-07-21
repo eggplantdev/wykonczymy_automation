@@ -9,7 +9,7 @@ import {
   type FieldChangeT,
   type StageChangeT,
 } from '@/lib/kosztorys/undo-coalesce'
-import { useUndoRedoContextOrNoop } from '@/components/kosztorys/use-undo-redo'
+import type { UndoRedoApiT } from '@/components/kosztorys/use-undo-redo'
 import { useColumnWidths } from '@/components/kosztorys/use-column-widths'
 import { useHiddenColumns } from '@/components/kosztorys/use-hidden-columns'
 import { useLayer } from '@/components/kosztorys/use-layer'
@@ -84,7 +84,12 @@ import type {
   KosztorysV2RowT,
 } from '@/lib/kosztorys/types'
 
-type ArgsT = { investmentId: number; tree: KosztorysTreeT; clientView?: boolean }
+type ArgsT = {
+  investmentId: number
+  tree: KosztorysTreeT
+  clientView?: boolean
+  undoRedo: UndoRedoApiT
+}
 
 // A reorder command records the two rows' ids and pre-swap orders. FieldChangeT/StageChangeT (the
 // per-field / per-stage before+after a grid batch records) live with the burst-coalescing reducer.
@@ -98,12 +103,12 @@ const UNDO_COALESCE_MS = 700
 // All editor state, derived data, and handlers for the in-app kosztorys grid. Kept out of the
 // component so the component is only composition + markup. Handlers never fire an action from
 // inside a setRows updater — that would move the Router during render.
-export function useKosztorysEditor({ investmentId, tree, clientView = false }: ArgsT) {
+export function useKosztorysEditor({ investmentId, tree, clientView = false, undoRedo }: ArgsT) {
   const router = useRouter()
   const { save, runNow } = useDebouncedSave(500)
-  // Per-mount undo/redo stack, provided by the shell (KosztorysEditorV2). Capture pushes here;
-  // the toolbar + keyboard call undo/redo (re-exported below).
-  const { push, undo, redo, canUndo, canRedo, pruneByIds } = useUndoRedoContextOrNoop(clientView)
+  // Per-mount undo/redo stack, owned by the shell (KosztorysEditorV2) and passed in. Capture pushes
+  // here; the toolbar + keyboard call undo/redo (re-exported below).
+  const { push, undo, redo, canUndo, canRedo, pruneByIds } = undoRedo
   const [gridRef, gridHeight] = useElementHeight()
   const [rows, setRows] = useState<KosztorysV2RowT[]>(() => treeToRows(tree))
   // Stages live in local state (like `rows`): add/remove optimistically add/drop a column.
@@ -253,14 +258,16 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false }: A
   // is no control left that could fire them. Column resize (onGuide/onCommitColumn) is the exception:
   // it only moves a localStorage width, never touches the server, so a client keeps it for readability.
   // Sort is dropped (headers render as plain labels) — the client sees a fixed, non-interactive order.
-  const ownerOnly = <T>(handler: T): T | undefined => (clientView ? undefined : handler)
+  // Wired only in the interactive editor render, dropped in the read-only client view. The gate is
+  // the render mode, NOT a role — OWNER/MANAGER/ADMIN all edit; the client (no login) does not.
+  const editorOnly = <T>(handler: T): T | undefined => (clientView ? undefined : handler)
   const columnOpts = {
     view,
     stages,
-    onRemoveStage: ownerOnly(handleRemoveStage),
-    onRenameStage: ownerOnly(handleRenameStage),
+    onRemoveStage: editorOnly(handleRemoveStage),
+    onRenameStage: editorOnly(handleRenameStage),
     sort,
-    onSetSort: ownerOnly(setSortField),
+    onSetSort: editorOnly(setSortField),
     isHidden,
     moneyAxis: effectiveMoneyAxis,
     progressDisplay,
@@ -268,11 +275,11 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false }: A
     widths,
     onGuide: setGuideX,
     onCommitColumn: setWidth,
-    onRemoveItem: ownerOnly(handleRemoveItem),
-    onReorderItem: ownerOnly(handleReorderItem),
-    onInsertItem: ownerOnly(handleInsertItem),
-    onRenameSection: ownerOnly(handleRenameSection),
-    getRemovePlan: ownerOnly(getRemovePlan),
+    onRemoveItem: editorOnly(handleRemoveItem),
+    onReorderItem: editorOnly(handleReorderItem),
+    onInsertItem: editorOnly(handleInsertItem),
+    onRenameSection: editorOnly(handleRenameSection),
+    getRemovePlan: editorOnly(getRemovePlan),
     globalDiscountActive,
     readOnly: clientView || undefined,
     clientVisible: clientView || undefined,

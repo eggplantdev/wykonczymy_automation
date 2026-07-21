@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog'
+import { copyToClipboard } from '@/lib/utils/copy-to-clipboard'
 import { toastMessage } from '@/lib/utils/toast'
 import { ExternalLink } from '@/components/ui/external-link'
 import { getServiceAccountEmailAction } from '@/lib/actions/investments'
@@ -40,12 +41,7 @@ export function AddSheetDialog({ trigger }: PropsT) {
     }
   }
 
-  const copyEmail = () => {
-    void navigator.clipboard
-      .writeText(saEmail)
-      .then(() => toastMessage('Skopiowano adres konta usługi.', 'success'))
-      .catch(() => toastMessage('Nie udało się skopiować.', 'error'))
-  }
+  const copyEmail = () => copyToClipboard(saEmail, 'Skopiowano adres konta usługi.')
 
   const onSubmit = () => {
     if (!link.trim()) return

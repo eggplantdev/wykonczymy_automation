@@ -10,7 +10,7 @@ import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 const OPTIONS: OptionT<MoneyAxisT>[] = [
   { value: 'net', label: 'Netto' },
   { value: 'gross', label: 'Brutto' },
-  { value: 'both', label: 'Oba' },
+  { value: 'both', label: 'Pokaż wszystko' },
 ]
 
 export function MoneyAxisToggle({
