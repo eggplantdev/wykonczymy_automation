@@ -7,6 +7,7 @@ import type {
   InvestmentFinancialsT,
   TypeSettledTotalT,
 } from '@/types/investment-financials'
+import type { PayoutByWorkerT } from '@/types/reference-data'
 import { buildSqlConditions, isNoResultsSentinel } from '@/lib/db/where-to-sql'
 import { getDb } from '@/lib/db/get-db'
 import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
@@ -272,6 +273,40 @@ export const sumDepositRowsForInvestment = async (
     amount: Number(row.amount),
     kosztorysStage: row.kosztorys_stage_id == null ? null : Number(row.kosztorys_stage_id),
   }))
+}
+
+/**
+ * SUM realized PAYOUT amounts for ONE investment, grouped by worker. Mirrors sumAllWorkerBalances
+ * but scoped to an investment and — critically — WITHOUT a `worker_id IS NOT NULL` guard: a null
+ * worker is a real cash payout that must still count toward Σ zaliczek, else „Pozostało do wypłaty"
+ * overstates the debt. Names are resolved at the page (kept off this query so it stays tagged on
+ * transfers alone).
+ */
+export const sumPayoutsByWorkerForInvestment = async (
+  payload: Payload,
+  investmentId: number,
+): Promise<PayoutByWorkerT[]> => {
+  const elapsed = perfStart()
+  const db = await getDb(payload)
+
+  const result = await db.execute(sql`
+    SELECT worker_id,
+      COALESCE(SUM(amount), 0) AS total
+    FROM transactions
+    WHERE type = 'PAYOUT'
+      AND investment_id = ${investmentId}
+      AND cancelled IS NOT TRUE
+    GROUP BY worker_id
+  `)
+
+  const rows = result.rows.map((row) => ({
+    workerId: row.worker_id == null ? null : Number(row.worker_id),
+    total: Number(row.total),
+  }))
+  console.log(
+    `[PERF] query.sumPayoutsByWorkerForInvestment ${elapsed()}ms (${rows.length} workers)`,
+  )
+  return rows
 }
 
 export const sumFilteredByType = async (

@@ -33,6 +33,21 @@ export type WorkerRefT = Omit<ReferenceItemT, 'type'> & {
   email: string
 }
 
+// Raw PAYOUT-per-worker aggregate for one investment. `workerId` is null for the „Bez przypisanego
+// pracownika" bucket — a real cash payout with no worker attached, which must still count toward Σ
+// zaliczek. Names are NOT joined here (query stays tagged on transfers alone); the page enriches.
+export type PayoutByWorkerT = {
+  workerId: number | null
+  total: number
+}
+
+// The page-enriched PAYOUT-per-worker row: `PayoutByWorkerT` plus the worker's name resolved from
+// reference data (null worker → „Bez przypisanego pracownika"). This is what the editor prop chain
+// carries down to the subcontractor summary block.
+export type SubcontractorPayoutRowT = PayoutByWorkerT & {
+  name: string
+}
+
 export type OtherCategoryRefT = {
   id: number
   name: string

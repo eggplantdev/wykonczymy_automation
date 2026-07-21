@@ -14,12 +14,15 @@ import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import type { KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import type { SectionSliceInputT } from '@/lib/kosztorys/chart-slices'
+import type { SubcontractorPayoutRowT } from '@/types/reference-data'
 
 type PropsT = {
   investmentId: number
   stages: KosztorysStageT[]
   stageTotals: Map<number, number>
   zaliczkiByStage: Record<number, number>
+  // Realized PAYOUTs per worker — feeds the subcontractor summary block (Z/Bez narzędzi views only).
+  payoutsByWorker: SubcontractorPayoutRowT[]
   // Suma prac wykonanych — the executed total BEFORE rabat (Σ etap totals); EtapTotals' readout.
   totalNet: number
   // Robocizna wartość netto — executed total AFTER rabat; the Podsumowanie waterfall's base.

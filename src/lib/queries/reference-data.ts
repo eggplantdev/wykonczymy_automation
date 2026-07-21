@@ -12,6 +12,7 @@ import {
   sumFilteredByType,
   sumCategoryByTypeSettled,
   sumDepositRowsForInvestment,
+  sumPayoutsByWorkerForInvestment,
   deriveCategoryBreakdowns,
 } from '@/lib/db/sum-transfers'
 import { sumZaliczkiByStage } from '@/lib/kosztorys/zaliczki'
@@ -33,6 +34,7 @@ import type {
   ExpenseCategoryRefT,
   KosztorysStageRefT,
   ReferenceDataBaseT,
+  PayoutByWorkerT,
 } from '@/types/reference-data'
 
 // Categories alone, for callers that need only these. `fetchReferenceData` also returns every user
@@ -261,6 +263,22 @@ export async function fetchZaliczkiByStage(investmentId: number): Promise<Record
     },
     ['zaliczki-by-stage', String(investmentId)],
     { tags: [CACHE_TAGS.transfers, CACHE_TAGS.kosztorysStages] },
+  )()
+}
+
+// Realized PAYOUTs for one investment, grouped per worker (null-worker bucket kept). Cached under
+// CACHE_TAGS.transfers alone — names are joined at the page from reference data, so no users tag is
+// needed here; recalculate-balances fires revalidateTag(transfers) on every transfer mutation.
+export async function fetchPayoutsByWorkerForInvestment(
+  investmentId: number,
+): Promise<PayoutByWorkerT[]> {
+  return unstable_cache(
+    async () => {
+      const payload = await getPayload({ config })
+      return sumPayoutsByWorkerForInvestment(payload, investmentId)
+    },
+    ['payouts-by-worker', String(investmentId)],
+    { tags: [CACHE_TAGS.transfers] },
   )()
 }
 

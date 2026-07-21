@@ -48,6 +48,7 @@ export function KosztorysEditorBody({
   zaliczkiByStage,
   laborCostsNetFromTransactions,
   investmentRabat,
+  payoutsByWorker = [],
   clientView = false,
   undoRedo = NOOP_UNDO_REDO,
   onOpenVersions,
@@ -206,6 +207,7 @@ export function KosztorysEditorBody({
             stages={stages}
             stageTotals={stageTotals}
             zaliczkiByStage={zaliczkiByStage}
+            payoutsByWorker={payoutsByWorker}
             totalNet={totalNet}
             laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
             materialyNet={materialsNet}

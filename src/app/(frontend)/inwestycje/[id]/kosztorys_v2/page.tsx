@@ -3,6 +3,7 @@ import { getKosztorysTree } from '@/lib/queries/kosztorys'
 import {
   fetchCategoryBreakdowns,
   fetchFilteredByType,
+  fetchPayoutsByWorkerForInvestment,
   fetchReferenceData,
   fetchZaliczkiByStage,
 } from '@/lib/queries/reference-data'
@@ -29,14 +30,19 @@ export default async function InvestmentKosztorysV2Page({
   const breakdownsPromise = fetchCategoryBreakdowns(investmentWhere)
   // Per-etap zaliczki (tagged deposits) — same cached transfers plane, read-only.
   const zaliczkiPromise = fetchZaliczkiByStage(investmentId)
+  // Realized PAYOUTs per worker (null-worker bucket kept) for the subcontractor summary block.
+  const payoutsPromise = fetchPayoutsByWorkerForInvestment(investmentId)
   const { investment } = await requireInvestmentOr404(id)
-  const [tree, typeDistribution, breakdowns, refData, zaliczkiByStage] = await Promise.all([
-    treePromise,
-    financialsPromise,
-    breakdownsPromise,
-    fetchReferenceData(),
-    zaliczkiPromise,
-  ])
+  const [tree, typeDistribution, breakdowns, refData, zaliczkiByStage, payouts] = await Promise.all(
+    [
+      treePromise,
+      financialsPromise,
+      breakdownsPromise,
+      fetchReferenceData(),
+      zaliczkiPromise,
+      payoutsPromise,
+    ],
+  )
   // categoryCosts feed the Materiały split; settledCategoryCosts stay unused here — settled
   // material („wliczone w robociznę") is an owner/margin figure, deliberately kept off the
   // client-facing offer (v1 parity).
@@ -49,6 +55,16 @@ export default async function InvestmentKosztorysV2Page({
   // inwestora (calculate-balance.ts). Drives the podsumowanie „Wpłaty"/„Do zapłaty"; distinct
   // from the sparser per-etap tagged zaliczki below.
   const wplatyNet = financials.totalIncome
+  // Names join here (not in the cached query): resolve each worker id against reference data; a null
+  // worker id is the „Bez przypisanego pracownika" bucket. Sorting/totals live in the pure block helper.
+  const workerNameById = new Map(refData.workers.map((worker) => [worker.id, worker.name]))
+  const payoutsByWorker = payouts.map((row) => ({
+    ...row,
+    name:
+      row.workerId === null
+        ? 'Bez przypisanego pracownika'
+        : (workerNameById.get(row.workerId) ?? 'Nieznany pracownik'),
+  }))
 
   return (
     <KosztorysEditorV2
@@ -63,6 +79,7 @@ export default async function InvestmentKosztorysV2Page({
       // scream — compared against the kosztorys figures during the population/verification transition.
       laborCostsNetFromTransactions={financials.totalLaborCosts}
       investmentRabat={financials.totalRabat}
+      payoutsByWorker={payoutsByWorker}
     />
   )
 }
