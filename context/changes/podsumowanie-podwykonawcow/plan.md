@@ -385,8 +385,8 @@ None — read-only over existing transfers + kosztorys rows.
 
 #### Automated
 
-- [x] 3.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`)
-- [x] 3.2 Lint passes (`pnpm lint`)
-- [x] 3.3 Unit tests pass (`pnpm exec vitest run`)
-- [x] 3.4 `executedWorkNetPreRabat` + `computeSubcontractorSummary` unit tests pass
-- [x] 3.5 Tailwind v4 audit clean on `subcontractor-summary.tsx`
+- [x] 3.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`) — 4d1930a2
+- [x] 3.2 Lint passes (`pnpm lint`) — 4d1930a2
+- [x] 3.3 Unit tests pass (`pnpm exec vitest run`) — 4d1930a2
+- [x] 3.4 `executedWorkNetPreRabat` + `computeSubcontractorSummary` unit tests pass — 4d1930a2
+- [x] 3.5 Tailwind v4 audit clean on `subcontractor-summary.tsx` — 4d1930a2

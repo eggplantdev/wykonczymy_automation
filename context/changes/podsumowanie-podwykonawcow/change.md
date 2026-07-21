@@ -1,7 +1,7 @@
 ---
 change_id: podsumowanie-podwykonawcow
 title: 'Podsumowanie podwykonawców — osobny blok podsumowania dla widoków Z/Bez narzędzi'
-status: implementing
+status: implemented
 created: 2026-07-21
 updated: 2026-07-21
 archived_at: null
