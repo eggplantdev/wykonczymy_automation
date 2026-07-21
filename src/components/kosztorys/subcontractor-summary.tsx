@@ -201,7 +201,9 @@ function WorkerTotals({
       style={{ gridTemplateColumns: `${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL}` }}
       className="border-border bg-border grid h-fit w-fit gap-px border"
     >
-      <span className={cn(SUMMARY_LABEL_CELL, 'text-muted-foreground text-xs')}>Wg pracownika</span>
+      <span className={cn(SUMMARY_LABEL_CELL, 'text-muted-foreground text-xs')}>
+        Podsumowanie pracowników
+      </span>
       <span className={cn(SUMMARY_VALUE_CELL, 'text-muted-foreground text-xs')}>Kwota</span>
 
       {rows.map((row) => (
