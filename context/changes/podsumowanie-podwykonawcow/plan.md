@@ -367,19 +367,19 @@ None — read-only over existing transfers + kosztorys rows.
 
 #### Automated
 
-- [x] 1.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`)
-- [x] 1.2 Lint passes (`pnpm lint`)
-- [x] 1.3 Unit tests pass (`pnpm exec vitest run`)
-- [x] 1.4 DB-integration test for `sumPayoutsByWorkerForInvestment` (null bucket, cancelled, non-PAYOUT, investment scope) passes
+- [x] 1.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`) — 7a88f088
+- [x] 1.2 Lint passes (`pnpm lint`) — 7a88f088
+- [x] 1.3 Unit tests pass (`pnpm exec vitest run`) — 7a88f088
+- [x] 1.4 DB-integration test for `sumPayoutsByWorkerForInvestment` (null bucket, cancelled, non-PAYOUT, investment scope) passes — 7a88f088
 
 ### Phase 2: `worker` URL filter
 
 #### Automated
 
-- [ ] 2.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`)
-- [ ] 2.2 Lint passes (`pnpm lint`)
-- [ ] 2.3 Unit tests pass (`pnpm exec vitest run`)
-- [ ] 2.4 Unit test for `buildTransferFilters` `worker` param passes
+- [x] 2.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`)
+- [x] 2.2 Lint passes (`pnpm lint`)
+- [x] 2.3 Unit tests pass (`pnpm exec vitest run`)
+- [x] 2.4 Unit test for `buildTransferFilters` `worker` param passes
 
 ### Phase 3: `SubcontractorSummary` block + panel branch
 

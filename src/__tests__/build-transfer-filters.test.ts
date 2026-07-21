@@ -129,6 +129,21 @@ describe('buildTransferFilters — search params', () => {
     const where = buildTransferFilters({ otherCategory: '3,5' }, managerCtx)
     expect(where.otherCategory).toEqual({ in: [3, 5] })
   })
+
+  it('worker param adds a single equals filter (subcontractor summary link target)', () => {
+    const where = buildTransferFilters({ worker: '5' }, managerCtx)
+    expect(where.worker).toEqual({ equals: 5 })
+  })
+
+  it('worker param absent → no worker clause', () => {
+    const where = buildTransferFilters({}, managerCtx)
+    expect(where.worker).toBeUndefined()
+  })
+
+  it('worker param non-numeric → ignored, no worker clause', () => {
+    const where = buildTransferFilters({ worker: 'abc' }, managerCtx)
+    expect(where.worker).toBeUndefined()
+  })
 })
 
 // ── Amount search ────────────────────────────────────────────────────────
