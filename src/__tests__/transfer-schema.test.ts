@@ -46,7 +46,13 @@ const base = {
 
 /** Valid server payloads for each transfer type. */
 const VALID_SERVER_PAYLOADS: Record<string, Record<string, unknown>> = {
-  INVESTOR_DEPOSIT: { ...base, type: 'INVESTOR_DEPOSIT', sourceRegister: 1, investment: 1 },
+  INVESTOR_DEPOSIT: {
+    ...base,
+    type: 'INVESTOR_DEPOSIT',
+    sourceRegister: 1,
+    investment: 1,
+    vatPlane: 'NET',
+  },
   COMPANY_FUNDING: { ...base, type: 'COMPANY_FUNDING', sourceRegister: 1 },
   OTHER_DEPOSIT: { ...base, type: 'OTHER_DEPOSIT', sourceRegister: 1 },
   INVESTMENT_EXPENSE: {
@@ -207,6 +213,41 @@ describe('createTransferSchema — missing required fields', () => {
     const result = createTransferSchema.safeParse(rest)
     expect(result.success).toBe(false)
     expect(errorPaths(result)).toContain('sourceRegister')
+  })
+})
+
+// ── 2b: Server Schema — vatPlane (netto/brutto bucket, EX-536) ──────────
+
+describe('createTransferSchema — vatPlane', () => {
+  it('INVESTOR_DEPOSIT without vatPlane → error on vatPlane', () => {
+    const { vatPlane, ...rest } = VALID_SERVER_PAYLOADS.INVESTOR_DEPOSIT
+    const result = createTransferSchema.safeParse(rest)
+    expect(result.success).toBe(false)
+    expect(errorPaths(result)).toContain('vatPlane')
+  })
+
+  it('INVESTOR_DEPOSIT with vatPlane = GROSS → passes', () => {
+    const result = createTransferSchema.safeParse({
+      ...VALID_SERVER_PAYLOADS.INVESTOR_DEPOSIT,
+      vatPlane: 'GROSS',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('INVESTOR_DEPOSIT with vatPlane = garbage → error on vatPlane', () => {
+    const result = createTransferSchema.safeParse({
+      ...VALID_SERVER_PAYLOADS.INVESTOR_DEPOSIT,
+      vatPlane: 'MAYBE',
+    })
+    expect(result.success).toBe(false)
+    expect(errorPaths(result)).toContain('vatPlane')
+  })
+
+  it('non-deposit types do NOT require vatPlane (legacy NULL stays valid)', () => {
+    for (const type of ['COMPANY_FUNDING', 'OTHER_DEPOSIT', 'PAYOUT', 'LABOR_COST']) {
+      const result = createTransferSchema.safeParse(VALID_SERVER_PAYLOADS[type])
+      expect(result.success, `${type} should not require vatPlane`).toBe(true)
+    }
   })
 })
 

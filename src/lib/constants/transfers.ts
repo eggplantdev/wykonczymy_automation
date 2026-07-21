@@ -61,12 +61,10 @@ export const DEPOSIT_TYPES: TransferTypeT[] = [
   'OTHER_DEPOSIT',
 ]
 
-// Deposit types visible in the deposit dialog (sorted by Polish label)
-export const DEPOSIT_UI_TYPES: TransferTypeT[] = [
-  'OTHER_DEPOSIT', // Inna wpłata
-  'INVESTOR_DEPOSIT', // Wpłata od inwestora
-  'COMPANY_FUNDING', // Zasilenie z konta firmowego
-]
+// Deposit types visible in the deposit dialog. Trimmed to the single netto/brutto-modelled
+// wpłata (EX-536); „Inna wpłata"/„Zasilenie z konta firmowego" are off the dialog so no wpłata
+// is created outside the model. DEPOSIT_TYPES (read-side membership) stays full — union teardown is EX-557.
+export const DEPOSIT_UI_TYPES: TransferTypeT[] = ['INVESTOR_DEPOSIT']
 
 // Transfer types visible in the transaction transfer dialog (sorted by Polish label)
 export const TRANSACTION_TRANSFER_TYPES: TransferTypeT[] = [
@@ -123,17 +121,27 @@ export const TRANSFERS_SUMMARY_TYPES = [
 
 export const PAYMENT_METHODS = [
   'CASH',
+  'TRANSFER',
   // 'BLIK',
-  // 'TRANSFER',
   // 'CARD',
 ] as const
 export type PaymentMethodT = (typeof PAYMENT_METHODS)[number]
 
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethodT, string> = {
   CASH: 'Gotówka',
+  TRANSFER: 'Przelew',
   // BLIK: 'BLIK',
-  // TRANSFER: 'Przelew',
   // CARD: 'Karta',
+}
+
+// EX-536 netto/brutto wpłata bucket. A NULL third state (legacy deposits) exists in the DB
+// but is never a selectable choice — the create form forces one of these two.
+export const VAT_PLANES = ['NET', 'GROSS'] as const
+export type VatPlaneT = (typeof VAT_PLANES)[number]
+
+export const VAT_PLANE_LABELS: Record<VatPlaneT, string> = {
+  NET: 'Netto',
+  GROSS: 'Brutto',
 }
 
 // Type predicates and their private membership arrays live in transfer-rules.ts to

@@ -19,6 +19,7 @@ type TransferFieldsT = {
   expenseCategory?: unknown
   otherCategory?: unknown
   worker?: unknown
+  vatPlane?: unknown
 }
 
 type FieldRuleT = {
@@ -59,6 +60,13 @@ const transferFieldRules: FieldRuleT[] = [
       needsExpenseCategory(d.type, !!d.investment) && !('lineItems' in d) && !d.expenseCategory,
     message: `${EXPENSE_CATEGORY_LABEL} jest wymagany`,
     path: 'expenseCategory',
+  },
+  {
+    // EX-536: a new INVESTOR_DEPOSIT must declare its netto/brutto bucket. NULL is a
+    // legacy-only state (existing rows), never a valid choice on create.
+    invalid: (d) => d.type === 'INVESTOR_DEPOSIT' && !d.vatPlane,
+    message: 'Wybierz czy wpłata jest netto czy brutto',
+    path: 'vatPlane',
   },
 ]
 

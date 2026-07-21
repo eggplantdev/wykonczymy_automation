@@ -9,6 +9,7 @@ type DepositFormValuesT = {
   date: string
   type: string
   paymentMethod: string
+  vatPlane?: string
   sourceRegister: string
   investment?: string
 }

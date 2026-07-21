@@ -571,20 +571,20 @@ tags) is throwaway; no backfill for either migration.
 
 #### Automated
 
-- [x] 1.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`)
-- [x] 1.2 Lint passes (`pnpm lint`)
-- [x] 1.3 Unit tests pass (`pnpm exec vitest run`)
-- [x] 1.4 No `kosztorysStage`/`zaliczkiByStage`/`fetchZaliczkiByStage`/`kosztorysStagesByInvestment` references remain in `src/`
-- [x] 1.5 No user-facing „zaliczk" string in `src/components`/`src/collections`
+- [x] 1.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`) — ae3125b3
+- [x] 1.2 Lint passes (`pnpm lint`) — ae3125b3
+- [x] 1.3 Unit tests pass (`pnpm exec vitest run`) — ae3125b3
+- [x] 1.4 No `kosztorysStage`/`zaliczkiByStage`/`fetchZaliczkiByStage`/`kosztorysStagesByInvestment` references remain in `src/` — ae3125b3
+- [x] 1.5 No user-facing „zaliczk" string in `src/components`/`src/collections` — ae3125b3
 
 ### Phase 2: Plane flag — storage + write path + picker trim
 
 #### Automated
 
-- [ ] 2.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`)
-- [ ] 2.2 Lint passes (`pnpm lint`)
-- [ ] 2.3 Unit tests pass (`pnpm exec vitest run`)
-- [ ] 2.4 New unit test passes: create-schema requires `vatPlane` for INVESTOR_DEPOSIT (`pnpm exec vitest run src/lib/schemas`)
+- [x] 2.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`)
+- [x] 2.2 Lint passes (`pnpm lint`)
+- [x] 2.3 Unit tests pass (`pnpm exec vitest run`)
+- [x] 2.4 New unit test passes: create-schema requires `vatPlane` for INVESTOR_DEPOSIT (`pnpm exec vitest run src/__tests__/transfer-schema.test.ts`)
 
 ### Phase 3: Sequential model in the Podsumowanie
 
