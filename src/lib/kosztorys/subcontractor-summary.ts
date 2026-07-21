@@ -1,5 +1,9 @@
 import type { SubcontractorPayoutRowT } from '@/types/reference-data'
 
+// Display label for the null-worker payout bucket (a cash PAYOUT with no worker attached). One source
+// shared by the page's name-enrichment and the block's fallback so the two can't drift apart.
+export const UNASSIGNED_WORKER_NAME = 'Bez przypisanego pracownika'
+
 export type SubcontractorSummaryT = {
   // „Suma wykonanej pracy" (należne) — executed value at the active view's subcontractor price, pre-rabat.
   dueNet: number

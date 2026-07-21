@@ -13,7 +13,10 @@ import {
 } from '@/components/kosztorys/summary-grid'
 import { formatNet } from '@/lib/kosztorys/format'
 import { formatPLDate } from '@/lib/utils/format-date'
-import { computeSubcontractorSummary } from '@/lib/kosztorys/subcontractor-summary'
+import {
+  computeSubcontractorSummary,
+  UNASSIGNED_WORKER_NAME,
+} from '@/lib/kosztorys/subcontractor-summary'
 import type { PayoutTransactionRowT, SubcontractorPayoutRowT } from '@/types/reference-data'
 import { cn } from '@/lib/utils/cn'
 
@@ -36,7 +39,6 @@ const MODE_OPTIONS: OptionT<GroupModeT>[] = [
 
 const UNASSIGNED_KEY = 'unassigned'
 const workerKey = (workerId: number | null) => (workerId === null ? UNASSIGNED_KEY : workerId)
-const UNASSIGNED_NAME = 'Bez przypisanego pracownika'
 
 // One flat row per wypłata for the virtualized DataTable — worker name resolved up front so the
 // grid can sort on it without a per-cell lookup. `amount` is the stored (positive) expense; the
@@ -82,11 +84,9 @@ const PAYOUT_COLUMNS: ColumnDef<PayoutTableRowT>[] = [
 ]
 
 // The subcontractor-plane footer, shown in the Z narzędziami / Bez narzędzi views in place of the
-// client Podsumowanie: how much the crew is owed from the kosztorys (należne) vs how much has been
-// paid out (zaliczki), and what is left — plus the per-worker payout totals and the full wypłaty
-// list. One „Kwota" column throughout, no netto/brutto axis (EX-558: subcontractors are paid without
-// VAT). Owner-only by construction — these views are unreachable in the client preview, so the
-// per-worker links are always live.
+// client Podsumowanie. One „Kwota" column throughout, no netto/brutto axis (EX-558: subcontractors
+// are paid without VAT). Owner-only by construction — these views are unreachable in the client
+// preview, so the per-worker links are always live (no plain-text fallback needed).
 export function SubcontractorSummary({
   investmentId,
   dueNet,
@@ -99,7 +99,7 @@ export function SubcontractorSummary({
 
   const tableRows: PayoutTableRowT[] = payoutTransactions.map((tx) => ({
     workerId: tx.workerId,
-    workerName: nameByWorker.get(workerKey(tx.workerId)) ?? UNASSIGNED_NAME,
+    workerName: nameByWorker.get(workerKey(tx.workerId)) ?? UNASSIGNED_WORKER_NAME,
     date: tx.date,
     amount: tx.amount,
     description: tx.description,
@@ -113,7 +113,6 @@ export function SubcontractorSummary({
 
   return (
     <div className="text-foreground flex max-h-[calc(100vh_-_11rem)] w-full flex-col gap-y-4 overflow-y-auto px-4 pt-2 pb-6 text-sm">
-      {/* Headline figures + per-worker totals, side by side — both fixed above the scrolling list. */}
       <div className="flex flex-wrap items-start gap-x-6 gap-y-4">
         <HeadlineSummary summary={summary} dueNet={dueNet} />
         {summary.rows.length > 0 && (
@@ -188,7 +187,6 @@ function HeadlineSummary({
   )
 }
 
-// Per-worker zaliczki totals, next to the headline. Each name links to that worker's filtered PAYOUTs.
 function WorkerTotals({
   investmentId,
   rows,

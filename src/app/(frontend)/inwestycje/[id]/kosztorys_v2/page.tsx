@@ -9,6 +9,7 @@ import {
   fetchZaliczkiByStage,
 } from '@/lib/queries/reference-data'
 import { deriveFinancials } from '@/lib/db/sum-transfers'
+import { UNASSIGNED_WORKER_NAME } from '@/lib/kosztorys/subcontractor-summary'
 import { buildMaterialyBreakdown } from '@/lib/db/map-category-costs'
 import { KosztorysEditorV2 } from '@/components/kosztorys/kosztorys-editor-v2'
 
@@ -76,7 +77,7 @@ export default async function InvestmentKosztorysV2Page({
     ...row,
     name:
       row.workerId === null
-        ? 'Bez przypisanego pracownika'
+        ? UNASSIGNED_WORKER_NAME
         : (workerNameById.get(row.workerId) ?? 'Nieznany pracownik'),
   }))
 

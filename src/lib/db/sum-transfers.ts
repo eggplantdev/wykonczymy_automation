@@ -333,6 +333,8 @@ export const getPayoutTransactionsForInvestment = async (
 
   const rows = result.rows.map((row) => ({
     workerId: row.worker_id == null ? null : Number(row.worker_id),
+    // The driver returns timestamptz as a year-first string ("2026-07-18 09:00:00+00"), which is
+    // lexically == chronologically sortable — the client DataTable re-sorts „Wg daty" on it directly.
     date: String(row.date),
     amount: Number(row.amount),
     description: row.description == null ? null : String(row.description),

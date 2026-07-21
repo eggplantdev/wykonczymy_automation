@@ -63,8 +63,14 @@ Terminologia arkusza (owner): „Suma wykonanej pracy", „Zaliczki (wypłaty)",
    niosą (patrz „Ograniczenie z modelu danych"). Owner to akceptuje.
 2. **Materiały / Marża znikają** z bloku podwykonawcy (materiały to osobny rejestr, nie płacimy ich
    ekipie; marża zostaje sprawą karty inwestycji).
-3. **Zaliczki grupowane per pracownik** (nie surowa lista — jedna budowa ma i 118 wypłat / 10
-   pracowników). Suma per pracownik zwija się do ≤~10 wierszy i pokazuje „komu ile wypłacono".
+3. **Zaliczki grupowane per pracownik** — suma per pracownik („Podsumowanie pracowników") obok
+   nagłówka, ≤~10 wierszy, „komu ile wypłacono".
+   **Aktualizacja (owner, 2026-07-21) — nadpisuje pierwotne „nie surowa lista":** owner dodatkowo chce
+   surową listę pojedynczych wypłat pod totalami, więc pod blokiem totali renderuje się **sortowalna,
+   wirtualizowana tabela** wszystkich wypłat (data · pracownik · opis · kwota) z przełącznikiem
+   „Wg pracownika / Wg daty". Wirtualizacja rozwiązuje pierwotny problem skali (118 wypłat) — lista
+   nie zwija już do totali, tylko przewija się w stałej wysokości. Totale per-pracownik zostają jako
+   szybki podgląd obok nagłówka.
 4. **Bez osi netto/brutto — jedna kolumna „Kwota".** (Owner, 2026-07-21, EX-558 Done: podwykonawcy
    płaceni bez VAT.) Wszystkie kwoty bloku to jedna liczba; przełącznik netto/brutto nie renderuje
    się w widokach Z/Bez narzędzi (zostaje tylko w widoku Klient). „Suma wykonanej pracy" **nie

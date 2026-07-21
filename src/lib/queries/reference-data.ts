@@ -284,8 +284,7 @@ export async function fetchPayoutsByWorkerForInvestment(
   )()
 }
 
-// The un-summed PAYOUT rows for the subcontractor block's sortable wypłaty list. Same cache contract
-// as the per-worker sum above (transfers tag, names joined at the page).
+// Same cache contract as the per-worker sum above — transfers tag, worker names joined at the page.
 export async function fetchPayoutTransactionsForInvestment(
   investmentId: number,
 ): Promise<PayoutTransactionRowT[]> {
