@@ -581,10 +581,10 @@ tags) is throwaway; no backfill for either migration.
 
 #### Automated
 
-- [x] 2.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`)
-- [x] 2.2 Lint passes (`pnpm lint`)
-- [x] 2.3 Unit tests pass (`pnpm exec vitest run`)
-- [x] 2.4 New unit test passes: create-schema requires `vatPlane` for INVESTOR_DEPOSIT (`pnpm exec vitest run src/__tests__/transfer-schema.test.ts`)
+- [x] 2.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`) — cde895bd
+- [x] 2.2 Lint passes (`pnpm lint`) — cde895bd
+- [x] 2.3 Unit tests pass (`pnpm exec vitest run`) — cde895bd
+- [x] 2.4 New unit test passes: create-schema requires `vatPlane` for INVESTOR_DEPOSIT (`pnpm exec vitest run src/__tests__/transfer-schema.test.ts`) — cde895bd
 
 ### Phase 3: Sequential model in the Podsumowanie
 
