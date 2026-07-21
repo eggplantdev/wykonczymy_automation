@@ -3,8 +3,8 @@ import type { SectionSubtotalT } from '@/lib/kosztorys/types'
 
 export type PieSliceT = { name: string; value: number; fill: string }
 
-// Positional palette — order preserved from the old SLICE_COLORS (client/section-pie.tsx). recharts
-// fills a slice with the raw CSS var; Tailwind never scans these, so no bg-chart-* utility is needed.
+// Positional palette — order preserved from the old conic pie's SLICE_COLORS. recharts fills a slice
+// with the raw CSS var; Tailwind never scans these, so no bg-chart-* utility is needed.
 export const CHART_FILLS = [
   'var(--color-chart-blue)',
   'var(--color-chart-orange)',

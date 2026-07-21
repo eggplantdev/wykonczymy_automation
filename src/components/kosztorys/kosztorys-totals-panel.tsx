@@ -13,6 +13,7 @@ import { useTotalsPanelOpen } from '@/components/kosztorys/use-totals-panel-open
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import type { KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
+import type { SectionSliceInputT } from '@/lib/kosztorys/chart-slices'
 
 type PropsT = {
   investmentId: number
@@ -26,6 +27,8 @@ type PropsT = {
   materialyNet: number
   // Per-expense-category split of materialyNet (v1 parity); Σ === materialyNet.
   materialyBreakdown: MaterialyBreakdownRowT[]
+  // Client-priced, view-invariant per-section subtotals — the section pie's structure source.
+  sectionSubtotals: SectionSliceInputT[]
   // Investor's wpłaty (totalIncome — every deposit on the investment) — subtracted to reach the
   // still-owed „Do zapłaty" total. Distinct from zaliczkiByStage (the sparser per-etap tagged subset).
   wplatyNet: number
@@ -55,6 +58,7 @@ export function KosztorysTotalsPanel({
   doZaplatyNet,
   materialyNet,
   materialyBreakdown,
+  sectionSubtotals,
   wplatyNet,
   rabatAmount,
   reconciliation,
@@ -117,6 +121,7 @@ export function KosztorysTotalsPanel({
           robociznaNet={doZaplatyNet}
           materialyNet={materialyNet}
           materialyBreakdown={materialyBreakdown}
+          sectionSubtotals={sectionSubtotals}
           wplatyNet={wplatyNet}
           rabatAmount={rabatAmount}
           reconciliation={reconciliation}

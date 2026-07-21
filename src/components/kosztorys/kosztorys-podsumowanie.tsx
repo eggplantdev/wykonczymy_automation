@@ -2,6 +2,7 @@
 
 import { Fragment, type ReactNode } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { Info } from 'lucide-react'
 import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
 import { HintTooltip } from '@/components/ui/tooltip'
@@ -34,7 +35,19 @@ import {
   type KosztorysReconciliationT,
   type ReconT,
 } from '@/lib/kosztorys/reconciliation'
+import type { SectionSliceInputT } from '@/lib/kosztorys/chart-slices'
 import { cn } from '@/lib/utils/cn'
+
+// recharts is heavy and client-only — load both pies lazily so the library never enters the editor's
+// main chunk; it arrives in its own async chunk only when this footer panel renders.
+const SectionSharePie = dynamic(
+  () => import('@/components/kosztorys/section-share-pie').then((m) => m.SectionSharePie),
+  { ssr: false },
+)
+const CostStructurePie = dynamic(
+  () => import('@/components/kosztorys/cost-structure-pie').then((m) => m.CostStructurePie),
+  { ssr: false },
+)
 
 // The scream's tooltip names both compared figures + the różnica; formatNet because this surface shows
 // kosztorys nets. Shared copy with the investment page (reconciliationTooltip).
@@ -49,6 +62,8 @@ type PropsT = {
   materialyNet: number
   // Per-expense-category split of materialyNet (v1 parity); Σ === materialyNet.
   materialyBreakdown: MaterialyBreakdownRowT[]
+  // Client-priced, view-invariant per-section subtotals — the section pie's structure source.
+  sectionSubtotals: SectionSliceInputT[]
   // Wpłaty netto — the investor's deposits on this investment (totalIncome); subtracted from
   // Łącznie to reach „Do zapłaty". Matches the investment page's „Wpłaty" by construction.
   wplatyNet: number
@@ -78,6 +93,7 @@ export function KosztorysPodsumowanie({
   robociznaNet,
   materialyNet,
   materialyBreakdown,
+  sectionSubtotals,
   wplatyNet,
   rabatAmount,
   reconciliation,
@@ -120,70 +136,80 @@ export function KosztorysPodsumowanie({
   )
 
   return (
-    <div className="text-foreground flex w-fit flex-col gap-4 px-4 pt-2 pb-10 text-sm">
-      <div style={{ gridTemplateColumns }} className="border-border bg-border grid gap-px border">
-        <span className={cn(labelCell, 'text-muted-foreground text-xs')}>Podsumowanie</span>
-        {showNet && <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Netto</span>}
-        {showGross && (
-          <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Brutto</span>
-        )}
-        <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Udział</span>
-        {row('Suma prac wykonanych', sumaPrac, {
-          mismatch:
-            reconVisible && reconciliation.robocizna.mismatch
-              ? mismatchTooltip(reconciliation.robocizna, 'Transakcje robocizny')
-              : undefined,
-        })}
-        {materialyBreakdown
-          .filter((item) => item.net !== 0)
-          .map((item) => (
-            <Fragment key={item.id ?? 'korekta'}>
-              {row(
-                item.id !== null && !clientView ? (
-                  <Link
-                    href={`/inwestycje/${investmentId}?expenseCategory=${item.id}`}
-                    className="hover:underline"
-                  >
-                    {item.label}
-                  </Link>
-                ) : (
-                  item.label
-                ),
-                summaryLineFace(item.net, lacznie.net),
-                { noBrutto: true },
-              )}
-            </Fragment>
-          ))}
-        {row('Łącznie', lacznie, { emphasize: true, hideShare: true })}
-      </div>
-      <div
-        style={{ gridTemplateColumns: moneyCols }}
-        className="border-border bg-border grid w-fit gap-px border"
-      >
-        {showRabat &&
-          row('Rabat', rabat, {
-            discount: true,
-            noShareCell: true,
+    <div className="text-foreground flex flex-wrap items-start gap-x-12 gap-y-8 px-4 pt-2 pb-10 text-sm">
+      <div className="flex w-fit flex-col gap-4">
+        <div style={{ gridTemplateColumns }} className="border-border bg-border grid gap-px border">
+          <span className={cn(labelCell, 'text-muted-foreground text-xs')}>Podsumowanie</span>
+          {showNet && <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Netto</span>}
+          {showGross && (
+            <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Brutto</span>
+          )}
+          <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Udział</span>
+          {row('Suma prac wykonanych', sumaPrac, {
             mismatch:
-              reconVisible && reconciliation.rabat.mismatch
-                ? mismatchTooltip(reconciliation.rabat, 'Transakcje rabatu')
+              reconVisible && reconciliation.robocizna.mismatch
+                ? mismatchTooltip(reconciliation.robocizna, 'Transakcje robocizny')
                 : undefined,
           })}
-        {row(
-          clientView ? (
-            'Wpłaty'
-          ) : (
-            <Link
-              href={`/inwestycje/${investmentId}?type=${DEPOSIT_TYPES.join(',')}`}
-              className="hover:underline"
-            >
-              Wpłaty
-            </Link>
-          ),
-          wplaty,
-          { discount: true, noBrutto: true, noShareCell: true },
-        )}
-        {row('Do zapłaty', doZaplaty, { bold: true, danger: doZaplaty.net > 0, noShareCell: true })}
+          {materialyBreakdown
+            .filter((item) => item.net !== 0)
+            .map((item) => (
+              <Fragment key={item.id ?? 'korekta'}>
+                {row(
+                  item.id !== null && !clientView ? (
+                    <Link
+                      href={`/inwestycje/${investmentId}?expenseCategory=${item.id}`}
+                      className="hover:underline"
+                    >
+                      {item.label}
+                    </Link>
+                  ) : (
+                    item.label
+                  ),
+                  summaryLineFace(item.net, lacznie.net),
+                  { noBrutto: true },
+                )}
+              </Fragment>
+            ))}
+          {row('Łącznie', lacznie, { emphasize: true, hideShare: true })}
+        </div>
+        <div
+          style={{ gridTemplateColumns: moneyCols }}
+          className="border-border bg-border grid w-fit gap-px border"
+        >
+          {showRabat &&
+            row('Rabat', rabat, {
+              discount: true,
+              noShareCell: true,
+              mismatch:
+                reconVisible && reconciliation.rabat.mismatch
+                  ? mismatchTooltip(reconciliation.rabat, 'Transakcje rabatu')
+                  : undefined,
+            })}
+          {row(
+            clientView ? (
+              'Wpłaty'
+            ) : (
+              <Link
+                href={`/inwestycje/${investmentId}?type=${DEPOSIT_TYPES.join(',')}`}
+                className="hover:underline"
+              >
+                Wpłaty
+              </Link>
+            ),
+            wplaty,
+            { discount: true, noBrutto: true, noShareCell: true },
+          )}
+          {row('Do zapłaty', doZaplaty, {
+            bold: true,
+            danger: doZaplaty.net > 0,
+            noShareCell: true,
+          })}
+        </div>
+      </div>
+      <div className="flex flex-wrap items-start gap-x-12 gap-y-8">
+        <SectionSharePie subtotals={sectionSubtotals} />
+        <CostStructurePie sumaPracNet={sumaPracNet} materialyBreakdown={materialyBreakdown} />
       </div>
     </div>
   )

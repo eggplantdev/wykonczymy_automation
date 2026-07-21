@@ -1063,6 +1063,8 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false }: A
     guideX,
     // subtotals + section panel
     subtotals,
+    // client-priced, view-invariant per-section subtotals — the section pie's structure source.
+    progressSubtotals,
     totalNet,
     stageTotals,
     stageQtyTotals,

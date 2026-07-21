@@ -56,6 +56,7 @@ export function KosztorysEditorBody({
     viewRows,
     guideX,
     subtotals,
+    progressSubtotals,
     stageTotals,
     stageQtyTotals,
     plannedQtyTotal,
@@ -205,6 +206,7 @@ export function KosztorysEditorBody({
             doZaplatyNet={doZaplatyNet}
             materialyNet={materialsNet}
             materialyBreakdown={materialyBreakdown}
+            sectionSubtotals={progressSubtotals}
             wplatyNet={wplatyNet}
             rabatAmount={rabatAmount}
             reconciliation={reconciliation}

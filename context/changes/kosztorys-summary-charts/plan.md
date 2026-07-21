@@ -313,16 +313,16 @@ explicitly the follow-up slice.
 
 #### Automated
 
-- [x] 2.1 Unit tests pass: `pnpm exec vitest run src/__tests__/kosztorys-chart-slices.test.ts`
-- [x] 2.2 Type checking passes: `pnpm exec tsc --noEmit`
-- [x] 2.3 Linting passes: `pnpm lint`
+- [x] 2.1 Unit tests pass: `pnpm exec vitest run src/__tests__/kosztorys-chart-slices.test.ts` — ae713aa6
+- [x] 2.2 Type checking passes: `pnpm exec tsc --noEmit` — ae713aa6
+- [x] 2.3 Linting passes: `pnpm lint` — ae713aa6
 
 ### Phase 3: Mount both pies in the footer
 
 #### Automated
 
-- [ ] 3.1 Type checking passes: `pnpm exec tsc --noEmit`
-- [ ] 3.2 Linting passes: `pnpm lint`
-- [ ] 3.3 Unit tests pass: `pnpm exec vitest run src/__tests__/kosztorys-chart-slices.test.ts`
-- [ ] 3.4 Production build succeeds; recharts in a separate async chunk: `pnpm build`
-- [ ] 3.5 No dead reference remains: `grep -rn "client/section-pie" src` returns nothing
+- [x] 3.1 Type checking passes: `pnpm exec tsc --noEmit`
+- [x] 3.2 Linting passes: `pnpm lint`
+- [x] 3.3 Unit tests pass: `pnpm exec vitest run src/__tests__/kosztorys-chart-slices.test.ts`
+- [x] 3.4 Production build succeeds; recharts in a separate async chunk: `pnpm build`
+- [x] 3.5 No dead reference remains: `grep -rn "client/section-pie" src` returns nothing

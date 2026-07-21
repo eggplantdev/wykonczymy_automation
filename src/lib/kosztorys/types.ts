@@ -151,15 +151,6 @@ export type KosztorysV2RowT = KosztorysV2RowBaseT & {
   [stageKey: StageKeyT]: number
 }
 
-// A section's slice of the executed work, for the pie (section-pie.tsx): the same figures the
-// editor's section panel shows, weighted at the client price.
-export type ClientSectionShareT = {
-  sectionId: number
-  sectionName: string
-  net: number
-  share: number
-}
-
 export type SectionSubtotalT = {
   sectionId: number
   sectionName: string
