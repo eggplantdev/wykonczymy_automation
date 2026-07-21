@@ -250,18 +250,17 @@ export const sumCategoryByTypeSettled = async (
 }
 
 /**
- * Fetch the investment's deposit rows (cancelled excluded) with their etap tag. Deposit
- * count per investment is small, so we return raw rows and let sumZaliczkiByStage filter +
- * group — keeping the untagged-exclusion rule in one testable pure place.
+ * Fetch the investment's deposit rows (cancelled excluded). Deposit count per investment is
+ * small, so we return raw rows and let pure helpers downstream group them.
  */
 export const sumDepositRowsForInvestment = async (
   payload: Payload,
   investmentId: number,
-): Promise<{ type: string; amount: number; kosztorysStage: number | null }[]> => {
+): Promise<{ type: string; amount: number }[]> => {
   const db = await getDb(payload)
 
   const result = await db.execute(sql`
-    SELECT type::text AS type, amount, kosztorys_stage_id
+    SELECT type::text AS type, amount
     FROM transactions
     WHERE investment_id = ${investmentId}
       AND cancelled IS NOT TRUE
@@ -271,7 +270,6 @@ export const sumDepositRowsForInvestment = async (
   return result.rows.map((row) => ({
     type: row.type as string,
     amount: Number(row.amount),
-    kosztorysStage: row.kosztorys_stage_id == null ? null : Number(row.kosztorys_stage_id),
   }))
 }
 

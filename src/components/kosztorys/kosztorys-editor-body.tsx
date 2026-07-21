@@ -45,7 +45,6 @@ export function KosztorysEditorBody({
   materialsNet,
   materialyBreakdown,
   wplatyNet,
-  zaliczkiByStage,
   laborCostsNetFromTransactions,
   investmentRabat,
   payoutsByWorker = [],
@@ -208,7 +207,6 @@ export function KosztorysEditorBody({
             investmentId={investmentId}
             stages={stages}
             stageTotals={stageTotals}
-            zaliczkiByStage={zaliczkiByStage}
             payoutsByWorker={payoutsByWorker}
             payoutTransactions={payoutTransactions}
             subcontractorDueNet={subcontractorDueNet}

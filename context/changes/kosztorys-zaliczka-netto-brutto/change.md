@@ -1,7 +1,7 @@
 ---
 change_id: kosztorys-zaliczka-netto-brutto
 title: Deposit (zaliczka) transactions carry both netto and brutto
-status: plan_reviewed
+status: implementing
 created: 2026-07-21
 updated: 2026-07-21
 archived_at: null

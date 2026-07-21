@@ -6,7 +6,6 @@ import {
   fetchPayoutsByWorkerForInvestment,
   fetchPayoutTransactionsForInvestment,
   fetchReferenceData,
-  fetchZaliczkiByStage,
 } from '@/lib/queries/reference-data'
 import { deriveFinancials } from '@/lib/db/sum-transfers'
 import { UNASSIGNED_WORKER_NAME } from '@/lib/kosztorys/subcontractor-summary'
@@ -30,8 +29,6 @@ export default async function InvestmentKosztorysV2Page({
   const financialsPromise = fetchFilteredByType(investmentWhere)
   // Per-expense-category split for the „Materiały" breakdown (v1 mirror parity).
   const breakdownsPromise = fetchCategoryBreakdowns(investmentWhere)
-  // Per-etap zaliczki (tagged deposits) — same cached transfers plane, read-only.
-  const zaliczkiPromise = fetchZaliczkiByStage(investmentId)
   // Realized PAYOUTs per worker (null-worker bucket kept) for the subcontractor summary block.
   const payoutsPromise = fetchPayoutsByWorkerForInvestment(investmentId)
   // The individual realized PAYOUT rows — feed the subcontractor block's sortable wypłaty list.
@@ -39,25 +36,16 @@ export default async function InvestmentKosztorysV2Page({
   // Folded into the same Promise.all as everything else so the 404 lookup runs concurrently with the
   // data fetches rather than gating them; its notFound() rejection propagates through Promise.all.
   const investmentPromise = requireInvestmentOr404(id)
-  const [
-    { investment },
-    tree,
-    typeDistribution,
-    breakdowns,
-    refData,
-    zaliczkiByStage,
-    payouts,
-    payoutTransactions,
-  ] = await Promise.all([
-    investmentPromise,
-    treePromise,
-    financialsPromise,
-    breakdownsPromise,
-    fetchReferenceData(),
-    zaliczkiPromise,
-    payoutsPromise,
-    payoutTxPromise,
-  ])
+  const [{ investment }, tree, typeDistribution, breakdowns, refData, payouts, payoutTransactions] =
+    await Promise.all([
+      investmentPromise,
+      treePromise,
+      financialsPromise,
+      breakdownsPromise,
+      fetchReferenceData(),
+      payoutsPromise,
+      payoutTxPromise,
+    ])
   // categoryCosts feed the Materiały split; settledCategoryCosts stay unused here — settled
   // material („wliczone w robociznę") is an owner/margin figure, deliberately kept off the
   // client-facing offer (v1 parity).
@@ -67,8 +55,7 @@ export default async function InvestmentKosztorysV2Page({
   // podsumowanie stays byte-identical to the investment page's materiały.
   const materialyBreakdown = buildMaterialyBreakdown(financials, refData.expenseCategories)
   // „Wpłaty" = every deposit on the investment (totalIncome) — the money that raises Bilans
-  // inwestora (calculate-balance.ts). Drives the podsumowanie „Wpłaty"/„Do zapłaty"; distinct
-  // from the sparser per-etap tagged zaliczki below.
+  // inwestora (calculate-balance.ts). Drives the podsumowanie „Wpłaty"/„Do zapłaty".
   const wplatyNet = financials.totalIncome
   // Names join here (not in the cached query): resolve each worker id against reference data; a null
   // worker id is the „Bez przypisanego pracownika" bucket. Sorting/totals live in the pure block helper.
@@ -89,7 +76,6 @@ export default async function InvestmentKosztorysV2Page({
       materialsNet={materialsNet}
       materialyBreakdown={materialyBreakdown}
       wplatyNet={wplatyNet}
-      zaliczkiByStage={zaliczkiByStage}
       // Transaction-sourced robocizna/rabat (Σ LABOR_COST / Σ RABAT) for the in-editor reconciliation
       // scream — compared against the kosztorys figures during the population/verification transition.
       laborCostsNetFromTransactions={financials.totalLaborCosts}

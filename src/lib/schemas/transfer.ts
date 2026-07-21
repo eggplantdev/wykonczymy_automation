@@ -26,7 +26,6 @@ export const createTransferSchema = z
     worker: z.number().optional(),
     otherDescription: z.string().optional(),
     invoiceNote: z.string().optional(),
-    kosztorysStage: z.number().optional(),
   })
   .superRefine((data, ctx) => {
     const amountErr = getAmountError(data.amount, data.type)

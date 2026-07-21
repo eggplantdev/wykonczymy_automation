@@ -23,6 +23,7 @@ import {
   DateField,
   DescriptionField,
   EntityComboboxField,
+  PaymentMethodField,
 } from '@/components/forms/form-fields'
 import FormFooter from '../form-components/form-footer'
 import { createTransferAction } from '@/lib/actions/transfers'
@@ -42,12 +43,7 @@ type FormValuesT = {
   paymentMethod: string
   sourceRegister: string
   investment?: string
-  // NO_STAGE sentinel = not a zaliczka; otherwise a kosztorys stage id. Radix Select forbids an
-  // empty-string SelectItem value, so the "no stage" option carries a non-empty sentinel.
-  kosztorysStage?: string
 }
-
-const NO_STAGE = 'none'
 
 const FORM_ID = 'deposit'
 
@@ -69,7 +65,6 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
       paymentMethod: 'CASH',
       sourceRegister: getDefaultCashRegister(referenceData),
       investment: '',
-      kosztorysStage: NO_STAGE,
     },
     keepOpen,
     successMessage: 'Wpłata dodana',
@@ -83,18 +78,10 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
       paymentMethod: value.paymentMethod as PaymentMethodT,
       sourceRegister: Number(value.sourceRegister),
       investment: value.investment ? Number(value.investment) : undefined,
-      kosztorysStage:
-        value.kosztorysStage && value.kosztorysStage !== NO_STAGE
-          ? Number(value.kosztorysStage)
-          : undefined,
     }),
   })
 
   const currentType = useStore(form.store, (s) => s.values.type)
-  const currentInvestment = useStore(form.store, (s) => s.values.investment)
-  const investmentStages = currentInvestment
-    ? (referenceData.kosztorysStagesByInvestment[Number(currentInvestment)] ?? [])
-    : []
 
   return (
     <FormShell form={form} onReset={reset}>
@@ -105,7 +92,6 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
           listeners={{
             onChange: () => {
               form.resetField('investment')
-              form.resetField('kosztorysStage')
             },
           }}
         >
@@ -129,30 +115,11 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
 
         <CashRegisterField form={form} cashRegisters={referenceData.cashRegisters} />
 
+        <PaymentMethodField form={form} />
+
         {/* Conditional: Investment — required for INVESTOR_DEPOSIT, optional for others */}
         {showsInvestment(currentType) && (
-          <EntityComboboxField
-            form={form}
-            variant="investment"
-            items={referenceData.investments}
-            listeners={{ onChange: () => form.resetField('kosztorysStage') }}
-          />
-        )}
-
-        {/* Optional zaliczka tag — only when the chosen investment has kosztorys etapy */}
-        {showsInvestment(currentType) && investmentStages.length > 0 && (
-          <form.AppField name="kosztorysStage">
-            {(field) => (
-              <field.Select label="Zaliczka na etap (opcjonalnie)">
-                <SelectItem value={NO_STAGE}>— brak —</SelectItem>
-                {investmentStages.map((stage) => (
-                  <SelectItem key={stage.id} value={String(stage.id)}>
-                    {stage.label}
-                  </SelectItem>
-                ))}
-              </field.Select>
-            )}
-          </form.AppField>
+          <EntityComboboxField form={form} variant="investment" items={referenceData.investments} />
         )}
       </FieldGroup>
 

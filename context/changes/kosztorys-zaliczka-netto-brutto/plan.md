@@ -571,11 +571,11 @@ tags) is throwaway; no backfill for either migration.
 
 #### Automated
 
-- [ ] 1.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`)
-- [ ] 1.2 Lint passes (`pnpm lint`)
-- [ ] 1.3 Unit tests pass (`pnpm exec vitest run`)
-- [ ] 1.4 No `kosztorysStage`/`zaliczkiByStage`/`fetchZaliczkiByStage`/`kosztorysStagesByInvestment` references remain in `src/`
-- [ ] 1.5 No user-facing „zaliczk" string in `src/components`/`src/collections`
+- [x] 1.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`)
+- [x] 1.2 Lint passes (`pnpm lint`)
+- [x] 1.3 Unit tests pass (`pnpm exec vitest run`)
+- [x] 1.4 No `kosztorysStage`/`zaliczkiByStage`/`fetchZaliczkiByStage`/`kosztorysStagesByInvestment` references remain in `src/`
+- [x] 1.5 No user-facing „zaliczk" string in `src/components`/`src/collections`
 
 ### Phase 2: Plane flag — storage + write path + picker trim
 

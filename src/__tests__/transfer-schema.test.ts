@@ -443,41 +443,6 @@ describe('bulk expense — UNREADABLE_RECEIPT sentinel row is blocked', () => {
   })
 })
 
-// ── Zaliczka etap tag — deposit-only ────────────────────────────────────
-
-describe('createTransferSchema — kosztorysStage tag', () => {
-  it('deposit WITH a kosztorysStage tag → passes', () => {
-    const result = createTransferSchema.safeParse({
-      ...VALID_SERVER_PAYLOADS.INVESTOR_DEPOSIT,
-      kosztorysStage: 7,
-    })
-    expect(result.success).toBe(true)
-  })
-
-  it('non-deposit (LABOR_COST) with a kosztorysStage tag → error on kosztorysStage', () => {
-    const result = createTransferSchema.safeParse({
-      ...VALID_SERVER_PAYLOADS.LABOR_COST,
-      kosztorysStage: 7,
-    })
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('kosztorysStage')
-  })
-
-  it('non-deposit (INVESTMENT_EXPENSE) with a kosztorysStage tag → error on kosztorysStage', () => {
-    const result = createTransferSchema.safeParse({
-      ...VALID_SERVER_PAYLOADS.INVESTMENT_EXPENSE,
-      kosztorysStage: 7,
-    })
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('kosztorysStage')
-  })
-
-  it('deposit without a tag → passes (tag is optional)', () => {
-    const result = createTransferSchema.safeParse(VALID_SERVER_PAYLOADS.OTHER_DEPOSIT)
-    expect(result.success).toBe(true)
-  })
-})
-
 // ── 2d: Schema Parity — valid payloads agree ────────────────────────────
 
 describe('schema parity — valid payloads', () => {
