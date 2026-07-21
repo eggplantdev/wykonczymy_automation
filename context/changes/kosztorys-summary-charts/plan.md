@@ -305,17 +305,17 @@ explicitly the follow-up slice.
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit`
-- [x] 1.2 Linting passes: `pnpm lint`
-- [x] 1.3 Production build succeeds: `pnpm build`
+- [x] 1.1 Type checking passes: `pnpm generate:types && pnpm exec tsc --noEmit` — 4a7d6a43
+- [x] 1.2 Linting passes: `pnpm lint` — 4a7d6a43
+- [x] 1.3 Production build succeeds: `pnpm build` — 4a7d6a43
 
 ### Phase 2: Build the two pie components
 
 #### Automated
 
-- [ ] 2.1 Unit tests pass: `pnpm exec vitest run src/__tests__/kosztorys-chart-slices.test.ts`
-- [ ] 2.2 Type checking passes: `pnpm exec tsc --noEmit`
-- [ ] 2.3 Linting passes: `pnpm lint`
+- [x] 2.1 Unit tests pass: `pnpm exec vitest run src/__tests__/kosztorys-chart-slices.test.ts`
+- [x] 2.2 Type checking passes: `pnpm exec tsc --noEmit`
+- [x] 2.3 Linting passes: `pnpm lint`
 
 ### Phase 3: Mount both pies in the footer
 
