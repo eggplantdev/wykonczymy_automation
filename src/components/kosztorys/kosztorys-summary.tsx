@@ -6,8 +6,7 @@ import { Info } from 'lucide-react'
 import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
 import { HintTooltip } from '@/components/ui/tooltip'
 import {
-  computeDoZaplatyRM,
-  computePodsumowanie,
+  computeSummarySplit,
   faceValue,
   moneyPair,
   summaryLine,
@@ -43,8 +42,11 @@ const mismatchTooltip = (recon: ReconT, subject: string) =>
 
 type PropsT = {
   investmentId: number
-  // Robocizna wartość netto (do zapłaty, po rabacie) — client-side, reacts to unsaved edits.
-  robociznaNet: number
+  // Robocizna wartość netto (po rabacie) — client-side, reacts to unsaved edits.
+  laborCostsNetFromKosztorys: number
+  // The „Do zapłaty" pair (robocizna + materiały − wpłaty), computed by the panel so its collapsed
+  // headline and this table's bottom row can't drift apart.
+  doZaplaty: MoneyPairT
   // Materiały netto — live server sum of the investment's unsettled transactions.
   materialyNet: number
   // Per-expense-category split of materialyNet (v1 parity); Σ === materialyNet.
@@ -73,9 +75,10 @@ type PropsT = {
 // The single bottom summary block: the robocizna waterfall (Suma prac wykonanych → Rabat →
 // Robocizna) merged with the sheet Podsumowanie split (Robocizna / Materiały / Łącznie, udział %
 // of Łącznie), then Wpłaty subtracted to reach „Do zapłaty" — one grid, no separate totals bar.
-export function KosztorysPodsumowanie({
+export function KosztorysSummary({
   investmentId,
-  robociznaNet,
+  laborCostsNetFromKosztorys,
+  doZaplaty,
   materialyNet,
   materialyBreakdown,
   wplatyNet,
@@ -87,11 +90,10 @@ export function KosztorysPodsumowanie({
   clientView = false,
 }: PropsT) {
   // Łącznie is the pre-rabat total (Suma prac + Materiały), so the rows above it reconcile to it;
-  // Rabat then deducts from Łącznie down to „Do zapłaty" as its own waterfall line below. robociznaNet
-  // arrives already net of rabat, so add it back for the Łącznie/udział base.
-  const sumaPracNet = robociznaNet + rabatAmount
-  const { lacznie } = computePodsumowanie(sumaPracNet, materialyNet, vatRate)
-  const doZaplaty = computeDoZaplatyRM(robociznaNet, wplatyNet, materialyNet, vatRate)
+  // Rabat then deducts from Łącznie down to „Do zapłaty" as its own waterfall line below.
+  // laborCostsNetFromKosztorys arrives already net of rabat, so add it back for the Łącznie/udział base.
+  const sumaPracNet = laborCostsNetFromKosztorys + rabatAmount
+  const { combined } = computeSummarySplit(sumaPracNet, materialyNet, vatRate)
   const { net: showNet, gross: showGross } = axisShows(moneyAxis)
   // The scream compares client-view nets; a subcontractor view reprices the displayed figure, so the
   // scream would sit next to a number it isn't comparing. Show it only in the client view.
@@ -102,7 +104,7 @@ export function KosztorysPodsumowanie({
   const showRabat =
     rabatAmount > 0 ||
     (reconVisible && (reconciliation.rabat.actual > 0 || reconciliation.rabat.mismatch))
-  const sumaPrac = summaryLine(sumaPracNet, lacznie.net, vatRate)
+  const sumaPrac = summaryLine(sumaPracNet, combined.net, vatRate)
   // Rabat is an obniżka of prace, so it lives on the prace plane and grosses — brutto = rabat×(1+VAT).
   // Grossing it keeps the brutto waterfall exact: Łącznie − rabat − wpłaty = Do zapłaty on both axes
   // (toGross is linear). Wpłaty stays face value — it's a cash deposit, not prace.
@@ -130,8 +132,8 @@ export function KosztorysPodsumowanie({
         <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Udział</span>
         {row('Suma prac wykonanych', sumaPrac, {
           mismatch:
-            reconVisible && reconciliation.robocizna.mismatch
-              ? mismatchTooltip(reconciliation.robocizna, 'Transakcje robocizny')
+            reconVisible && reconciliation.laborCosts.mismatch
+              ? mismatchTooltip(reconciliation.laborCosts, 'Transakcje robocizny')
               : undefined,
         })}
         {materialyBreakdown
@@ -149,12 +151,12 @@ export function KosztorysPodsumowanie({
                 ) : (
                   item.label
                 ),
-                summaryLineFace(item.net, lacznie.net),
+                summaryLineFace(item.net, combined.net),
                 { noBrutto: true },
               )}
             </Fragment>
           ))}
-        {row('Łącznie', lacznie, { emphasize: true, hideShare: true })}
+        {row('Łącznie', combined, { emphasize: true, hideShare: true })}
       </div>
       <div
         style={{ gridTemplateColumns: moneyCols }}

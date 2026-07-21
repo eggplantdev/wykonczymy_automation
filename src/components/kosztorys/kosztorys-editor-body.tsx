@@ -43,7 +43,7 @@ export function KosztorysEditorBody({
   materialyBreakdown,
   wplatyNet,
   zaliczkiByStage,
-  investmentRobocizna,
+  laborCostsNetFromTransactions,
   investmentRabat,
   clientView = false,
   onOpenVersions,
@@ -65,7 +65,7 @@ export function KosztorysEditorBody({
     sumaPracNet,
     rabatClientNet,
     rabatAmount,
-    doZaplatyNet,
+    laborCostsNetFromKosztorys,
     view,
     moneyAxis,
     setMoneyAxis,
@@ -136,10 +136,10 @@ export function KosztorysEditorBody({
       buildKosztorysReconciliation({
         sumaPracNet,
         rabatClientNet,
-        investmentRobocizna,
+        laborCostsNetFromTransactions,
         investmentRabat,
       }),
-    [sumaPracNet, rabatClientNet, investmentRobocizna, investmentRabat],
+    [sumaPracNet, rabatClientNet, laborCostsNetFromTransactions, investmentRabat],
   )
 
   // Viewport minus the shell's chrome: the h-14 TopNav always, plus the h-14 AppFooter, which only
@@ -202,7 +202,7 @@ export function KosztorysEditorBody({
             stageTotals={stageTotals}
             zaliczkiByStage={zaliczkiByStage}
             totalNet={totalNet}
-            doZaplatyNet={doZaplatyNet}
+            laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
             materialyNet={materialsNet}
             materialyBreakdown={materialyBreakdown}
             wplatyNet={wplatyNet}

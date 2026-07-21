@@ -123,7 +123,7 @@ export type KosztorysEditorDataT = {
   wplatyNet: number
   zaliczkiByStage: Record<number, number>
   // Transaction-sourced robocizna/rabat (Σ LABOR_COST / Σ RABAT) — the reconciliation "actual" side.
-  investmentRobocizna: number
+  laborCostsNetFromTransactions: number
   investmentRabat: number
 }
 
@@ -149,15 +149,6 @@ export type StageKeyT = `${typeof STAGE_QTY_PREFIX}${number}`
 
 export type KosztorysV2RowT = KosztorysV2RowBaseT & {
   [stageKey: StageKeyT]: number
-}
-
-// A section's slice of the executed work, for the pie (section-pie.tsx): the same figures the
-// editor's section panel shows, weighted at the client price.
-export type ClientSectionShareT = {
-  sectionId: number
-  sectionName: string
-  net: number
-  share: number
 }
 
 export type SectionSubtotalT = {

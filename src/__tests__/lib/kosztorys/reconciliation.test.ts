@@ -96,7 +96,7 @@ function reconcile(tree: KosztorysTreeT, txns: TypeSettledTotalT[]) {
   return buildKosztorysReconciliation({
     sumaPracNet,
     rabatClientNet,
-    investmentRobocizna: financials.totalLaborCosts,
+    laborCostsNetFromTransactions: financials.totalLaborCosts,
     investmentRabat: financials.totalRabat,
   })
 }
@@ -105,7 +105,7 @@ describe('cross-boundary parity: kosztorys client totals vs transaction sums', (
   it('per-item rabat: matching transfers reconcile silently on both figures', () => {
     const tree = makeTree()
     const verdict = reconcile(tree, syncedTransactions(tree))
-    expect(verdict.robocizna.mismatch).toBe(false)
+    expect(verdict.laborCosts.mismatch).toBe(false)
     expect(verdict.rabat.mismatch).toBe(false)
   })
 
@@ -117,14 +117,14 @@ describe('cross-boundary parity: kosztorys client totals vs transaction sums', (
     expect(rabatClientNet).toBeCloseTo(14) // 10% of 140
 
     const verdict = reconcile(tree, syncedTransactions(tree))
-    expect(verdict.robocizna.mismatch).toBe(false)
+    expect(verdict.laborCosts.mismatch).toBe(false)
     expect(verdict.rabat.mismatch).toBe(false)
   })
 
   it('vatRate 0: gross equals net, matching transfers still reconcile', () => {
     const tree = makeTree({ vatRate: 0 })
     const verdict = reconcile(tree, syncedTransactions(tree))
-    expect(verdict.robocizna.mismatch).toBe(false)
+    expect(verdict.laborCosts.mismatch).toBe(false)
     expect(verdict.rabat.mismatch).toBe(false)
   })
 
@@ -134,7 +134,7 @@ describe('cross-boundary parity: kosztorys client totals vs transaction sums', (
     expect(sumaPracNet).toBe(0)
     expect(rabatClientNet).toBe(0)
     const verdict = reconcile(tree, [])
-    expect(verdict.robocizna.mismatch).toBe(false)
+    expect(verdict.laborCosts.mismatch).toBe(false)
     expect(verdict.rabat.mismatch).toBe(false)
   })
 
@@ -145,7 +145,7 @@ describe('cross-boundary parity: kosztorys client totals vs transaction sums', (
     const laborRow = txns.find((t) => t.type === 'LABOR_COST')!
     laborRow.total += 0.01
     const verdict = reconcile(tree, txns)
-    expect(verdict.robocizna.mismatch).toBe(true)
+    expect(verdict.laborCosts.mismatch).toBe(true)
     expect(verdict.rabat.mismatch).toBe(false)
   })
 })
@@ -165,10 +165,10 @@ describe('robocizna compares the PRE-rabat suma prac (EX-535 regression)', () =>
     const silent = buildKosztorysReconciliation({
       sumaPracNet,
       rabatClientNet,
-      investmentRobocizna: sumaPracNet,
+      laborCostsNetFromTransactions: sumaPracNet,
       investmentRabat: rabatClientNet,
     })
-    expect(silent.robocizna.mismatch).toBe(false)
+    expect(silent.laborCosts.mismatch).toBe(false)
 
     // The old code's basis (post-rabat executed net = 132) is a different number from the pre-rabat
     // 140, so a correctly-populated LABOR_COST (the pre-rabat 140) must NOT equal it — proving the two
@@ -188,19 +188,19 @@ describe('reconciliation compares netto ↔ netto — the ledger plane carries n
     const verdict = buildKosztorysReconciliation({
       sumaPracNet: 5000,
       rabatClientNet: 100,
-      investmentRobocizna: 5000,
+      laborCostsNetFromTransactions: 5000,
       investmentRabat: 100,
     })
     expect(verdict.rabat.expected).toBeCloseTo(100)
     expect(verdict.rabat.mismatch).toBe(false)
-    expect(verdict.robocizna.mismatch).toBe(false)
+    expect(verdict.laborCosts.mismatch).toBe(false)
   })
 
   it('a grossed RABAT (102) now FALSE-fires — proving the kosztorys side is no longer grossed', () => {
     const verdict = buildKosztorysReconciliation({
       sumaPracNet: 5000,
       rabatClientNet: 100,
-      investmentRobocizna: 5000,
+      laborCostsNetFromTransactions: 5000,
       investmentRabat: 102,
     })
     expect(verdict.rabat.mismatch).toBe(true)
@@ -214,26 +214,26 @@ describe('grosz-exact tolerance (no fuzzy epsilon)', () => {
     const verdict = buildKosztorysReconciliation({
       ...base,
       sumaPracNet: 100,
-      investmentRobocizna: 100,
+      laborCostsNetFromTransactions: 100,
     })
-    expect(verdict.robocizna.mismatch).toBe(false)
+    expect(verdict.laborCosts.mismatch).toBe(false)
   })
 
   it('a full grosz apart → mismatch', () => {
     const verdict = buildKosztorysReconciliation({
       ...base,
       sumaPracNet: 100,
-      investmentRobocizna: 100.01,
+      laborCostsNetFromTransactions: 100.01,
     })
-    expect(verdict.robocizna.mismatch).toBe(true)
+    expect(verdict.laborCosts.mismatch).toBe(true)
   })
 
   it('sub-grosz apart (rounds to the same grosz) → no mismatch', () => {
     const verdict = buildKosztorysReconciliation({
       ...base,
       sumaPracNet: 100.002,
-      investmentRobocizna: 100.001,
+      laborCostsNetFromTransactions: 100.001,
     })
-    expect(verdict.robocizna.mismatch).toBe(false)
+    expect(verdict.laborCosts.mismatch).toBe(false)
   })
 })

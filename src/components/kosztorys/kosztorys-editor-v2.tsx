@@ -23,7 +23,7 @@ export function KosztorysEditorV2({
   materialyBreakdown,
   wplatyNet,
   zaliczkiByStage,
-  investmentRobocizna,
+  laborCostsNetFromTransactions,
   investmentRabat,
 }: PropsT) {
   const router = useRouter()
@@ -66,7 +66,7 @@ export function KosztorysEditorV2({
         materialyBreakdown={materialyBreakdown}
         wplatyNet={wplatyNet}
         zaliczkiByStage={zaliczkiByStage}
-        investmentRobocizna={investmentRobocizna}
+        laborCostsNetFromTransactions={laborCostsNetFromTransactions}
         investmentRabat={investmentRabat}
         onOpenVersions={() => setVersionsOpen(true)}
       />

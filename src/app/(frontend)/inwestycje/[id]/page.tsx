@@ -11,7 +11,6 @@ import {
 import { deriveFinancials } from '@/lib/db/sum-transfers'
 import { calculateMargin } from '@/lib/db/calculate-margin'
 import { InvestmentReconBlock } from '@/components/investments/investment-recon-block'
-import { InvestmentReconBlockSkeleton } from '@/components/investments/investment-recon-block-skeleton'
 import { buildTransferFilters, stripCancelledFilters } from '@/lib/queries/transfer-filters'
 import { buildFinancialFields, buildSettledFields } from '@/lib/db/map-category-costs'
 import { perfStart } from '@/lib/perf'
@@ -101,7 +100,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
           // Streamed off the critical path: only this block awaits the kosztorys tree (the page's
           // long-pole fetch); the rest renders immediately. It fetches its own investment-wide
           // transaction sums so the reconciliation never inherits this page's URL filters.
-          <Suspense fallback={<InvestmentReconBlockSkeleton />}>
+          <Suspense fallback={null}>
             <InvestmentReconBlock investmentId={investmentId} />
           </Suspense>
         }

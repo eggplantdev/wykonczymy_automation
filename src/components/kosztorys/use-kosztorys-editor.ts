@@ -361,18 +361,20 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false }: A
     [progressSubtotals],
   )
 
-  // Global discount amount + "do zapłaty", computed ONCE here off the executed total. Both total
-  // surfaces (the Sekcje Suma block and the totals bar) read these props — neither recomputes, so
-  // they can never disagree.
+  // Global discount amount + the post-rabat robocizna, computed ONCE here off the executed total.
+  // Both total surfaces (the Sekcje Suma block and the totals bar) read these props — neither
+  // recomputes, so they can never disagree.
   const discountAmount = useMemo(
     () => globalDiscountAmount(totalNet, globalDiscount),
     [totalNet, globalDiscount],
   )
-  const doZaplatyNet = totalNet - discountAmount
+  // NOT the „Do zapłaty" the UI shows — that one adds materiały and subtracts wpłaty
+  // (computeDoZaplatyRM). This is robocizna alone, after rabat.
+  const laborCostsNetFromKosztorys = totalNet - discountAmount
   // The single explicit rabat figure the totals show. Global and per-item rabat are mutually
   // exclusive (a live global discount forces every row gross, zeroing its per-item rabat), so
   // summing them yields whichever mode is active without a branch. `discountAmount` still drives
-  // `doZaplatyNet`; `rabatAmount` is display-only (= discountAmount when global, Σ item-rabat otherwise).
+  // `laborCostsNetFromKosztorys`; `rabatAmount` is display-only (= discountAmount when global, Σ item-rabat otherwise).
   const itemRabatTotal = useMemo(
     () => subtotals.reduce((sum, s) => sum + s.discount, 0),
     [subtotals],
@@ -1077,7 +1079,7 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false }: A
     globalDiscount,
     discountAmount,
     rabatAmount,
-    doZaplatyNet,
+    laborCostsNetFromKosztorys,
     // toolbar / panel state
     setView,
     search,
