@@ -376,17 +376,17 @@ None — read-only over existing transfers + kosztorys rows.
 
 #### Automated
 
-- [x] 2.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`)
-- [x] 2.2 Lint passes (`pnpm lint`)
-- [x] 2.3 Unit tests pass (`pnpm exec vitest run`)
-- [x] 2.4 Unit test for `buildTransferFilters` `worker` param passes
+- [x] 2.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`) — 518c9135
+- [x] 2.2 Lint passes (`pnpm lint`) — 518c9135
+- [x] 2.3 Unit tests pass (`pnpm exec vitest run`) — 518c9135
+- [x] 2.4 Unit test for `buildTransferFilters` `worker` param passes — 518c9135
 
 ### Phase 3: `SubcontractorSummary` block + panel branch
 
 #### Automated
 
-- [ ] 3.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`)
-- [ ] 3.2 Lint passes (`pnpm lint`)
-- [ ] 3.3 Unit tests pass (`pnpm exec vitest run`)
-- [ ] 3.4 `executedWorkNetPreRabat` + `computeSubcontractorSummary` unit tests pass
-- [ ] 3.5 Tailwind v4 audit clean on `subcontractor-summary.tsx`
+- [x] 3.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`)
+- [x] 3.2 Lint passes (`pnpm lint`)
+- [x] 3.3 Unit tests pass (`pnpm exec vitest run`)
+- [x] 3.4 `executedWorkNetPreRabat` + `computeSubcontractorSummary` unit tests pass
+- [x] 3.5 Tailwind v4 audit clean on `subcontractor-summary.tsx`

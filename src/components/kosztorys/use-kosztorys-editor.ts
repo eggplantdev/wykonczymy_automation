@@ -45,6 +45,7 @@ import {
 } from '@/lib/kosztorys/delete-policy'
 import {
   clientTotalsFromSubtotals,
+  executedWorkNetPreRabat,
   rowRemainingForView,
   sectionSubtotalsForView,
   stageTotalsForView,
@@ -387,6 +388,10 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false, und
     [subtotals],
   )
   const rabatAmount = discountAmount + itemRabatTotal
+
+  // „Suma wykonanej pracy" (należne) for the subcontractor summary — executed value at the ACTIVE
+  // view's subcontractor price, pre-rabat. Reactive to unsaved edits and the view toggle via subtotals.
+  const subcontractorDueNet = useMemo(() => executedWorkNetPreRabat(subtotals), [subtotals])
 
   // Section coefficients (null = inherits the global) for the panel — from the tree, keyed by section id.
   const sectionCoeffs = new Map(
@@ -1088,6 +1093,7 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false, und
     globalDiscount,
     discountAmount,
     rabatAmount,
+    subcontractorDueNet,
     laborCostsNetFromKosztorys,
     // toolbar / panel state
     setView,

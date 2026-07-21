@@ -85,6 +85,7 @@ function AxisSection<T extends string>({
 // union filters skinned as checkbox pairs (both checked = show all, both unchecked = hide the axis).
 export function KosztorysViewMenu() {
   const {
+    view,
     moneyAxis,
     setMoneyAxis,
     progressDisplay,
@@ -95,6 +96,10 @@ export function KosztorysViewMenu() {
     toggleColumn,
     setAllColumns,
   } = useKosztorysEditorContext()
+
+  // Subcontractors are paid without VAT (EX-558), so the netto/brutto axis is meaningless in the
+  // Z/Bez narzędzi views — hide the Kwoty control there.
+  const showMoneyAxis = view === 'client'
 
   const allColumnsVisible = columnToggleItems.every((item) => item.visible)
   const showColumnSearch = columnToggleItems.length > COLUMN_SEARCH_THRESHOLD
@@ -108,15 +113,18 @@ export function KosztorysViewMenu() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
-        <AxisSection
-          label="Kwoty"
-          options={MONEY_AXES}
-          value={moneyAxis}
-          config={MONEY_PAIR_CONFIG}
-          onChange={setMoneyAxis}
-        />
-
-        <DropdownMenuSeparator />
+        {showMoneyAxis && (
+          <>
+            <AxisSection
+              label="Kwoty"
+              options={MONEY_AXES}
+              value={moneyAxis}
+              config={MONEY_PAIR_CONFIG}
+              onChange={setMoneyAxis}
+            />
+            <DropdownMenuSeparator />
+          </>
+        )}
         <AxisSection
           label="Warstwy"
           options={LAYERS}
