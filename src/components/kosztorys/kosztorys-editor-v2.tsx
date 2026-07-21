@@ -27,7 +27,7 @@ export function KosztorysEditorV2({
   investmentRabat,
 }: PropsT) {
   const router = useRouter()
-  // One undo/redo stack per editor mount, shared with the body via context. It outlives the body's
+  // One undo/redo stack per editor mount, passed to the body as a prop. It outlives the body's
   // restore remount (the shell doesn't remount), so a restore must reset() it — the stale commands
   // close over the unmounted body's setRows/refs.
   const undoRedo = useUndoRedo()

@@ -30,8 +30,7 @@ type PropsT = KosztorysEditorDataT & {
   // Read-only public/preview render: hides the mutation chrome, swaps the toolbar for a slim axis
   // header, kills persistence, and gates the footer's owner-only bits. The owner path leaves it unset.
   clientView?: boolean
-  // The shell owns the undo/redo stack and passes it down. The read-only client body omits it and
-  // falls back to the inert no-op — nothing there is mutable.
+  // Optional because the read-only client body omits it and falls back to NOOP_UNDO_REDO.
   undoRedo?: UndoRedoApiT
   onOpenVersions?: () => void
 }
