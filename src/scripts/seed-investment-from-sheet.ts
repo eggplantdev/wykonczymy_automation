@@ -241,11 +241,13 @@ async function seed(tree: SnapshotPayloadT): Promise<void> {
 
   const itemMap = new Map<number, number>()
   for (const it of tree.items) {
+    const section = sectionMap.get(it.sectionId)
+    if (section === undefined) continue
     const created = await payload.create({
       collection: 'kosztorys-items',
       data: {
         investment: INVESTMENT_ID,
-        section: sectionMap.get(it.sectionId),
+        section,
         displayOrder: it.displayOrder,
         description: it.description ?? undefined,
         unit: it.unit ?? undefined,
