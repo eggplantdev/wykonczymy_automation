@@ -8,7 +8,7 @@ import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import { computeDoZaplatyRM } from '@/lib/kosztorys/summary-economics'
 import { KosztorysEtapTotals } from '@/components/kosztorys/kosztorys-etap-totals'
-import { KosztorysPodsumowanie } from '@/components/kosztorys/kosztorys-podsumowanie'
+import { KosztorysSummary } from '@/components/kosztorys/kosztorys-summary'
 import { useTotalsPanelOpen } from '@/components/kosztorys/use-totals-panel-open'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import type { KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
@@ -22,8 +22,8 @@ type PropsT = {
   zaliczkiByStage: Record<number, number>
   // Suma prac wykonanych — the executed total BEFORE rabat (Σ etap totals); EtapTotals' readout.
   totalNet: number
-  // Robocizna do zapłaty — executed total AFTER rabat; the Podsumowanie Robocizna row base.
-  doZaplatyNet: number
+  // Robocizna wartość netto — executed total AFTER rabat; the Podsumowanie waterfall's base.
+  laborCostsNetFromKosztorys: number
   materialyNet: number
   // Per-expense-category split of materialyNet (v1 parity); Σ === materialyNet.
   materialyBreakdown: MaterialyBreakdownRowT[]
@@ -55,7 +55,7 @@ export function KosztorysTotalsPanel({
   stageTotals,
   zaliczkiByStage,
   totalNet,
-  doZaplatyNet,
+  laborCostsNetFromKosztorys,
   materialyNet,
   materialyBreakdown,
   sectionSubtotals,
@@ -69,7 +69,9 @@ export function KosztorysTotalsPanel({
 }: PropsT) {
   const [open, setOpen] = useTotalsPanelOpen()
   const { net: showNet, gross: showGross } = axisShows(moneyAxis)
-  const doZaplaty = computeDoZaplatyRM(doZaplatyNet, wplatyNet, materialyNet, vatRate)
+  // Computed here and passed down: the collapsed headline and the Podsumowanie row show the same
+  // „Do zapłaty", so it has one source rather than two calls that must be kept in step.
+  const doZaplaty = computeDoZaplatyRM(laborCostsNetFromKosztorys, wplatyNet, materialyNet, vatRate)
 
   return (
     <Collapsible.Root
@@ -116,9 +118,10 @@ export function KosztorysTotalsPanel({
           moneyAxis={moneyAxis}
           clientView={clientView}
         />
-        <KosztorysPodsumowanie
+        <KosztorysSummary
           investmentId={investmentId}
-          robociznaNet={doZaplatyNet}
+          laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
+          doZaplaty={doZaplaty}
           materialyNet={materialyNet}
           materialyBreakdown={materialyBreakdown}
           sectionSubtotals={sectionSubtotals}

@@ -23,12 +23,15 @@ import {
 import { toGross } from '@/lib/kosztorys/calc'
 import { buildKosztorysReconciliation } from '@/lib/kosztorys/reconciliation'
 import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
+import { NOOP_UNDO_REDO, type UndoRedoApiT } from '@/components/kosztorys/use-undo-redo'
 import type { KosztorysEditorDataT } from '@/lib/kosztorys/types'
 
 type PropsT = KosztorysEditorDataT & {
   // Read-only public/preview render: hides the mutation chrome, swaps the toolbar for a slim axis
   // header, kills persistence, and gates the footer's owner-only bits. The owner path leaves it unset.
   clientView?: boolean
+  // Optional because the read-only client body omits it and falls back to NOOP_UNDO_REDO.
+  undoRedo?: UndoRedoApiT
   onOpenVersions?: () => void
 }
 
@@ -43,12 +46,13 @@ export function KosztorysEditorBody({
   materialyBreakdown,
   wplatyNet,
   zaliczkiByStage,
-  investmentRobocizna,
+  laborCostsNetFromTransactions,
   investmentRabat,
   clientView = false,
+  undoRedo = NOOP_UNDO_REDO,
   onOpenVersions,
 }: PropsT) {
-  const editor = useKosztorysEditor({ investmentId, tree, clientView })
+  const editor = useKosztorysEditor({ investmentId, tree, clientView, undoRedo })
   const {
     gridRef,
     gridHeight,
@@ -66,7 +70,7 @@ export function KosztorysEditorBody({
     sumaPracNet,
     rabatClientNet,
     rabatAmount,
-    doZaplatyNet,
+    laborCostsNetFromKosztorys,
     view,
     moneyAxis,
     setMoneyAxis,
@@ -137,10 +141,10 @@ export function KosztorysEditorBody({
       buildKosztorysReconciliation({
         sumaPracNet,
         rabatClientNet,
-        investmentRobocizna,
+        laborCostsNetFromTransactions,
         investmentRabat,
       }),
-    [sumaPracNet, rabatClientNet, investmentRobocizna, investmentRabat],
+    [sumaPracNet, rabatClientNet, laborCostsNetFromTransactions, investmentRabat],
   )
 
   // Viewport minus the shell's chrome: the h-14 TopNav always, plus the h-14 AppFooter, which only
@@ -203,7 +207,7 @@ export function KosztorysEditorBody({
             stageTotals={stageTotals}
             zaliczkiByStage={zaliczkiByStage}
             totalNet={totalNet}
-            doZaplatyNet={doZaplatyNet}
+            laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
             materialyNet={materialsNet}
             materialyBreakdown={materialyBreakdown}
             sectionSubtotals={progressSubtotals}

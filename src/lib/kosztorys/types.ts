@@ -123,7 +123,7 @@ export type KosztorysEditorDataT = {
   wplatyNet: number
   zaliczkiByStage: Record<number, number>
   // Transaction-sourced robocizna/rabat (Σ LABOR_COST / Σ RABAT) — the reconciliation "actual" side.
-  investmentRobocizna: number
+  laborCostsNetFromTransactions: number
   investmentRabat: number
 }
 

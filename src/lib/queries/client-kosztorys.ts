@@ -60,7 +60,7 @@ async function buildClientKosztorysEditorData(investmentId: number): Promise<Kos
     materialyBreakdown: buildMaterialyBreakdown(financials, expenseCategories),
     wplatyNet: financials.totalIncome,
     zaliczkiByStage,
-    investmentRobocizna: financials.totalLaborCosts,
+    laborCostsNetFromTransactions: financials.totalLaborCosts,
     investmentRabat: financials.totalRabat,
   }
 }

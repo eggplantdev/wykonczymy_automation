@@ -804,6 +804,62 @@ the render-swap facts those don't cover. Run as OWNER against the dev app plus o
       into **EX-550** (add "no `<a href>` internal links on `/k/<token>`" to its assertions). No unit layer
       reaches the rendered clientView footer.
 
+### Re-verify — 2026-07-21 (post-merge refactors + revoke-confirm, `baee9b68`)
+
+Covers the surfaces the earlier pass predates: undo/redo React-context → prop, `ownerOnly` → `editorOnly`
+rename, merge field rename `laborCostsNetFromTransactions`, money-axis label, `copyToClipboard` extraction,
+and the new revoke `ConfirmDialog`. Driven as OWNER against the test DB (5435, inv 7, 1000-item perf seed)
+on `:3010`, plus the cookie-less `/k/<token>`.
+
+- [x] **Undo/redo stack reaches the body via prop (not context)** — toolbar „Cofnij"/„Ponów" start disabled
+      (canUndo/canRedo=false), a structural edit (VAT) enables „Cofnij", and clicking the **„Cofnij" toolbar
+      button reverts the edit end-to-end** (VAT 30→7 in the field _and_ `investments.vat_rate` in the DB),
+      leaving „Cofnij" disabled again (stack emptied). Proves the shell's `useUndoRedo()` is passed as the
+      `undoRedo` prop and drives the toolbar deep in the body + executes the command's effect. Keyboard
+      Ctrl+Z/Ctrl+Shift+Z also observed toggling both stacks correctly.
+- [x] **Client body defaults to `NOOP_UNDO_REDO`** — `/k/<token>` renders with no undo chrome and a fully
+      inert grid (below); the read-only body takes no `undoRedo` prop and nothing throws.
+- [x] **`editorOnly` (renamed from `ownerOnly`) gates mutation handlers by render-mode** — OWNER can add a
+      section via „Nowa sekcja" (`kosztorys_sections` for inv 7 went 10→11, persisted); the CLIENT grid
+      exposes **0 editable inputs** and no add/remove/rename chrome. Both branches of the gate exercised.
+- [x] **`laborCostsNetFromTransactions` reconciliation renders** — owner Podsumowanie panel shows all figures
+      (Netto/Brutto/Wpłaty per etap, „Suma prac wykonanych", „Materiały budowlane", „Łącznie", „Rabat",
+      „Do zapłaty" 269 945,43 in red = the recon scream). The merge field rename didn't break the recon read.
+- [x] **Money-axis label „Oba" → „Pokaż wszystko"** — renders in the client slim header toggle
+      (`["Netto","Brutto","Pokaż wszystko"]`); the „Pokaż wszystko" (`both`) axis shows netto+brutto columns.
+- [x] **Client read-only + price-pin holds** — `/k/<token>`: 528/561 cells `dsg-cell-disabled`, 0 editable
+      inputs, **0 `<a href>` anchors** (Wpłaty fix intact), no undo/share/sekcje chrome. Forcing
+      `localStorage['kosztorys-view:7']='w_tools'` and reloading leaves only client price columns (no
+      wykonawca/mnożnik column) and client prices (row 1 brutto 21,60 = client 20×1.08, not wykonawca ~11,88).
+- [x] **`copyToClipboard` util (share + add-sheet dialogs)** — share dialog „Kopiuj link" writes the link to
+      the clipboard (`navigator.clipboard.readText()` returned the `/k/<token>` URL); success path runs.
+- [x] **Revoke `ConfirmDialog` (new)** — „Wyłącz link" opens a confirm titled „Wyłączyć link dla klienta?"
+      with the irreversibility copy + „Anuluj"/„Wyłącz link". **Cancel** dismisses it with the link intact;
+      **confirm** deletes the `kosztorys_shares` row (count 1→0), flips the dialog to the no-token „Wygeneruj
+      link" state, and the token stops resolving to the kosztorys (`/k/<token>` now renders the 404 page, no
+      grid — Next dev serves it with a 200 wrapper, but the content is not-found, not the data).
+
+**Findings (all pre-existing, orthogonal to this slice's diff — none block the slice):**
+
+- [x] **Keyboard Ctrl+Z undo is focus-flaky** — after a `CoeffField` commit (VAT/coeff) + the async
+      `router.refresh()`, an editable input sometimes retains focus, so `useUndoKeyboard` bails (native browser
+      undo wins) and Ctrl+Z becomes a no-op; other times it fires cleanly. The toolbar „Cofnij"/„Ponów"
+      buttons are the reliable path and always work. Already flagged in-code at
+      `src/components/kosztorys/use-undo-keyboard.ts:6-11` as "needs browser verification". Untouched by
+      EX-532. **Filed onto EX-525** (the S-07 undo/redo Cmd+Z E2E already owed) with the focus-race case + the
+      harden-vs-accept-buttons-only decision + test disposition — pre-existing, not introduced by this slice,
+      so not a per-slice blocker. **Needs human (tracked in EX-525):** decide whether to harden focus detection
+      (read dsg active-cell edit state, or scope the listener to the grid container) or accept buttons-only.
+      **Test disposition:** e2e — real focus + async-refresh timing; no unit/integration layer reproduces the
+      focus race. Cheapest real signal is a Playwright spec (in EX-525's scope).
+- [x] **Structural-command undo (VAT/coeff) registers ~2.7s after the edit** — `handleVatChange` awaits the
+      server action (recomputes all 1000 rows' brutto) before `pushReversible`, so „Cofnij" stays disabled and
+      an undo attempt is a no-op during that window. Correct by construction (can't undo before the change
+      persists), but surprising on large kosztorysy. Dropped — behavior is correct; not worth a guard.
+- [x] **VAT field shows a float artifact `7.000000000000001`** — `vatRate*100` in JS (0.07×100). Cosmetic,
+      pre-existing (`CoeffField` value from `tree.vatRate*100`). Dropped — not worth the churn; a `parseFloat`
+      round on display would fix it if ever revisited.
+
 ## EX-529 — kosztorys-summary-charts
 
 **In review** — automated checks green (tsc, eslint, unit 7/7 on the slice seam, `pnpm build`). The

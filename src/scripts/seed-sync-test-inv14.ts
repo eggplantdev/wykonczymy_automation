@@ -7,7 +7,7 @@ import { getPayload } from 'payload'
 import config from '../payload.config'
 
 const INVESTMENT_ID = 14
-const ROBOCIZNA_TOTAL = 95004 // Σ LABOR_COST excluding cancelled (only id 1114 is active)
+const LABOR_COSTS_TOTAL = 95004 // Σ LABOR_COST excluding cancelled (only id 1114 is active)
 const RABAT_AMOUNT = 226.19 // RABAT transaction
 
 async function run() {
@@ -59,12 +59,12 @@ async function run() {
       plannedQty: 1,
       discountType: null,
       discountValue: 0,
-      clientPrice: ROBOCIZNA_TOTAL,
+      clientPrice: LABOR_COSTS_TOTAL,
       hiddenInExport: false,
     },
     ...ctx,
   })
-  // pomiar z natury = Σ etapów = 1 → executed = 1 × cena = ROBOCIZNA_TOTAL.
+  // pomiar z natury = Σ etapów = 1 → executed = 1 × cena = LABOR_COSTS_TOTAL.
   await payload.create({
     collection: 'stage-progress',
     data: { item: item.id, stage: stage.id, qtyDone: 1 },
@@ -72,9 +72,9 @@ async function run() {
   })
 
   console.log(
-    `Seeded inv ${INVESTMENT_ID}: executed robocizna = ${ROBOCIZNA_TOTAL}, global rabat (amount) = ${RABAT_AMOUNT}`,
+    `Seeded inv ${INVESTMENT_ID}: executed robocizna = ${LABOR_COSTS_TOTAL}, global rabat (amount) = ${RABAT_AMOUNT}`,
   )
-  console.log(`Expected „Robocizna do zapłaty" = ${(ROBOCIZNA_TOTAL - RABAT_AMOUNT).toFixed(2)}`)
+  console.log(`Expected „Robocizna do zapłaty" = ${(LABOR_COSTS_TOTAL - RABAT_AMOUNT).toFixed(2)}`)
   process.exit(0)
 }
 
