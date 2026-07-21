@@ -22,7 +22,6 @@ type PropsT = {
   investmentId: number
   stages: KosztorysStageT[]
   stageTotals: Map<number, number>
-  zaliczkiByStage: Record<number, number>
   // Realized PAYOUTs per worker — feeds the subcontractor summary block (Z/Bez narzędzi views only).
   payoutsByWorker: SubcontractorPayoutRowT[]
   // Individual realized PAYOUT rows — feed the subcontractor block's sortable wypłaty list.
@@ -40,7 +39,7 @@ type PropsT = {
   // Client-priced, view-invariant per-section subtotals — the section pie's structure source.
   sectionSubtotals: SectionSliceInputT[]
   // Investor's wpłaty (totalIncome — every deposit on the investment) — subtracted to reach the
-  // still-owed „Do zapłaty" total. Distinct from zaliczkiByStage (the sparser per-etap tagged subset).
+  // still-owed „Do zapłaty" total.
   wplatyNet: number
   rabatAmount: number
   // Robocizna/rabat reconciliation verdict — drives the Podsumowanie mismatch scream. Always supplied
@@ -63,7 +62,6 @@ export function KosztorysTotalsPanel({
   investmentId,
   stages,
   stageTotals,
-  zaliczkiByStage,
   payoutsByWorker,
   payoutTransactions,
   subcontractorDueNet,
@@ -145,15 +143,11 @@ export function KosztorysTotalsPanel({
             {/* „Suma transzy" (per-etap, Netto/Brutto) is a client/VAT figure — the subcontractor plane
                 has no VAT axis (EX-558), so it renders only here. */}
             <KosztorysEtapTotals
-              investmentId={investmentId}
               stages={stages}
               stageTotals={stageTotals}
-              zaliczkiByStage={zaliczkiByStage}
-              wplatyNet={wplatyNet}
               wykonaneNet={totalNet}
               vatRate={vatRate}
               moneyAxis={moneyAxis}
-              clientView={clientView}
             />
             <KosztorysSummary
               investmentId={investmentId}

@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import {
   EXPENSE_CATEGORY_LABEL,
-  isDepositType,
   needsSourceRegister,
   requiresInvestment,
   needsTargetRegister,
@@ -20,7 +19,6 @@ type TransferFieldsT = {
   expenseCategory?: unknown
   otherCategory?: unknown
   worker?: unknown
-  kosztorysStage?: unknown
 }
 
 type FieldRuleT = {
@@ -61,12 +59,6 @@ const transferFieldRules: FieldRuleT[] = [
       needsExpenseCategory(d.type, !!d.investment) && !('lineItems' in d) && !d.expenseCategory,
     message: `${EXPENSE_CATEGORY_LABEL} jest wymagany`,
     path: 'expenseCategory',
-  },
-  {
-    // A zaliczka tag is a deposit-only declaration — reject it on any other type.
-    invalid: (d) => !!d.kosztorysStage && !isDepositType(d.type),
-    message: 'Zaliczkę na etap można oznaczyć tylko dla wpłaty',
-    path: 'kosztorysStage',
   },
 ]
 

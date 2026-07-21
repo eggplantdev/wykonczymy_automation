@@ -112,7 +112,7 @@ export type KosztorysTreeT = {
 }
 
 // The full data set the editor body/shell needs to render: the tree plus the investment-level figures
-// (materials, wpłaty, zaliczki, robocizna/rabat) the footer reconciles against. Assembled identically
+// (materials, wpłaty, robocizna/rabat) the footer reconciles against. Assembled identically
 // by the admin page, the owner preview, and the public share read — one shape so those three can't
 // drift on which figures the editor receives.
 export type KosztorysEditorDataT = {
@@ -122,7 +122,6 @@ export type KosztorysEditorDataT = {
   materialsNet: number
   materialyBreakdown: MaterialyBreakdownRowT[]
   wplatyNet: number
-  zaliczkiByStage: Record<number, number>
   // Transaction-sourced robocizna/rabat (Σ LABOR_COST / Σ RABAT) — the reconciliation "actual" side.
   laborCostsNetFromTransactions: number
   investmentRabat: number
