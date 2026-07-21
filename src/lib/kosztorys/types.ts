@@ -5,8 +5,11 @@
 
 import type { STAGE_QTY_PREFIX } from '@/lib/kosztorys/stage-keys'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
-import type { SubcontractorPayoutRowT, PayoutTransactionRowT } from '@/types/reference-data'
-import type { DepositBucketsT } from '@/lib/kosztorys/summary-economics'
+import type {
+  SubcontractorPayoutRowT,
+  PayoutTransactionRowT,
+  DepositRowT,
+} from '@/types/reference-data'
 
 export type DiscountTypeT = 'percent' | 'amount'
 // Per-investment global discount over the whole kosztorys. type null = none (per-item discounts
@@ -122,8 +125,9 @@ export type KosztorysEditorDataT = {
   investmentName: string
   materialsNet: number
   materialyBreakdown: MaterialyBreakdownRowT[]
-  // Investor deposits split by plane (netto/brutto/legacy) — drives „Wpłaty" and „Do zapłaty".
-  depositBuckets: DepositBucketsT
+  // The investor's deposit rows (newest first). Reduced to buckets (netto/brutto/legacy) at the panel
+  // for „Wpłaty"/„Do zapłaty", and listed per-wpłata on the wpłaty surface — one source, no redundancy.
+  depositRows: DepositRowT[]
   // Transaction-sourced robocizna/rabat (Σ LABOR_COST / Σ RABAT) — the reconciliation "actual" side.
   laborCostsNetFromTransactions: number
   investmentRabat: number

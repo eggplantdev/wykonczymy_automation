@@ -7,7 +7,6 @@ import { requireAuth } from '@/lib/auth/require-auth'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 import { buildMaterialyBreakdown } from '@/lib/db/map-category-costs'
 import { deriveFinancials } from '@/lib/db/sum-transfers'
-import { reduceDepositBuckets } from '@/lib/kosztorys/summary-economics'
 import type { KosztorysEditorDataT } from '@/lib/kosztorys/types'
 import { buildKosztorysTree } from '@/lib/queries/kosztorys'
 import {
@@ -59,7 +58,7 @@ async function buildClientKosztorysEditorData(investmentId: number): Promise<Kos
     investmentName: investment.name,
     materialsNet: financials.totalMaterialCosts,
     materialyBreakdown: buildMaterialyBreakdown(financials, expenseCategories),
-    depositBuckets: reduceDepositBuckets(depositRows),
+    depositRows,
     laborCostsNetFromTransactions: financials.totalLaborCosts,
     investmentRabat: financials.totalRabat,
   }

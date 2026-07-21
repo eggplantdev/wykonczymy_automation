@@ -21,7 +21,7 @@ export function KosztorysEditorV2({
   investmentName,
   materialsNet,
   materialyBreakdown,
-  depositBuckets,
+  depositRows,
   laborCostsNetFromTransactions,
   investmentRabat,
   payoutsByWorker = [],
@@ -65,7 +65,7 @@ export function KosztorysEditorV2({
         investmentName={investmentName}
         materialsNet={materialsNet}
         materialyBreakdown={materialyBreakdown}
-        depositBuckets={depositBuckets}
+        depositRows={depositRows}
         laborCostsNetFromTransactions={laborCostsNetFromTransactions}
         investmentRabat={investmentRabat}
         payoutsByWorker={payoutsByWorker}

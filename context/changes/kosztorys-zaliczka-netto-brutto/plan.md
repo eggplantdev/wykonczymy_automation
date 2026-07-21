@@ -590,16 +590,16 @@ tags) is throwaway; no backfill for either migration.
 
 #### Automated
 
-- [x] 3.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`)
-- [x] 3.2 Lint passes (`pnpm lint`)
-- [x] 3.3 Unit tests pass (`pnpm exec vitest run`)
-- [x] 3.4 New unit tests pass: bucket reducer + `computeDoZaplatyRM` sequential model incl. owner example + legacy-only case (`pnpm exec vitest run src/lib/kosztorys`)
+- [x] 3.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`) — dba4aa83
+- [x] 3.2 Lint passes (`pnpm lint`) — dba4aa83
+- [x] 3.3 Unit tests pass (`pnpm exec vitest run`) — dba4aa83
+- [x] 3.4 New unit tests pass: bucket reducer + `computeDoZaplatyRM` sequential model incl. owner example + legacy-only case (`pnpm exec vitest run src/lib/kosztorys`) — dba4aa83
 
 ### Phase 4: Wpłaty list surface
 
 #### Automated
 
-- [ ] 4.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`)
-- [ ] 4.2 Lint passes (`pnpm lint`)
-- [ ] 4.3 Unit tests pass (`pnpm exec vitest run`)
-- [ ] 4.4 Tailwind v4 audit clean on the new wpłaty-list component
+- [x] 4.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`)
+- [x] 4.2 Lint passes (`pnpm lint`)
+- [x] 4.3 Unit tests pass (`pnpm exec vitest run`)
+- [x] 4.4 Tailwind v4 audit clean on the new wpłaty-list component

@@ -6,10 +6,11 @@ import { cn } from '@/lib/utils/cn'
 import { formatNet } from '@/lib/kosztorys/format'
 import { type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
-import { computeDoZaplatyRM, type DepositBucketsT } from '@/lib/kosztorys/summary-economics'
+import { computeDoZaplatyRM, reduceDepositBuckets } from '@/lib/kosztorys/summary-economics'
 import { KosztorysDoZaplatyBlock } from '@/components/kosztorys/kosztorys-do-zaplaty-block'
 import { KosztorysEtapTotals } from '@/components/kosztorys/kosztorys-etap-totals'
 import { KosztorysSummary } from '@/components/kosztorys/kosztorys-summary'
+import { KosztorysWplatyList } from '@/components/kosztorys/kosztorys-wplaty-list'
 import { SubcontractorSummary } from '@/components/kosztorys/subcontractor-summary'
 import { computeSubcontractorSummary } from '@/lib/kosztorys/subcontractor-summary'
 import { useTotalsPanelOpen } from '@/components/kosztorys/use-totals-panel-open'
@@ -17,7 +18,11 @@ import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import type { KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import type { SectionSliceInputT } from '@/lib/kosztorys/chart-slices'
-import type { SubcontractorPayoutRowT, PayoutTransactionRowT } from '@/types/reference-data'
+import type {
+  SubcontractorPayoutRowT,
+  PayoutTransactionRowT,
+  DepositRowT,
+} from '@/types/reference-data'
 
 type PropsT = {
   investmentId: number
@@ -39,8 +44,9 @@ type PropsT = {
   materialyBreakdown: MaterialyBreakdownRowT[]
   // Client-priced, view-invariant per-section subtotals — the section pie's structure source.
   sectionSubtotals: SectionSliceInputT[]
-  // Investor deposits split by plane — subtracted (per the sequential model) to reach „Do zapłaty".
-  depositBuckets: DepositBucketsT
+  // Investor deposit rows (newest first). Reduced to plane buckets here for „Wpłaty"/„Do zapłaty",
+  // and listed per-wpłata below the etap totals — one source, no redundant bucket prop.
+  depositRows: DepositRowT[]
   rabatAmount: number
   // Robocizna/rabat reconciliation verdict — drives the Podsumowanie mismatch scream. Always supplied
   // (the body computes it unconditionally); clientView suppresses the scream downstream, not by
@@ -71,7 +77,7 @@ export function KosztorysTotalsPanel({
   materialyNet,
   materialyBreakdown,
   sectionSubtotals,
-  depositBuckets,
+  depositRows,
   rabatAmount,
   reconciliation,
   priceView,
@@ -83,6 +89,9 @@ export function KosztorysTotalsPanel({
   // The subcontractor plane (Z/Bez narzędzi) has no VAT axis and its own headline figure, so the
   // client „Do zapłaty" only applies in the client view.
   const isClientPlane = priceView === 'client'
+  // Buckets drive the Wpłaty / Do zapłaty figures; the raw rows drive the per-wpłata list. Both derive
+  // from the one `depositRows` prop, so the aggregate and the list can never disagree.
+  const depositBuckets = reduceDepositBuckets(depositRows)
   // Computed here and passed down: the collapsed headline and the Podsumowanie block show the same
   // „Do zapłaty", so it has one source rather than two calls that must be kept in step.
   const doZaplaty = computeDoZaplatyRM(
@@ -142,6 +151,11 @@ export function KosztorysTotalsPanel({
               wykonaneNet={totalNet}
               vatRate={vatRate}
               moneyAxis={moneyAxis}
+            />
+            <KosztorysWplatyList
+              rows={depositRows}
+              investmentId={investmentId}
+              clientView={clientView}
             />
             <KosztorysSummary
               investmentId={investmentId}
