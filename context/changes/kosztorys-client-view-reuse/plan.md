@@ -186,3 +186,11 @@ None — kosztorys share data is throwaway until dogfooding; no backfill or comp
 - [x] 2.2 Linting passes: `pnpm lint` — d270ff22
 - [x] 2.3 Unit tests pass: `pnpm test` — d270ff22
 - [x] 2.4 Production build succeeds: `pnpm build` — d270ff22
+
+## Review-gate addenda (2026-07-20)
+
+Three deviations from the plan-as-written, decided at the review gate:
+
+1. **Render-side disclosure lock added.** The plan's leak posture (§15) accepted the raw payload but relied on rendering at `view:'client'`. The review found `view` was still read from per-investment localStorage on the public page, so a client could flip it to a subcontractor view and render the contractor's cost basis. Fixed: `useKosztorysEditor` pins `view = 'client'` whenever `clientView` is set (`use-kosztorys-editor.ts`). This is now the render-side half of the lock the deleted `toClientView` used to hold.
+2. **Owner editor IS changed — ratified.** The plan promised "owner editor unchanged," but the verbose column labels („Pomiar (razem etapy)", „Razem Netto", „…względem przedmiaru/pomiaru"), the taller wrapping header row, and the rewritten header tips are ungated on `clientView` and so apply to the owner grid too. Owner ratified this as intended in both views (the labels disambiguate „względem przedmiaru" vs „względem pomiaru"). The "owner unchanged" line in §19/§21 is superseded.
+3. **Owner preview route relocated to `(share)`.** The preview moved from `/inwestycje/[id]/kosztorys_v2/podglad-klienta` to `/podglad-klienta/[id]` under the `(share)` route group, so it renders under the same bare shell the public link uses (byte-identical preview). Auth is preserved by an in-page `requireInvestmentOr404` + a query-level `requireAuth` re-check — not an IDOR despite living under the public group.

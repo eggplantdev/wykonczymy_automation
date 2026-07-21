@@ -8,20 +8,9 @@ import { KosztorysVersionsDrawer } from '@/components/kosztorys/kosztorys-versio
 import { useAutoSnapshot } from '@/components/kosztorys/use-auto-snapshot'
 import { useRestoreRemount } from '@/components/kosztorys/use-restore-remount'
 import { UndoRedoContext, useUndoRedo } from '@/components/kosztorys/use-undo-redo'
-import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
-import type { KosztorysTreeT } from '@/lib/kosztorys/types'
+import type { KosztorysEditorDataT } from '@/lib/kosztorys/types'
 
-type PropsT = {
-  investmentId: number
-  tree: KosztorysTreeT
-  investmentName: string
-  materialsNet: number
-  materialyBreakdown: MaterialyBreakdownRowT[]
-  wplatyNet: number
-  zaliczkiByStage: Record<number, number>
-  investmentRobocizna: number
-  investmentRabat: number
-}
+type PropsT = KosztorysEditorDataT
 
 // Thin shell around the stateful editor body: owns the auto-snapshot interval, the "Wersje" drawer, and
 // the restore-driven remount. Each of the three lives here so a restore's body remount doesn't disturb

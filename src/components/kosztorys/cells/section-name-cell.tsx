@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { ReadOnlyCellText } from '@/components/kosztorys/cells/read-only-cell-text'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // Renames the WHOLE section, so it commits through onRename (the same fan-out the section panel uses)
@@ -21,10 +22,7 @@ export function SectionNameCell({
   const cancelRef = useRef(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  if (disabled)
-    return (
-      <span className="block size-full truncate px-2 text-sm">{rowData.sectionName ?? ''}</span>
-    )
+  if (disabled) return <ReadOnlyCellText>{rowData.sectionName ?? ''}</ReadOnlyCellText>
 
   return (
     <input

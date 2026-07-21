@@ -26,7 +26,6 @@ export function StageHeader({ stage, onRename, onRemove, tip }: PropsT) {
   const [confirmOpen, setConfirmOpen] = useState(false)
 
   // No handlers = a read-only mount (clientView): render the bare label, no menu/rename/delete.
-  // Wraps (no truncate) to match the other client headers under the taller header row.
   if (!onRename && !onRemove) {
     return (
       <span className={cn('px-1 text-sm', stage.label == null && 'text-muted-foreground')}>

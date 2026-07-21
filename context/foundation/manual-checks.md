@@ -770,22 +770,36 @@ reuse of the admin `KosztorysEditorBody` in `clientView` mode. The share-link li
 **kosztorys-client-share** section above still stand (that machinery is untouched); the boxes here are
 the render-swap facts those don't cover. Run as OWNER against the dev app plus one logged-out profile.
 
-- [ ] **`/k/<token>` renders the owner grid + footer, read-only** — the real editor grid and totals
-      panel render; **no toolbar** (owner actions/versions), **no section sidebar/summary**, the slim
-      header shows only the investment name + the money-axis toggle.
-- [ ] **Recon scream absent** — the reconciliation mismatch badge (`ReconMismatchBadge`) never appears
-      in the footer, even when the owner editor would show it for the same investment.
-- [ ] **Internal links are plain text** — the materiały category and wpłaty labels render as text, not
-      `<Link>` (no navigation, no href).
-- [ ] **Every cell is non-editable** — clicking any cell opens no editor, typing does nothing; the
-      action column is gone (no add/remove/reorder affordance).
-- [ ] **No save/snapshot network request from the client page** — with DevTools Network open, interact
-      with the grid: **zero** `updateItemField` / autosave / snapshot calls fire (the `clientView`
-      persistence kill-switch holds).
-- [ ] **Section pie is gone from the client view** — the `section-pie` chart no longer renders on the
-      client/preview page (its component is preserved in the codebase but unmounted here — separate
-      slice).
-- [ ] **Owner preview matches the public view** — „Podgląd dla klienta" and `/k/<token>` render
-      identically (same grid, columns, footer), both via the reused body.
-- [ ] **Live owner editor unchanged** — open the normal Kosztorys tab as OWNER: full toolbar, editable
-      grid, section summary, recon scream, versions — all intact (the `clientView` flag defaults off).
+- [x] **`/k/<token>` renders the owner grid + footer, read-only** — verified cookie-less on `/k/<token>`
+      (test DB, inv 7): real grid + Podsumowanie footer render; slim header = investment name + money-axis
+      toggle only; no toolbar, no section sidebar/summary.
+- [x] **Recon scream absent** — no `Niezgodność` text / `ReconMismatchBadge` in the footer on either
+      `/k/<token>` or `/podglad-klienta/7`.
+- [x] **Internal links are plain text** — after the EtapTotals fix below, **0 `<a href>` anchors** on the
+      whole public page; „Wpłaty" renders as a plain `SPAN`.
+- [x] **Every cell is non-editable** — all 561 data cells carry `dsg-cell-disabled` (the 17 non-disabled
+      are header cells); a click on a data input is intercepted by the disabled cell overlay, so no editor
+      opens and typing can't reach the input. Owner editor by contrast shows 372 editable data cells.
+- [x] **No save/snapshot network request from the client page** — zero non-static requests fired on
+      `/k/<token>` (pure server render; no `updateItemField`/autosave/snapshot/action calls).
+- [x] **Section pie is gone from the client view** — no `section-pie` / „Udział sekcji" on either client
+      surface.
+- [x] **Owner preview matches the public view** — `/podglad-klienta/7` and `/k/<token>` render identically
+      (same header „Madalinskiego 67", all cells disabled, 0 anchors, money-axis toggle, no pie, no recon,
+      „Do zapłaty" present) — both via the reused body.
+- [x] **Live owner editor unchanged** — `/inwestycje/7/kosztorys_v2` as OWNER: full „Widok" toolbar,
+      372 editable data cells, app chrome intact (the `clientView` flag defaults off).
+
+### Findings — 2026-07-21
+
+- [x] **„Wpłaty" leaked as an internal `<Link>` on the client page** — `KosztorysEtapTotals` rendered the
+      „Suma transzy" block's „Wpłaty" label as `<Link href="/inwestycje/<id>?type=…">` unconditionally and
+      never received `clientView`, so the public `/k/<token>` (and `/podglad-klienta`) shipped a clickable
+      internal route into the client's DOM. The sibling `KosztorysPodsumowanie` already gated its Wpłaty +
+      materiały links on `clientView`; this component was missed. **Fixed:** threaded `clientView` through
+      `KosztorysTotalsPanel` → `KosztorysEtapTotals` and render „Wpłaty" as plain text when set (mirrors the
+      sibling). Re-verified: 0 anchors on the client page, owner keeps the link. `kosztorys-etap-totals.tsx`,
+      `kosztorys-totals-panel.tsx`.
+      **Test disposition:** e2e — same public-page browser surface as the CRITICAL view-pin guard; folded
+      into **EX-550** (add "no `<a href>` internal links on `/k/<token>`" to its assertions). No unit layer
+      reaches the rendered clientView footer.

@@ -33,6 +33,9 @@ type PropsT = {
   wykonaneNet: number
   vatRate: number
   moneyAxis: MoneyAxisT
+  // Read-only client render: the „Wpłaty" drill-down points at an owner-only page, so render it as
+  // plain text — same gate the sibling Podsumowanie applies.
+  clientView?: boolean
 }
 
 // Suma transzy per etap + the „R netto / R brutto — suma prac wykonanych" readout (sheet r396/r397).
@@ -46,6 +49,7 @@ export function KosztorysEtapTotals({
   wykonaneNet,
   vatRate,
   moneyAxis,
+  clientView = false,
 }: PropsT) {
   if (stages.length === 0) return null
   const { net: showNet, gross: showGross } = axisShows(moneyAxis)
@@ -123,12 +127,16 @@ export function KosztorysEtapTotals({
             )}
           {(zaliczkiTotal > 0 || showPoza) &&
             row(
-              <Link
-                href={`/inwestycje/${investmentId}?type=${DEPOSIT_TYPES.join(',')}`}
-                className="hover:underline"
-              >
-                Wpłaty
-              </Link>,
+              clientView ? (
+                'Wpłaty'
+              ) : (
+                <Link
+                  href={`/inwestycje/${investmentId}?type=${DEPOSIT_TYPES.join(',')}`}
+                  className="hover:underline"
+                >
+                  Wpłaty
+                </Link>
+              ),
               (st) => formatNet(zaliczkiByStage[st.id] ?? 0),
               formatNet(zaliczkiTotal + pozaEtapem),
               formatNet(pozaEtapem),

@@ -30,9 +30,10 @@ type PropsT = {
   // still-owed „Do zapłaty" total. Distinct from zaliczkiByStage (the sparser per-etap tagged subset).
   wplatyNet: number
   rabatAmount: number
-  // Robocizna/rabat reconciliation verdict — drives the Podsumowanie mismatch scream. Optional
-  // because clientView suppresses the scream, so a client render need not compute it.
-  reconciliation?: KosztorysReconciliationT
+  // Robocizna/rabat reconciliation verdict — drives the Podsumowanie mismatch scream. Always supplied
+  // (the body computes it unconditionally); clientView suppresses the scream downstream, not by
+  // withholding the verdict.
+  reconciliation: KosztorysReconciliationT
   // Active price view. The recon verdict is client-view-fixed, so the scream only shows in 'client';
   // in a subcontractor view the displayed figure is repriced and the scream would misread.
   priceView: PriceViewT
@@ -109,6 +110,7 @@ export function KosztorysTotalsPanel({
           wykonaneNet={totalNet}
           vatRate={vatRate}
           moneyAxis={moneyAxis}
+          clientView={clientView}
         />
         <KosztorysPodsumowanie
           investmentId={investmentId}

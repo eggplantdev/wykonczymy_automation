@@ -103,10 +103,10 @@ export const AXIS_EXEMPT_COLUMNS: ReadonlySet<string> = new Set(['price'])
 // so the disclosure decision is forced at definition time rather than discovered as a leak.
 //
 // Its reach is column IDENTITY, not price plane. `price`/`net`/`gross` are allowlisted and compute at
-// whatever `view` the caller passes, so this set drops the subcontractor-only columns (`priceMode`,
-// `priceCoeff`) but does NOT by itself keep a subcontractor figure off the page. The locks that do:
-// the client payload carries no coefficients or overrides at all, and `toClientView` pins view
-// 'client' as a literal.
+// whatever `view` is active, so this set drops the subcontractor-only columns (`priceMode`,
+// `priceCoeff`) but does NOT by itself keep a subcontractor figure off the page. The lock that does:
+// `useKosztorysEditor` pins `view = 'client'` whenever `clientView` is set, so the allowlisted money
+// columns can only ever compute at the client price plane on the share/preview render.
 export const CLIENT_VISIBLE_COLUMNS: ReadonlySet<string> = new Set([
   'sectionName',
   'description',

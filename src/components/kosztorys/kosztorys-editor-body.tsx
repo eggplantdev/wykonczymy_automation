@@ -9,7 +9,7 @@ import { DynamicDataSheetGrid } from 'react-datasheet-grid'
 import { KosztorysSectionSummary } from '@/components/kosztorys/kosztorys-section-summary'
 import { KosztorysTotalsPanel } from '@/components/kosztorys/kosztorys-totals-panel'
 import { KosztorysEditorToolbar } from '@/components/kosztorys/kosztorys-editor-toolbar'
-import { MoneyAxisToggle } from '@/components/kosztorys/client/money-axis-toggle'
+import { MoneyAxisToggle } from '@/components/kosztorys/money-axis-toggle'
 import { useKosztorysEditor } from '@/components/kosztorys/use-kosztorys-editor'
 import { KosztorysEditorProvider } from '@/components/kosztorys/use-kosztorys-editor-context'
 import { useUndoKeyboard } from '@/components/kosztorys/use-undo-keyboard'
@@ -23,20 +23,9 @@ import {
 import { toGross } from '@/lib/kosztorys/calc'
 import { buildKosztorysReconciliation } from '@/lib/kosztorys/reconciliation'
 import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
-import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
-import type { KosztorysTreeT } from '@/lib/kosztorys/types'
+import type { KosztorysEditorDataT } from '@/lib/kosztorys/types'
 
-type PropsT = {
-  investmentId: number
-  tree: KosztorysTreeT
-  investmentName: string
-  materialsNet: number
-  materialyBreakdown: MaterialyBreakdownRowT[]
-  wplatyNet: number
-  zaliczkiByStage: Record<number, number>
-  // Transaction-sourced robocizna/rabat (Σ LABOR_COST / Σ RABAT) — the reconciliation "actual" side.
-  investmentRobocizna: number
-  investmentRabat: number
+type PropsT = KosztorysEditorDataT & {
   // Read-only public/preview render: hides the mutation chrome, swaps the toolbar for a slim axis
   // header, kills persistence, and gates the footer's owner-only bits. The owner path leaves it unset.
   clientView?: boolean

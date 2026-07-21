@@ -18,13 +18,13 @@ export const HEADER_TIPS: Record<string, string> = {
   discountAmount:
     'Rabat kwota netto — ile złotych faktycznie schodzi z tej pozycji (Pomiar × Cena j.m. − Netto).\nPrzy rabacie % przelicza punkty procentowe na złotówki; przy rabacie zł jest równy wpisanej kwocie.\nZależy od aktywnego widoku cen — ten sam rabat % daje inną kwotę przy cenie klienta i przy cenie wykonawcy.',
   plannedNet: 'Przedmiar × Cena − Rabat.',
-  plannedGross: 'Przedmiar × Cena − Rabat',
+  plannedGross: '(Przedmiar × Cena − Rabat) × (1 + VAT).',
   net: 'Pomiar × Cena − Rabat.',
-  gross: 'Pomiar × Cena − Rabat.',
+  gross: '(Pomiar × Cena − Rabat) × (1 + VAT).',
   remaining:
-    'Wartość przedmiaru − wartość netto pomiar .\nIle z oferty nie zostało jeszcze wykonane. \nNa minusie = przekroczono przedmiar. \n„—" = pozycja nie ma przemiaru.',
+    'Wartość przedmiaru − wartość netto pomiaru.\nIle z oferty nie zostało jeszcze wykonane.\nNa minusie = przekroczono przedmiar.\n„—" = pozycja nie ma przedmiaru.',
   remainingGross:
-    'Wartość przedmiaru − wartość netto pomiar .\nIle z oferty nie zostało jeszcze wykonane. \nNa minusie = przekroczono przedmiar. \n„—" = pozycja nie ma przemiaru.',
+    'Wartość przedmiaru − wartość pomiaru, brutto = netto × (1 + VAT).\nIle z oferty nie zostało jeszcze wykonane.\nNa minusie = przekroczono przedmiar.\n„—" = pozycja nie ma przedmiaru.',
   donePercent:
     '% wykonania względem przedmiaru.\nIle procent oferty jest zrobione.\n„—" = brak przedmiaru. Powyżej 100% oznacza przekroczenie założeń z przedmiaru.',
   // The three stage axes key by column GROUP, not by column id — every stage's column shares its

@@ -126,8 +126,7 @@ function title(
 // (lib/kosztorys/sort-value) has no case for, so a sort trigger here would render an arrow that does
 // nothing. Deliberately not `StageHeader` — a mirror carries no rename/delete affordance of its own.
 function stageValueHeader(stage: KosztorysStageT, suffix: string, tip: string): ReactNode {
-  // Wraps (no truncate) into the fixed, taller header row (KosztorysEditorBody) — same behavior as
-  // every other header, owner and client alike.
+  // Wraps (no truncate) into the fixed, taller header row (KosztorysEditorBody).
   return withTip(
     <span className="text-sm">{`${stage.label || `Etap ${stage.ordinal}`} ${suffix}`}</span>,
     tip,

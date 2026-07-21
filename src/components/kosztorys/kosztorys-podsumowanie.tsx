@@ -55,9 +55,10 @@ type PropsT = {
   // The rabat actually taken off the executed robocizna (net zł): the global discount when active,
   // else Σ per-item rabat. Unified upstream so this table shows one explicit „Rabat" line. 0 = none.
   rabatAmount: number
-  // Robocizna/rabat reconciliation verdict — the mismatch scream renders off this. Optional:
-  // clientView suppresses the scream, so the client render need not supply it.
-  reconciliation?: KosztorysReconciliationT
+  // Robocizna/rabat reconciliation verdict — the mismatch scream renders off this. Always supplied
+  // (the body computes it unconditionally); clientView suppresses the scream via reconVisible, not by
+  // withholding the verdict.
+  reconciliation: KosztorysReconciliationT
   // Active price view. The verdict compares client-view nets, so the scream only reads correctly in
   // 'client'; a subcontractor view reprices the displayed figure, so the scream is suppressed there.
   priceView: PriceViewT
@@ -100,9 +101,7 @@ export function KosztorysPodsumowanie({
   // Only while the scream is visible; otherwise the row follows the normal „rabat > 0" rule.
   const showRabat =
     rabatAmount > 0 ||
-    (reconVisible &&
-      !!reconciliation &&
-      (reconciliation.rabat.actual > 0 || reconciliation.rabat.mismatch))
+    (reconVisible && (reconciliation.rabat.actual > 0 || reconciliation.rabat.mismatch))
   const sumaPrac = summaryLine(sumaPracNet, lacznie.net, vatRate)
   // Rabat is an obniżka of prace, so it lives on the prace plane and grosses — brutto = rabat×(1+VAT).
   // Grossing it keeps the brutto waterfall exact: Łącznie − rabat − wpłaty = Do zapłaty on both axes
@@ -131,7 +130,7 @@ export function KosztorysPodsumowanie({
         <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Udział</span>
         {row('Suma prac wykonanych', sumaPrac, {
           mismatch:
-            reconVisible && reconciliation?.robocizna.mismatch
+            reconVisible && reconciliation.robocizna.mismatch
               ? mismatchTooltip(reconciliation.robocizna, 'Transakcje robocizny')
               : undefined,
         })}
@@ -166,7 +165,7 @@ export function KosztorysPodsumowanie({
             discount: true,
             noShareCell: true,
             mismatch:
-              reconVisible && reconciliation?.rabat.mismatch
+              reconVisible && reconciliation.rabat.mismatch
                 ? mismatchTooltip(reconciliation.rabat, 'Transakcje rabatu')
                 : undefined,
           })}

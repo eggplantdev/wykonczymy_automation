@@ -114,7 +114,12 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false }: A
   // router.refresh() lands — the transient the "never disagree" invariant below forbids.
   const [globalDiscount, setGlobalDiscount] = useState<GlobalDiscountT>(tree.globalDiscount)
   const globalDiscountActive = isGlobalDiscountActive(globalDiscount)
-  const [view, setView] = usePriceView(investmentId)
+  const [persistedView, setView] = usePriceView(investmentId)
+  // clientView pins the price plane to 'client'. The public page ships the full tree (coefficients
+  // included), so an un-pinned view would let a client set localStorage['kosztorys-view:<id>'] to a
+  // subcontractor view and make the allowlisted price/net/gross columns render the contractor's cost
+  // basis. This is the render-side half of the disclosure lock the deleted toClientView used to hold.
+  const view = clientView ? 'client' : persistedView
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<V2SortStateT>(null)
   // Section filter, three states: null = no filter (all sections), a Set = show exactly those, an
@@ -248,13 +253,14 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false }: A
   // is no control left that could fire them. Column resize (onGuide/onCommitColumn) is the exception:
   // it only moves a localStorage width, never touches the server, so a client keeps it for readability.
   // Sort is dropped (headers render as plain labels) — the client sees a fixed, non-interactive order.
+  const ownerOnly = <T>(handler: T): T | undefined => (clientView ? undefined : handler)
   const columnOpts = {
     view,
     stages,
-    onRemoveStage: clientView ? undefined : handleRemoveStage,
-    onRenameStage: clientView ? undefined : handleRenameStage,
+    onRemoveStage: ownerOnly(handleRemoveStage),
+    onRenameStage: ownerOnly(handleRenameStage),
     sort,
-    onSetSort: clientView ? undefined : setSortField,
+    onSetSort: ownerOnly(setSortField),
     isHidden,
     moneyAxis: effectiveMoneyAxis,
     progressDisplay,
@@ -262,11 +268,11 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false }: A
     widths,
     onGuide: setGuideX,
     onCommitColumn: setWidth,
-    onRemoveItem: clientView ? undefined : handleRemoveItem,
-    onReorderItem: clientView ? undefined : handleReorderItem,
-    onInsertItem: clientView ? undefined : handleInsertItem,
-    onRenameSection: clientView ? undefined : handleRenameSection,
-    getRemovePlan: clientView ? undefined : getRemovePlan,
+    onRemoveItem: ownerOnly(handleRemoveItem),
+    onReorderItem: ownerOnly(handleReorderItem),
+    onInsertItem: ownerOnly(handleInsertItem),
+    onRenameSection: ownerOnly(handleRenameSection),
+    getRemovePlan: ownerOnly(getRemovePlan),
     globalDiscountActive,
     readOnly: clientView || undefined,
     clientVisible: clientView || undefined,

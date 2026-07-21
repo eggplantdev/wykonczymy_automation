@@ -37,8 +37,8 @@ describe('clientVisible', () => {
   it('drops the subcontractor-only columns even when the grid is built at a subcontractor view', () => {
     // What the allowlist actually guarantees: columns that exist ONLY to edit the subcontractor
     // plane are never assembled. It does NOT neutralize `view` — `price`/`net` are allowlisted and
-    // still compute at whatever view is passed. Those are held by the payload (no coefficients) and
-    // by toClientView pinning 'client'.
+    // still compute at whatever view is passed. That plane is held to 'client' upstream, where
+    // useKosztorysEditor pins `view = 'client'` whenever `clientView` is set.
     const columns = ids({ ...editorOpts, view: 'w_tools', clientVisible: true, readOnly: true })
     expect(columns).not.toContain('priceMode')
     expect(columns).not.toContain('priceCoeff')
