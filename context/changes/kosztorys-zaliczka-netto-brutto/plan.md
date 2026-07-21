@@ -599,7 +599,7 @@ tags) is throwaway; no backfill for either migration.
 
 #### Automated
 
-- [x] 4.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`)
-- [x] 4.2 Lint passes (`pnpm lint`)
-- [x] 4.3 Unit tests pass (`pnpm exec vitest run`)
-- [x] 4.4 Tailwind v4 audit clean on the new wpłaty-list component
+- [x] 4.1 Type checking passes (`pnpm generate:types && pnpm exec tsc --noEmit`) — ddaf802a
+- [x] 4.2 Lint passes (`pnpm lint`) — ddaf802a
+- [x] 4.3 Unit tests pass (`pnpm exec vitest run`) — ddaf802a
+- [x] 4.4 Tailwind v4 audit clean on the new wpłaty-list component — ddaf802a

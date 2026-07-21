@@ -971,3 +971,44 @@ toggle the price view.
   `e2e-backlog`, project „Wykonczymy") per AGENTS.md — the browser render is a low-risk plumbing surface.
   Author the Playwright spec (toggle view → assert block swaps + per-worker link target + toggle hidden)
   when the backlog item is picked up.
+
+## kosztorys-zaliczka-netto-brutto (EX-536)
+
+**In review** — automated checks green (tsc: only the pre-existing unrelated `seed-investment-from-sheet.ts`
+error; eslint 0 errors; full unit suite 1097 passed incl. the bucket-reducer + sequential `computeDoZaplatyRM`
+specs). Wpłaty (INVESTOR_DEPOSIT) now carry a three-state `vatPlane` (NET/GROSS/legacy NULL); the deposit→etap
+link is gone; the Podsumowanie shows Wpłaty netto/brutto + Do zapłaty netto/brutto as one always-visible block,
+plus a per-wpłata list. Companion: `paymentMethod` picker (gotówka/przelew) restored on the deposit form.
+Boxes below are the browser-level flows CI can't reach; the sequential calc math is unit-covered.
+
+Two **local migrations** ride with this change — apply them to the 5435 test DB before checking
+(`payload migrate` against `DB_POSTGRES_URL_TEST`): `20260721_0_drop_kosztorys_stage_from_transactions`
+and `20260721_1_add_vat_plane_to_transactions`. Prod migration is a human deploy-time step, orthogonal to
+these checks.
+
+Setup: run the app against the **5435 test DB** (see intro) as OWNER/MANAGER, on an investment with a
+seeded kosztorys (executed progress + a robocizna figure). Create INVESTOR_DEPOSIT wpłaty as noted below,
+then open the **Kosztorys** tab, Klient view, and expand the Podsumowanie.
+
+- [ ] **Migrations applied clean.** Both migrations run against the test DB without error; `transactions`
+      has no `kosztorys_stage` column and gained a nullable `vat_plane` (`enum_transactions_vat_plane`).
+- [ ] **Deposit form: no stage Select, plane + method required.** The wpłata dialog offers only „Wpłata od
+      inwestora", forces a netto/brutto choice (omitting it blocks submit), and shows a paymentMethod picker
+      defaulting to **Gotówka** (Przelew selectable). No etap Select anywhere on the form.
+- [ ] **Stored row shape.** A saved INVESTOR_DEPOSIT persists `vat_plane` = the chosen plane and its
+      `payment_method`; a non-deposit transaction leaves `vat_plane` NULL.
+- [ ] **Sequential model (owner example).** Robocizna 2000 + one **netto**-flagged wpłata 1000 → Wpłaty netto
+      1000, Do zapłaty netto 1000, Do zapłaty brutto 1080. A later **brutto**-flagged wpłata 1080 drives Do
+      zapłaty brutto to 0.
+- [ ] **Four figures are one locked block, axis-independent.** Toggling `MoneyAxisToggle` (Netto / Brutto /
+      pokaż wszystko) never hides the Wpłaty netto/brutto + Do zapłaty netto/brutto set; the collapsed
+      headline and the expanded Podsumowanie show the **same** numbers.
+- [ ] **Legacy (NULL plane) at face on both axes.** An investment with only a legacy wpłata (no plane flag,
+      e.g. an existing `OTHER_DEPOSIT`-era row) shows Do zapłaty netto = R − legacy and brutto = R×1,08 −
+      legacy (identical to the pre-change code); the legacy amount surfaces as its own amber
+      „bez oznaczenia" line that **subtracts**, not excludes.
+- [ ] **Wpłaty list.** Below the etap totals, each wpłata renders date + amount + its plane tag
+      (netto/brutto green, legacy amber) and links to `/inwestycje/{id}?type=INVESTOR_DEPOSIT` (owner) /
+      plain text (client preview). The list reconciles with the Podsumowanie Wpłaty netto/brutto sums plus
+      the amber legacy line.
+- [ ] **No console/SQL error** on the kosztorys page or the investment transactions view after the changes.
