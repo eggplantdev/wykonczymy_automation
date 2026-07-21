@@ -34,7 +34,12 @@ wartości.
 inwestycji) zależy od tego, czy zaliczka wchodzi netto czy brutto. Bez odpowiedzi nie wiem, czy
 obecne „wpłaty face value" jest poprawne na osi brutto.
 
-**Status:** otwarte — czeka na właściciela. Linear: **EX-536** (blokuje EX-535).
+**Status:** ~~otwarte~~ **ODPOWIEDŹ: OBIE (właściciel, 2026-07-21).** Zaliczka (deposit) niesie **obie
+osie — netto i brutto**. Dziś przy dodawaniu transakcji typu deposit **nie ma** wyboru netto/brutto —
+trzeba to dodać. Mechanika (przechowywane obie / wybór per wpłata gotówka vs faktura / jedna wyliczana
+z drugiej) → do rozstrzygnięcia w dedykowanym change (careful planning + full change.md). Realizacja
+**teraz**. Zabakowane w `context/reference/kosztorys-editor-domain-notes.md` (sekcja VAT, wyjątek
+zaliczka). Linear: **EX-536** — odblokowuje EX-535.
 
 ---
 
@@ -62,6 +67,11 @@ co przy zaliczce (Q1/EX-536).
 źle dobierzemy oś (netto vs brutto) dla rabatu, wskaźnik daje false-positive — czyli robi dokładnie to,
 przed czym ma ostrzegać.
 
-**Status:** otwarte — czeka na właściciela. Linear: **EX-539** (blokuje EX-535), siostra EX-536.
+**Status:** ~~otwarte~~ **ROZPUSZCZONE (właściciel, 2026-07-21).** Transakcja `RABAT` **w zasadzie
+znika** — rabat nie jest już ręczną transakcją, tylko kwotą **readonly z arkusza**, pokazywaną w
+widoku inwestycji i wchodzącą w jej podsumowanie. Skoro nie ma ręcznej transakcji `RABAT`, nie ma osi
+wpisu netto/brutto do rozstrzygnięcia ani `Σ RABAT` do rekoncyliacji — rabat inwestycji = rabat
+kosztorysowy wprost. Zabakowane w `context/reference/kosztorys-editor-domain-notes.md` (sekcja VAT /
+rekoncyliacja). Linear: **EX-539** (zamknięte). Budowa figury w widoku inwestycji → EX-535.
 
 <!-- Q3 — dopisz kolejne pytania tutaj, tym samym wzorem (Obserwacja / Sprzeczność / Do rozstrzygnięcia / Dlaczego blokuje / Status). -->

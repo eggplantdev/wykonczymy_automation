@@ -32,7 +32,7 @@ export const COLUMN_LABELS: Record<string, string> = {
   stageValueNet: 'Etapy — kwota netto',
   stageValueGross: 'Etapy — kwota brutto',
   stageValuePercent: 'Etapy — % wykonania',
-  donePercent: '% wykonania (względem pomiaru)',
+  donePercent: '% wykonania (względem przedmiaru)',
   note: 'Komentarz',
 }
 

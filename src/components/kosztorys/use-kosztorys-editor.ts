@@ -45,6 +45,7 @@ import {
 } from '@/lib/kosztorys/delete-policy'
 import {
   clientTotalsFromSubtotals,
+  executedWorkNetPreRabat,
   rowRemainingForView,
   sectionSubtotalsForView,
   stageTotalsForView,
@@ -138,9 +139,11 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false, und
   const { widths, setWidth, dropWidth } = useColumnWidths()
   const { isHidden, toggleColumn, setAllColumns } = useHiddenColumns()
   const [moneyAxis, setMoneyAxis] = useMoneyAxis()
-  // A client never gets the 'none' axis — it hides every price column, leaving quantities alone. The
-  // slim client header only offers net/brutto/both, so normalize a stored 'none' up to 'both'.
-  const effectiveMoneyAxis = clientView && moneyAxis === 'none' ? 'both' : moneyAxis
+  // Subcontractor views (Z narzędziami / Bez narzędzi) are paid without VAT (EX-558), so brutto is
+  // meaningless there — lock the axis to net regardless of the persisted value, matching the hidden
+  // Kwoty control. In the client view a stored 'none' normalizes up to 'both' (the slim client header
+  // only offers net/brutto/both).
+  const effectiveMoneyAxis = view !== 'client' ? 'net' : moneyAxis === 'none' ? 'both' : moneyAxis
   const [progressDisplay, setProgressDisplay] = useProgressDisplay()
   const [layer, setLayer] = useLayer()
   const [guideX, setGuideX] = useState<number | null>(null)
@@ -387,6 +390,10 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false, und
     [subtotals],
   )
   const rabatAmount = discountAmount + itemRabatTotal
+
+  // „Suma wykonanej pracy" (należne) for the subcontractor summary — executed value at the ACTIVE
+  // view's subcontractor price, pre-rabat. Reactive to unsaved edits and the view toggle via subtotals.
+  const subcontractorDueNet = useMemo(() => executedWorkNetPreRabat(subtotals), [subtotals])
 
   // Section coefficients (null = inherits the global) for the panel — from the tree, keyed by section id.
   const sectionCoeffs = new Map(
@@ -1088,6 +1095,7 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false, und
     globalDiscount,
     discountAmount,
     rabatAmount,
+    subcontractorDueNet,
     laborCostsNetFromKosztorys,
     // toolbar / panel state
     setView,

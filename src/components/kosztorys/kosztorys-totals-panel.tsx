@@ -9,17 +9,27 @@ import type { PriceViewT } from '@/lib/kosztorys/calc'
 import { computeDoZaplatyRM } from '@/lib/kosztorys/summary-economics'
 import { KosztorysEtapTotals } from '@/components/kosztorys/kosztorys-etap-totals'
 import { KosztorysSummary } from '@/components/kosztorys/kosztorys-summary'
+import { SubcontractorSummary } from '@/components/kosztorys/subcontractor-summary'
+import { computeSubcontractorSummary } from '@/lib/kosztorys/subcontractor-summary'
 import { useTotalsPanelOpen } from '@/components/kosztorys/use-totals-panel-open'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import type { KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import type { SectionSliceInputT } from '@/lib/kosztorys/chart-slices'
+import type { SubcontractorPayoutRowT, PayoutTransactionRowT } from '@/types/reference-data'
 
 type PropsT = {
   investmentId: number
   stages: KosztorysStageT[]
   stageTotals: Map<number, number>
   zaliczkiByStage: Record<number, number>
+  // Realized PAYOUTs per worker — feeds the subcontractor summary block (Z/Bez narzędzi views only).
+  payoutsByWorker: SubcontractorPayoutRowT[]
+  // Individual realized PAYOUT rows — feed the subcontractor block's sortable wypłaty list.
+  payoutTransactions: PayoutTransactionRowT[]
+  // „Suma wykonanej pracy" (należne) at the active view's subcontractor price, pre-rabat — the
+  // subcontractor block's headline figure. Ignored in the client view.
+  subcontractorDueNet: number
   // Suma prac wykonanych — the executed total BEFORE rabat (Σ etap totals); EtapTotals' readout.
   totalNet: number
   // Robocizna wartość netto — executed total AFTER rabat; the Podsumowanie waterfall's base.
@@ -54,6 +64,9 @@ export function KosztorysTotalsPanel({
   stages,
   stageTotals,
   zaliczkiByStage,
+  payoutsByWorker,
+  payoutTransactions,
+  subcontractorDueNet,
   totalNet,
   laborCostsNetFromKosztorys,
   materialyNet,
@@ -69,9 +82,18 @@ export function KosztorysTotalsPanel({
 }: PropsT) {
   const [open, setOpen] = useTotalsPanelOpen()
   const { net: showNet, gross: showGross } = axisShows(moneyAxis)
+  // The subcontractor plane (Z/Bez narzędzi) has no VAT axis and its own headline figure, so the
+  // client „Do zapłaty" only applies in the client view.
+  const isClientPlane = priceView === 'client'
   // Computed here and passed down: the collapsed headline and the Podsumowanie row show the same
   // „Do zapłaty", so it has one source rather than two calls that must be kept in step.
   const doZaplaty = computeDoZaplatyRM(laborCostsNetFromKosztorys, wplatyNet, materialyNet, vatRate)
+  // Subcontractor headline: „Pozostało do wypłaty" (należne − zaliczki), shown collapsed in place of
+  // the client „Do zapłaty".
+  const { remaining: subcontractorRemaining } = computeSubcontractorSummary(
+    subcontractorDueNet,
+    payoutsByWorker,
+  )
 
   return (
     <Collapsible.Root
@@ -86,53 +108,77 @@ export function KosztorysTotalsPanel({
             open && 'rotate-180',
           )}
         />
-        <span className="font-medium">Podsumowanie</span>
-        {/* Collapsed: keep the robocizna „Do zapłaty" headline visible; open: the table carries it. */}
-        {!open && (
-          <span className="text-muted-foreground ml-auto flex items-baseline gap-x-4 tabular-nums">
-            <span>Do zapłaty</span>
-            {showNet && (
-              <span className="flex items-baseline gap-x-1.5">
-                <span className="text-muted-foreground text-xs">netto</span>
-                <span className="text-foreground font-medium">{formatNet(doZaplaty.net)}</span>
+        <span className="font-medium">
+          {isClientPlane ? 'Podsumowanie' : 'Podsumowanie podwykonawców'}
+        </span>
+        {/* Collapsed: keep the headline figure visible; open: the table carries it. Client plane =
+            robocizna „Do zapłaty" (netto/brutto); subcontractor plane = „Pozostało do wypłaty" (no VAT axis). */}
+        {!open &&
+          (isClientPlane ? (
+            <span className="text-muted-foreground ml-auto flex items-baseline gap-x-4 tabular-nums">
+              <span>Do zapłaty</span>
+              {showNet && (
+                <span className="flex items-baseline gap-x-1.5">
+                  <span className="text-muted-foreground text-xs">netto</span>
+                  <span className="text-foreground font-medium">{formatNet(doZaplaty.net)}</span>
+                </span>
+              )}
+              {showGross && (
+                <span className="flex items-baseline gap-x-1.5">
+                  <span className="text-muted-foreground text-xs">brutto</span>
+                  <span className="text-foreground font-medium">{formatNet(doZaplaty.gross)}</span>
+                </span>
+              )}
+            </span>
+          ) : (
+            <span className="text-muted-foreground ml-auto flex items-baseline gap-x-1.5 tabular-nums">
+              <span>Pozostało do wypłaty</span>
+              <span className="text-foreground font-medium">
+                {formatNet(subcontractorRemaining)}
               </span>
-            )}
-            {showGross && (
-              <span className="flex items-baseline gap-x-1.5">
-                <span className="text-muted-foreground text-xs">brutto</span>
-                <span className="text-foreground font-medium">{formatNet(doZaplaty.gross)}</span>
-              </span>
-            )}
-          </span>
-        )}
+            </span>
+          ))}
       </Collapsible.Trigger>
       <Collapsible.Content className="data-[state=closed]:animate-collapse-up data-[state=open]:animate-collapse-down overflow-hidden">
-        <KosztorysEtapTotals
-          investmentId={investmentId}
-          stages={stages}
-          stageTotals={stageTotals}
-          zaliczkiByStage={zaliczkiByStage}
-          wplatyNet={wplatyNet}
-          wykonaneNet={totalNet}
-          vatRate={vatRate}
-          moneyAxis={moneyAxis}
-          clientView={clientView}
-        />
-        <KosztorysSummary
-          investmentId={investmentId}
-          laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
-          doZaplaty={doZaplaty}
-          materialyNet={materialyNet}
-          materialyBreakdown={materialyBreakdown}
-          sectionSubtotals={sectionSubtotals}
-          wplatyNet={wplatyNet}
-          rabatAmount={rabatAmount}
-          reconciliation={reconciliation}
-          priceView={priceView}
-          vatRate={vatRate}
-          moneyAxis={moneyAxis}
-          clientView={clientView}
-        />
+        {isClientPlane ? (
+          <>
+            {/* „Suma transzy" (per-etap, Netto/Brutto) is a client/VAT figure — the subcontractor plane
+                has no VAT axis (EX-558), so it renders only here. */}
+            <KosztorysEtapTotals
+              investmentId={investmentId}
+              stages={stages}
+              stageTotals={stageTotals}
+              zaliczkiByStage={zaliczkiByStage}
+              wplatyNet={wplatyNet}
+              wykonaneNet={totalNet}
+              vatRate={vatRate}
+              moneyAxis={moneyAxis}
+              clientView={clientView}
+            />
+            <KosztorysSummary
+              investmentId={investmentId}
+              laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
+              doZaplaty={doZaplaty}
+              materialyNet={materialyNet}
+              materialyBreakdown={materialyBreakdown}
+              sectionSubtotals={sectionSubtotals}
+              wplatyNet={wplatyNet}
+              rabatAmount={rabatAmount}
+              reconciliation={reconciliation}
+              priceView={priceView}
+              vatRate={vatRate}
+              moneyAxis={moneyAxis}
+              clientView={clientView}
+            />
+          </>
+        ) : (
+          <SubcontractorSummary
+            investmentId={investmentId}
+            dueNet={subcontractorDueNet}
+            payouts={payoutsByWorker}
+            payoutTransactions={payoutTransactions}
+          />
+        )}
       </Collapsible.Content>
     </Collapsible.Root>
   )
