@@ -361,6 +361,54 @@ ekip na inwestycji, część pracuje z narzędziami, część bez. Ta sama praca
 z narzędziami, etapy 3–4 bez". Czyli grain wyboru wariantu to **etap**, nie praca. Tu model app się
 **rozwala** — nie ma gdzie tego zapisać (`stage_progress` trzyma tylko `qty_done`).
 
+**Referencyjny arkusz z tym przypadkiem** — _„Kopia Michał Malarz przedpole 8a kopia"_ (właściciel,
+2026-07-21), tab `kosztorys_robocizny`, gid=70964819, udostępniony read-only na SA:
+
+```
+15zV_w5Z2EmGZCkWvm1wzXJgmGVAO0_V98-wufGF3Tn4
+```
+
+**Zweryfikowane fakty (inspekcja formuł, 2026-07-21):**
+
+- **Grain per etap = ekipa, POTWIERDZONY w realnym arkuszu.** Nagłówki kolumn etapów niosą **nazwy
+  ekip**: `D3 = „1 etap PAWEL AES"`, `E3 = „2 etap PAWEL AES"`, `F3 = „3 etap EKIPA MYKOLA"`. Czyli
+  etapy 1–2 robił Paweł (AES), etap 3 ekipa Mykoły — inna ekipa per etap, dokładnie model kaskady
+  sekcja×etap. To jest fixture na „kilka ekip, wariant zmienia się między etapami".
+- **Tab klienta (`kosztorys_robocizny`): jedna cena na wiersz.** Kolumny wartości per-etap `Q–V` mnożą
+  przez **tę samą** `cena j.m. M`: `Q = D×$M − rabat`, … Klient płaci jedno, niezależnie od ekipy —
+  poprawne. Nazwa ekipy na nagłówku etapu to tu **tylko etykieta kto-co-robił**.
+- **Taby podwykonawcy JEDNAK liczą wartość per-etap** (korekta wcześniejszej pochopnej tezy — 2026-07-21).
+  W `zakres pracy z narzędziami`: `N = L×0,65` (stawka z narzędziami = 65% ceny klienta),
+  `P = N−N×0,15` = `N×0,85` = 0,5525×L (stawka bez narzędzi). Per-etap `S–X`: **`S=C×$N`, `T=D×$N`,
+  `U=E×$N`…** — każdy etap × `$N`. `Y = O − ΣS:X` = bilans.
+- **ALE w obrębie jednego taba wszystkie etapy idą po JEDNEJ stawce** (`$N` z narzędziami); tab-bliźniak
+  `bez narzędzi` liczy wszystko po `bez`. **Żaden tab nie miesza z/bez między etapami** — dają dwie
+  hipotezy „całość z" / „całość bez", nie realny miks. Nazwa ekipy (PAWEL/MYKOLA) jest etykietą, stawka
+  za nią NIE idzie.
+- **To jest dokładny mechanizm buga 78k-vs-56k:** „całość z" (0,65×L na wszystkich etapach) vs „całość
+  bez" (0,5525×L). Prawda leży pomiędzy, gdy etapy mają różne ekipy → arkusz nie umie tego wyrazić.
+- **`Podsumowanie` to plan klienta** — `SUMIF` po sekcji z kolumny `P` (wartość netto klienta),
+  robocizna 91 489; brak rozbicia wypłaty per ekipa.
+- **Wniosek dla changeu:** silnik „Mieszany" (Σ komórek po stawce podwykonawcy rozwiązanej **per
+  etap**, nie per tab) to genuinie nowa robota — arkusz umie tylko „cały wiersz jednym wariantem",
+  a my potrzebujemy „etap 1–2 z, etap 3 bez". Współczynniki z tego arkusza: **z = 0,65×klient,
+  bez = 0,5525×klient** (0,65×0,85) — użyteczne do seeda/parytetu.
+
+**⚠️ OTWARTE PYTANIE (nie rozstrzygnięte, właściciel 2026-07-21).** Ten arkusz **nie dowodzi**, że
+realny miks z/bez per etap był kiedykolwiek potrzebny: etykieta ekipy (PAWEL/MYKOLA) **nie niesie
+wariantu**, a oba taby liczą jednorodnie. Nie wiemy, jak wypłatę liczono, gdy część pracy szła z, część
+bez — możliwości: (a) brali jeden tab jako przybliżenie (i stąd rozjazd 78k/56k), (b) miks ręcznie poza
+arkuszem, (c) miks realnie się nie zdarzał i jeden tab wystarczał. **Decyzja właściciela: zostawiamy to
+otwarte i i tak budujemy elastyczny model per etap** — ma być bardziej elastyczny niż arkusz, więc
+poprawnie obsłuży miks, jeśli/gdy się pojawi, a w przypadku jednorodnym degeneruje do „całość z/bez".
+
+- **Szablon 6-etapowy** (nie 10): ilości `D–I`, wartość per-etap `Q–V`, `W = O − ΣQ:V` = „pozostało
+  do rozliczenia / bilans" (na cenie klienta). Inny layout niż kanoniczny (`D:M` / `U–AE`) — to
+  wariancja szablonu, nasz schemat i tak jest własny.
+- **Nazwa ekipy = etykieta etapu, nie osobna encja** (decyzja właściciela 2026-07-21). Arkusz trzyma
+  „PAWEL AES" w nagłówku etapu; u nas to edytowalne `kosztorys_stages.label`. Change dokłada per etap
+  **tylko wariant z/bez** — nie pole/encję ekipy. „mogą zmienić label etapu".
+
 **Kierunek rozwiązania (czysty, zaskakująco mały).** Stawki i tak są **dwie na pracę** (z i bez, obie
 własne — już importowane). Nie trzeba „dowolnej stawki per etap" — trzeba jednej nowej rzeczy:
 **oznaczenia wariantu na etapie**, które wybiera, która z dwóch stawek pracy obowiązuje na daną ilość.
