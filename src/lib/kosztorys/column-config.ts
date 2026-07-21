@@ -1,4 +1,5 @@
 import {
+  STAGES_COLUMN_GROUP,
   STAGE_VALUE_GROSS_COLUMN_GROUP,
   STAGE_VALUE_NET_COLUMN_GROUP,
   STAGE_VALUE_PERCENT_COLUMN_GROUP,
@@ -11,7 +12,7 @@ export const COLUMN_LABELS: Record<string, string> = {
   sectionName: 'Sekcja',
   description: 'Opis prac',
   plannedQty: 'Przedmiar',
-  stageQtySum: 'Pomiar',
+  stageQtySum: 'Pomiar (razem etapy)',
   unit: 'J.m.',
   priceMode: 'Źródło ceny wykonawcy',
   priceCoeff: 'Mnożnik',
@@ -23,15 +24,15 @@ export const COLUMN_LABELS: Record<string, string> = {
   discountAmountGross: 'Rabat kwota brutto',
   plannedNet: 'Wartość przedmiaru netto',
   plannedGross: 'Wartość przedmiaru brutto',
-  net: 'Netto',
-  gross: 'Brutto',
-  remaining: 'Pozostało netto',
-  remainingGross: 'Pozostało brutto',
+  net: 'Razem Netto',
+  gross: 'Razem Brutto',
+  remaining: 'Pozostało netto (względem przedmiaru)',
+  remainingGross: 'Pozostało brutto (względem przedmiaru)',
   stages: 'Etapy — ilość',
   stageValueNet: 'Etapy — kwota netto',
   stageValueGross: 'Etapy — kwota brutto',
   stageValuePercent: 'Etapy — % wykonania',
-  donePercent: '% wykonania',
+  donePercent: '% wykonania (względem pomiaru)',
   note: 'Komentarz',
 }
 
@@ -96,6 +97,42 @@ export const LAYER_NEUTRAL_COLUMNS: ReadonlySet<string> = new Set([
 // must never take it away. It stays tagged `net` above because it IS a netto figure; the exemption is
 // policy layered on the tag.
 export const AXIS_EXEMPT_COLUMNS: ReadonlySet<string> = new Set(['price'])
+
+// What a client may see on the share view — an ALLOWLIST, keyed by toggleKey like the maps above.
+// Allowlist, not a denylist: a column added later is invisible to clients until someone puts it here,
+// so the disclosure decision is forced at definition time rather than discovered as a leak.
+//
+// Its reach is column IDENTITY, not price plane. `price`/`net`/`gross` are allowlisted and compute at
+// whatever `view` is active, so this set drops the subcontractor-only columns (`priceMode`,
+// `priceCoeff`) but does NOT by itself keep a subcontractor figure off the page. The lock that does:
+// `useKosztorysEditor` pins `view = 'client'` whenever `clientView` is set, so the allowlisted money
+// columns can only ever compute at the client price plane on the share/preview render.
+export const CLIENT_VISIBLE_COLUMNS: ReadonlySet<string> = new Set([
+  'sectionName',
+  'description',
+  'plannedQty',
+  'stageQtySum',
+  'unit',
+  'price',
+  'priceGross',
+  'discountType',
+  'discountValue',
+  'discountAmount',
+  'discountAmountGross',
+  'plannedNet',
+  'plannedGross',
+  'net',
+  'gross',
+  'remaining',
+  'remainingGross',
+  // No `note`: the sheet's „komentarz" is owner-authored internal free text (owner ruling,
+  // 2026-07-20) — the client DTO drops it too, so this is the matching half of that decision.
+  STAGES_COLUMN_GROUP,
+  STAGE_VALUE_NET_COLUMN_GROUP,
+  STAGE_VALUE_GROSS_COLUMN_GROUP,
+  STAGE_VALUE_PERCENT_COLUMN_GROUP,
+  'donePercent',
+])
 
 // The stage axis triples the grid's stage block, and brutto per stage is the least-read of the three
 // — derivable from the netto beside it at a fixed rate. Declared here rather than seeded into the

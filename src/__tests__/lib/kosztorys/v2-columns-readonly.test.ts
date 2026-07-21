@@ -1,0 +1,63 @@
+import { describe, expect, it } from 'vitest'
+import { buildV2Columns } from '@/components/kosztorys/kosztorys-v2-columns'
+import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/kosztorys-v2-column-opts'
+import type { KosztorysStageT } from '@/lib/kosztorys/types'
+
+const stages: KosztorysStageT[] = [
+  { id: 100, ordinal: 1, label: 'Etap 1' },
+  { id: 101, ordinal: 2, label: null },
+]
+
+// The editor's own opts: mutation callbacks present, so the actions column is built and cells are live.
+const editorOpts: BuildV2ColumnsOptsT = {
+  view: 'client',
+  stages,
+  onRemoveItem: () => {},
+  onReorderItem: () => {},
+}
+
+const ids = (opts: BuildV2ColumnsOptsT) => buildV2Columns(opts).map((c) => c.id)
+
+describe('readOnly', () => {
+  it('disables every column and drops the row-actions column', () => {
+    const columns = buildV2Columns({ ...editorOpts, readOnly: true })
+    expect(columns.every((c) => c.disabled)).toBe(true)
+    expect(columns.map((c) => c.id)).not.toContain('actions')
+  })
+
+  it('leaves the editor path untouched when unset', () => {
+    const columns = buildV2Columns(editorOpts)
+    expect(columns.map((c) => c.id)).toContain('actions')
+    // The data cells stay live — this is the regression the flag must not cause.
+    expect(columns.some((c) => c.id === 'description' && !c.disabled)).toBe(true)
+  })
+})
+
+describe('clientVisible', () => {
+  it('drops the subcontractor-only columns even when the grid is built at a subcontractor view', () => {
+    // What the allowlist actually guarantees: columns that exist ONLY to edit the subcontractor
+    // plane are never assembled. It does NOT neutralize `view` — `price`/`net` are allowlisted and
+    // still compute at whatever view is passed. That plane is held to 'client' upstream, where
+    // useKosztorysEditor pins `view = 'client'` whenever `clientView` is set.
+    const columns = ids({ ...editorOpts, view: 'w_tools', clientVisible: true, readOnly: true })
+    expect(columns).not.toContain('priceMode')
+    expect(columns).not.toContain('priceCoeff')
+  })
+
+  it('withholds the owner-authored komentarz', () => {
+    expect(ids({ ...editorOpts, clientVisible: true, readOnly: true })).not.toContain('note')
+  })
+
+  it('keeps the offer + progress columns the client is meant to read', () => {
+    const columns = ids({ ...editorOpts, clientVisible: true, readOnly: true })
+    for (const id of ['description', 'plannedQty', 'unit', 'price', 'net', 'stageQtySum']) {
+      expect(columns).toContain(id)
+    }
+    // Per-etap quantity columns are namespaced per stage id, not by the group key.
+    expect(columns).toContain('stage_100')
+  })
+
+  it('is a no-op for the editor, which passes no flag', () => {
+    expect(ids({ ...editorOpts, view: 'w_tools' })).toContain('priceMode')
+  })
+})

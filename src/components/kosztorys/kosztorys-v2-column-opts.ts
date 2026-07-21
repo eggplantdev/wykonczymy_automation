@@ -50,4 +50,11 @@ export type BuildV2ColumnsOptsT = {
   // Global discount active → the four per-item discount columns are overridden, so drop them from
   // the grid and the picker (the underlying data stays and returns when the discount is cleared).
   globalDiscountActive?: boolean
+  // Lock the whole grid: every data cell becomes `disabled` and the row-actions column is dropped.
+  // Omitting the mutation callbacks is NOT enough — a cell with no callback still takes focus and
+  // enters edit mode, so a client-facing grid would look editable and swallow keystrokes.
+  readOnly?: boolean
+  // Narrow to the columns a client may see (CLIENT_VISIBLE_COLUMNS). Orthogonal to `readOnly`:
+  // read-only is about interaction, this is about disclosure.
+  clientVisible?: boolean
 }

@@ -4,6 +4,7 @@
 // in S-01 it is carried as 0 (VAT arrives in S-12).
 
 import type { STAGE_QTY_PREFIX } from '@/lib/kosztorys/stage-keys'
+import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 
 export type DiscountTypeT = 'percent' | 'amount'
 // Per-investment global discount over the whole kosztorys. type null = none (per-item discounts
@@ -107,6 +108,23 @@ export type KosztorysTreeT = {
   // payload.update stamps updatedAt), so the editor shell can key its restore remount on this token
   // changing rather than on the `tree` prop's object identity, which router.refresh reshapes every time.
   revision: string
+}
+
+// The full data set the editor body/shell needs to render: the tree plus the investment-level figures
+// (materials, wpłaty, zaliczki, robocizna/rabat) the footer reconciles against. Assembled identically
+// by the admin page, the owner preview, and the public share read — one shape so those three can't
+// drift on which figures the editor receives.
+export type KosztorysEditorDataT = {
+  investmentId: number
+  tree: KosztorysTreeT
+  investmentName: string
+  materialsNet: number
+  materialyBreakdown: MaterialyBreakdownRowT[]
+  wplatyNet: number
+  zaliczkiByStage: Record<number, number>
+  // Transaction-sourced robocizna/rabat (Σ LABOR_COST / Σ RABAT) — the reconciliation "actual" side.
+  laborCostsNetFromTransactions: number
+  investmentRabat: number
 }
 
 // --- v2 variant (react-datasheet-grid): a flat row with stages flattened

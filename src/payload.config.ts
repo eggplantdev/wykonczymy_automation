@@ -16,6 +16,7 @@ import { CashRegisters } from '@/collections/cash-registers'
 import { Investments } from '@/collections/investments'
 import { KosztorysItems } from '@/collections/kosztorys-items'
 import { KosztorysSections } from '@/collections/kosztorys-sections'
+import { KosztorysShares } from '@/collections/kosztorys-shares'
 import { KosztorysStages } from '@/collections/kosztorys-stages'
 import { StageProgress } from '@/collections/stage-progress'
 import { Leads } from '@/collections/leads'
@@ -69,6 +70,7 @@ export default buildConfig({
     KosztorysSections,
     KosztorysItems,
     KosztorysStages,
+    KosztorysShares,
     StageProgress,
     Transfers,
     OtherCategories,

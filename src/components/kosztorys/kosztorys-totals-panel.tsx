@@ -30,13 +30,17 @@ type PropsT = {
   // still-owed „Do zapłaty" total. Distinct from zaliczkiByStage (the sparser per-etap tagged subset).
   wplatyNet: number
   rabatAmount: number
-  // Robocizna/rabat reconciliation verdict — drives the Podsumowanie mismatch scream.
+  // Robocizna/rabat reconciliation verdict — drives the Podsumowanie mismatch scream. Always supplied
+  // (the body computes it unconditionally); clientView suppresses the scream downstream, not by
+  // withholding the verdict.
   reconciliation: KosztorysReconciliationT
   // Active price view. The recon verdict is client-view-fixed, so the scream only shows in 'client';
   // in a subcontractor view the displayed figure is repriced and the scream would misread.
   priceView: PriceViewT
   vatRate: number
   moneyAxis: MoneyAxisT
+  // Read-only client render: gate the mismatch scream and render internal links as plain text.
+  clientView?: boolean
 }
 
 // The bottom totals block: Suma transzy per etap + the merged Podsumowanie table (Suma prac →
@@ -57,6 +61,7 @@ export function KosztorysTotalsPanel({
   priceView,
   vatRate,
   moneyAxis,
+  clientView = false,
 }: PropsT) {
   const [open, setOpen] = useTotalsPanelOpen()
   const { net: showNet, gross: showGross } = axisShows(moneyAxis)
@@ -107,6 +112,7 @@ export function KosztorysTotalsPanel({
           wykonaneNet={totalNet}
           vatRate={vatRate}
           moneyAxis={moneyAxis}
+          clientView={clientView}
         />
         <KosztorysSummary
           investmentId={investmentId}
@@ -120,6 +126,7 @@ export function KosztorysTotalsPanel({
           priceView={priceView}
           vatRate={vatRate}
           moneyAxis={moneyAxis}
+          clientView={clientView}
         />
       </Collapsible.Content>
     </Collapsible.Root>

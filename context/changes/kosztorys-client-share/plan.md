@@ -2,7 +2,7 @@
 
 ## Overview
 
-Ship a **live, read-only, token-gated client-facing view** of a kosztorys (roadmap S-11,
+Ship a **live, read-only, token-gated client-facing view** of a kosztorys (roadmap S-13,
 EX-532). The owner shares a URL; the client reopens it over the life of the job and sees
 current per-etap progress. The subcontractor cost view (z narzędziami / bez narzędzi) is
 **never** leaked — structurally, by pinning the price view to `'client'` so subcontractor
@@ -32,13 +32,20 @@ Design: `context/changes/kosztorys-client-share/design.md` (shaped, approved).
 - **Sensitive surface** = `costVariant`, `wToolsOverride*`, `ownToolsOverride*`, global/section
   coeffs. Client-safe = `clientPrice` and everything derived at `view: 'client'`. No marża field
   in v2.
-- **Kosztorys data is throwaway until dogfooding merges to main** (AGENTS): the new column needs
+- **Kosztorys data is throwaway until dogfooding merges to main** (AGENTS): the new table needs
   no backfill.
+- **`kosztoryses` is NOT kosztorys v2** (corrected 2026-07-20). `src/collections/sheets.ts:13` is the
+  v1 Google-Sheet link row: `googleSheetId` is required+unique (`:44-46`) and `investment` is
+  nullable (`:61-65`), so a v2 kosztorys with no linked sheet has no row there at all. Kosztorys v2
+  has no top-level collection — sections/items/stages/stage-progress all key on `investment`
+  (`kosztorys-sections.ts:30`). The share token therefore gets its own table keyed on `investment`.
 
 ## Desired End State
 
-The owner opens a kosztorys, clicks „Udostępnij klientowi", gets a `/k/<token>` link (copy /
-rotate / revoke) and a „Podgląd dla klienta" preview. The client opens the link with no login and
+The owner opens a kosztorys and finds a permanent „Podgląd dla klienta" link showing exactly what a
+client would see — available always, whether or not the kosztorys has ever been shared. Separately,
+„Udostępnij klientowi" mints a `/k/<token>` link (copy / rotate / revoke). The client opens the link
+with no login and
 sees the offer + live per-etap progress + footer + section pie, on the `clientVisible` columns
 only, netto/brutto per the axis. Subcontractor prices are absent from the payload entirely.
 Editor edits (stage progress) revalidate the public page.
@@ -75,12 +82,12 @@ constant and produce a `ClientKosztorysViewT` DTO that carries no `costVariant`,
 enter its module graph. This is the load-bearing invariant; the Phase 1 test asserts it on the
 payload.
 
-**Migration.** Hand-write the `shareToken` migration (AGENTS: `migrate:create` emits phantom
-drift). Copy the latest `src/migrations/*.ts` structure: add nullable `share_token` column + a
-unique index on `kosztoryses`. Prod migration is owed only when the code ships to `main` — not
+**Migration.** Hand-write the `kosztorys_shares` migration (AGENTS: `migrate:create` emits phantom
+drift). Copy the latest `src/migrations/*.ts` structure (`20260718_1_add_kosztorys_stage_to_transactions.ts`
+is the current shape reference). Prod migration is owed only when the code ships to `main` — not
 during this local build.
 
-## Phase 1: Token field + auth-free token-scoped read + client projection
+## Phase 1: `kosztorys-shares` collection + auth-free read core + client projection
 
 ### Overview
 
@@ -89,26 +96,32 @@ a projection that strips every subcontractor field.
 
 ### Changes Required
 
-#### 1. `shareToken` field on the kosztorys collection
+#### 1. New `kosztorys-shares` collection
 
-**File**: `src/collections/sheets.ts`
+**File**: `src/collections/kosztorys-shares.ts` (new) + register in `payload.config.ts`
 
-**Intent**: Add the revocable share token. Generated/cleared only by OWNER/ADMIN server actions,
-not typed in the admin panel.
+**Intent**: Home for the share token, keyed on the same entity the v2 data is keyed on. A separate
+table (not a column on `kosztoryses`, not on `investments`) because sharing is per-investment
+kosztorys state with its own lifecycle: revoke is a row delete, and the shape leaves room for expiry
+or multiple links later without touching a core entity.
 
-**Contract**: New field `shareToken` — `type: 'text'`, `unique: true`, not required, admin
-`readOnly` (mutated via action, not hand-edited). Nullable → sharing off. `shareToken == null`
-means no public access.
+**Contract**: `slug: 'kosztorys-shares'`; fields `investment` (relationship → `investments`,
+required, unique — one live link per kosztorys) and `token` (text, required, unique, admin
+`readOnly` — minted by action, never hand-typed). Payload `timestamps` give createdAt/updatedAt.
+Access: `isAdminOrOwner` for create/update/delete, `isAdminOrOwnerOrManager` read — the **public read
+never goes through Payload access control**, it uses the token-scoped query in #4.
+No row for an investment → no public access.
 
-#### 2. Migration for `share_token`
+#### 2. Migration for `kosztorys_shares`
 
-**File**: `src/migrations/<timestamp>_kosztorys_share_token.ts` (hand-written)
+**File**: `src/migrations/<timestamp>_kosztorys_shares.ts` (hand-written per AGENTS)
 
-**Intent**: Add the nullable column + unique index.
+**Intent**: Create the table.
 
-**Contract**: `ALTER TABLE kosztoryses ADD COLUMN share_token varchar; CREATE UNIQUE INDEX ... ON kosztoryses (share_token);` (partial `WHERE share_token IS NOT NULL` so multiple NULLs are allowed),
-mirroring the `investment_id` partial-unique precedent. Match the latest migration file's up/down
-shape.
+**Contract**: `CREATE TABLE kosztorys_shares` (id, investment_id FK → investments **ON DELETE
+CASCADE** — a deleted investment must not leave a live public link, token varchar NOT NULL,
+created_at/updated_at), unique index on `token`, unique index on `investment_id`. Match the latest
+`src/migrations/*.ts` up/down shape and register it in `src/migrations/index.ts`.
 
 #### 3. Extract the auth-free tree core
 
@@ -121,17 +134,29 @@ public read share one projection and can't drift.
 current body (the `Promise.all` + mapping). `getKosztorysTree` keeps `requireAuth(MANAGEMENT_ROLES)`
 then delegates. Behavior of `getKosztorysTree` is unchanged.
 
-#### 4. `getClientKosztorysView(token)` — unauthenticated, cached
+#### 4. Client read paths — one projection, two entrances
 
 **File**: `src/lib/queries/client-kosztorys.ts` (new)
 
-**Intent**: The public read. Resolve the kosztorys by `shareToken`, resolve its `investment`, build
-the tree via the shared core, project to the client DTO. No `requireAuth`.
+**Intent**: The public read _and_ the owner's always-on preview. The preview must **not** require a
+share token to exist (owner, 2026-07-20), so the token lookup cannot sit on the shared path —
+otherwise previewing an unshared kosztorys returns null. One projection core, two guarded entrances.
 
-**Contract**: `getClientKosztorysView(token: string): Promise<ClientKosztorysViewT | null>` — null on
-absent/unknown token or a kosztorys with no linked investment. Wrapped in `unstable_cache` tagged
-with `CACHE_TAGS.stageProgress`, `.kosztoryses`, `.kosztorysSections`, `.kosztorysItems`,
-`.kosztorysStages` so editor edits revalidate it.
+**Contract**:
+
+- `buildClientKosztorysView(investmentId: number): Promise<ClientKosztorysViewT | null>` — unexported
+  core. Builds the tree via the shared core (#3), projects via `toClientView`. **No auth, no token** —
+  it is never exported, so it cannot be called unguarded from outside.
+- `getClientKosztorysByToken(token: string): Promise<ClientKosztorysViewT | null>` — **public entrance,
+  no `requireAuth`**. Resolves `kosztorys-shares` by `token` → `investment`, then delegates. Null on
+  absent/unknown token.
+- `getClientKosztorysPreview(investmentId: number): Promise<ClientKosztorysViewT | null>` — **authed
+  entrance**, `requireAuth(MANAGEMENT_ROLES)` (self-guarding, matching `getKosztorysTree`'s DAL
+  convention at `queries/kosztorys.ts:30`). Works whether or not a share row exists.
+
+Both entrances wrapped in `unstable_cache` tagged with `CACHE_TAGS.stageProgress`, `.kosztorysSections`,
+`.kosztorysItems`, `.kosztorysStages` so editor edits revalidate both. Because both entrances return
+the _same_ DTO from the _same_ core, the preview is a true leak check — not a lookalike render.
 
 #### 5. `ClientKosztorysViewT` DTO + `toClientView` projection
 
@@ -154,7 +179,9 @@ literal `'client'`.
 - Migration applies cleanly against local docker DB: `pnpm payload migrate`
 - Projection safety test passes: the `toClientView` output contains no subcontractor keys and no
   subcontractor-priced number: `pnpm exec vitest run src/__tests__/kosztorys/to-client-view.test.ts`
-- Unknown/absent token → `getClientKosztorysView` returns null (covered in same spec)
+- Unknown/absent token → `getClientKosztorysByToken` returns null (covered in same spec)
+- Preview entrance needs no share row → `getClientKosztorysPreview` returns the DTO for a
+  never-shared investment, and rejects anonymously
 
 #### Manual Verification
 
@@ -228,11 +255,58 @@ live `reconciliation` prop. Verify on the payload (no recon field), not the DOM.
 
 ---
 
-## Phase 3: Public `(share)` route
+## Phase 3: Always-on client preview (authenticated)
 
 ### Overview
 
-The unauthenticated page at `/k/[token]`.
+The owner's „Podgląd dla klienta" — permanently available from the kosztorys, independent of whether
+a share link has ever been generated (owner, 2026-07-20). Deliberately lands **before** any public
+route exists, so the leak surface can be inspected while nothing is yet exposed.
+
+### Changes Required
+
+#### 1. Preview route
+
+**File**: `src/app/(frontend)/inwestycje/[id]/kosztorys_v2/podglad-klienta/page.tsx` (new)
+
+**Intent**: Render the client projection behind normal app auth.
+
+**Contract**: Resolves `params.id` → `getClientKosztorysPreview(investmentId)` → `notFound()` on null,
+else `<ClientKosztorysView {...dto} />`. Sits inside `(frontend)`, so it inherits the existing auth
+layout — no new guard. Renders the same component the public route will mount in Phase 4.
+
+#### 2. Permanent entry point from the kosztorys
+
+**File**: kosztorys_v2 page header (`src/app/(frontend)/inwestycje/[id]/kosztorys_v2/…`)
+
+**Intent**: A direct, always-present link — not buried behind a share dialog or conditional on a
+token existing.
+
+**Contract**: A „Podgląd dla klienta" link in the kosztorys header, rendered unconditionally for
+MANAGEMENT_ROLES, pointing at the Phase 3 #1 route. Independent of share state; it must still work
+after a link is revoked.
+
+### Success Criteria
+
+#### Automated Verification
+
+- Type checking passes: `pnpm exec tsc --noEmit`
+- Lint passes: `pnpm lint`
+- Preview read is auth-gated: anonymous call to `getClientKosztorysPreview` rejects —
+  `pnpm exec vitest run src/__tests__/kosztorys/client-kosztorys-read.test.ts`
+
+#### Manual Verification
+
+- The link is present on a kosztorys that has never been shared, and the preview renders.
+- No subcontractor column appears in the preview.
+
+---
+
+## Phase 4: Public `(share)` route + owner share controls
+
+### Overview
+
+The unauthenticated page at `/k/[token]`, plus the mint/rotate/revoke controls that feed it.
 
 ### Changes Required
 
@@ -251,68 +325,50 @@ The unauthenticated page at `/k/[token]`.
 
 **Intent**: Resolve the token, render the client view or 404.
 
-**Contract**: `params: Promise<{ token: string }>`; `await getClientKosztorysView(token)`; `null →
+**Contract**: `params: Promise<{ token: string }>`; `await getClientKosztorysByToken(token)`; `null →
 notFound()`; else render `<ClientKosztorysView {...dto} />`. No auth import.
 
-### Success Criteria
-
-#### Automated Verification
-
-- Type checking passes: `pnpm exec tsc --noEmit`
-- Build compiles the route: `pnpm build`
-
-#### Manual Verification
-
-- Fresh browser (no cookie) opens `/k/<token>` and sees the kosztorys; `/k/bogus` → 404.
-- After clearing the token, the same URL → 404.
-- A stage-progress edit in the editor is reflected on reload of the public URL.
-
----
-
-## Phase 4: Owner share action + preview
-
-### Overview
-
-The owner's controls on the kosztorys_v2 page.
-
-### Changes Required
-
-#### 1. Share-token server actions
+#### 3. Share-token server actions
 
 **File**: `src/lib/actions/kosztorys.ts` (or a new `share.ts` sibling)
 
 **Intent**: Mint / rotate / revoke the token.
 
-**Contract**: `generateShareToken(kosztorysId)` and `revokeShareToken(kosztorysId)` via
-`protectedAction` gated to OWNER/ADMIN. Token = `randomBytes(24).toString('base64url')`. Rotate =
-generate over an existing token. Revoke = set `null`. Revalidate `kosztoryses`. Return
-`ActionResultT` with the token/URL.
+**Contract**: `generateShareLink(investmentId)` and `revokeShareLink(investmentId)` via
+`protectedAction` gated to OWNER/ADMIN. Token = `randomBytes(24).toString('base64url')`. Generate =
+upsert the `kosztorys-shares` row (rotate is generate over an existing row — the old token dies with
+the overwrite). Revoke = delete the row. Revalidate `kosztorysShares`. Return `ActionResultT` with
+the token/URL.
 
-#### 2. „Udostępnij klientowi" control + „Podgląd dla klienta"
+#### 4. „Udostępnij klientowi" control
 
-**File**: kosztorys_v2 page header area (`src/app/(frontend)/inwestycje/[id]/kosztorys_v2/…` +
-a new component under `src/components/kosztorys/`)
+**File**: kosztorys_v2 page header area + a new component under `src/components/kosztorys/`
 
-**Intent**: Generate/copy/rotate/revoke the link; open the authenticated preview.
+**Intent**: Generate / copy / rotate / revoke the public link.
 
-**Contract**: A header action showing current share state, copy button, rotate + revoke, and a
-„Podgląd dla klienta" link to an authenticated route rendering the _same_ `ClientKosztorysView`
-from the same projection (the owner's leak check). Preview reuses `getClientKosztorysView` logic
-behind auth (or a thin authed wrapper resolving by kosztorys id).
+**Contract**: A header action showing current share state (shared vs not), copy button, rotate and
+revoke. Sits alongside — **not** wrapping — the Phase 3 „Podgląd dla klienta" link, which stays
+unconditional and independent of share state.
 
 ### Success Criteria
 
 #### Automated Verification
 
 - Type checking passes: `pnpm exec tsc --noEmit`
-- Action test: generate sets a token, revoke clears it, non-OWNER is rejected:
-  `pnpm exec vitest run src/__tests__/kosztorys/share-token.test.ts`
+- Build compiles the public route: `pnpm build`
+- Action test: generate creates a row, rotate replaces the token, revoke deletes it, non-OWNER is
+  rejected, unknown token reads null:
+  `pnpm exec vitest run src/__tests__/lib/queries/client-kosztorys-token.test.ts`
+  **These specs `skipIf(!ENV_READY)`** — without `DB_POSTGRES_URL` + `PAYLOAD_SECRET` in the
+  environment the run is green because it skipped, not because it passed. Confirm the reported
+  test count is non-zero before treating this box as met.
 
 #### Manual Verification
 
-- Owner generates a link, copies it, opens it in a private window — client view loads.
+- Fresh browser (no cookie) opens `/k/<token>` and sees the kosztorys; `/k/bogus` → 404.
 - Rotate invalidates the old link (old URL → 404) and issues a new one.
 - Revoke kills the link; „Podgląd dla klienta" still works for the owner.
+- A stage-progress edit in the editor is reflected on reload of the public URL.
 - Preview and the public URL render identically.
 
 ---
@@ -325,8 +381,10 @@ behind auth (or a thin authed wrapper resolving by kosztorys id).
   coeff / `*Override*` keys and no subcontractor-priced number, on a row where the subcontractor
   price differs from clientPrice. Assert the payload, not the DOM.
 - **Read-only columns**: `readOnly` stamps `disabled` on all data columns, actions column dropped.
-- **Token lifecycle**: generate → token set; rotate → differs; revoke → null; non-OWNER rejected;
-  unknown token → null read.
+- **Share-link lifecycle**: generate → row created; rotate → token differs; revoke → row deleted;
+  non-OWNER rejected; unknown token → null read.
+- **Preview needs no share row**: `getClientKosztorysPreview` returns the DTO for an investment that
+  has never been shared, and rejects anonymously.
 
 ### E2E (browser-level — owed, deferred)
 
@@ -337,14 +395,15 @@ columns/values absent in the DOM and network payload; `/k/bogus` → 404; revoke
 
 ## Migration Notes
 
-One nullable unique column on `kosztoryses`, hand-written (AGENTS). No backfill (kosztorys data is
-throwaway pre-dogfooding). Prod migration owed only when the code ships to `main`, run by a human
+One new `kosztorys_shares` table, hand-written (AGENTS). No backfill (kosztorys data is throwaway
+pre-dogfooding). The FK to `investments` is `ON DELETE CASCADE` so deleting an investment can never
+strand a live public link. Prod migration owed only when the code ships to `main`, run by a human
 via `pnpm db:migrate:prod`.
 
 ## References
 
 - Design: `context/changes/kosztorys-client-share/design.md`
-- Roadmap slice: `context/foundation/roadmap.md` → S-11
+- Roadmap slice: `context/foundation/roadmap.md` → S-13
 - Grid/route research: this session (Explore agent), summarized in Current State Analysis
 - Reuse precedent: `buildV2Grid` (`kosztorys-v2-columns.tsx:508`), `(legal)/layout.tsx`
 
@@ -352,33 +411,35 @@ via `pnpm db:migrate:prod`.
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles.
 
-### Phase 1: Token field + auth-free read + projection
+### Phase 1: kosztorys-shares collection + auth-free read core + projection
 
 #### Automated
 
-- [ ] 1.1 Type checking passes (`generate:types` + `tsc --noEmit`)
-- [ ] 1.2 Migration applies cleanly (`payload migrate`)
-- [ ] 1.3 Projection safety test passes (no subcontractor keys/numbers)
-- [ ] 1.4 Unknown/absent token → null read
+- [x] 1.1 Type checking passes (`generate:types` + `tsc --noEmit`) — fe143fbe
+- [x] 1.2 Migration applies cleanly (`payload migrate`) — fe143fbe
+- [x] 1.3 Projection safety test passes (no subcontractor keys/numbers) — fe143fbe
+- [x] 1.4 Unknown/absent token → null read — fe143fbe
 
 ### Phase 2: Read-only grid opt + clientVisible filter + render
 
 #### Automated
 
-- [ ] 2.1 Type checking passes (`tsc --noEmit`)
-- [ ] 2.2 Lint passes (`pnpm lint`)
-- [ ] 2.3 Read-only columns test passes (all disabled, no actions column)
+- [x] 2.1 Type checking passes (`tsc --noEmit`) — 88fcf326
+- [x] 2.2 Lint passes (`pnpm lint`) — 88fcf326
+- [x] 2.3 Read-only columns test passes (all disabled, no actions column) — 88fcf326
 
-### Phase 3: Public (share) route
-
-#### Automated
-
-- [ ] 3.1 Type checking passes (`tsc --noEmit`)
-- [ ] 3.2 Build compiles the route (`pnpm build`)
-
-### Phase 4: Owner share action + preview
+### Phase 3: Always-on client preview (authenticated)
 
 #### Automated
 
-- [ ] 4.1 Type checking passes (`tsc --noEmit`)
-- [ ] 4.2 Token lifecycle + access test passes
+- [x] 3.1 Type checking passes (`tsc --noEmit`) — 218383c4
+- [x] 3.2 Lint passes (`pnpm lint`) — 218383c4
+- [x] 3.3 Preview read is auth-gated (anonymous call rejects) — 218383c4
+
+### Phase 4: Public (share) route + owner share controls
+
+#### Automated
+
+- [x] 4.1 Type checking passes (`tsc --noEmit`) — ec12f15f
+- [x] 4.2 Build compiles the public route (`pnpm build`) — ec12f15f
+- [x] 4.3 Share-link lifecycle + access test passes — ec12f15f

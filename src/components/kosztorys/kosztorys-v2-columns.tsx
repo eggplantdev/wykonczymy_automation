@@ -41,7 +41,7 @@ import {
   stageValueNetKey,
   stageValuePercentKey,
 } from '@/lib/kosztorys/stage-keys'
-import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
+import { CLIENT_VISIBLE_COLUMNS, COLUMN_LABELS } from '@/lib/kosztorys/column-config'
 import { HEADER_TIPS } from '@/lib/kosztorys/header-tips'
 import { LAYER_DEFAULT, layerAllows } from '@/lib/kosztorys/layer'
 import { MONEY_AXIS_DEFAULT, axisAllows } from '@/lib/kosztorys/money-axis'
@@ -126,10 +126,9 @@ function title(
 // (lib/kosztorys/sort-value) has no case for, so a sort trigger here would render an arrow that does
 // nothing. Deliberately not `StageHeader` — a mirror carries no rename/delete affordance of its own.
 function stageValueHeader(stage: KosztorysStageT, suffix: string, tip: string): ReactNode {
-  // truncate, not wrap: the label is the user's free text and the suffix trails it, so an
-  // unbounded header would push the row's height around as stages get renamed.
+  // Wraps (no truncate) into the fixed, taller header row (KosztorysEditorBody).
   return withTip(
-    <span className="truncate text-sm">{`${stage.label || `Etap ${stage.ordinal}`} — ${suffix}`}</span>,
+    <span className="text-sm">{`${stage.label || `Etap ${stage.ordinal}`} ${suffix}`}</span>,
     tip,
   )
 }
@@ -237,8 +236,8 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       title: title('sectionName', COLUMN_LABELS.sectionName, opts),
       minWidth: 140,
       keepFocus: true,
-      component: ({ rowData }: CellProps<KosztorysV2RowT, unknown>) => (
-        <SectionNameCell rowData={rowData} onRename={opts.onRenameSection} />
+      component: ({ rowData, disabled }: CellProps<KosztorysV2RowT, unknown>) => (
+        <SectionNameCell rowData={rowData} onRename={opts.onRenameSection} disabled={disabled} />
       ),
       copyValue: ({ rowData }) => rowData.sectionName ?? '',
       // Delete on a selected Sekcja cell is a no-op — an accidental keypress must not blank a whole
@@ -420,6 +419,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     ...donePercent,
     ...remaining,
   ]
+  if (opts.readOnly) return dataColumns.map((c) => ({ ...c, disabled: true }))
   return opts.onRemoveItem || opts.onReorderItem
     ? [actionColumn(opts), ...dataColumns]
     : dataColumns
@@ -451,6 +451,7 @@ function selectV2Columns(
   const base = assembled
     .filter((c) => {
       const key = toggleKey(c.id ?? '')
+      if (opts.clientVisible && !CLIENT_VISIBLE_COLUMNS.has(key)) return false
       if (opts.globalDiscountActive && DISCOUNT_COLUMN_IDS.has(key)) return false
       return (
         !opts.isHidden?.(key) &&
@@ -501,6 +502,7 @@ function selectV2ToggleItems(
   for (const col of assembled) {
     const id = toggleKey(col.id ?? '')
     if (items.some((i) => i.id === id)) continue
+    if (opts.clientVisible && !CLIENT_VISIBLE_COLUMNS.has(id)) continue
     if (opts.globalDiscountActive && DISCOUNT_COLUMN_IDS.has(id)) continue
     items.push({ id, label: COLUMN_LABELS[id] ?? id, visible: !opts.isHidden?.(id) })
   }

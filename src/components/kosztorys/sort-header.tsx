@@ -21,7 +21,7 @@ export function SortHeader({ label, active, onSort, tip }: PropsT) {
 
   return (
     <HeaderMenu
-      label={<span className="truncate">{label}</span>}
+      label={<span>{label}</span>}
       icon={<Icon className={cn('size-4 shrink-0', active ? 'opacity-100' : 'opacity-50')} />}
       triggerClassName={cn(active && 'text-primary font-semibold')}
       triggerTitle="Sortuj kolumnę"

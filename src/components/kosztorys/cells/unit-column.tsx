@@ -1,11 +1,13 @@
 import { type ReactNode } from 'react'
 import { Column, type CellProps } from 'react-datasheet-grid'
+import { ReadOnlyCellText } from '@/components/kosztorys/cells/read-only-cell-text'
 import { Combobox } from '@/components/ui/combobox'
 import { UNIT_SUGGESTIONS } from '@/lib/kosztorys/constants'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // Creatable combobox cell: pick a canonical unit or type a custom one. setRowData feeds the diff → autosave.
-function UnitCell({ rowData, setRowData }: CellProps<KosztorysV2RowT, unknown>) {
+function UnitCell({ rowData, setRowData, disabled }: CellProps<KosztorysV2RowT, unknown>) {
+  if (disabled) return <ReadOnlyCellText>{rowData.unit ?? ''}</ReadOnlyCellText>
   return (
     <Combobox
       value={rowData.unit ?? ''}

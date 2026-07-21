@@ -7,21 +7,10 @@ import { KosztorysEditorBody } from '@/components/kosztorys/kosztorys-editor-bod
 import { KosztorysVersionsDrawer } from '@/components/kosztorys/kosztorys-versions-drawer'
 import { useAutoSnapshot } from '@/components/kosztorys/use-auto-snapshot'
 import { useRestoreRemount } from '@/components/kosztorys/use-restore-remount'
-import { UndoRedoContext, useUndoRedo } from '@/components/kosztorys/use-undo-redo'
-import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
-import type { KosztorysTreeT } from '@/lib/kosztorys/types'
+import { useUndoRedo } from '@/components/kosztorys/use-undo-redo'
+import type { KosztorysEditorDataT } from '@/lib/kosztorys/types'
 
-type PropsT = {
-  investmentId: number
-  tree: KosztorysTreeT
-  investmentName: string
-  materialsNet: number
-  materialyBreakdown: MaterialyBreakdownRowT[]
-  wplatyNet: number
-  zaliczkiByStage: Record<number, number>
-  laborCostsNetFromTransactions: number
-  investmentRabat: number
-}
+type PropsT = KosztorysEditorDataT
 
 // Thin shell around the stateful editor body: owns the auto-snapshot interval, the "Wersje" drawer, and
 // the restore-driven remount. Each of the three lives here so a restore's body remount doesn't disturb
@@ -38,7 +27,7 @@ export function KosztorysEditorV2({
   investmentRabat,
 }: PropsT) {
   const router = useRouter()
-  // One undo/redo stack per editor mount, shared with the body via context. It outlives the body's
+  // One undo/redo stack per editor mount, passed to the body as a prop. It outlives the body's
   // restore remount (the shell doesn't remount), so a restore must reset() it — the stale commands
   // close over the unmounted body's setRows/refs.
   const undoRedo = useUndoRedo()
@@ -64,7 +53,7 @@ export function KosztorysEditorV2({
   }
 
   return (
-    <UndoRedoContext.Provider value={undoRedo}>
+    <>
       {tree.sections.length === 0 && (
         <EmptyKosztorysDialog investmentId={investmentId} onCreated={handleRestored} />
       )}
@@ -79,6 +68,7 @@ export function KosztorysEditorV2({
         zaliczkiByStage={zaliczkiByStage}
         laborCostsNetFromTransactions={laborCostsNetFromTransactions}
         investmentRabat={investmentRabat}
+        undoRedo={undoRedo}
         onOpenVersions={() => setVersionsOpen(true)}
       />
       <KosztorysVersionsDrawer
@@ -88,6 +78,6 @@ export function KosztorysEditorV2({
         onOpenChange={setVersionsOpen}
         onRestored={handleRestored}
       />
-    </UndoRedoContext.Provider>
+    </>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState } from 'react'
+import { useState } from 'react'
 
 // One reversible editor action. `undo` applies the "before" state, `redo` re-applies the "after".
 // Both are captured at the seam that already computed both values (the grid diff / a panel handler),
@@ -103,8 +103,8 @@ export function createUndoRedoStack(maxDepth = MAX_DEPTH) {
 // In-session undo/redo. The stack core is held in useState's lazy initializer — created once, stable
 // identity across renders, and (unlike a ref) legal to read during render, so canUndo / canRedo /
 // revision come straight off it. Mutating it doesn't itself re-render, so a bump counter forces the
-// re-render that re-reads those getters. Instantiate ONCE per editor mount (in the shell) and share
-// via UndoRedoContext — never a module singleton, or two editors would share one stack.
+// re-render that re-reads those getters. Instantiate ONCE per editor mount (in the shell) and pass to
+// the body as a prop — never a module singleton, or two editors would share one stack.
 export function useUndoRedo(): UndoRedoApiT {
   const [stack] = useState(createUndoRedoStack)
   const [, bump] = useState(0)
@@ -149,13 +149,15 @@ export function useUndoRedo(): UndoRedoApiT {
   }
 }
 
-// The shell owns the instance and provides it; both the editor hook (captures + push) and the
-// toolbar / keyboard (undo / redo / canUndo / canRedo) read it here.
-export const UndoRedoContext = createContext<UndoRedoApiT | null>(null)
-
-export function useUndoRedoContext(): UndoRedoApiT {
-  const context = useContext(UndoRedoContext)
-  if (!context)
-    throw new Error('useUndoRedoContext must be used within an UndoRedoContext provider')
-  return context
+// The read-only client body renders without the shell, so it gets no stack — nothing there is mutable.
+// It defaults its `undoRedo` prop to this inert API rather than special-casing every call.
+export const NOOP_UNDO_REDO: UndoRedoApiT = {
+  push: () => {},
+  undo: () => {},
+  redo: () => {},
+  canUndo: false,
+  canRedo: false,
+  revision: 0,
+  reset: () => {},
+  pruneByIds: () => {},
 }

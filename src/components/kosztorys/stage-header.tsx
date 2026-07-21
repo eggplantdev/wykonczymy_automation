@@ -25,6 +25,15 @@ export function StageHeader({ stage, onRename, onRemove, tip }: PropsT) {
   const [editing, setEditing] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
 
+  // No handlers = a read-only mount (clientView): render the bare label, no menu/rename/delete.
+  if (!onRename && !onRemove) {
+    return (
+      <span className={cn('px-1 text-sm', stage.label == null && 'text-muted-foreground')}>
+        {label}
+      </span>
+    )
+  }
+
   if (editing) {
     return (
       <input
@@ -50,11 +59,7 @@ export function StageHeader({ stage, onRename, onRemove, tip }: PropsT) {
   return (
     <>
       <HeaderMenu
-        label={
-          <span className={cn('truncate', stage.label == null && 'text-muted-foreground')}>
-            {label}
-          </span>
-        }
+        label={<span className={cn(stage.label == null && 'text-muted-foreground')}>{label}</span>}
         icon={<ChevronDown className="opacity-50" />}
         triggerTitle="Opcje etapu"
         tip={tip}

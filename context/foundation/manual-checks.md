@@ -735,3 +735,127 @@ Pass ran clean — **no bugs found**, all three checks pass, W1 verdict-stabilit
 ### Housekeeping — 2026-07-19
 
 - Test DB left dirty: investment 14 now carries a synthetic 3-section / 18-item / 3-stage kosztorys (direct SQL, no `kosztoryses` sheet-link row) plus its stage_progress; the 117–132 E2E recon fixtures are untouched. Reseed/reset via `pnpm db:import:test` + `pnpm db:migrate:test` (kosztorys content is throwaway).
+
+## kosztorys-client-share (S-13 / EX-532)
+
+**Owed 2026-07-20** — implemented, automated checks green. These are the browser-level facts no unit
+test covers: an unauthenticated session, a real clipboard, and the actual bytes a client receives.
+Run against the dev app (5433 DB) as OWNER, plus one genuinely logged-out browser profile.
+
+- [ ] **Public link works with no session** — „Udostępnij" → „Wygeneruj link" → copy → open in a
+      private window (no `payload-token` cookie): the kosztorys renders, grid + footer, no redirect
+      to `/zaloguj`. `/k/bogus` → 404.
+- [ ] **No subcontractor prices anywhere on the public page** — with the page open, the „Widok"
+      cost-variant controls (z narzędziami / bez narzędzi, coefficients, per-item overrides) are
+      absent from the toolbar AND from the column set; the network payload for `/k/<token>` contains
+      no `costVariant` / `coeff` / `Override` key. Payload, not just the DOM.
+- [ ] **Grid is genuinely read-only** — clicking a cell does not open an editor, typing does nothing,
+      no row can be added, removed or reordered.
+- [ ] **Rotate invalidates the old URL** — „Wygeneruj nowy" while the old link is open in the private
+      window: reload → 404; the new link works.
+- [ ] **Revoke kills the link, preview survives** — „Wyłącz link" → old URL 404s, and
+      „Podgląd" (`/podglad-klienta/<id>`) still renders for the owner.
+- [ ] **It is live, not a snapshot** — change a per-etap quantity in the editor, reload the public
+      URL: the new figure and the recomputed totals are there.
+- [ ] **Preview and public URL render identically** — same rows, same columns, same footer figures,
+      side by side.
+- [ ] **MANAGER cannot share** — as a MANAGER, „Udostępnij" → „Wygeneruj link" is refused with the
+      Polish error; no row appears in `kosztorys_shares`.
+
+## kosztorys-client-view-reuse (S-13 / EX-532)
+
+**Owed 2026-07-20** — implemented, automated checks green (typecheck, lint, 1082 unit tests, build).
+This change replaces the bespoke `ClientKosztorysView`/`ClientKosztorysFooter` render with a read-only
+reuse of the admin `KosztorysEditorBody` in `clientView` mode. The share-link lifecycle boxes in the
+**kosztorys-client-share** section above still stand (that machinery is untouched); the boxes here are
+the render-swap facts those don't cover. Run as OWNER against the dev app plus one logged-out profile.
+
+- [x] **`/k/<token>` renders the owner grid + footer, read-only** — verified cookie-less on `/k/<token>`
+      (test DB, inv 7): real grid + Podsumowanie footer render; slim header = investment name + money-axis
+      toggle only; no toolbar, no section sidebar/summary.
+- [x] **Recon scream absent** — no `Niezgodność` text / `ReconMismatchBadge` in the footer on either
+      `/k/<token>` or `/podglad-klienta/7`.
+- [x] **Internal links are plain text** — after the EtapTotals fix below, **0 `<a href>` anchors** on the
+      whole public page; „Wpłaty" renders as a plain `SPAN`.
+- [x] **Every cell is non-editable** — all 561 data cells carry `dsg-cell-disabled` (the 17 non-disabled
+      are header cells); a click on a data input is intercepted by the disabled cell overlay, so no editor
+      opens and typing can't reach the input. Owner editor by contrast shows 372 editable data cells.
+- [x] **No save/snapshot network request from the client page** — zero non-static requests fired on
+      `/k/<token>` (pure server render; no `updateItemField`/autosave/snapshot/action calls).
+- [x] **Section pie is gone from the client view** — no `section-pie` / „Udział sekcji" on either client
+      surface.
+- [x] **Owner preview matches the public view** — `/podglad-klienta/7` and `/k/<token>` render identically
+      (same header „Madalinskiego 67", all cells disabled, 0 anchors, money-axis toggle, no pie, no recon,
+      „Do zapłaty" present) — both via the reused body.
+- [x] **Live owner editor unchanged** — `/inwestycje/7/kosztorys_v2` as OWNER: full „Widok" toolbar,
+      372 editable data cells, app chrome intact (the `clientView` flag defaults off).
+
+### Findings — 2026-07-21
+
+- [x] **„Wpłaty" leaked as an internal `<Link>` on the client page** — `KosztorysEtapTotals` rendered the
+      „Suma transzy" block's „Wpłaty" label as `<Link href="/inwestycje/<id>?type=…">` unconditionally and
+      never received `clientView`, so the public `/k/<token>` (and `/podglad-klienta`) shipped a clickable
+      internal route into the client's DOM. The sibling `KosztorysPodsumowanie` already gated its Wpłaty +
+      materiały links on `clientView`; this component was missed. **Fixed:** threaded `clientView` through
+      `KosztorysTotalsPanel` → `KosztorysEtapTotals` and render „Wpłaty" as plain text when set (mirrors the
+      sibling). Re-verified: 0 anchors on the client page, owner keeps the link. `kosztorys-etap-totals.tsx`,
+      `kosztorys-totals-panel.tsx`.
+      **Test disposition:** e2e — same public-page browser surface as the CRITICAL view-pin guard; folded
+      into **EX-550** (add "no `<a href>` internal links on `/k/<token>`" to its assertions). No unit layer
+      reaches the rendered clientView footer.
+
+### Re-verify — 2026-07-21 (post-merge refactors + revoke-confirm, `baee9b68`)
+
+Covers the surfaces the earlier pass predates: undo/redo React-context → prop, `ownerOnly` → `editorOnly`
+rename, merge field rename `laborCostsNetFromTransactions`, money-axis label, `copyToClipboard` extraction,
+and the new revoke `ConfirmDialog`. Driven as OWNER against the test DB (5435, inv 7, 1000-item perf seed)
+on `:3010`, plus the cookie-less `/k/<token>`.
+
+- [x] **Undo/redo stack reaches the body via prop (not context)** — toolbar „Cofnij"/„Ponów" start disabled
+      (canUndo/canRedo=false), a structural edit (VAT) enables „Cofnij", and clicking the **„Cofnij" toolbar
+      button reverts the edit end-to-end** (VAT 30→7 in the field _and_ `investments.vat_rate` in the DB),
+      leaving „Cofnij" disabled again (stack emptied). Proves the shell's `useUndoRedo()` is passed as the
+      `undoRedo` prop and drives the toolbar deep in the body + executes the command's effect. Keyboard
+      Ctrl+Z/Ctrl+Shift+Z also observed toggling both stacks correctly.
+- [x] **Client body defaults to `NOOP_UNDO_REDO`** — `/k/<token>` renders with no undo chrome and a fully
+      inert grid (below); the read-only body takes no `undoRedo` prop and nothing throws.
+- [x] **`editorOnly` (renamed from `ownerOnly`) gates mutation handlers by render-mode** — OWNER can add a
+      section via „Nowa sekcja" (`kosztorys_sections` for inv 7 went 10→11, persisted); the CLIENT grid
+      exposes **0 editable inputs** and no add/remove/rename chrome. Both branches of the gate exercised.
+- [x] **`laborCostsNetFromTransactions` reconciliation renders** — owner Podsumowanie panel shows all figures
+      (Netto/Brutto/Wpłaty per etap, „Suma prac wykonanych", „Materiały budowlane", „Łącznie", „Rabat",
+      „Do zapłaty" 269 945,43 in red = the recon scream). The merge field rename didn't break the recon read.
+- [x] **Money-axis label „Oba" → „Pokaż wszystko"** — renders in the client slim header toggle
+      (`["Netto","Brutto","Pokaż wszystko"]`); the „Pokaż wszystko" (`both`) axis shows netto+brutto columns.
+- [x] **Client read-only + price-pin holds** — `/k/<token>`: 528/561 cells `dsg-cell-disabled`, 0 editable
+      inputs, **0 `<a href>` anchors** (Wpłaty fix intact), no undo/share/sekcje chrome. Forcing
+      `localStorage['kosztorys-view:7']='w_tools'` and reloading leaves only client price columns (no
+      wykonawca/mnożnik column) and client prices (row 1 brutto 21,60 = client 20×1.08, not wykonawca ~11,88).
+- [x] **`copyToClipboard` util (share + add-sheet dialogs)** — share dialog „Kopiuj link" writes the link to
+      the clipboard (`navigator.clipboard.readText()` returned the `/k/<token>` URL); success path runs.
+- [x] **Revoke `ConfirmDialog` (new)** — „Wyłącz link" opens a confirm titled „Wyłączyć link dla klienta?"
+      with the irreversibility copy + „Anuluj"/„Wyłącz link". **Cancel** dismisses it with the link intact;
+      **confirm** deletes the `kosztorys_shares` row (count 1→0), flips the dialog to the no-token „Wygeneruj
+      link" state, and the token stops resolving to the kosztorys (`/k/<token>` now renders the 404 page, no
+      grid — Next dev serves it with a 200 wrapper, but the content is not-found, not the data).
+
+**Findings (all pre-existing, orthogonal to this slice's diff — none block the slice):**
+
+- [x] **Keyboard Ctrl+Z undo is focus-flaky** — after a `CoeffField` commit (VAT/coeff) + the async
+      `router.refresh()`, an editable input sometimes retains focus, so `useUndoKeyboard` bails (native browser
+      undo wins) and Ctrl+Z becomes a no-op; other times it fires cleanly. The toolbar „Cofnij"/„Ponów"
+      buttons are the reliable path and always work. Already flagged in-code at
+      `src/components/kosztorys/use-undo-keyboard.ts:6-11` as "needs browser verification". Untouched by
+      EX-532. **Filed onto EX-525** (the S-07 undo/redo Cmd+Z E2E already owed) with the focus-race case + the
+      harden-vs-accept-buttons-only decision + test disposition — pre-existing, not introduced by this slice,
+      so not a per-slice blocker. **Needs human (tracked in EX-525):** decide whether to harden focus detection
+      (read dsg active-cell edit state, or scope the listener to the grid container) or accept buttons-only.
+      **Test disposition:** e2e — real focus + async-refresh timing; no unit/integration layer reproduces the
+      focus race. Cheapest real signal is a Playwright spec (in EX-525's scope).
+- [x] **Structural-command undo (VAT/coeff) registers ~2.7s after the edit** — `handleVatChange` awaits the
+      server action (recomputes all 1000 rows' brutto) before `pushReversible`, so „Cofnij" stays disabled and
+      an undo attempt is a no-op during that window. Correct by construction (can't undo before the change
+      persists), but surprising on large kosztorysy. Dropped — behavior is correct; not worth a guard.
+- [x] **VAT field shows a float artifact `7.000000000000001`** — `vatRate*100` in JS (0.07×100). Cosmetic,
+      pre-existing (`CoeffField` value from `tree.vatRate*100`). Dropped — not worth the churn; a `parseFloat`
+      round on display would fix it if ever revisited.

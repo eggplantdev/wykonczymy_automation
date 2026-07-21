@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react'
 import { Column, type CellProps } from 'react-datasheet-grid'
 import { CellSelectMenu } from '@/components/kosztorys/cell-select-menu'
+import { ReadOnlyCellText } from '@/components/kosztorys/cells/read-only-cell-text'
 import { discountFromType, discountFromValue } from '@/lib/kosztorys/discount-edit'
 import type { DiscountTypeT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
@@ -11,7 +12,11 @@ const DISCOUNT_OPTIONS: { value: string; label: string }[] = [
 ]
 
 // The type/value transitions live in discount-edit.ts — see there for why they're paired.
-function DiscountTypeCell({ rowData, setRowData }: CellProps<KosztorysV2RowT, unknown>) {
+function DiscountTypeCell({ rowData, setRowData, disabled }: CellProps<KosztorysV2RowT, unknown>) {
+  if (disabled) {
+    const label = DISCOUNT_OPTIONS.find((o) => o.value === (rowData.discountType ?? ''))?.label
+    return <ReadOnlyCellText>{label}</ReadOnlyCellText>
+  }
   return (
     <CellSelectMenu
       value={rowData.discountType ?? ''}
@@ -29,7 +34,8 @@ function DiscountTypeCell({ rowData, setRowData }: CellProps<KosztorysV2RowT, un
 
 // A hand-rolled input rather than floatColumn, because an edit here has to reach discountType too
 // (discount-edit.ts), which a keyColumn can't do.
-function DiscountValueCell({ rowData, setRowData }: CellProps<KosztorysV2RowT, unknown>) {
+function DiscountValueCell({ rowData, setRowData, disabled }: CellProps<KosztorysV2RowT, unknown>) {
+  if (disabled) return <ReadOnlyCellText>{String(rowData.discountValue ?? '')}</ReadOnlyCellText>
   return (
     <input
       className="size-full bg-transparent px-2 text-left text-sm outline-none"

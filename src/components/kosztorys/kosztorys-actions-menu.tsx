@@ -17,7 +17,7 @@ import type { PresetMetaT } from '@/lib/db/presets'
 
 type PropsT = {
   investmentId: number
-  onOpenVersions: () => void
+  onOpenVersions?: () => void
 }
 
 // A menu item rendered as icon + label + a muted one-line explanation, so each action says what it
