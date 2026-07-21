@@ -803,3 +803,37 @@ the render-swap facts those don't cover. Run as OWNER against the dev app plus o
       **Test disposition:** e2e — same public-page browser surface as the CRITICAL view-pin guard; folded
       into **EX-550** (add "no `<a href>` internal links on `/k/<token>`" to its assertions). No unit layer
       reaches the rendered clientView footer.
+
+## EX-529 — kosztorys-summary-charts
+
+**In review** — automated checks green (tsc, eslint, unit 7/7 on the slice seam, `pnpm build`). The
+two footer pies are new UI; the slice math (`sectionPieSlices` / `costPieSlices` base selection +
+fill cycling) is unit-tested, so the boxes below are the render/layout/parity gates CI can't reach.
+Stacked on **ex-532** (`kosztorys-client-view-reuse`) — verify after that base is in place.
+
+Setup: run the app against the **5435 test DB** (see intro) as OWNER, seed a kosztorys into it
+(`INV=<id> node --env-file=.env --import tsx src/scripts/seed-kosztorys.ts`, DB env pointed at
+`DB_POSTGRES_URL_TEST`), open the investment's **Kosztorys** tab and expand the „Podsumowanie" footer.
+For the client-share row, mint a share token and open `/k/<token>`.
+
+### Phase 1: Restore the charting stack
+
+- [ ] `pnpm dev` starts and the editor renders unchanged (no visual/behaviour delta before the pies mount).
+- [ ] No lightningcss/Tailwind CSS build error after the `recharts` install (the arm64 trap).
+
+### Phase 3: Mount both pies in the footer
+
+- [ ] **Both pies render beside the summary table.** The „Podsumowanie" footer shows the section pie +
+      the cost pie to the right of the summary grid (wrapping below on a narrow window); the collapsed
+      panel still shows the „Do zapłaty" headline.
+- [ ] **Section slices match the panel + sum to 100%.** Each section's slice equals its per-section value
+      in the section-summary panel at the client price, and the slices sum to the whole (100%).
+- [ ] **Przedmiar ↔ Wykonane toggle re-partitions.** Flipping the section-pie base re-slices the pie and
+      updates the legend heading („Udział sekcji — przedmiar" / „— wykonane"); **no money figure in the
+      summary table moves** (the pie is view-invariant, the table is not the pie's source).
+- [ ] **Cost pie matches the summary rows.** The cost pie's Robocizna + per-category materiały slices
+      equal the summary table's corresponding rows (agreement by construction — same figures).
+- [ ] **Client-share parity, no owner-only leakage.** `/k/<token>` renders the same two pies with no
+      internal `<Link>`s and no mismatch scream — parity with the owner view minus the owner-only chrome.
+- [ ] **Fresh offer (executed = 0) renders under the default Przedmiar base.** On a kosztorys with no
+      executed work, the section pie still renders (przedmiar-priced), not a blank/empty chart.

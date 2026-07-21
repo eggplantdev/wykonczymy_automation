@@ -1,7 +1,7 @@
 ---
 change_id: kosztorys-summary-charts
 title: Two pie charts in the kosztorys Podsumowanie — section split and cost split
-status: implementing
+status: implemented
 created: 2026-07-19
 updated: 2026-07-21
 archived_at: null

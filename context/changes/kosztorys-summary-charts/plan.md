@@ -321,8 +321,8 @@ explicitly the follow-up slice.
 
 #### Automated
 
-- [x] 3.1 Type checking passes: `pnpm exec tsc --noEmit`
-- [x] 3.2 Linting passes: `pnpm lint`
-- [x] 3.3 Unit tests pass: `pnpm exec vitest run src/__tests__/kosztorys-chart-slices.test.ts`
-- [x] 3.4 Production build succeeds; recharts in a separate async chunk: `pnpm build`
-- [x] 3.5 No dead reference remains: `grep -rn "client/section-pie" src` returns nothing
+- [x] 3.1 Type checking passes: `pnpm exec tsc --noEmit` — 202397e9
+- [x] 3.2 Linting passes: `pnpm lint` — 202397e9
+- [x] 3.3 Unit tests pass: `pnpm exec vitest run src/__tests__/kosztorys-chart-slices.test.ts` — 202397e9
+- [x] 3.4 Production build succeeds; recharts in a separate async chunk: `pnpm build` — 202397e9
+- [x] 3.5 No dead reference remains: `grep -rn "client/section-pie" src` returns nothing — 202397e9
