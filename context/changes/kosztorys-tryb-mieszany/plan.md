@@ -217,13 +217,13 @@ the browser before archiving.
 
 #### Automated
 
-- [x] 1.1 Unit test passes: `pnpm exec vitest run src/__tests__/lib/kosztorys/summary-economics.test.ts` (cases added there, repo convention path)
-- [x] 1.2 Type checking passes
+- [x] 1.1 Unit test passes: `pnpm exec vitest run src/__tests__/lib/kosztorys/summary-economics.test.ts` (cases added there, repo convention path) — 6d277554
+- [x] 1.2 Type checking passes — 6d277554
 
 ### Phase 2: Panel wiring + cash-settlement UI
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `pnpm exec tsc --noEmit`
-- [ ] 2.2 Lint passes: `pnpm lint`
-- [ ] 2.3 Existing panel tests pass: `pnpm exec vitest run src/__tests__/kosztorys`
+- [x] 2.1 Type checking passes: `pnpm exec tsc --noEmit`
+- [x] 2.2 Lint passes: `pnpm lint`
+- [x] 2.3 Existing panel tests pass: `pnpm exec vitest run src/__tests__/lib/kosztorys src/__tests__/components/kosztorys`

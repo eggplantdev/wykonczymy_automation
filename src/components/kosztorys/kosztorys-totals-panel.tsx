@@ -5,11 +5,12 @@ import * as Collapsible from '@radix-ui/react-collapsible'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { formatNet } from '@/lib/kosztorys/format'
-import { axisShows, MONEY_AXIS_DEFAULT, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
+import { axisShows, SUMMARY_AXIS_DEFAULT, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import { computeDoZaplatyRM } from '@/lib/kosztorys/summary-economics'
+import { CashSettlement } from '@/components/kosztorys/cash-settlement'
 import { KosztorysStageTotals } from '@/components/kosztorys/kosztorys-stage-totals'
 import { KosztorysSummary } from '@/components/kosztorys/kosztorys-summary'
 import { SubcontractorSummary } from '@/components/kosztorys/subcontractor-summary'
@@ -99,8 +100,13 @@ export function KosztorysTotalsPanel({
   const [open, setOpen] = useTotalsPanelOpen()
   // The panel's own netto/brutto axis, independent of the Widok dropdown — that one keeps
   // governing the grid columns only; this switch governs every figure inside the panel.
-  const [moneyAxis, setMoneyAxis] = useState<MoneyAxisT>(MONEY_AXIS_DEFAULT)
-  const { net: showNet, gross: showGross } = axisShows(moneyAxis)
+  const [moneyAxis, setMoneyAxis] = useState<MoneyAxisT>(SUMMARY_AXIS_DEFAULT)
+  // „Mieszana" ('both') is now the cash-settlement view: every figure renders netto-only, then a
+  // cash split block. `displayAxis` is what the netto/brutto children actually read.
+  const cashMode = moneyAxis === 'both'
+  const displayAxis: MoneyAxisT = cashMode ? 'net' : moneyAxis
+  const [cashAmount, setCashAmount] = useState(0)
+  const { net: showNet, gross: showGross } = axisShows(displayAxis)
   // The subcontractor plane (Z/Bez narzędzi) has no VAT axis and its own headline figure, so the
   // client „Do zapłaty" only applies in the client view.
   const isClientPlane = priceView === 'client'
@@ -196,7 +202,7 @@ export function KosztorysTotalsPanel({
                   reconciliation={reconciliation}
                   priceView={priceView}
                   vatRate={vatRate}
-                  moneyAxis={moneyAxis}
+                  moneyAxis={displayAxis}
                   clientView={clientView}
                 />
                 {/* „Suma transzy" (per-etap, Netto/Brutto) is a client/VAT figure — the subcontractor
@@ -206,8 +212,17 @@ export function KosztorysTotalsPanel({
                   stageTotals={stageTotals}
                   wykonaneNet={totalNet}
                   vatRate={vatRate}
-                  moneyAxis={moneyAxis}
+                  moneyAxis={displayAxis}
                 />
+                {cashMode && (
+                  <CashSettlement
+                    doZaplatyNet={doZaplaty.net}
+                    vatRate={vatRate}
+                    cashAmount={cashAmount}
+                    onCashAmountChange={setCashAmount}
+                    readOnly={clientView}
+                  />
+                )}
               </div>
             </div>
           ) : (
