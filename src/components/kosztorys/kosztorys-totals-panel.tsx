@@ -6,7 +6,11 @@ import { SUMMARY_AXIS_DEFAULT, type MoneyAxisT } from '@/lib/kosztorys/money-axi
 import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
-import { computeCashSettlement, computeDoZaplatyRM } from '@/lib/kosztorys/summary-economics'
+import {
+  bucketDepositsByPlane,
+  computeCashSettlement,
+  computeDoZaplatyRM,
+} from '@/lib/kosztorys/summary-economics'
 import { CashSettlement } from '@/components/kosztorys/cash-settlement'
 import { DepositsTable } from '@/components/kosztorys/deposits-table'
 import { DepositsReconciliation } from '@/components/kosztorys/deposits-reconciliation'
@@ -109,7 +113,8 @@ export function KosztorysTotalsPanel({
   // beside it. Every other value is a real MoneyAxisT the children read directly.
   const cashMode = moneyAxis === 'cash'
   const displayAxis: MoneyAxisT = moneyAxis === 'cash' ? 'both' : moneyAxis
-  const [cashAmount, setCashAmount] = useState(0)
+  // „Do rozliczenia netto" is derived, not typed: Σ deposits flagged NET is the gotówka part.
+  const cashAmount = bucketDepositsByPlane(depositTransactions).paidNet
   // The subcontractor plane (Z/Bez narzędzi) has no VAT axis and its own headline figure, so the
   // client „Do zapłaty" only applies in the client view.
   const isClientPlane = priceView === 'client'
@@ -133,7 +138,7 @@ export function KosztorysTotalsPanel({
     <Collapsible.Root
       open={open}
       onOpenChange={setOpen}
-      className="border-border bg-background text-foreground absolute inset-x-0 bottom-0 z-20 flex max-h-full flex-col border-t shadow-[0_-2px_8px_-4px_rgba(0,0,0,0.2)]"
+      className="border-border bg-background text-foreground shadow-panel absolute inset-x-0 bottom-0 z-20 flex max-h-full flex-col border-t"
     >
       <CollapsiblePanelTrigger
         label={isClientPlane ? 'Podsumowanie' : 'Podsumowanie podwykonawców'}
@@ -184,8 +189,6 @@ export function KosztorysTotalsPanel({
                       wplatyNet={wplatyNet}
                       vatRate={vatRate}
                       cashAmount={cashAmount}
-                      onCashAmountChange={setCashAmount}
-                      readOnly={clientView}
                     />
                   )}
                   {/* „Suma transzy" (per-etap, Netto/Brutto) is a client/VAT figure — the subcontractor
