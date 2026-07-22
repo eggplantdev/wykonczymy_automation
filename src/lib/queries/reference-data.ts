@@ -13,6 +13,7 @@ import {
   sumCategoryByTypeSettled,
   sumPayoutsByWorkerForInvestment,
   getPayoutTransactionsForInvestment,
+  getDepositTransactionsForInvestment,
   deriveCategoryBreakdowns,
 } from '@/lib/db/sum-transfers'
 import { getDb } from '@/lib/db/get-db'
@@ -34,6 +35,7 @@ import type {
   ReferenceDataBaseT,
   PayoutByWorkerT,
   PayoutTransactionRowT,
+  DepositTransactionRowT,
 } from '@/types/reference-data'
 
 // Categories alone, for callers that need only these. `fetchReferenceData` also returns every user
@@ -251,6 +253,20 @@ export async function fetchPayoutTransactionsForInvestment(
       return getPayoutTransactionsForInvestment(payload, investmentId)
     },
     ['payout-transactions', String(investmentId)],
+    { tags: [CACHE_TAGS.transfers] },
+  )()
+}
+
+// Same cache contract as the payout-transactions fetch — transfers tag, no PII to join.
+export async function fetchDepositTransactionsForInvestment(
+  investmentId: number,
+): Promise<DepositTransactionRowT[]> {
+  return unstable_cache(
+    async () => {
+      const payload = await getPayload({ config })
+      return getDepositTransactionsForInvestment(payload, investmentId)
+    },
+    ['deposit-transactions', String(investmentId)],
     { tags: [CACHE_TAGS.transfers] },
   )()
 }

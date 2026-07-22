@@ -7,10 +7,14 @@ import type {
   InvestmentFinancialsT,
   TypeSettledTotalT,
 } from '@/types/investment-financials'
-import type { PayoutByWorkerT, PayoutTransactionRowT } from '@/types/reference-data'
+import type {
+  DepositTransactionRowT,
+  PayoutByWorkerT,
+  PayoutTransactionRowT,
+} from '@/types/reference-data'
 import { buildSqlConditions, isNoResultsSentinel } from '@/lib/db/where-to-sql'
 import { getDb } from '@/lib/db/get-db'
-import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
+import { DEPOSIT_TYPES, type VatPlaneT } from '@/lib/constants/transfers'
 
 // Re-exported so the existing importers of the derive functions keep resolving here.
 export { deriveCategoryBreakdowns, deriveFinancials } from '@/lib/db/investment-financials'
@@ -250,27 +254,39 @@ export const sumCategoryByTypeSettled = async (
 }
 
 /**
- * Fetch the investment's deposit rows (cancelled excluded). Deposit count per investment is
- * small, so we return raw rows and let pure helpers downstream group them.
+ * The individual deposit rows (INVESTOR_DEPOSIT / COMPANY_FUNDING) for an investment — the un-summed
+ * twin of the `totalIncome` aggregate, so the client Podsumowanie can list each wpłata
+ * (data · kwota · netto/brutto), sortable, mirroring the subcontractor block's wypłaty list. Same
+ * deposit filter, cancelled excluded, date-desc. `vat_plane` is null for the „nie określono" state.
  */
-export const sumDepositRowsForInvestment = async (
+export const getDepositTransactionsForInvestment = async (
   payload: Payload,
   investmentId: number,
-): Promise<{ type: string; amount: number }[]> => {
+): Promise<DepositTransactionRowT[]> => {
+  const elapsed = perfStart()
   const db = await getDb(payload)
 
   const result = await db.execute(sql`
-    SELECT type::text AS type, amount
+    SELECT id, date, amount, vat_plane
     FROM transactions
     WHERE investment_id = ${investmentId}
       AND cancelled IS NOT TRUE
       AND type IN ${depositTypesInList}
+    ORDER BY date DESC, id DESC
   `)
 
-  return result.rows.map((row) => ({
-    type: row.type as string,
+  const rows = result.rows.map((row) => ({
+    id: Number(row.id),
+    // timestamptz arrives year-first ("2026-07-18 09:00:00+00") — lexically == chronologically
+    // sortable, so the client DataTable re-sorts „Wg daty" on it directly.
+    date: String(row.date),
     amount: Number(row.amount),
+    vatPlane: row.vat_plane == null ? null : (row.vat_plane as VatPlaneT),
   }))
+  console.log(
+    `[PERF] query.getDepositTransactionsForInvestment ${elapsed()}ms (${rows.length} rows)`,
+  )
+  return rows
 }
 
 /**
