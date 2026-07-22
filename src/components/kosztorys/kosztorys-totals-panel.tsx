@@ -28,7 +28,7 @@ import type {
 } from '@/types/reference-data'
 
 // The panel's own axis pick. Extends MoneyAxisT with a panel-only 'cash' value: 'both' keeps its
-// original meaning (netto + brutto columns side by side), 'cash' is the „Mieszana" cash-settlement
+// original meaning (netto + brutto columns side by side), 'cash' is the „Mieszane" cash-settlement
 // view (netto-only figures + the gotówka block).
 type PanelAxisT = MoneyAxisT | 'cash'
 
@@ -36,7 +36,7 @@ const SUMMARY_AXIS_OPTIONS: OptionT<PanelAxisT>[] = [
   { value: 'net', label: 'Netto' },
   { value: 'gross', label: 'Brutto' },
   { value: 'both', label: 'Netto + Brutto' },
-  { value: 'cash', label: 'Mieszana' },
+  { value: 'cash', label: 'Mieszane' },
 ]
 
 type PropsT = {
@@ -105,12 +105,18 @@ export function KosztorysTotalsPanel({
   // The panel's own netto/brutto axis, independent of the Widok dropdown — that one keeps
   // governing the grid columns only; this switch governs every figure inside the panel.
   const [moneyAxis, setMoneyAxis] = useState<PanelAxisT>(SUMMARY_AXIS_DEFAULT)
-  // „Mieszana" ('cash') shows BOTH netto and brutto columns, then a cash split block — the settlement
+  // „Mieszane" ('cash') shows BOTH netto and brutto columns, then a cash split block — the settlement
   // anchors on brutto (matching the brutto „Do zapłaty" column at C = 0), while netto stays visible
   // beside it. Every other value is a real MoneyAxisT the children read directly.
   const cashMode = moneyAxis === 'cash'
   const displayAxis: MoneyAxisT = moneyAxis === 'cash' ? 'both' : moneyAxis
   const [cashAmount, setCashAmount] = useState(0)
+  // Deposits already paid WITHOUT VAT (vatPlane NET). The rest — GROSS plus legacy null (which
+  // defaults to brutto per the owner's „brak wartości = brutto" ruling) — is the brutto plane, so
+  // it's `wplatyNet − wplatyNetPlane`, keeping the two planes summing to the headline wpłaty.
+  const wplatyNetPlane = depositTransactions
+    .filter((d) => d.vatPlane === 'NET')
+    .reduce((sum, d) => sum + d.amount, 0)
   const { net: showNet, gross: showGross } = axisShows(displayAxis)
   // The subcontractor plane (Z/Bez narzędzi) has no VAT axis and its own headline figure, so the
   // client „Do zapłaty" only applies in the client view.
@@ -181,7 +187,7 @@ export function KosztorysTotalsPanel({
           {isClientPlane ? (
             <div className="flex w-full flex-col">
               <div className="px-4 pt-3">
-                <SimpleTooltip content="Mieszana oznacza, że inwestycja jest rozliczana częściowo netto, częściowo brutto.">
+                <SimpleTooltip content="Mieszane oznacza, że inwestycja jest rozliczana częściowo netto, częściowo brutto.">
                   {/* ToggleGroup doesn't spread props, so the trigger needs a real element. */}
                   <span className="inline-flex">
                     <ToggleGroup
@@ -214,7 +220,9 @@ export function KosztorysTotalsPanel({
                 />
                 {cashMode && (
                   <CashSettlement
-                    doZaplatyGross={doZaplaty.gross}
+                    combinedNet={doZaplaty.net + wplatyNet}
+                    wplatyNetPlane={wplatyNetPlane}
+                    wplatyGrossPlane={wplatyNet - wplatyNetPlane}
                     vatRate={vatRate}
                     cashAmount={cashAmount}
                     onCashAmountChange={setCashAmount}

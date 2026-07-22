@@ -132,7 +132,7 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false, und
   // empty Set = show none. The „show none" state is why this can't be a plain Set with empty=all —
   // the FilterMultiSelect toggle-all needs a distinct „Odznacz wszystkie" target.
   const [shownSectionIds, setShownSectionIds] = useState<Set<number> | null>(null)
-  const [summaryOpen, setSummaryOpen] = useState(true)
+  const [summaryOpen, setSummaryOpen] = useState(false)
   // Column widths: persisted in localStorage, committed on handle release (not per pointermove —
   // that would be a write per pixel). During the drag we only show a vertical guide
   // (guideX = cursor X), without touching the grid.

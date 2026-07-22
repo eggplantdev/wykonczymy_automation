@@ -12,6 +12,7 @@ import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import { summaryMoneyCols } from '@/components/kosztorys/summary-grid'
 import { DepositsTable } from '@/components/kosztorys/deposits-table'
+import { SummaryRow, SummaryTable } from '@/components/kosztorys/summary-grid'
 import { SummaryBreakdownTable } from '@/components/kosztorys/summary-breakdown-table'
 import { SummaryTotalsTable } from '@/components/kosztorys/summary-totals-table'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
@@ -132,18 +133,27 @@ export function KosztorysSummary({
         <SummaryTotalsTable
           cols={moneyCols}
           moneyAxis={moneyAxis}
-          showRabat={showRabat}
-          rabat={rabat}
-          rabatMismatch={
-            reconVisible && reconciliation.rabat.mismatch
-              ? mismatchTooltip(reconciliation.rabat, 'Transakcje rabatu')
-              : undefined
-          }
           wplaty={wplaty}
           doZaplaty={doZaplaty}
           investmentId={investmentId}
           clientView={clientView}
         />
+        {/* Informational only — Suma prac is already net of rabat, so this is NOT a deduction
+            step. Its own segment keeps it out of the Wpłaty → Do zapłaty arithmetic. */}
+        {showRabat && (
+          <SummaryTable cols={moneyCols} className="w-fit">
+            <SummaryRow
+              label="Udzielono rabatu na łączną kwotę"
+              line={rabat}
+              axis={moneyAxis}
+              mismatch={
+                reconVisible && reconciliation.rabat.mismatch
+                  ? mismatchTooltip(reconciliation.rabat, 'Transakcje rabatu')
+                  : undefined
+              }
+            />
+          </SummaryTable>
+        )}
       </div>
       {depositTransactions.length > 0 && (
         <DepositsTable

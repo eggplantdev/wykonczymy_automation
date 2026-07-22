@@ -6,15 +6,12 @@ import type { MoneyPairT } from '@/lib/kosztorys/summary-economics'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import { SummaryRow, SummaryTable } from '@/components/kosztorys/summary-grid'
 
-// The lower grid: Wpłaty deducted off Łącznie down to the bold „Do zapłaty", then an informational
-// „Udzielono rabatu na kwotę" line below it (not a deduction — Suma prac is already net of rabat).
-// Shares the money tracks with the breakdown above so both columns align.
+// The lower grid: Wpłaty deducted off Łącznie down to the bold „Do zapłaty". The informational
+// „Udzielono rabatu" line lives in its own segment below (KosztorysSummary) so it can't read as a
+// deduction step. Shares the money tracks with the breakdown above so both columns align.
 export function SummaryTotalsTable({
   cols,
   moneyAxis,
-  showRabat,
-  rabat,
-  rabatMismatch,
   wplaty,
   doZaplaty,
   investmentId,
@@ -22,9 +19,6 @@ export function SummaryTotalsTable({
 }: {
   cols: string
   moneyAxis: MoneyAxisT
-  showRabat: boolean
-  rabat: MoneyPairT
-  rabatMismatch?: string
   wplaty: MoneyPairT
   doZaplaty: MoneyPairT
   investmentId: number
@@ -57,14 +51,6 @@ export function SummaryTotalsTable({
         bold
         danger={doZaplaty.net > 0}
       />
-      {showRabat && (
-        <SummaryRow
-          label="Udzielono rabatu na łączną kwotę"
-          line={rabat}
-          axis={moneyAxis}
-          mismatch={rabatMismatch}
-        />
-      )}
     </SummaryTable>
   )
 }

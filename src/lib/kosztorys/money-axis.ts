@@ -9,7 +9,7 @@ export type MoneyAxisT = 'net' | 'gross' | 'both' | 'none'
 
 export const MONEY_AXIS_DEFAULT: MoneyAxisT = 'both'
 
-// The Podsumowanie panel's own default. It opens on netto; „Mieszana" ('both') is now the
+// The Podsumowanie panel's own default. It opens on netto; „Mieszane" ('both') is now the
 // cash-settlement view, not a both-columns readout, so it must not be the panel's opening state.
 export const SUMMARY_AXIS_DEFAULT: MoneyAxisT = 'net'
 
