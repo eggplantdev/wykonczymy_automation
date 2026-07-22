@@ -10,7 +10,7 @@ import {
 import { formatNet } from '@/lib/kosztorys/format'
 import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
-import { SUMMARY_VALUE_COL, summaryMoneyCols } from '@/components/kosztorys/summary-grid'
+import { summaryMoneyCols } from '@/components/kosztorys/summary-grid'
 import { DepositsTable } from '@/components/kosztorys/deposits-table'
 import { SummaryBreakdownTable } from '@/components/kosztorys/summary-breakdown-table'
 import { SummaryTotalsTable } from '@/components/kosztorys/summary-totals-table'
@@ -67,8 +67,8 @@ type PropsT = {
 }
 
 // The single bottom summary block: the robocizna waterfall (Suma prac wykonanych → Rabat →
-// Robocizna) merged with the sheet Podsumowanie split (Robocizna / Materiały / Łącznie, udział %
-// of Łącznie), then Wpłaty subtracted to reach „Do zapłaty" — one grid, no separate totals bar.
+// Robocizna) merged with the sheet Podsumowanie split (Robocizna / Materiały / Łącznie), then
+// Wpłaty subtracted to reach „Do zapłaty" — one grid, no separate totals bar.
 export function KosztorysSummary({
   investmentId,
   laborCostsNetFromKosztorys,
@@ -107,13 +107,12 @@ export function KosztorysSummary({
   const wplaty = faceValue(wplatyNet)
 
   const moneyCols = summaryMoneyCols(moneyAxis)
-  const breakdownCols = `${moneyCols} ${SUMMARY_VALUE_COL}`
 
   return (
     <div className="text-foreground flex flex-col items-start gap-x-12 gap-y-8 text-sm">
       <div className="flex w-fit flex-col gap-4">
         <SummaryBreakdownTable
-          cols={breakdownCols}
+          cols={moneyCols}
           moneyAxis={moneyAxis}
           showNet={showNet}
           showGross={showGross}

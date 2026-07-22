@@ -49,7 +49,6 @@ export function SummaryTotalsTable({
         axis={moneyAxis}
         discount
         noBrutto
-        noShareCell
       />
       <SummaryRow
         label="Do zapłaty"
@@ -57,15 +56,12 @@ export function SummaryTotalsTable({
         axis={moneyAxis}
         bold
         danger={doZaplaty.net > 0}
-        noShareCell
       />
       {showRabat && (
         <SummaryRow
           label="Udzielono rabatu na łączną kwotę"
           line={rabat}
           axis={moneyAxis}
-          discount
-          noShareCell
           mismatch={rabatMismatch}
         />
       )}

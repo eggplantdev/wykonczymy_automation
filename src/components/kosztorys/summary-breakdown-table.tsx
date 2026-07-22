@@ -15,8 +15,9 @@ import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import { SummaryHeaderCell, SummaryRow, SummaryTable } from '@/components/kosztorys/summary-grid'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 
-// The upper grid: „Suma prac wykonanych" + each materiały/korekta line, summing to „Łącznie" with a
-// udział column. This is the sheet Podsumowanie split; the waterfall below deducts from its Łącznie.
+// The upper grid: „Suma prac wykonanych" + each materiały/korekta line, summing to „Łącznie".
+// This is the sheet Podsumowanie split; the waterfall below deducts from its Łącznie. The udział
+// figures stay computed upstream (summaryLine share) — they feed the charts, just not this table.
 export function SummaryBreakdownTable({
   cols,
   moneyAxis,
@@ -49,7 +50,6 @@ export function SummaryBreakdownTable({
       <SummaryHeaderCell variant="label">Podsumowanie</SummaryHeaderCell>
       {showNet && <SummaryHeaderCell>Netto</SummaryHeaderCell>}
       {showGross && <SummaryHeaderCell>Brutto</SummaryHeaderCell>}
-      <SummaryHeaderCell>Udział</SummaryHeaderCell>
       <SummaryRow
         label="Suma prac wykonanych"
         line={sumaPrac}
@@ -80,7 +80,7 @@ export function SummaryBreakdownTable({
             hint={MATERIALY_HINT}
           />
         ))}
-      <SummaryRow label="Łącznie" line={combined} axis={moneyAxis} emphasize hideShare />
+      <SummaryRow label="Łącznie" line={combined} axis={moneyAxis} emphasize />
     </SummaryTable>
   )
 }

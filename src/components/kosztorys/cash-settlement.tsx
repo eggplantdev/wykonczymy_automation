@@ -56,13 +56,11 @@ export function CashSettlement({
         label="Reszta z VAT"
         line={{ net: settlement.remainderGross, gross: settlement.remainderGross }}
         axis="net"
-        noShareCell
       />
       <SummaryRow
         label="Razem do zapłaty"
         line={{ net: settlement.total, gross: settlement.total }}
         axis="net"
-        noShareCell
         bold
       />
     </SummaryTable>

@@ -2,7 +2,7 @@ import { Fragment, type ReactNode } from 'react'
 import { Info } from 'lucide-react'
 import { HintTooltip } from '@/components/ui/tooltip'
 import { ReconMismatchBadge } from '@/components/kosztorys/recon-mismatch-badge'
-import { formatNet, formatPercent } from '@/lib/kosztorys/format'
+import { formatNet } from '@/lib/kosztorys/format'
 import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { MoneyPairT, SummaryLineT } from '@/lib/kosztorys/summary-economics'
 import { cn } from '@/lib/utils/cn'
@@ -92,13 +92,6 @@ export type SummaryRowOptsT = {
   bold?: boolean
   discount?: boolean
   danger?: boolean
-  // Drops the udział cell entirely. Only for the waterfall block, whose grid has no udział track —
-  // every line there is off the Łącznie base.
-  noShareCell?: boolean
-  // Blanks the udział cell without dropping it. For Łącznie, which IS the udział base: a
-  // self-referential 100% is meaningless, but the cell has to stay — remove it and the container's
-  // bg-border shows through the uncovered track as a grey gap.
-  hideShare?: boolean
   // No-VAT figure: one amount, no netto/brutto axis. The sheet gives brutto its own row only for
   // prace + the R+M total; materiały/korekta/wpłaty have no brutto figure at all. The Brutto cell
   // repeats the netto amount rather than blanking, which also keeps the row readable in a
@@ -108,7 +101,7 @@ export type SummaryRowOptsT = {
   // materiały rows to state that VAT is subtracted (netto derived from brutto) — the inverse of the
   // prace direction, so the generic bez-VAT copy would be wrong here.
   hint?: string
-  // When set, the figure screams: bold red value + a red `!` whose tooltip is this string. Owner-only
+  // When set, the figure screams via a red `!` icon (not a red value) whose tooltip is this string. Owner-only
   // — the EX-535 reconciliation check against the transaction ledger. The client footer never passes
   // it, which is what lets both surfaces share this row instead of keeping two copies.
   mismatch?: string
@@ -125,19 +118,17 @@ type SummaryRowPropsT = SummaryRowOptsT & {
  * child of ONE grid container (that is what makes `gap-px` paint the shared separators). Wrapping
  * the row in an element of its own would break the gridlines, so this cannot be a normal box.
  *
- * A line with no `share` (the total rows) renders an empty udział cell. `emphasize` keeps the
- * summary rows bold now that the shared gridlines already draw every row separator.
+ * `emphasize` keeps the summary rows bold now that the shared gridlines already draw every row
+ * separator. A line's `share` is not rendered here — it feeds the charts.
  */
 export function SummaryRow({ label, line, axis, ...opts }: SummaryRowPropsT) {
   const { net: showNet, gross: showGross } = axisShows(axis)
-  const hasShare = 'share' in line && !opts.hideShare
   const money = cn(
     SUMMARY_VALUE_CELL,
     opts.emphasize && 'font-medium',
     opts.bold && 'font-bold',
     opts.discount && 'text-chart-green',
     opts.danger && 'text-destructive',
-    opts.mismatch && 'text-destructive font-bold',
   )
 
   return (
@@ -174,17 +165,6 @@ export function SummaryRow({ label, line, axis, ...opts }: SummaryRowPropsT) {
         // A no-VAT row repeats its netto figure here rather than blanking: the amount IS the
         // brutto (VAT doesn't apply), so restating it reads clearer than an absence.
         <span className={money}>{formatNet(opts.noBrutto ? line.net : line.gross)}</span>
-      )}
-      {!opts.noShareCell && (
-        <span
-          className={cn(
-            SUMMARY_VALUE_CELL,
-            'text-muted-foreground',
-            opts.emphasize && 'font-medium',
-          )}
-        >
-          {hasShare ? formatPercent(line.share) : ''}
-        </span>
       )}
     </Fragment>
   )
