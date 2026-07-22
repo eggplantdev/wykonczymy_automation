@@ -2,20 +2,19 @@
 
 import { useState } from 'react'
 import * as Collapsible from '@radix-ui/react-collapsible'
-import { ChevronDown } from 'lucide-react'
-import { cn } from '@/lib/utils/cn'
-import { formatNet } from '@/lib/kosztorys/format'
-import { axisShows, SUMMARY_AXIS_DEFAULT, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
+import { SUMMARY_AXIS_DEFAULT, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
-import { computeDoZaplatyRM } from '@/lib/kosztorys/summary-economics'
+import { computeCashSettlement, computeDoZaplatyRM } from '@/lib/kosztorys/summary-economics'
 import { CashSettlement } from '@/components/kosztorys/cash-settlement'
+import { DepositsTable } from '@/components/kosztorys/deposits-table'
+import { DepositsReconciliation } from '@/components/kosztorys/deposits-reconciliation'
 import { KosztorysStageTotals } from '@/components/kosztorys/kosztorys-stage-totals'
 import { KosztorysSummary } from '@/components/kosztorys/kosztorys-summary'
 import { SubcontractorSummary } from '@/components/kosztorys/subcontractor-summary'
+import { CollapsiblePanelTrigger } from '@/components/ui/collapsible-panel-trigger'
 import { SUMMARY_PANEL_SCROLL } from '@/components/kosztorys/summary-grid'
-import { computeSubcontractorSummary } from '@/lib/kosztorys/subcontractor-summary'
 import { useTotalsPanelOpen } from '@/components/kosztorys/use-totals-panel-open'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import type { KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
@@ -111,13 +110,6 @@ export function KosztorysTotalsPanel({
   const cashMode = moneyAxis === 'cash'
   const displayAxis: MoneyAxisT = moneyAxis === 'cash' ? 'both' : moneyAxis
   const [cashAmount, setCashAmount] = useState(0)
-  // Deposits already paid WITHOUT VAT (vatPlane NET). The rest — GROSS plus legacy null (which
-  // defaults to brutto per the owner's „brak wartości = brutto" ruling) — is the brutto plane, so
-  // it's `wplatyNet − wplatyNetPlane`, keeping the two planes summing to the headline wpłaty.
-  const wplatyNetPlane = depositTransactions
-    .filter((d) => d.vatPlane === 'NET')
-    .reduce((sum, d) => sum + d.amount, 0)
-  const { net: showNet, gross: showGross } = axisShows(displayAxis)
   // The subcontractor plane (Z/Bez narzędzi) has no VAT axis and its own headline figure, so the
   // client „Do zapłaty" only applies in the client view.
   const isClientPlane = priceView === 'client'
@@ -129,57 +121,23 @@ export function KosztorysTotalsPanel({
     materialsGross,
     vatRate,
   )
-  // Subcontractor headline: „Pozostało do wypłaty" (należne − zaliczki), shown collapsed in place of
-  // the client „Do zapłaty".
-  const { remaining: subcontractorRemaining } = computeSubcontractorSummary(
-    subcontractorDueNet,
-    payoutsByWorker,
+  // One cash-split source for both the „Rozliczenie mieszane" table and the wpłaty reconciliation
+  // beside the deposits list, so their „Do rozliczenia netto" / „Reszta brutto" figures can't drift.
+  const cashSettlement = computeCashSettlement(
+    doZaplaty.net + wplatyNet,
+    wplatyNet,
+    cashAmount,
+    vatRate,
   )
-
   return (
     <Collapsible.Root
       open={open}
       onOpenChange={setOpen}
       className="border-border bg-background text-foreground absolute inset-x-0 bottom-0 z-20 flex max-h-full flex-col border-t shadow-[0_-2px_8px_-4px_rgba(0,0,0,0.2)]"
     >
-      <Collapsible.Trigger className="hover:bg-muted/40 flex w-full shrink-0 cursor-pointer items-baseline gap-3 px-4 py-1.5 text-left text-sm">
-        <ChevronDown
-          className={cn(
-            'text-muted-foreground size-4 shrink-0 self-center transition-transform duration-200',
-            open && 'rotate-180',
-          )}
-        />
-        <span className="font-medium">
-          {isClientPlane ? 'Podsumowanie' : 'Podsumowanie podwykonawców'}
-        </span>
-        {/* Collapsed: keep the headline figure visible; open: the table carries it. Client plane =
-            robocizna „Do zapłaty" (netto/brutto); subcontractor plane = „Pozostało do wypłaty" (no VAT axis). */}
-        {!open &&
-          (isClientPlane ? (
-            <span className="text-muted-foreground ml-auto flex items-baseline gap-x-4 tabular-nums">
-              <span>Do zapłaty</span>
-              {showNet && (
-                <span className="flex items-baseline gap-x-1.5">
-                  <span className="text-muted-foreground text-xs">netto</span>
-                  <span className="text-foreground font-medium">{formatNet(doZaplaty.net)}</span>
-                </span>
-              )}
-              {showGross && (
-                <span className="flex items-baseline gap-x-1.5">
-                  <span className="text-muted-foreground text-xs">brutto</span>
-                  <span className="text-foreground font-medium">{formatNet(doZaplaty.gross)}</span>
-                </span>
-              )}
-            </span>
-          ) : (
-            <span className="text-muted-foreground ml-auto flex items-baseline gap-x-1.5 tabular-nums">
-              <span>Pozostało do wypłaty</span>
-              <span className="text-foreground font-medium">
-                {formatNet(subcontractorRemaining)}
-              </span>
-            </span>
-          ))}
-      </Collapsible.Trigger>
+      <CollapsiblePanelTrigger
+        label={isClientPlane ? 'Podsumowanie' : 'Podsumowanie podwykonawców'}
+      />
       <Collapsible.Content className="data-[state=closed]:animate-collapse-up data-[state=open]:animate-collapse-down flex min-h-0 flex-1 flex-col overflow-hidden">
         {/* One scroll container for both planes — the content clears the toolbar instead of hiding
             under it, identically whichever plane is active; the trigger above stays pinned. */}
@@ -200,44 +158,63 @@ export function KosztorysTotalsPanel({
                 </SimpleTooltip>
               </div>
               {/* The container owns the tables' shared spacing — children carry no top offset of
-                  their own, so every table's header lands on the same line. */}
-              <div className="flex w-full flex-wrap items-start gap-x-12 gap-y-8 px-4 pt-3 pb-10">
-                <KosztorysSummary
-                  investmentId={investmentId}
-                  laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
-                  doZaplaty={doZaplaty}
-                  materialsGross={materialsGross}
-                  materialyBreakdown={materialyBreakdown}
-                  sectionSubtotals={sectionSubtotals}
-                  wplatyNet={wplatyNet}
-                  depositTransactions={depositTransactions}
-                  rabatAmount={rabatAmount}
-                  reconciliation={reconciliation}
-                  priceView={priceView}
-                  vatRate={vatRate}
-                  moneyAxis={displayAxis}
-                  clientView={clientView}
-                />
-                {cashMode && (
-                  <CashSettlement
-                    combinedNet={doZaplaty.net + wplatyNet}
-                    wplatyNetPlane={wplatyNetPlane}
-                    wplatyGrossPlane={wplatyNet - wplatyNetPlane}
+                  their own, so every table's header lands on the same line. Row 1 is the summary
+                  block + its side tables; row 2 is the wpłaty list + its reconciliation, so a wide
+                  deposits row can't stretch the summary column and push the side tables away. */}
+              <div className="flex w-full flex-col gap-y-8 px-4 pt-3 pb-10">
+                <div className="flex w-full flex-wrap items-start gap-x-12 gap-y-8">
+                  <KosztorysSummary
+                    investmentId={investmentId}
+                    laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
+                    doZaplaty={doZaplaty}
+                    materialsGross={materialsGross}
+                    materialyBreakdown={materialyBreakdown}
+                    sectionSubtotals={sectionSubtotals}
+                    wplatyNet={wplatyNet}
+                    rabatAmount={rabatAmount}
+                    reconciliation={reconciliation}
+                    priceView={priceView}
                     vatRate={vatRate}
-                    cashAmount={cashAmount}
-                    onCashAmountChange={setCashAmount}
-                    readOnly={clientView}
+                    moneyAxis={displayAxis}
+                    clientView={clientView}
                   />
+                  {cashMode && (
+                    <CashSettlement
+                      combinedNet={doZaplaty.net + wplatyNet}
+                      wplatyNet={wplatyNet}
+                      vatRate={vatRate}
+                      cashAmount={cashAmount}
+                      onCashAmountChange={setCashAmount}
+                      readOnly={clientView}
+                    />
+                  )}
+                  {/* „Suma transzy" (per-etap, Netto/Brutto) is a client/VAT figure — the subcontractor
+                    plane has no VAT axis (EX-558), so it renders only here. Sits beside the Podsumowanie. */}
+                  <KosztorysStageTotals
+                    stages={stages}
+                    stageTotals={stageTotals}
+                    wykonaneNet={totalNet}
+                    vatRate={vatRate}
+                    moneyAxis={displayAxis}
+                  />
+                </div>
+                {depositTransactions.length > 0 && (
+                  <div className="flex flex-row flex-wrap items-start gap-x-8 gap-y-4">
+                    <DepositsTable
+                      investmentId={investmentId}
+                      rows={depositTransactions}
+                      clientView={clientView}
+                      showPlane={cashMode}
+                    />
+                    {cashMode && (
+                      <DepositsReconciliation
+                        rows={depositTransactions}
+                        cashTarget={cashAmount}
+                        remainderGross={cashSettlement.remainderGross}
+                      />
+                    )}
+                  </div>
                 )}
-                {/* „Suma transzy" (per-etap, Netto/Brutto) is a client/VAT figure — the subcontractor
-                  plane has no VAT axis (EX-558), so it renders only here. Sits beside the Podsumowanie. */}
-                <KosztorysStageTotals
-                  stages={stages}
-                  stageTotals={stageTotals}
-                  wykonaneNet={totalNet}
-                  vatRate={vatRate}
-                  moneyAxis={displayAxis}
-                />
               </div>
             </div>
           ) : (

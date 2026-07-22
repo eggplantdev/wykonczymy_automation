@@ -11,7 +11,6 @@ import { formatNet } from '@/lib/kosztorys/format'
 import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import { summaryMoneyCols } from '@/components/kosztorys/summary-grid'
-import { DepositsTable } from '@/components/kosztorys/deposits-table'
 import { SummaryRow, SummaryTable } from '@/components/kosztorys/summary-grid'
 import { SummaryBreakdownTable } from '@/components/kosztorys/summary-breakdown-table'
 import { SummaryTotalsTable } from '@/components/kosztorys/summary-totals-table'
@@ -22,7 +21,6 @@ import {
   type ReconT,
 } from '@/lib/kosztorys/reconciliation'
 import type { SectionSliceInputT } from '@/lib/kosztorys/chart-slices'
-import type { DepositTransactionRowT } from '@/types/reference-data'
 
 // The scream's tooltip names both compared figures + the różnica; formatNet because this surface shows
 // kosztorys nets. Shared copy with the investment page (reconciliationTooltip).
@@ -46,9 +44,6 @@ type PropsT = {
   // Wpłaty netto — the investor's deposits on this investment (totalIncome); subtracted from
   // Łącznie to reach „Do zapłaty". Matches the investment page's „Wpłaty" by construction.
   wplatyNet: number
-  // The investment's individual deposit rows — the wpłaty list under the summary. Sortable, same
-  // DataTable primitive as the subcontractor wypłaty list.
-  depositTransactions: DepositTransactionRowT[]
   // The rabat actually taken off the executed robocizna (net zł): the global discount when active,
   // else Σ per-item rabat. Unified upstream so this table shows one explicit „Rabat" line. 0 = none.
   rabatAmount: number
@@ -78,7 +73,6 @@ export function KosztorysSummary({
   materialyBreakdown,
   sectionSubtotals,
   wplatyNet,
-  depositTransactions,
   rabatAmount,
   reconciliation,
   priceView,
@@ -155,13 +149,6 @@ export function KosztorysSummary({
           </SummaryTable>
         )}
       </div>
-      {depositTransactions.length > 0 && (
-        <DepositsTable
-          investmentId={investmentId}
-          rows={depositTransactions}
-          clientView={clientView}
-        />
-      )}
       {/* <div className="flex flex-wrap items-start gap-x-12 gap-y-8"> */}
       {/* <SectionSharePie subtotals={sectionSubtotals} /> */}
       {/* <CostStructurePie sumaPracNet={sumaPracNet} materialyBreakdown={materialyBreakdown} /> */}
