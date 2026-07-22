@@ -44,6 +44,7 @@ import {
   CashRegisterField,
   DateField,
   EntityComboboxField,
+  PaymentMethodField,
   SourceRegisterField,
   LineItemsField,
 } from '@/components/forms/form-fields'
@@ -345,6 +346,8 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
             cashRegisters={referenceData.cashRegisters}
           />
         )}
+
+        <PaymentMethodField form={form} />
 
         {needsWorker(currentType) && (
           <EntityComboboxField form={form} variant="worker" items={referenceData.workers} />

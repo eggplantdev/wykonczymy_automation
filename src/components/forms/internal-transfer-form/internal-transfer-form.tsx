@@ -17,6 +17,7 @@ import {
   CashRegisterField,
   DateField,
   DescriptionField,
+  PaymentMethodField,
   SourceRegisterField,
 } from '@/components/forms/form-fields'
 import FormFooter from '../form-components/form-footer'
@@ -101,6 +102,8 @@ export function InternalTransferForm({
           <AmountField form={form} fieldClassName="min-w-0 flex-1" />
           <DateField form={form} fieldClassName="w-40" />
         </div>
+
+        <PaymentMethodField form={form} />
 
         <DescriptionField form={form} />
       </FieldGroup>
