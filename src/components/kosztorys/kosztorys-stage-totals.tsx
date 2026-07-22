@@ -61,7 +61,7 @@ export function KosztorysStageTotals({
   )
 
   return (
-    <div className="overflow-x-auto px-4 py-2 text-sm">
+    <div className="overflow-x-auto text-sm">
       <SummaryTable cols={gridTemplateColumns} className="w-max">
         <SummaryHeaderCell variant="label">Suma transzy</SummaryHeaderCell>
         {stages.map((st) => (

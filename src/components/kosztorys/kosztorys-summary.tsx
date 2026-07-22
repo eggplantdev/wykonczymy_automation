@@ -110,7 +110,7 @@ export function KosztorysSummary({
   const breakdownCols = `${moneyCols} ${SUMMARY_VALUE_COL}`
 
   return (
-    <div className="text-foreground flex flex-col items-start gap-x-12 gap-y-8 px-4 pt-2 pb-10 text-sm">
+    <div className="text-foreground flex flex-col items-start gap-x-12 gap-y-8 text-sm">
       <div className="flex w-fit flex-col gap-4">
         <SummaryBreakdownTable
           cols={breakdownCols}

@@ -11,8 +11,9 @@ import {
 import { cn } from '@/lib/utils/cn'
 
 type PropsT = {
-  // „Do zapłaty" netto (D) — the still-owed R+M figure the cash split works against.
-  doZaplatyNet: number
+  // „Do zapłaty" BRUTTO — the still-owed R+M figure the cash split works against. Brutto (not netto)
+  // because C = 0 must land on the Brutto axis „Do zapłaty"; see computeCashSettlement.
+  doZaplatyGross: number
   vatRate: number
   cashAmount: number
   onCashAmountChange: (n: number) => void
@@ -24,16 +25,16 @@ type PropsT = {
 // zapłaty" (C + reszta). Built on the shared netto single-value track so it lines up with the
 // waterfall grid above it.
 export function CashSettlement({
-  doZaplatyNet,
+  doZaplatyGross,
   vatRate,
   cashAmount,
   onCashAmountChange,
   readOnly,
 }: PropsT) {
-  const settlement = computeCashSettlement(doZaplatyNet, cashAmount, vatRate)
+  const settlement = computeCashSettlement(doZaplatyGross, cashAmount, vatRate)
 
   return (
-    <SummaryTable cols={summaryMoneyCols('net')} className="mt-3 w-fit self-start">
+    <SummaryTable cols={summaryMoneyCols('net')} className="w-fit self-start">
       <SummaryHeaderCell variant="label">Rozliczenie gotówką</SummaryHeaderCell>
       <SummaryHeaderCell>kwota</SummaryHeaderCell>
 

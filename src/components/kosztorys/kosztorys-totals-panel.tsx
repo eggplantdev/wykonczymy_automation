@@ -27,12 +27,16 @@ import type {
   DepositTransactionRowT,
 } from '@/types/reference-data'
 
-// The summary's own axis pick — 'both' reads „Mieszana" here (a partly-net, partly-gross
-// settlement), not the grid toggle's „Pokaż wszystko".
-const SUMMARY_AXIS_OPTIONS: OptionT<MoneyAxisT>[] = [
+// The panel's own axis pick. Extends MoneyAxisT with a panel-only 'cash' value: 'both' keeps its
+// original meaning (netto + brutto columns side by side), 'cash' is the „Mieszana" cash-settlement
+// view (netto-only figures + the gotówka block).
+type PanelAxisT = MoneyAxisT | 'cash'
+
+const SUMMARY_AXIS_OPTIONS: OptionT<PanelAxisT>[] = [
   { value: 'net', label: 'Netto' },
   { value: 'gross', label: 'Brutto' },
-  { value: 'both', label: 'Mieszana' },
+  { value: 'both', label: 'Netto + Brutto' },
+  { value: 'cash', label: 'Mieszana' },
 ]
 
 type PropsT = {
@@ -100,11 +104,12 @@ export function KosztorysTotalsPanel({
   const [open, setOpen] = useTotalsPanelOpen()
   // The panel's own netto/brutto axis, independent of the Widok dropdown — that one keeps
   // governing the grid columns only; this switch governs every figure inside the panel.
-  const [moneyAxis, setMoneyAxis] = useState<MoneyAxisT>(SUMMARY_AXIS_DEFAULT)
-  // „Mieszana" ('both') is now the cash-settlement view: every figure renders netto-only, then a
-  // cash split block. `displayAxis` is what the netto/brutto children actually read.
-  const cashMode = moneyAxis === 'both'
-  const displayAxis: MoneyAxisT = cashMode ? 'net' : moneyAxis
+  const [moneyAxis, setMoneyAxis] = useState<PanelAxisT>(SUMMARY_AXIS_DEFAULT)
+  // „Mieszana" ('cash') shows BOTH netto and brutto columns, then a cash split block — the settlement
+  // anchors on brutto (matching the brutto „Do zapłaty" column at C = 0), while netto stays visible
+  // beside it. Every other value is a real MoneyAxisT the children read directly.
+  const cashMode = moneyAxis === 'cash'
+  const displayAxis: MoneyAxisT = moneyAxis === 'cash' ? 'both' : moneyAxis
   const [cashAmount, setCashAmount] = useState(0)
   const { net: showNet, gross: showGross } = axisShows(displayAxis)
   // The subcontractor plane (Z/Bez narzędzi) has no VAT axis and its own headline figure, so the
@@ -188,7 +193,9 @@ export function KosztorysTotalsPanel({
                   </span>
                 </SimpleTooltip>
               </div>
-              <div className="flex w-full flex-wrap items-start">
+              {/* The container owns the tables' shared spacing — children carry no top offset of
+                  their own, so every table's header lands on the same line. */}
+              <div className="flex w-full flex-wrap items-start gap-x-12 gap-y-8 px-4 pt-3 pb-10">
                 <KosztorysSummary
                   investmentId={investmentId}
                   laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
@@ -205,6 +212,15 @@ export function KosztorysTotalsPanel({
                   moneyAxis={displayAxis}
                   clientView={clientView}
                 />
+                {cashMode && (
+                  <CashSettlement
+                    doZaplatyGross={doZaplaty.gross}
+                    vatRate={vatRate}
+                    cashAmount={cashAmount}
+                    onCashAmountChange={setCashAmount}
+                    readOnly={clientView}
+                  />
+                )}
                 {/* „Suma transzy" (per-etap, Netto/Brutto) is a client/VAT figure — the subcontractor
                   plane has no VAT axis (EX-558), so it renders only here. Sits beside the Podsumowanie. */}
                 <KosztorysStageTotals
@@ -214,15 +230,6 @@ export function KosztorysTotalsPanel({
                   vatRate={vatRate}
                   moneyAxis={displayAxis}
                 />
-                {cashMode && (
-                  <CashSettlement
-                    doZaplatyNet={doZaplaty.net}
-                    vatRate={vatRate}
-                    cashAmount={cashAmount}
-                    onCashAmountChange={setCashAmount}
-                    readOnly={clientView}
-                  />
-                )}
               </div>
             </div>
           ) : (
