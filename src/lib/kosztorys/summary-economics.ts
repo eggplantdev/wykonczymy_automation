@@ -1,4 +1,5 @@
 import { toGross } from '@/lib/kosztorys/calc'
+import type { VatPlaneT } from '@/lib/constants/transfers'
 
 export type MoneyPairT = { net: number; gross: number }
 
@@ -141,9 +142,26 @@ export function computeCashSettlement(
   }
 }
 
+export type DepositPlaneSumsT = { paidNet: number; paidGross: number }
+
+// Bucket deposits by VAT plane for the tryb-mieszany reconciliation. A deposit marked GROSS goes to
+// the invoiced part; everything else — NET *and* legacy/unmarked null — pays down the gotówka
+// (no-VAT) part, the owner's „brak wartości = netto" ruling (flipped 2026-07-22 from the earlier
+// null→brutto default).
+export function bucketDepositsByPlane(
+  rows: { amount: number; vatPlane: VatPlaneT | null }[],
+): DepositPlaneSumsT {
+  const paidGross = rows.reduce(
+    (sum, row) => (row.vatPlane === 'GROSS' ? sum + row.amount : sum),
+    0,
+  )
+  const total = rows.reduce((sum, row) => sum + row.amount, 0)
+  return { paidNet: total - paidGross, paidGross }
+}
+
 export type DepositsSplitT = {
-  // Σ deposits marked NET (the wpłaty list's „Netto/Brutto" column) and Σ everything else (GROSS +
-  // legacy null, which defaults to brutto). These sum to the total wpłaty.
+  // Σ deposits marked GROSS (the wpłaty list's „Netto/Brutto" column) and Σ everything else (NET +
+  // legacy null, which defaults to netto). These sum to the total wpłaty.
   paidNet: number
   paidGross: number
   // Each plane's own still-owed figure, paired against the mixed-settlement table beside it:

@@ -37,7 +37,7 @@ export function CashSettlement({ combinedNet, wplatyNet, vatRate, cashAmount }: 
       />
       <SummaryRow
         label="Do rozliczenia netto"
-        hint="Suma wpłat oznaczonych jako netto"
+        hint="Suma wpłat netto (wpłaty bez oznaczenia liczone są jako netto)"
         line={{ net: settlement.cash, gross: settlement.cash }}
         axis="net"
       />

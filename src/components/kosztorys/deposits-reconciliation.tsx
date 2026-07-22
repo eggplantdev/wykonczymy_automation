@@ -1,6 +1,6 @@
 'use client'
 
-import { depositsSplit } from '@/lib/kosztorys/summary-economics'
+import { bucketDepositsByPlane, depositsSplit } from '@/lib/kosztorys/summary-economics'
 import {
   SummaryHeaderCell,
   SummaryRow,
@@ -21,10 +21,7 @@ type PropsT = {
 // from the „Rozliczenie mieszane" table. Netto deposits pay down the gotówka part, brutto deposits
 // the invoiced part — so „Pozostało" is per-plane, not one figure on two axes.
 export function DepositsReconciliation({ rows, cashTarget, remainderGross }: PropsT) {
-  // A deposit with no plane (legacy null) counts as brutto — owner's „brak wartości = brutto" ruling.
-  // TODO(owner): this default may flip if the owner decides unmarked wpłaty should be netto instead.
-  const paidNet = rows.reduce((sum, row) => (row.vatPlane === 'NET' ? sum + row.amount : sum), 0)
-  const paidGross = rows.reduce((sum, row) => sum + row.amount, 0) - paidNet
+  const { paidNet, paidGross } = bucketDepositsByPlane(rows)
   const split = depositsSplit(paidNet, paidGross, cashTarget, remainderGross)
 
   return (
@@ -34,13 +31,13 @@ export function DepositsReconciliation({ rows, cashTarget, remainderGross }: Pro
 
       <SummaryRow
         label="Wpłacono netto"
+        hint="Wpłaty bez oznaczenia netto/brutto liczone są jako netto."
         line={{ net: split.paidNet, gross: split.paidNet }}
         axis="net"
         discount
       />
       <SummaryRow
         label="Wpłacono brutto"
-        hint="Wpłaty bez oznaczenia netto/brutto liczone są jako brutto."
         line={{ net: split.paidGross, gross: split.paidGross }}
         axis="net"
         discount
