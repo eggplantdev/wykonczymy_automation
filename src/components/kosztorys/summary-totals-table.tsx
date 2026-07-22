@@ -6,8 +6,9 @@ import type { MoneyPairT } from '@/lib/kosztorys/summary-economics'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import { SummaryRow, SummaryTable } from '@/components/kosztorys/summary-grid'
 
-// The lower grid: deductions off Łącznie — an optional Rabat line, Wpłaty, and the bold „Do zapłaty"
-// bottom line. Shares the money tracks with the breakdown above so both columns align.
+// The lower grid: Wpłaty deducted off Łącznie down to the bold „Do zapłaty", then an informational
+// „Udzielono rabatu na kwotę" line below it (not a deduction — Suma prac is already net of rabat).
+// Shares the money tracks with the breakdown above so both columns align.
 export function SummaryTotalsTable({
   cols,
   moneyAxis,
@@ -31,16 +32,6 @@ export function SummaryTotalsTable({
 }) {
   return (
     <SummaryTable cols={cols} className="w-fit">
-      {showRabat && (
-        <SummaryRow
-          label="Rabat"
-          line={rabat}
-          axis={moneyAxis}
-          discount
-          noShareCell
-          mismatch={rabatMismatch}
-        />
-      )}
       <SummaryRow
         label={
           clientView ? (
@@ -68,6 +59,16 @@ export function SummaryTotalsTable({
         danger={doZaplaty.net > 0}
         noShareCell
       />
+      {showRabat && (
+        <SummaryRow
+          label="Udzielono rabatu na łączną kwotę"
+          line={rabat}
+          axis={moneyAxis}
+          discount
+          noShareCell
+          mismatch={rabatMismatch}
+        />
+      )}
     </SummaryTable>
   )
 }

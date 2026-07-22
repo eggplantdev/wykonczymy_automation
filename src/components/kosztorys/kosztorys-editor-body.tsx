@@ -222,7 +222,6 @@ export function KosztorysEditorBody({
             reconciliation={reconciliation}
             priceView={view}
             vatRate={tree.vatRate}
-            moneyAxis={moneyAxis}
             clientView={clientView}
           />
         </div>

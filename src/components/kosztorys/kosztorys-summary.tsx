@@ -84,11 +84,11 @@ export function KosztorysSummary({
   moneyAxis,
   clientView = false,
 }: PropsT) {
-  // Łącznie is the pre-rabat total (Suma prac + Materiały), so the rows above it reconcile to it;
-  // Rabat then deducts from Łącznie down to „Do zapłaty" as its own waterfall line below.
-  // laborCostsNetFromKosztorys arrives already net of rabat, so add it back for the Łącznie/udział base.
-  const sumaPracNet = laborCostsNetFromKosztorys + rabatAmount
-  const { combined } = computeSummarySplit(sumaPracNet, materialyNet, vatRate)
+  // „Suma prac wykonanych" is shown net of rabat, matching „Suma transzy" (both are the executed
+  // value after discount). Rabat is no longer a waterfall deduction — it's an informational line
+  // below „Do zapłaty". So Łącznie = Suma prac (po rabacie) + Materiały, and Łącznie − Wpłaty =
+  // „Do zapłaty" holds without a rabat step.
+  const { combined } = computeSummarySplit(laborCostsNetFromKosztorys, materialyNet, vatRate)
   const { net: showNet, gross: showGross } = axisShows(moneyAxis)
   // The scream compares client-view nets; a subcontractor view reprices the displayed figure, so the
   // scream would sit next to a number it isn't comparing. Show it only in the client view.
@@ -99,10 +99,9 @@ export function KosztorysSummary({
   const showRabat =
     rabatAmount > 0 ||
     (reconVisible && (reconciliation.rabat.actual > 0 || reconciliation.rabat.mismatch))
-  const sumaPrac = summaryLine(sumaPracNet, combined.net, vatRate)
-  // Rabat is an obniżka of prace, so it lives on the prace plane and grosses — brutto = rabat×(1+VAT).
-  // Grossing it keeps the brutto waterfall exact: Łącznie − rabat − wpłaty = Do zapłaty on both axes
-  // (toGross is linear). Wpłaty stays face value — it's a cash deposit, not prace.
+  const sumaPrac = summaryLine(laborCostsNetFromKosztorys, combined.net, vatRate)
+  // Rabat is now an informational line (below „Do zapłaty"), not a deduction. It lives on the prace
+  // plane and grosses — brutto = rabat×(1+VAT) — so both axes read a real figure.
   const rabat = moneyPair(rabatAmount, vatRate)
   const wplaty = faceValue(wplatyNet)
 

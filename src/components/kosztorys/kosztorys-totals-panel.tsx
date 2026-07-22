@@ -1,10 +1,13 @@
 'use client'
 
+import { useState } from 'react'
 import * as Collapsible from '@radix-ui/react-collapsible'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { formatNet } from '@/lib/kosztorys/format'
-import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
+import { axisShows, MONEY_AXIS_DEFAULT, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
+import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
+import { SimpleTooltip } from '@/components/ui/tooltip'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import { computeDoZaplatyRM } from '@/lib/kosztorys/summary-economics'
 import { KosztorysStageTotals } from '@/components/kosztorys/kosztorys-stage-totals'
@@ -22,6 +25,14 @@ import type {
   PayoutTransactionRowT,
   DepositTransactionRowT,
 } from '@/types/reference-data'
+
+// The summary's own axis pick — 'both' reads „Mieszana" here (a partly-net, partly-gross
+// settlement), not the grid toggle's „Pokaż wszystko".
+const SUMMARY_AXIS_OPTIONS: OptionT<MoneyAxisT>[] = [
+  { value: 'net', label: 'Netto' },
+  { value: 'gross', label: 'Brutto' },
+  { value: 'both', label: 'Mieszana' },
+]
 
 type PropsT = {
   investmentId: number
@@ -57,7 +68,6 @@ type PropsT = {
   // in a subcontractor view the displayed figure is repriced and the scream would misread.
   priceView: PriceViewT
   vatRate: number
-  moneyAxis: MoneyAxisT
   // Read-only client render: gate the mismatch scream and render internal links as plain text.
   clientView?: boolean
 }
@@ -83,10 +93,12 @@ export function KosztorysTotalsPanel({
   reconciliation,
   priceView,
   vatRate,
-  moneyAxis,
   clientView = false,
 }: PropsT) {
   const [open, setOpen] = useTotalsPanelOpen()
+  // The panel's own netto/brutto axis, independent of the Widok dropdown — that one keeps
+  // governing the grid columns only; this switch governs every figure inside the panel.
+  const [moneyAxis, setMoneyAxis] = useState<MoneyAxisT>(MONEY_AXIS_DEFAULT)
   const { net: showNet, gross: showGross } = axisShows(moneyAxis)
   // The subcontractor plane (Z/Bez narzędzi) has no VAT axis and its own headline figure, so the
   // client „Do zapłaty" only applies in the client view.
@@ -150,32 +162,47 @@ export function KosztorysTotalsPanel({
             under it, identically whichever plane is active; the trigger above stays pinned. */}
         <div className={SUMMARY_PANEL_SCROLL}>
           {isClientPlane ? (
-            <div className="flex w-full flex-wrap items-start">
-              <KosztorysSummary
-                investmentId={investmentId}
-                laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
-                doZaplaty={doZaplaty}
-                materialyNet={materialyNet}
-                materialyBreakdown={materialyBreakdown}
-                sectionSubtotals={sectionSubtotals}
-                wplatyNet={wplatyNet}
-                depositTransactions={depositTransactions}
-                rabatAmount={rabatAmount}
-                reconciliation={reconciliation}
-                priceView={priceView}
-                vatRate={vatRate}
-                moneyAxis={moneyAxis}
-                clientView={clientView}
-              />
-              {/* „Suma transzy" (per-etap, Netto/Brutto) is a client/VAT figure — the subcontractor
+            <div className="flex w-full flex-col">
+              <div className="px-4 pt-3">
+                <SimpleTooltip content="Mieszana oznacza, że inwestycja jest rozliczana częściowo netto, częściowo brutto.">
+                  {/* ToggleGroup doesn't spread props, so the trigger needs a real element. */}
+                  <span className="inline-flex">
+                    <ToggleGroup
+                      options={SUMMARY_AXIS_OPTIONS}
+                      value={moneyAxis}
+                      onChange={setMoneyAxis}
+                      aria-label="Rozliczenie netto lub brutto"
+                    />
+                  </span>
+                </SimpleTooltip>
+              </div>
+              <div className="flex w-full flex-wrap items-start">
+                <KosztorysSummary
+                  investmentId={investmentId}
+                  laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
+                  doZaplaty={doZaplaty}
+                  materialyNet={materialyNet}
+                  materialyBreakdown={materialyBreakdown}
+                  sectionSubtotals={sectionSubtotals}
+                  wplatyNet={wplatyNet}
+                  depositTransactions={depositTransactions}
+                  rabatAmount={rabatAmount}
+                  reconciliation={reconciliation}
+                  priceView={priceView}
+                  vatRate={vatRate}
+                  moneyAxis={moneyAxis}
+                  clientView={clientView}
+                />
+                {/* „Suma transzy" (per-etap, Netto/Brutto) is a client/VAT figure — the subcontractor
                   plane has no VAT axis (EX-558), so it renders only here. Sits beside the Podsumowanie. */}
-              <KosztorysStageTotals
-                stages={stages}
-                stageTotals={stageTotals}
-                wykonaneNet={totalNet}
-                vatRate={vatRate}
-                moneyAxis={moneyAxis}
-              />
+                <KosztorysStageTotals
+                  stages={stages}
+                  stageTotals={stageTotals}
+                  wykonaneNet={totalNet}
+                  vatRate={vatRate}
+                  moneyAxis={moneyAxis}
+                />
+              </div>
             </div>
           ) : (
             <SubcontractorSummary
