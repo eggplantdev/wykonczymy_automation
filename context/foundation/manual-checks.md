@@ -937,3 +937,13 @@ byte-identical before/after.
 - [ ] The formula hint appears on materiały rows and reads correctly (VAT subtracted).
 - [ ] Robocizna („Suma prac wykonanych") figures are unchanged; udział percentages still sum sensibly.
 - [ ] Client-share view (`clientView`) renders the same derived figures without owner-only links/screams.
+
+## kosztorys-tryb-mieszany — cash-settlement view w Podsumowaniu (slice B)
+
+### Phase 2: Panel wiring + cash-settlement UI
+
+- [ ] Panel opens on **Netto** by default; grid columns/toggle default unchanged (still show all).
+- [ ] „Mieszana" shows netto-only waterfall + „Suma transzy" netto + the three cash rows.
+- [ ] Typing `C` recomputes Reszta and Razem live; `C = 0` → Razem = `D·(1+VAT)`; `C = D` → Razem = `D`; `C > D` → Reszta negative, no crash.
+- [ ] Netto and Brutto axes unchanged from before.
+- [ ] Client preview (`clientView`) shows the block with a **disabled** input.

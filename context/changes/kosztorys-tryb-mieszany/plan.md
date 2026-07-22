@@ -224,6 +224,6 @@ the browser before archiving.
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `pnpm exec tsc --noEmit`
-- [x] 2.2 Lint passes: `pnpm lint`
-- [x] 2.3 Existing panel tests pass: `pnpm exec vitest run src/__tests__/lib/kosztorys src/__tests__/components/kosztorys`
+- [x] 2.1 Type checking passes: `pnpm exec tsc --noEmit` — 8953427c
+- [x] 2.2 Lint passes: `pnpm lint` — 8953427c
+- [x] 2.3 Existing panel tests pass: `pnpm exec vitest run src/__tests__/lib/kosztorys src/__tests__/components/kosztorys` — 8953427c

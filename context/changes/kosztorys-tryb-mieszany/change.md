@@ -1,7 +1,7 @@
 ---
 change_id: kosztorys-tryb-mieszany
 title: Tryb mieszany — cash settlement view in kosztorys Podsumowanie (slice B)
-status: implementing
+status: implemented
 created: 2026-07-22
 updated: 2026-07-22
 archived_at: null
