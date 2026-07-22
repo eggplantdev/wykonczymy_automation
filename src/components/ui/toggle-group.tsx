@@ -1,9 +1,7 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { useLayoutEffect, useRef, type ReactNode } from 'react'
 import { ToggleGroup as ToggleGroupPrimitive } from 'radix-ui'
-
-import { cn } from '@/lib/utils/cn'
 
 // `label` stays required as the accessible name even when `icon` replaces it visually.
 export type OptionT<T extends string> = { value: T; label: string; icon?: ReactNode }
@@ -13,7 +11,6 @@ type PropsT<T extends string> = {
   value: T
   onChange: (value: T) => void
   'aria-label'?: string
-  className?: string
 }
 
 export function ToggleGroup<T extends string>({
@@ -21,29 +18,34 @@ export function ToggleGroup<T extends string>({
   value,
   onChange,
   'aria-label': ariaLabel,
-  className,
 }: PropsT<T>) {
-  const activeIndex = options.findIndex((option) => option.value === value)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const indicatorRef = useRef<HTMLSpanElement>(null)
+  // Columns are content-sized (auto-cols-max), so the indicator can't be derived from an index —
+  // measure the active item and position the pill by direct style writes (state would cascade renders).
+  useLayoutEffect(() => {
+    const active = rootRef.current?.querySelector<HTMLElement>('[data-state="on"]')
+    const indicator = indicatorRef.current
+    if (!active || !indicator) return
+    indicator.style.width = `${active.offsetWidth}px`
+    indicator.style.transform = `translateX(${active.offsetLeft}px)`
+  }, [value, options])
 
   return (
     <ToggleGroupPrimitive.Root
+      ref={rootRef}
       type="single"
       value={value}
       // Radix emits '' when the active item is re-clicked (deselect); ignore it so one is always picked.
       onValueChange={(next) => next && onChange(next as T)}
       aria-label={ariaLabel}
-      className={cn(
-        'border-input bg-background relative inline-grid h-8 auto-cols-fr grid-flow-col items-center rounded-md border p-0.5',
-        className,
-      )}
+      className="border-input bg-background relative inline-grid h-8 auto-cols-max grid-flow-col items-center rounded-md border p-0.5"
     >
+      {/* w-0 until the layout effect measures the active item — invisible pre-hydration. */}
       <span
+        ref={indicatorRef}
         aria-hidden
-        className="bg-primary pointer-events-none absolute inset-y-0.5 left-0.5 rounded-sm transition-transform duration-200 ease-out"
-        style={{
-          width: `calc((100% - 0.25rem) / ${options.length})`,
-          transform: `translateX(${(activeIndex >= 0 ? activeIndex : 0) * 100}%)`,
-        }}
+        className="bg-primary pointer-events-none absolute inset-y-0.5 w-0 rounded-sm transition-[transform,width] duration-200 ease-out"
       />
       {options.map((option) => (
         <ToggleGroupPrimitive.Item

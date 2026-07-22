@@ -128,7 +128,6 @@ export function SubcontractorSummary({
             value={mode}
             onChange={setMode}
             aria-label="Grupowanie wypłat"
-            className="w-fit"
           />
           <DataTable
             key={mode}
