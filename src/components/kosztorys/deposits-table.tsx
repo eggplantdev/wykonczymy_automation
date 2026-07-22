@@ -49,7 +49,9 @@ export function DepositsTable({
               </Link>
             )}
           </span>
-          <span className={SUMMARY_VALUE_CELL}>{formatNet(row.amount)}</span>
+          <span className={cn(SUMMARY_VALUE_CELL, 'text-chart-green')}>
+            {formatNet(row.amount)}
+          </span>
           <span className={cn(SUMMARY_VALUE_CELL, 'text-muted-foreground')}>
             {row.vatPlane ? VAT_PLANE_LABELS[row.vatPlane] : '—'}
           </span>
