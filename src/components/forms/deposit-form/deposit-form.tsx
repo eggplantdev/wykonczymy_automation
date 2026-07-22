@@ -8,7 +8,6 @@ import { FormShell } from '@/components/forms/form-components/form-shell'
 import {
   DEPOSIT_UI_TYPES,
   TRANSFER_TYPE_LABELS,
-  showsInvestment,
   type PaymentMethodT,
   type VatPlaneT,
 } from '@/lib/constants/transfers'
@@ -27,6 +26,7 @@ import {
   PaymentMethodField,
   VatPlaneField,
 } from '@/components/forms/form-fields'
+import { VAT_PLANE_NONE } from '@/components/forms/form-fields/vat-plane-field'
 import FormFooter from '../form-components/form-footer'
 import { createTransferAction } from '@/lib/actions/transfers'
 import { useDepositFormStore } from '@/stores/form-stores'
@@ -66,7 +66,7 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
       date: today(),
       type: 'INVESTOR_DEPOSIT',
       paymentMethod: 'CASH',
-      vatPlane: '',
+      vatPlane: VAT_PLANE_NONE,
       sourceRegister: getDefaultCashRegister(referenceData),
       investment: '',
     },
@@ -80,7 +80,10 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
       date: value.date,
       type: value.type as CreateTransferFormT['type'],
       paymentMethod: value.paymentMethod as PaymentMethodT,
-      vatPlane: value.vatPlane ? (value.vatPlane as VatPlaneT) : undefined,
+      vatPlane:
+        value.vatPlane && value.vatPlane !== VAT_PLANE_NONE
+          ? (value.vatPlane as VatPlaneT)
+          : undefined,
       sourceRegister: Number(value.sourceRegister),
       investment: value.investment ? Number(value.investment) : undefined,
     }),
@@ -124,8 +127,8 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
 
         {currentType === 'INVESTOR_DEPOSIT' && <VatPlaneField form={form} />}
 
-        {/* Conditional: Investment — required for INVESTOR_DEPOSIT, optional for others */}
-        {showsInvestment(currentType) && (
+        {/* Investment + netto/brutto belong to INVESTOR_DEPOSIT only; COMPANY_FUNDING hides both. */}
+        {currentType === 'INVESTOR_DEPOSIT' && (
           <EntityComboboxField form={form} variant="investment" items={referenceData.investments} />
         )}
       </FieldGroup>

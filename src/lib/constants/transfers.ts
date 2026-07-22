@@ -61,10 +61,9 @@ export const DEPOSIT_TYPES: TransferTypeT[] = [
   'OTHER_DEPOSIT',
 ]
 
-// Deposit types visible in the deposit dialog. Trimmed to the single netto/brutto-modelled
-// wpłata (EX-536); „Inna wpłata"/„Zasilenie z konta firmowego" are off the dialog so no wpłata
-// is created outside the model. DEPOSIT_TYPES (read-side membership) stays full — union teardown is EX-557.
-export const DEPOSIT_UI_TYPES: TransferTypeT[] = ['INVESTOR_DEPOSIT']
+// Deposit types visible in the deposit dialog (sorted by Polish label). „Inna wpłata" is dropped
+// (EX-536); the netto/brutto plane applies to INVESTOR_DEPOSIT only — COMPANY_FUNDING hides it.
+export const DEPOSIT_UI_TYPES: TransferTypeT[] = ['INVESTOR_DEPOSIT', 'COMPANY_FUNDING']
 
 // Transfer types visible in the transaction transfer dialog (sorted by Polish label)
 export const TRANSACTION_TRANSFER_TYPES: TransferTypeT[] = [

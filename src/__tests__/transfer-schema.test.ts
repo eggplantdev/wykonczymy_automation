@@ -219,11 +219,10 @@ describe('createTransferSchema — missing required fields', () => {
 // ── 2b: Server Schema — vatPlane (netto/brutto bucket, EX-536) ──────────
 
 describe('createTransferSchema — vatPlane', () => {
-  it('INVESTOR_DEPOSIT without vatPlane → error on vatPlane', () => {
+  it('INVESTOR_DEPOSIT without vatPlane → passes (optional, third null state)', () => {
     const { vatPlane, ...rest } = VALID_SERVER_PAYLOADS.INVESTOR_DEPOSIT
     const result = createTransferSchema.safeParse(rest)
-    expect(result.success).toBe(false)
-    expect(errorPaths(result)).toContain('vatPlane')
+    expect(result.success).toBe(true)
   })
 
   it('INVESTOR_DEPOSIT with vatPlane = GROSS → passes', () => {
