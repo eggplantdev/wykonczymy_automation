@@ -43,8 +43,7 @@ const UNASSIGNED_KEY = 'unassigned'
 const workerKey = (workerId: number | null) => (workerId === null ? UNASSIGNED_KEY : workerId)
 
 // One flat row per wypłata for the virtualized DataTable — worker name resolved up front so the
-// grid can sort on it without a per-cell lookup. `amount` is the stored (positive) expense; the
-// Kwota cell negates it for display (money leaving the company).
+// grid can sort on it without a per-cell lookup.
 type PayoutTableRowT = {
   workerId: number | null
   workerName: string
@@ -80,7 +79,7 @@ const PAYOUT_COLUMNS: ColumnDef<PayoutTableRowT>[] = [
     header: 'Kwota',
     meta: { align: 'right' },
     cell: ({ getValue }) => (
-      <span className="text-chart-green tabular-nums">{formatNet(-getValue<number>())}</span>
+      <span className="text-chart-green tabular-nums">{formatNet(getValue<number>())}</span>
     ),
   },
 ]
@@ -169,7 +168,7 @@ function HeadlineSummary({
 
       <span className={cn(SUMMARY_LABEL_CELL, 'font-medium')}>Zaliczki (wypłaty) razem</span>
       <span className={cn(SUMMARY_VALUE_CELL, 'text-chart-green font-medium')}>
-        {formatNet(-summary.payoutsTotal)}
+        {formatNet(summary.payoutsTotal)}
       </span>
 
       {/* Pozostało do wypłaty = należne − zaliczki. Negative = the crew has been overpaid — an
@@ -211,7 +210,7 @@ function WorkerTotals({
             )}
           </span>
           <span className={cn(SUMMARY_VALUE_CELL, 'text-chart-green font-medium')}>
-            {formatNet(-row.total)}
+            {formatNet(row.total)}
           </span>
         </div>
       ))}
