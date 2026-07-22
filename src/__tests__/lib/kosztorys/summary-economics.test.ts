@@ -103,38 +103,44 @@ describe('Podsumowanie brutto waterfall (rabat grosses, materiały brutto)', () 
   })
 })
 
+// Explicit cash-vs-invoice waterfall anchored on Łącznie netto: − gotówka → Pozostałe netto → + VAT
+// → Pozostałe z VAT → − wpłaty → Do zapłaty fakturą → + gotówka → Razem. wpłaty are subtracted AFTER
+// grossing (never grossed), so C = 0 still lands on the Brutto axis „Do zapłaty".
 describe('computeCashSettlement (tryb mieszany)', () => {
   const vat = 0.23
-  const doZaplaty = 1000
+  const combinedNet = 1000 // Łącznie netto
+  const wplaty = 300
 
-  it('C = 0: whole D is grossed — total = D·(1+VAT)', () => {
-    const s = computeCashSettlement(doZaplaty, 0, vat)
+  it('C = 0: total = combinedGross − wpłaty (the Brutto axis „Do zapłaty")', () => {
+    const s = computeCashSettlement(combinedNet, wplaty, 0, vat)
     expect(s.cash).toBe(0)
+    expect(s.remainderNet).toBeCloseTo(1000)
     expect(s.remainderGross).toBeCloseTo(1230)
-    expect(s.total).toBeCloseTo(1230)
+    expect(s.invoice).toBeCloseTo(1230 - 300)
+    expect(s.total).toBeCloseTo(1230 - 300)
   })
 
-  it('C = D: nothing left to gross — remainder 0, total = D', () => {
-    const s = computeCashSettlement(doZaplaty, doZaplaty, vat)
-    expect(s.remainderGross).toBeCloseTo(0)
-    expect(s.total).toBeCloseTo(doZaplaty)
+  it('waterfall reconstructs row by row', () => {
+    const s = computeCashSettlement(combinedNet, wplaty, 400, vat)
+    expect(s.remainderNet).toBeCloseTo(600) // 1000 − 400
+    expect(s.remainderGross).toBeCloseTo(600 * 1.23) // + VAT
+    expect(s.invoice).toBeCloseTo(600 * 1.23 - 300) // − wpłaty
+    expect(s.total).toBeCloseTo(400 + (600 * 1.23 - 300)) // + gotówka
   })
 
-  it('0 < C < D: total = C + (D − C)·(1+VAT)', () => {
-    const s = computeCashSettlement(doZaplaty, 400, vat)
-    expect(s.remainderGross).toBeCloseTo(600 * 1.23)
-    expect(s.total).toBeCloseTo(400 + 600 * 1.23)
+  it('each cash złoty removes its own VAT: total = (combinedGross − wpłaty) − C·VAT', () => {
+    const s = computeCashSettlement(combinedNet, wplaty, 400, vat)
+    expect(s.total).toBeCloseTo(1230 - 300 - 400 * vat)
   })
 
-  it('C > D: remainder goes negative and total drops below D (by design, no clamp)', () => {
-    const s = computeCashSettlement(doZaplaty, 1200, vat)
-    expect(s.remainderGross).toBeLessThan(0)
-    expect(s.total).toBeLessThan(doZaplaty)
-    expect(s.remainderGross).toBeCloseTo(-200 * 1.23)
+  it('over-typing C past the base keeps going (no clamp) — remainder goes negative', () => {
+    const s = computeCashSettlement(combinedNet, wplaty, 1500, vat)
+    expect(s.remainderNet).toBeCloseTo(-500)
+    expect(s.total).toBeCloseTo(1230 - 300 - 1500 * vat)
   })
 
-  it('vatRate = 0: total = D regardless of the cash split', () => {
-    const s = computeCashSettlement(doZaplaty, 300, 0)
-    expect(s.total).toBeCloseTo(doZaplaty)
+  it('vatRate = 0: no VAT to save — total = combinedNet − wpłaty regardless of C', () => {
+    const s = computeCashSettlement(1000, 300, 400, 0)
+    expect(s.total).toBeCloseTo(700)
   })
 })

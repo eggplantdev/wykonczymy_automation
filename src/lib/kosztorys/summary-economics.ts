@@ -99,16 +99,76 @@ export function computeDoZaplatyRM(
   return { net, gross }
 }
 
-export type CashSettlementT = { cash: number; remainderGross: number; total: number }
+export type CashSettlementT = {
+  cash: number
+  // Łącznie netto (robocizna + materiały) — the VATable base the split starts from.
+  combinedNet: number
+  // Łącznie netto − gotówka: the part still to be invoiced, before VAT.
+  remainderNet: number
+  // remainderNet grossed up — the invoiced part WITH VAT, before wpłaty.
+  remainderGross: number
+  // remainderGross − wpłaty: what the client still owes ON THE INVOICE (this is the figure the old
+  // opaque „Reszta z VAT" row actually showed).
+  invoice: number
+  // cash + invoice: total the client pays now.
+  total: number
+}
 
-// Tryb mieszany: the client pays part of „Do zapłaty" in cash (VAT-free by agreement) and the
-// remainder with VAT re-added. `cashAmount` is settled as-is; the rest `(D − C)` is grossed up.
-// No clamping — the caller allows `C > D`, which yields a negative remainder by design.
+// Tryb mieszany: the client pays part of the work in cash (no invoice → no VAT) and the rest is
+// invoiced WITH VAT. A transparent waterfall the reader can reconstruct row by row:
+//   Wartość netto (Łącznie) → − gotówka → Pozostałe netto → + VAT → Pozostałe z VAT
+//   → − wpłaty → Do zapłaty fakturą → + gotówka → Razem.
+// Anchored on Łącznie netto (not net·(1+VAT) of „Do zapłaty"): wpłaty carry no VAT, so they're
+// subtracted AFTER grossing, never grossed — otherwise VAT is invented on the deposits. Algebraically
+// total = combinedGross − wpłaty − C·VAT = doZaplatyGross − C·VAT, so C = 0 → total = the Brutto axis
+// „Do zapłaty". No clamping — the caller allows C beyond the base.
 export function computeCashSettlement(
-  doZaplatyNet: number,
+  combinedNet: number,
+  wplatyNet: number,
   cashAmount: number,
   vatRate: number,
 ): CashSettlementT {
-  const remainderGross = toGross(doZaplatyNet - cashAmount, vatRate)
-  return { cash: cashAmount, remainderGross, total: cashAmount + remainderGross }
+  const remainderNet = combinedNet - cashAmount
+  const remainderGross = toGross(remainderNet, vatRate)
+  const invoice = remainderGross - wplatyNet
+  return {
+    cash: cashAmount,
+    combinedNet,
+    remainderNet,
+    remainderGross,
+    invoice,
+    total: cashAmount + invoice,
+  }
+}
+
+export type DepositsSplitT = {
+  // Σ deposits marked NET (the wpłaty list's „Netto/Brutto" column) and Σ everything else (GROSS +
+  // legacy null, which defaults to brutto). These sum to the total wpłaty.
+  paidNet: number
+  paidGross: number
+  // Each plane's own still-owed figure, paired against the mixed-settlement table beside it:
+  //   netto  → „Do rozliczenia netto" (the gotówka target) − wpłacono netto
+  //   brutto → „Reszta brutto" (the invoiced-with-VAT rest) − wpłacono brutto
+  // Positive = client still owes on that plane; can go negative when a plane is overpaid.
+  remainingNet: number
+  remainingGross: number
+}
+
+// The wpłaty reconciliation shown beside the deposits list in tryb mieszany: each VAT plane's
+// deposits net off against that plane's target from the „Rozliczenie mieszane" table. `cashTarget`
+// is that table's „Do rozliczenia netto" row, `remainderGross` its „Reszta brutto" row — so the two
+// blocks reconcile: the settlement splits the obligation into a cash-netto and an invoice-brutto
+// bucket, and this splits the deposits the same way.
+export function depositsSplit(
+  paidNetPlane: number,
+  paidGrossPlane: number,
+  cashTarget: number,
+  remainderGross: number,
+): DepositsSplitT {
+  return {
+    paidNet: paidNetPlane,
+    paidGross: paidGrossPlane,
+    remainingNet: cashTarget - paidNetPlane,
+    remainingGross: remainderGross - paidGrossPlane,
+  }
 }
