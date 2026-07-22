@@ -928,3 +928,12 @@ byte-identical before/after.
       recharts draws no arc for a 0 value, so nothing is visually broken. Dismissed as benign — not
       fixed to avoid a judgment call on whether a 0 robocizna row should ever hide.
       **Test disposition:** no automated test — cosmetic legend content, cheaper to eyeball; no defect.
+
+## kosztorys-zaliczka-v2 — materiały netto/brutto w Podsumowaniu (slice A)
+
+### Phase 1: Materiały as brutto through the waterfall + formula hint
+
+- [ ] Podsumowanie in **Netto** axis: „Materiały", each category row, Łącznie, and Do zapłaty all show `brutto/(1+VAT)`; in **Brutto** axis they show the raw amount; the two columns differ by the VAT.
+- [ ] The formula hint appears on materiały rows and reads correctly (VAT subtracted).
+- [ ] Robocizna („Suma prac wykonanych") figures are unchanged; udział percentages still sum sensibly.
+- [ ] Client-share view (`clientView`) renders the same derived figures without owner-only links/screams.
