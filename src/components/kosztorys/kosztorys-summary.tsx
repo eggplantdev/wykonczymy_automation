@@ -71,7 +71,7 @@ export function KosztorysSummary({
   doZaplaty,
   materialsGross,
   materialyBreakdown,
-  sectionSubtotals,
+  // sectionSubtotals,
   wplatyNet,
   rabatAmount,
   reconciliation,
@@ -149,6 +149,7 @@ export function KosztorysSummary({
           </SummaryTable>
         )}
       </div>
+      {/* DO NOT REMOVE TODO WILL BE BACK! */}
       {/* <div className="flex flex-wrap items-start gap-x-12 gap-y-8"> */}
       {/* <SectionSharePie subtotals={sectionSubtotals} /> */}
       {/* <CostStructurePie sumaPracNet={sumaPracNet} materialyBreakdown={materialyBreakdown} /> */}
