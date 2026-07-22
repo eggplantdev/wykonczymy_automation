@@ -2,10 +2,15 @@
 
 import Link from 'next/link'
 import {
-  summaryLineFace,
+  summaryLineGross,
   type MoneyPairT,
   type SummaryLineT,
 } from '@/lib/kosztorys/summary-economics'
+
+// Materiały are recorded brutto; VAT is subtracted to reach netto — the inverse of robocizna, where
+// netto is native. This hint marks that direction on every materiały row.
+const MATERIALY_HINT =
+  'Materiały rozliczane brutto — netto = brutto ÷ (1+VAT), VAT odejmujemy (odwrotnie niż przy robociźnie)'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import { SummaryHeaderCell, SummaryRow, SummaryTable } from '@/components/kosztorys/summary-grid'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
@@ -22,6 +27,7 @@ export function SummaryBreakdownTable({
   materialyBreakdown,
   combinedNet,
   combined,
+  vatRate,
   investmentId,
   clientView,
 }: {
@@ -34,6 +40,7 @@ export function SummaryBreakdownTable({
   materialyBreakdown: MaterialyBreakdownRowT[]
   combinedNet: number
   combined: MoneyPairT
+  vatRate: number
   investmentId: number
   clientView: boolean
 }) {
@@ -66,9 +73,11 @@ export function SummaryBreakdownTable({
                 item.label
               )
             }
-            line={summaryLineFace(item.net, combinedNet)}
+            // `item.net` is the materiały BRUTTO transaction sum (financials-layer field name kept;
+            // rename deferred to the persistence slice) — reinterpreted here as gross.
+            line={summaryLineGross(item.net, combinedNet, vatRate)}
             axis={moneyAxis}
-            noBrutto
+            hint={MATERIALY_HINT}
           />
         ))}
       <SummaryRow label="Łącznie" line={combined} axis={moneyAxis} emphasize hideShare />

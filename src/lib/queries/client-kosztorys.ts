@@ -53,7 +53,7 @@ async function buildClientKosztorysEditorData(investmentId: number): Promise<Kos
     investmentId,
     tree,
     investmentName: investment.name,
-    materialsNet: financials.totalMaterialCosts,
+    materialsGross: financials.totalMaterialCosts,
     materialyBreakdown: buildMaterialyBreakdown(financials, expenseCategories),
     wplatyNet: financials.totalIncome,
     laborCostsNetFromTransactions: financials.totalLaborCosts,

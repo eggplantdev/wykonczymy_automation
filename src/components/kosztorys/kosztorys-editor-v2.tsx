@@ -19,7 +19,7 @@ export function KosztorysEditorV2({
   investmentId,
   tree,
   investmentName,
-  materialsNet,
+  materialsGross,
   materialyBreakdown,
   wplatyNet,
   laborCostsNetFromTransactions,
@@ -64,7 +64,7 @@ export function KosztorysEditorV2({
         investmentId={investmentId}
         tree={tree}
         investmentName={investmentName}
-        materialsNet={materialsNet}
+        materialsGross={materialsGross}
         materialyBreakdown={materialyBreakdown}
         wplatyNet={wplatyNet}
         laborCostsNetFromTransactions={laborCostsNetFromTransactions}

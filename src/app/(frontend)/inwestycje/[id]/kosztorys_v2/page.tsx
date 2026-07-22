@@ -62,8 +62,8 @@ export default async function InvestmentKosztorysV2Page({
   // material („wliczone w robociznę") is an owner/margin figure, deliberately kept off the
   // client-facing offer (v1 parity).
   const financials = deriveFinancials(typeDistribution, breakdowns.categoryCosts)
-  const materialsNet = financials.totalMaterialCosts
-  // v1 client-facing „Materiały" split by expense category; Σ === materialsNet, so the
+  const materialsGross = financials.totalMaterialCosts
+  // v1 client-facing „Materiały" split by expense category; Σ === materialsGross, so the
   // podsumowanie stays byte-identical to the investment page's materiały.
   const materialyBreakdown = buildMaterialyBreakdown(financials, refData.expenseCategories)
   // „Wpłaty" = every deposit on the investment (totalIncome) — the money that raises Bilans
@@ -85,7 +85,7 @@ export default async function InvestmentKosztorysV2Page({
       investmentId={investmentId}
       tree={tree}
       investmentName={investment.name}
-      materialsNet={materialsNet}
+      materialsGross={materialsGross}
       materialyBreakdown={materialyBreakdown}
       wplatyNet={wplatyNet}
       // Transaction-sourced robocizna/rabat (Σ LABOR_COST / Σ RABAT) for the in-editor reconciliation

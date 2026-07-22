@@ -51,8 +51,9 @@ type PropsT = {
   totalNet: number
   // Robocizna wartość netto — executed total AFTER rabat; the Podsumowanie waterfall's base.
   laborCostsNetFromKosztorys: number
-  materialyNet: number
-  // Per-expense-category split of materialyNet (v1 parity); Σ === materialyNet.
+  // Materiały brutto — server sum of the investment's unsettled transactions (recorded brutto).
+  materialsGross: number
+  // Per-expense-category split of materialsGross (v1 parity); Σ === materialsGross.
   materialyBreakdown: MaterialyBreakdownRowT[]
   // Client-priced, view-invariant per-section subtotals — the section pie's structure source.
   sectionSubtotals: SectionSliceInputT[]
@@ -85,7 +86,7 @@ export function KosztorysTotalsPanel({
   subcontractorDueNet,
   totalNet,
   laborCostsNetFromKosztorys,
-  materialyNet,
+  materialsGross,
   materialyBreakdown,
   sectionSubtotals,
   wplatyNet,
@@ -105,7 +106,12 @@ export function KosztorysTotalsPanel({
   const isClientPlane = priceView === 'client'
   // Computed here and passed down: the collapsed headline and the Podsumowanie row show the same
   // „Do zapłaty", so it has one source rather than two calls that must be kept in step.
-  const doZaplaty = computeDoZaplatyRM(laborCostsNetFromKosztorys, wplatyNet, materialyNet, vatRate)
+  const doZaplaty = computeDoZaplatyRM(
+    laborCostsNetFromKosztorys,
+    wplatyNet,
+    materialsGross,
+    vatRate,
+  )
   // Subcontractor headline: „Pozostało do wypłaty" (należne − zaliczki), shown collapsed in place of
   // the client „Do zapłaty".
   const { remaining: subcontractorRemaining } = computeSubcontractorSummary(
@@ -181,7 +187,7 @@ export function KosztorysTotalsPanel({
                   investmentId={investmentId}
                   laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
                   doZaplaty={doZaplaty}
-                  materialyNet={materialyNet}
+                  materialsGross={materialsGross}
                   materialyBreakdown={materialyBreakdown}
                   sectionSubtotals={sectionSubtotals}
                   wplatyNet={wplatyNet}

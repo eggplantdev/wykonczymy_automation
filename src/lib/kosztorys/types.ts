@@ -123,7 +123,7 @@ export type KosztorysEditorDataT = {
   investmentId: number
   tree: KosztorysTreeT
   investmentName: string
-  materialsNet: number
+  materialsGross: number
   materialyBreakdown: MaterialyBreakdownRowT[]
   wplatyNet: number
   // Transaction-sourced robocizna/rabat (Σ LABOR_COST / Σ RABAT) — the reconciliation "actual" side.

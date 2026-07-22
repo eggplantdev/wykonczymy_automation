@@ -35,9 +35,10 @@ type PropsT = {
   // The „Do zapłaty" pair (robocizna + materiały − wpłaty), computed by the panel so its collapsed
   // headline and this table's bottom row can't drift apart.
   doZaplaty: MoneyPairT
-  // Materiały netto — live server sum of the investment's unsettled transactions.
-  materialyNet: number
-  // Per-expense-category split of materialyNet (v1 parity); Σ === materialyNet.
+  // Materiały brutto — live server sum of the investment's unsettled transactions (recorded brutto;
+  // netto is derived by removing VAT).
+  materialsGross: number
+  // Per-expense-category split of materialsGross (v1 parity); Σ === materialsGross.
   materialyBreakdown: MaterialyBreakdownRowT[]
   // Client-priced, view-invariant per-section subtotals — the section pie's structure source.
   sectionSubtotals: SectionSliceInputT[]
@@ -72,7 +73,7 @@ export function KosztorysSummary({
   investmentId,
   laborCostsNetFromKosztorys,
   doZaplaty,
-  materialyNet,
+  materialsGross,
   materialyBreakdown,
   sectionSubtotals,
   wplatyNet,
@@ -88,7 +89,7 @@ export function KosztorysSummary({
   // value after discount). Rabat is no longer a waterfall deduction — it's an informational line
   // below „Do zapłaty". So Łącznie = Suma prac (po rabacie) + Materiały, and Łącznie − Wpłaty =
   // „Do zapłaty" holds without a rabat step.
-  const { combined } = computeSummarySplit(laborCostsNetFromKosztorys, materialyNet, vatRate)
+  const { combined } = computeSummarySplit(laborCostsNetFromKosztorys, materialsGross, vatRate)
   const { net: showNet, gross: showGross } = axisShows(moneyAxis)
   // The scream compares client-view nets; a subcontractor view reprices the displayed figure, so the
   // scream would sit next to a number it isn't comparing. Show it only in the client view.
@@ -125,6 +126,7 @@ export function KosztorysSummary({
           materialyBreakdown={materialyBreakdown}
           combinedNet={combined.net}
           combined={combined}
+          vatRate={vatRate}
           investmentId={investmentId}
           clientView={clientView}
         />

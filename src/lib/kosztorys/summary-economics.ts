@@ -8,11 +8,19 @@ export function moneyPair(net: number, vatRate: number): MoneyPairT {
   return { net, gross: toGross(net, vatRate) }
 }
 
-// A no-VAT figure: brutto === netto. For everything off the prace plane — materiały, korekta, wpłaty
+// A no-VAT figure: brutto === netto. For everything off the prace plane — korekta, wpłaty
 // (context/reference/kosztorys-editor-domain-notes.md, „VAT dotyczy wyłącznie prac"). Without this,
 // grossing an expense would invent VAT that never existed on the ledger.
 export function faceValue(net: number): MoneyPairT {
   return { net, gross: net }
+}
+
+// A gross-native figure — materiały, recorded as brutto transactions (VAT already inside). The
+// counterpart to `moneyPair`: there netto is native and brutto is grossed up; here brutto is native
+// and netto is derived by REMOVING VAT (`net = gross / (1+vat)`), the inverse direction. `vat = 0`
+// degenerates to `net === gross`.
+export function grossPair(gross: number, vatRate: number): MoneyPairT {
+  return { net: gross / (1 + vatRate), gross }
 }
 
 export type SummaryLineT = MoneyPairT & {
@@ -26,10 +34,22 @@ export function summaryLine(net: number, combinedNet: number, vatRate: number): 
   return { ...moneyPair(net, vatRate), share: combinedNet > 0 ? net / combinedNet : 0 }
 }
 
-// A no-VAT summary row (brutto === netto) with its udział — for the materiały/korekta category rows,
+// A no-VAT summary row (brutto === netto) with its udział — for the korekta category rows,
 // which carry no VAT but still take an udział of Łącznie.
 export function summaryLineFace(net: number, combinedNet: number): SummaryLineT {
   return { ...faceValue(net), share: combinedNet > 0 ? net / combinedNet : 0 }
+}
+
+// A gross-native summary row (netto derived by removing VAT) with its udział — for the materiały
+// category rows, whose amount is a brutto transaction sum. Udział is off the DERIVED netto so the
+// per-category shares sum to the materiały share of Łącznie (which is also netto-based).
+export function summaryLineGross(
+  gross: number,
+  combinedNet: number,
+  vatRate: number,
+): SummaryLineT {
+  const pair = grossPair(gross, vatRate)
+  return { ...pair, share: combinedNet > 0 ? pair.net / combinedNet : 0 }
 }
 
 export type SummaryT = {
@@ -41,19 +61,20 @@ export type SummaryT = {
 // Materiały = Łącznie, each carrying its udział % of Łącznie. Materiały enters only via the
 // Łącznie denominator here — the per-category materiały rows are built by the caller, which shares
 // `combined.net` as their udział base. Robocizna reacts to unsaved editor edits; materiały is a
-// server prop.
+// server prop, passed as BRUTTO (its netto is derived by removing VAT).
 export function computeSummarySplit(
   laborCostsNetFromKosztorys: number,
-  materialyNet: number,
+  materialsGross: number,
   vatRate: number,
 ): SummaryT {
-  const combinedNet = laborCostsNetFromKosztorys + materialyNet
+  const materialy = grossPair(materialsGross, vatRate)
+  const combinedNet = laborCostsNetFromKosztorys + materialy.net
   const laborCosts = summaryLine(laborCostsNetFromKosztorys, combinedNet, vatRate)
-  // Łącznie brutto = robocizna grossed + materiały at face value. Only prace carries VAT, so this is
-  // NOT toGross(combinedNet) — grossing the whole sum would invent VAT on the materiały component.
+  // Łącznie = robocizna (netto native, grossed up) + materiały (brutto native, netto derived). Each
+  // side carries VAT in its own direction; combining the two native planes keeps both correct.
   const combined: SummaryLineT = {
     net: combinedNet,
-    gross: laborCosts.gross + materialyNet,
+    gross: laborCosts.gross + materialy.gross,
     share: combinedNet > 0 ? 1 : 0,
   }
   return { laborCosts, combined }
@@ -67,12 +88,13 @@ export function computeSummarySplit(
 export function computeDoZaplatyRM(
   laborCostsNetFromKosztorys: number,
   wplatyNet: number,
-  materialyNet: number,
+  materialsGross: number,
   vatRate: number,
 ): MoneyPairT {
-  const net = laborCostsNetFromKosztorys - wplatyNet + materialyNet
-  // Only robocizna (prace) carries VAT; wpłaty and materiały enter at face value. Grossing the whole
-  // net would invent VAT on the deposits and the expenses.
-  const gross = toGross(laborCostsNetFromKosztorys, vatRate) - wplatyNet + materialyNet
+  const materialy = grossPair(materialsGross, vatRate)
+  // Robocizna is netto native (grossed up); materiały is brutto native (netto derived by removing
+  // VAT); wpłaty carry no VAT (face value). Each figure enters each axis at its own native amount.
+  const net = laborCostsNetFromKosztorys - wplatyNet + materialy.net
+  const gross = toGross(laborCostsNetFromKosztorys, vatRate) - wplatyNet + materialy.gross
   return { net, gross }
 }

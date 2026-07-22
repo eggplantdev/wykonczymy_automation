@@ -104,6 +104,10 @@ export type SummaryRowOptsT = {
   // repeats the netto amount rather than blanking, which also keeps the row readable in a
   // brutto-only widok, where blanking dropped its only value.
   noBrutto?: boolean
+  // A custom formula/explanation tooltip on the label, independent of `noBrutto`. Used by the
+  // materiały rows to state that VAT is subtracted (netto derived from brutto) — the inverse of the
+  // prace direction, so the generic bez-VAT copy would be wrong here.
+  hint?: string
   // When set, the figure screams: bold red value + a red `!` whose tooltip is this string. Owner-only
   // — the EX-535 reconciliation check against the transaction ledger. The client footer never passes
   // it, which is what lets both surfaces share this row instead of keeping two copies.
@@ -156,6 +160,11 @@ export function SummaryRow({ label, line, axis, ...opts }: SummaryRowPropsT) {
               className="text-muted-foreground"
             >
               <Info className="size-3.5" aria-label="Pozycja bez VAT" />
+            </HintTooltip>
+          )}
+          {opts.hint && (
+            <HintTooltip content={opts.hint} className="text-muted-foreground">
+              <Info className="size-3.5" aria-label="Informacja o pozycji" />
             </HintTooltip>
           )}
         </span>
