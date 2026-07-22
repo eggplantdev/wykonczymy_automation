@@ -7,7 +7,7 @@ import { HintTooltip } from '@/components/ui/tooltip'
 export function ReconMismatchBadge({ content }: { content: string }) {
   return (
     <HintTooltip content={content} className="text-destructive">
-      <TriangleAlert className="size-3.5" aria-label="Niezgodność z transakcjami" />
+      <TriangleAlert className="size-5" aria-label="Niezgodność z transakcjami" />
     </HintTooltip>
   )
 }
