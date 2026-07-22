@@ -1,5 +1,5 @@
 import { getRelationName } from '@/lib/utils/get-relation-name'
-import type { TransferTypeT, PaymentMethodT } from '@/lib/constants/transfers'
+import type { TransferTypeT, PaymentMethodT, VatPlaneT } from '@/lib/constants/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import type { MediaInfoT } from '@/lib/queries/media'
 import type { TransferRowT } from '@/types/transfers'
@@ -59,6 +59,7 @@ export type TransferDocT = {
   invoiceNote?: string | null
   cancelled?: boolean | null
   settled?: boolean | null
+  vatPlane?: VatPlaneT | null
   originalType?: TransferTypeT | null
 }
 
@@ -85,6 +86,7 @@ export function mapTransferRow(doc: TransferDocT, lookups: TransferLookupsT): Tr
     invoiceNote: doc.invoiceNote ?? null,
     cancelled: doc.cancelled ?? false,
     settled: doc.settled ?? false,
+    vatPlane: doc.vatPlane ?? null,
     originalType: doc.originalType ?? null,
     sourceRegisterName: lookupName(lookups.cashRegisters, doc.sourceRegister),
     targetRegisterName: lookupName(lookups.cashRegisters, doc.targetRegister),

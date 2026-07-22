@@ -14,6 +14,7 @@ import {
   isCancellationType,
   EXPENSE_CATEGORY_LABEL,
   SETTLED_TYPE,
+  VAT_PLANE_LABELS,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
@@ -47,6 +48,14 @@ const allColumns = [
           {formatPLN(info.getValue())}
         </span>
       )
+    },
+  }),
+  col.accessor('vatPlane', {
+    id: 'vatPlane',
+    header: 'Netto/Brutto',
+    cell: (info) => {
+      const value = info.getValue()
+      return value ? VAT_PLANE_LABELS[value] : '—'
     },
   }),
   col.accessor('investmentName', {

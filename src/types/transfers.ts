@@ -1,4 +1,4 @@
-import type { TransferTypeT, PaymentMethodT } from '@/lib/constants/transfers'
+import type { TransferTypeT, PaymentMethodT, VatPlaneT } from '@/lib/constants/transfers'
 
 /**
  * A transfer row as rendered in the transfers table. Cross-cutting: produced by the
@@ -34,6 +34,8 @@ export type TransferRowT = {
   invoiceNote: string | null
   cancelled: boolean
   settled: boolean
+  // Netto/Brutto plane the amount is stated on; null when unspecified.
+  vatPlane: VatPlaneT | null
   // For a CANCELLATION row: the type of the original transfer it reverses (display-only). null otherwise.
   originalType: TransferTypeT | null
 }
