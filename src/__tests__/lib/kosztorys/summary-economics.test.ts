@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  computeCashSettlement,
   computeDoZaplatyRM,
   computeSummarySplit,
   faceValue,
@@ -99,5 +100,41 @@ describe('Podsumowanie brutto waterfall (rabat grosses, materiały brutto)', () 
     expect(combined.gross - rabat.gross - wplaty.gross).toBeCloseTo(doZaplaty.gross)
     // Concretely on the brutto axis: Łącznie (1000→1230 + 123) − rabat (200→246) − wpłaty 300.
     expect(doZaplaty.gross).toBeCloseTo(1230 + 123 - 246 - 300)
+  })
+})
+
+describe('computeCashSettlement (tryb mieszany)', () => {
+  const vat = 0.23
+  const doZaplaty = 1000
+
+  it('C = 0: whole D is grossed — total = D·(1+VAT)', () => {
+    const s = computeCashSettlement(doZaplaty, 0, vat)
+    expect(s.cash).toBe(0)
+    expect(s.remainderGross).toBeCloseTo(1230)
+    expect(s.total).toBeCloseTo(1230)
+  })
+
+  it('C = D: nothing left to gross — remainder 0, total = D', () => {
+    const s = computeCashSettlement(doZaplaty, doZaplaty, vat)
+    expect(s.remainderGross).toBeCloseTo(0)
+    expect(s.total).toBeCloseTo(doZaplaty)
+  })
+
+  it('0 < C < D: total = C + (D − C)·(1+VAT)', () => {
+    const s = computeCashSettlement(doZaplaty, 400, vat)
+    expect(s.remainderGross).toBeCloseTo(600 * 1.23)
+    expect(s.total).toBeCloseTo(400 + 600 * 1.23)
+  })
+
+  it('C > D: remainder goes negative and total drops below D (by design, no clamp)', () => {
+    const s = computeCashSettlement(doZaplaty, 1200, vat)
+    expect(s.remainderGross).toBeLessThan(0)
+    expect(s.total).toBeLessThan(doZaplaty)
+    expect(s.remainderGross).toBeCloseTo(-200 * 1.23)
+  })
+
+  it('vatRate = 0: total = D regardless of the cash split', () => {
+    const s = computeCashSettlement(doZaplaty, 300, 0)
+    expect(s.total).toBeCloseTo(doZaplaty)
   })
 })

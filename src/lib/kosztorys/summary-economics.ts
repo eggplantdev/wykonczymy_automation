@@ -98,3 +98,17 @@ export function computeDoZaplatyRM(
   const gross = toGross(laborCostsNetFromKosztorys, vatRate) - wplatyNet + materialy.gross
   return { net, gross }
 }
+
+export type CashSettlementT = { cash: number; remainderGross: number; total: number }
+
+// Tryb mieszany: the client pays part of „Do zapłaty" in cash (VAT-free by agreement) and the
+// remainder with VAT re-added. `cashAmount` is settled as-is; the rest `(D − C)` is grossed up.
+// No clamping — the caller allows `C > D`, which yields a negative remainder by design.
+export function computeCashSettlement(
+  doZaplatyNet: number,
+  cashAmount: number,
+  vatRate: number,
+): CashSettlementT {
+  const remainderGross = toGross(doZaplatyNet - cashAmount, vatRate)
+  return { cash: cashAmount, remainderGross, total: cashAmount + remainderGross }
+}
