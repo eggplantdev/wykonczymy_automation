@@ -7,16 +7,21 @@ import { formatNet } from '@/lib/kosztorys/format'
 import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import { computeDoZaplatyRM } from '@/lib/kosztorys/summary-economics'
-import { KosztorysEtapTotals } from '@/components/kosztorys/kosztorys-etap-totals'
+import { KosztorysStageTotals } from '@/components/kosztorys/kosztorys-stage-totals'
 import { KosztorysSummary } from '@/components/kosztorys/kosztorys-summary'
 import { SubcontractorSummary } from '@/components/kosztorys/subcontractor-summary'
+import { SUMMARY_PANEL_SCROLL } from '@/components/kosztorys/summary-grid'
 import { computeSubcontractorSummary } from '@/lib/kosztorys/subcontractor-summary'
 import { useTotalsPanelOpen } from '@/components/kosztorys/use-totals-panel-open'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import type { KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import type { SectionSliceInputT } from '@/lib/kosztorys/chart-slices'
-import type { SubcontractorPayoutRowT, PayoutTransactionRowT } from '@/types/reference-data'
+import type {
+  SubcontractorPayoutRowT,
+  PayoutTransactionRowT,
+  DepositTransactionRowT,
+} from '@/types/reference-data'
 
 type PropsT = {
   investmentId: number
@@ -26,6 +31,8 @@ type PropsT = {
   payoutsByWorker: SubcontractorPayoutRowT[]
   // Individual realized PAYOUT rows — feed the subcontractor block's sortable wypłaty list.
   payoutTransactions: PayoutTransactionRowT[]
+  // Individual deposit rows — feed the client Podsumowanie's sortable wpłaty list.
+  depositTransactions: DepositTransactionRowT[]
   // „Suma wykonanej pracy" (należne) at the active view's subcontractor price, pre-rabat — the
   // subcontractor block's headline figure. Ignored in the client view.
   subcontractorDueNet: number
@@ -64,6 +71,7 @@ export function KosztorysTotalsPanel({
   stageTotals,
   payoutsByWorker,
   payoutTransactions,
+  depositTransactions,
   subcontractorDueNet,
   totalNet,
   laborCostsNetFromKosztorys,
@@ -97,9 +105,9 @@ export function KosztorysTotalsPanel({
     <Collapsible.Root
       open={open}
       onOpenChange={setOpen}
-      className="border-border bg-background text-foreground absolute inset-x-0 bottom-0 z-20 border-t shadow-[0_-2px_8px_-4px_rgba(0,0,0,0.2)]"
+      className="border-border bg-background text-foreground absolute inset-x-0 bottom-0 z-20 flex max-h-full flex-col border-t shadow-[0_-2px_8px_-4px_rgba(0,0,0,0.2)]"
     >
-      <Collapsible.Trigger className="hover:bg-muted/40 flex w-full cursor-pointer items-baseline gap-3 px-4 py-1.5 text-left text-sm">
+      <Collapsible.Trigger className="hover:bg-muted/40 flex w-full shrink-0 cursor-pointer items-baseline gap-3 px-4 py-1.5 text-left text-sm">
         <ChevronDown
           className={cn(
             'text-muted-foreground size-4 shrink-0 self-center transition-transform duration-200',
@@ -137,42 +145,47 @@ export function KosztorysTotalsPanel({
             </span>
           ))}
       </Collapsible.Trigger>
-      <Collapsible.Content className="data-[state=closed]:animate-collapse-up data-[state=open]:animate-collapse-down overflow-hidden">
-        {isClientPlane ? (
-          <>
-            {/* „Suma transzy" (per-etap, Netto/Brutto) is a client/VAT figure — the subcontractor plane
-                has no VAT axis (EX-558), so it renders only here. */}
-            <KosztorysEtapTotals
-              stages={stages}
-              stageTotals={stageTotals}
-              wykonaneNet={totalNet}
-              vatRate={vatRate}
-              moneyAxis={moneyAxis}
-            />
-            <KosztorysSummary
+      <Collapsible.Content className="data-[state=closed]:animate-collapse-up data-[state=open]:animate-collapse-down flex min-h-0 flex-1 flex-col overflow-hidden">
+        {/* One scroll container for both planes — the content clears the toolbar instead of hiding
+            under it, identically whichever plane is active; the trigger above stays pinned. */}
+        <div className={SUMMARY_PANEL_SCROLL}>
+          {isClientPlane ? (
+            <div className="flex w-full flex-wrap items-start">
+              <KosztorysSummary
+                investmentId={investmentId}
+                laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
+                doZaplaty={doZaplaty}
+                materialyNet={materialyNet}
+                materialyBreakdown={materialyBreakdown}
+                sectionSubtotals={sectionSubtotals}
+                wplatyNet={wplatyNet}
+                depositTransactions={depositTransactions}
+                rabatAmount={rabatAmount}
+                reconciliation={reconciliation}
+                priceView={priceView}
+                vatRate={vatRate}
+                moneyAxis={moneyAxis}
+                clientView={clientView}
+              />
+              {/* „Suma transzy" (per-etap, Netto/Brutto) is a client/VAT figure — the subcontractor
+                  plane has no VAT axis (EX-558), so it renders only here. Sits beside the Podsumowanie. */}
+              <KosztorysStageTotals
+                stages={stages}
+                stageTotals={stageTotals}
+                wykonaneNet={totalNet}
+                vatRate={vatRate}
+                moneyAxis={moneyAxis}
+              />
+            </div>
+          ) : (
+            <SubcontractorSummary
               investmentId={investmentId}
-              laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
-              doZaplaty={doZaplaty}
-              materialyNet={materialyNet}
-              materialyBreakdown={materialyBreakdown}
-              sectionSubtotals={sectionSubtotals}
-              wplatyNet={wplatyNet}
-              rabatAmount={rabatAmount}
-              reconciliation={reconciliation}
-              priceView={priceView}
-              vatRate={vatRate}
-              moneyAxis={moneyAxis}
-              clientView={clientView}
+              dueNet={subcontractorDueNet}
+              payouts={payoutsByWorker}
+              payoutTransactions={payoutTransactions}
             />
-          </>
-        ) : (
-          <SubcontractorSummary
-            investmentId={investmentId}
-            dueNet={subcontractorDueNet}
-            payouts={payoutsByWorker}
-            payoutTransactions={payoutTransactions}
-          />
-        )}
+          )}
+        </div>
       </Collapsible.Content>
     </Collapsible.Root>
   )

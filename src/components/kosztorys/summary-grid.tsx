@@ -7,6 +7,12 @@ import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { MoneyPairT, SummaryLineT } from '@/lib/kosztorys/summary-economics'
 import { cn } from '@/lib/utils/cn'
 
+// The single scroll region shared by both totals-panel planes (client Podsumowanie + subcontractor):
+// it grows to fill the collapsible's bounded body and scrolls internally, so the content clears the
+// toolbar instead of hiding under it — while the trigger bar stays pinned above it. Flex-bounded
+// (not a viewport max-height) so it tracks the actual panel height in one place.
+export const SUMMARY_PANEL_SCROLL = 'min-h-0 w-full flex-1 overflow-y-auto'
+
 // Shared column widths for the two stacked summary blocks (etap totals + Podsumowanie). Both render
 // as CSS grids and pin their first (label) column to the SAME width so the two grids line up down
 // the panel instead of each auto-sizing its own first column. Values feed `gridTemplateColumns`.
@@ -24,6 +30,53 @@ export const SUMMARY_VALUE_CELL = 'bg-background px-3 py-1 text-right tabular-nu
 // it stays out of the numbers. Only where another cell in the same row carries a real amount.
 export const NOT_APPLICABLE = 'Nie dotyczy'
 export const NOT_APPLICABLE_CELL = 'text-muted-foreground/60 text-xs font-normal'
+
+// The shared table shell every summary grid on the panel repeats: a `bg-border` container whose
+// `gap-px` paints 1px separators between the cells its (direct-child) rows lay down. `cols` is the
+// `gridTemplateColumns` track list (from `summaryMoneyCols` or a hand-built `LABEL_COL VALUE_COL…`).
+// Callers pass width helpers (`w-fit` / `w-max`) via `className`.
+export function SummaryTable({
+  cols,
+  className,
+  children,
+}: {
+  cols: string
+  className?: string
+  children: ReactNode
+}) {
+  return (
+    <div
+      style={{ gridTemplateColumns: cols }}
+      className={cn('border-border bg-border grid gap-px border', className)}
+    >
+      {children}
+    </div>
+  )
+}
+
+// A column header cell — muted, xs — over the label track (`variant="label"`) or a value track
+// (default). Replaces the `cn(SUMMARY_*_CELL, 'text-muted-foreground text-xs')` repeated per header.
+export function SummaryHeaderCell({
+  variant = 'value',
+  className,
+  children,
+}: {
+  variant?: 'label' | 'value'
+  className?: string
+  children: ReactNode
+}) {
+  return (
+    <span
+      className={cn(
+        variant === 'label' ? SUMMARY_LABEL_CELL : SUMMARY_VALUE_CELL,
+        'text-muted-foreground text-xs',
+        className,
+      )}
+    >
+      {children}
+    </span>
+  )
+}
 
 // The money tracks appear only for the axis on show; the label track is fixed so this grid and the
 // etap-totals grid above it keep their first columns aligned.

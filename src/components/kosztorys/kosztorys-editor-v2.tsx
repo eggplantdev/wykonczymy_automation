@@ -26,6 +26,7 @@ export function KosztorysEditorV2({
   investmentRabat,
   payoutsByWorker = [],
   payoutTransactions = [],
+  depositTransactions = [],
 }: PropsT) {
   const router = useRouter()
   // One undo/redo stack per editor mount, passed to the body as a prop. It outlives the body's
@@ -70,6 +71,7 @@ export function KosztorysEditorV2({
         investmentRabat={investmentRabat}
         payoutsByWorker={payoutsByWorker}
         payoutTransactions={payoutTransactions}
+        depositTransactions={depositTransactions}
         undoRedo={undoRedo}
         onOpenVersions={() => setVersionsOpen(true)}
       />

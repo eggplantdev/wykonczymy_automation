@@ -5,6 +5,7 @@ import {
   fetchFilteredByType,
   fetchPayoutsByWorkerForInvestment,
   fetchPayoutTransactionsForInvestment,
+  fetchDepositTransactionsForInvestment,
   fetchReferenceData,
 } from '@/lib/queries/reference-data'
 import { deriveFinancials } from '@/lib/db/sum-transfers'
@@ -33,19 +34,30 @@ export default async function InvestmentKosztorysV2Page({
   const payoutsPromise = fetchPayoutsByWorkerForInvestment(investmentId)
   // The individual realized PAYOUT rows — feed the subcontractor block's sortable wypłaty list.
   const payoutTxPromise = fetchPayoutTransactionsForInvestment(investmentId)
+  // The individual deposit rows — feed the client Podsumowanie's sortable wpłaty list.
+  const depositTxPromise = fetchDepositTransactionsForInvestment(investmentId)
   // Folded into the same Promise.all as everything else so the 404 lookup runs concurrently with the
   // data fetches rather than gating them; its notFound() rejection propagates through Promise.all.
   const investmentPromise = requireInvestmentOr404(id)
-  const [{ investment }, tree, typeDistribution, breakdowns, refData, payouts, payoutTransactions] =
-    await Promise.all([
-      investmentPromise,
-      treePromise,
-      financialsPromise,
-      breakdownsPromise,
-      fetchReferenceData(),
-      payoutsPromise,
-      payoutTxPromise,
-    ])
+  const [
+    { investment },
+    tree,
+    typeDistribution,
+    breakdowns,
+    refData,
+    payouts,
+    payoutTransactions,
+    depositTransactions,
+  ] = await Promise.all([
+    investmentPromise,
+    treePromise,
+    financialsPromise,
+    breakdownsPromise,
+    fetchReferenceData(),
+    payoutsPromise,
+    payoutTxPromise,
+    depositTxPromise,
+  ])
   // categoryCosts feed the Materiały split; settledCategoryCosts stay unused here — settled
   // material („wliczone w robociznę") is an owner/margin figure, deliberately kept off the
   // client-facing offer (v1 parity).
@@ -82,6 +94,7 @@ export default async function InvestmentKosztorysV2Page({
       investmentRabat={financials.totalRabat}
       payoutsByWorker={payoutsByWorker}
       payoutTransactions={payoutTransactions}
+      depositTransactions={depositTransactions}
     />
   )
 }

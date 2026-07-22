@@ -49,6 +49,7 @@ export function KosztorysEditorBody({
   investmentRabat,
   payoutsByWorker = [],
   payoutTransactions = [],
+  depositTransactions = [],
   clientView = false,
   undoRedo = NOOP_UNDO_REDO,
   onOpenVersions,
@@ -209,6 +210,7 @@ export function KosztorysEditorBody({
             stageTotals={stageTotals}
             payoutsByWorker={payoutsByWorker}
             payoutTransactions={payoutTransactions}
+            depositTransactions={depositTransactions}
             subcontractorDueNet={subcontractorDueNet}
             totalNet={totalNet}
             laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}

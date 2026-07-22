@@ -10,6 +10,8 @@ import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_CELL,
   SUMMARY_VALUE_COL,
+  SummaryHeaderCell,
+  SummaryTable,
 } from '@/components/kosztorys/summary-grid'
 import { formatNet } from '@/lib/kosztorys/format'
 import { formatPLDate } from '@/lib/utils/format-date'
@@ -112,7 +114,7 @@ export function SubcontractorSummary({
     mode === 'worker' ? [{ id: 'workerName', desc: false }] : [{ id: 'date', desc: true }]
 
   return (
-    <div className="text-foreground flex max-h-[calc(100vh_-_11rem)] w-full flex-col gap-y-4 overflow-y-auto px-4 pt-2 pb-6 text-sm">
+    <div className="text-foreground flex w-full flex-col gap-y-4 px-4 pt-2 pb-6 text-sm">
       <div className="flex flex-wrap items-start gap-x-6 gap-y-4">
         <HeadlineSummary summary={summary} dueNet={dueNet} />
         {summary.rows.length > 0 && (
@@ -158,14 +160,9 @@ function HeadlineSummary({
   dueNet: number
 }) {
   return (
-    <div
-      style={{ gridTemplateColumns: `${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL}` }}
-      className="border-border bg-border grid w-fit gap-px border"
-    >
-      <span className={cn(SUMMARY_LABEL_CELL, 'text-muted-foreground text-xs')}>
-        Podsumowanie podwykonawców
-      </span>
-      <span className={cn(SUMMARY_VALUE_CELL, 'text-muted-foreground text-xs')}>Kwota</span>
+    <SummaryTable cols={`${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL}`} className="w-fit">
+      <SummaryHeaderCell variant="label">Podsumowanie podwykonawców</SummaryHeaderCell>
+      <SummaryHeaderCell>Kwota</SummaryHeaderCell>
 
       <span className={cn(SUMMARY_LABEL_CELL, 'font-medium')}>Suma wykonanej pracy</span>
       <span className={cn(SUMMARY_VALUE_CELL, 'font-medium')}>{formatNet(dueNet)}</span>
@@ -183,7 +180,7 @@ function HeadlineSummary({
       >
         {formatNet(summary.remaining)}
       </span>
-    </div>
+    </SummaryTable>
   )
 }
 
@@ -195,14 +192,9 @@ function WorkerTotals({
   rows: ReturnType<typeof computeSubcontractorSummary>['rows']
 }) {
   return (
-    <div
-      style={{ gridTemplateColumns: `${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL}` }}
-      className="border-border bg-border grid h-fit w-fit gap-px border"
-    >
-      <span className={cn(SUMMARY_LABEL_CELL, 'text-muted-foreground text-xs')}>
-        Podsumowanie pracowników
-      </span>
-      <span className={cn(SUMMARY_VALUE_CELL, 'text-muted-foreground text-xs')}>Kwota</span>
+    <SummaryTable cols={`${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL}`} className="h-fit w-fit">
+      <SummaryHeaderCell variant="label">Podsumowanie pracowników</SummaryHeaderCell>
+      <SummaryHeaderCell>Kwota</SummaryHeaderCell>
 
       {rows.map((row) => (
         <div key={workerKey(row.workerId)} className="contents">
@@ -223,6 +215,6 @@ function WorkerTotals({
           </span>
         </div>
       ))}
-    </div>
+    </SummaryTable>
   )
 }

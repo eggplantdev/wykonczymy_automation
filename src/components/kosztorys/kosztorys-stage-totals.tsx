@@ -8,6 +8,8 @@ import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_CELL,
   SUMMARY_VALUE_COL,
+  SummaryHeaderCell,
+  SummaryTable,
 } from '@/components/kosztorys/summary-grid'
 import { Fragment, type ReactNode } from 'react'
 import { cn } from '@/lib/utils/cn'
@@ -25,7 +27,7 @@ type PropsT = {
 
 // Suma transzy per etap + the „R netto / R brutto — suma prac wykonanych" readout (sheet r396/r397).
 // Read-only: the executed value each etap delivered, at the active price view, netto and brutto.
-export function KosztorysEtapTotals({
+export function KosztorysStageTotals({
   stages,
   stageTotals,
   wykonaneNet,
@@ -59,33 +61,22 @@ export function KosztorysEtapTotals({
   )
 
   return (
-    <div className="border-border text-foreground shrink-0 border-t px-4 pt-4 pb-2 text-sm">
-      <div className="overflow-x-auto">
-        <div
-          style={{ gridTemplateColumns }}
-          className="border-border bg-border grid w-max gap-px border"
-        >
-          <span className={cn(labelCell, 'text-muted-foreground text-xs')}>Suma transzy</span>
-          {stages.map((st) => (
-            <span key={st.id} className={cn(valueCell, 'text-muted-foreground text-xs')}>
-              {st.label ?? `Etap ${st.ordinal}`}
-            </span>
-          ))}
-          <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Razem</span>
-          {showNet &&
-            row(
-              'Netto',
-              (st) => money(stageTotals.get(st.id) ?? 0, false),
-              money(wykonaneNet, false),
-            )}
-          {showGross &&
-            row(
-              'Brutto',
-              (st) => money(stageTotals.get(st.id) ?? 0, true),
-              money(wykonaneNet, true),
-            )}
-        </div>
-      </div>
+    <div className="overflow-x-auto px-4 py-2 text-sm">
+      <SummaryTable cols={gridTemplateColumns} className="w-max">
+        <SummaryHeaderCell variant="label">Suma transzy</SummaryHeaderCell>
+        {stages.map((st) => (
+          <SummaryHeaderCell key={st.id}>{st.label ?? `Etap ${st.ordinal}`}</SummaryHeaderCell>
+        ))}
+        <SummaryHeaderCell>Razem</SummaryHeaderCell>
+        {showNet &&
+          row(
+            'Netto',
+            (st) => money(stageTotals.get(st.id) ?? 0, false),
+            money(wykonaneNet, false),
+          )}
+        {showGross &&
+          row('Brutto', (st) => money(stageTotals.get(st.id) ?? 0, true), money(wykonaneNet, true))}
+      </SummaryTable>
     </div>
   )
 }

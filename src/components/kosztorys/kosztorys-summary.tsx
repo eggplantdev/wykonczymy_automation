@@ -1,33 +1,19 @@
 'use client'
 
-import { Fragment, type ReactNode } from 'react'
-import Link from 'next/link'
-import dynamic from 'next/dynamic'
-import { Info } from 'lucide-react'
-import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
-import { HintTooltip } from '@/components/ui/tooltip'
 import {
   computeSummarySplit,
   faceValue,
   moneyPair,
   summaryLine,
-  summaryLineFace,
   type MoneyPairT,
-  type SummaryLineT,
 } from '@/lib/kosztorys/summary-economics'
-import { formatNet, formatPercent } from '@/lib/kosztorys/format'
+import { formatNet } from '@/lib/kosztorys/format'
 import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
-import {
-  SUMMARY_LABEL_CELL,
-  SUMMARY_LABEL_COL,
-  SUMMARY_VALUE_CELL,
-  SUMMARY_VALUE_COL,
-  SummaryRow,
-  summaryMoneyCols,
-  type SummaryRowOptsT,
-} from '@/components/kosztorys/summary-grid'
-import { ReconMismatchBadge } from '@/components/kosztorys/recon-mismatch-badge'
+import { SUMMARY_VALUE_COL, summaryMoneyCols } from '@/components/kosztorys/summary-grid'
+import { DepositsTable } from '@/components/kosztorys/deposits-table'
+import { SummaryBreakdownTable } from '@/components/kosztorys/summary-breakdown-table'
+import { SummaryTotalsTable } from '@/components/kosztorys/summary-totals-table'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import {
   reconciliationTooltip,
@@ -35,18 +21,7 @@ import {
   type ReconT,
 } from '@/lib/kosztorys/reconciliation'
 import type { SectionSliceInputT } from '@/lib/kosztorys/chart-slices'
-import { cn } from '@/lib/utils/cn'
-
-// recharts is heavy and client-only — load both pies lazily so the library never enters the editor's
-// main chunk; it arrives in its own async chunk only when this footer panel renders.
-const SectionSharePie = dynamic(
-  () => import('@/components/kosztorys/section-share-pie').then((m) => m.SectionSharePie),
-  { ssr: false },
-)
-const CostStructurePie = dynamic(
-  () => import('@/components/kosztorys/cost-structure-pie').then((m) => m.CostStructurePie),
-  { ssr: false },
-)
+import type { DepositTransactionRowT } from '@/types/reference-data'
 
 // The scream's tooltip names both compared figures + the różnica; formatNet because this surface shows
 // kosztorys nets. Shared copy with the investment page (reconciliationTooltip).
@@ -69,6 +44,9 @@ type PropsT = {
   // Wpłaty netto — the investor's deposits on this investment (totalIncome); subtracted from
   // Łącznie to reach „Do zapłaty". Matches the investment page's „Wpłaty" by construction.
   wplatyNet: number
+  // The investment's individual deposit rows — the wpłaty list under the summary. Sortable, same
+  // DataTable primitive as the subcontractor wypłaty list.
+  depositTransactions: DepositTransactionRowT[]
   // The rabat actually taken off the executed robocizna (net zł): the global discount when active,
   // else Σ per-item rabat. Unified upstream so this table shows one explicit „Rabat" line. 0 = none.
   rabatAmount: number
@@ -98,6 +76,7 @@ export function KosztorysSummary({
   materialyBreakdown,
   sectionSubtotals,
   wplatyNet,
+  depositTransactions,
   rabatAmount,
   reconciliation,
   priceView,
@@ -128,87 +107,55 @@ export function KosztorysSummary({
   const wplaty = faceValue(wplatyNet)
 
   const moneyCols = summaryMoneyCols(moneyAxis)
-  const gridTemplateColumns = `${moneyCols} ${SUMMARY_VALUE_COL}`
-
-  const labelCell = SUMMARY_LABEL_CELL
-  const valueCell = SUMMARY_VALUE_CELL
-
-  const row = (label: ReactNode, line: SummaryLineT | MoneyPairT, opts: SummaryRowOptsT = {}) => (
-    <SummaryRow label={label} line={line} axis={moneyAxis} {...opts} />
-  )
+  const breakdownCols = `${moneyCols} ${SUMMARY_VALUE_COL}`
 
   return (
-    <div className="text-foreground flex flex-wrap items-start gap-x-12 gap-y-8 px-4 pt-2 pb-10 text-sm">
+    <div className="text-foreground flex flex-col items-start gap-x-12 gap-y-8 px-4 pt-2 pb-10 text-sm">
       <div className="flex w-fit flex-col gap-4">
-        <div style={{ gridTemplateColumns }} className="border-border bg-border grid gap-px border">
-        <span className={cn(labelCell, 'text-muted-foreground text-xs')}>Podsumowanie</span>
-        {showNet && <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Netto</span>}
-        {showGross && (
-          <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Brutto</span>
-        )}
-        <span className={cn(valueCell, 'text-muted-foreground text-xs')}>Udział</span>
-        {row('Suma prac wykonanych', sumaPrac, {
-          mismatch:
+        <SummaryBreakdownTable
+          cols={breakdownCols}
+          moneyAxis={moneyAxis}
+          showNet={showNet}
+          showGross={showGross}
+          sumaPrac={sumaPrac}
+          sumaPracMismatch={
             reconVisible && reconciliation.laborCosts.mismatch
               ? mismatchTooltip(reconciliation.laborCosts, 'Transakcje robocizny')
-              : undefined,
-        })}
-        {materialyBreakdown
-          .filter((item) => item.net !== 0)
-          .map((item) => (
-            <Fragment key={item.id ?? 'korekta'}>
-              {row(
-                item.id !== null && !clientView ? (
-                  <Link
-                    href={`/inwestycje/${investmentId}?expenseCategory=${item.id}`}
-                    className="hover:underline"
-                  >
-                    {item.label}
-                  </Link>
-                ) : (
-                  item.label
-                ),
-                summaryLineFace(item.net, combined.net),
-                { noBrutto: true },
-              )}
-            </Fragment>
-          ))}
-        {row('Łącznie', combined, { emphasize: true, hideShare: true })}
+              : undefined
+          }
+          materialyBreakdown={materialyBreakdown}
+          combinedNet={combined.net}
+          combined={combined}
+          investmentId={investmentId}
+          clientView={clientView}
+        />
+        <SummaryTotalsTable
+          cols={moneyCols}
+          moneyAxis={moneyAxis}
+          showRabat={showRabat}
+          rabat={rabat}
+          rabatMismatch={
+            reconVisible && reconciliation.rabat.mismatch
+              ? mismatchTooltip(reconciliation.rabat, 'Transakcje rabatu')
+              : undefined
+          }
+          wplaty={wplaty}
+          doZaplaty={doZaplaty}
+          investmentId={investmentId}
+          clientView={clientView}
+        />
       </div>
-      <div
-        style={{ gridTemplateColumns: moneyCols }}
-        className="border-border bg-border grid w-fit gap-px border"
-      >
-        {showRabat &&
-          row('Rabat', rabat, {
-            discount: true,
-            noShareCell: true,
-            mismatch:
-              reconVisible && reconciliation.rabat.mismatch
-                ? mismatchTooltip(reconciliation.rabat, 'Transakcje rabatu')
-                : undefined,
-          })}
-        {row(
-          clientView ? (
-            'Wpłaty'
-          ) : (
-            <Link
-              href={`/inwestycje/${investmentId}?type=${DEPOSIT_TYPES.join(',')}`}
-              className="hover:underline"
-            >
-              Wpłaty
-            </Link>
-          ),
-          wplaty,
-          { discount: true, noBrutto: true, noShareCell: true },
-        )}
-        {row('Do zapłaty', doZaplaty, { bold: true, danger: doZaplaty.net > 0, noShareCell: true })}
-        </div>
-      </div>
-      <div className="flex flex-wrap items-start gap-x-12 gap-y-8">
-        <SectionSharePie subtotals={sectionSubtotals} />
-        <CostStructurePie sumaPracNet={sumaPracNet} materialyBreakdown={materialyBreakdown} />
-      </div>
+      {depositTransactions.length > 0 && (
+        <DepositsTable
+          investmentId={investmentId}
+          rows={depositTransactions}
+          clientView={clientView}
+        />
+      )}
+      {/* <div className="flex flex-wrap items-start gap-x-12 gap-y-8"> */}
+      {/* <SectionSharePie subtotals={sectionSubtotals} /> */}
+      {/* <CostStructurePie sumaPracNet={sumaPracNet} materialyBreakdown={materialyBreakdown} /> */}
+      {/* </div> */}
     </div>
   )
 }
