@@ -104,6 +104,10 @@ export function KosztorysEditorBody({
     totals.set('plannedGross', toGross(plannedNetForView, tree.vatRate))
     totals.set('remaining', remainingTotals.net)
     totals.set('remainingGross', remainingTotals.gross)
+    // Rabat: Σ per-item discount taken on executed qty, view-aware like the columns themselves.
+    const discountNetForView = subtotals.reduce((sum, section) => sum + section.discount, 0)
+    totals.set('discountAmount', discountNetForView)
+    totals.set('discountAmountGross', toGross(discountNetForView, tree.vatRate))
     // Qty (Pomiar z natury): per-etap column, their sum, and the offered przedmiar column.
     let qtySum = 0
     for (const stage of stages) {
