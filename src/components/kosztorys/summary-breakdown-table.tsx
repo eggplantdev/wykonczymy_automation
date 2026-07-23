@@ -14,11 +14,6 @@ import { SummaryRow } from '@/components/kosztorys/summary-row'
 import { type MutedAxisT } from '@/components/kosztorys/summary-axis'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 
-// Materiały are recorded brutto; VAT is subtracted to reach netto — the inverse of robocizna, where
-// netto is native. This hint marks that direction on every materiały row.
-const MATERIALY_HINT =
-  'Materiały rozliczane brutto — netto = brutto ÷ (1+VAT), VAT odejmujemy (odwrotnie niż przy robociźnie)'
-
 // The upper grid: „Suma prac wykonanych" + each materiały/korekta line, summing to „Łącznie".
 // This is the sheet Podsumowanie split; the waterfall below deducts from its Łącznie. The udział
 // figures stay computed upstream (summaryLine share) — they feed the charts, just not this table.
@@ -80,7 +75,7 @@ export function SummaryBreakdownTable({
             }
             // `item.net` is the materiały BRUTTO transaction sum (financials-layer field name kept;
             // rename deferred to the persistence slice) — reinterpreted here as gross. When netto
-            // pricing is off, the brutto figure stands on both axes (face value), so no VAT hint.
+            // pricing is off, the brutto figure stands on both axes (face value).
             line={
               deriveMaterialsNet
                 ? summaryLineGross(item.net, combinedNet, vatRate)
@@ -88,7 +83,6 @@ export function SummaryBreakdownTable({
             }
             axis={moneyAxis}
             mutedAxis={mutedAxis}
-            hint={deriveMaterialsNet ? MATERIALY_HINT : undefined}
           />
         ))}
       <SummaryRow
