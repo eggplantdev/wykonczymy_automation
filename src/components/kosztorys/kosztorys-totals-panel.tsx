@@ -148,12 +148,12 @@ export function KosztorysTotalsPanel({
         className="data-[state=open]:hidden"
       />
       {/* Pinned to the panel, not the scroll region, so it stays put while content scrolls.
-          top-8 + h-8 mirror the axis toggle's offset and height, centering the two on one line. */}
+          top-4 + h-8 mirror the axis toggle's offset and height, centering the two on one line. */}
       {open && (
         <button
           onClick={() => setOpen(false)}
           aria-label="Zwiń podsumowanie"
-          className="absolute top-8 right-4 z-10 flex h-8 cursor-pointer items-center"
+          className="absolute top-4 right-4 z-10 flex h-8 cursor-pointer items-center"
         >
           <ChevronDown className="text-muted-foreground hover:text-foreground size-8" />
         </button>
@@ -197,7 +197,7 @@ export function KosztorysTotalsPanel({
                       checked={materialsAsNet}
                       onCheckedChange={(value) => setMaterialsAsNet(value === true)}
                     />
-                    Wydatki inwestycyjne wyceniane po kwocie netto (−{vatPercent}%)
+                    Zaznacz jeśli wydatki mają być rozliczane po kwocie netto
                   </label>
                 )}
               </div>
