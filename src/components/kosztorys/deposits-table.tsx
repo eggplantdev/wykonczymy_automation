@@ -54,20 +54,32 @@ export function DepositsTable({
     </span>
   )
 
+  const total = rows.reduce((sum, row) => sum + row.amount, 0)
+
   if (!showPlane) {
+    const flatCols = `${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL}`
     return (
-      <SummaryTable cols={`${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL}`} className="w-fit">
-        <SummaryHeaderCell variant="label">Wpłaty</SummaryHeaderCell>
-        <SummaryHeaderCell>Kwota</SummaryHeaderCell>
-        {rows.map((row) => (
-          <Fragment key={row.id}>
-            {dateCell(row)}
-            <span className={cn(SUMMARY_VALUE_CELL, 'text-chart-green')}>
-              {formatNet(row.amount)}
-            </span>
-          </Fragment>
-        ))}
-      </SummaryTable>
+      <div className="flex w-fit flex-col gap-4">
+        <SummaryTable cols={flatCols} className="w-fit">
+          <SummaryHeaderCell variant="label">Wpłaty</SummaryHeaderCell>
+          <SummaryHeaderCell>Kwota</SummaryHeaderCell>
+          {rows.map((row) => (
+            <Fragment key={row.id}>
+              {dateCell(row)}
+              <span className={cn(SUMMARY_VALUE_CELL, 'text-chart-green')}>
+                {formatNet(row.amount)}
+              </span>
+            </Fragment>
+          ))}
+        </SummaryTable>
+
+        <SummaryTable cols={flatCols} className="w-fit">
+          <span className={cn(SUMMARY_LABEL_CELL, 'font-bold')}>Razem</span>
+          <span className={cn(SUMMARY_VALUE_CELL, 'text-chart-green font-bold')}>
+            {formatNet(total)}
+          </span>
+        </SummaryTable>
+      </div>
     )
   }
 
