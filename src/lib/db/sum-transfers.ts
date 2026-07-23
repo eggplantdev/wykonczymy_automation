@@ -254,10 +254,18 @@ export const sumCategoryByTypeSettled = async (
 }
 
 /**
- * The individual deposit rows (INVESTOR_DEPOSIT / COMPANY_FUNDING) for an investment — the un-summed
- * twin of the `totalIncome` aggregate, so the client Podsumowanie can list each wpłata
- * (data · kwota · netto/brutto), sortable, mirroring the subcontractor block's wypłaty list. Same
- * deposit filter, cancelled excluded, date-desc. `vat_plane` is null for the „nie określono" state.
+ * The individual INVESTOR_DEPOSIT rows for an investment — the un-summed twin of `totalIncome`, so
+ * the client Podsumowanie can list each wpłata (data · kwota · netto/brutto), sortable, mirroring the
+ * subcontractor block's wypłaty list. Cancelled excluded, date-desc. `vat_plane` is null for the
+ * „nie określono" state.
+ *
+ * INVESTOR_DEPOSIT only, NOT the full DEPOSIT_TYPES: COMPANY_FUNDING („zasilenie z konta firmowego")
+ * is the company financing its own investment, not a client payment, so it must never land in the
+ * client wpłaty surface — the wpłaty list, „Rozliczenie wpłat", nor the gotówka target of the mixed
+ * settlement. The deposit form already hides the investment picker for COMPANY_FUNDING (it can't be
+ * investment-scoped there), so this closes the only remaining path — a hand-made row via the Payload
+ * admin panel — at the read boundary, where the exclusion is guaranteed regardless of how a row was
+ * written. It also carries the netto/brutto plane, which exists for INVESTOR_DEPOSIT only.
  */
 export const getDepositTransactionsForInvestment = async (
   payload: Payload,
@@ -271,7 +279,7 @@ export const getDepositTransactionsForInvestment = async (
     FROM transactions
     WHERE investment_id = ${investmentId}
       AND cancelled IS NOT TRUE
-      AND type IN ${depositTypesInList}
+      AND type = 'INVESTOR_DEPOSIT'
     ORDER BY date DESC, id DESC
   `)
 
