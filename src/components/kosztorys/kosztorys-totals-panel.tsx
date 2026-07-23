@@ -138,12 +138,19 @@ export function KosztorysTotalsPanel({
     <Collapsible.Root
       open={open}
       onOpenChange={setOpen}
-      className="border-border bg-background text-foreground shadow-panel absolute inset-x-0 bottom-0 z-20 flex max-h-full flex-col border-t"
+      // The open/close animation lives on the ROOT's height (h-12 ↔ 100%), not on the Content's
+      // Radix keyframes — those animate the measured natural content height, which disagrees with
+      // the flex-stretched full height and made the close look two-phased. Content stays mounted
+      // (forceMount) so it can't blink out mid-transition; visibility flips only once closed.
+      className="border-border bg-background text-foreground shadow-panel absolute inset-x-0 bottom-0 z-20 flex h-15 flex-col overflow-hidden border-t transition-[height] duration-200 ease-out data-[state=open]:h-full"
     >
       <CollapsiblePanelTrigger
         label={isClientPlane ? 'Podsumowanie' : 'Podsumowanie podwykonawców'}
       />
-      <Collapsible.Content className="data-[state=closed]:animate-collapse-up data-[state=open]:animate-collapse-down flex min-h-0 flex-1 flex-col overflow-hidden">
+      <Collapsible.Content
+        forceMount
+        className="flex min-h-0 flex-1 flex-col overflow-hidden transition-[visibility] duration-200 data-[state=closed]:invisible"
+      >
         {/* One scroll container for both planes — the content clears the toolbar instead of hiding
             under it, identically whichever plane is active; the trigger above stays pinned. */}
         <div className={SUMMARY_PANEL_SCROLL}>
