@@ -61,6 +61,9 @@ type PropsT = {
   mutedAxis?: MutedAxisT
   // Price materiały netto as brutto − VAT (true, the default) or keep them at raw brutto (false).
   deriveMaterialsNet?: boolean
+  // When set (and deriveMaterialsNet), netto = brutto × (1 − materialsReduction) instead of the
+  // VAT-strip default — the owner-set brutto reduction (temporary client-side experiment).
+  materialsReduction?: number
   // Read-only client render: the mismatch scream is an owner-internal signal (a client's view is
   // always 'client', which is exactly when the scream would fire), and the internal drill-down links
   // point at owner-only pages — so gate the scream off and render those labels as plain text.
@@ -85,6 +88,7 @@ export function KosztorysSummary({
   moneyAxis,
   mutedAxis,
   deriveMaterialsNet = true,
+  materialsReduction,
   clientView = false,
 }: PropsT) {
   // „Suma prac wykonanych" is shown net of rabat, matching „Suma transzy" (both are the executed
@@ -96,6 +100,7 @@ export function KosztorysSummary({
     materialsGross,
     vatRate,
     deriveMaterialsNet,
+    materialsReduction,
   )
   // The scream compares client-view nets; a subcontractor view reprices the displayed figure, so the
   // scream would sit next to a number it isn't comparing. Show it only in the client view.
@@ -132,6 +137,7 @@ export function KosztorysSummary({
           vatRate={vatRate}
           mutedAxis={mutedAxis}
           deriveMaterialsNet={deriveMaterialsNet}
+          materialsReduction={materialsReduction}
           investmentId={investmentId}
           clientView={clientView}
         />

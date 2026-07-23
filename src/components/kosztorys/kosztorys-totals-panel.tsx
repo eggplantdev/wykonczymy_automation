@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import * as Collapsible from '@radix-ui/react-collapsible'
 import { ChevronDown } from 'lucide-react'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
@@ -9,6 +10,7 @@ import { SimpleTooltip } from '@/components/ui/tooltip'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import { bucketDepositsByPlane, computeDoZaplatyRM } from '@/lib/kosztorys/summary-economics'
 import { CashSettlement } from '@/components/kosztorys/cash-settlement'
+import { CoeffField } from '@/components/kosztorys/coeff-field'
 import { DepositsTable } from '@/components/kosztorys/deposits-table'
 import { KosztorysStageTotals } from '@/components/kosztorys/kosztorys-stage-totals'
 import { KosztorysSummary } from '@/components/kosztorys/kosztorys-summary'
@@ -117,6 +119,11 @@ export function KosztorysTotalsPanel({
   const [materialsAsNet, setMaterialsAsNet] = useMaterialsNetPricing()
   const nettoShown = moneyAxis !== 'gross'
   const vatPercent = Math.round(vatRate * 100)
+  // Temporary client-side experiment (server-persisted later, so the transactions balance can
+  // reconcile): by how many % to knock brutto down to reach materiały netto. Seeded from the VAT
+  // rate, then the owner moves it to test whether a straight brutto reduction is the right model.
+  const [materialsReductionPercent, setMaterialsReductionPercent] = useState(vatPercent)
+  const materialsReduction = materialsReductionPercent / 100
   // „Do rozliczenia netto" is derived, not typed: Σ deposits flagged NET is the gotówka part.
   const cashAmount = bucketDepositsByPlane(depositTransactions).paidNet
   // The subcontractor plane (Z/Bez narzędzi) has no VAT axis and its own headline figure, so the
@@ -130,6 +137,7 @@ export function KosztorysTotalsPanel({
     materialsGross,
     vatRate,
     materialsAsNet,
+    materialsReduction,
   )
   return (
     <Collapsible.Root
@@ -200,6 +208,18 @@ export function KosztorysTotalsPanel({
                     Zaznacz jeśli wydatki mają być rozliczane po kwocie netto
                   </label>
                 )}
+                {nettoShown && materialsGross !== 0 && materialsAsNet && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground text-xs">
+                      Stawka netto wydatków (domyślnie - stawka vat)
+                    </span>
+                    <CoeffField
+                      label=""
+                      value={materialsReductionPercent}
+                      onCommit={(n) => n != null && setMaterialsReductionPercent(n)}
+                    />
+                  </div>
+                )}
               </div>
               <div className="flex w-full flex-wrap items-start gap-x-12 gap-y-8">
                 <KosztorysSummary
@@ -217,6 +237,7 @@ export function KosztorysTotalsPanel({
                   moneyAxis={displayAxis}
                   mutedAxis={mutedAxis}
                   deriveMaterialsNet={materialsAsNet}
+                  materialsReduction={materialsReduction}
                   clientView={clientView}
                 />
                 {cashMode && (

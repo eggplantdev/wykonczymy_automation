@@ -28,6 +28,7 @@ export function SummaryBreakdownTable({
   vatRate,
   mutedAxis,
   deriveMaterialsNet,
+  materialsReduction,
   investmentId,
   clientView,
 }: {
@@ -42,6 +43,9 @@ export function SummaryBreakdownTable({
   mutedAxis?: MutedAxisT
   // Price each materiały row netto as brutto − VAT (summaryLineGross) or at raw brutto (summaryLineFace).
   deriveMaterialsNet: boolean
+  // When set (and deriveMaterialsNet), each row's netto = brutto × (1 − materialsReduction) instead
+  // of the VAT-strip default (temporary client-side experiment).
+  materialsReduction?: number
   investmentId: number
   clientView: boolean
 }) {
@@ -78,7 +82,7 @@ export function SummaryBreakdownTable({
             // pricing is off, the brutto figure stands on both axes (face value).
             line={
               deriveMaterialsNet
-                ? summaryLineGross(item.net, combinedNet, vatRate)
+                ? summaryLineGross(item.net, combinedNet, vatRate, materialsReduction)
                 : summaryLineFace(item.net, combinedNet)
             }
             axis={moneyAxis}
