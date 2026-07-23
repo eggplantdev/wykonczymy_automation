@@ -24,6 +24,14 @@ export function grossPair(gross: number, vatRate: number): MoneyPairT {
   return { net: gross / (1 + vatRate), gross }
 }
 
+// Materiały valuation switch. Recorded brutto either way; `deriveNet` decides the netto axis:
+//   true  → grossPair: netto = brutto ÷ (1+VAT), the VAT-stripped netto (owner prices at netto −VAT).
+//   false → faceValue: netto = brutto, the raw expense amount, no reduction.
+// Brutto is `gross` in both branches, so this only moves the netto figures.
+export function materialyPair(gross: number, vatRate: number, deriveNet: boolean): MoneyPairT {
+  return deriveNet ? grossPair(gross, vatRate) : faceValue(gross)
+}
+
 export type SummaryLineT = MoneyPairT & {
   // Fraction of Łącznie netto (0..1); 0 when Łącznie is 0. Null-safe by construction.
   share: number
@@ -67,8 +75,9 @@ export function computeSummarySplit(
   laborCostsNetFromKosztorys: number,
   materialsGross: number,
   vatRate: number,
+  deriveMaterialsNet = true,
 ): SummaryT {
-  const materialy = grossPair(materialsGross, vatRate)
+  const materialy = materialyPair(materialsGross, vatRate, deriveMaterialsNet)
   const combinedNet = laborCostsNetFromKosztorys + materialy.net
   const laborCosts = summaryLine(laborCostsNetFromKosztorys, combinedNet, vatRate)
   // Łącznie = robocizna (netto native, grossed up) + materiały (brutto native, netto derived). Each
@@ -91,8 +100,9 @@ export function computeDoZaplatyRM(
   wplatyNet: number,
   materialsGross: number,
   vatRate: number,
+  deriveMaterialsNet = true,
 ): MoneyPairT {
-  const materialy = grossPair(materialsGross, vatRate)
+  const materialy = materialyPair(materialsGross, vatRate, deriveMaterialsNet)
   // Robocizna is netto native (grossed up); materiały is brutto native (netto derived by removing
   // VAT); wpłaty carry no VAT (face value). Each figure enters each axis at its own native amount.
   const net = laborCostsNetFromKosztorys - wplatyNet + materialy.net

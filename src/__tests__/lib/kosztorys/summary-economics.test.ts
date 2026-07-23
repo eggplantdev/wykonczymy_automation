@@ -6,6 +6,7 @@ import {
   computeSummarySplit,
   faceValue,
   grossPair,
+  materialyPair,
   moneyPair,
   summaryLine,
   summaryLineFace,
@@ -78,6 +79,38 @@ describe('summary-row udział builders', () => {
     expect(summaryLine(250, 0, 0.23).share).toBe(0)
     expect(summaryLineFace(200, 0).share).toBe(0)
     expect(summaryLineGross(123, 0, 0.23).share).toBe(0)
+  })
+})
+
+describe('materialyPair (netto pricing switch)', () => {
+  it('deriveNet=true removes VAT (netto = brutto ÷ 1+VAT), brutto native', () => {
+    const p = materialyPair(123, 0.23, true)
+    expect(p.net).toBeCloseTo(100)
+    expect(p.gross).toBe(123)
+  })
+
+  it('deriveNet=false keeps the raw brutto on both axes (no reduction)', () => {
+    const p = materialyPair(123, 0.23, false)
+    expect(p.net).toBe(123)
+    expect(p.gross).toBe(123)
+  })
+})
+
+describe('materiały netto pricing off (deriveMaterialsNet=false)', () => {
+  it('computeSummarySplit: materiały netto === brutto, so Łącznie netto keeps the full brutto', () => {
+    const p = computeSummarySplit(1000, 123, 0.23, false)
+    // Materiały netto = Łącznie netto − robocizna netto = 123 (not the VAT-stripped 100).
+    expect(p.combined.net - p.laborCosts.net).toBeCloseTo(123)
+    expect(p.combined.net).toBeCloseTo(1123)
+    // Brutto is unchanged by the switch: robocizna 1230 + materiały 123.
+    expect(p.combined.gross).toBeCloseTo(1230 + 123)
+  })
+
+  it('computeDoZaplatyRM: materiały enter netto at full brutto; brutto axis unchanged', () => {
+    const r = computeDoZaplatyRM(1000, 300, 123, 0.23, false)
+    // netto: robocizna 1000 − wpłaty 300 + materiały 123 (raw brutto, not derived 100).
+    expect(r.net).toBeCloseTo(823)
+    expect(r.gross).toBeCloseTo(1230 - 300 + 123)
   })
 })
 

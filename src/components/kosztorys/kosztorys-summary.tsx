@@ -56,6 +56,8 @@ type PropsT = {
   priceView: PriceViewT
   vatRate: number
   moneyAxis: MoneyAxisT
+  // Price materiały netto as brutto − VAT (true, the default) or keep them at raw brutto (false).
+  deriveMaterialsNet?: boolean
   // Read-only client render: the mismatch scream is an owner-internal signal (a client's view is
   // always 'client', which is exactly when the scream would fire), and the internal drill-down links
   // point at owner-only pages — so gate the scream off and render those labels as plain text.
@@ -78,13 +80,19 @@ export function KosztorysSummary({
   priceView,
   vatRate,
   moneyAxis,
+  deriveMaterialsNet = true,
   clientView = false,
 }: PropsT) {
   // „Suma prac wykonanych" is shown net of rabat, matching „Suma transzy" (both are the executed
   // value after discount). Rabat is no longer a waterfall deduction — it's an informational line
   // below „Do zapłaty". So Łącznie = Suma prac (po rabacie) + Materiały, and Łącznie − Wpłaty =
   // „Do zapłaty" holds without a rabat step.
-  const { combined } = computeSummarySplit(laborCostsNetFromKosztorys, materialsGross, vatRate)
+  const { combined } = computeSummarySplit(
+    laborCostsNetFromKosztorys,
+    materialsGross,
+    vatRate,
+    deriveMaterialsNet,
+  )
   const { net: showNet, gross: showGross } = axisShows(moneyAxis)
   // The scream compares client-view nets; a subcontractor view reprices the displayed figure, so the
   // scream would sit next to a number it isn't comparing. Show it only in the client view.
@@ -121,6 +129,7 @@ export function KosztorysSummary({
           combinedNet={combined.net}
           combined={combined}
           vatRate={vatRate}
+          deriveMaterialsNet={deriveMaterialsNet}
           investmentId={investmentId}
           clientView={clientView}
         />

@@ -3,6 +3,7 @@
 import * as Collapsible from '@radix-ui/react-collapsible'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
+import { Checkbox } from '@/components/ui/checkbox'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import { bucketDepositsByPlane, computeDoZaplatyRM } from '@/lib/kosztorys/summary-economics'
@@ -15,6 +16,7 @@ import { CollapsiblePanelTrigger } from '@/components/ui/collapsible-panel-trigg
 import { SUMMARY_PANEL_SCROLL } from '@/components/kosztorys/summary-grid'
 import { useTotalsPanelOpen } from '@/components/kosztorys/use-totals-panel-open'
 import { useSummaryAxis, type PanelAxisT } from '@/components/kosztorys/use-summary-axis'
+import { useMaterialsNetPricing } from '@/components/kosztorys/use-materials-net-pricing'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import type { KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
@@ -103,6 +105,12 @@ export function KosztorysTotalsPanel({
   // beside it. Every other value is a real MoneyAxisT the children read directly.
   const cashMode = moneyAxis === 'cash'
   const displayAxis: MoneyAxisT = moneyAxis === 'cash' ? 'both' : moneyAxis
+  // Materiały netto pricing: when on, netto = brutto − VAT (the historical default); when off,
+  // materiały stay at their raw brutto amount on both axes. Only moves netto figures, so the toggle
+  // is offered only where netto is on show and there are materiały to reprice.
+  const [materialsAsNet, setMaterialsAsNet] = useMaterialsNetPricing()
+  const nettoShown = moneyAxis !== 'gross'
+  const vatPercent = Math.round(vatRate * 100)
   // „Do rozliczenia netto" is derived, not typed: Σ deposits flagged NET is the gotówka part.
   const cashAmount = bucketDepositsByPlane(depositTransactions).paidNet
   // The subcontractor plane (Z/Bez narzędzi) has no VAT axis and its own headline figure, so the
@@ -115,6 +123,7 @@ export function KosztorysTotalsPanel({
     wplatyNet,
     materialsGross,
     vatRate,
+    materialsAsNet,
   )
   return (
     <Collapsible.Root
@@ -150,6 +159,15 @@ export function KosztorysTotalsPanel({
                     />
                   </span>
                 </SimpleTooltip>
+                {nettoShown && materialsGross !== 0 && (
+                  <label className="text-muted-foreground mt-2 flex w-fit cursor-pointer items-center gap-2 text-xs">
+                    <Checkbox
+                      checked={materialsAsNet}
+                      onCheckedChange={(value) => setMaterialsAsNet(value === true)}
+                    />
+                    Wydatki inwestycyjne wyceniane po kwocie netto (−{vatPercent}%)
+                  </label>
+                )}
               </div>
               {/* The container owns the tables' shared spacing — children carry no top offset of
                   their own, so every table's header lands on the same line. Row 1 is the summary
@@ -170,6 +188,7 @@ export function KosztorysTotalsPanel({
                     priceView={priceView}
                     vatRate={vatRate}
                     moneyAxis={displayAxis}
+                    deriveMaterialsNet={materialsAsNet}
                     clientView={clientView}
                   />
                   {cashMode && (

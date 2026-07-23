@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import {
+  summaryLineFace,
   summaryLineGross,
   type MoneyPairT,
   type SummaryLineT,
@@ -29,6 +30,7 @@ export function SummaryBreakdownTable({
   combinedNet,
   combined,
   vatRate,
+  deriveMaterialsNet,
   investmentId,
   clientView,
 }: {
@@ -42,6 +44,8 @@ export function SummaryBreakdownTable({
   combinedNet: number
   combined: MoneyPairT
   vatRate: number
+  // Price each materiały row netto as brutto − VAT (summaryLineGross) or at raw brutto (summaryLineFace).
+  deriveMaterialsNet: boolean
   investmentId: number
   clientView: boolean
 }) {
@@ -74,10 +78,15 @@ export function SummaryBreakdownTable({
               )
             }
             // `item.net` is the materiały BRUTTO transaction sum (financials-layer field name kept;
-            // rename deferred to the persistence slice) — reinterpreted here as gross.
-            line={summaryLineGross(item.net, combinedNet, vatRate)}
+            // rename deferred to the persistence slice) — reinterpreted here as gross. When netto
+            // pricing is off, the brutto figure stands on both axes (face value), so no VAT hint.
+            line={
+              deriveMaterialsNet
+                ? summaryLineGross(item.net, combinedNet, vatRate)
+                : summaryLineFace(item.net, combinedNet)
+            }
             axis={moneyAxis}
-            hint={MATERIALY_HINT}
+            hint={deriveMaterialsNet ? MATERIALY_HINT : undefined}
           />
         ))}
       <SummaryRow label="Łącznie" line={combined} axis={moneyAxis} emphasize />
