@@ -15,8 +15,8 @@ import {
 } from '@/components/ui/summary-grid'
 import type { DepositTransactionRowT } from '@/types/reference-data'
 
-// The wpłaty list — same CSS-grid table as the Podsumowanie block above it (bg-border container +
-// gap-px separators, SUMMARY_*_CELL cells). Deposits are rare, so no virtualization: one row each,
+// The wpłaty list — same CSS-grid table as the Podsumowanie block above it (SummaryTable +
+// SummaryLabelCell/SummaryValueCell). Deposits are rare, so no virtualization: one row each,
 // date-desc.
 //
 // In tryb mieszany (`showPlane`) the table adds a „Rodzaj" column naming each wpłata's vatPlane —
