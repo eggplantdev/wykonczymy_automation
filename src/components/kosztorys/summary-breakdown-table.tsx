@@ -6,14 +6,14 @@ import {
   type MoneyPairT,
   type SummaryLineT,
 } from '@/lib/kosztorys/summary-economics'
+import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
+import { SummaryHeaderCell, SummaryRow, SummaryTable } from '@/components/kosztorys/summary-grid'
+import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 
 // Materiały are recorded brutto; VAT is subtracted to reach netto — the inverse of robocizna, where
 // netto is native. This hint marks that direction on every materiały row.
 const MATERIALY_HINT =
   'Materiały rozliczane brutto — netto = brutto ÷ (1+VAT), VAT odejmujemy (odwrotnie niż przy robociźnie)'
-import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
-import { SummaryHeaderCell, SummaryRow, SummaryTable } from '@/components/kosztorys/summary-grid'
-import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 
 // The upper grid: „Suma prac wykonanych" + each materiały/korekta line, summing to „Łącznie".
 // This is the sheet Podsumowanie split; the waterfall below deducts from its Łącznie. The udział

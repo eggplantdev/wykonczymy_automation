@@ -54,6 +54,7 @@
   --text-2xs: 0.625rem;
   --tracking-wk: 0.2em;
   --shadow-wk: 0 4px 24px rgb(0 0 0 / 0.04);
+  --shadow-panel: 0 -2px 8px -4px rgb(0 0 0 / 0.2); /* upward top-edge elevation for the bottom totals panel */
 
   /* Semantic Colors - Light Mode */
   --color-background: oklch(1 0 0);

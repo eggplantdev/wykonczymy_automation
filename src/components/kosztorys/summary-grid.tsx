@@ -54,8 +54,7 @@ export function SummaryTable({
   )
 }
 
-// A column header cell — muted, xs — over the label track (`variant="label"`) or a value track
-// (default). Replaces the `cn(SUMMARY_*_CELL, 'text-muted-foreground text-xs')` repeated per header.
+// A column header cell over the label track (`variant="label"`) or a value track (default).
 export function SummaryHeaderCell({
   variant = 'value',
   className,

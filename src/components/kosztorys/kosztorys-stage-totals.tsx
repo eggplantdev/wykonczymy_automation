@@ -44,19 +44,16 @@ export function KosztorysStageTotals({
   const valueTrackCount = stages.length + 1
   const gridTemplateColumns = `${SUMMARY_LABEL_COL} repeat(${valueTrackCount}, ${SUMMARY_VALUE_COL})`
 
-  const labelCell = SUMMARY_LABEL_CELL
-  const valueCell = SUMMARY_VALUE_CELL
-
   // Netto / Brutto share one shape — a label, a per-etap cell, and the bold row total.
   const row = (label: ReactNode, cell: (st: KosztorysStageT) => string, total: string) => (
     <Fragment>
-      <span className={labelCell}>{label}</span>
+      <span className={SUMMARY_LABEL_CELL}>{label}</span>
       {stages.map((st) => (
-        <span key={st.id} className={valueCell}>
+        <span key={st.id} className={SUMMARY_VALUE_CELL}>
           {cell(st)}
         </span>
       ))}
-      <span className={cn(valueCell, 'font-bold')}>{total}</span>
+      <span className={cn(SUMMARY_VALUE_CELL, 'font-bold')}>{total}</span>
     </Fragment>
   )
 
