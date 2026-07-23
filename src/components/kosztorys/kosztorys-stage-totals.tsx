@@ -56,14 +56,14 @@ export function KosztorysStageTotals({
           {cell(st)}
         </span>
       ))}
-      <span className={cn(valueCell, 'font-medium')}>{total}</span>
+      <span className={cn(valueCell, 'font-bold')}>{total}</span>
     </Fragment>
   )
 
   return (
     <div className="overflow-x-auto text-sm">
       <SummaryTable cols={gridTemplateColumns} className="w-max">
-        <SummaryHeaderCell variant="label">Suma transzy</SummaryHeaderCell>
+        <SummaryHeaderCell variant="label">Robocizna per etap</SummaryHeaderCell>
         {stages.map((st) => (
           <SummaryHeaderCell key={st.id}>{st.label ?? `Etap ${st.ordinal}`}</SummaryHeaderCell>
         ))}
