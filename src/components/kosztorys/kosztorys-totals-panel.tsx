@@ -1,8 +1,7 @@
 'use client'
 
-import { useState } from 'react'
 import * as Collapsible from '@radix-ui/react-collapsible'
-import { SUMMARY_AXIS_DEFAULT, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
+import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
@@ -20,6 +19,7 @@ import { SubcontractorSummary } from '@/components/kosztorys/subcontractor-summa
 import { CollapsiblePanelTrigger } from '@/components/ui/collapsible-panel-trigger'
 import { SUMMARY_PANEL_SCROLL } from '@/components/kosztorys/summary-grid'
 import { useTotalsPanelOpen } from '@/components/kosztorys/use-totals-panel-open'
+import { useSummaryAxis, type PanelAxisT } from '@/components/kosztorys/use-summary-axis'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import type { KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
@@ -29,11 +29,6 @@ import type {
   PayoutTransactionRowT,
   DepositTransactionRowT,
 } from '@/types/reference-data'
-
-// The panel's own axis pick. Extends MoneyAxisT with a panel-only 'cash' value: 'both' keeps its
-// original meaning (netto + brutto columns side by side), 'cash' is the „Mieszane" cash-settlement
-// view (netto-only figures + the gotówka block).
-type PanelAxisT = MoneyAxisT | 'cash'
 
 const SUMMARY_AXIS_OPTIONS: OptionT<PanelAxisT>[] = [
   { value: 'net', label: 'Netto' },
@@ -107,7 +102,7 @@ export function KosztorysTotalsPanel({
   const [open, setOpen] = useTotalsPanelOpen()
   // The panel's own netto/brutto axis, independent of the Widok dropdown — that one keeps
   // governing the grid columns only; this switch governs every figure inside the panel.
-  const [moneyAxis, setMoneyAxis] = useState<PanelAxisT>(SUMMARY_AXIS_DEFAULT)
+  const [moneyAxis, setMoneyAxis] = useSummaryAxis()
   // „Mieszane" ('cash') shows BOTH netto and brutto columns, then a cash split block — the settlement
   // anchors on brutto (matching the brutto „Do zapłaty" column at C = 0), while netto stays visible
   // beside it. Every other value is a real MoneyAxisT the children read directly.
