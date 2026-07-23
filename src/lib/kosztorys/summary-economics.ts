@@ -158,35 +158,3 @@ export function bucketDepositsByPlane(
   const total = rows.reduce((sum, row) => sum + row.amount, 0)
   return { paidNet: total - paidGross, paidGross }
 }
-
-export type DepositsSplitT = {
-  // Σ deposits marked GROSS (the wpłaty list's „Netto/Brutto" column) and Σ everything else (NET +
-  // legacy null, which defaults to netto). These sum to the total wpłaty.
-  paidNet: number
-  paidGross: number
-  // Each plane's own still-owed figure, paired against the mixed-settlement table beside it:
-  //   netto  → „Do rozliczenia netto" (the gotówka target) − wpłacono netto
-  //   brutto → „Reszta brutto" (the invoiced-with-VAT rest) − wpłacono brutto
-  // Positive = client still owes on that plane; can go negative when a plane is overpaid.
-  remainingNet: number
-  remainingGross: number
-}
-
-// The wpłaty reconciliation shown beside the deposits list in tryb mieszany: each VAT plane's
-// deposits net off against that plane's target from the „Rozliczenie mieszane" table. `cashTarget`
-// is that table's „Do rozliczenia netto" row, `remainderGross` its „Reszta brutto" row — so the two
-// blocks reconcile: the settlement splits the obligation into a cash-netto and an invoice-brutto
-// bucket, and this splits the deposits the same way.
-export function depositsSplit(
-  paidNetPlane: number,
-  paidGrossPlane: number,
-  cashTarget: number,
-  remainderGross: number,
-): DepositsSplitT {
-  return {
-    paidNet: paidNetPlane,
-    paidGross: paidGrossPlane,
-    remainingNet: cashTarget - paidNetPlane,
-    remainingGross: remainderGross - paidGrossPlane,
-  }
-}

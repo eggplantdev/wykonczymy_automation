@@ -5,14 +5,9 @@ import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
-import {
-  bucketDepositsByPlane,
-  computeCashSettlement,
-  computeDoZaplatyRM,
-} from '@/lib/kosztorys/summary-economics'
+import { bucketDepositsByPlane, computeDoZaplatyRM } from '@/lib/kosztorys/summary-economics'
 import { CashSettlement } from '@/components/kosztorys/cash-settlement'
 import { DepositsTable } from '@/components/kosztorys/deposits-table'
-import { DepositsReconciliation } from '@/components/kosztorys/deposits-reconciliation'
 import { KosztorysStageTotals } from '@/components/kosztorys/kosztorys-stage-totals'
 import { KosztorysSummary } from '@/components/kosztorys/kosztorys-summary'
 import { SubcontractorSummary } from '@/components/kosztorys/subcontractor-summary'
@@ -121,14 +116,6 @@ export function KosztorysTotalsPanel({
     materialsGross,
     vatRate,
   )
-  // One cash-split source for both the „Rozliczenie mieszane" table and the wpłaty reconciliation
-  // beside the deposits list, so their „Do rozliczenia netto" / „Reszta brutto" figures can't drift.
-  const cashSettlement = computeCashSettlement(
-    doZaplaty.net + wplatyNet,
-    wplatyNet,
-    cashAmount,
-    vatRate,
-  )
   return (
     <Collapsible.Root
       open={open}
@@ -186,12 +173,17 @@ export function KosztorysTotalsPanel({
                     clientView={clientView}
                   />
                   {cashMode && (
-                    <CashSettlement
-                      combinedNet={doZaplaty.net + wplatyNet}
-                      wplatyNet={wplatyNet}
-                      vatRate={vatRate}
-                      cashAmount={cashAmount}
-                    />
+                    <div className="flex flex-col gap-1 self-start">
+                      <CashSettlement
+                        combinedNet={doZaplaty.net + wplatyNet}
+                        wplatyNet={wplatyNet}
+                        vatRate={vatRate}
+                        cashAmount={cashAmount}
+                      />
+                      <p className="text-muted-foreground w-fit max-w-3xs text-xs text-balance">
+                        Wpłaty bez oznaczenia netto/brutto są traktowane jako netto.
+                      </p>
+                    </div>
                   )}
                   {/* „Suma transzy" (per-etap, Netto/Brutto) is a client/VAT figure — the subcontractor
                     plane has no VAT axis (EX-558), so it renders only here. Sits beside the Podsumowanie. */}
@@ -204,21 +196,12 @@ export function KosztorysTotalsPanel({
                   />
                 </div>
                 {depositTransactions.length > 0 && (
-                  <div className="flex flex-row flex-wrap items-start gap-x-8 gap-y-4">
-                    <DepositsTable
-                      investmentId={investmentId}
-                      rows={depositTransactions}
-                      clientView={clientView}
-                      showPlane={cashMode}
-                    />
-                    {cashMode && (
-                      <DepositsReconciliation
-                        rows={depositTransactions}
-                        cashTarget={cashAmount}
-                        remainderGross={cashSettlement.remainderGross}
-                      />
-                    )}
-                  </div>
+                  <DepositsTable
+                    investmentId={investmentId}
+                    rows={depositTransactions}
+                    clientView={clientView}
+                    showPlane={cashMode}
+                  />
                 )}
               </div>
             </div>

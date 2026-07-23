@@ -4,7 +4,6 @@ import {
   computeCashSettlement,
   computeDoZaplatyRM,
   computeSummarySplit,
-  depositsSplit,
   faceValue,
   grossPair,
   moneyPair,
@@ -205,8 +204,8 @@ describe('computeCashSettlement (tryb mieszany)', () => {
   })
 })
 
-// The wpłaty split feeding DepositsReconciliation. The load-bearing rule is the owner's
-// „brak wartości = netto": GROSS goes to the invoiced part, everything else (NET + null) is netto.
+// The netto/gross split of wpłaty that feeds the mixed-settlement gotówka target. The load-bearing
+// rule is the owner's „brak wartości = netto": GROSS is the invoiced part, everything else (NET + null) is netto.
 describe('bucketDepositsByPlane', () => {
   it('NET deposits bucket to paidNet, GROSS to paidGross', () => {
     const b = bucketDepositsByPlane([deposit(100, 'NET'), deposit(250, 'GROSS')])
@@ -231,41 +230,5 @@ describe('bucketDepositsByPlane', () => {
   it('empty list yields zeroed buckets', () => {
     const b = bucketDepositsByPlane([])
     expect(b).toEqual({ paidNet: 0, paidGross: 0 })
-  })
-})
-
-describe('depositsSplit', () => {
-  it('each plane nets its deposits against its own target', () => {
-    // gotówka target 1000, invoiced-with-VAT rest 1230; paid 400 netto, 300 brutto.
-    const s = depositsSplit(400, 300, 1000, 1230)
-    expect(s.paidNet).toBe(400)
-    expect(s.paidGross).toBe(300)
-    expect(s.remainingNet).toBe(600) // 1000 − 400
-    expect(s.remainingGross).toBe(930) // 1230 − 300
-  })
-
-  it('overpaying a plane drives its „Pozostało" negative (not clamped)', () => {
-    const s = depositsSplit(1200, 0, 1000, 1230)
-    expect(s.remainingNet).toBe(-200)
-    expect(s.remainingGross).toBe(1230)
-  })
-})
-
-// The two side-by-side blocks must reconcile: the sum of the split's per-plane „Pozostało" equals
-// the settlement's „Razem do zapłaty" — so a reader can't see the deposits table and the settlement
-// disagree. Holds because both consume the SAME cashTarget + remainderGross computed once upstream.
-describe('reconciliation invariant (DepositsReconciliation ↔ computeCashSettlement)', () => {
-  it('remainingNet + remainingGross === settlement.total, whatever the plane mix', () => {
-    const vat = 0.23
-    const combinedNet = 1000
-    const cash = 400
-    const rows = [deposit(120, 'NET'), deposit(80, 'GROSS'), deposit(100, null)] // Σ = 300
-    const wplatyNet = rows.reduce((sum, r) => sum + r.amount, 0)
-
-    const settlement = computeCashSettlement(combinedNet, wplatyNet, cash, vat)
-    const { paidNet, paidGross } = bucketDepositsByPlane(rows)
-    const split = depositsSplit(paidNet, paidGross, cash, settlement.remainderGross)
-
-    expect(split.remainingNet + split.remainingGross).toBeCloseTo(settlement.total)
   })
 })
