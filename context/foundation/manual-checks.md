@@ -703,6 +703,8 @@ _None. All checks passed; no bugs, regressions, or console errors surfaced durin
 
 **Verified 2026-07-18** — Playwright + DB pass against the 5435 test DB, logged in as E2E User (OWNER), on `/inwestycje/6/kosztorys_v2` (seeded rozpiska, 43 items, 6 etapy, VAT 8%, rabat 10%). Migration `20260718_1_add_kosztorys_stage_to_transactions` applied clean with `pnpm db:migrate:test` (also the prod dry-run). One bug found + fixed on the spot.
 
+> **RETIRED (EX-536):** the deposit→etap tagging bridge below (Phase 4 „Zaliczka na etap" select, Phase 5 R+M-nets-zaliczki, and the empty-string-SelectItem finding) was **removed** — `kosztorys_stage_id` dropped from `transactions` (migration `20260721_0`), `zaliczki.ts` deleted, the deposit form's stage select gone. Deposits now live in the Podsumowanie wpłaty list, untagged. Do **not** re-run these checks; they exercise a deleted feature. Kept as history.
+
 - [x] **Phase 1 — Podsumowanie split** — Robocizna 1134,90 / Materiały 25 223,57 / Łącznie 26 358,47; 1134,90 + 25 223,57 = 26 358,47; udział 4% / 96% / 100%. Robocizna netto == „Do zapłaty netto" in the totals bar.
 - [x] **Phase 2 — etap axis** — „Suma transzy" table Etap 1–6 + „Suma prac wykonanych": netto 0 / 122,85 / 257,40 / 637,00 / 0 / 243,75 summing to 1261,00 = Suma prac wykonanych; brutto row present and consistent (×1.08).
 - [x] **Phase 3 — Komentarz column** — present in the „Widok" → Kolumny picker; toggling it on renders „Komentarz" as the rightmost editable grid column (`note`, textColumn). (`note` plumbing pre-existed; only the column registration is new.)

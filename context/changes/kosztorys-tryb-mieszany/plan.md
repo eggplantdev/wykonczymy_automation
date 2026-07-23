@@ -38,20 +38,40 @@ accepted and deferred to a later VAT-aware slice (scope lock below).
 
 ## Desired End State
 
+> **⚠️ Reconciled 2026-07-22 (review gate) — shipped differently from this plan in three ways.** Read
+> the code (`summary-economics.ts`, `kosztorys-totals-panel.tsx`, `cash-settlement.tsx`) as truth:
+>
+> 1. **„Mieszane" is a NEW toggle value, not a repurpose.** The toggle keeps „Netto + Brutto" and adds
+>    a fourth „Mieszane" (`'cash'`) option. In cash mode both netto and brutto columns stay visible
+>    (`displayAxis='both'`) — the waterfall + Suma transzy are **not** netto-only as planned below.
+> 2. **`computeCashSettlement` is a 4-arg / 6-field function anchored on Łącznie netto** (see the
+>    corrected contract in Phase 1), not the 3-field `doZaplatyNet`-anchored one. wpłaty are subtracted
+>    AFTER grossing (the plan's form would have grossed the deposits, inventing VAT).
+> 3. **A deposits-reconciliation block shipped alongside** (`deposits-reconciliation.tsx` +
+>    `depositsSplit` / `bucketDepositsByPlane`), reconciling wpłaty per VAT plane against the settlement.
+>    The plan does not mention it. Deposits carry a stored `vatPlane` flag (NET/GROSS/null, **null⇒netto**
+>    per the 2026-07-23 flip — only GROSS is invoiced; NET and null pay gotówka).
+> 4. **The gotówka amount is NOT typed — it is derived** (commits `9d0a2fa4` + `768e0d50`, 2026-07-23):
+>    „Do rozliczenia netto" = Σ wpłaty oznaczone netto (incl. unmarked) = `bucketDepositsByPlane(deposits).paidNet`.
+>    The plan's editable `C` input and its `clientView` read-only variant were removed — there is no
+>    manual cash field.
+>
+> The `clientView` read-only-input behaviour below is accurate. The rest of this section is the
+> original plan, kept as history.
+
 In the client plane of the Podsumowanie panel:
 
 - Panel opens on **Netto** by default (not the old „Mieszana").
-- Selecting **Mieszana** shows: the waterfall (Robocizna / Materiały / Łącznie / Wpłaty / Do zapłaty)
-  and „Suma transzy" per etap all in **netto only**, then a cash-settlement block:
-  - **Gotówką bez VAT** — an editable number input `C` (default `0`, `≥ 0`, **no upper clamp**),
-  - **Reszta z VAT** = `(D − C)·(1+VAT)` (may render negative when `C > D`),
-  - **Razem do zapłaty** = `C + (D − C)·(1+VAT)` (bold).
-- In `clientView` the block is **visible but the input is read-only**.
-- Netto / Brutto axes behave exactly as before. Grid columns and grid toggle are unchanged.
+- Selecting **Mieszane** appends a six-row cash-settlement waterfall (Całość netto → **Do rozliczenia
+  netto** → Reszta netto → Reszta brutto → Wpłaty → **Razem do zapłaty**, bold), beside a per-plane
+  deposits reconciliation. „Do rozliczenia netto" is **derived** — Σ wpłaty oznaczone netto (unmarked
+  count as netto), not a typed input.
+- No manual cash field, so nothing to gate in `clientView`; the block renders read-only figures.
+- Netto / Brutto axes behave as before. Grid columns and grid toggle are unchanged.
 
-Verify: open the panel on an investment with a positive „Do zapłaty", switch to Mieszana, type a cash
-amount → Reszta and Razem recompute live; `C = 0` → Razem = `D·(1+VAT)`; `C = D` → Razem = `D`;
-`C > D` → Reszta negative. Client preview shows the block with a disabled input.
+Verify: open the panel on an investment with wpłaty, switch to Mieszane → „Do rozliczenia netto"
+equals the sum of the netto-flagged (and unmarked) wpłaty, and the waterfall / „Pozostało" figures
+follow it; with no netto wpłaty, Razem = the Brutto-axis „Do zapłaty".
 
 ## What We're NOT Doing
 
@@ -86,14 +106,17 @@ A pure function deriving the three cash figures from `D`, `C`, and the VAT rate.
 **Intent**: Add `computeCashSettlement` returning the cash/remainder/total triple for the mixed view.
 Pure, no clamping — the caller allows `C > D`.
 
-**Contract**: `computeCashSettlement(doZaplatyNet: number, cashAmount: number, vatRate: number): { cash: number; remainderGross: number; total: number }` where
-`remainderGross = toGross(doZaplatyNet − cashAmount, vatRate)` and `total = cashAmount + remainderGross`.
-`cash` echoes `cashAmount`. No lower/upper clamp (input enforces `≥ 0`; over-typing yields negative
-remainder by design).
+**Contract (as shipped — corrected 2026-07-22):**
+`computeCashSettlement(combinedNet, wplatyNet, cashAmount, vatRate): { cash, combinedNet, remainderNet, remainderGross, invoice, total }`.
+Anchored on **Łącznie netto** (`combinedNet`), not „Do zapłaty" netto: `remainderNet = combinedNet − cashAmount`,
+`remainderGross = toGross(remainderNet, vatRate)`, `invoice = remainderGross − wplatyNet` (wpłaty subtracted
+AFTER grossing — never grossed, so no invented VAT), `total = cashAmount + invoice`. No clamp — `C = 0`
+lands on the Brutto-axis „Do zapłaty" (`combinedGross − wpłaty`); over-typing yields a negative remainder.
+The deposits-reconciliation helpers `bucketDepositsByPlane` + `depositsSplit` live in the same file.
 
 #### 2. Unit test
 
-**File**: `src/__tests__/kosztorys/cash-settlement.test.ts` (new)
+**File**: `src/__tests__/lib/kosztorys/summary-economics.test.ts` (new)
 
 **Intent**: Lock the math and the boundary cases the shape calls out.
 
@@ -105,7 +128,7 @@ remainder by design).
 
 #### Automated Verification:
 
-- Unit test passes: `pnpm exec vitest run src/__tests__/kosztorys/cash-settlement.test.ts`
+- Unit test passes: `pnpm exec vitest run src/__tests__/lib/kosztorys/summary-economics.test.ts`
 - Type checking passes: `pnpm generate:types` not needed; `pnpm exec tsc --noEmit` (or the repo's typecheck script)
 
 #### Manual Verification:

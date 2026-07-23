@@ -23,14 +23,12 @@ netto-only. Source shaping notes: `context/changes/kosztorys-zaliczka-v2/braindu
 `calculate-margin.ts`, or the transactions model. Bilans won't reconcile — accepted, not a bug.
 Mixed view is netto-only.
 
-**4 blockers to resolve with the owner before planning:**
+**4 blockers — all resolved in the shipped implementation:**
 
-1. Does „Mieszana" toggle become the gotówka view (dropping today's both-columns meaning), or is
-   gotówka a separate control?
-2. Skąd C (kwota gotówką) — lokalny input w panelu, domyślnie 0, tylko w trybie mieszanym?
-3. Co to D („całość do zapłaty netto") — Do zapłaty netto czy „Łącznie" netto, i gdzie w tym wpłaty?
-4. Potwierdzić: limit C ≤ D − Mciznę?
-
-Entry: `/10x-shape` (unresolved domain decisions must be shaped before planning).
-</content>
-</invoke>
+1. „Mieszane" is a NEW toggle value alongside „Netto + Brutto" (not a repurpose): in cash mode both
+   netto and brutto columns stay visible and the gotówka waterfall is appended. (The braindump/shape
+   note that said "netto-only, replaces both-columns" was superseded — see plan.md reconciliation.)
+2. C (kwota gotówką) — a local panel input, default 0, only in cash mode. Not persisted.
+3. D — anchored on „Łącznie" netto (`combinedNet`), with wpłaty subtracted AFTER grossing (never
+   grossed), so C = 0 lands on the Brutto-axis „Do zapłaty".
+4. No clamp on C — over-typing past the base drives the remainder negative on purpose.
