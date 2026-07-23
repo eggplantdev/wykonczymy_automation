@@ -6,13 +6,13 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '@/components/ui/data-table/data-table'
 import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
 import {
-  SUMMARY_LABEL_CELL,
   SUMMARY_LABEL_COL,
-  SUMMARY_VALUE_CELL,
   SUMMARY_VALUE_COL,
   SummaryHeaderCell,
+  SummaryLabelCell,
   SummaryTable,
-} from '@/components/kosztorys/summary-grid'
+  SummaryValueCell,
+} from '@/components/ui/summary-grid'
 import { formatNet } from '@/lib/kosztorys/format'
 import { formatPLDate } from '@/lib/utils/format-date'
 import {
@@ -162,22 +162,20 @@ function HeadlineSummary({
       <SummaryHeaderCell variant="label">Podsumowanie podwykonawców</SummaryHeaderCell>
       <SummaryHeaderCell>Kwota</SummaryHeaderCell>
 
-      <span className={cn(SUMMARY_LABEL_CELL, 'font-medium')}>Suma wykonanej pracy</span>
-      <span className={cn(SUMMARY_VALUE_CELL, 'font-medium')}>{formatNet(dueNet)}</span>
+      <SummaryLabelCell className="font-medium">Suma wykonanej pracy</SummaryLabelCell>
+      <SummaryValueCell className="font-medium">{formatNet(dueNet)}</SummaryValueCell>
 
-      <span className={cn(SUMMARY_LABEL_CELL, 'font-medium')}>Zaliczki (wypłaty) razem</span>
-      <span className={cn(SUMMARY_VALUE_CELL, 'text-chart-green font-medium')}>
+      <SummaryLabelCell className="font-medium">Zaliczki (wypłaty) razem</SummaryLabelCell>
+      <SummaryValueCell className="text-chart-green font-medium">
         {formatNet(summary.payoutsTotal)}
-      </span>
+      </SummaryValueCell>
 
       {/* Pozostało do wypłaty = należne − zaliczki. Negative = the crew has been overpaid — an
           anomaly, so it reads red; a normal positive „still owed" stays neutral bold. */}
-      <span className={cn(SUMMARY_LABEL_CELL, 'font-bold')}>Pozostało do wypłaty</span>
-      <span
-        className={cn(SUMMARY_VALUE_CELL, 'font-bold', summary.remaining < 0 && 'text-destructive')}
-      >
+      <SummaryLabelCell className="font-bold">Pozostało do wypłaty</SummaryLabelCell>
+      <SummaryValueCell className={cn('font-bold', summary.remaining < 0 && 'text-destructive')}>
         {formatNet(summary.remaining)}
-      </span>
+      </SummaryValueCell>
     </SummaryTable>
   )
 }
@@ -196,7 +194,7 @@ function WorkerTotals({
 
       {rows.map((row) => (
         <div key={workerKey(row.workerId)} className="contents">
-          <span className={cn(SUMMARY_LABEL_CELL, 'font-medium')}>
+          <SummaryLabelCell className="font-medium">
             {row.workerId === null ? (
               row.name
             ) : (
@@ -207,10 +205,10 @@ function WorkerTotals({
                 {row.name}
               </Link>
             )}
-          </span>
-          <span className={cn(SUMMARY_VALUE_CELL, 'text-chart-green font-medium')}>
+          </SummaryLabelCell>
+          <SummaryValueCell className="text-chart-green font-medium">
             {formatNet(row.total)}
-          </span>
+          </SummaryValueCell>
         </div>
       ))}
     </SummaryTable>

@@ -8,10 +8,11 @@ import {
   type MoneyPairT,
 } from '@/lib/kosztorys/summary-economics'
 import { formatNet } from '@/lib/kosztorys/format'
-import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
+import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
-import { summaryMoneyCols, type MutedAxisT } from '@/components/kosztorys/summary-grid'
-import { SummaryRow, SummaryTable } from '@/components/kosztorys/summary-grid'
+import { SummaryTable } from '@/components/ui/summary-grid'
+import { SummaryRow } from '@/components/kosztorys/summary-row'
+import { summaryMoneyCols, type MutedAxisT } from '@/components/kosztorys/summary-axis'
 import { SummaryBreakdownTable } from '@/components/kosztorys/summary-breakdown-table'
 import { SummaryTotalsTable } from '@/components/kosztorys/summary-totals-table'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
@@ -96,7 +97,6 @@ export function KosztorysSummary({
     vatRate,
     deriveMaterialsNet,
   )
-  const { net: showNet, gross: showGross } = axisShows(moneyAxis)
   // The scream compares client-view nets; a subcontractor view reprices the displayed figure, so the
   // scream would sit next to a number it isn't comparing. Show it only in the client view.
   const reconVisible = clientView ? false : priceView === 'client'
@@ -116,12 +116,10 @@ export function KosztorysSummary({
 
   return (
     <div className="text-foreground flex flex-col items-start gap-x-12 gap-y-8 text-sm">
-      <div className="flex w-fit flex-col gap-4">
+      <div className="flex w-fit flex-col gap-8">
         <SummaryBreakdownTable
           cols={moneyCols}
           moneyAxis={moneyAxis}
-          showNet={showNet}
-          showGross={showGross}
           sumaPrac={sumaPrac}
           sumaPracMismatch={
             reconVisible && reconciliation.laborCosts.mismatch

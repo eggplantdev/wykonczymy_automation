@@ -8,13 +8,10 @@ import {
   type SummaryLineT,
 } from '@/lib/kosztorys/summary-economics'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
-import {
-  SUMMARY_MUTED,
-  SummaryHeaderCell,
-  SummaryRow,
-  SummaryTable,
-  type MutedAxisT,
-} from '@/components/kosztorys/summary-grid'
+import { SummaryHeaderCell, SummaryTable } from '@/components/ui/summary-grid'
+import { SummaryMoneyHeaders } from '@/components/kosztorys/summary-money-headers'
+import { SummaryRow } from '@/components/kosztorys/summary-row'
+import { type MutedAxisT } from '@/components/kosztorys/summary-axis'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 
 // Materiały are recorded brutto; VAT is subtracted to reach netto — the inverse of robocizna, where
@@ -28,8 +25,6 @@ const MATERIALY_HINT =
 export function SummaryBreakdownTable({
   cols,
   moneyAxis,
-  showNet,
-  showGross,
   sumaPrac,
   sumaPracMismatch,
   materialyBreakdown,
@@ -43,8 +38,6 @@ export function SummaryBreakdownTable({
 }: {
   cols: string
   moneyAxis: MoneyAxisT
-  showNet: boolean
-  showGross: boolean
   sumaPrac: SummaryLineT
   sumaPracMismatch?: string
   materialyBreakdown: MaterialyBreakdownRowT[]
@@ -60,18 +53,9 @@ export function SummaryBreakdownTable({
   return (
     <SummaryTable cols={cols}>
       <SummaryHeaderCell variant="label">Podsumowanie</SummaryHeaderCell>
-      {showNet && (
-        <SummaryHeaderCell className={mutedAxis === 'net' ? SUMMARY_MUTED : undefined}>
-          Netto
-        </SummaryHeaderCell>
-      )}
-      {showGross && (
-        <SummaryHeaderCell className={mutedAxis === 'gross' ? SUMMARY_MUTED : undefined}>
-          Brutto
-        </SummaryHeaderCell>
-      )}
+      <SummaryMoneyHeaders axis={moneyAxis} mutedAxis={mutedAxis} />
       <SummaryRow
-        label="Suma prac wykonanych"
+        label="Robocizna"
         line={sumaPrac}
         axis={moneyAxis}
         mutedAxis={mutedAxis}

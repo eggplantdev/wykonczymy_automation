@@ -1,10 +1,7 @@
 import { computeCashSettlement } from '@/lib/kosztorys/summary-economics'
-import {
-  SummaryHeaderCell,
-  SummaryRow,
-  SummaryTable,
-  summaryMoneyCols,
-} from '@/components/kosztorys/summary-grid'
+import { SummaryHeaderCell, SummaryTable } from '@/components/ui/summary-grid'
+import { SummaryRow } from '@/components/kosztorys/summary-row'
+import { summaryMoneyCols } from '@/components/kosztorys/summary-axis'
 
 type PropsT = {
   // Łącznie netto (robocizna + materiały) — the VATable base the cash split starts from.

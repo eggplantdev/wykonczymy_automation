@@ -1,6 +1,7 @@
 'use client'
 
 import * as Collapsible from '@radix-ui/react-collapsible'
+import { ChevronDown } from 'lucide-react'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -13,10 +14,12 @@ import { KosztorysStageTotals } from '@/components/kosztorys/kosztorys-stage-tot
 import { KosztorysSummary } from '@/components/kosztorys/kosztorys-summary'
 import { SubcontractorSummary } from '@/components/kosztorys/subcontractor-summary'
 import { CollapsiblePanelTrigger } from '@/components/ui/collapsible-panel-trigger'
-import { SUMMARY_PANEL_SCROLL, type MutedAxisT } from '@/components/kosztorys/summary-grid'
+import { SummaryScrollRegion } from '@/components/ui/summary-grid'
+import { type MutedAxisT } from '@/components/kosztorys/summary-axis'
 import { useTotalsPanelOpen } from '@/components/kosztorys/use-totals-panel-open'
 import { useSummaryAxis, type PanelAxisT } from '@/components/kosztorys/use-summary-axis'
 import { useMaterialsNetPricing } from '@/components/kosztorys/use-materials-net-pricing'
+import { cn } from '@/lib/utils/cn'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import type { KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
@@ -138,22 +141,43 @@ export function KosztorysTotalsPanel({
       // (forceMount) so it can't blink out mid-transition; visibility flips only once closed.
       className="border-border bg-background text-foreground shadow-panel absolute inset-x-0 bottom-0 z-20 flex h-15 flex-col overflow-hidden border-t transition-[height] duration-200 ease-out data-[state=open]:h-full"
     >
+      {/* Open, the toolbar's Podsumowanie button is the close affordance — the trigger row only
+          renders collapsed, as the visible handle for the panel. */}
       <CollapsiblePanelTrigger
         label={isClientPlane ? 'Podsumowanie' : 'Podsumowanie podwykonawców'}
+        className="data-[state=open]:hidden"
       />
+      {/* Pinned to the panel, not the scroll region, so it stays put while content scrolls.
+          top-8 + h-8 mirror the axis toggle's offset and height, centering the two on one line. */}
+      {open && (
+        <button
+          onClick={() => setOpen(false)}
+          aria-label="Zwiń podsumowanie"
+          className="absolute top-8 right-4 z-10 flex h-8 cursor-pointer items-center"
+        >
+          <ChevronDown className="text-muted-foreground hover:text-foreground size-8" />
+        </button>
+      )}
       <Collapsible.Content
         forceMount
         className="flex min-h-0 flex-1 flex-col overflow-hidden transition-[visibility] duration-200 data-[state=closed]:invisible"
       >
         {/* One scroll container for both planes — the content clears the toolbar instead of hiding
             under it, identically whichever plane is active; the trigger above stays pinned. */}
-        <div className={SUMMARY_PANEL_SCROLL}>
+        <SummaryScrollRegion>
           {isClientPlane ? (
-            <div className="flex w-full flex-col">
-              <div className="px-4 pt-3">
+            // One flex column owns every vertical gap in the client Podsumowanie — toggle, checkbox,
+            // and each table row are siblings on a single `gap-y-8`, so the spacing between controls
+            // and between tables is uniform. Row 1 is the summary block + its side tables; row 2 is
+            // the wpłaty list + „Robocizna per etap", split so a wide deposits row can't stretch the
+            // summary column.
+            <div className="flex w-full flex-col gap-y-8 px-4 pt-4 pb-10">
+              {/* Toggle + its checkbox are one control group — tight `gap-2` between them, while the
+                  group as a whole keeps the panel's `gap-y-8` distance from the tables below. */}
+              <div className="flex w-fit flex-col gap-2">
                 <SimpleTooltip content="Mieszane oznacza, że inwestycja jest rozliczana częściowo netto, częściowo brutto.">
                   {/* ToggleGroup doesn't spread props, so the trigger needs a real element. */}
-                  <span className="inline-flex">
+                  <span className="inline-flex w-fit">
                     <ToggleGroup
                       options={SUMMARY_AXIS_OPTIONS}
                       value={moneyAxis}
@@ -163,7 +187,12 @@ export function KosztorysTotalsPanel({
                   </span>
                 </SimpleTooltip>
                 {nettoShown && materialsGross !== 0 && (
-                  <label className="text-muted-foreground mt-2 flex w-fit cursor-pointer items-center gap-2 text-xs">
+                  <label
+                    className={cn(
+                      'mt-2 flex w-fit cursor-pointer items-center gap-2 text-xs',
+                      materialsAsNet ? 'text-foreground' : 'text-muted-foreground',
+                    )}
+                  >
                     <Checkbox
                       checked={materialsAsNet}
                       onCheckedChange={(value) => setMaterialsAsNet(value === true)}
@@ -172,53 +201,39 @@ export function KosztorysTotalsPanel({
                   </label>
                 )}
               </div>
-              {/* The container owns the tables' shared spacing — children carry no top offset of
-                  their own, so every table's header lands on the same line. Row 1 is the summary
-                  block + its side tables; row 2 is the wpłaty list + its reconciliation, so a wide
-                  deposits row can't stretch the summary column and push the side tables away. */}
-              <div className="flex w-full flex-col gap-y-8 px-4 pt-3 pb-10">
-                <div className="flex w-full flex-wrap items-start gap-x-12 gap-y-8">
-                  <KosztorysSummary
-                    investmentId={investmentId}
-                    laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
-                    doZaplaty={doZaplaty}
-                    materialsGross={materialsGross}
-                    materialyBreakdown={materialyBreakdown}
-                    sectionSubtotals={sectionSubtotals}
-                    wplatyNet={wplatyNet}
-                    rabatAmount={rabatAmount}
-                    reconciliation={reconciliation}
-                    priceView={priceView}
-                    vatRate={vatRate}
-                    moneyAxis={displayAxis}
-                    mutedAxis={mutedAxis}
-                    deriveMaterialsNet={materialsAsNet}
-                    clientView={clientView}
-                  />
-                  {cashMode && (
-                    <div className="flex flex-col gap-1 self-start">
-                      <CashSettlement
-                        combinedNet={doZaplaty.net + wplatyNet}
-                        wplatyNet={wplatyNet}
-                        vatRate={vatRate}
-                        cashAmount={cashAmount}
-                      />
-                      <p className="text-muted-foreground w-fit max-w-3xs text-xs text-balance">
-                        Wpłaty bez oznaczenia netto/brutto są traktowane jako netto.
-                      </p>
-                    </div>
-                  )}
-                  {/* „Suma transzy" (per-etap, Netto/Brutto) is a client/VAT figure — the subcontractor
-                    plane has no VAT axis (EX-558), so it renders only here. Sits beside the Podsumowanie. */}
-                  <KosztorysStageTotals
-                    stages={stages}
-                    stageTotals={stageTotals}
-                    wykonaneNet={totalNet}
-                    vatRate={vatRate}
-                    moneyAxis={displayAxis}
-                    mutedAxis={mutedAxis}
-                  />
-                </div>
+              <div className="flex w-full flex-wrap items-start gap-x-12 gap-y-8">
+                <KosztorysSummary
+                  investmentId={investmentId}
+                  laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
+                  doZaplaty={doZaplaty}
+                  materialsGross={materialsGross}
+                  materialyBreakdown={materialyBreakdown}
+                  sectionSubtotals={sectionSubtotals}
+                  wplatyNet={wplatyNet}
+                  rabatAmount={rabatAmount}
+                  reconciliation={reconciliation}
+                  priceView={priceView}
+                  vatRate={vatRate}
+                  moneyAxis={displayAxis}
+                  mutedAxis={mutedAxis}
+                  deriveMaterialsNet={materialsAsNet}
+                  clientView={clientView}
+                />
+                {cashMode && (
+                  <div className="flex flex-col gap-1 self-start">
+                    <CashSettlement
+                      combinedNet={doZaplaty.net + wplatyNet}
+                      wplatyNet={wplatyNet}
+                      vatRate={vatRate}
+                      cashAmount={cashAmount}
+                    />
+                    <p className="text-muted-foreground w-fit max-w-3xs text-xs text-balance">
+                      Wpłaty bez oznaczenia netto/brutto są traktowane jako netto.
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="flex w-full flex-wrap items-start gap-x-12 gap-y-8">
                 {depositTransactions.length > 0 && (
                   <DepositsTable
                     investmentId={investmentId}
@@ -227,6 +242,16 @@ export function KosztorysTotalsPanel({
                     showPlane={cashMode}
                   />
                 )}
+                {/* „Suma transzy" (per-etap, Netto/Brutto) is a client/VAT figure — the subcontractor
+                      plane has no VAT axis (EX-558), so it renders only here, beside the wpłaty list. */}
+                <KosztorysStageTotals
+                  stages={stages}
+                  stageTotals={stageTotals}
+                  wykonaneNet={totalNet}
+                  vatRate={vatRate}
+                  moneyAxis={displayAxis}
+                  mutedAxis={mutedAxis}
+                />
               </div>
             </div>
           ) : (
@@ -237,7 +262,7 @@ export function KosztorysTotalsPanel({
               payoutTransactions={payoutTransactions}
             />
           )}
-        </div>
+        </SummaryScrollRegion>
       </Collapsible.Content>
     </Collapsible.Root>
   )

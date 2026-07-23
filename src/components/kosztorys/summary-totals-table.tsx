@@ -4,7 +4,9 @@ import Link from 'next/link'
 import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
 import type { MoneyPairT } from '@/lib/kosztorys/summary-economics'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
-import { SummaryRow, SummaryTable, type MutedAxisT } from '@/components/kosztorys/summary-grid'
+import { SummaryTable } from '@/components/ui/summary-grid'
+import { SummaryRow } from '@/components/kosztorys/summary-row'
+import { type MutedAxisT } from '@/components/kosztorys/summary-axis'
 
 // The lower grid: Wpłaty deducted off Łącznie down to the bold „Do zapłaty". The informational
 // „Udzielono rabatu" line lives in its own segment below (KosztorysSummary) so it can't read as a

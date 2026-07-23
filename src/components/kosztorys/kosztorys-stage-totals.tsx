@@ -1,20 +1,12 @@
 'use client'
 
 import { toGross } from '@/lib/kosztorys/calc'
-import { formatNet } from '@/lib/kosztorys/format'
-import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
-import {
-  SUMMARY_LABEL_CELL,
-  SUMMARY_LABEL_COL,
-  SUMMARY_MUTED,
-  SUMMARY_VALUE_CELL,
-  SUMMARY_VALUE_COL,
-  SummaryHeaderCell,
-  SummaryTable,
-  type MutedAxisT,
-} from '@/components/kosztorys/summary-grid'
-import { Fragment, type ReactNode } from 'react'
-import { cn } from '@/lib/utils/cn'
+import { type MoneyAxisT } from '@/lib/kosztorys/money-axis'
+import type { MoneyPairT } from '@/lib/kosztorys/summary-economics'
+import { SummaryHeaderCell, SummaryTable } from '@/components/ui/summary-grid'
+import { SummaryMoneyHeaders } from '@/components/kosztorys/summary-money-headers'
+import { SummaryRow } from '@/components/kosztorys/summary-row'
+import { summaryMoneyCols, type MutedAxisT } from '@/components/kosztorys/summary-axis'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 
 type PropsT = {
@@ -25,12 +17,13 @@ type PropsT = {
   wykonaneNet: number
   vatRate: number
   moneyAxis: MoneyAxisT
-  // Which money row (Netto or Brutto) is greyed while both show; undefined in Mieszane.
+  // Which money column (Netto or Brutto) is greyed while both show; undefined in Mieszane.
   mutedAxis?: MutedAxisT
 }
 
-// Suma transzy per etap + the „R netto / R brutto — suma prac wykonanych" readout (sheet r396/r397).
-// Read-only: the executed value each etap delivered, at the active price view, netto and brutto.
+// Suma transzy per etap + the „R netto / R brutto — suma prac wykonanych" Razem readout (sheet
+// r396/r397). Vertical like the Podsumowanie block above it — etaps are rows, Netto/Brutto are the
+// shared money columns — so the whole panel reads on one rhythm.
 export function KosztorysStageTotals({
   stages,
   stageTotals,
@@ -40,57 +33,29 @@ export function KosztorysStageTotals({
   mutedAxis,
 }: PropsT) {
   if (stages.length === 0) return null
-  const { net: showNet, gross: showGross } = axisShows(moneyAxis)
-  const money = (net: number, gross: boolean) => formatNet(gross ? toGross(net, vatRate) : net)
-
-  // Same track system as the Podsumowanie block — a shared first (label) track, then equal-width
-  // value tracks (one per etap plus the row total) — so both grids run on one 13rem + 7rem·n rhythm
-  // and every column lines up down the panel.
-  const valueTrackCount = stages.length + 1
-  const gridTemplateColumns = `${SUMMARY_LABEL_COL} repeat(${valueTrackCount}, ${SUMMARY_VALUE_COL})`
-
-  // Netto / Brutto share one shape — a label, a per-etap cell, and the bold row total. `muted`
-  // greys the whole row when it's the inactive axis while both are on show.
-  const row = (
-    label: ReactNode,
-    cell: (st: KosztorysStageT) => string,
-    total: string,
-    muted: boolean,
-  ) => (
-    <Fragment>
-      <span className={cn(SUMMARY_LABEL_CELL, muted && SUMMARY_MUTED)}>{label}</span>
-      {stages.map((st) => (
-        <span key={st.id} className={cn(SUMMARY_VALUE_CELL, muted && SUMMARY_MUTED)}>
-          {cell(st)}
-        </span>
-      ))}
-      <span className={cn(SUMMARY_VALUE_CELL, 'font-bold', muted && SUMMARY_MUTED)}>{total}</span>
-    </Fragment>
-  )
+  const pair = (net: number): MoneyPairT => ({ net, gross: toGross(net, vatRate) })
+  const cols = summaryMoneyCols(moneyAxis)
 
   return (
-    <div className="overflow-x-auto text-sm">
-      <SummaryTable cols={gridTemplateColumns} className="w-max">
-        <SummaryHeaderCell variant="label">Robocizna per etap</SummaryHeaderCell>
-        {stages.map((st) => (
-          <SummaryHeaderCell key={st.id}>{st.label ?? `Etap ${st.ordinal}`}</SummaryHeaderCell>
-        ))}
-        <SummaryHeaderCell>Razem</SummaryHeaderCell>
-        {showNet &&
-          row(
-            'Netto',
-            (st) => money(stageTotals.get(st.id) ?? 0, false),
-            money(wykonaneNet, false),
-            mutedAxis === 'net',
-          )}
-        {showGross &&
-          row(
-            'Brutto',
-            (st) => money(stageTotals.get(st.id) ?? 0, true),
-            money(wykonaneNet, true),
-            mutedAxis === 'gross',
-          )}
-      </SummaryTable>
-    </div>
+    <SummaryTable cols={cols} className="w-fit">
+      <SummaryHeaderCell variant="label">Robocizna per etap</SummaryHeaderCell>
+      <SummaryMoneyHeaders axis={moneyAxis} mutedAxis={mutedAxis} />
+      {stages.map((st) => (
+        <SummaryRow
+          key={st.id}
+          label={st.label ?? `Etap ${st.ordinal}`}
+          line={pair(stageTotals.get(st.id) ?? 0)}
+          axis={moneyAxis}
+          mutedAxis={mutedAxis}
+        />
+      ))}
+      <SummaryRow
+        label="Razem"
+        line={pair(wykonaneNet)}
+        axis={moneyAxis}
+        mutedAxis={mutedAxis}
+        emphasize
+      />
+    </SummaryTable>
   )
 }
