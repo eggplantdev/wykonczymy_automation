@@ -77,34 +77,40 @@ export function DepositsTable({
     total: rows.reduce((sum, row) => (row.vatPlane === plane ? sum + row.amount : sum), 0),
   }))
 
+  // Two stacked grids sharing one `cols`, gap-4 between them — the Razem totals are their own
+  // segment, matching how the Podsumowanie splits its breakdown from its totals block.
   const cols = `${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL} ${SUMMARY_LABEL_COL}`
   return (
-    <SummaryTable cols={cols} className="w-fit">
-      <SummaryHeaderCell variant="label">Wpłaty</SummaryHeaderCell>
-      <SummaryHeaderCell>Kwota</SummaryHeaderCell>
-      <SummaryHeaderCell variant="label">Rodzaj</SummaryHeaderCell>
+    <div className="flex w-fit flex-col gap-4">
+      <SummaryTable cols={cols} className="w-fit">
+        <SummaryHeaderCell variant="label">Wpłaty</SummaryHeaderCell>
+        <SummaryHeaderCell>Kwota</SummaryHeaderCell>
+        <SummaryHeaderCell variant="label">Rodzaj</SummaryHeaderCell>
 
-      {rows.map((row) => (
-        <Fragment key={row.id}>
-          {dateCell(row)}
-          <span className={cn(SUMMARY_VALUE_CELL, 'text-chart-green')}>
-            {formatNet(row.amount)}
-          </span>
-          <span className={SUMMARY_LABEL_CELL}>{planeLabel(row.vatPlane)}</span>
-        </Fragment>
-      ))}
+        {rows.map((row) => (
+          <Fragment key={row.id}>
+            {dateCell(row)}
+            <span className={cn(SUMMARY_VALUE_CELL, 'text-chart-green')}>
+              {formatNet(row.amount)}
+            </span>
+            <span className={SUMMARY_LABEL_CELL}>{planeLabel(row.vatPlane)}</span>
+          </Fragment>
+        ))}
+      </SummaryTable>
 
-      {perPlane.map((bucket) => (
-        <Fragment key={bucket.plane ?? 'null'}>
-          <span className={cn(SUMMARY_LABEL_CELL, 'font-bold')}>
-            Razem {planeLabel(bucket.plane).toLowerCase()}
-          </span>
-          <span className={cn(SUMMARY_VALUE_CELL, 'text-chart-green font-bold')}>
-            {formatNet(bucket.total)}
-          </span>
-          <span className={SUMMARY_LABEL_CELL} />
-        </Fragment>
-      ))}
-    </SummaryTable>
+      <SummaryTable cols={cols} className="w-fit">
+        {perPlane.map((bucket) => (
+          <Fragment key={bucket.plane ?? 'null'}>
+            <span className={cn(SUMMARY_LABEL_CELL, 'font-bold')}>
+              Razem {planeLabel(bucket.plane).toLowerCase()}
+            </span>
+            <span className={cn(SUMMARY_VALUE_CELL, 'text-chart-green font-bold')}>
+              {formatNet(bucket.total)}
+            </span>
+            <span className={SUMMARY_LABEL_CELL} />
+          </Fragment>
+        ))}
+      </SummaryTable>
+    </div>
   )
 }
