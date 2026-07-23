@@ -308,11 +308,15 @@ pracy` (`SUM(W:AF)`) nie dolicza takiego wiersza. Arkusz **nie zna pojęcia „d
     bez doliczania VAT**. „Wpłaty to pieniądze już wpłacone przez inwestora — nie ma czego
     gruntować"; korekta i wydatki tak samo.
     - **WYJĄTEK — zaliczka (deposit) (właściciel, 2026-07-21, EX-536): obie osie, netto I brutto.**
-      Odpowiedź na „zaliczka netto czy brutto" = **obie**. Dziś przy dodawaniu transakcji typu
-      deposit **nie ma** wyboru netto/brutto — trzeba to dodać. To rewiduje regułę „wpłaty face
-      value" **tylko dla zaliczki/deposit**. **Mechanika (jak dokładnie zaliczka niesie obie
-      osie — przechowywane obie, wybór per wpłata gotówka/faktura, czy jedna wyliczana z drugiej)
-      jest do rozstrzygnięcia w dedykowanym change (EX-536, full change.md) — nie zgadywać tutaj.**
+      Odpowiedź na „zaliczka netto czy brutto" = **obie**. To rewiduje regułę „wpłaty face value"
+      **tylko dla zaliczki/deposit**. **Mechanika — ROZSTRZYGNIĘTA (EX-536):** każda wpłata niesie
+      przechowywany, trójstanowy znacznik `vatPlane` (`NET` / `GROSS` / `null`), wybierany per wpłata
+      przy tworzeniu (create-only, immutable), a nie wyliczany jedna z drugiej. Domyślnie `null`
+      („nie określono") — w rozliczeniu mieszanym traktowane jako **netto** (właściciel, 2026-07-23,
+      odwrócone z wcześniejszego null→brutto): tylko `GROSS` idzie na część fakturowaną, `NET` i `null`
+      spłacają gotówkę. Kwota gotówki nie jest wpisywana — wynika z sumy wpłat netto. Kod:
+      `src/collections/transfers.ts` (pole `vatPlane`) + `src/lib/kosztorys/summary-economics.ts`
+      (`bucketDepositsByPlane`) + migracja `20260721_1`.
   - **Rabat też jest na płaszczyźnie prac — gruntuje się** (właściciel, 2026-07-19). Rabat to
     **obniżka prac**, a nie ruch gotówki ani koszt materiału, więc dzieli oś netto/brutto z
     pracami: `rabat_brutto = rabat_netto × (1 + vat)`. Dowód z arkusza: `S = N × cena − rabat`,

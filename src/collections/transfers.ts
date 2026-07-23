@@ -118,9 +118,10 @@ export const Transfers: CollectionConfig = {
       options: [...PAYMENT_METHODS],
     },
     {
-      // EX-536 netto/brutto wpłata bucket. Three-state: NET / GROSS / null (legacy).
-      // INVESTOR_DEPOSIT only, create-only (immutable once set). Not `required` here —
-      // legacy rows stay null; the create-schema rule enforces it for new deposits.
+      // EX-536 netto/brutto wpłata bucket. Three-state: NET / GROSS / null. INVESTOR_DEPOSIT only,
+      // create-only (immutable once set). Not `required`, and the create schema keeps it `.optional()`
+      // — null is the deliberate default („nie określono"), read as netto in the reconciliation, not
+      // an enforced choice.
       name: 'vatPlane',
       type: 'select',
       label: { en: 'Deposit VAT plane', pl: 'Wpłata netto czy brutto' },
