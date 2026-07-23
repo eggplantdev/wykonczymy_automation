@@ -26,6 +26,13 @@ export const SUMMARY_VALUE_COL = '7rem'
 export const SUMMARY_LABEL_CELL = 'bg-background px-3 py-1'
 export const SUMMARY_VALUE_CELL = 'bg-background px-3 py-1 text-right tabular-nums'
 
+// The Netto/Brutto panel now shows BOTH columns in every mode; the inactive one is greyed with this.
+// `opacity` (not a muted text colour) so it also dims coloured amounts — discount green, danger red.
+export const SUMMARY_MUTED = 'opacity-40'
+
+// Which money side is inactive (greyed) while both columns show. `undefined` = neither (Mieszane).
+export type MutedAxisT = 'net' | 'gross' | undefined
+
 // For a cell whose figure doesn't exist on this row (a per-etap value has no „Bez etapu"). Muted so
 // it stays out of the numbers. Only where another cell in the same row carries a real amount.
 export const NOT_APPLICABLE = 'Nie dotyczy'
@@ -104,6 +111,8 @@ export type SummaryRowOptsT = {
   // — the EX-535 reconciliation check against the transaction ledger. The client footer never passes
   // it, which is what lets both surfaces share this row instead of keeping two copies.
   mismatch?: string
+  // Grey the inactive money column (Netto or Brutto) while both are on show.
+  mutedAxis?: MutedAxisT
 }
 
 type SummaryRowPropsT = SummaryRowOptsT & {
@@ -159,11 +168,17 @@ export function SummaryRow({ label, line, axis, ...opts }: SummaryRowPropsT) {
           )}
         </span>
       </span>
-      {showNet && <span className={money}>{formatNet(line.net)}</span>}
+      {showNet && (
+        <span className={cn(money, opts.mutedAxis === 'net' && SUMMARY_MUTED)}>
+          {formatNet(line.net)}
+        </span>
+      )}
       {showGross && (
         // A no-VAT row repeats its netto figure here rather than blanking: the amount IS the
         // brutto (VAT doesn't apply), so restating it reads clearer than an absence.
-        <span className={money}>{formatNet(opts.noBrutto ? line.net : line.gross)}</span>
+        <span className={cn(money, opts.mutedAxis === 'gross' && SUMMARY_MUTED)}>
+          {formatNet(opts.noBrutto ? line.net : line.gross)}
+        </span>
       )}
     </Fragment>
   )

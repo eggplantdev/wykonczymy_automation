@@ -10,7 +10,7 @@ import {
 import { formatNet } from '@/lib/kosztorys/format'
 import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
-import { summaryMoneyCols } from '@/components/kosztorys/summary-grid'
+import { summaryMoneyCols, type MutedAxisT } from '@/components/kosztorys/summary-grid'
 import { SummaryRow, SummaryTable } from '@/components/kosztorys/summary-grid'
 import { SummaryBreakdownTable } from '@/components/kosztorys/summary-breakdown-table'
 import { SummaryTotalsTable } from '@/components/kosztorys/summary-totals-table'
@@ -56,6 +56,8 @@ type PropsT = {
   priceView: PriceViewT
   vatRate: number
   moneyAxis: MoneyAxisT
+  // Which money column is greyed while both show; undefined in Mieszane.
+  mutedAxis?: MutedAxisT
   // Price materiały netto as brutto − VAT (true, the default) or keep them at raw brutto (false).
   deriveMaterialsNet?: boolean
   // Read-only client render: the mismatch scream is an owner-internal signal (a client's view is
@@ -80,6 +82,7 @@ export function KosztorysSummary({
   priceView,
   vatRate,
   moneyAxis,
+  mutedAxis,
   deriveMaterialsNet = true,
   clientView = false,
 }: PropsT) {
@@ -129,6 +132,7 @@ export function KosztorysSummary({
           combinedNet={combined.net}
           combined={combined}
           vatRate={vatRate}
+          mutedAxis={mutedAxis}
           deriveMaterialsNet={deriveMaterialsNet}
           investmentId={investmentId}
           clientView={clientView}
@@ -136,6 +140,7 @@ export function KosztorysSummary({
         <SummaryTotalsTable
           cols={moneyCols}
           moneyAxis={moneyAxis}
+          mutedAxis={mutedAxis}
           wplaty={wplaty}
           doZaplaty={doZaplaty}
           investmentId={investmentId}
@@ -149,6 +154,7 @@ export function KosztorysSummary({
               label="Udzielono rabatu na łączną kwotę"
               line={rabat}
               axis={moneyAxis}
+              mutedAxis={mutedAxis}
               mismatch={
                 reconVisible && reconciliation.rabat.mismatch
                   ? mismatchTooltip(reconciliation.rabat, 'Transakcje rabatu')

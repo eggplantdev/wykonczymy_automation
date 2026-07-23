@@ -13,7 +13,7 @@ import { KosztorysStageTotals } from '@/components/kosztorys/kosztorys-stage-tot
 import { KosztorysSummary } from '@/components/kosztorys/kosztorys-summary'
 import { SubcontractorSummary } from '@/components/kosztorys/subcontractor-summary'
 import { CollapsiblePanelTrigger } from '@/components/ui/collapsible-panel-trigger'
-import { SUMMARY_PANEL_SCROLL } from '@/components/kosztorys/summary-grid'
+import { SUMMARY_PANEL_SCROLL, type MutedAxisT } from '@/components/kosztorys/summary-grid'
 import { useTotalsPanelOpen } from '@/components/kosztorys/use-totals-panel-open'
 import { useSummaryAxis, type PanelAxisT } from '@/components/kosztorys/use-summary-axis'
 import { useMaterialsNetPricing } from '@/components/kosztorys/use-materials-net-pricing'
@@ -30,7 +30,6 @@ import type {
 const SUMMARY_AXIS_OPTIONS: OptionT<PanelAxisT>[] = [
   { value: 'net', label: 'Netto' },
   { value: 'gross', label: 'Brutto' },
-  { value: 'both', label: 'Netto + Brutto' },
   { value: 'cash', label: 'Mieszane' },
 ]
 
@@ -104,7 +103,11 @@ export function KosztorysTotalsPanel({
   // anchors on brutto (matching the brutto „Do zapłaty" column at C = 0), while netto stays visible
   // beside it. Every other value is a real MoneyAxisT the children read directly.
   const cashMode = moneyAxis === 'cash'
-  const displayAxis: MoneyAxisT = moneyAxis === 'cash' ? 'both' : moneyAxis
+  // Both money columns now render in every mode; the toggle only picks which one is active — the other
+  // shows greyed. (Mieszane keeps both un-greyed, plus the gotówka block.)
+  const displayAxis: MoneyAxisT = 'both'
+  const mutedAxis: MutedAxisT =
+    moneyAxis === 'net' ? 'gross' : moneyAxis === 'gross' ? 'net' : undefined
   // Materiały netto pricing: when on, netto = brutto − VAT (the historical default); when off,
   // materiały stay at their raw brutto amount on both axes. Only moves netto figures, so the toggle
   // is offered only where netto is on show and there are materiały to reprice.
@@ -188,6 +191,7 @@ export function KosztorysTotalsPanel({
                     priceView={priceView}
                     vatRate={vatRate}
                     moneyAxis={displayAxis}
+                    mutedAxis={mutedAxis}
                     deriveMaterialsNet={materialsAsNet}
                     clientView={clientView}
                   />
@@ -212,6 +216,7 @@ export function KosztorysTotalsPanel({
                     wykonaneNet={totalNet}
                     vatRate={vatRate}
                     moneyAxis={displayAxis}
+                    mutedAxis={mutedAxis}
                   />
                 </div>
                 {depositTransactions.length > 0 && (

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
 import type { MoneyPairT } from '@/lib/kosztorys/summary-economics'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
-import { SummaryRow, SummaryTable } from '@/components/kosztorys/summary-grid'
+import { SummaryRow, SummaryTable, type MutedAxisT } from '@/components/kosztorys/summary-grid'
 
 // The lower grid: Wpłaty deducted off Łącznie down to the bold „Do zapłaty". The informational
 // „Udzielono rabatu" line lives in its own segment below (KosztorysSummary) so it can't read as a
@@ -12,6 +12,7 @@ import { SummaryRow, SummaryTable } from '@/components/kosztorys/summary-grid'
 export function SummaryTotalsTable({
   cols,
   moneyAxis,
+  mutedAxis,
   wplaty,
   doZaplaty,
   investmentId,
@@ -19,6 +20,7 @@ export function SummaryTotalsTable({
 }: {
   cols: string
   moneyAxis: MoneyAxisT
+  mutedAxis?: MutedAxisT
   wplaty: MoneyPairT
   doZaplaty: MoneyPairT
   investmentId: number
@@ -41,6 +43,7 @@ export function SummaryTotalsTable({
         }
         line={wplaty}
         axis={moneyAxis}
+        mutedAxis={mutedAxis}
         discount
         noBrutto
       />
@@ -48,6 +51,7 @@ export function SummaryTotalsTable({
         label="Do zapłaty"
         line={doZaplaty}
         axis={moneyAxis}
+        mutedAxis={mutedAxis}
         bold
         danger={doZaplaty.net > 0}
       />

@@ -6,10 +6,12 @@ import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import {
   SUMMARY_LABEL_CELL,
   SUMMARY_LABEL_COL,
+  SUMMARY_MUTED,
   SUMMARY_VALUE_CELL,
   SUMMARY_VALUE_COL,
   SummaryHeaderCell,
   SummaryTable,
+  type MutedAxisT,
 } from '@/components/kosztorys/summary-grid'
 import { Fragment, type ReactNode } from 'react'
 import { cn } from '@/lib/utils/cn'
@@ -23,6 +25,8 @@ type PropsT = {
   wykonaneNet: number
   vatRate: number
   moneyAxis: MoneyAxisT
+  // Which money row (Netto or Brutto) is greyed while both show; undefined in Mieszane.
+  mutedAxis?: MutedAxisT
 }
 
 // Suma transzy per etap + the „R netto / R brutto — suma prac wykonanych" readout (sheet r396/r397).
@@ -33,6 +37,7 @@ export function KosztorysStageTotals({
   wykonaneNet,
   vatRate,
   moneyAxis,
+  mutedAxis,
 }: PropsT) {
   if (stages.length === 0) return null
   const { net: showNet, gross: showGross } = axisShows(moneyAxis)
@@ -44,16 +49,22 @@ export function KosztorysStageTotals({
   const valueTrackCount = stages.length + 1
   const gridTemplateColumns = `${SUMMARY_LABEL_COL} repeat(${valueTrackCount}, ${SUMMARY_VALUE_COL})`
 
-  // Netto / Brutto share one shape — a label, a per-etap cell, and the bold row total.
-  const row = (label: ReactNode, cell: (st: KosztorysStageT) => string, total: string) => (
+  // Netto / Brutto share one shape — a label, a per-etap cell, and the bold row total. `muted`
+  // greys the whole row when it's the inactive axis while both are on show.
+  const row = (
+    label: ReactNode,
+    cell: (st: KosztorysStageT) => string,
+    total: string,
+    muted: boolean,
+  ) => (
     <Fragment>
-      <span className={SUMMARY_LABEL_CELL}>{label}</span>
+      <span className={cn(SUMMARY_LABEL_CELL, muted && SUMMARY_MUTED)}>{label}</span>
       {stages.map((st) => (
-        <span key={st.id} className={SUMMARY_VALUE_CELL}>
+        <span key={st.id} className={cn(SUMMARY_VALUE_CELL, muted && SUMMARY_MUTED)}>
           {cell(st)}
         </span>
       ))}
-      <span className={cn(SUMMARY_VALUE_CELL, 'font-bold')}>{total}</span>
+      <span className={cn(SUMMARY_VALUE_CELL, 'font-bold', muted && SUMMARY_MUTED)}>{total}</span>
     </Fragment>
   )
 
@@ -70,9 +81,15 @@ export function KosztorysStageTotals({
             'Netto',
             (st) => money(stageTotals.get(st.id) ?? 0, false),
             money(wykonaneNet, false),
+            mutedAxis === 'net',
           )}
         {showGross &&
-          row('Brutto', (st) => money(stageTotals.get(st.id) ?? 0, true), money(wykonaneNet, true))}
+          row(
+            'Brutto',
+            (st) => money(stageTotals.get(st.id) ?? 0, true),
+            money(wykonaneNet, true),
+            mutedAxis === 'gross',
+          )}
       </SummaryTable>
     </div>
   )

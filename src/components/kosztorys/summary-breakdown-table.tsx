@@ -8,7 +8,13 @@ import {
   type SummaryLineT,
 } from '@/lib/kosztorys/summary-economics'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
-import { SummaryHeaderCell, SummaryRow, SummaryTable } from '@/components/kosztorys/summary-grid'
+import {
+  SUMMARY_MUTED,
+  SummaryHeaderCell,
+  SummaryRow,
+  SummaryTable,
+  type MutedAxisT,
+} from '@/components/kosztorys/summary-grid'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 
 // Materiały are recorded brutto; VAT is subtracted to reach netto — the inverse of robocizna, where
@@ -30,6 +36,7 @@ export function SummaryBreakdownTable({
   combinedNet,
   combined,
   vatRate,
+  mutedAxis,
   deriveMaterialsNet,
   investmentId,
   clientView,
@@ -44,6 +51,7 @@ export function SummaryBreakdownTable({
   combinedNet: number
   combined: MoneyPairT
   vatRate: number
+  mutedAxis?: MutedAxisT
   // Price each materiały row netto as brutto − VAT (summaryLineGross) or at raw brutto (summaryLineFace).
   deriveMaterialsNet: boolean
   investmentId: number
@@ -52,12 +60,21 @@ export function SummaryBreakdownTable({
   return (
     <SummaryTable cols={cols}>
       <SummaryHeaderCell variant="label">Podsumowanie</SummaryHeaderCell>
-      {showNet && <SummaryHeaderCell>Netto</SummaryHeaderCell>}
-      {showGross && <SummaryHeaderCell>Brutto</SummaryHeaderCell>}
+      {showNet && (
+        <SummaryHeaderCell className={mutedAxis === 'net' ? SUMMARY_MUTED : undefined}>
+          Netto
+        </SummaryHeaderCell>
+      )}
+      {showGross && (
+        <SummaryHeaderCell className={mutedAxis === 'gross' ? SUMMARY_MUTED : undefined}>
+          Brutto
+        </SummaryHeaderCell>
+      )}
       <SummaryRow
         label="Suma prac wykonanych"
         line={sumaPrac}
         axis={moneyAxis}
+        mutedAxis={mutedAxis}
         mismatch={sumaPracMismatch}
       />
       {materialyBreakdown
@@ -86,10 +103,17 @@ export function SummaryBreakdownTable({
                 : summaryLineFace(item.net, combinedNet)
             }
             axis={moneyAxis}
+            mutedAxis={mutedAxis}
             hint={deriveMaterialsNet ? MATERIALY_HINT : undefined}
           />
         ))}
-      <SummaryRow label="Łącznie" line={combined} axis={moneyAxis} emphasize />
+      <SummaryRow
+        label="Łącznie"
+        line={combined}
+        axis={moneyAxis}
+        mutedAxis={mutedAxis}
+        emphasize
+      />
     </SummaryTable>
   )
 }
