@@ -3,7 +3,7 @@ project: 'Wykonczymy — off-sheets phase 1'
 version: 1
 status: draft
 created: 2026-06-12
-updated: 2026-07-20
+updated: 2026-07-24
 prd_version: 1
 main_goal: quality
 top_blocker: none
@@ -652,7 +652,7 @@ Lifted from PRD `## Non-Goals` — explicitly out of scope for this arc.
 
 - **F-01: E2E test harness** — Shipped; harness lives in `e2e/` (not archived, `change.md` still `implementing`). `global-setup.ts` + auth fixture + five specs against the isolated 5435 `db-test` container. Unblocks band 4. Lesson: —.
 - **S-01: Kosztorys sections + items (north star)** — EX-395 Done. `context/changes/kosztorys-sections-items/` (`implemented`, 2026-07-08); not archived — the change folder is still live because later editor slices kept extending it. Absorbed S-04's coefficient/override derivation. Lesson: —.
-- **S-03: Stage progress (etapy)** — EX-398 Done. `context/changes/kosztorys-stages/` (`impl_reviewed`); not archived. The stage **value** axis shipped adjacent as `kosztorys-stage-values` (2026-07-15). Lesson: —.
+- **S-03: Stage progress (etapy)** — EX-398 Done. Archived 2026-07-24 → `context/archive/2026-07-09-kosztorys-stages/`. The stage **value** axis shipped adjacent as `kosztorys-stage-values` (2026-07-15). Lesson: —.
 - **S-06: Snapshots (point-in-time version history)** — EX-418 Done, archived 2026-07-10 → `context/archive/2026-07-10-kosztorys-snapshots/`. Deferred E2E → EX-428 (`e2e-backlog`); `CRON_SECRET` deploy gate → EX-429. Lesson: a snapshot is only trustworthy if its payload is complete — EX-432 caught serialize silently truncating at 5000 items, which would have made restore permanently lossy.
 - **S-07: Fast undo / redo (in-session)** — EX-403 + EX-526 hardening, archived 2026-07-18 → `context/archive/2026-07-18-kosztorys-undo/`. Deferred DB-integration E2E → EX-525 (`e2e-backlog`); owed `hasPendingBurst` unit → EX-521. Lesson: with per-field optimistic autosave, undo is an inverse **server** write, not a local rewind — it must reconcile with the in-flight save rather than race it.
 - **S-08: Confirm-gated delete (populated rows / sections / stages / columns)** — EX-477 Done; `context/changes/kosztorys-delete-confirm/` (`done`), not archived. Reversed the original hard-block policy to confirm-then-auto-snapshot. Lesson: the pre-delete snapshot must be taken **inside the server action** — a client-side one races autosave and captures the wrong state.

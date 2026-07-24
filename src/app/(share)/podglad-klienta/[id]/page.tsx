@@ -1,6 +1,6 @@
 import { requireInvestmentOr404 } from '@/lib/queries/investments'
 import { getClientKosztorysPreview } from '@/lib/queries/client-kosztorys'
-import { KosztorysEditorBody } from '@/components/kosztorys/kosztorys-editor-body'
+import { KosztorysEditorBody } from '@/components/kosztorys/editor/kosztorys-editor-body'
 
 // „Podgląd dla klienta": the owner's faithful preview, rendered under the SAME bare (share) layout the
 // public /k/<token> page uses — so the shell is byte-identical to what a client gets, not the app's

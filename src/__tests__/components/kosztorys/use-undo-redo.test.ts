@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createUndoRedoStack, type UndoCommandT } from '@/components/kosztorys/use-undo-redo'
+import { createUndoRedoStack, type UndoCommandT } from '@/components/kosztorys/editor/hooks/use-undo-redo'
 
 // The stack core is React-free (see use-undo-redo.ts) so the ordering contract is tested directly.
 function cmd(label: string): UndoCommandT {
