@@ -8,6 +8,8 @@ import { SummaryMoneyHeaders } from '@/components/kosztorys/summary-money-header
 import { SummaryRow } from '@/components/kosztorys/summary-row'
 import { summaryMoneyCols } from '@/components/kosztorys/summary-axis'
 import { SectionSharePie } from '@/components/kosztorys/section-share-pie'
+import { KosztorysProgressCounter } from '@/components/kosztorys/kosztorys-progress-counter'
+import { useKosztorysEditorContext } from '@/components/kosztorys/use-kosztorys-editor-context'
 import type { SectionSliceInputT } from '@/lib/kosztorys/chart-slices'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 
@@ -34,26 +36,32 @@ export function SummaryStagesTab({
   vatRate,
   moneyAxis,
 }: PropsT) {
+  const { doneNet, plannedNet } = useKosztorysEditorContext()
   if (stages.length === 0) return null
   const pair = (net: number): MoneyPairT => ({ net, gross: toGross(net, vatRate) })
   const cols = summaryMoneyCols(moneyAxis)
 
   return (
-    <div className="flex flex-col items-start gap-8 lg:flex-row">
-      <SummaryTable cols={cols} className="w-fit">
-        <SummaryHeaderCell variant="label">Robocizna</SummaryHeaderCell>
-        <SummaryMoneyHeaders axis={moneyAxis} />
-        {stages.map((st) => (
-          <SummaryRow
-            key={st.id}
-            label={st.label ?? `Etap ${st.ordinal}`}
-            line={pair(stageTotals.get(st.id) ?? 0)}
-            axis={moneyAxis}
-          />
-        ))}
-        <SummaryRow label="Razem" line={pair(wykonaneNet)} axis={moneyAxis} bold />
-      </SummaryTable>
-      <SectionSharePie subtotals={sectionSubtotals} />
+    <div className="flex w-full flex-col gap-4">
+      <div className="flex flex-col items-start gap-8 lg:flex-row">
+        <div>
+          <SummaryTable cols={cols} className="w-fit">
+            <SummaryHeaderCell variant="label">Robocizna</SummaryHeaderCell>
+            <SummaryMoneyHeaders axis={moneyAxis} />
+            {stages.map((st) => (
+              <SummaryRow
+                key={st.id}
+                label={st.label ?? `Etap ${st.ordinal}`}
+                line={pair(stageTotals.get(st.id) ?? 0)}
+                axis={moneyAxis}
+              />
+            ))}
+            <SummaryRow label="Razem" line={pair(wykonaneNet)} axis={moneyAxis} bold />
+          </SummaryTable>
+          <KosztorysProgressCounter doneNet={doneNet} plannedNet={plannedNet} />
+        </div>
+        <SectionSharePie subtotals={sectionSubtotals} />
+      </div>
     </div>
   )
 }

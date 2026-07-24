@@ -33,7 +33,7 @@ const SUMMARY_VIEW_OPTIONS: OptionT<SummaryViewT>[] = [
   { value: 'summary', label: 'Podsumowanie' },
   { value: 'wydatki', label: 'Wydatki' },
   { value: 'wplaty', label: 'Wpłaty' },
-  { value: 'etapy', label: 'Robocizna per etap' },
+  { value: 'etapy', label: 'Robocizna' },
 ]
 
 type PropsT = {

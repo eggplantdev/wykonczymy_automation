@@ -1,11 +1,9 @@
 'use client'
 
 import { CoeffField } from '@/components/kosztorys/coeff-field'
-import { KosztorysProgressCounter } from '@/components/kosztorys/kosztorys-progress-counter'
 import { useKosztorysEditorContext } from '@/components/kosztorys/use-kosztorys-editor-context'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { HintTooltip } from '@/components/ui/tooltip'
-import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { DiscountTypeT } from '@/lib/kosztorys/types'
 
 // Radix Select rejects an empty-string item value, so "brak" (clear the discount) carries this.
@@ -28,16 +26,11 @@ const DISCOUNT_TIP = [
   'Odejmuje się raz od sumy wykonanych prac; wpisujesz netto (kwota) lub punkty procentowe.',
 ].join('\n')
 
-type PropsT = {
-  // The Podsumowanie panel's display axis — the progress counter prints netto/brutto to match it.
-  moneyAxis: MoneyAxisT
-}
-
-// VAT + rabat + postęp prac, lifted out of the toolbar to sit at the top of the Podsumowanie tab.
-// Reads the setters straight from the editor context (the panel renders inside the provider), so no
-// props thread through KosztorysTotalsPanel.
-export function SummarySettingsBar({ moneyAxis }: PropsT) {
-  const { tree, globalDiscount, doneNet, plannedNet, handleVatChange, handleGlobalDiscountChange } =
+// VAT + rabat, lifted out of the toolbar to sit at the top of the Podsumowanie tab. Reads the setters
+// straight from the editor context (the panel renders inside the provider), so no props thread through
+// KosztorysTotalsPanel.
+export function SummarySettingsBar() {
+  const { tree, globalDiscount, handleVatChange, handleGlobalDiscountChange } =
     useKosztorysEditorContext()
 
   return (
@@ -77,12 +70,6 @@ export function SummarySettingsBar({ moneyAxis }: PropsT) {
           className={globalDiscount.type == null ? 'text-muted-foreground' : undefined}
         />
       </div>
-      <KosztorysProgressCounter
-        doneNet={doneNet}
-        plannedNet={plannedNet}
-        vatRate={tree.vatRate}
-        moneyAxis={moneyAxis}
-      />
     </div>
   )
 }

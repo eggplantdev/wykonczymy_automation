@@ -78,7 +78,7 @@ export function SummaryOverviewTab({
 
   return (
     <div className="flex w-full flex-col gap-y-4">
-      {!clientView && <SummarySettingsBar moneyAxis={displayAxis} />}
+      {!clientView && <SummarySettingsBar />}
       <div className="flex flex-col items-start gap-8 lg:flex-row">
         {mixedMode ? (
           <MixedSummary
