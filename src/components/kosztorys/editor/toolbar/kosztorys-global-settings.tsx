@@ -1,7 +1,6 @@
 'use client'
 
 import { DecimalField } from '@/components/ui/decimal-field'
-import type { PriceViewT } from '@/lib/kosztorys/calc'
 
 const COEFF_TIP = [
   'Domyślny mnożnik ceny klienta.',
@@ -13,31 +12,24 @@ const COEFF_TIP = [
 
 type PropsT = {
   globalCoeffs: { wTools: number; ownTools: number }
-  // Active price view — the mnożnik feeds the wykonawca price, so the „Klient" view has no use for
-  // it, and each wykonawca view only edits its own coefficient.
-  view: PriceViewT
   onGlobalCoeffChange: (patch: { wToolsCoeff?: number; ownToolsCoeff?: number }) => void
 }
 
-export function KosztorysGlobalSettings({ globalCoeffs, view, onGlobalCoeffChange }: PropsT) {
+export function KosztorysGlobalSettings({ globalCoeffs, onGlobalCoeffChange }: PropsT) {
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-      {view === 'w_tools' && (
-        <DecimalField
-          label="Mnożnik ceny wykonawcy z narzędziami"
-          hint={COEFF_TIP}
-          value={globalCoeffs.wTools}
-          onCommit={(n) => onGlobalCoeffChange({ wToolsCoeff: n })}
-        />
-      )}
-      {view === 'own_tools' && (
-        <DecimalField
-          label="Mnożnik ceny wykonawcy bez narzędzi"
-          hint={COEFF_TIP}
-          value={globalCoeffs.ownTools}
-          onCommit={(n) => onGlobalCoeffChange({ ownToolsCoeff: n })}
-        />
-      )}
+      <DecimalField
+        label="Mnożnik ceny wykonawcy z narzędziami"
+        hint={COEFF_TIP}
+        value={globalCoeffs.wTools}
+        onCommit={(n) => onGlobalCoeffChange({ wToolsCoeff: n })}
+      />
+      <DecimalField
+        label="Mnożnik ceny wykonawcy bez narzędzi"
+        hint={COEFF_TIP}
+        value={globalCoeffs.ownTools}
+        onCommit={(n) => onGlobalCoeffChange({ ownToolsCoeff: n })}
+      />
     </div>
   )
 }
