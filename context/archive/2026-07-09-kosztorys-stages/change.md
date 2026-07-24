@@ -1,9 +1,10 @@
 ---
 id: kosztorys-stages
 title: Kosztorys stages (etapy) + per-item stage progress (S-04)
-status: impl_reviewed
+status: archived
+archived_at: 2026-07-24T13:41:19Z
 created: 2026-07-09
-updated: 2026-07-09
+updated: 2026-07-24
 ---
 
 # Kosztorys stages (etapy) — S-04
