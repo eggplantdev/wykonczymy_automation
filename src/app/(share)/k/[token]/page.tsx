@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { getClientKosztorysByToken } from '@/lib/queries/client-kosztorys'
-import { KosztorysEditorBody } from '@/components/kosztorys/kosztorys-editor-body'
+import { KosztorysEditorBody } from '@/components/kosztorys/editor/kosztorys-editor-body'
 
 // The public entrance. A revoked token and a token that never existed both land on the same 404, so
 // the page never reveals which investments exist.

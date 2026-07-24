@@ -7,7 +7,7 @@ import { buildKosztorysReconciliation, reconciliationTooltip } from '@/lib/koszt
 import { Separator } from '@/components/ui/separator'
 import { Description } from '@/components/ui/description'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
-import { ReconMismatchBadge } from '@/components/kosztorys/recon-mismatch-badge'
+import { ReconMismatchBadge } from '@/components/ui/recon-mismatch-badge'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { cn } from '@/lib/utils/cn'
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { buildV2Columns } from '@/components/kosztorys/kosztorys-v2-columns'
-import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/kosztorys-v2-column-opts'
+import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
+import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 
 const stages: KosztorysStageT[] = [
