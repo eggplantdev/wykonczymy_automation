@@ -1,10 +1,11 @@
 ---
 id: kosztorys-editor-ux
 title: Kosztorys editor UX pass (add-row + toolbar/grid polish)
-status: shaping
+status: archived
 created: 2026-07-11
-updated: 2026-07-13
+updated: 2026-07-24
 branch: dogfooding/kosztorys-editor-ux
+archived_at: 2026-07-24T15:01:18Z
 ---
 
 # Kosztorys editor UX pass

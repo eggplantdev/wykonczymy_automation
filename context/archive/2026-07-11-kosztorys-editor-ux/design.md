@@ -107,7 +107,7 @@ values, same persisted `usePriceView`. The legend moved from a standalone `InfoT
 ## 4. EX-426 · Brutto toggle — REMOVED (superseded 2026-07-13)
 
 Dropped instead of relabeled. Dogfooding found no rationale for ever hiding Brutto (the only
-recorded reasoning — the DSG remount-key cost — argued *against* a toggle). The additive Brutto
+recorded reasoning — the DSG remount-key cost — argued _against_ a toggle). The additive Brutto
 column + `Suma brutto` line are now **always shown**; `bruttoVisible` state, the toolbar button, and
 the prop threading are gone (`gross` column is unconditional in `buildV2Columns`). EX-426 canceled.
 This also eliminated one of the two §6 flicker triggers for free.

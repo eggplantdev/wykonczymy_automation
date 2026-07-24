@@ -17,10 +17,6 @@ reviewed diff). Its still-open verify-by-hand items are folded into `## Findings
 
 ### Correctness — code-review (native severity, test disposition)
 
-- [x] 🟡 WARNING · fixed · code-review · `lib/actions/kosztorys.ts` (addItemAction + addSectionAction) · append derived next order from `count.totalDocs`, not `MAX+1`; `removeItemAction` doesn't renumber, so delete-then-append **deterministically collided** on `display_order`. Fixed: both now `SELECT COALESCE(MAX(display_order)+1,0)` (items scoped by `section_id`, sections by `investment_id`).
-      test: test-driven-debugging · integration — `kosztorys-create-order.test.ts` CR1: add 3 → delete middle → append; RED asserted 2 distinct orders, GREEN asserts 3 distinct + new = max+1. ✓
-- [x] 🟡 WARNING · fixed · code-review · `lib/actions/kosztorys.ts` (seedBlankSectionAction) · no server-side "kosztorys empty" guard — not idempotent under double-submit/stale client. Fixed: `count>0 → bail` no-op guard before the seed (leaves `seed-blank.ts` hardcoded `displayOrder:0` correct, since it now only ever runs on an empty investment).
-      test: test-driven-debugging · integration — `kosztorys-create-order.test.ts` CR2: seed twice; RED asserted 2 sections, GREEN asserts section+item counts stay 1. ✓
 - [x] 🔵 OBSERVATION · deferred · code-review · `kosztorys.ts` (insertItemAction) · raw `UPDATE …+1` shift + `payload.create` not in one transaction, no `FOR UPDATE` — concurrent-insert race, low likelihood, non-atomic. **Filed EX-464.**
       test: no automated test (nondeterministic race) — disposition recorded in the issue.
 - [x] 🔵 OBSERVATION · deferred · code-review · `kosztorys.ts` (insertItemAction/addItemAction) · no check that `sectionId ∈ investmentId` (`protectedAction` gates auth only); pre-existing pattern, newly exercised by ⋯-menu insert. **Filed EX-465.**
@@ -30,12 +26,7 @@ reviewed diff). Its still-open verify-by-hand items are folded into `## Findings
 
 ### Structure / style (tag-free — no test disposition)
 
-- [x] fixed · simplify · `kosztorys-editor-body.tsx:84` · `grid-cols-[minmax(0,1fr)]` → `grid-cols-1` (identical computed track) + comment updated to match.
 - [x] deferred · module-cohesion · `lib/kosztorys/v2-rows.ts` · move `rowDoneNetForView` → `calc.ts` — NOT mechanical: it uses `stageKey` (a v2-rows helper), so a clean move needs relocating `stageKey` too to avoid a `calc↔v2-rows` cycle → larger refactor. **Filed EX-467.**
-- [x] fixed · simplify · `lib/kosztorys/v2-rows.ts:157` · moved `NEW_SECTION_DEFAULTS` → `constants.ts` (zero internal v2-rows use; 4 import sites re-pointed; `CostVariantT` type added to constants). Typecheck green.
-- [x] fixed · simplify · `lib/tables/kosztorys-v2-columns.tsx:334` · deleted comment (narration + factually-wrong "48px", actual `64`).
-- [x] fixed · simplify · `kosztorys-actions-menu.tsx:19` · trimmed narrating intro, kept the focus-fight why.
-- [x] fixed · simplify · `kosztorys-row-actions-menu.tsx:42` · trimmed first sentence (dup of `sortActive` doc), kept the pointer-events/tooltip why.
 - [x] dismiss · comment-noise · `lib/tables/kosztorys-v2-columns.tsx:125` · `title()` one-liner restates its two branches — weak, but a fair summary for a vaguely-named fn. Keep, not worth churn.
 - [x] dismiss · comment-noise · `use-kosztorys-editor.ts:208` · `handleInsertItem` opener narrates, but the load-bearing whys (sort no-op, denormalized fields) sit right after. Keep.
 - [x] dismiss · comment-noise · `empty-kosztorys-dialog.tsx:14` · `onCreated` "refresh + remount" conveys cross-component behavior the name alone doesn't. Keep (file is temp anyway).
