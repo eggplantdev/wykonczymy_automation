@@ -938,3 +938,25 @@ byte-identical before/after.
 ### Deploy note (migration ordering — deploy-time, not a code check)
 
 - [ ] **`20260724_1_drop_kosztorys_section_coeff` must be applied to preview/prod with this merge.** Drops `w_tools_coeff` / `own_tools_coeff` from `kosztorys_sections` **only** (the investment-level columns of the same name stay). Human-applied via `pnpm db:migrate:prod`. **Ordering is reversed vs the usual "migrate before push" rule** — that rule is for column _adds_ (new code needs the column to exist). This is a _drop_: sections are read through the Payload ORM (`payload.find`), which builds its `SELECT` from the collection schema, so dropping the columns while old code (whose field defs still list them) is live would 500 on a missing column. Deploy the **code first** (its removed field defs stop selecting the columns), **then** run the migration to drop them. Kosztorys data is throwaway pre-dogfooding, so no backfill is owed.
+
+## EX-564 — kosztorys-percent-rabat-bulk-apply
+
+**Awaiting manual verification.** All automated checks green (tsc 0, full unit suite 1117 pass, lint 0). No DB migration owed — `investments.globalDiscountType` is a plain `text` field, so narrowing the stored global discount to amount-only needs no schema change. Percent global rabat stops being stored state and becomes a one-shot bulk-apply into every per-item rabat; the stored global discount is now amount-only; subcontractor views are rabat-free.
+
+Setup: run the app against the **5435 test DB** (see intro — seed a kosztorys into it first; the dump carries none). Log in as **OWNER/MANAGER**. Open an investment's **Kosztorys** tab → **Podsumowanie** tab (the „Rabat % na wszystkie pozycje" tool + „Rabat całościowy" select live in the settings bar there).
+
+### Phase 0: Subcontractor views are rabat-free
+
+- [ ] **Discount columns hidden in subcontractor views.** In **Klient** view the per-item rabat columns render; switch to **Z narzędziami** / **Bez narzędzi** → the rabat columns disappear entirely.
+- [ ] **Subcontractor prices are gross of rabat.** A row carrying a per-item rabat prices at full net in the two subcontractor views (no rabat subtracted); the same row in Klient view shows the discounted net. Section subtotals and „Suma" match (subcontractor total ignores rabat).
+
+### Phase 1: Percent bulk-apply tool
+
+- [ ] **Apply 10% → every row shows 10% rabat; persists after reload.** Type `10` in „Rabat % na wszystkie pozycje" → „Zastosuj" → every item's rabat cell reads 10% (percent mode), totals drop accordingly, input clears. Reload → the per-item rabaty persist.
+- [ ] **Overwrite check.** Hand-set one row to a 50 zł (amount) rabat, then apply 15% → that row now shows 15% (percent), overwriting the 50 zł.
+- [ ] **Invalid input rejected.** `0`, a negative, `>100`, and non-numeric input leave „Zastosuj" disabled (nothing written).
+
+### Phase 2: Amount-only stored discount
+
+- [ ] **Settings offer only Kwota for the stored discount.** The „Rabat całościowy" select shows only **brak** / **zł** (no **%** option). Setting e.g. `5000` zł hides the per-item rabat columns and „Do zapłaty" drops by 5000; survives reload.
+- [ ] **Version restore keeps the live amount discount.** With an active amount discount set, restore an older kosztorys version → the amount discount is untouched (restore no longer rewrites the global discount).

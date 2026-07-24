@@ -1,6 +1,6 @@
 # kosztorys-percent-rabat-bulk-apply
 
-status: implementing
+status: implemented
 updated: 2026-07-24
 branch: staging
 

@@ -301,9 +301,9 @@ emits phantom drift).
 
 #### Automated
 
-- [x] 2.1 Typecheck passes
-- [x] 2.2 Full unit suite green
-- [x] 2.3 Lint passes
+- [x] 2.1 Typecheck passes — f4605bf4
+- [x] 2.2 Full unit suite green — f4605bf4
+- [x] 2.3 Lint passes — f4605bf4
 
 Migration skipped: `investments.globalDiscountType` is a plain `text` field (no DB enum/constraint),
 so narrowing to amount-only needs no schema touch — plan item #3's gate isn't tripped.
