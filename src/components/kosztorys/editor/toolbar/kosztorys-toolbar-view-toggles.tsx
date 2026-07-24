@@ -2,6 +2,7 @@
 
 import { ToolbarToggle } from '@/components/ui/toolbar-toggle'
 import { KosztorysViewMenu } from '@/components/kosztorys/editor/toolbar/kosztorys-view-menu'
+import { KosztorysSectionFilterMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-section-filter-menu'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import {
   VIEWS,
@@ -21,6 +22,7 @@ export function KosztorysToolbarViewToggles() {
         aria-label="Widok cen"
       />
       <KosztorysViewMenu />
+      <KosztorysSectionFilterMenu />
     </>
   )
 }

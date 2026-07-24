@@ -30,12 +30,11 @@ export function KosztorysSectionFilterMenu() {
       values={values}
       onValuesChange={onValuesChange}
       options={options}
-      label="Sekcje"
+      label="Widok sekcji"
       icon={ListFilter}
       searchable
-      iconOnly
       title="Filtruj sekcje"
-      triggerClassName="size-7 min-w-0 justify-center p-0"
+      triggerClassName="w-fit min-w-0"
     />
   )
 }

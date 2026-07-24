@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Check, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { KosztorysSectionFilterMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-section-filter-menu'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Input } from '@/components/ui/input'
 import { formatNet as fmt } from '@/lib/kosztorys/format'
@@ -48,10 +47,7 @@ export function KosztorysSectionSummary({
   return (
     <aside className="border-border bg-background absolute inset-y-0 right-0 z-30 flex w-72 flex-col overflow-hidden border-l shadow-lg">
       <div className="border-border flex shrink-0 items-center justify-between border-b px-3 py-2">
-        <div className="flex items-center gap-1.5">
-          <h2 className="text-foreground text-sm font-medium">Pokaż / ukryj sekcje</h2>
-          <KosztorysSectionFilterMenu />
-        </div>
+        <h2 className="text-foreground text-sm font-medium">Sekcje</h2>
         <Button size="icon" variant="ghost" className="h-6 w-6" onClick={onClose}>
           <X />
         </Button>
