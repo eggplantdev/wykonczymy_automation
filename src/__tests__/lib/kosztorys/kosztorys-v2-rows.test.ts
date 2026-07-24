@@ -353,7 +353,8 @@ describe('wartość wiersza idzie za etapami', () => {
 
     it('view-awareness: w_tools daje inne netto', () => {
       const subtotals = sectionSubtotalsForView(subtotalRows, stages, 'w_tools')
-      expect(subtotals[0].net).toBe(168) // 10×12=120; 5×12=60 −20% = 48
+      // Rabat is client-only, never passed to the crew — w_tools prices gross of the 20% rabat.
+      expect(subtotals[0].net).toBe(180) // 10×12=120; 5×12=60 (bez rabatu) → 180
       expect(subtotals[1].net).toBe(120)
     })
 

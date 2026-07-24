@@ -267,23 +267,33 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     unitColumn(title('unit', COLUMN_LABELS.unit, opts)),
   ]
 
+  // Rabat is a client concession, never passed to the subcontractor (calc.ts netForQtyForView), so
+  // the four discount columns exist in the client view only — the subcontractor views never assemble
+  // them, and their discount figures would be zero anyway.
+  const discountCols: Column<KosztorysV2RowT>[] =
+    view === 'client'
+      ? [
+          discountValueColumn(title('discountValue', COLUMN_LABELS.discountValue, opts)),
+          discountTypeColumn(title('discountType', COLUMN_LABELS.discountType, opts)),
+          computedColumn(
+            'discountAmount',
+            title('discountAmount', COLUMN_LABELS.discountAmount, opts),
+            (r) => rowDiscountForView(r, rowTotalQtyDone(r, stages), view),
+          ),
+          computedColumn(
+            'discountAmountGross',
+            title('discountAmountGross', COLUMN_LABELS.discountAmountGross, opts),
+            (r) => toGross(rowDiscountForView(r, rowTotalQtyDone(r, stages), view), r.vatRate),
+          ),
+        ]
+      : []
+
   const pricing: Column<KosztorysV2RowT>[] = [
     ...priceCols,
     computedColumn('priceGross', title('priceGross', COLUMN_LABELS.priceGross, opts), (r) =>
       toGross(viewPrice(r, view), r.vatRate),
     ),
-    discountValueColumn(title('discountValue', COLUMN_LABELS.discountValue, opts)),
-    discountTypeColumn(title('discountType', COLUMN_LABELS.discountType, opts)),
-    computedColumn(
-      'discountAmount',
-      title('discountAmount', COLUMN_LABELS.discountAmount, opts),
-      (r) => rowDiscountForView(r, rowTotalQtyDone(r, stages), view),
-    ),
-    computedColumn(
-      'discountAmountGross',
-      title('discountAmountGross', COLUMN_LABELS.discountAmountGross, opts),
-      (r) => toGross(rowDiscountForView(r, rowTotalQtyDone(r, stages), view), r.vatRate),
-    ),
+    ...discountCols,
   ]
 
   const stageCols: Column<KosztorysV2RowT>[] = stages.map((st) =>

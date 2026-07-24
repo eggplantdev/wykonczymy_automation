@@ -66,10 +66,17 @@ export function toGross(net: number, vatRate: number): number {
  * What any quantity of this row is worth at the view's price, post-discount. Zero quantity is worth
  * zero: `> 0` rather than a truthiness check because a cleared cell writes null, and an 'amount' rabat
  * would otherwise turn `applyDiscount(0)` into −discountValue — a row priced at zero reading negative.
+ *
+ * Rabat is a CLIENT concession, absorbed by the company margin and never passed to the subcontractor
+ * (see settlement.ts executedWorkNetPreRabat). So the discount applies in the client view only; the
+ * two subcontractor views price gross of any per-item or global rabat. This zeroes every
+ * subcontractor discount figure at its single source — rowDiscountForView, stage values, subtotals —
+ * so the crew is billed its full price everywhere the grid or summary shows one.
  */
 export function netForQtyForView(row: ViewPricingT, qty: number, view: PriceViewT): number {
   if (!(qty > 0)) return 0
-  return applyDiscount(qty * viewPrice(row, view), row)
+  const gross = qty * viewPrice(row, view)
+  return view === 'client' ? applyDiscount(gross, row) : gross
 }
 
 /**

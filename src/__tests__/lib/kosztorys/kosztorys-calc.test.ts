@@ -3,6 +3,7 @@ import {
   globalDiscountAmount,
   isGlobalDiscountActive,
   netForQtyForView,
+  rowDiscountForView,
   rowDoneFraction,
   rowPlannedNetForView,
   stageDoneFraction,
@@ -65,6 +66,31 @@ describe('stageValueForView', () => {
       expect(stageValueForView(discounted, 5, TOTAL_QTY, 'client')).toBe(50) // 100 − (100 × 5/10)
     })
   })
+})
+
+// Rabat is a client concession, absorbed by the company margin and never passed to the subcontractor
+// (settlement.ts executedWorkNetPreRabat). So the two subcontractor views price GROSS of any rabat —
+// per-item percent OR amount — while the client view still subtracts it.
+describe('rabat dotyczy tylko widoku klienta — wykonawca liczy bez rabatu', () => {
+  for (const discount of [
+    { discountType: 'percent' as const, discountValue: 10 },
+    { discountType: 'amount' as const, discountValue: 40 },
+  ]) {
+    it(`widok wykonawcy ignoruje rabat ${discount.discountType}, klient go stosuje`, () => {
+      const row = { ...item, ...discount }
+      // client: rabat applies (percent 10% → 180; amount 40 → 160). Both subcontractor views: gross.
+      expect(netForQtyForView(row, TOTAL_QTY, 'client')).toBeLessThan(TOTAL_QTY * item.clientPrice)
+      for (const view of ['w_tools', 'own_tools'] as const) {
+        expect(netForQtyForView(row, TOTAL_QTY, view)).toBe(
+          netForQtyForView({ ...item, discountType: null, discountValue: 0 }, TOTAL_QTY, view),
+        )
+        // The discount actually taken is zero for the crew, at its single source.
+        expect(rowDiscountForView(row, TOTAL_QTY, view)).toBe(0)
+      }
+      // Client still records a positive discount.
+      expect(rowDiscountForView(row, TOTAL_QTY, 'client')).toBeGreaterThan(0)
+    })
+  }
 })
 
 // The share's denominator is now the stage sum handed in from the settlement layer, not a field on
