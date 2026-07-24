@@ -1,10 +1,10 @@
 ---
 change_id: kosztorys-stage-values
 title: Per-stage value columns (netto+brutto)
-status: implemented
+status: archived
 created: 2026-07-15
-updated: 2026-07-15
-archived_at: null
+updated: 2026-07-24
+archived_at: 2026-07-24T14:33:31Z
 branch: dogfooding/kosztorys-editor-ux
 worktree: null
 ---
