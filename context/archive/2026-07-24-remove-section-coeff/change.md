@@ -1,10 +1,10 @@
 ---
 change_id: remove-section-coeff
 title: Remove per-section subcontractor coeff + explicit section sidebar buttons
-status: implemented
+status: archived
 created: 2026-07-24
 updated: 2026-07-24
-archived_at: null
+archived_at: 2026-07-24T15:31:52Z
 branch: staging
 worktree: null
 ---

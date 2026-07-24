@@ -8,8 +8,6 @@ Interleaved investments/status-filter commits are OUT of scope.
 
 <!-- ONE checkbox per finding. Format: [box] [severity, bug-checks only] · disposition · `source` · `file:line` · what — reason -->
 
-- [x] fixed · simplify · `src/lib/kosztorys/calc.ts:38` · deleted effectiveCoeff doc comment that restated name+signature after the section-override WHY was gone.
-- [x] fixed · simplify · `src/components/ui/decimal-field.tsx:15` · narrowed `onCommit` to `(n: number) => void` (null provably unreachable — commit no-ops on empty), and cleaned the 5 now-dead null guards in callers (global-settings ×2, summary-settings-bar VAT + discount `?? 0`, summary-expenses-tab). tsc+lint green.
 - [x] dropped · module-cohesion · `src/components/kosztorys/editor/kosztorys-sections-drawer.tsx` · `KosztorysSectionSummary` export-name drift — predates slice, still shows per-section net; rename-to-convention not worth churn here.
 - [x] dismissed · tailwind-v4 · slice `.tsx` files · clean — the two pre-v4 hits in kosztorys-editor-body.tsx are outside this slice's diff.
 - [x] dismissed · structure-scatter · `src/migrations/20260724_1_*.ts` · new migration lands in established home + registered in index.ts — no scatter.
@@ -17,8 +15,6 @@ Interleaved investments/status-filter commits are OUT of scope.
 - [x] 🔵 OBSERVATION · dismissed · impl-review · `plan.md` Phase 3 · F2 plan paths stale post-EX-515 split — impl mapped every edit onto renamed files correctly; plan-accuracy note, no code defect.
 - [x] 🔵 OBSERVATION · dismissed · impl-review · `kosztorys-sections-drawer.tsx:118` · F3 delete button always `text-destructive` vs plan's hover-only — standard treatment for a labeled destructive button; accepted design choice.
       test: no automated test · — cosmetic affordance, eyeball in the manual pass (covered by sidebar-buttons check).
-- [x] 🔵 OBSERVATION · fixed · code-review · `context/foundation/manual-checks.md:944` · deploy note gave ADD ordering ("migrate before code") for a column DROP — reversed to code-first + explained the Payload-ORM missing-column 500 window.
-      test: no automated test · — deploy-sequencing doc fix, not unit-testable.
 - [x] 🔵 OBSERVATION · dismissed · code-review · `migration down` · re-adds `w_tools_coeff`/`own_tools_coeff` as nullable numeric no-default — exact structural reversal of the original Payload `type:'number'` fields; data loss acceptable (throwaway). Benign.
 - [x] dismissed · code-review · `calc.ts` / `v2-rows.ts` / `types.ts` · effectiveCoeff collapse + denorm removal complete and in lockstep; grep confirms zero section-tier reads in `src`. Correct.
 - [x] dismissed · code-review · `decimal-field.tsx` · `nullable`/null-commit removal behavior-preserving — sole nullable caller (section-coeff popover) deleted; 4 surviving callers never passed nullable, already no-op'd on empty.
