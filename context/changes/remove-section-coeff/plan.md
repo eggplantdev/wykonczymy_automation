@@ -402,6 +402,6 @@ None — this is a removal; it slightly shrinks row payloads and the sections qu
 
 #### Automated
 
-- [x] 4.1 Kosztorys suite passes: `pnpm exec vitest run src/__tests__/lib/kosztorys src/__tests__/lib/db/snapshots.test.ts` (234 passed, DB-backed specs skip without ENV_READY)
-- [x] 4.2 Full typecheck + lint still green: `pnpm typecheck && pnpm lint`
-- [x] 4.3 Repo-wide grep clean (only global usages remain)
+- [x] 4.1 Kosztorys suite passes: `pnpm exec vitest run src/__tests__/lib/kosztorys src/__tests__/lib/db/snapshots.test.ts` (234 passed, DB-backed specs skip without ENV_READY) — cf79a49e
+- [x] 4.2 Full typecheck + lint still green: `pnpm typecheck && pnpm lint` — cf79a49e
+- [x] 4.3 Repo-wide grep clean (only global usages remain) — cf79a49e

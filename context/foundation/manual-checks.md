@@ -926,3 +926,19 @@ byte-identical before/after.
 ### Deploy note (migration ordering — deploy-time, not a code check)
 
 - [ ] **Both `20260721_*` migrations must be applied to preview/prod before/with this merge** — `20260721_0_drop_kosztorys_stage_from_transactions` then `20260721_1_add_vat_plane_to_transactions`. The `vat_plane` SELECT in `getDepositTransactionsForInvestment` **500s** if the code ships before the migration runs. Human-applied via `pnpm db:migrate:prod` (per AGENTS.md); order: migrate **before** the code that reads the column lands.
+
+## remove-section-coeff — drop per-section coeff tier + explicit section sidebar buttons
+
+**Not yet driven** — automated gate green (typecheck/lint/234 kosztorys tests, section-coeff grep clean). Removes the per-section subcontractor markup coeff (`wToolsCoeff`/`ownToolsCoeff` on `kosztorys_sections`) — `effectiveCoeff` collapses to global(investment)→per-item-override only — and replaces the icon-only sidebar actions with explicit labeled buttons. Drive against the **5435 test DB**, OWNER/MANAGER, an investment with a seeded kosztorys (≥2 sections, items).
+
+### Sections sidebar (editor "Widok sekcji")
+
+- [ ] Each section shows two **proper stacked buttons** — „Dodaj pozycję do sekcji" (Plus icon) and „Usuń sekcję" (Trash icon, destructive colour) — in a column, not an icon-only row.
+- [ ] „Dodaj pozycję do sekcji" adds a blank item to **that** section (pulls its section into the filter if one is active, so the add is visible).
+- [ ] „Usuń sekcję" opens the confirm dialog and, on confirm, deletes the section + its items.
+- [ ] Editing a section name shows „Zapisz" / „Anuluj" buttons; the rename persists.
+- [ ] **No coeff popover / `SlidersHorizontal` trigger remains** anywhere in the sidebar; per-item price override + the global (investment) coeff in the settings bar still work and reprice the grid.
+
+### Deploy note (migration ordering — deploy-time, not a code check)
+
+- [ ] **`20260724_1_drop_kosztorys_section_coeff` must be applied to preview/prod with this merge.** Drops `w_tools_coeff` / `own_tools_coeff` from `kosztorys_sections` **only** (the investment-level columns of the same name stay). Human-applied via `pnpm db:migrate:prod`; order: migrate **before** the code that stops reading the columns lands. Kosztorys data is throwaway pre-dogfooding, so no backfill is owed.
