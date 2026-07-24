@@ -22,8 +22,6 @@ import {
   type ReconT,
 } from '@/lib/kosztorys/reconciliation'
 import type { SectionSliceInputT } from '@/lib/kosztorys/chart-slices'
-import { SectionSharePie } from './section-share-pie'
-import { CostStructurePie } from './cost-structure-pie'
 
 // The scream's tooltip names both compared figures + the różnica; formatNet because this surface shows
 // kosztorys nets. Shared copy with the investment page (reconciliationTooltip).
@@ -42,8 +40,6 @@ type PropsT = {
   materialsGross: number
   // Per-expense-category split of materialsGross (v1 parity); Σ === materialsGross.
   materialyBreakdown: MaterialyBreakdownRowT[]
-  // Client-priced, view-invariant per-section subtotals — the section pie's structure source.
-  sectionSubtotals: SectionSliceInputT[]
   // Wpłaty netto — the investor's deposits on this investment (totalIncome); subtracted from
   // Łącznie to reach „Do zapłaty". Matches the investment page's „Wpłaty" by construction.
   wplatyNet: number
@@ -79,7 +75,6 @@ export function BruttoNettoSummary({
   doZaplaty,
   materialsGross,
   materialyBreakdown,
-  sectionSubtotals,
   wplatyNet,
   rabatAmount,
   reconciliation,
@@ -161,11 +156,6 @@ export function BruttoNettoSummary({
             />
           </SummaryTable>
         )}
-      </div>
-      {/* DO NOT REMOVE TODO WILL BE BACK! */}
-      <div className="flex flex-wrap items-start gap-x-12 gap-y-8">
-        {/* <SectionSharePie subtotals={sectionSubtotals} /> */}
-        {/* <CostStructurePie sumaPracNet={sumaPracNet} materialyBreakdown={materialyBreakdown} /> */}
       </div>
     </div>
   )

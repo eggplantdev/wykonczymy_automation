@@ -7,10 +7,11 @@ import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
 import { MixedSummary } from '@/components/kosztorys/mixed-summary'
 import { BruttoNettoSummary } from '@/components/kosztorys/brutto-netto-summary'
 import { SlicePie } from '@/components/kosztorys/slice-pie'
+import { Description } from '@/components/ui/description'
 import { type PanelAxisT } from '@/components/kosztorys/use-summary-axis'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import type { KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
-import { costTotalsPieSlices, type SectionSliceInputT } from '@/lib/kosztorys/chart-slices'
+import { costTotalsPieSlices } from '@/lib/kosztorys/chart-slices'
 
 const SUMMARY_AXIS_OPTIONS: OptionT<PanelAxisT>[] = [
   { value: 'net', label: 'Netto' },
@@ -28,7 +29,6 @@ type PropsT = {
   doZaplaty: MoneyPairT
   materialsGross: number
   materialyBreakdown: MaterialyBreakdownRowT[]
-  sectionSubtotals: SectionSliceInputT[]
   wplatyNet: number
   rabatAmount: number
   reconciliation: KosztorysReconciliationT
@@ -53,7 +53,6 @@ export function SummaryOverviewTab({
   doZaplaty,
   materialsGross,
   materialyBreakdown,
-  sectionSubtotals,
   wplatyNet,
   rabatAmount,
   reconciliation,
@@ -97,7 +96,6 @@ export function SummaryOverviewTab({
             doZaplaty={doZaplaty}
             materialsGross={materialsGross}
             materialyBreakdown={materialyBreakdown}
-            sectionSubtotals={sectionSubtotals}
             wplatyNet={wplatyNet}
             rabatAmount={rabatAmount}
             reconciliation={reconciliation}
@@ -125,9 +123,9 @@ export function SummaryOverviewTab({
           onChange={onMoneyAxisChange}
           aria-label="Rozliczenie netto lub brutto"
         />
-        <p className="text-muted-foreground mt-2 max-w-xs text-xs">
+        <Description className="mt-2 max-w-xs text-xs">
           ℹ️ Mieszane oznacza, że inwestycja jest rozliczana częściowo netto, częściowo brutto.
-        </p>
+        </Description>
       </div>
     </div>
   )
