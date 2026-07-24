@@ -8,8 +8,7 @@ const COEFF_TIP = [
   'Cena wykonawcy = cena klienta × mnożnik.',
   '0,65 = wykonawca dostaje 65% ceny klienta.',
   'Dziedziczą go pozycje ze źródłem ceny „auto".',
-  'Sekcja może go nadpisać — inny mnożnik dla każdej sekcji (panel Sekcje).',
-  'Możesz go też nadpisać per pozycja własnym mnożnikiem lub kwotą stałą.',
+  'Możesz go nadpisać per pozycja własnym mnożnikiem lub kwotą stałą.',
 ].join('\n')
 
 type PropsT = {
