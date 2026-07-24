@@ -241,7 +241,7 @@ a failed write — the test-driven-debugging rule).
 
 ## Progress
 
-> Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. Manual verification is tracked in the manual-checks registry (`context/foundation/manual-checks.md`), not here.
+> Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles.
 
 ### Phase 1: Preset storage (global table + DAO)
 

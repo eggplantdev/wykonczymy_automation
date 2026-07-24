@@ -40,7 +40,7 @@ Thread one `clientView` boolean from the client page into `KosztorysEditorBody` 
 
 ## Critical Implementation Details
 
-- **Persistence must be dead, verifiably.** The `clientView` early return goes at the very top of the debounced-save effect in `useKosztorysEditor` (before any timer is armed). Manual check asserts zero save-action POSTs from the client page — this is the load-bearing guarantee that a public page can't mutate.
+- **Persistence must be dead, verifiably.** The `clientView` early return goes at the very top of the debounced-save effect in `useKosztorysEditor` (before any timer is armed). Zero save-action POSTs must fire from the client page — this is the load-bearing guarantee that a public page can't mutate.
 - **Recon gate AND-in.** `reconVisible` at `kosztorys-podsumowanie.tsx:91` must be `false` whenever `clientView`, independent of `priceView`. Missing this shows the owner-internal reconciliation scream to the public.
 - **Money-axis control.** The toolbar (hidden for client) is where the owner sets the money axis. The client body gets a slim header with the existing `MoneyAxisToggle` (net/brutto; `'none'`→`'both'`), so the client can still switch axes without a toolbar.
 

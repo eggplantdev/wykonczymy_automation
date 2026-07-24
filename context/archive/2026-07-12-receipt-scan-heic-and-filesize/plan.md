@@ -187,17 +187,6 @@ row shows a JPEG thumbnail → preview renders) at the review gate, **or** defer
 Linear issue (project "Wykonczymy") with the issue id recorded. "Verified manually on iPhone" does not
 discharge it.
 
-## Manual checks
-
-(Registry: `manual-checks.md` — the Safari spike is the load-bearing one.)
-
-- **Safari-native HEIC spike** — on a real iPhone/Safari, confirm CompressorJS `{ mimeType:
-'image/jpeg' }` actually decodes HEIC → valid JPEG (not a blank canvas). This validates the
-  majority path; if it fails, the WASM fallback must cover Safari too.
-- Chrome/Firefox desktop: pick a HEIC → verify lazy `heic-to` loads and produces a JPEG.
-- Preview + sharp derivative render correctly for a freshly-uploaded HEIC-turned-JPEG.
-- Verify on a **preview deploy** (Vercel), not just local — the 4.5 MB cap is a platform behavior.
-
 ## Risks & Assumptions
 
 - **Safari native decode unverified** — the whole majority path rests on the spike above. Confidence
@@ -217,8 +206,7 @@ discharge it.
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not
-> rename step titles. Manual verification lives in the Manual checks section / `manual-checks.md`
-> registry, not here.
+> rename step titles.
 
 ### Phase 1 — Riders & cleanup
 

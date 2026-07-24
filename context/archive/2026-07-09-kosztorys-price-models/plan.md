@@ -111,15 +111,6 @@ with `view`) is unaffected.
 - Unit suite still green: `pnpm exec vitest run`
 - Build compiles: `pnpm build`
 
-#### Manual Verification:
-
-- Switch to "Z narzędziami", reload → grid still on "Z narzędziami".
-- Investment A on one view, investment B on another → each remembers independently.
-- Private-mode / disabled localStorage → no crash; view just doesn't persist (defaults to client).
-
-**Implementation Note**: After automated verification passes, pause for manual confirmation before
-Phase 2.
-
 ---
 
 ## Phase 2: Relabel client view + pricing-model explainer
@@ -162,12 +153,6 @@ keep it to a few lines.
 - Lint passes: `pnpm lint`
 - Build compiles: `pnpm build`
 
-#### Manual Verification:
-
-- Client view button reads "Klient"; the two subcontractor labels unchanged.
-- The (i) icon renders beside the toggle and its popover explains the three views + price mode.
-- No layout shift / grid height regression from the added icon.
-
 **Implementation Note**: Final human sign-off closes the slice → run the slice-review gate, then the
 roadmap reconciliation below.
 
@@ -180,12 +165,6 @@ roadmap reconciliation below.
 - None warranted. The change is a localStorage-backed UI-state hook + label/tooltip copy; the pure
   calc/rows core (already unit-tested) is untouched. A hook test would assert localStorage plumbing
   (implementation), not observable behavior — skipped per the test-plan's cost×signal principle.
-
-### Manual Testing Steps:
-
-1. Switch view → reload → view persists; repeat per investment (independent keys).
-2. Disable localStorage (private window) → no crash, defaults to Klient.
-3. Confirm "Klient" label + tooltip copy; no grid layout regression.
 
 ## Migration Notes
 

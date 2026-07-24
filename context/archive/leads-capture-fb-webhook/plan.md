@@ -161,15 +161,6 @@ add is a manual human step, noted in Migration Notes.)
 - Migration applies to local DB: `pnpm payload migrate` against the docker Postgres (5433)
 - `leads` table + `leads_source_external_id_idx` exist in the local DB
 
-#### Manual Verification:
-
-- The `leads` collection appears in the Payload admin panel under the expected group
-- A row can be created manually in admin with all fields, and the compound unique index rejects a
-  duplicate `(source, externalId)`
-
-**Implementation Note**: After automated verification passes, pause for human confirmation of the
-manual admin check before proceeding.
-
 ---
 
 ## Phase 2: Pure Units (TDD)
@@ -223,11 +214,6 @@ safety-net path, never throws/drops**.
 - Unit tests pass: `pnpm exec vitest run src/lib/leads/verify-signature.test.ts src/lib/leads/lead-schema.test.ts src/lib/leads/normalize-lead.test.ts`
 - Typecheck passes: `pnpm exec tsc --noEmit`
 - Lint passes: `pnpm lint`
-
-#### Manual Verification:
-
-- Spot-check the normalize fixtures against `.local/fb-leads/fb_leads_dataset.json` to confirm they
-  mirror real field shapes (not invented)
 
 ---
 
@@ -292,16 +278,6 @@ happens before notify (never lose a lead).
 - Integration + unit tests pass: `pnpm exec vitest run src/lib/leads/`
 - Typecheck passes: `pnpm exec tsc --noEmit`
 - Lint passes: `pnpm lint`
-
-#### Manual Verification:
-
-- Fire a real lead via the Lead Ads Testing Tool → a row appears in `leads`, a heads-up email arrives,
-  `notifyStatus = 'sent'`
-- Re-fire the same lead (or replay) → no duplicate row, no second email
-- Post a body with a bad/missing signature → 403, nothing stored
-
-**Implementation Note**: After automated verification passes, pause for human confirmation of the live
-test-lead check before proceeding.
 
 ---
 
@@ -369,16 +345,6 @@ title="Zgłoszenia"><LeadsDataTable data={leads} /></PageWrapper>`. Client `Lead
 - Lint passes: `pnpm lint`
 - Build passes: `pnpm build`
 
-#### Manual Verification:
-
-- `/zgloszenia` lists captured submissions with all columns; test leads visibly flagged
-- Toggling `contactStatus` updates instantly (optimistic) and persists across a refresh
-- A non-Management user cannot reach `/zgloszenia`
-- Notify + auto-reply status badges render (auto-reply stays `pending`)
-
-**Implementation Note**: After automated verification passes, pause for human confirmation of the UI
-check. This is the final phase.
-
 ---
 
 ## Testing Strategy
@@ -394,14 +360,6 @@ check. This is the final phase.
 
 - `store-lead` idempotency: same `(source, externalId)` twice → one row (risk 3)
 - captured-but-not-notified: `sendEmail` throws → lead persisted with `notifyStatus = 'failed'` (risk 5)
-
-### Manual Testing Steps:
-
-1. Fire a lead via the Lead Ads Testing Tool → row in `/zgloszenia`, heads-up email, `notifyStatus='sent'`.
-2. Re-fire same lead → no duplicate, no second email.
-3. POST with a bad signature → 403, nothing stored.
-4. Toggle `contactStatus` in `/zgloszenia` → instant + persists.
-5. Non-Management user blocked from `/zgloszenia`.
 
 ## Performance Considerations
 
@@ -442,11 +400,6 @@ ample. No virtualization needed initially (`DataTable` supports it later if the 
 - [x] 1.4 Migration applies to local DB (`pnpm payload migrate`) — 0fd0959
 - [x] 1.5 `leads` table + compound unique index exist in local DB — 0fd0959
 
-#### Manual
-
-- [x] 1.6 `leads` collection visible in admin under its group — 0fd0959
-- [x] 1.7 Manual row creates; duplicate `(source, externalId)` rejected — 0fd0959
-
 ### Phase 2: Pure Units (TDD)
 
 #### Automated
@@ -454,10 +407,6 @@ ample. No virtualization needed initially (`DataTable` supports it later if the 
 - [x] 2.1 verify-signature / lead-schema / normalize-lead unit tests pass — 73ae1a2
 - [x] 2.2 Typecheck passes — 73ae1a2
 - [x] 2.3 Lint passes — 73ae1a2
-
-#### Manual
-
-- [x] 2.4 Normalize fixtures spot-checked against the real dump (fabricated PII, real shape) — 73ae1a2
 
 ### Phase 3: Persistence, Notify & Webhook Wiring
 
@@ -467,12 +416,6 @@ ample. No virtualization needed initially (`DataTable` supports it later if the 
 - [x] 3.2 Typecheck passes — 3c49ed4
 - [x] 3.3 Lint passes — 3c49ed4
 
-#### Manual
-
-- [ ] 3.4 Live test lead → row + email + `notifyStatus='sent'`
-- [ ] 3.5 Re-fired lead → no duplicate, no second email
-- [ ] 3.6 Bad signature → 403, nothing stored
-
 ### Phase 4: Submissions Table View
 
 #### Automated
@@ -480,10 +423,3 @@ ample. No virtualization needed initially (`DataTable` supports it later if the 
 - [x] 4.1 Typecheck passes — 37e1d3a
 - [x] 4.2 Lint passes — 37e1d3a
 - [x] 4.3 Build passes (`pnpm build`) — 37e1d3a
-
-#### Manual
-
-- [ ] 4.4 `/zgloszenia` lists submissions with all columns; test leads flagged
-- [ ] 4.5 contactStatus toggle instant + persists
-- [ ] 4.6 Non-Management user blocked from `/zgloszenia`
-- [ ] 4.7 Notify + auto-reply badges render (auto-reply stays `pending`)

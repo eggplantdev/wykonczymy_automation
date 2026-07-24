@@ -112,10 +112,6 @@ All pure logic: the progress-display axis model and predicate, fraction helpers 
 - Type checking passes: `pnpm typecheck`
 - Linting passes: `pnpm lint`
 
-#### Manual Verification:
-
-- None — no UI in this phase.
-
 ---
 
 ## Phase 2: Grid columns react to the display mode
@@ -166,15 +162,6 @@ The per-stage % column group, the per-row "% wykonania" column, the localStorage
 - Type checking passes: `pnpm typecheck`
 - Linting passes: `pnpm lint`
 
-#### Manual Verification:
-
-- With the hook default temporarily flipped to `'percent'` (or localStorage edited): stage value netto/brutto columns disappear, one % column per stage appears, values elsewhere unchanged.
-- "% wykonania" row column visible by default in both modes; hideable via the picker.
-- A row with `measuredQty = 0` renders "—" in all % cells; a row with qtyDone > measuredQty renders >100% literally.
-- No grid flicker/remount when switching modes (EX-422 class).
-
-**Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation from the human that the manual testing was successful before proceeding to the next phase.
-
 ---
 
 ## Phase 3: Toolbar toggle + progress counter + section done %
@@ -217,16 +204,6 @@ The user-facing controls: the values/percent `ToggleGroup`, the whole-kosztorys 
 - Type checking passes: `pnpm typecheck`
 - Linting passes: `pnpm lint`
 
-#### Manual Verification:
-
-- Toggle switches modes instantly, persists across reload (localStorage), independent of the money axis and price view toggles.
-- Counter shows sensible percent + values; switches netto→brutto with the axis; unaffected by search/section filter; empty kosztorys shows "—".
-- Section rows show done % consistent with their rows' progress; a section with no value shows "—".
-- Percent figures agree across surfaces (row %, section %, counter) for a simple hand-checkable dataset (e.g. seeded INV=6).
-- No layout breakage in the toolbar at narrow widths (flex-wrap row).
-
-**Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation from the human that the manual testing was successful.
-
 ---
 
 ## Testing Strategy
@@ -245,14 +222,6 @@ The user-facing controls: the values/percent `ToggleGroup`, the whole-kosztorys 
 ### Browser E2E:
 
 - This is a browser-level slice — per AGENTS.md it owes an E2E (toggle → column set changes → counter visible) authored at the review gate, or deferred to the `e2e-backlog` Linear label with the issue id recorded.
-
-### Manual Testing Steps:
-
-1. Open a seeded kosztorys (`INV=6` seed), toggle Kwoty ↔ % wykonania, verify column swap and persistence after reload.
-2. Cross-check one row by hand: qtyDone/pomiar per stage vs the % cells, row % = Σ qtyDone / pomiar, section % and counter consistent.
-3. Set a row's pomiar to 0 → "—" everywhere for that row; enter qtyDone > pomiar → >100% shown raw.
-4. Switch money axis and price view in percent mode — % figures unchanged, counter values follow the axis.
-5. Hide "Etapy — % wykonania" and "% wykonania" via the picker in percent mode — picker wins.
 
 ## Performance Considerations
 

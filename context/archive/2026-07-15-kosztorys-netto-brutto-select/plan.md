@@ -158,10 +158,6 @@ conjunction over the same `toggleKey(c.id ?? '')`: not hidden **and** axis-allow
 - New axis specs pass: `pnpm exec vitest run src/__tests__/kosztorys-money-axis.test.ts`
 - The existing kosztorys suites still pass: `pnpm exec vitest run src/__tests__/kosztorys-calc.test.ts src/__tests__/kosztorys-v2-rows.test.ts src/__tests__/kosztorys-column-widths.test.ts`
 
-#### Manual Verification:
-
-- (none — no user-reachable surface exists until Phase 2)
-
 ---
 
 ## Phase 2: The toolbar control
@@ -215,22 +211,6 @@ picker already allows.
 - Linting passes: `pnpm lint`
 - Full unit suite passes: `pnpm test`
 
-#### Manual Verification:
-
-- `Netto` drops all six brutto columns from the grid; `Cena j.m. netto` stays.
-- `Brutto` drops `Wartość przedmiaru netto`, `Netto`, `Pozostało netto`, `Rabat kwota netto`, and the
-  per-stage netto block — and `Cena j.m. netto` still stays.
-- `Oba` restores exactly what the picker allows (stage brutto stays hidden — `DEFAULT_HIDDEN_COLUMNS`).
-- The mode survives a page reload and holds across all three price views.
-- The column picker's menu is unchanged in every mode — a picker-checked column that the mode hid
-  still reads as checked.
-- `Suma netto` and `Suma brutto` both stay in the Sekcje panel in every mode.
-- No flicker or scroll jump when switching modes on a large kosztorys (`INV=7`, ~1000 rows).
-- The non-guarantee reads acceptably: hide `Brutto` in the picker, set mode `Brutto` → the column
-  stays off screen. Confirm this doesn't read as a broken control.
-
-**Implementation Note**: After Phase 2's automated verification passes, pause for manual confirmation.
-
 ---
 
 ## Testing Strategy
@@ -255,11 +235,6 @@ no DOM, no grid) and asserting the **rendered column ids**, not the predicate's 
 ### Integration Tests:
 
 None. There is no server boundary, no DB, and no action in this change.
-
-### Manual Testing Steps:
-
-The Phase 2 Manual Verification list is the script; run it against `INV=6` (realistic rozpiska) and
-re-check the flicker/scroll item against `INV=7` (~1000 rows). Seeding commands are in `AGENTS.md`.
 
 ## Performance Considerations
 

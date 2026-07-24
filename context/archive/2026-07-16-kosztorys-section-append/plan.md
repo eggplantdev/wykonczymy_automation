@@ -108,10 +108,6 @@ Everything the picker needs from the server: a slim cross-preset section listing
 - Type checking passes: `pnpm exec tsc --noEmit`
 - Linting passes: `pnpm lint`
 
-#### Manual Verification:
-
-- (none — server-only phase; browser checks land in Phase 2)
-
 ---
 
 ## Phase 2: UI — picker dialog + entry points + grid patch
@@ -162,16 +158,6 @@ The cmdk picker dialog, wired into the „Dodaj" menu and the empty-kosztorys di
 - Linting passes: `pnpm lint`
 - Unit/integration suites still pass: `pnpm test`
 
-#### Manual Verification:
-
-- Non-empty kosztorys: „Dodaj" → „Sekcja z szablonu…" → check two sections from two different szablony → both appear at the end of the grid with prace, ceny and coefficients, przedmiary 0 — without a page reload; sidepanel section list shows them.
-- Empty kosztorys: blocking dialog offers the picker; composing from two picked sections lands the populated editor (remount path) with no blank-section litter.
-- Search in the picker filters across all szablony; group headers show the source szablon; item counts are correct.
-- Duplicate case: appending „Łazienka" into a kosztorys that already has „Łazienka" yields two sections, both editable.
-- Error case: no szablony saved → picker shows the empty-state message, confirm disabled.
-
-**Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation from the human that the manual testing was successful.
-
 ---
 
 ## Testing Strategy
@@ -183,11 +169,6 @@ The cmdk picker dialog, wired into the „Dodaj" menu and the empty-kosztorys di
 ### Integration Tests:
 
 - `append-preset-sections.test.ts` (Phase 1, specs a–e above) — the persisted-state layer, matching the S-09 precedent.
-
-### Manual Testing Steps:
-
-1. Seed local dev with `INV=6 node --env-file=.env --import tsx src/scripts/seed-kosztorys.ts`, save the kosztorys as a szablon, save a second variant under another name.
-2. Run the Phase 2 manual checks above against both a populated and a fresh investment.
 
 ### E2E:
 

@@ -67,8 +67,7 @@ recomputed — and **Cmd+Shift+Z** / **⟳** re-applies it. A fresh edit clears 
 buttons disable when their stack is empty. A per-keystroke burst collapses into one undo entry. An
 idle editor no longer writes duplicate auto-snapshots.
 
-Verify: typecheck + lint clean; the ported unit suites pass; the manual checklist (§ S-07) passes
-against the 5435/5433 DB with psql confirmation.
+Verify: typecheck + lint clean; the ported unit suites pass.
 
 ### Key Discoveries
 
@@ -131,8 +130,7 @@ drives our stack **only when no editable field is actively focused** (`document.
 `input`/`textarea`/`contenteditable`, which also protects the snapshot-label and rename inputs);
 while a cell/input is being edited, the key falls through to dsg's native character-level undo. This
 is the branch's verified behavior. The boundary — a native undo of a value that already coalesced
-into our stack — is the sharp edge; it is exercised in the manual checklist here and pinned by the
-deferred E2E.
+into our stack — is the sharp edge, pinned by the deferred E2E.
 
 **Reconciling undo with the debounced saver.** An undo of a field must **cancel the pending debounced
 save** for that key before writing the inverse, or the stale forward-save races the inverse.
@@ -232,22 +230,6 @@ re-swaps. No `prevById` touch (display_order isn't a diffed field), no totals re
 - Linting passes: `pnpm lint`
 - Ported unit suites pass: `pnpm exec vitest run src/__tests__/components/kosztorys/use-undo-redo.test.ts src/__tests__/kosztorys-undo-coalesce.test.ts`
 
-#### Manual Verification:
-
-- Edit a cell → Cmd+Z reverts the value in the grid **and** the DB (psql read on 5435/5433);
-  Cmd+Shift+Z re-applies it.
-- Edit a stage-progress cell → undo/redo reverses/re-applies it and section totals recompute.
-- ▲▼ reorder a row → undo restores the original order (`display_order` back to original).
-- Toolbar ⟲/⟳ perform the same and disable correctly at stack ends.
-- Type a multi-character value, then **one** Cmd+Z → the whole word reverts (not one char) — burst
-  coalescing at the browser level.
-- **Cmd+Z coexistence (layered handoff):** while actively typing in a cell, Cmd+Z does native
-  character undo; after committing/blurring, Cmd+Z does a stack undo. **Record any misroute** — this
-  is the flagged boundary.
-
-**Implementation Note**: After Phase 1 automated verification passes, pause for manual confirmation
-(especially the flagged Cmd+Z coexistence) before Phase 2.
-
 ---
 
 ## Phase 2: Panel-edit commands (rename / VAT / coefficients)
@@ -282,16 +264,6 @@ section-rename key on undo (rename routes through `save`).
 - Linting passes: `pnpm lint`
 - Ported inverse-coeff unit suite passes: `pnpm exec vitest run src/__tests__/lib/kosztorys/inverse-coeff-patch.test.ts`
 
-#### Manual Verification:
-
-- Rename a section → undo restores the old name in the grid header and DB.
-- Change per-investment VAT → undo restores the old rate; every row's Brutto recomputes back.
-- Change a global and a section coefficient → undo restores each; derived subcontractor prices
-  recompute back under the active price view.
-- Interleave a panel edit with grid edits and undo across the boundary in LIFO order.
-
-**Implementation Note**: Pause for manual confirmation before Phase 3.
-
 ---
 
 ## Phase 3: S-06 idle-snapshot dirty-flag gate
@@ -324,16 +296,8 @@ unconditional.
 - Linting passes: `pnpm lint`
 - Full kosztorys unit suite passes: `pnpm exec vitest run src/__tests__/lib/kosztorys src/__tests__/components/kosztorys`
 
-#### Manual Verification:
-
-- Open the editor and leave it idle past one interval tick → no new `auto` snapshot row appears
-  (Wersje drawer / DB).
-- Make one edit, wait a tick → exactly one new `auto` snapshot appears; idle again → no further ones.
-- A forced pre-delete snapshot (delete an empty section/stage) still fires regardless of the gate.
-
-**Implementation Note**: Final phase — aggregate the manual-verification bullets into
-`context/foundation/manual-checks.md` (§ S-07), and file the deferred browser E2E as an `e2e-backlog`
-Linear issue in project "Wykonczymy" before closing the review gate.
+**Implementation Note**: Final phase — file the deferred browser E2E as an `e2e-backlog` Linear issue
+in project "Wykonczymy" before closing the review gate.
 
 ---
 
@@ -355,11 +319,6 @@ Linear issue in project "Wykonczymy" before closing the review gate.
   toolbar disabled-states track the stack; a multi-char value undone once reverts the whole word
   (coalescing regression guard); and the layered Cmd+Z boundary (native char-undo while editing vs
   stack undo when blurred).
-
-### Manual Testing Steps
-
-Per each phase's Manual Verification bullets, driven as OWNER against the 5435/5433 DB with psql
-confirmation of persisted state.
 
 ## Performance Considerations
 

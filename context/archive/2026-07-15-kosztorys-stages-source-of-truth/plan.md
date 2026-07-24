@@ -255,11 +255,6 @@ też na Przedmiarze) łapałaby niemal każdy wiersz w gotowym kosztorysie.
 - Typecheck przechodzi: `pnpm typecheck`
 - Lint przechodzi: `pnpm lint`
 
-#### Manual Verification:
-
-- „Pomiar z natury" nie przyjmuje wpisu; edycja etapu zmienia go natychmiast
-- Wiersz z zerowymi etapami da się skasować, nawet jeśli ma za sobą historię pomiaru
-
 ---
 
 ## Phase 2: Kotwica w Przedmiarze
@@ -367,12 +362,6 @@ Docstring `:364-372` twierdzi „Both settle at 100% by construction now" — po
 - Lint przechodzi: `pnpm lint`
 - `sectionDoneNetForView` / `kosztorysDoneNetForView` usunięte, typecheck zielony
 
-#### Manual Verification:
-
-- Wiersz z etapami przekraczającymi Przedmiar: „Pozostało" ujemne, komórka czerwona, licznik > 100%
-- Wiersz bez Przedmiaru: „Pozostało" = „—", brak czerwieni, sortowanie spycha go na koniec
-- Przełączanie widoku ceny nie zmienia żadnego procentu
-
 ---
 
 ## Phase 3: Rabat w wartości przedmiaru
@@ -423,10 +412,6 @@ z akapitem „Not sheet parity", który tłumaczy rozbieżność, której już n
 - Cała suita jednostkowa przechodzi: `pnpm test`
 - Typecheck przechodzi: `pnpm typecheck`
 - Lint przechodzi: `pnpm lint`
-
-#### Manual Verification:
-
-- „Wartość netto przedmiar" przy rabacie 10% jest o 10% niższa niż `Przedmiar × cena`, a tooltip mówi dlaczego
 
 ---
 
@@ -516,11 +501,6 @@ równoległe kwoty). Wskaźnik do `AGENTS.md` → „The Owner's Reference Sheet
 - Build przechodzi: `pnpm build`
 - `grep -rn "measuredQty\|measured_qty" src/` nic nie zwraca
 
-#### Manual Verification:
-
-- Po `INV=6 … seed-kosztorys.ts` zaseedowany kosztorys ma niezerowy „Pomiar z natury" w wierszach z robotą
-- Odtworzenie kopii zapasowej przywraca etapy, a „Pomiar z natury" liczy się z nich
-
 ---
 
 ## Testing Strategy
@@ -561,17 +541,6 @@ logowanie — osobna robota, większa niż sama zmiana.
 
 **Decyzja właściciela: do backlogu.** Założyć zadanie w Linear (projekt „Wykonczymy", etykieta
 `e2e-backlog`) i zapisać jego id przy bramce review — sam commit tego nie zamyka.
-
-### Manual Testing Steps:
-
-1. `INV=6 node --env-file=.env --import tsx src/scripts/seed-kosztorys.ts`, otworzyć edytor v2
-2. Spróbować wpisać coś w „Pomiar z natury" → nie da się; zmienić etap → pomiar zmienia się sam
-3. Wpisać etapy przekraczające Przedmiar → „Pozostało" ujemne, komórka czerwona, licznik > 100%
-4. Wyczyścić Przedmiar → „Pozostało" = „—", czerwień gaśnie, sortowanie spycha wiersz na koniec
-5. Ustawić rabat 10% → „Wartość netto przedmiar" spada; tooltip tłumaczy dlaczego
-6. Rabat kwotowy → suma kolumn wartości etapów = „Wartość netto" wiersza co do grosza
-7. Przełączyć widoki ceny (klient / z narzędziami / własne narzędzia) i powtórzyć 6
-8. Skasować wiersz z Przedmiarem i zerowymi etapami → udaje się; z wpisanym etapem → blokada
 
 ## Performance Considerations
 
