@@ -1,11 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { Eye, Redo2, Undo2 } from 'lucide-react'
+import { ChevronDown, Eye, Redo2, Undo2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { KosztorysActionsMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-actions-menu'
 import { KosztorysShareDialog } from '@/components/kosztorys/editor/dialogs/kosztorys-share-dialog'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import { useTotalsPanelOpen } from '@/components/kosztorys/summary/hooks/use-totals-panel-open'
 import { cn } from '@/lib/utils/cn'
 
 export function KosztorysToolbarActions() {
@@ -19,6 +20,7 @@ export function KosztorysToolbarActions() {
     canUndo,
     canRedo,
   } = useKosztorysEditorContext()
+  const [totalsOpen, setTotalsOpen] = useTotalsPanelOpen()
 
   return (
     <div className="ml-auto flex items-center gap-1">
@@ -61,6 +63,17 @@ export function KosztorysToolbarActions() {
         onClick={() => setSummaryOpen((o) => !o)}
       >
         Sekcje
+      </Button>
+      <Button
+        size="sm"
+        variant={totalsOpen ? 'default' : 'outline'}
+        className={cn(totalsOpen && 'border border-transparent')}
+        onClick={() => setTotalsOpen(!totalsOpen)}
+      >
+        <ChevronDown
+          className={cn('transition-transform duration-200', totalsOpen && 'rotate-180')}
+        />
+        Podsumowanie
       </Button>
     </div>
   )
