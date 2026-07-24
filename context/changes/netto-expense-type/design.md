@@ -160,7 +160,7 @@ Data is throwaway (kosztorys/spike scope) — no backfill. Add `net_rate numeric
 - Touching `vatPlane` (the deposit NET/GROSS field) — unrelated concept, left alone.
 - Reworking the global toggle's UX beyond the carve-out.
 
-## Open decision
+## Resolved decisions
 
-- **netRate: editable per expense, default 23** — chosen here (an invoice may carry a non-23 VAT).
-  If the owner wants a fixed 23% instead, drop the field and use a constant. Flag before implementing.
+- **netRate: editable per expense, default 23** — confirmed by owner (2026-07-24). An invoice may
+  carry a non-23 VAT, so the rate is a per-expense field, not a constant.
