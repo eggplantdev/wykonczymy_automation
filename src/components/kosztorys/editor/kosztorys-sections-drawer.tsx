@@ -1,46 +1,30 @@
 'use client'
 
 import { useState } from 'react'
-import { Check, Pencil, Plus, SlidersHorizontal, Trash2, X } from 'lucide-react'
+import { Check, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { DecimalField } from '@/components/ui/decimal-field'
 import { KosztorysSectionFilterMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-section-filter-menu'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Input } from '@/components/ui/input'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Description } from '@/components/ui/description'
 import { formatNet as fmt } from '@/lib/kosztorys/format'
 import type { SectionSubtotalT } from '@/lib/kosztorys/types'
 
-type SectionCoeffsT = { wTools: number | null; ownTools: number | null }
-
 type PropsT = {
   subtotals: SectionSubtotalT[]
-  // Only to render the inherited value as each section field's placeholder — the global coeffs are
-  // edited in the toolbar's settings row, not here.
-  globalCoeffs: { wTools: number; ownTools: number }
-  sectionCoeffs: Map<number, SectionCoeffsT>
   onClose: () => void
   onAddSection: () => void
   onAddItem: (sectionId: number) => void
   onRenameSection: (sectionId: number, name: string) => void
   onRemoveSection: (sectionId: number) => void
-  onSectionCoeffChange: (
-    sectionId: number,
-    patch: { wToolsCoeff?: number | null; ownToolsCoeff?: number | null },
-  ) => void
 }
 
 export function KosztorysSectionSummary({
   subtotals,
-  globalCoeffs,
-  sectionCoeffs,
   onClose,
   onAddSection,
   onAddItem,
   onRenameSection,
   onRemoveSection,
-  onSectionCoeffChange,
 }: PropsT) {
   const [editId, setEditId] = useState<number | null>(null)
   const [draft, setDraft] = useState('')
@@ -104,88 +88,45 @@ export function KosztorysSectionSummary({
                 <span className="text-foreground shrink-0 text-sm tabular-nums">{fmt(s.net)}</span>
               </div>
 
-              <div className="text-muted-foreground mt-1 flex flex-col gap-1 text-xs">
-                <div className="flex items-center gap-0.5">
-                  {isEditing ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={commitEdit}
-                        title="Zapisz nazwę"
-                        className="hover:text-foreground p-1"
-                      >
-                        <Check />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditId(null)}
-                        title="Anuluj"
-                        className="hover:text-foreground p-1"
-                      >
-                        <X />
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <button
-                            type="button"
-                            title="Mnożnik ceny wykonawcy dla sekcji"
-                            className="hover:text-foreground p-1"
-                          >
-                            <SlidersHorizontal />
-                          </button>
-                        </PopoverTrigger>
-                        <PopoverContent align="end" className="w-56 p-3">
-                          <p className="text-foreground mb-2 text-xs font-medium">
-                            Mnożnik ceny wykonawcy
-                          </p>
-                          <Description className="mb-2 text-xs">
-                            Puste = dziedziczy mnożnik globalny.
-                          </Description>
-                          <div className="flex flex-col gap-1">
-                            <DecimalField
-                              label="z narzędziami"
-                              nullable
-                              value={sectionCoeffs.get(s.sectionId)?.wTools ?? null}
-                              placeholder={globalCoeffs.wTools}
-                              onCommit={(n) =>
-                                onSectionCoeffChange(s.sectionId, { wToolsCoeff: n })
-                              }
-                            />
-                            <DecimalField
-                              label="bez narzędzi"
-                              nullable
-                              value={sectionCoeffs.get(s.sectionId)?.ownTools ?? null}
-                              placeholder={globalCoeffs.ownTools}
-                              onCommit={(n) =>
-                                onSectionCoeffChange(s.sectionId, { ownToolsCoeff: n })
-                              }
-                            />
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                      <button
-                        type="button"
-                        onClick={() => onAddItem(s.sectionId)}
-                        title="Dodaj pozycję"
-                        className="hover:text-foreground p-1"
-                      >
-                        <Plus />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => confirmRemove(s)}
-                        title="Usuń sekcję"
-                        className="hover:text-destructive p-1"
-                      >
-                        <Trash2 />
-                      </button>
-                    </>
-                  )}
+              {isEditing ? (
+                <div className="mt-1.5 flex items-center gap-1.5">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="flex-1 gap-1.5"
+                    onClick={commitEdit}
+                  >
+                    <Check className="size-4" /> Zapisz
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="flex-1 gap-1.5"
+                    onClick={() => setEditId(null)}
+                  >
+                    <X className="size-4" /> Anuluj
+                  </Button>
                 </div>
-              </div>
+              ) : (
+                <div className="mt-1.5 flex flex-col gap-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full justify-start gap-1.5"
+                    onClick={() => onAddItem(s.sectionId)}
+                  >
+                    <Plus className="size-4" /> Dodaj pozycję do sekcji
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-destructive hover:text-destructive w-full justify-start gap-1.5"
+                    onClick={() => confirmRemove(s)}
+                  >
+                    <Trash2 className="size-4" /> Usuń sekcję
+                  </Button>
+                </div>
+              )}
             </li>
           )
         })}

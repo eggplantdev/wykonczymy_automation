@@ -20,12 +20,7 @@ import { useElementHeight } from '@/hooks/use-element-height'
 import { toastMessage } from '@/lib/utils/toast'
 import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import { type V2SortStateT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
-import {
-  diffRow,
-  inverseGlobalCoeffPatch,
-  inverseSectionCoeffPatch,
-  treeToRows,
-} from '@/lib/kosztorys/v2-rows'
+import { diffRow, inverseGlobalCoeffPatch, treeToRows } from '@/lib/kosztorys/v2-rows'
 import {
   applyAddItem,
   applyInsertItem,
@@ -395,11 +390,6 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false, und
   // view's subcontractor price, pre-rabat. Reactive to unsaved edits and the view toggle via subtotals.
   const subcontractorDueNet = useMemo(() => executedWorkNetPreRabat(subtotals), [subtotals])
 
-  // Section coefficients (null = inherits the global) for the panel — from the tree, keyed by section id.
-  const sectionCoeffs = new Map(
-    tree.sections.map((s) => [s.id, { wTools: s.wToolsCoeff, ownTools: s.ownToolsCoeff }]),
-  )
-
   // revert-on-error: roll an optimistic field edit back to its pre-save value
   // (rows + diff snapshot) when the server rejects it. The "current === attempted" guard lives
   // in revertField — we don't stomp on a newer edit.
@@ -514,8 +504,6 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false, und
       globalDiscountActive,
       sectionDefaultCostVariant:
         sample?.sectionDefaultCostVariant ?? NEW_SECTION_DEFAULTS.defaultCostVariant,
-      sectionWToolsCoeff: sample?.sectionWToolsCoeff ?? null,
-      sectionOwnToolsCoeff: sample?.sectionOwnToolsCoeff ?? null,
       globalWToolsCoeff: tree.globalCoeffs.wTools,
       globalOwnToolsCoeff: tree.globalCoeffs.ownTools,
       stages,
@@ -548,8 +536,6 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false, und
       vatRate: tree.vatRate,
       globalDiscountActive,
       sectionDefaultCostVariant: sample.sectionDefaultCostVariant,
-      sectionWToolsCoeff: sample.sectionWToolsCoeff,
-      sectionOwnToolsCoeff: sample.sectionOwnToolsCoeff,
       globalWToolsCoeff: tree.globalCoeffs.wTools,
       globalOwnToolsCoeff: tree.globalCoeffs.ownTools,
       stages,
@@ -652,8 +638,6 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false, und
       vatRate: tree.vatRate,
       globalDiscountActive,
       sectionDefaultCostVariant: NEW_SECTION_DEFAULTS.defaultCostVariant,
-      sectionWToolsCoeff: null,
-      sectionOwnToolsCoeff: null,
       globalWToolsCoeff: tree.globalCoeffs.wTools,
       globalOwnToolsCoeff: tree.globalCoeffs.ownTools,
       stages,
@@ -941,51 +925,6 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false, und
     )
   }
 
-  // Section coefficient (null = inherits the global) — patch only the rows of that section.
-  async function applySectionCoeff(
-    sectionId: number,
-    patch: { wToolsCoeff?: number | null; ownToolsCoeff?: number | null },
-  ) {
-    // `in` (not `!= null`): a null coefficient means "inherit the global" — a valid value to write,
-    // distinct from "this field wasn't touched". Mirrors handleGlobalCoeffChange.
-    const sample = rowsRef.current.find((r) => r.sectionId === sectionId)
-    const inSection = (r: KosztorysV2RowT) => r.sectionId === sectionId
-    const applied: { sectionWToolsCoeff?: number | null; sectionOwnToolsCoeff?: number | null } = {}
-    if ('wToolsCoeff' in patch) applied.sectionWToolsCoeff = patch.wToolsCoeff ?? null
-    if ('ownToolsCoeff' in patch) applied.sectionOwnToolsCoeff = patch.ownToolsCoeff ?? null
-    patchRows(inSection, (r) => ({ ...r, ...applied }))
-    await optimisticSettingSave(
-      () => updateSectionFieldAction(sectionId, patch),
-      () => {
-        // Restore the section's prior coefficients so the grid doesn't show an unsaved price.
-        if (!sample) return
-        const restored: {
-          sectionWToolsCoeff?: number | null
-          sectionOwnToolsCoeff?: number | null
-        } = {}
-        if ('wToolsCoeff' in patch) restored.sectionWToolsCoeff = sample.sectionWToolsCoeff
-        if ('ownToolsCoeff' in patch) restored.sectionOwnToolsCoeff = sample.sectionOwnToolsCoeff
-        patchRows(inSection, (r) => ({ ...r, ...restored }))
-      },
-      'Nie udało się zapisać współczynnika sekcji',
-    )
-  }
-
-  async function handleSectionCoeffChange(
-    sectionId: number,
-    patch: { wToolsCoeff?: number | null; ownToolsCoeff?: number | null },
-  ) {
-    const sample = rowsRef.current.find((r) => r.sectionId === sectionId)
-    const before = inverseSectionCoeffPatch(patch, sample)
-    await applySectionCoeff(sectionId, patch)
-    pushReversible(
-      'Zmiana współczynnika sekcji',
-      (p: typeof patch) => applySectionCoeff(sectionId, p),
-      before,
-      patch,
-    )
-  }
-
   function onChange(next: KosztorysV2RowT[]) {
     // The load-bearing persistence kill-switch: a clientView grid is read-only, but this guards the
     // one path that could still POST — so no save, undo capture, or refresh ever fires on the public page.
@@ -1091,7 +1030,6 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false, und
     sumaPracNet,
     rabatClientNet,
     plannedNet,
-    sectionCoeffs,
     globalDiscount,
     discountAmount,
     rabatAmount,
@@ -1114,7 +1052,6 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false, und
     handleRenameSection,
     handleRemoveSection,
     handleGlobalCoeffChange,
-    handleSectionCoeffChange,
     handleVatChange,
     handleGlobalDiscountChange,
     // undo/redo (stack lives in the shell; consumed by the toolbar + keyboard). Both flush a

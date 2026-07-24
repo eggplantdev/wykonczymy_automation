@@ -23,7 +23,10 @@ import {
 import { toGross } from '@/lib/kosztorys/calc'
 import { buildKosztorysReconciliation } from '@/lib/kosztorys/reconciliation'
 import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
-import { NOOP_UNDO_REDO, type UndoRedoApiT } from '@/components/kosztorys/editor/hooks/use-undo-redo'
+import {
+  NOOP_UNDO_REDO,
+  type UndoRedoApiT,
+} from '@/components/kosztorys/editor/hooks/use-undo-redo'
 import type { KosztorysEditorDataT } from '@/lib/kosztorys/types'
 
 type PropsT = KosztorysEditorDataT & {
@@ -78,7 +81,6 @@ export function KosztorysEditorBody({
     view,
     moneyAxis,
     setMoneyAxis,
-    sectionCoeffs,
     summaryOpen,
     setSummaryOpen,
     onChange,
@@ -86,7 +88,6 @@ export function KosztorysEditorBody({
     handleAddSection,
     handleRenameSection,
     handleRemoveSection,
-    handleSectionCoeffChange,
   } = editor
 
   useUndoKeyboard(editor.undo, editor.redo)
@@ -197,14 +198,11 @@ export function KosztorysEditorBody({
           {!clientView && summaryOpen && (
             <KosztorysSectionSummary
               subtotals={subtotals}
-              globalCoeffs={tree.globalCoeffs}
-              sectionCoeffs={sectionCoeffs}
               onClose={() => setSummaryOpen(false)}
               onAddSection={handleAddSection}
               onAddItem={handleAddItem}
               onRenameSection={handleRenameSection}
               onRemoveSection={handleRemoveSection}
-              onSectionCoeffChange={handleSectionCoeffChange}
             />
           )}
           {/* Overlays the grid's bottom edge instead of consuming a flex track — the grid keeps its

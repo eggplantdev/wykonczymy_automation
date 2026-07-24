@@ -10,29 +10,23 @@ type PropsT = {
   hint?: string
   value: number | null
   placeholder?: number
-  nullable?: boolean
   // Colours the value only; a direct color on the input overrides the muted colour the label inherits.
   valueClassName?: string
   onCommit: (n: number | null) => void
 }
 
 // Decimal-number field. Uncontrolled + `key` on the value (remount after router.refresh),
-// commit on blur/Enter — no useEffect (project rule). Empty + nullable = inherit (null).
+// commit on blur/Enter — no useEffect (project rule).
 export function DecimalField({
   label,
   hint,
   value,
   placeholder,
-  nullable,
   valueClassName,
   onCommit,
 }: PropsT) {
   const commit = (e: FocusEvent<HTMLInputElement>) => {
     const parsed = parseDecimalInput(e.target.value)
-    if (parsed.kind === 'empty') {
-      if (nullable) onCommit(null)
-      return
-    }
     if (parsed.kind === 'value') onCommit(parsed.value)
   }
 
