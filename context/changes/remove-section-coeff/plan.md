@@ -381,8 +381,8 @@ None — this is a removal; it slightly shrinks row payloads and the sections qu
 
 #### Automated
 
-- [ ] 1.1 Migration applies against local docker DB: `pnpm payload migrate`
-- [ ] 1.2 Down migration reverts cleanly (spot check)
+- [x] 1.1 Migration applies against local docker DB: `pnpm payload migrate`
+- [x] 1.2 Down migration reverts cleanly (spot check)
 
 ### Phase 2: Domain Layer
 

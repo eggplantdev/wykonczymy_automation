@@ -37,16 +37,5 @@ export const KosztorysSections: CollectionConfig = {
       defaultValue: 'w_tools',
       label: { en: 'Default cost variant', pl: 'Domyślny wariant kosztu' },
     },
-    // Per-section subcontractor markup coefficient; null = inherit the global one from the investment.
-    {
-      name: 'wToolsCoeff',
-      type: 'number',
-      label: { en: 'Coeff (with tools)', pl: 'Współczynnik (z narzędziami)' },
-    },
-    {
-      name: 'ownToolsCoeff',
-      type: 'number',
-      label: { en: 'Coeff (own tools)', pl: 'Współczynnik (bez narzędzi)' },
-    },
   ],
 }
