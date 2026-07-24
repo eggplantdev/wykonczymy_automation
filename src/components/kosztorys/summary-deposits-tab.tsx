@@ -1,6 +1,7 @@
 'use client'
 
 import { DepositsTable } from '@/components/kosztorys/deposits-table'
+import { Description } from '@/components/ui/description'
 import type { DepositTransactionRowT } from '@/types/reference-data'
 
 type PropsT = {
@@ -24,9 +25,9 @@ export function SummaryDepositsTab({ investmentId, rows, showPlane, clientView =
         clientView={clientView}
         showPlane={showPlane}
       />
-      <p className="text-muted-foreground w-fit max-w-sm text-xs text-balance">
+      <Description className="w-fit max-w-sm text-xs text-balance">
         Wpłaty bez oznaczenia netto/brutto są traktowane jako netto.
-      </p>
+      </Description>
     </div>
   )
 }

@@ -9,6 +9,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { HintTooltip } from '@/components/ui/tooltip'
+import { Description } from '@/components/ui/description'
 import { formatNet as fmt, formatPercentPrecise } from '@/lib/kosztorys/format'
 import type { SectionSubtotalT } from '@/lib/kosztorys/types'
 
@@ -141,9 +142,9 @@ export function KosztorysSectionSummary({
                           <p className="text-foreground mb-2 text-xs font-medium">
                             Mnożnik ceny wykonawcy
                           </p>
-                          <p className="text-muted-foreground mb-2 text-xs">
+                          <Description className="mb-2 text-xs">
                             Puste = dziedziczy mnożnik globalny.
-                          </p>
+                          </Description>
                           <div className="flex flex-col gap-1">
                             <CoeffField
                               label="z narzędziami"

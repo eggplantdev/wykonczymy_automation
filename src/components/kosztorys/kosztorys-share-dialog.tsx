@@ -14,6 +14,7 @@ import {
 import { FRONTEND_URL } from '@/lib/env'
 import { copyToClipboard } from '@/lib/utils/copy-to-clipboard'
 import { toastMessage } from '@/lib/utils/toast'
+import { Description } from '@/components/ui/description'
 
 type PropsT = { investmentId: number }
 
@@ -105,9 +106,9 @@ export function KosztorysShareDialog({ investmentId }: PropsT) {
                   Wyłącz link
                 </Button>
               </div>
-              <p className="text-muted-foreground text-xs">
+              <Description className="text-xs">
                 „Wygeneruj nowy" unieważnia obecny link — stary adres przestaje działać.
-              </p>
+              </Description>
             </div>
           ) : (
             <Button size="sm" onClick={generate} disabled={pending} className="self-start">
