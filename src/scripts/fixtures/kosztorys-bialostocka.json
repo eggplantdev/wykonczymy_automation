@@ -5,105 +5,79 @@
       "id": 1,
       "name": "Prace dodatkowe",
       "displayOrder": 0,
-      "defaultCostVariant": "w_tools",
-      "wToolsCoeff": null,
-      "ownToolsCoeff": null
+      "defaultCostVariant": "w_tools"
     },
     {
       "id": 2,
       "name": "Klimatyzacja",
       "displayOrder": 1,
-      "defaultCostVariant": "w_tools",
-      "wToolsCoeff": null,
-      "ownToolsCoeff": null
+      "defaultCostVariant": "w_tools"
     },
     {
       "id": 3,
       "name": "Wyburzenia i demontaże",
       "displayOrder": 2,
-      "defaultCostVariant": "w_tools",
-      "wToolsCoeff": null,
-      "ownToolsCoeff": null
+      "defaultCostVariant": "w_tools"
     },
     {
       "id": 4,
       "name": "Podłogi",
       "displayOrder": 3,
-      "defaultCostVariant": "w_tools",
-      "wToolsCoeff": null,
-      "ownToolsCoeff": null
+      "defaultCostVariant": "w_tools"
     },
     {
       "id": 5,
       "name": "Ściany i sufity bez łazienek",
       "displayOrder": 4,
-      "defaultCostVariant": "w_tools",
-      "wToolsCoeff": null,
-      "ownToolsCoeff": null
+      "defaultCostVariant": "w_tools"
     },
     {
       "id": 6,
       "name": "Łazienka 1",
       "displayOrder": 5,
-      "defaultCostVariant": "w_tools",
-      "wToolsCoeff": null,
-      "ownToolsCoeff": null
+      "defaultCostVariant": "w_tools"
     },
     {
       "id": 7,
       "name": "Łazienka 2",
       "displayOrder": 6,
-      "defaultCostVariant": "w_tools",
-      "wToolsCoeff": null,
-      "ownToolsCoeff": null
+      "defaultCostVariant": "w_tools"
     },
     {
       "id": 8,
       "name": "WC",
       "displayOrder": 7,
-      "defaultCostVariant": "w_tools",
-      "wToolsCoeff": null,
-      "ownToolsCoeff": null
+      "defaultCostVariant": "w_tools"
     },
     {
       "id": 9,
       "name": "Kuchnia",
       "displayOrder": 8,
-      "defaultCostVariant": "w_tools",
-      "wToolsCoeff": null,
-      "ownToolsCoeff": null
+      "defaultCostVariant": "w_tools"
     },
     {
       "id": 10,
       "name": "Wiatrołap",
       "displayOrder": 9,
-      "defaultCostVariant": "w_tools",
-      "wToolsCoeff": null,
-      "ownToolsCoeff": null
+      "defaultCostVariant": "w_tools"
     },
     {
       "id": 11,
       "name": "Montaż stolarki i ślusarki",
       "displayOrder": 10,
-      "defaultCostVariant": "w_tools",
-      "wToolsCoeff": null,
-      "ownToolsCoeff": null
+      "defaultCostVariant": "w_tools"
     },
     {
       "id": 12,
       "name": "Instalacja elektryczna i oświetlenie",
       "displayOrder": 11,
-      "defaultCostVariant": "w_tools",
-      "wToolsCoeff": null,
-      "ownToolsCoeff": null
+      "defaultCostVariant": "w_tools"
     },
     {
       "id": 13,
       "name": "Instalacja wodno-kanalizacyjna / C.O.",
       "displayOrder": 12,
-      "defaultCostVariant": "w_tools",
-      "wToolsCoeff": null,
-      "ownToolsCoeff": null
+      "defaultCostVariant": "w_tools"
     }
   ],
   "items": [

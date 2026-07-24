@@ -43,9 +43,9 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
     return id
   }
 
-  // Add one section (with a coefficient) + one item (with job fields populated and a coefficient
-  // override) to `investmentId`; returns the created section id. Job fields are populated so the
-  // zeroing at serialize time is observable on the appended copy.
+  // Add one section + one item (with job fields populated and a coefficient override) to
+  // `investmentId`; returns the created section id. Job fields are populated so the zeroing at
+  // serialize time is observable on the appended copy.
   async function addSection(investmentId: number, name: string, displayOrder: number) {
     const section = await payload.create({
       collection: 'kosztorys-sections',
@@ -54,8 +54,6 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
         name,
         displayOrder,
         defaultCostVariant: 'w_tools',
-        wToolsCoeff: 0.8,
-        ownToolsCoeff: null,
       },
       context: { skipRevalidation: true },
     })
@@ -128,7 +126,6 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
 
     const appended = sections[1]
     expect(appended.displayOrder).toBe(1)
-    expect(appended.wToolsCoeff).toBe(0.8)
 
     const item = after.items.find((it) => it.sectionId === appended.id)!
     expect(item.description).toBe('Praca w Malowanie')

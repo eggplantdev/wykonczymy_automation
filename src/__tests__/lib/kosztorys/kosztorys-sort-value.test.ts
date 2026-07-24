@@ -16,8 +16,6 @@ const tree: KosztorysTreeT = {
       name: 'Sekcja A',
       displayOrder: 0,
       defaultCostVariant: 'w_tools',
-      wToolsCoeff: null,
-      ownToolsCoeff: null,
       items: [
         {
           id: 1,

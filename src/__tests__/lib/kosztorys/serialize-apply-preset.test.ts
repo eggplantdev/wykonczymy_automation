@@ -102,8 +102,6 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
         name: 'Sekcja A',
         displayOrder: 0,
         defaultCostVariant: 'w_tools',
-        wToolsCoeff: 0.8,
-        ownToolsCoeff: null,
       },
       context: { skipRevalidation: true },
     })
@@ -114,8 +112,6 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
         name: 'Sekcja B',
         displayOrder: 1,
         defaultCostVariant: 'own_tools',
-        wToolsCoeff: null,
-        ownToolsCoeff: null,
       },
       context: { skipRevalidation: true },
     })
@@ -290,8 +286,6 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
         name: 'Istniejąca',
         displayOrder: 0,
         defaultCostVariant: 'w_tools',
-        wToolsCoeff: null,
-        ownToolsCoeff: null,
       },
       context: { skipRevalidation: true },
     })
@@ -323,8 +317,6 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
         name: 'Tylko B',
         displayOrder: 0,
         defaultCostVariant: 'w_tools',
-        wToolsCoeff: null,
-        ownToolsCoeff: null,
       },
       context: { skipRevalidation: true },
     })
@@ -368,8 +360,6 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
         name: 'Nowa treść',
         displayOrder: 0,
         defaultCostVariant: 'own_tools',
-        wToolsCoeff: null,
-        ownToolsCoeff: null,
       },
       context: { skipRevalidation: true },
     })

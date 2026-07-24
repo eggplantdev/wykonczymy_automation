@@ -388,20 +388,20 @@ None — this is a removal; it slightly shrinks row payloads and the sections qu
 
 #### Automated
 
-- [x] 2.1 No section-coeff domain symbols remain: `grep -rn "sectionWToolsCoeff\|sectionOwnToolsCoeff\|SectionCoeffPatch" src/lib src/scripts` is empty
+- [x] 2.1 No section-coeff domain symbols remain: `grep -rn "sectionWToolsCoeff\|sectionOwnToolsCoeff\|SectionCoeffPatch" src/lib src/scripts` is empty — 4e4b4642
 
 ### Phase 3: Editor State & UI
 
 #### Automated
 
-- [ ] 3.1 Type checking passes: `pnpm typecheck`
-- [ ] 3.2 Linting passes: `pnpm lint`
-- [ ] 3.3 No section-coeff symbols anywhere: `grep -rn "sectionWToolsCoeff\|sectionOwnToolsCoeff\|SectionCoeffPatch\|applySectionCoeff\|handleSectionCoeffChange\|onSectionCoeffChange" src/` is empty
+- [x] 3.1 Type checking passes: `pnpm typecheck` — 9982da71 (green at p4 gate per atomic-unit note)
+- [x] 3.2 Linting passes: `pnpm lint` — 9982da71 (green at p4 gate)
+- [x] 3.3 No section-coeff symbols anywhere: `grep -rn "sectionWToolsCoeff\|sectionOwnToolsCoeff\|SectionCoeffPatch\|applySectionCoeff\|handleSectionCoeffChange\|onSectionCoeffChange" src/` is empty — 9982da71
 
 ### Phase 4: Tests, Fixtures & Type Regen
 
 #### Automated
 
-- [ ] 4.1 Kosztorys suite passes: `pnpm exec vitest run src/__tests__/lib/kosztorys src/__tests__/lib/db/snapshots.test.ts`
-- [ ] 4.2 Full typecheck + lint still green: `pnpm typecheck && pnpm lint`
-- [ ] 4.3 Repo-wide grep clean (only global usages remain)
+- [x] 4.1 Kosztorys suite passes: `pnpm exec vitest run src/__tests__/lib/kosztorys src/__tests__/lib/db/snapshots.test.ts` (234 passed, DB-backed specs skip without ENV_READY)
+- [x] 4.2 Full typecheck + lint still green: `pnpm typecheck && pnpm lint`
+- [x] 4.3 Repo-wide grep clean (only global usages remain)

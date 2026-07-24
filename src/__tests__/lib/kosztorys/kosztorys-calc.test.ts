@@ -31,8 +31,6 @@ const item: ViewPricingT = {
   hiddenInExport: false,
   note: null,
   globalDiscountActive: false,
-  sectionWToolsCoeff: null,
-  sectionOwnToolsCoeff: null,
   globalWToolsCoeff: 0.65,
   globalOwnToolsCoeff: 0.55,
 }
