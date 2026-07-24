@@ -1,4 +1,3 @@
-import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import type { SectionSubtotalT } from '@/lib/kosztorys/types'
 
 // `id` is a stable React key — section names / materiały labels are free-typed and can collide,
@@ -43,7 +42,7 @@ export function sectionPieSlices(
 }
 
 // Two-slice cost split — robocizna vs materiały as single totals, no per-category breakdown. Used by
-// the tryb mieszany settlement, which reasons in netto totals rather than the per-expense rozpiska.
+// the „Struktura kosztów" pie, which reasons in netto totals rather than the per-expense rozpiska.
 export function costTotalsPieSlices(robocizna: number, materialy: number): PieSliceT[] {
   return [
     { id: 'robocizna', name: 'Robocizna', value: robocizna },
@@ -51,21 +50,4 @@ export function costTotalsPieSlices(robocizna: number, materialy: number): PieSl
   ]
     .filter((slice) => slice.value !== 0)
     .map((slice, index) => ({ ...slice, fill: fillAt(index) }))
-}
-
-export function costPieSlices(
-  sumaPracNet: number,
-  materialyBreakdown: readonly MaterialyBreakdownRowT[],
-): PieSliceT[] {
-  const rows: { id: string; name: string; value: number }[] = [
-    { id: 'robocizna', name: 'Robocizna', value: sumaPracNet },
-    ...materialyBreakdown
-      .filter((item) => item.net !== 0)
-      .map((item) => ({
-        id: item.id !== null ? `materialy-${item.id}` : 'korekta',
-        name: item.label,
-        value: item.net,
-      })),
-  ]
-  return rows.map((row, index) => ({ ...row, fill: fillAt(index) }))
 }
