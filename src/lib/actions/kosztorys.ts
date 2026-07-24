@@ -42,8 +42,6 @@ const sectionPatchSchema = z
     name: z.string(),
     defaultCostVariant: z.enum(['w_tools', 'own_tools']),
     displayOrder: z.coerce.number(),
-    wToolsCoeff: z.coerce.number().nullable(),
-    ownToolsCoeff: z.coerce.number().nullable(),
   })
   .partial()
 

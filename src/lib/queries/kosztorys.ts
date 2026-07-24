@@ -116,8 +116,6 @@ export async function buildKosztorysTree(investmentId: number): Promise<Kosztory
       name: d.name,
       displayOrder: num(d.displayOrder),
       defaultCostVariant: (d.defaultCostVariant as CostVariantT) ?? 'w_tools',
-      wToolsCoeff: d.wToolsCoeff == null ? null : num(d.wToolsCoeff),
-      ownToolsCoeff: d.ownToolsCoeff == null ? null : num(d.ownToolsCoeff),
       items: itemsBySection.get(d.id) ?? [],
     }),
   )

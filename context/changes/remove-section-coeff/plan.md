@@ -381,14 +381,14 @@ None — this is a removal; it slightly shrinks row payloads and the sections qu
 
 #### Automated
 
-- [x] 1.1 Migration applies against local docker DB: `pnpm payload migrate`
-- [x] 1.2 Down migration reverts cleanly (spot check)
+- [x] 1.1 Migration applies against local docker DB: `pnpm payload migrate` — c9e0f248
+- [x] 1.2 Down migration reverts cleanly (spot check) — c9e0f248
 
 ### Phase 2: Domain Layer
 
 #### Automated
 
-- [ ] 2.1 No section-coeff domain symbols remain: `grep -rn "sectionWToolsCoeff\|sectionOwnToolsCoeff\|SectionCoeffPatch" src/lib src/scripts` is empty
+- [x] 2.1 No section-coeff domain symbols remain: `grep -rn "sectionWToolsCoeff\|sectionOwnToolsCoeff\|SectionCoeffPatch" src/lib src/scripts` is empty
 
 ### Phase 3: Editor State & UI
 

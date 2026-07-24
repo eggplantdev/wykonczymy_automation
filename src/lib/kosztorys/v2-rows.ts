@@ -41,8 +41,6 @@ export function treeToRows(tree: KosztorysTreeT): KosztorysV2RowT[] {
         vatRate: tree.vatRate,
         globalDiscountActive,
         sectionDefaultCostVariant: section.defaultCostVariant,
-        sectionWToolsCoeff: section.wToolsCoeff,
-        sectionOwnToolsCoeff: section.ownToolsCoeff,
         globalWToolsCoeff: tree.globalCoeffs.wTools,
         globalOwnToolsCoeff: tree.globalCoeffs.ownTools,
         ...stageFields,
@@ -82,7 +80,6 @@ export function diffRow(prev: KosztorysV2RowT, next: KosztorysV2RowT): RowDiffT 
 }
 
 type CoeffPatchT = { wToolsCoeff?: number; ownToolsCoeff?: number }
-type SectionCoeffPatchT = { wToolsCoeff?: number | null; ownToolsCoeff?: number | null }
 
 // Inverse of a global-coefficient panel edit: the before-values of ONLY the keys `patch` touched, so
 // a Cmd+Z restores exactly those and leaves an untouched wTools/ownTools alone. `current` is any live
@@ -95,17 +92,5 @@ export function inverseGlobalCoeffPatch(
   const before: CoeffPatchT = {}
   if (patch.wToolsCoeff != null) before.wToolsCoeff = current?.globalWToolsCoeff
   if (patch.ownToolsCoeff != null) before.ownToolsCoeff = current?.globalOwnToolsCoeff
-  return before
-}
-
-// Inverse of a section-coefficient edit. Keys are keyed by presence (`in`), not `!= null`, because
-// `null` is a real value here (inherit the global) that undo must be able to restore.
-export function inverseSectionCoeffPatch(
-  patch: SectionCoeffPatchT,
-  current: Pick<KosztorysV2RowT, 'sectionWToolsCoeff' | 'sectionOwnToolsCoeff'> | undefined,
-): SectionCoeffPatchT {
-  const before: SectionCoeffPatchT = {}
-  if ('wToolsCoeff' in patch) before.wToolsCoeff = current?.sectionWToolsCoeff ?? null
-  if ('ownToolsCoeff' in patch) before.ownToolsCoeff = current?.sectionOwnToolsCoeff ?? null
   return before
 }

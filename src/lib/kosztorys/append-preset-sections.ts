@@ -54,8 +54,6 @@ export async function appendPresetSections(
     name: s.name,
     displayOrder: base + i,
     defaultCostVariant: s.defaultCostVariant,
-    wToolsCoeff: s.wToolsCoeff,
-    ownToolsCoeff: s.ownToolsCoeff,
     items: items.map((it) => ({ ...it, id: newItemIds[cursor++], sectionId: newSectionIds[i] })),
   }))
 }

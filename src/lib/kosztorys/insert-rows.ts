@@ -35,11 +35,11 @@ export async function insertSections(
   if (rows.length === 0) return []
   const values = rows.map(
     ({ displayOrder, section: s }) =>
-      sql`(${investmentId}, ${s.name}, ${displayOrder}, ${s.defaultCostVariant}, ${s.wToolsCoeff ?? null}, ${s.ownToolsCoeff ?? null})`,
+      sql`(${investmentId}, ${s.name}, ${displayOrder}, ${s.defaultCostVariant})`,
   )
   const res = await db.execute(sql`
     INSERT INTO kosztorys_sections
-      (investment_id, name, display_order, default_cost_variant, w_tools_coeff, own_tools_coeff)
+      (investment_id, name, display_order, default_cost_variant)
     VALUES ${sql.join(values, sql.raw(', '))}
     RETURNING id
   `)

@@ -26,8 +26,6 @@ export type BlankRowInputT = {
   vatRate: number
   globalDiscountActive: boolean
   sectionDefaultCostVariant: CostVariantT
-  sectionWToolsCoeff: number | null
-  sectionOwnToolsCoeff: number | null
   globalWToolsCoeff: number
   globalOwnToolsCoeff: number
   stages: KosztorysStageT[]
@@ -59,8 +57,6 @@ export function buildBlankRow(input: BlankRowInputT): KosztorysV2RowT {
     vatRate: input.vatRate,
     globalDiscountActive: input.globalDiscountActive,
     sectionDefaultCostVariant: input.sectionDefaultCostVariant,
-    sectionWToolsCoeff: input.sectionWToolsCoeff,
-    sectionOwnToolsCoeff: input.sectionOwnToolsCoeff,
     globalWToolsCoeff: input.globalWToolsCoeff,
     globalOwnToolsCoeff: input.globalOwnToolsCoeff,
     ...stageFields,

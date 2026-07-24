@@ -132,8 +132,6 @@ function buildPayload(robRows: unknown[][], rateRows: unknown[][]): SnapshotPayl
         name: currentSection,
         displayOrder: sections.length,
         defaultCostVariant: 'w_tools',
-        wToolsCoeff: null,
-        ownToolsCoeff: null,
       })
     }
 
@@ -231,8 +229,6 @@ async function seed(tree: SnapshotPayloadT): Promise<void> {
         name: sec.name,
         displayOrder: sec.displayOrder,
         defaultCostVariant: sec.defaultCostVariant,
-        wToolsCoeff: sec.wToolsCoeff ?? undefined,
-        ownToolsCoeff: sec.ownToolsCoeff ?? undefined,
       },
       ...ctx,
     })

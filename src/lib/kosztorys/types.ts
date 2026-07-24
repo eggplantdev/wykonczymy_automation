@@ -27,9 +27,6 @@ export type KosztorysSectionT = {
   name: string
   displayOrder: number
   defaultCostVariant: CostVariantT
-  // null = inherit the global coefficient from the investment.
-  wToolsCoeff: number | null
-  ownToolsCoeff: number | null
 }
 
 export type KosztorysItemT = {
@@ -77,13 +74,11 @@ export type ItemPatchT = Partial<
 export type KosztorysGlobalCoeffsT = { wTools: number; ownTools: number }
 
 // Minimal shape for deriving the view price — KosztorysV2RowT satisfies it
-// (KosztorysItemT + denormalized section and global coefficients).
+// (KosztorysItemT + denormalized global coefficients).
 export type ViewPricingT = KosztorysItemT & {
   // Denormalized: the investment's global discount is set — per-item discounts stop applying
   // (applyDiscount returns gross), the global discount is subtracted once at the total level.
   globalDiscountActive: boolean
-  sectionWToolsCoeff: number | null
-  sectionOwnToolsCoeff: number | null
   globalWToolsCoeff: number
   globalOwnToolsCoeff: number
 }
@@ -151,9 +146,7 @@ export type KosztorysV2RowBaseT = KosztorysItemT & {
   vatRate: number
   globalDiscountActive: boolean
   sectionDefaultCostVariant: CostVariantT
-  // Denormalized coefficients for deriving the subcontractor price on the row (ViewPricingT).
-  sectionWToolsCoeff: number | null
-  sectionOwnToolsCoeff: number | null
+  // Denormalized global coefficients for deriving the subcontractor price on the row (ViewPricingT).
   globalWToolsCoeff: number
   globalOwnToolsCoeff: number
 }

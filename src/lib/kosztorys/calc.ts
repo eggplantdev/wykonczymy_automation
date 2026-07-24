@@ -35,10 +35,9 @@ function applyDiscount(gross: number, item: ViewPricingT): number {
 // --- Price views (one dataset → three views: client / subcontractor with/without tools) ---
 export type PriceViewT = 'client' | 'w_tools' | 'own_tools'
 
-/** Effective markup coefficient by view: the section overrides the global (investment) one. */
+/** Effective markup coefficient by view: the global (investment) coefficient. */
 export function effectiveCoeff(row: ViewPricingT, view: 'w_tools' | 'own_tools'): number {
-  if (view === 'w_tools') return row.sectionWToolsCoeff ?? row.globalWToolsCoeff
-  return row.sectionOwnToolsCoeff ?? row.globalOwnToolsCoeff
+  return view === 'w_tools' ? row.globalWToolsCoeff : row.globalOwnToolsCoeff
 }
 
 /** Subcontractor price by view: null→derived (client×coeff), coeff→client×%, amount→flat. */
