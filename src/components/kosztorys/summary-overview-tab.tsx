@@ -2,19 +2,20 @@
 
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
-import type { MoneyPairT } from '@/lib/kosztorys/summary-economics'
+import { materialyPair, type MoneyPairT } from '@/lib/kosztorys/summary-economics'
 import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
-import { CashSettlement } from '@/components/kosztorys/cash-settlement'
-import { KosztorysSummary } from '@/components/kosztorys/kosztorys-summary'
+import { MixedSummary } from '@/components/kosztorys/mixed-summary'
+import { BruttoNettoSummary } from '@/components/kosztorys/brutto-netto-summary'
+import { SlicePie } from '@/components/kosztorys/slice-pie'
 import { type PanelAxisT } from '@/components/kosztorys/use-summary-axis'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import type { KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
-import type { SectionSliceInputT } from '@/lib/kosztorys/chart-slices'
+import { costTotalsPieSlices, type SectionSliceInputT } from '@/lib/kosztorys/chart-slices'
 
 const SUMMARY_AXIS_OPTIONS: OptionT<PanelAxisT>[] = [
   { value: 'net', label: 'Netto' },
   { value: 'gross', label: 'Brutto' },
-  { value: 'cash', label: 'Mieszane' },
+  { value: 'mixed', label: 'Mieszane' },
 ]
 
 type PropsT = {
@@ -43,7 +44,7 @@ type PropsT = {
 }
 
 // The „Podsumowanie" view: its own axis control on top, then the settlement below. Mieszane swaps the
-// two-column KosztorysSummary for the vertical netto→brutto CashSettlement; Netto/Brutto keep the table.
+// two-column BruttoNettoSummary for the vertical netto→brutto MixedSummary; Netto/Brutto keep the table.
 export function SummaryOverviewTab({
   investmentId,
   moneyAxis,
@@ -64,41 +65,57 @@ export function SummaryOverviewTab({
   paidGross,
   clientView = false,
 }: PropsT) {
-  const cashMode = moneyAxis === 'cash'
-  const displayAxis: MoneyAxisT = cashMode ? 'both' : moneyAxis
+  const mixedMode = moneyAxis === 'mixed'
+  const displayAxis: MoneyAxisT = mixedMode ? 'both' : moneyAxis
+  // The „Struktura kosztów" pie is a netto robocizna/materiały split, identical in every mode — so it
+  // sits here beside the settlement rather than inside any one mode's block.
+  const materialsNet = materialyPair(
+    materialsGross,
+    vatRate,
+    deriveMaterialsNet,
+    materialsReduction,
+  ).net
 
   return (
     <div className="flex w-full flex-col gap-y-4">
-      {cashMode ? (
-        <CashSettlement
-          laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
-          materialsGross={materialsGross}
-          vatRate={vatRate}
-          deriveMaterialsNet={deriveMaterialsNet}
-          materialsReduction={materialsReduction}
-          paidNet={paidNet}
-          paidGross={paidGross}
-          rabatAmount={rabatAmount}
+      <div className="flex flex-col items-start gap-8 lg:flex-row">
+        {mixedMode ? (
+          <MixedSummary
+            laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
+            materialsGross={materialsGross}
+            vatRate={vatRate}
+            deriveMaterialsNet={deriveMaterialsNet}
+            materialsReduction={materialsReduction}
+            paidNet={paidNet}
+            paidGross={paidGross}
+            rabatAmount={rabatAmount}
+          />
+        ) : (
+          <BruttoNettoSummary
+            investmentId={investmentId}
+            laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
+            doZaplaty={doZaplaty}
+            materialsGross={materialsGross}
+            materialyBreakdown={materialyBreakdown}
+            sectionSubtotals={sectionSubtotals}
+            wplatyNet={wplatyNet}
+            rabatAmount={rabatAmount}
+            reconciliation={reconciliation}
+            priceView={priceView}
+            vatRate={vatRate}
+            moneyAxis={displayAxis}
+            deriveMaterialsNet={deriveMaterialsNet}
+            materialsReduction={materialsReduction}
+            clientView={clientView}
+          />
+        )}
+        <SlicePie
+          caption={
+            <figcaption className="text-muted-foreground text-xs">Struktura kosztów</figcaption>
+          }
+          slices={costTotalsPieSlices(laborCostsNetFromKosztorys, materialsNet)}
         />
-      ) : (
-        <KosztorysSummary
-          investmentId={investmentId}
-          laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
-          doZaplaty={doZaplaty}
-          materialsGross={materialsGross}
-          materialyBreakdown={materialyBreakdown}
-          sectionSubtotals={sectionSubtotals}
-          wplatyNet={wplatyNet}
-          rabatAmount={rabatAmount}
-          reconciliation={reconciliation}
-          priceView={priceView}
-          vatRate={vatRate}
-          moneyAxis={displayAxis}
-          deriveMaterialsNet={deriveMaterialsNet}
-          materialsReduction={materialsReduction}
-          clientView={clientView}
-        />
-      )}
+      </div>
       {/* The netto/brutto/Mieszane axis governs only the Podsumowanie figures, so it lives inside this
           tab (right below the tables) rather than in a panel-wide bar. */}
       <div>

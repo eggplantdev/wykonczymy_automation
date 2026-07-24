@@ -7,7 +7,7 @@ import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import { bucketDepositsByPlane, computeDoZaplatyRM } from '@/lib/kosztorys/summary-economics'
-import { KosztorysStageTotals } from '@/components/kosztorys/kosztorys-stage-totals'
+import { SummaryStagesTab } from '@/components/kosztorys/summary-stages-tab'
 import { SummaryOverviewTab } from '@/components/kosztorys/summary-overview-tab'
 import { SummaryExpensesTab } from '@/components/kosztorys/summary-expenses-tab'
 import { SummaryDepositsTab } from '@/components/kosztorys/summary-deposits-tab'
@@ -108,13 +108,13 @@ export function KosztorysTotalsPanel({
   // Which client-plane view is shown (Podsumowanie / Wydatki / Wpłaty) — independent of the grid's
   // price view. Disabled on the subcontractor plane, which renders its own summary instead.
   const [summaryView, setSummaryView] = useSummaryView()
-  // „Mieszane" ('cash') shows BOTH netto and brutto columns, then a cash split block — the settlement
+  // „Mieszane" ('mixed') shows BOTH netto and brutto columns, then a cash split block — the settlement
   // anchors on brutto (matching the brutto „Do zapłaty" column at C = 0), while netto stays visible
   // beside it. Every other value is a real MoneyAxisT the children read directly.
-  const cashMode = moneyAxis === 'cash'
+  const mixedMode = moneyAxis === 'mixed'
   // The toggle shows one money column — the chosen one. Mieszane is the exception: it's a mixed
   // netto+brutto settlement, so it shows both columns alongside the gotówka block.
-  const displayAxis: MoneyAxisT = moneyAxis === 'cash' ? 'both' : moneyAxis
+  const displayAxis: MoneyAxisT = moneyAxis === 'mixed' ? 'both' : moneyAxis
   // Materiały netto pricing: when on, netto = brutto − VAT (the historical default); when off,
   // materiały stay at their raw brutto amount on both axes. Only moves netto figures, so the toggle
   // is offered only where netto is on show and there are materiały to reprice.
@@ -235,7 +235,7 @@ export function KosztorysTotalsPanel({
                 <SummaryDepositsTab
                   investmentId={investmentId}
                   rows={depositTransactions}
-                  showPlane={cashMode}
+                  showPlane={mixedMode}
                   clientView={clientView}
                 />
               )}
@@ -243,7 +243,7 @@ export function KosztorysTotalsPanel({
                   subcontractor plane has no VAT axis (EX-558), so it renders only on this plane.
                   The axis it reads is set by the Podsumowanie tab's toggle (shared panel state). */}
               {summaryView === 'etapy' && (
-                <KosztorysStageTotals
+                <SummaryStagesTab
                   stages={stages}
                   stageTotals={stageTotals}
                   wykonaneNet={totalNet}

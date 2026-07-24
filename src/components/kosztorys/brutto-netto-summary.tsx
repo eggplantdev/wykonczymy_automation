@@ -73,7 +73,7 @@ type PropsT = {
 // The single bottom summary block: the robocizna waterfall (Suma prac wykonanych → Rabat →
 // Robocizna) merged with the sheet Podsumowanie split (Robocizna / Materiały / Łącznie), then
 // Wpłaty subtracted to reach „Do zapłaty" — one grid, no separate totals bar.
-export function KosztorysSummary({
+export function BruttoNettoSummary({
   investmentId,
   laborCostsNetFromKosztorys,
   doZaplaty,

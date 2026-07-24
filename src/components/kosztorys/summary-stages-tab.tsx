@@ -22,13 +22,7 @@ type PropsT = {
 // Suma transzy per etap + the „R netto / R brutto — suma prac wykonanych" Razem readout (sheet
 // r396/r397). Vertical like the Podsumowanie block above it — etaps are rows, Netto/Brutto are the
 // shared money columns — so the whole panel reads on one rhythm.
-export function KosztorysStageTotals({
-  stages,
-  stageTotals,
-  wykonaneNet,
-  vatRate,
-  moneyAxis,
-}: PropsT) {
+export function SummaryStagesTab({ stages, stageTotals, wykonaneNet, vatRate, moneyAxis }: PropsT) {
   if (stages.length === 0) return null
   const pair = (net: number): MoneyPairT => ({ net, gross: toGross(net, vatRate) })
   const cols = summaryMoneyCols(moneyAxis)

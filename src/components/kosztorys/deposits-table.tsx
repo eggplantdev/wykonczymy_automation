@@ -23,7 +23,7 @@ import type { DepositTransactionRowT } from '@/types/reference-data'
 // Netto (`NET`), Brutto (`GROSS`), or „Nie określono" (`null`) — and closes with a Razem row for
 // each of the three rodzaje. The buckets are display-only: „Nie określono" still counts as netto in the
 // settlement math (owner's „brak wartości = netto" ruling, 2026-07-23), noted under the „Rozliczenie
-// mieszane" block. Outside cash mode the plane is irrelevant, so the table is a plain Data | Kwota list.
+// mieszane" block. Outside tryb mieszany the plane is irrelevant, so the table is a plain Data | Kwota list.
 const PLANE_LABELS = { NET: 'Netto', GROSS: 'Brutto' } as const
 const planeLabel = (plane: DepositTransactionRowT['vatPlane']) =>
   plane == null ? 'Nie określono' : PLANE_LABELS[plane]

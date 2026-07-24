@@ -24,7 +24,7 @@ type PropsT = {
 // Łącznie − wpłaty netto → „Do rozliczenia netto"; that remainder is grossed onto the invoice, where
 // wpłaty brutto pay it down → „Do zapłaty brutto". Rabat is a trailing informational netto row — it's
 // already baked into robocizna netto, so it never deducts twice.
-export function CashSettlement({
+export function MixedSummary({
   laborCostsNetFromKosztorys,
   materialsGross,
   vatRate,

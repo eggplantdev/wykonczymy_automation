@@ -8,7 +8,7 @@ import { SummaryTable } from '@/components/ui/summary-grid'
 import { SummaryRow } from '@/components/kosztorys/summary-row'
 
 // The lower grid: Wpłaty deducted off Łącznie down to the bold „Do zapłaty". The informational
-// „Udzielono rabatu" line lives in its own segment below (KosztorysSummary) so it can't read as a
+// „Udzielono rabatu" line lives in its own segment below (BruttoNettoSummary) so it can't read as a
 // deduction step. Shares the money tracks with the breakdown above so both columns align.
 export function SummaryTotalsTable({
   cols,
