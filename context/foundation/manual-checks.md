@@ -151,25 +151,6 @@ real `OPENROUTER_API_KEY` in `.env` for the scan/fill boxes. Have ≥3 receipt i
 - [ ] **Reset / clear mints a fresh blank row.** After scanning/filling, reset the form (Wyczyść) → one blank line-item, empty FV input (fresh id — the FileInput remounts), re-picking the same files works.
 - [ ] **AI rename applies to the uploaded file.** Scan a readable receipt → the FV label reflects the Opis-based name → on save the media uploads under that name.
 
-## S-05 — kosztorys-vat
-
-Manual QA completed 2026-07-10 (OWNER, investment 6, fresh dev server on :3000).
-
-> Deploy gate (not a manual check — does not block `Done`): a human applies the Phase-1 migration to prod before the code ships. Owed at deploy, guarded by the pre-push hook.
-
-### Phase 1: Schema + query wiring (backend)
-
-- [x] Tree carries real `vatRate` (not 0) on a local investment
-- [x] Payload admin shows VAT field, default 0.08
-
-### Phase 2: Editor UI — brutto column, Suma brutto, in-editor rate input
-
-- [x] Netto 100.00 → Brutto 108.00; Suma brutto = Suma netto × 1.08
-- [x] Brutto toggle hides/shows column + Suma brutto cleanly (remount key)
-- [x] Editing VAT updates all brutto live and persists across reload
-- [x] Brutto consistent across all three price views
-- [x] No regressions to netto totals, coeffs, stages, autosave
-
 ## S-08 — kosztorys-delete-guard
 
 **In review** — pending author sign-off. Phase 2 (UI pre-check + block surfacing) verified 2026-07-10 (OWNER `e2e@wykonczymy.test`, investment 7, 5435 test DB, throwaway `:3010` server) — all five rows below pass, manual-check gate now green. Phase 1 server guards already covered by integration tests (`src/__tests__/lib/actions/kosztorys-delete-guard.test.ts`).
