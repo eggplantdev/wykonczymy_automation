@@ -1,10 +1,10 @@
 ---
 change_id: kosztorys-client-view-reuse
 title: Client kosztorys view = admin editor body, read-only, minus a small omit-set
-status: implemented
+status: archived
 created: 2026-07-20
-updated: 2026-07-20
-archived_at: null
+updated: 2026-07-24
+archived_at: 2026-07-24T13:46:37Z
 branch: konradantonik/ex-532-kosztorys-client-view-reuse
 worktree: null
 ---

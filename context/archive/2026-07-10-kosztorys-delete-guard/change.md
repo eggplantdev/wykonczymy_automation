@@ -1,9 +1,10 @@
 ---
 id: kosztorys-delete-guard
 title: Kosztorys delete-guard for populated rows / sections / stages
-status: implemented
+status: archived
+archived_at: 2026-07-24T13:46:37Z
 created: 2026-07-10
-updated: 2026-07-10
+updated: 2026-07-24
 ---
 
 # Kosztorys delete-guard (S-08)

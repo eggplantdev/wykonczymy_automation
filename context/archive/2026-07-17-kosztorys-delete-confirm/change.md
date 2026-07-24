@@ -1,10 +1,10 @@
 ---
 change_id: kosztorys-delete-confirm
 title: Confirm-gated, snapshot-backed delete for populated item / section / stage (EX-477)
-status: done
+status: archived
 created: 2026-07-17
-updated: 2026-07-17
-archived_at: null
+updated: 2026-07-24
+archived_at: 2026-07-24T13:46:37Z
 branch: refactor/kosztorys-dogfooding-followups
 worktree: null
 supersedes: kosztorys-delete-guard (S-08 hard-block policy)

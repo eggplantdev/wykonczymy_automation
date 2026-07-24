@@ -1,10 +1,10 @@
 ---
 change_id: podsumowanie-podwykonawcow
 title: 'Podsumowanie podwykonawców — osobny blok podsumowania dla widoków Z/Bez narzędzi'
-status: implemented
+status: archived
 created: 2026-07-21
-updated: 2026-07-21
-archived_at: null
+updated: 2026-07-24
+archived_at: 2026-07-24T13:46:37Z
 branch: konradantonik/ex-554-podsumowanie-dodac-figure-kwota-do-zaplaty-podwykonawcy
 worktree: null
 ---
