@@ -107,12 +107,38 @@ describe('cross-boundary parity: kosztorys client totals vs transaction sums', (
     expect(verdict.rabat.mismatch).toBe(false)
   })
 
-  it('global discount (per-item rabat suppressed): matching transfers reconcile silently', () => {
-    const tree = makeTree({ globalDiscount: { type: 'percent', value: 10 } })
-    // Sanity: a live global discount zeroes per-item rabat, so the rabat figure is the global amount.
+  it('global amount discount (per-item rabat suppressed): matching transfers reconcile silently', () => {
+    const tree = makeTree({ globalDiscount: { type: 'amount', value: 14 } })
+    // Sanity: a live global discount zeroes per-item rabat, so the rabat figure is the flat amount.
     const { sumaPracNet, rabatClientNet } = clientTotals(tree)
     expect(sumaPracNet).toBeCloseTo(140) // rows go gross → no per-item rabat added back
-    expect(rabatClientNet).toBeCloseTo(14) // 10% of 140
+    expect(rabatClientNet).toBeCloseTo(14) // the flat amount
+
+    const verdict = reconcile(tree, syncedTransactions(tree))
+    expect(verdict.laborCosts.mismatch).toBe(false)
+    expect(verdict.rabat.mismatch).toBe(false)
+  })
+
+  // The percent-rabat bulk-apply (Phase 1) stamps the same percent into every per-item rabat instead
+  // of storing a global percent. This proves the reconciled RABAT figure is identical to what the old
+  // stored global-percent produced: Σ per-item percent rabaty = the same rabatClientNet (14), so the
+  // investment-page recon is unchanged by the migration away from a stored percent discount.
+  it('per-item percent (bulk-apply): Σ rabaty feed rabatClientNet like the old global percent', () => {
+    const base = makeTree()
+    const tree: KosztorysTreeT = {
+      ...base,
+      sections: base.sections.map((section) => ({
+        ...section,
+        items: section.items.map((item) => ({
+          ...item,
+          discountType: 'percent' as const,
+          discountValue: 10,
+        })),
+      })),
+    }
+    const { sumaPracNet, rabatClientNet } = clientTotals(tree)
+    expect(sumaPracNet).toBeCloseTo(140) // pre-rabat basis (doneNet + itemRabatNet) — unchanged
+    expect(rabatClientNet).toBeCloseTo(14) // Σ per-item rabat: row1 10 + row2 4 — = old global 10%
 
     const verdict = reconcile(tree, syncedTransactions(tree))
     expect(verdict.laborCosts.mismatch).toBe(false)

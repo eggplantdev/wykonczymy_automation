@@ -15,8 +15,9 @@ import type {
 export type DiscountTypeT = 'percent' | 'amount'
 // Per-investment global discount over the whole kosztorys. type null = none (per-item discounts
 // apply). When set, per-item discounts are overridden and this is subtracted once from the executed
-// total. Same two modes as the per-item rabat: percent = percentage points, amount = PLN (netto).
-export type GlobalDiscountT = { type: DiscountTypeT | null; value: number }
+// total (PLN netto). Amount-only: a percent global rabat is no longer stored — it's a one-shot tool
+// that stamps a percent into every per-item rabat (see applyPercentRabatToAllItemsAction).
+export type GlobalDiscountT = { type: 'amount' | null; value: number }
 export type CostVariantT = 'w_tools' | 'own_tools'
 // Per-item subcontractor price override: 'coeff' = client × value (tracks the client
 // price), 'amount' = flat frozen amount, null = derive from the effective coefficient.

@@ -188,8 +188,6 @@ function buildPayload(robRows: unknown[][], rateRows: unknown[][]): SnapshotPayl
       wToolsCoeff: DEFAULT_COEFFS.wTools,
       ownToolsCoeff: DEFAULT_COEFFS.ownTools,
       vatRate: DEFAULT_VAT,
-      globalDiscountType: null,
-      globalDiscountValue: 0,
     },
   }
 }

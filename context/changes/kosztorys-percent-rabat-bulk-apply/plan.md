@@ -293,14 +293,17 @@ emits phantom drift).
 
 #### Automated
 
-- [x] 1.1 Typecheck passes
-- [x] 1.2 Bulk action schema validation tests
-- [x] 1.3 Existing kosztorys unit suites green
+- [x] 1.1 Typecheck passes — c5f4079e
+- [x] 1.2 Bulk action schema validation tests — c5f4079e
+- [x] 1.3 Existing kosztorys unit suites green — c5f4079e
 
 ### Phase 2: Amount-only stored discount + snapshot cleanup
 
 #### Automated
 
-- [ ] 2.1 Typecheck passes
-- [ ] 2.2 Full unit suite green
-- [ ] 2.3 Lint passes
+- [x] 2.1 Typecheck passes
+- [x] 2.2 Full unit suite green
+- [x] 2.3 Lint passes
+
+Migration skipped: `investments.globalDiscountType` is a plain `text` field (no DB enum/constraint),
+so narrowing to amount-only needs no schema touch — plan item #3's gate isn't tripped.

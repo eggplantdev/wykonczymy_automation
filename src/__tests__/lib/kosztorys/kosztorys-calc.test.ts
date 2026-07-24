@@ -284,42 +284,41 @@ describe('rabat globalny — nadpisuje rabat per pozycja', () => {
 // The discount amount off the executed total, and "do zapłaty" = total − amount. Single source both
 // total surfaces share (Sekcje Suma block + totals bar). Not clamped below zero.
 describe('globalDiscountAmount / do zapłaty', () => {
-  it('procent skaluje sumę', () => {
-    expect(globalDiscountAmount(1000, { type: 'percent', value: 10 })).toBe(100)
-  })
-
   it('kwota jest płaska', () => {
     expect(globalDiscountAmount(1000, { type: 'amount', value: 250 })).toBe(250)
   })
 
   it('brak rabatu / zero → 0', () => {
     expect(globalDiscountAmount(1000, { type: null, value: 0 })).toBe(0)
-    expect(globalDiscountAmount(1000, { type: 'percent', value: 0 })).toBe(0)
     expect(globalDiscountAmount(1000, { type: 'amount', value: 0 })).toBe(0)
+  })
+
+  it('legacy procent → 0 (rabat globalny jest już tylko kwotowy)', () => {
+    expect(globalDiscountAmount(1000, { type: 'percent' as never, value: 10 })).toBe(0)
   })
 
   it('do zapłaty = suma − rabat', () => {
     const totalNet = 1000
-    expect(totalNet - globalDiscountAmount(totalNet, { type: 'percent', value: 10 })).toBe(900)
     expect(totalNet - globalDiscountAmount(totalNet, { type: 'amount', value: 250 })).toBe(750)
   })
 })
 
 describe('isGlobalDiscountActive', () => {
-  it('aktywny tylko dla znanego trybu z niezerową wartością', () => {
-    expect(isGlobalDiscountActive({ type: 'percent', value: 10 })).toBe(true)
+  it('aktywny tylko dla trybu kwotowego z niezerową wartością', () => {
     expect(isGlobalDiscountActive({ type: 'amount', value: 250 })).toBe(true)
   })
 
   it('brak trybu lub zerowa wartość → nieaktywny', () => {
     expect(isGlobalDiscountActive({ type: null, value: 0 })).toBe(false)
-    expect(isGlobalDiscountActive({ type: 'percent', value: 0 })).toBe(false)
+    expect(isGlobalDiscountActive({ type: 'amount', value: 0 })).toBe(false)
     expect(isGlobalDiscountActive({ type: null, value: 500 })).toBe(false)
   })
 
-  it('nieznany, uszkodzony tryb → fail closed (nieaktywny)', () => {
-    // A persisted value that isn't 'percent'/'amount' (tolerant restore / out-of-band write) must
-    // NOT go active — otherwise per-item rabat is suppressed while nothing is subtracted.
+  it('legacy procent / uszkodzony tryb → fail closed (nieaktywny)', () => {
+    // A persisted value that isn't 'amount' (a legacy 'percent' row, tolerant restore, or an
+    // out-of-band write) must NOT go active — otherwise per-item rabat is suppressed while
+    // globalDiscountAmount subtracts nothing.
+    expect(isGlobalDiscountActive({ type: 'percent' as never, value: 100 })).toBe(false)
     expect(isGlobalDiscountActive({ type: 'bogus' as never, value: 100 })).toBe(false)
   })
 })

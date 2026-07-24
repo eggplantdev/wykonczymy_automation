@@ -1,5 +1,4 @@
 import type {
-  DiscountTypeT,
   KosztorysItemT,
   KosztorysSectionT,
   KosztorysStageT,
@@ -23,14 +22,13 @@ export function assertReadableSchemaVersion(version: number, kind: 'preset' | 's
   )
 }
 
-// The three investment editor-settings that shape computed prices — captured so a restore is
-// faithful (restore rewrites them). Kept off the tree because they live on `investments`.
+// The investment editor-settings that shape computed prices — captured so a restore is faithful
+// (restore rewrites them). Kept off the tree because they live on `investments`. The global discount
+// is deliberately NOT captured: restoring a version must not reset the live amount discount.
 export type SnapshotSettingsT = {
   wToolsCoeff: number
   ownToolsCoeff: number
   vatRate: number
-  globalDiscountType: DiscountTypeT | null
-  globalDiscountValue: number
 }
 
 // One serialized kosztorys, flat (no nested items) so restore can rebuild the FK graph by remapping

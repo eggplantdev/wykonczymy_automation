@@ -5,7 +5,6 @@ import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kos
 import { PercentRabatTool } from '@/components/kosztorys/summary/percent-rabat-tool'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { HintTooltip } from '@/components/ui/tooltip'
-import type { DiscountTypeT } from '@/lib/kosztorys/types'
 
 // Radix Select rejects an empty-string item value, so "brak" (clear the discount) carries this.
 const NONE = 'none'
@@ -67,7 +66,7 @@ export function SummarySettingsBar() {
         <SimpleSelect
           value={globalDiscount.type ?? NONE}
           onValueChange={(v) => {
-            const type = v === NONE ? null : (v as DiscountTypeT)
+            const type = v === NONE ? null : 'amount'
             handleGlobalDiscountChange({ type, value: type == null ? 0 : globalDiscount.value })
           }}
           options={DISCOUNT_MODE_OPTIONS}

@@ -21,8 +21,6 @@ const emptyPayload: SnapshotPayloadT = {
     wToolsCoeff: 0,
     ownToolsCoeff: 0,
     vatRate: 0,
-    globalDiscountType: null,
-    globalDiscountValue: 0,
   },
 }
 

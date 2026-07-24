@@ -60,9 +60,10 @@ const investmentCoeffsSchema = z
 const investmentVatSchema = z.object({ vatRate: z.coerce.number().min(0).max(1) })
 
 // Per-investment global discount over the whole kosztorys. type null = none (clears the discount).
-// value is netto PLN ('amount') or percentage points ('percent'); never negative.
+// Amount-only: value is netto PLN; never negative. A percent global rabat is no longer stored —
+// applyPercentRabatToAllItemsAction stamps it into each per-item rabat instead.
 const investmentGlobalDiscountSchema = z.object({
-  globalDiscountType: z.enum(['percent', 'amount']).nullable(),
+  globalDiscountType: z.enum(['amount']).nullable(),
   globalDiscountValue: z.coerce.number().min(0),
 })
 

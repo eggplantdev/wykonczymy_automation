@@ -108,7 +108,7 @@ describe('sectionSubtotalsForView › discount (per-item rabat aggregate)', () =
   })
 
   it('reads 0 when the global discount is active (it overrides per-item rabat)', () => {
-    const globalTree = { ...tree, globalDiscount: { type: 'percent' as const, value: 10 } }
+    const globalTree = { ...tree, globalDiscount: { type: 'amount' as const, value: 10 } }
     const rows = treeToRows(globalTree)
     const [section] = sectionSubtotalsForView(rows, globalTree.stages, 'client')
     expect(section.discount).toBeCloseTo(0)
@@ -137,7 +137,7 @@ describe('executedWorkNetPreRabat (subcontractor należne)', () => {
   })
 
   it('is unaffected by an active global discount (net already gross, discount 0)', () => {
-    const globalTree = { ...tree, globalDiscount: { type: 'percent' as const, value: 10 } }
+    const globalTree = { ...tree, globalDiscount: { type: 'amount' as const, value: 10 } }
     const rows = treeToRows(globalTree)
     const subtotals = sectionSubtotalsForView(rows, globalTree.stages, 'client')
     expect(executedWorkNetPreRabat(subtotals)).toBeCloseTo(PRE_RABAT_CLIENT)

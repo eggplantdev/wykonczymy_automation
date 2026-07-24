@@ -14,12 +14,12 @@ import type { GlobalDiscountT, ViewPricingT } from '@/lib/kosztorys/types'
 // Discount ("rabat"): discountValue for 'percent' = percentage points (10 => 10%), for
 // 'amount' = an amount in PLN subtracted from the net value.
 
-// Active only when a mode is chosen AND the value is non-zero — a zero-value discount is
+// Active only when amount mode is chosen AND the value is non-zero — a zero-value discount is
 // indistinguishable from none, so it must not suppress per-item rabat. The explicit mode check
-// fails closed on a persisted value that isn't a known mode (tolerant restore / out-of-band write):
-// otherwise the flag would go active while globalDiscountAmount subtracts nothing.
+// fails closed on a persisted value that isn't 'amount' (a legacy 'percent' row, or an out-of-band
+// write): otherwise the flag would go active while globalDiscountAmount subtracts nothing.
 export function isGlobalDiscountActive({ type, value }: GlobalDiscountT): boolean {
-  return (type === 'percent' || type === 'amount') && value > 0
+  return type === 'amount' && value > 0
 }
 
 function applyDiscount(gross: number, item: ViewPricingT): number {
@@ -166,13 +166,12 @@ function doneFraction(row: ViewPricingT, qtyDone: number): number | null {
 }
 
 /**
- * The global (whole-kosztorys) discount in PLN off the executed total. 'percent' scales the total,
- * 'amount' is flat, none/zero is 0. Not distributed onto rows or stages — subtracted once here so
+ * The global (whole-kosztorys) discount in PLN off the executed total. 'amount' is flat, none/zero
+ * is 0. Not distributed onto rows or stages — subtracted once here so
  * `do zapłaty = totalNet − globalDiscountAmount(totalNet, discount)`. Not clamped below zero; a
  * discount larger than the total is bad input to surface, not to silently floor.
  */
 export function globalDiscountAmount(totalNet: number, discount: GlobalDiscountT): number {
-  if (discount.type === 'percent') return (totalNet * discount.value) / 100
   if (discount.type === 'amount') return discount.value
   return 0
 }

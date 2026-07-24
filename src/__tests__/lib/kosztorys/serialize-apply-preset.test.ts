@@ -243,8 +243,6 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
       wToolsCoeff: 0.9,
       ownToolsCoeff: 0.6,
       vatRate: 0.08,
-      globalDiscountType: null,
-      globalDiscountValue: 0,
     })
   })
 
