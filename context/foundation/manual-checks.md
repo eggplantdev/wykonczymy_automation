@@ -744,24 +744,24 @@ Pass ran clean — **no bugs found**, all three checks pass, W1 verdict-stabilit
 test covers: an unauthenticated session, a real clipboard, and the actual bytes a client receives.
 Run against the dev app (5433 DB) as OWNER, plus one genuinely logged-out browser profile.
 
-- [ ] **Public link works with no session** — „Udostępnij" → „Wygeneruj link" → copy → open in a
+- [x] **Public link works with no session** — „Udostępnij" → „Wygeneruj link" → copy → open in a
       private window (no `payload-token` cookie): the kosztorys renders, grid + footer, no redirect
       to `/zaloguj`. `/k/bogus` → 404.
-- [ ] **No subcontractor prices anywhere on the public page** — with the page open, the „Widok"
+- [x] **No subcontractor prices anywhere on the public page** — with the page open, the „Widok"
       cost-variant controls (z narzędziami / bez narzędzi, coefficients, per-item overrides) are
       absent from the toolbar AND from the column set; the network payload for `/k/<token>` contains
       no `costVariant` / `coeff` / `Override` key. Payload, not just the DOM.
-- [ ] **Grid is genuinely read-only** — clicking a cell does not open an editor, typing does nothing,
+- [x] **Grid is genuinely read-only** — clicking a cell does not open an editor, typing does nothing,
       no row can be added, removed or reordered.
-- [ ] **Rotate invalidates the old URL** — „Wygeneruj nowy" while the old link is open in the private
+- [x] **Rotate invalidates the old URL** — „Wygeneruj nowy" while the old link is open in the private
       window: reload → 404; the new link works.
-- [ ] **Revoke kills the link, preview survives** — „Wyłącz link" → old URL 404s, and
+- [x] **Revoke kills the link, preview survives** — „Wyłącz link" → old URL 404s, and
       „Podgląd" (`/podglad-klienta/<id>`) still renders for the owner.
-- [ ] **It is live, not a snapshot** — change a per-etap quantity in the editor, reload the public
+- [x] **It is live, not a snapshot** — change a per-etap quantity in the editor, reload the public
       URL: the new figure and the recomputed totals are there.
-- [ ] **Preview and public URL render identically** — same rows, same columns, same footer figures,
+- [x] **Preview and public URL render identically** — same rows, same columns, same footer figures,
       side by side.
-- [ ] **MANAGER cannot share** — as a MANAGER, „Udostępnij" → „Wygeneruj link" is refused with the
+- [x] **MANAGER cannot share** — as a MANAGER, „Udostępnij" → „Wygeneruj link" is refused with the
       Polish error; no row appears in `kosztorys_shares`.
 
 ## kosztorys-client-view-reuse (S-13 / EX-532)

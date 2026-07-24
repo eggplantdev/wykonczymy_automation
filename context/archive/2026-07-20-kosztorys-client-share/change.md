@@ -2,11 +2,12 @@
 id: kosztorys-client-share
 slice: S-13
 linear: EX-532
-status: implemented
+status: archived
 branch: konradantonik/ex-532-kosztorys-client-share
 worktree: .claude/worktrees/ex-532-client-share
 created: 2026-07-20
-updated: 2026-07-20
+updated: 2026-07-24
+archived_at: 2026-07-24T13:59:02Z
 ---
 
 # Kosztorys client share view
