@@ -15,7 +15,7 @@ export type SelectVariantT = 'default' | 'soft' | 'pill'
 
 // Complete trigger presets — each variant carries its whole look (height, radius, text, gap, width)
 // so a call site picks a variant and needs no className. `soft`/`pill` are the compact toolbar
-// controls that line up with CoeffField inputs (h-6, xs text); soft = 4px radius, pill = fully round.
+// controls that line up with DecimalField inputs (h-6, xs text); soft = 4px radius, pill = fully round.
 const VARIANT: Record<SelectVariantT, { size: 'xs' | 'sm' | 'default'; className: string }> = {
   default: { size: 'default', className: '' },
   soft: { size: 'xs', className: 'w-fit gap-1 rounded text-xs' },

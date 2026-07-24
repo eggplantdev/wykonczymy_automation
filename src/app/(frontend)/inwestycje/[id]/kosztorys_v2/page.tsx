@@ -13,7 +13,7 @@ import { EXPENSES_TAB_TYPES } from '@/lib/constants/transfers'
 import { deriveFinancials } from '@/lib/db/sum-transfers'
 import { UNASSIGNED_WORKER_NAME } from '@/lib/kosztorys/subcontractor-summary'
 import { buildMaterialyBreakdown } from '@/lib/db/map-category-costs'
-import { KosztorysEditorV2 } from '@/components/kosztorys/kosztorys-editor-v2'
+import { KosztorysEditorV2 } from '@/components/kosztorys/editor/kosztorys-editor-v2'
 
 // The in-app kosztorys editor ("kosztorys_v2"). Always available — every investment has one,
 // the editor renders its own empty state. The legacy Google Sheet lives at /kosztorys.
