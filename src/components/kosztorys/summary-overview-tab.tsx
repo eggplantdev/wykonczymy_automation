@@ -6,6 +6,7 @@ import { materialyPair, type MoneyPairT } from '@/lib/kosztorys/summary-economic
 import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
 import { MixedSummary } from '@/components/kosztorys/mixed-summary'
 import { BruttoNettoSummary } from '@/components/kosztorys/brutto-netto-summary'
+import { SummarySettingsBar } from '@/components/kosztorys/summary-settings-bar'
 import { SlicePie } from '@/components/kosztorys/slice-pie'
 import { Description } from '@/components/ui/description'
 import { type PanelAxisT } from '@/components/kosztorys/use-summary-axis'
@@ -77,6 +78,7 @@ export function SummaryOverviewTab({
 
   return (
     <div className="flex w-full flex-col gap-y-4">
+      {!clientView && <SummarySettingsBar moneyAxis={displayAxis} />}
       <div className="flex flex-col items-start gap-8 lg:flex-row">
         {mixedMode ? (
           <MixedSummary
@@ -108,9 +110,7 @@ export function SummaryOverviewTab({
           />
         )}
         <SlicePie
-          caption={
-            <figcaption className="text-muted-foreground text-xs">Struktura kosztów</figcaption>
-          }
+          caption="Struktura kosztów"
           slices={costTotalsPieSlices(laborCostsNetFromKosztorys, materialsNet)}
         />
       </div>
@@ -124,7 +124,7 @@ export function SummaryOverviewTab({
           aria-label="Rozliczenie netto lub brutto"
         />
         <Description className="mt-2 max-w-xs text-xs">
-          ℹ️ Mieszane oznacza, że inwestycja jest rozliczana częściowo netto, częściowo brutto.
+          Mieszane oznacza, że inwestycja jest rozliczana częściowo netto, częściowo brutto.
         </Description>
       </div>
     </div>
