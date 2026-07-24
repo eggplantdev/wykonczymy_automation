@@ -5,23 +5,19 @@ import * as Collapsible from '@radix-ui/react-collapsible'
 import { ChevronDown } from 'lucide-react'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
-import { Checkbox } from '@/components/ui/checkbox'
-import { SimpleTooltip } from '@/components/ui/tooltip'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import { bucketDepositsByPlane, computeDoZaplatyRM } from '@/lib/kosztorys/summary-economics'
-import { CashSettlement } from '@/components/kosztorys/cash-settlement'
-import { CoeffField } from '@/components/kosztorys/coeff-field'
-import { DepositsTable } from '@/components/kosztorys/deposits-table'
 import { KosztorysStageTotals } from '@/components/kosztorys/kosztorys-stage-totals'
-import { KosztorysSummary } from '@/components/kosztorys/kosztorys-summary'
+import { SummaryOverviewTab } from '@/components/kosztorys/summary-overview-tab'
+import { SummaryExpensesTab } from '@/components/kosztorys/summary-expenses-tab'
+import { SummaryDepositsTab } from '@/components/kosztorys/summary-deposits-tab'
 import { SubcontractorSummary } from '@/components/kosztorys/subcontractor-summary'
 import { CollapsiblePanelTrigger } from '@/components/ui/collapsible-panel-trigger'
 import { SummaryScrollRegion } from '@/components/ui/summary-grid'
-import { type MutedAxisT } from '@/components/kosztorys/summary-axis'
 import { useTotalsPanelOpen } from '@/components/kosztorys/use-totals-panel-open'
-import { useSummaryAxis, type PanelAxisT } from '@/components/kosztorys/use-summary-axis'
+import { useSummaryAxis } from '@/components/kosztorys/use-summary-axis'
+import { useSummaryView, type SummaryViewT } from '@/components/kosztorys/use-summary-view'
 import { useMaterialsNetPricing } from '@/components/kosztorys/use-materials-net-pricing'
-import { cn } from '@/lib/utils/cn'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import type { KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
@@ -30,12 +26,14 @@ import type {
   SubcontractorPayoutRowT,
   PayoutTransactionRowT,
   DepositTransactionRowT,
+  MaterialTransactionRowT,
 } from '@/types/reference-data'
 
-const SUMMARY_AXIS_OPTIONS: OptionT<PanelAxisT>[] = [
-  { value: 'net', label: 'Netto' },
-  { value: 'gross', label: 'Brutto' },
-  { value: 'cash', label: 'Mieszane' },
+const SUMMARY_VIEW_OPTIONS: OptionT<SummaryViewT>[] = [
+  { value: 'summary', label: 'Podsumowanie' },
+  { value: 'wydatki', label: 'Wydatki' },
+  { value: 'wplaty', label: 'Wpłaty' },
+  { value: 'etapy', label: 'Robocizna per etap' },
 ]
 
 type PropsT = {
@@ -48,6 +46,8 @@ type PropsT = {
   payoutTransactions: PayoutTransactionRowT[]
   // Individual deposit rows — feed the client Podsumowanie's sortable wpłaty list.
   depositTransactions: DepositTransactionRowT[]
+  // Individual materiały rows — feed the Podsumowanie's wydatki list (data · typ · kwota).
+  materialTransactions: MaterialTransactionRowT[]
   // „Suma wykonanej pracy" (należne) at the active view's subcontractor price, pre-rabat — the
   // subcontractor block's headline figure. Ignored in the client view.
   subcontractorDueNet: number
@@ -87,6 +87,7 @@ export function KosztorysTotalsPanel({
   payoutsByWorker,
   payoutTransactions,
   depositTransactions,
+  materialTransactions,
   subcontractorDueNet,
   totalNet,
   laborCostsNetFromKosztorys,
@@ -104,15 +105,16 @@ export function KosztorysTotalsPanel({
   // The panel's own netto/brutto axis, independent of the Widok dropdown — that one keeps
   // governing the grid columns only; this switch governs every figure inside the panel.
   const [moneyAxis, setMoneyAxis] = useSummaryAxis()
+  // Which client-plane view is shown (Podsumowanie / Wydatki / Wpłaty) — independent of the grid's
+  // price view. Disabled on the subcontractor plane, which renders its own summary instead.
+  const [summaryView, setSummaryView] = useSummaryView()
   // „Mieszane" ('cash') shows BOTH netto and brutto columns, then a cash split block — the settlement
   // anchors on brutto (matching the brutto „Do zapłaty" column at C = 0), while netto stays visible
   // beside it. Every other value is a real MoneyAxisT the children read directly.
   const cashMode = moneyAxis === 'cash'
-  // Both money columns now render in every mode; the toggle only picks which one is active — the other
-  // shows greyed. (Mieszane keeps both un-greyed, plus the gotówka block.)
-  const displayAxis: MoneyAxisT = 'both'
-  const mutedAxis: MutedAxisT =
-    moneyAxis === 'net' ? 'gross' : moneyAxis === 'gross' ? 'net' : undefined
+  // The toggle shows one money column — the chosen one. Mieszane is the exception: it's a mixed
+  // netto+brutto settlement, so it shows both columns alongside the gotówka block.
+  const displayAxis: MoneyAxisT = moneyAxis === 'cash' ? 'both' : moneyAxis
   // Materiały netto pricing: when on, netto = brutto − VAT (the historical default); when off,
   // materiały stay at their raw brutto amount on both axes. Only moves netto figures, so the toggle
   // is offered only where netto is on show and there are materiały to reprice.
@@ -124,8 +126,9 @@ export function KosztorysTotalsPanel({
   // rate, then the owner moves it to test whether a straight brutto reduction is the right model.
   const [materialsReductionPercent, setMaterialsReductionPercent] = useState(vatPercent)
   const materialsReduction = materialsReductionPercent / 100
-  // „Do rozliczenia netto" is derived, not typed: Σ deposits flagged NET is the gotówka part.
-  const cashAmount = bucketDepositsByPlane(depositTransactions).paidNet
+  // Wpłaty split by VAT plane for tryb mieszany: NET (+ unmarked) settle the netto section,
+  // GROSS the brutto section. Derived from the deposit list, never typed.
+  const { paidNet, paidGross } = bucketDepositsByPlane(depositTransactions)
   // The subcontractor plane (Z/Bez narzędzi) has no VAT axis and its own headline figure, so the
   // client „Do zapłaty" only applies in the client view.
   const isClientPlane = priceView === 'client'
@@ -170,60 +173,47 @@ export function KosztorysTotalsPanel({
         forceMount
         className="flex min-h-0 flex-1 flex-col overflow-hidden transition-[visibility] duration-200 data-[state=closed]:invisible"
       >
+        {/* Pinned top bar — the view toggle (Podsumowanie / Wydatki / Wpłaty) stays visible while the
+            content scrolls below it. Rendered on both planes but disabled on the subcontractor plane,
+            which has its own summary; the toggle only governs the client plane for now. pr keeps the
+            toggle clear of the absolute close affordance in the top-right corner. */}
+        <div className="border-border flex shrink-0 items-center border-b px-4 py-2 pr-16">
+          <ToggleGroup
+            options={SUMMARY_VIEW_OPTIONS}
+            value={summaryView}
+            onChange={setSummaryView}
+            size="lg"
+            disabled={!isClientPlane}
+            aria-label="Widok podsumowania"
+          />
+        </div>
         {/* One scroll container for both planes — the content clears the toolbar instead of hiding
             under it, identically whichever plane is active; the trigger above stays pinned. */}
         <SummaryScrollRegion>
           {isClientPlane ? (
-            // One flex column owns every vertical gap in the client Podsumowanie — toggle, checkbox,
-            // and each table row are siblings on a single `gap-y-8`, so the spacing between controls
-            // and between tables is uniform. Row 1 is the summary block + its side tables; row 2 is
-            // the wpłaty list + „Robocizna per etap", split so a wide deposits row can't stretch the
-            // summary column.
-            <div className="flex w-full flex-col gap-y-8 px-4 pt-4 pb-10">
-              {/* Toggle + its checkbox are one control group — tight `gap-2` between them, while the
-                  group as a whole keeps the panel's `gap-y-8` distance from the tables below. */}
-              <div className="flex w-fit flex-col gap-2">
-                <SimpleTooltip content="Mieszane oznacza, że inwestycja jest rozliczana częściowo netto, częściowo brutto.">
-                  {/* ToggleGroup doesn't spread props, so the trigger needs a real element. */}
-                  <span className="inline-flex w-fit">
-                    <ToggleGroup
-                      options={SUMMARY_AXIS_OPTIONS}
-                      value={moneyAxis}
-                      onChange={setMoneyAxis}
-                      aria-label="Rozliczenie netto lub brutto"
-                    />
-                  </span>
-                </SimpleTooltip>
-                {nettoShown && materialsGross !== 0 && (
-                  <label
-                    className={cn(
-                      'mt-2 flex w-fit cursor-pointer items-center gap-2 text-xs',
-                      materialsAsNet ? 'text-foreground' : 'text-muted-foreground',
-                    )}
-                  >
-                    <Checkbox
-                      checked={materialsAsNet}
-                      onCheckedChange={(value) => setMaterialsAsNet(value === true)}
-                    />
-                    Zaznacz jeśli wydatki mają być rozliczane po kwocie netto
-                  </label>
-                )}
-                {nettoShown && materialsGross !== 0 && materialsAsNet && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground text-xs">
-                      Stawka netto wydatków (domyślnie - stawka vat)
-                    </span>
-                    <CoeffField
-                      label=""
-                      value={materialsReductionPercent}
-                      onCommit={(n) => n != null && setMaterialsReductionPercent(n)}
-                    />
-                  </div>
-                )}
-              </div>
-              <div className="flex w-full flex-wrap items-start gap-x-12 gap-y-8">
-                <KosztorysSummary
+            // One flex column owns every vertical gap in the active view — each block is a sibling on a
+            // single `gap-y-8` so spacing stays uniform. Which blocks render is the top toggle's job:
+            // Podsumowanie (summary + Suma transzy), Wydatki (materiały controls + list), Wpłaty (deposits).
+            <div className="flex w-full flex-col gap-y-4 px-4 pt-4 pb-10">
+              {summaryView === 'wydatki' && (
+                <SummaryExpensesTab
                   investmentId={investmentId}
+                  materialsGross={materialsGross}
+                  materialyBreakdown={materialyBreakdown}
+                  materialTransactions={materialTransactions}
+                  nettoShown={nettoShown}
+                  materialsAsNet={materialsAsNet}
+                  onMaterialsAsNetChange={setMaterialsAsNet}
+                  materialsReductionPercent={materialsReductionPercent}
+                  onMaterialsReductionPercentChange={setMaterialsReductionPercent}
+                  clientView={clientView}
+                />
+              )}
+              {summaryView === 'summary' && (
+                <SummaryOverviewTab
+                  investmentId={investmentId}
+                  moneyAxis={moneyAxis}
+                  onMoneyAxisChange={setMoneyAxis}
                   laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
                   doZaplaty={doZaplaty}
                   materialsGross={materialsGross}
@@ -234,46 +224,33 @@ export function KosztorysTotalsPanel({
                   reconciliation={reconciliation}
                   priceView={priceView}
                   vatRate={vatRate}
-                  moneyAxis={displayAxis}
-                  mutedAxis={mutedAxis}
                   deriveMaterialsNet={materialsAsNet}
                   materialsReduction={materialsReduction}
+                  paidNet={paidNet}
+                  paidGross={paidGross}
                   clientView={clientView}
                 />
-                {cashMode && (
-                  <div className="flex flex-col gap-1 self-start">
-                    <CashSettlement
-                      combinedNet={doZaplaty.net + wplatyNet}
-                      wplatyNet={wplatyNet}
-                      vatRate={vatRate}
-                      cashAmount={cashAmount}
-                    />
-                    <p className="text-muted-foreground w-fit max-w-3xs text-xs text-balance">
-                      Wpłaty bez oznaczenia netto/brutto są traktowane jako netto.
-                    </p>
-                  </div>
-                )}
-              </div>
-              <div className="flex w-full flex-wrap items-start gap-x-12 gap-y-8">
-                {depositTransactions.length > 0 && (
-                  <DepositsTable
-                    investmentId={investmentId}
-                    rows={depositTransactions}
-                    clientView={clientView}
-                    showPlane={cashMode}
-                  />
-                )}
-                {/* „Suma transzy" (per-etap, Netto/Brutto) is a client/VAT figure — the subcontractor
-                      plane has no VAT axis (EX-558), so it renders only here, beside the wpłaty list. */}
+              )}
+              {summaryView === 'wplaty' && (
+                <SummaryDepositsTab
+                  investmentId={investmentId}
+                  rows={depositTransactions}
+                  showPlane={cashMode}
+                  clientView={clientView}
+                />
+              )}
+              {/* „Robocizna per etap" (Netto/Brutto per stage) — a client/VAT figure; the
+                  subcontractor plane has no VAT axis (EX-558), so it renders only on this plane.
+                  The axis it reads is set by the Podsumowanie tab's toggle (shared panel state). */}
+              {summaryView === 'etapy' && (
                 <KosztorysStageTotals
                   stages={stages}
                   stageTotals={stageTotals}
                   wykonaneNet={totalNet}
                   vatRate={vatRate}
                   moneyAxis={displayAxis}
-                  mutedAxis={mutedAxis}
                 />
-              </div>
+              )}
             </div>
           ) : (
             <SubcontractorSummary

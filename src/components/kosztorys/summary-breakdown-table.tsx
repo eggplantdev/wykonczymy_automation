@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import {
   summaryLineFace,
   summaryLineGross,
@@ -11,12 +10,11 @@ import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import { SummaryHeaderCell, SummaryTable } from '@/components/ui/summary-grid'
 import { SummaryMoneyHeaders } from '@/components/kosztorys/summary-money-headers'
 import { SummaryRow } from '@/components/kosztorys/summary-row'
-import { type MutedAxisT } from '@/components/kosztorys/summary-axis'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 
-// The upper grid: „Suma prac wykonanych" + each materiały/korekta line, summing to „Łącznie".
-// This is the sheet Podsumowanie split; the waterfall below deducts from its Łącznie. The udział
-// figures stay computed upstream (summaryLine share) — they feed the charts, just not this table.
+// The upper grid: „Suma prac wykonanych" + „Materiały" (one aggregate line — the per-category split
+// lives in the Wydatki view), summing to „Łącznie". This is the sheet Podsumowanie split; the
+// waterfall below deducts from its Łącznie.
 export function SummaryBreakdownTable({
   cols,
   moneyAxis,
@@ -26,11 +24,8 @@ export function SummaryBreakdownTable({
   combinedNet,
   combined,
   vatRate,
-  mutedAxis,
   deriveMaterialsNet,
   materialsReduction,
-  investmentId,
-  clientView,
 }: {
   cols: string
   moneyAxis: MoneyAxisT
@@ -40,62 +35,33 @@ export function SummaryBreakdownTable({
   combinedNet: number
   combined: MoneyPairT
   vatRate: number
-  mutedAxis?: MutedAxisT
-  // Price each materiały row netto as brutto − VAT (summaryLineGross) or at raw brutto (summaryLineFace).
+  // Price materiały netto as brutto − VAT (summaryLineGross) or at raw brutto (summaryLineFace).
   deriveMaterialsNet: boolean
-  // When set (and deriveMaterialsNet), each row's netto = brutto × (1 − materialsReduction) instead
-  // of the VAT-strip default (temporary client-side experiment).
+  // When set (and deriveMaterialsNet), netto = brutto × (1 − materialsReduction) instead of the
+  // VAT-strip default (temporary client-side experiment).
   materialsReduction?: number
-  investmentId: number
-  clientView: boolean
 }) {
+  // Σ over categories — `item.net` is each category's materiały BRUTTO sum (financials-layer field
+  // name kept; reinterpreted as gross here). Per-item pricing is linear in the brutto amount, so the
+  // aggregate line equals summing the per-category rows the Wydatki view still shows individually.
+  const materialsGross = materialyBreakdown.reduce((sum, item) => sum + item.net, 0)
   return (
     <SummaryTable cols={cols}>
       <SummaryHeaderCell variant="label">Podsumowanie</SummaryHeaderCell>
-      <SummaryMoneyHeaders axis={moneyAxis} mutedAxis={mutedAxis} />
-      <SummaryRow
-        label="Robocizna"
-        line={sumaPrac}
-        axis={moneyAxis}
-        mutedAxis={mutedAxis}
-        mismatch={sumaPracMismatch}
-      />
-      {materialyBreakdown
-        .filter((item) => item.net !== 0)
-        .map((item) => (
-          <SummaryRow
-            key={item.id ?? 'korekta'}
-            label={
-              item.id !== null && !clientView ? (
-                <Link
-                  href={`/inwestycje/${investmentId}?expenseCategory=${item.id}`}
-                  className="hover:underline"
-                >
-                  {item.label}
-                </Link>
-              ) : (
-                item.label
-              )
-            }
-            // `item.net` is the materiały BRUTTO transaction sum (financials-layer field name kept;
-            // rename deferred to the persistence slice) — reinterpreted here as gross. When netto
-            // pricing is off, the brutto figure stands on both axes (face value).
-            line={
-              deriveMaterialsNet
-                ? summaryLineGross(item.net, combinedNet, vatRate, materialsReduction)
-                : summaryLineFace(item.net, combinedNet)
-            }
-            axis={moneyAxis}
-            mutedAxis={mutedAxis}
-          />
-        ))}
-      <SummaryRow
-        label="Łącznie"
-        line={combined}
-        axis={moneyAxis}
-        mutedAxis={mutedAxis}
-        emphasize
-      />
+      <SummaryMoneyHeaders axis={moneyAxis} />
+      <SummaryRow label="Robocizna" line={sumaPrac} axis={moneyAxis} mismatch={sumaPracMismatch} />
+      {materialsGross !== 0 && (
+        <SummaryRow
+          label="Materiały"
+          line={
+            deriveMaterialsNet
+              ? summaryLineGross(materialsGross, combinedNet, vatRate, materialsReduction)
+              : summaryLineFace(materialsGross, combinedNet)
+          }
+          axis={moneyAxis}
+        />
+      )}
+      <SummaryRow label="Łącznie" line={combined} axis={moneyAxis} emphasize />
     </SummaryTable>
   )
 }

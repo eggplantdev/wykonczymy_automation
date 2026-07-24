@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   bucketDepositsByPlane,
-  computeCashSettlement,
+  computeMixedSettlement,
   computeDoZaplatyRM,
   computeSummarySplit,
   faceValue,
@@ -195,45 +195,53 @@ describe('Podsumowanie brutto waterfall (rabat grosses, materiały brutto)', () 
   })
 })
 
-// Explicit cash-vs-invoice waterfall anchored on Łącznie netto: − gotówka → Pozostałe netto → + VAT
-// → Pozostałe z VAT → − wpłaty → Do zapłaty fakturą → + gotówka → Razem. wpłaty are subtracted AFTER
-// grossing (never grossed), so C = 0 still lands on the Brutto axis „Do zapłaty".
-describe('computeCashSettlement (tryb mieszany)', () => {
+// Two stacked sections: NETTO (Robocizna + Materiały = Łącznie → − wpłaty netto → Do rozliczenia
+// netto) then BRUTTO (Do rozliczenia netto + VAT = Reszta brutto → − wpłaty brutto → Do zapłaty
+// brutto). Only the still-owed netto is grossed, so netto deposits shield their złoty from VAT.
+describe('computeMixedSettlement (tryb mieszany)', () => {
   const vat = 0.23
-  const combinedNet = 1000 // Łącznie netto
-  const wplaty = 300
+  const robocizna = 700
+  const materialsGross = 369 // netto = 300 after VAT strip (369 / 1.23)
 
-  it('C = 0: total = combinedGross − wpłaty (the Brutto axis „Do zapłaty")', () => {
-    const s = computeCashSettlement(combinedNet, wplaty, 0, vat)
-    expect(s.cash).toBe(0)
-    expect(s.remainderNet).toBeCloseTo(1000)
-    expect(s.remainderGross).toBeCloseTo(1230)
-    expect(s.invoice).toBeCloseTo(1230 - 300)
-    expect(s.total).toBeCloseTo(1230 - 300)
+  it('netto section: Łącznie = robocizna + materiały netto, minus wpłaty netto', () => {
+    const s = computeMixedSettlement(robocizna, materialsGross, vat, 400, 0)
+    expect(s.robocizna).toBeCloseTo(700)
+    expect(s.materialy).toBeCloseTo(300)
+    expect(s.combinedNet).toBeCloseTo(1000)
+    expect(s.doRozliczeniaNet).toBeCloseTo(600) // 1000 − 400
   })
 
-  it('waterfall reconstructs row by row', () => {
-    const s = computeCashSettlement(combinedNet, wplaty, 400, vat)
-    expect(s.remainderNet).toBeCloseTo(600) // 1000 − 400
-    expect(s.remainderGross).toBeCloseTo(600 * 1.23) // + VAT
-    expect(s.invoice).toBeCloseTo(600 * 1.23 - 300) // − wpłaty
-    expect(s.total).toBeCloseTo(400 + (600 * 1.23 - 300)) // + gotówka
+  it('brutto section: only the still-owed netto is grossed, then wpłaty brutto pay it down', () => {
+    const s = computeMixedSettlement(robocizna, materialsGross, vat, 400, 200)
+    expect(s.resztaGross).toBeCloseTo(600 * 1.23) // Do rozliczenia netto + VAT
+    expect(s.doZaplatyGross).toBeCloseTo(600 * 1.23 - 200) // − wpłaty brutto
   })
 
-  it('each cash złoty removes its own VAT: total = (combinedGross − wpłaty) − C·VAT', () => {
-    const s = computeCashSettlement(combinedNet, wplaty, 400, vat)
-    expect(s.total).toBeCloseTo(1230 - 300 - 400 * vat)
+  it('no wpłaty netto: full Łącznie is grossed onto the invoice', () => {
+    const s = computeMixedSettlement(robocizna, materialsGross, vat, 0, 0)
+    expect(s.doRozliczeniaNet).toBeCloseTo(1000)
+    expect(s.resztaGross).toBeCloseTo(1230)
+    expect(s.doZaplatyGross).toBeCloseTo(1230)
   })
 
-  it('over-typing C past the base keeps going (no clamp) — remainder goes negative', () => {
-    const s = computeCashSettlement(combinedNet, wplaty, 1500, vat)
-    expect(s.remainderNet).toBeCloseTo(-500)
-    expect(s.total).toBeCloseTo(1230 - 300 - 1500 * vat)
+  it('over-paying netto past Łącznie: Do rozliczenia netto goes negative (no clamp)', () => {
+    const s = computeMixedSettlement(robocizna, materialsGross, vat, 1500, 0)
+    expect(s.doRozliczeniaNet).toBeCloseTo(-500)
+    expect(s.resztaGross).toBeCloseTo(-500 * 1.23)
   })
 
-  it('vatRate = 0: no VAT to save — total = combinedNet − wpłaty regardless of C', () => {
-    const s = computeCashSettlement(1000, 300, 400, 0)
-    expect(s.total).toBeCloseTo(700)
+  it('vatRate = 0: no VAT — Reszta brutto equals Do rozliczenia netto', () => {
+    const s = computeMixedSettlement(700, 300, 0, 400, 100)
+    expect(s.materialy).toBeCloseTo(300) // no VAT to strip
+    expect(s.doRozliczeniaNet).toBeCloseTo(600)
+    expect(s.resztaGross).toBeCloseTo(600)
+    expect(s.doZaplatyGross).toBeCloseTo(500)
+  })
+
+  it('materiały reduction overrides the VAT strip for the netto figure', () => {
+    const s = computeMixedSettlement(700, 1000, vat, 0, 0, true, 0.1)
+    expect(s.materialy).toBeCloseTo(900) // 1000 × (1 − 0.1)
+    expect(s.combinedNet).toBeCloseTo(1600)
   })
 })
 

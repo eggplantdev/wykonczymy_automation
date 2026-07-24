@@ -96,7 +96,7 @@ export function DepositsTable({
       <SummaryTable cols={listCols} className="w-fit">
         <SummaryHeaderCell variant="label">Wpłaty</SummaryHeaderCell>
         <SummaryHeaderCell>Kwota</SummaryHeaderCell>
-        <SummaryHeaderCell variant="label">Rodzaj</SummaryHeaderCell>
+        <SummaryHeaderCell variant="label">Rozliczenie netto/brutto</SummaryHeaderCell>
 
         {rows.map((row) => (
           <Fragment key={row.id}>

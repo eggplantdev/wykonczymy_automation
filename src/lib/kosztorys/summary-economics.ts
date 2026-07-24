@@ -123,45 +123,51 @@ export function computeDoZaplatyRM(
   return { net, gross }
 }
 
-export type CashSettlementT = {
-  cash: number
-  // Łącznie netto (robocizna + materiały) — the VATable base the split starts from.
+export type MixedSettlementT = {
+  // Netto section: robocizna + materiały = Łącznie, then wpłaty netto → Do rozliczenia netto.
+  robocizna: number
+  materialy: number
   combinedNet: number
-  // Łącznie netto − gotówka: the part still to be invoiced, before VAT.
-  remainderNet: number
-  // remainderNet grossed up — the invoiced part WITH VAT, before wpłaty.
-  remainderGross: number
-  // remainderGross − wpłaty: what the client still owes ON THE INVOICE (this is the figure the old
-  // opaque „Reszta z VAT" row actually showed).
-  invoice: number
-  // cash + invoice: total the client pays now.
-  total: number
+  paidNet: number
+  // combinedNet − paidNet: the still-owed netto that goes onto the invoice.
+  doRozliczeniaNet: number
+  // Brutto section: the still-owed netto grossed up, then wpłaty brutto → Do zapłaty brutto.
+  resztaGross: number
+  paidGross: number
+  // resztaGross − paidGross: what the client still owes on the invoice.
+  doZaplatyGross: number
 }
 
-// Tryb mieszany: the client pays part of the work in cash (no invoice → no VAT) and the rest is
-// invoiced WITH VAT. A transparent waterfall the reader can reconstruct row by row:
-//   Wartość netto (Łącznie) → − gotówka → Pozostałe netto → + VAT → Pozostałe z VAT
-//   → − wpłaty → Do zapłaty fakturą → + gotówka → Razem.
-// Anchored on Łącznie netto (not net·(1+VAT) of „Do zapłaty"): wpłaty carry no VAT, so they're
-// subtracted AFTER grossing, never grossed — otherwise VAT is invented on the deposits. Algebraically
-// total = combinedGross − wpłaty − C·VAT = doZaplatyGross − C·VAT, so C = 0 → total = the Brutto axis
-// „Do zapłaty". No clamping — the caller allows C beyond the base.
-export function computeCashSettlement(
-  combinedNet: number,
-  wplatyNet: number,
-  cashAmount: number,
+// Tryb mieszany: the client settles part in cash (no invoice → no VAT) and the rest on an invoice
+// WITH VAT. Two stacked sections the reader reconstructs top-down:
+//   NETTO:  Robocizna + Materiały = Łącznie netto → − wpłaty netto → Do rozliczenia netto
+//   BRUTTO: Do rozliczenia netto + VAT = Reszta brutto → − wpłaty brutto → Do zapłaty brutto
+// Only the STILL-OWED netto is grossed (the cash-paid part never touches the invoice), so netto
+// deposits shield their złoty from VAT while brutto deposits pay down the invoiced part directly.
+// Robocizna netto is already post-rabat (Suma prac po rabacie), so the rabat's effect flows through
+// both sections without a second deduction — the panel shows it as an informational line only.
+export function computeMixedSettlement(
+  laborCostsNetFromKosztorys: number,
+  materialsGross: number,
   vatRate: number,
-): CashSettlementT {
-  const remainderNet = combinedNet - cashAmount
-  const remainderGross = toGross(remainderNet, vatRate)
-  const invoice = remainderGross - wplatyNet
+  paidNet: number,
+  paidGross: number,
+  deriveMaterialsNet = true,
+  materialsReduction?: number,
+): MixedSettlementT {
+  const materialy = materialyPair(materialsGross, vatRate, deriveMaterialsNet, materialsReduction)
+  const combinedNet = laborCostsNetFromKosztorys + materialy.net
+  const doRozliczeniaNet = combinedNet - paidNet
+  const resztaGross = toGross(doRozliczeniaNet, vatRate)
   return {
-    cash: cashAmount,
+    robocizna: laborCostsNetFromKosztorys,
+    materialy: materialy.net,
     combinedNet,
-    remainderNet,
-    remainderGross,
-    invoice,
-    total: cashAmount + invoice,
+    paidNet,
+    doRozliczeniaNet,
+    resztaGross,
+    paidGross,
+    doZaplatyGross: resztaGross - paidGross,
   }
 }
 

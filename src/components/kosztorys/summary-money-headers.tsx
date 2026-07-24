@@ -1,32 +1,18 @@
 import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import { SummaryHeaderCell } from '@/components/ui/summary-grid'
-import { orderedMoneySides, type MutedAxisT } from '@/components/kosztorys/summary-axis'
 
-// The Netto/Brutto header pair, in active-first order, with the active one black+bold and the muted
-// one greyed. Shared by every summary grid that shows both money columns so the ordering/emphasis
-// rule lives in one place.
-export function SummaryMoneyHeaders({
-  axis,
-  mutedAxis,
-}: {
-  axis: MoneyAxisT
-  mutedAxis?: MutedAxisT
-}) {
+// The Netto/Brutto header pair, shown only for the axis on display. Shared by every summary grid so
+// the header copy lives in one place. Mieszane shows both; net/gross show their single column.
+export function SummaryMoneyHeaders({ axis }: { axis: MoneyAxisT }) {
   const { net: showNet, gross: showGross } = axisShows(axis)
   return (
     <>
-      {orderedMoneySides(mutedAxis).map((side) => {
-        if (side === 'net' ? !showNet : !showGross) return null
-        return (
-          <SummaryHeaderCell
-            key={side}
-            muted={mutedAxis === side}
-            className={mutedAxis === side ? undefined : 'text-foreground font-bold'}
-          >
-            {side === 'net' ? 'Netto' : 'Brutto'}
-          </SummaryHeaderCell>
-        )
-      })}
+      {showNet && (
+        <SummaryHeaderCell className="text-foreground font-bold">Netto</SummaryHeaderCell>
+      )}
+      {showGross && (
+        <SummaryHeaderCell className="text-foreground font-bold">Brutto</SummaryHeaderCell>
+      )}
     </>
   )
 }

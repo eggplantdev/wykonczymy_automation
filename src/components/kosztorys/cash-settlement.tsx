@@ -1,64 +1,110 @@
-import { computeCashSettlement } from '@/lib/kosztorys/summary-economics'
+import { computeMixedSettlement } from '@/lib/kosztorys/summary-economics'
 import { SummaryHeaderCell, SummaryTable } from '@/components/ui/summary-grid'
 import { SummaryRow } from '@/components/kosztorys/summary-row'
 import { summaryMoneyCols } from '@/components/kosztorys/summary-axis'
+import { costTotalsPieSlices } from '@/lib/kosztorys/chart-slices'
+import { SlicePie } from '@/components/kosztorys/slice-pie'
 
 type PropsT = {
-  // Łącznie netto (robocizna + materiały) — the VATable base the cash split starts from.
-  combinedNet: number
-  // Investor's wpłaty (face value, no VAT) — subtracted after grossing, never grossed.
-  wplatyNet: number
+  // Robocizna wartość netto — already post-rabat (Suma prac po rabacie).
+  laborCostsNetFromKosztorys: number
+  // Materiały brutto — netto is derived via the same deriveMaterialsNet/reduction switch as elsewhere.
+  materialsGross: number
   vatRate: number
-  // Σ deposits flagged NET — the gotówka part, derived from the wpłaty list, not typed.
-  cashAmount: number
+  deriveMaterialsNet: boolean
+  materialsReduction: number
+  // Wpłaty split by VAT plane: NET (+ unmarked) settle the netto section, GROSS the brutto section.
+  paidNet: number
+  paidGross: number
+  // Rabat taken off the executed robocizna (net zł) — informational only; already inside robocizna netto.
+  rabatAmount: number
 }
 
-// Tryb mieszany: an explicit cash-vs-invoice waterfall so every figure reconstructs from the one
-// above it — Wartość netto → − gotówka → Pozostałe netto → + VAT → Pozostałe z VAT → − wpłaty →
-// Do zapłaty fakturą → + gotówka → Razem. Built on the shared netto single-value track so it lines
-// up with the grid to its left.
-export function CashSettlement({ combinedNet, wplatyNet, vatRate, cashAmount }: PropsT) {
-  const settlement = computeCashSettlement(combinedNet, wplatyNet, cashAmount, vatRate)
+// Tryb mieszany: one vertical netto→brutto tor (no netto/brutto columns). The netto section resolves
+// Łącznie − wpłaty netto → „Do rozliczenia netto"; that remainder is grossed onto the invoice, where
+// wpłaty brutto pay it down → „Do zapłaty brutto". Rabat is a trailing informational netto row — it's
+// already baked into robocizna netto, so it never deducts twice.
+export function CashSettlement({
+  laborCostsNetFromKosztorys,
+  materialsGross,
+  vatRate,
+  deriveMaterialsNet,
+  materialsReduction,
+  paidNet,
+  paidGross,
+  rabatAmount,
+}: PropsT) {
+  const settlement = computeMixedSettlement(
+    laborCostsNetFromKosztorys,
+    materialsGross,
+    vatRate,
+    paidNet,
+    paidGross,
+    deriveMaterialsNet,
+    materialsReduction,
+  )
   const vatPercent = Math.round(vatRate * 100)
+  const cols = summaryMoneyCols('net')
+  const money = (amount: number) => ({ net: amount, gross: amount })
 
   return (
-    <SummaryTable cols={summaryMoneyCols('net')} className="w-fit self-start">
-      <SummaryHeaderCell variant="label">Rozliczenie mieszane</SummaryHeaderCell>
-      <SummaryHeaderCell>Kwota</SummaryHeaderCell>
+    <div className="flex flex-col items-start gap-8 lg:flex-row">
+      <div className="flex w-fit flex-col gap-8 self-start">
+        <SummaryTable cols={cols} className="w-fit">
+          <SummaryHeaderCell variant="label">Rozliczenie mieszane</SummaryHeaderCell>
+          <SummaryHeaderCell>Kwota netto</SummaryHeaderCell>
 
-      <SummaryRow
-        label="Całość netto"
-        hint="Łącznie netto (robocizna + materiały)"
-        line={{ net: settlement.combinedNet, gross: settlement.combinedNet }}
-        axis="net"
+          <SummaryRow label="Robocizna" line={money(settlement.robocizna)} axis="net" />
+          <SummaryRow label="Materiały" line={money(settlement.materialy)} axis="net" />
+          <SummaryRow label="Łącznie" line={money(settlement.combinedNet)} axis="net" emphasize />
+          <SummaryRow label="Wpłaty netto" line={money(settlement.paidNet)} axis="net" discount />
+          <SummaryRow
+            label="Do zapłaty netto"
+            hint="Łącznie netto − wpłaty netto"
+            line={money(settlement.doRozliczeniaNet)}
+            axis="net"
+            bold
+          />
+        </SummaryTable>
+
+        <SummaryTable cols={cols} className="w-fit">
+          <SummaryHeaderCell variant="label">Rozliczenie fakturą</SummaryHeaderCell>
+          <SummaryHeaderCell>Kwota brutto</SummaryHeaderCell>
+
+          <SummaryRow
+            label="Reszta brutto"
+            hint={`Do rozliczenia netto + VAT ${vatPercent}%`}
+            line={money(settlement.resztaGross)}
+            axis="net"
+          />
+          <SummaryRow
+            label="Wpłaty brutto"
+            line={money(settlement.paidGross)}
+            axis="net"
+            discount
+          />
+          <SummaryRow
+            label="Do zapłaty brutto"
+            hint="Reszta brutto − wpłaty brutto"
+            line={money(settlement.doZaplatyGross)}
+            axis="net"
+            bold
+            danger={settlement.doZaplatyGross > 0}
+          />
+        </SummaryTable>
+
+        {rabatAmount > 0 && (
+          <SummaryTable cols={cols} className="w-fit">
+            <SummaryRow label="Udzielono rabatu na kwotę" line={money(rabatAmount)} axis="net" />
+          </SummaryTable>
+        )}
+      </div>
+      <SlicePie
+        caption={
+          <figcaption className="text-muted-foreground text-xs">Struktura kosztów</figcaption>
+        }
+        slices={costTotalsPieSlices(settlement.robocizna, settlement.materialy)}
       />
-      <SummaryRow
-        label="Do rozliczenia netto"
-        hint="Suma wpłat netto (wpłaty bez oznaczenia liczone są jako netto)"
-        line={{ net: settlement.cash, gross: settlement.cash }}
-        axis="net"
-      />
-      <SummaryRow
-        label="Reszta netto"
-        hint="Wartość netto − gotówka"
-        line={{ net: settlement.remainderNet, gross: settlement.remainderNet }}
-        axis="net"
-      />
-      <SummaryRow
-        label="Reszta brutto"
-        hint={`Pozostałe netto + VAT ${vatPercent}%`}
-        line={{ net: settlement.remainderGross, gross: settlement.remainderGross }}
-        axis="net"
-      />
-      <SummaryRow label="Wpłaty" line={{ net: wplatyNet, gross: wplatyNet }} axis="net" discount />
-      <SummaryRow
-        label="Razem do zapłaty"
-        hint="Do zapłaty fakturą + gotówka"
-        line={{ net: settlement.total, gross: settlement.total }}
-        axis="net"
-        bold
-        danger={settlement.total > 0}
-      />
-    </SummaryTable>
+    </div>
   )
 }

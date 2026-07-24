@@ -3,7 +3,6 @@ import { Info } from 'lucide-react'
 import { HintTooltip } from '@/components/ui/tooltip'
 import { SummaryLabelCell, SummaryValueCell } from '@/components/ui/summary-grid'
 import { ReconMismatchBadge } from '@/components/kosztorys/recon-mismatch-badge'
-import { orderedMoneySides, type MutedAxisT } from '@/components/kosztorys/summary-axis'
 import { formatNet } from '@/lib/kosztorys/format'
 import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { MoneyPairT, SummaryLineT } from '@/lib/kosztorys/summary-economics'
@@ -27,8 +26,6 @@ export type SummaryRowOptsT = {
   // — the EX-535 reconciliation check against the transaction ledger. The client footer never passes
   // it, which is what lets both surfaces share this row instead of keeping two copies.
   mismatch?: string
-  // Grey the inactive money column (Netto or Brutto) while both are on show.
-  mutedAxis?: MutedAxisT
 }
 
 type SummaryRowPropsT = SummaryRowOptsT & {
@@ -48,8 +45,6 @@ type SummaryRowPropsT = SummaryRowOptsT & {
 export function SummaryRow({ label, line, axis, ...opts }: SummaryRowPropsT) {
   const { net: showNet, gross: showGross } = axisShows(axis)
   const weight = cn(opts.emphasize && 'font-medium', opts.bold && 'font-bold')
-  // The green/red accents mark the ACTIVE figure; the muted (inactive) side drops them so a greyed
-  // column reads as plain background text, not a dimmed green/red.
   const accent = cn(opts.discount && 'text-chart-green', opts.danger && 'text-destructive')
 
   return (
@@ -75,23 +70,18 @@ export function SummaryRow({ label, line, axis, ...opts }: SummaryRowPropsT) {
           )}
         </span>
       </SummaryLabelCell>
-      {orderedMoneySides(opts.mutedAxis).map((side) => {
-        const muted = opts.mutedAxis === side
-        if (side === 'net') {
-          return showNet ? (
-            <SummaryValueCell key="net" muted={muted} className={cn(weight, !muted && accent)}>
-              {formatNet(line.net)}
-            </SummaryValueCell>
-          ) : null
-        }
-        // A no-VAT row repeats its netto figure in the brutto cell rather than blanking: the amount
-        // IS the brutto (VAT doesn't apply), so restating it reads clearer than an absence.
-        return showGross ? (
-          <SummaryValueCell key="gross" muted={muted} className={cn(weight, !muted && accent)}>
-            {formatNet(opts.noBrutto ? line.net : line.gross)}
-          </SummaryValueCell>
-        ) : null
-      })}
+      {showNet && (
+        <SummaryValueCell key="net" className={cn(weight, accent)}>
+          {formatNet(line.net)}
+        </SummaryValueCell>
+      )}
+      {/* A no-VAT row repeats its netto figure in the brutto cell rather than blanking: the amount
+          IS the brutto (VAT doesn't apply), so restating it reads clearer than an absence. */}
+      {showGross && (
+        <SummaryValueCell key="gross" className={cn(weight, accent)}>
+          {formatNet(opts.noBrutto ? line.net : line.gross)}
+        </SummaryValueCell>
+      )}
     </Fragment>
   )
 }

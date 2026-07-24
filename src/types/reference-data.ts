@@ -67,6 +67,20 @@ export type DepositTransactionRowT = {
   vatPlane: VatPlaneT | null
 }
 
+// One materiały (Wydatki inwestycyjne) transaction for the Podsumowanie's wydatki list — an
+// INVESTMENT_EXPENSE / CORRECTION row. Sourced from the existing `findTransfersRaw` fetch; the
+// expense-category `label` is resolved at the page from reference data (like worker names on the
+// payout list). `settled` splits the client-facing „Wydatki inwestycyjne" (false — Σ ===
+// materialsGross) from the owner-only „Materiały wliczone w robociznę" (true) behind the list toggle.
+export type MaterialTransactionRowT = {
+  id: number
+  date: string
+  amount: number
+  label: string
+  description: string | null
+  settled: boolean
+}
+
 export type OtherCategoryRefT = {
   id: number
   name: string

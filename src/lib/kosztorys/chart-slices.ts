@@ -42,6 +42,17 @@ export function sectionPieSlices(
   }))
 }
 
+// Two-slice cost split — robocizna vs materiały as single totals, no per-category breakdown. Used by
+// the tryb mieszany settlement, which reasons in netto totals rather than the per-expense rozpiska.
+export function costTotalsPieSlices(robocizna: number, materialy: number): PieSliceT[] {
+  return [
+    { id: 'robocizna', name: 'Robocizna', value: robocizna },
+    { id: 'materialy', name: 'Materiały', value: materialy },
+  ]
+    .filter((slice) => slice.value !== 0)
+    .map((slice, index) => ({ ...slice, fill: fillAt(index) }))
+}
+
 export function costPieSlices(
   sumaPracNet: number,
   materialyBreakdown: readonly MaterialyBreakdownRowT[],
