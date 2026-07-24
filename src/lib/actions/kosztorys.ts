@@ -60,7 +60,7 @@ const investmentCoeffsSchema = z
 const investmentVatSchema = z.object({ vatRate: z.coerce.number().min(0).max(1) })
 
 // Per-investment global discount over the whole kosztorys. type null = none (clears the discount).
-// Amount-only: value is netto PLN; never negative. A percent global rabat is no longer stored —
+// Amount-only: value is netto PLN; never negative. A percent rabat isn't stored here —
 // applyPercentRabatToAllItemsAction stamps it into each per-item rabat instead.
 const investmentGlobalDiscountSchema = z.object({
   globalDiscountType: z.enum(['amount']).nullable(),
@@ -163,10 +163,14 @@ export async function applyPercentRabatToAllItemsAction(
 ): Promise<ActionResultT> {
   return protectedAction(
     'applyPercentRabatToAllItemsAction',
-    async ({ payload }) => {
+    async ({ payload, user }) => {
       const parsed = validateAction(applyPercentRabatSchema, { percent })
       if (!parsed.success) return parsed
       const db = await getDb(payload)
+      // The overwrite is irrecoverable by in-session undo (owner: recovery = re-typing), and it
+      // flattens whatever per-item rabaty were there — hand-tuned amounts included. Snapshot the exact
+      // current state first, every time, exactly like removeSectionAction's destructive-write guard.
+      await captureAutoSnapshot(db, investmentId, user.id)
       await db.execute(sql`
         UPDATE kosztorys_items
         SET discount_type = 'percent', discount_value = ${parsed.data.percent}, updated_at = now()
