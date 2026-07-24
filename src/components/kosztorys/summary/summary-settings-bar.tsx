@@ -2,6 +2,7 @@
 
 import { DecimalField } from '@/components/ui/decimal-field'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import { PercentRabatTool } from '@/components/kosztorys/summary/percent-rabat-tool'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { HintTooltip } from '@/components/ui/tooltip'
 import type { DiscountTypeT } from '@/lib/kosztorys/types'
@@ -9,10 +10,11 @@ import type { DiscountTypeT } from '@/lib/kosztorys/types'
 // Radix Select rejects an empty-string item value, so "brak" (clear the discount) carries this.
 const NONE = 'none'
 
+// Amount only — percent global rabat is no longer stored state; it's the one-shot PercentRabatTool
+// beside this select, which stamps a percent into every per-item rabat instead of hiding them.
 const DISCOUNT_MODE_OPTIONS = [
   { value: NONE, label: 'brak', className: 'text-muted-foreground' },
   { value: 'amount', label: 'zł' },
-  { value: 'percent', label: '%' },
 ]
 
 const VAT_TIP = [
@@ -23,14 +25,14 @@ const VAT_TIP = [
 const DISCOUNT_TIP = [
   'Rabat za całość wykonanych prac, wpisywany raz na cały kosztorys.',
   'Gdy ustawiony, nadpisuje rabaty per pozycja — ich kolumny znikają i przestają liczyć (dane zostają).',
-  'Odejmuje się raz od sumy wykonanych prac; wpisujesz netto (kwota) lub punkty procentowe.',
+  'Odejmuje się raz od sumy wykonanych prac; wpisujesz kwotę netto.',
 ].join('\n')
 
 // VAT + rabat, lifted out of the toolbar to sit at the top of the Podsumowanie tab. Reads the setters
 // straight from the editor context (the panel renders inside the provider), so no props thread through
 // KosztorysTotalsPanel.
 export function SummarySettingsBar() {
-  const { tree, globalDiscount, handleVatChange, handleGlobalDiscountChange } =
+  const { tree, globalDiscount, handleVatChange, handleGlobalDiscountChange, handleApplyPercentRabat } =
     useKosztorysEditorContext()
 
   return (
@@ -68,6 +70,7 @@ export function SummarySettingsBar() {
           className={globalDiscount.type == null ? 'text-muted-foreground' : undefined}
         />
       </div>
+      <PercentRabatTool onApply={handleApplyPercentRabat} />
     </div>
   )
 }

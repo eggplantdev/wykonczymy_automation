@@ -286,16 +286,16 @@ emits phantom drift).
 
 #### Automated
 
-- [x] 0.1 Discount client-only in calc + discount columns gated to client view
-- [x] 0.2 Calc + settlement suites green (subcontractor rabat-free guards)
+- [x] 0.1 Discount client-only in calc + discount columns gated to client view — 2d474610
+- [x] 0.2 Calc + settlement suites green (subcontractor rabat-free guards) — 2d474610
 
 ### Phase 1: Bulk-apply action + settings UI
 
 #### Automated
 
-- [ ] 1.1 Typecheck passes
-- [ ] 1.2 Bulk action schema validation tests
-- [ ] 1.3 Existing kosztorys unit suites green
+- [x] 1.1 Typecheck passes
+- [x] 1.2 Bulk action schema validation tests
+- [x] 1.3 Existing kosztorys unit suites green
 
 ### Phase 2: Amount-only stored discount + snapshot cleanup
 

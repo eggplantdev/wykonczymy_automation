@@ -1,13 +1,12 @@
 'use client'
 
 import { DecimalField } from '@/components/ui/decimal-field'
+import { InfoTooltip } from '@/components/ui/info-tooltip'
 
 const COEFF_TIP = [
-  'Domyślny mnożnik ceny klienta.',
   'Cena wykonawcy = cena klienta × mnożnik.',
   '0,65 = wykonawca dostaje 65% ceny klienta.',
   'Dziedziczą go pozycje ze źródłem ceny „auto".',
-  'Możesz go nadpisać per pozycja własnym mnożnikiem lub kwotą stałą.',
 ].join('\n')
 
 type PropsT = {
@@ -18,15 +17,17 @@ type PropsT = {
 export function KosztorysGlobalSettings({ globalCoeffs, onGlobalCoeffChange }: PropsT) {
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+      <span className="text-muted-foreground flex items-center gap-1 text-xs font-medium">
+        Mnożnik ceny:
+        <InfoTooltip content={COEFF_TIP} label="Jak działa mnożnik ceny" />
+      </span>
       <DecimalField
-        label="Mnożnik ceny wykonawcy z narzędziami"
-        hint={COEFF_TIP}
+        label="z narzędziami"
         value={globalCoeffs.wTools}
         onCommit={(n) => onGlobalCoeffChange({ wToolsCoeff: n })}
       />
       <DecimalField
-        label="Mnożnik ceny wykonawcy bez narzędzi"
-        hint={COEFF_TIP}
+        label="bez narzędzi"
         value={globalCoeffs.ownTools}
         onCommit={(n) => onGlobalCoeffChange({ ownToolsCoeff: n })}
       />

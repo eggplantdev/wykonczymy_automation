@@ -59,6 +59,7 @@ import {
   addItemAction,
   addSectionAction,
   addStageAction,
+  applyPercentRabatToAllItemsAction,
   insertItemAction,
   removeItemAction,
   removeSectionAction,
@@ -925,6 +926,36 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false, und
     )
   }
 
+  // Percent rabat bulk-apply: a one-shot tool, not stored state (unlike handleGlobalDiscountChange).
+  // Overwrites every item's per-item rabat with `percent X` — optimistically on the rows, then one
+  // bulk SQL update. No undo entry (owner: recovery = re-typing). Returns success so the settings
+  // control clears its input only when the write landed.
+  async function handleApplyPercentRabat(percent: number): Promise<boolean> {
+    const prev = new Map(
+      rowsRef.current.map((r) => [
+        r.id,
+        { discountType: r.discountType, discountValue: r.discountValue },
+      ]),
+    )
+    patchRows(
+      () => true,
+      (r) => ({ ...r, discountType: 'percent', discountValue: percent }),
+    )
+    const res = await applyPercentRabatToAllItemsAction(investmentId, percent)
+    if (res.success) {
+      router.refresh()
+      return true
+    }
+    // Roll each row's rabat back to its pre-apply value (the once-only useState seed means a refresh
+    // can't reseed it), then surface the error.
+    patchRows(
+      () => true,
+      (r) => ({ ...r, ...(prev.get(r.id) ?? {}) }),
+    )
+    toastMessage(res.error ?? 'Nie udało się zastosować rabatu', 'warning', 4000)
+    return false
+  }
+
   function onChange(next: KosztorysV2RowT[]) {
     // The load-bearing persistence kill-switch: a clientView grid is read-only, but this guards the
     // one path that could still POST — so no save, undo capture, or refresh ever fires on the public page.
@@ -1054,6 +1085,7 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false, und
     handleGlobalCoeffChange,
     handleVatChange,
     handleGlobalDiscountChange,
+    handleApplyPercentRabat,
     // undo/redo (stack lives in the shell; consumed by the toolbar + keyboard). Both flush a
     // still-buffering edit burst first, so an undo pops the just-typed edit (correct LIFO) rather
     // than an older command that the un-pushed burst is sitting in front of.
