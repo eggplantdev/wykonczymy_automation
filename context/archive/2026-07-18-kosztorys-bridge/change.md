@@ -1,10 +1,10 @@
 ---
 change_id: kosztorys-bridge
 title: Read-only bridge to the financial plane + remaining kosztorys parity rows
-status: implemented
+status: archived
 created: 2026-07-18
-updated: 2026-07-18
-archived_at: null
+updated: 2026-07-24
+archived_at: 2026-07-24T15:10:56Z
 branch: kosztorys-bridge
 worktree: null
 ---
