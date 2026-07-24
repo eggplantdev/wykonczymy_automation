@@ -6,27 +6,13 @@ import { SearchFilterInput } from '@/components/ui/search-filter-input'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import { KosztorysAddMenu } from '@/components/kosztorys/kosztorys-add-menu'
 import { KosztorysGlobalSettings } from '@/components/kosztorys/kosztorys-global-settings'
-import { KosztorysProgressCounter } from '@/components/kosztorys/kosztorys-progress-counter'
 import { KosztorysToolbarActions } from '@/components/kosztorys/kosztorys-toolbar-actions'
 import { KosztorysToolbarViewToggles } from '@/components/kosztorys/kosztorys-toolbar-view-toggles'
 import { useKosztorysEditorContext } from '@/components/kosztorys/use-kosztorys-editor-context'
 
 export function KosztorysEditorToolbar() {
-  const {
-    investmentId,
-    investmentName,
-    search,
-    setSearch,
-    tree,
-    view,
-    globalDiscount,
-    doneNet,
-    plannedNet,
-    moneyAxis,
-    handleGlobalCoeffChange,
-    handleVatChange,
-    handleGlobalDiscountChange,
-  } = useKosztorysEditorContext()
+  const { investmentId, investmentName, search, setSearch, tree, view, handleGlobalCoeffChange } =
+    useKosztorysEditorContext()
 
   return (
     <div className="border-border shrink-0 border-b">
@@ -52,23 +38,17 @@ export function KosztorysEditorToolbar() {
         </SimpleTooltip>
         <KosztorysToolbarActions />
       </div>
-      <div className="border-border flex flex-wrap items-center gap-x-4 gap-y-2 border-t px-4 py-1.5">
-        <KosztorysGlobalSettings
-          globalCoeffs={tree.globalCoeffs}
-          vatRate={tree.vatRate}
-          globalDiscount={globalDiscount}
-          view={view}
-          onGlobalCoeffChange={handleGlobalCoeffChange}
-          onVatChange={handleVatChange}
-          onGlobalDiscountChange={handleGlobalDiscountChange}
-        />
-        <KosztorysProgressCounter
-          doneNet={doneNet}
-          plannedNet={plannedNet}
-          vatRate={tree.vatRate}
-          moneyAxis={moneyAxis}
-        />
-      </div>
+      {/* Coeff-only now (VAT/rabat/postęp moved into the Podsumowanie tab). It renders nothing in the
+          Klient price view, so the row is dropped there rather than left as an empty strip. */}
+      {view !== 'client' && (
+        <div className="border-border flex flex-wrap items-center gap-x-4 gap-y-2 border-t px-4 py-1.5">
+          <KosztorysGlobalSettings
+            globalCoeffs={tree.globalCoeffs}
+            view={view}
+            onGlobalCoeffChange={handleGlobalCoeffChange}
+          />
+        </div>
+      )}
     </div>
   )
 }
