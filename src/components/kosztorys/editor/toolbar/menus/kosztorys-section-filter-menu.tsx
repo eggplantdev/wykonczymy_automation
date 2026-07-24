@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { ListFilter } from 'lucide-react'
 import { FilterMultiSelect, FILTER_NONE } from '@/components/transfers/filter-multi-select'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
@@ -9,8 +10,13 @@ import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kos
 // encoding [] = all / [FILTER_NONE] = none / [ids] = those, so this bridges the two.
 export function KosztorysSectionFilterMenu() {
   const { subtotals, shownSectionIds, setShownSectionIds } = useKosztorysEditorContext()
+  const [hideEmpty, setHideEmpty] = useState(false)
 
-  const options = subtotals.map((s) => ({ value: String(s.sectionId), label: s.sectionName }))
+  // "Empty" = no executed work yet (net === 0), not "no positions" — every section always has at
+  // least one item (an empty-of-items section is cascade-deleted, see use-kosztorys-editor.ts).
+  const options = subtotals
+    .filter((s) => !hideEmpty || s.net > 0)
+    .map((s) => ({ value: String(s.sectionId), label: s.sectionName }))
 
   const values =
     shownSectionIds === null
@@ -35,6 +41,11 @@ export function KosztorysSectionFilterMenu() {
       searchable
       title="Filtruj sekcje"
       triggerClassName="w-fit min-w-0"
+      extraToggle={{
+        label: 'Ukryj puste sekcje',
+        checked: hideEmpty,
+        onToggle: () => setHideEmpty((v) => !v),
+      }}
     />
   )
 }

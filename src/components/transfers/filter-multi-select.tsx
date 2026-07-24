@@ -28,6 +28,9 @@ type FilterMultiSelectPropsT = {
   // Render just the icon (no label / count) — for tight surfaces where a tooltip carries the meaning.
   iconOnly?: boolean
   title?: string
+  // An extra standalone checkbox row rendered above the option list, for a toggle that isn't itself
+  // a filter value (e.g. "show/hide empty sections").
+  extraToggle?: { label: string; checked: boolean; onToggle: () => void }
 }
 
 // URL param encoding: [] = all selected (no filter), ['__none__'] = nothing selected
@@ -44,6 +47,7 @@ export function FilterMultiSelect({
   triggerClassName,
   iconOnly = false,
   title,
+  extraToggle,
 }: FilterMultiSelectPropsT) {
   const [open, setOpen] = useState(false)
   const [localSelected, setLocalSelected] = useState<string[] | null>(null)
@@ -141,6 +145,12 @@ export function FilterMultiSelect({
                 <CheckIcon className={cn(!allSelected && 'opacity-0')} />
                 {allSelected ? 'Odznacz wszystkie' : 'Zaznacz wszystkie'}
               </CommandItem>
+              {extraToggle && (
+                <CommandItem onSelect={extraToggle.onToggle}>
+                  <CheckIcon className={cn(!extraToggle.checked && 'opacity-0')} />
+                  {extraToggle.label}
+                </CommandItem>
+              )}
             </CommandGroup>
             <CommandSeparator />
             <CommandGroup>
