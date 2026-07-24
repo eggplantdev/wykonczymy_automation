@@ -36,6 +36,7 @@ export function KosztorysAddMenu() {
         <DropdownMenuTrigger asChild>
           <Button size="sm" variant="outline">
             <Plus />
+            Dodaj
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">

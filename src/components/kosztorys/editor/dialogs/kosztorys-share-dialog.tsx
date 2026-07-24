@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Copy, Share2 } from 'lucide-react'
+import { Copy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import {
   generateShareLinkAction,
   getShareLinkAction,
@@ -16,15 +16,17 @@ import { copyToClipboard } from '@/lib/utils/copy-to-clipboard'
 import { toastMessage } from '@/lib/utils/toast'
 import { Description } from '@/components/ui/description'
 
-type PropsT = { investmentId: number }
+type PropsT = { investmentId: number; open: boolean; onOpenChange: (open: boolean) => void }
 
 /**
  * The current token is fetched when the dialog opens rather than threaded down from the page: the
  * editor's server page would otherwise carry a secret it never renders, and the state is only ever
  * looked at here. Same lazy-on-open shape as KosztorysActionsMenu's preset list.
+ *
+ * Controlled from the parent (Opcje menu) rather than owning its own trigger — a DropdownMenuItem
+ * closes the menu on select, so the dialog can't live inside it.
  */
-export function KosztorysShareDialog({ investmentId }: PropsT) {
-  const [open, setOpen] = useState(false)
+export function KosztorysShareDialog({ investmentId, open, onOpenChange }: PropsT) {
   const [token, setToken] = useState<string | null>(null)
   const [loaded, setLoaded] = useState(false)
   const [confirmingRevoke, setConfirmingRevoke] = useState(false)
@@ -33,7 +35,7 @@ export function KosztorysShareDialog({ investmentId }: PropsT) {
   const url = token ? `${FRONTEND_URL}/k/${token}` : ''
 
   const handleOpenChange = (next: boolean) => {
-    setOpen(next)
+    onOpenChange(next)
     if (!next) return
     setLoaded(false)
     // Clear on every failure path. Keeping a token from a previous open would render a link that
@@ -72,12 +74,6 @@ export function KosztorysShareDialog({ investmentId }: PropsT) {
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogTrigger asChild>
-          <Button size="sm" variant="outline">
-            <Share2 />
-            Udostępnij
-          </Button>
-        </DialogTrigger>
         <DialogContent className="max-w-md">
           <DialogHeader
             title="Udostępnij klientowi"
