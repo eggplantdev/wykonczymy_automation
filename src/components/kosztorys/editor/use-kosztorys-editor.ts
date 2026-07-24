@@ -822,10 +822,11 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false, und
     const res = await persist()
     if (res.success) {
       router.refresh()
-      return
+      return true
     }
     revert()
     toastMessage(res.error ?? errorMessage, 'warning', 4000)
+    return false
   }
 
   // Changing the global coefficient recomputes the derived prices of all non-overridden items.
@@ -941,19 +942,17 @@ export function useKosztorysEditor({ investmentId, tree, clientView = false, und
       () => true,
       (r) => ({ ...r, discountType: 'percent', discountValue: percent }),
     )
-    const res = await applyPercentRabatToAllItemsAction(investmentId, percent)
-    if (res.success) {
-      router.refresh()
-      return true
-    }
-    // Roll each row's rabat back to its pre-apply value (the once-only useState seed means a refresh
-    // can't reseed it), then surface the error.
-    patchRows(
-      () => true,
-      (r) => ({ ...r, ...(prev.get(r.id) ?? {}) }),
+    // Roll each row's rabat back to its pre-apply value on failure — the once-only useState seed means
+    // a refresh can't reseed it.
+    return optimisticSettingSave(
+      () => applyPercentRabatToAllItemsAction(investmentId, percent),
+      () =>
+        patchRows(
+          () => true,
+          (r) => ({ ...r, ...(prev.get(r.id) ?? {}) }),
+        ),
+      'Nie udało się zastosować rabatu',
     )
-    toastMessage(res.error ?? 'Nie udało się zastosować rabatu', 'warning', 4000)
-    return false
   }
 
   function onChange(next: KosztorysV2RowT[]) {
