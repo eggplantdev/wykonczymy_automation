@@ -1,10 +1,10 @@
 ---
 change_id: kosztorys-tryb-mieszany
 title: Tryb mieszany — cash settlement view in kosztorys Podsumowanie (slice B)
-status: implemented
+status: archived
 created: 2026-07-22
-updated: 2026-07-22
-archived_at: null
+updated: 2026-07-24
+archived_at: 2026-07-24T12:59:39Z
 branch: konradantonik/ex-536-zaliczka-v2
 worktree: null
 ---

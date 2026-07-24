@@ -1,11 +1,12 @@
 ---
 id: kosztorys-zaliczka-v2
 title: Kosztorys zaliczka v2 — materiały netto/brutto w Podsumowaniu (slice A)
-status: implemented
+status: archived
+archived_at: 2026-07-24T12:59:39Z
 linear: EX-536
 branch: konradantonik/ex-536-zaliczka-v2
 created: 2026-07-22
-updated: 2026-07-22
+updated: 2026-07-24
 ---
 
 Slice A of the zaliczka v2 arc: make „Materiały" in the kosztorys Podsumowanie respect netto/brutto.
