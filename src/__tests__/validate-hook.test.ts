@@ -149,65 +149,6 @@ describe('validateTransfer — auto-clear behavior', () => {
     const result = validateTransfer(hookArgs(VALID_DATA.INVESTMENT_EXPENSE))
     expect(result.investment).toBe(1)
   })
-
-  // The zaliczka etap tag only applies to deposit types. The form + schema gate it, so only the
-  // admin panel / REST can plant one on a non-deposit row; the hook must clear it or the reporting
-  // layer sees an etap tag on a non-zaliczka transaction.
-  it('INVESTMENT_EXPENSE → kosztorysStage set to null', () => {
-    const data = { ...VALID_DATA.INVESTMENT_EXPENSE, kosztorysStage: 7 }
-    const result = validateTransfer(hookArgs(data))
-    expect(result.kosztorysStage).toBeNull()
-  })
-
-  it('INVESTOR_DEPOSIT → kosztorysStage preserved', () => {
-    const data = { ...VALID_DATA.INVESTOR_DEPOSIT, kosztorysStage: 7 }
-    const result = validateTransfer(hookArgs(data))
-    expect(result.kosztorysStage).toBe(7)
-  })
-
-  // An etap belongs to one investment's kosztorys, so moving the transfer orphans the tag —
-  // it would keep pointing into the PREVIOUS investment's kosztorys for the reporting layer.
-  // Payload hands the full merged doc as `data` on update, so `investment` here is the new value.
-  it('deposit moved to another investment → kosztorysStage cleared', () => {
-    const data = { ...VALID_DATA.INVESTOR_DEPOSIT, investment: 2, kosztorysStage: 7 }
-    const result = validateTransfer(
-      hookArgs(data, { operation: 'update', originalDoc: { investment: 1, kosztorysStage: 7 } }),
-    )
-    expect(result.kosztorysStage).toBeNull()
-  })
-
-  it('deposit edited without touching the investment → kosztorysStage kept', () => {
-    const data = { ...VALID_DATA.INVESTOR_DEPOSIT, description: 'edited', kosztorysStage: 7 }
-    const result = validateTransfer(
-      hookArgs(data, { operation: 'update', originalDoc: { investment: 1, kosztorysStage: 7 } }),
-    )
-    expect(result.kosztorysStage).toBe(7)
-  })
-
-  it('populated investment relation on the original → compared by id, tag kept', () => {
-    const data = { ...VALID_DATA.INVESTOR_DEPOSIT, kosztorysStage: 7 }
-    const result = validateTransfer(
-      hookArgs(data, {
-        operation: 'update',
-        originalDoc: { investment: { id: 1, name: 'Inwestycja' }, kosztorysStage: 7 },
-      }),
-    )
-    expect(result.kosztorysStage).toBe(7)
-  })
-
-  it('investment moved AND the etap re-picked → the new tag is respected, not cleared', () => {
-    const data = { ...VALID_DATA.INVESTOR_DEPOSIT, investment: 2, kosztorysStage: 9 }
-    const result = validateTransfer(
-      hookArgs(data, { operation: 'update', originalDoc: { investment: 1, kosztorysStage: 7 } }),
-    )
-    expect(result.kosztorysStage).toBe(9)
-  })
-
-  it('create with no originalDoc → tag untouched', () => {
-    const data = { ...VALID_DATA.INVESTOR_DEPOSIT, kosztorysStage: 7 }
-    const result = validateTransfer(hookArgs(data, { operation: 'create' }))
-    expect(result.kosztorysStage).toBe(7)
-  })
 })
 
 // ═══════════════════════════════════════════════════════════════════════

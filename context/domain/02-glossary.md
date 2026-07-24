@@ -104,31 +104,37 @@ renaming anything the reconciliation compares.**
 
 ## 2. Kosztorys — editor domain
 
-| Concept                | App/UI (PL)        | Sheet name            | Canonical code id                 | Cat | Drift in code                                                                                                | Lives in                    |
-| ---------------------- | ------------------ | --------------------- | --------------------------------- | --- | ------------------------------------------------------------------------------------------------------------ | --------------------------- |
-| kosztorys (the budget) | Kosztorys          | „kosztorys_robocizny" | `kosztorys` (slug `kosztoryses`)  | A   | (`Sheets`/`sheets.ts` legacy)                                                                                | `sheets.ts:13`              |
-| section                | Sekcja             | wiersz sekcji         | `section`                         | B   | —                                                                                                            | S-01                        |
-| item                   | Pozycja            | wiersz pozycji        | `item`                            | B   | —                                                                                                            | S-01/S-02                   |
-| stage                  | Etap               | „etapy"               | `stage`                           | B   | `KosztorysEtapTotals` (`kosztorys-etap-totals.tsx`), `orphaned-etap-tag.db.test.ts`                          | S-04                        |
-| stage deposit          | Zaliczka (na etap) | —                     | `stageDeposit` / `depositByStage` | B   | `zaliczki`, `ZaliczkaRowT`, `sumZaliczkiByStage`, `zaliczkiByStage`, `zaliczkiTotal`, `fetchZaliczkiByStage` | `lib/kosztorys/zaliczki.ts` |
-| summary block          | Podsumowanie       | „Podsumowanie"        | `summary`                         | B   | — (resolved 2026-07-20)                                                                                      | `kosztorys-summary.tsx`     |
-| combined R+M           | Łącznie            | „Łącznie"             | `combined`                        | B   | — (resolved 2026-07-20)                                                                                      | `summary-economics.ts:37`   |
-| planned qty            | Przedmiar          | „Przedmiar" (N)       | `przedmiar`                       | A   | —                                                                                                            | S-01                        |
-| stage-sum qty          | Pomiar z natury    | „Pomiar z natury" (O) | `pomiar`                          | A   | —                                                                                                            | S-01                        |
-| unit price (client)    | Cena j.m.          | „Cena j.m." (Q)       | `unitPrice`                       | B   | —                                                                                                            | S-02                        |
-| net value              | Wartość netto      | „Wartość netto" (T)   | `netValue`                        | B   | —                                                                                                            | S-02                        |
+| Concept                | App/UI (PL)          | Sheet name            | Canonical code id                                                                                                   | Cat | Drift in code                                              | Lives in                     |
+| ---------------------- | -------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------- | --- | ---------------------------------------------------------- | ---------------------------- |
+| kosztorys (the budget) | Kosztorys            | „kosztorys_robocizny" | `kosztorys` (slug `kosztoryses`)                                                                                    | A   | (`Sheets`/`sheets.ts` legacy)                              | `sheets.ts:13`               |
+| section                | Sekcja               | wiersz sekcji         | `section`                                                                                                           | B   | —                                                          | S-01                         |
+| item                   | Pozycja              | wiersz pozycji        | `item`                                                                                                              | B   | —                                                          | S-01/S-02                    |
+| stage                  | Etap                 | „etapy"               | `stage`                                                                                                             | B   | — (rename landed EX-536)                                   | S-04                         |
+| summary block          | Podsumowanie         | „Podsumowanie"        | `summary`                                                                                                           | B   | — (resolved 2026-07-20)                                    | `kosztorys-summary.tsx`      |
+| combined R+M           | Łącznie              | „Łącznie"             | `combined`                                                                                                          | B   | — (resolved 2026-07-20)                                    | `summary-economics.ts:37`    |
+| planned qty            | Przedmiar            | „Przedmiar" (N)       | `przedmiar`                                                                                                         | A   | —                                                          | S-01                         |
+| stage-sum qty          | Pomiar z natury      | „Pomiar z natury" (O) | `pomiar`                                                                                                            | A   | —                                                          | S-01                         |
+| unit price (client)    | Cena j.m.            | „Cena j.m." (Q)       | `unitPrice`                                                                                                         | B   | —                                                          | S-02                         |
+| net value              | Wartość netto        | „Wartość netto" (T)   | `netValue`                                                                                                          | B   | —                                                          | S-02                         |
+| deposit VAT plane      | Wpłata netto/brutto  | —                     | `vatPlane` (`VatPlaneT`, `VAT_PLANES`)                                                                              | B   | — (EX-536; NET/GROSS/null, null⇒netto per 2026-07-23 flip) | `constants/transfers.ts:138` |
+| payment method         | Metoda płatności     | —                     | `paymentMethod` (`PaymentMethodT`)                                                                                  | B   | — (EX-536; CASH/TRANSFER)                                  | `constants/transfers.ts:121` |
+| cash settlement        | Rozliczenie mieszane | —                     | `computeCashSettlement` (`CashSettlementT`: `combinedNet`/`remainderNet`/`remainderGross`/`invoice`/`cash`/`total`) | B   | — (EX-536)                                                 | `summary-economics.ts:125`   |
+| deposits split         | Rozliczenie wpłat    | —                     | `depositsSplit` / `bucketDepositsByPlane` (`DepositsSplitT`: `paidNet`/`paidGross`/`remainingNet`/`remainingGross`) | B   | — (EX-536)                                                 | `summary-economics.ts:144`   |
+| deposit row            | Wpłata (wiersz)      | —                     | `DepositTransactionRowT`                                                                                            | B   | — (EX-536)                                                 | `types/reference-data.ts:63` |
 
-**`zaliczki` is the worst offender** — it's the same concept as `wplaty` (both **deposit**) split into
-a _second_ Polish word, so kosztorys drifts against itself, and its own file (`lib/kosztorys/zaliczki.ts`)
-imports `isDepositType` while naming its exports `Zaliczka*`. Canonical is `deposit`, already the word
-its dependency uses. See EX-548's worked example.
+**`stage deposit` / `zaliczki` — retired (EX-536).** The deposit→etap tagging bridge is gone:
+`lib/kosztorys/zaliczki.ts` deleted, the `kosztorys_stage_id` column dropped from `transactions`
+(migration `20260721_0`), and `zaliczkiByStage` removed from the editor data. Deposits are no longer
+tagged to a stage — the concept has no code referent to name. (It was EX-548's canonical worst-offender
+example: `Zaliczka*` exports importing `isDepositType`; the example is retired with the code.)
 
 **`etap` — ruled `stage` (2026-07-20), NOT a proper noun.** It was listed `A` on the "the sheet says
 etapy" reflex, but `stage` is already the code's dominant word (`stage*` outnumbers `etap`-identifiers
 ~15:1 — `stageId`, `kosztorysStage`, the `stage-progress` collection). A concept with a clean English
-equivalent already in use fails the Category-A test, whatever the sheet calls it. Drift left to rename:
-`KosztorysEtapTotals` / `kosztorys-etap-totals.tsx` → `…StageTotals`, and the `orphaned-etap-tag` test
-file. Polish stays in UI labels („Usuń etap", „Bez etapu") and prose.
+equivalent already in use fails the Category-A test, whatever the sheet calls it. Rename landed (EX-536):
+`KosztorysEtapTotals` / `kosztorys-etap-totals.tsx` → `KosztorysStageTotals` / `kosztorys-stage-totals.tsx`,
+and the `orphaned-etap-tag` test file was deleted with the bridge. Polish stays in UI labels („Usuń etap",
+„Bez etapu") and prose.
 
 **`podsumowanie` — ruled `summary` (2026-07-20), NOT a proper noun.** Same test as `etap`: naming the
 sheet's specific „Podsumowanie" block is not enough when `summary` is a clean English equivalent.

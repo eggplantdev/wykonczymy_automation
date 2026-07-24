@@ -61,12 +61,9 @@ export const DEPOSIT_TYPES: TransferTypeT[] = [
   'OTHER_DEPOSIT',
 ]
 
-// Deposit types visible in the deposit dialog (sorted by Polish label)
-export const DEPOSIT_UI_TYPES: TransferTypeT[] = [
-  'OTHER_DEPOSIT', // Inna wpłata
-  'INVESTOR_DEPOSIT', // Wpłata od inwestora
-  'COMPANY_FUNDING', // Zasilenie z konta firmowego
-]
+// Deposit types visible in the deposit dialog (sorted by Polish label). „Inna wpłata" is dropped
+// (EX-536); the netto/brutto plane applies to INVESTOR_DEPOSIT only — COMPANY_FUNDING hides it.
+export const DEPOSIT_UI_TYPES: TransferTypeT[] = ['INVESTOR_DEPOSIT', 'COMPANY_FUNDING']
 
 // Transfer types visible in the transaction transfer dialog (sorted by Polish label)
 export const TRANSACTION_TRANSFER_TYPES: TransferTypeT[] = [
@@ -123,17 +120,30 @@ export const TRANSFERS_SUMMARY_TYPES = [
 
 export const PAYMENT_METHODS = [
   'CASH',
+  'TRANSFER',
   // 'BLIK',
-  // 'TRANSFER',
   // 'CARD',
 ] as const
 export type PaymentMethodT = (typeof PAYMENT_METHODS)[number]
 
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethodT, string> = {
   CASH: 'Gotówka',
+  TRANSFER: 'Przelew',
   // BLIK: 'BLIK',
-  // TRANSFER: 'Przelew',
   // CARD: 'Karta',
+}
+
+// EX-536 netto/brutto wpłata bucket. An optional third state — NULL — is the create form's default
+// („— nie określono —") and a first-class outcome, not a legacy-only value: a new INVESTOR_DEPOSIT
+// persists NULL unless the user picks NET or GROSS. Downstream (deposits reconciliation) an unmarked
+// deposit is treated as netto — the owner's „brak wartości = netto" ruling (flipped 2026-07-23 from
+// the earlier null→brutto default; only GROSS goes to the invoiced part, NET and null pay gotówka).
+export const VAT_PLANES = ['NET', 'GROSS'] as const
+export type VatPlaneT = (typeof VAT_PLANES)[number]
+
+export const VAT_PLANE_LABELS: Record<VatPlaneT, string> = {
+  NET: 'Netto',
+  GROSS: 'Brutto',
 }
 
 // Type predicates and their private membership arrays live in transfer-rules.ts to

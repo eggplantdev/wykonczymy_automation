@@ -11,12 +11,11 @@ import {
   sumAllInvestmentFinancials,
   sumFilteredByType,
   sumCategoryByTypeSettled,
-  sumDepositRowsForInvestment,
   sumPayoutsByWorkerForInvestment,
   getPayoutTransactionsForInvestment,
+  getDepositTransactionsForInvestment,
   deriveCategoryBreakdowns,
 } from '@/lib/db/sum-transfers'
-import { sumZaliczkiByStage } from '@/lib/kosztorys/zaliczki'
 import { getDb } from '@/lib/db/get-db'
 import type {
   InvestmentFinancialsT,
@@ -33,10 +32,10 @@ import type {
   WorkerRefT,
   OtherCategoryRefT,
   ExpenseCategoryRefT,
-  KosztorysStageRefT,
   ReferenceDataBaseT,
   PayoutByWorkerT,
   PayoutTransactionRowT,
+  DepositTransactionRowT,
 } from '@/types/reference-data'
 
 // Categories alone, for callers that need only these. `fetchReferenceData` also returns every user
@@ -62,17 +61,16 @@ export const fetchReferenceData = unstable_cache(
     const payload = await getPayload({ config })
     const db = await getDb(payload)
 
-    const [crResult, invResult, usersResult, catResult, expCatResult, stageResult] =
-      await Promise.all([
-        db.execute(sql`
+    const [crResult, invResult, usersResult, catResult, expCatResult] = await Promise.all([
+      db.execute(sql`
         SELECT id, name, type::text, active::boolean, owner_id::integer
         FROM cash_registers
         ORDER BY name
       `),
-        // The sheet id lives on kosztoryses now (1:1 via partial unique index on
-        // investment_id). LEFT JOIN so investments without a kosztorys still appear,
-        // and we project a boolean instead of leaking the sheet id into the cache.
-        db.execute(sql`
+      // The sheet id lives on kosztoryses now (1:1 via partial unique index on
+      // investment_id). LEFT JOIN so investments without a kosztorys still appear,
+      // and we project a boolean instead of leaking the sheet id into the cache.
+      db.execute(sql`
         SELECT i.id, i.name, i.status::text,
                i.address, i.phone, i.email, i.contact_person, i.notes, i.review,
                (k.google_sheet_id IS NOT NULL) AS has_sheet
@@ -80,33 +78,28 @@ export const fetchReferenceData = unstable_cache(
         LEFT JOIN kosztoryses k ON k.investment_id = i.id
         ORDER BY i.name
       `),
-        db.execute(sql`
+      db.execute(sql`
         SELECT id, name, role::text, active::boolean, email, default_cash_register_id::integer
         FROM users
         ORDER BY name
       `),
-        db.execute(sql`
+      db.execute(sql`
         SELECT id, name FROM other_categories
         ORDER BY name
       `),
-        db.execute(sql`
+      db.execute(sql`
         SELECT id, name FROM expense_categories
         ORDER BY name
       `),
-        db.execute(sql`
-        SELECT id, investment_id, ordinal, label FROM kosztorys_stages
-        ORDER BY investment_id, ordinal
-      `),
-      ])
+    ])
 
     const totalRows =
       crResult.rows.length +
       invResult.rows.length +
       usersResult.rows.length +
       catResult.rows.length +
-      expCatResult.rows.length +
-      stageResult.rows.length
-    console.log(`[PERF] query.fetchReferenceData ${elapsed()}ms (6 SQL, ${totalRows} rows)`)
+      expCatResult.rows.length
+    console.log(`[PERF] query.fetchReferenceData ${elapsed()}ms (5 SQL, ${totalRows} rows)`)
 
     const cashRegisters: CashRegisterRefT[] = crResult.rows.map((row) => ({
       id: Number(row.id),
@@ -151,25 +144,12 @@ export const fetchReferenceData = unstable_cache(
       name: row.name as string,
     }))
 
-    const kosztorysStagesByInvestment: Record<number, KosztorysStageRefT[]> = {}
-    for (const row of stageResult.rows) {
-      const invId = Number(row.investment_id)
-      const ordinal = Number(row.ordinal)
-      const stage: KosztorysStageRefT = {
-        id: Number(row.id),
-        ordinal,
-        label: (row.label as string) || `Etap ${ordinal}`,
-      }
-      ;(kosztorysStagesByInvestment[invId] ??= []).push(stage)
-    }
-
     return {
       cashRegisters,
       investments,
       workers,
       otherCategories,
       expenseCategories,
-      kosztorysStagesByInvestment,
     }
   },
   ['reference-data'],
@@ -184,10 +164,6 @@ export const fetchReferenceData = unstable_cache(
       // create/link/unlink/delete too, otherwise the listing's "kosztorys" badge
       // stays stale.
       CACHE_TAGS.kosztoryses,
-      // kosztorysStagesByInvestment feeds the deposit form's „Zaliczka na etap"
-      // select — a stage add/rename/delete must bust this blob or the dropdown
-      // serves a stale etap list.
-      CACHE_TAGS.kosztorysStages,
     ],
   },
 )
@@ -251,23 +227,6 @@ export async function fetchFilteredByType(where: Where): Promise<TypeSettledTota
   )()
 }
 
-// Per-etap zaliczka sums for one investment (tagged deposits), keyed stage id → cash.
-// Cached under CACHE_TAGS.transfers so deposit mutations keep the editor's join live,
-// and CACHE_TAGS.kosztorysStages because a stage delete (ON DELETE SET NULL) untags its
-// deposits without touching the transfers tag — this blob would otherwise stay stale.
-// Record (not Map) — plain object crosses the server→client prop boundary.
-export async function fetchZaliczkiByStage(investmentId: number): Promise<Record<number, number>> {
-  return unstable_cache(
-    async () => {
-      const payload = await getPayload({ config })
-      const rows = await sumDepositRowsForInvestment(payload, investmentId)
-      return Object.fromEntries(sumZaliczkiByStage(rows))
-    },
-    ['zaliczki-by-stage', String(investmentId)],
-    { tags: [CACHE_TAGS.transfers, CACHE_TAGS.kosztorysStages] },
-  )()
-}
-
 // Realized PAYOUTs for one investment, grouped per worker (null-worker bucket kept). Cached under
 // CACHE_TAGS.transfers alone — names are joined at the page from reference data, so no users tag is
 // needed here; recalculate-balances fires revalidateTag(transfers) on every transfer mutation.
@@ -294,6 +253,20 @@ export async function fetchPayoutTransactionsForInvestment(
       return getPayoutTransactionsForInvestment(payload, investmentId)
     },
     ['payout-transactions', String(investmentId)],
+    { tags: [CACHE_TAGS.transfers] },
+  )()
+}
+
+// Same cache contract as the payout-transactions fetch — transfers tag, no PII to join.
+export async function fetchDepositTransactionsForInvestment(
+  investmentId: number,
+): Promise<DepositTransactionRowT[]> {
+  return unstable_cache(
+    async () => {
+      const payload = await getPayload({ config })
+      return getDepositTransactionsForInvestment(payload, investmentId)
+    },
+    ['deposit-transactions', String(investmentId)],
     { tags: [CACHE_TAGS.transfers] },
   )()
 }

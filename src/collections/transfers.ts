@@ -2,7 +2,6 @@ import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner } from '@/access'
 import {
   canBeSettled,
-  isDepositType,
   needsExpenseCategory,
   needsOtherCategory,
   needsSourceRegister,
@@ -119,6 +118,23 @@ export const Transfers: CollectionConfig = {
       options: [...PAYMENT_METHODS],
     },
     {
+      // EX-536 netto/brutto wpłata bucket. Three-state: NET / GROSS / null. INVESTOR_DEPOSIT only,
+      // create-only (immutable once set). Not `required`, and the create schema keeps it `.optional()`
+      // — null is the deliberate default („nie określono"), read as netto in the reconciliation, not
+      // an enforced choice.
+      name: 'vatPlane',
+      type: 'select',
+      label: { en: 'Deposit VAT plane', pl: 'Wpłata netto czy brutto' },
+      options: [
+        { label: { en: 'Net', pl: 'Netto' }, value: 'NET' },
+        { label: { en: 'Gross', pl: 'Brutto' }, value: 'GROSS' },
+      ],
+      access: { update: () => false },
+      admin: {
+        condition: (data) => typeOf(data) === 'INVESTOR_DEPOSIT',
+      },
+    },
+    {
       name: 'sourceRegister',
       type: 'relationship',
       relationTo: 'cash-registers',
@@ -147,18 +163,6 @@ export const Transfers: CollectionConfig = {
       label: { en: 'Investment', pl: 'Inwestycja' },
       admin: {
         condition: (data) => showsInvestment(typeOf(data)),
-      },
-    },
-    {
-      // Read-only bridge to the kosztorys plane: tagging a deposit with an etap declares it a
-      // zaliczka against that stage. Meaningful only for deposit types; the kosztorys editor
-      // reads these sums but never writes here (FR-015 write firewall stays).
-      name: 'kosztorysStage',
-      type: 'relationship',
-      relationTo: 'kosztorys-stages',
-      label: { en: 'Advance for stage', pl: 'Zaliczka na etap' },
-      admin: {
-        condition: (data) => isDepositType(typeOf(data)),
       },
     },
     {

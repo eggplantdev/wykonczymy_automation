@@ -1,40 +1,26 @@
 'use client'
 
-import { HintTooltip } from '@/components/ui/tooltip'
-import { toGross } from '@/lib/kosztorys/calc'
-import { formatNet as fmt, formatPercentPrecise } from '@/lib/kosztorys/format'
-import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
+import { Description } from '@/components/ui/description'
+import { formatPercentPrecise } from '@/lib/kosztorys/format'
 
 type PropsT = {
-  // Both figures are netto at the active price view, over the FULL dataset — the counter answers for
-  // the whole kosztorys, so the caller must not pass the filtered/sorted view.
+  // Both figures are netto over the FULL dataset — the counter answers for the whole kosztorys, so the
+  // caller must not pass the filtered/sorted view.
   doneNet: number
   plannedNet: number
-  vatRate: number
-  moneyAxis: MoneyAxisT
 }
 
-const LEGEND = 'Procent = wartość wykonanych etapów ÷ wartość przedmiaru wg ceny klienta.'
-
-export function KosztorysProgressCounter({ doneNet, plannedNet, vatRate, moneyAxis }: PropsT) {
+export function KosztorysProgressCounter({ doneNet, plannedNet }: PropsT) {
   // No przedmiar → nothing to divide by, so the whole counter is meaningless — render nothing.
   if (plannedNet <= 0) return null
-
-  // 'both' has no single answer for which side to print — netto is the figure the rest of the
-  // toolbar defaults to, so only an explicit 'gross' switches the pair.
-  const asGross = moneyAxis === 'gross'
-  const toAxis = (net: number) => (asGross ? toGross(net, vatRate) : net)
 
   const ratio = doneNet / plannedNet
   // Bar caps at full; the percent text still shows the real >100% overrun.
   const barPct = Math.min(ratio, 1) * 100
 
-  const amounts = `${fmt(toAxis(doneNet))} / ${fmt(toAxis(plannedNet))} ${asGross ? 'brutto' : 'netto'}`
-  const tooltip = [amounts, '', LEGEND].join('\n')
-
   return (
-    <div className="ml-auto">
-      <HintTooltip content={tooltip} className="flex items-center gap-2">
+    <div className="mt-2 flex flex-col gap-1">
+      <div className="flex items-center gap-2">
         <span className="text-muted-foreground text-xs tabular-nums">
           Postęp prac: {formatPercentPrecise(ratio)}
         </span>
@@ -52,7 +38,10 @@ export function KosztorysProgressCounter({ doneNet, plannedNet, vatRate, moneyAx
             style={{ width: `${barPct}%` }}
           />
         </span>
-      </HintTooltip>
+      </div>
+      <Description className="text-xs">
+        Ile zostało wykonane względem pierwotnych estymat z wyceny projektu
+      </Description>
     </div>
   )
 }

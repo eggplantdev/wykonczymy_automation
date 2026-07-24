@@ -38,7 +38,6 @@ const refData = {
   ],
   otherCategories: [{ id: 50, name: 'Materiały' }],
   expenseCategories: [{ id: 60, name: 'Materiały budowlane' }],
-  kosztorysStagesByInvestment: {},
 }
 
 const emptyMediaMap = new Map()

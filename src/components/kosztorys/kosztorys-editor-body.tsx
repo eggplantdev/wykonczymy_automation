@@ -42,14 +42,15 @@ export function KosztorysEditorBody({
   investmentId,
   tree,
   investmentName,
-  materialsNet,
+  materialsGross,
   materialyBreakdown,
   wplatyNet,
-  zaliczkiByStage,
   laborCostsNetFromTransactions,
   investmentRabat,
   payoutsByWorker = [],
   payoutTransactions = [],
+  depositTransactions = [],
+  materialTransactions = [],
   clientView = false,
   undoRedo = NOOP_UNDO_REDO,
   onOpenVersions,
@@ -104,6 +105,10 @@ export function KosztorysEditorBody({
     totals.set('plannedGross', toGross(plannedNetForView, tree.vatRate))
     totals.set('remaining', remainingTotals.net)
     totals.set('remainingGross', remainingTotals.gross)
+    // Rabat: Σ per-item discount taken on executed qty, view-aware like the columns themselves.
+    const discountNetForView = subtotals.reduce((sum, section) => sum + section.discount, 0)
+    totals.set('discountAmount', discountNetForView)
+    totals.set('discountAmountGross', toGross(discountNetForView, tree.vatRate))
     // Qty (Pomiar z natury): per-etap column, their sum, and the offered przedmiar column.
     let qtySum = 0
     for (const stage of stages) {
@@ -208,13 +213,14 @@ export function KosztorysEditorBody({
             investmentId={investmentId}
             stages={stages}
             stageTotals={stageTotals}
-            zaliczkiByStage={zaliczkiByStage}
             payoutsByWorker={payoutsByWorker}
             payoutTransactions={payoutTransactions}
+            depositTransactions={depositTransactions}
+            materialTransactions={materialTransactions}
             subcontractorDueNet={subcontractorDueNet}
             totalNet={totalNet}
             laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
-            materialyNet={materialsNet}
+            materialsGross={materialsGross}
             materialyBreakdown={materialyBreakdown}
             sectionSubtotals={progressSubtotals}
             wplatyNet={wplatyNet}
@@ -222,7 +228,6 @@ export function KosztorysEditorBody({
             reconciliation={reconciliation}
             priceView={view}
             vatRate={tree.vatRate}
-            moneyAxis={moneyAxis}
             clientView={clientView}
           />
         </div>

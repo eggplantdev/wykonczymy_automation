@@ -703,6 +703,8 @@ _None. All checks passed; no bugs, regressions, or console errors surfaced durin
 
 **Verified 2026-07-18** — Playwright + DB pass against the 5435 test DB, logged in as E2E User (OWNER), on `/inwestycje/6/kosztorys_v2` (seeded rozpiska, 43 items, 6 etapy, VAT 8%, rabat 10%). Migration `20260718_1_add_kosztorys_stage_to_transactions` applied clean with `pnpm db:migrate:test` (also the prod dry-run). One bug found + fixed on the spot.
 
+> **RETIRED (EX-536):** the deposit→etap tagging bridge below (Phase 4 „Zaliczka na etap" select, Phase 5 R+M-nets-zaliczki, and the empty-string-SelectItem finding) was **removed** — `kosztorys_stage_id` dropped from `transactions` (migration `20260721_0`), `zaliczki.ts` deleted, the deposit form's stage select gone. Deposits now live in the Podsumowanie wpłaty list, untagged. Do **not** re-run these checks; they exercise a deleted feature. Kept as history.
+
 - [x] **Phase 1 — Podsumowanie split** — Robocizna 1134,90 / Materiały 25 223,57 / Łącznie 26 358,47; 1134,90 + 25 223,57 = 26 358,47; udział 4% / 96% / 100%. Robocizna netto == „Do zapłaty netto" in the totals bar.
 - [x] **Phase 2 — etap axis** — „Suma transzy" table Etap 1–6 + „Suma prac wykonanych": netto 0 / 122,85 / 257,40 / 637,00 / 0 / 243,75 summing to 1261,00 = Suma prac wykonanych; brutto row present and consistent (×1.08).
 - [x] **Phase 3 — Komentarz column** — present in the „Widok" → Kolumny picker; toggling it on renders „Komentarz" as the rightmost editable grid column (`note`, textColumn). (`note` plumbing pre-existed; only the column registration is new.)
@@ -928,3 +930,49 @@ byte-identical before/after.
       recharts draws no arc for a 0 value, so nothing is visually broken. Dismissed as benign — not
       fixed to avoid a judgment call on whether a 0 robocizna row should ever hide.
       **Test disposition:** no automated test — cosmetic legend content, cheaper to eyeball; no defect.
+
+## kosztorys-zaliczka-v2 — materiały netto/brutto w Podsumowaniu (slice A)
+
+### Phase 1: Materiały as brutto through the waterfall + formula hint
+
+- [ ] Podsumowanie in **Netto** axis: „Materiały", each category row, Łącznie, and Do zapłaty all show `brutto/(1+VAT)`; in **Brutto** axis they show the raw amount; the two columns differ by the VAT.
+- [ ] The formula hint appears on materiały rows and reads correctly (VAT subtracted).
+- [ ] Robocizna („Suma prac wykonanych") figures are unchanged; udział percentages still sum sensibly.
+- [ ] Client-share view (`clientView`) renders the same derived figures without owner-only links/screams.
+
+## kosztorys-tryb-mieszany — cash-settlement view w Podsumowaniu (slice B)
+
+> **SUPERSEDED (2026-07-23/24, EX-536):** the **manual `C` cash input** below was **removed** — the owner flipped tryb mieszany to derive the cash (netto) part from **Σ netto wpłaty** (deposits bucketed by `vatPlane`, null⇒netto), not a typed field. Checks referencing typing `C` exercise a deleted control; do **not** run them. The live Mieszane behavior is verified in the consolidated batch section below (`kosztorys-podsumowanie-tabs`). Kept as history.
+
+### Phase 2: Panel wiring + cash-settlement UI
+
+- [ ] Panel opens on **Netto** by default; grid columns/toggle default unchanged (still show all).
+- [ ] „Mieszana" shows netto-only waterfall + „Suma transzy" netto + the three cash rows.
+- [ ] ~~Typing `C` recomputes Reszta and Razem live~~ — **removed control (see SUPERSEDED note above).**
+- [ ] Netto and Brutto axes unchanged from before.
+- [ ] Client preview (`clientView`) shows the block with a **disabled** input.
+
+## kosztorys-podsumowanie-tabs — zaliczka-v2 batch: tabbed Podsumowanie, Mieszane via vatPlane, wpłaty base fix (EX-536)
+
+**Not yet driven** — collected at the branch-wide review gate (`.review-gate/staging-batch-2026-07-24.md`), authored per the "no manual checks; register them" directive. Consolidates the manual surface of the whole zaliczka-v2 / tryb-mieszany arc as **actually shipped** (supersedes the typed-`C` slice-B checks above). Drive against the **5435 test DB**, OWNER/MANAGER, an investment with a seeded kosztorys + deposits.
+
+### Podsumowanie tabs + money axis
+
+- [ ] Podsumowanie renders as **tabs**; the panel money-axis toggle offers **Netto / Brutto / Mieszane**; a `Description` explains Mieszane ("częściowo netto, częściowo brutto").
+- [ ] **Netto** vs **Brutto**: materiały (+ each category, Łącznie, Do zapłaty) differ by exactly the VAT (`brutto/(1+VAT)` vs raw); robocizna („Suma prac wykonanych") unchanged between axes.
+- [ ] **Mieszane**: two stacked tables — netto section (Robocizna + Materiały = Łącznie − wpłaty netto → Do zapłaty netto) and faktura section (Reszta brutto − wpłaty brutto → Do zapłaty brutto). Rabat > 0 → trailing informational row. No crash when Do zapłaty goes negative (overpaid).
+- [ ] **Materiały brutto→netto reduction**: the reduction-% control drives the netto materiały figure (default = VAT rate); Łącznie/Do zapłaty follow. Clearing/changing % recomputes live.
+
+### Deposits + wpłaty base (⚠ the code-review WARNING fix — money-semantics)
+
+- [ ] **Wpłaty tab / deposit list**: shows the investment's INVESTOR_DEPOSIT rows only; plane pie splits netto vs brutto (null⇒netto bucket).
+- [ ] ⚠ **`wplatyNet` base fix — verify on an investment carrying a legacy `COMPANY_FUNDING` (or `OTHER_DEPOSIT`) row.** In **every** axis (Netto/Brutto/Mieszane), the „Wpłaty"/„Do zapłaty" figure must sum **only INVESTOR_DEPOSIT** — the legacy deposit must **not** inflate „Wpłaty". Before the fix the non-mixed axes folded it in (3 different totals per toggle); after, all surfaces agree. **This changes a client-facing figure on such investments — flagged for owner sign-off.** (Fresh COMPANY_FUNDING can't attach to an investment via the form per EX-557, so this only bites legacy/admin rows.) Regression-guarded by `src/__tests__/lib/db/get-deposit-transactions.test.ts`.
+
+### Wydatki + Robocizna tabs
+
+- [ ] **Wydatki tab**: per-category materiały breakdown table + expense pie; Σ === materiały brutto.
+- [ ] **Robocizna tab**: per-etap „Suma transzy" table + Razem; the **„Postęp prac" bar** sits **below the table** with the caption „Ile zostało wykonane względem pierwotnych estymat z wyceny projektu" (no tooltip); percent can exceed 100% (bar caps, text shows the real overrun); hidden entirely when Przedmiar (plannedNet) ≤ 0.
+
+### Deploy note (migration ordering — deploy-time, not a code check)
+
+- [ ] **Both `20260721_*` migrations must be applied to preview/prod before/with this merge** — `20260721_0_drop_kosztorys_stage_from_transactions` then `20260721_1_add_vat_plane_to_transactions`. The `vat_plane` SELECT in `getDepositTransactionsForInvestment` **500s** if the code ships before the migration runs. Human-applied via `pnpm db:migrate:prod` (per AGENTS.md); order: migrate **before** the code that reads the column lands.

@@ -1,4 +1,5 @@
 import type { RoleT } from '@/lib/auth/roles'
+import type { VatPlaneT } from '@/lib/constants/transfers'
 
 export type ReferenceItemT = {
   id: number
@@ -57,6 +58,29 @@ export type PayoutTransactionRowT = {
   description: string | null
 }
 
+// One INVESTOR_DEPOSIT transaction for the client Podsumowanie's wpłaty list — mirrors
+// PayoutTransactionRowT. `vatPlane` is null for the „nie określono" default state.
+export type DepositTransactionRowT = {
+  id: number
+  date: string
+  amount: number
+  vatPlane: VatPlaneT | null
+}
+
+// One materiały (Wydatki inwestycyjne) transaction for the Podsumowanie's wydatki list — an
+// INVESTMENT_EXPENSE / CORRECTION row. Sourced from the existing `findTransfersRaw` fetch; the
+// expense-category `label` is resolved at the page from reference data (like worker names on the
+// payout list). `settled` splits the client-facing „Wydatki inwestycyjne" (false — Σ ===
+// materialsGross) from the owner-only „Materiały wliczone w robociznę" (true) behind the list toggle.
+export type MaterialTransactionRowT = {
+  id: number
+  date: string
+  amount: number
+  label: string
+  description: string | null
+  settled: boolean
+}
+
 export type OtherCategoryRefT = {
   id: number
   name: string
@@ -67,20 +91,12 @@ export type ExpenseCategoryRefT = {
   name: string
 }
 
-export type KosztorysStageRefT = {
-  id: number
-  ordinal: number
-  label: string
-}
-
 export type ReferenceDataBaseT = {
   cashRegisters: CashRegisterRefT[]
   investments: InvestmentRefT[]
   workers: WorkerRefT[]
   otherCategories: OtherCategoryRefT[]
   expenseCategories: ExpenseCategoryRefT[]
-  // Kosztorys etapy per investment (id → stages), for the deposit form's „Zaliczka na etap" tag.
-  kosztorysStagesByInvestment: Record<number, KosztorysStageRefT[]>
 }
 
 export type ReferenceDataT = ReferenceDataBaseT & {

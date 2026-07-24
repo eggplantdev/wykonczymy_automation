@@ -9,10 +9,8 @@ import {
   needsWorker,
   needsExpenseCategory,
   canBeSettled,
-  isDepositType,
 } from '@/lib/constants/transfers'
 import { getAmountError } from '@/lib/utils/validation'
-import { resolveId } from '@/lib/utils/resolve-id'
 
 type TransferData = Partial<Transaction>
 
@@ -103,31 +101,6 @@ export const validateTransfer: CollectionBeforeValidateHook = ({
   // Auto-clear worker for types that don't need it
   if (!needsWorker(type)) {
     d.worker = null
-  }
-
-  // kosztorysStage (zaliczka etap tag) only applies to deposit types. The schema + form gate it,
-  // so only the admin panel / REST can plant one on another type; clear it here so the reporting
-  // layer never sees an etap tag on a non-zaliczka row.
-  if (!isDepositType(type)) {
-    d.kosztorysStage = null
-  }
-
-  // An etap belongs to exactly one investment's kosztorys, so moving the transfer to a different
-  // investment orphans a tag it CARRIED OVER: create proved that tag valid for the old investment,
-  // which is itself proof it is wrong for the new one — no membership lookup needed. Payload hands
-  // `data` as the FULL merged doc on update, so `investment` here is already the new value.
-  // A write that re-picks the etap is the caller retargeting it deliberately (the admin panel can
-  // change both at once); leave that alone or it silently eats a valid re-tag.
-  // Deliberately NOT a membership check (that the etap belongs to this investment): the read path
-  // is scoped `WHERE investment_id`, so a foreign tag is unreadable and renders as „Bez etapu" —
-  // identical to untagged. Making this hook async to look it up buys nothing. See lessons.md
-  // "Before filing „X isn't validated", follow X to its READ path" before reopening (EX-547).
-  if (operation === 'update' && originalDoc && d.kosztorysStage != null) {
-    const previous = originalDoc as TransferData
-    const carriedOver = resolveId(d.kosztorysStage) === resolveId(previous.kosztorysStage)
-    if (carriedOver && resolveId(d.investment) !== resolveId(previous.investment)) {
-      d.kosztorysStage = null
-    }
   }
 
   // settled (wliczone w robociznę) only applies to material expenses and their

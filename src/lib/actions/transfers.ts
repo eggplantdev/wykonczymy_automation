@@ -44,24 +44,6 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
         if (!validated.success) return validated
       }
 
-      if (parsed.data.kosztorysStage != null) {
-        // The schema already gates the tag to deposit types; here we confirm the etap actually
-        // belongs to the tagged investment's kosztorys — a stage from another investment is a
-        // client bug or stale form state, never a valid zaliczka. `find` (not `findByID`) so a
-        // stale/deleted id yields an empty result, not Payload's English NotFound throw.
-        const { docs } = await payload.find({
-          collection: 'kosztorys-stages',
-          where: { id: { equals: parsed.data.kosztorysStage } },
-          depth: 0,
-          limit: 1,
-        })
-        const stage = docs[0]
-        if (!stage || resolveId(stage.investment) !== parsed.data.investment) {
-          return { success: false, error: 'Wybrany etap nie należy do tej inwestycji.' }
-        }
-        console.log(`[PERF]   validate kosztorysStage ${step()}ms`)
-      }
-
       await payload.create({
         collection: 'transactions',
         data: {

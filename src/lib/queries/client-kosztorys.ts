@@ -13,7 +13,6 @@ import {
   fetchCategoryBreakdowns,
   fetchExpenseCategories,
   fetchFilteredByType,
-  fetchZaliczkiByStage,
 } from '@/lib/queries/reference-data'
 
 // The read-only render mounts the real KosztorysEditorBody, so the client read builds exactly the
@@ -41,25 +40,22 @@ const KOSZTORYS_TAGS = [
 async function buildClientKosztorysEditorData(investmentId: number): Promise<KosztorysEditorDataT> {
   const investmentWhere = { investment: { equals: investmentId } }
   const payload = await getPayload({ config })
-  const [tree, investment, typeDistribution, breakdowns, expenseCategories, zaliczkiByStage] =
-    await Promise.all([
-      buildKosztorysTree(investmentId),
-      payload.findByID({ collection: 'investments', id: investmentId, depth: 0 }),
-      fetchFilteredByType(investmentWhere),
-      fetchCategoryBreakdowns(investmentWhere),
-      fetchExpenseCategories(),
-      fetchZaliczkiByStage(investmentId),
-    ])
+  const [tree, investment, typeDistribution, breakdowns, expenseCategories] = await Promise.all([
+    buildKosztorysTree(investmentId),
+    payload.findByID({ collection: 'investments', id: investmentId, depth: 0 }),
+    fetchFilteredByType(investmentWhere),
+    fetchCategoryBreakdowns(investmentWhere),
+    fetchExpenseCategories(),
+  ])
   const financials = deriveFinancials(typeDistribution, breakdowns.categoryCosts)
 
   return {
     investmentId,
     tree,
     investmentName: investment.name,
-    materialsNet: financials.totalMaterialCosts,
+    materialsGross: financials.totalMaterialCosts,
     materialyBreakdown: buildMaterialyBreakdown(financials, expenseCategories),
     wplatyNet: financials.totalIncome,
-    zaliczkiByStage,
     laborCostsNetFromTransactions: financials.totalLaborCosts,
     investmentRabat: financials.totalRabat,
   }

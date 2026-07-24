@@ -9,6 +9,10 @@ export type MoneyAxisT = 'net' | 'gross' | 'both' | 'none'
 
 export const MONEY_AXIS_DEFAULT: MoneyAxisT = 'both'
 
+// The Podsumowanie panel's own default. It opens on netto; „Mieszane" ('both') is now the
+// Mieszane settlement view, not a both-columns readout, so it must not be the panel's opening state.
+export const SUMMARY_AXIS_DEFAULT: MoneyAxisT = 'net'
+
 // Netto/brutto visibility flags for a footer/readout at this axis. Shared so every summary block
 // derives them one way.
 export function axisShows(axis: MoneyAxisT): { net: boolean; gross: boolean } {

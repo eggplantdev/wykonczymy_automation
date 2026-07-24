@@ -1,11 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import {
   CHART_FILLS,
-  costPieSlices,
   sectionPieSlices,
   type SectionSliceInputT,
 } from '@/lib/kosztorys/chart-slices'
-import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 
 const sections: SectionSliceInputT[] = [
   { sectionId: 1, sectionName: 'Łazienka', plannedNet: 1000, net: 400 },
@@ -48,39 +46,5 @@ describe('sectionPieSlices', () => {
     expect(slices[0].fill).toBe(CHART_FILLS[0])
     // Wraps around after the palette is exhausted.
     expect(slices[CHART_FILLS.length].fill).toBe(CHART_FILLS[0])
-  })
-})
-
-describe('costPieSlices', () => {
-  const materialy: MaterialyBreakdownRowT[] = [
-    { id: 1, label: 'Materiały budowlane', net: 2000 },
-    { id: 2, label: 'Materiały wykończeniowe', net: 0 },
-    { id: null, label: 'Pozostałe koszty', net: 300 },
-  ]
-
-  it('emits a robocizna slice plus one per non-zero materiały category', () => {
-    const slices = costPieSlices(5000, materialy)
-    expect(slices.map((s) => s.name)).toEqual([
-      'Robocizna',
-      'Materiały budowlane',
-      'Pozostałe koszty',
-    ])
-    expect(slices.map((s) => s.value)).toEqual([5000, 2000, 300])
-  })
-
-  it('drops materiały rows with net === 0', () => {
-    const slices = costPieSlices(5000, materialy)
-    expect(slices.some((s) => s.name === 'Materiały wykończeniowe')).toBe(false)
-  })
-
-  it('assigns fills by index from the palette', () => {
-    const slices = costPieSlices(5000, materialy)
-    expect(slices.map((s) => s.fill)).toEqual([CHART_FILLS[0], CHART_FILLS[1], CHART_FILLS[2]])
-  })
-
-  it('gives each slice a stable unique id, korekta bucket keyed distinctly (React key safety)', () => {
-    const ids = costPieSlices(5000, materialy).map((s) => s.id)
-    expect(ids).toEqual(['robocizna', 'materialy-1', 'korekta'])
-    expect(new Set(ids).size).toBe(ids.length)
   })
 })

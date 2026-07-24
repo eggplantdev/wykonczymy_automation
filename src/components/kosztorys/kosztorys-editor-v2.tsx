@@ -19,14 +19,15 @@ export function KosztorysEditorV2({
   investmentId,
   tree,
   investmentName,
-  materialsNet,
+  materialsGross,
   materialyBreakdown,
   wplatyNet,
-  zaliczkiByStage,
   laborCostsNetFromTransactions,
   investmentRabat,
   payoutsByWorker = [],
   payoutTransactions = [],
+  depositTransactions = [],
+  materialTransactions = [],
 }: PropsT) {
   const router = useRouter()
   // One undo/redo stack per editor mount, passed to the body as a prop. It outlives the body's
@@ -64,14 +65,15 @@ export function KosztorysEditorV2({
         investmentId={investmentId}
         tree={tree}
         investmentName={investmentName}
-        materialsNet={materialsNet}
+        materialsGross={materialsGross}
         materialyBreakdown={materialyBreakdown}
         wplatyNet={wplatyNet}
-        zaliczkiByStage={zaliczkiByStage}
         laborCostsNetFromTransactions={laborCostsNetFromTransactions}
         investmentRabat={investmentRabat}
         payoutsByWorker={payoutsByWorker}
         payoutTransactions={payoutTransactions}
+        depositTransactions={depositTransactions}
+        materialTransactions={materialTransactions}
         undoRedo={undoRedo}
         onOpenVersions={() => setVersionsOpen(true)}
       />

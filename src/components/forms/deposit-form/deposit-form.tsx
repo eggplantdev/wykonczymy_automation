@@ -8,8 +8,8 @@ import { FormShell } from '@/components/forms/form-components/form-shell'
 import {
   DEPOSIT_UI_TYPES,
   TRANSFER_TYPE_LABELS,
-  showsInvestment,
   type PaymentMethodT,
+  type VatPlaneT,
 } from '@/lib/constants/transfers'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { expenseFormSchema } from '@/components/forms/expense-form/expense-schema'
@@ -23,7 +23,10 @@ import {
   DateField,
   DescriptionField,
   EntityComboboxField,
+  PaymentMethodField,
+  VatPlaneField,
 } from '@/components/forms/form-fields'
+import { VAT_PLANE_NONE } from '@/components/forms/form-fields/vat-plane-field'
 import FormFooter from '../form-components/form-footer'
 import { createTransferAction } from '@/lib/actions/transfers'
 import { useDepositFormStore } from '@/stores/form-stores'
@@ -40,14 +43,10 @@ type FormValuesT = {
   date: string
   type: string
   paymentMethod: string
+  vatPlane?: string
   sourceRegister: string
   investment?: string
-  // NO_STAGE sentinel = not a zaliczka; otherwise a kosztorys stage id. Radix Select forbids an
-  // empty-string SelectItem value, so the "no stage" option carries a non-empty sentinel.
-  kosztorysStage?: string
 }
-
-const NO_STAGE = 'none'
 
 const FORM_ID = 'deposit'
 
@@ -67,9 +66,9 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
       date: today(),
       type: 'INVESTOR_DEPOSIT',
       paymentMethod: 'CASH',
+      vatPlane: VAT_PLANE_NONE,
       sourceRegister: getDefaultCashRegister(referenceData),
       investment: '',
-      kosztorysStage: NO_STAGE,
     },
     keepOpen,
     successMessage: 'Wpłata dodana',
@@ -81,20 +80,16 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
       date: value.date,
       type: value.type as CreateTransferFormT['type'],
       paymentMethod: value.paymentMethod as PaymentMethodT,
+      vatPlane:
+        value.vatPlane && value.vatPlane !== VAT_PLANE_NONE
+          ? (value.vatPlane as VatPlaneT)
+          : undefined,
       sourceRegister: Number(value.sourceRegister),
       investment: value.investment ? Number(value.investment) : undefined,
-      kosztorysStage:
-        value.kosztorysStage && value.kosztorysStage !== NO_STAGE
-          ? Number(value.kosztorysStage)
-          : undefined,
     }),
   })
 
   const currentType = useStore(form.store, (s) => s.values.type)
-  const currentInvestment = useStore(form.store, (s) => s.values.investment)
-  const investmentStages = currentInvestment
-    ? (referenceData.kosztorysStagesByInvestment[Number(currentInvestment)] ?? [])
-    : []
 
   return (
     <FormShell form={form} onReset={reset}>
@@ -105,7 +100,6 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
           listeners={{
             onChange: () => {
               form.resetField('investment')
-              form.resetField('kosztorysStage')
             },
           }}
         >
@@ -129,30 +123,13 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
 
         <CashRegisterField form={form} cashRegisters={referenceData.cashRegisters} />
 
-        {/* Conditional: Investment — required for INVESTOR_DEPOSIT, optional for others */}
-        {showsInvestment(currentType) && (
-          <EntityComboboxField
-            form={form}
-            variant="investment"
-            items={referenceData.investments}
-            listeners={{ onChange: () => form.resetField('kosztorysStage') }}
-          />
-        )}
+        <PaymentMethodField form={form} />
 
-        {/* Optional zaliczka tag — only when the chosen investment has kosztorys etapy */}
-        {showsInvestment(currentType) && investmentStages.length > 0 && (
-          <form.AppField name="kosztorysStage">
-            {(field) => (
-              <field.Select label="Zaliczka na etap (opcjonalnie)">
-                <SelectItem value={NO_STAGE}>— brak —</SelectItem>
-                {investmentStages.map((stage) => (
-                  <SelectItem key={stage.id} value={String(stage.id)}>
-                    {stage.label}
-                  </SelectItem>
-                ))}
-              </field.Select>
-            )}
-          </form.AppField>
+        {currentType === 'INVESTOR_DEPOSIT' && <VatPlaneField form={form} />}
+
+        {/* Investment + netto/brutto belong to INVESTOR_DEPOSIT only; COMPANY_FUNDING hides both. */}
+        {currentType === 'INVESTOR_DEPOSIT' && (
+          <EntityComboboxField form={form} variant="investment" items={referenceData.investments} />
         )}
       </FieldGroup>
 

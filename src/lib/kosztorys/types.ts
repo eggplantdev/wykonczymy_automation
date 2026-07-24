@@ -5,7 +5,12 @@
 
 import type { STAGE_QTY_PREFIX } from '@/lib/kosztorys/stage-keys'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
-import type { SubcontractorPayoutRowT, PayoutTransactionRowT } from '@/types/reference-data'
+import type {
+  SubcontractorPayoutRowT,
+  PayoutTransactionRowT,
+  DepositTransactionRowT,
+  MaterialTransactionRowT,
+} from '@/types/reference-data'
 
 export type DiscountTypeT = 'percent' | 'amount'
 // Per-investment global discount over the whole kosztorys. type null = none (per-item discounts
@@ -112,17 +117,16 @@ export type KosztorysTreeT = {
 }
 
 // The full data set the editor body/shell needs to render: the tree plus the investment-level figures
-// (materials, wpłaty, zaliczki, robocizna/rabat) the footer reconciles against. Assembled identically
+// (materials, wpłaty, robocizna/rabat) the footer reconciles against. Assembled identically
 // by the admin page, the owner preview, and the public share read — one shape so those three can't
 // drift on which figures the editor receives.
 export type KosztorysEditorDataT = {
   investmentId: number
   tree: KosztorysTreeT
   investmentName: string
-  materialsNet: number
+  materialsGross: number
   materialyBreakdown: MaterialyBreakdownRowT[]
   wplatyNet: number
-  zaliczkiByStage: Record<number, number>
   // Transaction-sourced robocizna/rabat (Σ LABOR_COST / Σ RABAT) — the reconciliation "actual" side.
   laborCostsNetFromTransactions: number
   investmentRabat: number
@@ -132,6 +136,11 @@ export type KosztorysEditorDataT = {
   // Individual realized PAYOUT rows for the subcontractor block's sortable wypłaty list. Optional
   // (default []) — same reason as payoutsByWorker.
   payoutTransactions?: PayoutTransactionRowT[]
+  // Individual deposit rows for the client Podsumowanie's sortable wpłaty list. Optional (default []).
+  depositTransactions?: DepositTransactionRowT[]
+  // Individual materiały rows for the Podsumowanie's wydatki list (data · typ · kwota). Optional
+  // (default []) — the client-view share entry points omit it.
+  materialTransactions?: MaterialTransactionRowT[]
 }
 
 // --- v2 variant (react-datasheet-grid): a flat row with stages flattened

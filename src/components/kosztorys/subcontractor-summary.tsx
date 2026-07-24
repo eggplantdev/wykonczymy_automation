@@ -6,11 +6,13 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '@/components/ui/data-table/data-table'
 import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
 import {
-  SUMMARY_LABEL_CELL,
   SUMMARY_LABEL_COL,
-  SUMMARY_VALUE_CELL,
   SUMMARY_VALUE_COL,
-} from '@/components/kosztorys/summary-grid'
+  SummaryHeaderCell,
+  SummaryLabelCell,
+  SummaryTable,
+  SummaryValueCell,
+} from '@/components/ui/summary-grid'
 import { formatNet } from '@/lib/kosztorys/format'
 import { formatPLDate } from '@/lib/utils/format-date'
 import {
@@ -41,8 +43,7 @@ const UNASSIGNED_KEY = 'unassigned'
 const workerKey = (workerId: number | null) => (workerId === null ? UNASSIGNED_KEY : workerId)
 
 // One flat row per wypłata for the virtualized DataTable — worker name resolved up front so the
-// grid can sort on it without a per-cell lookup. `amount` is the stored (positive) expense; the
-// Kwota cell negates it for display (money leaving the company).
+// grid can sort on it without a per-cell lookup.
 type PayoutTableRowT = {
   workerId: number | null
   workerName: string
@@ -78,7 +79,7 @@ const PAYOUT_COLUMNS: ColumnDef<PayoutTableRowT>[] = [
     header: 'Kwota',
     meta: { align: 'right' },
     cell: ({ getValue }) => (
-      <span className="text-chart-green tabular-nums">{formatNet(-getValue<number>())}</span>
+      <span className="text-chart-green tabular-nums">{formatNet(getValue<number>())}</span>
     ),
   },
 ]
@@ -112,7 +113,7 @@ export function SubcontractorSummary({
     mode === 'worker' ? [{ id: 'workerName', desc: false }] : [{ id: 'date', desc: true }]
 
   return (
-    <div className="text-foreground flex max-h-[calc(100vh_-_11rem)] w-full flex-col gap-y-4 overflow-y-auto px-4 pt-2 pb-6 text-sm">
+    <div className="text-foreground flex w-full flex-col gap-y-4 px-4 pt-2 pb-6 text-sm">
       <div className="flex flex-wrap items-start gap-x-6 gap-y-4">
         <HeadlineSummary summary={summary} dueNet={dueNet} />
         {summary.rows.length > 0 && (
@@ -127,7 +128,6 @@ export function SubcontractorSummary({
             value={mode}
             onChange={setMode}
             aria-label="Grupowanie wypłat"
-            className="w-fit"
           />
           <DataTable
             key={mode}
@@ -158,32 +158,25 @@ function HeadlineSummary({
   dueNet: number
 }) {
   return (
-    <div
-      style={{ gridTemplateColumns: `${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL}` }}
-      className="border-border bg-border grid w-fit gap-px border"
-    >
-      <span className={cn(SUMMARY_LABEL_CELL, 'text-muted-foreground text-xs')}>
-        Podsumowanie podwykonawców
-      </span>
-      <span className={cn(SUMMARY_VALUE_CELL, 'text-muted-foreground text-xs')}>Kwota</span>
+    <SummaryTable cols={`${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL}`} className="w-fit">
+      <SummaryHeaderCell variant="label">Podsumowanie podwykonawców</SummaryHeaderCell>
+      <SummaryHeaderCell>Kwota</SummaryHeaderCell>
 
-      <span className={cn(SUMMARY_LABEL_CELL, 'font-medium')}>Suma wykonanej pracy</span>
-      <span className={cn(SUMMARY_VALUE_CELL, 'font-medium')}>{formatNet(dueNet)}</span>
+      <SummaryLabelCell className="font-medium">Suma wykonanej pracy</SummaryLabelCell>
+      <SummaryValueCell className="font-medium">{formatNet(dueNet)}</SummaryValueCell>
 
-      <span className={cn(SUMMARY_LABEL_CELL, 'font-medium')}>Zaliczki (wypłaty) razem</span>
-      <span className={cn(SUMMARY_VALUE_CELL, 'text-chart-green font-medium')}>
-        {formatNet(-summary.payoutsTotal)}
-      </span>
+      <SummaryLabelCell className="font-medium">Zaliczki (wypłaty) razem</SummaryLabelCell>
+      <SummaryValueCell className="text-chart-green font-medium">
+        {formatNet(summary.payoutsTotal)}
+      </SummaryValueCell>
 
       {/* Pozostało do wypłaty = należne − zaliczki. Negative = the crew has been overpaid — an
           anomaly, so it reads red; a normal positive „still owed" stays neutral bold. */}
-      <span className={cn(SUMMARY_LABEL_CELL, 'font-bold')}>Pozostało do wypłaty</span>
-      <span
-        className={cn(SUMMARY_VALUE_CELL, 'font-bold', summary.remaining < 0 && 'text-destructive')}
-      >
+      <SummaryLabelCell className="font-bold">Pozostało do wypłaty</SummaryLabelCell>
+      <SummaryValueCell className={cn('font-bold', summary.remaining < 0 && 'text-destructive')}>
         {formatNet(summary.remaining)}
-      </span>
-    </div>
+      </SummaryValueCell>
+    </SummaryTable>
   )
 }
 
@@ -195,18 +188,13 @@ function WorkerTotals({
   rows: ReturnType<typeof computeSubcontractorSummary>['rows']
 }) {
   return (
-    <div
-      style={{ gridTemplateColumns: `${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL}` }}
-      className="border-border bg-border grid h-fit w-fit gap-px border"
-    >
-      <span className={cn(SUMMARY_LABEL_CELL, 'text-muted-foreground text-xs')}>
-        Podsumowanie pracowników
-      </span>
-      <span className={cn(SUMMARY_VALUE_CELL, 'text-muted-foreground text-xs')}>Kwota</span>
+    <SummaryTable cols={`${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL}`} className="h-fit w-fit">
+      <SummaryHeaderCell variant="label">Podsumowanie pracowników</SummaryHeaderCell>
+      <SummaryHeaderCell>Kwota</SummaryHeaderCell>
 
       {rows.map((row) => (
         <div key={workerKey(row.workerId)} className="contents">
-          <span className={cn(SUMMARY_LABEL_CELL, 'font-medium')}>
+          <SummaryLabelCell className="font-medium">
             {row.workerId === null ? (
               row.name
             ) : (
@@ -217,12 +205,12 @@ function WorkerTotals({
                 {row.name}
               </Link>
             )}
-          </span>
-          <span className={cn(SUMMARY_VALUE_CELL, 'text-chart-green font-medium')}>
-            {formatNet(-row.total)}
-          </span>
+          </SummaryLabelCell>
+          <SummaryValueCell className="text-chart-green font-medium">
+            {formatNet(row.total)}
+          </SummaryValueCell>
         </div>
       ))}
-    </div>
+    </SummaryTable>
   )
 }
