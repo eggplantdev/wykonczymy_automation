@@ -30,8 +30,8 @@ export function InvestmentDataTable({
 
   const {
     filteredData: statusFiltered,
-    statusView,
-    setStatusView,
+    selectedStatuses,
+    toggleStatus,
   } = useStatusFilter(data, getStatus)
 
   const getSearchableText = useCallback(
@@ -58,7 +58,7 @@ export function InvestmentDataTable({
       toolbar={(table, cv) => (
         <>
           <SearchFilterInput value={searchTerm} onChange={setSearchTerm} placeholder="Szukaj..." />
-          <StatusFilter value={statusView} onChange={setStatusView} />
+          <StatusFilter selectedStatuses={selectedStatuses} onToggle={toggleStatus} />
           <AddInvestmentDialog presets={presets} />
           <ColumnToggle table={table} columnVisibility={cv} />
         </>
