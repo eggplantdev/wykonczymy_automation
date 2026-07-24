@@ -2,6 +2,7 @@
 id: kosztorys-zaliczka-v2
 title: Kosztorys zaliczka v2 — materiały netto/brutto w Podsumowaniu (slice A)
 status: implemented
+linear: EX-536
 branch: konradantonik/ex-536-zaliczka-v2
 created: 2026-07-22
 updated: 2026-07-22
