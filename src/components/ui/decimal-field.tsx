@@ -12,7 +12,7 @@ type PropsT = {
   placeholder?: number
   // Colours the value only; a direct color on the input overrides the muted colour the label inherits.
   valueClassName?: string
-  onCommit: (n: number | null) => void
+  onCommit: (n: number) => void
 }
 
 // Decimal-number field. Uncontrolled + `key` on the value (remount after router.refresh),

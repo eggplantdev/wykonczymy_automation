@@ -85,7 +85,7 @@ export function SummaryExpensesTab({
               <DecimalField
                 label=""
                 value={materialsReductionPercent}
-                onCommit={(n) => n != null && onMaterialsReductionPercentChange(n)}
+                onCommit={(n) => onMaterialsReductionPercentChange(n)}
               />
               <span className="text-muted-foreground text-xs">
                 % (−{formatNet(materialsReductionAmount)} zł)

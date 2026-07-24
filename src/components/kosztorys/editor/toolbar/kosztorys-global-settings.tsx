@@ -27,7 +27,7 @@ export function KosztorysGlobalSettings({ globalCoeffs, view, onGlobalCoeffChang
           label="Mnożnik ceny wykonawcy z narzędziami"
           hint={COEFF_TIP}
           value={globalCoeffs.wTools}
-          onCommit={(n) => n != null && onGlobalCoeffChange({ wToolsCoeff: n })}
+          onCommit={(n) => onGlobalCoeffChange({ wToolsCoeff: n })}
         />
       )}
       {view === 'own_tools' && (
@@ -35,7 +35,7 @@ export function KosztorysGlobalSettings({ globalCoeffs, view, onGlobalCoeffChang
           label="Mnożnik ceny wykonawcy bez narzędzi"
           hint={COEFF_TIP}
           value={globalCoeffs.ownTools}
-          onCommit={(n) => n != null && onGlobalCoeffChange({ ownToolsCoeff: n })}
+          onCommit={(n) => onGlobalCoeffChange({ ownToolsCoeff: n })}
         />
       )}
     </div>

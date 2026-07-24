@@ -41,7 +41,7 @@ export function SummarySettingsBar() {
         hint={VAT_TIP}
         value={tree.vatRate * 100}
         valueClassName="text-foreground"
-        onCommit={(n) => n != null && handleVatChange(n / 100)}
+        onCommit={(n) => handleVatChange(n / 100)}
       />
       <div className="flex items-center gap-2">
         <HintTooltip content={DISCOUNT_TIP} className="text-muted-foreground text-xs">
@@ -52,9 +52,7 @@ export function SummarySettingsBar() {
             label=""
             value={globalDiscount.value}
             valueClassName="text-chart-green"
-            onCommit={(n) =>
-              handleGlobalDiscountChange({ type: globalDiscount.type, value: n ?? 0 })
-            }
+            onCommit={(n) => handleGlobalDiscountChange({ type: globalDiscount.type, value: n })}
           />
         )}
         {/* "brak" clears the discount (type null); the value field shows only once a mode is
