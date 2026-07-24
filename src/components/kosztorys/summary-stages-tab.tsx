@@ -1,8 +1,7 @@
 'use client'
 
-import { toGross } from '@/lib/kosztorys/calc'
 import { type MoneyAxisT } from '@/lib/kosztorys/money-axis'
-import type { MoneyPairT } from '@/lib/kosztorys/summary-economics'
+import { moneyPair } from '@/lib/kosztorys/summary-economics'
 import { SummaryHeaderCell, SummaryTable } from '@/components/ui/summary-grid'
 import { SummaryMoneyHeaders } from '@/components/kosztorys/summary-money-headers'
 import { SummaryRow } from '@/components/kosztorys/summary-row'
@@ -38,7 +37,6 @@ export function SummaryStagesTab({
 }: PropsT) {
   const { doneNet, plannedNet } = useKosztorysEditorContext()
   if (stages.length === 0) return null
-  const pair = (net: number): MoneyPairT => ({ net, gross: toGross(net, vatRate) })
   const cols = summaryMoneyCols(moneyAxis)
 
   return (
@@ -52,11 +50,16 @@ export function SummaryStagesTab({
               <SummaryRow
                 key={st.id}
                 label={st.label ?? `Etap ${st.ordinal}`}
-                line={pair(stageTotals.get(st.id) ?? 0)}
+                line={moneyPair(stageTotals.get(st.id) ?? 0, vatRate)}
                 axis={moneyAxis}
               />
             ))}
-            <SummaryRow label="Razem" line={pair(wykonaneNet)} axis={moneyAxis} bold />
+            <SummaryRow
+              label="Razem"
+              line={moneyPair(wykonaneNet, vatRate)}
+              axis={moneyAxis}
+              bold
+            />
           </SummaryTable>
           <KosztorysProgressCounter doneNet={doneNet} plannedNet={plannedNet} />
         </div>

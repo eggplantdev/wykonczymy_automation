@@ -67,8 +67,7 @@ export function summaryLineGross(
   vatRate: number,
   reduction?: number,
 ): SummaryLineT {
-  const pair =
-    reduction != null ? { net: gross * (1 - reduction), gross } : grossPair(gross, vatRate)
+  const pair = materialyPair(gross, vatRate, true, reduction)
   return { ...pair, share: combinedNet > 0 ? pair.net / combinedNet : 0 }
 }
 
@@ -103,10 +102,8 @@ export function computeSummarySplit(
 }
 
 // „Aktualnie do zapłaty R + M" (sheet footer r456–464): the headline still-owed figure —
-// robocizna do zapłaty plus materiały, less the investor's wpłaty (every deposit attached to
-// the investment — the same `totalIncome` that raises Bilans inwestora in calculate-balance.ts).
-// So this equals −Bilans on the R+M base. Can go negative when wpłaty exceed R+M — a real
-// overpaid state, not clamped here.
+// robocizna do zapłaty plus materiały, less the investor's wpłaty (Σ INVESTOR_DEPOSIT on the
+// investment). Can go negative when wpłaty exceed R + M — a real overpaid state, not clamped here.
 export function computeDoZaplatyRM(
   laborCostsNetFromKosztorys: number,
   wplatyNet: number,

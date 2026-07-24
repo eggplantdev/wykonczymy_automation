@@ -10,7 +10,6 @@ import { SummarySettingsBar } from '@/components/kosztorys/summary-settings-bar'
 import { SlicePie } from '@/components/kosztorys/slice-pie'
 import { Description } from '@/components/ui/description'
 import { type PanelAxisT } from '@/components/kosztorys/use-summary-axis'
-import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import type { KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
 import { costTotalsPieSlices } from '@/lib/kosztorys/chart-slices'
 
@@ -29,7 +28,6 @@ type PropsT = {
   laborCostsNetFromKosztorys: number
   doZaplaty: MoneyPairT
   materialsGross: number
-  materialyBreakdown: MaterialyBreakdownRowT[]
   wplatyNet: number
   rabatAmount: number
   reconciliation: KosztorysReconciliationT
@@ -53,7 +51,6 @@ export function SummaryOverviewTab({
   laborCostsNetFromKosztorys,
   doZaplaty,
   materialsGross,
-  materialyBreakdown,
   wplatyNet,
   rabatAmount,
   reconciliation,
@@ -97,7 +94,6 @@ export function SummaryOverviewTab({
             laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
             doZaplaty={doZaplaty}
             materialsGross={materialsGross}
-            materialyBreakdown={materialyBreakdown}
             wplatyNet={wplatyNet}
             rabatAmount={rabatAmount}
             reconciliation={reconciliation}

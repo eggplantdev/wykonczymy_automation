@@ -15,7 +15,6 @@ import { SummaryRow } from '@/components/kosztorys/summary-row'
 import { summaryMoneyCols } from '@/components/kosztorys/summary-axis'
 import { SummaryBreakdownTable } from '@/components/kosztorys/summary-breakdown-table'
 import { SummaryTotalsTable } from '@/components/kosztorys/summary-totals-table'
-import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 import {
   reconciliationTooltip,
   type KosztorysReconciliationT,
@@ -38,10 +37,8 @@ type PropsT = {
   // Materiały brutto — live server sum of the investment's unsettled transactions (recorded brutto;
   // netto is derived by removing VAT).
   materialsGross: number
-  // Per-expense-category split of materialsGross (v1 parity); Σ === materialsGross.
-  materialyBreakdown: MaterialyBreakdownRowT[]
-  // Wpłaty netto — the investor's deposits on this investment (totalIncome); subtracted from
-  // Łącznie to reach „Do zapłaty". Matches the investment page's „Wpłaty" by construction.
+  // Wpłaty netto — Σ of the investment's INVESTOR_DEPOSIT rows; subtracted from Łącznie to reach
+  // „Do zapłaty". Same base the deposit list / Wpłaty tab / plane pie draw.
   wplatyNet: number
   // The rabat actually taken off the executed robocizna (net zł): the global discount when active,
   // else Σ per-item rabat. Unified upstream so this table shows one explicit „Rabat" line. 0 = none.
@@ -74,7 +71,6 @@ export function BruttoNettoSummary({
   laborCostsNetFromKosztorys,
   doZaplaty,
   materialsGross,
-  materialyBreakdown,
   wplatyNet,
   rabatAmount,
   reconciliation,
@@ -86,9 +82,8 @@ export function BruttoNettoSummary({
   clientView = false,
 }: PropsT) {
   // „Suma prac wykonanych" is shown net of rabat, matching „Suma transzy" (both are the executed
-  // value after discount). Rabat is no longer a waterfall deduction — it's an informational line
-  // below „Do zapłaty". So Łącznie = Suma prac (po rabacie) + Materiały, and Łącznie − Wpłaty =
-  // „Do zapłaty" holds without a rabat step.
+  // value after discount). Rabat is an informational line below „Do zapłaty", not a step in the sum:
+  // Łącznie = Suma prac (po rabacie) + Materiały, and Łącznie − Wpłaty = „Do zapłaty".
   const { combined } = computeSummarySplit(
     laborCostsNetFromKosztorys,
     materialsGross,
@@ -106,8 +101,8 @@ export function BruttoNettoSummary({
     rabatAmount > 0 ||
     (reconVisible && (reconciliation.rabat.actual > 0 || reconciliation.rabat.mismatch))
   const sumaPrac = summaryLine(laborCostsNetFromKosztorys, combined.net, vatRate)
-  // Rabat is now an informational line (below „Do zapłaty"), not a deduction. It lives on the prace
-  // plane and grosses — brutto = rabat×(1+VAT) — so both axes read a real figure.
+  // Rabat lives on the prace plane and grosses — brutto = rabat×(1+VAT) — so both axes read a real
+  // figure.
   const rabat = moneyPair(rabatAmount, vatRate)
   const wplaty = faceValue(wplatyNet)
 
@@ -125,7 +120,7 @@ export function BruttoNettoSummary({
               ? mismatchTooltip(reconciliation.laborCosts, 'Transakcje robocizny')
               : undefined
           }
-          materialyBreakdown={materialyBreakdown}
+          materialsGross={materialsGross}
           combinedNet={combined.net}
           combined={combined}
           vatRate={vatRate}

@@ -198,7 +198,6 @@ export function KosztorysTotalsPanel({
                   laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
                   doZaplaty={doZaplaty}
                   materialsGross={materialsGross}
-                  materialyBreakdown={materialyBreakdown}
                   wplatyNet={wplatyNet}
                   rabatAmount={rabatAmount}
                   reconciliation={reconciliation}

@@ -10,7 +10,6 @@ import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import { SummaryHeaderCell, SummaryTable } from '@/components/ui/summary-grid'
 import { SummaryMoneyHeaders } from '@/components/kosztorys/summary-money-headers'
 import { SummaryRow } from '@/components/kosztorys/summary-row'
-import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
 
 // The upper grid: „Suma prac wykonanych" + „Materiały" (one aggregate line — the per-category split
 // lives in the Wydatki view), summing to „Łącznie". This is the sheet Podsumowanie split; the
@@ -20,7 +19,7 @@ export function SummaryBreakdownTable({
   moneyAxis,
   sumaPrac,
   sumaPracMismatch,
-  materialyBreakdown,
+  materialsGross,
   combinedNet,
   combined,
   vatRate,
@@ -31,7 +30,8 @@ export function SummaryBreakdownTable({
   moneyAxis: MoneyAxisT
   sumaPrac: SummaryLineT
   sumaPracMismatch?: string
-  materialyBreakdown: MaterialyBreakdownRowT[]
+  // Materiały BRUTTO aggregate (Σ === the per-category Wydatki rows); netto derived below.
+  materialsGross: number
   combinedNet: number
   combined: MoneyPairT
   vatRate: number
@@ -41,10 +41,6 @@ export function SummaryBreakdownTable({
   // VAT-strip default (temporary client-side experiment).
   materialsReduction?: number
 }) {
-  // Σ over categories — `item.net` is each category's materiały BRUTTO sum (financials-layer field
-  // name kept; reinterpreted as gross here). Per-item pricing is linear in the brutto amount, so the
-  // aggregate line equals summing the per-category rows the Wydatki view still shows individually.
-  const materialsGross = materialyBreakdown.reduce((sum, item) => sum + item.net, 0)
   return (
     <SummaryTable cols={cols}>
       <SummaryHeaderCell variant="label">Podsumowanie</SummaryHeaderCell>

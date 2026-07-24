@@ -12,8 +12,8 @@ export type PanelAxisT = MoneyAxisT | 'mixed'
 // same `table-columns:` family as the grid's money-axis picker, so clearing that memory clears this
 // too. Survives refresh and the editor's restore-remount, which the previous useState did not.
 const STORAGE_KEY = 'table-columns:kosztorys-summary-axis'
-// „Netto + Brutto" ('both') was removed as an explicit pick — netto and brutto now render together in
-// every mode. A stale persisted 'both' is no longer valid, so it falls back to the default.
+// 'both' is not a valid pick (netto and brutto render together in every mode), so a persisted 'both'
+// falls back to the default.
 const VALID_AXES: readonly PanelAxisT[] = ['net', 'gross', 'mixed']
 
 export function useSummaryAxis(): [PanelAxisT, (axis: PanelAxisT) => void] {
