@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils/cn'
 // (label) column to the SAME width so the grids line up down the panel instead of each auto-sizing
 // its own first column. A track is a `gridTemplateColumns` value, not an element, so these stay
 // constants — everything else here is a component.
-export const SUMMARY_LABEL_COL = '13rem'
+export const SUMMARY_LABEL_COL = '16rem'
 // Every trailing column (netto / brutto / udział) shares one width so they read as an even set.
 export const SUMMARY_VALUE_COL = '7rem'
 
