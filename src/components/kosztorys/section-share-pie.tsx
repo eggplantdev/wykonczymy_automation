@@ -21,25 +21,23 @@ export function SectionSharePie({ subtotals }: { subtotals: SectionSliceInputT[]
 
   return (
     <SlicePie
-      caption={
-        <figcaption className="flex items-center justify-between gap-3">
-          <span className="text-muted-foreground text-xs">Udział sekcji — {base}</span>
-          <div className="border-border flex rounded-md border text-xs">
-            {BASES.map(({ key, label }) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setBase(key)}
-                className={cn(
-                  'px-2 py-0.5 first:rounded-l-md last:rounded-r-md',
-                  base === key ? 'bg-foreground text-background' : 'text-muted-foreground',
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </figcaption>
+      caption={`Udział sekcji — ${base}`}
+      action={
+        <div className="border-border flex rounded-md border text-xs">
+          {BASES.map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setBase(key)}
+              className={cn(
+                'px-2 py-0.5 first:rounded-l-md last:rounded-r-md',
+                base === key ? 'bg-foreground text-background' : 'text-muted-foreground',
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       }
       slices={sectionPieSlices(subtotals, base)}
     />

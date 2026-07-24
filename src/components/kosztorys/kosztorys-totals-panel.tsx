@@ -182,7 +182,7 @@ export function KosztorysTotalsPanel({
             options={SUMMARY_VIEW_OPTIONS}
             value={summaryView}
             onChange={setSummaryView}
-            size="lg"
+            size="md"
             disabled={!isClientPlane}
             aria-label="Widok podsumowania"
           />
@@ -231,6 +231,8 @@ export function KosztorysTotalsPanel({
                   investmentId={investmentId}
                   rows={depositTransactions}
                   showPlane={mixedMode}
+                  paidNet={paidNet}
+                  paidGross={paidGross}
                   clientView={clientView}
                 />
               )}

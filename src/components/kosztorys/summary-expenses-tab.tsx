@@ -4,6 +4,8 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { CoeffField } from '@/components/kosztorys/coeff-field'
 import { MaterialsBreakdownTable } from '@/components/kosztorys/materials-breakdown-table'
 import { MaterialsTransactionsTable } from '@/components/kosztorys/materials-transactions-table'
+import { SlicePie } from '@/components/kosztorys/slice-pie'
+import { expensePieSlices } from '@/lib/kosztorys/chart-slices'
 import { formatNet } from '@/lib/kosztorys/format'
 import { cn } from '@/lib/utils/cn'
 import type { MaterialyBreakdownRowT } from '@/types/investment-financials'
@@ -48,11 +50,17 @@ export function SummaryExpensesTab({
   return (
     <div className="flex w-full flex-col">
       {materialsGross !== 0 && (
-        <MaterialsBreakdownTable
-          rows={materialyBreakdown}
-          reduction={materialsReduction}
-          showReduction={nettoShown && materialsAsNet}
-        />
+        <div className="flex flex-col items-start gap-8 lg:flex-row">
+          <MaterialsBreakdownTable
+            rows={materialyBreakdown}
+            reduction={materialsReduction}
+            showReduction={nettoShown && materialsAsNet}
+          />
+          <SlicePie
+            caption="Struktura wydatków inwestycyjnych"
+            slices={expensePieSlices(materialyBreakdown)}
+          />
+        </div>
       )}
       <div className="my-2 flex w-fit flex-col gap-2">
         {nettoShown && materialsGross !== 0 && (
