@@ -177,12 +177,11 @@ export function KosztorysTotalsPanel({
             content scrolls below it. Rendered on both planes but disabled on the subcontractor plane,
             which has its own summary; the toggle only governs the client plane for now. pr keeps the
             toggle clear of the absolute close affordance in the top-right corner. */}
-        <div className="border-border flex shrink-0 items-center border-b px-4 py-2 pr-16">
+        <div className="px-4 pt-4">
           <ToggleGroup
             options={SUMMARY_VIEW_OPTIONS}
             value={summaryView}
             onChange={setSummaryView}
-            size="md"
             disabled={!isClientPlane}
             aria-label="Widok podsumowania"
           />

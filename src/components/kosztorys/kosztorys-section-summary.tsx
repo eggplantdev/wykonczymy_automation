@@ -8,9 +8,8 @@ import { KosztorysSectionFilterMenu } from '@/components/kosztorys/kosztorys-sec
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { HintTooltip } from '@/components/ui/tooltip'
 import { Description } from '@/components/ui/description'
-import { formatNet as fmt, formatPercentPrecise } from '@/lib/kosztorys/format'
+import { formatNet as fmt } from '@/lib/kosztorys/format'
 import type { SectionSubtotalT } from '@/lib/kosztorys/types'
 
 type SectionCoeffsT = { wTools: number | null; ownTools: number | null }
@@ -66,7 +65,7 @@ export function KosztorysSectionSummary({
     <aside className="border-border bg-background absolute inset-y-0 right-0 z-30 flex w-72 flex-col overflow-hidden border-l shadow-lg">
       <div className="border-border flex shrink-0 items-center justify-between border-b px-3 py-2">
         <div className="flex items-center gap-1.5">
-          <h2 className="text-foreground text-sm font-medium">Sekcje</h2>
+          <h2 className="text-foreground text-sm font-medium">Widok sekcji</h2>
           <KosztorysSectionFilterMenu />
         </div>
         <Button size="icon" variant="ghost" className="h-6 w-6" onClick={onClose}>
@@ -186,19 +185,6 @@ export function KosztorysSectionSummary({
                     </>
                   )}
                 </div>
-
-                <HintTooltip
-                  className="w-fit flex-col gap-0.5"
-                  content={'Wartości liczone po cenie klienta.'}
-                >
-                  <span>Ilość pozycji: {s.itemCount}</span>
-                  {s.completionRatio !== null && (
-                    <>
-                      <span>Udział w całości kosztorysu: {formatPercentPrecise(s.share)}</span>
-                      <span>Wykonano {formatPercentPrecise(s.completionRatio)}</span>
-                    </>
-                  )}
-                </HintTooltip>
               </div>
             </li>
           )
