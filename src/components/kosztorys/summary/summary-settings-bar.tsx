@@ -32,8 +32,13 @@ const DISCOUNT_TIP = [
 // straight from the editor context (the panel renders inside the provider), so no props thread through
 // KosztorysTotalsPanel.
 export function SummarySettingsBar() {
-  const { tree, globalDiscount, handleVatChange, handleGlobalDiscountChange, handleApplyPercentRabat } =
-    useKosztorysEditorContext()
+  const {
+    tree,
+    globalDiscount,
+    handleVatChange,
+    handleGlobalDiscountChange,
+    handleApplyPercentRabat,
+  } = useKosztorysEditorContext()
 
   return (
     <div className="flex w-full flex-wrap items-center gap-x-4">

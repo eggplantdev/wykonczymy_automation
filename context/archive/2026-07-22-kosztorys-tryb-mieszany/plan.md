@@ -131,10 +131,6 @@ The deposits-reconciliation helpers `bucketDepositsByPlane` + `depositsSplit` li
 - Unit test passes: `pnpm exec vitest run src/__tests__/lib/kosztorys/summary-economics.test.ts`
 - Type checking passes: `pnpm generate:types` not needed; `pnpm exec tsc --noEmit` (or the repo's typecheck script)
 
-#### Manual Verification:
-
-- None (pure function, covered by unit test).
-
 ---
 
 ## Phase 2: Panel wiring + cash-settlement UI
@@ -198,18 +194,6 @@ Calls `computeCashSettlement`. Renders a `SummaryTable` (netto single value trac
 - Lint passes: `pnpm lint`
 - Existing panel tests (if any) pass: `pnpm exec vitest run src/__tests__/kosztorys`
 
-#### Manual Verification:
-
-- Panel opens on **Netto** by default; grid columns/toggle default unchanged (still show all).
-- „Mieszana" shows netto-only waterfall + „Suma transzy" netto + the three cash rows.
-- Typing `C` recomputes Reszta and Razem live; `C = 0` → Razem = `D·(1+VAT)`; `C = D` → Razem = `D`;
-  `C > D` → Reszta negative, no crash.
-- Netto and Brutto axes unchanged from before.
-- Client preview (`clientView`) shows the block with a **disabled** input.
-
-**Implementation Note**: After Phase 2 automated verification passes, pause for manual confirmation in
-the browser before archiving.
-
 ---
 
 ## Testing Strategy
@@ -217,14 +201,6 @@ the browser before archiving.
 ### Unit Tests:
 
 - `computeCashSettlement` boundary cases (Phase 1) — the only pure logic worth a spec.
-
-### Manual Testing Steps:
-
-1. Seed/open an investment with positive „Do zapłaty" (`INV=6 node … seed-kosztorys.ts`).
-2. Open the Podsumowanie panel → confirm it opens on Netto.
-3. Switch to Mieszana → confirm netto-only figures + cash block; type several `C` values incl. `0`,
-   `= D`, `> D`.
-4. Open the client preview → confirm the input is read-only.
 
 ## References
 

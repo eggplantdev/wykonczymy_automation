@@ -183,10 +183,6 @@ blank in the form); string fields default to `''` when absent.
 - Dev CSS build still works after install: `pnpm dev` starts without the lightningcss error
 - Schema unit test passes: `pnpm exec vitest run src/__tests__/receipt-extraction-schema.test.ts`
 
-#### Manual Verification:
-
-- `OPENROUTER_API_KEY` present in `.env`; app boots without an env-validation failure.
-
 ---
 
 ## Phase 2: Server action + category name→id util
@@ -232,11 +228,6 @@ id-as-string the form field expects (`expense-category-field.tsx:12-15`).
 - Resolver unit test passes: `pnpm exec vitest run src/__tests__/resolve-expense-category-id.test.ts`
   (exact match → id; case/whitespace variance → id; unknown name → `''`; empty name → `''`)
 
-#### Manual Verification:
-
-- Calling `extractReceiptAction` with a real image media id (from the dev DB) returns plausible
-  fields; calling with a PDF media id returns the PDF error result.
-
 ---
 
 ## Phase 3: Batch multi-file add (rows + attached images)
@@ -281,12 +272,6 @@ batch-added rows.
 - File-map alignment unit test passes:
   `pnpm exec vitest run src/__tests__/use-invoice-files.test.ts` (batch register N files → indices
   0..N-1; remove middle row → remaining files re-align)
-
-#### Manual Verification:
-
-- "Dodaj paragony" with 3 images creates 3 rows, each showing its attached image; manual fill + save
-  produces 3 `transactions` rows with the correct invoices.
-- Removing a middle scanned row keeps the other rows' images correctly attached on save.
 
 ---
 
@@ -362,21 +347,6 @@ else `uploadFileClient(file)` for `fileMap[i]`, else `undefined`. Feed to
 - Submit-resolver unit test passes: `pnpm exec vitest run src/__tests__/invoice-media-resolve.test.ts`
   (stored mediaId wins → no upload call; File-only → uploads; neither → undefined)
 
-#### Manual Verification:
-
-- Batch-add the seed receipts, click "Wypełnij z paragonów": rows stream in with correct
-  description/amount(brutto)/category; progress counter advances.
-- A receipt with an unrecognizable/hallucinated category yields a blank `expenseCategory` (never a
-  wrong one); the required-field validation forces a manual pick.
-- Force one extraction failure (e.g. a PDF or a garbage image): that row stays blank + marked, others
-  succeed, toast reports the failure.
-- Save: each scanned row's `transactions.invoice` points at the right media, with **no duplicate**
-  media docs created (verify via admin / DB).
-- Manually filling a row before clicking the button leaves that row untouched (skip-non-empty).
-
-**Implementation Note**: After Phase 4 automated verification passes, pause for human manual
-confirmation before considering the change complete.
-
 ---
 
 ## Phase 5: PDF extraction (OpenRouter file-parser)
@@ -448,13 +418,6 @@ image-typed).
   plugin; image types → `undefined`)
 - Full unit suite green: `pnpm exec vitest run`
 
-#### Manual Verification:
-
-- "Dodaj paragony" now lets you select the `WV-4-*.pdf` invoices (no longer greyed out).
-- Batch-add a real PDF invoice from the dev DB + "Wypełnij z paragonów": the row fills with
-  plausible description/amount(brutto)/category (previously stayed blank + "nie odczytano").
-- An image receipt still fills exactly as before (no regression on the non-PDF path).
-
 ---
 
 ## Testing Strategy
@@ -471,13 +434,6 @@ image-typed).
 
 - None automated for the LLM path in this cut (non-deterministic; needs live provider). The
   DB-fixtures accuracy eval is a deferred follow-up (research Open Questions).
-
-### Manual Testing Steps:
-
-1. Seed the dev DB, open "Nowy wydatek", "Dodaj paragony" → N rows with images.
-2. "Wypełnij z paragonów" → verify streamed fields, progress, brutto amounts.
-3. Verify hallucinated category → blank; forced failure → blank+marked+toast.
-4. Save → verify invoices attached, no duplicate media, skip-non-empty respected.
 
 ## Performance Considerations
 

@@ -180,13 +180,6 @@ touched — the field is optional and their client view never renders the block.
   Run: `pnpm exec vitest run src/__tests__/lib/db` (self-cleaning fixtures, gated on
   `DB_POSTGRES_URL`/`PAYLOAD_SECRET`).
 
-#### Manual Verification
-
-- On an investment with PAYOUTs across several workers (dev/test DB), the enriched rows carry correct
-  names and per-worker totals; a null-worker payout appears under „Bez przypisanego pracownika".
-
-**Implementation Note**: Pause for manual confirmation before Phase 3 (Phase 2 is independent).
-
 ---
 
 ## Phase 2: `worker` URL filter
@@ -217,11 +210,6 @@ narrow consistently with the list.
 - Lint passes: `pnpm lint`
 - New unit test: `buildTransferFilters({ worker: '5' })` yields `worker: { equals: 5 }`; absent/invalid
   `worker` yields no worker clause. Run: `pnpm exec vitest run src/__tests__/lib/queries`
-
-#### Manual Verification
-
-- Visiting `/inwestycje/{id}?type=PAYOUT&worker=<id>` lists only that worker's payouts on that
-  investment.
 
 ---
 
@@ -302,19 +290,9 @@ Hide the netto/brutto toggle control when `priceView !== 'client'`.
   executed). Run: `pnpm exec vitest run src/lib/kosztorys src/__tests__`
 - Tailwind v4 audit clean on `subcontractor-summary.tsx` (no `var(--…)` in `[...]`, no inline colour)
 
-#### Manual Verification
-
-- Toggling to Z narzędziami / Bez narzędzi shows „Podsumowanie podwykonawców"; Klient view unchanged.
-- `Suma wykonanej pracy` equals the executed-work value at the active subcontractor price **without**
-  rabat; changes with the view toggle and with progress edits.
-- Per-worker rows link to that worker's payouts on this investment; the null bucket appears when a
-  PAYOUT lacks a worker; razem and pozostało reconcile (`pozostało = należne − razem`, negative shown).
-- The netto/brutto toggle does not render in the subcontractor views.
-
-**Implementation Note**: Final phase — after automated verification, `/10x-implement` aggregates the
-manual bullets into `context/foundation/manual-checks.md`. The browser-level render is a low-risk
-plumbing surface; the E2E is **deferred to the `e2e-backlog`** (Linear issue, label `e2e-backlog`,
-project „Wykonczymy") per AGENTS.md rather than authored now.
+**Implementation Note**: The browser-level render is a low-risk plumbing surface; the E2E is
+**deferred to the `e2e-backlog`** (Linear issue, label `e2e-backlog`, project „Wykonczymy") per
+AGENTS.md rather than authored now.
 
 ---
 

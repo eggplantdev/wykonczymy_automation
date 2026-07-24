@@ -112,10 +112,6 @@ returns the same value); round-trip (`'both'` → uncheck a → `'net'`/`'work'`
 - New unit test passes: `pnpm exec vitest run src/__tests__/kosztorys-axis-checkboxes.test.ts`
 - Linting passes: `pnpm lint`
 
-#### Manual Verification:
-
-- (none — pure logic, covered by the unit test)
-
 ---
 
 ## Phase 2: `KosztorysViewMenu` + toolbar rewire
@@ -189,17 +185,6 @@ no longer destructured here.
 - Full unit suite passes: `pnpm exec vitest run`
 - Linting passes: `pnpm lint`
 
-#### Manual Verification:
-
-- `Widok` popover opens; four sections render with icon+label rows.
-- Kwoty: unchecking Netto hides netto columns; unchecking the last checked box is refused (a box
-  always stays checked). Same for Warstwy (Praca / Postęp).
-- Etapy radio switches stage columns between Kwoty and % wykonania.
-- Kolumny rows hide/show individual columns; menu stays open across multiple toggles.
-- Selections persist across a page reload (same as before).
-- Toolbar left cluster reads `Widok cen` + `Widok`; no stray toggles; right group no longer has
-  a `Kolumny` button.
-
 ---
 
 ## Testing Strategy
@@ -208,15 +193,6 @@ no longer destructured here.
 
 - `axis-checkboxes.ts` — derive for all values, toggle for all (value × box) incl. min-1 no-op,
   round-trip, for both money and layer configs.
-
-### Manual Testing Steps:
-
-1. Open a kosztorys editor; confirm the left cluster is `Widok cen` + `Widok`.
-2. In `Widok`, toggle each Kwoty / Warstwy box; confirm columns react and the last box can't be
-   cleared.
-3. Flip Etapy radio; confirm stage columns swap Kwoty ↔ %.
-4. Toggle several Kolumny rows without the menu closing.
-5. Reload; confirm every selection survived.
 
 ## References
 

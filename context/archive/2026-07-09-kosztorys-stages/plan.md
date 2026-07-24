@@ -166,14 +166,6 @@ Hand-write; do not trust `migrate:create`.
 - Type checking passes: `pnpm typecheck`
 - Lint passes: `pnpm lint`
 
-#### Manual Verification:
-
-- `kosztorys_stages` + `stage_progress` exist with the two UNIQUE constraints; no existing
-  table other than `payload_locked_documents_rels` changed.
-
-**Implementation Note**: After automated verification passes, pause for human confirmation
-before Phase 2.
-
 ---
 
 ## Phase 2: Collections + query
@@ -232,13 +224,6 @@ place of the empty arrays; drop the stale "out of scope" comment at :20.
 - Lint passes: `pnpm lint`
 - Existing unit suite still green: `pnpm exec vitest run`
 
-#### Manual Verification:
-
-- Both collections appear under the "Kosztorys" admin group; a stage + a progress row can be
-  created there against a test investment.
-- `getKosztorysTree(testInvestmentId)` returns the stages (ordered) and progress rows (spot via
-  a scratch script or the page).
-
 ---
 
 ## Phase 3: Server actions
@@ -277,12 +262,6 @@ qty_done = …, updated_at = now()`. Tag `['stageProgress']`. Zod-validate the n
 - Type checking passes: `pnpm typecheck`
 - Lint passes: `pnpm lint`
 - Unit suite still green: `pnpm exec vitest run`
-
-#### Manual Verification:
-
-- From a scratch script/admin: `addStageAction` yields ordinal N+1; `setStageProgressAction`
-  twice on the same item×stage updates one row (upsert, not duplicate); `removeStageAction` is
-  blocked while a non-zero `qty_done` exists and succeeds after it is cleared.
 
 ---
 
@@ -360,18 +339,6 @@ The grid has no remount `key`; leave it that way. Add a `＋ etap` button to the
 - Unit suite green: `pnpm exec vitest run`
 - Build compiles: `pnpm build`
 
-#### Manual Verification:
-
-- Add a stage → a new "Etap N" column appears; add a second stage → second column, existing rows
-  show 0s.
-- Rename a stage via its header → title updates and persists across `router.refresh()`.
-- Enter done-quantities → "Pozostało" recomputes live and matches hand computation; toggle the
-  three price views → stage values + Pozostało recompute.
-- Progress persists across reload; entering the same cell twice does not create duplicate rows.
-- Delete a stage with recorded progress → blocked with the toast; clear the quantities, delete
-  → column disappears.
-- EMPLOYEE still has no kosztorys access; sections/items/reorder/discount behave as before.
-
 **Implementation Note**: Final human sign-off here closes the slice → run the slice-review gate.
 
 ---
@@ -389,15 +356,6 @@ covered manually here and by S-08 E2E later).
 ### Integration / E2E:
 
 - **Deferred to S-08** (editor E2E coverage) on the F-01 Playwright harness.
-
-### Manual Testing Steps:
-
-1. Add two stages; confirm two new columns and existing rows at 0.
-2. Rename a stage via header; reload → name sticks.
-3. Enter progress; Pozostało updates; toggle views → recompute.
-4. Reload → progress persists; re-enter same cell → no duplicate row (upsert).
-5. Delete a stage holding progress → blocked toast; clear + delete → column gone.
-6. Sections/items/reorder/discount unchanged; EMPLOYEE no access; financial figures unchanged.
 
 ## Performance Considerations
 
