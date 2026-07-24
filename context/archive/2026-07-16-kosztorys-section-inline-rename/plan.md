@@ -120,18 +120,6 @@ it.
 - Linting passes: `pnpm lint`
 - Existing kosztorys unit tests pass: `pnpm exec vitest run src/__tests__/kosztorys-money-axis.test.ts src/__tests__/kosztorys-layer.test.ts`
 
-#### Manual Verification:
-
-- Editing a Sekcja cell and blurring renames every row of that section in the grid.
-- Pressing Enter commits; pressing Escape reverts to the prior name without persisting.
-- The section panel shows the new name after a grid rename.
-- The new name survives a page reload (persisted).
-- Selecting a Sekcja cell and pressing Delete does NOT blank the section.
-- Column hide/show and resize still work on the Sekcja column.
-
-**Implementation Note**: After automated verification passes, pause for human manual confirmation
-before archiving.
-
 ---
 
 ## Testing Strategy
@@ -144,17 +132,7 @@ before archiving.
 ### E2E (deferred):
 
 - File an `e2e-backlog` Linear issue in project "Wykonczymy": a Playwright spec that edits a Sekcja
-  cell, asserts all rows in the section update, and asserts persistence across reload. Record the issue
-  id at the review gate.
-
-### Manual Testing Steps:
-
-1. Open a kosztorys with ≥2 sections and multiple items per section.
-2. Click a Sekcja cell, type a new name, blur → all rows in that section update.
-3. Reload → new name persists.
-4. Edit again, press Escape mid-edit → reverts, no persistence.
-5. Open the section panel → name matches.
-6. Select a Sekcja cell, press Delete → section name unchanged.
+  cell, asserts all rows in the section update, and asserts persistence across reload.
 
 ## References
 

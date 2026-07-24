@@ -84,10 +84,6 @@ Give `useKosztorysEditor` and `KosztorysEditorBody` a `clientView` mode that kil
 - Linting passes: `pnpm lint`
 - Unit tests pass: `pnpm test`
 
-#### Manual Verification:
-
-- Owner editor is unchanged: toolbar, section sidebar, saves, recon scream, and links all behave as before.
-
 ---
 
 ## Phase 2: Mount the body on the client page; tear out the bespoke render
@@ -131,28 +127,14 @@ Build the editor data from token→investment and mount `KosztorysEditorBody cli
 - Unit tests pass: `pnpm test`
 - Production build succeeds: `pnpm build`
 
-#### Manual Verification:
-
-- `/k/[token]` renders the owner's grid + `KosztorysPodsumowanie` footer, read-only, with no toolbar/section-sidebar, recon scream absent, materiały/wpłaty as plain text.
-- Every grid cell is non-editable; no kosztorys save/snapshot network request fires from the client page (DevTools → Network).
-- The client view no longer shows the section pie.
-- Owner preview (`podglad-klienta`) matches the public client view; the live owner editor is unchanged.
-
 ---
 
 ## Testing Strategy
 
 ### Unit Tests:
 
-- `KosztorysPodsumowanie`: `clientView` suppresses the recon scream and renders plain-text labels; owner default still shows them. (Author in the review gate's test step, post-`/simplify`.)
+- `KosztorysPodsumowanie`: `clientView` suppresses the recon scream and renders plain-text labels; owner default still shows them.
 - Existing summary-economics / editor specs still pass with the new optional `reconciliation` + `clientView` defaults.
-
-### Manual Testing Steps:
-
-1. Open `/k/[token]`; confirm grid+footer match the owner, read-only, no mutation chrome.
-2. Attempt to edit a cell — must be impossible; confirm no save POST in Network.
-3. Force a robocizna/rabat mismatch as owner; confirm the scream shows in the editor but not on the client share.
-4. Confirm the owner editor is unchanged.
 
 ## Migration Notes
 

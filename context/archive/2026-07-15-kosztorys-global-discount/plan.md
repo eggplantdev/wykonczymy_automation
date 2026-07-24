@@ -169,13 +169,6 @@ bump), serialize them from the tree, rewrite them on restore.
 - Migration applies cleanly against local docker Postgres: `pnpm payload migrate`
 - Build passes: `pnpm build`
 
-#### Manual Verification:
-
-- A fresh investment reads `globalDiscount` = `{ type: null, value: 0 }` in the editor with no errors.
-
-**Implementation Note**: After automated verification passes, pause for manual confirmation before
-Phase 2.
-
 ---
 
 ## Phase 2: Pricing override + total (TDD)
@@ -231,12 +224,6 @@ Tests to add (assert behavior, not implementation):
 - `globalDiscountAmount`: percent scales the total; amount is flat; null/zero ⇒ 0.
 - `doZaplatyNet` = `totalNet − amount`.
 
-#### Manual Verification:
-
-- None (pure layer) — covered by unit tests.
-
-**Implementation Note**: Pause for confirmation before Phase 3.
-
 ---
 
 ## Phase 3: Action, editor wiring, column hiding
@@ -291,13 +278,6 @@ excludes `discountValue`/`discountType`/`discountAmount`/`discountAmountGross` w
 - Build passes: `pnpm build`
 - Unit tests pass: `pnpm exec vitest run`
 
-#### Manual Verification:
-
-- Setting a discount in the DB (or via the Phase 4 control) hides the four discount columns and drops
-  them from the picker; clearing it brings them back.
-
-**Implementation Note**: Pause for confirmation before Phase 4.
-
 ---
 
 ## Phase 4: UI — discount control + two total surfaces
@@ -351,18 +331,6 @@ panel by construction.
 - Type checking passes: `pnpm exec tsc --noEmit`
 - Lint passes: `pnpm lint`
 
-#### Manual Verification:
-
-- Enter a **percent** discount → columns hide, per-row figures go gross-of-discount, both the Sekcje
-  Suma block and the totals bar show identical `do zapłaty`, netto/brutto toggle applies to both.
-- Enter an **amount** discount → same, amount subtracted flat once.
-- Clear the discount → per-item discounts and their columns return; totals revert.
-- Snapshot then restore a discounted kosztorys → discount preserved.
-- Investment card `marża` unchanged (out of scope, by design).
-
-**Implementation Note**: Final phase — `/10x-implement` aggregates these manual checks into
-`context/foundation/manual-checks.md`.
-
 ---
 
 ## Testing Strategy
@@ -372,11 +340,6 @@ panel by construction.
 - Override suppresses per-item discount on both offer and executed figures.
 - `globalDiscountAmount` percent / amount / null.
 - `doZaplatyNet` = executed total − amount.
-
-### Manual Testing Steps:
-
-The Phase 4 manual list is the acceptance script (percent, amount, clear, snapshot/restore, margin
-unchanged).
 
 ## Migration Notes
 

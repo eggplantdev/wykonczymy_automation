@@ -51,8 +51,7 @@ In the Podsumowanie, with the panel axis on **Netto**, „Materiały" (and every
 The netto/brutto columns of the materiały rows differ by exactly the VAT, and a hint next to the
 materiały rows states the formula (`netto = brutto − VAT`), signalling the inverted direction vs
 robocizna. Łącznie and Do zapłaty are internally consistent with the rows above them in both axes.
-Verify: unit tests on the three economics functions pass; manual check of the panel in Netto and Brutto
-axes shows the derived figures and the hint.
+Verify: unit tests on the three economics functions pass.
 
 ## What We're NOT Doing
 
@@ -190,17 +189,6 @@ derived netto (net) and raw gross (gross). Include a `vat = 0` degenerate case (
 - Linting passes: `pnpm lint`
 - Economics unit tests pass: `pnpm exec vitest run src/__tests__/lib/kosztorys/summary-economics.test.ts`
 
-#### Manual Verification:
-
-- Podsumowanie in **Netto** axis: „Materiały", each category row, Łącznie, and Do zapłaty all show
-  `brutto/(1+VAT)`; in **Brutto** axis they show the raw amount; the two columns differ by the VAT.
-- The formula hint appears on materiały rows and reads correctly (VAT subtracted).
-- Robocizna („Suma prac wykonanych") figures are unchanged; udział percentages still sum sensibly.
-- Client-share view (`clientView`) renders the same derived figures without owner-only links/screams.
-
-**Implementation Note**: After automated verification passes, pause for manual confirmation of the
-Podsumowanie in both axes before archiving.
-
 ---
 
 ## Testing Strategy
@@ -210,13 +198,6 @@ Podsumowanie in both axes before archiving.
 - `grossPair` — VAT removal, `vat=0` degenerate, gross preserved.
 - `computeSummarySplit` — combined net/gross with materiały as gross; udział base uses derived net.
 - `computeDoZaplatyRM` — wpłaty subtracted, materiały added at derived net (net) / raw (gross).
-
-### Manual Testing Steps:
-
-1. Open an investment kosztorys with materiały transactions; open Podsumowanie.
-2. Toggle Netto ↔ Brutto; confirm materiały rows + Łącznie + Do zapłaty derive correctly and differ by VAT.
-3. Hover a materiały row; confirm the formula hint.
-4. Confirm robocizna figures and the rabat line are unchanged.
 
 ## Migration Notes
 

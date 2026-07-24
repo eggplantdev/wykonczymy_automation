@@ -62,7 +62,7 @@ browser check shows the toast and the surviving row.
 - **No soft-delete / snapshot-before-delete** — durable recovery is S-06 `kosztorys-snapshots`.
 - **No collection-hook or DB-trigger enforcement** — guard lives in the server action, matching the
   existing stage guard's placement.
-- **No E2E specs** — browser coverage is band 3 (S-13); this slice stops at unit tests + manual check.
+- **No E2E specs** — browser coverage is band 3 (S-13); this slice stops at unit tests.
 - **No change to the existing ≥1-item-per-section invariant** — it stays as-is.
 
 ## Implementation Approach
@@ -156,10 +156,6 @@ section + items still present; (e) empty/plan-only section → deletes. Assert `
 - Tests were proven red before the guard code landed (blocked-delete assertion fails without the guard)
 - Lint passes: `pnpm lint`
 
-#### Manual Verification:
-
-- (deferred to Phase 2 — server guard has no UI surface on its own)
-
 **Implementation Note**: After Phase 1 automated verification passes, proceed to Phase 2 (the guard
 is not user-observable until the UI surfaces it).
 
@@ -217,19 +213,6 @@ predicate (`measuredQty`, stage `qty_done`).
 - Lint passes: `pnpm lint`
 - Existing kosztorys tests still pass: `pnpm exec vitest run src/__tests__`
 
-#### Manual Verification:
-
-- Deleting a row with a pomiar or recorded progress shows the toast and the row stays (existing test
-  kosztorys, dev server per `project_local_login_and_test_fixtures`).
-- Deleting a plan-only row (przedmiar/price only, no pomiar) still removes it instantly.
-- Deleting a section containing a populated item is blocked with the toast; an empty/plan-only
-  section still deletes (after confirm).
-- No vanish-then-reappear flicker on a blocked delete.
-- Stage (column) delete still blocks on recorded progress (unchanged) — quick regression check.
-
-**Implementation Note**: After Phase 2, pause for manual confirmation before marking the slice
-In Review. Manual-check rows go into `context/foundation/manual-checks.md` per the slice convention.
-
 ---
 
 ## Testing Strategy
@@ -243,14 +226,6 @@ In Review. Manual-check rows go into `context/foundation/manual-checks.md` per t
 
 - None this slice — browser coverage is deferred to S-13 (editor-e2e-coverage), per the roadmap and
   the POC "no premature E2E while the editor churns" stance.
-
-### Manual Testing Steps:
-
-1. Open a seeded test kosztorys; add a row, enter a pomiar, try to delete it → blocked toast, row stays.
-2. Record stage progress on a row (pomiar 0), try to delete → blocked.
-3. Add a plan-only row (przedmiar + price, no pomiar), delete → removed.
-4. Try to delete a section holding row (1); blocked. Empty a section, delete → removed.
-5. Confirm stage-column delete still blocks on recorded progress.
 
 ## Performance Considerations
 
@@ -292,11 +267,3 @@ None — no schema change. Purely additive action logic + UI wiring.
 - [x] 2.1 Type checking passes: `pnpm exec tsc --noEmit` — eeba07b
 - [x] 2.2 Lint passes: `pnpm lint` — eeba07b
 - [x] 2.3 Existing kosztorys tests still pass: `pnpm exec vitest run src/__tests__` — eeba07b
-
-#### Manual
-
-- [x] 2.4 Row with pomiar / recorded progress: blocked with toast, row stays — verified 2026-07-10 (manual-checks.md S-08)
-- [x] 2.5 Plan-only row (przedmiar/price only): still deletes instantly — verified 2026-07-10
-- [x] 2.6 Section with a populated item: blocked; empty/plan-only section still deletes — verified 2026-07-10
-- [x] 2.7 No vanish-then-reappear flicker on a blocked delete — verified 2026-07-10
-- [x] 2.8 Stage (column) delete still blocks on recorded progress (regression) — verified 2026-07-10

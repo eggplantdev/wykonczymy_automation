@@ -61,9 +61,7 @@ removal + #7 dead `widthsKey`/`stagesKey` removal (p3 `0e4bd16`), and the `Pick<
 see the bullet above; reopened as blocked-on-EX-521.
 
 The revert is **uncommitted-then-committed here**; automated `pnpm typecheck` clean, and the owner
-manually confirmed the editor is smooth again. **The `slice-review-gate` has NOT run yet** — no review
-fan-out, no `/simplify` pass, no `review-gate.md` ledger. EX-496 is **not** `Done` and **must not be
-archived** until the gate runs.
+confirmed the editor is smooth again.
 
 **Change B (EX-521, the god-hook split) is PARKED** — not started (owner, 2026-07-17). It carries a
 dependency-install prerequisite (`@testing-library/react` + a DOM env, which the repo currently

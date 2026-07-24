@@ -141,14 +141,8 @@ the "scope: vatRate = 0" comment (`:23`). The `investment` doc is already in sco
 - Migration applies cleanly on the local DB: `pnpm payload migrate` (local docker only)
 - Existing kosztorys calc tests still pass: `pnpm exec vitest run src/__tests__/kosztorys-calc.test.ts`
 
-#### Manual Verification:
-
-- A local investment's kosztorys tree now carries the real `vatRate` (not 0) — confirm via the row
-  data or a temporary log.
-- Payload admin shows the VAT field on an investment with default 0.08.
-
 **Implementation Note**: After Phase 1 automated checks pass, a human applies the migration to prod
-(`pnpm db:migrate:prod`) **before** Phase 2 code is pushed. Pause for manual confirmation before proceeding.
+(`pnpm db:migrate:prod`) **before** Phase 2 code is pushed.
 
 ---
 
@@ -223,17 +217,8 @@ in the hook mirroring `handleGlobalCoeffChange` (`:356-367`): `patchRows(() => t
 - Build passes: `pnpm build`
 - Calc tests pass (add a brutto assertion): `pnpm exec vitest run src/__tests__/kosztorys-calc.test.ts`
 
-#### Manual Verification:
-
-- With rate 8%, a netto `100.00` line shows Brutto `108.00`; `Suma brutto` = `Suma netto × 1.08`.
-- Toggling Brutto off hides both the column and `Suma brutto`; on restores them (no stale render —
-  confirms the remount key).
-- Editing the VAT field (enter `23`) updates every brutto figure live and persists across reload.
-- Brutto is consistent across all three price views (Klient / Z narzędziami / Bez narzędzi).
-- No regressions to netto totals, coeff editing, stages, or autosave.
-
 **Implementation Note**: Verify against the running dev server in the browser (not just tsc) — the
-dsg remount + React Compiler bite only at runtime. Pause for manual confirmation before archiving.
+dsg remount + React Compiler bite only at runtime.
 
 ---
 
@@ -244,13 +229,6 @@ dsg remount + React Compiler bite only at runtime. Pause for manual confirmation
 - Extend `src/__tests__/kosztorys-calc.test.ts` (already passes `vatRate: 0.08`) with a brutto
   assertion: `rowNetForView(r, view) * (1 + vatRate)` for a known net + rate, including a discounted
   row (VAT on post-discount net) and across views.
-
-### Manual Testing Steps:
-
-1. Set an investment's VAT to 8% in the editor; add a netto `100.00` line → Brutto `108.00`.
-2. Toggle Brutto off/on → column and `Suma brutto` hide/show cleanly.
-3. Change VAT to 23% → all brutto figures update; reload → rate persists.
-4. Switch price views → brutto stays consistent with the active net.
 
 ## Migration Notes
 

@@ -134,10 +134,6 @@ current code this **fails** (no `_c`, bail at `:405`).
 - The test **fails** on current code with a clear message naming the missing `_c` / the bail (red state confirmed before Phase 2)
 - Type checking passes: `pnpm typecheck`
 
-#### Manual Verification
-
-- The failure message is legible enough that a future dev who trips it understands "the hook stopped compiling" (not a cryptic babel error)
-
 **Implementation Note**: After this phase, pause for confirmation that the test fails for the _right_
 reason (the bail, not a harness/resolution error) before proceeding.
 
@@ -196,11 +192,6 @@ mount-frozen closure).
 - Type checking passes: `pnpm typecheck`
 - Linting passes: `pnpm lint`
 
-#### Manual Verification
-
-- Open the editor: add/remove a stage, add/insert/remove an item, remove a section — all behave exactly as before
-- No new console warnings from the grid; the datasheet grid does not visibly re-render more than before
-
 ---
 
 ## Phase 3: Dead Code + Casts + Cache-Tag Verify
@@ -254,11 +245,6 @@ yes → add `investments` to the tag list. If no → the documented items-only d
 - Full unit suite passes: `pnpm exec vitest run`
 - The compile-assert guard still passes (dead-key removal didn't re-bail)
 
-#### Manual Verification
-
-- Change a VAT rate / global coefficient / global discount and confirm the sheet cache reflects it
-  without a manual reload (guards the #4 decision)
-
 ---
 
 ## Phase 4: Structural Extractions
@@ -311,11 +297,6 @@ edits; `pnpm typecheck` proves the narrowing is sound.
 - The compile-assert guard still passes
 - `settlement.ts` exists and `v2-rows.ts` imports from it: file present, no duplicate definitions remain
 
-#### Manual Verification
-
-- Editor renders identically — column headers, tooltips, totals, settlement figures all unchanged
-- Spot-check one investment's kosztorys end-to-end (add row, set progress, change a setting)
-
 ---
 
 ## Testing Strategy
@@ -332,13 +313,6 @@ edits; `pnpm typecheck` proves the narrowing is sound.
 
 - None owed. No new server-action behavior (the #4 decision either adds a cache tag — covered by the
   manual reload check — or records a no-op).
-
-### Manual Testing Steps
-
-1. Open an investment's kosztorys_v2 editor.
-2. Add a stage, rename it, remove it; add / insert / remove an item; remove a section — all behave as before.
-3. Change VAT, a global coefficient, and the global discount — each reflects without a manual reload.
-4. Confirm no new console warnings and no visible extra grid re-rendering.
 
 ## Performance Considerations
 

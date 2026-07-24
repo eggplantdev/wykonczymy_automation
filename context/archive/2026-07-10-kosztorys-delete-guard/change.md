@@ -30,5 +30,4 @@ Plan: `plan.md` · Brief: `plan-brief.md`.
 > **Commit caveat (2026-07-10):** Phase-1 commit `2f6bde0` also carries an unrelated `roadmap.md`
 > hunk (the snapshots-slice narrative + At-a-glance renumber) — pre-existing dirty work from the
 > parallel S-06 `kosztorys-snapshots` agent that got swept in by a whole-file `git add`. Not this
-> slice's change; left as-is by owner decision (no reset). Manual checks (S-08 in
-> `context/foundation/manual-checks.md`) still pending — slice is `In Review`, not `Done`.
+> slice's change; left as-is by owner decision (no reset).

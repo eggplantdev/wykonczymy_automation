@@ -77,7 +77,7 @@ docker DB on 5433.
 - Adding `react-datasheet-grid` can trip the lightningcss-arch CSS build on this arm64 mac
   (repair: `pnpm install --force` + `rm -rf .next`).
 - The dsg remount-key gotcha silently no-ops features if a dimension is omitted — the lesson is
-  ported forward and manual verification explicitly checks the view toggle.
+  ported forward.
 - Assumption: netto-only totals are acceptable for this slice (VAT lands in S-12).
 
 ## Success Criteria (Summary)

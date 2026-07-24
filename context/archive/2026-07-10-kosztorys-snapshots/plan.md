@@ -199,14 +199,6 @@ old-id→new-id map for sections and items/stages. Uses Payload local API ops th
 - [ ] Lint passes: `pnpm lint`
 - [ ] Round-trip test: `restoreKosztorys(serializeKosztorys())` is an identity on tree content + order (new ids)
 
-#### Manual Verification:
-
-- [ ] On a seeded investment (`INV=6`), serialize → mutate → restore returns the tree to the serialized state
-- [ ] An injected mid-restore error leaves the live tree intact (rollback), not half-wiped
-- [ ] Restored subcontractor/brutto prices match pre-restore values (settings rewritten)
-
-**Implementation Note**: Pause for manual confirmation before Phase 2.
-
 ---
 
 ## Phase 2: Capture triggers (10-min interval auto + named manual + forced pre-delete) + inline pruning
@@ -279,15 +271,6 @@ delete is S-07 undo's job.
 - [ ] Unit test: `pruneAutoCount` keeps newest 50 auto, never touches manual
 - [ ] Unit test: `saveSnapshotAction` rejects an empty label
 
-#### Manual Verification:
-
-- [ ] An open editor produces one `auto` snapshot per ~10-min interval; the interval clears on unmount
-- [ ] "Zapisz jako…" with a name creates a `manual` row with that label
-- [ ] Deleting a section/stage creates an `auto` row immediately before the delete, every time
-- [ ] After 50+ auto snapshots on one investment, only the newest 50 remain
-
-**Implementation Note**: Pause for manual confirmation before Phase 3.
-
 ---
 
 ## Phase 3: Restore action + forced pre-restore snapshot + listing
@@ -329,14 +312,6 @@ investments tag. Returns `ActionResultT`.
 - [ ] Lint passes
 - [ ] Integration test: `restoreSnapshotAction` reverts a mutated tree and creates exactly one forced `auto` snapshot; assert **persisted** state, not the return value
 - [ ] Integration test: restore is gated — a non-MANAGEMENT role gets `Brak uprawnień`
-
-#### Manual Verification:
-
-- [ ] Restore reverts the tree + prices; a following restore of the auto-created pre-restore snapshot returns to the pre-restore state (mis-restore recoverable)
-- [ ] Restore fires revalidation — the editor shows restored data without a hard reload (after Phase 4 remount)
-- [ ] Restore never touches transfers/balances/marża (spot-check financial figures before/after)
-
-**Implementation Note**: Pause for manual confirmation before Phase 4.
 
 ---
 
@@ -390,15 +365,6 @@ from the restored tree (per `lessons.md`); close the drawer; toast.
 - [ ] Lint passes
 - [x] E2E (Playwright, `db-test`): "Zapisz jako…" a version → edit a cell → restore → grid shows the saved value — deferred to E2E backlog **EX-419**
 
-#### Manual Verification:
-
-- [ ] Drawer lists named manual versions prominently and auto snapshots as timestamped history, with author
-- [ ] Restore shows the confirm dialog and, on confirm, the grid reflects the restored tree without a hard reload
-- [ ] "Zapisz jako…" requires a name; the label appears in the list; canceling does nothing
-- [ ] Restore of a ~1000-row kosztorys completes acceptably and re-renders correctly
-
-**Implementation Note**: Pause for manual confirmation before Phase 5.
-
 ---
 
 ## Phase 5: Daily GC cron (age-based cleanup)
@@ -440,14 +406,6 @@ env schema and to Vercel env (human step). Daily granularity works on all Vercel
 - [ ] Unit test: `gcSnapshots` deletes auto >7 days and manual >1 year, keeps the rest
 - [ ] Route rejects a request without the correct `CRON_SECRET`
 
-#### Manual Verification:
-
-- [ ] Hitting the endpoint with the secret prunes aged snapshots and returns a count
-- [ ] A dormant kosztorys's aged `auto` snapshots are removed by the job (inline pruning never would)
-- [ ] `CRON_SECRET` is set in Vercel and the scheduled run appears in Vercel cron logs (post-deploy)
-
-**Implementation Note**: Final phase — run the slice-review gate before archiving.
-
 ---
 
 ## Testing Strategy
@@ -464,15 +422,6 @@ env schema and to Vercel env (human step). Daily granularity works on all Vercel
 - `restoreSnapshotAction` reverts persisted state and creates one forced `auto` snapshot (assert DB, not return value)
 - restore access gate (non-MANAGEMENT rejected)
 - restore rollback leaves the tree intact on injected error
-
-### Manual Testing Steps:
-
-1. Seed `INV=6`, edit >10 min, confirm auto snapshots ~10 min apart.
-2. "Zapisz jako…" a named version, edit, restore it, confirm tree + prices revert.
-3. Delete a section, confirm a forced `auto` snapshot was taken, restore it.
-4. Restore a version, then restore the auto pre-restore snapshot to confirm mis-restore recovery.
-5. Confirm financial figures (bilans/marża) unchanged across a restore.
-6. Run the cron endpoint, confirm aged snapshots are pruned.
 
 ## Performance Considerations
 
@@ -505,10 +454,6 @@ env schema and to Vercel env (human step). Daily granularity works on all Vercel
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.
->
-> Manual verification is NOT tracked here — it lives once in the living QA registry
-> `context/foundation/manual-checks.md` → `## S-06 — kosztorys-snapshots` (signed off there, with evidence).
-> Only the automated, SHA-stamped steps are tracked below.
 
 ### Phase 1: Schema + serialization/restore core
 

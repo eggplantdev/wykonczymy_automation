@@ -186,16 +186,6 @@ fields to the investments collection so Payload knows the additive columns.
 - Type checking passes: `pnpm typecheck`
 - Lint passes: `pnpm lint`
 
-#### Manual Verification:
-
-- Both collections appear under the "Kosztorys" admin group; a section + item can be created in
-  the Payload admin against a test investment.
-- `investments` rows show `w_tools_coeff` / `own_tools_coeff` defaults (0.65 / 0.55).
-- No existing table other than `investments` changed; `kosztoryses`/sheet flow untouched.
-
-**Implementation Note**: After automated verification passes, pause for human confirmation of
-the manual checks before Phase 2.
-
 ---
 
 ## Phase 2: Port the tested calc core
@@ -242,11 +232,6 @@ end of `rows`; `sectionItemCount` for the ≥1-item invariant. Drop assertions o
 
 - Unit tests pass: `pnpm exec vitest run src/__tests__/kosztorys-calc.test.ts src/__tests__/kosztorys-v2-rows.test.ts`
 - Type checking passes: `pnpm typecheck`
-
-#### Manual Verification:
-
-- Spot-check one worked example by hand (e.g. pomiar 10 × client 100 − 10% = 900 net; w_tools
-  view with section coeff 0.6 = 10 × 60 = 600 net) against the test output.
 
 ---
 
@@ -298,12 +283,6 @@ payloads via `validateAction`.
 - Type checking passes: `pnpm typecheck`
 - Lint passes: `pnpm lint`
 - Existing unit suite still green: `pnpm exec vitest run`
-
-#### Manual Verification:
-
-- From a scratch script or the admin, `getKosztorysTree(testInvestmentId)` returns sections
-  ordered with their items; adding a section yields exactly one blank item;
-  `swapItemOrderAction` swaps two neighbors' `display_order` (2 rows changed, not N).
 
 ---
 
@@ -373,21 +352,6 @@ dimension into `key`; asc↔desc doesn't remount).
 - Unit suite green: `pnpm exec vitest run`
 - Dev build compiles: `pnpm build` (or a clean `pnpm dev` start with no CSS/import error)
 
-#### Manual Verification:
-
-- On a test investment's Kosztorys tab: add a section (appears with one blank item); add/edit
-  items inline; row/section/grand totals update live and match hand computation.
-- Toggle the three price views → the price column + all totals recompute (not stuck on client
-  price — confirms the remount key).
-- ▲▼ reorder swaps neighbors within a section; no-op at block edges; disabled/greyed when a
-  column sort is active.
-- Edit a field, kill the network → the cell reverts (revert-on-error); a successful edit
-  persists across `router.refresh()`.
-- Deleting a section's last item is blocked; deleting a section cascades its items (with
-  confirm).
-
-**Implementation Note**: Pause for human confirmation of the manual editor checks before Phase 5.
-
 ---
 
 ## Phase 5: Wire into the investment page + verify
@@ -395,7 +359,7 @@ dimension into `key`; asc↔desc doesn't remount).
 ### Overview
 
 Surface the editor on the investment detail page as a "Kosztorys" tab coexisting with the
-existing "Arkusz" tab, gated to MANAGEMENT_ROLES, and run the end-to-end manual verification.
+existing "Arkusz" tab, gated to MANAGEMENT_ROLES.
 
 ### Changes Required:
 
@@ -420,17 +384,6 @@ tab host)
 - Lint passes: `pnpm lint`
 - Build passes: `pnpm build`
 
-#### Manual Verification:
-
-- As OWNER/MANAGER: open an investment → "Kosztorys" tab → author sections + items → live
-  totals correct; reload preserves data.
-- As EMPLOYEE: no kosztorys access.
-- The "Arkusz" tab still renders for a sheet-backed investment; the mirror/sync is unaffected.
-- Transfers/balances/marża for the same investment are unchanged (spot-check one figure before
-  and after adding kosztorys data).
-
-**Implementation Note**: Final human sign-off here closes the slice → run the slice-review gate.
-
 ---
 
 ## Testing Strategy
@@ -446,23 +399,13 @@ tab host)
 
 - **Deferred to S-08** (editor E2E coverage) on the F-01 Playwright harness. Not in this slice.
 
-### Manual Testing Steps:
-
-1. Create a section → confirm one blank item appears.
-2. Add items; edit pomiar/price/discount inline → totals recompute live.
-3. Toggle price views → column + totals switch (remount-key check).
-4. ▲▼ reorder within a section; verify edge no-ops and sort-disables-arrows.
-5. Kill network mid-edit → cell reverts; successful edit survives refresh.
-6. Delete last item of a section → blocked; delete section → cascades with confirm.
-7. EMPLOYEE has no access; "Arkusz" tab + mirror still work; financial figures unchanged.
-
 ## Performance Considerations
 
 The spreadsheet-parity bar is 1000+ rows. Two design choices carry the load: autosave persists
 only the changed field (`diffRow`), and ▲▼ reorder is a 2-write swap (not an N-write
 renumber) — both honor the "writes = real change" lesson. `sectionSubtotalsForView` is a single
 O(rows) reduce per render; acceptable at this scale with React Compiler on. Watch the dsg
-remount cost when toggling view/sort at large row counts during manual verification.
+remount cost when toggling view/sort at large row counts.
 
 ## Migration Notes
 
