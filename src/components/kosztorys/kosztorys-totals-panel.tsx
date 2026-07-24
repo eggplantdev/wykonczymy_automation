@@ -187,14 +187,30 @@ export function KosztorysTotalsPanel({
             aria-label="Widok podsumowania"
           />
         </div>
-        {/* One scroll container for both planes — the content clears the toolbar instead of hiding
-            under it, identically whichever plane is active; the trigger above stays pinned. */}
         <SummaryScrollRegion>
           {isClientPlane ? (
-            // One flex column owns every vertical gap in the active view — each block is a sibling on a
-            // single `gap-y-8` so spacing stays uniform. Which blocks render is the top toggle's job:
-            // Podsumowanie (summary + Suma transzy), Wydatki (materiały controls + list), Wpłaty (deposits).
             <div className="flex w-full flex-col gap-y-4 px-4 pt-4 pb-10">
+              {summaryView === 'summary' && (
+                <SummaryOverviewTab
+                  investmentId={investmentId}
+                  moneyAxis={moneyAxis}
+                  onMoneyAxisChange={setMoneyAxis}
+                  laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
+                  doZaplaty={doZaplaty}
+                  materialsGross={materialsGross}
+                  materialyBreakdown={materialyBreakdown}
+                  wplatyNet={wplatyNet}
+                  rabatAmount={rabatAmount}
+                  reconciliation={reconciliation}
+                  priceView={priceView}
+                  vatRate={vatRate}
+                  deriveMaterialsNet={materialsAsNet}
+                  materialsReduction={materialsReduction}
+                  paidNet={paidNet}
+                  paidGross={paidGross}
+                  clientView={clientView}
+                />
+              )}
               {summaryView === 'wydatki' && (
                 <SummaryExpensesTab
                   investmentId={investmentId}
@@ -209,28 +225,7 @@ export function KosztorysTotalsPanel({
                   clientView={clientView}
                 />
               )}
-              {summaryView === 'summary' && (
-                <SummaryOverviewTab
-                  investmentId={investmentId}
-                  moneyAxis={moneyAxis}
-                  onMoneyAxisChange={setMoneyAxis}
-                  laborCostsNetFromKosztorys={laborCostsNetFromKosztorys}
-                  doZaplaty={doZaplaty}
-                  materialsGross={materialsGross}
-                  materialyBreakdown={materialyBreakdown}
-                  sectionSubtotals={sectionSubtotals}
-                  wplatyNet={wplatyNet}
-                  rabatAmount={rabatAmount}
-                  reconciliation={reconciliation}
-                  priceView={priceView}
-                  vatRate={vatRate}
-                  deriveMaterialsNet={materialsAsNet}
-                  materialsReduction={materialsReduction}
-                  paidNet={paidNet}
-                  paidGross={paidGross}
-                  clientView={clientView}
-                />
-              )}
+
               {summaryView === 'wplaty' && (
                 <SummaryDepositsTab
                   investmentId={investmentId}
@@ -239,14 +234,12 @@ export function KosztorysTotalsPanel({
                   clientView={clientView}
                 />
               )}
-              {/* „Robocizna per etap" (Netto/Brutto per stage) — a client/VAT figure; the
-                  subcontractor plane has no VAT axis (EX-558), so it renders only on this plane.
-                  The axis it reads is set by the Podsumowanie tab's toggle (shared panel state). */}
               {summaryView === 'etapy' && (
                 <SummaryStagesTab
                   stages={stages}
                   stageTotals={stageTotals}
                   wykonaneNet={totalNet}
+                  sectionSubtotals={sectionSubtotals}
                   vatRate={vatRate}
                   moneyAxis={displayAxis}
                 />
