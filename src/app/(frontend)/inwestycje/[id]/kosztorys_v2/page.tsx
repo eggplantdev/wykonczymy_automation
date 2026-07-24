@@ -85,9 +85,10 @@ export default async function InvestmentKosztorysV2Page({
   // v1 client-facing „Materiały" split by expense category; Σ === materialsGross, so the
   // podsumowanie stays byte-identical to the investment page's materiały.
   const materialyBreakdown = buildMaterialyBreakdown(financials, refData.expenseCategories)
-  // „Wpłaty" = every deposit on the investment (totalIncome) — the money that raises Bilans
-  // inwestora (calculate-balance.ts). Drives the podsumowanie „Wpłaty"/„Do zapłaty".
-  const wplatyNet = financials.totalIncome
+  // „Wpłaty" = only INVESTOR_DEPOSIT rows — the same base the deposit list, Wpłaty tab, plane pie,
+  // and Mieszane draw (COMPANY_FUNDING / OTHER_DEPOSIT are legacy and stay out of client wpłaty, per
+  // getDepositTransactionsForInvestment). Drives the podsumowanie „Wpłaty"/„Do zapłaty".
+  const wplatyNet = depositTransactions.reduce((sum, deposit) => sum + deposit.amount, 0)
   // Names join here (not in the cached query): resolve each worker id against reference data; a null
   // worker id is the „Bez przypisanego pracownika" bucket. Sorting/totals live in the pure block helper.
   const workerNameById = new Map(refData.workers.map((worker) => [worker.id, worker.name]))

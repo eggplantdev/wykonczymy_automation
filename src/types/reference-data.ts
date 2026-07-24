@@ -58,8 +58,8 @@ export type PayoutTransactionRowT = {
   description: string | null
 }
 
-// One deposit transaction (INVESTOR_DEPOSIT / COMPANY_FUNDING) for the client Podsumowanie's wpłaty
-// list — mirrors PayoutTransactionRowT. `vatPlane` is null for the „nie określono" default state.
+// One INVESTOR_DEPOSIT transaction for the client Podsumowanie's wpłaty list — mirrors
+// PayoutTransactionRowT. `vatPlane` is null for the „nie określono" default state.
 export type DepositTransactionRowT = {
   id: number
   date: string
