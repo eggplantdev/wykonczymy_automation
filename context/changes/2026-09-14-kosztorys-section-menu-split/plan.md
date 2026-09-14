@@ -304,4 +304,4 @@ Brak — faza czysto prozatorska.
 
 #### Automated
 
-- [x] 3.1 (brak — faza prozatorska)
+- [x] 3.1 (brak — faza prozatorska) — 69d187c9

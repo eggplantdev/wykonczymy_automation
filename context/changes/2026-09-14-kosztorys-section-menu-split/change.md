@@ -1,7 +1,7 @@
 ---
 change_id: kosztorys-section-menu-split
 title: Rozbicie menu ⋯ — akcje sekcji na pasek sekcji, akcje pracy na wiersz
-status: implementing
+status: implemented
 created: 2026-09-14
 updated: 2026-09-14
 archived_at: null
