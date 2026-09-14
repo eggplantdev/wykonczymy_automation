@@ -2,6 +2,7 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { Payload } from 'payload'
 import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
+import { SETTLEMENT_MODE_DEFAULT } from '@/lib/kosztorys/settlement-mode'
 import { getDb, type DbExecutorT } from './get-db'
 
 // The szablon workbench: ONE investment the template editor works over, recognised by its status
@@ -23,7 +24,11 @@ export async function resolveWorkshopInvestment(payload: Payload): Promise<numbe
 
   const created = await payload.create({
     collection: 'investments',
-    data: { name: WORKSHOP_INVESTMENT_NAME, status: TEMPLATE_INVESTMENT_STATUS },
+    data: {
+      name: WORKSHOP_INVESTMENT_NAME,
+      status: TEMPLATE_INVESTMENT_STATUS,
+      settlementMode: SETTLEMENT_MODE_DEFAULT,
+    },
   })
   return created.id
 }

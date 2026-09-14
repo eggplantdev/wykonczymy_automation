@@ -388,15 +388,15 @@ Uruchomić **raz**, po ostatniej fazie:
 
 #### Automated
 
-- [x] 2.1 Nowe specy `presets.test.ts` przechodzą
-- [x] 2.2 Spec unikalności nazwy nadal przechodzi
+- [x] 2.1 Nowe specy `presets.test.ts` przechodzą — 4b38e077
+- [x] 2.2 Spec unikalności nazwy nadal przechodzi — 4b38e077
 
 ### Phase 3: Strona `/szablony`
 
 #### Automated
 
-- [ ] 3.1 Strona i `loading.tsx` istnieją pod `src/app/(frontend)/szablony/`
-- [ ] 3.2 Spec grupowania metadanych szablonów przechodzi
+- [x] 3.1 Strona i `loading.tsx` istnieją pod `src/app/(frontend)/szablony/` — 2e1d8aee
+- [x] 3.2 Spec grupowania metadanych szablonów przechodzi — 2e1d8aee
 
 ### Phase 4: Warsztat — `/szablony/[id]`
 
