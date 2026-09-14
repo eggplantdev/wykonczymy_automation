@@ -404,10 +404,10 @@ Brak. Zero zmian w schemacie, zero migracji, zero nowych zależności.
 
 #### Automated
 
-- [x] 2.1 Spec buildera przechodzi
+- [x] 2.1 Spec buildera przechodzi — 952bf1f4
 
 ### Phase 3: Wpięcie w strony
 
 #### Automated
 
-- [ ] 3.1 Brak sprawdzenia zakresu tej fazy — weryfikacja wyłącznie ręczna
+- [x] 3.1 Brak sprawdzenia zakresu tej fazy — weryfikacja wyłącznie ręczna

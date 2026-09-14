@@ -67,6 +67,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
           excludeColumns: ['worker'],
           filters: buildFilterConfig(refData, ['users', 'expenseCategories', 'type']),
           invoiceDownload: true,
+          print: true,
           cancelledTransactionAudit: sp.cancelledTransactionAudit === '1',
         }}
       />
