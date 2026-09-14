@@ -111,6 +111,8 @@ export default ts.config(
       '.next/',
       '.next-e2e/',
       '.next-qa/',
+      // A local scratchpad. Already in .gitignore, which eslint does not read.
+      'test.js',
       '.claude/',
       'scripts/inspect-sheet.mjs',
       'scripts/blob-mirror.mjs',
