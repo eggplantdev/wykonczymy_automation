@@ -258,6 +258,8 @@ Most are self-describing (`src/collections`, `src/access`, `src/stores`, …). T
   A **read** a client component invokes on demand is a `'use server'` function in `src/lib/queries`
   (`register-saldo.ts`, `subcontractor-roster.ts`) — never in `src/lib/actions`, which is mutations only.
 - `src/lib/cache` — cache tags + revalidation helpers
+- `src/scripts/data` — input data a one-off script reads at runtime (TSV/JSON/CSV), beside its script.
+  Test fixtures go to `src/__tests__/fixtures/` instead.
 - Per-feature schemas/hooks live under `src/components/forms/<form>/`, not in `src/types` (which is cross-feature only).
   **A hook's home follows its consumer count, not its subject:** one form → `forms/<form>/`; two or
   more forms → `forms/hooks/`; a non-form surface → `src/hooks/`. That is why the three file-ingest
