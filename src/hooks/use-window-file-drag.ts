@@ -60,17 +60,23 @@ export function useWindowFileDrag(): boolean {
       setDepth(0)
     }
 
-    window.addEventListener('dragover', handleDragOver)
-    window.addEventListener('dragenter', handleDragEnter)
-    window.addEventListener('dragleave', handleDragLeave)
-    window.addEventListener('drop', handleDrop)
-    window.addEventListener('dragend', handleDragEnd)
+    // Capture, not bubble: a dropzone's own React handler runs on `document` (Next hydrates the
+    // whole document, so that is React's delegation root) and calls `stopPropagation`, which would
+    // cut the event off before it ever reached `window`. The counter would then never come back
+    // down and the armed state would stay lit for good. `window` is first in the capture path, so
+    // nothing downstream can silence it.
+    const opts = { capture: true } as const
+    window.addEventListener('dragover', handleDragOver, opts)
+    window.addEventListener('dragenter', handleDragEnter, opts)
+    window.addEventListener('dragleave', handleDragLeave, opts)
+    window.addEventListener('drop', handleDrop, opts)
+    window.addEventListener('dragend', handleDragEnd, opts)
     return () => {
-      window.removeEventListener('dragover', handleDragOver)
-      window.removeEventListener('dragenter', handleDragEnter)
-      window.removeEventListener('dragleave', handleDragLeave)
-      window.removeEventListener('drop', handleDrop)
-      window.removeEventListener('dragend', handleDragEnd)
+      window.removeEventListener('dragover', handleDragOver, opts)
+      window.removeEventListener('dragenter', handleDragEnter, opts)
+      window.removeEventListener('dragleave', handleDragLeave, opts)
+      window.removeEventListener('drop', handleDrop, opts)
+      window.removeEventListener('dragend', handleDragEnd, opts)
     }
   }, [])
 

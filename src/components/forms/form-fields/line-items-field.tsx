@@ -246,6 +246,9 @@ export function LineItemsField({
       },
       onDragLeave: (e: React.DragEvent) => {
         e.preventDefault()
+        // The icon and the label are inside the button, so crossing them fires a leave that is not
+        // a leave — without this the strong state drops out and returns on the next dragover.
+        if (e.currentTarget.contains(e.relatedTarget as Node | null)) return
         setDragOverMode(null)
       },
       onDrop: (e: React.DragEvent) => handleDropReceipts(e, lineItemsField, mode),

@@ -4688,6 +4688,8 @@ disabled.invalid` fails DNS — a deliberate non-prod gate, not a bug (matches
 - [ ] W trakcie przeciągania pole jest podświetlone, zanim kursor nad nie wjedzie.
 - [ ] Po wjechaniu kursorem na pole podświetlenie wzmacnia się i **nie miga** przy ruchu nad ikoną i tekstem.
 - [ ] Upuszczenie pliku na pole nadal dodaje plik (regresja ścieżki trafionej).
+- [ ] Po trafionym dropie na pole słabe podświetlenie **gaśnie** na wszystkich dropzone'ach (bramka przeglądu: `stopPropagation` w `FileInput` ucinał `drop` przed `window`, więc ring zostawał zapalony na zawsze).
+- [ ] Przejedź plikiem nad polem tam i z powrotem, po czym wyjedź poza okno przeglądarki — podświetlenie gaśnie, nie zostaje (regresja dryfu licznika).
 - [ ] Po zamknięciu dialogu i ponownym przeciągnięciu pliku poza aplikację (np. na pasek zakładek) przeglądarka zachowuje się normalnie — guard zniknął razem z dialogiem.
 - [ ] Upuszczenie pliku w panelu Payloada (`/admin`) nadal działa jak wcześniej.
 
@@ -4695,6 +4697,7 @@ disabled.invalid` fails DNS — a deliberate non-prod gate, not a bug (matches
 
 - [ ] W dialogu wydatku, w trakcie przeciągania pliku, podświetlają się jednocześnie przycisk „Wygeneruj z paragonów" **i** wszystkie pola „FV" bez faktury — słabo, nie krzykliwie.
 - [ ] Upuszczenie paragonu na przycisk nadal uruchamia generowanie pozycji (regresja ścieżki trafionej).
+- [ ] Mocny stan na przycisku „Wygeneruj z paragonów" **nie miga**, gdy kursor przejeżdża nad jego ikoną i napisem.
 - [ ] Upuszczenie pliku spoza `accept` (np. `.txt`) na przycisk nie robi nic i **nie** otwiera pliku.
 - [ ] Drugi drop w trakcie trwającego ingestu nadal jest no-opem (istniejący check w tym pliku nie może się zepsuć).
 - [ ] Przy 8 pozycjach formularz nie wygląda jak choinka — słaby stan jest czytelny, ale nie dominuje.
