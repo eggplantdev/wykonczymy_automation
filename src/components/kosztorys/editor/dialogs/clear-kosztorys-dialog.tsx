@@ -6,7 +6,7 @@ import { DialogActions } from '@/components/ui/dialog-actions'
 import { clearKosztorysAction } from '@/lib/actions/kosztorys'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { toastMessage } from '@/lib/utils/toast'
-import { itemNoun, sectionNoun } from './sheet-report-words'
+import { itemNoun, sectionNoun } from '@/lib/kosztorys/counted-nouns'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 
 // The one action in „Opcje" that leaves nothing behind, so it states the counts it is about to

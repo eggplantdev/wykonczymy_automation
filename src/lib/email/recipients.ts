@@ -19,13 +19,22 @@ const LIST_LABELS: Record<RecipientListT, string> = {
 
 export type RecipientListsT = Record<RecipientListT, string[]>
 
+/** Builds a record over every list, so the widening of `RECIPIENT_LISTS` is the only edit — and so
+ * the `Record` is proven rather than cast. */
+export function byRecipientList<T>(
+  valueOf: (list: RecipientListT) => T,
+): Record<RecipientListT, T> {
+  return Object.fromEntries(RECIPIENT_LISTS.map((list) => [list, valueOf(list)])) as Record<
+    RecipientListT,
+    T
+  >
+}
+
 /** Uncached on purpose: the senders run in crons and webhooks, outside any request cache. */
 export async function readRecipientLists(payload: Payload): Promise<RecipientListsT> {
   const global = await payload.findGlobal({ slug: 'notification-recipients', depth: 0 })
 
-  return Object.fromEntries(
-    RECIPIENT_LISTS.map((list) => [list, (global[list] ?? []).map((row) => row.email)]),
-  ) as RecipientListsT
+  return byRecipientList((list) => (global[list] ?? []).map((row) => row.email))
 }
 
 /**
