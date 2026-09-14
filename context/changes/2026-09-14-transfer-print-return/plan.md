@@ -410,4 +410,4 @@ Brak. Zero zmian w schemacie, zero migracji, zero nowych zależności.
 
 #### Automated
 
-- [x] 3.1 Brak sprawdzenia zakresu tej fazy — weryfikacja wyłącznie ręczna
+- [x] 3.1 Brak sprawdzenia zakresu tej fazy — weryfikacja wyłącznie ręczna — 9f746373
