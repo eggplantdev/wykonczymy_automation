@@ -1,7 +1,9 @@
 # Drukowanie przefiltrowanej listy transakcji — Plan Brief
 
-> Pełny plan: `context/changes/2026-09-14-transfer-print-return/plan.md`
-> Research: `context/changes/2026-09-14-transfer-print-return/research.md`
+> Plan i research skasowane przy archiwizacji — ich rationale poszło do
+> `context/foundation/lessons.md`; pełny tekst nadal pod
+> `git show <sha>^:context/changes/2026-09-14-transfer-print-return/{plan,research}.md`.
+> Decyzje bramki review: `review-gate.md` obok.
 
 ## What & Why
 

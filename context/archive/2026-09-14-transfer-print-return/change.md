@@ -1,9 +1,10 @@
 ---
 change_id: transfer-print-return
 title: Drukowanie przefiltrowanej listy transakcji (chudy powrót)
-status: implemented
+status: archived
 created: 2026-09-14
 updated: 2026-09-14
+archived_at: 2026-09-14T17:15:07Z
 branch: transfer-print-return
 worktree: null
 ---
