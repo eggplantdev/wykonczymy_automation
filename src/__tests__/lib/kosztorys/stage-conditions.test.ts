@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions'
+import { ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions/registry'
 import {
   STAGE_CONDITIONS,
   countMatchingStages,

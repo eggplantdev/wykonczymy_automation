@@ -71,6 +71,9 @@ const findByIDMock = vi.fn()
 const mockPayload = {
   find: findMock,
   findByID: findByIDMock,
+  // The completed-investment lock reads the status through the drizzle adapter, so the double needs
+  // one — „aktywna", since the lock has its own spec and the sync is the subject here.
+  db: { drizzle: { execute: async () => ({ rows: [{ status: 'active' }] }) } },
 } as unknown as Payload
 
 vi.mock('payload', async (importOriginal) => {

@@ -1,4 +1,4 @@
-import { toWarsawDay, type DayT } from '@/lib/fleet/days'
+import { toWarsawDay, type DayT } from '@/lib/utils/days'
 import {
   PERFORMED_INSPECTION_TYPES,
   type PerformedInspectionTypeT,

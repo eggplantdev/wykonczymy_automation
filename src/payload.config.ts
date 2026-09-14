@@ -32,6 +32,9 @@ import { Users } from '@/collections/users'
 import { VehicleInspections } from '@/collections/vehicle-inspections'
 import { Vehicles } from '@/collections/vehicles'
 import { WorkCatalogueItems } from '@/collections/work-catalogue-items'
+import { Equipment } from '@/collections/equipment'
+import { EquipmentEvents } from '@/collections/equipment-events'
+import { Warehouses } from '@/collections/warehouses'
 import { KosztorysClientViewDefaults } from '@/globals/kosztorys-client-view-defaults'
 import { NotificationRecipients } from '@/globals/notification-recipients'
 
@@ -60,6 +63,11 @@ export default buildConfig({
     pool: {
       connectionString: process.env.DB_POSTGRES_URL,
     },
+    // Load-bearing, and not merely "we don't want dev push". `pushDevSchema` calls drizzle-kit's
+    // `pushSchema`, which INTROSPECTS the live database and drops everything absent from this
+    // config — and this database deliberately holds tables, unique indexes and NOT NULL columns
+    // this config has never heard of. Why, and how to re-measure the gap:
+    // context/foundation/lessons.md, "Part of this schema is invisible to Payload".
     push: false,
     migrationDir: path.resolve(dirname, 'migrations'),
   }),
@@ -95,6 +103,9 @@ export default buildConfig({
     Vehicles,
     VehicleInspections,
     WorkCatalogueItems,
+    Equipment,
+    EquipmentEvents,
+    Warehouses,
     Media,
   ],
   globals: [KosztorysClientViewDefaults, NotificationRecipients],

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { getDb } from '@/lib/db/get-db'
+import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { sql } from '@payloadcms/db-vercel-postgres'
 
 // EX-613 puts two loud warnings on the wypłata form when the chosen person has no etapy assigned.
@@ -45,6 +46,9 @@ describe.skipIf(!ENV_READY)('PAYOUT to a worker with no assigned etapy (DB)', ()
     const [investments, users, registers] = await Promise.all([
       payload.find({
         collection: 'investments',
+        // A zakończona inwestycja refuses every write (EX-748), and the lowest ids in the fixture DB
+        // are exactly that — so the arbitrary pick has to skip them or the whole spec writes nothing.
+        where: { status: { not_equals: LOCKED_INVESTMENT_STATUS } },
         limit: 1,
         sort: 'id',
         depth: 0,

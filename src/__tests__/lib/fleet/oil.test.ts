@@ -3,7 +3,7 @@ import { shouldNotify } from '@/lib/fleet/should-notify'
 import { isOilChangeOverdue, OIL_CHANGE_INTERVAL_KM } from '@/lib/fleet/thresholds'
 import { kmSinceOilChange } from '@/lib/fleet/deadlines'
 import { event } from '@/__tests__/helpers/fleet'
-import { toWarsawDay } from '@/lib/fleet/days'
+import { toWarsawDay } from '@/lib/utils/days'
 
 const TODAY = toWarsawDay('2026-08-26')
 

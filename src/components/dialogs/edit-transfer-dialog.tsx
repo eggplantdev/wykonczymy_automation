@@ -14,12 +14,19 @@ type EditTransferDialogPropsT = {
   row: TransferRowT
   referenceData: ReferenceDataBaseT
   canEdit: boolean
+  /** What the tooltip says when `canEdit` is false. Defaults to the ownership rule. */
+  disabledReason?: string
 }
 
-export function EditTransferDialog({ row, referenceData, canEdit }: EditTransferDialogPropsT) {
+export function EditTransferDialog({
+  row,
+  referenceData,
+  canEdit,
+  disabledReason = 'Możesz edytować tylko swoje transakcje',
+}: EditTransferDialogPropsT) {
   if (!canEdit) {
     return (
-      <SimpleTooltip content="Możesz edytować tylko swoje transakcje">
+      <SimpleTooltip content={disabledReason}>
         <span tabIndex={0}>
           <Button variant="ghost" size="icon" disabled aria-label="Edytuj transakcję">
             <Pencil />

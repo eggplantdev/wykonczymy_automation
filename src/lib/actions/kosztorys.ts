@@ -2,9 +2,11 @@
 
 import { z } from 'zod'
 import { sql } from '@payloadcms/db-vercel-postgres'
-import { protectedAction, validateAction } from '@/lib/actions/run-action'
+import { investmentAction } from '@/lib/actions/investment-action'
+import { validateAction } from '@/lib/actions/run-action'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/get-db'
+import { lockStatusFor } from '@/lib/db/investment-lock'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { cleanDescription } from '@/lib/kosztorys/clean-description'
@@ -13,11 +15,7 @@ import {
   createSectionWithFirstItem,
   type CreatedSectionWithItemT,
 } from '@/lib/kosztorys/create-section'
-import {
-  createBlankItem,
-  sectionInvestmentId,
-  sectionOwnerAndNextItemOrder,
-} from '@/lib/kosztorys/create-item'
+import { createBlankItem, sectionOwnerAndNextItemOrder } from '@/lib/kosztorys/create-item'
 import {
   insertDirectionSchema,
   moveOrderSchema,
@@ -121,8 +119,9 @@ export type InvestmentGlobalDiscountPatchT = z.infer<typeof investmentGlobalDisc
 // next request. Measured on preview: the discarded re-render cost 90-193ms per debounced save,
 // dominated by the uncached kosztorys tree (EX-597).
 export async function updateItemFieldAction(itemId: number, patch: ItemPatchT) {
-  return protectedAction(
+  return investmentAction(
     'updateItemFieldAction',
+    { kind: 'item', id: itemId },
     async ({ payload }) => {
       const parsed = validateAction(itemPatchSchema, patch)
       if (!parsed.success) return parsed
@@ -135,8 +134,9 @@ export async function updateItemFieldAction(itemId: number, patch: ItemPatchT) {
 }
 
 export async function updateSectionFieldAction(sectionId: number, patch: SectionPatchT) {
-  return protectedAction(
+  return investmentAction(
     'updateSectionFieldAction',
+    { kind: 'section', id: sectionId },
     async ({ payload }) => {
       const parsed = validateAction(sectionPatchSchema, patch)
       if (!parsed.success) return parsed
@@ -152,8 +152,9 @@ export async function updateInvestmentCoeffsAction(
   investmentId: number,
   patch: InvestmentCoeffsPatchT,
 ) {
-  return protectedAction(
+  return investmentAction(
     'updateInvestmentCoeffsAction',
+    { investmentId },
     async ({ payload }) => {
       const parsed = validateAction(investmentCoeffsSchema, patch)
       if (!parsed.success) return parsed
@@ -168,8 +169,9 @@ export async function updateInvestmentCoeffsAction(
 }
 
 export async function updateInvestmentVatAction(investmentId: number, vatRate: number) {
-  return protectedAction(
+  return investmentAction(
     'updateInvestmentVatAction',
+    { investmentId },
     async ({ payload }) => {
       const parsed = validateAction(investmentVatSchema, { vatRate })
       if (!parsed.success) return parsed
@@ -187,8 +189,9 @@ export async function updateInvestmentSettlementModeAction(
   investmentId: number,
   settlementMode: SettlementModeT,
 ) {
-  return protectedAction(
+  return investmentAction(
     'updateInvestmentSettlementModeAction',
+    { investmentId },
     async ({ payload }) => {
       const parsed = validateAction(investmentSettlementModeSchema, { settlementMode })
       if (!parsed.success) return parsed
@@ -205,8 +208,9 @@ export async function updateInvestmentMaterialsNetRateAction(
   investmentId: number,
   materialsNetRate: number | null,
 ) {
-  return protectedAction(
+  return investmentAction(
     'updateInvestmentMaterialsNetRateAction',
+    { investmentId },
     async ({ payload }) => {
       const parsed = validateAction(investmentMaterialsNetRateSchema, { materialsNetRate })
       if (!parsed.success) return parsed
@@ -223,8 +227,9 @@ export async function updateInvestmentGlobalDiscountAction(
   investmentId: number,
   patch: InvestmentGlobalDiscountPatchT,
 ) {
-  return protectedAction(
+  return investmentAction(
     'updateInvestmentGlobalDiscountAction',
+    { investmentId },
     async ({ payload }) => {
       const parsed = validateAction(investmentGlobalDiscountSchema, patch)
       if (!parsed.success) return parsed
@@ -246,8 +251,9 @@ export async function applyPercentDiscountToAllItemsAction(
   investmentId: number,
   percent: number,
 ): Promise<ActionResultT> {
-  return protectedAction(
+  return investmentAction(
     'applyPercentDiscountToAllItemsAction',
+    { investmentId },
     async ({ payload, user }) => {
       const parsed = validateAction(applyPercentDiscountSchema, { percent })
       if (!parsed.success) return parsed
@@ -273,8 +279,9 @@ export async function applyPercentDiscountToAllItemsAction(
 export async function cleanItemDescriptionsAction(
   investmentId: number,
 ): Promise<ActionResultT<number>> {
-  return protectedAction(
+  return investmentAction(
     'cleanItemDescriptionsAction',
+    { investmentId },
     async ({ payload, user }) => {
       const db = await getDb(payload)
       const rows = await getItemDescriptions(db, investmentId)
@@ -305,8 +312,9 @@ const clearKosztorysSchema = z.object({ investmentId: z.number().int().positive(
 // figure the snapshot cannot give back — SnapshotPayloadT excludes it by design — which is why the
 // dialog says so instead of promising a clean round trip.
 export async function clearKosztorysAction(investmentId: number): Promise<ActionResultT> {
-  return protectedAction(
+  return investmentAction(
     'clearKosztorysAction',
+    { investmentId },
     async ({ payload, user }) => {
       const parsed = validateAction(clearKosztorysSchema, { investmentId })
       if (!parsed.success) return parsed
@@ -337,8 +345,9 @@ export async function clearKosztorysAction(investmentId: number): Promise<Action
 export async function addSectionAction(
   investmentId: number,
 ): Promise<ActionResultT<CreatedSectionWithItemT>> {
-  return protectedAction(
+  return investmentAction(
     'addSectionAction',
+    { investmentId },
     async ({ payload }) => {
       const db = await getDb(payload)
       const displayOrder = await nextSectionDisplayOrder(db, investmentId)
@@ -354,15 +363,15 @@ export async function addSectionAction(
 }
 
 export async function removeSectionAction(sectionId: number) {
-  return protectedAction(
+  return investmentAction(
     'removeSectionAction',
-    async ({ payload, user }) => {
+    { kind: 'section', id: sectionId },
+    async ({ payload, user, investmentId }) => {
       const db = await getDb(payload)
       // Deleting a populated section is allowed (EX-477) — the UI gates it behind a confirm. A
       // section delete FK-cascades through its items into stage_progress, irrecoverable by in-session
       // undo (S-07), so capture the exact current state as a snapshot first, every time.
-      const investmentId = await sectionInvestmentId(db, sectionId)
-      if (investmentId != null) await captureAutoSnapshot(db, investmentId, user.id)
+      await captureAutoSnapshot(db, investmentId, user.id)
       await payload.delete({ collection: 'kosztorys-sections', id: sectionId })
       return { success: true }
     },
@@ -385,8 +394,9 @@ export async function insertSectionAction(
   anchorSectionId: number,
   dir: InsertDirectionT,
 ): Promise<ActionResultT<CreatedSectionWithItemT>> {
-  return protectedAction(
+  return investmentAction(
     'insertSectionAction',
+    { kind: 'section', id: anchorSectionId },
     async ({ payload }) => {
       const parsed = validateAction(insertSectionSchema, { anchorSectionId, dir })
       if (!parsed.success) return parsed
@@ -423,8 +433,9 @@ export async function swapSectionOrderAction(
   sectionId: number,
   dir: MoveDirectionT,
 ): Promise<ActionResultT> {
-  return protectedAction(
+  return investmentAction(
     'swapSectionOrderAction',
+    { kind: 'section', id: sectionId },
     async ({ payload }) => {
       const parsed = validateAction(moveOrderSchema, { rowId: sectionId, dir })
       if (!parsed.success) return parsed
@@ -451,8 +462,9 @@ export async function swapSectionOrderAction(
 export async function addItemAction(
   sectionId: number,
 ): Promise<ActionResultT<{ id: number; displayOrder: number }>> {
-  return protectedAction(
+  return investmentAction(
     'addItemAction',
+    { kind: 'section', id: sectionId },
     async ({ payload }) => {
       const db = await getDb(payload)
       const owner = await sectionOwnerAndNextItemOrder(db, sectionId)
@@ -480,8 +492,9 @@ export async function insertItemAction(
   anchorItemId: number,
   dir: InsertDirectionT,
 ): Promise<ActionResultT<{ id: number; displayOrder: number }>> {
-  return protectedAction(
+  return investmentAction(
     'insertItemAction',
+    { kind: 'item', id: anchorItemId },
     async ({ payload }) => {
       const parsed = validateAction(insertItemSchema, { anchorItemId, dir })
       if (!parsed.success) return parsed
@@ -499,7 +512,7 @@ export async function insertItemAction(
           // Only the investment is needed here — the slot is already resolved, so the append-position
           // aggregate `sectionOwnerAndNextItemOrder` would compute is dead weight held under the
           // section-wide lock.
-          const owner = await sectionInvestmentId(txDb, slot.ownerId)
+          const owner = (await lockStatusFor(txDb, 'section', slot.ownerId))?.investmentId
           if (owner == null) return { success: false, error: SECTION_MISSING }
           await shiftDisplayOrderFrom(txDb, 'kosztorys-items', slot.ownerId, slot.at)
           const created = await createBlankItem(payload, {
@@ -518,18 +531,15 @@ export async function insertItemAction(
 }
 
 export async function removeItemAction(itemId: number) {
-  return protectedAction(
+  return investmentAction(
     'removeItemAction',
-    async ({ payload, user }) => {
+    { kind: 'item', id: itemId },
+    async ({ payload, user, investmentId }) => {
       const db = await getDb(payload)
       // Deleting a populated item is allowed (EX-477) — the UI gates it behind a confirm. A delete
       // still drops the row's opis/przedmiar/cena/rabat (and cascades stage_progress), irrecoverable
       // by in-session undo (S-07), so capture a snapshot first, every time.
-      const res = await db.execute(sql`
-        SELECT investment_id FROM kosztorys_items WHERE id = ${itemId}
-      `)
-      const investmentId = res.rows[0]?.investment_id
-      if (investmentId != null) await captureAutoSnapshot(db, Number(investmentId), user.id)
+      await captureAutoSnapshot(db, investmentId, user.id)
       await payload.delete({ collection: 'kosztorys-items', id: itemId })
       return { success: true }
     },
@@ -542,8 +552,9 @@ export async function swapItemOrderAction(
   itemId: number,
   dir: MoveDirectionT,
 ): Promise<ActionResultT> {
-  return protectedAction(
+  return investmentAction(
     'swapItemOrderAction',
+    { kind: 'item', id: itemId },
     async ({ payload }) => {
       const parsed = validateAction(moveOrderSchema, { rowId: itemId, dir })
       if (!parsed.success) return parsed
@@ -578,8 +589,9 @@ export async function renumberKosztorysOrderAction(
   investmentId: number,
   orderedItemIds: number[],
 ): Promise<ActionResultT> {
-  return protectedAction(
+  return investmentAction(
     'renumberKosztorysOrderAction',
+    { investmentId },
     async ({ payload }) => {
       const parsed = validateAction(renumberDisplayOrderSchema, orderedItemIds)
       if (!parsed.success) return parsed
@@ -637,8 +649,9 @@ export async function addStageAction(
   investmentId: number,
   plane: ToolPlaneT,
 ): Promise<ActionResultT<{ id: number; ordinal: number }>> {
-  return protectedAction(
+  return investmentAction(
     'addStageAction',
+    { investmentId },
     async ({ payload }) => {
       const parsed = validateAction(stagePatchSchema, { plane })
       if (!parsed.success) return parsed
@@ -675,8 +688,9 @@ export async function updateStageAction(
   stageId: number,
   patch: StagePatchT,
 ): Promise<ActionResultT> {
-  return protectedAction(
+  return investmentAction(
     'updateStageAction',
+    { kind: 'stage', id: stageId },
     async ({ payload }) => {
       const parsed = validateAction(stagePatchSchema, patch)
       if (!parsed.success) return parsed
@@ -694,20 +708,17 @@ export async function updateStageAction(
 const stageIdSchema = z.object({ stageId: z.number() })
 
 export async function removeStageAction(stageId: number): Promise<ActionResultT> {
-  return protectedAction(
+  return investmentAction(
     'removeStageAction',
-    async ({ payload, user }) => {
+    { kind: 'stage', id: stageId },
+    async ({ payload, user, investmentId }) => {
       const parsed = validateAction(stageIdSchema, { stageId })
       if (!parsed.success) return parsed
       const db = await getDb(payload)
       // Deleting a populated stage is allowed (EX-477) — the UI gates it behind a confirm. Dropping
       // the stage cascades its stage_progress, irrecoverable by in-session undo (S-07), so capture a
       // snapshot first, every time.
-      const res = await db.execute(sql`
-        SELECT investment_id FROM kosztorys_stages WHERE id = ${parsed.data.stageId}
-      `)
-      const investmentId = res.rows[0]?.investment_id
-      if (investmentId != null) await captureAutoSnapshot(db, Number(investmentId), user.id)
+      await captureAutoSnapshot(db, investmentId, user.id)
       await payload.delete({ collection: 'kosztorys-stages', id: parsed.data.stageId })
       return { success: true }
     },
@@ -728,8 +739,9 @@ export async function setStageProgressAction(
   stageId: number,
   qtyDone: number,
 ): Promise<ActionResultT> {
-  return protectedAction(
+  return investmentAction(
     'setStageProgressAction',
+    { kind: 'item', id: itemId },
     async ({ payload }) => {
       const parsed = validateAction(stageProgressSchema, { itemId, stageId, qtyDone })
       if (!parsed.success) return parsed

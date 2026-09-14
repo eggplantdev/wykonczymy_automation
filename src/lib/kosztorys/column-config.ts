@@ -152,6 +152,15 @@ export const UNPICKABLE_COLUMNS: ReadonlySet<string> = new Set(['divergence'])
 // entry.
 export const AXIS_EXEMPT_COLUMNS: ReadonlySet<string> = new Set(['price'])
 
+// The four per-item rabat columns hidden while the global discount overrides them. Paired with
+// DISCOUNT_CONDITION_IDS (row-conditions/registry.ts), which drops the matching „Problemy" entries.
+export const DISCOUNT_COLUMN_IDS: ReadonlySet<string> = new Set([
+  'discountValue',
+  'discountType',
+  'discountAmount',
+  'discountAmountGross',
+])
+
 // What a client may see on the share view — an ALLOWLIST, keyed by toggleKey like the maps above.
 // Allowlist, not a denylist: a column added later is invisible to clients until someone puts it here,
 // so the disclosure decision is forced at definition time rather than discovered as a leak.

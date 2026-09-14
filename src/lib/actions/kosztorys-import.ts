@@ -1,5 +1,6 @@
 'use server'
 
+import { investmentAction } from '@/lib/actions/investment-action'
 import { protectedAction } from '@/lib/actions/run-action'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/get-db'
@@ -177,12 +178,16 @@ function emptyReport(): ImportReportT {
  * it shares `getInvestmentSheetId`, `readImportGrids` and `sheetFailureMessage` with the import pair
  * above — splitting them would duplicate the failure-message translation and give the two
  * sheet-reading dialogs two different error shapes.
+ *
+ * Gated like an import, not like a read: that refresh is an `UPDATE kosztorys_items`, so on a
+ * zakończona inwestycja this is a write wearing a comparison's name.
  */
 export async function compareWithSheet(
   investmentId: number,
 ): Promise<ActionResultT<SheetCompareResultT>> {
-  return protectedAction<SheetCompareResultT>(
+  return investmentAction<SheetCompareResultT>(
     'compareWithSheet',
+    { investmentId },
     async ({ payload }) => {
       const sheet = await getInvestmentSheet(payload, investmentId)
       if (!sheet) return { success: false, error: MISSING_SHEET }
@@ -277,8 +282,9 @@ export async function applyKosztorysImport(
   // nonsense here asks for undecided etapy, which is what an import without a pick produces anyway.
   plane?: ToolPlaneT | null,
 ): Promise<ActionResultT<ApplyImportResultT>> {
-  return protectedAction<ApplyImportResultT>(
+  return investmentAction<ApplyImportResultT>(
     'applyKosztorysImport',
+    { investmentId },
     async ({ payload, user }) => {
       const sheet = await getInvestmentSheet(payload, investmentId)
       if (!sheet) return { success: false, error: MISSING_SHEET }

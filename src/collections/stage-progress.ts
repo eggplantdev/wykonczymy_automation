@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwnerOrManager } from '@/access'
+import { createUnlessInvestmentLocked, unlessInvestmentLocked } from '@/access/investment-lock'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 
 // Quantity done of an item in a stage. Sparse — a missing row means 0. The upsert by
@@ -21,9 +22,9 @@ export const StageProgress: CollectionConfig = {
   },
   access: {
     read: isAdminOrOwnerOrManager,
-    create: isAdminOrOwnerOrManager,
-    update: isAdminOrOwnerOrManager,
-    delete: isAdminOrOwnerOrManager,
+    create: createUnlessInvestmentLocked('item'),
+    update: unlessInvestmentLocked('item.investment.status'),
+    delete: unlessInvestmentLocked('item.investment.status'),
   },
   fields: [
     { name: 'item', type: 'relationship', relationTo: 'kosztorys-items', required: true },

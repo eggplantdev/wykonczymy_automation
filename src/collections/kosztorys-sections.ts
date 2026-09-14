@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwnerOrManager } from '@/access'
+import { createUnlessInvestmentLocked, unlessInvestmentLocked } from '@/access/investment-lock'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 
 // Labor cost sheet section (a header grouping items). VAT does not live on the section —
@@ -21,9 +22,9 @@ export const KosztorysSections: CollectionConfig = {
   },
   access: {
     read: isAdminOrOwnerOrManager,
-    create: isAdminOrOwnerOrManager,
-    update: isAdminOrOwnerOrManager,
-    delete: isAdminOrOwnerOrManager,
+    create: createUnlessInvestmentLocked('investment'),
+    update: unlessInvestmentLocked('investment.status'),
+    delete: unlessInvestmentLocked('investment.status'),
   },
   fields: [
     { name: 'investment', type: 'relationship', relationTo: 'investments', required: true },

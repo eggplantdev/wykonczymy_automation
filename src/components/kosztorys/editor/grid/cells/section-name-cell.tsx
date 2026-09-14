@@ -1,4 +1,5 @@
-import type { MouseEvent } from 'react'
+import type { MouseEvent, ReactNode } from 'react'
+import type { CellProps, Column } from 'react-datasheet-grid'
 import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
 import { EditableCellInput } from '@/components/ui/datasheet-grid/editable-cell-input'
 import { useInlineRename } from '@/components/kosztorys/editor/hooks/use-inline-rename'
@@ -42,4 +43,36 @@ export function SectionNameCell({
       onClick={onClick}
     />
   )
+}
+
+// `onRename` rides `columnData` so this component keeps ONE identity across renders — dsg answers a
+// changed `component` type with a remount (EX-422, lessons.md), which here dropped a half-typed
+// section name whenever anything else in the editor changed mid-rename.
+type SectionNameCellDataT = { onRename?: (sectionId: number, name: string) => void }
+
+function SectionNameGridCell({
+  rowData,
+  columnData,
+  disabled,
+}: CellProps<KosztorysV2RowT, SectionNameCellDataT>) {
+  return <SectionNameCell rowData={rowData} onRename={columnData.onRename} disabled={disabled} />
+}
+
+export function sectionNameColumn(
+  titleNode: ReactNode,
+  onRename?: (sectionId: number, name: string) => void,
+): Column<KosztorysV2RowT> {
+  return {
+    id: 'sectionName',
+    title: titleNode,
+    keepFocus: true,
+    // Named so the section footer can drop its vertical rule (globals.css) — dsg has no colspan.
+    cellClassName: 'kosztorys-section-name-cell',
+    columnData: { onRename },
+    component: SectionNameGridCell,
+    copyValue: ({ rowData }) => rowData.sectionName ?? '',
+    // Delete on a selected Sekcja cell is a no-op — an accidental keypress must not blank a whole
+    // section. Only an explicit in-cell clear-and-commit renames it.
+    deleteValue: ({ rowData }) => rowData,
+  }
 }

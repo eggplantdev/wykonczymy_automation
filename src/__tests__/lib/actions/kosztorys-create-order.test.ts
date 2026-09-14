@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
+import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 
 // A structure-create invariant of the kosztorys actions, driven against the REAL DB and asserting
 // PERSISTED display_order rows, not the action's return value: append (addItemAction) must pick a
@@ -38,17 +39,9 @@ describe.skipIf(!ENV_READY)('kosztorys create-order integrity (DB)', () => {
     const config = (await import('@payload-config')).default
     payload = await getPayload({ config })
     db = await getDb(payload)
-    // Oldest investment (a prod-dump row) for the item-order test; parallel specs churn the newest.
-    const inv = await payload.find({
-      collection: 'investments',
-      limit: 1,
-      sort: 'id',
-      depth: 0,
-      overrideAccess: true,
-    })
-    const first = inv.docs[0]
-    if (!first) throw new Error('no investment in the DB to attach test fixtures to')
-    sharedInvestmentId = Number(first.id)
+    // Self-provisioned rather than borrowed: the oldest prod-dump investments are
+    // `completed`, and a completed investment refuses every kosztorys write.
+    sharedInvestmentId = await createTestInvestment(payload, `create-order-test-${Date.now()}`)
     const users = await payload.find({
       collection: 'users',
       limit: 1,
@@ -58,6 +51,10 @@ describe.skipIf(!ENV_READY)('kosztorys create-order integrity (DB)', () => {
     const firstUser = users.docs[0]
     if (!firstUser) throw new Error('no user in the DB to attribute the action to')
     authState.userId = Number(firstUser.id)
+  })
+
+  afterAll(async () => {
+    await deleteTestInvestment(payload, sharedInvestmentId)
   })
 
   afterEach(async () => {

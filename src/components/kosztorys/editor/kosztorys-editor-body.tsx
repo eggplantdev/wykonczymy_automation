@@ -30,7 +30,11 @@ import {
   type RowResizeApiT,
 } from '@/components/kosztorys/editor/grid/ordinal-gutter-column'
 import { buildSectionBandRows } from '@/lib/kosztorys/section-band-rows'
-import { engagedConditionsOfKind, engagedHiders, listLabels } from '@/lib/kosztorys/row-conditions'
+import {
+  engagedConditionsOfKind,
+  engagedHiders,
+  listLabels,
+} from '@/lib/kosztorys/row-conditions/queries'
 import {
   isSectionFooterRow,
   isSectionHeaderRow,
@@ -54,6 +58,7 @@ import {
   NOOP_UNDO_REDO,
   type UndoRedoApiT,
 } from '@/components/kosztorys/editor/hooks/use-undo-redo'
+import { KosztorysLockedBanner } from '@/components/kosztorys/editor/kosztorys-locked-banner'
 import type { KosztorysEditorDataT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
 
@@ -84,6 +89,7 @@ export function KosztorysEditorBody({
   depositTransactions,
   preview = false,
   clientView,
+  locked = false,
   hasSheet = false,
   undoRedo = NOOP_UNDO_REDO,
   onOpenVersions,
@@ -101,6 +107,7 @@ export function KosztorysEditorBody({
     tree,
     preview,
     clientView,
+    locked,
     undoRedo,
     workers,
     hasSettledMaterial,
@@ -288,9 +295,9 @@ export function KosztorysEditorBody({
         investmentId,
         investmentName,
         tree,
-        onOpenVersions,
+        onOpenVersions: editor.readOnly ? undefined : onOpenVersions,
         onTreeReplaced,
-        openImport: preview ? undefined : openImport,
+        openImport: editor.readOnly ? undefined : openImport,
         hasSheet,
       }}
     >
@@ -316,7 +323,12 @@ export function KosztorysEditorBody({
               </div>
             </header>
           ) : (
-            <KosztorysEditorToolbar />
+            <>
+              <KosztorysEditorToolbar />
+              {/* Without this the editor just looks broken — cells refuse focus and nothing says why.
+                  Never under the preview: the client's document knows nothing of our statuses. */}
+              {locked && <KosztorysLockedBanner />}
+            </>
           )}
           {/* We measure the container height (flex-1) and pass it to the grid — datasheet-grid
             needs px for virtualization; without it, it renders all 1000 rows.
@@ -375,7 +387,7 @@ export function KosztorysEditorBody({
               >
                 {/* Typing a rozpiska by hand is the rarer of the two starts — the sheet already holds
                   it. Buried in „Opcje" it is the one moment nobody finds it. */}
-                {!preview && hasSheet && (
+                {!editor.readOnly && hasSheet && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -461,9 +473,13 @@ export function KosztorysEditorBody({
                 reconciliation={reconciliation}
                 vatRate={tree.vatRate}
                 settlementMode={tree.settlementMode}
-                onSettlementModeChange={editor.handleSettlementModeChange}
+                onSettlementModeChange={
+                  editor.readOnly ? undefined : editor.handleSettlementModeChange
+                }
                 materialsNetRate={tree.materialsNetRate}
-                onMaterialsNetRateChange={editor.handleMaterialsNetRateChange}
+                onMaterialsNetRateChange={
+                  editor.readOnly ? undefined : editor.handleMaterialsNetRateChange
+                }
                 isSavingSettings={editor.isSavingSettings}
                 showSettingsBar
                 preview={preview}

@@ -12,6 +12,7 @@ import {
 } from '@/components/forms/investment-form/investment-schema'
 import { SETTLEMENT_MODE_DEFAULT } from '@/lib/kosztorys/settlement-mode'
 import { seedInvestmentFromPreset } from '@/lib/kosztorys/seed-from-preset'
+import { investmentAction } from '@/lib/actions/investment-action'
 import { validateAction, protectedAction } from './run-action'
 import { logError } from '@/lib/utils/log-error'
 
@@ -22,7 +23,7 @@ const SEED_PRESET_WARNING =
 // Header + summary are written by the app — the owner builds nothing. Works on a
 // personal Google account because it never creates a new file (see approach A).
 export async function setupSheetAction(investmentId: number) {
-  return protectedAction('setupSheetAction', async ({ payload }) => {
+  return investmentAction('setupSheetAction', { investmentId }, async ({ payload }) => {
     const sheetId = await getInvestmentSheetId(payload, investmentId)
     if (!sheetId) {
       return {
@@ -113,8 +114,9 @@ export async function getServiceAccountEmailAction(): Promise<string> {
 }
 
 export async function linkSheetAction(investmentId: number, input: string) {
-  return protectedAction<{ title: string }>(
+  return investmentAction<{ title: string }>(
     'linkSheetAction',
+    { investmentId },
     async ({ payload }) => {
       const investment = await payload.findByID({
         collection: 'investments',
@@ -193,16 +195,20 @@ export async function linkSheetAction(investmentId: number, input: string) {
 export async function updateInvestmentAction(id: number, data: InvestmentFormDataT) {
   return protectedAction(
     'updateInvestmentAction',
-    async ({ payload }) => {
+    async ({ payload, user }) => {
       const parsed = validateAction(investmentSchema, data)
       if (!parsed.success) return parsed
 
       // presetId is a create-only seed field; the edit form always sends '' — never write it.
       const { presetId: _presetId, ...investmentData } = parsed.data
+      // `user` is load-bearing, not decoration: without it `createLocalReq` sets `req.user = null`
+      // and `guardInvestmentStatusUnlock` refuses to reopen a zakończona inwestycja for EVERY role,
+      // właściciel included — the lock becomes a door with no key.
       await payload.update({
         collection: 'investments',
         id,
         data: investmentData,
+        user,
       })
 
       return { success: true }

@@ -38,6 +38,7 @@ const base = {
   view: 'client' as const,
   stages: [],
   hasSettledMaterial: false,
+  divergentPriceRowIds: new Set<number>(),
 }
 
 describe('buildViewRows', () => {

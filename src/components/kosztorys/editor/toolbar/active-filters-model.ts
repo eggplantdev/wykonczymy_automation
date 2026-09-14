@@ -1,5 +1,5 @@
 import { PROBLEM_CONDITIONS } from '@/lib/kosztorys/problem-conditions'
-import { ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions'
+import { ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions/registry'
 
 // What clicking the chip's X undoes. Named rather than carrying a callback, so this module stays free
 // of the editor's handlers and the bar keeps the one place that knows how each source is switched off.

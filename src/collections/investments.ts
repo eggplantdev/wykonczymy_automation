@@ -2,6 +2,7 @@ import type { CollectionConfig, Where } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 import { excludingCancelled, makePreventDelete } from '@/hooks/prevent-delete'
+import { guardInvestmentStatusUnlock } from '@/hooks/investments/guard-status-unlock'
 import { DEFAULT_COEFFS, DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import {
   SETTLEMENT_MODE_ADMIN_OPTIONS,
@@ -41,6 +42,7 @@ export const Investments: CollectionConfig = {
     group: { en: 'Finance', pl: 'Finanse' },
   },
   hooks: {
+    beforeChange: [guardInvestmentStatusUnlock],
     beforeDelete: [preventDeleteWithTransactions],
     afterChange: [makeRevalidateAfterChange('investments')],
     afterDelete: [makeRevalidateAfterDelete('investments')],

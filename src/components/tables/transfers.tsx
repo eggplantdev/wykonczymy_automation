@@ -18,6 +18,7 @@ import {
   billsNetAmount,
   type PaymentMethodT,
 } from '@/lib/constants/transfers'
+import { INVESTMENT_LOCKED_MESSAGE, isBookableInvestment } from '@/lib/constants/investment-lock'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import type { TransferRowT } from '@/types/transfers'
 
@@ -208,6 +209,12 @@ type ColumnOptionsT = {
 export function getTransferColumns(exclude: string[] = [], options: ColumnOptionsT = {}) {
   const { referenceData, currentUserId, currentUserRole } = options
 
+  // Built once per column set, not per rendered row: the cell only knows its investment's id, so
+  // without this every row would rescan the whole reference list on every sort and filter pass.
+  const lockedInvestmentIds = new Set(
+    referenceData?.investments.filter((i) => !isBookableInvestment(i)).map((i) => i.id) ?? [],
+  )
+
   const actionsColumn = col.display({
     id: 'actions',
     header: 'Akcje',
@@ -215,6 +222,10 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
     cell: (info) => {
       const row = info.row.original
       if (row.cancelled || isCancellationType(row.type)) return null
+
+      // Courtesy, not a gate — the collection hook refuses either write regardless. Read off
+      // reference data because the row carries the investment's name and id, never its status.
+      const lockedInvestment = row.investmentId != null && lockedInvestmentIds.has(row.investmentId)
 
       const canEdit =
         !!currentUserRole &&
@@ -229,9 +240,14 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
       return (
         <div className="flex items-center gap-1">
           {referenceData && (
-            <EditTransferDialog row={row} referenceData={referenceData} canEdit={canEdit} />
+            <EditTransferDialog
+              row={row}
+              referenceData={referenceData}
+              canEdit={canEdit && !lockedInvestment}
+              disabledReason={lockedInvestment ? INVESTMENT_LOCKED_MESSAGE : undefined}
+            />
           )}
-          <CancelTransferButton transactionId={row.id} />
+          {!lockedInvestment && <CancelTransferButton transactionId={row.id} />}
         </div>
       )
     },

@@ -1,8 +1,9 @@
 import type { Payload } from 'payload'
 import { FRONTEND_URL } from '@/lib/env'
 import { requireRecipients } from '@/lib/email/recipients'
+import { section } from '@/lib/email/digest-section'
 import { escapeHtml } from '@/lib/utils/escape-html'
-import { daysLabel } from '@/lib/fleet/deadline-label'
+import { daysLabel } from '@/lib/utils/deadline-label'
 import { INSPECTION_TYPE_LABELS } from '@/lib/fleet/inspection-types'
 import { formatKm } from '@/lib/utils/format-distance'
 import type { DigestEntryT, FleetDigestT, OdometerEntryT } from '@/lib/fleet/reminder-sweep'
@@ -10,21 +11,6 @@ import type { DigestEntryT, FleetDigestT, OdometerEntryT } from '@/lib/fleet/rem
 /** Plate alone identifies a car to nobody but its keeper, so every line names the car too. */
 const vehicleLabel = (entry: { registration: string; make: string; model: string }): string =>
   `${entry.registration} ${entry.make} ${entry.model}`.trim()
-
-/** Empty in, empty out — an absent section prints nothing rather than an empty heading. */
-const section = <T>(
-  title: string,
-  entries: readonly T[],
-  tag: 'table' | 'ul',
-  row: (entry: T) => string,
-): string =>
-  entries.length === 0
-    ? ''
-    : `
-    <h3>${escapeHtml(title)}</h3>
-    <${tag}>
-      ${entries.map(row).join('\n      ')}
-    </${tag}>`
 
 const deadlineTable = (title: string, entries: DigestEntryT[]): string =>
   section(

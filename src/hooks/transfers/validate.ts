@@ -1,4 +1,4 @@
-import type { CollectionBeforeValidateHook } from 'payload'
+import { APIError, type CollectionBeforeValidateHook } from 'payload'
 import type { Transaction } from '@/payload-types'
 import {
   needsSourceRegister,
@@ -14,6 +14,11 @@ import {
   carriesPaymentMethod,
 } from '@/lib/constants/transfers'
 import { getAmountError, getNetAmountError } from '@/lib/utils/validation'
+import { getDb } from '@/lib/db/get-db'
+import { isInvestmentLocked } from '@/lib/db/investment-lock'
+import { INVESTMENT_LOCKED_MESSAGE } from '@/lib/constants/investment-lock'
+import { resolveId } from '@/lib/utils/resolve-id'
+import { isInvoiceOnlyPatch } from '@/hooks/transfers/invoice-only-patch'
 
 type TransferData = Partial<Transaction>
 
@@ -22,7 +27,7 @@ const FROZEN_FIELD_LABELS = {
   netAmount: 'Kwoty netto',
 } as const
 
-export const validateTransfer: CollectionBeforeValidateHook = ({
+export const validateTransfer: CollectionBeforeValidateHook = async ({
   data,
   req,
   operation,
@@ -56,6 +61,26 @@ export const validateTransfer: CollectionBeforeValidateHook = ({
   const expenseCategory = resolved('expenseCategory')
   const vatPlane = resolved('vatPlane')
   const paymentMethod = resolved('paymentMethod')
+
+  // A settled investment moves no more money, so the gate sits here — above BOTH early returns, or
+  // anulowanie leaks through the second one. Transactions have no raw-SQL writer, so unlike the
+  // kosztorys this hook IS the complete gate, covering the admin panel and the API alike.
+  // Both sides of a move: booking ONTO a locked investment and lifting a row OFF one.
+  const target = resolveId(resolved('investment'))
+  const previous = resolveId(original?.investment)
+  // The one write that stays open: attaching or detaching a scan of the faktura. Keyed on the
+  // VALUES that differ from the stored row — an empty array is a legitimate removal of every page.
+  const invoiceOnly = isInvoiceOnlyPatch(d, original)
+  if (!invoiceOnly) {
+    const db = await getDb(req.payload, req)
+    for (const id of previous === target ? [target] : [target, previous]) {
+      // APIError, not Error: routeError rewrites the message of anything it can't prove public, so
+      // a bare throw reaches `/admin` and REST as „Something went wrong" with a 500.
+      if (id !== undefined && (await isInvestmentLocked(db, id))) {
+        throw new APIError(INVESTMENT_LOCKED_MESSAGE, 403)
+      }
+    }
+  }
 
   // CANCELLATION rows skip all normal validation — relational fields are null
   if (type === 'CANCELLATION') {

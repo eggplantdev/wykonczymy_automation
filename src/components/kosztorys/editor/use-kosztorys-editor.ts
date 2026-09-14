@@ -55,16 +55,20 @@ import { sectionSubtotalsForView, stageAxisForView } from '@/lib/kosztorys/settl
 import { clientTotalsFromSubtotals } from '@/lib/kosztorys/settlement-client-totals'
 import { subcontractorDueByPlane } from '@/lib/kosztorys/subcontractor-due'
 import { marginForecastByPlane as forecastByPlane } from '@/lib/kosztorys/margin-forecast'
+import { divergentPriceRowIds } from '@/lib/kosztorys/price-divergence'
+import { qtyDoneByRow } from '@/lib/kosztorys/row-conditions/ctx'
 import { buildViewRows } from '@/lib/kosztorys/row-view'
 import {
-  MEASURE_DIVERGED_CONDITION_ID,
-  ROW_CONDITIONS,
   applyRowConditions,
   columnsRevealedBy,
   countMatching,
   liftsToSections,
   sectionIdsWhereAllMatch,
-} from '@/lib/kosztorys/row-conditions'
+} from '@/lib/kosztorys/row-conditions/queries'
+import {
+  MEASURE_DIVERGED_CONDITION_ID,
+  ROW_CONDITIONS,
+} from '@/lib/kosztorys/row-conditions/registry'
 import { STAGE_CONDITIONS, countMatchingStages } from '@/lib/kosztorys/stage-conditions'
 import { stagesForView } from '@/lib/kosztorys/settlement-view'
 import { baseOrdinals, sectionRepresentatives } from '@/lib/kosztorys/section-band-rows'
@@ -103,6 +107,10 @@ type ArgsT = {
   // The investment's stored client-view settings, resolved server-side. Only consumed under
   // `preview` — on the owner's editor it is absent, and the settings dialog reads its own copy.
   clientView?: ClientViewSettingsT
+  // „Zakończona" — the server refuses every kosztorys write, so nothing here may offer one. Kept
+  // apart from `preview` on purpose: the two agree on interaction and disagree on disclosure, and a
+  // locked investment is still the owner's OWN full document.
+  locked?: boolean
   undoRedo: UndoRedoApiT
   // Roster for the etap header's worker picker. Absent on the client share path, which never renders
   // a menu at all.
@@ -132,11 +140,16 @@ export function useKosztorysEditor({
   tree,
   preview = false,
   clientView,
+  locked = false,
   undoRedo,
   workers,
   hasSettledMaterial = false,
   onStaleTree,
 }: ArgsT) {
+  // Interaction, split from disclosure. `preview` decides what a client is SHOWN (layout, allowlisted
+  // columns, dimmed forecasts); this decides whether anything may be written at all, and the two
+  // reasons for „no writing" are a client's document and a closed investment.
+  const readOnly = preview || locked
   const router = useRouter()
   const { recoverStaleTree, reportFailure } = useStaleTreeRecovery(onStaleTree)
   const { save, runNow } = useDebouncedSave(500, recoverStaleTree)
@@ -362,9 +375,9 @@ export function useKosztorysEditor({
   // is no control left that could fire them. Column resize (onGuide/onCommitColumn) is the exception:
   // it only moves a localStorage width, never touches the server, so a client keeps it for readability.
   // Sort is dropped (headers render as plain labels) — the client sees a fixed, non-interactive order.
-  // Wired only in the interactive editor render, dropped in the read-only client view. The gate is
-  // the render mode, NOT a role — OWNER/MANAGER/ADMIN all edit; the client (no login) does not.
-  const editorOnly = <T>(handler: T): T | undefined => (preview ? undefined : handler)
+  // The gate is the render mode plus the investment's state, NOT a role: OWNER/MANAGER/ADMIN all
+  // edit an open kosztorys, and none of them edits a closed one.
+  const editorOnly = <T>(handler: T): T | undefined => (readOnly ? undefined : handler)
 
   // „Suma wykonanej pracy" (należne) for the subcontractor summary — view-INDEPENDENT: each etap
   // valued at its own plane's price, split + combined. Reactive to unsaved edits via [rows, stages];
@@ -384,6 +397,21 @@ export function useKosztorysEditor({
     [preview, rows],
   )
 
+  // Grouped once per `rows` change, never inside `matches`: a counter calls `matches` once per
+  // pozycja, so grouping there would rebuild every group ~1000 times on a large kosztorys. Empty
+  // under the preview like every other whole-dataset pass here — the only rule that reads the set is
+  // a diagnostic, and the client's document renders none of them.
+  const divergentPriceIds = useMemo(
+    () => (preview ? new Set<number>() : divergentPriceRowIds(rows)),
+    [preview, rows],
+  )
+
+  // The pomiar of every pozycja, once per dataset. Six conditions ask for it and a full set of
+  // counters asks ~2.6× per pozycja, each time re-summing the same ten stage columns — measured at
+  // ~2 ms of the ~5 ms these memos spend on 1000 pozycji, and they run on every committed keystroke
+  // (the grid commits per character, `useCellDraft`). Keyed on [rows, stages] like every reader of it.
+  const qtyDoneByRowId = useMemo(() => qtyDoneByRow(rows, stages), [rows, stages])
+
   // Counted over the whole dataset, not over `viewRows`: once a filter is on, a count of what
   // survives it is a count of itself, and the number stops being able to reach zero to say the
   // problem is gone. Zero under the preview, like the filters themselves — the client's document
@@ -394,11 +422,16 @@ export function useKosztorysEditor({
   // switching the plane — which picking a problem now does on its own — re-ran all of them to reach
   // the same numbers.
   const rowConditionCounts = useMemo(() => {
-    const ctx = { stages, hasSettledMaterial }
+    const ctx = {
+      stages,
+      hasSettledMaterial,
+      divergentPriceRowIds: divergentPriceIds,
+      qtyDoneByRowId,
+    }
     return ROW_CONDITIONS.map(
       (condition) => [condition.id, preview ? 0 : countMatching(rows, condition.id, ctx)] as const,
     )
-  }, [preview, rows, stages, hasSettledMaterial])
+  }, [preview, rows, stages, hasSettledMaterial, divergentPriceIds, qtyDoneByRowId])
   // Stage counts run over the view's own etapy, not the raw list: a subcontractor view already drops
   // plane-less etapy, so counting them there would offer a filter that can only ever empty the stage
   // block. Deliberately asymmetric with the price conditions above — a price exists on both planes
@@ -472,7 +505,7 @@ export function useKosztorysEditor({
     divergenceFilterEngaged,
     engagedStageConditionIds,
     revealedColumnIds,
-    readOnly: preview,
+    readOnly,
     previewVisible: preview,
     previewHiddenColumns,
   }
@@ -498,9 +531,22 @@ export function useKosztorysEditor({
   const documentRows = useMemo(
     () =>
       preview
-        ? applyRowConditions(rows, engagedConditionIds, { stages, hasSettledMaterial })
+        ? applyRowConditions(rows, engagedConditionIds, {
+            stages,
+            hasSettledMaterial,
+            divergentPriceRowIds: divergentPriceIds,
+            qtyDoneByRowId,
+          })
         : rows,
-    [preview, rows, engagedConditionIds, stages, hasSettledMaterial],
+    [
+      preview,
+      rows,
+      engagedConditionIds,
+      stages,
+      hasSettledMaterial,
+      divergentPriceIds,
+      qtyDoneByRowId,
+    ],
   )
 
   // Per-section subtotals: the whole document (not viewRows) — a stable breakdown independent of the
@@ -520,7 +566,12 @@ export function useKosztorysEditor({
   // the owner's toolbar, so on a client's share there is nothing to tick.
   const foldableSectionIds = useMemo(() => {
     if (preview) return new Map<string, Set<number>>()
-    const ctx = { stages, hasSettledMaterial }
+    const ctx = {
+      stages,
+      hasSettledMaterial,
+      divergentPriceRowIds: divergentPriceIds,
+      qtyDoneByRowId,
+    }
     return new Map(
       // Skipping a condition that does not lift saves a full pass over every row for a `Map` entry the
       // menu would never read — and this memo recomputes on `rows`, i.e. on every edit. The menu
@@ -530,7 +581,7 @@ export function useKosztorysEditor({
         sectionIdsWhereAllMatch(rows, condition.id, ctx),
       ]),
     )
-  }, [preview, rows, stages, hasSettledMaterial])
+  }, [preview, rows, stages, hasSettledMaterial, divergentPriceIds, qtyDoneByRowId])
 
   // Problems only, and never under the preview. The latch is half of a two-part gesture whose other
   // half — „Odśwież — ukryj poprawione" — lives in the „Problemy" menu and is rendered only while a
@@ -556,11 +607,24 @@ export function useKosztorysEditor({
       view,
       stages,
       hasSettledMaterial,
+      divergentPriceRowIds: divergentPriceIds,
+      qtyDoneByRowId,
       latchedRowIds: latch?.ids,
     })
     if (latch) for (const row of next) latch.ids.add(row.id)
     return next
-  }, [rows, search, engagedConditionIds, sort, view, stages, hasSettledMaterial, latch])
+  }, [
+    rows,
+    search,
+    engagedConditionIds,
+    sort,
+    view,
+    stages,
+    hasSettledMaterial,
+    divergentPriceIds,
+    qtyDoneByRowId,
+    latch,
+  ])
   const ordinalByRowId = useMemo(() => baseOrdinals(documentRows), [documentRows])
   // Sections keep their original order however the filter thinned them.
   const sectionRows = useMemo(() => sectionRepresentatives(rows), [rows])
@@ -1079,8 +1143,9 @@ export function useKosztorysEditor({
   }
 
   function onChange(next: KosztorysV2RowT[]) {
-    // The load-bearing persistence kill-switch: a preview grid is read-only, but this guards the
-    // one path that could still POST — so no save, undo capture, or refresh ever fires on the public page.
+    // The public page's own guard, narrower than the lock: a zakończona inwestycja is stopped one
+    // layer out by `disabled: true` on every column, so nothing here can fire for it — but a preview
+    // grid is served to an anonymous visitor, and that one gets a belt as well as braces.
     if (preview) return
     const { fieldChanges, stageChanges, changedById } = planGridChanges(next, prevById.current)
     for (const c of fieldChanges) {
@@ -1205,6 +1270,9 @@ export function useKosztorysEditor({
     foldableSectionIds,
     ordinalByRowId,
     sectionRows,
+    // Read by the toolbar and the summary through the editor context: on a locked investment they
+    // drop their own write entries, which `editorOnly` (a grid-callback gate) never reaches.
+    readOnly,
     // handlers
     onChange,
     handleAddItem,

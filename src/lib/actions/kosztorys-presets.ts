@@ -1,6 +1,7 @@
 'use server'
 
 import { z } from 'zod'
+import { investmentAction } from '@/lib/actions/investment-action'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/get-db'
@@ -36,6 +37,8 @@ export async function savePresetAction(
   name: string,
   mode: 'new' | 'overwrite',
 ): Promise<ActionResultT> {
+  // Deliberately ungated: a preset is a GLOBAL template, not a change to the investment — and a
+  // finished kosztorys is a good source for one.
   return protectedAction(
     'savePresetAction',
     async ({ payload, user }) => {
@@ -102,8 +105,9 @@ export async function appendPresetSectionsAction(
   investmentId: number,
   selections: { presetId: number; sectionId: number }[],
 ): Promise<ActionResultT<AppendedSliceT>> {
-  return protectedAction(
+  return investmentAction(
     'appendPresetSectionsAction',
+    { investmentId },
     async ({ payload }) => {
       const parsed = validateAction(appendSectionsSchema, { investmentId, selections })
       if (!parsed.success) return parsed
@@ -157,8 +161,9 @@ export async function reloadFromPresetAction(
   investmentId: number,
   presetId: number,
 ): Promise<ActionResultT<ReloadFromPresetResultT>> {
-  return protectedAction<ReloadFromPresetResultT>(
+  return investmentAction<ReloadFromPresetResultT>(
     'reloadFromPresetAction',
+    { investmentId },
     async ({ payload, user }) => {
       const parsed = validateAction(reloadSchema, { investmentId, presetId })
       if (!parsed.success) return parsed

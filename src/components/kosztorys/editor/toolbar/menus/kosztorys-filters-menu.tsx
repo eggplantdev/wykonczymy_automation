@@ -4,11 +4,8 @@ import { ListFilter } from 'lucide-react'
 import { FilterMultiSelect, FILTER_NONE } from '@/components/filters/filter-multi-select'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { isGlobalDiscountActive } from '@/lib/kosztorys/calc'
-import {
-  DISCOUNT_CONDITION_IDS,
-  liftsToSections,
-  ROW_CONDITIONS,
-} from '@/lib/kosztorys/row-conditions'
+import { liftsToSections } from '@/lib/kosztorys/row-conditions/queries'
+import { DISCOUNT_CONDITION_IDS, ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions/registry'
 
 // One menu for „co widzę", at three granularities that all read the same way: a tick means the thing
 // is on screen, unticking it takes it away. Pozycje are hidden outright; sekcje fold under their band

@@ -32,7 +32,7 @@ import { KosztorysShareDialog } from '@/components/kosztorys/editor/dialogs/kosz
 
 // Item and dialog are siblings, never nested — see KosztorysActionsProvider for why.
 export function KosztorysActionsMenu() {
-  const { onOpenVersions, openImport, hasSheet, undo, redo, canUndo, canRedo } =
+  const { onOpenVersions, openImport, hasSheet, undo, redo, canUndo, canRedo, readOnly } =
     useKosztorysEditorContext()
 
   return (
@@ -46,36 +46,46 @@ export function KosztorysActionsMenu() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-80">
-          <DropdownMenuLabel>Edycja</DropdownMenuLabel>
-          <DropdownMenuItem onSelect={undo} disabled={!canUndo}>
-            <Undo2 />
-            <MenuItemBody label="Cofnij" description="Cmd/Ctrl+Z" />
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={redo} disabled={!canRedo}>
-            <Redo2 />
-            <MenuItemBody label="Ponów" description="Cmd/Ctrl+Shift+Z" />
-          </DropdownMenuItem>
-          <CleanDescriptionsMenuItem />
-          <DropdownMenuSeparator />
-          <DropdownMenuLabel>Wersje</DropdownMenuLabel>
-          <SaveVersionMenuItem />
-          <DropdownMenuItem onSelect={onOpenVersions}>
-            <History />
-            <MenuItemBody
-              label="Wczytaj"
-              description="Przywróć kosztorys do wcześniej zapisanego stanu."
-            />
-          </DropdownMenuItem>
-          <ClearKosztorysMenuItem />
-          <DropdownMenuSeparator />
+          {/* On a zakończona inwestycja everything that writes is gone, „Zapisz wersję" included —
+              a snapshot is a write and the server refuses it. „Porównaj z arkuszem" goes with them:
+              it refreshes the stored Pomiar in the same pass, so it reads like a comparison and
+              writes like an import. What survives is what only READS: saving a szablon off the
+              kosztorys, and the katalog comparison. */}
+          {!readOnly && (
+            <>
+              <DropdownMenuLabel>Edycja</DropdownMenuLabel>
+              <DropdownMenuItem onSelect={undo} disabled={!canUndo}>
+                <Undo2 />
+                <MenuItemBody label="Cofnij" description="Cmd/Ctrl+Z" />
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={redo} disabled={!canRedo}>
+                <Redo2 />
+                <MenuItemBody label="Ponów" description="Cmd/Ctrl+Shift+Z" />
+              </DropdownMenuItem>
+              <CleanDescriptionsMenuItem />
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Wersje</DropdownMenuLabel>
+              <SaveVersionMenuItem />
+              <DropdownMenuItem onSelect={onOpenVersions}>
+                <History />
+                <MenuItemBody
+                  label="Wczytaj"
+                  description="Przywróć kosztorys do wcześniej zapisanego stanu."
+                />
+              </DropdownMenuItem>
+              <ClearKosztorysMenuItem />
+              <DropdownMenuSeparator />
+            </>
+          )}
           <DropdownMenuLabel>Szablony</DropdownMenuLabel>
           <SavePresetMenuItem />
-          <ReloadPresetMenuItem />
+          {!readOnly && <ReloadPresetMenuItem />}
           <DropdownMenuSeparator />
           <DropdownMenuLabel>Katalog prac</DropdownMenuLabel>
           <CatalogueCompareMenuItem />
-          {/* Both entries can only answer „Inwestycja nie ma kosztorysu." without a linked sheet. */}
-          {hasSheet && (
+          {/* Both entries can only answer „Inwestycja nie ma kosztorysu." without a linked sheet, and
+              both write, so the whole section goes under the lock. */}
+          {!readOnly && hasSheet && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuLabel>Arkusz Google</DropdownMenuLabel>

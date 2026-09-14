@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { parseVehicleFlags } from '@/lib/fleet/flags'
-import { warsawToday } from '@/lib/fleet/days'
+import { warsawToday } from '@/lib/utils/days'
 
 // The re-tick trap: a mark already answered by an inspection still has its old day in the stored
 // map, so "keep whatever is stored" would write back a day the history covers and the tick would

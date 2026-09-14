@@ -5,12 +5,21 @@
 // under „[".
 export const LEGACY_SUFFIX = ' [stary arkusz]'
 
+const LEGACY_MARKER = /\s*\[stary arkusz\]\s*$/u
+
 /**
- * The note is display text, never identity: `catalogueKey` must see the bare name, or a marked row
- * stops matching the same praca elsewhere in the app — it would miss its twin in „Porównaj
- * z cennikiem", and an insert-only wsad, finding no such key, would add a second copy. Every writer
- * of `match_key` therefore strips it here, so the rule lives once instead of at each call site.
+ * The note is display text, never identity: a marked row that keyed on the note would stop matching
+ * the same praca elsewhere in the app — it would miss its twin in „Porównaj z katalogiem", the
+ * picker would not know it was already added, and an insert-only wsad, finding no such key, would
+ * add a second copy. `catalogueKey` therefore calls this itself, so identity is marker-blind for
+ * readers and writers alike; the only other callers are the ones that RENDER the note.
  */
 export function stripLegacyMarker(description: string): string {
-  return description.replace(/\s*\[stary arkusz\]\s*$/u, '')
+  return description.replace(LEGACY_MARKER, '')
+}
+
+// `test` rather than comparing a strip against its input: the katalog asks this per row on every
+// redraw of ~950 rows, and the comparison allocates a throwaway string to answer a boolean.
+export function hasLegacyMarker(description: string): boolean {
+  return LEGACY_MARKER.test(description)
 }

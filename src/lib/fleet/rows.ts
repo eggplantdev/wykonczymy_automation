@@ -1,5 +1,5 @@
 import { type FleetDatasetT } from '@/lib/fleet/dataset'
-import { daysBetween, toWarsawDay } from '@/lib/fleet/days'
+import { daysBetween, toWarsawDay } from '@/lib/utils/days'
 import { totalCost } from '@/lib/fleet/costs'
 import { isExempt } from '@/lib/fleet/exemptions'
 import { activeFlags } from '@/lib/fleet/flags'

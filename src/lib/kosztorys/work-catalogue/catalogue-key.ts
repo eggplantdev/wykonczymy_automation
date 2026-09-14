@@ -1,5 +1,6 @@
 import { foldUnit } from '@/lib/kosztorys/sheet-import/columns'
 import { foldDescription } from '@/lib/kosztorys/sheet-import/item-key'
+import { stripLegacyMarker } from '@/lib/kosztorys/work-catalogue/legacy-marker'
 
 // A praca with no j.m. still needs a key member: Postgres compares NULLs as distinct, so an empty
 // half would let two "same opis, no j.m." rows both pass the UNIQUE index.
@@ -12,6 +13,11 @@ const NO_UNIT = '~'
 // Unlike `itemKey` this drops the section: the katalog is global, so the same praca appearing in
 // „Łazienka 1" and „Kuchnia" is ONE cennik entry. The j.m. joins the key instead, because the same
 // opis priced per m² and per szt. is genuinely two prices.
+//
+// The „[stary arkusz]" note is stripped HERE, not at each call site, because identity must be
+// marker-blind on BOTH sides: the writers already stripped, but the readers did not, so a praca
+// wstawiona z katalogu carried the note into its opis, keyed differently from the katalog row it
+// came from, and reported itself as „brak w katalogu" — suggesting itself as the hint.
 export function catalogueKey(description: string, unit: string | null): string {
-  return `${foldDescription(description)}|${foldUnit(unit) || NO_UNIT}`
+  return `${foldDescription(stripLegacyMarker(description))}|${foldUnit(unit) || NO_UNIT}`
 }

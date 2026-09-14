@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
+import { makeResetBookkeeping } from '@/hooks/reset-bookkeeping'
 import { INSPECTION_TYPE_LABELS, INSPECTION_TYPES } from '@/lib/fleet/inspection-types'
 import { resetNotificationBookkeeping } from '@/lib/fleet/reset-notification-bookkeeping'
 
@@ -16,12 +17,7 @@ export const VehicleInspections: CollectionConfig = {
     group: { en: 'Fleet', pl: 'Flota' },
   },
   hooks: {
-    beforeChange: [
-      ({ data, originalDoc, operation }) =>
-        operation === 'update' && originalDoc
-          ? { ...data, ...resetNotificationBookkeeping(originalDoc, data) }
-          : data,
-    ],
+    beforeChange: [makeResetBookkeeping(resetNotificationBookkeeping)],
     afterChange: [makeRevalidateAfterChange('vehicleInspections')],
     afterDelete: [makeRevalidateAfterDelete('vehicleInspections')],
   },

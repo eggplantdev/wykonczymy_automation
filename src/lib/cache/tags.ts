@@ -16,6 +16,9 @@ export const CACHE_TAGS = {
   vehicles: 'collection:vehicles',
   vehicleInspections: 'collection:vehicle-inspections',
   workCatalogue: 'collection:work-catalogue-items',
+  equipment: 'collection:equipment',
+  equipmentEvents: 'collection:equipment-events',
+  warehouses: 'collection:warehouses',
 } as const
 
 export const entityTag = (collection: string, id: number | string) => `${collection}:${id}` as const

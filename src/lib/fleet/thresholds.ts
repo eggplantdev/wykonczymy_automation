@@ -1,11 +1,10 @@
-import { daysBetween, type DayT } from '@/lib/fleet/days'
+import type { DayT } from '@/lib/utils/days'
+import { ZERO_BUCKET, classifyBucket, isMoreUrgent } from '@/lib/utils/urgency-buckets'
 
-/**
- * Urgency buckets, encoded as the number of days they cover so the value can be persisted straight
- * into `notifiedThreshold` (smallint). `0` reads as OVERDUE — "zero days left" — which makes the
- * urgency order simply "smaller is more urgent" and the dedupe comparison a `<`.
- */
-export const OVERDUE = 0
+export { isMoreUrgent }
+
+/** „Zero days left" on the fleet's plane — see `lib/utils/urgency-buckets.ts` for the encoding. */
+export const OVERDUE = ZERO_BUCKET
 
 export const DEADLINE_BUCKETS = [OVERDUE, 1, 7, 30] as const
 
@@ -17,14 +16,8 @@ export type DeadlineBucketT = (typeof DEADLINE_BUCKETS)[number]
  *
  * The due day itself is due, not overdue: a technical inspection is valid through its last day.
  */
-export const classifyDeadline = (nextDueAt: DayT | null, today: DayT): DeadlineBucketT | null => {
-  if (!nextDueAt) return null
-
-  const daysLeft = daysBetween(today, nextDueAt)
-  if (daysLeft < 0) return OVERDUE
-
-  return DEADLINE_BUCKETS.find((bucket) => bucket > 0 && daysLeft <= bucket) ?? null
-}
+export const classifyDeadline = (nextDueAt: DayT | null, today: DayT): DeadlineBucketT | null =>
+  classifyBucket(DEADLINE_BUCKETS, nextDueAt, today)
 
 /**
  * The widest bucket the digest still mails. 30 stays a bucket — it colours the listing and feeds the
@@ -35,9 +28,6 @@ export const MAILED_BUCKET_MAX = 7
 
 export const isMailedBucket = (bucket: DeadlineBucketT): boolean => bucket <= MAILED_BUCKET_MAX
 
-/** Strictly more urgent — the same bucket is not an escalation, so it earns no second email. */
-export const isMoreUrgent = (bucket: DeadlineBucketT, than: number | null): boolean =>
-  than === null || bucket < than
 
 /**
  * How far the car may go on one oil change. The only rule — the digest and the app both measure from

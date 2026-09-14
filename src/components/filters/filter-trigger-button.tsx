@@ -3,7 +3,10 @@ import type { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils/cn'
 
-type FilterTriggerButtonPropsT = {
+type FilterTriggerButtonPropsT = Pick<
+  React.ComponentProps<typeof Button>,
+  'onClick' | 'title' | 'disabled' | 'type'
+> & {
   active: boolean
   // What the filter is about, not what it does: „destructive" is for a trigger whose subject is
   // a defect (the kosztorys „Problemy"), so both of its states are red instead of the neutral
@@ -13,7 +16,6 @@ type FilterTriggerButtonPropsT = {
   iconPosition?: 'left' | 'right'
   children?: React.ReactNode
   className?: string
-  title?: string
 }
 
 export const FilterTriggerButton = forwardRef<HTMLButtonElement, FilterTriggerButtonPropsT>(

@@ -7,6 +7,7 @@ const fakePayload = (global: Record<string, { email: string }[]>) =>
 
 const seeded = {
   fleetDigest: [{ email: 'flota@example.com' }, { email: 'ops@example.com' }],
+  equipmentDigest: [{ email: 'sprzet@example.com' }],
   newLead: [{ email: 'sprzedaz@example.com' }],
   opsAlerts: [{ email: 'ops@example.com' }],
 }
@@ -15,6 +16,7 @@ describe('readRecipientLists', () => {
   it('flattens each list to bare addresses, in stored order', async () => {
     expect(await readRecipientLists(fakePayload(seeded))).toEqual({
       fleetDigest: ['flota@example.com', 'ops@example.com'],
+      equipmentDigest: ['sprzet@example.com'],
       newLead: ['sprzedaz@example.com'],
       opsAlerts: ['ops@example.com'],
     })
@@ -25,6 +27,7 @@ describe('readRecipientLists', () => {
   it('reads an absent list as empty rather than throwing', async () => {
     expect(await readRecipientLists(fakePayload({}))).toEqual({
       fleetDigest: [],
+      equipmentDigest: [],
       newLead: [],
       opsAlerts: [],
     })

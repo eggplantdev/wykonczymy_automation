@@ -50,17 +50,12 @@ git show 1fb50e6c^:src/scripts/legacy-sheet-import/fetch-grids.ts
 Skasowane: `fetch-grids.ts` (pobieranie, wznawialne, `PAUSE_MS = 1_500`, scope Sheets readonly),
 `dump-store.ts` (zapis/odczyt dumpów), `parse-dumped-sheet.ts`, `collect-candidates.ts`,
 `similar-names.ts`, `analyze.ts`, `run-analysis.ts`, `report.ts`, `rekey-catalogue.ts`.
-W repo zostały tylko `export-catalogue.ts` i `import-catalogue.ts` — czyli sam wsad na produkcję,
-spięty potokiem (eksport pisze na stdout, wsad czyta stdin), bez pliku pośredniego:
-
-```bash
-node --env-file=.env --import tsx src/scripts/legacy-sheet-import/export-catalogue.ts \
-  | DB_POSTGRES_URL="$DB_POSTGRES_URL_PROD" node --env-file=.env --import tsx \
-    src/scripts/legacy-sheet-import/import-catalogue.ts --apply
-```
-
-Dwa procesy, bo Payload wiąże bazę przy starcie — jeden uniesie źródło albo cel, nigdy oba.
-Bez `--apply` to dry-run. Robi to człowiek, nie agent.
+Katalog wjechał na produkcję **2026-09-02** (940 pozycji, tabela była pusta), po czym skasowano
+także `export-catalogue.ts` i `import-catalogue.ts` — cały `src/scripts/legacy-sheet-import/`
+zniknął. Wsad był jednorazowy i insert-only po `match_key`, więc przegląd katalogu (kasowanie
+śmieci, wycena zer, zdejmowanie dopisku „[stary arkusz]") robi się już **w aplikacji na
+produkcji**, zwykłą edycją wiersza — nie powtórnym wsadem, który dołożyłby duplikaty pod nowymi
+kluczami.
 
 Ponowne pobranie: `node --env-file=.env --import tsx src/scripts/legacy-sheet-import/fetch-grids.ts`
 (po przywróceniu skryptu). Czyta kontem read-only z `GOOGLE_SERVICE_ACCOUNT_JSON`, więc z laptopa

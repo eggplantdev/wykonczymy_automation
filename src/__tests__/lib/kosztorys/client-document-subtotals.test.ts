@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { applyRowConditions, clientConditionIds } from '@/lib/kosztorys/row-conditions'
+import { applyRowConditions } from '@/lib/kosztorys/row-conditions/queries'
+import { clientConditionIds } from '@/lib/kosztorys/row-conditions/registry'
 import { sectionSubtotalsForView } from '@/lib/kosztorys/settlement-aggregates'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import type { KosztorysItemT, KosztorysTreeT } from '@/lib/kosztorys/types'
@@ -53,6 +54,7 @@ const rows = treeToRows(tree)
 const documentRows = applyRowConditions(rows, clientConditionIds(true), {
   stages: tree.stages,
   hasSettledMaterial: false,
+  divergentPriceRowIds: new Set<number>(),
 })
 
 const ownerSubtotals = sectionSubtotalsForView(rows, tree.stages, 'client')

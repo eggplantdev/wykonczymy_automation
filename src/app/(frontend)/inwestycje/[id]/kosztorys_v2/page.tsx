@@ -15,6 +15,7 @@ import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { requireManagementPage } from '@/lib/auth/require-management-page'
 import { KosztorysEditorV2 } from '@/components/kosztorys/editor/kosztorys-editor-v2'
 import { perfStart } from '@/lib/perf'
+import { isLockedStatus } from '@/lib/constants/investment-lock'
 
 // The in-app kosztorys editor ("kosztorys_v2"). Always available — every investment has one,
 // the editor renders its own empty state. The legacy Google Sheet lives at /kosztorys.
@@ -86,6 +87,7 @@ export default async function InvestmentKosztorysV2Page({
       materialTransactions={materialTransactions}
       workers={refData.workers}
       hasSheet={investment.hasSheet}
+      locked={isLockedStatus(investment.status)}
     />
   )
 }

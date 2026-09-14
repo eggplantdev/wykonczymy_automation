@@ -60,6 +60,13 @@ describe('catalogueKey', () => {
     expect(catalogueKey('Skucie tynku', 'm2')).toBe(catalogueKey('Skucie tynku', 'm2'))
   })
 
+  // The bug this closes: `match_key` was written stripped but READ raw, so a praca wstawiona
+  // z katalogu — which keeps the note in its opis — keyed differently from the katalog row it came
+  // from and reported itself as „brak w katalogu", hinting at itself.
+  it('ignores the „[stary arkusz]" note — it is display text, never identity', () => {
+    expect(key('Malowanie ścian [stary arkusz]')).toBe(key('Malowanie ścian'))
+  })
+
   it('gives a missing j.m. a member of its own, so two of them collide', () => {
     // Postgres compares NULLs as distinct, so an empty half would let two „no j.m." rows both pass
     // the UNIQUE index — the token is what closes that.

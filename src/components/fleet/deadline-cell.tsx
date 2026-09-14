@@ -1,6 +1,6 @@
 'use client'
 
-import { daysLabel } from '@/lib/fleet/deadline-label'
+import { daysLabel } from '@/lib/utils/deadline-label'
 import { OVERDUE } from '@/lib/fleet/thresholds'
 import { formatPLDate } from '@/lib/utils/format-date'
 import { cn } from '@/lib/utils/cn'

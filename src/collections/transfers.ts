@@ -11,6 +11,7 @@ import {
   type TransferTypeT,
 } from '@/lib/constants/transfers'
 import { validateTransfer } from '@/hooks/transfers/validate'
+import { guardDeleteOnLockedInvestment } from '@/hooks/transfers/guard-delete'
 import { recalcAfterChange, recalcAfterDelete } from '@/hooks/transfers/recalculate-balances'
 import { syncSheetAfterChange, syncSheetAfterDelete } from '@/hooks/transfers/sync-sheet'
 import { deleteInvoiceMediaAfterDelete } from '@/hooks/transfers/delete-invoice-media'
@@ -74,6 +75,7 @@ export const Transfers: CollectionConfig = {
   },
   hooks: {
     beforeValidate: [validateTransfer],
+    beforeDelete: [guardDeleteOnLockedInvestment],
     afterChange: [recalcAfterChange, syncSheetAfterChange],
     afterDelete: [recalcAfterDelete, syncSheetAfterDelete, deleteInvoiceMediaAfterDelete],
   },

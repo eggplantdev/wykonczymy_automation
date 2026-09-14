@@ -35,6 +35,10 @@ export const NotificationRecipients: GlobalConfig = {
   fields: [
     recipientList('fleetDigest', { en: 'Fleet digest', pl: 'Powiadomienia o terminach' }),
     recipientList('newLead', { en: 'New lead', pl: 'Powiadomienia o nowych zgłoszeniach' }),
+    recipientList('equipmentDigest', {
+      en: 'Equipment digest',
+      pl: 'Powiadomienia o gwarancjach sprzętu',
+    }),
     recipientList('opsAlerts', { en: 'Ops alerts', pl: 'Alerty techniczne' }),
   ],
 }

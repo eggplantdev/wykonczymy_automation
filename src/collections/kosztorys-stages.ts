@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwnerOrManager } from '@/access'
+import { createUnlessInvestmentLocked, unlessInvestmentLocked } from '@/access/investment-lock'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 
 // A stage (etap) is a dynamic "column" shared by every item of an investment: an ordinal
@@ -22,9 +23,9 @@ export const KosztorysStages: CollectionConfig = {
   },
   access: {
     read: isAdminOrOwnerOrManager,
-    create: isAdminOrOwnerOrManager,
-    update: isAdminOrOwnerOrManager,
-    delete: isAdminOrOwnerOrManager,
+    create: createUnlessInvestmentLocked('investment'),
+    update: unlessInvestmentLocked('investment.status'),
+    delete: unlessInvestmentLocked('investment.status'),
   },
   fields: [
     { name: 'investment', type: 'relationship', relationTo: 'investments', required: true },

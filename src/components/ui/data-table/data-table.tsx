@@ -59,6 +59,9 @@ type DataTablePropsT<TData> = {
    * span them or place a total under the column it belongs to even when some are hidden. */
   footer?: (visibleColumnIds: string[]) => React.ReactNode
   toolbar?: (ctx: DataTableToolbarContextT<TData>) => React.ReactNode
+  /** A row count, a hint about what the filters did. Its own row rather than another toolbar item so
+   * it reads as a statement about the list below it. */
+  belowToolbar?: React.ReactNode
   className?: string
 }
 
@@ -74,6 +77,7 @@ export function DataTable<TData>({
   getRowClassName,
   footer,
   toolbar,
+  belowToolbar,
   className,
 }: DataTablePropsT<TData>) {
   const [sorting, setSorting] = useState<SortingState>(initialSorting)
@@ -158,6 +162,7 @@ export function DataTable<TData>({
           })}
         </div>
       )}
+      {belowToolbar}
       <div className="border-border overflow-x-auto rounded-lg border">
         {enableVirtualization ? (
           <VirtualizedTableBody

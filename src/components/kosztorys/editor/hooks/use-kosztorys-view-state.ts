@@ -5,7 +5,8 @@ import { useEngagedConditions } from '@/components/kosztorys/editor/hooks/use-en
 import { usePriceView } from '@/components/kosztorys/editor/hooks/use-price-view'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
-import { clientConditionIds, engagedPlane, isFoldSuppressed } from '@/lib/kosztorys/row-conditions'
+import { engagedPlane, isFoldSuppressed } from '@/lib/kosztorys/row-conditions/queries'
+import { clientConditionIds } from '@/lib/kosztorys/row-conditions/registry'
 import type { SortPickT, SortStateT } from '@/lib/kosztorys/row-view'
 
 type ArgsT = {

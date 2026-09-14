@@ -1,4 +1,5 @@
-import { toWarsawDay } from '@/lib/fleet/days'
+import { toWarsawDay } from '@/lib/utils/days'
+import { sumKnown } from '@/lib/utils/sum-known'
 import { PERFORMED_INSPECTION_TYPES, type InspectionTypeT } from '@/lib/fleet/inspection-types'
 import { ALL_TIME, isWithinRange, type DateRangeT } from '@/lib/utils/date-range'
 import { groupInOrder } from '@/lib/utils/group-in-order'
@@ -22,19 +23,6 @@ export type VehicleCostsT = {
   total: number | null
   /** Every entry, newest first — the itemisation behind the totals. */
   entries: CostEntryT[]
-}
-
-/**
- * `null` — not 0 — when nothing in the set carries a price; every caller renders that as „—". Zero
- * stays the true zero: an empty set, or work that really was free.
- *
- * Exported so the listing footer reaches the same verdict as the totals above it; a hand-rolled
- * `?? 0` there printed „0,00 zł" under a column of dashes.
- */
-export const sumKnown = (costs: readonly (number | null)[]): number | null => {
-  if (costs.length > 0 && costs.every((cost) => cost === null)) return null
-
-  return costs.reduce((sum: number, cost) => sum + (cost ?? 0), 0)
 }
 
 /**

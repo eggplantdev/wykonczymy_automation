@@ -7,10 +7,11 @@ import { DataTable } from '@/components/ui/data-table/data-table'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { DialogActions } from '@/components/ui/dialog-actions'
 import { Button } from '@/components/ui/button'
-import { FILTER_NONE, FilterMultiSelect } from '@/components/filters/filter-multi-select'
+import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
 import { SearchFilterInput } from '@/components/filters/search-filter-input'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { WORK_CATALOGUE_PICKER_COLUMNS } from '@/components/tables/work-catalogue'
+import { useClientMultiFilter } from '@/hooks/use-client-multi-filter'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { insertCatalogueItemsAction } from '@/lib/actions/work-catalogue'
 import {
@@ -18,6 +19,7 @@ import {
   partitionAlreadyInKosztorys,
   type KosztorysItemRefT,
 } from '@/lib/kosztorys/work-catalogue/already-in-kosztorys'
+import { catalogueCategoryOptions } from '@/lib/kosztorys/work-catalogue/category-options'
 import type { SectionSubtotalT } from '@/lib/kosztorys/types'
 import type {
   AppendedCatalogueSliceT,
@@ -51,6 +53,8 @@ const INITIAL_SORTING = [
 const MAX_WARNING_TOASTS = 3
 
 const searchText = (item: WorkCatalogueItemT) => `${item.description} ${item.category ?? ''}`
+
+const itemCategory = (item: WorkCatalogueItemT) => item.category ?? ''
 
 const SelectedIdsContext = createContext<readonly number[]>([])
 
@@ -88,7 +92,6 @@ export function AddItemsFromCatalogueDialog({
   const [selected, setSelected] = useState<number[]>([])
   const [sectionId, setSectionId] = useState<number | null>(initialSectionId)
   const [hideAlreadyAdded, setHideAlreadyAdded] = useState(true)
-  const [categories, setCategories] = useState<string[]>([])
   const [pending, setPending] = useState(false)
 
   const {
@@ -96,18 +99,15 @@ export function AddItemsFromCatalogueDialog({
     searchTerm,
     setSearchTerm,
   } = useSearchFilter(catalogue ?? [], searchText)
+  const {
+    filteredData: inScope,
+    values: categories,
+    setValues: setCategories,
+  } = useClientMultiFilter(filtered, itemCategory)
 
   // Cached on the rozpiska alone, so a keystroke in the szukajka costs Set lookups and not a re-fold
   // of the whole kosztorys.
   const takenKeys = kosztorysCatalogueKeys(kosztorysItems)
-  // FilterMultiSelect's own encoding: [] = nothing filtered out, [FILTER_NONE] = every kategoria
-  // unticked.
-  const inScope =
-    categories.length === 0
-      ? filtered
-      : categories[0] === FILTER_NONE
-        ? []
-        : filtered.filter((item) => categories.includes(item.category ?? ''))
   // Split AFTER the szukajka, so the „(N)" counts what this phrase is hiding rather than the whole
   // cennik — a number about rows the owner cannot see anyway would read as a defect.
   const { fresh, alreadyAdded } = partitionAlreadyInKosztorys(inScope, takenKeys)
@@ -118,11 +118,7 @@ export function AddItemsFromCatalogueDialog({
   const visible = hideAlreadyAdded ? [...fresh, ...keptSelected] : inScope
   const hiddenCount = alreadyAdded.length - keptSelected.length
 
-  // A praca with no kategoria gets its own option: without one, picking any kategoria would hide it
-  // with no way left to bring it back.
-  const categoryOptions = [...new Set((catalogue ?? []).map((item) => item.category ?? ''))]
-    .sort((a, b) => a.localeCompare(b, 'pl'))
-    .map((name) => ({ value: name, label: name || 'Bez kategorii' }))
+  const categoryOptions = catalogueCategoryOptions(catalogue ?? [])
 
   const sectionOptions = sections.map((section) => ({
     value: String(section.sectionId),

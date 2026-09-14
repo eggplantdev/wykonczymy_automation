@@ -12,7 +12,7 @@ import { DateFilters } from '@/components/filters/date-filters'
 import { AddVehicleDialog } from '@/components/dialogs/add-vehicle-dialog'
 import { AddInspectionDialog } from '@/components/dialogs/add-inspection-dialog'
 import { useSearchFilter } from '@/hooks/use-search-filter'
-import { sumKnown } from '@/lib/fleet/costs'
+import { sumKnown } from '@/lib/utils/sum-known'
 import { formatPLNOrDash } from '@/lib/utils/format-currency'
 import type { FleetRowT } from '@/types/fleet'
 

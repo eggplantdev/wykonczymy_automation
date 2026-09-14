@@ -9,7 +9,7 @@ import {
   inspectionSchema,
   type InspectionFormDataT,
 } from '@/components/forms/inspection-form/inspection-schema'
-import { warsawToday } from '@/lib/fleet/days'
+import { warsawToday } from '@/lib/utils/days'
 import { activeFlags, nextFlags, parseVehicleFlags } from '@/lib/fleet/flags'
 import {
   PERFORMED_INSPECTION_TYPES,

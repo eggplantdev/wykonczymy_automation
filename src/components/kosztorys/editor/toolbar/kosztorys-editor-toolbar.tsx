@@ -20,7 +20,7 @@ import { KosztorysProblemsMenu } from '@/components/kosztorys/editor/toolbar/men
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
 export function KosztorysEditorToolbar() {
-  const { search, setSearch, view, setView, subtotals } = useKosztorysEditorContext()
+  const { search, setSearch, view, setView, subtotals, readOnly } = useKosztorysEditorContext()
 
   return (
     <div className="border-border shrink-0 border-b">
@@ -34,7 +34,9 @@ export function KosztorysEditorToolbar() {
           aria-label="Widok cen"
         />
 
-        <KosztorysAddMenu />
+        {/* Reading a closed kosztorys keeps every lens — search, filters, views. Only the entries
+            that would write are gone, and the banner above says why. */}
+        {!readOnly && <KosztorysAddMenu />}
         <SimpleTooltip content="Szukaj pozycji / sekcji">
           {/* SearchFilterInput takes no ref, so the tooltip anchors to a wrapper */}
           <div>

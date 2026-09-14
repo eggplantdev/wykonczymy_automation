@@ -24,8 +24,14 @@ describe('resolveId', () => {
     expect(resolveId(undefined)).toBeUndefined()
   })
 
-  it('returns undefined for string', () => {
-    expect(resolveId('42')).toBeUndefined()
+  // A REST body sends the relationship as a string; the investment lock reads `undefined` as
+  // „no investment touched", so parsing it is what keeps the gate closed.
+  it('parses a numeric string id', () => {
+    expect(resolveId('42')).toBe(42)
+  })
+
+  it('returns undefined for a non-numeric string', () => {
+    expect(resolveId('abc')).toBeUndefined()
   })
 
   it('returns undefined for object without id', () => {

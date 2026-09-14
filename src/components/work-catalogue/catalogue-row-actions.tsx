@@ -1,14 +1,17 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Trash2 } from 'lucide-react'
+import { Check, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { EditCatalogueItemDialog } from '@/components/dialogs/edit-catalogue-item-dialog'
-import { deleteCatalogueItemAction } from '@/lib/actions/work-catalogue'
+import { clearLegacyMarkerAction, deleteCatalogueItemAction } from '@/lib/actions/work-catalogue'
+import { hasLegacyMarker } from '@/lib/kosztorys/work-catalogue/legacy-marker'
 import { toastMessage } from '@/lib/utils/toast'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
+
+const LEGACY_ACTION_LABEL = 'Zdejmij dopisek „stary arkusz"'
 
 type PropsT = {
   item: WorkCatalogueItemT
@@ -18,6 +21,14 @@ type PropsT = {
 export function CatalogueRowActions({ item, categorySuggestions }: PropsT) {
   const [confirming, setConfirming] = useState(false)
   const [pending, startTransition] = useTransition()
+
+  const onClearMarker = () => {
+    startTransition(async () => {
+      const res = await clearLegacyMarkerAction(item.id)
+      if (!res.success) return toastMessage(res.error ?? 'Nie udało się zdjąć dopisku', 'error')
+      toastMessage('Zdjęto dopisek „stary arkusz".', 'success')
+    })
+  }
 
   const onDelete = () => {
     startTransition(async () => {
@@ -30,6 +41,21 @@ export function CatalogueRowActions({ item, categorySuggestions }: PropsT) {
 
   return (
     <div className="flex items-center justify-end gap-1">
+      {hasLegacyMarker(item.description) && (
+        <SimpleTooltip content={LEGACY_ACTION_LABEL}>
+          <Button
+            size="xs"
+            variant="ghost"
+            className="px-1.5"
+            aria-label={LEGACY_ACTION_LABEL}
+            disabled={pending}
+            onClick={onClearMarker}
+          >
+            <Check />
+          </Button>
+        </SimpleTooltip>
+      )}
+
       <EditCatalogueItemDialog item={item} categorySuggestions={categorySuggestions} />
 
       <SimpleTooltip content="Usuń z katalogu">

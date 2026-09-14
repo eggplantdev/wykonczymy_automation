@@ -5,6 +5,7 @@ import { getDb } from './get-db'
 export const STREAMS = {
   leads: 'leads',
   fleet: 'fleet',
+  equipment: 'equipment',
 } as const
 
 export type StreamT = (typeof STREAMS)[keyof typeof STREAMS]
@@ -16,6 +17,7 @@ export type StreamT = (typeof STREAMS)[keyof typeof STREAMS]
 const EPOCHS: Record<StreamT, string> = {
   leads: '2026-07-08T00:00:00Z',
   fleet: '2026-08-18T00:00:00Z',
+  equipment: '2026-09-03T00:00:00Z',
 }
 
 /**
@@ -83,6 +85,47 @@ export const countUnreadFleetDeadlines = async (
             current_deadlines.next_due_at - interval '30 days',
             current_deadlines.created_at
           ) > read_cursor.seen_at
+  `)
+
+  return Number(result.rows[0].count)
+}
+
+/**
+ * How many warranties have entered the 30-day window since the user last looked at the register.
+ *
+ * Same shape as the fleet's counter and for the same reason: a warranty has no creation event to
+ * count — it slides into urgency as the calendar moves — so "unread" is read off the day it entered
+ * the window, `warranty_until - 30 days`. `GREATEST(…, created_at)` covers what the date alone
+ * cannot: an item ENTERED today whose warranty ends in five days slid into the window before it
+ * existed, so its window-entry instant would be older than any cursor and the most urgent thing in
+ * the register would never reach the badge.
+ *
+ * An expired warranty drops out: the mail never announces one, so the badge must not either.
+ * `today` is the Warsaw day, passed in rather than read as Postgres `now()` (UTC), otherwise the
+ * badge and the listing disagree about the window for the last two hours of every day.
+ */
+export const countUnreadWarranties = async (
+  payload: Payload,
+  userId: number,
+  today: string,
+): Promise<number> => {
+  const db = await getDb(payload)
+
+  const result = await db.execute(sql`
+    WITH read_cursor AS (
+      SELECT COALESCE(
+        (SELECT seen_at FROM notification_reads
+         WHERE user_id = ${userId} AND stream = ${STREAMS.equipment}),
+        ${EPOCHS.equipment}::timestamptz
+      ) AS seen_at
+    )
+    SELECT COUNT(*) AS count
+    FROM equipment e, read_cursor
+    WHERE e.status = 'IN_USE'
+      AND e.warranty_until IS NOT NULL
+      AND e.warranty_until >= ${today}::date
+      AND e.warranty_until <= ${today}::date + interval '30 days'
+      AND GREATEST(e.warranty_until - interval '30 days', e.created_at) > read_cursor.seen_at
   `)
 
   return Number(result.rows[0].count)

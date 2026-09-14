@@ -55,6 +55,13 @@ const preventDeleteWithReferences = makePreventDelete({
       where: (id) => ({ worker: { equals: id } }),
       label: 'etapy kosztorysu',
     },
+    // Not authorship: this names who was HOLDING a tool. Deleting the row would erase the only
+    // answer to „who had it last" for anything still in that person's hands.
+    {
+      collection: 'equipment-events',
+      where: (id) => ({ holder: { equals: id } }),
+      label: 'sprzęt',
+    },
   ],
   message: (blockers) =>
     `Nie można usunąć pracownika — jest powiązany z danymi (${blockers.join(', ')}). Zamiast usuwać, odznacz „Aktywny".`,

@@ -24,6 +24,7 @@ import {
 } from '@/lib/constants/transfers'
 import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
 import { logError } from '@/lib/utils/log-error'
+import { investmentAction } from '@/lib/actions/investment-action'
 import { protectedAction } from './run-action'
 
 // One tab's pending changes. `toUpdateCount`/`toRemoveCount` are what a confirm would
@@ -236,8 +237,9 @@ async function buildSyncPlan(
 // forged toAppend (arbitrary typ/amount/description) would otherwise land in the
 // sheet verbatim. The set written here is exactly previewMaterialSync would show.
 export async function applyMaterialSync(investmentId: number) {
-  return protectedAction<ApplyMaterialSyncResultT>(
+  return investmentAction<ApplyMaterialSyncResultT>(
     'applyMaterialSync',
+    { investmentId },
     async ({ payload }) => {
       const sheetId = await getInvestmentSheetId(payload, investmentId)
       if (!sheetId) {

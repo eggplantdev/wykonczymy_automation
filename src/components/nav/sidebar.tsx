@@ -7,6 +7,7 @@ import { logoutAction } from '@/lib/actions/auth'
 import { refreshDataAction } from '@/lib/actions/refresh'
 import { isManagementRole } from '@/lib/auth/roles'
 import { SECTION_LINKS } from '@/lib/constants/sections'
+import { UnreadEquipmentBadge } from '@/components/nav/unread-equipment-badge'
 import { UnreadFleetBadge } from '@/components/nav/unread-fleet-badge'
 import { cn } from '@/lib/utils/cn'
 import { toastMessage } from '@/lib/utils/toast'
@@ -21,6 +22,7 @@ import {
   LogOut,
   RefreshCw,
   Users,
+  Wrench,
   type LucideIcon,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -40,6 +42,7 @@ const MANAGEMENT_LINKS: {
   { href: '/kosztorysy', label: 'Kosztorysy v1', icon: FileSpreadsheet },
   { href: '/katalog-prac', label: 'Katalog prac', icon: ListChecks },
   { href: '/flota', label: 'Flota', icon: Car, badge: UnreadFleetBadge },
+  { href: '/sprzet', label: 'Sprzęt', icon: Wrench, badge: UnreadEquipmentBadge },
   { href: '/pracownicy', label: 'Pracownicy', icon: Users },
 ]
 

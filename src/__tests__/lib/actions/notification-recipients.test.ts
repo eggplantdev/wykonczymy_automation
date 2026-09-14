@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 
 // Driven against the REAL DB and asserted on the PERSISTED global: the trap this guards is a write
-// that succeeds while emptying the two lists nobody was editing, and a `success: true` cannot tell
+// that succeeds while emptying the lists nobody was editing, and a `success: true` cannot tell
 // you which lists survived.
 //
 // Same mock surface as the sibling action specs: requireAuth needs a request/cookie we lack in node,
@@ -24,6 +24,7 @@ const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SEC
 
 const BASELINE = {
   fleetDigest: [{ email: 'flota@example.com' }],
+  equipmentDigest: [{ email: 'sprzet@example.com' }],
   newLead: [{ email: 'sprzedaz@example.com' }],
   opsAlerts: [{ email: 'ops@example.com' }],
 }
@@ -47,13 +48,14 @@ describe.skipIf(!ENV_READY)('saveRecipientListAction (DB)', () => {
     await resetGlobal()
   })
 
-  it('rewrites the named list and leaves its two siblings intact', async () => {
+  it('rewrites the named list and leaves its siblings intact', async () => {
     await resetGlobal()
     const result = await saveRecipientListAction('fleetDigest', ['a@example.com', 'b@example.com'])
 
     expect(result.success).toBe(true)
     expect(await readRecipientLists(payload)).toEqual({
       fleetDigest: ['a@example.com', 'b@example.com'],
+      equipmentDigest: ['sprzet@example.com'],
       newLead: ['sprzedaz@example.com'],
       opsAlerts: ['ops@example.com'],
     })

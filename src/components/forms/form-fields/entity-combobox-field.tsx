@@ -21,6 +21,16 @@ type VariantConfigT = {
   noActiveItemsMessage: string
 }
 
+// „Pracownik" is picked under three field names (worker / holder / owner); the wording is one thing.
+const WORKER_COPY = {
+  label: 'Pracownik',
+  placeholder: 'Wybierz pracownika',
+  searchPlaceholder: 'Szukaj pracownika...',
+  emptySearchMessage: 'Nie znaleziono pracownika.',
+  noItemsMessage: 'Brak pracowników',
+  noActiveItemsMessage: 'Brak aktywnych pracowników',
+} as const
+
 const VARIANT_CONFIG = {
   investment: {
     name: 'investment',
@@ -31,23 +41,13 @@ const VARIANT_CONFIG = {
     noItemsMessage: 'Brak inwestycji',
     noActiveItemsMessage: 'Brak aktywnych inwestycji',
   },
-  worker: {
-    name: 'worker',
-    label: 'Pracownik',
-    placeholder: 'Wybierz pracownika',
-    searchPlaceholder: 'Szukaj pracownika...',
-    emptySearchMessage: 'Nie znaleziono pracownika.',
-    noItemsMessage: 'Brak pracowników',
-    noActiveItemsMessage: 'Brak aktywnych pracowników',
-  },
+  worker: { ...WORKER_COPY, name: 'worker' },
+  holder: { ...WORKER_COPY, name: 'holder' },
   owner: {
+    ...WORKER_COPY,
     name: 'owner',
     label: 'Właściciel',
     placeholder: 'Wybierz właściciela',
-    searchPlaceholder: 'Szukaj pracownika...',
-    emptySearchMessage: 'Nie znaleziono pracownika.',
-    noItemsMessage: 'Brak pracowników',
-    noActiveItemsMessage: 'Brak aktywnych pracowników',
   },
 } as const satisfies Record<string, VariantConfigT>
 

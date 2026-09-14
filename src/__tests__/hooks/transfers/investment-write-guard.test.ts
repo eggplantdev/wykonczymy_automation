@@ -17,17 +17,22 @@ function hookArgs(
   return {
     data,
     operation,
-    req: { user: null },
+    // The completed-investment gate reads the status through the drizzle adapter — „aktywna" here,
+    // since the lock has its own spec (validate-lock.test.ts) and this one is about the clear rule.
+    req: {
+      user: null,
+      payload: { db: { drizzle: { execute: async () => ({ rows: [{ status: 'active' }] }) } } },
+    },
     originalDoc,
     collection: undefined,
     context: {},
   } as unknown as Parameters<typeof validateTransfer>[0]
 }
 
-const investmentAfter = (
+const investmentAfter = async (
   data: Record<string, unknown>,
   opts?: { operation?: 'create' | 'update'; originalDoc?: Record<string, unknown> },
-) => (validateTransfer(hookArgs(data, opts)) as Record<string, unknown>).investment
+) => ((await validateTransfer(hookArgs(data, opts))) as Record<string, unknown>).investment
 
 describe('investment write guard — types that may never carry an investment', () => {
   const CLEARED = {
@@ -38,13 +43,13 @@ describe('investment write guard — types that may never carry an investment', 
   }
 
   for (const [type, data] of Object.entries(CLEARED)) {
-    it(`${type} — a create carrying an investment is cleared`, () => {
-      expect(investmentAfter({ ...data, investment: 7 })).toBeNull()
+    it(`${type} — a create carrying an investment is cleared`, async () => {
+      expect(await investmentAfter({ ...data, investment: 7 })).toBeNull()
     })
 
-    it(`${type} — an update carrying an investment is cleared`, () => {
+    it(`${type} — an update carrying an investment is cleared`, async () => {
       expect(
-        investmentAfter(
+        await investmentAfter(
           { ...data, investment: 7 },
           { operation: 'update', originalDoc: { ...data, id: 1 } },
         ),
@@ -53,10 +58,10 @@ describe('investment write guard — types that may never carry an investment', 
 
     // An update that carries no `type` of its own falls back to the stored one, so the
     // clear must still fire rather than reading `''` and skipping.
-    it(`${type} — an update with no type of its own still clears`, () => {
+    it(`${type} — an update with no type of its own still clears`, async () => {
       const { type: _stored, ...withoutType } = data
       expect(
-        investmentAfter(
+        await investmentAfter(
           { ...withoutType, investment: 7 },
           { operation: 'update', originalDoc: { ...data, id: 1 } },
         ),
@@ -73,13 +78,13 @@ describe('investment write guard — INVESTOR_DEPOSIT is the one deposit that ke
     investment: 7,
   }
 
-  it('a create keeps the investment', () => {
-    expect(investmentAfter(investorDeposit)).toBe(7)
+  it('a create keeps the investment', async () => {
+    expect(await investmentAfter(investorDeposit)).toBe(7)
   })
 
-  it('an update keeps the investment', () => {
+  it('an update keeps the investment', async () => {
     expect(
-      investmentAfter(investorDeposit, {
+      await investmentAfter(investorDeposit, {
         operation: 'update',
         originalDoc: { ...investorDeposit, id: 1 },
       }),

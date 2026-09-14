@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { activeFiltersModel } from '@/components/kosztorys/editor/toolbar/active-filters-model'
 import { PROBLEM_IDS } from '@/lib/kosztorys/problem-conditions'
-import { ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions'
+import { ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions/registry'
 
 const NOTHING_ENGAGED = {
   engagedIds: new Set<string>(),

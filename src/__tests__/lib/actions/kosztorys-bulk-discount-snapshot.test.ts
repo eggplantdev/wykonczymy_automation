@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { getDb } from '@/lib/db/get-db'
+import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { sql } from '@payloadcms/db-vercel-postgres'
 
 // applyPercentDiscountToAllItemsAction flattens EVERY item's per-item rabat to `percent X` in one
@@ -32,16 +33,9 @@ describe.skipIf(!ENV_READY)('bulk percent rabat — snapshot-before-overwrite (D
     const config = (await import('@payload-config')).default
     payload = await getPayload({ config })
     db = await getDb(payload)
-    const inv = await payload.find({
-      collection: 'investments',
-      limit: 1,
-      sort: 'id',
-      depth: 0,
-      overrideAccess: true,
-    })
-    const first = inv.docs[0]
-    if (!first) throw new Error('no investment in the DB to attach test fixtures to')
-    investmentId = Number(first.id)
+    // Self-provisioned rather than borrowed: the oldest prod-dump investments are
+    // `completed`, and a completed investment refuses every kosztorys write.
+    investmentId = await createTestInvestment(payload, `bulk-discount-test-${Date.now()}`)
     const users = await payload.find({
       collection: 'users',
       limit: 1,
@@ -51,6 +45,10 @@ describe.skipIf(!ENV_READY)('bulk percent rabat — snapshot-before-overwrite (D
     const firstUser = users.docs[0]
     if (!firstUser) throw new Error('no user in the DB to attribute the snapshot to')
     authState.userId = Number(firstUser.id)
+  })
+
+  afterAll(async () => {
+    await deleteTestInvestment(payload, investmentId)
   })
 
   afterEach(async () => {

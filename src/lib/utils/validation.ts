@@ -70,3 +70,22 @@ export function refineDate(data: { date: string }, ctx: z.RefinementCtx) {
     })
   }
 }
+
+/** A money input that may be left blank — the faktura often arrives after the row does. */
+export const optionalNonNegativeAmount = (message: string) =>
+  z.string().refine((value) => value === '' || Number(value) >= 0, message)
+
+/**
+ * The `YYYY-MM-DD` a day picker produces. The shape is checked rather than assumed because the
+ * server action parses the same schema, and a value that isn't a day lands in Postgres as an
+ * Invalid Date instead of being refused.
+ */
+const DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/
+
+/** A day input that may be left blank. */
+export const optionalDay = () =>
+  z.string().refine((value) => value === '' || DAY_PATTERN.test(value), 'Nieprawidłowa data')
+
+/** A day input that is required, with its own „missing" message. */
+export const requiredDay = (message: string) =>
+  z.string().min(1, message).regex(DAY_PATTERN, 'Nieprawidłowa data')

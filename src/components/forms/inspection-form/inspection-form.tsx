@@ -7,7 +7,7 @@ import { useStore } from '@/components/forms/hooks/form-hooks'
 import { useManagedForm } from '@/components/forms/hooks/use-managed-form'
 import { FormShell } from '@/components/forms/form-components/form-shell'
 import FormFooter from '@/components/forms/form-components/form-footer'
-import { addMonthsToDay } from '@/lib/fleet/days'
+import { addMonthsToDay } from '@/lib/utils/days'
 import {
   INSPECTION_INTERVAL_MONTHS,
   INSPECTION_TYPE_LABELS,

@@ -1,4 +1,4 @@
-import type { DayT } from '@/lib/fleet/days'
+import type { DayT } from '@/lib/utils/days'
 import type {
   PerformedInspectionTypeT,
   InspectionTypeT,

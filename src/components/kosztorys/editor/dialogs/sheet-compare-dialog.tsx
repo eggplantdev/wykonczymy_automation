@@ -11,11 +11,7 @@ import {
   ItemList,
   ReportFold,
 } from '@/components/kosztorys/editor/dialogs/sheet-report-parts'
-import {
-  itemHasPhrase,
-  itemNoun,
-  itemNounLocative,
-} from '@/components/kosztorys/editor/dialogs/sheet-report-words'
+import { itemHasPhrase, itemNoun, itemNounLocative } from '@/lib/kosztorys/counted-nouns'
 import type { SheetCompareResultT } from '@/lib/actions/kosztorys-import'
 import { MONEY_TOLERANCE } from '@/lib/kosztorys/calc'
 import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'

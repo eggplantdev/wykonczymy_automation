@@ -63,6 +63,7 @@ import FormFooter from '../form-components/form-footer'
 import { FormShell } from '../form-components/form-shell'
 import { RegisterBalanceSummary } from '../form-components/register-balance-summary'
 import { useExpenseFormStore } from '@/stores/form-stores'
+import { isBookableInvestment } from '@/lib/constants/investment-lock'
 
 type TransferFormPropsT = {
   referenceData: ReferenceDataT
@@ -298,7 +299,11 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
         </div>
 
         {showsInvestment(currentType) && (
-          <EntityComboboxField form={form} variant="investment" items={referenceData.investments} />
+          <EntityComboboxField
+            form={form}
+            variant="investment"
+            items={referenceData.investments.filter(isBookableInvestment)}
+          />
         )}
 
         {canBeSettled(currentType) && (

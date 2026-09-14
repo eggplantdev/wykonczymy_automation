@@ -30,6 +30,9 @@ import { resolveId } from '@/lib/utils/resolve-id'
 import { invoiceIds } from '@/lib/invoices/invoice-field'
 import { deleteUnreferencedMedia } from '@/lib/invoices/delete-unreferenced-media'
 import type { ActionResultT } from '@/types/action'
+import { getDb } from '@/lib/db/get-db'
+import { isRelatedInvestmentLocked } from '@/lib/db/investment-lock'
+import { INVESTMENT_LOCKED_MESSAGE } from '@/lib/constants/investment-lock'
 
 export async function createTransferAction(data: CreateTransferFormT, invoiceMediaIds?: number[]) {
   return protectedAction(
@@ -46,6 +49,12 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
         const validated = await validateSourceRegister(parsed.data.sourceRegister, payload)
         console.log(`[PERF]   validateSourceRegister ${step()}ms`)
         if (!validated.success) return validated
+      }
+
+      // The gate itself is the collection hook, which covers the API and the panel too; here only so
+      // the refusal reaches the form as a sentence instead of a raw hook Error.
+      if (await isRelatedInvestmentLocked(await getDb(payload), parsed.data.investment)) {
+        return { success: false, error: INVESTMENT_LOCKED_MESSAGE }
       }
 
       await payload.create({
@@ -87,6 +96,10 @@ export async function createBulkTransferAction(
         const validated = await validateSourceRegister(parsed.data.sourceRegister, payload)
         console.log(`[PERF]   validateSourceRegister ${step()}ms`)
         if (!validated.success) return validated
+      }
+
+      if (await isRelatedInvestmentLocked(await getDb(payload), parsed.data.investment)) {
+        return { success: false, error: INVESTMENT_LOCKED_MESSAGE }
       }
 
       // skipSheetSync: the per-row afterChange hook must NOT sync each created
@@ -159,6 +172,9 @@ async function fetchAndAuthorize(
   if (!original) return { error: 'Transakcja nie istnieje.' }
   if (original.cancelled) return { error: 'Transakcja jest już anulowana.' }
   if (original.type === 'CANCELLATION') return { error: 'Nie można edytować anulowania.' }
+  if (await isRelatedInvestmentLocked(await getDb(payload), original.investment)) {
+    return { error: INVESTMENT_LOCKED_MESSAGE }
+  }
 
   const creatorId = resolveId(original.createdBy)
   const allowed = canMutateTransfer({

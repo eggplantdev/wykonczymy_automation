@@ -1,16 +1,8 @@
 'use client'
 
-import { type ReactNode } from 'react'
-import { Column, type CellProps, keyColumn } from 'react-datasheet-grid'
-import { SortHeader } from '@/components/kosztorys/editor/grid/sort-header'
+import { Column, keyColumn } from 'react-datasheet-grid'
 import { StageHeader } from '@/components/kosztorys/editor/grid/stage-header'
 import { STAGE_HEADER_COPY } from '@/components/kosztorys/editor/grid/stage-header-copy'
-import { HeaderLabel } from '@/components/ui/datasheet-grid/header-label'
-import { SimpleTooltip } from '@/components/ui/tooltip'
-import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
-import { KosztorysRowActionsMenu } from '@/components/kosztorys/editor/grid/menus/kosztorys-row-actions-menu'
-import { useCataloguePicker } from '@/components/kosztorys/editor/actions/catalogue-picker-host'
-import { ResizableHeader } from '@/components/ui/datasheet-grid/column-resize-handle'
 import { decimalColumn } from '@/components/kosztorys/editor/grid/cells/decimal-column'
 import { computedColumn } from '@/components/kosztorys/editor/grid/cells/computed-cell'
 import { divergenceColumn } from '@/components/kosztorys/editor/grid/cells/divergence-cell'
@@ -19,6 +11,14 @@ import {
   subcontractorPriceColumn,
 } from '@/components/kosztorys/editor/grid/cells/subcontractor-columns'
 import { type BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
+import { columnTitle, stageValueHeader } from '@/components/kosztorys/editor/grid/column-headers'
+import { actionColumn } from '@/components/kosztorys/editor/grid/row-actions-column'
+import {
+  assembleBaseRanks,
+  orderAssembled,
+  selectV2Columns,
+  selectV2ToggleItems,
+} from '@/components/kosztorys/editor/grid/column-selection'
 import {
   rowDiscountForView,
   rowDoneFraction,
@@ -32,35 +32,21 @@ import {
   discountTypeColumn,
 } from '@/components/kosztorys/editor/grid/cells/discount-columns'
 import { unitColumn } from '@/components/kosztorys/editor/grid/cells/unit-column'
-import { SectionNameCell } from '@/components/kosztorys/editor/grid/cells/section-name-cell'
+import { sectionNameColumn } from '@/components/kosztorys/editor/grid/cells/section-name-cell'
 import { wrapColumnHeaderClass } from '@/lib/kosztorys/row-content-lines'
 import { longTextColumn } from '@/components/ui/datasheet-grid/long-text-cell'
 import { type ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
 import {
   STAGE_VALUE_GROSS_COLUMN_GROUP,
   STAGE_VALUE_NET_COLUMN_GROUP,
-  stageGroupOfKey,
   stageKey,
   stageValueGrossKey,
   stageValueNetKey,
 } from '@/lib/kosztorys/stage-keys'
-import {
-  baseRanksFromKeys,
-  groupColumns,
-  orderColumns,
-  type ColumnRanksT,
-} from '@/lib/table/column-order'
-import {
-  PREVIEW_VISIBLE_COLUMNS,
-  PRZEDMIAR_ANCHORED_COLUMNS,
-  UNPICKABLE_COLUMNS,
-  columnLabelForView,
-} from '@/lib/kosztorys/column-config'
+import { type ColumnRanksT } from '@/lib/table/column-order'
 import { headerTipFor } from '@/lib/kosztorys/header-tips'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
-import { LAYER_DEFAULT, layerAllows } from '@/lib/kosztorys/layer'
-import { MONEY_AXIS_DEFAULT, axisAllows } from '@/lib/kosztorys/money-axis'
 import { formatPercent, formatQty } from '@/lib/kosztorys/format'
 import { formatPLN } from '@/lib/utils/format-currency'
 import {
@@ -73,17 +59,8 @@ import {
 import { activeSortPick } from '@/lib/kosztorys/row-view'
 import { stagesForView } from '@/lib/kosztorys/settlement-view'
 import { stagesMatchingEngaged } from '@/lib/kosztorys/stage-conditions'
-import { stageLabel } from '@/lib/kosztorys/stage-label'
-import type { KosztorysStageT, KosztorysV2RowT, StageKeyT } from '@/lib/kosztorys/types'
+import type { KosztorysV2RowT, StageKeyT } from '@/lib/kosztorys/types'
 import { numericFieldPolicy } from '@/lib/kosztorys/cell-edit'
-
-// The four per-item rabat columns hidden while the global discount overrides them.
-const DISCOUNT_COLUMN_IDS = new Set([
-  'discountValue',
-  'discountType',
-  'discountAmount',
-  'discountAmountGross',
-])
 
 // keyColumn requires column: Column<Row[K]>. longTextColumn is nullable (Column<string|null>)
 // whereas the item fields are non-null. The cell type is invariant (rowData covariant + setRowData
@@ -112,170 +89,6 @@ const PLANE_UNCONFIRMED_CELL = {
   cellClassName: 'bg-destructive/10 text-destructive',
 } as const
 
-function withTip(node: ReactNode, tip: string): ReactNode {
-  return (
-    <SimpleTooltip content={tip}>
-      <span className="flex size-full items-center">{node}</span>
-    </SimpleTooltip>
-  )
-}
-
-// A column header that offers the sort menu, or — with no `onSetSort`, i.e. a preview — the bare
-// label. The tip goes ONTO the sort trigger (same element), not around it: a second wrapping trigger
-// would fight the dropdown for the click. Plain labels have no trigger, so they wrap directly, and
-// they wrap (no truncate) into the fixed, taller header row (KosztorysEditorBody).
-function sortableHeader(
-  label: string,
-  field: string,
-  tip: string | undefined,
-  opts: Pick<BuildV2ColumnsOptsT, 'sort' | 'onSetSort' | 'onPersistKosztorysOrder'>,
-): ReactNode {
-  const { onSetSort } = opts
-  if (onSetSort) {
-    return (
-      <SortHeader
-        label={label}
-        active={activeSortPick(opts.sort, field)}
-        tip={tip}
-        onSort={(pick) => onSetSort(field, pick)}
-        onPersistOrder={opts.onPersistKosztorysOrder}
-      />
-    )
-  }
-  const node = <HeaderLabel>{label}</HeaderLabel>
-  return tip ? withTip(node, tip) : node
-}
-
-// The label is resolved from `field`, never passed in: every header and the column picker then read
-// the same resolver, so a label that becomes view-dependent can't land in one and miss the other.
-function title(
-  field: string,
-  opts: Pick<BuildV2ColumnsOptsT, 'sort' | 'onSetSort' | 'onPersistKosztorysOrder' | 'view'>,
-): ReactNode {
-  return sortableHeader(
-    columnLabelForView(field, opts.view),
-    field,
-    // Base key: a plane's „Cena j.m. netto" and „Źródło ceny wykonawcy" explain the same figure on
-    // both planes, so the tip is written once and every plane reads it.
-    headerTipFor(field),
-    opts,
-  )
-}
-
-// Header of a per-stage value column: a read-only mirror of the stage's name. One source for the
-// name, so a rename moves all three of the stage's headers and a delete takes all three columns.
-// Deliberately not `StageHeader` — a mirror carries no rename/delete affordance of its own; its
-// label is simply one the column-label resolver cannot produce, the stage's name being data rather
-// than a static column label.
-function stageValueHeader(
-  stage: KosztorysStageT,
-  suffix: string,
-  tip: string | undefined,
-  field: string,
-  opts: Pick<BuildV2ColumnsOptsT, 'sort' | 'onSetSort' | 'onPersistKosztorysOrder'>,
-): ReactNode {
-  return sortableHeader(`${stageLabel(stage)} ${suffix}`, field, tip, opts)
-}
-
-const DEFAULT_COLUMN_MIN_WIDTH = 110
-
-function withResize(
-  col: Column<KosztorysV2RowT>,
-  opts: Pick<BuildV2ColumnsOptsT, 'onGuide' | 'onCommitColumn' | 'widths'>,
-): Column<KosztorysV2RowT> {
-  if (!opts.onGuide || !opts.onCommitColumn || !col.id) return col
-  // A fixed-width column (min === max, e.g. the row-actions column) has nothing to drag — skip the
-  // resizable header rather than hang a dead handle on it.
-  if (col.minWidth != null && col.minWidth === col.maxWidth) return col
-  // A default, not a clamp: a column that declares its own minWidth keeps it (the trailing gap wants
-  // 24). dsg clamps an unpinned column's rendered width to its minWidth on overflow (many columns >
-  // viewport), so this is the actual initial width, not just a drag limit.
-  const min = col.minWidth ?? DEFAULT_COLUMN_MIN_WIDTH
-  const pinned = opts.widths?.[col.id]
-  // Pinning = a rigid width independent of dsg's flex algorithm: min=max=basis=W,
-  // grow/shrink 0. (dsg ignored `basis` alone on overflow — it fell back to minWidth.)
-  const sized: Column<KosztorysV2RowT> =
-    pinned != null
-      ? { ...col, basis: pinned, grow: 0, shrink: 0, minWidth: pinned, maxWidth: pinned }
-      : { ...col, minWidth: min }
-  return {
-    ...sized,
-    title: (
-      <ResizableHeader
-        colId={col.id}
-        minWidth={min}
-        onGuide={opts.onGuide}
-        onCommit={opts.onCommitColumn}
-      >
-        {col.title}
-      </ResizableHeader>
-    ),
-  }
-}
-
-function RowActionsCell({
-  rowData,
-  opts,
-}: {
-  rowData: KosztorysV2RowT
-  opts: BuildV2ColumnsOptsT
-}) {
-  // All four section callbacks come from one `editorOnly()` gate, so this reads as a single
-  // "editor mode?" test rather than four independent ones.
-  const { onInsertSection, onReorderSection, onSetSectionColor, onRemoveSection } = opts
-  // Read from context rather than threaded through opts: the picker's open state must not sit
-  // anywhere the grid re-renders from (EX-496), and this opener never changes identity.
-  const openCataloguePicker = useCataloguePicker()
-  const section =
-    onInsertSection && onReorderSection && onSetSectionColor && onRemoveSection
-      ? {
-          color: rowData.sectionColor,
-          name: rowData.sectionName ?? undefined,
-          itemCount: opts.getSectionItemCount?.(rowData.sectionId) ?? 0,
-          onInsertAbove: () => onInsertSection(rowData.sectionId, 'above'),
-          onInsertBelow: () => onInsertSection(rowData.sectionId, 'below'),
-          onMoveUp: () => onReorderSection(rowData.sectionId, 'up'),
-          onMoveDown: () => onReorderSection(rowData.sectionId, 'down'),
-          onSetColor: (color: SectionColorKeyT | null) =>
-            onSetSectionColor(rowData.sectionId, color),
-          onRemove: () => onRemoveSection(rowData.sectionId),
-        }
-      : undefined
-
-  return (
-    <KosztorysRowActionsMenu
-      sortActive={opts.sort != null}
-      item={{
-        onInsertAbove: () => opts.onInsertItem?.(rowData, 'above'),
-        onInsertBelow: () => opts.onInsertItem?.(rowData, 'below'),
-        onMoveUp: () => opts.onReorderItem?.(rowData, 'up'),
-        onMoveDown: () => opts.onReorderItem?.(rowData, 'down'),
-        onRemove: () => opts.onRemoveItem?.(rowData),
-        savableItemId: opts.canSaveItemToCatalogue ? rowData.id : undefined,
-        // Lands in this row's SECTION, which is why it rides the section gate rather than its own.
-        onAddFromCatalogue: section ? () => openCataloguePicker(rowData.sectionId) : undefined,
-      }}
-      section={section}
-    />
-  )
-}
-
-function actionColumn(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT> {
-  return {
-    id: 'actions',
-    title: <HeaderLabel className="px-1">Akcje</HeaderLabel>,
-    basis: 64,
-    grow: 0,
-    shrink: 0,
-    minWidth: 64,
-    maxWidth: 64,
-    // Not `disabled`: dsg treats that flag as "never focusable", which blocked the row-actions
-    // button from Tab/Enter entirely. `kosztorys-actions-cell` only strips dsg's own cell chrome.
-    cellClassName: 'kosztorys-actions-cell',
-    component: ({ rowData }) => <RowActionsCell rowData={rowData} opts={opts} />,
-  }
-}
-
 // Every data column in sheet order, before any hiding. Split out from buildV2Columns so the picker
 // can enumerate what EXISTS while the grid renders what's visible — one list, no second registry of
 // "which columns are there in this view" to drift.
@@ -294,9 +107,9 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   const withMode = view !== 'client'
   const subcontractorPriceCols: Column<KosztorysV2RowT>[] = TOOL_PLANES.flatMap((plane) => [
     ...(withMode
-      ? [subcontractorModeColumn(plane, title(planePriceKey('priceMode', plane), opts))]
+      ? [subcontractorModeColumn(plane, columnTitle(planePriceKey('priceMode', plane), opts))]
       : []),
-    subcontractorPriceColumn(plane, title(planePriceKey('price', plane), opts)),
+    subcontractorPriceColumn(plane, columnTitle(planePriceKey('price', plane), opts)),
   ])
   // The client's own „Cena j.m. netto" is a different figure — the offer price, editable only where
   // the offer is read — so it stays on the client view and keeps its bare `price` id (that id is
@@ -308,30 +121,17 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
           // `formatPLN`: „przywrócono 120" would read as a quantity in a grid full of them.
           decimalColumn(
             'price',
-            title('price', opts),
+            columnTitle('price', opts),
             numericFieldPolicy<'clientPrice', KosztorysV2RowT>('clientPrice', formatPLN),
           ),
           ...subcontractorPriceCols,
         ]
       : subcontractorPriceCols
   const identity: Column<KosztorysV2RowT>[] = [
-    {
-      id: 'sectionName',
-      title: title('sectionName', opts),
-      keepFocus: true,
-      // Named so the section footer can drop its vertical rule (globals.css) — dsg has no colspan.
-      cellClassName: 'kosztorys-section-name-cell',
-      component: ({ rowData, disabled }: CellProps<KosztorysV2RowT, unknown>) => (
-        <SectionNameCell rowData={rowData} onRename={opts.onRenameSection} disabled={disabled} />
-      ),
-      copyValue: ({ rowData }) => rowData.sectionName ?? '',
-      // Delete on a selected Sekcja cell is a no-op — an accidental keypress must not blank a whole
-      // section. Only an explicit in-cell clear-and-commit renames it.
-      deleteValue: ({ rowData }) => rowData,
-    },
+    sectionNameColumn(columnTitle('sectionName', opts), opts.onRenameSection),
     keyCol('description', longTextColumn, {
       id: 'description',
-      title: title('description', opts),
+      title: columnTitle('description', opts),
       minWidth: 360,
       grow: 2,
       // Marks the header cell the row-height measurement reads this column's width off.
@@ -375,7 +175,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     {
       ...decimalColumn(
         'plannedQty',
-        title('plannedQty', opts),
+        columnTitle('plannedQty', opts),
         numericFieldPolicy<'plannedQty', KosztorysV2RowT>('plannedQty', formatQty),
       ),
       minWidth: 150,
@@ -399,7 +199,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       ? [
           {
             ...divergenceColumn(
-              title('divergence', opts),
+              columnTitle('divergence', opts),
               memoisedByRow((row: KosztorysV2RowT) => measureDiscrepancy(row, stages)),
             ),
             cellClassName: 'border-border border-r',
@@ -409,10 +209,10 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
 
   const measure: Column<KosztorysV2RowT>[] = [
     {
-      ...computedColumn('stageQtySum', title('stageQtySum', opts), (r) => totalQtyDone(r)),
+      ...computedColumn('stageQtySum', columnTitle('stageQtySum', opts), (r) => totalQtyDone(r)),
       minWidth: 80,
     },
-    unitColumn(title('unit', opts)),
+    unitColumn(columnTitle('unit', opts)),
   ]
 
   // Rabat is a client concession, never passed to the subcontractor (calc.ts netForQtyForView), so
@@ -421,12 +221,12 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   const discountCols: Column<KosztorysV2RowT>[] =
     view === 'client'
       ? [
-          discountValueColumn(title('discountValue', opts)),
-          discountTypeColumn(title('discountType', opts)),
-          computedColumn('discountAmount', title('discountAmount', opts), (r) =>
+          discountValueColumn(columnTitle('discountValue', opts)),
+          discountTypeColumn(columnTitle('discountType', opts)),
+          computedColumn('discountAmount', columnTitle('discountAmount', opts), (r) =>
             rowDiscountForView(r, totalQtyDone(r), view),
           ),
-          computedColumn('discountAmountGross', title('discountAmountGross', opts), (r) =>
+          computedColumn('discountAmountGross', columnTitle('discountAmountGross', opts), (r) =>
             toGross(rowDiscountForView(r, totalQtyDone(r), view), r.vatRate),
           ),
         ]
@@ -434,14 +234,14 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
 
   const pricing: Column<KosztorysV2RowT>[] = [
     ...priceCols,
-    computedColumn('priceGross', title('priceGross', opts), (r) =>
+    computedColumn('priceGross', columnTitle('priceGross', opts), (r) =>
       toGross(viewPrice(r, view), r.vatRate),
     ),
     ...discountCols,
   ]
 
   const stageCols: Column<KosztorysV2RowT>[] = shownStages.map((st) => {
-    // The qty field IS the column id, so the sort wiring is the same shape `title()` builds — the
+    // The qty field IS the column id, so the sort wiring is the same shape `columnTitle()` builds — the
     // etap menu just hosts it alongside rename/plane/roster instead of owning the whole menu.
     const qtyField = stageKey(st.id)
     const header = (
@@ -530,7 +330,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   const donePercent: Column<KosztorysV2RowT>[] = [
     computedColumn(
       'donePercent',
-      title('donePercent', opts),
+      columnTitle('donePercent', opts),
       (r) => rowDoneFraction(r, rowTotalQtyDone(r, stages, 'client')),
       {
         // Red = more was executed than was offered. The percentage says so too (>100%), but only
@@ -543,20 +343,20 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   ]
 
   const plannedValue: Column<KosztorysV2RowT>[] = [
-    computedColumn('plannedNet', title('plannedNet', opts), (r) =>
+    computedColumn('plannedNet', columnTitle('plannedNet', opts), (r) =>
       rowPlannedNetForView(r, 'client'),
     ),
-    computedColumn('plannedGross', title('plannedGross', opts), (r) =>
+    computedColumn('plannedGross', columnTitle('plannedGross', opts), (r) =>
       toGross(rowPlannedNetForView(r, 'client'), r.vatRate),
     ),
   ]
 
   const computed: Column<KosztorysV2RowT>[] = [
     ...plannedValue,
-    computedColumn('net', title('net', opts), (r) => rowValueForView(r, stages, view), {
+    computedColumn('net', columnTitle('net', opts), (r) => rowValueForView(r, stages, view), {
       emphasize: true,
     }),
-    computedColumn('gross', title('gross', opts), (r) =>
+    computedColumn('gross', columnTitle('gross', opts), (r) =>
       toGross(rowValueForView(r, stages, view), r.vatRate),
     ),
   ]
@@ -567,7 +367,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   const komentarz: Column<KosztorysV2RowT>[] = [
     keyCol('note', longTextColumn, {
       id: 'note',
-      title: title('note', opts),
+      title: columnTitle('note', opts),
       minWidth: 200,
       grow: 1,
       headerClassName: `border-l border-border ${wrapColumnHeaderClass('note')}`,
@@ -576,10 +376,10 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   ]
 
   const remaining: Column<KosztorysV2RowT>[] = [
-    computedColumn('remaining', title('remaining', opts), (r) =>
+    computedColumn('remaining', columnTitle('remaining', opts), (r) =>
       rowRemainingForView(r, stages, 'client'),
     ),
-    computedColumn('remainingGross', title('remainingGross', opts), (r) =>
+    computedColumn('remainingGross', columnTitle('remainingGross', opts), (r) =>
       toGross(rowRemainingForView(r, stages, 'client'), r.vatRate),
     ),
   ]
@@ -609,146 +409,6 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   return opts.onRemoveItem || opts.onReorderItem
     ? [actionColumn(opts), ...dataColumns]
     : dataColumns
-}
-
-// A stage column answers to its axis's shared "Etapy — …" picker entry, not to its own id.
-function toggleKey(columnId: string): string {
-  return stageGroupOfKey(columnId) ?? columnId
-}
-
-// The column allowlist and the client price plane are one disclosure decision (useKosztorysEditor
-// derives them as a pair). Split them and PREVIEW_VISIBLE_COLUMNS keeps letting `price`/`net`/`gross`
-// through while they compute a subcontractor's cost basis — client-named columns holding contractor
-// numbers, a leak with no foreign column to notice. Nothing in the types forbids the split, so this
-// says it out loud at the one chokepoint both build paths cross. It throws rather than repairing the
-// opts: a caller that got this wrong has a bug worth seeing, and silently overriding its `view` would
-// hide it.
-//
-// What this pin does not cover: the four per-plane rate columns. They carry their plane in the id
-// and assemble in EVERY view, so pinning `view` to 'client' does nothing for them — the allowlist is
-// their only barrier, and it is the half to check before touching either.
-function assertDisclosurePair(opts: BuildV2ColumnsOptsT): void {
-  if (opts.previewVisible && opts.view !== 'client') {
-    throw new Error(
-      `previewVisible requires view='client' (got '${opts.view}') — the column allowlist does not pin the price plane.`,
-    )
-  }
-}
-
-// Hide/axis/resize selection over an already-assembled column list. Split from the assembly so the
-// grid and the picker can share ONE assembleV2Columns pass (buildV2Grid) instead of two.
-function selectV2Columns(
-  assembled: Column<KosztorysV2RowT>[],
-  opts: BuildV2ColumnsOptsT,
-): Column<KosztorysV2RowT>[] {
-  assertDisclosurePair(opts)
-  const axis = opts.moneyAxis ?? MONEY_AXIS_DEFAULT
-  const layer = opts.layer ?? LAYER_DEFAULT
-  // Two kinds of gate live in this filter, and only one of them may touch a client's document.
-  // PREFERENCE gates — the axis, the layer, the picker tick — say what ONE owner wants to read
-  // right now, so a preview skips them entirely and takes the allowlist as its
-  // whole answer (owner ruling 2026-07-28). The discount gate is not one of them: `globalDiscount`
-  // is a property of the investment, identical for every reader, and while it is on, the per-item
-  // rabat fields are bypassed rather than cleared (calc.ts `applyDiscount`) — so showing those
-  // columns would print „Rabat 10 %" beside „Kwota rabatu 0,00" on the offer itself.
-  const keep = (key: string): boolean => {
-    if (opts.globalDiscountActive && DISCOUNT_COLUMN_IDS.has(key)) return false
-    if (opts.previewVisible) {
-      return PREVIEW_VISIBLE_COLUMNS.has(key) && !opts.previewHiddenColumns?.has(key)
-    }
-    if (opts.view !== 'client' && PRZEDMIAR_ANCHORED_COLUMNS.has(key)) return false
-    // The reveal sits beside UNPICKABLE_COLUMNS because it answers the same question — „may a stored
-    // tick hide this right now" — and pointedly NOT beside the two gates after it: a problem filter
-    // gets to overrule one owner's picker, never their money axis or layer.
-    return (
-      (UNPICKABLE_COLUMNS.has(key) || opts.revealedColumnIds?.has(key) || !opts.isHidden?.(key)) &&
-      axisAllows(key, axis) &&
-      layerAllows(key, layer)
-    )
-  }
-  const base = assembled.filter((c) => keep(toggleKey(c.id ?? ''))).map((c) => withResize(c, opts))
-  return appendTrailingGap(base, opts)
-}
-
-// A trailing empty spacer column pinned to the far right of the grid. Resizable (min ≠ max) so its
-// width is the user's call; 48 is only the default basis. The Praca/Postęp divider is „Komentarz"
-// itself, at the seam — this column is only the end-of-grid gap.
-const layerGapColumn: Column<KosztorysV2RowT> = {
-  id: 'layerGap',
-  title: <span />,
-  basis: 48,
-  grow: 0,
-  shrink: 0,
-  minWidth: 24,
-  maxWidth: 400,
-  disabled: true,
-  headerClassName: 'border-l border-border',
-  cellClassName: 'border-l border-border',
-  component: () => null,
-}
-
-// Append the empty spacer to the far right of the visible grid. Inserted here, post-filter, so it
-// never appears in the column picker and always shows. Wrapped in withResize (not in the assembly
-// map, which runs before this append) so it gets a drag handle.
-function appendTrailingGap(
-  columns: Column<KosztorysV2RowT>[],
-  opts: Pick<BuildV2ColumnsOptsT, 'onGuide' | 'onCommitColumn' | 'widths'>,
-): Column<KosztorysV2RowT>[] {
-  return [...columns, withResize(layerGapColumn, opts)]
-}
-
-// Picker entries for the columns this view actually has, in grid order. Stage columns collapse into
-// their axis's "Etapy — …" entry — hence the dedupe.
-function selectV2ToggleItems(
-  assembled: Column<KosztorysV2RowT>[],
-  opts: BuildV2ColumnsOptsT,
-): ColumnToggleItemT[] {
-  // A preview has no picker at all (the body mounts the slim header, not the toolbar), and a picker
-  // is by definition the owner preference selectV2Columns just stopped honouring — so there is no
-  // coherent list to return here. Empty rather than allowlist-filtered: the latter would describe a
-  // grid whose columns no longer answer to it.
-  if (opts.previewVisible) return []
-  const items: ColumnToggleItemT[] = []
-  for (const col of assembled) {
-    const id = toggleKey(col.id ?? '')
-    if (items.some((i) => i.id === id)) continue
-    if (opts.globalDiscountActive && DISCOUNT_COLUMN_IDS.has(id)) continue
-    if (UNPICKABLE_COLUMNS.has(id)) continue
-    if (opts.view !== 'client' && PRZEDMIAR_ANCHORED_COLUMNS.has(id)) continue
-    // `visible` is the STORED tick, never the reveal: a column a problem is currently forcing on
-    // screen still reports what the picker holds. Unticking it then is a no-op that takes effect on
-    // disengage — accepted, because showing it ticked would lie about what is saved and disabling it
-    // would need a third state nobody asked for.
-    items.push({ id, label: columnLabelForView(id, opts.view), visible: !opts.isHidden?.(id) })
-  }
-  return items
-}
-
-// The owner's stored column order, applied to the assembled list — BEFORE the filter, since the
-// filter preserves relative order: one sort then serves both the grid and the picker, and the
-// trailing gap (appended post-filter) stays last.
-//
-// A preview skips it whole: the order is one owner's reading preference, exactly like the axis, the
-// layer and the picker tick, and none of those may shape what a client is served (ruling
-// 2026-07-28). Skipping is not merely cosmetic here — a client's localStorage is client-writable.
-function orderAssembled(
-  assembled: Column<KosztorysV2RowT>[],
-  opts: BuildV2ColumnsOptsT,
-): Column<KosztorysV2RowT>[] {
-  // An empty rank map is the assemble order by definition, and it is what every owner who never
-  // reordered anything has — bail before the group→sort→regroup pass instead of reproducing the
-  // input array on each render.
-  if (opts.previewVisible || !opts.columnRanks || Object.keys(opts.columnRanks).length === 0) {
-    return assembled
-  }
-  return orderColumns(assembled, opts.columnRanks, toggleKey)
-}
-
-// Assemble-order rank per group key: the fallback an unranked column sorts at. Read off the list
-// BEFORE ordering — the reorder dialog only ever sees the already-ordered picker list, so it cannot
-// derive this itself.
-function assembleBaseRanks(assembled: Column<KosztorysV2RowT>[]): ColumnRanksT {
-  return baseRanksFromKeys([...groupColumns(assembled, toggleKey).keys()])
 }
 
 // Columns-only assemble — the grid path goes through buildV2Grid; kept for the column-set unit specs

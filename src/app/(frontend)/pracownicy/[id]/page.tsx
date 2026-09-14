@@ -4,9 +4,11 @@ import { ADMIN_OR_OWNER_MANAGER_ROLES, ROLE_LABELS } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/utils/pagination'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { fetchFilteredByType } from '@/lib/queries/transfer-totals'
+import { fetchEquipmentAtLocation } from '@/lib/queries/equipment'
 import { buildTransferFilters, stripCancelledFilters } from '@/lib/queries/transfer-filters'
 import { buildFilterConfig } from '@/lib/utils/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
+import { HeldEquipmentSection } from '@/components/equipment/held-equipment-section'
 import { EditWorkerDialog } from '@/components/dialogs/edit-worker-dialog'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
@@ -29,9 +31,10 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
   // Stats ignore cancelled toggle — SQL already excludes cancelled via hardcoded WHERE clause
   const statsWhere = stripCancelledFilters(transferWhere)
 
-  const [refData, typeDistribution] = await Promise.all([
+  const [refData, typeDistribution, heldEquipment] = await Promise.all([
     fetchReferenceData(),
     fetchFilteredByType(statsWhere),
+    fetchEquipmentAtLocation({ kind: 'holder', id: userId }),
   ])
 
   const worker = refData.workers.find((w) => w.id === userId)
@@ -56,6 +59,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
       <EditWorkerDialog worker={worker} cashRegisters={refData.cashRegisters} />
       <InfoList items={infoFields} />
       <SignedMoneyDisplay amount={payoutsTotal} label="Wypłaty" />
+      <HeldEquipmentSection equipment={heldEquipment} />
       <TransfersSection
         config={{
           query: { where: transferWhere, page, limit },

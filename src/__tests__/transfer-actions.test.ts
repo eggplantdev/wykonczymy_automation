@@ -73,6 +73,16 @@ vi.mock('@/lib/cache/revalidate', () => ({
 }))
 
 const mockDbExecute = vi.fn()
+// The SQL text of every statement the action layer ran, for tests that care WHICH query fired.
+const queriedTables = (): string =>
+  mockDbExecute.mock.calls
+    .map(
+      ([query]) =>
+        (query as { queryChunks?: { value?: string[] }[] })?.queryChunks
+          ?.map((chunk) => chunk?.value?.join('') ?? '')
+          .join('') ?? '',
+    )
+    .join(' ')
 
 vi.mock('@/lib/db/get-db', () => ({
   getDb: vi.fn().mockResolvedValue({
@@ -268,12 +278,14 @@ describe('createTransferAction', () => {
     expect(mockDbExecute).toHaveBeenCalled()
   })
 
-  it('LABOR_COST → skips validateSourceRegister (no DB call)', async () => {
+  it('LABOR_COST → skips validateSourceRegister (no register lookup)', async () => {
     await createTransferAction(
       makeSingleTransferData({ type: 'LABOR_COST', sourceRegister: undefined }),
     )
 
-    expect(mockDbExecute).not.toHaveBeenCalled()
+    // Named on the statement rather than on „no DB call at all": the completed-investment gate
+    // queries too, and it is not what this test is about.
+    expect(queriedTables()).not.toContain('cash_registers')
   })
 
   it('missing amount → returns validation error', async () => {

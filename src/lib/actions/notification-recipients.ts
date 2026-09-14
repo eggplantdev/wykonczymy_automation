@@ -4,7 +4,7 @@ import { ownerOnlyAction } from '@/lib/actions/owner-only-action'
 import { validateAction } from '@/lib/actions/run-action'
 import { recipientEmailsSchema } from '@/components/forms/recipient-list-form/recipient-list-schema'
 import { revalidateNotificationRecipients } from '@/lib/cache/revalidate'
-import { RECIPIENT_LISTS, type RecipientListT } from '@/lib/email/recipients'
+import { RECIPIENT_LISTS, byRecipientList, type RecipientListT } from '@/lib/email/recipients'
 import type { ActionResultT } from '@/types/action'
 
 const FORBIDDEN = 'Tylko właściciel może zmieniać odbiorców powiadomień'
@@ -31,7 +31,7 @@ export async function saveRecipientListAction(
     await payload.updateGlobal({
       slug: 'notification-recipients',
       data: {
-        ...Object.fromEntries(RECIPIENT_LISTS.map((name) => [name, current[name] ?? []])),
+        ...byRecipientList((name) => current[name] ?? []),
         [list]: parsed.data.map((email) => ({ email })),
       },
     })

@@ -1,6 +1,7 @@
 'use server'
 
 import { z } from 'zod'
+import { investmentAction } from '@/lib/actions/investment-action'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/get-db'
@@ -15,7 +16,8 @@ import type { ActionResultT } from '@/types/action'
 
 // Periodic auto snapshot — the client's 10-min interval calls this fire-and-forget.
 export async function snapshotAction(investmentId: number): Promise<ActionResultT> {
-  return protectedAction('snapshotAction', async ({ payload, user }) => {
+  // A locked kosztorys cannot change, so there is nothing left to version.
+  return investmentAction('snapshotAction', { investmentId }, async ({ payload, user }) => {
     const db = await getDb(payload)
     await captureAutoSnapshot(db, investmentId, user.id)
     return { success: true }
@@ -29,7 +31,7 @@ export async function saveSnapshotAction(
   investmentId: number,
   label: string,
 ): Promise<ActionResultT> {
-  return protectedAction('saveSnapshotAction', async ({ payload, user }) => {
+  return investmentAction('saveSnapshotAction', { investmentId }, async ({ payload, user }) => {
     const parsed = validateAction(saveSnapshotSchema, { label })
     if (!parsed.success) return parsed
     const db = await getDb(payload)
@@ -63,8 +65,9 @@ export async function restoreSnapshotAction(
   snapshotId: number,
   investmentId: number,
 ): Promise<ActionResultT<RestoreResultT>> {
-  return protectedAction(
+  return investmentAction(
     'restoreSnapshotAction',
+    { investmentId },
     async ({ payload, user }) => {
       const parsed = validateAction(restoreSchema, { snapshotId, investmentId })
       if (!parsed.success) return parsed
@@ -99,6 +102,7 @@ export type SnapshotListItemT = SnapshotMetaT & { takenByName: string | null }
 export async function listSnapshotsAction(
   investmentId: number,
 ): Promise<ActionResultT<SnapshotListItemT[]>> {
+  // Reads only — a locked kosztorys keeps its history browsable; restoring it is what's refused.
   return protectedAction('listSnapshotsAction', async ({ payload }) => {
     const db = await getDb(payload)
     const snapshots = await listSnapshots(db, investmentId)

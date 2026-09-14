@@ -16,7 +16,12 @@ function hookArgs(
   return {
     data,
     operation,
-    req: userId ? { user: { id: userId } } : { user: null },
+    // The completed-investment gate reads the status through the drizzle adapter — „aktywna" here,
+    // since the lock has its own spec (validate-lock.test.ts) and this one is about the field rules.
+    req: {
+      user: userId ? { id: userId } : null,
+      payload: { db: { drizzle: { execute: async () => ({ rows: [{ status: 'active' }] }) } } },
+    },
     originalDoc,
     collection: undefined,
     context: {},
@@ -61,8 +66,8 @@ const VALID_DATA: Record<string, Record<string, unknown>> = {
 
 describe('validateTransfer — all types valid', () => {
   for (const [type, data] of Object.entries(VALID_DATA)) {
-    it(`${type} — does not throw`, () => {
-      expect(() => validateTransfer(hookArgs({ ...data }))).not.toThrow()
+    it(`${type} — does not throw`, async () => {
+      await expect(validateTransfer(hookArgs({ ...data }))).resolves.not.toThrow()
     })
   }
 })
@@ -72,66 +77,66 @@ describe('validateTransfer — all types valid', () => {
 // ═══════════════════════════════════════════════════════════════════════
 
 describe('validateTransfer — missing required fields', () => {
-  it('INVESTOR_DEPOSIT without sourceRegister → throws', () => {
+  it('INVESTOR_DEPOSIT without sourceRegister → throws', async () => {
     const { sourceRegister, ...data } = VALID_DATA.INVESTOR_DEPOSIT
-    expect(() => validateTransfer(hookArgs(data))).toThrow(/[Cc]ash register/)
+    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Cc]ash register/)
   })
 
-  it('INVESTOR_DEPOSIT without investment → throws', () => {
+  it('INVESTOR_DEPOSIT without investment → throws', async () => {
     const { investment, ...data } = VALID_DATA.INVESTOR_DEPOSIT
-    expect(() => validateTransfer(hookArgs(data))).toThrow(/[Ii]nvestment/)
+    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Ii]nvestment/)
   })
 
-  it('COMPANY_FUNDING without sourceRegister → throws', () => {
+  it('COMPANY_FUNDING without sourceRegister → throws', async () => {
     const { sourceRegister, ...data } = VALID_DATA.COMPANY_FUNDING
-    expect(() => validateTransfer(hookArgs(data))).toThrow(/[Cc]ash register/)
+    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Cc]ash register/)
   })
 
-  it('OTHER_DEPOSIT without sourceRegister → throws', () => {
+  it('OTHER_DEPOSIT without sourceRegister → throws', async () => {
     const { sourceRegister, ...data } = VALID_DATA.OTHER_DEPOSIT
-    expect(() => validateTransfer(hookArgs(data))).toThrow(/[Cc]ash register/)
+    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Cc]ash register/)
   })
 
-  it('INVESTMENT_EXPENSE without sourceRegister → throws', () => {
+  it('INVESTMENT_EXPENSE without sourceRegister → throws', async () => {
     const { sourceRegister, ...data } = VALID_DATA.INVESTMENT_EXPENSE
-    expect(() => validateTransfer(hookArgs(data))).toThrow(/[Cc]ash register/)
+    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Cc]ash register/)
   })
 
-  it('INVESTMENT_EXPENSE without investment → throws', () => {
+  it('INVESTMENT_EXPENSE without investment → throws', async () => {
     const { investment, ...data } = VALID_DATA.INVESTMENT_EXPENSE
-    expect(() => validateTransfer(hookArgs(data))).toThrow(/[Ii]nvestment/)
+    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Ii]nvestment/)
   })
 
-  it('LABOR_COST without investment → throws', () => {
+  it('LABOR_COST without investment → throws', async () => {
     const { investment, ...data } = VALID_DATA.LABOR_COST
-    expect(() => validateTransfer(hookArgs(data))).toThrow(/[Ii]nvestment/)
+    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Ii]nvestment/)
   })
 
   // EX-675: a strata now lowers the investor's bilans, so it has to say whose.
-  it('LOSS without investment → throws', () => {
+  it('LOSS without investment → throws', async () => {
     const { investment, ...data } = VALID_DATA.LOSS
     void investment
-    expect(() => validateTransfer(hookArgs(data))).toThrow(/[Ii]nvestment/)
+    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Ii]nvestment/)
   })
 
-  it('REGISTER_TRANSFER without sourceRegister → throws', () => {
+  it('REGISTER_TRANSFER without sourceRegister → throws', async () => {
     const { sourceRegister, ...data } = VALID_DATA.REGISTER_TRANSFER
-    expect(() => validateTransfer(hookArgs(data))).toThrow(/[Cc]ash register/)
+    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Cc]ash register/)
   })
 
-  it('REGISTER_TRANSFER without targetRegister → throws', () => {
+  it('REGISTER_TRANSFER without targetRegister → throws', async () => {
     const { targetRegister, ...data } = VALID_DATA.REGISTER_TRANSFER
-    expect(() => validateTransfer(hookArgs(data))).toThrow(/[Tt]arget register/)
+    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Tt]arget register/)
   })
 
-  it('OTHER without sourceRegister → throws', () => {
+  it('OTHER without sourceRegister → throws', async () => {
     const { sourceRegister, ...data } = VALID_DATA.OTHER
-    expect(() => validateTransfer(hookArgs(data))).toThrow(/[Cc]ash register/)
+    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Cc]ash register/)
   })
 
-  it('OTHER without otherCategory → throws', () => {
+  it('OTHER without otherCategory → throws', async () => {
     const { otherCategory, ...data } = VALID_DATA.OTHER
-    expect(() => validateTransfer(hookArgs(data))).toThrow(/[Cc]ategory/)
+    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Cc]ategory/)
   })
 })
 
@@ -140,29 +145,29 @@ describe('validateTransfer — missing required fields', () => {
 // ═══════════════════════════════════════════════════════════════════════
 
 describe('validateTransfer — auto-clear behavior', () => {
-  it('LABOR_COST → sourceRegister set to null', () => {
+  it('LABOR_COST → sourceRegister set to null', async () => {
     const data = { ...VALID_DATA.LABOR_COST, sourceRegister: 5 }
-    const result = validateTransfer(hookArgs(data))
+    const result = await validateTransfer(hookArgs(data))
     expect(result.sourceRegister).toBeNull()
   })
 
   // An investment-linked OTHER reaches no deriveFinancials bucket, yet still leaves the
   // register — cash and margin silently diverge. The form never offers the field
   // (showsInvestment), so only a script or the API can plant one.
-  it('OTHER → investment set to null', () => {
+  it('OTHER → investment set to null', async () => {
     const data = { ...VALID_DATA.OTHER, investment: 31 }
-    const result = validateTransfer(hookArgs(data))
+    const result = await validateTransfer(hookArgs(data))
     expect(result.investment).toBeNull()
   })
 
-  it('REGISTER_TRANSFER → investment set to null', () => {
+  it('REGISTER_TRANSFER → investment set to null', async () => {
     const data = { ...VALID_DATA.REGISTER_TRANSFER, investment: 31 }
-    const result = validateTransfer(hookArgs(data))
+    const result = await validateTransfer(hookArgs(data))
     expect(result.investment).toBeNull()
   })
 
-  it('INVESTMENT_EXPENSE → investment preserved', () => {
-    const result = validateTransfer(hookArgs(VALID_DATA.INVESTMENT_EXPENSE))
+  it('INVESTMENT_EXPENSE → investment preserved', async () => {
+    const result = await validateTransfer(hookArgs(VALID_DATA.INVESTMENT_EXPENSE))
     expect(result.investment).toBe(1)
   })
 })
@@ -172,22 +177,22 @@ describe('validateTransfer — auto-clear behavior', () => {
 // ═══════════════════════════════════════════════════════════════════════
 
 describe('validateTransfer — expenseCategory', () => {
-  it('INVESTMENT_EXPENSE without expenseCategory → throws', () => {
+  it('INVESTMENT_EXPENSE without expenseCategory → throws', async () => {
     const data = { ...VALID_DATA.INVESTMENT_EXPENSE, expenseCategory: undefined }
-    expect(() => validateTransfer(hookArgs(data))).toThrow(/[Ee]xpense category/)
+    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Ee]xpense category/)
   })
 
-  it('INVESTMENT_EXPENSE with expenseCategory → passes', () => {
+  it('INVESTMENT_EXPENSE with expenseCategory → passes', async () => {
     const data = { ...VALID_DATA.INVESTMENT_EXPENSE, expenseCategory: 1 }
-    expect(() => validateTransfer(hookArgs(data))).not.toThrow()
+    await expect(validateTransfer(hookArgs(data))).resolves.not.toThrow()
   })
 
-  it('CORRECTION with an investment but no expenseCategory → throws', () => {
+  it('CORRECTION with an investment but no expenseCategory → throws', async () => {
     const data = { ...base, amount: -100, type: 'CORRECTION', sourceRegister: 1, investment: 1 }
-    expect(() => validateTransfer(hookArgs(data))).toThrow(/[Ee]xpense category/)
+    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Ee]xpense category/)
   })
 
-  it('CORRECTION with an investment + expenseCategory → passes', () => {
+  it('CORRECTION with an investment + expenseCategory → passes', async () => {
     const data = {
       ...base,
       amount: -100,
@@ -196,12 +201,12 @@ describe('validateTransfer — expenseCategory', () => {
       investment: 1,
       expenseCategory: 1,
     }
-    expect(() => validateTransfer(hookArgs(data))).not.toThrow()
+    await expect(validateTransfer(hookArgs(data))).resolves.not.toThrow()
   })
 
-  it('CORRECTION with NO investment and no expenseCategory → passes (type not required)', () => {
+  it('CORRECTION with NO investment and no expenseCategory → passes (type not required)', async () => {
     const data = { ...base, amount: -100, type: 'CORRECTION', sourceRegister: 1 }
-    expect(() => validateTransfer(hookArgs(data))).not.toThrow()
+    await expect(validateTransfer(hookArgs(data))).resolves.not.toThrow()
   })
 })
 
@@ -210,14 +215,16 @@ describe('validateTransfer — expenseCategory', () => {
 // ═══════════════════════════════════════════════════════════════════════
 
 describe('validateTransfer — REGISTER_TRANSFER', () => {
-  it('targetRegister === sourceRegister → throws', () => {
+  it('targetRegister === sourceRegister → throws', async () => {
     const data = { ...base, type: 'REGISTER_TRANSFER', sourceRegister: 1, targetRegister: 1 }
-    expect(() => validateTransfer(hookArgs(data))).toThrow(/[Tt]arget register must be different/)
+    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(
+      /[Tt]arget register must be different/,
+    )
   })
 
-  it('different registers → passes', () => {
+  it('different registers → passes', async () => {
     const data = { ...base, type: 'REGISTER_TRANSFER', sourceRegister: 1, targetRegister: 2 }
-    expect(() => validateTransfer(hookArgs(data))).not.toThrow()
+    await expect(validateTransfer(hookArgs(data))).resolves.not.toThrow()
   })
 })
 
@@ -226,21 +233,21 @@ describe('validateTransfer — REGISTER_TRANSFER', () => {
 // ═══════════════════════════════════════════════════════════════════════
 
 describe('validateTransfer — createdBy auto-set', () => {
-  it('operation=create with user → createdBy is set', () => {
+  it('operation=create with user → createdBy is set', async () => {
     const data = { ...VALID_DATA.COMPANY_FUNDING }
-    const result = validateTransfer(hookArgs(data, { operation: 'create', userId: 42 }))
+    const result = await validateTransfer(hookArgs(data, { operation: 'create', userId: 42 }))
     expect(result.createdBy).toBe(42)
   })
 
-  it('operation=update → createdBy NOT overwritten', () => {
+  it('operation=update → createdBy NOT overwritten', async () => {
     const data = { ...VALID_DATA.COMPANY_FUNDING, createdBy: 10 }
-    const result = validateTransfer(hookArgs(data, { operation: 'update', userId: 42 }))
+    const result = await validateTransfer(hookArgs(data, { operation: 'update', userId: 42 }))
     expect(result.createdBy).toBe(10)
   })
 
-  it('operation=create without user → createdBy not set', () => {
+  it('operation=create without user → createdBy not set', async () => {
     const data = { ...VALID_DATA.COMPANY_FUNDING }
-    const result = validateTransfer(hookArgs(data, { operation: 'create' }))
+    const result = await validateTransfer(hookArgs(data, { operation: 'create' }))
     expect(result.createdBy).toBeUndefined()
   })
 })
@@ -251,7 +258,7 @@ describe('validateTransfer — a CANCELLATION never keeps a register', () => {
   // skipped the auto-clear, so a REST/Local-API write could persist source_register_id on
   // a cancellation. sumRegisterBalance has no CANCELLATION arm — the row falls into
   // `ELSE -amount` and drains that register permanently, with nothing surfacing the cause.
-  it('strips a sourceRegister smuggled in past the early return', () => {
+  it('strips a sourceRegister smuggled in past the early return', async () => {
     const data = {
       type: 'CANCELLATION',
       amount: 100,
@@ -259,13 +266,13 @@ describe('validateTransfer — a CANCELLATION never keeps a register', () => {
       cancelledTransaction: 42,
       sourceRegister: 3,
     }
-    const result = validateTransfer(hookArgs(data, { operation: 'create' }))
+    const result = await validateTransfer(hookArgs(data, { operation: 'create' }))
     expect(result.sourceRegister).toBeNull()
   })
 
-  it('still refuses a cancellation with no original to point at', () => {
+  it('still refuses a cancellation with no original to point at', async () => {
     const data = { type: 'CANCELLATION', amount: 100, date: '2026-07-25' }
-    expect(() => validateTransfer(hookArgs(data, { operation: 'create' }))).toThrow(
+    await expect(validateTransfer(hookArgs(data, { operation: 'create' }))).rejects.toThrow(
       /Cancelled transaction reference is required/,
     )
   })
@@ -284,34 +291,34 @@ describe('validateTransfer — a partial update reads required fields from the s
     sourceRegister: 1,
   }
 
-  it('accepts an invoice-only PATCH on a row that already has its investment', () => {
+  it('accepts an invoice-only PATCH on a row that already has its investment', async () => {
     const args = hookArgs({ invoice: 5 }, { operation: 'update', originalDoc: storedExpense })
-    expect(() => validateTransfer(args)).not.toThrow()
+    await expect(validateTransfer(args)).resolves.not.toThrow()
   })
 
   // The type that made the investment mandatory in the first place — attaching a faktura to an
   // existing strata must not re-litigate a link the row already carries.
-  it('accepts an invoice-only PATCH on a stored LOSS', () => {
+  it('accepts an invoice-only PATCH on a stored LOSS', async () => {
     const storedLoss = { type: 'LOSS', amount: 1000, date: '2026-02-19', investment: 62 }
     const args = hookArgs({ invoice: 5 }, { operation: 'update', originalDoc: storedLoss })
-    expect(() => validateTransfer(args)).not.toThrow()
+    await expect(validateTransfer(args)).resolves.not.toThrow()
   })
 
   // The fallback may not read the stored row when the PATCH is an explicit CLEAR. Payload's admin
   // panel saves the whole document, so a cleared relationship arrives as `null` — distinct from the
   // key being absent, which is what a partial update looks like. Conflate the two and clearing the
   // investment on a stored strata passes validation on the OLD link and then persists nothing.
-  it('refuses a PATCH that explicitly nulls the investment on a stored LOSS', () => {
+  it('refuses a PATCH that explicitly nulls the investment on a stored LOSS', async () => {
     const storedLoss = { type: 'LOSS', amount: 1000, date: '2026-02-19', investment: 62 }
     const args = hookArgs({ investment: null }, { operation: 'update', originalDoc: storedLoss })
-    expect(() => validateTransfer(args)).toThrow(/[Ii]nvestment/)
+    await expect(validateTransfer(args)).rejects.toThrow(/[Ii]nvestment/)
   })
 
-  it('still refuses when neither the payload nor the stored row carries an investment', () => {
+  it('still refuses when neither the payload nor the stored row carries an investment', async () => {
     const { investment, ...orphan } = storedExpense
     void investment
     const args = hookArgs({ invoice: 5 }, { operation: 'update', originalDoc: orphan })
-    expect(() => validateTransfer(args)).toThrow(/[Ii]nvestment/)
+    await expect(validateTransfer(args)).rejects.toThrow(/[Ii]nvestment/)
   })
 })
 
@@ -320,43 +327,45 @@ describe('validateTransfer — a partial update reads required fields from the s
 describe('validateTransfer — netAmount (the netto expense type)', () => {
   const netExpense = VALID_DATA.INVESTMENT_EXPENSE_NET
 
-  it('refuses a netto above the brutto that left the kasa', () => {
+  it('refuses a netto above the brutto that left the kasa', async () => {
     const data = { ...netExpense, amount: 100, netAmount: 101 }
-    expect(() => validateTransfer(hookArgs(data))).toThrow(
+    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(
       /Kwota netto nie może przekraczać kwoty brutto/,
     )
   })
 
-  it('accepts a netto equal to brutto (0% VAT is a real case)', () => {
+  it('accepts a netto equal to brutto (0% VAT is a real case)', async () => {
     const data = { ...netExpense, amount: 100, netAmount: 100 }
-    expect(() => validateTransfer(hookArgs(data))).not.toThrow()
+    await expect(validateTransfer(hookArgs(data))).resolves.not.toThrow()
   })
 
-  it('refuses a missing netto — deriveFinancials would bill 0, never brutto', () => {
+  it('refuses a missing netto — deriveFinancials would bill 0, never brutto', async () => {
     const { netAmount, ...data } = netExpense
     void netAmount
-    expect(() => validateTransfer(hookArgs(data))).toThrow(/Kwota netto jest wymagana/)
+    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/Kwota netto jest wymagana/)
   })
 
-  it('refuses a non-positive netto', () => {
-    expect(() => validateTransfer(hookArgs({ ...netExpense, netAmount: 0 }))).toThrow(
+  it('refuses a non-positive netto', async () => {
+    await expect(validateTransfer(hookArgs({ ...netExpense, netAmount: 0 }))).rejects.toThrow(
       /Kwota netto musi być większa niż 0/,
     )
   })
 
-  it('strips a netAmount smuggled onto a brutto-billed type', () => {
+  it('strips a netAmount smuggled onto a brutto-billed type', async () => {
     const data = { ...VALID_DATA.INVESTMENT_EXPENSE, netAmount: 80 }
-    expect(validateTransfer(hookArgs(data)).netAmount).toBeNull()
+    expect((await validateTransfer(hookArgs(data))).netAmount).toBeNull()
   })
 
   // A partial update sends only the changed field; the rule must still compare against the stored
   // twin, or raising just `netAmount` past the stored brutto would sail through.
-  it('compares a partial update against the stored amount', () => {
+  it('compares a partial update against the stored amount', async () => {
     const args = hookArgs(
       { type: 'INVESTMENT_EXPENSE_NET', netAmount: 5000 },
       { operation: 'update', originalDoc: { ...netExpense, amount: 1230, netAmount: 1000 } },
     )
-    expect(() => validateTransfer(args)).toThrow(/Kwota netto nie może przekraczać kwoty brutto/)
+    await expect(validateTransfer(args)).rejects.toThrow(
+      /Kwota netto nie może przekraczać kwoty brutto/,
+    )
   })
 })
 
@@ -368,14 +377,14 @@ describe('validateTransfer — netAmount (the netto expense type)', () => {
 // and both settlement predicates bucket rows by it. The hook is the server-side authority, so the
 // rule sits next to the netAmount one it feeds.
 describe('validateTransfer — vatPlane', () => {
-  it('keeps the plane on a wpłata od inwestora', () => {
+  it('keeps the plane on a wpłata od inwestora', async () => {
     const data = { ...VALID_DATA.INVESTOR_DEPOSIT, vatPlane: 'GROSS', netAmount: 80 }
-    expect(validateTransfer(hookArgs(data)).vatPlane).toBe('GROSS')
+    expect((await validateTransfer(hookArgs(data))).vatPlane).toBe('GROSS')
   })
 
   it.each(['INVESTMENT_EXPENSE', 'COMPANY_FUNDING', 'OTHER_DEPOSIT', 'PAYOUT', 'LOSS'])(
     'strips a plane smuggled onto %s',
-    (type) => {
+    async (type) => {
       const data = {
         ...base,
         type,
@@ -384,13 +393,13 @@ describe('validateTransfer — vatPlane', () => {
         expenseCategory: 1,
         worker: 1,
       }
-      expect(validateTransfer(hookArgs({ ...data, vatPlane: 'GROSS' })).vatPlane).toBeNull()
+      expect((await validateTransfer(hookArgs({ ...data, vatPlane: 'GROSS' }))).vatPlane).toBeNull()
     },
   )
 
   // Through `resolved`, like every other rule here: a PATCH that carries no type must still be
   // judged against the stored one, or an edit of one field would leave a stale plane in place.
-  it('strips a stored plane when a partial update names a non-deposit type', () => {
+  it('strips a stored plane when a partial update names a non-deposit type', async () => {
     const args = hookArgs(
       { description: 'edited' },
       {
@@ -398,21 +407,24 @@ describe('validateTransfer — vatPlane', () => {
         originalDoc: { ...VALID_DATA.INVESTMENT_EXPENSE, vatPlane: 'GROSS' },
       },
     )
-    expect(validateTransfer(args).vatPlane).toBeNull()
+    expect((await validateTransfer(args)).vatPlane).toBeNull()
   })
 })
 
 describe('validateTransfer — paymentMethod', () => {
-  it.each(['INVESTOR_DEPOSIT', 'INVESTMENT_EXPENSE_NET'])('keeps the method on %s', (type) => {
-    const data = { ...VALID_DATA[type], paymentMethod: 'TRANSFER' }
-    expect(validateTransfer(hookArgs(data)).paymentMethod).toBe('TRANSFER')
-  })
+  it.each(['INVESTOR_DEPOSIT', 'INVESTMENT_EXPENSE_NET'])(
+    'keeps the method on %s',
+    async (type) => {
+      const data = { ...VALID_DATA[type], paymentMethod: 'TRANSFER' }
+      expect((await validateTransfer(hookArgs(data))).paymentMethod).toBe('TRANSFER')
+    },
+  )
 
   it.each(['INVESTOR_DEPOSIT', 'INVESTMENT_EXPENSE_NET'])(
     'refuses %s with no method at all',
-    (type) => {
+    async (type) => {
       const data = { ...VALID_DATA[type], paymentMethod: undefined }
-      expect(() => validateTransfer(hookArgs(data))).toThrow(/Payment method is required/)
+      await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/Payment method is required/)
     },
   )
 
@@ -420,16 +432,16 @@ describe('validateTransfer — paymentMethod', () => {
   // method smuggled onto a type nobody was asked about never reaches the filter.
   it.each(['INVESTMENT_EXPENSE', 'REGISTER_TRANSFER', 'OTHER_DEPOSIT', 'LABOR_COST', 'OTHER'])(
     'strips a method smuggled onto %s',
-    (type) => {
+    async (type) => {
       const data = { ...VALID_DATA[type], paymentMethod: 'CASH' }
-      expect(validateTransfer(hookArgs(data)).paymentMethod).toBeNull()
+      expect((await validateTransfer(hookArgs(data))).paymentMethod).toBeNull()
     },
   )
 
   // The stripping is scoped to writes that NAME a method. A legacy row booked with one keeps it
   // through an edit about something else — the type is frozen after create, so there is no type
   // change to tidy up after, and an unconditional null would rewrite history on every save.
-  it('leaves a stored method alone when the update does not name one', () => {
+  it('leaves a stored method alone when the update does not name one', async () => {
     const args = hookArgs(
       { description: 'edited' },
       {
@@ -437,6 +449,6 @@ describe('validateTransfer — paymentMethod', () => {
         originalDoc: { ...VALID_DATA.REGISTER_TRANSFER, paymentMethod: 'CASH' },
       },
     )
-    expect(validateTransfer(args).paymentMethod).toBeUndefined()
+    expect((await validateTransfer(args)).paymentMethod).toBeUndefined()
   })
 })

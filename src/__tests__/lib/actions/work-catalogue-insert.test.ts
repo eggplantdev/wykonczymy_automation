@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterEach, afterAll, vi } from 'vitest
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
+import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 
 // Wstawianie prac z katalogu, against the REAL DB and asserting the PERSISTED rows. Three things
@@ -43,6 +44,9 @@ describe.skipIf(!ENV_READY)('insertCatalogueItemsAction (DB)', () => {
 
     const investments = await payload.find({
       collection: 'investments',
+      // A zakończona inwestycja refuses every write (EX-748), and the lowest ids in the fixture DB
+      // are exactly that — so the arbitrary pick has to skip them or the whole spec writes nothing.
+      where: { status: { not_equals: LOCKED_INVESTMENT_STATUS } },
       limit: 1,
       sort: 'id',
       depth: 0,

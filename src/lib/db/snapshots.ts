@@ -111,7 +111,7 @@ export async function gcSnapshots(
   `)
 
   // date_trunc(... AT TIME ZONE 'Europe/Warsaw') is the first date bucketing done in SQL in this repo
-  // — every other one is JS (src/lib/fleet/days.ts). It belongs in SQL here because the sweep must
+  // — every other one is JS (src/lib/utils/days.ts). It belongs in SQL here because the sweep must
   // decide what to delete WITHOUT shipping every row to the app; don't "fix" it into the JS
   // convention. Warsaw and not UTC because `taken_at` is timestamptz: editing at 00:30 would
   // otherwise land in the previous calendar day.

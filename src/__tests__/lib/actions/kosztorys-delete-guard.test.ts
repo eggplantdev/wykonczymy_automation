@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { getDb } from '@/lib/db/get-db'
+import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { sql } from '@payloadcms/db-vercel-postgres'
 
 // The guards live in the server action, so we run the REAL action against the REAL DB and
@@ -45,18 +46,9 @@ describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', 
     const config = (await import('@payload-config')).default
     payload = await getPayload({ config })
     db = await getDb(payload)
-    // sort by id (oldest, a prod-dump investment) — parallel S-06 specs create+delete transient
-    // investments with the highest ids, so an unsorted limit:1 can borrow one that vanishes mid-test.
-    const inv = await payload.find({
-      collection: 'investments',
-      limit: 1,
-      sort: 'id',
-      depth: 0,
-      overrideAccess: true,
-    })
-    const first = inv.docs[0]
-    if (!first) throw new Error('no investment in the DB to attach test fixtures to')
-    investmentId = Number(first.id)
+    // Self-provisioned rather than borrowed: the oldest prod-dump investments are
+    // `completed`, and a completed investment refuses every kosztorys write.
+    investmentId = await createTestInvestment(payload, `delete-guard-test-${Date.now()}`)
     const users = await payload.find({
       collection: 'users',
       limit: 1,
@@ -66,6 +58,10 @@ describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', 
     const firstUser = users.docs[0]
     if (!firstUser) throw new Error('no user in the DB to attribute the pre-delete snapshot to')
     authState.userId = Number(firstUser.id)
+  })
+
+  afterAll(async () => {
+    await deleteTestInvestment(payload, investmentId)
   })
 
   afterEach(async () => {

@@ -48,6 +48,13 @@ describe('the „Problemy" list', () => {
     )
   })
 
+  // The rozjazd cen is about the praca, not the pozycja, so it writes its own row too — short, but
+  // still a sentence, which is what the ordering below keys on.
+  it('lets the price rozjazd name prace rather than pozycje', () => {
+    const problemToggles = model({ 'divergent-client-price': 38 })
+    expect(problemToggles[0].label).toBe('Te same prace z różnymi stawkami (38)')
+  })
+
   // Three lines each and they light up in bulk, so among the terse rows they push everything else off
   // the bottom of the list.
   it('sinks the sentence problems below every terse one, etapy included', () => {

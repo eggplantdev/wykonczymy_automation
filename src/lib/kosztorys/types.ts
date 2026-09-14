@@ -176,6 +176,10 @@ export type KosztorysEditorDataT = {
   // which would otherwise offer an import/compare that can only answer „Inwestycja nie ma kosztorysu.".
   // Optional: the client-share entry points render no toolbar, so they have nothing to gate.
   hasSheet?: boolean
+  // The investment is „Zakończona", so every money-moving write is refused server-side. The editor
+  // renders in FULL — this is about interaction, not disclosure, which is what `preview` is about.
+  // Optional: the client-share entry points render the preview and never ask.
+  locked?: boolean
   // Roster for the etap header's worker picker (EX-613). Optional on cost, not on visibility: the
   // client-share entry points render no stage menu, so fetching the roster there buys nothing.
   workers?: WorkerRefT[]
