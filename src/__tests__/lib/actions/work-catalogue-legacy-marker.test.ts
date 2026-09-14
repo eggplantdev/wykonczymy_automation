@@ -20,7 +20,7 @@ vi.mock('@/lib/auth/require-auth', () => ({
 }))
 vi.mock('@/lib/cache/revalidate', () => ({ revalidateCollections: vi.fn() }))
 
-const { createCatalogueItemAction, updateCatalogueItemAction } =
+const { createCatalogueItemAction, updateCatalogueItemAction, clearLegacyMarkerAction } =
   await import('@/lib/actions/work-catalogue')
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
@@ -38,6 +38,11 @@ describe.skipIf(!ENV_READY)('katalog prac — dopisek „[stary arkusz]" a match
     wToolsRate: null,
     ownToolsRate: null,
   })
+
+  const persistedDescription = async (id: number) => {
+    const res = await db.execute(sql`SELECT description FROM work_catalogue_items WHERE id = ${id}`)
+    return String(res.rows[0]?.description)
+  }
 
   const persistedKey = async (id: number) => {
     const res = await db.execute(sql`SELECT match_key FROM work_catalogue_items WHERE id = ${id}`)
@@ -115,5 +120,47 @@ describe.skipIf(!ENV_READY)('katalog prac — dopisek „[stary arkusz]" a match
     const result = await updateCatalogueItemAction(id, form(bare))
     expect(result.success).toBe(true)
     expect(await persistedKey(id)).toBe(before)
+  })
+
+  it('ptaszek zdejmuje dopisek z opisu i zostawia klucz nietknięty', async () => {
+    const bare = `Tynkowanie ościeży ${marker}`
+    await createCatalogueItemAction(form(`${bare}${LEGACY_SUFFIX}`))
+    const created = await payload.find({
+      collection: 'work-catalogue-items',
+      where: { description: { equals: `${bare}${LEGACY_SUFFIX}` } },
+      depth: 0,
+      limit: 1,
+      overrideAccess: true,
+    })
+    const id = Number(created.docs[0]?.id)
+    const before = await persistedKey(id)
+
+    const result = await clearLegacyMarkerAction(id)
+    expect(result.success).toBe(true)
+
+    // The action returns `success` whether or not it wrote, so the row is the only witness.
+    expect(await persistedDescription(id)).toBe(bare)
+    expect(await persistedKey(id)).toBe(before)
+  })
+
+  it('drugie kliknięcie nie rusza już zdjętego opisu', async () => {
+    const bare = `Szpachlowanie ${marker}`
+    await createCatalogueItemAction(form(bare))
+    const created = await payload.find({
+      collection: 'work-catalogue-items',
+      where: { description: { equals: bare } },
+      depth: 0,
+      limit: 1,
+      overrideAccess: true,
+    })
+    const id = Number(created.docs[0]?.id)
+
+    expect((await clearLegacyMarkerAction(id)).success).toBe(true)
+    expect(await persistedDescription(id)).toBe(bare)
+  })
+
+  it('nieistniejąca pozycja dostaje polskie zdanie, nie błąd frameworka', async () => {
+    const result = await clearLegacyMarkerAction(2_000_000_000)
+    expect(result).toEqual({ success: false, error: 'Nie znaleziono pozycji' })
   })
 })
