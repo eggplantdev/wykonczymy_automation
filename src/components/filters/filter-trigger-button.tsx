@@ -14,6 +14,7 @@ type FilterTriggerButtonPropsT = {
   children?: React.ReactNode
   className?: string
   title?: string
+  onClick?: () => void
 }
 
 export const FilterTriggerButton = forwardRef<HTMLButtonElement, FilterTriggerButtonPropsT>(

@@ -39,5 +39,10 @@ export function useSearchFilter<TItem>(data: TItem[], getSearchableText: (item: 
     [data, haystacks, deferredTerm],
   )
 
-  return { filteredData, searchTerm, setSearchTerm } as const
+  // The deferral is invisible by design — the field answers while the rows lag — so a table big
+  // enough for that lag to show wants to SAY it is still catching up. True exactly while the rendered
+  // rows answer an older phrase than the field does.
+  const isFiltering = searchTerm !== deferredTerm
+
+  return { filteredData, searchTerm, setSearchTerm, isFiltering } as const
 }
