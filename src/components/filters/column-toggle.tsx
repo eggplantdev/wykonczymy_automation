@@ -5,6 +5,7 @@ import { type Table, type VisibilityState } from '@tanstack/react-table'
 import { ColumnToggleMenu, type ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
 import { ColumnOrderDialog } from '@/components/ui/column-order-dialog'
 import { type ColumnRanksT } from '@/lib/table/column-order'
+import { columnLabel } from '@/lib/table/column-label'
 
 // TanStack adapter over <ColumnToggleMenu>: flattens a table instance into the menu's item list.
 // The presentation lives in the menu — keep this file to the mapping.
@@ -34,9 +35,7 @@ export function ColumnToggle<TData>({
   const columns = table.getAllLeafColumns()
   const items: ColumnToggleItemT[] = columns.map((col) => ({
     id: col.id,
-    label:
-      col.columnDef.meta?.label ??
-      (typeof col.columnDef.header === 'string' ? col.columnDef.header : col.id),
+    label: columnLabel(col),
     visible: columnVisibility[col.id] !== false,
   }))
 

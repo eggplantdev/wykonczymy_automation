@@ -397,8 +397,8 @@ Brak. Zero zmian w schemacie, zero migracji, zero nowych zależności.
 
 #### Automated
 
-- [ ] 1.1 Spec mapy tekstowej przechodzi
-- [ ] 1.2 Spec sortowania przechodzi
+- [x] 1.1 Spec mapy tekstowej przechodzi
+- [x] 1.2 Spec sortowania przechodzi
 
 ### Phase 2: Dokument i przycisk
 

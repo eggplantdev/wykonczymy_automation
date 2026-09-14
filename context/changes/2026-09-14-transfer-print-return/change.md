@@ -1,10 +1,10 @@
 ---
 change_id: transfer-print-return
 title: Drukowanie przefiltrowanej listy transakcji (chudy powrót)
-status: planned
+status: implementing
 created: 2026-09-14
 updated: 2026-09-14
-branch: drag-drop-guard
+branch: transfer-print-return
 worktree: null
 ---
 

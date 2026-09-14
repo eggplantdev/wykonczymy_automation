@@ -24,20 +24,42 @@ import type { TransferRowT } from '@/types/transfers'
 
 const col = createColumnHelper<TransferRowT>()
 
+// Screen and paper must name a type identically, so both read this one derivation.
+function transferTypeText({ settled, type, originalType }: TransferRowT): string {
+  if (settled) return SETTLED_TYPE.label
+  const label = TRANSFER_TYPE_LABELS[type] ?? type
+  // For a cancellation, append what it reversed: "Anulowanie (Wydatek inwestycyjny)"
+  if (type === 'CANCELLATION' && originalType) {
+    return `${label} (${TRANSFER_TYPE_LABELS[originalType] ?? originalType})`
+  }
+  return label
+}
+
+// Gross leads; the net line is appended only where it carries a distinct meaning.
+function transferAmountText({ type, amount, netAmount }: TransferRowT): string {
+  const gross = formatPLN(amount)
+  return billsNetAmount(type) && netAmount !== null
+    ? `${gross} (netto ${formatPLN(netAmount)})`
+    : gross
+}
+
 const allColumns = [
   col.accessor('id', {
     id: 'id',
     header: 'ID',
+    meta: { printValue: (row) => `#${row.id}` },
     cell: (info) => `#${info.getValue()}`,
   }),
   col.accessor('date', {
     id: 'date',
     header: 'Data',
+    meta: { printValue: (row) => formatPLDate(row.date) },
     cell: (info) => formatPLDate(info.getValue()),
   }),
   col.accessor('amount', {
     id: 'amount',
     header: 'Kwota',
+    meta: { printValue: transferAmountText },
     cell: (info) => {
       const { type, cancelled, settled, netAmount } = info.row.original
       const isMuted = cancelled || type === 'CANCELLATION'
@@ -64,6 +86,7 @@ const allColumns = [
     // dictionary as the deposit list in the panel. „netto"/„brutto" naming both on one screen is
     // what made the reader guess which of the two a given cell meant (owner, 2026-08-23).
     header: 'Forma wpłaty',
+    meta: { printValue: (row) => (row.vatPlane ? DEPOSIT_PLANE_LABELS[row.vatPlane] : '—') },
     cell: (info) => {
       const value = info.getValue()
       return value ? DEPOSIT_PLANE_LABELS[value] : '—'
@@ -72,7 +95,7 @@ const allColumns = [
   col.accessor('investmentName', {
     id: 'investment',
     header: 'Inwestycja',
-    meta: { minWidth: 'min-w-40' },
+    meta: { minWidth: 'min-w-40', printValue: (row) => row.investmentName },
     cell: (info) => {
       const id = info.row.original.investmentId
       const name = info.getValue()
@@ -86,21 +109,13 @@ const allColumns = [
   col.accessor('type', {
     id: 'type',
     header: 'Typ',
-    meta: { minWidth: 'min-w-40' },
-    cell: (info) => {
-      const { settled, type, originalType } = info.row.original
-      if (settled) return SETTLED_TYPE.label
-      const label = TRANSFER_TYPE_LABELS[type] ?? type
-      // For a cancellation, append what it reversed: "Anulowanie (Wydatek inwestycyjny)"
-      if (type === 'CANCELLATION' && originalType) {
-        return `${label} (${TRANSFER_TYPE_LABELS[originalType] ?? originalType})`
-      }
-      return label
-    },
+    meta: { minWidth: 'min-w-40', printValue: transferTypeText },
+    cell: (info) => transferTypeText(info.row.original),
   }),
   col.accessor('expenseCategoryName', {
     id: 'expenseCategory',
     header: EXPENSE_CATEGORY_LABEL,
+    meta: { printValue: (row) => row.expenseCategoryName },
     cell: (info) => info.getValue(),
   }),
   // TODO: add click-to-expand for long descriptions.
@@ -114,12 +129,13 @@ const allColumns = [
   col.accessor('description', {
     id: 'description',
     header: 'Opis',
-    meta: { minWidth: 'min-w-64' },
+    meta: { minWidth: 'min-w-64', printValue: (row) => row.description },
     cell: (info) => <span className="whitespace-pre-line">{info.getValue()}</span>,
   }),
   col.accessor('otherCategoryName', {
     id: 'otherCategory',
     header: 'Kategoria (inne wydatki)',
+    meta: { printValue: (row) => row.otherCategoryName },
     cell: (info) => info.getValue(),
   }),
 
@@ -141,7 +157,7 @@ const allColumns = [
   col.accessor('sourceRegisterName', {
     id: 'sourceRegister',
     header: 'Kasa źródłowa',
-    meta: { minWidth: 'min-w-40' },
+    meta: { minWidth: 'min-w-40', printValue: (row) => row.sourceRegisterName },
     cell: (info) => {
       const id = info.row.original.sourceRegisterId
       const name = info.getValue()
@@ -153,6 +169,7 @@ const allColumns = [
   col.accessor('targetRegisterName', {
     id: 'targetRegister',
     header: 'Kasa docelowa',
+    meta: { printValue: (row) => row.targetRegisterName },
     cell: (info) => {
       const id = info.row.original.targetRegisterId
       const name = info.getValue()
@@ -165,6 +182,9 @@ const allColumns = [
   col.accessor('paymentMethod', {
     id: 'paymentMethod',
     header: 'Metoda',
+    meta: {
+      printValue: (row) => (row.paymentMethod ? PAYMENT_METHOD_LABELS[row.paymentMethod] : '—'),
+    },
     cell: (info) => {
       const method = info.getValue() as PaymentMethodT | null
       return method ? PAYMENT_METHOD_LABELS[method] : '—'
@@ -173,6 +193,7 @@ const allColumns = [
   col.accessor('workerName', {
     id: 'worker',
     header: 'Pracownik',
+    meta: { printValue: (row) => row.workerName },
     cell: (info) => {
       const id = info.row.original.workerId
       const name = info.getValue()
@@ -186,13 +207,13 @@ const allColumns = [
   col.accessor('createdByName', {
     id: 'createdBy',
     header: 'Dodane przez',
-    meta: { minWidth: 'min-w-40' },
+    meta: { minWidth: 'min-w-40', printValue: (row) => row.createdByName },
     cell: (info) => info.getValue(),
   }),
   col.accessor('createdAt', {
     id: 'createdAt',
     header: 'Czas dodania',
-    meta: { minWidth: 'min-w-40' },
+    meta: { minWidth: 'min-w-40', printValue: (row) => formatPLDateTime(row.createdAt) },
     cell: (info) => formatPLDateTime(info.getValue()),
   }),
 ]
