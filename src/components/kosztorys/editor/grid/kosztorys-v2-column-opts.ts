@@ -3,6 +3,7 @@ import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 import type { LayerT } from '@/lib/kosztorys/layer'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
+import type { MoveEdgesT } from '@/lib/kosztorys/move-edges'
 import type { SortPickT, SortStateT } from '@/lib/kosztorys/row-view'
 import type { KosztorysStageT, KosztorysV2RowT, ToolPlaneT } from '@/lib/kosztorys/types'
 import type { WorkerRefT } from '@/types/reference-data'
@@ -43,6 +44,9 @@ export type BuildV2ColumnsOptsT = {
   // Reordering items within a section (Przesuń w górę/dół). Greyed out while a column sort is
   // active — "up/down" has no meaning against a price-sorted list.
   onReorderItem?: (row: KosztorysV2RowT, dir: 'up' | 'down') => void
+  // Read over the WHOLE rozpiska, never the filtered view: the mover works on the document, so a
+  // search that hides the row above must not make ▲ look impossible.
+  moveEdges?: MoveEdgesT
   onInsertItem?: (row: KosztorysV2RowT, dir: 'above' | 'below') => void
   // Renaming the whole section from its (denormalized) name cell. Routes through the same fan-out
   // as the section panel — never a per-row setRowData, which would desync the other rows' copies.

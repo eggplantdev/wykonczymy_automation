@@ -442,6 +442,15 @@
   z-index: 1;
 }
 
+/* The band's „…" takes the section's hue, like its dot — so the one control that acts on a sekcja is
+   marked as belonging to it. Written here rather than as a utility on the trigger for the same reason
+   the rail is (section-colors.ts): dsg's stylesheet is unlayered and outranks `@layer utilities`, and
+   the icon's colour has to be set ON the icon — the trigger's inner span carries `text-foreground`,
+   which the svg would otherwise inherit. */
+.kosztorys-grid .dsg-row.kosztorys-section-header .kosztorys-actions-cell svg {
+  color: var(--section-rail, var(--color-muted-foreground));
+}
+
 /* Same specificity as the rule above, so it must stay after it to keep the gutter's rail. */
 .kosztorys-grid .dsg-row.kosztorys-section-header .dsg-cell-gutter {
   box-shadow:

@@ -56,6 +56,7 @@ import {
 } from '@/lib/kosztorys/row-height'
 import { measureTextWidth } from '@/lib/utils/text-measure'
 import { sectionColorRail } from '@/lib/kosztorys/section-colors'
+import { orderCommandsEnabled, sectionBandsVisible } from '@/lib/kosztorys/order-commands'
 import { cn } from '@/lib/utils/cn'
 import { buildKosztorysReconciliation } from '@/lib/kosztorys/reconciliation'
 import {
@@ -154,6 +155,7 @@ export function KosztorysEditorBody({
     onRenameSection,
     onInsertSection,
     onReorderSection,
+    moveEdges,
     onSetSectionColor,
     onRemoveSection,
     onChange,
@@ -188,6 +190,8 @@ export function KosztorysEditorBody({
               onRemove: onRemoveSection,
             }
           : undefined,
+      sortActive: !orderCommandsEnabled(sort),
+      moveEdges,
       labelColumnId: sectionBandLabelColumnId(columns.map((column) => column.id)),
     }),
     [
@@ -199,6 +203,8 @@ export function KosztorysEditorBody({
       onReorderSection,
       onSetSectionColor,
       onRemoveSection,
+      sort,
+      moveEdges,
       columns,
     ],
   )
@@ -226,7 +232,7 @@ export function KosztorysEditorBody({
   const bodyRows = useMemo(
     () =>
       buildSectionBandRows(viewRows, {
-        enabled: sort?.scope !== 'global',
+        enabled: sectionBandsVisible(sort),
         collapsedSectionIds,
         sections: sectionRows,
       }),

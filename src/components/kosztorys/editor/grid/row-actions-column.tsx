@@ -4,6 +4,8 @@ import { Column, type CellProps } from 'react-datasheet-grid'
 import { HeaderLabel } from '@/components/ui/datasheet-grid/header-label'
 import { KosztorysRowActionsMenu } from '@/components/kosztorys/editor/grid/menus/kosztorys-row-actions-menu'
 import { type BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
+import { canMoveItem } from '@/lib/kosztorys/move-edges'
+import { orderCommandsEnabled } from '@/lib/kosztorys/order-commands'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // `opts` rides `columnData` so this component keeps ONE identity across renders — dsg answers a
@@ -16,7 +18,9 @@ function RowActionsCell({ rowData, columnData }: CellProps<KosztorysV2RowT, RowA
 
   return (
     <KosztorysRowActionsMenu
-      sortActive={opts.sort != null}
+      sortActive={!orderCommandsEnabled(opts.sort)}
+      canMoveUp={canMoveItem(opts.moveEdges, rowData.id, 'up')}
+      canMoveDown={canMoveItem(opts.moveEdges, rowData.id, 'down')}
       item={{
         onInsertAbove: () => opts.onInsertItem?.(rowData, 'above'),
         onInsertBelow: () => opts.onInsertItem?.(rowData, 'below'),

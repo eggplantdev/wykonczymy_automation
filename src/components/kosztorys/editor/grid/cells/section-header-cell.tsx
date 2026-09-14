@@ -8,15 +8,16 @@ import {
   type SectionBandActionsT,
 } from '@/components/kosztorys/editor/grid/menus/kosztorys-section-actions-menu'
 import { formatNet } from '@/lib/kosztorys/format'
+import { canMoveSection, type MoveEdgesT } from '@/lib/kosztorys/move-edges'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-// What every band cell needs, carried on the wrapped column's `columnData` (never a closure — see
-// kosztorys-synthetic-rows.tsx). `onRename` and `actions` are absent in the read-only client view,
-// which is what freezes the name and leaves the band without a „…".
 // `net` is the section's executed value after rabat, in the active price view — the same figure its
 // footer's „Razem netto" shows, so a collapsed section still states what it is worth.
 export type SectionHeaderFigureT = { itemCount: number; net: number }
 
+// What every band cell needs, carried on the wrapped column's `columnData` (never a closure — see
+// kosztorys-synthetic-rows.tsx). `onRename` and `actions` are absent in the read-only client view,
+// which is what freezes the name and leaves the band without a „…".
 export type SectionHeaderContextT = {
   // Per section id — the band row carries the section's identity, not its figures.
   figures: Map<number, SectionHeaderFigureT>
@@ -26,6 +27,12 @@ export type SectionHeaderContextT = {
   // One bundle rather than four props: they all come from the same `editorOnly()` gate, so the menu
   // is all-present or all-absent.
   actions?: SectionBandActionsT
+  // A section-scoped sort keeps the bands on screen but freezes section order, so the menu needs to
+  // know — see KosztorysSectionActionsMenu.
+  sortActive: boolean
+  // Which sekcja sits at either end of the rozpiska, so its ▲/▼ can go dead instead of eating the
+  // click. Absent in the read-only view, which has no menu to grey out.
+  moveEdges?: MoveEdgesT
   // Which column paints the label — resolved per render off the visible order, never a fixed id.
   labelColumnId?: string
 }
@@ -36,7 +43,7 @@ export type SectionHeaderSlotT = 'actions' | 'label' | 'blank'
 
 const ACTIONS_COLUMN_ID = 'actions'
 
-// Chrome, not a reading of the kosztorys: „Akcje" is 64px of row menu and the trailing gap is empty
+// Chrome, not a reading of the kosztorys: „Akcje" is 64px of menu trigger and the trailing gap is empty
 // by definition, so neither can host a label that has to be legible. Literals rather than an import
 // from the column assembly, which imports this file.
 const CHROME_COLUMN_IDS: ReadonlySet<string> = new Set([ACTIONS_COLUMN_ID, 'layerGap'])
@@ -93,6 +100,9 @@ export function SectionHeaderCell({
         name={rowData.sectionName ?? ''}
         itemCount={itemCount}
         color={rowData.sectionColor}
+        sortActive={context.sortActive}
+        canMoveUp={canMoveSection(context.moveEdges, rowData.sectionId, 'up')}
+        canMoveDown={canMoveSection(context.moveEdges, rowData.sectionId, 'down')}
         actions={context.actions}
       />
     )

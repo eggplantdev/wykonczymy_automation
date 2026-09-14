@@ -11,7 +11,12 @@ import {
 } from 'lucide-react'
 
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+} from '@/components/ui/dropdown-menu'
 import { CellMenuTrigger } from '@/components/ui/datasheet-grid/cell-menu-trigger'
 import { useCataloguePicker } from '@/components/kosztorys/editor/actions/catalogue-picker-host'
 import { SectionColorPicker } from '@/components/kosztorys/editor/grid/menus/section-color-picker'
@@ -27,19 +32,28 @@ export type SectionBandActionsT = {
   onRemove: (sectionId: number) => void
 }
 
-// No `sortActive` gate, unlike the row menu: a column sort drops the bands from the grid, so this
-// menu is not rendered at all while one is on.
+// `sortActive` covers the section-scoped sort, which KEEPS the bands on screen (only a global one
+// drops them) while `handleInsertSection` / `handleReorderSection` refuse to run — without the gate
+// those four commands would look live and silently do nothing.
 export function KosztorysSectionActionsMenu({
   sectionId,
   name,
   itemCount,
   color,
+  sortActive,
+  canMoveUp,
+  canMoveDown,
   actions,
 }: {
   sectionId: number
   name: string
   itemCount: number
   color: SectionColorKeyT | null
+  sortActive: boolean
+  // Off at the first / last sekcja of the rozpiska, where `handleReorderSection` has nothing to swap
+  // with. Separate from `sortActive`: that one freezes every order command, this one direction.
+  canMoveUp: boolean
+  canMoveDown: boolean
   actions: SectionBandActionsT
 }) {
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -48,38 +62,50 @@ export function KosztorysSectionActionsMenu({
   return (
     <>
       <DropdownMenu>
-        {/* The tint has to reach the icon itself: the trigger's inner span carries `text-foreground`,
-            which a colour on the trigger would lose to. Same `--section-rail` (and same neutral
-            fallback) as the band's dot, so an uncoloured section still shows a ⋯. */}
-        <CellMenuTrigger
-          title="Akcje sekcji"
-          className="[&_svg]:text-(--section-rail,var(--color-muted-foreground))"
-        />
+        {/* Tinted with the section's hue by globals.css, off the same `--section-rail` as the band
+            itself — a colour set here would sit on the trigger, not on the icon. */}
+        <CellMenuTrigger title="Akcje sekcji" />
         <DropdownMenuContent align="start" className="min-w-44">
-          <DropdownMenuItem onSelect={() => actions.onInsert(sectionId, 'above')}>
+          {/* The twin of the row menu's „Praca" header — this ⋯ and a praca's sit in the same „Akcje"
+              column, one row apart. */}
+          <DropdownMenuLabel>Sekcja</DropdownMenuLabel>
+          <DropdownMenuItem
+            disabled={sortActive}
+            onSelect={() => actions.onInsert(sectionId, 'above')}
+          >
             <ArrowUpToLine />
-            Wstaw powyżej
+            Wstaw sekcję powyżej
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => actions.onInsert(sectionId, 'below')}>
+          <DropdownMenuItem
+            disabled={sortActive}
+            onSelect={() => actions.onInsert(sectionId, 'below')}
+          >
             <ArrowDownToLine />
-            Wstaw poniżej
+            Wstaw sekcję poniżej
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => actions.onReorder(sectionId, 'up')}>
+          <DropdownMenuItem
+            disabled={sortActive || !canMoveUp}
+            onSelect={() => actions.onReorder(sectionId, 'up')}
+          >
             <ArrowUp />
-            Przesuń w górę
+            Przesuń sekcję w górę
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => actions.onReorder(sectionId, 'down')}>
+          <DropdownMenuItem
+            disabled={sortActive || !canMoveDown}
+            onSelect={() => actions.onReorder(sectionId, 'down')}
+          >
             <ArrowDown />
-            Przesuń w dół
+            Przesuń sekcję w dół
           </DropdownMenuItem>
           <SectionColorPicker
             value={color}
             onChange={(next) => actions.onSetColor(sectionId, next)}
           />
-          {/* A sekcja command, not a pozycja one: the praca lands at the END of this section. */}
+          {/* Not gated by the sort, unlike the four above: the praca lands at the END of this
+              section, so array position — the reason those go dead — is irrelevant. */}
           <DropdownMenuItem onSelect={() => openCataloguePicker(sectionId)}>
             <ListChecks />
-            Dodaj pracę z katalogu…
+            Dodaj pracę z katalogu do sekcji…
           </DropdownMenuItem>
           <DropdownMenuItem variant="destructive" onSelect={() => setConfirmOpen(true)}>
             <Trash2 />

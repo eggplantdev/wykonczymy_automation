@@ -11,7 +11,12 @@ import {
 } from 'lucide-react'
 
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+} from '@/components/ui/dropdown-menu'
 import { CellMenuTrigger } from '@/components/ui/datasheet-grid/cell-menu-trigger'
 import { REMOVAL_CONFIRM_DESCRIPTION } from '@/components/kosztorys/editor/grid/menus/removal-confirm'
 import { SaveItemToCatalogueDialog } from '@/components/kosztorys/editor/dialogs/save-item-to-catalogue-dialog'
@@ -20,6 +25,10 @@ type PropsT = {
   // Insert + move have no meaning against a sorted view — array position no longer mirrors
   // display_order — so they go dead while any sort is on, whatever its scope.
   sortActive: boolean
+  // Both false at the ends of a one-praca section. Separate from `sortActive` because they say a
+  // different thing: the sort freezes the whole menu, this freezes one direction.
+  canMoveUp: boolean
+  canMoveDown: boolean
   // The POZYCJA's id, not a catalogue row's — an id rather than a callback because the dialog reads
   // every figure it shows from the server by it. Absent (read-only view) → no „Zapisz do katalogu…".
   item: {
@@ -34,7 +43,7 @@ type PropsT = {
 
 // Pozycja commands only — every sekcja command hangs off the band's own „…" (see
 // kosztorys-section-actions-menu.tsx), which is reachable even while the section is collapsed.
-export function KosztorysRowActionsMenu({ sortActive, item }: PropsT) {
+export function KosztorysRowActionsMenu({ sortActive, canMoveUp, canMoveDown, item }: PropsT) {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [catalogueSaveOpen, setCatalogueSaveOpen] = useState(false)
 
@@ -43,6 +52,9 @@ export function KosztorysRowActionsMenu({ sortActive, item }: PropsT) {
       <DropdownMenu>
         <CellMenuTrigger title="Akcje wiersza" />
         <DropdownMenuContent align="start" className="min-w-44">
+          {/* The band's „…" sits in the same „Akcje" column one row up, so the header is what says
+              which of the two objects the menu you opened belongs to. */}
+          <DropdownMenuLabel>Praca</DropdownMenuLabel>
           <DropdownMenuItem disabled={sortActive} onSelect={item.onInsertAbove}>
             <ArrowUpToLine />
             Wstaw powyżej
@@ -51,11 +63,11 @@ export function KosztorysRowActionsMenu({ sortActive, item }: PropsT) {
             <ArrowDownToLine />
             Wstaw poniżej
           </DropdownMenuItem>
-          <DropdownMenuItem disabled={sortActive} onSelect={item.onMoveUp}>
+          <DropdownMenuItem disabled={sortActive || !canMoveUp} onSelect={item.onMoveUp}>
             <ArrowUp />
             Przesuń w górę
           </DropdownMenuItem>
-          <DropdownMenuItem disabled={sortActive} onSelect={item.onMoveDown}>
+          <DropdownMenuItem disabled={sortActive || !canMoveDown} onSelect={item.onMoveDown}>
             <ArrowDown />
             Przesuń w dół
           </DropdownMenuItem>

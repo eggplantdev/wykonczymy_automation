@@ -587,8 +587,8 @@ time-boxed — not exercised.
 ### Findings — 2026-09-03
 
 - [x] **Band has no actions menu; section actions still live on every item row** — `SyntheticAwareCell` (`src/components/kosztorys/editor/grid/kosztorys-synthetic-rows.tsx`) routes every column of a band row — including the „actions" column — through `SectionHeaderCell`, which renders no menu at all. Meanwhile `RowActionsCell` (`src/components/kosztorys/editor/grid/row-actions-column.tsx`) still builds the full „Sekcja" action group (insert/move/recolour/remove) on **every ordinary item row**, unchanged from before EX-580 shipped — confirmed live on staging inw. 135. This contradicts the slice's own description above („a „…" menu carrying the section actions that used to live in every row's menu") and two of this section's checklist boxes, which assume the band owns those actions and the row no longer does. **Wymaga człowieka (2026-09-04):** Duplicate evidence of the checklist box above (band's „…" menu). Question for human: decide which surface owns section actions going forward (band vs row) and update the slice description/checklist to match. **Rozstrzygnięte (2026-09-14, `kosztorys-section-menu-split`):** właściciel wybrał pasek — grupa „Sekcja" zjechała z menu wiersza do własnego ⋯ w kolumnie „Akcje" paska. Weryfikacja zachowania żyje w sekcji `kosztorys-section-menu-split` niżej; ten box zamyka się jako pytanie projektowe.
-      **Needs human:** decide which surface is meant to own section actions going forward — move them onto the band's own menu (matching the description and the two checklist boxes), or update the slice description + checklist wording to match the shipped design (actions stay on the row, band is purely a visual/rename affordance). Either way the two checklist boxes above need rewording once decided.
-      **Test disposition:** no automated test until the intended design is confirmed — a test for either behavior would encode the wrong one if written now.
+      **Rozstrzygnięte (2026-09-14):** pasek. Akcje sekcji wjechały na jego własne ⋯ w kolumnie „Akcje", menu wiersza niesie już tylko komendy pozycji.
+      **Test disposition:** `sectionHeaderSlot('actions', …)` pinowany w `section-band-label-column.test.ts`; sprzężenie „widoczny pasek vs zamrożona kolejność" w `section-band-commands.test.ts`.
 - [x] ~~**Podsumowanie has no per-section row to cross-check against** — the owner-side Podsumowanie panel (`Widok podsumowania` → „Podsumowanie" radio) breaks figures down by **category** (Robocizna / Rabat / Materiały / Łącznie, plus a Robocizna-vs-Materiały % pie) — confirmed on the public share view for inw. 133 and consistent with `summary-overview-tab.tsx` not carrying a per-section breakdown. There is no per-kosztorys-section row anywhere in Podsumowanie to compare a band's netto figure against.~~ **Nieaktualne (2026-09-04):** Same evidence as the "Every section opens with a band…" box above — no per-section Podsumowanie row exists; box's premise has no referent.
       **Needs human:** reword or drop this checklist box — as written it assumes a Podsumowanie row keyed by kosztorys section, which doesn't exist. If the intent was actually "band's netto equals the sum of its own item rows", that's a different, drivable check.
       **Test disposition:** no automated test until the box is reworded — nothing to assert against the current premise.
@@ -4875,10 +4875,19 @@ Setup: zalogowany jako OWNER/ADMIN (usuwanie i zmiana nazwy są zawężone do ty
 
 ### Phase 2: Odchudzenie menu wiersza
 
-- [ ] Menu ⋯ wiersza nie zawiera już grupy „Sekcja" ani „Wybierz pozycję z katalogu prac"; nie ma w nim nagłówków „Praca"/„Sekcja" ani separatora
+- [ ] Menu ⋯ wiersza nie zawiera już grupy „Sekcja" ani „Wybierz pozycję z katalogu prac" ani separatora, ale ma nagłówek „Praca"; menu paska ma nagłówek „Sekcja"
 - [ ] „Zapisz pozycję do katalogu prac" i wszystkie akcje pozycji działają jak dotąd
-- [ ] Przy włączonym sortowaniu kolumny: menu wiersza ma wygaszone Wstaw/Przesuń, a paski (więc i menu sekcji) nie są renderowane — akcje sekcji wracają po „Wyczyść sortowanie"
+- [ ] Sortowanie globalne („Sortuj rosnąco"): paski znikają, więc menu sekcji też — akcje wracają po „Wyczyść sortowanie"
+- [ ] Sortowanie „zachowując sekcje": paski zostają, a w ich menu Wstaw powyżej/poniżej i Przesuń w górę/dół są **wygaszone** (nie klikalne-bez-efektu); kolor, katalog i „Usuń sekcję" nadal działają; menu wiersza ma wygaszone Wstaw/Przesuń jak dotąd
 
 ### Phase 3: Dokumentacja
 
 - [ ] `manual-checks.md` nie zawiera już otwartego FAIL-a mówiącego, że pasek nie ma menu
+
+### Poprawki po pokazie właścicielowi (2026-09-14)
+
+- [ ] Menu paska nazywa swój obiekt: „Wstaw sekcję powyżej", „Wstaw sekcję poniżej", „Przesuń sekcję w górę", „Przesuń sekcję w dół", „Dodaj pracę z katalogu do sekcji…"
+- [ ] Pierwsza praca w sekcji ma wygaszone „Przesuń w górę", ostatnia — „Przesuń w dół"; praca sama w sekcji ma wygaszone oba. Praca w środku bloku ma oba aktywne i nadal się przesuwa
+- [ ] Pierwsza sekcja rozpiski ma wygaszone „Przesuń sekcję w górę", ostatnia — „Przesuń sekcję w dół"
+- [ ] Wyszukiwarka zawężająca widok nie wygasza strzałek: praca, której sąsiad jest odfiltrowany, nadal daje się przesunąć
+- [ ] ⋯ na pasku ma barwę sekcji (różną między sekcjami o różnych kolorach), a nie czarną; sekcja bez przypiętego koloru ma ⋯ neutralnie szare
