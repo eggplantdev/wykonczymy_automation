@@ -402,5 +402,5 @@ Uruchomić **raz**, po ostatniej fazie:
 
 #### Automated
 
-- [x] 4.1 Spec akcji szablonów przechodzi i pokrywa nadpisanie — PENDING
-- [x] 4.2 Spec zastąpienia drzewa snapshotem przechodzi — PENDING
+- [x] 4.1 Spec akcji szablonów przechodzi i pokrywa nadpisanie — 9c63cd23
+- [x] 4.2 Spec zastąpienia drzewa snapshotem przechodzi — 9c63cd23
