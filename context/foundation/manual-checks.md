@@ -227,9 +227,7 @@ Pass ran clean — **no bugs found**, all five Phase-2 boxes ticked. No open fin
 
 - [x] ~~Panel opens on **Netto** by default; grid columns/toggle default unchanged (still show all).~~ **Nieaktualne (2026-09-04):** Whole Phase 2 batch describes the pre-EX-536 "cash block" UI (manual typed `C` cash input, "three cash rows"), which EX-536 removed entirely — the owner flipped Mieszane to derive the cash part from Σ netto wpłaty (deposits bucketed by vatPlane). Section's own header already marks the `C`-typing checks SUPERSEDED; the 2026-08-26 finding confirms the whole batch, not just that one control, no longer matches live behavior — see `## mixed-settlement-both-planes` and `## kosztorys-podsumowanie-tabs` for the current design.
 - [x] ~~„Mieszana" shows netto-only waterfall + „Suma transzy" netto + the three cash rows.~~ **Nieaktualne (2026-09-04):** Same evidence — live Mieszane (inw. 135, SQL-confirmed `settlement_mode='MIXED'`) renders one „Podsumowanie / Netto" table, not a "three cash rows" block.
-- [x] ```Typing `C` recomputes Reszta and Razem live~~ — **removed control (see SUPERSEDED note above).**~~ **Nieaktualne (2026-09-04):** Section's own header confirms this control was deleted by EX-536.
-
-      ```
+- [x] ~~Typing `C` recomputes Reszta and Razem live — removed control (see SUPERSEDED note above).~~ **Nieaktualne (2026-09-04):** Section's own header confirms this control was deleted by EX-536.
 - [x] ~~Netto and Brutto axes unchanged from before.~~ **Nieaktualne (2026-09-04):** Part of the same superseded Phase 2 batch — no current referent for the pre-EX-536 cash-block design.
 - [x] ~~Preview render (`preview`) shows the block with a **disabled** input.~~ **Nieaktualne (2026-09-04):** `/podglad-inwestora/135` in MIXED renders zero `<input>` elements anywhere on the page (fully read-only markup) — no disabled input to find; the block itself no longer exists.
 
@@ -1261,7 +1259,7 @@ refresh-coalescing checks — they are only observable as request counts.
 - [x] Editing a single grid cell fires the autosave and **no** full-route refresh alongside it
       _Verified 2026-09-03 (staging, inw. 135, item id=16247 „zakup, transport i wniesienie towaru
       budowlanego…"): edited Przedmiar 1→3, `browser_network_requests` showed only `POST
-  /inwestycje/135/kosztorys_v2` server-action calls and `_rsc`-tagged fetches — no plain
+/inwestycje/135/kosztorys_v2` server-action calls and `_rsc`-tagged fetches — no plain
       navigation-style GET/reload of the route. Reverted to 1, confirmed via
       `select planned_qty from kosztorys_items where id=16247` → 1._
 - [ ] Editing 5–10 cells in quick succession produces **one** route refresh after the typing stops — not one per cell (this is the uncleared-timer bug fixed at the review gate; unfixed it queues a refresh per edited cell) **Wymaga człowieka (2026-09-04):** MCP browser round-trip (each `browser_type` call >1s) cannot produce a genuine sub-700ms burst of edits needed to test debounce/coalescing. Needs a scripted `page.evaluate` loop or a Playwright e2e spec with back-to-back `page.fill`/`page.keyboard` calls with no await between them.
@@ -1299,7 +1297,7 @@ refresh-coalescing checks — they are only observable as request counts.
       _Verified 2026-09-03 (staging, same transaction): opened „Podgląd faktury…" → „Usuń" → confirmed
       the „Czy na pewno chcesz usunąć fakturę?" dialog — the row reverted to „Dodaj fakturę" on the
       next render. Confirmed the underlying delete via SQL: `select id from media where filename ilike
-  '%qa-test-invoice%'` → 0 rows. Transaction #4602 back to its no-invoice state._
+'%qa-test-invoice%'` → 0 rows. Transaction #4602 back to its no-invoice state._
 - [x] A brand-new investment with **zero** kosztorys rows opens the editor without a 500 (the `coalesce` on the `json_agg` query — pinned by a DB spec, worth eyeballing once)
       _Verified: inw. 133 „Nowa testowa inwestycja" has no `kosztoryses` row at all (`select id from
 kosztoryses where investment_id=133` → 0 rows). `/inwestycje/133/kosztorys_v2` loaded cleanly,
@@ -3686,7 +3684,7 @@ produkcyjnym (`pnpm build && pnpm start`) — na dev HMR zawyża każdy pomiar.
 ### Findings — 2026-09-03
 
 - [ ] **Search filter narrowing the visible rows mid-edit crashes the grid** (`TypeError: Cannot read **FAIL (2026-09-04):** Reproduced live on staging inw. 135: editing a cell while a keystroke sequence also narrows the search-filtered row list crashes the grid into the Next.js error boundary. Root cause traced to `use-row-height-cache-reset.ts`(the repo's EX-699 patch of`react-datasheet-grid`'s `resetAfter`, `patches/react-datasheet-grid@4.11.6.patch`): when a filter empties `calculatedHeights.current`, the same render's `getRowSize`for the still-referenced`activeCell.row`reads`[-1].top`on an empty array →`undefined.top`throws. Recovery from the crash also left real data (row1 subcontractor price) at an un-reverted intermediate value — manually fixed and confirmed via reload. **Wymaga człowieka:** jak wyżej — patch`useRowHeights` w drzewie adresuje dokładnie ten crash; do decyzji, czy go zatrzymujemy, czy odkręcamy i szukamy poprawki po naszej stronie.
-  properties of undefined (reading 'top')`, landing in the Next.js error boundary) — reproduced
+properties of undefined (reading 'top')`, landing in the Next.js error boundary) — reproduced
       live on staging, inw. 135: opened row1's subcontractor „Cena j.m. netto — z narzędziami" cell
       (guard ceiling 1200), typed a keystroke sequence that both built a live draft AND triggered the
       search filter to narrow the row list in the same interaction, and the page crashed into "Coś
@@ -4171,17 +4169,17 @@ nie lokalnie — preview DB nie ma `GOOGLE_SERVICE_ACCOUNT_WRITE_JSON` tak samo 
 przenoszą się wprost.
 
 - [x] **Box 1 — potwierdzone bezpośrednio.** Dodano wydatek inwestycyjny (opis `QA 2026-09-04
-  sheet-write-env-guard`, 1 PLN, „Kasa - test") na inwestycji 48 (active, arkusz podpięty).
+sheet-write-env-guard`, 1 PLN, „Kasa - test") na inwestycji 48 (active, arkusz podpięty).
       `scripts/inspect-sheet.mjs` na zakładce wydatków przed/po pokazał zero zmian. `vercel logs`
       pokazał `[sheets-sync] syncBulkExpensesToSheet failed (non-fatal): Refusing to write to Google
-  Sheets: GOOGLE_SERVICE_ACCOUNT_WRITE_JSON is not set...` — czytelne zdanie, nie goły `403`.
+Sheets: GOOGLE_SERVICE_ACCOUNT_WRITE_JSON is not set...` — czytelne zdanie, nie goły `403`.
       Wydatek usunięty po weryfikacji (patrz sekcja sprzątania w raporcie).
 - [x] **Box 2 — potwierdzone po stronie serwera + gwarancją kodu.** „Zresetuj wydatki inwestycyjne"
       na inwestycji z podpiętym arkuszem: `vercel logs` pokazał `[ACTION_ERROR] setupSheetAction
-  Refusing to write to Google Sheets: …`, `responseStatusCode: 200` ale payload akcji
+Refusing to write to Google Sheets: …`, `responseStatusCode: 200` ale payload akcji
       `success:false`. Toastu w DOM nie złapano na czas (znika zanim zdążono sprawdzić selektor) —
       ale `src/components/sheets/sync-button.tsx`: `if (!setup.success) { toastMessage(setup.error,
-  'error'); return }` odpala się bezwarunkowo i synchronicznie na `success:false`, więc to nie jest
+'error'); return }` odpala się bezwarunkowo i synchronicznie na `success:false`, więc to nie jest
       wyścig — traktuję jako potwierdzone.
 - [x] **Box 3 — potwierdzone czytaniem kodu**, zgodnie z sugestią samego checka (test dotyczy lokalnego
       env, którego pass nie miał uruchamiać). `VERCEL_ENV` nie jest nigdzie odczytywane na ścieżce
@@ -4202,7 +4200,7 @@ przenoszą się wprost.
       ale mechanizm jest w pełni potwierdzony kodem: `src/lib/google/sheet-access.ts`
       `verifySheetAccess()` — gdy `!hasWriteServiceAccountCredentials()`, sonda zapisu (`batchUpdate`)
       jest pomijana i funkcja zwraca sukces, logując `[sheet-access] write probe skipped for … — no
-  Editor credential outside production`. Inwestycja 134 odpięta i wpis kosztorysu skasowany po
+Editor credential outside production`. Inwestycja 134 odpięta i wpis kosztorysu skasowany po
       teście (zweryfikowane SELECT-em — patrz sprzątanie).
 - [x] **Box 6 — potwierdzone kodem.** `grep -rl getWritableSheetsClient src/` pokazuje tylko
       `auth.ts` / `writable-sheets-client.ts` / `readonly-sheets-client.ts` (fallback na produkcji) /
@@ -4628,7 +4626,7 @@ Zweryfikowane 2026-09-03 na stagingu (preview DB), inwestycja 66 „Altowa 12" j
       `/inwestycje/66` — succeeded, row showed „Podgląd faktury: qa-ex748-…pdf" and
       `GET /api/transactions/4576` confirmed the `invoice` relation was set. Then, to isolate the
       lock from the **pre-existing, unconditional** `amount` field lock (`access: { update: () =>
-    false }` in `src/collections/transfers.ts`, unrelated to EX-748), probed the lock with
+false }` in `src/collections/transfers.ts`, unrelated to EX-748), probed the lock with
       `PATCH /api/transactions/4576 { description: … }` directly (same authenticated session,
       `credentials: 'include'`) — got `403` with the expected
       „Inwestycja jest zakończona i tylko do odczytu…" message, both **before and after** detaching.
@@ -4704,7 +4702,7 @@ ekranu w aplikacji i bez wpisu lista wyboru celu będzie pusta. Zalogowany jako 
       `buildEquipmentDigest` can turn non-empty again with only id 1 changed is that `id 1` re-entered
       the digest (`isMoreUrgent(bucket, null)` is always true), so the 500 is itself the re-arm signal:
       the route now reaches `notifyEquipmentDigest`, which throws because preview's `EMAIL_HOST =
-    disabled.invalid` fails DNS — a deliberate non-prod gate, not a bug (matches
+disabled.invalid` fails DNS — a deliberate non-prod gate, not a bug (matches
       `AGENTS.md` › Poczta wychodzi tylko z produkcji). Fetched id 1 back afterward:
       `warrantyNotifiedBucket`/`warrantyNotifiedAt` are **still `null`** — confirms `stampNotified` is
       never reached on a failed send, exactly as `sweep-io.ts`'s comment documents ("no re-nag recovery
@@ -4867,7 +4865,7 @@ ekranu w aplikacji i bez wpisu lista wyboru celu będzie pusta. Zalogowany jako 
       app itself on :3010 answered in <0.3s early on — so the Next.js server and its already-open DB
       pool connections stayed responsive at first, only _new_ Postgres connections and the Docker
       daemon's control plane were stuck. The dev server log shows a literal `No space left on device
-  (os error 28)` around the same time, which best explains everything at once (Docker Desktop VM
+(os error 28)` around the same time, which best explains everything at once (Docker Desktop VM
       disk full → Postgres can't accept/complete new connections, and the daemon's own control plane
       wedges) — the host filesystem itself had 11 GiB free, so this points at the Docker Desktop VM's
       own disk, not the Mac's. One in-flight SSR request on the throwaway server (`GET /sprzet/18`)
