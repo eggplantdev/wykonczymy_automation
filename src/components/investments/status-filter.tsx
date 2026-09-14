@@ -14,6 +14,7 @@ import { STATUS_LABELS } from '@/components/investments/investment-status-badge'
 import { cn } from '@/lib/utils/cn'
 import type { InvestmentStatusT } from '@/types/reference-data'
 
+// Three, not four — `szablon` gets no checkbox on purpose (see use-status-filter.ts).
 const STATUS_ORDER: InvestmentStatusT[] = ['planowana', 'active', 'completed']
 
 type StatusFilterPropsT = {

@@ -13,6 +13,9 @@ const STATUS_OPTIONS = [
   { label: { en: 'Planned', pl: 'Planowana' }, value: 'planowana' },
   { label: { en: 'Active', pl: 'Aktywna' }, value: 'active' },
   { label: { en: 'Completed', pl: 'Zakończona' }, value: 'completed' },
+  // The templates workbench. Declared so /admin and generate:types know the value exists; it is
+  // never picked by hand — resolveWorkshopInvestment is the only writer (src/lib/db/workshop-investment.ts).
+  { label: { en: 'Template', pl: 'Szablon' }, value: 'szablon' },
 ] as const
 
 // For LABOR_COST / RABAT / LOSS an orphaned transaction is terminal: they carry no source register
@@ -162,6 +165,15 @@ export const Investments: CollectionConfig = {
       type: 'number',
       defaultValue: 0,
       label: { en: 'Global discount value', pl: 'Rabat globalny — wartość' },
+    },
+    // Workbench state, only ever set on the `szablon` investment: which kosztorys_presets row is
+    // currently loaded into it. Declared here (not just added by migration) because a column the
+    // collection doesn't know isn't in Payload's drizzle schema — payload.update couldn't write it.
+    {
+      name: 'templatePresetId',
+      type: 'number',
+      admin: { hidden: true },
+      label: { en: 'Loaded template id', pl: 'Id wczytanego szablonu' },
     },
   ],
 }

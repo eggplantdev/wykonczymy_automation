@@ -4,6 +4,9 @@ import { useMemo } from 'react'
 import { createJsonMapStore, useJsonMap, type JsonMapStoreT } from '@/hooks/create-json-map-store'
 import type { InvestmentStatusT } from '@/types/reference-data'
 
+// Deliberately three-element, not four: `szablon` is the hidden templates workbench, and its
+// absence here IS how it stays off /inwestycje — filterByStatuses keeps only statuses in the
+// selected set, and no checkbox can ever put `szablon` there. Don't "fix" this by adding it.
 const DEFAULT_STATUSES: InvestmentStatusT[] = ['active', 'planowana']
 const VALID_STATUSES: InvestmentStatusT[] = ['active', 'completed', 'planowana']
 

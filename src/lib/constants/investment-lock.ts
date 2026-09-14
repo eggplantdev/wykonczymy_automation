@@ -15,8 +15,18 @@ export const isLockedStatus = (status: string | null | undefined): boolean =>
   status === LOCKED_INVESTMENT_STATUS
 
 /**
+ * The templates workbench — a hidden investment the szablon editor works over. It is NOT locked
+ * (its kosztorys is the whole point of it being editable); it simply is not a real investment, so
+ * no money may be booked against it.
+ */
+export const TEMPLATE_INVESTMENT_STATUS = 'szablon'
+
+/**
  * The pickers' courtesy filter — a zakończona inwestycja is not offered for a new booking. The gate
  * is the collection hook; this only spares the user a refusal they could have seen coming.
+ *
+ * Takes `string`, not the status union, so widening the union raises no typecheck pressure here —
+ * every new status must be weighed against this line by hand.
  */
 export const isBookableInvestment = (investment: { status: string }): boolean =>
-  !isLockedStatus(investment.status)
+  !isLockedStatus(investment.status) && investment.status !== TEMPLATE_INVESTMENT_STATUS

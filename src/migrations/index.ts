@@ -84,6 +84,7 @@ import * as migration_20260901_1_work_catalogue_auto_rates from './20260901_1_wo
 import * as migration_20260902_0_collapse_kosztorys_tool_overrides from './20260902_0_collapse_kosztorys_tool_overrides'
 import * as migration_20260903_0_add_equipment from './20260903_0_add_equipment'
 import * as migration_20260904_0_equipment_event_author from './20260904_0_equipment_event_author'
+import * as migration_20260914_0_add_szablon_investment_status from './20260914_0_add_szablon_investment_status'
 
 export const migrations = [
   {
@@ -515,5 +516,10 @@ export const migrations = [
     up: migration_20260904_0_equipment_event_author.up,
     down: migration_20260904_0_equipment_event_author.down,
     name: '20260904_0_equipment_event_author',
+  },
+  {
+    up: migration_20260914_0_add_szablon_investment_status.up,
+    down: migration_20260914_0_add_szablon_investment_status.down,
+    name: '20260914_0_add_szablon_investment_status',
   },
 ]

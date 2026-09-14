@@ -32,6 +32,8 @@ describe('investment lock', () => {
         ['completed', true],
         ['active', false],
         ['planowana', false],
+        // The templates workbench is editable on purpose — it is unbookable, not locked.
+        ['szablon', false],
       ] as const) {
         mockExecute.mockResolvedValueOnce({ rows: [{ status }] })
         expect(await isInvestmentLocked(db, 1)).toBe(expected)
