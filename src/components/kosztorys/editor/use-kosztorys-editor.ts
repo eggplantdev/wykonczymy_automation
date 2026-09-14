@@ -49,7 +49,7 @@ import {
   swapSectionBlock,
   type BlankRowInputT,
 } from '@/lib/kosztorys/row-ops'
-import { isLastItemInSection, sectionItemCounts } from '@/lib/kosztorys/delete-policy'
+import { isLastItemInSection } from '@/lib/kosztorys/delete-policy'
 import { columnTotalsForRows } from '@/lib/kosztorys/column-totals'
 import { sectionSubtotalsForView, stageAxisForView } from '@/lib/kosztorys/settlement-aggregates'
 import { clientTotalsFromSubtotals } from '@/lib/kosztorys/settlement-client-totals'
@@ -367,9 +367,6 @@ export function useKosztorysEditor({
     handleApplyPercentDiscount,
   } = useKosztorysSettings({ investmentId, tree, rowsRef, patchRows, pushReversible })
 
-  // One O(n) pass; every row's actions menu reads its own section's count for the delete confirm.
-  const sectionCounts = sectionItemCounts(rows)
-
   // onRemoveItem/onReorderItem read prevById.current / rowsRef.current — stable refs —
   // only from a cell's onClick, never during render, so passing them here is safe.
   // In preview the grid is read-only (buildV2Grid disables every cell + drops the action column)
@@ -499,10 +496,9 @@ export function useKosztorysEditor({
     onRemoveSection: editorOnly(handleRemoveSection),
     onReorderSection: editorOnly(handleReorderSection),
     onInsertSection: editorOnly(handleInsertSection),
-    onPersistKosztorysOrder: editorOnly(handlePersistKosztorysOrder),
     onSetSectionColor: editorOnly(handleSetSectionColor),
+    onPersistKosztorysOrder: editorOnly(handlePersistKosztorysOrder),
     canSaveItemToCatalogue: editorOnly(true),
-    getSectionItemCount: (sectionId: number) => sectionCounts.get(sectionId) ?? 0,
     globalDiscountActive,
     divergenceFilterEngaged,
     engagedStageConditionIds,

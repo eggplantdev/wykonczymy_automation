@@ -292,13 +292,13 @@ Brak — faza czysto prozatorska.
 
 #### Automated
 
-- [x] 1.1 Spec slotów z przypadkami dla `'actions'`
+- [x] 1.1 Spec slotów z przypadkami dla `'actions'` — 38e493d1
 
 ### Phase 2: Odchudzenie menu wiersza
 
 #### Automated
 
-- [ ] 2.1 Specy kolumn gridu przechodzą
+- [x] 2.1 Specy kolumn gridu przechodzą
 
 ### Phase 3: Dokumentacja
 
