@@ -244,10 +244,10 @@ jeden przebieg suity to ~1 h, a tu nie ma logiki serwerowej ani danych do zepsuc
 
 #### Automated
 
-- [x] 1.1 Brak kroku automatycznego zawężonego do fazy (uzasadnienie w treści fazy)
+- [x] 1.1 Brak kroku automatycznego zawężonego do fazy (uzasadnienie w treści fazy) — 68a01772
 
 ### Phase 2: Druga dropzone na tym samym hooku
 
 #### Automated
 
-- [ ] 2.1 Brak kroku automatycznego zawężonego do fazy (uzasadnienie w treści fazy)
+- [x] 2.1 Brak kroku automatycznego zawężonego do fazy (uzasadnienie w treści fazy)

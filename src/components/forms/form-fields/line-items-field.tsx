@@ -11,6 +11,11 @@ import { RemoveButton } from '@/components/ui/remove-button'
 import { LineItemInvoiceField } from '@/components/forms/form-fields/line-item-invoice-field'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils/cn'
+import {
+  FILE_DRAG_ARMED_CLASS,
+  FILE_DRAG_OVER_CLASS,
+  useWindowFileDrag,
+} from '@/hooks/use-window-file-drag'
 import { formatPLN } from '@/lib/utils/format-currency'
 import {
   billsNetAmount,
@@ -172,6 +177,7 @@ export function LineItemsField({
     makeLineItem(defaultExpenseCategory ? { expenseCategory: defaultExpenseCategory } : undefined)
   const scanInputRef = useRef<HTMLInputElement>(null)
   const isIngesting = (ingestingIds?.size ?? 0) > 0
+  const isFileDragActive = useWindowFileDrag()
   const [dragOverMode, setDragOverMode] = useState<ScanModeT | null>(null)
   const [scanMode, setScanMode] = useState<ScanModeT>('one-per-photo')
 
@@ -243,7 +249,13 @@ export function LineItemsField({
         setDragOverMode(null)
       },
       onDrop: (e: React.DragEvent) => handleDropReceipts(e, lineItemsField, mode),
-      className: cn(dragOverMode === mode && 'ring-neon-cyan ring-2'),
+      className: cn(
+        isFileDragActive &&
+          dragOverMode !== mode &&
+          !(isGenerating || isIngesting) &&
+          FILE_DRAG_ARMED_CLASS,
+        dragOverMode === mode && FILE_DRAG_OVER_CLASS,
+      ),
     }
   }
 
