@@ -1,10 +1,10 @@
 ---
 change_id: kosztorys-row-height-menu
-title: Wysokość wiersza — dwuklik znika z uchwytu, dopasowanie i reset trafiają do menu wiersza
-status: implemented
+title: Wysokość wiersza — dwuklik znika z uchwytu, dopasowanie trafia do menu wiersza
+status: archived
 created: 2026-09-14
 updated: 2026-09-14
-archived_at: null
+archived_at: 2026-09-14T20:48:55Z
 branch: null
 worktree: null
 ---
