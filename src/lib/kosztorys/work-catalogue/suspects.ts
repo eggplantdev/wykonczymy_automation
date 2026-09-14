@@ -77,9 +77,10 @@ const junkReason = (description: string, normalized: string) => {
  * Two passes, and „bez sensu" wins over „duplikat" — a row that is not a praca goes regardless of
  * whether it has a twin.
  *
- * ONLY rows still carrying „[stary arkusz]" are flagged: zdjęcie dopisku is the owner's „sprawdzone"
- * gesture, so the same click that clears the note drops the row out of these lists. A wzór row was
- * reviewed before it ever reached the katalog and is never coloured.
+ * „Bez sensu" is gated on „[stary arkusz]": zdjęcie dopisku is the owner's „sprawdzone" gesture, and
+ * a wzór row was reviewed before it ever reached the katalog. „Duplikat" is NOT gated — a twin is a
+ * fact about the PAIR, and hiding the unmarked half left the owner choosing between a row and
+ * something they could not see. The pair leaves these lists when one of the two is deleted.
  */
 export function findSuspects(items: readonly WorkCatalogueItemT[]): Map<number, SuspectT> {
   const suspects = new Map<number, SuspectT>()
@@ -92,8 +93,6 @@ export function findSuspects(items: readonly WorkCatalogueItemT[]): Map<number, 
       if (reason) suspects.set(item.id, { level: 'junk', reason })
     }
 
-    // The wzór rows join the twin groups they are not flagged in: „ten sam opis" is a fact about the
-    // PAIR, and the import is the half that has to go.
     const key = tokens(normalized).join(' ')
     byText.set(key, [...(byText.get(key) ?? []), item])
   }
@@ -102,7 +101,7 @@ export function findSuspects(items: readonly WorkCatalogueItemT[]): Map<number, 
     if (twins.length < 2) continue
     const units = [...new Set(twins.map((item) => item.unit))].join(', ')
     for (const item of twins)
-      if (!suspects.has(item.id) && hasLegacyMarker(item.description))
+      if (!suspects.has(item.id))
         suspects.set(item.id, {
           level: 'duplicate',
           reason: `${twins.length}× ten sam opis (${units})`,
