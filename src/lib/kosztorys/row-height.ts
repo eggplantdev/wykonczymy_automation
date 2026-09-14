@@ -26,6 +26,12 @@ export function heightForLines(lines: number): number {
   return Math.max(ITEM_ROW_HEIGHT, Math.ceil(lines) * ROW_LINE_HEIGHT + ROW_VERTICAL_PADDING)
 }
 
+// A band's label is one line and its resting height is 52, so the floor inside heightForLines is the
+// wrong one for it.
+export function fitRowHeight(rowId: number, contentLines: number): number {
+  return Math.max(restingRowHeight(rowId), heightForLines(contentLines))
+}
+
 type ResolveOptsT = {
   // Only its RESTING height — a band the owner dragged obeys the drag like any other row.
   isSectionBand: boolean

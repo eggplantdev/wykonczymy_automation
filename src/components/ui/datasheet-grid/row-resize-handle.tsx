@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, type MouseEvent, type PointerEvent } from 'react'
+import { useRef, type PointerEvent } from 'react'
 
 // The horizontal twin of ResizableHeader: datasheet-grid has no native row resize either. Same
 // deal — during the drag only a guide line moves (onGuide = cursor Y), and the height is committed
@@ -11,17 +11,17 @@ import { useRef, type MouseEvent, type PointerEvent } from 'react'
 
 type PropsT = {
   rowId: string
-  // The row's resting height — the floor a drag may not go below, and what a fit falls back to.
+  // The row's resting height — the floor a drag may not go below.
   // A prop rather than an import: this file is a grid primitive and knows nothing about kosztorys.
   minHeight: number
   onGuide: (y: number | null) => void
   onCommit: (rowId: string, height: number) => void
-  // Double-click: grow the row to exactly what its text needs. Optional — a row whose height is not
-  // a function of its text (the header) offers a drag and nothing else.
-  onFit?: (rowId: string) => void
+  // A prop because only the caller knows whether this is a row or the header — a tooltip is all the
+  // affordance an 8px strip has.
+  title: string
 }
 
-export function RowResizeHandle({ rowId, minHeight, onGuide, onCommit, onFit }: PropsT) {
+export function RowResizeHandle({ rowId, minHeight, onGuide, onCommit, title }: PropsT) {
   const drag = useRef<{ y: number; h: number } | null>(null)
 
   function onPointerDown(event: PointerEvent<HTMLElement>) {
@@ -52,9 +52,8 @@ export function RowResizeHandle({ rowId, minHeight, onGuide, onCommit, onFit }: 
     drag.current = null
     event.currentTarget.releasePointerCapture(event.pointerId)
     onGuide(null)
-    // A press that went nowhere is a click, not a drag — and the two clicks of a double-click come
-    // through here first. Committing the unchanged height would pin the row AND re-render the grid
-    // out from under the double-click that is about to fit it.
+    // A press that went nowhere is a click, not a drag: committing the unchanged height would pin
+    // the row for merely touching the handle, and nothing in the UI unpins one.
     if (moved !== 0) onCommit(rowId, height)
   }
 
@@ -66,28 +65,16 @@ export function RowResizeHandle({ rowId, minHeight, onGuide, onCommit, onFit }: 
     onGuide(null)
   }
 
-  function onDoubleClick(event: MouseEvent<HTMLElement>) {
-    if (!onFit) return
-    event.preventDefault()
-    event.stopPropagation()
-    onFit(rowId)
-  }
-
   return (
     <span
       role="separator"
       aria-orientation="horizontal"
-      title={
-        onFit
-          ? 'Przeciągnij, aby zmienić wysokość wiersza. Kliknij dwukrotnie, aby dopasować do treści.'
-          : 'Przeciągnij, aby zmienić wysokość nagłówka.'
-      }
+      title={title}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={abortDrag}
       onLostPointerCapture={abortDrag}
-      onDoubleClick={onDoubleClick}
       onClick={(event) => event.stopPropagation()}
       // Anchored to .dsg-cell-gutter, which the library positions absolutely.
       className="hover:bg-primary/40 absolute inset-x-0 bottom-0 z-10 h-2 cursor-row-resize"

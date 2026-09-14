@@ -19,9 +19,13 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { CellMenuTrigger } from '@/components/ui/datasheet-grid/cell-menu-trigger'
 import { REMOVAL_CONFIRM_DESCRIPTION } from '@/components/kosztorys/editor/grid/menus/removal-confirm'
+import { RowHeightMenuItems } from '@/components/kosztorys/editor/grid/menus/row-height-menu-items'
 import { SaveItemToCatalogueDialog } from '@/components/kosztorys/editor/dialogs/save-item-to-catalogue-dialog'
+import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 type PropsT = {
+  // „Dopasuj wysokość do treści" measures the row's text, unlike every other command here.
+  row: KosztorysV2RowT
   // Insert + move have no meaning against a sorted view — array position no longer mirrors
   // display_order — so they go dead while any sort is on, whatever its scope.
   sortActive: boolean
@@ -43,7 +47,7 @@ type PropsT = {
 
 // Pozycja commands only — every sekcja command hangs off the band's own „…" (see
 // kosztorys-section-actions-menu.tsx), which is reachable even while the section is collapsed.
-export function KosztorysRowActionsMenu({ sortActive, canMoveUp, canMoveDown, item }: PropsT) {
+export function KosztorysRowActionsMenu({ row, sortActive, canMoveUp, canMoveDown, item }: PropsT) {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [catalogueSaveOpen, setCatalogueSaveOpen] = useState(false)
 
@@ -77,6 +81,7 @@ export function KosztorysRowActionsMenu({ sortActive, canMoveUp, canMoveDown, it
               Zapisz pozycję do katalogu prac
             </DropdownMenuItem>
           )}
+          <RowHeightMenuItems row={row} />
           <DropdownMenuItem variant="destructive" onSelect={() => setConfirmOpen(true)}>
             <Trash2 />
             Usuń pozycję

@@ -18,6 +18,7 @@ function RowActionsCell({ rowData, columnData }: CellProps<KosztorysV2RowT, RowA
 
   return (
     <KosztorysRowActionsMenu
+      row={rowData}
       sortActive={!orderCommandsEnabled(opts.sort)}
       canMoveUp={canMoveItem(opts.moveEdges, rowData.id, 'up')}
       canMoveDown={canMoveItem(opts.moveEdges, rowData.id, 'down')}

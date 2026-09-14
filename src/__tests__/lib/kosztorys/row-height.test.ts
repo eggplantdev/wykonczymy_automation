@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest'
 import {
   ITEM_ROW_HEIGHT,
   SECTION_BAND_ROW_HEIGHT,
+  fitRowHeight,
   heightForLines,
   resolveRowHeight,
 } from '@/lib/kosztorys/row-height'
+import { sectionHeaderRowId } from '@/lib/kosztorys/synthetic-rows'
 
 describe('heightForLines', () => {
   it('gives a single line the grid’s resting row height', () => {
@@ -69,5 +71,23 @@ describe('resolveRowHeight · the client preview never sees a drag', () => {
       heightForLines(3),
     )
     expect(resolveRowHeight({ isSectionBand: false, override: Number.NaN })).toBe(ITEM_ROW_HEIGHT)
+  })
+})
+
+describe('fitRowHeight', () => {
+  it('grows a row to what its text needs', () => {
+    expect(fitRowHeight(42, 3)).toBe(heightForLines(3))
+  })
+
+  it('never fits a row below its resting height', () => {
+    expect(fitRowHeight(42, 1)).toBe(ITEM_ROW_HEIGHT)
+    expect(fitRowHeight(42, 0)).toBe(ITEM_ROW_HEIGHT)
+  })
+
+  // A band's resting height is taller than one line of text, so the shared floor in heightForLines
+  // is not enough — fitting a band to its one-line label would shrink it.
+  it('floors a section band at the band height, not the item height', () => {
+    expect(fitRowHeight(sectionHeaderRowId(7), 1)).toBe(SECTION_BAND_ROW_HEIGHT)
+    expect(fitRowHeight(sectionHeaderRowId(7), 4)).toBe(heightForLines(4))
   })
 })

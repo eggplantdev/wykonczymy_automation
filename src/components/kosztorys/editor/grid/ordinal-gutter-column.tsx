@@ -9,11 +9,6 @@ import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 export type RowResizeApiT = {
   onGuide: (y: number | null) => void
   onCommit: (rowId: string, height: number) => void
-  // Takes the row rather than its DOM: the grid virtualizes columns horizontally, so „Opis prac"
-  // is simply absent from the DOM once the columns are scrolled past it — and the handle is in the
-  // sticky gutter precisely so it stays clickable there. Measuring the rendered row would fit those
-  // rows to one line.
-  onFit: (row: KosztorysV2RowT) => void
 }
 
 type GutterDataT = {
@@ -40,7 +35,7 @@ function OrdinalGutterCell({ rowData, columnData }: CellProps<KosztorysV2RowT, G
           minHeight={restingRowHeight(rowData.id)}
           onGuide={resize.onGuide}
           onCommit={resize.onCommit}
-          onFit={() => resize.onFit(rowData)}
+          title="Przeciągnij, aby zmienić wysokość wiersza."
         />
       )}
     </>
@@ -72,6 +67,7 @@ export function ordinalGutterColumn(
         minHeight={HEADER_ROW_HEIGHT}
         onGuide={columnData.resize.onGuide}
         onCommit={columnData.resize.onCommit}
+        title="Przeciągnij, aby zmienić wysokość nagłówka."
       />
     ) : (
       <></>
