@@ -5,35 +5,35 @@ import { SpellCheck } from 'lucide-react'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-body'
-import { cleanItemDescriptionsAction } from '@/lib/actions/kosztorys'
+import { cleanItemTextsAction } from '@/lib/actions/kosztorys'
 import { toastMessage } from '@/lib/utils/toast'
 
 // The one action with no dialog, so its state stays inside the item instead of being lifted.
-export function CleanDescriptionsMenuItem() {
+export function CleanItemTextsMenuItem() {
   const { investmentId, onTreeReplaced } = useKosztorysEditorContext()
   const [cleaning, setCleaning] = useState(false)
 
-  // Rewrites every opis in place, so the grid is reseeded off the investment's revision token — the
-  // same signal the sheet compare uses after it writes.
-  function handleCleanDescriptions() {
+  // Rewrites every opis and j.m. in place, so the grid is reseeded off the investment's revision
+  // token — the same signal the sheet compare uses after it writes.
+  function handleCleanItemTexts() {
     setCleaning(true)
-    void cleanItemDescriptionsAction(investmentId)
+    void cleanItemTextsAction(investmentId)
       .then((res) => {
         if (!res.success) return toastMessage(res.error, 'error')
         if (res.data === 0) return toastMessage('Nie znaleziono nic do poprawienia', 'info')
-        toastMessage(`Poprawiono opisy: ${res.data}`, 'success')
+        toastMessage(`Poprawiono pozycje: ${res.data}`, 'success')
         onTreeReplaced?.()
       })
-      .catch(() => toastMessage('Nie udało się poprawić opisów', 'error'))
+      .catch(() => toastMessage('Nie udało się poprawić pozycji', 'error'))
       .finally(() => setCleaning(false))
   }
 
   return (
-    <DropdownMenuItem onSelect={handleCleanDescriptions} disabled={cleaning}>
+    <DropdownMenuItem onSelect={handleCleanItemTexts} disabled={cleaning}>
       <SpellCheck />
       <MenuItemBody
-        label="Popraw literówki w opisie prac"
-        description="Poprawia literówki, zbędne spacje i wielkie litery w całej rozpisce."
+        label="Popraw literówki w opisie prac i j.m."
+        description="Poprawia literówki, zbędne spacje i wielkie litery w opisach, a j.m. ujednolica do zapisu z listy (m², szt, mb, kpl, pkt)."
       />
     </DropdownMenuItem>
   )
