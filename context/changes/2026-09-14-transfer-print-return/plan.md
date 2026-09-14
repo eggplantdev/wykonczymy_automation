@@ -397,14 +397,14 @@ Brak. Zero zmian w schemacie, zero migracji, zero nowych zależności.
 
 #### Automated
 
-- [x] 1.1 Spec mapy tekstowej przechodzi
-- [x] 1.2 Spec sortowania przechodzi
+- [x] 1.1 Spec mapy tekstowej przechodzi — 8ef79935
+- [x] 1.2 Spec sortowania przechodzi — 8ef79935
 
 ### Phase 2: Dokument i przycisk
 
 #### Automated
 
-- [ ] 2.1 Spec buildera przechodzi
+- [x] 2.1 Spec buildera przechodzi
 
 ### Phase 3: Wpięcie w strony
 
