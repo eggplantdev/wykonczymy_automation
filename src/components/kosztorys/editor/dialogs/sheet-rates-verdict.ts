@@ -1,4 +1,4 @@
-import { rateNoun, rateNounDiffers } from '@/components/kosztorys/editor/dialogs/sheet-report-words'
+import { rateNoun, rateNounDiffers } from '@/lib/kosztorys/counted-nouns'
 import type { StaleRateT } from '@/lib/kosztorys/sheet-import/build-sheet-comparison'
 import type { ReportedRateResolutionT } from '@/lib/kosztorys/sheet-import/resolve-rates'
 

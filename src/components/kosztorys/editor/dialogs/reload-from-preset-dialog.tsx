@@ -11,7 +11,7 @@ import { useSearchFilter } from '@/hooks/use-search-filter'
 import { cn } from '@/lib/utils/cn'
 import { toastMessage } from '@/lib/utils/toast'
 import { getPresetName, groupPresetSections, type PresetGroupT } from './preset-picker-groups'
-import { itemNoun, sectionNoun } from './sheet-report-words'
+import { itemNoun, sectionNoun } from '@/lib/kosztorys/counted-nouns'
 import { usePresetSections } from './use-preset-sections'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 

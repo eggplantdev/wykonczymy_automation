@@ -17,11 +17,7 @@ import {
   ReportRow,
   ReportTable,
 } from '@/components/kosztorys/editor/dialogs/sheet-report-parts'
-import {
-  columnNoun,
-  itemNoun,
-  itemVanishesPhrase,
-} from '@/components/kosztorys/editor/dialogs/sheet-report-words'
+import { columnNoun, itemNoun, itemVanishesPhrase } from '@/lib/kosztorys/counted-nouns'
 import { applyKosztorysImport, type ImportPreviewT } from '@/lib/actions/kosztorys-import'
 import { PLANE_LABELS, TOOL_PLANES } from '@/lib/kosztorys/constants'
 import { formatCoeff } from '@/lib/kosztorys/format'

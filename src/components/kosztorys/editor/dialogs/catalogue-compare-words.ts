@@ -1,5 +1,5 @@
 import { pluralize } from '@/lib/utils/polish-plural'
-import { itemNoun } from '@/components/kosztorys/editor/dialogs/sheet-report-words'
+import { itemNoun } from '@/lib/kosztorys/counted-nouns'
 
 // The report's verdict sentences, apart from the markup that shows them — the wording is what the
 // owner acts on, and it says „różni się od katalogu", never „jest błędna": the rozpiska is allowed

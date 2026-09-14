@@ -16,7 +16,7 @@ import {
   isGroupFullySelected,
   metaKey,
 } from './preset-picker-groups'
-import { sectionNoun } from './sheet-report-words'
+import { sectionNoun } from '@/lib/kosztorys/counted-nouns'
 import { usePresetSections } from './use-preset-sections'
 
 type PropsT = {

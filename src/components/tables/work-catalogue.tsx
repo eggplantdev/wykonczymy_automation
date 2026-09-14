@@ -5,7 +5,9 @@ import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPercentPrecise } from '@/lib/kosztorys/format'
 import { MAX_CLIENT_SHARE } from '@/lib/kosztorys/subcontractor-price-guard'
+import { compareDescriptions } from '@/lib/kosztorys/work-catalogue/compare-descriptions'
 import { CatalogueRowActions } from '@/components/work-catalogue/catalogue-row-actions'
+import type { SuspectT } from '@/lib/kosztorys/work-catalogue/suspects'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
 const col = createColumnHelper<WorkCatalogueItemT>()
@@ -47,16 +49,62 @@ const twoLines = (first: string, second: string) => () => (
 
 const SHARE_TOOLTIP = `Udział stawki w cenie j.m. Powyżej ${MAX_CLIENT_SHARE * 100}% na czerwono.`
 
-const descriptionColumn = col.accessor('description', {
-  id: 'description',
-  header: 'Opis pracy',
-  meta: { minWidth: 'min-w-96' },
-  cell: (info) => <span className="font-medium">{info.getValue()}</span>,
-})
+// Lp. is the row's number in the KATALOG, not its position on screen: it is pinned to alphabetical
+// order over the whole catalogue and survives every sort and every filter. A number that slid under
+// the row whenever the table was re-sorted would name nothing — which is what both `row.index` and a
+// position-in-the-rendered-model would give.
+const lpColumn = (ordinals: ReadonlyMap<number, number>) =>
+  col.display({
+    id: 'lp',
+    header: 'Lp.',
+    meta: { align: 'right' },
+    cell: (info) => (
+      <span className="text-muted-foreground text-sm tabular-nums">
+        {ordinals.get(info.row.original.id)}
+      </span>
+    ),
+  })
+
+// TEMPORARY (EX-748 review): red = nie jest pracą, bursztyn = ma bliźniaka. The picker passes no
+// map, so only /katalog-prac paints.
+const SUSPECT_CLASS = {
+  junk: 'text-destructive',
+  duplicate: 'text-amber-600 dark:text-amber-400',
+} as const satisfies Record<SuspectT['level'], string>
+
+const makeDescriptionColumn = (suspects: ReadonlyMap<number, SuspectT>) =>
+  col.accessor('description', {
+    id: 'description',
+    header: 'Opis pracy',
+    sortingFn: (first, second) =>
+      compareDescriptions(first.original.description, second.original.description),
+    meta: { minWidth: 'min-w-96' },
+    cell: (info) => {
+      const suspect = suspects.get(info.row.original.id)
+      return (
+        <span className="block">
+          <span className={cn('font-medium', suspect && SUSPECT_CLASS[suspect.level])}>
+            {info.getValue()}
+          </span>
+          {/* Written out rather than left in a tooltip: the review reads down the column, and a
+              reason that costs a hover per row would not be read at all. */}
+          {suspect && (
+            <span className={cn('block text-xs', SUSPECT_CLASS[suspect.level])}>
+              {suspect.reason}
+            </span>
+          )}
+        </span>
+      )
+    },
+  })
+
+const descriptionColumn = makeDescriptionColumn(new Map())
 
 const categoryColumn = col.accessor((row) => row.category ?? '', {
   id: 'category',
   header: 'Kategoria',
+  sortingFn: (first, second) =>
+    compareDescriptions(first.original.category ?? '', second.original.category ?? ''),
   cell: (info) => <span className="text-muted-foreground text-sm">{info.getValue()}</span>,
 })
 
@@ -114,11 +162,16 @@ export const WORK_CATALOGUE_PICKER_COLUMNS = [
 
 export function getWorkCatalogueColumns({
   categorySuggestions,
+  ordinals,
+  suspects,
 }: {
   categorySuggestions: readonly string[]
+  ordinals: ReadonlyMap<number, number>
+  suspects: ReadonlyMap<number, SuspectT>
 }) {
   return [
-    descriptionColumn,
+    lpColumn(ordinals),
+    makeDescriptionColumn(suspects),
     categoryColumn,
     unitColumn,
     clientPriceColumn,
