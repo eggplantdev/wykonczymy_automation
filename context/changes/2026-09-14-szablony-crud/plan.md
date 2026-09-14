@@ -379,17 +379,17 @@ Uruchomić **raz**, po ostatniej fazie:
 
 #### Automated
 
-- [x] 1.1 Migracja stosuje się na lokalnej bazie
-- [x] 1.2 `pnpm generate:types` przechodzi i typy niosą czwarty status
-- [x] 1.3 Spec statusu blokady przechodzi z nowym wierszem
-- [x] 1.4 Spec filtra statusów przechodzi bez zmian
+- [x] 1.1 Migracja stosuje się na lokalnej bazie — 297ad5d1
+- [x] 1.2 `pnpm generate:types` przechodzi i typy niosą czwarty status — 297ad5d1
+- [x] 1.3 Spec statusu blokady przechodzi z nowym wierszem — 297ad5d1
+- [x] 1.4 Spec filtra statusów przechodzi bez zmian — 297ad5d1
 
 ### Phase 2: Usuwanie i zmiana nazwy szablonu
 
 #### Automated
 
-- [ ] 2.1 Nowe specy `presets.test.ts` przechodzą
-- [ ] 2.2 Spec unikalności nazwy nadal przechodzi
+- [x] 2.1 Nowe specy `presets.test.ts` przechodzą
+- [x] 2.2 Spec unikalności nazwy nadal przechodzi
 
 ### Phase 3: Strona `/szablony`
 

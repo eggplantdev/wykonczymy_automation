@@ -2,13 +2,17 @@
 
 import { z } from 'zod'
 import { investmentAction } from '@/lib/actions/investment-action'
+import { ownerOnlyAction } from '@/lib/actions/owner-only-action'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
+import { revalidateCollections } from '@/lib/cache/revalidate'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/get-db'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import {
+  deletePreset,
   getPreset,
   insertPreset,
+  renamePreset,
   upsertPresetByName,
   type PresetMetaT,
   type PresetSectionMetaT,
@@ -67,6 +71,47 @@ export async function savePresetAction(
     },
     ['presets'],
   )
+}
+
+// Destroying a shared library entry is a different power from writing into it: savePresetAction
+// stays open to MANAGEMENT_ROLES, these two do not.
+const OWNER_ONLY_PRESET_MESSAGE =
+  'Tylko właściciel lub administrator może usuwać i przemianowywać szablony.'
+
+const presetIdSchema = z.object({ id: z.number().int().positive() })
+
+// Delete a szablon. Irreversible and unreferenced — nothing FKs into kosztorys_presets, and a
+// kosztorys seeded from one is a frozen copy (see deletePreset).
+export async function deletePresetAction(id: number): Promise<ActionResultT> {
+  return ownerOnlyAction('deletePresetAction', OWNER_ONLY_PRESET_MESSAGE, async ({ payload }) => {
+    const parsed = validateAction(presetIdSchema, { id })
+    if (!parsed.success) return parsed
+
+    const deleted = await deletePreset(await getDb(payload), parsed.data.id)
+    if (!deleted) return { success: false, error: 'Nie znaleziono szablonu' }
+    // `ownerOnlyAction` takes no revalidate-tags argument (it wraps protectedAction without one), so
+    // the cache write is the handler's job — precedent: revalidateNotificationRecipients().
+    revalidateCollections(['presets'])
+    return { success: true }
+  })
+}
+
+const renamePresetSchema = presetIdSchema.extend({
+  name: savePresetSchema.shape.name,
+})
+
+// The name IS the szablon's identity (UNIQUE, and the only thing the pickers show), so this is an
+// identity change, not cosmetics.
+export async function renamePresetAction(id: number, name: string): Promise<ActionResultT> {
+  return ownerOnlyAction('renamePresetAction', OWNER_ONLY_PRESET_MESSAGE, async ({ payload }) => {
+    const parsed = validateAction(renamePresetSchema, { id, name })
+    if (!parsed.success) return parsed
+
+    const renamed = await renamePreset(await getDb(payload), parsed.data.id, parsed.data.name)
+    if (renamed == null) return { success: false, error: 'Szablon o tej nazwie już istnieje' }
+    revalidateCollections(['presets'])
+    return { success: true }
+  })
 }
 
 // Preset metadata for the save/seed pickers — the client-side entry point (fetch-on-open) into the

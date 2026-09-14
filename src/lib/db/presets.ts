@@ -132,6 +132,35 @@ export async function listPresetSections(db: DbExecutorT): Promise<PresetSection
   }))
 }
 
+// Delete a preset outright — no versioning, no trash. Referentially safe: nothing FKs into this
+// table, and a kosztorys spawned from a preset is a frozen copy, not a reference. `false` = no such
+// row, which the caller reports rather than swallowing.
+export async function deletePreset(db: DbExecutorT, presetId: number): Promise<boolean> {
+  const res = await db.execute(sql`
+    DELETE FROM kosztorys_presets WHERE id = ${presetId} RETURNING id
+  `)
+  return res.rows.length > 0
+}
+
+// Rename in place. The collision guard sits in SQL rather than in a catch on PG 23505 for the same
+// reason insertPreset's ON CONFLICT does: the UNIQUE constraint would otherwise surface as the
+// driver's English sentence in a Polish UI. `null` = the name is taken (or the id doesn't exist —
+// both mean "nothing was renamed", and the caller distinguishes them by having listed the row).
+export async function renamePreset(
+  db: DbExecutorT,
+  presetId: number,
+  name: string,
+): Promise<number | null> {
+  const res = await db.execute(sql`
+    UPDATE kosztorys_presets SET name = ${name}
+    WHERE id = ${presetId}
+      AND NOT EXISTS (SELECT 1 FROM kosztorys_presets WHERE name = ${name} AND id <> ${presetId})
+    RETURNING id
+  `)
+  const row = res.rows[0]
+  return row ? Number(row.id) : null
+}
+
 export async function listPresets(db: DbExecutorT): Promise<PresetMetaT[]> {
   const res = await db.execute(sql`
     SELECT id, name, created_at, created_by
