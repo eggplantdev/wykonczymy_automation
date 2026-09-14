@@ -4,8 +4,8 @@ import { useTransition } from 'react'
 import type { Where } from 'payload'
 import type { Table } from '@tanstack/react-table'
 import { Loader2, Printer } from 'lucide-react'
-import { toast } from 'react-toastify'
 import { Button } from '@/components/ui/button'
+import { toastMessage } from '@/lib/utils/toast'
 import { fetchFilteredTransfers } from '@/lib/actions/fetch-transfers-for-invoices'
 import { columnLabel } from '@/lib/table/column-label'
 import {
@@ -21,8 +21,6 @@ type PrintTransfersButtonPropsT = {
   title: string
 }
 
-const TOAST_OPTIONS = { position: 'bottom-center', theme: 'dark' } as const
-
 export function PrintTransfersButton({ where, table, title }: PrintTransfersButtonPropsT) {
   const [isPending, startTransition] = useTransition()
 
@@ -33,33 +31,45 @@ export function PrintTransfersButton({ where, table, title }: PrintTransfersButt
       const printValue = column.columnDef.meta?.printValue
       return printValue ? [{ id: column.id, label: columnLabel(column), getValue: printValue }] : []
     })
+    if (columns.length === 0) {
+      toastMessage('Brak kolumn do wydruku', 'info')
+      return
+    }
+
+    // Opened here, synchronously, and not after the fetch: a browser grants window.open only while
+    // the click's user activation lasts, which an await spends — Safari refuses outright, Chrome
+    // after a few seconds. about:blank inherits our origin; a blob:/data: window gets an opaque one.
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) {
+      toastMessage('Przeglądarka zablokowała okno wydruku', 'error')
+      return
+    }
+    printWindow.document.title = title
+    if (printWindow.document.body) printWindow.document.body.textContent = 'Przygotowuję wydruk…'
 
     startTransition(async () => {
       // Refetches instead of reusing the table's rows: the table is paginated, the printout is not.
-      const result = await fetchFilteredTransfers(where)
+      const result = await fetchFilteredTransfers(where, { skipMedia: true })
       if (!result.success) {
-        toast.error(result.error ?? 'Nie udało się pobrać danych', TOAST_OPTIONS)
+        printWindow.close()
+        toastMessage(result.error ?? 'Nie udało się pobrać danych', 'error')
         return
       }
 
       const rows = sortTransferRows(result.data, table.getState().sorting)
       if (rows.length === 0) {
-        toast.info('Brak transakcji do wydruku', TOAST_OPTIONS)
-        return
-      }
-
-      // about:blank inherits our origin; a blob:/data: window gets an opaque one — same reasoning as
-      // the invoice preview's print. Nothing external loads here, so print() can fire immediately.
-      const printWindow = window.open('', '_blank')
-      if (!printWindow) {
-        toast.error('Przeglądarka zablokowała okno wydruku', TOAST_OPTIONS)
+        printWindow.close()
+        toastMessage('Brak transakcji do wydruku', 'info')
         return
       }
 
       printWindow.document.write(buildTransfersPrintHtml(rows, columns, title))
       printWindow.document.close()
+      // Closing on afterprint rather than straight after print(): only Chrome blocks inside print(),
+      // so an immediate close() tears the window down mid-job in Safari and Firefox. The document
+      // loads no external resource, so it is fully parsed by close() and can print at once.
+      printWindow.addEventListener('afterprint', () => printWindow.close())
       printWindow.print()
-      printWindow.close()
     })
   }
 

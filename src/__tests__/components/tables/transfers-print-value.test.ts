@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { getTransferColumns } from '@/components/tables/transfers'
 import { transferRow } from '@/__tests__/fixtures/transfer-row'
+import { transferAmountText, transferTypeText } from '@/lib/transfers/transfer-text'
 import type { TransferRowT } from '@/types/transfers'
 
 function printValueOf(columnId: string): (row: TransferRowT) => string {
@@ -10,39 +11,15 @@ function printValueOf(columnId: string): (row: TransferRowT) => string {
   return printValue
 }
 
-function hasPrintValue(columnId: string): boolean {
-  return Boolean(getTransferColumns().find((c) => c.id === columnId)?.meta?.printValue)
+function printValueIsAbsent(columnId: string): boolean {
+  const column = getTransferColumns().find((c) => c.id === columnId)
+  // Asserted, not assumed: `find(...)?.meta` is undefined for a renamed id too, so without this the
+  // exclusion guard below would stay green while checking a column that no longer exists.
+  expect(column, `no column with id "${columnId}"`).toBeDefined()
+  return column?.meta?.printValue === undefined
 }
 
 describe('transfer column printValue', () => {
-  it('prints brutto alone on a type that bills at brutto', () => {
-    const text = printValueOf('amount')(transferRow({ amount: 1230, netAmount: 1000 }))
-    expect(text).toContain('1230')
-    expect(text).not.toContain('netto')
-  })
-
-  it('appends the netto figure on the netto expense type', () => {
-    const text = printValueOf('amount')(
-      transferRow({ type: 'INVESTMENT_EXPENSE_NET', amount: 1230, netAmount: 1000 }),
-    )
-    expect(text).toMatch(/netto/)
-    expect(text).toContain('1000')
-  })
-
-  it('names a settled row by its settled label, not its type', () => {
-    expect(printValueOf('type')(transferRow({ settled: true }))).toBe(
-      'Materiały wliczone w robociznę',
-    )
-  })
-
-  it('appends the reversed type to a cancellation', () => {
-    expect(
-      printValueOf('type')(
-        transferRow({ type: 'CANCELLATION', originalType: 'INVESTMENT_EXPENSE' }),
-      ),
-    ).toBe('Anulowanie (Wydatek inwestycyjny)')
-  })
-
   it('renders a dash for an absent payment method and an absent plane', () => {
     expect(printValueOf('paymentMethod')(transferRow({ paymentMethod: null }))).toBe('—')
     expect(printValueOf('vatPlane')(transferRow({ vatPlane: null }))).toBe('—')
@@ -52,10 +29,19 @@ describe('transfer column printValue', () => {
     expect(printValueOf('description')(transferRow({ description: 'a\nb' }))).toBe('a\nb')
   })
 
+  it('routes the amount and type columns through the shared text derivations', () => {
+    expect(printValueOf('amount')(transferRow({ amount: 1230, netAmount: 1000 }))).toBe(
+      transferAmountText(transferRow({ amount: 1230, netAmount: 1000 })),
+    )
+    expect(printValueOf('type')(transferRow({ settled: true }))).toBe(
+      transferTypeText(transferRow({ settled: true })),
+    )
+  })
+
   it.each(['invoice', 'invoiceNote', 'actions'])(
     'leaves the interactive column "%s" off paper by declaring no printValue',
     (columnId) => {
-      expect(hasPrintValue(columnId)).toBe(false)
+      expect(printValueIsAbsent(columnId)).toBe(true)
     },
   )
 })

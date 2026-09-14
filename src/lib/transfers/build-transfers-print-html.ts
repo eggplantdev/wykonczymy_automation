@@ -19,10 +19,7 @@ td { padding: 3px 6px; border-bottom: 1px solid #e5e5e5; vertical-align: top; wh
 tr:last-child td { border-bottom: none; }
 `
 
-/**
- * Turns the fetched rows and the columns the reader has on screen into a standalone print document.
- * Every value passes through `escapeHtml` — the opis is free text typed by a user.
- */
+/** Every value passes through `escapeHtml` — the opis is free text typed by a user. */
 export function buildTransfersPrintHtml(
   rows: TransferRowT[],
   columns: PrintColumnT[],

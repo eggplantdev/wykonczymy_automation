@@ -8,40 +8,23 @@ import { CancelTransferButton } from '@/components/transfers/cancel-transfer-but
 import { EditTransferDialog } from '@/components/dialogs/edit-transfer-dialog'
 import { canMutateTransfer, type RoleT } from '@/lib/auth/roles'
 import {
-  TRANSFER_TYPE_LABELS,
   TRANSFER_TYPE_COLORS,
-  PAYMENT_METHOD_LABELS,
   isCancellationType,
   EXPENSE_CATEGORY_LABEL,
   SETTLED_TYPE,
-  DEPOSIT_PLANE_LABELS,
   billsNetAmount,
-  type PaymentMethodT,
 } from '@/lib/constants/transfers'
 import { INVESTMENT_LOCKED_MESSAGE, isBookableInvestment } from '@/lib/constants/investment-lock'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
+import {
+  transferAmountText,
+  transferPaymentMethodText,
+  transferTypeText,
+  transferVatPlaneText,
+} from '@/lib/transfers/transfer-text'
 import type { TransferRowT } from '@/types/transfers'
 
 const col = createColumnHelper<TransferRowT>()
-
-// Screen and paper must name a type identically, so both read this one derivation.
-function transferTypeText({ settled, type, originalType }: TransferRowT): string {
-  if (settled) return SETTLED_TYPE.label
-  const label = TRANSFER_TYPE_LABELS[type] ?? type
-  // For a cancellation, append what it reversed: "Anulowanie (Wydatek inwestycyjny)"
-  if (type === 'CANCELLATION' && originalType) {
-    return `${label} (${TRANSFER_TYPE_LABELS[originalType] ?? originalType})`
-  }
-  return label
-}
-
-// Gross leads; the net line is appended only where it carries a distinct meaning.
-function transferAmountText({ type, amount, netAmount }: TransferRowT): string {
-  const gross = formatPLN(amount)
-  return billsNetAmount(type) && netAmount !== null
-    ? `${gross} (netto ${formatPLN(netAmount)})`
-    : gross
-}
 
 const allColumns = [
   col.accessor('id', {
@@ -86,11 +69,8 @@ const allColumns = [
     // dictionary as the deposit list in the panel. „netto"/„brutto" naming both on one screen is
     // what made the reader guess which of the two a given cell meant (owner, 2026-08-23).
     header: 'Forma wpłaty',
-    meta: { printValue: (row) => (row.vatPlane ? DEPOSIT_PLANE_LABELS[row.vatPlane] : '—') },
-    cell: (info) => {
-      const value = info.getValue()
-      return value ? DEPOSIT_PLANE_LABELS[value] : '—'
-    },
+    meta: { printValue: transferVatPlaneText },
+    cell: (info) => transferVatPlaneText(info.row.original),
   }),
   col.accessor('investmentName', {
     id: 'investment',
@@ -182,13 +162,8 @@ const allColumns = [
   col.accessor('paymentMethod', {
     id: 'paymentMethod',
     header: 'Metoda',
-    meta: {
-      printValue: (row) => (row.paymentMethod ? PAYMENT_METHOD_LABELS[row.paymentMethod] : '—'),
-    },
-    cell: (info) => {
-      const method = info.getValue() as PaymentMethodT | null
-      return method ? PAYMENT_METHOD_LABELS[method] : '—'
-    },
+    meta: { printValue: transferPaymentMethodText },
+    cell: (info) => transferPaymentMethodText(info.row.original),
   }),
   col.accessor('workerName', {
     id: 'worker',

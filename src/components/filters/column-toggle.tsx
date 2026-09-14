@@ -44,7 +44,15 @@ export function ColumnToggle<TData>({
       <ColumnToggleMenu
         items={items}
         onToggle={(id) => table.getColumn(id)?.toggleVisibility()}
-        onToggleAll={(visible) => table.toggleAllColumnsVisible(visible)}
+        // Merged into the current state, never TanStack's toggleAllColumnsVisible: that one rebuilds
+        // the map from {} and drops ids it doesn't know. The three transfer pages share one
+        // storageKey with different excludeColumns, so a rebuild on one wipes a sibling's preference.
+        onToggleAll={(visible) =>
+          table.setColumnVisibility({
+            ...columnVisibility,
+            ...Object.fromEntries(columns.map((col) => [col.id, visible])),
+          })
+        }
         onOpenOrder={() => setOrderOpen(true)}
       />
       {/* Sibling of the menu, never inside its content — a dialog mounted there unmounts with the

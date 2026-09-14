@@ -9,19 +9,26 @@ const COLUMN_TO_ACCESSOR: Record<string, keyof TransferRowT> = {
   sourceRegister: 'sourceRegisterName',
   targetRegister: 'targetRegisterName',
   createdBy: 'createdByName',
+  worker: 'workerName',
 }
 
 /**
- * Replays the table's SortingState on a refetched set. The fetch returns `-date`; the screen may be
- * sorted on anything, and the printout has to match what the reader is looking at.
+ * Replays the table's SortingState on a refetched set — the fetch always returns `-date`, while the
+ * screen may be sorted on anything. Collation is Polish, which the screen's TanStack comparator is
+ * not, so the two can disagree on diacritics; on paper the Polish order is the one that reads right.
  */
+/** Exported so a spec can assert every sortable column id lands on a key a row actually has. */
+export function sortKeyForColumn(columnId: string): keyof TransferRowT {
+  return COLUMN_TO_ACCESSOR[columnId] ?? (columnId as keyof TransferRowT)
+}
+
 export function sortTransferRows(rows: TransferRowT[], sorting: SortingState): TransferRowT[] {
   if (sorting.length === 0) return rows
 
   const sorted = [...rows]
   sorted.sort((left, right) => {
     for (const { id, desc } of sorting) {
-      const key = COLUMN_TO_ACCESSOR[id] ?? (id as keyof TransferRowT)
+      const key = sortKeyForColumn(id)
       const leftValue = left[key]
       const rightValue = right[key]
 
