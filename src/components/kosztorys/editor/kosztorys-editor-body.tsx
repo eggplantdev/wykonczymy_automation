@@ -42,7 +42,11 @@ import {
   makeSpacerRow,
   makeTotalsRow,
 } from '@/lib/kosztorys/synthetic-rows'
-import { rowContentLines } from '@/lib/kosztorys/row-content-lines'
+import {
+  columnContentLines,
+  rowContentLines,
+  WRAPPING_COLUMN_IDS,
+} from '@/lib/kosztorys/row-content-lines'
 import {
   HEADER_HEIGHT_KEY,
   HEADER_ROW_HEIGHT,
@@ -259,6 +263,36 @@ export function KosztorysEditorBody({
           },
     [preview, setGuideY, setRowHeight, contentLinesFor],
   )
+  // Which of a row's text columns hold more than the row shows — one class per clipped column, which
+  // is what lets the „…" land in the cell that is actually hiding something rather than on the whole
+  // row. The editor's rows rest at 32px and only move when the owner drags one, so a clipped
+  // description is the normal state, not an exception. Measured from the same line count the drag's
+  // „dopasuj" uses, so the cue and the fit can never disagree. No cue in the preview: its rows are
+  // sized from this very measurement, so nothing there is ever clipped.
+  const clipCueClass = useMemo(() => {
+    const measure = measureTextWidth(wrap.font)
+    return (row: KosztorysV2RowT) => {
+      // Bands, „Razem" and the spacer carry chrome, not prose — a band's label deliberately overflows
+      // its own cell onto the empty ones beside it, so measuring it against its column's width would
+      // flag every band as clipped.
+      if (
+        preview ||
+        isSyntheticRow(row.id) ||
+        isSectionHeaderRow(row.id) ||
+        isSectionFooterRow(row.id)
+      )
+        return undefined
+      const height = resolveRowHeight({
+        isSectionBand: false,
+        override: rowHeights[String(row.id)],
+      })
+      return WRAPPING_COLUMN_IDS.filter(
+        (id) => heightForLines(columnContentLines(row, id, wrap.widths, measure)) > height,
+      )
+        .map((id) => `kosztorys-clipped-${id}`)
+        .join(' ')
+    }
+  }, [preview, wrap, rowHeights])
   const gutterColumn = useMemo(
     () => ordinalGutterColumn({ ordinals: ordinalByRowId, resize: rowResize }),
     [ordinalByRowId, rowResize],
@@ -371,6 +405,7 @@ export function KosztorysEditorBody({
                     sectionColorRail(rowData.sectionColor),
                     isSectionHeaderRow(rowData.id) && 'kosztorys-section-header',
                     isSectionFooterRow(rowData.id) && 'kosztorys-section-footer',
+                    clipCueClass(rowData),
                   )
                 }
               />

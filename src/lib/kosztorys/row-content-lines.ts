@@ -8,12 +8,28 @@ export const WRAPPING_COLUMN_IDS = ['description', 'note'] as const
 
 export type WrappingColumnIdT = (typeof WRAPPING_COLUMN_IDS)[number]
 
-// dsg puts a column's `headerClassName` on its header cell and hands the rendered width back to
-// nobody, so this class is the only handle the measurement has on a specific column's box. It has
-// to be a class rather than a position: the grid virtualizes columns HORIZONTALLY, so the header
-// cells in the DOM are `[gutter, …the scrolled window]`, not one per column.
-export function wrapColumnHeaderClass(id: WrappingColumnIdT): string {
+// dsg puts a column's class on its header cell and on its body cells, and hands the rendered width
+// back to nobody, so this class is the only handle either the width measurement or the clip cue has
+// on a specific column's box. It has to be a class rather than a position: the grid virtualizes
+// columns HORIZONTALLY, so the cells in the DOM are `[gutter, …the scrolled window]`, not one per
+// column.
+export function wrapColumnClass(id: WrappingColumnIdT): string {
   return `kosztorys-wrap-${id}`
+}
+
+// How many lines ONE text column needs at its current width. A column with no measured width (never
+// rendered, or scrolled sideways before it was ever measured) answers one line — the same answer as
+// an empty cell, and the only safe one: claiming more would invent a clip nobody can see.
+export function columnContentLines(
+  row: KosztorysV2RowT,
+  id: WrappingColumnIdT,
+  widths: Partial<Record<WrappingColumnIdT, number>>,
+  measure: MeasureTextWidthT,
+): number {
+  const width = widths[id]
+  const text = row[id]
+  if (!width || !text) return 1
+  return countWrappedLines(text, width, measure)
 }
 
 // How many lines the tallest of a row's text columns needs. Only columns present in `widths` count,
@@ -25,10 +41,7 @@ export function rowContentLines(
 ): number {
   let lines = 1
   for (const id of WRAPPING_COLUMN_IDS) {
-    const width = widths[id]
-    const text = row[id]
-    if (!width || !text) continue
-    lines = Math.max(lines, countWrappedLines(text, width, measure))
+    lines = Math.max(lines, columnContentLines(row, id, widths, measure))
   }
   return lines
 }
