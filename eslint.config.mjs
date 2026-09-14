@@ -110,6 +110,7 @@ export default ts.config(
     ignores: [
       '.next/',
       '.next-e2e/',
+      '.next-qa/',
       '.claude/',
       'scripts/inspect-sheet.mjs',
       'scripts/blob-mirror.mjs',
