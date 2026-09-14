@@ -43,7 +43,7 @@ pominięty — Playwright uruchamiam wyłącznie na wyraźną prośbę.
 
 - [x] `move-edges.test.ts` (4) + `order-commands.test.ts` (4) — instrument zwalidowany na obu (celowo zepsuty predykat wywala właściwe asercje)
 - [x] typecheck czysty · lint 0 błędów (83 pre-existing warningów w migracjach) · pełny zestaw: 253 pliki / 3357 testów zielonych
-- [ ] E2E: niezaciągnięte — ta zmiana jest czysto prezentacyjna nad już pokrytą mechaniką; do decyzji przy zamykaniu bramki
+- [x] E2E: zaciągnięte do **EX-472** („E2E: kosztorys ⋯-menu add/insert/delete + order integrity") — istniejący backlogowy spec tego samego menu; dopisano do niego oba triggery, wygaszenia na krawędzi bloku i pod sortowaniem oraz to, że wyszukiwarka nie zawęża krawędzi. Nowe issue byłoby drugim specem na ten sam ekran
 
 ## Uwagi właściciela z pokazu (2026-09-14)
 
