@@ -4830,3 +4830,34 @@ Setup: zalogowany jako OWNER/MANAGER, strona z tabelą transakcji i realnymi wie
 - [ ] Przycisk „Drukuj" widoczny w toolbarze na `/pracownicy/[id]`
 - [ ] Przycisku **nie ma** na dashboardzie menedżera
 - [ ] Wydruk zawęża się do zakresu strony (inwestycji / kasy / pracownika), a nie do całego systemu
+
+## szablony-crud
+
+Setup: zalogowany jako OWNER/ADMIN (usuwanie i zmiana nazwy są zawężone do tych ról), lokalna baza po `pnpm payload migrate`.
+
+### Phase 1: Status `szablon` i rozpoznanie warsztatu
+
+- [ ] `/inwestycje` przy każdej kombinacji filtra statusu — warsztatu „Warsztat szablonów" nie ma
+- [ ] Formularz wydatku → picker inwestycji, także z wyłączonym „Aktywni" — warsztatu nie ma
+- [ ] Formularz inwestycji nie oferuje statusu „Szablon" na liście wyboru
+
+### Phase 2: Usuwanie i zmiana nazwy szablonu
+
+- [ ] MANAGER nie może usunąć ani przemianować szablonu — dostaje polski komunikat o braku uprawnień
+- [ ] Zmiana nazwy na już zajętą zwraca „Szablon o tej nazwie już istnieje" i nie zmienia żadnego z wierszy
+
+### Phase 3: Strona `/szablony`
+
+- [ ] `/szablony` listuje szablon „kosztorys wzór testy 2 września 26" z 14 sekcjami i 373 pozycjami
+- [ ] „Usuń" pyta o potwierdzenie, a po potwierdzeniu wiersz znika bez ręcznego odświeżania strony
+- [ ] „Zmień nazwę" zmienia nazwę i nowa nazwa jest widoczna także w dialogu „Wczytaj szablon" w edytorze (wspólny tag cache'u)
+- [ ] „Szablony" podświetla się w sidebarze także na `/szablony/<id>`
+
+### Phase 4: Warsztat — `/szablony/[id]`
+
+- [ ] „Otwórz" na `/szablony` pokazuje pozycje szablonu w edytorze pod adresem `/szablony/<id>`
+- [ ] Na belce stoi nazwa szablonu, nie nazwa inwestycji; F5 jej nie gubi
+- [ ] Zmiana pozycji + „Zapisz szablon" + powrót + ponowne „Otwórz" pokazuje zmianę
+- [ ] W warsztacie nie ma przedmiaru, etapów ani postępu (szablon ich nie niesie)
+- [ ] Wejście wprost na `/szablony/<inny-id>` bez „Otwórz" kieruje z powrotem na `/szablony`, nie pokazuje cudzej treści pod cudzą nazwą
+- [ ] Po zapisie w warsztacie inwestycja-warsztat nadal nie występuje na `/inwestycje`

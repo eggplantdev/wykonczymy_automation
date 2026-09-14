@@ -15,7 +15,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { deletePresetAction, renamePresetAction } from '@/lib/actions/kosztorys-presets'
+import {
+  deletePresetAction,
+  openPresetInWorkshopAction,
+  renamePresetAction,
+} from '@/lib/actions/kosztorys-presets'
 import { toastMessage } from '@/lib/utils/toast'
 import type { PresetRowT } from '@/components/tables/presets'
 
@@ -26,7 +30,16 @@ export function PresetRowActions({ preset }: { preset: PresetRowT }) {
   const [draftName, setDraftName] = useState(preset.name)
   const [pending, startTransition] = useTransition()
 
-  const onOpen = () => router.push(`/szablony/${preset.id}`)
+  // The load happens here rather than on the target page: it is a write, and a page render is not
+  // allowed to perform one. The url carries the SZABLON's id — the workbench investment behind it is
+  // never named to the user.
+  const onOpen = () => {
+    startTransition(async () => {
+      const res = await openPresetInWorkshopAction(preset.id)
+      if (!res.success) return toastMessage(res.error ?? 'Nie udało się otworzyć szablonu', 'error')
+      router.push(`/szablony/${preset.id}`)
+    })
+  }
 
   const onDelete = () => {
     startTransition(async () => {
@@ -54,6 +67,7 @@ export function PresetRowActions({ preset }: { preset: PresetRowT }) {
           variant="ghost"
           className="px-1.5"
           aria-label="Otwórz szablon"
+          disabled={pending}
           onClick={onOpen}
         >
           <FolderOpen />

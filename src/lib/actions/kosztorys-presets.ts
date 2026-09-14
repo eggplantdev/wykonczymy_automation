@@ -18,6 +18,7 @@ import {
   type PresetSectionMetaT,
 } from '@/lib/db/presets'
 import { getPresets, getPresetSections } from '@/lib/queries/presets'
+import { resolveWorkshopInvestment, setWorkshopPreset } from '@/lib/db/workshop-investment'
 import {
   appendPresetSections,
   type AppendedSliceT,
@@ -111,6 +112,26 @@ export async function renamePresetAction(id: number, name: string): Promise<Acti
     if (renamed == null) return { success: false, error: 'Szablon o tej nazwie już istnieje' }
     revalidateCollections(['presets'])
     return { success: true }
+  })
+}
+
+// „Otwórz szablon": load the szablon into the workbench investment and hand back the workbench id.
+// A mutation, so it can't be a render side effect of /szablony/[id] — the page only READS what this
+// put there. Navigation stays on the client so the action has one result type and one error toast.
+//
+// The pointer is written AFTER the reload: the page renders the workbench only when the pointer
+// matches its url, so a failed reload must not leave the workbench claiming a szablon it doesn't hold.
+export async function openPresetInWorkshopAction(presetId: number): Promise<ActionResultT<number>> {
+  return protectedAction<number>('openPresetInWorkshopAction', async ({ payload }) => {
+    const parsed = validateAction(presetIdSchema, { id: presetId })
+    if (!parsed.success) return parsed
+
+    const investmentId = await resolveWorkshopInvestment(payload)
+    const reloaded = await reloadFromPresetAction(investmentId, parsed.data.id)
+    if (!reloaded.success) return reloaded
+
+    await setWorkshopPreset(await getDb(payload), investmentId, parsed.data.id)
+    return { success: true, data: investmentId }
   })
 }
 

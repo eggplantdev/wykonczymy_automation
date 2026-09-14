@@ -395,12 +395,12 @@ Uruchomić **raz**, po ostatniej fazie:
 
 #### Automated
 
-- [x] 3.1 Strona i `loading.tsx` istnieją pod `src/app/(frontend)/szablony/` — 2e1d8aee
-- [x] 3.2 Spec grupowania metadanych szablonów przechodzi — 2e1d8aee
+- [x] 3.1 Strona i `loading.tsx` istnieją pod `src/app/(frontend)/szablony/` — 0cfcce17
+- [x] 3.2 Spec grupowania metadanych szablonów przechodzi — 0cfcce17
 
 ### Phase 4: Warsztat — `/szablony/[id]`
 
 #### Automated
 
-- [ ] 4.1 Spec akcji szablonów przechodzi i pokrywa nadpisanie
-- [ ] 4.2 Spec zastąpienia drzewa snapshotem przechodzi
+- [x] 4.1 Spec akcji szablonów przechodzi i pokrywa nadpisanie — PENDING
+- [x] 4.2 Spec zastąpienia drzewa snapshotem przechodzi — PENDING

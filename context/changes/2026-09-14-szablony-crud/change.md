@@ -1,7 +1,7 @@
 ---
 change_id: szablony-crud
 title: Podstrona /szablony — lista, otwieranie w warsztacie, edycja i usuwanie szablonów
-status: implementing
+status: implemented
 created: 2026-09-14
 updated: 2026-09-14
 archived_at: null
