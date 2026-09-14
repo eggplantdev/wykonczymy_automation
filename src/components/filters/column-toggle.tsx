@@ -44,6 +44,7 @@ export function ColumnToggle<TData>({
       <ColumnToggleMenu
         items={items}
         onToggle={(id) => table.getColumn(id)?.toggleVisibility()}
+        onToggleAll={(visible) => table.toggleAllColumnsVisible(visible)}
         onOpenOrder={() => setOrderOpen(true)}
       />
       {/* Sibling of the menu, never inside its content — a dialog mounted there unmounts with the
