@@ -1,7 +1,8 @@
 'use client'
 
 import { DataTable } from '@/components/ui/data-table/data-table'
-import { PRESET_COLUMNS, type PresetRowT } from '@/components/tables/presets'
+import { PRESET_COLUMNS } from '@/components/tables/presets'
+import type { PresetRowT } from '@/lib/queries/presets'
 
 const INITIAL_SORTING = [{ id: 'createdAt', desc: true }]
 

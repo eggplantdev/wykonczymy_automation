@@ -4,6 +4,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { CACHE_TAGS } from '@/lib/cache/tags'
+import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import type { RoleT } from '@/lib/auth/roles'
 import { getDb } from '@/lib/db/get-db'
 import { DEFAULT_VAT } from '@/lib/kosztorys/constants'
@@ -59,6 +60,11 @@ export const fetchReferenceData = cache(
         // The sheet id lives on kosztoryses now (1:1 via partial unique index on
         // investment_id). LEFT JOIN so investments without a kosztorys still appear,
         // and we project a boolean instead of leaking the sheet id into the cache.
+        //
+        // The szablon workbench is excluded HERE, once, rather than by every consumer: it is not an
+        // investment, so nothing that asks for „the investments" should ever see it. Filtering it
+        // per-surface was one predicate per call site forever, with nothing forcing the next one —
+        // and it had already leaked into the transfers filter dropdowns and the investments listing.
         db.execute(sql`
         SELECT i.id, i.name, i.status::text,
                i.address, i.phone, i.email, i.contact_person, i.notes, i.review,
@@ -66,6 +72,7 @@ export const fetchReferenceData = cache(
                (k.google_sheet_id IS NOT NULL) AS has_sheet
         FROM investments i
         LEFT JOIN kosztoryses k ON k.investment_id = i.id
+        WHERE i.status <> ${TEMPLATE_INVESTMENT_STATUS}
         ORDER BY i.name
       `),
         db.execute(sql`

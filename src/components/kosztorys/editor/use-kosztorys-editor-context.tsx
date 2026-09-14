@@ -18,8 +18,7 @@ type KosztorysEditorContextT = ReturnType<typeof useKosztorysEditor> & {
   // offers it too. Absent in preview, which renders neither trigger.
   openImport?: () => void
   hasSheet: boolean
-  // The szablon this editor is editing, when it is the szablon workbench rather than an investment.
-  templateName?: string
+  templatePresetId?: number
 }
 
 const KosztorysEditorContext = createContext<KosztorysEditorContextT | null>(null)

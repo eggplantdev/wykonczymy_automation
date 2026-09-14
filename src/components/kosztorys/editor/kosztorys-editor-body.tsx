@@ -95,7 +95,7 @@ export function KosztorysEditorBody({
   clientView,
   locked = false,
   hasSheet = false,
-  templateName,
+  templatePresetId,
   undoRedo = NOOP_UNDO_REDO,
   onOpenVersions,
   onTreeReplaced,
@@ -345,7 +345,7 @@ export function KosztorysEditorBody({
         onTreeReplaced,
         openImport: editor.readOnly ? undefined : openImport,
         hasSheet,
-        templateName,
+        templatePresetId,
       }}
     >
       {/* Mounted in the preview too — nothing there can open it, and a conditional wrapper would mean

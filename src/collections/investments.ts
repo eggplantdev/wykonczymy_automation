@@ -167,8 +167,9 @@ export const Investments: CollectionConfig = {
       label: { en: 'Global discount value', pl: 'Rabat globalny — wartość' },
     },
     // Workbench state, only ever set on the `szablon` investment: which kosztorys_presets row is
-    // currently loaded into it. Declared here (not just added by migration) because a column the
-    // collection doesn't know isn't in Payload's drizzle schema — payload.update couldn't write it.
+    // currently loaded into it. Written by raw SQL (setWorkshopPreset), but declared here anyway —
+    // a column the collection doesn't know stays out of Payload's drizzle schema and its generated
+    // types, so nothing in the Payload graph could ever read or write it.
     {
       name: 'templatePresetId',
       type: 'number',

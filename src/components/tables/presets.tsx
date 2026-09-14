@@ -3,13 +3,7 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import { PresetRowActions } from '@/components/presets/preset-row-actions'
 import { formatPLDate } from '@/lib/utils/format-date'
-import type { PresetMetaT } from '@/lib/db/presets'
-
-// The list row = preset metadata plus the two tallies the page aggregates out of listPresetSections.
-export type PresetRowT = PresetMetaT & {
-  sectionCount: number
-  itemCount: number
-}
+import type { PresetRowT } from '@/lib/queries/presets'
 
 const col = createColumnHelper<PresetRowT>()
 

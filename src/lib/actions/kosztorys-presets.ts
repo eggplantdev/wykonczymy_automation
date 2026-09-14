@@ -13,18 +13,26 @@ import {
   getPreset,
   insertPreset,
   renamePreset,
+  updatePresetPayload,
   upsertPresetByName,
   type PresetMetaT,
   type PresetSectionMetaT,
 } from '@/lib/db/presets'
 import { getPresets, getPresetSections } from '@/lib/queries/presets'
-import { resolveWorkshopInvestment, setWorkshopPreset } from '@/lib/db/workshop-investment'
+import {
+  getWorkshop,
+  resolveWorkshopInvestment,
+  setWorkshopPreset,
+} from '@/lib/db/workshop-investment'
 import {
   appendPresetSections,
   type AppendedSliceT,
   type SectionSliceT,
 } from '@/lib/kosztorys/append-preset-sections'
-import { replaceTreeWithSnapshot } from '@/lib/kosztorys/replace-tree-with-snapshot'
+import {
+  reloadInvestmentFromPreset,
+  type ReloadFromPresetResultT,
+} from '@/lib/kosztorys/reload-from-preset'
 import { serializeKosztorysAsPreset } from '@/lib/kosztorys/serialize-preset'
 import type { ActionResultT } from '@/types/action'
 
@@ -81,8 +89,8 @@ const OWNER_ONLY_PRESET_MESSAGE =
 
 const presetIdSchema = z.object({ id: z.number().int().positive() })
 
-// Delete a szablon. Irreversible and unreferenced — nothing FKs into kosztorys_presets, and a
-// kosztorys seeded from one is a frozen copy (see deletePreset).
+// Irreversible, and nothing warns — the only FK into kosztorys_presets is the warsztat's pointer,
+// which ON DELETE SET NULL quietly clears (see deletePreset).
 export async function deletePresetAction(id: number): Promise<ActionResultT> {
   return ownerOnlyAction('deletePresetAction', OWNER_ONLY_PRESET_MESSAGE, async ({ payload }) => {
     const parsed = validateAction(presetIdSchema, { id })
@@ -109,30 +117,76 @@ export async function renamePresetAction(id: number, name: string): Promise<Acti
     if (!parsed.success) return parsed
 
     const renamed = await renamePreset(await getDb(payload), parsed.data.id, parsed.data.name)
-    if (renamed == null) return { success: false, error: 'Szablon o tej nazwie już istnieje' }
+    if (!renamed) return { success: false, error: 'Szablon o tej nazwie już istnieje' }
     revalidateCollections(['presets'])
     return { success: true }
   })
 }
 
-// „Otwórz szablon": load the szablon into the workbench investment and hand back the workbench id.
-// A mutation, so it can't be a render side effect of /szablony/[id] — the page only READS what this
-// put there. Navigation stays on the client so the action has one result type and one error toast.
+// „Otwórz szablon": load the szablon into the workbench investment. A mutation, so it can't be a
+// render side effect of /szablony/[id] — the page only READS what this put there. Navigation stays
+// on the client so the action has one result type and one error toast.
 //
 // The pointer is written AFTER the reload: the page renders the workbench only when the pointer
 // matches its url, so a failed reload must not leave the workbench claiming a szablon it doesn't hold.
-export async function openPresetInWorkshopAction(presetId: number): Promise<ActionResultT<number>> {
-  return protectedAction<number>('openPresetInWorkshopAction', async ({ payload }) => {
-    const parsed = validateAction(presetIdSchema, { id: presetId })
-    if (!parsed.success) return parsed
+export async function openPresetInWorkshopAction(presetId: number): Promise<ActionResultT> {
+  return protectedAction(
+    'openPresetInWorkshopAction',
+    async ({ payload, user }) => {
+      const parsed = validateAction(presetIdSchema, { id: presetId })
+      if (!parsed.success) return parsed
 
-    const investmentId = await resolveWorkshopInvestment(payload)
-    const reloaded = await reloadFromPresetAction(investmentId, parsed.data.id)
-    if (!reloaded.success) return reloaded
+      const investmentId = await resolveWorkshopInvestment(payload)
+      const reloaded = await reloadInvestmentFromPreset(payload, {
+        investmentId,
+        presetId: parsed.data.id,
+        takenBy: user.id,
+      })
+      if (!reloaded) return { success: false, error: 'Nie znaleziono szablonu' }
 
-    await setWorkshopPreset(await getDb(payload), investmentId, parsed.data.id)
-    return { success: true, data: investmentId }
-  })
+      await setWorkshopPreset(await getDb(payload), investmentId, parsed.data.id)
+      return { success: true }
+    },
+    [...KOSZTORYS_TREE_TAGS],
+  )
+}
+
+// The workbench's „Zapisz": overwrite the szablon the workbench actually HOLDS, addressed by id.
+//
+// Not `savePresetAction(name, 'overwrite')`, which keys on the name — the workbench is one row
+// shared by everyone, so between a page render and its save the name can point somewhere else
+// entirely: another manager opened a different szablon into it, or this one was renamed (the name
+// now forks a duplicate) or deleted (the upsert resurrects it). So the pointer is re-read here, at
+// write time, and a mismatch refuses instead of writing — the render-time guard on /szablony/[id]
+// can only speak for the moment it ran.
+export async function saveWorkshopPresetAction(presetId: number): Promise<ActionResultT> {
+  return protectedAction(
+    'saveWorkshopPresetAction',
+    async ({ payload, user }) => {
+      const parsed = validateAction(presetIdSchema, { id: presetId })
+      if (!parsed.success) return parsed
+
+      const db = await getDb(payload)
+      const workshop = await getWorkshop(db)
+      if (!workshop) return { success: false, error: 'Warsztat szablonów jest pusty' }
+      if (workshop.presetId !== parsed.data.id) {
+        return {
+          success: false,
+          error: 'Warsztat trzyma teraz inny szablon — otwórz ten ponownie z listy szablonów',
+        }
+      }
+
+      const preset = await serializeKosztorysAsPreset(workshop.id)
+      const updated = await updatePresetPayload(db, {
+        id: parsed.data.id,
+        createdBy: user.id,
+        payload: preset,
+      })
+      if (!updated) return { success: false, error: 'Nie znaleziono szablonu' }
+      return { success: true }
+    },
+    ['presets'],
+  )
 }
 
 // Preset metadata for the save/seed pickers — the client-side entry point (fetch-on-open) into the
@@ -210,19 +264,8 @@ const reloadSchema = z.object({
   presetId: z.number().int().positive(),
 })
 
-// The szablon's name rides in the label because the restore points are otherwise indistinguishable:
-// swap three szablony and „Wczytaj" lists three identical rows, none of which says what it precedes.
-const preReloadLabel = (presetName: string) => `Przed wczytaniem: ${presetName}`
-
-export type ReloadFromPresetResultT = { sections: number; items: number }
-
-// Replace an investment's WHOLE rozpiska with a preset. The counterpart to `seedInvestmentFromPreset`,
-// which refuses a non-empty target — this is the path for swapping the szablon after the investment
-// exists, so picking the wrong one at creation stops being unrecoverable.
-//
 // Takes only ids: the payload is resolved server-side, so a forged tree can't decide what gets
-// written. `restoreKosztorys` (via replaceTreeWithSnapshot) rather than `applyPreset`: the latter is
-// insert-only by contract and assumes an empty target.
+// written.
 export async function reloadFromPresetAction(
   investmentId: number,
   presetId: number,
@@ -234,24 +277,13 @@ export async function reloadFromPresetAction(
       const parsed = validateAction(reloadSchema, { investmentId, presetId })
       if (!parsed.success) return parsed
 
-      const preset = await getPreset(await getDb(payload), parsed.data.presetId)
-      if (!preset) return { success: false, error: 'Nie znaleziono szablonu' }
-
-      await replaceTreeWithSnapshot(payload, {
+      const data = await reloadInvestmentFromPreset(payload, {
         investmentId: parsed.data.investmentId,
-        label: preReloadLabel(preset.name),
+        presetId: parsed.data.presetId,
         takenBy: user.id,
-        tree: preset.payload,
-        clearGlobalDiscount: true,
       })
-
-      return {
-        success: true,
-        data: {
-          sections: preset.payload.sections.length,
-          items: preset.payload.items.length,
-        },
-      }
+      if (!data) return { success: false, error: 'Nie znaleziono szablonu' }
+      return { success: true, data }
     },
     [...KOSZTORYS_TREE_TAGS],
   )

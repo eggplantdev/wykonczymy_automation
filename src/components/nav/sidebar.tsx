@@ -43,7 +43,7 @@ const MANAGEMENT_LINKS: {
 }[] = [
   { href: '/kosztorysy', label: 'Kosztorysy v1', icon: FileSpreadsheet },
   { href: '/katalog-prac', label: 'Katalog prac', icon: ListChecks },
-  { href: '/szablony', label: 'Szablony', icon: LayoutTemplate },
+  { href: '/szablony', label: 'Szablony kosztorysów', icon: LayoutTemplate },
   { href: '/flota', label: 'Flota', icon: Car, badge: UnreadFleetBadge },
   { href: '/sprzet', label: 'Sprzęt', icon: Wrench, badge: UnreadEquipmentBadge },
   { href: '/pracownicy', label: 'Pracownicy', icon: Users },

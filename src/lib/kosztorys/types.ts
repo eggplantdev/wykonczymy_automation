@@ -180,10 +180,11 @@ export type KosztorysEditorDataT = {
   // renders in FULL — this is about interaction, not disclosure, which is what `preview` is about.
   // Optional: the client-share entry points render the preview and never ask.
   locked?: boolean
-  // Set ONLY by the szablon workbench: the name of the szablon currently loaded into it. Its
-  // presence is what tells the toolbar it is editing a szablon rather than an investment, so „Zapisz"
-  // overwrites that szablon instead of asking for a name. Never derived from the pathname.
-  templateName?: string
+  // Set ONLY by the szablon workbench: the id of the szablon currently loaded into it. Its presence
+  // is what tells the toolbar it is editing a szablon rather than an investment, so „Zapisz"
+  // overwrites that szablon instead of asking for a name. The ID and not the name, because the name
+  // can be taken by another szablon between opening and saving. Never derived from the pathname.
+  templatePresetId?: number
   // Roster for the etap header's worker picker (EX-613). Optional on cost, not on visibility: the
   // client-share entry points render no stage menu, so fetching the roster there buys nothing.
   workers?: WorkerRefT[]

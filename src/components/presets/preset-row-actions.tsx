@@ -1,45 +1,23 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import { FolderOpen, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
-  deletePresetAction,
-  openPresetInWorkshopAction,
-  renamePresetAction,
-} from '@/lib/actions/kosztorys-presets'
+import { FormDialogShell } from '@/components/ui/form-dialog-shell'
+import { useOpenPreset } from '@/components/presets/use-open-preset'
+import { deletePresetAction, renamePresetAction } from '@/lib/actions/kosztorys-presets'
 import { toastMessage } from '@/lib/utils/toast'
-import type { PresetRowT } from '@/components/tables/presets'
+import type { PresetRowT } from '@/lib/queries/presets'
 
 export function PresetRowActions({ preset }: { preset: PresetRowT }) {
-  const router = useRouter()
+  const { open: onOpen, pending: opening } = useOpenPreset(preset.id)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [renaming, setRenaming] = useState(false)
   const [draftName, setDraftName] = useState(preset.name)
   const [pending, startTransition] = useTransition()
-
-  // The load happens here rather than on the target page: it is a write, and a page render is not
-  // allowed to perform one. The url carries the SZABLON's id — the workbench investment behind it is
-  // never named to the user.
-  const onOpen = () => {
-    startTransition(async () => {
-      const res = await openPresetInWorkshopAction(preset.id)
-      if (!res.success) return toastMessage(res.error ?? 'Nie udało się otworzyć szablonu', 'error')
-      router.push(`/szablony/${preset.id}`)
-    })
-  }
 
   const onDelete = () => {
     startTransition(async () => {
@@ -67,7 +45,7 @@ export function PresetRowActions({ preset }: { preset: PresetRowT }) {
           variant="ghost"
           className="px-1.5"
           aria-label="Otwórz szablon"
-          disabled={pending}
+          disabled={opening}
           onClick={onOpen}
         >
           <FolderOpen />
@@ -101,31 +79,25 @@ export function PresetRowActions({ preset }: { preset: PresetRowT }) {
         </Button>
       </SimpleTooltip>
 
-      <Dialog open={renaming} onOpenChange={setRenaming}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Zmień nazwę szablonu</DialogTitle>
-            <DialogDescription>
-              Nazwa jest tożsamością szablonu — pod nią widać go w każdym wyborze szablonu.
-            </DialogDescription>
-          </DialogHeader>
-          <Input
-            value={draftName}
-            onChange={(event) => setDraftName(event.target.value)}
-            onKeyDown={(event) => event.key === 'Enter' && !pending && onRename()}
-            aria-label="Nazwa szablonu"
-            autoFocus
-          />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRenaming(false)} disabled={pending}>
-              Anuluj
-            </Button>
-            <Button onClick={onRename} disabled={pending || draftName.trim().length === 0}>
-              {pending ? 'Zapisuję…' : 'Zapisz'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <FormDialogShell
+        open={renaming}
+        onOpenChange={setRenaming}
+        title="Zmień nazwę szablonu"
+        description="Nazwa jest tożsamością szablonu — pod nią widać go w każdym wyborze szablonu."
+        confirmLabel="Zapisz"
+        onConfirm={onRename}
+        confirmDisabled={draftName.trim().length === 0}
+        pending={pending}
+        pendingLabel="Zapisuję…"
+      >
+        <Input
+          value={draftName}
+          onChange={(event) => setDraftName(event.target.value)}
+          onKeyDown={(event) => event.key === 'Enter' && !pending && onRename()}
+          aria-label="Nazwa szablonu"
+          autoFocus
+        />
+      </FormDialogShell>
 
       <ConfirmDialog
         open={confirmingDelete}

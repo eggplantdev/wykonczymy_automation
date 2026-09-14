@@ -4,6 +4,7 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { acquireTestWorkshop } from '@/__tests__/helpers/workshop'
 
 // „Wczytaj szablon" replaces a whole rozpiska behind an automatic snapshot, so the only assertions
 // worth making are against PERSISTED state — a success result would hide a failed write, and the
@@ -20,7 +21,8 @@ vi.mock('@/lib/auth/require-auth', () => ({
 }))
 vi.mock('@/lib/cache/revalidate', () => ({ revalidateCollections: vi.fn() }))
 
-const { reloadFromPresetAction } = await import('@/lib/actions/kosztorys-presets')
+const { reloadFromPresetAction, saveWorkshopPresetAction } =
+  await import('@/lib/actions/kosztorys-presets')
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
@@ -320,5 +322,98 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
     expect(await stageLabels()).toEqual(['Etap 1'])
     expect(await progressQty()).toEqual([4])
     expect(await allSnapshotIds()).toEqual(snapshotsBefore)
+  })
+})
+
+// The warsztat is ONE row shared by everyone, so „Zapisz" cannot trust the szablon the page was
+// rendered with: between that render and this click someone else may have opened a different one
+// into it. The pointer is therefore re-read at WRITE time, and the assertions are on the persisted
+// payloads — a refusal that still wrote would look identical from the return value.
+describe.skipIf(!ENV_READY)('saveWorkshopPresetAction — pointer guard (DB)', () => {
+  let payload: Payload
+  let db: Awaited<ReturnType<typeof getDb>>
+  let workshop: Awaited<ReturnType<typeof acquireTestWorkshop>>
+  let sectionId: number
+  let heldPresetId: number
+  let otherPresetId: number
+
+  const SECTION_NAME = 'Sekcja w warsztacie'
+
+  beforeAll(async () => {
+    const { getPayload } = await import('payload')
+    const config = (await import('@payload-config')).default
+    payload = await getPayload({ config })
+    db = await getDb(payload)
+
+    const users = await payload.find({
+      collection: 'users',
+      limit: 1,
+      depth: 0,
+      overrideAccess: true,
+    })
+    const firstUser = users.docs[0]
+    if (!firstUser) throw new Error('no user in the DB to attribute the save to')
+    authState.userId = Number(firstUser.id)
+
+    workshop = await acquireTestWorkshop(payload)
+    // Real content in the warsztat, so „it saved nothing" is distinguishable from „both szablony
+    // were empty anyway".
+    const section = await payload.create({
+      collection: 'kosztorys-sections',
+      data: { investment: workshop.id, name: SECTION_NAME, displayOrder: 0 },
+      context: { skipRevalidation: true },
+      overrideAccess: true,
+    })
+    sectionId = Number(section.id)
+
+    const { upsertPresetByName } = await import('@/lib/db/presets')
+    heldPresetId = await upsertPresetByName(db, {
+      name: 'warsztat-save-held',
+      createdBy: authState.userId,
+      payload: { ...presetPayload(), sections: [], items: [] },
+    })
+    otherPresetId = await upsertPresetByName(db, {
+      name: 'warsztat-save-other',
+      createdBy: authState.userId,
+      payload: { ...presetPayload(), sections: [], items: [] },
+    })
+
+    const { setWorkshopPreset } = await import('@/lib/db/workshop-investment')
+    await setWorkshopPreset(db, workshop.id, heldPresetId)
+  })
+
+  afterAll(async () => {
+    if (sectionId) {
+      await payload.delete({
+        collection: 'kosztorys-sections',
+        id: sectionId,
+        context: { skipRevalidation: true },
+        overrideAccess: true,
+      })
+    }
+    await workshop.release()
+    await db.execute(
+      sql`DELETE FROM kosztorys_presets WHERE name IN ('warsztat-save-held', 'warsztat-save-other')`,
+    )
+  })
+
+  async function sectionNamesOf(presetId: number): Promise<string[]> {
+    const { getPreset } = await import('@/lib/db/presets')
+    const preset = await getPreset(db, presetId)
+    return (preset?.payload.sections ?? []).map((section) => section.name)
+  }
+
+  it('writes the warsztat’s content into the szablon it actually holds', async () => {
+    const result = await saveWorkshopPresetAction(heldPresetId)
+
+    expect(result).toMatchObject({ success: true })
+    expect(await sectionNamesOf(heldPresetId)).toEqual([SECTION_NAME])
+  })
+
+  it('refuses — and writes nothing — when the warsztat holds a different szablon', async () => {
+    const result = await saveWorkshopPresetAction(otherPresetId)
+
+    expect(result).toMatchObject({ success: false })
+    expect(await sectionNamesOf(otherPresetId)).toEqual([])
   })
 })

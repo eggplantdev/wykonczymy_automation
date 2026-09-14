@@ -4,10 +4,12 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import {
   deletePreset,
+  getPreset,
   insertPreset,
   listPresetSections,
   listPresets,
   renamePreset,
+  updatePresetPayload,
 } from '@/lib/db/presets'
 import type { KosztorysItemT, KosztorysSectionT } from '@/lib/kosztorys/types'
 import type { SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
@@ -132,8 +134,8 @@ describe.skipIf(!ENV_READY)('listPresetSections (DB)', () => {
   })
 })
 
-// Delete and rename are the two operations that touch a szablon's EXISTENCE and its IDENTITY, so
-// both are asserted on the persisted rows (via listPresets), never on a return value.
+// Asserted on the persisted rows (via listPresets), never on a return value — a success result can
+// hide a failed write.
 describe.skipIf(!ENV_READY)('deletePreset / renamePreset (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
@@ -180,10 +182,36 @@ describe.skipIf(!ENV_READY)('deletePreset / renamePreset (DB)', () => {
   it('renames in place, keeping the id', async () => {
     const id = await makePreset('crud-fixture-old-name')
 
-    expect(await renamePreset(db, id, 'crud-fixture-new-name')).toBe(id)
+    expect(await renamePreset(db, id, 'crud-fixture-new-name')).toBe(true)
     expect((await listPresets(db)).find((preset) => preset.id === id)?.name).toBe(
       'crud-fixture-new-name',
     )
+  })
+
+  // „Zapisz" in the warsztat overwrites the szablon it HOLDS, by id — the name is not its address.
+  it('overwrites the payload in place, keeping the id', async () => {
+    const id = await makePreset('crud-fixture-overwritten')
+
+    const filled: SnapshotPayloadT = {
+      ...emptyPayload,
+      sections: [{ id: 1, name: 'Nowa sekcja', displayOrder: 0, color: null }],
+    }
+    expect(await updatePresetPayload(db, { id, createdBy: null, payload: filled })).toBe(true)
+
+    const stored = await getPreset(db, id)
+    expect(stored?.payload.sections.map((section) => section.name)).toEqual(['Nowa sekcja'])
+  })
+
+  // An UPDATE and not an upsert: someone deleting a szablon while another manager has it open in the
+  // warsztat must not have it silently resurrected by that manager's next save.
+  it('resurrects nothing when the szablon was deleted while it was open', async () => {
+    const id = await makePreset('crud-fixture-deleted-under-us')
+    await deletePreset(db, id)
+
+    expect(await updatePresetPayload(db, { id, createdBy: null, payload: emptyPayload })).toBe(
+      false,
+    )
+    expect((await listPresets(db)).some((preset) => preset.id === id)).toBe(false)
   })
 
   // The collision guard lives in SQL, so the failure has to leave BOTH rows untouched — a partial
@@ -192,7 +220,7 @@ describe.skipIf(!ENV_READY)('deletePreset / renamePreset (DB)', () => {
     const mine = await makePreset('crud-fixture-mine')
     const theirs = await makePreset('crud-fixture-theirs')
 
-    expect(await renamePreset(db, mine, 'crud-fixture-theirs')).toBeNull()
+    expect(await renamePreset(db, mine, 'crud-fixture-theirs')).toBe(false)
 
     const byId = new Map((await listPresets(db)).map((preset) => [preset.id, preset.name]))
     expect(byId.get(mine)).toBe('crud-fixture-mine')
