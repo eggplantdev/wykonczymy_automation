@@ -14,10 +14,13 @@ import {
 } from '@/lib/constants/financial-field-labels'
 import { costForCategory } from '@/lib/utils/category-costs'
 import { formatPLN } from '@/lib/utils/format-currency'
+import { roundToCents } from '@/lib/utils/round-to-cents'
 
+// Rounded because the `!== 0` guards below are the seam where this becomes a rendered row: a float
+// residue between two SQL sums otherwise shows up as a „Korekta (bez kategorii)" row reading 0,00.
 function uncategorisedRemainder(financials: InvestmentFinancialsT): number {
   const categorised = financials.categoryCosts.reduce((sum, c) => sum + c.total, 0)
-  return financials.totalMaterialCosts - categorised
+  return roundToCents(financials.totalMaterialCosts - categorised)
 }
 
 /** The kosztorys „Materiały" split — one row per expense category (v1 mirror parity:
