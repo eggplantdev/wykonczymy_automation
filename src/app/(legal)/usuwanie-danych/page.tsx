@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function DataDeletionPage() {
   return (
     <main>
@@ -20,9 +22,9 @@ export default function DataDeletionPage() {
 
       <p>
         Więcej informacji o przetwarzaniu danych znajdziesz w{' '}
-        <a className="underline" href="/privacy">
+        <Link className="underline" href="/privacy">
           Polityce prywatności
-        </a>
+        </Link>
         .
       </p>
     </main>
