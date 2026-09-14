@@ -6,7 +6,6 @@ import {
   InvoicePreviewTrigger,
   type InvoicePreviewTriggerPropsT,
 } from '@/components/dialogs/invoice-preview-trigger'
-import { isImageMime } from '@/lib/invoices/mime'
 import type { InvoiceFileT } from '@/types/transfers'
 
 type InvoicePreviewButtonPropsT = {
@@ -37,7 +36,6 @@ export function InvoicePreviewButton({
         onClick={() => setPreviewOpen(true)}
         variant={variant}
         className={className}
-        isImage={isImageMime(invoices[0]?.mimeType)}
       />
 
       {previewOpen && (

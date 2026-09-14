@@ -6,6 +6,11 @@ import { Upload } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { Description } from '@/components/ui/description'
 import { FieldLabel } from '@/components/ui/field'
+import {
+  FILE_DRAG_ARMED_CLASS,
+  FILE_DRAG_OVER_CLASS,
+  useWindowFileDrag,
+} from '@/hooks/use-window-file-drag'
 
 type FileInputPropsT = React.ComponentProps<'input'> & {
   label?: string
@@ -29,6 +34,7 @@ function FileInput({
   ref,
   ...props
 }: FileInputPropsT) {
+  const isFileDragActive = useWindowFileDrag()
   const [isDragOver, setIsDragOver] = useState(false)
   const [fileName, setFileName] = useState<string | undefined>(initialFileName)
   const [error, setError] = useState<string>()
@@ -49,6 +55,9 @@ function FileInput({
   function handleDragLeave(e: React.DragEvent) {
     e.preventDefault()
     e.stopPropagation()
+    // Leaving for a child (the icon, the filename) is not leaving the zone — without this the
+    // strong state flickers as the cursor crosses them.
+    if (e.currentTarget.contains(e.relatedTarget as Node | null)) return
     setIsDragOver(false)
   }
 
@@ -112,7 +121,8 @@ function FileInput({
         className={cn(
           'border-input bg-background flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md border px-3 transition-colors',
           'text-muted-foreground hover:border-primary/50 hover:bg-muted/50',
-          isDragOver && 'border-primary bg-muted/50',
+          isFileDragActive && !isDragOver && !disabled && FILE_DRAG_ARMED_CLASS,
+          isDragOver && cn(FILE_DRAG_OVER_CLASS, 'bg-muted/50'),
           disabled && 'pointer-events-none opacity-50',
           className,
         )}

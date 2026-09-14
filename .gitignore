@@ -67,6 +67,7 @@ wnioski.md
 # playwright
 .playwright-mcp/
 /.next-e2e/
+/.next-qa/
 /playwright-report/
 /test-results/
 /e2e/.auth/

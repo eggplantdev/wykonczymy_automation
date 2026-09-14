@@ -1,4 +1,4 @@
-import { FileText, Search } from 'lucide-react'
+import { FileText } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils/cn'
 
@@ -9,9 +9,6 @@ export type InvoicePreviewTriggerPropsT = {
   // transfers table and a fixed-height virtualized row have different height budgets.
   variant?: 'field' | 'compact'
   className?: string
-  // An image invoice previews inline, so the trigger reads as "look" (magnifier); anything else
-  // (PDF, unknown) previews as a document, so it keeps the file icon.
-  isImage?: boolean
 }
 
 export function InvoicePreviewTrigger({
@@ -19,10 +16,8 @@ export function InvoicePreviewTrigger({
   onClick,
   variant = 'field',
   className,
-  isImage = false,
 }: InvoicePreviewTriggerPropsT) {
   const isCompact = variant === 'compact'
-  const Icon = isImage ? Search : FileText
 
   return (
     <button
@@ -37,7 +32,7 @@ export function InvoicePreviewTrigger({
         className,
       )}
     >
-      <Icon />
+      <FileText />
       {!isCompact && <span className="truncate text-sm">{label}</span>}
     </button>
   )

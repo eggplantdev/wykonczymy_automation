@@ -283,15 +283,16 @@ settlementMode==='MIXED' && netRows.length>0 && grossRows.length>0`) — confirm
       (no non-INVESTOR_DEPOSIT-carrying investment exists to test against, same gap as the box below)
       — trusted via the code path + the regression test the ⚠ box below already names.*
       **Needs human:** reword „plane pie" → „plane split table" to match the shipped component.
-- [ ] ⚠ **`wplatyNet` base fix — verify on an investment carrying a legacy `COMPANY_FUNDING` (or `OTHER_DEPOSIT`) row.** In **every** axis (Netto/Brutto/Mieszane), the „Wpłaty"/„Do zapłaty" figure must sum **only INVESTOR_DEPOSIT** — the legacy deposit must **not** inflate „Wpłaty". Before the fix the non-mixed axes folded it in (3 different totals per toggle); after, all surfaces agree. **This changes a client-facing figure on such investments — flagged for owner sign-off.** (Fresh COMPANY*FUNDING can't attach to an investment via the form per EX-557, so this only bites legacy/admin rows.) Regression-guarded by `src/__tests__/lib/db/get-deposit-transactions.test.ts`. **Wymaga człowieka (2026-09-04):** Confirmed via SQL against the preview DB — zero rows exist anywhere with `type IN ('COMPANY_FUNDING','OTHER_DEPOSIT') AND cancelled=false AND investment_id IS NOT NULL`. No fixture to drive this in the UI, and EX-557 blocks creating one via the form. Question for human: accept the named unit test (`get-deposit-transactions.test.ts`) as sufficient coverage, or explicitly authorize attaching an existing unattached `COMPANY_FUNDING` row to a throwaway investment for a live check.
-      \_Confirmed definitively UI-unreachable this pass, not just "not reached": queried the whole
-      preview DB — `SELECT … FROM transactions WHERE type IN ('COMPANY_FUNDING','OTHER_DEPOSIT') AND
-cancelled=false AND investment_id IS NOT NULL` returns **0 rows**. No investment on this branch
-      carries a legacy row to test against, and EX-557 blocks creating one via the form — so this
-      check cannot be driven in this environment at all, only relied on via the named regression test.*
-      **Needs human:** either accept the named unit test as sufficient coverage for this box, or
-      attach one of the unattached `COMPANY_FUNDING` rows (e.g. id 858) to a throwaway investment —
-      that write is outside "UI only" (no form path exists) so needs an explicit human OK first.
+- [x] ⚠ **`wplatyNet` base fix — verify on an investment carrying a legacy `COMPANY_FUNDING` (or `OTHER_DEPOSIT`) row.** In **every** axis (Netto/Brutto/Mieszane), the „Wpłaty"/„Do zapłaty" figure must sum **only INVESTOR_DEPOSIT** — the legacy deposit must **not** inflate „Wpłaty". Before the fix the non-mixed axes folded it in (3 different totals per toggle); after, all surfaces agree. **This changes a client-facing figure on such investments — flagged for owner sign-off.** (Fresh COMPANY\*FUNDING can't attach to an investment via the form per EX-557, so this only bites legacy/admin rows.) Regression-guarded by `src/__tests__/lib/db/get-deposit-transactions.test.ts`.
+      _Verified: 2026-09-14, baza testowa 5435, inwestycja 106 (379 pozycji kosztorysu, dwie wpłaty
+      inwestora 1500,00 + 15 135,00 = 16 635,00). Fikstura: wpłata „Zasilenie z konta firmowego"
+      #858 (832,01) podpięta pod inwestycję przez SQL — formularz tej drogi nie ma od EX-557.
+      Odczyt na trzech osiach rozliczenia: **Netto** „Wpłaty" -16 635,00; **Mieszane** -16 635,00;
+      **Brutto** 0,00 z komunikatem „2 wpłaty są gotówką — 16 635,00 zł nie spłaca nic" (obie wpłaty
+      bez oznaczonej formy, więc w brutto nie spłacają — zgodnie z projektem). Nigdzie 832,01 nie
+      wchodzi do „Wpłat" ani do „Listy wpłat", która na każdej osi pokazuje dokładnie dwa wiersze.
+      To samo na panelu inwestycji (`/inwestycje/106`): -16 635,00. Fikstura cofnięta w całości —
+      `#858` z powrotem bez inwestycji, tryb rozliczenia z powrotem NET._
 
 ### Wydatki + Robocizna tabs
 
@@ -3532,7 +3533,6 @@ produkcyjnym (`pnpm build && pnpm start`) — na dev HMR zawyża każdy pomiar.
 - [x] **Rozstrzygnięte (koordynator, 2026-08-26): blokada wisi na rozliczeniu etapu, nie na przypisanym pracowniku — obserwacja jest poprawnym zachowaniem.** `kosztorys-v2-columns.tsx:442` blokuje kolumnę `ilość` wyłącznie gdy `stage.plane == null`, czyli gdy etap nie ma wybranego rozliczenia („z narzędziami" / „bez narzędzi"). Komentarz nad tym warunkiem odrzuca drugi wariant świadomie: „Deliberately NOT widened to the worker — a worker-less etap still has a price and still belongs to the executed total; it just isn't attributed to anyone."
       Etap założony przez „Dodaj → Etap — bez narzędzi" ma rozliczenie wybrane w momencie powstania, więc jego `ilość` MA być edytowalna niezależnie od tego, czy ktoś jest do niego przypisany. Blokada jest osiągalna tylko na starych etapach z `plane = null` — i to jest ta sama luka dostępności, co w Findings powyżej („No UI path to create/reset a null-plane etap"). Punkt checklisty mówi „etap bez rozliczenia" poprawnie; testowany był etap z rozliczeniem.
 
-
 ### Findings — 2026-09-03
 
 - [ ] **Search filter narrowing the visible rows mid-edit crashes the grid** (`TypeError: Cannot read **FAIL (2026-09-04):** Reproduced live on staging inw. 135: editing a cell while a keystroke sequence also narrows the search-filtered row list crashes the grid into the Next.js error boundary. Root cause traced to `use-row-height-cache-reset.ts`(the repo's EX-699 patch of`react-datasheet-grid`'s `resetAfter`, `patches/react-datasheet-grid@4.11.6.patch`): when a filter empties `calculatedHeights.current`, the same render's `getRowSize`for the still-referenced`activeCell.row`reads`[-1].top`on an empty array →`undefined.top`throws. Recovery from the crash also left real data (row1 subcontractor price) at an un-reverted intermediate value — manually fixed and confirmed via reload. **Wymaga człowieka:** jak wyżej — patch`useRowHeights` w drzewie adresuje dokładnie ten crash; do decyzji, czy go zatrzymujemy, czy odkręcamy i szukamy poprawki po naszej stronie.
@@ -3571,8 +3571,6 @@ properties of undefined (reading 'top')`, landing in the Next.js error boundary)
       stale-active-index condition without a browser; the data-loss half (crash interrupts
       `cellSettle`'s rollback) is better asserted as an e2e case once the crash itself is fixed, since
       it depends on the real grid's virtualization and the Next.js error boundary.
-
-
 
 ## fleet-sheet-parity — parytet z arkuszem kontroli przeglądów i ubezpieczeń
 
@@ -4681,3 +4679,25 @@ disabled.invalid` fails DNS — a deliberate non-prod gate, not a bug (matches
       still-open boxes below. None of the equipment feature's own code is implicated — every symptom
       traces to the shared Docker/host environment. **Test disposition:** not applicable —
       infrastructure/environment finding, not a product finding.
+
+## drag-drop-guard — chybiony drop pliku i widoczne dropzone (2026-09-14)
+
+### Faza 1: Hook `useWindowFileDrag` + `FileInput`
+
+- [ ] Przeciągnij plik nad otwarty dialog faktury i upuść go **obok** pola — nic się nie dzieje, przeglądarka nie otwiera pliku, dialog stoi otwarty.
+- [ ] W trakcie przeciągania pole jest podświetlone, zanim kursor nad nie wjedzie.
+- [ ] Po wjechaniu kursorem na pole podświetlenie wzmacnia się i **nie miga** przy ruchu nad ikoną i tekstem.
+- [ ] Upuszczenie pliku na pole nadal dodaje plik (regresja ścieżki trafionej).
+- [ ] Po trafionym dropie na pole słabe podświetlenie **gaśnie** na wszystkich dropzone'ach (bramka przeglądu: `stopPropagation` w `FileInput` ucinał `drop` przed `window`, więc ring zostawał zapalony na zawsze).
+- [ ] Przejedź plikiem nad polem tam i z powrotem, po czym wyjedź poza okno przeglądarki — podświetlenie gaśnie, nie zostaje (regresja dryfu licznika).
+- [ ] Po zamknięciu dialogu i ponownym przeciągnięciu pliku poza aplikację (np. na pasek zakładek) przeglądarka zachowuje się normalnie — guard zniknął razem z dialogiem.
+- [ ] Upuszczenie pliku w panelu Payloada (`/admin`) nadal działa jak wcześniej.
+
+### Faza 2: Druga dropzone na tym samym hooku
+
+- [ ] W dialogu wydatku, w trakcie przeciągania pliku, podświetlają się jednocześnie przycisk „Wygeneruj z paragonów" **i** wszystkie pola „FV" bez faktury — słabo, nie krzykliwie.
+- [ ] Upuszczenie paragonu na przycisk nadal uruchamia generowanie pozycji (regresja ścieżki trafionej).
+- [ ] Mocny stan na przycisku „Wygeneruj z paragonów" **nie miga**, gdy kursor przejeżdża nad jego ikoną i napisem.
+- [ ] Upuszczenie pliku spoza `accept` (np. `.txt`) na przycisk nie robi nic i **nie** otwiera pliku.
+- [ ] Drugi drop w trakcie trwającego ingestu nadal jest no-opem (istniejący check w tym pliku nie może się zepsuć).
+- [ ] Przy 8 pozycjach formularz nie wygląda jak choinka — słaby stan jest czytelny, ale nie dominuje.

@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function PrivacyPolicyPage() {
   return (
     <main>
@@ -31,9 +33,9 @@ export default function PrivacyPolicyPage() {
       <p className="mb-4">
         Masz prawo dostępu do swoich danych, ich sprostowania oraz usunięcia. Aby usunąć swoje dane,
         zapoznaj się z instrukcją na stronie{' '}
-        <a className="underline" href="/usuwanie-danych">
+        <Link className="underline" href="/usuwanie-danych">
           Usuwanie danych
-        </a>
+        </Link>
         .
       </p>
 
