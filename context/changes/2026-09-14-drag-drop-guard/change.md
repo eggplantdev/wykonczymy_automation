@@ -1,7 +1,7 @@
 ---
 change_id: drag-drop-guard
 title: Blokada nawigacji przy chybionym dropie pliku + widoczna dropzone w trakcie przeciągania
-status: planned
+status: implemented
 created: 2026-09-14
 updated: 2026-09-14
 archived_at: null
