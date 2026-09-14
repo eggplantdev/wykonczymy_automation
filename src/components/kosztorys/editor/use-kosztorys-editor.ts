@@ -1235,10 +1235,13 @@ export function useKosztorysEditor({
     storedCollapsedSectionIds,
     toggleSectionCollapsed,
     setCollapsedSectionIds,
-    // The band's only mutation — every other section command lives in the row „…" menu. Reused from
-    // columnOpts rather than gated a second time, so the band and the name cell can't disagree about
-    // whether renaming is allowed.
+    // Every section command rides the band now. Reused from columnOpts rather than gated a second
+    // time, so the band and the name cell can't disagree about whether editing is allowed.
     onRenameSection: columnOpts.onRenameSection,
+    onInsertSection: columnOpts.onInsertSection,
+    onReorderSection: columnOpts.onReorderSection,
+    onSetSectionColor: columnOpts.onSetSectionColor,
+    onRemoveSection: columnOpts.onRemoveSection,
     // subtotals + section panel
     subtotals,
     // client-priced, view-invariant per-section subtotals — the section pie's structure source.

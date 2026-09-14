@@ -3,12 +3,16 @@
 import { ChevronDown, ChevronRight } from 'lucide-react'
 
 import { SectionNameCell } from '@/components/kosztorys/editor/grid/cells/section-name-cell'
+import {
+  KosztorysSectionActionsMenu,
+  type SectionBandActionsT,
+} from '@/components/kosztorys/editor/grid/menus/kosztorys-section-actions-menu'
 import { formatNet } from '@/lib/kosztorys/format'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // What every band cell needs, carried on the wrapped column's `columnData` (never a closure — see
-// kosztorys-synthetic-rows.tsx). `onRename` is absent in the read-only client view, which is what
-// freezes the name. Every other section command lives in the row „…" menu, not here.
+// kosztorys-synthetic-rows.tsx). `onRename` and `actions` are absent in the read-only client view,
+// which is what freezes the name and leaves the band without a „…".
 // `net` is the section's executed value after rabat, in the active price view — the same figure its
 // footer's „Razem netto" shows, so a collapsed section still states what it is worth.
 export type SectionHeaderFigureT = { itemCount: number; net: number }
@@ -19,18 +23,23 @@ export type SectionHeaderContextT = {
   collapsedSectionIds: ReadonlySet<number>
   onToggleCollapsed: (sectionId: number) => void
   onRename?: (sectionId: number, name: string) => void
+  // One bundle rather than four props: they all come from the same `editorOnly()` gate, so the menu
+  // is all-present or all-absent.
+  actions?: SectionBandActionsT
   // Which column paints the label — resolved per render off the visible order, never a fixed id.
   labelColumnId?: string
 }
 
-// dsg has no colspan, so the band is painted per column: one column carries the whole label, the
-// rest paint blank.
-export type SectionHeaderSlotT = 'label' | 'blank'
+// dsg has no colspan, so the band is painted per column: one column carries the whole label, one
+// carries the section's „…", the rest paint blank.
+export type SectionHeaderSlotT = 'actions' | 'label' | 'blank'
+
+const ACTIONS_COLUMN_ID = 'actions'
 
 // Chrome, not a reading of the kosztorys: „Akcje" is 64px of row menu and the trailing gap is empty
 // by definition, so neither can host a label that has to be legible. Literals rather than an import
 // from the column assembly, which imports this file.
-const CHROME_COLUMN_IDS: ReadonlySet<string> = new Set(['actions', 'layerGap'])
+const CHROME_COLUMN_IDS: ReadonlySet<string> = new Set([ACTIONS_COLUMN_ID, 'layerGap'])
 
 // The band follows the grid instead of a named column: no column holds a fixed slot any more
 // (lib/table/column-order), so „Opis prac" can be dragged to the far right or hidden from the
@@ -45,6 +54,9 @@ export function sectionHeaderSlot(
   columnId: string | undefined,
   labelColumnId: string | undefined,
 ): SectionHeaderSlotT {
+  // Decided before the label, though the two can't collide: „Akcje" is chrome, so
+  // `sectionBandLabelColumnId` never names it.
+  if (columnId === ACTIONS_COLUMN_ID) return 'actions'
   return columnId != null && columnId === labelColumnId ? 'label' : 'blank'
 }
 
@@ -70,6 +82,21 @@ export function SectionHeaderCell({
   const collapsed = context.collapsedSectionIds.has(rowData.sectionId)
   const toggle = () => context.onToggleCollapsed(rowData.sectionId)
   const title = collapsed ? 'Rozwiń sekcję' : 'Zwiń sekcję'
+
+  if (slot === 'actions') {
+    // The one band cell that does NOT collapse — not by stopping the click, but by never getting a
+    // toggle handler. That is what keeps a collapsed section's own commands reachable.
+    if (!context.actions) return <div className="size-full" />
+    return (
+      <KosztorysSectionActionsMenu
+        sectionId={rowData.sectionId}
+        name={rowData.sectionName ?? ''}
+        itemCount={itemCount}
+        color={rowData.sectionColor}
+        actions={context.actions}
+      />
+    )
+  }
 
   if (slot === 'label') {
     const Chevron = collapsed ? ChevronRight : ChevronDown

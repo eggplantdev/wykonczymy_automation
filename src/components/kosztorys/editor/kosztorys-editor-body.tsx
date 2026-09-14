@@ -152,6 +152,10 @@ export function KosztorysEditorBody({
     collapsedSectionIds,
     toggleSectionCollapsed,
     onRenameSection,
+    onInsertSection,
+    onReorderSection,
+    onSetSectionColor,
+    onRemoveSection,
     onChange,
   } = editor
 
@@ -173,9 +177,30 @@ export function KosztorysEditorBody({
       collapsedSectionIds,
       onToggleCollapsed: toggleSectionCollapsed,
       onRename: onRenameSection,
+      // Built here rather than in the hook so the bundle's identity is the memo's own — a fresh
+      // object per render would land on every column's `columnData` and redraw the whole grid.
+      actions:
+        onInsertSection && onReorderSection && onSetSectionColor && onRemoveSection
+          ? {
+              onInsert: onInsertSection,
+              onReorder: onReorderSection,
+              onSetColor: onSetSectionColor,
+              onRemove: onRemoveSection,
+            }
+          : undefined,
       labelColumnId: sectionBandLabelColumnId(columns.map((column) => column.id)),
     }),
-    [subtotals, collapsedSectionIds, toggleSectionCollapsed, onRenameSection, columns],
+    [
+      subtotals,
+      collapsedSectionIds,
+      toggleSectionCollapsed,
+      onRenameSection,
+      onInsertSection,
+      onReorderSection,
+      onSetSectionColor,
+      onRemoveSection,
+      columns,
+    ],
   )
 
   const sectionFooter = useMemo(
