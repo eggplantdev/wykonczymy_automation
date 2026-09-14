@@ -89,6 +89,23 @@ describe('buildMaterialsBreakdown', () => {
     expect(remainder).toMatchObject({ id: null, net: -100 })
   })
 
+  // Both figures are float sums of grosze, so a fully categorised investment leaves a ~1e-11 residue
+  // — which rendered a „Korekta (bez kategorii)" row at 0,00 zł and a −0,0% pie slice.
+  it('ignores a sub-grosz float residue between the two sums', () => {
+    const financials = {
+      ...base,
+      categoryCosts: [
+        { categoryId: 1, total: 21_500.49 },
+        { categoryId: 2, total: 43_363 },
+      ],
+      totalMaterialCosts: 21_500.49 + 43_363 + 1e-11,
+    }
+    expect(buildMaterialsBreakdown(financials, cats).some((r) => r.id === null)).toBe(false)
+    expect(
+      buildFinancialFields(financials, cats).some((f) => f.label === 'Korekta (bez kategorii)'),
+    ).toBe(false)
+  })
+
   // The „Materiały" tab gates on `rows.length`, so a placeholder per empty category made the count
   // lie and the tab rendered blank — empty-state message and all.
   it('drops categories with no spend instead of emitting a 0 zł placeholder', () => {

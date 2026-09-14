@@ -120,6 +120,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
           excludeColumns: ['investment'],
           filters: buildFilterConfig(refData, 'investments'),
           invoiceDownload: true,
+          print: true,
           cancelledTransactionAudit: sp.cancelledTransactionAudit === '1',
         }}
       />

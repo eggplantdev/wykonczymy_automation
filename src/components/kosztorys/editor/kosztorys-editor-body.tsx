@@ -42,7 +42,11 @@ import {
   makeSpacerRow,
   makeTotalsRow,
 } from '@/lib/kosztorys/synthetic-rows'
-import { rowContentLines } from '@/lib/kosztorys/row-content-lines'
+import {
+  columnContentLines,
+  rowContentLines,
+  WRAPPING_COLUMN_IDS,
+} from '@/lib/kosztorys/row-content-lines'
 import {
   HEADER_HEIGHT_KEY,
   HEADER_ROW_HEIGHT,
@@ -122,6 +126,7 @@ export function KosztorysEditorBody({
     guideX,
     guideY,
     rowHeights,
+    fitRowsToContent,
     setRowHeight,
     setGuideY,
     subtotals,
@@ -221,7 +226,11 @@ export function KosztorysEditorBody({
   }, [wrap])
   // The override map and the measured widths both invalidate every cached height, not just those
   // below an inserted row.
-  useRowHeightCacheReset(datasheetRef, gridRowKeys, rowHeights, preview ? wrap : undefined)
+  // Both readings of „size me from the content" invalidate every row at once: the preview's, and the
+  // owner's toggle — which is itself a content source, since flipping it changes what every row
+  // measures to without saying which rows changed.
+  const sizeToContent = preview || fitRowsToContent
+  useRowHeightCacheReset(datasheetRef, gridRowKeys, rowHeights, sizeToContent ? wrap : undefined)
   // The empty grid names what emptied it — and the two kinds empty it for opposite reasons: an
   // unticked filter leaves nothing because EVERY pozycja fell into what was unticked, a diagnostic
   // because NONE matched it, which is the goal state and worth saying out loud rather than a dead end.
@@ -259,6 +268,42 @@ export function KosztorysEditorBody({
           },
     [preview, setGuideY, setRowHeight, contentLinesFor],
   )
+  // Which of a row's text columns hold more than the row shows — one class per clipped column, which
+  // is what lets the „…" land in the cell that is actually hiding something rather than on the whole
+  // row. The editor's rows rest at 32px and only move when the owner drags one, so a clipped
+  // description is the normal state, not an exception. Measured from the same line count the drag's
+  // „dopasuj" uses, so the cue and the fit can never disagree. No cue in the preview: its rows are
+  // sized from this very measurement, so nothing there is ever clipped.
+  const clipCueClass = useMemo(() => {
+    const measure = measureTextWidth(wrap.font)
+    return (row: KosztorysV2RowT) => {
+      // Bands, „Razem" and the spacer carry chrome, not prose — a band's label deliberately overflows
+      // its own cell onto the empty ones beside it, so measuring it against its column's width would
+      // flag every band as clipped.
+      if (
+        preview ||
+        isSyntheticRow(row.id) ||
+        isSectionHeaderRow(row.id) ||
+        isSectionFooterRow(row.id)
+      )
+        return undefined
+      const columnLines = WRAPPING_COLUMN_IDS.map((id) => ({
+        id,
+        lines: columnContentLines(row, id, wrap.widths, measure),
+      }))
+      const height = resolveRowHeight({
+        isSectionBand: false,
+        override: rowHeights[String(row.id)],
+        contentLines: fitRowsToContent
+          ? Math.max(...columnLines.map((column) => column.lines))
+          : undefined,
+      })
+      return columnLines
+        .filter((column) => heightForLines(column.lines) > height)
+        .map((column) => `kosztorys-clipped-${column.id}`)
+        .join(' ')
+    }
+  }, [preview, wrap, rowHeights, fitRowsToContent])
   const gutterColumn = useMemo(
     () => ordinalGutterColumn({ ordinals: ordinalByRowId, resize: rowResize }),
     [ordinalByRowId, rowResize],
@@ -355,7 +400,9 @@ export function KosztorysEditorBody({
                     // flattened editor rows clip the offer they open to check.
                     override: preview ? undefined : rowHeights[String(rowData.id)],
                     contentLines:
-                      preview && !isSyntheticRow(rowData.id) ? contentLinesFor(rowData) : undefined,
+                      sizeToContent && !isSyntheticRow(rowData.id)
+                        ? contentLinesFor(rowData)
+                        : undefined,
                   })
                 }
                 // Tall enough that verbose column labels („Pozostało netto (względem przedmiaru)" etc.)
@@ -371,6 +418,7 @@ export function KosztorysEditorBody({
                     sectionColorRail(rowData.sectionColor),
                     isSectionHeaderRow(rowData.id) && 'kosztorys-section-header',
                     isSectionFooterRow(rowData.id) && 'kosztorys-section-footer',
+                    clipCueClass(rowData),
                   )
                 }
               />

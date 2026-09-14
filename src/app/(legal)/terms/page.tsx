@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function TermsOfServicePage() {
   return (
     <main>
@@ -18,9 +20,9 @@ export default function TermsOfServicePage() {
       <p className="mb-4">
         Podając dane w formularzu, wyrażasz zgodę na kontakt w celu przedstawienia oferty. Zasady
         przetwarzania danych opisuje{' '}
-        <a className="underline" href="/privacy">
+        <Link className="underline" href="/privacy">
           Polityka prywatności
-        </a>
+        </Link>
         .
       </p>
 

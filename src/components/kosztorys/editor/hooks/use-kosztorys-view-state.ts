@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useEngagedConditions } from '@/components/kosztorys/editor/hooks/use-engaged-conditions'
+import { useFitRowsToContent } from '@/components/kosztorys/editor/hooks/use-fit-rows-to-content'
 import { usePriceView } from '@/components/kosztorys/editor/hooks/use-price-view'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
@@ -71,6 +72,12 @@ export function useKosztorysViewState({ investmentId, preview, clientView }: Arg
   const collapsedSectionIds = isFoldSuppressed(search, engagedConditionIds)
     ? EMPTY_COLLAPSED
     : storedCollapsedSectionIds
+
+  // Unlike the folds above this IS persisted: a fold hides rows the next visit wouldn't know it had
+  // hidden, while this one only makes them taller — nothing disappears, so remembering it costs the
+  // reader nothing. A dragged row still wins: resolveRowHeight checks its override before the
+  // content, so the preference never overwrites what the owner set by hand.
+  const [fitRowsToContent, toggleFitRowsToContent] = useFitRowsToContent()
 
   // During a column resize we only show a vertical guide (guideX = cursor X), without touching the
   // grid — a re-layout per pointermove would be a re-render per pixel. guideY is the row-resize
@@ -150,5 +157,7 @@ export function useKosztorysViewState({ investmentId, preview, clientView }: Arg
     setGuideX,
     guideY,
     setGuideY,
+    fitRowsToContent,
+    toggleFitRowsToContent,
   }
 }

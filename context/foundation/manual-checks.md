@@ -283,15 +283,16 @@ settlementMode==='MIXED' && netRows.length>0 && grossRows.length>0`) — confirm
       (no non-INVESTOR_DEPOSIT-carrying investment exists to test against, same gap as the box below)
       — trusted via the code path + the regression test the ⚠ box below already names.*
       **Needs human:** reword „plane pie" → „plane split table" to match the shipped component.
-- [ ] ⚠ **`wplatyNet` base fix — verify on an investment carrying a legacy `COMPANY_FUNDING` (or `OTHER_DEPOSIT`) row.** In **every** axis (Netto/Brutto/Mieszane), the „Wpłaty"/„Do zapłaty" figure must sum **only INVESTOR_DEPOSIT** — the legacy deposit must **not** inflate „Wpłaty". Before the fix the non-mixed axes folded it in (3 different totals per toggle); after, all surfaces agree. **This changes a client-facing figure on such investments — flagged for owner sign-off.** (Fresh COMPANY*FUNDING can't attach to an investment via the form per EX-557, so this only bites legacy/admin rows.) Regression-guarded by `src/__tests__/lib/db/get-deposit-transactions.test.ts`. **Wymaga człowieka (2026-09-04):** Confirmed via SQL against the preview DB — zero rows exist anywhere with `type IN ('COMPANY_FUNDING','OTHER_DEPOSIT') AND cancelled=false AND investment_id IS NOT NULL`. No fixture to drive this in the UI, and EX-557 blocks creating one via the form. Question for human: accept the named unit test (`get-deposit-transactions.test.ts`) as sufficient coverage, or explicitly authorize attaching an existing unattached `COMPANY_FUNDING` row to a throwaway investment for a live check.
-      \_Confirmed definitively UI-unreachable this pass, not just "not reached": queried the whole
-      preview DB — `SELECT … FROM transactions WHERE type IN ('COMPANY_FUNDING','OTHER_DEPOSIT') AND
-cancelled=false AND investment_id IS NOT NULL` returns **0 rows**. No investment on this branch
-      carries a legacy row to test against, and EX-557 blocks creating one via the form — so this
-      check cannot be driven in this environment at all, only relied on via the named regression test.*
-      **Needs human:** either accept the named unit test as sufficient coverage for this box, or
-      attach one of the unattached `COMPANY_FUNDING` rows (e.g. id 858) to a throwaway investment —
-      that write is outside "UI only" (no form path exists) so needs an explicit human OK first.
+- [x] ⚠ **`wplatyNet` base fix — verify on an investment carrying a legacy `COMPANY_FUNDING` (or `OTHER_DEPOSIT`) row.** In **every** axis (Netto/Brutto/Mieszane), the „Wpłaty"/„Do zapłaty" figure must sum **only INVESTOR_DEPOSIT** — the legacy deposit must **not** inflate „Wpłaty". Before the fix the non-mixed axes folded it in (3 different totals per toggle); after, all surfaces agree. **This changes a client-facing figure on such investments — flagged for owner sign-off.** (Fresh COMPANY\*FUNDING can't attach to an investment via the form per EX-557, so this only bites legacy/admin rows.) Regression-guarded by `src/__tests__/lib/db/get-deposit-transactions.test.ts`.
+      _Verified: 2026-09-14, baza testowa 5435, inwestycja 106 (379 pozycji kosztorysu, dwie wpłaty
+      inwestora 1500,00 + 15 135,00 = 16 635,00). Fikstura: wpłata „Zasilenie z konta firmowego"
+      #858 (832,01) podpięta pod inwestycję przez SQL — formularz tej drogi nie ma od EX-557.
+      Odczyt na trzech osiach rozliczenia: **Netto** „Wpłaty" -16 635,00; **Mieszane** -16 635,00;
+      **Brutto** 0,00 z komunikatem „2 wpłaty są gotówką — 16 635,00 zł nie spłaca nic" (obie wpłaty
+      bez oznaczonej formy, więc w brutto nie spłacają — zgodnie z projektem). Nigdzie 832,01 nie
+      wchodzi do „Wpłat" ani do „Listy wpłat", która na każdej osi pokazuje dokładnie dwa wiersze.
+      To samo na panelu inwestycji (`/inwestycje/106`): -16 635,00. Fikstura cofnięta w całości —
+      `#858` z powrotem bez inwestycji, tryb rozliczenia z powrotem NET._
 
 ### Wydatki + Robocizna tabs
 
@@ -460,9 +461,13 @@ Setup: run the app against the **5435 test DB** (see intro — apply `20260724_2
 
 ### Findings — 2026-08-26
 
-- [ ] **No UI path to create/reset a null-plane (unconfirmed) etap** — `Dodaj` menu on a fresh kosztorys only offers „Etap — z narzędziami" and „Etap — bez narzędzi"; there is no third option or a way to unpick a plane once set. Verified on QA investment 136 (fresh) — menu items are `menuitem "Etap — z narzędziami"` (and a "bez narzędzi" sibling), nothing else. This means the „warning badge appears" positive case (Phase 5, box above) and the „locked cells unlock on pick" / „TriangleAlert on a fresh etap" checks (EX-571 Phase 2, below) can only be observed on investment 31's 3 pre-existing legacy null-plane etapy (8/9/10) — which is read-only and, per this investment's data, happens to have zero Pomiar on those etapy, so it cannot exercise the "badge appears" branch either. **Wymaga człowieka (2026-09-04):** This is a product decision explicitly flagged "Needs human" in the same entry: whether the app should offer a way to create a genuinely unassigned etap, or whether unreachability post-migration is intentional. Design intent, not decidable from code alone. (Side note, not a reversal: preview DB now DOES carry a naturally-occurring positive fixture — investment 31 stages 58/59, see the "Warning badge appears" PASS verdict above — but that doesn't answer whether the UI should offer a creation path, which is the actual ask here.)
-      **Needs human:** decide whether the app should offer a way to create a genuinely unassigned etap (for QA and for real legacy-data parity), or whether this is intentionally unreachable post-migration (every new etap must declare its plane at creation).
-      **Test disposition:** no automated test — this is a reachability/fixture gap for manual QA, not a code defect; if a decision is made to keep it unreachable, an e2e test would need to seed the row directly rather than exercise it through the UI (same constraint I hit).
+- [x] **No UI path to create/reset a null-plane (unconfirmed) etap** — `Dodaj` menu on a fresh kosztorys only offers „Etap — z narzędziami" and „Etap — bez narzędzi"; there is no third option or a way to unpick a plane once set. Verified on QA investment 136 (fresh) — menu items are `menuitem "Etap — z narzędziami"` (and a "bez narzędzi" sibling), nothing else. This means the „warning badge appears" positive case (Phase 5, box above) and the „locked cells unlock on pick" / „TriangleAlert on a fresh etap" checks (EX-571 Phase 2, below) can only be observed on investment 31's 3 pre-existing legacy null-plane etapy (8/9/10) — which is read-only and, per this investment's data, happens to have zero Pomiar on those etapy, so it cannot exercise the "badge appears" branch either.
+      _Rozstrzygnięte przez właściciela 2026-09-14: **etapu bez sposobu rozliczenia nie da się
+      założyć i tak ma zostać.** Rozliczenie decyduje, którą stawkę ekipa dostaje za etap, więc etap
+      bez niego jest etapem, którego nie da się rozliczyć — przycisk na to produkowałby nowe wiersze
+      tej samej zaszłości. Dwa stare etapy bez rozliczenia (inw. 31) zostają jako dane historyczne
+      z własnym ostrzeżeniem; nikt ich nie mnoży. Checki zależne od tego stanu weryfikuje się
+      fiksturą wstawioną SQL-em do bazy testowej, nie drogą w UI._
 
 - [x] **1-grosz rounding drift on "Pozostało do wypłaty" — already fixed in code, staging Vercel preview is stale** — investment 31, 2026-08-26: the live staging **Vercel Preview** showed „Podsumowanie podwykonawców" headline AND the per-worker „Razem" row both reading Pozostało do wypłaty **-131 494,72** (208 634,00 − 77 139,27 = 131 494,**73**, so both were off by one grosz). This is the exact scenario already caught in `context/changes/2026-08-25-staging-cutover-rehearsal/regression-log.md` (same −131 494,73 vs −131 494,72 pair) and fixed by commit `1601b075` (`fix(kosztorys): jedna kwota, jedna wersja na zakładce „Podwykonawcy"`) — `subcontractorRowTotals()` (`src/lib/kosztorys/subcontractor-summary.ts:150-154`) now sums unrounded `due`/`paid` and rounds once, matching the headline's `computeSubcontractorSummary` (`:135`), instead of summing already-rounded per-worker rows. `1601b075` is confirmed an ancestor of the current `staging` HEAD (`713fd350`) via `git merge-base --is-ancestor`, and ships with its own regression test (`src/__tests__/lib/kosztorys/subcontractor-summary.test.ts`). No code action needed — the bug I observed is the **deployed preview build lagging the branch**, consistent with this repo's known "staging still runs the old build" gap; nothing to fix locally, and this finding does not block the gate on code grounds. Confirmed display-only in the original diagnosis: `payoutsTotal`/`paid` read straight from persisted PAYOUT rows and were never miscomputed — no wrong amount was ever written or paid out.
       **Test disposition:** already covered — `src/__tests__/lib/kosztorys/subcontractor-summary.test.ts` (added with the fix) asserts `subcontractorRowTotals(rows).remaining === summary.remaining` can't drift, reproducing this exact half-grosz-per-row scenario.
@@ -503,7 +508,7 @@ one etap with **no** rozliczenie picked, and at least one pozycja with a rabat.
 - [x] The red tint does not bleed into the neighbouring etapy's columns and does not fight the „Razem" row's own styling — _Verified: same screenshot — neighbouring Etap 4-7 columns and the Pomiar column render normally (no red), tint confined exactly to the 3 unconfirmed columns._
 - [x] „Wartość netto/brutto przedmiar", „Pozostało", „% wykonania" are absent in both subcontractor views and present in Inwestor — _Verified: opened the „Kolumny" picker's full option list in each view. Inwestor's picker offers „Wartość przedmiaru netto/brutto", „% wykonania (względem przedmiaru)", „Pozostało netto/brutto (względem przedmiaru)", „Rabat"/"Rabat wart."/"Rabat kwota netto/brutto" as selectable columns. Z narzędziami's picker option list (grabbed via DOM) is: Akcje, Sekcja, Opis prac, Etapy — ilość, Pomiar (suma etapów — z narzędziami), Jednostka miary, Źródło ceny wykonawcy, Mnożnik, Cena j.m. netto/brutto, Suma etapy z narzędziami netto/brutto, Komentarz, Etapy — kwota netto/brutto — none of the przedmiar/rabat/% wykonania options exist at all (not merely unchecked)._
 - [x] „Razem Netto/Brutto" header reads „— po rabacie" in Inwestor and „— do zapłaty ekipie" in a subcontractor view — _Verified via saved snapshots this session/branch: Inwestor header button text „Razem netto — po rabacie" / „Razem brutto — po rabacie" (multiple captures); a subcontractor-view capture shows `button "Razem Netto — do zapłaty ekipie"`. Exact wording confirmed both sides._
-- [ ] Typing into an etap ilość cell drops no characters (no cell remount after the column rebuild) — not attempted (would require editing investment 31, read-only, or a mutable fixture with an unconfirmed etap — same reachability gap as above). **Wymaga człowieka (2026-09-04):** Whether an in-progress keystroke survives a column-array rebuild triggered elsewhere in the grid (react-datasheet-grid virtualization/memoization) is a live-timing behavior, not decidable from a static read of `kosztorys-v2-columns.tsx`. Needs a real browser session: focus a qty cell mid-typing while another etap's plane changes underneath it, confirm no dropped characters/remount.
+- [x] Typing into an etap ilość cell drops no characters (no cell remount after the column rebuild) — Zweryfikowane (2026-09-14, baza testowa 5435, inw. 7 „Madalinskiego 67” — aktywna, 7 etapów obu planów, 1000 pozycji): w komórce etapu poz. „Pozycja 1.1” wpisano `7` i zatwierdzono Enterem (server action + odświeżenie trasy), a natychmiast po tym — czyli w trakcie przebudowy siatki — wpisano `123456` znak po znaku (120 ms odstępu, ok. 0,7 s łącznie) w komórce etapu poz. „Pozycja 1.2”. Żaden znak nie wypadł i komórka nie została przemontowana: input trzymał fokus przez całą serię, a SQL potwierdza zapis co do znaku — `stage_progress` item 3673/etap 38 = 7 oraz item 3675/etap 37 = 123456 („Pomiar (razem etapy)” pokazał 123 458,00). Fikstura cofnięta do wartości wyjściowych (0 i 2).
 
 ### Phase 3: Rabat i podpowiedzi
 
@@ -568,7 +573,7 @@ time-boxed — not exercised.
 - [x] Sorting a column makes the bands disappear and the grid read as one flat list; clearing the sort brings them back — Verified (batch B12, 2026-08-26): staging inw. 119, „Opis prac" → „Sortuj rosnąco" (the flat, whole-kosztorys variant). Grid became one alphabetical list with no section bands or per-section „Razem" footers (row numbers jumped 150→210→269→326→59→96…, no more „(N poz.)" bands, no `Razem\n<sekcja>` footers anywhere in text). „Wyczyść sortowanie" restored the original section-banded view exactly (row 1 „zakup, transport…", row 2 „TRANSPORT I WNI…", band „(13 poz.) 9200,00 zł netto" back).
 - [x] Collapsing a section hides exactly its rows, leaves its band, and leaves no gap in the numbering
       _Verified (batch B12, 2026-08-26): staging inw. 119 — collapsing „Prace dodatkowe (13 poz.)" hid rows 1–13 and the section's own footer, left the band itself visible with its figure unchanged (9200,00 zł netto), and the next section's band/rows followed directly with their original numbers (row 14 „Naprawy ścian…", not renumbered to 1) — no gap, no renumber. Re-expanding restored rows + footer exactly._
-- [ ] „Razem" is unchanged by a collapse — observed but not tickable as literally worded (batch B12, 2026-08-26): collapsing „Prace dodatkowe" hid its own per-section „Razem Prace dodatkowe" footer row entirely (along with its 13 item rows) — it does not stay visible-and-unchanged, it disappears. The band itself keeps showing the same „9200,00 zł netto" both before and after, so the **total figure** is unmoved, just relocated (band absorbs the footer's job while collapsed). Confirmed via before/after screenshots; state restored by re-expanding (verified footer's Przedmiar=66,50/Etap1=8,00/Etap2=0,70 identical to the pre-collapse reading). **Wymaga człowieka (2026-09-04):** Box is ambiguous between the per-section „Razem" footer (which does vanish on collapse — contradicts "unchanged") and the whole-kosztorys grand total (unaffected, not checked this pass). Question for human: which "Razem" was meant — reword the box accordingly.
+- [x] Oba „Razem" przeżywają zwinięcie sekcji — suma całego kosztorysu bez zmian, a stopka sekcji oddaje swoją kwotę paskowi — Zweryfikowane (2026-09-14, baza testowa 5435, inw. 106, zwijanie sekcji „Prace dodatkowe”; właściciel rozstrzygnął, że check obejmuje OBA odczyty): (1) „Łącznie" w podsumowaniu = 16 634,98 przed i po zwinięciu, bez drgnięcia; (2) stopka „Razem Prace dodatkowe" znika razem z pozycjami, ale kwota nie ginie — zwinięty pasek sekcji przez cały czas pokazuje 7465,00 zł netto, a po rozwinięciu stopka wraca z identycznymi liczbami (6025,00 / 6507,00 / 7465,00 / 8062,20). Żadna liczba się nie zmienia; wcześniejsza niejednoznaczność boxa („która suma?") była jedynym powodem, dla którego wisiał.
       **Needs human:** clarify whether „Razem" here means this per-section footer row (which vanishes, contradicting "unchanged") or the whole-kosztorys grand total at the bottom of the grid (not checked this pass, would need a full scroll-to-bottom) — the box reads ambiguously between the two.
       **Test disposition:** no automated test until the wording is resolved — a unit test on the section-band/footer component would need to know which of the two totals is actually meant.
 - [x] Renaming a section on the band renames it everywhere — Verified (2026-09-03, staging inw. 135, section id 619 „Prace dodatkowe"): edited the band's name `textbox` in place, confirmed the item-count footer and the section's own „Razem" row updated to the new name immediately in the UI, then confirmed the write via `SELECT name FROM kosztorys_sections WHERE id=619` against the preview DB (read-only query). Reverted the name back to the original and re-verified via SQL that it matches the pre-edit value.
@@ -924,16 +929,6 @@ came with EX-588.
       confirm a fourth view was intended and is missing from the share route.
       **Test disposition:\*\* no automated test proposed — checklist wording accuracy, not a behavior
       regression; the underlying owner-only filter already has its rationale in the source comment.
-- [ ] **Wpłaty’s „three Razem buckets” box not driven** — inw. 135 has zero wpłaty booked, so the **Wymaga człowieka (2026-09-04):** Duplicate of the Wpłaty box above.
-      netto/brutto/nieokreślono split can’t be observed. Also: `INVESTMENT_PANEL_VIEWS` in
-      `investment-summary-panel.tsx` is `['summary','expenses','margin']` — there is no separate
-      „Wpłaty” tab in this 3-view panel; wpłaty is folded into a single line in „Podsumowanie”. The
-      checklist item may describe a different view than what ships, or an on-hover/scroll detail not
-      reached this pass.
-      **Needs human:** find or seed an investment with real wpłaty across all three type buckets and
-      re-check against the actual panel structure.
-      **Test disposition:** no automated test proposed this pass — needs the checklist item's own intent
-      clarified first.
 - [x] **No-kosztorys investment (transaction-figure panel) — resolved 2026-09-03.** Driven on inw. 106
       (zero kosztorys rows, found via preview-DB query). Panel falls back to transaction figures for
       materiały, 0,00+warning for robocizna/rabat — not all-zero. Box ticked above.
@@ -951,13 +946,6 @@ came with EX-588.
       an unreached check.
       **Test disposition:** no automated test — MANAGER-role check was a straight session-switch
       confirmation; printing has no code path left to test.
-- [ ] **`/raporty` renders its tiles exactly as before — unverifiable, same root cause as the EX-574 **Wymaga człowieka (2026-09-04):** Duplicate of the `/raporty` tiles box above.
-      finding above.** `/raporty` is entirely gated behind an `EmptyState` pending EX-598 (see
-      `src/app/(frontend)/raporty/page.tsx`) — there are no tiles to compare against „before” on this
-      branch at all.
-      **Needs human:** re-run once EX-598 restores `/raporty`; not a merge blocker for EX-594 itself since
-      the gate is deliberate and predates this slice.
-      **Test disposition:** no automated test — nothing to test against a gated route.
 - [x] ~~\*\*Investments 135/136/137, used as fixtures by earlier batches throughout this section, no longer~~ **Nieaktualne (2026-09-04):** Informational fixture-pool bookkeeping, not a product defect — and self-superseded within the same finding (inw. 135 exists again on the current preview DB per its own 2026-09-03 addendum, confirmed independently this pass via multiple live SQL/browser checks on inw. 119/133/135). No action needed; future passes should re-scrape the listing rather than assume any specific id exists.
       exist on this staging DB.** Confirmed by scraping every `/inwestycje/<id>/kosztorys_v2` link off
       `/inwestycje?limit=100` this pass — the highest id present is 134 (full list: 12, 31, 32, 38, 40,
@@ -1098,34 +1086,6 @@ it. `/raporty` needs the OWNER/ADMIN role.
       cleanly, repeatedly, across roughly an hour of continued driving later in this same pass. Either
       transient (matches the single successful `?widok=v1` try noted above) or resolved between passes
       — no longer a merge blocker on its own, though the underlying cause was never identified server-side.
-- [ ] **„w tym obniżka materiałów" sub-line not found anywhere in the v2 Podsumowanie tab** — searched **FAIL (2026-09-04):** Duplicate evidence of the sub-line box above — confirmed absent from v2 Podsumowanie by grep, only exists as a separate v1 tile row. **Wymaga człowieka:** jak wyżej — ta sama decyzja co przy podlinijce „w tym obniżka materiałów".
-      the whole editor page (`/inwestycje/135/kosztorys_v2`, Netto mode active) for "obniżka"/"Obniżka"
-      with no matches. `MATERIALS_DISCOUNT_LABEL` ("Obniżka materiałów") is only wired into
-      `src/lib/queries/investment-financial-fields.ts`, which feeds the **v1** `FinancialStats` tiles
-      (confirmed live as its own separate tile, not a sub-line) — grepped the whole
-      `src/components/kosztorys/summary/` tree for "w tym"/"MATERIALS_DISCOUNT_LABEL" with no hits.
-      **Needs human:** confirm whether this sub-line was ever built for the v2 Podsumowanie tab, or
-      whether the checklist item describes the v1 tile (which does show the figure, just as its own
-      row rather than a "w tym" annotation under Materiały).
-      **Test disposition:** TDD if the sub-line is missing-and-wanted — name the first failing test
-      against `summary-overview-tab.tsx` once the human confirms intent; otherwise no automated test
-      (checklist wording is stale).
-- [ ] **„Wydatek inwestycyjny netto" row's Netto ≠ Brutto in the per-category table, contradicting the **FAIL (2026-09-04):** Duplicate evidence of the "Wydatek inwestycyjny netto" box above. **Wymaga człowieka:** jak wyżej — ta sama decyzja domenowa co przy „Wydatek inwestycyjny netto".
-      checklist's literal wording** — inw. 135's Materiały tab (Netto mode) shows „Materiały budowlane
-      netto" (the frozen netto-billed bucket, backed by 4 real `Wydatek inwestycyjny netto`
-      transactions) at Netto 1336,00 / Brutto 1643,28 — **not equal**. The displayed Brutto is
-      `netto × 1,23` (the investment's flat rate), not the sum of the transactions' own recorded gross
-      amounts (which sum to 1644,00 — one transaction's real rate is 168/136 = 1,2353, not 1,23,
-      accounting for the 0,72 zł gap). The concession itself IS correctly computed off the
-      **other** ("Materiały budowlane"/"Pozostałe koszty") brutto bucket only (see the ticked formula
-      box above) — so "not discounted" holds, but "Netto column equals its Brutto" does not match what
-      is on screen.
-      **Needs human:** clarify the checklist's intended assertion — either it describes a different
-      display mode/column I didn't trigger, or the wording needs correcting to "netto stays at face
-      value, its brutto is grossed up by the flat rate rather than the recorded gross" (which is what
-      was observed).
-      **Test disposition:** no automated test until the intended assertion is clarified — a spec
-      against a misread checklist item would pin the wrong behavior.
 - [x] ~~**Boxes 5, 7–11 not driven** — blocked by the `/inwestycje` and `/inwestycje/135/kosztorys_v2`~~ **Nieaktualne (2026-09-04):** Subsequent passes (already recorded in this file, ticked `[x]`) resolved boxes 5 (investments-list marża match), 7 (brutto returns to no-rate baseline), 9 (edit-%-persists-reload), and 10 (client share shows discounted figure). Only box 8 (switching-back-to-netto, a real reproduced bug) and box 11 (`/raporty` banner, gated) remain open — both covered by their own dedicated verdicts above.
       instability above: the investments list (box 5) 500'd on every attempt, and the editor's own
       Materiały tab (needed to toggle brutto↔netto back and forth for boxes 7–8, edit-and-reload for
@@ -1171,28 +1131,6 @@ materialsNetDiscount`, `src/lib/db/calculate-margin.ts`): LABOR_COST sum 235 911
       **Test disposition:\*\* no automated test — infra/caching-architecture question, not a code path a
       spec exercises; the correctness of `calculateMargin` itself is already unit-tested
       (`src/__tests__/calculate-margin.test.ts`) and is not in question here.
-- [ ] **Box "switching back to netto restores the figures — the saved rate was kept, not cleared" fails **FAIL (2026-09-04):** Duplicate evidence of the "switching back to netto" box above — reproduced bug, root cause `materialsNetRateForMode` in `src/lib/kosztorys/materials-pricing-mode.ts`. **Wymaga człowieka:** jak wyżej — ta sama decyzja co przy „Switching back to netto".
-      as literally worded — reproduced and confirmed at the DB.** inw. 119: saved rate 15% (edited +
-      „Zapisz" + hard-reload-persisted, see the ticked box above), then toggled Netto→Brutto→Netto with
-      **no** edit to the rate field in between. On landing back on „Netto" the field read **„8"**, not
-      „15" — and `select materials_net_rate from investments where id=119` immediately read **`0.08`**,
-      confirming the mode-switch itself silently overwrote the saved custom rate, not just a stale UI
-      default. Root cause, by design:
-      `materialsNetRateForMode(mode, vatRate)` in `src/lib/kosztorys/materials-pricing-mode.ts` always
-      returns `vatRate` on switch-to-`'net'` — its own comment: "Switching to netto seeds the saved rate
-      at VAT... one click rather than a number to look up." So the code deliberately re-seeds at the VAT
-      rate on every switch, with no distinction between "first time on" and "toggled back after a custom
-      rate was already saved."
-      **Needs human:** decide whether this is the intended UX (re-seed at VAT every time, discarding any
-      previously-saved custom %) or the checklist's expectation is the intended one (preserve the last
-      saved custom rate across a brutto↔netto round trip) — the code and the checklist actively
-      disagree, and as shipped **any owner who round-trips the toggle loses a custom rate without a
-      warning**.
-      **Test disposition:** test-driven-debugging if the checklist's expectation is confirmed as intended
-      — unit-test `materialsNetRateForMode`/the handler wiring it: "switching net→gross→net without
-      touching the rate field preserves the last-saved custom rate rather than reseeding at `vatRate`."
-      If the current reseed-at-VAT behavior is confirmed intended instead, this is a checklist wording
-      fix, not a code fix — no automated test owed.
 
 ### Findings — 2026-09-03 (reviewed, not re-driven)
 
@@ -1262,7 +1200,7 @@ refresh-coalescing checks — they are only observable as request counts.
 /inwestycje/135/kosztorys_v2` server-action calls and `_rsc`-tagged fetches — no plain
       navigation-style GET/reload of the route. Reverted to 1, confirmed via
       `select planned_qty from kosztorys_items where id=16247` → 1._
-- [ ] Editing 5–10 cells in quick succession produces **one** route refresh after the typing stops — not one per cell (this is the uncleared-timer bug fixed at the review gate; unfixed it queues a refresh per edited cell) **Wymaga człowieka (2026-09-04):** MCP browser round-trip (each `browser_type` call >1s) cannot produce a genuine sub-700ms burst of edits needed to test debounce/coalescing. Needs a scripted `page.evaluate` loop or a Playwright e2e spec with back-to-back `page.fill`/`page.keyboard` calls with no await between them.
+- [x] Editing 5–10 cells in quick succession produces **one** route refresh after the typing stops — **FAIL, odtworzone lokalnie (2026-09-14, baza testowa 5435, inw. 7 — 1000 pozycji).** Poprzedni przebieg odpuścił go, bo każde `browser_type` to osobna runda MCP (>1 s) — tu cała seria poszła jednym `page.evaluate`/keyboard w kontekście strony, więc zatwierdzenia dzieliło 150–1000 ms. Wynik: **6 zapisów → 6 pełnych renderów trasy** (`GET …/kosztorys_v2?_rsc=…`, każdy ~50 ms po swoim `POST`-cie akcji), a nie jeden odłożony refresh. Serwer dev liczył je po 128, 162, 235, 267, 330 i 905 ms renderu. Dwa zapisy oddalone o 154 ms dostały dwa osobne refetche — czyli to nie może być `TOTALS_REFRESH_DEBOUNCE_MS` (700 ms, `use-kosztorys-editor.ts:133`), tylko odświeżenie ciągnięte przez samą rewalidację akcji: `setStageProgressAction` ma `deferRefresh: true`, więc woła `revalidateTag(tag, 'default')` zamiast `updateTag`, a router i tak refetchuje bieżącą trasę. Debounce edytora dławi więc tylko własny `router.refresh()`; każdy zapis nadal ciągnie za sobą pełny render. **Do decyzji właściciela** — to zmiana zachowania/wydajności w środku EX-597, nie poprawka kosmetyczna.
       **Needs human:** not exercised this pass — the MCP browser round-trip (each `browser_type` call
       is a separate tool round-trip taking well over a second) cannot produce a genuine sub-700ms burst
       of edits, so any observed request count would reflect tool latency, not the debounce logic. Needs
@@ -1338,18 +1276,6 @@ kosztoryses where investment_id=133` → 0 rows). `/inwestycje/133/kosztorys_v2`
 
 ### Findings — 2026-09-03 (staging, EX-748 pass)
 
-- [ ] **The „Feel" bar isn't met — a populated kosztorys measurably nearly doubles cold-load time.** **FAIL (2026-09-04):** Duplicate of the "Opening an investment page…" box above — same measurement (574ms vs 1114ms, ~2x). Whether this is within the owner's actual felt-not-measured acceptance bar is a separate product question (see the HUMAN framing embedded in the finding text), but the measured fact itself is a fail against "feels no slower". **Wymaga człowieka:** ten sam próg akceptacji co przy pomiarze wyżej.
-      `performance.getEntriesByType('navigation')[0].duration` on a cold `browser_navigate`: inw. 21
-      (transfers-only) 574ms vs. inw. 135 (14 sections / 372 items) 1114ms. Single-sample, staging
-      network conditions, not controlled for cache warmth — but the gap is large enough (~2×) to be
-      more than noise.
-      **Needs human:** decide whether this is within the acceptance bar the owner actually cares about
-      (a felt-not-measured bar per this section's own preamble) — if not, profile which read on
-      `/inwestycje/<id>/kosztorys_v2` scales with item count (the `json_agg` tree query is the obvious
-      suspect at 372 rows) rather than assume the coalescing work already fixed it.
-      **Test disposition:** no automated test proposed — a perf regression test needs a stable baseline
-      and CI budget this repo doesn't currently have; track as a manual re-check on a large fixture
-      (`INV=7 perf-seed-kosztorys.ts`, ~1000 items) if this becomes a recurring complaint.
 - [ ] **Share-link dialog shows the production domain on staging, not the actual preview host.** On **Wymaga człowieka (2026-09-04):** `kosztorys-share-dialog.tsx:53` interpolates build-time `NEXT_PUBLIC_FRONTEND_URL` with no per-environment override — on this Vercel Preview URL the generated link points at the production domain. Question for human: is `NEXT_PUBLIC_FRONTEND_URL` supposed to be set per-environment for real `staging` deploys (config gap to fix), or is showing the canonical production domain from preview intentional (no fix needed)?
       staging, „Widok inwestora" → „Udostępnij" → „Wygeneruj link" produced
       `https://wykonczymy.vercel.app/k/<token>` — the **production** domain — rather than
@@ -1556,7 +1482,10 @@ work roughly doubled and has been unmeasured since the widening. The one super-l
 linear in rows per section — but the per-section multiplication itself remains. Setup: `INV=7 node
 --env-file=.env --import tsx src/scripts/perf-seed-kosztorys.ts` (~1000 items), then open that kosztorys.
 
-- [ ] Typing into a cell stays responsive at ~1000 items — no perceptible lag between keystroke and character, and no jank scrolling right through the etap axis. If it still drags, the remaining suspect is the per-section fan-out in `use-kosztorys-editor.ts` (`sectionColumnTotals`), not the etap loop. **Wymaga człowieka (2026-09-04):** Requires the dedicated ~1000-item perf dataset (`INV=7` via `perf-seed-kosztorys.ts` against local DB) and a production build (`pnpm build && pnpm start`) — both forbidden under this pass's constraints (no server start, no DB seeding). Staging's QA investment (135) only carries 336 items. Question for a human: run this perf check locally with the seeded perf dataset.
+- [x] Typing into a cell stays responsive at ~1000 items — no perceptible lag between keystroke and character, and no jank scrolling right through the etap axis. If it still drags, the remaining suspect is the per-section fan-out in `use-kosztorys-editor.ts` (`sectionColumnTotals`), not the etap loop.
+      _Verified 2026-09-14: build produkcyjny (`NEXT_DIST_DIR=".next-qa"`) na :3002, baza 5435, inw. 7 — 1000 pozycji, 10 sekcji, 7 etapów._
+      _Pisanie w komórce etapu: wszystkie znaki wchodzą, klawisz→paint **34–93 ms**, najdłuższy longtask 87 ms.
+      Scroll poziomy przez oś etapów: mediana klatki **17 ms**, p95 30 ms, max 34 ms, zero klatek >50 ms._
       _Not exercised (batch B1, 2026-08-25): staging's throwaway QA investment (135) carries 336 items, not the ~1000 the perf seed produces; `perf-seed-kosztorys.ts` targets a local DB, not the staging cutover DB. Same gap already logged in the „Kosztorys — jeden kontrakt edycji…" section's findings above._
 
 ## EX-608 — nazwa inwestycji w górnym pasku bez trzeciego zapytania
@@ -1622,7 +1551,12 @@ Setup: kosztorys z wypełnionymi cenami dla inwestora, globalny mnożnik „z na
       _Verified (staging, inw. 135, wiersz 1, „kwota stała" = 15): wpisano „-50" i Enter — toast „Wartość odrzucona — przywrócono 15,00 zł.", DB niezmieniona (15). Część „wiersz bez ceny dla inwestora" nie była osobno testowana (wszystkie wiersze w inw. 135 mają wypełnioną cenę dla inwestora) — pomijalne, bo guard operuje na tej samej walidacji ujemności niezależnie od wartości capu._
 - [x] „Ustawienia": ujemny globalny mnożnik nie przechodzi (pole ma dolną granicę 0)
       _Verified (staging, inw. 135): w polu „Mnożnik ceny" → „Z narzędziami" (wartość 0,8 w tamtej chwili) wpisano „-0,2" i Tab — pole wróciło do „0.8" (odrzucone, brak zapisu), suma podwykonawców nie zmieniła się. Ten sam dowód co przy boxie o suficie 0,8 powyżej — pole ma zarówno górną (0,8) jak i dolną (0) granicę egzekwowaną identycznie._
-- [ ] **Wydajność** — na kosztorysie ~1000 pozycji (`INV=7 node --env-file=.env --import tsx src/scripts/perf-seed-kosztorys.ts`) przewijanie i pisanie w widoku wykonawcy są tak samo płynne jak przed zmianą; każda komórka montuje własny tooltip, więc to jest miejsce, gdzie regres byłby widoczny **Wymaga człowieka (2026-09-04):** Needs a local dev/db-test session with a 1000-row perf seed and felt-smoothness scrolling/typing judgment — explicitly out of reach here (no local server/DB allowed this pass, per the task's absolute prohibitions). Needs a separate session with local dev + db-test.
+- [x] **Wydajność** — na kosztorysie ~1000 pozycji (`INV=7 node --env-file=.env --import tsx src/scripts/perf-seed-kosztorys.ts`) przewijanie i pisanie w widoku wykonawcy są tak samo płynne jak przed zmianą; każda komórka montuje własny tooltip, więc to jest miejsce, gdzie regres byłby widoczny
+      _Verified 2026-09-14: build produkcyjny (`NEXT_DIST_DIR=".next-qa"`) na :3002, baza 5435, inw. 7 — 1000 pozycji, 10 sekcji, 7 etapów._
+      _Widok „Z narzędziami" (~70 tooltipów zamontowanych naraz), 33 wiersze w DOM — wirtualizacja żyje tak samo jak
+      w widoku inwestora. Scroll pionowy przez cały arkusz (32 121 px): mediana klatki **14 ms**, p95 34 ms, max 47 ms,
+      zero klatek >50 ms. Scroll poziomy: mediana **17 ms**, p95 22 ms. Pisanie w komórce etapu: wszystkie znaki weszły
+      („54321"), klawisz→paint **31–43 ms**, zero longtasków. Tooltipy nie kosztują nic mierzalnego._
       **Needs human:** ten box strukturalnie nie da się wykonać w tym przebiegu — seed 1000-pozycyjny wymaga lokalnej bazy (`--env-file=.env` + skrypt Node łączący się bezpośrednio z bazą), a ten przebieg działa wyłącznie przeciw wdrożonej aplikacji staging + bazie cutover w trybie SELECT-only (bez uruchamiania lokalnego serwera/bazy/migracji — twarde ograniczenie tego zadania). Wymaga osobnej sesji z lokalnym dev/db-test.
       **Test disposition:** no automated test · e2e (ręczna) — wydajność przewijania/pisania jest odczuwalna wizualnie, nie ma tu sensownej asercji jednostkowej/integracyjnej; ręczna sesja z lokalnym seedem 1000 pozycji jest właściwą warstwą.
 
@@ -1799,18 +1733,6 @@ exists — read them as superseded by this section, not as owed.
 - [x] Paginacja i kafelek „Suma wybranych transakcji" działają bez zmian na stronie inwestycji.
       _Verified 2026-09-03 (staging, EX-748 pass): `/inwestycje/31`, nałożono filtr „Typ" (odznaczono „Inny wydatek") — pojawił się `button "Suma wybranych transakcji 940 451,33 zł" [disabled]` (kafelek renderuje się warunkowo na `hasAnyFilter`, `src/components/transfers/transfer-filters.tsx:206-210`). Kliknięcie „Przejdź do strony 2" (197 wyników, 2 strony) poprawnie załadowało drugą stronę (inne ID transakcji, filtr i kafelek zachowane w URL/UI), bez błędu._
 - [ ] Te same filtry działają na `/pracownicy/[id]`, `/raporty` i `/kasa/[id]`. — częściowo nieaktualne, patrz Findings. **Wymaga człowieka (2026-09-04):** `/pracownicy/30` and `/kasa/5` confirmed working (same `transfer-filters.tsx` apparatus + functioning table). `/raporty` is deliberately gated off (`EmptyState "W budowie"`, pending EX-598) — no filters/table to drive, so the box as worded can never fully pass while that route stays disabled. Question for human: reword this box to drop `/raporty` or mark it conditional on EX-598's return.
-
-### Findings — 2026-08-25
-
-- [ ] **Phase 2 box 3 not reached** — no discrepancy-fixture to exercise it this pass. **Wymaga człowieka (2026-09-04):** Duplicate of the LABOR_COST-discrepancy box above — same fixture gap.
-      **Needs human:** re-run this box; needs an investment with a real v1/v2 robocizna gap large enough to trip the warning (the „Robocizna v1 / v2" columns on `/inwestycje` are the fastest way to spot a candidate).
-      **Test disposition:** no automated test — not yet investigated, no disposition to give.
-
-### Findings — 2026-09-03 (EX-748 pass)
-
-- [ ] **Phase 3 box 3's premise is stale for `/raporty` — that route is deliberately disabled, not filter-bearing.** Verified `/pracownicy/30` and `/kasa/5` both render the same „Typ"/filtry apparatus and a working `table` (same `transfer-filters.tsx` component). But `/raporty` currently renders only `heading "W budowie"` + explanatory paragraph: _"Raport jest wyłączony — marża i bilans nie uwzględniały obniżek za rozliczanie wydatków po kwocie netto, więc nie zgadzały się z kartami inwestycji. Wróci, gdy będą liczone poprawnie."_ — no filters, no table, by design. The box as worded can never be fully verified while `/raporty` stays disabled. **Wymaga człowieka (2026-09-04):** Duplicate evidence of the "Te same filtry…" box above. Re-confirmed live 2026-09-04: `/raporty` still shows only the "W budowie" EmptyState (see EX-574 section verdicts). Question for human: reword the box to drop `/raporty` or defer it to EX-598's own manual-checks pass.
-      **Needs human:** decide whether to reword this box to drop `/raporty` (or mark it conditional on the report's return) — the disablement is an intentional, documented decision, not a defect.
-      **Test disposition:** no automated test — a route being intentionally placeholder is a product decision, not a regression risk to cover; when `/raporty` returns, its filter parity would be the natural E2E candidate.
 
 ## AI receipt scan: extract the netto amount (EX-577)
 
@@ -2045,23 +1967,6 @@ with its materiały rate lives on the dev DB (5433), which is where the defect w
       **Test disposition:** no automated test — self-consistency between the listing and the Podsumowanie
       panel is already the subject of `pnpm test:parity`'s reconciliation gate; this was a manual
       re-confirmation on live data plus a mode-toggle round trip parity doesn't cover.
-- [ ] **Phase 3 box 3 (VAT-on-robocizna-after-rabat, GROSS mode) still not reached — no fixture, and **Wymaga człowieka (2026-09-04):** Duplicate of the "Bilans brutto w wierszu z rabatem…" box above — same fixture gap and same open question (authorize a disposable fixture, or cover via a unit test against the VAT calc directly).
-      deliberately not manufactured on inw. 135.** Reconfirmed 2026-09-03: 0 GROSS-mode investments in
-      the whole preview DB, and both MIXED investments (119, 133) carry zero RABAT transactions. Composing
-      this fixture on inw. 135 would mean booking a RABAT transaction under GROSS mode — a transaction
-      "delete" is an audit-trail cancellation, not a removal (per AGENTS.md: the original stays, marked
-      `cancelled: true`, with a linking `CANCELLATION` row), so cancelling afterward would still leave two
-      permanent rows on a real investment's transaction history. Judged not worth it for this pass given
-      the mutation-discipline instruction to keep writes minimal and reversible; leaving this open rather
-      than manufacturing a fixture with a permanent footprint.
-      **Needs human:** decide whether a GROSS+rabat fixture is worth deliberately creating (accepting the
-      permanent audit-trail rows on inw. 135), or whether this box should instead be covered by a unit/
-      integration test against the VAT calc directly (`src/lib/kosztorys/summary-economics.ts` or
-      wherever the brutto Bilans figure derives robocizna-after-rabat) rather than a live fixture.
-      **Test disposition:** TDD-worthy if a human confirms the VAT-after-rabat rule — the calc itself
-      looks unit-testable without a live GROSS+rabat investment (feed the function a robocizna, a rabat,
-      and a VAT rate; assert the brutto figure grosses only the post-rabat robocizna). No automated test
-      exists yet.
 
 ## kosztorys-importer (EX-417)
 
@@ -2311,14 +2216,29 @@ Setup: dev DB (5433), zalogowany jako OWNER, inwestycja z zaimportowanym arkusze
       etapy (6)"; clicking it left exactly 6 data rows in the grid (items 24, 71, 306, 311, 334, 336
       across 4 sections, DOM-read), all other sections' rows hidden. Section headers still show their
       full (unfiltered) poz. counts — cosmetic, doesn't affect the narrowing._
-- [ ] Wpisanie brakującej ilości w etapie zdejmuje pozycję z listy i zmniejsza licznik — bez odświeżania strony **Wymaga człowieka (2026-09-04):** Only fixture with real sheet-driven divergence is inw. 31 (real, read-only production data — mutation forbidden). No writable investment with an attached sheet and live divergence available this pass.
-      **Needs human** — not exercised this pass. The only fixture with real sheet-driven divergence
-      is inw. 31, which every other finding in this doc treats as real, read-only production data
-      (mutation forbidden); no writable investment with an attached sheet and a live divergence was
-      available.
-- [ ] Gdy wszystkie rozjazdy zniknęły, przy włączonym warunku widać „Brak pozycji z pomiarem do rozpisania na etapy" z powrotem do pełnej listy, a sam przycisk znika **Wymaga człowieka (2026-09-04):** Same reachability gap as the box above — depends on clearing inw. 31's divergences, which this pass will not do (real, read-only production data).
-      **Needs human** — same reachability gap as the box above (depends on clearing inw. 31's
-      divergences, which this pass will not do).
+- [x] Wpisanie brakującej ilości w etapie zmniejsza licznik — bez odświeżania strony (pozycja **zostaje** w siatce, patrz niżej)
+      _Zweryfikowane (2026-09-14, baza testowa 5435, build produkcyjny na :3002, inw. 7 „Madalinskiego 67"
+      — fikstura: sześciu pozycjom (3673–3678) ustawiono `sheet_measured_qty` = Σetapów + 5). Menu
+      „Problemy" pokazało „Pozycje z pomiarem do rozpisania na etapy (6)", po wciśnięciu w siatce
+      zostało dokładnie 6 wierszy, każdy z „+5 · +95,00 zł"…„+166,25 zł". Wpisanie brakującej ilości
+      w „Etap 1" pierwszego wiersza: licznik nagłówka 6 → 5 i kolumna rozjazdu tego wiersza → „—",
+      bez przeładowania strony (ten sam dokument, żadnej nawigacji). Kolejne poprawki schodziły
+      dalej: 5 → 4._
+      **Drift w treści boxa (nie defekt):** pozycja **nie** znika z listy po poprawieniu — zostaje
+      widoczna z „—". To celowa zaszłość `useConditionRowLatch`
+      (`editor/hooks/use-condition-row-latch.ts`): zatrzask jest „add-only", żeby wiersz nie uciekł
+      spod kursora w trakcie wpisywania poprawki (zabierając ze sobą kolumnę, którą filtr właśnie
+      odsłonił). Zdjęcie poprawionych wierszy ma własny, jawny gest — „Odśwież — ukryj poprawione"
+      w menu „Problemy". Treść boxa pochodzi sprzed zatrzasku.
+- [x] Gdy wszystkie rozjazdy zniknęły, przy włączonym warunku widać „Brak pozycji z pomiarem do rozpisania na etapy" z powrotem do pełnej listy, a sam przycisk znika
+      _Zweryfikowane (2026-09-14, ta sama sesja i fikstura co box wyżej). Po wyrównaniu wszystkich
+      sześciu rozjazdów, przy wciąż wciśniętym warunku: nagłówek „Tylko: pozycje z pomiarem do
+      rozpisania na etapy (0)", siatka pusta, komunikat „Brak pozycji z pomiarem do rozpisania na
+      etapy" + „Filtr zrobił swoje — nie ma już czego poprawiać." i przycisk „Zresetuj filtry"
+      (to jest droga powrotna do pełnej listy). Wpis znika z menu dopiero po odciśnięciu warunku:
+      „Problemy (1)" → „Problemy", a w menu zostają tylko dwa pozostałe warunki — przy wciśniętym
+      warunku wpis stoi dalej z licznikiem (0), i tak musi być, bo inaczej nie dałoby się go
+      odcisnąć._
 - [x] Sekcja zwinięta **chowa** swoje pozycje także przy włączonym warunku — zwinięcia zdejmuje wyłącznie szukanie (ptaszek i zwinięcie stoją w tym samym menu „Filtry")
       _Verified both halves: staging, inw. 31. With the divergence condition engaged, collapsing
       „Klimatyzacja" hid its one divergent row (24) and its Razem footer from the grid entirely — not
@@ -2943,18 +2863,6 @@ usuniętej osi — sprawdzamy, że nie wywraca edytora).
       „Ustawienia podglądu…" (edytor → Opcje) sekcja „Etapy i postęp" oferuje „Etapy — ilość",
       „Etapy — kwota netto/brutto" i wspólne „% wykonania (względem przedmiaru)" — żadnego osobnego
       „Etapy — % wykonania" per-etap._
-- [ ] Kosztorys z zapisanym ptaszkiem przy tej kolumnie otwiera się bez błędu **Wymaga człowieka (2026-09-04):** No surviving saved-preference document in this environment references the removed per-etap percent column (it was removed from code before any doc could carry that checkmark), so the literal scenario can't be reproduced. The file's own equivalent test (old localStorage key `table-columns:kosztorys-progress-display = "percent"`, verified below this box) shows the same failure mode (stale reference to a removed column) loads cleanly with no error — treat as strong equivalent coverage, but a human should confirm no other saved-preference surface (e.g. a `kosztorys-client-view` doc) still carries the old flag.
-      _Nie da się odtworzyć wprost — brak w tym środowisku istniejącego kosztorysu/dokumentu
-      preferencji z zapisanym ptaszkiem przy usuniętej per-etap kolumnie procentowej (kolumna
-      usunięta z kodu przed dogfoodingiem, więc żadna dana jej nie referuje). Ten sam mechanizm
-      awarii (stary klucz/wartość odwołująca się do zdjętej kolumny) zweryfikowany niżej przez test
-      localStorage `"percent"` — traktuję to jako pokrycie równoważne, ale zostawiam pole otwarte,
-      bo to nie jest dosłowna weryfikacja tego punktu._
-      **Needs human:** potwierdzić, czy jest jakiś zachowany zapisany dokument (np. `kosztorys-client-view`
-      preferences) sprzed EX-703 z zaznaczoną starą kolumną per-etap procentową do przetestowania, albo
-      zaakceptować pokrycie przez test localStorage poniżej jako wystarczające.
-      **Test disposition:** no automated test — jednorazowa migracja/usunięcie kolumny z kodu; ryzyko
-      pokryte przez test localStorage niżej.
 - [x] Ze starym wpisem `"percent"` w localStorage edytor ładuje się normalnie i pokazuje kolumny kwot etapów
       _Verified 2026-08-26 (B9): ręcznie ustawiono `localStorage['table-columns:kosztorys-progress-display']
 = '"percent"'` (stary klucz sprzed osi), przeładowano `/inwestycje/135/kosztorys_v2` — grid
@@ -3056,9 +2964,14 @@ komentarza).
       **Test disposition:** no automated test — this is a registry-hygiene question (archived slice
       status vs. unticked manual boxes), not a code defect to guard with a test.
 
-- [ ] „Komentarz" sortuje w obie strony, a pozycje bez komentarza siedzą **na dole** w obu — nie do zweryfikowania na inw. 119... **Wymaga człowieka (2026-09-04):** Confirmed via SQL fixture-blocked: `SELECT count(*) FILTER (WHERE note<>'') FROM kosztorys_items WHERE investment_id=119` → 0/387 rows have a comment. Needs a fixture with non-empty „Komentarz" values to observe blank-at-bottom behavior live; the underlying sort comparator can't be inspected for this without reading proprietary sort-menu source not yet located, and the box as written demands live rendering, not code reading.
-      **Needs human:** wskazać/dodać inwestycję (lub dopisać komentarz do 2-3 pozycji na 119) z niepustym „Komentarz", żeby ten punkt dało się realnie zweryfikować.
-      **Test disposition:** no automated test needed for the manual pass itself, but this is exactly the shape a unit test on the sort comparator should cover directly (blank-values-last, both directions) rather than depend on fixture data.
+- [x] „Komentarz" sortuje w obie strony, a pozycje bez komentarza siedzą **na dole** w obu
+      _Zweryfikowane (2026-09-14, baza testowa 5435, build produkcyjny na :3002, inw. 7
+      „Madalinskiego 67" — 1000 pozycji, trzem dopisano „Komentarz": „Alfa — pierwszy komentarz",
+      „Beta — drugi komentarz", „Uwaga: sprawdzić z inwestorem"). Kolumnę odsłonięto przez „Kolumny"
+      → „Pokaż wszystkie". „Sortuj rosnąco" (cały kosztorys): na górze Alfa → Beta → Uwaga, dalej
+      997 pustych aż do stopki. „Sortuj malejąco": Uwaga → Beta → Alfa, a puste **dalej na dole**
+      (ostatnie wiersze siatki to 999 i 1000 bez komentarza) — czyli pusta komórka nie odwraca się
+      razem z kierunkiem, tylko trzyma się końca listy w obu._
 - [x] „Przedmiar" z jedną wyczyszczoną komórką nadal sortuje liczbowo (9 poniżej 10, nie odwrotnie) — Verified (batch B12, 2026-08-26): staging inw. 119, „Przedmiar" → „Sortuj rosnąco" (flat). Scrolled to the 8→9→10→11 boundary and confirmed via screenshot the exact rendered sequence `8, 8, 8, 8,44, 9, 9,7, 9,719999999999999, 10, 10, 10, 10, 10, 10, 11, 11, 11,46, 12…` — numeric sort confirmed, no lexicographic „10 before 2" bug anywhere across the full scroll from 0 through 500.
 - [x] „Źródło ceny wykonawcy" rosnąco: automatyczne → własny mnożnik → kwota stała, na obu widokach wykonawcy — Verified (batch B12, 2026-08-26) for the two tiers this fixture actually has: staging inw. 119, „Z narzędziami" widok, „Źródło ceny wykonawcy" → „Sortuj rosnąco" (flat). Top of list = all „auto" (147 rows per DB: `w_tools_override_type IS NULL`), bottom of list = all „kwota stała" (240 rows, `w_tools_override_type = 'amount'`) — confirmed via screenshots at 0%/25%/40%/60%/100% scroll, monotonic, no interleaving. **Could not exercise the middle „własny mnożnik" tier** — `SELECT w_tools_override_type, count(*)` shows exactly two values in this dataset (`amount`=240, null=147), zero rows use the multiplier override. „Bez narzędzi" view not exercised (own_tools_override_type is a separate, unexamined field).
       **Needs human:** seed or point at an investment with at least one item using `w_tools_override_type = 'multiplier'` to close the middle-tier gap; also cover the „Bez narzędzi" axis.
@@ -3068,9 +2981,16 @@ komentarza).
 - [x] „Zapisz kolejność" pod sortowaniem etapu zapisuje tę kolejność i przeżywa wyczyszczenie sortowania — Partially verified (batch B12, 2026-08-26): staging inw. 119, sorted „Etap 1" ascending (flat), clicked „Zapisz kolejność" (no error, menu closed normally), then „Wyczyść sortowanie" — the grid returned cleanly to the normal section-banded view (bands reappeared, confirmed via `innerText.includes('poz.)')`) rather than an error state or a frozen/blank grid. **Could not conclusively prove the persisted order itself changed**: `stage_progress.qty_done` for stage 135 (Etap 1) is `0` for the first ~30 items by `display_order` in this fixture (checked via psql), so an ascending sort on an all-zero column is a no-op tie that a stable sort leaves unchanged — the same top rows appear whether or not the save actually took effect. Also noted: `kosztorys_items.display_order` is scoped **per-section** (resets to 0 in every section), which is worth flagging for whoever verifies the flat/whole-kosztorys „Zapisz kolejność" variant specifically — unclear how a cross-section flat order is represented by a per-section column.
       **Needs human:** re-run this check on a section where Etap 1 quantities actually vary across items, to get a real before/after order diff; separately clarify how flat „Zapisz kolejność" persists order given `display_order` is per-section.
       **Test disposition:** test-driven-debugging is the right shape once someone confirms whether per-section `display_order` correctly encodes a flat cross-section sort — right now it's unclear enough that a test would just encode my confusion, not a spec.
-- [ ] Usunięcie sortowanego etapu czyści sortowanie zamiast zamrozić wiersze — not exercised: usuwanie etapu na inw. 119 jest destrukcyjne i trudne do odwrócenia w współdzielonym środowisku, poza akceptowalnym ryzykiem tego przebiegu. **Wymaga człowieka (2026-09-04):** Requires destructively deleting a stage (etap) on a shared fixture and observing live grid behavior — genuinely browser/UI-observation-only, cannot be proven from static code alone without locating and fully tracing the stage-deletion + sort-state reducer, which the prior QA pass already declined to risk on a shared investment.
-      **Needs human:** zweryfikować na jednorazowym/throwaway inwestycji (kosztorys jest throwaway pre-dogfooding per `AGENTS.md`), nie na inw. 119/66.
-      **Test disposition:** test-driven-debugging jeśli okaże się bugiem (wiersze „zamarzają" w starej kolejności) — dobry kandydat na integration test (server action usuwająca etap + odczyt stanu sortu), bo to przecięcie mutacji stanu i widoku, nie czysta logika unitowa.
+- [x] Usunięcie sortowanego etapu czyści sortowanie zamiast zamrozić wiersze
+      _Zweryfikowane (2026-09-14, baza testowa 5435, build produkcyjny na :3002, inw. 7
+      „Madalinskiego 67" — dane syntetyczne, odtwarzalne `perf-seed-kosztorys.ts`, więc usuwanie
+      etapu jest tu bezpieczne). „Etap 2" → „Sortuj malejąco" (cały kosztorys): płaska lista,
+      numery wierszy 2, 1, 4, 7, 10… (czyli sortowanie realnie działa). Potem z tego samego menu
+      „Usuń etap" → dialog „Usunąć «Etap 2»? Kolumna etapu i wszystkie wpisane w niej ilości
+      zostaną usunięte." → „Usuń". Po usunięciu: kolumny „Etap 2" nie ma, pasy sekcji wróciły
+      („(100 poz.) 66 827,75 zł netto"), wiersze stoją w naturalnej kolejności 1, 2, 3, 4, 5…, a
+      „Wyczyść sortowanie" w menu „Etap 1" jest `aria-disabled="true"` — stan sortowania
+      wyczyszczony, nie zamrożony (to samo zabezpieczenie co EX-486)._
 - [x] Kolumna „netto" etapu sortuje po jego wartości, a „brutto" układa wiersze tak samo — Verified the netto half (batch B12, 2026-08-26): staging inw. 119, „Inwestor" widok, „Etap 1 netto" → „Sortuj rosnąco zachowując sekcje" — screenshot of the first section confirmed the rendered sequence `0,00 ×9, 600,00, 7200,00` (monotonic non-decreasing). **The „brutto" half of this box does not apply to this fixture/view as worded**: there is no per-etap „Etap N brutto" column anywhere — only per-etap „Etap N netto" columns (checked in both „Inwestor" and „Z narzędziami" axes via full button-text dump); brutto only exists as the aggregate „Razem brutto — po rabacie" / „Pozostało brutto (względem przedmiaru)" columns, which are not tied to one specific etap. Ticking on the netto evidence; the brutto clause is unverifiable as literally written.
       **Needs human:** confirm whether the box's „brutto" clause refers to a column that doesn't exist in this app version (stale checklist wording) or to the aggregate brutto columns tracking the sorted order passively (which they visibly do, since they're the same rows) — if the latter, reword the box to say so explicitly.
       **Test disposition:** no automated test — this turned out to be a wording/scope question about which columns exist, not a behavior to guard.
@@ -3194,16 +3114,57 @@ Setup: baza testowa 5435, zalogowany jako OWNER. Dodaj dwa pojazdy — jeden `W 
 
 ### Faza 1: Przepięcie non-prod na preview store
 
-- [ ] `pnpm dev` wstaje i istniejąca faktura się renderuje (bajty serwuje teraz preview store) **Wymaga człowieka (2026-09-04):** Requires actually starting `pnpm dev` and loading a page — absolutely prohibited for this pass (no server starts). Cannot be substituted by code reading: this is a live-render observation.
-- [ ] Upload nowej faktury lokalnie kończy się sukcesem, a plik pojawia się w `wykonczymy-blob-preview`, nie w `wykonczymy-blob` **Wymaga człowieka (2026-09-04):** Requires a running dev server and a real file upload — prohibited (no server starts, no live mutations to Blob stores from this pass).
+- [x] `pnpm dev` wstaje i istniejąca faktura się renderuje (bajty serwuje teraz preview store)
+      _Zweryfikowane 2026-09-14 na buildzie produkcyjnym (`NEXT_DIST_DIR=".next-qa"`, :3002, baza 5435 — restore prodowego dumpa,
+      więc `media.filename` to prawdziwe faktury). Serwer wstaje, sesja OWNER, `/api/media` raportuje **1421 dokumentów**.
+      30 najstarszych faktur (marzec 2026) renderuje się co do jednej — `200`, `image/jpeg`, realne bajty.
+      **30 najnowszych (sierpień 2026) daje 404** — i to nie jest usterka, tylko dokładnie ta właściwość, którą opisuje
+      `AGENTS.md`: preview store jest kopią punktową, więc faktura nowsza niż ostatni restore jeszcze w nim nie leży.
+      Podział jest czysty (30/30 ↔ 0/30), czyli granica idzie po dacie restore'a, a nie losowo. To jest dokładnie stan,
+      który domyka box `blob:refresh:preview` niżej._
+- [x] Upload nowej faktury lokalnie kończy się sukcesem, a plik pojawia się w `wykonczymy-blob-preview`, nie w `wykonczymy-blob`
+      _Zweryfikowane 2026-09-14 na buildzie produkcyjnym (:3002, `.env` = token preview). Wgrany sfabrykowany plik-sonda
+      `qa-blob-store-probe-20260914.png` (1×1 PNG, 70 B — żadnych prawdziwych danych) → `201`, renderuje się z powrotem
+      `200 image/png`, 70 B._
+      _Rozstrzygające jest odpytanie **obu** store'ów po nazwie, nie sam sukces uploadu.
+      `wykonczymy-blob-preview` → **1 trafienie** (`https://rnju0fdb7sz8bhva.public.blob.vercel-storage.com/qa-blob-store-probe-20260914.png`,
+      czyli `rNjU0fDb7Sz8bHVA` = `PREVIEW_BLOB_STORE_ID`). `wykonczymy-blob` (produkcja) → **0 trafień**._
+
+      _Sonda posprzątana: `DELETE /api/media/1526` → w preview store 0 trafień, w bazie 0 wierszy. (Uwaga dla następnego:
+      ponowny `GET` na URL pliku zaraz po skasowaniu nadal zwraca `200` — to cache HTTP przeglądarki, nie żywy plik;
+      prawdę mówi lista store'a, nie ponowny fetch.)_
+
 - [x] `vercel env pull` do pliku roboczego daje dla Development token preview, nie produkcyjny _Zweryfikowane 2026-09-04 (kod + read-only SQL na preview): Equivalent evidence without literally pulling: local `.env`'s `BLOB_READ_WRITE_TOKEN` prefix is `vercel_blob_rw_rNjU0f...`, matching `PREVIEW_BLOB_STORE_ID = 'rNjU0fDb7Sz8bHVA'` (`src/lib/env/schema.ts`) exactly; `BLOB_READ_WRITE_TOKEN_PROD` separately carries `vercel_blob_rw_oJHLWh...`, matching `PROD_BLOB_STORE_ID`. `vercel env ls development` confirms `BLOB_READ_WRITE_TOKEN` is a Development-scoped var (updated 16d ago) — a `vercel env pull` for Development would return this same encrypted value._
 
 ### Faza 2: Odrzucenie produkcyjnego tokenu Blob poza produkcją
 
-- [ ] Wklejenie produkcyjnego tokenu do `.env` (i `.env.local`) → `pnpm dev` **wstaje** (Next kompiluje trasy leniwie), ale pierwsze wejście na dowolną stronę `(frontend)` rzuca błędem nazywającym `BLOB_READ_WRITE_TOKEN` **Wymaga człowieka (2026-09-04):** Needs a running dev server, prohibited. Underlying guard is independently strong: `blobTokenRefusal('development'|undefined, PROD_TOKEN)` is unit-tested to return a message containing `PROD_BLOB_STORE_ID` (`src/__tests__/lib/env/schema.test.ts`, 17/17 pass), and `serverSchema`'s `superRefine` wires that into `ctx.addIssue` on `BLOB_READ_WRITE_TOKEN` — but observing the actual dev-server/page-load error surface needs a live process.
-- [ ] Przy tym samym tokenie wejście **prosto na `/admin/collections/media`**, bez odwiedzania `(frontend)`, też rzuca błędem — to strażnik z `payload.config.ts`, na ścieżce która faktycznie kasuje **Wymaga człowieka (2026-09-04):** Needs a running server to observe, prohibited. Code strongly supports the claim: `payload.config.ts:47-48` has its OWN top-level `blobTokenRefusal` check + throw, independent of `(frontend)/layout.tsx`'s env import — a comment at `schema.ts:29-32` explicitly states this second call site exists because `/admin`'s delete path "would reach the store unvalidated" without it. Mechanism confirmed by static reading; live throw not observed.
-- [ ] `pnpm build` z produkcyjnym tokenem kończy się niepowodzeniem (bramka builda) **Wymaga człowieka (2026-09-04):** `pnpm build` is explicitly prohibited for this pass. `serverEnv`'s `superRefine`-driven throw would fire during the build's env parse (per `AGENTS.md`: "(frontend)/layout.tsx imports both entries as the build gate"), consistent with the unit-tested `blobTokenRefusal`, but not executed here.
-- [ ] Odwrotny kierunek: `VERCEL_ENV=production pnpm build` przy zwykłym (preview) tokenie w `.env` **też** kończy się niepowodzeniem... **Wymaga człowieka (2026-09-04):** `pnpm build` prohibited. `blobTokenRefusal('production', PREVIEW_TOKEN)` is unit-tested to return a message containing `PREVIEW_BLOB_STORE_ID` — the reverse-direction logic exists and is proven at the function level — but the actual build invocation (and the `NODE_ENV`-vs-`VERCEL_ENV` contrast this box demands) needs a live build run.
+- [x] Wklejenie produkcyjnego tokenu do `.env` (i `.env.local`) → `pnpm dev` **wstaje** (Next kompiluje trasy leniwie), ale pierwsze wejście na dowolną stronę `(frontend)` rzuca błędem nazywającym `BLOB_READ_WRITE_TOKEN`
+      _Zweryfikowane 2026-09-14. Token podany inline zamiast wklejania do `.env` (`BLOB_READ_WRITE_TOKEN="$BLOB_READ_WRITE_TOKEN_PROD" pnpm dev -p 3003`,
+      własny `NEXT_DIST_DIR`) — dla procesu to jest to samo, a `.env` zostaje nietknięty. Serwer **wstaje**: `✓ Ready in 1045ms`.
+      Pierwsze wejście na `/inwestycje` → **`GET /inwestycje 500`**, a w logu:
+      `⨯ Error [ZodError]: [{ "path": ["BLOB_READ_WRITE_TOKEN"], "message": "targets the PRODUCTION Blob store (oJHLWhvHKJrsgWiN) outside production. …" }]`
+      — ze śladem `at module evaluation (src/lib/env/server.ts:8:39)` ← `at <unknown> (src/app/(frontend)/layout.tsx:5:1)`._
+      _Ślad stosu potwierdza dokładnie ten mechanizm, który opisuje `AGENTS.md`: `(frontend)/layout.tsx` importuje `serverEnv`,
+      a `serverSchema.parse` pada na `superRefine`. Box co do słowa._
+- [x] Przy tym samym tokenie wejście **prosto na `/admin/collections/media`**, bez odwiedzania `(frontend)`, też rzuca błędem — to strażnik z `payload.config.ts`, na ścieżce która faktycznie kasuje
+      _Zweryfikowane 2026-09-14, ta sama sesja dev na :3003 z prodowym tokenem. `GET /admin/collections/media` → **500**, a w logu:
+      `⨯ Error: BLOB_READ_WRITE_TOKEN targets the PRODUCTION Blob store (oJHLWhvHKJrsgWiN) outside production. …`
+      ze śladem `at <unknown> (src/payload.config.ts:48:20)`._
+      _Kluczowe jest **miejsce** rzutu: `payload.config.ts:48`, nie `env/server.ts`. To dowodzi tego, co zakładał wcześniejszy
+      odczyt z kodu — `/admin` ma własnego, niezależnego strażnika, bo warstwa env w ogóle nie ładuje się w grafie Payloada.
+      Bez tego drugiego wywołania ścieżka kasowania w `/admin/collections/media` dosięgłaby produkcyjnego store'a nieopieczętowana._
+- [x] `pnpm build` z produkcyjnym tokenem kończy się niepowodzeniem (bramka builda)
+      _Zweryfikowane 2026-09-14 lokalnie. Token podany inline (`BLOB_READ_WRITE_TOKEN="$BLOB_READ_WRITE_TOKEN_PROD" pnpm build`),
+      `.env` nietknięty. Build pada z `EXIT=1`:_
+      `Error: BLOB_READ_WRITE_TOKEN targets the PRODUCTION Blob store (oJHLWhvHKJrsgWiN) outside production. Use the preview store token; the production one belongs under BLOB_READ_WRITE_TOKEN_PROD.`
+      _**Drift w treści boxa:** bramką, która faktycznie strzela, jest `src/payload.config.ts:48`, nie `serverEnv`. `pnpm build` zaczyna od
+      `payload generate:importmap`, więc graf Payloada ładuje się **przed** `next build` i przed importem `(frontend)/layout.tsx`. Efekt
+      jest ten sam (build nie przechodzi), ale komunikat pochodzi z drugiego strażnika — i to jest dobra wiadomość: bramka trzyma nawet
+      na ścieżce, na której warstwa env w ogóle się nie ładuje._
+- [x] Odwrotny kierunek: `VERCEL_ENV=production pnpm build` przy zwykłym (preview) tokenie w `.env` **też** kończy się niepowodzeniem...
+      _Zweryfikowane 2026-09-14 lokalnie, `EXIT=1`:_
+      `Error: BLOB_READ_WRITE_TOKEN targets the PREVIEW Blob store (rNjU0fDb7Sz8bHVA) in production. That store is wiped and re-restored as scratch, so real invoices written there are lost.`
+      _Ta sama bramka (`payload.config.ts:48`), drugi kierunek — obie strony niedopasowania store↔środowisko są zamknięte._
 
 ### Faza 3: Komenda odświeżająca + blokada zapisu do proda
 
@@ -3497,16 +3458,39 @@ Setup: `pnpm db:import:test` → `pnpm seed:kosztorys:test` (domyślnie `INV=7`,
 ~1000 pozycji, pisze do 5435). Mierzyć na buildzie produkcyjnym (`pnpm build && pnpm start`), nie na
 dev — HMR i React DevTools zawyżają każdy pomiar.
 
-- [ ] Otwarcie kosztorysu z ~1000 pozycjami dochodzi do interaktywnej siatki bez zawieszenia zakładki **Wymaga człowieka (2026-09-04):** Requires `pnpm build && pnpm start` on a locally seeded 5435 DB (`db:import:test` + `seed:kosztorys:test INV=7`) and live browser interaction timing — both starting a server and touching the local DB are absolute prohibitions of this pass. Not derivable from static code (real perf, not logic).
-- [ ] Scroll przez cały arkusz jest płynny, a w DOM nadal siedzi ~28 wierszy (wirtualizacja żyje) **Wymaga człowieka (2026-09-04):** Same blocker — needs a live production build + browser DOM inspection during scroll.
-- [ ] Wpisanie ilości w pozycji na końcu arkusza podnosi sumy sekcji i stopki bez widocznej zwłoki **Wymaga człowieka (2026-09-04):** Same blocker — needs a live production build with the ~1000-item fixture and real-time interaction.
-- [ ] Seria ▲▼ na pozycji w dużej sekcji nie blokuje wpisywania w innym wierszu **Wymaga człowieka (2026-09-04):** Same blocker — live browser interaction under load, not derivable from code.
-- [ ] Przełączenie osi (netto/brutto, warstwa) przerysowuje siatkę bez zauważalnej pauzy **Wymaga człowieka (2026-09-04):** Same blocker — perceived-pause perf check needs the live seeded build.
-- [ ] Undo (Ctrl+Z) po serii edycji wraca w tym samym czasie co przy małym kosztorysie **Wymaga człowieka (2026-09-04):** Same blocker — a comparative timing measurement across dataset sizes needs live execution.
+- [x] Otwarcie kosztorysu z ~1000 pozycjami dochodzi do interaktywnej siatki bez zawieszenia zakładki
+      _Verified 2026-09-14: build produkcyjny (`NEXT_DIST_DIR=".next-qa"`) na :3002, baza 5435, inw. 7 — 1000 pozycji, 10 sekcji, 7 etapów._
+      _Zimne wejście → interaktywna siatka **1194 ms** (nawigacja 924 ms), zakładka nie zawiesza się ani na chwilę._
+- [x] Scroll przez cały arkusz jest płynny, a w DOM nadal siedzi ~28 wierszy (wirtualizacja żyje)
+      _Verified 2026-09-14: build produkcyjny (`NEXT_DIST_DIR=".next-qa"`) na :3002, baza 5435, inw. 7 — 1000 pozycji, 10 sekcji, 7 etapów._
+      _**32 wiersze w DOM** przy 1000 pozycjach. Scroll pionowy przez cały arkusz (33 008 px): mediana klatki **17 ms**,
+      p95 26 ms, max 53 ms — jedna klatka powyżej 50 ms na ~120._
+- [x] Wpisanie ilości w pozycji na końcu arkusza podnosi sumy sekcji i stopki bez widocznej zwłoki
+      _Verified 2026-09-14: build produkcyjny (`NEXT_DIST_DIR=".next-qa"`) na :3002, baza 5435, inw. 7 — 1000 pozycji, 10 sekcji, 7 etapów._
+      _Pas sekcji po edycji etapu: „(100 poz.) 236 394,25 zł netto" → „351 860,25 zł netto" w **40 ms**
+      (debounce przeliczania to 700 ms, więc odświeżenie idzie po nim, nie w klatce wpisywania)._
+- [x] Seria ▲▼ na pozycji w dużej sekcji nie blokuje wpisywania w innym wierszu
+      _Verified 2026-09-14: build produkcyjny (`NEXT_DIST_DIR=".next-qa"`) na :3002, baza 5435, inw. 7 — 1000 pozycji, 10 sekcji, 7 etapów._
+      _5× ▲▼ na wierszu w sekcji stupozycyjnej, zaraz potem pisanie w innym wierszu: wszystkie znaki weszły,
+      klawisz→paint **43–56 ms**. Nic nie blokuje._
+- [x] Przełączenie osi (netto/brutto, warstwa) przerysowuje siatkę bez zauważalnej pauzy
+      _Verified 2026-09-14: build produkcyjny (`NEXT_DIST_DIR=".next-qa"`) na :3002, baza 5435, inw. 7 — 1000 pozycji, 10 sekcji, 7 etapów._
+      _Oś netto/brutto: pierwszy przerysowany nagłówek po **22–39 ms**. Warstwa Praca ↔ Postęp: **47 ms / 105 ms**
+      (szerokość siatki 5090 ↔ 3220 px). Poniżej progu zauważalnej pauzy._
+- [x] Undo (Ctrl+Z) po serii edycji wraca w tym samym czasie co przy małym kosztorysie
+      _Verified 2026-09-14: build produkcyjny (`NEXT_DIST_DIR=".next-qa"`) na :3002, baza 5435, inw. 7 — 1000 pozycji, 10 sekcji, 7 etapów._
+      _**148 ms** przy 1000 pozycjach vs **117 ms** przy 291 (inw. 54, prawdziwe dane z dumpa) — różnica 31 ms,
+      obie ścieżki przywróciły dokładną poprzednią wartość. Undo nie skaluje się z rozmiarem arkusza._
 
 ### Findings — 2026-08-26
 
-- [ ] **Cała sekcja nie do przeprowadzenia w środowisku B9.** Setup wymaga lokalnego builda produkcyjnego (`pnpm build && pnpm start`) na porcie z bazą 5435 zasianą `pnpm seed:kosztorys:test` (INV=7, ~1000 pozycji) — B9 był ograniczony do staging Preview (`wykonczymy-git-staging-...vercel.app`) i read-only `DB_POSTGRES_URL_CUTOVER`, bez uprawnień do bootowania serwera, dockera, seedowania czy migracji. Największy dostępny kosztorys na Preview to inwestycja 31 („11 Listopada 40", 340 pozycji, **read-only** — nie do mutowania), więc żaden z sześciu punktów (interaktywność, wirtualizacja, przeliczanie sum, ▲▼, przełączanie osi, undo) nie został sprawdzony przy docelowej skali ~1000 pozycji. **Wymaga człowieka (2026-09-04):** setup wymaga lokalnego builda produkcyjnego i zasianej bazy — w tej sesji zakazane (żadnego serwera, żadnej lokalnej bazy).
+- [x] **Zamknięte 2026-09-14 — sekcja przeprowadzona lokalnie, wszystkie sześć punktów zmierzone.** Setup postawiony
+      tak, jak opisuje nagłówek sekcji, tyle że build produkcyjny poszedł do `NEXT_DIST_DIR=".next-qa"` na :3002,
+      żeby nie walczyć o `.next` z dev serwerem. Liczby stoją przy poszczególnych punktach wyżej. Wniosek: przy 1000
+      pozycjach siatka trzyma ~32 wiersze w DOM, mediana klatki przy scrollu 14–17 ms, klawisz→paint 31–93 ms,
+      undo 148 ms vs 117 ms przy 291 pozycjach. Nic nie wymaga optymalizacji; `sectionColumnTotals` nie jest wąskim
+      gardłem. Poniżej oryginalny tombstone z B9, dla historii.
+      **[historyczne] Cała sekcja nie do przeprowadzenia w środowisku B9.** Setup wymaga lokalnego builda produkcyjnego (`pnpm build && pnpm start`) na porcie z bazą 5435 zasianą `pnpm seed:kosztorys:test` (INV=7, ~1000 pozycji) — B9 był ograniczony do staging Preview (`wykonczymy-git-staging-...vercel.app`) i read-only `DB_POSTGRES_URL_CUTOVER`, bez uprawnień do bootowania serwera, dockera, seedowania czy migracji. Największy dostępny kosztorys na Preview to inwestycja 31 („11 Listopada 40", 340 pozycji, **read-only** — nie do mutowania), więc żaden z sześciu punktów (interaktywność, wirtualizacja, przeliczanie sum, ▲▼, przełączanie osi, undo) nie został sprawdzony przy docelowej skali ~1000 pozycji. **Wymaga człowieka (2026-09-04):** setup wymaga lokalnego builda produkcyjnego i zasianej bazy — w tej sesji zakazane (żadnego serwera, żadnej lokalnej bazy).
       **Needs human:** uruchomić tę sekcję osobno, lokalnie, zgodnie z opisanym Setupem (`db:import:test` → `seed:kosztorys:test` → `pnpm build && pnpm start`) — albo potwierdzić, że S-18 jest już pokryte innym pomiarem (np. benchmark `display-order.ts` z EX-521) i ten tombstone można zamknąć bez nowego pomiaru.
       **Test disposition:** no automated test — to jednorazowy, ręczny spot-check perfu (jak stwierdza nagłówek sekcji), nie regresja do zautomatyzowania.
 
@@ -3625,32 +3609,16 @@ produkcyjnym (`pnpm build && pnpm start`) — na dev HMR zawyża każdy pomiar.
       red warning triangle) and their „ilość" cells render as the non-editable, red
       `PLANE_UNCONFIRMED_CELL` (`kosztorys-v2-columns.tsx:442`) rather than an `<input>` — matches the
       already-resolved Finding below citing the same line._
-- [ ] **Perf** (~1000 pozycji, ~10 kolumn etapów na ekranie): pisanie w „ilość" nadąża za klawiaturą, a scroll zostaje płynny **Wymaga człowieka (2026-09-04):** Requires the dedicated ~1000-item perf dataset (`INV=7` via `perf-seed-kosztorys.ts`) and a production build — both forbidden under this pass's constraints (no server start, no DB seeding). Staging's dataset (inw. 135) has 336 items.
+- [x] **Perf** (~1000 pozycji, ~10 kolumn etapów na ekranie): pisanie w „ilość" nadąża za klawiaturą, a scroll zostaje płynny
+      _Verified 2026-09-14: build produkcyjny (`NEXT_DIST_DIR=".next-qa"`) na :3002, baza 5435, inw. 7 — 1000 pozycji, 10 sekcji, 7 etapów._
+      _Pisanie: wszystkie znaki wchodzą, klawisz→paint **31–93 ms**, longtaski max 87 ms. Scroll pionowy: mediana
+      klatki **14–17 ms**, p95 26–34 ms. Scroll poziomy przez oś etapów: mediana **17 ms**, zero klatek >50 ms._
       **Needs human** — inw. 135 (this pass's dataset) has 336 items, not ~1000; the dedicated perf
       dataset is `INV=7` via `perf-seed-kosztorys.ts`, out of scope to seed against staging/preview
       DB in this pass.
 
 ### Findings — 2026-08-25
 
-- [ ] **Typing bare `-` in a numeric cell never fires the revert toast, even when the previous value **Wymaga człowieka (2026-09-04):** Duplicate of the dash-revert-toast box above — same evidence and same open product question (is the checklist wording stale, or is a toast owed for the dash case specifically).
-      differs from what's restored** — `src/lib/kosztorys/cell-edit.ts` `cellSettle`: a lone `-`
-      never parses to `kind: 'value'`, so `cellKeystroke` never returns `commit` and `rowData` is
-      never mutated during typing. At settle, `policy.snapshot(rowData)` therefore always still
-      equals the captured `entry`, so `settled` is always `true` and `row: null` — and
-      `use-cell-draft.ts` line 77 only toasts when `settled.reason === 'blocked' || settled.row`,
-      which is `false || null` here. Confirmed live at `/inwestycje/135/kosztorys_v2`: row6 Przedmiar
-      held `5`, typed `-`, tabbed out — value correctly stayed `5`, but no toast fired. This makes
-      the checklist's two dash items (line above and the one below it) actually describe the SAME
-      code path with the SAME outcome (no toast either way) — the checklist's line 4 expectation of
-      a toast for a "different previous value" case doesn't match any reachable code state for a
-      bare `-`.
-      **Needs human:** decide whether the checklist text is stale (bare `-` was never meant to toast,
-      only a rejected NUMERIC value like the `101%` case is) or whether this is an intended-but-
-      missing toast for the dash case specifically.
-      **Test disposition:** no automated test — this is a documentation/expectation question, not a
-      code defect; once the intended behavior is confirmed, if it's the latter reading a
-      `cell-edit.test.ts` unit case for `cellSettle` with an all-`-`-typed draft would be the
-      appropriate guard.
 - [x] ~~\*\*"150 zł → % lands at 100%" (checklist) contradicts the current, deliberately-dated code~~ **Nieaktualne (2026-09-04):** Duplicate evidence of the "Rabat 150 zł…" box above — `discountFromType` refuses rather than caps, per the dated 2026-08-25 owner comment.
       ("refuse, don't cap")** — `src/lib/kosztorys/discount-edit.ts` `discountFromType`: switching a
       150 zł discount to `%` is refused outright (`kind: 'blocked'`), not capped to 100. The code
@@ -3670,16 +3638,6 @@ produkcyjnym (`pnpm build && pnpm start`) — na dev HMR zawyża każdy pomiar.
 
 - [x] **Rozstrzygnięte (koordynator, 2026-08-26): blokada wisi na rozliczeniu etapu, nie na przypisanym pracowniku — obserwacja jest poprawnym zachowaniem.** `kosztorys-v2-columns.tsx:442` blokuje kolumnę `ilość` wyłącznie gdy `stage.plane == null`, czyli gdy etap nie ma wybranego rozliczenia („z narzędziami" / „bez narzędzi"). Komentarz nad tym warunkiem odrzuca drugi wariant świadomie: „Deliberately NOT widened to the worker — a worker-less etap still has a price and still belongs to the executed total; it just isn't attributed to anyone."
       Etap założony przez „Dodaj → Etap — bez narzędzi" ma rozliczenie wybrane w momencie powstania, więc jego `ilość` MA być edytowalna niezależnie od tego, czy ktoś jest do niego przypisany. Blokada jest osiągalna tylko na starych etapach z `plane = null` — i to jest ta sama luka dostępności, co w Findings powyżej („No UI path to create/reset a null-plane etap"). Punkt checklisty mówi „etap bez rozliczenia" poprawnie; testowany był etap z rozliczeniem.
-
-- [ ] **Perf checklist item can't be run against inw. 135** — this pass's designated dataset (inw. 135, **Wymaga człowieka (2026-09-04):** Duplicate of the Perf box above — same dataset-size gap (336 items vs the ~1000-item perf fixture, which targets a local DB this pass cannot touch).
-      336 kosztorys items) is well short of the ~1000-item scale the perf check calls for. The
-      dedicated dataset is `INV=7` via `perf-seed-kosztorys.ts`, seeded against the local/test DB, not
-      the staging Preview DB this pass was scoped to.
-      **Needs human:** run the perf check separately against a `pnpm build && pnpm start` instance
-      with `INV=7` seeded, per the skill's own setup note.
-      **Test disposition:** no automated test — this is a manual perf-feel check by the checklist's
-      own design (keyboard responsiveness + scroll smoothness), not something a unit/integration/e2e
-      assertion captures well.
 
 ### Findings — 2026-09-03
 
@@ -3719,46 +3677,6 @@ properties of undefined (reading 'top')`, landing in the Next.js error boundary)
       stale-active-index condition without a browser; the data-loss half (crash interrupts
       `cellSettle`'s rollback) is better asserted as an e2e case once the crash itself is fixed, since
       it depends on the real grid's virtualization and the Next.js error boundary.
-
-- [ ] **Box "Przewinięcie listy w trakcie pisania… (EX-735)" not cleanly reproducible via automation** **Wymaga człowieka (2026-09-04):** Duplicate of the scroll-away box above — grid's own scroll-follow defeats a scripted repro; the crash finding above is offered as related-but-not-identical evidence for the same "row leaves viewport mid-edit" family.
-      (line ~3111 above, left unchecked) — attempted a direct scroll-away repro (`.dsg-container`
-      `scrollTop` set far past the active row) but the grid actively resists it: the scroll snapped
-      back to ~392px almost immediately, consistent with `DataSheetGrid.js`'s own `scrollTo(activeCell)`
-      effect (or an underlying react-window-style controlled list) re-centering on the active/editing
-      cell every render. Escalating into frame-by-frame DOM/timing instrumentation to defeat this is
-      exactly the anti-pattern `lessons.md` → "Driving react-datasheet-grid in a QA pass" warns
-      against, so I stopped and safely aborted the in-progress edit via Escape instead (row9
-      subcontractor price cleanly restored to `80`, confirmed via reload — no data corruption from this
-      attempt). The crash above (search-filter-narrows-rows-mid-edit) is the same "row leaves the
-      viewport mid-edit" family and is a stronger, cleanly-reproduced signal that this scenario's
-      unmount-cleanup path is at least sometimes unsafe.
-      **Needs human:** either accept the crash finding above as sufficient risk evidence for this
-      family of checks, or provide a way to drive a genuine scroll-away-during-edit repro (e.g. a
-      non-headless manual session, or a build with the grid's internal scroll-follow temporarily
-      disabled) so this box can be verified/failed directly rather than left permanently unreachable by
-      automation.
-      **Test disposition:** no automated test for THIS box specifically — routing the real regression
-      coverage through the crash finding above (integration test on the height-cache interaction) is
-      the actionable path; a dedicated e2e "scroll row out of view mid-edit" spec would need the same
-      escape hatch a human tester would need and isn't worth building blind.
-
-- [ ] **Box "Kliknięcie, które jednocześnie wychodzi z komórki i usuwa wiersz z widoku…" deliberately **Wymaga człowieka (2026-09-04):** Duplicate of the click-exits-and-removes-row box above (already marked FAIL via the crash finding's equivalent code path). This box specifically declines to drive the literal scenario (deleting a real preview-DB row mid-edit) for data-safety reasons. Question for human: accept the crash finding as sufficient coverage, or set up a genuinely disposable fixture for a direct repro.
-      not driven via an actual row-delete action** (line ~3117 above, left unchecked) — verifying this
-      literally (delete a real kosztorys row while a cell in it is mid-edit) risks unrecoverable data
-      loss on the preview DB's production-restored rows, which this pass's mutation-discipline rules
-      forbid ("never edit or delete a pre-existing real row"). The filter-narrows-rows crash found
-      above reaches the same code path (a row the active cell points at disappearing from the
-      virtualized list mid-edit) without deleting anything, and already shows that path is unsafe in at
-      least one shape (a crash, not a clean double/single toast) — treat it as the relevant evidence for
-      this box rather than a separate repro.
-      **Needs human:** confirm whether the crash finding above is accepted as covering this box's
-      intent, or whether a genuinely safe way to test row-deletion-mid-edit exists (e.g. against a
-      disposable QA investment/row created and deleted for this purpose, the way Target 2's fixture
-      does it) that a future pass should use instead.
-      **Test disposition:** no automated test for this box directly; the same integration spec proposed
-      for the crash finding above (asserting the height-cache/active-index interaction on a shrinking
-      row list) is the practical regression guard for this whole "row disappears mid-edit" family,
-      including the delete case.
 
 ## fleet-sheet-parity — parytet z arkuszem kontroli przeglądów i ubezpieczeń
 
@@ -3801,21 +3719,6 @@ General-UI boxes not tied to that seed were driven live on a fresh vehicle creat
 - [ ] `/flota` listuje wszystkie dziewięć aut z terminami przeglądu i OC zgodnymi z arkuszem **Wymaga człowieka (2026-09-04):** Same fixture gap, confirmed against preview DB — only 2 vehicle rows exist there, none from the nine-car seed.
 - [ ] Przegląd VW T4 (`WF 7029W`, termin 2026-06-27) czyta PO TERMINIE **Wymaga człowieka (2026-09-04):** Same fixture gap, confirmed against preview DB — `WF 7029W` not present.
 - [ ] `WF7972X` pokazuje 17 500 km od wymiany oleju (177 500 − 160 000) — alarm interwału się odzywa **Wymaga człowieka (2026-09-04):** Same fixture gap, confirmed against preview DB — `WF7972X` not present. The alarm math itself (`isOilChangeOverdue`, `kmSinceChange`) is already covered generically by unit tests elsewhere in this registry (`reminder-sweep.test.ts`) — only this specific real-world figure is unreachable.
-
-### Findings — 2026-08-26 (B18)
-
-- [ ] **Setup section stale — named script deleted.** Sekcja "Setup" opisuje `import-fleet-sheet.ts` przeciw `DB_POSTGRES_URL_TEST`... **Wymaga człowieka (2026-09-04):** Confirms and closes the investigation for the 5 boxes above — this is the registry-hygiene summary of the same gap, not a separate defect. Needs a human decision: recreate the import fixture from the source sheet for future passes, or formally accept these 5 boxes as permanently unverifiable without prod access (which the gate's rules forbid).
-      przeciw `DB_POSTGRES_URL_TEST`, ale ten skrypt został skasowany w `0fa9dd8e` po jednorazowym
-      zasileniu proda (patrz box "skasowany po zasileniu proda" wyżej). Pięć boxów wyżej nazywa
-      konkretne rejestracje z tego seedu (`354E000003305`, `22044 4672279`, `WD776AL`, `WF 7029W`,
-      `WF7972X`) i nie da się ich odtworzyć bez arkusza źródłowego — te dane istnieją wyłącznie na
-      prodzie z jednorazowego importu.
-      **Needs human:** albo odtworzyć skrypt/fikstury na nowo z arkusza dla przyszłych passów, albo
-      świadomie zaakceptować, że te pięć boxów zostaje trwale nieweryfikowalnych bez ręcznego dostępu
-      do proda (co narusza zasady tego gate'u — brak zapisów na prod DB).
-      **Test disposition:** no automated test — to jest luka w reprodukowalności fikstury QA, nie w
-      produkcie; ewentualne pokrycie e2e wymagałoby najpierw trwałej fikstury seedującej dziewięć aut
-      do `db-test`.
 
 ## import-etapy-z-arkusza — puste etapy odsiane, podpisy i rozliczenie z okna importu
 
@@ -4882,3 +4785,48 @@ disabled.invalid` fails DNS — a deliberate non-prod gate, not a bug (matches
       still-open boxes below. None of the equipment feature's own code is implicated — every symptom
       traces to the shared Docker/host environment. **Test disposition:** not applicable —
       infrastructure/environment finding, not a product finding.
+
+## drag-drop-guard — chybiony drop pliku i widoczne dropzone (2026-09-14)
+
+### Faza 1: Hook `useWindowFileDrag` + `FileInput`
+
+- [ ] Przeciągnij plik nad otwarty dialog faktury i upuść go **obok** pola — nic się nie dzieje, przeglądarka nie otwiera pliku, dialog stoi otwarty.
+- [ ] W trakcie przeciągania pole jest podświetlone, zanim kursor nad nie wjedzie.
+- [ ] Po wjechaniu kursorem na pole podświetlenie wzmacnia się i **nie miga** przy ruchu nad ikoną i tekstem.
+- [ ] Upuszczenie pliku na pole nadal dodaje plik (regresja ścieżki trafionej).
+- [ ] Po trafionym dropie na pole słabe podświetlenie **gaśnie** na wszystkich dropzone'ach (bramka przeglądu: `stopPropagation` w `FileInput` ucinał `drop` przed `window`, więc ring zostawał zapalony na zawsze).
+- [ ] Przejedź plikiem nad polem tam i z powrotem, po czym wyjedź poza okno przeglądarki — podświetlenie gaśnie, nie zostaje (regresja dryfu licznika).
+- [ ] Po zamknięciu dialogu i ponownym przeciągnięciu pliku poza aplikację (np. na pasek zakładek) przeglądarka zachowuje się normalnie — guard zniknął razem z dialogiem.
+- [ ] Upuszczenie pliku w panelu Payloada (`/admin`) nadal działa jak wcześniej.
+
+### Faza 2: Druga dropzone na tym samym hooku
+
+- [ ] W dialogu wydatku, w trakcie przeciągania pliku, podświetlają się jednocześnie przycisk „Wygeneruj z paragonów" **i** wszystkie pola „FV" bez faktury — słabo, nie krzykliwie.
+- [ ] Upuszczenie paragonu na przycisk nadal uruchamia generowanie pozycji (regresja ścieżki trafionej).
+- [ ] Mocny stan na przycisku „Wygeneruj z paragonów" **nie miga**, gdy kursor przejeżdża nad jego ikoną i napisem.
+- [ ] Upuszczenie pliku spoza `accept` (np. `.txt`) na przycisk nie robi nic i **nie** otwiera pliku.
+- [ ] Drugi drop w trakcie trwającego ingestu nadal jest no-opem (istniejący check w tym pliku nie może się zepsuć).
+- [ ] Przy 8 pozycjach formularz nie wygląda jak choinka — słaby stan jest czytelny, ale nie dominuje.
+
+## transfer-print-return — wydruk przefiltrowanej listy transakcji (2026-09-14)
+
+Setup: zalogowany jako OWNER/MANAGER, strona z tabelą transakcji i realnymi wierszami.
+
+### Phase 2: Dokument i przycisk
+
+- [ ] Klik „Drukuj" otwiera nowe okno z dialogiem druku i zamyka je po zamknięciu dialogu
+- [ ] Wydruk zawiera wszystkie strony przefiltrowanego zbioru, nie tylko bieżącą
+- [ ] Kolumny na papierze odpowiadają widocznym na ekranie, w tej samej kolejności po przestawieniu ich w „Kolejność kolumn"
+- [ ] Sortowanie po kliknięciu nagłówka odwzorowuje się na wydruku
+- [ ] Anulowanych wierszy i wierszy „Anulowanie (…)" nie ma na wydruku, nawet przy włączonym filtrze anulowanych
+- [ ] Kolumny „Faktura", „Notatka" i „Akcje" nie pojawiają się na papierze mimo widoczności na ekranie
+- [ ] Wieloliniowy opis zachowuje łamanie linii
+- [ ] Ctrl+P na samej stronie aplikacji zachowuje się jak przed zmianą
+
+### Phase 3: Wpięcie w strony
+
+- [ ] Przycisk „Drukuj" widoczny w toolbarze na `/inwestycje/[id]`
+- [ ] Przycisk „Drukuj" widoczny w toolbarze na `/kasa/[id]`
+- [ ] Przycisk „Drukuj" widoczny w toolbarze na `/pracownicy/[id]`
+- [ ] Przycisku **nie ma** na dashboardzie menedżera
+- [ ] Wydruk zawęża się do zakresu strony (inwestycji / kasy / pracownika), a nie do całego systemu

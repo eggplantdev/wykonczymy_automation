@@ -21,4 +21,11 @@ export type TransferTableConfigT = {
    * the system — deliberate there, but weigh it before opting a new page in.
    */
   invoiceDownload?: boolean
+  /**
+   * Opt in to the print button. Its own flag, never `invoiceDownload`'s — one feature's data must
+   * not gate another's visibility. The fetch behind it is unpaginated over the table's own `where`,
+   * same caveat as the invoice download. Optional and therefore SILENT: a page that forgets to set
+   * it compiles clean and simply never shows the button, so verify each host in the browser.
+   */
+  print?: boolean
 }

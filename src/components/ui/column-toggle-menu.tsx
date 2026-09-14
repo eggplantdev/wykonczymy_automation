@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowUpDown, CheckIcon, Settings2 } from 'lucide-react'
+import { ArrowUpDown, CheckIcon, Eye, EyeOff, Settings2 } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,9 +13,8 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils/cn'
 
 // The column picker's whole presentation, table-library-agnostic: it takes a flat item list, not a
-// table instance. TanStack tables reach it through <ColumnToggle>; the kosztorys grid (datasheet-
-// grid, no table instance to hand over) renders it directly. One component = the two pickers can't
-// drift apart in look or behaviour.
+// table instance. TanStack tables reach it through <ColumnToggle>; the kosztorys grid builds its own
+// menu around the same item shape, so the two pickers stay legible as one pattern.
 
 export type ColumnToggleItemT = {
   id: string
@@ -26,12 +25,15 @@ export type ColumnToggleItemT = {
 type PropsT = {
   items: ColumnToggleItemT[]
   onToggle: (id: string) => void
+  onToggleAll: (visible: boolean) => void
   onOpenOrder?: () => void
   className?: string
 }
 
-export function ColumnToggleMenu({ items, onToggle, onOpenOrder, className }: PropsT) {
+export function ColumnToggleMenu({ items, onToggle, onToggleAll, onOpenOrder, className }: PropsT) {
   if (items.length === 0) return null
+
+  const allVisible = items.every((item) => item.visible)
 
   return (
     <DropdownMenu>
@@ -54,6 +56,14 @@ export function ColumnToggleMenu({ items, onToggle, onOpenOrder, className }: Pr
           </>
         )}
         <DropdownMenuLabel>Widoczne kolumny</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onSelect={(e) => e.preventDefault()}
+          onClick={() => onToggleAll(!allVisible)}
+        >
+          {allVisible ? <EyeOff /> : <Eye />}
+          {allVisible ? 'Ukryj wszystkie' : 'Pokaż wszystkie'}
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         {items.map((item) => (
           <DropdownMenuItem

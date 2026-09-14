@@ -71,6 +71,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
           baseUrl: `/kasa/${id}`,
           filters: buildFilterConfig(refData, 'cashRegisters'),
           invoiceDownload: true,
+          print: true,
           cancelledTransactionAudit: sp.cancelledTransactionAudit === '1',
         }}
       />

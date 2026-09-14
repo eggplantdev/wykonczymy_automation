@@ -185,6 +185,8 @@ export function useKosztorysEditor({
     setGuideX,
     guideY,
     setGuideY,
+    fitRowsToContent,
+    toggleFitRowsToContent,
   } = useKosztorysViewState({ investmentId, preview, clientView })
 
   // Column widths: persisted in localStorage, committed on handle release (not per pointermove —
@@ -1223,6 +1225,8 @@ export function useKosztorysEditor({
     guideX,
     guideY,
     rowHeights,
+    fitRowsToContent,
+    toggleFitRowsToContent,
     // The handle's callbacks are composed one layer out, in the body: fitting a row to its text
     // needs the measured column widths, which only the rendered grid knows.
     setRowHeight,
