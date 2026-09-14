@@ -11,5 +11,11 @@ declare module '@tanstack/react-table' {
     tooltip?: string
     /** Tailwind min-w-* utility class applied to the header and cell. */
     minWidth?: string
+    /**
+     * The column's paper form, for the print document. Its ABSENCE is the exclusion mechanism:
+     * a column without it never reaches the printout — which is how interactive widgets
+     * (invoice, note, actions) stay off paper without an exclusion list.
+     */
+    printValue?: (row: TData) => string
   }
 }

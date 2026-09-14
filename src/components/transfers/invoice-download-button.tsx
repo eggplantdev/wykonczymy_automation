@@ -3,8 +3,8 @@
 import { useTransition } from 'react'
 import type { Where } from 'payload'
 import { FileArchive, Loader2 } from 'lucide-react'
-import { toast } from 'react-toastify'
 import { Button } from '@/components/ui/button'
+import { toastMessage } from '@/lib/utils/toast'
 import { useInvoiceZip } from '@/hooks/use-invoice-zip'
 import { fetchFilteredTransfers } from '@/lib/actions/fetch-transfers-for-invoices'
 import { buildInvoiceArchiveName } from '@/lib/invoices/invoice-zip'
@@ -27,10 +27,7 @@ export function InvoiceDownloadButton({ where }: InvoiceDownloadButtonPropsT) {
       // Refetches instead of reusing the table's rows: the table is paginated, the ZIP is not.
       const result = await fetchFilteredTransfers(where)
       if (!result.success) {
-        toast.error(result.error ?? 'Nie udało się pobrać danych', {
-          position: 'bottom-center',
-          theme: 'dark',
-        })
+        toastMessage(result.error ?? 'Nie udało się pobrać danych', 'error')
         return
       }
 

@@ -12,7 +12,7 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { getPayload } from 'payload'
 import config from '../payload.config'
 import { getDb, type DbExecutorT } from '../lib/db/get-db'
-import { getItemDescriptions, setItemDescriptions } from '../lib/db/kosztorys-descriptions'
+import { getItemTexts, setItemTexts } from '../lib/db/kosztorys-item-texts'
 import { cleanDescription } from '../lib/kosztorys/clean-description'
 import { listCatalogueItems } from '../lib/db/work-catalogue'
 import { catalogueKey } from '../lib/kosztorys/work-catalogue/catalogue-key'
@@ -37,8 +37,9 @@ async function fixItems(db: DbExecutorT): Promise<void> {
   let scanned = 0
   let touched = 0
   for (const investmentId of await investmentIds(db)) {
-    const rows = await getItemDescriptions(db, investmentId)
+    const rows = await getItemTexts(db, investmentId)
     const changed = rows.flatMap((row) => {
+      if (!row.description) return []
       const description = cleanDescription(row.description)
       return description === row.description ? [] : [{ ...row, cleaned: description }]
     })
@@ -47,10 +48,10 @@ async function fixItems(db: DbExecutorT): Promise<void> {
     for (const row of changed)
       console.log(`#${investmentId}/${row.id}\n  - ${row.description}\n  + ${row.cleaned}`)
     if (APPLY && changed.length > 0)
-      await setItemDescriptions(
+      await setItemTexts(
         db,
         investmentId,
-        changed.map(({ id, cleaned }) => ({ id, description: cleaned })),
+        changed.map(({ id, unit, cleaned }) => ({ id, unit, description: cleaned })),
       )
   }
   console.log(`\nopisy: ${touched} do poprawy z ${scanned} przejrzanych`)

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState, type RefObject } from 'react'
-import { WRAPPING_COLUMN_IDS, wrapColumnHeaderClass } from '@/lib/kosztorys/row-content-lines'
+import { WRAPPING_COLUMN_IDS, wrapColumnClass } from '@/lib/kosztorys/row-content-lines'
 import type { WrappingColumnIdT } from '@/lib/kosztorys/row-content-lines'
 
 // A cell's 1px right border plus ReadOnlyCellText's px-2, i.e. everything between the cell's edge
@@ -49,7 +49,7 @@ export function useWrapColumnWidths(
           continue
         }
         const cell = container.querySelector(
-          `.dsg-row-header .dsg-cell-header.${wrapColumnHeaderClass(id)}`,
+          `.dsg-row-header .dsg-cell-header.${wrapColumnClass(id)}`,
         )
         if (!cell) continue
         widths[id] = cell.getBoundingClientRect().width - CELL_TEXT_CHROME_PX

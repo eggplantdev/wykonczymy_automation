@@ -1,10 +1,11 @@
 ---
 change_id: transfer-print-return
 title: Drukowanie przefiltrowanej listy transakcji (chudy powrót)
-status: planned
+status: archived
 created: 2026-09-14
 updated: 2026-09-14
-branch: drag-drop-guard
+archived_at: 2026-09-14T17:15:07Z
+branch: transfer-print-return
 worktree: null
 ---
 
@@ -26,6 +27,11 @@ Decyzje podjęte 2026-09-14 (właściciel):
 - **Widoczność kolumn** — honorowana. Jak w oryginale.
 - **Kolejność kolumn** — honorowana. **Jedyna rzecz ponad oryginał** — `ranks` doszło 2026-08-26,
   wydruk musi je czytać, inaczej rozjedzie się z ekranem.
+
+**E2E odwołane (właściciel, 2026-09-14, w trakcie implementacji).** Faza 3, zmiana 4 planu zakładała
+issue w backlogu `e2e-backlog` na spec browserowy. Właściciel odwołał to wprost („żadnego e2e"), więc
+issue nie powstało i żaden spec Playwrighta nie jest tej zmianie należny. Weryfikacja wydruku jest
+w całości ręczna — `context/foundation/manual-checks.md`, sekcja `transfer-print-return`.
 
 To nie jest revert — siedem modułów, na których wisiał patch, nie istnieje już pod tymi nazwami, a
 trzy zachowania zmieniły się po usunięciu. Szczegóły w `research.md` § „Why a revert cannot land".

@@ -10,7 +10,8 @@ import { lockStatusFor } from '@/lib/db/investment-lock'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { cleanDescription } from '@/lib/kosztorys/clean-description'
-import { getItemDescriptions, setItemDescriptions } from '@/lib/db/kosztorys-descriptions'
+import { cleanUnit } from '@/lib/kosztorys/clean-unit'
+import { getItemTexts, setItemTexts } from '@/lib/db/kosztorys-item-texts'
 import {
   createSectionWithFirstItem,
   type CreatedSectionWithItemT,
@@ -273,26 +274,31 @@ export async function applyPercentDiscountToAllItemsAction(
   )
 }
 
-// „Popraw literówki w opisie prac" — rewrites every opis in the kosztorys through one shared set of
-// rules (spelling, spacing, sentence case). Bulk overwrite of hand-typed text, irrecoverable by
-// in-session undo, so it snapshots first exactly like applyPercentDiscountToAllItemsAction.
-export async function cleanItemDescriptionsAction(
-  investmentId: number,
-): Promise<ActionResultT<number>> {
+// „Popraw literówki" — rewrites every opis and every j.m. in the kosztorys through one shared set of
+// rules (spelling, spacing, sentence case; notation and transpositions for the j.m.). Bulk overwrite
+// of hand-typed text, irrecoverable by in-session undo, so it snapshots first exactly like
+// applyPercentDiscountToAllItemsAction.
+//
+// A blank column is left blank rather than cleaned into '': the rules have nothing to say about an
+// absent value, and writing one back would count every empty praca as „poprawiona".
+export async function cleanItemTextsAction(investmentId: number): Promise<ActionResultT<number>> {
   return investmentAction(
-    'cleanItemDescriptionsAction',
+    'cleanItemTextsAction',
     { investmentId },
     async ({ payload, user }) => {
       const db = await getDb(payload)
-      const rows = await getItemDescriptions(db, investmentId)
+      const rows = await getItemTexts(db, investmentId)
       const changed = rows.flatMap((row) => {
-        const description = cleanDescription(row.description)
-        return description === row.description ? [] : [{ id: row.id, description }]
+        const description = row.description ? cleanDescription(row.description) : row.description
+        const unit = row.unit ? cleanUnit(row.unit) : row.unit
+        return description === row.description && unit === row.unit
+          ? []
+          : [{ id: row.id, description, unit }]
       })
       if (changed.length === 0) return { success: true, data: 0 }
 
       await captureAutoSnapshot(db, investmentId, user.id)
-      return { success: true, data: await setItemDescriptions(db, investmentId, changed) }
+      return { success: true, data: await setItemTexts(db, investmentId, changed) }
     },
     ['kosztorysItems'],
   )

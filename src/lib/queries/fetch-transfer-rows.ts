@@ -30,10 +30,13 @@ export async function buildTransferRows(
 }
 
 /** Fetches all matching transfers (unpaginated) and maps them to rows. */
-export async function fetchAllTransferRows(where: Where): Promise<TransferRowT[]> {
+export async function fetchAllTransferRows(
+  where: Where,
+  { skipMedia = false }: BuildRowsOptsT = {},
+): Promise<TransferRowT[]> {
   const [docs, refData] = await Promise.all([
     findAllTransfersForExport(where),
     fetchReferenceData(),
   ])
-  return buildTransferRows(docs, refData)
+  return buildTransferRows(docs, refData, { skipMedia })
 }

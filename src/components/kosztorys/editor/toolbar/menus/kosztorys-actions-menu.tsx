@@ -13,7 +13,7 @@ import {
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { KosztorysActionsProvider } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-body'
-import { CleanDescriptionsMenuItem } from '@/components/kosztorys/editor/actions/clean-descriptions-action'
+import { CleanItemTextsMenuItem } from '@/components/kosztorys/editor/actions/clean-item-texts-action'
 import { SaveVersionMenuItem } from '@/components/kosztorys/editor/actions/save-version-action'
 import { ClearKosztorysMenuItem } from '@/components/kosztorys/editor/actions/clear-kosztorys-action'
 import { SavePresetMenuItem } from '@/components/kosztorys/editor/actions/save-preset-action'
@@ -62,7 +62,7 @@ export function KosztorysActionsMenu() {
                 <Redo2 />
                 <MenuItemBody label="Ponów" description="Cmd/Ctrl+Shift+Z" />
               </DropdownMenuItem>
-              <CleanDescriptionsMenuItem />
+              <CleanItemTextsMenuItem />
               <DropdownMenuSeparator />
               <DropdownMenuLabel>Wersje</DropdownMenuLabel>
               <SaveVersionMenuItem />
