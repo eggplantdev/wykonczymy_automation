@@ -211,7 +211,9 @@ renderera hooków (`context/foundation/lessons.md:389`).
 Ryzyko jest browser-level (domyślna akcja dokumentu), więc właściwą warstwą jest Playwright:
 `dataTransfer` konstruowany w `page.evaluate`, drop poza dropzone, asercja że URL się nie zmienił
 i dialog stoi. Zgodnie z AGENTS.md ta zmiana **odkłada** E2E do backlogu — issue w Linearze
-z etykietą `e2e-backlog`, zakładane na bramce przeglądu (`slice-review-gate`, krok 3). Powód:
+z etykietą `e2e-backlog`, założone na bramce przeglądu jako **EX-774** — i tego samego dnia
+**anulowane decyzją właściciela**: jeden przebieg suity ~1 h nie jest wart pokrycia, które i tak
+dublują checki manualne. Ryzyko browser-level zostaje na nich. Powód:
 jeden przebieg suity to ~1 h, a tu nie ma logiki serwerowej ani danych do zepsucia.
 
 ### Manual Testing Steps
@@ -251,3 +253,11 @@ jeden przebieg suity to ~1 h, a tu nie ma logiki serwerowej ani danych do zepsuc
 #### Automated
 
 - [x] 2.1 Brak kroku automatycznego zawężonego do fazy (uzasadnienie w treści fazy) — 7f38282b
+
+## Epilog bramki przeglądu
+
+Bramka (`review-gate.md`) złapała dwa krytyczne bugi w fazie zdarzeń: listenery hooka wisiały
+w fazie bąbelkowej, a `FileInput` woła `stopPropagation`, więc `window` nigdy nie widział ani
+`drop`, ani `dragleave` z wnętrza pola — licznik zagnieżdżeń rósł i nie wracał do zera, czyli słaby
+ring zostawał zapalony na zawsze. Naprawione przejściem na `{ capture: true }`. Przy okazji ten sam
+guard przed migotaniem, który faza 1 dodała do `FileInput`, trafił na przycisk skanu paragonów.
