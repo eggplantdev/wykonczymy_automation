@@ -15,3 +15,7 @@ export const LEGACY_SUFFIX = ' [stary arkusz]'
 export function stripLegacyMarker(description: string): string {
   return description.replace(/\s*\[stary arkusz\]\s*$/u, '')
 }
+
+export function hasLegacyMarker(description: string): boolean {
+  return stripLegacyMarker(description) !== description
+}

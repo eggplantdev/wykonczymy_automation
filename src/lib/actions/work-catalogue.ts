@@ -13,6 +13,7 @@ import {
 import { toCatalogueCandidate } from '@/lib/kosztorys/work-catalogue/item-to-catalogue'
 import { buildCatalogueComparison } from '@/lib/kosztorys/work-catalogue/build-catalogue-comparison'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
+import { hasLegacyMarker, stripLegacyMarker } from '@/lib/kosztorys/work-catalogue/legacy-marker'
 import { appendCatalogueItems } from '@/lib/kosztorys/work-catalogue/append-catalogue-items'
 import { getKosztorysTree } from '@/lib/queries/kosztorys'
 import { getWorkCatalogue } from '@/lib/queries/work-catalogue'
@@ -93,6 +94,41 @@ export async function updateCatalogueItemAction(id: number, data: WorkCatalogueI
       if (existing.docs.length > 0) return { success: false, error: DUPLICATE_ERROR }
 
       await payload.update({ collection: 'work-catalogue-items', id, data: row })
+
+      return { success: true }
+    },
+    ['workCatalogue'],
+  )
+}
+
+// TEMPORARY (owner review of the ~750 prac pulled out of the old sheets): one click takes the
+// „[stary arkusz]" note off an opis, so the review does not go through the edit form for a change
+// that is always the same. Goes away with the note itself, once the katalog is reviewed.
+//
+// `matchKey` is deliberately left alone: `catalogueKey` already strips the note, so the klucz this
+// row holds is the one it will still hold afterwards — recomputing it would only invite a collision
+// check for a value that cannot change.
+export async function clearLegacyMarkerAction(id: number) {
+  return protectedAction(
+    'clearLegacyMarkerAction',
+    async ({ payload }) => {
+      const item = await payload.findByID({
+        collection: 'work-catalogue-items',
+        id,
+        depth: 0,
+        overrideAccess: true,
+        // Without this a stale id throws Payload's own NotFound instead of resolving nullish, and
+        // the owner gets a framework error where a Polish sentence belongs.
+        disableErrors: true,
+      })
+      if (!item) return { success: false, error: MISSING_ITEM_ERROR }
+      if (!hasLegacyMarker(item.description)) return { success: true }
+
+      await payload.update({
+        collection: 'work-catalogue-items',
+        id,
+        data: { description: stripLegacyMarker(item.description) },
+      })
 
       return { success: true }
     },
