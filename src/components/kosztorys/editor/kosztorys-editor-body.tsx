@@ -126,6 +126,7 @@ export function KosztorysEditorBody({
     guideX,
     guideY,
     rowHeights,
+    fitRowsToContent,
     setRowHeight,
     setGuideY,
     subtotals,
@@ -225,7 +226,11 @@ export function KosztorysEditorBody({
   }, [wrap])
   // The override map and the measured widths both invalidate every cached height, not just those
   // below an inserted row.
-  useRowHeightCacheReset(datasheetRef, gridRowKeys, rowHeights, preview ? wrap : undefined)
+  // Both readings of „size me from the content" invalidate every row at once: the preview's, and the
+  // owner's toggle — which is itself a content source, since flipping it changes what every row
+  // measures to without saying which rows changed.
+  const sizeToContent = preview || fitRowsToContent
+  useRowHeightCacheReset(datasheetRef, gridRowKeys, rowHeights, sizeToContent ? wrap : undefined)
   // The empty grid names what emptied it — and the two kinds empty it for opposite reasons: an
   // unticked filter leaves nothing because EVERY pozycja fell into what was unticked, a diagnostic
   // because NONE matched it, which is the goal state and worth saying out loud rather than a dead end.
@@ -282,17 +287,23 @@ export function KosztorysEditorBody({
         isSectionFooterRow(row.id)
       )
         return undefined
+      const columnLines = WRAPPING_COLUMN_IDS.map((id) => ({
+        id,
+        lines: columnContentLines(row, id, wrap.widths, measure),
+      }))
       const height = resolveRowHeight({
         isSectionBand: false,
         override: rowHeights[String(row.id)],
+        contentLines: fitRowsToContent
+          ? Math.max(...columnLines.map((column) => column.lines))
+          : undefined,
       })
-      return WRAPPING_COLUMN_IDS.filter(
-        (id) => heightForLines(columnContentLines(row, id, wrap.widths, measure)) > height,
-      )
-        .map((id) => `kosztorys-clipped-${id}`)
+      return columnLines
+        .filter((column) => heightForLines(column.lines) > height)
+        .map((column) => `kosztorys-clipped-${column.id}`)
         .join(' ')
     }
-  }, [preview, wrap, rowHeights])
+  }, [preview, wrap, rowHeights, fitRowsToContent])
   const gutterColumn = useMemo(
     () => ordinalGutterColumn({ ordinals: ordinalByRowId, resize: rowResize }),
     [ordinalByRowId, rowResize],
@@ -389,7 +400,9 @@ export function KosztorysEditorBody({
                     // flattened editor rows clip the offer they open to check.
                     override: preview ? undefined : rowHeights[String(rowData.id)],
                     contentLines:
-                      preview && !isSyntheticRow(rowData.id) ? contentLinesFor(rowData) : undefined,
+                      sizeToContent && !isSyntheticRow(rowData.id)
+                        ? contentLinesFor(rowData)
+                        : undefined,
                   })
                 }
                 // Tall enough that verbose column labels („Pozostało netto (względem przedmiaru)" etc.)
