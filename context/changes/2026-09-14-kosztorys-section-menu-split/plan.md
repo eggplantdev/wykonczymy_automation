@@ -298,10 +298,10 @@ Brak — faza czysto prozatorska.
 
 #### Automated
 
-- [x] 2.1 Specy kolumn gridu przechodzą
+- [x] 2.1 Specy kolumn gridu przechodzą — d27216ff
 
 ### Phase 3: Dokumentacja
 
 #### Automated
 
-- [ ] 3.1 (brak — faza prozatorska)
+- [x] 3.1 (brak — faza prozatorska)
