@@ -4891,3 +4891,5 @@ Setup: zalogowany jako OWNER/ADMIN (usuwanie i zmiana nazwy są zawężone do ty
 - [ ] Pierwsza sekcja rozpiski ma wygaszone „Przesuń sekcję w górę", ostatnia — „Przesuń sekcję w dół"
 - [ ] Wyszukiwarka zawężająca widok nie wygasza strzałek: praca, której sąsiad jest odfiltrowany, nadal daje się przesunąć
 - [ ] ⋯ na pasku ma barwę sekcji (różną między sekcjami o różnych kolorach), a nie czarną; sekcja bez przypiętego koloru ma ⋯ neutralnie szare
+- [ ] Pisanie nazwy sekcji na pasku: **spacja wpisuje odstęp**, nie zwija sekcji (np. „Prace dodatkowe"); Enter zatwierdza nazwę i **nie** zwija sekcji przy okazji
+- [ ] Pasek z fokusem (Tab na pasek, bez kursora w nazwie) nadal zwija/rozwija sekcję spacją i Enterem

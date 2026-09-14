@@ -120,6 +120,10 @@ export function SectionHeaderCell({
         aria-expanded={!collapsed}
         onClick={toggle}
         onKeyDown={(event) => {
+          // Only the band's own keys, never one bubbling out of the rename input: there Space is a
+          // space and Enter commits the name, and this handler would eat both to toggle the section.
+          // The band is the one focusable element here, so identity is the whole test.
+          if (event.target !== event.currentTarget) return
           if (event.key !== 'Enter' && event.key !== ' ') return
           event.preventDefault()
           toggle()
