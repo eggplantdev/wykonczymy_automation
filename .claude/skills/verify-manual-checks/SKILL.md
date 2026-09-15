@@ -85,6 +85,46 @@ exercise its flows. Two entry modes:
 4. **Tick only what you verified passing.** Passing check → tick its box. Failing/uncertain → leave
    unchecked and log a finding.
 
+## Step 0-alt — Running the pass against staging / the preview DB
+
+The user may point the pass at the deployed **staging** app instead of a local server ("sprawdź to na
+stagingu"). Then Step 0's local half — db-test container, `db:import:test`, `db:migrate:test`, the
+throwaway `:3010` server, the manual-check lock — **does not apply**; none of it backs staging. What
+replaces it:
+
+- **App:** `https://wykonczymy-git-staging-wykonczymys-projects.vercel.app`.
+- **DB:** `DB_POSTGRES_URL_PREVIEW` from `.env` (the preview Neon branch that staging reads).
+  `set -a; source .env; set +a; psql "$DB_POSTGRES_URL_PREVIEW" -c '…'`. Prefer read-only SQL; never
+  `DB_POSTGRES_URL_PROD`.
+- **Confirm the deployed build carries the slice before believing a missing feature.** This repo has a
+  standing "staging runs the old build" gap. `git log -1 --format='%h %ci' origin/staging`, then
+  `npx vercel ls` — the newest **Preview** deployment must be no older than that commit. A feature
+  absent from an older build is a stale deploy, not a finding.
+- **Login — there is no stored staging credential, and this is what cost a previous pass its first
+  half-hour.** `ADMIN`/`PASS` in `.env` are dead, the OWNER rows in the preview DB
+  (`admin@…`, `bartek@…`, `qa-gate@wykonczymy.test`, `verify-owner-ex748@…`) have no password written
+  down anywhere, and **`src/scripts/seed-e2e-user.ts` refuses to run** against a non-localhost host on
+  purpose (it would plant a committed plaintext password in a remote DB — don't defeat that guard).
+  The route that works: a throwaway Local-API script that **resets the password of the existing**
+  `qa-gate@wykonczymy.test` OWNER to a freshly generated secret, run with `DB_POSTGRES_URL` overridden
+  to the preview URL. Reset the standing QA user rather than creating a new one — every pass that
+  minted its own left another OWNER row behind. Three details or it fails:
+  - the script must live **under `src/scripts/`** (the `@payload-config` alias doesn't resolve from a
+    scratchpad path) and wrap its body in an `async main()` (tsx transpiles to CJS — top-level `await`
+    is a build error);
+  - `payload.update` needs `context: { skipRevalidation: true }`, same as the create path;
+  - a Nodemailer `getaddrinfo disabled.invalid` error printing on the way out is the expected outgoing-
+    mail gate (see AGENTS.md), **not** a failure — check for the `password reset for id …` line.
+
+  Then log the browser in from the page itself, which sets the cookie without touching the SSO session:
+  `browser_evaluate` → `fetch('/api/users/login', {method:'POST', …})` with that e-mail and password,
+  and assert the response's `user.role`. Delete the throwaway script at close-out; leave the QA user.
+
+- **Never `browser_close`, never clear all cookies** — that wipes the Vercel preview SSO bypass and
+  locks you out of the host entirely (memory `debugging-clearcookies-kills-vercel-preview-sso`).
+- Staging writes hit the **preview** DB, which is a restored prod dump carrying real names and e-mails:
+  mutate only what a check needs and clean the fixture up, exactly as the local pass would.
+
 ## Step 0 — Preflight (do this first, always)
 
 Before touching a single check, confirm you actually have what the pass needs. If any of these is
@@ -204,6 +244,19 @@ structurally impossible and one observation that the visible state never changed
 closes it. Reserve frame-by-frame instrumentation (`MutationObserver`, rAF sampling) for behavior that
 is genuinely timing-dependent. Fighting a virtualized grid with ad-hoc JS to catch a non-event is the
 anti-pattern this exists to stop (see `lessons.md` → "Driving react-datasheet-grid in a QA pass").
+
+### Two traps that have each cost a pass ~30 minutes
+
+- **Never click a control that reaches the real `window.print()`.** The native print dialog is a
+  modal the automated browser cannot dismiss: every subsequent `browser_*` call hangs until the
+  session is torn down. Verify print behaviour by intercepting instead — override `window.open` and
+  `window.print` via `browser_evaluate` _before_ clicking, then assert the generated document's DOM
+  (rows, column set and order, sorting, line breaks, omitted columns). The one genuinely undrivable
+  part — a real dialog opening and the window closing when it is dismissed — is a `Wymaga człowieka`
+  finding, not something to keep trying.
+- **Tick each box the moment you settle it; never batch the writes to the end.** A pass that holds a
+  dozen verified boxes in its head and then wedges loses all of it. The registry file is the pass's
+  only durable output — treat every settled box as a write, immediately.
 
 ## Step 2 — Fix obvious bugs on the spot
 
