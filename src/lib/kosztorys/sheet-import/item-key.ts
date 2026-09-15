@@ -1,3 +1,4 @@
+import { CATALOGUE_NAME_FIXES } from '@/lib/kosztorys/catalogue-name-fixes'
 import { TYPO_FIXES } from '@/lib/kosztorys/clean-description'
 import { fold } from './columns'
 
@@ -27,11 +28,23 @@ const FOLDED_TYPO_FIXES = TYPO_FIXES.map(
   ([from, to]) => [foldRule(from), foldRule(to)] as const,
 ).filter(([from, to]) => from !== to)
 
+// The same split for the katalog's whole-name corrections: the button gets all 915, identity gets
+// only the 253 that fold cannot already equate. Dropping the rest is not an optimisation — an entry
+// whose fold is its own key is a no-op here, and keeping it would be a chain waiting to happen.
+const FOLDED_CATALOGUE_NAME_FIXES = new Map(
+  [...CATALOGUE_NAME_FIXES]
+    .map(([from, to]) => [from, fold(to)] as const)
+    .filter(([from, to]) => from !== to),
+)
+
 export function foldDescription(description: string | null): string {
-  return FOLDED_TYPO_FIXES.reduce(
+  // Substring rules run first because the table's keys were computed with them already applied
+  // (`61ae1aa5`), so a name only reaches its entry on the far side of that reduce.
+  const spelled = FOLDED_TYPO_FIXES.reduce(
     (text, [from, to]) => text.split(from).join(to),
     fold(description),
   )
+  return FOLDED_CATALOGUE_NAME_FIXES.get(spelled) ?? spelled
 }
 
 // Ids can't carry a praca's identity across a re-import — the sheet has none — and the row number

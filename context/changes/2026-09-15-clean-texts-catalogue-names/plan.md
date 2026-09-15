@@ -393,10 +393,10 @@ bez „[stary arkusz]", przy remisie niższe id).
 
 #### Automated
 
-- [ ] 2.1 Specy klucza przechodzą (`item-key.test.ts`, `catalogue-key.test.ts`)
-- [ ] 2.2 Spec kolizji przechodzi przeciw `db-test`: `pnpm test:integration`
-- [ ] 2.3 Komparator katalogu bez regresji: `build-catalogue-comparison.test.ts`
-- [ ] 2.4 Porównanie z arkuszem bez regresji: `build-sheet-comparison.test.ts`, `build-import-plan.test.ts`
+- [x] 2.1 Specy klucza przechodzą (`item-key.test.ts`, `catalogue-key.test.ts`) — ca689508
+- [x] 2.2 Spec kolizji przechodzi przeciw `db-test`: `pnpm test:integration` — ca689508
+- [x] 2.3 Komparator katalogu bez regresji: `build-catalogue-comparison.test.ts` — ca689508
+- [x] 2.4 Porównanie z arkuszem bez regresji: `build-sheet-comparison.test.ts`, `build-import-plan.test.ts` — ca689508
 
 ### Phase 3: Przycisk podnosi poprawioną nazwę
 

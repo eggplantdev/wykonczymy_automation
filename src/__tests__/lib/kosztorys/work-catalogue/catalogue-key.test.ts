@@ -26,6 +26,12 @@ describe('catalogueKey', () => {
     },
   )
 
+  // Same table, same fold — the katalog side has to converge with the sheet-import side, which is
+  // the whole reason both stand on `foldDescription`.
+  it('keys a name the owner corrected in the katalog the same as its uncorrected twin', () => {
+    expect(key('Lutowanie taśm ledowych', 'pkt')).toBe(key('Lutowanie taśm LED', 'pkt'))
+  })
+
   it('keeps two genuinely different opisy apart', () => {
     expect(key('Malowanie ścian')).not.toBe(key('Malowanie sufitów'))
   })
