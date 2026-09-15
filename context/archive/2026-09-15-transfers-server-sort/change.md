@@ -1,10 +1,10 @@
 ---
 change_id: transfers-server-sort
 title: Sortowanie tabeli transakcji na serwerze; kolumny relacyjne tracą sortowanie
-status: implemented
+status: archived
 created: 2026-09-15
 updated: 2026-09-15
-archived_at: null
+archived_at: 2026-09-15T14:23:29Z
 branch: transfers-server-sort
 worktree: null
 ---
@@ -25,15 +25,15 @@ zawęża się filtrami, nie sortowaniem. Pełne przepisanie listy na surowy SQL 
 
 ### Sortowanie do wyłączenia (nazwa z innej tabeli, w wierszu leży samo `id`)
 
-| Kolumna | id kolumny | pokazuje | w bazie | filtr istnieje? |
-|---|---|---|---|---|
-| Inwestycja | `investment` | `investmentName` | `investment_id` | tak |
-| Kategoria kosztu | `expenseCategory` | `expenseCategoryName` | `expense_category_id` | tak |
-| Kategoria (inne) | `otherCategory` | `otherCategoryName` | `other_category_id` | tak |
-| Kasa źródłowa | `sourceRegister` | `sourceRegisterName` | `source_register_id` | tak |
-| Kasa docelowa | `targetRegister` | `targetRegisterName` | `target_register_id` | tak (ten sam filtr) |
-| Pracownik | `worker` | `workerName` | `worker_id` | tylko z URL-a |
-| Dodał | `createdBy` | `createdByName` | `created_by_id` | tak |
+| Kolumna          | id kolumny        | pokazuje              | w bazie               | filtr istnieje?     |
+| ---------------- | ----------------- | --------------------- | --------------------- | ------------------- |
+| Inwestycja       | `investment`      | `investmentName`      | `investment_id`       | tak                 |
+| Kategoria kosztu | `expenseCategory` | `expenseCategoryName` | `expense_category_id` | tak                 |
+| Kategoria (inne) | `otherCategory`   | `otherCategoryName`   | `other_category_id`   | tak                 |
+| Kasa źródłowa    | `sourceRegister`  | `sourceRegisterName`  | `source_register_id`  | tak                 |
+| Kasa docelowa    | `targetRegister`  | `targetRegisterName`  | `target_register_id`  | tak (ten sam filtr) |
+| Pracownik        | `worker`          | `workerName`          | `worker_id`           | tylko z URL-a       |
+| Dodał            | `createdBy`       | `createdByName`       | `created_by_id`       | tak                 |
 
 Ta sama siódemka co `COLUMN_TO_ACCESSOR` w `src/lib/transfers/sort-transfer-rows.ts` — to jedyne
 kolumny, gdzie id kolumny ≠ klucz wiersza.
