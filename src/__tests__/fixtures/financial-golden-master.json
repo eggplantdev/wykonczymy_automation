@@ -1,7 +1,7 @@
 {
   "fingerprint": {
     "transactionCount": 4246,
-    "kosztorysItemCount": 4671,
+    "kosztorysItemCount": 4928,
     "grossDepositsWithNet": 31,
     "legacyGrossDeposits": 2
   },
@@ -80,7 +80,7 @@
       "87": "fbab6b7e5b50e9853a381051e27edd27",
       "88": "6ae50db6566469967e8d3a1ad38f3bfe",
       "89": "a2d43f1314c14c963212ab2cd4b54bc2",
-      "90": "7a6b74ad1a902859fcea73922f65b03a/k:373|0|:0|bedfc20f634a48fdcdd3014b651829c2|",
+      "90": "7a6b74ad1a902859fcea73922f65b03a/k:320|0|:0|815e11e6944ec0f570ad931085cc1c06|",
       "91": "fe318a78b98dfa55fecb951162d92e79",
       "93": "7eac7f6664af019200c6615bf4094393",
       "94": "7a7bba84a0fac5674c48d46e4e2a68cf",
@@ -111,7 +111,7 @@
       "121": "122a671592e260a6fa12ff4225e21ec6",
       "122": "625b95fb284ca8b9d35cd37b71a099a2",
       "123": "034306289714e421a573f00786bda38f",
-      "124": "3044549f60e9592ee78d5f94f470cbdd",
+      "124": "3044549f60e9592ee78d5f94f470cbdd/k:310|0|:0|c6c12340d82cbfcb71f745d7db55fb39|",
       "125": "67357c482ad99302f3b0dc7213f1988f",
       "126": "9b7c438734a673fb3bcf0bd90e66f7dd",
       "127": "e0265e55aea585f6ac51f212d3215ecc",
