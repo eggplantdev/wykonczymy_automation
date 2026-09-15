@@ -5,8 +5,8 @@ import { parseCellDecimal } from '@/lib/utils/parse-decimal-input'
  * text is held as a draft by the cell, and leaving the cell settles — accepted values stay, refused
  * ones roll the row back to what it held on entry and owe the user a word.
  *
- * React-free on purpose (AGENTS.md): this repo has no hook renderer, so everything worth a test
- * lives out here and `useCellDraft` stays a thin lifecycle around it.
+ * React-free on purpose (AGENTS.md): the rules live out here where a test needs no renderer at all,
+ * and `useCellDraft` stays a thin lifecycle around them.
  *
  * A policy is the whole difference between a plain number field, the rabat pair and a guarded
  * subcontractor price — the rules below are the same for all three.

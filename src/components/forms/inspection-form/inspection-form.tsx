@@ -1,5 +1,6 @@
 'use client'
 
+import { useRef } from 'react'
 import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
 import { FileInput } from '@/components/ui/file-input'
@@ -62,6 +63,23 @@ export function InspectionForm({
 }: InspectionFormPropsT) {
   const { files, isIngesting, inputKey, fileInputProps, reset: resetFiles } = useFilePickIngest()
 
+  /**
+   * The last date this form itself suggested for „Następny termin" — what answers „may I overwrite
+   * this" on a later type change. The real date is printed on the document, so a suggestion is never
+   * an answer: a date the user chose must survive.
+   *
+   * NOT the field's `isTouched`: TanStack marks every field touched on the first validation pass, so
+   * `isTouched` flips the moment anything else on the form is touched — the rodzaj picker that asks
+   * for the suggestion included. Reading it froze the date on whatever the FIRST type change
+   * proposed, so correcting OC to „Przegląd gwarancyjny" left a 12-month date on a 24-month przegląd.
+   *
+   * It has to track every write to the field, not just its own: a restored draft supplies the initial
+   * value, and a `keepOpen` submit puts `defaultValues` back under a still-mounted form. Seeded from
+   * `defaultValues` alone, the ref disagrees with the field from the first keystroke and refuses
+   * every suggestion after that.
+   */
+  const suggestedNextDue = useRef<string | null>(null)
+
   const { form, reset } = useManagedForm<InspectionFormValuesT, InspectionFormDataT>({
     formId,
     useFormStore: useInspectionFormStore,
@@ -70,7 +88,10 @@ export function InspectionForm({
     keepOpen,
     successMessage,
     onSubmitSuccess,
-    onReset: resetFiles,
+    onReset: () => {
+      resetFiles()
+      suggestedNextDue.current = defaultValues.nextDueAt
+    },
     // A restored draft carries whatever date it was saved with — yesterday's, or none at all —
     // and neither is what „data przeglądu = dziś" promises when the dialog reopens.
     mergeStored: (stored) => ({
@@ -102,6 +123,8 @@ export function InspectionForm({
     }),
   })
 
+  suggestedNextDue.current ??= form.getFieldValue('nextDueAt')
+
   const currentType = useStore(form.store, (state) => state.values.type)
   /** „Odczyt licznika" records a number on a day — no deadline, no price, nothing else. */
   const isReading = currentType === 'ODOMETER'
@@ -120,21 +143,15 @@ export function InspectionForm({
       ? previousOdometer
       : null
 
-  /**
-   * Suggest the next due date from the type's interval. The real date is printed on the document, so
-   * this is a suggestion, never an answer — and once the user has touched the field it is theirs:
-   * a later type change must not silently overwrite a typed date.
-   */
   const prefillNextDue = (type: InspectionTypeT) => {
-    if (form.getFieldMeta('nextDueAt')?.isTouched) return
+    if (form.getFieldValue('nextDueAt') !== suggestedNextDue.current) return
 
     const months = INSPECTION_INTERVAL_MONTHS[type]
     const performedAt = form.getFieldValue('performedAt')
+    const next = months && performedAt ? addMonthsToDay(performedAt, months) : ''
 
-    form.setFieldValue(
-      'nextDueAt',
-      months && performedAt ? addMonthsToDay(performedAt, months) : '',
-    )
+    suggestedNextDue.current = next
+    form.setFieldValue('nextDueAt', next)
   }
 
   const onTypeChange = (type: InspectionTypeT) => {
@@ -145,9 +162,11 @@ export function InspectionForm({
       form.setFieldValue('insurer', '')
       form.setFieldValue('policyNumber', '')
     }
-    // A reading is not work: it has no price and nothing it makes due. `prefillNextDue` leaves a
-    // date the user already touched alone, which is exactly what must not survive here.
+    // A reading is not work: it has no price and nothing it makes due. `prefillNextDue` leaves a date
+    // the user chose alone, which is exactly what must not survive here — and once that choice is
+    // gone the field is nobody's again, so the next real type may suggest into it.
     if (type === 'ODOMETER') {
+      suggestedNextDue.current = ''
       form.setFieldValue('nextDueAt', '')
       form.setFieldValue('cost', '')
     }

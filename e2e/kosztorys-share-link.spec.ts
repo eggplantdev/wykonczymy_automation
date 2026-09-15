@@ -1,6 +1,8 @@
-import { execFileSync } from 'node:child_process'
 import { test, expect } from '@playwright/test'
-import { waitForHydration } from './helpers'
+import { DEFAULT_COEFFS } from '@/lib/kosztorys/constants'
+import { formatNet } from '@/lib/kosztorys/format'
+import { bare, runSeedScript, waitForHydration } from './helpers'
+import { anonymousVisit, mintShareToken } from './share-link'
 
 // The share link is the one entrance with no session behind it: `(share)/layout.tsx` deliberately
 // mounts no CurrentUserProvider, because the token IS the credential. `useCurrentUser` throws on a
@@ -8,28 +10,28 @@ import { waitForHydration } from './helpers'
 // anywhere under KosztorysEditorBody → KosztorysTotalsPanel → SummaryPanelContent turns every
 // investor link into a 500 while the authed app stays green (typecheck, units and every other spec
 // run inside the provider). Nothing short of an anonymous browser hitting the real route sees it.
+//
+// EX-550 — the other half of that route is a DISCLOSURE boundary, and it is enforced by two
+// independent halves that only work as a pair: the column allowlist (`PREVIEW_VISIBLE_COLUMNS`) and
+// the price-plane pin (`view = preview ? 'client' : …` in `use-kosztorys-view-state.ts`). The pin is
+// what stops a reader who sets `localStorage['kosztorys-view:<id>']` from repricing the whole tree at
+// the subcontractor's cost basis — the public page ships the full tree, coefficients included, so an
+// unpinned plane would simply render it. That attack is a browser-only fact: no unit test can set a
+// localStorage key for an anonymous origin and watch a server-rendered tree come back repriced.
 test.use({ storageState: 'e2e/.auth/user.json' })
 
 type BandsSeed = {
   investment: number
+  clientPrice: number
   sections: { name: string; net: number; itemCount: number }[]
 }
 
 let seed: BandsSeed
 
-// Same subprocess seeding as the bands spec: importing the Payload config graph pulls next/cache,
-// which Playwright's module loader can't resolve. Reused rather than given its own seed — this spec
-// needs any investment with a non-empty tree, and that is exactly what the bands seed builds.
+// The bands seed, reused rather than given its own: this spec needs any investment with a non-empty
+// tree, and that is exactly what that one builds.
 test.beforeAll(() => {
-  const testDbUrl = process.env.DB_POSTGRES_URL_TEST
-  if (!testDbUrl) throw new Error('[share-spec] DB_POSTGRES_URL_TEST is not set — refusing to seed')
-  const out = execFileSync('pnpm', ['seed:kosztorys-bands'], {
-    encoding: 'utf8',
-    env: { ...process.env, DB_POSTGRES_URL: testDbUrl },
-  })
-  const line = out.split('\n').find((l) => l.startsWith('BANDS_SEED='))
-  if (!line) throw new Error(`[share-spec] seed emitted no BANDS_SEED line:\n${out}`)
-  seed = JSON.parse(line.slice('BANDS_SEED='.length))
+  seed = runSeedScript<BandsSeed>('seed:kosztorys-bands', 'BANDS_SEED')
 })
 
 test('a generated share link renders the kosztorys for a visitor with no session', async ({
@@ -37,41 +39,83 @@ test('a generated share link renders the kosztorys for a visitor with no session
   browser,
   baseURL,
 }) => {
-  // Mint the token through the owner's real dialog rather than inserting a row — the action that
-  // creates it is part of the path under test.
-  await page.goto(`/inwestycje/${seed.investment}/kosztorys_v2`)
-  // exact: „Opcje rozliczenia" in the totals panel matches the same prefix.
-  const optionsMenu = page.getByRole('button', { name: 'Opcje', exact: true })
-  await optionsMenu.waitFor()
-  await waitForHydration(optionsMenu)
-  await optionsMenu.click()
-  await page.getByRole('menuitem', { name: 'Udostępnij' }).click()
-
-  const dialog = page.getByRole('dialog').filter({ hasText: 'Udostępnij inwestorowi' })
-  await dialog.getByRole('button', { name: 'Dalej' }).click()
-  await dialog.getByRole('button', { name: 'Wygeneruj link' }).click()
-  const linkField = dialog.getByRole('textbox')
-  await expect(linkField).toHaveValue(/\/k\/.+/)
-  const token = (await linkField.inputValue()).split('/k/')[1]
-
-  // A context built here inherits nothing from `test.use` above, so it carries no payload-token
-  // cookie — an investor opening the link in their own browser, which is the whole scenario.
-  const anonymous = await browser.newContext({ storageState: undefined, baseURL })
-  const visitor = await anonymous.newPage()
+  const token = await mintShareToken(page, seed.investment)
+  const { page: visitor, status, close } = await anonymousVisit(browser, baseURL, token)
   try {
-    const response = await visitor.goto(`/k/${token}`)
     // Catches a 404 from a token the route refuses. It does NOT catch the render throw this spec
     // exists for: verified by breaking it on purpose (a `useCurrentUser()` inside SummaryPanelContent)
     // — the server logged the throw and still answered 200, because Next had already begun streaming
     // and the failure lands in the client error boundary. The content assertions below are what went
     // red, so they are the load-bearing ones; keep them, and never trade them for a status check.
-    expect(response?.status()).toBe(200)
+    expect(status).toBe(200)
 
-    await expect(visitor.getByText(seed.sections[0].name).first()).toBeVisible()
+    // Visible is not enough, and the whole negative below hangs on the difference: the markup the
+    // server sent is on screen long before React re-reads `localStorage`. A leak that only appears
+    // once the client has read the poisoned key would render into a page this snapshot already
+    // finished reading.
+    const anchor = visitor.getByText(seed.sections[0].name).first()
+    await expect(anchor).toBeVisible()
+    await waitForHydration(anchor)
     // The panel defaults to open, so its content is both mounted and visible on a fresh context —
     // the subtree the risk lives in, proven present rather than assumed.
     await expect(visitor.getByRole('radio', { name: 'Podsumowanie' })).toBeVisible()
+
+    // EX-550 Ryzyko 3. The share page is a leaf: every route it could link to sits behind the login
+    // the visitor does not have, so an anchor here is either a dead end for them or — worse — a path
+    // someone added without noticing who reads this page. Zero is the only honest number, and it is
+    // asserted after the content above so it can never pass on an empty render.
+    expect(await visitor.locator('a[href]').count()).toBe(0)
   } finally {
-    await anonymous.close()
+    await close()
+  }
+})
+
+test('a poisoned price-plane key cannot reprice the shared kosztorys at the subcontractor basis', async ({
+  page,
+  browser,
+  baseURL,
+}) => {
+  const token = await mintShareToken(page, seed.investment)
+  const storageKey = `kosztorys-view:${seed.investment}`
+
+  // „Cena j.m." is the cell the plane actually switches (`viewPrice`), and it is on the allowlist, so
+  // it is the figure to watch. The seed leaves the investment's współczynnik at the collection
+  // default, so „z narzędziami" quotes every row at 65% of the client price — a number that exists in
+  // the shipped tree and would render the moment the plane stopped being pinned.
+  const clientPrice = formatNet(seed.clientPrice)
+  const subcontractorPrice = formatNet(seed.clientPrice * DEFAULT_COEFFS.wTools)
+  expect(bare(subcontractorPrice), 'fixture gives the two planes the same figure').not.toBe(
+    bare(clientPrice),
+  )
+
+  const { page: visitor, close } = await anonymousVisit(browser, baseURL, token, async (fresh) => {
+    // Runs after the document for the origin exists, so `localStorage` is reachable — exactly what a
+    // reader with devtools can do before reloading the link they were sent.
+    await fresh.addInitScript((key) => window.localStorage.setItem(key, 'w_tools'), storageKey)
+  })
+  try {
+    // Visible is not enough, and the whole negative below hangs on the difference: the markup the
+    // server sent is on screen long before React re-reads `localStorage`. A leak that only appears
+    // once the client has read the poisoned key would render into a page this snapshot already
+    // finished reading.
+    const anchor = visitor.getByText(seed.sections[0].name).first()
+    await expect(anchor).toBeVisible()
+    await waitForHydration(anchor)
+    // The poison landed. Without this the test would pass just as green on a typo in the key, having
+    // proven nothing.
+    expect(await visitor.evaluate((key) => window.localStorage.getItem(key), storageKey)).toBe(
+      'w_tools',
+    )
+
+    const body = bare(await visitor.locator('body').innerText())
+    expect(
+      body,
+      'the client figure stopped rendering — the negative below proves nothing',
+    ).toContain(bare(clientPrice))
+    expect(body, 'the subcontractor cost basis reached the public page').not.toContain(
+      bare(subcontractorPrice),
+    )
+  } finally {
+    await close()
   }
 })

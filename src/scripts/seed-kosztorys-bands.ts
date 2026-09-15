@@ -9,7 +9,7 @@
 //     src/scripts/seed-kosztorys-bands.ts
 //
 // Emits one machine-readable line the E2E spec parses:
-//   BANDS_SEED={"investment":<id>,"sections":[{"name":"…","net":<number>,"itemCount":2}, …]}
+//   BANDS_SEED={"investment":<id>,"clientPrice":<number>,"sections":[{"name":"…","net":<number>,"itemCount":2}, …]}
 import { getPayload } from 'payload'
 import config from '../payload.config'
 
@@ -75,6 +75,7 @@ async function main() {
   console.log(
     `BANDS_SEED=${JSON.stringify({
       investment: investment.id,
+      clientPrice: CLIENT_PRICE,
       sections: names.map((name) => ({ name, net: SECTION_NET, itemCount: ITEMS_PER_SECTION })),
     })}`,
   )
