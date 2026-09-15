@@ -85,11 +85,44 @@ Baza porównania: `01079b21` (staging). Pliki nieśledzone czytane wprost — `g
       jest powodem podziału), bootstrap `getPayload`/`vi.mock('server-only')` powielony w ~30 specach
       (dług całego repo, własna zmiana) · sprawdzone, nic realnego.
 
+<!-- primitive-reuse-scan (Step 2 — dopasowanie nowego kodu do katalogu prymitywów) -->
+
+- [x] dismissed · reuse-scan · `src/components/kosztorys/editor/dialogs/sheet-missing-columns-block.tsx:24` ·
+      Inline `missingFields.filter((c) => !c.required)` obok istniejącego `isOptionalField`
+      (`src/lib/kosztorys/sheet-import/columns.ts:76`) — nie reimplementacja: `required` jest USTAWIANE
+      jako `!isOptionalField(field)` (`resolve-columns.ts:121`), więc odczyt gotowej flagi to ta sama
+      odpowiedź krótszą drogą.
+- [x] dropped · reuse-scan · `sheet-missing-columns-block.tsx:24` · `requiredFields`
+      (`sheet-column-picker-options.ts:11`) liczy dopełnienie, ale zwraca gołe `ColumnFieldT[]`, a blok
+      potrzebuje pełnych `MissingFieldT[]` do liczby i etykiet — nit rozmieszczenia, nie duplikat.
+- [x] dismissed · reuse-scan · `sheet-missing-columns-block.tsx:26` · Sklejanie `„etykieta", „etykieta"`
+      obok `listLabels` (`row-conditions/queries.ts:59`) — inny typ wejścia (`RowConditionT`) i inny
+      spójnik („i"/„ani" zamiast przecinków).
+- [x] dropped · reuse-scan · `sheet-missing-columns-block.tsx` / `sheet-pointed-columns-block.tsx` /
+      `sheet-import-dialog.tsx:225` · Trzy instancje kształtu „`SheetReportBlock` + `SheetColumnPicker`".
+      Parametryzacja wzięłaby tyle propsów, ile usuwa kodu, a kopia w oknie importu wozi dodatkowo
+      `ReportTable` na innym typie (`ImportReportT['missingColumns']`). Ekstrakcja, która miała sens,
+      już wcześniej wylądowała: `SheetPointedColumnsBlock` dzielą teraz oba okna.
+- [x] dismissed · reuse-scan · `src/lib/fleet/inspection-draft.ts:8` · `formId` per pojazd — repo nie
+      eksportuje takiego prymitywu; inline'owy szablon (`recipient-list-card.tsx:41`) to konwencja,
+      nie prymityw, a ten wariant ma własny spec.
+- [x] dismissed · reuse-scan · `src/lib/nav/in-app-history.ts:22`, `src/components/ui/use-history-back.ts:9` ·
+      Brak wcześniejszego prymitywu: nic innego w `src` nie woła `router.back()` ani nie czyta
+      `window.history.length`. `useHistoryBack` już istniał i został tylko przepięty.
+- [x] dismissed · reuse-scan · `src/lib/kosztorys/empty-grid-copy.ts:22` · Już deleguje do `EmptyState`
+      i `listLabels` — zwraca treść, prymityw ją renderuje.
+- [x] dismissed · reuse-scan · `src/access/investment-lock.ts:44` · `updateUnlessInvestmentLocked`
+      składa dwa istniejące eksporty z tego samego pliku i korzysta z `resolveId` oraz
+      `isInvestmentLocked` / `isRelatedInvestmentLocked` (`src/lib/db/investment-lock.ts:24,55`).
+
 ## Simplify pass
 
 Ran /simplify — 8 applied, 2 skipped, 2 dropped, 3 dismissed; każdy finding wpięty w `## Findings`
 (tag `simplify`). Cztery agenty (reuse / simplification / efficiency / altitude) na całym drzewie
 względem `01079b21`.
+
+Ran primitive-reuse-scan — 0 potwierdzonych trafień, 8 odrzuconych po weryfikacji przy źródle
+(tag `reuse-scan`). Homes z `.reuse-scan.json`.
 
 ## Tests & suite
 
