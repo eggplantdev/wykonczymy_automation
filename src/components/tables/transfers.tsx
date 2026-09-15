@@ -26,6 +26,11 @@ import type { TransferRowT } from '@/types/transfers'
 
 const col = createColumnHelper<TransferRowT>()
 
+// `enableSorting: false` on a column showing a name from another table (investment, kasy,
+// kategorie, worker, createdBy): the row carries only the id, the name is joined in after the page
+// is fetched, so the database has nothing to order by and the sort would silently cover one page.
+// Those columns narrow by filter instead (EX-777). Kept per column rather than derived from
+// SERVER_SORTABLE_TRANSFER_COLUMNS so the decision is readable here; a spec pins the two in step.
 const allColumns = [
   col.accessor('id', {
     id: 'id',
@@ -75,6 +80,7 @@ const allColumns = [
   col.accessor('investmentName', {
     id: 'investment',
     header: 'Inwestycja',
+    enableSorting: false,
     meta: { minWidth: 'min-w-40', printValue: (row) => row.investmentName },
     cell: (info) => {
       const id = info.row.original.investmentId
@@ -95,6 +101,7 @@ const allColumns = [
   col.accessor('expenseCategoryName', {
     id: 'expenseCategory',
     header: EXPENSE_CATEGORY_LABEL,
+    enableSorting: false,
     meta: { printValue: (row) => row.expenseCategoryName },
     cell: (info) => info.getValue(),
   }),
@@ -115,6 +122,7 @@ const allColumns = [
   col.accessor('otherCategoryName', {
     id: 'otherCategory',
     header: 'Kategoria (inne wydatki)',
+    enableSorting: false,
     meta: { printValue: (row) => row.otherCategoryName },
     cell: (info) => info.getValue(),
   }),
@@ -137,6 +145,7 @@ const allColumns = [
   col.accessor('sourceRegisterName', {
     id: 'sourceRegister',
     header: 'Kasa źródłowa',
+    enableSorting: false,
     meta: { minWidth: 'min-w-40', printValue: (row) => row.sourceRegisterName },
     cell: (info) => {
       const id = info.row.original.sourceRegisterId
@@ -149,6 +158,7 @@ const allColumns = [
   col.accessor('targetRegisterName', {
     id: 'targetRegister',
     header: 'Kasa docelowa',
+    enableSorting: false,
     meta: { printValue: (row) => row.targetRegisterName },
     cell: (info) => {
       const id = info.row.original.targetRegisterId
@@ -168,6 +178,7 @@ const allColumns = [
   col.accessor('workerName', {
     id: 'worker',
     header: 'Pracownik',
+    enableSorting: false,
     meta: { printValue: (row) => row.workerName },
     cell: (info) => {
       const id = info.row.original.workerId
@@ -182,6 +193,7 @@ const allColumns = [
   col.accessor('createdByName', {
     id: 'createdBy',
     header: 'Dodane przez',
+    enableSorting: false,
     meta: { minWidth: 'min-w-40', printValue: (row) => row.createdByName },
     cell: (info) => info.getValue(),
   }),

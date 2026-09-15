@@ -50,8 +50,13 @@ type DataTablePropsT<TData> = {
   virtualContainerHeight?: number
   /** localStorage key for persisting column visibility */
   storageKey?: string
-  /** Sort applied on first render. Defaults to none. */
+  /** Sort applied on first render. Defaults to none. Ignored when `sorting` is controlled. */
   initialSorting?: SortingState
+  /** Controlled sort. Pass it together with `onSortingChange` and the table stops sorting rows
+   * itself (`manualSorting`) — the caller is expected to fetch them already ordered. Either prop
+   * alone leaves the table on its own local, client-side sort. */
+  sorting?: SortingState
+  onSortingChange?: (next: SortingState) => void
   /** Makes the row clickable — navigates to the returned URL */
   getRowHref?: (row: TData) => string | undefined
   /** Row click handler for a row that must not be an href — see `DataTableRow`. */
@@ -75,6 +80,8 @@ export function DataTable<TData>({
   virtualContainerHeight = 600,
   storageKey,
   initialSorting = [],
+  sorting: controlledSorting,
+  onSortingChange,
   getRowHref,
   onRowClick,
   getRowClassName,
@@ -83,7 +90,9 @@ export function DataTable<TData>({
   belowToolbar,
   className,
 }: DataTablePropsT<TData>) {
-  const [sorting, setSorting] = useState<SortingState>(initialSorting)
+  const [localSorting, setLocalSorting] = useState<SortingState>(initialSorting)
+  const isManualSorting = controlledSorting !== undefined && onSortingChange !== undefined
+  const sorting = isManualSorting ? controlledSorting : localSorting
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [ranks, setRanks] = useState<ColumnRanksT>({})
 
@@ -117,7 +126,12 @@ export function DataTable<TData>({
       columnVisibility,
       columnOrder: orderColumnKeys(declaredColumnIds, ranks),
     },
-    onSortingChange: setSorting,
+    onSortingChange: (updater) => {
+      const next = typeof updater === 'function' ? updater(sorting) : updater
+      if (isManualSorting) onSortingChange(next)
+      else setLocalSorting(next)
+    },
+    manualSorting: isManualSorting,
     onColumnVisibilityChange: (updater) => {
       setColumnVisibility((prev) => {
         const next = typeof updater === 'function' ? updater(prev) : updater

@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { ADMIN_OR_OWNER_MANAGER_ROLES, ROLE_LABELS } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/utils/pagination'
+import { parseTransferSort } from '@/lib/queries/transfer-sort'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { fetchFilteredByType } from '@/lib/queries/transfer-totals'
 import { fetchEquipmentAtLocation } from '@/lib/queries/equipment'
@@ -23,6 +24,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
   const { id } = await params
   const sp = await searchParams
   const { page, limit } = parsePagination(sp)
+  const sort = parseTransferSort(sp)
 
   const userId = Number(id)
   const urlFilters = buildTransferFilters(sp, { id: currentUser.id })
@@ -62,7 +64,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
       <HeldEquipmentSection equipment={heldEquipment} />
       <TransfersSection
         config={{
-          query: { where: transferWhere, page, limit },
+          query: { where: transferWhere, page, limit, sort },
           baseUrl: `/pracownicy/${id}`,
           excludeColumns: ['worker'],
           filters: buildFilterConfig(refData, ['users', 'expenseCategories', 'type']),

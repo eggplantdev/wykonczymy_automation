@@ -1,4 +1,5 @@
 import { parsePagination } from '@/lib/utils/pagination'
+import { parseTransferSort } from '@/lib/queries/transfer-sort'
 import { buildTransferFilters } from '@/lib/queries/transfer-filters'
 import { fetchManagerDashboardData } from '@/lib/queries/dashboard'
 import { UserRegisterStats } from '@/components/dashboard/user-register-stats'
@@ -14,6 +15,7 @@ type ManagerDashboardPropsT = {
 export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT) {
   const step = perfStart()
   const { page, limit } = parsePagination(searchParams)
+  const sort = parseTransferSort(searchParams)
 
   const {
     visibleRegisters,
@@ -38,6 +40,7 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
             where: buildTransferFilters(searchParams, { id: 0 }),
             page,
             limit,
+            sort,
           },
           baseUrl: '/',
           cancelledTransactionAudit: searchParams.cancelledTransactionAudit === '1',

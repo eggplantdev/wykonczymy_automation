@@ -2,7 +2,9 @@ import type { Where } from 'payload'
 import type { FilterConfigT } from '@/types/filters'
 import type { PaginationParamsT } from '@/lib/utils/pagination'
 
-type TransferQueryT = PaginationParamsT & { where: Where }
+// `sort` travels with page/limit rather than living in the table: the whole point of EX-777 is that
+// the DATABASE orders the rows, so the ordering has to be part of the query the host parses.
+type TransferQueryT = PaginationParamsT & { where: Where; sort: string }
 
 export type TransferTableConfigT = {
   query: TransferQueryT

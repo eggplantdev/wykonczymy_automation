@@ -1,21 +1,24 @@
 import { describe, it, expect } from 'vitest'
 import { getTransferColumns } from '@/components/tables/transfers'
-import { sortKeyForColumn } from '@/lib/transfers/sort-transfer-rows'
-import { transferRow } from '@/__tests__/fixtures/transfer-row'
+import { SERVER_SORTABLE_TRANSFER_COLUMNS } from '@/lib/transfers/sortable-columns'
 
-// A missing alias fails silently: the accessor reads undefined on every row, the comparator returns
-// 0, and the printout quietly comes out in fetch order while the screen is sorted. That is exactly
-// how sorting by „Pracownik" was lost — so pin the whole set, not the one id that went missing.
-describe('every sortable transfer column resolves to a real row key', () => {
+// The two lists answer the same question from opposite ends and neither fails loudly on its own: a
+// column left sortable that the whitelist rejects gets a clickable header whose click is thrown
+// away by the parser, and a whitelist entry with no sortable column is an ordering nobody can ask
+// for. Predecessor of this spec pinned „column id hits a real row key"; server-side sorting makes
+// the stronger claim — „column id hits a real database column" — so it replaces it.
+describe('sortable transfer columns match the server whitelist', () => {
   const sortableIds = getTransferColumns()
     .filter((column) => column.enableSorting !== false)
     .map((column) => column.id!)
 
-  it('has sortable columns to check', () => {
-    expect(sortableIds.length).toBeGreaterThan(0)
+  const declaredIds = getTransferColumns().map((column) => column.id!)
+
+  it('every sortable column is server-sortable', () => {
+    expect([...sortableIds].sort()).toEqual([...SERVER_SORTABLE_TRANSFER_COLUMNS].sort())
   })
 
-  it.each(sortableIds)('"%s"', (columnId) => {
-    expect(Object.keys(transferRow())).toContain(sortKeyForColumn(columnId))
+  it.each(SERVER_SORTABLE_TRANSFER_COLUMNS)('"%s" is a real column', (columnId) => {
+    expect(declaredIds).toContain(columnId)
   })
 })

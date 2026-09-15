@@ -4,6 +4,7 @@ import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { requireManagementPage } from '@/lib/auth/require-management-page'
 import { parseInvestmentId } from '@/lib/queries/investment-id'
 import { parsePagination } from '@/lib/utils/pagination'
+import { parseTransferSort } from '@/lib/queries/transfer-sort'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { fetchFilteredByType, fetchCategoryBreakdowns } from '@/lib/queries/transfer-totals'
 import { deriveFinancials } from '@/lib/db/investment-financials'
@@ -34,6 +35,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   const { id } = await params
   const sp = await searchParams
   const { page, limit } = parsePagination(sp)
+  const sort = parseTransferSort(sp)
 
   const investmentId = parseInvestmentId(id)
   const urlFilters = buildTransferFilters(sp, { id: user.id })
@@ -115,7 +117,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
 
       <TransfersSection
         config={{
-          query: { where: transferWhere, page, limit },
+          query: { where: transferWhere, page, limit, sort },
           baseUrl: `/inwestycje/${id}`,
           excludeColumns: ['investment'],
           filters: buildFilterConfig(refData, 'investments'),
