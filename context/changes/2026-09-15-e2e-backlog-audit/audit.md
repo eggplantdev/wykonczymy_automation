@@ -66,7 +66,7 @@ Legenda: `[x]` — sprawa domknięta w Linearze (anulowana) · `[ ]` — czeka n
       `AGENTS.md`. Żywa reszta = EX-473, opisana aktualniej. Podwójna księgowość jednego objawu.
 - [x] · **ANULOWANE** · `EX-544` · Parytet rekoncyliacji na dwóch powierzchniach — **już
       napisane**: `kosztorys-reconciliation.spec.ts` ma `cross-surface parity`, `mismatch: both
-    surfaces scream` i `match: neither surface screams`. Te asercje odeszły razem z EX-676, ale
+  surfaces scream` i `match: neither surface screams`. Te asercje odeszły razem z EX-676, ale
       nie zostawiły luki: werdykt ma 14 testów jednostkowych. Resztka (filtr URL nie może wywołać
       fałszywego krzyku) jest punktem 4 w EX-634.
 - [x] · **ANULOWANE** · `EX-676` · `kosztorys-reconciliation.spec.ts` — 4 testy × 120 s timeoutu
@@ -163,11 +163,11 @@ ingescie pliku albo na czymś, co kasuje dane. Żadna warstwa niżej tego nie wi
       wczytania strony, zero mutacji — tanie, więc zostaje mimo niskiej stawki.
 - [ ] · ZOSTAJE · `EX-771` · Rejestr sprzętu (dodanie → przekazanie → „gdzie jest").
 
-### ZDEGRADUJ — prawdziwe ryzyko, zła warstwa (24)
+### ZDEGRADUJ — prawdziwe ryzyko, zła warstwa (23)
 
-Nie kasować. Przepiąć na harness komponentowy, gdy stanie. Każde z nich to fakt o wyrenderowanym
-DOM-ie albo o przejściu stanu w hooku — rzeczy, które `jsdom` rozstrzyga w milisekundach, a
-Playwright kupuje za pełny `build` + bazę.
+Nie kasować. Przepiąć na harness komponentowy — **stoi od 2026-09-15**, opis niżej. Każde z nich to
+fakt o wyrenderowanym DOM-ie albo o przejściu stanu w hooku — rzeczy, które `jsdom` rozstrzyga
+w milisekundach, a Playwright kupuje za pełny `build` + bazę.
 
 - [ ] · ZDEGRADUJ · `EX-743` · Przełącznik kolumn gubi `<th>`, zostawia `<td>` — wartości pod cudzym
       nagłówkiem. Najwyższa wartość w całej tej grupie i najczystszy przykład: to jest asercja o
@@ -266,8 +266,39 @@ Playwright czeka na to, czego nie ma, więc gnicie specu i obciążenie maszyny 
 Zanim przypiszesz coś flakowi: sprawdź, czy tekst, na który spec czeka, w ogóle istnieje w `src/`,
 a fixture — w bazie na 5435.
 
-## Co dalej — decyzja dla Ciebie
+## Harness komponentowy — postawiony 2026-09-15
 
-Została jedna: wchodzimy w harness komponentowy (`vitest` + `jsdom` + `@testing-library/react`)?
-To warunek sensowności grupy „ZDEGRADUJ" — bez niego te 23 pozycje trzeba albo napisać drogo, albo
-skasować.
+Decyzja zapadła i warstwa istnieje. Kształt, bo to nie jest samo „dodaj jsdom":
+
+- **Rozszerzenie wybiera runner.** `vitest.config.ts` ma dwa projekty: `node` bierze
+  `src/__tests__/**/*.test.ts`, `dom` bierze `**/*.test.tsx` w jsdom. Spec nie da się przypadkiem
+  wylądować na złym silniku, a `scripts/test-integration.sh` dalej wyławia specy bazodanowe
+  grepem, nie wciągając przy tym żadnego DOM-owego. Oba projekty jadą pod jednym `pnpm test`,
+  czyli pod istniejącą nogą pre-push — bez zmian w hooku.
+- **Moduł `'use server'` jest podmieniany, nie importowany.** Next podstawia za niego stub RPC,
+  zanim kod trafi do przeglądarki; Vitest nie robi nic, więc **jeden** statycznie zaimportowany
+  server action wciągał do jsdom-owego specu Payloada, klienta bazy i żywe gniazdo Nodemailera do
+  `EMAIL_HOST` (widziałem to na własne oczy przy pierwszym uruchomieniu: `connect ECONNREFUSED
+127.0.0.1:465`). `stubServerActions` w configu robi to, co framework. Każdy stub **rzuca** przy
+  wywołaniu — spec komponentowy asertuje UI po drodze do akcji, a jeśli naprawdę potrzebuje, żeby
+  akcja się rozwiązała, mówi to wprost przez `vi.mock`.
+- **jsdom nie ma silnika layoutu**, więc `matchMedia`, `ResizeObserver` i `scrollIntoView` są
+  zaślepione w `src/__tests__/setup/dom.ts`. Radix i cmdk bramkują się na nich; bez zaślepek
+  popover montuje się i natychmiast znika, a błąd czyta się jako „zły selektor" — czyli wysyła
+  czytelnika w złą stronę.
+
+**Pierwszy spec jest dowodem, nie przykładem zabawkowym.**
+`src/__tests__/components/kosztorys/editor/grid/cells/section-header-cell.test.tsx` (6 testów,
+**150 ms**) pokrywa dokładnie tę pozycję, którą przy scalaniu wyciąłem z EX-472 jako „nie-E2E":
+pasek sekcji jest `role="button"`, a input do zmiany nazwy siedzi w środku, więc każdy klawisz
+wpisywany w nazwę dociera też do handlera paska. Ta kolizja weszła na produkcję 2026-09-14 —
+spacja zwijała sekcję zamiast wpisać odstęp — i przeszła bez testu z jednego powodu: repo nie
+miało renderera DOM. Teraz ma.
+
+Dla porównania: ten sam fakt w Playwrighcie to pełny `pnpm build`, wstanie serwera, baza na 5435
+i logowanie — kilka minut na asercję, którą jsdom rozstrzyga w 150 ms.
+
+## Co dalej
+
+Zostało przepięcie 23 pozycji z grupy „ZDEGRADUJ" na nową warstwę. Nie ma już powodu, żeby
+którakolwiek z nich czekała na Playwrighta.

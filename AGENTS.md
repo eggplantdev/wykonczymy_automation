@@ -326,7 +326,12 @@ How the financial figures (marża / materiały / robocizna / korekty) connect: `
 
 ## Testing
 
-Two test homes by layer: **unit** → Vitest specs under `src/__tests__` (aliases `@/*` → `./src/*`); single-file command in **Common Commands**. **Browser E2E** → Playwright specs under `e2e/` (`pnpm test:e2e`), against the isolated 5435 `db-test` container — see the harness in `context/changes/e2e-harness/`.
+Three test homes by layer, and **the file extension picks the runner**: **unit** → `src/__tests__/**/*.test.ts` in node; **component/DOM** → `src/__tests__/**/*.test.tsx` in jsdom with `@testing-library/react`; **browser E2E** → Playwright specs under `e2e/` (`pnpm test:e2e`) against the isolated 5435 `db-test` container — harness in `context/changes/e2e-harness/`. Both Vitest projects (`node`, `dom`) run under one `pnpm test` / `pnpm vitest run`, share the aliases in `vitest.config.ts`, and are what the pre-push unit leg executes; `--project dom` narrows to one. Single-file command in **Common Commands**.
+
+**The DOM layer exists to catch what a node spec cannot see and an E2E should not pay for** — a rendered empty state, a disabled control, a value that survives a remount, an event escaping a nested input. Route a browser-level risk here first and to Playwright only when the risk genuinely crosses client → server action → DB → revalidation; the 2026-09-15 backlog audit (`context/changes/2026-09-15-e2e-backlog-audit/audit.md`) is the worked example of that split. Two rules the harness enforces rather than documents:
+
+- **A `'use server'` module is stubbed, not imported** (`stubServerActions` in `vitest.config.ts`) — Next swaps it for an RPC stub before it reaches the browser, and without the same swap one statically-imported action drags Payload, the DB client and a live Nodemailer socket into a jsdom spec. Every stubbed export **throws** when called: assert the UI on the way to the action, or `vi.mock` the action explicitly.
+- **jsdom has no layout engine**, so `matchMedia`, `ResizeObserver` and `scrollIntoView` are stubbed in `src/__tests__/setup/dom.ts`. Radix and cmdk gate on them; without the stubs a popover mounts and instantly hides, and the failure reads as a bad selector.
 
 **Vitest specs live under `src/__tests__`, never colocated next to their source** — this is the
 one place the feature-first rule is deliberately overridden, because `scripts/test-integration.sh`
