@@ -5406,22 +5406,35 @@ Setup: zalogowany jako OWNER/ADMIN (usuwanie i zmiana nazwy są zawężone do ty
 
 ### Phase 1: Sort serwerowy
 
-- [ ] Na `/inwestycje/26` (366 transakcji) klik w „Kwota" wyrzuca na górę `#1102` 73 656,26 zł — wiersz, którego dziś na pierwszej stronie nie widać
-- [ ] Trzeci klik w ten sam nagłówek zdejmuje sortowanie i wraca do kolejności sprzed kliknięć
-- [ ] Posortowany widok wklejony jako link otwiera się posortowany
-- [ ] Nagłówki siedmiu kolumn relacyjnych nie reagują na klik i nie pokazują strzałki
-- [ ] Pozostałe tabele (sprzęt, flota, kosztorysy, inwestycje, pracownicy, zgłoszenia, szablony, katalog prac) sortują jak przed zmianą
+- [x] Na `/inwestycje/26` (366 transakcji) klik w „Kwota" wyrzuca na górę `#1102` 73 656,26 zł — wiersz, którego dziś na pierwszej stronie nie widać
+      _Zweryfikowano 2026-09-15 (staging @ 9c110945, baza podglądowa): `/inwestycje/26` (365 wyników). Klik w „Kwota" ustawia `?sort=-amount`, ikona nagłówka przechodzi na `arrow-down`, a kolejność kwot jest malejąca monotonicznie przez wszystkie 100 wierszy strony. `#1102` 73 656,26 zł wychodzi na pozycję **drugą** — na liście bez sortowania go nie ma (sprawdzone po identyfikatorach całej pierwszej setki), więc wyjście spoza strony pierwszej jest dokładnie tym, co box mierzy. Nad nim stoi `#3182` 218 000,00 zł, wiersz, którego w dniu pisania boxa jeszcze nie było (na liście bez sortowania jest, mieści się w setce po dacie) — literalne „na górę" jest więc o jeden wiersz nieaktualne wobec danych, sam mechanizm zgodny._
+- [x] Trzeci klik w ten sam nagłówek zdejmuje sortowanie i wraca do kolejności sprzed kliknięć
+      _Zweryfikowano 2026-09-15 (staging @ 9c110945, baza podglądowa): cykl trzystanowy potwierdzony klik po kliku: `?sort=-amount` (arrow-down) → `?sort=amount` (arrow-up) → brak parametru i ikona `arrow-up-down opacity-40`. Pierwsza piątka po trzecim kliku identyczna ze stanem sprzed kliknięć: #4458, #4457, #4437, #4391, #4379._
+- [x] Posortowany widok wklejony jako link otwiera się posortowany
+      _Zweryfikowano 2026-09-15 (staging @ 9c110945, baza podglądowa): zimne wejście pod `/inwestycje/26?sort=-amount` (pełne przeładowanie, nie klik) renderuje od razu #3182 / #1102 / #3181, a nagłówek „Kwota" ma `arrow-down`._
+- [x] Nagłówki siedmiu kolumn relacyjnych nie reagują na klik i nie pokazują strzałki
+      _Zweryfikowano 2026-09-15 (staging @ 9c110945, baza podglądowa): spis wszystkich nagłówków: dokładnie siedem kolumn relacyjnych — „Typ wydatku inwestycyjnego", „Kategoria (inne wydatki)", „Faktura", „Kasa źródłowa", „Kasa docelowa", „Pracownik", „Dodane przez" — nie ma ikony sortowania i ma `cursor: auto` (sortowalne mają `cursor: pointer` i ikonę). Klik w „Kasa źródłowa" przy aktywnym `?sort=-amount` nie zmienia adresu ani kolejności. Poza nimi bez ikony są jeszcze „Notatka" (nierelacyjna, świadomie niesortowalna) i „Akcje" (nie kolumna danych)._
+- [x] Pozostałe tabele (sprzęt, flota, kosztorysy, inwestycje, pracownicy, zgłoszenia, szablony, katalog prac) sortują jak przed zmianą
+      _Zweryfikowano 2026-09-15 (staging @ 9c110945, baza podglądowa): przejechane wszystkie osiem. Każda sortuje po staremu, po stronie klienta: trzystanowy cykl asc → desc → brak, kolejność faktycznie się odwraca, **adres nigdy nie dostaje parametru `sort`**. /sprzet (6 wierszy, „Nazwa", startuje z domyślnym asc), /flota (2, „Rejestracja"), /kosztorysy (117, „Nazwa"), /inwestycje (116, „Nazwa"), /pracownicy (45, „Imię i nazwisko"), /zgloszenia (167, „Imię i nazwisko"), /katalog-prac (929, „Opis pracy"), /szablony (1 wiersz — cykl ikon przechodzi, ale przy jednym wierszu kolejność nic nie dowodzi). Zgadza się z kodem: `data-table.tsx` włącza `manualSorting` i wyłącza multi-sort **tylko** gdy przyjdą oba propsy `sorting` + `onSortingChange`; bez nich wraca dokładnie do poprzedniego stanu lokalnego. Osobno: malejące sortowanie po nazwie na /kosztorysy nie jest ścisłym odwróceniem rosnącego (polskie znaki diakrytyczne lądują poza literami podstawowymi) — to zastane zachowanie domyślnego porównania TanStacka, nietknięte przez ten slice._
 
 ### Phase 2: Wydruk na tym samym kluczu
 
-- [ ] Na `/inwestycje/26` posortowanej po „Kwota" malejąco pierwsze dziesięć wierszy wydruku to te same dziesięć wierszy, co na ekranie, w tej samej kolejności
-- [ ] Wydruk bez aktywnego sortowania wychodzi w kolejności identycznej z ekranem bez sortowania
-- [ ] Pobieranie faktur (ZIP) działa jak przed zmianą
+- [x] Na `/inwestycje/26` posortowanej po „Kwota" malejąco pierwsze dziesięć wierszy wydruku to te same dziesięć wierszy, co na ekranie, w tej samej kolejności
+      _Zweryfikowano 2026-09-15 (staging @ 9c110945, baza podglądowa): `?sort=-amount`, wydruk wywołany realnym kliknięciem „Drukuj" z podmienionym `window.open` (okno-atrapa zbiera `document.write`, `print()` jest pustą funkcją — natywny dialog nigdy nie startuje, bo zawiesza sterowaną przeglądarkę). Wydruk niesie **365 wierszy** (bez stronicowania), a jego pierwsza dziesiątka to co do wiersza i co do kolejności ta sama dziesiątka, co na ekranie: #3182, #1102, #3181, #3845, #3183, #3171, #3177, #3185, #3174, #2173._
+- [x] Wydruk bez aktywnego sortowania wychodzi w kolejności identycznej z ekranem bez sortowania
+      _Zweryfikowano 2026-09-15 (staging @ 9c110945, baza podglądowa): ten sam instrument na `/inwestycje/26` bez parametru sortowania: pierwsza dziesiątka wydruku znak w znak równa pierwszej dziesiątce ekranu (#4458 … #4316), porównanie na złączonych ciągach ID + data + kwota wychodzi identyczne. Wydruk znów 365 wierszy._
+- [x] Pobieranie faktur (ZIP) działa jak przed zmianą
+      _Zweryfikowano 2026-09-15 (staging @ 9c110945, baza podglądowa): klik „Faktury" przy podmienionym `HTMLAnchorElement.prototype.click` (pobranie przechwycone, żaden plik nie trafił na dysk). Archiwum `faktury-2026-09-15.zip` powstało z adresu `blob:`, toast zamknął się komunikatem „Pobrano 122 z 122 — 243 pozycje bez faktury" (122 + 243 = 365, czyli cały zbiór). Zero nieudanych pobrań — przy okazji potwierdza, że store podglądowy jest po wczorajszym uzupełnieniu kompletny. Kod niezmieniony: `invoice-download-button.tsx` nie przekazuje klucza sortowania, więc wpada w wartość domyślną._
 
 ### Phase 3: Filtr „Pracownik" i etykieta „Kasa"
 
-- [ ] Filtr „Pracownik" zawęża listę do wybranych osób i da się wybrać kilka naraz
-- [ ] „Wyczyść filtry" kasuje też pracownika
-- [ ] Na `/pracownicy/[id]` filtra „Pracownik" nie ma (pracownik jest domyślny)
-- [ ] Link „wypłaty" z karty inwestycji dalej trafia w listę zawężoną do jednego pracownika
-- [ ] Filtr „Kasa" pokazuje transakcje, w których wybrana kasa jest źródłem **albo** celem
+- [x] Filtr „Pracownik" zawęża listę do wybranych osób i da się wybrać kilka naraz
+      _Zweryfikowano 2026-09-15 (staging @ 9c110945, baza podglądowa): lista startuje z wszystkimi zaznaczonymi, więc najpierw „Odznacz wszystkie" (`?worker=__none__`). Damian Jonski → `?worker=41`, **21 wyników**, w kolumnie „Pracownik" wyłącznie on. Dołożony Paweł Kopeć → `?worker=41,22`, **41 wyników**, dokładnie te dwa nazwiska i nikt inny._
+- [x] „Wyczyść filtry" kasuje też pracownika
+      _Zweryfikowano 2026-09-15 (staging @ 9c110945, baza podglądowa): przy aktywnym `?worker=41,22` (41 wyników) klik „Wyczyść filtry" zdejmuje parametr całkowicie — adres wraca do gołego `/inwestycje/26`, licznik do 365._
+- [x] Na `/pracownicy/[id]` filtra „Pracownik" nie ma (pracownik jest domyślny)
+      _Zweryfikowano 2026-09-15 (staging @ 9c110945, baza podglądowa): `/pracownicy/41`: wśród filtrów są tylko „Kasa", „Kategoria" i „Wyczyść filtry" — przycisku „Pracownik" nie ma. Tabela też nie niesie kolumny „Pracownik" (w jej miejscu stoi „Inwestycja"), co jest spójne: pracownik jest tu kontekstem strony, nie wymiarem do wyboru._
+- [x] Link „wypłaty" z karty inwestycji dalej trafia w listę zawężoną do jednego pracownika
+      _Zweryfikowano 2026-09-15 (staging @ 9c110945, baza podglądowa): `/inwestycje/26?type=PAYOUT&worker=41` — kształt, który składa `investmentTransfersHref` dla pojedynczego podwykonawcy — daje **21 wierszy, wszystkie typu „Wypłata", wszystkie Damiana Jonskiego**, a chip filtra pokazuje „Pracownik (1)". Tyle samo, co przy ręcznym zaznaczeniu jednej osoby, więc pojedyncze `worker=<id>` nie rozmyło się w nowym filtrze wielokrotnego wyboru._
+- [x] Filtr „Kasa" pokazuje transakcje, w których wybrana kasa jest źródłem **albo** celem
+      _Zweryfikowano 2026-09-15 (staging @ 9c110945, baza podglądowa): na pełnej liście transakcji (3111 wyników) „Odznacz wszystkie" i zaznaczona jedna kasa „Adrian konto mbank" → `?sourceRegister=9`, **566 wyników**. Na wyrenderowanej setce: 92 wiersze mają ją jako źródło, 8 jako cel, a wierszy, w których nie występuje po żadnej ze stron, jest **zero**. To jest dokładnie alternatywa źródło-albo-cel. (Nazwa parametru `sourceRegister` została z czasów, gdy filtr patrzył tylko na źródło — zachowanie jest już obustronne.)_
