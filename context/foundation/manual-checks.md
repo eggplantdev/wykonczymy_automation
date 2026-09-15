@@ -178,8 +178,6 @@ wylądowało z `auto_reply_status = 'skipped'`), a defekt, który EX-660 naprawi
 Warsztat szablonu 4 (`/szablony/4`) jest fixturem: przed zmianą okno „Porównaj z katalogiem prac"
 zgłaszało tam 30 prac spoza katalogu.
 
-- [x] `4de2666e^:src/scripts/data/work-catalogue-fixes.tsv` i `61ae1aa5` faktycznie prowadzą do
-      tabeli, z której wygenerowano moduł — 938 wierszy, 915 unikalnych opisów
 - [ ] `/szablony/4` → „Porównaj z katalogiem prac" pokazuje **6** prac spoza katalogu zamiast 30,
       **bez klikania „Popraw literówki"**
 - [ ] Ta szóstka to 5 wariantów, które właściciel doprecyzował w katalogu („Klejenie paneli

@@ -1,7 +1,9 @@
 # „Popraw literówki" przejmuje nazwy z katalogu prac — Plan Brief
 
-> Pełny plan: `context/changes/2026-09-15-clean-texts-catalogue-names/plan.md`
-> Diagnoza i notatki: `context/changes/2026-09-15-clean-texts-catalogue-names/change.md`
+> Pełny plan wdrożenia został zdystylowany przy archiwizacji — leży w historii gita
+> (`git show c6f355da:context/changes/2026-09-15-clean-texts-catalogue-names/plan.md`).
+> Trwała lekcja o `match_key` trafiła do `context/foundation/lessons.md`.
+> Diagnoza i notatki: `change.md` obok.
 
 ## What & Why
 
