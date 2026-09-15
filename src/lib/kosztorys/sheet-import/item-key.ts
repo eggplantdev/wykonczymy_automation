@@ -28,9 +28,9 @@ const FOLDED_TYPO_FIXES = TYPO_FIXES.map(
   ([from, to]) => [foldRule(from), foldRule(to)] as const,
 ).filter(([from, to]) => from !== to)
 
-// The same split for the katalog's whole-name corrections: the button gets all 915, identity gets
-// only the 253 that fold cannot already equate. Dropping the rest is not an optimisation — an entry
-// whose fold is its own key is a no-op here, and keeping it would be a chain waiting to happen.
+// The same split for the katalog's whole-name corrections: the button gets the whole table, identity
+// gets only the entries fold cannot already equate. Dropping the rest is not an optimisation — an
+// entry whose fold is its own key is a no-op here, and keeping it would be a chain waiting to happen.
 const FOLDED_CATALOGUE_NAME_FIXES = new Map(
   [...CATALOGUE_NAME_FIXES]
     .map(([from, to]) => [from, fold(to)] as const)

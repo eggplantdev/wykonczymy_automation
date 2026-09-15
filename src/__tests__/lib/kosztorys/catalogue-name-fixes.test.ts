@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { CATALOGUE_NAME_FIXES } from '@/lib/kosztorys/catalogue-name-fixes'
 import { fold } from '@/lib/kosztorys/sheet-import/columns'
+import { foldDescription } from '@/lib/kosztorys/sheet-import/item-key'
 import { hasLegacyMarker } from '@/lib/kosztorys/work-catalogue/legacy-marker'
 
-// The table is 915 lines pasted in from a deleted TSV, so nothing about its shape can be argued
+// The table was pasted in from a deleted TSV, so nothing about its shape can be argued
 // from reading the code — every invariant the two consumers stand on has to be machine-checked.
 describe('CATALOGUE_NAME_FIXES', () => {
   it('carries every correction the owner prepared, deduplicated by opis', () => {
@@ -23,13 +24,13 @@ describe('CATALOGUE_NAME_FIXES', () => {
     expect(marked).toEqual([])
   })
 
-  // Idempotence of both consumers rests on this: a value that is also a key would rewrite twice,
-  // and the raw TSV does contain 8 such chains — they survive only via identity entries, which the
-  // derivative drops. That is a property of today's data, not of the construction.
-  it('has no chains left once the identity entries are filtered out', () => {
-    const derived = [...CATALOGUE_NAME_FIXES].filter(([key, value]) => fold(value) !== key)
-    const keys = new Set(derived.map(([key]) => key))
-    const chained = derived.filter(([, value]) => keys.has(fold(value)))
+  // Idempotence of both consumers rests on this: a corrected name that is itself a key would be
+  // rewritten twice. Asserted through `foldDescription` rather than against the raw keys, because
+  // that is the composition the code actually applies — substring rules, then the whole-name map.
+  it('settles every corrected name in one pass', () => {
+    const chained = [...CATALOGUE_NAME_FIXES.values()].filter(
+      (value) => foldDescription(foldDescription(value)) !== foldDescription(value),
+    )
     expect(chained).toEqual([])
   })
 })

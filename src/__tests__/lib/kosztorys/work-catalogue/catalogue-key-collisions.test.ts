@@ -10,7 +10,7 @@ const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SEC
 // surface on the next write — a seed, a praca wstawiona z katalogu — in production, not here.
 // Uniqueness is a property of the data, not of the fold, so only real rows can answer it.
 describe.skipIf(!ENV_READY)('catalogueKey over the whole katalog (DB)', () => {
-  let keyed: { key: string; description: string }[]
+  let keyed: { key: string; matchKey: string; description: string }[]
 
   beforeAll(async () => {
     const { getPayload } = await import('payload')
@@ -18,8 +18,12 @@ describe.skipIf(!ENV_READY)('catalogueKey over the whole katalog (DB)', () => {
     const db = await getDb(await getPayload({ config }))
     keyed = (await listCatalogueItems(db)).map((item) => ({
       key: catalogueKey(item.description, item.unit),
+      matchKey: item.matchKey,
       description: item.description,
     }))
+    // Without a floor an empty katalog would make both assertions below pass having proven nothing
+    // — the same trap `pnpm test:parity`'s dataset floor exists for.
+    expect(keyed.length).toBeGreaterThan(500)
   })
 
   it('gives every praca a key of its own', () => {
@@ -27,8 +31,18 @@ describe.skipIf(!ENV_READY)('catalogueKey over the whole katalog (DB)', () => {
     for (const { key, description } of keyed) {
       byKey.set(key, [...(byKey.get(key) ?? []), description])
     }
-    // The colliding opisy, not just the count — a bare tally would not say what to reconcile.
     const collisions = [...byKey].filter(([, descriptions]) => descriptions.length > 1)
     expect(collisions).toEqual([])
+  })
+
+  // Uniqueness among freshly computed keys cannot see the sharper failure: the app matches a fresh
+  // key against the STORED `match_key` („Porównaj z katalogiem", the picker), and an insert keyed
+  // differently from the column hits `ON CONFLICT DO NOTHING` and adds a second copy. A fold
+  // widening re-keys the computation without re-keying the rows, so this is what would go red.
+  it('still agrees with the key stored on every row', () => {
+    const stale = keyed
+      .filter(({ key, matchKey }) => key !== matchKey)
+      .map((row) => row.description)
+    expect(stale).toEqual([])
   })
 })

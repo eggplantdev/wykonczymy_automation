@@ -384,23 +384,23 @@ bez „[stary arkusz]", przy remisie niższe id).
 
 #### Automated
 
-— ae010767
+— d3fea016
 
-- [x] 1.1 Nowy spec przechodzi: `pnpm exec vitest run src/__tests__/lib/kosztorys/catalogue-name-fixes.test.ts` — ae010767
+- [x] 1.1 Nowy spec przechodzi: `pnpm exec vitest run src/__tests__/lib/kosztorys/catalogue-name-fixes.test.ts` — d3fea016
 - [x] 1.2 Tabela ma 915 wpisów (asercja w tym samym specu)
 
 ### Phase 2: Tożsamość — fold absorbuje poprawki nazw
 
 #### Automated
 
-- [x] 2.1 Specy klucza przechodzą (`item-key.test.ts`, `catalogue-key.test.ts`) — ca689508
-- [x] 2.2 Spec kolizji przechodzi przeciw `db-test`: `pnpm test:integration` — ca689508
-- [x] 2.3 Komparator katalogu bez regresji: `build-catalogue-comparison.test.ts` — ca689508
-- [x] 2.4 Porównanie z arkuszem bez regresji: `build-sheet-comparison.test.ts`, `build-import-plan.test.ts` — ca689508
+- [x] 2.1 Specy klucza przechodzą (`item-key.test.ts`, `catalogue-key.test.ts`) — f01637df
+- [x] 2.2 Spec kolizji przechodzi przeciw `db-test`: `pnpm test:integration` — f01637df
+- [x] 2.3 Komparator katalogu bez regresji: `build-catalogue-comparison.test.ts` — f01637df
+- [x] 2.4 Porównanie z arkuszem bez regresji: `build-sheet-comparison.test.ts`, `build-import-plan.test.ts` — f01637df
 
 ### Phase 3: Przycisk podnosi poprawioną nazwę
 
 #### Automated
 
-- [x] 3.1 Nowy spec przechodzi: `pnpm exec vitest run src/__tests__/lib/kosztorys/clean-description.test.ts` — 86a2ce62
-- [x] 3.2 J.m. bez zmian: `pnpm exec vitest run src/__tests__/lib/kosztorys/clean-unit.test.ts` — 86a2ce62
+- [x] 3.1 Nowy spec przechodzi: `pnpm exec vitest run src/__tests__/lib/kosztorys/clean-description.test.ts` — dfa69f81
+- [x] 3.2 J.m. bez zmian: `pnpm exec vitest run src/__tests__/lib/kosztorys/clean-unit.test.ts` — dfa69f81

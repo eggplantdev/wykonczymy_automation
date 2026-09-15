@@ -1,5 +1,6 @@
 import { CATALOGUE_NAME_FIXES } from '@/lib/kosztorys/catalogue-name-fixes'
 import { fold } from '@/lib/kosztorys/sheet-import/columns'
+import { LEGACY_SUFFIX, stripLegacyMarker } from '@/lib/kosztorys/work-catalogue/legacy-marker'
 
 // Text cleanup for „Opis prac". Every rule is idempotent, so re-running over already-clean text is a
 // no-op — the owner can press the button as often as they like, and the same rules can be replayed
@@ -78,6 +79,8 @@ const ABBREVIATIONS = new Set([
   'sr.',
   'pom.',
   'c.o.',
+  'c.w.u.',
+  'z.w.u.',
   'pow.',
   'ew.',
   'mb.',
@@ -183,13 +186,24 @@ function sentenceCase(text: string): string {
   )
 }
 
+// Each corrected name is entered under its OWN fold as well, so pressing the button twice lands on
+// the table a second time instead of falling through to `sentenceCase` — which would capitalise
+// after an abbreviation the corrected name introduced („c.w.u. Oraz"). Idempotence by construction
+// rather than by keeping `ABBREVIATIONS` ahead of 915 hand-written strings. Safe because no
+// corrected name folds onto a different entry's key (asserted in the table's spec).
+const CATALOGUE_NAMES_BY_FOLD = new Map([
+  ...CATALOGUE_NAME_FIXES,
+  ...[...CATALOGUE_NAME_FIXES.values()].map((to) => [fold(to), to] as const),
+])
+
 export function cleanDescription(text: string): string {
   const spelled = TYPO_FIXES.reduce((acc, [from, to]) => acc.split(from).join(to), text)
-  // The whole-name corrections the owner made in the katalog, which no substring rule reaches:
-  // missing ogonki, a KNR line break healed mid-word, „taśm ledowych" → „taśm LED". They win over
-  // `unshout`/`sentenceCase` because they are already written in their target casing — and they run
-  // last among the rewrites so a SHOUTED opis still finds its entry, which `fold` case-flattens.
-  const named = CATALOGUE_NAME_FIXES.get(fold(spelled))
-  if (named) return named
+  // „[stary arkusz]" is display text, never identity (`legacy-marker`), and the picker copies it
+  // verbatim into a rozpiska — so a marked praca has to reach its entry and come back still marked.
+  const bare = stripLegacyMarker(spelled)
+  const named = CATALOGUE_NAMES_BY_FOLD.get(fold(bare))
+  // They win over `unshout`/`sentenceCase` because they are already written in their target casing,
+  // and they run last among the rewrites so a SHOUTED opis still finds its entry via `fold`.
+  if (named !== undefined) return bare === spelled ? named : named + LEGACY_SUFFIX
   return sentenceCase(unshout(spelled.replace(/\s+/g, ' ').trim()))
 }
