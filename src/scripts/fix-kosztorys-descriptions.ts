@@ -16,7 +16,6 @@ import { getItemTexts, setItemTexts } from '../lib/db/kosztorys-item-texts'
 import { cleanDescription } from '../lib/kosztorys/clean-description'
 import { listCatalogueItems } from '../lib/db/work-catalogue'
 import { catalogueKey } from '../lib/kosztorys/work-catalogue/catalogue-key'
-import { LEGACY_SUFFIX, stripLegacyMarker } from '../lib/kosztorys/work-catalogue/legacy-marker'
 
 const INV = process.env.INV ?? 'all'
 const APPLY = process.env.APPLY === '1'
@@ -86,12 +85,8 @@ async function fixPresets(db: DbExecutorT): Promise<void> {
 async function fixCatalogue(db: DbExecutorT): Promise<void> {
   const items = await listCatalogueItems(db)
   const cleaned = items.map((item) => {
-    // The marker comes off for the cleanup and goes back on after — `sentenceCase` would read it as
-    // part of the sentence.
-    const stripped = stripLegacyMarker(item.description)
-    const bare = cleanDescription(stripped)
-    const marker = stripped === item.description ? '' : LEGACY_SUFFIX
-    return { item, description: `${bare}${marker}`, matchKey: catalogueKey(bare, item.unit) }
+    const description = cleanDescription(item.description)
+    return { item, description, matchKey: catalogueKey(description, item.unit) }
   })
   const changed = cleaned.filter(
     (entry) =>

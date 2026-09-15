@@ -170,7 +170,7 @@ note here capturing anything surprising the phase taught.)
 Exclusions agreed during the rollout (Phase 2 interview, Q5). Future
 contributors should respect these unless the underlying assumption changes.
 
-- **Google Sheets sync / mirror** — retired at cutover (roadmap S-09). Don't invest in testing the dying integration beyond the one-time parity oracle in Phase 5 and not corrupting live data before then. Re-evaluate only if cutover is cancelled. (Source: Phase 2 interview Q5.)
+- ~~**Google Sheets sync / mirror**~~ — **NO LONGER EXCLUDED (owner, 2026-09-15).** The original entry read "retired at cutover (roadmap S-09), don't invest in testing the dying integration". That premise is wrong: the integration is not going away for a long time. Two versions of the app — Sheets-integrated and standalone — will run **side by side** for an extended period, so the sync is live production code serving live clients, not a dying branch. Test it on the same merit as anything else: route from a named risk, weigh it against what neighbouring specs already cover. The one thing that stays non-negotiable is **not corrupting live client data** — every non-production database is a restored prod dump carrying real sheet ids, which is how eight sheets took 36 foreign rows in 2026-08. (Source: Phase 2 interview Q5, overturned by the owner during the 2026-09-15 test-suite audit — `context/changes/2026-09-15-test-suite-audit/research.md` §1.)
 - **Caching / revalidation correctness** — the team is explicitly not worried about caching. Re-evaluate if a stale-data incident surfaces. (Source: interview Q3, Q5.)
 - **UI snapshot / visual-regression tests** — brittle, catch little on this app's screens. Re-evaluate if a purely-visual regression class emerges. (Source: interview Q5.)
 - **Payload admin panel** — framework-owned, low blast radius, not our code. (Source: interview Q5.)
@@ -181,6 +181,11 @@ contributors should respect these unless the underlying assumption changes.
 - Strategy (§1–§5) last reviewed: 2026-07-08
 - Stack versions last verified: 2026-07-08
 - AI-native tool references last verified: 2026-07-08
+- §7 negative space last reviewed: **2026-09-15** — the Sheets exclusion was overturned (see §7). Two
+  entries still stand unverified against what the team believes today: **caching / revalidation**
+  (83 LOC of specs exist against the exclusion) and **UI snapshot / visual-regression** (the repo's
+  only `.snap` is an API-payload characterization, not a visual one, so it does not violate this).
+- §4 stack figures are **stale**: it says "52 spec files"; the suite holds **348** (measured 2026-09-15).
 
 Refresh (`/10x-test-plan --refresh`) when:
 

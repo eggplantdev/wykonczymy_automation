@@ -173,6 +173,24 @@ wylądowało z `auto_reply_status = 'skipped'`), a defekt, który EX-660 naprawi
       będzie co porównać ze skrzynką. (Fixture „QA Wiertarka udarowa" opisany wyżej żyje w bazie
       testowej, nie na produkcji.)
 
+## clean-texts-catalogue-names — nazwy prac z tabeli poprawek katalogu (2026-09-15)
+
+Warsztat szablonu 4 (`/szablony/4`) jest fixturem: przed zmianą okno „Porównaj z katalogiem prac"
+zgłaszało tam 30 prac spoza katalogu.
+
+- [ ] `/szablony/4` → „Porównaj z katalogiem prac" pokazuje **6** prac spoza katalogu zamiast 30,
+      **bez klikania „Popraw literówki"**
+- [ ] Ta szóstka to 5 wariantów, które właściciel doprecyzował w katalogu („Klejenie paneli
+      winylowych" — mijanka / jodełka / układ prosty), plus „Dwukrotne gruntowanie ścian, sufitów
+      i podłóg"
+- [ ] Przycisk „Popraw literówki" zmienia opisy 24 prac; drugie kliknięcie pod rząd raportuje
+      0 poprawionych
+- [ ] Żaden opis w rozpisce nie dostaje „[stary arkusz]"
+- [ ] J.m. po kliknięciu jest taka sama jak przed, poza `klp` → `kpl`
+- [ ] Snapshot sprzed kliknięcia jest na liście i przywraca stare opisy
+- [ ] Na inwestycji z podpiętym arkuszem Google porównanie z arkuszem nie zaczyna zgłaszać
+      istniejących prac jako nowych
+
 # Zamknięte — indeks
 
 Jedna linia na slice, **wszystkie 94** — liczby są policzone z pełnego rejestru sprzed przycięcia.

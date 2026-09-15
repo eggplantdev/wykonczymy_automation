@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { cleanDescription, TYPO_FIXES } from '@/lib/kosztorys/clean-description'
-import { itemKey, keyItems } from '@/lib/kosztorys/sheet-import/item-key'
+import { foldDescription, itemKey, keyItems } from '@/lib/kosztorys/sheet-import/item-key'
 import type { KosztorysItemT } from '@/lib/kosztorys/types'
 
 const key = (description: string) => itemKey('Wyburzenia', description, 0)
@@ -36,6 +36,19 @@ describe('itemKey', () => {
 
   it('keys the same across case, diacritics and whitespace runs', () => {
     expect(key('Malowanie  ŚCIAN')).toBe(key('malowanie scian'))
+  })
+
+  // The 915 katalog corrections reach identity too, or the button that applies them to a rozpiska
+  // would tear that rozpiska off the arkusz it is compared against.
+  it('keys a name the owner corrected in the katalog the same as the one the rozpiska still has', () => {
+    expect(key('Lutowanie taśm ledowych')).toBe(key('Lutowanie taśm LED'))
+  })
+
+  it('stays idempotent where the raw table chained one correction into another', () => {
+    // „motnaz tv" → „Montaż TV", and „montaz tv" is a key of its own — folding a second time must
+    // not walk that second hop.
+    expect(foldDescription(foldDescription('motnaz tv'))).toBe(foldDescription('motnaz tv'))
+    expect(key('motnaz tv')).toBe(key('Montaż TV'))
   })
 
   // The guarantee the import rests on: whatever „Popraw literówki" would do to an opis, the key does
