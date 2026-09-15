@@ -29,6 +29,9 @@ describe.skipIf(!ENV_READY)('transfer sort spans the whole filtered set (DB)', (
   })
 
   it('puts the global maximum amount on the first page', () => {
+    // Asserted before the index: an empty page would otherwise read as a TypeError on `undefined`
+    // instead of „the test DB was never imported".
+    expect(firstPage.length).toBeGreaterThan(0)
     const globalMax = Math.max(...everyDoc.map((doc) => Number(doc.amount)))
     expect(Number(firstPage[0].amount)).toBe(globalMax)
   })

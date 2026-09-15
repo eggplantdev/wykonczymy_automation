@@ -16,6 +16,7 @@ import type { PaginationMetaT } from '@/lib/utils/pagination'
 import type { TransferTableConfigT } from '@/components/transfers/transfer-table-config'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import { sortParamToSortingState, sortingStateToParam } from '@/lib/table/sort-param'
+import { validTransferSort } from '@/lib/queries/transfer-sort'
 import { useUrlFilterParams } from '@/hooks/use-url-filter-params'
 
 type TransferDataTablePropsT = {
@@ -43,10 +44,10 @@ export function TransferDataTable({
     print,
   } = config
 
-  // The sort lives in the URL, so a sorted view is a link — and the server, not the browser, is
-  // what orders the rows, which is why the printout can no longer disagree with the screen.
+  // Through the same whitelist the server used, so a hand-edited `?sort=` the page refused cannot
+  // leave the header arrow — or the printout, which reads this state — pointing somewhere else.
   const { updateParam } = useUrlFilterParams(baseUrl)
-  const sorting = sortParamToSortingState(searchParams.get('sort') ?? undefined)
+  const sorting = sortParamToSortingState(validTransferSort(searchParams.get('sort') ?? undefined))
 
   const columns = getTransferColumns(excludeColumns, {
     referenceData,

@@ -9,6 +9,7 @@ import { CACHE_TAGS } from '@/lib/cache/tags'
 import { perfStart } from '@/lib/perf'
 import { TRANSFER_TYPES, PAYMENT_METHODS } from '@/lib/constants/transfers'
 import { FIELDS_ONLY_THE_ORIGINAL_CARRIES } from '@/lib/queries/transfer-filters'
+import { DEFAULT_TRANSFER_SORT } from '@/lib/transfers/sortable-columns'
 
 type FindTransfersOptsT = PaginationParamsT & {
   where?: Where
@@ -22,7 +23,7 @@ export async function findTransfersRaw({
   where = {},
   page,
   limit,
-  sort = '-id',
+  sort = DEFAULT_TRANSFER_SORT,
 }: FindTransfersOptsT) {
   return unstable_cache(
     async () => {

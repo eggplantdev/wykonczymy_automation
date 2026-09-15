@@ -11,9 +11,17 @@ function getStringParam(value: string | string[] | undefined): string | undefine
   return typeof value === 'string' ? value : undefined
 }
 
+/**
+ * Ids reach raw SQL by interpolation (`where-to-sql.ts`), so anything `Number` accepts but Postgres
+ * does not has to die here. `Number.isInteger` rather than a truthiness check: `?worker=1e999`
+ * parses to `Infinity`, which is truthy and lands in the statement as a bare `infinity` identifier.
+ */
 function parseNumericIds(param: string | undefined): number[] {
   if (!param) return []
-  return param.split(',').map(Number).filter(Boolean)
+  return param
+    .split(',')
+    .map(Number)
+    .filter((id) => Number.isInteger(id) && id !== 0)
 }
 
 type AmountSearchT = { mode: 'prefix'; text: string } | { mode: 'range'; low: number; high: number }

@@ -49,8 +49,7 @@ export function PrintTransfersButton({ where, table, title }: PrintTransfersButt
 
     startTransition(async () => {
       // Refetches instead of reusing the table's rows: the table is paginated, the printout is not.
-      // The screen's sort key travels with the request, so the database orders both sets the same
-      // way and nothing here re-sorts what comes back.
+      // The screen's sort key travels with the request, so the database orders both sets the same way.
       const result = await fetchFilteredTransfers(where, {
         skipMedia: true,
         sort: sortingStateToParam(table.getState().sorting) || undefined,

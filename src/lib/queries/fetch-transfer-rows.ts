@@ -17,7 +17,7 @@ type BuildRowsOptsT = {
 }
 
 type FetchAllRowsOptsT = BuildRowsOptsT & {
-  /** Order the database applies to the whole set. Defaults to `DEFAULT_TRANSFER_SORT`. */
+  /** Defaults to `DEFAULT_TRANSFER_SORT` — the same order an unsorted screen shows. */
   sort?: string
 }
 

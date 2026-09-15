@@ -1,9 +1,9 @@
 /**
  * The transfer columns the database can order by — every one a column of `transactions` itself.
  *
- * The seven relational columns (investment, kasy, kategorie, worker, createdBy) are absent on
- * purpose: the row carries only an id under them and the name is joined in after the page is
- * fetched, so `payload.find` with `depth: 0` has nothing to sort on. They narrow by filter instead.
+ * The relational columns (investment, kasy, kategorie, worker, createdBy) are absent on purpose:
+ * the row carries only an id under them and the name is joined in after the page is fetched, so
+ * `payload.find` with `depth: 0` has nothing to sort on. They narrow by filter instead.
  */
 export const SERVER_SORTABLE_TRANSFER_COLUMNS = [
   'id',

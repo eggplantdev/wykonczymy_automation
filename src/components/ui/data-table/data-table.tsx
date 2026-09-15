@@ -132,6 +132,9 @@ export function DataTable<TData>({
       else setLocalSorting(next)
     },
     manualSorting: isManualSorting,
+    // Shift-click multi-sort is an affordance the controlled contract can't honour: the sort round
+    // trips through a single URL parameter, so a second key would vanish on the next render.
+    enableMultiSort: !isManualSorting,
     onColumnVisibilityChange: (updater) => {
       setColumnVisibility((prev) => {
         const next = typeof updater === 'function' ? updater(prev) : updater

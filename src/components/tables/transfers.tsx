@@ -1,4 +1,5 @@
-import { createColumnHelper } from '@tanstack/react-table'
+import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
+import { isServerSortableColumn } from '@/lib/transfers/sortable-columns'
 import { OptionalLink } from '@/components/ui/optional-link'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDate, formatPLDateTime } from '@/lib/utils/format-date'
@@ -26,11 +27,6 @@ import type { TransferRowT } from '@/types/transfers'
 
 const col = createColumnHelper<TransferRowT>()
 
-// `enableSorting: false` on a column showing a name from another table (investment, kasy,
-// kategorie, worker, createdBy): the row carries only the id, the name is joined in after the page
-// is fetched, so the database has nothing to order by and the sort would silently cover one page.
-// Those columns narrow by filter instead (EX-777). Kept per column rather than derived from
-// SERVER_SORTABLE_TRANSFER_COLUMNS so the decision is readable here; a spec pins the two in step.
 const allColumns = [
   col.accessor('id', {
     id: 'id',
@@ -80,7 +76,6 @@ const allColumns = [
   col.accessor('investmentName', {
     id: 'investment',
     header: 'Inwestycja',
-    enableSorting: false,
     meta: { minWidth: 'min-w-40', printValue: (row) => row.investmentName },
     cell: (info) => {
       const id = info.row.original.investmentId
@@ -101,7 +96,6 @@ const allColumns = [
   col.accessor('expenseCategoryName', {
     id: 'expenseCategory',
     header: EXPENSE_CATEGORY_LABEL,
-    enableSorting: false,
     meta: { printValue: (row) => row.expenseCategoryName },
     cell: (info) => info.getValue(),
   }),
@@ -122,7 +116,6 @@ const allColumns = [
   col.accessor('otherCategoryName', {
     id: 'otherCategory',
     header: 'Kategoria (inne wydatki)',
-    enableSorting: false,
     meta: { printValue: (row) => row.otherCategoryName },
     cell: (info) => info.getValue(),
   }),
@@ -130,14 +123,12 @@ const allColumns = [
   col.accessor('invoices', {
     id: 'invoice',
     header: 'Faktura',
-    enableSorting: false,
     meta: { align: 'center' },
     cell: (info) => <InvoiceCell transactionId={info.row.original.id} invoices={info.getValue()} />,
   }),
   col.accessor('invoiceNote', {
     id: 'invoiceNote',
     header: 'Notatka',
-    enableSorting: false,
     meta: { align: 'center' },
     cell: (info) => <NotePopover note={info.getValue()} />,
   }),
@@ -145,7 +136,6 @@ const allColumns = [
   col.accessor('sourceRegisterName', {
     id: 'sourceRegister',
     header: 'Kasa źródłowa',
-    enableSorting: false,
     meta: { minWidth: 'min-w-40', printValue: (row) => row.sourceRegisterName },
     cell: (info) => {
       const id = info.row.original.sourceRegisterId
@@ -158,7 +148,6 @@ const allColumns = [
   col.accessor('targetRegisterName', {
     id: 'targetRegister',
     header: 'Kasa docelowa',
-    enableSorting: false,
     meta: { printValue: (row) => row.targetRegisterName },
     cell: (info) => {
       const id = info.row.original.targetRegisterId
@@ -178,7 +167,6 @@ const allColumns = [
   col.accessor('workerName', {
     id: 'worker',
     header: 'Pracownik',
-    enableSorting: false,
     meta: { printValue: (row) => row.workerName },
     cell: (info) => {
       const id = info.row.original.workerId
@@ -193,7 +181,6 @@ const allColumns = [
   col.accessor('createdByName', {
     id: 'createdBy',
     header: 'Dodane przez',
-    enableSorting: false,
     meta: { minWidth: 'min-w-40', printValue: (row) => row.createdByName },
     cell: (info) => info.getValue(),
   }),
@@ -226,7 +213,6 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
   const actionsColumn = col.display({
     id: 'actions',
     header: 'Akcje',
-    enableSorting: false,
     cell: (info) => {
       const row = info.row.original
       if (row.cancelled || isCancellationType(row.type)) return null
@@ -261,7 +247,16 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
     },
   })
 
-  const columns = [...allColumns, actionsColumn]
+  // Sortability is derived, never declared per column: a column showing a name from another table
+  // (investment, kasy, kategorie, worker, createdBy) carries only the id in the row — the name is
+  // joined in after the page is fetched, so the database has nothing to order by and the click
+  // would silently sort one page. Those columns narrow by filter instead (EX-777). Deriving keeps
+  // the whitelist the single source of truth; declaring it here needed a spec to stop the two drifting.
+  const columns: ColumnDef<TransferRowT, unknown>[] = [...allColumns, actionsColumn].map((column) =>
+    isServerSortableColumn(column.id!)
+      ? (column as ColumnDef<TransferRowT, unknown>)
+      : { ...(column as ColumnDef<TransferRowT, unknown>), enableSorting: false },
+  )
 
   if (exclude.length === 0) return columns
   const excludeSet = new Set(exclude)
