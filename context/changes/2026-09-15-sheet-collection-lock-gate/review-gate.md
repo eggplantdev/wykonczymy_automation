@@ -126,7 +126,15 @@ Ran primitive-reuse-scan — 0 potwierdzonych trafień, 8 odrzuconych po weryfik
 
 ## Tests & suite
 
-_(na końcu)_
+- `pnpm typecheck` — zielony.
+- `pnpm lint` — 0 błędów, 83 ostrzeżenia (wszystkie zastane: nieużywane argumenty w `src/migrations/**`).
+- `pnpm test` — 3391 przeszło, 295 pominiętych (specy DB bez `ENV_READY`), 0 nieudanych.
+- `pnpm test:integration` (kontener 5435) — 65 plików, 292 testy, komplet zielony; tu biegną nowe
+  specy `sheets-investment-lock.db.test.ts` i oba `invoice-on-*.db.test.ts`.
+- `pnpm build` — zielony.
+- `pnpm test:e2e` — **nieuruchamiany.** Slice nie dokłada powierzchni przeglądarkowej: EX-770 zamyka
+  regułę `access` w `/admin` (pokryte specem DB na trwałym stanie), a naprawa „Wróć" ma spec
+  jednostkowy na predykacie. Reszta drzewa to treść komunikatów i fixture'y specy.
 
 <!-- feature-first-structure / module-cohesion-audit / structure-scatter-audit -->
 
