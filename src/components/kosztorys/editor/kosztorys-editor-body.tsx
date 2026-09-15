@@ -46,9 +46,9 @@ import {
 } from '@/lib/kosztorys/row-content-lines'
 import {
   HEADER_HEIGHT_KEY,
-  HEADER_ROW_HEIGHT,
   fitRowHeight,
   heightForLines,
+  resolveHeaderRowHeight,
   resolveRowHeight,
 } from '@/lib/kosztorys/row-height'
 import { RowHeightFitProvider } from '@/components/kosztorys/editor/actions/row-height-fit-context'
@@ -436,9 +436,9 @@ export function KosztorysEditorBody({
                   // Tall enough that verbose column labels („Pozostało netto (względem przedmiaru)" etc.)
                   // wrap onto two rows instead of truncating — and draggable from the same handle as a
                   // row, since which labels wrap depends on how wide the owner made their columns.
-                  headerRowHeight={
-                    (preview ? undefined : rowHeights[HEADER_HEIGHT_KEY]) ?? HEADER_ROW_HEIGHT
-                  }
+                  headerRowHeight={resolveHeaderRowHeight(
+                    preview ? undefined : rowHeights[HEADER_HEIGHT_KEY],
+                  )}
                   lockRows
                   rowKey={({ rowData }) => String(rowData.id)}
                   rowClassName={({ rowData }) =>

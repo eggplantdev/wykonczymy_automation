@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
+  HEADER_ROW_HEIGHT,
   ITEM_ROW_HEIGHT,
   SECTION_BAND_ROW_HEIGHT,
   fitRowHeight,
   heightForLines,
+  resolveHeaderRowHeight,
   resolveRowHeight,
 } from '@/lib/kosztorys/row-height'
 import { sectionHeaderRowId } from '@/lib/kosztorys/synthetic-rows'
@@ -89,5 +91,22 @@ describe('fitRowHeight', () => {
   it('floors a section band at the band height, not the item height', () => {
     expect(fitRowHeight(sectionHeaderRowId(7), 1)).toBe(SECTION_BAND_ROW_HEIGHT)
     expect(fitRowHeight(sectionHeaderRowId(7), 4)).toBe(heightForLines(4))
+  })
+})
+
+describe('resolveHeaderRowHeight', () => {
+  it('rests the header at its own height when nothing was dragged', () => {
+    expect(resolveHeaderRowHeight()).toBe(HEADER_ROW_HEIGHT)
+  })
+
+  it('uses the dragged height, and never shrinks below the resting one', () => {
+    expect(resolveHeaderRowHeight(120)).toBe(120)
+    expect(resolveHeaderRowHeight(10)).toBe(HEADER_ROW_HEIGHT)
+  })
+
+  // Same corruption path as the rows: the header's height rides the same localStorage map, and NaN
+  // in dsg's layout arithmetic blanks the grid.
+  it('ignores a corrupted stored height rather than passing NaN into the grid', () => {
+    expect(resolveHeaderRowHeight(Number.NaN)).toBe(HEADER_ROW_HEIGHT)
   })
 })
