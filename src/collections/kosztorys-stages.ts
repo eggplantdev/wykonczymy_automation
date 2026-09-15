@@ -23,9 +23,9 @@ export const KosztorysStages: CollectionConfig = {
   },
   access: {
     read: isAdminOrOwnerOrManager,
-    create: createUnlessInvestmentLocked('investment'),
-    update: unlessInvestmentLocked('investment.status'),
-    delete: unlessInvestmentLocked('investment.status'),
+    create: createUnlessInvestmentLocked(isAdminOrOwnerOrManager, 'investment'),
+    update: unlessInvestmentLocked(isAdminOrOwnerOrManager, 'investment'),
+    delete: unlessInvestmentLocked(isAdminOrOwnerOrManager, 'investment'),
   },
   fields: [
     { name: 'investment', type: 'relationship', relationTo: 'investments', required: true },

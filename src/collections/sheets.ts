@@ -1,5 +1,10 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
+import {
+  createUnlessInvestmentLocked,
+  unlessInvestmentLocked,
+  updateUnlessInvestmentLocked,
+} from '@/access/investment-lock'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 
 // A kosztorys (cost estimate) is a Google Sheet that mirrors an investment's
@@ -27,11 +32,14 @@ export const Sheets: CollectionConfig = {
     afterChange: [makeRevalidateAfterChange('kosztoryses', 'investments')],
     afterDelete: [makeRevalidateAfterDelete('kosztoryses', 'investments')],
   },
+  // `not_equals` is what keeps the unlinked sheets editable: on a LEFT-JOINed nullable relationship
+  // Payload emits `col IS NULL OR col <> …`, so a sheet naming no investment passes — which is
+  // exactly what „Nowy kosztorys" produces. `not_in` does NOT behave this way.
   access: {
     read: isAdminOrOwnerOrManager,
-    create: isAdminOrOwnerOrManager,
-    update: isAdminOrOwnerOrManager,
-    delete: isAdminOrOwner,
+    create: createUnlessInvestmentLocked(isAdminOrOwnerOrManager, 'investment'),
+    update: updateUnlessInvestmentLocked(isAdminOrOwnerOrManager, 'investment'),
+    delete: unlessInvestmentLocked(isAdminOrOwner, 'investment'),
   },
   fields: [
     {
