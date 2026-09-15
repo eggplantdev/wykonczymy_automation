@@ -1,16 +1,25 @@
 ---
 change_id: subcontractor-override-value-collapse
 title: Collapse the subcontractor price override pair into `overrideValue: number | null`
-status: implemented
+status: archived
 created: 2026-09-02
-updated: 2026-09-02
-archived_at: null
+updated: 2026-09-15
+archived_at: 2026-09-15T16:30:14Z
 branch: null
 worktree: null
 linear: EX-766
 ---
 
 ## Notes
+
+> **Distilled at archive (2026-09-15).** `research.md`, `plan.md` and `plan-brief.md` were deleted on
+> archiving — the plan is choreography the shipped code now answers for, and `plan-brief.md` only
+> restated what stands below. Two findings from the research had no living home and were rewritten
+> into `context/foundation/lessons.md`: the pair being persisted as **two independent single-key
+> patches** (so `{type: null, value: 500}` is reachable and permanent — the actual justification for
+> the collapse), and the golden-master hash rewrite (a changed hash **un-guards** an investment
+> instead of failing, and the baseline was already stale before the change started). Every reference
+> to those three files below is therefore historical; `git show <sha>^:<path>` still reaches them.
 
 Tracked as **EX-766**. Collapses the per-item subcontractor price override from a two-column pair
 (`*_override_type` varchar `'amount'|NULL` + `*_override_value` numeric NOT NULL DEFAULT 0) into one
