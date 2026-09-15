@@ -81,7 +81,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   return (
     <PageWrapper title={investment.name}>
       <div className="flex flex-wrap items-center gap-2">
-        <EditInvestmentDialog investment={investment} />
+        <EditInvestmentDialog investment={investment} showLabel />
         <SheetButton investmentId={investmentId} hasSheet={investment.hasSheet} />
         <OpenKosztorysV2Button investmentId={investmentId} />
       </div>

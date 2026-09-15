@@ -1,7 +1,6 @@
 'use client'
 
-import { Pencil } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { EditButton } from '@/components/ui/row-actions/edit-button'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { WorkerForm } from '@/components/forms/worker-form/worker-form'
 import { updateWorkerAction } from '@/lib/actions/workers'
@@ -19,12 +18,7 @@ export function EditWorkerDialog({ worker, cashRegisters }: EditWorkerDialogProp
     <FormDialog
       formId={formId}
       showKeepOpen={false}
-      trigger={
-        <Button size="sm" variant="outline" aria-label="Edytuj pracownika">
-          <Pencil />
-          <span>Edytuj</span>
-        </Button>
-      }
+      trigger={<EditButton label="Edytuj pracownika" showLabel />}
       title="Edytuj pracownika"
       description={worker.name}
     >

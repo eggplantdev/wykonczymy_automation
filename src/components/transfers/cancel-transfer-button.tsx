@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { RemoveButton } from '@/components/ui/remove-button'
+import { Ban } from 'lucide-react'
+import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { DialogActions } from '@/components/ui/dialog-actions'
 import { Textarea } from '@/components/ui/textarea'
@@ -50,7 +51,14 @@ export function CancelTransferButton({ transactionId }: CancelTransferButtonProp
 
   return (
     <>
-      <RemoveButton onClick={() => setOpen(true)} />
+      {/* Not the `DeleteButton`: cancelling writes a CANCELLATION row rather than removing
+          anything, and a bin next to „Edytuj" would promise a delete this table cannot do. */}
+      <RowActionButton
+        icon={Ban}
+        label="Anuluj transakcję"
+        tone="destructive"
+        onClick={() => setOpen(true)}
+      />
 
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent showCloseButton={false} className="h-fit sm:max-w-md">

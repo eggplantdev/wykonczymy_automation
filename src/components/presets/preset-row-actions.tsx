@@ -1,19 +1,16 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { FolderOpen, Pencil, Trash2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { SimpleTooltip } from '@/components/ui/tooltip'
+import { EditButton } from '@/components/ui/row-actions/edit-button'
+import { DeleteButton } from '@/components/ui/row-actions/delete-button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
-import { useOpenPreset } from '@/components/presets/use-open-preset'
 import { deletePresetAction, renamePresetAction } from '@/lib/actions/kosztorys-presets'
 import { toastMessage } from '@/lib/utils/toast'
 import type { PresetRowT } from '@/lib/queries/presets'
 
 export function PresetRowActions({ preset }: { preset: PresetRowT }) {
-  const { open: onOpen, pending: opening } = useOpenPreset(preset.id)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [renaming, setRenaming] = useState(false)
   const [draftName, setDraftName] = useState(preset.name)
@@ -39,45 +36,15 @@ export function PresetRowActions({ preset }: { preset: PresetRowT }) {
 
   return (
     <div className="flex items-center justify-end gap-1">
-      <SimpleTooltip content="Otwórz szablon">
-        <Button
-          size="xs"
-          variant="ghost"
-          className="px-1.5"
-          aria-label="Otwórz szablon"
-          disabled={opening}
-          onClick={onOpen}
-        >
-          <FolderOpen />
-        </Button>
-      </SimpleTooltip>
+      <EditButton
+        label="Zmień nazwę szablonu"
+        onClick={() => {
+          setDraftName(preset.name)
+          setRenaming(true)
+        }}
+      />
 
-      <SimpleTooltip content="Zmień nazwę">
-        <Button
-          size="xs"
-          variant="ghost"
-          className="px-1.5"
-          aria-label="Zmień nazwę szablonu"
-          onClick={() => {
-            setDraftName(preset.name)
-            setRenaming(true)
-          }}
-        >
-          <Pencil />
-        </Button>
-      </SimpleTooltip>
-
-      <SimpleTooltip content="Usuń szablon">
-        <Button
-          size="xs"
-          variant="ghostDestructive"
-          className="px-1.5"
-          aria-label="Usuń szablon"
-          onClick={() => setConfirmingDelete(true)}
-        >
-          <Trash2 />
-        </Button>
-      </SimpleTooltip>
+      <DeleteButton label="Usuń szablon" onClick={() => setConfirmingDelete(true)} />
 
       <FormDialogShell
         open={renaming}

@@ -26,7 +26,7 @@ test('cancelling an expense reverts the balance and hides the row, gated by reas
   await expect(page.getByRole('cell', { name: description }).first()).toBeVisible()
 
   const row = page.getByRole('row').filter({ hasText: description })
-  await row.getByRole('button', { name: 'Usuń' }).first().click()
+  await row.getByRole('button', { name: 'Anuluj transakcję' }).first().click()
 
   await expect(page.getByText('Anulowanie transakcji')).toBeVisible()
   const confirm = page.getByRole('button', { name: 'Tak, anuluj' })

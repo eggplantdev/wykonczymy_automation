@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { createColumnHelper } from '@tanstack/react-table'
-import { Button } from '@/components/ui/button'
+import { Link2, Plus } from 'lucide-react'
+import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
 import { OptionalLink } from '@/components/ui/optional-link'
 import { LinkSheetToInvestmentDialog } from '@/components/dialogs/link-sheet-to-investment-dialog'
 import { LinkedSheetActions } from '@/components/sheets/linked-sheet-actions'
@@ -70,11 +71,7 @@ export function getKosztorysColumns({
             sheetId={row.sheetId}
             sheetName={row.sheetName}
             availableInvestments={availableInvestments}
-            trigger={
-              <Button size="sm" variant="outline">
-                Powiąż inwestycję
-              </Button>
-            }
+            trigger={<RowActionButton icon={Link2} label="Powiąż z inwestycją" />}
           />
         )
       },
@@ -112,11 +109,7 @@ export function getInvestmentWithoutSheetColumns() {
 
             <SheetSetupDialog
               investmentId={row.investmentId}
-              trigger={
-                <Button size="sm" variant="outline">
-                  Dodaj kosztorys
-                </Button>
-              }
+              trigger={<RowActionButton icon={Plus} label="Dodaj kosztorys" />}
             />
           </div>
         )

@@ -1,8 +1,6 @@
 'use client'
 
-import { Pencil } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { SimpleTooltip } from '@/components/ui/tooltip'
+import { EditButton } from '@/components/ui/row-actions/edit-button'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { WorkCatalogueItemForm } from '@/components/forms/work-catalogue-item/work-catalogue-item-form'
 import { updateCatalogueItemAction } from '@/lib/actions/work-catalogue'
@@ -23,13 +21,7 @@ export function EditCatalogueItemDialog({
     <FormDialog
       formId={formId}
       showKeepOpen={false}
-      trigger={
-        <SimpleTooltip content="Edytuj pozycję">
-          <Button size="xs" variant="ghost" className="px-1.5" aria-label="Edytuj pozycję katalogu">
-            <Pencil />
-          </Button>
-        </SimpleTooltip>
-      }
+      trigger={<EditButton label="Edytuj pozycję katalogu" />}
       title="Edytuj pozycję katalogu"
       description={item.description}
     >

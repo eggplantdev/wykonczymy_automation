@@ -3,8 +3,10 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { FileSpreadsheet, Unlink, Trash2 } from 'lucide-react'
+import { FileSpreadsheet, Unlink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
+import { DeleteButton } from '@/components/ui/row-actions/delete-button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { toastMessage } from '@/lib/utils/toast'
 import { useCurrentUser } from '@/hooks/use-current-user'
@@ -65,17 +67,15 @@ export function LinkedSheetActions({ sheetId, investmentId, investmentName }: Pr
         </Link>
       </Button>
 
-      <Button size="sm" variant="outline" onClick={() => setDialog('unlink')}>
-        <Unlink />
-        Odłącz
-      </Button>
+      {/* The two links above keep their labels — they go somewhere. These two CHANGE something,
+          so they take the same icon shape the action column of every other table uses. */}
+      <RowActionButton
+        icon={Unlink}
+        label="Odłącz od inwestycji"
+        onClick={() => setDialog('unlink')}
+      />
 
-      {canDelete && (
-        <Button size="sm" variant="destructive" onClick={() => setDialog('delete')}>
-          <Trash2 />
-          Usuń
-        </Button>
-      )}
+      {canDelete && <DeleteButton label="Usuń kosztorys" onClick={() => setDialog('delete')} />}
 
       <ConfirmDialog
         open={dialog === 'unlink'}

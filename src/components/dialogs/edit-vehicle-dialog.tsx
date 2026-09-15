@@ -1,7 +1,6 @@
 'use client'
 
-import { Pencil } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { EditButton } from '@/components/ui/row-actions/edit-button'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { VehicleForm } from '@/components/forms/vehicle-form/vehicle-form'
 import { updateVehicleAction } from '@/lib/actions/fleet'
@@ -18,12 +17,7 @@ export function EditVehicleDialog({ vehicle }: EditVehicleDialogPropsT) {
     <FormDialog
       formId={formId}
       showKeepOpen={false}
-      trigger={
-        <Button size="sm" variant="outline" aria-label="Edytuj pojazd">
-          <Pencil />
-          <span>Edytuj</span>
-        </Button>
-      }
+      trigger={<EditButton label="Edytuj pojazd" showLabel />}
       title="Edytuj pojazd"
       description={`${vehicle.make} ${vehicle.model}`}
     >

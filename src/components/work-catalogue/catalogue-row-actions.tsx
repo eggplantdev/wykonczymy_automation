@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Check, Trash2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { SimpleTooltip } from '@/components/ui/tooltip'
+import { Check } from 'lucide-react'
+import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
+import { DeleteButton } from '@/components/ui/row-actions/delete-button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { EditCatalogueItemDialog } from '@/components/dialogs/edit-catalogue-item-dialog'
 import { clearLegacyMarkerAction, deleteCatalogueItemAction } from '@/lib/actions/work-catalogue'
@@ -42,33 +42,17 @@ export function CatalogueRowActions({ item, categorySuggestions }: PropsT) {
   return (
     <div className="flex items-center justify-end gap-1">
       {hasLegacyMarker(item.description) && (
-        <SimpleTooltip content={LEGACY_ACTION_LABEL}>
-          <Button
-            size="xs"
-            variant="ghost"
-            className="px-1.5"
-            aria-label={LEGACY_ACTION_LABEL}
-            disabled={pending}
-            onClick={onClearMarker}
-          >
-            <Check />
-          </Button>
-        </SimpleTooltip>
+        <RowActionButton
+          icon={Check}
+          label={LEGACY_ACTION_LABEL}
+          disabled={pending}
+          onClick={onClearMarker}
+        />
       )}
 
       <EditCatalogueItemDialog item={item} categorySuggestions={categorySuggestions} />
 
-      <SimpleTooltip content="Usuń z katalogu">
-        <Button
-          size="xs"
-          variant="ghostDestructive"
-          className="px-1.5"
-          aria-label="Usuń z katalogu"
-          onClick={() => setConfirming(true)}
-        >
-          <Trash2 />
-        </Button>
-      </SimpleTooltip>
+      <DeleteButton label="Usuń z katalogu" onClick={() => setConfirming(true)} />
 
       <ConfirmDialog
         open={confirming}

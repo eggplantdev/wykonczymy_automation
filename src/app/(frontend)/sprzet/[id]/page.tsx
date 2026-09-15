@@ -78,8 +78,9 @@ export default async function EquipmentDetailPage({ params }: DynamicPagePropsT)
           workers={workers}
           warehouses={warehouses}
           investments={investments}
+          showLabel
         />
-        <EditEquipmentDialog equipment={equipment} />
+        <EditEquipmentDialog equipment={equipment} showLabel />
       </div>
 
       <EquipmentHistory history={history} />

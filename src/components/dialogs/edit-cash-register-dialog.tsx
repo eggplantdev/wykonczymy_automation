@@ -1,7 +1,6 @@
 'use client'
 
-import { Pencil } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { EditButton } from '@/components/ui/row-actions/edit-button'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { CashRegisterForm } from '@/components/forms/cash-register-form/cash-register-form'
 import { updateCashRegisterAction } from '@/lib/actions/cash-registers'
@@ -19,12 +18,7 @@ export function EditCashRegisterDialog({ register, workers }: EditCashRegisterDi
     <FormDialog
       formId={formId}
       showKeepOpen={false}
-      trigger={
-        <Button size="sm" variant="outline" aria-label="Edytuj kasę">
-          <Pencil />
-          <span>Edytuj</span>
-        </Button>
-      }
+      trigger={<EditButton label="Edytuj kasę" showLabel />}
       title="Edytuj kasę"
       description={register.name}
     >

@@ -1,26 +1,26 @@
 'use client'
 
-import { Pencil } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { EditButton } from '@/components/ui/row-actions/edit-button'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { EquipmentForm } from '@/components/forms/equipment-form/equipment-form'
 import { updateEquipmentAction } from '@/lib/actions/equipment'
 import { makeModel } from '@/lib/equipment/rows'
 import type { EquipmentRowT } from '@/lib/equipment/types'
 
-export function EditEquipmentDialog({ equipment }: { equipment: EquipmentRowT }) {
+export function EditEquipmentDialog({
+  equipment,
+  showLabel,
+}: {
+  equipment: EquipmentRowT
+  showLabel?: boolean
+}) {
   const formId = `edit-equipment-${equipment.id}`
 
   return (
     <FormDialog
       formId={formId}
       showKeepOpen={false}
-      trigger={
-        <Button size="sm" variant="outline" aria-label="Edytuj sprzęt">
-          <Pencil />
-          <span>Edytuj</span>
-        </Button>
-      }
+      trigger={<EditButton label="Edytuj sprzęt" showLabel={showLabel} />}
       title="Edytuj sprzęt"
       description={makeModel(equipment)}
     >
