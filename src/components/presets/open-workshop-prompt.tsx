@@ -8,7 +8,8 @@ import { useOpenPreset } from '@/components/presets/use-open-preset'
 // Shown instead of the editor when the warsztat holds a different szablon than this url names —
 // a stale tab, a hand-typed url, or someone else having opened theirs in the meantime.
 export function OpenWorkshopPrompt({ presetId, name }: { presetId: number; name: string }) {
-  const { open, pending } = useOpenPreset(presetId)
+  const { open, pendingId } = useOpenPreset()
+  const pending = pendingId === presetId
 
   return (
     <EmptyState
@@ -16,7 +17,7 @@ export function OpenWorkshopPrompt({ presetId, name }: { presetId: number; name:
       description="W warsztacie leży inny szablon. Otwórz go ponownie, żeby zobaczyć i zmienić jego treść."
     >
       <div className="flex gap-2">
-        <Button onClick={open} disabled={pending}>
+        <Button onClick={() => open(presetId)} disabled={pending}>
           {pending ? 'Otwieram…' : 'Otwórz szablon'}
         </Button>
         <Button variant="outline" asChild>

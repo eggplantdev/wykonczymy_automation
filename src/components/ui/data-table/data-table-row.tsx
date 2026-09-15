@@ -1,9 +1,8 @@
 'use client'
 
-// Clickable table row with navigation support.
-// Clicking the row navigates to the detail page,
-// but clicks on interactive elements (<a>, <button>) are ignored
-// so inline actions (toggles, links) work independently.
+// Clickable table row. Clicking it opens the row's subject — by navigating to `getRowHref`, or, for
+// a row whose opening is a WRITE and so must not be prefetchable, by calling `onRowClick`.
+// Clicks on interactive elements (<a>, <button>) are ignored so inline actions work independently.
 
 import React from 'react'
 import { flexRender, type Row } from '@tanstack/react-table'
@@ -13,19 +12,22 @@ import { cn } from '@/lib/utils/cn'
 type DataTableRowPropsT<TData> = {
   row: Row<TData>
   getRowHref?: (row: TData) => string | undefined
+  onRowClick?: (row: TData) => void
   getRowClassName?: (row: TData) => string
 }
 
 export function DataTableRow<TData>({
   row,
   getRowHref,
+  onRowClick,
   getRowClassName,
 }: DataTableRowPropsT<TData>) {
   const router = useRouter()
   const href = getRowHref?.(row.original)
+  const isClickable = Boolean(href) || Boolean(onRowClick)
 
   function handleClick(e: React.MouseEvent<HTMLTableRowElement>) {
-    if (!href) return
+    if (!isClickable) return
 
     const target = e.target as HTMLElement
 
@@ -36,6 +38,11 @@ export function DataTableRow<TData>({
 
     // Skip if the click landed on an interactive element (button, link)
     if (target.closest('a, button')) return
+
+    if (!href) {
+      onRowClick?.(row.original)
+      return
+    }
 
     // Cmd/Ctrl+click opens in new tab
     if (e.metaKey || e.ctrlKey) {
@@ -53,7 +60,7 @@ export function DataTableRow<TData>({
     <tr
       className={cn(
         'border-border border-b last:border-b-0',
-        href && 'hover:bg-muted cursor-pointer transition-colors',
+        isClickable && 'hover:bg-muted cursor-pointer transition-colors',
         getRowClassName?.(row.original),
       )}
       onClick={handleClick}

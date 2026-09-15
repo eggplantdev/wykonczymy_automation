@@ -54,6 +54,8 @@ type DataTablePropsT<TData> = {
   initialSorting?: SortingState
   /** Makes the row clickable — navigates to the returned URL */
   getRowHref?: (row: TData) => string | undefined
+  /** Row click handler for a row that must not be an href — see `DataTableRow`. */
+  onRowClick?: (row: TData) => void
   getRowClassName?: (row: TData) => string
   /** Summary `<tr>` pinned below the rows. Gets the visible column ids, in render order, so it can
    * span them or place a total under the column it belongs to even when some are hidden. */
@@ -74,6 +76,7 @@ export function DataTable<TData>({
   storageKey,
   initialSorting = [],
   getRowHref,
+  onRowClick,
   getRowClassName,
   footer,
   toolbar,
@@ -173,6 +176,7 @@ export function DataTable<TData>({
             virtualizer={virtualizer}
             visibleColumnIdList={visibleColumnIdList}
             getRowHref={getRowHref}
+            onRowClick={onRowClick}
             getRowClassName={getRowClassName}
             footer={footer}
           />
@@ -188,6 +192,7 @@ export function DataTable<TData>({
                     key={`${row.id}:${visibleColumnKey}`}
                     row={row}
                     getRowHref={getRowHref}
+                    onRowClick={onRowClick}
                     getRowClassName={getRowClassName}
                   />
                 ))
