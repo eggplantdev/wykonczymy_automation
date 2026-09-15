@@ -6,7 +6,7 @@ settings:
 
 patchedDependencies:
   react-datasheet-grid@4.11.6:
-    hash: 672205fc0ea853e001eaf5922b7a81ff15fc396f03ca0a6909bb9d66bddedb33
+    hash: bffce9754f53e6044bea122409b7fd95dddd812b10178b5551811ce9d8d229e5
     path: patches/react-datasheet-grid@4.11.6.patch
 
 importers:
@@ -126,7 +126,7 @@ importers:
         version: 19.2.4
       react-datasheet-grid:
         specifier: ^4.11.6
-        version: 4.11.6(patch_hash=672205fc0ea853e001eaf5922b7a81ff15fc396f03ca0a6909bb9d66bddedb33)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        version: 4.11.6(patch_hash=bffce9754f53e6044bea122409b7fd95dddd812b10178b5551811ce9d8d229e5)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react-day-picker:
         specifier: ^9.14.0
         version: 9.14.0(react@19.2.4)
@@ -9708,7 +9708,7 @@ snapshots:
 
   range-parser@1.2.1: {}
 
-  react-datasheet-grid@4.11.6(patch_hash=672205fc0ea853e001eaf5922b7a81ff15fc396f03ca0a6909bb9d66bddedb33)(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
+  react-datasheet-grid@4.11.6(patch_hash=bffce9754f53e6044bea122409b7fd95dddd812b10178b5551811ce9d8d229e5)(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
     dependencies:
       '@tanstack/react-virtual': 3.13.18(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       classnames: 2.5.1

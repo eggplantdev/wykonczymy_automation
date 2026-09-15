@@ -96,6 +96,7 @@ export function SectionHeaderCell({
     if (!context.actions) return <div className="size-full" />
     return (
       <KosztorysSectionActionsMenu
+        row={rowData}
         sectionId={rowData.sectionId}
         name={rowData.sectionName ?? ''}
         itemCount={itemCount}

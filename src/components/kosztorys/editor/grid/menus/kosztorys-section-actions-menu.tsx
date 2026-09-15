@@ -21,7 +21,9 @@ import { CellMenuTrigger } from '@/components/ui/datasheet-grid/cell-menu-trigge
 import { useCataloguePicker } from '@/components/kosztorys/editor/actions/catalogue-picker-host'
 import { SectionColorPicker } from '@/components/kosztorys/editor/grid/menus/section-color-picker'
 import { REMOVAL_CONFIRM_DESCRIPTION } from '@/components/kosztorys/editor/grid/menus/removal-confirm'
+import { RowHeightMenuItems } from '@/components/kosztorys/editor/grid/menus/row-height-menu-items'
 import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
+import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // Each command takes the section id rather than closing over it, so the bundle can ride the band's
 // `columnData` as ONE value shared by every band row instead of being rebuilt per section.
@@ -36,6 +38,7 @@ export type SectionBandActionsT = {
 // drops them) while `handleInsertSection` / `handleReorderSection` refuse to run — without the gate
 // those four commands would look live and silently do nothing.
 export function KosztorysSectionActionsMenu({
+  row,
   sectionId,
   name,
   itemCount,
@@ -45,6 +48,10 @@ export function KosztorysSectionActionsMenu({
   canMoveDown,
   actions,
 }: {
+  // The band row itself, for the height command — the only entry here that acts on the ROW rather
+  // than on the sekcja. Its label is one line that overflows sideways, so a fit always lands on the
+  // band's resting height: on a band this command IS the way back from a drag.
+  row: KosztorysV2RowT
   sectionId: number
   name: string
   itemCount: number
@@ -107,6 +114,7 @@ export function KosztorysSectionActionsMenu({
             <ListChecks />
             Dodaj pracę z katalogu do sekcji…
           </DropdownMenuItem>
+          <RowHeightMenuItems row={row} />
           <DropdownMenuItem variant="destructive" onSelect={() => setConfirmOpen(true)}>
             <Trash2 />
             Usuń sekcję
