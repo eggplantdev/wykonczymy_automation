@@ -4,16 +4,20 @@ import type { Where } from 'payload'
 import { perfStart } from '@/lib/perf'
 import { assertCompletePage } from '@/lib/queries/assert-complete-page'
 import type { RawTransferDocT } from '@/lib/queries/transfers'
+import { DEFAULT_TRANSFER_SORT } from '@/lib/transfers/sortable-columns'
 
 /** Fetches ALL matching transfers (capped, must be complete) for export. Not cached. */
-export async function findAllTransfersForExport(where: Where): Promise<RawTransferDocT[]> {
+export async function findAllTransfersForExport(
+  where: Where,
+  sort: string = DEFAULT_TRANSFER_SORT,
+): Promise<RawTransferDocT[]> {
   const elapsed = perfStart()
   const payload = await getPayload({ config })
 
   const result = await payload.find({
     collection: 'transactions',
     where,
-    sort: '-date',
+    sort,
     limit: 50000,
     depth: 0,
     overrideAccess: true,

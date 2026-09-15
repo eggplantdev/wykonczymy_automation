@@ -11,9 +11,17 @@ function getStringParam(value: string | string[] | undefined): string | undefine
   return typeof value === 'string' ? value : undefined
 }
 
+/**
+ * Ids reach raw SQL by interpolation (`where-to-sql.ts`), so anything `Number` accepts but Postgres
+ * does not has to die here. `Number.isInteger` rather than a truthiness check: `?worker=1e999`
+ * parses to `Infinity`, which is truthy and lands in the statement as a bare `infinity` identifier.
+ */
 function parseNumericIds(param: string | undefined): number[] {
   if (!param) return []
-  return param.split(',').map(Number).filter(Boolean)
+  return param
+    .split(',')
+    .map(Number)
+    .filter((id) => Number.isInteger(id) && id !== 0)
 }
 
 type AmountSearchT = { mode: 'prefix'; text: string } | { mode: 'range'; low: number; high: number }
@@ -137,13 +145,13 @@ export function buildTransferFilters(
   if (expenseCategoryIds.length > 0) where.expenseCategory = { in: expenseCategoryIds }
   else if (expenseCategoryParam) where.id = NO_RESULTS
 
-  // Worker filter — a single PAYOUT worker (the subcontractor summary's per-worker link target,
-  // `?type=PAYOUT&worker=<id>`). A non-numeric value is ignored rather than short-circuited to
-  // NO_RESULTS: the link only ever emits a real id, so tolerating garbage keeps the URL forgiving.
+  // Worker filter. `in` rather than `equals` so the multi-select and the subcontractor summary's
+  // per-worker link (`?type=PAYOUT&worker=<id>`) share one parameter — a single id parses as a
+  // one-element list, so the link keeps working.
   const workerParam = getStringParam(searchParams.worker)
-  if (workerParam && /^\d+$/.test(workerParam)) {
-    where.worker = { equals: Number(workerParam) }
-  }
+  const workerIds = parseNumericIds(workerParam)
+  if (workerIds.length > 0) where.worker = { in: workerIds }
+  else if (workerParam) where.id = NO_RESULTS
 
   // Other category filter
   const otherCategoryParam = getStringParam(searchParams.otherCategory)

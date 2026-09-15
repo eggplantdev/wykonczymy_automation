@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { isAdminOrOwnerRole, isManagementRole, ROLES } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/utils/pagination'
+import { parseTransferSort } from '@/lib/queries/transfer-sort'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { fetchRegisterBalances } from '@/lib/queries/balances'
 import { buildTransferFilters } from '@/lib/queries/transfer-filters'
@@ -25,6 +26,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
   const { id } = await params
   const sp = await searchParams
   const { page, limit } = parsePagination(sp)
+  const sort = parseTransferSort(sp)
 
   const registerId = Number(id)
   // Strip sourceRegister from URL params — the page already scopes to this
@@ -67,7 +69,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
       {/* Transactions table */}
       <TransfersSection
         config={{
-          query: { where: transferWhere, page, limit },
+          query: { where: transferWhere, page, limit, sort },
           baseUrl: `/kasa/${id}`,
           filters: buildFilterConfig(refData, 'cashRegisters'),
           invoiceDownload: true,

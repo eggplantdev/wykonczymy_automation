@@ -67,7 +67,11 @@ describe('transfer filters → stats SQL', () => {
   })
 
   it('applies a worker search', async () => {
-    expect(await sqlForSearchParams({ worker: '5' })).toContain('worker_id = 5')
+    expect(await sqlForSearchParams({ worker: '5' })).toContain('worker_id IN (5)')
+  })
+
+  it('applies a multi-worker search', async () => {
+    expect(await sqlForSearchParams({ worker: '3,7' })).toContain('worker_id IN (3, 7)')
   })
 
   it('matches a cash register on either side of the transfer', async () => {

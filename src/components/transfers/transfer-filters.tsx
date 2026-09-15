@@ -1,7 +1,16 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { Banknote, CreditCard, FolderOpen, Landmark, Receipt, Tags, User } from 'lucide-react'
+import {
+  Banknote,
+  CreditCard,
+  FolderOpen,
+  HardHat,
+  Landmark,
+  Receipt,
+  Tags,
+  User,
+} from 'lucide-react'
 import { FilterGrid } from '@/components/filters/filter-grid'
 import { SearchFilterInput } from '@/components/filters/search-filter-input'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
@@ -30,6 +39,7 @@ const ENTITY_FILTER_KEYS = [
   'paymentMethod',
   'otherCategory',
   'expenseCategory',
+  'worker',
   'amount',
   'id',
 ] as const
@@ -38,6 +48,7 @@ type TransferFiltersPropsT = {
   cashRegisters?: ReferenceItemT[]
   investments?: ReferenceItemT[]
   users?: ReferenceItemT[]
+  workers?: ReferenceItemT[]
   otherCategories?: ReferenceItemT[]
   expenseCategories?: ReferenceItemT[]
   showTypeFilter?: boolean
@@ -53,6 +64,7 @@ export function TransferFilters({
   cashRegisters,
   investments,
   users,
+  workers,
   otherCategories,
   expenseCategories,
   showTypeFilter = true,
@@ -74,6 +86,7 @@ export function TransferFilters({
   const currentSourceRegisters = getMultiParam('sourceRegister')
   const currentInvestments = getMultiParam('investment')
   const currentCreatedBys = getMultiParam('createdBy')
+  const currentWorkers = getMultiParam('worker')
   const currentPaymentMethods = getMultiParam('paymentMethod')
   const currentOtherCategories = getMultiParam('otherCategory')
   const currentExpenseCategories = getMultiParam('expenseCategory')
@@ -93,6 +106,7 @@ export function TransferFilters({
         (cashRegisters && cashRegisters.length > 0) ||
         (investments && investments.length > 0) ||
         (users && users.length > 0) ||
+        (workers && workers.length > 0) ||
         showPaymentMethodFilter ||
         (otherCategories && otherCategories.length > 0) ||
         (expenseCategories && expenseCategories.length > 0)) && (
@@ -115,7 +129,7 @@ export function TransferFilters({
               values={currentSourceRegisters}
               onValuesChange={(v) => updateParam('sourceRegister', v.join(','))}
               options={cashRegisters.map((cr) => ({ value: String(cr.id), label: cr.name }))}
-              label="Kasa źródłowa"
+              label="Kasa"
               icon={Banknote}
               searchable
             />
@@ -139,6 +153,17 @@ export function TransferFilters({
               options={users.map((u) => ({ value: String(u.id), label: u.name }))}
               label="Dodane przez"
               icon={User}
+              searchable
+            />
+          )}
+
+          {workers && workers.length > 0 && (
+            <FilterMultiSelect
+              values={currentWorkers}
+              onValuesChange={(v) => updateParam('worker', v.join(','))}
+              options={workers.map((w) => ({ value: String(w.id), label: w.name }))}
+              label="Pracownik"
+              icon={HardHat}
               searchable
             />
           )}
