@@ -8,6 +8,7 @@ import { SimpleTooltip } from '@/components/ui/tooltip'
 import { KosztorysActiveFiltersBar } from '@/components/kosztorys/editor/toolbar/kosztorys-active-filters-bar'
 import { KosztorysAddMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-add-menu'
 import { KosztorysActionsMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-actions-menu'
+import { SaveTemplateButton } from '@/components/kosztorys/editor/toolbar/save-template-button'
 import { KosztorysTotalsPanelToggle } from '@/components/kosztorys/summary/kosztorys-totals-panel-toggle'
 import { ToolbarToggle } from '@/components/ui/toolbar-toggle'
 import {
@@ -50,6 +51,7 @@ export function KosztorysEditorToolbar() {
           </div>
         </SimpleTooltip>
         <div className="ml-auto flex items-center gap-1">
+          <SaveTemplateButton />
           <KosztorysActionsMenu />
           {/* Before „Filtry", and absent when nothing is wrong — the one control here that appears on
               its own has to be where the eye lands first, not tucked between two permanent ones. */}

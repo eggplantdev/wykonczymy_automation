@@ -39,6 +39,15 @@ export type SnapshotMetaT = {
   takenBy: number | null
 }
 
+// Every read and write of a restore point carries the same clause: a point belongs to the szablon
+// the investment held when it was taken. For a real investment `template_preset_id` is NULL on both
+// sides and the clause is a no-op, so this costs normal kosztorysy nothing; for the warsztat — one
+// investment shared by every szablon — it is what keeps one szablon's history out of another's.
+// Stamped from the investment row rather than passed in, so no caller can forget it (and so the
+// „Przed wczytaniem" point, taken before the pointer moves, is attributed to the szablon it holds).
+const HELD_PRESET = (investmentId: number) =>
+  sql`(SELECT "template_preset_id" FROM investments WHERE id = ${investmentId})`
+
 export async function insertSnapshot(
   db: DbExecutorT,
   params: {
@@ -50,10 +59,13 @@ export async function insertSnapshot(
   },
 ): Promise<number> {
   const res = await db.execute(sql`
-    INSERT INTO kosztorys_snapshots (investment_id, kind, label, taken_by, schema_version, payload)
+    INSERT INTO kosztorys_snapshots (
+      investment_id, kind, label, taken_by, schema_version, payload, template_preset_id
+    )
     VALUES (
       ${params.investmentId}, ${params.kind}, ${params.label}, ${params.takenBy},
-      ${SNAPSHOT_SCHEMA_VERSION}, ${JSON.stringify(params.payload)}::jsonb
+      ${SNAPSHOT_SCHEMA_VERSION}, ${JSON.stringify(params.payload)}::jsonb,
+      ${HELD_PRESET(params.investmentId)}
     )
     RETURNING id
   `)
@@ -62,13 +74,19 @@ export async function insertSnapshot(
 
 // Load one snapshot's full payload by id (with its investment) — the restore path resolves the
 // target investment from the row itself rather than trusting a client-passed value. Returns null
-// when the id doesn't exist.
+// when the id doesn't exist, or when the point belongs to a szablon the warsztat no longer holds:
+// filtering the drawer only shapes what is OFFERED, and a stale tab still holds the old ids. The
+// caller reports both as „nie znaleziono wersji", which is also true — for the szablon it is in.
 export async function getSnapshot(
   db: DbExecutorT,
   snapshotId: number,
 ): Promise<{ investmentId: number; payload: StoredSnapshotPayloadT } | null> {
   const res = await db.execute(sql`
-    SELECT investment_id, schema_version, payload FROM kosztorys_snapshots WHERE id = ${snapshotId}
+    SELECT s.investment_id, s.schema_version, s.payload
+    FROM kosztorys_snapshots s
+    JOIN investments i ON i.id = s.investment_id
+    WHERE s.id = ${snapshotId}
+      AND s.template_preset_id IS NOT DISTINCT FROM i.template_preset_id
   `)
   const row = res.rows[0]
   if (!row) return null
@@ -84,6 +102,7 @@ export async function listSnapshots(
     SELECT id, investment_id, kind, label, taken_at, taken_by
     FROM kosztorys_snapshots
     WHERE investment_id = ${investmentId}
+      AND template_preset_id IS NOT DISTINCT FROM ${HELD_PRESET(investmentId)}
     ORDER BY taken_at DESC, id DESC
   `)
   return res.rows.map((row) => ({

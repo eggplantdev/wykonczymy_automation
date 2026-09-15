@@ -5,6 +5,7 @@ import { DialogActions } from '@/components/ui/dialog-actions'
 import { SheetAccessBlock } from '@/components/kosztorys/editor/dialogs/sheet-access-block'
 import { SheetColumnPicker } from '@/components/kosztorys/editor/dialogs/sheet-column-picker'
 import { evaluateImportGate } from '@/components/kosztorys/editor/dialogs/sheet-import-gate'
+import { SheetPointedColumnsBlock } from '@/components/kosztorys/editor/dialogs/sheet-pointed-columns-block'
 import { SheetProblemsBlock } from '@/components/kosztorys/editor/dialogs/sheet-problems-block'
 import { SheetRatesBlock } from '@/components/kosztorys/editor/dialogs/sheet-rates-block'
 import { SheetReportBlock } from '@/components/kosztorys/editor/dialogs/sheet-report-block'
@@ -231,11 +232,17 @@ function ColumnsBlock({
   columns: UnresolvedColumnsT
   onMappingSaved: () => void
 }) {
-  // A column the owner pointed at is not a shortfall — it renders as a note inside this block, so it
-  // must not turn a complete read yellow.
-  const clean = missing.length === 0
-  if (clean) {
-    return null
+  // A pointed column is not a shortfall, so it must not turn a complete read yellow — but its note
+  // still has to render when nothing is missing, or the pick that resolved the last column takes
+  // „Usuń wskazanie" down with it.
+  if (missing.length === 0) {
+    return (
+      <SheetPointedColumnsBlock
+        investmentId={investmentId}
+        columns={columns}
+        onMappingSaved={onMappingSaved}
+      />
+    )
   }
   return (
     <SheetReportBlock

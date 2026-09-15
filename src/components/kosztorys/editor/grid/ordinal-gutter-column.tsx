@@ -9,11 +9,6 @@ import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 export type RowResizeApiT = {
   onGuide: (y: number | null) => void
   onCommit: (rowId: string, height: number) => void
-  // Takes the row rather than its DOM: the grid virtualizes columns horizontally, so „Opis prac"
-  // is simply absent from the DOM once the columns are scrolled past it — and the handle is in the
-  // sticky gutter precisely so it stays clickable there. Measuring the rendered row would fit those
-  // rows to one line.
-  onFit: (row: KosztorysV2RowT) => void
 }
 
 type GutterDataT = {
@@ -32,15 +27,16 @@ function OrdinalGutterCell({ rowData, columnData }: CellProps<KosztorysV2RowT, G
     <>
       {ordinals.get(rowData.id) ?? ''}
       {/* The spacer and „Razem" are structural padding rather than anything anyone reads, so they
-          are the only rows with no handle — a section band gets one like any other row, because a
-          long section name is exactly as unreadable at a fixed height as a long „Opis prac". */}
+          are the only rows with no handle. A section band keeps one: its label never wraps (it
+          overflows sideways instead), so the drag buys whitespace rather than legibility, but its
+          own „…" carries the height command that takes the drag back. */}
       {resize && rowData.id !== SPACER_ROW_ID && rowData.id !== TOTALS_ROW_ID && (
         <RowResizeHandle
           rowId={String(rowData.id)}
           minHeight={restingRowHeight(rowData.id)}
           onGuide={resize.onGuide}
           onCommit={resize.onCommit}
-          onFit={() => resize.onFit(rowData)}
+          title="Przeciągnij, aby zmienić wysokość wiersza."
         />
       )}
     </>
@@ -72,6 +68,7 @@ export function ordinalGutterColumn(
         minHeight={HEADER_ROW_HEIGHT}
         onGuide={columnData.resize.onGuide}
         onCommit={columnData.resize.onCommit}
+        title="Przeciągnij, aby zmienić wysokość nagłówka."
       />
     ) : (
       <></>

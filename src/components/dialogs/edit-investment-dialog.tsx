@@ -1,7 +1,6 @@
 'use client'
 
-import { Pencil } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { EditButton } from '@/components/ui/row-actions/edit-button'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { InvestmentForm } from '@/components/forms/investment-form/investment-form'
 import { updateInvestmentAction } from '@/lib/actions/investments'
@@ -9,21 +8,17 @@ import type { InvestmentRefT } from '@/types/reference-data'
 
 type EditInvestmentDialogPropsT = {
   investment: InvestmentRefT
+  showLabel?: boolean
 }
 
-export function EditInvestmentDialog({ investment }: EditInvestmentDialogPropsT) {
+export function EditInvestmentDialog({ investment, showLabel }: EditInvestmentDialogPropsT) {
   const formId = `edit-investment-${investment.id}`
 
   return (
     <FormDialog
       formId={formId}
       showKeepOpen={false}
-      trigger={
-        <Button size="xs" variant="outline" aria-label="Edytuj inwestycję">
-          <Pencil />
-          <span>Edytuj</span>
-        </Button>
-      }
+      trigger={<EditButton label="Edytuj inwestycję" showLabel={showLabel} />}
       title="Edytuj inwestycję"
       description={investment.name}
     >

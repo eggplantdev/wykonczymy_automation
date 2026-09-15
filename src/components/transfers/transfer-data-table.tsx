@@ -1,5 +1,6 @@
 'use client'
 
+import { useSearchParams } from 'next/navigation'
 import { DataTable } from '@/components/ui/data-table/data-table'
 import { ColumnToggle } from '@/components/filters/column-toggle'
 import { PaginationFooter } from '@/components/ui/pagination-footer'
@@ -14,6 +15,9 @@ import { useCurrentUser } from '@/hooks/use-current-user'
 import type { PaginationMetaT } from '@/lib/utils/pagination'
 import type { TransferTableConfigT } from '@/components/transfers/transfer-table-config'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
+import { sortParamToSortingState, sortingStateToParam } from '@/lib/table/sort-param'
+import { validTransferSort } from '@/lib/queries/transfer-sort'
+import { useUrlFilterParams } from '@/hooks/use-url-filter-params'
 
 type TransferDataTablePropsT = {
   data: TransferRowT[]
@@ -29,6 +33,7 @@ export function TransferDataTable({
   referenceData,
 }: TransferDataTablePropsT) {
   const { id: currentUserId, role: currentUserRole } = useCurrentUser()
+  const searchParams = useSearchParams()
   const {
     baseUrl,
     excludeColumns = [],
@@ -38,6 +43,11 @@ export function TransferDataTable({
     invoiceDownload,
     print,
   } = config
+
+  // Through the same whitelist the server used, so a hand-edited `?sort=` the page refused cannot
+  // leave the header arrow — or the printout, which reads this state — pointing somewhere else.
+  const { updateParam } = useUrlFilterParams(baseUrl)
+  const sorting = sortParamToSortingState(validTransferSort(searchParams.get('sort') ?? undefined))
 
   const columns = getTransferColumns(excludeColumns, {
     referenceData,
@@ -59,6 +69,8 @@ export function TransferDataTable({
         data={data}
         columns={columns}
         storageKey="transfers"
+        sorting={sorting}
+        onSortingChange={(next) => updateParam('sort', sortingStateToParam(next))}
         getRowClassName={(row) => {
           if (row.cancelled) return '[&_td]:line-through [&_td]:text-muted-foreground'
           if (row.type === 'CANCELLATION') return '[&_td]:text-muted-foreground'

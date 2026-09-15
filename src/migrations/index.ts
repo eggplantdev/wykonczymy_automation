@@ -84,6 +84,10 @@ import * as migration_20260901_1_work_catalogue_auto_rates from './20260901_1_wo
 import * as migration_20260902_0_collapse_kosztorys_tool_overrides from './20260902_0_collapse_kosztorys_tool_overrides'
 import * as migration_20260903_0_add_equipment from './20260903_0_add_equipment'
 import * as migration_20260904_0_equipment_event_author from './20260904_0_equipment_event_author'
+import * as migration_20260914_0_add_szablon_investment_status from './20260914_0_add_szablon_investment_status'
+import * as migration_20260914_1_szablon_workshop_constraints from './20260914_1_szablon_workshop_constraints'
+import * as migration_20260914_2_snapshot_template_preset from './20260914_2_snapshot_template_preset'
+import * as migration_20260915_0_transactions_amount_sort_index from './20260915_0_transactions_amount_sort_index'
 
 export const migrations = [
   {
@@ -515,5 +519,25 @@ export const migrations = [
     up: migration_20260904_0_equipment_event_author.up,
     down: migration_20260904_0_equipment_event_author.down,
     name: '20260904_0_equipment_event_author',
+  },
+  {
+    up: migration_20260914_0_add_szablon_investment_status.up,
+    down: migration_20260914_0_add_szablon_investment_status.down,
+    name: '20260914_0_add_szablon_investment_status',
+  },
+  {
+    up: migration_20260914_1_szablon_workshop_constraints.up,
+    down: migration_20260914_1_szablon_workshop_constraints.down,
+    name: '20260914_1_szablon_workshop_constraints',
+  },
+  {
+    up: migration_20260914_2_snapshot_template_preset.up,
+    down: migration_20260914_2_snapshot_template_preset.down,
+    name: '20260914_2_snapshot_template_preset',
+  },
+  {
+    up: migration_20260915_0_transactions_amount_sort_index.up,
+    down: migration_20260915_0_transactions_amount_sort_index.down,
+    name: '20260915_0_transactions_amount_sort_index',
   },
 ]

@@ -49,7 +49,7 @@ import {
   swapSectionBlock,
   type BlankRowInputT,
 } from '@/lib/kosztorys/row-ops'
-import { isLastItemInSection, sectionItemCounts } from '@/lib/kosztorys/delete-policy'
+import { isLastItemInSection } from '@/lib/kosztorys/delete-policy'
 import { columnTotalsForRows } from '@/lib/kosztorys/column-totals'
 import { sectionSubtotalsForView, stageAxisForView } from '@/lib/kosztorys/settlement-aggregates'
 import { clientTotalsFromSubtotals } from '@/lib/kosztorys/settlement-client-totals'
@@ -58,6 +58,8 @@ import { marginForecastByPlane as forecastByPlane } from '@/lib/kosztorys/margin
 import { divergentPriceRowIds } from '@/lib/kosztorys/price-divergence'
 import { qtyDoneByRow } from '@/lib/kosztorys/row-conditions/ctx'
 import { buildViewRows } from '@/lib/kosztorys/row-view'
+import { computeMoveEdges } from '@/lib/kosztorys/move-edges'
+import { orderCommandsEnabled } from '@/lib/kosztorys/order-commands'
 import {
   applyRowConditions,
   columnsRevealedBy,
@@ -367,9 +369,6 @@ export function useKosztorysEditor({
     handleApplyPercentDiscount,
   } = useKosztorysSettings({ investmentId, tree, rowsRef, patchRows, pushReversible })
 
-  // One O(n) pass; every row's actions menu reads its own section's count for the delete confirm.
-  const sectionCounts = sectionItemCounts(rows)
-
   // onRemoveItem/onReorderItem read prevById.current / rowsRef.current — stable refs —
   // only from a cell's onClick, never during render, so passing them here is safe.
   // In preview the grid is read-only (buildV2Grid disables every cell + drops the action column)
@@ -474,6 +473,9 @@ export function useKosztorysEditor({
   // Subtracts from the allowlist, never adds to it — the ceiling stays `PREVIEW_VISIBLE_COLUMNS`.
   const previewHiddenColumns = preview && clientView ? new Set(clientView.hiddenColumns) : undefined
 
+  // Which ▲/▼ the two menus may offer at all. Off `rows`, like the movers themselves.
+  const moveEdges = useMemo(() => computeMoveEdges(rows), [rows])
+
   const columnOpts = {
     view,
     stages,
@@ -494,15 +496,15 @@ export function useKosztorysEditor({
     onCommitColumn: setWidth,
     onRemoveItem: editorOnly(handleRemoveItem),
     onReorderItem: editorOnly(handleReorderItem),
+    moveEdges,
     onInsertItem: editorOnly(handleInsertItem),
     onRenameSection: editorOnly(handleRenameSection),
     onRemoveSection: editorOnly(handleRemoveSection),
     onReorderSection: editorOnly(handleReorderSection),
     onInsertSection: editorOnly(handleInsertSection),
-    onPersistKosztorysOrder: editorOnly(handlePersistKosztorysOrder),
     onSetSectionColor: editorOnly(handleSetSectionColor),
+    onPersistKosztorysOrder: editorOnly(handlePersistKosztorysOrder),
     canSaveItemToCatalogue: editorOnly(true),
-    getSectionItemCount: (sectionId: number) => sectionCounts.get(sectionId) ?? 0,
     globalDiscountActive,
     divergenceFilterEngaged,
     engagedStageConditionIds,
@@ -825,7 +827,7 @@ export function useKosztorysEditor({
   // it's a no-op while a column sort is active (the menu also disables it). Denormalized section
   // fields come from any existing row of that section (as in handleAddItem).
   async function handleInsertItem(anchorRow: KosztorysV2RowT, dir: 'above' | 'below') {
-    if (sort) return
+    if (!orderCommandsEnabled(sort)) return
     const res = await insertItemAction(anchorRow.id, dir)
     if (!res.success) return reportFailure(res.error, res.code)
     const sample =
@@ -950,8 +952,8 @@ export function useKosztorysEditor({
   }
 
   function handleReorderSection(sectionId: number, dir: 'up' | 'down') {
-    // „w górę/w dół" has no meaning against a price-sorted view (the menu also disables it).
-    if (sort) return
+    // „w górę/w dół" has no meaning against a sorted view (the band's menu also disables it).
+    if (!orderCommandsEnabled(sort)) return
     // Captured BEFORE the swap: deleting the section later prunes this command, so an undo can
     // never re-derive a neighbour from rows the section no longer has.
     const touchedIds = rowsRef.current.filter((r) => r.sectionId === sectionId).map((r) => r.id)
@@ -982,7 +984,7 @@ export function useKosztorysEditor({
   // (plus its first blank item — a 0-item section renders as 0 rows) lands right before or after the
   // anchor section instead of at the end.
   async function handleInsertSection(anchorSectionId: number, dir: 'above' | 'below') {
-    if (sort) return
+    if (!orderCommandsEnabled(sort)) return
     const res = await insertSectionAction(anchorSectionId, dir)
     if (!res.success) return reportFailure(res.error, res.code)
     const row = buildNewSectionRow(res.data.section.id, res.data.item)
@@ -1235,10 +1237,13 @@ export function useKosztorysEditor({
     storedCollapsedSectionIds,
     toggleSectionCollapsed,
     setCollapsedSectionIds,
-    // The band's only mutation — every other section command lives in the row „…" menu. Reused from
-    // columnOpts rather than gated a second time, so the band and the name cell can't disagree about
-    // whether renaming is allowed.
+    // Reused from columnOpts rather than gated a second time, so no two surfaces reading these can
+    // disagree about whether editing is allowed.
     onRenameSection: columnOpts.onRenameSection,
+    onInsertSection: columnOpts.onInsertSection,
+    onReorderSection: columnOpts.onReorderSection,
+    onSetSectionColor: columnOpts.onSetSectionColor,
+    onRemoveSection: columnOpts.onRemoveSection,
     // subtotals + section panel
     subtotals,
     // client-priced, view-invariant per-section subtotals — the section pie's structure source.
@@ -1274,6 +1279,7 @@ export function useKosztorysEditor({
     foldableSectionIds,
     ordinalByRowId,
     sectionRows,
+    moveEdges,
     // Read by the toolbar and the summary through the editor context: on a locked investment they
     // drop their own write entries, which `editorOnly` (a grid-callback gate) never reaches.
     readOnly,

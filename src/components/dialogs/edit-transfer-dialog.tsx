@@ -1,8 +1,6 @@
 'use client'
 
-import { Pencil } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { SimpleTooltip } from '@/components/ui/tooltip'
+import { EditButton } from '@/components/ui/row-actions/edit-button'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { EditTransferForm } from '@/components/forms/edit-transfer-form/edit-transfer-form'
 import { TRANSFER_TYPE_LABELS } from '@/lib/constants/transfers'
@@ -24,27 +22,13 @@ export function EditTransferDialog({
   canEdit,
   disabledReason = 'Możesz edytować tylko swoje transakcje',
 }: EditTransferDialogPropsT) {
-  if (!canEdit) {
-    return (
-      <SimpleTooltip content={disabledReason}>
-        <span tabIndex={0}>
-          <Button variant="ghost" size="icon" disabled aria-label="Edytuj transakcję">
-            <Pencil />
-          </Button>
-        </span>
-      </SimpleTooltip>
-    )
-  }
+  if (!canEdit) return <EditButton label="Edytuj transakcję" tooltip={disabledReason} disabled />
 
   return (
     <FormDialog
       formId={`edit-transfer-${row.id}`}
       showKeepOpen={false}
-      trigger={
-        <Button variant="ghost" size="icon" aria-label="Edytuj transakcję">
-          <Pencil />
-        </Button>
-      }
+      trigger={<EditButton label="Edytuj transakcję" />}
       title="Edytuj transakcję"
       description={`${TRANSFER_TYPE_LABELS[row.type]} · ${formatPLN(row.amount)}`}
     >

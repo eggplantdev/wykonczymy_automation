@@ -43,7 +43,7 @@ export async function login(page: Page): Promise<void> {
 // dump; `pnpm db:import:test` restores them into the 5435 test DB. If a future dump drops them,
 // update here.
 export const EXPENSE_REGISTER = { id: 5, name: 'Kasa główna Bartek' }
-export const EXPENSE_INVESTMENT = 'Plac Hellera 3'
+export const EXPENSE_INVESTMENT = 'Plac Hallera 6'
 export const EXPENSE_CATEGORY = 'Materiały budowlane'
 
 // Parse a formatPLN string ("224 642,24 zł", spaces are non-breaking) into a number. Keeps a
@@ -90,7 +90,7 @@ async function pickComboOption(page: Page, label: string, optionText: string): P
   for (let attempt = 0; attempt < 5; attempt++) {
     // Each combo is a Radix Popover; its exit animation keeps the popper wrapper mounted and
     // pointer-events locked, so the next trigger click hangs on "stable". Wait for full detach.
-    await popper.waitFor({ state: 'detached' })
+    await popper.waitFor({ state: 'detached', timeout: 5_000 })
     try {
       // Bounded so a slow-to-render option fails fast into the next retry attempt,
       // instead of hanging on Playwright's default (test-timeout) action wait.
@@ -100,6 +100,12 @@ async function pickComboOption(page: Page, label: string, optionText: string): P
         .first()
         .click({ timeout: 2_000 })
     } catch {
+      // A failed option click leaves the popover OPEN, so the next attempt's detach wait sits on a
+      // wrapper that will never unmount and burns the whole test timeout. That is how one missing
+      // option — a fixture the dump no longer carries — reported itself for two months as an
+      // animation-timing flake (EX-473). Close it, so the retries actually retry and the run ends
+      // on this function's own „never committed" message instead.
+      await page.keyboard.press('Escape')
       continue
     }
     await popper.waitFor({ state: 'detached' })
@@ -132,6 +138,7 @@ export async function createInvestmentExpense(
   await page.locator('[id="lineItems[0].description"]').fill(description)
   await pickComboOption(page, 'Typ wydatku inwestycyjnego', EXPENSE_CATEGORY)
 
-  await page.getByRole('button', { name: 'Dodaj', exact: true }).click()
+  // `exact`, because „Zapisz jako domyślną kasę" sits in the same dialog and only stores a preference.
+  await page.getByRole('button', { name: 'Zapisz', exact: true }).click()
   await page.getByText('Nowy wydatek').first().waitFor({ state: 'hidden' })
 }

@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { unlessInvestmentLocked, createUnlessInvestmentLocked } from '@/access/investment-lock'
+import {
+  unlessInvestmentLocked,
+  createUnlessInvestmentLocked,
+  updateUnlessInvestmentLocked,
+} from '@/access/investment-lock'
+import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
 
 // The panel is the one write path the action wrapper never sees, so this gate IS the lock for
 // `/admin`. Both factories fail OPEN by design where the target can't be named — the cases below
@@ -30,29 +35,73 @@ const args = (data?: Record<string, unknown>, item?: { investment: unknown }) =>
   ({ req: req(item), data }) as never
 
 describe('unlessInvestmentLocked', () => {
-  it('narrows a management role to the investments that are still open', () => {
-    expect(unlessInvestmentLocked('investment.status')(args())).toEqual({
+  it('narrows a management role to the investments that are still open', async () => {
+    expect(await unlessInvestmentLocked(isAdminOrOwnerOrManager, 'investment')(args())).toEqual({
       'investment.status': { not_equals: 'completed' },
     })
   })
 
-  it('reaches a stage-progress row through its pozycja', () => {
-    expect(unlessInvestmentLocked('item.investment.status')(args())).toEqual({
+  it('reaches a stage-progress row through its pozycja', async () => {
+    expect(await unlessInvestmentLocked(isAdminOrOwnerOrManager, 'item')(args())).toEqual({
       'item.investment.status': { not_equals: 'completed' },
     })
   })
 
-  it('refuses a role that has no business here at all, without a query', () => {
-    const denied = unlessInvestmentLocked('investment.status')({
+  // Guards the trap the factory's own comment names.
+  it('narrows by the role rule it was given, not by a wired-in one', async () => {
+    const managerArgs = { req: { user: { id: 1, role: 'MANAGER' } } } as never
+    expect(await unlessInvestmentLocked(isAdminOrOwner, 'investment')(managerArgs)).toBe(false)
+    expect(
+      await unlessInvestmentLocked(isAdminOrOwnerOrManager, 'investment')(managerArgs),
+    ).toEqual({
+      'investment.status': { not_equals: 'completed' },
+    })
+  })
+
+  it('refuses a role that has no business here at all, without a query', async () => {
+    const denied = await unlessInvestmentLocked(
+      isAdminOrOwnerOrManager,
+      'investment',
+    )({
       req: { user: { id: 1, role: 'EMPLOYEE' } },
     } as never)
     expect(denied).toBe(false)
   })
 })
 
+describe('updateUnlessInvestmentLocked', () => {
+  const gate = updateUnlessInvestmentLocked(isAdminOrOwnerOrManager, 'investment')
+
+  // A `Where` speaks only about the row as it is STORED, so on its own it guards one direction.
+  // The other one — aiming an open row AT a locked investment — is a trap door: once the row lands
+  // there, the same `Where` locks it in and only SQL gets it out.
+  it('refuses an update that re-points the row at a locked investment', async () => {
+    expect(await gate(args({ investment: LOCKED_ID }))).toBe(false)
+  })
+
+  it('still narrows by the stored row when the payload names an open investment', async () => {
+    expect(await gate(args({ investment: 7 }))).toEqual({
+      'investment.status': { not_equals: 'completed' },
+    })
+  })
+
+  // A patch that does not touch the relationship leaves the direction unasked — the stored-row
+  // `Where` is the whole gate then.
+  it('falls back to the stored-row narrowing when the payload names no investment', async () => {
+    expect(await gate(args({ name: 'renamed' }))).toEqual({
+      'investment.status': { not_equals: 'completed' },
+    })
+  })
+
+  it('refuses a role that has no business here without consulting the payload', async () => {
+    const gateForOwners = updateUnlessInvestmentLocked(isAdminOrOwner, 'investment')
+    expect(await gateForOwners(args({ investment: 7 }))).toBe(false)
+  })
+})
+
 describe('createUnlessInvestmentLocked', () => {
-  const direct = createUnlessInvestmentLocked('investment')
-  const viaItem = createUnlessInvestmentLocked('item')
+  const direct = createUnlessInvestmentLocked(isAdminOrOwnerOrManager, 'investment')
+  const viaItem = createUnlessInvestmentLocked(isAdminOrOwnerOrManager, 'item')
 
   it('refuses a create aimed straight at a locked investment', async () => {
     expect(await direct(args({ investment: LOCKED_ID }))).toBe(false)

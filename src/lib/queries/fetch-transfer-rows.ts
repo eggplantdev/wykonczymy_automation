@@ -16,6 +16,11 @@ type BuildRowsOptsT = {
   skipMedia?: boolean
 }
 
+type FetchAllRowsOptsT = BuildRowsOptsT & {
+  /** Defaults to `DEFAULT_TRANSFER_SORT` — the same order an unsorted screen shows. */
+  sort?: string
+}
+
 /** Maps raw transfer docs + reference data into TransferRowT[]. */
 export async function buildTransferRows(
   docs: RawTransferDocT[],
@@ -32,10 +37,10 @@ export async function buildTransferRows(
 /** Fetches all matching transfers (unpaginated) and maps them to rows. */
 export async function fetchAllTransferRows(
   where: Where,
-  { skipMedia = false }: BuildRowsOptsT = {},
+  { skipMedia = false, sort }: FetchAllRowsOptsT = {},
 ): Promise<TransferRowT[]> {
   const [docs, refData] = await Promise.all([
-    findAllTransfersForExport(where),
+    findAllTransfersForExport(where, sort),
     fetchReferenceData(),
   ])
   return buildTransferRows(docs, refData, { skipMedia })

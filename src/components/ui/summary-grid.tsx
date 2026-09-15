@@ -11,10 +11,11 @@ export const SUMMARY_LABEL_COL = '16rem'
 // Every trailing column (netto / brutto / udział) shares one width so they read as an even set.
 export const SUMMARY_VALUE_COL = '9rem'
 
-// The shared table shell every summary grid repeats: a `bg-border` container whose `gap-px` paints
-// 1px separators between the (direct-child) cells its rows lay down; each cell repaints `bg-background`
-// on top. `cols` is the `gridTemplateColumns` track list. Callers pass width helpers (`w-fit`) via
-// `className`.
+// The shared table shell every summary grid repeats. Separators are real cell borders (each cell
+// draws its right/bottom edge, the container closes the top/left), NOT a `bg-border` container
+// bleeding through a `gap-px`: a gap is layout space, so at fractional row offsets the neighbouring
+// backgrounds round over it and whole row separators vanish on screen. `cols` is the
+// `gridTemplateColumns` track list. Callers pass width helpers (`w-fit`) via `className`.
 export function SummaryTable({
   cols,
   className,
@@ -27,7 +28,7 @@ export function SummaryTable({
   return (
     <div
       style={{ gridTemplateColumns: cols }}
-      className={cn('border-border bg-border grid gap-px border', className)}
+      className={cn('border-border grid border-t border-l', className)}
     >
       {children}
     </div>
@@ -99,6 +100,35 @@ function CellContent({ children, hints }: { children: ReactNode; hints?: LabelHi
   )
 }
 
+// Everything inside a cell except its frame. `muted` dims here rather than on the cell itself so it
+// never reaches the separators — the gridlines are the cell's own borders now, and a 40%-opacity
+// column would draw its share of them lighter than the row it sits in.
+function CellBody({
+  muted,
+  note,
+  align,
+  hints,
+  children,
+}: {
+  muted?: boolean
+  note?: SummaryCellNoteT | null
+  align: 'start' | 'end'
+  hints?: LabelHintT[]
+  children: ReactNode
+}) {
+  return (
+    <span
+      className={cn(
+        muted && 'opacity-40',
+        note && (align === 'end' ? 'flex flex-col items-end' : 'flex flex-col items-start'),
+      )}
+    >
+      <CellContent hints={hints}>{children}</CellContent>
+      {note && <CellNote note={note} />}
+    </span>
+  )
+}
+
 // A label-track cell — one of the direct grid children the separators run between.
 export function SummaryLabelCell({
   muted,
@@ -112,16 +142,15 @@ export function SummaryLabelCell({
   return (
     <span
       className={cn(
-        'bg-background px-3 py-1',
+        'border-border bg-background border-r border-b px-3 py-1',
         CELL_TONE[tone ?? 'default'],
         CELL_WEIGHT[weight ?? 'default'],
-        muted && 'opacity-40',
-        note && 'flex flex-col items-start',
         className,
       )}
     >
-      <CellContent hints={hints}>{children}</CellContent>
-      {note && <CellNote note={note} />}
+      <CellBody muted={muted} note={note} align="start" hints={hints}>
+        {children}
+      </CellBody>
     </span>
   )
 }
@@ -139,16 +168,15 @@ export function SummaryValueCell({
   return (
     <span
       className={cn(
-        'bg-background px-3 py-1 text-right tabular-nums',
+        'border-border bg-background border-r border-b px-3 py-1 text-right tabular-nums',
         CELL_TONE[tone ?? 'default'],
         CELL_WEIGHT[weight ?? 'default'],
-        muted && 'opacity-40',
-        note && 'flex flex-col items-end',
         className,
       )}
     >
-      <CellContent hints={hints}>{children}</CellContent>
-      {note && <CellNote note={note} />}
+      <CellBody muted={muted} note={note} align="end" hints={hints}>
+        {children}
+      </CellBody>
     </span>
   )
 }

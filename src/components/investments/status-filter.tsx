@@ -11,10 +11,11 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { STATUS_LABELS } from '@/components/investments/investment-status-badge'
+import { FILTERABLE_STATUSES } from '@/hooks/use-status-filter'
 import { cn } from '@/lib/utils/cn'
 import type { InvestmentStatusT } from '@/types/reference-data'
 
-const STATUS_ORDER: InvestmentStatusT[] = ['planowana', 'active', 'completed']
+const STATUS_ORDER = FILTERABLE_STATUSES
 
 type StatusFilterPropsT = {
   selectedStatuses: Set<InvestmentStatusT>

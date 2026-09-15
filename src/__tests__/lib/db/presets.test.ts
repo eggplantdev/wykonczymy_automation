@@ -2,7 +2,15 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
-import { insertPreset, listPresetSections } from '@/lib/db/presets'
+import {
+  deletePreset,
+  getPreset,
+  insertPreset,
+  listPresetSections,
+  listPresets,
+  renamePreset,
+  updatePresetPayload,
+} from '@/lib/db/presets'
 import type { KosztorysItemT, KosztorysSectionT } from '@/lib/kosztorys/types'
 import type { SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 
@@ -123,5 +131,99 @@ describe.skipIf(!ENV_READY)('listPresetSections (DB)', () => {
 
     const ours = metas.filter((meta) => meta.presetId === idA || meta.presetId === idB)
     expect(ours.map((meta) => meta.presetId)).toEqual([idB, idA, idA, idA])
+  })
+})
+
+// Asserted on the persisted rows (via listPresets), never on a return value — a success result can
+// hide a failed write.
+describe.skipIf(!ENV_READY)('deletePreset / renamePreset (DB)', () => {
+  let payload: Payload
+  let db: Awaited<ReturnType<typeof getDb>>
+  const emptyPayload: SnapshotPayloadT = {
+    schemaVersion: 1,
+    sections: [],
+    items: [],
+    stages: [],
+    progress: [],
+    settings: { wToolsCoeff: 0, ownToolsCoeff: 0, vatRate: 0 },
+  }
+
+  async function makePreset(name: string): Promise<number> {
+    const id = await insertPreset(db, { name, createdBy: null, payload: emptyPayload })
+    if (id == null) throw new Error(`fixture preset ${name} already exists — stale run?`)
+    return id
+  }
+
+  beforeAll(async () => {
+    const { getPayload } = await import('payload')
+    const config = (await import('@payload-config')).default
+    payload = await getPayload({ config })
+    db = await getDb(payload)
+  })
+
+  afterAll(async () => {
+    await db.execute(sql`DELETE FROM kosztorys_presets WHERE name LIKE 'crud-fixture-%'`)
+  })
+
+  it('removes the szablon from the library', async () => {
+    const id = await makePreset('crud-fixture-doomed')
+
+    expect(await deletePreset(db, id)).toBe(true)
+    expect((await listPresets(db)).some((preset) => preset.id === id)).toBe(false)
+  })
+
+  it('reports a delete that matched nothing', async () => {
+    const id = await makePreset('crud-fixture-gone')
+    await deletePreset(db, id)
+
+    expect(await deletePreset(db, id)).toBe(false)
+  })
+
+  it('renames in place, keeping the id', async () => {
+    const id = await makePreset('crud-fixture-old-name')
+
+    expect(await renamePreset(db, id, 'crud-fixture-new-name')).toBe(true)
+    expect((await listPresets(db)).find((preset) => preset.id === id)?.name).toBe(
+      'crud-fixture-new-name',
+    )
+  })
+
+  // „Zapisz" in the warsztat overwrites the szablon it HOLDS, by id — the name is not its address.
+  it('overwrites the payload in place, keeping the id', async () => {
+    const id = await makePreset('crud-fixture-overwritten')
+
+    const filled: SnapshotPayloadT = {
+      ...emptyPayload,
+      sections: [{ id: 1, name: 'Nowa sekcja', displayOrder: 0, color: null }],
+    }
+    expect(await updatePresetPayload(db, { id, createdBy: null, payload: filled })).toBe(true)
+
+    const stored = await getPreset(db, id)
+    expect(stored?.payload.sections.map((section) => section.name)).toEqual(['Nowa sekcja'])
+  })
+
+  // An UPDATE and not an upsert: someone deleting a szablon while another manager has it open in the
+  // warsztat must not have it silently resurrected by that manager's next save.
+  it('resurrects nothing when the szablon was deleted while it was open', async () => {
+    const id = await makePreset('crud-fixture-deleted-under-us')
+    await deletePreset(db, id)
+
+    expect(await updatePresetPayload(db, { id, createdBy: null, payload: emptyPayload })).toBe(
+      false,
+    )
+    expect((await listPresets(db)).some((preset) => preset.id === id)).toBe(false)
+  })
+
+  // The collision guard lives in SQL, so the failure has to leave BOTH rows untouched — a partial
+  // write here would be a szablon renamed onto a name it doesn't own.
+  it('refuses a taken name without touching either szablon', async () => {
+    const mine = await makePreset('crud-fixture-mine')
+    const theirs = await makePreset('crud-fixture-theirs')
+
+    expect(await renamePreset(db, mine, 'crud-fixture-theirs')).toBe(false)
+
+    const byId = new Map((await listPresets(db)).map((preset) => [preset.id, preset.name]))
+    expect(byId.get(mine)).toBe('crud-fixture-mine')
+    expect(byId.get(theirs)).toBe('crud-fixture-theirs')
   })
 })

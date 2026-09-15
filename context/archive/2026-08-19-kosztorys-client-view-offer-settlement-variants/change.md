@@ -24,6 +24,7 @@ Ustalenia z rozmowy poprzedzającej (2026-08-19):
   „edytuję ofertę, ale pokazuję rozliczenie". Wybrany wariant jest jednocześnie edytowanym
   i (po zapisie) aktywnym.
 - **Wyraźny zapis + potwierdzenie.** Przycisk nazywa skutek wprost („Zapisz i pokaż rozliczenie"),
+  _— cofnięte 2026-09-15: napis czytał się jako obietnica otwarcia podglądu w tym oknie, więc zostało samo „Zapisz"; potwierdzenie bez zmian,_
   a zapis po zmianie wariantu podnosi to samo okienko „Uwaga — zmiana widoczna dla inwestora!", które
   stoi przed zmianą sposobu rozliczenia materiałów. Wzorzec jak tam: to samo okno, ten sam flow.
   (Korekta wobec pierwszego zapisu tej decyzji, który mówił „bez osobnego modala" i został wdrożony

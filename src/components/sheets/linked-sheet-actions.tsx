@@ -3,13 +3,14 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { FileSpreadsheet, Unlink, Trash2 } from 'lucide-react'
+import { FileSpreadsheet, Unlink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
+import { DeleteButton } from '@/components/ui/row-actions/delete-button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { toastMessage } from '@/lib/utils/toast'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
-import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-button'
 import { unlinkSheetFromInvestmentAction, deleteSheetAction } from '@/lib/actions/sheets'
 
 type PropsT = {
@@ -23,7 +24,7 @@ type PropsT = {
 type DialogT = 'unlink' | 'delete' | undefined
 
 // Row actions for a sheet that is linked to an investment, rendered as standalone
-// buttons: open the in-app editor, open the embedded sheet, the reversible
+// buttons: open the embedded sheet, the reversible
 // "unlink", and the destructive "delete". The unlink/delete buttons each gate behind a confirm
 // step. Both server actions re-check permissions — the client gate on "delete"
 // only hides a button the user can't use anyway.
@@ -56,8 +57,6 @@ export function LinkedSheetActions({ sheetId, investmentId, investmentName }: Pr
 
   return (
     <div className="flex items-center justify-end gap-2">
-      <OpenKosztorysV2Button investmentId={investmentId} label="kosztorys_v2" />
-
       <Button size="sm" asChild>
         <Link href={`/inwestycje/${investmentId}/kosztorys`}>
           <FileSpreadsheet />
@@ -65,17 +64,15 @@ export function LinkedSheetActions({ sheetId, investmentId, investmentName }: Pr
         </Link>
       </Button>
 
-      <Button size="sm" variant="outline" onClick={() => setDialog('unlink')}>
-        <Unlink />
-        Odłącz
-      </Button>
+      {/* The link above keeps its label — it goes somewhere. These two CHANGE something, so they
+          take the same icon shape the action column of every other table uses. */}
+      <RowActionButton
+        icon={Unlink}
+        label="Odłącz od inwestycji"
+        onClick={() => setDialog('unlink')}
+      />
 
-      {canDelete && (
-        <Button size="sm" variant="destructive" onClick={() => setDialog('delete')}>
-          <Trash2 />
-          Usuń
-        </Button>
-      )}
+      {canDelete && <DeleteButton label="Usuń kosztorys" onClick={() => setDialog('delete')} />}
 
       <ConfirmDialog
         open={dialog === 'unlink'}

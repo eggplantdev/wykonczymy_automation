@@ -5,7 +5,10 @@ import { createJsonMapStore, useJsonMap, type JsonMapStoreT } from '@/hooks/crea
 import type { InvestmentStatusT } from '@/types/reference-data'
 
 const DEFAULT_STATUSES: InvestmentStatusT[] = ['active', 'planowana']
-const VALID_STATUSES: InvestmentStatusT[] = ['active', 'completed', 'planowana']
+// Three, not four: `szablon` is the hidden templates workbench. It is already dropped by
+// fetchReferenceData, so this list is the checkbox row, not a gate — in display order, and read by
+// the StatusFilter component too so the two can't drift.
+export const FILTERABLE_STATUSES: InvestmentStatusT[] = ['planowana', 'active', 'completed']
 
 const STORAGE_PREFIX = 'table-status-filter:'
 
@@ -25,7 +28,7 @@ function storeFor(storageKey: string): JsonMapStoreT<boolean> {
 // wybierał" from „wybrano nic", and an empty list says both. So an absent (or client-corrupted) map
 // falls back to the defaults, while an explicit all-false is honoured as the empty selection it is.
 export function selectionFrom(persisted: Record<string, boolean>): Set<InvestmentStatusT> {
-  const answered = VALID_STATUSES.filter((status) => typeof persisted[status] === 'boolean')
+  const answered = FILTERABLE_STATUSES.filter((status) => typeof persisted[status] === 'boolean')
   if (answered.length === 0) return new Set(DEFAULT_STATUSES)
   return new Set(answered.filter((status) => persisted[status]))
 }
@@ -55,7 +58,7 @@ export function useStatusFilter<TItem>(
     store.update((prev) => {
       const current = selectionFrom(prev)
       return Object.fromEntries(
-        VALID_STATUSES.map((valid) => [
+        FILTERABLE_STATUSES.map((valid) => [
           valid,
           valid === status ? !current.has(valid) : current.has(valid),
         ]),

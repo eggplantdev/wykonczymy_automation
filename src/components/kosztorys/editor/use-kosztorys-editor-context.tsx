@@ -18,6 +18,7 @@ type KosztorysEditorContextT = ReturnType<typeof useKosztorysEditor> & {
   // offers it too. Absent in preview, which renders neither trigger.
   openImport?: () => void
   hasSheet: boolean
+  templatePresetId?: number
 }
 
 const KosztorysEditorContext = createContext<KosztorysEditorContextT | null>(null)

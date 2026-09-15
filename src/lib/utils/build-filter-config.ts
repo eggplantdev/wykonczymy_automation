@@ -5,6 +5,7 @@ type FilterKeyT =
   | 'cashRegisters'
   | 'investments'
   | 'users'
+  | 'workers'
   | 'otherCategories'
   | 'expenseCategories'
   | 'type'
@@ -21,6 +22,7 @@ export function buildFilterConfig(
     cashRegisters: has('cashRegisters') ? toOptions(refData.cashRegisters) : undefined,
     investments: has('investments') ? toOptions(refData.investments) : undefined,
     users: has('users') ? toOptions(refData.workers) : undefined,
+    workers: has('workers') ? toOptions(refData.workers) : undefined,
     otherCategories: has('otherCategories') ? toOptions(refData.otherCategories) : undefined,
     expenseCategories: has('expenseCategories') ? toOptions(refData.expenseCategories) : undefined,
     showTypeFilter: has('type'),

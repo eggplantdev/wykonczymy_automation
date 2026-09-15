@@ -8,6 +8,7 @@ import {
   type StoredSnapshotPayloadT,
 } from '@/lib/kosztorys/snapshot-format'
 import type { DbExecutorT } from './get-db'
+import { isoOrNull } from './row-coerce'
 
 // The single place that reads/writes the raw kosztorys_presets table (no Payload collection —
 // the notification_reads pattern). A preset is a reusable, GLOBAL (cross-investment) template:
@@ -76,6 +77,25 @@ export async function upsertPresetByName(
   return Number(res.rows[0].id)
 }
 
+// Overwrite an EXISTING szablon's content, addressed by id. Deliberately an UPDATE and not an
+// upsert: the workbench's „Zapisz" must never resurrect a szablon someone deleted while it was
+// open, and `false` is how the caller learns the row is gone. `upsertPresetByName` stays for
+// „Zapisz jako szablon…", where creating under a new name IS the point.
+export async function updatePresetPayload(
+  db: DbExecutorT,
+  params: { id: number; createdBy: number | null; payload: SnapshotPayloadT },
+): Promise<boolean> {
+  const res = await db.execute(sql`
+    UPDATE kosztorys_presets SET
+      schema_version = ${SNAPSHOT_SCHEMA_VERSION},
+      payload = ${JSON.stringify(params.payload)}::jsonb,
+      created_by = ${params.createdBy}
+    WHERE id = ${params.id}
+    RETURNING id
+  `)
+  return res.rows.length > 0
+}
+
 // Load one preset's full payload by id — the seed path resolves the payload from the row itself
 // rather than trusting a client-passed value. Returns null when the id doesn't exist.
 export async function getPreset(
@@ -89,6 +109,14 @@ export async function getPreset(
   if (!row) return null
   assertReadableSchemaVersion(Number(row.schema_version), 'preset')
   return { name: String(row.name), payload: row.payload as StoredSnapshotPayloadT }
+}
+
+// Just the name. Separate from `getPreset` because the workbench page needs a title and nothing
+// else, and the payload of a szablon is the one large column in this table.
+export async function getPresetName(db: DbExecutorT, presetId: number): Promise<string | null> {
+  const res = await db.execute(sql`SELECT name FROM kosztorys_presets WHERE id = ${presetId}`)
+  const row = res.rows[0]
+  return row ? String(row.name) : null
 }
 
 // Flatten every preset's sections into pickable metas. Counted in SQL on purpose (EX-622): the
@@ -132,6 +160,36 @@ export async function listPresetSections(db: DbExecutorT): Promise<PresetSection
   }))
 }
 
+// Delete a preset outright — no versioning, no trash. A kosztorys spawned from a preset is a frozen
+// copy, not a reference, so nothing downstream breaks. The one FK that does point here is the
+// warsztat's `investments.template_preset_id`, declared ON DELETE SET NULL — deleting the szablon
+// somebody has open empties the warsztat's pointer instead of dangling it. `false` = no such row,
+// which the caller reports rather than swallowing.
+export async function deletePreset(db: DbExecutorT, presetId: number): Promise<boolean> {
+  const res = await db.execute(sql`
+    DELETE FROM kosztorys_presets WHERE id = ${presetId} RETURNING id
+  `)
+  return res.rows.length > 0
+}
+
+// The collision guard sits in SQL rather than in a catch on PG 23505 for the same
+// reason insertPreset's ON CONFLICT does: the UNIQUE constraint would otherwise surface as the
+// driver's English sentence in a Polish UI. `false` = the name is taken (or the id doesn't exist —
+// both mean "nothing was renamed", and the caller distinguishes them by having listed the row).
+export async function renamePreset(
+  db: DbExecutorT,
+  presetId: number,
+  name: string,
+): Promise<boolean> {
+  const res = await db.execute(sql`
+    UPDATE kosztorys_presets SET name = ${name}
+    WHERE id = ${presetId}
+      AND NOT EXISTS (SELECT 1 FROM kosztorys_presets WHERE name = ${name} AND id <> ${presetId})
+    RETURNING id
+  `)
+  return res.rows.length > 0
+}
+
 export async function listPresets(db: DbExecutorT): Promise<PresetMetaT[]> {
   const res = await db.execute(sql`
     SELECT id, name, created_at, created_by
@@ -141,7 +199,7 @@ export async function listPresets(db: DbExecutorT): Promise<PresetMetaT[]> {
   return res.rows.map((row) => ({
     id: Number(row.id),
     name: String(row.name),
-    createdAt: String(row.created_at),
+    createdAt: isoOrNull(row.created_at) ?? '',
     createdBy: row.created_by == null ? null : Number(row.created_by),
   }))
 }

@@ -5,9 +5,10 @@ import '@/lib/env'
 import '@/lib/env/server'
 import React, { Suspense } from 'react'
 import { redirect } from 'next/navigation'
-import { abcFavorit, spaceMono } from '@/fonts'
+import { spaceMono } from '@/fonts'
 import { cn } from '@/lib/utils/cn'
 import { ToastContainer } from 'react-toastify'
+import { ThemeProvider } from 'next-themes'
 import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
 import { Navigation } from '@/components/nav/navigation'
 import { Sidebar } from '@/components/nav/sidebar'
@@ -29,16 +30,18 @@ export default function FrontendLayout({ children, investmentCrumb }: FrontendLa
   return (
     <html
       lang="pl"
-      className={cn(abcFavorit.variable, spaceMono.variable, 'overscroll-none antialiased')}
+      className={cn(spaceMono.variable, 'overscroll-none antialiased')}
       suppressHydrationWarning
     >
       <body className="bg-background text-foreground relative min-h-screen scroll-smooth">
-        <Suspense fallback={<Loader loading={true} />}>
-          <AuthenticatedShell investmentCrumb={investmentCrumb}>{children}</AuthenticatedShell>
-        </Suspense>
-        <ToastContainer style={{ zIndex: 10001 }} />
-        <PendingSubmitIndicator />
-        <EnvBadge />
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          <Suspense fallback={<Loader loading={true} />}>
+            <AuthenticatedShell investmentCrumb={investmentCrumb}>{children}</AuthenticatedShell>
+          </Suspense>
+          <ToastContainer style={{ zIndex: 10001 }} />
+          <PendingSubmitIndicator />
+          <EnvBadge />
+        </ThemeProvider>
       </body>
     </html>
   )
@@ -58,7 +61,10 @@ async function AuthenticatedShell({ children, investmentCrumb }: FrontendLayoutP
             </Suspense>
           }
         />
-        <div className="flex flex-1 flex-col">
+        {/* min-w-0: a flex item's default `min-width: auto` refuses to shrink below its content's
+            min-content width, so one wide child (the kosztorys grid) widened this whole column past
+            the viewport and took the sticky top bar with it — the page body scrolled sideways. */}
+        <div className="flex min-w-0 flex-1 flex-col">
           <Navigation user={user} investmentCrumb={investmentCrumb} />
           {/* transform-gpu forces a compositing layer: Safari otherwise fails to
               repaint content streamed into this overflow scroll container after

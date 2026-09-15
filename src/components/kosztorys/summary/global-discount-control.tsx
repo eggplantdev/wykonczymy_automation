@@ -44,22 +44,13 @@ export function GlobalDiscountControl({ disabled = false }: { disabled?: boolean
     handleApplyPercentDiscount,
   } = useKosztorysEditorContext()
 
-  // Percent is a one-shot bulk-write with no stored footprint, so „off vs percent" can't be told apart
-  // from globalDiscount alone — the picked mode is its own local state. A stored amount discount seeds
-  // the group onto „Kwotowy".
-  const [mode, setMode] = useState<DiscountModeT>(globalDiscount.type != null ? 'amount' : 'off')
-
-  // The stored type can move without the user touching the select — a failed save rolling the
-  // optimistic value back, or Ctrl+Z replaying an earlier discount. Neither reaches this local state,
-  // so without the resync the select reads „Wyłączony" while the data still applies the discount (or
-  // „Kwotowy" over a kwota that is no longer stored). Clearing only pulls „Kwotowy" back to
-  // „Wyłączony": „%" also sits at null and is not something an undo should walk away from.
-  const [seenType, setSeenType] = useState(globalDiscount.type)
-  if (seenType !== globalDiscount.type) {
-    setSeenType(globalDiscount.type)
-    if (globalDiscount.type != null) setMode('amount')
-    else if (mode === 'amount') setMode('off')
-  }
+  // „%" and „Wyłączony" both store nothing, so the stored rabat alone cannot tell them apart — that
+  // one bit is the only local state here. Everything else is derived, so a failed save rolling the
+  // optimistic value back (or Ctrl+Z replaying an earlier rabat) moves the select with the figures
+  // instead of leaving it describing a deal the data no longer applies.
+  const [percentPicked, setPercentPicked] = useState(false)
+  const mode: DiscountModeT =
+    globalDiscount.type != null ? 'amount' : percentPicked ? 'percent' : 'off'
 
   // The mode itself is the decision — „Kwotowy" suppresses per-item rabat at any kwota — so entering
   // it must write straight away rather than wait for a kwota that may never be typed. Leaving it
@@ -67,7 +58,7 @@ export function GlobalDiscountControl({ disabled = false }: { disabled?: boolean
   // is what keeps the percent one-shot always effective.
   function changeMode(next: string) {
     const nextMode = next as DiscountModeT
-    setMode(nextMode)
+    setPercentPicked(nextMode === 'percent')
     handleGlobalDiscountChange(globalDiscountForMode(nextMode, perItemDiscountTotal))
   }
 

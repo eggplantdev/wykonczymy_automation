@@ -2,9 +2,12 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
-import { gcSnapshots, insertSnapshot } from '@/lib/db/snapshots'
+import { gcSnapshots, getSnapshot, insertSnapshot, listSnapshots } from '@/lib/db/snapshots'
+import { deletePreset, insertPreset } from '@/lib/db/presets'
+import { setWorkshopPreset } from '@/lib/db/workshop-investment'
 import type { SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { acquireTestWorkshop } from '@/__tests__/helpers/workshop'
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
@@ -172,5 +175,89 @@ describe.skipIf(!ENV_READY)('gcSnapshots retention bands (DB)', () => {
     await gcSnapshots(db)
     expect(await survivorsOf(investmentId)).toEqual(survivors)
     expect(await survivorsOf(otherInvestmentId)).toEqual(otherSurvivors)
+  })
+})
+
+// The warsztat is ONE investment serving every szablon, so `investment_id` alone no longer scopes a
+// restore point — the szablon it was taken under does. Filtering only the drawer would be cosmetic:
+// a stale tab still holds ids of another szablon's points, and restoring one then saving writes that
+// content into the szablon now open. Both the list and the by-id read therefore carry the clause,
+// and this asserts the rows, not the UI.
+describe.skipIf(!ENV_READY)('szablon-scoped restore points (DB)', () => {
+  let payload: Payload
+  let db: Awaited<ReturnType<typeof getDb>>
+  let workshop: Awaited<ReturnType<typeof acquireTestWorkshop>>
+  let plainInvestmentId: number
+  let presetA: number
+  let presetB: number
+  let pointUnderA: number
+  let pointUnderB: number
+  let plainPoint: number
+
+  beforeAll(async () => {
+    const { getPayload } = await import('payload')
+    const config = (await import('@payload-config')).default
+    payload = await getPayload({ config })
+    db = await getDb(payload)
+
+    const ids = await Promise.all(
+      ['snapshot-scope-a', 'snapshot-scope-b'].map((name) =>
+        insertPreset(db, { name, createdBy: null, payload: emptyPayload }),
+      ),
+    )
+    if (ids.some((id) => id == null)) throw new Error('fixture presets already exist — stale run?')
+    ;[presetA, presetB] = ids as number[]
+
+    workshop = await acquireTestWorkshop(payload)
+    const take = () =>
+      insertSnapshot(db, {
+        investmentId: workshop.id,
+        kind: 'manual',
+        label: null,
+        takenBy: null,
+        payload: emptyPayload,
+      })
+
+    await setWorkshopPreset(db, workshop.id, presetA)
+    pointUnderA = await take()
+    await setWorkshopPreset(db, workshop.id, presetB)
+    pointUnderB = await take()
+
+    plainInvestmentId = await createTestInvestment(payload, 'snapshot-scope-plain')
+    plainPoint = await insertSnapshot(db, {
+      investmentId: plainInvestmentId,
+      kind: 'manual',
+      label: null,
+      takenBy: null,
+      payload: emptyPayload,
+    })
+  })
+
+  afterAll(async () => {
+    await db.execute(
+      sql`DELETE FROM kosztorys_snapshots WHERE id IN (${pointUnderA}, ${pointUnderB}, ${plainPoint})`,
+    )
+    await workshop.release()
+    await Promise.all([deletePreset(db, presetA), deletePreset(db, presetB)])
+    if (plainInvestmentId) await deleteTestInvestment(payload, plainInvestmentId)
+  })
+
+  it('lists only the points taken under the szablon the warsztat holds now', async () => {
+    const ids = (await listSnapshots(db, workshop.id)).map((s) => s.id)
+
+    expect(ids).toContain(pointUnderB)
+    expect(ids).not.toContain(pointUnderA)
+  })
+
+  it('refuses to load a point belonging to another szablon by id', async () => {
+    expect(await getSnapshot(db, pointUnderA)).toBeNull()
+    expect(await getSnapshot(db, pointUnderB)).not.toBeNull()
+  })
+
+  it('leaves a normal investment its whole history', async () => {
+    // Both sides of the clause are NULL off the warsztat, so the szablon rule must not narrow
+    // anything here — a kosztorys losing its versions would be the expensive way to get this wrong.
+    expect((await listSnapshots(db, plainInvestmentId)).map((s) => s.id)).toEqual([plainPoint])
+    expect(await getSnapshot(db, plainPoint)).not.toBeNull()
   })
 })

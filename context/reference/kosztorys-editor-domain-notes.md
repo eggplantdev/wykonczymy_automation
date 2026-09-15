@@ -1167,3 +1167,36 @@ this section is the original phrasing/context for those questions.
   z **przedmiaru** (oferta wstępna) czy z **pomiaru** (rozliczenie)? Jeden tryb czy
   przełącznik? To samo pytanie, inna powierzchnia — widok jest żywy, więc „jeden
   tryb" znaczy teraz „ten sam ekran przez całą inwestycję".
+
+## Fakty domenowe z weryfikacji manualnej (destylat 2026-09-15)
+
+Wyciągnięte z `context/foundation/manual-checks.md` przy jego przycięciu; pełny rejestr leży w
+`context/archive/manual-checks/2026-09-15-pelny-rejestr.md`.
+
+**Etap bez planu (`plane = NULL`) jest nie do utworzenia z UI — i tak ma być.** Rozstrzygnięcie
+właściciela (2026-09-14): każdy etap zakładany w aplikacji dostaje `w_tools` albo `own_tools`.
+NULL istnieje wyłącznie jako dane zastane sprzed wprowadzenia planów. Żeby taki etap zobaczyć na
+oczy w środowisku testowym, trzeba go **wstawić SQL-em** — brak ścieżki w UI nie jest luką do
+zgłoszenia.
+
+**MIXED rozlicza się na JEDNYM planie — netto.** Mieszane są **wpłaty**, nie rachunek: klient może
+wpłacać brutto i netto, ale rozliczenie liczy się na płaszczyźnie netto. Nie szukaj w trybie MIXED
+dwóch równoległych sum.
+
+**`/k/<token>` pokazuje klientowi dokładnie trzy widoki**: Podsumowanie, Materiały, Robocizna.
+Podwykonawcy i Marża są wyłącznie dla właściciela i nie mają się tam pojawić w żadnym trybie.
+Dodatkowo każda liczba diagnostyczna jest w trybie `preview` twardo zerowana, więc przycisk
+„Problemy" w widoku klienta **nigdy się nie montuje** — jego brak to nie defekt renderu.
+
+**`SlicePie` zwraca `null` poniżej dwóch niezerowych wycinków.** Brak wykresu przy jednej sekcji jest
+zamierzony.
+
+**`Przedmiar` celowo nigdy nie jest sumowany per sekcja** — kolumna miesza jednostki miary, więc suma
+nie miałaby znaczenia. Brak podsumowania w nagłówku sekcji to decyzja, nie przeoczenie.
+
+**Dopasowanie zakładki `LABOR_TAB` zostaje dokładne — to decyzja, nie luka.** 56 z 57 zrzuconych
+arkuszy klienckich niesie kanoniczne `kosztorys_robocizny`; jedynym wyjątkiem jest wypełniony arkusz
+testowy `1qN68vcevWgq0fXckdh4cuyBJ4iGZNlivVuHDvLuzWy4`, gdzie nazwa rozjechała się do
+`"kosztorys_robocizny(dla inwestora) "`. **Nie rozluźniaj** dopasowania w
+`src/lib/kosztorys/sheet-import/read-sheet.ts` pod ten jeden arkusz — dopasowanie po prefiksie
+zaczęłoby łapać cudze zakładki w 56 pozostałych.

@@ -3,34 +3,50 @@
 import { ChevronDown, ChevronRight } from 'lucide-react'
 
 import { SectionNameCell } from '@/components/kosztorys/editor/grid/cells/section-name-cell'
+import {
+  KosztorysSectionActionsMenu,
+  type SectionBandActionsT,
+} from '@/components/kosztorys/editor/grid/menus/kosztorys-section-actions-menu'
 import { formatNet } from '@/lib/kosztorys/format'
+import { canMoveSection, type MoveEdgesT } from '@/lib/kosztorys/move-edges'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-// What every band cell needs, carried on the wrapped column's `columnData` (never a closure — see
-// kosztorys-synthetic-rows.tsx). `onRename` is absent in the read-only client view, which is what
-// freezes the name. Every other section command lives in the row „…" menu, not here.
 // `net` is the section's executed value after rabat, in the active price view — the same figure its
 // footer's „Razem netto" shows, so a collapsed section still states what it is worth.
 export type SectionHeaderFigureT = { itemCount: number; net: number }
 
+// What every band cell needs, carried on the wrapped column's `columnData` (never a closure — see
+// kosztorys-synthetic-rows.tsx). `onRename` and `actions` are absent in the read-only client view,
+// which is what freezes the name and leaves the band without a „…".
 export type SectionHeaderContextT = {
   // Per section id — the band row carries the section's identity, not its figures.
   figures: Map<number, SectionHeaderFigureT>
   collapsedSectionIds: ReadonlySet<number>
   onToggleCollapsed: (sectionId: number) => void
   onRename?: (sectionId: number, name: string) => void
+  // One bundle rather than four props: they all come from the same `editorOnly()` gate, so the menu
+  // is all-present or all-absent.
+  actions?: SectionBandActionsT
+  // A section-scoped sort keeps the bands on screen but freezes section order, so the menu needs to
+  // know — see KosztorysSectionActionsMenu.
+  sortActive: boolean
+  // Which sekcja sits at either end of the rozpiska, so its ▲/▼ can go dead instead of eating the
+  // click. Absent in the read-only view, which has no menu to grey out.
+  moveEdges?: MoveEdgesT
   // Which column paints the label — resolved per render off the visible order, never a fixed id.
   labelColumnId?: string
 }
 
-// dsg has no colspan, so the band is painted per column: one column carries the whole label, the
-// rest paint blank.
-export type SectionHeaderSlotT = 'label' | 'blank'
+// dsg has no colspan, so the band is painted per column: one column carries the whole label, one
+// carries the section's „…", the rest paint blank.
+export type SectionHeaderSlotT = 'actions' | 'label' | 'blank'
 
-// Chrome, not a reading of the kosztorys: „Akcje" is 64px of row menu and the trailing gap is empty
+const ACTIONS_COLUMN_ID = 'actions'
+
+// Chrome, not a reading of the kosztorys: „Akcje" is 64px of menu trigger and the trailing gap is empty
 // by definition, so neither can host a label that has to be legible. Literals rather than an import
 // from the column assembly, which imports this file.
-const CHROME_COLUMN_IDS: ReadonlySet<string> = new Set(['actions', 'layerGap'])
+const CHROME_COLUMN_IDS: ReadonlySet<string> = new Set([ACTIONS_COLUMN_ID, 'layerGap'])
 
 // The band follows the grid instead of a named column: no column holds a fixed slot any more
 // (lib/table/column-order), so „Opis prac" can be dragged to the far right or hidden from the
@@ -45,6 +61,9 @@ export function sectionHeaderSlot(
   columnId: string | undefined,
   labelColumnId: string | undefined,
 ): SectionHeaderSlotT {
+  // Decided before the label, though the two can't collide: „Akcje" is chrome, so
+  // `sectionBandLabelColumnId` never names it.
+  if (columnId === ACTIONS_COLUMN_ID) return 'actions'
   return columnId != null && columnId === labelColumnId ? 'label' : 'blank'
 }
 
@@ -71,6 +90,25 @@ export function SectionHeaderCell({
   const toggle = () => context.onToggleCollapsed(rowData.sectionId)
   const title = collapsed ? 'Rozwiń sekcję' : 'Zwiń sekcję'
 
+  if (slot === 'actions') {
+    // The one band cell that does NOT collapse — not by stopping the click, but by never getting a
+    // toggle handler. That is what keeps a collapsed section's own commands reachable.
+    if (!context.actions) return <div className="size-full" />
+    return (
+      <KosztorysSectionActionsMenu
+        row={rowData}
+        sectionId={rowData.sectionId}
+        name={rowData.sectionName ?? ''}
+        itemCount={itemCount}
+        color={rowData.sectionColor}
+        sortActive={context.sortActive}
+        canMoveUp={canMoveSection(context.moveEdges, rowData.sectionId, 'up')}
+        canMoveDown={canMoveSection(context.moveEdges, rowData.sectionId, 'down')}
+        actions={context.actions}
+      />
+    )
+  }
+
   if (slot === 'label') {
     const Chevron = collapsed ? ChevronRight : ChevronDown
     return (
@@ -83,6 +121,10 @@ export function SectionHeaderCell({
         aria-expanded={!collapsed}
         onClick={toggle}
         onKeyDown={(event) => {
+          // Only the band's own keys, never one bubbling out of the rename input: there Space is a
+          // space and Enter commits the name, and this handler would eat both to toggle the section.
+          // The band is the one focusable element here, so identity is the whole test.
+          if (event.target !== event.currentTarget) return
           if (event.key !== 'Enter' && event.key !== ' ') return
           event.preventDefault()
           toggle()

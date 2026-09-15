@@ -13,6 +13,8 @@ type PropsT = {
   confirmLabel: string
   onConfirm: () => void
   confirmDisabled?: boolean
+  pending?: boolean
+  pendingLabel?: string
 }
 
 // Self-controlled (open/onOpenChange props, no optimistic store) shell for the standard kosztorys
@@ -28,6 +30,8 @@ export function FormDialogShell({
   confirmLabel,
   onConfirm,
   confirmDisabled = false,
+  pending,
+  pendingLabel,
 }: PropsT) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -39,6 +43,8 @@ export function FormDialogShell({
           onConfirm={onConfirm}
           onCancel={() => onOpenChange(false)}
           confirmDisabled={confirmDisabled}
+          pending={pending}
+          pendingLabel={pendingLabel}
         />
       </DialogContent>
     </Dialog>

@@ -9,6 +9,7 @@ import { isManagementRole } from '@/lib/auth/roles'
 import { SECTION_LINKS } from '@/lib/constants/sections'
 import { UnreadEquipmentBadge } from '@/components/nav/unread-equipment-badge'
 import { UnreadFleetBadge } from '@/components/nav/unread-fleet-badge'
+import { ThemeToggle } from '@/components/nav/theme-toggle'
 import { cn } from '@/lib/utils/cn'
 import { toastMessage } from '@/lib/utils/toast'
 import { useCurrentUser } from '@/hooks/use-current-user'
@@ -18,6 +19,7 @@ import {
   ChevronLeft,
   ChevronRight,
   FileSpreadsheet,
+  LayoutTemplate,
   ListChecks,
   LogOut,
   RefreshCw,
@@ -26,6 +28,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import type { ComponentType } from 'react'
 import { useTransition } from 'react'
 
@@ -41,13 +44,21 @@ const MANAGEMENT_LINKS: {
 }[] = [
   { href: '/kosztorysy', label: 'Kosztorysy v1', icon: FileSpreadsheet },
   { href: '/katalog-prac', label: 'Katalog prac', icon: ListChecks },
+  { href: '/szablony', label: 'Szablony kosztorysów', icon: LayoutTemplate },
   { href: '/flota', label: 'Flota', icon: Car, badge: UnreadFleetBadge },
   { href: '/sprzet', label: 'Sprzęt', icon: Wrench, badge: UnreadEquipmentBadge },
   { href: '/pracownicy', label: 'Pracownicy', icon: Users },
 ]
 
+// „/" is every path's prefix, so „Transakcje" would light up on every screen — it matches exactly,
+// while a section link also claims its sub-pages (`/inwestycje/12` keeps „Inwestycje" lit).
+function isActiveLink(pathname: string, href: string): boolean {
+  return href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`)
+}
+
 export function Sidebar({ openRouterBalance }: SidebarPropsT) {
   const user = useCurrentUser()
+  const pathname = usePathname()
   const [collapsed, setCollapsed] = useSidebarCollapsed()
   const [isPending, startTransition] = useTransition()
   const [isRefreshing, startRefreshTransition] = useTransition()
@@ -99,32 +110,46 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
       </Link>
       {/* Navigation */}
       <nav className="flex flex-col gap-1">
-        {links.map((link) => (
-          <CollapsibleTooltip key={link.href} collapsed={collapsed} label={link.label}>
-            <Button
-              variant="ghost"
-              size="sm"
-              align={collapsed ? 'center' : 'start'}
-              className={cn('relative', collapsed && 'px-0')}
-              asChild
-            >
-              <Link href={link.href}>
-                <link.icon />
-                {!collapsed && link.label}
-                {link.badge && (
-                  <BadgeSlot collapsed={collapsed}>
-                    <link.badge />
-                  </BadgeSlot>
+        {links.map((link) => {
+          const isActive = isActiveLink(pathname, link.href)
+
+          return (
+            <CollapsibleTooltip key={link.href} collapsed={collapsed} label={link.label}>
+              <Button
+                variant="ghost"
+                size="sm"
+                align={collapsed ? 'center' : 'start'}
+                className={cn(
+                  'relative',
+                  collapsed && 'px-0',
+                  // Not `bg-accent` — that is what ghost's own hover paints, so the active row
+                  // would be indistinguishable from whatever the cursor happens to be over.
+                  isActive &&
+                    'bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary font-semibold',
                 )}
-              </Link>
-            </Button>
-          </CollapsibleTooltip>
-        ))}
+                asChild
+              >
+                <Link href={link.href} aria-current={isActive ? 'page' : undefined}>
+                  <link.icon />
+                  {!collapsed && link.label}
+                  {link.badge && (
+                    <BadgeSlot collapsed={collapsed}>
+                      <link.badge />
+                    </BadgeSlot>
+                  )}
+                </Link>
+              </Button>
+            </CollapsibleTooltip>
+          )
+        })}
       </nav>
       {/* User info + actions */}
       <div className="mt-auto flex flex-col gap-2 pt-4">
         {!collapsed && <div className="text-foreground text-sm font-medium">{user.name}</div>}
         <div className="flex flex-col gap-2">
+          <CollapsibleTooltip collapsed={collapsed} label="Przełącz motyw">
+            <ThemeToggle collapsed={collapsed} />
+          </CollapsibleTooltip>
           <CollapsibleTooltip collapsed={collapsed} label="Odśwież dane">
             <Button
               variant="outline"

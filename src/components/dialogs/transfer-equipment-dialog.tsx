@@ -1,7 +1,7 @@
 'use client'
 
 import { ArrowRightLeft } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { EquipmentTransferForm } from '@/components/forms/equipment-transfer-form/equipment-transfer-form'
 import { transferEquipmentAction } from '@/lib/actions/equipment'
@@ -16,6 +16,7 @@ type TransferEquipmentDialogPropsT = {
   workers: WorkerRefT[]
   warehouses: WarehouseOptionT[]
   investments: InvestmentRefT[]
+  showLabel?: boolean
 }
 
 export function TransferEquipmentDialog({
@@ -23,6 +24,7 @@ export function TransferEquipmentDialog({
   workers,
   warehouses,
   investments,
+  showLabel,
 }: TransferEquipmentDialogPropsT) {
   const formId = `transfer-equipment-${equipment.id}`
 
@@ -43,10 +45,12 @@ export function TransferEquipmentDialog({
       formId={formId}
       showKeepOpen={false}
       trigger={
-        <Button size="sm" variant="outline">
-          <ArrowRightLeft />
-          <span>Przekaż</span>
-        </Button>
+        <RowActionButton
+          icon={ArrowRightLeft}
+          label="Przekaż sprzęt"
+          text="Przekaż"
+          showLabel={showLabel}
+        />
       }
       title="Przekaż sprzęt"
       description={equipment.name}

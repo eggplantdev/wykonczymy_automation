@@ -26,6 +26,21 @@ export function heightForLines(lines: number): number {
   return Math.max(ITEM_ROW_HEIGHT, Math.ceil(lines) * ROW_LINE_HEIGHT + ROW_VERTICAL_PADDING)
 }
 
+// A band's label is one line and its resting height is 52, so the floor inside heightForLines is the
+// wrong one for it.
+export function fitRowHeight(rowId: number, contentLines: number): number {
+  return Math.max(restingRowHeight(rowId), heightForLines(contentLines))
+}
+
+// The header rides the same localStorage map as the rows, so it needs the same finite check —
+// a hand-edited or corrupted value would reach dsg's layout arithmetic as NaN and blank the grid.
+export function resolveHeaderRowHeight(override?: number): number {
+  if (override !== undefined && Number.isFinite(override)) {
+    return Math.max(HEADER_ROW_HEIGHT, Math.round(override))
+  }
+  return HEADER_ROW_HEIGHT
+}
+
 type ResolveOptsT = {
   // Only its RESTING height — a band the owner dragged obeys the drag like any other row.
   isSectionBand: boolean

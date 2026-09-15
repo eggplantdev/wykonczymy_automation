@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useTransition } from 'react'
+import { useRef, useState } from 'react'
 import {
   applyPercentDiscountToAllItemsAction,
   updateInvestmentCoeffsAction,
@@ -11,13 +11,16 @@ import {
 } from '@/lib/actions/kosztorys'
 import { isGlobalDiscountActive } from '@/lib/kosztorys/calc'
 import { pricingModeOf } from '@/lib/kosztorys/materials-pricing-mode'
+import {
+  optimisticSettingSave,
+  reversibleSettingSave,
+} from '@/lib/kosztorys/optimistic-setting-save'
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import type { GlobalDiscountT, KosztorysTreeT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { inverseGlobalCoeffPatch } from '@/lib/kosztorys/v2-rows'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import { MATERIALS_PRICING_IMPACT, SETTLEMENT_MODE_IMPACT } from '@/lib/kosztorys/investor-impact'
 import { useInvestorImpactConfirm } from '@/components/kosztorys/editor/hooks/use-investor-impact-confirm'
-import { toastMessage } from '@/lib/utils/toast'
 import { usePendingStore } from '@/stores/pending-store'
 
 const SETTINGS_PENDING_KEY = 'kosztorys-settings'
@@ -61,29 +64,16 @@ export function useKosztorysSettings({
   // Writes nothing optimistically — every figure the four settings move is recomputed on the server,
   // so the panel can only change once the write lands. One shared flag for the block (they are
   // set-once decisions about the deal; nobody edits two at a time) disables it meanwhile, so the click
-  // stops reading as inert.
-  const [isSavingSettings, startSettingsSave] = useTransition()
-  const { stageInvestorImpact, investorImpactConfirm } = useInvestorImpactConfirm()
-
-  // Shared tail of every optimistic settings write. The caller has already applied its optimistic
-  // patch and captured whatever `revert` needs; this persists, then on failure runs `revert` and
-  // surfaces the error. Tail-only on purpose: the optimistic apply and the pre-patch capture differ
-  // per setting and stay at the call site — only this success-or-rollback tail was identical.
+  // stops reading as inert. Counted rather than boolean because two saves can overlap.
   //
-  // No router.refresh() on success: the action's `updateTag` already re-renders the route and
-  // streams the fresh `tree` back in the action response, so the refresh was a second full render
-  // of the same page per click (EX-597 baseline).
-  async function optimisticSettingSave(
-    persist: () => Promise<{ success: boolean; error?: string }>,
-    revert: () => void,
-    errorMessage: string,
-  ) {
-    const res = await persist()
-    if (res.success) return true
-    revert()
-    toastMessage(res.error ?? errorMessage, 'warning', 4000)
-    return false
-  }
+  // Deliberately NOT useTransition (EX-597): the optimistic patch + its rollback both run inside the
+  // save, and a transition owning them never committed either — React keeps the transition pending
+  // until the updates it scheduled land, the row-wide patch never did, and the block stayed disabled
+  // with the page re-rendering ~36×/s until a reload. A plain flag puts every one of those updates in
+  // the normal lane, where the rollback is visible and the block un-disables in `finally`.
+  const [savesInFlight, setSavesInFlight] = useState(0)
+  const isSavingSettings = savesInFlight > 0
+  const { stageInvestorImpact, investorImpactConfirm } = useInvestorImpactConfirm()
 
   // Changing the global coefficient recomputes the derived prices of all non-overridden items.
   // Optimistic patch on the rows; the panel (which reads from `tree`) is reseeded by the action's
@@ -99,7 +89,7 @@ export function useKosztorysSettings({
       () => true,
       (r) => ({ ...r, ...applied }),
     )
-    await optimisticSettingSave(
+    return optimisticSettingSave(
       () => updateInvestmentCoeffsAction(investmentId, patch),
       () => {
         // Roll the optimistic coefficients back so the grid doesn't show an unsaved price (the
@@ -119,8 +109,13 @@ export function useKosztorysSettings({
 
   async function handleGlobalCoeffChange(patch: { wToolsCoeff?: number; ownToolsCoeff?: number }) {
     const before = inverseGlobalCoeffPatch(patch, rowsRef.current[0])
-    await applyGlobalCoeff(patch)
-    pushReversible('Zmiana współczynnika', applyGlobalCoeff, before, patch)
+    await reversibleSettingSave(
+      applyGlobalCoeff,
+      pushReversible,
+      'Zmiana współczynnika',
+      before,
+      patch,
+    )
   }
 
   // Changing the per-investment VAT rate recomputes every brutto figure. vatRate is denormalized
@@ -133,7 +128,7 @@ export function useKosztorysSettings({
       () => true,
       (r) => ({ ...r, vatRate }),
     )
-    await optimisticSettingSave(
+    return optimisticSettingSave(
       () => updateInvestmentVatAction(investmentId, vatRate),
       () => {
         // Roll the optimistic VAT back (no-op when there were no rows to patch). The toast still fires
@@ -148,26 +143,32 @@ export function useKosztorysSettings({
     )
   }
 
-  // Persist a single „Opcje rozliczenia" setting and put it on the undo stack. The three settings that
+  // Persist a single „Opcje rozliczenia" setting and put a landed change on the undo stack. The three settings that
   // share this shape differ only in where their `before` is read from — VAT off the denormalized rows,
   // the other two off `tree` — so that stays the caller's job.
-  function saveSetting<T>(label: string, apply: (value: T) => Promise<void>, before: T, next: T) {
+  function saveSetting<T>(
+    label: string,
+    apply: (value: T) => Promise<boolean>,
+    before: T,
+    next: T,
+  ) {
     // Keyed per setting, not per subsystem: nothing serialises these transitions, so changing VAT
     // and then tryb before the first lands would otherwise have the first `finally` clear the one
     // shared key while the second write is still on the wire — the pill vanishing mid-save is the
     // exact failure the store is keyed rather than boolean to prevent.
     const pendingKey = `${SETTINGS_PENDING_KEY}:${label}`
-    startSettingsSave(async () => {
-      // The popover can close mid-save, so the progress signal has to live outside this subtree —
-      // hence the global store rather than a pill rendered by „Opcje rozliczenia" itself.
-      usePendingStore.getState().start(pendingKey, 'Zapisywanie…')
+    setSavesInFlight((n) => n + 1)
+    // The popover can close mid-save, so the progress signal has to live outside this subtree —
+    // hence the global store rather than a pill rendered by „Opcje rozliczenia" itself.
+    usePendingStore.getState().start(pendingKey, 'Zapisywanie…')
+    void (async () => {
       try {
-        await apply(next)
-        if (before !== next) pushReversible(label, apply, before, next)
+        await reversibleSettingSave(apply, pushReversible, label, before, next)
       } finally {
         usePendingStore.getState().stop(pendingKey)
+        setSavesInFlight((n) => n - 1)
       }
-    })
+    })()
   }
 
   function handleVatChange(vatRate: number) {
@@ -177,7 +178,7 @@ export function useKosztorysSettings({
   // The settlement mode isn't denormalized onto the rows, so there's nothing to patch optimistically:
   // persist, then let the refresh reseed `tree` for the panel that reads it.
   async function applySettlementMode(mode: SettlementModeT) {
-    await optimisticSettingSave(
+    return optimisticSettingSave(
       () => updateInvestmentSettlementModeAction(investmentId, mode),
       () => {},
       'Nie udało się zapisać sposobu rozliczenia',
@@ -199,7 +200,7 @@ export function useKosztorysSettings({
   // Same shape as the settlement mode: not denormalized onto the rows, so there is nothing to patch
   // optimistically — persist, then let the refresh reseed `tree` for the panel that reads it.
   async function applyMaterialsNetRate(rate: number | null) {
-    await optimisticSettingSave(
+    return optimisticSettingSave(
       () => updateInvestmentMaterialsNetRateAction(investmentId, rate),
       () => {},
       'Nie udało się zapisać stawki netto wydatków',
@@ -236,7 +237,7 @@ export function useKosztorysSettings({
       () => true,
       (r) => ({ ...r, globalDiscountActive: isGlobalDiscountActive(discount) }),
     )
-    await optimisticSettingSave(
+    return optimisticSettingSave(
       () =>
         updateInvestmentGlobalDiscountAction(investmentId, {
           globalDiscountType: discount.type,

@@ -7,6 +7,7 @@ import { InspectionForm } from '@/components/forms/inspection-form/inspection-fo
 import { createInspectionAction } from '@/lib/actions/fleet'
 import { addMonthsToDay, warsawToday } from '@/lib/utils/days'
 import { INSPECTION_INTERVAL_MONTHS } from '@/lib/fleet/inspection-types'
+import { inspectionDraftId } from '@/lib/fleet/inspection-draft'
 import type { InspectionFormValuesT } from '@/components/forms/inspection-form/inspection-schema'
 import type { FleetRowT } from '@/types/fleet'
 
@@ -22,6 +23,7 @@ export function AddInspectionDialog({ vehicles, vehicleId }: AddInspectionDialog
   const performedAt = warsawToday()
   // The form only prefills on a type CHANGE, so the type the dialog opens on has to arrive prefilled.
   const months = INSPECTION_INTERVAL_MONTHS[DEFAULT_TYPE]
+  const formId = inspectionDraftId(vehicleId)
 
   const defaultValues: InspectionFormValuesT = {
     vehicle: vehicleId ? String(vehicleId) : '',
@@ -37,7 +39,7 @@ export function AddInspectionDialog({ vehicles, vehicleId }: AddInspectionDialog
 
   return (
     <FormDialog
-      formId="add-inspection"
+      formId={formId}
       trigger={
         <Button variant="outline" size="sm">
           <Plus />
@@ -48,7 +50,7 @@ export function AddInspectionDialog({ vehicles, vehicleId }: AddInspectionDialog
     >
       {(onSubmitSuccess, keepOpen) => (
         <InspectionForm
-          formId="add-inspection"
+          formId={formId}
           defaultValues={defaultValues}
           lockedVehicleId={vehicleId}
           action={createInspectionAction}

@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
+  HEADER_ROW_HEIGHT,
   ITEM_ROW_HEIGHT,
   SECTION_BAND_ROW_HEIGHT,
+  fitRowHeight,
   heightForLines,
+  resolveHeaderRowHeight,
   resolveRowHeight,
 } from '@/lib/kosztorys/row-height'
+import { sectionHeaderRowId } from '@/lib/kosztorys/synthetic-rows'
 
 describe('heightForLines', () => {
   it('gives a single line the grid’s resting row height', () => {
@@ -69,5 +73,40 @@ describe('resolveRowHeight · the client preview never sees a drag', () => {
       heightForLines(3),
     )
     expect(resolveRowHeight({ isSectionBand: false, override: Number.NaN })).toBe(ITEM_ROW_HEIGHT)
+  })
+})
+
+describe('fitRowHeight', () => {
+  it('grows a row to what its text needs', () => {
+    expect(fitRowHeight(42, 3)).toBe(heightForLines(3))
+  })
+
+  it('never fits a row below its resting height', () => {
+    expect(fitRowHeight(42, 1)).toBe(ITEM_ROW_HEIGHT)
+    expect(fitRowHeight(42, 0)).toBe(ITEM_ROW_HEIGHT)
+  })
+
+  // A band's resting height is taller than one line of text, so the shared floor in heightForLines
+  // is not enough — fitting a band to its one-line label would shrink it.
+  it('floors a section band at the band height, not the item height', () => {
+    expect(fitRowHeight(sectionHeaderRowId(7), 1)).toBe(SECTION_BAND_ROW_HEIGHT)
+    expect(fitRowHeight(sectionHeaderRowId(7), 4)).toBe(heightForLines(4))
+  })
+})
+
+describe('resolveHeaderRowHeight', () => {
+  it('rests the header at its own height when nothing was dragged', () => {
+    expect(resolveHeaderRowHeight()).toBe(HEADER_ROW_HEIGHT)
+  })
+
+  it('uses the dragged height, and never shrinks below the resting one', () => {
+    expect(resolveHeaderRowHeight(120)).toBe(120)
+    expect(resolveHeaderRowHeight(10)).toBe(HEADER_ROW_HEIGHT)
+  })
+
+  // Same corruption path as the rows: the header's height rides the same localStorage map, and NaN
+  // in dsg's layout arithmetic blanks the grid.
+  it('ignores a corrupted stored height rather than passing NaN into the grid', () => {
+    expect(resolveHeaderRowHeight(Number.NaN)).toBe(HEADER_ROW_HEIGHT)
   })
 })

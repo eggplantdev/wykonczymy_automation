@@ -1,7 +1,7 @@
 'use client'
 
-import { Mail, Pencil } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Mail } from 'lucide-react'
+import { EditButton } from '@/components/ui/row-actions/edit-button'
 import { Description } from '@/components/ui/description'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { RecipientListForm } from '@/components/forms/recipient-list-form/recipient-list-form'
@@ -42,12 +42,7 @@ export function RecipientListCard({
             title={title}
             description="Powiadomienia trafią na każdy z tych adresów."
             showKeepOpen={false}
-            trigger={
-              <Button type="button" variant="outline" size="sm">
-                <Pencil className="size-4" />
-                Edytuj
-              </Button>
-            }
+            trigger={<EditButton type="button" label={`Edytuj listę: ${title}`} showLabel />}
           >
             {(onSubmitSuccess) => (
               <RecipientListForm

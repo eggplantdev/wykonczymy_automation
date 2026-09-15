@@ -50,10 +50,17 @@ type DataTablePropsT<TData> = {
   virtualContainerHeight?: number
   /** localStorage key for persisting column visibility */
   storageKey?: string
-  /** Sort applied on first render. Defaults to none. */
+  /** Sort applied on first render. Defaults to none. Ignored when `sorting` is controlled. */
   initialSorting?: SortingState
+  /** Controlled sort. Pass it together with `onSortingChange` and the table stops sorting rows
+   * itself (`manualSorting`) — the caller is expected to fetch them already ordered. Either prop
+   * alone leaves the table on its own local, client-side sort. */
+  sorting?: SortingState
+  onSortingChange?: (next: SortingState) => void
   /** Makes the row clickable — navigates to the returned URL */
   getRowHref?: (row: TData) => string | undefined
+  /** Row click handler for a row that must not be an href — see `DataTableRow`. */
+  onRowClick?: (row: TData) => void
   getRowClassName?: (row: TData) => string
   /** Summary `<tr>` pinned below the rows. Gets the visible column ids, in render order, so it can
    * span them or place a total under the column it belongs to even when some are hidden. */
@@ -73,14 +80,19 @@ export function DataTable<TData>({
   virtualContainerHeight = 600,
   storageKey,
   initialSorting = [],
+  sorting: controlledSorting,
+  onSortingChange,
   getRowHref,
+  onRowClick,
   getRowClassName,
   footer,
   toolbar,
   belowToolbar,
   className,
 }: DataTablePropsT<TData>) {
-  const [sorting, setSorting] = useState<SortingState>(initialSorting)
+  const [localSorting, setLocalSorting] = useState<SortingState>(initialSorting)
+  const isManualSorting = controlledSorting !== undefined && onSortingChange !== undefined
+  const sorting = isManualSorting ? controlledSorting : localSorting
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [ranks, setRanks] = useState<ColumnRanksT>({})
 
@@ -114,7 +126,15 @@ export function DataTable<TData>({
       columnVisibility,
       columnOrder: orderColumnKeys(declaredColumnIds, ranks),
     },
-    onSortingChange: setSorting,
+    onSortingChange: (updater) => {
+      const next = typeof updater === 'function' ? updater(sorting) : updater
+      if (isManualSorting) onSortingChange(next)
+      else setLocalSorting(next)
+    },
+    manualSorting: isManualSorting,
+    // Shift-click multi-sort is an affordance the controlled contract can't honour: the sort round
+    // trips through a single URL parameter, so a second key would vanish on the next render.
+    enableMultiSort: !isManualSorting,
     onColumnVisibilityChange: (updater) => {
       setColumnVisibility((prev) => {
         const next = typeof updater === 'function' ? updater(prev) : updater
@@ -173,6 +193,7 @@ export function DataTable<TData>({
             virtualizer={virtualizer}
             visibleColumnIdList={visibleColumnIdList}
             getRowHref={getRowHref}
+            onRowClick={onRowClick}
             getRowClassName={getRowClassName}
             footer={footer}
           />
@@ -188,6 +209,7 @@ export function DataTable<TData>({
                     key={`${row.id}:${visibleColumnKey}`}
                     row={row}
                     getRowHref={getRowHref}
+                    onRowClick={onRowClick}
                     getRowClassName={getRowClassName}
                   />
                 ))

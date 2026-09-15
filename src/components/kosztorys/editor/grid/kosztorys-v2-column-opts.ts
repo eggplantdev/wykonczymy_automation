@@ -1,9 +1,10 @@
+import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 import type { LayerT } from '@/lib/kosztorys/layer'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
+import type { MoveEdgesT } from '@/lib/kosztorys/move-edges'
 import type { SortPickT, SortStateT } from '@/lib/kosztorys/row-view'
-import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import type { KosztorysStageT, KosztorysV2RowT, ToolPlaneT } from '@/lib/kosztorys/types'
 import type { WorkerRefT } from '@/types/reference-data'
 
@@ -43,23 +44,23 @@ export type BuildV2ColumnsOptsT = {
   // Reordering items within a section (Przesuń w górę/dół). Greyed out while a column sort is
   // active — "up/down" has no meaning against a price-sorted list.
   onReorderItem?: (row: KosztorysV2RowT, dir: 'up' | 'down') => void
+  // Read over the WHOLE rozpiska, never the filtered view: the mover works on the document, so a
+  // search that hides the row above must not make ▲ look impossible.
+  moveEdges?: MoveEdgesT
   onInsertItem?: (row: KosztorysV2RowT, dir: 'above' | 'below') => void
   // Renaming the whole section from its (denormalized) name cell. Routes through the same fan-out
   // as the section panel — never a per-row setRowData, which would desync the other rows' copies.
   onRenameSection?: (sectionId: number, name: string) => void
-  // Deleting the whole section a row belongs to, from the row-actions menu. Cascade-deletes the
-  // section's items + stage_progress (same path as the section panel), guarded by a confirm dialog.
+  // The band's „…" commands. No column reads them — `buildV2Grid`'s caller takes them back out of
+  // `columnOpts` to hand to the section band — but they stay gated here with every other mutation,
+  // so one `editorOnly()` pass decides the whole editor's write surface.
   onRemoveSection?: (sectionId: number) => void
-  // Moving the whole section one place (Przesuń w górę/dół, „Sekcja" group) from the row-actions
-  // menu. Greyed out under an active column sort, for the same reason as the per-item ▲▼.
   onReorderSection?: (sectionId: number, dir: 'up' | 'down') => void
   onInsertSection?: (sectionId: number, dir: 'above' | 'below') => void
+  onSetSectionColor?: (sectionId: number, color: SectionColorKeyT | null) => void
   // „Zapisz kolejność": writes the active sort into display_order across every section, so the order
   // survives clearing the sort. Silent no-op without a sort — there is nothing to write then.
   onPersistKosztorysOrder?: () => void
-  // Pinning the section to a palette colour (null clears it) — the colour the Podsumowanie pie uses
-  // for this section's wycinek.
-  onSetSectionColor?: (sectionId: number, color: SectionColorKeyT | null) => void
   // Is the „z pomiarem do rozpisania na etapy" diagnostic pressed? Gates the „Rozjazd między arkuszem Google a apką"
   // column's existence: the column answers exactly that one question, and outside the gesture that
   // asks it the grid shows every pozycja — so it would be a near-empty stripe. The button's count is
@@ -79,8 +80,6 @@ export type BuildV2ColumnsOptsT = {
   // owns its own state next to the menu — the grid must not re-render because a dialog opened. Off
   // in the read-only view, through the same `editorOnly` gate as every mutation callback here.
   canSaveItemToCatalogue?: boolean
-  // Item count for a section, to size the "removes N items" confirm before deleting it.
-  getSectionItemCount?: (sectionId: number) => number
   // Global discount active → the four per-item discount columns are overridden, so drop them from
   // the grid and the picker (the underlying data stays and returns when the discount is cleared).
   globalDiscountActive?: boolean

@@ -85,9 +85,7 @@ export function KosztorysClientViewDialog() {
               Zapisz jako domyślne
             </Button>
             <Button size="sm" disabled={!draft || pending} onClick={() => requestSave(false)}>
-              {draft?.mode === 'SETTLEMENT'
-                ? 'Zapisz i pokaż rozliczenie'
-                : 'Zapisz i pokaż ofertę'}
+              Zapisz
             </Button>
           </DialogFooter>
         </DialogContent>

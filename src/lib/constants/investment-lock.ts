@@ -15,8 +15,20 @@ export const isLockedStatus = (status: string | null | undefined): boolean =>
   status === LOCKED_INVESTMENT_STATUS
 
 /**
+ * The templates workbench — a hidden investment the szablon editor works over. It is NOT locked
+ * (its kosztorys is the whole point of it being editable); it simply is not a real investment, so
+ * no money may be booked against it.
+ */
+export const TEMPLATE_INVESTMENT_STATUS = 'szablon'
+
+/**
  * The pickers' courtesy filter — a zakończona inwestycja is not offered for a new booking. The gate
  * is the collection hook; this only spares the user a refusal they could have seen coming.
+ *
+ * Deliberately asks ONE question. The workbench is not excluded here: it never reaches a picker,
+ * because fetchReferenceData drops it at the source. Folding that in would mean „is bookable" also
+ * answers „is a real investment", and a caller wanting the second question would silently inherit
+ * the first — which is how sheet-linking briefly stopped offering zakończone inwestycje.
  */
 export const isBookableInvestment = (investment: { status: string }): boolean =>
   !isLockedStatus(investment.status)

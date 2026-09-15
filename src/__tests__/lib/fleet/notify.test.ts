@@ -14,7 +14,9 @@ const EMPTY_DIGEST: FleetDigestT = {
 }
 
 const payloadWith = (fleetDigest: { email: string }[]) => {
-  const sendEmail = vi.fn(async () => undefined)
+  const sendEmail = vi.fn(
+    async (_message: { to: string[]; subject: string; html: string }) => undefined,
+  )
   const payload = {
     sendEmail,
     findGlobal: async () => ({ fleetDigest, newLead: [], opsAlerts: [] }),
@@ -45,5 +47,40 @@ describe('notifyFleetDigest', () => {
 
     await expect(notifyFleetDigest(payload, EMPTY_DIGEST)).rejects.toThrow(/Brak odbiorców/)
     expect(sendEmail).not.toHaveBeenCalled()
+  })
+
+  // The kilometre leg is the one alarm with no date behind it, so nothing but this section's
+  // presence tells a reader the car is overdue — and it renders off `digest.odometer` alone, with no
+  // per-vehicle target to consult (EX-745 removed the „cel km" field; the interval is a constant).
+  it('renders the oil-interval section with the distance since the change', async () => {
+    const { payload, sendEmail } = payloadWith([{ email: 'a@example.com' }])
+
+    await notifyFleetDigest(payload, {
+      ...EMPTY_DIGEST,
+      odometer: [
+        {
+          inspectionId: 1,
+          registration: 'QA 11111',
+          make: 'Skoda',
+          model: 'Octavia',
+          kmSinceChange: 14500,
+        },
+      ],
+    })
+
+    const html = sendEmail.mock.calls[0]![0].html as string
+    expect(html).toContain('Wymiana oleju — limit kilometrów')
+    expect(html).toContain('QA 11111 Skoda Octavia')
+    expect(html).toContain('14\u00a0500 km od ostatniej wymiany')
+  })
+
+  // The section is the whole signal, so an empty leg must print no heading at all — an empty
+  // „Wymiana oleju" block reads as „checked, nothing due" on a mail that never checked.
+  it('prints no oil-interval heading when the leg is empty', async () => {
+    const { payload, sendEmail } = payloadWith([{ email: 'a@example.com' }])
+
+    await notifyFleetDigest(payload, EMPTY_DIGEST)
+
+    expect(sendEmail.mock.calls[0]![0].html as string).not.toContain('Wymiana oleju')
   })
 })

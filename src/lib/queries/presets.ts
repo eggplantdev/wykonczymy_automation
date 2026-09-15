@@ -2,13 +2,17 @@ import { unstable_cache } from 'next/cache'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { CACHE_TAGS } from '@/lib/cache/tags'
+import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
+import { requireAuth } from '@/lib/auth/require-auth'
 import { getDb } from '@/lib/db/get-db'
 import {
+  getPresetName,
   listPresets,
   listPresetSections,
   type PresetMetaT,
   type PresetSectionMetaT,
 } from '@/lib/db/presets'
+import { getWorkshop } from '@/lib/db/workshop-investment'
 
 // The single cached read backing every preset picker (create-investment page + the kosztorys
 // save-as / seed-from buttons). Argument-free, so it's one global cache entry — correct for a
@@ -36,3 +40,57 @@ export const getPresetSections = unstable_cache(
   ['preset-sections'],
   { tags: [CACHE_TAGS.presets] },
 )
+
+// The /szablony listing row: preset metadata plus the per-szablon tallies, folded from the section
+// metas rather than counted again — both reads share the `presets` tag, so the second one is free.
+export type PresetRowT = PresetMetaT & {
+  sectionCount: number
+  itemCount: number
+}
+
+export async function getPresetRows(): Promise<PresetRowT[]> {
+  const [presets, sections] = await Promise.all([getPresets(), getPresetSections()])
+
+  const tallies = new Map<number, { sections: number; items: number }>()
+  for (const section of sections) {
+    const tally = tallies.get(section.presetId) ?? { sections: 0, items: 0 }
+    tally.sections += 1
+    tally.items += section.itemCount
+    tallies.set(section.presetId, tally)
+  }
+
+  return presets.map((preset) => {
+    const tally = tallies.get(preset.id)
+    return {
+      ...preset,
+      sectionCount: tally?.sections ?? 0,
+      itemCount: tally?.items ?? 0,
+    }
+  })
+}
+
+// Everything /szablony/[id] needs, in one round trip: the szablon's name for the title, and the
+// workbench investment id ONLY when the workbench actually holds this szablon. `investmentId: null`
+// is the „otwórz to najpierw" case — a hand-typed url or a stale tab would otherwise render whatever
+// the workbench last held under this szablon's name. Read-only on purpose: the workbench is
+// provisioned by the action behind „Otwórz", never by rendering a page.
+export type WorkshopViewT = { presetName: string; investmentId: number | null }
+
+export async function getWorkshopView(presetId: number): Promise<WorkshopViewT | null> {
+  const payload = await getPayload({ config })
+  const db = await getDb(payload)
+  const [presetName, workshop] = await Promise.all([getPresetName(db, presetId), getWorkshop(db)])
+  if (presetName == null) return null
+
+  return { presetName, investmentId: workshop?.presetId === presetId ? workshop.id : null }
+}
+
+// Name-only read for the @investmentCrumb slot. Mirrors getInvestmentName down to where it reads
+// from: the already-cached, `presets`-tagged library rather than a round trip of its own, so a
+// rename moves the crumb on the same invalidation that moves the listing and the pickers.
+export async function getPresetNameForCrumb(id: string): Promise<string | null> {
+  const { success } = await requireAuth(MANAGEMENT_ROLES)
+  if (!success) return null
+
+  return (await getPresets()).find((preset) => String(preset.id) === id)?.name ?? null
+}

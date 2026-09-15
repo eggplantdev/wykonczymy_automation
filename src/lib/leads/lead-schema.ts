@@ -23,7 +23,7 @@ export type LeadFieldT = z.infer<typeof leadFieldSchema>
 // `.catch([])` degrades a malformed row to "no answers" instead of throwing mid-render.
 export const leadRawDataSchema = z.array(leadFieldSchema).catch([])
 
-// A form question as returned by `GET /{form_id}?fields=questions`. `label` is the
+// A form question as returned by `GET /{form_id}?fields=name,questions`. `label` is the
 // human question text we persist to render real questions in the answers modal.
 export const formQuestionSchema = z.object({
   key: z.string(),
@@ -31,7 +31,8 @@ export const formQuestionSchema = z.object({
   type: z.string().optional(),
 })
 
-export const formQuestionsResponseSchema = z.object({
+export const formResponseSchema = z.object({
+  name: z.string().optional(),
   questions: z.array(formQuestionSchema).optional(),
 })
 
