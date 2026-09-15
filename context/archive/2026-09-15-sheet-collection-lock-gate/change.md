@@ -1,10 +1,10 @@
 ---
 change_id: sheet-collection-lock-gate
 title: Bramka zamka zakończonej inwestycji obejmuje kolekcję `kosztoryses` w /admin
-status: implementing
+status: archived
 created: 2026-09-15
 updated: 2026-09-15
-archived_at: null
+archived_at: 2026-09-15T12:26:23Z
 branch: staging
 worktree: null
 linear: EX-770
