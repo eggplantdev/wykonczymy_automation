@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   SectionHeaderCell,
@@ -8,92 +8,107 @@ import {
 } from '@/components/kosztorys/editor/grid/cells/section-header-cell'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-const SECTION_ID = 10
-const SECTION_NAME = 'Prace ziemne'
+const SECTION_ID = 7
 
 const ROW = {
-  id: 1,
+  id: -1,
   sectionId: SECTION_ID,
-  sectionName: SECTION_NAME,
+  sectionName: 'Kuchnia',
   sectionColor: null,
 } as unknown as KosztorysV2RowT
 
-function renderBand(overrides: Partial<SectionHeaderContextT> = {}) {
-  const onToggleCollapsed = vi.fn()
-  const onRename = vi.fn()
-  const context: SectionHeaderContextT = {
-    figures: new Map([[SECTION_ID, { itemCount: 3, net: 1200 }]]),
-    collapsedSectionIds: new Set(),
+const onToggleCollapsed = vi.fn()
+const onRename = vi.fn()
+
+function context(collapsed: number[] = []): SectionHeaderContextT {
+  return {
+    figures: new Map([[SECTION_ID, { itemCount: 4, net: 0 }]]),
+    collapsedSectionIds: new Set(collapsed),
     onToggleCollapsed,
     onRename,
     sortActive: false,
-    ...overrides,
   }
-  render(<SectionHeaderCell rowData={ROW} slot="label" context={context} />)
-  return { onToggleCollapsed, onRename, user: userEvent.setup() }
 }
 
-// The band is a role=button wrapping the rename input, so every key pressed while renaming also
-// reaches the band's own handler. That collision shipped once (2026-09-14): Space collapsed the
-// section instead of typing a space, and it went unguarded because the repo had no DOM renderer.
-describe('SectionHeaderCell — rename input vs. the band it sits inside', () => {
-  it('types a space into the name instead of collapsing the section', async () => {
-    const { onToggleCollapsed, user } = renderBand()
-    const input = screen.getByDisplayValue(SECTION_NAME)
+function renderBand(collapsed: number[] = []) {
+  const view = render(<SectionHeaderCell rowData={ROW} slot="label" context={context(collapsed)} />)
+  return { ...view, user: userEvent.setup(), band: screen.getByRole('button', { name: /Kuchnia/ }) }
+}
 
-    await user.click(input)
-    await user.keyboard(' dodatkowe')
+beforeEach(() => vi.clearAllMocks())
 
-    expect(input).toHaveValue(`${SECTION_NAME} dodatkowe`)
-    expect(onToggleCollapsed).not.toHaveBeenCalled()
+// The band is the only description of what the grid shows beneath it — an arrow out of step with
+// the state reads as broken collapsing rather than as a zwężenie turned on elsewhere. So it reads
+// the same set the grid gets: under zwężenie that set is empty, so the band says „rozwinięta",
+// because the rows are on screen.
+describe('Belka sekcji — strzałka mówi to, co widać', () => {
+  it('stoi otwarta, gdy sekcja nie jest zwinięta', () => {
+    const { band } = renderBand()
+
+    expect(band).toHaveAttribute('aria-expanded', 'true')
+    expect(band).toHaveAttribute('title', 'Zwiń sekcję')
   })
 
-  it('commits the rename on Enter without collapsing the section', async () => {
-    const { onToggleCollapsed, onRename, user } = renderBand()
-    const input = screen.getByDisplayValue(SECTION_NAME)
+  it('stoi zamknięta, gdy sekcja jest zwinięta', () => {
+    const { band } = renderBand([SECTION_ID])
 
-    await user.click(input)
-    await user.keyboard(' II{Enter}')
-
-    expect(onRename).toHaveBeenCalledWith(SECTION_ID, `${SECTION_NAME} II`)
-    expect(onToggleCollapsed).not.toHaveBeenCalled()
-  })
-
-  it('drops the draft on Escape', async () => {
-    const { onToggleCollapsed, onRename, user } = renderBand()
-    const input = screen.getByDisplayValue(SECTION_NAME)
-
-    await user.click(input)
-    await user.keyboard(' II{Escape}')
-
-    expect(onRename).not.toHaveBeenCalled()
-    expect(onToggleCollapsed).not.toHaveBeenCalled()
-  })
-
-  it('still collapses on Space when the band itself holds focus', async () => {
-    const { onToggleCollapsed, user } = renderBand()
-    const band = screen.getByRole('button')
-
-    band.focus()
-    await user.keyboard(' ')
-
-    expect(onToggleCollapsed).toHaveBeenCalledWith(SECTION_ID)
-  })
-
-  it('renders the name as static text when renaming is off (client view)', () => {
-    renderBand({ onRename: undefined })
-
-    expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
-    expect(screen.getByText(SECTION_NAME)).toBeInTheDocument()
+    expect(band).toHaveAttribute('aria-expanded', 'false')
+    expect(band).toHaveAttribute('title', 'Rozwiń sekcję')
   })
 })
 
-describe('SectionHeaderCell — what a collapsed band still states', () => {
-  it('reports its collapsed state and keeps showing the count and the net', () => {
-    renderBand({ collapsedSectionIds: new Set([SECTION_ID]) })
+describe('Belka sekcji — zwijanie', () => {
+  it('zwija kliknięciem w dowolne miejsce belki, nie tylko w strzałkę', async () => {
+    const { user, band } = renderBand()
 
-    expect(screen.getByRole('button')).toHaveAttribute('aria-expanded', 'false')
-    expect(screen.getByText('(3 poz.)')).toBeInTheDocument()
-    expect(screen.getByText(/netto/)).toBeInTheDocument()
+    await user.click(band)
+
+    expect(onToggleCollapsed).toHaveBeenCalledExactlyOnceWith(SECTION_ID)
+  })
+
+  it('zwija Enterem i spacją, gdy belka ma ognisko', async () => {
+    const { user, band } = renderBand()
+
+    band.focus()
+    await user.keyboard('{Enter}')
+    await user.keyboard(' ')
+
+    expect(onToggleCollapsed).toHaveBeenCalledTimes(2)
+  })
+
+  // The sekcja name sits in the band, and inside a text field a space is a space while Enter
+  // commits the name — were the band to catch keys leaving the field, typing „Kuchnia i jadalnia"
+  // would collapse the sekcja.
+  it('nie łapie klawiszy wychodzących z pola nazwy', async () => {
+    const { user } = renderBand()
+
+    await user.click(screen.getByRole('textbox'))
+    await user.keyboard('x y{Enter}')
+
+    expect(onToggleCollapsed).not.toHaveBeenCalled()
+  })
+
+  it('nie zwija sekcji kliknięciem w jej nazwę', async () => {
+    const { user } = renderBand()
+
+    await user.click(screen.getByRole('textbox'))
+
+    expect(onToggleCollapsed).not.toHaveBeenCalled()
+  })
+})
+
+// A collapsed sekcja has to keep its own commands reachable („Rozwiń", „Usuń sekcję") — which is
+// why the „Akcje" cell is the only one on the band that does not collapse.
+describe('Belka sekcji — komórka akcji', () => {
+  it('nie zwija sekcji i nie daje menu tam, gdzie nie ma poleceń', async () => {
+    const user = userEvent.setup()
+    const { container } = render(
+      <SectionHeaderCell rowData={ROW} slot="actions" context={context()} />,
+    )
+
+    await user.click(container.firstElementChild as Element)
+
+    expect(onToggleCollapsed).not.toHaveBeenCalled()
+    expect(screen.queryByRole('button')).toBeNull()
   })
 })

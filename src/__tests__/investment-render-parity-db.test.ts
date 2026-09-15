@@ -127,6 +127,12 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
     }
 
     const mismatches: string[] = []
+    // The dataset floor, on the one axis this comparison is otherwise blind to. Every figure below
+    // agrees trivially when both sides read zero, and the prod dump carries no netto wydatek at all
+    // — so `materialsNetBilled` and the „wszystko netto" concession would be compared on nobody
+    // while the spec reports a green pass over every investment. Counted in the COMPARED set, not
+    // queried from the DB: a row that exists but never reaches a comparison guards nothing.
+    const covered = { netBilled: 0, concession: 0 }
     for (const inv of investments) {
       const where = { investment: { equals: inv.id } }
       const [byType, catRows] = await Promise.all([
@@ -151,6 +157,8 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
         transactionFin,
         readingFromKosztorys(kosztorysTotals[String(inv.id)]),
       )
+      if (transactionFin.materialsNetBilled !== 0) covered.netBilled++
+      if (transactionFin.materialsNetDiscount !== 0) covered.concession++
 
       // LISTING assembly — the REAL row builder, not a re-derivation of its formulas. A figure the
       // listing gets wrong ONLY inside `shapeInvestments` is exactly what slipped past this spec
@@ -247,5 +255,14 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
 
     expect(mismatches).toEqual([])
     expect(investments.length).toBeGreaterThan(0)
+    const reseed = 'uruchom `pnpm seed:materials-net:test` po `pnpm db:import:test`'
+    expect(
+      covered.netBilled,
+      `żadna porównana inwestycja nie ma wydatku netto — ${reseed}`,
+    ).toBeGreaterThan(0)
+    expect(
+      covered.concession,
+      `żadna porównana inwestycja nie ma ulgi „wszystko netto" — ${reseed}`,
+    ).toBeGreaterThan(0)
   })
 })
