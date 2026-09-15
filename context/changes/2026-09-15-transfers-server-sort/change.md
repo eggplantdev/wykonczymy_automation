@@ -1,7 +1,7 @@
 ---
 change_id: transfers-server-sort
 title: Sortowanie tabeli transakcji na serwerze; kolumny relacyjne tracą sortowanie
-status: implementing
+status: implemented
 created: 2026-09-15
 updated: 2026-09-15
 archived_at: null

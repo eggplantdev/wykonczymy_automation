@@ -366,7 +366,7 @@ parametru to osobna sprawa, nie etykieta.
 
 ### E2E:
 
-Nie w tym slice. Issue z etykietą `e2e-backlog` w projekcie „Wykonczymy": *sortowanie po kwocie na
+Nie w tym slice. Issue z etykietą `e2e-backlog` w projekcie „Wykonczymy" — **EX-781**: *sortowanie po kwocie na
 liście dłuższej niż strona → przejście na drugą stronę → wydruk; kolejność na ekranie i w oknie
 wydruku musi być ta sama*. Test disposition zapisany w issue, żeby strażnik regresji pojechał razem z
 ewentualną przyszłą zmianą.
@@ -431,10 +431,10 @@ widoczna zmiana bez działania użytkownika to domyślna kolejność **wydruku**
 #### Automated
 
 - [x] 2.1 `pnpm typecheck` po usunięciu `sort-transfer-rows.ts` — 32e07129
-- [ ] 2.2 Pakiet jednostkowy przechodzi bez skasowanego specu
+- [x] 2.2 Pakiet jednostkowy przechodzi bez skasowanego specu
 
 ### Phase 3: Filtr „Pracownik" i etykieta „Kasa"
 
 #### Automated
 
-- [x] 3.1 Spec `buildTransferFilters` dla `worker` jako `in` (z przypadkiem pojedynczego id z linku)
+- [x] 3.1 Spec `buildTransferFilters` dla `worker` jako `in` (z przypadkiem pojedynczego id z linku) — 7971ac55

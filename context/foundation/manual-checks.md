@@ -5305,3 +5305,28 @@ Setup: zalogowany jako OWNER/ADMIN (usuwanie i zmiana nazwy są zawężone do ty
       _Verified 2026-09-14 (staging, preview DB): inw. 119, „Prace dodatkowe". Zogniskowano input nazwy, wysłano keydown Space (nie `defaultPrevented`) — wartość zmieniła się na „Prace dodatkowe " (odstęp wpisany), `aria-expanded` paska pozostało `true`. Po przywróceniu wartości wysłano keydown Enter — `defaultPrevented=true`, input stracił focus (blur→commit), `aria-expanded` nadal `true` (brak zwinięcia). SQL potwierdza nazwę sekcji 203 bez zmian: „Prace dodatkowe". Zgodne z kodem: `enter-escape-keydown.ts` swallow'uje tylko Enter/Escape (preventDefault+stopPropagation), Space przechodzi przez niezmieniony; `section-header-cell.tsx` band'owy onKeyDown ignoruje zdarzenia, których `event.target !== event.currentTarget`._
 - [x] Pasek z fokusem (Tab na pasek, bez kursora w nazwie) nadal zwija/rozwija sekcję spacją i Enterem
       _Verified 2026-09-14 (staging, preview DB): inw. 119, „Prace dodatkowe". Zogniskowano sam pasek (`role="button"[aria-expanded]`, bez focusu na input nazwy). Space: `defaultPrevented=true`, `aria-expanded` przeszło `true→false` (zwinięcie). Enter na tym samym, wciąż zogniskowanym pasku: `defaultPrevented=true`, `aria-expanded` wróciło na `true` (rozwinięcie) — snapshot potwierdza `[expanded] [active]`. Zgodne z `section-header-cell.tsx`: band'owy onKeyDown reaguje na Space/Enter tylko gdy `event.target === event.currentTarget`._
+      _Verified 2026-09-14 (staging, preview DB): inw. 119, „Prace dodatkowe". Zogniskowano sam pasek (`role="button"[aria-expanded]`, bez focusu na input nazwy). Space: `defaultPrevented=true`, `aria-expanded` przeszło `true→false` (zwinięcie). Enter na tym samym, wciąż zogniskowanym pasku: `defaultPrevented=true`, `aria-expanded` wróciło na `true` (rozwinięcie) — snapshot potwierdza `[expanded] [active]`. Zgodne z `section-header-cell.tsx`: band'owy onKeyDown reaguje na Space/Enter tylko gdy `event.target === event.currentTarget`._
+
+## transfers-server-sort — sortowanie tabeli transakcji na serwerze (2026-09-15, EX-777)
+
+### Phase 1: Sort serwerowy
+
+- [ ] Na `/inwestycje/26` (366 transakcji) klik w „Kwota" wyrzuca na górę `#1102` 73 656,26 zł — wiersz, którego dziś na pierwszej stronie nie widać
+- [ ] Trzeci klik w ten sam nagłówek zdejmuje sortowanie i wraca do kolejności sprzed kliknięć
+- [ ] Posortowany widok wklejony jako link otwiera się posortowany
+- [ ] Nagłówki siedmiu kolumn relacyjnych nie reagują na klik i nie pokazują strzałki
+- [ ] Pozostałe tabele (sprzęt, flota, kosztorysy, inwestycje, pracownicy, zgłoszenia, szablony, katalog prac) sortują jak przed zmianą
+
+### Phase 2: Wydruk na tym samym kluczu
+
+- [ ] Na `/inwestycje/26` posortowanej po „Kwota" malejąco pierwsze dziesięć wierszy wydruku to te same dziesięć wierszy, co na ekranie, w tej samej kolejności
+- [ ] Wydruk bez aktywnego sortowania wychodzi w kolejności identycznej z ekranem bez sortowania
+- [ ] Pobieranie faktur (ZIP) działa jak przed zmianą
+
+### Phase 3: Filtr „Pracownik" i etykieta „Kasa"
+
+- [ ] Filtr „Pracownik" zawęża listę do wybranych osób i da się wybrać kilka naraz
+- [ ] „Wyczyść filtry" kasuje też pracownika
+- [ ] Na `/pracownicy/[id]` filtra „Pracownik" nie ma (pracownik jest domyślny)
+- [ ] Link „wypłaty" z karty inwestycji dalej trafia w listę zawężoną do jednego pracownika
+- [ ] Filtr „Kasa" pokazuje transakcje, w których wybrana kasa jest źródłem **albo** celem
