@@ -7,7 +7,6 @@ import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
 import { OptionalLink } from '@/components/ui/optional-link'
 import { LinkSheetToInvestmentDialog } from '@/components/dialogs/link-sheet-to-investment-dialog'
 import { LinkedSheetActions } from '@/components/sheets/linked-sheet-actions'
-import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-button'
 import { SheetSetupDialog } from '@/components/dialogs/sheet-setup-dialog'
 import { SHEET_STATUS_LABELS } from '@/lib/constants/sheets'
 import type { InvestmentWithoutSheetRowT, KosztorysRowT } from '@/types/table-rows'
@@ -80,8 +79,7 @@ export function getKosztorysColumns({
 }
 
 // Columns for the "Inwestycje bez kosztorysu" table: investment name + the
-// action to attach a kosztorys (link existing; auto-create stays disabled). The
-// kosztorys_v2 link is still offered — the in-app editor exists regardless of a sheet.
+// action to attach a kosztorys (link existing; auto-create stays disabled).
 export function getInvestmentWithoutSheetColumns() {
   return [
     investmentCol.accessor('name', {
@@ -104,14 +102,10 @@ export function getInvestmentWithoutSheetColumns() {
       cell: (info) => {
         const row = info.row.original
         return (
-          <div className="flex items-center justify-end gap-2">
-            <OpenKosztorysV2Button investmentId={row.investmentId} label="kosztorys_v2" />
-
-            <SheetSetupDialog
-              investmentId={row.investmentId}
-              trigger={<RowActionButton icon={Plus} label="Dodaj kosztorys" />}
-            />
-          </div>
+          <SheetSetupDialog
+            investmentId={row.investmentId}
+            trigger={<RowActionButton icon={Plus} label="Dodaj kosztorys" />}
+          />
         )
       },
     }),
