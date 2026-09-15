@@ -1,6 +1,8 @@
 'use client'
 
 import { SheetAccessBlock } from '@/components/kosztorys/editor/dialogs/sheet-access-block'
+import { SheetMissingColumnsBlock } from '@/components/kosztorys/editor/dialogs/sheet-missing-columns-block'
+import { SheetPointedColumnsBlock } from '@/components/kosztorys/editor/dialogs/sheet-pointed-columns-block'
 import { SheetProblemsBlock } from '@/components/kosztorys/editor/dialogs/sheet-problems-block'
 import { SheetRatesBlock } from '@/components/kosztorys/editor/dialogs/sheet-rates-block'
 import { SheetReportBlock } from '@/components/kosztorys/editor/dialogs/sheet-report-block'
@@ -80,6 +82,16 @@ export function SheetCompareDialog() {
           </p>
         ) : (
           <>
+            <SheetPointedColumnsBlock
+              investmentId={investmentId}
+              columns={columns}
+              onMappingSaved={read}
+            />
+            <SheetMissingColumnsBlock
+              investmentId={investmentId}
+              columns={columns}
+              onMappingSaved={read}
+            />
             <MoneyBlock comparison={comparison} />
             <SheetFooterBlock footer={comparison.footer} />
             <ItemsBlock comparison={comparison} />

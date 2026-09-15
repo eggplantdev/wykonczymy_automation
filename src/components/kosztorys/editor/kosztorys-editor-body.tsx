@@ -30,11 +30,8 @@ import {
   type RowResizeApiT,
 } from '@/components/kosztorys/editor/grid/ordinal-gutter-column'
 import { buildSectionBandRows } from '@/lib/kosztorys/section-band-rows'
-import {
-  engagedConditionsOfKind,
-  engagedHiders,
-  listLabels,
-} from '@/lib/kosztorys/row-conditions/queries'
+import { engagedConditionsOfKind, engagedHiders } from '@/lib/kosztorys/row-conditions/queries'
+import { emptyGridCopy } from '@/lib/kosztorys/empty-grid-copy'
 import {
   isSectionFooterRow,
   isSectionHeaderRow,
@@ -229,7 +226,9 @@ export function KosztorysEditorBody({
       ),
     [columns, columnTotals, sectionHeader, sectionFooter],
   )
-  const emptyByFilter = engagedHiders(engagedConditionIds).length > 0
+  const engagedHiderList = engagedHiders(engagedConditionIds)
+  const engagedDiagnostics = engagedConditionsOfKind(engagedConditionIds, 'diagnostic')
+  const emptyByFilter = engagedHiderList.length > 0
   const bodyRows = useMemo(
     () =>
       buildSectionBandRows(viewRows, {
@@ -269,20 +268,11 @@ export function KosztorysEditorBody({
   // because NONE matched it, which is the goal state and worth saying out loud rather than a dead end.
   // The client's own hider counts here too: with „ukryj puste pozycje" on and every pozycja empty,
   // the client would otherwise get a grid with nothing in it and no word about why.
-  const engagedDiagnostics = engagedConditionsOfKind(engagedConditionIds, 'diagnostic')
-  // One decision, not two: the title and the description always come from the same branch, so
-  // splitting them into parallel ternaries only invites the two to drift apart.
-  const emptyCopy = preview
-    ? {
-        title: 'Brak pozycji do pokazania',
-        description: 'Żadna pozycja nie ma jeszcze przedmiaru ani wykonanej pracy.',
-      }
-    : emptyByFilter
-      ? { title: 'Wszystkie pozycje schowane', description: undefined }
-      : {
-          title: `Brak pozycji ${listLabels(engagedDiagnostics, 'ani')}`,
-          description: 'Filtr zrobił swoje — nie ma już czego poprawiać.',
-        }
+  const emptyCopy = emptyGridCopy({
+    preview,
+    hiders: engagedHiderList,
+    diagnostics: engagedDiagnostics,
+  })
   // Absent in the preview: the client has no handle to drag.
   const rowResize: RowResizeApiT | undefined = useMemo(
     () => (preview ? undefined : { onGuide: setGuideY, onCommit: setRowHeight }),
