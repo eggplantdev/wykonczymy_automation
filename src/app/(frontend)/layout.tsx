@@ -58,7 +58,10 @@ async function AuthenticatedShell({ children, investmentCrumb }: FrontendLayoutP
             </Suspense>
           }
         />
-        <div className="flex flex-1 flex-col">
+        {/* min-w-0: a flex item's default `min-width: auto` refuses to shrink below its content's
+            min-content width, so one wide child (the kosztorys grid) widened this whole column past
+            the viewport and took the sticky top bar with it — the page body scrolled sideways. */}
+        <div className="flex min-w-0 flex-1 flex-col">
           <Navigation user={user} investmentCrumb={investmentCrumb} />
           {/* transform-gpu forces a compositing layer: Safari otherwise fails to
               repaint content streamed into this overflow scroll container after
