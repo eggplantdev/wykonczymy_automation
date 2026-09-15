@@ -69,8 +69,6 @@ export function KosztorysSectionActionsMenu({
   return (
     <>
       <DropdownMenu>
-        {/* Tinted with the section's hue by globals.css, off the same `--section-rail` as the band
-            itself — a colour set here would sit on the trigger, not on the icon. */}
         <CellMenuTrigger title="Akcje sekcji" />
         <DropdownMenuContent align="start" className="min-w-44">
           {/* The twin of the row menu's „Praca" header — this ⋯ and a praca's sit in the same „Akcje"
