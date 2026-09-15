@@ -78,7 +78,7 @@ const makeDescriptionColumn = (suspects: ReadonlyMap<number, SuspectT>) =>
     header: 'Opis pracy',
     sortingFn: (first, second) =>
       compareDescriptions(first.original.description, second.original.description),
-    meta: { minWidth: 'min-w-96' },
+    meta: { minWidth: 'min-w-112' },
     cell: (info) => {
       const suspect = suspects.get(info.row.original.id)
       return (
@@ -105,6 +105,7 @@ const categoryColumn = col.accessor((row) => row.category ?? '', {
   header: 'Kategoria',
   sortingFn: (first, second) =>
     compareDescriptions(first.original.category ?? '', second.original.category ?? ''),
+  meta: { minWidth: 'min-w-50' },
   cell: (info) => <span className="text-muted-foreground text-sm">{info.getValue()}</span>,
 })
 
