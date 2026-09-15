@@ -12,7 +12,7 @@ import {
   buildTransfersPrintHtml,
   type PrintColumnT,
 } from '@/lib/transfers/build-transfers-print-html'
-import { sortTransferRows } from '@/lib/transfers/sort-transfer-rows'
+import { sortingStateToParam } from '@/lib/table/sort-param'
 import type { TransferRowT } from '@/types/transfers'
 
 type PrintTransfersButtonPropsT = {
@@ -49,14 +49,19 @@ export function PrintTransfersButton({ where, table, title }: PrintTransfersButt
 
     startTransition(async () => {
       // Refetches instead of reusing the table's rows: the table is paginated, the printout is not.
-      const result = await fetchFilteredTransfers(where, { skipMedia: true })
+      // The screen's sort key travels with the request, so the database orders both sets the same
+      // way and nothing here re-sorts what comes back.
+      const result = await fetchFilteredTransfers(where, {
+        skipMedia: true,
+        sort: sortingStateToParam(table.getState().sorting) || undefined,
+      })
       if (!result.success) {
         printWindow.close()
         toastMessage(result.error ?? 'Nie udało się pobrać danych', 'error')
         return
       }
 
-      const rows = sortTransferRows(result.data, table.getState().sorting)
+      const rows = result.data
       if (rows.length === 0) {
         printWindow.close()
         toastMessage('Brak transakcji do wydruku', 'info')

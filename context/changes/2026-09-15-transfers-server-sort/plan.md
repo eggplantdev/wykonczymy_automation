@@ -421,16 +421,16 @@ widoczna zmiana bez działania użytkownika to domyślna kolejność **wydruku**
 
 #### Automated
 
-- [x] 1.1 Spec parsera `?sort=` (biała lista, wartości śmieciowe)
-- [x] 1.2 Spec konwersji `SortingState` ↔ parametr URL
-- [x] 1.3 Przepisany spec zgodności kolumn z białą listą
-- [x] 1.4 Spec integracyjny: sort obejmuje cały zbiór, nie jedną stronę
+- [x] 1.1 Spec parsera `?sort=` (biała lista, wartości śmieciowe) — c909593d
+- [x] 1.2 Spec konwersji `SortingState` ↔ parametr URL — c909593d
+- [x] 1.3 Przepisany spec zgodności kolumn z białą listą — c909593d
+- [x] 1.4 Spec integracyjny: sort obejmuje cały zbiór, nie jedną stronę — c909593d
 
 ### Phase 2: Wydruk na tym samym kluczu
 
 #### Automated
 
-- [ ] 2.1 `pnpm typecheck` po usunięciu `sort-transfer-rows.ts`
+- [x] 2.1 `pnpm typecheck` po usunięciu `sort-transfer-rows.ts`
 - [ ] 2.2 Pakiet jednostkowy przechodzi bez skasowanego specu
 
 ### Phase 3: Filtr „Pracownik" i etykieta „Kasa"

@@ -12,11 +12,14 @@ import { perfStart } from '@/lib/perf'
 type FetchFilteredTransfersOptsT = {
   /** Skip resolving invoice media for callers that never render it. */
   skipMedia?: boolean
+  /** Order the database applies to the whole set — the printout passes the screen's own key here so
+   * the two cannot disagree. Defaults to `DEFAULT_TRANSFER_SORT`. */
+  sort?: string
 }
 
 export async function fetchFilteredTransfers(
   where: Where,
-  { skipMedia = false }: FetchFilteredTransfersOptsT = {},
+  { skipMedia = false, sort }: FetchFilteredTransfersOptsT = {},
 ): Promise<ActionResultT<TransferRowT[]>> {
   const elapsed = perfStart()
 
@@ -30,7 +33,7 @@ export async function fetchFilteredTransfers(
     const scopedWhere: Where = {
       and: [where, { cancelled: { not_equals: true } }, { type: { not_equals: 'CANCELLATION' } }],
     }
-    const rows = await fetchAllTransferRows(scopedWhere, { skipMedia })
+    const rows = await fetchAllTransferRows(scopedWhere, { skipMedia, sort })
 
     console.log(`[PERF] fetchFilteredTransfers ${elapsed()}ms (${rows.length} rows)`)
     return { success: true, data: rows }
