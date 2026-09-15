@@ -9,6 +9,7 @@ import { isManagementRole } from '@/lib/auth/roles'
 import { SECTION_LINKS } from '@/lib/constants/sections'
 import { UnreadEquipmentBadge } from '@/components/nav/unread-equipment-badge'
 import { UnreadFleetBadge } from '@/components/nav/unread-fleet-badge'
+import { ThemeToggle } from '@/components/nav/theme-toggle'
 import { cn } from '@/lib/utils/cn'
 import { toastMessage } from '@/lib/utils/toast'
 import { useCurrentUser } from '@/hooks/use-current-user'
@@ -146,6 +147,9 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
       <div className="mt-auto flex flex-col gap-2 pt-4">
         {!collapsed && <div className="text-foreground text-sm font-medium">{user.name}</div>}
         <div className="flex flex-col gap-2">
+          <CollapsibleTooltip collapsed={collapsed} label="Przełącz motyw">
+            <ThemeToggle collapsed={collapsed} />
+          </CollapsibleTooltip>
           <CollapsibleTooltip collapsed={collapsed} label="Odśwież dane">
             <Button
               variant="outline"

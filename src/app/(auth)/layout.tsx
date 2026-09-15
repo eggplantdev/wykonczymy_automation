@@ -4,23 +4,17 @@ import { redirect } from 'next/navigation'
 import { spaceMono } from '@/fonts'
 import { cn } from '@/lib/utils/cn'
 import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
+import { ThemeProvider } from 'next-themes'
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUserJwt()
   if (user) redirect('/')
   return (
-    <html
-      lang="pl"
-      className={cn(
-        spaceMono.variable,
-        'antialiased',
-        // Non-prod (local/preview) renders dark so it's impossible to mistake for prod.
-        // process.env.NODE_ENV !== 'production' && 'dark',
-      )}
-      suppressHydrationWarning
-    >
+    <html lang="pl" className={cn(spaceMono.variable, 'antialiased')} suppressHydrationWarning>
       <body className="bg-background text-foreground relative overscroll-none scroll-smooth">
-        <main className="flex min-h-screen items-center justify-center">{children}</main>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={true}>
+          <main className="flex min-h-screen items-center justify-center">{children}</main>
+        </ThemeProvider>
       </body>
     </html>
   )

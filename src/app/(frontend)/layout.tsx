@@ -8,6 +8,7 @@ import { redirect } from 'next/navigation'
 import { spaceMono } from '@/fonts'
 import { cn } from '@/lib/utils/cn'
 import { ToastContainer } from 'react-toastify'
+import { ThemeProvider } from 'next-themes'
 import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
 import { Navigation } from '@/components/nav/navigation'
 import { Sidebar } from '@/components/nav/sidebar'
@@ -33,12 +34,14 @@ export default function FrontendLayout({ children, investmentCrumb }: FrontendLa
       suppressHydrationWarning
     >
       <body className="bg-background text-foreground relative min-h-screen scroll-smooth">
-        <Suspense fallback={<Loader loading={true} />}>
-          <AuthenticatedShell investmentCrumb={investmentCrumb}>{children}</AuthenticatedShell>
-        </Suspense>
-        <ToastContainer style={{ zIndex: 10001 }} />
-        <PendingSubmitIndicator />
-        <EnvBadge />
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          <Suspense fallback={<Loader loading={true} />}>
+            <AuthenticatedShell investmentCrumb={investmentCrumb}>{children}</AuthenticatedShell>
+          </Suspense>
+          <ToastContainer style={{ zIndex: 10001 }} />
+          <PendingSubmitIndicator />
+          <EnvBadge />
+        </ThemeProvider>
       </body>
     </html>
   )
