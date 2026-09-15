@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useTransition } from 'react'
+import { useRef, useState } from 'react'
 import {
   applyPercentDiscountToAllItemsAction,
   updateInvestmentCoeffsAction,
@@ -64,8 +64,15 @@ export function useKosztorysSettings({
   // Writes nothing optimistically — every figure the four settings move is recomputed on the server,
   // so the panel can only change once the write lands. One shared flag for the block (they are
   // set-once decisions about the deal; nobody edits two at a time) disables it meanwhile, so the click
-  // stops reading as inert.
-  const [isSavingSettings, startSettingsSave] = useTransition()
+  // stops reading as inert. Counted rather than boolean because two saves can overlap.
+  //
+  // Deliberately NOT useTransition (EX-597): the optimistic patch + its rollback both run inside the
+  // save, and a transition owning them never committed either — React keeps the transition pending
+  // until the updates it scheduled land, the row-wide patch never did, and the block stayed disabled
+  // with the page re-rendering ~36×/s until a reload. A plain flag puts every one of those updates in
+  // the normal lane, where the rollback is visible and the block un-disables in `finally`.
+  const [savesInFlight, setSavesInFlight] = useState(0)
+  const isSavingSettings = savesInFlight > 0
   const { stageInvestorImpact, investorImpactConfirm } = useInvestorImpactConfirm()
 
   // Changing the global coefficient recomputes the derived prices of all non-overridden items.
@@ -150,16 +157,18 @@ export function useKosztorysSettings({
     // shared key while the second write is still on the wire — the pill vanishing mid-save is the
     // exact failure the store is keyed rather than boolean to prevent.
     const pendingKey = `${SETTINGS_PENDING_KEY}:${label}`
-    startSettingsSave(async () => {
-      // The popover can close mid-save, so the progress signal has to live outside this subtree —
-      // hence the global store rather than a pill rendered by „Opcje rozliczenia" itself.
-      usePendingStore.getState().start(pendingKey, 'Zapisywanie…')
+    setSavesInFlight((n) => n + 1)
+    // The popover can close mid-save, so the progress signal has to live outside this subtree —
+    // hence the global store rather than a pill rendered by „Opcje rozliczenia" itself.
+    usePendingStore.getState().start(pendingKey, 'Zapisywanie…')
+    void (async () => {
       try {
         await reversibleSettingSave(apply, pushReversible, label, before, next)
       } finally {
         usePendingStore.getState().stop(pendingKey)
+        setSavesInFlight((n) => n - 1)
       }
-    })
+    })()
   }
 
   function handleVatChange(vatRate: number) {
