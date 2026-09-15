@@ -5,7 +5,7 @@ import '@/lib/env'
 import '@/lib/env/server'
 import React, { Suspense } from 'react'
 import { redirect } from 'next/navigation'
-import { abcFavorit, spaceMono } from '@/fonts'
+import { spaceMono } from '@/fonts'
 import { cn } from '@/lib/utils/cn'
 import { ToastContainer } from 'react-toastify'
 import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
@@ -29,7 +29,7 @@ export default function FrontendLayout({ children, investmentCrumb }: FrontendLa
   return (
     <html
       lang="pl"
-      className={cn(abcFavorit.variable, spaceMono.variable, 'overscroll-none antialiased')}
+      className={cn(spaceMono.variable, 'overscroll-none antialiased')}
       suppressHydrationWarning
     >
       <body className="bg-background text-foreground relative min-h-screen scroll-smooth">
