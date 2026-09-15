@@ -1,7 +1,7 @@
 ---
 change_id: clean-texts-catalogue-names
 title: „Popraw literówki" przejmuje nazwy z tabeli poprawek katalogu prac
-status: implementing
+status: implemented
 created: 2026-09-15
 updated: 2026-09-15
 archived_at: null
