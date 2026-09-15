@@ -2,6 +2,8 @@ import { unstable_cache } from 'next/cache'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { CACHE_TAGS } from '@/lib/cache/tags'
+import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
+import { requireAuth } from '@/lib/auth/require-auth'
 import { getDb } from '@/lib/db/get-db'
 import {
   getPresetName,
@@ -81,4 +83,14 @@ export async function getWorkshopView(presetId: number): Promise<WorkshopViewT |
   if (presetName == null) return null
 
   return { presetName, investmentId: workshop?.presetId === presetId ? workshop.id : null }
+}
+
+// Name-only read for the @investmentCrumb slot. Mirrors getInvestmentName down to where it reads
+// from: the already-cached, `presets`-tagged library rather than a round trip of its own, so a
+// rename moves the crumb on the same invalidation that moves the listing and the pickers.
+export async function getPresetNameForCrumb(id: string): Promise<string | null> {
+  const { success } = await requireAuth(MANAGEMENT_ROLES)
+  if (!success) return null
+
+  return (await getPresets()).find((preset) => String(preset.id) === id)?.name ?? null
 }
