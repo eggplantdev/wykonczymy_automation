@@ -4,6 +4,11 @@
 /* @source helps tailwind with scanning files - needed because i have styles inside a directory not project root */
 @source '..';
 
+/* Tailwind v4 keys `dark:` to prefers-color-scheme by default, but the theme is driven by a
+   `.dark` class on <html> (next-themes). Without this the two disagree: the class flips every
+   token below while the `dark:` utilities keep answering to the OS setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Lucide ships icons at 24px; our app default is 16px, so nearly every call site was restating
    size-4. Flip the default here — every Lucide svg carries the `.lucide` class. In @layer base so
    an explicit size utility (size-3, size-5, …) at an exception site still overrides it. */
@@ -67,7 +72,6 @@
   --color-chart-orange: #ff993b;
   --color-chart-red: #ef4444;
   --color-chart-green: #1dc083;
-  --color-chart-gray: #18181b33;
   --color-chart-pink: #ff89de;
   --color-chart-turquoise: #27cbff;
   --color-chart-yellow: #ffbf42;
@@ -124,36 +128,37 @@
   --animate-collapse-up: collapse-up 200ms ease-out;
 }
 
-/* Non-production marker: layouts add `.dark` to <html> when NODE_ENV !== 'production'
-   so local/preview is unmistakable at a glance. We don't ship a real user-facing dark
-   mode — overriding the semantic tokens here flips the whole token-driven UI dark without
-   touching components. Light values stay the source of truth in @theme above. */
+/* The dark palette: overriding the semantic tokens here flips the whole token-driven UI without
+   touching a component. Light values stay the source of truth in @theme above.
+   Text runs brighter than shadcn's stock scale (foreground 1 instead of 0.985, muted 0.78 instead
+   of 0.708) — Space Mono is a thin face at 14px and the stock off-white read as grey against this
+   background, muted text worst of all. */
 .dark {
   --color-background: oklch(0.145 0 0);
-  --color-foreground: oklch(0.985 0 0);
+  --color-foreground: oklch(1 0 0);
   --color-card: oklch(0.205 0 0);
-  --color-card-foreground: oklch(0.985 0 0);
+  --color-card-foreground: oklch(1 0 0);
   --color-popover: oklch(0.205 0 0);
-  --color-popover-foreground: oklch(0.985 0 0);
+  --color-popover-foreground: oklch(1 0 0);
   --color-primary: oklch(0.922 0 0);
   --color-primary-foreground: oklch(0.205 0 0);
   --color-secondary: oklch(0.269 0 0);
-  --color-secondary-foreground: oklch(0.985 0 0);
+  --color-secondary-foreground: oklch(1 0 0);
   --color-muted: oklch(0.269 0 0);
-  --color-muted-foreground: oklch(0.708 0 0);
+  --color-muted-foreground: oklch(0.78 0 0);
   --color-accent: oklch(0.269 0 0);
-  --color-accent-foreground: oklch(0.985 0 0);
+  --color-accent-foreground: oklch(1 0 0);
   --color-destructive: oklch(0.704 0.191 22.216);
   --color-border: oklch(1 0 0 / 10%);
   --color-input: oklch(1 0 0 / 15%);
   --color-ring: oklch(0.556 0 0);
 
   --color-sidebar: oklch(0.205 0 0);
-  --color-sidebar-foreground: oklch(0.985 0 0);
+  --color-sidebar-foreground: oklch(1 0 0);
   --color-sidebar-primary: oklch(0.488 0.243 264.376);
-  --color-sidebar-primary-foreground: oklch(0.985 0 0);
+  --color-sidebar-primary-foreground: oklch(1 0 0);
   --color-sidebar-accent: oklch(0.269 0 0);
-  --color-sidebar-accent-foreground: oklch(0.985 0 0);
+  --color-sidebar-accent-foreground: oklch(1 0 0);
   --color-sidebar-border: oklch(1 0 0 / 10%);
   --color-sidebar-ring: oklch(0.556 0 0);
 }
@@ -249,6 +254,9 @@
 .kosztorys-grid .dsg-container {
   border: none;
   padding-bottom: 3rem;
+  /* The one pair dsg leaves outside its variables, so it has to be unset by rule. */
+  color: var(--color-foreground);
+  background: var(--color-background);
 }
 
 /* dsg overlays a position: sticky "scrollable view" frame over the virtualized row list, meant to
@@ -356,11 +364,32 @@
 
 /* Retint dsg's native selection blue to the app's monochrome theme (border = primary,
    faint primary-tinted fill), so the selection rect / active cell / row+col markers all
-   track light/dark via the theme tokens instead of a hardcoded rgb(69,128,230). */
+   track light/dark via the theme tokens instead of a hardcoded rgb(69,128,230).
+
+   The rest of dsg's palette follows for the same reason: its stylesheet hardcodes a light
+   sheet (`white` cells, `#e8ebed` rules, `black` active header) at `:root`, so under `.dark`
+   the grid would stay a white rectangle in an otherwise dark app. Mapping every one of its
+   variables onto a token is what makes the grid theme-aware without touching a cell renderer.
+   The library's remaining hardcoded colours live in `.dsg-add-row*` and `.dsg-context-menu*`,
+   which this editor never mounts — `lockRows` hides the add-row bar and forces
+   `disableContextMenu` — so there is nothing to override there. */
 .kosztorys-grid {
   --dsg-selection-border-color: var(--color-ring);
   --dsg-selection-border-width: 1px;
   --dsg-selection-background-color: color-mix(in oklab, var(--color-primary) 4%, transparent);
+  --dsg-selection-disabled-border-color: var(--color-muted-foreground);
+  --dsg-selection-disabled-background-color: color-mix(
+    in oklab,
+    var(--color-foreground) 4%,
+    transparent
+  );
+
+  --dsg-border-color: var(--color-border);
+  --dsg-cell-background-color: var(--color-background);
+  --dsg-cell-disabled-background-color: var(--color-muted);
+  --dsg-header-text-color: var(--color-muted-foreground);
+  --dsg-header-active-text-color: var(--color-foreground);
+  --dsg-scroll-shadow-color: color-mix(in oklab, var(--color-foreground) 20%, transparent);
 
   --section-rail-width: 3px;
   --section-divider-width: 2px;
