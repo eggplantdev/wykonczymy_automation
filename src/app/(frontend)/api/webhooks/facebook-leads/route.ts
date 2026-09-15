@@ -6,8 +6,8 @@ import { serverEnv } from '@/lib/env/server'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 import { verifySignature } from '@/lib/leads/verify-signature'
 import { fetchLead } from '@/lib/leads/fetch-lead'
-import { fetchFormQuestions } from '@/lib/leads/fetch-form-questions'
-import { leadSchema, type LeadFormQuestionT } from '@/lib/leads/lead-schema'
+import { fetchForm, type LeadFormT } from '@/lib/leads/fetch-form'
+import { leadSchema } from '@/lib/leads/lead-schema'
 import { normalizeLead } from '@/lib/leads/normalize-lead'
 import { captureLead } from '@/lib/leads/capture-lead'
 import { notifyShapeAlert } from '@/lib/leads/notify'
@@ -63,8 +63,8 @@ export async function POST(request: NextRequest) {
   const payload = await getPayload({ config })
   let captured = 0
   let hadUnexpectedError = false
-  // A webhook batch usually shares one form — fetch its questions once per request.
-  const questionsByForm = new Map<string, LeadFormQuestionT[]>()
+  // A webhook batch usually shares one form — fetch it once per request.
+  const formsById = new Map<string, LeadFormT>()
 
   for (const entry of body.entry ?? []) {
     for (const change of entry.changes ?? []) {
@@ -87,16 +87,16 @@ export async function POST(request: NextRequest) {
           continue
         }
 
-        // Fetch the form's questions first: they carry Meta's field `type`
+        // Fetch the form first: its questions carry Meta's field `type`
         // (EMAIL/PHONE/FULL_NAME), normalizeLead's most reliable pass. Without
         // them it falls back to key heuristics + email regex.
         const formId = parsed.data.form_id
-        if (formId && !questionsByForm.has(formId)) {
-          questionsByForm.set(formId, await fetchFormQuestions(formId))
+        if (formId && !formsById.has(formId)) {
+          formsById.set(formId, await fetchForm(formId))
         }
-        const questions = formId ? questionsByForm.get(formId) : undefined
+        const form = formId ? formsById.get(formId) : undefined
 
-        const normalized = normalizeLead(parsed.data.field_data, questions)
+        const normalized = normalizeLead(parsed.data.field_data, form?.questions)
 
         if (!normalized.email) {
           await notifyShapeAlert(payload, {
@@ -113,8 +113,9 @@ export async function POST(request: NextRequest) {
           name: normalized.name,
           phone: normalized.phone,
           rawData: normalized.rawData,
-          formQuestions: questions,
+          formQuestions: form?.questions,
           formId,
+          formName: form?.name,
           submittedAt: parsed.data.created_time,
         })
         captured += 1

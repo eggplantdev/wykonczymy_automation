@@ -12,7 +12,11 @@ import { serverEnv } from '@/lib/env/server'
  * so Meta would never retry and the lead would be lost.
  */
 export async function fetchLead(leadgenId: string): Promise<unknown> {
-  const url = `https://graph.facebook.com/v21.0/${leadgenId}`
+  // `fields` is load-bearing, not trimming: Graph returns ONLY what it is asked for, and its
+  // default set for a leadgen node omits `form_id`. That one id gates the whole form leg — without
+  // it `fetchForm` early-returns, so the lead stores no form, answers render as raw field keys, and
+  // normalizeLead loses Meta's EMAIL/PHONE/FULL_NAME typing.
+  const url = `https://graph.facebook.com/v21.0/${leadgenId}?fields=id,created_time,form_id,field_data`
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${serverEnv.META_PAGE_ACCESS_TOKEN}` },
   })

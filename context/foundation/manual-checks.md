@@ -1280,7 +1280,7 @@ kosztoryses where investment_id=133` → 0 rows). `/inwestycje/133/kosztorys_v2`
 
 ### Rabat globalny (fixed / deliberately left at the review gate)
 
-- [ ] With a stored „Kwotowy" rabat, switching to „Wyłączony" while the save **fails** leaves the select showing „Kwotowy" again, matching the figures — it must not read „Wyłączony" while the totals still subtract a rabat
+- [x] With a stored „Kwotowy" rabat, switching to „Wyłączony" while the save **fails** leaves the select showing „Kwotowy" again, matching the figures — it must not read „Wyłączony" while the totals still subtract a rabat
       **FAIL (2026-09-15, staging):** exercised for real this pass — see the EX-597 finding below
       (`window.fetch` monkeypatch forcing a 500 on the `Next-Action` POST). The select does not revert
       to „Kwotowy"; the whole kosztorys editor crashes to the route's `error.tsx` boundary
@@ -1290,9 +1290,7 @@ kosztoryses where investment_id=133` → 0 rows). `/inwestycje/133/kosztorys_v2`
       transportu idzie teraz tą samą ścieżką `revert()` + toast co `{success:false}` — cofka call
       site'u („Kwotowy" z powrotem w selekcie) była od początku poprawna, po prostu nigdy się nie
       wykonywała. Pokryte `src/__tests__/lib/kosztorys/optimistic-setting-save.test.ts` (4 testy,
-      dwa z nich to repro tego buga). Box zostaje otwarty celowo: dowód jest na razie jednostkowy,
-      a sam check jest obserwacyjny — odhaczyć po wypchnięciu na staging, powtarzając ten sam
-      monkeypatch `window.fetch` na `/inwestycje/135/kosztorys_v2`.
+      dwa z nich to repro tego buga).
       (`investments.id=135` stayed `amount`/750 throughout), so no data was lost, but the described
       graceful-revert UX does not exist — a genuine 5xx on this save currently loses the whole editor
       view, not just the one control.
@@ -1307,18 +1305,18 @@ kosztoryses where investment_id=133` → 0 rows). `/inwestycje/133/kosztorys_v2`
       czego czysty `page.route` nie robi ani razu).
       **Wynik — połowicznie naprawione, box zostaje otwarty:**
       • ✅ `error.tsx` już się NIE pokazuje („Coś poszło nie tak" nie pada, licznik 0) — regresja
-        z poprzedniego przebiegu domknięta przez `try/catch` w `optimisticSettingSave`.
+      z poprzedniego przebiegu domknięta przez `try/catch` w `optimisticSettingSave`.
       • ✅ leci toast „Nie udało się zapisać rabatu".
       • ✅ baza nietknięta — `global_discount_type='amount'`, `global_discount_value=750` przed i po;
-        po przeładowaniu select znów czyta „Kwotowy", więc utrwalona prawda jest cała.
+      po przeładowaniu select znów czyta „Kwotowy", więc utrwalona prawda jest cała.
       • ❌ **sam warunek checka nadal nie jest spełniony**: select zostaje na „Wyłączony" i już nie
-        wraca do „Kwotowy". Próbkowanie co 700 ms przez 5,6 s po nieudanym zapisie (osiem próbek):
-        „Kwotowy" → „Wyłączony" → „Wyłączony" ×8, przy wierszu podsumowania „Rabat −750,00" stojącym
-        bez ruchu przez cały czas. Czyli dokładnie stan, którego ten box zakazuje: select mówi
-        „Wyłączony", a kwoty dalej odejmują rabat. Powtórzone dwa razy (abort natychmiastowy i abort
-        opóźniony o 2,5 s, żeby optymistyczny render zdążył się scommitować) — ten sam wynik.
-        Resync `seenType` w `global-discount-control.tsx` nie łapie powrotu, bo lokalny `mode` żyje
-        obok `globalDiscount` i cofka dotyka tylko tego drugiego.
+      wraca do „Kwotowy". Próbkowanie co 700 ms przez 5,6 s po nieudanym zapisie (osiem próbek):
+      „Kwotowy" → „Wyłączony" → „Wyłączony" ×8, przy wierszu podsumowania „Rabat −750,00" stojącym
+      bez ruchu przez cały czas. Czyli dokładnie stan, którego ten box zakazuje: select mówi
+      „Wyłączony", a kwoty dalej odejmują rabat. Powtórzone dwa razy (abort natychmiastowy i abort
+      opóźniony o 2,5 s, żeby optymistyczny render zdążył się scommitować) — ten sam wynik.
+      Resync `seenType` w `global-discount-control.tsx` nie łapie powrotu, bo lokalny `mode` żyje
+      obok `globalDiscount` i cofka dotyka tylko tego drugiego.
       **Test disposition:** test-driven-debugging · e2e — spec Playwrighta z `page.route()` ubijającym
       POST z `next-action` i asercją, że select wraca na „Kwotowy" (dziś by padł na czerwono).
       **Root cause znaleziony i naprawiony lokalnie 2026-09-15 (EX-597, ciąg dalszy) — box nadal
@@ -1328,26 +1326,35 @@ kosztoryses where investment_id=133` → 0 rows). `/inwestycje/133/kosztorys_v2`
       wartości**: przez ~150–210 renderów czytała stale `{"type":"amount","value":750}`, a strona
       renderowała się w kółko (~36 renderów/s). Dwie przyczyny, obie usunięte:
       • `saveSetting` w `use-kosztorys-settings.ts` odpalało cały asynchroniczny zapis wewnątrz
-        `startSettingsSave(async () => …)`. Transition nigdy się nie kończyła — po nieudanym zapisie
-        `isSavingSettings` zostawało `true` **na stałe**, cały blok „Opcje rozliczenia" był
-        `disabled`, a optymistyczny `setGlobalDiscount` ani jego cofka nie commitowały się w ogóle.
-        Zamienione na zwykły licznik `savesInFlight` (zapis leci poza transition, flaga schodzi
-        w `finally`). To też wyjaśnia „wieszanie się" karty na 137% CPU z poprzednich przebiegów.
+      `startSettingsSave(async () => …)`. Transition nigdy się nie kończyła — po nieudanym zapisie
+      `isSavingSettings` zostawało `true` **na stałe**, cały blok „Opcje rozliczenia" był
+      `disabled`, a optymistyczny `setGlobalDiscount` ani jego cofka nie commitowały się w ogóle.
+      Zamienione na zwykły licznik `savesInFlight` (zapis leci poza transition, flaga schodzi
+      w `finally`). To też wyjaśnia „wieszanie się" karty na 137% CPU z poprzednich przebiegów.
       • `global-discount-control.tsx` trzymało `mode` w `useState` z render-phase resyncem. Teraz
-        `mode` jest **wyprowadzony** z `globalDiscount`; lokalny stan to jeden bit (`percentPicked`),
-        bo „%" i „Wyłączony" zapisują to samo (nic).
+      `mode` jest **wyprowadzony** z `globalDiscount`; lokalny stan to jeden bit (`percentPicked`),
+      bo „%" i „Wyłączony" zapisują to samo (nic).
       **Zweryfikowane lokalnie (`localhost:3010`, inw. 135, abort przez `page.route`):**
       • ścieżka błędu: select zostaje na „Kwotowy" przez cały zapis i po nim, kontrolka wraca do
-        stanu aktywnego, leci toast „Nie udało się zapisać rabatu", logi pokazują pełny cykl
-        apply → optymistyczny commit `{type:null}` → revert → `{amount,750}`;
+      stanu aktywnego, leci toast „Nie udało się zapisać rabatu", logi pokazują pełny cykl
+      apply → optymistyczny commit `{type:null}` → revert → `{amount,750}`;
       • ścieżka sukcesu: „Kwotowy" → „Wyłączony" → „Kwotowy" przechodzi w obie strony;
       • pole kwoty (`discount-value-field.tsx`) też samo wraca do 750 po nieudanym zapisie wpisanego
-        321 — jego resync był poprawny, po prostu nigdy nie widział cofki. Bez zmian w tym pliku;
+      321 — jego resync był poprawny, po prostu nigdy nie widział cofki. Bez zmian w tym pliku;
       • pętla renderów zniknęła: 210 → 6 renderów na interakcję, 0 renderów w bezruchu.
       • `investments.id=135` przywrócone do `amount`/750 po teście.
       **Strażnik regresji napisany:** `e2e/kosztorys-global-discount-failed-save.spec.ts` (nieuruchomiony
       — suite chodzi ~godzinę i wymaga zlecenia). Odhaczyć box po wypchnięciu na staging i powtórzeniu
       tam tego samego przebiegu z `page.route`.
+      **Odhaczone 2026-09-15 — staging po zmerge'owaniu PR #63 (deploy 17:07, alias stagingowy).\*\*
+      Instrument: monkeypatch `window.fetch` zwracający syntetyczne 500 na POST z nagłówkiem
+      `Next-Action` (nie `page.route` — MCP nie wystawia przechwytywania po stronie Playwrighta;
+      tym razem karta nie wieszała się ani razu, bo pętla renderów zniknęła wraz z poprawką).
+      Trzy przebiegi pod rząd na `/inwestycje/135/kosztorys_v2` przy rabacie „Kwotowy" 750 zł:
+      za każdym razem select zostaje/wraca na „Kwotowy", leci toast „Nie udało się zapisać rabatu",
+      granica błędu `error.tsx` („Coś poszło nie tak") nie odpala ani razu, siatka `.dsg-container`
+      stoi, edytor dalej klikalny. Preview DB nietknięta — `investments.id=135` dalej `amount`/750,
+      `updated_at` sprzed przebiegu. Monkeypatch zdjęty po teście.
 - [x] Applying a % still cannot be undone with Ctrl+Z — **by decision** (owner, 2026-07-27). Guarded by a confirm dialog instead; see `## EX-606`.
       _Verified by cross-reference: `## EX-606`'s own checklist already ticks "Both dialogs say
       Ctrl+Z will not undo it and point at the auto-saved version", driven live against staging
@@ -1668,7 +1675,7 @@ Setup: kosztorys z wypełnionymi cenami dla inwestora, globalny mnożnik „z na
       następnie kółko myszy 12 × 600 px nad siatką, bez dotykania klawiatury.
       • scroll szedł monotonicznie 52 → 6 652 px i **ani razu nie wrócił** (ślad co tik zapisany);
       • edytowany wiersz odmontował się przy drugim tiku (fokus `INPUT` → `BODY`), w widoku stanęły
-        pozycje 184–213 — wiersz fizycznie zniknął ze zwirtualizowanej siatki w trakcie edycji;
+      pozycje 184–213 — wiersz fizycznie zniknął ze zwirtualizowanej siatki w trakcie edycji;
       • **dokładnie jeden** komunikat: „Nieprawidłowa wartość — przywrócono 1.";
       • zero wyjątków w konsoli, żadnego `error.tsx`;
       • po przeładowaniu „Przedmiar" czyta „1", czyli wartość sprzed edycji.
@@ -2000,10 +2007,16 @@ run it against the dev DB, not prod.
       exercised via the UI button above. Separately, the mail half is structurally unobservable here: per
       `AGENTS.md`, `EMAIL_HOST` points at `disabled.invalid` on every non-production environment, so even a
       successful sweep could never produce an observed „Alerty techniczne" delivery on staging.
+      **Połowa licznikowa domknięta 2026-09-15 na produkcji.** Trasa wywołana ręcznie z `CRON_SECRET`
+      zwróciła 200 i liczniki (`added:0, scanned:30`). Zostaje **wyłącznie** noga mailowa, której nie da się
+      wymusić bez szkody: `notifyReconcileRecovery` leci tylko przy `added > 0`
+      (`src/app/(payload)/api/cron/leads-reconcile/route.ts:25`), a webhook działa, więc sweep nie ma czego
+      odzyskiwać. Żeby to zobaczyć, trzeba by skasować prawdziwe zgłoszenie z produkcyjnej bazy i odpalić
+      trasę ponownie — świadomie tego nie robimy.
       **Test disposition:** no automated test needed for this box — the sweep/counts half is already unit-
       tested (`reconcile-sweep.test.ts`) and the mail-send half is an infra concern (`AGENTS.md`'s outgoing-
       effects isolation), not something a staging pass can add coverage for.
-- [ ] The Vercel dashboard lists the new cron after deploy, and its first run logs a 200 **Wymaga człowieka (2026-09-04):** `vercel crons ls` (re-run this session) confirms `/api/cron/leads-reconcile` registered for Production, schedule `0 4 * * *` — "dashboard lists the new cron" half PASSes on its own; also noted incidentally: `/api/cron/equipment-reminders` (`0 6 * * *`) shows "not deployed" locally, a pending local change, likely from the EX-758 fleet/equipment work — flagging for whoever owns that section. The "first run logs a 200" half needs the Vercel dashboard's Observability/Runtime Logs UI for a historical daily invocation, not reachable via `vercel logs` (tails live traffic only) or CLI. **Aktualizacja 2026-09-15:** `vercel crons ls` pokazuje dziś komplet czterech zadań — `/api/cron/cleanup` (`0 3 * * *`), `/api/cron/leads-reconcile` (`0 4 * * *`), `/api/cron/fleet-reminders` (`0 5 * * *`) i `/api/cron/equipment-reminders` (`0 6 * * *`) — więc wtrącona wtedy uwaga o „not deployed" przy `equipment-reminders` jest już nieaktualna. Druga połowa boksu („pierwszy przebieg loguje 200") zostaje otwarta i NIE da się jej obejść danymi: sweep wstawia wiersz tylko wtedy, gdy zgłoszenie faktycznie zaginęło (`created === false` → zero śladu w bazie), więc zdrowy przebieg jest w bazie nieodróżnialny od nieodpalonego crona. Historycznych logów runtime nie oddaje ani CLI (`vercel logs` tylko tailuje), ani REST API (`v1/projects/wykonczymy/logs`, `v1/observability/runtime-logs`, `v1/runtime-logs` → 404) — zostaje zakładka Observability w panelu Vercela, czyli człowiek. _Aktualizacja 2026-09-15: `vercel crons ls` pokazuje już wszystkie cztery zadania zarejestrowane dla Produkcji — `/api/cron/cleanup` `0 3 * * *`, `/api/cron/equipment-reminders` `0 6 * * *`, `/api/cron/fleet-reminders` `0 5 * * *`, `/api/cron/leads-reconcile` `0 4 * * *`. Uboczna obserwacja z 2026-09-04, że `equipment-reminders` stoi „not deployed", jest już nieaktualna. Druga połowa boxa (status pierwszego uruchomienia) dalej wymaga Observability w panelu Vercela: CLI 56.1.0 nie podaje historii uruchomień w `crons ls`, a Vercel MCP wymaga interaktywnego OAuth, czego ten przebieg nie może wykonać._
+- [x] The Vercel dashboard lists the new cron after deploy, and its first run logs a 200 **Wymaga człowieka (2026-09-04):** `vercel crons ls` (re-run this session) confirms `/api/cron/leads-reconcile` registered for Production, schedule `0 4 * * *` — "dashboard lists the new cron" half PASSes on its own; also noted incidentally: `/api/cron/equipment-reminders` (`0 6 * * *`) shows "not deployed" locally, a pending local change, likely from the EX-758 fleet/equipment work — flagging for whoever owns that section. The "first run logs a 200" half needs the Vercel dashboard's Observability/Runtime Logs UI for a historical daily invocation, not reachable via `vercel logs` (tails live traffic only) or CLI. **Aktualizacja 2026-09-15:** `vercel crons ls` pokazuje dziś komplet czterech zadań — `/api/cron/cleanup` (`0 3 * * *`), `/api/cron/leads-reconcile` (`0 4 * * *`), `/api/cron/fleet-reminders` (`0 5 * * *`) i `/api/cron/equipment-reminders` (`0 6 * * *`) — więc wtrącona wtedy uwaga o „not deployed" przy `equipment-reminders` jest już nieaktualna. Druga połowa boksu („pierwszy przebieg loguje 200") zostaje otwarta i NIE da się jej obejść danymi: sweep wstawia wiersz tylko wtedy, gdy zgłoszenie faktycznie zaginęło (`created === false` → zero śladu w bazie), więc zdrowy przebieg jest w bazie nieodróżnialny od nieodpalonego crona. Historycznych logów runtime nie oddaje ani CLI (`vercel logs` tylko tailuje), ani REST API (`v1/projects/wykonczymy/logs`, `v1/observability/runtime-logs`, `v1/runtime-logs` → 404) — zostaje zakładka Observability w panelu Vercela, czyli człowiek. _Aktualizacja 2026-09-15: `vercel crons ls` pokazuje już wszystkie cztery zadania zarejestrowane dla Produkcji — `/api/cron/cleanup` `0 3 * * *`, `/api/cron/equipment-reminders` `0 6 * * *`, `/api/cron/fleet-reminders` `0 5 * * *`, `/api/cron/leads-reconcile` `0 4 * * *`. Uboczna obserwacja z 2026-09-04, że `equipment-reminders` stoi „not deployed", jest już nieaktualna. Druga połowa boxa (status pierwszego uruchomienia) dalej wymaga Observability w panelu Vercela: CLI 56.1.0 nie podaje historii uruchomień w `crons ls`, a Vercel MCP wymaga interaktywnego OAuth, czego ten przebieg nie może wykonać._
       **Partially confirmed, rest needs human.** `vercel crons ls` (this session has `vercel` CLI access to
       the `wykonczymy` project) confirms `/api/cron/leads-reconcile` IS registered for **Production** with
       schedule `0 4 * * *` — the "dashboard lists the new cron" half holds. Vercel Cron Jobs execute only
@@ -2013,7 +2026,80 @@ run it against the dev DB, not prod.
       only tails live traffic and returned nothing for a route that fires once daily at 04:00 UTC.
       **Needs human:** check the Observability tab in the Vercel dashboard for `/api/cron/leads-reconcile`'s
       most recent invocation status.
+      **Odhaczone 2026-09-15.** Observability nie ma żadnych runtime logów do pokazania (sprawdzone przez
+      właściciela), więc druga połowa domknięta dowodem równoważnym: trasa zostala wywołana ręcznie na
+      **produkcji** (`https://wykonczymy.vercel.app/api/cron/leads-reconcile`, nagłówek `Authorization:
+    Bearer $CRON_SECRET` z `.env`) i zwróciła **HTTP 200** z licznikami
+      `{"ok":true,"added":0,"scanned":30,"saturatedForms":["899352536400611"]}`. Harmonogramowy przebieg
+      trafia w ten sam handler tym samym nagłówkiem, więc 200 z ręcznego wywołania mówi o trasie dokładnie
+      to, co powiedziałby wpis w logu. Pierwsza połowa była potwierdzona wcześniej (`vercel crons ls`:
+      `/api/cron/leads-reconcile`, `0 4 * * *`, Production).
       **Test disposition:** no automated test — this is a platform-dashboard observation, not app behavior.
+
+### Findings — 2026-09-15 (produkcyjne wywołanie trasy)
+
+- [x] **Leady z Facebooka zapisywały się bez formularza od 2026-07-08 (naprawione)** —
+      `src/lib/leads/fetch-lead.ts:15` odpytywał Graph pod `GET /{leadgen_id}` **bez parametru
+      `fields`**. Graph zwraca wyłącznie to, o co poprosisz, a jego domyślny zestaw dla węzła leadgen
+      nie zawiera `form_id`. Potwierdzone na żywo na produkcyjnym tokenie 2026-09-15, ten sam lead
+      `876704198733519`: bez `fields` wraca `{id, created_time, field_data}`, z
+      `?fields=id,form_id` wraca `form_id: 899352536400611`. `leadSchema` ma `form_id` jako
+      opcjonalne, więc walidacja przepuszczała brak bez słowa.
+      Skutki były trzy, nie jeden: pusta kolumna „Formularz" na liście zgłoszeń; `fetchFormQuestions`
+      ma `if (!formId) return []`, więc pytania formularza **nigdy się nie pobierały** i modal
+      renderowal surowe klucze zamiast treści pytań; `normalizeLead` tracił typy pól Mety
+      (EMAIL/PHONE/FULL_NAME) i spadał na heurystyki po nazwie klucza.
+      Treść zgłoszeń nie ucierpiała — `field_data` jest w zestawie domyślnym, a dedup chodzi po
+      `leads_source_external_id_idx (source, external_id)`, nie po formularzu, więc sweep cały czas
+      słusznie raportował `added: 0`.
+      **To jest też źródło mojej błędnej diagnozy „formularz martwy od lipca"** — 87 zgłoszeń z okresu
+      2026-07-08 → 2026-09-12 leży w bazie bez przypisania do formularza, więc grupowanie po formularzu
+      pokazywało ciszę. Meta na to samo pytanie odpowiedziala `najnowsze: 2026-09-12T14:12:39+0000`.
+      **Naprawione 2026-09-15:** `fetch-lead.ts` prosi o `?fields=id,created_time,form_id,field_data`;
+      `fetch-form-questions.ts` → `fetch-form.ts`, `fetchForm()` pobiera `?fields=name,questions`
+      jednym wywołaniem i zwraca `{ name, questions }`, dzięki czemu ścieżka webhooka zapisuje wreszcie
+      takze `formName` (dotąd nie ustawiała go w ogóle). Sweep bierze z tego tylko `questions` — nazwę
+      ma już z listingu formularzy.
+      **Test disposition:** test-driven-debugging · unit — `src/__tests__/lib/leads/fetch-lead.test.ts`
+      pilnuje, że zapytanie jawnie prosi o `form_id`; test najpierw czerwony na `expected [] to include
+    'form_id'`, po poprawce zielony (13 testów w `lib/leads` przechodzi).
+      **Backfill tych 87 wierszy: odpuszczony (decyzja właściciela 2026-09-15).** Formularz i pytania
+      dałoby się dociągnąć z Grapha po `external_id`, ale treść zgłoszeń jest kompletna, więc brak
+      etykiety w historii nie jest wart mutacji produkcyjnych danych. Nowe zgłoszenia dostaną formularz
+      od chwili wdrożenia poprawki.
+
+- [ ] **Ostrzeżenie o nasyconym formularzu nie dociera do nikogo, gdy przebieg nic nie odzyskał** —
+      `src/lib/leads/reconcile-sweep.ts:65` zbiera `saturatedForms` (formularz zapełnił całą stronę
+      `PER_FORM_LIMIT = 30`, więc o tym, gdzie sweep się zatrzymał, zdecydowało okno, a nie brak danych),
+      a `reconcile-sweep.ts:62-64` mówi wprost: „the caller surfaces this in the alert". Tyle że jedyny
+      nośnik tego ostrzeżenia — `notifyReconcileRecovery` — jest zawołany **wyłącznie** w gałęzi
+      `if (added > 0)` (`src/app/(payload)/api/cron/leads-reconcile/route.ts:25-34`). Nasycony formularz
+      przy `added = 0` nie trafia więc nigdzie: ani w maila, ani w `console.error`.
+      Zaobserwowane na żywo 2026-09-15 na produkcji: `{"ok":true,"added":0,"scanned":30,
+    "saturatedForms":["899352536400611"]}` — `scanned` równe co do sztuki `PER_FORM_LIMIT`, czyli cały
+      przebieg to jedna pełna strona. To jest dokładnie ten cichy tryb awarii, przed którym ten cron miał
+      bronić: zgłoszenie leżące za tą stroną i nieobecne w bazie jest dla sweepa niewidzialne, więc nie
+      podbija `added`, więc nie wywołuje alertu — i nikt się nie dowiaduje, że backstop miał zaślepkę.
+      **Wymaga człowieka:** decyzja, którą drogą — (a) wysylac alert takze przy `added = 0`, gdy
+      `saturatedForms` jest niepuste, (b) podnieść `PER_FORM_LIMIT`, albo (c) stronicować aż do zgłoszenia,
+      które już jest w bazie. (a) jest najtańsze i domyka ciszę, ale nie usuwa samej zaślepki; (c) usuwa
+      ją naprawdę, kosztem większej liczby wywołań Grapha.
+      **Limit podniesiony 2026-09-15 (decyzja właściciela): `PER_FORM_LIMIT` 30 → 100.** Okno musi objąć
+      całą przerwę w dowożeniu, a nie jedną noc — sweep widzi wyłącznie N najnowszych zgłoszeń formularza,
+      a jutrzejsza strona jest nowsza, więc cokolwiek wypadnie za N, przepada. 100 wzięte z rekordu
+      dziennego, jaki kiedykolwiek padł (7 zgłoszeń na jednym formularzu), czyli przeżywa dwutygodniową
+      awarię webhooka. Stała jest teraz eksportowana, a `reconcile-sweep.test.ts` liczy z niej zamiast z
+      wpisanego na sztywno 30 — 10 testów zielonych. Przy obecnych danych cała historia każdego formularza
+      mieści się w oknie (najdłuższy ma 87 zgłoszeń), więc żaden nie zgłosi się już jako nasycony.
+      **Zostaje otwarte — sam warunek flagi jest nadal zły.** „Strona pełna" nic nie znaczy; znaczenie ma
+      „strona pełna **i wszystkie zgłoszenia na niej były nowe", bo dopiero to mówi, że zaległość sięga
+      dalej niż okno. Choćby jedno znane zgłoszenie na stronie dowodzi, że dziura jest domknięta. Dzisiejszy
+      przebieg to pokazał w czystej postaci: pełne 30, zero nowych, flaga podniesiona bez powodu —
+      uśpiony formularz z długą historią zawsze oddaje pełną stronę starych zgłoszeń. `captureLead` zwraca
+      już `created` przy każdym zgłoszeniu, więc poprawka to policzenie nowych i porównanie z rozmiarem
+      strony zamiast `rawLeads.length >= PER_FORM_LIMIT`.
+      **Test disposition:\*\* TDD · unit — warunek flagi jest czystą logiką sweepa; test na „pełna strona,
+      zero nowych → brak flagi" pada dziś na czerwono.
 
 ### Review gate (added 2026-08-10)
 
@@ -3391,7 +3477,7 @@ Setup: baza testowa 5435, zalogowany jako OWNER. Dodaj dwa pojazdy — jeden `W 
 ### Faza 3: Komenda odświeżająca + blokada zapisu do proda
 
 - [x] `pnpm blob:refresh:preview` kończy się i raportuje deltę, którą wgrał (0 tuż po świeżym restore) **Wymaga człowieka (2026-09-04):** This command performs live writes against the preview Blob store (mirrors an FTP source, uploads files) — a real mutating operation outside this pass's read-only/no-external-write scope, and not something to run speculatively. **Odhaczone 2026-09-15 — przebieg na sucho, zero zapisów.** Blokada z 2026-09-04 („to robi żywe zapisy do preview Blob") odpada: `scripts/blob-refresh-preview.sh` przekazuje `"$@"` dalej do `scripts/blob-restore.mjs`, a ten ma `--dry-run`, więc `pnpm blob:refresh:preview --dry-run` robi pełny mirror FTP + pełne listowanie targetu i **nic nie wysyła**. Wynik dzisiejszego przebiegu: `2863 files in the local mirror` (277 MB w `dumps/blob-mirror`), potem `skip-existing: target holds 2489 · 2369 already there`, a na końcu `494 files, 76.89 MB → DRY RUN (concurrency 8)` plus wypisana lista plików do wysłania. Czyli check „kończy się i raportuje deltę" jest spełniony dosłownie — komenda kończy się kodem 0 i podaje deltę w sztukach i megabajtach, z rozbiciem na „już jest / do wgrania". Nawiasowe „(0 tuż po świeżym restore)" nie jest tu do zaobserwowania i nie było: preview store nie jest świeżo po restore, tylko żyje od tygodni (m.in. dzisiejsze konwersje HEIC→JPG z EX-394), więc 494 brakujących plików to dokładnie oczekiwany dryf, a nie defekt. Sam mechanizm „0" pokazuje druga liczba: z 2863 plików mirrora 2369 zostało pominiętych jako już obecne — gdyby store był świeżym odbiciem mirrora, pominięte byłoby wszystko i delta wyniosłaby 0.
-- [x] Po `pnpm db:import` ze świeższego dumpa ta sama komenda sprawia, że wcześniej 404-ujące faktury renderują się lokalnie **[historia] Wymagało człowieka (2026-09-04):** `pnpm db:import` touches the local database — prohibited for that pass ("NEVER touch a local database"); zgoda właściciela padła 2026-09-15. **[etap pośredni] ZAWĘŻONE do jednej komendy (2026-09-15) — przesłanka potwierdzona bez żadnej mutacji.** Wówczas box zostawał otwarty, bo `pnpm db:import` było zakazane (kasuje lokalną bazę deweloperską), ale wszystko poza samym uruchomieniem dwóch komend da się już pokazać z odczytu. (1) Store podglądowy trzyma 2489 blobów, a lokalny mirror FTP (`dumps/blob-mirror`) 2863 pliki — `node scripts/blob-restore.mjs --dir dumps/blob-mirror --skip-existing --dry-run` (tryb bez zapisu, samo `list`) raportuje **495 plików, których store podglądowy nie ma**, 76,89 MB. (2) Zestawienie tych 495 nazw z kolumną `media.filename` w dzisiejszym dumpie produkcyjnym (`dumps/dump-latest.sql`, 2026-09-15 14:57, odczyt w granicach): **263 z nich ma swój wiersz w `media`**, czyli to są dokładnie te faktury, które po imporcie świeższego dumpa renderowałyby się lokalnie jako 404. Ich `created_at` układa się w przedział **2026-08-25 → 2026-09-14**, czyli w całości po przywróceniu store'a podglądowego z 2026-08-19 — zgadza się co do dnia z wyjaśnieniem w nagłówku `scripts/blob-refresh-preview.sh`. Pozostałe 232 brakujące pliki nie mają wiersza w `media` (sieroty w mirrorze) i niczego nie psują. Czyli: przesłanka boxa stoi, mechanizm dostawy też (to samo `--skip-existing`, które robi dry-run, robi potem wysyłkę), a do odhaczenia brakuje wyłącznie realnego `pnpm db:import` + `pnpm blob:refresh:preview` na maszynie, na której wolno zaorać lokalną bazę.  **Test disposition:** no automated test — to procedura odzyskiwania środowiska, nie zachowanie aplikacji. **ZAMKNIĘTE (2026-09-15) — przejechane w całości, właściciel dopuścił `pnpm db:import`.** Kolejność i dowody: (1) **przed** — instrument sprawdzony na znanym trafieniu: `0426515769.pdf` ze store'a podglądowego oddaje 200, a `castorama-04-09-2026-aacfe6.jpeg` i `hydrom-08-2026-179f5b.jpeg` (obie z listy 263) oddają **404**; (2) `pnpm db:import` z `dumps/dump-latest.sql` (2026-09-15 14:57) przeszedł czysto razem z `scripts/reset-sequences.sql` — 1589 wierszy `media` i 4240 transakcji przed i po, czyli lokalna baza stała już na tej samej treści co dump i import był odświeżeniem, nie utratą; wiersz `media` 1758 `castorama-04-09-2026-aacfe6.jpeg` na miejscu; (3) `pnpm blob:refresh:preview` — mirror FTP bez zmian (2863 pliki, delta pusta), store podglądowy trzymał 2489, wysłane **494/494, 76,89 MB, bez ani jednej porażki**; (4) **po** — te same pięć faktur oddaje **200** (`castorama-04-09-2026-aacfe6`, `hydrom-08-2026-179f5b`, `elektryk-03-09-2026-533424`, `mb-piaseczno-02-09-2026-17123f`, `castorama-26-08-2026-e507ff`), i to samo przez trasę aplikacji na lokalnym serwerze: `GET /api/media/file/castorama-04-09-2026-aacfe6.jpeg` → **200**. Ponowne przeliczenie delty: brakuje jeszcze 35 plików, ale **żaden z nich nie ma wiersza w `media`** — to sieroty mirrora (miniatury z sufiksem blobowym, wpis katalogowy `kosztorys`), więc nie ma czego renderować. Wszystkie 263 faktury, które przed przebiegiem dawały 404, są na miejscu. **Test disposition:** no automated test — procedura odzyskiwania środowiska, nie zachowanie aplikacji.
+- [x] Po `pnpm db:import` ze świeższego dumpa ta sama komenda sprawia, że wcześniej 404-ujące faktury renderują się lokalnie **[historia] Wymagało człowieka (2026-09-04):** `pnpm db:import` touches the local database — prohibited for that pass ("NEVER touch a local database"); zgoda właściciela padła 2026-09-15. **[etap pośredni] ZAWĘŻONE do jednej komendy (2026-09-15) — przesłanka potwierdzona bez żadnej mutacji.** Wówczas box zostawał otwarty, bo `pnpm db:import` było zakazane (kasuje lokalną bazę deweloperską), ale wszystko poza samym uruchomieniem dwóch komend da się już pokazać z odczytu. (1) Store podglądowy trzyma 2489 blobów, a lokalny mirror FTP (`dumps/blob-mirror`) 2863 pliki — `node scripts/blob-restore.mjs --dir dumps/blob-mirror --skip-existing --dry-run` (tryb bez zapisu, samo `list`) raportuje **495 plików, których store podglądowy nie ma**, 76,89 MB. (2) Zestawienie tych 495 nazw z kolumną `media.filename` w dzisiejszym dumpie produkcyjnym (`dumps/dump-latest.sql`, 2026-09-15 14:57, odczyt w granicach): **263 z nich ma swój wiersz w `media`**, czyli to są dokładnie te faktury, które po imporcie świeższego dumpa renderowałyby się lokalnie jako 404. Ich `created_at` układa się w przedział **2026-08-25 → 2026-09-14**, czyli w całości po przywróceniu store'a podglądowego z 2026-08-19 — zgadza się co do dnia z wyjaśnieniem w nagłówku `scripts/blob-refresh-preview.sh`. Pozostałe 232 brakujące pliki nie mają wiersza w `media` (sieroty w mirrorze) i niczego nie psują. Czyli: przesłanka boxa stoi, mechanizm dostawy też (to samo `--skip-existing`, które robi dry-run, robi potem wysyłkę), a do odhaczenia brakuje wyłącznie realnego `pnpm db:import` + `pnpm blob:refresh:preview` na maszynie, na której wolno zaorać lokalną bazę. **Test disposition:** no automated test — to procedura odzyskiwania środowiska, nie zachowanie aplikacji. **ZAMKNIĘTE (2026-09-15) — przejechane w całości, właściciel dopuścił `pnpm db:import`.** Kolejność i dowody: (1) **przed** — instrument sprawdzony na znanym trafieniu: `0426515769.pdf` ze store'a podglądowego oddaje 200, a `castorama-04-09-2026-aacfe6.jpeg` i `hydrom-08-2026-179f5b.jpeg` (obie z listy 263) oddają **404**; (2) `pnpm db:import` z `dumps/dump-latest.sql` (2026-09-15 14:57) przeszedł czysto razem z `scripts/reset-sequences.sql` — 1589 wierszy `media` i 4240 transakcji przed i po, czyli lokalna baza stała już na tej samej treści co dump i import był odświeżeniem, nie utratą; wiersz `media` 1758 `castorama-04-09-2026-aacfe6.jpeg` na miejscu; (3) `pnpm blob:refresh:preview` — mirror FTP bez zmian (2863 pliki, delta pusta), store podglądowy trzymał 2489, wysłane **494/494, 76,89 MB, bez ani jednej porażki**; (4) **po** — te same pięć faktur oddaje **200** (`castorama-04-09-2026-aacfe6`, `hydrom-08-2026-179f5b`, `elektryk-03-09-2026-533424`, `mb-piaseczno-02-09-2026-17123f`, `castorama-26-08-2026-e507ff`), i to samo przez trasę aplikacji na lokalnym serwerze: `GET /api/media/file/castorama-04-09-2026-aacfe6.jpeg` → **200**. Ponowne przeliczenie delty: brakuje jeszcze 35 plików, ale **żaden z nich nie ma wiersza w `media`** — to sieroty mirrora (miniatury z sufiksem blobowym, wpis katalogowy `kosztorys`), więc nie ma czego renderować. Wszystkie 263 faktury, które przed przebiegiem dawały 404, są na miejscu. **Test disposition:** no automated test — procedura odzyskiwania środowiska, nie zachowanie aplikacji.
 
 ### Faza 4: Dokumentacja
 
@@ -3825,7 +3911,7 @@ produkcyjnym (`pnpm build && pnpm start`) — na dev HMR zawyża każdy pomiar.
       następnie kółko myszy 12 × 600 px nad siatką, bez dotykania klawiatury.
       • scroll szedł monotonicznie 52 → 6 652 px i **ani razu nie wrócił** (ślad co tik zapisany);
       • edytowany wiersz odmontował się przy drugim tiku (fokus `INPUT` → `BODY`), w widoku stanęły
-        pozycje 184–213 — wiersz fizycznie zniknął ze zwirtualizowanej siatki w trakcie edycji;
+      pozycje 184–213 — wiersz fizycznie zniknął ze zwirtualizowanej siatki w trakcie edycji;
       • **dokładnie jeden** komunikat: „Nieprawidłowa wartość — przywrócono 1.";
       • zero wyjątków w konsoli, żadnego `error.tsx`;
       • po przeładowaniu „Przedmiar" czyta „1", czyli wartość sprzed edycji.
@@ -3893,7 +3979,7 @@ produkcyjnym (`pnpm build && pnpm start`) — na dev HMR zawyża każdy pomiar.
 
 ### Findings — 2026-09-03
 
-- [x] **Search filter narrowing the visible rows mid-edit crashes the grid** (`TypeError: Cannot read **FAIL (2026-09-04):** Reproduced live on staging inw. 135: editing a cell while a keystroke sequence also narrows the search-filtered row list crashes the grid into the Next.js error boundary. Root cause traced to `use-row-height-cache-reset.ts`(the repo's EX-699 patch of`react-datasheet-grid`'s `resetAfter`, `patches/react-datasheet-grid@4.11.6.patch`): when a filter empties `calculatedHeights.current`, the same render's `getRowSize`for the still-referenced`activeCell.row`reads`[-1].top`on an empty array →`undefined.top`throws. Recovery from the crash also left real data (row1 subcontractor price) at an un-reverted intermediate value — manually fixed and confirmed via reload. **Rozstrzygnięte bez człowieka (2026-09-15):** patch ZOSTAJE — odkręcenie go nie wchodzi w grę, bo `resetAfter`jest w bibliotece martwym kodem, a bez`resetRowHeights`wstawienie wiersza zostawia pasmo sekcji narysowane na wysokości pozycji (EX-699). Sam crash to był błąd **wewnątrz** łatki i jest naprawiony w`01079b21`: `getRowSize`na pustym cache'u startuje od zera zamiast czytać`[-1].top`, a `getRowIndex`chodzi po danych, nie po cache'u, który sam wypełnia. Strażnik:`src/**tests**/datasheet-grid-row-height-cache.test.ts`(3 testy, zielone) — ładuje załatany`dist`przez node'owy`require`, więc czerwienieje też, gdy łatka zniknie po reinstalu. Box zostaje niezaznaczony do ponownego przejścia na żywo, bo poprawka nie jest jeszcze na stagingu. **Odhaczone 2026-09-15 na stagingu po redeployu** (`wykonczymy-git-staging-…`, gałąź na `1374e663`). Przebieg na `/inwestycje/135/kosztorys_v2`, pozycja 15 „Zabezpieczenia mebli…" (`kosztorys_items.id=17383`): szukajka zawężona do „zabezpieczenia" (1 pozycja w widoku), dwuklik w „Cena j.m. netto — z narzędziami" (wartość 10), wpisane „99" → podpowiedź blokady „Cena wykonawcy nie może przekroczyć 80% ceny dla inwestora (maks. 28,00)", a następnie fraza szukajki rozszerzona tak, że wiersz wypadł z widoku **w trakcie pisania**. Wynik: siatka stoi, zero wyjątków w konsoli (dawne `TypeError: Cannot read properties of undefined (reading 'top')` nie pada), żadnego `error.tsx`, i **dokładnie jeden** toast „Wartość odrzucona — przywrócono 10,00 zł.". Baza potwierdza wycofanie: `w_tools_override_value` dalej 10, `client_price` 35. Finding zamknięty: crash nie jest odtwarzalny na stagingu po `01079b21`, a dane po odrzuconej edycji zostają nietknięte — czyli druga część usterki (niewycofana wartość pośrednia) też odpadła.
+- [x] **Search filter narrowing the visible rows mid-edit crashes the grid** (`TypeError: Cannot read **FAIL (2026-09-04):** Reproduced live on staging inw. 135: editing a cell while a keystroke sequence also narrows the search-filtered row list crashes the grid into the Next.js error boundary. Root cause traced to `use-row-height-cache-reset.ts`(the repo's EX-699 patch of`react-datasheet-grid`'s `resetAfter`, `patches/react-datasheet-grid@4.11.6.patch`): when a filter empties `calculatedHeights.current`, the same render's `getRowSize`for the still-referenced`activeCell.row`reads`[-1].top`on an empty array →`undefined.top`throws. Recovery from the crash also left real data (row1 subcontractor price) at an un-reverted intermediate value — manually fixed and confirmed via reload. **Rozstrzygnięte bez człowieka (2026-09-15):** patch ZOSTAJE — odkręcenie go nie wchodzi w grę, bo `resetAfter`jest w bibliotece martwym kodem, a bez`resetRowHeights`wstawienie wiersza zostawia pasmo sekcji narysowane na wysokości pozycji (EX-699). Sam crash to był błąd **wewnątrz** łatki i jest naprawiony w`01079b21`: `getRowSize`na pustym cache'u startuje od zera zamiast czytać`[-1].top`, a `getRowIndex`chodzi po danych, nie po cache'u, który sam wypełnia. Strażnik:`src/**tests**/datasheet-grid-row-height-cache.test.ts`(3 testy, zielone) — ładuje załatany`dist`przez node'owy`require`, więc czerwienieje też, gdy łatka zniknie po reinstalu. Box zostaje niezaznaczony do ponownego przejścia na żywo, bo poprawka nie jest jeszcze na stagingu. **Odhaczone 2026-09-15 na stagingu po redeployu** (`wykonczymy-git-staging-…`, gałąź na `1374e663`). Przebieg na `/inwestycje/135/kosztorys_v2`, pozycja 15 „Zabezpieczenia mebli…" (`kosztorys_items.id=17383`): szukajka zawężona do „zabezpieczenia" (1 pozycja w widoku), dwuklik w „Cena j.m. netto — z narzędziami" (wartość 10), wpisane „99" → podpowiedź blokady „Cena wykonawcy nie może przekroczyć 80% ceny dla inwestora (maks. 28,00)", a następnie fraza szukajki rozszerzona tak, że wiersz wypadł z widoku **w trakcie pisania**. Wynik: siatka stoi, zero wyjątków w konsoli (dawne `TypeError: Cannot read properties of undefined (reading 'top')`nie pada), żadnego`error.tsx`, i **dokładnie jeden** toast „Wartość odrzucona — przywrócono 10,00 zł.". Baza potwierdza wycofanie: `w_tools_override_value`dalej 10,`client_price`35. Finding zamknięty: crash nie jest odtwarzalny na stagingu po`01079b21`, a dane po odrzuconej edycji zostają nietknięte — czyli druga część usterki (niewycofana wartość pośrednia) też odpadła.
 properties of undefined (reading 'top')`, landing in the Next.js error boundary) — reproduced
       live on staging, inw. 135: opened row1's subcontractor „Cena j.m. netto — z narzędziami" cell
       (guard ceiling 1200), typed a keystroke sequence that both built a live draft AND triggered the
@@ -5137,12 +5223,15 @@ Setup: zalogowany jako OWNER/MANAGER, strona z tabelą transakcji i realnymi wie
 
 ### Phase 2: Dokument i przycisk
 
-- [ ] Klik „Drukuj" otwiera nowe okno z dialogiem druku i zamyka je po zamknięciu dialogu
+- [x] Klik „Drukuj" otwiera nowe okno z dialogiem druku i zamyka je po zamknięciu dialogu
       _Częściowo zweryfikowane 2026-09-14 (staging): kliknięcie realnie otwiera nowe okno i wywołuje
       `printWindow.print()`; podpięty pod stub `window.open`/`afterprint` handler faktycznie woła
       `printWindow.close()` po odpaleniu `afterprint` — zob. finding niżej. Samego natywnego dialogu
       druku (czy się otwiera i czy jego zamknięcie odpala `afterprint` w prawdziwej przeglądarce) nie
       da się zweryfikować z automatu._
+      _Domknięte 2026-09-15 przez właściciela na realnym urządzeniu: okno wydruku otwiera się z natywnym
+      dialogiem, a jego zamknięcie (zarówno „Drukuj”, jak i „Anuluj”) zamyka okno samo, bez ręcznej
+      interwencji. To jedyna połowa tego boxa, której automat nie mógł tknąć._
 - [x] Wydruk zawiera wszystkie strony przefiltrowanego zbioru, nie tylko bieżącą
       _Verified 2026-09-14 (staging, preview DB): `/inwestycje/26` ma 365 nie-anulowanych,
       nie-CANCELLATION transakcji (+1 dopisana testowo, patrz niżej) = 366; ekran paginuje po 100
@@ -5208,9 +5297,13 @@ Setup: zalogowany jako OWNER/MANAGER, strona z tabelą transakcji i realnymi wie
 
 ### Findings — 2026-09-14
 
-- [ ] **Naciwny dialog druku nieweryfikowalny automatem; realne kliknięcie „Drukuj" zawiesza sterowaną przeglądarkę** — `src/components/transfers/print-transfers-button.tsx:72` (`printWindow.print()`). Próba realnego (nie-stubowanego) kliknięcia „Drukuj" na `/inwestycje/26` w przeglądarce Playwright MCP zawiesiła wywołanie `browser_evaluate` na ~30 minut (Chromium headless/automatyzowany blokuje się synchronicznie w `window.print()`, bo nie ma z kim domknąć natywnego dialogu) — sesję odzyskano bez `browser_close`/czyszczenia cookies. Nie próbować tego ponownie w automacie.
+- [x] **Naciwny dialog druku nieweryfikowalny automatem; realne kliknięcie „Drukuj" zawiesza sterowaną przeglądarkę** — `src/components/transfers/print-transfers-button.tsx:72` (`printWindow.print()`). Próba realnego (nie-stubowanego) kliknięcia „Drukuj" na `/inwestycje/26` w przeglądarce Playwright MCP zawiesiła wywołanie `browser_evaluate` na ~30 minut (Chromium headless/automatyzowany blokuje się synchronicznie w `window.print()`, bo nie ma z kim domknąć natywnego dialogu) — sesję odzyskano bez `browser_close`/czyszczenia cookies. Nie próbować tego ponownie w automacie.
       **Needs human:** na realnym urządzeniu z prawdziwą przeglądarką: (1) kliknięcie „Drukuj" otwiera nowe okno z natywnym dialogiem druku systemu, (2) zamknięcie tego dialogu (Drukuj lub Anuluj) zamyka okno wydruku samo, bez ręcznej interwencji — w Chrome/Firefox/Safari.
       **Test disposition:** no automated test · e2e — natywny dialog druku systemu operacyjnego nie da się wywołać ani zaasertować z automatu (headless `window.print()` się wiesza, nie pokazuje dialogu); część mechaniki (synchroniczne `window.open`, wywołanie `print()`, nasłuch `afterprint` wołający `close()`) jest już pośrednio potwierdzona w tym przebiegu przez podmianę `window.open` na stuba, ale nie jest zapisana jako test w repo.
+      **Zamknięte 2026-09-15:** właściciel przeklikał to na realnym urządzeniu — dialog staje, a jego
+      zamknięcie zamyka okno wydruku samo. Werdykt „no automated test” zostaje w mocy: natywnego dialogu
+      dalej nie da się wywołać ani zaasertować z automatu, więc to pozostaje check dla człowieka przy
+      każdej zmianie w `print-transfers-button.tsx`.
 
 - [x] **Sortowanie nagłówka tabeli transakcji jest lokalne dla załadowanej strony serwera, nie globalne** — _zgłoszone jako **EX-777** (2026-09-15), decyzja produktowa przeniesiona do Lineara_ — `src/components/ui/data-table/data-table.tsx` (klik nagłówka nie zmienia URL ani nie odpytuje serwera ponownie; sortuje tylko już pobrany fragment). Zaobserwowane przy weryfikacji checka „Sortowanie…odwzorowuje się na wydruku": po kliknięciu „Kwota" na `/inwestycje/26` ekran (100 z 366 wierszy) pokazywał malejący porządek TYLKO wśród załadowanych wierszy, pomijając wyższe kwoty spoza tej strony (np. `#1102` 73 656,26 zł i `#3181` 28 400,00 zł, które są w pełnym zbiorze wyżej niż część widocznych wierszy) — podczas gdy przycisk „Drukuj" poprawnie sortuje malejąco cały przefiltrowany zbiór. To zachowanie tabeli istniało przed tym slice'em (przycisk „Drukuj" go nie zmienia i nie musi) — nie jest to regresja `transfer-print-return`, ale realna niespójność UX (sort na ekranie ≠ sort na wydruku dla stron z >1 stroną wyników), wartą świadomej decyzji produktowej.
       **Needs human:** czy sortowanie nagłówka powinno przechodzić na serwer (pełny sort na całym przefiltrowanym zbiorze, tak jak już robi to wydruk), czy zostać lokalne dla strony — to decyzja produktowa spoza zakresu `transfer-print-return`.

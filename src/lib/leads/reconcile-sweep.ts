@@ -1,13 +1,16 @@
 import type { Payload } from 'payload'
 import type { Lead } from '@/payload-types'
 import { listLeadForms, fetchRecentLeads } from './fetch-recent-leads'
-import { fetchFormQuestions } from './fetch-form-questions'
+import { fetchForm } from './fetch-form'
 import { leadSchema } from './lead-schema'
 import { normalizeLead } from './normalize-lead'
 import { captureLead } from './capture-lead'
 
-// 30 is enough to close a delivery gap without re-scanning a form's entire history.
-const PER_FORM_LIMIT = 30
+// The window has to span a whole webhook blackout, not one night: the sweep only ever sees a form's
+// N most recent leads, and tomorrow's page is a newer set, so anything that falls past N is gone for
+// good. Sized off the busiest day ever recorded (7 leads on one form), 100 survives a two-week
+// outage; a form's entire history currently fits inside it, which is why nothing is flagged saturated.
+export const PER_FORM_LIMIT = 100
 
 /** An audit trail for the ops alert, not a call list — sales already got the lead itself. */
 export type RecoveredLeadT = Pick<Lead, 'id' | 'name' | 'formName' | 'submittedAt'>
@@ -64,8 +67,9 @@ export async function runLeadReconcileSweep(payload: Payload): Promise<Reconcile
       // they would be lost silently. The caller surfaces this in the alert.
       if (rawLeads.length >= PER_FORM_LIMIT) saturatedForms.push(form.id)
 
-      // One questions fetch per form — carries Meta's field types for normalizeLead.
-      const questions = await fetchFormQuestions(form.id)
+      // One form fetch per form — carries Meta's field types for normalizeLead. The name comes
+      // from the forms listing here, so only the questions are read off it.
+      const { questions } = await fetchForm(form.id)
 
       for (const raw of rawLeads) {
         const parsed = leadSchema.safeParse(raw)

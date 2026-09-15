@@ -9,12 +9,12 @@ vi.mock('@/lib/leads/fetch-recent-leads', () => ({
   listLeadForms: vi.fn(),
   fetchRecentLeads: vi.fn(),
 }))
-vi.mock('@/lib/leads/fetch-form-questions', () => ({ fetchFormQuestions: vi.fn() }))
+vi.mock('@/lib/leads/fetch-form', () => ({ fetchForm: vi.fn() }))
 vi.mock('@/lib/leads/capture-lead', () => ({ captureLead: vi.fn() }))
 
-import { runLeadReconcileSweep } from '@/lib/leads/reconcile-sweep'
+import { runLeadReconcileSweep, PER_FORM_LIMIT } from '@/lib/leads/reconcile-sweep'
 import { listLeadForms, fetchRecentLeads } from '@/lib/leads/fetch-recent-leads'
-import { fetchFormQuestions } from '@/lib/leads/fetch-form-questions'
+import { fetchForm } from '@/lib/leads/fetch-form'
 import { captureLead } from '@/lib/leads/capture-lead'
 import type { Payload } from 'payload'
 
@@ -42,7 +42,7 @@ const counts = (result: Awaited<ReturnType<typeof runLeadReconcileSweep>>) => ({
 
 beforeEach(() => {
   vi.clearAllMocks()
-  vi.mocked(fetchFormQuestions).mockResolvedValue([])
+  vi.mocked(fetchForm).mockResolvedValue({ questions: [] })
   update.mockResolvedValue(undefined)
 })
 
@@ -122,9 +122,9 @@ describe('runLeadReconcileSweep', () => {
 
     expect(counts(result)).toEqual({ added: 3, scanned: 3, ...clean })
     expect(fetchRecentLeads).toHaveBeenCalledTimes(2)
-    expect(fetchRecentLeads).toHaveBeenCalledWith('A', 30)
-    expect(fetchRecentLeads).toHaveBeenCalledWith('C', 30)
-    expect(fetchRecentLeads).not.toHaveBeenCalledWith('B', 30)
+    expect(fetchRecentLeads).toHaveBeenCalledWith('A', PER_FORM_LIMIT)
+    expect(fetchRecentLeads).toHaveBeenCalledWith('C', PER_FORM_LIMIT)
+    expect(fetchRecentLeads).not.toHaveBeenCalledWith('B', PER_FORM_LIMIT)
   })
 
   it('skips a lead that fails schema validation (not scanned, not stored)', async () => {
@@ -172,13 +172,13 @@ describe('runLeadReconcileSweep', () => {
         failedForms: ['B'],
         saturatedForms: [],
       })
-      expect(fetchRecentLeads).toHaveBeenCalledWith('C', 30)
+      expect(fetchRecentLeads).toHaveBeenCalledWith('C', PER_FORM_LIMIT)
     })
 
     it('reports a form that failed on its questions fetch, after the leads came back', async () => {
       vi.mocked(listLeadForms).mockResolvedValue([form('A', 1)])
       vi.mocked(fetchRecentLeads).mockResolvedValue([rawLead('1')])
-      vi.mocked(fetchFormQuestions).mockRejectedValue(new Error('rate limited'))
+      vi.mocked(fetchForm).mockRejectedValue(new Error('rate limited'))
 
       const result = await runLeadReconcileSweep(payload)
 
@@ -195,16 +195,16 @@ describe('runLeadReconcileSweep', () => {
   // A full page means the window decided where we stopped, not the backlog. Tomorrow's
   // page is a newer set, so anything past the limit is lost unless somebody is told.
   it('flags a form that filled a whole page as saturated', async () => {
-    const fullPage = Array.from({ length: 30 }, (_, index) => rawLead(`a${index}`))
-    vi.mocked(listLeadForms).mockResolvedValue([form('A', 45)])
+    const fullPage = Array.from({ length: PER_FORM_LIMIT }, (_, index) => rawLead(`a${index}`))
+    vi.mocked(listLeadForms).mockResolvedValue([form('A', PER_FORM_LIMIT + 15)])
     vi.mocked(fetchRecentLeads).mockResolvedValue(fullPage)
     vi.mocked(captureLead).mockResolvedValue({ lead: { id: 11 }, created: true } as never)
 
     const result = await runLeadReconcileSweep(payload)
 
     expect(counts(result)).toEqual({
-      added: 30,
-      scanned: 30,
+      added: PER_FORM_LIMIT,
+      scanned: PER_FORM_LIMIT,
       failedForms: [],
       saturatedForms: ['A'],
     })
