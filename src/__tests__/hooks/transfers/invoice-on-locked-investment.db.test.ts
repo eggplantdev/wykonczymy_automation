@@ -3,6 +3,8 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
+import { createRegisterOwner, findExistingMediaId } from '@/__tests__/helpers/transfer-fixtures'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 
 // The hook-level spec (`validate-lock.test.ts`) feeds `validateTransfer` a hand-built `{ invoice: … }`
@@ -24,7 +26,6 @@ describe.skipIf(!ENV_READY)('faktura on a locked investment (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
   let investmentId: number
-  let ownerId: number
   let registerId: number
   let transactionId: number
   let expenseCategoryId: number
@@ -37,30 +38,17 @@ describe.skipIf(!ENV_READY)('faktura on a locked investment (DB)', () => {
     payload = await getPayload({ config })
     db = await getDb(payload)
 
-    // A crashed run leaves its own fixtures behind, and both the user email and the register name
-    // are unique — without this the NEXT run fails on the leftovers instead of on the invariant.
     await db.execute(sql`DELETE FROM transactions WHERE description LIKE ${`${MARKER}%`}`)
-    await db.execute(sql`DELETE FROM cash_registers WHERE name = 'invoice-lock-register'`)
-    await db.execute(sql`DELETE FROM users WHERE email = 'invoice-lock-owner@test.local'`)
-
-    const owner = await payload.create({
-      collection: 'users',
-      data: {
+    await purgeFixtureUsers(db)
+    ;({ registerId } = await createRegisterOwner(
+      payload,
+      {
         name: 'Invoice Lock Owner',
-        role: 'EMPLOYEE',
         email: 'invoice-lock-owner@test.local',
-        password: 'test-password-123',
+        registerName: 'invoice-lock-register',
       },
-      ...ctx,
-    })
-    ownerId = Number(owner.id)
-
-    const register = await payload.create({
-      collection: 'cash-registers',
-      data: { name: 'invoice-lock-register', owner: ownerId, type: 'AUXILIARY' },
-      ...ctx,
-    })
-    registerId = Number(register.id)
+      ctx,
+    ))
 
     investmentId = await createTestInvestment(payload, 'invoice-lock-investment')
 
@@ -74,17 +62,7 @@ describe.skipIf(!ENV_READY)('faktura on a locked investment (DB)', () => {
     if (!category) throw new Error('no expense category in the DB to attach the fixture to')
     expenseCategoryId = Number(category.id)
 
-    // An existing scan rather than a fresh upload: creating one would push bytes to the Blob store.
-    const media = await payload.find({
-      collection: 'media',
-      limit: 1,
-      sort: 'id',
-      depth: 0,
-      overrideAccess: true,
-    })
-    const scan = media.docs[0]
-    if (!scan) throw new Error('no media row in the DB to attach as a faktura')
-    mediaId = Number(scan.id)
+    mediaId = await findExistingMediaId(payload)
 
     const transaction = await payload.create({
       collection: 'transactions',
@@ -114,14 +92,13 @@ describe.skipIf(!ENV_READY)('faktura on a locked investment (DB)', () => {
 
   afterAll(async () => {
     await db.execute(sql`DELETE FROM transactions WHERE description LIKE ${`${MARKER}%`}`)
-    if (registerId) await payload.delete({ collection: 'cash-registers', id: registerId, ...ctx })
+    await purgeFixtureUsers(db)
     if (investmentId) {
       // Raw SQL, because reopening a zakończona inwestycja through Payload needs an OWNER on the
       // request and this spec books no user session.
       await db.execute(sql`UPDATE investments SET status = 'active' WHERE id = ${investmentId}`)
       await deleteTestInvestment(payload, investmentId)
     }
-    if (ownerId) await payload.delete({ collection: 'users', id: ownerId, ...ctx })
   })
 
   async function attachedMediaIds(): Promise<number[]> {

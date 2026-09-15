@@ -84,8 +84,13 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
 
   // CANCELLATION rows skip all normal validation — relational fields are null
   if (type === 'CANCELLATION') {
-    if (!d.cancelledTransaction) {
-      throw new Error('Cancelled transaction reference is required.')
+    // `resolved`, like every other field above: a REST PATCH on an EXISTING anulowanie carries only
+    // the keys it changes, and reading this one off `d` would refuse the write for a field the row
+    // has carried since it was created. (A Local API update is unaffected — Payload merges the
+    // stored doc into `data` first, which is why `invoice-on-cancellation.db.test.ts` is green
+    // either way.)
+    if (!resolved('cancelledTransaction')) {
+      throw new APIError('Cancelled transaction reference is required.', 400)
     }
     // The one field the early return may NOT wave through: sumRegisterBalance has no
     // CANCELLATION arm, so a register smuggled in here (REST / Local API — the admin
@@ -210,7 +215,8 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
 
   if (errors.length > 0) {
     console.log('[validateTransfer] Validation failed:', errors)
-    throw new Error(errors.join(' '))
+    // APIError for the reason spelled out at the lock above.
+    throw new APIError(errors.join(' '), 400)
   }
 
   console.log('[validateTransfer] Passed')
