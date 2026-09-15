@@ -137,13 +137,13 @@ export function buildTransferFilters(
   if (expenseCategoryIds.length > 0) where.expenseCategory = { in: expenseCategoryIds }
   else if (expenseCategoryParam) where.id = NO_RESULTS
 
-  // Worker filter — a single PAYOUT worker (the subcontractor summary's per-worker link target,
-  // `?type=PAYOUT&worker=<id>`). A non-numeric value is ignored rather than short-circuited to
-  // NO_RESULTS: the link only ever emits a real id, so tolerating garbage keeps the URL forgiving.
+  // Worker filter. `in` rather than `equals` so the multi-select and the subcontractor summary's
+  // per-worker link (`?type=PAYOUT&worker=<id>`) share one parameter — a single id parses as a
+  // one-element list, so the link keeps working.
   const workerParam = getStringParam(searchParams.worker)
-  if (workerParam && /^\d+$/.test(workerParam)) {
-    where.worker = { equals: Number(workerParam) }
-  }
+  const workerIds = parseNumericIds(workerParam)
+  if (workerIds.length > 0) where.worker = { in: workerIds }
+  else if (workerParam) where.id = NO_RESULTS
 
   // Other category filter
   const otherCategoryParam = getStringParam(searchParams.otherCategory)

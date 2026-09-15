@@ -430,11 +430,11 @@ widoczna zmiana bez działania użytkownika to domyślna kolejność **wydruku**
 
 #### Automated
 
-- [x] 2.1 `pnpm typecheck` po usunięciu `sort-transfer-rows.ts`
+- [x] 2.1 `pnpm typecheck` po usunięciu `sort-transfer-rows.ts` — 32e07129
 - [ ] 2.2 Pakiet jednostkowy przechodzi bez skasowanego specu
 
 ### Phase 3: Filtr „Pracownik" i etykieta „Kasa"
 
 #### Automated
 
-- [ ] 3.1 Spec `buildTransferFilters` dla `worker` jako `in` (z przypadkiem pojedynczego id z linku)
+- [x] 3.1 Spec `buildTransferFilters` dla `worker` jako `in` (z przypadkiem pojedynczego id z linku)

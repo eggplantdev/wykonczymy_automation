@@ -130,9 +130,14 @@ describe('buildTransferFilters — search params', () => {
     expect(where.otherCategory).toEqual({ in: [3, 5] })
   })
 
-  it('worker param adds a single equals filter (subcontractor summary link target)', () => {
+  it('single worker id from the subcontractor summary link still narrows to that worker', () => {
     const where = buildTransferFilters({ worker: '5' }, managerCtx)
-    expect(where.worker).toEqual({ equals: 5 })
+    expect(where.worker).toEqual({ in: [5] })
+  })
+
+  it('worker param supports multi-select', () => {
+    const where = buildTransferFilters({ worker: '3,7' }, managerCtx)
+    expect(where.worker).toEqual({ in: [3, 7] })
   })
 
   it('worker param absent → no worker clause', () => {
@@ -140,9 +145,10 @@ describe('buildTransferFilters — search params', () => {
     expect(where.worker).toBeUndefined()
   })
 
-  it('worker param non-numeric → ignored, no worker clause', () => {
+  it('worker param with no usable id → no results', () => {
     const where = buildTransferFilters({ worker: 'abc' }, managerCtx)
     expect(where.worker).toBeUndefined()
+    expect(where.id).toEqual({ equals: -1 })
   })
 })
 
