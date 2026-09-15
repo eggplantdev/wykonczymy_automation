@@ -1,10 +1,10 @@
 ---
 change_id: katalog-sprzetu
 title: Katalog narzędzi i urządzeń — rejestr sprzętu z przypisaniem do pracownika/magazynu, serwisem i gwarancją
-status: implemented
+status: archived
 created: 2026-09-01
-updated: 2026-09-04
-archived_at: null
+updated: 2026-09-15
+archived_at: 2026-09-15T12:40:05Z
 branch: staging
 worktree: null
 ---
@@ -116,3 +116,27 @@ plan nie przewidywał. Zapis, żeby kod i dokument nie mówiły dwóch różnych
   (`equipment_events.created_by_id`, `ON DELETE set null`). Obie addytywne, więc na produkcji idą
   PRZED pushem kodu. `20260903_1_equipment_digest_recipients` skasowana — była duplikatem DDL już
   zawartego w `20260903_0`.
+
+### Decyzje z planu, których nie ma wyżej (przeniesione przy archiwizacji 2026-09-15)
+
+`plan.md`, `plan-brief.md` i `research.md` zostały skasowane przy archiwizacji — choreografia etapów
+jest już kodem. To, czego kod nie mówi sam, zostaje tutaj; ogólna lista kontrolna migracji poszła do
+`context/foundation/lessons.md`.
+
+- **Zdarzenie NIE ma pola „typ" — rozróżnia je cel.** Wpis z `serviceProvider` JEST wpisem serwisowym,
+  wpis z `holder`/`warehouse` przekazaniem. Enum `type` obok byłby drugim źródłem prawdy o tym samym
+  fakcie i pierwszą rzeczą, która się rozjedzie.
+- **Encja i pierwszy wpis logu powstają w JEDNEJ transakcji** (`src/lib/db/with-payload-transaction.ts`).
+  Przerwanie między zapisami zostawiłoby sprzęt bez logu — czyli dokładnie ten stan „nie wiadomo gdzie",
+  któremu wymuszenie lokalizacji w formularzu ma zapobiec.
+- **Stempel powiadomienia siedzi na SPRZĘCIE, nie na zdarzeniu** — u Floty termin jest własnością
+  zdarzenia, tu gwarancja jest własnością rzeczy. Konsekwencja: **zmiana `warrantyUntil` musi zerować
+  bookkeeping** (wzór `lib/fleet/reset-notification-bookkeeping.ts`), inaczej przedłużona gwarancja
+  nigdy nie zamailuje.
+- **Status wszedł razem z UI, które umie dojść do każdej z pięciu wartości.** Flota wypuściła `RETIRED`
+  bez dialogu edycji i właściciel upomniał się o niego tydzień później.
+- **Ryzyko do pilnowania: „naprawa na miejscu" (serwis bez ruchu sprzętu) nie ma reprezentacji.** Skoro
+  typ zdarzenia wynika z celu, wpis serwisowy zawsze przenosi sprzęt do warsztatu. Świadomie poza
+  zakresem — gdyby padło z rynku, wchodzi jako czwarty cel „u siebie", nigdy jako enum typu.
+- **Pułapka nazewnicza**: `wToolsCoeff` / `ownToolsCoeff` na inwestycji to model **cenowy** robocizny
+  (z narzędziami / bez narzędzi), nie inwentarz — wspólne słowo „narzędzia" nie oznacza wspólnej domeny.

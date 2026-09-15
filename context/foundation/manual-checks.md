@@ -4725,32 +4725,9 @@ Setup: baza testowa 5435 (`pnpm db:import:test`, potem `pnpm payload migrate` z 
 wskazującym na 5435). W `/admin` → „Magazyny" dodaj co najmniej dwa magazyny — kolekcja nie ma
 ekranu w aplikacji i bez wpisu lista wyboru celu będzie pusta. Zalogowany jako OWNER.
 
-- [x] `/sprzet` renderuje listę, licznik „w użyciu" pomija wycofane/sprzedane/zgubione/skradzione
-- [x] Wyszukiwarka trafia po nazwie, numerze seryjnym, marce i modelu z jednego pola
-- [x] Filtr „gdzie jest" ma ludzi i magazyny w jednym rozwijaniu i zawęża listę
-- [x] „Dodaj sprzęt" zapisuje sztukę **razem** z pierwszym przekazaniem: po zapisie detal od razu
-      pokazuje „gdzie jest" i jeden wpis w historii
-- [x] Ten sam formularz z numerem seryjnym już zajętym odrzuca zapis, a pusty numer można zapisać
-      wielokrotnie (unikalność nie łapie pustych)
-- [x] „Przekaż" na detalu: pracownik / magazyn / serwis — wybór jednego czyści pozostałe dwa, a pole
-      „Koszt" pojawia się wyłącznie przy serwisie
-- [x] Nowe przekazanie zmienia „gdzie jest" i **dokłada** wpis do historii, niczego nie nadpisując
-- [x] Historia jest tylko do odczytu — **dopisanie kosztu do wpisu serwisowego tydzień później robi
-      się w `/admin` → „Zdarzenia sprzętu"**, aplikacja nie ma na to ekranu (świadomie: wpis to fakt,
-      który się wydarzył)
-- [x] Sekcja „Na stanie" na `/pracownicy/[id]` wymienia sprzęt tego pracownika i linkuje do detalu;
-      po przekazaniu sztuki komuś innemu znika z tej listy i pojawia się na drugiej
-- [x] Komórka gwarancji koloruje 30 i 7 dni, a po terminie pokazuje „X dni po terminie"
 - [ ] Ręczne wywołanie `GET /api/cron/equipment-reminders` z nagłówkiem `Bearer $CRON_SECRET` wysyła mail o właściwej treści (poza produkcją `EMAIL_HOST` = `disabled.invalid`, więc na czas checku trzeba podmienić go w `.env` na prawdziwy host) **Wymaga człowieka (2026-09-04):** Confirmed by the prior pass's own thorough chain of evidence (box 14 finding) that every code path up to the actual send is correct — the digest-building/section-count logic is unit-tested (`src/__tests__/lib/equipment/warranty-digest.test.ts`), and a live non-empty-digest run on staging genuinely reached `notifyEquipmentDigest` before throwing on `EMAIL_HOST=disabled.invalid` DNS failure (the deliberate non-prod mail gate per `AGENTS.md`). Only the literal mail content in a real inbox is left unverified — swapping `EMAIL_HOST` to a real host is a real-mail-send action explicitly out of scope for this pass (never send mail). Fixture id 1 (QA Wiertarka udarowa) is left unstamped and ready for whoever does this with real credentials.
       mail o właściwej treści (poza produkcją `EMAIL_HOST` = `disabled.invalid`, więc na czas checku
       trzeba podmienić go w `.env` na prawdziwy host)
-- [x] Ten sam endpoint bez nagłówka zwraca 401
-- [x] Pusty digest nie wysyła maila i raportuje `sent: false`
-- [x] Drugie wywołanie tego samego dnia nie wysyła powtórki (stempel), a przedłużenie gwarancji
-      o rok sprawia, że sztuka znów może zamailować
-- [x] Gwarancja już wygasła → mail o niej nie wychodzi nigdy
-- [x] Badge przy „Sprzęt" w menu znika po wejściu na `/sprzet`
-- [x] Karta „Powiadomienia" na `/sprzet` jest edytowalna dla OWNER i odrzuca pustą listę
 
 ### Findings — 2026-09-04
 
