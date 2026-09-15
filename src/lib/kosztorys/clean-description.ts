@@ -1,3 +1,6 @@
+import { CATALOGUE_NAME_FIXES } from '@/lib/kosztorys/catalogue-name-fixes'
+import { fold } from '@/lib/kosztorys/sheet-import/columns'
+
 // Text cleanup for „Opis prac". Every rule is idempotent, so re-running over already-clean text is a
 // no-op — the owner can press the button as often as they like, and the same rules can be replayed
 // over a whole database without compounding.
@@ -182,5 +185,11 @@ function sentenceCase(text: string): string {
 
 export function cleanDescription(text: string): string {
   const spelled = TYPO_FIXES.reduce((acc, [from, to]) => acc.split(from).join(to), text)
+  // The whole-name corrections the owner made in the katalog, which no substring rule reaches:
+  // missing ogonki, a KNR line break healed mid-word, „taśm ledowych" → „taśm LED". They win over
+  // `unshout`/`sentenceCase` because they are already written in their target casing — and they run
+  // last among the rewrites so a SHOUTED opis still finds its entry, which `fold` case-flattens.
+  const named = CATALOGUE_NAME_FIXES.get(fold(spelled))
+  if (named) return named
   return sentenceCase(unshout(spelled.replace(/\s+/g, ' ').trim()))
 }

@@ -402,5 +402,5 @@ bez „[stary arkusz]", przy remisie niższe id).
 
 #### Automated
 
-- [ ] 3.1 Nowy spec przechodzi: `pnpm exec vitest run src/__tests__/lib/kosztorys/clean-description.test.ts`
-- [ ] 3.2 J.m. bez zmian: `pnpm exec vitest run src/__tests__/lib/kosztorys/clean-unit.test.ts`
+- [x] 3.1 Nowy spec przechodzi: `pnpm exec vitest run src/__tests__/lib/kosztorys/clean-description.test.ts` — 86a2ce62
+- [x] 3.2 J.m. bez zmian: `pnpm exec vitest run src/__tests__/lib/kosztorys/clean-unit.test.ts` — 86a2ce62
