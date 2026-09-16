@@ -82,7 +82,7 @@ export function TransferDataTable({
           return ''
         }}
         toolbar={({ table, columnVisibility: cv, ...order }) => (
-          <div className={`mt-8 flex w-full items-center justify-between`}>
+          <div className={`mt-8 flex w-full flex-wrap items-center justify-between gap-4`}>
             {title && <h2 className="text-foreground w-full text-lg font-semibold">{title}</h2>}
             <div className="flex items-center gap-2">
               <CancelledTransactionAuditButton baseUrl={baseUrl} />
