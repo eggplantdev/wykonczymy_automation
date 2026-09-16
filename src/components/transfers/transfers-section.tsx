@@ -1,5 +1,4 @@
 import { Suspense } from 'react'
-import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { TransferTableServer } from '@/components/transfers/transfer-table-server'
 import type { TransferTableConfigT } from '@/components/transfers/transfer-table-config'
 
@@ -12,10 +11,10 @@ type TransfersSectionPropsT = {
 
 export function TransfersSection({ title = 'Transfery', id, config }: TransfersSectionPropsT) {
   return (
-    <CollapsibleSection title={title} id={id}>
+    <section id={id}>
       <Suspense fallback={null}>
-        <TransferTableServer config={config} />
+        <TransferTableServer config={{ ...config, title }} />
       </Suspense>
-    </CollapsibleSection>
+    </section>
   )
 }
