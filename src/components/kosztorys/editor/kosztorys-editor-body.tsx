@@ -350,10 +350,6 @@ export function KosztorysEditorBody({
     ],
   )
 
-  // Viewport minus the shell's chrome: the h-14 TopNav always, plus the h-14 AppFooter, which only
-  // renders below `lg` (hence the two calcs — subtracting it at every width would leave a dead band
-  // where no footer exists). The client view mounts under the bare (share) layout, which has neither,
-  // so subtracting there is what WOULD leave the dead band — it takes the whole viewport.
   return (
     <KosztorysEditorProvider
       editor={{
@@ -374,10 +370,12 @@ export function KosztorysEditorBody({
         {/* Mounted in the preview too — nothing there can open it, and a conditional wrapper would
             mean two copies of the whole body. */}
         <CataloguePickerHost>
+          {/* The client view mounts under the bare (share) layout, which has no TopNav — subtracting
+              its height there would leave a dead band, so the preview takes the whole viewport. */}
           <div
             className={cn(
               'flex w-full flex-col overflow-hidden',
-              preview ? 'h-dvh' : 'h-[calc(100dvh-7rem)] lg:h-[calc(100dvh-3.5rem)]',
+              preview ? 'h-dvh' : 'h-below-top-nav',
             )}
           >
             {preview ? (
