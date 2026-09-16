@@ -25,7 +25,7 @@ export function InvoiceUploadDialog({ open, onOpenChange, onFiles }: InvoiceUplo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md" aria-describedby={undefined}>
+      <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
         <DialogHeader title="Dodaj fakturę" />
         <FileInput multiple onChange={handlePicked} className="h-28 flex-col" />
       </DialogContent>

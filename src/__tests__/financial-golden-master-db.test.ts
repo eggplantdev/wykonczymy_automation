@@ -376,7 +376,8 @@ function assertNonTrivial(snapshot: SnapshotT) {
       throw new Error(
         `db-test holds only ${counts[key]} ${key} (floor ${DATASET_FLOOR[key]}) — this is a ` +
           `thin or half-restored dataset. Run \`pnpm db:import:test\`, then ` +
-          `\`pnpm seed:kosztorys:test\` and \`pnpm seed:deposits:test\`, before regenerating.`,
+          `\`pnpm seed:kosztorys:test\`, \`pnpm seed:deposits:test\` and ` +
+          `\`pnpm seed:materials-net:test\`, before regenerating.`,
       )
     }
   }

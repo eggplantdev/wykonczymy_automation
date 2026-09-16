@@ -287,6 +287,7 @@ export function getInvestmentColumns({ userRole }: InvestmentColumnOptionsT) {
     col.display({
       id: 'actions',
       header: 'Akcje',
+      meta: { align: 'right' },
       cell: (info) => <EditInvestmentDialog investment={info.row.original} />,
     }),
   ]

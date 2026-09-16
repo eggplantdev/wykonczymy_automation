@@ -52,8 +52,15 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          'bg-background data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 sm:data-[state=closed]:zoom-out-95 sm:data-[state=open]:zoom-in-95 fixed top-1/2 left-1/2 z-10000 flex h-fit max-h-[90vh] w-full max-w-[min(90vw,600px)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 overflow-y-auto p-4 shadow-lg duration-200 outline-none sm:rounded-lg sm:p-6',
-
+          // Below sm this is a full-height sheet, not a floating box: a centred `-translate-y-1/2`
+          // card gets shoved around by the virtual keyboard, and `h-dvh` tracks the shrinking
+          // viewport where `vh` does not. From sm up it is the centred box it always was.
+          // A caller overriding width or height must therefore prefix it `sm:`, or it overrides
+          // the sheet too.
+          'bg-background fixed top-0 left-1/2 z-10000 flex h-dvh max-h-none w-full max-w-none -translate-x-1/2 flex-col gap-4 overflow-y-auto p-4 shadow-lg duration-200 outline-none',
+          'sm:max-w-dialog sm:top-1/2 sm:h-fit sm:max-h-[90vh] sm:-translate-y-1/2 sm:rounded-lg sm:p-6',
+          'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:slide-in-from-bottom-4 data-[state=closed]:slide-out-to-bottom-4',
+          'sm:data-[state=open]:zoom-in-95 sm:data-[state=closed]:zoom-out-95 sm:data-[state=open]:slide-in-from-bottom-0 sm:data-[state=closed]:slide-out-to-bottom-0',
           className,
         )}
         {...props}
@@ -86,7 +93,9 @@ function DialogHeader({
   return (
     <div
       data-slot="dialog-header"
-      className={cn('flex flex-col gap-2 text-center sm:text-left', className)}
+      // Right padding clears the dialog chrome floating over this row: the X always, and on a
+      // phone the icon-only „Wyczyść formularz" beside it (ends ~96px in).
+      className={cn('flex flex-col gap-2 pr-24 text-left sm:pr-10', className)}
       {...props}
     >
       {title ? (

@@ -1,15 +1,12 @@
 'use client'
 
 import { useCallback, useMemo } from 'react'
-import { DataTable } from '@/components/ui/data-table/data-table'
+import { DataTable } from '@/components/tables/data-table/data-table'
+import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { ColumnToggle } from '@/components/filters/column-toggle'
 import { StatusFilter } from '@/components/investments/status-filter'
-import {
-  SEARCH_FILTER_TOOLBAR_WIDTH,
-  SearchFilterInput,
-} from '@/components/filters/search-filter-input'
 import { getInvestmentColumns, V2_COLUMN_IDS } from '@/components/tables/investments'
-import { Checkbox } from '@/components/ui/checkbox'
+import { ActiveFilterButton } from '@/components/filters/active-filter-button'
 import type { InvestmentRowT } from '@/types/table-rows'
 import { useStatusFilter } from '@/hooks/use-status-filter'
 import { useSearchFilter } from '@/hooks/use-search-filter'
@@ -56,35 +53,31 @@ export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT
         // stored state means visible, which is what „domyślnie zaznaczony" has to mean here.
         const v2Shown = V2_COLUMN_IDS.every((id) => cv[id] !== false)
         return (
-          <>
-            <SearchFilterInput
-              value={searchTerm}
-              onChange={setSearchTerm}
-              placeholder="Szukaj..."
-              className={SEARCH_FILTER_TOOLBAR_WIDTH}
-            />
-            <StatusFilter selectedStatuses={selectedStatuses} onToggle={toggleStatus} />
-            <AddInvestmentDialog presets={presets} />
-            {/* One switch for the whole kosztorys-sourced half, beside the per-column picker rather
-              than inside it: reading v1 alone means hiding five columns at once, and doing that
-              five ticks at a time is the gesture this replaces. Unticking writes the same
-              visibility state the picker does, so the two never disagree about what is on screen. */}
-            <div className="ml-auto flex items-center gap-2">
-              <label className="flex w-fit cursor-pointer items-center gap-2 text-sm whitespace-nowrap">
-                <Checkbox
-                  checked={v2Shown}
-                  onCheckedChange={(state) =>
+          <DataTableToolbar
+            search={{ value: searchTerm, onChange: setSearchTerm }}
+            filters={
+              <>
+                <StatusFilter selectedStatuses={selectedStatuses} onToggle={toggleStatus} />
+                {/* One switch for the whole kosztorys-sourced half. It narrows what the table shows,
+                  so it sits with the filters and wears their button — a lone checkbox in the toolbar
+                  was the only control on any table that asked to be read rather than pressed.
+                  Flipping it writes the same visibility state the picker does, so the two never
+                  disagree about what is on screen. */}
+                <ActiveFilterButton
+                  isActive={v2Shown}
+                  onChange={(next) =>
                     table.setColumnVisibility((prev) => ({
                       ...prev,
-                      ...Object.fromEntries(V2_COLUMN_IDS.map((id) => [id, state === true])),
+                      ...Object.fromEntries(V2_COLUMN_IDS.map((id) => [id, next])),
                     }))
                   }
+                  activeLabel="Kolumny v2"
                 />
-                Pokaż kolumny v2
-              </label>
-              <ColumnToggle table={table} columnVisibility={cv} {...order} />
-            </div>
-          </>
+              </>
+            }
+            columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
+            actions={<AddInvestmentDialog presets={presets} />}
+          />
         )
       }}
     />

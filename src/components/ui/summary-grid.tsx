@@ -7,9 +7,17 @@ import { LabelHintIcon, type LabelHintT } from '@/components/ui/label-hint-icon'
 // (label) column to the SAME width so the grids line up down the panel instead of each auto-sizing
 // its own first column. A track is a `gridTemplateColumns` value, not an element, so these stay
 // constants — everything else here is a component.
-export const SUMMARY_LABEL_COL = '16rem'
+// `minmax`, not a flat width: 16rem + 9rem alone is wider than a phone, so a fixed pair meant even
+// a two-column table bled off the side of the screen. The max is what every one of these grids has
+// always been on a desktop; the min is the floor a column may squeeze to before the table gives up
+// and scrolls (see `SummaryTable`).
+// The floor itself is `min(rem, vw)` rather than a media query, because these are inline
+// `gridTemplateColumns` strings — no `max-sm:` reaches them. The `vw` half only bites on a phone
+// (at 768px and up the rem is the smaller of the two), and it is what lets a label + three money
+// columns land inside a phone instead of one short of it.
+export const SUMMARY_LABEL_COL = 'minmax(min(7rem, 24vw), 16rem)'
 // Every trailing column (netto / brutto / udział) shares one width so they read as an even set.
-export const SUMMARY_VALUE_COL = '9rem'
+export const SUMMARY_VALUE_COL = 'minmax(min(5.5rem, 22vw), 9rem)'
 
 // The shared table shell every summary grid repeats. Separators are real cell borders (each cell
 // draws its right/bottom edge, the container closes the top/left), NOT a `bg-border` container
@@ -28,7 +36,18 @@ export function SummaryTable({
   return (
     <div
       style={{ gridTemplateColumns: cols }}
-      className={cn('border-border grid border-t border-l', className)}
+      // Scrolls rather than bleeding: the columns squeeze to their `minmax` floor first, and a table
+      // with enough of them to overrun a phone even then keeps its own scrollbar instead of pushing
+      // the whole panel sideways. `max-w-full` is what makes that true — callers pass `w-fit`, whose
+      // floor is the sum of the track minimums, so without the cap the table grew past its parent and
+      // the sideways drag moved every block above it instead of the list.
+      // A step down below `sm`: these grids carry a full-sentence label plus two or three money
+      // columns, and at body size a phone has room for neither. Set on the shell so every summary
+      // table steps down together rather than each picking its own mobile size.
+      className={cn(
+        'border-border grid max-w-full overflow-x-auto border-t border-l max-sm:text-xs',
+        className,
+      )}
     >
       {children}
     </div>
@@ -142,7 +161,7 @@ export function SummaryLabelCell({
   return (
     <span
       className={cn(
-        'border-border bg-background border-r border-b px-3 py-1',
+        'border-border bg-background border-r border-b px-3 py-1 max-sm:px-2',
         CELL_TONE[tone ?? 'default'],
         CELL_WEIGHT[weight ?? 'default'],
         className,
@@ -168,7 +187,7 @@ export function SummaryValueCell({
   return (
     <span
       className={cn(
-        'border-border bg-background border-r border-b px-3 py-1 text-right tabular-nums',
+        'border-border bg-background border-r border-b px-3 py-1 text-right tabular-nums max-sm:px-2',
         CELL_TONE[tone ?? 'default'],
         CELL_WEIGHT[weight ?? 'default'],
         className,

@@ -8,6 +8,8 @@ type TransferQueryT = PaginationParamsT & { where: Where; sort: string }
 
 export type TransferTableConfigT = {
   query: TransferQueryT
+  /** Heading rendered under the filters, above the table. */
+  title?: string
   baseUrl: string
   excludeColumns?: string[]
   filters?: FilterConfigT

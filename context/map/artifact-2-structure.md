@@ -9,6 +9,10 @@
 > `lib/tables/column-meta.ts → components/tables/column-meta.ts` relocations. Graph now:
 > **399 modules, 1238 dependencies, 26 violations (0 errors, 16 warnings)**. The territory anchor
 > `artifact-1-territory.md` now exists — activity claims are cross-referenced there, no longer `unknown`.
+> **Snapshot, not a living doc — not refreshed since 2026-07-08.** The repo has roughly
+> tripled since: **3045 commits / 1129 source modules** as of 2026-09-16, against the
+> 975 / 399 this was measured at. Read every figure below as history; re-run the scan
+> before trusting a count.
 
 ## Key observations
 

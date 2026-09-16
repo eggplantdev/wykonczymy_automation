@@ -1,3 +1,5 @@
+import { randomId } from '@/lib/utils/random-id'
+
 // Collision-avoidance primitive shared by every uploaded-file namer: splice a short random id
 // before the real extension so re-uploads of the same receipt and concurrent uploads never
 // collide. Relying on Payload's auto-rename instead races under concurrency and throws
@@ -8,6 +10,9 @@ export function splitExtension(name: string): { base: string; ext: string } {
 }
 
 export function appendShortId(base: string, ext: string): string {
-  const shortId = crypto.randomUUID().slice(0, 6)
+  // Through `randomId`, not `crypto.randomUUID` directly: every caller is server-side today, but
+  // that is not written down anywhere, and the first client one would hit the non-secure-context
+  // gap `random-id.ts` exists to close — on a phone reaching the dev server over a LAN IP.
+  const shortId = randomId().slice(0, 6)
   return `${base}-${shortId}${ext}`
 }

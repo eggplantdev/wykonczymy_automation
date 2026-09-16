@@ -108,7 +108,7 @@ export function AddSectionsFromPresetDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-3xl">
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-3xl sm:p-0">
         <DialogHeader
           className="px-4 pt-4"
           title="Dodaj sekcję z szablonu"

@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { randomId } from '@/lib/utils/random-id'
+
 // Trim before validating, not after: a pasted address arrives with a trailing space often enough
 // that rejecting it would read as a bug, and storing it would mail nobody.
 const recipientEmailSchema = z.string().trim().pipe(z.email('Nieprawidłowy adres e-mail'))
@@ -23,6 +25,6 @@ export const recipientListFormSchema = z.object({
 export type RecipientListFormValuesT = z.infer<typeof recipientListFormSchema>
 
 export const makeRecipientRow = (email = ''): RecipientListFormValuesT['emails'][number] => ({
-  id: crypto.randomUUID(),
+  id: randomId(),
   email,
 })

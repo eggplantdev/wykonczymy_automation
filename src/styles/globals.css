@@ -45,6 +45,17 @@
   --ease-snappy: cubic-bezier(0.2, 0, 0, 1);
 
   --text-2xs: 0.625rem;
+
+  /* Dialog widths, from `sm:` up — below that a dialog is a full-bleed sheet and takes none of
+     these. The `min(90vw, …)` is the shared half: the cap is what the content wants, 90vw is what
+     stops it touching the edges on a narrow laptop. Three sizes, not an open scale. */
+  --container-dialog-sm: min(90vw, 26.25rem);
+  --container-dialog: min(90vw, 37.5rem);
+  --container-dialog-lg: min(90vw, 56.25rem);
+
+  /* Viewport minus the shell's chrome — 3.5rem IS the TopNav's h-14, and two files were carrying it
+     as a bare number. Anything that must fill the page UNDER the top bar takes h-below-top-nav. */
+  --spacing-below-top-nav: calc(100dvh - 3.5rem);
   --shadow-panel: 0 -2px 8px -4px rgb(0 0 0 / 0.2); /* upward top-edge elevation for the bottom totals panel */
 
   /* Semantic Colors - Light Mode */
@@ -178,6 +189,26 @@
   }
   to {
     height: 0;
+  }
+}
+
+/* iOS Safari zooms the whole page when a focused input's font-size is under 16px, and does not zoom
+   back out — so every surface you can type into is 16px on a phone and the app's usual 14px from
+   `sm` up. The placeholder stays 14px throughout: it is a hint, and at 16px the longer Polish ones
+   ran out of field. Four inputs were carrying this as a copied three-class incantation and the
+   fifth (the kosztorys cell) silently missed it. */
+@utility typing-surface {
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+
+  &::placeholder {
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+  }
+
+  @variant sm {
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
   }
 }
 

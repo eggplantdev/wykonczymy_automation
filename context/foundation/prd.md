@@ -42,9 +42,10 @@ Nothing E2E is automated or CI-runnable.
 
 Prior design work this PRD builds on:
 
-- `context/changes/kosztorys-poc-in-app/change.md` (on branch `poc-kosztorys-in-app`) —
-  the POC decision register that superseded the deleted 2026-05-28 design draft: its
-  D1–D13 decisions and draft data shape were resolved and built in the POC.
+- `context/archive/kosztorys-poc-in-app/` — the archived POC docs that superseded the
+  deleted 2026-05-28 design draft: their D1–D13 decisions and draft data shape were
+  resolved and built in the POC. The decision register itself was folded into
+  `context/foundation/roadmap.md` when the change was archived.
 - `context/reference/kosztorys-sync.md` — the current mirror's authoritative behaviour.
 
 ## Problem Statement & Motivation

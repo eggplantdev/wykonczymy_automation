@@ -10,21 +10,18 @@ import { FleetDataTable } from '@/components/fleet/fleet-data-table'
 import { RecipientListCard } from '@/components/notification-recipients/recipient-list-card'
 import { Description } from '@/components/ui/description'
 import { PageWrapper } from '@/components/ui/page-wrapper'
-import { parseDateRange } from '@/lib/utils/parse-date-range'
 import { pluralize } from '@/lib/utils/polish-plural'
-import type { PagePropsT } from '@/types/page'
 
-export default async function FleetPage({ searchParams }: PagePropsT) {
+export default async function FleetPage() {
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) redirect('/')
 
   const payload = await getPayload({ config })
   const [, fleet, recipients] = await Promise.all([
     markSeen(payload, session.user.id, STREAMS.fleet),
-    fetchFleetOverview(parseDateRange(await searchParams)),
+    fetchFleetOverview(),
     fetchRecipientLists(),
   ])
-  // The window is a lens on money; the fleet is the same size whichever months you look at.
   const activeCount = fleet.filter((vehicle) => vehicle.status === 'ACTIVE').length
 
   return (

@@ -2,6 +2,7 @@
 
 import { useSearchParams } from 'next/navigation'
 import {
+  Ban,
   Banknote,
   CreditCard,
   FolderOpen,
@@ -11,8 +12,11 @@ import {
   Tags,
   User,
 } from 'lucide-react'
-import { FilterGrid } from '@/components/filters/filter-grid'
-import { SearchFilterInput } from '@/components/filters/search-filter-input'
+import { ControlGrid } from '@/components/ui/control-grid'
+import {
+  SearchFilterInput,
+  SEARCH_FILTER_TOOLBAR_WIDTH,
+} from '@/components/filters/search-filter-input'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
 import { ClearButton } from '@/components/filters/clear-button'
 import { DateFilters } from '@/components/filters/date-filters'
@@ -25,6 +29,7 @@ import {
   PAYMENT_METHOD_LABELS,
 } from '@/lib/constants/transfers'
 import { useUrlFilterParams } from '@/hooks/use-url-filter-params'
+import { useToggleSearchParam } from '@/hooks/use-toggle-search-param'
 import { cn } from '@/lib/utils/cn'
 import { Loader } from '@/components/ui/loader/loader'
 import type { ReferenceItemT } from '@/types/reference-data'
@@ -42,6 +47,12 @@ const ENTITY_FILTER_KEYS = [
   'worker',
   'amount',
   'id',
+  // Narrows the list exactly like the entity filters above, so „Wyczyść filtry" has to reach it —
+  // leaving it out let a cleared panel still be scoped to anulowania.
+  'cancelledTransactionAudit',
+  // Same reason, and it is why this key belongs in the list rather than beside it: revealing
+  // anulowane IS a departure from the default view, so it counts as a filter and clears as one.
+  'showCancelled',
 ] as const
 
 type TransferFiltersPropsT = {
@@ -83,6 +94,38 @@ export function TransferFilters({
   const currentAmount = searchParams.get('amount') ?? ''
   const currentId = searchParams.get('id') ?? ''
   const currentTypes = getMultiParam('type')
+  const { isActive: auditMode, setActive: setAuditMode } = useToggleSearchParam(
+    baseUrl,
+    'cancelledTransactionAudit',
+  )
+  const { isActive: showCancelled, setActive: setShowCancelled } = useToggleSearchParam(
+    baseUrl,
+    'showCancelled',
+  )
+  // Stated as what the user turns ON, not as the default they are already in: hiding anulowane is
+  // the resting state of this list, so a row reading „Ukryj anulowane" would be ticked before anyone
+  // had filtered anything — and every count and „Wyczyść filtry" downstream would believe it.
+  // Always ticked in audit mode, where anulowane are pinned visible.
+  const revealingCancelled = showCancelled || auditMode
+
+  const cancelledToggles = [
+    {
+      id: 'cancelledTransactionAudit',
+      label: 'Tylko anulowane transakcje',
+      active: auditMode,
+      onToggle: () => setAuditMode(!auditMode),
+    },
+    {
+      id: 'showCancelled',
+      label: 'Pokaż anulowane',
+      active: revealingCancelled,
+      // Audit mode pins anulowane on (`lib/queries/transfer-filters.ts`), so this row has no question
+      // left to answer there. Disabled rather than dropped — a row that vanishes takes the reason
+      // it vanished with it.
+      disabled: auditMode,
+      onToggle: () => setShowCancelled(!showCancelled),
+    },
+  ]
   const currentSourceRegisters = getMultiParam('sourceRegister')
   const currentInvestments = getMultiParam('investment')
   const currentCreatedBys = getMultiParam('createdBy')
@@ -91,6 +134,8 @@ export function TransferFilters({
   const currentOtherCategories = getMultiParam('otherCategory')
   const currentExpenseCategories = getMultiParam('expenseCategory')
 
+  // A filter is a DEPARTURE from the default view, so only revealing anulowane counts — the default
+  // hides them, and counting that would report a filter to someone who has set none.
   const hasEntityFilters = ENTITY_FILTER_KEYS.some((k) => getMultiParam(k).length > 0)
   const hasDateFilter = !!searchParams.get('from') || !!searchParams.get('to')
   const hasAnyFilter = hasEntityFilters || hasDateFilter
@@ -110,7 +155,7 @@ export function TransferFilters({
         showPaymentMethodFilter ||
         (otherCategories && otherCategories.length > 0) ||
         (expenseCategories && expenseCategories.length > 0)) && (
-        <FilterGrid>
+        <ControlGrid>
           {showTypeFilter && (
             <FilterMultiSelect
               values={currentTypes}
@@ -119,8 +164,13 @@ export function TransferFilters({
                 value: t,
                 label: TRANSFER_TYPE_LABELS[t],
               }))}
+              // In „Tryb anulowań" every row IS an anulowanie and Typ narrows the transaction that
+              // was cancelled (`lib/queries/transfer-filters.ts`), so „Anulowanie" is the one option
+              // the menu cannot act on — locked on rather than offered as a choice that does nothing.
+              lockedValues={auditMode ? ['CANCELLATION'] : undefined}
               label="Typ"
               icon={Tags}
+              searchable
             />
           )}
 
@@ -202,30 +252,37 @@ export function TransferFilters({
               searchable
             />
           )}
-
-          <SearchFilterInput
-            value={currentAmount}
-            onChange={(v) => updateParam('amount', v)}
-            placeholder="Kwota"
-            inputMode="decimal"
-            className="w-36"
-            debounceMs={DEBOUNCE_MS}
-          />
-
-          <SearchFilterInput
-            value={currentId}
-            onChange={(v) => updateParam('id', stripNonDigits(v))}
-            placeholder="ID"
-            inputMode="numeric"
-            className="w-24 lg:w-28"
-            debounceMs={DEBOUNCE_MS}
-          />
-
-          <ClearButton onClick={clearEntityFilters} disabled={!hasEntityFilters}>
-            Wyczyść filtry
-          </ClearButton>
-        </FilterGrid>
+        </ControlGrid>
       )}
+
+      {/* Its own row rather than the tail of the select row: the searches are typed, not picked, and
+          on a narrow screen they otherwise landed wherever the selects happened to stop wrapping.
+          Outside the guard above too — a page with no entity filters still searches. */}
+      <ControlGrid>
+        <SearchFilterInput
+          value={currentAmount}
+          onChange={(v) => updateParam('amount', v)}
+          placeholder="Szukaj po kwocie"
+          inputMode="decimal"
+          className={SEARCH_FILTER_TOOLBAR_WIDTH}
+          debounceMs={DEBOUNCE_MS}
+        />
+
+        <SearchFilterInput
+          value={currentId}
+          onChange={(v) => updateParam('id', stripNonDigits(v))}
+          placeholder="Szukaj po id"
+          inputMode="numeric"
+          className={SEARCH_FILTER_TOOLBAR_WIDTH}
+          debounceMs={DEBOUNCE_MS}
+        />
+
+        <FilterMultiSelect label="Anulowane" icon={Ban} toggles={cancelledToggles} />
+
+        <ClearButton onClick={clearEntityFilters} disabled={!hasEntityFilters}>
+          Wyczyść filtry
+        </ClearButton>
+      </ControlGrid>
       <DateFilters baseUrl={baseUrl} />
 
       {totalFilteredAmount !== undefined && hasAnyFilter && (

@@ -38,7 +38,7 @@ export const FilterTriggerButton = forwardRef<HTMLButtonElement, FilterTriggerBu
         variant={variant}
         size="sm"
         align="start"
-        className={cn('min-w-40', className)}
+        className={cn('sm:min-w-40', className)}
         {...props}
       >
         {Icon && iconPosition === 'left' && <Icon />}

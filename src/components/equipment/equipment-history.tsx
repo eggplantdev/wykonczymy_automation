@@ -1,7 +1,7 @@
 'use client'
 
 import { createColumnHelper } from '@tanstack/react-table'
-import { DataTable } from '@/components/ui/data-table/data-table'
+import { DataTable } from '@/components/tables/data-table/data-table'
 import { Description } from '@/components/ui/description'
 import { sumKnown } from '@/lib/utils/sum-known'
 import { formatPLNOrDash } from '@/lib/utils/format-currency'

@@ -67,7 +67,7 @@ export function KosztorysClientViewDialog() {
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader
             title="Ustawienia podglądu inwestora"
             // Scoped to the rozpiska on purpose: the setting reaches the grid's columns and pozycje,

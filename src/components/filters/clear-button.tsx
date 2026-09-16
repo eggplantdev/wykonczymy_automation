@@ -1,5 +1,5 @@
 import { X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { FilterTriggerButton } from '@/components/filters/filter-trigger-button'
 
 type ClearButtonPropsT = {
   onClick: () => void
@@ -9,16 +9,8 @@ type ClearButtonPropsT = {
 
 export function ClearButton({ onClick, disabled, children }: ClearButtonPropsT) {
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      align="start"
-      className="min-w-40"
-      onClick={onClick}
-      disabled={disabled}
-    >
-      <X />
+    <FilterTriggerButton active={false} icon={X} onClick={onClick} disabled={disabled}>
       {children}
-    </Button>
+    </FilterTriggerButton>
   )
 }

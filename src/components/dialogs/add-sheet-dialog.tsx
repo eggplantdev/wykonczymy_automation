@@ -59,7 +59,7 @@ export function AddSheetDialog({ trigger }: PropsT) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{trigger ?? <Button size="sm">Dodaj kosztorys</Button>}</DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader
           title="Nowy kosztorys"
           description="Powiąż istniejący arkusz Google. Inwestycję podepniesz później z listy."

@@ -1,6 +1,6 @@
 'use client'
 
-import { DataTable } from '@/components/ui/data-table/data-table'
+import { DataTable } from '@/components/tables/data-table/data-table'
 import { PRESET_COLUMNS } from '@/components/tables/presets'
 import { useOpenPreset } from '@/components/presets/use-open-preset'
 import type { PresetRowT } from '@/lib/queries/presets'

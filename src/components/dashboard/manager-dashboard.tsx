@@ -28,12 +28,11 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
   console.log(`[PERF] ManagerDashboard fetchManagerDashboardData ${step()}ms`)
 
   return (
-    <PageWrapper title="Pulpit">
+    <PageWrapper title="Transakcje">
       <UserRegisterStats cashRegisters={visibleRegisters} showAllRegisters={isAdminOrOwner} />
 
       {/* Recent transactions */}
       <TransfersSection
-        title="Ostatnie transakcje"
         id={SECTION_IDS.transactions}
         config={{
           query: {

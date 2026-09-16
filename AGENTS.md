@@ -146,7 +146,7 @@ Prefer hand-editing `@package.json` over `pnpm remove` / `pnpm install`. On this
 - **The real DB is Neon Postgres** — `DB_POSTGRES_URL_PROD` in `.env` is the live prod credential. **Never run SQL, migrations, or dumps-restores against the Neon URL**; a human applies prod migrations.
 - The local app points at the docker Postgres on 5433 (`DB_POSTGRES_URL`, db `wykonczymy-db`) — a copy restored from Neon dumps: `pnpm db:dump` (prod → `dumps/dump-latest.sql`, also run by the pre-push hook) and `pnpm db:import` (dump → local). Refreshable, but confirm before wiping it — a restore loses anything entered locally since the last dump.
 - The **E2E suite** runs against an isolated `db-test` container on **5435** (`DB_POSTGRES_URL_TEST`, db `wykonczymy-test`), never the dev DB. Populate/reset its fixtures with `pnpm db:import:test` (same dump → test DB). `pnpm test:e2e` starts the container (`--wait` on its healthcheck) but does **not** import — run `db:import:test` once after a fresh volume or to reset.
-- **A `db-test` reset is three commands, not one: `pnpm db:import:test` → `pnpm seed:kosztorys:test` → `pnpm seed:deposits:test`.** The prod dump carries no wpłata brutto, and `pnpm test:parity`'s dataset floor fails closed on it: without the wpłata-brutto seed the whole brutto plane and the legacy bridge (`net_amount IS NULL`, derived at VAT) are zero everywhere, so the guard would pass green having tested neither.
+- **A `db-test` reset is four commands, not one: `pnpm db:import:test` → `pnpm seed:kosztorys:test` → `pnpm seed:deposits:test` → `pnpm seed:materials-net:test`.** Each seed exists because the prod dump has nothing on that plane, and `pnpm test:parity`'s dataset floors fail closed on it. No wpłata brutto: the whole brutto plane and the legacy bridge (`net_amount IS NULL`, derived at VAT) are zero everywhere. No `INVESTMENT_EXPENSE_NET` row anywhere: `materialsNetBilled` and the „wszystko netto" concession are zero everywhere. Without the seed each guard would pass green having tested neither.
 - **Google Sheets: two service accounts — reads everywhere, writes only from production.** The sheet
   id comes from the DB and every non-production database is a restored prod dump, so localhost,
   preview and the E2E DB all carry **live sheet ids**. That is how eight sheets took 36 foreign rows
@@ -243,8 +243,10 @@ delegates to (stage ops, settlement settings, view state, …) is one leaf hook 
 `editor/hooks/`. A new cluster goes there, not into a second root-level hook, and **nothing moves
 into `KosztorysEditorProvider`** — context value-identity churn is the EX-496 perf regression that
 was reverted once already. Logic that is genuinely React-free belongs one layer further out in
-`src/lib/kosztorys/`, where it is testable without a hook renderer; that split is why this codebase
-has never needed `renderHook`.
+`src/lib/kosztorys/`, where it is testable without rendering anything — the cheapest layer wins. A
+hook whose risk is genuinely the lifecycle (overlapping async saves, teardown on unmount) gets a
+`renderHook` spec under the `dom` vitest project instead; `use-kosztorys-settings.test.tsx` is the
+pattern.
 
 ### Important Directories
 
@@ -259,7 +261,8 @@ Most are self-describing (`src/collections`, `src/access`, `src/stores`, …). T
   (`register-saldo.ts`, `subcontractor-roster.ts`) — never in `src/lib/actions`, which is mutations only.
 - `src/lib/cache` — cache tags + revalidation helpers
 - `src/scripts/data` — input data a one-off script reads at runtime (TSV/JSON/CSV), beside its script.
-  Test fixtures go to `src/__tests__/fixtures/` instead.
+  Test fixtures go to `src/__tests__/fixtures/` instead — or to `e2e/fixtures/` for a file a
+  Playwright spec or an E2E seed script uploads — the only other fixtures home there is.
 - Per-feature schemas/hooks live under `src/components/forms/<form>/`, not in `src/types` (which is cross-feature only).
   **A hook's home follows its consumer count, not its subject:** one form → `forms/<form>/`; two or
   more forms → `forms/hooks/`; a non-form surface → `src/hooks/`. That is why the three file-ingest
@@ -273,7 +276,23 @@ Most are self-describing (`src/collections`, `src/access`, `src/stores`, …). T
   directory reaches for it, not when a third file in the same one does.
 - `src/components/ui` is the domain-agnostic primitives layer — a component that knows it is filtering
   a list belongs in `src/components/filters/` (EX-730 moved the last four out of `ui/`; git history and
-  older imports still point at the old home, so don't take a precedent from there)
+  older imports still point at the old home, so don't take a precedent from there).
+  **The rule runs both ways, and `ui/` importing upward is how you spot the violation.** A primitive
+  that reaches into `filters/` (or any feature directory) is in the wrong place, or the thing it reaches
+  for is. EX-787 closed the last of them, in three directions: `ActiveFilterButton` and its checkbox
+  twin `ActiveFilterLabel` moved **up** into `filters/` where they always belonged; `FilterGrid` moved
+  **down** to `ui/control-grid.tsx` as `ControlGrid` — four consumers, only one of them in `filters/`,
+  so it was a shared layout primitive filed under its first caller, not a filters component; and the
+  data-table engine moved **sideways** into `tables/`. Nothing under `src/components/ui/` imports a
+  feature directory today; keep it that way, because no lint rule enforces it.
+- **`src/components/tables/` is the shared table layer** — per-domain column definitions
+  (`transfers.tsx`, `investments.tsx`, …), the `@tanstack/react-table` module augmentation
+  (`column-meta.ts`), and the generic engine in `tables/data-table/`. The engine lived in `ui/` until
+  EX-787 and does not belong there: a toolbar with `search` / `filters` / `columns` / `actions` slots
+  knows it is a data table, and reaching up into `filters/` from `ui/` made the directory graph cycle.
+  It is nested in its own subdirectory rather than flattened beside the column defs, which are a
+  different kind of thing. Its ~15 consumers are `*-data-table.tsx` files in eleven feature
+  directories — there is no "beside the consumer" home for it.
 - **The datasheet-grid seam runs one way.** `src/components/ui/datasheet-grid/` holds the presentational
   primitives a cell renders (`EditableCellInput`, `ReadOnlyCellText`, `CellSelectMenu`); the `Column`
   factories that know what a figure MEANS live in `src/components/kosztorys/editor/grid/cells/`. A

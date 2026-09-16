@@ -8,7 +8,14 @@ import { resolveId } from '@/lib/utils/resolve-id'
  * afterChange — revalidate caches after a transaction is created or updated.
  * Balances are computed on read via cached functions, so there's no write here.
  */
-export const recalcAfterChange: CollectionAfterChangeHook = async ({ doc, previousDoc }) => {
+export const recalcAfterChange: CollectionAfterChangeHook = async ({
+  doc,
+  previousDoc,
+  context,
+}) => {
+  // `revalidateTag` needs a Next request context, so a non-request caller (seed script, DB spec)
+  // opts out with the same `skipRevalidation` flag `revalidate-collection` already honours.
+  if (context?.skipRevalidation) return doc
   const elapsed = perfStart()
   console.log(`[PERF] recalcAfterChange START id=${doc.id} type=${doc.type}`)
 
@@ -41,7 +48,8 @@ export const recalcAfterChange: CollectionAfterChangeHook = async ({ doc, previo
 /**
  * afterDelete — revalidate caches after a transaction is deleted.
  */
-export const recalcAfterDelete: CollectionAfterDeleteHook = async ({ doc }) => {
+export const recalcAfterDelete: CollectionAfterDeleteHook = async ({ doc, context }) => {
+  if (context?.skipRevalidation) return doc
   const elapsed = perfStart()
   console.log(`[PERF] recalcAfterDelete START id=${doc.id} type=${doc.type}`)
 

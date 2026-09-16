@@ -18,7 +18,7 @@ export function LeadAnswersDialog({ name, formName, answers }: LeadAnswersDialog
           Szczegóły
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader
           title={name || 'Zgłoszenie'}
           description={formName || 'Odpowiedzi z formularza'}

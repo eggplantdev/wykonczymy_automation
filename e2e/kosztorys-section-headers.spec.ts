@@ -1,5 +1,5 @@
-import { execFileSync } from 'node:child_process'
 import { test, expect, type Page } from '@playwright/test'
+import { runSeedScript } from './helpers'
 
 // Proves the band is wired end-to-end: it reads the same per-section subtotals the Podsumowanie does,
 // its chevron folds exactly its own section away, and the gutter keeps numbering the surviving items
@@ -14,19 +14,9 @@ type BandsSeed = {
 
 let seed: BandsSeed
 
-// Seed via subprocess for the same reason as the recon spec: importing the Payload config graph pulls
-// next/cache, which Playwright's module loader can't resolve. The editor page resolves the investment
-// straight from the DB, so no cache bust is needed here.
+// No cache bust after the seed: the editor page resolves its investment straight from the DB.
 test.beforeAll(() => {
-  const testDbUrl = process.env.DB_POSTGRES_URL_TEST
-  if (!testDbUrl) throw new Error('[bands-spec] DB_POSTGRES_URL_TEST is not set — refusing to seed')
-  const out = execFileSync('pnpm', ['seed:kosztorys-bands'], {
-    encoding: 'utf8',
-    env: { ...process.env, DB_POSTGRES_URL: testDbUrl },
-  })
-  const line = out.split('\n').find((l) => l.startsWith('BANDS_SEED='))
-  if (!line) throw new Error(`[bands-spec] seed emitted no BANDS_SEED line:\n${out}`)
-  seed = JSON.parse(line.slice('BANDS_SEED='.length))
+  seed = runSeedScript<BandsSeed>('seed:kosztorys-bands', 'BANDS_SEED')
 })
 
 function bands(page: Page) {

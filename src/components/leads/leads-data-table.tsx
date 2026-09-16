@@ -1,14 +1,10 @@
 'use client'
 
 import { useCallback, useMemo } from 'react'
-import { DataTable } from '@/components/ui/data-table/data-table'
+import { DataTable } from '@/components/tables/data-table/data-table'
+import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { ColumnToggle } from '@/components/filters/column-toggle'
-import {
-  SEARCH_FILTER_TOOLBAR_WIDTH,
-  SearchFilterInput,
-} from '@/components/filters/search-filter-input'
 import { getLeadColumns } from '@/components/tables/leads'
-import { ReconcileLeadsButton } from '@/components/leads/reconcile-leads-button'
 import type { LeadRowT } from '@/types/leads'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle'
@@ -42,16 +38,10 @@ export function LeadsDataTable({ data }: { data: LeadRowT[] }) {
       storageKey="leads"
       initialSorting={[{ id: 'submittedAt', desc: true }]}
       toolbar={({ table, columnVisibility: cv, ...order }) => (
-        <>
-          <SearchFilterInput
-            value={searchTerm}
-            onChange={setSearchTerm}
-            placeholder="Szukaj..."
-            className={SEARCH_FILTER_TOOLBAR_WIDTH}
-          />
-          <ColumnToggle table={table} columnVisibility={cv} {...order} />
-          <ReconcileLeadsButton />
-        </>
+        <DataTableToolbar
+          search={{ value: searchTerm, onChange: setSearchTerm }}
+          columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
+        />
       )}
     />
   )

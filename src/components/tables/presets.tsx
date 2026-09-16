@@ -26,6 +26,7 @@ export const PRESET_COLUMNS = [
   col.display({
     id: 'actions',
     header: 'Akcje',
+    meta: { align: 'right' },
     cell: (info) => <PresetRowActions preset={info.row.original} />,
   }),
 ]

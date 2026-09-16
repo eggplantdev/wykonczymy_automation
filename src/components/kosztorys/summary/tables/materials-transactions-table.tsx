@@ -4,7 +4,7 @@ import { useState } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
 import { FileArchive, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { DataTable } from '@/components/ui/data-table/data-table'
+import { DataTable } from '@/components/tables/data-table/data-table'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
 import { InvoicePreviewButton } from '@/components/dialogs/invoice-preview-button'
@@ -68,9 +68,20 @@ const SHARED_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
     header: 'Opis',
     size: 260,
     enableSorting: false,
-    cell: ({ getValue }) => (
-      <span className="text-muted-foreground">{getValue<string | null>() || '—'}</span>
-    ),
+    // Capped and ellipsised like „Notatka" beside it, and for the same reason: DataTable does no
+    // column sizing, so an auto-width <td> lets a long opis run straight through its neighbour.
+    // The full text stays one hover away.
+    cell: ({ getValue }) => {
+      const description = getValue<string | null>()
+      if (!description) return <span className="text-muted-foreground">—</span>
+      return (
+        <SimpleTooltip content={description}>
+          <span className="text-muted-foreground block max-w-64 cursor-help truncate">
+            {description}
+          </span>
+        </SimpleTooltip>
+      )
+    },
   },
   {
     accessorKey: 'invoiceNote',

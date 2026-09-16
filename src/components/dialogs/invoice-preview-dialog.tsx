@@ -114,7 +114,7 @@ export function InvoicePreviewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="h-full sm:max-w-4xl" aria-describedby={undefined}>
+      <DialogContent className="sm:h-full sm:max-w-4xl" aria-describedby={undefined}>
         <DialogHeader title={title} />
 
         <div className="relative flex h-[70vh] min-h-0 w-full flex-1 items-center justify-center">

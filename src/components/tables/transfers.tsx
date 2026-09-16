@@ -213,6 +213,7 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
   const actionsColumn = col.display({
     id: 'actions',
     header: 'Akcje',
+    meta: { align: 'right' },
     cell: (info) => {
       const row = info.row.original
       if (row.cancelled || isCancellationType(row.type)) return null
@@ -232,7 +233,7 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
         })
 
       return (
-        <div className="flex items-center gap-1">
+        <div className="flex items-center justify-end gap-1">
           {referenceData && (
             <EditTransferDialog
               row={row}
@@ -252,10 +253,11 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
   // joined in after the page is fetched, so the database has nothing to order by and the click
   // would silently sort one page. Those columns narrow by filter instead (EX-777). Deriving keeps
   // the whitelist the single source of truth; declaring it here needed a spec to stop the two drifting.
-  const columns: ColumnDef<TransferRowT, unknown>[] = [...allColumns, actionsColumn].map((column) =>
-    isServerSortableColumn(column.id!)
-      ? (column as ColumnDef<TransferRowT, unknown>)
-      : { ...(column as ColumnDef<TransferRowT, unknown>), enableSorting: false },
+  const columns: ColumnDef<TransferRowT, unknown>[] = [...allColumns, actionsColumn].map(
+    (column) =>
+      isServerSortableColumn(column.id!)
+        ? (column as ColumnDef<TransferRowT, unknown>)
+        : { ...(column as ColumnDef<TransferRowT, unknown>), enableSorting: false },
   )
 
   if (exclude.length === 0) return columns

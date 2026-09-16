@@ -107,11 +107,12 @@ export function getEquipmentColumns({
     col.display({
       id: 'actions',
       header: 'Akcje',
+      meta: { align: 'right' },
       // Handing a tool over is the register's most frequent write, so it does not deserve a detour
       // through the item's page. The row's own click is unaffected — `DataTableRow` ignores a click
       // that landed on a button.
       cell: (info) => (
-        <div className="flex items-center gap-1">
+        <div className="flex items-center justify-end gap-1">
           <TransferEquipmentDialog
             equipment={info.row.original}
             workers={workers}

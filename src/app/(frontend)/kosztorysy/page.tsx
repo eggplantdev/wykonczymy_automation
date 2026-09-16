@@ -59,10 +59,9 @@ export default async function SheetsListPage() {
         <ExternalLink href={ALL_SHEETS_URL}>Otwórz arkusze google ↗</ExternalLink>
       </div>
 
-      <section className="space-y-2">
-        <h2 className="text-sm font-medium">Kosztorysy v1</h2>
-        <KosztorysDataTable data={kosztorysRows} availableInvestments={investmentsWithoutSheet} />
-      </section>
+      {/* No heading of its own — the page title already names this table. The one below keeps its
+          own, because it is a second, differently-scoped list. */}
+      <KosztorysDataTable data={kosztorysRows} availableInvestments={investmentsWithoutSheet} />
 
       <section className="space-y-2">
         <h2 className="text-sm font-medium">Inwestycje bez kosztorysu</h2>

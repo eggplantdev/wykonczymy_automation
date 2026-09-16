@@ -3,69 +3,28 @@
 import { BrandLogo } from '@/components/ui/brand-logo'
 import { Button } from '@/components/ui/button'
 import { SimpleTooltip } from '@/components/ui/tooltip'
-import { logoutAction } from '@/lib/actions/auth'
 import { refreshDataAction } from '@/lib/actions/refresh'
-import { isManagementRole } from '@/lib/auth/roles'
-import { SECTION_LINKS } from '@/lib/constants/sections'
-import { UnreadEquipmentBadge } from '@/components/nav/unread-equipment-badge'
-import { UnreadFleetBadge } from '@/components/nav/unread-fleet-badge'
 import { ThemeToggle } from '@/components/nav/theme-toggle'
+import { NavLinkItem } from '@/components/nav/nav-link-item'
+import { LogoutButton } from '@/components/nav/logout-button'
 import { cn } from '@/lib/utils/cn'
 import { toastMessage } from '@/lib/utils/toast'
 import { useCurrentUser } from '@/hooks/use-current-user'
+import { useNavLinks } from '@/hooks/use-nav-links'
 import { useSidebarCollapsed } from '@/hooks/use-sidebar-collapsed'
-import {
-  Car,
-  ChevronLeft,
-  ChevronRight,
-  FileSpreadsheet,
-  LayoutTemplate,
-  ListChecks,
-  LogOut,
-  RefreshCw,
-  Users,
-  Wrench,
-  type LucideIcon,
-} from 'lucide-react'
+import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import type { ComponentType } from 'react'
 import { useTransition } from 'react'
 
 type SidebarPropsT = {
   openRouterBalance?: React.ReactNode
 }
 
-const MANAGEMENT_LINKS: {
-  href: string
-  label: string
-  icon: LucideIcon
-  badge?: ComponentType
-}[] = [
-  { href: '/kosztorysy', label: 'Kosztorysy v1', icon: FileSpreadsheet },
-  { href: '/katalog-prac', label: 'Katalog prac', icon: ListChecks },
-  { href: '/szablony', label: 'Szablony kosztorysów', icon: LayoutTemplate },
-  { href: '/flota', label: 'Flota', icon: Car, badge: UnreadFleetBadge },
-  { href: '/sprzet', label: 'Sprzęt', icon: Wrench, badge: UnreadEquipmentBadge },
-  { href: '/pracownicy', label: 'Pracownicy', icon: Users },
-]
-
-// „/" is every path's prefix, so „Transakcje" would light up on every screen — it matches exactly,
-// while a section link also claims its sub-pages (`/inwestycje/12` keeps „Inwestycje" lit).
-function isActiveLink(pathname: string, href: string): boolean {
-  return href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`)
-}
-
 export function Sidebar({ openRouterBalance }: SidebarPropsT) {
   const user = useCurrentUser()
-  const pathname = usePathname()
+  const { links, isActive } = useNavLinks()
   const [collapsed, setCollapsed] = useSidebarCollapsed()
-  const [isPending, startTransition] = useTransition()
   const [isRefreshing, startRefreshTransition] = useTransition()
-
-  const handleLogout = () => {
-    startTransition(() => logoutAction())
-  }
 
   const handleRefresh = () => {
     startRefreshTransition(async () => {
@@ -73,9 +32,6 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
       toastMessage('Dane odświeżone')
     })
   }
-
-  const showUsers = isManagementRole(user.role)
-  const links = showUsers ? [...SECTION_LINKS, ...MANAGEMENT_LINKS] : SECTION_LINKS
 
   // Roundcube can't auto-login via URL; _user only prefills the username field on its
   // login page (no-op when a Roundcube session is already active).
@@ -86,7 +42,7 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
       className={cn(
         // z-40: the handle overhangs into the page, and the kosztorys v2 grid paints its frozen
         // columns at z-30 — without a stacking context above that, the pill disappears under them.
-        'border-border bg-background sticky top-0 z-40 hidden h-screen shrink-0 flex-col border-r pb-3 lg:flex',
+        'border-border bg-background sticky top-0 z-40 hidden h-screen shrink-0 flex-col border-r pb-3 sm:flex',
         collapsed ? 'w-14 px-2' : 'w-fit min-w-48 px-3',
       )}
     >
@@ -110,38 +66,11 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
       </Link>
       {/* Navigation */}
       <nav className="flex flex-col gap-1">
-        {links.map((link) => {
-          const isActive = isActiveLink(pathname, link.href)
-
-          return (
-            <CollapsibleTooltip key={link.href} collapsed={collapsed} label={link.label}>
-              <Button
-                variant="ghost"
-                size="sm"
-                align={collapsed ? 'center' : 'start'}
-                className={cn(
-                  'relative',
-                  collapsed && 'px-0',
-                  // Not `bg-accent` — that is what ghost's own hover paints, so the active row
-                  // would be indistinguishable from whatever the cursor happens to be over.
-                  isActive &&
-                    'bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary font-semibold',
-                )}
-                asChild
-              >
-                <Link href={link.href} aria-current={isActive ? 'page' : undefined}>
-                  <link.icon />
-                  {!collapsed && link.label}
-                  {link.badge && (
-                    <BadgeSlot collapsed={collapsed}>
-                      <link.badge />
-                    </BadgeSlot>
-                  )}
-                </Link>
-              </Button>
-            </CollapsibleTooltip>
-          )
-        })}
+        {links.map((link) => (
+          <CollapsibleTooltip key={link.href} collapsed={collapsed} label={link.label}>
+            <NavLinkItem link={link} active={isActive(link.href)} collapsed={collapsed} />
+          </CollapsibleTooltip>
+        ))}
       </nav>
       {/* User info + actions */}
       <div className="mt-auto flex flex-col gap-2 pt-4">
@@ -163,13 +92,7 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
               {!collapsed && 'Odśwież dane'}
             </Button>
           </CollapsibleTooltip>
-          {/* <Button size="sm" asChild aria-label="Panel administracyjny">
-            <Link href="/admin" target="_blank">
-              <Shield />
-              Admin
-            </Link>
-          </Button>
-          <Button variant="outline" size="sm" asChild aria-label="Poczta (Roundcube)">
+          {/* <Button variant="outline" size="sm" asChild aria-label="Poczta (Roundcube)">
             <Link href={roundcubeUrl} target="_blank" rel="noopener noreferrer">
               <Mail />
               Poczta
@@ -177,17 +100,7 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
           </Button> */}
           {!collapsed && openRouterBalance}
           <CollapsibleTooltip collapsed={collapsed} label="Wyloguj">
-            <Button
-              variant="outline"
-              size="sm"
-              className={cn(collapsed && 'px-0')}
-              onClick={handleLogout}
-              disabled={isPending}
-              aria-label="Wyloguj"
-            >
-              <LogOut />
-              {!collapsed && 'Wyloguj'}
-            </Button>
+            <LogoutButton collapsed={collapsed} />
           </CollapsibleTooltip>
         </div>
       </div>
@@ -212,15 +125,5 @@ function CollapsibleTooltip({
     <SimpleTooltip content={label} delayDuration={0}>
       {children}
     </SimpleTooltip>
-  )
-}
-
-// Collapsed there is no label row for the count bubble to sit after, so it moves to the icon's
-// corner — overriding the `ml-auto` CountBadge uses to push itself right in the expanded row.
-function BadgeSlot({ collapsed, children }: { collapsed: boolean; children: React.ReactNode }) {
-  if (!collapsed) return children
-
-  return (
-    <span className="pointer-events-none absolute -top-1 -right-1 [&>span]:ml-0">{children}</span>
   )
 }

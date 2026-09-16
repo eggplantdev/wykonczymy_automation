@@ -3,7 +3,7 @@
 import { Calendar } from 'lucide-react'
 import { ClearButton } from '@/components/filters/clear-button'
 import { DateFilterButton } from '@/components/filters/date-filter-button'
-import { FilterGrid } from '@/components/filters/filter-grid'
+import { ControlGrid } from '@/components/ui/control-grid'
 import { FilterSelect } from '@/components/filters/filter-select'
 import { Loader } from '@/components/ui/loader/loader'
 import { MONTHS } from '@/lib/constants/months'
@@ -49,7 +49,7 @@ export function DateRangePicker({ value, onChange, isPending = false }: DateRang
   const years = Array.from({ length: YEARS_OFFERED }, (_, index) => currentYear - index)
 
   return (
-    <FilterGrid>
+    <ControlGrid>
       <Loader loading={isPending} portal />
 
       <FilterSelect
@@ -82,6 +82,6 @@ export function DateRangePicker({ value, onChange, isPending = false }: DateRang
       <ClearButton onClick={() => onChange(ALL_TIME)} disabled={!value.from && !value.to}>
         Wyczyść daty
       </ClearButton>
-    </FilterGrid>
+    </ControlGrid>
   )
 }

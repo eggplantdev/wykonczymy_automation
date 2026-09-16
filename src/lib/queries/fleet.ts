@@ -9,7 +9,7 @@ import { groupByVehicle, loadFleetDataset, type FleetDatasetT } from '@/lib/flee
 import { warsawToday } from '@/lib/utils/days'
 import { historyOfType, toRow } from '@/lib/fleet/rows'
 import { byInspectionType } from '@/lib/fleet/inspection-types'
-import { ALL_TIME, type DateRangeT } from '@/lib/utils/date-range'
+import { ALL_TIME } from '@/lib/utils/date-range'
 import type { FleetRowT, VehicleDetailT } from '@/types/fleet'
 
 /**
@@ -38,13 +38,13 @@ const getFleetDataset = unstable_cache(
  * The listing: one row per vehicle with its five current deadlines, classified against today.
  *
  * Today is resolved ONCE here and threaded down, so every cell on the page answers "how urgent" as of
- * the same instant — and the cached dataset above stays date-free. `costRange` folds in at the same
- * level for the same reason: it is a per-request question, so it must never reach the cache key.
+ * the same instant — and the cached dataset above stays date-free.
  *
- * The window narrows the money and nothing else — `events` stays whole, or a filtered view would
- * report a car as up to date on inspections it never had.
+ * „Koszty" is all-time, the same figure the car's own card shows: the listing had a `?from=&to=`
+ * window that repriced this one column and nothing else, which read as a table filter that filtered
+ * nothing.
  */
-export async function fetchFleetOverview(costRange: DateRangeT): Promise<FleetRowT[]> {
+export async function fetchFleetOverview(): Promise<FleetRowT[]> {
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) throw new Error('Nie jesteś zalogowany')
 
@@ -52,7 +52,7 @@ export async function fetchFleetOverview(costRange: DateRangeT): Promise<FleetRo
   const today = warsawToday()
 
   return groupByVehicle({ vehicles, events }).map(({ vehicle, events: ofVehicle }) =>
-    toRow(vehicle, ofVehicle, today, costRange),
+    toRow(vehicle, ofVehicle, today, ALL_TIME),
   )
 }
 

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 
 import { DropdownMenuCheckboxRow, DropdownMenuLabel } from '@/components/ui/dropdown-menu'
-import { ActiveFilterLabel } from '@/components/ui/active-filter-label'
+import { ActiveFilterLabel } from '@/components/filters/active-filter-label'
 import { Input } from '@/components/ui/input'
 import { STAGE_HEADER_COPY as COPY } from './stage-header-copy'
 import { activeOrSelected } from '@/lib/utils/is-active-ref'

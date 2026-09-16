@@ -274,7 +274,7 @@ export function LineItemsField({
                     line up on their own — and a validation error growing under one field can no
                     longer drag its neighbours (and the delete button) down a line. The label-less
                     slots below pay for it with an mt-6 that clears a label + its gap. */}
-                  <div className="flex items-start gap-2">
+                  <div className="flex flex-wrap items-start gap-2 sm:flex-nowrap">
                     <form.AppField name={`lineItems[${index}].amount`}>
                       {(field) => (
                         <field.Input
@@ -308,7 +308,7 @@ export function LineItemsField({
                           label="Opis"
                           placeholder="Opcjonalnie"
                           showError
-                          fieldClassName="min-w-0 flex-1"
+                          fieldClassName="order-last w-full min-w-0 sm:order-none sm:w-auto sm:flex-1"
                         />
                       )}
                     </form.AppField>
@@ -317,7 +317,7 @@ export function LineItemsField({
                         form={form}
                         index={index}
                         config={inlineCategory}
-                        fieldClassName="min-w-0 flex-1"
+                        fieldClassName="order-last w-full min-w-0 sm:order-none sm:w-auto sm:flex-1"
                       />
                     )}
                     {/* No icon: this row is already Kwota + Netto + Opis + kategoria + the delete
@@ -351,7 +351,7 @@ export function LineItemsField({
                       )}
                     </div>
                   </div>
-                  <div className="flex items-start gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
                     {secondRowCategory && (
                       <CategorySelect
                         form={form}
@@ -387,7 +387,7 @@ export function LineItemsField({
               </Fragment>
             ))}
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               type="button"
               variant="outline"

@@ -12,7 +12,8 @@ type CellEditT<EntryT> = { draft: string; entry: EntryT; rowId: number }
 
 /**
  * The editing lifecycle every numeric cell in the grid shares — the React half of `cell-edit.ts`,
- * kept as thin as it can be because this repo has no hook renderer and nothing in here is testable.
+ * kept as thin as it can be so the rules themselves stay out here, where they are testable without
+ * rendering anything.
  *
  * The trap it exists for: keystrokes commit as they go, so a value the policy refuses leaves the
  * last accepted PREFIX standing on the row. Typing „12,5" is the everyday version — the comma
