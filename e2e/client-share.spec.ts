@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test'
 import { formatNet } from '@/lib/kosztorys/format'
 import { INVESTOR_IMPACT_TITLE, CLIENT_VIEW_MODE_IMPACT } from '@/lib/kosztorys/investor-impact'
 import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
-import { bare, runSeedScript, waitForHydration } from './helpers'
+import { bare, refreshReferenceData, runSeedScript, waitForHydration } from './helpers'
 import { anonymousVisit, mintShareToken } from './share-link'
 
 // What the owner decides in „Ustawienia podglądu inwestora" and what the investor's link actually
@@ -36,8 +36,9 @@ type ClientShareSeed = {
 
 let seed: ClientShareSeed
 
-test.beforeAll(() => {
+test.beforeAll(async ({ browser }) => {
   seed = runSeedScript<ClientShareSeed>('seed:client-share', 'CLIENT_SHARE_SEED')
+  await refreshReferenceData(browser)
 })
 
 const STAGE_SUM_COLUMN = COLUMN_LABELS.stageQtySum
@@ -62,10 +63,11 @@ function expectNetInDocument(text: string, amount: number, label: string): void 
 
 async function openClientViewSettings(page: Page) {
   await page.goto(`/inwestycje/${seed.investment}/kosztorys_v2`)
-  const optionsMenu = page.getByRole('button', { name: 'Opcje', exact: true })
-  await optionsMenu.waitFor()
-  await waitForHydration(optionsMenu)
-  await optionsMenu.click()
+  // Serving the client is its own menu — „Opcje" holds the editing commands only.
+  const investorMenu = page.getByRole('button', { name: 'Widok inwestora' })
+  await investorMenu.waitFor()
+  await waitForHydration(investorMenu)
+  await investorMenu.click()
   // Non-exact: each menu item's accessible name is its label plus its description line.
   await page.getByRole('menuitem', { name: /Ustawienia podglądu/ }).click()
   const dialog = page.getByRole('dialog').filter({ hasText: 'Ustawienia podglądu inwestora' })
@@ -265,6 +267,54 @@ test('the investor gets both billed expense datasets and their faktury, and neve
     await visitor.getByRole('button', { name: 'Pobierz faktury' }).click()
     const download = await downloadPromise
     expect(download.suggestedFilename()).toMatch(/^faktury-.*\.zip$/)
+  } finally {
+    await close()
+  }
+})
+
+test('inwestor zwija sekcję na swoim linku, choć jego własny schowek pustych pozycji jest włączony', async ({
+  page,
+  browser,
+  baseURL,
+}) => {
+  // EX-714/EX-715. Folds are session state — nothing persists them and nothing rides in the share
+  // payload — so what crosses the boundary is the RULE: a fold is suppressed while a narrowing is on,
+  // and the client's own hider must not count as one. It is engaged on every share by default, so the
+  // regression made the chevron dead on every published link while looking alive (the band flips its
+  // aria-expanded either way — only the rows tell the truth).
+  await selectVariant(page, 'Oferta')
+  const dialog = await openClientViewSettings(page)
+  // Explicitly, not by default: the spec above leaves the tick off, and the whole point here is that
+  // the hider IS engaged while the fold happens.
+  await dialog.getByRole('checkbox', { name: EMPTY_ROWS_CHECKBOX }).check()
+  await saveSettings(page)
+  const token = await mintShareToken(page, seed.investment)
+
+  const { page: visitor, close } = await anonymousVisit(browser, baseURL, token)
+  try {
+    // Podsumowanie otwiera się domyślnie i leży NA siatce (nieprzezroczysta nakładka na całą jej
+    // wysokość), więc dopóki inwestor go nie schowa, do belki sekcji nie da się kliknąć.
+    const panelToggle = visitor.getByRole('button', { name: 'Schowaj podsumowanie' })
+    await panelToggle.waitFor()
+    await waitForHydration(panelToggle)
+    await panelToggle.click()
+
+    const band = visitor.getByRole('button').filter({ hasText: seed.sectionName })
+    // The hider is on: the empty pozycja is gone from the document the investor received.
+    await expect(visitor.getByText(seed.workedRow)).toBeVisible()
+    await expect(visitor.getByText(seed.emptyRow)).toHaveCount(0)
+    await expect(band).toHaveAttribute('aria-expanded', 'true')
+
+    await band.click()
+    await expect(band).toHaveAttribute('aria-expanded', 'false')
+    // The rows, not the chevron, are the assertion: under the regression the band still reported
+    // itself collapsed while its prace stayed on screen.
+    await expect(visitor.getByText(seed.workedRow)).toHaveCount(0)
+    // A folded section still announces itself and its total — it is hidden, not removed.
+    await expect(band).toBeVisible()
+
+    await band.click()
+    await expect(visitor.getByText(seed.workedRow)).toBeVisible()
   } finally {
     await close()
   }
