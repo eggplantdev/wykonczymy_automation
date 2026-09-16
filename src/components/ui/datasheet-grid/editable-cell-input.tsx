@@ -44,7 +44,7 @@ export const EditableCellInput = forwardRef<HTMLInputElement, PropsT>(function E
         else if (ref) ref.current = node
       }}
       className={cn(
-        'size-full bg-transparent px-2 text-left text-sm outline-none',
+        'typing-surface size-full bg-transparent px-2 text-left outline-none',
         focus === false && 'pointer-events-none',
         className,
       )}

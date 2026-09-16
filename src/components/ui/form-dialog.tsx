@@ -45,7 +45,13 @@ export function FormDialog({
 
   return (
     <>
-      <span onClick={() => !isPending && openDialog(formId, showKeepOpen)}>{trigger}</span>
+      {/* `contents` so the trigger itself is the layout item, not this wrapper: in the toolbar's
+          mobile grid the span took the cell and left the button inside it shrink-to-fit, so every
+          dialog trigger was the one control not filling its column. The click still reaches here
+          by bubbling. */}
+      <span className="contents" onClick={() => !isPending && openDialog(formId, showKeepOpen)}>
+        {trigger}
+      </span>
 
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogContent className={className}>

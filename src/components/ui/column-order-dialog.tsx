@@ -67,7 +67,7 @@ export function ColumnOrderDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[min(90vw,420px)]">
+      <DialogContent className="sm:max-w-dialog-sm">
         <DialogHeader title="Ustaw kolejność kolumn" description={description} />
 
         {/* layoutScroll + min-h-0: without the first, framer measures drags against a stale scroll

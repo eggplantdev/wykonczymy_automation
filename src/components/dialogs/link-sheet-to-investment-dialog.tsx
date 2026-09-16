@@ -59,7 +59,7 @@ export function LinkSheetToInvestmentDialog({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader
           title="Dodaj kosztorys do inwestycji"
           description="Wybierz inwestycję bez kosztorysu. Po dodaniu, wydatki inwestycji zostaną zsynchronizowane do kosztorysu."

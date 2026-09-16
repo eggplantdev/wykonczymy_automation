@@ -98,7 +98,7 @@ export function KosztorysShareDialog() {
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader
             title="Udostępnij inwestorowi"
             description={

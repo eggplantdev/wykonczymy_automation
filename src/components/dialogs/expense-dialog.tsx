@@ -14,7 +14,7 @@ export function ExpenseDialog({ referenceData }: ExpenseDialogPropsT) {
   return (
     <FormDialog
       formId="expense"
-      className="max-w-[min(90vw,900px)]"
+      className="sm:max-w-dialog-lg"
       trigger={
         <Button variant="red" size="sm">
           <Rocket />

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import {
   SUMMARY_LABEL_COL,
+  SUMMARY_VALUE_COL,
   SummaryHeaderCell,
   SummaryLabelCell,
   SummaryTable,
@@ -9,7 +10,7 @@ import { Description } from '@/components/ui/description'
 import { formatPLDate } from '@/lib/utils/format-date'
 import type { EquipmentRowT } from '@/lib/equipment/types'
 
-const COLS = `${SUMMARY_LABEL_COL} 1fr 9rem`
+const COLS = `${SUMMARY_LABEL_COL} 1fr ${SUMMARY_VALUE_COL}`
 
 /**
  * What one person (or one warehouse) is holding — the question that gets asked at a rozliczenie or

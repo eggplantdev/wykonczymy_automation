@@ -27,7 +27,7 @@ export function AddCatalogueItemDialog({
     <FormDialog
       formId="add-catalogue-item"
       trigger={
-        <Button size="sm">
+        <Button variant="outline" size="sm">
           <Plus />
           Nowa praca
         </Button>

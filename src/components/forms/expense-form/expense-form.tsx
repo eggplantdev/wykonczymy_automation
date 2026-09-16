@@ -273,7 +273,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
           renders a description between the label and the control, which would push the type
           Select down while „Data" beside it stayed put, breaking the row's alignment. */}
         <div className="space-y-1.5">
-          <div className="flex items-start gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
             <form.AppField
               name="type"
               listeners={{ onChange: ({ value }) => resetConditionalFields(value) }}
@@ -288,7 +288,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
                 </field.Select>
               )}
             </form.AppField>
-            <DateField form={form} fieldClassName="w-40" />
+            <DateField form={form} fieldClassName="w-full sm:w-40" />
           </div>
           {billsNetAmount(currentType) && (
             <FieldDescription>
