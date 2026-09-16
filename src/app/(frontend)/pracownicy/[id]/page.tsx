@@ -6,7 +6,7 @@ import { parseTransferSort } from '@/lib/queries/transfer-sort'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { fetchFilteredByType } from '@/lib/queries/transfer-totals'
 import { fetchEquipmentAtLocation } from '@/lib/queries/equipment'
-import { buildTransferFilters, stripCancelledFilters } from '@/lib/queries/transfer-filters'
+import { buildTransferFilters, statsWhereFrom } from '@/lib/queries/transfer-filters'
 import { buildFilterConfig } from '@/lib/utils/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { HeldEquipmentSection } from '@/components/equipment/held-equipment-section'
@@ -30,8 +30,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
   const urlFilters = buildTransferFilters(sp, { id: currentUser.id })
   const transferWhere = { ...urlFilters, worker: { equals: userId } }
 
-  // Stats ignore cancelled toggle — SQL already excludes cancelled via hardcoded WHERE clause
-  const statsWhere = stripCancelledFilters(transferWhere)
+  const statsWhere = statsWhereFrom(transferWhere)
 
   const [refData, typeDistribution, heldEquipment] = await Promise.all([
     fetchReferenceData(),
@@ -63,6 +62,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
       <SignedMoneyDisplay amount={payoutsTotal} label="Wypłaty" />
       <HeldEquipmentSection equipment={heldEquipment} />
       <TransfersSection
+        title="Transfery"
         config={{
           query: { where: transferWhere, page, limit, sort },
           baseUrl: `/pracownicy/${id}`,

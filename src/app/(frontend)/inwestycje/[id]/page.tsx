@@ -12,7 +12,7 @@ import { calculateMargin } from '@/lib/db/calculate-margin'
 import { InvestmentSummaryPanel } from '@/components/investments/investment-summary-panel'
 import { StatsVersionToggle } from '@/components/investments/stats-version-toggle'
 import { parseStatsVersion, STATS_VERSION_PARAM } from '@/lib/constants/stats-version'
-import { buildTransferFilters, stripCancelledFilters } from '@/lib/queries/transfer-filters'
+import { buildTransferFilters, statsWhereFrom } from '@/lib/queries/transfer-filters'
 import { buildFinancialFields, buildSettledFields } from '@/lib/queries/investment-financial-fields'
 import { perfStart } from '@/lib/perf'
 import { buildFilterConfig } from '@/lib/utils/build-filter-config'
@@ -41,8 +41,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   const urlFilters = buildTransferFilters(sp, { id: user.id })
   const transferWhere = { ...urlFilters, investment: { equals: investmentId } }
 
-  // Stats ignore cancelled toggle — SQL already excludes cancelled via hardcoded WHERE clause
-  const statsWhere = stripCancelledFilters(transferWhere)
+  const statsWhere = statsWhereFrom(transferWhere)
 
   const version = parseStatsVersion(sp[STATS_VERSION_PARAM])
 
@@ -116,6 +115,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
       )}
 
       <TransfersSection
+        title="Transfery"
         config={{
           query: { where: transferWhere, page, limit, sort },
           baseUrl: `/inwestycje/${id}`,

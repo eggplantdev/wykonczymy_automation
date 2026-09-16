@@ -84,21 +84,32 @@ export function buildTransferFilters(
   const showCancelled =
     getStringParam(searchParams.showCancelled) === '1' || cancelledTransactionAudit
 
+  // Type filter (supports comma-separated multi-select). `null` = the param is absent, `[]` = it
+  // named nothing valid — including the multi-select's „nothing selected" sentinel, which must
+  // empty the list rather than fall through to „all".
+  const typeParam = getStringParam(searchParams.type)
+  const requestedTypes = typeParam
+    ? typeParam.split(',').filter((t) => (TRANSFER_TYPES as readonly string[]).includes(t))
+    : null
+
   if (cancelledTransactionAudit) {
     where.type = { in: ['CANCELLATION'] }
-  } else {
-    // Type filter (supports comma-separated multi-select)
-    const typeParam = getStringParam(searchParams.type)
-    if (typeParam) {
-      let types = typeParam
-        .split(',')
-        .filter((t) => (TRANSFER_TYPES as readonly string[]).includes(t))
-      if (!showCancelled) types = types.filter((t) => t !== 'CANCELLATION')
-      if (types.length > 0) where.type = { in: types }
-      else where.id = NO_RESULTS // No valid types → return no results
-    } else if (!showCancelled) {
-      where.type = { not_in: ['CANCELLATION'] }
+    // Typ here means the type of the transaction that WAS cancelled — every row in this list is a
+    // CANCELLATION, so a scope on the row itself could only ever say „all" or „none", and the Typ
+    // column renders the original's type anyway. Dotted, like the other original-only scopes: only
+    // the list can walk it, so the sum tile drops (scopeNarrowsByOriginalOnlyField).
+    if (requestedTypes) {
+      if (requestedTypes.length > 0) where['cancelledTransaction.type'] = { in: requestedTypes }
+      else where.id = NO_RESULTS
     }
+  } else if (requestedTypes) {
+    const types = showCancelled
+      ? requestedTypes
+      : requestedTypes.filter((t) => t !== 'CANCELLATION')
+    if (types.length > 0) where.type = { in: types }
+    else where.id = NO_RESULTS
+  } else if (!showCancelled) {
+    where.type = { not_in: ['CANCELLATION'] }
   }
 
   if (!showCancelled) {
@@ -193,8 +204,40 @@ export function buildTransferFilters(
 // they could be paired with anything, and „Tryb anulowań" answered „Brak danych" on all three.
 // Exported, so a composed Where can carry original-only fields under a branch — unwalked, the list
 // reads „Brak danych".
-const isBranch = (field: string, condition: unknown): condition is Where[] =>
+const ORIGINAL_PATH_PREFIX = 'cancelledTransaction.'
+
+type WhereLeafT = Where[string]
+
+const isBranch = (field: string, condition: WhereLeafT): condition is Where[] =>
   (field === 'or' || field === 'and') && Array.isArray(condition)
+
+/**
+ * Rewrite a `Where` tree's LEAVES, recursing through `or` / `and`. The recursion is the whole point:
+ * a rule written once for the top level reaches the nested conditions too, which is where these
+ * filters actually get written. Returning `undefined` drops the leaf.
+ */
+function mapWhereLeaves(
+  where: Where,
+  rewrite: (field: string, condition: WhereLeafT) => [string, WhereLeafT] | undefined,
+): Where {
+  return Object.fromEntries(
+    Object.entries(where).flatMap(([field, condition]) => {
+      if (isBranch(field, condition))
+        return [[field, condition.map((branch) => mapWhereLeaves(branch, rewrite))]]
+      const next = rewrite(field, condition)
+      return next ? [next] : []
+    }),
+  )
+}
+
+/** The `.some()` half of `mapWhereLeaves` — same branch walk, asking instead of rewriting. */
+function someWhereLeaf(where: Where, predicate: (field: string) => boolean): boolean {
+  return Object.entries(where).some(([field, condition]) =>
+    isBranch(field, condition)
+      ? condition.some((branch) => someWhereLeaf(branch, predicate))
+      : predicate(field),
+  )
+}
 
 export const FIELDS_ONLY_THE_ORIGINAL_CARRIES = [
   'sourceRegister',
@@ -224,13 +267,10 @@ export const FIELDS_ONLY_THE_ORIGINAL_CARRIES = [
  * `createdBy` is who cancelled it.
  */
 export function scopeAuditThroughOriginal(where: Where): Where {
-  return Object.fromEntries(
-    Object.entries(where).map(([field, condition]) => {
-      if (isBranch(field, condition)) return [field, condition.map(scopeAuditThroughOriginal)]
-      return (FIELDS_ONLY_THE_ORIGINAL_CARRIES as readonly string[]).includes(field)
-        ? [`cancelledTransaction.${field}`, condition]
-        : [field, condition]
-    }),
+  return mapWhereLeaves(where, (field, condition) =>
+    (FIELDS_ONLY_THE_ORIGINAL_CARRIES as readonly string[]).includes(field)
+      ? [`${ORIGINAL_PATH_PREFIX}${field}`, condition]
+      : [field, condition],
   )
 }
 
@@ -241,10 +281,24 @@ export function scopeAuditThroughOriginal(where: Where): Where {
  * confident 0,00 zł beside a populated list.
  */
 export function scopeNarrowsByOriginalOnlyField(where: Where): boolean {
-  return Object.entries(where).some(([field, condition]) => {
-    if (isBranch(field, condition)) return condition.some(scopeNarrowsByOriginalOnlyField)
-    return (FIELDS_ONLY_THE_ORIGINAL_CARRIES as readonly string[]).includes(field)
-  })
+  return someWhereLeaf(
+    where,
+    (field) =>
+      (FIELDS_ONLY_THE_ORIGINAL_CARRIES as readonly string[]).includes(field) ||
+      field.startsWith(ORIGINAL_PATH_PREFIX),
+  )
+}
+
+/**
+ * Drop the scopes that reach through the cancelled original. A page that feeds its own tiles from
+ * the same Where as the list has to take them out before where-to-sql sees them — it knows columns
+ * of `transactions` and throws on a relation path. The tiles are about the inwestycja / pracownik,
+ * not about the audit list, so dropping is the right answer there rather than a re-aim.
+ */
+export function stripOriginalScopedFilters(where: Where): Where {
+  return mapWhereLeaves(where, (field, condition) =>
+    field.startsWith(ORIGINAL_PATH_PREFIX) ? undefined : [field, condition],
+  )
 }
 
 /**
@@ -258,4 +312,15 @@ export function stripCancelledFilters(where: Where): Where {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { cancelled, ...rest } = where
   return rest
+}
+
+/**
+ * The Where a page's own tiles take, given the Where its list took. Both strips, in this order, and
+ * neither is optional: where-to-sql knows columns of `transactions`, so it throws on the dotted
+ * paths the first one removes, and it hardcodes `cancelled IS NOT TRUE`, which the second one stops
+ * double-applying. Exported as one call because two pages were spelling out the composition and a
+ * third would have had to know the order.
+ */
+export function statsWhereFrom(where: Where): Where {
+  return stripCancelledFilters(stripOriginalScopedFilters(where))
 }
