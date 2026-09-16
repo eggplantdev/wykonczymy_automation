@@ -1,8 +1,8 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { DataTable } from '@/components/ui/data-table/data-table'
-import { DataTableToolbar } from '@/components/ui/data-table/data-table-toolbar'
+import { DataTable } from '@/components/tables/data-table/data-table'
+import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { ColumnToggle } from '@/components/filters/column-toggle'
 import { PaginationFooter } from '@/components/ui/pagination-footer'
 import { TransferFilters } from '@/components/transfers/transfer-filters'

@@ -1,7 +1,7 @@
 'use client'
 
 import type { ColumnDef } from '@tanstack/react-table'
-import { DataTable } from '@/components/ui/data-table/data-table'
+import { DataTable } from '@/components/tables/data-table/data-table'
 import { formatNet } from '@/lib/kosztorys/format'
 import { formatPLDate } from '@/lib/utils/format-date'
 import { investmentTransfersHref } from '@/lib/utils/investment-transfers-href'

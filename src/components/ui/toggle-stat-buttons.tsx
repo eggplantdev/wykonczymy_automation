@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { cn } from '@/lib/utils/cn'
 import { Button } from '@/components/ui/button'
-import { FilterGrid } from '@/components/filters/filter-grid'
+import { ControlGrid } from '@/components/ui/control-grid'
 import { Description } from '@/components/ui/description'
 import { SignedMoneyDisplay, signedMoneyColor } from '@/components/ui/signed-money-display'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
@@ -82,7 +82,7 @@ export function ToggleStatButtons({
                 )}
               </Description>
             )}
-            <FilterGrid className="mt-2">
+            <ControlGrid className="mt-2">
               {row.map((entry) => {
                 const isHidden = hidden.has(entry.label)
                 const button = (
@@ -114,7 +114,7 @@ export function ToggleStatButtons({
                   button
                 )
               })}
-            </FilterGrid>
+            </ControlGrid>
           </div>
         )
       })}

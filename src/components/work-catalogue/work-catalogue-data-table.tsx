@@ -2,8 +2,8 @@
 
 import { useDeferredValue, useMemo, useState } from 'react'
 import { Archive, Tags } from 'lucide-react'
-import { DataTable } from '@/components/ui/data-table/data-table'
-import { DataTableToolbar } from '@/components/ui/data-table/data-table-toolbar'
+import { DataTable } from '@/components/tables/data-table/data-table'
+import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { ColumnToggle } from '@/components/filters/column-toggle'
 import { cn } from '@/lib/utils/cn'
 import { GradientSpinner } from '@/components/ui/gradient-spinner'

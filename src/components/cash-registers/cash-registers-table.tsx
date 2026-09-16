@@ -1,9 +1,9 @@
 'use client'
 
 import { useMemo } from 'react'
-import { DataTable } from '@/components/ui/data-table/data-table'
-import { DataTableToolbar } from '@/components/ui/data-table/data-table-toolbar'
-import { ActiveFilterButton } from '@/components/ui/active-filter-button'
+import { DataTable } from '@/components/tables/data-table/data-table'
+import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
+import { ActiveFilterButton } from '@/components/filters/active-filter-button'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
 import { Tags, User } from 'lucide-react'
 import { ColumnToggle } from '@/components/filters/column-toggle'

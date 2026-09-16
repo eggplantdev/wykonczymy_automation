@@ -12,7 +12,7 @@ import {
   Tags,
   User,
 } from 'lucide-react'
-import { FilterGrid } from '@/components/filters/filter-grid'
+import { ControlGrid } from '@/components/ui/control-grid'
 import {
   SearchFilterInput,
   SEARCH_FILTER_TOOLBAR_WIDTH,
@@ -155,7 +155,7 @@ export function TransferFilters({
         showPaymentMethodFilter ||
         (otherCategories && otherCategories.length > 0) ||
         (expenseCategories && expenseCategories.length > 0)) && (
-        <FilterGrid>
+        <ControlGrid>
           {showTypeFilter && (
             <FilterMultiSelect
               values={currentTypes}
@@ -252,13 +252,13 @@ export function TransferFilters({
               searchable
             />
           )}
-        </FilterGrid>
+        </ControlGrid>
       )}
 
       {/* Its own row rather than the tail of the select row: the searches are typed, not picked, and
           on a narrow screen they otherwise landed wherever the selects happened to stop wrapping.
           Outside the guard above too — a page with no entity filters still searches. */}
-      <FilterGrid>
+      <ControlGrid>
         <SearchFilterInput
           value={currentAmount}
           onChange={(v) => updateParam('amount', v)}
@@ -282,7 +282,7 @@ export function TransferFilters({
         <ClearButton onClick={clearEntityFilters} disabled={!hasEntityFilters}>
           Wyczyść filtry
         </ClearButton>
-      </FilterGrid>
+      </ControlGrid>
       <DateFilters baseUrl={baseUrl} />
 
       {totalFilteredAmount !== undefined && hasAnyFilter && (

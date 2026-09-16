@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ColumnDef } from '@tanstack/react-table'
 
-import { DataTable, type DataTableToolbarContextT } from '@/components/ui/data-table/data-table'
+import { DataTable, type DataTableToolbarContextT } from '@/components/tables/data-table/data-table'
 import { rankForMove } from '@/lib/table/column-order'
 
 vi.mock('next/navigation', () => ({

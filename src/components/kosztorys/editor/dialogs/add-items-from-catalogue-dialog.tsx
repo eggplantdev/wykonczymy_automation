@@ -3,7 +3,7 @@
 import { createContext, use, useState } from 'react'
 import { createColumnHelper } from '@tanstack/react-table'
 import { Checkbox } from '@/components/ui/checkbox'
-import { DataTable } from '@/components/ui/data-table/data-table'
+import { DataTable } from '@/components/tables/data-table/data-table'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { DialogActions } from '@/components/ui/dialog-actions'
 import { Button } from '@/components/ui/button'

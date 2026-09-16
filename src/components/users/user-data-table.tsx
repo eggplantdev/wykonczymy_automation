@@ -1,10 +1,10 @@
 'use client'
 
 import { useCallback, useMemo } from 'react'
-import { DataTable } from '@/components/ui/data-table/data-table'
-import { DataTableToolbar } from '@/components/ui/data-table/data-table-toolbar'
+import { DataTable } from '@/components/tables/data-table/data-table'
+import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { ColumnToggle } from '@/components/filters/column-toggle'
-import { ActiveFilterButton } from '@/components/ui/active-filter-button'
+import { ActiveFilterButton } from '@/components/filters/active-filter-button'
 import { AddWorkerDialog } from '@/components/dialogs/add-worker-dialog'
 import { getUserColumns } from '@/components/tables/users'
 import type { UserRowT } from '@/types/table-rows'

@@ -2,8 +2,8 @@
 
 import { useCallback, useMemo } from 'react'
 import { CircleDot, MapPin } from 'lucide-react'
-import { DataTable } from '@/components/ui/data-table/data-table'
-import { DataTableToolbar } from '@/components/ui/data-table/data-table-toolbar'
+import { DataTable } from '@/components/tables/data-table/data-table'
+import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { ColumnToggle } from '@/components/filters/column-toggle'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
 import { AddEquipmentDialog } from '@/components/dialogs/add-equipment-dialog'

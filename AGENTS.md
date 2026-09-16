@@ -276,7 +276,23 @@ Most are self-describing (`src/collections`, `src/access`, `src/stores`, …). T
   directory reaches for it, not when a third file in the same one does.
 - `src/components/ui` is the domain-agnostic primitives layer — a component that knows it is filtering
   a list belongs in `src/components/filters/` (EX-730 moved the last four out of `ui/`; git history and
-  older imports still point at the old home, so don't take a precedent from there)
+  older imports still point at the old home, so don't take a precedent from there).
+  **The rule runs both ways, and `ui/` importing upward is how you spot the violation.** A primitive
+  that reaches into `filters/` (or any feature directory) is in the wrong place, or the thing it reaches
+  for is. EX-787 closed the last of them, in three directions: `ActiveFilterButton` and its checkbox
+  twin `ActiveFilterLabel` moved **up** into `filters/` where they always belonged; `FilterGrid` moved
+  **down** to `ui/control-grid.tsx` as `ControlGrid` — four consumers, only one of them in `filters/`,
+  so it was a shared layout primitive filed under its first caller, not a filters component; and the
+  data-table engine moved **sideways** into `tables/`. Nothing under `src/components/ui/` imports a
+  feature directory today; keep it that way, because no lint rule enforces it.
+- **`src/components/tables/` is the shared table layer** — per-domain column definitions
+  (`transfers.tsx`, `investments.tsx`, …), the `@tanstack/react-table` module augmentation
+  (`column-meta.ts`), and the generic engine in `tables/data-table/`. The engine lived in `ui/` until
+  EX-787 and does not belong there: a toolbar with `search` / `filters` / `columns` / `actions` slots
+  knows it is a data table, and reaching up into `filters/` from `ui/` made the directory graph cycle.
+  It is nested in its own subdirectory rather than flattened beside the column defs, which are a
+  different kind of thing. Its ~15 consumers are `*-data-table.tsx` files in eleven feature
+  directories — there is no "beside the consumer" home for it.
 - **The datasheet-grid seam runs one way.** `src/components/ui/datasheet-grid/` holds the presentational
   primitives a cell renders (`EditableCellInput`, `ReadOnlyCellText`, `CellSelectMenu`); the `Column`
   factories that know what a figure MEANS live in `src/components/kosztorys/editor/grid/cells/`. A

@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import type { ColumnDef } from '@tanstack/react-table'
 import { describe, expect, it, vi } from 'vitest'
 
-import { DataTable } from '@/components/ui/data-table/data-table'
+import { DataTable } from '@/components/tables/data-table/data-table'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }),

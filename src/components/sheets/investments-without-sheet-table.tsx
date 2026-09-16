@@ -1,8 +1,8 @@
 'use client'
 
 import { useMemo } from 'react'
-import { DataTable } from '@/components/ui/data-table/data-table'
-import { DataTableToolbar } from '@/components/ui/data-table/data-table-toolbar'
+import { DataTable } from '@/components/tables/data-table/data-table'
+import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { ColumnToggle } from '@/components/filters/column-toggle'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { getInvestmentWithoutSheetColumns } from '@/components/tables/sheets'

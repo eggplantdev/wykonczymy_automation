@@ -1,6 +1,6 @@
 import type { FormWithFieldT } from '@/components/forms/hooks/form-hooks'
 import { useState } from 'react'
-import { ActiveFilterLabel } from '@/components/ui/active-filter-label'
+import { ActiveFilterLabel } from '@/components/filters/active-filter-label'
 import { EmptyFieldMessage } from './empty-field-message'
 import { useFieldValue } from '@/components/forms/hooks/use-field-value'
 import { activeOrSelected } from '@/lib/utils/is-active-ref'

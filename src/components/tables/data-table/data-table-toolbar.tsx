@@ -1,6 +1,6 @@
 'use client'
 
-import { FilterGrid } from '@/components/filters/filter-grid'
+import { ControlGrid } from '@/components/ui/control-grid'
 import {
   SearchFilterInput,
   SEARCH_FILTER_TOOLBAR_WIDTH,
@@ -46,7 +46,7 @@ export function DataTableToolbar({
     <div className={cn('flex flex-wrap items-center gap-2', className)}>
       {title && <h2 className="text-foreground w-full text-lg font-semibold">{title}</h2>}
       {hasLeft && (
-        <FilterGrid className="sm:w-auto sm:flex-initial sm:items-center">
+        <ControlGrid className="sm:w-auto sm:flex-initial sm:items-center">
           {search && (
             <SearchFilterInput
               {...search}
@@ -54,17 +54,17 @@ export function DataTableToolbar({
             />
           )}
           {filters}
-        </FilterGrid>
+        </ControlGrid>
       )}
       {/* The auto margin lives on the group, not on the picker inside it: this div is always the
           row's last child, so it always has the free space to float into — which the picker only had
           on the pages that happened to render it last. Below `sm` the row is wrapping, and spreading
           there would strand the group alone on the right of whatever line it landed on. */}
       {hasRight && (
-        <FilterGrid className="sm:ml-auto sm:w-auto sm:flex-initial sm:items-center">
+        <ControlGrid className="sm:ml-auto sm:w-auto sm:flex-initial sm:items-center">
           {actions}
           {columns}
-        </FilterGrid>
+        </ControlGrid>
       )}
     </div>
   )
