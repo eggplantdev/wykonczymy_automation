@@ -1,23 +1,39 @@
 # Kosztorys ↔ Google Sheets (legacy sync)
 
-> **Legacy sync for pre-cutover investments** — kept live for every investment still on a
-> sheet, but on death row: new investments go to the in-app editor (roadmap **S-09** cutover),
-> and existing sheets only stay read-accessible afterward (FR-016). No new feature work lands
-> here — bugfixes during the transition only. **Operational pointer, not a design of record.**
-> The current frozen-column contract lives in `context/foundation/lessons.md` — trust it, not
-> this file. The go-forward in-app editor is tracked in `context/foundation/roadmap.md` (S-01+);
-> its decision register is `context/changes/kosztorys-poc-in-app/change.md` on branch
-> `poc-kosztorys-in-app`.
+> **Live production code, not a dying branch (owner, 2026-09-15).** „Legacy" here names the
+> _era_ this sync serves, never its support level: every client still on an old Google sheet is
+> served by it, and that is expected to hold **for a long time**. The two worlds — sheet-integrated
+> and app-only — run **side by side** for an indefinite period, so this is not on death row and
+> there is no date on it. Judge a change here on its merits like any other production code; the
+> earlier „no new feature work, bugfixes only" rule is withdrawn, as is the matching test exclusion
+> (`context/foundation/test-plan.md` §7, overturned the same day).
+>
+> New investments do go to the in-app editor — roadmap **S-19** cutover, reached 2026-08-25 — but
+> the cutover only stopped _new_ sheets appearing; it retired nothing that already exists, and
+> existing sheets stay fully readable (FR-016).
+>
+> **Danger, and the reason this doc is operational.** Every non-production database is a restored
+> prod dump, so localhost, Preview and the E2E DB all carry **live sheet ids** — that is how eight
+> sheets took 36 foreign rows in 2026-08. Writes are gated by the _credential_, not a flag: only
+> Vercel Production holds `GOOGLE_SERVICE_ACCOUNT_WRITE_JSON`. Read `AGENTS.md` („Google Sheets: two
+> service accounts") and `context/reference/outgoing-effects-isolation.md` before touching any write
+> path here.
+>
+> **Operational pointer, not a design of record.** The current frozen-column contract lives in
+> `context/foundation/lessons.md` — trust it, not this file. The go-forward in-app editor is tracked
+> in `context/foundation/roadmap.md` (S-01+); its raw POC docs are archived at
+> `context/archive/kosztorys-poc-in-app/`.
 
 ## What it is
 
 Postgres is the source of truth; the Google Sheet is a **materialised view** of an
 investment's costs — same idea as a CQRS read model (normalised source, denormalised view for
 an owner working in Sheets). Writes flow **one way** (app → sheet). The app never reads sheet
-edits back. This mirror was always **transitional** — a bridge between the sheet-kosztorys world
-and the app-actuals world; once the kosztorys itself lives in the app (roadmap S-01+), the bridge
-has no shore to connect to, so the S-09 cutover retiring it is _completing the transition_, not
-cleanup. The owner opens the sheet in an iframe at `/inwestycje/[id]/kosztorys`; a top-level
+edits back. This mirror was **conceived as transitional** — a bridge between the sheet-kosztorys
+world and the app-actuals world — but it outlived that framing: the in-app editor (roadmap S-01+)
+gave new investments somewhere else to go without taking the far shore away, so the bridge keeps
+carrying every client who is still on a sheet. It gets retired when the last such client is
+migrated, and nothing schedules that. The owner opens the sheet in an iframe at `/inwestycje/[id]/kosztorys`; a top-level
 `/kosztorysy` page lists every kosztorys and links unlinked ones to investments.
 
 A kosztorys is its own collection (`kosztoryses`, slug unchanged), joined 1:1 to `investments`
@@ -84,5 +100,6 @@ src/app/(frontend)/kosztorysy/page.tsx                  ← listing page
 src/app/(frontend)/inwestycje/[id]/kosztorys/page.tsx   ← per-investment iframe
 ```
 
-The full finding ledger from the PR13 review (accepted residuals, won't-fixes) lives at
-`context/reference/plans/2026-05-27-kosztorys-pr13-simplify-review.md`.
+The full finding ledger from the PR13 review (accepted residuals, won't-fixes) was
+`docs/plans/2026-05-27-kosztorys-pr13-simplify-review.md`, deleted in `47608a8a` — recover it from
+git history if a residual ever needs re-reading.
