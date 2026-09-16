@@ -38,9 +38,7 @@ export type ReconcileSweepResultT = {
  * recording that decision (EX-660 — it used to stamp `notifyStatus: 'skipped'`, which
  * is terminal, and silently buried every lead the webhook had dropped).
  *
- * Deliberately free of auth and cache revalidation: the server action and the cron
- * route each supply their own. `updateTag` throws in a Route Handler, so a
- * revalidation baked in here would break one of the two callers at runtime.
+ * Free of auth and cache revalidation — the cron route supplies its own.
  *
  * Partial failure is reported, not thrown: one form's rate-limit must not discard
  * the leads already recovered from earlier forms, nor skip the forms after it —
