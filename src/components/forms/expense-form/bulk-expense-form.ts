@@ -1,5 +1,6 @@
 import { formOptions } from '@tanstack/react-form'
 import type { FormApiOfT } from '@/components/forms/hooks/form-api-of'
+import { randomId } from '@/lib/utils/random-id'
 
 export type BulkExpenseFormValuesT = {
   date: string
@@ -28,7 +29,7 @@ export type BulkLineItemT = BulkExpenseFormValuesT['lineItems'][number]
 // generation markers). Call it per push — reusing one object would collide ids across rows.
 export function makeLineItem(overrides?: Partial<BulkLineItemT>): BulkLineItemT {
   return {
-    id: crypto.randomUUID(),
+    id: randomId(),
     description: '',
     amount: '',
     netAmount: '',
