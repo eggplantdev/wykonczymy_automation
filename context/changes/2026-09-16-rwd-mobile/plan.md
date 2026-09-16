@@ -62,7 +62,7 @@ Context, baseline measurements and the approved phasing live in `change.md` — 
 ## Phase 2 — Primitives
 
 - [x] **2.1 `DialogContent` on mobile.** Full-height sheet below `sm` (`top-0 h-dvh w-full
-    max-w-none`, slide-in from the bottom), the centred box from `sm:` up. `h-dvh` rather than
+max-w-none`, slide-in from the bottom), the centred box from `sm:` up. `h-dvh` rather than
       `vh` so it tracks the shrinking viewport under the keyboard. `DialogHeader` lost its mobile
       `text-center` (desktop was already left) and gained `pr-10` so long titles clear the close
       button.
@@ -81,25 +81,33 @@ Context, baseline measurements and the approved phasing live in `change.md` — 
       ORIGINAL: Consult Radix's `--radix-popover-content-available-height` / `-available-width`;
       drop the fixed `w-72` and the hard `max-h-[300px]` (`ui/command.tsx:88`) for viewport-relative
       bounds.
-- [x] **2.3 Re-check every caller** — code-complete, manual desktop pass NOT done (no browser this
-      session), same caveat as 3.1 / 3.2. The surface left to check is small by construction: a
-      width cap that only binds under ~288px plus anchor, and a height cap already shipped on the
-      sibling primitive. `note-popover.tsx`'s own `max-h-80 overflow-y-auto` still wins via `cn()`
-      ordering; `filter-multi-select`'s `overflow-hidden` still wins over the primitive's
-      `overflow-y-auto` on purpose.
+- [x] **2.3 Re-check every caller** — manually verified at 390px on staging (2026-09-16, commit
+      `b744a3b1`): combobox (investment picker in the deposit dialog), `filter-multi-select`-backed
+      "Typ" filter, column-toggle menu, a date picker, and the kosztorys-v2 "Opcje" menu all open,
+      stay within the viewport, and are usable. Desktop was not re-walked this pass (2.2 already
+      covers the collision-cap behavior there); findings and checklist:
+      `context/foundation/manual-checks.md` → "rwd-mobile — phone pass for plan items 2.3 / 3.1 /
+      3.2".
       ORIGINAL: of the two above on desktop — `combobox`, `filter-multi-select`, `column-toggle`,
       the date pickers, the kosztorys dialogs.
 
 ## Phase 3 — The two named flows
 
-- [x] **3.1 Adding a transaction** — code complete (dialogs are full-height sheets below `sm`, the
-      eleven callers moved to `sm:`-prefixed widths). NOT yet walked on a real phone; that is the
-      manual pass, which this session had no browser for.
+- [x] **3.1 Adding a transaction** — manually walked on staging at 390px (2026-09-16, commit
+      `b744a3b1`): the three top-bar dialogs (deposit, internal transfer, expense) all open as
+      full-height sheets; the deposit dialog's investment combobox opens and is usable inside it.
+      Layout inspected without submitting (staging writes hit the preview DB's real prod-dump data),
+      so the expense form's file/invoice ingest UI was inspected but not exercised end-to-end with a
+      real upload. No layout defects found. Findings and checklist:
+      `context/foundation/manual-checks.md` → "rwd-mobile — phone pass for plan items 2.3 / 3.1 /
+      3.2".
       ORIGINAL: end to end on a phone: the three top-bar dialogs (deposit,
       internal transfer, expense) + the expense form incl. its file/invoice ingest.
-- [x] **3.2 Showing transactions** — code complete: the filter row is the shared
-      `FILTER_CONTROL_GRID` (two even columns below `sm`, flex row above) instead of a ragged wrap.
-      Same manual-pass caveat as 3.1.
+- [x] **3.2 Showing transactions** — manually walked on staging at 390px (2026-09-16, commit
+      `b744a3b1`): `/` renders the filter row as two even columns, the "Filtry" fold
+      collapses/expands it, and the table itself causes no page-level horizontal overflow. Findings
+      and checklist: `context/foundation/manual-checks.md` → "rwd-mobile — phone pass for plan items
+      2.3 / 3.1 / 3.2".
       ORIGINAL: on a phone: the filters row (`filters/filter-grid.tsx` currently
       walls up ~10 triggers) and the table itself. The „Filtry" fold shipped 2026-09-16 already
       helps; decide what the filter row should actually BE on a phone.
@@ -128,4 +136,10 @@ Scoped after 1–3 land, with the owner. Candidates seen while shaping: the rema
 - Utility generation for `typing-surface` verified the same way as the `@theme` tokens above.
 - Unit/DOM suite: owned by the parallel test agent, not run here.
 - `pnpm test:e2e`: not run (≈1h; runs only on request).
-- Manual phone pass: NOT done — no browser this session. 3.1 / 3.2 are code-complete, not verified.
+- Manual phone pass: done 2026-09-16 against staging (commit `b744a3b1`), 2.3 / 3.1 / 3.2 all
+  verified at 390px — no layout defects. The pass reported Escape not closing the drawer as a bug;
+  **dropped on the owner's ruling** — the drawer is `sm:hidden` and a phone has no Escape key, so the
+  only reachable caller is a desktop browser narrowed below 768px. EX-619 set that precedent. The
+  leftover `closeRef` focus call and `onKeyDown` handler in `nav/mobile-nav.tsx` are dead code to
+  clean up, not a defect. Full findings: `context/foundation/manual-checks.md` → "rwd-mobile — phone
+  pass for plan items 2.3 / 3.1 / 3.2".
