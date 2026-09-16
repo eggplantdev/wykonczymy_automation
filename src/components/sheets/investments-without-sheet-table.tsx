@@ -2,10 +2,8 @@
 
 import { useMemo } from 'react'
 import { DataTable } from '@/components/ui/data-table/data-table'
-import {
-  SEARCH_FILTER_TOOLBAR_WIDTH,
-  SearchFilterInput,
-} from '@/components/filters/search-filter-input'
+import { DataTableToolbar } from '@/components/ui/data-table/data-table-toolbar'
+import { ColumnToggle } from '@/components/filters/column-toggle'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { getInvestmentWithoutSheetColumns } from '@/components/tables/sheets'
 import type { InvestmentWithoutSheetRowT } from '@/types/table-rows'
@@ -28,13 +26,12 @@ export function InvestmentsWithoutSheetTable({ data }: PropsT) {
     <DataTable
       data={filteredData}
       columns={columns}
+      storageKey="investments-without-sheet"
       initialSorting={INITIAL_SORTING}
-      toolbar={() => (
-        <SearchFilterInput
-          value={searchTerm}
-          onChange={setSearchTerm}
-          placeholder="Szukaj..."
-          className={SEARCH_FILTER_TOOLBAR_WIDTH}
+      toolbar={({ table, columnVisibility: cv, ...order }) => (
+        <DataTableToolbar
+          search={{ value: searchTerm, onChange: setSearchTerm }}
+          columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
         />
       )}
     />

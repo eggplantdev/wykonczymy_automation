@@ -2,14 +2,11 @@
 
 import { useMemo } from 'react'
 import { DataTable } from '@/components/ui/data-table/data-table'
+import { DataTableToolbar } from '@/components/ui/data-table/data-table-toolbar'
 import { ActiveFilterButton } from '@/components/ui/active-filter-button'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
 import { Tags, User } from 'lucide-react'
 import { ColumnToggle } from '@/components/filters/column-toggle'
-import {
-  SEARCH_FILTER_TOOLBAR_WIDTH,
-  SearchFilterInput,
-} from '@/components/filters/search-filter-input'
 import { getCashRegisterColumns, REGISTER_TYPE_LABELS } from '@/components/tables/cash-registers'
 import { RegisterBalanceChart } from '@/components/dashboard/register-balance-chart'
 import { AddCashRegisterDialog } from '@/components/dialogs/add-cash-register-dialog'
@@ -85,37 +82,36 @@ export function CashRegistersTable({ data, workers, className }: CashRegistersTa
         getRowHref={(row) => `/kasa/${row.id}`}
         getRowClassName={(row) => (!row.active ? 'opacity-50' : '')}
         toolbar={({ table, columnVisibility: cv, ...order }) => (
-          <>
-            <SearchFilterInput
-              value={searchTerm}
-              onChange={setSearchTerm}
-              placeholder="Szukaj..."
-              className={SEARCH_FILTER_TOOLBAR_WIDTH}
-            />
-            <FilterMultiSelect
-              label="Typ"
-              options={TYPE_OPTIONS}
-              values={typeValues}
-              onValuesChange={setTypeValues}
-              icon={Tags}
-            />
-            <FilterMultiSelect
-              label="Właściciel"
-              options={ownerOptions}
-              values={ownerValues}
-              onValuesChange={setOwnerValues}
-              icon={User}
-              searchable
-            />
-            <ActiveFilterButton
-              isActive={showOnlyActive}
-              onChange={setShowOnlyActive}
-              activeLabel="Aktywne"
-              allLabel="Wszystkie"
-            />
-            <AddCashRegisterDialog workers={workers} />
-            <ColumnToggle table={table} columnVisibility={cv} {...order} />
-          </>
+          <DataTableToolbar
+            search={{ value: searchTerm, onChange: setSearchTerm }}
+            filters={
+              <>
+                <FilterMultiSelect
+                  label="Typ"
+                  options={TYPE_OPTIONS}
+                  values={typeValues}
+                  onValuesChange={setTypeValues}
+                  icon={Tags}
+                />
+                <FilterMultiSelect
+                  label="Właściciel"
+                  options={ownerOptions}
+                  values={ownerValues}
+                  onValuesChange={setOwnerValues}
+                  icon={User}
+                  searchable
+                />
+                <ActiveFilterButton
+                  isActive={showOnlyActive}
+                  onChange={setShowOnlyActive}
+                  activeLabel="Aktywne"
+                  allLabel="Wszystkie"
+                />
+              </>
+            }
+            columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
+            actions={<AddCashRegisterDialog workers={workers} />}
+          />
         )}
       />
     </>

@@ -2,10 +2,9 @@
 
 import { useSearchParams } from 'next/navigation'
 import { DataTable } from '@/components/ui/data-table/data-table'
+import { DataTableToolbar } from '@/components/ui/data-table/data-table-toolbar'
 import { ColumnToggle } from '@/components/filters/column-toggle'
 import { PaginationFooter } from '@/components/ui/pagination-footer'
-import { CancelledFilterButton } from '@/components/transfers/cancelled-filter-button'
-import { CancelledTransactionAuditButton } from '@/components/transfers/cancelled-transaction-audit-button'
 import { TransferFilters } from '@/components/transfers/transfer-filters'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { InvoiceDownloadButton } from '@/components/transfers/invoice-download-button'
@@ -82,18 +81,23 @@ export function TransferDataTable({
           return ''
         }}
         toolbar={({ table, columnVisibility: cv, ...order }) => (
-          <div className={`mt-8 flex w-full flex-wrap items-center justify-between gap-4`}>
-            {title && <h2 className="text-foreground w-full text-lg font-semibold">{title}</h2>}
-            <div className="flex items-center gap-2">
-              <CancelledTransactionAuditButton baseUrl={baseUrl} />
-              <CancelledFilterButton baseUrl={baseUrl} />
-              {invoiceDownload && <InvoiceDownloadButton where={config.query.where} />}
-              {print && (
-                <PrintTransfersButton where={config.query.where} table={table} title="Transakcje" />
-              )}
-              <ColumnToggle table={table} columnVisibility={cv} {...order} />
-            </div>
-          </div>
+          <DataTableToolbar
+            className="mt-8"
+            title={title}
+            columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
+            actions={
+              <>
+                {invoiceDownload && <InvoiceDownloadButton where={config.query.where} />}
+                {print && (
+                  <PrintTransfersButton
+                    where={config.query.where}
+                    table={table}
+                    title="Transakcje"
+                  />
+                )}
+              </>
+            }
+          />
         )}
       />
       <PaginationFooter paginationMeta={paginationMeta} baseUrl={baseUrl} />

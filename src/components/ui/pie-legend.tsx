@@ -17,12 +17,17 @@ export function PieSliceLegend({
 }) {
   const total = slices.reduce((sum, slice) => sum + slice.value, 0)
   return (
-    <ul className="flex flex-col gap-1 text-sm">
+    <ul className="flex w-full min-w-0 flex-col gap-1 text-sm">
       {slices.map((slice) => (
         <li key={slice.id} className="flex items-center gap-2">
           <span className="size-3 shrink-0 rounded-xs" style={{ backgroundColor: slice.fill }} />
-          <span className="truncate">{slice.name}</span>
-          <span className="ml-auto flex items-center gap-2">
+          {/* The figures keep their width and the name gives up its tail: a sekcja is named in a full
+              sentence („Instalacja wodno-kanalizacyjna / C.O."), and on a phone the row is narrower
+              than that name plus its two numbers. The full name stays reachable as the tooltip. */}
+          <span className="min-w-0 truncate" title={slice.name}>
+            {slice.name}
+          </span>
+          <span className="ml-auto flex shrink-0 items-center gap-2">
             {total > 0 && (
               <span className="text-muted-foreground tabular-nums">
                 {formatPercent(slice.value / total)}

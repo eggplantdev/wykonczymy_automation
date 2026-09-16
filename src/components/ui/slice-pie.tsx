@@ -36,7 +36,12 @@ export function SlicePie({
   if (!isInvalidTotal && slices.filter((slice) => slice.value !== 0).length < 2) return null
 
   return (
-    <figure className="flex flex-col gap-3">
+    // `w-full`: the hosts stack this under their table with `items-start`, which sizes a column item
+    // to its content — so without it the legend widened to its longest sekcja name instead of
+    // truncating, and took the whole block off the side of a phone. The cap above that is what keeps
+    // the cure from spreading: unbounded, the legend takes the panel's whole width and strands the
+    // pie in the middle of it.
+    <figure className="flex w-full min-w-0 flex-col gap-3 sm:max-w-md">
       {(caption || action) && (
         <figcaption>
           {caption && <span className="text-muted-foreground mr-4 text-xs">{caption}</span>}

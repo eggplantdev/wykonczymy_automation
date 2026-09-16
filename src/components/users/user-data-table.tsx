@@ -2,12 +2,9 @@
 
 import { useCallback, useMemo } from 'react'
 import { DataTable } from '@/components/ui/data-table/data-table'
+import { DataTableToolbar } from '@/components/ui/data-table/data-table-toolbar'
 import { ColumnToggle } from '@/components/filters/column-toggle'
 import { ActiveFilterButton } from '@/components/ui/active-filter-button'
-import {
-  SEARCH_FILTER_TOOLBAR_WIDTH,
-  SearchFilterInput,
-} from '@/components/filters/search-filter-input'
 import { AddWorkerDialog } from '@/components/dialogs/add-worker-dialog'
 import { getUserColumns } from '@/components/tables/users'
 import type { UserRowT } from '@/types/table-rows'
@@ -54,21 +51,19 @@ export function UserDataTable({ data, cashRegisters }: UserDataTablePropsT) {
       getRowHref={(row) => `/pracownicy/${row.id}`}
       getRowClassName={(row) => (!row.active ? 'opacity-50' : '')}
       toolbar={({ table, columnVisibility: cv, ...order }) => (
-        <>
-          <SearchFilterInput
-            value={searchTerm}
-            onChange={setSearchTerm}
-            className={SEARCH_FILTER_TOOLBAR_WIDTH}
-          />
-          <ActiveFilterButton
-            isActive={showOnlyActive}
-            onChange={setShowOnlyActive}
-            activeLabel="Aktywni"
-            allLabel="Wszyscy"
-          />
-          <AddWorkerDialog cashRegisters={cashRegisters} />
-          <ColumnToggle table={table} columnVisibility={cv} {...order} />
-        </>
+        <DataTableToolbar
+          search={{ value: searchTerm, onChange: setSearchTerm }}
+          filters={
+            <ActiveFilterButton
+              isActive={showOnlyActive}
+              onChange={setShowOnlyActive}
+              activeLabel="Aktywni"
+              allLabel="Wszyscy"
+            />
+          }
+          columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
+          actions={<AddWorkerDialog cashRegisters={cashRegisters} />}
+        />
       )}
     />
   )

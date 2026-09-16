@@ -36,11 +36,11 @@ export function VehicleDetailTabs({
 
   return (
     <div className="flex flex-col gap-4">
-      <DateRangePicker value={range} onChange={setRange} />
-
       <div className="w-fit">
         <ToggleGroup options={OPTIONS} value={view} onChange={setView} aria-label="Widok pojazdu" />
       </div>
+
+      <DateRangePicker value={range} onChange={setRange} />
 
       {view === 'inspections' ? (
         <InspectionHistory historyByType={shown} fullHistoryByType={historyByType} />

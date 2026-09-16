@@ -3,11 +3,9 @@
 import { useCallback, useMemo } from 'react'
 import { CircleDot, MapPin } from 'lucide-react'
 import { DataTable } from '@/components/ui/data-table/data-table'
+import { DataTableToolbar } from '@/components/ui/data-table/data-table-toolbar'
+import { ColumnToggle } from '@/components/filters/column-toggle'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
-import {
-  SEARCH_FILTER_TOOLBAR_WIDTH,
-  SearchFilterInput,
-} from '@/components/filters/search-filter-input'
 import { AddEquipmentDialog } from '@/components/dialogs/add-equipment-dialog'
 import { getEquipmentColumns } from '@/components/tables/equipment'
 import { whereFilterOptions, whereFilterValue } from '@/components/equipment/where-filter-options'
@@ -91,31 +89,41 @@ export function EquipmentDataTable({
       // Sold, lost and retired items stay listed — the register is also the record of what we USED to
       // have — but they are visibly out of the working set.
       getRowClassName={(row) => (isLiveStatus(row.status) ? '' : 'opacity-60')}
-      toolbar={() => (
-        <>
-          <SearchFilterInput
-            value={searchTerm}
-            onChange={setSearchTerm}
-            placeholder="Szukaj sprzętu..."
-            className={SEARCH_FILTER_TOOLBAR_WIDTH}
-          />
-          <FilterMultiSelect
-            label="Gdzie jest"
-            options={placeOptions}
-            values={places}
-            onValuesChange={setPlaces}
-            icon={MapPin}
-            searchable
-          />
-          <FilterMultiSelect
-            label="Status"
-            options={STATUS_OPTIONS}
-            values={statuses}
-            onValuesChange={setStatuses}
-            icon={CircleDot}
-          />
-          <AddEquipmentDialog workers={workers} warehouses={warehouses} investments={investments} />
-        </>
+      toolbar={({ table, columnVisibility: cv, ...order }) => (
+        <DataTableToolbar
+          columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
+          search={{
+            value: searchTerm,
+            onChange: setSearchTerm,
+            placeholder: 'Szukaj sprzętu...',
+          }}
+          filters={
+            <>
+              <FilterMultiSelect
+                label="Gdzie jest"
+                options={placeOptions}
+                values={places}
+                onValuesChange={setPlaces}
+                icon={MapPin}
+                searchable
+              />
+              <FilterMultiSelect
+                label="Status"
+                options={STATUS_OPTIONS}
+                values={statuses}
+                onValuesChange={setStatuses}
+                icon={CircleDot}
+              />
+            </>
+          }
+          actions={
+            <AddEquipmentDialog
+              workers={workers}
+              warehouses={warehouses}
+              investments={investments}
+            />
+          }
+        />
       )}
     />
   )

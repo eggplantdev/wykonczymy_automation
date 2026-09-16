@@ -68,7 +68,7 @@ type DataTablePropsT<TData> = {
   toolbar?: (ctx: DataTableToolbarContextT<TData>) => React.ReactNode
   /** A row count, a hint about what the filters did. Its own row rather than another toolbar item so
    * it reads as a statement about the list below it. */
-  belowToolbar?: React.ReactNode
+  aboveToolbar?: React.ReactNode
   className?: string
 }
 
@@ -87,7 +87,7 @@ export function DataTable<TData>({
   getRowClassName,
   footer,
   toolbar,
-  belowToolbar,
+  aboveToolbar,
   className,
 }: DataTablePropsT<TData>) {
   const [localSorting, setLocalSorting] = useState<SortingState>(initialSorting)
@@ -169,20 +169,22 @@ export function DataTable<TData>({
   const visibleColumnKey = visibleColumnIdList.join('_')
 
   return (
-    <div className={cn('space-y-2', className)}>
-      {toolbar && (
-        <div className="flex items-center gap-2">
-          {toolbar({
-            table,
-            columnVisibility,
-            ranks,
-            baseRanks: baseRanksFromKeys(declaredColumnIds),
-            setRank,
-            resetOrder,
-          })}
-        </div>
-      )}
-      {belowToolbar}
+    /* 24px below `sm` to match `PageWrapper`'s own `gap-6`, so the title, the toolbar and the table
+       are spaced alike. The stock 8px is what the toolbar already puts between its own wrapped
+       rows, which left the table looking welded to the last row of buttons. */
+    <div className={cn('space-y-2 max-sm:space-y-6', className)}>
+      {/* Pulled back against the stack's own 24px: this line counts what the table is showing, so it
+          reads as part of the page heading above it rather than as the first row of the toolbar. It
+          cannot simply live in `PageWrapper`'s <h1> — the count follows the client-side filters. */}
+      {aboveToolbar && <div className="max-sm:-mt-4">{aboveToolbar}</div>}
+      {toolbar?.({
+        table,
+        columnVisibility,
+        ranks,
+        baseRanks: baseRanksFromKeys(declaredColumnIds),
+        setRank,
+        resetOrder,
+      })}
       <div className="border-border overflow-x-auto rounded-lg border">
         {enableVirtualization ? (
           <VirtualizedTableBody

@@ -82,11 +82,31 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
 
   return (
     <>
-      <Button size="sm" variant="outline" onClick={() => setSetupOpen(true)} disabled={pending}>
-        Zresetuj wydatki inwestycyjne
+      {/* Both labels name „wydatki inwestycyjne", so two of them are wider than a phone. They give
+          up their tail rather than the row: `shrink` because the button base is `shrink-0`, and the
+          ellipsis needs a block child — `text-overflow` does nothing on the button's own flex box.
+          The full label stays reachable as the tooltip. */}
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() => setSetupOpen(true)}
+        disabled={pending}
+        className="min-w-0 shrink"
+        title="Zresetuj wydatki inwestycyjne"
+      >
+        <span className="truncate">Zresetuj wydatki inwestycyjne</span>
       </Button>
-      <Button size="sm" variant="outline" onClick={onCheck} disabled={pending}>
-        {pending ? 'Synchronizuję…' : 'Synchronizuj wydatki inwestycyjne'}
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={onCheck}
+        disabled={pending}
+        className="min-w-0 shrink"
+        title="Synchronizuj wydatki inwestycyjne"
+      >
+        <span className="truncate">
+          {pending ? 'Synchronizuję…' : 'Synchronizuj wydatki inwestycyjne'}
+        </span>
       </Button>
 
       <ConfirmDialog
@@ -111,7 +131,7 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
         onCancel={() => setSetupOpen(false)}
       />
       <Dialog open={preview !== null} onOpenChange={(open) => !open && setPreview(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader
             title="Synchronizacja wydatków inwestycyjnych"
             description="Do arkusza zostaną dodane nowe wydatki inwestycyjne, a istniejące wiersze zostaną odświeżone, aby pasowały do danych z aplikacji. Wiersze dodane ręcznie (spoza aplikacji) pozostają bez zmian."

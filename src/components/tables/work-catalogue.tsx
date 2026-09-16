@@ -7,7 +7,6 @@ import { formatPercentPrecise } from '@/lib/kosztorys/format'
 import { MAX_CLIENT_SHARE } from '@/lib/kosztorys/subcontractor-price-guard'
 import { compareDescriptions } from '@/lib/kosztorys/work-catalogue/compare-descriptions'
 import { CatalogueRowActions } from '@/components/work-catalogue/catalogue-row-actions'
-import type { SuspectT } from '@/lib/kosztorys/work-catalogue/suspects'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
 const col = createColumnHelper<WorkCatalogueItemT>()
@@ -65,40 +64,14 @@ const lpColumn = (ordinals: ReadonlyMap<number, number>) =>
     ),
   })
 
-// TEMPORARY (EX-748 review): red = nie jest pracą, bursztyn = ma bliźniaka. The picker passes no
-// map, so only /katalog-prac paints.
-const SUSPECT_CLASS = {
-  junk: 'text-destructive',
-  duplicate: 'text-amber-600 dark:text-amber-400',
-} as const satisfies Record<SuspectT['level'], string>
-
-const makeDescriptionColumn = (suspects: ReadonlyMap<number, SuspectT>) =>
-  col.accessor('description', {
-    id: 'description',
-    header: 'Opis pracy',
-    sortingFn: (first, second) =>
-      compareDescriptions(first.original.description, second.original.description),
-    meta: { minWidth: 'min-w-112' },
-    cell: (info) => {
-      const suspect = suspects.get(info.row.original.id)
-      return (
-        <span className="block">
-          <span className={cn('font-medium', suspect && SUSPECT_CLASS[suspect.level])}>
-            {info.getValue()}
-          </span>
-          {/* Written out rather than left in a tooltip: the review reads down the column, and a
-              reason that costs a hover per row would not be read at all. */}
-          {suspect && (
-            <span className={cn('block text-xs', SUSPECT_CLASS[suspect.level])}>
-              {suspect.reason}
-            </span>
-          )}
-        </span>
-      )
-    },
-  })
-
-const descriptionColumn = makeDescriptionColumn(new Map())
+const descriptionColumn = col.accessor('description', {
+  id: 'description',
+  header: 'Opis pracy',
+  sortingFn: (first, second) =>
+    compareDescriptions(first.original.description, second.original.description),
+  meta: { minWidth: 'min-w-112' },
+  cell: (info) => <span className="block font-medium">{info.getValue()}</span>,
+})
 
 const categoryColumn = col.accessor((row) => row.category ?? '', {
   id: 'category',
@@ -164,15 +137,13 @@ export const WORK_CATALOGUE_PICKER_COLUMNS = [
 export function getWorkCatalogueColumns({
   categorySuggestions,
   ordinals,
-  suspects,
 }: {
   categorySuggestions: readonly string[]
   ordinals: ReadonlyMap<number, number>
-  suspects: ReadonlyMap<number, SuspectT>
 }) {
   return [
     lpColumn(ordinals),
-    makeDescriptionColumn(suspects),
+    descriptionColumn,
     categoryColumn,
     unitColumn,
     clientPriceColumn,
@@ -184,6 +155,7 @@ export function getWorkCatalogueColumns({
     col.display({
       id: 'actions',
       header: 'Akcje',
+      meta: { align: 'right' },
       cell: (info) => (
         <CatalogueRowActions item={info.row.original} categorySuggestions={categorySuggestions} />
       ),

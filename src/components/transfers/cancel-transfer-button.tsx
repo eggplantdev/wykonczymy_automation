@@ -61,7 +61,7 @@ export function CancelTransferButton({ transactionId }: CancelTransferButtonProp
       />
 
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent showCloseButton={false} className="h-fit sm:max-w-md">
+        <DialogContent showCloseButton={false} className="sm:h-fit sm:max-w-md">
           <DialogHeader
             title="Anulowanie transakcji"
             description={`Czy na pewno chcesz anulować transakcję #${transactionId}? Operacja jest nieodwracalna.`}

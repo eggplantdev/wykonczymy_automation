@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowUpDown, CheckIcon, Eye, EyeOff, Settings2 } from 'lucide-react'
+import { ArrowUpDown, CheckCheck, CheckIcon, Settings2 } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,9 +38,7 @@ export function ColumnToggleMenu({ items, onToggle, onToggleAll, onOpenOrder, cl
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        {/* ml-auto floats the trigger right in a flat toolbar; a caller that already groups its
-            right-hand controls passes ml-0 to opt out. */}
-        <Button variant="outline" size="sm" className={cn('ml-auto gap-1.5', className)}>
+        <Button variant="outline" size="sm" className={cn('gap-1.5', className)}>
           <Settings2 />
           Kolumny
         </Button>
@@ -56,12 +54,15 @@ export function ColumnToggleMenu({ items, onToggle, onToggleAll, onOpenOrder, cl
           </>
         )}
         <DropdownMenuLabel>Widoczne kolumny</DropdownMenuLabel>
-        <DropdownMenuSeparator />
+        {/* Same shape as the filter menus (`components/filters/filter-multi-select.tsx`): the bulk
+            row is the first row of the list it acts on. Its icon is the plural of theirs rather than
+            a third symbol — and it never dims, because the label already names the direction, so a
+            state tick here would be answering a question the row doesn't ask. */}
         <DropdownMenuItem
           onSelect={(e) => e.preventDefault()}
           onClick={() => onToggleAll(!allVisible)}
         >
-          {allVisible ? <EyeOff /> : <Eye />}
+          <CheckCheck />
           {allVisible ? 'Ukryj wszystkie' : 'Pokaż wszystkie'}
         </DropdownMenuItem>
         <DropdownMenuSeparator />

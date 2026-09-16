@@ -68,6 +68,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
 
       {/* Transactions table */}
       <TransfersSection
+        title="Transfery"
         config={{
           query: { where: transferWhere, page, limit, sort },
           baseUrl: `/kasa/${id}`,

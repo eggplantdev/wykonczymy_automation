@@ -5,8 +5,10 @@ import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils/cn'
 
-/** The width every toolbar search field shares — a layout value, so the caller passes it in. */
-export const SEARCH_FILTER_TOOLBAR_WIDTH = 'w-40 lg:w-56'
+/** The width every toolbar search field shares — a layout value, so the caller passes it in.
+ * Full width below `sm`: a 160px basis is still shrinkable, so in a crowded toolbar the field
+ * collapsed to a few characters. On a phone it takes the whole wrapped row instead. */
+export const SEARCH_FILTER_TOOLBAR_WIDTH = 'w-full sm:w-40 lg:w-56'
 
 type SearchFilterInputPropsT = {
   value: string
@@ -75,7 +77,7 @@ export function SearchFilterInput({
         onChange={(e) => handleChange(e.target.value)}
         placeholder={placeholder}
         inputMode={inputMode}
-        className="h-8 pl-8 text-sm"
+        className="h-8 pl-8"
       />
     </div>
   )

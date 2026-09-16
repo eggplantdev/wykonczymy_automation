@@ -1,29 +1,30 @@
 'use client'
 
 import { Check } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { FilterTriggerButton } from '@/components/filters/filter-trigger-button'
 
 type ActiveFilterButtonPropsT = {
   isActive: boolean
   onChange: (value: boolean) => void
   activeLabel: string
-  allLabel: string
+  /** Only where the two states name different SETS („Aktywne" / „Wszystkie"). Omit it where the
+   *  button names one action instead — the variant and the tick already say whether it is on. */
+  allLabel?: string
 }
 
 export function ActiveFilterButton({
   isActive,
   onChange,
   activeLabel,
-  allLabel,
+  allLabel = activeLabel,
 }: ActiveFilterButtonPropsT) {
   return (
-    <Button
-      variant={isActive ? 'activeFilter' : 'outline'}
-      size="sm"
+    <FilterTriggerButton
+      active={isActive}
+      icon={isActive ? Check : undefined}
       onClick={() => onChange(!isActive)}
     >
-      {isActive && <Check className="size-3.5" />}
       {isActive ? activeLabel : allLabel}
-    </Button>
+    </FilterTriggerButton>
   )
 }

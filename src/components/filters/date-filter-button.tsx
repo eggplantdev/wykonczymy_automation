@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { format, parse } from 'date-fns'
 import { pl } from 'date-fns/locale'
-import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
+import { FilterTriggerButton } from '@/components/filters/filter-trigger-button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 type DateFilterButtonPropsT = {
@@ -27,15 +27,9 @@ export function DateFilterButton({ label, value, onChange }: DateFilterButtonPro
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant={value ? 'activeFilter' : 'outline'}
-          size="sm"
-          align="start"
-          className="min-w-40"
-        >
-          <CalendarIcon />
+        <FilterTriggerButton active={!!value} icon={CalendarIcon}>
           {selected ? format(selected, 'd MMM yyyy', { locale: pl }) : label}
-        </Button>
+        </FilterTriggerButton>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar

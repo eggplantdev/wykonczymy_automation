@@ -3,10 +3,8 @@
 import { useMemo } from 'react'
 import { Plus } from 'lucide-react'
 import { DataTable } from '@/components/ui/data-table/data-table'
-import {
-  SEARCH_FILTER_TOOLBAR_WIDTH,
-  SearchFilterInput,
-} from '@/components/filters/search-filter-input'
+import { DataTableToolbar } from '@/components/ui/data-table/data-table-toolbar'
+import { ColumnToggle } from '@/components/filters/column-toggle'
 import { AddSheetDialog } from '@/components/dialogs/add-sheet-dialog'
 import { Button } from '@/components/ui/button'
 import { useSearchFilter } from '@/hooks/use-search-filter'
@@ -37,24 +35,23 @@ export function KosztorysDataTable({ data, availableInvestments }: PropsT) {
     <DataTable
       data={filteredData}
       columns={columns}
+      storageKey="sheets-kosztorys"
       initialSorting={INITIAL_SORTING}
-      toolbar={() => (
-        <>
-          <SearchFilterInput
-            value={searchTerm}
-            onChange={setSearchTerm}
-            placeholder="Szukaj..."
-            className={SEARCH_FILTER_TOOLBAR_WIDTH}
-          />
-          <AddSheetDialog
-            trigger={
-              <Button size="sm">
-                <Plus />
-                Nowy kosztorys
-              </Button>
-            }
-          />
-        </>
+      toolbar={({ table, columnVisibility: cv, ...order }) => (
+        <DataTableToolbar
+          columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
+          search={{ value: searchTerm, onChange: setSearchTerm }}
+          actions={
+            <AddSheetDialog
+              trigger={
+                <Button variant="outline" size="sm">
+                  <Plus />
+                  Nowy kosztorys
+                </Button>
+              }
+            />
+          }
+        />
       )}
     />
   )
