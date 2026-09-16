@@ -6,7 +6,8 @@
 >
 > Refresh: re-run `/10x-test-plan --refresh` when stale (see §8).
 >
-> Last updated: 2026-07-08 (Phase 1 change opened)
+> Last updated: 2026-09-16 (doc-staleness pass; §7 negative space revised 2026-09-15
+> during the test-suite audit, §1–§5 strategy still as frozen 2026-07-08)
 
 ## 1. Strategy
 
@@ -94,7 +95,7 @@ The classic test base for this project. AI-native tools (if any) carry a
 
 | Layer                | Tool                                 | Version | Notes                                                                                                                                  |
 | -------------------- | ------------------------------------ | ------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| unit + integration   | Vitest                               | ^4.0.18 | `pnpm test`; specs in `src/__tests__` (52 files), `@/*` alias, env stubbed via `src/__tests__/stubs/`                                  |
+| unit + integration   | Vitest                               | ^4.0.18 | `pnpm test`; specs in `src/__tests__` (368 files, measured 2026-09-16), `@/*` alias, env stubbed via `src/__tests__/stubs/`            |
 | DB-backed tests      | Vitest + docker Postgres             | ^4.0.18 | `*.db.test.ts` hit a real Postgres; new isolated test DB `wykonczymy-test` on port 5435                                                |
 | e2e                  | Playwright                           | ^1.50.0 | `pnpm test:e2e`; own port 3100, isolated `.next-e2e` build, system Chrome; **auth fixture + isolated-DB wiring missing — see Phase 1** |
 | API mocking          | none yet — see Phase 2/3             | —       | Integration layer is thin; mock only at the network edge (e.g. Google Sheets HTTP)                                                     |
@@ -185,7 +186,7 @@ contributors should respect these unless the underlying assumption changes.
   entries still stand unverified against what the team believes today: **caching / revalidation**
   (83 LOC of specs exist against the exclusion) and **UI snapshot / visual-regression** (the repo's
   only `.snap` is an API-payload characterization, not a visual one, so it does not violate this).
-- §4 stack figures are **stale**: it says "52 spec files"; the suite holds **348** (measured 2026-09-15).
+- §4 spec count refreshed 2026-09-16: **368** files in `src/__tests__` (plus 28 Playwright specs in `e2e/`). The 2026-09-15 audit measured 348; the `e2e-backlog-audit` specs landed on top.
 
 Refresh (`/10x-test-plan --refresh`) when:
 
