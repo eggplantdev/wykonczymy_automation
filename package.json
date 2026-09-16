@@ -30,6 +30,7 @@
     "seed:kosztorys-deletes": "source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_TEST\" node --env-file=.env --import tsx src/scripts/seed-kosztorys-deletes.ts",
     "seed:kosztorys:test": "source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_TEST\" INV=${INV:-7} node --env-file=.env --import tsx src/scripts/perf-seed-kosztorys.ts",
     "seed:kosztorys-grid": "source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_TEST\" node --env-file=.env --import tsx src/scripts/seed-kosztorys-grid.ts",
+    "seed:kosztorys-structure": "source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_TEST\" node --env-file=.env --import tsx src/scripts/seed-kosztorys-structure.ts",
     "seed:kosztorys-undo": "source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_TEST\" node --env-file=.env --import tsx src/scripts/seed-kosztorys-undo.ts",
     "seed:kosztorys-sort": "source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_TEST\" node --env-file=.env --import tsx src/scripts/seed-kosztorys-sort.ts",
     "seed:kosztorys-presets": "source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_TEST\" node --env-file=.env --import tsx src/scripts/seed-kosztorys-presets.ts",
