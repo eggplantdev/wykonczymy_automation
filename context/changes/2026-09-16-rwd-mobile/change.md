@@ -1,7 +1,7 @@
 ---
 change_id: rwd-mobile
 title: RWD — make the app usable on a phone (navigation, transactions, primitives)
-status: planned
+status: impl_reviewed
 created: 2026-09-16
 updated: 2026-09-16
 archived_at: null
