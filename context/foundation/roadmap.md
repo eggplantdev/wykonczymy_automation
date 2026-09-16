@@ -13,7 +13,7 @@ top_blocker: none
 
 > Derived from `context/foundation/prd.md` (v1) + probed codebase baseline.
 > Edit-in-place; archive when superseded.
-> Slices are ordered by number (F-01, S-01…S-19; `O-01` is standalone infra, outside the arc), and the number _is_ the order — to reorder, renumber the slice, never move a row/block out of numeric sequence. The "At a glance" table is the index.
+> Slices are ordered by number (F-01, S-01…S-19; `O-01`/`O-02` are standalone, outside the arc), and the number _is_ the order — to reorder, renumber the slice, never move a row/block out of numeric sequence. The "At a glance" table is the index.
 
 > **Sheet-parity reference — read before designing any editor slice.**
 > `context/reference/kosztorys-editor-domain-notes.md` is the domain reference for the original
@@ -169,6 +169,7 @@ Bands: **editor parity S-01–S-09** → **financial-plane bridge S-11–S-12** 
 | ---- | ------------------------------- | --------------------------------------------------------------------------------------- | ------------------ | ----------------------------- | -------- | ---------- |
 | F-01 | e2e-harness                     | (foundation) Playwright E2E harness, CI-runnable, isolated DB                           | —                  | FR-011                        | done     | —          |
 | O-01 | sentry-observability            | capture prod errors + tracing + session replay in Sentry (standalone infra)             | —                  | — (owner request)             | proposed | yes        |
+| O-02 | rwd-mobile                      | make the app usable on a phone: navigation, adding + showing transactions (standalone)  | —                  | — (owner request)             | ready    | yes        |
 | S-01 | kosztorys-sections-items        | author kosztorys sections + items in-app with live totals                               | —                  | FR-001, FR-002, FR-007, US-01 | done     | —          |
 | S-02 | kosztorys-price-models          | record three price models per item and toggle the pricing view                          | S-01               | FR-003                        | done     | —          |
 | S-03 | kosztorys-stages                | manage stages (etapy) and record per-item, per-stage progress                           | S-01               | FR-004                        | done     | —          |
@@ -214,7 +215,7 @@ on the same seam, so it is band-2 work rather than a new slice: no roadmap row, 
 EX-649. What it changes structurally is that `marginV2` stands **beside** `calculateMargin`; nothing
 in bands 1–5 is redirected by it.
 
-Within band 1, `S-01` (north star) heads the track; `S-02`–`S-09` all build on it and run in parallel (`S-04` also needs `S-02`). `F-01` (harness) is independent and can run any time; it unblocks the band-4 test slices. `O-01` (Sentry observability) is likewise standalone infra — no dependency on any slice, ships any time.
+Within band 1, `S-01` (north star) heads the track; `S-02`–`S-09` all build on it and run in parallel (`S-04` also needs `S-02`). `F-01` (harness) is independent and can run any time; it unblocks the band-4 test slices. `O-01` (Sentry observability) and `O-02` (RWD) are likewise standalone — no dependency on any slice, ship any time.
 
 ## Baseline
 
@@ -263,6 +264,33 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - **Quota guard:** low `tracesSampleRate` / `replaysSessionSampleRate` so 5M spans / 50 replays aren't burned; keep `replaysOnErrorSampleRate` higher (replay only when something breaks).
 - **Risk:** additive, touches no financial write path. Primary risk is a **PII/financial-data leak via unmasked session replay** — the guardrail is verifying masking on a real prod-shaped session before enabling replay. Secondary: source-map upload misconfig makes stack traces useless (unminified verification needed). Seat limit (1 user) caps triage to the owner — acceptable now.
 - **Status:** proposed
+
+### O-02: RWD — make the app usable on a phone
+
+- **Outcome:** on a phone a user can navigate the app, add a transaction, and read the transaction list without fighting the layout. Not desktop parity — the three named flows work, the obvious breakage everywhere else is gone.
+- **Change ID:** rwd-mobile
+- **PRD refs:** — (owner request 2026-09-16)
+- **Prerequisites:** — (independent of the whole S-arc, like F-01 and O-01; can ship any time)
+- **Parallel with:** everything
+- **Placement:** standalone cross-cutting UI slice, outside S-01…S-19 — not renumbered into the editor arc.
+- **Scope:** phased, explicitly NOT a parity push. Must work on mobile: **navigation**, **adding a transaction**, **showing transactions**. The in-app kosztorys editor is a desktop surface by the owner's call — in scope only to the extent that it must not break the page.
+- **Phases (approved 2026-09-16):**
+  1. **Shell** — root-cause + fix the horizontal overflow; a mobile menu in the top bar, reusing the sidebar's existing link data (`SECTION_LINKS` + `MANAGEMENT_LINKS`, role gating, unread badges) rather than redefining it; one z-index scale as `@theme` tokens.
+  2. **Primitives** — `DialogContent` full-height on mobile; `PopoverContent` / `CommandList` collision-aware. Two files, every caller fixed at once.
+  3. **The two named flows** — the three top-bar transfer dialogs + expense form, and the filters + transfer table, working end to end on a phone.
+  4. **The rest** — scoped after 1–3 land.
+- **Decisions taken while shaping:**
+  - **The shell's mobile↔desktop switch moves from `lg` (1280) to `sm` (768).** `globals.css:27` already declares `sm` as this app's single mobile→desktop line; the shell disagreeing with it is why 768–1280 currently gets neither the sidebar (`nav/sidebar.tsx:87` is `hidden … lg:flex`) nor any menu. Tablets get the sidebar back.
+  - `nav/app-footer.tsx`'s `h-14` is load-bearing for the kosztorys editor's viewport math — change one, change the other.
+- **Problems to solve at plan time:**
+  - **The overflow's root cause is NOT identified.** The containers that should leak (`ui/data-table/data-table.tsx:185`, the kosztorys grid) are already `overflow-x-auto`, and the shell has the `min-w-0` fix at `(frontend)/layout.tsx:62`. Measure it in a browser; do not guess. An `overflow-x-hidden` backstop on `body` is worth having but MASKS the cause — root-cause first.
+  - **The z-index scale is ad hoc and contradictory.** Dialog `10000`, AlertDialog + toasts `10001`, Popover/DropdownMenu/Tooltip `50`, sidebar/top-nav `40`, datasheet frozen columns `30`. So a Popover or DropdownMenu opened **inside a dialog** paints under the dialog overlay; `ui/combobox.tsx:124` already hardcodes `z-10001` to escape it. Replace the free-for-all with tokens and drop the plaster.
+  - **Popovers ignore the viewport:** `PopoverContent` is a fixed `w-72` with no `max-w`, `CommandList` a hard `max-h-[300px]` (`ui/command.tsx:88`). Neither consults Radix's `--radix-*-available-height` / `-available-width`, so on a 360px viewport with the keyboard up the list is boxed off-screen.
+  - **Dialogs float:** `DialogContent` is `max-w-[min(90vw,600px)] max-h-[90vh]` centred with `top-1/2 left-1/2 -translate-*`; the virtual keyboard shoves it around.
+  - **Filters wall up:** `filters/filter-grid.tsx` is `flex flex-wrap`, so ~10 trigger buttons stack above the table. The „Filtry" fold (2026-09-16) helps; the row still needs a deliberate mobile form.
+  - **Baseline to respect:** only 19 of 479 `.tsx` files use `sm:` at all (35 occurrences). This is a desktop-first codebase — prefer fixing shared primitives over sprinkling breakpoints per component.
+- **Risk:** touches shared `ui/` primitives (dialog, popover, command) and the app shell, so a regression is visible on every desktop screen too, not just mobile. No financial write path is involved. The z-index retokenization is the sharpest edge — it silently reorders every overlay in the app.
+- **Status:** ready
 
 ## Slices
 
