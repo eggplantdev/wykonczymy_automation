@@ -8,6 +8,10 @@
 > This is the git-activity anchor `artifact-2-structure.md` was missing (it was run
 > structure-first). Read them together: structure says _what depends on what_; this says
 > _what actually gets touched_.
+> **Snapshot, not a living doc — not refreshed since 2026-07-08.** The repo has roughly
+> tripled since: **3045 commits / 1129 source modules** as of 2026-09-16, against the
+> 975 / 399 this was measured at. Read every figure below as history; re-run the scan
+> before trusting a count.
 
 ## Key observations
 

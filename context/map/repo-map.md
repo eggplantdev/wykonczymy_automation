@@ -6,6 +6,10 @@
 > (The M4L2 contributors artifact was dropped — this is a solo repo, so it collapses; see §5.)
 > Window: full repo history, 2026-02-11 → 2026-07-08 (975 commits, ~5 months old).
 > Goal: after 15 minutes here you know where things live, what's dangerous, and where to start.
+> **Snapshot, not a living doc — not refreshed since 2026-07-08.** The repo has roughly
+> tripled since: **3045 commits / 1129 source modules** as of 2026-09-16, against the
+> 975 / 399 this was measured at. Read every figure below as history; re-run the scan
+> before trusting a count.
 
 ## 1. TL;DR
 
