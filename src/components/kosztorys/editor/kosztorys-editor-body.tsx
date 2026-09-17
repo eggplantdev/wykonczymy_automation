@@ -365,12 +365,15 @@ export function KosztorysEditorBody({
             )}
           >
             {preview ? (
-              <header className="flex items-center justify-between gap-2 border-b px-5 py-5">
-                <div className="flex min-w-0 items-center gap-4">
-                  <BrandLogo height={54} priority className="shrink-0" />
-                  <h1 className="truncate text-base font-medium">{investmentName}</h1>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
+              <header className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b px-4 py-3 sm:px-5 sm:py-5">
+                <BrandLogo height={54} priority className="shrink-0 max-sm:h-11" />
+                {/* Its own row below `sm`, beside the logo from there up. Logo plus a `lg` button
+                    leave a phone no width for a name, and the name is what the client is here to
+                    read — so it takes the second line rather than an ellipsis. */}
+                <h1 className="order-last w-full truncate text-base font-medium sm:order-none sm:w-auto sm:flex-1">
+                  {investmentName}
+                </h1>
+                <div className="ml-auto flex shrink-0 items-center gap-2">
                   {/* The panel's open state is persisted per person, not per view, so without this the
                   client view inherits whatever the toolbar last left and can never fold it back. */}
                   <KosztorysTotalsPanelToggle size="lg" disabled={subtotals.length === 0} />
