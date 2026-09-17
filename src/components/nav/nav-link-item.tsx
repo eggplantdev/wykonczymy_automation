@@ -14,8 +14,7 @@ type NavLinkItemPropsT = {
   onNavigate?: () => void
 }
 
-/** One row of the nav list, shared by the sidebar and the mobile drawer, which must render it
- *  indistinguishably — they didn't while each kept its own copy of the active-state classes. */
+/** Shared by the sidebar and the mobile drawer, which must render it indistinguishably. */
 export function NavLinkItem({ link, active, collapsed = false, onNavigate }: NavLinkItemPropsT) {
   return (
     <Button
@@ -26,10 +25,10 @@ export function NavLinkItem({ link, active, collapsed = false, onNavigate }: Nav
         'relative',
         // Safe to hang drawer sizing off `max-sm:` rather than a prop: the sidebar is `hidden
         // sm:flex`, so below 768 only the mobile drawer renders this row.
-        'max-sm:h-12 max-sm:gap-3 max-sm:px-4 max-sm:text-base',
+        'max-sm:h-10 max-sm:gap-3 max-sm:px-4 max-sm:text-base',
         collapsed && 'px-0',
-        // Not `bg-accent` — that is what ghost's own hover paints, so the active row would be
-        // indistinguishable from whatever the cursor happens to be over.
+        // Not `bg-accent` — ghost's own hover paints that, so the active row would look like whatever
+        // the cursor is over.
         active && 'bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary font-semibold',
       )}
       asChild
