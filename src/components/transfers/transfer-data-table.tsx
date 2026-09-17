@@ -59,7 +59,13 @@ export function TransferDataTable({
   return (
     <div className="">
       {filters && (
-        <CollapsibleSection className={`w-fit`} title="Filtry" size="sm">
+        <CollapsibleSection
+          className="w-fit"
+          title="Filtry"
+          size="sm"
+          defaultOpen={false}
+          storageKey="transfers:filters"
+        >
           <TransferFilters
             {...filters}
             baseUrl={baseUrl}
