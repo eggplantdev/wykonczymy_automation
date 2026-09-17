@@ -82,7 +82,12 @@ export function ToggleStatButtons({
                 )}
               </Description>
             )}
-            <ControlGrid className="mt-2">
+            {/* One column on a phone, unlike every other ControlGrid caller. A tile's content is a
+                label plus a money figure and `Button` is `whitespace-nowrap`, so its min-content
+                width is the whole string — in a half-width cell it cannot shrink and spills out of
+                the grid. Truncating instead would cut the figure, which is the one part worth
+                reading. */}
+            <ControlGrid className="mt-2 max-sm:grid-cols-1">
               {row.map((entry) => {
                 const isHidden = hidden.has(entry.label)
                 const button = (

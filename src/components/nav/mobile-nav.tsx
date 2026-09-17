@@ -2,8 +2,9 @@
 
 import { Menu, X } from 'lucide-react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Portal } from 'radix-ui'
-import { useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { BrandLogo } from '@/components/ui/brand-logo'
 import { RoleBadge } from '@/components/ui/badge'
@@ -16,9 +17,7 @@ import { useNavLinks } from '@/hooks/use-nav-links'
 import { ROLE_LABELS } from '@/lib/auth/roles'
 import { cn } from '@/lib/utils/cn'
 
-// Without this the page keeps scrolling under the open drawer. Written straight from the click
-// handler rather than an effect — the panel never unmounts, so there is no lifecycle to hang the
-// lock on.
+// Without this the page keeps scrolling under the open drawer.
 // The lock lands on `<main>`, not on html/body: the shell is `h-screen` with the scroll on that
 // inner element, so the document never scrolls and freezing it freezes nothing. Written as an inline
 // style rather than a utility class because the element already carries `overflow-y-auto` — which of
@@ -31,16 +30,37 @@ function setScrollLocked(locked: boolean) {
 export function MobileNav() {
   const user = useCurrentUser()
   const { links, isActive } = useNavLinks()
+  const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  const closeRef = useRef<HTMLButtonElement>(null)
+  const [openedOn, setOpenedOn] = useState<string | null>(null)
 
-  const toggle = (next: boolean) => {
-    setScrollLocked(next)
-    setOpen(next)
-    // Opening moves focus into the panel, which is what makes Escape reachable at all: the key
-    // fires on whatever is focused, and that would otherwise still be the hamburger outside it.
-    if (next) closeRef.current?.focus()
+  // The drawer closes when the navigation COMMITS, not when the tap lands. Closing it from the
+  // link's own onClick hid it instantly — on a cold start that is seconds before the page arrives,
+  // and these links are never prefetched (the panel sits off-viewport, so Next's observer never
+  // sees them), so there is no `loading.tsx` shell to cover the wait either. The tap read as doing
+  // nothing at all. Not a plain `openedOn === pathname`, which would spring the drawer back open on
+  // Back: this consumes the route it opened on, so it fires once.
+  if (open && openedOn !== pathname) {
+    setOpen(false)
+    setOpenedOn(null)
   }
+
+  const openDrawer = () => {
+    setOpen(true)
+    setOpenedOn(pathname)
+  }
+
+  // Tapping the route you are already on commits no navigation, so the branch above never fires and
+  // the drawer would hang open with nothing to explain it.
+  const closeIfSameRoute = (href: string) => {
+    if (href === pathname) setOpen(false)
+  }
+
+  // The lock is a write on an element this component does not own, so it trails `open` rather than
+  // riding the handlers — the drawer now also closes without one (a committed navigation, Back).
+  useEffect(() => {
+    setScrollLocked(open)
+  }, [open])
 
   return (
     <>
@@ -54,7 +74,7 @@ export function MobileNav() {
         aria-label="Menu"
         aria-expanded={open}
         aria-controls="mobile-nav"
-        onClick={() => toggle(true)}
+        onClick={openDrawer}
       >
         <Menu className="size-7" />
       </Button>
@@ -81,7 +101,6 @@ export function MobileNav() {
             'bg-background fixed inset-x-0 top-0 z-10002 flex h-lvh flex-col overflow-y-auto overscroll-contain transition-[translate,visibility] duration-300 ease-out sm:hidden',
             open ? 'translate-x-0' : 'pointer-events-none invisible -translate-x-full',
           )}
-          onKeyDown={(event) => event.key === 'Escape' && toggle(false)}
         >
           <div className="flex shrink-0 items-start gap-3 px-3">
             {/* The X rides its own h-14 box, not the row's height — the TopNav row this covers is
@@ -92,14 +111,13 @@ export function MobileNav() {
                 variant="ghost"
                 size="icon"
                 className="size-11"
-                ref={closeRef}
                 aria-label="Zamknij"
-                onClick={() => toggle(false)}
+                onClick={() => setOpen(false)}
               >
                 <X className="size-7" />
               </Button>
             </div>
-            <Link href="/" className="ml-auto py-2" onClick={() => toggle(false)}>
+            <Link href="/" className="ml-auto py-2" onClick={() => closeIfSameRoute('/')}>
               <BrandLogo height={48} priority />
             </Link>
           </div>
@@ -110,7 +128,7 @@ export function MobileNav() {
                 key={link.href}
                 link={link}
                 active={isActive(link.href)}
-                onNavigate={() => toggle(false)}
+                onNavigate={() => closeIfSameRoute(link.href)}
               />
             ))}
           </div>
@@ -124,9 +142,9 @@ export function MobileNav() {
               <RoleBadge role={user.role}>{ROLE_LABELS[user.role].pl}</RoleBadge>
             </div>
             <ThemeToggle collapsed={false} />
-            {/* The one exit that never runs `toggle(false)`: the redirect tears the shell down
-                around the lock. Releasing it here keeps the lock's correctness off the question of
-                whether `<main>` happens to be remounted. */}
+            {/* The one exit that never closes the drawer: the redirect tears the shell down around
+                the lock. Releasing it here keeps the lock's correctness off the question of whether
+                `<main>` happens to be remounted. */}
             <LogoutButton beforeLogout={() => setScrollLocked(false)} />
           </div>
         </nav>

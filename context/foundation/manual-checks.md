@@ -127,14 +127,15 @@ podaje `autoReply: 'skip'`, więc `sendAutoReply` nie jest w ogóle wołane (12 
 wylądowało z `auto_reply_status = 'skipped'`), a defekt, który EX-660 naprawiał (oba statusy na
 `skipped`), **nie jest odtwarzalny** — `notify_status` siada na `failed`, czyli próbowano.
 
-- [ ] Klik „Pobierz zgłoszenia" → skrzynka sprzedaży dostaje jedno zwykłe „Nowe zgłoszenie",
-      nieodróżnialne od webhookowego — **blokada 2**. Kod gwarantuje nieodróżnialność strukturalnie:
-      obie ścieżki wołają ten sam `captureLead` → `notifyNewLead` (`src/lib/leads/capture-lead.ts:71`),
+- [ ] Przebieg sweepa (cron `/api/cron/leads-reconcile`) → skrzynka sprzedaży dostaje jedno zwykłe
+      „Nowe zgłoszenie", nieodróżnialne od webhookowego — **blokada 2**. Kod gwarantuje
+      nieodróżnialność strukturalnie: obie ścieżki wołają ten sam `captureLead` → `notifyNewLead`
+      (`src/lib/leads/capture-lead.ts:71`),
       różni je wyłącznie opcja `autoReply`. Została sama dostawa.
 - [ ] Dokładnie jeden mail podsumowujący, wyłącznie na „Alerty techniczne" (nie do sprzedaży), bez
       danych kontaktowych i bez instrukcji „zadzwoń sam" — **blokady 2, 3 i 4**. Alert
-      (`notifyReconcileFailure`/`notifyReconcileRecovery`) leci wyłącznie z trasy crona, nigdy z
-      przycisku „Pobierz zgłoszenia".
+      (`notifyReconcileFailure`/`notifyReconcileRecovery`) leci z trasy crona, która jest dziś
+      jedynym wołającym sweepa — ręczny przycisk „Pobierz z Facebooka" został usunięty.
 
 ## EX-711 — moduł floty: przeglądy pojazdów i przypomnienia mailowe
 
@@ -178,18 +179,240 @@ wylądowało z `auto_reply_status = 'skipped'`), a defekt, który EX-660 naprawi
 Warsztat szablonu 4 (`/szablony/4`) jest fixturem: przed zmianą okno „Porównaj z katalogiem prac"
 zgłaszało tam 30 prac spoza katalogu.
 
-- [ ] `/szablony/4` → „Porównaj z katalogiem prac" pokazuje **6** prac spoza katalogu zamiast 30,
-      **bez klikania „Popraw literówki"**
+- [x] `/szablony/4` → „Porównaj z katalogiem prac" pokazuje **6** prac spoza katalogu zamiast 30,
+      **bez klikania „Popraw literówki"** — zmierzone na dzisiejszym fixturze **30 → 5** (nie 6;
+      patrz finding o dryfie). Ten sam skrypt na `86b40010` (commit przed zmianą) i na `f5f823d1`,
+      ta sama kopia bazy, te same 202 pozycje: przed 30 spoza katalogu, po 5. Obietnica zmiany
+      trzyma się co do joty, przesunęła się tylko liczba docelowa.
 - [ ] Ta szóstka to 5 wariantów, które właściciel doprecyzował w katalogu („Klejenie paneli
       winylowych" — mijanka / jodełka / układ prosty), plus „Dwukrotne gruntowanie ścian, sufitów
       i podłóg"
 - [ ] Przycisk „Popraw literówki" zmienia opisy 24 prac; drugie kliknięcie pod rząd raportuje
       0 poprawionych
-- [ ] Żaden opis w rozpisce nie dostaje „[stary arkusz]"
+- [x] Żaden opis w rozpisce nie dostaje „[stary arkusz]"
 - [ ] J.m. po kliknięciu jest taka sama jak przed, poza `klp` → `kpl`
-- [ ] Snapshot sprzed kliknięcia jest na liście i przywraca stare opisy
-- [ ] Na inwestycji z podpiętym arkuszem Google porównanie z arkuszem nie zaczyna zgłaszać
+- [x] Snapshot sprzed kliknięcia jest na liście i przywraca stare opisy
+- [x] Na inwestycji z podpiętym arkuszem Google porównanie z arkuszem nie zaczyna zgłaszać
       istniejących prac jako nowych
+
+### Findings — 2026-09-15 (staging/preview pass)
+
+- [x] **`/szablony/4` fixture absent on preview DB — resolved by verifying locally instead.**
+      `kosztorys_presets` had 0 rows on the preview Neon branch, so this section cannot be verified
+      on staging/preview at all — not "blocked for now", plainly **not the right environment** for
+      it. This section's checks 1–6 are keyed to the `/szablony/4` fixture (`investmentId=151`),
+      which only ever existed in the prod dump lineage (local `db-test` / dev / prod), never on the
+      preview branch. **Verified instead against local `db-test`** (`pnpm db:import:test` +
+      `pnpm db:migrate:test`, today's fresh prod dump — see the two findings below for what that
+      pass found).
+- [x] **Shared Playwright browser lock — resolved.** The Chrome process holding the shared MCP
+      profile's CDP pipe was killed; `browser_tabs list` now returns cleanly (confirmed this pass —
+      single tab, no "Browser is already in use" error) and the whole section was driven end-to-end
+      through it.
+- [ ] **`/szablony/4` katalog-comparison count and content have drifted from checks 1–2** — with
+      zero clicks, „Porównaj z katalogiem prac" on investment 151 (backing `/szablony/4`) reports
+      **5** prac spoza katalogu, not 6, and they are not the 5 „Klejenie paneli winylowych" wariants + „Dwukrotne gruntowanie…" the checklist names. The actual 5: „Docięcie i montaż progu" (no
+      j.m.), „Klejenie paneli winylowych (m2)" (one row, not five), „Układanie paneli winylowych
+      niski stopień skomplikowania prac (m2)", „Gładzie w miejscach po spękaniach (m2)", „Fugowanie
+      ścian i podłóg (m2)". The template is a live, continuously-edited fixture (`kosztorys_presets`
+      id 4, "kosztorys wzór testy 2 września 26") — someone has edited its rozpiska since this
+      section's checks were authored on 2026-09-15, most likely already ran „Popraw literówki" once
+      and/or hand-edited rows, changing which prace fall outside the katalog. Confirmed via
+      `browser_navigate` + `browser_click` on `/szablony/4` → Opcje → Porównaj z katalogiem…, at
+      `http://localhost:3010/szablony/4`, cross-checked against a snapshot restore to the exact
+      pre-any-click DB state (see the idempotence finding below for the restore mechanics) — this
+      isn't stale caching, it's the fixture's real current content.
+      **Needs human:** decide whether checks 1–2 should be rewritten against the template's current
+      content (re-baseline the checklist), or whether the template itself should be reset to the
+      state the checklist describes (re-seed `kosztorys_presets` id 4 / investment 151's
+      `kosztorys_items`). Either way the checklist as currently worded cannot pass again without one
+      of those two actions.
+      **Test disposition:** no automated test — this is fixture drift in a live, shared template
+      that multiple people/sessions edit, not a code defect. The matching/fold logic these checks
+      exercise is unit-covered (`catalogue-key*.test.ts`, `clean-description.test.ts`).
+- [ ] **„Popraw literówki" change count and the „only `klp`→`kpl`" claim have also drifted, but the
+      button itself is correct and idempotent** — clicking it on investment 151's current data
+      changes **88** rows (37 description-only, 65 unit-only, some overlapping), not the 24 checks
+      3 names, and **zero** `klp` values exist anywhere in the investment before or after (the real
+      unit rewrites are near-entirely `m2`→`m²`, plus spacing fixes like `12-20cm`→`12-20 cm`).
+      Cross-validated three independent ways, all agreeing: (1) a standalone script importing the
+      real `cleanDescription`/`cleanUnit` and running them over a DB dump of the 202 rows; (2) the
+      project's own `src/scripts/fix-kosztorys-descriptions.ts` dry-run (`INV=151`) → `"opisy: 37 do
+poprawy z 202 przejrzanych"`; (3) driving the actual button in the browser and diffing
+      `kosztorys_items` before/after — exactly 88 rows changed, 0 rows gained `[stary arkusz]`, a
+      second click changed 0 rows and reported success. The button, idempotence, and legacy-marker
+      behavior (checks 3's idempotence half, and checks 4/6/7) are therefore genuinely verified —
+      only the specific numbers/wording in checks 3 and 5 are stale.
+      **Needs human:** same call as the finding above — re-baseline checks 3 and 5's numbers/wording
+      against current content, or reset the fixture to match what they describe.
+      **Test disposition:** no automated test — fixture drift, not a defect; `cleanDescription` and
+      `cleanUnit` are unit-tested directly.
+- [x] **`m2` → `m²` w j.m. nie pochodzi z tej zmiany** — check 5 mówi „poza `klp` → `kpl`", a na
+      dzisiejszym fixturze przycisk przepisuje 65 j.m., prawie wyłącznie `m2` → `m²`. To reguła
+      z `src/lib/kosztorys/clean-unit.ts`, która weszła commitem `bfb1b337` („Popraw literówki"
+      czyści też j.m.) — ten slice nie tknął tego pliku (`git log staging --not 86b40010 --
+src/lib/kosztorys/clean-unit.ts` → 0 commitów), a tabela poprawek nazw z założenia nie rusza
+      j.m. Czyli nie regresja, tylko stare zachowanie przycisku na nowszych danych; check 5 był
+      pisany pod fixture, w którym brudna była jedna jednostka.
+
+- [ ] **Stale JWT session survives a `db:import:test` user reseed with a broken, unreadable error**
+      (found while investigating an apparent 0-changes bug above, ruled out as a repo defect for
+      _this_ check but worth a separate look). A `payload-token` minted against a pre-reseed
+      `users.id` is still accepted by `requireAuth` after `db:import:test` recreates the `users` row
+      with a different id (JWTs are stateless — `getCurrentUserJwt` never re-checks the row exists),
+      so the session looks logged-in but every write whose SQL references that id by FK
+      (`kosztorys_snapshots.taken_by`) throws a raw Postgres FK-violation error. That error's
+      `.message` — the literal `Failed query: INSERT INTO kosztorys_snapshots (...) ... params:
+151,auto,,76,1,{…60KB JSON…}` — is what `toActionFailure` returns as the user-facing string,
+      i.e. a real user hitting this (e.g. after an admin recreates their account) would see a raw SQL
+      dump as a toast instead of "sesja wygasła, zaloguj się ponownie". At
+      `src/lib/actions/run-action.ts:63` (`logError`/`toActionFailure` swallow `err.cause`, only
+      surfacing `err.message`) and `src/lib/auth/require-auth.ts` (no user-existence check).
+      **Needs human:** decide whether this is worth a guard (e.g. `requireAuth` verifying the user
+      row still exists, or `toActionFailure` refusing to surface a raw Postgres query as
+      `err.message`) — it's a real but narrow window (stale token + a since-deleted-and-recreated
+      user id), not something this pass should fix blindly since it touches the shared auth-error
+      path.
+      **Test disposition:** test-driven-debugging · integration — reproduce by minting a session for
+      a user id, deleting that user, recreating a different user at a new id, then calling any
+      action that FK-references `session.user.id`; assert the returned `ActionResultT.error` is a
+      human sentence, not a raw SQL string.
+
+## EX-787 — ui/ layering refactor (staging/preview pass, 2026-09-16)
+
+Pure relocation refactor (`data-table/` → `tables/`, `FilterGrid` → `ui/control-grid.tsx` as
+`ControlGrid`, `active-filter-button.tsx`/`active-filter-label.tsx` → `filters/`), no intended
+behavior/visual change. Verified against staging
+(`https://wykonczymy-git-staging-wykonczymys-projects.vercel.app`, commit `b744a3b1`), logged in as
+`qa-gate@wykonczymy.test` (OWNER, session already live in the shared browser profile).
+
+- [x] `/` (transactions listing, the densest toolbar — nav labels it "Transakcje"; **`/transfery`
+      does not exist, it 404s**) at desktop (~1440px): toolbar layout (search left / column-picker
+      right / filter+actions between), "Typ" filter popover opens and lists options, column-picker
+      menu opens and toggles columns, Aktywne/Wszystkie toggle switches rows. No overflow.
+- [x] `/` at phone (390px): filter row is 2 even columns below `sm`, no page-level horizontal
+      overflow, "Typ" popover opens and is usable, "Filtry" fold collapses/expands the filter row.
+- [x] `/inwestycje` at desktop: toolbar layout correct, "Status" filter popover opens and lists
+      options, column-picker menu functions.
+- [x] `/kasy` at desktop: toolbar layout correct, `ToggleStatButtons` tiles (using `ControlGrid`)
+      render and toggle on click.
+- [x] `/pracownicy` at desktop and phone (390px): toolbar layout correct at both widths,
+      column-picker menu opens at both, Aktywne/Wszystkie toggle works.
+- [x] `/flota` at desktop: toolbar layout correct, no overflow.
+- [x] `/sprzet` at desktop: toolbar layout correct, no overflow.
+- [x] `/zgloszenia` at desktop: toolbar layout correct, no overflow.
+
+### Findings — 2026-09-16 (staging/preview pass)
+
+- [x] **`ToggleStatButtons` tile text overflows its cell at phone width — FIXED 2026-09-16.**
+      `/kasy` at 390px: each `ControlGrid` tile renders its label + balance as two `<span>` children
+      inside a `<Button variant="outline" align="start">`. `Button`'s base carries
+      `whitespace-nowrap` (`src/components/ui/button.tsx:8`), so the tile's **min-content** width is
+      the whole un-wrappable string; a grid item's default `min-width: auto` resolves to min-content,
+      so it cannot shrink into a half-width cell and spills past its track. Measured on the rendered
+      "Pomocnicze" tile: content 213px vs. button box 171px. At 390px a two-column cell offers only
+      ~143px of text room (390 − 32 page padding − 8 gap, halved, less the button's `px-4`), which no
+      label+figure pair fits. Pre-existing — `ControlGrid`'s track class is unchanged by EX-787 (pure
+      rename/move of `FilterGrid`) — and surfaced by the owner on a real phone
+      (`.playwright-mcp/kasy-mobile.png`).
+      **Fix applied:** `max-sm:grid-cols-1` on the `ControlGrid` instance inside
+      `toggle-stat-buttons.tsx` — one full-width tile per row below `sm`. Deliberately NOT
+      `[&>*]:min-w-0` + `truncate` on `ControlGrid` itself: that truncates the money figure, which is
+      the one part worth reading, and `ControlGrid` is shared with the filter triggers, the
+      data-table toolbar and the transfer filters, none of which have this problem. Scoped to
+      `ToggleStatButtons` and therefore to its three consumers (`register-balance-chart`,
+      `user-register-stats`, `financial-stats`), all of which render the same label+money shape.
+      Class-order dependence verified by compiling a probe through `@tailwindcss/postcss`, not
+      assumed: `.max-sm\:grid-cols-1` is emitted after `.grid-cols-2` at equal specificity, so it
+      wins below 768px.
+      **Test disposition:** no automated test — a CSS layout defect only a real layout engine can
+      see (jsdom has none); an e2e visual check would be the right layer if one is ever authored, and
+      a DOM/jsdom spec would assert nothing real.
+- [ ] **"Typ wydatku inwestycyjnego" filter-option label clips in the "Typ" popover on `/` — likely
+      pre-existing.** Minor, cosmetic; noted for completeness per the "never skip a problem because
+      out of scope" rule, not chased further this pass since it's a label-length/wrap issue unrelated
+      to the files EX-787 touched.
+      **Needs human:** low priority — confirm whether it reproduced before `b744a3b1` (not done this
+      pass) and decide if it's worth fixing now or filing.
+      **Test disposition:** no automated test — cosmetic label wrap, not a behavior defect.
+
+## rwd-mobile — phone pass for plan items 2.3 / 3.1 / 3.2 (2026-09-16, staging/preview)
+
+Deferred manual phone pass for `context/changes/2026-09-16-rwd-mobile/plan.md` items 2.3
+(popover/command callers), 3.1 (adding a transaction on phone), 3.2 (showing transactions on
+phone), which were code-complete but not walked on a real phone before this pass. Verified at
+390px against staging (`b744a3b1`), `qa-gate@wykonczymy.test`.
+
+- [x] **2.3 — popover/command callers at 390px:** investment combobox (deposit dialog), "Typ" filter
+      popover, column-picker menu, date picker, kosztorys-v2 "Opcje" menu all open, stay within the
+      viewport, and are usable (no clipped/unreachable options observed).
+- [x] **3.1 — adding a transaction on phone, three top-bar dialogs as full-height sheets below
+      `sm`:** wpłata (deposit) dialog opens full-height, investment combobox opens and is usable
+      inside it; internal-transfer dialog opens full-height; expense dialog opens full-height.
+      Layout inspected without submitting (staging writes hit the preview DB's real prod-dump data,
+      so mutation was kept to a minimum per instructions) — no layout defects observed in any of the
+      three.
+- [x] **3.2 — showing transactions on phone:** `/` at 390px — filter row renders as 2 even columns,
+      "Filtry" fold collapses/expands it, table itself does not cause page-level horizontal overflow.
+- [x] Mobile nav drawer (hamburger → slide-in panel) opens correctly at 390px, visually correct
+      ("Wyloguj" clears the iOS toolbar strip, not painted under it), closes via the X button.
+- [x] Mobile nav drawer closes via Escape — **does not, and should not** (owner ruling, see finding
+      below). Dropped, not a defect.
+
+### Findings — 2026-09-16 (staging/preview pass)
+
+- [x] **Mobile nav drawer does not close on Escape — dropped, not a defect (owner ruling
+      2026-09-16).** The drawer is `sm:hidden`, so the only way to reach it with an Escape key is a
+      desktop browser narrowed below 768px — a phone has no Escape key. That is a defect with no
+      possible user, which this project drops rather than fixes or files; **EX-619 set the precedent
+      on exactly this shape** (a keyboard defect under 768px). The mechanism was nonetheless
+      diagnosed correctly and is recorded here because it explains a piece of dead code:
+      `src/components/nav/mobile-nav.tsx` `toggle()` calls `closeRef.current?.focus()` in the same
+      tick as `setOpen(next)`, while the panel is still `invisible` from the previous render, and a
+      browser refuses `.focus()` on a `visibility: hidden` element with no retry once it becomes
+      visible. So focus never enters the panel and the `onKeyDown` Escape handler never receives the
+      key. Confirmed via `document.activeElement` right after opening and again after 500ms (still
+      the hamburger), and cross-validated against a Radix Dialog + Popover on the same page that do
+      close on Escape.
+      **Follow-up (not a bug):** the `closeRef` focus call, the `onKeyDown` Escape handler and the
+      comment claiming "Opening moves focus into the panel, which is what makes Escape reachable at
+      all" are now unjustified — they describe behavior the owner does not want. Removing them is a
+      dead-code cleanup, not a fix.
+      **Test disposition:** no automated test — there is no behavior to protect. Dropped findings do
+      not earn a regression guard.
+
+- [x] **Mobile nav: tapping a menu item closed the drawer instantly, then nothing happened for
+      seconds — FIXED 2026-09-16** (owner-reported, phone, cold start). Two things compounded, only
+      one of them a code defect. **Latency:** a cold Vercel function plus Payload/Neon init makes the
+      first RSC request take seconds; after a refresh the same navigation is fast, which is why the
+      symptom only shows once. Not a defect. **Silence:** nothing on screen said the tap had
+      registered. Three confirmed causes: (a) on a phone **no nav link is ever prefetched** — the
+      sidebar is `hidden … sm:flex` (`display: none`, no layout box) and the drawer panel is
+      `invisible -translate-x-full` (entirely off-viewport), so Next's IntersectionObserver never
+      marks either set of links visible; prefetching can only start when the drawer opens; (b)
+      without a finished prefetch the route's `loading.tsx` shell is not in the router cache, and
+      Next's own docs say the fallback "may not appear immediately because it hasn't been prefetched
+      yet" — so all 23 `loading.tsx` files are dead weight in exactly this window, and only work on
+      the _next_ navigation; (c) `nav-link-item.tsx` fires `onClick={onNavigate}`, which in the
+      drawer was `toggle(false)` — a synchronous `setState` that closed the drawer before the request
+      even left. Desktop never showed it because the sidebar is genuinely visible and prefetched.
+      **Fix:** the drawer's `open` in `src/components/nav/mobile-nav.tsx` is now consumed against
+      the route it was opened on — a render-phase branch (`open && openedOn !== pathname`) closes it
+      when the navigation **commits**, not when the tap lands. Deliberately _not_ a plain derived
+      `openedOn === pathname`: that was the first shape and it springs the drawer back open on Back,
+      caught in review before it shipped. Consuming `openedOn` makes it fire once. The `<main>`
+      scroll lock now trails `open` in an effect instead of riding the click handlers, because the
+      drawer can now close without one (a committed navigation, or Back pressed while it is open) —
+      the handler-only version stranded `overflow: hidden` on `<main>` in both. Tapping the route you
+      are already on commits no navigation, so that case closes outright.
+      **Still open (owner chose the drawer-timing half only):** there is still no _positive_ pending
+      signal during the wait — the drawer simply stays put. `useLinkStatus()` on the tapped
+      `NavLinkItem` (with the ~100ms opacity delay the Next docs recommend, so warm navigations do
+      not flash) is the other half, offered and not taken this turn.
+      **Test disposition:** no automated test — the behavior is "the drawer does not close until the
+      route changes", which is a jsdom-visible DOM-layer assertion but depends on the App Router's
+      commit timing, so a `dom` spec would assert the router mock rather than the behavior. Owed to
+      the E2E backlog if the pending-signal half lands.
 
 # Zamknięte — indeks
 
