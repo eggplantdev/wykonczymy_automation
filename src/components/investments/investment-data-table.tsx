@@ -7,6 +7,7 @@ import { ColumnToggle } from '@/components/filters/column-toggle'
 import { StatusFilter } from '@/components/investments/status-filter'
 import { getInvestmentColumns, V2_COLUMN_IDS } from '@/components/tables/investments'
 import { ActiveFilterButton } from '@/components/filters/active-filter-button'
+import { GRID_FILTER_TRIGGER_CLASS } from '@/components/filters/filter-trigger-button'
 import type { InvestmentRowT } from '@/types/table-rows'
 import { useStatusFilter } from '@/hooks/use-status-filter'
 import { useSearchFilter } from '@/hooks/use-search-filter'
@@ -57,7 +58,11 @@ export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT
             search={{ value: searchTerm, onChange: setSearchTerm }}
             filters={
               <>
-                <StatusFilter selectedStatuses={selectedStatuses} onToggle={toggleStatus} />
+                <StatusFilter
+                  selectedStatuses={selectedStatuses}
+                  onToggle={toggleStatus}
+                  triggerClassName={GRID_FILTER_TRIGGER_CLASS}
+                />
                 {/* One switch for the whole kosztorys-sourced half. It narrows what the table shows,
                   so it sits with the filters and wears their button — a lone checkbox in the toolbar
                   was the only control on any table that asked to be read rather than pressed.

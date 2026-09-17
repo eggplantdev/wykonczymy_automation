@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Button } from '@/components/ui/button'
+import { FilterTriggerButton } from '@/components/filters/filter-trigger-button'
 import { STATUS_LABELS } from '@/components/investments/investment-status-badge'
 import { FILTERABLE_STATUSES } from '@/hooks/use-status-filter'
 import { cn } from '@/lib/utils/cn'
@@ -20,16 +20,24 @@ const STATUS_ORDER = FILTERABLE_STATUSES
 type StatusFilterPropsT = {
   selectedStatuses: Set<InvestmentStatusT>
   onToggle: (status: InvestmentStatusT) => void
+  triggerClassName?: string
 }
 
-export function StatusFilter({ selectedStatuses, onToggle }: StatusFilterPropsT) {
+export function StatusFilter({ selectedStatuses, onToggle, triggerClassName }: StatusFilterPropsT) {
+  // Same reading of „active" as every FilterMultiSelect trigger: narrowed, not merely touched.
+  const isFiltered = selectedStatuses.size !== STATUS_ORDER.length
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-1.5" aria-label="Filtr statusu">
-          <ListFilter />
-          Status
-        </Button>
+        <FilterTriggerButton
+          active={isFiltered}
+          icon={ListFilter}
+          className={triggerClassName}
+          title="Filtr statusu"
+        >
+          {`Status${isFiltered ? ` (${selectedStatuses.size})` : ''}`}
+        </FilterTriggerButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-48">
         <DropdownMenuLabel>Widoczne statusy</DropdownMenuLabel>

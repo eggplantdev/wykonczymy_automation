@@ -8,7 +8,10 @@ import { ColumnToggle } from '@/components/filters/column-toggle'
 import { cn } from '@/lib/utils/cn'
 import { GradientSpinner } from '@/components/ui/gradient-spinner'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
-import { FilterTriggerButton } from '@/components/filters/filter-trigger-button'
+import {
+  FilterTriggerButton,
+  GRID_FILTER_TRIGGER_CLASS,
+} from '@/components/filters/filter-trigger-button'
 import { AddCatalogueItemDialog } from '@/components/dialogs/add-catalogue-item-dialog'
 import { useClientMultiFilter } from '@/hooks/use-client-multi-filter'
 import { useSearchFilter } from '@/hooks/use-search-filter'
@@ -110,6 +113,7 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
                 onValuesChange={setCategories}
                 icon={Tags}
                 searchable
+                triggerClassName={GRID_FILTER_TRIGGER_CLASS}
               />
               {/* Stays mounted while ON even at zero: the review's last clear-marker click drops the
                   count to 0, and unmounting there leaves the table filtered to nothing. */}
@@ -118,6 +122,7 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
                   active={onlyLegacy}
                   icon={Archive}
                   onClick={() => setOnlyLegacy((previous) => !previous)}
+                  className={GRID_FILTER_TRIGGER_CLASS}
                 >
                   {`Stary arkusz (${legacyRows.length})`}
                 </FilterTriggerButton>
