@@ -54,8 +54,8 @@ describe('Sekcja — zmiana nazwy w komórce', () => {
   })
 })
 
-// Focus alone opens editing, so without this guard tabbing through the cell would save an unchanged
-// name: a write, a revalidation and an undo-history entry for nothing.
+// Focus alone opens editing, so without the guard tabbing through the cell writes an unchanged name
+// — a revalidation and an undo-history entry for nothing.
 describe('Sekcja — wyjście, które niczego nie zmieniło', () => {
   it('nie zapisuje niczego, gdy ktoś tylko przeszedł przez komórkę', async () => {
     const { user } = renderCell()
@@ -125,8 +125,8 @@ describe('Sekcja — nazwa zmieniona spoza siatki', () => {
   })
 })
 
-// Delete on a selected Sekcja cell is a grid gesture, not an edit — an accidental press must not
-// clear the whole sekcja's name across every one of its rows.
+// Delete on a selected Sekcja cell is a grid gesture, not an edit — one press would otherwise clear
+// the sekcja's name across all of its rows.
 describe('Sekcja — Delete na zaznaczonej komórce', () => {
   it('oddaje wiersz nietknięty', () => {
     const column = sectionNameColumn('Sekcja', onRename)

@@ -9,8 +9,7 @@ import type { SortPickT } from '@/lib/kosztorys/row-view'
 const onSort = vi.fn()
 const onPersistOrder = vi.fn()
 
-// The menu items live inside a Radix menu, so they need one open around them — the header's trigger
-// is not what is under test here.
+// The items need an open Radix menu around them; the header's trigger is not under test here.
 function renderSortMenu(active: SortPickT | null = null, persist?: () => void) {
   render(
     <DropdownMenu open>
@@ -25,8 +24,8 @@ function renderSortMenu(active: SortPickT | null = null, persist?: () => void) {
 beforeEach(() => vi.clearAllMocks())
 
 describe('menu kolumny — cztery komendy sortowania', () => {
-  // Direction and scope are picked in ONE gesture, so no scope can be in force unnoticed. That is
-  // what these four commands are for, and dropping one would silently reintroduce a hidden toggle.
+  // Direction and scope are picked in ONE gesture, so no scope can be in force unnoticed — dropping
+  // one of the four commands reintroduces a hidden toggle.
   it.each([
     ['Sortuj rosnąco zachowując sekcje', { dir: 'asc', scope: 'section' }],
     ['Sortuj malejąco zachowując sekcje', { dir: 'desc', scope: 'section' }],

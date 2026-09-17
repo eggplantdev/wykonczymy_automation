@@ -6,10 +6,9 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 
-// The unit spec can only see the `Where` the gate returns; whether that `Where` actually reaches
-// the right rows is a question about Postgres. The one that matters here: `investment` is nullable,
-// and a sheet naming no investment („Nowy kosztorys" makes one) must stay editable. `not_equals`
-// keeps it — `not_in` would not — and only a real query proves which.
+// The unit spec sees only the `Where` the gate returns; whether it reaches the right rows is a
+// question about Postgres. `investment` is nullable, and a sheet naming none („Nowy kosztorys" makes
+// one) must stay editable — `not_equals` keeps it, `not_in` would not.
 
 vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {
@@ -27,10 +26,9 @@ describe.skipIf(!ENV_READY)('kosztoryses under the investment lock (DB)', () => 
   let owner: Awaited<ReturnType<Payload['create']>>
   let lockedInvestmentId: number
   let openInvestmentId: number
-  // One locked investment owning NO sheet per inbound case. Aiming at `lockedInvestmentId` would be
-  // refused by the 1:1 partial unique index on investment_id before the gate is ever asked, and two
-  // cases sharing one target would leave the second leaning on the first one's refusal — green with
-  // the gate reverted, which is exactly the false green these fixtures exist to prevent.
+  // One locked investment owning NO sheet per inbound case: aiming at `lockedInvestmentId` would be
+  // refused by the 1:1 partial unique index before the gate is asked, and two cases sharing one target
+  // would leave the second leaning on the first one's refusal — green with the gate reverted.
   const lockedEmpty: Record<'repoint' | 'link' | 'create', number> = {
     repoint: 0,
     link: 0,
@@ -73,9 +71,8 @@ describe.skipIf(!ENV_READY)('kosztoryses under the investment lock (DB)', () => 
     payload = await getPayload({ config })
     db = await getDb(payload)
 
-    // A crashed run leaves fixtures behind in a database every other spec queries. The sheets and
-    // the users are caught by their unique keys; the investments are not, and one of them is left
-    // permanently `completed`, so they have to be swept by name or the leak just grows run by run.
+    // A crashed run leaves fixtures in a database every other spec queries. Sheets and users are caught
+    // by their unique keys; the investments are not, so they have to be swept by name.
     await db.execute(sql`DELETE FROM kosztoryses WHERE google_sheet_id LIKE ${`${MARKER}-%`}`)
     await purgeFixtureUsers(db)
     await db.execute(sql`DELETE FROM investments WHERE name LIKE ${`${MARKER} %investment%`}`)
@@ -172,8 +169,8 @@ describe.skipIf(!ENV_READY)('kosztoryses under the investment lock (DB)', () => 
     expect(await nameOf(sheets.open)).toBe(`${MARKER} open renamed`)
   })
 
-  // The regression the whole gate risks: an unlinked sheet has no status to compare against, and
-  // renaming or deleting one exists only in `/admin`. Gate it and it is unrecoverable in-app.
+  // An unlinked sheet has no status to compare against, and renaming or deleting one exists only in
+  // `/admin` — gate it and it is unrecoverable in-app.
   it('leaves a sheet that names no investment editable', async () => {
     await payload.update({
       collection: 'kosztoryses',

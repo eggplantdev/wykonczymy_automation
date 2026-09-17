@@ -22,8 +22,8 @@ describe('emptyGridCopy', () => {
     expect(copy.description).toBeUndefined()
   })
 
-  // Never reached through the editor's render gate, but the module no longer depends on that: the
-  // old fall-through titled the overlay „Brak pozycji " and blamed a filter nobody engaged.
+  // Unreachable through the editor's render gate, but the module no longer depends on that: the old
+  // fall-through titled the overlay „Brak pozycji " and blamed a filter nobody engaged.
   it('says something neutral when nothing is engaged at all', () => {
     const copy = emptyGridCopy({ preview: false, hiders: [], diagnostics: [] })
     expect(copy.title).toBe('Brak pozycji do pokazania')

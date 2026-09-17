@@ -24,11 +24,9 @@ const emptyPayload: SnapshotPayloadT = {
   },
 }
 
-// gcSnapshots thins in raw SQL over calendar buckets, so the only real assertion is which rows
-// survive in the DB. The mistake worth guarding is not the timezone — getting `AT TIME ZONE`
-// backwards costs at most one extra survivor — it is dropping `investment_id` from the PARTITION BY,
-// which silently keeps ONE row across every investment and is invisible to a single-investment
-// fixture. Hence two investments below.
+// gcSnapshots thins in raw SQL, so the only real assertion is which rows survive. The mistake worth
+// guarding is dropping `investment_id` from the PARTITION BY — it keeps ONE row across every
+// investment and is invisible to a single-investment fixture. Hence two investments below.
 describe.skipIf(!ENV_READY)('gcSnapshots retention bands (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
@@ -49,10 +47,9 @@ describe.skipIf(!ENV_READY)('gcSnapshots retention bands (DB)', () => {
     if (otherInvestmentId) await deleteTestInvestment(payload, otherInvestmentId)
   })
 
-  // Backdate to a FIXED wall-clock point rather than an offset from now(): `now() - 40 days` sits at
-  // whatever time the suite happens to run, so "same day, three hours apart" straddles midnight on a
-  // pre-03:00 run and a sub-week offset lands in one week or two depending on the weekday. Anchoring
-  // on the same date_trunc the sweep uses makes the spec assert the bucketing instead of the clock.
+  // Backdate to a FIXED wall-clock point, not an offset from now(): "same day, three hours apart"
+  // straddles midnight on a pre-03:00 run, and a sub-week offset lands in one week or two depending
+  // on the weekday. Anchoring on the sweep's own date_trunc asserts the bucketing, not the clock.
   async function insertAt(
     targetInvestmentId: number,
     kind: 'auto' | 'manual',
@@ -77,9 +74,8 @@ describe.skipIf(!ENV_READY)('gcSnapshots retention bands (DB)', () => {
     return id
   }
 
-  // Same anchoring, but on the calendar WEEK the sweep buckets by. Two rows placed on different days
-  // of one week is the only fixture that can tell date_trunc('week') from date_trunc('day') — with
-  // day-aligned rows only, a weekly band that truncated by day would keep both and still pass.
+  // Two rows on different days of one week is the only fixture that tells date_trunc('week') from
+  // date_trunc('day') — day-aligned rows only, and a band truncating by day keeps both and passes.
   async function insertInWeek(weeksAgo: number, dayInWeek: number, hour: number): Promise<number> {
     const id = await insertSnapshot(db, {
       investmentId,
@@ -169,20 +165,18 @@ describe.skipIf(!ENV_READY)('gcSnapshots retention bands (DB)', () => {
     expect(otherSurvivors).toEqual([otherDay40Evening])
     expect(otherSurvivors).not.toContain(otherDay40Morning)
 
-    // Stateless and idempotent: the survivors ARE the state, so a second sweep has nothing left
-    // to thin. Asserted as survivor stability rather than `deleted === 0` — gcSnapshots sweeps the
-    // whole table, so rows an aborted neighbouring run left behind would show up in its counters.
+    // Idempotent: a second sweep has nothing left to thin. Asserted as survivor stability rather than
+    // `deleted === 0`, because the sweep covers the whole table — a neighbouring run's leftovers count.
     await gcSnapshots(db)
     expect(await survivorsOf(investmentId)).toEqual(survivors)
     expect(await survivorsOf(otherInvestmentId)).toEqual(otherSurvivors)
   })
 })
 
-// The warsztat is ONE investment serving every szablon, so `investment_id` alone no longer scopes a
-// restore point — the szablon it was taken under does. Filtering only the drawer would be cosmetic:
-// a stale tab still holds ids of another szablon's points, and restoring one then saving writes that
-// content into the szablon now open. Both the list and the by-id read therefore carry the clause,
-// and this asserts the rows, not the UI.
+// The warsztat is ONE investment serving every szablon, so the szablon scopes a restore point, not
+// `investment_id`. Filtering only the drawer would be cosmetic — a stale tab still holds another
+// szablon's ids, and restoring one then saving writes it into the szablon now open. Hence both the
+// list and the by-id read carry the clause, asserted here on the rows.
 describe.skipIf(!ENV_READY)('szablon-scoped restore points (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>

@@ -77,9 +77,8 @@ describe('useReceiptGeneration — the form is released whatever the scan does',
   })
 
   it('releases the form when the scan itself is aborted', async () => {
-    // The abort path is the one that shipped broken: the teardown sat after the await, so an
-    // escaping rejection left `isGenerating` true — scan button, add-row and every row's remove
-    // control disabled until the form unmounted, with the pending pill stuck over every page.
+    // Ships-broken path: the teardown sat after the await, so an escaping rejection left
+    // `isGenerating` stuck true — buttons disabled and the pending pill stuck until unmount.
     vi.mocked(mapWithConcurrency).mockRejectedValueOnce(new Error('chunk load failed'))
     const { result } = renderGeneration()
 

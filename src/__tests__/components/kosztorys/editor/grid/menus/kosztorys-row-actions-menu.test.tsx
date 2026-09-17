@@ -17,13 +17,7 @@ const ITEM = {
 async function openRowMenu(sortActive: boolean) {
   const user = userEvent.setup()
   render(
-    <KosztorysRowActionsMenu
-      row={ROW}
-      sortActive={sortActive}
-      canMoveUp
-      canMoveDown
-      item={ITEM}
-    />,
+    <KosztorysRowActionsMenu row={ROW} sortActive={sortActive} canMoveUp canMoveDown item={ITEM} />,
   )
   await user.click(screen.getByRole('button', { name: 'Akcje wiersza' }))
   return user
@@ -33,8 +27,8 @@ beforeEach(() => vi.clearAllMocks())
 
 const POSITIONAL = ['Wstaw powyżej', 'Wstaw poniżej', 'Przesuń w górę', 'Przesuń w dół']
 
-// „Powyżej" and „w górę" mean nothing against a sorted view — the array position no longer mirrors
-// display_order — so every positional command goes dead while any sort is on, whatever its scope.
+// Against a sorted view the array position no longer mirrors display_order, so every positional
+// command goes dead while any sort is on, whatever its scope.
 describe('menu wiersza — komendy pozycyjne przy aktywnym sortowaniu', () => {
   it('wyszarza wstawianie i przesuwanie', async () => {
     await openRowMenu(true)

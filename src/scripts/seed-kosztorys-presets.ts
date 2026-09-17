@@ -1,27 +1,9 @@
-// E2E fixture for EX-442 — szablony kosztorysu: „Zapisz jako szablon…", seeding a new investment
-// from one on the create form, and „Wczytaj szablon…" over a rozpiska that already exists.
+// E2E fixture for EX-442 (szablony kosztorysu). Two investments: `source` — 2 sekcje with przedmiar
+// and stage progress, the per-job fields a szablon must drop; `reload` — one sekcja/praca, replaced
+// by „Wczytaj szablon…". No preset row seeded: `serializeKosztorysAsPreset` is server-only.
 //
-// Seeds TWO fresh investments through the Payload Local API. No preset row is seeded here on
-// purpose: `serializeKosztorysAsPreset` is `server-only` and hand-writing its jsonb payload would
-// pin this fixture to the snapshot format's column list. The spec saves the szablon through the
-// real dialog instead, which is scenario 1 anyway — so the library the later scenarios read is the
-// one the app itself wrote.
-//
-//   • `source` — the kosztorys the szablon is cut from. Two sekcje deep so an investment seeded
-//     from it proves the whole skeleton crossed over and not just the first band, and every praca
-//     carries przedmiar AND recorded progress on an etap: both are per-job fields a szablon must
-//     drop, and neither absence is provable against a fixture that never had them.
-//   • `reload` — the rozpiska „Wczytaj szablon…" replaces. Its own names, so „the szablon's prace
-//     are on screen" cannot be satisfied by what was there before; one sekcja/one praca, because
-//     the dialog states what disappears and a one-row count is the one that cannot be read as the
-//     szablon's own.
-//
-// Run against the isolated test DB (mirrors e2e/global-setup.ts):
-//   DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx \
-//     src/scripts/seed-kosztorys-presets.ts
-//
-// Emits one machine-readable line the E2E spec parses:
-//   PRESET_SEED={"source":<id>,"reload":<id>}
+// Run: DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx src/scripts/seed-kosztorys-presets.ts
+// Emits: PRESET_SEED={"source":<id>,"reload":<id>}
 import { getPayload } from 'payload'
 import config from '../payload.config'
 
@@ -29,8 +11,7 @@ const ctx = { context: { skipRevalidation: true } }
 
 type ShapeT = { section: string; items: string[] }[]
 
-// Every name is unique across the fixture: the spec finds rows by rendered text and `hasText`
-// matches substrings, so two names sharing a prefix would be one locator.
+// Names must be unique — `hasText` matches substrings, so a shared prefix would be one locator.
 const SOURCE_SHAPE: ShapeT = [
   { section: 'Sekcja szablonowa', items: ['Praca szablonowa jeden', 'Praca szablonowa dwa'] },
   { section: 'Sekcja pomocnicza', items: ['Praca pomocnicza'] },
@@ -52,16 +33,14 @@ async function seedInvestment(
     ...ctx,
   })
 
-  // An explicit plane: a plane-less etap renders its quantity column locked, and the point of the
-  // etap here is that it holds a figure a szablon then leaves behind.
+  // Explicit plane — a plane-less etap locks its quantity column, and this one must hold a figure.
   const stage = await payload.create({
     collection: 'kosztorys-stages',
     data: { investment: investment.id, ordinal: 1, label: 'Etap 1', plane: 'w_tools' },
     ...ctx,
   })
 
-  // displayOrder runs across the WHOLE rozpiska, not per section — the same counter the editor
-  // rewrites, so seeding it any other way would test a state the app never produces.
+  // displayOrder is global across the rozpiska, not per section — matches what the editor rewrites.
   let itemOrder = 0
   for (const [sectionOrder, spec] of shape.entries()) {
     const section = await payload.create({

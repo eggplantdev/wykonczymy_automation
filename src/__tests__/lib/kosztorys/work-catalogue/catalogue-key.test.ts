@@ -14,9 +14,8 @@ describe('catalogueKey', () => {
     expect(key('Malowanie ścian', 'M2')).toBe(key('Malowanie ścian', ' m2 '))
   })
 
-  // The guarantee the katalog rests on: whatever „Popraw literówki" does to an opis in a rozpiska,
-  // the katalog entry saved from it still matches. Table-driven over the whole rule set so a rule
-  // added later has to hold it too.
+  // Whatever „Popraw literówki" does to an opis, the katalog entry saved from it still matches.
+  // Table-driven over the whole rule set so a rule added later has to hold it too.
   it.each(TYPO_FIXES.map(([from]) => from))(
     'keys „%s" the same before and after the cleaner rewrites it',
     (typo) => {
@@ -66,9 +65,8 @@ describe('catalogueKey', () => {
     expect(catalogueKey('Skucie tynku', 'm2')).toBe(catalogueKey('Skucie tynku', 'm2'))
   })
 
-  // The bug this closes: `match_key` was written stripped but READ raw, so a praca wstawiona
-  // z katalogu — which keeps the note in its opis — keyed differently from the katalog row it came
-  // from and reported itself as „brak w katalogu", hinting at itself.
+  // `match_key` was written stripped but READ raw, so a praca wstawiona z katalogu keyed differently
+  // from the katalog row it came from and reported itself as „brak w katalogu".
   it('ignores the „[stary arkusz]" note — it is display text, never identity', () => {
     expect(key('Malowanie ścian [stary arkusz]')).toBe(key('Malowanie ścian'))
   })

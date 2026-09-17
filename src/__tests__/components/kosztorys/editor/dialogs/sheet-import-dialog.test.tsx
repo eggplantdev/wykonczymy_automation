@@ -87,9 +87,9 @@ function renderDialog() {
 
 beforeEach(() => vi.clearAllMocks())
 
-// „Rozliczenie etapów" is a per-import decision that stamps every etap the import creates. It lives
-// in a dialog the editor never unmounts, so without a reset on open the pick outlives „Anuluj" and
-// a failed apply — and the NEXT import silently carries a rozliczenie nobody chose that time.
+// „Rozliczenie etapów" stamps every etap an import creates. The dialog never unmounts, so without
+// a reset on open the pick outlives „Anuluj" — the next import would silently inherit one nobody
+// chose this time.
 describe('SheetImportDialog — the rozliczenie pick is per-opening', () => {
   it('opens on „nie ustawiaj"', async () => {
     const { openDialog, source } = renderDialog()

@@ -24,9 +24,9 @@ const balance = (registerBalance: number) => ({ registerBalance })
 
 beforeEach(() => vi.clearAllMocks())
 
-// Kasę da się przestawić albo wyczyścić, zanim saldo poprzedniej wróci. Spóźniona odpowiedź, która
-// mimo to wpisuje swoją kwotę, pokazuje saldo kasy, której w formularzu już nie ma — a użytkownik
-// zapisuje przelew, patrząc na cudze pieniądze.
+// Kasę da się przestawić lub wyczyścić, zanim wróci saldo poprzedniej — spóźniona odpowiedź
+// wpisałaby saldo kasy, której już nie ma w formularzu, a użytkownik zapisałby przelew patrząc
+// na cudze pieniądze.
 describe('Saldo kasy — wyścig przestawień', () => {
   it('pokazuje saldo, gdy nic go nie wyprzedziło', async () => {
     vi.mocked(getRegisterBalance).mockResolvedValue(balance(1_200))

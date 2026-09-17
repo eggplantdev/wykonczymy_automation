@@ -5,13 +5,9 @@ import { getDb } from '@/lib/db/get-db'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createRegisterOwner, findExistingMediaId } from '@/__tests__/helpers/transfer-fixtures'
 
-// `InvoiceCell` renders on every transfer row with no gate on the type, so an anulowanie gets a
-// faktura the ordinary way — through `setTransferInvoices`, which sends `{ invoice: [...] }` and
-// nothing else. The CANCELLATION arm demands `cancelledTransaction`, which that patch never names,
-// so the write LOOKS like it should 400. It does not, and this spec pins why: on a Local API update
-// Payload merges the stored document into `data` before `beforeValidate`, so the field is there.
-// Nothing about that is visible from the hook's signature — a hook-level spec feeding a hand-built
-// patch would report the opposite — which is why the guard has to go through a real update.
+// `InvoiceCell` attaches a faktura via `setTransferInvoices`, which never sends `cancelledTransaction`
+// — the field the CANCELLATION hook requires. It doesn't 400 because Payload merges the stored doc
+// into `data` before `beforeValidate` on a Local API update — invisible from the hook's signature.
 
 vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {

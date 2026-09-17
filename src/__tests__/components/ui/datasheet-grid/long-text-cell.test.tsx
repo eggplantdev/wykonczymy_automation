@@ -98,13 +98,10 @@ describe('LongTextCell — the overlay and the grid underneath it', () => {
   })
 })
 
-// The grid listens on `document` and resolves a click to a cell from its coordinates, so anything
-// the overlay does not swallow drives the selection underneath it — including a click on the part of
-// the overlay that hangs over other rows, which would end the edit mid-word.
-//
-// jsdom cannot tell `stopPropagation` from `stopImmediatePropagation` here: React 19 hangs its
-// listeners off the render container rather than `document`, so the two stop the same thing. That
-// distinction stays a browser matter; what this holds is that the grid never sees the event at all.
+// The grid listens on `document` and resolves clicks to a cell by coordinates, so anything the
+// overlay doesn't swallow reaches the selection underneath — even a click over another row, which
+// would end the edit mid-word. jsdom can't tell `stopPropagation` apart from `stopImmediatePropagation`
+// here, so this only proves the grid never sees the event.
 describe('LongTextCell — what never reaches the grid', () => {
   // Filtered by key, because pressing Shift+Enter also sends a bare Shift keydown — a key the
   // overlay has no reason to swallow.

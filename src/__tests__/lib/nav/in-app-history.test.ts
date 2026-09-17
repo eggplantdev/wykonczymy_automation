@@ -11,7 +11,6 @@ function navigation(urls: (string | undefined)[], currentIndex: number) {
 }
 
 describe('hasInAppHistory', () => {
-  // The reproduced defect, explained in `in-app-history.ts`.
   it('says no when the only previous entry is the tab it opened in', () => {
     expect(
       hasInAppHistory(navigation(['about:blank', `${ORIGIN}/inwestycje/133`], 1), ORIGIN, 2),

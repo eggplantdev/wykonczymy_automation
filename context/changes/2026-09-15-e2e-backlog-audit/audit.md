@@ -66,7 +66,7 @@ Legenda: `[x]` — sprawa domknięta w Linearze (anulowana) · `[ ]` — czeka n
       `AGENTS.md`. Żywa reszta = EX-473, opisana aktualniej. Podwójna księgowość jednego objawu.
 - [x] · **ANULOWANE** · `EX-544` · Parytet rekoncyliacji na dwóch powierzchniach — **już
       napisane**: `kosztorys-reconciliation.spec.ts` ma `cross-surface parity`, `mismatch: both
-  surfaces scream` i `match: neither surface screams`. Te asercje odeszły razem z EX-676, ale
+surfaces scream` i `match: neither surface screams`. Te asercje odeszły razem z EX-676, ale
       nie zostawiły luki: werdykt ma 14 testów jednostkowych. Resztka (filtr URL nie może wywołać
       fałszywego krzyku) jest punktem 4 w EX-634.
 - [x] · **ANULOWANE** · `EX-676` · `kosztorys-reconciliation.spec.ts` — 4 testy × 120 s timeoutu
@@ -807,8 +807,7 @@ w milisekundach, a Playwright kupuje za pełny `build` + bazę.
       Oba testy zakładają wiersz katalogu PRZEZ UI, nie przez seed: cennik to jeden wpis
       `unstable_cache` w serwerze Next i unieważnia go tylko własna akcja zapisu.
 - [x] · ZOSTAJE · `EX-716` · Flota — przeglądy. Z listy to-do issue nie zostało nic w oryginalnym
-      kształcie: wspólny `formId` szkicu przeglądu już nie istnieje (`inspectionDraftId(vehicleId)`
-      + własny test jednostkowy), a pole „Wymiana przy (km)" zostało skasowane razem z całą
+      kształcie: wspólny `formId` szkicu przeglądu już nie istnieje (`inspectionDraftId(vehicleId)` + własny test jednostkowy), a pole „Wymiana przy (km)" zostało skasowane razem z całą
       powierzchnią, której pilnowało. Okno kosztów, wykluczenie ODOMETER, „brak ceny" ≠ „0 zł",
       klasyfikacja terminów i czytanie zwolnień mają dowody w `src/__tests__/lib/fleet/`
       (`costs`, `rows`, `deadlines`, `exemptions`) i nie są powtarzane wyżej.

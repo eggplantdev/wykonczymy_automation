@@ -50,9 +50,10 @@ trafia tam, gdzie wskazuje `callback_url` u Mety i w WPForms, czyli na produkcj�
 
 **`runLeadReconcileSweep` autorespondera NIE wysyła** — przekazuje jawnie `autoReply: 'skip'`
 (`src/lib/leads/reconcile-sweep.ts`, uzasadnienie EX-660: „Backfill is silent to the CUSTOMER, never
-to sales"). Dotyczy to obu wołających sweepa: crona **i** przycisku „Pobierz zgłoszenia"
-(`reconcileLeads`, `MANAGEMENT_ROLES`, obecny w każdym środowisku). Ten przycisk wysyła tylko
-`notifyNewLead` do skrzynki sprzedaży — hałas wewnętrzny, nie kontakt z klientem.
+to sales"). Sweep ma dziś jednego wołającego — cron `/api/cron/leads-reconcile`; ręczny przycisk
+„Pobierz z Facebooka" wraz z akcją `reconcileLeads` został usunięty (nie miał wyzwalacza: pusta
+tabela wygląda tak samo jak brak zgłoszeń, a cron i tak alarmuje, gdy coś odzyskał). Do sprzedaży
+idzie z niego samo `notifyNewLead` — hałas wewnętrzny, nie kontakt z klientem.
 
 Jedyna droga autorespondera do klienta spoza produkcji to **przestawienie `callback_url` webhooka na
 tunel dewelopera** — zdarzyło się raz (ngrok, `context/foundation/lessons.md`). Akt świadomy, nie

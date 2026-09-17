@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { baseRanksFromKeys, orderColumnKeys, rankForMove } from '@/lib/table/column-order'
 
-// The adapter's contract expressed over an id list, which is all it ever hands the algebra: what a
-// DataTable column picker shows, and what one drop persists. The React seam is three props wide;
-// the risk is in the ordering, so that is what this spec holds.
+// The adapter's contract over an id list, which is all it ever hands the algebra. The React seam is
+// three props wide; the risk is in the ordering.
 const COLUMNS = ['date', 'amount', 'type', 'description']
 const BASE = baseRanksFromKeys(COLUMNS)
 

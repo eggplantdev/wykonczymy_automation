@@ -16,17 +16,14 @@ const RECORDED: FleetDeadlineT = {
 const cell = (deadline: Partial<FleetDeadlineT>, muted?: boolean) =>
   render(<DeadlineCell deadline={{ ...RECORDED, ...deadline }} muted={muted} />)
 
-// EX-716 — the cell is the only place the three kinds of „nothing here" are told apart, and the whole
-// przeglądy module exists because they are not the same thing. `rows.test.ts` already decides WHICH
-// of them a car is in; what has no guard below the browser is that each one reaches the screen as its
-// own answer instead of collapsing into an empty cell.
+// EX-716: `rows.test.ts` decides WHICH of the three „nothing here" states a car is in; this covers
+// that each one still renders as its own distinct cell rather than collapsing into one empty cell.
 describe('Flota — komórka terminu rozróżnia trzy rodzaje pustki', () => {
   it('„bezterminowo", gdy typ nie dotyczy pojazdu — nawet ze starym przeglądem w historii', () => {
     cell({ exempt: true })
 
-    // Exempt outranks the event: a przyczepa excused from przegląd techniczny keeps whatever it once
-    // had, and resurrecting that date would make the one legitimately termin-less car a permanent
-    // false alarm.
+    // Exempt outranks the event: a przyczepa excused from przegląd techniczny keeps that status
+    // even with an old date in history.
     expect(screen.getByText('bezterminowo')).toBeInTheDocument()
     expect(screen.queryByText(/20\.04/)).not.toBeInTheDocument()
   })

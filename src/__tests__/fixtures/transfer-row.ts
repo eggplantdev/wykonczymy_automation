@@ -1,6 +1,5 @@
 import type { TransferRowT } from '@/types/transfers'
 
-/** A neutral transfer row; every spec overrides only the fields it asserts on. */
 export function transferRow(overrides: Partial<TransferRowT> = {}): TransferRowT {
   return {
     id: 1,

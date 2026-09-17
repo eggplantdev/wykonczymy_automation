@@ -7,9 +7,8 @@ import { ZERO_FINANCIALS } from '@/types/investment-financials'
 import type { SubcontractorDueByPlaneT } from '@/lib/kosztorys/subcontractor-due'
 import type { KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
 
-// The kosztorys reading the host resolved. Deliberately nowhere near the transactions figures below:
-// if the „Marża" tab ever reads `financials` directly again, it prints 999 999 and the assertion
-// names the plane it fell back to instead of just going red.
+// The kosztorys reading the host resolved, deliberately nowhere near the transactions figures below:
+// a „Marża" tab reading `financials` again prints 999 999, naming the plane it fell back to.
 const LABOR_COSTS_NET = 50_000
 const DISCOUNT = 5_000
 
@@ -20,7 +19,11 @@ const FINANCIALS = {
 }
 
 const RECONCILIATION: KosztorysReconciliationT = {
-  laborCosts: { expected: LABOR_COSTS_NET + DISCOUNT, actual: LABOR_COSTS_NET + DISCOUNT, mismatch: false },
+  laborCosts: {
+    expected: LABOR_COSTS_NET + DISCOUNT,
+    actual: LABOR_COSTS_NET + DISCOUNT,
+    mismatch: false,
+  },
   discount: { expected: DISCOUNT, actual: DISCOUNT, mismatch: false },
 }
 

@@ -5,6 +5,7 @@ import {
   scopeAuditThroughOriginal,
   scopeNarrowsByOriginalOnlyField,
   stripCancelledFilters,
+  stripOriginalScopedFilters,
 } from '@/lib/queries/transfer-filters'
 import { sumFilteredByType } from '@/lib/db/sum-transfers'
 import { buildSqlConditions } from '@/lib/db/where-to-sql'
@@ -128,6 +129,44 @@ describe('audit mode → scope through the cancelled original', () => {
     expect(where.type).toEqual({ in: ['CANCELLATION'] })
     expect(where.date).toEqual({ greater_than_equal: '2026-08-01' })
     expect(where.createdBy).toEqual({ in: [3] })
+  })
+
+  // The Typ filter used to be skipped outright in this mode, so „pokaż tylko anulowania wydatków"
+  // silently listed anulowania of everything — and „nic nie zaznaczone" listed everything too.
+  it('re-aims a Typ scope at the transaction that was cancelled', () => {
+    const where = buildTransferFilters(
+      { cancelledTransactionAudit: '1', type: 'INVESTMENT_EXPENSE,PAYOUT' },
+      { id: 1 },
+    )
+
+    expect(where.type).toEqual({ in: ['CANCELLATION'] })
+    expect(where['cancelledTransaction.type']).toEqual({ in: ['INVESTMENT_EXPENSE', 'PAYOUT'] })
+  })
+
+  it('empties the list when the Typ select names nothing valid', () => {
+    expect(
+      buildTransferFilters({ cancelledTransactionAudit: '1', type: '__none__' }, { id: 1 }).id,
+    ).toEqual({ equals: -1 })
+  })
+
+  it('drops the sum tile once Typ narrows through the original', () => {
+    expect(
+      scopeNarrowsByOriginalOnlyField(
+        buildTransferFilters({ cancelledTransactionAudit: '1', type: 'PAYOUT' }, { id: 1 }),
+      ),
+    ).toBe(true)
+  })
+
+  // A page that builds its own tiles from the list's Where would otherwise hand where-to-sql a
+  // relation path and crash on render.
+  it('is dropped from a stats where rather than reaching the SQL translator', () => {
+    const where = buildTransferFilters(
+      { cancelledTransactionAudit: '1', type: 'PAYOUT' },
+      { id: 1 },
+    )
+
+    expect(() => buildSqlConditions(where)).toThrow(/unmapped field/)
+    expect(() => buildSqlConditions(stripOriginalScopedFilters(where))).not.toThrow()
   })
 
   it('changes nothing on the unscoped list, which already worked', () => {

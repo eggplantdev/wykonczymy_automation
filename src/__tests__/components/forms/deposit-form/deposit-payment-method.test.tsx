@@ -46,9 +46,7 @@ const REFERENCE_DATA = {
 // keepOpen, because that is the branch that awaits the action inline — the closing branch hands the
 // write to the optimistic store, where the payload is no longer this form's business.
 function renderForm() {
-  render(
-    <DepositForm referenceData={REFERENCE_DATA} onSubmitSuccess={vi.fn()} keepOpen />,
-  )
+  render(<DepositForm referenceData={REFERENCE_DATA} onSubmitSuccess={vi.fn()} keepOpen />)
   return userEvent.setup()
 }
 
@@ -73,8 +71,8 @@ beforeEach(() => {
   useOptimisticFormStore.setState({ keepOpen: true })
 })
 
-// Before EX-536 the method was hardcoded `CASH` on the way out, so a przelew was booked as gotówka
-// with nobody told. The picker is only worth having if its answer reaches the payload.
+// EX-536 hardcoded the method as CASH regardless of the picker, silently booking transfers as
+// gotówka. The picker is only worth having if its answer reaches the payload.
 describe('Wpłata — metoda płatności trafia do zapisu', () => {
   it('zapisuje gotówkę, gdy nikt nie ruszył pola', async () => {
     const user = renderForm()

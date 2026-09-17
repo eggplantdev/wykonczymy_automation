@@ -18,8 +18,8 @@ describe('sortingStateToParam', () => {
     expect(sortingStateToParam([{ id: 'date', desc: false }])).toBe('date')
   })
 
-  // An empty string is what removes the parameter from the URL — writing the default value instead
-  // would pin „no sorting" to a sort nobody asked for, and the third header click would be a no-op.
+  // An empty string is what removes the parameter from the URL — writing the default instead would
+  // pin „no sorting" to a sort nobody asked for, and the third header click would be a no-op.
   it('maps the empty state to an empty string', () => {
     expect(sortingStateToParam([])).toBe('')
   })

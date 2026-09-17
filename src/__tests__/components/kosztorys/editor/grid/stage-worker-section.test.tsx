@@ -19,7 +19,11 @@ const worker = (id: number, name: string, active?: boolean): WorkerRefT => ({
 })
 
 // Anna left mid-investment but still holds her etap; Celina left and holds nothing.
-const WORKERS = [worker(ANNA, 'Anna', false), worker(BARTEK, 'Bartek'), worker(CELINA, 'Celina', false)]
+const WORKERS = [
+  worker(ANNA, 'Anna', false),
+  worker(BARTEK, 'Bartek'),
+  worker(CELINA, 'Celina', false),
+]
 
 const onPick = vi.fn()
 
@@ -39,9 +43,8 @@ const widenToEveryone = (user: ReturnType<typeof userEvent.setup>) =>
 
 beforeEach(() => vi.clearAllMocks())
 
-// „Aktywni" is a narrowing the user can widen, not an exclusion they cannot see. Dropping the
-// person who holds an etap out of the list reads as no assignment at all, and the next save writes
-// that emptiness to the DB.
+// „Aktywni" is a narrowing the user can widen, not an exclusion they cannot see: dropping the person
+// who holds an etap reads as no assignment at all, and the next save writes that emptiness to the DB.
 describe('Roster etapu — kto jest na liście', () => {
   it('zostawia na liście osobę, która etap trzyma, choć już tu nie pracuje', () => {
     renderSection(ANNA)

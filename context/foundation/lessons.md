@@ -1758,3 +1758,44 @@ is the test of the test, and skipping it is how a decorative assertion gets comm
 - **Problem**: złożyły się dwie rzeczy i tylko jedna była defektem kodu. Zimna funkcja Vercela plus init Payload/Neon daje sekundy na pierwszym żądaniu RSC — to nie defekt. Defektem była **cisza**: na telefonie **żaden link nawigacji nie jest prefetchowany**, bo sidebar jest `hidden … sm:flex` (`display: none`, zero pudełka układu), a panel szuflady `invisible -translate-x-full` (poza viewportem) — `IntersectionObserver` Nexta nie uzna ani jednego zestawu za widoczny. Bez skończonego prefetchu powłoka `loading.tsx` danej trasy nie siedzi w cache routera, więc **wszystkie 23 pliki `loading.tsx` są martwym balastem dokładnie w tym oknie** i zaczynają działać dopiero przy _kolejnej_ nawigacji. Do tego `onClick` zamykał szufladę synchronicznie, zanim żądanie w ogóle wyszło. Desktop tego nie pokazywał, bo tam sidebar jest naprawdę widoczny i prefetchowany.
 - **Rule**: (1) Prefetch Nexta wymaga **pudełka układu w viewporcie** — `display: none`, `visibility: hidden` i przesunięcie poza ekran wyłączają go tak samo. Zanim uznasz `loading.tsx` za zabezpieczenie oczekiwania, sprawdź, czy link, z którego się wchodzi, ma szansę się sprefetchować. (2) Element UI otwierany na czas nawigacji (szuflada, popover z linkami) zamyka się na **commit trasy**, nie na tapnięcie: gałąź w fazie renderu (`open && openedOn !== pathname`), gdzie `openedOn` jest **konsumowane**. Zwykłe pochodne `openedOn === pathname` to pierwszy odruch i jest zły — odbija szufladę z powrotem przy Wstecz. (3) Blokadę scrolla wieszaj na efekcie śledzącym `open`, nie na handlerach kliknięcia — skoro zamknięcie może przyjść bez kliknięcia, wersja handlerowa zostawia `overflow: hidden` na trwałe.
 - **Applies to**: /10x-plan, /10x-implement, code-review — nawigacja mobilna, każdy `loading.tsx` uzasadniany jako sygnał oczekiwania, każdy overlay zamykany przez nawigację
+
+## The grid renders its own `useState` rows whether or not the autosave reached Postgres — so „the number is on screen" is not a write, and a confirm that reads a DERIVED figure can be green on either
+
+- **Context**: `investments-listing-kosztorys` types a stage ilość, then asserts the listing moved
+  without „Odśwież dane". Its confirm-the-write step read `formatNet(qty × 100)` off the summary panel.
+- **Problem**: that amount is also „Wartość netto przedmiar" — przedmiar 10 × 100 zł — which renders
+  identically whether or not the save landed. The spec passed its own confirm and then failed on the
+  listing, so the failure read as a cache bug. `stage_progress.qty_done` in the test DB was still the
+  seeded value: nothing had been written at all.
+- **Rule**: a write confirm must name the figure it reads (read the panel BY LABEL, not by a bare text
+  match on an amount) and must survive a reload. The panel round-trip is also what flushes the 700 ms
+  autosave debounce — drop it and a navigation aborts the save in flight.
+- **Applies to**: every kosztorys grid spec. `kosztorys-grid-writes` already carried the rule in a
+  comment („the only honest read of «it saved» is a reload"); it was not carried into the siblings.
+
+## A conditionally-mounted element is ABSENT, not merely in the wrong state — and a helper that polls its attribute burns the whole budget on an element that will never exist
+
+- **Context**: `collapseSummaryPanel` folded the kosztorys summary by polling
+  `.shadow-panel[data-state]` until it read `closed`.
+- **Problem**: `kosztorys-editor-body.tsx` mounts the panel only `{subtotals.length > 0 && …}` — an
+  empty kosztorys has no panel at all. The poll then compared against nothing; Playwright reports that
+  as `Received: ""`, which reads like a wrong value rather than a missing node, and every spec routed
+  through the helper paid the full 30 s.
+- **Rule**: before polling an attribute, decide what ABSENCE means. Here absent IS folded (nothing
+  covers the grid), so `count() === 0` is a success, not a retry.
+- **Applies to**: any helper built on a selector that carries a state attribute — the selector stops
+  matching the moment the state disappears, and „not matching" and „matching with another value" are
+  indistinguishable in the failure text.
+
+## A Playwright worker loads the spec and its helpers ONCE at worker start, while the reporter reads source from DISK at report time — so a file edited mid-run makes the report point at code that never ran
+
+- **Context**: a shared working tree with another agent editing comments in `e2e/` during a run.
+- **Problem**: the run keeps executing the version loaded at worker start, but the printed line numbers,
+  excerpts and `at file:line` frames come from whatever is on disk when the report prints. A failure was
+  attributed to `ensureSettlementMode` in a spec that does not call it, and to a `keyboard.press` line
+  when the failing assertion was thirty lines further down.
+- **Rule**: a report's line numbers are trustworthy only if the file has not changed since the run
+  started. When they look impossible, check mtime before believing them — and prefer the trace
+  (`unzip trace.zip`, parse `test.trace` for the API call timeline and the RSC payloads under
+  `resources/`) which records what actually ran.
+- **Applies to**: every long E2E run in a tree more than one agent writes to.

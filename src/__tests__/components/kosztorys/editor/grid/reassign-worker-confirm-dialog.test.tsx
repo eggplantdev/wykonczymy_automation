@@ -37,10 +37,9 @@ function renderDialog(targetWorkerId: number | null | undefined, currentWorkerNa
 
 beforeEach(() => vi.clearAllMocks())
 
-// Reassigning an etap that already carries executed prace moves money between two rozliczenia: the
-// kwota comes off the previous person's due, their wypłaty stay, so their „pozostało do wypłaty"
-// goes below zero. A question naming neither person nor kwota is not a question about that
-// decision.
+// Reassigning an etap that carries executed prace moves money between two rozliczenia: the kwota comes
+// off the previous person's due while their wypłaty stay, so their „pozostało do wypłaty" goes below
+// zero. A question naming neither person nor kwota is not a question about that decision.
 describe('Potwierdzenie przepisania etapu', () => {
   it('nazywa kwotę, poprzednią osobę i nową', () => {
     renderDialog(BARTEK, 'Anna')

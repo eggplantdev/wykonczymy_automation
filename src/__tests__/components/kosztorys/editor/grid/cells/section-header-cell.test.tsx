@@ -37,10 +37,9 @@ function renderBand(collapsed: number[] = []) {
 
 beforeEach(() => vi.clearAllMocks())
 
-// The band is the only description of what the grid shows beneath it — an arrow out of step with
-// the state reads as broken collapsing rather than as a zwężenie turned on elsewhere. So it reads
-// the same set the grid gets: under zwężenie that set is empty, so the band says „rozwinięta",
-// because the rows are on screen.
+// The arrow is the only description of what's beneath it, so it must read the same collapsed-set
+// the grid uses — under zwężenie that set is empty, so it says „rozwinięta" because the rows are
+// on screen.
 describe('Belka sekcji — strzałka mówi to, co widać', () => {
   it('stoi otwarta, gdy sekcja nie jest zwinięta', () => {
     const { band } = renderBand()
@@ -76,9 +75,8 @@ describe('Belka sekcji — zwijanie', () => {
     expect(onToggleCollapsed).toHaveBeenCalledTimes(2)
   })
 
-  // The sekcja name sits in the band, and inside a text field a space is a space while Enter
-  // commits the name — were the band to catch keys leaving the field, typing „Kuchnia i jadalnia"
-  // would collapse the sekcja.
+  // The name input sits inside the band; if the band caught keys leaving that field, typing a
+  // space in „Kuchnia i jadalnia" would collapse the sekcja.
   it('nie łapie klawiszy wychodzących z pola nazwy', async () => {
     const { user } = renderBand()
 

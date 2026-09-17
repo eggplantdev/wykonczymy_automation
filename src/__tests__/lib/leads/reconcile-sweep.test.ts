@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-// Unit test for the sweep core shared by the „Pobierz zgłoszenia" action and the daily
-// cron. The Graph fetch and capture seams are mocked; lead-schema + normalize-lead stay
+// Unit test for the sweep core behind the daily cron.
+// The Graph fetch and capture seams are mocked; lead-schema + normalize-lead stay
 // real so the parse/normalize path is exercised.
 const { update } = vi.hoisted(() => ({ update: vi.fn() }))
 

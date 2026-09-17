@@ -57,9 +57,8 @@ function renderPanel(settlementMode: SettlementModeT = 'NET') {
 const moneyIn = (element: HTMLElement) =>
   (element.textContent ?? '').replace(/[\s\u00a0\u202f]/g, ' ')
 
-// The Podsumowanie grid has no row element — every cell is a direct child of one grid container,
-// because that is the only way the shared grid lines draw. A row therefore reads as the label cell
-// plus the cell beside it; with a single kwota plane there is exactly one.
+// The Podsumowanie grid has no row element — every cell is a direct child of one grid container, so
+// a row reads as the label cell plus the cell beside it.
 function labelCell(label: string): HTMLElement {
   let cell = screen.getByText(label)
   while (cell.parentElement && !cell.parentElement.style.gridTemplateColumns) {
@@ -83,9 +82,8 @@ beforeEach(() => {
   localStorage.clear()
 })
 
-// The tryb rozliczenia decides which kwota column EXISTS at all — one, never two. A block showing
-// netto under tryb brutto would describe a different debt than the one the client got on the
-// faktura.
+// The tryb rozliczenia decides which kwota column EXISTS at all — one, never two. Netto under tryb
+// brutto would describe a different debt than the one on the faktura.
 describe('Blok rozliczenia — tryb przestawia kolumnę kwot', () => {
   it('rozlicza na netto w trybie netto', () => {
     renderPanel('NET')
@@ -107,17 +105,16 @@ describe('Blok rozliczenia — tryb przestawia kolumnę kwot', () => {
   it('rozlicza na brutto w trybie brutto', () => {
     renderPanel('GROSS')
 
-    // 50 000 netto is 61 500 brutto, and the wpłata przelewem carries 12 300 brutto — the whole
-    // column stands on the second plane, not just its header. The wpłata gotówką has no brutto, so
-    // it takes nothing off here.
+    // 50 000 netto is 61 500 brutto and the wpłata przelewem carries 12 300 brutto — the whole column
+    // stands on the second plane, not just its header. The wpłata gotówką has no brutto.
     expect(amountFor('Łącznie')).toContain('61 500,00')
     expect(amountFor('Wpłaty')).toContain('12 300,00')
     expect(amountFor('Pozostało do zapłaty')).toContain('49 200,00')
   })
 })
 
-// Wpłaty and „Pozostało do zapłaty" are read down one column — if the figure at the bottom does not
-// follow from the rows above it, the block computes by two rules and neither is the one on screen.
+// If the figure at the bottom does not follow from the rows above it, the block computes by two
+// rules and neither is the one on screen.
 describe('Blok rozliczenia — czyta się w dół', () => {
   it('odejmuje wpłaty z obu płaszczyzn od łącznej kwoty', () => {
     renderPanel('NET')
@@ -131,9 +128,8 @@ describe('Blok rozliczenia — czyta się w dół', () => {
   it('prowadzi z wiersza wpłat na listę wpłat inwestycji', () => {
     renderPanel('NET')
 
-    // Spelled out rather than built with `investmentTransfersHref(id, { types: DEPOSIT_TYPES })`,
-    // which is verbatim what the component evaluates: both sides would move together, and the test
-    // would only prove that the cell holds a link.
+    // Spelled out rather than built with `investmentTransfersHref(...)`, which is verbatim what the
+    // component evaluates — both sides would move together.
     expect(within(labelCell('Wpłaty')).getByRole('link', { name: 'Wpłaty' })).toHaveAttribute(
       'href',
       `/inwestycje/${INVESTMENT_ID}?type=INVESTOR_DEPOSIT,COMPANY_FUNDING,OTHER_DEPOSIT`,
@@ -141,9 +137,8 @@ describe('Blok rozliczenia — czyta się w dół', () => {
   })
 })
 
-// Under rozliczenie brutto the investor pays the full kwoty off the faktury, so a stawka on
-// materiały would move no figure. The control is greyed out with a reason rather than removed: a
-// vanished one reads as a bug and the owner goes looking for a setting nobody took away.
+// Under rozliczenie brutto the investor pays the full kwoty off the faktury, so a stawka on materiały
+// moves no figure. Greyed out with a reason rather than removed, which reads as a bug.
 describe('Blok rozliczenia — stawka materiałów pod trybem brutto', () => {
   it('gasi wybór i mówi dlaczego', async () => {
     const user = renderPanel('GROSS')

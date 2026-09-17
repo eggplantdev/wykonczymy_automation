@@ -87,12 +87,10 @@ describe('DataTable — header and body agree on which columns are visible', () 
   })
 })
 
-// The symptom above cannot be reproduced here: it only appears in a compiled build, where the React
-// Compiler's babel plugin memoizes <DataTableRow> and a visibility toggle changes none of its props.
-// Vitest goes through esbuild with no such plugin, so the row re-renders regardless and the three
-// assertions above pass with or without the fix. What IS observable in jsdom is the mechanism the fix
-// relies on — the visible-column set is part of the row's key, so changing it remounts the row rather
-// than handing the memoized one back.
+// The symptom above only appears in a compiled build, where the React Compiler memoizes
+// <DataTableRow> and a visibility toggle changes none of its props — vitest goes through esbuild, so
+// those assertions pass with or without the fix. What IS observable in jsdom is the mechanism: the
+// visible-column set is part of the row's key, so changing it remounts the row.
 describe('DataTable — the row key that defeats the compiler cache', () => {
   it('replaces the row element when the visible-column set changes', async () => {
     const user = renderTable()
@@ -107,9 +105,8 @@ describe('DataTable — the row key that defeats the compiler cache', () => {
     const user = renderTable()
     const before = firstBodyRow()
 
-    // Sorting ascending by etap re-renders the table and leaves this data in the order it was
-    // already in, so the row is the same row in the same slot — a stable key, and React keeps
-    // the node. Without that half the previous assertion would pass on any re-render.
+    // Sorting by etap re-renders the table and leaves this data in the order it was already in, so the
+    // key is stable and React keeps the node — without that half the previous assertion is vacuous.
     await user.click(screen.getByText('Etap'))
 
     expect(firstRowTexts()).toEqual(['Wylewka', '1200', 'Etap 1'])

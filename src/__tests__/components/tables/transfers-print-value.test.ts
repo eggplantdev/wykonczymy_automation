@@ -13,8 +13,8 @@ function printValueOf(columnId: string): (row: TransferRowT) => string {
 
 function printValueIsAbsent(columnId: string): boolean {
   const column = getTransferColumns().find((c) => c.id === columnId)
-  // Asserted, not assumed: `find(...)?.meta` is undefined for a renamed id too, so without this the
-  // exclusion guard below would stay green while checking a column that no longer exists.
+  // `find(...)?.meta` is undefined for a renamed id too, so without this the exclusion guard below
+  // would stay green while checking a column that no longer exists.
   expect(column, `no column with id "${columnId}"`).toBeDefined()
   return column?.meta?.printValue === undefined
 }

@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { inspectionDraftId } from '@/lib/fleet/inspection-draft'
 
-// Pins the cross-vehicle draft leak `inspection-draft.ts` describes.
 describe('inspectionDraftId', () => {
   it('gives two vehicles two different draft slots', () => {
     expect(inspectionDraftId(2)).not.toBe(inspectionDraftId(3))

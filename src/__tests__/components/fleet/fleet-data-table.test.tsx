@@ -54,15 +54,14 @@ const expectTotal = (amount: number) =>
   expect(bare(totalRow()?.textContent ?? ''), 'stopka „Razem"').toContain(bare(formatPLN(amount)))
 
 beforeEach(() => {
-  // The table persists column visibility under `storageKey="fleet"`, so a test that hides a column
-  // would otherwise hand the next one a table missing it.
+  // Column visibility persists under `storageKey="fleet"`, so a test that hides a column would
+  // otherwise hand the next one a table missing it.
   localStorage.clear()
 })
 
-// EX-716 — „Razem" is the money answer on the fleet page, and it is computed in the browser from the
-// rows left on screen. `sumKnown` is unit-covered; what no layer below the browser sees is that the
-// footer follows the search box (a total nobody can add up from the visible rows is worse than none)
-// and that it steps aside when the column it belongs to is gone.
+// EX-716 — „Razem" is computed in the browser from the rows left on screen. `sumKnown` is unit-covered;
+// what no layer below the browser sees is that the footer follows the search box (a total nobody can
+// add up from the visible rows is worse than none) and steps aside when its column is gone.
 describe('Flota — stopka „Razem" mówi o tym, co widać', () => {
   it('sumuje tylko pojazdy, które zostały po wyszukaniu', async () => {
     render(<FleetDataTable data={FLEET} />)

@@ -34,7 +34,7 @@
     "seed:kosztorys-undo": "source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_TEST\" node --env-file=.env --import tsx src/scripts/seed-kosztorys-undo.ts",
     "seed:kosztorys-sort": "source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_TEST\" node --env-file=.env --import tsx src/scripts/seed-kosztorys-sort.ts",
     "seed:kosztorys-presets": "source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_TEST\" node --env-file=.env --import tsx src/scripts/seed-kosztorys-presets.ts",
-    "seed:kosztorys-bands": "node --env-file=.env --import tsx src/scripts/seed-kosztorys-bands.ts",
+    "seed:kosztorys-bands": "source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_TEST\" node --env-file=.env --import tsx src/scripts/seed-kosztorys-bands.ts",
     "seed:work-catalogue": "source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_TEST\" node --env-file=.env --import tsx src/scripts/seed-work-catalogue.ts",
     "seed:fleet": "source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_TEST\" node --env-file=.env --import tsx src/scripts/seed-fleet.ts",
     "seed:client-share": "source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_TEST\" node --env-file=.env --import tsx src/scripts/seed-client-share.ts",

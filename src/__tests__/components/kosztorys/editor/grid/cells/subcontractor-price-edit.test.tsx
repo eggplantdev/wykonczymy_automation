@@ -18,9 +18,8 @@ const ROW = pricingRow()
 
 const REFUSAL = /nie może przekroczyć 80%/
 
-// Two rows behind one cell, because that is what the grid does: dsg recycles a cell onto whichever
-// row scrolled into its slot, without ever remounting it. `rowId` is which row is under the caret
-// right now; both rows stay readable so a draft settling onto the wrong one is visible.
+// dsg recycles a cell onto whichever row scrolled into its slot without remounting it. `rowId` is
+// which row is under the caret now; both stay readable so a draft settling on the wrong one shows.
 function CellHost({
   rowId = 1,
   override = null,
@@ -169,8 +168,7 @@ describe('Cena wykonawcy — werdykt w trakcie pisania', () => {
 })
 
 // A breach can arrive from outside these columns (a lowered client price, a raised mnożnik), so the
-// cell carries the standing verdict too — and a keyboard user entering it gets the sentence, not
-// just a red figure.
+// cell carries the standing verdict too — the sentence, not just a red figure.
 describe('Cena wykonawcy — stojący werdykt', () => {
   it('odsłania zdanie, gdy siatka wchodzi w odrzuconą komórkę', () => {
     const { rerender } = render(<CellHost override={90} focus={false} />)

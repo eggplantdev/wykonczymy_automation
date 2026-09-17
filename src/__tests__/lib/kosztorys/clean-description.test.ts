@@ -28,14 +28,14 @@ describe('cleanDescription', () => {
     expect(cleanDescription('Szpachlowanie po fisnish')).toBe('Szpachlowanie po finish')
   })
 
-  // The picker copies a katalog opis verbatim, marker and all, so the button meets marked text in
-  // a rozpiska — and the table exists precisely for the prace that came out of the old sheets.
+  // The picker copies a katalog opis verbatim, marker and all, so the button meets marked text in a
+  // rozpiska.
   it('corrects a praca that still carries the katalog review note', () => {
     expect(cleanDescription('motnaz tv [stary arkusz]')).toBe('Montaż TV [stary arkusz]')
   })
 
-  // Hand-picked inputs cannot answer this — the property belongs to all 915 corrected names, and
-  // the one that broke it („c.w.u. Oraz z.w.u.") was not among the four originally listed here.
+  // The property belongs to every corrected name, and the one that broke it („c.w.u. Oraz z.w.u.")
+  // was not among the hand-picked four.
   it('leaves every corrected name in the table untouched on a second press', () => {
     const moved = [...CATALOGUE_NAME_FIXES.values()].filter(
       (name) => cleanDescription(name) !== name,

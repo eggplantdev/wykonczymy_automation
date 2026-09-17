@@ -13,7 +13,6 @@ const STORAGE_KEY = 'table-columns:kosztorys'
 const NET = STAGE_VALUE_NET_COLUMN_GROUP
 const GROSS = STAGE_VALUE_GROSS_COLUMN_GROUP
 
-// A second mount reading the same localStorage — what a reload is, minus the page.
 function remount() {
   return renderHook(() => useHiddenColumns())
 }

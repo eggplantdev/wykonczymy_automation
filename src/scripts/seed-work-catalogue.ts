@@ -1,26 +1,10 @@
-// E2E fixture for the katalog prac round trip (EX-756) — saving a praca out of a rozpiska and
-// pulling one back into a different sekcja.
+// E2E fixture for the katalog prac round trip (EX-756). Two investments, one per test. Two sekcje
+// with prace so a placement claim is falsifiable; one etap with a plane (plane-less locks its
+// column); j.m. on every praca, which the katalog requires. Every opis carries the run's timestamp —
+// the katalog is global and never reset, so a stable opis would hit overwrite instead of create.
 //
-// Seeds TWO fresh investments, one per test, because the first test overwrites the katalog entry it
-// created and the second inserts a praca into its rozpiska — sharing one would make each test read
-// what the other left behind.
-//
-// The shape is the smallest one in which both facts are provable:
-//   • TWO sekcje with prace in each, so „wstawiona praca wylądowała na końcu właściwej sekcji" is a
-//     statement the grid can contradict — with one sekcja every placement is the right placement;
-//   • one etap with a plane, because a plane-less etap renders its column locked;
-//   • j.m. on every praca, since the katalog refuses a praca without one.
-//
-// Every opis carries the run's timestamp. The katalog is GLOBAL and the test DB is never reset, so a
-// stable opis would make the second run's first save hit the overwrite branch that the first run
-// created — and the test asserts it takes the create branch.
-//
-// Run against the isolated test DB (mirrors e2e/global-setup.ts):
-//   DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx \
-//     src/scripts/seed-work-catalogue.ts
-//
-// Emits one machine-readable line the spec parses:
-//   CATALOGUE_SEED={"save":{...},"insert":{...}}
+// Run: DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx src/scripts/seed-work-catalogue.ts
+// Emits: CATALOGUE_SEED={"save":{...},"insert":{...}}
 import { getPayload } from 'payload'
 import config from '../payload.config'
 
@@ -34,9 +18,9 @@ const SECTION_BETA = 'Sekcja beta'
 
 type SeededInvestmentT = {
   id: number
-  // The praca each test saves to the katalog, in „Sekcja alfa".
+  // Saved to the katalog by each test; lives in „Sekcja alfa".
   item: string
-  // The only praca of „Sekcja beta" — the one an inserted praca has to land BEHIND.
+  // The only praca of „Sekcja beta" — an inserted praca must land behind it.
   beta: string
 }
 

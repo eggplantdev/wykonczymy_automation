@@ -20,8 +20,8 @@ function lastSqlChunks(): string {
   return sqlText(calls[calls.length - 1]?.[0])
 }
 
-// The lock is what makes „Zakończona" enforceable, so its two questions are asserted directly:
-// which status counts as locked, and which investment a kosztorys row belongs to.
+// Its two questions asserted directly: which status counts as locked, and which investment a
+// kosztorys row belongs to.
 describe('investment lock', () => {
   beforeEach(resetFakePayload)
 
@@ -40,8 +40,8 @@ describe('investment lock', () => {
       }
     })
 
-    // A nonexistent investment is the caller's problem to report, not the lock's — reporting it as
-    // locked would answer „zakończona" for an id that never existed.
+    // A nonexistent investment is the caller's problem to report — locked would answer „zakończona"
+    // for an id that never existed.
     it('treats a missing row as unlocked', async () => {
       const db = await getDb(fakePayload)
       mockExecute.mockResolvedValueOnce({ rows: [] })

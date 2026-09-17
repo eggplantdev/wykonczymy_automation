@@ -16,8 +16,7 @@ function headerCell(classes: string, width: number) {
 }
 
 // dsg virtualizes columns horizontally, so the header holds the gutter plus whatever window is
-// scrolled into view — never one cell per column, and never in a position that matches the column
-// order. This builds that shape: the two prose columns sit apart, behind an unrelated cell.
+// scrolled into view — never one cell per column, never in the column order.
 function renderGrid(cells: readonly HTMLElement[]) {
   const container = document.createElement('div')
   const header = document.createElement('div')
@@ -29,9 +28,12 @@ function renderGrid(cells: readonly HTMLElement[]) {
 }
 
 function renderWidths(container: HTMLElement, columnIds: readonly string[] = COLUMN_IDS) {
-  return renderHook(({ ids }: { ids: readonly string[] }) => useWrapColumnWidths({ current: container }, ids), {
-    initialProps: { ids: columnIds },
-  })
+  return renderHook(
+    ({ ids }: { ids: readonly string[] }) => useWrapColumnWidths({ current: container }, ids),
+    {
+      initialProps: { ids: columnIds },
+    },
+  )
 }
 
 afterEach(() => {
@@ -81,9 +83,8 @@ describe('useWrapColumnWidths — which cell a column is measured from', () => {
   })
 })
 
-// The bug EX-699 shipped with: „Opis prac" leaves the DOM entirely once the grid is scrolled past
-// it, and a measurement dropped on that reads as „this text needs one line" — so the next fit or
-// resize flattened every row to 32px and saved it.
+// EX-699: „Opis prac" leaves the DOM once the grid is scrolled past it, and a measurement taken then
+// reads as „this text needs one line" — so the next fit flattened every row to 32px and saved it.
 describe('useWrapColumnWidths — a column scrolled out of the horizontal window', () => {
   it('keeps the width it last measured when the header cell is gone', async () => {
     const description = headerCell(wrapColumnClass('description'), 317)

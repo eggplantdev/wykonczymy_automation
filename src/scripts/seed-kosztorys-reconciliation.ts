@@ -37,7 +37,8 @@ async function seedKosztorys(
   })
   const stage = await payload.create({
     collection: 'kosztorys-stages',
-    data: { investment: investment.id, ordinal: 1, label: 'Etap 1' },
+    // `plane` must be set — a plane-less etap renders ilość read-only (kosztorys-v2-columns.tsx).
+    data: { investment: investment.id, ordinal: 1, label: 'Etap 1', plane: 'w_tools' },
     ...ctx,
   })
   const section = await payload.create({

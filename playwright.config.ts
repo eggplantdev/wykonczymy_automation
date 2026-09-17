@@ -31,13 +31,15 @@ export default defineConfig({
   // Cold prod-server first hits are slow: the auth spec pays ~34s for the first authenticated
   // render, and each mutation spec then hits a heavy financial route (/kasa/[id]) cold for the
   // first time on top of a multi-combo form flow. 60s left the mutation specs on the flake line;
-  // 120s absorbs the cold penalty. Warm, these specs finish in ~3s. webServer boot budget below.
-  timeout: 120_000,
+  // 120s absorbed the cold penalty but nothing beyond it: headless Chrome composites in software
+  // here, so a spec that opens two extra contexts over a wide grid lands at 2.1 min on a machine
+  // running the rest of the suite — and a ceiling costs nothing until a test actually reaches it.
+  timeout: 300_000,
   // The mutation specs assert on state that appears only after a server-action → revalidate →
   // router.refresh round-trip (the new row, the reverted saldo). On a cold server that RSC
   // refresh runs well past Playwright's 5s `expect` default, so the row-appears/saldo asserts
-  // flake. 20s absorbs it; warm they resolve in <1s, so there's no cost to the happy path.
-  expect: { timeout: 20_000 },
+  // flake. Warm they resolve in <1s, so a wider bound costs nothing but the price of a real failure.
+  expect: { timeout: 45_000 },
   // Seeds the OWNER user and captures an authenticated storageState (e2e/.auth/user.json)
   // once per run. No global `storageState` here — that would break the unauthenticated smoke
   // and login specs; authenticated specs opt in via test.use({ storageState }).
@@ -49,12 +51,31 @@ export default defineConfig({
   use: {
     baseURL: BASE_URL,
     channel: 'chrome', // system Google Chrome, no bundled browser download
-    trace: 'on-first-retry',
+    // `on-first-retry` records NOTHING locally, where retries are 0 — every local failure this
+    // session had to be re-run to be seen at all. Kept off the passing path, so the cost is paid
+    // only by a test that actually failed.
+    trace: 'retain-on-failure',
+    // Playwright leaves actions and navigations UNBOUNDED by default, and an unbounded wait
+    // (`waitForEvent('download')` on a button that never downloads) doesn't fail — it eats the whole
+    // 300 s test budget and then reports a bare „Test timeout exceeded" naming nothing. A per-action
+    // ceiling turns that into a failure that says which action, which is the difference between a
+    // diagnosis and another five-minute run. Matched to the `expect` ceiling; navigation gets more
+    // because a cold prod route here genuinely can take a minute.
+    actionTimeout: 45_000,
+    navigationTimeout: 90_000,
   },
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'], channel: 'chrome' },
+      // Wider than any real monitor on purpose. react-datasheet-grid virtualises COLUMNS, so a
+      // kosztorys column past the right edge is not in the DOM at all — a spec would read „no such
+      // column" and, worse, a locator taken by index before a scroll points at a different column
+      // after it. A viewport that fits the whole grid keeps every column rendered at once.
+      use: {
+        ...devices['Desktop Chrome'],
+        channel: 'chrome',
+        viewport: { width: 3000, height: 1400 },
+      },
     },
   ],
   // Always build and test a FRESH production server — never `next dev`, and never reuse an

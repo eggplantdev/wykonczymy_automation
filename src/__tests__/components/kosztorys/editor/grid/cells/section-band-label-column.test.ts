@@ -4,10 +4,9 @@ import {
   sectionHeaderSlot,
 } from '@/components/kosztorys/editor/grid/cells/section-header-cell'
 
-// dsg has no colspan: exactly one column paints the section band's whole label and the rest go blank.
-// Since no column holds a fixed slot any more (lib/table/column-order), that column is resolved
-// off the visible order — a hard-coded „Opis prac" used to paint the band off-screen the moment the
-// owner dragged it right, and not at all when the client view hid it.
+// dsg has no colspan: one column paints the section band's whole label and the rest go blank. No
+// column holds a fixed slot (lib/table/column-order), so it is resolved off the visible order — a
+// hard-coded „Opis prac" paints the band off-screen once the owner drags it right.
 
 describe('sectionBandLabelColumnId', () => {
   it('takes the column that leads the grid', () => {
@@ -51,8 +50,8 @@ describe('sectionHeaderSlot', () => {
     expect(sectionHeaderSlot('actions', 'description')).toBe('actions')
   })
 
-  // The two can't collide — sectionBandLabelColumnId treats „Akcje" as chrome — but the slot is
-  // resolved independently, so nail down which one wins if that ever changes.
+  // The two can't collide today (sectionBandLabelColumnId treats „Akcje" as chrome), but the slot is
+  // resolved independently — so nail down which wins if that changes.
   it('keeps the menu slot even if „Akcje" were named the label column', () => {
     expect(sectionHeaderSlot('actions', 'actions')).toBe('actions')
   })

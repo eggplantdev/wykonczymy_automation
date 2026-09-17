@@ -45,9 +45,8 @@ const action = vi.fn<(data: InspectionFormDataT) => Promise<ActionResultT>>(asyn
   success: true,
 }))
 
-// A fresh draft slot per test. The store is module-global and its write is debounced, so a draft
-// from the previous test lands after `resetFormData` and is restored as this one's initial values —
-// which is how „Następny termin" arrived empty in a test that never emptied it.
+// A fresh draft slot per test: the store is module-global and its write debounced, so a previous
+// test's draft lands after `resetFormData` and is restored as this one's initial values.
 let draftSlot = 0
 
 function renderForm(formId?: string) {
@@ -81,9 +80,8 @@ async function pickType(user: UserT, label: string): Promise<void> {
 /** The trigger renders the date itself, so its text is the assertion surface. */
 const nextDue = () => screen.queryByLabelText('Następny termin')
 
-// A real pick from the calendar, which is the only thing that counts as the user claiming the field.
-// The day cell carries the ISO date; the button inside it is what takes the click. The calendar opens
-// on the month of the date already in the field, so the day picked here has to live in that month.
+// Only a real calendar pick counts as the user claiming the field. The calendar opens on the month
+// of the date already in the field, so the day picked here has to live in that month.
 async function pickNextDue(user: UserT, isoDate: string): Promise<void> {
   await user.click(screen.getByLabelText('Następny termin'))
   const cell = document.querySelector<HTMLElement>(`[data-day="${isoDate}"]`)
@@ -97,10 +95,8 @@ beforeEach(() => {
   useOptimisticFormStore.setState({ keepOpen: true })
 })
 
-// EX-716 — the rules that live only in `onTypeChange`, where no node spec can see them: the
-// interval suggestion, who owns the date once it is on screen, and the fields a hidden section
-// leaves behind. `INSPECTION_INTERVAL_MONTHS` itself is a table, and the arithmetic is
-// `addMonthsToDay`'s; what is untested below the browser is the wiring between them and the form.
+// EX-716 — the rules that live only in `onTypeChange`, where no node spec can see them: the interval
+// suggestion, who owns the date once it is on screen, and the fields a hidden section leaves behind.
 describe('Przegląd — rodzaj przestawia resztę formularza', () => {
   it('podpowiada termin z interwału przy każdej zmianie rodzaju, nie tylko pierwszej', async () => {
     const user = renderForm()
@@ -113,8 +109,7 @@ describe('Przegląd — rodzaj przestawia resztę formularza', () => {
     await pickType(user, 'OC')
     expect(nextDue(), 'OC to 12 miesięcy').toHaveTextContent('10 mar 2027')
 
-    // No interval to suggest — and „bez terminu" has to mean an empty field, not the previous
-    // type's date left standing.
+    // „bez terminu" has to mean an empty field, not the previous type's date left standing.
     await pickType(user, 'Wymiana opon')
     expect(nextDue()).toHaveTextContent('Wybierz datę')
   })
@@ -166,10 +161,9 @@ describe('Przegląd — rodzaj przestawia resztę formularza', () => {
   })
 })
 
-// The suggestion is gated on the form's own last suggestion, so that gate is only as good as its
-// bookkeeping: anything that writes „Następny termin" from outside `prefillNextDue` desynchronises
-// it, and a desynchronised gate refuses every suggestion from then on — silently, on a form that
-// looks fine. Two routes write it from outside, and each one owned a bug.
+// The suggestion is gated on the form's own last suggestion, so anything writing „Następny termin"
+// from outside `prefillNextDue` desynchronises the gate — which then silently refuses every
+// suggestion from then on. Two routes write it from outside, and each one owned a bug.
 describe('Przegląd — termin po ponownym otwarciu formularza', () => {
   it('podpowiada dalej po zapisie z otwartym dialogiem', async () => {
     const user = renderForm()
@@ -211,8 +205,7 @@ describe('Przegląd — termin po ponownym otwarciu formularza', () => {
 })
 
 // A swapped instrument cluster makes a lower reading legitimate, so the form warns and lets it
-// through. Both halves are the contract: no warning would hide a typo, a block would make the
-// truthful reading unrecordable.
+// through. Both halves are the contract: no warning hides a typo, a block bars the truthful reading.
 describe('Przegląd — niższy przebieg niż ostatni zapisany', () => {
   it('ostrzega o cofniętym liczniku, ale zapisuje', async () => {
     const user = renderForm()

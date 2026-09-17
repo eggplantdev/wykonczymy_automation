@@ -15,13 +15,11 @@ type QtyRowT = KosztorysV2RowT & { plannedQty: number }
 
 const POLICY = numericFieldPolicy<'plannedQty', QtyRowT>('plannedQty', decimalText)
 const COLUMN = decimalColumn('plannedQty', 'Przedmiar', POLICY)
-// The column is the public surface; its cell component is what the contract actually lives in.
 const DecimalCell = COLUMN.component as React.ComponentType<Record<string, unknown>>
 
 const ENTRY_QTY = 8
 
-// Stands in for react-datasheet-grid: holds the row, feeds it back, and can drop the cell the way
-// virtualization does when the edited row scrolls out of the window.
+// Stands in for react-datasheet-grid, including dropping the cell the way virtualization does.
 function CellHost({ mounted = true }: { mounted?: boolean }) {
   const [row, setRow] = useState<QtyRowT>({ id: 1, plannedQty: ENTRY_QTY } as QtyRowT)
   return (
@@ -79,8 +77,8 @@ describe('DecimalCell — a separator must survive the keystroke that commits be
 })
 
 describe('DecimalCell — what a refused value leaves behind', () => {
-  // Keystrokes commit as they go, so „12" is already on the row by the time the „x" makes the whole
-  // text unreadable — walking away must not leave that prefix standing as if it had been chosen.
+  // Keystrokes commit as they go, so „12" is already on the row by the time the „x" makes the text
+  // unreadable — walking away must not leave that prefix standing as if it had been chosen.
   it('restores the quantity and says so when the committed prefix is rejected', async () => {
     const { user, input, storedQty } = renderCell()
 

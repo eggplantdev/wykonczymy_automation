@@ -16,8 +16,8 @@ import type { SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
-// listPresetSections counts items per section in SQL (EX-622), so its per-section tallies and its
-// ordering contract are only real against Postgres — assert the returned metas, never the plan.
+// listPresetSections counts items per section in SQL (EX-622), so its tallies and ordering are only
+// real against Postgres — assert the returned metas, never the plan.
 describe.skipIf(!ENV_READY)('listPresetSections (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
@@ -214,8 +214,8 @@ describe.skipIf(!ENV_READY)('deletePreset / renamePreset (DB)', () => {
     expect((await listPresets(db)).some((preset) => preset.id === id)).toBe(false)
   })
 
-  // The collision guard lives in SQL, so the failure has to leave BOTH rows untouched — a partial
-  // write here would be a szablon renamed onto a name it doesn't own.
+  // The collision guard lives in SQL, so a partial write would be a szablon renamed onto a name it
+  // doesn't own.
   it('refuses a taken name without touching either szablon', async () => {
     const mine = await makePreset('crud-fixture-mine')
     const theirs = await makePreset('crud-fixture-theirs')

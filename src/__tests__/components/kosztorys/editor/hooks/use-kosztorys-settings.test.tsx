@@ -27,8 +27,7 @@ const TREE = {
   materialsNetRate: 0.9,
 } as unknown as KosztorysTreeT
 
-// A pending write that the test decides when to land — the whole risk here is what happens in the
-// window where two of them overlap.
+// A pending write that the test decides when to land — the risk here is two of them overlapping.
 function deferred() {
   let settle!: (result: ActionResultT) => void
   const promise = new Promise<ActionResultT>((resolve) => (settle = resolve))

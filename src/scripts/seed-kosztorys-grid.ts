@@ -1,14 +1,10 @@
 // E2E fixture for the grid's read path and its write path — EX-497 and EX-604.
 //
-// Seeds TWO fresh investments of the same shape, one per test, because the write test types new
-// quantities into the rozpiska and the read test asserts exact figures: sharing one investment would
-// make the second test read whatever the first left behind.
-//
-// The shape is the smallest one in which both facts are provable:
-//   • two etapy, so „Pomiar (razem etapy)" is a SUM of two cells rather than an echo of one;
-//   • przedmiar 10 at 100 zł, so „Pozostało" is a round figure that moves by a nameable amount;
-//   • three prace, so a run of edits down one column is a real burst and the untouched rows are
-//     visible controls.
+// TWO fresh investments of the same shape, one per test: the write test types new quantities and the
+// read test asserts exact figures, so sharing one would make the second read the first's leftovers.
+// The shape is the smallest in which both are provable — two etapy so „Pomiar (razem etapy)" sums
+// rather than echoes, przedmiar 10 at 100 zł so „Pozostało" moves by a nameable amount, three prace
+// so a run of edits is a real burst with untouched rows as controls.
 //
 // Run against the isolated test DB (mirrors e2e/global-setup.ts):
 //   DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx \

@@ -238,6 +238,8 @@ None — no schema changes. The seeded user is data-plane only and idempotent; a
 - [x] 1.2 Lint passes: `pnpm lint` — 6c941b6
 - [x] 1.3 `pnpm seed:e2e` creates the user and is idempotent on re-run — 6c941b6
 - [x] 1.4 `pnpm test:e2e` passes with smoke + auth specs; `e2e/.auth/user.json` generated — 6c941b6
+      (scope note 2026-09-17: smoke + auth only. The suite has since grown to 32 spec files and has
+      never had a full green run — status in `change.md` Notes.)
 
 #### Manual
 

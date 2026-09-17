@@ -7,12 +7,9 @@ import { RecipientListForm } from '@/components/forms/recipient-list-form/recipi
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
-// „Lista musi mieć co najmniej jednego odbiorcę" is enforced twice, and only one of the two is a
-// message: the action refuses an empty array (unit-tested), while the form refuses to BUILD one by
-// disabling the last row's remove button. That second half is why nobody ever sees the message —
-// and why a regression that re-enables the button would surface as a confusing rejected save rather
-// than as a missing guard. One render answers it; the E2E spec (`e2e/notification-recipients.spec.ts`)
-// deliberately does not, because there is nothing to submit.
+// The rule is enforced twice: the action refuses an empty array (tested), the form refuses to
+// build one by disabling the last remove button. This covers that second half — nothing here for
+// an E2E spec to submit.
 function renderForm(emails: string[]) {
   const action = vi.fn(async (_emails: string[]) => ({ success: true as const }))
   render(

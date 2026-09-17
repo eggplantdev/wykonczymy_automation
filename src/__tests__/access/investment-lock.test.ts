@@ -6,10 +6,9 @@ import {
 } from '@/access/investment-lock'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
 
-// The panel is the one write path the action wrapper never sees, so this gate IS the lock for
-// `/admin`. Both factories fail OPEN by design where the target can't be named — the cases below
-// pin which „can't be named" are deliberate (a create that would fail required-field validation
-// anyway) and which are not (a relationship arriving as a string id).
+// This gate is `/admin`'s only lock, since the action wrapper never sees panel writes. Both
+// factories fail OPEN when the target can't be named — deliberately where required-field
+// validation would catch it anyway, and by gap where a relationship arrives as a string id.
 const LOCKED_ID = 99
 
 const req = (item?: { investment: unknown }) =>
@@ -47,7 +46,6 @@ describe('unlessInvestmentLocked', () => {
     })
   })
 
-  // Guards the trap the factory's own comment names.
   it('narrows by the role rule it was given, not by a wired-in one', async () => {
     const managerArgs = { req: { user: { id: 1, role: 'MANAGER' } } } as never
     expect(await unlessInvestmentLocked(isAdminOrOwner, 'investment')(managerArgs)).toBe(false)
@@ -72,9 +70,8 @@ describe('unlessInvestmentLocked', () => {
 describe('updateUnlessInvestmentLocked', () => {
   const gate = updateUnlessInvestmentLocked(isAdminOrOwnerOrManager, 'investment')
 
-  // A `Where` speaks only about the row as it is STORED, so on its own it guards one direction.
-  // The other one — aiming an open row AT a locked investment — is a trap door: once the row lands
-  // there, the same `Where` locks it in and only SQL gets it out.
+  // A `Where` only guards the STORED row — it doesn't stop re-pointing an OPEN row AT a locked
+  // investment, and once it lands there only SQL gets it back out.
   it('refuses an update that re-points the row at a locked investment', async () => {
     expect(await gate(args({ investment: LOCKED_ID }))).toBe(false)
   })

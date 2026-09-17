@@ -49,9 +49,9 @@ describe('notifyFleetDigest', () => {
     expect(sendEmail).not.toHaveBeenCalled()
   })
 
-  // The kilometre leg is the one alarm with no date behind it, so nothing but this section's
-  // presence tells a reader the car is overdue — and it renders off `digest.odometer` alone, with no
-  // per-vehicle target to consult (EX-745 removed the „cel km" field; the interval is a constant).
+  // The kilometre leg is the one alarm with no date behind it, so nothing but this section's presence
+  // tells a reader the car is overdue. It renders off `digest.odometer` alone — the interval is a
+  // constant, with no per-vehicle target to consult (EX-745).
   it('renders the oil-interval section with the distance since the change', async () => {
     const { payload, sendEmail } = payloadWith([{ email: 'a@example.com' }])
 
@@ -74,8 +74,8 @@ describe('notifyFleetDigest', () => {
     expect(html).toContain('14\u00a0500 km od ostatniej wymiany')
   })
 
-  // The section is the whole signal, so an empty leg must print no heading at all — an empty
-  // „Wymiana oleju" block reads as „checked, nothing due" on a mail that never checked.
+  // The section is the whole signal: an empty „Wymiana oleju" block reads as „checked, nothing due"
+  // on a mail that never checked.
   it('prints no oil-interval heading when the leg is empty', async () => {
     const { payload, sendEmail } = payloadWith([{ email: 'a@example.com' }])
 
