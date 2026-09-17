@@ -23,6 +23,10 @@ type FilterTriggerButtonPropsT = Pick<
 // unprefixed class, and min-width beats `w-fit` anyway.
 export const TOOLBAR_FILTER_TRIGGER_CLASS = 'w-fit sm:min-w-0'
 
+// The same fit for a trigger that IS in the grid: only from `sm`, where ControlGrid stops being two
+// even columns — shrinking a grid cell to its label is the ragged staircase that grid exists to stop.
+export const GRID_FILTER_TRIGGER_CLASS = 'sm:w-fit sm:min-w-0'
+
 export const FilterTriggerButton = forwardRef<HTMLButtonElement, FilterTriggerButtonPropsT>(
   function FilterTriggerButton(
     { active, tone = 'default', icon: Icon, iconPosition = 'left', children, className, ...props },

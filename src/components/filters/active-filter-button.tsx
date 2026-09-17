@@ -1,7 +1,10 @@
 'use client'
 
 import { Check } from 'lucide-react'
-import { FilterTriggerButton } from '@/components/filters/filter-trigger-button'
+import {
+  FilterTriggerButton,
+  GRID_FILTER_TRIGGER_CLASS,
+} from '@/components/filters/filter-trigger-button'
 
 type ActiveFilterButtonPropsT = {
   isActive: boolean
@@ -23,6 +26,7 @@ export function ActiveFilterButton({
       active={isActive}
       icon={isActive ? Check : undefined}
       onClick={() => onChange(!isActive)}
+      className={GRID_FILTER_TRIGGER_CLASS}
     >
       {isActive ? activeLabel : allLabel}
     </FilterTriggerButton>

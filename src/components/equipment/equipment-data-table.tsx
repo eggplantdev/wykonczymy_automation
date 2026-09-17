@@ -6,6 +6,7 @@ import { DataTable } from '@/components/tables/data-table/data-table'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { ColumnToggle } from '@/components/filters/column-toggle'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
+import { GRID_FILTER_TRIGGER_CLASS } from '@/components/filters/filter-trigger-button'
 import { AddEquipmentDialog } from '@/components/dialogs/add-equipment-dialog'
 import { getEquipmentColumns } from '@/components/tables/equipment'
 import { whereFilterOptions, whereFilterValue } from '@/components/equipment/where-filter-options'
@@ -106,6 +107,7 @@ export function EquipmentDataTable({
                 onValuesChange={setPlaces}
                 icon={MapPin}
                 searchable
+                triggerClassName={GRID_FILTER_TRIGGER_CLASS}
               />
               <FilterMultiSelect
                 label="Status"
@@ -113,6 +115,7 @@ export function EquipmentDataTable({
                 values={statuses}
                 onValuesChange={setStatuses}
                 icon={CircleDot}
+                triggerClassName={GRID_FILTER_TRIGGER_CLASS}
               />
             </>
           }
