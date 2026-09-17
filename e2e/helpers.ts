@@ -3,30 +3,36 @@ import { expect, type Browser, type Locator, type Page } from '@playwright/test'
 import { E2E_EMAIL, E2E_PASSWORD } from '@/scripts/e2e-user-credentials'
 import { formatPLN } from '@/lib/utils/format-currency'
 
-// Wait until React has hydrated `locator`'s element, i.e. its onClick/onSubmit handler is
-// attached. Before hydration a click/submit is a no-op (or triggers a native GET submit that
-// never reaches its handler). React stamps hydrated DOM nodes with a __reactFiber$… key, so
-// wait for that. Needed because crossing Next.js root layouts — (auth) /zaloguj → (frontend)
-// / — is a full document load that re-hydrates from scratch, not a soft client navigation.
+// Give React a chance to hydrate `locator`'s element before the spec clicks or types into it.
+// Before hydration a click is a no-op (or a native GET submit that never reaches its handler), and
+// a controlled input is reset to empty. Crossing Next.js root layouts — (auth) /zaloguj →
+// (frontend) / — is a full document load that re-hydrates from scratch, so waiting matters.
+//
+// This is a PRECONDITION, never a verdict: React stamping a `__reactFiber$…` key on a host node is
+// an internal, and it has been observed missing on elements that click perfectly well a moment
+// later. A test that failed here blamed the framework's bookkeeping instead of the interaction it
+// exists to prove, so the timeout warns and returns — the click or fill that follows is what fails,
+// with a message about the thing the spec is actually about.
+//
+// The poll runs on the DRIVER, one short-lived evaluate per tick, because an in-page timer cannot
+// bound itself: `evaluate`'s own timeout covers resolving the locator, not awaiting a promise the
+// page function returns, so a page whose timers never fire made this call eat the whole test budget
+// and then blame the locator. Re-resolving each tick also survives React replacing the node.
+const HYDRATION_TIMEOUT_MS = 20_000
+const HYDRATION_POLL_MS = 250
+
 export async function waitForHydration(locator: Locator): Promise<void> {
-  await locator.evaluate((element) => {
-    return new Promise<void>((resolve, reject) => {
-      const isHydrated = () => Object.keys(element).some((key) => key.startsWith('__reactFiber$'))
-      if (isHydrated()) return resolve()
-      let waited = 0
-      const timer = setInterval(() => {
-        if (isHydrated()) {
-          clearInterval(timer)
-          resolve()
-        } else if ((waited += 50) >= 10_000) {
-          // Bounded so a never-hydrating element fails fast with a clear message
-          // instead of hanging until the 120s test timeout.
-          clearInterval(timer)
-          reject(new Error('waitForHydration: element did not hydrate within 10s'))
-        }
-      }, 50)
-    })
-  })
+  const deadline = Date.now() + HYDRATION_TIMEOUT_MS
+  while (Date.now() < deadline) {
+    const hydrated = await locator
+      .evaluate((element) => Object.keys(element).some((key) => key.startsWith('__reactFiber$')))
+      .catch(() => false)
+    if (hydrated) return
+    await new Promise((resolve) => setTimeout(resolve, HYDRATION_POLL_MS))
+  }
+  console.warn(
+    `waitForHydration: no __reactFiber$ key after ${HYDRATION_TIMEOUT_MS}ms — proceeding, the next interaction decides`,
+  )
 }
 
 // Used by both global-setup (to capture storageState) and the auth spec. Fills the controlled
@@ -97,6 +103,11 @@ export async function readRegisterBalanceStable(page: Page): Promise<number> {
 // label. We deliberately DON'T type into the cmdk search box: filtering churns the list so the
 // option re-renders/detaches mid-click (or is never highlighted for Enter). The unfiltered list is
 // static, so clicking the exact option is a stable, reliable onSelect.
+// Bounded so a slow-to-render option fails fast into the next retry attempt instead of hanging on
+// Playwright's default (test-timeout) action wait. Generous, because the bound is a retry trigger
+// and not a performance assertion: at 5 s a loaded machine fails every attempt for no reason.
+const ATTEMPT_TIMEOUT_MS = 15_000
+
 export async function pickComboOption(
   page: Page,
   label: string,
@@ -109,15 +120,13 @@ export async function pickComboOption(
   for (let attempt = 0; attempt < 5; attempt++) {
     // Each combo is a Radix Popover; its exit animation keeps the popper wrapper mounted and
     // pointer-events locked, so the next trigger click hangs on "stable". Wait for full detach.
-    await popper.waitFor({ state: 'detached', timeout: 5_000 })
+    await popper.waitFor({ state: 'detached', timeout: ATTEMPT_TIMEOUT_MS })
     try {
-      // Bounded so a slow-to-render option fails fast into the next retry attempt,
-      // instead of hanging on Playwright's default (test-timeout) action wait.
-      await trigger.click({ timeout: 5_000 })
+      await trigger.click({ timeout: ATTEMPT_TIMEOUT_MS })
       await page
         .getByRole('option', { name: optionText, exact: true })
         .first()
-        .click({ timeout: 2_000 })
+        .click({ timeout: ATTEMPT_TIMEOUT_MS })
     } catch {
       // A failed option click leaves the popover OPEN, so the next attempt's detach wait sits on a
       // wrapper that will never unmount and burns the whole test timeout. That is how one missing
@@ -130,7 +139,7 @@ export async function pickComboOption(
     await popper.waitFor({ state: 'detached' })
     const committed = await trigger
       .filter({ hasText: optionText })
-      .waitFor({ timeout: 2000 })
+      .waitFor({ timeout: ATTEMPT_TIMEOUT_MS })
       .then(() => true)
       .catch(() => false)
     if (committed) return
@@ -140,7 +149,7 @@ export async function pickComboOption(
 
 // „Typ wydatku" is a Radix Select, so it opens a listbox rather than accepting `selectOption`.
 export async function pickExpenseType(page: Page, label: string): Promise<void> {
-  await page.getByLabel('Typ wydatku').click()
+  await page.getByLabel('Typ wydatku', { exact: true }).click()
   await page.getByRole('option', { name: label, exact: true }).click()
 }
 
@@ -176,6 +185,14 @@ export async function openInvestmentExpenseForm(
   if (netAmount !== undefined) await page.getByLabel('Netto').first().fill(netAmount)
   await page.locator('[id="lineItems[0].description"]').fill(description)
   await pickComboOption(page, 'Typ wydatku inwestycyjnego', EXPENSE_CATEGORY)
+  // Only the netto type stores how the faktura was paid (`carriesPaymentMethod`), and the form
+  // deliberately offers no default — „Gotówka" preselected would make the column mean „gotówka albo
+  // nikt nie pytał". So the netto branch has to answer it, or the submit is refused and the dialog
+  // simply stays open. Picked last: switching type blanks the top-level fields, and this is one.
+  if (netAmount !== undefined) {
+    await page.getByLabel('Metoda płatności', { exact: true }).click()
+    await page.getByRole('option', { name: 'Gotówka', exact: true }).click()
+  }
 }
 
 // The same dialog, submitted. Resolves once it has closed — which only happens on a successful
@@ -188,7 +205,30 @@ export async function createInvestmentExpense(
 ): Promise<void> {
   await openInvestmentExpenseForm(page, amount, description, netAmount)
   await submitExpenseForm(page)
-  await page.getByText('Nowy wydatek').first().waitFor({ state: 'hidden' })
+  await waitForExpenseDialogToClose(page)
+}
+
+// The dialog closes only on a successful action, so it staying open IS the failure — but „element is
+// still visible" names nothing, and the dialog is holding the answer on screen the whole time. Read
+// the field errors and the toast out of it and fail with those instead.
+async function waitForExpenseDialogToClose(page: Page): Promise<void> {
+  const title = page.getByText('Nowy wydatek').first()
+  try {
+    await title.waitFor({ state: 'hidden' })
+  } catch (cause) {
+    const complaints = await page
+      .getByRole('dialog')
+      .locator('[data-slot=field-error], .text-destructive')
+      .allTextContents()
+    const toast = await page.locator('.Toastify__toast').allTextContents()
+    const said = [...complaints, ...toast].map((text) => text.trim()).filter(Boolean)
+    throw new Error(
+      said.length > 0
+        ? `„Nowy wydatek" refused the submit: ${said.join(' | ')}`
+        : '„Nowy wydatek" stayed open and said nothing — the action failed silently',
+      { cause },
+    )
+  }
 }
 
 // `exact`, because „Zapisz jako domyślną kasę" sits in the same dialog and only stores a preference.
@@ -208,11 +248,20 @@ export async function readSummaryFigures(page: Page): Promise<Record<string, str
     const figures: Record<string, string> = {}
     for (const node of nodes) {
       const grid = node as HTMLElement
-      const columns = grid.style.gridTemplateColumns.trim().split(/\s+/).length
+      // Computed, never the inline string: a track is `minmax(min(7rem, 24vw), 16rem)`, so splitting
+      // what the author wrote counts one column as three and shifts every label into the wrong cell.
+      // The computed value is resolved pixel widths — one token per column, whatever the source says.
+      const columns = getComputedStyle(grid).gridTemplateColumns.trim().split(/\s+/).length
       const cells = Array.from(grid.children)
       for (let index = 0; index + columns <= cells.length; index += columns) {
         const label = (cells[index].textContent ?? '').replace(/\s+/g, ' ').trim()
         if (!label) continue
+        // First occurrence wins. This is one flat dict over EVERY grid on the page, and a detail
+        // table's header row can open with the same word as a settlement figure — „Lista wpłat"
+        // starts „Wpłaty | Netto | Brutto | Forma wpłaty", which sits below the settlement and so
+        // overwrote the figure with its own column headers. The settlement block is the page's
+        // headline and renders before any list it breaks down, so the earlier row is the figure.
+        if (label in figures) continue
         figures[label] = cells
           .slice(index + 1, index + columns)
           .map((cell) => (cell.textContent ?? '').replace(/\s+/g, ' ').trim())
@@ -227,6 +276,10 @@ export async function readSummaryFigures(page: Page): Promise<Record<string, str
 // materiały, rabat). Only `kosztorys_v2` mounts it; the investment page renders the same panel with
 // no writer.
 export async function openSettlementOptions(page: Page): Promise<void> {
+  // The trigger sits in the panel's pinned bar and is UNMOUNTED while the Podsumowanie is folded —
+  // so a spec that read its figures (which folds the panel again) would wait out the whole test on a
+  // button that cannot appear.
+  await expandSummaryPanel(page)
   await page.getByRole('button', { name: 'Opcje rozliczenia', exact: true }).click()
 }
 
@@ -303,9 +356,19 @@ export async function ensureSettlementMode(
   const trigger = control.getByRole('combobox')
   await trigger.waitFor()
   await waitForHydration(trigger)
-  if (((await trigger.textContent()) ?? '').includes(mode)) return
-
+  // The tryb is read off the OPEN listbox, where Radix marks the current item `aria-selected` —
+  // never off the trigger, whose label renders empty for as long as the panel is being re-fetched.
+  // Reading it empty would look like „not the tryb we want" and send this into a flip it must not
+  // make: re-picking the value already selected fires no onValueChange, so no dialog ever opens and
+  // the confirm click below waits out the whole test.
   await trigger.click()
+  const selected = page.getByRole('option', { selected: true }).first()
+  await selected.waitFor()
+  if (((await selected.textContent()) ?? '').includes(mode)) {
+    await page.keyboard.press('Escape')
+    return
+  }
+
   await page.getByRole('option', { name: mode, exact: true }).click()
   // Every setting whose consequence lands on the investor's link is staged behind this one dialog.
   await page.getByRole('alertdialog').getByRole('button', { name: 'Potwierdź' }).click()
@@ -364,9 +427,25 @@ export async function readInvestorBalance(page: Page): Promise<number> {
 export async function collapseSummaryPanel(page: Page): Promise<Locator> {
   const toggle = page.getByRole('button', { name: /podsumowanie/i }).first()
   const panel = page.locator('.shadow-panel[data-state]').first()
-  await toggle.waitFor()
-  if ((await panel.getAttribute('data-state')) === 'open') await toggle.click()
-  await expect(panel).toHaveAttribute('data-state', 'closed')
+  await panel.waitFor()
+  // Already folded — a spec that reloads mid-test meets it that way, the preference being persisted.
+  if ((await panel.getAttribute('data-state')) === 'closed') return toggle
+  // The toggle renders DISABLED („Kosztorys jest pusty") until the tree arrives, and a click issued
+  // in that window neither fails nor fires — it sits on actionability and swallows the whole retry
+  // budget below. Wait the disabled state out before the first click.
+  await expect(toggle).toBeEnabled({ timeout: 30_000 })
+  // A dispatched event on a button React has not claimed yet is swallowed in silence, and the panel
+  // then covers every cell the spec goes on to click.
+  await waitForHydration(toggle)
+  // `dispatchEvent`, not `click`: a real click waits for the renderer to be quiet, and over a grid
+  // this wide it is not quiet for seconds at a time — the click then times out although the handler
+  // it would have run is perfectly fine. Folding the panel away is setup, never the behaviour under
+  // test, so the synthetic event costs nothing. Retried because a dispatch before hydration lands on
+  // a button with no handler yet, and that one lost click leaves the panel covering every later cell.
+  await expect(async () => {
+    if ((await panel.getAttribute('data-state')) === 'open') await toggle.dispatchEvent('click')
+    await expect(panel).toHaveAttribute('data-state', 'closed', { timeout: 2_000 })
+  }).toPass({ timeout: 30_000 })
   return toggle
 }
 
@@ -374,11 +453,11 @@ export async function collapseSummaryPanel(page: Page): Promise<Locator> {
 // `forceMount`ed but invisible, so `readSummaryFigures` needs it open.
 export async function expandSummaryPanel(page: Page): Promise<void> {
   const toggle = await collapseSummaryPanel(page)
-  await toggle.click()
-  await expect(page.locator('.shadow-panel[data-state]').first()).toHaveAttribute(
-    'data-state',
-    'open',
-  )
+  const panel = page.locator('.shadow-panel[data-state]').first()
+  await expect(async () => {
+    if ((await panel.getAttribute('data-state')) === 'closed') await toggle.dispatchEvent('click')
+    await expect(panel).toHaveAttribute('data-state', 'open', { timeout: 2_000 })
+  }).toPass({ timeout: 30_000 })
 }
 
 // The editor, with the Podsumowanie folded away — the state every grid spec needs before its first
@@ -388,22 +467,77 @@ export async function openEditor(page: Page, investmentId: number): Promise<void
   await collapseSummaryPanel(page)
 }
 
-// Every column the editor grid currently renders, in render order. Which of them are on screen is a
-// per-user setting AND an investment-level one (a global rabat pulls the four rabat columns), so a
-// spec asking whether a column is there has to ask the rendered header.
-export async function columnHeaders(page: Page): Promise<string[]> {
+// react-datasheet-grid virtualises COLUMNS as well as rows, so only the horizontal window is in the
+// DOM — a column two screens to the right simply is not there, and a spec reading the header row
+// would conclude the editor never assembled it. Every reader below therefore drives the grid's own
+// scroller rather than trusting one snapshot.
+const gridScroller = (page: Page) => page.locator('.dsg-container').first()
+
+const renderedHeaders = async (page: Page): Promise<string[]> => {
   const headerCells = page.locator('.dsg-row.dsg-row-header .dsg-cell')
   await headerCells.first().waitFor()
   return (await headerCells.allTextContents()).map((text) => text.trim())
 }
 
-// Read a column's position off the rendered header rather than pinning it: the stage columns sit
-// after a variable block of item columns, and which of those are shown is a per-user setting.
+// Sweep the whole width and merge the windows. Which columns exist is a per-user setting AND an
+// investment-level one (a global rabat pulls the four rabat columns), so a spec asking whether a
+// column is there has to ask the grid — but it has to ask all of it.
+export async function columnHeaders(page: Page): Promise<string[]> {
+  const scroller = gridScroller(page)
+  await scroller.waitFor()
+  // From the left edge, wherever a previous reader left it — a sweep that starts mid-grid would
+  // report the columns before it as missing.
+  await scroller.evaluate((el) => el.scrollTo({ left: 0, behavior: 'instant' }))
+  const seen: string[] = []
+  let left = -1
+  for (;;) {
+    for (const header of await renderedHeaders(page)) {
+      if (header && !seen.includes(header)) seen.push(header)
+    }
+    const next = await scroller.evaluate(
+      (el, from) => {
+        el.scrollTo({ left: from + el.clientWidth * 0.6, behavior: 'instant' })
+        return el.scrollLeft
+      },
+      Math.max(left, 0),
+    )
+    if (next <= left) return seen
+    left = next
+    await expect.poll(() => renderedHeaders(page)).not.toHaveLength(0)
+  }
+}
+
+// Scroll a column into the middle of the grid and return its index among the cells CURRENTLY
+// rendered — the only index a `.dsg-cell` nth() can be read with under column virtualisation. Body
+// rows render the same window as the header, so the two line up. Centred rather than merely on
+// screen: a column at the window's edge moves the window when Playwright scrolls it into view for a
+// click, and the index would then point at a different column.
 export async function columnIndex(page: Page, header: string): Promise<number> {
-  const headers = await columnHeaders(page)
-  const index = headers.indexOf(header)
-  if (index < 0) throw new Error(`no „${header}" column in the editor: ${headers.join(' | ')}`)
-  return index
+  const scroller = gridScroller(page)
+  await scroller.waitFor()
+  await scroller.evaluate((el) => el.scrollTo({ left: 0, behavior: 'instant' }))
+  let left = -1
+  for (;;) {
+    const headers = await renderedHeaders(page)
+    if (headers.includes(header)) {
+      await page
+        .locator('.dsg-row.dsg-row-header .dsg-cell')
+        .nth(headers.indexOf(header))
+        .evaluate((el) => el.scrollIntoView({ inline: 'center', block: 'nearest' }))
+      await expect.poll(() => renderedHeaders(page)).toContain(header)
+      return (await renderedHeaders(page)).indexOf(header)
+    }
+    const next = await scroller.evaluate(
+      (el, from) => {
+        el.scrollTo({ left: from + el.clientWidth * 0.6, behavior: 'instant' })
+        return el.scrollLeft
+      },
+      Math.max(left, 0),
+    )
+    if (next <= left) break
+    left = next
+  }
+  throw new Error(`no „${header}" column in the editor: ${(await columnHeaders(page)).join(' | ')}`)
 }
 
 // A grid row found by text it alone carries — the seeds give prace and sekcje distinct descriptions
@@ -418,6 +552,15 @@ export async function rowCell(page: Page, rowText: string, header: string): Prom
   return gridRow(page, rowText)
     .locator('.dsg-cell')
     .nth(await columnIndex(page, header))
+}
+
+// An editable cell holds its figure in an `<input value>`, and its textContent is EMPTY — so a text
+// assertion against a typed ilość passes only on the computed columns beside it, and reports the
+// typed one as „". Substring semantics, matching what a reader expects of a cell assertion.
+export async function expectCellValue(cell: Locator, value: string): Promise<void> {
+  await expect(cell.locator('input')).toHaveValue(
+    new RegExp(value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+  )
 }
 
 // The nth `.dsg-cell` of the first real item row, by column header. Section bands and the „Razem"
@@ -545,11 +688,19 @@ export async function seedFleet(browser: Browser): Promise<FleetSeedT> {
 export const LOAD_VERSION_ITEM = /Przywróć kosztorys do wcześniej zapisanego stanu/
 
 export async function pickKosztorysOption(page: Page, item: RegExp): Promise<void> {
-  const trigger = page.getByRole('button', { name: 'Opcje' })
+  const trigger = page.getByRole('button', { name: 'Opcje', exact: true })
   await trigger.waitFor()
   await waitForHydration(trigger)
-  await trigger.click()
-  await page.getByRole('menuitem', { name: item }).click()
+  const menuItem = page.getByRole('menuitem', { name: item })
+  // Re-opened until an item is there, rather than waited on longer. A restore re-renders the whole
+  // editor, and a click that lands mid-remount opens the menu onto a trigger that is replaced a
+  // frame later — the menu goes with it, and no amount of waiting brings back a menu that already
+  // closed. The page then looks exactly like one where the click never happened.
+  await expect(async () => {
+    await trigger.click()
+    await expect(menuItem).toBeVisible({ timeout: 2_000 })
+  }).toPass({ timeout: 30_000 })
+  await menuItem.click()
 }
 
 export const versionsDrawer = (page: Page) =>

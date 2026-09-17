@@ -2,19 +2,9 @@ import { test, expect, type Locator, type Page } from '@playwright/test'
 import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
 import { openEditor, refreshReferenceData, rowCell, runSeedScript } from './helpers'
 
-// EX-525 (S-07) — cofnij/ponów w edytorze kosztorysu.
-//
-// The stack itself is unit-covered (`use-undo-redo.test.ts`), and repeating „push, pop, pointer
-// moves" here would prove nothing new. Three things it cannot see live only in a browser:
-//
-//   • an undo is a WRITE. The grid reverts its own `useState` first and the server action follows,
-//     so „the old value is back on screen" is exactly what a revert that never reached Postgres
-//     looks like — only a reload separates them.
-//   • a run of keystrokes is one command, not one per character (`UNDO_COALESCE_MS`), and nothing
-//     below the browser produces a real keystroke burst.
-//   • the Cmd+Z boundary, which `use-undo-keyboard.ts` itself flags as a heuristic needing browser
-//     verification: while a cell is in text-edit the key belongs to the input, and only after the
-//     edit ends may it drive our stack. Both halves of that are asserted here.
+// EX-525 — unit-covered elsewhere (`use-undo-redo.test.ts`). Only a browser proves undo is a WRITE
+// (a reload tells a real revert from a local-only one), a keystroke run coalesces into one command
+// (`UNDO_COALESCE_MS`), and Cmd+Z belongs to the input while text-editing, our stack only after.
 test.use({ storageState: 'e2e/.auth/user.json' })
 
 type UndoSeedT = { cell: number; burst: number; boundary: number; reorder: number }
@@ -30,9 +20,8 @@ const QTY_COLUMN = COLUMN_LABELS.plannedQty
 // Seeded przedmiary, all distinct so a reverted one cannot be read off a neighbour by accident.
 const SEEDED_QTY = { 'Praca pierwsza': '11', 'Praca druga': '22', 'Praca trzecia': '33' }
 
-// A server action reply carries `next-action` on its POST, and it is the only observable end of one
-// (`networkidle` never settles in this app). An undo is a write like any edit, so a reload fired
-// before the reply would read the value the revert was about to replace.
+// `next-action` marks a server action's POST; `networkidle` never settles here. An undo is a write
+// like any edit, so reloading before the reply would race the value it's about to replace.
 function serverAction(page: Page): Promise<unknown> {
   return page.waitForResponse(
     (response) =>
@@ -43,8 +32,7 @@ function serverAction(page: Page): Promise<unknown> {
 
 const qtyCell = (page: Page, row: string): Promise<Locator> => rowCell(page, row, QTY_COLUMN)
 
-// Type a value into a przedmiar cell the way the grid is used: the cell renders an
-// `EditableCellInput`, so the figure lives in `value` and never in a text node.
+// The cell renders an `EditableCellInput`, so the figure lives in `value`, never a text node.
 async function typeQty(page: Page, row: string, value: string): Promise<void> {
   const cell = await qtyCell(page, row)
   await cell.click()
@@ -63,8 +51,8 @@ const optionsMenuItem = (page: Page, command: RegExp) =>
 
 const optionsMenu = (page: Page) => page.getByRole('menu', { name: 'Opcje' })
 
-// Radix chowa tło pod otwartym menu (`aria-hidden`), więc dopóki poprzednie się nie zwinie, samego
-// przycisku „Opcje" nie widać — czekanie na jego zamknięcie należy do otwierania, nie do domysłu.
+// Radix marks the background `aria-hidden` under an open menu, hiding „Opcje" itself until the
+// previous one collapses — so waiting for that close belongs inside opening.
 async function openOptionsMenu(page: Page): Promise<void> {
   await expect(optionsMenu(page)).toHaveCount(0)
   await page.getByRole('button', { name: 'Opcje', exact: true }).click()
@@ -76,8 +64,6 @@ async function closeOptionsMenu(page: Page): Promise<void> {
   await expect(optionsMenu(page)).toHaveCount(0)
 }
 
-// „Cofnij" / „Ponów" through the „Opcje" menu — the entry a mouse reaches, and the one whose
-// disabled state is the only thing on screen telling how deep the stack is.
 async function runStackCommand(page: Page, command: RegExp): Promise<void> {
   await openOptionsMenu(page)
   const settled = serverAction(page)
@@ -113,8 +99,8 @@ test('cofnięcie i ponowienie edycji komórki sięgają bazy, nie tylko ekranu',
   await runStackCommand(page, UNDO)
   await expectQty(page, 'Praca druga', SEEDED_QTY['Praca druga'])
 
-  // Siatka trzyma własny `rows` w stanie, więc dopiero przeładowanie odpowiada, czy cofnięcie
-  // dojechało do Postgresa. Ono też kasuje stos — dlatego ponowienie ma poniżej własną edycję.
+  // Reload proves the undo reached Postgres, and it also wipes the stack — hence redo below gets
+  // its own fresh edit.
   await page.reload()
   await expectQty(page, 'Praca druga', SEEDED_QTY['Praca druga'])
 
@@ -132,21 +118,18 @@ test('seria znaków to jedno cofnięcie, a „Opcje" pokazują, jak głęboki je
   page,
 }) => {
   await openEditor(page, seed.burst)
-  // Pasek narzędzi montuje się razem z siatką, więc pytanie o stos zadane przed pierwszym odczytem
-  // wiersza trafia czasem w moment, gdy „Opcji" jeszcze nie ma.
+  // Toolbar mounts together with the grid, so querying the stack before the first row read can hit
+  // the moment „Opcje" doesn't exist yet.
   await expectQty(page, 'Praca pierwsza', SEEDED_QTY['Praca pierwsza'])
   await expectStackState(page, false, false)
 
-  // Znak po znaku, nie `fill`: zlepianie serii w jedną komendę (UNDO_COALESCE_MS) jest widoczne
-  // wyłącznie wtedy, gdy każdy znak jest osobnym `onChange` — `fill` wysyła jedno zdarzenie i
-  // przeszedłby nawet bez zlepiania.
+  // Character by character, not `fill`: coalescing (UNDO_COALESCE_MS) only shows up when each key
+  // is its own `onChange` — `fill` fires one event and would pass even without coalescing.
   const cell = await qtyCell(page, 'Praca pierwsza')
   await cell.click()
   const settled = serverAction(page)
-  // Enter, nie pierwszy znak serii: wejście w edycję pod znakiem jest wyścigiem — zanim input
-  // przejmie fokus, kolejne znaki lecą jeszcze do siatki i przepadają. Enter otwiera edytor bez
-  // wpisywania czegokolwiek, więc cała seria zaczyna się już w inpucie. Odstęp jest krótszy niż
-  // UNDO_COALESCE_MS, żeby wszystkie znaki wpadły do jednego bufora.
+  // Enter opens edit mode without typing, avoiding the race where a first keystroke is lost to the
+  // grid before the input gets focus. Delay stays under UNDO_COALESCE_MS so all land in one buffer.
   await page.keyboard.press('Enter')
   await expect(cell.locator('input')).toBeFocused()
   await page.keyboard.press('ControlOrMeta+a')
@@ -156,8 +139,7 @@ test('seria znaków to jedno cofnięcie, a „Opcje" pokazują, jak głęboki je
   await settled
   await expectQty(page, 'Praca pierwsza', '1234')
 
-  // Bufor zamyka się dopiero po przerwie w pisaniu, więc jedno cofnięcie przed jej upływem cofnęłoby
-  // pustą serię.
+  // The buffer only closes after a pause in typing — an undo before that would revert an empty series.
   await expectStackState(page, true, false)
   await runStackCommand(page, UNDO)
   await expectQty(page, 'Praca pierwsza', SEEDED_QTY['Praca pierwsza'])
@@ -174,19 +156,17 @@ test('Cmd+Z w trakcie edycji komórki należy do inputa, a po jej zakończeniu �
   await openEditor(page, seed.boundary)
   await typeQty(page, 'Praca pierwsza', '99')
 
-  // Kursor w komórce obok: dopóki trwa edycja tekstu, skrót jest cofnięciem znaku w inpucie, a nie
-  // komendą edytora — gdyby sięgał stosu, jedno Cmd+Z w środku pisania wywracałoby poprzednią,
-  // niezwiązaną zmianę.
+  // While text-editing, the shortcut undoes a character in the input, not an editor command — if it
+  // reached the stack, a mid-typing Cmd+Z would revert the unrelated earlier change.
   const other = await qtyCell(page, 'Praca trzecia')
-  // Zaznaczenie komórki, a potem znak — dsg wchodzi w edycję dopiero pod klawiszem, a jego ramka
-  // aktywnej komórki przechwytuje kliknięcie w sam input.
+  // Select the cell, then type: dsg only enters edit mode under a keypress, and its active-cell
+  // frame intercepts a direct click on the input.
   await other.click()
   await page.keyboard.type('5')
   await expect(other.locator('input')).toBeFocused()
   await page.keyboard.press('Meta+z')
   await expectQty(page, 'Praca pierwsza', '99')
 
-  // Po wyjściu z edycji ten sam skrót prowadzi już do stosu.
   await page.keyboard.press('Escape')
   const settled = serverAction(page)
   await page.keyboard.press('Meta+z')
@@ -220,8 +200,8 @@ test('cofnięcie przesunięcia wiersza przywraca display_order po przeładowaniu
   await expect.poll(() => itemOrder(page)).toEqual(seededOrder)
 })
 
-// The prace on screen, in row order — „Opis prac" rests as a text node (its textarea mounts only
-// while editing), and the section band and „Razem" rows carry none of these names.
+// „Opis prac" rests as a text node (its textarea mounts only while editing); section/„Razem" rows
+// have no matching name and drop out on their own.
 async function itemOrder(page: Page): Promise<string[]> {
   const names = Object.keys(SEEDED_QTY)
   const texts = await page.locator('.dsg-row').allTextContents()

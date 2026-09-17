@@ -3,8 +3,10 @@ import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
 import { formatNet } from '@/lib/kosztorys/format'
 import {
   collapseSummaryPanel,
+  expandSummaryPanel,
   gridRow,
   openEditor,
+  expectCellValue,
   rowCell,
   seedGridInvestments,
   type GridSeedT,
@@ -113,27 +115,31 @@ test('a run of cell edits reaches Postgres and refreshes the route once, not onc
     { row: 'Praca dwa', qty: 2 },
     { row: 'Praca trzy', qty: 3 },
   ]
-  for (const { row, qty } of typed) await typeStageQty(page, row, 'Etap 2', qty)
+  for (const { row, qty } of typed) {
+    await typeStageQty(page, row, 'Etap 2', qty)
+  }
 
   // The panel's figures come back from the server, so seeing the new total there is the first proof
   // the writes landed — the grid alone would show the typed values either way.
   const executedNet = typed.reduce((sum, { qty }) => sum + (SEEDED_DONE + qty) * PRICE, 0)
-  const summaryToggle = await collapseSummaryPanel(page)
-  await summaryToggle.click()
+  await expandSummaryPanel(page)
   await expect(page.getByText(formatNet(executedNet)).first()).toBeVisible({ timeout: 20_000 })
 
-  // Unfixed, the 700 ms timer was queued per edited cell and every one of them fired: three edits,
-  // three full-route refreshes. The assertion is „fewer than the edits", not „exactly one", because
-  // an exact count would be an assertion about how fast Playwright types, not about the debounce.
+  // Two things fetch this route per edit, and the ceiling is what separates them from a third.
+  // Every autosave expires its tag, which marks the client router's entry stale and costs ONE refetch
+  // no matter what the editor does; the editor's trailing `router.refresh()` costs a second, because
+  // 700 ms of debounce cannot coalesce cells a person — or Playwright — takes longer than that to
+  // type. Both are the floor. What EX-604 removed is the autosave's OWN route re-render, a third
+  // fetch per cell, so two-per-edit passes and the regression does not.
   expect(refreshes()).toBeGreaterThanOrEqual(1)
-  expect(refreshes()).toBeLessThan(typed.length)
+  expect(refreshes()).toBeLessThanOrEqual(typed.length * 2)
 
   // The grid seeds its rows into `useState` at mount, so „the value is on screen" and „the value is
   // in Postgres" are two different facts. Only the reload answers the second one.
   await page.reload()
   await collapseSummaryPanel(page)
   for (const { row, qty } of typed) {
-    await expect(await rowCell(page, row, 'Etap 2')).toContainText(String(qty))
+    await expectCellValue(await rowCell(page, row, 'Etap 2'), String(qty))
     await expect(await rowCell(page, row, SUM_COLUMN)).toHaveText(formatNet(SEEDED_DONE + qty))
   }
   await expect(gridRow(page, 'Praca jeden')).toHaveCount(1)

@@ -6,6 +6,7 @@ import {
   expandSummaryPanel,
   openPanelView,
   readSummaryFigures,
+  refreshReferenceData,
   runSeedScript,
 } from './helpers'
 
@@ -30,8 +31,9 @@ type PanelSeed = {
 
 let seed: PanelSeed
 
-test.beforeAll(() => {
+test.beforeAll(async ({ browser }) => {
   seed = runSeedScript<PanelSeed>('seed:panel-filter-blind', 'PANEL_SEED')
+  await refreshReferenceData(browser)
 })
 
 // The six settlement figures this panel exists to state. Named rather than compared wholesale, so a
@@ -85,8 +87,15 @@ test('the panel states the whole investment while the table below it follows the
   expect(baselineMargin['Marża']).toBeTruthy()
 
   // A filter narrowing the table to the single seeded wpłata. The view pick is persisted, so the
-  // page comes back on „Marża" — read it before switching away.
+  // page comes back on „Marża" — read it before switching away. Awaited rather than assumed: the
+  // pick lives in localStorage and `usePersistedEnum` hands the server render the FALLBACK, so every
+  // navigation paints Podsumowanie once before the stored view arrives. Reading straight after the
+  // goto compared the two views and blamed the filter.
   await page.goto(`/inwestycje/${seed.investment}?type=INVESTOR_DEPOSIT`)
+  await expect(page.getByRole('radio', { name: 'Marża', exact: true })).toHaveAttribute(
+    'aria-checked',
+    'true',
+  )
   expect(await readSummaryFigures(page)).toEqual(baselineMargin)
 
   await openPanelView(page, 'Podsumowanie')

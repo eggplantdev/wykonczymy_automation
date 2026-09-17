@@ -1,6 +1,12 @@
 import { test, expect, type Locator, type Page } from '@playwright/test'
 import { STATUS_LABELS } from '@/components/investments/investment-status-badge'
-import { EXPENSE_INVESTMENT, openExpenseDialog, readListingCell, waitForHydration } from './helpers'
+import {
+  EXPENSE_INVESTMENT,
+  openExpenseDialog,
+  readListingCell,
+  refreshReferenceData,
+  waitForHydration,
+} from './helpers'
 
 // EX-528 — what „Planowana" actually costs an investment, and what promoting it gives back.
 //
@@ -20,6 +26,14 @@ import { EXPENSE_INVESTMENT, openExpenseDialog, readListingCell, waitForHydratio
 test.use({ storageState: 'e2e/.auth/user.json' })
 
 const STATUS_COLUMN = 'Status'
+
+// Earlier specs seed investments straight into Postgres, which no cache tag hears about, so the
+// „N aktywnych" counter can still be quoting a number from before them. The baseline below is a
+// DIFFERENCE, so a stale first reading and a fresh second one would read as „prospekt doliczony do
+// aktywnych" — a bug in the seeds' wake rather than in the status.
+test.beforeAll(async ({ browser }) => {
+  await refreshReferenceData(browser)
+})
 
 // Fresh on every run: the test DB is never reset, so a fixed name would make the second run assert
 // against the investment the first one already promoted.
