@@ -1,11 +1,9 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import { findTransfersRaw, type RawTransferDocT } from '@/lib/queries/transfers'
 
-// The defect EX-777 names: sorting that only ever sees the rows already fetched, so „największe
-// kwoty" means „największe na tej stronie". Nothing short of a real query over a set LARGER than
-// one page can tell the two apart — a mocked find would return whatever the mock was handed.
-// Read-only on purpose: it asserts against the restored dataset and creates nothing, so it cannot
-// leave rows behind for the golden master. Runs via `pnpm test:integration` against 5435.
+// EX-777: sorting that only sees already-fetched rows makes „największe kwoty" mean „on this page".
+// Only a real query over a set LARGER than one page can catch that — a mocked find returns whatever
+// it's handed. Read-only on purpose, so it leaves nothing behind for the golden master.
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 const PAGE_LIMIT = 20

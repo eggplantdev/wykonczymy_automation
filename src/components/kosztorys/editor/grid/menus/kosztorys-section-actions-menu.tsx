@@ -25,8 +25,8 @@ import { RowHeightMenuItems } from '@/components/kosztorys/editor/grid/menus/row
 import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-// Each command takes the section id rather than closing over it, so the bundle can ride the band's
-// `columnData` as ONE value shared by every band row instead of being rebuilt per section.
+// Commands take the section id rather than closing over it, so one bundle rides every band row's
+// `columnData` instead of being rebuilt per section.
 export type SectionBandActionsT = {
   onInsert: (sectionId: number, where: 'above' | 'below') => void
   onReorder: (sectionId: number, direction: 'up' | 'down') => void
@@ -34,9 +34,8 @@ export type SectionBandActionsT = {
   onRemove: (sectionId: number) => void
 }
 
-// `sortActive` covers the section-scoped sort, which KEEPS the bands on screen (only a global one
-// drops them) while `handleInsertSection` / `handleReorderSection` refuse to run — without the gate
-// those four commands would look live and silently do nothing.
+// Under a section-scoped sort the bands stay on screen but insert/reorder refuse to run, so without
+// `sortActive` those commands would look live and do nothing.
 export function KosztorysSectionActionsMenu({
   row,
   sectionId,
@@ -48,17 +47,15 @@ export function KosztorysSectionActionsMenu({
   canMoveDown,
   actions,
 }: {
-  // The band row itself, for the height command — the only entry here that acts on the ROW rather
-  // than on the sekcja. Its label is one line that overflows sideways, so a fit always lands on the
-  // band's resting height: on a band this command IS the way back from a drag.
+  // The only entry acting on the ROW, not the sekcja. A band's label is one line, so fitting it
+  // always lands at resting height — here the command is the way back from a drag.
   row: KosztorysV2RowT
   sectionId: number
   name: string
   itemCount: number
   color: SectionColorKeyT | null
   sortActive: boolean
-  // Off at the first / last sekcja of the rozpiska, where `handleReorderSection` has nothing to swap
-  // with. Separate from `sortActive`: that one freezes every order command, this one direction.
+  // Off at the first / last sekcja, where `handleReorderSection` has nothing to swap with.
   canMoveUp: boolean
   canMoveDown: boolean
   actions: SectionBandActionsT
@@ -71,7 +68,7 @@ export function KosztorysSectionActionsMenu({
       <DropdownMenu>
         <CellMenuTrigger title="Akcje sekcji" />
         <DropdownMenuContent align="start" className="min-w-44">
-          {/* The twin of the row menu's „Praca" header — this ⋯ and a praca's sit in the same „Akcje"
+          {/* Twin of the row menu's „Praca" header — this ⋯ and a praca's sit in the same „Akcje"
               column, one row apart. */}
           <DropdownMenuLabel>Sekcja</DropdownMenuLabel>
           <DropdownMenuItem

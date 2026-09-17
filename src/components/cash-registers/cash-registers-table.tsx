@@ -5,6 +5,7 @@ import { DataTable } from '@/components/tables/data-table/data-table'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { ActiveFilterButton } from '@/components/filters/active-filter-button'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
+import { GRID_FILTER_TRIGGER_CLASS } from '@/components/filters/filter-trigger-button'
 import { Tags, User } from 'lucide-react'
 import { ColumnToggle } from '@/components/filters/column-toggle'
 import { getCashRegisterColumns, REGISTER_TYPE_LABELS } from '@/components/tables/cash-registers'
@@ -92,6 +93,7 @@ export function CashRegistersTable({ data, workers, className }: CashRegistersTa
                   values={typeValues}
                   onValuesChange={setTypeValues}
                   icon={Tags}
+                  triggerClassName={GRID_FILTER_TRIGGER_CLASS}
                 />
                 <FilterMultiSelect
                   label="Właściciel"
@@ -100,6 +102,7 @@ export function CashRegistersTable({ data, workers, className }: CashRegistersTa
                   onValuesChange={setOwnerValues}
                   icon={User}
                   searchable
+                  triggerClassName={GRID_FILTER_TRIGGER_CLASS}
                 />
                 <ActiveFilterButton
                   isActive={showOnlyActive}

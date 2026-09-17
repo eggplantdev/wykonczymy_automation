@@ -16,8 +16,6 @@ type InvestmentOptionT = { id: number; name: string }
 const kosztorysCol = createColumnHelper<KosztorysRowT>()
 const investmentCol = createColumnHelper<InvestmentWithoutSheetRowT>()
 
-// Columns for the Kosztorysy table: name, sortable status, and per-row actions
-// (linked → open/unlink/delete; unlinked → link to an investment).
 export function getKosztorysColumns({
   availableInvestments,
 }: {
@@ -41,8 +39,7 @@ export function getKosztorysColumns({
       },
     }),
 
-    // Accessor on the label (not the raw status) so the sort follows the visible
-    // Polish text rather than the internal enum value.
+    // Accessor on the label so the sort follows the visible Polish text, not the enum value.
     kosztorysCol.accessor((row) => SHEET_STATUS_LABELS[row.status], {
       id: 'status',
       header: 'Status',
@@ -78,8 +75,6 @@ export function getKosztorysColumns({
   ]
 }
 
-// Columns for the "Inwestycje bez kosztorysu" table: investment name + the
-// action to attach a kosztorys (link existing; auto-create stays disabled).
 export function getInvestmentWithoutSheetColumns() {
   return [
     investmentCol.accessor('name', {

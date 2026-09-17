@@ -18,7 +18,6 @@ function stage(id: number, ordinal: number, label: string): KosztorysStageT {
   return { id, ordinal, label, plane: 'w_tools', workerId: null }
 }
 
-// The three columns one etap owns. `moneyAxis: 'both'` and no picker, so all three are assembled.
 function headerTexts(stages: KosztorysStageT[], stageId: number) {
   const columns = buildV2Columns({ view: 'client', stages, moneyAxis: 'both' })
   const ids = [stageKey(stageId), stageValueNetKey(stageId), stageValueGrossKey(stageId)]
@@ -55,12 +54,16 @@ describe('per-stage columns — one name, three headers', () => {
   })
 })
 
-// The off-by-one class the issue names: the columns are keyed by stage id, so a deletion must take
-// exactly one etap's three columns and leave every neighbour's name where it was.
+// The columns are keyed by stage id, so a deletion must take exactly one etap's three columns and
+// leave every neighbour's name where it was.
 describe('per-stage columns — an etap is deleted', () => {
   it('takes all three of its columns and leaves the survivor’s names alone', () => {
     const stages = [stage(DEMOLITION, 1, 'Rozbiórki'), stage(PAINTING, 2, 'Malowanie')]
-    expect(headerTexts(stages, PAINTING)).toEqual(['Malowanie', 'Malowanie netto', 'Malowanie brutto'])
+    expect(headerTexts(stages, PAINTING)).toEqual([
+      'Malowanie',
+      'Malowanie netto',
+      'Malowanie brutto',
+    ])
 
     const afterDelete = [stage(PAINTING, 2, 'Malowanie')]
 

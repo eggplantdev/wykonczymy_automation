@@ -1,9 +1,7 @@
 /**
- * The transfer columns the database can order by — every one a column of `transactions` itself.
- *
- * The relational columns (investment, kasy, kategorie, worker, createdBy) are absent on purpose:
- * the row carries only an id under them and the name is joined in after the page is fetched, so
- * `payload.find` with `depth: 0` has nothing to sort on. They narrow by filter instead.
+ * Transfer columns the database can order by — only `transactions`' own columns. Relational
+ * columns (investment, kasy, kategorie, worker, createdBy) are excluded: they carry only an id at
+ * `depth: 0`, with names joined in after fetch, so there's nothing to sort on. They narrow by filter instead.
  */
 export const SERVER_SORTABLE_TRANSFER_COLUMNS = [
   'id',
@@ -18,11 +16,7 @@ export const SERVER_SORTABLE_TRANSFER_COLUMNS = [
 
 export type ServerSortableColumnT = (typeof SERVER_SORTABLE_TRANSFER_COLUMNS)[number]
 
-/**
- * One default for BOTH the on-screen list and the export, so an unsorted screen and the printout
- * taken from it cannot disagree. `-id` rather than `-date`: a backdated row belongs where it was
- * entered, and the list has always read that way.
- */
+/** One default for both the list and its export, so they can't disagree. `-id` not `-date`: a backdated row belongs where it was entered. */
 export const DEFAULT_TRANSFER_SORT = '-id'
 
 export function isServerSortableColumn(columnId: string): columnId is ServerSortableColumnT {

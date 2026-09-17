@@ -7,8 +7,8 @@ type TemplateCrumbPropsT = {
   params: Promise<{ id: string }>
 }
 
-// Mirrors InvestmentCrumb, but the [id] here is a presetId, not an investmentId — the workshop
-// investment underneath is an implementation detail (see the comment on TemplateWorkshopPage).
+// The [id] here is a presetId, not an investmentId — the workshop investment underneath is an
+// implementation detail (see TemplateWorkshopPage).
 export async function TemplateCrumb({ params }: TemplateCrumbPropsT) {
   const { id } = await params
 

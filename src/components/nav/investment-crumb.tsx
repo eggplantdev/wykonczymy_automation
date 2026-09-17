@@ -10,7 +10,7 @@ type InvestmentCrumbPropsT = {
 
 export async function InvestmentCrumb({ params }: InvestmentCrumbPropsT) {
   const { id } = await params
-  // Not a guard — keeps a junk id out of the query's cache keys.
+  // Keeps a junk id out of the query's cache keys.
   if (!isInvestmentId(id)) return null
 
   const name = await getInvestmentName(id)

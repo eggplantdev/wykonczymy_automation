@@ -67,8 +67,8 @@ const allColumns = [
   col.accessor('vatPlane', {
     id: 'vatPlane',
     // The tag names the FORM the wpłata arrived in, not the plane the bill is settled in — same
-    // dictionary as the deposit list in the panel. „netto"/„brutto" naming both on one screen is
-    // what made the reader guess which of the two a given cell meant (owner, 2026-08-23).
+    // dictionary as the deposit list in the panel, because „netto"/„brutto" for both on one screen
+    // left the reader guessing which a cell meant (owner, 2026-08-23).
     header: 'Forma wpłaty',
     meta: { printValue: transferVatPlaneText },
     cell: (info) => transferVatPlaneText(info.row.original),
@@ -99,14 +99,9 @@ const allColumns = [
     meta: { printValue: (row) => row.expenseCategoryName },
     cell: (info) => info.getValue(),
   }),
-  // TODO: add click-to-expand for long descriptions.
-  // Tried a `<DescriptionCell>` client component with `useState` + `line-clamp-3`
-  // toggle on a `<button>` inside this cell. Click handler appeared not to update
-  // the rendered output (button "rendered once and not responding"). Root cause
-  // unclear — suspects: React Compiler memoization of the cell render, TanStack
-  // Table re-creating the cell node per parent render, or a Tailwind `display`
-  // conflict between `block` and `line-clamp-3`. Revisit when overflow becomes
-  // a real problem.
+  // TODO: click-to-expand for long descriptions. A `<DescriptionCell>` with `useState` +
+  // `line-clamp-3` rendered once and never responded to clicks; cause unclear (React Compiler,
+  // TanStack re-creating the cell node, or `block` vs `line-clamp-3`). Revisit if overflow bites.
   col.accessor('description', {
     id: 'description',
     header: 'Opis',
@@ -198,9 +193,6 @@ type ColumnOptionsT = {
   currentUserRole?: RoleT
 }
 
-/**
- * Returns transfer column definitions, excluding specified column IDs.
- */
 export function getTransferColumns(exclude: string[] = [], options: ColumnOptionsT = {}) {
   const { referenceData, currentUserId, currentUserRole } = options
 
@@ -249,10 +241,9 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
   })
 
   // Sortability is derived, never declared per column: a column showing a name from another table
-  // (investment, kasy, kategorie, worker, createdBy) carries only the id in the row — the name is
-  // joined in after the page is fetched, so the database has nothing to order by and the click
-  // would silently sort one page. Those columns narrow by filter instead (EX-777). Deriving keeps
-  // the whitelist the single source of truth; declaring it here needed a spec to stop the two drifting.
+  // carries only the id in the row, and the name is joined in after the page is fetched — so the
+  // database has nothing to order by and the click would silently sort one page. Those columns narrow
+  // by filter instead (EX-777); deriving keeps the whitelist the single source of truth.
   const columns: ColumnDef<TransferRowT, unknown>[] = [...allColumns, actionsColumn].map(
     (column) =>
       isServerSortableColumn(column.id!)

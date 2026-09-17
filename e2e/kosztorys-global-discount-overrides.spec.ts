@@ -14,6 +14,7 @@ import {
   pickDiscountMode,
   readSummaryFigures,
   rowCell,
+  expectCellValue,
   seedGridInvestments,
   type GridSeedT,
 } from './helpers'
@@ -151,7 +152,8 @@ test('rabat globalny wyłącza rabaty per pozycja, nie kasując ich', async ({ p
   // are two different facts about that 50 zł. Only the reload answers the second.
   await page.reload()
   await collapseSummaryPanel(page)
-  await expect(await rowCell(page, ROWS[0], DISCOUNT_VALUE_COLUMN)).toContainText(
+  await expectCellValue(
+    await rowCell(page, ROWS[0], DISCOUNT_VALUE_COLUMN),
     String(PER_ITEM_DISCOUNT),
   )
   expectLine(await summaryFigures(page), 'Łącznie', EXECUTED_NET - PER_ITEM_DISCOUNT)
@@ -178,7 +180,7 @@ test('tryb „%" nadpisuje rabat każdej pozycji i pyta, zanim to zrobi', async 
   await collapseSummaryPanel(page)
   for (const row of ROWS) {
     await expect(await rowCell(page, row, DISCOUNT_TYPE_COLUMN)).toHaveText('%')
-    await expect(await rowCell(page, row, DISCOUNT_VALUE_COLUMN)).toContainText(String(PERCENT))
+    await expectCellValue(await rowCell(page, row, DISCOUNT_VALUE_COLUMN), String(PERCENT))
   }
   expectLine(await summaryFigures(page), 'Łącznie', EXECUTED_NET * (1 - PERCENT / 100))
 
@@ -187,6 +189,6 @@ test('tryb „%" nadpisuje rabat każdej pozycji i pyta, zanim to zrobi', async 
   await collapseSummaryPanel(page)
   for (const row of ROWS) {
     await expect(gridRow(page, row)).toHaveCount(1)
-    await expect(await rowCell(page, row, DISCOUNT_VALUE_COLUMN)).toContainText(String(PERCENT))
+    await expectCellValue(await rowCell(page, row, DISCOUNT_VALUE_COLUMN), String(PERCENT))
   }
 })

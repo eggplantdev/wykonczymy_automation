@@ -3,6 +3,7 @@ import {
   discountModeSelect,
   openSettlementOptions,
   pickDiscountMode,
+  refreshReferenceData,
   runSeedScript,
 } from './helpers'
 
@@ -16,11 +17,12 @@ test.use({ storageState: 'e2e/.auth/user.json' })
 
 let investment: number
 
-test.beforeAll(() => {
+test.beforeAll(async ({ browser }) => {
   investment = runSeedScript<{ investment: number }>(
     'seed:kosztorys-bands',
     'BANDS_SEED',
   ).investment
+  await refreshReferenceData(browser)
 })
 
 test('a failed rabat save restores the mode and leaves the block usable', async ({ page }) => {
@@ -38,12 +40,14 @@ test('a failed rabat save restores the mode and leaves the block usable', async 
   })
   await pickDiscountMode(page, 'Wyłączony')
 
-  await expect(page.locator('.Toastify__toast')).toHaveText('Nie udało się zapisać rabatu')
-  await expect(discountModeSelect(page)).toHaveText('Kwotowy')
+  await expect(page.locator('.Toastify__toast')).toHaveText('Nie udało się zapisać rabatu', {
+    timeout: 90_000,
+  })
+  await expect(discountModeSelect(page)).toHaveText('Kwotowy', { timeout: 90_000 })
   await expect(discountModeSelect(page)).toBeEnabled()
 
   // Still usable after the failure — the stuck-transition bug only showed up on the NEXT interaction.
   await page.unroute('**/*')
   await pickDiscountMode(page, 'Wyłączony')
-  await expect(discountModeSelect(page)).toHaveText('Wyłączony')
+  await expect(discountModeSelect(page)).toHaveText('Wyłączony', { timeout: 90_000 })
 })

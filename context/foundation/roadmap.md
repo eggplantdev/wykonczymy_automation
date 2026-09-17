@@ -3,7 +3,7 @@ project: 'Wykonczymy — off-sheets phase 1'
 version: 1
 status: active
 created: 2026-06-12
-updated: 2026-09-16
+updated: 2026-09-17
 prd_version: 1
 main_goal: quality
 top_blocker: none
@@ -169,7 +169,7 @@ Bands: **editor parity S-01–S-09** → **financial-plane bridge S-11–S-12** 
 | ---- | ------------------------------- | --------------------------------------------------------------------------------------- | ------------------ | ----------------------------- | -------- | ---------- |
 | F-01 | e2e-harness                     | (foundation) Playwright E2E harness, CI-runnable, isolated DB                           | —                  | FR-011                        | done     | —          |
 | O-01 | sentry-observability            | capture prod errors + tracing + session replay in Sentry (standalone infra)             | —                  | — (owner request)             | proposed | yes        |
-| O-02 | rwd-mobile                      | make the app usable on a phone: navigation, adding + showing transactions (standalone)  | —                  | — (owner request)             | ready    | yes        |
+| O-02 | rwd-mobile                      | make the app usable on a phone: navigation, adding + showing transactions (standalone)  | —                  | — (owner request)             | done     | —          |
 | S-01 | kosztorys-sections-items        | author kosztorys sections + items in-app with live totals                               | —                  | FR-001, FR-002, FR-007, US-01 | done     | —          |
 | S-02 | kosztorys-price-models          | record three price models per item and toggle the pricing view                          | S-01               | FR-003                        | done     | —          |
 | S-03 | kosztorys-stages                | manage stages (etapy) and record per-item, per-stage progress                           | S-01               | FR-004                        | done     | —          |
@@ -290,7 +290,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - **Filters wall up:** `filters/filter-grid.tsx` is `flex flex-wrap`, so ~10 trigger buttons stack above the table. The „Filtry" fold (2026-09-16) helps; the row still needs a deliberate mobile form.
   - **Baseline to respect:** only 19 of 479 `.tsx` files use `sm:` at all (35 occurrences). This is a desktop-first codebase — prefer fixing shared primitives over sprinkling breakpoints per component.
 - **Risk:** touches shared `ui/` primitives (dialog, popover, command) and the app shell, so a regression is visible on every desktop screen too, not just mobile. No financial write path is involved. The z-index retokenization is the sharpest edge — it silently reorders every overlay in the app.
-- **Status:** ready
+- **Status:** done
 
 ## Slices
 
@@ -779,3 +779,4 @@ Lifted from PRD `## Non-Goals` — explicitly out of scope for this arc.
 - **S-05: VAT per investment (netto entry, brutto computed)** — Archived 2026-07-10 → `context/archive/2026-07-10-kosztorys-vat/`. Lesson: a migration is "verified" only when the running app reads the new column — `payload migrate` "Done." is necessary, not sufficient.
 - **S-12: Robocizna + rabat derived from the kosztorys** — Archived 2026-07-26 → `context/archive/2026-07-19-robocizna-from-kosztorys/`. Lesson: —.
 - **S-15: Importer for existing sheet kosztorysy** — EX-417 Done. Archived 2026-08-14 → `context/archive/2026-08-11-kosztorys-importer/`. Follow-up „Porównaj z arkuszem Google" archived alongside → `context/archive/2026-08-13-sheet-live-compare/` and `context/archive/2026-08-13-pomiar-bez-etapu/`. Deferred E2E → EX-671 + EX-687 (`e2e-backlog`); comparison blind to a global rabat → EX-691; 12 manual checks left unticked in `manual-checks.md`. Lesson: column resolution must key on the **header label**, never an offset — across 45 real sheets „Przedmiar" lives in six different columns and stage headers get renamed to crew names.
+- **O-02: RWD — make the app usable on a phone** — EX-785 Done. Archived 2026-09-17 → `context/archive/2026-09-16-rwd-mobile/`. Phases 1–3 shipped (overflow root-caused, mobile drawer, shell switch `lg`→`sm`, dialog-as-sheet, collision-aware popover, the two named flows walked at 390px); two follow-ups shipped alongside — EX-787 (`ui/` stops importing upward) and EX-789 (v2 editor toolbar collapsed on mobile). Phase 4 („the rest") was never scoped and has no ticket; the z-index retokenization (plan item 1.4) was written up as EX-786 and then **Canceled** — no user-visible defect, so it is dropped, not queued. Only EX-788 (E2E for the phone flows, `e2e-backlog`) stays open. Lesson: a `grid grid-cols-1` wrapper re-creates the `min-width: auto` overflow the flex shell already fixed with `min-w-0` — the guard has to be repeated per layout mode, it does not inherit.

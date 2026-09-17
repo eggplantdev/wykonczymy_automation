@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test'
 import { DEFAULT_COEFFS } from '@/lib/kosztorys/constants'
-import { formatNet } from '@/lib/kosztorys/format'
-import { bare, runSeedScript, waitForHydration } from './helpers'
+import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
+import { roundToCents } from '@/lib/utils/round-to-cents'
+import { editorCell, refreshReferenceData, runSeedScript, waitForHydration } from './helpers'
 import { anonymousVisit, mintShareToken } from './share-link'
 
 // The share link is the one entrance with no session behind it: `(share)/layout.tsx` deliberately
@@ -30,8 +31,9 @@ let seed: BandsSeed
 
 // The bands seed, reused rather than given its own: this spec needs any investment with a non-empty
 // tree, and that is exactly what that one builds.
-test.beforeAll(() => {
+test.beforeAll(async ({ browser }) => {
   seed = runSeedScript<BandsSeed>('seed:kosztorys-bands', 'BANDS_SEED')
+  await refreshReferenceData(browser)
 })
 
 test('a generated share link renders the kosztorys for a visitor with no session', async ({
@@ -82,11 +84,12 @@ test('a poisoned price-plane key cannot reprice the shared kosztorys at the subc
   // it is the figure to watch. The seed leaves the investment's współczynnik at the collection
   // default, so „z narzędziami" quotes every row at 65% of the client price — a number that exists in
   // the shipped tree and would render the moment the plane stopped being pinned.
-  const clientPrice = formatNet(seed.clientPrice)
-  const subcontractorPrice = formatNet(seed.clientPrice * DEFAULT_COEFFS.wTools)
-  expect(bare(subcontractorPrice), 'fixture gives the two planes the same figure').not.toBe(
-    bare(clientPrice),
-  )
+  // „Cena j.m." prints the stored number as typed (`decimalText`), not as a 2-decimal figure — a
+  // `formatNet` reading would look for „100,00" in a cell that says „100" and prove nothing.
+  const priceText = (value: number) => String(roundToCents(value)).replace('.', ',')
+  const clientPrice = priceText(seed.clientPrice)
+  const subcontractorPrice = priceText(seed.clientPrice * DEFAULT_COEFFS.wTools)
+  expect(subcontractorPrice, 'fixture gives the two planes the same figure').not.toBe(clientPrice)
 
   const { page: visitor, close } = await anonymousVisit(browser, baseURL, token, async (fresh) => {
     // Runs after the document for the origin exists, so `localStorage` is reachable — exactly what a
@@ -107,14 +110,17 @@ test('a poisoned price-plane key cannot reprice the shared kosztorys at the subc
       'w_tools',
     )
 
-    const body = bare(await visitor.locator('body').innerText())
-    expect(
-      body,
+    // Read the price COLUMN, not the whole body: „65" is a substring of half the figures on the
+    // page, so a body-wide negative would go green on a real leak.
+    const priceCell = await editorCell(visitor, COLUMN_LABELS.price)
+    await expect(
+      priceCell,
       'the client figure stopped rendering — the negative below proves nothing',
-    ).toContain(bare(clientPrice))
-    expect(body, 'the subcontractor cost basis reached the public page').not.toContain(
-      bare(subcontractorPrice),
-    )
+    ).toHaveText(clientPrice)
+    expect(
+      await visitor.locator('.dsg-row .dsg-cell').allTextContents(),
+      'the subcontractor cost basis reached the public page',
+    ).not.toContain(subcontractorPrice)
   } finally {
     await close()
   }

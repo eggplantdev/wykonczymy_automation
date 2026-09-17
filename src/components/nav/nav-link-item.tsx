@@ -14,9 +14,7 @@ type NavLinkItemPropsT = {
   onNavigate?: () => void
 }
 
-/** One row of the nav list, shared by the sidebar and the mobile drawer — the two render the same
- *  link and must stay indistinguishable, which they were not while each carried its own copy of the
- *  active-state classes. */
+/** Shared by the sidebar and the mobile drawer, which must render it indistinguishably. */
 export function NavLinkItem({ link, active, collapsed = false, onNavigate }: NavLinkItemPropsT) {
   return (
     <Button
@@ -25,15 +23,20 @@ export function NavLinkItem({ link, active, collapsed = false, onNavigate }: Nav
       align={collapsed ? 'center' : 'start'}
       className={cn(
         'relative',
+        // Safe to hang drawer sizing off `max-sm:` rather than a prop: the sidebar is `hidden
+        // sm:flex`, so below 768 only the mobile drawer renders this row.
+        'max-sm:h-10 max-sm:gap-3 max-sm:px-4 max-sm:text-base',
         collapsed && 'px-0',
-        // Not `bg-accent` — that is what ghost's own hover paints, so the active row would be
-        // indistinguishable from whatever the cursor happens to be over.
+        // Not `bg-accent` — ghost's own hover paints that, so the active row would look like whatever
+        // the cursor is over.
         active && 'bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary font-semibold',
       )}
       asChild
     >
       <Link href={link.href} onClick={onNavigate} aria-current={active ? 'page' : undefined}>
-        <link.icon />
+        {/* Sized here, not via `max-sm:[&_svg]:size-6`: Button's base rule is guarded by
+            `:not([class*='size-'])`, which outranks a bare descendant override. */}
+        <link.icon className="size-4 max-sm:size-6" />
         {!collapsed && link.label}
         {link.unreadStream && (
           <BadgeSlot collapsed={collapsed}>

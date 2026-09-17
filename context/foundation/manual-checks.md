@@ -2,7 +2,7 @@
 
 One living checklist for every slice — the project's QA registry. Each `##` section is a slice/change; tick boxes by hand (or point an agent at a section: "drive these checks with Playwright and report" — the `verify-manual-checks` skill) as you verify. Lives in `context/foundation/` (not the change folder) so it survives `/10x-archive` and never freezes stale. A slice with unticked boxes here is **not** `Done` — manual checks are a hard blocker (see `/10x-implement`). Not gated by CI.
 
-**Run against the isolated test DB, not the dev DB.** Manual checks mutate data, so point the app at the `db-test` container on **5435** (`DB_POSTGRES_URL_TEST`, `wykonczymy-test`) — the same DB the E2E suite uses — never the dev DB (5433, holds un-dumped local work) and never prod. Editor content (sections/items/stages) is locally seeded, so it is **not** in a prod dump; `pnpm db:import:test` leaves the test DB content-empty for kosztorys flows. Seed it separately: `perf-seed-kosztorys.ts` for a synthetic set (no external deps) or `seed-kosztorys.ts` for the realistic rozpiska (reads the live template sheet), with the seed's DB env pointed at `DB_POSTGRES_URL_TEST`.
+**Run against the isolated test DB, not the dev DB.** Manual checks mutate data, so point the app at the `db-test` container on **5435** (`DB_POSTGRES_URL_TEST`, `wykonczymy-test`) — the same DB the E2E suite uses — never the dev DB (5433, holds un-dumped local work) and never prod. Kosztorysy **są** w dumpie proda — `pnpm db:import:test` daje 65 kosztorysów / 4130 pozycji (policzone 2026-09-17), więc baza testowa nie jest pusta dla przepływów kosztorysowych. Seeduj tylko wtedy, gdy sprawdzenie potrzebuje **znanego** kształtu: `seed-kosztorys.ts` dla realistycznej rozpiski (czyta żywy arkusz wzorcowy) albo `perf-seed-kosztorys.ts` dla ~1000 syntetycznych wierszy, gdy sprawdzasz wydajność siatki — z DB env seeda wskazanym na `DB_POSTGRES_URL_TEST`.
 
 **Ten plik został przycięty 2026-09-15** — agent czyta go przy każdym przebiegu, a 5,5 tys. linii to
 w 90% dowody weryfikacyjne zamkniętych slice'ów, nie instrukcje. Zostają **wyłącznie sekcje z
@@ -336,84 +336,6 @@ behavior/visual change. Verified against staging
       pass) and decide if it's worth fixing now or filing.
       **Test disposition:** no automated test — cosmetic label wrap, not a behavior defect.
 
-## rwd-mobile — phone pass for plan items 2.3 / 3.1 / 3.2 (2026-09-16, staging/preview)
-
-Deferred manual phone pass for `context/changes/2026-09-16-rwd-mobile/plan.md` items 2.3
-(popover/command callers), 3.1 (adding a transaction on phone), 3.2 (showing transactions on
-phone), which were code-complete but not walked on a real phone before this pass. Verified at
-390px against staging (`b744a3b1`), `qa-gate@wykonczymy.test`.
-
-- [x] **2.3 — popover/command callers at 390px:** investment combobox (deposit dialog), "Typ" filter
-      popover, column-picker menu, date picker, kosztorys-v2 "Opcje" menu all open, stay within the
-      viewport, and are usable (no clipped/unreachable options observed).
-- [x] **3.1 — adding a transaction on phone, three top-bar dialogs as full-height sheets below
-      `sm`:** wpłata (deposit) dialog opens full-height, investment combobox opens and is usable
-      inside it; internal-transfer dialog opens full-height; expense dialog opens full-height.
-      Layout inspected without submitting (staging writes hit the preview DB's real prod-dump data,
-      so mutation was kept to a minimum per instructions) — no layout defects observed in any of the
-      three.
-- [x] **3.2 — showing transactions on phone:** `/` at 390px — filter row renders as 2 even columns,
-      "Filtry" fold collapses/expands it, table itself does not cause page-level horizontal overflow.
-- [x] Mobile nav drawer (hamburger → slide-in panel) opens correctly at 390px, visually correct
-      ("Wyloguj" clears the iOS toolbar strip, not painted under it), closes via the X button.
-- [x] Mobile nav drawer closes via Escape — **does not, and should not** (owner ruling, see finding
-      below). Dropped, not a defect.
-
-### Findings — 2026-09-16 (staging/preview pass)
-
-- [x] **Mobile nav drawer does not close on Escape — dropped, not a defect (owner ruling
-      2026-09-16).** The drawer is `sm:hidden`, so the only way to reach it with an Escape key is a
-      desktop browser narrowed below 768px — a phone has no Escape key. That is a defect with no
-      possible user, which this project drops rather than fixes or files; **EX-619 set the precedent
-      on exactly this shape** (a keyboard defect under 768px). The mechanism was nonetheless
-      diagnosed correctly and is recorded here because it explains a piece of dead code:
-      `src/components/nav/mobile-nav.tsx` `toggle()` calls `closeRef.current?.focus()` in the same
-      tick as `setOpen(next)`, while the panel is still `invisible` from the previous render, and a
-      browser refuses `.focus()` on a `visibility: hidden` element with no retry once it becomes
-      visible. So focus never enters the panel and the `onKeyDown` Escape handler never receives the
-      key. Confirmed via `document.activeElement` right after opening and again after 500ms (still
-      the hamburger), and cross-validated against a Radix Dialog + Popover on the same page that do
-      close on Escape.
-      **Follow-up (not a bug):** the `closeRef` focus call, the `onKeyDown` Escape handler and the
-      comment claiming "Opening moves focus into the panel, which is what makes Escape reachable at
-      all" are now unjustified — they describe behavior the owner does not want. Removing them is a
-      dead-code cleanup, not a fix.
-      **Test disposition:** no automated test — there is no behavior to protect. Dropped findings do
-      not earn a regression guard.
-
-- [x] **Mobile nav: tapping a menu item closed the drawer instantly, then nothing happened for
-      seconds — FIXED 2026-09-16** (owner-reported, phone, cold start). Two things compounded, only
-      one of them a code defect. **Latency:** a cold Vercel function plus Payload/Neon init makes the
-      first RSC request take seconds; after a refresh the same navigation is fast, which is why the
-      symptom only shows once. Not a defect. **Silence:** nothing on screen said the tap had
-      registered. Three confirmed causes: (a) on a phone **no nav link is ever prefetched** — the
-      sidebar is `hidden … sm:flex` (`display: none`, no layout box) and the drawer panel is
-      `invisible -translate-x-full` (entirely off-viewport), so Next's IntersectionObserver never
-      marks either set of links visible; prefetching can only start when the drawer opens; (b)
-      without a finished prefetch the route's `loading.tsx` shell is not in the router cache, and
-      Next's own docs say the fallback "may not appear immediately because it hasn't been prefetched
-      yet" — so all 23 `loading.tsx` files are dead weight in exactly this window, and only work on
-      the _next_ navigation; (c) `nav-link-item.tsx` fires `onClick={onNavigate}`, which in the
-      drawer was `toggle(false)` — a synchronous `setState` that closed the drawer before the request
-      even left. Desktop never showed it because the sidebar is genuinely visible and prefetched.
-      **Fix:** the drawer's `open` in `src/components/nav/mobile-nav.tsx` is now consumed against
-      the route it was opened on — a render-phase branch (`open && openedOn !== pathname`) closes it
-      when the navigation **commits**, not when the tap lands. Deliberately _not_ a plain derived
-      `openedOn === pathname`: that was the first shape and it springs the drawer back open on Back,
-      caught in review before it shipped. Consuming `openedOn` makes it fire once. The `<main>`
-      scroll lock now trails `open` in an effect instead of riding the click handlers, because the
-      drawer can now close without one (a committed navigation, or Back pressed while it is open) —
-      the handler-only version stranded `overflow: hidden` on `<main>` in both. Tapping the route you
-      are already on commits no navigation, so that case closes outright.
-      **Still open (owner chose the drawer-timing half only):** there is still no _positive_ pending
-      signal during the wait — the drawer simply stays put. `useLinkStatus()` on the tapped
-      `NavLinkItem` (with the ~100ms opacity delay the Next docs recommend, so warm navigations do
-      not flash) is the other half, offered and not taken this turn.
-      **Test disposition:** no automated test — the behavior is "the drawer does not close until the
-      route changes", which is a jsdom-visible DOM-layer assertion but depends on the App Router's
-      commit timing, so a `dom` spec would assert the router mock rather than the behavior. Owed to
-      the E2E backlog if the pending-signal half lands.
-
 # Zamknięte — indeks
 
 Jedna linia na slice, **wszystkie 94** — liczby są policzone z pełnego rejestru sprzed przycięcia.
@@ -519,3 +441,4 @@ Pełne dowody, verbatim: `context/archive/manual-checks/2026-09-15-pelny-rejestr
 | szablony-crud                                                                                                            | 16/16 | 2026-09-15           |
 | kosztorys-section-menu-split — akcje sekcji na pasku, akcje pracy na wierszu                                             | 18/18 | 2026-09-14           |
 | transfers-server-sort — sortowanie tabeli transakcji na serwerze (2026-09-15, EX-777)                                    | 13/13 | 2026-09-15           |
+| rwd-mobile — RWD na telefonie: nawigacja, dodawanie i pokazywanie transakcji (2026-09-16, EX-785)                        | 7/7   | 2026-09-16           |

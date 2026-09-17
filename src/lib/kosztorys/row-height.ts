@@ -16,8 +16,8 @@ export const HEADER_ROW_HEIGHT = 56
 // can take — ids are numeric strings.
 export const HEADER_HEIGHT_KEY = 'header'
 
-// What a row sits at when nobody has dragged it and nothing forces it taller — the floor a drag may
-// not cross and the floor a fit starts from. One function so the band's exception is stated once.
+// The floor a drag may not cross and the floor a fit starts from — one function so the band's
+// exception is stated once.
 export function restingRowHeight(rowId: number): number {
   return isSectionHeaderRow(rowId) ? SECTION_BAND_ROW_HEIGHT : ITEM_ROW_HEIGHT
 }
@@ -52,11 +52,10 @@ type ResolveOptsT = {
 }
 
 export function resolveRowHeight({ isSectionBand, override, contentLines }: ResolveOptsT): number {
-  // A drag outranks everything else — the band's fixed height included: the owner asking for a flat
-  // row means a flat row, even where the description no longer fits. That is what the popover is
-  // still there for.
-  // Finite, not merely present: the map is parsed straight out of localStorage, and a hand-edited
-  // or corrupted value would otherwise reach dsg's layout arithmetic as NaN and blank the grid.
+  // A drag outranks everything, the band's fixed height included: a flat row means a flat row even
+  // where the description no longer fits — that is what the popover is for. Finite, not merely
+  // present: the map is parsed out of localStorage, and a corrupted value would reach dsg's layout
+  // arithmetic as NaN and blank the grid.
   if (override !== undefined && Number.isFinite(override)) {
     return Math.max(ITEM_ROW_HEIGHT, Math.round(override))
   }

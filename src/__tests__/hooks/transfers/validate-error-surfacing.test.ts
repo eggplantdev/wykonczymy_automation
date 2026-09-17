@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { APIError } from 'payload'
 import { validateTransfer } from '@/hooks/transfers/validate'
 
-// Pins the contract `validate.ts` states at its lock — a rejected write reaches the caller with its
-// own sentence, not with `routeError`'s masked 500 — onto the business-rule throws as well.
+// A rejected write must reach the caller with its own sentence, not `routeError`'s masked 500 — the
+// contract `validate.ts` states at its lock, pinned onto the business-rule throws too.
 function hookArgs(
   data: Record<string, unknown>,
   opts: { operation?: 'create' | 'update'; originalDoc?: Record<string, unknown> } = {},

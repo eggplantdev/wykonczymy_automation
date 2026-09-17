@@ -1,25 +1,10 @@
-// E2E fixture for flota (EX-716) — the one fact about the listing that only a browser can prove: a
-// „Nie dotyczy (bezterminowo)" ticked on the vehicle form reaching the przegląd column on /flota.
+// E2E fixture for flota (EX-716) — a „Nie dotyczy (bezterminowo)" tick reaching the przegląd column
+// on /flota. Two vehicles per run under a timestamped registration prefix: the listing is global and
+// `registration` is unique. The costs vehicle has two priced przeglądy for „Koszty"/„Razem"; the
+// exemption vehicle has none, so its cell reads „brak danych" until ticked. Dates are long past.
 //
-// Two fresh vehicles per run, sharing one registration prefix, because the listing is GLOBAL — the
-// test DB carries the whole prod fleet, so the spec narrows to these two through the search box and
-// the „Razem" it then reads is a figure this seed alone answers for. The prefix carries the run's
-// timestamp for the same reason the katalog seed does: the test DB is never reset, and `registration`
-// is unique, so a stable one would collide on the second run.
-//
-// The costs vehicle carries two priced przeglądy of different types, so the „Koszty" column and the
-// „Razem" footer have a figure this seed alone answers for.
-// The exemption vehicle deliberately has NO przegląd techniczny at all: its cell reads „brak danych"
-// until the form is ticked, which is what makes the change visible as „bezterminowo" rather than as
-// a reshuffle of dates that were already there.
-//
-// Dates are fixed and long past, so no przegląd here ever falls due during a run.
-//
-// Run against the isolated test DB (mirrors e2e/global-setup.ts):
-//   DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx src/scripts/seed-fleet.ts
-//
-// Emits one machine-readable line the spec parses:
-//   FLEET_SEED={"prefix":"…","costs":{…},"exempt":{…}}
+// Run: DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx src/scripts/seed-fleet.ts
+// Emits: FLEET_SEED={"prefix":"…","costs":{…},"exempt":{…}}
 import { getPayload } from 'payload'
 import config from '../payload.config'
 

@@ -42,13 +42,10 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
 
   const original = originalDoc as TransferData | undefined
 
-  // Fall back to the stored row throughout: a partial update (PATCH of one field) carries no
-  // `type`, and an empty one would route a netto row down the else-branch below and null its
-  // netAmount. The same holds for every relational field the required-checks read — an
-  // invoice-only PATCH would otherwise be rejected for fields the row has carried all along.
-  // Keyed on PRESENCE, not on truthiness: an explicit `null` is a CLEAR — the admin panel saves the
-  // whole document, so that is how a wiped relationship arrives — and it must reach the
-  // required-checks as the empty value it is, not silently read the old link off the stored row.
+  // Falls back to the stored row: a PATCH of one field carries no `type`, and an empty one would
+  // route a netto row down the else-branch and null its netAmount — likewise every relational field
+  // the required-checks read. Keyed on PRESENCE, not truthiness: an explicit `null` is a CLEAR (the
+  // admin panel saves the whole document) and must reach those checks as the empty value it is.
   const resolved = <K extends keyof TransferData>(field: K) =>
     field in d ? d[field] : original?.[field]
 
@@ -62,14 +59,13 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
   const vatPlane = resolved('vatPlane')
   const paymentMethod = resolved('paymentMethod')
 
-  // A settled investment moves no more money, so the gate sits here — above BOTH early returns, or
-  // anulowanie leaks through the second one. Transactions have no raw-SQL writer, so unlike the
-  // kosztorys this hook IS the complete gate, covering the admin panel and the API alike.
-  // Both sides of a move: booking ONTO a locked investment and lifting a row OFF one.
+  // Above BOTH early returns, or anulowanie leaks through the second one. Transactions have no
+  // raw-SQL writer, so unlike the kosztorys this hook IS the complete gate. Covers both sides of a
+  // move: booking ONTO a locked investment and lifting a row OFF one.
   const target = resolveId(resolved('investment'))
   const previous = resolveId(original?.investment)
-  // The one write that stays open: attaching or detaching a scan of the faktura. Keyed on the
-  // VALUES that differ from the stored row — an empty array is a legitimate removal of every page.
+  // The one write that stays open on a locked investment. Keyed on the VALUES that differ from the
+  // stored row — an empty array is a legitimate removal of every page.
   const invoiceOnly = isInvoiceOnlyPatch(d, original)
   if (!invoiceOnly) {
     const db = await getDb(req.payload, req)
@@ -105,12 +101,10 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
 
   const errors: string[] = []
 
-  // Write-once, and this is the rule's home. Moving a booked plane or netto rewrites a bilans the
-  // client has already seen — that correction is anuluj i zaksięguj na nowo. null → value stays
-  // open: a legacy row rewrites nothing, its figure is merely still missing.
-  // Here rather than at the fields' `access.update`, which a Local API write skips — hooks it
-  // cannot, so this is the only altitude covering every write path. Read BEFORE the normalisation
-  // below: that nulls both fields after a type change, and it is the hook tidying up, not a caller.
+  // Write-once: moving a booked plane or netto rewrites a bilans the client has already seen, and
+  // that correction is anuluj i zaksięguj na nowo. null → value stays open, since a legacy row
+  // rewrites nothing. Here rather than at the fields' `access.update`, which a Local API write
+  // skips. Read BEFORE the normalisation below, which nulls both fields after a type change.
   if (operation === 'update') {
     for (const field of ['vatPlane', 'netAmount'] as const) {
       const booked = original?.[field]
@@ -138,13 +132,10 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
     errors.push('Investment is required for this transfer type.')
   }
 
-  // Auto-clear investment for types that never carry one — two distinct reasons, one rule.
-  // For OTHER / REGISTER_TRANSFER the investment is invisible: deriveFinancials buckets by
-  // type, so the row lands in no bucket while still leaving the register. For the two
-  // company deposits it is worse than invisible — they DO bucket as income, so an
-  // investment would silently raise that investment's bilans with company-level cash
-  // (EX-557). The forms hide the field, so only the API or a script can plant one; this is
-  // the server-side counterpart.
+  // Two reasons, one rule. For OTHER / REGISTER_TRANSFER the investment is invisible: deriveFinancials
+  // buckets by type, so the row lands in no bucket. For the two company deposits it is worse — they DO
+  // bucket as income, so an investment would raise its bilans with company-level cash (EX-557). The
+  // forms hide the field, so only the API or a script can plant one.
   if (!showsInvestment(type)) {
     d.investment = null
   }
@@ -169,19 +160,16 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
     d.worker = null
   }
 
-  // settled (wliczone w robociznę) only applies to material expenses and their
-  // corrections — clear it for any other type so the admin panel / API can't persist
-  // a stray flag that the reporting layer would mis-bucket.
+  // Cleared for every other type so the admin panel / API can't persist a stray flag the reporting
+  // layer would mis-bucket.
   if (!canBeSettled(type)) {
     d.settled = false
   }
 
-  // The netto figure is load-bearing on exactly the rows that carry one — the type billed at netto
-  // and a wpłata brutto — and meaningless anywhere else, so every other row stores null. This hook
-  // is the server-side authority; the rule itself lives once in getNetAmountError.
-  // The numerics stay on `??` rather than `resolved()`: unlike a relationship, a money field has no
-  // "cleared" state — an explicit null on a required amount is the absence the stored row must fill,
-  // not an erasure to validate against.
+  // Load-bearing only on the type billed at netto and a wpłata brutto; every other row stores null.
+  // The rule itself lives once in getNetAmountError. The numerics stay on `??` rather than
+  // `resolved()`: a money field has no "cleared" state, so an explicit null is an absence the stored
+  // row must fill, not an erasure to validate against.
   if (carriesNetAmount(type, vatPlane)) {
     const netErr = getNetAmountError(
       d.netAmount ?? original?.netAmount,
@@ -198,11 +186,9 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
     d.vatPlane = null
   }
 
-  // Nulled here so the transfers filter can be trusted whatever wrote the row (admin panel, REST, a
-  // script). Gated on presence, unlike every strip above it, because this is the one stripped field
-  // whose legacy rows legitimately hold a value the rule now forbids — the migration deliberately
-  // did not backfill them — so an unconditional null would rewrite history on an unrelated edit.
-  // The others have no such history and stay unconditional.
+  // Nulled here so the transfers filter can be trusted whatever wrote the row. Gated on presence,
+  // unlike every strip above, because legacy rows legitimately hold a value the rule now forbids (the
+  // migration did not backfill them) and an unconditional null would rewrite history.
   if (carriesPaymentMethod(type)) {
     if (!paymentMethod) errors.push('Payment method is required for this transfer type.')
   } else if ('paymentMethod' in d) {

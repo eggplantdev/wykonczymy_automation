@@ -128,10 +128,15 @@ test('dodany sprzęt od razu leży tam, gdzie go wpisano, a przekazanie gasi pop
   // The filter's option and the row's own value are computed apart (`whereFilterOptions` from the
   // whole dataset, `whereFilterValue` per row); picking the magazyn is what proves they agree.
   await page.getByRole('button', { name: /Gdzie jest/ }).click()
+  // The menu opens with every option ticked — an untouched filter hides nothing — so narrowing it to
+  // one magazyn is „Odznacz wszystkie" and then that option, not a single click. The selection is
+  // debounced and flushed when the panel closes, which is what Escape is for.
+  await page.getByRole('option', { name: 'Odznacz wszystkie', exact: true }).click()
   await page.getByRole('option', { name: WAREHOUSE, exact: true }).click()
   await page.keyboard.press('Escape')
-  await expect(page.locator('table tbody tr')).toHaveCount(1)
   await expect(listingRow).toBeVisible()
+  // „Brak danych" is itself a tbody row, so counting rows alone would pass on an empty table.
+  await expect(page.locator('table tbody tr')).toHaveCount(1)
 
   await listingRow.click()
   await page.waitForURL(/\/sprzet\/\d+$/)

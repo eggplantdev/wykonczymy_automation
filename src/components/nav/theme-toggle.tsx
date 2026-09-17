@@ -5,11 +5,9 @@ import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils/cn'
 
-// Which theme is active is known only on the client, so naming it at render time would mean either
-// a hydration mismatch or a mounted-gate that pops the control in late. Both labels ship instead and
-// `dark:` picks one — next-themes' blocking script stamps the class before first paint, so the right
-// half is showing by the time anything is visible. `setTheme` takes the flip as a callback for the
-// same reason: the current value is read at click time, never during render.
+// Theme is known only on the client, so both labels ship and `dark:` picks one — next-themes stamps
+// the class before first paint. `setTheme` takes a callback for the same reason: read at click
+// time, never during render.
 export function ThemeToggle({ collapsed }: { collapsed: boolean }) {
   const { setTheme } = useTheme()
 

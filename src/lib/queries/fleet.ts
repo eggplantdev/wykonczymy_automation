@@ -24,24 +24,18 @@ const getFleetDataset = unstable_cache(
 
     return dataset
   },
-  // Keyed -v4 because the payload's SHAPE has changed three times: it widened with `flags`, `cost`
-  // narrowed from `number | null` to `number`, and the sheet-parity slice widened it again with
-  // `exemptions` / `note` / `tyres` / `insurer` / `policyNumber`. An entry written under any older
-  // shape is still valid JSON, so tags alone would keep serving it — a tag marks an entry stale but
-  // the same request is still answered from it once before revalidation (lessons.md). A v3 entry has
-  // no `exemptions`, and `isExempt` would read `.some` off `undefined` and 500 the whole page.
+  // Versioned because the payload's SHAPE has changed. An entry written under an older shape is still
+  // valid JSON, so tags alone keep serving it — a tag marks an entry stale but the same request is
+  // still answered from it once (lessons.md). A v3 entry has no `exemptions`, and `isExempt` would
+  // read `.some` off `undefined` and 500 the page.
   ['fleet-dataset-v4'],
   { tags: [CACHE_TAGS.vehicles, CACHE_TAGS.vehicleInspections] },
 )
 
 /**
- * The listing: one row per vehicle with its five current deadlines, classified against today.
- *
- * Today is resolved ONCE here and threaded down, so every cell on the page answers "how urgent" as of
- * the same instant — and the cached dataset above stays date-free.
- *
- * „Koszty" is all-time, the same figure the car's own card shows: the listing had a `?from=&to=`
- * window that repriced this one column and nothing else, which read as a table filter that filtered
+ * Today is resolved ONCE here and threaded down, so every cell answers "how urgent" as of the same
+ * instant and the cached dataset stays date-free. „Koszty" is all-time, the same figure the car's own
+ * card shows — a `?from=&to=` window repriced this one column and read as a filter that filtered
  * nothing.
  */
 export async function fetchFleetOverview(): Promise<FleetRowT[]> {

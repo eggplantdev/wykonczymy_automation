@@ -26,16 +26,14 @@ import {
 import { baseRanksFromKeys, orderColumnKeys, type ColumnRanksT } from '@/lib/table/column-order'
 import { leafColumnIds } from '@/lib/table/leaf-column-ids'
 
-// One object rather than a positional list: the toolbar needs the rank writers as well as the
-// table, and every widening of that set would otherwise re-touch all eight call sites.
+// One object, not a positional list: the toolbar needs the rank writers too, and widening a
+// positional list would re-touch all eight call sites.
 export type DataTableToolbarContextT<TData> = {
   table: Table<TData>
   columnVisibility: VisibilityState
   ranks: ColumnRanksT
-  // Read off the DECLARED column list, never the ordered one: a rank is a midpoint between its new
-  // neighbours' ranks, and an unranked neighbour falls back to its base. Derive these from the
-  // already-permuted list and the second drop computes its midpoint against neighbours that have
-  // already moved, landing one slot off. Same rule as the kosztorys grid's `assembleBaseRanks`.
+  // Off the DECLARED list, not the ordered one, or a second drop's midpoint lands one slot off its
+  // already-moved neighbours. Same rule as the kosztorys grid's `assembleBaseRanks`.
   baseRanks: ColumnRanksT
   setRank: (key: string, rank: number) => void
   resetOrder: () => void
@@ -52,9 +50,8 @@ type DataTablePropsT<TData> = {
   storageKey?: string
   /** Sort applied on first render. Defaults to none. Ignored when `sorting` is controlled. */
   initialSorting?: SortingState
-  /** Controlled sort. Pass it together with `onSortingChange` and the table stops sorting rows
-   * itself (`manualSorting`) — the caller is expected to fetch them already ordered. Either prop
-   * alone leaves the table on its own local, client-side sort. */
+  /** Controlled sort — pass with `onSortingChange` and the caller is expected to fetch rows already
+   * ordered (`manualSorting`). Either prop alone leaves the table on its own local sort. */
   sorting?: SortingState
   onSortingChange?: (next: SortingState) => void
   /** Makes the row clickable — navigates to the returned URL */
@@ -62,12 +59,12 @@ type DataTablePropsT<TData> = {
   /** Row click handler for a row that must not be an href — see `DataTableRow`. */
   onRowClick?: (row: TData) => void
   getRowClassName?: (row: TData) => string
-  /** Summary `<tr>` pinned below the rows. Gets the visible column ids, in render order, so it can
-   * span them or place a total under the column it belongs to even when some are hidden. */
+  /** Summary `<tr>` pinned below the rows. Gets visible column ids in render order, so it can span
+   * them or place a total under its column even when others are hidden. */
   footer?: (visibleColumnIds: string[]) => React.ReactNode
   toolbar?: (ctx: DataTableToolbarContextT<TData>) => React.ReactNode
-  /** A row count, a hint about what the filters did. Its own row rather than another toolbar item so
-   * it reads as a statement about the list below it. */
+  /** A row count, a hint about what the filters did — its own row so it reads as a statement about
+   * the list below rather than another toolbar item. */
   aboveToolbar?: React.ReactNode
   className?: string
 }
@@ -132,8 +129,8 @@ export function DataTable<TData>({
       else setLocalSorting(next)
     },
     manualSorting: isManualSorting,
-    // Shift-click multi-sort is an affordance the controlled contract can't honour: the sort round
-    // trips through a single URL parameter, so a second key would vanish on the next render.
+    // Multi-sort can't survive a controlled sort: it round-trips through one URL parameter, so a
+    // second key would vanish on the next render.
     enableMultiSort: !isManualSorting,
     onColumnVisibilityChange: (updater) => {
       setColumnVisibility((prev) => {
@@ -148,7 +145,6 @@ export function DataTable<TData>({
 
   const { rows } = table.getRowModel()
 
-  // Virtual scroll — only active when enableVirtualization is true
   const parentRef = useRef<HTMLDivElement>(null)
   const virtualizer = useVirtualizer({
     count: rows.length,
@@ -162,20 +158,16 @@ export function DataTable<TData>({
   const visibleLeafColumns = table.getVisibleLeafColumns()
   const visibleColCount = visibleLeafColumns.length
   const visibleColumnIdList = visibleLeafColumns.map((column) => column.id)
-  // Part of every row's key. React Compiler caches a <DataTableRow> whose props are unchanged, and a
-  // hiding/reordering toggle changes neither `row` nor the callbacks — so without this the body keeps
-  // rendering the cells it rendered before while the header drops them, and every remaining figure
-  // lands under its neighbour's heading.
+  // Part of every row's key: a hide/reorder toggle changes neither `row` nor the callbacks, so React
+  // Compiler would keep the cached <DataTableRow> rendering stale cells under the new header.
   const visibleColumnKey = visibleColumnIdList.join('_')
 
   return (
-    /* 24px below `sm` to match `PageWrapper`'s own `gap-6`, so the title, the toolbar and the table
-       are spaced alike. The stock 8px is what the toolbar already puts between its own wrapped
-       rows, which left the table looking welded to the last row of buttons. */
+    /* 24px below `sm` to match `PageWrapper`'s `gap-6` — the stock 8px left the table looking welded
+       to the toolbar's last wrapped row. */
     <div className={cn('space-y-2 max-sm:space-y-6', className)}>
-      {/* Pulled back against the stack's own 24px: this line counts what the table is showing, so it
-          reads as part of the page heading above it rather than as the first row of the toolbar. It
-          cannot simply live in `PageWrapper`'s <h1> — the count follows the client-side filters. */}
+      {/* Pulled back against the stack's 24px so it reads as part of the page heading, not the
+          toolbar's first row. Can't live in `PageWrapper`'s <h1> — it counts client-side filters. */}
       {aboveToolbar && <div className="max-sm:-mt-4">{aboveToolbar}</div>}
       {toolbar?.({
         table,

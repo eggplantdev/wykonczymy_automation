@@ -66,11 +66,8 @@ export function useKosztorysSettings({
   // set-once decisions about the deal; nobody edits two at a time) disables it meanwhile, so the click
   // stops reading as inert. Counted rather than boolean because two saves can overlap.
   //
-  // Deliberately NOT useTransition (EX-597): the optimistic patch + its rollback both run inside the
-  // save, and a transition owning them never committed either — React keeps the transition pending
-  // until the updates it scheduled land, the row-wide patch never did, and the block stayed disabled
-  // with the page re-rendering ~36×/s until a reload. A plain flag puts every one of those updates in
-  // the normal lane, where the rollback is visible and the block un-disables in `finally`.
+  // Not useTransition (EX-597): the optimistic patch and its rollback run inside the save, so React
+  // kept the transition pending forever — block disabled, page re-rendering ~36×/s until reload.
   const [savesInFlight, setSavesInFlight] = useState(0)
   const isSavingSettings = savesInFlight > 0
   const { stageInvestorImpact, investorImpactConfirm } = useInvestorImpactConfirm()

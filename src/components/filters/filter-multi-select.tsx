@@ -19,16 +19,15 @@ import { cn } from '@/lib/utils/cn'
 type OptionT = { value: string; label: string }
 
 type FilterMultiSelectPropsT = {
-  // Empty for a menu built entirely out of `toggles` — it then renders as one trigger with a count,
-  // the same as every other filter, instead of a row of loose buttons in the grid.
+  // Empty for a menu built entirely out of `toggles`, which then renders as one trigger with a count
+  // instead of a row of loose buttons in the grid.
   values?: string[]
   onValuesChange?: (values: string[]) => void
   options?: OptionT[]
   /**
-   * Options that are ticked, unclickable, and outside the selection entirely — never written to the
-   * param, never counted, never touched by „Zaznacz wszystkie". For a list whose scope already
-   * guarantees them: the „Tryb anulowań" Typ menu offers „Anulowanie" beside types it can actually
-   * narrow, and an untickable-looking tick is the only honest way to render one it cannot.
+   * Ticked, unclickable, and outside the selection entirely — never written to the param, counted, or
+   * touched by „Zaznacz wszystkie". For a list whose scope already guarantees them: „Tryb anulowań"
+   * offers „Anulowanie" beside types it can narrow, and a dead tick is the honest way to show it.
    */
   lockedValues?: string[]
   label: string
@@ -36,25 +35,19 @@ type FilterMultiSelectPropsT = {
   iconPosition?: 'left' | 'right'
   searchable?: boolean
   triggerClassName?: string
-  // Render just the icon (no label / count) — for tight surfaces where a tooltip carries the meaning.
+  // For tight surfaces where a tooltip carries the meaning.
   iconOnly?: boolean
   title?: string
-  // Replaces the flipping „Zaznacz/Odznacz wszystkie" pair with one fixed sentence that ticks when it
-  // has been carried out. Its ON state is "nothing selected", so it reads as the opposite of the list.
-  bulkToggleLabel?: string
-  // Rows that tick a whole SUBSET of the options at once ("every section with no executed work").
-  // They obey the same grammar as the options below them — a tick means "selected" — so both hooks
-  // read the live local selection rather than any state of their own: `isActive` decides the tick,
-  // `select` maps the current selection to the next one. Untick one member by hand and the group row
-  // unticks with it, which is what keeps the two halves from ever disagreeing.
+  bulkLabels?: { select: string; deselect: string }
+  // Rows that tick a whole SUBSET of the options at once. Both hooks read the live local selection
+  // rather than state of their own, so unticking one member by hand unticks the group row with it.
   optionToggles?: ReadonlyArray<{
     label: string
     isActive: (current: string[]) => boolean
     select: (current: string[]) => string[]
   }>
-  // On/off rows above the options, owned entirely by the caller, under their own caption. Lets one
-  // menu answer one question („czego nie widzę") with more than the option list behind it, instead of
-  // splitting the answer across triggers the user has to check separately.
+  // Caller-owned on/off rows above the options, so one menu can answer „czego nie widzę" with more
+  // than the option list instead of splitting it across triggers.
   toggles?: ReadonlyArray<{
     id: string
     label: string
@@ -63,23 +56,18 @@ type FilterMultiSelectPropsT = {
     disabled?: boolean
   }>
   togglesHeading?: string
-  // Group captions for the two groups this component owns: the bulk actions and the option list. The
-  // toggle groups above carry their own. Worth setting once a menu mixes rows that act on different
-  // things — unlabelled, a separator only says "these are different", never what each group is about.
+  // For the two groups this component owns; the toggle groups carry their own. Worth setting once a
+  // menu mixes rows acting on different things — a bare separator never says what each group is.
   actionsHeading?: string
   optionsHeading?: string
-  // A one-click way back to "wszystko widać". It sits above the list as a Button rather than a row
-  // with a checkmark because it is the one thing in the menu that is an action, not a state — its
-  // own effect is to leave nothing engaged, so a tick would have nothing to report afterwards.
-  // `onReset` covers whatever the caller keeps outside the option list; the option list itself is
-  // reset here.
+  // A Button rather than a row with a checkmark because it is the one thing in the menu that is an
+  // action, not a state — its effect is to leave nothing engaged, so a tick would report nothing.
+  // `onReset` covers whatever the caller keeps outside the option list.
   resetAction?: { label: string; onReset: () => void; disabled?: boolean }
-  // Replaces the trigger's derived "how many options are ticked" count (hidden at 0). For a caller
-  // whose menu hides things by more than the option list, where the ticked count would answer a
-  // question nobody asked.
+  // Replaces the derived „how many options are ticked" count, for a caller whose menu hides things by
+  // more than the option list.
   triggerCount?: number
-  // Widens the panel past the shared default, for a menu whose rows are sentences rather than
-  // labels.
+  // Widens the panel for a menu whose rows are sentences rather than labels.
   contentClassName?: string
 }
 
@@ -99,7 +87,7 @@ export function FilterMultiSelect({
   triggerClassName,
   iconOnly = false,
   title,
-  bulkToggleLabel,
+  bulkLabels,
   optionToggles,
   toggles,
   togglesHeading,
@@ -117,7 +105,6 @@ export function FilterMultiSelect({
   const selectableOptions = options.filter((o) => !isLocked(o.value))
   const allValues = selectableOptions.map((o) => o.value)
 
-  // Decode URL params → actual selection (inverse of flush)
   function deriveSelected(vals: string[]) {
     const hasNone = vals.length === 1 && vals[0] === FILTER_NONE
     const hasNoFilter = vals.length === 0
@@ -127,7 +114,6 @@ export function FilterMultiSelect({
   const selected = localSelected ?? deriveSelected(values)
   const allSelected = selected.length === selectableOptions.length
 
-  // Encode selection → URL params (inverse of deriveSelected)
   function flush(next: string[]) {
     const allAreSelected = next.length === selectableOptions.length
     if (allAreSelected) onValuesChange([])
@@ -167,26 +153,19 @@ export function FilterMultiSelect({
     scheduleFlush(result)
   }
 
-  // What the trigger reports beyond the option list: every toggle that is on, default or not. A row
-  // that is on IS narrowing the list, and the trigger is the only place that says so once the panel
-  // is closed. Skipped entirely when the caller counts for itself via `triggerCount`.
+  // Every toggle that is on, default or not: it IS narrowing the list, and once the panel is closed
+  // the trigger is the only place that says so.
   const activeToggleCount =
     toggles?.filter((toggle) => !toggle.disabled && toggle.active).length ?? 0
 
-  // Whatever the trigger counts is what it highlights, or the badge and the highlight would disagree
-  // for a caller whose menu hides more than the option list. Two expressions and not one, because
-  // highlighted is NOT simply "count > 0": „nic nie zaznaczone" is a filter that happens to count
-  // zero, and it has to light up while still reading ` (0)`.
+  // Whatever the trigger counts is what it highlights, or the two disagree for a caller whose menu
+  // hides more than the option list. Two expressions, because highlighted is not „count > 0": „nic
+  // nie zaznaczone" is a filter that counts zero and still has to light up.
   const isFiltered = triggerCount == null ? !allSelected || activeToggleCount > 0 : triggerCount > 0
   const triggerBadgeCount = triggerCount ?? (allSelected ? 0 : selected.length) + activeToggleCount
 
-  // In fixed-label mode the row's own tick decides the direction, so clicking it always does what the
-  // sentence says. The flipping-label mode keeps its original meaning: "everything is on → turn it off".
-  const bulkActive = selected.length === 0
-
   function toggleAll() {
-    const selectAll = bulkToggleLabel ? bulkActive : !allSelected
-    const next = selectAll ? [...allValues] : []
+    const next = !allSelected ? [...allValues] : []
     setLocalSelected(next)
     scheduleFlush(next)
   }
@@ -217,16 +196,11 @@ export function FilterMultiSelect({
 
   const actionRows = (
     <>
-      {/* A fixed label says nothing about whether it has been carried out, so that mode keeps a
-          state tick. The flipping label names the direction itself — there the double check just
-          marks the row as the bulk one. */}
       <CommandItem onSelect={toggleAll}>
-        {bulkToggleLabel ? (
-          <CheckIcon className={cn(!bulkActive && 'opacity-0')} />
-        ) : (
-          <CheckCheck />
-        )}
-        {bulkToggleLabel ?? (allSelected ? 'Odznacz wszystkie' : 'Zaznacz wszystkie')}
+        <CheckCheck />
+        {allSelected
+          ? (bulkLabels?.deselect ?? 'Odznacz wszystkie')
+          : (bulkLabels?.select ?? 'Zaznacz wszystkie')}
       </CommandItem>
       {optionToggles?.map((group) => (
         <CommandItem
@@ -259,9 +233,8 @@ export function FilterMultiSelect({
           )}
         </FilterTriggerButton>
       </PopoverTrigger>
-      {/* The panel grows to whatever Radix measured between the trigger and the viewport edge, and
-          the list scrolls inside it. cmdk's stock list is capped at 300px flat, which on a phone cut
-          a 13-option menu in half while the screen below it sat empty. */}
+      {/* Grows to whatever Radix measured between the trigger and the viewport edge. cmdk's stock
+          list is capped at 300px flat, which on a phone cut a 13-option menu in half. */}
       <PopoverContent
         className={cn(
           // `overflow-hidden`, not the primitive's `overflow-y-auto`: the inner CommandList is what
@@ -277,9 +250,8 @@ export function FilterMultiSelect({
               variant="ghost"
               size="sm"
               className="w-full justify-start font-normal"
-              // `resetAction.disabled` speaks for what the caller owns outside this list; the list's
-              // own half is judged here, on the LOCAL selection. Reading it off the caller too would
-              // leave the button dead for the whole debounce after a click it is meant to undo.
+              // `resetAction.disabled` speaks for what the caller owns outside this list; the local
+              // half is judged here, or the button stays dead for the whole debounce after a click.
               disabled={(resetAction.disabled ?? false) && allSelected}
               onClick={handleReset}
             >
@@ -317,8 +289,8 @@ export function FilterMultiSelect({
             )}
             {options.length > 0 && (
               <CommandGroup heading={optionsHeading}>
-                {/* Uncaptioned, the bulk rows have nothing of their own to sit under — they act on the
-                  list below, so they belong inside its group rather than in a mute one above it. */}
+                {/* Uncaptioned, the bulk rows act on the list below, so they belong inside its group
+                  rather than in a mute one above it. */}
                 {!actionsHeading && (
                   <>
                     {actionRows}

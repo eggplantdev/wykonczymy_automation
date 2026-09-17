@@ -38,8 +38,7 @@ import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import type { ActionResultT } from '@/types/action'
 import type { ItemPatchT, StagePatchT, ToolPlaneT } from '@/lib/kosztorys/types'
 
-// Derived from TOOL_PLANES rather than re-listing the union, so a plane added to the pickers can't
-// be silently rejected by validation.
+// Derived from TOOL_PLANES so a plane added to the pickers can't be silently rejected here.
 const stagePlaneSchema = z.enum(TOOL_PLANES)
 const SECTION_MISSING = 'Sekcja nie istnieje.'
 const ITEM_MISSING = 'Pozycja nie istnieje.'
@@ -53,8 +52,8 @@ const itemPatchSchema = z
     unit: z.string().nullable(),
     plannedQty: z.coerce.number(),
     discountType: z.enum(['percent', 'amount']).nullable(),
-    // Floor only: the percent ceiling can't live here, since the same slot carries złotówki when the
-    // type is 'amount' (discount-edit.ts).
+    // Floor only: the same slot carries złotówki when the type is 'amount', so the percent ceiling
+    // lives in discount-edit.ts.
     discountValue: z.coerce.number().min(0),
     clientPrice: z.coerce.number(),
     // `.nullable()` WRAPS the coercion rather than following a coerced number: `z.coerce.number()`
@@ -74,7 +73,6 @@ const sectionPatchSchema = z
   })
   .partial()
 
-// Investment markup coefficients (edited from the panel).
 const investmentCoeffsSchema = z
   .object({
     wToolsCoeff: z.coerce.number(),
@@ -82,9 +80,8 @@ const investmentCoeffsSchema = z
   })
   .partial()
 
-// Per-investment VAT rate, stored as a fraction (0.08 = 8%). Edited from the Sekcje panel.
-// Fraction bounds: a per-investment VAT rate below 0% or above 100% is never valid, so reject it
-// at the action regardless of UI guarding — a bad rate feeds every brutto figure (net × (1 + vatRate)).
+// Per-investment VAT rate as a fraction (0.08 = 8%). Bounds rejected here regardless of UI guarding
+// — a bad rate feeds every brutto figure (net × (1 + vatRate)).
 const investmentVatSchema = z.object({ vatRate: z.coerce.number().min(0).max(1) })
 
 // Derived from SETTLEMENT_MODES so a mode added to the picker can't be silently rejected here.
@@ -112,13 +109,10 @@ export type InvestmentGlobalDiscountPatchT = z.infer<typeof investmentGlobalDisc
 
 // --- Field updates (autosave) ---
 
-// The three per-cell autosaves below defer the refresh. The editor holds `rows` in useState seeded
-// once at mount and derives every panel figure from it, so the route re-render `updateTag` triggers
-// reseeds nothing the editor reads — the grid keeps its own state and the panel has already
-// recomputed optimistically. The only cached reader of these tags is the client share link
-// (lib/queries/preview-kosztorys.ts), a different route, and `revalidateTag` still expires it for its
-// next request. Measured on preview: the discarded re-render cost 90-193ms per debounced save,
-// dominated by the uncached kosztorys tree (EX-597).
+// The three per-cell autosaves below defer the refresh: the editor seeds `rows` once at mount and
+// recomputes the panel optimistically, so the re-render reseeds nothing it reads. The only cached
+// reader of these tags is the client share link (lib/queries/preview-kosztorys.ts), which
+// `revalidateTag` still expires. The discarded re-render cost 90-193ms per debounced save (EX-597).
 export async function updateItemFieldAction(itemId: number, patch: ItemPatchT) {
   return investmentAction(
     'updateItemFieldAction',
@@ -162,9 +156,8 @@ export async function updateInvestmentCoeffsAction(
       await payload.update({ collection: 'investments', id: investmentId, data: parsed.data })
       return { success: true }
     },
-    // Coeffs re-derive item and section figures, so bump their collection tags. 'investments'
-    // also invalidates the cached readers of the mutated source row (getInvestment,
-    // fetchReferenceData) immediately, rather than waiting on the investments afterChange hook.
+    // Coeffs re-derive item and section figures. 'investments' expires the cached readers of the
+    // mutated row (getInvestment, fetchReferenceData) without waiting on its afterChange hook.
     ['kosztorysItems', 'kosztorysSections', 'investments'],
   )
 }
@@ -179,9 +172,8 @@ export async function updateInvestmentVatAction(investmentId: number, vatRate: n
       await payload.update({ collection: 'investments', id: investmentId, data: parsed.data })
       return { success: true }
     },
-    // vatRate is denormalized onto items only (not sections, unlike coeffs). 'investments' also
-    // invalidates the cached readers of the mutated source row (getInvestment, fetchReferenceData)
-    // immediately, rather than waiting on the investments afterChange hook.
+    // vatRate is denormalized onto items only (not sections, unlike coeffs). 'investments' expires
+    // the cached readers of the mutated row without waiting on its afterChange hook.
     ['kosztorysItems', 'investments'],
   )
 }
@@ -238,16 +230,13 @@ export async function updateInvestmentGlobalDiscountAction(
       return { success: true }
     },
     // The active flag is denormalized onto items only (getKosztorysTree → globalDiscountActive),
-    // like vatRate. 'investments' also invalidates the cached readers of the mutated source row
-    // (getInvestment, fetchReferenceData) immediately, rather than waiting on the afterChange hook.
+    // like vatRate. 'investments' expires the cached readers of the mutated row immediately.
     ['kosztorysItems', 'investments'],
   )
 }
 
-// Percent rabat bulk-apply: stamps `percent X` on EVERY item of the investment's kosztorys in one
-// SQL statement. A kosztorys can hold 1000+ items, so N Payload updates would be O(n) round-trips —
-// raw SQL via the src/lib/db client, like the other financial bulk writes. One-shot tool, not stored
-// state: the percent lands in per-item rabaty and nothing persists the percent itself.
+// One SQL statement because a kosztorys can hold 1000+ items and N Payload updates would be as many
+// round-trips. One-shot tool: the percent lands in per-item rabaty, nothing persists the percent.
 export async function applyPercentDiscountToAllItemsAction(
   investmentId: number,
   percent: number,
@@ -274,13 +263,9 @@ export async function applyPercentDiscountToAllItemsAction(
   )
 }
 
-// „Popraw literówki" — rewrites every opis and every j.m. in the kosztorys through one shared set of
-// rules (spelling, spacing, sentence case; notation and transpositions for the j.m.). Bulk overwrite
-// of hand-typed text, irrecoverable by in-session undo, so it snapshots first exactly like
-// applyPercentDiscountToAllItemsAction.
-//
-// A blank column is left blank rather than cleaned into '': the rules have nothing to say about an
-// absent value, and writing one back would count every empty praca as „poprawiona".
+// „Popraw literówki". Bulk overwrite of hand-typed text, irrecoverable by in-session undo, so it
+// snapshots first like applyPercentDiscountToAllItemsAction. A blank column is left blank rather
+// than cleaned into '', which would count every empty praca as „poprawiona".
 export async function cleanItemTextsAction(investmentId: number): Promise<ActionResultT<number>> {
   return investmentAction(
     'cleanItemTextsAction',
@@ -308,15 +293,13 @@ export async function cleanItemTextsAction(investmentId: number): Promise<Action
 
 const clearKosztorysSchema = z.object({ investmentId: z.number().int().positive() })
 
-// Goes through the same wholesale replacement as the import and the szablon reload rather than its
-// own DELETE: that path already owns the investment lock and the forced labelled snapshot, which is
-// the only thing making this undoable.
+// Reuses the import's wholesale replacement rather than its own DELETE: that path already owns the
+// investment lock and the forced labelled snapshot, which is the only thing making this undoable.
 //
-// The empty tree's `settings` are inert — `takeSettingsFromTree` is off, so restoreKosztorys writes
-// back the investment's own VAT and współczynniki. The global rabat is NOT: „wyczyść" means empty,
-// and an amount discount left behind would price the next import below its own total. It is the one
-// figure the snapshot cannot give back — SnapshotPayloadT excludes it by design — which is why the
-// dialog says so instead of promising a clean round trip.
+// `takeSettingsFromTree` is off, so restoreKosztorys writes back the investment's own VAT and
+// współczynniki. The global rabat is cleared instead — an amount left behind would price the next
+// import below its own total — and SnapshotPayloadT excludes it, so the dialog warns rather than
+// promise a clean round trip.
 export async function clearKosztorysAction(investmentId: number): Promise<ActionResultT> {
   return investmentAction(
     'clearKosztorysAction',
@@ -390,12 +373,9 @@ const insertSectionSchema = z.object({
   dir: insertDirectionSchema,
 })
 
-// Section-level twin of insertItemAction (⋯ → Wstaw sekcję powyżej/poniżej): opens the slot, then
-// creates the section and its first item there — all three inside one transaction.
-//
-// The caller names the anchor and a direction, not a display_order: resolving the slot inside the
-// transaction is what makes it correct under a concurrent insert, and it drops the investment id
-// from the wire (it is the anchor's, so a caller can no longer pair the two wrong).
+// Section-level twin of insertItemAction. The caller names an anchor and a direction, not a
+// display_order: resolving the slot inside the transaction is what makes it correct under a
+// concurrent insert, and it drops the investment id from the wire (it is the anchor's).
 export async function insertSectionAction(
   anchorSectionId: number,
   dir: InsertDirectionT,
@@ -491,9 +471,8 @@ const insertItemSchema = z.object({
   dir: insertDirectionSchema,
 })
 
-// Insert a blank item just above or below an existing one (right-click → Wstaw pozycję
-// powyżej/poniżej). The anchor's section — and the slot within it — are resolved server-side, inside
-// the transaction that then shifts the tail and creates the row.
+// The anchor's section, and the slot within it, are resolved inside the transaction that then
+// shifts the tail and creates the row.
 export async function insertItemAction(
   anchorItemId: number,
   dir: InsertDirectionT,
@@ -584,13 +563,10 @@ export async function swapItemOrderAction(
 
 const ITEMS_NOT_IN_KOSZTORYS = 'Pozycje spoza tego kosztorysu.'
 
-// „Zapisz kolejność" (menu nagłówka kolumny) — writes the grid's current order into display_order
-// across every section, in one statement so a half-applied renumber can't leave sections sharing
-// indices.
-//
-// The client sends the ids in the order it wants them, for the WHOLE sheet; the numbering is derived
-// here. That is the whole point of the sequence payload: display_order is only ever compared within a
-// section, so the index has to restart per section, and that rule belongs on one side of the wire.
+// „Zapisz kolejność". One statement, so a half-applied renumber can't leave sections sharing
+// indices. The client sends ids in the order it wants them for the WHOLE sheet and the numbering is
+// derived here: display_order is only ever compared within a section, so the index restarts per
+// section and that rule lives on one side of the wire.
 export async function renumberKosztorysOrderAction(
   investmentId: number,
   orderedItemIds: number[],
@@ -605,19 +581,15 @@ export async function renumberKosztorysOrderAction(
         payload,
         async (req): Promise<ActionResultT> => {
           const txDb = await getDb(payload, req)
-          // Reads the guard's answer and takes the bake's lock in one statement. The scope is the
-          // WHOLE sheet, not just the ids sent: the guard and the bake are one decision — which ids
-          // exist, and what index each one takes — so a „Wstaw pozycję" into any section has to be
-          // frozen out, not only into the ones being renumbered. Otherwise the insert takes an index
-          // the bake then hands to a different row, and two rows share a display_order in one section
-          // with no unique constraint to catch it. Ascending id like every other acquisition in
-          // display-order.ts, so it cannot cycle against them (EX-632).
+          // Reads the guard's answer and takes the bake's lock in one statement, over the WHOLE
+          // sheet rather than the ids sent: a „Wstaw pozycję" into any section would otherwise take
+          // an index the bake hands to another row, and two rows sharing a display_order in one
+          // section has no unique constraint to catch it. Ascending id like every other acquisition
+          // in display-order.ts, so it cannot cycle against them (EX-632).
           //
-          // The ids come from the client and renumberDisplayOrder joins on id alone, so this read is
-          // also the only thing standing between a caller and another investment's rows. It carries
-          // `section_id`, which is what the per-section numbering below is grouped by. All-or-nothing:
-          // one stale id (a row deleted in another tab) refuses the entire bake, and the client's
-          // rollback depends on that.
+          // renumberDisplayOrder joins on id alone, so this read is also the only thing standing
+          // between a caller and another investment's rows. All-or-nothing: one stale id (a row
+          // deleted in another tab) refuses the entire bake, and the client's rollback depends on it.
           const res = await txDb.execute(sql`
             SELECT id, section_id FROM kosztorys_items
             WHERE investment_id = ${investmentId}

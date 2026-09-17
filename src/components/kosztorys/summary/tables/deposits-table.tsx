@@ -51,13 +51,11 @@ export function DepositsTable({
   investmentId,
   rows,
   preview,
-  vatRate,
   settlementMode,
 }: {
   investmentId: number
   rows: DepositTransactionRowT[]
   preview: boolean
-  vatRate: number
   settlementMode: SettlementModeT
 }) {
   // The rows the settlement warning is about, marked where the reader can act on them. Owner-only,
@@ -78,7 +76,7 @@ export function DepositsTable({
     </SummaryLabelCell>
   )
 
-  const totals = sumDeposits(rows, vatRate)
+  const totals = sumDeposits(rows)
   // Tryb mieszany is the one where the two formy coexist by design, so it is the one that owes a
   // split (owner, 2026-08-20). A table of its own, below the list: interleaved with the wpłaty it
   // doubled every złoty. Each bucket sums the rows it names — the gotówka one carrying „×" in brutto
@@ -90,8 +88,8 @@ export function DepositsTable({
   const showPlaneSubtotals =
     settlementMode === 'MIXED' && netRows.length > 0 && grossRows.length > 0
   const planeSubtotals: { label: string; pair: DepositPairT }[] = [
-    { label: 'Wpłaty gotówką', pair: { net: sumDeposits(netRows, vatRate).net, gross: null } },
-    { label: 'Wpłaty przelewem', pair: sumDeposits(grossRows, vatRate) },
+    { label: 'Wpłaty gotówką', pair: { net: sumDeposits(netRows).net, gross: null } },
+    { label: 'Wpłaty przelewem', pair: sumDeposits(grossRows) },
   ]
   const cols = `${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL} ${SUMMARY_VALUE_COL} ${SUMMARY_LABEL_COL}`
   const subtotalCols = `${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL} ${SUMMARY_VALUE_COL}`
@@ -105,7 +103,7 @@ export function DepositsTable({
         <SummaryHeaderCell variant="label">Forma wpłaty</SummaryHeaderCell>
 
         {rows.map((row) => {
-          const pair = depositRowPair(row, vatRate)
+          const pair = depositRowPair(row)
           const tone =
             flagsOffPlane && isOffPlaneDeposit(row, settlementMode) ? ('error' as const) : undefined
           return (

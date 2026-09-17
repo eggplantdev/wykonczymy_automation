@@ -47,10 +47,8 @@ function CommandList({ className, ...props }: React.ComponentProps<typeof Comman
   return (
     <CommandPrimitive.List
       data-slot="command-list"
-      // A content preference, not a viewport guard — the viewport is already handled by
-      // `popover.tsx` / `dropdown-menu.tsx`, whichever wraps this. 300px is what stops a
-      // 500-option list filling a tall desktop screen; it binds first, so the collision cap
-      // only takes over where the screen is shorter than that.
+      // A content preference, not a viewport guard (that's the wrapping popover/dropdown-menu) —
+      // 300px stops a 500-option list filling a tall desktop screen.
       className={cn('max-h-[300px] scroll-py-1 overflow-x-hidden overflow-y-auto', className)}
       {...props}
     />

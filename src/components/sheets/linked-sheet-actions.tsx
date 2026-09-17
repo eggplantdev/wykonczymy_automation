@@ -19,15 +19,11 @@ type PropsT = {
   investmentName: string
 }
 
-// Which confirm dialog (if any) is open. Both share one piece of state because
-// only one can be open at a time — triggered from its own button, never together.
+// One piece of state because only one can be open at a time.
 type DialogT = 'unlink' | 'delete' | undefined
 
-// Row actions for a sheet that is linked to an investment, rendered as standalone
-// buttons: open the embedded sheet, the reversible
-// "unlink", and the destructive "delete". The unlink/delete buttons each gate behind a confirm
-// step. Both server actions re-check permissions — the client gate on "delete"
-// only hides a button the user can't use anyway.
+// Both server actions re-check permissions — the client gate on "delete" only hides a button the user
+// can't use anyway.
 export function LinkedSheetActions({ sheetId, investmentId, investmentName }: PropsT) {
   const [dialog, setDialog] = useState<DialogT>(undefined)
   const [pending, startTransition] = useTransition()

@@ -1,17 +1,7 @@
-// 938 name corrections the owner prepared by hand for the katalog prac in 2026-09-14. They reached
-// `work_catalogue_items` through a one-off script and stopped there — no rozpiska and no szablon
-// ever saw them, which is why prace that differ from their katalog twin by a missing ogonek or
-// a KNR line break report themselves as „spoza katalogu". The script and its input were deleted by
-// a drive-by in `4de2666e`; they live at `4de2666e^:src/scripts/data/work-catalogue-fixes.tsv` and
-// `4de2666e^:src/scripts/fix-work-catalogue-texts.ts`, applied to the katalog by `61ae1aa5`.
-//
-// Generated once from that TSV, not at build time: the key is its `opis|j.m.` key with the j.m.
-// member cut off (the opis alone is unambiguous once the review note is gone — 16 pairs differed by
-// nothing else), and the value is its corrected name with „[stary arkusz]" stripped, because that
-// note is a katalog review artifact and must never reach a client's oferta.
-//
-// Unlike `TYPO_FIXES`, which are substring rules run one after another, these substitute a WHOLE
-// name — one `Map.get`, and the 915 entries cost the same as 50 would.
+// 938 hand-prepared name corrections for `work_catalogue_items` only (2026-09-14, source script
+// deleted in `4de2666e`, applied by `61ae1aa5`) — a rozpiska/szablon entry differing by an ogonek or
+// KNR line break still reports „spoza katalogu". Keyed by `opis|j.m.` (j.m. cut, opis alone is
+// unambiguous); values strip the review marker „[stary arkusz]", which must never reach an oferta.
 export const CATALOGUE_NAME_FIXES: ReadonlyMap<string, string> = new Map([
   [
     '(z.vii) warstwy wyrownujace i wygladza- jace z zaprawy samopoziomujacej gr. 5-30 mm wykonywane w pomieszczeniach o pow. ponad 8 m2',

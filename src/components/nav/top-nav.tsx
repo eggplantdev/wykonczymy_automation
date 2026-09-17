@@ -11,8 +11,12 @@ type TopNavPropsT = {
 }
 
 export function TopNav({ referenceData, investmentCrumb }: TopNavPropsT) {
+  // Unpositioned on purpose. The shell is `flex h-screen` and `<main>` owns the only scroll, so this
+  // row never moves and `sticky top-0` had nothing to stick to — while the `z-40` it needed made the
+  // header a stacking context that trapped everything inside it, MobileNav's drawer included, under
+  // the body-level toasts.
   return (
-    <header className="border-border bg-background sticky top-0 z-40 flex h-14 items-center justify-between gap-3 border-b p-4 px-3">
+    <header className="border-border bg-background flex h-14 items-center justify-between gap-3 border-b p-4 px-3">
       <MobileNav />
       <Suspense fallback={null}>{investmentCrumb}</Suspense>
       <div className="ml-auto flex flex-wrap items-center justify-end gap-2">

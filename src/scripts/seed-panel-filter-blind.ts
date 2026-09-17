@@ -1,34 +1,20 @@
-// E2E fixture for the filter-blindness of the v2 investment panel (EX-634). Seeds ONE investment
-// carrying a kosztorys plus a deliberately mixed set of transactions, so that a narrowing URL filter
-// on /inwestycje/[id] has something real to narrow: each type below is the only row of its type, so
-// `?type=<T>` leaves exactly one transaction in the table below the panel while every panel figure
-// must stay put.
+// E2E fixture for filter-blindness of the v2 investment panel (EX-634). One investment, one
+// transaction per type, so `?type=<T>` narrows the table to a single row while panel figures stay
+// put. robocizna/rabat deliberately disagree with the kosztorys: a filter must not mute the warning.
 //
-// The robocizna/rabat amounts disagree with the kosztorys on purpose — the same shape
-// seed-kosztorys-reconciliation.ts uses — because the fourth risk is that the mismatch scream was
-// muted whenever a filter was active.
-//
-// Deterministic and self-contained: reads no Google Sheet.
-//
-// Run against the isolated test DB (mirrors e2e/global-setup.ts):
-//   DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx \
-//     src/scripts/seed-panel-filter-blind.ts
-//
-// Emits one machine-readable line the E2E spec parses:
-//   PANEL_SEED={"investment":<id>,"name":"…","laborCostsNet":500,…}
+// Run: DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx src/scripts/seed-panel-filter-blind.ts
+// Emits: PANEL_SEED={"investment":<id>,"name":"…","laborCostsNet":500,…}
 import { getPayload } from 'payload'
 import config from '../payload.config'
 import { DEFAULT_EXPENSE_CATEGORY_NAME } from '@/lib/constants/transfers'
 
-// Register 5 exists in the standard dump (see e2e/helpers.ts) and is what every register-bearing
-// type below books against.
+// Register 5 exists in the standard dump (e2e/helpers.ts); every register-bearing type books to it.
 const SOURCE_REGISTER_ID = 5
 const CLIENT_PRICE = 100
 const QTY_DONE = 5
 // „Robocizna" as the kosztorys states it: clientPrice × Σ qtyDone, no rabat on the item.
 const LABOR_COSTS_NET = CLIENT_PRICE * QTY_DONE
-// Deliberately ≠ LABOR_COSTS_NET, and a rabat the kosztorys does not carry: both make the
-// reconciliation scream, which is the signal the filter used to mute.
+// Deliberately ≠ LABOR_COSTS_NET, plus a rabat the kosztorys lacks — both trip the reconciliation.
 const LABOR_COST_BOOKED = LABOR_COSTS_NET - 50
 const RABAT_BOOKED = 30
 const DEPOSIT = 200
@@ -45,9 +31,8 @@ type TxnSeed = {
   expenseCategory?: number
 }
 
-// The transaction afterChange balance hook calls revalidateTag, which throws outside a Next request
-// context. disableTransaction lets the insert survive that throw; balances are read-computed, so the
-// lost revalidation is a no-op in a script.
+// afterChange calls revalidateTag, which throws outside a Next request context; disableTransaction
+// lets the insert survive it — balances are read-computed, so the lost revalidation is a no-op here.
 async function seedTransaction(
   payload: Awaited<ReturnType<typeof getPayload>>,
   txn: TxnSeed,
@@ -57,9 +42,10 @@ async function seedTransaction(
       collection: 'transactions',
       disableTransaction: true,
       data: { ...txn, paymentMethod: 'TRANSFER', date: new Date().toISOString() },
-      // The sheet id comes from the DB and every non-production database is a restored prod dump, so
-      // a fixture transaction is one `after()` away from the owner's live arkusz. The credential is
-      // the real gate; this is the one that does not depend on which machine the seed runs on.
+      // Kept as the belt to the credential gate's braces: every non-prod DB is a restored prod dump
+      // carrying live sheet ids, so the id this row would sync against is real. What stops the write
+      // is that `GOOGLE_SERVICE_ACCOUNT_WRITE_JSON` exists only in Vercel Production — `skipSheetSync`
+      // means the sync is never attempted, not that it would otherwise succeed.
       ...ctx,
     })
   } catch (error) {
@@ -84,8 +70,7 @@ async function main() {
       `[panel-seed] no expense category „${DEFAULT_EXPENSE_CATEGORY_NAME}" in this DB — run pnpm db:import:test`,
     )
 
-  // Tryb NET: one money column, so the panel's figures read as single values rather than a
-  // netto/brutto pair — the spec compares whole rows, and one column keeps the comparison legible.
+  // Tryb NET: one money column, so the spec can compare whole rows as single values, not netto/brutto pairs.
   const investment = await payload.create({
     collection: 'investments',
     data: { name, status: 'active', vatRate: 0.23, settlementMode: 'NET' },
@@ -149,8 +134,7 @@ async function main() {
     description: 'E2E materiały',
   })
 
-  // `seedTransaction` swallows the revalidation throw, so „the script finished" is not „the rows
-  // landed" — and a spec that seeded nothing would read the panel's zeros as the figures under test.
+  // `seedTransaction` swallows the revalidation throw, so exiting 0 does not mean the rows landed.
   const written = await payload.count({
     collection: 'transactions',
     where: { investment: { equals: investment.id } },

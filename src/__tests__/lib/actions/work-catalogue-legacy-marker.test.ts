@@ -5,11 +5,9 @@ import { getDb } from '@/lib/db/get-db'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { LEGACY_SUFFIX } from '@/lib/kosztorys/work-catalogue/legacy-marker'
 
-// A praca imported from an old sheet carries „[stary arkusz]" in its `description` — a visible note
-// the owner deletes by hand while reviewing the katalog. The marker must never reach `match_key`,
-// because the key is what makes the row match its wzór twin in „Porównaj z cennikiem" and what an
-// insert-only wsad checks before adding a second copy. The action's return value cannot show this —
-// only the persisted row can — so assert the row.
+// The „[stary arkusz]" note must never reach `match_key`: the key is what matches the row against its
+// wzór twin in „Porównaj z cennikiem" and what an insert-only wsad checks before adding a second
+// copy. The action's return value cannot show that — only the persisted row can.
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({

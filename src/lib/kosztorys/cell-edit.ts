@@ -1,15 +1,13 @@
 import { parseCellDecimal } from '@/lib/utils/parse-decimal-input'
 
 /**
- * The edit contract every numeric cell in the grid runs on: keystrokes commit as they go, the typed
- * text is held as a draft by the cell, and leaving the cell settles — accepted values stay, refused
- * ones roll the row back to what it held on entry and owe the user a word.
+ * The edit contract every numeric cell runs on: keystrokes commit as they go, the typed text is held
+ * as a draft, and leaving the cell settles — refused values roll the row back to what it held on
+ * entry and owe the user a word.
  *
- * React-free on purpose (AGENTS.md): the rules live out here where a test needs no renderer at all,
- * and `useCellDraft` stays a thin lifecycle around them.
- *
- * A policy is the whole difference between a plain number field, the rabat pair and a guarded
- * subcontractor price — the rules below are the same for all three.
+ * React-free on purpose (AGENTS.md), so a test needs no renderer and `useCellDraft` stays a thin
+ * lifecycle around it. A policy is the whole difference between a plain number field, the rabat pair
+ * and a guarded subcontractor price.
  */
 export type CellEditPolicyT<RowT, EntryT> = {
   /** What the cell held on entry — what a refused edit rolls back to. */
@@ -44,10 +42,9 @@ export type CellSettleT<RowT> =
     }
 
 /**
- * `hold` is the load-bearing case: an emptied field must NOT write the cleared value back to the
- * row mid-typing. Doing so flips the cell out of edit mode, which swaps the input for read-only
- * text — the caret dies and the old value reappears under the user's hands. Clearing only takes
- * effect once they leave, via `cellSettle`.
+ * `hold` is the load-bearing case: writing an emptied field back mid-typing flips the cell out of
+ * edit mode, which swaps the input for read-only text — the caret dies and the old value reappears
+ * under the user's hands. Clearing takes effect only on leaving, via `cellSettle`.
  */
 export function cellKeystroke<RowT, EntryT>(
   raw: string,
@@ -64,15 +61,12 @@ export function cellKeystroke<RowT, EntryT>(
 }
 
 /**
- * The rollback is what makes a rejected edit safe: keystrokes commit as they go, so typing
- * „2344000" writes 2, 23, 234 … until one is refused and the rest bounce. Without this, walking
- * away left the last accepted PREFIX standing as if the user had chosen it — a value they never
- * typed, in a cell they were told had failed.
+ * Keystrokes commit as they go, so typing „2344000" writes 2, 23, 234 … until one is refused. Without
+ * the rollback, walking away leaves the last accepted PREFIX standing as a value nobody chose.
  *
  * `reason` is what the caller announces: a refused value owes the user a word, because their number
- * is gone and an older one is on screen in its place. So does an unparseable one that displaced a
- * committed prefix — only garbage that changed nothing goes without a word, the way every text
- * field on earth discards it.
+ * is gone and an older one is on screen in its place — as does an unparseable one that displaced a
+ * committed prefix. Only garbage that changed nothing is discarded silently.
  */
 export function cellSettle<RowT, EntryT>(
   draft: string,
@@ -97,11 +91,9 @@ export function cellSettle<RowT, EntryT>(
 }
 
 /**
- * A pasted cell under the same rules as a typed one, minus the draft — there is no caret to protect,
- * so the settle happens at once. Every numeric column routes its `pasteValue` here, which is what
- * keeps „what arrives from the clipboard" and „what the user types" from drifting into two answers:
- * the guarded columns still refuse what a keystroke would have refused, and an emptied cell means
- * the same as an emptied field.
+ * The same rules as a typed cell, minus the draft — no caret to protect, so the settle happens at
+ * once. Every numeric column routes its `pasteValue` here, so the clipboard and the keyboard can't
+ * drift into two answers.
  */
 export function cellPaste<RowT, EntryT>(
   raw: string,
@@ -117,9 +109,8 @@ export function cellPaste<RowT, EntryT>(
 }
 
 /**
- * The contract's default element: any lone `number` field, any row shape. It knows no domain — the
- * two policies that do (the rabat pair, a subcontractor price) live in their own modules; the
- * columns that reach for this one are listed at `decimal-column.tsx`.
+ * The default policy: any lone `number` field, any row shape, no domain. The two that carry domain
+ * (the rabat pair, a subcontractor price) live in their own modules.
  */
 export function numericFieldPolicy<K extends string, RowT extends Record<K, number>>(
   field: K,

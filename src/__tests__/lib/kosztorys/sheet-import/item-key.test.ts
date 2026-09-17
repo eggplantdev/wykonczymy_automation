@@ -38,8 +38,8 @@ describe('itemKey', () => {
     expect(key('Malowanie  ŚCIAN')).toBe(key('malowanie scian'))
   })
 
-  // The 915 katalog corrections reach identity too, or the button that applies them to a rozpiska
-  // would tear that rozpiska off the arkusz it is compared against.
+  // The katalog corrections reach identity too, or the button applying them to a rozpiska tears it
+  // off the arkusz it is compared against.
   it('keys a name the owner corrected in the katalog the same as the one the rozpiska still has', () => {
     expect(key('Lutowanie taśm ledowych')).toBe(key('Lutowanie taśm LED'))
   })
@@ -51,8 +51,8 @@ describe('itemKey', () => {
     expect(key('motnaz tv')).toBe(key('Montaż TV'))
   })
 
-  // The guarantee the import rests on: whatever „Popraw literówki" would do to an opis, the key does
-  // not notice. Table-driven over the whole rule set so a rule added later has to hold it too.
+  // Whatever „Popraw literówki" would do to an opis, the key does not notice. Table-driven over the
+  // whole rule set so a rule added later has to hold it too.
   it.each(TYPO_FIXES.map(([from]) => from))(
     'keys „%s" the same before and after the cleaner rewrites it',
     (typo) => {

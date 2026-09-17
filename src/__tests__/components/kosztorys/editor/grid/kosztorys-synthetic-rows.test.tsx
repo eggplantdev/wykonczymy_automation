@@ -43,9 +43,9 @@ function BaseCell({ rowData }: { rowData: KosztorysV2RowT }) {
   return <span>pozycja {rowData.id}</span>
 }
 
-// dsg renders every column's cell against every row; this is that fan-out, minus the grid. Each
-// cell is tagged with its column id, which is exactly the claim under test: a figure has to be
-// readable from the column it sits in, not from its position in the row.
+// dsg renders every column's cell against every row; this is that fan-out, minus the grid. Each cell
+// is tagged with its column id, which is the claim under test: a figure has to be readable from the
+// column it sits in, not from its position in the row.
 function renderRow(rowData: KosztorysV2RowT, columnIds: readonly string[] = COLUMN_IDS) {
   const context = {
     sectionHeader: {

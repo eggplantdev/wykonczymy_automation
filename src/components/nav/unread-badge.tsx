@@ -7,10 +7,9 @@ import { useUnreadCounts } from '@/hooks/use-unread-counts'
 import type { UnreadStreamT } from '@/types/notifications'
 
 /**
- * Unread-count bubble on a nav item. The count is read once on the server with the shell
- * (`fetchUnreadCounts`) and never refetched — a new item surfaces on the next full load, which is
- * all this is for. On the section's own page it reads 0: that page's server render advances the
- * seen cursor after the shell has already counted, so the number in context is one render stale.
+ * Unread-count bubble on a nav item. Read once with the shell (`fetchUnreadCounts`) and never
+ * refetched, so a new item surfaces only on the next full load. Reads 0 on the section's own page —
+ * that page's render advances the seen cursor after the shell already counted.
  */
 export function UnreadBadge({ stream, path }: { stream: UnreadStreamT; path: string }) {
   // Nothing to fall back to: a bubble is absent at 0 anyway, so the nav item renders without one

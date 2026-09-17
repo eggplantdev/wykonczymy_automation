@@ -13,9 +13,8 @@ import type { UnreadCountsT } from '@/types/notifications'
 const NONE: UnreadCountsT = { leads: 0, fleet: 0, equipment: 0 }
 
 /**
- * The nav's unread bubbles. Reads the session itself rather than taking a `userId`/`role` pair: a
- * caller-supplied identity is one `'use server'` away from letting the browser ask for anyone's
- * counts, and the role check would be guarding a number the caller chose. `getCurrentUserJwt` is
+ * Reads the session itself rather than taking a `userId`/`role` pair: a caller-supplied identity is one
+ * `'use server'` away from letting the browser ask for anyone's counts. `getCurrentUserJwt` is
  * React-cached, so the shell's own call already paid for this one.
  */
 export async function fetchUnreadCounts(): Promise<UnreadCountsT> {

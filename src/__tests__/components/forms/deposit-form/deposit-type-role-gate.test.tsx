@@ -46,9 +46,8 @@ beforeEach(() => {
   useOptimisticFormStore.setState({ keepOpen: true })
 })
 
-// „Zasilenie z konta firmowego" moves the company's own money, so a MANAGER may not book one. The
-// gate was left deliberately client-side (EX-557, decision 6), which makes the rendered option list
-// the ONLY place the rule is observable — there is no server refusal to assert instead.
+// MANAGER can't book „Zasilenie z konta firmowego" (company money) — a deliberate client-side-only
+// gate (EX-557 decision 6), so the rendered option list is the only place to assert it.
 describe('Wpłata — „Zasilenie z konta firmowego" tylko dla ADMIN/OWNER', () => {
   it('kierownik dostaje dwa typy, bez zasilenia', async () => {
     await openTypeMenu('MANAGER')

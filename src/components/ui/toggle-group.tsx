@@ -14,8 +14,8 @@ type PropsT<T extends string> = {
   value: T
   onChange: (value: T) => void
   size?: SizeT
-  // Greys out and blocks interaction while keeping the group visible — used where a toggle applies
-  // only in some contexts (e.g. the summary view toggle on the subcontractor plane).
+  // Kept visible where a toggle applies only in some contexts (e.g. the summary view toggle on the
+  // subcontractor plane).
   disabled?: boolean
   'aria-label'?: string
   className?: string
@@ -53,10 +53,9 @@ export function ToggleGroup<T extends string>({
   }, [value, options])
 
   return (
-    // The scroll lives out here, on a box that is never wider than its parent, while the group itself
-    // stays content-sized: a group that fits hugs its options as before, and only one whose options
-    // outrun the screen — five summary tabs on a phone — gets a scrollbar instead of bleeding off the
-    // side. Stretching the group itself would have made the two-option toggles a full-width bar.
+    // The scroll lives out here, on a box never wider than its parent, while the group stays
+    // content-sized — so only a group whose options outrun the screen gets a scrollbar. Stretching the
+    // group itself would make the two-option toggles a full-width bar.
     <div className={cn('max-w-full overflow-x-auto', className)}>
       <ToggleGroupPrimitive.Root
         ref={rootRef}

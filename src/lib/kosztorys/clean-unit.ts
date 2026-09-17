@@ -1,25 +1,19 @@
 import { UNIT_SUGGESTIONS } from '@/lib/kosztorys/constants'
 import { foldUnit } from '@/lib/kosztorys/sheet-import/columns'
 
-// Text cleanup for „j.m.", the sibling of `cleanDescription` and bound by the same contract: every
-// rule is idempotent, so the owner can press the button as often as they like.
+// Text cleanup for „j.m.", sibling of `cleanDescription`: every rule is idempotent, so the owner
+// can press the button as often as they like.
 
-// Transposed letters, which no notation rule can reach — `foldUnit` reads `klp` and `kpl` as two
-// different jednostki, so the same praca splits into two katalog entries carrying two prices.
-//
-// Only transpositions of a j.m. the data already uses. `n2` is NOT here: it reads like `m2`, but one
-// neighbouring key on the keyboard is not evidence, and guessing it would silently reprice a praca.
-// Same for `2` and `180`, which are ilości somebody typed into the j.m. column — a decision, not a
-// literówka, and the katalog report is where they surface.
+// Transposed letters `foldUnit` can't reach (`klp`/`kpl` split one praca's katalog entry in two).
+// Only known transpositions — `n2`/`m2` and stray `2`/`180` are deliberate ilości, not typos, and
+// the katalog report is where those surface instead.
 const UNIT_TYPO_FIXES: Readonly<Record<string, string>> = {
   klp: 'kpl',
   kp: 'kpl',
 }
 
-// The combobox's own list is the canonical spelling, keyed by what the matching makes of it. This is
-// why cleaning cannot just return the fold: `foldUnit('m²')` is `m2`, but `m²` is what the cell
-// offers and what the client's oferta prints — writing the fold back would retype the owner's j.m.
-// into a form the app never suggests, and the next press would do it again.
+// Cleaning can't just return the fold: `foldUnit('m²')` is `m2`, but `m²` is what the combobox
+// offers and the client's oferta prints, so the canonical spelling is keyed by its fold instead.
 const CANONICAL_BY_FOLD = new Map(UNIT_SUGGESTIONS.map((unit) => [foldUnit(unit), unit]))
 
 /**

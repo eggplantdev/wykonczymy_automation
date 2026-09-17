@@ -66,8 +66,8 @@ import type { KosztorysEditorDataT, KosztorysV2RowT } from '@/lib/kosztorys/type
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
 
 type PropsT = KosztorysEditorDataT & {
-  // Read-only public/preview render: hides the mutation chrome, swaps the toolbar for a slim header,
-  // kills persistence, and gates the footer's owner-only bits. The owner path leaves it unset.
+  // Read-only public render: hides the mutation chrome, kills persistence, gates the footer's
+  // owner-only bits.
   preview?: boolean
   // Arrives with the preview payload only; the owner's editor renders the full grid regardless.
   clientView?: ClientViewSettingsT
@@ -79,9 +79,8 @@ type PropsT = KosztorysEditorDataT & {
   onStaleTree?: () => Promise<void>
 }
 
-// The stateful editor: seeds the grid from `tree` at mount (useKosztorysEditor's useState
-// initializer). Remounting it (fresh `key` from the wrapper) is how a restore re-seeds the whole
-// grid — see KosztorysEditorV2.
+// Seeds the grid from `tree` at mount, so remounting it with a fresh `key` is how a restore re-seeds
+// the whole grid (see KosztorysEditorV2).
 export function KosztorysEditorBody({
   investmentId,
   tree,
@@ -102,9 +101,9 @@ export function KosztorysEditorBody({
   workers,
   ...panelData
 }: PropsT) {
-  // Any rozliczony wydatek means some material was folded into robocizna, which is what makes a
-  // pozycja priced off a coefficient hand the crew a cut of that material — the gate on EX-708's
-  // guard. The breakdown carries no link back to a pozycja, so this is all the kosztorys can know.
+  // A rozliczony wydatek means material was folded into robocizna, which is what makes a pozycja
+  // priced off a coefficient hand the crew a cut of it (EX-708). The breakdown carries no link back
+  // to a pozycja, so this is all the kosztorys can know.
   const hasSettledMaterial = panelData.settledBreakdown.length > 0
   const editor = useKosztorysEditor({
     investmentId,
@@ -163,9 +162,8 @@ export function KosztorysEditorBody({
 
   const { openImport, importDialogProps } = useSheetImport({ investmentId, onTreeReplaced })
 
-  // Both figures come off `subtotals`, which counts the whole document rather than the visible rows,
-  // so a search filter narrows what is on screen without changing what the section says it holds or
-  // what it is worth. Under the client's preview the document itself is the shorter one.
+  // Off `subtotals`, which counts the whole document rather than the visible rows, so a search
+  // narrows the screen without changing what a section says it holds or what it is worth.
   const sectionHeader = useMemo(
     () => ({
       figures: new Map(
@@ -177,8 +175,8 @@ export function KosztorysEditorBody({
       collapsedSectionIds,
       onToggleCollapsed: toggleSectionCollapsed,
       onRename: onRenameSection,
-      // Built here rather than in the hook so the bundle's identity is the memo's own — a fresh
-      // object per render would land on every column's `columnData` and redraw the whole grid.
+      // Built here so the bundle's identity is the memo's own — a fresh object per render would land
+      // on every column's `columnData` and redraw the whole grid.
       actions:
         onInsertSection && onReorderSection && onSetSectionColor && onRemoveSection
           ? {
@@ -242,32 +240,26 @@ export function KosztorysEditorBody({
   const datasheetRef = useRef<DataSheetGridRef>(null)
   const gridRowKeys = useMemo(() => gridRows.map((row) => String(row.id)), [gridRows])
 
-  // The client's rows size themselves to their „Opis prac" — they have no handle to drag and no way
-  // to open a truncated description, so a row that doesn't fit its text is simply unreadable. The
-  // owner's rows do NOT: they stay at 32px until dragged, because an editor whose every long
-  // description is expanded by default is unscannable. The measurement runs in both views all the
-  // same — in the editor it is what „Dopasuj wysokość do treści" fits a row to.
+  // The client's rows size themselves to their „Opis prac": no drag handle, no way to open a
+  // truncated description. The owner's stay at 32px until dragged, since an editor with every long
+  // description expanded is unscannable. The measurement runs in both — in the editor it is what
+  // „Dopasuj wysokość do treści" fits a row to.
   const columnIds = useMemo(() => columns.map((column) => column.id), [columns])
   const wrap = useWrapColumnWidths(gridNode, columnIds)
-  // Re-wrapping the same description costs a handful of Map lookups: measureTextWidth caches every
-  // width it has ever measured, and dsg only asks for a row's height once per scroll that extends
-  // its measured range. So there is nothing here worth caching a second time.
+  // Nothing worth caching twice: measureTextWidth caches every width it has measured, and dsg asks
+  // for a row's height once per scroll that extends its measured range.
   const contentLinesFor = useMemo(() => {
     const measure = measureTextWidth(wrap.font)
     return (row: KosztorysV2RowT) => rowContentLines(row, wrap.widths, measure)
   }, [wrap])
-  // The override map and the measured widths both invalidate every cached height, not just those
-  // below an inserted row.
-  // Both readings of „size me from the content" invalidate every row at once: the preview's, and the
-  // owner's toggle — which is itself a content source, since flipping it changes what every row
-  // measures to without saying which rows changed.
+  // Both readings of „size me from the content" invalidate every cached height at once, not just the
+  // rows below an inserted one — the owner's toggle included, since flipping it changes what every
+  // row measures to without saying which rows changed.
   const sizeToContent = preview || fitRowsToContent
   useRowHeightCacheReset(datasheetRef, gridRowKeys, rowHeights, sizeToContent ? wrap : undefined)
-  // The empty grid names what emptied it — and the two kinds empty it for opposite reasons: an
-  // unticked filter leaves nothing because EVERY pozycja fell into what was unticked, a diagnostic
-  // because NONE matched it, which is the goal state and worth saying out loud rather than a dead end.
-  // The client's own hider counts here too: with „ukryj puste pozycje" on and every pozycja empty,
-  // the client would otherwise get a grid with nothing in it and no word about why.
+  // The empty grid names what emptied it. The two kinds empty it for opposite reasons: an unticked
+  // filter because EVERY pozycja fell into what was unticked, a diagnostic because NONE matched —
+  // the goal state, worth saying out loud. The client's „ukryj puste pozycje" counts here too.
   const emptyCopy = emptyGridCopy({
     preview,
     hiders: engagedHiderList,
@@ -278,9 +270,8 @@ export function KosztorysEditorBody({
     () => (preview ? undefined : { onGuide: setGuideY, onCommit: setRowHeight }),
     [preview, setGuideY, setRowHeight],
   )
-  // Takes the row rather than its DOM: the grid virtualizes columns horizontally, so „Opis prac" is
-  // simply absent from the DOM once the columns are scrolled past it, and measuring the rendered row
-  // would fit those rows to one line.
+  // Takes the row rather than its DOM: columns are virtualized horizontally, so „Opis prac" is
+  // absent once scrolled past, and measuring the rendered row would fit it to one line.
   const fitRowToContent = useMemo(
     () =>
       preview
@@ -289,18 +280,14 @@ export function KosztorysEditorBody({
             setRowHeight(String(row.id), fitRowHeight(row.id, contentLinesFor(row))),
     [preview, setRowHeight, contentLinesFor],
   )
-  // Which of a row's text columns hold more than the row shows — one class per clipped column, which
-  // is what lets the „…" land in the cell that is actually hiding something rather than on the whole
-  // row. The editor's rows rest at 32px and only move when the owner drags one, so a clipped
-  // description is the normal state, not an exception. Measured from the same line count
-  // „Dopasuj wysokość do treści" uses, so the cue and the fit can never disagree. No cue in the
-  // preview: its rows are sized from this very measurement, so nothing there is ever clipped.
+  // One class per clipped column, so the „…" lands in the cell that is hiding something rather than
+  // on the whole row. Measured from the same line count „Dopasuj wysokość do treści" uses, so the cue
+  // and the fit can't disagree. No cue in the preview: its rows are sized from this measurement.
   const clipCueClass = useMemo(() => {
     const measure = measureTextWidth(wrap.font)
     return (row: KosztorysV2RowT) => {
-      // Bands, „Razem" and the spacer carry chrome, not prose — a band's label deliberately overflows
-      // its own cell onto the empty ones beside it, so measuring it against its column's width would
-      // flag every band as clipped.
+      // A band's label deliberately overflows its own cell onto the empty ones beside it, so
+      // measuring it against its column's width would flag every band as clipped.
       if (
         preview ||
         isSyntheticRow(row.id) ||
@@ -330,10 +317,9 @@ export function KosztorysEditorBody({
     [ordinalByRowId, rowResize],
   )
 
-  // Reconciliation verdict for the Podsumowanie scream: kosztorys client-view nets (laborCostsNetFromKosztorys /
-  // discountNetFromKosztorys, view-independent) vs the investment's transaction sums — net to net, since the
-  // ledger carries no VAT. Built via the shared lib fn — the same one the investment page calls — so
-  // the two surfaces can't disagree.
+  // Kosztorys client-view nets against the investment's transaction sums — net to net, since the
+  // ledger carries no VAT. Through the same lib fn the investment page calls, so the two can't
+  // disagree.
   const reconciliation = useMemo(
     () =>
       buildKosztorysReconciliation({
@@ -364,10 +350,10 @@ export function KosztorysEditorBody({
         templatePresetId,
       }}
     >
-      {/* Wrapping the body rather than the grid: the value reaches a row's „…" through Radix's
-          portal, which keeps the React tree even though the DOM leaves it. */}
+      {/* Wraps the body, not the grid: the value reaches a row's „…" through Radix's portal, which
+          keeps the React tree even though the DOM leaves it. */}
       <RowHeightFitProvider fit={fitRowToContent}>
-        {/* Mounted in the preview too — nothing there can open it, and a conditional wrapper would
+        {/* Mounted in the preview too: nothing there can open it, and a conditional wrapper would
             mean two copies of the whole body. */}
         <CataloguePickerHost>
           {/* The client view mounts under the bare (share) layout, which has no TopNav — subtracting
@@ -379,12 +365,15 @@ export function KosztorysEditorBody({
             )}
           >
             {preview ? (
-              <header className="flex items-center justify-between gap-2 border-b px-5 py-5">
-                <div className="flex min-w-0 items-center gap-4">
-                  <BrandLogo height={54} priority className="shrink-0" />
-                  <h1 className="truncate text-base font-medium">{investmentName}</h1>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
+              <header className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b px-4 py-3 sm:px-5 sm:py-5">
+                <BrandLogo height={54} priority className="shrink-0 max-sm:h-11" />
+                {/* Its own row below `sm`, beside the logo from there up. Logo plus a `lg` button
+                    leave a phone no width for a name, and the name is what the client is here to
+                    read — so it takes the second line rather than an ellipsis. */}
+                <h1 className="order-last w-full truncate text-base font-medium sm:order-none sm:w-auto sm:flex-1">
+                  {investmentName}
+                </h1>
+                <div className="ml-auto flex shrink-0 items-center gap-2">
                   {/* The panel's open state is persisted per person, not per view, so without this the
                   client view inherits whatever the toolbar last left and can never fold it back. */}
                   <KosztorysTotalsPanelToggle size="lg" disabled={subtotals.length === 0} />

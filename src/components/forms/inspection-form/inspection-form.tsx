@@ -34,19 +34,15 @@ type InspectionFormPropsT = {
   onSubmitSuccess: () => void
   keepOpen?: boolean
   vehicles: Pick<FleetRowT, 'id' | 'registration' | 'make' | 'model' | 'latestOdometer'>[]
-  /**
-   * Pins the form to one car. The draft store is shared with the listing's dialog, so a restored
-   * draft can carry a different vehicle than the page the user is on — this is what makes the page
-   * win over the draft.
-   */
+  /** Pins the form to one car: the draft store is shared with the listing's dialog, so a restored
+   * draft can carry a different vehicle than the page. */
   lockedVehicleId?: number
 }
 
 const optionalNumber = (value: string): number | undefined =>
   value.trim() === '' ? undefined : Number(value)
 
-// Same rule, different empty: `cost` is `.nullable()` in the schema — an unknown price is a recorded
-// „nobody knows", not an absent field — and `undefined` does not satisfy it.
+// `cost` is `.nullable()`: an unknown price is a recorded „nobody knows", and `undefined` fails it.
 const nullableNumber = (value: string): number | null => optionalNumber(value) ?? null
 
 export function InspectionForm({
@@ -64,19 +60,9 @@ export function InspectionForm({
   const { files, isIngesting, inputKey, fileInputProps, reset: resetFiles } = useFilePickIngest()
 
   /**
-   * The last date this form itself suggested for „Następny termin" — what answers „may I overwrite
-   * this" on a later type change. The real date is printed on the document, so a suggestion is never
-   * an answer: a date the user chose must survive.
-   *
-   * NOT the field's `isTouched`: TanStack marks every field touched on the first validation pass, so
-   * `isTouched` flips the moment anything else on the form is touched — the rodzaj picker that asks
-   * for the suggestion included. Reading it froze the date on whatever the FIRST type change
-   * proposed, so correcting OC to „Przegląd gwarancyjny" left a 12-month date on a 24-month przegląd.
-   *
-   * It has to track every write to the field, not just its own: a restored draft supplies the initial
-   * value, and a `keepOpen` submit puts `defaultValues` back under a still-mounted form. Seeded from
-   * `defaultValues` alone, the ref disagrees with the field from the first keystroke and refuses
-   * every suggestion after that.
+   * Last date this form suggested for „Następny termin": a date the user chose must survive a later
+   * type change, and `isTouched` can't tell the two apart (TanStack touches every field on the first
+   * validation pass). Tracks every write — a restored draft and a `keepOpen` submit both reseed it.
    */
   const suggestedNextDue = useRef<string | null>(null)
 
@@ -92,8 +78,8 @@ export function InspectionForm({
       resetFiles()
       suggestedNextDue.current = defaultValues.nextDueAt
     },
-    // A restored draft carries whatever date it was saved with — yesterday's, or none at all —
-    // and neither is what „data przeglądu = dziś" promises when the dialog reopens.
+    // A restored draft carries the date it was saved with, not what „data przeglądu = dziś"
+    // promises on reopen.
     mergeStored: (stored) => ({
       ...stored,
       ...(lockedVehicleId && { vehicle: String(lockedVehicleId) }),
@@ -101,8 +87,8 @@ export function InspectionForm({
     }),
     // Upload first, then create — the row must never reference a media id that failed to land.
     action: async (data) => {
-      // Backstop to the disabled submit button, which a keyboard Enter bypasses: a file still being
-      // ingested is not in `files` yet, so the przegląd would save without its załącznik.
+      // Backstop to the disabled submit button, which Enter bypasses: a file still ingesting is
+      // not in `files` yet, so the przegląd would save without its załącznik.
       if (isIngesting) {
         return { success: false, error: 'Poczekaj na przetworzenie plików.' }
       }
@@ -131,10 +117,8 @@ export function InspectionForm({
   const currentVehicle = useStore(form.store, (state) => state.values.vehicle)
   const currentOdometer = useStore(form.store, (state) => state.values.odometer)
 
-  /**
-   * The last reading this car is known to have had, when the one being typed is below it. A swapped
-   * instrument cluster makes a lower reading legitimate, so this warns and never blocks the submit.
-   */
+  /** Last known reading, when the typed one is below it. A swapped cluster makes that legitimate,
+   * so it warns and never blocks. */
   const previousOdometer =
     vehicles.find((vehicle) => String(vehicle.id) === currentVehicle)?.latestOdometer ?? null
   const typedOdometer = optionalNumber(currentOdometer)
@@ -156,15 +140,13 @@ export function InspectionForm({
 
   const onTypeChange = (type: InspectionTypeT) => {
     prefillNextDue(type)
-    // Hiding a field does not clear it — without this a TECHNICAL row persists a polisa's number
-    // that it has no business carrying.
+    // Hiding a field does not clear it: a TECHNICAL row would persist a polisa's number.
     if (type !== 'INSURANCE') {
       form.setFieldValue('insurer', '')
       form.setFieldValue('policyNumber', '')
     }
-    // A reading is not work: it has no price and nothing it makes due. `prefillNextDue` leaves a date
-    // the user chose alone, which is exactly what must not survive here — and once that choice is
-    // gone the field is nobody's again, so the next real type may suggest into it.
+    // A reading has no price and no deadline; clearing releases the field so the next real type
+    // may suggest into it.
     if (type === 'ODOMETER') {
       suggestedNextDue.current = ''
       form.setFieldValue('nextDueAt', '')

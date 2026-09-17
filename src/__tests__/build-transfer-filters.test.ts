@@ -145,9 +145,8 @@ describe('buildTransferFilters — search params', () => {
     expect(where.worker).toBeUndefined()
   })
 
-  // `1e999` parses to Infinity, which is truthy — the old `.filter(Boolean)` let it through and it
-  // reached raw SQL as a bare `worker_id IN (infinity)` identifier, 500ing the page instead of
-  // returning nothing. Every id that isn't a real integer has to die in the parser.
+  // `1e999` parses to Infinity, which is truthy, so a non-integer id must die in the parser or it
+  // reaches raw SQL as a bare `worker_id IN (infinity)` identifier and 500s the page.
   it.each(['1e999', '-1e999', '1.5', 'NaN', 'Infinity'])(
     'worker param %p never reaches the query as a number',
     (worker) => {

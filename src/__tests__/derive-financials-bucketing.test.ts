@@ -84,9 +84,8 @@ const BUCKET_MEMBERSHIP: Record<BucketNameT, [string, boolean][]> = {
     ['INVESTMENT_EXPENSE', true],
     ['CORRECTION', true],
   ],
-  // Not a bucket over rows at all — it is derived from materialsGrossBase and the investment's
-  // rate, which this matrix never supplies, so every pair must leave it at 0. Its own arithmetic
-  // lives in lib/db/investment-financials.test.ts.
+  // Derived from materialsGrossBase and the investment's rate, which this matrix never supplies, so
+  // every pair must leave it at 0. Its own arithmetic lives in lib/db/investment-financials.test.ts.
   materialsNetDiscount: [],
 }
 

@@ -2,6 +2,7 @@ import { test, expect, type Page } from '@playwright/test'
 import { formatNet } from '@/lib/kosztorys/format'
 import {
   collapseSummaryPanel,
+  expandSummaryPanel,
   editorCell,
   readListingFigure,
   seedReconInvestments,
@@ -26,13 +27,18 @@ test.beforeAll(async ({ browser }) => {
   seed = await seedReconInvestments(browser)
 })
 
-// Marża for the seeded investment, read off the listing (ADMIN/OWNER only — the E2E user is OWNER).
-const readMargin = (page: Page, investmentName: string) =>
-  readListingFigure(page, investmentName, 'Marża')
+// „Robocizna v2" for the seeded investment, read off the listing (ADMIN/OWNER only — the E2E user
+// is OWNER). It is the column EX-555 actually switched, and the only one whose delta the fixture
+// names: „Marża v2" nets off what the crew is owed, a band share of the same robocizna, so a qty
+// change moves it by a fraction nobody can state without re-implementing `subcontractorDue` here.
+// „Marża v1" is worse than derived — it is the TRANSACTIONS plane and a kosztorys write may never
+// move it at all. Read by the full header for that reason: „Marża" alone prefix-matches v1.
+const readKosztorysLabor = (page: Page, investmentName: string) =>
+  readListingFigure(page, investmentName, 'Robocizna v2')
 
 async function setStageQty(page: Page, investmentId: number, qty: number): Promise<void> {
   await page.goto(`/inwestycje/${investmentId}/kosztorys_v2`)
-  const summaryToggle = await collapseSummaryPanel(page)
+  await collapseSummaryPanel(page)
 
   const cell = await editorCell(page, 'Etap 1')
   await cell.click()
@@ -41,18 +47,20 @@ async function setStageQty(page: Page, investmentId: number, qty: number): Promi
 
   // The write is a server action fired from the grid. Confirm it landed HERE — otherwise a listing
   // that never moved could mean the edit never happened, and the spec would blame the cache.
-  await summaryToggle.click()
+  await expandSummaryPanel(page)
   await expect(page.getByText(formatNet(qty * 100)).first()).toBeVisible({ timeout: 15_000 })
 }
 
-test('a kosztorys qty change moves marża on the listing without a manual refresh', async ({
+test('a kosztorys qty change moves the listing figure without a manual refresh', async ({
   page,
 }) => {
-  const before = await readMargin(page, seed.matchName)
+  const before = await readKosztorysLabor(page, seed.matchName)
 
   await setStageQty(page, seed.match, 10)
 
   // Straight back to the listing — no „Odśwież dane". The delta is the seeded item's client price
   // times the added quantity: 100 × 5.
-  await expect.poll(() => readMargin(page, seed.matchName), { timeout: 20_000 }).toBe(before + 500)
+  await expect
+    .poll(() => readKosztorysLabor(page, seed.matchName), { timeout: 20_000 })
+    .toBe(before + 500)
 })

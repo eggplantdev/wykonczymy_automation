@@ -5,6 +5,8 @@ import {
   EXPENSE_REGISTER,
   openPanelView,
   pickComboOption,
+  refreshReferenceData,
+  runSeedScript,
   uniqueAmount,
   waitForHydration,
 } from './helpers'
@@ -22,14 +24,35 @@ import {
 // The inverse leg is here for the same reason: a przelew on an investment settled netto is off-plane
 // too — it is flagged red — but it loses no money, so it must NOT stop to ask. Only a browser can
 // show that those two predicates are still separate.
-test.use({ storageState: 'e2e/.auth/user.json' })
+// Narrower than the project's 3000px default on purpose: nothing here reads a virtualised grid
+// column, and headless Chrome composites in software — 4.2 Mpx of kosztorys per action is what makes
+// this spec's clicks time out on a loaded machine.
+test.use({ storageState: 'e2e/.auth/user.json', viewport: { width: 1600, height: 1000 } })
+// Each test here is two full route loads, a combo-heavy form, a confirm and a read-back — three
+// times the work the 120 s default was sized for, and it does not fit whenever the machine is busy.
+test.describe.configure({ timeout: 360_000 })
 
-// Long-standing dump investments, like `EXPENSE_REGISTER` above them: both are `active` and neither
-// carried a wpłata when this spec was written, so the rows read back here are its own. Deliberately
-// NOT seeded — `kosztorys_v2` resolves an investment off `fetchReferenceData`, whose cache no seed
-// script can invalidate from outside the server, so a freshly created investment 404s there.
-const GROSS_INVESTMENT = { id: 64, name: 'Wyszogrodzka 7' }
-const NET_INVESTMENT = { id: 119, name: 'Kulisiewicza 16' }
+// One fresh investment per tryb, seeded rather than picked out of the dump: the wpłaty list read
+// back below has to hold this run's rows and nobody else's, and the rozliczenie the whole spec turns
+// on is only offered on a NON-EMPTY kosztorys — a dump investment that happens to carry no pozycje
+// renders „Kosztorys jest pusty" and no Podsumowanie at all. „Odśwież dane" (`refreshReferenceData`)
+// is what makes a seeded investment resolvable on `kosztorys_v2`, whose route reads `fetchReferenceData`.
+type InvestmentT = { id: number; name: string }
+let GROSS_INVESTMENT: InvestmentT
+let NET_INVESTMENT: InvestmentT
+
+test.beforeAll(async ({ browser }) => {
+  const seedOne = (): InvestmentT => {
+    const seed = runSeedScript<{ investment: number; investmentName: string }>(
+      'seed:kosztorys-bands',
+      'BANDS_SEED',
+    )
+    return { id: seed.investment, name: seed.investmentName }
+  }
+  GROSS_INVESTMENT = seedOne()
+  NET_INVESTMENT = seedOne()
+  await refreshReferenceData(browser)
+})
 
 async function openSummary(page: Page, investmentId: number): Promise<void> {
   await page.goto(`/inwestycje/${investmentId}/kosztorys_v2`)
@@ -93,7 +116,7 @@ test('a cash deposit on a gross-settled investment is warned about, then persist
   // „Gotówka netto" is the form's default method, so the plane is already the losing one — the tryb
   // is what changed, which is exactly the real-world shape of this mistake.
   await dialog.getByLabel('Kwota (PLN)').fill(amount.toFixed(2))
-  await dialog.getByRole('button', { name: 'Zapisz', exact: true }).click()
+  await dialog.getByRole('button', { name: 'Dodaj', exact: true }).click()
 
   const confirm = page.getByRole('alertdialog')
   await expect(confirm).toContainText('Ta wpłata nie policzy się w rozliczeniu')
@@ -126,7 +149,7 @@ test('„Popraw" leaves no wpłata behind', async ({ page }) => {
 
   const dialog = await openDepositDialog(page, GROSS_INVESTMENT.name)
   await dialog.getByLabel('Kwota (PLN)').fill(amount.toFixed(2))
-  await dialog.getByRole('button', { name: 'Zapisz', exact: true }).click()
+  await dialog.getByRole('button', { name: 'Dodaj', exact: true }).click()
 
   const confirm = page.getByRole('alertdialog')
   await expect(confirm).toContainText('Ta wpłata nie policzy się w rozliczeniu')
@@ -154,7 +177,7 @@ test('a transfer on a net-settled investment is flagged but never stops to ask',
   // After the brutto, because typing it suggests a netto at the investment's stawka — the faktura's
   // own netto is what gets stored, so it is typed last and overwrites the suggestion.
   await dialog.getByLabel('Kwota netto z faktury (PLN)').fill(net.toFixed(2))
-  await dialog.getByRole('button', { name: 'Zapisz', exact: true }).click()
+  await dialog.getByRole('button', { name: 'Dodaj', exact: true }).click()
 
   // The form dialog cannot close while a confirm is unanswered, so its closing IS the proof that
   // none was raised — and it is a wait, not a snapshot, so it cannot pass by looking too early.

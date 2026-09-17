@@ -1,20 +1,17 @@
 'use client'
 
 import { BrandLogo } from '@/components/ui/brand-logo'
-import { Button } from '@/components/ui/button'
 import { SimpleTooltip } from '@/components/ui/tooltip'
-import { refreshDataAction } from '@/lib/actions/refresh'
 import { ThemeToggle } from '@/components/nav/theme-toggle'
 import { NavLinkItem } from '@/components/nav/nav-link-item'
 import { LogoutButton } from '@/components/nav/logout-button'
+import { RefreshDataButton } from '@/components/nav/refresh-data-button'
 import { cn } from '@/lib/utils/cn'
-import { toastMessage } from '@/lib/utils/toast'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { useNavLinks } from '@/hooks/use-nav-links'
 import { useSidebarCollapsed } from '@/hooks/use-sidebar-collapsed'
-import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
-import { useTransition } from 'react'
 
 type SidebarPropsT = {
   openRouterBalance?: React.ReactNode
@@ -24,14 +21,6 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
   const user = useCurrentUser()
   const { links, isActive } = useNavLinks()
   const [collapsed, setCollapsed] = useSidebarCollapsed()
-  const [isRefreshing, startRefreshTransition] = useTransition()
-
-  const handleRefresh = () => {
-    startRefreshTransition(async () => {
-      await refreshDataAction()
-      toastMessage('Dane odświeżone')
-    })
-  }
 
   // Roundcube can't auto-login via URL; _user only prefills the username field on its
   // login page (no-op when a Roundcube session is already active).
@@ -80,17 +69,7 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
             <ThemeToggle collapsed={collapsed} />
           </CollapsibleTooltip>
           <CollapsibleTooltip collapsed={collapsed} label="Odśwież dane">
-            <Button
-              variant="outline"
-              size="sm"
-              className={cn(collapsed && 'px-0')}
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              aria-label="Odśwież dane"
-            >
-              <RefreshCw className={isRefreshing ? 'animate-spin' : ''} />
-              {!collapsed && 'Odśwież dane'}
-            </Button>
+            <RefreshDataButton collapsed={collapsed} />
           </CollapsibleTooltip>
           {/* <Button variant="outline" size="sm" asChild aria-label="Poczta (Roundcube)">
             <Link href={roundcubeUrl} target="_blank" rel="noopener noreferrer">

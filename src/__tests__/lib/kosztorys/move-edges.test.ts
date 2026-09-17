@@ -14,8 +14,8 @@ const sectionIds = [1, 2, 3]
 const directions: ('up' | 'down')[] = ['up', 'down']
 
 describe('move edges', () => {
-  // The bridge: an enabled command must be exactly a command that moves something. Read apart, the
-  // menu and the mover drift and the user gets a live ▲ that silently does nothing.
+  // An enabled command must be exactly a command that moves something — read apart, the menu and the
+  // mover drift and the user gets a live ▲ that does nothing.
   it('enables a praca ▲/▼ exactly where the mover finds a neighbour', () => {
     const edges = computeMoveEdges(rows)
     for (const item of rows) {

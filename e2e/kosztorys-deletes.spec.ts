@@ -5,6 +5,7 @@ import {
   openEditor,
   LOAD_VERSION_ITEM,
   pickKosztorysOption,
+  expectCellValue,
   rowCell,
   seedDeleteInvestments,
   versionsDrawer,
@@ -35,11 +36,16 @@ test.beforeAll(async ({ browser }) => {
   seed = await seedDeleteInvestments(browser)
 })
 
+// By the rename input's value, not by text: the band's name lives in that input and nowhere else,
+// so a `hasText` filter matches no band at all.
 const band = (page: Page, sectionName: string) =>
-  page.locator('.dsg-row.kosztorys-section-header').filter({ hasText: sectionName })
+  page
+    .locator('.dsg-row.kosztorys-section-header')
+    .filter({ has: page.locator(`input[value="${sectionName}"]`) })
 
+// Anchored: „Etap 2" is also the prefix of the „Etap 2 netto" wartość column standing beside it.
 const headerCell = (page: Page, text: string) =>
-  page.locator('.dsg-row.dsg-row-header .dsg-cell').filter({ hasText: text })
+  page.locator('.dsg-row.dsg-row-header .dsg-cell').filter({ hasText: new RegExp(`^${text}$`) })
 
 // The confirm every one of these deletes goes through. Not scoped to a title: the point of the
 // assertions below is which title came up, so the locator must not presuppose it.
@@ -127,7 +133,7 @@ test('deleting a populated etap drops its column and the ilości in it, and only
 }) => {
   await openEditor(page, seed.stage)
   await expect(headerCell(page, 'Etap 2')).toHaveCount(1)
-  await expect(await rowCell(page, 'Praca alfa jeden', 'Etap 2')).toContainText('2')
+  await expectCellValue(await rowCell(page, 'Praca alfa jeden', 'Etap 2'), '2')
 
   // The trigger IS the header label — its accessible name is „Etap 2", not its title attribute — so
   // it is reached through the header cell rather than by a name of its own.
@@ -142,7 +148,7 @@ test('deleting a populated etap drops its column and the ilości in it, and only
   // rather than the whole stage block failing to render.
   await expect(headerCell(page, 'Etap 2')).toHaveCount(0)
   await expect(headerCell(page, 'Etap 1')).toHaveCount(1)
-  await expect(await rowCell(page, 'Praca alfa jeden', 'Etap 1')).toContainText('2')
+  await expectCellValue(await rowCell(page, 'Praca alfa jeden', 'Etap 1'), '2')
 
   await page.reload()
   await collapseSummaryPanel(page)

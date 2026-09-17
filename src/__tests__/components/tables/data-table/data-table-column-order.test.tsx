@@ -24,8 +24,8 @@ const COLUMNS: ColumnDef<RowT, unknown>[] = [
 
 const ROWS: RowT[] = [{ date: '2026-09-01', amount: 100, note: 'zaliczka' }]
 
-// The pointer drag itself is the one genuinely browser-level piece here, so the spec reaches the
-// same commit the dialog's `onDragEnd` reaches — the rank algebra behind it is unit-tested.
+// The pointer drag is the one genuinely browser-level piece, so the spec reaches the same commit
+// the dialog's `onDragEnd` reaches — the rank algebra behind it is unit-tested.
 function moveTo(ctx: DataTableToolbarContextT<RowT>, key: string, index: number) {
   const keys = ctx.table.getAllLeafColumns().map((column) => column.id)
   const dropped = [...keys.filter((id) => id !== key)]

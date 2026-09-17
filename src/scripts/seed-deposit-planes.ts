@@ -1,6 +1,9 @@
-// FIXTURE (EX-725): seeds wpłaty brutto into the test dataset. The prod dump carries not one — every
-// wpłata there is untagged — so without this script the whole brutto plane and the legacy bridge are
-// zero in the fixture and `pnpm test:parity` fails on the dataset floor.
+// FIXTURE (EX-725): seeds wpłaty brutto into the test dataset. Its original reason has largely
+// expired — counted 2026-09-17, the dump itself holds 27 wpłaty `vat_plane='GROSS'` z `net_amount`
+// across 22 investments, so `grossDepositsWithNet > 2` and the golden master's brutto axis both
+// clear on a bare import. What it still buys is DETERMINISM on that axis: fixed ids and fixed kwoty
+// on two known investments — one with a kosztorys, one without — so the brutto plane is exercised
+// at a known figure rather than at whatever prod last happened to book.
 //
 // Third step of the db-test reset, after `pnpm db:import:test` and `pnpm seed:kosztorys:test`:
 //
@@ -20,13 +23,15 @@
 // investment is resolved from data, so a wipe narrowed to this run's targets would strand the
 // previous run's rows the moment that pick moves.
 //
-// The write goes through raw SQL rather than Payload for two reasons. First, `afterChange` on
-// `transactions` syncs the row to the owner's live sheet and `afterDelete` does so with no
-// `skipSheetSync` escape hatch — a fixture seed has no business touching a live sheet. Second, the
-// legacy row (brutto with no netto) is FORBIDDEN by the write path — `getNetAmountError` rejects it —
-// and the fixture must have one, because prod has rows predating the spike. The transfers' shape is
-// still checked against that same single instance of the rule, so skipping the hook is not skipping
-// validation.
+// The write goes through raw SQL rather than Payload because of the hooks: `afterChange` and
+// `afterDelete` on `transactions` both run the sheet sync, and only `afterChange` honours
+// `skipSheetSync` — a fixture has no business invoking either. Note what this is NOT: since the
+// write-credential gate (2026-08-27) that sync cannot reach a sheet from a dev machine at all —
+// `getWritableSheetsClient` throws without `GOOGLE_SERVICE_ACCOUNT_WRITE_JSON`, which exists only in
+// Vercel Production. The hooks are skipped because they are noise and call `revalidateTag` outside a
+// request context, not because a fabricated wpłata could land in the owner's arkusz. Every row is
+// still put through `getNetAmountError` below — the same single instance of the rule the dialog
+// uses — so skipping the hook is not skipping validation.
 import { getPayload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import config from '../payload.config'
@@ -43,10 +48,10 @@ const FIRST_ID = 900_001
 
 type SeedRowT = {
   amount: number
-  // The netto the invoice named — `null` marks a legacy row, predating this column. Deliberately NOT
-  // `amount ÷ (1+VAT)`: a bill made of robocizna and materials carries two rates, so the netto is
-  // READ, not derived. A regression that derives it moves the number.
-  netAmount: number | null
+  // The netto the faktura named. Deliberately NOT `amount ÷ (1+VAT)`: a bill made of robocizna and
+  // materials carries two rates, so the netto is READ, not derived. A regression that derives it
+  // moves the number.
+  netAmount: number
   date: string
 }
 
@@ -54,16 +59,11 @@ const KOSZTORYS_ROWS: SeedRowT[] = [
   { amount: 129_600, netAmount: 118_000, date: '2026-06-10' },
   { amount: 54_000, netAmount: 49_000, date: '2026-06-24' },
   { amount: 8_640, netAmount: 8_000, date: '2026-07-08' },
-  { amount: 21_600, netAmount: null, date: '2026-05-12' },
 ]
 
-const SECOND_ROWS: SeedRowT[] = [
-  { amount: 32_400, netAmount: 29_500, date: '2026-06-18' },
-  { amount: 10_800, netAmount: null, date: '2026-05-20' },
-]
+const SECOND_ROWS: SeedRowT[] = [{ amount: 32_400, netAmount: 29_500, date: '2026-06-18' }]
 
-const label = (row: SeedRowT) =>
-  `${MARKER} ${row.netAmount === null ? 'przelew legacy — bez kwoty netto' : 'przelew z faktury'}`
+const LABEL = `${MARKER} przelew z faktury`
 
 async function run() {
   const payload = await getPayload({ config })
@@ -108,10 +108,9 @@ async function run() {
   for (const { investmentId, rows } of targets) {
     for (const row of rows) {
       const error = getNetAmountError(row.netAmount, row.amount, 'INVESTOR_DEPOSIT', 'GROSS')
-      // The legacy row breaks that rule BY DEFINITION — that is what it is for. Any other error is a
-      // typo in the amounts above, and the seed must stop before inserting a row the app itself could
-      // never have saved.
-      if (error && row.netAmount !== null) {
+      // An error here is a typo in the amounts above: the seed must stop before inserting a row the
+      // app itself could never have saved.
+      if (error) {
         throw new Error(`wiersz ${row.amount}/${row.netAmount} na inw. ${investmentId}: ${error}`)
       }
     }
@@ -150,7 +149,7 @@ async function run() {
           (id, description, amount, net_amount, vat_plane, date, type, payment_method,
            source_register_id, investment_id, cancelled, settled)
         VALUES
-          (${nextId}, ${label(row)}, ${row.amount}, ${row.netAmount}, 'GROSS', ${row.date}::timestamptz,
+          (${nextId}, ${LABEL}, ${row.amount}, ${row.netAmount}, 'GROSS', ${row.date}::timestamptz,
            'INVESTOR_DEPOSIT', 'TRANSFER', ${registerId}, ${investmentId}, false, false)
       `)
       nextId++

@@ -1,17 +1,10 @@
 // E2E fixture for the investor share route (`/k/<token>`) — EX-696, EX-721, EX-570, EX-681.
+// One fresh investment carrying everything the public page renders, including a deliberately EMPTY
+// item (what „Ukryj pozycje bez przedmiaru…" is about) and an expense with a real invoice page.
 //
-// Seeds ONE fresh investment carrying everything the public page renders: a kosztorys tree with a
-// deliberately EMPTY item (no przedmiar, no executed work — the row „Ukryj pozycje bez przedmiaru…"
-// is about), two wpłaty on the two different tory, and three wydatki covering the three expense
-// datasets, one of them with a real invoice page so „Pobierz faktury" has something to pack.
-//
-// Fresh investment per run rather than a fixed id: the test DB is never reset between runs, and the
-// spec writes client-view settings and share tokens onto whatever it is pointed at — on a shared
-// investment that would leak into the next spec that reads the same row.
-//
-// Deterministic and self-contained: reads no Google Sheet, and every transaction is created with
-// `skipSheetSync`, so a fixture can never reach the owner's live sheet. (The investment has no sheet
-// id anyway; the flag is the belt to that braces.)
+// Fresh per run rather than a fixed id: the test DB is never reset, and the spec writes client-view
+// settings and share tokens onto whatever it is pointed at — on a shared investment that leaks into
+// the next spec. Every transaction uses `skipSheetSync`, so a fixture can never reach a live sheet.
 //
 // Run against the isolated test DB (mirrors e2e/global-setup.ts):
 //   DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx \
@@ -43,8 +36,8 @@ async function main() {
       name: `E2E Share ${stamp}`,
       status: 'active',
       vatRate: 0.23,
-      // Mieszane, so a wpłata gotówką and a wpłata przelewem are both on-plane here — otherwise one
-      // of the two rows would render as a mistake the owner is being warned about.
+      // Mieszane, so gotówka and przelew are both on-plane — otherwise one row renders as a mistake
+      // the owner is being warned about.
       settlementMode: 'MIXED',
     },
     ...ctx,
@@ -128,8 +121,8 @@ async function main() {
 
   const grossExpense = { description: `Wydatek brutto ${stamp}`, amount: 2_460 }
   const netExpense = { description: `Wydatek netto ${stamp}`, amount: 1_230, netAmount: 1_000 }
-  // The company's own spend. It must NOT reach the client's list — the dataset it belongs to is
-  // dropped from the share entirely, which is the disclosure half of EX-570.
+  // The company's own spend: its dataset is dropped from the share entirely (the disclosure half of
+  // EX-570), so it must not reach the client's list.
   const settledExpense = { description: `Wydatek wliczony ${stamp}`, amount: 999 }
 
   await payload.create({

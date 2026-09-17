@@ -27,23 +27,14 @@ function parseNumericIds(param: string | undefined): number[] {
 type AmountSearchT = { mode: 'prefix'; text: string } | { mode: 'range'; low: number; high: number }
 
 /**
- * Parse an amount search term into one of two match modes (EX-408).
+ * The decimal separator is the mode switch (EX-408):
+ *   • none → textual PREFIX on `amount::text` ("18" → 18, 189, 18000…), a raw SQL LIKE downstream.
+ *   • present → numeric half-open RANGE [v, v + 10⁻ᵈ), d = fractional digits typed. "18,1" spans
+ *     18.10–18.19. Matching by VALUE is the point: a stored 18.00 renders as "18", so no text
+ *     prefix of "18,00" could match it.
  *
- * The decimal separator is the mode switch:
- *   • NO separator → textual PREFIX on `amount::text` ("18" → 18, 189, 18000…),
- *     resolved downstream via raw SQL LIKE.
- *   • separator present → numeric half-open RANGE [v, v + 10⁻ᵈ) where d = the count
- *     of fractional digits typed. "18,00" → [18, 18.01) pins to a clean 18; "18,1"
- *     → [18.1, 18.2) spans 18.10–18.19. Comparing by numeric VALUE (not text) is
- *     why this beats the old prefix-LIKE: a stored 18.00 renders as "18", so no
- *     text prefix of "18.00" could ever match it.
- *
- * The `numeric` column has max scale 2, so a 2-decimal term degrades to an exact
- * match on its own — the range just happens to contain a single storable value.
- * Boundaries are built in integer space and re-parsed via toFixed so they equal the
- * canonical decimal double, keeping the exclusive `high` edge drift-free.
- *
- * Returns null for non-numeric input (filter skipped).
+ * Boundaries are built in integer space and re-parsed via toFixed, so the exclusive `high` edge
+ * equals the canonical decimal double. Null for non-numeric input (filter skipped).
  */
 function normalizeAmountSearch(raw: string | undefined): AmountSearchT | null {
   if (!raw) return null
@@ -68,25 +59,21 @@ export function buildTransferFilters(
   searchParams: ResolvedSearchParamsT,
   userContext: UserContextT,
 ): Where {
-  // Impossible condition — forces Payload to return zero results
   const NO_RESULTS = { equals: -1 } as const
   const where: Where = {}
 
-  // Manager scoped to own transactions (dashboard only)
   if (userContext.onlyOwnTransfers) {
     where.createdBy = { equals: userContext.id }
   }
 
-  // Audit mode — show only CANCELLATION rows for the period; originals are merged in by the caller
+  // Lists CANCELLATION rows only; the originals are merged in by the caller.
   const cancelledTransactionAudit = getStringParam(searchParams.cancelledTransactionAudit) === '1'
 
-  // Hide cancelled transfers by default (cancelled originals + CANCELLATION type)
   const showCancelled =
     getStringParam(searchParams.showCancelled) === '1' || cancelledTransactionAudit
 
-  // Type filter (supports comma-separated multi-select). `null` = the param is absent, `[]` = it
-  // named nothing valid — including the multi-select's „nothing selected" sentinel, which must
-  // empty the list rather than fall through to „all".
+  // `null` = the param is absent, `[]` = it named nothing valid — including the multi-select's
+  // „nothing selected" sentinel, which must empty the list rather than fall through to „all".
   const typeParam = getStringParam(searchParams.type)
   const requestedTypes = typeParam
     ? typeParam.split(',').filter((t) => (TRANSFER_TYPES as readonly string[]).includes(t))
@@ -94,10 +81,9 @@ export function buildTransferFilters(
 
   if (cancelledTransactionAudit) {
     where.type = { in: ['CANCELLATION'] }
-    // Typ here means the type of the transaction that WAS cancelled — every row in this list is a
-    // CANCELLATION, so a scope on the row itself could only ever say „all" or „none", and the Typ
-    // column renders the original's type anyway. Dotted, like the other original-only scopes: only
-    // the list can walk it, so the sum tile drops (scopeNarrowsByOriginalOnlyField).
+    // Typ means the type of the transaction that WAS cancelled: every row here is a CANCELLATION,
+    // so a scope on the row itself could only say „all" or „none". Dotted like the other
+    // original-only scopes, so the sum tile drops (scopeNarrowsByOriginalOnlyField).
     if (requestedTypes) {
       if (requestedTypes.length > 0) where['cancelledTransaction.type'] = { in: requestedTypes }
       else where.id = NO_RESULTS
@@ -116,7 +102,6 @@ export function buildTransferFilters(
     where.cancelled = { not_equals: true }
   }
 
-  // Cash register filter — matches source OR target register
   const sourceRegisterParam = getStringParam(searchParams.sourceRegister)
   const sourceRegisterIds = parseNumericIds(sourceRegisterParam)
   if (sourceRegisterIds.length > 0) {
@@ -126,13 +111,12 @@ export function buildTransferFilters(
     ]
   } else if (sourceRegisterParam) where.id = NO_RESULTS
 
-  // Investment filter (supports comma-separated multi-select)
   const investmentParam = getStringParam(searchParams.investment)
   const investmentIds = parseNumericIds(investmentParam)
   if (investmentIds.length > 0) where.investment = { in: investmentIds }
   else if (investmentParam) where.id = NO_RESULTS
 
-  // Created by filter — skip when onlyOwnTransfers is active (security: don't override role scope)
+  // Skipped while onlyOwnTransfers is active — the param must not widen the role scope.
   if (!userContext.onlyOwnTransfers) {
     const createdByParam = getStringParam(searchParams.createdBy)
     const createdByIds = parseNumericIds(createdByParam)
@@ -140,7 +124,6 @@ export function buildTransferFilters(
     else if (createdByParam) where.id = NO_RESULTS
   }
 
-  // Payment method filter (validates against known methods)
   const paymentMethodParam = getStringParam(searchParams.paymentMethod)
   if (paymentMethodParam) {
     const methods = paymentMethodParam
@@ -150,7 +133,6 @@ export function buildTransferFilters(
     else where.id = NO_RESULTS
   }
 
-  // Expense category filter (investment expense type)
   const expenseCategoryParam = getStringParam(searchParams.expenseCategory)
   const expenseCategoryIds = parseNumericIds(expenseCategoryParam)
   if (expenseCategoryIds.length > 0) where.expenseCategory = { in: expenseCategoryIds }
@@ -164,13 +146,11 @@ export function buildTransferFilters(
   if (workerIds.length > 0) where.worker = { in: workerIds }
   else if (workerParam) where.id = NO_RESULTS
 
-  // Other category filter
   const otherCategoryParam = getStringParam(searchParams.otherCategory)
   const otherCategoryIds = parseNumericIds(otherCategoryParam)
   if (otherCategoryIds.length > 0) where.otherCategory = { in: otherCategoryIds }
   else if (otherCategoryParam) where.id = NO_RESULTS
 
-  // Amount search — prefix LIKE (raw SQL downstream) or a numeric range (native Payload)
   const amountSearch = normalizeAmountSearch(getStringParam(searchParams.amount))
   if (amountSearch) {
     where.amount =
@@ -179,13 +159,12 @@ export function buildTransferFilters(
         : { greater_than_equal: amountSearch.low, less_than: amountSearch.high }
   }
 
-  // ID search — exact match. Defers to NO_RESULTS if another filter already short-circuited.
+  // Defers to NO_RESULTS if another filter already short-circuited.
   const idParam = getStringParam(searchParams.id)
   if (idParam && /^\d+$/.test(idParam) && !where.id) {
     where.id = { equals: Number(idParam) }
   }
 
-  // Date range
   const fromParam = getStringParam(searchParams.from)
   const toParam = getStringParam(searchParams.to)
   if (fromParam || toParam) {
@@ -197,13 +176,10 @@ export function buildTransferFilters(
   return where
 }
 
-// The fields a CANCELLATION row does not carry. cancelTransferAction copies only amount, date,
-// description and the back-reference — deliberately, since a persisted sourceRegister
-// would be subtracted a second time by the balance query (see enrichCancellationOriginals). So every
-// screen that narrows by one of these — kasa, pracownik, inwestycja — cut the audit rows away before
-// they could be paired with anything, and „Tryb anulowań" answered „Brak danych" on all three.
-// Exported, so a composed Where can carry original-only fields under a branch — unwalked, the list
-// reads „Brak danych".
+// The fields a CANCELLATION row does not carry: cancelTransferAction copies only amount, date,
+// description and the back-reference, since a persisted sourceRegister would be subtracted a second
+// time by the balance query (see enrichCancellationOriginals). Narrowing by one of them cuts the
+// audit rows away before they can be paired with anything, so „Tryb anulowań" reads „Brak danych".
 const ORIGINAL_PATH_PREFIX = 'cancelledTransaction.'
 
 type WhereLeafT = Where[string]
@@ -212,9 +188,8 @@ const isBranch = (field: string, condition: WhereLeafT): condition is Where[] =>
   (field === 'or' || field === 'and') && Array.isArray(condition)
 
 /**
- * Rewrite a `Where` tree's LEAVES, recursing through `or` / `and`. The recursion is the whole point:
- * a rule written once for the top level reaches the nested conditions too, which is where these
- * filters actually get written. Returning `undefined` drops the leaf.
+ * Rewrite a `Where` tree's LEAVES, recursing through `or` / `and` — which is where these filters
+ * actually get written. Returning `undefined` drops the leaf.
  */
 function mapWhereLeaves(
   where: Where,
@@ -252,19 +227,13 @@ export const FIELDS_ONLY_THE_ORIGINAL_CARRIES = [
 ] as const
 
 /**
- * Re-aim the audit list's scope at the transaction being cancelled.
+ * Re-aim the audit list's scope at the transaction being cancelled: „anulowania w tej kasie" means
+ * transactions of that kasa that were cancelled, and the audit row belongs to no kasa at all.
+ * Payload resolves the dotted path through the self-relation, so this stays one query.
  *
- * „Tryb anulowań" lists CANCELLATION rows and pairs each with its original. The narrowing, though,
- * is always about the original — „anulowania w tej kasie" means transactions of that kasa that were
- * cancelled, and the audit row itself belongs to no kasa at all. Payload resolves the dotted path
- * through the self-relation, so this stays one query rather than a prefetch of ids.
- *
- * The list only. The sum tile above it goes through where-to-sql, which knows columns of
- * `transactions` and throws on anything else — and a CANCELLATION copies its original's amount, so
- * the tile is summing the same money either way.
- *
- * Fields the audit row DOES carry stay put and mean what they say: `date` is when it was cancelled,
- * `createdBy` is who cancelled it.
+ * The list only — the sum tile goes through where-to-sql, which throws on anything but a column of
+ * `transactions`, and a CANCELLATION copies its original's amount, so the tile sums the same money.
+ * Fields the audit row DOES carry stay put: `date` is when it was cancelled, `createdBy` who by.
  */
 export function scopeAuditThroughOriginal(where: Where): Where {
   return mapWhereLeaves(where, (field, condition) =>

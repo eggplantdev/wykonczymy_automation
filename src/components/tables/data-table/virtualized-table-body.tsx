@@ -1,8 +1,5 @@
 'use client'
 
-// Renders only visible rows for large datasets.
-// Spacer rows above/below simulate scroll height without rendering all DOM nodes.
-
 import React from 'react'
 import { type HeaderGroup, type Row } from '@tanstack/react-table'
 import { type useVirtualizer } from '@tanstack/react-virtual'
@@ -40,10 +37,8 @@ export function VirtualizedTableBody<TData>({
   const virtualItems = virtualizer.getVirtualItems()
   const colCount = visibleColumnIdList.length
   const visibleColumnKey = visibleColumnIdList.join('_')
-  // `table-auto` sizes columns from the cells currently in the DOM — which, under virtualization, is
-  // whatever the scroll window happens to hold, so columns resize mid-scroll. A colgroup + fixed
-  // layout pins them to the column defs' own sizes instead, and the summed width becomes the table's
-  // floor so a narrow container scrolls rather than squeezing every column.
+  // `table-auto` sizes columns from whatever rows the virtualizer currently renders, so columns
+  // resize mid-scroll — a colgroup + fixed layout pins them to the column defs' sizes instead.
   const leafHeaders = headerGroups.at(-1)?.headers ?? []
   const totalWidth = leafHeaders.reduce((sum, header) => sum + header.getSize(), 0)
 

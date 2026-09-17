@@ -52,10 +52,9 @@ function renderForm() {
 
 beforeEach(() => vi.clearAllMocks())
 
-// The kwota field UNMOUNTS when „auto" is ticked, and TanStack keeps the errors an unmounted field
-// was left holding. So a „jest wymagana" raised by a failed submit outlives the field it belongs to:
-// without the reset the form is unsaveable from then on, and the reason is invisible — the error
-// hangs on an input nobody can see.
+// The kwota field unmounts when „auto" is ticked, but TanStack keeps the error it was holding —
+// without a reset on unmount, a prior „jest wymagana" makes the form unsaveable with no visible
+// input to blame.
 describe('WorkCatalogueItemForm — „auto" clears the kwota it hides', () => {
   it('saves after „auto" is ticked over a kwota that had just failed validation', async () => {
     const { action, user, save } = renderForm()

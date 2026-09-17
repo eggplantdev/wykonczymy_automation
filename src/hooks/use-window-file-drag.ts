@@ -12,16 +12,9 @@ function isFileDrag(e: DragEvent): boolean {
 }
 
 /**
- * Cancels the browser's default handling of dropped files for as long as the calling dropzone is
- * mounted, and reports whether a file is currently over the window.
- *
- * Without the cancel, a file released anywhere but a dropzone is handled by the document itself and
- * the browser navigates to it — discarding whatever the user had typed into the open dialog. Mounted
- * by the dropzones rather than by a layout so the listeners exist exactly while there is something
- * to aim at, and never inside the Payload admin, whose own dropzone we don't control.
- *
- * Several dropzones on screen means several copies of these listeners on one event, so the guard
- * does nothing but `preventDefault` — reading or consuming the file here would run N times.
+ * Cancels the browser's default drop handling (else a stray drop navigates the tab) while mounted,
+ * and reports whether a file is over the window. Per-dropzone, not per-layout, so never active
+ * inside the Payload admin. Only calls `preventDefault` — several dropzones share this listener.
  */
 export function useWindowFileDrag(): boolean {
   const [isFileDragActive, setIsFileDragActive] = useState(false)
@@ -60,11 +53,8 @@ export function useWindowFileDrag(): boolean {
       setDepth(0)
     }
 
-    // Capture, not bubble: a dropzone's own React handler runs on `document` (Next hydrates the
-    // whole document, so that is React's delegation root) and calls `stopPropagation`, which would
-    // cut the event off before it ever reached `window`. The counter would then never come back
-    // down and the armed state would stay lit for good. `window` is first in the capture path, so
-    // nothing downstream can silence it.
+    // Capture, not bubble: a dropzone's own `document` handler calls `stopPropagation`, which would
+    // otherwise stop this before it reaches `window` and leave the depth counter stuck.
     const opts = { capture: true } as const
     window.addEventListener('dragover', handleDragOver, opts)
     window.addEventListener('dragenter', handleDragEnter, opts)

@@ -114,10 +114,10 @@ export function buildImportPlan(
 
   const { tabs: rateTabs, warnings } = readRateTabs(grids.rateTabs)
 
-  // Not a degraded import but a wrong one: with no cennik at all, `resolveItemRates` returns
-  // `missing` for every praca and `deriveOverride` writes a flat 0 zł subcontractor cost onto each —
-  // a number that looks deliberate in the editor and silently destroys the margin. A refusal the
-  // owner can act on („popraw nagłówki cennika") beats a confirm button over 400 zeroes.
+  // With no cennik at all, `resolveItemRates` returns `missing` for every praca and `deriveOverride`
+  // writes a flat 0 zł subcontractor cost onto each — a number that looks deliberate in the editor and
+  // silently destroys the margin. A refusal the owner can act on („popraw nagłówki cennika") beats a
+  // confirm button over 400 zeroes.
   if (rateTabs.length === 0) {
     return {
       ok: false,

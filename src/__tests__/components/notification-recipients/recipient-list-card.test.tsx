@@ -3,11 +3,9 @@ import { describe, expect, it } from 'vitest'
 
 import { RecipientListCard } from '@/components/notification-recipients/recipient-list-card'
 
-// EX-741's two remaining legs, neither of which needs a browser.
-//
 // Reading the lists is `MANAGEMENT_ROLES` and writing them is owner/admin, so a MANAGER lands on a
-// card with `canEdit={false}`. The action refuses them anyway — that half is unit-tested — so what is
-// left is whether the card offers a door that leads nowhere, and that is one render.
+// card with `canEdit={false}`. The action refuses them anyway (unit-tested), so what is left is
+// whether the card offers a door that leads nowhere.
 const TITLE = 'Alerty techniczne'
 
 function renderCard(props: { canEdit: boolean; emails: string[] }) {

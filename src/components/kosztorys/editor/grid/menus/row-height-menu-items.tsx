@@ -7,9 +7,8 @@ import { useRowHeightFit } from '@/components/kosztorys/editor/actions/row-heigh
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 /**
- * Its own component so the fit context is read only while a menu is OPEN — Radix mounts the content
- * on demand, and reading it in the cell instead would re-render every visible row's „…" whenever a
- * column is resized, since the measurement closes over the column widths.
+ * Own component so the fit context is read only while a menu is open: the measurement closes over the
+ * column widths, so reading it in the cell would re-render every row's „…" on each resize.
  */
 export function RowHeightMenuItems({ row }: { row: KosztorysV2RowT }) {
   const fit = useRowHeightFit()

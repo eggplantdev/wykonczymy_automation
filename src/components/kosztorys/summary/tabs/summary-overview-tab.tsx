@@ -168,7 +168,6 @@ export function SummaryOverviewTab({
             <SummaryDepositsTab
               investmentId={investmentId}
               rows={depositRows}
-              vatRate={vatRate}
               settlementMode={settlementMode}
               preview={preview}
             />

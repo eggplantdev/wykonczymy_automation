@@ -38,10 +38,9 @@ describe('optimisticSettingSave', () => {
     expect(toastMock).toHaveBeenCalledWith('Inwestycja jest zamknięta', 'warning', 4000)
   })
 
-  // The regression this suite exists for: a transport-level failure (5xx, dropped connection, a
-  // deploy mid-flight) makes the server action THROW instead of returning `{success:false}`. That
-  // escaped the rollback entirely and propagated to the route's error boundary, replacing the whole
-  // editor with „Coś poszło nie tak" while the optimistic patch was still on screen.
+  // The regression this guards: a transport failure (5xx, dropped connection, mid-deploy) makes the
+  // server action THROW instead of returning `{success:false}`, escaping the rollback entirely and
+  // hitting the route's error boundary — replacing the editor while the optimistic patch was on screen.
   it('rolls back and reports instead of propagating when the action throws', async () => {
     const revert = vi.fn()
 

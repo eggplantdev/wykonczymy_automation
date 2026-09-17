@@ -27,10 +27,9 @@ afterEach(() => {
 })
 
 describe('fetchLead', () => {
-  // Graph returns ONLY what the query asks for, and its default set omits `form_id` — verified
-  // against the live API on 2026-09-15. Without it every webhook lead persisted with no form,
-  // which also silenced `fetchFormQuestions` (it early-returns on a missing id), so answers
-  // rendered as raw keys and normalizeLead lost Meta's EMAIL/PHONE/FULL_NAME typing.
+  // Graph returns only what the query asks for, and its default omits `form_id` (verified against
+  // the live API 2026-09-15). Without it every lead persisted formless, silencing `fetchFormQuestions`
+  // (early-returns on a missing id) — answers rendered as raw keys, losing Meta's typed fields.
   it('asks Graph for form_id explicitly', async () => {
     const fetchMock = mockFetch(LEAD)
 

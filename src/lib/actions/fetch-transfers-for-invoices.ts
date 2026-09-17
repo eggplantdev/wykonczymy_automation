@@ -13,9 +13,8 @@ import { perfStart } from '@/lib/perf'
 type FetchFilteredTransfersOptsT = {
   /** Skip resolving invoice media for callers that never render it. */
   skipMedia?: boolean
-  /** Order the database applies to the whole set — the printout passes the screen's own key here so
-   * the two cannot disagree. Re-validated against the same whitelist the pages use, because this is
-   * a client-callable channel. Defaults to `DEFAULT_TRANSFER_SORT`. */
+  /** The printout passes the screen's own key here so the two cannot disagree. Re-validated against
+   * the same whitelist the pages use, because this is a client-callable channel. */
   sort?: string
 }
 
@@ -29,9 +28,8 @@ export async function fetchFilteredTransfers(
   if (!session.success) return session
 
   try {
-    // Cancelled rows and CANCELLATION records never leave this action — owner's ruling, for both
-    // consumers: they carry no faktura for the ZIP, and the printout deliberately shows only live
-    // transactions even when the screen's own filter is showing them.
+    // Cancelled rows and CANCELLATION records never leave this action (owner's ruling): they carry no
+    // faktura for the ZIP, and the printout shows only live transactions even when the screen doesn't.
     const scopedWhere: Where = {
       and: [where, { cancelled: { not_equals: true } }, { type: { not_equals: 'CANCELLATION' } }],
     }

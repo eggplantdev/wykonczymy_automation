@@ -1,11 +1,9 @@
 import type { Payload } from 'payload'
 
 /**
- * The owner + cash register every transfer fixture needs: `transactions.sourceRegister` points at a
- * register and `cash_registers.owner_id` is NOT NULL, so neither can be skipped to get one row in.
- *
- * The email lands in the `@test.local` namespace `purgeFixtureUsers` sweeps, which is what makes a
- * crashed run restartable — both the email and the register name are unique.
+ * `transactions.sourceRegister` needs a register and `cash_registers.owner_id` is NOT NULL, so both
+ * owner and register get created together. The email uses the `@test.local` namespace
+ * `purgeFixtureUsers` sweeps — unique, and restartable after a crashed run.
  */
 export async function createRegisterOwner(
   payload: Payload,

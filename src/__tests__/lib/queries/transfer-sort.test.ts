@@ -22,9 +22,9 @@ describe('parseTransferSort', () => {
   })
 })
 
-// The print action takes its sort key from the client, so it re-validates here rather than trusting
-// the page that rendered the button. Without this gate `?sort=investment` gave a screen ordered by
-// `-id` and a printout Payload silently reordered to `-createdAt` — the divergence EX-777 closes.
+// The print action takes its sort key from the client, so it re-validates rather than trusting the page
+// that rendered the button. Without the gate `?sort=investment` gave a screen ordered by `-id` and a
+// printout Payload silently reordered to `-createdAt` (EX-777).
 describe('validTransferSort', () => {
   it('keeps a whitelisted key verbatim, sign included', () => {
     expect(validTransferSort('amount')).toBe('amount')

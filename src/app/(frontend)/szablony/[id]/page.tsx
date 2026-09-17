@@ -7,10 +7,9 @@ import { PageWrapper } from '@/components/ui/page-wrapper'
 import { OpenWorkshopPrompt } from '@/components/presets/open-workshop-prompt'
 import type { DynamicPagePropsT } from '@/types/page'
 
-// The url names the SZABLON; the investment underneath is an implementation detail the user never
-// sees — which is why the toolbar shows the szablon's name and why none of the five financial
-// fetches the investment editor does happen here: a szablon has no transactions, no przedmiar and no
-// figures to reconcile.
+// The investment underneath the szablon is an implementation detail the user never sees — which is why
+// the toolbar shows the szablon's name and why none of the investment editor's financial fetches
+// happen here: a szablon has no transactions, no przedmiar and no figures to reconcile.
 export default async function TemplateWorkshopPage({ params }: DynamicPagePropsT) {
   const { id } = await params
   const presetId = Number(id)
@@ -21,7 +20,6 @@ export default async function TemplateWorkshopPage({ params }: DynamicPagePropsT
   const workshop = await getWorkshopView(presetId)
   if (!workshop) notFound()
 
-  // Says so rather than bouncing silently to the list, where the user would be left guessing why.
   if (workshop.investmentId == null) {
     return (
       <PageWrapper title={workshop.presetName}>

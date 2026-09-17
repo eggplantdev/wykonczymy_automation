@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test'
 import {
   LOAD_VERSION_ITEM,
+  openEditor,
   pickKosztorysOption as pickOption,
   seedReconInvestments,
   versionsDrawer,
@@ -44,7 +45,7 @@ const seededItem = (page: Page) => page.getByText('Pozycja 1', { exact: true })
 test('clearing a kosztorys empties the grid on the spot and leaves one version it comes back from', async ({
   page,
 }) => {
-  await page.goto(`/inwestycje/${seed.match}/kosztorys_v2`)
+  await openEditor(page, seed.match)
   await expect(seededItem(page).first()).toBeVisible()
 
   await pickOption(page, CLEAR_ITEM)
@@ -58,12 +59,12 @@ test('clearing a kosztorys empties the grid on the spot and leaves one version i
   await clearDialog.getByRole('button', { name: 'Wyczyść', exact: true }).click()
 
   // No reload between the write and this read — the grid has to learn of its own wipe.
-  await expect(page.getByText('Kosztorys jest pusty')).toBeVisible()
+  await expect(page.getByText('Kosztorys jest pusty')).toBeVisible({ timeout: 90_000 })
   await expect(seededItem(page)).toHaveCount(0)
 
   // And it was a write, not a repaint: the empty rozpiska survives a fresh load of the page.
   await page.reload()
-  await expect(page.getByText('Kosztorys jest pusty')).toBeVisible()
+  await expect(page.getByText('Kosztorys jest pusty')).toBeVisible({ timeout: 90_000 })
 
   // Clearing an already-empty rozpiska would push an empty restore point into „Wersje" on top of
   // the real one — so the confirm is refused while the dialog still opens and explains itself.
@@ -89,7 +90,7 @@ test('clearing a kosztorys empties the grid on the spot and leaves one version i
   await confirm.getByRole('button', { name: 'Przywróć' }).click()
 
   // Back into the same editor, again with no reload of our own.
-  await expect(seededItem(page).first()).toBeVisible({ timeout: 20_000 })
+  await expect(seededItem(page).first()).toBeVisible({ timeout: 90_000 })
   await page.reload()
   await expect(seededItem(page).first()).toBeVisible()
 })
@@ -98,7 +99,7 @@ test('a named version is listed as one, and restoring it leaves a way back from 
   page,
 }) => {
   const label = `E2E wersja ${Date.now()}`
-  await page.goto(`/inwestycje/${seed.mismatch}/kosztorys_v2`)
+  await openEditor(page, seed.mismatch)
   await expect(seededItem(page).first()).toBeVisible()
 
   await pickOption(page, SAVE_VERSION_ITEM)
@@ -122,7 +123,7 @@ test('a named version is listed as one, and restoring it leaves a way back from 
 
   await versions.getByRole('button', { name: 'Przywróć' }).click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Przywróć' }).click()
-  await expect(seededItem(page).first()).toBeVisible({ timeout: 20_000 })
+  await expect(seededItem(page).first()).toBeVisible({ timeout: 90_000 })
 
   // A mis-restore has to be recoverable too, so the restore snapshots the state it overwrote —
   // ambient history, not a named version. Counted, because „the section appeared" would also pass

@@ -11,9 +11,7 @@ import type { WorkerRefT } from '@/types/reference-data'
 const STAGE_ID = 7
 const ANNA = 1
 
-const WORKERS: WorkerRefT[] = [
-  { id: ANNA, name: 'Anna', role: 'EMPLOYEE', email: 'anna@t.test' },
-]
+const WORKERS: WorkerRefT[] = [{ id: ANNA, name: 'Anna', role: 'EMPLOYEE', email: 'anna@t.test' }]
 
 const stage = (plane: ToolPlaneT | null): KosztorysStageT => ({
   id: STAGE_ID,
@@ -47,8 +45,8 @@ const UNCONFIRMED_BADGE = 'Rozliczenie etapu niepotwierdzone'
 
 beforeEach(() => vi.clearAllMocks())
 
-// An etap with no rozliczenie enters no crew's account, so the header has to shout that in the
-// column itself — not in the panel beside it, which nobody looks at while typing quantities.
+// An etap with no rozliczenie enters no crew's account, so the header has to say it in the column
+// itself — not in the panel beside it, which nobody looks at while typing quantities.
 describe('Nagłówek etapu — rozliczenie niepotwierdzone', () => {
   it('oznacza etap bez rozliczenia w samym nagłówku', () => {
     renderHeader(null)
@@ -72,9 +70,8 @@ describe('Nagłówek etapu — rozliczenie niepotwierdzone', () => {
   })
 })
 
-// Assigning a person to an etap with no rozliczenie would name them owed 0 zł: the settlement pass
-// rejects such an etap before it computes any kwota. So the roster waits for a rozliczenie rather
-// than staying silent.
+// Assigning a person to an etap with no rozliczenie would name them owed 0 zł — the settlement pass
+// rejects such an etap before computing any kwota. So the roster waits, rather than staying silent.
 describe('Nagłówek etapu — roster czeka na rozliczenie', () => {
   it('nie daje kogo przypisać, dopóki rozliczenia nie ma, i mówi dlaczego', async () => {
     const user = renderHeader(null)

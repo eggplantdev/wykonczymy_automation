@@ -13,18 +13,27 @@ import { waitForHydration } from './helpers'
  */
 export async function mintShareToken(page: Page, investmentId: number): Promise<string> {
   await page.goto(`/inwestycje/${investmentId}/kosztorys_v2`)
-  // exact: „Opcje rozliczenia" in the totals panel matches the same prefix.
-  const optionsMenu = page.getByRole('button', { name: 'Opcje', exact: true })
-  await optionsMenu.waitFor()
-  await waitForHydration(optionsMenu)
-  await optionsMenu.click()
+  // „Udostępnij" lives in „Widok inwestora", not „Opcje" — serving the client is its own menu.
+  const investorMenu = page.getByRole('button', { name: 'Widok inwestora' })
+  await investorMenu.waitFor()
+  await waitForHydration(investorMenu)
+  await investorMenu.click()
   await page.getByRole('menuitem', { name: 'Udostępnij' }).click()
 
   const dialog = page.getByRole('dialog').filter({ hasText: 'Udostępnij inwestorowi' })
   await dialog.getByRole('button', { name: 'Dalej' }).click()
-  await dialog.getByRole('button', { name: 'Wygeneruj link' }).click()
+  // A kosztorys that already carries a link offers „Wygeneruj nowy" instead — the test DB is never
+  // reset, so the second spec to mint for one investment lands on that branch.
+  const fresh = dialog.getByRole('button', { name: 'Wygeneruj link' })
+  const renew = dialog.getByRole('button', { name: 'Wygeneruj nowy' })
+  await expect(fresh.or(renew).first()).toBeVisible()
   const linkField = dialog.getByRole('textbox')
+  // „Wygeneruj nowy" replaces a token that is still in the field, so the old value has to be held
+  // and waited out — reading too early returns the link this click just invalidated.
+  const stale = (await renew.count()) > 0 ? await linkField.inputValue() : ''
+  await ((await fresh.count()) > 0 ? fresh : renew).click()
   await expect(linkField).toHaveValue(/\/k\/.+/)
+  await expect(linkField).not.toHaveValue(stale)
   return (await linkField.inputValue()).split('/k/')[1]
 }
 

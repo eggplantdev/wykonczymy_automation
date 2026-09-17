@@ -1,26 +1,15 @@
-// E2E fixture for the confirm-gated, snapshot-backed deletes (EX-520). Seeds THREE fresh
-// investments through the Payload Local API, one per delete target — pozycja, sekcja, etap — because
-// each test destroys part of its rozpiska and would otherwise inherit the previous test's wreckage.
+// E2E fixture for the confirm-gated, snapshot-backed deletes (EX-520). Three investments, one per
+// delete target (pozycja/sekcja/etap) — each test destroys its rozpiska. Two etapy and two sekcje so
+// a wrong delete is visible; targets carry stage progress, which is what makes a delete ask first.
 //
-// Every investment gets the same shape, which is the smallest one in which each delete is provable:
-//   • two etapy, so dropping one leaves a column behind to compare against;
-//   • two sekcje, so a cascade delete leaves a sekcja behind — „the grid is empty" would pass even
-//     if the wrong thing vanished;
-//   • the deleted targets carry recorded stage progress, which is what makes a delete ask first.
-//
-// Run against the isolated test DB (mirrors e2e/global-setup.ts):
-//   DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx \
-//     src/scripts/seed-kosztorys-deletes.ts
-//
-// Emits one machine-readable line the E2E spec parses:
-//   DELETE_SEED={"item":<id>,"section":<id>,"stage":<id>}
+// Run: DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx src/scripts/seed-kosztorys-deletes.ts
+// Emits: DELETE_SEED={"item":<id>,"section":<id>,"stage":<id>}
 import { getPayload } from 'payload'
 import config from '../payload.config'
 
 const ctx = { context: { skipRevalidation: true } }
 
-// Distinct enough that a substring match on one never hits another — the spec finds rows by their
-// rendered text, and „Pozycja 1" / „Pozycja 12" would be the same locator.
+// Names must not overlap — rows are found by rendered text, so „Pozycja 1" would match „Pozycja 12".
 const SECTION_ALFA = 'Sekcja alfa'
 const SECTION_BETA = 'Sekcja beta'
 const ITEMS = [
@@ -39,8 +28,7 @@ async function seedInvestment(
     ...ctx,
   })
 
-  // An explicit plane on both etapy: a plane-less etap renders its quantity column locked, and a
-  // locked column cannot show that a delete took its wpisane ilości with it.
+  // Explicit plane on both etapy — a plane-less etap locks its quantity column, hiding the delete.
   const stages = []
   for (const ordinal of [1, 2]) {
     stages.push(
@@ -84,8 +72,7 @@ async function seedInvestment(
       },
       ...ctx,
     })
-    // Progress on BOTH etapy, so deleting either one still leaves the other with quantities and the
-    // spec can say which column went.
+    // Progress on both etapy, so deleting one leaves quantities in the other to identify it by.
     for (const stage of stages) {
       await payload.create({
         collection: 'stage-progress',

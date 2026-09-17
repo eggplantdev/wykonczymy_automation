@@ -5,8 +5,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { SearchFilterInput } from '@/components/filters/search-filter-input'
 
-// Real timers, not fake ones: `userEvent` drives its own delays through the same clock, and the whole
-// subject here is one timer racing another. 40 ms behaves like the toolbar's 500 ms and costs nothing.
+// Real timers: `userEvent` runs on the same clock, and the test is one timer racing another.
+// 40ms stands in for the toolbar's 500ms and costs nothing.
 const DEBOUNCE_MS = 40
 const SETTLED = DEBOUNCE_MS * 5
 
@@ -14,9 +14,8 @@ const onChange = vi.fn()
 
 const settle = () => new Promise((resolve) => setTimeout(resolve, SETTLED))
 
-// The controlled shape every call site uses: the parent owns the phrase, the input debounces its way
-// there and follows whatever comes back. A „Wyczyść" beside it writes the parent's value directly,
-// which is the whole race below.
+// Mirrors the real controlled shape: the parent owns the phrase, the input debounces toward it.
+// „Wyczyść" writes the parent value directly — that's the race under test below.
 function SearchHost({ debounceMs = DEBOUNCE_MS }: { debounceMs?: number }) {
   const [value, setValue] = useState('')
   return (
@@ -63,9 +62,8 @@ describe('Pole wyszukiwania — odpytywanie po ciszy', () => {
   })
 })
 
-// Realny błąd z bramki 2026-08-18, naprawiony wtedy bez testu: X na chipie „Szukaj" zdejmuje frazę
-// u rodzica, ale timer ostatniego znaku wciąż biegnie — i pół sekundy później wpisywał ją z
-// powrotem, a siatka zwężała się sama z siebie przy pustym polu.
+// Błąd z bramki 2026-08-18 (naprawiony bez testu): X czyści frazę u rodzica, ale timer ostatniego
+// znaku wciąż biegnie i pół sekundy później wpisuje ją z powrotem.
 describe('Pole wyszukiwania — czyszczenie w trakcie odliczania', () => {
   // Chip „Szukaj" stoi dopiero wtedy, gdy fraza doszła do rodzica — stąd pierwsze odczekanie; dopiero
   // kolejny znak jest tym, którego timer biegnie jeszcze w chwili kliknięcia w X.
@@ -99,9 +97,8 @@ describe('Pole wyszukiwania — czyszczenie w trakcie odliczania', () => {
   })
 })
 
-// Odmontowanie to trzecie wyjście: dialogi z wyszukiwarką („Dodaj z katalogu", „Wczytaj z presetu")
-// zamykają się w trakcie pisania, a timer przeżywający zamknięcie odpytuje o frazę, której nikt już
-// nie widzi.
+// Odmontowanie to trzecie wyjście: dialogi z wyszukiwarką zamykają się w trakcie pisania, a timer
+// przeżywający zamknięcie odpytywałby o frazę, której nikt już nie widzi.
 describe('Pole wyszukiwania — zamknięte w trakcie pisania', () => {
   it('nie odpytuje po odmontowaniu', async () => {
     const { user, input, unmount } = renderInput()

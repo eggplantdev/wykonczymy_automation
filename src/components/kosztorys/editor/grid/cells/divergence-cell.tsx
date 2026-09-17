@@ -46,8 +46,8 @@ function DivergenceCell({ rowData, columnData }: CellProps<KosztorysV2RowT, Dive
  * „Rozjazd" — the gap between the sheet's „Pomiar z natury" and Σ etapów, as a quantity AND a value in
  * one cell.
  *
- * Not a `computedColumn`: that one renders a single formatted number, and here both figures have to be
- * readable without hovering — the tooltip that carried them was the affordance this column replaces.
+ * Both figures have to be readable without hovering, which is why this is not built on
+ * `computedColumn` — that one renders a single formatted number.
  */
 export function divergenceColumn(
   titleNode: ReactNode,

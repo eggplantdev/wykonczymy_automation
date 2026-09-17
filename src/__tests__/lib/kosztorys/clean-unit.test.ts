@@ -17,8 +17,8 @@ describe('cleanUnit', () => {
     expect(cleanUnit('kp')).toBe('kpl')
   })
 
-  // The whole reason the fix list is short: a wrong guess reprices a praca, and the katalog report
-  // is where these surface for a human instead.
+  // Why the fix list is short: a wrong guess reprices a praca, so these surface in the katalog report
+  // for a human instead.
   it('leaves alone what it cannot name, case included', () => {
     expect(cleanUnit('n2')).toBe('n2')
     expect(cleanUnit('180')).toBe('180')

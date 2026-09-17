@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, type ReactNode } from 'react'
 import { ArrowUpDown, CheckCheck, CheckIcon, Settings2 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -10,11 +11,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
+import { ColumnOrderDialog } from '@/components/ui/column-order-dialog'
+import {
+  Command,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import { type ColumnRanksT } from '@/lib/table/column-order'
 import { cn } from '@/lib/utils/cn'
-
-// The column picker's whole presentation, table-library-agnostic: it takes a flat item list, not a
-// table instance. TanStack tables reach it through <ColumnToggle>; the kosztorys grid builds its own
-// menu around the same item shape, so the two pickers stay legible as one pattern.
 
 export type ColumnToggleItemT = {
   id: string
@@ -22,63 +28,126 @@ export type ColumnToggleItemT = {
   visible: boolean
 }
 
+type ColumnOrderT = {
+  description: string
+  ranks: ColumnRanksT
+  baseRanks: ColumnRanksT
+  onSetRank: (key: string, rank: number) => void
+  onReset: () => void
+}
+
 type PropsT = {
   items: ColumnToggleItemT[]
   onToggle: (id: string) => void
   onToggleAll: (visible: boolean) => void
-  onOpenOrder?: () => void
+  order?: ColumnOrderT
+  sections?: ReactNode
+  hint?: ReactNode
+  // Overrides the derived count where „hidden" and „off screen" come apart — the kosztorys grid
+  // shows a column an engaged problem reveals whatever its tick says, and the badge has to answer
+  // „czego nie widzę", not „co odznaczyłem".
+  hiddenCount?: number
+  align?: 'start' | 'end'
   className?: string
 }
 
-export function ColumnToggleMenu({ items, onToggle, onToggleAll, onOpenOrder, className }: PropsT) {
-  if (items.length === 0) return null
+// Below this the list fits on screen and a search box is just noise; above it (kosztorys stages push
+// the column count toward ~50) filtering earns its place.
+const COLUMN_SEARCH_THRESHOLD = 8
+
+export function ColumnToggleMenu({
+  items,
+  onToggle,
+  onToggleAll,
+  order,
+  sections,
+  hint,
+  hiddenCount,
+  align = 'end',
+  className,
+}: PropsT) {
+  const [orderOpen, setOrderOpen] = useState(false)
+
+  if (items.length === 0 && !sections) return null
 
   const allVisible = items.every((item) => item.visible)
+  const badgeCount = hiddenCount ?? items.filter((item) => !item.visible).length
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className={cn('gap-1.5', className)}>
-          <Settings2 />
-          Kolumny
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-72">
-        {onOpenOrder && (
-          <>
-            <DropdownMenuItem onSelect={onOpenOrder}>
-              <ArrowUpDown />
-              Ustaw kolejność kolumn…
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-          </>
-        )}
-        <DropdownMenuLabel>Widoczne kolumny</DropdownMenuLabel>
-        {/* Same shape as the filter menus (`components/filters/filter-multi-select.tsx`): the bulk
-            row is the first row of the list it acts on. Its icon is the plural of theirs rather than
-            a third symbol — and it never dims, because the label already names the direction, so a
-            state tick here would be answering a question the row doesn't ask. */}
-        <DropdownMenuItem
-          onSelect={(e) => e.preventDefault()}
-          onClick={() => onToggleAll(!allVisible)}
-        >
-          <CheckCheck />
-          {allVisible ? 'Ukryj wszystkie' : 'Pokaż wszystkie'}
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        {items.map((item) => (
-          <DropdownMenuItem
-            key={item.id}
-            // Plain items + preventDefault, not DropdownMenuCheckboxItem: the menu must survive a
-            // toggle so several columns can be flipped in one visit.
-            onSelect={(e) => e.preventDefault()}
-            onClick={() => onToggle(item.id)}
-          >
-            <CheckIcon className={cn(!item.visible && 'opacity-0')} />
-            {item.label}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm" className={cn('gap-1.5', className)}>
+            <Settings2 />
+            {badgeCount > 0 ? `Kolumny (${badgeCount})` : 'Kolumny'}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align={align} className="w-72">
+          {sections}
+          {sections && items.length > 0 && <DropdownMenuSeparator />}
+          {items.length > 0 && (
+            <>
+              <DropdownMenuLabel className="flex items-center justify-between gap-2">
+                Widoczne kolumny
+                {hint}
+              </DropdownMenuLabel>
+              {order && (
+                <DropdownMenuItem onSelect={() => setOrderOpen(true)}>
+                  <ArrowUpDown />
+                  Ustaw kolejność kolumn…
+                </DropdownMenuItem>
+              )}
+              {/* cmdk owns the search + arrow-nav for the column list; stop keydowns from reaching
+                  the Radix menu so its typeahead/focus-roving doesn't fight cmdk. Escape still
+                  passes so the menu stays Escape-closable. */}
+              <div
+                onKeyDown={(event) => {
+                  if (event.key !== 'Escape') event.stopPropagation()
+                }}
+              >
+                <Command>
+                  {items.length > COLUMN_SEARCH_THRESHOLD && (
+                    <CommandInput placeholder="Szukaj kolumny..." className="h-8" />
+                  )}
+                  <CommandList>
+                    {/* forceMount keeps the show/hide-all action visible under any search. */}
+                    <CommandItem forceMount onSelect={() => onToggleAll(!allVisible)}>
+                      <CheckCheck />
+                      {allVisible ? 'Ukryj wszystkie' : 'Pokaż wszystkie'}
+                    </CommandItem>
+                    <CommandEmpty>Brak kolumn</CommandEmpty>
+                    {items.map((item) => (
+                      <CommandItem
+                        key={item.id}
+                        value={item.label}
+                        onSelect={() => onToggle(item.id)}
+                      >
+                        <CheckIcon className={cn(!item.visible && 'opacity-0')} />
+                        {item.label}
+                      </CommandItem>
+                    ))}
+                  </CommandList>
+                </Command>
+              </div>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Sibling of the menu, never inside DropdownMenuContent — a dialog mounted in the menu's
+          content unmounts with it on close and loses the focus fight. */}
+      {order && (
+        <ColumnOrderDialog
+          open={orderOpen}
+          onOpenChange={setOrderOpen}
+          items={items}
+          description={order.description}
+          ranks={order.ranks}
+          baseRanks={order.baseRanks}
+          onSetRank={order.onSetRank}
+          onReset={order.onReset}
+        />
+      )}
+    </>
   )
 }

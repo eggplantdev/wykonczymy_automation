@@ -16,8 +16,8 @@ type FileInputPropsT = React.ComponentProps<'input'> & {
   label?: string
   placeholder?: string
   fieldClassName?: string
-  // Seeds the displayed name for a file attached outside this uncontrolled input
-  // (batch-registered receipts). Only read at mount — remount via key to update it.
+  // For a file attached outside this uncontrolled input (batch-registered receipts). Only read at
+  // mount — remount via key to update it.
   initialFileName?: string
 }
 
@@ -85,11 +85,11 @@ function FileInput({
     }
     setError(undefined)
 
-    // Sync files to the hidden input (so form reads and ref.files work)
+    // So form reads and ref.files see them.
     setFilesOnInput(dropped)
     setFileName(joinFileNames(dropped))
 
-    // Fire onChange directly — native dispatchEvent doesn't reliably trigger React's synthetic handler
+    // Native dispatchEvent doesn't reliably trigger React's synthetic handler.
     if (onChange && inputRef.current) {
       const syntheticEvent = {
         target: inputRef.current,

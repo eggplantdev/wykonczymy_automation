@@ -1,13 +1,12 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-vercel-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// The szablon workbench: one hidden investment the template editor works over. Its status is what
-// keeps it off /inwestycje and out of every booking picker, and `template_preset_id` is a POINTER
-// to the kosztorys_presets row currently loaded into it — set by „Otwórz", never a copy of it.
+// The szablon workbench: one hidden investment the template editor works over. Its status keeps it
+// off /inwestycje and every booking picker; `template_preset_id` points at the kosztorys_presets
+// row currently loaded into it — set by „Otwórz", never a copy.
 //
-// Both statements share a transaction safely: Postgres 12+ allows ADD VALUE inside Payload's
-// transaction as long as the new value isn't *used* in it — the column below is nullable and
-// carries no `DEFAULT 'szablon'`, so nothing here uses it.
+// Both statements share a transaction safely: PG 12+ allows `ADD VALUE` inside a transaction as
+// long as the new value isn't *used* in it, and the nullable column has no default that would.
 export async function up({ db }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
     ALTER TYPE "enum_investments_status" ADD VALUE IF NOT EXISTS 'szablon';

@@ -7,9 +7,8 @@ export type PrintColumnT = {
   getValue: (row: TransferRowT) => string
 }
 
-// The print window has no stylesheet of its own — it is an about:blank document we hand a full
-// HTML string, so the sheet ships inline. `pre-line` on the description mirrors the screen cell's
-// `whitespace-pre-line`; without it a multi-line opis collapses onto one line.
+// The print window is an about:blank document we hand a full HTML string, so the sheet ships inline.
+// `pre-line` mirrors the screen cell's `whitespace-pre-line`; without it a multi-line opis collapses.
 const PRINT_STYLES = `
 @page { margin: 10mm; }
 body { font-family: system-ui, -apple-system, sans-serif; font-size: 11px; margin: 0; padding: 16px; }

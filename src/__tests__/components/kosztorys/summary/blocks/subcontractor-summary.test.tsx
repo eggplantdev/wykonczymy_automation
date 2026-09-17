@@ -71,8 +71,8 @@ function renderBlock(showTransactions = true, due: SubcontractorDueByPlaneT = DU
   )
 }
 
-// Każdy wiersz pracownika siedzi we własnym `display: contents`, więc to jedyna klamra trzymająca
-// cztery komórki jednej osoby razem — siatka sama nie ma elementu wiersza.
+// Siatka nie ma elementu wiersza — `display: contents` to jedyna klamra trzymająca cztery komórki
+// jednej osoby razem.
 const workerRow = (name: string) => screen.getByText(name).closest('div.contents') as HTMLElement
 
 const moneyIn = (element: HTMLElement) => bare(element.textContent ?? '')
@@ -93,8 +93,8 @@ function amountsAfter(scope: HTMLElement, label: string): string[] {
   return amounts
 }
 
-// Wiersz nazywa osobę i kwotę, którą jej się jeszcze należy — pomylona atrybucja mówi o cudzych
-// pieniądzach, a ujemne „pozostało" znaczy coś odwrotnego niż nagłówek kolumny obiecuje.
+// Pomylona atrybucja mówi o cudzych pieniądzach, a ujemne „pozostało" znaczy coś odwrotnego niż
+// obiecuje nagłówek kolumny.
 describe('Podsumowanie pracowników — czyj to dług', () => {
   it('prowadzi z wiersza na wypłaty tej jednej osoby', () => {
     renderBlock()
@@ -150,8 +150,8 @@ describe('Podsumowanie pracowników — czyj to dług', () => {
   })
 })
 
-// Strona inwestycji ma listę transakcji obok panelu, więc blok zwija się tam do trzech kwot, które
-// niosą rozliczenie. Rozbicie na płaszczyzny i tabela pracowników są wtedy powtórzeniem.
+// Strona inwestycji ma listę transakcji obok panelu, więc rozbicie na płaszczyzny i tabela
+// pracowników byłyby tam powtórzeniem — zostają trzy kwoty rozliczenia.
 describe('Podsumowanie podwykonawców — host kompaktowy', () => {
   it('zostawia trzy kwoty, zdejmuje rozbicie i tabelę pracowników', () => {
     renderBlock(false)
@@ -172,9 +172,8 @@ describe('Podsumowanie podwykonawców — host kompaktowy', () => {
   })
 })
 
-// Etap bez potwierdzonego rozliczenia nie wchodzi do żadnej z dwóch płaszczyzn, więc „Suma wykonanej
-// pracy" jest niższa niż wykonana praca. Bez znaku obok tej kwoty blok podaje zaniżoną sumę jako
-// pewnik — i nikt nie ma powodu szukać, czego w niej brakuje.
+// Etap bez potwierdzonego rozliczenia nie wchodzi do żadnej płaszczyzny, więc „Suma wykonanej pracy"
+// jest zaniżona — bez znaku obok kwoty nikt nie ma powodu szukać, czego w niej brakuje.
 describe('Podsumowanie podwykonawców — niepotwierdzone rozliczenie etapu', () => {
   it('znakuje sumę wykonanej pracy, gdy któryś etap nie ma rozliczenia', () => {
     renderBlock(true, { ...DUE, hasUnconfirmedPlane: true })

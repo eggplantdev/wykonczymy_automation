@@ -58,7 +58,7 @@ async function openEditor(page: Page): Promise<void> {
   await collapseSummaryPanel(page)
 }
 
-const optionsMenu = (page: Page) => page.getByRole('button', { name: 'Opcje' })
+const optionsMenu = (page: Page) => page.getByRole('button', { name: 'Opcje', exact: true })
 
 // Whatever the run did, the investment goes back on the shelf active — a spec that leaves a fixture
 // locked would fail every later spec that books against it, with a message about the wrong thing.
@@ -80,10 +80,19 @@ test('closing an investment locks the editor and the pickers, and reopening it g
 
   await setStatus(page, 'Zakończona')
 
-  // 1. The editor. Straight from the status write to the page — no „Odśwież dane" anywhere, so what
-  // is proved is that the write invalidated the cache the page reads the status from.
+  // 1. The editor. No „Odśwież dane" anywhere, so what is proved is that the write invalidated the
+  // cache the page reads the status from. Reloaded until it lands rather than asserted on the first
+  // paint: the status rides on `fetchReferenceData`, whose invalidated entry is still served once
+  // (see the route's own note), so exactly one stale render is expected and is not the regression.
   await openEditor(page)
-  await expect(page.getByRole('status').filter({ hasText: 'tylko do odczytu' })).toBeVisible()
+  const lockedBanner = page.getByRole('status').filter({ hasText: 'tylko do odczytu' })
+  await expect
+    .poll(async () => {
+      if (await lockedBanner.count()) return true
+      await page.reload()
+      return lockedBanner.count().then((count) => count > 0)
+    })
+    .toBe(true)
   await expect(page.getByRole('button', { name: 'Dodaj' })).toHaveCount(0)
 
   // Clicking a cell opens no editor. The column set stays the owner's own, which is what separates a

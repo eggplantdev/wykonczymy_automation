@@ -70,8 +70,8 @@ export function SummaryExpensesTab({
   const listedTransactions = preview
     ? clientVisibleExpenseRows(materialTransactions)
     : materialTransactions
-  // Not the transaction rows: the investment page's panel never supplies `materialTransactions`, so
-  // a row-sourced gate would blank the breakdown on a host whose figures are fully populated.
+  // The investment page's panel never supplies `materialTransactions`, so a row-sourced gate would
+  // blank the breakdown on a host whose figures are fully populated.
   const hasBilledMaterials = materialsBreakdown.length > 0
   // Suppressed only by a block that actually renders below: „Lista wydatków" is itself gated on
   // showTransactions, so counting its rows on a host that hides the list would leave the tab blank.
@@ -142,7 +142,7 @@ export function SummaryExpensesTab({
         )}
       </div>
       {showTransactions && listedTransactions.length > 0 && (
-        <CollapsibleSection title="Lista wydatków" size="sm" defaultOpen={false}>
+        <CollapsibleSection title="Lista wydatków" size="sm">
           <div className="pt-4">
             <MaterialsTransactionsTable
               investmentId={investmentId}

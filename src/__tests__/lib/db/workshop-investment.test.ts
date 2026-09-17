@@ -9,10 +9,9 @@ import { acquireTestWorkshop } from '@/__tests__/helpers/workshop'
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
-// The warsztat is found by STATUS and there is only ever one of it — both facts are enforced in SQL
-// and nowhere else, so they are only real against Postgres. Everything that writes a szablon keys on
-// what this returns, which is why the pointer is asserted on the persisted row rather than on a
-// return value.
+// The warsztat is found by STATUS, and there is only ever one — both enforced in SQL, not app code,
+// so they're only real against Postgres. Everything that writes a szablon keys on what this returns,
+// so the pointer is asserted on the persisted row, not a return value.
 describe.skipIf(!ENV_READY)('getWorkshop (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
@@ -57,10 +56,9 @@ describe.skipIf(!ENV_READY)('getWorkshop (DB)', () => {
     expect(await getWorkshop(db)).toMatchObject({ id: workshop.id })
   })
 
-  // The singleton rule lives in `investments_single_szablon_idx`, not in application code:
-  // `resolveWorkshopInvestment` is a SELECT-then-INSERT, so two first-time „Otwórz" clicks racing
-  // each other both see nothing. Without the index the loser becomes an orphan warsztat that
-  // `ORDER BY id LIMIT 1` never returns, silently eating everything edited in it.
+  // The singleton rule lives in the DB index, not app code — `resolveWorkshopInvestment` is a
+  // SELECT-then-INSERT, so two racing first-time „Otwórz" clicks both see nothing. Without the index
+  // the loser becomes an orphan warsztat that `ORDER BY id LIMIT 1` never returns, silently eating edits.
   it('refuses a second warsztat at the database level', async () => {
     await expect(
       createTestInvestment(payload, 'warsztat-fixture-duplicate', {

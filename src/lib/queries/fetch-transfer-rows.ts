@@ -17,11 +17,9 @@ type BuildRowsOptsT = {
 }
 
 type FetchAllRowsOptsT = BuildRowsOptsT & {
-  /** Defaults to `DEFAULT_TRANSFER_SORT` — the same order an unsorted screen shows. */
   sort?: string
 }
 
-/** Maps raw transfer docs + reference data into TransferRowT[]. */
 export async function buildTransferRows(
   docs: RawTransferDocT[],
   refData: ReferenceDataBaseT,
@@ -29,12 +27,11 @@ export async function buildTransferRows(
 ): Promise<TransferRowT[]> {
   const mediaMap = skipMedia ? new Map() : await fetchMediaByIds(extractInvoiceIds(docs))
   const lookups = buildTransferLookups(refData, mediaMap)
-  // Query rows are loosely typed (Record<string, any>); the mapper declares the
-  // depth:0 shape it needs, so narrow at this boundary.
+  // Query rows are loosely typed (Record<string, any>); the mapper declares the depth:0 shape it
+  // needs, so narrow at this boundary.
   return docs.map((doc) => mapTransferRow(doc as TransferDocT, lookups))
 }
 
-/** Fetches all matching transfers (unpaginated) and maps them to rows. */
 export async function fetchAllTransferRows(
   where: Where,
   { skipMedia = false, sort }: FetchAllRowsOptsT = {},

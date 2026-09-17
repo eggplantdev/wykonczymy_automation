@@ -26,15 +26,13 @@ import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 type PropsT = {
   // „Dopasuj wysokość do treści" measures the row's text, unlike every other command here.
   row: KosztorysV2RowT
-  // Insert + move have no meaning against a sorted view — array position no longer mirrors
-  // display_order — so they go dead while any sort is on, whatever its scope.
+  // Under any sort, array position no longer mirrors display_order, so insert + move go dead.
   sortActive: boolean
-  // Both false at the ends of a one-praca section. Separate from `sortActive` because they say a
-  // different thing: the sort freezes the whole menu, this freezes one direction.
+  // Both false at the ends of a one-praca section; `sortActive` freezes every direction at once.
   canMoveUp: boolean
   canMoveDown: boolean
-  // The POZYCJA's id, not a catalogue row's — an id rather than a callback because the dialog reads
-  // every figure it shows from the server by it. Absent (read-only view) → no „Zapisz do katalogu…".
+  // The POZYCJA's id, not a catalogue row's — an id, not a callback, because the dialog fetches by
+  // it. Absent in the read-only view → no „Zapisz do katalogu…".
   item: {
     onInsertAbove: () => void
     onInsertBelow: () => void
@@ -45,8 +43,7 @@ type PropsT = {
   }
 }
 
-// Pozycja commands only — every sekcja command hangs off the band's own „…" (see
-// kosztorys-section-actions-menu.tsx), which is reachable even while the section is collapsed.
+// Pozycja commands only; sekcja commands hang off the band's own „…", reachable while collapsed.
 export function KosztorysRowActionsMenu({ row, sortActive, canMoveUp, canMoveDown, item }: PropsT) {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [catalogueSaveOpen, setCatalogueSaveOpen] = useState(false)

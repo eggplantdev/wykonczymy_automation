@@ -3,14 +3,9 @@ import { createRequire } from 'node:module'
 import { describe, expect, it } from 'vitest'
 
 /**
- * The subject is PATCHED third-party code: the fix lives in
- * `patches/react-datasheet-grid@4.11.6.patch`, so a reinstall that loses the patch would bring the
- * crash back with nothing red to say so. Hence a spec that reaches into `dist`.
- *
- * Loaded through node's own `require`, not an import: the file is CJS and its `require('react')`
- * never reaches vite's module graph, so `vi.mock('react')` cannot touch it. Intercepting the
- * resolution is what lets the hook run outside React — its height cache is a plain `useRef` array,
- * so three stubs are the whole runtime it needs. One call = one render; nothing here re-renders.
+ * Reaches into patched third-party dist (`patches/react-datasheet-grid@4.11.6.patch`) — a lost patch
+ * on reinstall brings the crash back silently. Loaded via `require`, not import, so
+ * `vi.mock('react')` can't reach it; the hook's cache is a plain `useRef`, testable outside React.
  */
 function loadRowHeightsHook(): BuildCacheT {
   const slots = new Map<number, { current: unknown }>()
@@ -65,10 +60,9 @@ function rowHeightCache(): RowHeightCacheT {
   })
 }
 
-// The first section band IS row 0, so fitting or dragging it resets the height cache from index 0 —
-// which empties it. The virtualizer's `estimateSize` then measures a row before any render reseeds
-// the cache, and unpatched dsg reads `calculatedHeights[-1].top` there: „Cannot read properties of
-// undefined (reading 'top')" on the first drag of the topmost band (EX-776).
+// The first section band IS row 0, so resizing it resets the height cache from index 0. The
+// virtualizer's `estimateSize` then measures a row before any render reseeds it, and unpatched dsg
+// reads `calculatedHeights[-1].top` there — undefined, crashing on the first drag (EX-776).
 describe('dsg row-height cache after a reset from index 0', () => {
   it('measures a row once the cache is empty', () => {
     const cache = rowHeightCache()

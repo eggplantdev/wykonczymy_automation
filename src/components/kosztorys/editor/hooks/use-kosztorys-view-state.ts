@@ -19,14 +19,12 @@ type ArgsT = {
 
 const EMPTY_COLLAPSED: ReadonlySet<number> = new Set()
 
-// How the grid is being read — plane, search, sort, folds, the resize guides. Depends on nothing in
-// the data plane: no rows, no stages, no actions.
+// How the grid is being read — plane, search, sort, folds, guides. Touches no rows, stages or actions.
 export function useKosztorysViewState({ investmentId, preview, clientView }: ArgsT) {
   const [persistedView, setView] = usePriceView(investmentId)
   const [search, setSearch] = useState('')
-  // Which named conditions are hiding pozycje — persisted per investment, so a filter set yesterday
-  // is still on today. Under the preview the owner's own picks are dropped wholesale like `view`
-  // above and `clientConditionIds` answers instead — it owns which conditions may reach a client.
+  // Persisted per investment, so yesterday's filter is still on. Under the preview the owner's picks
+  // are dropped and `clientConditionIds` answers — it owns what may reach a client.
   const {
     engagedIds: persistedConditionIds,
     toggle: toggleCondition,
@@ -36,52 +34,35 @@ export function useKosztorysViewState({ investmentId, preview, clientView }: Arg
   const engagedConditionIds = preview
     ? clientConditionIds(clientView?.hideEmptyRows)
     : persistedConditionIds
-  // Where an engaged problem has taken the reader, on top of the stored plane and never written to it
-  // — the same rule as the columns a problem reveals: it rides the gesture, and switching the problem
-  // off puts back the view the reader was working in.
-  //
-  // DERIVED from the engaged problem rather than remembered as its own plane, because the problem is
-  // persisted and a remembered plane is not: a reload would then restore the narrowing without the
-  // view it is judged on, and „ze zbyt wysoką stawką … bez narzędzi" would list its pozycje with the
-  // inwestor's cena in the column it just revealed. What IS remembered is that the reader overruled
-  // it — an explicit switch stands on its own with the problem left engaged, or the toolbar's most
-  // visible control would be dead while a filter is on.
+  // Rides the engaged problem on top of the stored plane, never written to it. Derived, not
+  // remembered: the problem persists and a plane wouldn't, so a reload would restore the narrowing
+  // without the view it is judged on. An explicit switch still overrules it, problem left engaged.
   const [viewPickedManually, setViewPickedManually] = useState(false)
   const problemPlane = viewPickedManually ? undefined : engagedPlane(engagedConditionIds)
-  // Pinning the plane under `preview` is the second half of the disclosure lock (the allowlist is
-  // the first — why the two only work as a pair is at `assertDisclosurePair`, which enforces it).
-  // Pinning it HERE is also what closes the attack where a client sets
-  // localStorage['kosztorys-view:<id>'] to a subcontractor view: the public page ships the full
-  // tree, coefficients included, so an unpinned plane would simply render it.
+  // Second half of the disclosure lock (allowlist is the first — see `assertDisclosurePair`). The
+  // public page ships the full tree, so an unpinned plane would render a subcontractor view to any
+  // client who set localStorage['kosztorys-view:<id>'].
   const view = preview ? 'client' : (problemPlane ?? persistedView)
   const [sort, setSort] = useState<SortStateT>(null)
-  // Which sections are folded shut under their band — the single description of what the grid shows,
-  // driven both by a band's own chevron and by the „Sekcje" menu (unticking folds rather than
-  // filtering the rows away, so a hidden section still announces itself and its total). Deliberately
-  // NOT persisted: a fold is a reading gesture for the current session, and a remembered one would
-  // greet the next visit with rows the user can't see and doesn't remember hiding.
+  // Folded sections, driven by a band's chevron and by the „Sekcje" menu (unticking folds rather
+  // than filtering, so a hidden section still shows its total). Not persisted: a remembered fold
+  // greets the next visit with rows the user can't see and doesn't remember hiding.
   const [storedCollapsedSectionIds, setCollapsedSectionIds] = useState<ReadonlySet<number>>(
     () => new Set(),
   )
-  // Suppressed folds fold nothing, so what the grid and its controls answer to is this set, not the
-  // stored one — a consumer reading the stored set while a narrowing is on says „zwinięte" over a
-  // section whose rows are all on screen. It therefore takes the plain name and the stored set takes
-  // the qualified one: a new consumer that reaches for the obvious identifier gets the safe answer.
-  // `storedCollapsedSectionIds` has exactly one legitimate reader — the „Widoczne sekcje" ticks,
-  // which EDIT the selection and so must show what will apply once the narrowing comes off.
+  // Suppressed folds fold nothing, so the grid answers to this set, not the stored one — hence the
+  // plain name here. `storedCollapsedSectionIds` has one legitimate reader: the „Widoczne sekcje"
+  // ticks, which edit the selection and must show what applies once the narrowing comes off.
   const collapsedSectionIds = isFoldSuppressed(search, engagedConditionIds)
     ? EMPTY_COLLAPSED
     : storedCollapsedSectionIds
 
-  // Unlike the folds above this IS persisted: a fold hides rows the next visit wouldn't know it had
-  // hidden, while this one only makes them taller — nothing disappears, so remembering it costs the
-  // reader nothing. A dragged row still wins: resolveRowHeight checks its override before the
-  // content, so the preference never overwrites what the owner set by hand.
+  // Persisted, unlike the folds: this only makes rows taller, it hides nothing. A dragged row still
+  // wins — resolveRowHeight checks its override before the content.
   const [fitRowsToContent, toggleFitRowsToContent] = useFitRowsToContent()
 
-  // During a column resize we only show a vertical guide (guideX = cursor X), without touching the
-  // grid — a re-layout per pointermove would be a re-render per pixel. guideY is the row-resize
-  // twin: same reason, rotated.
+  // A guide at the cursor instead of re-laying out the grid: that would be a re-render per pixel.
+  // guideY is the row-resize twin.
   const [guideX, setGuideX] = useState<number | null>(null)
   const [guideY, setGuideY] = useState<number | null>(null)
 

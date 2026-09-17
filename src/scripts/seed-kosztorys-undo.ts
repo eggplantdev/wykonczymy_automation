@@ -1,19 +1,9 @@
-// E2E fixture for EX-525 — cofnij/ponów w edytorze kosztorysu.
+// E2E fixture for EX-525 (cofnij/ponów w edytorze). Four investments, one per scenario — the undo
+// stack is per page load, the rows are not. One sekcja, three prace, so ▲▼ has a row with neighbours
+// on both sides; every przedmiar is distinct so a reverted value can't be read off a neighbour.
 //
-// Seeds FOUR identical investments through the Payload Local API, one per scenario: every scenario
-// edits or reorders the same rozpiska, and a shared one would make each test depend on the state the
-// previous one left behind (the undo stack is per page load, the rows are not).
-//
-// One sekcja with three prace, because ▲▼ needs a row with a neighbour on both sides — the middle
-// one is the only one whose „przesuń w górę" and „w dół" are both live. Every przedmiar is distinct
-// so a reverted value cannot be read off the neighbouring row by accident.
-//
-// Run against the isolated test DB (mirrors e2e/global-setup.ts):
-//   DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx \
-//     src/scripts/seed-kosztorys-undo.ts
-//
-// Emits one machine-readable line the E2E spec parses:
-//   UNDO_SEED={"cell":<id>,"burst":<id>,"boundary":<id>,"reorder":<id>}
+// Run: DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx src/scripts/seed-kosztorys-undo.ts
+// Emits: UNDO_SEED={"cell":<id>,"burst":<id>,"boundary":<id>,"reorder":<id>}
 import { getPayload } from 'payload'
 import config from '../payload.config'
 

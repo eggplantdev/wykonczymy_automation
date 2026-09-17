@@ -52,6 +52,9 @@ target, dispatch, and report back.
    > **Target:** <the slice section, or the confirmed audit checklist>.
    > Do the whole thing yourself — do not sub-dispatch further. Return the Step 4 tally: boxes ticked,
    > findings opened, findings fixed, anything that blocked the pass, and the registry section link.
+   > If something only a human can clear blocks you (a held browser profile, a missing fixture, a dead
+   > credential), do NOT sit in a retry loop: finish whatever it does not touch and return early with
+   > that blocker at the top — per Non-negotiable 5.
 
 3. **Relay** the subagent's tally to the user (the subagent's report isn't shown to them). Keep
    Linear/slice status in sync per the gate rules — open findings mean the slice is **not `Done`**.
@@ -84,6 +87,19 @@ exercise its flows. Two entry modes:
    the next check. Never abandon the pass halfway.
 4. **Tick only what you verified passing.** Passing check → tick its box. Failing/uncertain → leave
    unchecked and log a finding.
+5. **A blocker only a human can clear goes UP the moment it first bites — not into the final tally.**
+   Rule 3 says keep driving the remaining checks; it does not say stay silent. The instant something
+   needs a person — the shared Playwright profile answering `Browser is already in use`, a missing
+   fixture on the target DB, an absent credential, a held lock — it goes to the user in the next
+   message, naming the exact thing to release or provide: which process, which session, which row.
+   **A dispatched subagent has exactly one channel — its return — so it uses it: drive whatever the
+   blocker does not touch, then RETURN with the blocker at the top of the report.** Do not keep
+   retrying a held resource to fill the time; a retry loop turns a one-sentence question into a
+   half-hour of silence. The orchestrator relays it to the user in that same turn.
+   The failure this exists to stop: a pass that retried a locked browser for half an hour and
+   surfaced it only in its closing report, when one sentence up front would have freed the lock in
+   seconds. Retrying a resource someone else holds is not progress — a blocker's cost is measured
+   from when it FIRST appeared, not from when you finished.
 
 ## Step 0-alt — Running the pass against staging / the preview DB
 

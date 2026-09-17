@@ -58,7 +58,7 @@ export function shapeInvestments(
     const depositSums = depositPlaneSumsRecord[String(inv.id)] ?? NO_DEPOSIT_SUMS
     const amountDue = computeAmountDue(
       reading.laborCostsNet,
-      depositPairFromPlaneSums(depositSums, inv.vatRate),
+      depositPairFromPlaneSums(depositSums),
       { grossBase: financials.materialsGrossBase, netBilled: financials.materialsNetBilled },
       inv.vatRate,
       netRate,

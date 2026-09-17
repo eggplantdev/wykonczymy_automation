@@ -1,4 +1,3 @@
-import { toNet } from '@/lib/kosztorys/calc'
 import type { VatPlaneT } from '@/lib/constants/transfers'
 import type { MoneyPairT } from '@/lib/kosztorys/summary-economics'
 
@@ -20,16 +19,14 @@ export type DepositRowT = {
 // kwota, and inventing one is what this spike removes.
 export type DepositPairT = { net: number; gross: number | null }
 
-/** The four sums a set of wpłaty reduces to. Four rather than two because the legacy bridge below
- *  needs the VAT rate, and the listing sums these in SQL where no rate is in reach — so the raw
- *  sums travel and the bridge is applied once, in `depositPairFromPlaneSums`, by both sides. */
+/** The sums a set of wpłaty reduces to. Kept as raw sums rather than a pair because the listing
+ *  folds them in SQL, where no row is in reach — so both sides hand the same shape to
+ *  `depositPairFromPlaneSums` and neither gets to invent its own arithmetic. */
 export type DepositPlaneSumsT = {
   // Σ of the wpłaty netto — they ARE the netto plane, in full.
   paidNet: number
   // Σ of the netto kwoty of wpłaty brutto, where the faktura named one.
   paidGrossNet: number
-  // Σ of the brutto kwoty of wpłaty brutto carrying NO netto — only these cross the legacy bridge.
-  paidGrossLegacy: number
   // Σ on the brutto plane: wpłaty brutto ONLY. Complete only where a wpłata netto cannot occur —
   // i.e. tryb brutto, which is the only tryb that renders this column.
   paidGross: number
@@ -40,20 +37,18 @@ export type DepositPlaneSumsT = {
 
 export const isGross = (row: { vatPlane: VatPlaneT | null }) => row.vatPlane === 'GROSS'
 
-// Legacy bridge, spike-only: a wpłata brutto booked before `netAmount` existed has no netto to read.
-// Dividing at VAT is precisely the derivation this model rejects, so it is here to keep pre-spike
-// rows legible, not because it is right — those rows are corrected by anulowanie i re-księgowanie.
-const legacyNet = (amount: number, vatRate: number) => toNet(amount, vatRate)
-
-export function depositRowPair(row: DepositRowT, vatRate: number): DepositPairT {
+// A wpłata brutto with no netto counts as 0 zł netto, deliberately: `getNetAmountError` has made
+// that row unsaveable since 2026-07-26, and no such row has ever existed in prod. Deriving one at
+// VAT — the bridge that used to live here — is the derivation this whole model rejects, so a row
+// that could only arrive by raw SQL does not get a guessed netto to make it look plausible.
+export function depositRowPair(row: DepositRowT): DepositPairT {
   if (!isGross(row)) return { net: row.amount, gross: null }
-  return { net: row.netAmount ?? legacyNet(row.amount, vatRate), gross: row.amount }
+  return { net: row.netAmount ?? 0, gross: row.amount }
 }
 
 export const NO_DEPOSIT_SUMS: DepositPlaneSumsT = {
   paidNet: 0,
   paidGrossNet: 0,
-  paidGrossLegacy: 0,
   paidGross: 0,
   paidNetCount: 0,
 }
@@ -67,24 +62,21 @@ export function bucketDepositsByPlane(rows: DepositRowT[]): DepositPlaneSumsT {
       ...acc,
       paidGross: acc.paidGross + row.amount,
       paidGrossNet: acc.paidGrossNet + (row.netAmount ?? 0),
-      paidGrossLegacy: acc.paidGrossLegacy + (row.netAmount == null ? row.amount : 0),
     }
   }, NO_DEPOSIT_SUMS)
 }
 
 // The one place the sums become the pair the settlement subtracts — so the panel (which reduces
-// rows) and the listing (which reduces in SQL) can never apply the legacy bridge by two rules.
-export function depositPairFromPlaneSums(
-  { paidNet, paidGrossNet, paidGrossLegacy, paidGross }: DepositPlaneSumsT,
-  vatRate: number,
-): MoneyPairT {
-  return {
-    net: paidNet + paidGrossNet + legacyNet(paidGrossLegacy, vatRate),
-    gross: paidGross,
-  }
+// rows) and the listing (which reduces in SQL) can never fold the two planes by two rules.
+export function depositPairFromPlaneSums({
+  paidNet,
+  paidGrossNet,
+  paidGross,
+}: DepositPlaneSumsT): MoneyPairT {
+  return { net: paidNet + paidGrossNet, gross: paidGross }
 }
 
 // Σ of a set of wpłaty on each plane — the deduction step every tryb subtracts from „Łącznie".
-export function sumDeposits(rows: DepositRowT[], vatRate: number): MoneyPairT {
-  return depositPairFromPlaneSums(bucketDepositsByPlane(rows), vatRate)
+export function sumDeposits(rows: DepositRowT[]): MoneyPairT {
+  return depositPairFromPlaneSums(bucketDepositsByPlane(rows))
 }

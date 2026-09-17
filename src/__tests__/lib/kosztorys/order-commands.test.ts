@@ -11,9 +11,8 @@ const SORTS: SortStateT[] = [
 ]
 
 describe('section band commands under a sort', () => {
-  // The bridge between two planes that were read apart once already: „zachowując sekcje" keeps the
-  // bands on screen while the insert/reorder handlers refuse to run, so the band's menu showed four
-  // live-looking commands that did nothing.
+  // „zachowując sekcje" keeps the bands on screen while the insert/reorder handlers refuse to run, so
+  // the band's menu once showed four live-looking commands that did nothing.
   it('never leaves an order command enabled on a band the user can still see and act on', () => {
     for (const sort of SORTS) {
       if (sectionBandsVisible(sort) && orderCommandsEnabled(sort)) {

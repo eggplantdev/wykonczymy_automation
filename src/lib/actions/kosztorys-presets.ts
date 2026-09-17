@@ -41,10 +41,9 @@ const savePresetSchema = z.object({
   mode: z.enum(['new', 'overwrite']),
 })
 
-// "Zapisz jako preset" — serialize the current kosztorys with job fields stripped, then store it as
-// a named preset. `mode: 'new'` inserts under a fresh name (a taken name is rejected — insertPreset
-// returns null on conflict); `mode: 'overwrite'` upserts the payload of the existing name in place.
-// The only writer of presets, so it owns invalidation of the cached picker read (getPresets).
+// "Zapisz jako preset" — serialize with job fields stripped, store under a name. `mode: 'new'`
+// inserts (rejected if taken); `mode: 'overwrite'` upserts in place. Only writer of presets, so it
+// owns invalidating the cached picker read (getPresets).
 export async function savePresetAction(
   investmentId: number,
   name: string,
@@ -123,12 +122,9 @@ export async function renamePresetAction(id: number, name: string): Promise<Acti
   })
 }
 
-// „Otwórz szablon": load the szablon into the workbench investment. A mutation, so it can't be a
-// render side effect of /szablony/[id] — the page only READS what this put there. Navigation stays
-// on the client so the action has one result type and one error toast.
-//
-// The pointer is written AFTER the reload: the page renders the workbench only when the pointer
-// matches its url, so a failed reload must not leave the workbench claiming a szablon it doesn't hold.
+// „Otwórz szablon": load into the workbench investment. A mutation, not a render side effect of
+// /szablony/[id] — the page only reads what this puts there. Pointer is written AFTER the reload,
+// so a failed reload can't leave the workbench claiming a szablon it doesn't hold.
 export async function openPresetInWorkshopAction(presetId: number): Promise<ActionResultT> {
   return protectedAction(
     'openPresetInWorkshopAction',
@@ -151,14 +147,9 @@ export async function openPresetInWorkshopAction(presetId: number): Promise<Acti
   )
 }
 
-// The workbench's „Zapisz": overwrite the szablon the workbench actually HOLDS, addressed by id.
-//
-// Not `savePresetAction(name, 'overwrite')`, which keys on the name — the workbench is one row
-// shared by everyone, so between a page render and its save the name can point somewhere else
-// entirely: another manager opened a different szablon into it, or this one was renamed (the name
-// now forks a duplicate) or deleted (the upsert resurrects it). So the pointer is re-read here, at
-// write time, and a mismatch refuses instead of writing — the render-time guard on /szablony/[id]
-// can only speak for the moment it ran.
+// The workbench's „Zapisz": overwrites by id, not by name — the workbench is one shared row, so the
+// name it points at can change between render and save. Pointer re-read here at write time; a
+// mismatch refuses instead of writing.
 export async function saveWorkshopPresetAction(presetId: number): Promise<ActionResultT> {
   return protectedAction(
     'saveWorkshopPresetAction',
@@ -216,11 +207,9 @@ const appendSectionsSchema = z.object({
     .min(1, 'Wybierz co najmniej jedną sekcję'),
 })
 
-// Append the chosen sections (each identified by its source preset + in-payload section id) to an
-// investment's kosztorys. Resolves every payload server-side from `getPreset` — the client only sends
-// ids, never section data — so an unknown preset/section fails the whole call with nothing written.
-// Runs the inserts in one transaction (seed-from-preset's shape) and returns the created slice with
-// new ids so the grid can patch optimistically without a refetch.
+// Appends chosen sections (preset id + in-payload section id) to a kosztorys. Payloads are resolved
+// server-side via `getPreset` — the client sends only ids, so it can't inject section data. Runs in
+// one transaction, returning the created slice with new ids for optimistic patching.
 export async function appendPresetSectionsAction(
   investmentId: number,
   selections: { presetId: number; sectionId: number }[],

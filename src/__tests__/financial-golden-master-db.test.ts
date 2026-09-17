@@ -65,13 +65,14 @@ type InvestmentSnapshotT = {
    *  and rabat come from the kosztorys and the crew from its etapy, which is what the listing shows.
    *  `null` where an etap holds work with no rozliczenie. */
   marginV2: number | null
-  /** The wpłaty bucketed by VAT plane, straight off the SQL fold the listing reads. Frozen as four
-   *  raw sums rather than one total because that is where a bucketing regression shows: an untagged
+  /** The wpłaty bucketed by VAT plane, straight off the SQL fold the listing reads. Frozen as raw
+   *  sums rather than one total because that is where a bucketing regression shows: an untagged
    *  wpłata sliding into the brutto bucket moves two of these and leaves their sum alone. */
   deposits: DepositPlaneSumsT
-  /** Σ wpłat netto AFTER the legacy bridge — the only figure here that runs a wpłata brutto with no
-   *  netto through `legacyNet`, so it is the one that catches the bridge itself drifting. */
-  depositsNetAfterBridge: number
+  /** Σ wpłat netto — the buckets folded by `depositPairFromPlaneSums`, which is what the settlement
+   *  actually subtracts. Frozen beside the buckets so a regression in the fold shows even where the
+   *  buckets themselves are untouched. */
+  depositsNet: number
   categoryCosts: CategoryPairT[]
   settledCategoryCosts: CategoryPairT[]
 }
@@ -85,7 +86,6 @@ type SnapshotT = {
     transactionCount: number
     kosztorysItemCount: number
     grossDepositsWithNet: number
-    legacyGrossDeposits: number
   }
   /** Per-entity hash of the transaction rows that feed that entity's figures — see readInputHashes. */
   inputHashes: { investments: HashMapT; registers: HashMapT; workers: HashMapT }
@@ -231,11 +231,7 @@ async function readInputHashes(payload: Payload) {
       count(*) FILTER (
         WHERE type = 'INVESTOR_DEPOSIT' AND cancelled IS NOT TRUE
           AND vat_plane = 'GROSS' AND net_amount IS NOT NULL
-      )::int AS gross_with_net,
-      count(*) FILTER (
-        WHERE type = 'INVESTOR_DEPOSIT' AND cancelled IS NOT TRUE
-          AND vat_plane = 'GROSS' AND net_amount IS NULL
-      )::int AS legacy_gross
+      )::int AS gross_with_net
     FROM transactions
   `)
   return {
@@ -243,7 +239,6 @@ async function readInputHashes(payload: Payload) {
     transactionCount: Number(counted.rows[0].row_count),
     kosztorysItemCount,
     grossDepositsWithNet: Number(counted.rows[0].gross_with_net),
-    legacyGrossDeposits: Number(counted.rows[0].legacy_gross),
   }
 }
 
@@ -309,13 +304,12 @@ async function buildSnapshot(payload: Payload): Promise<{
       deposits: {
         paidNet: round2(deposits.paidNet),
         paidGrossNet: round2(deposits.paidGrossNet),
-        paidGrossLegacy: round2(deposits.paidGrossLegacy),
         paidGross: round2(deposits.paidGross),
         // A count, not money — it is what the „osierocone wpłaty" marker on the listing renders, so
         // it is an input like the sums and rounding it would be nonsense.
         paidNetCount: deposits.paidNetCount,
       },
-      depositsNetAfterBridge: round2(depositPairFromPlaneSums(deposits, vatRate).net),
+      depositsNet: round2(depositPairFromPlaneSums(deposits).net),
       categoryCosts: toPairs(financials.categoryCosts),
       settledCategoryCosts: toPairs(financials.settledCategoryCosts),
     }
@@ -330,7 +324,6 @@ async function buildSnapshot(payload: Payload): Promise<{
         transactionCount: inputs.transactionCount,
         kosztorysItemCount: inputs.kosztorysItemCount,
         grossDepositsWithNet: inputs.grossDepositsWithNet,
-        legacyGrossDeposits: inputs.legacyGrossDeposits,
       },
       inputHashes: inputs.hashes,
       investments,
@@ -348,18 +341,15 @@ async function buildSnapshot(payload: Payload): Promise<{
 /*  `kosztorysItems` carries the floor's whole point onto the new axis: with the kosztorys tables
  *  empty every investment falls back to the transactions plane, so the read-switch branch is never
  *  executed and the suite passes green having tested nothing about it. */
-/*  The two wpłata counts are the same argument on the wpłaty axis: an untagged wpłata counts as
+/*  `grossDepositsWithNet` is the same argument on the wpłaty axis: an untagged wpłata counts as
  *  gotówka, so a fixture with no wpłata brutto leaves every bucket but `paidNet` at zero — the
- *  brutto plane and the legacy bridge are then frozen at nothing and a regression in either passes
- *  green. Two counters rather than one because they are two different code paths: the netto off the
- *  faktura is READ, and only a row missing it crosses the bridge that derives one at VAT. */
+ *  brutto plane is then frozen at nothing and a regression in it passes green. */
 const DATASET_FLOOR = {
   investments: 50,
   registers: 10,
   transactions: 1000,
   kosztorysItems: 20,
   grossDepositsWithNet: 2,
-  legacyGrossDeposits: 0,
 }
 
 function assertNonTrivial(snapshot: SnapshotT) {
@@ -369,7 +359,6 @@ function assertNonTrivial(snapshot: SnapshotT) {
     transactions: snapshot.fingerprint.transactionCount,
     kosztorysItems: snapshot.fingerprint.kosztorysItemCount,
     grossDepositsWithNet: snapshot.fingerprint.grossDepositsWithNet,
-    legacyGrossDeposits: snapshot.fingerprint.legacyGrossDeposits,
   }
   for (const key of Object.keys(DATASET_FLOOR) as (keyof typeof DATASET_FLOOR)[]) {
     if (counts[key] <= DATASET_FLOOR[key]) {
@@ -461,7 +450,7 @@ describe.skipIf(!ENV_READY)('financial golden master — every figure, every inv
     const AXES = [
       {
         name: 'wpłata brutto',
-        guards: '`deposits` and `depositsNetAfterBridge`',
+        guards: '`deposits` and `depositsNet`',
         reseed: 'pnpm seed:deposits:test',
         carriedBy: (id: string) => (expected.investments[id]?.deposits.paidGross ?? 0) !== 0,
       },

@@ -90,7 +90,7 @@ describe('buildMaterialsBreakdown', () => {
   })
 
   // Both figures are float sums of grosze, so a fully categorised investment leaves a ~1e-11 residue
-  // — which rendered a „Korekta (bez kategorii)" row at 0,00 zł and a −0,0% pie slice.
+  // that rendered a „Korekta (bez kategorii)" row at 0,00 zł and a −0,0% pie slice.
   it('ignores a sub-grosz float residue between the two sums', () => {
     const financials = {
       ...base,
@@ -151,9 +151,8 @@ describe('buildMaterialsBreakdown', () => {
     expect(new Set(ids).size).toBe(ids.length)
   })
 
-  // The netto expense type. `netCategoryCosts` is a SUBSET of `categoryCosts`, so splitting it out
-  // must move value between rows without changing the Σ — that invariant is what keeps the
-  // podsumowanie reconciling with the investment page.
+  // `netCategoryCosts` is a SUBSET of `categoryCosts`, so splitting it out must move value between
+  // rows without changing the Σ — that is what keeps the podsumowanie reconciling with the page.
   describe('netto-billed rows', () => {
     const financials = {
       ...base,
@@ -190,9 +189,8 @@ describe('buildMaterialsBreakdown', () => {
   })
 })
 
-// The investment header renders „Bilans inwestora" as the SUM of these tiles, while the listing
-// calls calculateBalance. A term that gains a place in the formula but no tile makes the two
-// readings disagree silently — that is the regression this pins.
+// The investment header renders „Bilans inwestora" as the SUM of these tiles while the listing calls
+// calculateBalance, so a term with a place in the formula but no tile makes the two disagree.
 describe('buildFinancialFields — Σ tiles reconciles with calculateBalance', () => {
   const cats = [
     { id: 1, name: 'Materiały budowlane' },

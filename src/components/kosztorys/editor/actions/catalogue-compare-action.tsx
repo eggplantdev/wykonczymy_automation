@@ -16,6 +16,7 @@ export type CatalogueCompareActionT = {
   error: string | null
   loaded: boolean
   requestOpen: () => void
+  refreshComparison: () => void
 }
 
 const READ_FAILED = 'Nie udało się porównać kosztorysu z katalogiem.'
@@ -27,14 +28,8 @@ export function useCatalogueCompareAction(): CatalogueCompareActionT {
   const [error, setError] = useState<string | null>(null)
   const [loaded, setLoaded] = useState(false)
 
-  // Fetch on the click, same reason as „Porównaj z arkuszem": Radix never fires `onOpenChange` for a
-  // programmatic `open`, so the dialog cannot fetch itself.
-  function requestOpen() {
-    setOpen(true)
-    setLoaded(false)
-    setResult(null)
-    setError(null)
-    void compareWithCatalogueAction(investmentId)
+  function runComparison() {
+    return compareWithCatalogueAction(investmentId)
       .then((res) => {
         setResult(res.success ? res.data : null)
         setError(res.success ? null : (res.error ?? READ_FAILED))
@@ -43,10 +38,27 @@ export function useCatalogueCompareAction(): CatalogueCompareActionT {
         setResult(null)
         setError(READ_FAILED)
       })
-      .finally(() => setLoaded(true))
   }
 
-  return { open, setOpen, result, error, loaded, requestOpen }
+  // Fetch on the click, same reason as „Porównaj z arkuszem": Radix never fires `onOpenChange` for a
+  // programmatic `open`, so the dialog cannot fetch itself.
+  function requestOpen() {
+    setOpen(true)
+    setLoaded(false)
+    setResult(null)
+    setError(null)
+    void runComparison().finally(() => setLoaded(true))
+  }
+
+  // Re-read rather than patched out of the lists: what the owner saved to the cennik is whatever he
+  // left in the katalog form, which is free to differ from the rozpiska he opened it from — so only
+  // the server knows whether that praca is now „Zgodne". `loaded` stays true so the window keeps its
+  // rows and its rozwinięte foldy instead of blinking back to „Porównuję…".
+  function refreshComparison() {
+    void runComparison()
+  }
+
+  return { open, setOpen, result, error, loaded, requestOpen, refreshComparison }
 }
 
 export function CatalogueCompareMenuItem() {

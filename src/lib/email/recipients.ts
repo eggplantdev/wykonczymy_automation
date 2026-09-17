@@ -1,10 +1,8 @@
 import type { Payload } from 'payload'
 
 /**
- * The four notification streams, each an independently edited address list.
- *
- * Not to be confused with `STREAMS` in `src/lib/db/notifications.ts` — that one tracks per-user
- * unread cursors for the in-app badge, which is a different question about a different table.
+ * Not to be confused with `STREAMS` in `src/lib/db/notifications.ts` — that one tracks per-user unread
+ * cursors for the in-app badge, a different question about a different table.
  */
 export const RECIPIENT_LISTS = ['fleetDigest', 'equipmentDigest', 'newLead', 'opsAlerts'] as const
 
@@ -19,8 +17,7 @@ const LIST_LABELS: Record<RecipientListT, string> = {
 
 export type RecipientListsT = Record<RecipientListT, string[]>
 
-/** Builds a record over every list, so the widening of `RECIPIENT_LISTS` is the only edit — and so
- * the `Record` is proven rather than cast. */
+/** So widening `RECIPIENT_LISTS` is the only edit, and the `Record` is proven rather than cast. */
 export function byRecipientList<T>(
   valueOf: (list: RecipientListT) => T,
 ): Record<RecipientListT, T> {
@@ -38,9 +35,8 @@ export async function readRecipientLists(payload: Payload): Promise<RecipientLis
 }
 
 /**
- * Addresses for one stream, or a throw. A stream with nobody in it is a fault: mailing the void
- * looks identical to a healthy run in every log, and the whole point of these streams is that
- * somebody hears about a problem. Every call site already catches, so raising costs nothing.
+ * Throws on an empty stream: mailing the void looks identical to a healthy run in every log. Every
+ * call site already catches, so raising costs nothing.
  */
 export async function requireRecipients(payload: Payload, list: RecipientListT): Promise<string[]> {
   const addresses = (await readRecipientLists(payload))[list]

@@ -7,13 +7,10 @@ import {
 } from '@/access/investment-lock'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 
-// A kosztorys (cost estimate) is a Google Sheet that mirrors an investment's
-// expenses. It exists as its own row — separate from `investments` — so the
-// owner can register/cost a sheet BEFORE the investment is confirmed and link
-// the two later. `investment` is nullable and `ON DELETE SET NULL`: the sheet
-// outlives the investment, becoming unlinked again if the investment is deleted.
-// The 1:1 cardinality (one investment ↔ at most one kosztorys) is enforced by a
-// partial unique index on investment_id (see 20260528_move_sheet_id_to_kosztoryses).
+// Its own row, separate from `investments`, so the owner can register a sheet BEFORE the investment
+// is confirmed and link the two later. `investment` is nullable and `ON DELETE SET NULL`, so the
+// sheet outlives the investment and goes unlinked again if it is deleted. The 1:1 cardinality is a
+// partial unique index on investment_id (20260528_move_sheet_id_to_kosztoryses).
 export const Sheets: CollectionConfig = {
   slug: 'kosztoryses',
   labels: {
@@ -26,9 +23,8 @@ export const Sheets: CollectionConfig = {
     group: { en: 'Finance', pl: 'Finanse' },
   },
   hooks: {
-    // Bump `investments` too — the investments listing reads hasSheet via a
-    // LEFT JOIN on kosztoryses (cached under the investments tag), so an
-    // admin-panel edit / create / delete here must invalidate both caches.
+    // The investments listing reads hasSheet via a LEFT JOIN on kosztoryses, cached under the
+    // investments tag — so a write here has to invalidate both.
     afterChange: [makeRevalidateAfterChange('kosztoryses', 'investments')],
     afterDelete: [makeRevalidateAfterDelete('kosztoryses', 'investments')],
   },
@@ -52,9 +48,8 @@ export const Sheets: CollectionConfig = {
       name: 'googleSheetId',
       type: 'text',
       required: true,
-      // The sheet id is the row's identity — duplicates would cause two kosztoryses
-      // to fight over the same materiały tab (orphan-detection would delete each
-      // other's rows). Postgres unique constraint enforced via Payload's `unique`.
+      // The sheet id is the row's identity — duplicates would leave two kosztoryses fighting over one
+      // materiały tab, orphan-detection deleting each other's rows.
       unique: true,
       label: { en: 'Google Sheet ID', pl: 'ID arkusza Google' },
       admin: {
@@ -69,9 +64,8 @@ export const Sheets: CollectionConfig = {
       type: 'relationship',
       relationTo: 'investments',
       hasMany: false,
-      // Nullable: unlinked kosztoryses are first-class (planning before commit).
-      // The partial unique index on investment_id WHERE NOT NULL enforces 1:1
-      // when set — multiple NULLs are allowed.
+      // Nullable: unlinked kosztoryses are first-class (planning before commit). The partial unique
+      // index on investment_id WHERE NOT NULL enforces 1:1 when set.
       label: { en: 'Investment', pl: 'Inwestycja' },
     },
     {

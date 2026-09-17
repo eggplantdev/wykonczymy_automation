@@ -8,13 +8,9 @@ type FitRowHeightT = (row: KosztorysV2RowT) => void
 const RowHeightFitContext = createContext<FitRowHeightT | null>(null)
 
 /**
- * „Dopasuj wysokość do treści" is measured from the RENDERED grid (column widths come off the DOM),
- * so the command can only be built in the editor body — while its trigger sits in a row's „…", down
- * on `columnData` the body never assembles — the same reason CataloguePickerHost travels by context.
- * Shaped like KosztorysActionsProvider: a stateless provider + its hook, no state and no dialog.
- *
- * Not the churn EX-496 warns about: the only consumer is an OPEN menu's content, which Radix mounts
- * on demand, so a new function identity here reaches no grid cell.
+ * The fit is measured off the rendered grid (editor body only), but its trigger sits in a row menu
+ * below where `columnData` is assembled. Not EX-496 churn: the only consumer is an open menu's
+ * content, mounted on demand, so a new function identity never reaches a grid cell.
  */
 export function RowHeightFitProvider({
   fit,

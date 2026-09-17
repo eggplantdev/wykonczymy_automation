@@ -32,6 +32,12 @@ export function KosztorysAddMenu() {
   // it would unmount before it could open.
   const [presetDialogOpen, setPresetDialogOpen] = useState(false)
 
+  async function openPicker() {
+    if (subtotals.length > 0) return openCataloguePicker()
+    const sectionId = await handleAddSection()
+    if (sectionId !== null) openCataloguePicker(sectionId)
+  }
+
   return (
     <>
       <DropdownMenu>
@@ -68,14 +74,13 @@ export function KosztorysAddMenu() {
               </DropdownMenuSubContent>
             </DropdownMenuSub>
           )}
-          {/* Only with a sekcja to land in — the picker's whole first step is choosing one, and an
-              empty kosztorys has none to offer. */}
-          {subtotals.length > 0 && (
-            <DropdownMenuItem onSelect={() => openCataloguePicker()}>
-              <ListChecks />
-              Praca z katalogu…
-            </DropdownMenuItem>
-          )}
+          {/* The picker needs a sekcja to land in. On an empty kosztorys one is minted first and
+              handed over preselected, rather than hiding the entry and leaving the owner to guess
+              that „Sekcja" is the prerequisite. */}
+          <DropdownMenuItem onSelect={() => void openPicker()}>
+            <ListChecks />
+            Praca z katalogu…
+          </DropdownMenuItem>
           {/* Plane is forced at creation — each etap plane is its own top-level item, so there is no
               plane-less „Etap" and no new stage is ever unconfirmed. The worker is deliberately NOT
               forced the same way: an unassigned etap is a legitimate resting state (it earns its own

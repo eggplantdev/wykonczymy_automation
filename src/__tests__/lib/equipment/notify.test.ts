@@ -55,8 +55,7 @@ describe('notifyEquipmentDigest', () => {
     expect(sendEmail).not.toHaveBeenCalled()
   })
 
-  // Three „szlifierki" are a normal inventory, so the line has to carry enough to walk to the shelf
-  // and find the one item — name alone would send the reader to the wrong tool.
+  // Three „szlifierki" are a normal inventory, so the name alone sends the reader to the wrong tool.
   it('names each item by make, model and serial, in its own bucket', async () => {
     const { payload, sendEmail } = payloadWith([{ email: 'a@example.com' }])
 
@@ -74,8 +73,8 @@ describe('notifyEquipmentDigest', () => {
     expect(html.indexOf('W ciągu 7 dni')).toBeLessThan(html.indexOf('W ciągu 30 dni'))
   })
 
-  // The subject is all a phone's lock screen shows, so „this week" has to be visible without
-  // opening the mail — and must not shout when nothing is that close.
+  // The subject is all a phone's lock screen shows, so „this week" has to be visible there — and must
+  // not shout when nothing is that close.
   it('escalates the subject only when something expires within 7 days', async () => {
     const { payload, sendEmail } = payloadWith([{ email: 'a@example.com' }])
 

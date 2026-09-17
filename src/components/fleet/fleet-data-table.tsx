@@ -29,8 +29,7 @@ export function FleetDataTable({ data }: { data: FleetRowT[] }) {
       getRowHref={(row) => `/flota/${row.id}`}
       // Retired cars stay listed — their history is still the answer to "when did we last…".
       getRowClassName={(row) => (row.status === 'RETIRED' ? 'opacity-60' : '')}
-      // Summed from the rows the table is actually rendering, so the total always matches what the
-      // search box left on screen instead of quoting a number nobody can see.
+      // Summed from the rendered rows, so the total matches what the search box left on screen.
       footer={(visibleColumnIds) => {
         const costsIndex = visibleColumnIds.indexOf(COSTS_COLUMN_ID)
         if (costsIndex < 0) return null
@@ -38,7 +37,7 @@ export function FleetDataTable({ data }: { data: FleetRowT[] }) {
         return (
           <tr>
             {/* Nothing to its left once every other column is toggled off — the number is what the
-                  row is for, so it survives losing its label rather than the footer disappearing. */}
+                  row is for, so it survives losing its label. */}
             {costsIndex > 0 && (
               <td className="font-bold" colSpan={costsIndex}>
                 Razem

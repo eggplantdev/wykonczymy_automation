@@ -4,10 +4,7 @@ import { CACHE_TAGS, entityTag } from '@/lib/cache/tags'
 import { perfStart } from '@/lib/perf'
 import { resolveId } from '@/lib/utils/resolve-id'
 
-/**
- * afterChange — revalidate caches after a transaction is created or updated.
- * Balances are computed on read via cached functions, so there's no write here.
- */
+/** Balances are computed on read via cached functions, so there is no write here. */
 export const recalcAfterChange: CollectionAfterChangeHook = async ({
   doc,
   previousDoc,
@@ -26,7 +23,6 @@ export const recalcAfterChange: CollectionAfterChangeHook = async ({
   const investmentId = resolveId(doc.investment)
   const prevInvestmentId = resolveId(previousDoc?.investment)
 
-  // Revalidate entity-specific tags (for detail page caches)
   if (registerId) revalidateTag(entityTag('cash-register', registerId), 'default')
   if (prevRegisterId && prevRegisterId !== registerId)
     revalidateTag(entityTag('cash-register', prevRegisterId), 'default')
@@ -37,7 +33,6 @@ export const recalcAfterChange: CollectionAfterChangeHook = async ({
   if (prevInvestmentId && prevInvestmentId !== investmentId)
     revalidateTag(entityTag('investment', prevInvestmentId), 'default')
 
-  // Payload hooks run in Route Handler context — must use revalidateTag, not updateTag
   revalidateTag(CACHE_TAGS.transfers, 'default')
 
   console.log(`[PERF] recalcAfterChange TOTAL ${elapsed()}ms`)
@@ -45,9 +40,6 @@ export const recalcAfterChange: CollectionAfterChangeHook = async ({
   return doc
 }
 
-/**
- * afterDelete — revalidate caches after a transaction is deleted.
- */
 export const recalcAfterDelete: CollectionAfterDeleteHook = async ({ doc, context }) => {
   if (context?.skipRevalidation) return doc
   const elapsed = perfStart()
@@ -57,7 +49,6 @@ export const recalcAfterDelete: CollectionAfterDeleteHook = async ({ doc, contex
   const targetRegisterId = resolveId(doc.targetRegister)
   const investmentId = resolveId(doc.investment)
 
-  // Revalidate entity-specific tags
   if (registerId) revalidateTag(entityTag('cash-register', registerId), 'default')
   if (targetRegisterId) revalidateTag(entityTag('cash-register', targetRegisterId), 'default')
   if (investmentId) revalidateTag(entityTag('investment', investmentId), 'default')

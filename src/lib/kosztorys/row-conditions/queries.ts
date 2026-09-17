@@ -1,4 +1,5 @@
-import { ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions/registry'
+import type { PriceViewT } from '@/lib/kosztorys/calc'
+import { DISCOUNT_CONDITION_IDS, ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions/registry'
 import type {
   RowConditionCtxT,
   RowConditionKindT,
@@ -179,4 +180,32 @@ export function sectionIdsWhereAllMatch(
   }
   for (const sectionId of failed) result.delete(sectionId)
   return result
+}
+
+/**
+ * The filter conditions a menu may offer right now. Two gates on top of `kind === 'filter'`, both
+ * asking the same thing: is the axis on screen at all?
+ *  • plane — a condition about a stawka wykonawcy is unanswerable from „Inwestor", where no
+ *    subcontractor price renders. Offering it there would narrow the grid on a number the reader
+ *    cannot see, and unlike a problem a filter deliberately does not switch the view to fetch it.
+ *  • rabat — under a global rabat the per-item rabat applies to nothing and its columns are pulled
+ *    from the grid, so the pair goes dead in the registry too; listing it would offer a tick that
+ *    provably changes nothing.
+ * An ENGAGED condition is listed regardless of both gates: it is hiding pozycje right now, and the
+ * menu is where a tick comes back. Gating it out would leave the grid short with no control to
+ * restore it — switching the view would strand a rate filter, and turning the global rabat on would
+ * strand a rabat one.
+ */
+export function offeredFilterConditions(
+  engagedIds: ReadonlySet<string>,
+  view: PriceViewT,
+  perItemDiscountInert: boolean,
+): RowConditionT[] {
+  return ROW_CONDITIONS.filter(
+    (condition) =>
+      condition.kind === 'filter' &&
+      (engagedIds.has(condition.id) ||
+        ((condition.plane == null || condition.plane === view) &&
+          !(perItemDiscountInert && DISCOUNT_CONDITION_IDS.has(condition.id)))),
+  )
 }

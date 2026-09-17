@@ -7,10 +7,9 @@ import {
 } from '@/lib/db/workshop-investment'
 import { deleteTestInvestment } from '@/__tests__/helpers/investment'
 
-// A spec cannot create its own warsztat: `investments_single_szablon_idx` allows exactly one in the
-// database, and `db:import:test` restores production's the moment production has one. So it borrows
-// whichever warsztat is there — provisioning one only when the database has none — and `release`
-// puts the pointer back where it found it rather than leaving a real row aimed at a test fixture.
+// A spec can't create its own warsztat — `investments_single_szablon_idx` allows exactly one, and
+// `db:import:test` restores production's the moment production has one. This borrows whichever
+// warsztat exists (provisioning only if none), and `release` puts the pointer back where it found it.
 export async function acquireTestWorkshop(
   payload: Payload,
 ): Promise<{ id: number; release: () => Promise<void> }> {

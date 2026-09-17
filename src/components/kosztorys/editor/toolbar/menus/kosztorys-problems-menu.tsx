@@ -2,7 +2,10 @@
 
 import { Check, RefreshCw, RotateCcw, TriangleAlert } from 'lucide-react'
 import { Fragment } from 'react'
-import { FilterTriggerButton } from '@/components/filters/filter-trigger-button'
+import {
+  FilterTriggerButton,
+  TOOLBAR_FILTER_TRIGGER_CLASS,
+} from '@/components/filters/filter-trigger-button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,7 +59,7 @@ export function KosztorysProblemsMenu() {
           tone="destructive"
           icon={TriangleAlert}
           iconPosition="right"
-          className="w-fit min-w-0"
+          className={TOOLBAR_FILTER_TRIGGER_CLASS}
         >
           {engaged ? 'Problemy (1)' : 'Problemy'}
         </FilterTriggerButton>

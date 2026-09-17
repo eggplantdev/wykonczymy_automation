@@ -50,10 +50,9 @@ function renderPair(override?: number | null) {
   }
 }
 
-// EX-766 collapsed the source pair into one nullable column, so `null` („ask the investment") and
-// `0` („zero złotych") are the same field holding two different answers — and the source label is
-// derived from it rather than stored. A falsy test in place of the `=== null` one reads an explicit
-// zero as „auto", which is how a crew ends up billed at the mnożnik rate nobody chose.
+// EX-766: `null` („ask the investment") and `0` („zero złotych") share one nullable field, with the
+// source label derived from it — a falsy check instead of `=== null` reads an explicit zero as
+// „auto", billing the crew at the mnożnik rate nobody chose.
 describe('„Źródło ceny wykonawcy" — derived from the price, so 0 zł is not „auto"', () => {
   it('reads „auto" and shows the rate the investment derives', () => {
     const { price, source } = renderPair()

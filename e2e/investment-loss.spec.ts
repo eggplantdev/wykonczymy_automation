@@ -19,21 +19,26 @@ import {
 // A term dropped from one of them still renders a number, and the number is a debt the client is
 // asked to pay.
 //
-// The second thing only a browser shows: strata deducts at FACE VALUE on both planes. A rabat is a
-// concession on the price and grosses by VAT; a strata never crossed a VAT bridge, so netto and
-// brutto fall by exactly the same kwota. On a tryb-mieszane investment both columns render side by
-// side, which is what makes „to samo na netto i na brutto" assertable rather than inferred.
+// The second thing only a browser shows: strata deducts at FACE VALUE, also on brutto. A rabat is a
+// concession on the price and grosses by VAT; a strata never crossed a VAT bridge, so brutto falls by
+// exactly the kwota booked rather than 1,23× it. The tryb decides which single column EXISTS
+// (`settlementModeToMoneyAxis` — „Mieszane" settles on netto like tryb netto), so brutto is readable
+// in tryb brutto and nowhere else, and that is the one tryb where the two concessions differ at all.
 test.use({ storageState: 'e2e/.auth/user.json' })
 
 // Long-standing dump investments, chosen rather than seeded for the reason `kosztorys_v2` forces:
 // it resolves the investment off `fetchReferenceData`, whose cache no seed script can invalidate
-// from outside the server process, so a freshly created investment 404s there. LOSS_INVESTMENT is
-// already tryb mieszane and carries a 377-pozycja kosztorys with no transfers — both planes render
-// and the debt is real. CLEAN_INVESTMENT has never had a strata, and never gets one here: it is the
+// from outside the server process, so a freshly created investment 404s there. LOSS_INVESTMENT
+// carries a 377-pozycja kosztorys with no transfers, so the debt the settlement prints is real; the
+// brutto test switches its tryb itself. CLEAN_INVESTMENT has never had a strata, and never gets one here: it is the
 // control for „no strata, no step", which the loss-booking investment can never re-assert once this
 // spec has run against it (the test DB is never reset).
+//
+// The control needs a KOSZTORYS as much as it needs a clean history: with none, v2 reads 0 zł and the
+// panel prints no settlement at all, so „no strata step" would pass on a page that renders no steps
+// whatsoever. „Foksal 12/14" (134) was the control until it turned out to carry zero pozycji.
 const LOSS_INVESTMENT = { id: 137, name: 'testowe inwestycje' }
-const CLEAN_INVESTMENT = { id: 134, name: 'Foksal 12/14' }
+const CLEAN_INVESTMENT = { id: 106, name: 'Sulmierzycka 6/29 - poprawki' }
 
 // Book a strata through the global „Wydatek" dialog — the real route, so the write goes through the
 // server action and its revalidation rather than a seed that bypasses both. Opened from the
@@ -46,7 +51,7 @@ async function bookLoss(page: Page, investmentName: string, amount: number): Pro
   await trigger.click()
 
   await page.getByText('Nowy wydatek').first().waitFor()
-  await page.getByLabel('Typ wydatku').click()
+  await page.getByLabel('Typ wydatku', { exact: true }).click()
   await page.getByRole('option', { name: 'Strata', exact: true }).click()
   // A strata carries no kasa and no kategoria — it is a cost the company swallowed, not a cash
   // movement — so the investment and the kwota are the whole form.
@@ -59,23 +64,18 @@ async function bookLoss(page: Page, investmentName: string, amount: number): Pro
   await page.getByText('Nowy wydatek').first().waitFor({ state: 'hidden' })
 }
 
-// „Pozostało do zapłaty" and the „Strata" step above it, both planes. Under tryb mieszane a
-// settlement row renders netto and brutto in one grid row, which `readSummaryFigures` joins with
-// „ | ". The strata step is absent until the investment has one, so it reads as a 0 zł pair.
+// „Pozostało do zapłaty" and the „Strata" step above it, on the one money column the tryb projects.
+// The strata step is absent until the investment has one, so it reads 0 zł.
 async function readSettlement(
   page: Page,
   investmentId: number,
-): Promise<{ due: [number, number]; loss: [number, number] }> {
+): Promise<{ due: number; loss: number }> {
   await page.goto(`/inwestycje/${investmentId}`)
   await openPanelView(page, 'Podsumowanie')
   const figures = await readSummaryFigures(page)
   const due = figures['Pozostało do zapłaty']
   expect(due, `no „Pozostało do zapłaty" step on inwestycja ${investmentId}`).toBeTruthy()
-  const pair = (text: string | undefined): [number, number] => {
-    const [net, gross] = (text ?? '0 | 0').split('|').map(parsePln)
-    return [net, gross]
-  }
-  return { due: pair(due), loss: pair(figures['Strata']) }
+  return { due: parsePln(due), loss: parsePln(figures['Strata'] ?? '0') }
 }
 
 test('a booked strata raises the investor balance by the same kwota on the listing and on the investment page', async ({
@@ -114,27 +114,28 @@ test('a booked strata raises the investor balance by the same kwota on the listi
     .toBeCloseTo(headerBefore + amount - tileAmount, 2)
 })
 
-test('a strata deducts at face value on both planes of the v2 settlement', async ({ page }) => {
+test('a strata deducts at face value on the brutto plane of the v2 settlement', async ({
+  page,
+}) => {
   const amount = uniqueAmount()
-  await ensureSettlementMode(page, LOSS_INVESTMENT.id, 'Mieszane')
+  // Tryb brutto, because the settled column is the only money column that renders and brutto is the
+  // one plane where a strata and a rabat part ways — in netto both simply come off at face value.
+  await ensureSettlementMode(page, LOSS_INVESTMENT.id, 'Brutto')
 
   const before = await readSettlement(page, LOSS_INVESTMENT.id)
 
   await bookLoss(page, LOSS_INVESTMENT.name, amount)
 
-  // Both planes fall by exactly the booked kwota — brutto by the same number, NOT by 1,23×. That is
-  // the whole difference between a strata and a rabat, and it is invisible in tryb netto.
+  // Brutto falls by exactly the booked kwota, NOT by 1,23× it.
   await expect
-    .poll(async () => (await readSettlement(page, LOSS_INVESTMENT.id)).due[0], { timeout: 20_000 })
-    .toBeCloseTo(before.due[0] - amount, 2)
-  const after = await readSettlement(page, LOSS_INVESTMENT.id)
-  expect(after.due[1]).toBeCloseTo(before.due[1] - amount, 2)
+    .poll(async () => (await readSettlement(page, LOSS_INVESTMENT.id)).due, { timeout: 20_000 })
+    .toBeCloseTo(before.due - amount, 2)
 
   // And the deduction is its own named step, not folded into „Wpłaty" — the client reads this table
   // top-down, so a strata hidden inside the wpłaty would misstate what was actually paid. It renders
   // negative (a subtracted step), hence the widening magnitude.
-  expect(after.loss[0]).toBeCloseTo(after.loss[1], 2)
-  expect(after.loss[0]).toBeCloseTo(before.loss[0] - amount, 2)
+  const after = await readSettlement(page, LOSS_INVESTMENT.id)
+  expect(after.loss).toBeCloseTo(before.loss - amount, 2)
 })
 
 test('an investment with no strata prints no strata step', async ({ page }) => {
@@ -143,6 +144,11 @@ test('an investment with no strata prints no strata step', async ({ page }) => {
   const figures = await readSummaryFigures(page)
 
   // A 0 zł step is worse than no step: it invites the reader to look for a strata that isn't there.
-  expect(figures['Pozostało do zapłaty'], 'the panel rendered no settlement at all').toBeTruthy()
+  // The last line is „Pozostało do zapłaty" or „Nadpłata" depending on which side of zero the deal
+  // sits on — this fixture is overpaid, and either label proves the settlement rendered.
+  expect(
+    figures['Pozostało do zapłaty'] ?? figures['Nadpłata'],
+    'the panel rendered no settlement at all',
+  ).toBeTruthy()
   expect(figures['Strata']).toBeUndefined()
 })

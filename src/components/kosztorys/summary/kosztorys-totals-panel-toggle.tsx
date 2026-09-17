@@ -26,10 +26,7 @@ export function KosztorysTotalsPanelToggle({
       size={size}
       disabled={disabled}
       title={disabled ? 'Kosztorys jest pusty — nie ma czego podsumować' : undefined}
-      variant={totalsOpen ? 'default' : 'outline'}
-      // default variant has no border, outline does — keep the box identical so toggling doesn't
-      // shift the right-aligned neighbour by the border's width.
-      className={cn(totalsOpen && 'border border-transparent')}
+      variant="ai"
       onClick={() => setTotalsOpen(!totalsOpen)}
     >
       {/* Both labels stacked in the same grid cell so the button sizes to the wider of the two —

@@ -2,20 +2,15 @@ import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-ve
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
 //
-// Which szablon a restore point belongs to. Punkty przywracania są per-inwestycja, a warsztat to
-// JEDNA inwestycja obsługująca wszystkie szablony — bez tego pola jego historia miesza punkty
-// różnych szablonów w jedną listę po dacie, w której nic ich nie odróżnia. Przywrócenie punktu
-// jednego szablonu i zapis wlewa jego treść do drugiego, a wskaźnik warsztatu tego nie łapie:
-// po przywróceniu to jest już legalnie „bieżąca treść warsztatu".
+// Which szablon a restore point belongs to. Warsztat to jedna inwestycja dla wszystkich szablonów,
+// więc bez tego pola ich punkty przywracania mieszają się w jedną listę nie do odróżnienia po dacie.
 //
-// NULL means „not a szablon restore point" — every snapshot of a real investment, and every row
-// taken before this migration. The reads compare it against the investment's own
-// `template_preset_id`, which is NULL for everything that is not the warsztat, so normal investments
-// keep seeing their whole history through the same predicate.
+// NULL = "not a szablon restore point" (every snapshot of a real investment, plus every pre-migration
+// row). Reads compare it against the investment's own `template_preset_id`, itself NULL outside the
+// warsztat, so normal investments see their whole history through the same predicate unchanged.
 //
-// ON DELETE SET NULL rather than CASCADE: deleting a szablon must not delete history, and a
-// de-attributed point simply stops matching any szablon (the daily GC reaps it on the normal
-// schedule).
+// ON DELETE SET NULL, not CASCADE: deleting a szablon must not delete history — a de-attributed
+// point just stops matching any szablon and gets reaped by the daily GC.
 export async function up({ db }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
     ALTER TABLE "kosztorys_snapshots" ADD COLUMN IF NOT EXISTS "template_preset_id" integer;

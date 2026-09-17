@@ -11,13 +11,9 @@ export type LeadFormT = {
 const empty = (): LeadFormT => ({ questions: [] })
 
 /**
- * Fetch a form's name and questions (`GET /{form_id}?fields=name,questions`) — one call, because
- * the webhook needs both: the questions carry Meta's field types for normalizeLead and the
- * key→label map the answers modal renders, and the name is what the lead stores as its form.
- *
- * Best-effort: any failure (network, bad shape, missing formId) returns empties rather than
- * throwing — a missing label just degrades the modal to a cleaned-up key; it must never block
- * lead capture.
+ * One call for both name and questions: normalizeLead needs Meta's field types, the answers modal
+ * needs the label map. Best-effort — any failure returns empties instead of throwing, since lead
+ * capture must never block on it.
  */
 export async function fetchForm(formId: string | undefined): Promise<LeadFormT> {
   if (!formId) return empty()

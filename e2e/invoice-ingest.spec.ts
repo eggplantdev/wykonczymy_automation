@@ -6,7 +6,7 @@ import {
   type Page,
   type Route,
 } from '@playwright/test'
-import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import {
   createInvestmentExpense,
   EXPENSE_REGISTER,
@@ -41,7 +41,7 @@ import {
 // reaches it — the two scan tests stub it and never touch OpenRouter.
 test.use({ storageState: 'e2e/.auth/user.json' })
 
-const FIXTURE = (name: string) => path.join(__dirname, 'fixtures', name)
+const FIXTURE = (name: string) => fileURLToPath(new URL(`fixtures/${name}`, import.meta.url))
 
 // Real HEVC-still bytes, 1.5 KB. Chrome cannot decode HEIC on canvas, so this exercises the
 // heic-to WASM fallback — the path every non-Safari user is on, and the one EX-732 is about.
@@ -64,6 +64,14 @@ const rowOf = (page: Page, description: string) =>
 // Its text is the filename it was handed, or the placeholder when it holds nothing, which is the one
 // thing this component says out loud about whether a pick survived.
 const filePicker = (scope: Locator) => scope.locator('div[role="button"]:has(input[type="file"])')
+
+// What a picked file is CALLED once it is stored. `uniqueFileName` appends a six-char id to every
+// upload (`appendShortId`), because the blob plugin deliberately runs without `addRandomSuffix` —
+// that would rewrite Payload's `filename` into a ~30-char blob key and put it in front of the user.
+// So the id is mandatory, and it is not Payload's „-N" uniquifier: it lands on the first upload of
+// a name as much as on the fifth. What these assertions are actually about is the EXTENSION.
+const savedAs = (base: string) => new RegExp(`${base}-[0-9a-z]{6}\\.jpg`)
+const previewOf = (base: string) => new RegExp(`^Podgląd faktury: ${base}-[0-9a-z]{6}\\.jpg$`)
 
 // Every picker here is a hidden input behind a real control, so the files go in through the control
 // the person actually clicks — the chooser event is what couples the two. A selector aimed at the
@@ -100,8 +108,9 @@ test('HEIC z pickera edycji przelewu zapisuje się jako JPG (EX-732)', async ({ 
   // survived — so the only honest read of „it was converted" is the name the SAVED faktura carries.
   // A raw HEIC riding through would leave „paragon.heic" here, which is precisely the bug: Blob
   // stores it, and every browser but Safari then renders a broken image forever.
+  // The extension is the whole of EX-732.
   await expect(
-    rowOf(page, description).getByRole('button', { name: 'Podgląd faktury: paragon.jpg' }),
+    rowOf(page, description).getByRole('button', { name: previewOf('paragon') }),
   ).toBeVisible()
 })
 
@@ -175,19 +184,19 @@ test('okno „Dodaj fakturę" w tabeli przyjmuje kilka stron naraz (EX-663)', as
 
   // Both pages reached the action as ONE invoice, in pick order, and the cell learned of it through
   // router.refresh() with no reload of ours.
-  const preview = rowOf(page, description).getByRole('button', {
-    name: 'Podgląd faktury: paragon-a.jpg',
-  })
+  const preview = rowOf(page, description).getByRole('button', { name: previewOf('paragon-a') })
   await expect(preview).toBeVisible()
   await preview.click()
 
-  const dialog = page.getByRole('dialog').filter({ hasText: 'paragon-a.jpg' })
+  // Filtered by a pattern, not by page 1's name: the filter is re-evaluated on every assertion, and
+  // paging to page 2 replaces the very text a fixed-name filter matched on.
+  const dialog = page.getByRole('dialog').filter({ hasText: savedAs('paragon-[ab]') })
   await expect(dialog.getByText('1 / 2')).toBeVisible()
   await dialog.getByRole('button', { name: 'Następna strona' }).click()
   await expect(dialog.getByText('2 / 2')).toBeVisible()
   // The pager is not decoration: page 2 is a different file, and a set that collapsed to one page
   // (or repeated page 1) is the failure this catches.
-  await expect(dialog).toContainText('paragon-b.jpg')
+  await expect(dialog).toContainText(savedAs('paragon-b'))
 })
 
 // One scan per picked file, answered from the file's own name so a result landing on the wrong row
@@ -300,7 +309,7 @@ test('„Jeden wydatek" skleja zdjęcia w jedną wielostronicową fakturę (EX-6
   await expect(preview).toBeVisible()
   await preview.click()
 
-  const dialog = page.getByRole('dialog').filter({ hasText: 'faktura.jpg' })
+  const dialog = page.getByRole('dialog').filter({ hasText: /faktura(-\d+)?\.jpg/ })
   await expect(dialog.getByText('1 / 3')).toBeVisible()
   await dialog.getByRole('button', { name: 'Następna strona' }).click()
   await expect(dialog).toContainText('faktura-2.jpg')

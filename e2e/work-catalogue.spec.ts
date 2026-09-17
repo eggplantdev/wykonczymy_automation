@@ -6,6 +6,7 @@ import {
   gridRow,
   openEditor,
   rowCell,
+  waitForHydration,
   seedCatalogueInvestments,
   tableCell,
   type CatalogueSeedT,
@@ -63,8 +64,19 @@ async function openSaveDialog(page: Page, description: string): Promise<Locator>
 async function findInCatalogue(page: Page, description: string): Promise<void> {
   await page.goto('/katalog-prac')
   const search = page.getByPlaceholder('Szukaj pracy')
+  await search.waitFor()
+  // A value filled into an input React has not claimed yet sits in the DOM and filters nothing —
+  // the whole katalog then reads as „this klucz is not unique".
+  await waitForHydration(search)
   await search.fill(description)
-  await expect(page.locator('table tbody tr'), 'wierszy w katalogu pod tym kluczem').toHaveCount(1)
+  await expect(search).toHaveValue(description)
+  // The list is filtered behind `useDeferredValue`, so ~950 rows redraw before the count settles.
+  await expect(page.locator('table tbody tr'), 'wierszy w katalogu pod tym kluczem').toHaveCount(
+    1,
+    {
+      timeout: 30_000,
+    },
+  )
 }
 
 test('zapis pozycji do katalogu: druga próba nadpisuje ten sam wiersz, po potwierdzeniu', async ({
@@ -149,7 +161,16 @@ test('zapis pozycji do katalogu: druga próba nadpisuje ten sam wiersz, po potwi
 async function rowOrder(page: Page): Promise<string[]> {
   const rows = page.locator('.dsg-row')
   await rows.first().waitFor()
-  return rows.allTextContents()
+  // Text AND the inputs' values: a band's name is only ever in its rename input, so a band read by
+  // `textContent` alone carries the item count and not the sekcja it belongs to.
+  return rows.evaluateAll((nodes) =>
+    nodes.map((node) =>
+      [
+        node.textContent ?? '',
+        ...Array.from(node.querySelectorAll('input')).map((input) => input.value),
+      ].join(' '),
+    ),
+  )
 }
 
 const occurrences = (rows: string[], needle: string) =>
@@ -181,7 +202,7 @@ test('praca z katalogu ląduje na końcu tej sekcji, z której otwarto katalog',
 
   await page
     .locator('.dsg-row.kosztorys-section-header')
-    .filter({ hasText: 'Sekcja beta' })
+    .filter({ has: page.locator('input[value="Sekcja beta"]') })
     .getByRole('button', { name: 'Akcje sekcji' })
     .click()
   await page.getByRole('menuitem', { name: 'Dodaj pracę z katalogu do sekcji…' }).click()

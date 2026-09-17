@@ -53,8 +53,7 @@ function RemainingCell({ amount, weight }: { amount: number; weight?: 'medium' |
   )
 }
 
-// The unassigned bucket has nothing to filter on, so it renders as plain text — it is a residual,
-// not a person.
+// The unassigned bucket is a residual with nothing to filter on, so it renders as plain text.
 export function SubcontractorWorkerTotals({
   investmentId,
   rows,

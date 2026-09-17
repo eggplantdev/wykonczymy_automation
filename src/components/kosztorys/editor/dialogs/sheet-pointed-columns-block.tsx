@@ -5,10 +5,9 @@ import { SheetReportBlock } from '@/components/kosztorys/editor/dialogs/sheet-re
 import type { UnresolvedColumnsT } from '@/lib/kosztorys/sheet-import/resolve-columns'
 
 /**
- * The pointings that made a CLEAN read clean. Without this the note lives only beside a shortfall,
- * so the moment a pick resolves the last missing column the block carrying it disappears — and with
- * it „Usuń wskazanie", leaving a pointing saved on the sheet that nothing in either window can take
- * back. Neutral-to-ok on purpose: a pointed column is not a defect, it is the reason the read worked.
+ * The pointings that made a CLEAN read clean. Beside a shortfall only, „Usuń wskazanie" would vanish
+ * with the last missing column, leaving a saved pointing nothing can take back. Styled neutral: a
+ * pointed column is not a defect.
  */
 export function SheetPointedColumnsBlock({
   investmentId,

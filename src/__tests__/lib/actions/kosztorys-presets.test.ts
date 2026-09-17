@@ -6,9 +6,9 @@ import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { acquireTestWorkshop } from '@/__tests__/helpers/workshop'
 
-// „Wczytaj szablon" replaces a whole rozpiska behind an automatic snapshot, so the only assertions
-// worth making are against PERSISTED state — a success result would hide a failed write, and the
-// „odwracalne" guarantee is real only if the pre-reload snapshot actually restores.
+// „Wczytaj szablon" replaces a whole rozpiska behind an automatic snapshot, so every assertion is on
+// PERSISTED state: a success result would hide a failed write, and „odwracalne" is real only if the
+// pre-reload snapshot actually restores.
 
 const authState = vi.hoisted(() => ({ userId: 0 }))
 
@@ -250,9 +250,8 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
     expect(await progressQty()).toEqual([])
   })
 
-  // The preset payload keeps full snapshot shape-parity, `settings` included, but applying those
-  // would drag one job's pricing config onto another. Handing `restoreKosztorys` the CURRENT settings
-  // is what neutralizes its write-back; this pins that the neutralization actually holds.
+  // The preset payload keeps snapshot shape-parity, `settings` included, but applying those would drag
+  // one job's pricing config onto another — `restoreKosztorys` is handed the CURRENT settings instead.
   it('leaves the investment’s own VAT and coefficients alone rather than taking the szablon’s', async () => {
     await seedLiveTree()
 
@@ -307,10 +306,9 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
     expect(await preReloadSnapshotIds()).toEqual(before)
   })
 
-  // The case above never enters the transaction, so it says nothing about the safety argument the
-  // whole design rests on: the snapshot is written on the transaction handle BEFORE the wipe, so a
-  // throw during the insert must take the snapshot down with it rather than strand a restore point
-  // for a state that was never replaced.
+  // The case above never enters the transaction. The snapshot is written on the transaction handle
+  // BEFORE the wipe, so a throw during the insert must take it down rather than strand a restore
+  // point for a state that was never replaced.
   it('rolls the pre-reload snapshot back when the insert itself throws', async () => {
     await seedLiveTree()
     const snapshotsBefore = await allSnapshotIds()
@@ -325,10 +323,9 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
   })
 })
 
-// The warsztat is ONE row shared by everyone, so „Zapisz" cannot trust the szablon the page was
-// rendered with: between that render and this click someone else may have opened a different one
-// into it. The pointer is therefore re-read at WRITE time, and the assertions are on the persisted
-// payloads — a refusal that still wrote would look identical from the return value.
+// The warsztat is ONE row shared by everyone, so between render and click someone else may have
+// opened a different szablon into it. The pointer is re-read at WRITE time, and the assertions are on
+// the persisted payloads — a refusal that still wrote looks identical from the return value.
 describe.skipIf(!ENV_READY)('saveWorkshopPresetAction — pointer guard (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
@@ -407,7 +404,10 @@ describe.skipIf(!ENV_READY)('saveWorkshopPresetAction — pointer guard (DB)', (
     const result = await saveWorkshopPresetAction(heldPresetId)
 
     expect(result).toMatchObject({ success: true })
-    expect(await sectionNamesOf(heldPresetId)).toEqual([SECTION_NAME])
+    // Contains, not equals: the warsztat is BORROWED from production (see `acquireTestWorkshop`), so
+    // whatever sekcje it already holds are part of its content and get written too. Pinning the exact
+    // list would assert that prod's warsztat is empty, which it stopped being.
+    expect(await sectionNamesOf(heldPresetId)).toContain(SECTION_NAME)
   })
 
   it('refuses — and writes nothing — when the warsztat holds a different szablon', async () => {

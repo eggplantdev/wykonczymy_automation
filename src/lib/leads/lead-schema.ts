@@ -1,8 +1,7 @@
 import { z } from 'zod'
 
-// The shape of a lead fetched from `GET /{leadgen_id}` — the safety-net contract.
-// Deliberately permissive on the parts Meta varies per form (field keys/values)
-// while pinning the envelope we depend on.
+// `GET /{leadgen_id}` — permissive on the parts Meta varies per form (field keys/values), pinning
+// only the envelope we depend on.
 export const leadFieldSchema = z.object({
   name: z.string(),
   values: z.array(z.string()),
@@ -17,14 +16,13 @@ export const leadSchema = z.object({
 
 export type LeadFieldT = z.infer<typeof leadFieldSchema>
 
-// Read-boundary schemas for the untyped `json` columns (`rawData`, `formQuestions`).
-// Payload emits them as an unstructured blob, and admin edits or legacy backfills can
-// hold a shape our writers never produced — so narrow with a parse, not an `as`.
-// `.catch([])` degrades a malformed row to "no answers" instead of throwing mid-render.
+// The untyped `json` columns can hold a shape our writers never produced (admin edits, legacy
+// backfills), so narrow with a parse, not an `as`. `.catch([])` degrades a malformed row to "no
+// answers" instead of throwing mid-render.
 export const leadRawDataSchema = z.array(leadFieldSchema).catch([])
 
-// A form question as returned by `GET /{form_id}?fields=name,questions`. `label` is the
-// human question text we persist to render real questions in the answers modal.
+// `GET /{form_id}?fields=name,questions`. `label` is the human question text, persisted so the
+// answers modal renders real questions.
 export const formQuestionSchema = z.object({
   key: z.string(),
   label: z.string().optional(),
@@ -36,21 +34,18 @@ export const formResponseSchema = z.object({
   questions: z.array(formQuestionSchema).optional(),
 })
 
-// What we persist on the lead (`formQuestions`), ordered: the key→label map the
-// answers modal renders, plus the Meta field `type` — the most reliable signal
-// for normalizeLead (EMAIL/PHONE/FULL_NAME) when it's available.
+// Ordered. The Meta field `type` is normalizeLead's most reliable signal (EMAIL/PHONE/FULL_NAME)
+// when it is available.
 export type LeadFormQuestionT = { key: string; label: string; type?: string }
 
-// Read-boundary schema for the persisted `formQuestions` json column (label is
-// always present — `toLeadFormQuestions` drops label-less entries before storing).
+// `label` is always present — `toLeadFormQuestions` drops label-less entries before storing.
 export const leadFormQuestionsSchema = z
   .array(z.object({ key: z.string(), label: z.string(), type: z.string().optional() }))
   .catch([])
 
 /**
- * Project raw Graph/dump questions (`{key, label?, type?}`) into the persisted
- * `LeadFormQuestionT[]`, dropping label-less entries (nothing to render). Shared
- * by the webhook fetch and the backfill script so the projection lives once.
+ * Drops label-less entries (nothing to render). Shared by the webhook fetch and the backfill script
+ * so the projection lives once.
  */
 export function toLeadFormQuestions(
   questions: readonly { key: string; label?: string; type?: string }[] | undefined,

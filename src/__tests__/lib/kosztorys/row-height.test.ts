@@ -61,9 +61,8 @@ describe('resolveRowHeight', () => {
 })
 
 describe('resolveRowHeight · the client preview never sees a drag', () => {
-  // The owner drags rows flat in the editor and then opens „Widok inwestora" in the same browser,
-  // so the same localStorage map is in scope for both. The preview passes no override at all —
-  // pinned here because the leak clips exactly the descriptions the content fit exists to show.
+  // The owner drags rows flat in the editor and opens „Widok inwestora" in the same browser, so the
+  // same localStorage map is in scope — and a leak clips exactly the descriptions the fit exists for.
   it('sizes to the content when no override is passed, whatever is stored elsewhere', () => {
     expect(resolveRowHeight({ isSectionBand: false, contentLines: 4 })).toBe(heightForLines(4))
   })
