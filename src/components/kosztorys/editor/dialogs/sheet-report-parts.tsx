@@ -3,30 +3,44 @@
 import { useState, type ReactNode } from 'react'
 import * as Collapsible from '@radix-ui/react-collapsible'
 import { ChevronDown } from 'lucide-react'
+import { cn } from '@/lib/utils/cn'
 
 // The shared vocabulary of a sheet report: a table whose first column is a label and whose rest are
 // figures, and a fold that hides a long list behind its own summary line. Both dialogs („Pobierz z
 // arkusza" and „Porównaj z arkuszem") are built from these, so a reader who has learned one has
 // learned the other.
 
-export function ReportTable({ headers, children }: { headers: ReactNode[]; children: ReactNode }) {
+// `headers` is optional because a list of prace has nothing to head: „Podpowiedź" over a column
+// that already says „może chodzi o…" is a label repeating its own contents. The grid is still worth
+// sharing without it — that is what puts the two blocks of a report on the same left edge.
+export function ReportTable({
+  headers,
+  className,
+  children,
+}: {
+  headers?: ReactNode[]
+  className?: string
+  children: ReactNode
+}) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="text-muted-foreground text-xs">
-            {headers.map((header, index) => (
-              <th
-                key={index}
-                // The first column carries the name of the thing, the rest carry its figures — one
-                // left edge to scan down, one right edge to compare numbers along.
-                className={`py-1 font-normal ${index === 0 ? 'text-left' : 'pl-3 text-right'}`}
-              >
-                {header}
-              </th>
-            ))}
-          </tr>
-        </thead>
+      <table className={cn('w-full text-sm', className)}>
+        {headers && (
+          <thead>
+            <tr className="text-muted-foreground text-xs">
+              {headers.map((header, index) => (
+                <th
+                  key={index}
+                  // The first column carries the name of the thing, the rest carry its figures — one
+                  // left edge to scan down, one right edge to compare numbers along.
+                  className={`py-1 font-normal ${index === 0 ? 'text-left' : 'pl-3 text-right'}`}
+                >
+                  {header}
+                </th>
+              ))}
+            </tr>
+          </thead>
+        )}
         <tbody>{children}</tbody>
       </table>
     </div>
@@ -36,16 +50,26 @@ export function ReportTable({ headers, children }: { headers: ReactNode[]; child
 const SHEET_SIDE = 'Arkusz Google'
 const APP_SIDE = 'Ta aplikacja'
 
-type ReportCellT = { content: ReactNode; tone?: string }
+// `className` rather than a tone: most cells here are figures and take the numeric defaults, but a
+// cell holding PROSE has to be able to drop `text-right`, which a colour-only knob cannot do.
+type ReportCellT = { content: ReactNode; className?: string }
 
-export function ReportRow({ label, cells }: { label: ReactNode; cells: ReportCellT[] }) {
+export function ReportRow({
+  label,
+  labelClassName,
+  cells,
+}: {
+  label: ReactNode
+  labelClassName?: string
+  cells: ReportCellT[]
+}) {
   return (
     <tr className="border-border/60 border-t align-middle">
-      <td className="py-1">{label}</td>
+      <td className={cn('py-1', labelClassName)}>{label}</td>
       {cells.map((cell, index) => (
         <td
           key={index}
-          className={`py-1 pl-3 text-right tabular-nums ${cell.tone ?? 'text-foreground'}`}
+          className={cn('text-foreground py-1 pl-3 text-right tabular-nums', cell.className)}
         >
           {cell.content}
         </td>
@@ -62,12 +86,18 @@ export function ComparisonTable({
   // summary rows are checked against the sheet's own prace, and borrowing „Ta aplikacja" for that
   // column put one and the same figure under opposite headers in the two dialogs.
   sides = [SHEET_SIDE, APP_SIDE],
+  // A trailing column for a per-row control. Declared on the table rather than inferred from the
+  // rows, because the rows are a `flatMap` over prace: whether the write is offered at all is one
+  // decision about the whole report (a read-only viewer), not something to re-answer per wiersz.
+  withAction = false,
   children,
 }: {
   sides?: [string, string]
+  withAction?: boolean
   children: ReactNode
 }) {
-  return <ReportTable headers={['', ...sides, 'Różnica']}>{children}</ReportTable>
+  const headers = ['', ...sides, 'Różnica', ...(withAction ? [''] : [])]
+  return <ReportTable headers={headers}>{children}</ReportTable>
 }
 
 export function ComparisonRow({
@@ -75,40 +105,62 @@ export function ComparisonRow({
   sheet,
   app,
   delta,
+  action,
 }: {
   label: ReactNode
   sheet: ReactNode
   app: ReactNode
   delta: string | null
+  // `null` still opens the cell — under a table with `withAction` every wiersz owes one, and the
+  // rows that carry no control are the majority: one praca differs on three liczby and the write
+  // is offered once, on the first of them.
+  action?: ReactNode
 }) {
   const cells: ReportCellT[] = [
     { content: sheet },
     { content: app },
     {
       content: delta ?? 'zgadza się',
-      tone: delta === null ? 'text-muted-foreground' : 'text-amber-600',
+      className: delta === null ? 'text-muted-foreground' : 'text-amber-600',
     },
+    ...(action !== undefined ? [{ content: action, className: 'whitespace-nowrap' }] : []),
   ]
   return <ReportRow label={label} cells={cells} />
 }
 
-// „sekcja · opis", the way both dialogs name a praca they are listing rather than pricing. `note`
-// is the rare per-praca aside — „wpisane etapy" on a praca an import is about to remove — and rides
-// the same line so the eye picks it out of a fold that can run to hundreds of rows.
+// „sekcja · opis", the way both dialogs name a praca they are listing rather than pricing. Built on
+// the same `ReportTable` as the figure blocks above it, so „Brak w katalogu" lines up with „Inne
+// liczby" instead of reading as a different kind of window. `note` is the per-praca aside („wpisane
+// etapy" on a praca an import is about to remove, „może chodzi o…" on one the cennik lacks) and
+// `action` the per-praca write; both earn a column only when some item actually carries one, so a
+// bare list stays a bare list.
 export function ItemList({
   items,
 }: {
-  items: { section: string; description: string; note?: string }[]
+  items: { section: string; description: string; note?: string; action?: ReactNode }[]
 }) {
+  const hasNote = items.some((item) => item.note)
+  const hasAction = items.some((item) => item.action)
   return (
-    <>
+    <ReportTable className="text-xs">
       {items.map((item, index) => (
-        <p key={`${index}-${item.description}`} className="text-muted-foreground text-xs">
-          {item.section} · {item.description}
-          {item.note && <span className="text-amber-600"> · {item.note}</span>}
-        </p>
+        <ReportRow
+          key={`${index}-${item.description}`}
+          label={
+            <span className="text-muted-foreground">
+              {item.section} · {item.description}
+            </span>
+          }
+          // Half the row to the opis: left to auto-layout, a long podpowiedź takes the width and the
+          // nazwa pracy — the thing being listed — wraps to six lines beside it.
+          labelClassName={hasNote ? 'w-1/2' : undefined}
+          cells={[
+            ...(hasNote ? [{ content: item.note, className: 'text-left text-amber-600' }] : []),
+            ...(hasAction ? [{ content: item.action, className: 'whitespace-nowrap' }] : []),
+          ]}
+        />
       ))}
-    </>
+    </ReportTable>
   )
 }
 

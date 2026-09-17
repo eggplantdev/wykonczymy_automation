@@ -251,8 +251,11 @@ function ColumnsBlock({
             key={column.label}
             label={`„${column.label}"`}
             cells={[
-              { content: MISSING_COLUMN_REASONS[column.reason], tone: 'text-muted-foreground' },
-              { content: column.consequence, tone: 'text-amber-600' },
+              {
+                content: MISSING_COLUMN_REASONS[column.reason],
+                className: 'text-muted-foreground',
+              },
+              { content: column.consequence, className: 'text-amber-600' },
             ]}
           />
         ))}

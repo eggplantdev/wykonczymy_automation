@@ -181,7 +181,9 @@ export function AddItemsFromCatalogueDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-5xl sm:p-0">
+      {/* Widest of the editor's windows: seven columns of cennik, and the kategoria is what the eye
+          picks a praca out by — clipped, it stops being a column and becomes noise. */}
+      <DialogContent className="sm:max-w-dialog-xl gap-0 overflow-hidden p-0 sm:p-0">
         <DialogHeader className="px-4 pt-4" title="Dodaj pracę z katalogu" />
         <div className="flex items-center gap-4 px-4 py-3">
           <SearchFilterInput

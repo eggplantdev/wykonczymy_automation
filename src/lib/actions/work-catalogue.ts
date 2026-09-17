@@ -21,6 +21,7 @@ import type {
   AppendedCatalogueSliceT,
   CatalogueComparisonT,
   CatalogueSavePreviewT,
+  CatalogueSeedItemT,
   WorkCatalogueItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
 import type { ActionResultT } from '@/types/action'
@@ -199,8 +200,7 @@ const EMPTY_DESCRIPTION_ERROR = 'Praca bez opisu nie trafi do katalogu — najpi
 const EMPTY_UNIT_ERROR = 'Praca bez jednostki miary nie trafi do katalogu — najpierw uzupełnij j.m.'
 
 // Both „Zapisz do katalogu…" paths start here, with the numbers derived from the pozycja in the DB
-// and never from the wire, so the dialog's preview and the save cannot disagree. The refusals live
-// here too, or each caller would re-run them and the two would drift.
+// and never from the wire, so the dialog's preview and the save cannot disagree.
 async function catalogueSaveState(
   payload: Payload,
   itemId: number,
@@ -210,11 +210,18 @@ async function catalogueSaveState(
   if (!source) return { error: MISSING_ITEM_ERROR }
 
   const candidate = toCatalogueCandidate(source)
-  if (!candidate.description) return { error: EMPTY_DESCRIPTION_ERROR }
-  if (!candidate.unit) return { error: EMPTY_UNIT_ERROR }
-
   const existing = await findCatalogueItemByKey(db, candidate.matchKey)
   return { candidate, existing: existing ?? null }
+}
+
+// Only the BLIND save refuses an incomplete praca — it writes the candidate verbatim, so a missing
+// j.m. would die on Payload's own validation and hand the owner a framework sentence. The preview
+// deliberately does not: the form it fills is the place where the missing j.m. gets typed in, and
+// refusing there would be an error message with nowhere to go and fix it.
+function incompleteCandidateError(candidate: CatalogueSeedItemT): string | null {
+  if (!candidate.description) return EMPTY_DESCRIPTION_ERROR
+  if (!candidate.unit) return EMPTY_UNIT_ERROR
+  return null
 }
 
 // Fetch-on-open for the dialog: what would be written, and what is already there under that klucz.
@@ -259,6 +266,8 @@ export async function saveItemToCatalogueAction(
       if ('error' in state) return { success: false, error: state.error }
 
       const { candidate, existing } = state
+      const incomplete = incompleteCandidateError(candidate)
+      if (incomplete) return { success: false, error: incomplete }
 
       if (parsed.data.mode === 'overwrite') {
         // Deleted between opening the dialog and confirming: the overwrite IS a create, and refusing

@@ -884,12 +884,18 @@ export function useKosztorysEditor({
     setRows((rs) => applyInsertSectionRow(rs, anchorSectionId, row, dir))
   }
 
-  async function handleAddSection() {
+  // Returns the new section's id so a caller that needs somewhere to put something (the katalog
+  // picker on an empty kosztorys) can chain straight into it.
+  async function handleAddSection(): Promise<number | null> {
     const res = await addSectionAction(investmentId)
-    if (!res.success) return reportFailure(res.error, res.code)
+    if (!res.success) {
+      reportFailure(res.error, res.code)
+      return null
+    }
     const row = buildNewSectionRow(res.data.section.id, res.data.item)
     prevById.current.set(row.id, row)
     setRows((rs) => applyAddItem(rs, row))
+    return res.data.section.id
   }
 
   // Built through treeToRows with the CURRENT stages + global discount, so appended rows carry today's

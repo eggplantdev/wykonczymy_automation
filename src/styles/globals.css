@@ -48,10 +48,17 @@
 
   /* Dialog widths, from `sm:` up — below that a dialog is a full-bleed sheet and takes none of
      these. The `min(90vw, …)` is the shared half: the cap is what the content wants, 90vw is what
-     stops it touching the edges on a narrow laptop. Three sizes, not an open scale. */
+     stops it touching the edges on a narrow laptop. Four sizes, not an open scale.
+     They only bite because `cn()` is taught these tokens (`lib/utils/cn.ts`) — untaught,
+     tailwind-merge leaves an override beside the base class and stylesheet order eats it. */
   --container-dialog-sm: min(90vw, 26.25rem);
   --container-dialog: min(90vw, 37.5rem);
   --container-dialog-lg: min(90vw, 56.25rem);
+  /* For a window whose content is a TABLE — the report dialogs and the katalog picker. Anything
+     narrower wraps a long opis over three lines and pulls the figures off the row they describe.
+     Wider than the others by 80vw rather than 90vw, and capped at 1200px: past that the opis and the
+     figures it belongs to sit at opposite ends of a wide monitor. */
+  --container-dialog-xl: min(80vw, 75rem);
 
   /* Viewport minus the shell's chrome — 3.5rem IS the TopNav's h-14, and two files were carrying it
      as a bare number. Anything that must fill the page UNDER the top bar takes h-below-top-nav. */

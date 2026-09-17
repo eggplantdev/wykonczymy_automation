@@ -42,7 +42,9 @@ export function SheetReportDialog<DataT>({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl">
+      {/* Wide because every row here is „długi opis pracy" against three or four figure columns —
+          narrower, the opis wraps to three lines and the numbers it is about drift off its own row. */}
+      <DialogContent className="sm:max-w-dialog-xl">
         <DialogHeader title={title} description={description} />
 
         {!loaded ? (
