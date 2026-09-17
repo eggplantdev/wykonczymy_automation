@@ -38,11 +38,13 @@ export const FilterTriggerButton = forwardRef<HTMLButtonElement, FilterTriggerBu
         variant={variant}
         size="sm"
         align="start"
-        className={cn('sm:min-w-40', className)}
+        // The label is clipped, not wrapped: Button is `whitespace-nowrap`, so a long one
+        // („Typ wydatku inwestycyjnego") ran straight out of the grid cell on a phone.
+        className={cn('overflow-hidden sm:min-w-40', className)}
         {...props}
       >
         {Icon && iconPosition === 'left' && <Icon />}
-        {children}
+        <span className="truncate">{children}</span>
         {Icon && iconPosition === 'right' && <Icon />}
       </Button>
     )
