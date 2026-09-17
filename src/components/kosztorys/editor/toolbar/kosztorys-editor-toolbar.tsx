@@ -31,7 +31,7 @@ export function KosztorysEditorToolbar() {
   const [toolsOpen, setToolsOpen] = useState(false)
 
   return (
-    <div className="border-border shrink-0 border-b">
+    <div className="border-border relative shrink-0 border-b">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2">
         {/* Stays on screen when the rest is folded away: the two controls that change what the whole
             rozpiska SHOWS, as against the ones that edit or narrow it. */}
@@ -55,9 +55,14 @@ export function KosztorysEditorToolbar() {
           </button>
         </div>
 
+        {/* Floats over the rozpiska instead of taking a track in the column: in flow it shortened the
+            grid's flex track on every open/close, and the grid measures its height to size the
+            virtualized window — a full remeasure and re-render of hundreds of rows for a panel that
+            is on screen for a second. `sm:contents` generates no box from 768 up, so every class
+            here (position, background, padding) stops applying on its own. */}
         <div
           className={cn(
-            'w-full flex-wrap items-center gap-x-3 gap-y-2 sm:contents',
+            'bg-background border-border absolute inset-x-0 top-full z-30 w-full flex-wrap items-center gap-x-3 gap-y-2 border-b px-4 py-2 shadow-md sm:contents',
             toolsOpen ? 'flex' : 'hidden',
           )}
         >
