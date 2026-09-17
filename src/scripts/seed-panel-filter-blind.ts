@@ -42,8 +42,10 @@ async function seedTransaction(
       collection: 'transactions',
       disableTransaction: true,
       data: { ...txn, paymentMethod: 'TRANSFER', date: new Date().toISOString() },
-      // Every non-prod DB is a restored prod dump carrying live sheet ids, so without skipSheetSync
-      // this transaction is one `after()` away from the owner's real arkusz.
+      // Kept as the belt to the credential gate's braces: every non-prod DB is a restored prod dump
+      // carrying live sheet ids, so the id this row would sync against is real. What stops the write
+      // is that `GOOGLE_SERVICE_ACCOUNT_WRITE_JSON` exists only in Vercel Production — `skipSheetSync`
+      // means the sync is never attempted, not that it would otherwise succeed.
       ...ctx,
     })
   } catch (error) {

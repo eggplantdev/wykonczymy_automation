@@ -1,8 +1,13 @@
 // FIXTURE (EX-668): seeds the netto-materiały plane. Without it the dump has zero
 // `INVESTMENT_EXPENSE_NET` rows and `pnpm test:parity` compares nothing here.
 // Fourth db-test reset step: `pnpm seed:materials-net:test`; refuses any DB but `wykonczymy-test`.
-// Fixed investment id keeps it out of the golden-master fixture. Raw SQL, not Payload, because
-// `transactions.afterChange` syncs to the owner's live sheet.
+// The fixed investment id is what makes it reproducible, not what hides it — inw. 900101 IS in the
+// golden-master fixture, and its wydatki move kasa #5 there too, so this seed is part of the reset
+// ritual rather than optional. Raw SQL, not Payload, so the rows
+// carry explicit ids and no hook fires (`recalculate-balances` calls `revalidateTag`, which throws
+// outside a request context). NOT because of the arkusz: since 2026-08-27 a sheet write needs
+// `GOOGLE_SERVICE_ACCOUNT_WRITE_JSON`, which lives only in Vercel Production, so the sync throws
+// long before Google is reached.
 import { getPayload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import config from '../payload.config'

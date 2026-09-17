@@ -404,7 +404,10 @@ describe.skipIf(!ENV_READY)('saveWorkshopPresetAction — pointer guard (DB)', (
     const result = await saveWorkshopPresetAction(heldPresetId)
 
     expect(result).toMatchObject({ success: true })
-    expect(await sectionNamesOf(heldPresetId)).toEqual([SECTION_NAME])
+    // Contains, not equals: the warsztat is BORROWED from production (see `acquireTestWorkshop`), so
+    // whatever sekcje it already holds are part of its content and get written too. Pinning the exact
+    // list would assert that prod's warsztat is empty, which it stopped being.
+    expect(await sectionNamesOf(heldPresetId)).toContain(SECTION_NAME)
   })
 
   it('refuses — and writes nothing — when the warsztat holds a different szablon', async () => {

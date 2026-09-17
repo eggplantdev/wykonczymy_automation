@@ -181,7 +181,7 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
       // where the netto plane deducts the netto the faktura named — 230 zł apart on a 1230/1000 wpłata.
       const detailAmountDue = computeAmountDue(
         readingFromKosztorys(kosztorysTotals[String(inv.id)]).laborCostsNet,
-        depositPairFromPlaneSums(depositPlaneSums[String(inv.id)] ?? NO_DEPOSIT_SUMS, inv.vatRate),
+        depositPairFromPlaneSums(depositPlaneSums[String(inv.id)] ?? NO_DEPOSIT_SUMS),
         { grossBase: detailFin.materialsGrossBase, netBilled: detailFin.materialsNetBilled },
         inv.vatRate,
         netRate,

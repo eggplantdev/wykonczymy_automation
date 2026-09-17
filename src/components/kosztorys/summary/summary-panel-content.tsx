@@ -190,7 +190,7 @@ export function SummaryPanelContent({
   // The wpłaty on each plane, READ off the rows — a wpłata netto contributes nothing to brutto,
   // a wpłata brutto carries its own netto from the faktura. Summed here, beside the buckets, so the
   // settlement and the wpłaty list can never sum them by two rules.
-  const paidPair = sumDeposits(depositTransactions, vatRate)
+  const paidPair = sumDeposits(depositTransactions)
   // Both controls that write the tryb go through this, so neither can raise the switch without
   // pricing it first. Warning only — the switch is never refused (owner, 2026-08-23).
   const changeSettlementMode =

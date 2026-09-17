@@ -8,7 +8,6 @@ import type { DepositTransactionRowT } from '@/types/transfers'
 type PropsT = {
   investmentId: number
   rows: DepositTransactionRowT[]
-  vatRate: number
   // Decides which wpłaty are off-plane — those rows scream red in the list.
   settlementMode: SettlementModeT
   // Read-only client render — no row links.
@@ -20,7 +19,6 @@ type PropsT = {
 export function SummaryDepositsTab({
   investmentId,
   rows,
-  vatRate,
   settlementMode,
   preview = false,
 }: PropsT) {
@@ -32,7 +30,6 @@ export function SummaryDepositsTab({
         investmentId={investmentId}
         rows={rows}
         preview={preview}
-        vatRate={vatRate}
         settlementMode={settlementMode}
       />
       {!preview && (

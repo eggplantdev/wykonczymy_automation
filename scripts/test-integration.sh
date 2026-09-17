@@ -27,13 +27,17 @@ if [ "$SENTINEL_MISSING" != "f" ] || [ "$(cat "$STAMP" 2>/dev/null || true)" != 
   [ -s dumps/dump-latest.sql ] || pnpm db:dump
   pnpm db:import:test
   DB_POSTGRES_URL="$DB_POSTGRES_URL_TEST" pnpm exec payload migrate
-  # A re-import restores the prod dump, and the dump carries neither kosztorys rows nor a single
-  # wpłata brutto — so an import that stops here silently strips the coverage `pnpm test:parity`'s
-  # dataset floor exists to guarantee, and the next parity run fails on a fixture this script
-  # thinned. Re-seed both here, so the documented three-step reset holds however the test DB is
-  # rebuilt.
+  # A re-import restores the prod dump, which since ~2026-09 carries kosztorysy (4130 pozycji) and
+  # 27 wpłaty brutto of its own — so neither seed below still fills an empty plane. They are kept for
+  # DETERMINISM: `seed:deposits:test` pins the brutto axis to fixed ids and fixed kwoty on two known
+  # investments, and `seed:kosztorys:test` is the ~1000-row PERF fixture, which also gives inw. 7 the
+  # kosztorys the deposits seed's two-target split rests on. `seed:materials-net:test` is the one
+  # that still fills an empty plane (INVESTMENT_EXPENSE_NET, 0 rows in the dump) — and all three are
+  # baked into the golden-master fixture, so a reset that skips one leaves the fixture describing a
+  # dataset this container does not hold.
   pnpm seed:kosztorys:test
   pnpm seed:deposits:test
+  pnpm seed:materials-net:test
   printf '%s' "$FINGERPRINT" > "$STAMP"
 else
   echo "→ test DB schema current — skipping re-import"

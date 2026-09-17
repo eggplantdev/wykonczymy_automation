@@ -12,7 +12,7 @@ import { round2 } from '@/__tests__/helpers/money'
 
 // The wpłata bucketing exists twice — in TS (`bucketDepositsByPlane`, folding the rows the panel
 // already holds) and in SQL (`selectDepositPlaneSums`, because the listing has no business shipping
-// every wpłata to compute four scalars). Only the TS side had unit tests. This spec compares the two
+// every wpłata to compute a handful of scalars). Only the TS side had unit tests. This spec compares the two
 // implementations directly rather than either against a hand-computed number: a hand-computed
 // expectation would pin the SQL to whatever the test author believed the rule was, and the rules here
 // („brak wartości = netto"; a wpłata brutto's netto is READ off the faktura, never derived) are
@@ -22,7 +22,6 @@ const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SEC
 const roundSums = (sums: DepositPlaneSumsT): DepositPlaneSumsT => ({
   paidNet: round2(sums.paidNet),
   paidGrossNet: round2(sums.paidGrossNet),
-  paidGrossLegacy: round2(sums.paidGrossLegacy),
   paidGross: round2(sums.paidGross),
   paidNetCount: sums.paidNetCount,
 })
@@ -79,15 +78,14 @@ describe.skipIf(!ENV_READY)('selectDepositPlaneSums (DB)', () => {
 
   it('is folding a dataset that actually contains wpłaty brutto', () => {
     // Without this the spec above can pass comparing zero with zero on every investment: untagged
-    // counts as gotówka, so a fixture with no wpłata brutto leaves three of the four buckets empty
-    // and never touches the brutto half of either implementation.
+    // counts as gotówka, so a fixture with no wpłata brutto leaves both brutto buckets empty and
+    // never touches the brutto half of either implementation.
     const totals = [...sqlSums.values()].reduce(
       (acc, sums) => ({
         paidGross: acc.paidGross + sums.paidGross,
         paidGrossNet: acc.paidGrossNet + sums.paidGrossNet,
-        paidGrossLegacy: acc.paidGrossLegacy + sums.paidGrossLegacy,
       }),
-      { paidGross: 0, paidGrossNet: 0, paidGrossLegacy: 0 },
+      { paidGross: 0, paidGrossNet: 0 },
     )
 
     const empty = Object.entries(totals)

@@ -18,7 +18,7 @@ const NO_MAP = {}
 // wpłata.
 const NO_DEPOSITS: DepositPlaneSumsMapT = {}
 const paidNet = (amount: number): DepositPlaneSumsMapT => ({
-  '5': { paidNet: amount, paidGrossNet: 0, paidGrossLegacy: 0, paidGross: 0, paidNetCount: 1 },
+  '5': { paidNet: amount, paidGrossNet: 0, paidGross: 0, paidNetCount: 1 },
 })
 
 const baseInv: InvestmentRefT = {
@@ -558,7 +558,6 @@ describe('shapeInvestments wpłaty', () => {
       '5': {
         paidNet: 4000,
         paidGrossNet: 1000,
-        paidGrossLegacy: 0,
         paidGross: 1230,
         paidNetCount: 1,
       },
@@ -577,19 +576,21 @@ describe('shapeInvestments wpłaty', () => {
     expect(row.balanceGross).toBeCloseTo(-(12_300 - 1230), 10)
   })
 
-  it('crosses a pre-spike przelew at VAT and nothing else', () => {
-    const legacyOnly: DepositPlaneSumsMapT = {
-      '5': { paidNet: 0, paidGrossNet: 0, paidGrossLegacy: 1230, paidGross: 1230, paidNetCount: 0 },
+  it('deducts nothing on netto for a przelew whose faktura named no netto', () => {
+    // A row the write path has refused since 2026-07-26 and prod has never held. It pays down the
+    // brutto plane by what moved and the netto plane by nothing — no netto is estimated at VAT.
+    const netlessOnly: DepositPlaneSumsMapT = {
+      '5': { paidNet: 0, paidGrossNet: 0, paidGross: 1230, paidNetCount: 0 },
     }
     const [row] = shapeInvestments(
       [{ ...baseInv, vatRate: 0.23 }],
       { '5': ZERO_FINANCIALS },
       owes10k,
       NO_MAP,
-      legacyOnly,
+      netlessOnly,
     )
 
-    expect(row.balance).toBeCloseTo(-(10_000 - 1000), 10)
+    expect(row.balance).toBeCloseTo(-10_000, 10)
     expect(row.balanceGross).toBeCloseTo(-(12_300 - 1230), 10)
   })
 
@@ -620,7 +621,6 @@ describe('shapeInvestments wpłaty osierocone przez tryb brutto', () => {
     '5': {
       paidNet: 4000,
       paidGrossNet: 1000,
-      paidGrossLegacy: 0,
       paidGross: 1230,
       paidNetCount: 2,
     },
@@ -646,7 +646,7 @@ describe('shapeInvestments wpłaty osierocone przez tryb brutto', () => {
 
   it('leaves the row unmarked in tryb brutto when every wpłata came przelewem', () => {
     const transfersOnly: DepositPlaneSumsMapT = {
-      '5': { paidNet: 0, paidGrossNet: 1000, paidGrossLegacy: 0, paidGross: 1230, paidNetCount: 0 },
+      '5': { paidNet: 0, paidGrossNet: 1000, paidGross: 1230, paidNetCount: 0 },
     }
     const [row] = shapeInvestments(
       [{ ...baseInv, settlementMode: 'GROSS', vatRate: 0.23 }],

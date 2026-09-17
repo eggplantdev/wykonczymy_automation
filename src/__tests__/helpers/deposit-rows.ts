@@ -22,8 +22,9 @@ export const transfer = (amount: number, netAmount: number): DepositRowT => ({
   vatPlane: 'GROSS',
 })
 
-/** A wpłata brutto booked before `netAmount` existed — the only row the legacy bridge touches. */
-export const legacyTransfer = (amount: number): DepositRowT => ({
+/** A wpłata brutto with no netto. `getNetAmountError` has refused to save one since 2026-07-26 and
+ *  prod has never held one, so this exists to pin what the sums do if raw SQL ever writes one. */
+export const netlessTransfer = (amount: number): DepositRowT => ({
   amount,
   netAmount: null,
   vatPlane: 'GROSS',
