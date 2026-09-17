@@ -14,8 +14,8 @@ import type { InvoiceFileT } from '@/types/transfers'
  * rather than a helper: the server row doesn't refresh until the table revalidates, so removing one
  * page of three has to hide that page locally, per id.
  *
- * The confirm is staged rather than run inline — `removalConfirm` is spread onto a `ConfirmDialog`
- * by each consumer, so the question is asked in the app's own window instead of `window.confirm`.
+ * `removalConfirm` is spread onto a `ConfirmDialog` by each consumer, so the question is asked in the
+ * app's own window.
  */
 export function useInvoiceRemoval(transactionId: number, invoices: InvoiceFileT[]) {
   const [removedIds, setRemovedIds] = useState<Set<number>>(new Set())

@@ -2,8 +2,8 @@ import type { Where } from 'payload'
 import type { FilterConfigT } from '@/types/filters'
 import type { PaginationParamsT } from '@/lib/utils/pagination'
 
-// `sort` travels with page/limit rather than living in the table: the whole point of EX-777 is that
-// the DATABASE orders the rows, so the ordering has to be part of the query the host parses.
+// `sort` travels with page/limit, not in the table: EX-777's whole point is the DATABASE orders
+// rows, so ordering is part of the query the host parses.
 type TransferQueryT = PaginationParamsT & { where: Where; sort: string }
 
 export type TransferTableConfigT = {
@@ -27,9 +27,8 @@ export type TransferTableConfigT = {
   invoiceDownload?: boolean
   /**
    * Opt in to the print button. Its own flag, never `invoiceDownload`'s — one feature's data must
-   * not gate another's visibility. The fetch behind it is unpaginated over the table's own `where`,
-   * same caveat as the invoice download. Optional and therefore SILENT: a page that forgets to set
-   * it compiles clean and simply never shows the button, so verify each host in the browser.
+   * not gate another's visibility. Same unpaginated-fetch caveat as invoiceDownload. Optional and
+   * SILENT: a page that forgets to set it compiles clean with no button, so verify each host.
    */
   print?: boolean
 }

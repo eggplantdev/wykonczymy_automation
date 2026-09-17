@@ -9,12 +9,11 @@ import {
 import type { TransferRowT } from '@/types/transfers'
 
 // Screen and paper must name a transfer identically, so the column's `cell` and its `meta.printValue`
-// both read these derivations rather than each rendering their own text.
+// both read these rather than each rendering their own text.
 
 export function transferTypeText({ settled, type, originalType }: TransferRowT): string {
   if (settled) return SETTLED_TYPE.label
   const label = TRANSFER_TYPE_LABELS[type] ?? type
-  // A cancellation names what it reversed: "Anulowanie (Wydatek inwestycyjny)".
   if (type === 'CANCELLATION' && originalType) {
     return `${label} (${TRANSFER_TYPE_LABELS[originalType] ?? originalType})`
   }

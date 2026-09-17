@@ -18,14 +18,9 @@ export type RowActionButtonPropsT = Omit<ButtonPropsT, 'variant' | 'size' | 'chi
   tone?: 'neutral' | 'destructive'
 }
 
-// The one shape every per-row action takes, so „edytuj" and „usuń" cannot look like eight different
-// buttons across eight tables. In a table row it is an icon with a tooltip — an action column holds
-// two or three of these and a labelled button each time doubles the column's width; on a detail page
-// header (`showLabel`) the same action prints its label, because there it is the page's main verb.
-//
-// A disabled button gets a focusable wrapper: Radix hangs the tooltip on the trigger's pointer
-// events, and `disabled:pointer-events-none` means an explanation of WHY it is disabled would never
-// appear — which is the one case where the tooltip matters most.
+// One shape for every per-row action: icon+tooltip in a table row, label shown on a detail-page
+// header. Disabled buttons get a focusable wrapper, since `disabled:pointer-events-none` would
+// otherwise block Radix's tooltip trigger — hiding the one case where the tooltip matters most.
 export function RowActionButton({
   icon: Icon,
   label,

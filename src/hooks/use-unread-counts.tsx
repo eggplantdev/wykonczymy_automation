@@ -5,9 +5,8 @@ import type { UnreadCountsT } from '@/types/notifications'
 
 const UnreadCountsContext = createContext<Promise<UnreadCountsT> | null>(null)
 
-// Carries the shell's pending count fetch, not its result: awaited up in the layout, three DB counts
-// would block first paint of every page in the app. Consumers unwrap it under their own Suspense
-// boundary, so the wait costs a bubble rather than the whole shell.
+// Carries the shell's PENDING fetch, not its result: awaited in the layout, three DB counts would block
+// first paint of every page. Consumers unwrap it under their own Suspense boundary.
 export function UnreadCountsProvider({
   counts,
   children,

@@ -2,9 +2,8 @@ import { CATALOGUE_NAME_FIXES } from '@/lib/kosztorys/catalogue-name-fixes'
 import { fold } from '@/lib/kosztorys/sheet-import/columns'
 import { LEGACY_SUFFIX, stripLegacyMarker } from '@/lib/kosztorys/work-catalogue/legacy-marker'
 
-// Text cleanup for „Opis prac". Every rule is idempotent, so re-running over already-clean text is a
-// no-op — the owner can press the button as often as they like, and the same rules can be replayed
-// over a whole database without compounding.
+// Every rule is idempotent, so the owner can press the button as often as they like and the rules can
+// be replayed over a whole database without compounding.
 
 // Ordered: `podwieszanych (obcięcie` un-closes before it re-closes, which is what keeps the closing
 // paren from stacking up one per run.
@@ -60,8 +59,8 @@ export const TYPO_FIXES: readonly (readonly [string, string])[] = [
   ['złożenie i Montaż', 'złożenie i montaż'],
 ]
 
-// A kropka in these does not end a sentence, so what follows it stays as written — without the list
-// „układanie płytek w glifach, półeczkach itp. do 20 cm" would grow a „Do 20 cm" mid-sentence.
+// A kropka here does not end a sentence: without the list „…półeczkach itp. do 20 cm" would grow a
+// „Do 20 cm" mid-sentence.
 const ABBREVIATIONS = new Set([
   'etc.',
   'itp.',
@@ -95,8 +94,8 @@ const ABBREVIATIONS = new Set([
   'zl.',
 ])
 
-// Uppercase words that are not shouting: acronyms and product names, which must survive a CAPS LOCK
-// pass verbatim („płyt GK", „RIGIPS GYPTONE"). Anything not listed here is treated as shouting.
+// Acronyms and product names, which must survive a CAPS LOCK pass verbatim („płyt GK", „RIGIPS
+// GYPTONE"). Anything not listed here is treated as shouting.
 const UPPERCASE_WORDS = new Set([
   'WC',
   'GK',
@@ -129,8 +128,7 @@ type WordKindT = 'shouty' | 'neutral' | 'other'
 function wordKind(word: string): WordKindT {
   const letters = word.replace(/[^\p{L}]/gu, '')
   if (letters === '' || letters !== letters.toUpperCase()) {
-    // No letters at all (numbers, dashes) or already carrying lowercase — neither shouts nor breaks
-    // a shout, so „ZGODNIE Z PROJEKTEM" stays one run across the „Z".
+    // Neither shouts nor breaks a shout, so „ZGODNIE Z PROJEKTEM" stays one run across the „Z".
     return letters === '' ? 'neutral' : 'other'
   }
   if (letters.length === 1 || UPPERCASE_WORDS.has(letters)) return 'neutral'
@@ -186,11 +184,10 @@ function sentenceCase(text: string): string {
   )
 }
 
-// Each corrected name is entered under its OWN fold as well, so pressing the button twice lands on
-// the table a second time instead of falling through to `sentenceCase` — which would capitalise
-// after an abbreviation the corrected name introduced („c.w.u. Oraz"). Idempotence by construction
-// rather than by keeping `ABBREVIATIONS` ahead of 915 hand-written strings. Safe because no
-// corrected name folds onto a different entry's key (asserted in the table's spec).
+// Each corrected name is entered under its OWN fold too, so a second press lands on the table again
+// instead of falling through to `sentenceCase`, which would capitalise after an abbreviation the
+// corrected name introduced („c.w.u. Oraz"). Safe because no corrected name folds onto a different
+// entry's key (asserted in the table's spec).
 const CATALOGUE_NAMES_BY_FOLD = new Map([
   ...CATALOGUE_NAME_FIXES,
   ...[...CATALOGUE_NAME_FIXES.values()].map((to) => [fold(to), to] as const),

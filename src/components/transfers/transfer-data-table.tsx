@@ -45,8 +45,8 @@ export function TransferDataTable({
     print,
   } = config
 
-  // Through the same whitelist the server used, so a hand-edited `?sort=` the page refused cannot
-  // leave the header arrow — or the printout, which reads this state — pointing somewhere else.
+  // The same whitelist the server used, so a hand-edited `?sort=` the page refused cannot leave the
+  // header arrow — or the printout, which reads this state — pointing somewhere else.
   const { updateParam } = useUrlFilterParams(baseUrl)
   const sorting = sortParamToSortingState(validTransferSort(searchParams.get('sort') ?? undefined))
 

@@ -6,21 +6,16 @@ import { fold } from './columns'
 // half-built praca (the parsed sheet rows, which have no override fields yet) need no cast.
 type KeyableItemT = { sectionId: number; description: string | null }
 
-// „Popraw literówki w opisie prac" rewrites LETTERS, and `fold()` — case, diacritics, whitespace —
-// cannot absorb that. Without this the cleaner silently costs every praca it touches its identity:
-// it stops matching its twin in the sheet, so the compare dialog reports it as a difference and the
-// import treats it as a praca the sheet doesn't have. Applying the same fixes here is what makes the
-// two sides converge whether or not anyone has run the cleaner.
+// „Popraw literówki w opisie prac" rewrites LETTERS, which `fold()` cannot absorb — so without the
+// same fixes here the cleaner costs every praca it touches its identity: it stops matching its twin
+// in the sheet and the import treats it as a praca the sheet doesn't have.
 //
-// The rules are folded rather than the text run through `cleanDescription`: that function fixes
-// spelling BEFORE it un-shouts, so a SHOUTED opis never matches a fix written in lowercase and the
-// two sides would diverge on case alone — the one thing `fold()` had already solved. Folding both
-// the text and the rules sidesteps the ordering entirely, and drops the rules that only ever
-// corrected diacritics (`farba silikonowa` → `farbą silikonową`), which folding equates anyway.
+// The rules are folded rather than the text run through `cleanDescription`, which fixes spelling
+// BEFORE it un-shouts — a SHOUTED opis would never match a lowercase fix, and the two sides would
+// diverge on case alone. Folding sidesteps the ordering and drops the diacritics-only rules.
 //
 // The edge spaces are re-attached because `fold()` trims: ` parc` → ` prac` is a word-boundary rule,
-// and without its leading space it would rewrite „parcie gruntu" into „pracie gruntu" and collapse
-// two unrelated prace onto one key.
+// and without its leading space it rewrites „parcie gruntu" into „pracie gruntu".
 const foldRule = (rule: string) =>
   (/^\s/.test(rule) ? ' ' : '') + fold(rule) + (/\s$/.test(rule) ? ' ' : '')
 
@@ -28,9 +23,9 @@ const FOLDED_TYPO_FIXES = TYPO_FIXES.map(
   ([from, to]) => [foldRule(from), foldRule(to)] as const,
 ).filter(([from, to]) => from !== to)
 
-// The same split for the katalog's whole-name corrections: the button gets the whole table, identity
-// gets only the entries fold cannot already equate. Dropping the rest is not an optimisation — an
-// entry whose fold is its own key is a no-op here, and keeping it would be a chain waiting to happen.
+// The same split for the katalog's whole-name corrections: identity gets only the entries fold
+// cannot already equate. An entry whose fold is its own key is a no-op here and a chain waiting to
+// happen.
 const FOLDED_CATALOGUE_NAME_FIXES = new Map(
   [...CATALOGUE_NAME_FIXES]
     .map(([from, to]) => [from, fold(to)] as const)

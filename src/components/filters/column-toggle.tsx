@@ -44,9 +44,8 @@ export function ColumnToggle<TData>({
       <ColumnToggleMenu
         items={items}
         onToggle={(id) => table.getColumn(id)?.toggleVisibility()}
-        // Merged into the current state, never TanStack's toggleAllColumnsVisible: that one rebuilds
-        // the map from {} and drops ids it doesn't know. The three transfer pages share one
-        // storageKey with different excludeColumns, so a rebuild on one wipes a sibling's preference.
+        // Merged into current state, not TanStack's toggleAllColumnsVisible — that rebuilds the map
+        // from {} and drops unknown ids, wiping a sibling page's preference (shared storageKey, different excludeColumns).
         onToggleAll={(visible) =>
           table.setColumnVisibility({
             ...columnVisibility,

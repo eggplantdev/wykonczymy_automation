@@ -8,9 +8,9 @@ import {
 } from '@/lib/kosztorys/snapshot-format'
 import type { DbExecutorT } from './get-db'
 
-// The single place that reads/writes the raw kosztorys_snapshots table (no Payload collection —
-// the notification_reads pattern). Retention has exactly one authority: gcSnapshots, swept daily by
-// the cron. Nothing prunes on the insert path, so a capture is a plain INSERT.
+// The single reader/writer of the raw kosztorys_snapshots table (no Payload collection — the
+// notification_reads pattern). Retention has one authority, gcSnapshots, swept daily by the cron;
+// nothing prunes on the insert path, so a capture is a plain INSERT.
 
 export type SnapshotKindT = 'manual' | 'auto'
 
@@ -21,15 +21,13 @@ export type SnapshotKindT = 'manual' | 'auto'
 //   120–365 days one per calendar week
 //   past 365     gone, auto and manual alike
 //
-// The survivor of a bucket is its NEWEST row — the state the work was left in that day/week, not the
-// state it was started from. Manual snapshots are exempt from both bands and bounded only by
-// MAX_AGE_DAYS.
+// The survivor of a bucket is its NEWEST row — how the work was left that day/week, not how it
+// started. Manual snapshots are exempt from both bands, bounded only by MAX_AGE_DAYS.
 const FULL_DENSITY_DAYS = 30
 const DAILY_BAND_DAYS = 120
 const MAX_AGE_DAYS = 365
 
-// List/attribution metadata — deliberately WITHOUT the jsonb `payload` (a list must never load ~1000
-// rows × N snapshots of tree data).
+// Without the jsonb `payload`: a list must never load ~1000 rows × N snapshots of tree data.
 export type SnapshotMetaT = {
   id: number
   investmentId: number
@@ -39,12 +37,11 @@ export type SnapshotMetaT = {
   takenBy: number | null
 }
 
-// Every read and write of a restore point carries the same clause: a point belongs to the szablon
-// the investment held when it was taken. For a real investment `template_preset_id` is NULL on both
-// sides and the clause is a no-op, so this costs normal kosztorysy nothing; for the warsztat — one
-// investment shared by every szablon — it is what keeps one szablon's history out of another's.
-// Stamped from the investment row rather than passed in, so no caller can forget it (and so the
-// „Przed wczytaniem" point, taken before the pointer moves, is attributed to the szablon it holds).
+// A restore point belongs to the szablon the investment held when it was taken. For a real
+// investment `template_preset_id` is NULL on both sides and the clause is a no-op; for the warsztat —
+// one investment shared by every szablon — it keeps one szablon's history out of another's. Stamped
+// from the investment row so no caller can forget it, and so „Przed wczytaniem", taken before the
+// pointer moves, is attributed to the szablon it holds.
 const HELD_PRESET = (investmentId: number) =>
   sql`(SELECT "template_preset_id" FROM investments WHERE id = ${investmentId})`
 
@@ -72,11 +69,10 @@ export async function insertSnapshot(
   return Number(res.rows[0].id)
 }
 
-// Load one snapshot's full payload by id (with its investment) — the restore path resolves the
-// target investment from the row itself rather than trusting a client-passed value. Returns null
-// when the id doesn't exist, or when the point belongs to a szablon the warsztat no longer holds:
-// filtering the drawer only shapes what is OFFERED, and a stale tab still holds the old ids. The
-// caller reports both as „nie znaleziono wersji", which is also true — for the szablon it is in.
+// The restore path resolves the target investment from the row itself rather than trusting a
+// client-passed value. Null when the id doesn't exist or the point belongs to a szablon the warsztat
+// no longer holds — filtering the drawer only shapes what is OFFERED, and a stale tab still holds the
+// old ids. The caller reports both as „nie znaleziono wersji".
 export async function getSnapshot(
   db: DbExecutorT,
   snapshotId: number,
@@ -115,11 +111,10 @@ export async function listSnapshots(
   }))
 }
 
-// Global retention sweep (daily cron). Three statements rather than one, because each band is a
-// separate sentence and each maps 1:1 onto a test case. The sweep is STATELESS and IDEMPOTENT: the
-// set of survivors in a bucket IS the state, so a missed cron night costs nothing and a second run
-// in the same minute deletes zero. The per-band breakdown is returned so the cron log says WHICH
-// band deleted — a band firing when it should not is otherwise silent and irreversible.
+// Three statements rather than one, because each band is a separate sentence mapping 1:1 onto a test
+// case. STATELESS and IDEMPOTENT — the set of survivors IS the state, so a missed cron night costs
+// nothing and a second run deletes zero. The per-band breakdown is returned so the log says WHICH
+// band deleted: a band firing when it should not is otherwise silent and irreversible.
 export async function gcSnapshots(
   db: DbExecutorT,
 ): Promise<{ deleted: number; ceiling: number; daily: number; weekly: number }> {
@@ -129,10 +124,9 @@ export async function gcSnapshots(
     RETURNING id
   `)
 
-  // date_trunc(... AT TIME ZONE 'Europe/Warsaw') is the first date bucketing done in SQL in this repo
-  // — every other one is JS (src/lib/utils/days.ts). It belongs in SQL here because the sweep must
-  // decide what to delete WITHOUT shipping every row to the app; don't "fix" it into the JS
-  // convention. Warsaw and not UTC because `taken_at` is timestamptz: editing at 00:30 would
+  // The only date bucketing done in SQL in this repo (every other is JS, src/lib/utils/days.ts): the
+  // sweep has to decide what to delete WITHOUT shipping every row to the app, so don't „fix" it into
+  // the JS convention. Warsaw and not UTC because `taken_at` is timestamptz — editing at 00:30 would
   // otherwise land in the previous calendar day.
   const daily = await db.execute(sql`
     DELETE FROM kosztorys_snapshots WHERE id IN (

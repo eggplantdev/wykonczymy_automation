@@ -1,8 +1,7 @@
 import { pluralize } from '@/lib/utils/polish-plural'
 
-// The counted nouns the app puts in front of a number. Shared so „5 prac" never becomes „5 pozycji"
-// one screen over — the editor's reports are read one after the other, and a changed word reads as a
-// changed thing.
+// Shared so „5 prac" never becomes „5 pozycji" one screen over — the editor's reports are read one
+// after the other, and a changed word reads as a changed thing.
 
 export const itemNoun = (count: number) => pluralize(count, ['praca', 'prace', 'prac'])
 

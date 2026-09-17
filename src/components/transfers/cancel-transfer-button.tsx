@@ -51,8 +51,8 @@ export function CancelTransferButton({ transactionId }: CancelTransferButtonProp
 
   return (
     <>
-      {/* Not the `DeleteButton`: cancelling writes a CANCELLATION row rather than removing
-          anything, and a bin next to „Edytuj" would promise a delete this table cannot do. */}
+      {/* Cancelling writes a CANCELLATION row and removes nothing, so a bin icon would promise a
+          delete this table cannot do. */}
       <RowActionButton
         icon={Ban}
         label="Anuluj transakcję"

@@ -64,8 +64,8 @@ export function activeFiltersModel({
     })
   }
 
-  // At most one, by construction: every „Problemy" row picks exclusively. Written as a loop anyway
-  // rather than a `find`, so the bar does not quietly drop a second one if that ever changes.
+  // At most one, by construction: every „Problemy" row picks exclusively. The loop keeps a second one
+  // from being dropped silently if that ever changes.
   for (const problem of PROBLEM_CONDITIONS) {
     if (!engagedIds.has(problem.id)) continue
     // `problem.sentence` is deliberately not used: it is a three-line explanation of an

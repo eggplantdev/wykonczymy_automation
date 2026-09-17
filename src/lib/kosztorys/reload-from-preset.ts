@@ -5,18 +5,16 @@ import { replaceTreeWithSnapshot } from '@/lib/kosztorys/replace-tree-with-snaps
 
 export type ReloadFromPresetResultT = { sections: number; items: number }
 
-// The szablon's name rides in the label because the restore points are otherwise indistinguishable:
-// swap three szablony and „Wczytaj" lists three identical rows, none of which says what it precedes.
+// The szablon's name rides in the label, or three swaps leave „Wczytaj" listing three identical rows
+// that say nothing about what they precede.
 const preReloadLabel = (presetName: string) => `Przed wczytaniem: ${presetName}`
 
-// Replace an investment's WHOLE rozpiska with a preset. The counterpart to `seedInvestmentFromPreset`,
-// which refuses a non-empty target — this is the path for swapping the szablon after the investment
-// exists, so picking the wrong one at creation stops being unrecoverable.
+// The counterpart to `seedInvestmentFromPreset`, which refuses a non-empty target — this is the path
+// for swapping the szablon after the investment exists.
 //
-// A plain helper rather than the action itself: „Otwórz szablon" needs the same work under its own
-// auth, and an action calling an action would re-run requireAuth and a second perf span for it.
-// `restoreKosztorys` (via replaceTreeWithSnapshot) rather than `applyPreset`: the latter is
-// insert-only by contract and assumes an empty target.
+// A plain helper rather than the action itself, because „Otwórz szablon" needs the same work under its
+// own auth and an action calling an action re-runs requireAuth and opens a second perf span.
+// `restoreKosztorys` rather than `applyPreset`, which is insert-only and assumes an empty target.
 export async function reloadInvestmentFromPreset(
   payload: Payload,
   params: { investmentId: number; presetId: number; takenBy: number },

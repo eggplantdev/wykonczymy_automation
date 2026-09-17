@@ -7,9 +7,8 @@ import { saveWorkshopPresetAction } from '@/lib/actions/kosztorys-presets'
 import { toastMessage } from '@/lib/utils/toast'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
-// The szablon workbench's „Zapisz": the target is already known (it is the szablon that was opened),
-// so there is no name to ask for and no mode to pick — the dialog's two questions both have one
-// answer here. „Zapisz jako szablon…" stays in the menu for forking a copy under a new name.
+// The target is the szablon that was opened, so there is nothing to ask. „Zapisz jako szablon…"
+// stays in the menu for forking a copy under a new name.
 export function SaveTemplateButton() {
   const { templatePresetId } = useKosztorysEditorContext()
   const [pending, startTransition] = useTransition()

@@ -44,18 +44,16 @@ export function GlobalDiscountControl({ disabled = false }: { disabled?: boolean
     handleApplyPercentDiscount,
   } = useKosztorysEditorContext()
 
-  // „%" and „Wyłączony" both store nothing, so the stored rabat alone cannot tell them apart — that
-  // one bit is the only local state here. Everything else is derived, so a failed save rolling the
-  // optimistic value back (or Ctrl+Z replaying an earlier rabat) moves the select with the figures
-  // instead of leaving it describing a deal the data no longer applies.
+  // „%" and „Wyłączony" both store nothing, so that one bit is the only local state here. Everything
+  // else is derived, so a rolled-back save (or Ctrl+Z replaying an earlier rabat) moves the select
+  // with the figures instead of leaving it describing a deal the data no longer applies.
   const [percentPicked, setPercentPicked] = useState(false)
   const mode: DiscountModeT =
     globalDiscount.type != null ? 'amount' : percentPicked ? 'percent' : 'off'
 
   // The mode itself is the decision — „Kwotowy" suppresses per-item rabat at any kwota — so entering
-  // it must write straight away rather than wait for a kwota that may never be typed. Leaving it
-  // (→ „Wyłączony" or „%") clears the stored discount so the two never coexist; that mutual exclusion
-  // is what keeps the percent one-shot always effective.
+  // it writes straight away rather than waiting for a kwota that may never be typed. Leaving it clears
+  // the stored discount so the two never coexist, which keeps the percent one-shot always effective.
   function changeMode(next: string) {
     const nextMode = next as DiscountModeT
     setPercentPicked(nextMode === 'percent')
@@ -96,9 +94,8 @@ export function GlobalDiscountControl({ disabled = false }: { disabled?: boolean
           isValid={(percent) => applyPercentDiscountSchema.safeParse({ percent }).success}
           onApply={handleApplyPercentDiscount}
           clearOnApply
-          // Only asks when there is something to lose. With no rabat anywhere the write is not
-          // destructive — it writes the same percent into rows that all read 0 — so a dialog there
-          // would be a warning about nothing, and warnings that fire on nothing stop being read.
+          // With no rabat anywhere the write is not destructive, and a dialog would be a warning about
+          // nothing — warnings that fire on nothing stop being read.
           confirm={
             itemsWithDiscountCount === 0
               ? undefined
@@ -107,9 +104,8 @@ export function GlobalDiscountControl({ disabled = false }: { disabled?: boolean
                     percent === 0
                       ? `Wyzerować rabat w ${itemsWithDiscountCount} ${pozycji(itemsWithDiscountCount)}?`
                       : `Wpisać ${percent}% w rabat każdej pozycji?`,
-                  // Owner's ruling stands: the overwrite is not undoable and recovery is re-typing.
-                  // The dialog is the guard in undo's place, so it has to say both what is lost and
-                  // where the way back is — the version the action auto-saves before every apply.
+                  // The overwrite is not undoable (owner's ruling), so the dialog stands in undo's place
+                  // and has to name both what is lost and the version the action auto-saves.
                   description: `${
                     percent === 0
                       ? `Rabaty wpisane ręcznie w ${itemsWithDiscountCount} ${pozycji(itemsWithDiscountCount)} zostaną wyzerowane.`

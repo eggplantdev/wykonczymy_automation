@@ -61,8 +61,8 @@ export function RecipientListCard({
         </Description>
       )}
       {emails.length === 0 ? (
-        // Not a styling choice: a stream with nobody in it makes its sender throw, so the page has
-        // to say so rather than render an empty line that reads as "nothing to see here".
+        // A stream with nobody in it makes its sender throw, so the page has to say so — an empty
+        // line reads as "nothing to see here".
         <Description tone="error" size="xs" className="mt-2">
           Nikt nie dostanie tych powiadomień — wysyłka zgłosi błąd.
         </Description>

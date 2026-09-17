@@ -62,11 +62,9 @@ import { stagesMatchingEngaged } from '@/lib/kosztorys/stage-conditions'
 import type { KosztorysV2RowT, StageKeyT } from '@/lib/kosztorys/types'
 import { numericFieldPolicy } from '@/lib/kosztorys/cell-edit'
 
-// keyColumn requires column: Column<Row[K]>. longTextColumn is nullable (Column<string|null>)
-// whereas the item fields are non-null. The cell type is invariant (rowData covariant + setRowData
-// contravariant), so no concrete type other than an exact match will pass — the only safe bridge is
-// `any` at the library boundary. The cells are null-safe at runtime; we return a ready
-// Column<KosztorysV2RowT>.
+// keyColumn wants Column<Row[K]>, but longTextColumn is nullable where the item fields are not, and
+// the cell type is invariant, so nothing short of an exact match passes — `any` is the only bridge at
+// the library boundary. The cells are null-safe at runtime.
 function keyCol(
   key: keyof KosztorysV2RowT,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -76,34 +74,26 @@ function keyCol(
   return { ...(keyColumn(key, column) as Column<KosztorysV2RowT>), ...rest }
 }
 
-// An etap with no rozliczenie belongs to neither crew’s bill (subcontractor-due.ts), so its quantities fall
-// out of both subcontractor sums — the kind of hole that is only found when the money doesn't add up.
-// So the ilość column screams, header and every cell. Reachable in the client view only, which is the
-// one that shows every etap.
-//
-// Only the ilość column: its wartość columns are derived from it and sit right beside it, so tinting
-// them repeats one etap's warning three times — and their red totals row reads as a figure being
-// wrong rather than an etap being unassigned.
+// An etap with no rozliczenie belongs to neither crew's bill (subcontractor-due.ts), so its
+// quantities fall out of both subcontractor sums — a hole only found when the money doesn't add up.
+// Only the ilość column: its wartość columns are derived from it and sit beside it, so tinting them
+// repeats one warning three times and reads as a figure being wrong, not an etap unassigned.
 const PLANE_UNCONFIRMED_CELL = {
   headerClassName: 'bg-destructive/15',
   cellClassName: 'bg-destructive/10 text-destructive',
 } as const
 
-// Every data column in sheet order, before any hiding. Split out from buildV2Columns so the picker
-// can enumerate what EXISTS while the grid renders what's visible — one list, no second registry of
-// "which columns are there in this view" to drift.
+// Every data column in sheet order, before any hiding, so the picker can enumerate what EXISTS while
+// the grid renders what's visible — no second registry of „which columns are in this view" to drift.
 function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[] {
   const { stages, view } = opts
-  // Both planes' subcontractor rates in EVERY view, so the owner compares them without switching
-  // tabs. Not a copy of the columns: the same factories called with the other plane, which is why the
-  // two can't drift — the cells read their own `columnData.view`, never the active view.
+  // Both planes' rates in EVERY view, so the owner compares them without switching tabs. Not a copy:
+  // the same factories with the other plane, and the cells read their own `columnData.view`.
   //
-  // „Źródło ceny wykonawcy" is the exception: it is an EDIT control, not a figure to compare, and the
-  // client view is where the offer is read, so it assembles only on the subcontractor planes. The
-  // rate itself stays editable in EVERY view — typing a number IS „kwota stała", and Delete is the
-  // way back to „auto", so the column needs no source picker beside it to be fully operable. The
-  // rates are hidden by default (DEFAULT_HIDDEN_COLUMNS) and barred from the client preview by the
-  // allowlist.
+  // „Źródło ceny wykonawcy" is an EDIT control rather than a figure to compare, so it assembles only
+  // on the subcontractor planes. The rate itself stays editable everywhere — typing a number IS
+  // „kwota stała" and Delete is the way back to „auto" — and is hidden by default plus barred from
+  // the client preview by the allowlist.
   const withMode = view !== 'client'
   const subcontractorPriceCols: Column<KosztorysV2RowT>[] = TOOL_PLANES.flatMap((plane) => [
     ...(withMode
@@ -111,10 +101,9 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       : []),
     subcontractorPriceColumn(plane, columnTitle(planePriceKey('price', plane), opts)),
   ])
-  // The client's own „Cena j.m. netto" is a different figure — the offer price, editable only where
-  // the offer is read — so it stays on the client view and keeps its bare `price` id (that id is
-  // allowlisted and stored in each investment's client-view settings; renaming it would DROP it from the
-  // stored hidden set and reveal the price to clients who had hidden it).
+  // The client's „Cena j.m. netto" is the offer price, so it stays on the client view and keeps its
+  // bare `price` id — that id is stored in each investment's client-view settings, and renaming it
+  // would drop it from the stored hidden set and reveal the price to clients who had hidden it.
   const priceCols: Column<KosztorysV2RowT>[] =
     view === 'client'
       ? [
@@ -134,21 +123,20 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       title: columnTitle('description', opts),
       minWidth: 360,
       grow: 2,
-      // Marks the header cell the row-height measurement reads this column's width off, and the
-      // body cells the clip cue hangs its „…" on.
+      // Marks the header the row-height measurement reads the width off, and the body cells the
+      // clip cue hangs its „…" on.
       headerClassName: wrapColumnClass('description'),
       cellClassName: wrapColumnClass('description'),
     }),
   ]
 
-  // A subcontractor view is one crew's bill: only that plane's etapy get columns at all. Nothing
-  // becomes uneditable — quantities are typed in the Inwestor view, which shows every etap.
+  // A subcontractor view is one crew's bill, so only that plane's etapy get columns. Nothing becomes
+  // uneditable — quantities are typed in the Inwestor view, which shows every etap.
   const viewStages = stagesForView(stages, view)
 
-  // Which of those actually get columns, once the „Problemy" filters have their say. Narrowed HERE and
-  // nowhere else, so the three stage axes below cannot drift apart — and deliberately NOT fed to
-  // `totalQtyDone`: the share each etap's wartość is computed against is Σ etapów of the whole view, so
-  // hiding columns would otherwise silently reprice the ones left standing.
+  // Narrowed HERE and nowhere else, so the three stage axes below cannot drift apart — and
+  // deliberately NOT fed to `totalQtyDone`, whose denominator is Σ etapów of the whole view: hiding
+  // columns would otherwise reprice the ones left standing.
   const shownStages = stagesMatchingEngaged(viewStages, opts.engagedStageConditionIds ?? [])
 
   // Rows are replaced immutably on every edit, so row identity is a self-invalidating cache key — a
@@ -164,15 +152,14 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     }
   }
 
-  // Σ etapów for the row — the denominator every stage-value cell divides by. There are 2×|etapy| of
-  // those cells per row (netto + brutto) and each would otherwise re-run the O(|etapy|) reduce to
-  // arrive at the SAME number, making a row O(|etapy|²).
+  // The denominator every stage-value cell divides by. 2×|etapy| such cells per row would otherwise
+  // each re-run the O(|etapy|) reduce for the SAME number, making a row O(|etapy|²).
   const totalQtyDone = memoisedByRow((row: KosztorysV2RowT) =>
     rowTotalQtyDone(row, viewStages, view),
   )
 
-  // Przedmiar (sheet N, the offered scope) leads the stage columns rather than following them, so the
-  // offered quantity reads before the per-etap execution it is measured against.
+  // Przedmiar (sheet N) leads the stage columns so the offered quantity reads before the per-etap
+  // execution it is measured against.
   const przedmiar: Column<KosztorysV2RowT>[] = [
     {
       ...decimalColumn(
@@ -184,18 +171,14 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     },
   ]
 
-  // The imported sheet's „Pomiar z natury" against Σ etapów.
+  // The imported sheet's „Pomiar z natury" against Σ etapów. Owner-only: it is scaffolding for
+  // entering old sheets, and a client's document must not carry the company's bookkeeping doubts.
+  // Client plane only for a second reason — `measureDiscrepancy` is anchored to the whole offered
+  // scope, so on a subcontractor view it would put two different „etapy" numbers side by side.
   //
-  // Owner-only: the reference figure is scaffolding for entering old sheets into the app, and a
-  // client's document must not carry the company's own bookkeeping doubts. Client plane only for a
-  // second reason: `measureDiscrepancy` is hard-anchored to the whole offered scope, so hanging it
-  // on a subcontractor view's cell would put two different „etapy" numbers side by side.
-  //
-  // Right behind „Opis prac" rather than beside „Pomiar", the figure it is derived from — it is the
-  // answer to „ile jeszcze zostało", which nobody should have to scroll 8 columns to read.
-  // Tied to the diagnostic filter, not to the presence of an imported pomiar: while the filter is off
-  // the grid holds every pozycja and this column would be „—" down almost all of it. The button's own
-  // count is what says the rozjazd exists; the column is where you read it.
+  // Sits right behind „Opis prac" rather than beside the figure it derives from, and is tied to the
+  // diagnostic filter rather than to an imported pomiar: with the filter off it would read „—" down
+  // almost every row. The button's count says the rozjazd exists; the column is where you read it.
   const divergence: Column<KosztorysV2RowT>[] =
     !opts.previewVisible && view === 'client' && opts.divergenceFilterEngaged
       ? [
@@ -218,8 +201,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   ]
 
   // Rabat is a client concession, never passed to the subcontractor (calc.ts netForQtyForView), so
-  // the four discount columns exist in the client view only — the subcontractor views never assemble
-  // them, and their discount figures would be zero anyway.
+  // the four discount columns exist in the client view only — elsewhere they would all read zero.
   const discountCols: Column<KosztorysV2RowT>[] =
     view === 'client'
       ? [
@@ -243,8 +225,8 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   ]
 
   const stageCols: Column<KosztorysV2RowT>[] = shownStages.map((st) => {
-    // The qty field IS the column id, so the sort wiring is the same shape `columnTitle()` builds — the
-    // etap menu just hosts it alongside rename/plane/roster instead of owning the whole menu.
+    // The qty field IS the column id, so the sort wiring is the shape `columnTitle()` builds; the
+    // etap menu only hosts it alongside rename/plane/roster.
     const qtyField = stageKey(st.id)
     const header = (
       <StageHeader
@@ -260,15 +242,12 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
         executedValue={opts.executedValueByStage?.get(st.id) ?? 0}
       />
     )
-    // Locked until the rozliczenie is picked: qty typed here would be work nobody gets billed for,
-    // and picking one costs a click. Deliberately NOT widened to the worker — a worker-less etap
-    // still has a price and still belongs to the executed total; it just isn't attributed to anyone.
+    // Locked until the rozliczenie is picked: qty typed here would be work nobody gets billed for.
+    // NOT widened to the worker — a worker-less etap still has a price and still belongs to the
+    // executed total, it just isn't attributed to anyone.
     //
-    // The lock renders as a COMPUTED cell, not as a `disabled` editable one: dsg's disabled cell is
-    // silent — you type, nothing happens, and the red tint is the only hint that this was deliberate.
-    // The reason already existed as copy (STAGE_HEADER_COPY.planeUnconfirmed) but only on a badge in
-    // the header, which is not where anyone looks after a keystroke goes nowhere. Same string, hung
-    // where the lock is discovered.
+    // A COMPUTED cell rather than a `disabled` editable one, because dsg's disabled cell is silent:
+    // you type and nothing happens. Same copy as the header badge, hung where the lock is discovered.
     if (st.plane == null) {
       return {
         ...computedColumn(
@@ -276,8 +255,8 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
           header,
           (r) => r[qtyField] ?? null,
           { tone: 'danger', tip: () => STAGE_HEADER_COPY.planeUnconfirmed },
-          // Blank, never „0,00": an etap nobody has recorded work in has no quantity, and a zero
-          // would read as one that was measured.
+          // Blank, never „0,00": an etap nobody recorded work in has no quantity, and a zero would
+          // read as one that was measured.
           (value) => (value == null ? '' : formatQty(value)),
         ),
         minWidth: 110,
@@ -294,8 +273,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     }
   })
 
-  // The sheet's V–AE: the value of each stage's recorded qty at the view's price, post-discount.
-  // Computed at render, never a row field — hence the separate id namespace (constants.ts).
+  // The sheet's V–AE. Computed at render, never a row field — hence the separate id namespace.
   const stageValueNetCols: Column<KosztorysV2RowT>[] = shownStages.map((st) => {
     const qtyKey = stageKey(st.id)
     const field = stageValueNetKey(st.id)
@@ -326,17 +304,17 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     )
   })
 
-  // The przedmiar-anchored columns here and below compute at `'client'` outright, not at `view`:
-  // PRZEDMIAR_ANCHORED_COLUMNS drops them outside the client view, so a `view`-reactive formula would
-  // be false generality — it reads as if a subcontractor reading existed, and there isn't one.
+  // Computes at `'client'` outright, not at `view`: PRZEDMIAR_ANCHORED_COLUMNS drops these outside
+  // the client view, so a `view`-reactive formula would imply a subcontractor reading that doesn't
+  // exist.
   const donePercent: Column<KosztorysV2RowT>[] = [
     computedColumn(
       'donePercent',
       columnTitle('donePercent', opts),
       (r) => rowDoneFraction(r, rowTotalQtyDone(r, stages, 'client')),
       {
-        // Red = more was executed than was offered. The percentage says so too (>100%), but only
-        // this cell says it at a glance across a thousand rows.
+        // More executed than offered. The >100% says so too, but only the tint says it at a glance
+        // across a thousand rows.
         tone: (r) => (hasStagesOverPlanned(r, stages) ? 'danger' : 'muted'),
         emphasize: true,
       },
@@ -363,9 +341,8 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     ),
   ]
 
-  // Komentarz (sheet col T): the row's free-text note. Plain text column — the `note` field is
-  // already diffed/persisted; this only surfaces it in the grid. Sits at the Praca/Postęp seam and
-  // carries the left border, so it doubles as the block divider (layer-neutral → always visible).
+  // Komentarz (sheet col T). Sits at the Praca/Postęp seam and carries the left border, so it
+  // doubles as the block divider — layer-neutral, hence always visible.
   const komentarz: Column<KosztorysV2RowT>[] = [
     keyCol('note', longTextColumn, {
       id: 'note',
@@ -386,13 +363,10 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     ),
   ]
 
-  // „Rozjazd" right behind the identity block when it exists at all (see above — it is a work list,
-  // not a reading of the sheet),
-  // then sheet order proper: Przedmiar (N) leads the stage qty columns (the sheet's D–M), then Pomiar z natury (O), then
-  // Komentarz (T) at the work/progress seam, then the value block (U–AE right before AF "pozostało").
-  // The row-actions column leads the whole grid when editing is enabled — it rides the same
-  // assemble→hide→toggle pipeline as every data column (no special-casing), so the picker can hide it
-  // like any other.
+  // „Rozjazd" behind the identity block when it exists at all (a work list, not a reading of the
+  // sheet), then sheet order proper: N, D–M, O, T at the work/progress seam, then U–AE before AF.
+  // The row-actions column rides the same assemble→hide→toggle pipeline as every data column, so the
+  // picker can hide it like any other.
   const dataColumns = [
     ...identity,
     ...divergence,
@@ -413,14 +387,13 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     : dataColumns
 }
 
-// Columns-only assemble — the grid path goes through buildV2Grid; kept for the column-set unit specs
-// (money-axis / layer), which assert which ids survive a predicate without the picker.
+// Columns-only assemble — the grid path goes through buildV2Grid. Kept for the column-set unit specs,
+// which assert which ids survive a predicate without the picker.
 export function buildV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[] {
   return selectV2Columns(orderAssembled(assembleV2Columns(opts), opts), opts)
 }
 
-// The grid + its picker in one assembly pass — assembleV2Columns is the O(columns·stages) build, so
-// it runs once and returns both instead of once per export.
+// One assembly pass: assembleV2Columns is the O(columns·stages) build, so it runs once for both.
 export function buildV2Grid(opts: BuildV2ColumnsOptsT): {
   columns: Column<KosztorysV2RowT>[]
   columnToggleItems: ColumnToggleItemT[]

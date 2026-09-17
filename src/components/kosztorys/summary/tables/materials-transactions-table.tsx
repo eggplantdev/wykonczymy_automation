@@ -68,9 +68,8 @@ const SHARED_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
     header: 'Opis',
     size: 260,
     enableSorting: false,
-    // Capped and ellipsised like „Notatka" beside it, and for the same reason: DataTable does no
-    // column sizing, so an auto-width <td> lets a long opis run straight through its neighbour.
-    // The full text stays one hover away.
+    // DataTable does no column sizing, so an auto-width <td> lets a long opis run through its
+    // neighbour; full text on hover.
     cell: ({ getValue }) => {
       const description = getValue<string | null>()
       if (!description) return <span className="text-muted-foreground">—</span>

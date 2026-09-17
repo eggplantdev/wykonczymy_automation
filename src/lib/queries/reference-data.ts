@@ -22,9 +22,8 @@ import type {
   ReferenceDataBaseT,
 } from '@/types/reference-data'
 
-// Categories alone, for callers that need only these. `fetchReferenceData` also returns every user
-// (name, role, email) and every investment (address, phone, email, notes) — company-wide PII that
-// must not be one identifier away on the unauthenticated share path.
+// `fetchReferenceData` also returns every user and every investment with their contact details —
+// company-wide PII that must not be one identifier away on the unauthenticated share path.
 export const fetchExpenseCategories = unstable_cache(
   async (): Promise<ExpenseCategoryRefT[]> => {
     const payload = await getPayload({ config })
@@ -39,11 +38,10 @@ export const fetchExpenseCategories = unstable_cache(
   { tags: [CACHE_TAGS.expenseCategories] },
 )
 
-// `cache()` over `unstable_cache()` on purpose: the two dedupe on different axes. `unstable_cache`
-// spans requests but re-runs whenever its tag is invalidated; `cache()` collapses the calls *within*
-// one render, which is what actually hurt — the page, the transfers table and the root-layout nav
-// each call this, so it ran 3× per render (EX-597 baseline). Safe here only because nothing reads
-// reference data before a mutation in the same request, so the first call is always post-write.
+// Both caches, because they dedupe on different axes: `unstable_cache` spans requests but re-runs on
+// tag invalidation, while `cache()` collapses calls *within* one render — the page, the transfers
+// table and the nav each call this, so it ran 3× per render (EX-597). Safe only because nothing reads
+// reference data before a mutation in the same request.
 export const fetchReferenceData = cache(
   unstable_cache(
     async (): Promise<ReferenceDataBaseT> => {
@@ -57,14 +55,12 @@ export const fetchReferenceData = cache(
         FROM cash_registers
         ORDER BY name
       `),
-        // The sheet id lives on kosztoryses now (1:1 via partial unique index on
-        // investment_id). LEFT JOIN so investments without a kosztorys still appear,
-        // and we project a boolean instead of leaking the sheet id into the cache.
+        // LEFT JOIN so investments without a kosztorys still appear, projecting a boolean rather than
+        // leaking the sheet id into the cache.
         //
         // The szablon workbench is excluded HERE, once, rather than by every consumer: it is not an
-        // investment, so nothing that asks for „the investments" should ever see it. Filtering it
-        // per-surface was one predicate per call site forever, with nothing forcing the next one —
-        // and it had already leaked into the transfers filter dropdowns and the investments listing.
+        // investment, and filtering it per-surface had already leaked into the transfers filter
+        // dropdowns and the investments listing.
         db.execute(sql`
         SELECT i.id, i.name, i.status::text,
                i.address, i.phone, i.email, i.contact_person, i.notes, i.review,
@@ -152,10 +148,9 @@ export const fetchReferenceData = cache(
         expenseCategories,
       }
     },
-    // Versioned key, bumped whenever the returned SHAPE changes (here: `vatRate` on the investment
-    // ref). A tag only marks an entry stale — it still SERVES the old payload once, and a payload
-    // missing a field the reader now dereferences is not stale, it is wrong: it crashes the page or
-    // renders NaN. The bump makes the old entry unreachable instead.
+    // Bumped whenever the returned SHAPE changes. A tag only marks an entry stale — it still SERVES
+    // the old payload once, and one missing a field the reader now dereferences crashes the page or
+    // renders NaN. The bump makes it unreachable instead.
     ['reference-data-v2'],
     {
       tags: [
@@ -164,9 +159,8 @@ export const fetchReferenceData = cache(
         CACHE_TAGS.users,
         CACHE_TAGS.otherCategories,
         CACHE_TAGS.expenseCategories,
-        // hasSheet derives from kosztoryses via JOIN — invalidate on kosztorys
-        // create/link/unlink/delete too, otherwise the listing's "kosztorys" badge
-        // stays stale.
+        // hasSheet derives from kosztoryses via JOIN, so a create/link/unlink/delete there leaves the
+        // listing's "kosztorys" badge stale.
         CACHE_TAGS.kosztoryses,
       ],
     },

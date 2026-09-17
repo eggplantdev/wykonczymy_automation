@@ -13,8 +13,8 @@ const STATUS_OPTIONS = [
   { label: { en: 'Planned', pl: 'Planowana' }, value: 'planowana' },
   { label: { en: 'Active', pl: 'Aktywna' }, value: 'active' },
   { label: { en: 'Completed', pl: 'Zakończona' }, value: 'completed' },
-  // The templates workbench. Declared so /admin and generate:types know the value exists; it is
-  // never picked by hand — resolveWorkshopInvestment is the only writer (src/lib/db/workshop-investment.ts).
+  // Never picked by hand — resolveWorkshopInvestment is the only writer
+  // (src/lib/db/workshop-investment.ts); declared so /admin and generate:types know the value exists.
   { label: { en: 'Template', pl: 'Szablon' }, value: 'szablon' },
 ] as const
 
@@ -101,10 +101,9 @@ export const Investments: CollectionConfig = {
       label: { en: 'Status', pl: 'Status' },
       options: [...STATUS_OPTIONS],
     },
-    // Global (per-investment) subcontractor markup coefficients — the defaults for the sheet, which
-    // a single pozycja may override. „Bez narzędzi" is not an independent number: the sheet derives
-    // it as „z narzędziami" less 15%, which is why DEFAULT_COEFFS owns both and the column default
-    // had to be corrected to match (20260825_0).
+    // Defaults for the sheet, which a single pozycja may override. „Bez narzędzi" is not independent:
+    // the sheet derives it as „z narzędziami" less 15%, which is why DEFAULT_COEFFS owns both and the
+    // column default had to be corrected to match (20260825_0).
     {
       name: 'wToolsCoeff',
       type: 'number',
@@ -123,17 +122,16 @@ export const Investments: CollectionConfig = {
         pl: 'Współczynnik podwykonawcy (bez narzędzi)',
       },
     },
-    // Per-investment VAT rate, stored as a fraction (0.08 = 8%). Kosztorys prices are netto;
-    // brutto is computed. Edited from the kosztorys editor (Sekcje panel), not typically here.
+    // A fraction (0.08 = 8%). Kosztorys prices are netto; brutto is computed. Edited from the
+    // kosztorys editor (Sekcje panel).
     {
       name: 'vatRate',
       type: 'number',
       defaultValue: DEFAULT_VAT,
       label: { en: 'VAT rate (fraction)', pl: 'Stawka VAT (ułamek)' },
     },
-    // Edited from the kosztorys editor's Podsumowanie panel, not typically here. `required` pairs
-    // with the column's NOT NULL: without it Payload lets the admin clear the select, and the write
-    // surfaces as a raw constraint violation instead of a field error.
+    // `required` pairs with the column's NOT NULL: without it Payload lets the admin clear the select
+    // and the write surfaces as a raw constraint violation instead of a field error.
     {
       name: 'settlementMode',
       type: 'select',
@@ -142,19 +140,17 @@ export const Investments: CollectionConfig = {
       label: { en: 'Settlement mode', pl: 'Sposób rozliczenia' },
       options: SETTLEMENT_MODE_ADMIN_OPTIONS,
     },
-    // Materiały billed to the investor at netto instead of the brutto receipt, stored as a fraction
-    // (0.23 = 23%) like `vatRate` above. Deliberately neither `required` nor defaulted: null means
-    // "no concession" and must stay distinguishable from a 0% one, since that is what leaves every
-    // existing investment's figures untouched. Edited from the Podsumowanie panel, not typically here.
+    // Materiały billed to the investor at netto instead of the brutto receipt, a fraction like
+    // `vatRate`. Neither `required` nor defaulted: null means "no concession" and must stay
+    // distinguishable from a 0% one, which is what leaves existing investments' figures untouched.
     {
       name: 'materialsNetRate',
       type: 'number',
       label: { en: 'Materials net rate (fraction)', pl: 'Stawka netto wydatków (ułamek)' },
     },
-    // Global kosztorys discount: amount-only ('amount' | null). Overrides per-item discounts and is
-    // subtracted once from the executed total. `type` null = no global discount (per-item discounts
-    // apply). A percent global rabat is no longer stored — it's stamped into each per-item rabat.
-    // Edited from the kosztorys editor settings bar, not typically here.
+    // Amount-only ('amount' | null): overrides per-item discounts and is subtracted once from the
+    // executed total; null means the per-item discounts apply. A percent global rabat is not stored —
+    // it is stamped into each per-item rabat.
     {
       name: 'globalDiscountType',
       type: 'text',
@@ -166,10 +162,9 @@ export const Investments: CollectionConfig = {
       defaultValue: 0,
       label: { en: 'Global discount value', pl: 'Rabat globalny — wartość' },
     },
-    // Workbench state, only ever set on the `szablon` investment: which kosztorys_presets row is
-    // currently loaded into it. Written by raw SQL (setWorkshopPreset), but declared here anyway —
-    // a column the collection doesn't know stays out of Payload's drizzle schema and its generated
-    // types, so nothing in the Payload graph could ever read or write it.
+    // Which kosztorys_presets row is loaded into the `szablon` investment. Written by raw SQL
+    // (setWorkshopPreset), but declared here because a column the collection doesn't know stays out of
+    // Payload's drizzle schema and generated types.
     {
       name: 'templatePresetId',
       type: 'number',

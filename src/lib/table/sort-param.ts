@@ -1,11 +1,8 @@
 import type { SortingState } from '@tanstack/react-table'
 
-/**
- * Payload's sort parameter format: `-amount` descending, `amount` ascending.
- *
- * Only the first sort column survives — the tables this serves sort on one column at a time, and a
- * multi-column parameter would have to be validated column by column downstream.
- */
+// Payload's sort parameter format: `-amount` descending, `amount` ascending. Only the first sort
+// column survives — a multi-column parameter would have to be validated column by column downstream.
+
 /** The column id inside a sort parameter, i.e. the parameter without its descending `-`. */
 export function sortParamColumnId(param: string): string {
   return param.startsWith('-') ? param.slice(1) : param

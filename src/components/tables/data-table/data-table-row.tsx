@@ -2,7 +2,6 @@
 
 // Clickable table row. Clicking it opens the row's subject — by navigating to `getRowHref`, or, for
 // a row whose opening is a WRITE and so must not be prefetchable, by calling `onRowClick`.
-// Clicks on interactive elements (<a>, <button>) are ignored so inline actions work independently.
 
 import React from 'react'
 import { flexRender, type Row } from '@tanstack/react-table'
@@ -31,12 +30,10 @@ export function DataTableRow<TData>({
 
     const target = e.target as HTMLElement
 
-    // Ignore events that bubbled from a React portal (e.g., Dialog content).
-    // React synthetic events propagate through the component tree, not the DOM,
-    // so a click inside a portaled dialog still reaches this handler.
+    // React events bubble through the component tree, not the DOM — a click inside a portaled
+    // dialog still reaches here, so it's ignored via containment check.
     if (!e.currentTarget.contains(target)) return
 
-    // Skip if the click landed on an interactive element (button, link)
     if (target.closest('a, button')) return
 
     if (!href) {
@@ -44,7 +41,6 @@ export function DataTableRow<TData>({
       return
     }
 
-    // Cmd/Ctrl+click opens in new tab
     if (e.metaKey || e.ctrlKey) {
       window.open(href, '_blank')
     } else {

@@ -27,9 +27,8 @@ export async function getWorkshop(db: DbExecutorT): Promise<WorkshopT | null> {
 }
 
 /**
- * The workbench, provisioned on first use. Auto-provisioning is what lets the status stay unpickable
- * in the investment form: there is no hand route to a second workbench. Creating is a MUTATION, so
- * only an action may call this — a page that finds no workbench redirects instead of making one.
+ * Provisioned on first use, which is what lets the status stay unpickable in the investment form.
+ * Creating is a MUTATION, so only an action may call this — a page that finds none redirects.
  */
 export async function resolveWorkshopInvestment(payload: Payload): Promise<number> {
   const existing = await getWorkshop(await getDb(payload))

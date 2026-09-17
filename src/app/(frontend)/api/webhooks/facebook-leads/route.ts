@@ -13,10 +13,7 @@ import { captureLead } from '@/lib/leads/capture-lead'
 import { notifyShapeAlert } from '@/lib/leads/notify'
 import { logError } from '@/lib/utils/log-error'
 
-/**
- * GET /api/webhooks/facebook-leads
- * Meta webhook verification challenge (one-time handshake).
- */
+/** Meta's one-time verification handshake. */
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const mode = searchParams.get('hub.mode')
@@ -33,13 +30,9 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * POST /api/webhooks/facebook-leads
- * Meta delivers only a leadgen_id per lead; the field data (name, email, phone)
- * is fetched with a Page token in a second authenticated call, then persisted.
- *
- * Signature is verified over the RAW body — read the bytes once as text and
- * JSON.parse from that same string (re-serializing would break the HMAC).
- * Store-then-notify ordering means a mail failure never loses a lead.
+ * Meta delivers only a leadgen_id; the field data is fetched with a Page token in a second call.
+ * The signature is verified over the RAW body — read the bytes once as text and JSON.parse that same
+ * string, since re-serializing breaks the HMAC. Store-then-notify so a mail failure never loses a lead.
  */
 export async function POST(request: NextRequest) {
   const raw = await request.text()
@@ -71,9 +64,8 @@ export async function POST(request: NextRequest) {
       const leadgenId = change.value?.leadgen_id
       if (!leadgenId) continue
 
-      // Isolate each lead: a fetch/store failure on one must not abort its
-      // siblings or 500 the batch. Capture is idempotent, so Meta's retry recovers
-      // this leadgen_id without duplicating the ones already stored this request.
+      // A fetch/store failure on one lead must not abort its siblings. Capture is idempotent, so Meta's
+      // retry recovers this leadgen_id without duplicating the ones already stored.
       try {
         const fetched = await fetchLead(leadgenId)
         const parsed = leadSchema.safeParse(fetched)
@@ -87,9 +79,8 @@ export async function POST(request: NextRequest) {
           continue
         }
 
-        // Fetch the form first: its questions carry Meta's field `type`
-        // (EMAIL/PHONE/FULL_NAME), normalizeLead's most reliable pass. Without
-        // them it falls back to key heuristics + email regex.
+        // The form's questions carry Meta's field `type` (EMAIL/PHONE/FULL_NAME), normalizeLead's most
+        // reliable pass; without them it falls back to key heuristics + email regex.
         const formId = parsed.data.form_id
         if (formId && !formsById.has(formId)) {
           formsById.set(formId, await fetchForm(formId))
@@ -120,9 +111,8 @@ export async function POST(request: NextRequest) {
         })
         captured += 1
       } catch (err) {
-        // A fetch/store failure is recoverable: signal it so Meta redelivers the
-        // whole batch. The store is idempotent, so already-captured siblings this
-        // request won't duplicate — only this failed leadgen_id retries.
+        // Recoverable: signal it so Meta redelivers the whole batch. The store is idempotent, so
+        // already-captured siblings won't duplicate — only this failed leadgen_id retries.
         hadUnexpectedError = true
         logError(`[facebook-leads] Failed to process leadgen_id ${leadgenId}`, err)
       }
@@ -131,8 +121,8 @@ export async function POST(request: NextRequest) {
 
   if (captured > 0) revalidateTag(CACHE_TAGS.leads, 'default')
 
-  // Non-200 tells Meta to retry. Only reach for it on a recoverable error — a
-  // malformed body or bad shape already acked 200 above, since retrying can't fix those.
+  // Non-200 tells Meta to retry, so only a recoverable error reaches it — a malformed body already
+  // acked 200 above, since retrying can't fix it.
   if (hadUnexpectedError) {
     return NextResponse.json({ error: 'Partial failure — retry requested' }, { status: 500 })
   }

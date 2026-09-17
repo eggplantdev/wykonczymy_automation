@@ -3,8 +3,8 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
 
-// The two hand-typed text columns of a praca. They travel together because one button cleans both,
-// and a praca whose opis is blank can still carry a j.m. worth tidying.
+// The two hand-typed text columns travel together: one button cleans both, and a praca with a blank
+// opis can still carry a j.m. worth tidying.
 export type ItemTextRowT = { id: number; description: string | null; unit: string | null }
 
 export async function getItemTexts(db: DbExecutorT, investmentId: number): Promise<ItemTextRowT[]> {
@@ -20,10 +20,7 @@ export async function getItemTexts(db: DbExecutorT, investmentId: number): Promi
   }))
 }
 
-/**
- * Rewrite many pozycje in one statement — a kosztorys runs to hundreds of rows, and a per-row update
- * would be that many round-trips for one button.
- */
+/** One statement, because a kosztorys runs to hundreds of rows and one button drives all of them. */
 export async function setItemTexts(
   db: DbExecutorT,
   investmentId: number,

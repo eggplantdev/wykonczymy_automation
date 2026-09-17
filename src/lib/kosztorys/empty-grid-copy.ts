@@ -12,12 +12,10 @@ type ArgsT = {
 }
 
 /**
- * What an empty rozpiska says about itself — title and description from one branch, so the two
- * cannot drift apart.
- *
- * The filter branch NAMES the engaged filters: a heading of only „Wszystkie pozycje schowane" leaves
- * the reader to re-open the menu and compare ticks to find which one swallowed 387 rows. The labels
- * are bare noun phrases (see `RowConditionT.label`), so they read straight after „Filtr chowa pozycje ".
+ * Title and description come from one branch so the two cannot drift apart. The filter branch NAMES
+ * the engaged filters — „Wszystkie pozycje schowane" alone leaves the reader re-opening the menu to
+ * find which tick swallowed 387 rows. The labels are bare noun phrases (`RowConditionT.label`), so
+ * they read straight after „Filtr chowa pozycje ".
  */
 export function emptyGridCopy({ preview, hiders, diagnostics }: ArgsT): EmptyGridCopyT {
   if (preview) {
@@ -39,8 +37,7 @@ export function emptyGridCopy({ preview, hiders, diagnostics }: ArgsT): EmptyGri
       description: 'Filtr zrobił swoje — nie ma już czego poprawiać.',
     }
   }
-  // Nothing engaged, nothing to name. The render gate in `kosztorys-editor-body` happens to agree
-  // and never asks — but the module stands on its own now, and the branch it would otherwise fall
-  // into titles the overlay „Brak pozycji " with a trailing space and credits a filter that is off.
+  // Nothing engaged, nothing to name. `kosztorys-editor-body` never asks, but without this branch the
+  // overlay reads „Brak pozycji " with a trailing space and credits a filter that is off.
   return { title: 'Brak pozycji do pokazania' }
 }

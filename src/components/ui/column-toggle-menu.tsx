@@ -54,10 +54,9 @@ export function ColumnToggleMenu({ items, onToggle, onToggleAll, onOpenOrder, cl
           </>
         )}
         <DropdownMenuLabel>Widoczne kolumny</DropdownMenuLabel>
-        {/* Same shape as the filter menus (`components/filters/filter-multi-select.tsx`): the bulk
-            row is the first row of the list it acts on. Its icon is the plural of theirs rather than
-            a third symbol — and it never dims, because the label already names the direction, so a
-            state tick here would be answering a question the row doesn't ask. */}
+        {/* Same shape as the filter menus' bulk row (`filter-multi-select.tsx`): first row of the
+            list it acts on, icon is the plural of theirs. No state tick — the label already names
+            the direction. */}
         <DropdownMenuItem
           onSelect={(e) => e.preventDefault()}
           onClick={() => onToggleAll(!allVisible)}

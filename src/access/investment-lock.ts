@@ -4,28 +4,23 @@ import { isRelatedInvestmentLocked, isInvestmentLocked } from '@/lib/db/investme
 import { resolveId } from '@/lib/utils/resolve-id'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 
-// Closes `/admin` as a way around the lock. The app's own writes are gated in the action layer
-// (`investmentAction`), which the panel never goes through — a MANAGER reaches `/admin` and every
-// kosztorys collection grants it the full CRUD, so without this the panel edits a settled
-// investment's rozpiska freely.
-//
-// `read` deliberately stays open: a locked kosztorys is read-only, not hidden.
+// Closes `/admin` as a way around the lock: the app's writes are gated in `investmentAction`, which
+// `/admin` never goes through, so a MANAGER there could otherwise edit a settled rozpiska freely.
+// `read` stays open — a locked kosztorys is read-only, not hidden.
 
 // The relationship on the incoming `data` that names the target investment. `stage-progress` carries
 // no investment of its own, so it reaches one hop further out, through the pozycja it belongs to.
 type CreateOwnerT = 'investment' | 'item'
 
-// The `Where` path follows from the owner, so it is derived rather than passed: given both, a caller
-// could pair `'item'` with `'investment.status'` and get a gate that guards the wrong hop — access
-// control failing open with nothing to typecheck against.
+// The `Where` path is derived from the owner, not passed separately — a caller could otherwise pair
+// `'item'` with `'investment.status'` and get a gate guarding the wrong hop.
 const LOCK_PATHS = {
   investment: 'investment.status',
   item: 'item.investment.status',
 } as const satisfies Record<CreateOwnerT, string>
 
-// The role rule is a parameter with no default on purpose: the collections do not agree on it.
-// `kosztoryses` keeps deletion at ADMIN/OWNER, so a wired-in `isAdminOrOwnerOrManager` would have
-// handed MANAGER a delete right as a side effect of adding a lock.
+// Role rule has no default on purpose — collections disagree on it (`kosztoryses` keeps deletion at
+// ADMIN/OWNER), so a wired-in default would hand MANAGER a delete right as a side effect.
 export function unlessInvestmentLocked(base: Access, owner: CreateOwnerT): Access {
   return async (args) => {
     const allowed = await base(args)
@@ -34,13 +29,9 @@ export function unlessInvestmentLocked(base: Access, owner: CreateOwnerT): Acces
   }
 }
 
-// An update is gated in BOTH directions, because a `Where` can only speak about the row as it is
-// STORED. Alone it stops edits to a locked investment's sheet but waves through the opposite move —
-// pointing an open sheet AT a locked investment — after which nothing can detach it: the panel then
-// sees a locked row and the action layer refuses too, so undoing it takes SQL.
-// Only `kosztoryses` is wired to it. The four EX-748 collections have the same hole and keep the
-// stored-row gate for now — a deliberate hold, not a property of those collections: widening what
-// `/admin` may no longer do is the owner's call, not a review finding's.
+// Gated in BOTH directions: a stored-row `Where` alone can't stop pointing an open sheet AT a locked
+// investment, only editing an already-locked one — after which nothing can detach it without SQL.
+// Only `kosztoryses` is wired; the EX-748 collections keep the stored-row-only gate (owner's hold).
 export function updateUnlessInvestmentLocked(base: Access, owner: CreateOwnerT): Access {
   return unlessInvestmentLocked(createUnlessInvestmentLocked(base, owner), owner)
 }

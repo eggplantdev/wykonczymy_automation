@@ -10,13 +10,11 @@ import {
 import type { DbExecutorT } from './get-db'
 import { isoOrNull } from './row-coerce'
 
-// The single place that reads/writes the raw kosztorys_presets table (no Payload collection —
-// the notification_reads pattern). A preset is a reusable, GLOBAL (cross-investment) template:
-// a stripped kosztorys tree stored as `payload` jsonb (same shape as a snapshot). `name` is the
-// preset's identity — UNIQUE, so save-as either inserts a new name or overwrites an existing one.
+// The single reader/writer of the raw kosztorys_presets table (no Payload collection — the
+// notification_reads pattern). A preset is a GLOBAL, cross-investment template: a stripped kosztorys
+// tree in `payload` jsonb, same shape as a snapshot. `name` is its identity, UNIQUE.
 
-// List/attribution metadata — deliberately WITHOUT the jsonb `payload` (a picker must never load
-// the full tree for every preset).
+// Without the jsonb `payload`: a picker must never load the full tree for every preset.
 export type PresetMetaT = {
   id: number
   name: string
@@ -24,9 +22,8 @@ export type PresetMetaT = {
   createdBy: number | null
 }
 
-// One row per section across ALL presets — the "append a section from a szablon" picker's data.
-// `sectionId` is the section's id INSIDE the preset payload (the OLD id), paired with `presetId` so
-// the append action can resolve it back to the payload; never a live kosztorys_sections id.
+// One row per section across ALL presets. `sectionId` is the section's id INSIDE the preset payload,
+// paired with `presetId` so the append action can resolve it back — never a live sections id.
 export type PresetSectionMetaT = {
   presetId: number
   presetName: string
@@ -35,9 +32,8 @@ export type PresetSectionMetaT = {
   itemCount: number
 }
 
-// Save a preset under a NEW name. `ON CONFLICT DO NOTHING` makes the duplicate-name case return no
-// row → null, so the caller maps it to a friendly message WITHOUT sniffing driver-specific PG error
-// shapes (and it's race-free — the UNIQUE(name) constraint is the arbiter, not a prior SELECT).
+// `ON CONFLICT DO NOTHING` returns no row on a duplicate name, so the caller words the message
+// without sniffing PG error shapes — and race-free, since the UNIQUE(name) constraint is the arbiter.
 export async function insertPreset(
   db: DbExecutorT,
   params: { name: string; createdBy: number | null; payload: SnapshotPayloadT },
@@ -55,9 +51,8 @@ export async function insertPreset(
   return row ? Number(row.id) : null
 }
 
-// Overwrite the preset with this name in place (or create it if absent). Retargets the payload +
-// schema_version + author; leaves the id and created_at stable so spawned kosztorysy stay frozen
-// (no FK back to the preset — retroactivity is not our concern here, the whole-slice snapshot rule).
+// Leaves the id and created_at stable. Kosztorysy spawned from it stay frozen — there is no FK back
+// to the preset.
 export async function upsertPresetByName(
   db: DbExecutorT,
   params: { name: string; createdBy: number | null; payload: SnapshotPayloadT },
@@ -77,10 +72,8 @@ export async function upsertPresetByName(
   return Number(res.rows[0].id)
 }
 
-// Overwrite an EXISTING szablon's content, addressed by id. Deliberately an UPDATE and not an
-// upsert: the workbench's „Zapisz" must never resurrect a szablon someone deleted while it was
-// open, and `false` is how the caller learns the row is gone. `upsertPresetByName` stays for
-// „Zapisz jako szablon…", where creating under a new name IS the point.
+// An UPDATE and not an upsert: the workbench's „Zapisz" must never resurrect a szablon someone
+// deleted while it was open, and `false` is how the caller learns the row is gone.
 export async function updatePresetPayload(
   db: DbExecutorT,
   params: { id: number; createdBy: number | null; payload: SnapshotPayloadT },
@@ -96,8 +89,7 @@ export async function updatePresetPayload(
   return res.rows.length > 0
 }
 
-// Load one preset's full payload by id — the seed path resolves the payload from the row itself
-// rather than trusting a client-passed value. Returns null when the id doesn't exist.
+// The seed path resolves the payload from the row itself rather than trusting a client-passed value.
 export async function getPreset(
   db: DbExecutorT,
   presetId: number,
@@ -111,27 +103,22 @@ export async function getPreset(
   return { name: String(row.name), payload: row.payload as StoredSnapshotPayloadT }
 }
 
-// Just the name. Separate from `getPreset` because the workbench page needs a title and nothing
-// else, and the payload of a szablon is the one large column in this table.
+// Separate from `getPreset` because the workbench page needs a title only, and the payload is the one
+// large column in this table.
 export async function getPresetName(db: DbExecutorT, presetId: number): Promise<string | null> {
   const res = await db.execute(sql`SELECT name FROM kosztorys_presets WHERE id = ${presetId}`)
   const row = res.rows[0]
   return row ? String(row.name) : null
 }
 
-// Flatten every preset's sections into pickable metas. Counted in SQL on purpose (EX-622): the
-// payloads are the only large thing here and this needs nothing from them but a tally, so shipping
-// them to Node would be an O(payload bytes) read for an O(sections) result — megabytes decoded to
-// emit a few hundred small metas, re-paid on every `presets` cache miss.
+// Counted in SQL (EX-622): this needs nothing from the payloads but a tally, so shipping them to Node
+// would decode megabytes for a few hundred small metas on every `presets` cache miss.
 //
-// The `counts` CTE expands `items` ONCE per preset and hashes the result. Counting inside the
-// section-row lateral instead would re-expand the whole items array per section (O(sections×items)) —
-// measured 50× slower on a 2-preset/320-item library, and it widens from there.
+// The `counts` CTE expands `items` ONCE per preset. Counting inside the section-row lateral would
+// re-expand the array per section — measured 50× slower on a 2-preset/320-item library.
 //
-// Order matches listPresets (preset created_at DESC, id DESC) then displayOrder within each preset.
-// `WITH ORDINALITY` is load-bearing, not decoration: Postgres' sort is unstable where JS's `.sort`
-// was, and the picker's grouping requires one preset's metas to arrive CONSECUTIVELY, so the payload
-// array position has to break displayOrder ties.
+// `WITH ORDINALITY` is load-bearing: Postgres' sort is unstable where JS's `.sort` was, and the
+// picker's grouping needs one preset's metas CONSECUTIVELY, so the array position breaks ties.
 export async function listPresetSections(db: DbExecutorT): Promise<PresetSectionMetaT[]> {
   const res = await db.execute(sql`
     WITH counts AS (
@@ -160,11 +147,9 @@ export async function listPresetSections(db: DbExecutorT): Promise<PresetSection
   }))
 }
 
-// Delete a preset outright — no versioning, no trash. A kosztorys spawned from a preset is a frozen
-// copy, not a reference, so nothing downstream breaks. The one FK that does point here is the
-// warsztat's `investments.template_preset_id`, declared ON DELETE SET NULL — deleting the szablon
-// somebody has open empties the warsztat's pointer instead of dangling it. `false` = no such row,
-// which the caller reports rather than swallowing.
+// No versioning, no trash. A spawned kosztorys is a frozen copy, not a reference, so nothing
+// downstream breaks; the one FK here, `investments.template_preset_id`, is ON DELETE SET NULL, so
+// deleting a szablon somebody has open empties the warsztat's pointer instead of dangling it.
 export async function deletePreset(db: DbExecutorT, presetId: number): Promise<boolean> {
   const res = await db.execute(sql`
     DELETE FROM kosztorys_presets WHERE id = ${presetId} RETURNING id
@@ -172,10 +157,9 @@ export async function deletePreset(db: DbExecutorT, presetId: number): Promise<b
   return res.rows.length > 0
 }
 
-// The collision guard sits in SQL rather than in a catch on PG 23505 for the same
-// reason insertPreset's ON CONFLICT does: the UNIQUE constraint would otherwise surface as the
-// driver's English sentence in a Polish UI. `false` = the name is taken (or the id doesn't exist —
-// both mean "nothing was renamed", and the caller distinguishes them by having listed the row).
+// The collision guard sits in SQL rather than in a catch on PG 23505, or the UNIQUE constraint
+// surfaces as the driver's English sentence in a Polish UI. `false` = the name is taken or the id is
+// gone — both mean „nothing was renamed", and the caller tells them apart by having listed the row.
 export async function renamePreset(
   db: DbExecutorT,
   presetId: number,

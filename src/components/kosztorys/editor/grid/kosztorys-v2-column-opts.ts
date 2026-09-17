@@ -44,16 +44,15 @@ export type BuildV2ColumnsOptsT = {
   // Reordering items within a section (Przesuń w górę/dół). Greyed out while a column sort is
   // active — "up/down" has no meaning against a price-sorted list.
   onReorderItem?: (row: KosztorysV2RowT, dir: 'up' | 'down') => void
-  // Read over the WHOLE rozpiska, never the filtered view: the mover works on the document, so a
-  // search that hides the row above must not make ▲ look impossible.
+  // Over the WHOLE rozpiska: the mover works on the document, so a search hiding the row above
+  // must not make ▲ look impossible.
   moveEdges?: MoveEdgesT
   onInsertItem?: (row: KosztorysV2RowT, dir: 'above' | 'below') => void
   // Renaming the whole section from its (denormalized) name cell. Routes through the same fan-out
   // as the section panel — never a per-row setRowData, which would desync the other rows' copies.
   onRenameSection?: (sectionId: number, name: string) => void
-  // The band's „…" commands. No column reads them — `buildV2Grid`'s caller takes them back out of
-  // `columnOpts` to hand to the section band — but they stay gated here with every other mutation,
-  // so one `editorOnly()` pass decides the whole editor's write surface.
+  // No column reads them (the caller takes them back out for the band), but they stay gated here so
+  // one `editorOnly()` pass decides the whole write surface.
   onRemoveSection?: (sectionId: number) => void
   onReorderSection?: (sectionId: number, dir: 'up' | 'down') => void
   onInsertSection?: (sectionId: number, dir: 'above' | 'below') => void

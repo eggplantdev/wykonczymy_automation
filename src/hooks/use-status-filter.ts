@@ -5,9 +5,8 @@ import { createJsonMapStore, useJsonMap, type JsonMapStoreT } from '@/hooks/crea
 import type { InvestmentStatusT } from '@/types/reference-data'
 
 const DEFAULT_STATUSES: InvestmentStatusT[] = ['active', 'planowana']
-// Three, not four: `szablon` is the hidden templates workbench. It is already dropped by
-// fetchReferenceData, so this list is the checkbox row, not a gate — in display order, and read by
-// the StatusFilter component too so the two can't drift.
+// `szablon` is missing because fetchReferenceData already drops it. In display order, and read by
+// StatusFilter too so the two can't drift.
 export const FILTERABLE_STATUSES: InvestmentStatusT[] = ['planowana', 'active', 'completed']
 
 const STORAGE_PREFIX = 'table-status-filter:'
@@ -24,9 +23,9 @@ function storeFor(storageKey: string): JsonMapStoreT<boolean> {
   return store
 }
 
-// A flag per status, never a list of the picked ones: the persisted map has to tell „nikt jeszcze nie
-// wybierał" from „wybrano nic", and an empty list says both. So an absent (or client-corrupted) map
-// falls back to the defaults, while an explicit all-false is honoured as the empty selection it is.
+// A flag per status, never a list of the picked ones: an empty list cannot tell „nikt jeszcze nie
+// wybierał" from „wybrano nic". An absent map falls back to the defaults, an explicit all-false is
+// honoured as the empty selection it is.
 export function selectionFrom(persisted: Record<string, boolean>): Set<InvestmentStatusT> {
   const answered = FILTERABLE_STATUSES.filter((status) => typeof persisted[status] === 'boolean')
   if (answered.length === 0) return new Set(DEFAULT_STATUSES)
@@ -41,10 +40,9 @@ export function filterByStatuses<TItem>(
   return data.filter((item) => selectedStatuses.has(getStatus(item)))
 }
 
-// `storageKey` remembers the pick across visits — the filter resetting to the defaults on every
-// navigation was the complaint. Through the same localStorage store as the kosztorys column
-// preferences, so the stored string IS the render input: no post-hydration effect writing state, and
-// the server's empty snapshot renders the defaults the client also starts from.
+// `storageKey` remembers the pick across visits. Through the same localStorage store as the kosztorys
+// column preferences, so the stored string IS the render input — no post-hydration effect writing
+// state, and the server's empty snapshot renders the defaults the client also starts from.
 export function useStatusFilter<TItem>(
   data: TItem[],
   getStatus: (item: TItem) => InvestmentStatusT,

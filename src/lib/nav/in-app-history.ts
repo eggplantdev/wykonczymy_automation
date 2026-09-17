@@ -6,18 +6,9 @@ export type NavigationHistoryLikeT = {
 }
 
 /**
- * Whether `history.back()` would land on a page of this app rather than outside it.
- *
- * `history.length` cannot answer that: a fresh tab that has just navigated already reports 2,
- * because the tab's initial blank document is entry 1. That is why the old `length <= 1` guard
- * never fired on a direct load and „Wróć" walked the reader to `about:blank`. The previous
- * entry's URL answers it exactly — `about:blank` and a foreign site are both „not this app".
- *
- * Narrower than „the previous history STEP", and knowingly so: `entries()` omits cross-origin
- * entries and compacts the indices, so a reader who left for another site in this tab and came back
- * through the address bar sees the app page from before the excursion as their previous entry.
- * „Wróć" then walks them out — the very defect this replaced — but only on that path, and the
- * editor's outbound links open a new tab, so nothing in the app produces it.
+ * Whether `history.back()` lands back in this app. `history.length` lies (a fresh tab already
+ * reports 2), so this checks the previous entry's URL against `origin` instead — `entries()` omits
+ * cross-origin steps, but the editor's outbound links open a new tab, so that gap never matters here.
  */
 export function hasInAppHistory(
   navigation: NavigationHistoryLikeT | undefined,

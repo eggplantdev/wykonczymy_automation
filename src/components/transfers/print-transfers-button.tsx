@@ -36,9 +36,8 @@ export function PrintTransfersButton({ where, table, title }: PrintTransfersButt
       return
     }
 
-    // Opened here, synchronously, and not after the fetch: a browser grants window.open only while
-    // the click's user activation lasts, which an await spends — Safari refuses outright, Chrome
-    // after a few seconds. about:blank inherits our origin; a blob:/data: window gets an opaque one.
+    // Opened synchronously, before the fetch: an await would spend the click's user activation that
+    // window.open needs (Safari refuses outright, Chrome after a few seconds).
     const printWindow = window.open('', '_blank')
     if (!printWindow) {
       toastMessage('Przeglądarka zablokowała okno wydruku', 'error')
@@ -48,8 +47,8 @@ export function PrintTransfersButton({ where, table, title }: PrintTransfersButt
     if (printWindow.document.body) printWindow.document.body.textContent = 'Przygotowuję wydruk…'
 
     startTransition(async () => {
-      // Refetches instead of reusing the table's rows: the table is paginated, the printout is not.
-      // The screen's sort key travels with the request, so the database orders both sets the same way.
+      // Refetches instead of reusing the table's rows: the table is paginated, the printout isn't.
+      // The screen's sort key travels along, so both sets order the same way.
       const result = await fetchFilteredTransfers(where, {
         skipMedia: true,
         sort: sortingStateToParam(table.getState().sorting) || undefined,
@@ -69,9 +68,8 @@ export function PrintTransfersButton({ where, table, title }: PrintTransfersButt
 
       printWindow.document.write(buildTransfersPrintHtml(rows, columns, title))
       printWindow.document.close()
-      // Closing on afterprint rather than straight after print(): only Chrome blocks inside print(),
-      // so an immediate close() tears the window down mid-job in Safari and Firefox. The document
-      // loads no external resource, so it is fully parsed by close() and can print at once.
+      // Closes on afterprint, not right after print(): only Chrome blocks inside print(), so an
+      // immediate close() would tear the window down mid-job in Safari and Firefox.
       printWindow.addEventListener('afterprint', () => printWindow.close())
       printWindow.print()
     })

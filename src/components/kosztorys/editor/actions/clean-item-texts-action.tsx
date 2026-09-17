@@ -13,8 +13,8 @@ export function CleanItemTextsMenuItem() {
   const { investmentId, onTreeReplaced } = useKosztorysEditorContext()
   const [cleaning, setCleaning] = useState(false)
 
-  // Rewrites every opis and j.m. in place, so the grid is reseeded off the investment's revision
-  // token — the same signal the sheet compare uses after it writes.
+  // Rewrites every opis and j.m. in place, so the grid reseeds off the revision token — the same
+  // signal the sheet compare uses after it writes.
   function handleCleanItemTexts() {
     setCleaning(true)
     void cleanItemTextsAction(investmentId)

@@ -1,10 +1,9 @@
 import { groupBySection } from '@/lib/kosztorys/row-ops'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-// Where ▲/▼ has nowhere to go: a praca at the top or bottom of its own section, a sekcja at the top
-// or bottom of the rozpiska. The movers already bail there (`sectionNeighbor` / `neighborSectionId`
-// come back undefined), so a menu that doesn't read this offers a command that eats the click and
-// changes nothing — the same look-alive-do-nothing trap as the commands under a sort.
+// Where ▲/▼ has nowhere to go: a praca at the edge of its section, a sekcja at the edge of the
+// rozpiska. The movers already bail there, so a menu that doesn't read this offers a command that
+// eats the click and changes nothing.
 export type MoveEdgesT = {
   firstItemIds: ReadonlySet<number>
   lastItemIds: ReadonlySet<number>

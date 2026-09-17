@@ -1,9 +1,6 @@
 import type { Column } from '@tanstack/react-table'
 
-/**
- * Two surfaces need this — the column-toggle menu and the print document — so the fallback chain
- * lives here rather than being re-derived at each.
- */
+/** The column-toggle menu and the print document must agree, so the fallback chain lives here. */
 export function columnLabel<TData>(column: Column<TData, unknown>): string {
   return (
     column.columnDef.meta?.label ??

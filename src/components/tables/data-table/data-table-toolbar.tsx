@@ -26,10 +26,9 @@ type DataTableToolbarPropsT = {
 }
 
 /**
- * The one toolbar every data table renders into. Slots, not children, because the order is the
- * contract: the search field holds the left edge, the column picker the right. Ten tables
- * hand-assembling a flat list each rediscovered that layout, and they disagreed — the picker reached
- * the edge only where it happened to be the last child, and landed mid-row everywhere else.
+ * The one toolbar every data table renders into. Slots, not children: the order is the contract
+ * (search on the left edge, column picker on the right), which ten tables hand-assembling a flat
+ * list each got wrong in a different way.
  */
 export function DataTableToolbar({
   title,
@@ -56,10 +55,8 @@ export function DataTableToolbar({
           {filters}
         </ControlGrid>
       )}
-      {/* The auto margin lives on the group, not on the picker inside it: this div is always the
-          row's last child, so it always has the free space to float into — which the picker only had
-          on the pages that happened to render it last. Below `sm` the row is wrapping, and spreading
-          there would strand the group alone on the right of whatever line it landed on. */}
+      {/* Auto margin on the group, not the picker: this div is always the row's last child. Not below
+          `sm`, where the row wraps and spreading would strand it alone on its line. */}
       {hasRight && (
         <ControlGrid className="sm:ml-auto sm:w-auto sm:flex-initial sm:items-center">
           {actions}

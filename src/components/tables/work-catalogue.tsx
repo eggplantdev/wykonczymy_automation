@@ -18,10 +18,9 @@ const money = (value: number | null) =>
     <span className="tabular-nums">{formatPLN(value)}</span>
   )
 
-// The share of „Cena j.m." a stawka eats — its own column, sortable, because it is the figure the
+// The share of „Cena j.m." a stawka eats — its own sortable column, because it is the figure the
 // company's rule is written in. Over the ceiling it goes red and stops there: the katalog WARNS and
-// never blocks, same stance as `appendCatalogueItems`. „Auto" has no share at all — the udział
-// belongs to an inwestycja, not to the katalog.
+// never blocks. „Auto" has no share at all — the udział belongs to an inwestycja.
 const shareOf = (rate: number | null, clientPrice: number) =>
   rate !== null && clientPrice > 0 ? rate / clientPrice : null
 
@@ -48,10 +47,8 @@ const twoLines = (first: string, second: string) => () => (
 
 const SHARE_TOOLTIP = `Udział stawki w cenie j.m. Powyżej ${MAX_CLIENT_SHARE * 100}% na czerwono.`
 
-// Lp. is the row's number in the KATALOG, not its position on screen: it is pinned to alphabetical
-// order over the whole catalogue and survives every sort and every filter. A number that slid under
-// the row whenever the table was re-sorted would name nothing — which is what both `row.index` and a
-// position-in-the-rendered-model would give.
+// Lp. is the row's number in the KATALOG, pinned to alphabetical order over the whole catalogue, so
+// it survives every sort and filter. `row.index` would slide under the row and name nothing.
 const lpColumn = (ordinals: ReadonlyMap<number, number>) =>
   col.display({
     id: 'lp',
@@ -122,9 +119,8 @@ const ownToolsShareColumn = col.accessor((row) => shareOf(row.ownToolsRate, row.
   cell: (info) => share(info.getValue()),
 })
 
-// „Dodaj pracę z katalogu" reads the cennik to pick from it, never to tune it — so the udział
-// columns (the instrument for setting a stawka) and „Akcje" stay behind on /katalog-prac. They sit
-// in the middle of the order, which is why the two lists are assembled rather than sliced.
+// „Dodaj pracę z katalogu" reads the cennik to pick from it, never to tune it, so the udział columns
+// and „Akcje" stay behind on /katalog-prac. They sit mid-order, hence assembled rather than sliced.
 export const WORK_CATALOGUE_PICKER_COLUMNS = [
   descriptionColumn,
   categoryColumn,

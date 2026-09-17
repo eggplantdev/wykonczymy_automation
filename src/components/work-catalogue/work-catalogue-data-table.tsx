@@ -39,9 +39,8 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
     setValues: setCategories,
   } = useClientMultiFilter(searched, getCategory)
 
-  // TEMPORARY, same lifespan as the row's clear-marker button: the review works through the
-  // catalogue items pulled out of the old sheets, and the search box only reaches them by typing the
-  // note out.
+  // TEMPORARY, same lifespan as the row's clear-marker button: the search box only reaches the items
+  // pulled out of the old sheets by typing the note out.
   const [onlyLegacy, setOnlyLegacy] = useState(false)
 
   const legacyRows = filteredData.filter((row) => hasLegacyMarker(row.description))
@@ -49,9 +48,8 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
   // promise about what the click will show — over `data` it promised 742 rows while delivering 3.
   const rows = onlyLegacy ? legacyRows : filteredData
 
-  // Redrawing ~950 unvirtualized rows blocks the click for as long as it takes, so the filters stay
-  // urgent and the TABLE lags behind them: the toggle flips under the finger and the rows catch up
-  // behind the spinner. Deferred here rather than per filter because every control feeds this list.
+  // Redrawing ~950 unvirtualized rows blocks the click, so the filters stay urgent and the TABLE lags
+  // behind them. Deferred here rather than per filter because every control feeds this list.
   const deferredRows = useDeferredValue(rows)
   const busy = rows !== deferredRows
 
@@ -65,8 +63,7 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
   )
 
   // Numbered off `data`, never off what is on screen, so filtering cannot renumber a praca. Sorted
-  // here rather than taken as it arrives: `listCatalogueItems` orders by kategoria FIRST, so the
-  // arrival index counts in an order the table never shows.
+  // here because `listCatalogueItems` orders by kategoria first — an order the table never shows.
   const ordinals = useMemo(
     () =>
       new Map(
@@ -114,9 +111,8 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
                 icon={Tags}
                 searchable
               />
-              {/* Stays mounted while it is ON even at zero — the last clear-marker click of the
-                  review drops the count to 0, and a trigger that unmounted there would leave the
-                  table filtered to nothing with no control to switch off. */}
+              {/* Stays mounted while ON even at zero: the review's last clear-marker click drops the
+                  count to 0, and unmounting there leaves the table filtered to nothing. */}
               {(legacyRows.length > 0 || onlyLegacy) && (
                 <FilterTriggerButton
                   active={onlyLegacy}

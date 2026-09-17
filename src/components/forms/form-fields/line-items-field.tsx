@@ -30,7 +30,6 @@ import {
   type BulkExpenseFormValuesT,
 } from '@/components/forms/expense-form/bulk-expense-form'
 
-// The TanStack array-field API this component drives (`form.Field name="lineItems" mode="array"`).
 // Structural on purpose — name only the members we call, since the full FieldApi generic is
 // unnameable and the real inferred field is assignable to this.
 type LineItemsArrayFieldT = {
@@ -73,18 +72,14 @@ type LineItemsFieldPropsT = {
   onRemoveItem: (id: string, index: number, removeValue: (index: number) => void) => void
   onFileChange: (id: string, e: React.ChangeEvent<HTMLInputElement>) => void
   onRemoveFile: (id: string, index: number) => void
-  // Batch-attach N receipt images: 'per-row' registers `files[i]` against row `ids[i]`,
-  // 'single-row' hangs all of them on `ids[0]` as one multi-page invoice (see use-invoice-files).
-  // Async (ingest processing) — awaited before generation so the files map is populated first.
+  // 'per-row' registers `files[i]` against row `ids[i]`, 'single-row' hangs all of them on `ids[0]`
+  // as one multi-page invoice. Async, and awaited before generation so the files map is populated.
   onRegisterFiles: (ids: string[], files: File[], mode?: 'per-row' | 'single-row') => Promise<void>
-  // Read a row's attached pages so it can render a preview (empty → file input).
   getRowFiles: (id: string) => File[] | undefined
-  // Receipt generation: scan every eligible row's image and populate its fields (see use-receipt-generation).
   onGenerate?: () => void
   isGenerating?: boolean
-  // Marker sets key on each row's stable id (EX-448), not its position.
+  // Keyed on each row's stable id (EX-448), not its position.
   generatingIds?: Set<string>
-  // Rows whose picked file is still being processed at ingest — show a spinner, disable actions.
   ingestingIds?: Set<string>
   failedIds?: Set<string>
   generationProgress?: { done: number; total: number } | null
@@ -118,7 +113,6 @@ function getSecondRowCategory(
   type: string,
   refData: ReferenceDataBaseT,
 ): CategoryFieldConfigT | undefined {
-  // Show other category in second row when inline is already taken by expense category
   if (needsExpenseCategory(type) && showsOtherCategory(type)) return otherCategoryConfig(refData)
   return undefined
 }
@@ -181,25 +175,22 @@ export function LineItemsField({
   const [dragOverMode, setDragOverMode] = useState<ScanModeT | null>(null)
   const [scanMode, setScanMode] = useState<ScanModeT>('one-per-photo')
 
-  // Scan flow: add each picked receipt as a row (image attached) FIRST, then run the AI generation.
-  // Order matters — rows persist even if extraction fails, so a failed scan still yields line
-  // items to fill in by hand. Ingest is async (HEIC-convert / compress / guard), so AWAIT it before
-  // generation — otherwise generation reads an empty files map. Empty picked list → skip the add
-  // and just re-run generation on any existing eligible rows (picker cancelled).
+  // Rows are added FIRST so they persist even if extraction fails and can be filled in by hand.
+  // Ingest is async (HEIC-convert / compress / guard), so it is awaited before generation, which
+  // would otherwise read an empty files map. An empty pick means the picker was cancelled — re-run
+  // generation on the existing rows, add nothing.
   //
-  // `mode` is the user's declared intent, taken from WHICH entry point they used: one expense per
-  // photo, or one expense whose pages are all the picked photos. Nothing about the files themselves
-  // can tell the two apart, so the choice has to be made before the scan runs.
+  // `mode` is the user's intent, taken from WHICH entry point they used: one expense per photo, or
+  // one expense whose pages are all the photos. Nothing about the files themselves tells them apart.
   async function scanReceipts(
     picked: File[],
     lineItemsField: LineItemsArrayFieldT,
     mode: ScanModeT,
   ) {
     if (picked.length > 0) {
-      // Reuse the lone initial blank row for the first image so the first receipt lands on
-      // row 0 rather than after an empty row; otherwise append after the existing rows. Mint the
-      // new rows up front so we know their ids (pushValue is async in the form's state) and can
-      // pair each picked file to its row by id — `ids[i]` holds `picked[i]`.
+      // Reuse the lone blank row so the first receipt lands on row 0 rather than after an empty one.
+      // The rows are minted up front because pushValue is async in the form's state, and their ids
+      // are what pairs each picked file to its row — `ids[i]` holds `picked[i]`.
       const rows = lineItemsField.state.value
       const reuseFirstRow = rows.length === 1 && !rows[0].description && !rows[0].amount
       const rowCount = mode === 'one-invoice' ? 1 : picked.length
@@ -223,8 +214,8 @@ export function LineItemsField({
     return scanReceipts(picked, lineItemsField, mode)
   }
 
-  // Drop mirrors the picker but drops carry no `accept` filter, so keep only receipt files and bail
-  // on an empty result — unlike the picker, an unmatched drop must NOT re-run generation on existing rows.
+  // A drop carries no `accept` filter, so filter here and bail on an empty result — unlike the
+  // picker, an unmatched drop must NOT re-run generation on existing rows.
   function handleDropReceipts(
     e: React.DragEvent,
     lineItemsField: LineItemsArrayFieldT,
@@ -246,8 +237,7 @@ export function LineItemsField({
       },
       onDragLeave: (e: React.DragEvent) => {
         e.preventDefault()
-        // The icon and the label are inside the button, so crossing them fires a leave that is not
-        // a leave — without this the strong state drops out and returns on the next dragover.
+        // The icon and label are inside the button, so crossing them fires a leave that is not one.
         if (e.currentTarget.contains(e.relatedTarget as Node | null)) return
         setDragOverMode(null)
       },

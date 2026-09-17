@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { useOpenPreset } from '@/components/presets/use-open-preset'
 
-// Shown instead of the editor when the warsztat holds a different szablon than this url names —
-// a stale tab, a hand-typed url, or someone else having opened theirs in the meantime.
+// The warsztat holds a different szablon than this url names — a stale tab, a hand-typed url, or
+// someone else having opened theirs in the meantime.
 export function OpenWorkshopPrompt({ presetId, name }: { presetId: number; name: string }) {
   const { open, pendingId } = useOpenPreset()
   const pending = pendingId === presetId

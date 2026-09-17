@@ -51,9 +51,8 @@ const MISSING_COLUMN_REASONS: Record<UnresolvedReasonT, string> = {
   ambiguous: 'pasuje do kilku kolumn — zmień nazwę tej drugiej',
 }
 
-// „Pobierz z arkusza Google…" — what the import would do, before it does it. The confirm re-derives
-// everything server-side, so nothing rendered here is trusted on the way back. Built from the same
-// blocks as „Porównaj z arkuszem": a verdict per question, and every long list folded behind it.
+// What the import would do, before it does it. The confirm re-derives everything server-side, so
+// nothing rendered here is trusted on the way back.
 export function SheetImportDialog({
   investmentId,
   open,
@@ -67,9 +66,8 @@ export function SheetImportDialog({
   const [pending, startTransition] = useTransition()
   const [plane, setPlane] = useState<PlanePickT>(NO_PLANE)
 
-  // The editor mounts this dialog once for both triggers, so closing it never unmounts the pick. A
-  // successful import happens to clear it (the tree replacement remounts the body), but „Anuluj" and
-  // a failed apply do not — and a rozliczenie nobody chose this time would stamp every imported etap.
+  // The dialog is mounted once for both triggers, so closing it never unmounts the pick — and a
+  // rozliczenie nobody chose this time would stamp every imported etap.
   const [openedWith, setOpenedWith] = useState(open)
   if (open !== openedWith) {
     setOpenedWith(open)
@@ -90,7 +88,7 @@ export function SheetImportDialog({
         toastMessage(`Wczytano: ${sections} sekcji · ${items} prac · ${stages} etapów`, 'success')
       } catch {
         // A transport-level rejection can arrive AFTER the replacement committed, so the grid may
-        // already be rendering rows that no longer exist. Refreshing regardless is the safe read.
+        // already hold rows that no longer exist.
         toastMessage('Pobieranie przerwane — odświeżam kosztorys', 'error', 6000)
       }
       onOpenChange(false)
@@ -149,8 +147,7 @@ export function SheetImportDialog({
   )
 }
 
-// „nie ustawiaj" is a value here rather than an empty string, because the select needs something to
-// render as the current pick.
+// A value rather than an empty string, because the select needs something to render as the pick.
 const NO_PLANE = 'none'
 type PlanePickT = ToolPlaneT | typeof NO_PLANE
 
@@ -185,8 +182,7 @@ function PlaneBlock({
   )
 }
 
-// The warnings ride here rather than at the top of the dialog: every one of them („N prac bez
-// cennika", „pominięto wiersze nad pierwszą sekcją") is a caveat about the very count beside it.
+// The warnings ride here rather than at the top: each one is a caveat about the count beside it.
 function ScopeBlock({ report }: { report: ImportReportT }) {
   const { counts, warnings, coeffs } = report
   const adopted = [
@@ -217,9 +213,9 @@ function ScopeBlock({ report }: { report: ImportReportT }) {
 }
 
 /**
- * Only the columns we could NOT read: a required column is either resolved or the import is refused
- * outright, so the recognised ones say nothing. An absent optional column is the opposite — it is
- * data quietly missing from the kosztorys, and this is the only place it is ever stated.
+ * Only the columns we could NOT read: a required one is either resolved or the import is refused, so
+ * the recognised ones say nothing. An absent optional column is data quietly missing from the
+ * kosztorys, and this is the only place it is stated.
  */
 function ColumnsBlock({
   investmentId,
@@ -232,9 +228,8 @@ function ColumnsBlock({
   columns: UnresolvedColumnsT
   onMappingSaved: () => void
 }) {
-  // A pointed column is not a shortfall, so it must not turn a complete read yellow — but its note
-  // still has to render when nothing is missing, or the pick that resolved the last column takes
-  // „Usuń wskazanie" down with it.
+  // A pointed column is not a shortfall, but its note still renders when nothing is missing, or the
+  // pick that resolved the last column takes „Usuń wskazanie" down with it.
   if (missing.length === 0) {
     return (
       <SheetPointedColumnsBlock
@@ -273,8 +268,8 @@ function ColumnsBlock({
   )
 }
 
-// The last screen before the rozpiska is replaced, so it names the loss rather than softening it:
-// keeping the unmatched prace instead is exactly what filled one kosztorys with 83 copies of itself.
+// The last screen before the rozpiska is replaced, so it names the loss: keeping the unmatched prace
+// instead is what filled one kosztorys with 83 copies of itself.
 function DroppedBlock({ dropped }: { dropped: ImportReportT['dropped'] }) {
   const clean = dropped.length === 0
   const withProgress = dropped.filter((item) => item.hasProgress).length
@@ -311,10 +306,9 @@ function DroppedBlock({ dropped }: { dropped: ImportReportT['dropped'] }) {
 }
 
 /**
- * Two summary rows, both checked against our pricing of the SHEET's own prace — the stored kosztorys
- * never enters this table. So a difference is the sheet disagreeing with itself, either because we
- * misread a cena or a rabat or because its own footer arithmetic is off; live, it has always been
- * the latter.
+ * Both rows are checked against our pricing of the SHEET's own prace — the stored kosztorys never
+ * enters this table — so a difference is the sheet disagreeing with itself, either because we misread
+ * a cena or because its own footer arithmetic is off. Live, it has always been the latter.
  */
 function TotalsBlock({
   totals,
@@ -358,15 +352,11 @@ function TotalsBlock({
 
 /**
  * „wartość netto" first: it is the only one of the two that doubts the read itself, and a wrong cena
- * makes every other figure in the dialog wrong too.
+ * makes every other figure in the dialog wrong too. Neither message names the app as a side, because
+ * both rows face our pricing of the sheet's own prace.
  *
- * Neither message names the app as a side, because it is not one: both rows face our pricing of the
- * SHEET's own prace, so a difference is the sheet disagreeing with itself. The „R netto" line used to
- * promise the import would replace that difference — it cannot, both sides of it came from the sheet
- * and the same delta returns after every pobranie.
- *
- * A stale SUM in the owner's own footer is common enough that blocking on any of this would make the
- * button useless exactly where it is needed, so neither line stops the import.
+ * A stale SUM in the owner's footer is common enough that blocking on it would make the button
+ * useless exactly where it is needed, so neither line stops the import.
  */
 function totalsVerdict(mismatched: FooterComparisonT[]): string {
   if (mismatched.some((total) => total.key === 'plannedNet'))

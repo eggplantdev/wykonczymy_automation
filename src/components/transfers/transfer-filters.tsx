@@ -47,11 +47,10 @@ const ENTITY_FILTER_KEYS = [
   'worker',
   'amount',
   'id',
-  // Narrows the list exactly like the entity filters above, so „Wyczyść filtry" has to reach it —
-  // leaving it out let a cleared panel still be scoped to anulowania.
+  // Narrows the list like the entity filters above, so „Wyczyść filtry" must reach it too —
+  // omitting it left a cleared panel still scoped to anulowania.
   'cancelledTransactionAudit',
-  // Same reason, and it is why this key belongs in the list rather than beside it: revealing
-  // anulowane IS a departure from the default view, so it counts as a filter and clears as one.
+  // Revealing anulowane IS a departure from the default view, so it counts and clears as a filter.
   'showCancelled',
 ] as const
 
@@ -102,10 +101,8 @@ export function TransferFilters({
     baseUrl,
     'showCancelled',
   )
-  // Stated as what the user turns ON, not as the default they are already in: hiding anulowane is
-  // the resting state of this list, so a row reading „Ukryj anulowane" would be ticked before anyone
-  // had filtered anything — and every count and „Wyczyść filtry" downstream would believe it.
-  // Always ticked in audit mode, where anulowane are pinned visible.
+  // Named as what the user turns ON, not the default they start in — hiding anulowane is the resting
+  // state, so „Ukryj anulowane" would read ticked before any filter was set. Always on in audit mode.
   const revealingCancelled = showCancelled || auditMode
 
   const cancelledToggles = [
@@ -119,9 +116,8 @@ export function TransferFilters({
       id: 'showCancelled',
       label: 'Pokaż anulowane',
       active: revealingCancelled,
-      // Audit mode pins anulowane on (`lib/queries/transfer-filters.ts`), so this row has no question
-      // left to answer there. Disabled rather than dropped — a row that vanishes takes the reason
-      // it vanished with it.
+      // Audit mode already pins anulowane on (`lib/queries/transfer-filters.ts`); disabled rather than
+      // dropped, since a row that vanishes takes the reason with it.
       disabled: auditMode,
       onToggle: () => setShowCancelled(!showCancelled),
     },
@@ -134,8 +130,8 @@ export function TransferFilters({
   const currentOtherCategories = getMultiParam('otherCategory')
   const currentExpenseCategories = getMultiParam('expenseCategory')
 
-  // A filter is a DEPARTURE from the default view, so only revealing anulowane counts — the default
-  // hides them, and counting that would report a filter to someone who has set none.
+  // Only revealing anulowane counts as a filter — they're hidden by default, so counting that too
+  // would report a filter to someone who set none.
   const hasEntityFilters = ENTITY_FILTER_KEYS.some((k) => getMultiParam(k).length > 0)
   const hasDateFilter = !!searchParams.get('from') || !!searchParams.get('to')
   const hasAnyFilter = hasEntityFilters || hasDateFilter
@@ -164,9 +160,8 @@ export function TransferFilters({
                 value: t,
                 label: TRANSFER_TYPE_LABELS[t],
               }))}
-              // In „Tryb anulowań" every row IS an anulowanie and Typ narrows the transaction that
-              // was cancelled (`lib/queries/transfer-filters.ts`), so „Anulowanie" is the one option
-              // the menu cannot act on — locked on rather than offered as a choice that does nothing.
+              // In „Tryb anulowań" every row is an anulowanie (`lib/queries/transfer-filters.ts`), so
+              // „Anulowanie" is locked on rather than offered as a choice that would do nothing.
               lockedValues={auditMode ? ['CANCELLATION'] : undefined}
               label="Typ"
               icon={Tags}
@@ -255,9 +250,9 @@ export function TransferFilters({
         </ControlGrid>
       )}
 
-      {/* Its own row rather than the tail of the select row: the searches are typed, not picked, and
-          on a narrow screen they otherwise landed wherever the selects happened to stop wrapping.
-          Outside the guard above too — a page with no entity filters still searches. */}
+      {/* Own row, not the tail of the select row: typed search fields wrapped wherever the selects
+          happened to stop on a narrow screen. Outside the guard above too — search works with no
+          entity filters present. */}
       <ControlGrid>
         <SearchFilterInput
           value={currentAmount}

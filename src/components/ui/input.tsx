@@ -2,10 +2,8 @@ import * as React from 'react'
 
 import { cn } from '@/lib/utils/cn'
 
-// The VALUE is 16px below `sm`, 14px above: iOS Safari zooms the whole page in on focus for anything
-// smaller and never zooms back out. The placeholder stays 14px — it is chrome, not typing, and at
-// 16px the longer ones stop fitting their field. Every typing surface carries the same pair — see
-// also `textarea.tsx` and `CommandInput`.
+// Value is 16px below `sm`, 14px above: iOS Safari zooms in on focus below 16px and never zooms back
+// out. Placeholder stays 14px — same pair as `textarea.tsx` and `CommandInput`.
 function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
   return (
     <input

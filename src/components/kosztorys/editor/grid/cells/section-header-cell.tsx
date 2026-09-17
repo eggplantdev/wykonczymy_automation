@@ -15,23 +15,19 @@ import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 // footer's „Razem netto" shows, so a collapsed section still states what it is worth.
 export type SectionHeaderFigureT = { itemCount: number; net: number }
 
-// What every band cell needs, carried on the wrapped column's `columnData` (never a closure — see
-// kosztorys-synthetic-rows.tsx). `onRename` and `actions` are absent in the read-only client view,
-// which is what freezes the name and leaves the band without a „…".
+// Carried on the wrapped column's `columnData`, never a closure — see kosztorys-synthetic-rows.tsx.
+// `onRename` and `actions` are absent in the read-only client view.
 export type SectionHeaderContextT = {
   // Per section id — the band row carries the section's identity, not its figures.
   figures: Map<number, SectionHeaderFigureT>
   collapsedSectionIds: ReadonlySet<number>
   onToggleCollapsed: (sectionId: number) => void
   onRename?: (sectionId: number, name: string) => void
-  // One bundle rather than four props: they all come from the same `editorOnly()` gate, so the menu
-  // is all-present or all-absent.
+  // One bundle: all four come from the same `editorOnly()` gate, so it is all-present or absent.
   actions?: SectionBandActionsT
-  // A section-scoped sort keeps the bands on screen but freezes section order, so the menu needs to
-  // know — see KosztorysSectionActionsMenu.
+  // A section-scoped sort keeps bands on screen but freezes section order — see the menu.
   sortActive: boolean
-  // Which sekcja sits at either end of the rozpiska, so its ▲/▼ can go dead instead of eating the
-  // click. Absent in the read-only view, which has no menu to grey out.
+  // Which sekcja sits at either end, so its ▲/▼ can go dead instead of eating the click.
   moveEdges?: MoveEdgesT
   // Which column paints the label — resolved per render off the visible order, never a fixed id.
   labelColumnId?: string
@@ -43,14 +39,12 @@ export type SectionHeaderSlotT = 'actions' | 'label' | 'blank'
 
 const ACTIONS_COLUMN_ID = 'actions'
 
-// Chrome, not a reading of the kosztorys: „Akcje" is 64px of menu trigger and the trailing gap is empty
-// by definition, so neither can host a label that has to be legible. Literals rather than an import
-// from the column assembly, which imports this file.
+// Chrome, not a reading: „Akcje" is 64px of trigger and the trailing gap is empty, so neither can
+// host a legible label. Literals, not an import — the column assembly imports this file.
 const CHROME_COLUMN_IDS: ReadonlySet<string> = new Set([ACTIONS_COLUMN_ID, 'layerGap'])
 
-// The band follows the grid instead of a named column: no column holds a fixed slot any more
-// (lib/table/column-order), so „Opis prac" can be dragged to the far right or hidden from the
-// client entirely — either of which used to paint the band off-screen or not at all.
+// Follows the visible order, not a named column: any column can be dragged or hidden
+// (lib/table/column-order), which would paint the band off-screen.
 export function sectionBandLabelColumnId(
   columnIds: readonly (string | undefined)[],
 ): string | undefined {
@@ -61,14 +55,12 @@ export function sectionHeaderSlot(
   columnId: string | undefined,
   labelColumnId: string | undefined,
 ): SectionHeaderSlotT {
-  // Decided before the label, though the two can't collide: „Akcje" is chrome, so
-  // `sectionBandLabelColumnId` never names it.
+  // Can't collide: „Akcje" is chrome, so `sectionBandLabelColumnId` never names it.
   if (columnId === ACTIONS_COLUMN_ID) return 'actions'
   return columnId != null && columnId === labelColumnId ? 'label' : 'blank'
 }
 
-// The dot reads `--section-rail` off the row (set by rowClassName from the section's palette entry),
-// so the band's colour and the gutter rail can't disagree.
+// The dot reads `--section-rail` off the row, so band colour and gutter rail can't disagree.
 function SectionDot() {
   return (
     <span className="size-2.5 shrink-0 rounded-full bg-(--section-rail,var(--color-muted-foreground))" />
@@ -91,8 +83,7 @@ export function SectionHeaderCell({
   const title = collapsed ? 'Rozwiń sekcję' : 'Zwiń sekcję'
 
   if (slot === 'actions') {
-    // The one band cell that does NOT collapse — not by stopping the click, but by never getting a
-    // toggle handler. That is what keeps a collapsed section's own commands reachable.
+    // Never gets a toggle handler, so a collapsed section's commands stay reachable.
     if (!context.actions) return <div className="size-full" />
     return (
       <KosztorysSectionActionsMenu
@@ -112,8 +103,7 @@ export function SectionHeaderCell({
   if (slot === 'label') {
     const Chevron = collapsed ? ChevronRight : ChevronDown
     return (
-      // The whole band (not just the chevron) is the toggle target — rename stays reachable by
-      // stopping its own click from bubbling here.
+      // The whole band toggles; rename stops its own click from bubbling here.
       <div
         role="button"
         tabIndex={0}
@@ -121,17 +111,14 @@ export function SectionHeaderCell({
         aria-expanded={!collapsed}
         onClick={toggle}
         onKeyDown={(event) => {
-          // Only the band's own keys, never one bubbling out of the rename input: there Space is a
-          // space and Enter commits the name, and this handler would eat both to toggle the section.
-          // The band is the one focusable element here, so identity is the whole test.
+          // Not events bubbling out of the rename input, where Space/Enter edit the name.
           if (event.target !== event.currentTarget) return
           if (event.key !== 'Enter' && event.key !== ' ') return
           event.preventDefault()
           toggle()
         }}
-        // `w-max`, not `w-full`: the band hugs its own content and is let out of the cell by theDda
-        // `overflow: visible` rule in globals.css, so the name stops being clipped at the „Sekcja"
-        // column's width.
+        // `w-max` + the `overflow: visible` rule in globals.css let the band out of the cell, so a
+        // long name isn't clipped at the „Sekcja" column's width.
         className="hover:bg-accent/50 flex h-full w-max cursor-pointer items-center gap-2 px-2 text-lg font-semibold"
       >
         <SectionDot />
@@ -139,12 +126,9 @@ export function SectionHeaderCell({
           <SectionNameCell
             rowData={rowData}
             onRename={onRename}
-            // `field-sizing-content` (not w-fit) is what makes the input hug its value — an input's
-            // fit-content is its ~20-character default width, so w-fit clipped long names and left
-            // the chevron floating mid-cell. w-auto is needed to beat the base cell's w-full.
-            // `shrink-0` like every other item on the band: a field-sizing input doesn't report its
-            // content width as a max-content contribution, so the band's `w-max` under-measures and
-            // the flex line shrank the name back down („Prace dodatko") instead of overflowing.
+            // `field-sizing-content`, not w-fit: an input's fit-content is its ~20-char default
+            // width. w-auto beats the base cell's w-full. `shrink-0` because a field-sizing input
+            // contributes no max-content width, so the band's `w-max` under-measures.
             className="field-sizing-content w-auto shrink-0 px-0 text-lg font-semibold"
             onClick={(event) => event.stopPropagation()}
           />
@@ -167,7 +151,6 @@ export function SectionHeaderCell({
     )
   }
 
-  // The blank cells toggle too, so any point on the band row works — keyboard/aria stay on the label
-  // cell alone, which is the one control.
+  // Blank cells toggle too; keyboard/aria stay on the label cell, the one control.
   return <div aria-hidden title={title} onClick={toggle} className="size-full cursor-pointer" />
 }
