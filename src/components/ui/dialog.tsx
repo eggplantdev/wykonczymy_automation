@@ -30,7 +30,9 @@ function DialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-10000 bg-black/50',
+        // Unpainted below sm, where the content is a full-screen sheet and no page is left to dim. The
+        // element stays — Radix hangs dismiss-on-click and the scroll lock off it.
+        'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-10000 bg-black/50 max-sm:bg-transparent',
         className,
       )}
       {...props}
