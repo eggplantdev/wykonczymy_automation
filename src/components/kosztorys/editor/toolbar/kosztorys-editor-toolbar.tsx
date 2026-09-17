@@ -19,6 +19,7 @@ import {
 } from '@/components/kosztorys/editor/toolbar/kosztorys-view-axis-options'
 import { KosztorysViewMenu } from '@/components/kosztorys/editor/toolbar/kosztorys-view-menu'
 import { KosztorysFiltersMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-filters-menu'
+import { KosztorysSectionsMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-sections-menu'
 import { KosztorysProblemsMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-problems-menu'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { cn } from '@/lib/utils/cn'
@@ -84,6 +85,7 @@ export function KosztorysEditorToolbar() {
                 permanent controls. */}
             <KosztorysProblemsMenu />
             <KosztorysFiltersMenu />
+            <KosztorysSectionsMenu />
             <KosztorysViewMenu />
           </div>
         </div>

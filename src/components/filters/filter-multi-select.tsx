@@ -38,9 +38,7 @@ type FilterMultiSelectPropsT = {
   // For tight surfaces where a tooltip carries the meaning.
   iconOnly?: boolean
   title?: string
-  // Replaces the flipping „Zaznacz/Odznacz wszystkie" pair with one fixed sentence that ticks once
-  // carried out. Its ON state is „nothing selected", so it reads as the opposite of the list.
-  bulkToggleLabel?: string
+  bulkLabels?: { select: string; deselect: string }
   // Rows that tick a whole SUBSET of the options at once. Both hooks read the live local selection
   // rather than state of their own, so unticking one member by hand unticks the group row with it.
   optionToggles?: ReadonlyArray<{
@@ -89,7 +87,7 @@ export function FilterMultiSelect({
   triggerClassName,
   iconOnly = false,
   title,
-  bulkToggleLabel,
+  bulkLabels,
   optionToggles,
   toggles,
   togglesHeading,
@@ -166,13 +164,8 @@ export function FilterMultiSelect({
   const isFiltered = triggerCount == null ? !allSelected || activeToggleCount > 0 : triggerCount > 0
   const triggerBadgeCount = triggerCount ?? (allSelected ? 0 : selected.length) + activeToggleCount
 
-  // In fixed-label mode the row's tick decides the direction, so clicking it does what the sentence
-  // says. The flipping label keeps its own meaning: „everything is on → turn it off".
-  const bulkActive = selected.length === 0
-
   function toggleAll() {
-    const selectAll = bulkToggleLabel ? bulkActive : !allSelected
-    const next = selectAll ? [...allValues] : []
+    const next = !allSelected ? [...allValues] : []
     setLocalSelected(next)
     scheduleFlush(next)
   }
@@ -203,15 +196,11 @@ export function FilterMultiSelect({
 
   const actionRows = (
     <>
-      {/* A fixed label says nothing about whether it was carried out, so that mode keeps a state
-          tick. The flipping label names the direction itself. */}
       <CommandItem onSelect={toggleAll}>
-        {bulkToggleLabel ? (
-          <CheckIcon className={cn(!bulkActive && 'opacity-0')} />
-        ) : (
-          <CheckCheck />
-        )}
-        {bulkToggleLabel ?? (allSelected ? 'Odznacz wszystkie' : 'Zaznacz wszystkie')}
+        <CheckCheck />
+        {allSelected
+          ? (bulkLabels?.deselect ?? 'Odznacz wszystkie')
+          : (bulkLabels?.select ?? 'Zaznacz wszystkie')}
       </CommandItem>
       {optionToggles?.map((group) => (
         <CommandItem

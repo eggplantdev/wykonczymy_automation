@@ -18,6 +18,11 @@ type FilterTriggerButtonPropsT = Pick<
   className?: string
 }
 
+// For a trigger standing in a toolbar row rather than the filter grid: the 160px floor below is the
+// grid's, and `min-w-0` alone cannot cancel it — tailwind-merge keeps a `sm:` variant beside an
+// unprefixed class, and min-width beats `w-fit` anyway.
+export const TOOLBAR_FILTER_TRIGGER_CLASS = 'w-fit sm:min-w-0'
+
 export const FilterTriggerButton = forwardRef<HTMLButtonElement, FilterTriggerButtonPropsT>(
   function FilterTriggerButton(
     { active, tone = 'default', icon: Icon, iconPosition = 'left', children, className, ...props },

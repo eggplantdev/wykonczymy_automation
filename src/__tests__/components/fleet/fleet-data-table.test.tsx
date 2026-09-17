@@ -80,7 +80,8 @@ describe('Flota — stopka „Razem" mówi o tym, co widać', () => {
     const user = userEvent.setup()
 
     await user.click(screen.getByRole('button', { name: /Kolumny/ }))
-    await user.click(await screen.findByRole('menuitem', { name: 'Koszty' }))
+    // The column rows ride cmdk inside the Radix menu (ColumnToggleMenu), so they are options.
+    await user.click(await screen.findByRole('option', { name: 'Koszty' }))
 
     expect(screen.queryByText('Razem'), 'stopka bez kolumny kosztów').not.toBeInTheDocument()
   })

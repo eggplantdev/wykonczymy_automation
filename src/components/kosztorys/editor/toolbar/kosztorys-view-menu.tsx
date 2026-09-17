@@ -1,27 +1,13 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
-import { ArrowUpDown, CheckIcon, Eye, EyeOff, SlidersHorizontal } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { ColumnOrderDialog } from '@/components/ui/column-order-dialog'
+import { type ReactNode } from 'react'
 import {
-  DropdownMenu,
   DropdownMenuCheckboxRow,
-  DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { ColumnToggleMenu } from '@/components/ui/column-toggle-menu'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
-import {
-  Command,
-  CommandEmpty,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command'
-import { cn } from '@/lib/utils/cn'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import {
   KOLUMNY_HINT,
@@ -36,13 +22,8 @@ import {
   type PairAxisConfigT,
 } from '@/lib/kosztorys/axis-checkboxes'
 
-// preventDefault keeps the menu open so several axes / columns can be flipped in one visit
-// (the same trick the shared ColumnToggleMenu uses).
+// preventDefault keeps the menu open so several axes can be flipped in one visit.
 const keepOpen = (event: Event) => event.preventDefault()
-
-// Below this the list fits on screen and a search box is just noise; above it (stages push the
-// column count toward ~50) filtering earns its place.
-const COLUMN_SEARCH_THRESHOLD = 8
 
 // One axis (Kwoty / Warstwy) as a labelled checkbox pair over its four-state union: each box
 // flips its side via togglePairAxis, both checked = show all, both unchecked = hide the axis.
@@ -81,7 +62,6 @@ function AxisSection<T extends string>({
 }
 
 export function KosztorysViewMenu() {
-  const [orderOpen, setOrderOpen] = useState(false)
   const {
     view,
     moneyAxis,
@@ -102,26 +82,37 @@ export function KosztorysViewMenu() {
   // Z/Bez narzędzi views — hide the Kwoty control there.
   const showMoneyAxis = view === 'client'
 
-  const allColumnsVisible = columnToggleItems.every((item) => item.visible)
   // A hidden column is the one piece of „co widzę" that leaves no trace on the grid — a filter at
   // least shortens it, while a column that is gone looks exactly like a column that never existed.
   // A column an engaged problem reveals is on screen whatever its tick says, so it is not hidden and
   // must not be counted: the number has to answer „czego nie widzę", not „co odznaczyłem".
-  const hiddenColumnCount = columnToggleItems.filter(
+  const hiddenCount = columnToggleItems.filter(
     (item) => !item.visible && !revealedColumnIds.has(item.id),
   ).length
-  const showColumnSearch = columnToggleItems.length > COLUMN_SEARCH_THRESHOLD
 
   return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="gap-1.5">
-            {hiddenColumnCount > 0 ? `Kolumny (${hiddenColumnCount})` : 'Kolumny'}
-            <SlidersHorizontal />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-72">
+    <ColumnToggleMenu
+      align="start"
+      items={columnToggleItems}
+      hiddenCount={hiddenCount}
+      onToggle={toggleColumn}
+      onToggleAll={(visible) =>
+        setAllColumns(
+          columnToggleItems.map((item) => item.id),
+          !visible,
+        )
+      }
+      hint={<InfoTooltip content={KOLUMNY_HINT} className="shrink-0" />}
+      order={{
+        description:
+          'Przeciągnij pozycję, żeby przestawić kolumny w tabeli. Ustawienie zapamiętuje ta przeglądarka i działa we wszystkich kosztorysach.',
+        ranks: columnRanks,
+        baseRanks: columnBaseRanks,
+        onSetRank: setColumnRank,
+        onReset: resetColumnOrder,
+      }}
+      sections={
+        <>
           {showMoneyAxis && (
             <>
               <AxisSection
@@ -141,79 +132,8 @@ export function KosztorysViewMenu() {
             config={LAYER_PAIR_CONFIG}
             onChange={setLayer}
           />
-
-          {columnToggleItems.length > 0 && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel className="flex items-center justify-between gap-2">
-                Kolumny
-                <InfoTooltip content={KOLUMNY_HINT} className="shrink-0" />
-              </DropdownMenuLabel>
-              {/* Outside the Command below on purpose: it belongs above the search box, and a
-                command that never filters has no business riding cmdk's list. */}
-              <DropdownMenuItem onSelect={() => setOrderOpen(true)}>
-                <ArrowUpDown />
-                Ustaw kolejność kolumn…
-              </DropdownMenuItem>
-              {/* cmdk owns the search + arrow-nav for the column list; stop keydowns from reaching the
-                Radix menu so its typeahead/focus-roving doesn't fight cmdk. Escape still passes so
-                the menu stays Escape-closable. */}
-              <div
-                onKeyDown={(event) => {
-                  if (event.key !== 'Escape') event.stopPropagation()
-                }}
-              >
-                <Command>
-                  {showColumnSearch && (
-                    <CommandInput placeholder="Szukaj kolumny..." className="h-8" />
-                  )}
-                  <CommandList>
-                    {/* forceMount keeps the show/hide-all action visible under any search — it's a
-                      command, not a filterable column. Riding cmdk's selection model (not a Radix
-                      item) also means exactly one row is ever highlighted. */}
-                    <CommandItem
-                      forceMount
-                      onSelect={() =>
-                        setAllColumns(
-                          columnToggleItems.map((item) => item.id),
-                          allColumnsVisible,
-                        )
-                      }
-                    >
-                      {allColumnsVisible ? <EyeOff /> : <Eye />}
-                      {allColumnsVisible ? 'Ukryj wszystkie' : 'Pokaż wszystkie'}
-                    </CommandItem>
-                    <CommandEmpty>Brak kolumn</CommandEmpty>
-                    {columnToggleItems.map((item) => (
-                      <CommandItem
-                        key={item.id}
-                        value={item.label}
-                        onSelect={() => toggleColumn(item.id)}
-                      >
-                        <CheckIcon className={cn(!item.visible && 'opacity-0')} />
-                        {item.label}
-                      </CommandItem>
-                    ))}
-                  </CommandList>
-                </Command>
-              </div>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* Sibling of the menu, never inside DropdownMenuContent — a dialog mounted in the menu's
-          content unmounts with it on close and loses the focus fight. */}
-      <ColumnOrderDialog
-        open={orderOpen}
-        onOpenChange={setOrderOpen}
-        items={columnToggleItems}
-        description="Przeciągnij pozycję, żeby przestawić kolumny w tabeli. Ustawienie zapamiętuje ta przeglądarka i działa we wszystkich kosztorysach."
-        ranks={columnRanks}
-        baseRanks={columnBaseRanks}
-        onSetRank={setColumnRank}
-        onReset={resetColumnOrder}
-      />
-    </>
+        </>
+      }
+    />
   )
 }
