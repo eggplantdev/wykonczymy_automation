@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 import { cn } from '@/lib/utils/cn'
 import { effectiveMaterialsNetRate, type SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
@@ -175,14 +175,7 @@ export function SummaryPanelContent({
   // of the client read-only toggle on top of whatever the host allowed. The persisted pick is shared
   // across hosts, so it can name a view this host doesn't offer — fall back to the first one it does,
   // rather than stranding the reader on a hidden view.
-  const [persistedView, setPersistedView] = useSummaryView()
-  // A preview reads the same `table-columns:` localStorage family EX-591 keeps out of the client's
-  // grid, so it gets session-local state instead of the persisted pick: the owner's last tab can't
-  // decide which panel the client's document opens on. Still state, not a pin — the client switches
-  // tabs freely, the choice just dies with the tab.
-  const [sessionView, setSessionView] = useState<SummaryViewT>('summary')
-  const summaryView = preview ? sessionView : persistedView
-  const setSummaryView = preview ? setSessionView : setPersistedView
+  const [summaryView, setSummaryView] = useSummaryView(preview)
   // This component reads no session on purpose: it also renders under (share), which mounts no
   // CurrentUserProvider — so who may see „Marża" arrives as `preview` plus the presence of
   // `financials`, both decided by the host.
