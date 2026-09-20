@@ -1,6 +1,6 @@
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
 import { revalidateTag } from 'next/cache'
-import { CACHE_TAGS, entityTag } from '@/lib/cache/tags'
+import { CACHE_TAGS, entityTag, EXPIRE_NOW } from '@/lib/cache/tags'
 import { perfStart } from '@/lib/perf'
 import { resolveId } from '@/lib/utils/resolve-id'
 
@@ -23,17 +23,17 @@ export const recalcAfterChange: CollectionAfterChangeHook = async ({
   const investmentId = resolveId(doc.investment)
   const prevInvestmentId = resolveId(previousDoc?.investment)
 
-  if (registerId) revalidateTag(entityTag('cash-register', registerId), 'default')
+  if (registerId) revalidateTag(entityTag('cash-register', registerId), EXPIRE_NOW)
   if (prevRegisterId && prevRegisterId !== registerId)
-    revalidateTag(entityTag('cash-register', prevRegisterId), 'default')
-  if (targetRegisterId) revalidateTag(entityTag('cash-register', targetRegisterId), 'default')
+    revalidateTag(entityTag('cash-register', prevRegisterId), EXPIRE_NOW)
+  if (targetRegisterId) revalidateTag(entityTag('cash-register', targetRegisterId), EXPIRE_NOW)
   if (prevTargetRegisterId && prevTargetRegisterId !== targetRegisterId)
-    revalidateTag(entityTag('cash-register', prevTargetRegisterId), 'default')
-  if (investmentId) revalidateTag(entityTag('investment', investmentId), 'default')
+    revalidateTag(entityTag('cash-register', prevTargetRegisterId), EXPIRE_NOW)
+  if (investmentId) revalidateTag(entityTag('investment', investmentId), EXPIRE_NOW)
   if (prevInvestmentId && prevInvestmentId !== investmentId)
-    revalidateTag(entityTag('investment', prevInvestmentId), 'default')
+    revalidateTag(entityTag('investment', prevInvestmentId), EXPIRE_NOW)
 
-  revalidateTag(CACHE_TAGS.transfers, 'default')
+  revalidateTag(CACHE_TAGS.transfers, EXPIRE_NOW)
 
   console.log(`[PERF] recalcAfterChange TOTAL ${elapsed()}ms`)
 
@@ -49,12 +49,12 @@ export const recalcAfterDelete: CollectionAfterDeleteHook = async ({ doc, contex
   const targetRegisterId = resolveId(doc.targetRegister)
   const investmentId = resolveId(doc.investment)
 
-  if (registerId) revalidateTag(entityTag('cash-register', registerId), 'default')
-  if (targetRegisterId) revalidateTag(entityTag('cash-register', targetRegisterId), 'default')
-  if (investmentId) revalidateTag(entityTag('investment', investmentId), 'default')
+  if (registerId) revalidateTag(entityTag('cash-register', registerId), EXPIRE_NOW)
+  if (targetRegisterId) revalidateTag(entityTag('cash-register', targetRegisterId), EXPIRE_NOW)
+  if (investmentId) revalidateTag(entityTag('investment', investmentId), EXPIRE_NOW)
 
   // Payload hooks run in Route Handler context — must use revalidateTag, not updateTag
-  revalidateTag(CACHE_TAGS.transfers, 'default')
+  revalidateTag(CACHE_TAGS.transfers, EXPIRE_NOW)
 
   console.log(`[PERF] recalcAfterDelete TOTAL ${elapsed()}ms`)
 

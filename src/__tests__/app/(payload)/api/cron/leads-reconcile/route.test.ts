@@ -79,7 +79,7 @@ describe('cron leads-reconcile route', () => {
       saturatedForms: [],
     })
     // Without this the dashboard serves a stale list — leads recovered, nothing visible.
-    expect(revalidateTag).toHaveBeenCalledWith(CACHE_TAGS.leads, 'default')
+    expect(revalidateTag).toHaveBeenCalledWith(CACHE_TAGS.leads, { expire: 0 })
     expect(notifyReconcileRecovery).toHaveBeenCalledTimes(1)
     // The leads themselves, not just a count — a recovered lead is stamped `skipped`,
     // so this mail is the only place sales ever sees it (EX-660).
@@ -145,7 +145,7 @@ describe('cron leads-reconcile route', () => {
       saturatedForms: [],
     })
     // The leads that DID come back are already persisted, so they still owe both.
-    expect(revalidateTag).toHaveBeenCalledWith(CACHE_TAGS.leads, 'default')
+    expect(revalidateTag).toHaveBeenCalledWith(CACHE_TAGS.leads, { expire: 0 })
     expect(notifyReconcileRecovery).toHaveBeenCalledTimes(1)
     expect(notifyReconcileFailure).toHaveBeenCalledWith(expect.anything(), {
       reason: expect.any(String),

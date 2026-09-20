@@ -3,7 +3,7 @@ import { revalidateTag } from 'next/cache'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { serverEnv } from '@/lib/env/server'
-import { CACHE_TAGS } from '@/lib/cache/tags'
+import { CACHE_TAGS, EXPIRE_NOW } from '@/lib/cache/tags'
 import { wpformsSubmissionSchema, wpformsToStoreLeadInput } from '@/lib/leads/wpforms'
 import { captureLead } from '@/lib/leads/capture-lead'
 import { notifyShapeAlert } from '@/lib/leads/notify'
@@ -72,6 +72,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Capture failed' }, { status: 500 })
   }
 
-  revalidateTag(CACHE_TAGS.leads, 'default')
+  revalidateTag(CACHE_TAGS.leads, EXPIRE_NOW)
   return NextResponse.json({ received: true }, { status: 200 })
 }

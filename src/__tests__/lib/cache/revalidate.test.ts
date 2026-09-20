@@ -28,10 +28,13 @@ describe('revalidateCollections', () => {
   it('expires without re-rendering when deferRefresh is set', () => {
     revalidateCollections(['investments', 'kosztorysItems'], { deferRefresh: true })
 
-    // The 'default' profile is what makes this expire-only; without it the call is not equivalent.
+    // Literals, not the imported constants: asserting against the constant the impl passes is a
+    // tautology that survives any value, including the two that break this branch — `'default'`,
+    // which never hard-expires, and `{ expire: 0 }`, which re-renders the route EX-597 stopped
+    // re-rendering. Both invariants are pinned here or nowhere.
     expect(revalidateTag.mock.calls).toEqual([
-      [CACHE_TAGS['investments'], 'default'],
-      [CACHE_TAGS['kosztorysItems'], 'default'],
+      [CACHE_TAGS['investments'], { expire: 1 }],
+      [CACHE_TAGS['kosztorysItems'], { expire: 1 }],
     ])
     expect(updateTag).not.toHaveBeenCalled()
   })

@@ -1,5 +1,5 @@
 import { revalidateTag, updateTag } from 'next/cache'
-import { CACHE_TAGS, NOTIFICATION_RECIPIENTS_TAG } from './tags'
+import { CACHE_TAGS, EXPIRE_NEXT, NOTIFICATION_RECIPIENTS_TAG } from './tags'
 
 /**
  * Same Server-Actions-only warning as `revalidateCollections`. Separate because the recipients live
@@ -16,7 +16,9 @@ export function revalidateNotificationRecipients() {
  *
  * `deferRefresh` picks which of `updateTag`'s two effects the caller wants. Both expire the tag;
  * `updateTag` additionally re-renders the calling route and streams it back in the action response,
- * while `revalidateTag` leaves the current route alone and only affects the next request for it.
+ * while `EXPIRE_NEXT` leaves the current route alone and only affects the next request for it.
+ * `EXPIRE_NOW` would NOT work here — `expire: 0` sets the same `pathWasRevalidated` flag `updateTag`
+ * does, which is the whole re-render this branch exists to skip.
  *
  * Default (`updateTag`) is right whenever the caller's own UI reads a cached value it just changed.
  * Pass `deferRefresh` when the only readers of these tags are OTHER routes — the re-render is then
@@ -27,7 +29,7 @@ export function revalidateCollections(
   { deferRefresh = false }: { deferRefresh?: boolean } = {},
 ) {
   for (const slug of slugs) {
-    if (deferRefresh) revalidateTag(CACHE_TAGS[slug], 'default')
+    if (deferRefresh) revalidateTag(CACHE_TAGS[slug], EXPIRE_NEXT)
     else updateTag(CACHE_TAGS[slug])
   }
 }

@@ -38,3 +38,41 @@ export const KOSZTORYS_TREE_TAGS = [
   'stageProgress',
   'investments',
 ] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
+/**
+ * The second argument every `revalidateTag` call outside a Server Action must pass.
+ *
+ * That argument is a cacheLife profile, and a NAMED one does not hard-expire anything: the
+ * filesystem handler drops an `unstable_cache` entry only when the tag's stored `expired` stamp is
+ * already past (`areTagsExpired`), and a named profile sets it to `now + profile.expire` —
+ * 0xfffffffe seconds for `default`, a year for `max`. What it does set is `stale`, and
+ * `unstable_cache` honours that: it serves the stale value and queues a background recompute. So
+ * `'default'` degraded the invalidation to stale-while-revalidate — the read right after the write
+ * saw pre-write rows, the one after that was fresh.
+ *
+ * On most of the hook sites that was invisible, because the Server Action that triggered the write
+ * had already called `updateTag` on the same tags in the same request; the hook's call was
+ * redundant. It bit where no action runs: `/api/upload-file` is a Route Handler whose only
+ * invalidation is the `media` afterChange hook, so an uploaded faktura's first read-back still
+ * rendered „Dodaj fakturę".
+ *
+ * `{ expire: 0 }` is the form that expires on the spot — the same stamp `updateTag` writes, minus
+ * its Server-Action-only restriction. Verified against Next 16.1.7's bundled `FileSystemCache`;
+ * `durations.expire === 0` is the documented immediate-expire contract on the cache-handler
+ * interface, so Vercel's own handler should agree, but that half is assumed until it deploys.
+ *
+ * Do NOT use this inside a Server Action that wants to skip its own re-render — see `EXPIRE_NEXT`.
+ */
+export const EXPIRE_NOW = { expire: 0 } as const
+
+/**
+ * The deferred twin: expires the tag without re-rendering the calling route.
+ *
+ * `revalidate()` ends with `if (!profile || cacheLife?.expire === 0) store.pathWasRevalidated = …`,
+ * and that flag is what makes a Server Action stream a fresh render of its own route back in the
+ * action response. So `EXPIRE_NOW` inside an action is observationally identical to `updateTag` —
+ * including the 90-193 ms per debounced save that EX-597 removed from the editor's autosaves. Any
+ * non-zero `expire` leaves the flag unset, and one second is past by the time the next request for
+ * another route arrives, so the entry is a hard miss rather than a stale-while-revalidate hit.
+ */
+export const EXPIRE_NEXT = { expire: 1 } as const

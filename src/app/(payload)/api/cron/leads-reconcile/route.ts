@@ -3,7 +3,7 @@ import { revalidateTag } from 'next/cache'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { isAuthorizedCronRequest } from '@/lib/cron/verify-cron-request'
-import { CACHE_TAGS } from '@/lib/cache/tags'
+import { CACHE_TAGS, EXPIRE_NOW } from '@/lib/cache/tags'
 import { runLeadReconcileSweep } from '@/lib/leads/reconcile-sweep'
 import { notifyReconcileRecovery, notifyReconcileFailure } from '@/lib/leads/notify'
 
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     // not a sibling form blew up.
     if (added > 0) {
       // Route Handler context — `updateTag` throws here, unlike in the server action.
-      revalidateTag(CACHE_TAGS.leads, 'default')
+      revalidateTag(CACHE_TAGS.leads, EXPIRE_NOW)
       await notifyReconcileRecovery(payload, { recovered, scanned, saturatedForms }).catch(
         (err) => {
           // TODO(EX-449) SENTRY-REQUIRED: the recovery is silent if this mail is lost.

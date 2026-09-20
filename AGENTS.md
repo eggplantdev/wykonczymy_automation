@@ -327,7 +327,8 @@ All mutations go through `protectedAction()` in `src/lib/actions`:
 
 - Financial calculations use raw SQL via `@vercel/postgres` (in `src/lib/db`), not the Payload ORM.
 - Cache uses `unstable_cache` with tag-based invalidation; `cacheComponents` and `'use cache'` are disabled due to a Vercel bug.
-- Revalidation differs by context: in **server actions** (`lib/actions`, `lib/cache/revalidate.ts`) use `updateTag()` for immediate expiration; in **Payload hooks** (`hooks/`) use `revalidateTag()` — hooks run in a Route Handler context where `updateTag` throws. Never import `lib/cache/revalidate.ts` from a Payload hook.
+- Revalidation differs by context: in **server actions** (`lib/actions`, `lib/cache/revalidate.ts`) use `updateTag()` for immediate expiration; in **Payload hooks** (`hooks/`), **Route Handlers** and **crons** use `revalidateTag()` — those run in a Route Handler context where `updateTag` throws. Never import `lib/cache/revalidate.ts` from a Payload hook.
+- **`revalidateTag` always takes a second argument, and it is `EXPIRE_NOW` from `lib/cache/tags.ts`** — never a named profile and never the one-arg form. The argument is a cacheLife profile; a named one (`'default'`, `'max'`) sets the tag `stale` but stamps `expired` years out, so `unstable_cache` serves the pre-write value once and recomputes in the background instead of missing. Only `{ expire: 0 }` expires on the spot. The one exception is `revalidateCollections(…, { deferRefresh: true })`, which passes `EXPIRE_NEXT` (`{ expire: 1 }`) because `expire: 0` inside a Server Action also re-renders the calling route — the cost EX-597 removed from the editor's autosaves.
 
 ## Forms
 

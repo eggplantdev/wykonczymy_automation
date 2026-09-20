@@ -1,6 +1,6 @@
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
 import { revalidateTag } from 'next/cache'
-import { CACHE_TAGS, entityTag } from '@/lib/cache/tags'
+import { CACHE_TAGS, entityTag, EXPIRE_NOW } from '@/lib/cache/tags'
 
 type CollectionSlugT = keyof typeof CACHE_TAGS
 
@@ -19,9 +19,9 @@ export function makeRevalidateAfterChange(
 ): CollectionAfterChangeHook {
   return ({ doc, context }) => {
     if (!context.skipRevalidation) {
-      revalidateTag(CACHE_TAGS[slug], 'default')
-      revalidateTag(entityTag(slug, doc.id), 'default')
-      for (const other of alsoBump) revalidateTag(CACHE_TAGS[other], 'default')
+      revalidateTag(CACHE_TAGS[slug], EXPIRE_NOW)
+      revalidateTag(entityTag(slug, doc.id), EXPIRE_NOW)
+      for (const other of alsoBump) revalidateTag(CACHE_TAGS[other], EXPIRE_NOW)
     }
     return doc
   }
@@ -33,9 +33,9 @@ export function makeRevalidateAfterDelete(
 ): CollectionAfterDeleteHook {
   return ({ doc, context }) => {
     if (!context.skipRevalidation) {
-      revalidateTag(CACHE_TAGS[slug], 'default')
-      revalidateTag(entityTag(slug, doc.id), 'default')
-      for (const other of alsoBump) revalidateTag(CACHE_TAGS[other], 'default')
+      revalidateTag(CACHE_TAGS[slug], EXPIRE_NOW)
+      revalidateTag(entityTag(slug, doc.id), EXPIRE_NOW)
+      for (const other of alsoBump) revalidateTag(CACHE_TAGS[other], EXPIRE_NOW)
     }
     return doc
   }
