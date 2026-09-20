@@ -5,6 +5,7 @@ import {
   bare,
   expandSummaryPanel,
   openPanelView,
+  openTransferFilters,
   readSummaryFigures,
   refreshReferenceData,
   runSeedScript,
@@ -59,6 +60,7 @@ async function readPanelFigures(page: Page): Promise<Record<string, string>> {
 // while a filter is active, and it is a disabled button whose accessible name concatenates the label
 // with the amount — so read its text and compare stripped of the thin spaces Intl's PLN puts in.
 async function readFilteredSum(page: Page): Promise<string> {
+  await openTransferFilters(page)
   const stat = page.getByRole('button', { name: /Suma wybranych transakcji/ })
   await expect(stat).toBeVisible()
   return bare((await stat.textContent()) ?? '')

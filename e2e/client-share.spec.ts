@@ -236,7 +236,15 @@ test('the investor gets both billed expense datasets and their faktury, and neve
   const { page: visitor, close } = await anonymousVisit(browser, baseURL, token)
   try {
     await visitor.getByRole('radio', { name: 'Materiały', exact: true }).click()
-    await visitor.getByRole('button', { name: 'Lista wydatków' }).click()
+    // The section opens by default, so a blind click CLOSED it — and every assertion below then raced
+    // the 200 ms collapse animation, which keeps the content mounted while it shrinks. The trace shows
+    // this test winning that race by one millisecond (last assertion 199 ms after the click) until a
+    // loaded machine lost it. Toggle only when it is actually closed.
+    const expensesToggle = visitor.getByRole('button', { name: 'Lista wydatków' })
+    await expect(expensesToggle).toBeVisible()
+    if ((await expensesToggle.getAttribute('aria-expanded')) !== 'true')
+      await expensesToggle.click()
+    await expect(expensesToggle).toHaveAttribute('aria-expanded', 'true')
 
     // Counts ride in the tab labels, so an off-by-one dataset split is visible in the selector itself.
     const grossTab = visitor.getByRole('radio', { name: 'Materiały brutto (1)' })
@@ -263,6 +271,7 @@ test('the investor gets both billed expense datasets and their faktury, and neve
     // publicly-readable media URLs — which is the only reason the button can work with no session at
     // all. If media ever stopped being public this is what would go red.
     await grossTab.click()
+    await expect(visitor.getByText(seed.grossExpense.description)).toBeVisible()
     const downloadPromise = visitor.waitForEvent('download')
     await visitor.getByRole('button', { name: 'Pobierz faktury' }).click()
     const download = await downloadPromise

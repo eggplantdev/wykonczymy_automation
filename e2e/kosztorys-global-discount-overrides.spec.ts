@@ -6,7 +6,9 @@ import {
   bare,
   collapseSummaryPanel,
   columnHeaders,
+  commitCellValue,
   expandSummaryPanel,
+  expectCellValue,
   gridRow,
   openEditor,
   openPanelView,
@@ -14,7 +16,6 @@ import {
   pickDiscountMode,
   readSummaryFigures,
   rowCell,
-  expectCellValue,
   seedGridInvestments,
   type GridSeedT,
 } from './helpers'
@@ -89,9 +90,7 @@ async function setPerItemDiscount(page: Page, row: string, amount: number): Prom
   await expect(typeCell).toHaveText('zł')
 
   const valueCell = await rowCell(page, row, DISCOUNT_VALUE_COLUMN)
-  await valueCell.click()
-  await valueCell.locator('input').fill(String(amount))
-  await page.keyboard.press('Enter')
+  await commitCellValue(valueCell, String(amount))
 }
 
 test('rabat globalny wyłącza rabaty per pozycja, nie kasując ich', async ({ page }) => {

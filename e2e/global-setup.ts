@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process'
 import { chromium, type FullConfig } from '@playwright/test'
+import { chromeLaunchOptions } from './chrome-launch'
 import { login } from './helpers'
 
 export const STORAGE_STATE = 'e2e/.auth/user.json'
@@ -28,7 +29,7 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
   const baseURL = config.projects[0]?.use?.baseURL
   if (!baseURL) throw new Error('[global-setup] no baseURL configured')
 
-  const browser = await chromium.launch({ channel: 'chrome' })
+  const browser = await chromium.launch(chromeLaunchOptions)
   try {
     const page = await browser.newPage({ baseURL })
     await login(page)

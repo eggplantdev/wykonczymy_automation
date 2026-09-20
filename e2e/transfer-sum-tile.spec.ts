@@ -1,5 +1,11 @@
 import { test, expect, type Page } from '@playwright/test'
-import { createInvestmentExpense, parsePln, readColumn, EXPENSE_REGISTER } from './helpers'
+import {
+  createInvestmentExpense,
+  openTransferFilters,
+  parsePln,
+  readColumn,
+  EXPENSE_REGISTER,
+} from './helpers'
 
 // EX-627 — the „Suma wybranych transakcji" tile against the rows the list actually shows.
 //
@@ -70,6 +76,7 @@ test('kafelek „Suma wybranych transakcji" równa się sumie wierszy, które li
   await expect(page.getByRole('cell', { name: live }).first()).toBeVisible()
   await expect(page.getByRole('cell', { name: cancelled })).toHaveCount(0)
 
+  await openTransferFilters(page)
   const tile = sumTile(page)
   await expect(tile).toBeVisible()
   // No tooltip: in this mode the tile claims to agree with the list, so it has to.
@@ -81,5 +88,6 @@ test('kafelek „Suma wybranych transakcji" równa się sumie wierszy, które li
   // than leaving the owner to notice.
   await page.goto(`/?amount=${encodeURIComponent(AMOUNT_FILTER)}&showCancelled=1`)
   await expect(page.getByRole('cell', { name: cancelled }).first()).toBeVisible()
+  await openTransferFilters(page)
   await expect(sumTileTooltip(page)).toBeVisible()
 })

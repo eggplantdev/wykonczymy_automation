@@ -2,10 +2,12 @@ import { test, expect, type Locator, type Page } from '@playwright/test'
 import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
 import {
   collapseSummaryPanel,
+  commitCellValue,
   expectMoney,
   gridRow,
   openEditor,
   rowCell,
+  settleWrite,
   waitForHydration,
   seedCatalogueInvestments,
   tableCell,
@@ -107,9 +109,9 @@ test('zapis pozycji do katalogu: druga próba nadpisuje ten sam wiersz, po potwi
   // --- raise the price in the rozpiska, save the same klucz once more ---
   await openEditor(page, seed.save.id)
   const priceCell = await rowCell(page, seed.save.item, PRICE_COLUMN)
-  await priceCell.click()
-  await priceCell.locator('input').fill(String(RAISED_PRICE))
-  await page.keyboard.press('Enter')
+  // The cell's autosave is debounced, so the reload below would abort it — and the dialog reads its
+  // figures from the server by the pozycja's id, which would then still be the old cena.
+  await settleWrite(page, () => commitCellValue(priceCell, String(RAISED_PRICE)))
   // The dialog reads its figures from the server by the pozycja's id, so the new cena has to be IN
   // Postgres before it opens — the reload is what proves it got there.
   await page.reload()

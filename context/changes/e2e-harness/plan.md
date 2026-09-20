@@ -238,8 +238,6 @@ None — no schema changes. The seeded user is data-plane only and idempotent; a
 - [x] 1.2 Lint passes: `pnpm lint` — 6c941b6
 - [x] 1.3 `pnpm seed:e2e` creates the user and is idempotent on re-run — 6c941b6
 - [x] 1.4 `pnpm test:e2e` passes with smoke + auth specs; `e2e/.auth/user.json` generated — 6c941b6
-      (scope note 2026-09-17: smoke + auth only. The suite has since grown to 32 spec files and has
-      never had a full green run — status in `change.md` Notes.)
 
 #### Manual
 
@@ -252,31 +250,45 @@ None — no schema changes. The seeded user is data-plane only and idempotent; a
 
 - [x] 2.1 Typecheck passes: `pnpm typecheck`
 - [x] 2.2 Lint passes: `pnpm lint`
-- [ ] 2.3 `pnpm test:e2e` passes with all four specs
+- [ ] 2.3 `pnpm test:e2e` passes with all four specs — awaits one cold full run after the September stabilization (Phase 4); the warm loop is green
 
 #### Manual
 
 - [ ] 2.4 Specs not flaky across 3 consecutive runs
 - [ ] 2.5 Suite passes after a `pnpm db:import` DB reset
 
-> **WIP status (2026-07-08, branch switch):** auth + smoke specs GREEN and stable. Both mutation
-> specs (transfer-create, transfer-cancel) still RED: the created expense row never appears on the
-> `/kasa/[id]` page within the 20s `expect` timeout on a cold server — `getByRole('cell', {name:
-description})` times out with "element(s) not found" (see `test-results/…/error-context.md`). The
-> dialog closes (submit fires), so the write likely succeeds but the revalidate → router.refresh
-> round-trip doesn't surface the row on the register list within budget. Next: run against the WARM
-> server (`pnpm test:e2e:warm`, see `playwright.warm.config.ts`) to isolate cold-boot latency from a
-> genuine "row never renders" bug — if warm also fails, the assertion/selector is wrong, not slow.
-> DB isolation to 5435 is DONE and verified (scripts force `db-test`, config hard-throws without
-> `DB_POSTGRES_URL_TEST`).
+> **Status (2026-09-18):** both mutation specs are GREEN, and so is the rest of the suite, which has
+> since grown to 32 spec files / 67 tests. The 2026-07-08 reading this replaces („the row never
+> renders") was wrong about its own cause: the rows did render, the browser was running under Rosetta and the
+> specs were reading the DOM before the write had left the client. The three causes and the fixes are
+> in `change.md` Notes and `context/foundation/lessons.md`. DB isolation to 5435 is DONE and verified
+> (scripts force `db-test`, the config hard-throws without `DB_POSTGRES_URL_TEST`).
 
 ### Phase 3: Doc correction — token lifetime
 
 #### Automated
 
-- [ ] 3.1 No stale 24h claim remains (grep)
-- [ ] 3.2 Typecheck passes: `pnpm typecheck`
+- [x] 3.1 No stale 24h claim remains — `grep -rn "24h\|24 h\|24 godz" AGENTS.md src/collections/users.ts` returns nothing
+- [x] 3.2 Typecheck passes: `pnpm typecheck`
 
 #### Manual
 
-- [ ] 3.3 Corrected figure matches `src/collections/users.ts:15`
+- [x] 3.3 Corrected figure matches `src/collections/users.ts:15` — both say 7 days
+
+### Phase 4: September 2026 stabilization (harness + two product bugs)
+
+The suite had grown to 32 spec files / 67 tests and none of them ran green. Three systemic causes,
+none in the specs' own logic, plus two real product bugs the green-ness was hiding. Detail in
+`change.md` (2026-09-18) and `context/foundation/lessons.md`.
+
+#### Automated
+
+- [x] 4.1 Chrome pinned to ARM64 (`e2e/chrome-arm64.sh` + `e2e/chrome-launch.ts`) — hydration 20 s → 0,3 s
+- [x] 4.2 Burst writes counted rather than matched (`settleWrites`), commits locator-scoped (`commitCellValue`)
+- [x] 4.3 `revalidateTag` takes `EXPIRE_NOW` at every site outside a Server Action, `EXPIRE_NEXT` in `deferRefresh` — `pnpm exec vitest run src/__tests__/lib/cache/revalidate.test.ts "src/__tests__/app/(payload)/api/cron/leads-reconcile/route.test.ts"` → 11 passed
+- [x] 4.4 Poisoned-entry reads go through `refreshUntil` (EX-808 has no fix, only a retry)
+- [ ] 4.5 One cold `pnpm test:e2e` green end to end — the warm loop is; the cold run is what 2.3 also waits on
+
+#### Manual
+
+- [ ] 4.6 Suite green on a machine WITHOUT the shim's Chrome path (the `channel: 'chrome'` fallback)

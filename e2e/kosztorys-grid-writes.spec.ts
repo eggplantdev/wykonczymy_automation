@@ -3,12 +3,14 @@ import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
 import { formatNet } from '@/lib/kosztorys/format'
 import {
   collapseSummaryPanel,
+  commitCellValue,
   expandSummaryPanel,
+  expectCellValue,
   gridRow,
   openEditor,
-  expectCellValue,
   rowCell,
   seedGridInvestments,
+  settleWrites,
   type GridSeedT,
 } from './helpers'
 
@@ -54,9 +56,7 @@ async function typeStageQty(
   qty: number,
 ): Promise<void> {
   const cell = await rowCell(page, rowText, stage)
-  await cell.click()
-  await cell.locator('input').fill(String(qty))
-  await page.keyboard.press('Enter')
+  await commitCellValue(cell, String(qty))
 }
 
 // Count the full-route refreshes the editor asks for. `router.refresh()` re-fetches the CURRENT
@@ -115,9 +115,12 @@ test('a run of cell edits reaches Postgres and refreshes the route once, not onc
     { row: 'Praca dwa', qty: 2 },
     { row: 'Praca trzy', qty: 3 },
   ]
-  for (const { row, qty } of typed) {
-    await typeStageQty(page, row, 'Etap 2', qty)
-  }
+  // Typed without awaiting each save, so their debounces overlap — that overlap IS the coalescing
+  // measured below. The burst as a whole is then waited out per write: a reload taken on one response
+  // aborts the debounces still pending, and two of the three values never reach Postgres.
+  await settleWrites(page, typed.length, async () => {
+    for (const { row, qty } of typed) await typeStageQty(page, row, 'Etap 2', qty)
+  })
 
   // The panel's figures come back from the server, so seeing the new total there is the first proof
   // the writes landed — the grid alone would show the typed values either way.
@@ -135,7 +138,8 @@ test('a run of cell edits reaches Postgres and refreshes the route once, not onc
   expect(refreshes()).toBeLessThanOrEqual(typed.length * 2)
 
   // The grid seeds its rows into `useState` at mount, so „the value is on screen" and „the value is
-  // in Postgres" are two different facts. Only the reload answers the second one.
+  // in Postgres" are two different facts — only a reload reads the second, and only once every save
+  // in the burst has landed (see `settleWrites`).
   await page.reload()
   await collapseSummaryPanel(page)
   for (const { row, qty } of typed) {

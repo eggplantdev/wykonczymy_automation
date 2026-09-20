@@ -245,7 +245,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Test-data isolation strategy — self-seed unique per-run data against the dump-restored docker DB. — Owner: team. Block: no.
 - **Risk:** Every band-4 E2E slice depends on it and the financial core is guardrail #1. Risk: a flaky harness erodes trust in the suite — keep the first spec minimal and deterministic.
-- **Status:** done — harness shipped; `e2e/` carries `global-setup.ts` + auth fixture and five specs (`smoke`, `auth`, `transfer-create`, `transfer-cancel`, `kosztorys-reconciliation`) against the isolated 5435 `db-test` container. Band-3 slices are unblocked.
+- **Status:** done — harness shipped; `e2e/` carries `global-setup.ts` + auth fixture and **32 spec files / 67 tests** against the isolated 5435 `db-test` container. Band-3 slices are unblocked.
 
 ### O-01: Sentry error tracking + tracing + session replay
 

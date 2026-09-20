@@ -50,6 +50,7 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "docker compose up -d --wait db-test && node --env-file=.env node_modules/@playwright/test/cli.js test",
     "test:e2e:warm": "docker compose up -d --wait db-test && node --env-file=.env node_modules/@playwright/test/cli.js test --config=playwright.warm.config.ts",
+    "test:e2e:warm:server": "source .env && rm -rf .next-e2e/cache/fetch-cache && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_TEST\" NEXT_DIST_DIR=.next-e2e PORT=3100 ./node_modules/.bin/next start",
     "watch:deploy": "bash scripts/watch-deploy.sh"
   },
   "dependencies": {

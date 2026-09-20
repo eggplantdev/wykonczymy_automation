@@ -1,5 +1,12 @@
 import { execFileSync } from 'node:child_process'
-import { expect, type Browser, type Locator, type Page } from '@playwright/test'
+import {
+  expect,
+  type Browser,
+  type Locator,
+  type Page,
+  type Request,
+  type Response,
+} from '@playwright/test'
 import { E2E_EMAIL, E2E_PASSWORD } from '@/scripts/e2e-user-credentials'
 import { formatPLN } from '@/lib/utils/format-currency'
 
@@ -19,10 +26,45 @@ import { formatPLN } from '@/lib/utils/format-currency'
 // page function returns, so a page whose timers never fire made this call eat the whole test budget
 // and then blame the locator. Re-resolving each tick also survives React replacing the node.
 const HYDRATION_TIMEOUT_MS = 20_000
-const HYDRATION_POLL_MS = 250
+// 50, not the 250 this was written with: that figure was tuned when hydration took 20 s under a
+// translated renderer (`e2e/chrome-arm64.sh`). Native it takes ~300 ms, so a 250 ms tick overshot by
+// up to a full tick on every one of ~33 call sites.
+const HYDRATION_POLL_MS = 50
 
-export async function waitForHydration(locator: Locator): Promise<void> {
-  const deadline = Date.now() + HYDRATION_TIMEOUT_MS
+/**
+ * Nudge a control until the state it drives agrees — retry the NUDGE, never just wait longer.
+ *
+ * Four helpers had grown their own copy of this loop, each with its own 30 s literal and its own
+ * paragraph explaining the bound below. The bound is the whole point and it is not obvious:
+ * `toPass` cannot abort a callback that is still running when the deadline passes — it waits for it
+ * to return. So ONE inner call left on the global 45 s `actionTimeout` turns the retry loop into a
+ * single attempt, and the retry it exists for never runs. Every call inside `nudge`/`settled` is
+ * therefore bounded at `RETRY_STEP_MS`, far below `RETRY_BUDGET_MS`.
+ *
+ * Retrying the nudge rather than the wait is the other half: the failures this replaced were clicks
+ * React dropped mid-remount — a dialog still tearing down, a toolbar re-rendering under an autosave's
+ * `router.refresh()`. Playwright reports „click action done", nothing opens, and no amount of waiting
+ * brings back a menu that already closed. `nudge` owns its own „am I already there" guard, so a
+ * control that settled on the first look is not clicked twice.
+ */
+export const RETRY_STEP_MS = 2_000
+const RETRY_BUDGET_MS = 30_000
+
+export async function nudgeUntil(
+  nudge: () => Promise<unknown>,
+  settled: () => Promise<unknown>,
+): Promise<void> {
+  await expect(async () => {
+    await nudge()
+    await settled()
+  }).toPass({ timeout: RETRY_BUDGET_MS })
+}
+
+export async function waitForHydration(
+  locator: Locator,
+  timeout = HYDRATION_TIMEOUT_MS,
+): Promise<void> {
+  const deadline = Date.now() + timeout
   while (Date.now() < deadline) {
     const hydrated = await locator
       .evaluate((element) => Object.keys(element).some((key) => key.startsWith('__reactFiber$')))
@@ -159,8 +201,60 @@ export async function openExpenseDialog(page: Page): Promise<void> {
   const trigger = page.getByRole('button', { name: /Wydatek/ }).first()
   await trigger.waitFor()
   await waitForHydration(trigger)
-  await trigger.click()
-  await page.getByText('Nowy wydatek').first().waitFor()
+  const title = page.getByText('Nowy wydatek').first()
+  // A second „Wydatek" in the same test — one booking, then the next — clicks the trigger while the
+  // dialog that just closed is still tearing down (transfer-sum-tile died exactly there).
+  await nudgeUntil(
+    async () => {
+      if (!(await title.isVisible())) await trigger.click({ timeout: RETRY_STEP_MS })
+    },
+    () => expect(title).toBeVisible({ timeout: RETRY_STEP_MS }),
+  )
+}
+
+/**
+ * The app's own „Odśwież dane" — `revalidatePath('/', 'layout')`, the one thing that clears every
+ * `unstable_cache` entry at once, and the only honest way for a spec to read what a write actually
+ * persisted.
+ *
+ * A write's own `router.refresh()` is not: the list query is an `unstable_cache` entry, and a link
+ * prefetch whose render began BEFORE the write lands its stale rows in that entry AFTER the action
+ * expired the tag. The refresh then re-reads a poisoned entry and the row keeps its pre-write face
+ * until something else invalidates it. Measured in a full-suite run: `transactions_rels` held the
+ * new invoice and the refresh payload still carried `invoices: []` for that row.
+ */
+export async function refreshData(page: Page): Promise<void> {
+  const refresh = page.getByRole('button', { name: 'Odśwież dane' })
+  // Every call here is bounded for the reason `nudgeUntil` documents: this runs inside
+  // `refreshUntil`'s `toPass`, so one call left on the 20 s hydration budget or the 45 s
+  // `actionTimeout` would spend the loop's entire 90 s on a single attempt — and the retry the loop
+  // exists to provide would never run twice.
+  await waitForHydration(refresh, 5_000)
+  await refresh.click({ timeout: 5_000 })
+  await expect(page.getByText('Dane odświeżone')).toBeVisible({ timeout: 10_000 })
+}
+
+/**
+ * One „Odśwież dane" is not always enough, and re-reading without one is never enough.
+ *
+ * The poisoning itself is a production defect, not a test artifact — tracked as EX-808. Until it is
+ * fixed the harness has to work around it, and this is that workaround.
+ *
+ * A poisoned `unstable_cache` entry is not stale in the framework's eyes — the render that filled it
+ * stamped it with ITS OWN finish time, which is later than the tag's expiry — so it stays valid
+ * until something expires that tag again. Navigating, reloading and retrying the assertion all read
+ * the same poisoned entry forever; only another `revalidatePath` can dislodge it. The app's own
+ * sidebar prefetch storm — ~20 routes re-requested after every navigation — can lose the race a
+ * second time, so the refresh is the thing that retries, not the read.
+ *
+ * `check` must carry its own short timeout — `toPass` cannot abort a call already in flight, so an
+ * inner assertion left on the 45 s default would spend the whole budget on one attempt.
+ */
+export async function refreshUntil(page: Page, check: () => Promise<void>): Promise<void> {
+  await expect(async () => {
+    await refreshData(page)
+    await check()
+  }).toPass({ timeout: 90_000, intervals: [500, 2_000, 5_000] })
 }
 
 // Open the global-nav "Wydatek" dialog and fill one line item against the shared
@@ -319,6 +413,101 @@ export async function openPanelView(page: Page, view: string): Promise<void> {
   await expect(radio).toHaveAttribute('aria-checked', 'true')
 }
 
+// A write awaited to its END, not to its paint.
+//
+// The kosztorys editor is optimistic twice over: the grid removes a deleted row at once, and a typed
+// cell is committed to the visible state while its autosave is still 500 ms of debounce away from
+// being sent. So „the row is gone" / „the cell says 150" is true about the user's intent and nothing
+// about Postgres. A `page.reload()` taken on that signal does two harmful things at once — it ABORTS
+// the server action's request mid-flight, and it renders the new document from a read that raced the
+// write, which the grid then keeps forever because it seeds its rows into `useState` at mount. The
+// suite only ever passed this because the browser ran under Rosetta and was slower than the write.
+//
+// Next marks every server-action POST with a `next-action` header — the only request-side evidence a
+// write is in flight — and the wait is registered BEFORE `write` runs, which is what lets it cover a
+// debounced autosave that has not been sent yet. The RESPONSE is the proof, not the request: Next
+// flushes an action's headers only once the action function has returned, so a response that arrived
+// is a write that committed, and a response that never arrives is the abort this helper exists to
+// prevent.
+export function isServerAction(request: Request): boolean {
+  return request.method() === 'POST' && !!request.headers()['next-action']
+}
+
+export async function settleWrite(page: Page, write: () => Promise<void>): Promise<void> {
+  const settled = page.waitForResponse((response) => isServerAction(response.request()), {
+    timeout: 60_000,
+  })
+  try {
+    await write()
+  } catch (error) {
+    // A `write()` that throws leaves `settled` pending with nobody awaiting it; 60 s later it
+    // rejects as an UNHANDLED rejection, which Playwright attributes to whatever test is running
+    // by then — not to this one. Swallow that leg so the real error is the one reported.
+    settled.catch(() => {})
+    throw error
+  }
+  const response = await settled
+  // The tail of the body is awaited, but bounded: some actions leave their RSC stream open long
+  // after the write landed (the client never drains it), and an unbounded `finished()` then eats the
+  // whole test budget — two specs spent 5 and 6 minutes there before dying with nothing to show.
+  // The losing leg is swallowed too: a `waitForTimeout` still pending when the test ends rejects
+  // with „Target page closed", again against an unrelated test.
+  const bail = page.waitForTimeout(3_000)
+  await Promise.race([response.finished().catch(() => {}), bail])
+  bail.catch(() => {})
+}
+
+/**
+ * `settleWrite` for a BURST of writes that must not be serialised — a run of cell edits whose 500 ms
+ * autosave debounces are meant to overlap, which is the coalescing such a spec exists to measure.
+ *
+ * `settleWrite` cannot express that: it resolves on the FIRST action response it sees, and in a burst
+ * that is an earlier cell's save. The trace of the failure: three cells typed, ONE POST — the first
+ * cell's — the reload taken 100 ms after its response, and the two debounces still pending killed by
+ * the unmount, so two of the three values never reached Postgres.
+ */
+export async function settleWrites(
+  page: Page,
+  count: number,
+  writes: () => Promise<void>,
+): Promise<void> {
+  let landed = 0
+  const onResponse = (response: Response) => {
+    const request = response.request()
+    if (isServerAction(request)) landed += 1
+  }
+  page.on('response', onResponse)
+  try {
+    await writes()
+    await expect(() => expect(landed).toBeGreaterThanOrEqual(count)).toPass({ timeout: 30_000 })
+  } finally {
+    page.off('response', onResponse)
+  }
+}
+
+export function clickAndSettle(target: Locator): Promise<void> {
+  return settleWrite(target.page(), () => target.click())
+}
+
+// The transfers table hides its filter block behind a collapsed „Filtry" section (fef44b45), and the
+// „Suma wybranych transakcji" tile is rendered inside that block — so a closed section means the tile
+// is not in the DOM at all, not merely off-screen. The open/closed choice is persisted in
+// localStorage, so this is idempotent by necessity: the second call on a context that already opened
+// it must not toggle it shut.
+export async function openTransferFilters(page: Page): Promise<void> {
+  const trigger = page.getByRole('button', { name: 'Filtry', exact: true })
+  await trigger.waitFor()
+  await waitForHydration(trigger)
+  await nudgeUntil(
+    async () => {
+      if ((await trigger.getAttribute('aria-expanded', { timeout: RETRY_STEP_MS })) !== 'true') {
+        await trigger.click({ timeout: RETRY_STEP_MS })
+      }
+    },
+    () => expect(trigger).toHaveAttribute('aria-expanded', 'true', { timeout: RETRY_STEP_MS }),
+  )
+}
+
 // Strip every space a formatter may have put in — pl-PL groups thousands with a non-breaking space
 // and Intl's PLN uses a narrow one, neither of which a spec should have to reproduce to compare.
 export const bare = (text: string) => text.replace(/[\s\u00a0\u202f]/g, '')
@@ -425,39 +614,49 @@ export async function readInvestorBalance(page: Page): Promise<number> {
 // button — the accessible name carries „Pokaż" and „Schowaj" at once — so the panel's own
 // Collapsible `data-state` is the only honest read of which way it currently is.
 export async function collapseSummaryPanel(page: Page): Promise<Locator> {
-  const toggle = page.getByRole('button', { name: /podsumowanie/i }).first()
-  const panel = page.locator('.shadow-panel[data-state]').first()
-  await panel.waitFor()
-  // Already folded — a spec that reloads mid-test meets it that way, the preference being persisted.
-  if ((await panel.getAttribute('data-state')) === 'closed') return toggle
-  // The toggle renders DISABLED („Kosztorys jest pusty") until the tree arrives, and a click issued
-  // in that window neither fails nor fires — it sits on actionability and swallows the whole retry
-  // budget below. Wait the disabled state out before the first click.
-  await expect(toggle).toBeEnabled({ timeout: 30_000 })
-  // A dispatched event on a button React has not claimed yet is swallowed in silence, and the panel
-  // then covers every cell the spec goes on to click.
-  await waitForHydration(toggle)
-  // `dispatchEvent`, not `click`: a real click waits for the renderer to be quiet, and over a grid
-  // this wide it is not quiet for seconds at a time — the click then times out although the handler
-  // it would have run is perfectly fine. Folding the panel away is setup, never the behaviour under
-  // test, so the synthetic event costs nothing. Retried because a dispatch before hydration lands on
-  // a button with no handler yet, and that one lost click leaves the panel covering every later cell.
-  await expect(async () => {
-    if ((await panel.getAttribute('data-state')) === 'open') await toggle.dispatchEvent('click')
-    await expect(panel).toHaveAttribute('data-state', 'closed', { timeout: 2_000 })
-  }).toPass({ timeout: 30_000 })
+  const toggle = await summaryPanelToggle(page)
+  await settleSummaryPanel(page, toggle, 'closed')
   return toggle
 }
 
 // The mirror of `collapseSummaryPanel`, for a caller that wants to READ the panel: closed, it is
 // `forceMount`ed but invisible, so `readSummaryFigures` needs it open.
 export async function expandSummaryPanel(page: Page): Promise<void> {
-  const toggle = await collapseSummaryPanel(page)
-  const panel = page.locator('.shadow-panel[data-state]').first()
-  await expect(async () => {
-    if ((await panel.getAttribute('data-state')) === 'closed') await toggle.dispatchEvent('click')
-    await expect(panel).toHaveAttribute('data-state', 'open', { timeout: 2_000 })
-  }).toPass({ timeout: 30_000 })
+  await settleSummaryPanel(page, await summaryPanelToggle(page), 'open')
+}
+
+const summaryPanel = (page: Page) => page.locator('.shadow-panel[data-state]').first()
+
+// The toggle, ready to be clicked — which is three separate waits, and every caller needs all three.
+// It renders DISABLED („Kosztorys jest pusty") until the tree arrives, and a click issued in that
+// window neither fails nor fires; and a dispatched event on a button React has not claimed yet is
+// swallowed in silence, leaving the panel covering every cell the spec goes on to click.
+async function summaryPanelToggle(page: Page): Promise<Locator> {
+  const toggle = page.getByRole('button', { name: /podsumowanie/i }).first()
+  await summaryPanel(page).waitFor()
+  await expect(toggle).toBeEnabled({ timeout: 30_000 })
+  await waitForHydration(toggle)
+  return toggle
+}
+
+// `dispatchEvent`, not `click`: a real click waits for the renderer to be quiet, and over a grid this
+// wide it is not quiet for seconds at a time — the click then times out although the handler it would
+// have run is perfectly fine. Opening or folding the panel is setup, never the behaviour under test,
+// so the synthetic event costs nothing.
+async function settleSummaryPanel(
+  page: Page,
+  toggle: Locator,
+  want: 'open' | 'closed',
+): Promise<void> {
+  const panel = summaryPanel(page)
+  await nudgeUntil(
+    async () => {
+      if ((await panel.getAttribute('data-state', { timeout: RETRY_STEP_MS })) !== want) {
+        await toggle.dispatchEvent('click', undefined, { timeout: RETRY_STEP_MS })
+      }
+    },
+    () => expect(panel).toHaveAttribute('data-state', want, { timeout: RETRY_STEP_MS }),
+  )
 }
 
 // The editor, with the Podsumowanie folded away — the state every grid spec needs before its first
@@ -563,6 +762,27 @@ export async function expectCellValue(cell: Locator, value: string): Promise<voi
   )
 }
 
+// Commit a typed figure into the cell that is already open for editing.
+//
+// The Enter goes to the INPUT, never to `page.keyboard`, which delivers to `document.activeElement`
+// — and in this editor that is not reliably the cell being typed into. An autosave's
+// `router.refresh()` re-renders the grid mid-edit, the input unmounts, and focus falls back to
+// whatever Radix last restored it to: in `kosztorys-global-discount-overrides` that was the
+// discount-type menu trigger one cell over, so Enter OPENED that menu instead of committing. A Radix
+// menu marks the rest of the document `aria-hidden`, so every later `getByRole` found nothing and the
+// report blamed the toolbar button 30 s away. Pressing on the locator re-resolves and re-focuses the
+// input, so the key can only reach the cell under edit.
+export async function commitCellValue(cell: Locator, value: string): Promise<void> {
+  // The click belongs here: `react-datasheet-grid` only mounts the `<input>` for the cell that is
+  // active, so „select the cell" is not a caller's choice — it is the precondition for the two lines
+  // below to have anything to address. Five call sites each repeated it and one of them would
+  // eventually forget.
+  await cell.click()
+  const input = cell.locator('input')
+  await input.fill(value)
+  await input.press('Enter')
+}
+
 // The nth `.dsg-cell` of the first real item row, by column header. Section bands and the „Razem"
 // footer ride the grid as ordinary `.dsg-row`s, so „the first non-header row" is a band unless they
 // are excluded by class.
@@ -609,10 +829,7 @@ export async function refreshReferenceData(browser: Browser): Promise<void> {
   const page = await browser.newPage({ storageState: 'e2e/.auth/user.json' })
   try {
     await page.goto('/')
-    const refresh = page.getByRole('button', { name: 'Odśwież dane' })
-    await waitForHydration(refresh)
-    await refresh.click()
-    await page.getByText('Dane odświeżone').waitFor()
+    await refreshData(page)
   } finally {
     await page.close()
   }
@@ -692,14 +909,13 @@ export async function pickKosztorysOption(page: Page, item: RegExp): Promise<voi
   await trigger.waitFor()
   await waitForHydration(trigger)
   const menuItem = page.getByRole('menuitem', { name: item })
-  // Re-opened until an item is there, rather than waited on longer. A restore re-renders the whole
-  // editor, and a click that lands mid-remount opens the menu onto a trigger that is replaced a
-  // frame later — the menu goes with it, and no amount of waiting brings back a menu that already
-  // closed. The page then looks exactly like one where the click never happened.
-  await expect(async () => {
-    await trigger.click()
-    await expect(menuItem).toBeVisible({ timeout: 2_000 })
-  }).toPass({ timeout: 30_000 })
+  // Unconditional nudge, unlike the guarded ones: a restore re-renders the whole editor, and a click
+  // that lands mid-remount opens the menu onto a trigger replaced a frame later — the menu goes with
+  // it, and the page then looks exactly like one where the click never happened.
+  await nudgeUntil(
+    () => trigger.click({ timeout: RETRY_STEP_MS }),
+    () => expect(menuItem).toBeVisible({ timeout: RETRY_STEP_MS }),
+  )
   await menuItem.click()
 }
 

@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
+import { chromeLaunchOptions } from './e2e/chrome-launch'
 
 // E2E runs on its OWN port (3100), never the dev server's 3000. Combined with
 // reuseExistingServer:false below, this guarantees `pnpm test:e2e` builds and tests a
@@ -50,7 +51,8 @@ export default defineConfig({
   reporter: 'list',
   use: {
     baseURL: BASE_URL,
-    channel: 'chrome', // system Google Chrome, no bundled browser download
+    // system Google Chrome, no bundled browser download — see e2e/chrome-launch.ts
+    launchOptions: chromeLaunchOptions,
     // `on-first-retry` records NOTHING locally, where retries are 0 — every local failure this
     // session had to be re-run to be seen at all. Kept off the passing path, so the cost is paid
     // only by a test that actually failed.
@@ -73,7 +75,7 @@ export default defineConfig({
       // after it. A viewport that fits the whole grid keeps every column rendered at once.
       use: {
         ...devices['Desktop Chrome'],
-        channel: 'chrome',
+        launchOptions: chromeLaunchOptions,
         viewport: { width: 3000, height: 1400 },
       },
     },
@@ -83,7 +85,14 @@ export default defineConfig({
   // `next dev` (or a stale prod server) gets silently reused and the suite tests the wrong
   // target. PORT + NEXT_DIST_DIR isolate this server so it coexists with the dev server.
   webServer: {
-    command: 'pnpm build && pnpm start',
+    // The data cache is wiped first. `unstable_cache` persists to `<dist>/cache/fetch-cache`, which
+    // survives both a rebuild and a `pnpm db:import:test` — so a run started after the test DB was
+    // restored serves figures computed from rows that no longer exist. That is invisible until a spec
+    // reads a „before" figure, writes, and reads again: the write invalidates the tag, the second read
+    // is honest, and the delta is nonsense (19 000,48 → 11 070,94 on a +137,41 booking, 2026-09-18).
+    // The suite's invariant is a cold data cache against a known DB, so the wipe belongs here rather
+    // than in whoever remembers.
+    command: `rm -rf ${E2E_DIST_DIR}/cache/fetch-cache && pnpm build && pnpm start`,
     env: { PORT, NEXT_DIST_DIR: E2E_DIST_DIR, DB_POSTGRES_URL: TEST_DB_URL },
     url: BASE_URL,
     reuseExistingServer: false,
