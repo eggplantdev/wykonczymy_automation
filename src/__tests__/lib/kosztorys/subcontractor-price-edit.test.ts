@@ -12,8 +12,8 @@ const keystroke = (raw: string, rowData: ViewPricingT, view: ToolPlaneT) =>
 const settle = (draft: string, rowData: ViewPricingT, view: ToolPlaneT, entry: number | null) =>
   cellSettle(draft, rowData, subcontractorPolicy<ViewPricingT>(view), entry)
 
-// Client price 100 makes every threshold readable at a glance: ceiling 80, w_tools coefficient
-// price 65.
+// Client price 100 makes every threshold readable at a glance: ceiling 65, which the w_tools
+// coefficient price meets exactly.
 const row: ViewPricingT = {
   id: 1,
   sectionId: 10,
@@ -42,11 +42,11 @@ describe('cellKeystroke pod polityką podwykonawcy', () => {
   it('nie zapisuje nic po wyczyszczeniu pola', () => {
     // The bug this guards: writing `type: null` here swapped the input for read-only text mid-edit,
     // killing the caret and restoring the old price.
-    expect(keystroke('', flat(70), 'w_tools')).toEqual({ kind: 'hold' })
+    expect(keystroke('', flat(60), 'w_tools')).toEqual({ kind: 'hold' })
   })
 
   it('trzyma niedokończony wpis zamiast go odrzucać', () => {
-    expect(keystroke('1e', flat(70), 'w_tools')).toEqual({ kind: 'hold' })
+    expect(keystroke('1e', flat(60), 'w_tools')).toEqual({ kind: 'hold' })
   })
 
   it('wpisana cena przestawia „auto" na kwotę stałą', () => {
@@ -57,51 +57,54 @@ describe('cellKeystroke pod polityką podwykonawcy', () => {
   })
 
   it('wpisana cena zastępuje poprzednią kwotę stałą', () => {
-    expect(keystroke('75', flat(60), 'w_tools')).toMatchObject({
+    expect(keystroke('62', flat(50), 'w_tools')).toMatchObject({
       kind: 'commit',
-      row: { wToolsOverrideValue: 75 },
+      row: { wToolsOverrideValue: 62 },
     })
   })
 
   it('przyjmuje przecinek jako separator dziesiętny', () => {
-    expect(keystroke('50,5', flat(70), 'w_tools')).toMatchObject({
+    expect(keystroke('50,5', flat(60), 'w_tools')).toMatchObject({
       kind: 'commit',
       row: { wToolsOverrideValue: 50.5 },
     })
   })
 
   it('zapisuje cenę powyżej stawki z mnożnika inwestycji — pod sufitem to zwykła cena', () => {
-    expect(keystroke('70', flat(50), 'w_tools').kind).toBe('commit')
+    // The default 0,65 mnożnik now sits ON the ceiling, so the band above it only exists on an
+    // investment priced below the cap.
+    const lowerCoeff = { ...flat(50), globalWToolsCoeff: 0.5 }
+    expect(keystroke('60', lowerCoeff, 'w_tools').kind).toBe('commit')
   })
 
   it('blokuje cenę powyżej sufitu', () => {
-    expect(keystroke('81', flat(70), 'w_tools').kind).toBe('blocked')
+    expect(keystroke('66', flat(60), 'w_tools').kind).toBe('blocked')
   })
 
   it('blokuje cenę ujemną', () => {
-    expect(keystroke('-50', flat(70), 'w_tools').kind).toBe('blocked')
+    expect(keystroke('-50', flat(60), 'w_tools').kind).toBe('blocked')
   })
 
   it('pisze do pól planu, w którym edytujemy', () => {
-    expect(keystroke('30', flat(70), 'own_tools')).toMatchObject({
+    expect(keystroke('30', flat(60), 'own_tools')).toMatchObject({
       kind: 'commit',
-      row: { ownToolsOverrideValue: 30, wToolsOverrideValue: 70 },
+      row: { ownToolsOverrideValue: 30, wToolsOverrideValue: 60 },
     })
   })
 })
 
 describe('cellSettle pod polityką podwykonawcy', () => {
-  const entry = 70
+  const entry = 60
 
   it('puste pole wraca do „auto" dopiero po wyjściu z komórki', () => {
-    expect(settle('', flat(70), 'w_tools', entry)).toMatchObject({
+    expect(settle('', flat(60), 'w_tools', entry)).toMatchObject({
       kind: 'clear',
       row: { wToolsOverrideValue: null },
     })
   })
 
   it('przyjęta wartość nie wymaga dopisku — wiersz już ją ma', () => {
-    expect(settle('70', flat(70), 'w_tools', entry)).toEqual({ kind: 'keep' })
+    expect(settle('60', flat(60), 'w_tools', entry)).toEqual({ kind: 'keep' })
   })
 
   it('odrzucona wartość cofa wiersz do stanu sprzed edycji', () => {
@@ -110,7 +113,7 @@ describe('cellSettle pod polityką podwykonawcy', () => {
     expect(settle('2344000', flat(234), 'w_tools', entry)).toMatchObject({
       kind: 'rollback',
       reason: 'blocked',
-      row: { wToolsOverrideValue: 70 },
+      row: { wToolsOverrideValue: 60 },
     })
   })
 
@@ -119,23 +122,23 @@ describe('cellSettle pod polityką podwykonawcy', () => {
     expect(
       settled.kind === 'rollback' &&
         subcontractorPolicy<ViewPricingT>('w_tools').restoredLabel(settled.restored),
-    ).toBe(formatPLN(70))
+    ).toBe(formatPLN(60))
   })
 
   it('niedokończony wpis cofa się jako „nieprawidłowy"', () => {
     expect(settle('1e', flat(1), 'w_tools', entry)).toMatchObject({
       kind: 'rollback',
       reason: 'invalid',
-      row: { wToolsOverrideValue: 70 },
+      row: { wToolsOverrideValue: 60 },
     })
   })
 
   it('cofnięcie do stanu, w którym wiersz już jest, nic nie zapisuje — ale nadal jest odrzuceniem', () => {
-    expect(settle('81', flat(70), 'w_tools', entry)).toMatchObject({
+    expect(settle('66', flat(60), 'w_tools', entry)).toMatchObject({
       kind: 'rollback',
       reason: 'blocked',
       row: null,
-      restored: { wToolsOverrideValue: 70 },
+      restored: { wToolsOverrideValue: 60 },
     })
   })
 

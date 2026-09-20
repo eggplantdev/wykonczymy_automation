@@ -16,7 +16,7 @@ const PriceCell = PRICE_COLUMN.component as React.ComponentType<Record<string, u
 
 const ROW = pricingRow()
 
-const REFUSAL = /nie może przekroczyć 80%/
+const REFUSAL = /nie może przekroczyć 65%/
 
 // dsg recycles a cell onto whichever row scrolled into its slot without remounting it. `rowId` is
 // which row is under the caret now; both stay readable so a draft settling on the wrong one shows.
@@ -96,10 +96,10 @@ describe('Cena wykonawcy — wartość ponad sufitem', () => {
     const { user, input } = renderCell()
 
     await user.clear(input)
-    await user.type(input, '80')
+    await user.type(input, '65')
     await user.tab()
 
-    expect(stored(1)).toBe('80')
+    expect(stored(1)).toBe('65')
     expect(toastMessage).not.toHaveBeenCalled()
   })
 })
@@ -122,14 +122,14 @@ describe('Cena wykonawcy — wyjścia z edycji', () => {
     const { user, input } = renderCell()
 
     await user.clear(input)
-    await user.type(input, '70{Enter}')
+    await user.type(input, '60{Enter}')
 
-    expect(stored(1)).toBe('70')
+    expect(stored(1)).toBe('60')
     expect(stopEditing).toHaveBeenCalledWith({ nextRow: true })
     expect(toastMessage).not.toHaveBeenCalled()
 
     await user.tab()
-    expect(stored(1)).toBe('70')
+    expect(stored(1)).toBe('60')
     expect(toastMessage).not.toHaveBeenCalled()
   })
 })

@@ -7,7 +7,7 @@ import type { ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
  * price. A code constant rather than a per-investment column — it is a business rule, not a
  * negotiated parameter, and one the owner never wants a per-sheet exception to.
  */
-export const MAX_CLIENT_SHARE = 0.8
+export const MAX_CLIENT_SHARE = 0.65
 
 // Half a grosz. The comparison is strictly-greater, so without slack a price typed at exactly the
 // ceiling (that figure rounded to two decimals and entered by hand) reads as "above" on a

@@ -118,9 +118,9 @@ describe('the conditions, each on its boundary', () => {
   it('„z nieprawidłową ceną wykonawcy" reads the guard, per plane', () => {
     const overridden = (value: number) => row({ wToolsOverrideValue: value })
 
-    // clientPrice 100 → the ceiling is 80; typed at exactly the ceiling it must stand.
-    expect(matches('overpriced-w-tools', overridden(80))).toBe(false)
-    expect(matches('overpriced-w-tools', overridden(80.01))).toBe(true)
+    // clientPrice 100 → the ceiling is 65; typed at exactly the ceiling it must stand.
+    expect(matches('overpriced-w-tools', overridden(65))).toBe(false)
+    expect(matches('overpriced-w-tools', overridden(65.01))).toBe(true)
     expect(matches('overpriced-w-tools', overridden(-1))).toBe(true)
     // An unpriced pozycja is „bez ceny j.m." — a different problem, and the ceiling collapses to zero.
     expect(matches('overpriced-w-tools', row({ clientPrice: 0 }))).toBe(false)

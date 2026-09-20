@@ -1,8 +1,8 @@
 import type { ViewPricingT } from '@/lib/kosztorys/types'
 
 /**
- * 100 zł for the client against a 0,65 mnożnik: „auto" derives 65 and the ceiling sits at 80. Shared by
- * the cell specs, which all reason about that one arithmetic.
+ * 100 zł for the client against a 0,65 mnożnik: „auto" derives 65, which is exactly where the
+ * ceiling sits. Shared by the cell specs, which all reason about that one arithmetic.
  */
 export function pricingRow(overrides: Partial<ViewPricingT> = {}): ViewPricingT {
   return {

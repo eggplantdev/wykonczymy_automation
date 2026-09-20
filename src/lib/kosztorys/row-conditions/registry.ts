@@ -305,7 +305,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     tone: 'defect',
     plane: 'w_tools',
     revealsColumns: priceColumnsFor('w_tools'),
-    // The guard, not a restatement of the 80% rule: the filter and the red cell must never disagree.
+    // The guard, not a restatement of the ceiling: the filter and the red cell must never disagree.
     matches: (row) => checkSubcontractorPrice(row, 'w_tools') != null,
   },
   {
