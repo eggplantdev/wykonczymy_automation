@@ -237,14 +237,14 @@ Uruchamiane RAZ, po ostatniej fazie:
 
 ### Phase 2: Zoom na obrazku
 
-- [x] 2.1 `react-zoom-pan-pinch` w `package.json`
-- [x] 2.2 Komponent `zoomable-preview-image.tsx`
-- [x] 2.3 Przyciski `+` / `−` / „Dopasuj"
-- [x] 2.4 Reset przy zmianie strony przez `key`
-- [x] 2.5 Spec DOM: brak zoomu na PDF, reset przy zmianie strony
+- [x] 2.1 `react-zoom-pan-pinch` w `package.json` — 6f6bdd5c
+- [x] 2.2 Komponent `zoomable-preview-image.tsx` — 6f6bdd5c
+- [x] 2.3 Przyciski `+` / `−` / „Dopasuj" — 6f6bdd5c
+- [x] 2.4 Reset przy zmianie strony przez `key` — 6f6bdd5c
+- [x] 2.5 Spec DOM: brak zoomu na PDF, reset przy zmianie strony — 6f6bdd5c
 
 ### Phase 3: Oryginał przy powiększeniu
 
-- [x] 3.1 Flaga `hasZoomed`
-- [x] 3.2 `unoptimized={unoptimized || hasZoomed}`
-- [x] 3.3 Spec DOM: podmiana źródła, `unoptimized` z góry nie zadeptane
+- [x] 3.1 Flaga `hasZoomed` — 6f6bdd5c
+- [x] 3.2 `unoptimized={unoptimized || hasZoomed}` — 6f6bdd5c
+- [x] 3.3 Spec DOM: podmiana źródła, `unoptimized` z góry nie zadeptane — 6f6bdd5c

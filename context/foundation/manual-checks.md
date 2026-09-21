@@ -542,3 +542,25 @@ Inwestycja z niepustą rozpiską i rozjazdami wobec katalogu (w lokalnym dumpie:
 - [ ] „inny…" otwiera wyszukiwarkę po całym katalogu i wybór z niej działa tak samo
 - [ ] Ceny pracy nie zmieniają się przy przyjęciu nazwy
 - [ ] Tryb tylko-do-odczytu: raport i kandydaci widoczni jako tekst, brak checkboxów, przycisku „Aktualizuj kosztorys" i klikalnych kandydatów
+
+## fullscreen-zoom-preview
+
+### Phase 1: Pełny ekran
+
+- [ ] Okno zajmuje cały ekran na 1440-tce; obrazek dopasowany, bez pasa pustki pod spodem.
+- [ ] Poniżej 768 px nic się nie zmieniło — płachta jak dotąd.
+- [ ] PDF w `<iframe>` wypełnia okno.
+
+### Phase 2: Zoom na obrazku
+
+- [ ] Kółko, pinch i dwuklik przybliżają; przeciąganie przesuwa kadr.
+- [ ] „Dopasuj" wraca do 1× z dowolnego kadru.
+- [ ] Chevron na następny plik otwiera go w 1×, wycentrowany.
+- [ ] Przy PDF-ie nie ma przycisków zoomu.
+- [ ] Wydruk, „Pobierz wszystkie" i „Usuń plik" dalej dotyczą właściwej strony.
+
+### Phase 3: Oryginał przy powiększeniu
+
+- [ ] W Network po pierwszym powiększeniu leci żądanie na URL Bloba, nie na `/_next/image`.
+- [ ] Rzut ze zgłoszenia jest w powiększeniu czytelny (linie wymiarowe), nie rozmyty.
+- [ ] Przy `unoptimized` z góry (podgląd niewysłanego jeszcze pliku) nic się nie psuje.

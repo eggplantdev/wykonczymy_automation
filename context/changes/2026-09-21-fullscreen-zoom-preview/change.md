@@ -1,7 +1,7 @@
 ---
 change_id: fullscreen-zoom-preview
 title: Pełnoekranowy podgląd z zoomem w InvoicePreviewDialog
-status: implementing
+status: implemented
 created: 2026-09-21
 updated: 2026-09-21
 archived_at: null
