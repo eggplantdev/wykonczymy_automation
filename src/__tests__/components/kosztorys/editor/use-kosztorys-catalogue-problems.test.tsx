@@ -48,8 +48,8 @@ const TREE = makeTree({
       displayOrder: 0,
       color: null,
       items: [
-        // Obie stawki „auto" po obu stronach, więc jedyną różnicą jest cena j.m. — inaczej licznik
-        // zostałby na 1 z powodu stawek i test nie powiedziałby nic o poprawianej cenie.
+        // Both stawki „auto" on both sides, so the cena j.m. is the only difference — otherwise the
+        // counter would stay at 1 over the stawki and say nothing about the cena being corrected.
         {
           ...baseItem,
           id: 1,
@@ -110,13 +110,12 @@ describe('problemy katalogowe w edytorze', () => {
     })
 
     expect(countOf(result, CATALOGUE_DIVERGENCE_CONDITION_ID)).toBe(0)
-    // Nietknięta: „brak w katalogu" to inne pytanie niż zgodność liczb.
+    // Untouched: „brak w katalogu" is a different question from whether the liczby agree.
     expect(countOf(result, CATALOGUE_MISSING_CONDITION_ID)).toBe(1)
   })
 
-  // Remount to sposób, w jaki edytor wchłania przywróconą wersję (use-restore-remount): ziarno
-  // `rows` jest zamrożone przy montowaniu, więc świeży montaż ma liczyć od nowa z drzewa, a nie
-  // odziedziczyć licznik po poprzednim.
+  // A remount is how the editor absorbs a restored wersja (use-restore-remount): the `rows` seed is
+  // frozen at mount, so a fresh mount must count from the tree rather than inherit the previous one.
   it('po remoncie licznik liczy od nowa z drzewa, nie dziedziczy poprzedniego', () => {
     const first = renderEditor(CATALOGUE)
     act(() => {
@@ -131,8 +130,8 @@ describe('problemy katalogowe w edytorze', () => {
     expect(countOf(result, CATALOGUE_DIVERGENCE_CONDITION_ID)).toBe(1)
   })
 
-  // Brak cennika to brak licznika, a nie pusty cennik — ten drugi zgłosiłby całą rozpiskę jako
-  // spoza katalogu, co jest kłamstwem na powierzchni, która cennika w ogóle nie wozi.
+  // No cennik means no counter, not an empty cennik — the latter would report the whole rozpiska as
+  // spoza katalogu, which is a lie on a surface that carries no cennik at all.
   it('bez katalogu oba problemy milczą zamiast zgłaszać całą rozpiskę', () => {
     const { result } = renderEditor(undefined)
 

@@ -171,9 +171,8 @@ export type KosztorysEditorDataT = {
   templatePresetId?: number
   // Optional on cost, not on visibility: the client share renders no stage menu (EX-613).
   workers?: WorkerRefT[]
-  // The whole cennik, for the in-browser comparison behind the katalog problems. Optional because
-  // the preview surfaces don't carry it — and there absence must read as „no counter", not as
-  // „empty cennik", which would report every praca as missing from the katalog.
+  // The whole cennik, for the in-browser comparison behind the katalog problems. Optional for the
+  // reason spelled out on `RowConditionCtxT.catalogueRowIds`: the preview surfaces carry none.
   workCatalogue?: WorkCatalogueItemT[]
 }
 
