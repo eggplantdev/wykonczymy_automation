@@ -30,12 +30,12 @@ export function InvoicePreviewTrigger({
         'text-muted-foreground hover:text-foreground cursor-pointer',
         isCompact
           ? cn(buttonVariants({ variant: 'ghost', size: 'icon' }), 'mx-auto')
-          : 'border-input hover:border-primary/50 hover:bg-muted/50 flex h-9 w-full min-w-0 items-center gap-2 rounded-md border px-3 transition-colors',
+          : 'border-input hover:border-primary/50 hover:bg-muted/50 flex h-9 w-full min-w-0 items-center gap-2 rounded-md border px-3 text-sm transition-colors',
         className,
       )}
     >
       <FileText />
-      {!isCompact && <span className="truncate text-sm">{label}</span>}
+      {!isCompact && <span className="truncate">{label}</span>}
     </button>
   )
 }

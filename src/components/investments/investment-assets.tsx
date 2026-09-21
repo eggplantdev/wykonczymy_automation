@@ -55,6 +55,11 @@ export function InvestmentAssets({ investmentId, assets }: InvestmentAssetsProps
     setUploadOpen(true)
   }
 
+  // With no files the whole section is a heading over empty space: there is no preview, and adding
+  // starts in the „Edytuj inwestycję" dialog anyway. `isBusy` keeps it mounted while removing the
+  // last file or uploading — otherwise the upload dialog would vanish mid-upload.
+  if (visibleFiles.length === 0 && !isBusy) return null
+
   return (
     <section className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
@@ -63,14 +68,14 @@ export function InvestmentAssets({ investmentId, assets }: InvestmentAssetsProps
       </div>
 
       {/* Dodawanie zaczyna się w podglądzie albo w dialogu „Edytuj inwestycję" — sekcja nie dubluje
-          go własnym przyciskiem. Przy zerze plików podglądu nie ma, więc zostaje dialog edycji. */}
+          go własnym przyciskiem. */}
       {visibleFiles.length > 0 && (
         <InvoicePreviewButton
           invoices={visibleFiles}
           label={`Zdjęcia i pliki (${visibleFiles.length})`}
           ariaLabel={`Podgląd plików inwestycji (${visibleFiles.length})`}
           labels={ASSET_PREVIEW_LABELS}
-          className="w-fit"
+          className="h-8 w-fit gap-1.5 text-xs"
           onAdd={isBusy ? undefined : openUpload}
           onRemove={isBusy ? undefined : handleRemove}
           onRemoveAll={!isBusy && visibleFiles.length > 1 ? handleRemoveAll : undefined}
