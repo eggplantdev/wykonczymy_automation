@@ -70,14 +70,6 @@ ever trip it.
 2. **`onUploadCompleted` never fires on localhost.** Blob can't call back into a dev machine. Don't
    build anything in dev that depends on it.
 
-## Still open
-
-- **Who edits `wykonczymy`** — `landing_26`'s `AGENTS.md:21` says nothing outside that repo is ever
-  edited, and the mirrored `change.md` rewrite touches it. Owner's call: lift the rule for this
-  change, or split the work across two sessions.
-- **OQ5** — WordPress delivery targets are corroborated by our own `wpforms` route, but that is the
-  receiver describing the sender. Confirm at the source before the cutover.
-
 ## Scope boundaries
 
 Not doing: a second upload collection · automatic promotion · any `landing_26` code (its blob

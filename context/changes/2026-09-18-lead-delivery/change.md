@@ -165,18 +165,24 @@ did; the decisions below are that agreement.
   can touch storage, and rate limiting is defence in depth rather than the only wall. The cost is a
   deliberate UX order — the file picker uploads on submit, not on pick.
 
+- **2026-09-21 — one agent edits both repos; `landing_26`'s read-only rule is lifted for this
+  change.** Owner's call, granted in full: option (a)/(c) of the open question below. The rule
+  ("nothing outside `landing_26` is ever edited", `AGENTS.md:21`) describes the reference repos it
+  was written for — `nomad_chef`, `tdg` and the rest are sources to copy FROM. `wykonczymy` is not
+  one of those: it is the other half of this change, and the two halves are agreed by a wire
+  contract that cannot be kept in step from one side. `landing_26`'s `AGENTS.md` gets the carve-out
+  written down — the sink repo is a write target for `lead-delivery`, the four reference repos stay
+  read-only.
+
+- **2026-09-21 — Open Question 5 is closed; there is no third delivery channel.** Owner's ruling:
+  the notification recipients are the ones built here (the `notification-recipients` global), and
+  nowhere else. The question only ever had force at cutover, and only about recipients — the WP form
+  itself dies with the old site, so no submission path survives to be preserved. Nothing to confirm
+  on the WordPress install.
+
 - **2026-09-20 — `area` is text.** Closes the open question. The label "Powierzchnia prac, np.
   30–60 m²" invites a range, which no numeric column holds; sorting on it was never asked for.
 
 ## Open
 
-- **Who edits `wykonczymy`.** `landing_26`'s `AGENTS.md` still says nothing outside that repo is ever edited, and
-  half this change lives there. Three options put to the owner, none chosen yet: (a) lift the rule
-  once for this change, (b) split the work across two sessions, endpoint first so there is something
-  to test against, (c) lift it and update `AGENTS.md`, on the grounds that the rule stopped describing
-  reality the moment the landing needed a sink.
-- **Open Question 5 looks answered — confirm at the source.** The leads app's `wpforms` route
-  documents a `wpforms_process_complete` snippet POSTing every WordPress submission to it, with the
-  WP notification e-mail as the human backstop, and states that WPForms Lite does not persist
-  entries. That corroborates "e-mail + leads app" and rules out a third store — but it is the
-  receiver describing the sender, not the WordPress config itself.
+_None — all questions closed 2026-09-21._
