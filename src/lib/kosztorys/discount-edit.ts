@@ -63,9 +63,14 @@ export function discountPolicy<RowT extends DiscountPairT>(): CellEditPolicyT<Ro
     applyValue: withDiscountValue,
     clear: (row) => ({ ...row, discountType: null, discountValue: 0 }),
     guard: (row) => {
-      if (row.discountValue < 0) return 'Rabat nie może być ujemny.'
+      if (row.discountValue < 0) {
+        return { severity: 'refuse', message: 'Rabat nie może być ujemny.' }
+      }
       return row.discountType === 'percent' && row.discountValue > MAX_DISCOUNT_PERCENT
-        ? `Rabat nie może przekroczyć ${MAX_DISCOUNT_PERCENT}%.`
+        ? {
+            severity: 'refuse',
+            message: `Rabat nie może przekroczyć ${MAX_DISCOUNT_PERCENT}%.`,
+          }
         : null
     },
     // Named in the unit the row was actually carrying — „przywrócono 10" reads as złotówki to

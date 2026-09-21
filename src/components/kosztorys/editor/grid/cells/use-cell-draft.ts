@@ -1,10 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react'
 import { cellKeystroke, cellSettle, type CellEditPolicyT } from '@/lib/kosztorys/cell-edit'
+import { NOTICE_MS } from '@/lib/kosztorys/constants'
 import { toastMessage } from '@/lib/utils/toast'
-
-// Longer than the default 2s: this one reports work being undone, and it fires as the user's eyes
-// are already moving to the next cell.
-const REVERT_TOAST_MS = 5000
 
 type StopEditingT = (opts?: { nextRow?: boolean }) => void
 
@@ -57,7 +54,10 @@ export function useCellDraft<RowT extends { id: number }, EntryT>(
     const closed = closeDraft()
     if (!closed) return
     const settled = cellSettle(closed.draft, rowData, policy, closed.entry)
-    if (settled.kind === 'keep') return
+    if (settled.kind === 'keep') {
+      if (settled.warning) toastMessage(settled.warning, 'warning', NOTICE_MS)
+      return
+    }
     if (settled.kind === 'clear') {
       setRowData(settled.row)
       return
@@ -69,7 +69,7 @@ export function useCellDraft<RowT extends { id: number }, EntryT>(
       toastMessage(
         `${settled.reason === 'blocked' ? 'Wartość odrzucona' : 'Nieprawidłowa wartość'} — przywrócono ${policy.restoredLabel(settled.restored)}.`,
         'error',
-        REVERT_TOAST_MS,
+        NOTICE_MS,
       )
     }
   }

@@ -3,8 +3,9 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
-import { formatPercentPrecise } from '@/lib/kosztorys/format'
-import { MAX_CLIENT_SHARE } from '@/lib/kosztorys/subcontractor-price-guard'
+import { formatPercent, formatPercentPrecise } from '@/lib/kosztorys/format'
+import { MAX_CLIENT_SHARE, isOverCeiling } from '@/lib/kosztorys/subcontractor-price-guard'
+import { FLAGGED_TONE } from '@/lib/kosztorys/constants'
 import { compareDescriptions } from '@/lib/kosztorys/work-catalogue/compare-descriptions'
 import { CatalogueRowActions } from '@/components/work-catalogue/catalogue-row-actions'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
@@ -24,13 +25,11 @@ const money = (value: number | null) =>
 const shareOf = (rate: number | null, clientPrice: number) =>
   rate !== null && clientPrice > 0 ? rate / clientPrice : null
 
-const share = (value: number | null) =>
+const share = (value: number | null, overCeiling: boolean) =>
   value === null ? (
     <span className="text-muted-foreground text-sm">—</span>
   ) : (
-    <span
-      className={cn('tabular-nums', value > MAX_CLIENT_SHARE && 'text-destructive font-medium')}
-    >
+    <span className={cn('tabular-nums', overCeiling && FLAGGED_TONE)}>
       {formatPercentPrecise(value)}
     </span>
   )
@@ -45,7 +44,7 @@ const twoLines = (first: string, second: string) => () => (
   </span>
 )
 
-const SHARE_TOOLTIP = `Udział stawki w cenie j.m. Powyżej ${MAX_CLIENT_SHARE * 100}% na czerwono.`
+const SHARE_TOOLTIP = `Udział stawki w cenie j.m. Powyżej ${formatPercent(MAX_CLIENT_SHARE)} na czerwono.`
 
 // Lp. is the row's number in the KATALOG, pinned to alphabetical order over the whole catalogue, so
 // it survives every sort and filter. `row.index` would slide under the row and name nothing.
@@ -98,12 +97,20 @@ const wToolsRateColumn = col.accessor('wToolsRate', {
   cell: (info) => money(info.getValue()),
 })
 
-const wToolsShareColumn = col.accessor((row) => shareOf(row.wToolsRate, row.clientPrice), {
-  id: 'wToolsShare',
-  header: twoLines('% ceny klienta', 'z narzędziami'),
-  meta: { tooltip: SHARE_TOOLTIP, label: '% ceny klienta z narzędziami' },
-  cell: (info) => share(info.getValue()),
-})
+// The plane is named ONCE per column. Spelled out twice — in the accessor and again in the red-rule
+// argument — a copy-paste that updates only the first renders the w-tools verdict on the own-tools
+// column, and both numbers look plausible. The ids stay literal so a search for `wToolsShare` finds
+// the column the stored visibility map names.
+const shareColumn = (field: 'wToolsRate' | 'ownToolsRate', id: string, tools: string) =>
+  col.accessor((row) => shareOf(row[field], row.clientPrice), {
+    id,
+    header: twoLines('% ceny klienta', tools),
+    meta: { tooltip: SHARE_TOOLTIP, label: `% ceny klienta ${tools}` },
+    cell: (info) =>
+      share(info.getValue(), isOverCeiling(info.row.original[field], info.row.original)),
+  })
+
+const wToolsShareColumn = shareColumn('wToolsRate', 'wToolsShare', 'z narzędziami')
 
 const ownToolsRateColumn = col.accessor('ownToolsRate', {
   id: 'ownToolsRate',
@@ -112,12 +119,7 @@ const ownToolsRateColumn = col.accessor('ownToolsRate', {
   cell: (info) => money(info.getValue()),
 })
 
-const ownToolsShareColumn = col.accessor((row) => shareOf(row.ownToolsRate, row.clientPrice), {
-  id: 'ownToolsShare',
-  header: twoLines('% ceny klienta', 'bez narzędzi'),
-  meta: { tooltip: SHARE_TOOLTIP, label: '% ceny klienta bez narzędzi' },
-  cell: (info) => share(info.getValue()),
-})
+const ownToolsShareColumn = shareColumn('ownToolsRate', 'ownToolsShare', 'bez narzędzi')
 
 // „Dodaj pracę z katalogu" reads the cennik to pick from it, never to tune it, so the udział columns
 // and „Akcje" stay behind on /katalog-prac. They sit mid-order, hence assembled rather than sliced.

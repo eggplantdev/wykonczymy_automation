@@ -63,20 +63,25 @@ describe('discountPolicy guard — the floor', () => {
     policy.guard!(row)
 
   it('refuses a negative rabat on the percent plane', () => {
-    expect(guard({ discountType: 'percent', discountValue: -50 })).toBe(
-      'Rabat nie może być ujemny.',
-    )
+    expect(guard({ discountType: 'percent', discountValue: -50 })).toEqual({
+      severity: 'refuse',
+      message: 'Rabat nie może być ujemny.',
+    })
   })
 
   it('refuses a negative rabat on the amount plane too, where no ceiling applies', () => {
-    expect(guard({ discountType: 'amount', discountValue: -50 })).toBe('Rabat nie może być ujemny.')
+    expect(guard({ discountType: 'amount', discountValue: -50 })).toEqual({
+      severity: 'refuse',
+      message: 'Rabat nie może być ujemny.',
+    })
   })
 
   it('accepts 250 zł, which is only out of range as a percentage', () => {
     expect(guard({ discountType: 'amount', discountValue: 250 })).toBeNull()
-    expect(guard({ discountType: 'percent', discountValue: 250 })).toBe(
-      'Rabat nie może przekroczyć 100%.',
-    )
+    expect(guard({ discountType: 'percent', discountValue: 250 })).toEqual({
+      severity: 'refuse',
+      message: 'Rabat nie może przekroczyć 100%.',
+    })
   })
 
   it('accepts zero and a full giveaway', () => {

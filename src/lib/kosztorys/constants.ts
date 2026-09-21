@@ -24,6 +24,15 @@ export const SUBCONTRACTOR_FIGURE_LABELS = {
   remaining: 'Pozostało do wypłaty',
 } as const
 
+// One tone for every ceiling breach, on all three surfaces that draw one (cell, katalog share,
+// global mnożnik). A breach is written, not refused, but it is still the thing the owner scans for —
+// and a second colour for „accepted but wrong" would only ask the reader to learn which red means what.
+export const FLAGGED_TONE = 'text-destructive font-medium'
+
+// Longer than toastMessage's default 2s: these fire as the user's eyes are already moving on, and
+// they report a figure that was just committed.
+export const NOTICE_MS = 5000
+
 // Default subcontractor markup coefficients for an investment — the single source for both the
 // Payload column `defaultValue` (src/collections/investments.ts) and the query fallback
 // (src/lib/queries/kosztorys.ts). A single pozycja may override them.

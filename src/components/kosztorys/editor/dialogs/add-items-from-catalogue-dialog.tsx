@@ -171,10 +171,10 @@ export function AddItemsFromCatalogueDialog({
     // which praca crossed the ceiling. Capped, because a hurtowe zaznaczenie can cross the ceiling on
     // hundreds of prace at once and a wall of toasts says less than three of them plus a count.
     for (const warning of res.data.warnings.slice(0, MAX_WARNING_TOASTS))
-      toastMessage(warning, 'error', 6000)
+      toastMessage(warning, 'warning', 6000)
     const unshownWarnings = res.data.warnings.length - MAX_WARNING_TOASTS
     if (unshownWarnings > 0)
-      toastMessage(`…i ${unshownWarnings} dalszych ostrzeżeń o cenie`, 'error', 6000)
+      toastMessage(`…i ${unshownWarnings} dalszych ostrzeżeń o cenie`, 'warning', 6000)
     onOpenChange(false)
     onInserted(res.data.section)
   }

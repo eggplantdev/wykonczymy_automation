@@ -44,12 +44,15 @@ describe('checkSubcontractorPrice — sufit 65% ceny klienta', () => {
     expect(checkSubcontractorPrice(amount(65), 'w_tools')).toBeNull()
   })
 
-  it('włos powyżej sufitu jest odrzucany, a komunikat nazywa maksimum', () => {
-    expect(checkSubcontractorPrice(amount(65.02), 'w_tools')).toContain('65,00')
+  it('włos powyżej sufitu ostrzega, nie odrzuca, a komunikat nazywa maksimum', () => {
+    expect(checkSubcontractorPrice(amount(65.02), 'w_tools')).toEqual({
+      severity: 'warn',
+      message: expect.stringContaining('65,00'),
+    })
   })
 
   // A price landing on odd grosze (0.65 × 100.01) is retyped off the screen rounded to two decimals;
-  // without the tolerance that floating-point remainder would be refused for no visible reason.
+  // without the tolerance that floating-point remainder would be flagged for no visible reason.
   it('kwota przepisana z ekranu na sam sufit nie jest odrzucana', () => {
     const odd = { ...amount(65.01), clientPrice: 100.01 }
     expect(checkSubcontractorPrice(odd, 'w_tools')).toBeNull()
@@ -62,9 +65,9 @@ describe('checkSubcontractorPrice — tryb auto', () => {
     expect(checkSubcontractorPrice(row, 'own_tools')).toBeNull()
   })
 
-  it('odrzuca, gdy sam globalny mnożnik przekracza sufit', () => {
+  it('ostrzega, gdy sam globalny mnożnik przekracza sufit', () => {
     const over = { ...row, globalWToolsCoeff: 0.9 }
-    expect(checkSubcontractorPrice(over, 'w_tools')).not.toBeNull()
+    expect(checkSubcontractorPrice(over, 'w_tools')).toMatchObject({ severity: 'warn' })
   })
 })
 
@@ -75,7 +78,7 @@ describe('checkSubcontractorPrice — druga płaszczyzna narzędziowa', () => {
   })
 
   it('sufit jest ten sam na obu płaszczyznach', () => {
-    expect(checkSubcontractorPrice(ownAmount(66), 'own_tools')).not.toBeNull()
+    expect(checkSubcontractorPrice(ownAmount(66), 'own_tools')).toMatchObject({ severity: 'warn' })
     expect(checkSubcontractorPrice(ownAmount(65), 'own_tools')).toBeNull()
   })
 
@@ -85,7 +88,7 @@ describe('checkSubcontractorPrice — druga płaszczyzna narzędziowa', () => {
       wToolsOverrideValue: 90,
     }
     expect(checkSubcontractorPrice(overOnW, 'own_tools')).toBeNull()
-    expect(checkSubcontractorPrice(overOnW, 'w_tools')).not.toBeNull()
+    expect(checkSubcontractorPrice(overOnW, 'w_tools')).toMatchObject({ severity: 'warn' })
   })
 })
 
@@ -111,19 +114,23 @@ describe('checkSubcontractorPrice — sufit liczy się od ceny przed rabatem', (
 
   it('sufit zostaje na 65 zł, nie schodzi do 32,50 zł', () => {
     expect(maxSubcontractorPrice(rebated(row))).toBe(65)
-    expect(checkSubcontractorPrice(rebated(amount(66)), 'w_tools')).not.toBeNull()
+    expect(checkSubcontractorPrice(rebated(amount(66)), 'w_tools')).toMatchObject({
+      severity: 'warn',
+    })
   })
 })
 
 describe('checkSubcontractorPrice — cena ujemna', () => {
-  it('jest odrzucana', () => {
-    expect(checkSubcontractorPrice(amount(-1), 'w_tools')).not.toBeNull()
+  it('jest odrzucana, nie tylko sygnalizowana', () => {
+    expect(checkSubcontractorPrice(amount(-1), 'w_tools')).toMatchObject({ severity: 'refuse' })
   })
 
   it('jest odrzucana także tam, gdzie sufit nie ma czego mierzyć', () => {
     // The zero-client-price short-circuit silences the ceiling, so without its own rung a negative
     // price would pass unremarked on exactly the rows that are still being priced.
-    expect(checkSubcontractorPrice({ ...amount(-50), clientPrice: 0 }, 'w_tools')).not.toBeNull()
+    expect(checkSubcontractorPrice({ ...amount(-50), clientPrice: 0 }, 'w_tools')).toMatchObject({
+      severity: 'refuse',
+    })
   })
 
   it('zero nie jest ujemne — darmowa pozycja to nie błąd', () => {

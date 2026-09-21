@@ -2,8 +2,8 @@ import { parseCellDecimal } from '@/lib/utils/parse-decimal-input'
 
 /**
  * The edit contract every numeric cell runs on: keystrokes commit as they go, the typed text is held
- * as a draft, and leaving the cell settles — refused values roll the row back to what it held on
- * entry and owe the user a word.
+ * as a draft, and leaving the cell settles. A refused value rolls the row back to what it held on
+ * entry; a warned one stands. Either way the user is told, once, on the way out.
  *
  * React-free on purpose (AGENTS.md), so a test needs no renderer and `useCellDraft` stays a thin
  * lifecycle around it. A policy is the whole difference between a plain number field, the rabat pair
@@ -18,19 +18,28 @@ export type CellEditPolicyT<RowT, EntryT> = {
   /** What an emptied field commits — 0 for a plain `number` field, `null` where „empty" is a state
    * of its own (a subcontractor stawka back to „auto"). */
   clear: (row: RowT) => RowT
-  /** A refusal that stands regardless of what was typed (the subcontractor ceiling). */
-  guard?: (row: RowT) => string | null
+  /** What is wrong with the row regardless of what was typed (the subcontractor price rules). */
+  guard?: (row: RowT) => CellVerdictT | null
   /** The restored figure as the rollback announcement names it. */
   restoredLabel: (row: RowT) => string
 }
+
+/**
+ * `refuse` un-writes the value and tells the user; `warn` lets it through and still tells them.
+ *
+ * The split exists because „impossible" and „unwise" are different answers, and only the first may
+ * throw away what someone typed — a figure the business really does hit has to be recordable, even
+ * when it is a bad deal.
+ */
+export type CellVerdictT = { severity: 'refuse' | 'warn'; message: string }
 
 export type CellKeystrokeT<RowT> =
   /** Text stands on screen, the row is untouched — an emptied field or half-typed garbage. */
   { kind: 'hold' } | { kind: 'blocked'; message: string } | { kind: 'commit'; row: RowT }
 
 export type CellSettleT<RowT> =
-  /** The row already says what the user left behind. */
-  | { kind: 'keep' }
+  /** The row already says what the user left behind, so nothing is owed but the word. */
+  | { kind: 'keep'; warning: string | null }
   | { kind: 'clear'; row: RowT }
   | {
       kind: 'rollback'
@@ -55,8 +64,12 @@ export function cellKeystroke<RowT, EntryT>(
   if (parsed.kind !== 'value') return { kind: 'hold' }
 
   const row = policy.applyValue(rowData, parsed.value)
-  const refusal = policy.guard?.(row) ?? null
-  if (refusal) return { kind: 'blocked', message: refusal }
+  const verdict = policy.guard?.(row) ?? null
+  if (verdict?.severity === 'refuse') return { kind: 'blocked', message: verdict.message }
+  // A warning is deliberately NOT carried out of here — `cellSettle` asks the guard again and
+  // announces it once. Keystrokes commit as they go, so a warning on this result would fire on „6",
+  // „66", „660" — three toasts for one number, which is exactly how the old amber tier stopped being
+  // read. Leaving it off the type is that rule made structural rather than remembered.
   return { kind: 'commit', row }
 }
 
@@ -78,7 +91,8 @@ export function cellSettle<RowT, EntryT>(
   if (parsed.kind === 'empty') return { kind: 'clear', row: policy.clear(rowData) }
 
   const result = cellKeystroke(draft, rowData, policy)
-  if (result.kind === 'commit') return { kind: 'keep' }
+  if (result.kind === 'commit')
+    return { kind: 'keep', warning: policy.guard?.(result.row)?.message ?? null }
 
   const restored = policy.restore(rowData, entry)
   const settled = policy.sameEntry(policy.snapshot(rowData), entry)
@@ -105,7 +119,9 @@ export function cellPaste<RowT, EntryT>(
   // Garbage in the clipboard leaves the row alone, the same answer typing it gets.
   if (parsed.kind === 'invalid') return rowData
   const next = policy.applyValue(rowData, parsed.value)
-  return policy.guard?.(next) ? rowData : next
+  // A warned price lands like a typed one: the paste path has no settle, so the red cell it leaves
+  // behind is the whole announcement.
+  return policy.guard?.(next)?.severity === 'refuse' ? rowData : next
 }
 
 /**

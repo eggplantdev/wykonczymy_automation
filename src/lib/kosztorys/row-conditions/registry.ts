@@ -289,9 +289,9 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   // One entry per plane rather than one asking about the active view: a price exists on both planes for
   // every row, so a problem on the plane you are not looking at is still a problem, and one entry
   // asking about the active view would never surface the other crew's.
-  // „zbyt wysoką", naming the direction the guard actually refuses (owner, 2026-08-17): a stawka above
-  // 80% of the client price. The guard's other branch — a negative stawka — is not that, but it is
-  // typo-shaped rather than a real state of the kosztorys, so it rides along unnamed instead of
+  // „zbyt wysoką", naming the direction the guard flags (owner, 2026-08-17): a stawka over the
+  // ceiling share of the client price. The guard's other branch — a negative stawka — is not that, but
+  // it is typo-shaped rather than a real state of the kosztorys, so it rides along unnamed instead of
   // costing the label its one clear meaning.
   //
   // „w widoku …", not „— …": the plane IS a view here, and the label names where the stawka is

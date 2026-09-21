@@ -77,11 +77,14 @@ describe('cellKeystroke pod polityką podwykonawcy', () => {
     expect(keystroke('60', lowerCoeff, 'w_tools').kind).toBe('commit')
   })
 
-  it('blokuje cenę powyżej sufitu', () => {
-    expect(keystroke('66', flat(60), 'w_tools').kind).toBe('blocked')
+  it('zapisuje cenę powyżej sufitu bez słowa — ostrzeżenie czeka na wyjście z komórki', () => {
+    expect(keystroke('66', flat(60), 'w_tools')).toEqual({
+      kind: 'commit',
+      row: { ...flat(60), wToolsOverrideValue: 66 },
+    })
   })
 
-  it('blokuje cenę ujemną', () => {
+  it('blokuje cenę ujemną — to jedyna twarda odmowa', () => {
     expect(keystroke('-50', flat(60), 'w_tools').kind).toBe('blocked')
   })
 
@@ -104,21 +107,18 @@ describe('cellSettle pod polityką podwykonawcy', () => {
   })
 
   it('przyjęta wartość nie wymaga dopisku — wiersz już ją ma', () => {
-    expect(settle('60', flat(60), 'w_tools', entry)).toEqual({ kind: 'keep' })
+    expect(settle('60', flat(60), 'w_tools', entry)).toEqual({ kind: 'keep', warning: null })
   })
 
-  it('odrzucona wartość cofa wiersz do stanu sprzed edycji', () => {
-    // Typing „2344000" commits the prefixes 2, 23, 234 … until one breaches the ceiling. Walking
-    // away used to leave 234 standing — a price the user never chose.
-    expect(settle('2344000', flat(234), 'w_tools', entry)).toMatchObject({
-      kind: 'rollback',
-      reason: 'blocked',
-      row: { wToolsOverrideValue: 60 },
+  it('cena ponad sufitem zostaje, a ostrzeżenie czeka na wyjście z komórki', () => {
+    expect(settle('66', flat(66), 'w_tools', entry)).toEqual({
+      kind: 'keep',
+      warning: expect.stringContaining('65,00'),
     })
   })
 
   it('podaje przywróconą cenę, żeby dało się ją ogłosić', () => {
-    const settled = settle('2344000', flat(234), 'w_tools', entry)
+    const settled = settle('-50', flat(60), 'w_tools', entry)
     expect(
       settled.kind === 'rollback' &&
         subcontractorPolicy<ViewPricingT>('w_tools').restoredLabel(settled.restored),
@@ -134,7 +134,10 @@ describe('cellSettle pod polityką podwykonawcy', () => {
   })
 
   it('cofnięcie do stanu, w którym wiersz już jest, nic nie zapisuje — ale nadal jest odrzuceniem', () => {
-    expect(settle('66', flat(60), 'w_tools', entry)).toMatchObject({
+    // Typing „-50" never commits a prefix („-" is held), so the row never left the entry price and
+    // there is nothing to write back. The rollback still fires: it is what stops the refused draft
+    // from being mistaken for an accepted one.
+    expect(settle('-50', flat(60), 'w_tools', entry)).toMatchObject({
       kind: 'rollback',
       reason: 'blocked',
       row: null,
@@ -143,12 +146,12 @@ describe('cellSettle pod polityką podwykonawcy', () => {
   })
 
   it('odrzucona cena nie zostawia wiersza na prefiksie „9"', () => {
-    // The prefix trap from the „auto" side: typing 90 commits the leading „9" first, so a refusal on
-    // the last keystroke used to strand the row at 9 zł — a price nobody chose.
+    // The prefix trap from the „auto" side: typing „9e" commits the leading „9" first, so walking
+    // away used to strand the row at 9 zł — a price nobody chose.
     const autoEntry = null
-    expect(settle('90', flat(9), 'w_tools', autoEntry)).toMatchObject({
+    expect(settle('9e', flat(9), 'w_tools', autoEntry)).toMatchObject({
       kind: 'rollback',
-      reason: 'blocked',
+      reason: 'invalid',
       row: { wToolsOverrideValue: null },
     })
   })

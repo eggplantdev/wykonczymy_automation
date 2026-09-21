@@ -41,7 +41,7 @@ const asItem = (
  * silently collide. Each row gets `next + i` — DISTINCT display_orders, because `insertItems` maps
  * RETURNING ids back by `(section_id, display_order)` and degrades to positional order on a tie.
  *
- * The 80% ceiling WARNS and does not block: a katalog price the owner entered on purpose must not be
+ * The ceiling WARNS and does not block: a katalog price the owner entered on purpose must not be
  * refused by the row it is being copied into, but he still gets told which praca crossed it.
  */
 export async function appendCatalogueItems(
@@ -61,15 +61,15 @@ export async function appendCatalogueItems(
     asItem(catalogueItem, sectionId, owner.nextDisplayOrder + i),
   )
 
-  // An „auto" plane is skipped rather than checked: there is no stawka yet to take 80% of, and the
-  // one the współczynnik will imply is checked in the rozpiska like every other derived row. Same
+  // An „auto" plane is skipped rather than checked: there is no stawka of its own yet, and the one
+  // the współczynnik will imply is checked in the rozpiska like every other derived row. Same
   // silence the guard already keeps when cena j.m. is 0.
   const warnings = items.flatMap((item) => {
     const problems = (['w_tools', 'own_tools'] as const)
       .filter((plane) => overrideValueFor(item, plane) !== null)
       // Zero globals: this filter leaves only planes frozen to a kwota, and a kwota never reads a
       // współczynnik — so the guard needs no investment context to reach its verdict.
-      .flatMap((plane) => checkSubcontractorPrice(asViewPricing(item), plane) ?? [])
+      .flatMap((plane) => checkSubcontractorPrice(asViewPricing(item), plane)?.message ?? [])
     return problems.map((problem) => `„${item.description}": ${problem}`)
   })
 
