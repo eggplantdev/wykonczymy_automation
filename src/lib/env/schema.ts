@@ -80,11 +80,16 @@ export const serverSchema = z
     META_PAGE_ID: z.string().min(1),
     WPFORMS_WEBHOOK_SECRET: z.string().min(1),
     // Landing (`landing_26`) intake. Both required: a missing host allowlist must fail the boot
-    // rather than default to „allow", since the webhook fetches URLs a stranger chose. The host
-    // differs between preview and production — pointing production at the preview store's host
-    // would make every real submission's photos unfetchable.
+    // rather than default to „allow", since the webhook fetches URLs a stranger chose. One blob
+    // store serves every environment, so the host is the same value everywhere — it is the
+    // credential and the prefix that separate environments, never the hostname.
     LANDING_WEBHOOK_SECRET: z.string().min(1),
     LANDING_BLOB_HOST: z.string().min(1),
+    // Where we tell the landing a submission has landed, so it can drop its staging copies.
+    // Optional because the webhook delivers fine without it: while the landing half is unbuilt the
+    // callback is skipped, and its absence costs an orphaned prefix the landing's sweep reclaims —
+    // not a lost enquiry.
+    LANDING_CLEANUP_URL: z.url().optional(),
     // A *from*-address is not a recipient: it is infrastructure the SMTP account has to match, so it
     // stays in env while the recipient lists live in the `notification-recipients` global.
     LEADS_REPLY_FROM: z.string().min(1),

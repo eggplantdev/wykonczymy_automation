@@ -49,14 +49,60 @@ store, and this handler pulls each file back from its url.
 - Ceiling: **8 MB** per file, enforced on `size`, on `content-length`, and by counting bytes as the
   body streams — the first two are the sender's claims, the third is the fact.
 
-`LANDING_BLOB_HOST` differs between preview and production. Pointing production at the preview
-store's host makes every real submission's photos unfetchable.
+There is **one landing Blob store for every environment** — Preview and Production resolve to the
+same host, so `LANDING_BLOB_HOST` carries the same value in both. The consequence is that `leads/`
+is a _shared_ prefix: a preview deploy and production stage their uploads side by side and neither
+can tell the other's apart by path. Delivery-driven cleanup is unaffected (it names a
+`submissionId`, which belongs to exactly one deploy), but anything that deletes by age must run
+from production only.
+
+## Callback: delete on confirmed delivery
+
+The landing's copy of a file is staging; the canonical copy is the one this app fetched into
+`media`. So once the attach has **committed** — after the `payload.update` that points the lead at
+its media rows, not merely after the fetch succeeded — `wykonczymy` tells the landing it may drop
+its bytes.
+
+```
+POST <LANDING_CLEANUP_URL>
+Content-Type: application/json
+x-landing-signature: sha256=<hex HMAC-SHA256 of the RAW body>
+
+{ "submissionId": "<uuid>" }
+```
+
+Same secret and same scheme as the inbound webhook (`LANDING_WEBHOOK_SECRET`, HMAC over the exact
+bytes sent). `LANDING_CLEANUP_URL` is the full endpoint url, held in `wykonczymy`'s env.
+
+**The callback carries no urls.** A delete instruction that names its own targets is a delete
+primitive exposed to whoever can forge or replay it; one that names a submission can only ever
+destroy the files of a submission that was already delivered. The landing re-derives the target
+list by listing its own `leads/<submissionId>/` prefix, so the blast radius is bounded by the
+prefix scheme rather than by the caller's honesty.
+
+**It is non-fatal on both ends.** `wykonczymy` catches and logs a failed callback and still answers
+`200` to the original webhook — the lead is stored and the assets are attached, so a landing that is
+down must not turn a delivered submission into a retried one. The cost of a missed callback is an
+orphan, which the landing's age sweep reclaims.
+
+| Situation                                         | Status | What happens                                           |
+| ------------------------------------------------- | ------ | ------------------------------------------------------ |
+| Bad or missing signature                          | `403`  | nothing is deleted                                     |
+| Body is not JSON, or `submissionId` is not a uuid | `400`  | —                                                      |
+| Prefix listed and deleted                         | `200`  | the queue row's files are gone                         |
+| No such prefix, or already deleted                | `200`  | idempotent — a replay deletes nothing twice            |
+| The delete itself failed                          | `500`  | the sweep is the backstop; `wykonczymy` does not retry |
+
+**Partial deliveries are not cleaned up.** A file that landed in `failed[]` is one this app does
+_not_ have, so its bytes are the only copy left. The sweep will not take it either — it belongs to a
+submission that was delivered. It is deleted by hand once the failure is understood.
 
 ## Two rules that live on the landing side
 
 1. **The upload token is minted only after the form validates server-side.** Otherwise the store is
    an open file drop.
-2. **The blob host must be the one wykonczymy allowlists** for that environment.
+2. **The blob host must be the one wykonczymy allowlists** — the same single value in every
+   environment.
 
 ## Answers
 

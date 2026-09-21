@@ -20,6 +20,9 @@ vi.mock('@/lib/env/server', () => ({ serverEnv: { LANDING_WEBHOOK_SECRET: 'test-
 vi.mock('@/lib/leads/capture-lead', () => ({ captureLead: vi.fn() }))
 vi.mock('@/lib/leads/fetch-landing-asset', () => ({ fetchLandingAsset: vi.fn() }))
 vi.mock('@/lib/media/delete-unreferenced-media', () => ({ deleteUnreferencedMedia: vi.fn() }))
+vi.mock('@/lib/leads/release-landing-assets', () => ({
+  releaseLandingAssets: vi.fn(async () => {}),
+}))
 vi.mock('@/lib/leads/notify', () => ({
   notifyShapeAlert: vi.fn(async () => {}),
   notifyAssetFailure: vi.fn(async () => {}),
@@ -30,6 +33,7 @@ import { captureLead } from '@/lib/leads/capture-lead'
 import { fetchLandingAsset } from '@/lib/leads/fetch-landing-asset'
 import { deleteUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
 import { notifyShapeAlert, notifyAssetFailure } from '@/lib/leads/notify'
+import { releaseLandingAssets } from '@/lib/leads/release-landing-assets'
 
 const sign = (raw: string, secret = 'test-secret') =>
   'sha256=' + createHmac('sha256', secret).update(raw, 'utf8').digest('hex')
@@ -160,6 +164,35 @@ describe('POST /api/webhooks/landing', () => {
 
     expect((await POST(makeRequest(body()))).status).toBe(200)
     expect(fetchLandingAsset).toHaveBeenCalledTimes(2)
+  })
+
+  // The landing deletes the submission's prefix wholesale, so releasing it is a claim that we hold
+  // every file — which is only true once the attach write itself has committed.
+  it('releases the landing copies once the whole set is attached', async () => {
+    await POST(makeRequest(body()))
+
+    expect(releaseLandingAssets).toHaveBeenCalledWith(LANDING_SUBMISSION.submissionId)
+  })
+
+  it('keeps the landing copies when one asset could not be pulled', async () => {
+    vi.mocked(fetchLandingAsset)
+      .mockRejectedValueOnce(new Error('Niedozwolony host: evil.example.com'))
+      .mockResolvedValueOnce(777)
+
+    await POST(makeRequest(body()))
+
+    // The failed file's only remaining copy is the landing's — deleting the prefix would lose it.
+    expect(releaseLandingAssets).not.toHaveBeenCalled()
+  })
+
+  // The rows were reclaimed on our side, so our copy is gone too. Releasing here would leave the
+  // enquiry with no photos anywhere.
+  it('keeps the landing copies when the attach write fails', async () => {
+    update.mockRejectedValueOnce(new Error('db connection dropped'))
+
+    await POST(makeRequest(body()))
+
+    expect(releaseLandingAssets).not.toHaveBeenCalled()
   })
 
   it('returns 500 when the lead itself fails to capture', async () => {

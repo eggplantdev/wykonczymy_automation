@@ -13,6 +13,7 @@ import {
 } from '@/lib/leads/landing'
 import { fetchLandingAsset } from '@/lib/leads/fetch-landing-asset'
 import { captureLead } from '@/lib/leads/capture-lead'
+import { releaseLandingAssets } from '@/lib/leads/release-landing-assets'
 import { deleteUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
 import { uploadFieldIds } from '@/lib/media/upload-field'
 import { notifyShapeAlert, notifyAssetFailure } from '@/lib/leads/notify'
@@ -117,10 +118,19 @@ export async function POST(request: NextRequest) {
       logError('[landing] Failed to attach assets to the lead', err)
       await deleteUnreferencedMedia(payload, mediaIds)
       failed.push(
-        ...mediaIds.map((id) => ({ url: `media:${id}`, reason: 'Nie udało się podpiąć do zgłoszenia' })),
+        ...mediaIds.map((id) => ({
+          url: `media:${id}`,
+          reason: 'Nie udało się podpiąć do zgłoszenia',
+        })),
       )
     }
   }
+
+  // Only once the attach above has COMMITTED, and only when the whole set made it: the landing
+  // deletes the submission's prefix wholesale, so a file we could not store would lose its last
+  // copy. A partial delivery is therefore left for a human, and the landing's age sweep never
+  // touches it because the submission did arrive.
+  if (!failed.length) await releaseLandingAssets(submission.submissionId)
 
   // Only on a fresh capture: a redelivery would re-alert about files that were already reported.
   if (failed.length && created) {
