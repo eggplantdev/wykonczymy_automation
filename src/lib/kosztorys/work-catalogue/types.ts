@@ -60,11 +60,18 @@ export type CatalogueSavePreviewT = {
   existing: WorkCatalogueItemT | null
 }
 
+// A rozjazd is a difference of RODZAJ as much as of kwota: a frozen złotówka against a katalog that
+// declines to name a stawka („auto") disagrees even when the two land on the same number, and the
+// column has to say „auto" rather than print a kwota nobody typed. Flags, not `number | null`, so
+// `delta` stays a number — an „auto" side compares as the kwota it implies for THIS inwestycja,
+// which is the only sensible input to a difference. „Cena j.m." is never „auto".
 export type CatalogueFigureDiffT = {
   label: string
   kosztorys: number
   catalogue: number
   delta: number
+  kosztorysIsAuto: boolean
+  catalogueIsAuto: boolean
 }
 
 export type CataloguePriceDiffT = {

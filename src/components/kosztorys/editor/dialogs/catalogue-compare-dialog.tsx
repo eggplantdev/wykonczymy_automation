@@ -27,7 +27,7 @@ import {
   CATALOGUE_MISSING_CONDITION_ID,
 } from '@/lib/kosztorys/row-conditions/registry'
 import { PROBLEM_IDS } from '@/lib/kosztorys/problem-conditions'
-import { formatPLN } from '@/lib/utils/format-currency'
+import { formatPLN, formatPLNOrAuto } from '@/lib/utils/format-currency'
 
 /**
  * „Porównaj z katalogiem" — the rozpiska read against the global cennik. Nothing here touches the
@@ -123,8 +123,13 @@ export function CatalogueCompareDialog() {
                           <ComparisonRow
                             key={`${diff.itemId}-${figure.label}`}
                             label={`${diff.description} — ${figure.label}`}
-                            sheet={formatPLN(figure.kosztorys)}
-                            app={formatPLN(figure.catalogue)}
+                            // „auto" on either side, never the kwota it implies: that kwota is a
+                            // product of this inwestycja's współczynnik, so printing it would show a
+                            // number nobody entered and which moves when the współczynnik does.
+                            sheet={formatPLNOrAuto(
+                              figure.kosztorysIsAuto ? null : figure.kosztorys,
+                            )}
+                            app={formatPLNOrAuto(figure.catalogueIsAuto ? null : figure.catalogue)}
                             delta={formatPLN(figure.delta)}
                             // Once per praca, not once per figure: an overwrite carries all three
                             // liczby, so a button on every wiersz would offer the same write three

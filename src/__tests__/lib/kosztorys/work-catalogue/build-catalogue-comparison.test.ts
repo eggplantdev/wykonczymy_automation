@@ -49,7 +49,11 @@ const entry = (overrides: Partial<WorkCatalogueItemT> = {}): WorkCatalogueItemT 
 
 describe('buildCatalogueComparison', () => {
   it('nie robi rozjazdu z różnicy poniżej tolerancji groszowej', () => {
-    const result = buildCatalogueComparison([item({ clientPrice: 100.002 })], [entry()], SETTINGS)
+    const result = buildCatalogueComparison(
+      [item({ clientPrice: 100.002 })],
+      [entry({ wToolsRate: null, ownToolsRate: null })],
+      SETTINGS,
+    )
 
     expect(result.matching).toBe(1)
     expect(result.diffs).toHaveLength(0)
@@ -80,7 +84,11 @@ describe('buildCatalogueComparison', () => {
   })
 
   it('raportuje rozjazd samej stawki podwykonawcy przy zgodnej cenie', () => {
-    const result = buildCatalogueComparison([item()], [entry({ wToolsRate: 80 })], SETTINGS)
+    const result = buildCatalogueComparison(
+      [item()],
+      [entry({ wToolsRate: 80, ownToolsRate: null })],
+      SETTINGS,
+    )
 
     expect(result.matching).toBe(0)
     expect(result.diffs).toHaveLength(1)
@@ -92,7 +100,7 @@ describe('buildCatalogueComparison', () => {
   it('porównuje stawkę nadpisaną kwotowo, nie wyliczoną z współczynnika', () => {
     const result = buildCatalogueComparison(
       [item({ wToolsOverrideValue: 65 })],
-      [entry()],
+      [entry({ ownToolsRate: null })],
       SETTINGS,
     )
 
@@ -134,6 +142,45 @@ describe('buildCatalogueComparison', () => {
     expect(wTools?.kosztorys).toBeCloseTo(130, 6)
   })
 
+  // Cztery kombinacje rodzajów to cała reguła: rozjazdem jest różnica kwoty ALBO różnica rodzaju,
+  // a milczy tylko auto przeciw auto — tam obie kwoty to ta sama cena razy ten sam współczynnik.
+  it('zamrożona kwota przeciw katalogowemu „auto" to rozjazd nawet przy tej samej kwocie', () => {
+    const result = buildCatalogueComparison(
+      [item({ wToolsOverrideValue: 65 })],
+      [entry({ wToolsRate: null, ownToolsRate: null })],
+      SETTINGS,
+    )
+
+    const wTools = result.diffs[0].figures.find((f) => f.label === 'Stawka z narzędziami')
+    expect(wTools?.delta).toBeCloseTo(0, 6)
+    expect(wTools?.kosztorysIsAuto).toBe(false)
+    expect(wTools?.catalogueIsAuto).toBe(true)
+  })
+
+  it('rozpiskowe „auto" przeciw katalogowej kwocie to rozjazd w drugą stronę', () => {
+    const result = buildCatalogueComparison(
+      [item()],
+      [entry({ wToolsRate: 80, ownToolsRate: null })],
+      SETTINGS,
+    )
+
+    const wTools = result.diffs[0].figures.find((f) => f.label === 'Stawka z narzędziami')
+    expect(wTools?.kosztorysIsAuto).toBe(true)
+    expect(wTools?.catalogueIsAuto).toBe(false)
+  })
+
+  it('„Cena j.m." nigdy nie jest „auto"', () => {
+    const result = buildCatalogueComparison(
+      [item({ clientPrice: 120 })],
+      [entry({ wToolsRate: null, ownToolsRate: null })],
+      SETTINGS,
+    )
+
+    const price = result.diffs[0].figures.find((f) => f.label === 'Cena j.m.')
+    expect(price?.kosztorysIsAuto).toBe(false)
+    expect(price?.catalogueIsAuto).toBe(false)
+  })
+
   it('sortuje rozjazdy od największej różnicy', () => {
     const result = buildCatalogueComparison(
       [
@@ -144,14 +191,14 @@ describe('buildCatalogueComparison', () => {
         entry({
           description: 'Mała różnica',
           clientPrice: 100,
-          wToolsRate: 68.25,
-          ownToolsRate: 52.5,
+          wToolsRate: null,
+          ownToolsRate: null,
         }),
         entry({
           description: 'Duża różnica',
           clientPrice: 100,
-          wToolsRate: 195,
-          ownToolsRate: 150,
+          wToolsRate: null,
+          ownToolsRate: null,
         }),
       ],
       SETTINGS,

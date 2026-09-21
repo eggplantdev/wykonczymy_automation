@@ -51,10 +51,20 @@ const figure = (
   label: string,
   kosztorys: number,
   catalogue: number,
+  kosztorysIsAuto: boolean,
+  catalogueIsAuto: boolean,
 ): CatalogueFigureDiffT | null => {
-  if (roundToCents(kosztorys) === roundToCents(catalogue)) return null
+  const sameKwota = roundToCents(kosztorys) === roundToCents(catalogue)
+  if (sameKwota && kosztorysIsAuto === catalogueIsAuto) return null
   // Raw, not rounded: `formatPLN` rounds it for display anyway, and the sort key wants the real gap.
-  return { label, kosztorys, catalogue, delta: kosztorys - catalogue }
+  return {
+    label,
+    kosztorys,
+    catalogue,
+    delta: kosztorys - catalogue,
+    kosztorysIsAuto,
+    catalogueIsAuto,
+  }
 }
 
 /**
@@ -71,11 +81,14 @@ const rateFigure = (
   coeff: number,
 ): CatalogueFigureDiffT | null => {
   const entryRate = plane === 'w_tools' ? entry.wToolsRate : entry.ownToolsRate
-  if (overrideValueFor(pricing, plane) === null && entryRate === null) return null
+  const override = overrideValueFor(pricing, plane)
+  if (override === null && entryRate === null) return null
   return figure(
     label,
     subcontractorPrice(pricing, plane),
     catalogueRate(entryRate, entry.clientPrice, coeff),
+    override === null,
+    entryRate === null,
   )
 }
 
@@ -88,7 +101,9 @@ const rateFigure = (
  * comparison is made on kwoty ROUNDED TO GROSZE, so the report disagrees exactly where the two
  * numbers it renders disagree. A stawka derived as `cena × współczynnik` carries a float residue no
  * column ever shows, and a threshold set at half a grosz decides a half-grosz gap on that residue —
- * which is how „14,88 zł against 14,88 zł, różnica −0,01 zł" reached the owner's screen.
+ * which is how „14,88 zł against 14,88 zł, różnica −0,01 zł" reached the owner's screen. A stawka
+ * also disagrees on RODZAJ: a frozen kwota against a katalog „auto" is a rozjazd at any kwota,
+ * because taking the katalog's answer there means dropping the nadpisanie, not copying a number.
  */
 export function buildCatalogueComparison(
   items: readonly CatalogueComparisonItemT[],
@@ -135,7 +150,7 @@ export function buildCatalogueComparison(
 
     const pricing = asPricing(item, settings)
     const figures = [
-      figure('Cena j.m.', item.clientPrice, entry.clientPrice),
+      figure('Cena j.m.', item.clientPrice, entry.clientPrice, false, false),
       rateFigure(pricing, entry, 'w_tools', 'Stawka z narzędziami', settings.wToolsCoeff),
       rateFigure(pricing, entry, 'own_tools', 'Stawka bez narzędzi', settings.ownToolsCoeff),
     ].filter((diff) => diff !== null)

@@ -608,13 +608,13 @@ Uruchomić **raz**, po ostatniej fazie:
 
 #### Automated
 
-- [x] 1.1 Specs silnika porównania przechodzą
+- [x] 1.1 Specs silnika porównania przechodzą — `b8dd0158`
 
 ### Phase 2: „auto" jako rodzaj różnicy
 
 #### Automated
 
-- [ ] 2.1 Specs czterech kombinacji rodzajów przechodzą
+- [x] 2.1 Specs czterech kombinacji rodzajów przechodzą
 
 ### Phase 3: Zapis po stronie serwera
 
