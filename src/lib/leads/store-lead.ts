@@ -3,11 +3,16 @@ import type { Lead } from '@/payload-types'
 import type { LeadFieldT, LeadFormQuestionT } from './lead-schema'
 
 export type StoreLeadInputT = {
-  source: 'facebook_lead_ads' | 'website_form'
+  source: 'facebook_lead_ads' | 'website_form' | 'landing_form'
   externalId?: string
   email?: string
   name?: string
   phone?: string
+  address?: string
+  scope?: string
+  area?: string
+  /** Already uploaded to Blob by the caller — `storeLead` only points the lead at them. */
+  assets?: number[]
   rawData: LeadFieldT[]
   formQuestions?: LeadFormQuestionT[]
   formId?: string
@@ -60,6 +65,10 @@ export async function storeLead(
     email: input.email,
     name: input.name,
     phone: input.phone,
+    address: input.address,
+    scope: input.scope,
+    area: input.area,
+    assets: input.assets,
     rawData: input.rawData,
     formQuestions: input.formQuestions,
     formId: input.formId,

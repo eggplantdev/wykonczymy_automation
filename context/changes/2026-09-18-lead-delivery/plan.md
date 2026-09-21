@@ -818,17 +818,17 @@ Run **once**, after Phase 6.
 
 #### Automated
 
-- [x] 3.1 Gallery renders empty state, image thumbnails, PDF chips
-- [x] 3.2 Lightbox opens, steps prev/next, closes on Escape
-- [x] 3.3 `pnpm exec vitest run --project dom src/__tests__/components/investments/` passes
+- [x] 3.1 Gallery renders empty state, image thumbnails, PDF chips — ebf7beaa
+- [x] 3.2 Lightbox opens, steps prev/next, closes on Escape — ebf7beaa
+- [x] 3.3 `pnpm exec vitest run --project dom src/__tests__/components/investments/` passes — ebf7beaa
 
 ### Phase 4: Leads schema for the landing
 
 #### Automated
 
-- [ ] 4.1 `pnpm generate:types` yields `Lead` with the five new fields
-- [ ] 4.2 Lead round-trips `address` / `scope` / `area` and a two-file `assets` list
-- [ ] 4.3 `pnpm exec vitest run src/__tests__/leads/` passes unchanged
+- [x] 4.1 `pnpm generate:types` yields `Lead` with the five new fields
+- [x] 4.2 Lead round-trips `address` / `scope` / `area` and a two-file `assets` list
+- [x] 4.3 `pnpm exec vitest run src/__tests__/leads/` passes unchanged
 
 ### Phase 5: `POST /api/webhooks/landing`
 

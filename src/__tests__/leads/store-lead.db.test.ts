@@ -4,6 +4,8 @@ import type { Payload } from 'payload'
 // The leads collection's afterChange hook calls revalidateTag, which throws outside a
 // Next request context. Stub it — cache invalidation is not under test here.
 
+import { sql } from '@payloadcms/db-vercel-postgres'
+import { getDb } from '@/lib/db/get-db'
 import { storeLead, type StoreLeadInputT } from '@/lib/leads/store-lead'
 import { captureLead } from '@/lib/leads/capture-lead'
 
@@ -110,6 +112,54 @@ describe.skipIf(!ENV_READY)('storeLead + captureLead (DB)', () => {
       expect(persisted.notifyStatus).toBe('sent')
     } finally {
       payload.sendEmail = original
+    }
+  })
+
+  // The landing's own fields — a shape no Facebook lead has. `assets` is the one that cannot be
+  // read off the create's return value: it lands on `leads_rels`, a join table the migration had to
+  // create by hand, so this is the only check that the table matches what Payload writes into it.
+  it('round-trips a landing lead with its typed answers and attached files', async () => {
+    const db = await getDb(payload)
+    const mediaIds: number[] = []
+    for (const filename of [`${runTag}-lazienka.jpg`, `${runTag}-salon.jpg`]) {
+      // Raw INSERT, not payload.create: an upload through Payload would push bytes at the Blob
+      // store for a fixture nothing ever opens.
+      const { rows } = await db.execute(sql`
+        INSERT INTO media (filename, mime_type, filesize, kind)
+        VALUES (${filename}, 'image/jpeg', 1024, 'zdjecie')
+        RETURNING id
+      `)
+      mediaIds.push(Number(rows[0].id))
+    }
+
+    const { lead } = await storeLead(payload, {
+      source: 'landing_form',
+      externalId: `${runTag}-landing`,
+      email: 'jan.kowalski@example.com',
+      name: 'Jan Kowalski',
+      phone: '+48500600700',
+      address: 'ul. Kwiatowa 5, Warszawa',
+      scope: 'Remont lazienki i salonu',
+      area: '30-60 m2',
+      assets: mediaIds,
+      rawData: [{ name: 'metraz', values: ['30-60 m2'] }],
+    })
+    createdIds.push(lead.id)
+
+    const persisted = await payload.findByID({
+      collection: 'leads',
+      id: lead.id,
+      depth: 0,
+      overrideAccess: true,
+    })
+    expect(persisted.source).toBe('landing_form')
+    expect(persisted.address).toBe('ul. Kwiatowa 5, Warszawa')
+    expect(persisted.scope).toBe('Remont lazienki i salonu')
+    expect(persisted.area).toBe('30-60 m2')
+    expect(persisted.assets).toEqual(mediaIds)
+
+    for (const id of mediaIds) {
+      await db.execute(sql`DELETE FROM media WHERE id = ${id}`)
     }
   })
 })
