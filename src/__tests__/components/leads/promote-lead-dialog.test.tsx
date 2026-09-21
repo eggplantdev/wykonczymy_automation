@@ -64,7 +64,7 @@ describe('PromoteLeadDialog', () => {
     const user = userEvent.setup()
     render(<PromoteLeadDialog lead={LEAD} />)
 
-    await user.click(screen.getByRole('button', { name: 'Utwórz inwestycję' }))
+    await user.click(screen.getByRole('button', { name: 'Przypisz' }))
 
     expect(await screen.findByLabelText('Nazwa')).toHaveValue(`${LEAD.name} ${LEAD.address}`)
     expect(screen.getByLabelText('Adres')).toHaveValue(LEAD.address)
@@ -83,7 +83,7 @@ describe('PromoteLeadDialog', () => {
     const user = userEvent.setup()
     render(<PromoteLeadDialog lead={{ ...LEAD, address: '' }} />)
 
-    await user.click(screen.getByRole('button', { name: 'Utwórz inwestycję' }))
+    await user.click(screen.getByRole('button', { name: 'Przypisz' }))
 
     expect(await screen.findByLabelText('Nazwa')).toHaveValue(LEAD.name)
   })
@@ -93,7 +93,7 @@ describe('PromoteLeadDialog', () => {
     const user = userEvent.setup()
     render(<PromoteLeadDialog lead={LEAD} />)
 
-    await user.click(screen.getByRole('button', { name: 'Utwórz inwestycję' }))
+    await user.click(screen.getByRole('button', { name: 'Przypisz' }))
 
     expect(await screen.findByLabelText('Status')).toHaveTextContent('Planowana')
   })
@@ -102,7 +102,7 @@ describe('PromoteLeadDialog', () => {
     const user = userEvent.setup()
     render(<PromoteLeadDialog lead={{ ...LEAD, assets: ASSETS }} />)
 
-    await user.click(screen.getByRole('button', { name: 'Utwórz inwestycję' }))
+    await user.click(screen.getByRole('button', { name: 'Przypisz' }))
     expect(await screen.findByText('Przejdą do inwestycji: 2 z 2')).toBeInTheDocument()
 
     const [first] = screen.getAllByRole('checkbox', {
@@ -128,7 +128,7 @@ describe('PromoteLeadDialog', () => {
       'href',
       '/inwestycje/42',
     )
-    expect(screen.queryByRole('button', { name: 'Utwórz inwestycję' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Przypisz' })).not.toBeInTheDocument()
   })
 
   it('falls back to the generic word when the name did not resolve', () => {
