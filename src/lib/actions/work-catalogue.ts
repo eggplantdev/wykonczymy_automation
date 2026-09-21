@@ -11,7 +11,10 @@ import {
   listCatalogueItemsByIds,
 } from '@/lib/db/work-catalogue'
 import { toCatalogueCandidate } from '@/lib/kosztorys/work-catalogue/item-to-catalogue'
-import { buildCatalogueComparison } from '@/lib/kosztorys/work-catalogue/build-catalogue-comparison'
+import {
+  attachCatalogueHints,
+  buildCatalogueComparison,
+} from '@/lib/kosztorys/work-catalogue/build-catalogue-comparison'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { stripLegacyMarker } from '@/lib/kosztorys/work-catalogue/legacy-marker'
 import { appendCatalogueItems } from '@/lib/kosztorys/work-catalogue/append-catalogue-items'
@@ -310,12 +313,14 @@ export async function compareWithCatalogueAction(
       section.items.map((item) => ({ ...item, sectionName: section.name })),
     )
 
+    const comparison = buildCatalogueComparison(items, catalogue, {
+      wToolsCoeff: tree.globalCoeffs.wTools,
+      ownToolsCoeff: tree.globalCoeffs.ownTools,
+    })
+
     return {
       success: true,
-      data: buildCatalogueComparison(items, catalogue, {
-        wToolsCoeff: tree.globalCoeffs.wTools,
-        ownToolsCoeff: tree.globalCoeffs.ownTools,
-      }),
+      data: { ...comparison, missing: attachCatalogueHints(comparison.missing, catalogue) },
     }
   })
 }
