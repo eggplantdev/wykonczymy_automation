@@ -119,10 +119,17 @@ export function InvoicePreviewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:h-full sm:max-w-4xl" aria-describedby={undefined}>
+      {/* A rzut or a plan is worth only the pixels it is given, so this window takes the screen.
+          Below `sm` the base DialogContent is already a full-bleed sheet — every override here has
+          to beat the `sm:` half of it (`top-1/2 h-fit max-h-[90vh] -translate-y-1/2 rounded-lg`),
+          which is why `sm:max-w-none` alone would not be enough. */}
+      <DialogContent
+        className="sm:top-0 sm:h-dvh sm:max-h-none sm:max-w-none sm:translate-y-0 sm:rounded-none"
+        aria-describedby={undefined}
+      >
         <DialogHeader title={title} />
 
-        <div className="relative flex h-[70vh] min-h-0 w-full flex-1 items-center justify-center">
+        <div className="relative flex min-h-0 w-full flex-1 items-center justify-center">
           {(isImage || isPdf) && isMediaLoading && (
             <div className="absolute inset-0 z-10 flex items-center justify-center">
               <Spinner />
@@ -135,8 +142,7 @@ export function InvoicePreviewDialog({
                 src={active.url}
                 alt={displayName}
                 fill
-                sizes="(max-width: 767.98px) calc(100vw - 2rem), 848px"
-                quality={50}
+                sizes="(max-width: 767.98px) calc(100vw - 2rem), calc(100vw - 3rem)"
                 unoptimized={unoptimized}
                 className="object-contain"
                 onLoad={() => setIsMediaLoading(false)}

@@ -27,7 +27,12 @@ const nextConfig: NextConfig = {
   // },
   serverExternalPackages: ['payload', 'pino', 'pino-pretty', 'thread-stream'],
   images: {
-    qualities: [50, 80],
+    // Next has no "default quality" knob — 75 is hardcoded. A single-entry allowlist is the only
+    // way to make one value global: any quality, the unspecified 75 included, is coerced to the
+    // nearest allowed entry, so with one entry every image is served at 90. Add a second value and
+    // that guarantee silently ends. 90 rather than 75 because both upload paths already compress at
+    // ingest — re-encoding lower here is a second lossy pass over lossy input.
+    qualities: [90],
     remotePatterns: [
       {
         protocol: 'http',
