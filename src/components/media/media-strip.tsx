@@ -2,20 +2,23 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { FileText, ImageOff, RotateCcw, Trash2, X } from 'lucide-react'
+import { FileText, ImageOff, Search, Trash2 } from 'lucide-react'
 import { InvoicePreviewDialog } from '@/components/dialogs/invoice-preview-dialog'
+import { Checkbox } from '@/components/ui/checkbox'
+import { SimpleTooltip } from '@/components/ui/tooltip'
 import { isImageMime } from '@/lib/media/mime'
 import { cn } from '@/lib/utils/cn'
 import type { MediaFileT, PreviewLabelsT } from '@/types/media'
 
 /**
- * Holding a file back from whatever the surface is about to create, which is NOT deleting it — the
- * wording is the caller's because only the caller knows what the file is being held back from.
+ * Picking which files travel with whatever the surface is about to do, which is NOT deleting them.
+ * Opt-in: a checked tile goes. The caller seeds the set, so „wszystko domyślnie" and „nic domyślnie"
+ * are its decision, and the wording is its too — only it knows what the files are being picked for.
  */
-type MediaStripExcludeT = {
-  excludedIds: Set<number>
+type MediaStripPickT = {
+  selectedIds: Set<number>
   onToggle: (file: MediaFileT) => void
-  labels: { exclude: string; restore: string }
+  label: string
 }
 
 type MediaStripPropsT = {
@@ -26,7 +29,9 @@ type MediaStripPropsT = {
    * gallery — one hardcoded value over-fetches 3× in the first and upscales visibly in the second.
    */
   sizes: string
-  exclude?: MediaStripExcludeT
+  /** Same reason as `sizes`, and the two have to be changed together or the fetch goes wrong. */
+  gridClassName?: string
+  pick?: MediaStripPickT
   /**
    * Destructive, and the caller owns the confirmation — the strip only asks for it. Typed on the id
    * alone because the same handler is reached from a tile (a `MediaFileT`) and from inside the
@@ -36,32 +41,42 @@ type MediaStripPropsT = {
 }
 
 const OVERLAY_BUTTON =
-  'bg-background/85 text-muted-foreground hover:text-foreground flex size-6 items-center justify-center rounded-full border shadow-sm'
+  'bg-background/85 text-muted-foreground hover:text-foreground flex size-7 items-center justify-center rounded-full border shadow-sm'
 
-/** Thumbnails that open the shared preview dialog on the clicked file. */
-export function MediaStrip({ files, labels, sizes, exclude, onRemove }: MediaStripPropsT) {
+/** Thumbnails that open the shared preview dialog, and — with `pick` — carry their own checkbox. */
+export function MediaStrip({
+  files,
+  labels,
+  sizes,
+  gridClassName = 'grid-cols-3 sm:grid-cols-4 md:grid-cols-6',
+  pick,
+  onRemove,
+}: MediaStripPropsT) {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
   const closePreview = () => setOpenIndex(null)
 
   return (
     <>
-      <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
+      <ul className={cn('grid gap-2', gridClassName)}>
         {files.map((file, index) => {
-          const isExcluded = exclude?.excludedIds.has(file.id) ?? false
+          const isPicked = pick?.selectedIds.has(file.id) ?? false
 
           return (
             <li key={file.id} className="relative">
+              {/* With a checkbox on the tile the tile itself is the checkbox — hitting a 24px box on
+                  a phone is the failure mode. The preview then needs its own affordance, hence the
+                  explicit magnifier below; without `pick` the whole tile still opens it. */}
               <button
                 type="button"
-                onClick={() => setOpenIndex(index)}
+                onClick={() => (pick ? pick.onToggle(file) : setOpenIndex(index))}
+                aria-pressed={pick ? isPicked : undefined}
                 // The filename is the only thing telling two site photos apart, so it is the label
                 // rather than a generic „otwórz".
                 aria-label={file.filename ?? labels.fallbackTitle}
                 className={cn(
                   'border-input bg-muted/40 hover:border-primary/50 relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border',
-                  // Dimmed rather than hidden: the point of excluding a file is to keep seeing that
-                  // you did it, and to be able to put it back.
-                  isExcluded && 'opacity-35 grayscale',
+                  pick && !isPicked && 'opacity-60',
+                  isPicked && 'border-primary ring-primary/40 ring-2',
                 )}
               >
                 {isImageMime(file.mimeType) ? (
@@ -88,28 +103,45 @@ export function MediaStrip({ files, labels, sizes, exclude, onRemove }: MediaStr
 
               {/* Siblings of the tile, not children: the tile is itself a button and a button
                   inside a button is invalid markup that browsers silently reparent. */}
-              {(exclude || onRemove) && (
+              {pick && (
+                <SimpleTooltip content={pick.label}>
+                  <span className="absolute top-1 left-1">
+                    <Checkbox
+                      checked={isPicked}
+                      onCheckedChange={() => pick.onToggle(file)}
+                      aria-label={`${pick.label}: ${file.filename ?? labels.fallbackTitle}`}
+                      className="bg-background/85 size-5"
+                    />
+                  </span>
+                </SimpleTooltip>
+              )}
+
+              {(pick || onRemove) && (
                 <div className="absolute top-1 right-1 flex gap-1">
-                  {exclude && (
-                    <button
-                      type="button"
-                      onClick={() => exclude.onToggle(file)}
-                      aria-label={isExcluded ? exclude.labels.restore : exclude.labels.exclude}
-                      className={OVERLAY_BUTTON}
-                    >
-                      {isExcluded ? <RotateCcw className="size-3.5" /> : <X className="size-3.5" />}
-                    </button>
+                  {pick && (
+                    <SimpleTooltip content={labels.preview}>
+                      <button
+                        type="button"
+                        onClick={() => setOpenIndex(index)}
+                        aria-label={`${labels.preview}: ${file.filename ?? labels.fallbackTitle}`}
+                        className={OVERLAY_BUTTON}
+                      >
+                        <Search className="size-3.5" />
+                      </button>
+                    </SimpleTooltip>
                   )}
 
                   {onRemove && (
-                    <button
-                      type="button"
-                      onClick={() => onRemove(file, closePreview)}
-                      aria-label={labels.removeOneOfMany}
-                      className={cn(OVERLAY_BUTTON, 'hover:text-destructive')}
-                    >
-                      <Trash2 className="size-3.5" />
-                    </button>
+                    <SimpleTooltip content={labels.removeOneOfMany}>
+                      <button
+                        type="button"
+                        onClick={() => onRemove(file, closePreview)}
+                        aria-label={labels.removeOneOfMany}
+                        className={cn(OVERLAY_BUTTON, 'hover:text-destructive')}
+                      >
+                        <Trash2 className="size-3.5" />
+                      </button>
+                    </SimpleTooltip>
                   )}
                 </div>
               )}

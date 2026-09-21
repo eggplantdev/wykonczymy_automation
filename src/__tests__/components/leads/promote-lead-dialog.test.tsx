@@ -105,11 +105,14 @@ describe('PromoteLeadDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Utwórz inwestycję' }))
     expect(await screen.findByText('Przejdą do inwestycji: 2 z 2')).toBeInTheDocument()
 
-    await user.click(screen.getAllByLabelText('Nie przenoś tego pliku do inwestycji')[0])
+    const [first] = screen.getAllByRole('checkbox', {
+      name: /^Dodaj to zdjęcie do inwestycji:/,
+    })
+    await user.click(first)
 
     expect(screen.getByText('Przejdą do inwestycji: 1 z 2')).toBeInTheDocument()
     // Held back, still on the zgłoszenie — the tile does not disappear.
-    expect(screen.getByLabelText('Przywróć ten plik do inwestycji')).toBeInTheDocument()
+    expect(first).not.toBeChecked()
   })
 
   // The generic word says nothing on a row that already names the client — the link carries what

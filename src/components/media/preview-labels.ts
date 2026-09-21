@@ -7,6 +7,7 @@ export const ASSET_PREVIEW_LABELS: PreviewLabelsT = {
   archivePrefix: 'pliki',
   removeOne: 'Usuń',
   removeOneOfMany: 'Usuń ten plik',
+  preview: 'Powiększ',
   removeAll: 'Usuń wszystkie',
   add: 'Dodaj kolejne',
 }
@@ -17,6 +18,7 @@ export const INVOICE_PREVIEW_LABELS: PreviewLabelsT = {
   archivePrefix: 'faktury',
   removeOne: 'Usuń',
   removeOneOfMany: 'Usuń stronę',
+  preview: 'Powiększ',
   removeAll: 'Usuń całą fakturę',
   add: 'Dodaj stronę',
 }

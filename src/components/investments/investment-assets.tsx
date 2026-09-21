@@ -18,10 +18,10 @@ import {
 import type { MediaFileT } from '@/types/media'
 
 const ASSET_REMOVAL_LABELS: MediaRemovalLabelsT = {
-  confirmOne: 'Czy na pewno chcesz usunąć ten plik?',
-  confirmLast: 'Czy na pewno chcesz usunąć ten plik? To jedyny plik tej inwestycji.',
-  confirmAll: 'Czy na pewno chcesz usunąć wszystkie pliki?',
-  description: 'Operacji nie da się cofnąć — pliki znikają bezpowrotnie.',
+  confirmOne: 'Usunąć plik?',
+  confirmLast: 'Usunąć plik?',
+  confirmAll: 'Usunąć wszystkie pliki?',
+  description: 'Plik zostanie usunięty bezpowrotnie.',
   success: 'Plik usunięty',
   error: 'Nie udało się usunąć pliku',
 }

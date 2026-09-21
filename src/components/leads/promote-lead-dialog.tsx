@@ -10,7 +10,11 @@ import { MediaStrip } from '@/components/media/media-strip'
 import { ASSET_PREVIEW_LABELS } from '@/components/media/preview-labels'
 import { useMediaRemoval } from '@/hooks/use-media-removal'
 import { removeLeadAssetAction } from '@/lib/actions/lead-assets'
-import { LEAD_ASSET_REMOVAL_LABELS, LEAD_ASSET_STRIP_SIZES } from './lead-asset-labels'
+import {
+  LEAD_ASSET_REMOVAL_LABELS,
+  LEAD_ASSET_STRIP_GRID,
+  LEAD_ASSET_STRIP_SIZES,
+} from './lead-asset-labels'
 import { promoteLeadAction } from '@/lib/actions/promote-lead'
 import type { InvestmentFormValuesT } from '@/components/forms/investment-form/investment-schema'
 import type { LeadRowT } from '@/types/leads'
@@ -31,13 +35,14 @@ function buildNotes(lead: LeadRowT): string {
     .join('\n')
 }
 
-const EXCLUDE_LABELS = {
-  exclude: 'Nie przenoś tego pliku do inwestycji',
-  restore: 'Przywróć ten plik do inwestycji',
-}
+const PICK_LABEL = 'Dodaj to zdjęcie do inwestycji'
 
 export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
-  const [excludedIds, setExcludedIds] = useState<Set<number>>(new Set())
+  // Tu promocja tworzy inwestycję Z tego zgłoszenia, więc komplet plików jest oczekiwaną domyślną —
+  // odznacza się wyjątki. (W „Załącznikach" jest odwrotnie: tam celem bywa cudza inwestycja.)
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(
+    () => new Set(lead.assets.map((file) => file.id)),
+  )
 
   const { visibleFiles, handleRemove, isRemoving, removalConfirm } = useMediaRemoval({
     files: lead.assets,
@@ -55,10 +60,10 @@ export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
     )
   }
 
-  const chosenIds = visibleFiles.map((file) => file.id).filter((id) => !excludedIds.has(id))
+  const chosenIds = visibleFiles.map((file) => file.id).filter((id) => selectedIds.has(id))
 
-  function toggleExcluded(mediaId: number) {
-    setExcludedIds((current) => {
+  function togglePicked(mediaId: number) {
+    setSelectedIds((current) => {
       const next = new Set(current)
       if (!next.delete(mediaId)) next.add(mediaId)
       return next
@@ -108,10 +113,11 @@ export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
                 files={visibleFiles}
                 labels={ASSET_PREVIEW_LABELS}
                 sizes={LEAD_ASSET_STRIP_SIZES}
-                exclude={{
-                  excludedIds,
-                  onToggle: (file) => toggleExcluded(file.id),
-                  labels: EXCLUDE_LABELS,
+                gridClassName={LEAD_ASSET_STRIP_GRID}
+                pick={{
+                  selectedIds,
+                  onToggle: (file) => togglePicked(file.id),
+                  label: PICK_LABEL,
                 }}
                 onRemove={isRemoving ? undefined : handleRemove}
               />

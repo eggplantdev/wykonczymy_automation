@@ -15,8 +15,8 @@ vi.mock('@/lib/actions/lead-assets', () => ({
   attachLeadAssetsAction: vi.fn(async () => ({ success: true })),
   removeLeadAssetAction: vi.fn(async () => ({ success: true })),
 }))
-vi.mock('@/lib/actions/investment-assets', () => ({
-  investmentAssetIdsAction: vi.fn(async () => ({ success: true, data: [] })),
+vi.mock('@/lib/queries/investment-asset-ids', () => ({
+  getInvestmentAssetIds: vi.fn(async () => ({ success: true, data: [] })),
 }))
 
 const ASSETS = [
@@ -82,7 +82,8 @@ describe('LeadAssetsDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Załączniki (3)' }))
 
     expect(await screen.findByRole('combobox')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Przenieś do inwestycji (3)' })).toBeDisabled()
+    // Nic nie jest zaznaczone domyślnie, więc przycisk startuje pusty i wyłączony.
+    expect(screen.getByRole('button', { name: 'Dodaj do inwestycji (0)' })).toBeDisabled()
     expect(screen.queryByText(/Już w inwestycji/)).not.toBeInTheDocument()
   })
 
@@ -103,10 +104,43 @@ describe('LeadAssetsDialog', () => {
     render(<LeadAssetsDialog lead={LEAD} investments={INVESTMENTS} />)
 
     await user.click(screen.getByRole('button', { name: 'Załączniki (3)' }))
-    await user.click((await screen.findAllByLabelText('Nie przenoś tego pliku do inwestycji'))[0])
-    await user.click(screen.getByRole('button', { name: 'Przenieś do inwestycji (1)' }))
+    // Opt-in: bez zaznaczenia nic nie leci, więc test najpierw wybiera jeden plik.
+    const picks = await screen.findAllByRole('checkbox', {
+      name: /^Dodaj to zdjęcie do inwestycji:/,
+    })
+    await user.click(picks[1])
+    await user.click(screen.getByRole('button', { name: 'Dodaj do inwestycji (1)' }))
 
     expect(attachLeadAssetsAction).toHaveBeenCalledWith(7, 42, [13])
+  })
+
+  // „Aktywne" is a filter the user can widen, not a hard exclusion — a zakończona inwestycja the
+  // zgłoszenie already points at has to survive it, or the target silently empties itself.
+  it('hides inactive inwestycje behind the „Aktywne” filter, keeping the picked one', async () => {
+    const user = userEvent.setup()
+    render(
+      <LeadAssetsDialog
+        lead={LEAD}
+        investments={[
+          { id: 42, name: 'Kowalska Kwiatowa 5', active: false },
+          { id: 43, name: 'Nowak Polna 2', active: true },
+          { id: 44, name: 'Zakończona Leśna 9', active: false },
+        ]}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Załączniki (3)' }))
+    await user.click(await screen.findByRole('combobox'))
+
+    expect(await screen.findByRole('option', { name: 'Kowalska Kwiatowa 5' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Nowak Polna 2' })).toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: 'Zakończona Leśna 9' })).not.toBeInTheDocument()
+
+    await user.keyboard('{Escape}')
+    await user.click(screen.getByRole('checkbox', { name: 'Aktywne' }))
+    await user.click(screen.getByRole('combobox'))
+
+    expect(await screen.findByRole('option', { name: 'Zakończona Leśna 9' })).toBeInTheDocument()
   })
 
   // Every file already across means nothing left to send — the submit would be a no-op button.

@@ -6,21 +6,24 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader } from '@/components
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { MediaStrip } from '@/components/media/media-strip'
-import { ASSET_PREVIEW_LABELS } from '@/components/media/preview-labels'
-import { SimpleSelect } from '@/components/ui/simple-select'
+import { SearchSelect } from '@/components/ui/search-select'
+import { ActiveFilterLabel } from '@/components/filters/active-filter-label'
 import { useMediaRemoval } from '@/hooks/use-media-removal'
 import { attachLeadAssetsAction, removeLeadAssetAction } from '@/lib/actions/lead-assets'
-import { investmentAssetIdsAction } from '@/lib/actions/investment-assets'
-import { LEAD_ASSET_REMOVAL_LABELS, LEAD_ASSET_STRIP_SIZES } from './lead-asset-labels'
+import { getInvestmentAssetIds } from '@/lib/queries/investment-asset-ids'
+import {
+  LEAD_ASSET_PREVIEW_LABELS,
+  LEAD_ASSET_STRIP_GRID,
+  LEAD_ASSET_REMOVAL_LABELS,
+  LEAD_ASSET_STRIP_SIZES,
+} from './lead-asset-labels'
 import { toastMessage } from '@/lib/utils/toast'
+import { activeOrSelected } from '@/lib/utils/is-active-ref'
 import type { LeadRowT } from '@/types/leads'
 
-const EXCLUDE_LABELS = {
-  exclude: 'Nie przenoś tego pliku do inwestycji',
-  restore: 'Przywróć ten plik do przeniesienia',
-}
+const PICK_LABEL = 'Dodaj to zdjęcie do inwestycji'
 
-export type InvestmentOptionT = { id: number; name: string }
+export type InvestmentOptionT = { id: number; name: string; active?: boolean }
 
 type PropsT = { lead: LeadRowT; investments: InvestmentOptionT[] }
 
@@ -32,8 +35,11 @@ type PropsT = { lead: LeadRowT; investments: InvestmentOptionT[] }
  */
 export function LeadAssetsDialog({ lead, investments }: PropsT) {
   const [open, setOpen] = useState(false)
-  const [excludedIds, setExcludedIds] = useState<Set<number>>(new Set())
+  // Opt-in: sending a file into somebody else's inwestycja cannot be undone from this side, so
+  // nothing is ticked on the user's behalf.
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
   const [pending, setPending] = useState(false)
+  const [activeOnly, setActiveOnly] = useState(true)
   const [targetId, setTargetId] = useState(
     lead.investmentId === null ? '' : String(lead.investmentId),
   )
@@ -41,6 +47,7 @@ export function LeadAssetsDialog({ lead, investments }: PropsT) {
   const [attachedIds, setAttachedIds] = useState<Set<number> | null>(null)
 
   const target = targetId === '' ? null : Number(targetId)
+  const options = activeOrSelected(investments, activeOnly, targetId)
 
   const { visibleFiles, handleRemove, isRemoving, removalConfirm } = useMediaRemoval({
     files: lead.assets,
@@ -65,7 +72,7 @@ export function LeadAssetsDialog({ lead, investments }: PropsT) {
 
     let cancelled = false
     setAttachedIds(null)
-    void investmentAssetIdsAction(target).then((result) => {
+    void getInvestmentAssetIds(target).then((result) => {
       if (cancelled || !result.success) return
       setAttachedIds(new Set(result.data))
     })
@@ -80,14 +87,19 @@ export function LeadAssetsDialog({ lead, investments }: PropsT) {
   const waiting = attachedIds
     ? visibleFiles.filter((file) => !attachedIds.has(file.id))
     : visibleFiles
-  const chosenIds = waiting.map((file) => file.id).filter((id) => !excludedIds.has(id))
+  const chosenIds = waiting.map((file) => file.id).filter((id) => selectedIds.has(id))
+  const allPicked = waiting.length > 0 && chosenIds.length === waiting.length
 
-  function toggleExcluded(mediaId: number) {
-    setExcludedIds((current) => {
+  function togglePicked(mediaId: number) {
+    setSelectedIds((current) => {
       const next = new Set(current)
       if (!next.delete(mediaId)) next.add(mediaId)
       return next
     })
+  }
+
+  function toggleAll() {
+    setSelectedIds(allPicked ? new Set() : new Set(waiting.map((file) => file.id)))
   }
 
   async function attach() {
@@ -127,21 +139,30 @@ export function LeadAssetsDialog({ lead, investments }: PropsT) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader
-          title="Załączniki zgłoszenia"
-          description="Zgłoszenie zachowuje swoje pliki — stąd przenosisz je do wybranej inwestycji."
+          title="Załączniki"
+          description="Wybierz pliki i inwestycję, do której będą dodane."
         />
 
         <div className="space-y-2">
-          <p className="text-sm font-medium">Inwestycja docelowa</p>
-          {investments.length === 0 ? (
-            <p className="text-muted-foreground text-sm">Brak inwestycji do wyboru.</p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium">Inwestycja docelowa</p>
+            <ActiveFilterLabel activeOnly={activeOnly} onToggle={setActiveOnly} />
+          </div>
+          {options.length === 0 ? (
+            <p className="text-muted-foreground text-sm">
+              {investments.length === 0
+                ? 'Brak inwestycji do wyboru.'
+                : 'Brak aktywnych inwestycji'}
+            </p>
           ) : (
-            <SimpleSelect
+            <SearchSelect
               value={targetId}
-              onValueChange={setTargetId}
+              onChange={setTargetId}
               disabled={isBusy}
-              placeholder="Wybierz inwestycję…"
-              options={investments.map((investment) => ({
+              placeholder="Wybierz inwestycję"
+              searchPlaceholder="Szukaj inwestycji..."
+              emptyMessage="Nie znaleziono inwestycji."
+              items={options.map((investment) => ({
                 value: String(investment.id),
                 label: investment.name,
               }))}
@@ -151,17 +172,25 @@ export function LeadAssetsDialog({ lead, investments }: PropsT) {
 
         {waiting.length > 0 && (
           <section className="space-y-2">
-            {carried.length > 0 && (
-              <h3 className="text-sm font-medium">Jeszcze nie w inwestycji ({waiting.length})</h3>
-            )}
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-sm font-medium">
+                {carried.length > 0
+                  ? `Jeszcze nie w inwestycji (${waiting.length})`
+                  : `Wybierz pliki (${waiting.length})`}
+              </h3>
+              <Button type="button" variant="ghost" size="xs" onClick={toggleAll}>
+                {allPicked ? 'Odznacz wszystkie' : 'Zaznacz wszystkie'}
+              </Button>
+            </div>
             <MediaStrip
               files={waiting}
-              labels={ASSET_PREVIEW_LABELS}
+              labels={LEAD_ASSET_PREVIEW_LABELS}
               sizes={LEAD_ASSET_STRIP_SIZES}
-              exclude={{
-                excludedIds,
-                onToggle: (file) => toggleExcluded(file.id),
-                labels: EXCLUDE_LABELS,
+              gridClassName={LEAD_ASSET_STRIP_GRID}
+              pick={{
+                selectedIds,
+                onToggle: (file) => togglePicked(file.id),
+                label: PICK_LABEL,
               }}
               onRemove={isBusy ? undefined : handleRemove}
             />
@@ -170,7 +199,7 @@ export function LeadAssetsDialog({ lead, investments }: PropsT) {
               onClick={() => void attach()}
               disabled={isBusy || target === null || chosenIds.length === 0}
             >
-              {pending ? 'Przenoszenie…' : `Przenieś do inwestycji (${chosenIds.length})`}
+              {pending ? 'Dodawanie…' : `Dodaj do inwestycji (${chosenIds.length})`}
             </Button>
           </section>
         )}
@@ -184,8 +213,9 @@ export function LeadAssetsDialog({ lead, investments }: PropsT) {
                 file from the ZGŁOSZENIE instead — the inwestycja's own page owns that decision. */}
             <MediaStrip
               files={carried}
-              labels={ASSET_PREVIEW_LABELS}
+              labels={LEAD_ASSET_PREVIEW_LABELS}
               sizes={LEAD_ASSET_STRIP_SIZES}
+              gridClassName={LEAD_ASSET_STRIP_GRID}
             />
           </section>
         )}

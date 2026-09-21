@@ -109,7 +109,7 @@ describe('InvestmentAssets', () => {
       within(screen.getByRole('dialog')).getByRole('button', { name: 'Usuń ten plik' }),
     )
 
-    expect(screen.getByText('Czy na pewno chcesz usunąć ten plik?')).toBeInTheDocument()
+    expect(screen.getByText('Usunąć plik?')).toBeInTheDocument()
     expect(removeInvestmentAssetAction).not.toHaveBeenCalled()
 
     await user.click(screen.getByRole('button', { name: 'Usuń' }))
@@ -140,9 +140,7 @@ describe('InvestmentAssets', () => {
     expect(within(dialog).queryByRole('button', { name: 'Usuń wszystkie' })).not.toBeInTheDocument()
 
     await user.click(within(dialog).getByRole('button', { name: 'Usuń' }))
-    expect(
-      screen.getByText('Czy na pewno chcesz usunąć ten plik? To jedyny plik tej inwestycji.'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Usunąć plik?')).toBeInTheDocument()
     // Blob has no undelete — the confirm has to say the file is gone for good.
     expect(screen.getByText(/bezpowrotnie/)).toBeInTheDocument()
   })

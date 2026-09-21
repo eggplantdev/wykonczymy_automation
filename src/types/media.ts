@@ -17,6 +17,7 @@ export type PreviewLabelsT = {
   archivePrefix: string
   removeOne: string
   removeOneOfMany: string
+  preview: string
   removeAll: string
   add: string
 }

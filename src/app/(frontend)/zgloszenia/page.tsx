@@ -36,7 +36,11 @@ export default async function LeadsPage({ searchParams }: PagePropsT) {
   ])
   // Trimmed to what the picker renders — the reference row carries the investment's address, phone
   // and notes, and none of that belongs in the client payload of a leads table.
-  const investmentOptions = refData.investments.map(({ id, name }) => ({ id, name }))
+  const investmentOptions = refData.investments.map(({ id, name, active }) => ({
+    id,
+    name,
+    active,
+  }))
   const canEditRecipients = isAdminOrOwnerRole(session.user.role)
 
   return (
