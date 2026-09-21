@@ -599,9 +599,10 @@ to praca oddana gratis, normalna decyzja handlowa. Powyżej wartość netto wier
 ujemna liczba idzie dalej w sumy sekcji i w stopkę, gdzie czyta się jako „inwestorowi należy się za
 wykonaną robotę".
 
-- **Odrzucenie, nie ostrzeżenie.** Komórka „Rabat wart." chodzi tą samą maszyną co sufit ceny
-  podwykonawcy: czerwona liczba z dymkiem w trakcie pisania, wycofanie z komunikatem po wyjściu,
-  wklejenie odrzucone.
+- **Odrzucenie, nie ostrzeżenie.** Czerwona liczba z dymkiem w trakcie pisania, wycofanie
+  z komunikatem po wyjściu, wklejenie odrzucone. Ta sama maszyna co sufit ceny podwykonawcy, ale
+  **inny stopień**: od 2026-09-20 sufit podwykonawcy tylko ostrzega (wartość zostaje w wierszu),
+  a rabat powyżej 100% nadal się wycofuje — patrz „Sufit ceny podwykonawcy" niżej.
 - **Sufit jest tylko na osi procentowej.** Rabat kwotowy nie ma progu — „250" to tam 250 zł, liczba
   jak każda inna. Dlatego guard czyta parę (typ + wartość), a nie samą wartość.
 - **Przełączenie typu na „%" przycina wartość do 100.** Rabat 150 zł przestawiony w kolumnie „Rabat"
@@ -610,6 +611,23 @@ wykonaną robotę".
   wyzerowanie: przełączenie typu to zmiana jednostki, a nie kasowanie wpisanego rabatu.
 - **Rabat globalny „%" miał zakres `[0, 100]` od początku** (`applyPercentDiscountSchema`), więc
   komórka była jedyną dziurą. Oba wejścia mówią teraz to samo.
+
+### Sufit ceny podwykonawcy — 65%, ostrzeżenie (2026-09-20)
+
+Podwykonawca może dostać najwyżej **65% ceny dla inwestora**. Sufit liczy się od ceny **przed
+rabatem** (właściciel, 2026-07-28): rabat to oddanie części własnej marży, więc gdyby ciągnął sufit
+w dół, zniżka przecenialaby wstecz ekipę, która się na nią nie pisała.
+
+- **Ostrzeżenie, nie odrzucenie** (właściciel, 2026-09-20). Ekipa naprawdę bywa droższa niż 65%,
+  a kosztorys, który nie umie tego zapisać, kłamie. Wartość **zostaje w wierszu**: komórka jest
+  czerwona, filtr „Problemy" łapie wiersz, a komunikat wychodzi raz, przy wyjściu z komórki.
+- **Jedyna twarda odmowa to stawka ujemna.** Tej nikt nigdy nie chciał — wraca do stanu sprzed
+  edycji i wklejenie jej nie przechodzi.
+- **Jeden próg, jeden dom.** Werdykt liczy `checkSubcontractorPrice`; katalog prac pyta o ten sam
+  próg przez `isOverCeiling`, żeby udział na `/katalog-prac` i cena w rozpisce nie mogły się
+  rozjechać na zaokrągleniu.
+- **Globalny mnożnik wciąż odmawia twardo.** Pole „mnożnik" w ustawieniach kosztorysu nie przyjmuje
+  wartości powyżej 0,65 — to jedyna powierzchnia, która została przy starej odpowiedzi.
 
 ### Zasięg filtrów na stronie inwestycji (EX-600, 2026-07-28)
 
