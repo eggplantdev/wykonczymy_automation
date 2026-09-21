@@ -43,7 +43,7 @@ describe('PromoteLeadDialog', () => {
 
     await user.click(screen.getByRole('button', { name: 'Utwórz inwestycję' }))
 
-    expect(await screen.findByLabelText('Nazwa')).toHaveValue(LEAD.name)
+    expect(await screen.findByLabelText('Nazwa')).toHaveValue(`${LEAD.name} ${LEAD.address}`)
     expect(screen.getByLabelText('Adres')).toHaveValue(LEAD.address)
     expect(screen.getByLabelText('Telefon')).toHaveValue(LEAD.phone)
     expect(screen.getByLabelText('Email')).toHaveValue(LEAD.email)
@@ -52,6 +52,17 @@ describe('PromoteLeadDialog', () => {
     expect(screen.getByLabelText('Notatki')).toHaveValue(
       'Zakres prac: Łazienka pod klucz\nMetraż: 12 m²\nWiadomość: Proszę o kontakt po 16.',
     )
+  })
+
+  // A Facebook lead carries no address, and a name ending in a stray space is what the staff
+  // member then has to delete by hand on every single promotion.
+  it('falls back to the name alone when the zgłoszenie has no address', async () => {
+    const user = userEvent.setup()
+    render(<PromoteLeadDialog lead={{ ...LEAD, address: '' }} />)
+
+    await user.click(screen.getByRole('button', { name: 'Utwórz inwestycję' }))
+
+    expect(await screen.findByLabelText('Nazwa')).toHaveValue(LEAD.name)
   })
 
   it('offers a link instead of a form once the lead has an investment', () => {

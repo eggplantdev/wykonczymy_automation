@@ -38,7 +38,9 @@ export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
   }
 
   const defaults: InvestmentFormValuesT = {
-    name: lead.name,
+    // An inwestycja is named for the job, not the person — the existing ones read „Jakub Korczak
+    // Zupnicza 14/31". Seeding it from `lead.name` alone just repeated „Osoba kontaktowa" below.
+    name: [lead.name, lead.address].filter(Boolean).join(' '),
     address: lead.address,
     phone: lead.phone,
     email: lead.email,
