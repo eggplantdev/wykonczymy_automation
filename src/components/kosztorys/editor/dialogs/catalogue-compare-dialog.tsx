@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { CatalogueItemFromKosztorysDialog } from '@/components/kosztorys/editor/dialogs/catalogue-item-from-kosztorys-dialog'
@@ -14,6 +14,7 @@ import {
 } from '@/components/kosztorys/editor/dialogs/sheet-report-parts'
 import {
   diffsVerdict,
+  emptyReportReason,
   matchingVerdict,
   missingVerdict,
 } from '@/components/kosztorys/editor/dialogs/catalogue-compare-words'
@@ -28,8 +29,6 @@ import {
 import { PROBLEM_IDS } from '@/lib/kosztorys/problem-conditions'
 import { formatPLN } from '@/lib/utils/format-currency'
 
-const NO_CATALOGUE = 'Brak katalogu prac do porównania.'
-
 /**
  * „Porównaj z katalogiem" — the rozpiska read against the global cennik. Nothing here touches the
  * KOSZTORYS: unlike the arkusz window it has no refresh side, so no figure the owner is looking at
@@ -42,8 +41,13 @@ const NO_CATALOGUE = 'Brak katalogu prac do porównania.'
  */
 export function CatalogueCompareDialog() {
   const { open, setOpen: onOpenChange } = useKosztorysActions().catalogueCompare
-  const { readOnly, catalogueComparison, workCatalogue, toggleConditionExclusive } =
-    useKosztorysEditorContext()
+  const {
+    readOnly,
+    catalogueComparison,
+    workCatalogue,
+    engagedConditionIds,
+    toggleConditionExclusive,
+  } = useKosztorysEditorContext()
   const router = useRouter()
   // One dialog for the whole list, keyed by the praca it is about — mounting one per row would fetch
   // a preview for every „brak w katalogu" position the moment the fold opens.
@@ -52,18 +56,26 @@ export function CatalogueCompareDialog() {
   // The „może chodzi o…" guesses, dice-matched against every entry in the cennik: O(pozycje ×
   // katalog), 10.7 s at 400 probes. It may therefore never ride along with the classification that
   // feeds the counters — it runs here, once, and only for a window someone actually opened.
+  //
+  // Deferred rather than gated on `open`: the report then paints hint-free on the opening frame and
+  // the scoring lands in the next, so the click that opens the window is never the click that blocks
+  // the main thread for a second. It also keeps the report non-null while the window animates shut,
+  // which a hard gate turned into a flash of the „brak" state on every close.
+  const withHints = useDeferredValue(open)
   const report = useMemo(() => {
-    if (!open || !catalogueComparison) return null
+    if (!catalogueComparison) return null
+    if (!withHints) return catalogueComparison
     return {
       ...catalogueComparison,
       missing: attachCatalogueHints(catalogueComparison.missing, workCatalogue ?? []),
     }
-  }, [open, catalogueComparison, workCatalogue])
+  }, [withHints, catalogueComparison, workCatalogue])
 
   // The rozpiska is underneath the window, so a narrowing gesture that left it open would read as a
-  // button that did nothing.
+  // button that did nothing. Engaging, never toggling: the shared helper drops a condition that is
+  // already on, so on a second visit „Pokaż w rozpisce" would UNDO the narrowing it promises.
   function narrowTo(conditionId: string) {
-    toggleConditionExclusive(conditionId, PROBLEM_IDS)
+    if (!engagedConditionIds.has(conditionId)) toggleConditionExclusive(conditionId, PROBLEM_IDS)
     onOpenChange(false)
   }
 
@@ -76,7 +88,7 @@ export function CatalogueCompareDialog() {
         description="Gdzie ceny i stawki tego kosztorysu odbiegają od katalogu — i czego w katalogu jeszcze nie ma."
         loaded
         data={report}
-        error={NO_CATALOGUE}
+        error={emptyReportReason(workCatalogue?.length ?? 0)}
       >
         {({ matching, diffs, missing }) => {
           const figureCount = diffs.reduce((sum, diff) => sum + diff.figures.length, 0)
