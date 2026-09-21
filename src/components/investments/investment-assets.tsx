@@ -67,8 +67,6 @@ export function InvestmentAssets({ investmentId, assets }: InvestmentAssetsProps
         {isUploading && <Loader2 className="text-muted-foreground size-4 animate-spin" />}
       </div>
 
-      {/* Dodawanie zaczyna się w podglądzie albo w dialogu „Edytuj inwestycję" — sekcja nie dubluje
-          go własnym przyciskiem. */}
       {visibleFiles.length > 0 && (
         <InvoicePreviewButton
           invoices={visibleFiles}

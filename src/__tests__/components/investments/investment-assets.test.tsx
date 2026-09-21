@@ -56,8 +56,8 @@ describe('InvestmentAssets', () => {
     isUploading.mockReturnValue(false)
   })
 
-  // Dodawanie zaczyna się w podglądzie albo w dialogu „Edytuj inwestycję", więc sekcja bez plików
-  // nie ma czego pokazać — przycisk podglądu otwierałby pusty dialog, a własnego „Dodaj" tu nie ma.
+  // Adding starts in the preview or in the „Edytuj inwestycję" dialog, so an empty section has
+  // nothing to offer — the preview button would open an empty dialog and there is no „Dodaj" here.
   it('renders no control at all when the investment has no files', () => {
     renderGallery([])
 
