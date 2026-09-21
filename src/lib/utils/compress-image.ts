@@ -27,10 +27,7 @@ export async function compressImage(originalFile: File, quality = QUALITY): Prom
               `[compress] ${originalFile.name}: ${beforeKB} KB → ${afterKB} KB (${Number(saved) >= 0 ? `−${saved}` : `+${Math.abs(Number(saved))}`}%)`,
             )
           }
-          const renamedFile = new File([compressed], originalFile.name, {
-            type: compressed.type,
-          })
-          resolve(renamedFile)
+          resolve(named(compressed, originalFile))
         },
         error: (err) => reject(err),
       })
@@ -39,6 +36,19 @@ export async function compressImage(originalFile: File, quality = QUALITY): Prom
     logError('Image compression failed, using original:', error)
     return originalFile
   }
+}
+
+// The stored filename is the one the user picked, so it is kept — except when CompressorJS
+// re-encoded to another format. Its `convertSize` default re-encodes a PNG over 5 MB to JPEG and
+// corrects the extension; forcing the old name back stored JPEG bytes at a `.png` path.
+// The corrected name is read off the `name` expando because CompressorJS hands `success` a plain
+// Blob carrying one — it never constructs a File, so narrowing on `instanceof File` never fired.
+function named(compressed: Blob, originalFile: File): File {
+  const correctedName =
+    compressed.type !== originalFile.type
+      ? (compressed as Blob & { name?: string }).name
+      : undefined
+  return new File([compressed], correctedName ?? originalFile.name, { type: compressed.type })
 }
 
 // Transcode to JPEG via CompressorJS (canvas). On Safari the canvas decodes HEIC through the OS

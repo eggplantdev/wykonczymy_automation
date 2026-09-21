@@ -30,6 +30,11 @@ export type ProcessUploadDepsT = {
   convertHeicToJpeg: (file: File) => Promise<File>
 }
 
+// Near-lossless on purpose: this pass only has to DECODE. The compressImage right after it is what
+// sets the real quality, so decoding at 0.6 too meant every non-Safari HEIC was compressed twice —
+// and the scan-extraction consumer reads these bytes, so the second pass came out of OCR accuracy.
+const HEIC_DECODE_QUALITY = 0.92
+
 const HEIC_EXTENSIONS = ['.heic', '.heif']
 const IMAGE_EXTENSIONS = [
   ...HEIC_EXTENSIONS,
@@ -79,7 +84,11 @@ const defaultDeps: ProcessUploadDepsT = {
       return await compressToJpeg(file)
     } catch {
       const { heicTo } = await import('heic-to')
-      const converted = await heicTo({ blob: file, type: 'image/jpeg', quality: 0.6 })
+      const converted = await heicTo({
+        blob: file,
+        type: 'image/jpeg',
+        quality: HEIC_DECODE_QUALITY,
+      })
       if (!(converted instanceof Blob)) throw new Error('heic-to did not return a JPEG blob')
       return compressImage(new File([converted], file.name, { type: 'image/jpeg' }))
     }
