@@ -88,6 +88,7 @@ import * as migration_20260914_0_add_szablon_investment_status from './20260914_
 import * as migration_20260914_1_szablon_workshop_constraints from './20260914_1_szablon_workshop_constraints'
 import * as migration_20260914_2_snapshot_template_preset from './20260914_2_snapshot_template_preset'
 import * as migration_20260915_0_transactions_amount_sort_index from './20260915_0_transactions_amount_sort_index'
+import * as migration_20260921_0_media_kind from './20260921_0_media_kind'
 
 export const migrations = [
   {
@@ -539,5 +540,10 @@ export const migrations = [
     up: migration_20260915_0_transactions_amount_sort_index.up,
     down: migration_20260915_0_transactions_amount_sort_index.down,
     name: '20260915_0_transactions_amount_sort_index',
+  },
+  {
+    up: migration_20260921_0_media_kind.up,
+    down: migration_20260921_0_media_kind.down,
+    name: '20260921_0_media_kind',
   },
 ]

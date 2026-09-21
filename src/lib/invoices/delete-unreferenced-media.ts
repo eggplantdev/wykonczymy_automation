@@ -1,4 +1,5 @@
 import type { Payload } from 'payload'
+import { MEDIA_RELATIONS, mediaReferenceWhere } from '@/lib/media/relating-collections'
 import { logError } from '@/lib/utils/log-error'
 
 /**
@@ -9,8 +10,9 @@ import { logError } from '@/lib/utils/log-error'
  * still attached elsewhere silently strips that page from whatever else holds it. Nothing enforces
  * "a media row is only ever linked from the upload that created it" — the admin panel's picker can
  * attach one file twice, and a client-side cleanup can fire while the write it thought failed
- * actually committed. Both collections that relate to `media` are checked; a third one added later
- * must be added here too, or it loses its files to this function.
+ * actually committed. The collections checked are `MEDIA_RELATIONS` — the same list the delete
+ * guard probes, because this used to be a hand-maintained copy and lost `equipment-events` to the
+ * drift.
  *
  * **One id at a time, never `Promise.all`.** On the deployed database (Neon through
  * `@payloadcms/db-vercel-postgres`) concurrent Payload writes share a session: every `delete`
@@ -26,15 +28,18 @@ import { logError } from '@/lib/utils/log-error'
 export async function deleteUnreferencedMedia(payload: Payload, mediaIds: number[]): Promise<void> {
   for (const id of mediaIds) {
     try {
-      const inTransfers = await payload.count({
-        collection: 'transactions',
-        where: { invoice: { equals: id } },
-      })
-      const inInspections = await payload.count({
-        collection: 'vehicle-inspections',
-        where: { attachments: { equals: id } },
-      })
-      if (inTransfers.totalDocs > 0 || inInspections.totalDocs > 0) continue
+      let referenced = false
+      for (const { collection, field } of MEDIA_RELATIONS) {
+        const { totalDocs } = await payload.count({
+          collection,
+          where: mediaReferenceWhere(field, id),
+        })
+        if (totalDocs > 0) {
+          referenced = true
+          break
+        }
+      }
+      if (referenced) continue
 
       await payload.delete({ collection: 'media', id })
     } catch (err) {

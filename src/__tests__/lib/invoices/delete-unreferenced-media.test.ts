@@ -1,17 +1,16 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { Payload } from 'payload'
+import type { CollectionSlug, Payload } from 'payload'
 import { deleteUnreferencedMedia } from '@/lib/invoices/delete-unreferenced-media'
+import { MEDIA_RELATIONS } from '@/lib/media/relating-collections'
 
-type ReferencedByT = { transactions?: number[]; inspections?: number[] }
+type ReferencedByT = Partial<Record<CollectionSlug, number[]>>
 
 function fakePayload(referencedBy: ReferencedByT) {
   const deleted: number[] = []
   const payload = {
     count: vi.fn(async ({ collection, where }) => {
       const id = where.invoice?.equals ?? where.attachments?.equals
-      const ids =
-        collection === 'transactions' ? referencedBy.transactions : referencedBy.inspections
-      return { totalDocs: ids?.includes(id) ? 1 : 0 }
+      return { totalDocs: referencedBy[collection as CollectionSlug]?.includes(id) ? 1 : 0 }
     }),
     delete: vi.fn(async ({ id }: { id: number }) => {
       deleted.push(id)
@@ -34,9 +33,26 @@ describe('deleteUnreferencedMedia', () => {
   })
 
   it('spares an attachment still held by a vehicle inspection', async () => {
-    const { payload, deleted } = fakePayload({ inspections: [7] })
+    const { payload, deleted } = fakePayload({ 'vehicle-inspections': [7] })
     await deleteUnreferencedMedia(payload, [7])
     expect(deleted).toEqual([])
+  })
+
+  // The counter was a hand-maintained list of two collections and `equipment-events.attachments`
+  // was added to neither, so a handover's photos were deletable out from under it. Driving both
+  // readers off MEDIA_RELATIONS is what closes it — this asserts the relation the list forgot.
+  it('spares an attachment still held by an equipment event', async () => {
+    const { payload, deleted } = fakePayload({ 'equipment-events': [7] })
+    await deleteUnreferencedMedia(payload, [7])
+    expect(deleted).toEqual([])
+  })
+
+  it('checks every registered relation before deleting', async () => {
+    const { payload } = fakePayload({})
+    await deleteUnreferencedMedia(payload, [7])
+    expect(vi.mocked(payload.count).mock.calls.map(([args]) => args.collection)).toEqual(
+      MEDIA_RELATIONS.map(({ collection }) => collection),
+    )
   })
 
   it('leaks rather than throws when a delete fails', async () => {
