@@ -26,7 +26,6 @@ export function KosztorysFiltersMenu() {
       label="Filtry"
       triggerCount={triggerCount}
       icon={ListFilter}
-      iconPosition="right"
       title="Co widać: pozycje"
       triggerClassName={TOOLBAR_FILTER_TRIGGER_CLASS}
       contentClassName="w-80"

@@ -69,7 +69,6 @@ export function KosztorysSectionsMenu() {
       label="Sekcje"
       triggerCount={collapsedSectionIds.size}
       icon={Rows3}
-      iconPosition="right"
       searchable
       title="Co widać: sekcje"
       triggerClassName={TOOLBAR_FILTER_TRIGGER_CLASS}

@@ -29,6 +29,9 @@ export function KosztorysTotalsPanelToggle({
       variant="ai"
       onClick={() => setTotalsOpen(!totalsOpen)}
     >
+      <ChevronDown
+        className={cn('transition-transform duration-200', totalsOpen && 'rotate-180')}
+      />
       {/* Both labels stacked in the same grid cell so the button sizes to the wider of the two —
           a plain ternary let the width twitch by a couple px on toggle (kerning, not length). */}
       <span className="grid">
@@ -39,9 +42,6 @@ export function KosztorysTotalsPanelToggle({
           Schowaj podsumowanie
         </span>
       </span>
-      <ChevronDown
-        className={cn('transition-transform duration-200', totalsOpen && 'rotate-180')}
-      />
     </Button>
   )
 }

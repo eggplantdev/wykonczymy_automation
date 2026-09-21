@@ -58,7 +58,6 @@ export function KosztorysProblemsMenu() {
           active={Boolean(engaged)}
           tone="destructive"
           icon={TriangleAlert}
-          iconPosition="right"
           className={TOOLBAR_FILTER_TRIGGER_CLASS}
         >
           Problemy

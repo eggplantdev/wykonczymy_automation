@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronDown, History, Redo2, SheetIcon, Undo2 } from 'lucide-react'
+import { History, Redo2, Settings, SheetIcon, Undo2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -50,8 +50,8 @@ export function KosztorysActionsMenu() {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button size="sm" variant="outline">
+            <Settings />
             Opcje
-            <ChevronDown />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-80">
