@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { Minus, Plus, Scan } from 'lucide-react'
 import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch'
 import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
+import { Spinner } from '@/components/ui/loader/spinner'
 
 type ZoomablePreviewImagePropsT = {
   src: string
@@ -35,6 +36,19 @@ export function ZoomablePreviewImage({
   // magnifies its artefacts, so the first zoom swaps in the full-size original. One-way for the
   // lifetime of this page — flipping back on every return to 1× would re-download both layers.
   const [hasZoomed, setHasZoomed] = useState(false)
+  // The swap points the same <img> at a different URL, so the browser drops the rendition it was
+  // showing: without these two the window is blank for the whole download, and blank forever if it
+  // 404s. A failure falls back to the rendition, which is already in cache.
+  const [isOriginalLoading, setIsOriginalLoading] = useState(false)
+  const [hasOriginalFailed, setHasOriginalFailed] = useState(false)
+
+  const showsOriginal = hasZoomed && !hasOriginalFailed
+
+  function startZoom() {
+    if (hasZoomed || hasOriginalFailed) return
+    setHasZoomed(true)
+    setIsOriginalLoading(true)
+  }
 
   return (
     <TransformWrapper
@@ -44,7 +58,7 @@ export function ZoomablePreviewImage({
       wheel={{ step: 0.2 }}
       // Covers wheel, pinch and double-click.
       onTransform={(_ref, state) => {
-        if (state.scale > 1) setHasZoomed(true)
+        if (state.scale > 1) startZoom()
       }}
     >
       {({ zoomIn, zoomOut, resetTransform }) => (
@@ -63,13 +77,32 @@ export function ZoomablePreviewImage({
                 alt={alt}
                 fill
                 sizes={sizes}
-                unoptimized={unoptimized || hasZoomed}
+                unoptimized={unoptimized || showsOriginal}
                 className="object-contain"
-                onLoad={onLoad}
-                onError={onError}
+                onLoad={() => {
+                  setIsOriginalLoading(false)
+                  onLoad?.()
+                }}
+                onError={() => {
+                  setIsOriginalLoading(false)
+                  if (showsOriginal) setHasOriginalFailed(true)
+                  else onError?.()
+                }}
               />
             </div>
           </TransformComponent>
+
+          {isOriginalLoading && (
+            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+              <Spinner />
+            </div>
+          )}
+
+          {hasOriginalFailed && (
+            <p className="bg-background/85 text-muted-foreground absolute top-2 left-1/2 z-10 -translate-x-1/2 rounded-md border px-3 py-1 text-sm shadow-sm">
+              Nie udało się wczytać oryginału — widok pozostaje w jakości podglądu.
+            </p>
+          )}
 
           {/* Overlaid rather than placed by the pager, which only exists on a multi-page set. */}
           <div className="bg-background/85 absolute right-2 bottom-2 z-10 flex gap-1 rounded-md border p-1 shadow-sm">
@@ -81,7 +114,7 @@ export function ZoomablePreviewImage({
                 icon: Plus,
                 label: 'Przybliż',
                 onClick: () => {
-                  setHasZoomed(true)
+                  startZoom()
                   zoomIn()
                 },
               },

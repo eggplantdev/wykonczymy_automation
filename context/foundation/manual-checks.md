@@ -545,29 +545,38 @@ Inwestycja z niepustą rozpiską i rozjazdami wobec katalogu (w lokalnym dumpie:
 
 ## fullscreen-zoom-preview
 
+Sprawdzone na staging (deploy `e5ae5ee5`, Playwright, 1440×900 i 375×812), 2026-09-21.
+
 ### Phase 1: Pełny ekran
 
-- [ ] Okno zajmuje cały ekran na 1440-tce; obrazek dopasowany, bez pasa pustki pod spodem.
-- [ ] Poniżej 768 px nic się nie zmieniło — płachta jak dotąd.
-- [ ] PDF w `<iframe>` wypełnia okno.
+- [x] Okno zajmuje cały ekran na 1440-tce; obrazek dopasowany, bez pasa pustki pod spodem.
+- [x] Poniżej 768 px nic się nie zmieniło — płachta jak dotąd.
+- [x] PDF w `<iframe>` wypełnia okno. — geometria zgodna (1392×714 w oknie 1440×900); samego
+      renderu PDF nie da się ocenić w headless shell, który nie ma czytnika PDF.
 
 ### Phase 2: Zoom na obrazku
 
-- [ ] Kółko, pinch i dwuklik przybliżają; przeciąganie przesuwa kadr.
-- [ ] „Dopasuj" wraca do 1× z dowolnego kadru.
-- [ ] Chevron na następny plik otwiera go w 1×, wycentrowany.
-- [ ] Przy PDF-ie nie ma przycisków zoomu.
-- [ ] Wydruk, „Pobierz wszystkie" i „Usuń plik" dalej dotyczą właściwej strony.
+- [x] Kółko, pinch i dwuklik przybliżają; przeciąganie przesuwa kadr. — kółko do 8×, dwuklik do
+      1,7×, przeciąganie przesuwa kadr; pinch niesprawdzalny bez dotyku.
+- [x] „Dopasuj" wraca do 1× z dowolnego kadru.
+- [x] Chevron na następny plik otwiera go w 1×, wycentrowany.
+- [x] Przy PDF-ie nie ma przycisków zoomu.
+- [x] Wydruk, „Pobierz wszystkie" i „Usuń plik" dalej dotyczą właściwej strony. — zestaw przycisków
+      i tytuł („2/2") zgadzają się ze stroną; usuwania nie klikałem, bo na preview DB kasuje
+      prawdziwą fakturę.
 
 ### Phase 3: Oryginał przy powiększeniu
 
-- [ ] W Network po pierwszym powiększeniu leci żądanie na URL Bloba, nie na `/_next/image`.
-- [ ] Rzut ze zgłoszenia jest w powiększeniu czytelny (linie wymiarowe), nie rozmyty.
-- [ ] Przy `unoptimized` z góry (podgląd niewysłanego jeszcze pliku) nic się nie psuje.
+- [x] W Network po pierwszym powiększeniu leci żądanie na URL Bloba, nie na `/_next/image`.
+- [x] Rzut ze zgłoszenia jest w powiększeniu czytelny (linie wymiarowe), nie rozmyty.
+- [x] Przy `unoptimized` z góry (podgląd niewysłanego jeszcze pliku) nic się nie psuje.
 
 ### Po slice review (globalna jakość obrazków)
 
-- [ ] Miniatury w `media-strip` i logo w topbarze wyglądają poprawnie i nie sypią 400 w Network
-      (`qualities: [90]` dotyczy całej aplikacji, nie tylko tego okna).
-- [ ] Po powiększeniu na wolnym łączu nie ma długiej pustki bez żadnego sygnału, a gdy oryginał
-      nie wczyta się — widać, że coś poszło nie tak (dziś `onError` nie ma stanu błędu).
+- [x] Miniatury w `media-strip` i logo w topbarze wyglądają poprawnie i nie sypią 400 w Network
+- [x] Po powiększeniu na wolnym łączu nie ma długiej pustki bez żadnego sygnału, a gdy oryginał
+      nie wczyta się — widać, że coś poszło nie tak. — **było zepsute**: podmiana `src` gasiła
+      rendition, więc przez cały czas pobierania (6 s na dławionym łączu) i na zawsze przy błędzie
+      okno było puste, bez spinnera i komunikatu. Naprawione w `zoomable-preview-image.tsx`
+      (spinner na czas pobierania oryginału, powrót do renditionu + komunikat przy błędzie),
+      regresję pilnuje spec w `invoice-preview-dialog.test.tsx`.

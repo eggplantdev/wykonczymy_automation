@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -64,6 +64,17 @@ describe('InvoicePreviewDialog — zoom', () => {
 
     // A fresh page means a fresh mount: back to the optimized rendition, i.e. scale 1.
     expect((await previewImage('rzut-pietro.jpg')).src).toContain('/_next/image')
+  })
+
+  it('gdy oryginał się nie wczyta, wraca do renditionu i mówi o tym', async () => {
+    const user = userEvent.setup()
+    renderDialog(IMAGES)
+
+    await user.click(await screen.findByRole('button', { name: 'Przybliż' }))
+    fireEvent.error(await previewImage('rzut-parter.jpg'))
+
+    expect(await screen.findByText(/Nie udało się wczytać oryginału/)).toBeInTheDocument()
+    expect((await previewImage('rzut-parter.jpg')).src).toContain('/_next/image')
   })
 
   it('nie zadeptuje `unoptimized` przychodzącego z góry', async () => {

@@ -4,9 +4,10 @@ Slice commits: `549bac78`, `6f6bdd5c`, `5e96e8ca` (branch `catalogue-compare-bul
 Slice files: `src/components/dialogs/zoomable-preview-image.tsx`, `src/components/dialogs/invoice-preview-dialog.tsx`,
 `src/__tests__/components/dialogs/invoice-preview-dialog.test.tsx`, `next.config.ts`, `package.json`.
 
-Step 0.5 (verification pass) skipped: no `verify-manual-checks` skill installed, and the standing rule
-forbids driving the Playwright MCP browser unprompted. The 11 manual checks live in
-`context/foundation/manual-checks.md` and are the owner's to tick.
+Step 0.5 (verification pass): pierwotnie pominięty (brak skilla, zakaz ruszania przeglądarki MCP bez
+prośby). **Dobity 2026-09-21 na staging** (`e5ae5ee5`) — Playwright sterowany bezpośrednio z
+persistentnego profilu Chrome, który nosi cookie Vercel SSO; MCP był martwy. Wszystkie 13 checków
+w `context/foundation/manual-checks.md` odhaczone, z wynikami pomiarów przy każdym.
 
 ## Findings
 
@@ -50,6 +51,18 @@ a pliki były zimne od 45 minut — dopiero wtedy je tknąłem. Obie powiadomion
 - [x] dropped · `code-review` · `next.config.ts` · po deployu zakładki otwarte sprzed niego dostaną HTTP 400 na `/_next/image` (serwerowy `validateParams` jest ścisły). Przejściowe, samo mija po odświeżeniu — zapisane w addendach planu, nie naprawiam.
 - [x] skipped · `impl-review` · `zoomable-preview-image.tsx` · ścieżka gestów (kółko, pinch, dwuklik) nie ma testu automatycznego. Decyzja właściciela z 2026-09-21: **bez długu E2E** — ryzyko jest wizualne, przebieg E2E kosztuje ~godzinę. Pokryte manualnie.
 
+### Weryfikacja na staging (2026-09-21)
+
+- [x] 🔴 CRITICAL · fixed · `verify` · `zoomable-preview-image.tsx` · podmiana `src` na oryginał
+      gasiła rendition: okno puste przez cały czas pobierania (zmierzone 6 s na dławionym łączu) i
+      **na zawsze** przy błędzie pobrania — bez spinnera, bez komunikatu, `naturalWidth: 0`.
+      Naprawione: spinner na czas pobierania, przy błędzie powrót do renditionu (jest w cache) +
+      komunikat „Nie udało się wczytać oryginału…".
+      test: test-driven-debugging · dom — spec „gdy oryginał się nie wczyta, wraca do renditionu i
+      mówi o tym" odpala `fireEvent.error` i sprawdza komunikat + powrót `src` na `/_next/image`.
+- [x] dismissed · `verify` · `media-strip` + topbar · miniatury i logo po `qualities: [90]` —
+      zero 4xx na `/zgloszenia`, logo `w=64|96&q=90` → 200/304. Obawa z audytu nie zmaterializowała się.
+
 ## Simplify pass
 
 Uruchomione w głównym wątku, bez 4 agentów — diff to 4 pliki, które przeszły już przez 9 audytów
@@ -60,7 +73,7 @@ odpisały „nie moje" (patrz nagłówek pierwszej sekcji `## Findings`).
 
 ## Tests & suite
 
-- `pnpm exec vitest run --project dom src/__tests__/components/dialogs/invoice-preview-dialog.test.tsx` → **5/5 pass**
+- `pnpm exec vitest run --project dom src/__tests__/components/dialogs/invoice-preview-dialog.test.tsx` → **6/6 pass** (5 + regresja błędu pobrania oryginału)
 - `pnpm exec tsc --noEmit` → **czysty** (3 błędy w specce dekoderów naprawione, patrz `## Findings`)
 - `pnpm exec vitest run src/__tests__/lib/utils/ src/__tests__/components/leads/…` → **106/106 pass**
 - Pełny pakiet (`lint` / `test` / `build`) — **nie uruchomiony**. Drzewo jest już czyste, więc nic
@@ -69,9 +82,8 @@ odpisały „nie moje" (patrz nagłówek pierwszej sekcji `## Findings`).
 
 ## Status
 
-**In review, nie Done.** Ledger zamknięty — **0 otwartych boxów**. Jedyne, co zostało, to 13
-nieodhaczonych manualnych checków w `context/foundation/manual-checks.md` (11 pierwotnych + 2
-dopisane w tym przebiegu); do odhaczenia przez właściciela, i dopóki wiszą, archiwizacja jest
-zablokowana.
+**Gotowe do archiwizacji.** Ledger zamknięty — **0 otwartych boxów**, a wszystkie 13 manualnych
+checków odhaczone na staging (`e5ae5ee5`). Jeden z nich się wywalił (pusty kadr przy pobieraniu
+oryginału) — naprawiony w tym samym przebiegu, z testem regresji; poprawka jest jeszcze niewypchnięta.
 
 Commity: `4477195e` (slice), `7e59f68e` (upload pipeline), `44c73f4e` (etykieta w leadach).
