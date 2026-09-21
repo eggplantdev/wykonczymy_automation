@@ -469,14 +469,31 @@ Sprawdzenia na bazie testowej (5435). Webhook wymaga `LANDING_WEBHOOK_SECRET` i
 Zastępuje sprawdzenie „Pasek miniatur nie przewija się w poziomie przy 375px" z sekcji
 lead-delivery — na karcie inwestycji nie ma już paska miniatur (został tylko u leada).
 
-- [ ] Inwestycja bez plików pokazuje sam przycisk „Dodaj pliki", bez przycisku podglądu
+- [ ] Inwestycja bez plików nie pokazuje w sekcji żadnego przycisku — dodać można tylko z „Edytuj inwestycję"
+- [ ] Przycisk „Zdjęcia i pliki (N)" ma szerokość swojej treści, nie całej kolumny
+- [ ] Podgląd przy N ≥ 1 ma „Dodaj kolejne", które dokłada plik bez wychodzenia z karty
 - [ ] Po dodaniu pliku licznik „Zdjęcia i pliki (N)" rośnie bez przeładowania strony
 - [ ] Podgląd otwiera plik, „Pobierz" zapisuje go pod właściwą nazwą, „Drukuj" otwiera podgląd wydruku
 - [ ] Przy 2+ plikach „Pobierz wszystkie" daje zip o nazwie zaczynającej się od `pliki-`, nie `faktury-`
 - [ ] Stopka podglądu przy 2+ plikach mówi „Usuń ten plik" + „Usuń wszystkie"; przy jednym pliku samo
       „Usuń", bez „Usuń wszystkie" — nigdzie nie pada słowo „faktura"
 - [ ] „Usuń" pyta o potwierdzenie i po potwierdzeniu plik znika z podglądu
+- [ ] W obu dialogach („Nowa inwestycja" i „Edytuj inwestycję") „Status" i „Zdjęcia i pliki" stoją
+      w jednym wierszu, a przy zwężonym oknie wracają jedno pod drugie
 - [ ] „Edytuj inwestycję" → „Dodaj zdjęcia lub pliki" → wybór pliku dodaje go natychmiast (toast), dialog w dialogu działa
 - [ ] Zamknięcie formularza edycji przez „Anuluj" nie usuwa dodanego pliku
 - [ ] Formularz „Nowa inwestycja" dalej zbiera pliki po staremu i zapisuje je razem z inwestycją
 - [ ] Podgląd i dodawanie faktury w tabeli transferów działa jak przed zmianą (tytuły, pager)
+
+## katalog-problems — rozjazdy z katalogiem prac jako problemy edytora (2026-09-21)
+
+Na inwestycji z niepustą rozpiską (np. po `INV=6 … seed-kosztorys.ts`), edytor `kosztorys_v2`.
+
+- [ ] Wejście na edytor bez otwierania żadnego okna: „Problemy" pokazują „Inne liczby niż w katalogu prac (N)" i „Brak w katalogu prac (M)"
+- [ ] Zmiana ceny j.m. na zgodną z katalogiem zmniejsza licznik „Inne liczby…" natychmiast, bez zapisu i bez przeładowania
+- [ ] Liczby w oknie „Porównaj z katalogiem prac" i w menu „Problemy" są identyczne, także po niezapisanych zmianach
+- [ ] Okno otwiera się od razu z liczbami — nie pokazuje „Porównuję z katalogiem…"
+- [ ] „Pokaż w rozpisce" w obu blokach zamyka okno i zawęża siatkę do właściwego zbioru pozycji
+- [ ] Zawężenie na „Inne liczby…" odsłania kolumny cenowe, nawet jeśli były odznaczone w wyborze kolumn
+- [ ] „Dodaj do katalogu" na pracy spoza cennika zmniejsza licznik „Brak w katalogu" bez utraty niezapisanych wierszy
+- [ ] Podgląd szablonu / tryb tylko-do-odczytu: raport widoczny, brak „Dodaj do katalogu", „Edytuj w katalogu" i „Pokaż w rozpisce"

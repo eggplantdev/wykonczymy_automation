@@ -7,6 +7,7 @@ import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import type { InvestmentFinancialsT, MaterialsBreakdownRowT } from '@/types/investment-financials'
 import type { WorkerRefT } from '@/types/reference-data'
+import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import type {
   PayoutTransactionRowT,
   DepositTransactionRowT,
@@ -170,6 +171,9 @@ export type KosztorysEditorDataT = {
   templatePresetId?: number
   // Optional on cost, not on visibility: the client share renders no stage menu (EX-613).
   workers?: WorkerRefT[]
+  // The whole cennik, for the in-browser comparison behind the katalog problems. Optional for the
+  // reason spelled out on `RowConditionCtxT.catalogueRowIds`: the preview surfaces carry none.
+  workCatalogue?: WorkCatalogueItemT[]
 }
 
 // --- v2 variant (react-datasheet-grid): a flat row with stages flattened

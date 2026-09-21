@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { problemsMenuModel } from '@/components/kosztorys/editor/toolbar/menus/problems-menu-model'
 import { PROBLEM_IDS } from '@/lib/kosztorys/problem-conditions'
+import { ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions/registry'
 
 const model = (counts: Record<string, number>, engaged: string[] = []) =>
   problemsMenuModel({
@@ -27,24 +28,24 @@ describe('the „Problemy" list', () => {
     ])
   })
 
-  // The stawka a price problem judges only renders in one view, so the row has to say which — in
-  // words, since a glyph on some rows and not others made the list look like two kinds of thing.
-  it('names the view a price problem belongs to', () => {
+  // The stawka a price problem judges only renders in one view — and the heading above the row is
+  // that view, so the row itself drops the „w widoku …" tail the registry hangs on the condition for
+  // the menus that have no heading to lean on.
+  it('leaves the view to the heading and keeps the row short', () => {
     const problemToggles = model({ 'overpriced-w-tools': 1 })
-    expect(problemToggles[0].label).toBe(
-      'Pozycje ze zbyt wysoką stawką wykonawcy w widoku z narzędziami (1)',
-    )
+    expect(problemToggles[0].label).toBe('Pozycje ze zbyt wysoką stawką wykonawcy (1)')
+    expect(problemToggles[0].groupLabel).toBe('Stawki wykonawców — z narzędziami')
   })
 
   // The cause is a fact about the whole investment, so the row keeps the imperative opening and then
-  // says WHY — the bare noun phrase every other row uses cannot carry it. The view and the count share
-  // one pair of parentheses, since two pairs in a row read as a typo.
+  // says WHY — the bare noun phrase every other row uses cannot carry it. The view is left to the
+  // heading, so the parentheses carry the count alone.
   it('lets a problem write its whole row, count included', () => {
     const problemToggles = model({ 'material-percent-rate-own-tools': 69 })
     expect(problemToggles[0].label).toBe(
       'Stawki wykonawców liczone według formuły — ta inwestycja ma materiały wliczone w robociznę, ' +
-        'więc stawki liczone ze współczynnika będą zawyżone i powinny być wpisane ręcznie ' +
-        '(widok bez narzędzi, 69)',
+        'więc stawki liczone ze współczynnika będą zawyżone; ustaw „Źródło ceny wykonawcy" na „kwota stała" ' +
+        '(69)',
     )
   })
 
@@ -56,17 +57,36 @@ describe('the „Problemy" list', () => {
   })
 
   // Three lines each and they light up in bulk, so among the terse rows they push everything else off
-  // the bottom of the list.
-  it('sinks the sentence problems below every terse one, etapy included', () => {
+  // the bottom of their heading.
+  it('sinks a sentence problem below the terse rows of its own category', () => {
     const problemToggles = model({
       'material-percent-rate-w-tools': 88,
-      'no-client-price': 9,
-      'stage-no-plane': 2,
+      'no-w-tools-price': 4,
+      'overpriced-w-tools': 1,
     })
     expect(problemToggles.map((toggle) => toggle.id)).toEqual([
-      'no-client-price',
-      'stage-no-plane',
+      'overpriced-w-tools',
+      'no-w-tools-price',
       'material-percent-rate-w-tools',
+    ])
+  })
+
+  // The heading is what the reader picks first, so the categories have to come out in one block each —
+  // an interleaved list would print the same heading three times and mean nothing.
+  it("groups the rows by category, in the menu's own order", () => {
+    const problemToggles = model({
+      'catalogue-missing': 3,
+      'no-client-price': 9,
+      'stage-no-plane': 2,
+      'overpriced-w-tools': 1,
+      'divergent-client-price': 38,
+    })
+    expect(problemToggles.map((toggle) => toggle.groupLabel)).toEqual([
+      'Ceny dla klienta',
+      'Ceny dla klienta',
+      'Stawki wykonawców — z narzędziami',
+      'Przedmiar i etapy',
+      'Katalog prac',
     ])
   })
 
@@ -108,6 +128,15 @@ describe('the trigger', () => {
 // The exclusivity is only as good as the list it clears: a problem missing from it would be the one
 // that survives a pick and quietly unions itself with the new one.
 describe('PROBLEM_IDS', () => {
+  // A diagnostic that names no category is filed under no heading and silently never reaches the
+  // list — the same row would still be counted, revealed and latched everywhere else, so the only
+  // trace would be a problem nobody can pick.
+  it('offers every diagnostic the registry declares', () => {
+    const diagnostics = ROW_CONDITIONS.filter((condition) => condition.kind === 'diagnostic')
+
+    expect(diagnostics.filter((condition) => !PROBLEM_IDS.includes(condition.id))).toEqual([])
+  })
+
   it('covers every problem the list can ever offer, engaged or not', () => {
     const offered = model(Object.fromEntries(PROBLEM_IDS.map((id) => [id, 1]))).map(
       (toggle) => toggle.id,

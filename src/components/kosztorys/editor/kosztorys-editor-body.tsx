@@ -99,6 +99,7 @@ export function KosztorysEditorBody({
   onTreeReplaced,
   onStaleTree,
   workers,
+  workCatalogue,
   ...panelData
 }: PropsT) {
   // A rozliczony wydatek means material was folded into robocizna, which is what makes a pozycja
@@ -114,6 +115,7 @@ export function KosztorysEditorBody({
     undoRedo,
     workers,
     hasSettledMaterial,
+    workCatalogue,
     onStaleTree,
   })
   const {

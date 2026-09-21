@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { buildCatalogueComparison } from '@/lib/kosztorys/work-catalogue/build-catalogue-comparison'
+import {
+  attachCatalogueHints,
+  buildCatalogueComparison,
+} from '@/lib/kosztorys/work-catalogue/build-catalogue-comparison'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import type { KosztorysItemT } from '@/lib/kosztorys/types'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
@@ -84,9 +87,20 @@ describe('buildCatalogueComparison', () => {
     expect(result.matching).toBe(1)
   })
 
-  it('„auto" liczy się z ceny KATALOGU, nie z ceny rozpiski', () => {
+  it('przy obu stawkach „auto" różnica ceny raportuje się RAZ, nie trzy razy', () => {
     const result = buildCatalogueComparison(
       [item({ clientPrice: 200 })],
+      [entry({ clientPrice: 100, wToolsRate: null, ownToolsRate: null })],
+      SETTINGS,
+    )
+
+    expect(result.diffs[0].figures.map((figure) => figure.label)).toEqual(['Cena j.m.'])
+    expect(result.diffs[0].maxDelta).toBeCloseTo(100, 6)
+  })
+
+  it('„auto" w cenniku liczy się z ceny KATALOGU, gdy rozpiska ma własne nadpisanie', () => {
+    const result = buildCatalogueComparison(
+      [item({ clientPrice: 200, wToolsOverrideValue: 130 })],
       [entry({ clientPrice: 100, wToolsRate: null, ownToolsRate: null })],
       SETTINGS,
     )
@@ -140,20 +154,10 @@ describe('buildCatalogueComparison', () => {
     expect(result.missing).toHaveLength(1)
   })
 
-  it('podpowiada najbliższą nazwę z katalogu', () => {
+  it('nie podpowiada nic samo z siebie — to osobny, leniwy przebieg', () => {
     const result = buildCatalogueComparison(
       [item({ description: 'Gładzie gipsowe', unit: 'm2' })],
       [entry({ description: 'Gładź gipsowa' })],
-      SETTINGS,
-    )
-
-    expect(result.missing[0].hint).toBe('Gładź gipsowa')
-  })
-
-  it('nie podpowiada, gdy nic nie jest dostatecznie podobne', () => {
-    const result = buildCatalogueComparison(
-      [item({ description: 'Montaż drzwi przesuwnych' })],
-      [entry({ description: 'Malowanie ścian' })],
       SETTINGS,
     )
 
@@ -164,5 +168,41 @@ describe('buildCatalogueComparison', () => {
     const result = buildCatalogueComparison([item({ description: '   ' })], [entry()], SETTINGS)
 
     expect(result).toEqual({ matching: 0, diffs: [], missing: [] })
+  })
+})
+
+describe('attachCatalogueHints', () => {
+  const missingRow = (description: string) => ({
+    itemId: 1,
+    section: 'Salon',
+    description,
+    unit: 'm2',
+    hint: null,
+  })
+
+  it('podpowiada najbliższą nazwę z katalogu', () => {
+    const [row] = attachCatalogueHints(
+      [missingRow('Gładzie gipsowe')],
+      [entry({ description: 'Gładź gipsowa' })],
+    )
+
+    expect(row.hint).toBe('Gładź gipsowa')
+  })
+
+  it('nie podpowiada, gdy nic nie jest dostatecznie podobne', () => {
+    const [row] = attachCatalogueHints(
+      [missingRow('Montaż drzwi przesuwnych')],
+      [entry({ description: 'Malowanie ścian' })],
+    )
+
+    expect(row.hint).toBeNull()
+  })
+
+  it('nie rusza przynależności do kubełka — wchodzi i wychodzi tyle samo prac', () => {
+    const rows = [missingRow('Gładzie gipsowe'), missingRow('Montaż drzwi przesuwnych')]
+
+    const result = attachCatalogueHints(rows, [entry({ description: 'Gładź gipsowa' })])
+
+    expect(result.map((row) => row.description)).toEqual(rows.map((row) => row.description))
   })
 })

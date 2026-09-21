@@ -144,15 +144,26 @@ export function InvestmentForm({
             )}
           </form.AppField>
 
-          <form.AppField name="status">
-            {(field) => (
-              <field.Select label="Status" showError>
-                <SelectItem value="planowana">Planowana</SelectItem>
-                <SelectItem value="active">Aktywna</SelectItem>
-                <SelectItem value="completed">Zakończona</SelectItem>
-              </field.Select>
+          {/* Container query, nie breakpoint: o dwie kolumny decyduje szerokość dialogu, a ten jest
+              węższy niż viewport, w którym `sm:` już by zadziałało. */}
+          <div className="grid gap-4 @md/field-group:grid-cols-2">
+            <form.AppField name="status">
+              {(field) => (
+                <field.Select label="Status" showError>
+                  <SelectItem value="planowana">Planowana</SelectItem>
+                  <SelectItem value="active">Aktywna</SelectItem>
+                  <SelectItem value="completed">Zakończona</SelectItem>
+                </field.Select>
+              )}
+            </form.AppField>
+
+            {collectAssets && (
+              <FileInput key={inputKey} label="Zdjęcia i pliki" multiple {...fileInputProps} />
             )}
-          </form.AppField>
+            {assetsInvestmentId !== undefined && (
+              <InvestmentAssetsField investmentId={assetsInvestmentId} />
+            )}
+          </div>
 
           {presetOptions && presetOptions.length > 0 && (
             <form.AppField name="presetId">
@@ -170,12 +181,6 @@ export function InvestmentForm({
                 </field.Select>
               )}
             </form.AppField>
-          )}
-          {collectAssets && (
-            <FileInput key={inputKey} label="Zdjęcia i pliki" multiple {...fileInputProps} />
-          )}
-          {assetsInvestmentId !== undefined && (
-            <InvestmentAssetsField investmentId={assetsInvestmentId} />
           )}
         </FieldGroup>
 

@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2, Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Loader2 } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { InvoicePreviewButton } from '@/components/dialogs/invoice-preview-button'
 import { InvoiceUploadDialog } from '@/components/dialogs/invoice-upload-dialog'
@@ -63,29 +62,20 @@ export function InvestmentAssets({ investmentId, assets }: InvestmentAssetsProps
         {isUploading && <Loader2 className="text-muted-foreground size-4 animate-spin" />}
       </div>
 
-      <div className="flex flex-col gap-2 sm:max-w-sm">
-        {visibleFiles.length > 0 && (
-          <InvoicePreviewButton
-            invoices={visibleFiles}
-            label={`Zdjęcia i pliki (${visibleFiles.length})`}
-            ariaLabel={`Podgląd plików inwestycji (${visibleFiles.length})`}
-            labels={ASSET_PREVIEW_LABELS}
-            onAdd={isBusy ? undefined : openUpload}
-            onRemove={isBusy ? undefined : handleRemove}
-            onRemoveAll={!isBusy && visibleFiles.length > 1 ? handleRemoveAll : undefined}
-          />
-        )}
-
-        <Button
-          variant="outline"
-          disabled={isBusy}
-          onClick={() => setUploadOpen(true)}
-          className="justify-start"
-        >
-          <Plus />
-          Dodaj pliki
-        </Button>
-      </div>
+      {/* Dodawanie zaczyna się w podglądzie albo w dialogu „Edytuj inwestycję" — sekcja nie dubluje
+          go własnym przyciskiem. Przy zerze plików podglądu nie ma, więc zostaje dialog edycji. */}
+      {visibleFiles.length > 0 && (
+        <InvoicePreviewButton
+          invoices={visibleFiles}
+          label={`Zdjęcia i pliki (${visibleFiles.length})`}
+          ariaLabel={`Podgląd plików inwestycji (${visibleFiles.length})`}
+          labels={ASSET_PREVIEW_LABELS}
+          className="w-fit"
+          onAdd={isBusy ? undefined : openUpload}
+          onRemove={isBusy ? undefined : handleRemove}
+          onRemoveAll={!isBusy && visibleFiles.length > 1 ? handleRemoveAll : undefined}
+        />
+      )}
 
       <InvoiceUploadDialog
         title={INVESTMENT_ASSETS_UPLOAD_TITLE}

@@ -10,6 +10,7 @@ import { SimpleTooltip } from '@/components/ui/tooltip'
 import { KosztorysActiveFiltersBar } from '@/components/kosztorys/editor/toolbar/kosztorys-active-filters-bar'
 import { KosztorysAddMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-add-menu'
 import { KosztorysActionsMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-actions-menu'
+import { KosztorysActionsProvider } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { SaveTemplateButton } from '@/components/kosztorys/editor/toolbar/save-template-button'
 import { KosztorysTotalsPanelToggle } from '@/components/kosztorys/summary/kosztorys-totals-panel-toggle'
 import { ToolbarToggle } from '@/components/ui/toolbar-toggle'
@@ -80,10 +81,15 @@ export function KosztorysEditorToolbar() {
               group already has its own line. */}
           <div className="flex flex-wrap items-center gap-1 sm:ml-auto">
             <SaveTemplateButton />
-            <KosztorysActionsMenu />
-            {/* Absent when nothing is wrong, so it sits where the eye lands, not between two
-                permanent controls. */}
-            <KosztorysProblemsMenu />
+            {/* Spans both menus, not just „Opcje": „Porównaj z katalogiem" is now read from
+                „Problemy" while its window is still mounted beside the other „Opcje" dialogs, so the
+                trigger and the dialog only reach the same state under one shared provider. */}
+            <KosztorysActionsProvider>
+              <KosztorysActionsMenu />
+              {/* Absent when nothing is wrong, so it sits where the eye lands, not between two
+                  permanent controls. */}
+              <KosztorysProblemsMenu />
+            </KosztorysActionsProvider>
             <KosztorysFiltersMenu />
             <KosztorysSectionsMenu />
             <KosztorysViewMenu />
