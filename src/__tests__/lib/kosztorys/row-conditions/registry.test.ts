@@ -6,7 +6,12 @@ import {
   countMatching,
   engagedPlane,
 } from '@/lib/kosztorys/row-conditions/queries'
-import { ROW_CONDITIONS, clientConditionIds } from '@/lib/kosztorys/row-conditions/registry'
+import {
+  CATALOGUE_DIVERGENCE_CONDITION_ID,
+  CATALOGUE_MISSING_CONDITION_ID,
+  ROW_CONDITIONS,
+  clientConditionIds,
+} from '@/lib/kosztorys/row-conditions/registry'
 import type { RowConditionCtxT } from '@/lib/kosztorys/row-conditions/types'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
@@ -83,6 +88,32 @@ describe('the conditions, each on its boundary', () => {
     const ctx = { ...CTX, divergentPriceRowIds: new Set([1, 2, 3]) }
     expect(countMatching(diverging, 'divergent-client-price', ctx)).toBe(3)
     expect(countMatching(diverging, 'divergent-client-price', CTX)).toBe(0)
+  })
+
+  it('oba wpisy katalogowe czytają wyłącznie zbiory, które dostały', () => {
+    const ctx = {
+      ...CTX,
+      catalogueRowIds: { divergent: new Set([7]), missing: new Set([8]) },
+    }
+    expect(countMatching([row({ id: 7 })], CATALOGUE_DIVERGENCE_CONDITION_ID, ctx)).toBe(1)
+    expect(countMatching([row({ id: 8 })], CATALOGUE_DIVERGENCE_CONDITION_ID, ctx)).toBe(0)
+    expect(countMatching([row({ id: 8 })], CATALOGUE_MISSING_CONDITION_ID, ctx)).toBe(1)
+    expect(countMatching([row({ id: 7 })], CATALOGUE_MISSING_CONDITION_ID, ctx)).toBe(0)
+  })
+
+  // Bez cennika (podglądy, fikstury) oba wpisy milczą — «brak katalogu» to brak licznika, a nie pusty
+  // cennik, który zgłosiłby każdą pracę jako spoza katalogu.
+  it('bez katalogu oba wpisy liczą zero, zamiast zgłaszać całą rozpiskę', () => {
+    const rows = [row({ id: 1 }), row({ id: 2 })]
+    expect(countMatching(rows, CATALOGUE_DIVERGENCE_CONDITION_ID, CTX)).toBe(0)
+    expect(countMatching(rows, CATALOGUE_MISSING_CONDITION_ID, CTX)).toBe(0)
+  })
+
+  it('rozjazd liczb odsłania kolumny cenowe, brak w katalogu nie ma czego odsłonić', () => {
+    expect(columnsRevealedBy([CATALOGUE_DIVERGENCE_CONDITION_ID])).toEqual(
+      columnsRevealedBy(['divergent-client-price']),
+    )
+    expect(columnsRevealedBy([CATALOGUE_MISSING_CONDITION_ID])).toEqual(new Set())
   })
 
   it('„rozjazd" is the sheet’s pomiar against Σ etapów, silent when the sheet said nothing', () => {

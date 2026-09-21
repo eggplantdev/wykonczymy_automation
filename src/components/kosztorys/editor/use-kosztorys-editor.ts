@@ -95,7 +95,9 @@ import {
   updateItemFieldAction,
   updateSectionFieldAction,
 } from '@/lib/actions/kosztorys'
+import { buildCatalogueComparison } from '@/lib/kosztorys/work-catalogue/build-catalogue-comparison'
 import type { ItemPatchT, KosztorysTreeT, KosztorysV2RowT } from '@/lib/kosztorys/types'
+import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import type { WorkerRefT } from '@/types/reference-data'
 
 type ArgsT = {
@@ -115,6 +117,9 @@ type ArgsT = {
   workers?: WorkerRefT[]
   // Gate on the overpaid-crew problem (EX-708). Defaults false for client-share, which counts none.
   hasSettledMaterial?: boolean
+  // The whole cennik, for the two katalog problems. Absent on the podglądy, where its absence is
+  // what switches both rows off — an empty array would mean „nothing is in the cennik".
+  workCatalogue?: WorkCatalogueItemT[]
   // Reseed-the-whole-tree path for a write that returns NOT_FOUND. Absent on the read-only body.
   onStaleTree?: () => Promise<void>
 }
@@ -136,6 +141,7 @@ export function useKosztorysEditor({
   undoRedo,
   workers,
   hasSettledMaterial = false,
+  workCatalogue,
   onStaleTree,
 }: ArgsT) {
   // Interaction, split from disclosure: `preview` decides what a client is SHOWN, this decides whether
@@ -363,6 +369,34 @@ export function useKosztorysEditor({
     [preview, rows],
   )
 
+  // The whole rozpiska read against the cennik, once per committed change — the same comparison the
+  // „Porównaj z katalogiem prac" window renders, so the counters and the window can never disagree.
+  // Hand-written memo: the compiler quietly bails in this file (EX-496), and this is the one call
+  // here whose cost is worth a dependency list. The coefficients come from a ROW, not from `tree`:
+  // the owner changes them mid-session and the settings hook patches them onto the rows (which is
+  // where it reads them back from too), while `tree` still carries what the server last served.
+  //
+  // Hints are deliberately NOT attached here: scoring every praca against every cennik opis is
+  // seconds, not milliseconds, and belongs where somebody is reading them (the window).
+  const catalogueComparison = useMemo(() => {
+    if (preview || !workCatalogue || rows.length === 0) return null
+    return buildCatalogueComparison(rows, workCatalogue, {
+      wToolsCoeff: rows[0].globalWToolsCoeff,
+      ownToolsCoeff: rows[0].globalOwnToolsCoeff,
+    })
+  }, [preview, rows, workCatalogue])
+
+  const catalogueRowIds = useMemo(
+    () =>
+      catalogueComparison
+        ? {
+            divergent: new Set(catalogueComparison.diffs.map((diff) => diff.itemId)),
+            missing: new Set(catalogueComparison.missing.map((row) => row.itemId)),
+          }
+        : undefined,
+    [catalogueComparison],
+  )
+
   // Six conditions and a full set of counters ask for this ~2.6× per pozycja, each re-summing the same
   // ten stage columns — ~2ms of the ~5ms these memos spend on 1000 pozycji, on every committed keystroke.
   const qtyDoneByRowId = useMemo(() => qtyDoneByRow(rows, stages), [rows, stages])
@@ -377,11 +411,20 @@ export function useKosztorysEditor({
       hasSettledMaterial,
       divergentPriceRowIds: divergentPriceIds,
       qtyDoneByRowId,
+      catalogueRowIds,
     }
     return ROW_CONDITIONS.map(
       (condition) => [condition.id, preview ? 0 : countMatching(rows, condition.id, ctx)] as const,
     )
-  }, [preview, rows, stages, hasSettledMaterial, divergentPriceIds, qtyDoneByRowId])
+  }, [
+    preview,
+    rows,
+    stages,
+    hasSettledMaterial,
+    divergentPriceIds,
+    qtyDoneByRowId,
+    catalogueRowIds,
+  ])
   // Over the view's own etapy: a subcontractor view already drops plane-less etapy, so counting the raw
   // list would offer a filter that can only empty the stage block. Asymmetric with the price conditions
   // by design — a price exists on both planes, an etap belongs to one.
@@ -480,6 +523,7 @@ export function useKosztorysEditor({
             hasSettledMaterial,
             divergentPriceRowIds: divergentPriceIds,
             qtyDoneByRowId,
+            catalogueRowIds,
           })
         : rows,
     [
@@ -490,6 +534,7 @@ export function useKosztorysEditor({
       hasSettledMaterial,
       divergentPriceIds,
       qtyDoneByRowId,
+      catalogueRowIds,
     ],
   )
 
@@ -510,6 +555,7 @@ export function useKosztorysEditor({
       hasSettledMaterial,
       divergentPriceRowIds: divergentPriceIds,
       qtyDoneByRowId,
+      catalogueRowIds,
     }
     return new Map(
       // Skipping a non-lifting condition saves a full pass per row for a `Map` entry the menu never reads,
@@ -519,7 +565,15 @@ export function useKosztorysEditor({
         sectionIdsWhereAllMatch(rows, condition.id, ctx),
       ]),
     )
-  }, [preview, rows, stages, hasSettledMaterial, divergentPriceIds, qtyDoneByRowId])
+  }, [
+    preview,
+    rows,
+    stages,
+    hasSettledMaterial,
+    divergentPriceIds,
+    qtyDoneByRowId,
+    catalogueRowIds,
+  ])
 
   // Problems only: the latch's other half („Odśwież — ukryj poprawione") renders only while a problem is
   // engaged, so latching under a „Prace" filter would hold rows with no way to release them. Out under
@@ -543,6 +597,7 @@ export function useKosztorysEditor({
       hasSettledMaterial,
       divergentPriceRowIds: divergentPriceIds,
       qtyDoneByRowId,
+      catalogueRowIds,
       latchedRowIds: latch?.ids,
     })
     if (latch) for (const row of next) latch.ids.add(row.id)
@@ -557,6 +612,7 @@ export function useKosztorysEditor({
     hasSettledMaterial,
     divergentPriceIds,
     qtyDoneByRowId,
+    catalogueRowIds,
     latch,
   ])
   const ordinalByRowId = useMemo(() => baseOrdinals(documentRows), [documentRows])
@@ -1148,6 +1204,10 @@ export function useKosztorysEditor({
     investorImpactConfirm,
     subcontractorDue,
     marginForecastByPlane,
+    // The one comparison against the cennik: the „Problemy" counters and the „Porównaj z katalogiem
+    // prac" window both read it, so the two can never show different numbers. `null` = no cennik on
+    // this surface.
+    catalogueComparison,
     laborCostsNet,
     // toolbar / panel state
     setView,

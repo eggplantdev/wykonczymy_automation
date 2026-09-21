@@ -37,6 +37,11 @@ const ALL_PRICE_COLUMNS: readonly string[] = ['price', ...ALL_PLANE_PRICE_KEYS]
 // diagnostic is pressed, so the id is shared between the registry and the column assembly.
 export const MEASURE_DIVERGED_CONDITION_ID = 'measure-diverged'
 
+// Named because the „Porównaj z katalogiem prac" window engages them by id — its „Pokaż w rozpisce"
+// buttons are the same gesture as picking the row from the „Problemy" menu.
+export const CATALOGUE_DIVERGENCE_CONDITION_ID = 'catalogue-price-divergence'
+export const CATALOGUE_MISSING_CONDITION_ID = 'catalogue-missing'
+
 // The rabat pair, named because the menu drops it under a global rabat — the same call the grid makes
 // for the rabat COLUMNS (column-config.ts' DISCOUNT_COLUMN_IDS). Kept beside the entries rather
 // than restated in the menu, so adding a third rabat condition cannot leave the two lists disagreeing.
@@ -261,6 +266,32 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     // views — where the derived stawka is the only visible trace of the disagreement.
     revealsColumns: ALL_PRICE_COLUMNS,
     matches: (row, ctx) => ctx.divergentPriceRowIds.has(row.id),
+  },
+  // The two katalog verdicts. „worklist" for the same reason as the row above: the cennik is a
+  // reference, not a law — a rozpiska is allowed to price a praca its own way — so both rows name
+  // work to look through. Kept apart because they differ in what there is to show: a rozjazd liczb
+  // is read in the price columns, a praca the cennik never heard of has nothing to reveal.
+  {
+    id: CATALOGUE_DIVERGENCE_CONDITION_ID,
+    label: 'z innymi liczbami niż w katalogu prac',
+    sectionLabel: null,
+    kind: 'diagnostic',
+    tone: 'worklist',
+    problemLabel: (count) => `Inne liczby niż w katalogu prac (${count})`,
+    // Every price column, like the divergence row above: the cena j.m. is assembled on „Inwestor"
+    // only, so naming it alone would reveal nothing from a subcontractor view — where the derived
+    // stawka is the disagreement's only visible trace.
+    revealsColumns: ALL_PRICE_COLUMNS,
+    matches: (row, ctx) => ctx.catalogueRowIds?.divergent.has(row.id) ?? false,
+  },
+  {
+    id: CATALOGUE_MISSING_CONDITION_ID,
+    label: 'spoza katalogu prac',
+    sectionLabel: null,
+    kind: 'diagnostic',
+    tone: 'worklist',
+    problemLabel: (count) => `Brak w katalogu prac (${count})`,
+    matches: (row, ctx) => ctx.catalogueRowIds?.missing.has(row.id) ?? false,
   },
   {
     id: MEASURE_DIVERGED_CONDITION_ID,

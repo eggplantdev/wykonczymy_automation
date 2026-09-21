@@ -382,8 +382,8 @@ powierzchniach, zero na podglądach.
 
 #### Automated
 
-- [ ] 3.1 Spec rejestru przechodzi z dwoma nowymi wpisami
-- [ ] 3.2 Nowy spec dom: licznik topnieje i przeżywa remount
+- [x] 3.1 Spec rejestru przechodzi z dwoma nowymi wpisami
+- [x] 3.2 Nowy spec dom: licznik topnieje i przeżywa remount
 
 ### Phase 4: Okno na jednym źródle
 

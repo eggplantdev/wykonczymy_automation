@@ -22,6 +22,14 @@ export type RowConditionCtxT = {
   // computed the slow way. So a host that skips it stays correct and only pays what it paid before —
   // which is why the spec fixtures and single-shot callers do not carry one.
   qtyDoneByRowId?: ReadonlyMap<number, number>
+  // The two katalog verdicts, precomputed per pozycja one floor up — same reason as
+  // `divergentPriceRowIds`: the question is about the whole rozpiska read against the cennik, and
+  // every `matches` here sees one row.
+  //
+  // Optional, unlike the money guard above: a host with no cennik (the podglądy, the spec fixtures)
+  // has nothing to compare against, and „no katalog" must read as „no counter" rather than as
+  // „the cennik is empty", which would report every single praca as missing from it.
+  catalogueRowIds?: { divergent: ReadonlySet<number>; missing: ReadonlySet<number> }
 }
 
 // 'client' is a third kind, not a third mechanism: it hides like a filter, but it is engaged by the
