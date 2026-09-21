@@ -463,3 +463,19 @@ Sprawdzenia na bazie testowej (5435). Webhook wymaga `LANDING_WEBHOOK_SECRET` i
 - [ ] Promocja zgłoszenia z landingu od początku do końca — karta nowej inwestycji pokazuje zdjęcia klienta
 - [ ] Zgłoszenie po promocji jest „Skontaktowano" i podaje link do inwestycji zamiast przycisku
 - [ ] Odznaka nieprzeczytanych zgłoszeń w nawigacji spada o jeden
+
+## EX-802 — investment-assets-dialog (galeria bez miniatur, 2026-09-21)
+
+Zastępuje sprawdzenie „Pasek miniatur nie przewija się w poziomie przy 375px" z sekcji
+lead-delivery — na karcie inwestycji nie ma już paska miniatur (został tylko u leada).
+
+- [ ] Inwestycja bez plików pokazuje sam przycisk „Dodaj pliki", bez przycisku podglądu
+- [ ] Po dodaniu pliku licznik „Zdjęcia i pliki (N)" rośnie bez przeładowania strony
+- [ ] Podgląd otwiera plik, „Pobierz" zapisuje go pod właściwą nazwą, „Drukuj" otwiera podgląd wydruku
+- [ ] Przy 2+ plikach „Pobierz wszystkie" daje zip o nazwie zaczynającej się od `pliki-`, nie `faktury-`
+- [ ] Stopka podglądu mówi „Usuń ten plik" / „Usuń wszystkie" — nigdzie nie pada słowo „faktura"
+- [ ] „Usuń" pyta o potwierdzenie i po potwierdzeniu plik znika z podglądu
+- [ ] „Edytuj inwestycję" → „Dodaj zdjęcia lub pliki" → wybór pliku dodaje go natychmiast (toast), dialog w dialogu działa
+- [ ] Zamknięcie formularza edycji przez „Anuluj" nie usuwa dodanego pliku
+- [ ] Formularz „Nowa inwestycja" dalej zbiera pliki po staremu i zapisuje je razem z inwestycją
+- [ ] Podgląd i dodawanie faktury w tabeli transferów działa jak przed zmianą (tytuły, pager)

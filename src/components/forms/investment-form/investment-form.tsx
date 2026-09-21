@@ -5,6 +5,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { FieldGroup } from '@/components/ui/field'
 import { FileInput } from '@/components/ui/file-input'
 import { useFilePickIngest } from '@/components/forms/hooks/use-file-pick-ingest'
+import { InvestmentAssetsField } from './investment-assets-field'
 import { submitWithInvoicePages } from '@/lib/invoices/submit-with-invoice-pages'
 import { useManagedForm } from '@/components/forms/hooks/use-managed-form'
 import { FormShell } from '@/components/forms/form-components/form-shell'
@@ -32,6 +33,9 @@ type InvestmentFormPropsT = {
   /** Create-only file picker. On edit the gallery on the investment's page owns `assets` — routing
    * them through the update action would send an empty list and wipe what is already attached. */
   collectAssets?: boolean
+  /** Edit-only counterpart to `collectAssets`: the row exists, so files are attached on the spot by
+   * their own action rather than travelling through the submit. Mutually exclusive with it. */
+  assetsInvestmentId?: number
 }
 
 export function InvestmentForm({
@@ -46,6 +50,7 @@ export function InvestmentForm({
   persistDraft,
   presetOptions,
   collectAssets,
+  assetsInvestmentId,
 }: InvestmentFormPropsT) {
   const { files, isIngesting, inputKey, fileInputProps, reset: resetFiles } = useFilePickIngest()
 
@@ -169,6 +174,9 @@ export function InvestmentForm({
           )}
           {collectAssets && (
             <FileInput key={inputKey} label="Zdjęcia i pliki" multiple {...fileInputProps} />
+          )}
+          {assetsInvestmentId !== undefined && (
+            <InvestmentAssetsField investmentId={assetsInvestmentId} />
           )}
         </FieldGroup>
 

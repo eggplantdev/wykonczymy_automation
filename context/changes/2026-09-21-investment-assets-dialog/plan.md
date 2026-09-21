@@ -299,11 +299,11 @@ Uruchamiane **raz**, po ostatniej fazie:
 
 #### Automated
 
-- [x] 2.1 Spec DOM `investment-assets.test.tsx` przechodzi — 5827528f
-- [x] 2.2 Spec akcji `investment-assets.db.test.ts` przechodzi — 5827528f
+- [x] 2.1 Spec DOM `investment-assets.test.tsx` przechodzi — 146cae88
+- [x] 2.2 Spec akcji `investment-assets.db.test.ts` przechodzi — 146cae88
 
 ### Phase 3: Dodawanie plików z dialogu „Edytuj inwestycję"
 
 #### Automated
 
-- [ ] 3.1 Spec DOM pola dodawania plików przechodzi
+- [x] 3.1 Spec DOM pola dodawania plików przechodzi — PENDING_SHA

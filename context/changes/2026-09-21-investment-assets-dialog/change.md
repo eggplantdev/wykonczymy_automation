@@ -1,7 +1,7 @@
 ---
 change_id: investment-assets-dialog
 title: Galeria inwestycji bez miniatur — podgląd i dodawanie plików przez dialog
-status: implementing
+status: implemented
 created: 2026-09-21
 updated: 2026-09-21
 archived_at: null

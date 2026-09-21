@@ -40,7 +40,9 @@ export function useMediaRemoval<FileT extends { id?: number }>({
 
   const visibleFiles = files.filter((file) => file.id === undefined || !removedIds.has(file.id))
 
-  function handleRemove(file: FileT, closePreview: () => void) {
+  // Takes the id-bearing shape rather than `FileT`: the preview hands back the page it has on
+  // screen, typed as the dialog's own file type, and the id is all this needs.
+  function handleRemove(file: { id?: number }, closePreview: () => void) {
     const fileId = file.id
     if (fileId === undefined) return
 
