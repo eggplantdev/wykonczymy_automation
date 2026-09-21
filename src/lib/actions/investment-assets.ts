@@ -2,7 +2,6 @@
 
 import { protectedAction } from './run-action'
 import { appendUploadIds, setUploadField } from '@/lib/media/set-upload-field'
-import { fetchInvestmentAssets } from '@/lib/queries/investment-assets'
 import type { ActionResultT } from '@/types/action'
 
 /**
@@ -32,20 +31,6 @@ export async function addInvestmentAssetsAction(
     },
     ['investments'],
   )
-}
-
-/**
- * Which media an investment already holds. A surface that offers to send files INTO a freely picked
- * investment cannot read that set off the row it started from, and without it „jeszcze nie tam"
- * would be a guess.
- */
-export async function investmentAssetIdsAction(
-  investmentId: number,
-): Promise<ActionResultT<number[]>> {
-  return protectedAction('investmentAssetIdsAction', async () => ({
-    success: true,
-    data: (await fetchInvestmentAssets(investmentId)).map((file) => file.id),
-  }))
 }
 
 export async function removeAllInvestmentAssetsAction(investmentId: number) {
