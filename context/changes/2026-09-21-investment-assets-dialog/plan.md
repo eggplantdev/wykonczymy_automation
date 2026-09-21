@@ -306,4 +306,4 @@ Uruchamiane **raz**, po ostatniej fazie:
 
 #### Automated
 
-- [x] 3.1 Spec DOM pola dodawania plików przechodzi — PENDING_SHA
+- [x] 3.1 Spec DOM pola dodawania plików przechodzi — 8bb105ae
