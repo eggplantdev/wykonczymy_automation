@@ -3,6 +3,10 @@ import { PROBLEM_CONDITIONS } from '@/lib/kosztorys/problem-conditions'
 export type ProblemToggleT = {
   id: string
   label: string
+  // The heading this row belongs under. Carried per row rather than returned as nested groups: the
+  // list is already ordered by category, so the menu only has to notice where the label changes — and
+  // every existing reader still gets one flat list of rows.
+  groupLabel: string
   active: boolean
 }
 
@@ -43,6 +47,7 @@ export function problemsMenuModel({ engagedIds, counts }: ArgsT): ProblemToggleT
     .filter((problem) => problem.count > 0 || engagedIds.has(problem.id))
     .map((problem) => ({
       id: problem.id,
+      groupLabel: problem.groupLabel,
       label:
         problem.sentence?.(problem.count) ?? `${problem.noun} ${problem.label} (${problem.count})`,
       active: engagedIds.has(problem.id),
