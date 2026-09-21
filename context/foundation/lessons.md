@@ -2000,3 +2000,21 @@ is the test of the test, and skipping it is how a decorative assertion gets comm
   refuses keystrokes.
 - **Applies to**: any `page.keyboard` use following an interaction that can trigger a re-render — which,
   in an editor with debounced autosave, is all of them.
+
+## Read a view/mode switcher's state from its own control, never from a nearby label
+
+- **Context**: any QA pass or E2E that drives a surface with more than one mode — the kosztorys v2
+  grid's „Inwestor / Z narzędziami / Bez narzędzi" radio group above all, where the assembled column
+  set differs per view.
+- **Problem**: 2026-09-21 a manual pass on staging (inw. 137) read the active view off a nearby
+  dropdown trigger captioned „Widok inwestora" while the grid actually stood on „Z narzędziami", and
+  wrote up a confident defect — „zawężenie nie odsłania kolumn cenowych" — complete with file, line
+  and a suspect constant in `column-selection.ts`. Nothing was broken: the bare `price` column is
+  assembled **only** on the client view (`kosztorys-v2-columns.tsx`), so on „Z narzędziami" there is
+  no column for the reveal to un-hide. The write-up cost ~1 h to disprove, twice over.
+- **Rule**: read mode state from the control that holds it — `data-state="checked"` / `aria-checked`
+  on the `role="radio"` item — and re-read it after every switch; a button's caption is not state.
+  And before writing up a defect with a file and a line, falsify it at the cheapest layer that can
+  answer: a throwaway unit spec on the pure function you are accusing (here `selectV2Columns`) takes
+  minutes and either kills the finding or turns it into a red test.
+- **Applies to**: verify, verify-manual-checks, 10x-e2e, impl-review.
