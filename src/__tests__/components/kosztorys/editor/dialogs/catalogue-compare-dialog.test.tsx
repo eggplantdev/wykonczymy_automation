@@ -35,7 +35,16 @@ const COMPARISON: CatalogueComparisonT = {
       itemId: 11,
       description: 'Gładzie gipsowe',
       unit: 'm2',
-      figures: [{ label: 'Cena j.m.', kosztorys: 50, catalogue: 45, delta: 5 }],
+      figures: [
+        {
+          label: 'Cena j.m.',
+          kosztorys: 50,
+          catalogue: 45,
+          delta: 5,
+          kosztorysIsAuto: false,
+          catalogueIsAuto: false,
+        },
+      ],
       maxDelta: 5,
     },
   ],

@@ -95,6 +95,13 @@ export type CatalogueMissingT = {
   hint: string | null
 }
 
+// What the hurtowy zapis actually wrote, shaped as the patch the grid applies to its rows — only the
+// liczby that were ticked are present, and a stawka taken from a katalogowe „auto" arrives as an
+// explicit `null`, because dropping the nadpisanie IS the write.
+export type AppliedCatalogueValueT = { itemId: number } & Partial<
+  Pick<KosztorysItemT, 'clientPrice' | 'wToolsOverrideValue' | 'ownToolsOverrideValue'>
+>
+
 export type CatalogueComparisonT = {
   matching: number
   diffs: CataloguePriceDiffT[]

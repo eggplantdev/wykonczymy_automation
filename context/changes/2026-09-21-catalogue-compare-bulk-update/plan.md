@@ -614,13 +614,13 @@ Uruchomić **raz**, po ostatniej fazie:
 
 #### Automated
 
-- [x] 2.1 Specs czterech kombinacji rodzajów przechodzą
+- [x] 2.1 Specs czterech kombinacji rodzajów przechodzą — `18092f87` (wyszarzenie „Różnicy" przeniesione do fazy 4, razem z własną tabelą)
 
 ### Phase 3: Zapis po stronie serwera
 
 #### Automated
 
-- [ ] 3.1 Spec zapisu paczkowego przechodzi
+- [x] 3.1 Spec zapisu paczkowego przechodzi — `106a4318`
 
 ### Phase 4: Tabela zaznaczania w oknie
 

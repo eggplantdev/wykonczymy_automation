@@ -8,8 +8,16 @@ import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import {
   findCatalogueItemByKey,
   getCatalogueSourceItem,
+  listCatalogueItems,
   listCatalogueItemsByIds,
 } from '@/lib/db/work-catalogue'
+import {
+  applyCatalogueValues,
+  listItemsForCatalogueApply,
+  type CatalogueApplyColumnT,
+  type CatalogueApplyValueT,
+} from '@/lib/db/kosztorys-catalogue-apply'
+import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { toCatalogueCandidate } from '@/lib/kosztorys/work-catalogue/item-to-catalogue'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { stripLegacyMarker } from '@/lib/kosztorys/work-catalogue/legacy-marker'
@@ -17,8 +25,10 @@ import { appendCatalogueItems } from '@/lib/kosztorys/work-catalogue/append-cata
 import { getWorkCatalogue } from '@/lib/queries/work-catalogue'
 import type {
   AppendedCatalogueSliceT,
+  AppliedCatalogueValueT,
   CatalogueSavePreviewT,
   CatalogueSeedItemT,
+  SeedConflictFieldT,
   WorkCatalogueItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
 import type { ActionResultT } from '@/types/action'
@@ -186,6 +196,102 @@ export async function insertCatalogueItemsAction(
       if (!created) return { success: false, error: 'Nie znaleziono sekcji' }
 
       return { success: true, data: created }
+    },
+    ['kosztorysItems'],
+  )
+}
+
+const applyCatalogueSchema = z.object({
+  investmentId: z.number().int().positive(),
+  selections: z
+    .array(
+      z.object({
+        itemId: z.number().int().positive(),
+        fields: z
+          .array(z.enum(['clientPrice', 'wToolsRate', 'ownToolsRate']))
+          .min(1, 'Zaznacz co najmniej jedną liczbę'),
+      }),
+    )
+    .min(1, 'Zaznacz co najmniej jedną liczbę'),
+})
+
+const STALE_ITEM_ERROR = 'Część zaznaczonych pozycji już nie istnieje.'
+const STALE_CATALOGUE_ERROR = 'Część zaznaczonych prac nie jest już w katalogu.'
+
+/**
+ * The other direction: the katalog's liczby taken INTO the rozpiska, for every pozycja and every
+ * liczba the owner ticked in „Porównaj z katalogiem prac".
+ *
+ * The wire carries ids and field names only. Every kwota that lands in the rozpiska is re-read from
+ * the cennik here — same rule as `insertCatalogueItemsAction` — and the klucz is rebuilt from the
+ * pozycja as it stands NOW rather than taken from the payload, so a window left open across a rename
+ * ends in a Polish sentence instead of pricing a praca off the wrong wpis.
+ *
+ * Snapshots first: the write flattens hand-typed ceny and nadpisania across the whole rozpiska at
+ * once and is irrecoverable by in-session undo — the same reason „Popraw literówki" and the rabat
+ * procentowy snapshot.
+ */
+export async function applyCatalogueToKosztorysAction(
+  investmentId: number,
+  selections: { itemId: number; fields: SeedConflictFieldT[] }[],
+): Promise<ActionResultT<AppliedCatalogueValueT[]>> {
+  return investmentAction(
+    'applyCatalogueToKosztorysAction',
+    { investmentId },
+    async ({ payload, user }) => {
+      const parsed = validateAction(applyCatalogueSchema, { investmentId, selections })
+      if (!parsed.success) return parsed
+
+      // Folded per pozycja before anything reads the DB: a payload naming one praca twice would
+      // otherwise push the same id into a batch twice, and `UPDATE … FROM (VALUES …)` has no
+      // opinion about which of the two duplicate rows wins.
+      const wanted = new Map<number, Set<SeedConflictFieldT>>()
+      for (const selection of parsed.data.selections) {
+        const fields = wanted.get(selection.itemId) ?? new Set<SeedConflictFieldT>()
+        for (const field of selection.fields) fields.add(field)
+        wanted.set(selection.itemId, fields)
+      }
+
+      const db = await getDb(payload)
+      const items = await listItemsForCatalogueApply(db, investmentId, [...wanted.keys()])
+      if (items.length !== wanted.size) return { success: false, error: STALE_ITEM_ERROR }
+
+      const byKey = new Map((await listCatalogueItems(db)).map((entry) => [entry.matchKey, entry]))
+
+      const batches: Record<CatalogueApplyColumnT, CatalogueApplyValueT[]> = {
+        clientPrice: [],
+        wToolsOverrideValue: [],
+        ownToolsOverrideValue: [],
+      }
+      const applied: AppliedCatalogueValueT[] = []
+
+      for (const item of items) {
+        const fields = wanted.get(item.id)
+        if (!fields) continue
+        const entry = byKey.get(catalogueKey(item.description, item.unit))
+        if (!entry) return { success: false, error: STALE_CATALOGUE_ERROR }
+
+        const row: AppliedCatalogueValueT = { itemId: item.id }
+        if (fields.has('clientPrice')) {
+          batches.clientPrice.push({ id: item.id, value: entry.clientPrice })
+          row.clientPrice = entry.clientPrice
+        }
+        if (fields.has('wToolsRate')) {
+          batches.wToolsOverrideValue.push({ id: item.id, value: entry.wToolsRate })
+          row.wToolsOverrideValue = entry.wToolsRate
+        }
+        if (fields.has('ownToolsRate')) {
+          batches.ownToolsOverrideValue.push({ id: item.id, value: entry.ownToolsRate })
+          row.ownToolsOverrideValue = entry.ownToolsRate
+        }
+        applied.push(row)
+      }
+
+      await captureAutoSnapshot(db, investmentId, user.id)
+      for (const column of Object.keys(batches) as CatalogueApplyColumnT[])
+        await applyCatalogueValues(db, investmentId, column, batches[column])
+
+      return { success: true, data: applied }
     },
     ['kosztorysItems'],
   )
