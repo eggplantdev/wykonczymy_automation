@@ -13,11 +13,13 @@ vi.mock('next/server', () => ({
   },
 }))
 vi.mock('@payload-config', () => ({ default: {} }))
-vi.mock('payload', () => ({ getPayload: async () => ({}) }))
+
+const update = vi.fn(async () => ({}))
+vi.mock('payload', () => ({ getPayload: async () => ({ update }) }))
 vi.mock('@/lib/env/server', () => ({ serverEnv: { LANDING_WEBHOOK_SECRET: 'test-secret' } }))
 vi.mock('@/lib/leads/capture-lead', () => ({ captureLead: vi.fn() }))
-vi.mock('@/lib/leads/store-lead', () => ({ findStoredLead: vi.fn(async () => undefined) }))
 vi.mock('@/lib/leads/fetch-landing-asset', () => ({ fetchLandingAsset: vi.fn() }))
+vi.mock('@/lib/media/delete-unreferenced-media', () => ({ deleteUnreferencedMedia: vi.fn() }))
 vi.mock('@/lib/leads/notify', () => ({
   notifyShapeAlert: vi.fn(async () => {}),
   notifyAssetFailure: vi.fn(async () => {}),
@@ -25,8 +27,8 @@ vi.mock('@/lib/leads/notify', () => ({
 
 import { POST } from '@/app/(frontend)/api/webhooks/landing/route'
 import { captureLead } from '@/lib/leads/capture-lead'
-import { findStoredLead } from '@/lib/leads/store-lead'
 import { fetchLandingAsset } from '@/lib/leads/fetch-landing-asset'
+import { deleteUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
 import { notifyShapeAlert, notifyAssetFailure } from '@/lib/leads/notify'
 
 const sign = (raw: string, secret = 'test-secret') =>
@@ -41,11 +43,14 @@ const makeRequest = (raw: string, signature = sign(raw)): NextRequest =>
 const body = (overrides: Record<string, unknown> = {}) =>
   JSON.stringify({ ...LANDING_SUBMISSION, ...overrides })
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const capturedLead = (assets?: unknown, created = true) =>
+  vi.mocked(captureLead).mockResolvedValue({ lead: { id: 1, assets } as any, created })
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
 beforeEach(() => {
   vi.clearAllMocks()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  vi.mocked(captureLead).mockResolvedValue({ lead: { id: 1 } as any, created: true })
-  vi.mocked(findStoredLead).mockResolvedValue(undefined)
+  capturedLead()
   vi.mocked(fetchLandingAsset).mockImplementation(
     async () => 100 + vi.mocked(fetchLandingAsset).mock.calls.length,
   )
@@ -78,7 +83,7 @@ describe('POST /api/webhooks/landing', () => {
     expect(captureLead).not.toHaveBeenCalled()
   })
 
-  it('captures a signed submission as landing_form with both assets attached', async () => {
+  it('captures a signed submission as landing_form, then attaches both assets', async () => {
     const res = await POST(makeRequest(body()))
 
     expect(res.status).toBe(200)
@@ -86,8 +91,24 @@ describe('POST /api/webhooks/landing', () => {
     const input = vi.mocked(captureLead).mock.calls[0][1]
     expect(input.source).toBe('landing_form')
     expect(input.externalId).toBe(LANDING_SUBMISSION.submissionId)
-    expect(input.assets).toEqual([101, 102])
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({ collection: 'leads', id: 1, data: { assets: [101, 102] } }),
+    )
     expect(notifyAssetFailure).not.toHaveBeenCalled()
+  })
+
+  // The ordering this route is built around. The enquiry is the thing that must survive, and the
+  // downloads are the slow half — so the lead is written first and nothing about the files, not
+  // even all of them failing, may undo it.
+  it('persists the lead even when every asset fetch throws', async () => {
+    vi.mocked(fetchLandingAsset).mockRejectedValue(new Error('Pobranie nie powiodło się: HTTP 502'))
+
+    const res = await POST(makeRequest(body()))
+
+    expect(res.status).toBe(200)
+    expect(captureLead).toHaveBeenCalledTimes(1)
+    expect(update).not.toHaveBeenCalled()
+    expect(vi.mocked(notifyAssetFailure).mock.calls[0][1].stored).toBe(0)
   })
 
   // The decision this route is built around: an incomplete photo set is the lesser failure, and
@@ -100,7 +121,7 @@ describe('POST /api/webhooks/landing', () => {
     const res = await POST(makeRequest(body()))
 
     expect(res.status).toBe(200)
-    expect(vi.mocked(captureLead).mock.calls[0][1].assets).toEqual([777])
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ data: { assets: [777] } }))
     const alert = vi.mocked(notifyAssetFailure).mock.calls[0][1]
     expect(alert.stored).toBe(1)
     expect(alert.failed).toHaveLength(1)
@@ -109,25 +130,41 @@ describe('POST /api/webhooks/landing', () => {
     expect(alert.failed[0].url).toBe(LANDING_SUBMISSION.assets![0].url)
   })
 
-  it('re-downloads nothing and re-alerts nothing on a redelivery', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(findStoredLead).mockResolvedValue({ id: 1 } as any)
-    vi.mocked(captureLead).mockResolvedValue({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      lead: { id: 1 } as any,
-      created: false,
-    })
+  // Blob has no undelete and nothing points at the rows once the attach failed, so they would be
+  // billed forever with no surface able to show them.
+  it('reclaims the media it stored when the attach write fails', async () => {
+    update.mockRejectedValueOnce(new Error('db connection dropped'))
+
+    const res = await POST(makeRequest(body()))
+
+    expect(res.status).toBe(200)
+    expect(deleteUnreferencedMedia).toHaveBeenCalledWith(expect.anything(), [101, 102])
+  })
+
+  it('re-downloads nothing and re-alerts nothing on a redelivery that kept its files', async () => {
+    capturedLead([11, 12], false)
 
     const res = await POST(makeRequest(body()))
 
     expect(res.status).toBe(200)
     // The guard that matters: a second download would leave a second set of orphan media rows.
     expect(fetchLandingAsset).not.toHaveBeenCalled()
+    expect(update).not.toHaveBeenCalled()
     expect(notifyAssetFailure).not.toHaveBeenCalled()
+  })
+
+  // The other half of that guard. A redelivery whose lead carries NO files is the crash between
+  // capture and attach, and is the one case that does get another go at downloading them.
+  it('retries the download when the captured lead carries no files', async () => {
+    capturedLead([], false)
+
+    expect((await POST(makeRequest(body()))).status).toBe(200)
+    expect(fetchLandingAsset).toHaveBeenCalledTimes(2)
   })
 
   it('returns 500 when the lead itself fails to capture', async () => {
     vi.mocked(captureLead).mockRejectedValueOnce(new Error('db connection dropped'))
     expect((await POST(makeRequest(body()))).status).toBe(500)
+    expect(fetchLandingAsset).not.toHaveBeenCalled()
   })
 })

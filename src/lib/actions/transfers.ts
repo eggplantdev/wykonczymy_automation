@@ -27,8 +27,8 @@ import { validateSourceRegister } from './validate-source-register'
 import { getNetAmountError } from '@/lib/utils/validation'
 import { logError } from '@/lib/utils/log-error'
 import { resolveId } from '@/lib/utils/resolve-id'
-import { invoiceIds } from '@/lib/invoices/invoice-field'
-import { deleteUnreferencedMedia } from '@/lib/invoices/delete-unreferenced-media'
+import { uploadFieldIds } from '@/lib/media/upload-field'
+import { appendUploadIds, setUploadField } from '@/lib/media/set-upload-field'
 import type { ActionResultT } from '@/types/action'
 import { getDb } from '@/lib/db/get-db'
 import { isRelatedInvestmentLocked } from '@/lib/db/investment-lock'
@@ -286,7 +286,7 @@ export async function updateTransferAction(
           // Newly picked files are extra pages of the same invoice, so they append — an edit that
           // replaced the list would strand the pages the user never touched.
           ...(invoiceMediaIds?.length && {
-            invoice: [...invoiceIds(original.invoice), ...invoiceMediaIds],
+            invoice: [...uploadFieldIds(original.invoice), ...invoiceMediaIds],
           }),
           updatedBy: user.id,
         },
@@ -317,45 +317,16 @@ export async function updateTransferAction(
 }
 
 /**
- * Rewrite a transfer's invoice pages to whatever `nextIds` derives from the current list, then
- * delete the media the new list dropped once nothing else references it.
- *
  * Deliberately does NOT go through `fetchAndAuthorize` (owner, 2026-08-10): attaching and
  * detaching invoice pages is open to every management session regardless of who created the
  * transfer, exactly as it was before the pages became a list.
  */
-async function setTransferInvoices(
-  payload: Payload,
-  transferId: number,
-  nextIds: (currentIds: number[]) => number[],
-): Promise<ActionResultT> {
-  const step = perfStart()
-
-  const transfer = await payload.findByID({ collection: 'transactions', id: transferId, depth: 0 })
-  const currentIds = invoiceIds(transfer.invoice)
-  const next = nextIds(currentIds)
-  console.log(`[PERF]   findByID(${transferId}) ${step()}ms`)
-
-  await payload.update({
-    collection: 'transactions',
-    id: transferId,
-    data: { invoice: next },
-  })
-  console.log(`[PERF]   payload.update(${transferId}) ${step()}ms`)
-
-  // Awaited, not fire-and-forget: the serverless invocation can be frozen the moment the response
-  // is written, which would drop the deletes and leak exactly the files this is here to reclaim.
-  await deleteUnreferencedMedia(
-    payload,
-    currentIds.filter((id) => !next.includes(id)),
-  )
-
-  return { success: true }
-}
+const invoiceOf = (transferId: number) =>
+  ({ collection: 'transactions', field: 'invoice', id: transferId }) as const
 
 /**
- * Takes the whole batch because `setTransferInvoices` is a read-modify-write — one call per page
- * would race, and every page but the last would be lost.
+ * Takes the whole batch because `setUploadField` is a read-modify-write — one call per page would
+ * race, and every page but the last would be lost.
  */
 export async function addTransferInvoicesAction(
   transferId: number,
@@ -368,13 +339,8 @@ export async function addTransferInvoicesAction(
       // read as "authorized" to the next caller.
       if (invoiceMediaIds.length === 0) return { success: true }
 
-      return setTransferInvoices(payload, transferId, (current) => {
-        const next = [...current]
-        invoiceMediaIds.forEach((id) => {
-          if (!next.includes(id)) next.push(id)
-        })
-        return next
-      })
+      await setUploadField(payload, invoiceOf(transferId), appendUploadIds(invoiceMediaIds))
+      return { success: true }
     },
     ['transfers'],
   )
@@ -384,10 +350,12 @@ export async function addTransferInvoicesAction(
 export async function removeTransferInvoiceAction(transferId: number, invoiceMediaId: number) {
   return protectedAction(
     'removeTransferInvoiceAction',
-    ({ payload }) =>
-      setTransferInvoices(payload, transferId, (current) =>
+    async ({ payload }) => {
+      await setUploadField(payload, invoiceOf(transferId), (current) =>
         current.filter((id) => id !== invoiceMediaId),
-      ),
+      )
+      return { success: true }
+    },
     ['transfers'],
   )
 }
@@ -396,7 +364,10 @@ export async function removeTransferInvoiceAction(transferId: number, invoiceMed
 export async function removeAllTransferInvoicesAction(transferId: number) {
   return protectedAction(
     'removeAllTransferInvoicesAction',
-    ({ payload }) => setTransferInvoices(payload, transferId, () => []),
+    async ({ payload }) => {
+      await setUploadField(payload, invoiceOf(transferId), () => [])
+      return { success: true }
+    },
     ['transfers'],
   )
 }

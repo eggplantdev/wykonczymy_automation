@@ -43,7 +43,7 @@ export async function deleteUnreferencedMedia(payload: Payload, mediaIds: number
 
       await payload.delete({ collection: 'media', id })
     } catch (err) {
-      logError('[invoices] delete unreferenced media failed', err)
+      logError('[media] delete unreferenced media failed', err)
     }
   }
 }

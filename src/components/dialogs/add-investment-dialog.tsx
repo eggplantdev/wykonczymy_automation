@@ -18,7 +18,6 @@ const EMPTY_DEFAULTS: InvestmentFormValuesT = {
   review: '',
   status: 'active',
   presetId: '',
-  assets: [],
 }
 
 export function AddInvestmentDialog({ presets }: { presets: PresetMetaT[] }) {

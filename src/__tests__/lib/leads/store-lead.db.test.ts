@@ -141,10 +141,18 @@ describe.skipIf(!ENV_READY)('storeLead + captureLead (DB)', () => {
       address: 'ul. Kwiatowa 5, Warszawa',
       scope: 'Remont lazienki i salonu',
       area: '30-60 m2',
-      assets: mediaIds,
       rawData: [{ name: 'metraz', values: ['30-60 m2'] }],
     })
     createdIds.push(lead.id)
+
+    // The second write the landing route makes once the files are in Blob — the lead is durable
+    // first, and `assets` is attached after.
+    await payload.update({
+      collection: 'leads',
+      id: lead.id,
+      data: { assets: mediaIds },
+      overrideAccess: true,
+    })
 
     const persisted = await payload.findByID({
       collection: 'leads',

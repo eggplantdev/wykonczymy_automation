@@ -850,4 +850,21 @@ Run **once**, after Phase 6.
 - [x] 6.1 Promotion creates an investment holding the SAME media ids, sets `leads.investment`, flips `contactStatus` — b092c002
 - [x] 6.2 Deleting the promoted lead leaves the media rows and the investment relation intact — b092c002
 - [x] 6.3 Promote dialog prefills name/address/phone/email — b092c002
-- [x] 6.4 `pnpm exec vitest run src/__tests__/lib/actions/promote-lead.test.ts` passes — b092c002
+- [x] 6.4 `pnpm exec vitest run src/__tests__/lib/actions/promote-lead.db.test.ts` passes — b092c002
+
+## Deviations from the plan as written
+
+Recorded at the review gate (2026-09-21), after the fact — the code is right and the plan text is
+what lags.
+
+- **Phase 3, `src/components/ui/media-lightbox.tsx` was never written.** The existing
+  `InvoicePreviewDialog` already was that viewer — pager, Escape, PDF/image branch — so a second one
+  would have been a copy that drifts. It was generalised instead (`labels`, `unoptimized`), and
+  `MediaStrip` calls it. The `ui/` placement the plan argued for no longer applies: the dialog knows
+  about zip download and invoice labels, so it is not domain-agnostic. Renaming and rehoming it is a
+  multi-call-site refactor filed separately.
+- **Phase 4, `leads.investment` shipped as a scalar FK, not a `leads_rels` row.** The planned
+  `investments_id … ON DELETE cascade` inside `leads_rels` would have deleted the **lead** along with
+  the investment — the plan's own note misread which side the cascade falls on. The shipped shape is
+  a column on `leads` with `ON DELETE set null`, so deleting an investment clears the pointer and
+  keeps the zgłoszenie, which is what the note wanted. `leads_rels` still exists for `assets`.

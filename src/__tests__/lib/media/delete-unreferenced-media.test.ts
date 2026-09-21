@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { CollectionSlug, Payload } from 'payload'
-import { deleteUnreferencedMedia } from '@/lib/invoices/delete-unreferenced-media'
+import { deleteUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
 import { MEDIA_RELATIONS } from '@/lib/media/relating-collections'
 
 type ReferencedByT = Partial<Record<CollectionSlug, number[]>>

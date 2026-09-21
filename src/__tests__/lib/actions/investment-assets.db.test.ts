@@ -32,7 +32,7 @@ describe.skipIf(!ENV_READY)('investment asset actions (DB)', () => {
   let db: Awaited<ReturnType<typeof getDb>>
   let investmentId: number
   let mediaIds: number[]
-  let actions: typeof import('@/lib/actions/investments')
+  let actions: typeof import('@/lib/actions/investment-assets')
 
   const purge = async () => {
     await db.execute(sql`DELETE FROM investments WHERE name = ${NAME}`)
@@ -58,7 +58,7 @@ describe.skipIf(!ENV_READY)('investment asset actions (DB)', () => {
     const config = (await import('@payload-config')).default
     payload = await getPayload({ config })
     db = await getDb(payload)
-    actions = await import('@/lib/actions/investments')
+    actions = await import('@/lib/actions/investment-assets')
   })
 
   // The media rows are rebuilt per test, not once: detaching a file deletes it for real here, so a

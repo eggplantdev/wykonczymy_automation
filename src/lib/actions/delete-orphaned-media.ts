@@ -1,7 +1,7 @@
 'use server'
 
 import { protectedAction } from './run-action'
-import { deleteUnreferencedMedia } from '@/lib/invoices/delete-unreferenced-media'
+import { deleteUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
 
 /**
  * Delete media that ended up attached to nothing. The add form uploads every page before it creates

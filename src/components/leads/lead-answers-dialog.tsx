@@ -44,6 +44,7 @@ export function LeadAnswersDialog({ name, formName, answers, assets }: LeadAnswe
             <MediaStrip
               files={assets}
               labels={ASSET_PREVIEW_LABELS}
+              sizes="(max-width: 767.98px) 31vw, (max-width: 1023.98px) 110px, 75px"
               emptyText="Brak załączników."
             />
           </section>

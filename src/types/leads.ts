@@ -2,20 +2,20 @@ import type { MediaFileT } from '@/types/media'
 
 export type LeadAnswerT = { label: string; value: string }
 
+export type LeadSourceT = 'facebook_lead_ads' | 'website_form' | 'landing_form'
+
 /**
  * A lead row as rendered in the `/zgloszenia` table. Cross-cutting: produced by
  * the server query (`lib/queries/leads.ts`) and consumed by the client columns
  * (`components/tables/leads.tsx`), so it lives here rather than in either module.
  */
-export type LeadSourceT = 'facebook_lead_ads' | 'website_form' | 'landing_form'
-
 export type LeadRowT = {
   id: number
   source: LeadSourceT
   name: string
   email: string
   phone: string
-  /** The landing's typed answers; empty on a Facebook lead, which cannot carry them. */
+  // The landing's typed answers; all three empty on a Facebook lead, which cannot carry them.
   address: string
   scope: string
   area: string

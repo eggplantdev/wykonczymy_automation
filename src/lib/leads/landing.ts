@@ -5,17 +5,13 @@ import type { StoreLeadInputT } from './store-lead'
 
 /**
  * Second line of defence, not the binding one. The landing's `onBeforeGenerateToken` is where
- * Blob refuses an over-size or wrong-type upload before the file exists at all; these ceilings
- * only decide what we are willing to pull back across the wire.
+ * Blob refuses an over-size upload before the file exists at all; this ceiling only decides how
+ * many files we are willing to pull back across the wire.
  */
 export const MAX_LANDING_ASSETS = 15
-export const MAX_ASSET_BYTES = 8 * 1024 * 1024
-
-/** Mirrors `media.mimeTypes` — a file we would refuse to store is not worth downloading. */
-export const ACCEPTED_ASSET_TYPES = ['image/', 'application/pdf'] as const
 
 export const landingAssetSchema = z.object({
-  url: z.string().url(),
+  url: z.url(),
   filename: z.string().min(1),
   contentType: z.string().min(1),
   // Declared by the sender: a hint that saves a round trip on an obviously oversized file.
@@ -29,7 +25,7 @@ export type LandingAssetT = z.infer<typeof landingAssetSchema>
 // landing may add a question without a coordinated deploy here; it may not change what identifies
 // a submission.
 export const landingSubmissionSchema = z.object({
-  submissionId: z.string().uuid(),
+  submissionId: z.uuid(),
   locale: z.string().optional(),
   submittedAt: z.string().optional(),
   formId: z.string().optional(),
@@ -64,16 +60,13 @@ const TYPED_ANSWERS = [
  * Project a validated landing submission into the shared StoreLead input, mirroring
  * `wpformsToStoreLeadInput`.
  *
- * `mediaIds` are the rows the route already created from `assets` — this function never fetches;
- * it only points the lead at what resolved, so a partial asset failure still yields a lead.
+ * Carries no `assets`: the route attaches them in a second write, after the lead is durable, so a
+ * slow or failing download can never cost the enquiry itself.
  *
  * `submissionId` is the landing's per-submission uuid → `externalId`, which is what makes a
  * redelivery from its retry queue idempotent.
  */
-export function landingToStoreLeadInput(
-  submission: LandingSubmissionT,
-  mediaIds: number[],
-): StoreLeadInputT {
+export function landingToStoreLeadInput(submission: LandingSubmissionT): StoreLeadInputT {
   const rawData: LeadFieldT[] =
     submission.rawData ??
     TYPED_ANSWERS.flatMap(([field]) => {
@@ -94,7 +87,6 @@ export function landingToStoreLeadInput(
     address: submission.address,
     scope: submission.scope,
     area: submission.area,
-    assets: mediaIds.length ? mediaIds : undefined,
     rawData,
     formQuestions,
     formId: submission.formId,

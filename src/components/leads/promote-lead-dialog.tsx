@@ -9,26 +9,19 @@ import { promoteLeadAction } from '@/lib/actions/promote-lead'
 import type { InvestmentFormValuesT } from '@/components/forms/investment-form/investment-schema'
 import type { LeadRowT } from '@/types/leads'
 
-const NOTE_FIELDS = [
-  ['scope', 'Zakres prac'],
-  ['area', 'Metraż'],
-  ['message', 'Wiadomość'],
-] as const
-
 /**
  * What the visitor typed that has no column on an inwestycja — folded into „Notatki" rather than
  * dropped, because the zgłoszenie stops being the place anyone looks once it has an inwestycja.
- * `message` is not a `LeadRowT` column; it lives among the answers.
+ * „Wiadomość" is not a `LeadRowT` column; it lives among the answers.
  */
 function buildNotes(lead: LeadRowT): string {
-  const fromAnswers = (label: string) =>
-    lead.answers.find((answer) => answer.label === label)?.value
-
-  return NOTE_FIELDS.map(([key, label]) => {
-    const value = key === 'message' ? fromAnswers(label) : lead[key]
-    return value ? `${label}: ${value}` : ''
-  })
-    .filter(Boolean)
+  return [
+    ['Zakres prac', lead.scope],
+    ['Metraż', lead.area],
+    ['Wiadomość', lead.answers.find((answer) => answer.label === 'Wiadomość')?.value],
+  ]
+    .filter(([, value]) => value)
+    .map(([label, value]) => `${label}: ${value}`)
     .join('\n')
 }
 
@@ -54,7 +47,6 @@ export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
     review: '',
     status: 'active',
     presetId: '',
-    assets: [],
   }
 
   const formId = `promote-lead-${lead.id}`

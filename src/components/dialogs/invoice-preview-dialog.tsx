@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/loader/spinner'
 import { useInvoiceZip } from '@/hooks/use-invoice-zip'
 import { buildInvoiceArchiveName, dedupeFilename } from '@/lib/invoices/invoice-zip'
-import { isImageMime, isPdfMime, isPreviewableMime } from '@/lib/invoices/mime'
+import { isImageMime, isPdfMime, isPreviewableMime } from '@/lib/media/mime'
 import { splitExtension } from '@/lib/utils/append-short-id'
 import { today } from '@/lib/utils/date'
 import { ChevronLeft, ChevronRight, Download, Plus, Printer, Trash2 } from 'lucide-react'
@@ -153,7 +153,7 @@ export function InvoicePreviewDialog({
                 src={active.url}
                 alt={displayName}
                 fill
-                sizes="(max-width:1200px) 90vw, 1000px"
+                sizes="(max-width: 767.98px) calc(100vw - 2rem), 848px"
                 quality={50}
                 unoptimized={unoptimized}
                 className="object-contain"
@@ -167,7 +167,7 @@ export function InvoicePreviewDialog({
               key={active.url}
               src={active.url}
               title={displayName}
-              className="h-[70vh] w-full rounded border-0"
+              className="h-full w-full rounded border-0"
               onLoad={() => setIsMediaLoading(false)}
             />
           )}

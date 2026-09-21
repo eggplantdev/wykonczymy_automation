@@ -5,6 +5,7 @@ import {
   type InvestmentFormDataT,
 } from '@/components/forms/investment-form/investment-schema'
 import { createInvestment } from '@/lib/investments/create-investment'
+import { uploadFieldIds } from '@/lib/media/upload-field'
 import { validateAction, protectedAction } from './run-action'
 import type { ActionResultT } from '@/types/action'
 
@@ -38,9 +39,7 @@ export async function promoteLeadAction(
         return { success: false, error: 'To zgłoszenie ma już swoją inwestycję.' }
       }
 
-      const assets = (lead.assets ?? []).map((asset) =>
-        typeof asset === 'number' ? asset : asset.id,
-      )
+      const assets = uploadFieldIds(lead.assets)
       const { id, warning } = await createInvestment(payload, { ...parsed.data, assets })
 
       // After the investment exists, so a failure here leaves a lead that can be promoted again

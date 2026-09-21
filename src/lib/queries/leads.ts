@@ -9,6 +9,8 @@ import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { buildLeadAnswers } from '@/lib/leads/lead-answers'
 import { leadRawDataSchema, leadFormQuestionsSchema } from '@/lib/leads/lead-schema'
 import { buildPaginationMeta, type PaginationMetaT } from '@/lib/utils/pagination'
+import { resolveId } from '@/lib/utils/resolve-id'
+import { uploadFieldIds } from '@/lib/media/upload-field'
 import type { LeadRowT } from '@/types/leads'
 import type { MediaFileT } from '@/types/media'
 
@@ -40,13 +42,6 @@ function buildLeadSearch(search: string): Where | undefined {
   }
 }
 
-const asId = (value: unknown): number | null =>
-  typeof value === 'number'
-    ? value
-    : typeof value === 'object' && value !== null && 'id' in value
-      ? ((value as { id: number }).id ?? null)
-      : null
-
 /**
  * One media query for the whole page, not `depth: 1` on the find: 50 leads with photos each would
  * otherwise become 50 populated relations, and the strip needs four columns per file.
@@ -61,7 +56,7 @@ async function resolveLeadAssets(
   const media = await payload.find({
     collection: 'media',
     where: { id: { in: allIds } },
-    limit: allIds.length,
+    pagination: false,
     depth: 0,
     overrideAccess: true,
   })
@@ -118,10 +113,7 @@ const getLeadsPage = unstable_cache(
       new Map(
         result.docs.map((lead) => [
           lead.id,
-          (lead.assets ?? []).flatMap((asset) => {
-            const id = asId(asset)
-            return id === null ? [] : [id]
-          }),
+          uploadFieldIds(lead.assets),
         ]),
       ),
     )
@@ -144,7 +136,7 @@ const getLeadsPage = unstable_cache(
           leadFormQuestionsSchema.parse(lead.formQuestions),
         ),
         assets: assetsByLead.get(lead.id) ?? [],
-        investmentId: asId(lead.investment),
+        investmentId: resolveId(lead.investment) ?? null,
       })),
       paginationMeta: buildPaginationMeta(result, limit),
       newCount: newResult.totalDocs,

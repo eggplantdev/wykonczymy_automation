@@ -8,18 +8,18 @@ import { Loader2 } from 'lucide-react'
 import { MediaStrip } from '@/components/media/media-strip'
 import { ASSET_PREVIEW_LABELS } from '@/components/media/preview-labels'
 import { useMediaUpload } from '@/hooks/use-media-upload'
-import { addInvestmentAssetsAction, removeInvestmentAssetAction } from '@/lib/actions/investments'
+import { addInvestmentAssetsAction, removeInvestmentAssetAction } from '@/lib/actions/investment-assets'
 import { toastMessage } from '@/lib/utils/toast'
-import type { InvestmentAssetT } from '@/lib/queries/investment-assets'
+import type { MediaFileT } from '@/types/media'
 
 type InvestmentAssetsPropsT = {
   investmentId: number
-  assets: InvestmentAssetT[]
+  assets: MediaFileT[]
 }
 
 export function InvestmentAssets({ investmentId, assets }: InvestmentAssetsPropsT) {
   const router = useRouter()
-  const [pendingRemoval, setPendingRemoval] = useState<InvestmentAssetT | null>(null)
+  const [pendingRemoval, setPendingRemoval] = useState<MediaFileT | null>(null)
   const [isRemoving, startRemoval] = useTransition()
 
   const { isUploading, uploadFiles } = useMediaUpload({
@@ -27,7 +27,7 @@ export function InvestmentAssets({ investmentId, assets }: InvestmentAssetsProps
     successMessage: 'Pliki dodane',
   })
 
-  function confirmRemoval(asset: InvestmentAssetT) {
+  function confirmRemoval(asset: MediaFileT) {
     startRemoval(async () => {
       const result = await removeInvestmentAssetAction(investmentId, asset.id)
       setPendingRemoval(null)
@@ -50,15 +50,19 @@ export function InvestmentAssets({ investmentId, assets }: InvestmentAssetsProps
       <MediaStrip
         files={assets}
         labels={ASSET_PREVIEW_LABELS}
+        sizes="(max-width: 767.98px) 33vw, (max-width: 1023.98px) 25vw, 265px"
         emptyText="Brak zdjęć i plików."
         onRemove={setPendingRemoval}
-        removeDisabled={isRemoving}
+        // Cross-gated, not just self-gated: `setInvestmentAssets` is a read-modify-write, so a
+        // removal that started before an upload finished writes back the pre-upload list — dropping
+        // the new file from the investment and leaking its media row.
+        removeDisabled={isRemoving || isUploading}
       />
 
       <FileInput
         label="Dodaj zdjęcia lub pliki"
         multiple
-        disabled={isUploading}
+        disabled={isUploading || isRemoving}
         fieldClassName="sm:max-w-sm"
         onChange={(event) => {
           const picked = Array.from(event.target.files ?? [])

@@ -96,7 +96,6 @@ export function InvestmentForm({
         review: value.review,
         status: value.status,
         presetId: value.presetId,
-        assets: [],
       }),
     },
   )

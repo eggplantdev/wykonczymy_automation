@@ -11,8 +11,6 @@ export type StoreLeadInputT = {
   address?: string
   scope?: string
   area?: string
-  /** Already uploaded to Blob by the caller — `storeLead` only points the lead at them. */
-  assets?: number[]
   rawData: LeadFieldT[]
   formQuestions?: LeadFormQuestionT[]
   formId?: string
@@ -20,13 +18,8 @@ export type StoreLeadInputT = {
   submittedAt?: string
 }
 
-/**
- * The already-stored sibling for this `(source, externalId)`, or undefined.
- *
- * Exported because a redelivery can be expensive to discover late: the landing webhook asks first,
- * so a replayed submission never re-downloads its files into a second set of orphan `media` rows.
- */
-export async function findStoredLead(
+/** The already-stored sibling for this `(source, externalId)`, or undefined. */
+async function findStoredLead(
   payload: Payload,
   input: Pick<StoreLeadInputT, 'source' | 'externalId'>,
 ): Promise<Lead | undefined> {
@@ -76,7 +69,6 @@ export async function storeLead(
     address: input.address,
     scope: input.scope,
     area: input.area,
-    assets: input.assets,
     rawData: input.rawData,
     formQuestions: input.formQuestions,
     formId: input.formId,

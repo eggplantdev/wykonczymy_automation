@@ -6,8 +6,7 @@ import { LANDING_FIXTURE_HOST } from '@/__tests__/fixtures/landing-submission'
 // refuses to fetch, and about not trusting the server on the other end either.
 process.env.LANDING_BLOB_HOST = LANDING_FIXTURE_HOST
 
-import { fetchLandingAsset } from '@/lib/leads/fetch-landing-asset'
-import { MAX_ASSET_BYTES } from '@/lib/leads/landing'
+import { fetchLandingAsset, MAX_ASSET_BYTES } from '@/lib/leads/fetch-landing-asset'
 
 type CreateArgsT = { file?: { name: string; mimetype: string; size: number } }
 const create = vi.fn(async (_args: CreateArgsT) => ({ id: 42 }))
@@ -80,11 +79,24 @@ describe('fetchLandingAsset — what it refuses to fetch', () => {
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 
-  it('rejects a content type media would not store', async () => {
-    await expect(
-      fetchLandingAsset(payload, asset({ contentType: 'application/zip' })),
-    ).rejects.toThrow(/typ pliku/)
-    expect(fetchSpy).not.toHaveBeenCalled()
+  // The gate is anchored, so these two are refused before a byte moves. `application/pdfx` is what
+  // an unanchored prefix test let through — 8 MB of transfer, then a Payload refusal naming the
+  // wrong cause. `image/svg+xml` is the dangerous one: an active, scriptable document on the only
+  // path where an anonymous stranger writes into `media`.
+  it.each([['application/zip'], ['application/pdfx'], ['image/svg+xml']])(
+    'rejects %s without fetching',
+    async (contentType) => {
+      await expect(fetchLandingAsset(payload, asset({ contentType }))).rejects.toThrow(/typ pliku/)
+      expect(fetchSpy).not.toHaveBeenCalled()
+    },
+  )
+
+  // A well-formed header is not refused for its spelling — the normalizer drops parameters and case.
+  it('accepts a content type carrying a charset parameter', async () => {
+    await fetchLandingAsset(payload, asset({ contentType: 'IMAGE/JPEG; charset=binary' })).catch(
+      () => {},
+    )
+    expect(fetchSpy).toHaveBeenCalled()
   })
 })
 

@@ -8,13 +8,18 @@ import {
   InvoicePreviewDialog,
   type PreviewLabelsT,
 } from '@/components/dialogs/invoice-preview-dialog'
-import { isImageMime } from '@/lib/invoices/mime'
+import { isImageMime } from '@/lib/media/mime'
 import type { MediaFileT } from '@/types/media'
 
 type MediaStripPropsT = {
   files: MediaFileT[]
   labels: PreviewLabelsT
   emptyText: string
+  /**
+   * The caller's, because the same strip renders at ~70px inside a dialog and ~265px in the wide
+   * gallery — one hardcoded value over-fetches 3× in the first and upscales visibly in the second.
+   */
+  sizes: string
   /** Omitted where the strip is read-only — the lead's files belong to the submission, not to us. */
   onRemove?: (file: MediaFileT) => void
   removeDisabled?: boolean
@@ -28,6 +33,7 @@ export function MediaStrip({
   files,
   labels,
   emptyText,
+  sizes,
   onRemove,
   removeDisabled,
 }: MediaStripPropsT) {
@@ -54,7 +60,7 @@ export function MediaStrip({
                     src={file.thumbnailUrl}
                     alt={file.filename ?? ''}
                     fill
-                    sizes="(max-width: 768px) 33vw, (max-width: 1024px) 25vw, 200px"
+                    sizes={sizes}
                     className="object-cover"
                   />
                 ) : (

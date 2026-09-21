@@ -38,8 +38,8 @@ export function useMediaUpload({ attach, successMessage }: MediaUploadOptionsT) 
       return
     }
 
-    // Without it the click ends with the surface looking untouched until the refresh lands, which
-    // reads as a failed upload and invites a second pick of the same photo.
+    // Without the toast the click ends with the surface looking untouched until the refresh lands,
+    // which reads as a failed upload and invites a second pick of the same photo.
     toastMessage(successMessage, 'success')
     router.refresh()
   }

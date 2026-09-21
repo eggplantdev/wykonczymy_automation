@@ -2,27 +2,33 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { InvestmentAssets } from '@/components/investments/investment-assets'
-import type { InvestmentAssetT } from '@/lib/queries/investment-assets'
+import type { MediaFileT } from '@/types/media'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), prefetch: vi.fn(), refresh: vi.fn() }),
 }))
 
-const PHOTO: InvestmentAssetT = {
+const removeInvestmentAssetAction = vi.fn()
+vi.mock('@/lib/actions/investment-assets', () => ({
+  addInvestmentAssetsAction: vi.fn(),
+  removeInvestmentAssetAction: (...args: unknown[]) => removeInvestmentAssetAction(...args),
+}))
+
+const PHOTO: MediaFileT = {
   id: 1,
   url: '/api/media/file/salon.jpg',
   filename: 'salon.jpg',
   mimeType: 'image/jpeg',
   thumbnailUrl: '/api/media/file/salon-400x300.jpg',
 }
-const SECOND_PHOTO: InvestmentAssetT = {
+const SECOND_PHOTO: MediaFileT = {
   id: 2,
   url: '/api/media/file/kuchnia.jpg',
   filename: 'kuchnia.jpg',
   mimeType: 'image/jpeg',
   thumbnailUrl: '/api/media/file/kuchnia-400x300.jpg',
 }
-const PDF: InvestmentAssetT = {
+const PDF: MediaFileT = {
   id: 3,
   url: '/api/media/file/projekt.pdf',
   filename: 'projekt.pdf',
@@ -30,7 +36,7 @@ const PDF: InvestmentAssetT = {
   thumbnailUrl: null,
 }
 
-const renderGallery = (assets: InvestmentAssetT[]) =>
+const renderGallery = (assets: MediaFileT[]) =>
   render(<InvestmentAssets investmentId={7} assets={assets} />)
 
 describe('InvestmentAssets', () => {
@@ -75,5 +81,22 @@ describe('InvestmentAssets', () => {
 
     await user.keyboard('{Escape}')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  // `setInvestmentAssets` is a read-modify-write, so an upload started while a removal is still in
+  // flight writes back the pre-upload list — dropping the new file and leaking its media row. The
+  // two controls therefore gate each other, not just themselves.
+  it('disables the picker while a removal is in flight', async () => {
+    const user = userEvent.setup()
+    removeInvestmentAssetAction.mockReturnValue(new Promise(() => {}))
+    const { container } = renderGallery([PHOTO])
+    const picker = () => container.querySelector('input[type="file"]')!
+
+    expect(picker()).toBeEnabled()
+
+    await user.click(screen.getByRole('button', { name: 'Usuń salon.jpg' }))
+    await user.click(screen.getByRole('button', { name: 'Usuń' }))
+
+    expect(picker()).toBeDisabled()
   })
 })

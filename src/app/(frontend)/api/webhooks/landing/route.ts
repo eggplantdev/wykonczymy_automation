@@ -2,15 +2,28 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import type { Lead } from '@/payload-types'
 import { serverEnv } from '@/lib/env/server'
 import { CACHE_TAGS, EXPIRE_NOW } from '@/lib/cache/tags'
 import { verifySignature } from '@/lib/leads/verify-signature'
-import { landingSubmissionSchema, landingToStoreLeadInput } from '@/lib/leads/landing'
+import {
+  landingSubmissionSchema,
+  landingToStoreLeadInput,
+  MAX_LANDING_ASSETS,
+} from '@/lib/leads/landing'
 import { fetchLandingAsset } from '@/lib/leads/fetch-landing-asset'
 import { captureLead } from '@/lib/leads/capture-lead'
-import { findStoredLead } from '@/lib/leads/store-lead'
+import { deleteUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
+import { uploadFieldIds } from '@/lib/media/upload-field'
 import { notifyShapeAlert, notifyAssetFailure } from '@/lib/leads/notify'
 import { logError } from '@/lib/utils/log-error'
+
+/**
+ * The download loop is serial and each asset gets its own timeout, so the handler's worst case is
+ * `MAX_LANDING_ASSETS × FETCH_TIMEOUT_MS` plus the capture. Declared explicitly rather than left to
+ * the platform default, which would kill the invocation before any of our own timeouts reported.
+ */
+export const maxDuration = 300
 
 /**
  * POST /api/webhooks/landing
@@ -60,18 +73,28 @@ export async function POST(request: NextRequest) {
 
   const submission = parsed.data
 
-  // Ask before fetching: the landing retries from its queue, and a replay that re-downloaded its
-  // files would leave a second set of `media` rows nothing points at.
-  const alreadyStored = await findStoredLead(payload, {
-    source: 'landing_form',
-    externalId: submission.submissionId,
-  })
+  // FIRST, and the only step allowed to fail the request: losing the enquiry is the outcome the
+  // landing's retry queue exists to prevent. The files come after, because downloading up to
+  // MAX_LANDING_ASSETS of them is by far the slowest thing here — behind it, a timeout would write
+  // no lead at all, and the retry would find nothing, re-download the set and time out again.
+  let lead: Lead
+  let created: boolean
+  try {
+    ;({ lead, created } = await captureLead(payload, landingToStoreLeadInput(submission)))
+  } catch (err) {
+    logError('[landing] Failed to capture lead', err)
+    return NextResponse.json({ error: 'Capture failed' }, { status: 500 })
+  }
+
+  // A redelivery that already carries its files must not download a second set. One that carries
+  // none is the crash-between-capture-and-attach case, and does get another go.
+  const assets = uploadFieldIds(lead.assets).length ? [] : (submission.assets ?? [])
 
   // Serial, not Promise.all: concurrent Payload writes share a Neon session and silently commit
   // one. Serial also keeps peak memory at one file rather than the whole set.
   const mediaIds: number[] = []
   const failed: { url: string; reason: string }[] = []
-  for (const asset of alreadyStored ? [] : (submission.assets ?? [])) {
+  for (const asset of assets.slice(0, MAX_LANDING_ASSETS)) {
     try {
       mediaIds.push(await fetchLandingAsset(payload, asset))
     } catch (err) {
@@ -80,14 +103,23 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  let created: boolean
-  try {
-    // Last, and the only step allowed to fail the request: losing the enquiry is the outcome the
-    // landing's retry queue exists to prevent, so everything above it degrades instead of throwing.
-    ;({ created } = await captureLead(payload, landingToStoreLeadInput(submission, mediaIds)))
-  } catch (err) {
-    logError('[landing] Failed to capture lead', err)
-    return NextResponse.json({ error: 'Capture failed' }, { status: 500 })
+  if (mediaIds.length) {
+    try {
+      await payload.update({
+        collection: 'leads',
+        id: lead.id,
+        data: { assets: mediaIds },
+        overrideAccess: true,
+      })
+    } catch (err) {
+      // The rows exist but nothing points at them, and Blob has no undelete — reclaim them rather
+      // than bill for files no surface can ever show.
+      logError('[landing] Failed to attach assets to the lead', err)
+      await deleteUnreferencedMedia(payload, mediaIds)
+      failed.push(
+        ...mediaIds.map((id) => ({ url: `media:${id}`, reason: 'Nie udało się podpiąć do zgłoszenia' })),
+      )
+    }
   }
 
   // Only on a fresh capture: a redelivery would re-alert about files that were already reported.

@@ -1,6 +1,6 @@
 import type { CollectionAfterDeleteHook } from 'payload'
-import { invoiceIds } from '@/lib/invoices/invoice-field'
-import { deleteUnreferencedMedia } from '@/lib/invoices/delete-unreferenced-media'
+import { uploadFieldIds } from '@/lib/media/upload-field'
+import { deleteUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
 
 /**
  * Deleting an expense unreachable-izes its invoice pages — nothing can open the file again and it
@@ -12,6 +12,6 @@ import { deleteUnreferencedMedia } from '@/lib/invoices/delete-unreferenced-medi
  * that — the delete this hook is meant to be harmless to would roll back with an unrelated error.
  */
 export const deleteInvoiceMediaAfterDelete: CollectionAfterDeleteHook = async ({ doc, req }) => {
-  await deleteUnreferencedMedia(req.payload, invoiceIds(doc.invoice))
+  await deleteUnreferencedMedia(req.payload, uploadFieldIds(doc.invoice))
   return doc
 }

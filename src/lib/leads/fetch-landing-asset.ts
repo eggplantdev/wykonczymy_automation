@@ -1,19 +1,39 @@
 import type { Payload } from 'payload'
 import { serverEnv } from '@/lib/env/server'
 import { uniqueFileName } from '@/lib/utils/upload-file'
-import { ACCEPTED_ASSET_TYPES, MAX_ASSET_BYTES, type LandingAssetT } from './landing'
+import type { LandingAssetT } from './landing'
 
-const FETCH_TIMEOUT_MS = 20_000
+/**
+ * The route budgets `MAX_LANDING_ASSETS × FETCH_TIMEOUT_MS` against its own `maxDuration`, so
+ * raising either one without the other is what puts the handler back over the platform ceiling.
+ */
+export const FETCH_TIMEOUT_MS = 15_000
+export const MAX_ASSET_BYTES = 8 * 1024 * 1024
+
+/**
+ * Anchored, and NARROWER than `media.upload.mimeTypes` in one deliberate place.
+ *
+ * A prefix test lets `application/pdfx` through, which costs 8 MB of transfer before Payload refuses
+ * the create and the operator gets an alert naming the wrong cause. And `image/*` would admit
+ * `image/svg+xml` — an active, scriptable document — on the only path where an anonymous stranger
+ * writes into `media` and the result is served from the Blob CDN and rendered as an image.
+ */
+const ACCEPTED_TYPE = /^(?:image\/(?!svg\+xml)[\w.+-]+|application\/pdf)$/
+
+/** Drop `; charset=…` and case, so a well-formed header is not refused for its spelling. */
+const normalizeType = (contentType: string): string =>
+  contentType.split(';')[0]?.trim().toLowerCase() ?? ''
 
 const isAcceptedType = (contentType: string): boolean =>
-  ACCEPTED_ASSET_TYPES.some((accepted) => contentType.startsWith(accepted))
+  ACCEPTED_TYPE.test(normalizeType(contentType))
 
 /**
  * Reject anything but an `https:` URL whose **parsed hostname equals** the landing's blob host.
  *
  * Exact equality, never `includes`/`startsWith`: `evil.com/?x=blob.vercel-storage.com` and
  * `blob.vercel-storage.com.evil.com` both pass a substring test, and the whole point of the
- * allowlist is that this handler fetches a URL a stranger chose.
+ * allowlist is that this handler fetches a URL a stranger chose. Hostnames are compared
+ * case-insensitively because `URL` lowercases the parsed side but the configured value is typed by hand.
  */
 function assertAllowedUrl(rawUrl: string): URL {
   let url: URL
@@ -23,7 +43,7 @@ function assertAllowedUrl(rawUrl: string): URL {
     throw new Error('Nieprawidłowy adres pliku')
   }
   if (url.protocol !== 'https:') throw new Error(`Niedozwolony protokół: ${url.protocol}`)
-  if (url.hostname !== serverEnv.LANDING_BLOB_HOST) {
+  if (url.hostname !== serverEnv.LANDING_BLOB_HOST.toLowerCase()) {
     throw new Error(`Niedozwolony host: ${url.hostname}`)
   }
   return url
@@ -76,7 +96,7 @@ export async function fetchLandingAsset(payload: Payload, asset: LandingAssetT):
   const declaredLength = Number(response.headers.get('content-length'))
   if (declaredLength > MAX_ASSET_BYTES) throw new Error(`Plik przekracza ${MAX_ASSET_BYTES} B`)
 
-  const contentType = response.headers.get('content-type')?.split(';')[0]?.trim() ?? ''
+  const contentType = normalizeType(response.headers.get('content-type') ?? '')
   if (!isAcceptedType(contentType)) throw new Error(`Niedozwolony typ pliku: ${contentType}`)
 
   const buffer = await readCapped(response)

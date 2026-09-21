@@ -7,16 +7,11 @@ import { getDb } from '@/lib/db/get-db'
 import { perfStart } from '@/lib/perf'
 import type { MediaFileT } from '@/types/media'
 
-export type InvestmentAssetT = MediaFileT
-
 /**
  * One investment's `assets`, in attachment order. Not folded into `fetchReferenceData` on purpose:
  * that dataset is company-wide and every page pays for it, while this is one row's gallery.
- *
- * Tagged on `media` as well as the investment, because detaching a file deletes the media row —
- * without it the strip would keep rendering a URL that now 404s.
  */
-export async function fetchInvestmentAssets(investmentId: number): Promise<InvestmentAssetT[]> {
+export async function fetchInvestmentAssets(investmentId: number): Promise<MediaFileT[]> {
   return unstable_cache(
     async () => {
       const elapsed = perfStart()
@@ -44,7 +39,7 @@ export async function fetchInvestmentAssets(investmentId: number): Promise<Inves
     },
     ['investment-assets', String(investmentId)],
     {
-      tags: [CACHE_TAGS.investments, CACHE_TAGS.media, entityTag('investment', investmentId)],
+      tags: [CACHE_TAGS.investments, entityTag('investment', investmentId)],
     },
   )()
 }
