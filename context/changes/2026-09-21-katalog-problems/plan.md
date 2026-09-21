@@ -369,14 +369,14 @@ powierzchniach, zero na podglądach.
 
 #### Automated
 
-- [x] 1.1 Nowy spec silnika przechodzi
-- [x] 1.2 Istniejące specy katalogu przechodzą
+- [x] 1.1 Nowy spec silnika przechodzi — 4188ce17
+- [x] 1.2 Istniejące specy katalogu przechodzą — 4188ce17
 
 ### Phase 2: Katalog na drucie
 
 #### Automated
 
-- [ ] 2.1 Typy się spinają po dołożeniu propa
+- [x] 2.1 Typy się spinają po dołożeniu propa
 
 ### Phase 3: Porównanie w pamięci i dwa problemy
 
