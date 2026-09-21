@@ -12,15 +12,18 @@ forbids driving the Playwright MCP browser unprompted. The 11 manual checks live
 
 <!-- ONE checkbox per finding. Format: [box] · [severity, bug-finding checks only] · disposition · `source` · `file:line` · what — reason -->
 
-### Poza slice'em — brudne drzewo równoległej sesji (NIE tknięte, do decyzji właściciela)
+### Poza slice'em — praca równoległej sesji (osierocona, domknięta w `7e59f68e`)
 
-- [ ] 🔴 CRITICAL · surfaced · `code-review` · `src/__tests__/process-upload-file-decoders.test.ts:45-46` · 3 błędy typów (TS2532 + 2× TS2493) — `pnpm typecheck` czerwony, więc bramka pre-push nie przejdzie. Plik należy do równoległej sesji; poprawka wymaga jej zgody.
-      test: no automated test — to sam plik testowy
-- [ ] 🔴 CRITICAL · surfaced · `code-review` · `src/__tests__/compress-image.test.ts` · dubler modeluje API CompressorJS, którego biblioteka nie ma: `done()` oddaje do `success` **Blob** z doklejonym `.name`, nigdy `File`. Test przechodzi na fikcji, więc nie broni niczego.
-      test: test-driven-debugging · unit — dubler musi oddawać Blob z expando, inaczej zielony wynik jest pusty
-- [ ] 🔴 CRITICAL · surfaced · `code-review` · `src/lib/utils/compress-image.ts:45` · martwy strażnik `named()` — nieosiągalny przy realnym kontrakcie CompressorJS (patrz wyżej).
-      test: test-driven-debugging · unit — czerwony repro po naprawie dublera
-- [ ] surfaced · `feature-first-structure` · `src/__tests__/compress-image.test.ts`, `src/__tests__/process-upload-file-decoders.test.ts` · specki źle zakotwiczone — źródło leży w `src/lib/utils/`, więc mirror to `src/__tests__/lib/utils/`.
+Obie równoległe sesje (`wykonczymy-3e`, `wykonczymy-db`) odpisały „nie moje" na zapytanie o własność,
+a pliki były zimne od 45 minut — dopiero wtedy je tknąłem. Obie powiadomione po commicie.
+
+- [x] 🔴 CRITICAL · fixed · `code-review` · `src/__tests__/lib/utils/process-upload-file-decoders.test.ts:45-46` · 3 błędy typów (TS2532 + 2× TS2493) — `pnpm typecheck` czerwony, bramka pre-push nie przechodziła. Przyczyna: hoistowane mocki deklarowały węższe sygnatury niż prawdziwe `compressToJpeg(file, quality?)` i `heicTo({blob, type, quality})`. Sygnatury wyrównane, `tsc --noEmit` czysty.
+      test: no automated test — to sam plik testowy; strażnikiem jest `tsc --noEmit`
+- [x] 🔴 CRITICAL · fixed · `code-review` · `src/__tests__/lib/utils/compress-image.test.ts` · dubler modelował API, którego CompressorJS nie ma: `done()` oddaje do `success` **Blob** z doklejonym `.name`, nigdy `File`. Test był zielony na fikcji i nie bronił niczego. Dubler oddaje teraz Blob+expando, więc ta sama specka przewraca się na regresji.
+      test: test-driven-debugging · unit — po podmianie dublera na Blob+expando specka „takes CompressorJS's corrected extension" broni realnego kontraktu
+- [x] 🔴 CRITICAL · fixed · `code-review` · `src/lib/utils/compress-image.ts:45` · martwy strażnik w `named()`: `compressed instanceof File` nigdy nie było prawdą, więc korekta rozszerzenia nie odpalała ani razu — PNG powyżej 5 MB był przekodowany do JPEG i **zapisywany pod ścieżką `.png`**. Nazwa czytana teraz z expando `.name`.
+      test: test-driven-debugging · unit — repro poszedł na czerwono po naprawie dublera, zielony po naprawie strażnika
+- [x] fixed · `feature-first-structure` · `src/__tests__/compress-image.test.ts`, `src/__tests__/process-upload-file-decoders.test.ts` · specki leżały płasko, poza mirrorem źródła (`src/lib/utils/`) — przeniesione do `src/__tests__/lib/utils/`.
 
 ### Slice fullscreen-zoom-preview
 
@@ -52,19 +55,23 @@ forbids driving the Playwright MCP browser unprompted. The 11 manual checks live
 Uruchomione w głównym wątku, bez 4 agentów — diff to 4 pliki, które przeszły już przez 9 audytów
 fan-outu; rozstawianie kolejnej czwórki byłoby ceremonią nieproporcjonalną do rozmiaru zmiany.
 2 poprawki naniesione, 1 pominięta; skan prymitywów dorzucił 4 kolejne naprawy (wariant `fullscreen` w `DialogContent`). Wszystkie złożone
-do `## Findings` z tagiem `simplify`. Pliki równoległej sesji wyłączone ze skanu i nietknięte.
+do `## Findings` z tagiem `simplify`. Pliki równoległej sesji były wyłączone ze skanu; domknięte osobno dopiero po tym, jak obie sesje
+odpisały „nie moje" (patrz nagłówek pierwszej sekcji `## Findings`).
 
 ## Tests & suite
 
 - `pnpm exec vitest run --project dom src/__tests__/components/dialogs/invoice-preview-dialog.test.tsx` → **5/5 pass**
-- `pnpm exec tsc --noEmit` → **3 błędy, wszystkie w `src/__tests__/process-upload-file-decoders.test.ts:45-46`**
-  (plik równoległej sesji). Slice sam w sobie jest czysty.
-- Pełny pakiet (`lint` / `test` / `build`) — **nie uruchomiony**, czeka na zgodę: drzewo jest brudne
-  pracą równoległej sesji, więc wynik nie byłby przypisywalny do tego slice'u.
+- `pnpm exec tsc --noEmit` → **czysty** (3 błędy w specce dekoderów naprawione, patrz `## Findings`)
+- `pnpm exec vitest run src/__tests__/lib/utils/ src/__tests__/components/leads/…` → **106/106 pass**
+- Pełny pakiet (`lint` / `test` / `build`) — **nie uruchomiony**. Drzewo jest już czyste, więc nic
+  tego nie blokuje; nie puszczałem bez proszenia, bo `build` i pełny `test` to kilka minut.
 - E2E — **nie uruchomione i nie zaległe**: decyzja właściciela „bez długu E2E" (patrz `## Findings`).
 
 ## Status
 
-**In review, nie Done.** Blokują: 4 otwarte `[ ]` boxy (brudne drzewo równoległej sesji — wymagają
-jej decyzji, nie mojej edycji) oraz 13 nieodhaczonych manualnych checków w
-`context/foundation/manual-checks.md` (11 pierwotnych + 2 dopisane w tym przebiegu).
+**In review, nie Done.** Ledger zamknięty — **0 otwartych boxów**. Jedyne, co zostało, to 13
+nieodhaczonych manualnych checków w `context/foundation/manual-checks.md` (11 pierwotnych + 2
+dopisane w tym przebiegu); do odhaczenia przez właściciela, i dopóki wiszą, archiwizacja jest
+zablokowana.
+
+Commity: `4477195e` (slice), `7e59f68e` (upload pipeline), `44c73f4e` (etykieta w leadach).
