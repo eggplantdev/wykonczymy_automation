@@ -231,20 +231,20 @@ Uruchamiane RAZ, po ostatniej fazie:
 
 ### Phase 1: Pełny ekran
 
-- [x] 1.1 Kontener okna pokonuje bazę `DialogContent` i zajmuje ekran od `sm`
-- [x] 1.2 Obszar mediów rośnie z oknem zamiast sztywnego `h-[70vh]`
-- [x] 1.3 `sizes` przestawione na nową szerokość renderowania
+- [x] 1.1 Kontener okna pokonuje bazę `DialogContent` i zajmuje ekran od `sm` — 549bac78
+- [x] 1.2 Obszar mediów rośnie z oknem zamiast sztywnego `h-[70vh]` — 549bac78
+- [x] 1.3 `sizes` przestawione na nową szerokość renderowania — 549bac78
 
 ### Phase 2: Zoom na obrazku
 
-- [ ] 2.1 `react-zoom-pan-pinch` w `package.json`
-- [ ] 2.2 Komponent `zoomable-preview-image.tsx`
-- [ ] 2.3 Przyciski `+` / `−` / „Dopasuj"
-- [ ] 2.4 Reset przy zmianie strony przez `key`
-- [ ] 2.5 Spec DOM: brak zoomu na PDF, reset przy zmianie strony
+- [x] 2.1 `react-zoom-pan-pinch` w `package.json`
+- [x] 2.2 Komponent `zoomable-preview-image.tsx`
+- [x] 2.3 Przyciski `+` / `−` / „Dopasuj"
+- [x] 2.4 Reset przy zmianie strony przez `key`
+- [x] 2.5 Spec DOM: brak zoomu na PDF, reset przy zmianie strony
 
 ### Phase 3: Oryginał przy powiększeniu
 
-- [ ] 3.1 Flaga `hasZoomed`
-- [ ] 3.2 `unoptimized={unoptimized || hasZoomed}`
-- [ ] 3.3 Spec DOM: podmiana źródła, `unoptimized` z góry nie zadeptane
+- [x] 3.1 Flaga `hasZoomed`
+- [x] 3.2 `unoptimized={unoptimized || hasZoomed}`
+- [x] 3.3 Spec DOM: podmiana źródła, `unoptimized` z góry nie zadeptane

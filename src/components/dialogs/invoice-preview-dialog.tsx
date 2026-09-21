@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
+import { ZoomablePreviewImage } from './zoomable-preview-image'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/loader/spinner'
 import { useInvoiceZip } from '@/hooks/use-invoice-zip'
@@ -136,19 +136,17 @@ export function InvoicePreviewDialog({
             </div>
           )}
           {active && isImage && (
-            <div className="relative h-full w-full">
-              <Image
-                key={active.url}
-                src={active.url}
-                alt={displayName}
-                fill
-                sizes="(max-width: 767.98px) calc(100vw - 2rem), calc(100vw - 3rem)"
-                unoptimized={unoptimized}
-                className="object-contain"
-                onLoad={() => setIsMediaLoading(false)}
-                onError={() => setIsMediaLoading(false)}
-              />
-            </div>
+            // `key` is what resets the zoom: a remount per page drops scale, offset and the
+            // original-source flag together, instead of three effects chasing `pageIndex`.
+            <ZoomablePreviewImage
+              key={active.url}
+              src={active.url}
+              alt={displayName}
+              sizes="(max-width: 767.98px) calc(100vw - 2rem), calc(100vw - 3rem)"
+              unoptimized={unoptimized}
+              onLoad={() => setIsMediaLoading(false)}
+              onError={() => setIsMediaLoading(false)}
+            />
           )}
           {active && isPdf && (
             <iframe
