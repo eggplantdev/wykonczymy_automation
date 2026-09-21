@@ -26,7 +26,7 @@ export function PaginationFooter({ paginationMeta, baseUrl, className }: Paginat
   if (paginationMeta.totalPages <= 1 && paginationMeta.totalDocs === 0) return null
 
   return (
-    <div className={cn('flex flex-wrap items-center justify-between gap-4', className)}>
+    <div className={cn('mt-4 flex flex-wrap items-center justify-between gap-4', className)}>
       <div className="flex items-center gap-3">
         <p className="text-muted-foreground text-sm">{paginationMeta.totalDocs} wyników</p>
         <div className="flex items-center gap-2">
@@ -35,7 +35,7 @@ export function PaginationFooter({ paginationMeta, baseUrl, className }: Paginat
             value={String(paginationMeta.limit)}
             onValueChange={handleLimitChange}
             options={LIMIT_OPTIONS}
-            className="h-8 w-20"
+            className="h-7 w-18"
           />
         </div>
       </div>

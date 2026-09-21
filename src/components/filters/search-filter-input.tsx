@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils/cn'
 
 /** The width every toolbar search field shares — a layout value, so the caller passes it in.
- * Full width below `sm`: a fixed 160px basis shrinks to a few characters in a crowded toolbar. */
-export const SEARCH_FILTER_TOOLBAR_WIDTH = 'w-full sm:w-40 lg:w-56'
+ * Full width below `sm`: a fixed basis shrinks to a few characters in a crowded toolbar. Wide
+ * enough on `sm`+ that an email address — the thing people paste into it — stays readable. */
+export const SEARCH_FILTER_TOOLBAR_WIDTH = 'w-full sm:w-56 lg:w-72'
 
 type SearchFilterInputPropsT = {
   value: string

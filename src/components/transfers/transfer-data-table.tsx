@@ -57,7 +57,7 @@ export function TransferDataTable({
   })
 
   return (
-    <div className="">
+    <div>
       {filters && (
         <CollapsibleSection
           className="w-fit"
