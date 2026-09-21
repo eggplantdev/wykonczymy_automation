@@ -4,7 +4,6 @@ import { cn } from '@/lib/utils/cn'
 
 export type InvoicePreviewTriggerPropsT = {
   label: string
-  /** Overrides „Podgląd faktury: …" where the files are not faktury — an investment's photos. */
   ariaLabel?: string
   onClick: () => void
   // `compact` defaults to the ghost icon-button's 36px box but lets `className` override it — the

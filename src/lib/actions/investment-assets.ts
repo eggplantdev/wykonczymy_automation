@@ -33,7 +33,6 @@ export async function addInvestmentAssetsAction(
   )
 }
 
-/** Detaches everything at once — the preview's „usuń wszystkie", not a per-file loop. */
 export async function removeAllInvestmentAssetsAction(investmentId: number) {
   return protectedAction(
     'removeAllInvestmentAssetsAction',
@@ -45,7 +44,6 @@ export async function removeAllInvestmentAssetsAction(investmentId: number) {
   )
 }
 
-/** Removes one file, leaving the rest in order. */
 export async function removeInvestmentAssetAction(investmentId: number, mediaId: number) {
   return protectedAction(
     'removeInvestmentAssetAction',

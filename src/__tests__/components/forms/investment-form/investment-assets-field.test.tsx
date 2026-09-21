@@ -1,11 +1,7 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { InvestmentAssetsField } from '@/components/forms/investment-form/investment-assets-field'
-
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn(), refresh: vi.fn() }),
-}))
 
 const uploadFiles = vi.fn()
 const isUploading = vi.fn(() => false)
@@ -14,6 +10,11 @@ vi.mock('@/hooks/use-media-upload', () => ({
 }))
 
 describe('InvestmentAssetsField', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    isUploading.mockReturnValue(false)
+  })
+
   it('opens the same picker dialog the invoices use', async () => {
     const user = userEvent.setup()
     render(<InvestmentAssetsField investmentId={7} />)

@@ -33,8 +33,7 @@ type InvestmentFormPropsT = {
   /** Create-only file picker. On edit the gallery on the investment's page owns `assets` — routing
    * them through the update action would send an empty list and wipe what is already attached. */
   collectAssets?: boolean
-  /** Edit-only counterpart to `collectAssets`: the row exists, so files are attached on the spot by
-   * their own action rather than travelling through the submit. Mutually exclusive with it. */
+  /** Mutually exclusive with `collectAssets`. */
   assetsInvestmentId?: number
 }
 

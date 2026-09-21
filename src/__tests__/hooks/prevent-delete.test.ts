@@ -9,7 +9,7 @@ import { makePreventDelete } from '@/hooks/prevent-delete'
 function runHook(totalDocs: number) {
   const args = {
     id: 7,
-    req: { payload: { find: async () => ({ totalDocs }) } },
+    req: { payload: { count: async () => ({ totalDocs }) } },
   } as unknown as Parameters<CollectionBeforeDeleteHook>[0]
   return hook(args)
 }

@@ -1,22 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import {
-  InvoicePreviewDialog,
-  type PreviewLabelsT,
-} from '@/components/dialogs/invoice-preview-dialog'
+import { InvoicePreviewDialog } from '@/components/dialogs/invoice-preview-dialog'
 import {
   InvoicePreviewTrigger,
   type InvoicePreviewTriggerPropsT,
 } from '@/components/dialogs/invoice-preview-trigger'
 import type { InvoiceFileT } from '@/types/transfers'
+import type { PreviewLabelsT } from '@/types/media'
 
 type InvoicePreviewButtonPropsT = {
   invoices: InvoiceFileT[]
-  /** Defaults to the first file's name, which is what a faktura's pages are known by. A set that is
-   * not one document — an investment's photos — names the set instead. */
   label?: string
-  /** What the dialog calls the files; defaults to the faktura wording. */
   labels?: PreviewLabelsT
   // The open state lives here, so a caller that needs the preview gone (to make room for an upload
   // modal) gets `closePreview` rather than having it forced — a caller may want it to stay open

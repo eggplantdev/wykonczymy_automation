@@ -35,7 +35,6 @@ export function EditInvestmentDialog({ investment, showLabel }: EditInvestmentDi
             review: investment.review,
             status: investment.status,
             presetId: '',
-            // `updateInvestmentAction` strips the field; see `collectAssets`.
           }}
           action={(data) => updateInvestmentAction(investment.id, data)}
           successMessage="Inwestycja zaktualizowana"

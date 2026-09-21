@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { InvestmentAssets } from '@/components/investments/investment-assets'
@@ -13,8 +13,7 @@ const removeAllInvestmentAssetsAction = vi.fn()
 vi.mock('@/lib/actions/investment-assets', () => ({
   addInvestmentAssetsAction: vi.fn(),
   removeInvestmentAssetAction: (...args: unknown[]) => removeInvestmentAssetAction(...args),
-  removeAllInvestmentAssetsAction: (...args: unknown[]) =>
-    removeAllInvestmentAssetsAction(...args),
+  removeAllInvestmentAssetsAction: (...args: unknown[]) => removeAllInvestmentAssetsAction(...args),
 }))
 
 // Stands in for the whole pick → ingest → Blob path so a test can hold an upload open; what this
@@ -52,6 +51,11 @@ const renderGallery = (assets: MediaFileT[]) =>
 const previewButton = () => screen.queryByRole('button', { name: /^Podgląd plików inwestycji/ })
 
 describe('InvestmentAssets', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    isUploading.mockReturnValue(false)
+  })
+
   it('offers only the picker when the investment has no files', () => {
     renderGallery([])
 
@@ -122,8 +126,26 @@ describe('InvestmentAssets', () => {
     expect(screen.getByRole('button', { name: 'Dodaj pliki' })).toBeDisabled()
 
     await user.click(previewButton()!)
+    const dialog = screen.getByRole('dialog')
+    expect(dialog).toBeInTheDocument()
+    expect(within(dialog).queryByRole('button', { name: /^Usuń/ })).not.toBeInTheDocument()
+    // The picker inside the preview is the same writer as „Dodaj pliki" — it gates on the same flag.
+    expect(within(dialog).queryByRole('button', { name: 'Dodaj kolejne' })).not.toBeInTheDocument()
+  })
+
+  it('offers no bulk removal for a single file and says it is the last one', async () => {
+    const user = userEvent.setup()
+    renderGallery([PHOTO])
+
+    await user.click(previewButton()!)
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).queryByRole('button', { name: 'Usuń wszystkie' })).not.toBeInTheDocument()
+
+    await user.click(within(dialog).getByRole('button', { name: 'Usuń' }))
     expect(
-      within(screen.getByRole('dialog')).queryByRole('button', { name: /^Usuń/ }),
-    ).not.toBeInTheDocument()
+      screen.getByText('Czy na pewno chcesz usunąć ten plik? To jedyny plik tej inwestycji.'),
+    ).toBeInTheDocument()
+    // Blob has no undelete — the confirm has to say the file is gone for good.
+    expect(screen.getByText(/bezpowrotnie/)).toBeInTheDocument()
   })
 })

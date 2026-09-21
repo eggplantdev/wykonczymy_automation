@@ -1,4 +1,4 @@
-import type { PreviewLabelsT } from '@/components/dialogs/invoice-preview-dialog'
+import type { PreviewLabelsT } from '@/types/media'
 
 /** Shared by every non-invoice strip — a zip of site photos named „faktury-…" is a wrong answer. */
 export const ASSET_PREVIEW_LABELS: PreviewLabelsT = {
@@ -9,4 +9,14 @@ export const ASSET_PREVIEW_LABELS: PreviewLabelsT = {
   removeOneOfMany: 'Usuń ten plik',
   removeAll: 'Usuń wszystkie',
   add: 'Dodaj kolejne',
+}
+
+export const INVOICE_PREVIEW_LABELS: PreviewLabelsT = {
+  fallbackTitle: 'Faktura',
+  empty: 'Brak stron do wyświetlenia.',
+  archivePrefix: 'faktury',
+  removeOne: 'Usuń',
+  removeOneOfMany: 'Usuń stronę',
+  removeAll: 'Usuń całą fakturę',
+  add: 'Dodaj stronę',
 }

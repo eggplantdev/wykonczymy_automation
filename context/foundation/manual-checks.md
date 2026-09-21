@@ -473,7 +473,8 @@ lead-delivery — na karcie inwestycji nie ma już paska miniatur (został tylko
 - [ ] Po dodaniu pliku licznik „Zdjęcia i pliki (N)" rośnie bez przeładowania strony
 - [ ] Podgląd otwiera plik, „Pobierz" zapisuje go pod właściwą nazwą, „Drukuj" otwiera podgląd wydruku
 - [ ] Przy 2+ plikach „Pobierz wszystkie" daje zip o nazwie zaczynającej się od `pliki-`, nie `faktury-`
-- [ ] Stopka podglądu mówi „Usuń ten plik" / „Usuń wszystkie" — nigdzie nie pada słowo „faktura"
+- [ ] Stopka podglądu przy 2+ plikach mówi „Usuń ten plik" + „Usuń wszystkie"; przy jednym pliku samo
+      „Usuń", bez „Usuń wszystkie" — nigdzie nie pada słowo „faktura"
 - [ ] „Usuń" pyta o potwierdzenie i po potwierdzeniu plik znika z podglądu
 - [ ] „Edytuj inwestycję" → „Dodaj zdjęcia lub pliki" → wybór pliku dodaje go natychmiast (toast), dialog w dialogu działa
 - [ ] Zamknięcie formularza edycji przez „Anuluj" nie usuwa dodanego pliku

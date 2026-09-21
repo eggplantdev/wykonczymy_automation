@@ -11,44 +11,17 @@ import { isImageMime, isPdfMime, isPreviewableMime } from '@/lib/media/mime'
 import { splitExtension } from '@/lib/utils/append-short-id'
 import { today } from '@/lib/utils/date'
 import { ChevronLeft, ChevronRight, Download, Plus, Printer, Trash2 } from 'lucide-react'
+import { INVOICE_PREVIEW_LABELS } from '@/components/media/preview-labels'
 import type { InvoiceFileT } from '@/types/transfers'
-
-/**
- * What the dialog calls the files it is showing. The default set says „faktura" because that is
- * what it was built for; an investment's photos travel through the same viewer and must not.
- */
-export type PreviewLabelsT = {
-  /** Title for a file with no filename of its own. */
-  fallbackTitle: string
-  empty: string
-  /** First segment of the „pobierz wszystkie" archive name. */
-  archivePrefix: string
-  /** Footer wording — a set of site photos has no „strony" and is not a faktura. */
-  removeOne: string
-  removeOneOfMany: string
-  removeAll: string
-  add: string
-}
-
-const INVOICE_LABELS: PreviewLabelsT = {
-  fallbackTitle: 'Faktura',
-  empty: 'Brak stron do wyświetlenia.',
-  archivePrefix: 'faktury',
-  removeOne: 'Usuń',
-  removeOneOfMany: 'Usuń stronę',
-  removeAll: 'Usuń całą fakturę',
-  add: 'Dodaj stronę',
-}
+import type { PreviewLabelsT } from '@/types/media'
 
 type InvoicePreviewDialogPropsT = {
   invoices: InvoiceFileT[]
-  /** The page to open on — a gallery click means one thumbnail, not the first. */
   initialIndex?: number
   labels?: PreviewLabelsT
   open: boolean
   onOpenChange: (open: boolean) => void
   onAdd?: () => void
-  // Receives the page on screen — with a list, „usuń" has to say which one it means.
   onRemove?: (invoice: InvoiceFileT) => void
   onRemoveAll?: () => void
   // next/image can't run the optimizer on a local blob: URL (not-yet-uploaded file) — serve it raw.
@@ -58,7 +31,7 @@ type InvoicePreviewDialogPropsT = {
 export function InvoicePreviewDialog({
   invoices,
   initialIndex = 0,
-  labels = INVOICE_LABELS,
+  labels = INVOICE_PREVIEW_LABELS,
   open,
   onOpenChange,
   onAdd,
@@ -66,7 +39,7 @@ export function InvoicePreviewDialog({
   onRemoveAll,
   unoptimized,
 }: InvoicePreviewDialogPropsT) {
-  // Clamped rather than reset: removing the last page must not leave the pager pointing past the end.
+  // Removing the last page must not leave the pager pointing past the end.
   const [pageIndex, setPageIndex] = useState(initialIndex)
   const [isMediaLoading, setIsMediaLoading] = useState(true)
   const { downloadFiles } = useInvoiceZip()

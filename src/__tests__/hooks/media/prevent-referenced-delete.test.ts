@@ -9,7 +9,7 @@ function runHook(referencedBy: Partial<Record<CollectionSlug, number>>) {
     id: 7,
     req: {
       payload: {
-        find: async ({ collection }: { collection: CollectionSlug }) => ({
+        count: async ({ collection }: { collection: CollectionSlug }) => ({
           totalDocs: referencedBy[collection] ?? 0,
         }),
       },

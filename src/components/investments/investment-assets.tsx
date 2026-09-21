@@ -7,10 +7,12 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { InvoicePreviewButton } from '@/components/dialogs/invoice-preview-button'
 import { InvoiceUploadDialog } from '@/components/dialogs/invoice-upload-dialog'
 import { ASSET_PREVIEW_LABELS } from '@/components/media/preview-labels'
-import { useMediaRemoval, type MediaRemovalLabelsT } from '@/hooks/use-media-removal'
-import { useMediaUpload } from '@/hooks/use-media-upload'
 import {
-  addInvestmentAssetsAction,
+  INVESTMENT_ASSETS_UPLOAD_TITLE,
+  useInvestmentAssetsUpload,
+} from '@/hooks/use-investment-assets-upload'
+import { useMediaRemoval, type MediaRemovalLabelsT } from '@/hooks/use-media-removal'
+import {
   removeAllInvestmentAssetsAction,
   removeInvestmentAssetAction,
 } from '@/lib/actions/investment-assets'
@@ -18,8 +20,10 @@ import type { MediaFileT } from '@/types/media'
 
 const ASSET_REMOVAL_LABELS: MediaRemovalLabelsT = {
   confirmOne: 'Czy na pewno chcesz usunąć ten plik?',
-  confirmLast: 'Czy na pewno chcesz usunąć ostatni plik?',
+  confirmLast: 'Czy na pewno chcesz usunąć ten plik? To jedyny plik tej inwestycji.',
   confirmAll: 'Czy na pewno chcesz usunąć wszystkie pliki?',
+  description: 'Operacji nie da się cofnąć — pliki znikają bezpowrotnie.',
+  success: 'Plik usunięty',
   error: 'Nie udało się usunąć pliku',
 }
 
@@ -31,23 +35,26 @@ type InvestmentAssetsPropsT = {
 export function InvestmentAssets({ investmentId, assets }: InvestmentAssetsPropsT) {
   const [uploadOpen, setUploadOpen] = useState(false)
 
-  const { isUploading, uploadFiles } = useMediaUpload({
-    attach: (mediaIds) => addInvestmentAssetsAction(investmentId, mediaIds),
-    successMessage: 'Pliki dodane',
-  })
+  const { isUploading, uploadFiles } = useInvestmentAssetsUpload(investmentId)
 
-  const { visibleFiles, handleRemove, handleRemoveAll, removalConfirm } = useMediaRemoval({
-    files: assets,
-    removeOne: (mediaId) => removeInvestmentAssetAction(investmentId, mediaId),
-    removeAll: () => removeAllInvestmentAssetsAction(investmentId),
-    labels: ASSET_REMOVAL_LABELS,
-  })
+  const { visibleFiles, handleRemove, handleRemoveAll, isRemoving, removalConfirm } =
+    useMediaRemoval({
+      files: assets,
+      removeOne: (mediaId) => removeInvestmentAssetAction(investmentId, mediaId),
+      removeAll: () => removeAllInvestmentAssetsAction(investmentId),
+      labels: ASSET_REMOVAL_LABELS,
+    })
 
-  // Cross-gated, not just self-gated: `setUploadField` is a read-modify-write, so a removal that
-  // started before an upload finished writes back the pre-upload list — dropping the new file from
-  // the investment and leaking its media row. While bytes are in flight the preview offers no
-  // removal at all.
-  const canRemove = !isUploading
+  // `setUploadField` is a read-modify-write, so an upload and a removal that overlap write back each
+  // other's pre-change list — dropping the new file from the investment and leaking its media row.
+  // Each side therefore withholds the other's affordance for as long as its own work is in flight.
+  const isBusy = isUploading || isRemoving
+
+  // The preview would sit on top of the upload dialog, so it steps aside before it opens.
+  function openUpload(closePreview: () => void) {
+    closePreview()
+    setUploadOpen(true)
+  }
 
   return (
     <section className="flex flex-col gap-3">
@@ -63,19 +70,15 @@ export function InvestmentAssets({ investmentId, assets }: InvestmentAssetsProps
             label={`Zdjęcia i pliki (${visibleFiles.length})`}
             ariaLabel={`Podgląd plików inwestycji (${visibleFiles.length})`}
             labels={ASSET_PREVIEW_LABELS}
-            // The preview would sit on top of the upload dialog, so it steps aside before it opens.
-            onAdd={(closePreview) => {
-              closePreview()
-              setUploadOpen(true)
-            }}
-            onRemove={canRemove ? handleRemove : undefined}
-            onRemoveAll={canRemove && visibleFiles.length > 1 ? handleRemoveAll : undefined}
+            onAdd={isBusy ? undefined : openUpload}
+            onRemove={isBusy ? undefined : handleRemove}
+            onRemoveAll={!isBusy && visibleFiles.length > 1 ? handleRemoveAll : undefined}
           />
         )}
 
         <Button
           variant="outline"
-          disabled={isUploading}
+          disabled={isBusy}
           onClick={() => setUploadOpen(true)}
           className="justify-start"
         >
@@ -85,7 +88,7 @@ export function InvestmentAssets({ investmentId, assets }: InvestmentAssetsProps
       </div>
 
       <InvoiceUploadDialog
-        title="Dodaj zdjęcia lub pliki"
+        title={INVESTMENT_ASSETS_UPLOAD_TITLE}
         open={uploadOpen}
         onOpenChange={setUploadOpen}
         onFiles={(picked) => void uploadFiles(picked)}

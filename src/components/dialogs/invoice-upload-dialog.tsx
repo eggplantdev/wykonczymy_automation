@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { FileInput } from '@/components/ui/file-input'
 
 type InvoiceUploadDialogPropsT = {
-  /** Defaults to the faktura wording; an investment's photos travel through the same dialog. */
   title?: string
   open: boolean
   onOpenChange: (open: boolean) => void

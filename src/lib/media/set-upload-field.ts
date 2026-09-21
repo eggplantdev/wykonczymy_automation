@@ -42,10 +42,10 @@ export async function setUploadField(
   )
 }
 
-/** Appends without duplicating — the admin picker and a double submit can both send a held id. */
+/**
+ * Appends without duplicating — the admin picker and a double submit can both send a held id, and
+ * one batch can carry the same id twice when the picker is opened over an already-held file.
+ */
 export function appendUploadIds(mediaIds: number[]) {
-  return (current: number[]): number[] => [
-    ...current,
-    ...mediaIds.filter((id) => !current.includes(id)),
-  ]
+  return (current: number[]): number[] => [...new Set([...current, ...mediaIds])]
 }

@@ -3,49 +3,29 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { FileText, ImageOff } from 'lucide-react'
-import { RemoveButton } from '@/components/ui/remove-button'
-import {
-  InvoicePreviewDialog,
-  type PreviewLabelsT,
-} from '@/components/dialogs/invoice-preview-dialog'
+import { InvoicePreviewDialog } from '@/components/dialogs/invoice-preview-dialog'
 import { isImageMime } from '@/lib/media/mime'
-import type { MediaFileT } from '@/types/media'
+import type { MediaFileT, PreviewLabelsT } from '@/types/media'
 
 type MediaStripPropsT = {
   files: MediaFileT[]
   labels: PreviewLabelsT
-  emptyText: string
   /**
    * The caller's, because the same strip renders at ~70px inside a dialog and ~265px in the wide
    * gallery — one hardcoded value over-fetches 3× in the first and upscales visibly in the second.
    */
   sizes: string
-  /** Omitted where the strip is read-only — the lead's files belong to the submission, not to us. */
-  onRemove?: (file: MediaFileT) => void
-  removeDisabled?: boolean
 }
 
-/**
- * Thumbnails that open the shared preview dialog on the clicked file. Removal is the caller's,
- * which is the whole difference between the investment's gallery and a lead's read-only strip.
- */
-export function MediaStrip({
-  files,
-  labels,
-  emptyText,
-  sizes,
-  onRemove,
-  removeDisabled,
-}: MediaStripPropsT) {
+/** Read-only thumbnails that open the shared preview dialog on the clicked file. */
+export function MediaStrip({ files, labels, sizes }: MediaStripPropsT) {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
-
-  if (files.length === 0) return <p className="text-muted-foreground text-sm">{emptyText}</p>
 
   return (
     <>
       <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
         {files.map((file, index) => (
-          <li key={file.id} className="group relative">
+          <li key={file.id}>
             <button
               type="button"
               onClick={() => setOpenIndex(index)}
@@ -75,15 +55,6 @@ export function MediaStrip({
                 </span>
               )}
             </button>
-
-            {onRemove && (
-              <RemoveButton
-                onClick={() => onRemove(file)}
-                disabled={removeDisabled}
-                aria-label={`Usuń ${file.filename ?? 'plik'}`}
-                className="bg-background/80 absolute top-1 right-1"
-              />
-            )}
           </li>
         ))}
       </ul>

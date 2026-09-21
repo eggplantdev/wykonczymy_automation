@@ -39,13 +39,10 @@ export function LeadAnswersDialog({ name, formName, answers, assets }: LeadAnswe
         {assets.length > 0 && (
           <section className="mt-4 space-y-2">
             <h3 className="text-muted-foreground text-sm font-medium">Załączniki</h3>
-            {/* No `onRemove`: the files are what the visitor sent, and deleting one here would strip
-                it from the inwestycja the zgłoszenie was promoted into. */}
             <MediaStrip
               files={assets}
               labels={ASSET_PREVIEW_LABELS}
               sizes="(max-width: 767.98px) 31vw, (max-width: 1023.98px) 110px, 75px"
-              emptyText="Brak załączników."
             />
           </section>
         )}

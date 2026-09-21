@@ -25,7 +25,7 @@ rejestru („faktura" vs „plik") i drugiego kompletu akcji:
 - `MediaFileT = InvoiceFileT & { id: number; thumbnailUrl }` (`src/types/media.ts`), więc podgląd
   **już** przyjmuje pliki inwestycji bez żadnej zmiany typów.
 - `InvestmentAssets` (`src/components/investments/investment-assets.tsx`) renderuje `MediaStrip`
-  + inline `FileInput`; usuwanie siedzi na „×" miniatury i ma własny `ConfirmDialog`.
+  oraz inline `FileInput`; usuwanie siedzi na „×" miniatury i ma własny `ConfirmDialog`.
 - Po stronie serwera są `addInvestmentAssetsAction` i `removeInvestmentAssetAction`
   (`src/lib/actions/investment-assets.ts`), ale **nie ma** odpowiednika
   `removeAllTransferInvoicesAction`.
@@ -285,6 +285,15 @@ Uruchamiane **raz**, po ostatniej fazie:
 - Wzorzec „preset domenowy nad ogólnym hakiem": `src/hooks/use-invoice-upload.ts`
 - Powiązane issue: **EX-826** (pełne przenosiny `lib/invoices` → `lib/media`)
 
+## Addendum (bramka review, 2026-09-21)
+
+Implementacja wyszła poza pliki wymienione w fazach o dwa moduły — oba wymusiła zmiana rejestru:
+
+- `src/types/media.ts` — `PreviewLabelsT` awansował tutaj, bo `components/media/` nie może importować
+  w górę z `components/dialogs/`, gdzie typ pierwotnie mieszkał.
+- `src/components/media/preview-labels.ts` — oba presety etykiet (`ASSET_*`, `INVOICE_*`) w jednym
+  miejscu; dialog faktury bierze swój jako domyślny, zamiast trzymać go u siebie.
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands.
@@ -293,7 +302,9 @@ Uruchamiane **raz**, po ostatniej fazie:
 
 #### Automated
 
-- [x] 1.1 Specy transferów i dialogów przechodzą — bdf65931
+- [x] 1.1 Specy transferów i dialogów przechodzą — bdf65931, uzupełnione w bramce review
+      (`src/__tests__/components/transfers/invoice-cell.test.tsx`; `components/dialogs` z komendy
+      Phase 1 nigdy nie istniało, więc ścieżka faktury szła bez pokrycia)
 
 ### Phase 2: Sekcja inwestycji bez miniatur
 
