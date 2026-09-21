@@ -9,6 +9,7 @@ import type {
   CatalogueFigureDiffT,
   CatalogueMissingT,
   CataloguePriceDiffT,
+  SeedConflictFieldT,
   WorkCatalogueItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
 import { roundToCents } from '@/lib/utils/round-to-cents'
@@ -49,6 +50,7 @@ function closestDescription(description: string, candidates: readonly HintCandid
 
 const figure = (
   label: string,
+  field: SeedConflictFieldT,
   kosztorys: number,
   catalogue: number,
   kosztorysIsAuto: boolean,
@@ -59,6 +61,7 @@ const figure = (
   // Raw, not rounded: `formatPLN` rounds it for display anyway, and the sort key wants the real gap.
   return {
     label,
+    field,
     kosztorys,
     catalogue,
     delta: kosztorys - catalogue,
@@ -85,6 +88,7 @@ const rateFigure = (
   if (override === null && entryRate === null) return null
   return figure(
     label,
+    plane === 'w_tools' ? 'wToolsRate' : 'ownToolsRate',
     subcontractorPrice(pricing, plane),
     catalogueRate(entryRate, entry.clientPrice, coeff),
     override === null,
@@ -150,7 +154,7 @@ export function buildCatalogueComparison(
 
     const pricing = asPricing(item, settings)
     const figures = [
-      figure('Cena j.m.', item.clientPrice, entry.clientPrice, false, false),
+      figure('Cena j.m.', 'clientPrice', item.clientPrice, entry.clientPrice, false, false),
       rateFigure(pricing, entry, 'w_tools', 'Stawka z narzędziami', settings.wToolsCoeff),
       rateFigure(pricing, entry, 'own_tools', 'Stawka bez narzędzi', settings.ownToolsCoeff),
     ].filter((diff) => diff !== null)
@@ -164,6 +168,7 @@ export function buildCatalogueComparison(
       itemId: item.id,
       description,
       unit,
+      clientPrice: item.clientPrice,
       figures,
       maxDelta: Math.max(...figures.map((diff) => Math.abs(diff.delta))),
     })

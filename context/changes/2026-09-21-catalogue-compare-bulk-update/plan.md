@@ -620,13 +620,13 @@ Uruchomić **raz**, po ostatniej fazie:
 
 #### Automated
 
-- [x] 3.1 Spec zapisu paczkowego przechodzi — `106a4318`
+- [x] 3.1 Spec zapisu paczkowego przechodzi — `3d028a8b`
 
 ### Phase 4: Tabela zaznaczania w oknie
 
 #### Automated
 
-- [ ] 4.1 Spec tabeli zaznaczania przechodzi
+- [x] 4.1 Spec tabeli zaznaczania przechodzi
 
 ### Phase 5: Akceptacja podpowiedzi „może chodzi o"
 

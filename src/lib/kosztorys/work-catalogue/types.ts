@@ -67,6 +67,9 @@ export type CatalogueSavePreviewT = {
 // which is the only sensible input to a difference. „Cena j.m." is never „auto".
 export type CatalogueFigureDiffT = {
   label: string
+  // What the zaznaczenie and the wire carry — the Polish etykieta is for the reader only, and keying
+  // a selection off it would put a display string in a payload.
+  field: SeedConflictFieldT
   kosztorys: number
   catalogue: number
   delta: number
@@ -78,6 +81,10 @@ export type CataloguePriceDiffT = {
   itemId: number
   description: string
   unit: string
+  // The rozpiska's own cena j.m., carried even when it agrees with the cennik: the 65 % ceiling is
+  // measured against it, and a praca that differs only on a stawka has no „Cena j.m." figure to read
+  // it from.
+  clientPrice: number
   figures: CatalogueFigureDiffT[]
   // The largest of this praca's rozbieżności — what the list sorts by, so the biggest money is read
   // first rather than found.

@@ -95,9 +95,11 @@ import {
   updateItemFieldAction,
   updateSectionFieldAction,
 } from '@/lib/actions/kosztorys'
+import { applyCatalogueToKosztorysAction } from '@/lib/actions/work-catalogue'
 import { buildCatalogueComparison } from '@/lib/kosztorys/work-catalogue/build-catalogue-comparison'
 import type { ItemPatchT, KosztorysTreeT, KosztorysV2RowT } from '@/lib/kosztorys/types'
-import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
+import type { SeedConflictFieldT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
+import { toastMessage } from '@/lib/utils/toast'
 import type { WorkerRefT } from '@/types/reference-data'
 
 type ArgsT = {
@@ -1078,6 +1080,43 @@ export function useKosztorysEditor({
     handleSetSectionField(sectionId, 'sectionName', name, 'Zmiana nazwy sekcji')
   }
 
+  /**
+   * „Aktualizuj kosztorys" from the katalog window: the ticked liczby are pulled out of the cennik
+   * and written onto the rozpiska in one go.
+   *
+   * Patched from what the ACTION returns rather than optimistically — unlike the rabat bulk-apply,
+   * the client does not know the values it is asking for. They are read from the cennik server-side
+   * (that is what stops a tampered payload pricing a praca), so there is nothing to show until the
+   * write answers, and nothing to revert if it doesn't.
+   *
+   * `patchRows`, never a refresh: `rows` is a mount-frozen seed, and `catalogueComparison` is a memo
+   * over `rows`, so the report and the „Problemy" counters shrink in the same render — the window
+   * stays open and the sort and filters the owner set to find these prace survive.
+   */
+  async function handleApplyCatalogueToItems(
+    selections: { itemId: number; fields: SeedConflictFieldT[] }[],
+  ): Promise<boolean> {
+    let res
+    try {
+      res = await applyCatalogueToKosztorysAction(investmentId, selections)
+    } catch {
+      // A transport-level failure throws client-side, bypassing the result contract — without this
+      // the whole editor hits its error boundary over one failed bulk write.
+      toastMessage('Nie udało się zaktualizować kosztorysu', 'warning', 4000)
+      return false
+    }
+    if (!res.success) {
+      toastMessage(res.error, 'warning', 4000)
+      return false
+    }
+    const patchById = new Map(res.data.map(({ itemId, ...values }) => [itemId, values] as const))
+    patchRows(
+      (r) => patchById.has(r.id),
+      (r) => ({ ...r, ...patchById.get(r.id) }),
+    )
+    return true
+  }
+
   // The markup coefficients are denormalized on every row but changed OUTSIDE the grid, and
   // router.refresh() won't pick them up — `rows` is a mount-frozen useState seed, so without this patch
   // the „Cena" column shows the stale value until a reload.
@@ -1244,6 +1283,7 @@ export function useKosztorysEditor({
     handleMaterialsNetRateChange,
     handleGlobalDiscountChange,
     handleApplyPercentDiscount,
+    handleApplyCatalogueToItems,
     // undo/redo (stack lives in the shell; consumed by the toolbar + keyboard). Both flush a
     // still-buffering edit burst first, so an undo pops the just-typed edit (correct LIFO) rather
     // than an older command that the un-pushed burst is sitting in front of.

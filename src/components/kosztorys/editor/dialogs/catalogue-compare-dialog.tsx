@@ -6,12 +6,8 @@ import { Button } from '@/components/ui/button'
 import { CatalogueItemFromKosztorysDialog } from '@/components/kosztorys/editor/dialogs/catalogue-item-from-kosztorys-dialog'
 import { SheetReportBlock } from '@/components/kosztorys/editor/dialogs/sheet-report-block'
 import { SheetReportDialog } from '@/components/kosztorys/editor/dialogs/sheet-report-dialog'
-import {
-  ComparisonRow,
-  ComparisonTable,
-  ItemList,
-  ReportFold,
-} from '@/components/kosztorys/editor/dialogs/sheet-report-parts'
+import { ItemList, ReportFold } from '@/components/kosztorys/editor/dialogs/sheet-report-parts'
+import { CatalogueDiffTable } from '@/components/kosztorys/editor/dialogs/catalogue-diff-table'
 import {
   diffsVerdict,
   emptyReportReason,
@@ -27,14 +23,16 @@ import {
   CATALOGUE_MISSING_CONDITION_ID,
 } from '@/lib/kosztorys/row-conditions/registry'
 import { PROBLEM_IDS } from '@/lib/kosztorys/problem-conditions'
-import { formatPLN, formatPLNOrAuto } from '@/lib/utils/format-currency'
 
 /**
- * „Porównaj z katalogiem" — the rozpiska read against the global cennik. Nothing here touches the
- * KOSZTORYS: unlike the arkusz window it has no refresh side, so no figure the owner is looking at
- * can move. Its writes all go the other way, into the cennik — „Dodaj do katalogu" on a praca it
- * lacks, „Edytuj w katalogu" on one whose liczby drifted — which is why the whole report stays open
- * to a read-only viewer while those two entries do not.
+ * „Porównaj z katalogiem" — the rozpiska read against the global cennik, and the one window that
+ * writes in BOTH directions. Into the cennik: „Dodaj do katalogu" on a praca it lacks, „Edytuj w
+ * katalogu" on one whose liczby drifted. Out of it: „Aktualizuj kosztorys", which pulls the ticked
+ * liczby into the rozpiska itself. The read-only viewer keeps the whole report and loses every one
+ * of those entries.
+ *
+ * The hurt leaves an automatic wersja behind it (the action takes one before writing), so „Wersje"
+ * undoes the whole batch — which is what makes „zaznacz wszystkie" a safe thing to offer.
  *
  * The report is the SAME comparison the „Problemy" counters read, taken off the editor context, so
  * the window and the toolbar can never disagree — and it is already computed when the window opens.
@@ -45,6 +43,7 @@ export function CatalogueCompareDialog() {
     readOnly,
     catalogueComparison,
     workCatalogue,
+    handleApplyCatalogueToItems,
     engagedConditionIds,
     toggleConditionExclusive,
   } = useKosztorysEditorContext()
@@ -117,39 +116,12 @@ export function CatalogueCompareDialog() {
                   <ReportFold
                     summary={`Pokaż ${diffs.length} ${itemNoun(diffs.length)} — ${figureCount} ${differenceNoun(figureCount)}`}
                   >
-                    <ComparisonTable sides={['Kosztorys', 'Katalog']} withAction={!readOnly}>
-                      {diffs.flatMap((diff) =>
-                        diff.figures.map((figure, index) => (
-                          <ComparisonRow
-                            key={`${diff.itemId}-${figure.label}`}
-                            label={`${diff.description} — ${figure.label}`}
-                            // „auto" on either side, never the kwota it implies: that kwota is a
-                            // product of this inwestycja's współczynnik, so printing it would show a
-                            // number nobody entered and which moves when the współczynnik does.
-                            sheet={formatPLNOrAuto(
-                              figure.kosztorysIsAuto ? null : figure.kosztorys,
-                            )}
-                            app={formatPLNOrAuto(figure.catalogueIsAuto ? null : figure.catalogue)}
-                            delta={formatPLN(figure.delta)}
-                            // Once per praca, not once per figure: an overwrite carries all three
-                            // liczby, so a button on every wiersz would offer the same write three
-                            // times under three different numbers.
-                            action={
-                              readOnly ? undefined : index === 0 ? (
-                                <Button
-                                  variant="link"
-                                  size="xs"
-                                  className="h-auto p-0"
-                                  onClick={() => setSavingItemId(diff.itemId)}
-                                >
-                                  Edytuj w katalogu
-                                </Button>
-                              ) : null
-                            }
-                          />
-                        )),
-                      )}
-                    </ComparisonTable>
+                    <CatalogueDiffTable
+                      diffs={diffs}
+                      readOnly={readOnly}
+                      onApply={handleApplyCatalogueToItems}
+                      onEditInCatalogue={setSavingItemId}
+                    />
                   </ReportFold>
                 )}
               </SheetReportBlock>
