@@ -56,12 +56,13 @@ describe('InvestmentAssets', () => {
     isUploading.mockReturnValue(false)
   })
 
-  it('offers only the picker when the investment has no files', () => {
+  // Dodawanie zaczyna się w podglądzie albo w dialogu „Edytuj inwestycję", więc sekcja bez plików
+  // nie ma czego pokazać — przycisk podglądu otwierałby pusty dialog, a własnego „Dodaj" tu nie ma.
+  it('renders no control at all when the investment has no files', () => {
     renderGallery([])
 
-    // A preview button that opens an empty dialog is a worse answer than no button.
     expect(previewButton()).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Dodaj pliki' })).toBeInTheDocument()
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 
   it('renders no thumbnail — the count is the whole summary', () => {
@@ -123,13 +124,10 @@ describe('InvestmentAssets', () => {
     isUploading.mockReturnValue(true)
     renderGallery([PHOTO, SECOND_PHOTO])
 
-    expect(screen.getByRole('button', { name: 'Dodaj pliki' })).toBeDisabled()
-
     await user.click(previewButton()!)
     const dialog = screen.getByRole('dialog')
     expect(dialog).toBeInTheDocument()
     expect(within(dialog).queryByRole('button', { name: /^Usuń/ })).not.toBeInTheDocument()
-    // The picker inside the preview is the same writer as „Dodaj pliki" — it gates on the same flag.
     expect(within(dialog).queryByRole('button', { name: 'Dodaj kolejne' })).not.toBeInTheDocument()
   })
 
