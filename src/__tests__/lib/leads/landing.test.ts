@@ -33,10 +33,11 @@ describe('landingSubmissionSchema', () => {
   it('verifies a signature computed over the serialised fixture', () => {
     const raw = JSON.stringify(LANDING_SUBMISSION)
     const secret = 'shared-landing-secret'
-    const signature = 'sha256=' + createHmac('sha256', secret).update(raw, 'utf8').digest('hex')
+    const key = createHmac('sha256', secret).update('landing-submission', 'utf8').digest()
+    const signature = 'sha256=' + createHmac('sha256', key).update(raw, 'utf8').digest('hex')
 
-    expect(verifySignature(raw, signature, secret)).toBe(true)
-    expect(verifySignature(raw + ' ', signature, secret)).toBe(false)
+    expect(verifySignature(raw, signature, secret, 'landing-submission')).toBe(true)
+    expect(verifySignature(raw + ' ', signature, secret, 'landing-submission')).toBe(false)
   })
 })
 

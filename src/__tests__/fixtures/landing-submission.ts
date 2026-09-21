@@ -10,7 +10,6 @@ import type { LandingSubmissionT } from '@/lib/leads/landing'
  */
 export const LANDING_SUBMISSION: LandingSubmissionT = {
   submissionId: '9f2c1b64-7d3a-4e58-9a10-6c5b2e8f4d71',
-  locale: 'pl',
   submittedAt: '2026-09-21T09:15:00.000Z',
   formId: 'wycena',
   formName: 'Formularz wyceny',
@@ -21,15 +20,18 @@ export const LANDING_SUBMISSION: LandingSubmissionT = {
   scope: 'Remont łazienki i kuchni',
   area: '30–60 m²',
   message: 'Proszę o kontakt po 16:00.',
+  // Under `leads/<submissionId>/`, because that prefix is what the landing's upload token is pinned
+  // to and what its cleanup deletes — an asset url at the store root would pass every check here and
+  // still be unreachable by the half of the contract that reclaims it.
   assets: [
     {
-      url: 'https://landing-assets.public.blob.vercel-storage.com/lazienka-a1b2c3.jpg',
+      url: 'https://landing-assets.public.blob.vercel-storage.com/leads/9f2c1b64-7d3a-4e58-9a10-6c5b2e8f4d71/lazienka-a1b2c3.jpg',
       filename: 'lazienka.jpg',
       contentType: 'image/jpeg',
       size: 482_311,
     },
     {
-      url: 'https://landing-assets.public.blob.vercel-storage.com/rzut-d4e5f6.pdf',
+      url: 'https://landing-assets.public.blob.vercel-storage.com/leads/9f2c1b64-7d3a-4e58-9a10-6c5b2e8f4d71/rzut-d4e5f6.pdf',
       filename: 'rzut.pdf',
       contentType: 'application/pdf',
       size: 118_904,

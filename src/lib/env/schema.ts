@@ -79,10 +79,11 @@ export const serverSchema = z
     META_PAGE_ACCESS_TOKEN: z.string().min(1),
     META_PAGE_ID: z.string().min(1),
     WPFORMS_WEBHOOK_SECRET: z.string().min(1),
-    // Landing (`landing_26`) intake. Both required: a missing host allowlist must fail the boot
-    // rather than default to „allow", since the webhook fetches URLs a stranger chose. One blob
-    // store serves every environment, so the host is the same value everywhere — it is the
-    // credential and the prefix that separate environments, never the hostname.
+    // Landing (`landing_26`) intake. The secret and the host allowlist are both required: a missing
+    // allowlist must fail the boot rather than default to „allow", since the webhook fetches URLs a
+    // stranger chose. One blob store serves every environment, so the host is the same value
+    // everywhere — it is the credential and the prefix that separate environments, never the
+    // hostname.
     LANDING_WEBHOOK_SECRET: z.string().min(1),
     LANDING_BLOB_HOST: z.string().min(1),
     // Where we tell the landing a submission has landed, so it can drop its staging copies.

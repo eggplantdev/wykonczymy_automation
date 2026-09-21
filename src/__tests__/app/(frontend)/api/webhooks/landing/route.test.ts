@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createHmac } from 'crypto'
 import type { NextRequest } from 'next/server'
 import { LANDING_SUBMISSION } from '@/__tests__/fixtures/landing-submission'
 
@@ -8,6 +7,7 @@ import { LANDING_SUBMISSION } from '@/__tests__/fixtures/landing-submission'
 // under test is which requests are refused, and — the branches unique to this route — that a file
 // that cannot be pulled never costs us the enquiry, and that a replay costs us nothing at all.
 vi.mock('next/server', () => ({
+  after: (fn: () => unknown) => void fn(),
   NextResponse: {
     json: (body: unknown, init?: { status?: number }) => ({ status: init?.status ?? 200, body }),
   },
@@ -34,9 +34,9 @@ import { fetchLandingAsset } from '@/lib/leads/fetch-landing-asset'
 import { deleteUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
 import { notifyShapeAlert, notifyAssetFailure } from '@/lib/leads/notify'
 import { releaseLandingAssets } from '@/lib/leads/release-landing-assets'
+import { signBody } from '@/lib/leads/verify-signature'
 
-const sign = (raw: string, secret = 'test-secret') =>
-  'sha256=' + createHmac('sha256', secret).update(raw, 'utf8').digest('hex')
+const sign = (raw: string, secret = 'test-secret') => signBody(raw, secret, 'landing-submission')
 
 const makeRequest = (raw: string, signature = sign(raw)): NextRequest =>
   ({
@@ -166,8 +166,6 @@ describe('POST /api/webhooks/landing', () => {
     expect(fetchLandingAsset).toHaveBeenCalledTimes(2)
   })
 
-  // The landing deletes the submission's prefix wholesale, so releasing it is a claim that we hold
-  // every file — which is only true once the attach write itself has committed.
   it('releases the landing copies once the whole set is attached', async () => {
     await POST(makeRequest(body()))
 
@@ -183,6 +181,27 @@ describe('POST /api/webhooks/landing', () => {
 
     // The failed file's only remaining copy is the landing's — deleting the prefix would lose it.
     expect(releaseLandingAssets).not.toHaveBeenCalled()
+  })
+
+  // Nothing failed on this pass because nothing was attempted — and the pass that DID run may have
+  // dropped a file. Counting what we hold against what was sent is what tells the two apart.
+  it('keeps the landing copies on a redelivery that is missing a file', async () => {
+    capturedLead([101], false)
+
+    await POST(makeRequest(body()))
+
+    expect(fetchLandingAsset).not.toHaveBeenCalled()
+    expect(releaseLandingAssets).not.toHaveBeenCalled()
+  })
+
+  // A complete first pass whose 200 never reached the landing: it still holds the prefix, so the
+  // retry owes it the callback a second time rather than an orphan.
+  it('releases again on a redelivery whose first pass was complete', async () => {
+    capturedLead([101, 102], false)
+
+    await POST(makeRequest(body()))
+
+    expect(releaseLandingAssets).toHaveBeenCalledWith(LANDING_SUBMISSION.submissionId)
   })
 
   // The rows were reclaimed on our side, so our copy is gone too. Releasing here would leave the

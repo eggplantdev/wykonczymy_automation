@@ -11,12 +11,31 @@ A byte-identical copy of this file lives in `landing_26`. Change one, change bot
 ```
 POST https://<wykonczymy>/api/webhooks/landing
 Content-Type: application/json
-x-landing-signature: sha256=<hex HMAC-SHA256 of the RAW body>
+x-landing-signature: sha256=<hex HMAC-SHA256 of the RAW body, under the scoped key below>
 ```
 
 The HMAC is computed over the **exact bytes sent**, never over a re-serialised object — a
 re-`JSON.stringify` on either side changes key order or spacing and the signature stops matching.
 Shared secret: `LANDING_WEBHOOK_SECRET`, the same value in both projects' env.
+
+**The key is scoped, not the bare secret.** Each direction signs with a key derived from the shared
+secret and a scope string:
+
+```
+key   = HMAC-SHA256(LANDING_WEBHOOK_SECRET, <scope>)      # scope as utf-8 bytes
+value = "sha256=" + hex(HMAC-SHA256(key, <raw body>))
+```
+
+| Direction                         | Scope                |
+| --------------------------------- | -------------------- |
+| landing → wykonczymy (submission) | `landing-submission` |
+| wykonczymy → landing (cleanup)    | `landing-cleanup`    |
+
+One undifferentiated key would make the two interchangeable, and that is not theoretical: a cleanup
+body is nothing but a `submissionId`, and every submission envelope carries one — so a signed
+submission, of which the landing's own retry queue holds copies, would also be a valid and
+never-expiring „delete this submission's files" instruction. Scoping also makes the signature layer
+refuse a request either side sends to the wrong endpoint, which it otherwise waves through.
 
 ## Envelope
 
@@ -27,7 +46,7 @@ without a coordinated deploy here, and an unknown field is ignored rather than r
 | ------------------------------------- | -------- | ------------------------------------------------------------------------------------- |
 | `submissionId`                        | yes      | uuid, one per submission — this is what makes a replay idempotent                     |
 | `submittedAt`                         | no       | ISO 8601                                                                              |
-| `locale`, `formId`, `formName`        | no       | recorded as-is                                                                        |
+| `formId`, `formName`                  | no       | recorded as-is                                                                        |
 | `name`, `email`, `phone`              | no       | the standard three                                                                    |
 | `address`, `scope`, `area`, `message` | no       | the landing's typed answers; `area` is text, because the form invites a range         |
 | `rawData`                             | no       | `{ name, values[] }[]` — when omitted, the typed answers above become the answer list |
@@ -66,13 +85,14 @@ its bytes.
 ```
 POST <LANDING_CLEANUP_URL>
 Content-Type: application/json
-x-landing-signature: sha256=<hex HMAC-SHA256 of the RAW body>
+x-landing-signature: sha256=<hex HMAC-SHA256 of the RAW body, scope `landing-cleanup`>
 
 { "submissionId": "<uuid>" }
 ```
 
 Same secret and same scheme as the inbound webhook (`LANDING_WEBHOOK_SECRET`, HMAC over the exact
-bytes sent). `LANDING_CLEANUP_URL` is the full endpoint url, held in `wykonczymy`'s env.
+bytes sent) but under scope **`landing-cleanup`**, so an inbound submission's signature is not one
+of these. `LANDING_CLEANUP_URL` is the full endpoint url, held in `wykonczymy`'s env.
 
 **The callback carries no urls.** A delete instruction that names its own targets is a delete
 primitive exposed to whoever can forge or replay it; one that names a submission can only ever
@@ -93,9 +113,20 @@ orphan, which the landing's age sweep reclaims.
 | No such prefix, or already deleted                | `200`  | idempotent — a replay deletes nothing twice            |
 | The delete itself failed                          | `500`  | the sweep is the backstop; `wykonczymy` does not retry |
 
-**Partial deliveries are not cleaned up.** A file that landed in `failed[]` is one this app does
-_not_ have, so its bytes are the only copy left. The sweep will not take it either — it belongs to a
-submission that was delivered. It is deleted by hand once the failure is understood.
+**Partial deliveries are not cleaned up by the callback, and the sweep is a deadline, not a
+reprieve.** A file that landed in `failed[]` is one this app does _not_ have, so its bytes are the
+only copy left — which is why the callback never fires for that submission. But the sweep cannot
+tell that prefix from an abandoned one: the submission WAS delivered, so its queue row is gone, and
+once the age window passes the sweep's two conditions (old enough, no live queue row) both hold and
+it reclaims the files. So `notifyAssetFailure`'s e-mail carries an implicit expiry — the failure has
+to be dealt with inside the sweep window, by hand, or the last copy goes with it.
+
+**The callback is counted, not inferred.** `wykonczymy` releases a submission only when the number
+of files it holds equals the number the envelope listed. An empty `failed[]` is not that claim: on a
+redelivery the download loop never runs, so nothing fails because nothing is attempted — and the
+pass that did run may have dropped a file. Counting also makes a lost `200` cheap: a redelivery
+whose first pass was complete still adds up, so it re-sends the callback rather than leaving an
+orphaned prefix behind.
 
 ## Two rules that live on the landing side
 

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { after, NextRequest, NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
 import { getPayload } from 'payload'
 import config from '@payload-config'
@@ -21,8 +21,10 @@ import { logError } from '@/lib/utils/log-error'
 
 /**
  * The download loop is serial and each asset gets its own timeout, so the handler's worst case is
- * `MAX_LANDING_ASSETS × FETCH_TIMEOUT_MS` plus the capture. Declared explicitly rather than left to
- * the platform default, which would kill the invocation before any of our own timeouts reported.
+ * `MAX_LANDING_ASSETS × FETCH_TIMEOUT_MS` plus the capture, plus the cleanup callback's own timeout
+ * — `after()` moves that one past the response, but not out of the invocation. Declared explicitly
+ * rather than left to the platform default, which would kill the invocation before any of our own
+ * timeouts reported.
  */
 export const maxDuration = 300
 
@@ -45,6 +47,7 @@ export async function POST(request: NextRequest) {
       raw,
       request.headers.get('x-landing-signature'),
       serverEnv.LANDING_WEBHOOK_SECRET,
+      'landing-submission',
     )
   ) {
     console.warn('[landing] Bad or missing x-landing-signature — rejecting')
@@ -89,7 +92,8 @@ export async function POST(request: NextRequest) {
 
   // A redelivery that already carries its files must not download a second set. One that carries
   // none is the crash-between-capture-and-attach case, and does get another go.
-  const assets = uploadFieldIds(lead.assets).length ? [] : (submission.assets ?? [])
+  const alreadyHeld = uploadFieldIds(lead.assets).length
+  const assets = alreadyHeld ? [] : (submission.assets ?? [])
 
   // Serial, not Promise.all: concurrent Payload writes share a Neon session and silently commit
   // one. Serial also keeps peak memory at one file rather than the whole set.
@@ -126,11 +130,20 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // Only once the attach above has COMMITTED, and only when the whole set made it: the landing
-  // deletes the submission's prefix wholesale, so a file we could not store would lose its last
-  // copy. A partial delivery is therefore left for a human, and the landing's age sweep never
-  // touches it because the submission did arrive.
-  if (!failed.length) await releaseLandingAssets(submission.submissionId)
+  // The landing deletes the submission's prefix wholesale, so releasing it is the claim that we
+  // hold EVERY file — which is why it is counted, not inferred from an empty `failed`. On a
+  // redelivery the loop never ran, so nothing failed because nothing was attempted, and the pass
+  // that did run may have dropped a file whose only copy is the landing's. Counting covers that
+  // case too: a redelivery whose first pass was complete still adds up, so a lost 200 costs a
+  // second callback rather than an orphaned prefix.
+  //
+  // Deliberately after the response: the callback may wait on a landing that is allowed to be
+  // down, and 10 s of that latency on a delivered enquiry is what makes the sender retry.
+  const held = alreadyHeld || (failed.length ? 0 : mediaIds.length)
+  const expected = submission.assets?.length ?? 0
+  if (expected > 0 && held === expected) {
+    after(() => releaseLandingAssets(submission.submissionId))
+  }
 
   // Only on a fresh capture: a redelivery would re-alert about files that were already reported.
   if (failed.length && created) {

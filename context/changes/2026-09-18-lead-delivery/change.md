@@ -265,6 +265,77 @@ did; the decisions below are that agreement.
 - **2026-09-20 — `area` is text.** Closes the open question. The label "Powierzchnia prac, np.
   30–60 m²" invites a range, which no numeric column holds; sorting on it was never asked for.
 
+- **2026-09-21 — `locale` is dropped from the wire.** Reverses the rider in the 2026-09-18 "typed
+  core plus a self-describing tail" decision that "`locale` rides along". Owner's call. The labels
+  the visitor actually saw already travel in `formQuestions`, so nothing about reading the enquiry
+  is lost; what is given up is the one field that says which language version produced the lead.
+  `landingSubmissionSchema` already has `locale` as optional, so an unsent field needs no change on
+  the receiving side — but the contract's envelope table, the shared fixture and this repo's builder
+  must all stop listing it as something the landing sends.
+  - **Consequence, so it is a choice and not an accident.** A lead from `/en/` is no longer
+    distinguishable from a Polish one at a glance. And because the Server Action has no locale of
+    its own, dropping the field means the question labels in `formQuestions` are rendered from the
+    **default (Polish) dictionary** for every visitor — not the labels the English visitor actually
+    saw, which the 2026-09-18 decision had called for. That is arguably the better outcome, since
+    the person reading the answers dialog is a Polish salesperson, but it is a reversal and not a
+    side effect.
+
+- **2026-09-21 — the queue is visible but read-only in the admin.** Closes the "hidden or read-only"
+  alternative left open by the 2026-09-18 outbox decision. A row stuck retrying is the one failure
+  that has no other surface, and there is exactly one admin here. No create, update or delete
+  through the UI: hand-editing a queue row could produce a delivery the leads app never dedupes, and
+  the delete-on-delivery lifecycle owns the row's death.
+
+- **2026-09-21 — rate limiting is Vercel Firewall, not a package.** `change.md` called rate limiting
+  "defence in depth" without naming a mechanism. Platform rules on the two public paths need no
+  dependency and no second store, which is what a landing page should cost. The tradeoff is that the
+  rules live in Vercel's config rather than the repo, so they are a manual check, not a test.
+
+## Build status — 2026-09-21
+
+Written down because "the env vars are set and the deploy is green" was read once as "the feature is
+ready", and it is not the same claim. The deployment plane and the feature plane are listed apart on
+purpose.
+
+**On `wykonczymy`, built and on staging** (`dace70ce`, deploy `wykonczymy-ew3ujwrl4`, typecheck clean,
+14 route specs + 5 callback specs green):
+
+- `POST /api/webhooks/landing` — signature (403), envelope (400), `captureLead` (the only step
+  allowed to 500), serial asset fetch, attach, redelivery guard.
+- `signBody()` in `verify-signature.ts` — one signer for both directions, so the inbound verify and
+  the outbound sign cannot drift apart. **Scoped since 2026-09-21:** the key is
+  `HMAC(LANDING_WEBHOOK_SECRET, scope)`, `landing-submission` inbound and `landing-cleanup`
+  outbound, so a captured submission signature is not also a valid delete instruction (Meta's
+  `x-hub-signature-256` stays on the bare app secret). **The landing must sign and verify the same
+  way** — mirrored into `src/lib/contact/sign.ts` there, and specified in the shared contract doc.
+- `releaseLandingAssets()` — the delete-on-delivery callback. Fires only when the number of files we
+  hold equals the number the envelope listed — counted, not inferred from an empty `failed[]` — and
+  only once the attach write has committed. Never throws, and runs behind `after()`, so a landing
+  that is down cannot turn a delivered submission into a retried one.
+- `LANDING_CLEANUP_URL` — optional in the schema. Absent means the callback is skipped and the
+  webhook still answers `200`; the cost is an orphaned prefix the landing's sweep reclaims.
+- `LANDING_WEBHOOK_SECRET` and `LANDING_BLOB_HOST` are set on both projects × both environments, one
+  shared value each. This staging build is the **first one baked with the re-created secret**, so a
+  signed POST from the landing is now what proves the two sides actually match — nothing before it
+  did.
+
+**On `landing_26`, unbuilt.** `submitContactForm` still ends at "No sink yet". Missing: the
+`submissions` queue collection, the token route with prefix pinning, the signed forward, the cleanup
+receiver, the age sweep.
+
+**Blocking an end-to-end test, and none of it is the agent's to do:**
+
+1. **Protection Bypass for Automation** — the wykonczymy project has none (`protectionBypass = None`,
+   read off the projects API; it is per-project, so nothing is inherited team-wide). Until the owner
+   mints one in Settings → Deployment Protection, a POST to the staging preview URL is answered `401`
+   before it ever reaches the route, and the landing must then send it as `x-vercel-protection-bypass`.
+2. **`EMAIL_HOST` on wykonczymy Preview** — `vercel env pull` returns it empty because it is
+   sensitive, so its value is **unknown**, not verified. If it is the real SMTP host rather than
+   `disabled.invalid`, a test lead mails real employees: `notification-recipients` is a Payload global,
+   so it lives in the DB, and every non-production DB here is a restored prod dump. Read it in the
+   dashboard before firing anything.
+3. **`LANDING_CLEANUP_URL`** — deliberately not set yet. Add it once the landing's receiver exists.
+
 ## Open
 
 _None — all questions closed 2026-09-21._

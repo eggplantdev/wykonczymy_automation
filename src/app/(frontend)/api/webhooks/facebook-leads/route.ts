@@ -38,7 +38,12 @@ export async function POST(request: NextRequest) {
   const raw = await request.text()
 
   if (
-    !verifySignature(raw, request.headers.get('x-hub-signature-256'), serverEnv.META_APP_SECRET)
+    !verifySignature(
+      raw,
+      request.headers.get('x-hub-signature-256'),
+      serverEnv.META_APP_SECRET,
+      'meta',
+    )
   ) {
     console.warn('[facebook-leads] Signature verification failed — rejecting')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
