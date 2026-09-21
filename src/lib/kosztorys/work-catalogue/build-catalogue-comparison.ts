@@ -159,7 +159,7 @@ export function buildCatalogueComparison(
 }
 
 /**
- * The „może chodzi o…" guesses, dokładane do gotowej listy „brak w katalogu".
+ * The „może chodzi o…" guesses, attached to a finished „brak w katalogu" list.
  *
  * Its own pass because it is the expensive half by two orders of magnitude: every praca is scored
  * against every cennik opis, which on a few hundred pozycji against 843 wpisy is seconds, not

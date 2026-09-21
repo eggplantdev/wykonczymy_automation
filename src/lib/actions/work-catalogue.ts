@@ -11,18 +11,12 @@ import {
   listCatalogueItemsByIds,
 } from '@/lib/db/work-catalogue'
 import { toCatalogueCandidate } from '@/lib/kosztorys/work-catalogue/item-to-catalogue'
-import {
-  attachCatalogueHints,
-  buildCatalogueComparison,
-} from '@/lib/kosztorys/work-catalogue/build-catalogue-comparison'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { stripLegacyMarker } from '@/lib/kosztorys/work-catalogue/legacy-marker'
 import { appendCatalogueItems } from '@/lib/kosztorys/work-catalogue/append-catalogue-items'
-import { getKosztorysTree } from '@/lib/queries/kosztorys'
 import { getWorkCatalogue } from '@/lib/queries/work-catalogue'
 import type {
   AppendedCatalogueSliceT,
-  CatalogueComparisonT,
   CatalogueSavePreviewT,
   CatalogueSeedItemT,
   WorkCatalogueItemT,
@@ -297,30 +291,4 @@ export async function saveItemToCatalogueAction(
     },
     ['workCatalogue'],
   )
-}
-
-// A read and only a read. Both sides come from their own cached reads, so opening the report costs
-// one tree read and nothing else.
-export async function compareWithCatalogueAction(
-  investmentId: number,
-): Promise<ActionResultT<CatalogueComparisonT>> {
-  return protectedAction('compareWithCatalogueAction', async () => {
-    const [tree, catalogue] = await Promise.all([
-      getKosztorysTree(investmentId),
-      getWorkCatalogue(),
-    ])
-    const items = tree.sections.flatMap((section) =>
-      section.items.map((item) => ({ ...item, sectionName: section.name })),
-    )
-
-    const comparison = buildCatalogueComparison(items, catalogue, {
-      wToolsCoeff: tree.globalCoeffs.wTools,
-      ownToolsCoeff: tree.globalCoeffs.ownTools,
-    })
-
-    return {
-      success: true,
-      data: { ...comparison, missing: attachCatalogueHints(comparison.missing, catalogue) },
-    }
-  })
 }

@@ -1208,6 +1208,10 @@ export function useKosztorysEditor({
     // prac" window both read it, so the two can never show different numbers. `null` = no cennik on
     // this surface.
     catalogueComparison,
+    // The cennik itself, for the one thing the comparison deliberately leaves out: the „może chodzi
+    // o…" guesses, which are O(pozycje × katalog) and so belong to the opened window, not to a memo
+    // that runs on every keystroke.
+    workCatalogue,
     laborCostsNet,
     // toolbar / panel state
     setView,

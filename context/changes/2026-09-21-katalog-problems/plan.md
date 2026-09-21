@@ -389,5 +389,5 @@ powierzchniach, zero na podglądach.
 
 #### Automated
 
-- [ ] 4.1 Specy okna i akcji katalogu przechodzą
-- [ ] 4.2 Brak martwych importów po kasacji serwerowej ścieżki
+- [x] 4.1 Specy okna i akcji katalogu przechodzą
+- [x] 4.2 Brak martwych importów po kasacji serwerowej ścieżki
