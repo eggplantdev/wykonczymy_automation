@@ -46,6 +46,34 @@ describe('notifyNewLead', () => {
     expect(arg.subject).not.toContain('TEST')
   })
 
+  // The announced count is the only one that exists at send time — the landing stores the files
+  // after this mail goes out, so a mail built from `lead.assets` would say „bez załączników" for
+  // every enquiry that came with photos.
+  it('reports the announced attachment count and links to the zgłoszenie', async () => {
+    const sendEmail = vi.fn().mockResolvedValue({})
+    await notifyNewLead(fakePayload(sendEmail), lead, { expectedAssets: 2 })
+
+    const html = sendEmail.mock.calls[0][0].html as string
+    expect(html).toContain('Załączniki:</strong> 2')
+    expect(html).not.toContain('Bez załączników')
+    expect(html).toContain(`?search=${encodeURIComponent('anna.nowak@example.com')}`)
+  })
+
+  it('prefers the files the lead already holds over the announced count', async () => {
+    const sendEmail = vi.fn().mockResolvedValue({})
+    const withAssets = { ...lead, assets: [11, 12, 13] } as unknown as Lead
+    await notifyNewLead(fakePayload(sendEmail), withAssets, { expectedAssets: 1 })
+
+    expect(sendEmail.mock.calls[0][0].html as string).toContain('Załączniki:</strong> 3')
+  })
+
+  it('says so when nothing came with the enquiry', async () => {
+    const sendEmail = vi.fn().mockResolvedValue({})
+    await notifyNewLead(fakePayload(sendEmail), lead)
+
+    expect(sendEmail.mock.calls[0][0].html as string).toContain('Bez załączników')
+  })
+
   it('propagates a send failure so the caller can flip notifyStatus', async () => {
     const sendEmail = vi.fn().mockRejectedValue(new Error('smtp down'))
     await expect(notifyNewLead(fakePayload(sendEmail), lead)).rejects.toThrow('smtp down')
