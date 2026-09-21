@@ -376,18 +376,18 @@ powierzchniach, zero na podglądach.
 
 #### Automated
 
-- [x] 2.1 Typy się spinają po dołożeniu propa
+- [x] 2.1 Typy się spinają po dołożeniu propa — d79cc37f
 
 ### Phase 3: Porównanie w pamięci i dwa problemy
 
 #### Automated
 
-- [x] 3.1 Spec rejestru przechodzi z dwoma nowymi wpisami
-- [x] 3.2 Nowy spec dom: licznik topnieje i przeżywa remount
+- [x] 3.1 Spec rejestru przechodzi z dwoma nowymi wpisami — a68ec2e1
+- [x] 3.2 Nowy spec dom: licznik topnieje i przeżywa remount — a68ec2e1
 
 ### Phase 4: Okno na jednym źródle
 
 #### Automated
 
-- [x] 4.1 Specy okna i akcji katalogu przechodzą
-- [x] 4.2 Brak martwych importów po kasacji serwerowej ścieżki
+- [x] 4.1 Specy okna i akcji katalogu przechodzą — 95d5470e
+- [x] 4.2 Brak martwych importów po kasacji serwerowej ścieżki — 95d5470e

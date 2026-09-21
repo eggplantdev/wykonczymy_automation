@@ -1,7 +1,7 @@
 ---
 change_id: katalog-problems
 title: Rozjazdy z katalogiem prac jako problemy w edytorze kosztorysu
-status: implementing
+status: implemented
 created: 2026-09-21
 updated: 2026-09-21
 archived_at: null

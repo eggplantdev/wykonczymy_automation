@@ -480,3 +480,16 @@ lead-delivery — na karcie inwestycji nie ma już paska miniatur (został tylko
 - [ ] Zamknięcie formularza edycji przez „Anuluj" nie usuwa dodanego pliku
 - [ ] Formularz „Nowa inwestycja" dalej zbiera pliki po staremu i zapisuje je razem z inwestycją
 - [ ] Podgląd i dodawanie faktury w tabeli transferów działa jak przed zmianą (tytuły, pager)
+
+## katalog-problems — rozjazdy z katalogiem prac jako problemy edytora (2026-09-21)
+
+Na inwestycji z niepustą rozpiską (np. po `INV=6 … seed-kosztorys.ts`), edytor `kosztorys_v2`.
+
+- [ ] Wejście na edytor bez otwierania żadnego okna: „Problemy" pokazują „Inne liczby niż w katalogu prac (N)" i „Brak w katalogu prac (M)"
+- [ ] Zmiana ceny j.m. na zgodną z katalogiem zmniejsza licznik „Inne liczby…" natychmiast, bez zapisu i bez przeładowania
+- [ ] Liczby w oknie „Porównaj z katalogiem prac" i w menu „Problemy" są identyczne, także po niezapisanych zmianach
+- [ ] Okno otwiera się od razu z liczbami — nie pokazuje „Porównuję z katalogiem…"
+- [ ] „Pokaż w rozpisce" w obu blokach zamyka okno i zawęża siatkę do właściwego zbioru pozycji
+- [ ] Zawężenie na „Inne liczby…" odsłania kolumny cenowe, nawet jeśli były odznaczone w wyborze kolumn
+- [ ] „Dodaj do katalogu" na pracy spoza cennika zmniejsza licznik „Brak w katalogu" bez utraty niezapisanych wierszy
+- [ ] Podgląd szablonu / tryb tylko-do-odczytu: raport widoczny, brak „Dodaj do katalogu", „Edytuj w katalogu" i „Pokaż w rozpisce"
