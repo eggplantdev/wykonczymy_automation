@@ -156,7 +156,7 @@ function CandidateRow({
 }) {
   const body = (
     <>
-      <span className="flex-1 text-left">{entry.description}</span>
+      <span className="min-w-0 flex-1 text-left">{entry.description}</span>
       <span className="text-muted-foreground w-16 shrink-0 text-right">
         {entry.unit || 'bez j.m.'}
       </span>
@@ -169,7 +169,7 @@ function CandidateRow({
   if (readOnly)
     return (
       <div className="flex items-baseline gap-2 px-1 py-1">
-        <span className="w-4 shrink-0" />
+        <span className="w-4 shrink-0 self-start" />
         {body}
       </div>
     )
@@ -178,12 +178,12 @@ function CandidateRow({
     <Button
       variant="ghost"
       size="xs"
-      className="h-auto w-full items-baseline gap-2 px-1 py-1 font-normal"
+      className="h-auto w-full items-baseline gap-2 px-1 py-1 font-normal whitespace-normal"
       onClick={onClick}
     >
       {/* Amber on the glyph alone. On the whole wiersz it was 100+ amber lines in one fold, where
           the colour stopped meaning „this is the offer" and became the background. */}
-      <ArrowRight className="shrink-0 self-center text-amber-600" />
+      <ArrowRight className="shrink-0 self-start text-amber-600" />
       {body}
     </Button>
   )
