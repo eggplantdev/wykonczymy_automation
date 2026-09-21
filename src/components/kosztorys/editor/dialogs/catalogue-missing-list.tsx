@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { ArrowRight, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SearchFilterInput } from '@/components/filters/search-filter-input'
 import { useSearchFilter } from '@/hooks/use-search-filter'
@@ -26,6 +27,11 @@ type CatalogueNameT = { description: string; unit: string }
  * Accepting a candidate writes opis AND j.m., which is the whole point — the klucz is the pair, so
  * the praca only stops being „brak w katalogu" when both match. Prices stay put: this settles what
  * the praca is called, and the „Inne liczby" block it lands in is where what it costs is settled.
+ *
+ * One candidate per WIERSZ, with its j.m. and cena in fixed columns. Flowing them inline turned 38
+ * prace into a wall of amber prose where no candidate had a beginning, an end, or anything that
+ * looked clickable — and the choice this block exists for is a comparison between candidates, which
+ * is only possible when the things being compared line up.
  */
 export function CatalogueMissingList({
   missing,
@@ -45,12 +51,23 @@ export function CatalogueMissingList({
   const [searchingItemId, setSearchingItemId] = useState<number | null>(null)
 
   return (
-    <div className="space-y-1 text-xs">
+    <div className="space-y-2 text-xs">
+      {/* Said once, at the top: the gesture is a WRITE, and without a sentence naming it nothing on
+          a candidate wiersz says what a click changes or what it leaves alone. */}
+      {!readOnly && (
+        <p className="text-muted-foreground">
+          Kliknij podpowiedź, żeby zapisać w kosztorysie nazwę z katalogu i jednostkę. Ceny zostają
+          bez zmian.
+        </p>
+      )}
+
       {missing.map((row) => (
-        <div key={row.itemId} className="border-border/60 space-y-1 border-t py-1">
+        <div key={row.itemId} className="border-border/60 space-y-1 border-t pt-1.5 pb-1">
           <div className="flex items-start justify-between gap-3">
-            <span className="text-muted-foreground">
-              {row.section} · {row.description} ({row.unit || 'bez j.m.'})
+            <span>
+              <span className="text-muted-foreground">{row.section} · </span>
+              <span className="font-medium">{row.description}</span>
+              <span className="text-muted-foreground"> ({row.unit || 'bez j.m.'})</span>
             </span>
             {!readOnly && (
               <Button
@@ -64,33 +81,33 @@ export function CatalogueMissingList({
             )}
           </div>
 
-          {(row.hints.length > 0 || !readOnly) && (
-            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 pl-4 text-amber-600">
-              {row.hints.length > 0 && <span>{hintLead(row)}</span>}
-              {row.hints.map((hint) => (
-                <CandidateButton
-                  key={hint.id}
-                  label={candidateLabel(hint)}
-                  readOnly={readOnly}
-                  onClick={() => onAcceptName(row.itemId, hintName(hint))}
-                />
-              ))}
-              {/* Offered even with no candidates — nothing scored above the threshold is the case
-                  where searching by hand is the ONLY way in. */}
-              {!readOnly && (
-                <Button
-                  variant="link"
-                  size="xs"
-                  className="text-muted-foreground h-auto p-0"
-                  onClick={() =>
-                    setSearchingItemId((prev) => (prev === row.itemId ? null : row.itemId))
-                  }
-                >
-                  {row.hints.length > 0 ? 'inny…' : 'wybierz z katalogu…'}
-                </Button>
-              )}
-            </div>
-          )}
+          {row.hints.length > 0 && <p className="text-muted-foreground pl-4">{hintLead(row)}</p>}
+
+          <div className="pl-4">
+            {row.hints.map((hint) => (
+              <CandidateRow
+                key={hint.id}
+                entry={hint}
+                readOnly={readOnly}
+                onClick={() => onAcceptName(row.itemId, hintName(hint))}
+              />
+            ))}
+            {/* Offered even with no candidates — nothing scored above the threshold is the case
+                where searching by hand is the ONLY way in. */}
+            {!readOnly && (
+              <Button
+                variant="ghost"
+                size="xs"
+                className="text-muted-foreground h-auto w-full justify-start gap-2 px-1 py-1 font-normal"
+                onClick={() =>
+                  setSearchingItemId((prev) => (prev === row.itemId ? null : row.itemId))
+                }
+              >
+                <Search />
+                {row.hints.length > 0 ? 'Inna praca z katalogu…' : 'Wybierz z katalogu…'}
+              </Button>
+            )}
+          </div>
 
           {searchingItemId === row.itemId && (
             <CatalogueSearch
@@ -112,9 +129,6 @@ const hintName = (entry: { description: string; unit: string }): CatalogueNameT 
   unit: entry.unit,
 })
 
-const candidateLabel = (entry: { description: string; unit: string; clientPrice: number }) =>
-  `„${entry.description}" (${entry.unit || 'bez j.m.'}) — ${formatPLN(entry.clientPrice)}`
-
 /**
  * 168 prace in the local dataset carry a name the cennik ALREADY has and differ only by j.m., and
  * over such a praca „może chodzi o «Montaż syfonów»" reads as the application malfunctioning. Where
@@ -126,27 +140,58 @@ function hintLead(row: CatalogueMissingT): string {
   return sameName ? 'ta sama nazwa, inna j.m.:' : 'może chodzi o:'
 }
 
-// A candidate a read-only viewer cannot accept is still worth reading — it is the explanation for
-// why the praca is in this block at all.
-function CandidateButton({
-  label,
+type CandidateEntryT = Pick<CatalogueHintT, 'description' | 'unit' | 'clientPrice'>
+
+// The j.m. and the cena sit in their own columns, never in the sentence: candidates for one praca
+// are routinely the SAME name, so those two are the whole difference between them and have to line
+// up down the list to be comparable at all.
+function CandidateRow({
+  entry,
   readOnly,
   onClick,
 }: {
-  label: string
+  entry: CandidateEntryT
   readOnly: boolean
   onClick: () => void
 }) {
-  if (readOnly) return <span>{label}</span>
+  const body = (
+    <>
+      <span className="flex-1 text-left">{entry.description}</span>
+      <span className="text-muted-foreground w-16 shrink-0 text-right">
+        {entry.unit || 'bez j.m.'}
+      </span>
+      <span className="w-20 shrink-0 text-right tabular-nums">{formatPLN(entry.clientPrice)}</span>
+    </>
+  )
+
+  // A candidate a read-only viewer cannot accept is still worth reading — it is the explanation for
+  // why the praca is in this block at all.
+  if (readOnly)
+    return (
+      <div className="flex items-baseline gap-2 px-1 py-1">
+        <span className="w-4 shrink-0" />
+        {body}
+      </div>
+    )
+
   return (
-    <Button variant="link" size="xs" className="h-auto p-0 text-amber-600" onClick={onClick}>
-      {label}
+    <Button
+      variant="ghost"
+      size="xs"
+      className="h-auto w-full items-baseline gap-2 px-1 py-1 font-normal"
+      onClick={onClick}
+    >
+      {/* Amber on the glyph alone. On the whole wiersz it was 100+ amber lines in one fold, where
+          the colour stopped meaning „this is the offer" and became the background. */}
+      <ArrowRight className="shrink-0 self-center text-amber-600" />
+      {body}
     </Button>
   )
 }
 
 const searchText = (entry: WorkCatalogueItemT) => `${entry.description} ${entry.unit}`
 
+// No `readOnly` here: the only way to open this is the toggle that a read-only viewer never gets.
 function CatalogueSearch({
   catalogue,
   onPick,
@@ -166,17 +211,14 @@ function CatalogueSearch({
       />
       {/* Capped rather than scrolled: the katalog holds hundreds of wpisy, and a list that long
           inside a fold is a wall to scroll past on the way to the next praca. */}
-      <div className="flex flex-col items-start gap-0.5">
+      <div>
         {filteredData.slice(0, SEARCH_RESULT_LIMIT).map((entry) => (
-          <Button
+          <CandidateRow
             key={entry.id}
-            variant="link"
-            size="xs"
-            className="h-auto p-0"
+            entry={entry}
+            readOnly={false}
             onClick={() => onPick(entry)}
-          >
-            {candidateLabel(entry)}
-          </Button>
+          />
         ))}
         {filteredData.length === 0 && (
           <span className="text-muted-foreground">Nic takiego w katalogu.</span>

@@ -84,8 +84,8 @@ describe('CatalogueMissingList — przyjęcie kandydata', () => {
       ],
     })
 
-    expect(screen.getByRole('button', { name: /\(szt\).*45/ })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /\(m2\).*60/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Montaż syfonów.*szt.*45/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Montaż syfonów.*m2.*60/ })).toBeInTheDocument()
   })
 
   it('o pracy o tej samej nazwie mówi jednostką, a nie „może chodzi o"', () => {
@@ -121,7 +121,7 @@ describe('CatalogueMissingList — przyjęcie kandydata', () => {
       catalogue: [entry({ id: 9, description: 'Wylewki', unit: 'm2', clientPrice: 80 })],
     })
 
-    await userEvent.click(screen.getByRole('button', { name: 'wybierz z katalogu…' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Wybierz z katalogu…' }))
     await userEvent.click(screen.getByRole('button', { name: /Wylewki/ }))
 
     expect(onAcceptName).toHaveBeenCalledWith(11, { description: 'Wylewki', unit: 'm2' })
@@ -136,7 +136,7 @@ describe('CatalogueMissingList — przyjęcie kandydata', () => {
       ],
     })
 
-    await userEvent.click(screen.getByRole('button', { name: 'wybierz z katalogu…' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Wybierz z katalogu…' }))
     await userEvent.type(screen.getByPlaceholderText('Szukaj w katalogu...'), 'malow')
 
     expect(await screen.findByRole('button', { name: /Malowanie ścian/ })).toBeInTheDocument()

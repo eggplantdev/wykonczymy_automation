@@ -86,10 +86,10 @@ describe('CatalogueDiffTable — zaznaczanie', () => {
   it('„zaznacz wszystkie" przełącza całość w obie strony', async () => {
     renderTable([DIFF, SECOND])
 
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Zaznacz wszystkie' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Zaznacz wszystkie' }))
     expect(applyButton()).toHaveTextContent('Aktualizuj kosztorys (4)')
 
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Zaznacz wszystkie' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Odznacz wszystkie' }))
     expect(applyButton()).toBeDisabled()
     expect(applyButton()).toHaveTextContent('Aktualizuj kosztorys (0)')
   })

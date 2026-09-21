@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { CheckCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { isOverCeiling, MAX_CLIENT_SHARE } from '@/lib/kosztorys/subcontractor-price-guard'
@@ -90,21 +91,23 @@ export function CatalogueDiffTable({
     if (saved) setSelection(new Map())
   }
 
+  const allSelected = selectedCount === figureCount
+
   return (
     <div className="space-y-2">
+      {/* Same shape as every other mass-select in the app (`filter-multi-select`): the `CheckCheck`
+          glyph plus a label that flips, rather than a bare header checkbox nobody reads as an offer. */}
+      {!readOnly && (
+        <Button variant="link" size="xs" className="h-auto p-0" onClick={toggleAll}>
+          <CheckCheck />
+          {allSelected ? 'Odznacz wszystkie' : 'Zaznacz wszystkie'}
+        </Button>
+      )}
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-muted-foreground text-xs">
-              <th className="w-6 py-1 font-normal">
-                {!readOnly && (
-                  <Checkbox
-                    aria-label="Zaznacz wszystkie"
-                    checked={checkedState(selectedCount, figureCount)}
-                    onCheckedChange={toggleAll}
-                  />
-                )}
-              </th>
+              <th className="w-6 py-1 font-normal" />
               <th className="py-1 text-left font-normal">Liczba</th>
               <th className="py-1 pl-3 text-right font-normal">Kosztorys</th>
               <th className="py-1 pl-3 text-right font-normal">Katalog</th>
