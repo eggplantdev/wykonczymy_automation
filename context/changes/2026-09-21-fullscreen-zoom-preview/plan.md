@@ -248,3 +248,19 @@ Uruchamiane RAZ, po ostatniej fazie:
 - [x] 3.1 Flaga `hasZoomed` — 6f6bdd5c
 - [x] 3.2 `unoptimized={unoptimized || hasZoomed}` — 6f6bdd5c
 - [x] 3.3 Spec DOM: podmiana źródła, `unoptimized` z góry nie zadeptane — 6f6bdd5c
+
+## Addenda po slice review (2026-09-21)
+
+- **Sterowanie nie stoi przy pagerze.** Faza 2 §3 mówiła „w rzędzie przy pagerze", `variant="outline"`.
+  Weszło jako `variant="ghost"` w nakładce na obrazku (`absolute right-2 bottom-2`), bo pager istnieje
+  tylko przy zestawie wielostronicowym — przy pojedynczym pliku sterowanie zniknęłoby razem z nim.
+- **`qualities: [90]` to zmiana globalna i nie miała własnego kroku w Progress.** Dotyka każdego
+  `next/image` w aplikacji, nie tylko tego okna: `media-strip` i `brand-logo` nie podają `quality`,
+  więc przeszły z efektywnego 80 na 90. Dopisany manualny check to pokrywa.
+- **Po deployu stare karty dostaną 400 na obrazkach.** Serwerowa walidacja `qualities` jest ścisła
+  (`image-optimizer.js` — „q parameter … is not allowed"), więc URL-e z `q=50` / `q=80` wyrenderowane
+  przed deployem przestają działać do przeładowania. Przejściowe i samo się goi; notowane, żeby nie
+  diagnozować tego od zera.
+- **Ścieżka gestów (kółko/pinch/dwuklik) nie ma pokrycia automatycznego.** `onTransform` potrzebuje
+  silnika layoutu, którego jsdom nie ma; spec pokrywa tylko przycisk. Zgodnie z decyzją właściciela
+  z 2026-09-21 slice nie zaciąga długu E2E — ryzyko jest wizualne i pokryte checkami manualnymi.

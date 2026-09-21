@@ -22,9 +22,9 @@ function renderDialog(invoices: InvoiceFileT[], props: { unoptimized?: boolean }
   return render(<InvoicePreviewDialog invoices={invoices} open onOpenChange={vi.fn()} {...props} />)
 }
 
-/** The rendered `<img>` for the page on screen — `alt` is the filename the dialog titles it with. */
+// The zoom component arrives through next/dynamic, so every lookup has to await its chunk.
 function previewImage(filename: string) {
-  return screen.getByAltText(filename) as HTMLImageElement
+  return screen.findByAltText<HTMLImageElement>(filename)
 }
 
 describe('InvoicePreviewDialog — zoom', () => {
@@ -35,10 +35,10 @@ describe('InvoicePreviewDialog — zoom', () => {
     expect(screen.queryByRole('button', { name: 'Dopasuj do okna' })).not.toBeInTheDocument()
   })
 
-  it('pokazuje sterowanie zoomem dla obrazka', () => {
+  it('pokazuje sterowanie zoomem dla obrazka', async () => {
     renderDialog(IMAGES)
 
-    expect(screen.getByRole('button', { name: 'Przybliż' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Przybliż' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Oddal' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Dopasuj do okna' })).toBeInTheDocument()
   })
@@ -47,28 +47,28 @@ describe('InvoicePreviewDialog — zoom', () => {
     const user = userEvent.setup()
     renderDialog(IMAGES)
 
-    expect(previewImage('rzut-parter.jpg').src).toContain('/_next/image')
+    expect((await previewImage('rzut-parter.jpg')).src).toContain('/_next/image')
 
-    await user.click(screen.getByRole('button', { name: 'Przybliż' }))
+    await user.click(await screen.findByRole('button', { name: 'Przybliż' }))
 
-    expect(previewImage('rzut-parter.jpg').src).not.toContain('/_next/image')
-    expect(previewImage('rzut-parter.jpg').src).toContain('/rzut-parter.jpg')
+    expect((await previewImage('rzut-parter.jpg')).src).not.toContain('/_next/image')
+    expect((await previewImage('rzut-parter.jpg')).src).toContain('/rzut-parter.jpg')
   })
 
   it('zeruje przybliżenie przy przejściu na następną stronę', async () => {
     const user = userEvent.setup()
     renderDialog(IMAGES)
 
-    await user.click(screen.getByRole('button', { name: 'Przybliż' }))
+    await user.click(await screen.findByRole('button', { name: 'Przybliż' }))
     await user.click(screen.getByRole('button', { name: 'Następna strona' }))
 
     // A fresh page means a fresh mount: back to the optimized rendition, i.e. scale 1.
-    expect(previewImage('rzut-pietro.jpg').src).toContain('/_next/image')
+    expect((await previewImage('rzut-pietro.jpg')).src).toContain('/_next/image')
   })
 
-  it('nie zadeptuje `unoptimized` przychodzącego z góry', () => {
+  it('nie zadeptuje `unoptimized` przychodzącego z góry', async () => {
     renderDialog(IMAGES, { unoptimized: true })
 
-    expect(previewImage('rzut-parter.jpg').src).not.toContain('/_next/image')
+    expect((await previewImage('rzut-parter.jpg')).src).not.toContain('/_next/image')
   })
 })

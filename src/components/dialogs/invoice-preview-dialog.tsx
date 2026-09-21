@@ -1,19 +1,28 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
-import { ZoomablePreviewImage } from './zoomable-preview-image'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/loader/spinner'
 import { useInvoiceZip } from '@/hooks/use-invoice-zip'
 import { buildInvoiceArchiveName, dedupeFilename } from '@/lib/invoices/invoice-zip'
 import { isImageMime, isPdfMime, isPreviewableMime } from '@/lib/media/mime'
 import { splitExtension } from '@/lib/utils/append-short-id'
+import { openPrintWindow, printThenClose } from '@/lib/utils/print-window'
 import { today } from '@/lib/utils/date'
 import { ChevronLeft, ChevronRight, Download, Plus, Printer, Trash2 } from 'lucide-react'
 import { INVOICE_PREVIEW_LABELS } from '@/components/media/preview-labels'
 import type { InvoiceFileT } from '@/types/transfers'
 import type { PreviewLabelsT } from '@/types/media'
+
+// Every surface carrying a preview trigger statically imports this dialog, so a bare import would
+// ship the ~160 KB zoom engine to users who never open a preview. It has no `exports` map and no
+// `sideEffects: false`, so nothing tree-shakes it. The dialog's own spinner covers the wait.
+const ZoomablePreviewImage = dynamic(
+  () => import('./zoomable-preview-image').then((m) => m.ZoomablePreviewImage),
+  { ssr: false },
+)
 
 type InvoicePreviewDialogPropsT = {
   invoices: InvoiceFileT[]
@@ -65,11 +74,10 @@ export function InvoicePreviewDialog({
     const printable = invoices.filter((invoice) => isPreviewableMime(invoice.mimeType))
     if (printable.length === 0) return
 
-    const printWindow = window.open('', '_blank')
+    const printWindow = openPrintWindow(displayName)
     if (!printWindow) return
 
     const doc = printWindow.document
-    doc.title = displayName
     doc.body.style.margin = '0'
 
     // One print job covers the whole document, so it fires only once every page has loaded —
@@ -78,8 +86,7 @@ export function InvoicePreviewDialog({
     const onPageReady = () => {
       pending--
       if (pending > 0) return
-      printWindow.print()
-      printWindow.close()
+      printThenClose(printWindow)
     }
 
     for (const invoice of printable) {
@@ -131,13 +138,13 @@ export function InvoicePreviewDialog({
 
         <div className="relative flex min-h-0 w-full flex-1 items-center justify-center">
           {(isImage || isPdf) && isMediaLoading && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center">
+            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
               <Spinner />
             </div>
           )}
           {active && isImage && (
             // `key` is what resets the zoom: a remount per page drops scale, offset and the
-            // original-source flag together, instead of three effects chasing `pageIndex`.
+            // original-source flag together.
             <ZoomablePreviewImage
               key={active.url}
               src={active.url}

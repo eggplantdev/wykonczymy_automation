@@ -4,8 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { Minus, Plus, Scan } from 'lucide-react'
 import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch'
-import { Button } from '@/components/ui/button'
-import { SimpleTooltip } from '@/components/ui/tooltip'
+import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
 
 type ZoomablePreviewImagePropsT = {
   src: string
@@ -20,10 +19,9 @@ type ZoomablePreviewImagePropsT = {
 const MAX_SCALE = 8
 
 /**
- * The preview's image, zoomable by wheel, pinch, double-click and the three buttons. It knows
- * nothing about which page is on screen — the dialog keeps `pageIndex` and remounts this component
- * per page, which is also how zoom resets: the next file has different dimensions, so a carried-over
- * scale would open it cropped at a random spot.
+ * Knows nothing about which page is on screen — the dialog keeps `pageIndex` and remounts this
+ * component per page, which is also how zoom resets: the next file has different dimensions, so a
+ * carried-over scale would open it cropped at a random spot.
  */
 export function ZoomablePreviewImage({
   src,
@@ -44,17 +42,17 @@ export function ZoomablePreviewImage({
       maxScale={MAX_SCALE}
       doubleClick={{ mode: 'toggle' }}
       wheel={{ step: 0.2 }}
-      // Covers wheel, pinch and double-click; the button says the same thing on its own click,
-      // because a transform callback can only report a scale the layout was able to compute.
+      // Covers wheel, pinch and double-click.
       onTransform={(_ref, state) => {
         if (state.scale > 1) setHasZoomed(true)
       }}
     >
       {({ zoomIn, zoomOut, resetTransform }) => (
         <>
-          {/* Sized through the library's own style props, not classes: it writes inline styles on
-              both elements, and `<Image fill>` is absolute — a content box of `fit-content` would
-              collapse to nothing and take the image with it. */}
+          {/* Sized through the library's own style props, not classes: it injects its own stylesheet
+              at runtime — after Tailwind's — so at equal specificity its `fit-content` beats
+              `h-full w-full`, and `<Image fill>` is absolute, so that box collapses to nothing and
+              takes the image with it. */}
           <TransformComponent
             wrapperStyle={{ width: '100%', height: '100%', overflow: 'hidden' }}
             contentStyle={{ width: '100%', height: '100%' }}
@@ -73,37 +71,31 @@ export function ZoomablePreviewImage({
             </div>
           </TransformComponent>
 
-          {/* Overlaid rather than placed by the pager, which only exists on a multi-page set. Always
-              visible: a gesture nobody can see is a feature nobody finds. */}
+          {/* Overlaid rather than placed by the pager, which only exists on a multi-page set. */}
           <div className="bg-background/85 absolute right-2 bottom-2 z-10 flex gap-1 rounded-md border p-1 shadow-sm">
-            <SimpleTooltip content="Oddal">
-              <Button variant="ghost" size="icon" onClick={() => zoomOut()} aria-label="Oddal">
-                <Minus />
-              </Button>
-            </SimpleTooltip>
-            <SimpleTooltip content="Przybliż">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
+            {[
+              { icon: Minus, label: 'Oddal', onClick: () => zoomOut() },
+              // Says it on its own click too: a transform callback can only report a scale the
+              // layout was able to compute.
+              {
+                icon: Plus,
+                label: 'Przybliż',
+                onClick: () => {
                   setHasZoomed(true)
-                  void zoomIn()
-                }}
-                aria-label="Przybliż"
-              >
-                <Plus />
-              </Button>
-            </SimpleTooltip>
-            <SimpleTooltip content="Dopasuj do okna">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => resetTransform()}
-                aria-label="Dopasuj do okna"
-              >
-                <Scan />
-              </Button>
-            </SimpleTooltip>
+                  zoomIn()
+                },
+              },
+              { icon: Scan, label: 'Dopasuj do okna', onClick: () => resetTransform() },
+            ].map(({ icon, label, onClick }) => (
+              // Wider than a row action: this one is a touch target floating over an image.
+              <RowActionButton
+                key={label}
+                icon={icon}
+                label={label}
+                className="size-8"
+                onClick={onClick}
+              />
+            ))}
           </div>
         </>
       )}

@@ -564,3 +564,10 @@ Inwestycja z niepustą rozpiską i rozjazdami wobec katalogu (w lokalnym dumpie:
 - [ ] W Network po pierwszym powiększeniu leci żądanie na URL Bloba, nie na `/_next/image`.
 - [ ] Rzut ze zgłoszenia jest w powiększeniu czytelny (linie wymiarowe), nie rozmyty.
 - [ ] Przy `unoptimized` z góry (podgląd niewysłanego jeszcze pliku) nic się nie psuje.
+
+### Po slice review (globalna jakość obrazków)
+
+- [ ] Miniatury w `media-strip` i logo w topbarze wyglądają poprawnie i nie sypią 400 w Network
+      (`qualities: [90]` dotyczy całej aplikacji, nie tylko tego okna).
+- [ ] Po powiększeniu na wolnym łączu nie ma długiej pustki bez żadnego sygnału, a gdy oryginał
+      nie wczyta się — widać, że coś poszło nie tak (dziś `onError` nie ma stanu błędu).

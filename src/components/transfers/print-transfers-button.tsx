@@ -1,6 +1,7 @@
 'use client'
 
 import { useTransition } from 'react'
+import { openPrintWindow, printThenClose } from '@/lib/utils/print-window'
 import type { Where } from 'payload'
 import type { Table } from '@tanstack/react-table'
 import { Loader2, Printer } from 'lucide-react'
@@ -36,14 +37,12 @@ export function PrintTransfersButton({ where, table, title }: PrintTransfersButt
       return
     }
 
-    // Opened synchronously, before the fetch: an await would spend the click's user activation that
-    // window.open needs (Safari refuses outright, Chrome after a few seconds).
-    const printWindow = window.open('', '_blank')
+    // Opened before the fetch, not after: the helper needs this click's user activation.
+    const printWindow = openPrintWindow(title)
     if (!printWindow) {
       toastMessage('Przeglądarka zablokowała okno wydruku', 'error')
       return
     }
-    printWindow.document.title = title
     if (printWindow.document.body) printWindow.document.body.textContent = 'Przygotowuję wydruk…'
 
     startTransition(async () => {
@@ -68,10 +67,7 @@ export function PrintTransfersButton({ where, table, title }: PrintTransfersButt
 
       printWindow.document.write(buildTransfersPrintHtml(rows, columns, title))
       printWindow.document.close()
-      // Closes on afterprint, not right after print(): only Chrome blocks inside print(), so an
-      // immediate close() would tear the window down mid-job in Safari and Firefox.
-      printWindow.addEventListener('afterprint', () => printWindow.close())
-      printWindow.print()
+      printThenClose(printWindow)
     })
   }
 
