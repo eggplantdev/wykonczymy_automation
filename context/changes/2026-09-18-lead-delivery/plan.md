@@ -847,7 +847,7 @@ Run **once**, after Phase 6.
 
 #### Automated
 
-- [x] 6.1 Promotion creates an investment holding the SAME media ids, sets `leads.investment`, flips `contactStatus` — PENDING_SHA
-- [x] 6.2 Deleting the promoted lead leaves the media rows and the investment relation intact — PENDING_SHA
-- [x] 6.3 Promote dialog prefills name/address/phone/email — PENDING_SHA
-- [x] 6.4 `pnpm exec vitest run src/__tests__/lib/actions/promote-lead.test.ts` passes — PENDING_SHA
+- [x] 6.1 Promotion creates an investment holding the SAME media ids, sets `leads.investment`, flips `contactStatus` — b092c002
+- [x] 6.2 Deleting the promoted lead leaves the media rows and the investment relation intact — b092c002
+- [x] 6.3 Promote dialog prefills name/address/phone/email — b092c002
+- [x] 6.4 `pnpm exec vitest run src/__tests__/lib/actions/promote-lead.test.ts` passes — b092c002

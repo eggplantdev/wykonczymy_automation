@@ -442,3 +442,24 @@ Pełne dowody, verbatim: `context/archive/manual-checks/2026-09-15-pelny-rejestr
 | kosztorys-section-menu-split — akcje sekcji na pasku, akcje pracy na wierszu                                             | 18/18 | 2026-09-14           |
 | transfers-server-sort — sortowanie tabeli transakcji na serwerze (2026-09-15, EX-777)                                    | 13/13 | 2026-09-15           |
 | rwd-mobile — RWD na telefonie: nawigacja, dodawanie i pokazywanie transakcji (2026-09-16, EX-785)                        | 7/7   | 2026-09-16           |
+
+## EX-802 — lead-delivery (wykonczymy half, 2026-09-21)
+
+Sprawdzenia na bazie testowej (5435). Webhook wymaga `LANDING_WEBHOOK_SECRET` i
+`LANDING_BLOB_HOST` w `.env`; kontrakt koperty: `context/reference/landing-intake-contract.md`.
+
+- [ ] `/admin` → Media: kolumna „Rodzaj" jest widoczna i filtruje listę
+- [ ] Skasowanie faktury podpiętej pod transakcję jest odrzucone czytelnym polskim komunikatem
+- [ ] Inwestycja pokazuje podpięte pliki w `/admin` po akcji dodania
+- [ ] Dodanie trzech zdjęć + PDF z karty inwestycji — pojawiają się bez przeładowania
+- [ ] Dodanie zdjęcia przy tworzeniu nowej inwestycji — leży na jej karcie
+- [ ] Pasek miniatur nie przewija się w poziomie przy 375px
+- [ ] Zdjęcie HEIC z iPhone'a konwertuje się i wgrywa
+- [ ] W `/admin` zgłoszenie z Facebooka nie pokazuje trzech pól landingowych, zgłoszenie z landingu pokazuje
+- [ ] Podpisany POST JSON z `curl`, wskazujący realny URL bloba, tworzy zgłoszenie razem z plikami
+- [ ] Ten sam request powtórzony nie tworzy niczego i nie wysyła maila
+- [ ] Request z `assets[].url` spoza hosta z allowlisty jest odrzucony i alertuje
+- [ ] Request z podmienionym body jest odrzucony (403)
+- [ ] Promocja zgłoszenia z landingu od początku do końca — karta nowej inwestycji pokazuje zdjęcia klienta
+- [ ] Zgłoszenie po promocji jest „Skontaktowano" i podaje link do inwestycji zamiast przycisku
+- [ ] Odznaka nieprzeczytanych zgłoszeń w nawigacji spada o jeden
