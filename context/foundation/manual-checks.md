@@ -522,3 +522,23 @@ Na inwestycji z niepustą rozpiską (np. po `INV=6 … seed-kosztorys.ts`), edyt
 ### Findings — 2026-09-21
 
 - [x] ~~**Zawężenie na „Inne liczby niż w katalogu prac" nie odsłania bazowej kolumny „Cena j.m. netto" na widoku inwestora.**~~ **Fałszywy alarm — odrzucone 2026-09-21.** Pomiar był robiony na widoku **„Z narzędziami"**, nie „Inwestor" (przełącznik widoku cen to `role="radio"`; w chwili obserwacji „Z narzędziami" miało `data-state="on"`). Na widoku podwykonawcy bazowa „Cena j.m. netto" **nie jest w ogóle składana** — `kosztorys-v2-columns.tsx` daje `view === 'client' ? [price, ...plany] : plany` — więc nie ma czego odsłaniać, i to jest projekt, nie defekt; dokładnie dlatego warunek odsłania WSZYSTKIE kolumny cenowe (komentarz przy `revealsColumns` w `row-conditions/registry.ts`). Dwa dowody: (1) spec na `buildV2Columns` z `view: 'client'`, `isHidden: () => true` i `revealedColumnIds` z `columnsRevealedBy([CATALOGUE_DIVERGENCE_CONDITION_ID])` przepuszcza `price` — miał czerwienić, jest zielony; (2) ta sama siatka na stagingu po przełączeniu na „Inwestor" niesie w nagłówku „Cena j.m. netto". `keep()` w `column-selection.ts` jest poprawne: bramka `PRZEDMIAR_ANCHORED_COLUMNS` działa tylko przy `view !== 'client'`, a `price` siedzi w `AXIS_EXEMPT_COLUMNS`, więc `axisAllows` zawsze przepuszcza. **Bez zmian w kodzie i bez regresji** — nie ma defektu do przykrycia.
+
+## catalogue-compare-bulk-update — hurtowa aktualizacja rozpiski z katalogu (2026-09-21)
+
+Inwestycja z niepustą rozpiską i rozjazdami wobec katalogu (w lokalnym dumpie: inw. 151), okno
+„Porównaj z katalogiem prac" w edytorze `kosztorys_v2`.
+
+- [ ] Nie ma już wiersza „Malowanie sufitu w kolor — Stawka bez narzędzi: 14,88 zł / 14,88 zł / −0,01 zł", a licznik różnic spada o jeden
+- [ ] Wiersze, gdzie katalog nie podaje stawki, mają w kolumnie „Katalog" słowo „auto", nie złotówki; ich „Różnica" jest szara
+- [ ] Licznik „Problemy" rośnie dokładnie o tyle wierszy „zamrożona ↔ auto o tej samej kwocie", ile widać w raporcie, i żaden wiersz nie zniknął
+- [ ] Zaznaczenie pojedynczej liczby i „Aktualizuj kosztorys (1)" zmienia dokładnie tę jedną liczbę, wiersz znika z raportu, okno zostaje otwarte, licznik „Pokaż N różnic" maleje o jeden
+- [ ] Zaznaczenie wszystkiego i zapis zostawia blok „Inne liczby niż w katalogu" pusty
+- [ ] Sortowanie i filtry ustawione w rozpisce przed otwarciem okna przeżywają zapis (siatka się nie remountuje)
+- [ ] W „Wersje" jest wpis z chwili tuż przed zapisem, a przywrócenie go cofa cały hurt
+- [ ] Aktualizacja wiersza, gdzie katalog mówi „auto", kasuje nadpisanie — praca liczy się z globalnego współczynnika i na siatce pokazuje cenę pochodną
+- [ ] Zaznaczenie stawki, która po scaleniu przekracza 65 % ceny, pokazuje znacznik przy wierszu jeszcze przed zapisem; odznaczenie znacznik gasi
+- [ ] Praca „Montaż syfonów (kpl)" pokazuje kandydata „Montaż syfonów (szt)" z komunikatem o j.m. („ta sama nazwa, inna j.m."), nie o nazwie
+- [ ] Kliknięcie kandydata przepisuje opis i j.m.; praca znika z „Brak w katalogu" i pojawia się w „Inne liczby niż w katalogu" (albo w „Zgodne z katalogiem")
+- [ ] „inny…" otwiera wyszukiwarkę po całym katalogu i wybór z niej działa tak samo
+- [ ] Ceny pracy nie zmieniają się przy przyjęciu nazwy
+- [ ] Tryb tylko-do-odczytu: raport i kandydaci widoczni jako tekst, brak checkboxów, przycisku „Aktualizuj kosztorys" i klikalnych kandydatów

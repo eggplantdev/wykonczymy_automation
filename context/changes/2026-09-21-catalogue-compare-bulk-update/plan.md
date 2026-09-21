@@ -632,5 +632,5 @@ Uruchomić **raz**, po ostatniej fazie:
 
 #### Automated
 
-- [x] 5.1 Specs kandydatów przechodzą
-- [x] 5.2 Spec przyjęcia kandydata przechodzi
+- [x] 5.1 Specs kandydatów przechodzą — `87f26bba`
+- [x] 5.2 Spec przyjęcia kandydata przechodzi — `87f26bba`
