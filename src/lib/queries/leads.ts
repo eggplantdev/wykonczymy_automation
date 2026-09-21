@@ -84,6 +84,28 @@ async function resolveLeadAssets(
   )
 }
 
+/**
+ * Which media each promoted lead's inwestycja already holds — what tells „Pliki" apart from „już
+ * przeniesione". One find for the page rather than `depth: 1` on the leads, same reasoning as
+ * `resolveLeadAssets`.
+ */
+async function resolveInvestmentAssets(
+  payload: Awaited<ReturnType<typeof getPayload>>,
+  investmentIds: number[],
+): Promise<Map<number, number[]>> {
+  if (investmentIds.length === 0) return new Map()
+
+  const investments = await payload.find({
+    collection: 'investments',
+    where: { id: { in: investmentIds } },
+    pagination: false,
+    depth: 0,
+    overrideAccess: true,
+  })
+
+  return new Map(investments.docs.map((doc) => [doc.id, uploadFieldIds(doc.assets)]))
+}
+
 const getLeadsPage = unstable_cache(
   async (page: number, limit: number, sort: string, search: string): Promise<LeadsPageT> => {
     const elapsed = perfStart()
@@ -108,15 +130,19 @@ const getLeadsPage = unstable_cache(
     ])
     console.log(`[PERF] query.getLeadsPage ${elapsed()}ms`)
 
-    const assetsByLead = await resolveLeadAssets(
-      payload,
-      new Map(
-        result.docs.map((lead) => [
-          lead.id,
-          uploadFieldIds(lead.assets),
-        ]),
-      ),
+    const investmentIdByLead = new Map(
+      result.docs.map((lead) => [lead.id, resolveId(lead.investment)]),
     )
+
+    const [assetsByLead, assetIdsByInvestment] = await Promise.all([
+      resolveLeadAssets(
+        payload,
+        new Map(result.docs.map((lead) => [lead.id, uploadFieldIds(lead.assets)])),
+      ),
+      resolveInvestmentAssets(payload, [
+        ...new Set([...investmentIdByLead.values()].filter((id) => id !== undefined)),
+      ]),
+    ])
 
     return {
       rows: result.docs.map((lead) => ({
@@ -136,7 +162,8 @@ const getLeadsPage = unstable_cache(
           leadFormQuestionsSchema.parse(lead.formQuestions),
         ),
         assets: assetsByLead.get(lead.id) ?? [],
-        investmentId: resolveId(lead.investment) ?? null,
+        investmentId: investmentIdByLead.get(lead.id) ?? null,
+        investmentAssetIds: assetIdsByInvestment.get(investmentIdByLead.get(lead.id) ?? -1) ?? [],
       })),
       paginationMeta: buildPaginationMeta(result, limit),
       newCount: newResult.totalDocs,

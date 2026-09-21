@@ -17,11 +17,14 @@ import type { ActionResultT } from '@/types/action'
  * afterwards no longer strips the investment's photos.
  *
  * Never automatic: the caller is a dialog the human edits and submits, so `data` is what they
- * approved, not what the visitor typed.
+ * approved, not what the visitor typed. `assetIds` is the same story for the files — the human
+ * picks which ones travel, and the list is intersected with what the zgłoszenie actually holds so a
+ * forged call cannot attach media belonging to someone else's lead.
  */
 export async function promoteLeadAction(
   leadId: number,
   data: InvestmentFormDataT,
+  assetIds: number[],
 ): Promise<ActionResultT> {
   return protectedAction(
     'promoteLeadAction',
@@ -39,7 +42,8 @@ export async function promoteLeadAction(
         return { success: false, error: 'To zgłoszenie ma już swoją inwestycję.' }
       }
 
-      const assets = uploadFieldIds(lead.assets)
+      const chosen = new Set(assetIds)
+      const assets = uploadFieldIds(lead.assets).filter((id) => chosen.has(id))
       const { id, warning } = await createInvestment(payload, { ...parsed.data, assets })
 
       // After the investment exists, so a failure here leaves a lead that can be promoted again

@@ -44,6 +44,7 @@ describe.skipIf(!ENV_READY)('promoteLeadAction (DB)', () => {
   let leadId: number
   let mediaIds: number[]
   let promoteLeadAction: typeof import('@/lib/actions/promote-lead').promoteLeadAction
+  let attachLeadAssetsAction: typeof import('@/lib/actions/lead-assets').attachLeadAssetsAction
 
   const purge = async () => {
     await db.execute(sql`DELETE FROM leads WHERE name = ${NAME}`)
@@ -73,6 +74,7 @@ describe.skipIf(!ENV_READY)('promoteLeadAction (DB)', () => {
     payload = await getPayload({ config })
     db = await getDb(payload)
     promoteLeadAction = (await import('@/lib/actions/promote-lead')).promoteLeadAction
+    attachLeadAssetsAction = (await import('@/lib/actions/lead-assets')).attachLeadAssetsAction
   })
 
   beforeEach(async () => {
@@ -108,7 +110,7 @@ describe.skipIf(!ENV_READY)('promoteLeadAction (DB)', () => {
   afterAll(purge)
 
   it('hands the investment the lead’s own media ids and closes the lead', async () => {
-    const result = await promoteLeadAction(leadId, FORM_DATA)
+    const result = await promoteLeadAction(leadId, FORM_DATA, mediaIds)
     expect(result.success).toBe(true)
 
     const lead = await payload.findByID({
@@ -123,10 +125,47 @@ describe.skipIf(!ENV_READY)('promoteLeadAction (DB)', () => {
     expect(lead.contactStatus).toBe('contacted')
   })
 
-  it('refuses a second promotion of the same lead', async () => {
-    await promoteLeadAction(leadId, FORM_DATA)
+  it('carries only the files the human kept, and ignores an id from another lead', async () => {
+    const result = await promoteLeadAction(leadId, FORM_DATA, [mediaIds[0], -1])
+    expect(result.success).toBe(true)
 
-    const second = await promoteLeadAction(leadId, FORM_DATA)
+    const lead = await payload.findByID({
+      collection: 'leads',
+      id: leadId,
+      depth: 0,
+      overrideAccess: true,
+    })
+
+    expect(await investmentAssetIds(Number(lead.investment))).toEqual([mediaIds[0]])
+  })
+
+  it('sends a left-behind file across after the fact, without duplicating what already travelled', async () => {
+    await promoteLeadAction(leadId, FORM_DATA, [mediaIds[0]])
+    const lead = await payload.findByID({
+      collection: 'leads',
+      id: leadId,
+      depth: 0,
+      overrideAccess: true,
+    })
+    const investmentId = Number(lead.investment)
+
+    // Both ids, including the one the investment already holds.
+    const result = await attachLeadAssetsAction(leadId, mediaIds)
+
+    expect(result.success).toBe(true)
+    expect(await investmentAssetIds(investmentId)).toEqual(mediaIds)
+  })
+
+  it('refuses to attach to a zgłoszenie that was never promoted', async () => {
+    const result = await attachLeadAssetsAction(leadId, mediaIds)
+
+    expect(result.success).toBe(false)
+  })
+
+  it('refuses a second promotion of the same lead', async () => {
+    await promoteLeadAction(leadId, FORM_DATA, mediaIds)
+
+    const second = await promoteLeadAction(leadId, FORM_DATA, mediaIds)
 
     expect(second.success).toBe(false)
     const { rows } = await db.execute(sql`SELECT id FROM investments WHERE name = ${NAME}`)
@@ -134,7 +173,7 @@ describe.skipIf(!ENV_READY)('promoteLeadAction (DB)', () => {
   })
 
   it('leaves the files and the investment intact when the lead is deleted', async () => {
-    await promoteLeadAction(leadId, FORM_DATA)
+    await promoteLeadAction(leadId, FORM_DATA, mediaIds)
     const lead = await payload.findByID({
       collection: 'leads',
       id: leadId,

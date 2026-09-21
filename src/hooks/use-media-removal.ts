@@ -7,7 +7,8 @@ import type { ActionResultT } from '@/types/action'
 export type MediaRemovalLabelsT = {
   confirmOne: string
   confirmLast: string
-  confirmAll: string
+  /** Omitted alongside `removeAll` — a surface without the affordance never asks the question. */
+  confirmAll?: string
   /** Every removal reclaims the file from Blob, which has no undelete — say so under the question. */
   description: string
   /** Omitted where the surface already shows the file vanishing and a toast would just be noise. */
@@ -18,7 +19,8 @@ export type MediaRemovalLabelsT = {
 type MediaRemovalArgsT<FileT extends { id?: number }> = {
   files: FileT[]
   removeOne: (fileId: number) => Promise<ActionResultT>
-  removeAll: () => Promise<ActionResultT>
+  /** Omitted by a surface that has no remove-all affordance, such as promoting a zgłoszenie. */
+  removeAll?: () => Promise<ActionResultT>
   labels: MediaRemovalLabelsT
 }
 
@@ -67,11 +69,14 @@ export function useMediaRemoval<FileT extends { id?: number }>({
   }
 
   function handleRemoveAll(closePreview: () => void) {
-    setStaged({ title: labels.confirmAll, closePreview })
+    setStaged({ title: labels.confirmAll ?? '', closePreview })
   }
 
   async function runStaged({ fileId, closePreview }: StagedRemovalT) {
-    const result = fileId === undefined ? await removeAll() : await removeOne(fileId)
+    const runner = fileId === undefined ? removeAll : () => removeOne(fileId)
+    if (!runner) return
+
+    const result = await runner()
     if (!result.success) {
       toastMessage(result.error ?? labels.error, 'error')
       return
