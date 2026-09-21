@@ -1,11 +1,11 @@
 ---
 change_id: catalogue-compare-bulk-update
 title: Hurtowa aktualizacja rozpiski z katalogu prac w oknie porównania
-status: planned
+status: implementing
 created: 2026-09-21
 updated: 2026-09-21
 archived_at: null
-branch: null
+branch: catalogue-compare-bulk-update
 worktree: null
 ---
 

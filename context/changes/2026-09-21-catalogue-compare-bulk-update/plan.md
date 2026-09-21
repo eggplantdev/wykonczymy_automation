@@ -608,7 +608,7 @@ Uruchomić **raz**, po ostatniej fazie:
 
 #### Automated
 
-- [ ] 1.1 Specs silnika porównania przechodzą
+- [x] 1.1 Specs silnika porównania przechodzą
 
 ### Phase 2: „auto" jako rodzaj różnicy
 

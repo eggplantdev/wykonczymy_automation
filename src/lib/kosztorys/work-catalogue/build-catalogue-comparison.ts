@@ -1,9 +1,4 @@
-import {
-  MONEY_TOLERANCE,
-  asViewPricing,
-  overrideValueFor,
-  subcontractorPrice,
-} from '@/lib/kosztorys/calc'
+import { asViewPricing, overrideValueFor, subcontractorPrice } from '@/lib/kosztorys/calc'
 import type { KosztorysItemT, ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
 import { foldDescription } from '@/lib/kosztorys/sheet-import/item-key'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
@@ -16,6 +11,7 @@ import type {
   CataloguePriceDiffT,
   WorkCatalogueItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
+import { roundToCents } from '@/lib/utils/round-to-cents'
 import { bigrams, diceSimilarity } from '@/lib/utils/string-similarity'
 
 // Below this the two names have nothing to do with each other and a hint would be noise — an owner
@@ -56,8 +52,9 @@ const figure = (
   kosztorys: number,
   catalogue: number,
 ): CatalogueFigureDiffT | null => {
-  const delta = kosztorys - catalogue
-  return Math.abs(delta) > MONEY_TOLERANCE ? { label, kosztorys, catalogue, delta } : null
+  if (roundToCents(kosztorys) === roundToCents(catalogue)) return null
+  // Raw, not rounded: `formatPLN` rounds it for display anyway, and the sort key wants the real gap.
+  return { label, kosztorys, catalogue, delta: kosztorys - catalogue }
 }
 
 /**
@@ -88,8 +85,10 @@ const rateFigure = (
  *
  * Compares all three liczby, because a praca can carry the offered cena and still pay the
  * podwykonawca something else entirely — the stawki are exactly where a szablon goes stale. Every
- * comparison is at `MONEY_TOLERANCE`: a stawka derived as `cena × współczynnik` never equals the
- * frozen kwota to the last float bit, and a report that flagged that would flag every single row.
+ * comparison is made on kwoty ROUNDED TO GROSZE, so the report disagrees exactly where the two
+ * numbers it renders disagree. A stawka derived as `cena × współczynnik` carries a float residue no
+ * column ever shows, and a threshold set at half a grosz decides a half-grosz gap on that residue —
+ * which is how „14,88 zł against 14,88 zł, różnica −0,01 zł" reached the owner's screen.
  */
 export function buildCatalogueComparison(
   items: readonly CatalogueComparisonItemT[],

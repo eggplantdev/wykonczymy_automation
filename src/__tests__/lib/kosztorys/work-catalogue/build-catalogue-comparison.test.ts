@@ -55,6 +55,30 @@ describe('buildCatalogueComparison', () => {
     expect(result.diffs).toHaveLength(0)
   })
 
+  // Ten wiersz trafił ownerowi na ekran jako „14,88 zł / 14,88 zł / różnica −0,01 zł": pół grosza to
+  // był dokładnie próg, więc o rozjeździe decydowała resztka bitowa. Sąsiad o grosz dalej pilnuje,
+  // żeby naprawa nie okazała się wyłączeniem porównania.
+  it('nie robi rozjazdu z pół grosza — po zaokrągleniu obie kwoty to 14,88 zł', () => {
+    const result = buildCatalogueComparison(
+      [item({ clientPrice: 14.875 })],
+      [entry({ clientPrice: 14.88, wToolsRate: null, ownToolsRate: null })],
+      SETTINGS,
+    )
+
+    expect(result.diffs).toHaveLength(0)
+    expect(result.matching).toBe(1)
+  })
+
+  it('raportuje rozjazd o cały grosz', () => {
+    const result = buildCatalogueComparison(
+      [item({ clientPrice: 14.87 })],
+      [entry({ clientPrice: 14.88, wToolsRate: null, ownToolsRate: null })],
+      SETTINGS,
+    )
+
+    expect(result.diffs[0].figures.map((figure) => figure.label)).toContain('Cena j.m.')
+  })
+
   it('raportuje rozjazd samej stawki podwykonawcy przy zgodnej cenie', () => {
     const result = buildCatalogueComparison([item()], [entry({ wToolsRate: 80 })], SETTINGS)
 
