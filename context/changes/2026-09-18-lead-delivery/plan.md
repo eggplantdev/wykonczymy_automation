@@ -834,20 +834,20 @@ Run **once**, after Phase 6.
 
 #### Automated
 
-- [x] 5.1 Route spec: 403 bad/missing signature, 400 + alert on bad envelope
-- [x] 5.2 Route spec: 200 capturing as `landing_form` with two assets attached
-- [x] 5.3 Route spec: partial asset failure stores the lead, alerts, answers 200
-- [x] 5.4 Route spec: redelivery of the same `submissionId` creates and sends nothing
-- [x] 5.5 SSRF spec: off-host, `http:`, redirect-off-host, link-local and substring-host all rejected
-- [x] 5.6 Size spec: oversized `content-length` rejected pre-read; lying header caught mid-read
-- [x] 5.7 `landingToStoreLeadInput` unit spec passes
-- [x] 5.8 Fixture parses and a signature over the serialised fixture verifies
+- [x] 5.1 Route spec: 403 bad/missing signature, 400 + alert on bad envelope — afc4e188
+- [x] 5.2 Route spec: 200 capturing as `landing_form` with two assets attached — afc4e188
+- [x] 5.3 Route spec: partial asset failure stores the lead, alerts, answers 200 — afc4e188
+- [x] 5.4 Route spec: redelivery of the same `submissionId` creates and sends nothing — afc4e188
+- [x] 5.5 SSRF spec: off-host, `http:`, redirect-off-host, link-local and substring-host all rejected — afc4e188
+- [x] 5.6 Size spec: oversized `content-length` rejected pre-read; lying header caught mid-read — afc4e188
+- [x] 5.7 `landingToStoreLeadInput` unit spec passes — afc4e188
+- [x] 5.8 Fixture parses and a signature over the serialised fixture verifies — afc4e188
 
 ### Phase 6: Promotion
 
 #### Automated
 
-- [ ] 6.1 Promotion creates an investment holding the SAME media ids, sets `leads.investment`, flips `contactStatus`
-- [ ] 6.2 Deleting the promoted lead leaves the media rows and the investment relation intact
-- [ ] 6.3 Promote dialog prefills name/address/phone/email
-- [ ] 6.4 `pnpm exec vitest run src/__tests__/lib/actions/promote-lead.test.ts` passes
+- [x] 6.1 Promotion creates an investment holding the SAME media ids, sets `leads.investment`, flips `contactStatus` — PENDING_SHA
+- [x] 6.2 Deleting the promoted lead leaves the media rows and the investment relation intact — PENDING_SHA
+- [x] 6.3 Promote dialog prefills name/address/phone/email — PENDING_SHA
+- [x] 6.4 `pnpm exec vitest run src/__tests__/lib/actions/promote-lead.test.ts` passes — PENDING_SHA

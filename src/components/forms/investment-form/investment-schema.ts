@@ -17,7 +17,7 @@ export const investmentFormSchema = z.object({
   presetId: z.string(),
   // Uploaded before submit (the existing ingest pattern), so the action receives ids. Unlike
   // `presetId` this IS an investments column and is written with the row.
-  assets: z.array(z.number()).default([]),
+  assets: z.array(z.number()),
 })
 
 export type InvestmentFormValuesT = z.infer<typeof investmentFormSchema>
@@ -34,6 +34,7 @@ export const investmentSchema = investmentFormSchema.extend({
   contactPerson: z.string().optional().default(''),
   notes: z.string().optional().default(''),
   review: z.string().optional().default(''),
+  assets: z.array(z.number()).optional().default([]),
 })
 
 export type InvestmentFormDataT = z.infer<typeof investmentSchema>

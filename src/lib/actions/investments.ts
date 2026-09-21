@@ -11,17 +11,13 @@ import {
   investmentSchema,
   type InvestmentFormDataT,
 } from '@/components/forms/investment-form/investment-schema'
-import { SETTLEMENT_MODE_DEFAULT } from '@/lib/kosztorys/settlement-mode'
-import { seedInvestmentFromPreset } from '@/lib/kosztorys/seed-from-preset'
+import { createInvestment } from '@/lib/investments/create-investment'
 import { investmentAction } from '@/lib/actions/investment-action'
 import { validateAction, protectedAction } from './run-action'
 import { deleteUnreferencedMedia } from '@/lib/invoices/delete-unreferenced-media'
 import { uploadFieldIds } from '@/lib/media/upload-field'
 import type { ActionResultT } from '@/types/action'
 import { logError } from '@/lib/utils/log-error'
-
-const SEED_PRESET_WARNING =
-  'Inwestycja utworzona, ale nie udało się wypełnić kosztorysu z szablonu. Otwórz edytor i uzupełnij ręcznie.'
 
 // Attach (or reset) a fresh materiały tab on the investment's linked sheet.
 // Header + summary are written by the app — the owner builds nothing. Works on a
@@ -48,43 +44,7 @@ export async function createInvestmentAction(data: InvestmentFormDataT) {
       const parsed = validateAction(investmentSchema, data)
       if (!parsed.success) return parsed
 
-      // presetId is a form-only field (seed source), never an investments column.
-      const { presetId, ...investmentData } = parsed.data
-      const created = await payload.create({
-        collection: 'investments',
-        // Not on the create form — the mode is chosen later in the kosztorys panel.
-        data: { ...investmentData, settlementMode: SETTLEMENT_MODE_DEFAULT },
-      })
-
-      // Seed the new (trivially empty) investment's kosztorys from the chosen preset. Best-effort and
-      // NON-FATAL: the investment is already committed, so a seed failure must never flip the whole
-      // action to failure — that would skip the ['investments'] revalidation (hiding the just-created
-      // investment from the cached list) and invite a duplicate-creating retry. Instead we surface a
-      // `warning` the form toasts, so the user isn't left staring at a silently-empty kosztorys —
-      // „Sekcja z szablonu…" in the editor's „Dodaj" menu still lets them retry. No kosztorys* tree
-      // tags here — a fresh investment has no cached tree to invalidate yet.
-      let warning: string | undefined
-      const chosenPresetId = presetId ? Number(presetId) : null
-      if (chosenPresetId) {
-        try {
-          const result = await seedInvestmentFromPreset(payload, Number(created.id), chosenPresetId)
-          if (result !== 'ok') {
-            // TODO(EX-449) SENTRY-REQUIRED: silent seed skip the user can't self-report.
-            logError(
-              `[create-investment] seed from preset ${chosenPresetId} skipped for #${created.id}: ${result}`,
-            )
-            warning = SEED_PRESET_WARNING
-          }
-        } catch (err) {
-          // TODO(EX-449) SENTRY-REQUIRED: silent seed failure the user can't self-report.
-          logError(
-            `[create-investment] seed from preset ${chosenPresetId} failed for #${created.id} (non-fatal):`,
-            err,
-          )
-          warning = SEED_PRESET_WARNING
-        }
-      }
-
+      const { warning } = await createInvestment(payload, parsed.data)
       return { success: true, warning }
     },
     ['investments'],

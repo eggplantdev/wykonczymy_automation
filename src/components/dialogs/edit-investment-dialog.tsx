@@ -35,6 +35,9 @@ export function EditInvestmentDialog({ investment, showLabel }: EditInvestmentDi
             review: investment.review,
             status: investment.status,
             presetId: '',
+            // Never collected on edit (`collectAssets` is create-only) — the gallery on the
+            // investment's page owns them, and updateInvestmentAction strips the field.
+            assets: [],
           }}
           action={(data) => updateInvestmentAction(investment.id, data)}
           successMessage="Inwestycja zaktualizowana"

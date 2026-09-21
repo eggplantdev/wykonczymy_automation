@@ -2,19 +2,23 @@
 
 import { Dialog, DialogTrigger, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { MediaStrip } from '@/components/media/media-strip'
+import { ASSET_PREVIEW_LABELS } from '@/components/media/preview-labels'
 import type { LeadAnswerT } from '@/types/leads'
+import type { MediaFileT } from '@/types/media'
 
 type LeadAnswersDialogPropsT = {
   name: string
   formName: string
   answers: LeadAnswerT[]
+  assets: MediaFileT[]
 }
 
-export function LeadAnswersDialog({ name, formName, answers }: LeadAnswersDialogPropsT) {
+export function LeadAnswersDialog({ name, formName, answers, assets }: LeadAnswersDialogPropsT) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" disabled={answers.length === 0}>
+        <Button variant="outline" size="sm" disabled={answers.length === 0 && assets.length === 0}>
           Szczegóły
         </Button>
       </DialogTrigger>
@@ -31,6 +35,19 @@ export function LeadAnswersDialog({ name, formName, answers }: LeadAnswersDialog
             </div>
           ))}
         </dl>
+
+        {assets.length > 0 && (
+          <section className="mt-4 space-y-2">
+            <h3 className="text-muted-foreground text-sm font-medium">Załączniki</h3>
+            {/* No `onRemove`: the files are what the visitor sent, and deleting one here would strip
+                it from the inwestycja the zgłoszenie was promoted into. */}
+            <MediaStrip
+              files={assets}
+              labels={ASSET_PREVIEW_LABELS}
+              emptyText="Brak załączników."
+            />
+          </section>
+        )}
       </DialogContent>
     </Dialog>
   )

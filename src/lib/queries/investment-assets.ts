@@ -5,10 +5,9 @@ import config from '@payload-config'
 import { CACHE_TAGS, entityTag } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/get-db'
 import { perfStart } from '@/lib/perf'
-import type { InvoiceFileT } from '@/types/transfers'
+import type { MediaFileT } from '@/types/media'
 
-/** An openable asset plus the small rendition the strip shows; PDFs have no rendition. */
-export type InvestmentAssetT = InvoiceFileT & { id: number; thumbnailUrl: string | null }
+export type InvestmentAssetT = MediaFileT
 
 /**
  * One investment's `assets`, in attachment order. Not folded into `fetchReferenceData` on purpose:

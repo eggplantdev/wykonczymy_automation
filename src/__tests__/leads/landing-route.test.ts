@@ -47,7 +47,7 @@ beforeEach(() => {
   vi.mocked(captureLead).mockResolvedValue({ lead: { id: 1 } as any, created: true })
   vi.mocked(findStoredLead).mockResolvedValue(undefined)
   vi.mocked(fetchLandingAsset).mockImplementation(
-    async () => 100 + fetchLandingAsset.mock.calls.length,
+    async () => 100 + vi.mocked(fetchLandingAsset).mock.calls.length,
   )
 })
 

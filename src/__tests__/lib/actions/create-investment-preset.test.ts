@@ -91,6 +91,7 @@ describe.skipIf(!ENV_READY)('createInvestmentAction — non-fatal preset seed (D
     notes: '',
     review: '',
     status: 'active' as const,
+    assets: [],
   })
 
   async function investmentIdByName(name: string): Promise<number | null> {

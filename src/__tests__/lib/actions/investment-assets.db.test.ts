@@ -80,7 +80,7 @@ describe.skipIf(!ENV_READY)('investment asset actions (DB)', () => {
 
     const investment = await payload.create({
       collection: 'investments',
-      data: { name: NAME, status: 'active' },
+      data: { name: NAME, status: 'active', settlementMode: 'NET', assets: [] },
       overrideAccess: true,
       context: { skipRevalidation: true },
     })

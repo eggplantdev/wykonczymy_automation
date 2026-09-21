@@ -5,6 +5,7 @@ import { formatPLDateTime } from '@/lib/utils/format-date'
 import { ContactLink } from '@/components/ui/contact-link'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
 import { LeadAnswersDialog } from '@/components/leads/lead-answers-dialog'
+import { PromoteLeadDialog } from '@/components/leads/promote-lead-dialog'
 import { BADGE_BASE } from '@/components/ui/badge'
 import { cn } from '@/lib/utils/cn'
 import type { LeadRowT, LeadSourceT } from '@/types/leads'
@@ -17,6 +18,10 @@ const SOURCE_BADGE: Record<LeadSourceT, { label: string; className: string }> = 
   website_form: {
     label: 'Strona WWW',
     className: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
+  },
+  landing_form: {
+    label: 'Landing',
+    className: 'bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200',
   },
 }
 
@@ -92,8 +97,14 @@ export function getLeadColumns({ onToggle }: LeadColumnOptionsT) {
           name={info.row.original.name}
           formName={info.row.original.formName}
           answers={info.row.original.answers}
+          assets={info.row.original.assets}
         />
       ),
+    }),
+    col.display({
+      id: 'promote',
+      header: 'Inwestycja',
+      cell: (info) => <PromoteLeadDialog lead={info.row.original} />,
     }),
   ]
 }

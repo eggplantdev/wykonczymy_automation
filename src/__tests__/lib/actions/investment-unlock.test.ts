@@ -38,6 +38,7 @@ const formData = (name: string, status: InvestmentFormDataT['status']): Investme
   review: '',
   status,
   presetId: '',
+  assets: [],
 })
 
 describe.skipIf(!ENV_READY)('reopening a completed investment (DB)', () => {
