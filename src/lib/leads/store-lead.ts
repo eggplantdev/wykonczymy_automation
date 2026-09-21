@@ -20,8 +20,16 @@ export type StoreLeadInputT = {
   submittedAt?: string
 }
 
-/** The already-stored sibling for this `(source, externalId)`, or undefined. */
-async function findExisting(payload: Payload, input: StoreLeadInputT): Promise<Lead | undefined> {
+/**
+ * The already-stored sibling for this `(source, externalId)`, or undefined.
+ *
+ * Exported because a redelivery can be expensive to discover late: the landing webhook asks first,
+ * so a replayed submission never re-downloads its files into a second set of orphan `media` rows.
+ */
+export async function findStoredLead(
+  payload: Payload,
+  input: Pick<StoreLeadInputT, 'source' | 'externalId'>,
+): Promise<Lead | undefined> {
   if (!input.externalId) return undefined
   const existing = await payload.find({
     collection: 'leads',
@@ -56,7 +64,7 @@ export async function storeLead(
   input: StoreLeadInputT,
   options?: { skipRevalidation?: boolean },
 ): Promise<{ lead: Lead; created: boolean }> {
-  const existing = await findExisting(payload, input)
+  const existing = await findStoredLead(payload, input)
   if (existing) return { lead: existing, created: false }
 
   const data = {
@@ -91,7 +99,7 @@ export async function storeLead(
   } catch (err) {
     // Lost the unique-index race with a concurrent redelivery? The winner's row
     // now exists — return it. Otherwise this is a real failure; let it propagate.
-    const winner = await findExisting(payload, input)
+    const winner = await findStoredLead(payload, input)
     if (winner) return { lead: winner, created: false }
     throw err
   }

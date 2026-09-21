@@ -826,22 +826,22 @@ Run **once**, after Phase 6.
 
 #### Automated
 
-- [x] 4.1 `pnpm generate:types` yields `Lead` with the five new fields
-- [x] 4.2 Lead round-trips `address` / `scope` / `area` and a two-file `assets` list
-- [x] 4.3 `pnpm exec vitest run src/__tests__/leads/` passes unchanged
+- [x] 4.1 `pnpm generate:types` yields `Lead` with the five new fields — 60f8184d
+- [x] 4.2 Lead round-trips `address` / `scope` / `area` and a two-file `assets` list — 60f8184d
+- [x] 4.3 `pnpm exec vitest run src/__tests__/leads/` passes unchanged — 60f8184d
 
 ### Phase 5: `POST /api/webhooks/landing`
 
 #### Automated
 
-- [ ] 5.1 Route spec: 403 bad/missing signature, 400 + alert on bad envelope
-- [ ] 5.2 Route spec: 200 capturing as `landing_form` with two assets attached
-- [ ] 5.3 Route spec: partial asset failure stores the lead, alerts, answers 200
-- [ ] 5.4 Route spec: redelivery of the same `submissionId` creates and sends nothing
-- [ ] 5.5 SSRF spec: off-host, `http:`, redirect-off-host, link-local and substring-host all rejected
-- [ ] 5.6 Size spec: oversized `content-length` rejected pre-read; lying header caught mid-read
-- [ ] 5.7 `landingToStoreLeadInput` unit spec passes
-- [ ] 5.8 Fixture parses and a signature over the serialised fixture verifies
+- [x] 5.1 Route spec: 403 bad/missing signature, 400 + alert on bad envelope
+- [x] 5.2 Route spec: 200 capturing as `landing_form` with two assets attached
+- [x] 5.3 Route spec: partial asset failure stores the lead, alerts, answers 200
+- [x] 5.4 Route spec: redelivery of the same `submissionId` creates and sends nothing
+- [x] 5.5 SSRF spec: off-host, `http:`, redirect-off-host, link-local and substring-host all rejected
+- [x] 5.6 Size spec: oversized `content-length` rejected pre-read; lying header caught mid-read
+- [x] 5.7 `landingToStoreLeadInput` unit spec passes
+- [x] 5.8 Fixture parses and a signature over the serialised fixture verifies
 
 ### Phase 6: Promotion
 

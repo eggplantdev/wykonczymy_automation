@@ -3,7 +3,8 @@ import type { Payload } from 'payload'
 import { sanitizeFileName } from '@/lib/utils/sanitize-filename'
 import { appendShortId, splitExtension } from '@/lib/utils/append-short-id'
 
-function uniqueFileName(rawName: string): string {
+/** Collision-proof stored name. Shared with any writer that creates media outside `uploadFile`. */
+export function uniqueFileName(rawName: string): string {
   const { base, ext } = splitExtension(sanitizeFileName(rawName) || 'upload')
   return appendShortId(base, ext)
 }

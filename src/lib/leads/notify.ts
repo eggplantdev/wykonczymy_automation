@@ -77,6 +77,41 @@ export async function notifyShapeAlert(
 }
 
 /**
+ * A landing submission arrived and was stored, but some of its files could not be pulled from the
+ * landing's blob store. The lead is NOT at risk here — that is the whole point of the subject line:
+ * an ops eye must read „przyszło, brakuje zdjęć", not „coś się zepsuło, zgłoszenie przepadło".
+ *
+ * The failed urls are listed because they are still live in the landing's store until its queue row
+ * is deleted, so this mail is a recovery instruction, not just a record.
+ */
+export async function notifyAssetFailure(
+  payload: Payload,
+  context: { submissionId: string; failed: { url: string; reason: string }[]; stored: number },
+): Promise<void> {
+  const failedHtml = context.failed
+    .map((asset) => `<li><code>${escapeHtml(asset.url)}</code> — ${escapeHtml(asset.reason)}</li>`)
+    .join('\n      ')
+
+  const html = `
+    <h2>⚠️ Zgłoszenie zapisane, ale bez części plików</h2>
+    <p><strong>ID zgłoszenia:</strong> ${escapeHtml(context.submissionId)}</p>
+    <p>Zapisane pliki: <strong>${context.stored}</strong>. Nie udało się pobrać
+    <strong>${context.failed.length}</strong>:</p>
+    <ul>
+      ${failedHtml}
+    </ul>
+    <p>Pliki są jeszcze dostępne pod powyższymi adresami — można je pobrać i dodać ręcznie.</p>
+    <p><a href="${FRONTEND_URL}/zgloszenia">Otwórz zgłoszenia</a></p>
+  `
+
+  await payload.sendEmail({
+    to: await requireRecipients(payload, 'opsAlerts'),
+    subject: '⚠️ Zgłoszenie bez części plików — Wykończymy',
+    html,
+  })
+}
+
+/**
  * The daily reconcile sweep recovered leads the webhook never delivered — which
  * means the webhook itself is broken, not that the sweep did its job. Without this
  * mail the cron would patch a dead delivery path forever and nobody would know.
