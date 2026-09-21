@@ -109,6 +109,17 @@ describe.skipIf(!ENV_READY)('investment asset actions (DB)', () => {
     expect(await mediaExists(mediaIds[1])).toBe(true)
   })
 
+  it('clears the whole set and reclaims every file when all are removed', async () => {
+    await actions.addInvestmentAssetsAction(investmentId, mediaIds)
+
+    const result = await actions.removeAllInvestmentAssetsAction(investmentId)
+
+    expect(result.success).toBe(true)
+    expect(await attachedIds()).toEqual([])
+    expect(await mediaExists(mediaIds[0])).toBe(false)
+    expect(await mediaExists(mediaIds[1])).toBe(false)
+  })
+
   it('refuses to delete a media row an investment points at', async () => {
     await actions.addInvestmentAssetsAction(investmentId, [mediaIds[0]])
 

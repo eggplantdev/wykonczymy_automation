@@ -9,9 +9,19 @@ vi.mock('next/navigation', () => ({
 }))
 
 const removeInvestmentAssetAction = vi.fn()
+const removeAllInvestmentAssetsAction = vi.fn()
 vi.mock('@/lib/actions/investment-assets', () => ({
   addInvestmentAssetsAction: vi.fn(),
   removeInvestmentAssetAction: (...args: unknown[]) => removeInvestmentAssetAction(...args),
+  removeAllInvestmentAssetsAction: (...args: unknown[]) =>
+    removeAllInvestmentAssetsAction(...args),
+}))
+
+// Stands in for the whole pick → ingest → Blob path so a test can hold an upload open; what this
+// spec asserts is what the section offers WHILE bytes are in flight, not how they get there.
+const isUploading = vi.fn(() => false)
+vi.mock('@/hooks/use-media-upload', () => ({
+  useMediaUpload: () => ({ isUploading: isUploading(), uploadFiles: vi.fn() }),
 }))
 
 const PHOTO: MediaFileT = {
@@ -39,64 +49,81 @@ const PDF: MediaFileT = {
 const renderGallery = (assets: MediaFileT[]) =>
   render(<InvestmentAssets investmentId={7} assets={assets} />)
 
+const previewButton = () => screen.queryByRole('button', { name: /^Podgląd plików inwestycji/ })
+
 describe('InvestmentAssets', () => {
-  it('says so when the investment has no files, and still offers the picker', () => {
+  it('offers only the picker when the investment has no files', () => {
     renderGallery([])
 
-    expect(screen.getByText('Brak zdjęć i plików.')).toBeInTheDocument()
-    expect(screen.getByText('Dodaj zdjęcia lub pliki')).toBeInTheDocument()
+    // A preview button that opens an empty dialog is a worse answer than no button.
+    expect(previewButton()).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Dodaj pliki' })).toBeInTheDocument()
   })
 
-  it('renders an image as its thumbnail and a PDF as a named chip', () => {
+  it('renders no thumbnail — the count is the whole summary', () => {
     renderGallery([PHOTO, PDF])
 
-    // The thumbnail rendition, not the original: a strip of twenty full-size photos is the cost
-    // this asserts away. next/image rewrites the src, so the check is on what it was given.
-    const thumbnail = screen.getByRole('img', { name: 'salon.jpg' })
-    expect(thumbnail.getAttribute('src')).toContain(encodeURIComponent(PHOTO.thumbnailUrl!))
-
-    // A PDF has no rendition at all, so the filename is the only thing identifying it.
-    expect(
-      within(screen.getByRole('button', { name: 'projekt.pdf' })).getByText('projekt.pdf'),
-    ).toBeInTheDocument()
-    expect(screen.queryByRole('img', { name: 'projekt.pdf' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
+    expect(within(previewButton()!).getByText('Zdjęcia i pliki (2)')).toBeInTheDocument()
   })
 
-  it('opens the preview on the clicked file, steps to the next one, and closes on Escape', async () => {
+  it('opens the preview, steps through the files, and closes on Escape', async () => {
     const user = userEvent.setup()
     renderGallery([PHOTO, SECOND_PHOTO, PDF])
 
-    await user.click(screen.getByRole('button', { name: 'kuchnia.jpg' }))
+    await user.click(previewButton()!)
 
-    // Opening on the CLICKED file, not the first: the dialog seeds its page index once, so a
-    // reused viewer that ignored the index would always show salon.jpg.
     const dialog = screen.getByRole('dialog')
-    expect(within(dialog).getByText('kuchnia.jpg (2/3)')).toBeInTheDocument()
+    expect(within(dialog).getByText('salon.jpg (1/3)')).toBeInTheDocument()
 
     await user.click(within(dialog).getByRole('button', { name: 'Następna strona' }))
-    expect(within(dialog).getByText('projekt.pdf (3/3)')).toBeInTheDocument()
-
-    await user.click(within(dialog).getByRole('button', { name: 'Poprzednia strona' }))
     expect(within(dialog).getByText('kuchnia.jpg (2/3)')).toBeInTheDocument()
 
     await user.keyboard('{Escape}')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  // `setInvestmentAssets` is a read-modify-write, so an upload started while a removal is still in
+  it('names the files as pliki, never as faktury', async () => {
+    const user = userEvent.setup()
+    renderGallery([PHOTO, SECOND_PHOTO])
+
+    await user.click(previewButton()!)
+    const dialog = screen.getByRole('dialog')
+
+    expect(within(dialog).getByRole('button', { name: 'Usuń wszystkie' })).toBeInTheDocument()
+    expect(within(dialog).queryByRole('button', { name: /fakturę/ })).not.toBeInTheDocument()
+  })
+
+  it('asks before removing a file and calls the action once confirmed', async () => {
+    const user = userEvent.setup()
+    removeInvestmentAssetAction.mockResolvedValue({ success: true })
+    renderGallery([PHOTO, SECOND_PHOTO])
+
+    await user.click(previewButton()!)
+    await user.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Usuń ten plik' }),
+    )
+
+    expect(screen.getByText('Czy na pewno chcesz usunąć ten plik?')).toBeInTheDocument()
+    expect(removeInvestmentAssetAction).not.toHaveBeenCalled()
+
+    await user.click(screen.getByRole('button', { name: 'Usuń' }))
+    expect(removeInvestmentAssetAction).toHaveBeenCalledWith(7, PHOTO.id)
+  })
+
+  // `setUploadField` is a read-modify-write, so a removal that started while an upload was still in
   // flight writes back the pre-upload list — dropping the new file and leaking its media row. The
   // two controls therefore gate each other, not just themselves.
-  it('disables the picker while a removal is in flight', async () => {
+  it('offers no removal while an upload is in flight', async () => {
     const user = userEvent.setup()
-    removeInvestmentAssetAction.mockReturnValue(new Promise(() => {}))
-    const { container } = renderGallery([PHOTO])
-    const picker = () => container.querySelector('input[type="file"]')!
+    isUploading.mockReturnValue(true)
+    renderGallery([PHOTO, SECOND_PHOTO])
 
-    expect(picker()).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Dodaj pliki' })).toBeDisabled()
 
-    await user.click(screen.getByRole('button', { name: 'Usuń salon.jpg' }))
-    await user.click(screen.getByRole('button', { name: 'Usuń' }))
-
-    expect(picker()).toBeDisabled()
+    await user.click(previewButton()!)
+    expect(
+      within(screen.getByRole('dialog')).queryByRole('button', { name: /^Usuń/ }),
+    ).not.toBeInTheDocument()
   })
 })

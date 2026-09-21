@@ -23,12 +23,21 @@ export type PreviewLabelsT = {
   empty: string
   /** First segment of the „pobierz wszystkie" archive name. */
   archivePrefix: string
+  /** Footer wording — a set of site photos has no „strony" and is not a faktura. */
+  removeOne: string
+  removeOneOfMany: string
+  removeAll: string
+  add: string
 }
 
 const INVOICE_LABELS: PreviewLabelsT = {
   fallbackTitle: 'Faktura',
   empty: 'Brak stron do wyświetlenia.',
   archivePrefix: 'faktury',
+  removeOne: 'Usuń',
+  removeOneOfMany: 'Usuń stronę',
+  removeAll: 'Usuń całą fakturę',
+  add: 'Dodaj stronę',
 }
 
 type InvoicePreviewDialogPropsT = {
@@ -209,19 +218,19 @@ export function InvoicePreviewDialog({
           {onRemove && active && (
             <Button variant="destructive" onClick={() => onRemove(active)}>
               <Trash2 />
-              {isMultiPage ? 'Usuń stronę' : 'Usuń'}
+              {isMultiPage ? labels.removeOneOfMany : labels.removeOne}
             </Button>
           )}
           {onRemoveAll && (
             <Button variant="destructive" onClick={onRemoveAll}>
               <Trash2 />
-              Usuń całą fakturę
+              {labels.removeAll}
             </Button>
           )}
           {onAdd && (
             <Button variant="outline" onClick={onAdd}>
               <Plus />
-              Dodaj stronę
+              {labels.add}
             </Button>
           )}
           {/* A single PDF renders in the browser's native viewer, which already has print + download

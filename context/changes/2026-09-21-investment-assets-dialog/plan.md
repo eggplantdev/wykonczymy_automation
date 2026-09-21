@@ -293,14 +293,14 @@ Uruchamiane **raz**, po ostatniej fazie:
 
 #### Automated
 
-- [x] 1.1 Specy transferów i dialogów przechodzą
+- [x] 1.1 Specy transferów i dialogów przechodzą — bdf65931
 
 ### Phase 2: Sekcja inwestycji bez miniatur
 
 #### Automated
 
-- [ ] 2.1 Spec DOM `investment-assets.test.tsx` przechodzi
-- [ ] 2.2 Spec akcji `investment-assets.db.test.ts` przechodzi
+- [x] 2.1 Spec DOM `investment-assets.test.tsx` przechodzi — 5827528f
+- [x] 2.2 Spec akcji `investment-assets.db.test.ts` przechodzi — 5827528f
 
 ### Phase 3: Dodawanie plików z dialogu „Edytuj inwestycję"
 

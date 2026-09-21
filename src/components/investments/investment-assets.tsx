@@ -1,16 +1,27 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
-import { FileInput } from '@/components/ui/file-input'
+import { useState } from 'react'
+import { Loader2, Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { Loader2 } from 'lucide-react'
-import { MediaStrip } from '@/components/media/media-strip'
+import { InvoicePreviewButton } from '@/components/dialogs/invoice-preview-button'
+import { InvoiceUploadDialog } from '@/components/dialogs/invoice-upload-dialog'
 import { ASSET_PREVIEW_LABELS } from '@/components/media/preview-labels'
+import { useMediaRemoval, type MediaRemovalLabelsT } from '@/hooks/use-media-removal'
 import { useMediaUpload } from '@/hooks/use-media-upload'
-import { addInvestmentAssetsAction, removeInvestmentAssetAction } from '@/lib/actions/investment-assets'
-import { toastMessage } from '@/lib/utils/toast'
+import {
+  addInvestmentAssetsAction,
+  removeAllInvestmentAssetsAction,
+  removeInvestmentAssetAction,
+} from '@/lib/actions/investment-assets'
 import type { MediaFileT } from '@/types/media'
+
+const ASSET_REMOVAL_LABELS: MediaRemovalLabelsT = {
+  confirmOne: 'Czy na pewno chcesz usunąć ten plik?',
+  confirmLast: 'Czy na pewno chcesz usunąć ostatni plik?',
+  confirmAll: 'Czy na pewno chcesz usunąć wszystkie pliki?',
+  error: 'Nie udało się usunąć pliku',
+}
 
 type InvestmentAssetsPropsT = {
   investmentId: number
@@ -18,27 +29,25 @@ type InvestmentAssetsPropsT = {
 }
 
 export function InvestmentAssets({ investmentId, assets }: InvestmentAssetsPropsT) {
-  const router = useRouter()
-  const [pendingRemoval, setPendingRemoval] = useState<MediaFileT | null>(null)
-  const [isRemoving, startRemoval] = useTransition()
+  const [uploadOpen, setUploadOpen] = useState(false)
 
   const { isUploading, uploadFiles } = useMediaUpload({
     attach: (mediaIds) => addInvestmentAssetsAction(investmentId, mediaIds),
     successMessage: 'Pliki dodane',
   })
 
-  function confirmRemoval(asset: MediaFileT) {
-    startRemoval(async () => {
-      const result = await removeInvestmentAssetAction(investmentId, asset.id)
-      setPendingRemoval(null)
-      if (!result.success) {
-        toastMessage(result.error, 'error')
-        return
-      }
-      toastMessage('Plik usunięty', 'success')
-      router.refresh()
-    })
-  }
+  const { visibleFiles, handleRemove, handleRemoveAll, removalConfirm } = useMediaRemoval({
+    files: assets,
+    removeOne: (mediaId) => removeInvestmentAssetAction(investmentId, mediaId),
+    removeAll: () => removeAllInvestmentAssetsAction(investmentId),
+    labels: ASSET_REMOVAL_LABELS,
+  })
+
+  // Cross-gated, not just self-gated: `setUploadField` is a read-modify-write, so a removal that
+  // started before an upload finished writes back the pre-upload list — dropping the new file from
+  // the investment and leaking its media row. While bytes are in flight the preview offers no
+  // removal at all.
+  const canRemove = !isUploading
 
   return (
     <section className="flex flex-col gap-3">
@@ -47,45 +56,42 @@ export function InvestmentAssets({ investmentId, assets }: InvestmentAssetsProps
         {isUploading && <Loader2 className="text-muted-foreground size-4 animate-spin" />}
       </div>
 
-      <MediaStrip
-        files={assets}
-        labels={ASSET_PREVIEW_LABELS}
-        sizes="(max-width: 767.98px) 33vw, (max-width: 1023.98px) 25vw, 265px"
-        emptyText="Brak zdjęć i plików."
-        onRemove={setPendingRemoval}
-        // Cross-gated, not just self-gated: `setInvestmentAssets` is a read-modify-write, so a
-        // removal that started before an upload finished writes back the pre-upload list — dropping
-        // the new file from the investment and leaking its media row.
-        removeDisabled={isRemoving || isUploading}
+      <div className="flex flex-col gap-2 sm:max-w-sm">
+        {visibleFiles.length > 0 && (
+          <InvoicePreviewButton
+            invoices={visibleFiles}
+            label={`Zdjęcia i pliki (${visibleFiles.length})`}
+            ariaLabel={`Podgląd plików inwestycji (${visibleFiles.length})`}
+            labels={ASSET_PREVIEW_LABELS}
+            // The preview would sit on top of the upload dialog, so it steps aside before it opens.
+            onAdd={(closePreview) => {
+              closePreview()
+              setUploadOpen(true)
+            }}
+            onRemove={canRemove ? handleRemove : undefined}
+            onRemoveAll={canRemove && visibleFiles.length > 1 ? handleRemoveAll : undefined}
+          />
+        )}
+
+        <Button
+          variant="outline"
+          disabled={isUploading}
+          onClick={() => setUploadOpen(true)}
+          className="justify-start"
+        >
+          <Plus />
+          Dodaj pliki
+        </Button>
+      </div>
+
+      <InvoiceUploadDialog
+        title="Dodaj zdjęcia lub pliki"
+        open={uploadOpen}
+        onOpenChange={setUploadOpen}
+        onFiles={(picked) => void uploadFiles(picked)}
       />
 
-      <FileInput
-        label="Dodaj zdjęcia lub pliki"
-        multiple
-        disabled={isUploading || isRemoving}
-        fieldClassName="sm:max-w-sm"
-        onChange={(event) => {
-          const picked = Array.from(event.target.files ?? [])
-          // Allow re-picking the same file after a failed upload.
-          event.target.value = ''
-          void uploadFiles(picked)
-        }}
-      />
-
-      <ConfirmDialog
-        open={pendingRemoval !== null}
-        title="Usunąć plik?"
-        description={
-          pendingRemoval?.filename
-            ? `„${pendingRemoval.filename}" zostanie usunięty bezpowrotnie.`
-            : 'Plik zostanie usunięty bezpowrotnie.'
-        }
-        confirmLabel="Usuń"
-        pending={isRemoving}
-        pendingLabel="Usuwanie..."
-        onConfirm={() => pendingRemoval && confirmRemoval(pendingRemoval)}
-        onCancel={() => setPendingRemoval(null)}
-      />
+      <ConfirmDialog {...removalConfirm} />
     </section>
   )
 }

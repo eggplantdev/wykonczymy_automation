@@ -5,4 +5,8 @@ export const ASSET_PREVIEW_LABELS: PreviewLabelsT = {
   fallbackTitle: 'Plik',
   empty: 'Brak plików do wyświetlenia.',
   archivePrefix: 'pliki',
+  removeOne: 'Usuń',
+  removeOneOfMany: 'Usuń ten plik',
+  removeAll: 'Usuń wszystkie',
+  add: 'Dodaj kolejne',
 }
