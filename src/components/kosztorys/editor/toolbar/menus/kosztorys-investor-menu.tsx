@@ -22,7 +22,7 @@ export function KosztorysInvestorMenu() {
       <DropdownMenuTrigger asChild>
         <Button size="sm" variant="outline">
           <Eye />
-          Widok inwestora
+          Inwestor
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">

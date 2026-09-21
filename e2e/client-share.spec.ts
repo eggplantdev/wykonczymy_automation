@@ -64,7 +64,7 @@ function expectNetInDocument(text: string, amount: number, label: string): void 
 async function openClientViewSettings(page: Page) {
   await page.goto(`/inwestycje/${seed.investment}/kosztorys_v2`)
   // Serving the client is its own menu — „Opcje" holds the editing commands only.
-  const investorMenu = page.getByRole('button', { name: 'Widok inwestora' })
+  const investorMenu = page.getByRole('button', { name: 'Inwestor' })
   await investorMenu.waitFor()
   await waitForHydration(investorMenu)
   await investorMenu.click()
@@ -303,7 +303,7 @@ test('inwestor zwija sekcję na swoim linku, choć jego własny schowek pustych 
   try {
     // Podsumowanie otwiera się domyślnie i leży NA siatce (nieprzezroczysta nakładka na całą jej
     // wysokość), więc dopóki inwestor go nie schowa, do belki sekcji nie da się kliknąć.
-    const panelToggle = visitor.getByRole('button', { name: 'Schowaj podsumowanie' })
+    const panelToggle = visitor.getByRole('button', { name: 'Podsumowanie' })
     await panelToggle.waitFor()
     await waitForHydration(panelToggle)
     await panelToggle.click()
