@@ -274,8 +274,10 @@
   }
 }
 
-/* A short bright arc running around an otherwise static fuchsia→cyan border. Three background
-   layers, topmost first: the fill, the travelling highlight, the resting gradient under it. */
+/* Three background layers, topmost first: the fill, the travelling highlight, the resting gradient
+   under it. Each accent contributes only its own `--ai-anim-*` slot and both utilities declare the
+   same two-slot `animation`, so composing them cannot clobber one another — an `animation`
+   shorthand in either body would, and `comet` carries `!` for the background layers. */
 @utility gradient-border-comet {
   border: 1px solid transparent;
   background:
@@ -290,21 +292,13 @@
       )
       border-box,
     linear-gradient(to right, var(--color-neon-fuchsia), var(--color-neon-cyan)) border-box;
-  animation: ai-border-rotate 6s linear infinite;
+  --ai-anim-border: ai-border-rotate 6s linear infinite;
+  animation: var(--ai-anim-border, none), var(--ai-anim-glow, none);
 }
 
-/* The halo breathes while the border's own gradient stays put — it composes with the comet. */
 @utility neon-glow-duo-breathe {
-  animation: ai-glow-breathe 2.5s ease-in-out infinite;
-}
-
-/* A moving accent on a control the owner keeps on screen all day is exactly what this setting is
-   for, so both rest when it is on. */
-@media (prefers-reduced-motion: reduce) {
-  .gradient-border-comet,
-  .neon-glow-duo-breathe {
-    animation: none;
-  }
+  --ai-anim-glow: ai-glow-breathe 2.5s ease-in-out infinite;
+  animation: var(--ai-anim-border, none), var(--ai-anim-glow, none);
 }
 
 /* Aurora glow for the kosztorys progress fill — halo in the fill's own green→cyan ramp. */
