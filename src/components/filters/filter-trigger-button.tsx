@@ -13,7 +13,6 @@ type FilterTriggerButtonPropsT = Pick<
   // outline / green-active pair every ordinary filter wears.
   tone?: 'default' | 'destructive'
   icon?: LucideIcon
-  iconPosition?: 'left' | 'right'
   children?: React.ReactNode
   className?: string
 }
@@ -29,7 +28,7 @@ export const GRID_FILTER_TRIGGER_CLASS = 'sm:w-fit sm:min-w-0'
 
 export const FilterTriggerButton = forwardRef<HTMLButtonElement, FilterTriggerButtonPropsT>(
   function FilterTriggerButton(
-    { active, tone = 'default', icon: Icon, iconPosition = 'left', children, className, ...props },
+    { active, tone = 'default', icon: Icon, children, className, ...props },
     ref,
   ) {
     const variant =
@@ -52,9 +51,8 @@ export const FilterTriggerButton = forwardRef<HTMLButtonElement, FilterTriggerBu
         className={cn('overflow-hidden sm:min-w-40', className)}
         {...props}
       >
-        {Icon && iconPosition === 'left' && <Icon />}
+        {Icon && <Icon />}
         <span className="truncate">{children}</span>
-        {Icon && iconPosition === 'right' && <Icon />}
       </Button>
     )
   },
