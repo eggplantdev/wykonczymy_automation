@@ -1,18 +1,13 @@
-import { resolveId } from '@/lib/utils/resolve-id'
+import { uploadFieldIds, type UploadFieldT } from '@/lib/media/upload-field'
 import type { MediaInfoT } from '@/lib/queries/media'
 import type { InvoiceFileT } from '@/types/transfers'
 
-// `invoice` is hasMany: a depth:0 read gives ids, a populated read gives media docs. The scalar
-// forms stay accepted because a doc can reach here from either shape and a silent `typeof x ===
-// 'number'` guard on the wrong one is exactly the bug this field's migration introduced.
-type InvoiceRefT = number | { id: number }
-export type InvoiceFieldT = InvoiceRefT | InvoiceRefT[] | null | undefined
+// `invoice` is the transfers-side name for a generic hasMany upload field; the shape and the id
+// extraction are shared with every other one (investments' `assets`, inspections' `attachments`).
+export type InvoiceFieldT = UploadFieldT
 
 /** Every page id of one doc's `invoice` field, in attachment order. */
-export function invoiceIds(invoice: InvoiceFieldT): number[] {
-  const refs = Array.isArray(invoice) ? invoice : [invoice]
-  return refs.map(resolveId).filter((id): id is number => id !== undefined)
-}
+export const invoiceIds = uploadFieldIds
 
 /** Resolves a doc's `invoice` field into its openable pages, in attachment order. */
 export function resolveInvoiceFiles(

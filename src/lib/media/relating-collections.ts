@@ -20,6 +20,7 @@ export const MEDIA_RELATIONS: readonly MediaRelationT[] = [
   { collection: 'transactions', field: 'invoice', label: 'transakcje' },
   { collection: 'vehicle-inspections', field: 'attachments', label: 'przeglądy' },
   { collection: 'equipment-events', field: 'attachments', label: 'przekazania sprzętu' },
+  { collection: 'investments', field: 'assets', label: 'inwestycje' },
 ]
 
 export function mediaReferenceWhere(field: string, id: string | number): Where {

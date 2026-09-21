@@ -1,5 +1,6 @@
 'use server'
 
+import type { Payload } from 'payload'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
@@ -14,6 +15,9 @@ import { SETTLEMENT_MODE_DEFAULT } from '@/lib/kosztorys/settlement-mode'
 import { seedInvestmentFromPreset } from '@/lib/kosztorys/seed-from-preset'
 import { investmentAction } from '@/lib/actions/investment-action'
 import { validateAction, protectedAction } from './run-action'
+import { deleteUnreferencedMedia } from '@/lib/invoices/delete-unreferenced-media'
+import { uploadFieldIds } from '@/lib/media/upload-field'
+import type { ActionResultT } from '@/types/action'
 import { logError } from '@/lib/utils/log-error'
 
 const SEED_PRESET_WARNING =
@@ -200,7 +204,10 @@ export async function updateInvestmentAction(id: number, data: InvestmentFormDat
       if (!parsed.success) return parsed
 
       // presetId is a create-only seed field; the edit form always sends '' — never write it.
-      const { presetId: _presetId, ...investmentData } = parsed.data
+      // `assets` is dropped for a different reason: the edit form carries no file picker, so the
+      // schema's `.default([])` would arrive as an empty list and wipe the gallery. The attach /
+      // detach actions below are the field's only writers after create.
+      const { presetId: _presetId, assets: _assets, ...investmentData } = parsed.data
       // `user` is load-bearing, not decoration: without it `createLocalReq` sets `req.user = null`
       // and `guardInvestmentStatusUnlock` refuses to reopen a zakończona inwestycja for EVERY role,
       // właściciel included — the lock becomes a door with no key.
@@ -213,6 +220,78 @@ export async function updateInvestmentAction(id: number, data: InvestmentFormDat
 
       return { success: true }
     },
+    ['investments'],
+  )
+}
+
+/**
+ * Rewrite an investment's `assets` to whatever `nextIds` derives from the current list, then delete
+ * the media the new list dropped once nothing else references it. Shape follows
+ * `setTransferInvoices` (`src/lib/actions/transfers.ts`) — same field kind, same hazards.
+ *
+ * A `completed` investment is deliberately NOT refused: the status lock freezes financial state,
+ * and a photo of the site is documentation, not money. That is why this bypasses `investmentAction`.
+ */
+async function setInvestmentAssets(
+  payload: Payload,
+  investmentId: number,
+  nextIds: (currentIds: number[]) => number[],
+): Promise<ActionResultT> {
+  const investment = await payload.findByID({
+    collection: 'investments',
+    id: investmentId,
+    depth: 0,
+  })
+  const currentIds = uploadFieldIds(investment.assets)
+  const next = nextIds(currentIds)
+
+  await payload.update({ collection: 'investments', id: investmentId, data: { assets: next } })
+
+  // Awaited, not fire-and-forget: the serverless invocation can be frozen the moment the response
+  // is written, which would drop the deletes and leak exactly the files this reclaims.
+  await deleteUnreferencedMedia(
+    payload,
+    currentIds.filter((id) => !next.includes(id)),
+  )
+
+  return { success: true }
+}
+
+/**
+ * Takes the whole batch because `setInvestmentAssets` is a read-modify-write — one call per file
+ * would race, and every file but the last would be lost.
+ */
+export async function addInvestmentAssetsAction(
+  investmentId: number,
+  mediaIds: number[],
+): Promise<ActionResultT> {
+  return protectedAction(
+    'addInvestmentAssetsAction',
+    async ({ payload }) => {
+      // Inside the auth boundary, not before it: a `{ success: true }` returned without one would
+      // read as "authorized" to the next caller.
+      if (mediaIds.length === 0) return { success: true }
+
+      return setInvestmentAssets(payload, investmentId, (current) => {
+        const next = [...current]
+        mediaIds.forEach((id) => {
+          if (!next.includes(id)) next.push(id)
+        })
+        return next
+      })
+    },
+    ['investments'],
+  )
+}
+
+/** Removes one file, leaving the rest in order. */
+export async function removeInvestmentAssetAction(investmentId: number, mediaId: number) {
+  return protectedAction(
+    'removeInvestmentAssetAction',
+    ({ payload }) =>
+      setInvestmentAssets(payload, investmentId, (current) =>
+        current.filter((id) => id !== mediaId),
+      ),
     ['investments'],
   )
 }

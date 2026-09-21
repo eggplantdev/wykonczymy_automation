@@ -801,18 +801,18 @@ Run **once**, after Phase 6.
 
 #### Automated
 
-- [x] 1.1 `prevent-delete.test.ts` passes with the new media probes
-- [x] 1.2 Orphan counter keeps an `equipment-events` file and deletes an unreferenced one
-- [x] 1.3 Deleting an attached media row throws, naming the blocker
-- [x] 1.4 `pnpm exec vitest run src/__tests__/lib/invoices/` passes
+- [x] 1.1 `prevent-delete.test.ts` passes with the new media probes — 8c5885f0
+- [x] 1.2 Orphan counter keeps an `equipment-events` file and deletes an unreferenced one — 8c5885f0
+- [x] 1.3 Deleting an attached media row throws, naming the blocker — 8c5885f0
+- [x] 1.4 `pnpm exec vitest run src/__tests__/lib/invoices/` passes — 8c5885f0
 
 ### Phase 2: `investments.assets` relation
 
 #### Automated
 
-- [ ] 2.1 Attach/remove asset ids persists in order and cleans the orphan
-- [ ] 2.2 Prevent-delete refuses a media row an investment points at
-- [ ] 2.3 `pnpm exec vitest run src/__tests__/lib/actions/` passes
+- [x] 2.1 Attach/remove asset ids persists in order and cleans the orphan
+- [x] 2.2 Prevent-delete refuses a media row an investment points at
+- [x] 2.3 `pnpm exec vitest run src/__tests__/lib/actions/` passes
 
 ### Phase 3: Investment assets UI
 

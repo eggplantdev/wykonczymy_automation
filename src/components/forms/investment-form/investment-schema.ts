@@ -15,6 +15,9 @@ export const investmentFormSchema = z.object({
   // Optional seed template, only meaningful on create ('' = start empty). Not an investments
   // column — createInvestmentAction strips it and seeds the new investment's kosztorys from it.
   presetId: z.string(),
+  // Uploaded before submit (the existing ingest pattern), so the action receives ids. Unlike
+  // `presetId` this IS an investments column and is written with the row.
+  assets: z.array(z.number()).default([]),
 })
 
 export type InvestmentFormValuesT = z.infer<typeof investmentFormSchema>
