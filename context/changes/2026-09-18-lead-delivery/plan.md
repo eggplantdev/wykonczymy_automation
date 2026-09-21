@@ -810,17 +810,17 @@ Run **once**, after Phase 6.
 
 #### Automated
 
-- [x] 2.1 Attach/remove asset ids persists in order and cleans the orphan
-- [x] 2.2 Prevent-delete refuses a media row an investment points at
-- [x] 2.3 `pnpm exec vitest run src/__tests__/lib/actions/` passes
+- [x] 2.1 Attach/remove asset ids persists in order and cleans the orphan — eb941b74
+- [x] 2.2 Prevent-delete refuses a media row an investment points at — eb941b74
+- [x] 2.3 `pnpm exec vitest run src/__tests__/lib/actions/` passes — eb941b74
 
 ### Phase 3: Investment assets UI
 
 #### Automated
 
-- [ ] 3.1 Gallery renders empty state, image thumbnails, PDF chips
-- [ ] 3.2 Lightbox opens, steps prev/next, closes on Escape
-- [ ] 3.3 `pnpm exec vitest run --project dom src/__tests__/components/investments/` passes
+- [x] 3.1 Gallery renders empty state, image thumbnails, PDF chips
+- [x] 3.2 Lightbox opens, steps prev/next, closes on Escape
+- [x] 3.3 `pnpm exec vitest run --project dom src/__tests__/components/investments/` passes
 
 ### Phase 4: Leads schema for the landing
 

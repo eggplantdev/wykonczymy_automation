@@ -13,8 +13,29 @@ import { today } from '@/lib/utils/date'
 import { ChevronLeft, ChevronRight, Download, Plus, Printer, Trash2 } from 'lucide-react'
 import type { InvoiceFileT } from '@/types/transfers'
 
+/**
+ * What the dialog calls the files it is showing. The default set says „faktura" because that is
+ * what it was built for; an investment's photos travel through the same viewer and must not.
+ */
+export type PreviewLabelsT = {
+  /** Title for a file with no filename of its own. */
+  fallbackTitle: string
+  empty: string
+  /** First segment of the „pobierz wszystkie" archive name. */
+  archivePrefix: string
+}
+
+const INVOICE_LABELS: PreviewLabelsT = {
+  fallbackTitle: 'Faktura',
+  empty: 'Brak stron do wyświetlenia.',
+  archivePrefix: 'faktury',
+}
+
 type InvoicePreviewDialogPropsT = {
   invoices: InvoiceFileT[]
+  /** The page to open on — a gallery click means one thumbnail, not the first. */
+  initialIndex?: number
+  labels?: PreviewLabelsT
   open: boolean
   onOpenChange: (open: boolean) => void
   onAdd?: () => void
@@ -27,6 +48,8 @@ type InvoicePreviewDialogPropsT = {
 
 export function InvoicePreviewDialog({
   invoices,
+  initialIndex = 0,
+  labels = INVOICE_LABELS,
   open,
   onOpenChange,
   onAdd,
@@ -35,7 +58,7 @@ export function InvoicePreviewDialog({
   unoptimized,
 }: InvoicePreviewDialogPropsT) {
   // Clamped rather than reset: removing the last page must not leave the pager pointing past the end.
-  const [pageIndex, setPageIndex] = useState(0)
+  const [pageIndex, setPageIndex] = useState(initialIndex)
   const [isMediaLoading, setIsMediaLoading] = useState(true)
   const { downloadFiles } = useInvoiceZip()
 
@@ -44,7 +67,7 @@ export function InvoicePreviewDialog({
   const isMultiPage = invoices.length > 1
   const isImage = isImageMime(active?.mimeType)
   const isPdf = isPdfMime(active?.mimeType)
-  const displayName = active?.filename ?? 'Faktura'
+  const displayName = active?.filename ?? labels.fallbackTitle
   const title = isMultiPage ? `${displayName} (${activeIndex + 1}/${invoices.length})` : displayName
 
   function goToPage(index: number) {
@@ -108,7 +131,7 @@ export function InvoicePreviewDialog({
         url: invoice.url,
         name: dedupeFilename(invoice.filename ?? `strona-${index + 1}`, usedNames),
       })),
-      buildInvoiceArchiveName([splitExtension(displayName).base], today()),
+      buildInvoiceArchiveName([splitExtension(displayName).base], today(), labels.archivePrefix),
     )
   }
 
@@ -153,7 +176,7 @@ export function InvoicePreviewDialog({
               Podgląd niedostępny dla tego typu pliku.
             </p>
           )}
-          {!active && <p className="text-muted-foreground text-sm">Brak stron do wyświetlenia.</p>}
+          {!active && <p className="text-muted-foreground text-sm">{labels.empty}</p>}
         </div>
 
         {isMultiPage && (

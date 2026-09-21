@@ -117,9 +117,11 @@ export function buildInvoiceZipMessage({
  * taken verbatim — a caller passing a *filename* strips the extension itself, because doing it here
  * would eat the tail of an investment name like „Dom ul. Polna 3".
  */
-export function buildInvoiceArchiveName(parts: string[], date: string): string {
+// `prefix` is what the archive calls itself — the preview dialog also serves non-invoice files,
+// and a zip of site photos named „faktury-…" is a wrong answer to „what did I just download".
+export function buildInvoiceArchiveName(parts: string[], date: string, prefix = 'faktury'): string {
   const safeParts = parts.map(sanitizeForFilename).filter(Boolean)
-  return ['faktury', ...safeParts, date].join('-') + '.zip'
+  return [prefix, ...safeParts, date].join('-') + '.zip'
 }
 
 // Singular is accusative here — the noun only ever appears as the object of „Pobrano".

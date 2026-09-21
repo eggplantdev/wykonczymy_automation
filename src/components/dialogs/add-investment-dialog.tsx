@@ -43,6 +43,7 @@ export function AddInvestmentDialog({ presets }: { presets: PresetMetaT[] }) {
           onSubmitSuccess={onSubmitSuccess}
           keepOpen={keepOpen}
           presetOptions={presets}
+          collectAssets
         />
       )}
     </FormDialog>

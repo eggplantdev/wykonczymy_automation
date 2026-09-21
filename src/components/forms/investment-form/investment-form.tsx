@@ -3,6 +3,9 @@
 import { SelectItem } from '@/components/ui/select'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { FieldGroup } from '@/components/ui/field'
+import { FileInput } from '@/components/ui/file-input'
+import { useFilePickIngest } from '@/components/forms/hooks/use-file-pick-ingest'
+import { submitWithInvoicePages } from '@/lib/invoices/submit-with-invoice-pages'
 import { useManagedForm } from '@/components/forms/hooks/use-managed-form'
 import { FormShell } from '@/components/forms/form-components/form-shell'
 import FormFooter from '@/components/forms/form-components/form-footer'
@@ -26,6 +29,9 @@ type InvestmentFormPropsT = {
   persistDraft?: boolean
   // Create-only seed-from-szablon picker; omitted on edit.
   presetOptions?: PresetMetaT[]
+  /** Create-only file picker. On edit the gallery on the investment's page owns `assets` — routing
+   * them through the update action would send an empty list and wipe what is already attached. */
+  collectAssets?: boolean
 }
 
 export function InvestmentForm({
@@ -39,7 +45,10 @@ export function InvestmentForm({
   keepOpen,
   persistDraft,
   presetOptions,
+  collectAssets,
 }: InvestmentFormPropsT) {
+  const { files, isIngesting, inputKey, fileInputProps, reset: resetFiles } = useFilePickIngest()
+
   const { form, reset, submitConfirm } = useManagedForm<InvestmentFormValuesT, InvestmentFormDataT>(
     {
       formId,
@@ -49,8 +58,21 @@ export function InvestmentForm({
       keepOpen,
       successMessage,
       onSubmitSuccess,
-      action,
       persistDraft,
+      onReset: resetFiles,
+      // Upload first, then create — the investment must never reference a media id that failed to
+      // land.
+      action: async (data) => {
+        if (!collectAssets) return action(data)
+
+        // Backstop to the disabled submit button, which Enter bypasses: a file still ingesting is
+        // not in `files` yet, so the inwestycja would save without its zdjęcia.
+        if (isIngesting) {
+          return { success: false, error: 'Poczekaj na przetworzenie plików.' }
+        }
+
+        return submitWithInvoicePages(files, (assets) => action({ ...data, assets }))
+      },
       // Only on the way IN, and only from another status: „Zakończona" is a one-way door for everyone
       // but właściciel/admin, so the person closing the investment is told what they are giving up
       // before the write, not by a refusal afterwards.
@@ -74,6 +96,7 @@ export function InvestmentForm({
         review: value.review,
         status: value.status,
         presetId: value.presetId,
+        assets: [],
       }),
     },
   )
@@ -145,9 +168,17 @@ export function InvestmentForm({
               )}
             </form.AppField>
           )}
+          {collectAssets && (
+            <FileInput key={inputKey} label="Zdjęcia i pliki" multiple {...fileInputProps} />
+          )}
         </FieldGroup>
 
-        <FormFooter label={submitLabel} submittingLabel={submittingLabel} className="mt-6" />
+        <FormFooter
+          label={submitLabel}
+          submittingLabel={submittingLabel}
+          className="mt-6"
+          disabled={isIngesting}
+        />
       </FormShell>
 
       <ConfirmDialog {...submitConfirm} />
