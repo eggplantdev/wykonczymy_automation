@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button'
 import { CatalogueItemFromKosztorysDialog } from '@/components/kosztorys/editor/dialogs/catalogue-item-from-kosztorys-dialog'
 import { SheetReportBlock } from '@/components/kosztorys/editor/dialogs/sheet-report-block'
 import { SheetReportDialog } from '@/components/kosztorys/editor/dialogs/sheet-report-dialog'
-import { ItemList, ReportFold } from '@/components/kosztorys/editor/dialogs/sheet-report-parts'
+import { ReportFold } from '@/components/kosztorys/editor/dialogs/sheet-report-parts'
 import { CatalogueDiffTable } from '@/components/kosztorys/editor/dialogs/catalogue-diff-table'
+import { CatalogueMissingList } from '@/components/kosztorys/editor/dialogs/catalogue-missing-list'
 import {
   diffsVerdict,
   emptyReportReason,
@@ -28,8 +29,9 @@ import { PROBLEM_IDS } from '@/lib/kosztorys/problem-conditions'
  * „Porównaj z katalogiem" — the rozpiska read against the global cennik, and the one window that
  * writes in BOTH directions. Into the cennik: „Dodaj do katalogu" on a praca it lacks, „Edytuj w
  * katalogu" on one whose liczby drifted. Out of it: „Aktualizuj kosztorys", which pulls the ticked
- * liczby into the rozpiska itself. The read-only viewer keeps the whole report and loses every one
- * of those entries.
+ * liczby into the rozpiska itself, and accepting a „może chodzi o…" candidate, which gives a praca
+ * the cennik's own name. The read-only viewer keeps the whole report and loses every one of those
+ * entries.
  *
  * The hurt leaves an automatic wersja behind it (the action takes one before writing), so „Wersje"
  * undoes the whole batch — which is what makes „zaznacz wszystkie" a safe thing to offer.
@@ -44,6 +46,7 @@ export function CatalogueCompareDialog() {
     catalogueComparison,
     workCatalogue,
     handleApplyCatalogueToItems,
+    handleAcceptCatalogueName,
     engagedConditionIds,
     toggleConditionExclusive,
   } = useKosztorysEditorContext()
@@ -136,23 +139,12 @@ export function CatalogueCompareDialog() {
                 )}
                 {missing.length > 0 && (
                   <ReportFold summary={`Pokaż ${missing.length} ${itemNoun(missing.length)}`}>
-                    <ItemList
-                      items={missing.map((row) => ({
-                        section: row.section,
-                        description: `${row.description} (${row.unit || 'bez j.m.'})`,
-                        // A guess about NAMES, offered as one — nothing here actually matched.
-                        note: row.hint ? `może chodzi o „${row.hint}"` : undefined,
-                        action: readOnly ? undefined : (
-                          <Button
-                            variant="link"
-                            size="xs"
-                            className="h-auto p-0"
-                            onClick={() => setSavingItemId(row.itemId)}
-                          >
-                            Dodaj do katalogu
-                          </Button>
-                        ),
-                      }))}
+                    <CatalogueMissingList
+                      missing={missing}
+                      catalogue={workCatalogue ?? []}
+                      readOnly={readOnly}
+                      onAcceptName={handleAcceptCatalogueName}
+                      onAddToCatalogue={setSavingItemId}
                     />
                   </ReportFold>
                 )}

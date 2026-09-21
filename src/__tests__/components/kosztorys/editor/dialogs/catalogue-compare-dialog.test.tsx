@@ -5,12 +5,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CatalogueCompareDialog } from '@/components/kosztorys/editor/dialogs/catalogue-compare-dialog'
 import { CATALOGUE_DIVERGENCE_CONDITION_ID } from '@/lib/kosztorys/row-conditions/registry'
 import { PROBLEM_IDS } from '@/lib/kosztorys/problem-conditions'
-import type { CatalogueComparisonT } from '@/lib/kosztorys/work-catalogue/types'
+import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
+import type { CatalogueComparisonT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
 const setOpen = vi.fn()
 const toggleConditionExclusive = vi.fn()
+const handleAcceptCatalogueName = vi.fn().mockResolvedValue(true)
 let engagedConditionIds = new Set<string>()
 let catalogueComparison: CatalogueComparisonT | null = null
+let workCatalogue: WorkCatalogueItemT[] = []
 
 vi.mock('@/components/kosztorys/editor/actions/kosztorys-actions-context', () => ({
   useKosztorysActions: () => ({ catalogueCompare: { open: true, setOpen } }),
@@ -20,7 +23,8 @@ vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
   useKosztorysEditorContext: () => ({
     readOnly: false,
     catalogueComparison,
-    workCatalogue: [],
+    workCatalogue,
+    handleAcceptCatalogueName,
     engagedConditionIds,
     toggleConditionExclusive,
   }),
@@ -59,6 +63,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   engagedConditionIds = new Set()
   catalogueComparison = COMPARISON
+  workCatalogue = []
 })
 
 describe('CatalogueCompareDialog — „Pokaż w rozpisce"', () => {
@@ -82,6 +87,46 @@ describe('CatalogueCompareDialog — „Pokaż w rozpisce"', () => {
 
     expect(toggleConditionExclusive).not.toHaveBeenCalled()
     expect(setOpen).toHaveBeenCalledWith(false)
+  })
+
+  // The window owns the wiring — including that the candidates come from the window's own lazy
+  // scoring pass, not from the comparison it was handed. What a click DOES is the list's own spec.
+  it('podaje przyjęcie kandydata do edytora wraz z jednostką', async () => {
+    catalogueComparison = {
+      ...COMPARISON,
+      // No diffs: both folds open with „Pokaż 1 …", and the one being clicked here is the braki one.
+      diffs: [],
+      missing: [
+        {
+          itemId: 21,
+          section: 'Łazienka',
+          description: 'Montaż syfonów',
+          unit: 'kpl',
+          hints: [],
+        },
+      ],
+    }
+    workCatalogue = [
+      {
+        id: 7,
+        description: 'Montaż syfonu',
+        category: null,
+        unit: 'szt',
+        clientPrice: 45,
+        wToolsRate: null,
+        ownToolsRate: null,
+        matchKey: catalogueKey('Montaż syfonu', 'szt'),
+      },
+    ]
+    render(<CatalogueCompareDialog />)
+
+    await userEvent.click(await screen.findByText(/Pokaż 1/))
+    await userEvent.click(screen.getByRole('button', { name: /Montaż syfonu/ }))
+
+    expect(handleAcceptCatalogueName).toHaveBeenCalledWith(21, {
+      description: 'Montaż syfonu',
+      unit: 'szt',
+    })
   })
 
   it('names the missing cennik rather than an empty rozpiska when there is nothing to compare', async () => {

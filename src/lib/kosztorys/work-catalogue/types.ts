@@ -91,15 +91,26 @@ export type CataloguePriceDiffT = {
   maxDelta: number
 }
 
+// A „może chodzi o…" candidate. It carries the cennik row whole rather than its opis, because the
+// three closest names are routinely the SAME name — 168 prace in the local dataset differ from their
+// candidate only by j.m. — so the j.m. and the cena are what actually tell two candidates apart.
+export type CatalogueHintT = {
+  id: number
+  description: string
+  unit: string
+  clientPrice: number
+  score: number
+}
+
 export type CatalogueMissingT = {
   itemId: number
   section: string
   description: string
   unit: string
-  // The closest cennik opis, or nothing. DISPLAY ONLY — this never matches, never prices anything
-  // and never decides which kubełek a praca lands in; it exists so „brak w katalogu" on a praca that
-  // IS there under a slightly different name is recognisable as such.
-  hint: string | null
+  // The closest cennik opisy, best first, or an empty list. A candidate is clickable — accepting one
+  // rewrites the praca's NAME — but it still never matches, never prices anything and never decides
+  // which kubełek a praca lands in: accepting is a write the owner makes, not a match this found.
+  hints: CatalogueHintT[]
 }
 
 // What the hurtowy zapis actually wrote, shaped as the patch the grid applies to its rows — only the

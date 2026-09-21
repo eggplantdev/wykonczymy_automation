@@ -7,6 +7,7 @@ import type {
   CatalogueComparisonSettingsT,
   CatalogueComparisonT,
   CatalogueFigureDiffT,
+  CatalogueHintT,
   CatalogueMissingT,
   CataloguePriceDiffT,
   SeedConflictFieldT,
@@ -28,24 +29,35 @@ const asPricing = (item: KosztorysItemT, settings: CatalogueComparisonSettingsT)
 const catalogueRate = (rate: number | null, clientPrice: number, coeff: number): number =>
   rate ?? clientPrice * coeff
 
-type HintCandidateT = { description: string; pairs: string[] }
+const HINT_LIMIT = 3
+
+type HintCandidateT = { entry: WorkCatalogueItemT; pairs: string[] }
 
 // Folded and bigrammed ONCE for the whole cennik: `foldDescription` is ~45 split/join passes, and a
 // 1000-row rozpiska against a few-hundred-row cennik would otherwise run it a million times.
 const hintCandidates = (catalogue: readonly WorkCatalogueItemT[]): HintCandidateT[] =>
-  catalogue.map((entry) => ({
-    description: entry.description,
-    pairs: bigrams(foldDescription(entry.description)),
-  }))
+  catalogue.map((entry) => ({ entry, pairs: bigrams(foldDescription(entry.description)) }))
 
-function closestDescription(description: string, candidates: readonly HintCandidateT[]) {
+// Scores everything and sorts, rather than keeping a running top-3: the loop already touches every
+// wpis (there is no ordering to short-circuit on), and a few hundred kept candidates is nothing
+// beside the scoring itself — which is what the caller's lazy pass exists to pay for.
+function closestEntries(
+  description: string,
+  candidates: readonly HintCandidateT[],
+  limit = HINT_LIMIT,
+): CatalogueHintT[] {
   const pairs = bigrams(foldDescription(description))
-  let best: { description: string; score: number } | null = null
-  for (const candidate of candidates) {
-    const score = diceSimilarity(pairs, candidate.pairs)
-    if (!best || score > best.score) best = { description: candidate.description, score }
-  }
-  return best && best.score >= HINT_THRESHOLD ? best.description : null
+  return candidates
+    .map(({ entry, pairs: candidatePairs }) => ({
+      id: entry.id,
+      description: entry.description,
+      unit: entry.unit,
+      clientPrice: entry.clientPrice,
+      score: diceSimilarity(pairs, candidatePairs),
+    }))
+    .filter((hint) => hint.score >= HINT_THRESHOLD)
+    .sort((left, right) => right.score - left.score)
+    .slice(0, limit)
 }
 
 const figure = (
@@ -141,13 +153,13 @@ export function buildCatalogueComparison(
 
     const entry = byKey.get(keyFor(description, unit))
     if (!entry) {
-      // `hint` is filled in by `attachCatalogueHints`, never here — see its docblock.
+      // `hints` are filled in by `attachCatalogueHints`, never here — see its docblock.
       missing.push({
         itemId: item.id,
         section: item.sectionName ?? '',
         description,
         unit,
-        hint: null,
+        hints: [],
       })
       continue
     }
@@ -193,5 +205,5 @@ export function attachCatalogueHints(
 ): CatalogueMissingT[] {
   if (missing.length === 0) return []
   const candidates = hintCandidates(catalogue)
-  return missing.map((row) => ({ ...row, hint: closestDescription(row.description, candidates) }))
+  return missing.map((row) => ({ ...row, hints: closestEntries(row.description, candidates) }))
 }

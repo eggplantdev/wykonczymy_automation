@@ -232,7 +232,7 @@ describe('buildCatalogueComparison', () => {
       SETTINGS,
     )
 
-    expect(result.missing[0].hint).toBeNull()
+    expect(result.missing[0].hints).toEqual([])
   })
 
   it('pomija pozycje bez opisu', () => {
@@ -248,7 +248,7 @@ describe('attachCatalogueHints', () => {
     section: 'Salon',
     description,
     unit: 'm2',
-    hint: null,
+    hints: [],
   })
 
   it('podpowiada najbliższą nazwę z katalogu', () => {
@@ -257,7 +257,36 @@ describe('attachCatalogueHints', () => {
       [entry({ description: 'Gładź gipsowa' })],
     )
 
-    expect(row.hint).toBe('Gładź gipsowa')
+    expect(row.hints[0].description).toBe('Gładź gipsowa')
+  })
+
+  // The praca and its candidate are routinely the SAME name in a different j.m., so the candidate has
+  // to arrive with the cennik row's own j.m. and cena — the opis alone cannot tell two of them apart.
+  it('niesie j.m. i cenę kandydata, nie sam opis', () => {
+    const [row] = attachCatalogueHints(
+      [missingRow('Montaż syfonów')],
+      [entry({ id: 77, description: 'Montaż syfonów', unit: 'szt', clientPrice: 45 })],
+    )
+
+    expect(row.hints[0]).toMatchObject({ id: 77, unit: 'szt', clientPrice: 45 })
+  })
+
+  it('oddaje najwyżej trzech kandydatów, od najbliższego', () => {
+    const [row] = attachCatalogueHints(
+      [missingRow('Gładzie gipsowe ścian')],
+      [
+        entry({ id: 1, description: 'Gładzie gipsowe sufitów' }),
+        entry({ id: 2, description: 'Gładzie gipsowe ścian i sufitów' }),
+        entry({ id: 3, description: 'Gładzie gipsowe ścian' }),
+        entry({ id: 4, description: 'Gładzie gipsowe' }),
+      ],
+    )
+
+    expect(row.hints).toHaveLength(3)
+    expect(row.hints[0].description).toBe('Gładzie gipsowe ścian')
+    expect(row.hints.map((hint) => hint.score)).toEqual(
+      [...row.hints.map((hint) => hint.score)].sort((left, right) => right - left),
+    )
   })
 
   it('nie podpowiada, gdy nic nie jest dostatecznie podobne', () => {
@@ -266,7 +295,16 @@ describe('attachCatalogueHints', () => {
       [entry({ description: 'Malowanie ścian' })],
     )
 
-    expect(row.hint).toBeNull()
+    expect(row.hints).toEqual([])
+  })
+
+  it('odcina kandydata poniżej progu, choć lepszy przeszedł', () => {
+    const [row] = attachCatalogueHints(
+      [missingRow('Gładzie gipsowe')],
+      [entry({ id: 1, description: 'Gładź gipsowa' }), entry({ id: 2, description: 'Wylewki' })],
+    )
+
+    expect(row.hints.map((hint) => hint.id)).toEqual([1])
   })
 
   it('nie rusza przynależności do kubełka — wchodzi i wychodzi tyle samo prac', () => {

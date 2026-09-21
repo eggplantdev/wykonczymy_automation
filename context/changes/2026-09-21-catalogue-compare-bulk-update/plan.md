@@ -626,11 +626,11 @@ Uruchomić **raz**, po ostatniej fazie:
 
 #### Automated
 
-- [x] 4.1 Spec tabeli zaznaczania przechodzi
+- [x] 4.1 Spec tabeli zaznaczania przechodzi — `fe0763d4`
 
 ### Phase 5: Akceptacja podpowiedzi „może chodzi o"
 
 #### Automated
 
-- [ ] 5.1 Specs kandydatów przechodzą
-- [ ] 5.2 Spec przyjęcia kandydata przechodzi
+- [x] 5.1 Specs kandydatów przechodzą
+- [x] 5.2 Spec przyjęcia kandydata przechodzi

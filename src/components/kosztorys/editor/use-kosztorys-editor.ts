@@ -1117,6 +1117,36 @@ export function useKosztorysEditor({
     return true
   }
 
+  /**
+   * Accepting a „może chodzi o…" candidate: the praca takes the cennik's opis AND j.m.
+   *
+   * Both or neither — the klucz is the pair, so writing the nazwa alone moves the praca from one
+   * „brak w katalogu" to another and the gesture looks like it did nothing. Prices are deliberately
+   * untouched: this settles what the praca is CALLED, and what it costs is the next, separate
+   * decision — the one the „Inne liczby" block it now lands in is for.
+   */
+  async function handleAcceptCatalogueName(
+    itemId: number,
+    name: { description: string; unit: string },
+  ): Promise<boolean> {
+    const before = rowsRef.current.find((r) => r.id === itemId)
+    patchRows(
+      (r) => r.id === itemId,
+      (r) => ({ ...r, description: name.description, unit: name.unit }),
+    )
+    const res = await updateItemFieldAction(itemId, name)
+    if (!res.success) {
+      if (before)
+        patchRows(
+          (r) => r.id === itemId,
+          (r) => ({ ...r, description: before.description, unit: before.unit }),
+        )
+      toastMessage(res.error, 'warning', 4000)
+      return false
+    }
+    return true
+  }
+
   // The markup coefficients are denormalized on every row but changed OUTSIDE the grid, and
   // router.refresh() won't pick them up — `rows` is a mount-frozen useState seed, so without this patch
   // the „Cena" column shows the stale value until a reload.
@@ -1284,6 +1314,7 @@ export function useKosztorysEditor({
     handleGlobalDiscountChange,
     handleApplyPercentDiscount,
     handleApplyCatalogueToItems,
+    handleAcceptCatalogueName,
     // undo/redo (stack lives in the shell; consumed by the toolbar + keyboard). Both flush a
     // still-buffering edit burst first, so an undo pops the just-typed edit (correct LIFO) rather
     // than an older command that the un-pushed burst is sitting in front of.
