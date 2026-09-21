@@ -102,7 +102,9 @@ export function buildCatalogueComparison(
   // keystroke, where `catalogueKey` is the whole cost.
   const keyCache = new Map<string, string>()
   const keyFor = (description: string, unit: string) => {
-    const pair = `${description}|${unit}`
+    // NUL, not a printable separator: an opis may contain any character an owner can type, and
+    // („a|b", „c") would otherwise cache under the same key as („a", „b|c").
+    const pair = `${description}\u0000${unit}`
     const cached = keyCache.get(pair)
     if (cached !== undefined) return cached
     const key = catalogueKey(description, unit)
