@@ -7,7 +7,7 @@ Scope: the E2E harness fixes (`e2e/**`, `playwright*.config.ts`) plus the produc
 `src/components/tables/transfers.tsx`, `src/components/kosztorys/editor/toolbar/kosztorys-global-settings.tsx`,
 `src/lib/kosztorys/**`, `src/__tests__/lib/kosztorys/**`, `src/__tests__/fixtures/subcontractor-pricing-row.ts`,
 `src/__tests__/components/kosztorys/**`, `src/__tests__/lib/actions/work-catalogue-insert.test.ts`,
-`context/changes/2026-09-18-lead-delivery/`.
+`context/archive/2026-09-18-lead-delivery/`.
 
 Step 0.5 (browser verification pass) skipped: the slice has no UI surface — its verification IS the
 Playwright suite, and driving the Playwright MCP browser is off-limits unless asked.

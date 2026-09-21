@@ -422,4 +422,9 @@ subsystem does not earn the ceremony.
   (wykonczymy half, 2026-09-21)" has 15 unticked boxes, and end-to-end verification is itself blocked
   on the owner-side items (Vercel Protection Bypass secret, `LANDING_CLEANUP_URL`, the landing half).
 
-So the slice is **in review**, not done, and must not be archived until those checks are signed off.
+**Archived 2026-09-21.** Manual checks do not gate archiving (ruling of 2026-07-28), and neither do
+the owner-side items — they are not this repo's half of the work. What is still owed lives where it
+survives the slice: the unticked boxes stay in `context/foundation/manual-checks.md`, and the wire
+contract the landing must meet is `context/reference/landing-intake-contract.md`. This repo's half is
+built and on staging; `landing_26` keeps its copy of this change in `context/changes/` until its own
+half exists.

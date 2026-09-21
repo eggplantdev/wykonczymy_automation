@@ -280,7 +280,7 @@ Uruchamiane **raz**, po ostatniej fazie:
 
 ## References
 
-- Ustalenia i odrzucone warianty: `context/changes/2026-09-21-investment-assets-dialog/change.md`
+- Ustalenia i odrzucone warianty: `context/archive/2026-09-21-investment-assets-dialog/change.md`
 - Wzorzec „podgląd ustępuje uploadowi": `src/components/transfers/invoice-cell.tsx:42`
 - Wzorzec „preset domenowy nad ogólnym hakiem": `src/hooks/use-invoice-upload.ts`
 - Powiązane issue: **EX-826** (pełne przenosiny `lib/invoices` → `lib/media`)

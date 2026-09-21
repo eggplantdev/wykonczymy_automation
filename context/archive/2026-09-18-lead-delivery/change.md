@@ -1,10 +1,10 @@
 ---
 change_id: lead-delivery
 title: Deliver form submissions into the leads app, attachments included
-status: implemented
+status: archived
 created: 2026-09-18
 updated: 2026-09-21
-archived_at: null
+archived_at: 2026-09-21
 branch: staging
 worktree: null
 ---
@@ -12,9 +12,11 @@ worktree: null
 ## Notes
 
 **This change has two homes.** The work does not fit in one repo, so the same `change.md` lives at
-`context/changes/2026-09-18-lead-delivery/` in **both** `landing_26` and `wykonczymy`. It is one
-change with one set of decisions; the copies are kept in step by hand, and a decision recorded on
-one side is not agreed until it reads the same on the other.
+`2026-09-18-lead-delivery/` in **both** `landing_26` and `wykonczymy`. It is one change with one set
+of decisions; the copies are kept in step by hand, and a decision recorded on one side is not agreed
+until it reads the same on the other. The two halves archive apart: this repo's half is built, so its
+copy moved to `context/archive/` on 2026-09-21, while `landing_26` keeps its copy under
+`context/changes/` until its own half exists.
 
 `2026-09-17-s2-contact-form` in `landing_26` built the form and deliberately stopped short of a sink —
 `submitContactForm` validates and returns `{ ok: true }` with the comment "No sink yet — where a

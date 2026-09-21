@@ -1,6 +1,6 @@
 # Galeria inwestycji bez miniatur — plan brief
 
-> Pełny plan: `context/changes/2026-09-21-investment-assets-dialog/plan.md`
+> Pełny plan: `context/archive/2026-09-21-investment-assets-dialog/plan.md`
 
 ## What & Why
 

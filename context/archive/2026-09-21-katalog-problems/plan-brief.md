@@ -1,7 +1,7 @@
 # Rozjazdy z katalogiem prac jako problemy — skrót planu
 
-> Pełny plan: `context/changes/2026-09-21-katalog-problems/plan.md`
-> Research: `context/changes/2026-09-21-katalog-problems/research.md`
+> Pełny plan: `context/archive/2026-09-21-katalog-problems/plan.md`
+> Research: `context/archive/2026-09-21-katalog-problems/research.md`
 
 ## Co i po co
 

@@ -459,7 +459,7 @@ przeglądarkowy jest to winien: albo spec przy bramce przeglądu, albo issue z e
 
 ## Historical Context (from prior changes)
 
-- `context/changes/2026-09-21-katalog-problems/` (`status: implemented`, ten sam dzień) — bezpośredni
+- `context/archive/2026-09-21-katalog-problems/` (`status: archived`, ten sam dzień) — bezpośredni
   poprzednik: przeniósł porównanie do memo po stronie przeglądarki, naprawił „raportowanie 3×
   jednej różnicy", skasował serwerową akcję porównania. Stamtąd pochodzą wszystkie liczby budżetu
   wydajności w §1.

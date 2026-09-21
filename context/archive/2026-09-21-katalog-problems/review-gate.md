@@ -78,6 +78,7 @@ Ran /simplify — 2 applied, 0 proposed, 1 dropped; każde ustalenie wpięte w `
 
 ## Status
 
-Fazy 1–4 zamknięte, wszystkie skrzynki odhaczone, zero otwartych. Archiwizacja **wstrzymana**:
-osiem sprawdzeń ręcznych w `context/foundation/manual-checks.md` czeka na człowieka, więc slice
-zostaje w **in review**.
+Fazy 1–4 zamknięte, wszystkie skrzynki odhaczone, zero otwartych. **Zarchiwizowany 2026-09-21.**
+Osiem sprawdzeń ręcznych w `context/foundation/manual-checks.md` wciąż czeka na człowieka, ale
+sprawdzenia ręczne nie blokują archiwizacji (ustalenie 2026-07-28) — rejestr jest ich trwałym domem
+i przeżywa slice'a.

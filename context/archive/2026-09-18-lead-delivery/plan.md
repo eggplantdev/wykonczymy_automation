@@ -785,7 +785,7 @@ Run **once**, after Phase 6.
 
 ## References
 
-- Shared change identity (both repos): `context/changes/2026-09-18-lead-delivery/change.md`
+- Shared change identity (both repos): `context/archive/2026-09-18-lead-delivery/change.md`
 - Landing side: `/workspace/yolo/landing_26` — `context/foundation/roadmap.md` S2 (north star) and S6
 - Upload pipeline to copy: `src/lib/invoices/submit-with-invoice-pages.ts`,
   `src/hooks/use-invoice-upload.ts`

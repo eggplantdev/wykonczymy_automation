@@ -356,7 +356,7 @@ powierzchniach, zero na podglądach.
 
 ## References
 
-- Research: `context/changes/2026-09-21-katalog-problems/research.md`
+- Research: `context/archive/2026-09-21-katalog-problems/research.md`
 - Wzorzec wpisu diagnostycznego: `src/lib/kosztorys/row-conditions/registry.ts:250-264`
 - Wzorzec faktu grupowego w ctx: `src/lib/kosztorys/row-conditions/types.ts`
 - Zamrożone ziarno `rows` i `router.refresh()`: `src/components/kosztorys/editor/use-kosztorys-editor.ts:903,1026`
