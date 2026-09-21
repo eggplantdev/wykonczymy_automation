@@ -180,6 +180,88 @@ did; the decisions below are that agreement.
   itself dies with the old site, so no submission path survives to be preserved. Nothing to confirm
   on the WordPress install.
 
+- **2026-09-21 — lead uploads live under a `leads/<submissionId>/` prefix, and only that prefix is
+  disposable.** Corrects the earlier shorthand that "the landing's Blob store is temporary". It is
+  not: `scripts/blob-upload.ts` puts this site's own CMS media at the **store root**, calling `put`
+  with `addRandomSuffix: false` and `allowOverwrite: true` because Payload's Blob adapter resolves
+  `<store>/<filename>`, so the store holds permanent content alongside the transient uploads. The
+  prefix is what separates them, and every cleanup rule below is scoped to it — nothing ever sweeps
+  the store as a whole, and nothing is ever deleted by age alone at the root.
+
+- **2026-09-21 — the client upload token is scoped to the prefix, not just to the file.**
+  `onBeforeGenerateToken` pins `pathname` to `leads/<submissionId>/`, alongside the
+  `allowedContentTypes` (images + PDF) and the 8 MB ceiling already decided above. Scoping matters
+  because the root uses exact filenames with `allowOverwrite: true`: without the prefix pin, an
+  anonymous visitor holding a valid token could name their upload after a CMS image and replace it.
+  With it, an anonymous upload **structurally cannot** address the root — the guarantee is in the
+  token, not in our validation.
+
+- **2026-09-21 — the blob is deleted on confirmed delivery, by a callback carrying only the
+  `submissionId`.** The canonical copy is the one `wykonczymy` fetched into `media`; the landing's
+  copy is a staging area whose whole life is "until the other side has it". So `wykonczymy`, once its
+  `payload.update` has **committed** the attach on the lead (the point after which the media rows are
+  actually referenced — not merely after the fetch succeeded), POSTs back `{ submissionId }`, signed
+  with the same HMAC secret and the same scheme as the inbound webhook. The landing lists
+  `leads/<submissionId>/` and deletes what it finds.
+  - **The callback carries no URLs.** A delete instruction that names its own targets is a delete
+    primitive exposed to whoever can forge or replay it; one that names a submission can only ever
+    destroy the files of a submission that was already delivered. The landing re-derives the target
+    list from its own prefix, so the blast radius is bounded by the prefix scheme rather than by the
+    caller's honesty.
+  - **Partial deliveries are not cleaned up.** A file that landed in `failed[]` is one the leads app
+    does _not_ have, so its bytes are the only copy left — the sweep below will not take it either,
+    because it belongs to a submission that was delivered. It is deleted by hand once the failure is
+    understood.
+  - **The callback is non-fatal on both ends.** `wykonczymy` catches and logs it and still answers
+    200 — the lead is already stored and the assets already attached, so a landing that is down must
+    not turn a delivered submission into a retried one. The cost of a missed callback is an orphan
+    the sweep picks up.
+
+- **2026-09-21 — a prefix-scoped age sweep is the backstop, and it is the only thing that can see an
+  abandoned upload.** A visitor who uploads and then closes the tab produces bytes no queue row ever
+  claimed and no callback will ever mention, so delivery-driven cleanup is structurally blind to
+  them. The sweep lists `leads/` only, and deletes a prefix whose objects are older than a fixed
+  window **and** whose `submissionId` matches no live queue row. Two independent conditions on
+  purpose: age alone would race a submission still retrying, and the queue check alone cannot see a
+  submission that was never created.
+
+- **2026-09-21 — rejected: `wykonczymy` holding a read-write token for the landing's store.** It is
+  the shorter path — delete the source right after the fetch, no callback, no second endpoint — and
+  it is rejected on blast radius. That token addresses the **whole** store, CMS media included, from
+  a codebase whose own rules already treat a production Blob token as a hazard ("the production
+  Vercel Blob store belongs to production only", `AGENTS.md`), and it would hand the leads app the
+  power to destroy this site's images to save one HTTP call. The landing deletes its own bytes; no
+  other service gets credentials to this store.
+
+- **2026-09-21 — rejected: the browser uploading straight into `wykonczymy`'s store.** It looks like
+  it removes the whole problem — one copy, no cleanup, no callback — and it does not. Three reasons,
+  in order of weight:
+  1. **It relocates the orphans rather than removing them.** An abandoned upload still happens; it
+     now happens inside the store that holds invoices, where an age sweep is a far more dangerous
+     instrument than it is under `leads/`.
+  2. **It couples the marketing form to the leads app's availability.** Today a delivery outage costs
+     a retry from the queue and the visitor sees nothing; with a token minted by `wykonczymy`, the
+     visitor cannot even attach a file while that app is down — the outage moves from our outbox to
+     the public form.
+  3. **The completion signal is not reliable in development.** `onUploadCompleted` does not fire
+     against localhost (no public URL for the callback), so the one hook that would tell `wykonczymy`
+     a file exists is exactly the hook that cannot be exercised while building the feature.
+
+  The fetch-side topology has none of these: the landing owns its own store, its own token route and
+  its own cleanup, and the leads app only ever pulls.
+
+- **2026-09-21 — one Blob store for every environment, so the sweep runs only from production.**
+  There is no per-environment landing store: Preview and Production both resolve to
+  `y06paq7r8hjnw5wb.public.blob.vercel-storage.com`, which is why `LANDING_BLOB_HOST` carries the
+  same value in both. That makes `leads/` a **shared** prefix — a preview deploy and production write
+  their staging uploads side by side, and neither can tell the other's apart by path. The
+  delete-on-delivery callback is unaffected (it names a `submissionId`, and a submission belongs to
+  exactly one deploy), but the **age sweep is not**: run from preview it would list production's
+  `leads/` and delete files belonging to submissions still retrying on the other side. So the sweep
+  is gated on `VERCEL_ENV === 'production'` and is declared as one cron, on production only — the
+  same shape as the Sheets write credential and the Blob token gates in `wykonczymy`, and for the
+  same reason: the environments differ in _code_, never in the resource they point at.
+
 - **2026-09-20 — `area` is text.** Closes the open question. The label "Powierzchnia prac, np.
   30–60 m²" invites a range, which no numeric column holds; sorting on it was never asked for.
 
