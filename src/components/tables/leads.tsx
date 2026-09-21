@@ -5,7 +5,7 @@ import { formatPLDateTime } from '@/lib/utils/format-date'
 import { ContactLink } from '@/components/ui/contact-link'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
 import { LeadAnswersDialog } from '@/components/leads/lead-answers-dialog'
-import { LeadAssetsDialog } from '@/components/leads/lead-assets-dialog'
+import { LeadAssetsDialog, type InvestmentOptionT } from '@/components/leads/lead-assets-dialog'
 import { PromoteLeadDialog } from '@/components/leads/promote-lead-dialog'
 import { BADGE_BASE } from '@/components/ui/badge'
 import { cn } from '@/lib/utils/cn'
@@ -30,9 +30,10 @@ const col = createColumnHelper<LeadRowT>()
 
 type LeadColumnOptionsT = {
   onToggle: (id: number, contacted: boolean) => void
+  investments: InvestmentOptionT[]
 }
 
-export function getLeadColumns({ onToggle }: LeadColumnOptionsT) {
+export function getLeadColumns({ onToggle, investments }: LeadColumnOptionsT) {
   return [
     col.accessor('name', {
       id: 'name',
@@ -105,7 +106,7 @@ export function getLeadColumns({ onToggle }: LeadColumnOptionsT) {
     col.display({
       id: 'assets',
       header: 'Załączniki',
-      cell: (info) => <LeadAssetsDialog lead={info.row.original} />,
+      cell: (info) => <LeadAssetsDialog lead={info.row.original} investments={investments} />,
     }),
     col.display({
       id: 'promote',

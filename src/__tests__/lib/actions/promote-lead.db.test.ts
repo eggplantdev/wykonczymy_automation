@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vites
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
+import { SETTLEMENT_MODE_DEFAULT } from '@/lib/kosztorys/settlement-mode'
 
 // Promotion is the one place two collections point at the same media rows, and a „copy" would pass
 // every count assertion while quietly doubling the storage bill — so the ids themselves are what
@@ -22,6 +23,7 @@ vi.mock('@/lib/cache/revalidate', () => ({ revalidateCollections: vi.fn() }))
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const NAME = 'EX-802 promoted lead'
+const OTHER_NAME = 'EX-802 unrelated investment'
 const FILENAMES = ['ex-802-promote-a.jpg', 'ex-802-promote-b.pdf']
 const FILENAME_PREFIX = 'ex-802-promote-%'
 
@@ -48,7 +50,7 @@ describe.skipIf(!ENV_READY)('promoteLeadAction (DB)', () => {
 
   const purge = async () => {
     await db.execute(sql`DELETE FROM leads WHERE name = ${NAME}`)
-    await db.execute(sql`DELETE FROM investments WHERE name = ${NAME}`)
+    await db.execute(sql`DELETE FROM investments WHERE name IN (${NAME}, ${OTHER_NAME})`)
     await db.execute(sql`DELETE FROM media WHERE filename LIKE ${FILENAME_PREFIX}`)
   }
 
@@ -59,6 +61,16 @@ describe.skipIf(!ENV_READY)('promoteLeadAction (DB)', () => {
       ORDER BY "order"
     `)
     return rows.map((row) => Number(row.media_id))
+  }
+
+  const createOtherInvestment = async () => {
+    const other = await payload.create({
+      collection: 'investments',
+      data: { name: OTHER_NAME, status: 'active', settlementMode: SETTLEMENT_MODE_DEFAULT },
+      overrideAccess: true,
+      context: { skipRevalidation: true },
+    })
+    return Number(other.id)
   }
 
   const livingMediaIds = async () => {
@@ -150,16 +162,30 @@ describe.skipIf(!ENV_READY)('promoteLeadAction (DB)', () => {
     const investmentId = Number(lead.investment)
 
     // Both ids, including the one the investment already holds.
-    const result = await attachLeadAssetsAction(leadId, mediaIds)
+    const result = await attachLeadAssetsAction(leadId, investmentId, mediaIds)
 
     expect(result.success).toBe(true)
     expect(await investmentAssetIds(investmentId)).toEqual(mediaIds)
   })
 
-  it('refuses to attach to a zgłoszenie that was never promoted', async () => {
-    const result = await attachLeadAssetsAction(leadId, mediaIds)
+  // The target is the caller's pick, not the zgłoszenie's own inwestycja — an unpromoted zgłoszenie
+  // has files worth filing somewhere, and nothing here can un-attach a mis-click.
+  it('attaches to an inwestycja the zgłoszenie was never promoted into', async () => {
+    const otherId = await createOtherInvestment()
 
-    expect(result.success).toBe(false)
+    const result = await attachLeadAssetsAction(leadId, otherId, mediaIds)
+
+    expect(result.success).toBe(true)
+    expect(await investmentAssetIds(otherId)).toEqual(mediaIds)
+  })
+
+  it('ignores an id the zgłoszenie does not own', async () => {
+    const otherId = await createOtherInvestment()
+
+    const result = await attachLeadAssetsAction(leadId, otherId, [mediaIds[0], -1])
+
+    expect(result.success).toBe(true)
+    expect(await investmentAssetIds(otherId)).toEqual([mediaIds[0]])
   })
 
   it('refuses a second promotion of the same lead', async () => {

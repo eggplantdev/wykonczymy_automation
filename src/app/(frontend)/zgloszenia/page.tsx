@@ -8,6 +8,7 @@ import { fetchLeadsPage, LEADS_DEFAULT_LIMIT } from '@/lib/queries/leads'
 import { parseLeadSort } from '@/lib/queries/lead-sort'
 import { parsePagination } from '@/lib/utils/pagination'
 import { fetchRecipientLists } from '@/lib/queries/notification-recipients'
+import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { LeadsDataTable } from '@/components/leads/leads-data-table'
 import { RecipientListCard } from '@/components/notification-recipients/recipient-list-card'
 import { Description } from '@/components/ui/description'
@@ -27,17 +28,25 @@ export default async function LeadsPage({ searchParams }: PagePropsT) {
   // Independent of the leads fetch, so overlap them rather than paying the write
   // round-trip before the (cached) read.
   const payload = await getPayload({ config })
-  const [, leads, recipients] = await Promise.all([
+  const [, leads, recipients, refData] = await Promise.all([
     markSeen(payload, session.user.id, STREAMS.leads),
     fetchLeadsPage(page, limit, sort, search),
     fetchRecipientLists(),
+    fetchReferenceData(),
   ])
+  // Trimmed to what the picker renders — the reference row carries the investment's address, phone
+  // and notes, and none of that belongs in the client payload of a leads table.
+  const investmentOptions = refData.investments.map(({ id, name }) => ({ id, name }))
   const canEditRecipients = isAdminOrOwnerRole(session.user.role)
 
   return (
     <PageWrapper title="Zgłoszenia">
       <Description>{leads.newCount} nowych</Description>
-      <LeadsDataTable data={leads.rows} paginationMeta={leads.paginationMeta} />
+      <LeadsDataTable
+        data={leads.rows}
+        paginationMeta={leads.paginationMeta}
+        investments={investmentOptions}
+      />
       <div className="grid gap-4 sm:grid-cols-2">
         <RecipientListCard
           list="newLead"

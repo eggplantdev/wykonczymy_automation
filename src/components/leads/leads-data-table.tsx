@@ -7,6 +7,7 @@ import { DataTableToolbar } from '@/components/tables/data-table/data-table-tool
 import { ColumnToggle } from '@/components/filters/column-toggle'
 import { PaginationFooter } from '@/components/ui/pagination-footer'
 import { getLeadColumns } from '@/components/tables/leads'
+import type { InvestmentOptionT } from '@/components/leads/lead-assets-dialog'
 import type { LeadRowT } from '@/types/leads'
 import type { PaginationMetaT } from '@/lib/utils/pagination'
 import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle'
@@ -24,9 +25,11 @@ const getContactStatusUpdate = (contacted: boolean) =>
 type LeadsDataTablePropsT = {
   data: LeadRowT[]
   paginationMeta: PaginationMetaT
+  /** Targets for „Załączniki" — trimmed to id + name by the page, since the row shape is PII. */
+  investments: InvestmentOptionT[]
 }
 
-export function LeadsDataTable({ data, paginationMeta }: LeadsDataTablePropsT) {
+export function LeadsDataTable({ data, paginationMeta, investments }: LeadsDataTablePropsT) {
   const { optimisticData, handleToggle } = useOptimisticToggle(
     data,
     getContactStatusUpdate,
@@ -39,7 +42,10 @@ export function LeadsDataTable({ data, paginationMeta }: LeadsDataTablePropsT) {
   // arrow claiming an order the rows were never fetched in.
   const sorting = sortParamToSortingState(validLeadSort(searchParams.get('sort') ?? undefined))
 
-  const columns = useMemo(() => getLeadColumns({ onToggle: handleToggle }), [handleToggle])
+  const columns = useMemo(
+    () => getLeadColumns({ onToggle: handleToggle, investments }),
+    [handleToggle, investments],
+  )
 
   return (
     <div>

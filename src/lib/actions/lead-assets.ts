@@ -1,7 +1,6 @@
 'use server'
 
 import { protectedAction } from './run-action'
-import { resolveId } from '@/lib/utils/resolve-id'
 import { uploadFieldIds } from '@/lib/media/upload-field'
 import { appendUploadIds, setUploadField } from '@/lib/media/set-upload-field'
 import type { ActionResultT } from '@/types/action'
@@ -35,8 +34,9 @@ export async function removeLeadAssetAction(
 }
 
 /**
- * Send files across to the inwestycja a zgłoszenie was already promoted into — the second chance
- * for whatever the promotion dialog left behind, which until now had no way back.
+ * Send a zgłoszenie's files across to ANY inwestycja — the target is the caller's pick, not the one
+ * the zgłoszenie was promoted into: nothing here can un-attach a file, so binding the transfer to a
+ * single inwestycja made a mis-click permanent.
  *
  * Takes the whole batch because `setUploadField` is a read-modify-write: one call per file would
  * race and keep only the last. The ids are intersected with the zgłoszenie's own assets, so a
@@ -45,6 +45,7 @@ export async function removeLeadAssetAction(
  */
 export async function attachLeadAssetsAction(
   leadId: number,
+  investmentId: number,
   mediaIds: number[],
 ): Promise<ActionResultT> {
   return protectedAction(
@@ -56,11 +57,6 @@ export async function attachLeadAssetsAction(
         depth: 0,
         overrideAccess: true,
       })
-
-      const investmentId = resolveId(lead.investment)
-      if (investmentId === undefined) {
-        return { success: false, error: 'To zgłoszenie nie ma jeszcze swojej inwestycji.' }
-      }
 
       const own = new Set(uploadFieldIds(lead.assets))
       const chosen = mediaIds.filter((id) => own.has(id))

@@ -15,6 +15,9 @@ vi.mock('@/lib/actions/lead-assets', () => ({
   attachLeadAssetsAction: vi.fn(async () => ({ success: true })),
   removeLeadAssetAction: vi.fn(async () => ({ success: true })),
 }))
+vi.mock('@/lib/actions/investment-assets', () => ({
+  investmentAssetIdsAction: vi.fn(async () => ({ success: true, data: [] })),
+}))
 
 const ASSETS = [
   {
@@ -40,6 +43,11 @@ const ASSETS = [
   },
 ]
 
+const INVESTMENTS = [
+  { id: 42, name: 'Kowalska Kwiatowa 5' },
+  { id: 43, name: 'Nowak Polna 2' },
+]
+
 const LEAD: LeadRowT = {
   id: 7,
   source: 'landing_form',
@@ -60,25 +68,27 @@ const LEAD: LeadRowT = {
 }
 
 describe('LeadAssetsDialog', () => {
-  // Before promotion nothing has travelled, so there is no split and nothing to send — the dialog
-  // is a viewer with a delete, and the choosing happens in „Utwórz inwestycję".
-  it('offers no transfer at all before the lead is promoted', async () => {
+  // A zgłoszenie nobody promoted still has files worth filing somewhere — it just has no target
+  // picked yet, so the transfer waits on the select rather than being hidden.
+  it('offers the transfer without a target, but refuses to send until one is picked', async () => {
     const user = userEvent.setup()
     render(
       <LeadAssetsDialog
         lead={{ ...LEAD, investmentId: null, investmentName: null, investmentAssetIds: [] }}
+        investments={INVESTMENTS}
       />,
     )
 
     await user.click(screen.getByRole('button', { name: 'Załączniki (3)' }))
 
-    expect(await screen.findByText(/wybierasz przy jej tworzeniu/)).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /Przenieś do inwestycji/ })).not.toBeInTheDocument()
+    expect(await screen.findByRole('combobox')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Przenieś do inwestycji (3)' })).toBeDisabled()
+    expect(screen.queryByText(/Już w inwestycji/)).not.toBeInTheDocument()
   })
 
   it('splits the zgłoszenie’s files by what the inwestycja already holds', async () => {
     const user = userEvent.setup()
-    render(<LeadAssetsDialog lead={LEAD} />)
+    render(<LeadAssetsDialog lead={LEAD} investments={INVESTMENTS} />)
 
     await user.click(screen.getByRole('button', { name: 'Załączniki (3)' }))
 
@@ -86,21 +96,28 @@ describe('LeadAssetsDialog', () => {
     expect(screen.getByText('Już w inwestycji (1)')).toBeInTheDocument()
   })
 
-  it('sends only the files that were not held back', async () => {
+  // The zgłoszenie's own inwestycja is the target the select starts on, so the common case is one
+  // click — and the id travels with the batch rather than being re-derived server-side.
+  it('sends only the files that were not held back, to the preselected inwestycja', async () => {
     const user = userEvent.setup()
-    render(<LeadAssetsDialog lead={LEAD} />)
+    render(<LeadAssetsDialog lead={LEAD} investments={INVESTMENTS} />)
 
     await user.click(screen.getByRole('button', { name: 'Załączniki (3)' }))
     await user.click((await screen.findAllByLabelText('Nie przenoś tego pliku do inwestycji'))[0])
     await user.click(screen.getByRole('button', { name: 'Przenieś do inwestycji (1)' }))
 
-    expect(attachLeadAssetsAction).toHaveBeenCalledWith(7, [13])
+    expect(attachLeadAssetsAction).toHaveBeenCalledWith(7, 42, [13])
   })
 
   // Every file already across means nothing left to send — the submit would be a no-op button.
   it('drops the transfer section once nothing is left to send', async () => {
     const user = userEvent.setup()
-    render(<LeadAssetsDialog lead={{ ...LEAD, investmentAssetIds: [11, 12, 13] }} />)
+    render(
+      <LeadAssetsDialog
+        lead={{ ...LEAD, investmentAssetIds: [11, 12, 13] }}
+        investments={INVESTMENTS}
+      />,
+    )
 
     await user.click(screen.getByRole('button', { name: 'Załączniki (3)' }))
 
