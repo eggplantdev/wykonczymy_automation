@@ -56,12 +56,33 @@ const buttonVariants = cva(
   },
 )
 
+// The animated accents from globals.css. A list rather than a cva variant because they compose
+// across two different layers — the travelling arc and the halo are independent, so
+// `['comet', 'breathe']` is a legitimate answer and a single-choice variant could not express it.
+// The `!` beats the resting `gradient-border` the `ai` variant already sets; `breathe` touches only
+// `box-shadow`, so it needs none.
+const BUTTON_ANIMATION_CLASSES = {
+  comet: 'gradient-border-comet!',
+  breathe: 'neon-glow-duo-breathe',
+} as const
+
+type ButtonAnimationT = keyof typeof BUTTON_ANIMATION_CLASSES
+
 type ButtonPropsT = React.ComponentProps<'button'> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
+    animations?: ButtonAnimationT[]
   }
 
-function Button({ className, variant, size, align, asChild = false, ...props }: ButtonPropsT) {
+function Button({
+  className,
+  variant,
+  size,
+  align,
+  animations,
+  asChild = false,
+  ...props
+}: ButtonPropsT) {
   const Comp = asChild ? Slot : 'button'
 
   return (
@@ -69,11 +90,15 @@ function Button({ className, variant, size, align, asChild = false, ...props }: 
       data-slot="button"
       data-variant={variant}
       data-size={size}
-      className={cn(buttonVariants({ variant, size, align, className }))}
+      className={cn(
+        buttonVariants({ variant, size, align }),
+        animations?.map((animation) => BUTTON_ANIMATION_CLASSES[animation]),
+        className,
+      )}
       {...props}
     />
   )
 }
 
 export { Button, buttonVariants }
-export type { ButtonPropsT }
+export type { ButtonAnimationT, ButtonPropsT }

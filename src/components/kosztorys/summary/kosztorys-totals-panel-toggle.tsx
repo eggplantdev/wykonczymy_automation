@@ -10,8 +10,8 @@ import { cn } from '@/lib/utils/cn'
 // it, or the panel gets stuck in whatever state localStorage remembered.
 // `size` is caller-chosen: the owner's toolbar packs it into a dense `sm` row, while the client
 // view's header carries only two controls and needs this one to read as the primary way in.
-// `disabled` on an empty kosztorys, where the body mounts no panel at all: without it the button
-// would flip to „Schowaj podsumowanie" over a screen where nothing opened.
+// `disabled` on an empty kosztorys, where the body mounts no panel at all: without it the chevron
+// would flip open over a screen where nothing opened.
 export function KosztorysTotalsPanelToggle({
   size = 'sm',
   disabled = false,
@@ -27,21 +27,13 @@ export function KosztorysTotalsPanelToggle({
       disabled={disabled}
       title={disabled ? 'Kosztorys jest pusty — nie ma czego podsumować' : undefined}
       variant="ai"
+      animations={['comet', 'breathe']}
       onClick={() => setTotalsOpen(!totalsOpen)}
     >
       <ChevronDown
         className={cn('transition-transform duration-200', totalsOpen && 'rotate-180')}
       />
-      {/* Both labels stacked in the same grid cell so the button sizes to the wider of the two —
-          a plain ternary let the width twitch by a couple px on toggle (kerning, not length). */}
-      <span className="grid">
-        <span className={cn('col-start-1 row-start-1', totalsOpen && 'invisible')}>
-          Pokaż podsumowanie
-        </span>
-        <span className={cn('col-start-1 row-start-1', !totalsOpen && 'invisible')}>
-          Schowaj podsumowanie
-        </span>
-      </span>
+      Podsumowanie
     </Button>
   )
 }
