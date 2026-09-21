@@ -4,6 +4,8 @@ import { cn } from '@/lib/utils/cn'
 
 export type InvoicePreviewTriggerPropsT = {
   label: string
+  /** Overrides „Podgląd faktury: …" where the files are not faktury — an investment's photos. */
+  ariaLabel?: string
   onClick: () => void
   // `compact` defaults to the ghost icon-button's 36px box but lets `className` override it — the
   // transfers table and a fixed-height virtualized row have different height budgets.
@@ -13,6 +15,7 @@ export type InvoicePreviewTriggerPropsT = {
 
 export function InvoicePreviewTrigger({
   label,
+  ariaLabel,
   onClick,
   variant = 'field',
   className,
@@ -23,7 +26,7 @@ export function InvoicePreviewTrigger({
     <button
       type="button"
       onClick={onClick}
-      aria-label={`Podgląd faktury: ${label}`}
+      aria-label={ariaLabel ?? `Podgląd faktury: ${label}`}
       className={cn(
         'text-muted-foreground hover:text-foreground cursor-pointer',
         isCompact
