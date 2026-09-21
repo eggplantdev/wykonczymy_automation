@@ -7,6 +7,7 @@ import { renderBrandedEmail } from './email-template'
 import { buildLeadAnswers } from './lead-answers'
 import { leadRawDataSchema, leadFormQuestionsSchema } from './lead-schema'
 import { escapeHtml } from '@/lib/utils/escape-html'
+import { uploadFieldIds } from '@/lib/media/upload-field'
 import type { RecoveredLeadT } from './reconcile-sweep'
 
 // Absolute URL — email clients can't resolve relative paths. Served from public/.
@@ -16,11 +17,34 @@ const row = (label: string, value?: string | null): string =>
   value ? `<tr><td><strong>${label}:</strong></td><td>${escapeHtml(value)}</td></tr>` : ''
 
 /**
+ * The list has no per-row address, and its search box spans name/email/phone/formName
+ * (`lib/queries/leads.ts`) — so the narrowest identifier the lead carries narrows the list to it.
+ */
+function leadUrl(lead: Lead): string {
+  const term = lead.email ?? lead.phone ?? lead.name
+  const base = `${FRONTEND_URL}/zgloszenia`
+  return term ? `${base}?search=${encodeURIComponent(term)}` : base
+}
+
+export type NotifyNewLeadOptionsT = {
+  /**
+   * How many files the submission ANNOUNCED. The landing stores them after this mail is sent, so
+   * nothing else can answer „czy są zdjęcia" at this point — and a promised file that fails to
+   * download raises its own `notifyAssetFailure` to ops rather than silently contradicting this one.
+   */
+  expectedAssets?: number
+}
+
+/**
  * Internal heads-up that a new lead landed — always to the `newLead` recipients,
  * never to the lead. Throws on send failure so the caller can flip
  * `notifyStatus` to `failed` (the lead itself is already persisted).
  */
-export async function notifyNewLead(payload: Payload, lead: Lead): Promise<void> {
+export async function notifyNewLead(
+  payload: Payload,
+  lead: Lead,
+  options: NotifyNewLeadOptionsT = {},
+): Promise<void> {
   const subject = 'Nowe zgłoszenie — Wykończymy'
 
   // The standard name/email/phone are already in the header block above; drop any
@@ -37,6 +61,16 @@ export async function notifyNewLead(payload: Payload, lead: Lead): Promise<void>
     </table>`
     : ''
 
+  // The files themselves cannot ride along, and at send time the lead usually does not hold them
+  // yet — the landing downloads them only AFTER the lead is stored
+  // (`api/webhooks/landing/route.ts`). So the count comes from what the caller was HANDED, and the
+  // already-attached set only wins on a redelivery, where it is the one that is real.
+  const attached = uploadFieldIds(lead.assets).length
+  const assetCount = attached || (options.expectedAssets ?? 0)
+  const assetsHtml = assetCount
+    ? `<p><strong>Załączniki:</strong> ${assetCount}</p>`
+    : '<p>Bez załączników.</p>'
+
   const html = `
     <h2>Nowe zgłoszenie</h2>
     <table>
@@ -47,6 +81,8 @@ export async function notifyNewLead(payload: Payload, lead: Lead): Promise<void>
       ${row('Data', lead.submittedAt)}
     </table>
     ${answersHtml}
+    ${assetsHtml}
+    <p><a href="${leadUrl(lead)}">Otwórz zgłoszenie</a></p>
   `
 
   await payload.sendEmail({ to: await requireRecipients(payload, 'newLead'), subject, html })

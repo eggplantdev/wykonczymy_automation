@@ -84,7 +84,9 @@ export async function POST(request: NextRequest) {
   let lead: Lead
   let created: boolean
   try {
-    ;({ lead, created } = await captureLead(payload, landingToStoreLeadInput(submission)))
+    ;({ lead, created } = await captureLead(payload, landingToStoreLeadInput(submission), {
+      expectedAssets: (submission.assets ?? []).length,
+    }))
   } catch (err) {
     logError('[landing] Failed to capture lead', err)
     return NextResponse.json({ error: 'Capture failed' }, { status: 500 })
