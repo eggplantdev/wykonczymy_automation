@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { FormDialog } from '@/components/ui/form-dialog'
@@ -11,7 +10,6 @@ import { MediaStrip } from '@/components/media/media-strip'
 import { ASSET_PREVIEW_LABELS } from '@/components/media/preview-labels'
 import { useMediaRemoval } from '@/hooks/use-media-removal'
 import { removeLeadAssetAction } from '@/lib/actions/lead-assets'
-import { LeadAssetsDialog } from './lead-assets-dialog'
 import { LEAD_ASSET_REMOVAL_LABELS, LEAD_ASSET_STRIP_SIZES } from './lead-asset-labels'
 import { promoteLeadAction } from '@/lib/actions/promote-lead'
 import type { InvestmentFormValuesT } from '@/components/forms/investment-form/investment-schema'
@@ -49,15 +47,11 @@ export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
 
   if (lead.investmentId !== null) {
     return (
-      <div className="flex items-center gap-1">
-        {visibleFiles.length > 0 && <LeadAssetsDialog lead={lead} />}
-        <Button variant="ghost" size="sm" asChild>
-          <Link href={`/inwestycje/${lead.investmentId}`}>
-            Inwestycja
-            <ArrowRight />
-          </Link>
-        </Button>
-      </div>
+      // Plain link, not a button: the name is the content of the cell, same as „Nazwa" on the
+      // inwestycje listing, and button chrome around a „<klient> <adres>" only forces it to truncate.
+      <Link href={`/inwestycje/${lead.investmentId}`} className="text-primary hover:underline">
+        {lead.investmentName ?? 'Inwestycja'}
+      </Link>
     )
   }
 
@@ -93,7 +87,7 @@ export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
     <FormDialog
       formId={formId}
       trigger={
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="xs">
           Utwórz inwestycję
         </Button>
       }

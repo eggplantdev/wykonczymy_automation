@@ -5,6 +5,7 @@ import { formatPLDateTime } from '@/lib/utils/format-date'
 import { ContactLink } from '@/components/ui/contact-link'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
 import { LeadAnswersDialog } from '@/components/leads/lead-answers-dialog'
+import { LeadAssetsDialog } from '@/components/leads/lead-assets-dialog'
 import { PromoteLeadDialog } from '@/components/leads/promote-lead-dialog'
 import { BADGE_BASE } from '@/components/ui/badge'
 import { cn } from '@/lib/utils/cn'
@@ -102,8 +103,14 @@ export function getLeadColumns({ onToggle }: LeadColumnOptionsT) {
       ),
     }),
     col.display({
+      id: 'assets',
+      header: 'Załączniki',
+      cell: (info) => <LeadAssetsDialog lead={info.row.original} />,
+    }),
+    col.display({
       id: 'promote',
       header: 'Inwestycja',
+      meta: { minWidth: 'min-w-56' },
       cell: (info) => <PromoteLeadDialog lead={info.row.original} />,
     }),
   ]

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Paperclip } from 'lucide-react'
 import { Dialog, DialogTrigger, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -18,9 +19,10 @@ const EXCLUDE_LABELS = {
 }
 
 /**
- * The second chance for a file the promotion dialog left behind. A zgłoszenie keeps its own copy of
- * the relation after promotion, so „wszystko albo nic" at promotion time was never the real shape —
- * this is where the rest goes across, one batch at a time.
+ * The zgłoszenie's own files, before and after promotion. Before, it is a viewer with a delete —
+ * which files travel is decided in „Utwórz inwestycję". After, it is the second chance for whatever
+ * that dialog left behind: the zgłoszenie keeps its relation, so „wszystko albo nic" at promotion
+ * time was never the real shape.
  */
 export function LeadAssetsDialog({ lead }: { lead: LeadRowT }) {
   const [open, setOpen] = useState(false)
@@ -33,9 +35,12 @@ export function LeadAssetsDialog({ lead }: { lead: LeadRowT }) {
     labels: LEAD_ASSET_REMOVAL_LABELS,
   })
 
+  if (visibleFiles.length === 0) return '—'
+
+  const isPromoted = lead.investmentId !== null
   const attached = new Set(lead.investmentAssetIds)
-  const carried = visibleFiles.filter((file) => attached.has(file.id))
-  const waiting = visibleFiles.filter((file) => !attached.has(file.id))
+  const carried = isPromoted ? visibleFiles.filter((file) => attached.has(file.id)) : []
+  const waiting = isPromoted ? visibleFiles.filter((file) => !attached.has(file.id)) : visibleFiles
   const chosenIds = waiting.map((file) => file.id).filter((id) => !excludedIds.has(id))
 
   function toggleExcluded(mediaId: number) {
@@ -68,37 +73,51 @@ export function LeadAssetsDialog({ lead }: { lead: LeadRowT }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          Pliki ({visibleFiles.length})
+        {/* The column header already reads „Załączniki" — repeating it in every cell is noise. */}
+        <Button variant="outline" size="xs" aria-label={`Załączniki (${visibleFiles.length})`}>
+          <Paperclip />
+          {visibleFiles.length}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader
-          title="Pliki zgłoszenia"
-          description="Zgłoszenie zachowuje swoje pliki po utworzeniu inwestycji — stąd przenosisz resztę."
+          title="Załączniki zgłoszenia"
+          description={
+            isPromoted
+              ? 'Zgłoszenie zachowuje swoje pliki po utworzeniu inwestycji — stąd przenosisz resztę.'
+              : 'Które z nich trafią do inwestycji, wybierasz przy jej tworzeniu.'
+          }
         />
 
         {waiting.length > 0 && (
           <section className="space-y-2">
-            <h3 className="text-sm font-medium">Jeszcze nie w inwestycji ({waiting.length})</h3>
+            {isPromoted && (
+              <h3 className="text-sm font-medium">Jeszcze nie w inwestycji ({waiting.length})</h3>
+            )}
             <MediaStrip
               files={waiting}
               labels={ASSET_PREVIEW_LABELS}
               sizes={LEAD_ASSET_STRIP_SIZES}
-              exclude={{
-                excludedIds,
-                onToggle: (file) => toggleExcluded(file.id),
-                labels: EXCLUDE_LABELS,
-              }}
+              exclude={
+                isPromoted
+                  ? {
+                      excludedIds,
+                      onToggle: (file) => toggleExcluded(file.id),
+                      labels: EXCLUDE_LABELS,
+                    }
+                  : undefined
+              }
               onRemove={isBusy ? undefined : handleRemove}
             />
-            <Button
-              size="sm"
-              onClick={() => void attach()}
-              disabled={isBusy || chosenIds.length === 0}
-            >
-              {pending ? 'Przenoszenie…' : `Przenieś do inwestycji (${chosenIds.length})`}
-            </Button>
+            {isPromoted && (
+              <Button
+                size="sm"
+                onClick={() => void attach()}
+                disabled={isBusy || chosenIds.length === 0}
+              >
+                {pending ? 'Przenoszenie…' : `Przenieś do inwestycji (${chosenIds.length})`}
+              </Button>
+            )}
           </section>
         )}
 

@@ -84,15 +84,18 @@ async function resolveLeadAssets(
   )
 }
 
+type PromotedInvestmentT = { name: string; assetIds: number[] }
+
 /**
- * Which media each promoted lead's inwestycja already holds — what tells „Pliki" apart from „już
- * przeniesione". One find for the page rather than `depth: 1` on the leads, same reasoning as
- * `resolveLeadAssets`.
+ * What each promoted lead's inwestycja is called and which media it already holds — the name so the
+ * link reads „Kowalska Kwiatowa 5" rather than the generic word, the ids so „Załączniki" can tell
+ * „już przeniesione" apart. One find for the page rather than `depth: 1` on the leads, same
+ * reasoning as `resolveLeadAssets`.
  */
-async function resolveInvestmentAssets(
+async function resolvePromotedInvestments(
   payload: Awaited<ReturnType<typeof getPayload>>,
   investmentIds: number[],
-): Promise<Map<number, number[]>> {
+): Promise<Map<number, PromotedInvestmentT>> {
   if (investmentIds.length === 0) return new Map()
 
   const investments = await payload.find({
@@ -103,7 +106,12 @@ async function resolveInvestmentAssets(
     overrideAccess: true,
   })
 
-  return new Map(investments.docs.map((doc) => [doc.id, uploadFieldIds(doc.assets)]))
+  return new Map(
+    investments.docs.map((doc) => [
+      doc.id,
+      { name: asString(doc.name), assetIds: uploadFieldIds(doc.assets) },
+    ]),
+  )
 }
 
 const getLeadsPage = unstable_cache(
@@ -134,37 +142,41 @@ const getLeadsPage = unstable_cache(
       result.docs.map((lead) => [lead.id, resolveId(lead.investment)]),
     )
 
-    const [assetsByLead, assetIdsByInvestment] = await Promise.all([
+    const [assetsByLead, investmentById] = await Promise.all([
       resolveLeadAssets(
         payload,
         new Map(result.docs.map((lead) => [lead.id, uploadFieldIds(lead.assets)])),
       ),
-      resolveInvestmentAssets(payload, [
+      resolvePromotedInvestments(payload, [
         ...new Set([...investmentIdByLead.values()].filter((id) => id !== undefined)),
       ]),
     ])
 
     return {
-      rows: result.docs.map((lead) => ({
-        id: lead.id,
-        source: lead.source,
-        name: asString(lead.name),
-        email: asString(lead.email),
-        phone: asString(lead.phone),
-        address: asString(lead.address),
-        scope: asString(lead.scope),
-        area: asString(lead.area),
-        formName: asString(lead.formName),
-        submittedAt: lead.submittedAt ?? null,
-        contactStatus: lead.contactStatus,
-        answers: buildLeadAnswers(
-          leadRawDataSchema.parse(lead.rawData),
-          leadFormQuestionsSchema.parse(lead.formQuestions),
-        ),
-        assets: assetsByLead.get(lead.id) ?? [],
-        investmentId: investmentIdByLead.get(lead.id) ?? null,
-        investmentAssetIds: assetIdsByInvestment.get(investmentIdByLead.get(lead.id) ?? -1) ?? [],
-      })),
+      rows: result.docs.map((lead) => {
+        const investment = investmentById.get(investmentIdByLead.get(lead.id) ?? -1)
+        return {
+          id: lead.id,
+          source: lead.source,
+          name: asString(lead.name),
+          email: asString(lead.email),
+          phone: asString(lead.phone),
+          address: asString(lead.address),
+          scope: asString(lead.scope),
+          area: asString(lead.area),
+          formName: asString(lead.formName),
+          submittedAt: lead.submittedAt ?? null,
+          contactStatus: lead.contactStatus,
+          answers: buildLeadAnswers(
+            leadRawDataSchema.parse(lead.rawData),
+            leadFormQuestionsSchema.parse(lead.formQuestions),
+          ),
+          assets: assetsByLead.get(lead.id) ?? [],
+          investmentId: investmentIdByLead.get(lead.id) ?? null,
+          investmentName: investment?.name || null,
+          investmentAssetIds: investment?.assetIds ?? [],
+        }
+      }),
       paginationMeta: buildPaginationMeta(result, limit),
       newCount: newResult.totalDocs,
     }

@@ -26,6 +26,8 @@ export type LeadRowT = {
   assets: MediaFileT[]
   /** Set once the lead has been promoted — the button becomes a link to what it became. */
   investmentId: number | null
-  /** Every media id on that inwestycja, so „Pliki" can say which of the lead's files already travelled. */
+  /** What that inwestycja is called — the link says so instead of the generic word. */
+  investmentName: string | null
+  /** Every media id on it, so „Załączniki" can say which of the lead's files already travelled. */
   investmentAssetIds: number[]
 }

@@ -18,7 +18,7 @@ export function LeadAnswersDialog({ name, formName, answers, assets }: LeadAnswe
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" disabled={answers.length === 0 && assets.length === 0}>
+        <Button variant="outline" size="xs" disabled={answers.length === 0 && assets.length === 0}>
           Szczegóły
         </Button>
       </DialogTrigger>

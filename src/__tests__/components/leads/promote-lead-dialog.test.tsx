@@ -51,6 +51,7 @@ const LEAD: LeadRowT = {
   answers: [{ label: 'Wiadomość', value: 'Proszę o kontakt po 16.' }],
   assets: [],
   investmentId: null,
+  investmentName: null,
   investmentAssetIds: [],
 }
 
@@ -111,21 +112,31 @@ describe('PromoteLeadDialog', () => {
     expect(screen.getByLabelText('Przywróć ten plik do inwestycji')).toBeInTheDocument()
   })
 
-  it('offers a link instead of a form once the lead has an investment', () => {
-    render(<PromoteLeadDialog lead={{ ...LEAD, investmentId: 42 }} />)
+  // The generic word says nothing on a row that already names the client — the link carries what
+  // the inwestycja is actually called, and falls back only when the name did not resolve.
+  it('links to the investment by its own name', () => {
+    render(
+      <PromoteLeadDialog
+        lead={{ ...LEAD, investmentId: 42, investmentName: 'Kowalska Kwiatowa 5' }}
+      />,
+    )
 
-    expect(screen.getByRole('link', { name: /Inwestycja/ })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Kowalska Kwiatowa 5' })).toHaveAttribute(
       'href',
       '/inwestycje/42',
     )
     expect(screen.queryByRole('button', { name: 'Utwórz inwestycję' })).not.toBeInTheDocument()
   })
 
-  // The promotion is not the last chance: the zgłoszenie keeps its files, so whatever was held
-  // back has to stay reachable from the row afterwards.
-  it('still offers the files of a promoted lead', () => {
+  it('falls back to the generic word when the name did not resolve', () => {
+    render(<PromoteLeadDialog lead={{ ...LEAD, investmentId: 42 }} />)
+
+    expect(screen.getByRole('link', { name: 'Inwestycja' })).toBeInTheDocument()
+  })
+
+  it('leaves the attachments to their own column', () => {
     render(<PromoteLeadDialog lead={{ ...LEAD, investmentId: 42, assets: ASSETS }} />)
 
-    expect(screen.getByRole('button', { name: 'Pliki (2)' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Załączniki/ })).not.toBeInTheDocument()
   })
 })

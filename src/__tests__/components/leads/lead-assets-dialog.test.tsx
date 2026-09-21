@@ -55,15 +55,32 @@ const LEAD: LeadRowT = {
   answers: [],
   assets: ASSETS,
   investmentId: 42,
+  investmentName: 'Kowalska Kwiatowa 5',
   investmentAssetIds: [11],
 }
 
 describe('LeadAssetsDialog', () => {
+  // Before promotion nothing has travelled, so there is no split and nothing to send — the dialog
+  // is a viewer with a delete, and the choosing happens in „Utwórz inwestycję".
+  it('offers no transfer at all before the lead is promoted', async () => {
+    const user = userEvent.setup()
+    render(
+      <LeadAssetsDialog
+        lead={{ ...LEAD, investmentId: null, investmentName: null, investmentAssetIds: [] }}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Załączniki (3)' }))
+
+    expect(await screen.findByText(/wybierasz przy jej tworzeniu/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Przenieś do inwestycji/ })).not.toBeInTheDocument()
+  })
+
   it('splits the zgłoszenie’s files by what the inwestycja already holds', async () => {
     const user = userEvent.setup()
     render(<LeadAssetsDialog lead={LEAD} />)
 
-    await user.click(screen.getByRole('button', { name: 'Pliki (3)' }))
+    await user.click(screen.getByRole('button', { name: 'Załączniki (3)' }))
 
     expect(await screen.findByText('Jeszcze nie w inwestycji (2)')).toBeInTheDocument()
     expect(screen.getByText('Już w inwestycji (1)')).toBeInTheDocument()
@@ -73,7 +90,7 @@ describe('LeadAssetsDialog', () => {
     const user = userEvent.setup()
     render(<LeadAssetsDialog lead={LEAD} />)
 
-    await user.click(screen.getByRole('button', { name: 'Pliki (3)' }))
+    await user.click(screen.getByRole('button', { name: 'Załączniki (3)' }))
     await user.click((await screen.findAllByLabelText('Nie przenoś tego pliku do inwestycji'))[0])
     await user.click(screen.getByRole('button', { name: 'Przenieś do inwestycji (1)' }))
 
@@ -85,7 +102,7 @@ describe('LeadAssetsDialog', () => {
     const user = userEvent.setup()
     render(<LeadAssetsDialog lead={{ ...LEAD, investmentAssetIds: [11, 12, 13] }} />)
 
-    await user.click(screen.getByRole('button', { name: 'Pliki (3)' }))
+    await user.click(screen.getByRole('button', { name: 'Załączniki (3)' }))
 
     expect(await screen.findByText('Już w inwestycji (3)')).toBeInTheDocument()
     expect(screen.queryByText(/Jeszcze nie w inwestycji/)).not.toBeInTheDocument()
