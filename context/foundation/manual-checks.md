@@ -703,3 +703,20 @@ zostawia.
       bliźniaczki — sekcja sama się rozwija i prace są w niej widoczne
 - [ ] Picker otwarty z „…" przy wierszu ma nazwę tej sekcji już wpisaną i dopisuje właśnie do niej
 - [ ] Ostrzeżenia o pułapie 65 % wychodzą tak samo na ścieżce nowej sekcji, jak na dopisywaniu
+
+## Równoległy upload gubi pliki na Neonie — szeregowe tworzenie wierszy `media` (2026-09-22)
+
+Prod 22.09, 18:25–18:35: hurtowy wydatek z >1 fakturą padał na
+`transactions_rels_media_id_fkey`. Równoległe `POST /api/media` zwracały id, a commitował się tylko
+jeden wiersz (log Payloada: „Failed to persist upload data … NotFound"). Zapis wierszy idzie teraz
+po kolei (`createMediaRow`), PUT do Bloba zostaje równoległy. **Sprawdzać wyłącznie na stagingu** —
+lokalny Postgres na jednym połączeniu nigdy tego nie odtworzył; spec widzi tylko kolejkę, nie Neona.
+
+- [ ] Wydatek hurtowy z 4 pozycjami, każda z fakturą (jedna wielostronicowa): zapis przechodzi
+      i każda pozycja w tabeli transferów ma swoją fakturę, strony w kolejności
+- [ ] W logach Vercela (Preview, okno zapisu) brak „Failed to persist upload data" i brak
+      `[ACTION_ERROR] createBulkTransferAction`
+- [ ] 10 zdjęć naraz do galerii inwestycji: wszystkie widoczne po zapisie, żadne nie znika po
+      odświeżeniu
+- [ ] 10 faktur w wydatku hurtowym nie trwa odczuwalnie dłużej niż przed poprawką — bajty idą
+      równolegle, szeregowy jest tylko krótki zapis wiersza

@@ -4,6 +4,7 @@ import type { MediaKindT } from '@/types/media'
 
 // Cap parallel uploads to match the receipt-generation path (GENERATION_CONCURRENCY): batch-add lets a user
 // attach 10-20+ receipts, and submitting them all at once would fire that many simultaneous upload requests.
+// Bounds the Blob PUTs only — `createMediaRow` serializes the row creates itself.
 const UPLOAD_CONCURRENCY = 4
 
 /**
