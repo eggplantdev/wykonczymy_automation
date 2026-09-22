@@ -121,7 +121,7 @@ test('closing an investment locks the editor and the pickers, and reopening it g
   // 2. „Opcje" keeps what only READS and drops what writes — asserted as that asymmetry, because
   // „the menu is empty" would also pass if the whole menu had broken.
   await optionsMenu(page).click()
-  await expect(page.getByRole('menuitem', { name: /Zapisz jako szablon/ })).toBeVisible()
+  await expect(page.getByRole('menuitem', { name: /Zapisz jako nowy szablon/ })).toBeVisible()
   await expect(page.getByRole('menuitem', { name: /Wyczyść kosztorys/ })).toHaveCount(0)
   await expect(page.getByRole('menuitem', { name: /Wczytaj szablon/ })).toHaveCount(0)
   await expect(page.getByRole('menuitem', { name: /Pobierz z arkusza Google/ })).toHaveCount(0)

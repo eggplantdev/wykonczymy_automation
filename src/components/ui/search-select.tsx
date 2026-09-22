@@ -55,7 +55,12 @@ export function SearchSelect({
   const selectedLabel = items.find((item) => item.value === value)?.label
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    // `modal`, always: the content portals to body, so inside a Dialog it is the dialog's sibling.
+    // `react-remove-scroll` lets only the top lock on its stack handle `wheel` and cancels what
+    // falls outside that lock's ref, so the dialog's lock kills scrolling over this list while
+    // cmdk's `scrollIntoView` keeps the arrows working. Modal pushes a lock scoped to this content.
+    // Opt-in on `Combobox` only because a datasheet cell must keep body scroll; nothing here does.
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <button
           type="button"

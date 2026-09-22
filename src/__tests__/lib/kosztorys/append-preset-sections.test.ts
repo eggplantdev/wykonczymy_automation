@@ -121,11 +121,12 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
     expect(item.unit).toBe('m2')
     expect(item.clientPrice).toBe(150)
     expect(item.wToolsOverrideValue).toBe(97.5)
-    // Job fields zeroed at serialize time — the append inserts the cleaned values verbatim.
+    // Job figures zeroed at serialize time — the append inserts the cleaned values verbatim, and
+    // the komentarz is not one of them: it describes the work, so it rides along.
     expect(item.plannedQty).toBe(0)
     expect(item.discountType).toBeNull()
     expect(item.discountValue).toBe(0)
-    expect(item.note).toBeNull()
+    expect(item.note).toBe('uwaga')
   })
 
   it('(b) one call appends two sections from two different presets, in selection order', async () => {

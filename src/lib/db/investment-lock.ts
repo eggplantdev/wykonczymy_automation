@@ -5,6 +5,7 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import { isLockedStatus } from '@/lib/constants/investment-lock'
 import { resolveId } from '@/lib/utils/resolve-id'
+import { numOrNull } from '@/lib/db/row-coerce'
 
 export type LockTargetKindT = 'item' | 'section' | 'stage'
 
@@ -17,13 +18,35 @@ const TABLE_BY_KIND: Record<LockTargetKindT, string> = {
 }
 
 /**
+ * Both things `investmentAction` needs to know before it writes, in the one SELECT it was already
+ * doing: may this investment move at all, and is it the warsztat holding a szablon (then the write
+ * owes a mirror into the szablon's row). Answering them separately would double the round trip on
+ * every kosztorys mutation.
+ */
+export type InvestmentGateT = { locked: boolean; templatePresetId: number | null }
+
+export async function investmentGateFor(
+  db: DbExecutorT,
+  investmentId: number,
+): Promise<InvestmentGateT> {
+  const res = await db.execute(
+    sql`SELECT status, template_preset_id FROM investments WHERE id = ${investmentId}`,
+  )
+  const row = res.rows[0]
+  return {
+    locked: isLockedStatus(row?.status as string | undefined),
+    templatePresetId: numOrNull(row?.template_preset_id),
+  }
+}
+
+/**
  * A completed investment is settled — payouts included — so no figure on it may move again until
  * someone puts it back to „Aktywna". A missing row is not locked: a nonexistent investment is the
  * caller's problem to report, not the lock's.
  */
 export async function isInvestmentLocked(db: DbExecutorT, investmentId: number): Promise<boolean> {
-  const res = await db.execute(sql`SELECT status FROM investments WHERE id = ${investmentId}`)
-  return isLockedStatus(res.rows[0]?.status as string | undefined)
+  const { locked } = await investmentGateFor(db, investmentId)
+  return locked
 }
 
 /**
@@ -36,15 +59,19 @@ export async function lockStatusFor(
   db: DbExecutorT,
   kind: LockTargetKindT,
   id: number,
-): Promise<{ investmentId: number; locked: boolean } | undefined> {
+): Promise<({ investmentId: number } & InvestmentGateT) | undefined> {
   const res = await db.execute(
-    sql`SELECT i.id, i.status FROM ${sql.raw(TABLE_BY_KIND[kind])} r
+    sql`SELECT i.id, i.status, i.template_preset_id FROM ${sql.raw(TABLE_BY_KIND[kind])} r
         JOIN investments i ON i.id = r.investment_id
         WHERE r.id = ${id}`,
   )
   const row = res.rows[0]
   if (!row) return undefined
-  return { investmentId: Number(row.id), locked: isLockedStatus(row.status as string) }
+  return {
+    investmentId: Number(row.id),
+    locked: isLockedStatus(row.status as string),
+    templatePresetId: numOrNull(row.template_preset_id),
+  }
 }
 
 /**

@@ -121,7 +121,7 @@ describe.skipIf(!ENV_READY)('promoteLeadAction (DB)', () => {
 
   afterAll(purge)
 
-  it('hands the investment the lead’s own media ids and closes the lead', async () => {
+  it('hands the investment the lead’s own media ids and leaves the contact status alone', async () => {
     const result = await promoteLeadAction(leadId, FORM_DATA, mediaIds)
     expect(result.success).toBe(true)
 
@@ -134,7 +134,8 @@ describe.skipIf(!ENV_READY)('promoteLeadAction (DB)', () => {
     const investmentId = Number(lead.investment)
 
     expect(await investmentAssetIds(investmentId)).toEqual(mediaIds)
-    expect(lead.contactStatus).toBe('contacted')
+    // Promotion is not contact: only a human clicking the odznaka may flip this.
+    expect(lead.contactStatus).toBe('new')
   })
 
   it('carries only the files the human kept, and ignores an id from another lead', async () => {

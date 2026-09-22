@@ -2,6 +2,7 @@
 
 import { createContext, use, type ReactNode } from 'react'
 import type { useKosztorysEditor } from '@/components/kosztorys/editor/use-kosztorys-editor'
+import type { EditorNounT } from '@/lib/kosztorys/editor-noun'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 
 // Everything the editor hook owns plus the four values its caller supplies. The toolbar and its
@@ -19,6 +20,12 @@ type KosztorysEditorContextT = ReturnType<typeof useKosztorysEditor> & {
   openImport?: () => void
   hasSheet: boolean
   templatePresetId?: number
+  // Derived from `templatePresetId`, and published rather than re-derived: eight controls asked
+  // „== null" and six called `editorNoun` for themselves, so „what is this editor" was answered in
+  // fourteen places that had to agree. Both are cheap — a boolean and one of two module constants —
+  // so nothing is memoised and the value identity is the same as the literal around it.
+  isWorkshop: boolean
+  noun: EditorNounT
 }
 
 const KosztorysEditorContext = createContext<KosztorysEditorContextT | null>(null)

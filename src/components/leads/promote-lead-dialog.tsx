@@ -93,7 +93,7 @@ export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
       formId={formId}
       trigger={
         <Button variant="outline" size="xs">
-          Przypisz
+          Dodaj
         </Button>
       }
       title="Nowa inwestycja ze zgłoszenia"

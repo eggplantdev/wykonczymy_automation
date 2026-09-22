@@ -12,6 +12,8 @@ const nextConfig: NextConfig = {
       // Vercel hard-caps function/action request bodies at 4.5 MB (413 FUNCTION_PAYLOAD_TOO_LARGE,
       // thrown by the platform before our code runs — uncatchable in-function). This must not exceed
       // it: a higher value is a lie on prod and only "works" locally where there is no platform cap.
+      // It governs Server Actions only. File bytes have never travelled this way and since EX-829
+      // go from the browser straight to Blob, so raising this knob would not make an upload fit.
       bodySizeLimit: '4.5mb',
     },
   },

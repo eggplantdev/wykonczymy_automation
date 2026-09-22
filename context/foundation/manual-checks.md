@@ -351,6 +351,24 @@ behavior/visual change. Verified against staging
       not-reproducible rather than filing.
       **Test disposition:** no automated test — could not reproduce, nothing to guard.
 
+## kosz-plikow — kosz plików zamiast natychmiastowego kasowania z Bloba (2026-09-22)
+
+Zamiatacz kasuje dopiero po siedmiu dniach, więc **pełnej pętli nie da się odhaczyć w jednym
+przebiegu** — kroki 4–5 wymagają albo cofnięcia `detached_at` SQL-em na bazie testowej, albo powrotu
+za tydzień. To nie jest blokada, tylko kształt sprawdzenia.
+
+- [ ] Usunięcie pliku z galerii inwestycji pyta o potwierdzenie zdaniem o koszu i siedmiu dniach — nigdzie nie pada „bezpowrotnie"
+- [ ] To samo zdanie w komórce faktury na transferach i przy plikach zgłoszenia
+- [ ] Po usunięciu plik znika z galerii, a jego bajty **nadal otwierają się** spod URL-a z Bloba
+- [ ] „Kosz (N)" pojawia się przy galerii dopiero, gdy coś w nim leży; przy pustym koszu nie ma przycisku
+- [ ] „Przywróć" wraca plik do galerii, a licznik kosza spada o jeden
+- [ ] Wgrywanie i przywracanie nie da się odpalić równocześnie (jedno rozbraja drugie)
+- [ ] Po cofnięciu `detached_at` o osiem dni i ręcznym wywołaniu `/api/cron/cleanup` plik znika z `media` i z Bloba, a odpowiedź niesie rozbicie `{ recorded, healed, deleted, failed }`
+- [ ] Drugi przebieg crona pod rząd kasuje zero i nie rusza ocalałych
+- [ ] Skasowanie inwestycji z plikami: pliki trafiają do kosza z pustą prowenancją przy najbliższym przebiegu crona
+- [ ] Skasowanie wydatku z fakturą kasuje fakturę **od razu** — bez kosza (świadomy wyjątek)
+- [ ] Usunięcie pliku w panelu Payloada, gdy plik leży w koszu, przechodzi bez odmowy
+
 # Zamknięte — indeks
 
 Jedna linia na slice, **wszystkie 94** — liczby są policzone z pełnego rejestru sprzed przycięcia.
@@ -469,7 +487,9 @@ Sprawdzenia na bazie testowej (5435). Webhook wymaga `LANDING_WEBHOOK_SECRET` i
       `where[kind][equals]=faktura` i zwraca „Nie znaleziono Pliki" zamiast pełnej listy 1600 wierszy,
       co potwierdza że filtr faktycznie działa. Pusty wynik jest stanem danych, nie defektem: SQL na
       `DB_POSTGRES_URL_PREVIEW` potwierdza `kind` jest `NULL` dla wszystkich 1600 wierszy — kolumna
-      jeszcze nie jest zasilana na tej bazie (webhook z landingu jeszcze nic tam nie zapisał).
+      jeszcze nie była wtedy zasilana na tej bazie (webhook z landingu jeszcze nic tam nie zapisał).
+      Od EX-829 panel nie jest jedyną drogą: aplikacja zapisuje `kind = 'projekt'` sama — przy
+      wgrywaniu (pole „To jest rzut lub projekt") i z galerii asetów („Oznacz jako rzut").
 - [ ] Skasowanie faktury podpiętej pod transakcję jest odrzucone czytelnym polskim komunikatem
 - [ ] Inwestycja pokazuje podpięte pliki w `/admin` po akcji dodania
 - [ ] Dodanie trzech zdjęć + PDF z karty inwestycji — pojawiają się bez przeładowania
@@ -482,15 +502,16 @@ Sprawdzenia na bazie testowej (5435). Webhook wymaga `LANDING_WEBHOOK_SECRET` i
 - [ ] Request z `assets[].url` spoza hosta z allowlisty jest odrzucony i alertuje
 - [ ] Request z podmienionym body jest odrzucony (403)
 - [ ] Promocja zgłoszenia z landingu od początku do końca — karta nowej inwestycji pokazuje zdjęcia klienta
-- [ ] Zgłoszenie po promocji jest „Skontaktowano" i podaje link do inwestycji zamiast przycisku
-- [ ] Odznaka nieprzeczytanych zgłoszeń w nawigacji spada o jeden
+- [ ] Zgłoszenie po promocji podaje link do inwestycji zamiast przycisku i zostaje przy „Oczekuje"
+- [ ] Odznaka nieprzeczytanych zgłoszeń w nawigacji nie spada po samej promocji — dopiero po kliknięciu „Skontaktowano"
 
 ## EX-802 — investment-assets-dialog (galeria bez miniatur, 2026-09-21)
 
 Zastępuje sprawdzenie „Pasek miniatur nie przewija się w poziomie przy 375px" z sekcji
 lead-delivery — na karcie inwestycji nie ma już paska miniatur (został tylko u leada).
 
-- [x] Inwestycja bez plików nie pokazuje w sekcji żadnego przycisku — dodać można tylko z „Edytuj inwestycję"
+- ~~Inwestycja bez plików nie pokazuje w sekcji żadnego przycisku~~ — zachowanie odwrócone przy
+  kosztorys-editor-assets (2026-09-22); nowe brzmienie czeka na weryfikację w sekcji tej zmiany
 - [x] Przycisk „Zdjęcia i pliki (N)" ma szerokość swojej treści, nie całej kolumny
 - [x] Podgląd przy N ≥ 1 ma „Dodaj kolejne", które dokłada plik bez wychodzenia z karty
 - [x] Po dodaniu pliku licznik „Zdjęcia i pliki (N)" rośnie bez przeładowania strony
@@ -543,40 +564,101 @@ Inwestycja z niepustą rozpiską i rozjazdami wobec katalogu (w lokalnym dumpie:
 - [ ] Ceny pracy nie zmieniają się przy przyjęciu nazwy
 - [ ] Tryb tylko-do-odczytu: raport i kandydaci widoczni jako tekst, brak checkboxów, przycisku „Aktualizuj kosztorys" i klikalnych kandydatów
 
-## fullscreen-zoom-preview
+## empty-preset-create — pusty szablon zakładany z listy szablonów (2026-09-22)
 
-Sprawdzone na staging (deploy `e5ae5ee5`, Playwright, 1440×900 i 375×812), 2026-09-21.
+`/szablony`, przycisk „Nowy szablon" nad tabelą. Warsztat jest JEDEN i współdzielony, więc każdy
+check tutaj wyrzuca z niego to, co było wcześniej otwarte.
 
-### Phase 1: Pełny ekran
+- [ ] „Nowy szablon" z nazwą zakłada szablon i ląduje w warsztacie pod tą nazwą, z pustą rozpiską i widocznym „Dodaj sekcję"
+- [ ] Nazwa już zajęta → komunikat „Szablon o tej nazwie już istnieje", dialog zostaje otwarty z wpisaną nazwą, na liście nie przybywa wiersz
+- [ ] Świeży szablon na liście pokazuje `0 sekcji / 0 pozycji`
+- [ ] Po dodaniu sekcji w warsztacie i powrocie na listę (bez żadnego „Zapisz" — przycisku już nie ma) szablon pokazuje niezerowe liczniki
+- [ ] Pusty szablon jest widoczny w wyborze szablonu przy zakładaniu inwestycji i zakłada ją z pustym kosztorysem (zachowanie oczekiwane, decyzja właściciela)
 
-- [x] Okno zajmuje cały ekran na 1440-tce; obrazek dopasowany, bez pasa pustki pod spodem.
-- [x] Poniżej 768 px nic się nie zmieniło — płachta jak dotąd.
-- [x] PDF w `<iframe>` wypełnia okno. — geometria zgodna (1392×714 w oknie 1440×900); samego
-      renderu PDF nie da się ocenić w headless shell, który nie ma czytnika PDF.
+## szablon-autosave — warsztat szablonu zapisuje się sam (2026-09-22)
 
-### Phase 2: Zoom na obrazku
+`/szablony/[id]`. Warsztat jest JEDEN i współdzielony, więc każdy check wyrzuca z niego to, co było
+otwarte wcześniej. Dławik lustra to 10 s, domknięcie ogona 15 s bezczynności — przy sprawdzaniu
+„czy doszło" liczy się odczekanie, nie odświeżanie w kółko.
 
-- [x] Kółko, pinch i dwuklik przybliżają; przeciąganie przesuwa kadr. — kółko do 8×, dwuklik do
-      1,7×, przeciąganie przesuwa kadr; pinch niesprawdzalny bez dotyku.
-- [x] „Dopasuj" wraca do 1× z dowolnego kadru.
-- [x] Chevron na następny plik otwiera go w 1×, wycentrowany.
-- [x] Przy PDF-ie nie ma przycisków zoomu.
-- [x] Wydruk, „Pobierz wszystkie" i „Usuń plik" dalej dotyczą właściwej strony. — zestaw przycisków
-      i tytuł („2/2") zgadzają się ze stroną; usuwania nie klikałem, bo na preview DB kasuje
-      prawdziwą fakturę.
+- [ ] Zmiana ceny w warsztacie, odczekanie ~20 s i wejście na `/szablony` → szablon stoi na górze listy, a „Zmieniono" pokazuje dzisiejszą datę
+- [ ] Ta sama zmiana, ale zamiast czekać zamykasz kartę od razu po edycji → po ponownym otwarciu warsztatu zmiana jest na miejscu
+- [ ] Seria szybkich zmian (kilkanaście komórek pod rząd) kończy się w szablonie kompletem, nie stanem sprzed ostatniej
+- [ ] Szablony sprzed tej zmiany mają w „Zmieniono" kreskę i stoją na liście pod tymi edytowanymi — żaden nie zniknął
+- [ ] W „Opcjach" nie ma już „Zapisz szablon"; jest „Zapisz jako nowy szablon…" i zakłada OSOBNY szablon, a warsztat zostaje przy swoim
+- [ ] W warsztacie nie ma przycisku „Inwestor" ani „Kolumny"; okna mówią „szablon", nie „kosztorys"
+- [ ] „Przełącz na inny szablon…" nie pokazuje szablonu aktualnie trzymanego w warsztacie
+- [ ] Przełączenie na inny szablon: nowy ląduje w warsztacie, a poprzedni na liście ma treść sprzed przełączenia (nie treść nowego)
+- [ ] Po przełączeniu w „Wersje" jest wpis „Przed wczytaniem: <nazwa>" i przywrócenie go wraca do stanu sprzed
+- [ ] „Wyczyść szablon" czyści rozpiskę, a „Wczytaj" (wersje) wraca do stanu sprzed wyczyszczenia
+- [ ] Edycja kosztorysu na zwykłej inwestycji nie rusza żadnego szablonu na liście („Zmieniono" bez zmian)
 
-### Phase 3: Oryginał przy powiększeniu
+## kosztorys-editor-assets — galeria assetów w edytorze kosztorysu v2 (2026-09-22)
 
-- [x] W Network po pierwszym powiększeniu leci żądanie na URL Bloba, nie na `/_next/image`.
-- [x] Rzut ze zgłoszenia jest w powiększeniu czytelny (linie wymiarowe), nie rozmyty.
-- [x] Przy `unoptimized` z góry (podgląd niewysłanego jeszcze pliku) nic się nie psuje.
+Ta sama kontrolka co na karcie inwestycji. Jej miejsce w edytorze przejęła zakładka „Inwestycja"
+(sekcja `zakladka-inwestycja-w-panelu` niżej) — sprawdzenia dotyczące toolbara są tam, w nowym
+miejscu kontrolki.
 
-### Po slice review (globalna jakość obrazków)
+- [ ] Usunięcie pliku ze stopki podglądu w edytorze znika też z karty inwestycji po przejściu na nią
+- [ ] `/k/<token>` i `/podglad-inwestora/<id>`: nie ma toolbara, więc i galerii
+- [ ] Zakończona („Zakończona") inwestycja: dodawanie plików z edytora dalej działa
+- [ ] Karta inwestycji po refaktorze zachowuje się jak przed nim; przy trwającym uploadzie do
+      niepustej galerii widać spinner obok przycisku
+- [ ] Inwestycja bez plików pokazuje na karcie przycisk „Dodaj zdjęcia lub pliki" — pusty stan JEST
+      afordancją, a nie zniknięciem sekcji (odwraca sprawdzenie z sekcji EX-802)
+- [ ] Usunięcie OSTATNIEGO pliku: pusty stan wraca z napisem „Dodaj zdjęcia lub pliki", ani przez
+      chwilę nie „Przesyłanie..." (bramka odrzuciła tę pomyłkę — sprawdzenie na oczy)
+- [ ] „Edytuj inwestycję" → pole „Zdjęcia i pliki": przycisk wygląda jak przed wydzieleniem
+      `UploadButton` (wyrównanie do lewej, ta sama wysokość)
 
-- [x] Miniatury w `media-strip` i logo w topbarze wyglądają poprawnie i nie sypią 400 w Network
-- [x] Po powiększeniu na wolnym łączu nie ma długiej pustki bez żadnego sygnału, a gdy oryginał
-      nie wczyta się — widać, że coś poszło nie tak. — **było zepsute**: podmiana `src` gasiła
-      rendition, więc przez cały czas pobierania (6 s na dławionym łączu) i na zawsze przy błędzie
-      okno było puste, bez spinnera i komunikatu. Naprawione w `zoomable-preview-image.tsx`
-      (spinner na czas pobierania oryginału, powrót do renditionu + komunikat przy błędzie),
-      regresję pilnuje spec w `invoice-preview-dialog.test.tsx`.
+## zakladka-inwestycja-w-panelu — zakładka „Inwestycja" w panelu Podsumowanie (2026-09-22)
+
+Dane inwestycji (notatki/zakres prac, kontakt, adres, status) i przeniesiona tu Dokumentacja;
+panel montuje się także na pustym kosztorysie.
+
+- [ ] Inwestycja bez kosztorysu: panel zamontowany, ale zwinięty; `EmptyState` z „Pobierz z arkusza
+      Google…" w pełni widoczny i klikalny
+- [ ] Na tej samej inwestycji kliknięcie „Podsumowanie" otwiera panel, a zakładka „Inwestycja" ma
+      pełną treść wraz z Dokumentacją
+- [ ] Powrót na inwestycję z kosztorysem otwiera panel zgodnie z wcześniejszą preferencją (nie
+      została nadpisana przez otwarcie na pustym)
+- [ ] Podgląd inwestora dla pustego kosztorysu: przełącznik „Podsumowanie" nieaktywny, a panel w
+      ogóle się nie montuje — także wtedy, gdy wcześniej rozwinięto panel na pustym kosztorysie
+      w edytorze (ten sam origin, ten sam klucz localStorage)
+- [ ] Zakładka „Inwestycja" stoi jako ostatnia, za „Marżą", i pokazuje komplet pól karty inwestycji;
+      puste pola są odfiltrowane
+- [ ] „Edytuj inwestycję" stoi w jednym rzędzie z „Dokumentacją", zapisuje i odświeża dane bez
+      opuszczania edytora
+- [ ] Karta inwestycji (`/inwestycje/<id>`) pokazuje ten sam komplet pól co zakładka — po wyjęciu
+      listy do jednego budowniczego
+- [ ] Dokumentacja w zakładce: wgranie pliku, podgląd, usunięcie; licznik rośnie bez ręcznego
+      odświeżenia, a siatka nie gubi stanu (brak remountu)
+- [ ] `/inwestycje/<id>/kosztorys_v2`: w toolbarze siatki NIE MA już przycisku „Dokumentacja"
+- [ ] `/szablony/<id>`: warsztat nie pokazuje zakładki „Inwestycja" ani żadnego przycisku plików
+- [ ] `/k/<token>` i `/podglad-inwestora/<id>`: pięć zakładek, bez „Inwestycji"
+
+## EX-829 — kategorie assetów i luźniejsza kompresja (2026-09-22)
+
+Transport klient → Blob, dwa profile kompresji, znacznik `kind = 'projekt'`. Rzut A4 sprawdzaj na
+oczy: chodzi o czytelność opisów wymiarów, nie o sam fakt, że plik wszedł.
+
+- [ ] Rzut A4 (pionowy) wgrany z „To jest rzut": opisy wymiarów czytelne w podglądzie po
+      powiększeniu — profil 2560 na obu osiach, nie 763×1080 jak przed zmianą
+- [ ] Plik >4,5 MB wchodzi bez błędu 413 (dowolna powierzchnia: faktura transferu, wydatek, flota,
+      asety inwestycji) — transport klient → Blob
+- [ ] Zaznaczone „To jest rzut" → wiersz `media` ma `kind = 'projekt'`; niezaznaczone → `NULL`
+- [ ] Faktura transferu wygląda i waży jak przed zmianą (profil `INVOICE`), a dialog faktury NIE
+      pokazuje pola wyboru „To jest rzut"
+- [ ] Galeria asetów → podgląd pliku → „Oznacz jako rzut": po kliknięciu przycisk mówi „Oznaczony
+      jako rzut" i jest nieaktywny, a po odświeżeniu stan się utrzymuje
+- [ ] MANAGER oznacza rzut (poluzowany `media.access.update`); EMPLOYEE nie widzi tej ścieżki
+- [ ] Plik z promocji leada (nieskompresowany oryginał z landingu) da się oznaczyć jako rzut
+      z galerii — jedyna ścieżka bez dialogu wgrywania
+- [ ] HEIC, którego przeglądarka nie odczyta, dalej daje czytelny komunikat, a nie cichą porażkę
+- [ ] Miniatury w galerii asetów inwestycji: plik wgrany PO zmianie renderuje się jako obrazek, nie
+      jako ikona uszkodzonego pliku (`MediaStrip` czyta `thumbnailUrl`, więc utrata renditionu przy
+      `clientUploads` byłaby widoczna tu, a nie tylko w `/admin`)
+- [ ] Faktura >4 MB w formularzu wydatków: „Odczytaj paragony" daje czytelny komunikat („za duży do
+      odczytu AI"), a nie niemy błąd 413 z platformy
+- [ ] Wgranie pliku innego niż zdjęcie/PDF (przeciągnięcie `.docx` na pole) jest odrzucone od razu,
+      komunikatem, a nie po wgraniu bajtów

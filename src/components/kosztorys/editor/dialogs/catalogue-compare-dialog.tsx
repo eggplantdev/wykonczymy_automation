@@ -49,6 +49,7 @@ export function CatalogueCompareDialog() {
     handleAcceptCatalogueName,
     engagedConditionIds,
     toggleConditionExclusive,
+    noun,
   } = useKosztorysEditorContext()
   const router = useRouter()
   // One dialog for the whole list, keyed by the praca it is about — mounting one per row would fetch
@@ -87,7 +88,7 @@ export function CatalogueCompareDialog() {
         open={open}
         onOpenChange={onOpenChange}
         title="Porównaj z katalogiem prac"
-        description="Gdzie ceny i stawki tego kosztorysu odbiegają od katalogu — i czego w katalogu jeszcze nie ma."
+        description={`Gdzie ceny i stawki tego ${noun.genitive} odbiegają od katalogu — i czego w katalogu jeszcze nie ma.`}
         loaded
         data={report}
         error={emptyReportReason(workCatalogue?.length ?? 0)}

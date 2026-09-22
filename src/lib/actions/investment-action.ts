@@ -2,7 +2,13 @@ import 'server-only'
 import type { Payload } from 'payload'
 import { protectedAction } from '@/lib/actions/run-action'
 import { getDb } from '@/lib/db/get-db'
-import { isInvestmentLocked, lockStatusFor, type LockTargetKindT } from '@/lib/db/investment-lock'
+import {
+  investmentGateFor,
+  lockStatusFor,
+  type InvestmentGateT,
+  type LockTargetKindT,
+} from '@/lib/db/investment-lock'
+import { mirrorWorkshopPreset } from '@/lib/actions/mirror-workshop-preset'
 import type { SessionUserT } from '@/types/auth'
 import type { ActionResultT } from '@/types/action'
 import type { CACHE_TAGS } from '@/lib/cache/tags'
@@ -42,28 +48,49 @@ export function investmentAction<TData = undefined>(
     async (ctx) => {
       const db = await getDb(ctx.payload)
 
-      const refused = { success: false, error: INVESTMENT_LOCKED_MESSAGE } as ActionResultT<TData>
+      // The two targets differ only in how the investment is NAMED — given outright, or reached
+      // through the row's parent. Resolving both into one gate keeps the lock check, the handler and
+      // the mirror on a single tail: written as two branches, each of those was spelled twice.
+      let gate: { investmentId: number } & InvestmentGateT
 
       if ('investmentId' in target) {
-        if (await isInvestmentLocked(db, target.investmentId)) return refused
-        return handler({ ...ctx, investmentId: target.investmentId })
+        gate = {
+          investmentId: target.investmentId,
+          ...(await investmentGateFor(db, target.investmentId)),
+        }
+      } else {
+        // One round trip, not two: the editor fans a write out per changed cell, so a paste across
+        // fifty cells would otherwise pay fifty extra queries just to learn the parent's id.
+        const owner = await lockStatusFor(db, target.kind, target.id)
+        if (owner === undefined) {
+          // The code, not just the sentence: `use-stale-tree-recovery` reseeds the whole tree on
+          // NOT_FOUND, and without it a write against a row someone else deleted leaves the editor
+          // holding a stale tree behind a toast that explains nothing.
+          return {
+            success: false,
+            error: TARGET_MISSING[target.kind],
+            code: 'NOT_FOUND',
+          } as ActionResultT<TData>
+        }
+        gate = owner
       }
 
-      // One round trip, not two: the editor fans a write out per changed cell, so a paste across
-      // fifty cells would otherwise pay fifty extra queries just to learn the parent's id.
-      const owner = await lockStatusFor(db, target.kind, target.id)
-      if (owner === undefined) {
-        // The code, not just the sentence: `use-stale-tree-recovery` reseeds the whole tree on
-        // NOT_FOUND, and without it a write against a row someone else deleted leaves the editor
-        // holding a stale tree behind a toast that explains nothing.
-        return {
-          success: false,
-          error: TARGET_MISSING[target.kind],
-          code: 'NOT_FOUND',
-        } as ActionResultT<TData>
+      if (gate.locked) {
+        return { success: false, error: INVESTMENT_LOCKED_MESSAGE } as ActionResultT<TData>
       }
-      if (owner.locked) return refused
-      return handler({ ...ctx, investmentId: owner.investmentId })
+
+      const result = await handler({ ...ctx, investmentId: gate.investmentId })
+
+      // The szablon autosave hangs HERE, not on the client, because this is the one point every one
+      // of the few dozen ways to change the tree passes through; a client debounce catches a handful
+      // of them.
+      if (result.success && gate.templatePresetId != null) {
+        await mirrorWorkshopPreset(ctx.payload, {
+          investmentId: gate.investmentId,
+          templatePresetId: gate.templatePresetId,
+        })
+      }
+      return result
     },
     revalidate,
     opts,

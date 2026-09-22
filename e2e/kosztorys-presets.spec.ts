@@ -62,7 +62,7 @@ const SAVE_PRESET_ITEM = /Zapisz jako wzór do użycia na innych inwestycjach/
 const RELOAD_PRESET_ITEM = /Zastąp całą rozpiskę zapisanym szablonem/
 
 const saveDialog = (page: Page) =>
-  page.getByRole('dialog').filter({ hasText: 'Zapisz jako szablon' })
+  page.getByRole('dialog').filter({ hasText: 'Zapisz jako nowy szablon' })
 
 const reloadDialog = (page: Page) =>
   page.getByRole('dialog').filter({ hasText: 'Wczytaj kosztorys z szablonu' })
@@ -126,7 +126,7 @@ async function createInvestment(page: Page, name: string, preset?: string): Prom
   return Number(new URL(page.url()).pathname.split('/').pop())
 }
 
-test('„Zapisz jako szablon…" zapisuje wzór, odmawia zajętej nazwy i nadpisuje przez wybór z listy', async ({
+test('„Zapisz jako nowy szablon…" zapisuje wzór, odmawia zajętej nazwy i nadpisuje przez wybór z listy', async ({
   page,
 }) => {
   await openEditor(page, seed.source)

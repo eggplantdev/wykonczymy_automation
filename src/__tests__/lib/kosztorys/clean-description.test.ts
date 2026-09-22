@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { CATALOGUE_NAME_FIXES } from '@/lib/kosztorys/catalogue-name-fixes'
 import { cleanDescription } from '@/lib/kosztorys/clean-description'
-import { hasLegacyMarker } from '@/lib/kosztorys/work-catalogue/legacy-marker'
 
 describe('cleanDescription', () => {
   // The reason the table was wired in at all: on szablon 4 the substring rules corrected 0 of the
@@ -15,23 +14,16 @@ describe('cleanDescription', () => {
     expect(cleanDescription('LUTOWANIE TAŚM LEDOWYCH')).toBe('Lutowanie taśm LED')
   })
 
-  // The katalog review note lives on the katalog row, never in a client's oferta.
-  it('never carries the „[stary arkusz]" note into the opis', () => {
-    const cleaned = cleanDescription('doprowadzenie przewodu 3 fazowego')
-    expect(cleaned).toBe('Doprowadzenie przewodu 3-fazowego')
-    expect(hasLegacyMarker(cleaned)).toBe(false)
+  it('raises a name whose only defect is a missing dywiz', () => {
+    expect(cleanDescription('doprowadzenie przewodu 3 fazowego')).toBe(
+      'Doprowadzenie przewodu 3-fazowego',
+    )
   })
 
   // The risk the table introduces: a whole-name hit swallowing what the old path handled.
   it('leaves a name the table does not know to the existing rules', () => {
     expect(cleanDescription('MALOWANIE ŚCIAN W KUCHNI')).toBe('Malowanie ścian w kuchni')
     expect(cleanDescription('Szpachlowanie po fisnish')).toBe('Szpachlowanie po finish')
-  })
-
-  // The picker copies a katalog opis verbatim, marker and all, so the button meets marked text in a
-  // rozpiska.
-  it('corrects a praca that still carries the katalog review note', () => {
-    expect(cleanDescription('motnaz tv [stary arkusz]')).toBe('Montaż TV [stary arkusz]')
   })
 
   // The property belongs to every corrected name, and the one that broke it („c.w.u. Oraz z.w.u.")
@@ -49,7 +41,7 @@ describe('cleanDescription', () => {
       'doprowadzenie przewodu 3 fazowego',
       'MALOWANIE ŚCIAN W KUCHNI',
       'Szpachlowanie po fisnish',
-      'motnaz tv [stary arkusz]',
+      'motnaz tv',
     ]) {
       expect(cleanDescription(cleanDescription(text))).toBe(cleanDescription(text))
     }

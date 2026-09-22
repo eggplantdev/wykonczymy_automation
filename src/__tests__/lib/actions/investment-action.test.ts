@@ -9,9 +9,13 @@ vi.mock('server-only', () => ({}))
 
 const lockState = vi.hoisted(() => ({
   locked: false,
-  rowOwner: undefined as { investmentId: number; locked: boolean } | undefined,
+  templatePresetId: null as number | null,
+  rowOwner: undefined as
+    | { investmentId: number; locked: boolean; templatePresetId: number | null }
+    | undefined,
 }))
 const revalidateCollections = vi.hoisted(() => vi.fn())
+const mirrorWorkshopPreset = vi.hoisted(() => vi.fn())
 
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn(async () => ({
@@ -27,20 +31,26 @@ vi.mock('payload', async (importOriginal) => ({
 }))
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn(async () => ({ execute: vi.fn() })) }))
 vi.mock('@/lib/db/investment-lock', () => ({
-  isInvestmentLocked: vi.fn(async () => lockState.locked),
+  investmentGateFor: vi.fn(async () => ({
+    locked: lockState.locked,
+    templatePresetId: lockState.templatePresetId,
+  })),
   lockStatusFor: vi.fn(async () => lockState.rowOwner),
 }))
+vi.mock('@/lib/actions/mirror-workshop-preset', () => ({ mirrorWorkshopPreset }))
 
 const { investmentAction } = await import('@/lib/actions/investment-action')
 const { INVESTMENT_LOCKED_MESSAGE } = await import('@/lib/constants/investment-lock')
-const { isInvestmentLocked, lockStatusFor } = await import('@/lib/db/investment-lock')
+const { investmentGateFor, lockStatusFor } = await import('@/lib/db/investment-lock')
 
 describe('investmentAction', () => {
   beforeEach(() => {
     lockState.locked = false
-    lockState.rowOwner = { investmentId: 5, locked: false }
+    lockState.templatePresetId = null
+    lockState.rowOwner = { investmentId: 5, locked: false, templatePresetId: null }
     revalidateCollections.mockClear()
-    vi.mocked(isInvestmentLocked).mockClear()
+    mirrorWorkshopPreset.mockClear()
+    vi.mocked(investmentGateFor).mockClear()
     vi.mocked(lockStatusFor).mockClear()
   })
 
@@ -65,12 +75,12 @@ describe('investmentAction', () => {
     const handler = vi.fn(async () => ({ success: true as const }))
     await investmentAction('t', { kind: 'item', id: 3 }, handler)
     expect(vi.mocked(lockStatusFor).mock.calls[0]?.slice(1)).toEqual(['item', 3])
-    expect(vi.mocked(isInvestmentLocked)).not.toHaveBeenCalled()
+    expect(vi.mocked(investmentGateFor)).not.toHaveBeenCalled()
     expect(handler).toHaveBeenCalledOnce()
   })
 
   it('refuses a row whose investment is completed', async () => {
-    lockState.rowOwner = { investmentId: 5, locked: true }
+    lockState.rowOwner = { investmentId: 5, locked: true, templatePresetId: null }
     const handler = vi.fn(async () => ({ success: true as const }))
     const result = await investmentAction('t', { kind: 'item', id: 3 }, handler)
     expect(result).toEqual({ success: false, error: INVESTMENT_LOCKED_MESSAGE })
@@ -96,6 +106,29 @@ describe('investmentAction', () => {
       { deferRefresh: true },
     )
     expect(revalidateCollections).toHaveBeenCalledWith(['kosztorysItems'], { deferRefresh: true })
+  })
+
+  // The szablon autosave hangs off the same point as the lock, so an ordinary investment must not
+  // even hear about it — otherwise every mutation in the app would pay to serialize a foreign tree.
+  it('mirrors into the szablon only when the target is the warsztat', async () => {
+    await investmentAction('t', { investmentId: 5 }, async () => ({ success: true }))
+    expect(mirrorWorkshopPreset).not.toHaveBeenCalled()
+
+    lockState.templatePresetId = 42
+    await investmentAction('t', { investmentId: 5 }, async () => ({ success: true }))
+    expect(mirrorWorkshopPreset).toHaveBeenCalledWith(expect.anything(), {
+      investmentId: 5,
+      templatePresetId: 42,
+    })
+  })
+
+  it('does not mirror a handler that failed', async () => {
+    lockState.templatePresetId = 42
+    await investmentAction('t', { investmentId: 5 }, async () => ({
+      success: false,
+      error: 'nie',
+    }))
+    expect(mirrorWorkshopPreset).not.toHaveBeenCalled()
   })
 
   it('does not revalidate when the lock refuses', async () => {

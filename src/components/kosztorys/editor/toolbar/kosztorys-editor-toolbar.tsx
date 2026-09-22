@@ -2,16 +2,12 @@
 
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
-import {
-  SEARCH_FILTER_TOOLBAR_WIDTH,
-  SearchFilterInput,
-} from '@/components/filters/search-filter-input'
+import { SearchFilterInput } from '@/components/filters/search-filter-input'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import { KosztorysActiveFiltersBar } from '@/components/kosztorys/editor/toolbar/kosztorys-active-filters-bar'
 import { KosztorysAddMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-add-menu'
 import { KosztorysActionsMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-actions-menu'
 import { KosztorysActionsProvider } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
-import { SaveTemplateButton } from '@/components/kosztorys/editor/toolbar/save-template-button'
 import { KosztorysTotalsPanelToggle } from '@/components/kosztorys/summary/kosztorys-totals-panel-toggle'
 import { ToolbarToggle } from '@/components/ui/toolbar-toggle'
 import {
@@ -26,16 +22,24 @@ import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kos
 import { cn } from '@/lib/utils/cn'
 
 export function KosztorysEditorToolbar() {
-  const { search, setSearch, view, setView, subtotals, readOnly } = useKosztorysEditorContext()
+  const {
+    search,
+    setSearch,
+    view,
+    setView,
+    subtotals,
+    readOnly,
+    isWorkshop,
+  } = useKosztorysEditorContext()
   // Phone only — both groups below are `sm:contents`, so from 768 up this flag stops mattering.
   const [toolsOpen, setToolsOpen] = useState(false)
 
   return (
     <div className="border-border relative shrink-0 border-b">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2">
+      <div className="flex flex-wrap items-center gap-x-1 gap-y-2 px-4 py-2">
         {/* Stays on screen when the rest is folded: these two change what the rozpiska shows. */}
-        <div className="flex w-full items-center gap-x-3 sm:contents">
-          <KosztorysTotalsPanelToggle disabled={subtotals.length === 0} />
+        <div className="flex w-full items-center gap-x-1 sm:contents">
+          <KosztorysTotalsPanelToggle hasRows={subtotals.length > 0} />
           <ToolbarToggle
             legend={VIEW_LEGEND}
             options={VIEWS}
@@ -59,7 +63,7 @@ export function KosztorysEditorToolbar() {
             classes stop applying there on their own. */}
         <div
           className={cn(
-            'bg-background border-border absolute inset-x-0 top-full z-30 w-full flex-wrap items-center gap-x-3 gap-y-2 border-b px-4 py-2 shadow-md sm:contents',
+            'bg-background border-border absolute inset-x-0 top-full z-30 w-full flex-wrap items-center gap-x-1 gap-y-2 border-b px-4 py-2 shadow-md sm:contents',
             toolsOpen ? 'flex' : 'hidden',
           )}
         >
@@ -73,14 +77,18 @@ export function KosztorysEditorToolbar() {
                 onChange={setSearch}
                 placeholder="Szukaj…"
                 debounceMs={200}
-                className={SEARCH_FILTER_TOOLBAR_WIDTH}
+                // Parked narrow because five menus share this row, and widened while it is in use —
+                // a query too long to read back is worse than a tight row.
+                className={cn(
+                  'w-full transition-[width] duration-150 sm:w-28 sm:focus-within:w-64',
+                  search && 'sm:w-64',
+                )}
               />
             </div>
           </SimpleTooltip>
           {/* Claims free space only from `sm`: five menus are wider than a phone, and below `sm` the
               group already has its own line. */}
-          <div className="flex flex-wrap items-center gap-1 sm:ml-auto">
-            <SaveTemplateButton />
+          <div className="flex flex-wrap items-center gap-x-1 gap-y-2 sm:ml-auto">
             {/* Spans both menus, not just „Opcje": „Porównaj z katalogiem" is now read from
                 „Problemy" while its window is still mounted beside the other „Opcje" dialogs, so the
                 trigger and the dialog only reach the same state under one shared provider. */}
@@ -92,7 +100,9 @@ export function KosztorysEditorToolbar() {
             </KosztorysActionsProvider>
             <KosztorysFiltersMenu />
             <KosztorysSectionsMenu />
-            <KosztorysViewMenu />
+            {/* The workbench has a closed column list (WORKSHOP_VISIBLE_COLUMNS), so the picker
+                would steer an empty list, and the money/layer axes describe columns it has not. */}
+            {!isWorkshop && <KosztorysViewMenu />}
           </div>
         </div>
       </div>

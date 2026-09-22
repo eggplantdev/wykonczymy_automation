@@ -98,4 +98,9 @@ export type BuildV2ColumnsOptsT = {
   // from PREVIEW_VISIBLE_COLUMNS — a key here that the allowlist never allowed cannot reveal
   // anything, which is what keeps the allowlist a ceiling rather than one of two competing answers.
   previewHiddenColumns?: ReadonlySet<string>
+  // The szablon workbench: WORKSHOP_VISIBLE_COLUMNS over both the grid and the picker. Twin of
+  // `previewVisible` in mechanism, its opposite in reason — that one is about what a client must
+  // not see, this one about what a szablon cannot carry. The allowlist, not the stored tick: the
+  // map of hidden columns is one per browser, so a tick would leak across every kosztorys.
+  workshopVisible?: boolean
 }

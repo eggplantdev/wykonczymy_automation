@@ -1,5 +1,6 @@
 import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
-import { postFormData } from '@/lib/utils/post-form-data'
+import { uploadMediaFromClient } from '@/lib/media/client-upload'
+import type { MediaKindT } from '@/types/media'
 
 // Cap parallel uploads to match the receipt-generation path (GENERATION_CONCURRENCY): batch-add lets a user
 // attach 10-20+ receipts, and submitting them all at once would fire that many simultaneous upload requests.
@@ -20,18 +21,6 @@ export class InvoiceUploadError extends Error {
   }
 }
 
-async function uploadFileClient(file: File): Promise<number> {
-  const formData = new FormData()
-  formData.set('file', file)
-
-  const { mediaId } = await postFormData<{ mediaId: number }>(
-    '/api/upload-file',
-    formData,
-    'Upload nie powiódł się',
-  )
-  return mediaId
-}
-
 /**
  * Positional invoice-mediaId lists for submit. Per row index: upload every attached page in order;
  * a row with no files gets an empty list. The concurrency cap bounds total files in flight rather
@@ -45,7 +34,7 @@ async function uploadFileClient(file: File): Promise<number> {
 export async function resolveInvoiceMediaIds(
   count: number,
   files: Map<number, File[]>,
-  upload: (file: File) => Promise<number> = uploadFileClient,
+  upload: (file: File) => Promise<number> = uploadMediaFromClient,
 ): Promise<number[][]> {
   const pages = Array.from({ length: count }, (_, row) =>
     (files.get(row) ?? []).map((file) => ({ row, file })),
@@ -83,7 +72,11 @@ export async function resolveInvoiceMediaIds(
  * The same upload, from a surface that has no rows — one invoice, its pages in pick order. Spares
  * every such caller the `(1, new Map([[0, files]]))` incantation and the `[pages]` destructure.
  */
-export async function resolveInvoicePageIds(files: File[]): Promise<number[]> {
-  const [pages] = await resolveInvoiceMediaIds(1, new Map([[0, files]]))
+export async function resolveInvoicePageIds(files: File[], kind?: MediaKindT): Promise<number[]> {
+  const [pages] = await resolveInvoiceMediaIds(
+    1,
+    new Map([[0, files]]),
+    kind && ((file) => uploadMediaFromClient(file, { kind })),
+  )
   return pages
 }

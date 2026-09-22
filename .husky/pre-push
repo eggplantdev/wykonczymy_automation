@@ -45,7 +45,10 @@ leg() {
 }
 
 leg "typecheck" pnpm run typecheck
-leg "unit tests" pnpm vitest run --silent
+# Wrapped by hand: this leg calls vitest directly rather than `pnpm test`, so it would
+# otherwise be the one heavy run that escapes the machine-wide lock. The three legs below
+# go through package.json scripts, which are wrapped there; a nested call inherits this hold.
+leg "unit tests" bash scripts/with-test-lock.sh pnpm vitest run --silent
 
 # DB-backed integration specs (restore/snapshot wipe-and-reinsert, delete guards, leads) against
 # the ISOLATED 5435 test DB. The plain `vitest run` above skips every one of them for lack of a DB

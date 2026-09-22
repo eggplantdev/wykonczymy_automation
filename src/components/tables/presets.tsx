@@ -19,6 +19,14 @@ export const PRESET_COLUMNS = [
     meta: { align: 'right' },
     cell: (info) => <span className="tabular-nums">{info.getValue()}</span>,
   }),
+  col.accessor('updatedAt', {
+    header: 'Zmieniono',
+    // „—" for a szablon predating the autosave: an empty cell would read as a failed lookup.
+    cell: (info) => {
+      const value = info.getValue()
+      return value == null ? '—' : formatPLDate(value)
+    },
+  }),
   col.accessor('createdAt', {
     header: 'Utworzono',
     cell: (info) => formatPLDate(info.getValue()),

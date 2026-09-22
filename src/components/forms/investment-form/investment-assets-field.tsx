@@ -1,10 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2, Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { InvoiceUploadDialog } from '@/components/dialogs/invoice-upload-dialog'
+import { UploadButton } from '@/components/ui/upload-button'
 import {
   INVESTMENT_ASSETS_UPLOAD_TITLE,
   useInvestmentAssetsUpload,
@@ -22,22 +21,18 @@ export function InvestmentAssetsField({ investmentId }: { investmentId: number }
   return (
     <Field>
       <FieldLabel>Zdjęcia i pliki</FieldLabel>
-      <Button
-        type="button"
-        variant="outline"
-        disabled={isUploading}
+      <UploadButton
+        label={INVESTMENT_ASSETS_UPLOAD_TITLE}
+        isUploading={isUploading}
         onClick={() => setUploadOpen(true)}
-        className="justify-start"
-      >
-        {isUploading ? <Loader2 className="animate-spin" /> : <Plus />}
-        {isUploading ? 'Przesyłanie...' : INVESTMENT_ASSETS_UPLOAD_TITLE}
-      </Button>
+      />
 
       <InvoiceUploadDialog
         title={INVESTMENT_ASSETS_UPLOAD_TITLE}
         open={uploadOpen}
         onOpenChange={setUploadOpen}
-        onFiles={(picked) => void uploadFiles(picked)}
+        allowPlanMarker
+        onFiles={(picked, asPlan) => void uploadFiles(picked, asPlan)}
       />
     </Field>
   )

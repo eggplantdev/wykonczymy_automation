@@ -36,7 +36,7 @@ export function SavePresetMenuItem() {
     <DropdownMenuItem onSelect={savePreset.requestOpen}>
       <FileStack />
       <MenuItemBody
-        label="Zapisz jako szablon…"
+        label="Zapisz jako nowy szablon…"
         description="Zapisz jako wzór do użycia na innych inwestycjach."
       />
     </DropdownMenuItem>

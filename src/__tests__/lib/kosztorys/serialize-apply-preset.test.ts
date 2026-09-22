@@ -94,8 +94,8 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     return id
   }
 
-  // A source tree with JOB fields populated (qty, discount, note, progress) so serialize-as-preset
-  // has something real to zero out.
+  // A source tree with the job figures populated (qty, discount, progress) so serialize-as-preset has
+  // something real to zero out, plus a komentarz, which it must NOT zero.
   async function buildSourceTree(investmentId: number) {
     await createKosztorysTree(payload, investmentId, {
       sections: [
@@ -155,7 +155,7 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     await db.execute(sql`DELETE FROM kosztorys_presets WHERE name LIKE ${PRESET_PREFIX + '%'}`)
   })
 
-  it('apply(serializeAsPreset()) reproduces the structural tree, zeroes job fields, leaves target settings', async () => {
+  it('apply(serializeAsPreset()) reproduces the structural tree, zeroes the job figures, keeps the komentarz, leaves target settings', async () => {
     const sourceId = await createInvestment(`${PRESET_PREFIX}source-roundtrip`, 0.23, 0.7, 0.5)
     await buildSourceTree(sourceId)
 
@@ -170,15 +170,20 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     // Structure (sections/items/stages/progress) is id-free identical to the preset.
     expect(canonicalTree(after)).toEqual(canonicalTree(preset))
 
-    // Job fields are zeroed everywhere — proven on the PERSISTED tree, not just the preset payload.
+    // Job figures are zeroed everywhere — proven on the PERSISTED tree, not just the preset payload.
     for (const item of after.items) {
       expect(item.plannedQty).toBe(0)
       // A reference figure belongs to the job it was imported for, never to the next one.
       expect(item.sheetMeasuredQty).toBeNull()
       expect(item.discountType).toBeNull()
       expect(item.discountValue).toBe(0)
-      expect(item.note).toBeNull()
     }
+    // The komentarz describes the WORK („cena zawiera transport"), not the job, so it travels —
+    // and only on the pozycja that carried one, never smeared across the rest.
+    expect(after.items.find((item) => item.description === 'Malowanie')!.note).toBe(
+      'uwaga do pozycji',
+    )
+    expect(after.items.find((item) => item.description === 'Płytki')!.note).toBeNull()
     expect(after.progress).toEqual([])
 
     // Target's own settings survive the apply untouched (a preset carries no pricing config).

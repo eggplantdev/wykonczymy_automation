@@ -315,7 +315,7 @@ const presetDialog = (page: Page) =>
 async function savePreset(page: Page, investmentId: number, name: string): Promise<void> {
   await openEditor(page, investmentId)
   await pickKosztorysOption(page, SAVE_PRESET_ITEM)
-  const dialog = page.getByRole('dialog').filter({ hasText: 'Zapisz jako szablon' })
+  const dialog = page.getByRole('dialog').filter({ hasText: 'Zapisz jako nowy szablon' })
   await dialog.getByPlaceholder('Nazwa szablonu').fill(name)
   await dialog.getByRole('button', { name: 'Zapisz', exact: true }).click()
   await expect(dialog).toHaveCount(0, { timeout: 20_000 })

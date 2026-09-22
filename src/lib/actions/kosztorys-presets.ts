@@ -2,6 +2,7 @@
 
 import { z } from 'zod'
 import { investmentAction } from '@/lib/actions/investment-action'
+import { mirrorWorkshopPreset } from '@/lib/actions/mirror-workshop-preset'
 import { ownerOnlyAction } from '@/lib/actions/owner-only-action'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import { revalidateCollections } from '@/lib/cache/revalidate'
@@ -13,7 +14,6 @@ import {
   getPreset,
   insertPreset,
   renamePreset,
-  updatePresetPayload,
   upsertPresetByName,
   type PresetMetaT,
   type PresetSectionMetaT,
@@ -29,10 +29,12 @@ import {
   type AppendedSliceT,
   type SectionSliceT,
 } from '@/lib/kosztorys/append-preset-sections'
+import { DEFAULT_COEFFS, DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import {
   reloadInvestmentFromPreset,
   type ReloadFromPresetResultT,
 } from '@/lib/kosztorys/reload-from-preset'
+import { emptySnapshotPayload } from '@/lib/kosztorys/snapshot-format'
 import { serializeKosztorysAsPreset } from '@/lib/kosztorys/serialize-preset'
 import type { ActionResultT } from '@/types/action'
 
@@ -40,6 +42,8 @@ const savePresetSchema = z.object({
   name: z.string().trim().min(1, 'Podaj nazwę szablonu'),
   mode: z.enum(['new', 'overwrite']),
 })
+
+const NAME_TAKEN_MESSAGE = 'Szablon o tej nazwie już istnieje'
 
 // "Zapisz jako preset" — serialize with job fields stripped, store under a name. `mode: 'new'`
 // inserts (rejected if taken); `mode: 'overwrite'` upserts in place. Only writer of presets, so it
@@ -74,8 +78,42 @@ export async function savePresetAction(
         createdBy: user.id,
         payload: preset,
       })
-      if (id == null) return { success: false, error: 'Szablon o tej nazwie już istnieje' }
+      if (id == null) return { success: false, error: NAME_TAKEN_MESSAGE }
       return { success: true }
+    },
+    ['presets'],
+  )
+}
+
+const createEmptyPresetSchema = z.object({ name: savePresetSchema.shape.name })
+
+// The second way a szablon is born, and the only one that needs no source kosztorys: an empty tree
+// the user then builds in the warsztat. Same power as savePresetAction — writing into the library,
+// not destroying it — so the same `protectedAction` gate.
+//
+// `settings` is inert here (a preset's VAT/coeffs are retained but never applied on load), yet the
+// payload type demands it; it takes the defaults rather than invented numbers so nothing reads as a
+// second source of truth for a rate.
+export async function createEmptyPresetAction(
+  name: string,
+): Promise<ActionResultT<{ id: number }>> {
+  return protectedAction(
+    'createEmptyPresetAction',
+    async ({ payload, user }) => {
+      const parsed = validateAction(createEmptyPresetSchema, { name })
+      if (!parsed.success) return parsed
+
+      const id = await insertPreset(await getDb(payload), {
+        name: parsed.data.name,
+        createdBy: user.id,
+        payload: emptySnapshotPayload({
+          wToolsCoeff: DEFAULT_COEFFS.wTools,
+          ownToolsCoeff: DEFAULT_COEFFS.ownTools,
+          vatRate: DEFAULT_VAT,
+        }),
+      })
+      if (id == null) return { success: false, error: NAME_TAKEN_MESSAGE }
+      return { success: true, data: { id } }
     },
     ['presets'],
   )
@@ -116,15 +154,14 @@ export async function renamePresetAction(id: number, name: string): Promise<Acti
     if (!parsed.success) return parsed
 
     const renamed = await renamePreset(await getDb(payload), parsed.data.id, parsed.data.name)
-    if (!renamed) return { success: false, error: 'Szablon o tej nazwie już istnieje' }
+    if (!renamed) return { success: false, error: NAME_TAKEN_MESSAGE }
     revalidateCollections(['presets'])
     return { success: true }
   })
 }
 
 // „Otwórz szablon": load into the workbench investment. A mutation, not a render side effect of
-// /szablony/[id] — the page only reads what this puts there. Pointer is written AFTER the reload,
-// so a failed reload can't leave the workbench claiming a szablon it doesn't hold.
+// /szablony/[id] — the page only reads what this puts there.
 export async function openPresetInWorkshopAction(presetId: number): Promise<ActionResultT> {
   return protectedAction(
     'openPresetInWorkshopAction',
@@ -132,52 +169,65 @@ export async function openPresetInWorkshopAction(presetId: number): Promise<Acti
       const parsed = validateAction(presetIdSchema, { id: presetId })
       if (!parsed.success) return parsed
 
-      const investmentId = await resolveWorkshopInvestment(payload)
+      const db = await getDb(payload)
+      const held = await getWorkshop(db)
+
+      // Eviction: opening a szablon rewrites the workshop tree in place, so this is the last moment
+      // the outgoing one can still receive its edits. Unconditional, because the throttle may have
+      // just refused the last of them and there is no second chance.
+      if (held?.presetId != null) {
+        await mirrorWorkshopPreset(payload, {
+          investmentId: held.id,
+          templatePresetId: held.presetId,
+          force: true,
+        })
+        // Then the pointer goes down BEFORE the tree moves, and that ordering is the whole guard.
+        // The mirror's only test of „may I write here" is this column; the tree swap below runs in
+        // its own transaction, so while the column still names the outgoing szablon there is a
+        // committed state where the tree is already the INCOMING one — and a flush landing in it
+        // would stamp the new content into the old szablon's row, destroying it. Nulled, every
+        // in-flight mirror bails instead.
+        await setWorkshopPreset(db, held.id, null)
+      }
+
+      const investmentId = held?.id ?? (await resolveWorkshopInvestment(payload))
       const reloaded = await reloadInvestmentFromPreset(payload, {
         investmentId,
         presetId: parsed.data.id,
         takenBy: user.id,
       })
+      // A failed reload leaves the workshop holding nothing rather than claiming a szablon whose
+      // content it does not have — the outgoing one is already safe in the library, mirrored above.
       if (!reloaded) return { success: false, error: 'Nie znaleziono szablonu' }
 
-      await setWorkshopPreset(await getDb(payload), investmentId, parsed.data.id)
+      await setWorkshopPreset(db, investmentId, parsed.data.id)
       return { success: true }
     },
     [...KOSZTORYS_TREE_TAGS],
   )
 }
 
-// The workbench's „Zapisz": overwrites by id, not by name — the workbench is one shared row, so the
-// name it points at can change between render and save. Pointer re-read here at write time; a
-// mismatch refuses instead of writing.
-export async function saveWorkshopPresetAction(presetId: number): Promise<ActionResultT> {
-  return protectedAction(
-    'saveWorkshopPresetAction',
-    async ({ payload, user }) => {
-      const parsed = validateAction(presetIdSchema, { id: presetId })
-      if (!parsed.success) return parsed
+// The tail-closer: the mirror's throttle loses the last change by definition, because no further
+// mutation follows to carry it in. Called on idle and on leaving the workbench, so unconditional
+// (`force`) and fire-and-forget — success is silent, exactly as it is on an investment.
+//
+// The pointer guard sits inside the mirror's transaction: the workbench is one row shared by
+// everyone, so between the render and this flush someone may have opened a different szablon.
+export async function flushWorkshopPresetAction(presetId: number): Promise<ActionResultT> {
+  return protectedAction('flushWorkshopPresetAction', async ({ payload }) => {
+    const parsed = validateAction(presetIdSchema, { id: presetId })
+    if (!parsed.success) return parsed
 
-      const db = await getDb(payload)
-      const workshop = await getWorkshop(db)
-      if (!workshop) return { success: false, error: 'Warsztat szablonów jest pusty' }
-      if (workshop.presetId !== parsed.data.id) {
-        return {
-          success: false,
-          error: 'Warsztat trzyma teraz inny szablon — otwórz ten ponownie z listy szablonów',
-        }
-      }
+    const workshop = await getWorkshop(await getDb(payload))
+    if (!workshop) return { success: false, error: 'Warsztat szablonów jest pusty' }
 
-      const preset = await serializeKosztorysAsPreset(workshop.id)
-      const updated = await updatePresetPayload(db, {
-        id: parsed.data.id,
-        createdBy: user.id,
-        payload: preset,
-      })
-      if (!updated) return { success: false, error: 'Nie znaleziono szablonu' }
-      return { success: true }
-    },
-    ['presets'],
-  )
+    await mirrorWorkshopPreset(payload, {
+      investmentId: workshop.id,
+      templatePresetId: parsed.data.id,
+      force: true,
+    })
+    return { success: true }
+  })
 }
 
 // Preset metadata for the save/seed pickers — the client-side entry point (fetch-on-open) into the

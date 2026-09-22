@@ -11,10 +11,10 @@ import { toastMessage } from '@/lib/utils/toast'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
-// "Zapisz jako szablon…" — save this kosztorys as a reusable, cross-investment template, itself
+// "Zapisz jako nowy szablon…" — save this rozpiska as a reusable, cross-investment template, itself
 // either a new named template or an overwrite of an existing one (name picked from the list).
 export function SavePresetDialog() {
-  const { investmentId } = useKosztorysEditorContext()
+  const { investmentId, isWorkshop } = useKosztorysEditorContext()
   const { open, setOpen: onOpenChange, existingPresets } = useKosztorysActions().savePreset
   const [name, setName] = useState('')
   const [mode, setMode] = useState<'new' | 'overwrite'>('new')
@@ -49,8 +49,14 @@ export function SavePresetDialog() {
     <FormDialogShell
       open={open}
       onOpenChange={handleOpenChange}
-      title="Zapisz jako szablon…"
-      description="Szablon — wzór kosztorysu wielokrotnego użytku, niezależny od tej inwestycji. Posłuży do szybkiego założenia kosztorysu na innych inwestycjach."
+      title="Zapisz jako nowy szablon…"
+      // The workbench has no „this investment" for a szablon to be independent of — the whole
+      // sentence is about something that is not there, so it is rewritten, not word-swapped.
+      description={
+        !isWorkshop
+          ? 'Szablon — wzór kosztorysu wielokrotnego użytku, niezależny od tej inwestycji. Posłuży do szybkiego założenia kosztorysu na innych inwestycjach.'
+          : 'Odkłada bieżącą rozpiskę do biblioteki jako osobny szablon. Warsztat zostaje przy tym, który edytujesz.'
+      }
       confirmLabel="Zapisz"
       onConfirm={() => void handleSave()}
       confirmDisabled={!canSave}

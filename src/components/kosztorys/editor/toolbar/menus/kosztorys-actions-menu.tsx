@@ -42,11 +42,16 @@ export function KosztorysActionsMenu() {
     readOnly,
     fitRowsToContent,
     toggleFitRowsToContent,
+    isWorkshop,
+    noun,
   } = useKosztorysEditorContext()
 
   return (
     <>
-      <KosztorysInvestorMenu />
+      {/* A szablon has no investor, so the preview through their eyes and the share link have
+          nobody to address here. The „Arkusz Google" section drops out by itself — `hasSheet`
+          gates it, and the workbench has no sheet attached. */}
+      {!isWorkshop && <KosztorysInvestorMenu />}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button size="sm" variant="outline">
@@ -95,7 +100,7 @@ export function KosztorysActionsMenu() {
                 <History />
                 <MenuItemBody
                   label="Wczytaj"
-                  description="Przywróć kosztorys do wcześniej zapisanego stanu."
+                  description={`Przywróć ${noun.nominative} do wcześniej zapisanego stanu.`}
                 />
               </DropdownMenuItem>
               <ClearKosztorysMenuItem />

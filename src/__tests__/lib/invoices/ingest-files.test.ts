@@ -31,7 +31,7 @@ describe('ingestFiles', () => {
   // index instead of shifting the survivors left onto the wrong rows.
   it('a blocked file leaves undefined at its own index, the rest survive', async () => {
     mockProcess.mockImplementation(async (input: File) => {
-      if (input.name === 'b.jpg') throw new BlockedFileError('too-large', 'b.jpg', 9_000_000)
+      if (input.name === 'b.jpg') throw new BlockedFileError('b.jpg')
       return input
     })
 
