@@ -80,8 +80,12 @@ export function KosztorysEditorToolbar() {
                 onChange={setSearch}
                 placeholder="Szukaj…"
                 debounceMs={200}
-                // Narrower than the shared toolbar width: five menus and the gallery share this row.
-                className="w-full sm:w-40 lg:w-52"
+                // Parked narrow because five menus and the gallery share this row, and widened
+                // while it is in use — a query too long to read back is worse than a tight row.
+                className={cn(
+                  'w-full transition-[width] duration-150 sm:w-28 sm:focus-within:w-64',
+                  search && 'sm:w-64',
+                )}
               />
             </div>
           </SimpleTooltip>
