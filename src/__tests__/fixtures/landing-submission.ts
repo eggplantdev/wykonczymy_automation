@@ -19,6 +19,7 @@ export const LANDING_SUBMISSION: LandingSubmissionT = {
   address: 'ul. Kwiatowa 12, Kraków',
   scope: 'Remont łazienki i kuchni',
   area: '30–60 m²',
+  timing: 'Jak najszybciej, najpóźniej za miesiąc',
   message: 'Proszę o kontakt po 16:00.',
   // Under `leads/<submissionId>/`, because that prefix is what the landing's upload token is pinned
   // to and what its cleanup deletes — an asset url at the store root would pass every check here and
