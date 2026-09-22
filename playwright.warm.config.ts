@@ -6,10 +6,16 @@ import base from './playwright.config'
 // authoritative pre-commit gate (it builds fresh and catches cold-boot flakiness this can't).
 //
 //   1. build once:   NEXT_DIST_DIR=.next-e2e pnpm build
-//   2. start it on the 5435 test DB (NOT the dev DB on 5433):
-//        source .env && DB_POSTGRES_URL="$DB_POSTGRES_URL_TEST" \
-//          NEXT_DIST_DIR=.next-e2e PORT=3100 ./node_modules/.bin/next start
+//   2. start it:     pnpm test:e2e:warm:server
 //   3. iterate:      pnpm test:e2e:warm [e2e/some.spec.ts]   # ~20s, not ~6min
+//
+// Step 2 is a script rather than a pasted command line on purpose, and it is the one line here that
+// is not convenience. The specs write through whatever DB that server holds, and the seeds cannot
+// stop them: globalSetup pins ITS OWN connection to `DB_POSTGRES_URL_TEST`, so a server started
+// against the 5433 dev DB produces a run that seeds the test DB and then mutates — and deletes —
+// real local data, with every assertion still green. The script also does the fetch-cache wipe the
+// default config's webServer does for you: `unstable_cache` persists across rebuilds AND across a
+// `db:import:test`, so a kept cache answers with figures the restored DB can no longer produce.
 //
 // globalSetup still re-seeds and re-captures storageState against the warm server, so auth works.
 export default {

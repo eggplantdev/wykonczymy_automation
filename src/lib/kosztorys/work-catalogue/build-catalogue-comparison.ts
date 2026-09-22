@@ -1,5 +1,5 @@
-import { MONEY_TOLERANCE, asViewPricing, subcontractorPrice } from '@/lib/kosztorys/calc'
-import type { KosztorysItemT, ViewPricingT } from '@/lib/kosztorys/types'
+import { asViewPricing, overrideValueFor, subcontractorPrice } from '@/lib/kosztorys/calc'
+import type { KosztorysItemT, ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
 import { foldDescription } from '@/lib/kosztorys/sheet-import/item-key'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import type {
@@ -7,10 +7,13 @@ import type {
   CatalogueComparisonSettingsT,
   CatalogueComparisonT,
   CatalogueFigureDiffT,
+  CatalogueHintT,
   CatalogueMissingT,
   CataloguePriceDiffT,
+  SeedConflictFieldT,
   WorkCatalogueItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
+import { roundToCents } from '@/lib/utils/round-to-cents'
 import { bigrams, diceSimilarity } from '@/lib/utils/string-similarity'
 
 // Below this the two names have nothing to do with each other and a hint would be noise — an owner
@@ -26,34 +29,83 @@ const asPricing = (item: KosztorysItemT, settings: CatalogueComparisonSettingsT)
 const catalogueRate = (rate: number | null, clientPrice: number, coeff: number): number =>
   rate ?? clientPrice * coeff
 
-type HintCandidateT = { description: string; pairs: string[] }
+const HINT_LIMIT = 3
+
+type HintCandidateT = { entry: WorkCatalogueItemT; pairs: string[] }
 
 // Folded and bigrammed ONCE for the whole cennik: `foldDescription` is ~45 split/join passes, and a
-// 1000-row rozpiska against a few-hundred-row cennik would otherwise run it a million times inside
-// one server action.
+// 1000-row rozpiska against a few-hundred-row cennik would otherwise run it a million times.
 const hintCandidates = (catalogue: readonly WorkCatalogueItemT[]): HintCandidateT[] =>
-  catalogue.map((entry) => ({
-    description: entry.description,
-    pairs: bigrams(foldDescription(entry.description)),
-  }))
+  catalogue.map((entry) => ({ entry, pairs: bigrams(foldDescription(entry.description)) }))
 
-function closestDescription(description: string, candidates: readonly HintCandidateT[]) {
+// Scores everything and sorts, rather than keeping a running top-3: the loop already touches every
+// wpis (there is no ordering to short-circuit on), and a few hundred kept candidates is nothing
+// beside the scoring itself — which is what the caller's lazy pass exists to pay for.
+function closestEntries(
+  description: string,
+  candidates: readonly HintCandidateT[],
+  limit = HINT_LIMIT,
+): CatalogueHintT[] {
   const pairs = bigrams(foldDescription(description))
-  let best: { description: string; score: number } | null = null
-  for (const candidate of candidates) {
-    const score = diceSimilarity(pairs, candidate.pairs)
-    if (!best || score > best.score) best = { description: candidate.description, score }
-  }
-  return best && best.score >= HINT_THRESHOLD ? best.description : null
+  return candidates
+    .map(({ entry, pairs: candidatePairs }) => ({
+      id: entry.id,
+      description: entry.description,
+      unit: entry.unit,
+      clientPrice: entry.clientPrice,
+      score: diceSimilarity(pairs, candidatePairs),
+    }))
+    .filter((hint) => hint.score >= HINT_THRESHOLD)
+    .sort((left, right) => right.score - left.score)
+    .slice(0, limit)
 }
 
 const figure = (
   label: string,
+  field: SeedConflictFieldT,
   kosztorys: number,
   catalogue: number,
+  kosztorysIsAuto: boolean,
+  catalogueIsAuto: boolean,
 ): CatalogueFigureDiffT | null => {
-  const delta = kosztorys - catalogue
-  return Math.abs(delta) > MONEY_TOLERANCE ? { label, kosztorys, catalogue, delta } : null
+  const sameKwota = roundToCents(kosztorys) === roundToCents(catalogue)
+  if (sameKwota && kosztorysIsAuto === catalogueIsAuto) return null
+  // Raw, not rounded: `formatPLN` rounds it for display anyway, and the sort key wants the real gap.
+  return {
+    label,
+    field,
+    kosztorys,
+    catalogue,
+    delta: kosztorys - catalogue,
+    kosztorysIsAuto,
+    catalogueIsAuto,
+  }
+}
+
+/**
+ * A stawka, but silent when both sides are „auto". There both kwoty ARE `cena × ten sam
+ * współczynnik`, so their difference is the cena difference wearing a second and third hat —
+ * reporting it turns one rozjazd into three and inflates both the count and `maxDelta`. A
+ * nadpisanie on either side makes the stawka a fact of its own again, and then it is reported.
+ */
+const rateFigure = (
+  pricing: ViewPricingT,
+  entry: WorkCatalogueItemT,
+  plane: ToolPlaneT,
+  label: string,
+  coeff: number,
+): CatalogueFigureDiffT | null => {
+  const entryRate = plane === 'w_tools' ? entry.wToolsRate : entry.ownToolsRate
+  const override = overrideValueFor(pricing, plane)
+  if (override === null && entryRate === null) return null
+  return figure(
+    label,
+    plane === 'w_tools' ? 'wToolsRate' : 'ownToolsRate',
+    subcontractorPrice(pricing, plane),
+    catalogueRate(entryRate, entry.clientPrice, coeff),
+    override === null,
+    entryRate === null,
+  )
 }
 
 /**
@@ -62,8 +114,12 @@ const figure = (
  *
  * Compares all three liczby, because a praca can carry the offered cena and still pay the
  * podwykonawca something else entirely — the stawki are exactly where a szablon goes stale. Every
- * comparison is at `MONEY_TOLERANCE`: a stawka derived as `cena × współczynnik` never equals the
- * frozen kwota to the last float bit, and a report that flagged that would flag every single row.
+ * comparison is made on kwoty ROUNDED TO GROSZE, so the report disagrees exactly where the two
+ * numbers it renders disagree. A stawka derived as `cena × współczynnik` carries a float residue no
+ * column ever shows, and a threshold set at half a grosz decides a half-grosz gap on that residue —
+ * which is how „14,88 zł against 14,88 zł, różnica −0,01 zł" reached the owner's screen. A stawka
+ * also disagrees on RODZAJ: a frozen kwota against a katalog „auto" is a rozjazd at any kwota,
+ * because taking the katalog's answer there means dropping the nadpisanie, not copying a number.
  */
 export function buildCatalogueComparison(
   items: readonly CatalogueComparisonItemT[],
@@ -71,7 +127,20 @@ export function buildCatalogueComparison(
   settings: CatalogueComparisonSettingsT,
 ): CatalogueComparisonT {
   const byKey = new Map(catalogue.map((entry) => [entry.matchKey, entry]))
-  const candidates = hintCandidates(catalogue)
+  // The same praca recurs across sekcje under the same name — a 379-pozycja rozpiska carries only
+  // ~198 distinct (opis, j.m.) pairs — so fold each pair once. This runs on every committed
+  // keystroke, where `catalogueKey` is the whole cost.
+  const keyCache = new Map<string, string>()
+  const keyFor = (description: string, unit: string) => {
+    // NUL, not a printable separator: an opis may contain any character an owner can type, and
+    // („a|b", „c") would otherwise cache under the same key as („a", „b|c").
+    const pair = `${description}\u0000${unit}`
+    const cached = keyCache.get(pair)
+    if (cached !== undefined) return cached
+    const key = catalogueKey(description, unit)
+    keyCache.set(pair, key)
+    return key
+  }
   const diffs: CataloguePriceDiffT[] = []
   const missing: CatalogueMissingT[] = []
   let matching = 0
@@ -82,31 +151,24 @@ export function buildCatalogueComparison(
     // A praca with no name is a blank line the owner has not filled in yet, not a rozjazd.
     if (!description) continue
 
-    const entry = byKey.get(catalogueKey(description, unit))
+    const entry = byKey.get(keyFor(description, unit))
     if (!entry) {
+      // `hints` are filled in by `attachCatalogueHints`, never here — see its docblock.
       missing.push({
         itemId: item.id,
         section: item.sectionName ?? '',
         description,
         unit,
-        hint: closestDescription(description, candidates),
+        hints: [],
       })
       continue
     }
 
     const pricing = asPricing(item, settings)
     const figures = [
-      figure('Cena j.m.', item.clientPrice, entry.clientPrice),
-      figure(
-        'Stawka z narzędziami',
-        subcontractorPrice(pricing, 'w_tools'),
-        catalogueRate(entry.wToolsRate, entry.clientPrice, settings.wToolsCoeff),
-      ),
-      figure(
-        'Stawka bez narzędzi',
-        subcontractorPrice(pricing, 'own_tools'),
-        catalogueRate(entry.ownToolsRate, entry.clientPrice, settings.ownToolsCoeff),
-      ),
+      figure('Cena j.m.', 'clientPrice', item.clientPrice, entry.clientPrice, false, false),
+      rateFigure(pricing, entry, 'w_tools', 'Stawka z narzędziami', settings.wToolsCoeff),
+      rateFigure(pricing, entry, 'own_tools', 'Stawka bez narzędzi', settings.ownToolsCoeff),
     ].filter((diff) => diff !== null)
 
     if (figures.length === 0) {
@@ -118,6 +180,7 @@ export function buildCatalogueComparison(
       itemId: item.id,
       description,
       unit,
+      clientPrice: item.clientPrice,
       figures,
       maxDelta: Math.max(...figures.map((diff) => Math.abs(diff.delta))),
     })
@@ -126,4 +189,21 @@ export function buildCatalogueComparison(
   diffs.sort((left, right) => right.maxDelta - left.maxDelta)
 
   return { matching, diffs, missing }
+}
+
+/**
+ * The „może chodzi o…" guesses, attached to a finished „brak w katalogu" list.
+ *
+ * Its own pass because it is the expensive half by two orders of magnitude: every praca is scored
+ * against every cennik opis, which on a few hundred pozycji against 843 wpisy is seconds, not
+ * milliseconds. The classification above runs on every committed keystroke; this runs when somebody
+ * opens the report and reads it.
+ */
+export function attachCatalogueHints(
+  missing: readonly CatalogueMissingT[],
+  catalogue: readonly WorkCatalogueItemT[],
+): CatalogueMissingT[] {
+  if (missing.length === 0) return []
+  const candidates = hintCandidates(catalogue)
+  return missing.map((row) => ({ ...row, hints: closestEntries(row.description, candidates) }))
 }

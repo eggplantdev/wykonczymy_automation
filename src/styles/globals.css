@@ -248,6 +248,59 @@
     3px 0 14px color-mix(in oklch, var(--color-neon-cyan) 55%, transparent);
 }
 
+/* ── Animated `ai` accents ───────────────────────────────────────────────────────────────────
+   The comet keeps `gradient-border`'s two-layer trick — a card-coloured padding-box fill hiding a
+   gradient border-box behind it — and animates only the border layer, so the button's own
+   background never moves. A conic gradient cannot be transitioned directly, hence `--ai-angle`:
+   registering it with @property gives it a type, which is what makes an angle interpolate instead
+   of snapping. */
+@property --ai-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes ai-border-rotate {
+  to {
+    --ai-angle: 360deg;
+  }
+}
+
+@keyframes ai-glow-breathe {
+  50% {
+    box-shadow:
+      -3px 0 16px color-mix(in oklch, var(--color-neon-fuchsia) 65%, transparent),
+      3px 0 16px color-mix(in oklch, var(--color-neon-cyan) 65%, transparent);
+  }
+}
+
+/* Three background layers, topmost first: the fill, the travelling highlight, the resting gradient
+   under it. Each accent contributes only its own `--ai-anim-*` slot and both utilities declare the
+   same two-slot `animation`, so composing them cannot clobber one another — an `animation`
+   shorthand in either body would, and `comet` carries `!` for the background layers. */
+@utility gradient-border-comet {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--color-card), var(--color-card)) padding-box,
+    conic-gradient(
+        from var(--ai-angle),
+        transparent 0%,
+        transparent 62%,
+        color-mix(in oklch, var(--color-neon-cyan) 90%, white) 78%,
+        white 84%,
+        transparent 92%
+      )
+      border-box,
+    linear-gradient(to right, var(--color-neon-fuchsia), var(--color-neon-cyan)) border-box;
+  --ai-anim-border: ai-border-rotate 6s linear infinite;
+  animation: var(--ai-anim-border, none), var(--ai-anim-glow, none);
+}
+
+@utility neon-glow-duo-breathe {
+  --ai-anim-glow: ai-glow-breathe 2.5s ease-in-out infinite;
+  animation: var(--ai-anim-border, none), var(--ai-anim-glow, none);
+}
+
 /* Aurora glow for the kosztorys progress fill — halo in the fill's own green→cyan ramp. */
 @utility progress-glow {
   box-shadow: 0 0 8px color-mix(in oklch, var(--color-chart-turquoise) 65%, transparent);

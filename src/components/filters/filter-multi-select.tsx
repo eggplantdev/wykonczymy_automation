@@ -32,7 +32,6 @@ type FilterMultiSelectPropsT = {
   lockedValues?: string[]
   label: string
   icon?: LucideIcon
-  iconPosition?: 'left' | 'right'
   searchable?: boolean
   triggerClassName?: string
   // For tight surfaces where a tooltip carries the meaning.
@@ -82,7 +81,6 @@ export function FilterMultiSelect({
   lockedValues,
   label,
   icon: Icon,
-  iconPosition = 'left',
   searchable = false,
   triggerClassName,
   iconOnly = false,
@@ -221,7 +219,6 @@ export function FilterMultiSelect({
         <FilterTriggerButton
           active={isFiltered}
           icon={Icon}
-          iconPosition={iconPosition}
           className={triggerClassName}
           title={title}
         >

@@ -64,12 +64,14 @@ describe('„Źródło ceny wykonawcy" — derived from the price, so 0 zł is n
   it('turns a typed price into „kwota stała" without visiting the picker', async () => {
     const { user, price, source } = renderPair()
 
+    // Away from the derived rate, so what flips the SOURCE is provably the hand-typed price and not
+    // a value that happens to coincide with „auto".
     await user.clear(price)
-    await user.type(price, '70')
+    await user.type(price, '50')
     await user.tab()
 
     expect(source()).toContain('kwota stała')
-    expect(price).toHaveValue('70')
+    expect(price).toHaveValue('50')
   })
 
   it('reads an explicit 0 zł as „kwota stała", not as „auto"', () => {

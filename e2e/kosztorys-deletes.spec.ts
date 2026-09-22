@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
 import {
+  clickAndSettle,
   collapseSummaryPanel,
   gridRow,
   openEditor,
@@ -74,7 +75,7 @@ test('deleting a populated pozycja asks first, and the version it leaves behind 
 
   await gridRow(page, 'Praca alfa jeden').getByRole('button', { name: 'Akcje wiersza' }).click()
   await page.getByRole('menuitem', { name: 'Usuń pozycję' }).click()
-  await confirm(page).getByRole('button', { name: 'Usuń' }).click()
+  await clickAndSettle(confirm(page).getByRole('button', { name: 'Usuń' }))
 
   // Gone from the grid with no reload of ours, and ONLY it: its sekcja and its neighbour stay, which
   // is what separates „the row was removed" from „the view collapsed".
@@ -113,7 +114,7 @@ test('deleting a populated sekcja takes its prace with it and leaves the other s
   // the owner's check that the „…" they hit belonged to the band they meant.
   await expect(confirm(page)).toContainText('Sekcja beta')
   await expect(confirm(page)).toContainText('(1 poz.)')
-  await confirm(page).getByRole('button', { name: 'Usuń' }).click()
+  await clickAndSettle(confirm(page).getByRole('button', { name: 'Usuń' }))
 
   // The cascade, repainted by the real grid: band and praca both gone, sekcja alfa untouched.
   await expect(band(page, 'Sekcja beta')).toHaveCount(0)
@@ -141,7 +142,7 @@ test('deleting a populated etap drops its column and the ilości in it, and only
   await page.getByRole('menuitem', { name: 'Usuń etap' }).click()
 
   await expect(confirm(page)).toContainText('Usunąć „Etap 2"?')
-  await confirm(page).getByRole('button', { name: 'Usuń' }).click()
+  await clickAndSettle(confirm(page).getByRole('button', { name: 'Usuń' }))
 
   // An etap is a COLUMN, so its removal re-lays out every row at once — the one delete here that no
   // row-level assertion could catch. „Etap 1" keeping its ilość is what makes this a column drop

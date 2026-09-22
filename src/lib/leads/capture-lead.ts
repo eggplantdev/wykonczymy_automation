@@ -21,6 +21,12 @@ export type CaptureLeadOptionsT = {
   /** Bypasses the collection's afterChange revalidateTag hook — for callers that batch
    *  their own revalidation, or run outside a Next request where the hook throws. */
   skipRevalidation?: boolean
+  /**
+   * How many files the submission announced. Only the landing has this: it hands the lead over
+   * BEFORE downloading them, so at notify time nothing readable from the row can say whether the
+   * enquiry came with photos. Passed straight through to the mail.
+   */
+  expectedAssets?: number
 }
 
 /** Retry an email send a few times; a transient SMTP blip shouldn't cost the message. */
@@ -59,7 +65,7 @@ export async function captureLead(
   input: StoreLeadInputT,
   options: CaptureLeadOptionsT = {},
 ): Promise<{ lead: Lead; created: boolean }> {
-  const { autoReply = 'send', skipRevalidation = false } = options
+  const { autoReply = 'send', skipRevalidation = false, expectedAssets } = options
   const { lead, created } = await storeLead(payload, input, { skipRevalidation })
 
   const runNotify = created || lead.notifyStatus === 'pending'
@@ -68,7 +74,7 @@ export async function captureLead(
 
   // Internal heads-up to the sales inbox.
   const notifyStatus: Lead['notifyStatus'] = runNotify
-    ? (await sendWithRetry(() => notifyNewLead(payload, lead), 'notify'))
+    ? (await sendWithRetry(() => notifyNewLead(payload, lead, { expectedAssets }), 'notify'))
       ? 'sent'
       : 'failed'
     : lead.notifyStatus

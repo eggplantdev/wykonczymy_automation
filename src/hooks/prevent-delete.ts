@@ -42,17 +42,14 @@ export function makePreventDelete({
   message: (blockers: string[]) => string
 }): CollectionBeforeDeleteHook {
   return async ({ id, req }) => {
-    // limit: 1 — only totalDocs is read; Payload computes it via a separate count query, so a
-    // single-row page still yields the true total without hydrating every referencing row.
     // `req` is forwarded so each count joins the delete's transaction: a caller that clears the
     // referencing rows and this one in a single transaction must not be refused on pre-delete state.
     const blockers = (
       await Promise.all(
         probes.map(async ({ collection, where, label }) => {
-          const { totalDocs } = await req.payload.find({
+          const { totalDocs } = await req.payload.count({
             collection,
             where: where(id),
-            limit: 1,
             req,
           })
 

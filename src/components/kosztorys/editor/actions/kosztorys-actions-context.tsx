@@ -14,10 +14,6 @@ import {
   type SheetCompareActionT,
 } from '@/components/kosztorys/editor/actions/sheet-compare-action'
 import {
-  useCatalogueCompareAction,
-  type CatalogueCompareActionT,
-} from '@/components/kosztorys/editor/actions/catalogue-compare-action'
-import {
   useInvestorActions,
   type InvestorActionsT,
 } from '@/components/kosztorys/editor/actions/investor-actions'
@@ -28,7 +24,7 @@ type KosztorysActionsT = {
   reloadPreset: DialogToggleT
   savePreset: SavePresetActionT
   sheetCompare: SheetCompareActionT
-  catalogueCompare: CatalogueCompareActionT
+  catalogueCompare: DialogToggleT
   investor: InvestorActionsT
 }
 
@@ -45,7 +41,7 @@ export function KosztorysActionsProvider({ children }: { children: ReactNode }) 
   const reloadPreset = useDialogToggle()
   const savePreset = useSavePresetAction()
   const sheetCompare = useSheetCompareAction()
-  const catalogueCompare = useCatalogueCompareAction()
+  const catalogueCompare = useDialogToggle()
   const investor = useInvestorActions()
   const value: KosztorysActionsT = {
     version,

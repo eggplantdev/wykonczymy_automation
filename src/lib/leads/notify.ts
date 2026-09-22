@@ -7,6 +7,7 @@ import { renderBrandedEmail } from './email-template'
 import { buildLeadAnswers } from './lead-answers'
 import { leadRawDataSchema, leadFormQuestionsSchema } from './lead-schema'
 import { escapeHtml } from '@/lib/utils/escape-html'
+import { uploadFieldIds } from '@/lib/media/upload-field'
 import type { RecoveredLeadT } from './reconcile-sweep'
 
 // Absolute URL — email clients can't resolve relative paths. Served from public/.
@@ -16,11 +17,34 @@ const row = (label: string, value?: string | null): string =>
   value ? `<tr><td><strong>${label}:</strong></td><td>${escapeHtml(value)}</td></tr>` : ''
 
 /**
+ * The list has no per-row address, and its search box spans name/email/phone/formName
+ * (`lib/queries/leads.ts`) — so the narrowest identifier the lead carries narrows the list to it.
+ */
+function leadUrl(lead: Lead): string {
+  const term = lead.email ?? lead.phone ?? lead.name
+  const base = `${FRONTEND_URL}/zgloszenia`
+  return term ? `${base}?search=${encodeURIComponent(term)}` : base
+}
+
+export type NotifyNewLeadOptionsT = {
+  /**
+   * How many files the submission ANNOUNCED. The landing stores them after this mail is sent, so
+   * nothing else can answer „czy są zdjęcia" at this point — and a promised file that fails to
+   * download raises its own `notifyAssetFailure` to ops rather than silently contradicting this one.
+   */
+  expectedAssets?: number
+}
+
+/**
  * Internal heads-up that a new lead landed — always to the `newLead` recipients,
  * never to the lead. Throws on send failure so the caller can flip
  * `notifyStatus` to `failed` (the lead itself is already persisted).
  */
-export async function notifyNewLead(payload: Payload, lead: Lead): Promise<void> {
+export async function notifyNewLead(
+  payload: Payload,
+  lead: Lead,
+  options: NotifyNewLeadOptionsT = {},
+): Promise<void> {
   const subject = 'Nowe zgłoszenie — Wykończymy'
 
   // The standard name/email/phone are already in the header block above; drop any
@@ -37,6 +61,16 @@ export async function notifyNewLead(payload: Payload, lead: Lead): Promise<void>
     </table>`
     : ''
 
+  // The files themselves cannot ride along, and at send time the lead usually does not hold them
+  // yet — the landing downloads them only AFTER the lead is stored
+  // (`api/webhooks/landing/route.ts`). So the count comes from what the caller was HANDED, and the
+  // already-attached set only wins on a redelivery, where it is the one that is real.
+  const attached = uploadFieldIds(lead.assets).length
+  const assetCount = attached || (options.expectedAssets ?? 0)
+  const assetsHtml = assetCount
+    ? `<p><strong>Załączniki:</strong> ${assetCount}</p>`
+    : '<p>Bez załączników.</p>'
+
   const html = `
     <h2>Nowe zgłoszenie</h2>
     <table>
@@ -47,6 +81,8 @@ export async function notifyNewLead(payload: Payload, lead: Lead): Promise<void>
       ${row('Data', lead.submittedAt)}
     </table>
     ${answersHtml}
+    ${assetsHtml}
+    <p><a href="${leadUrl(lead)}">Otwórz zgłoszenie</a></p>
   `
 
   await payload.sendEmail({ to: await requireRecipients(payload, 'newLead'), subject, html })
@@ -72,6 +108,41 @@ export async function notifyShapeAlert(
   await payload.sendEmail({
     to: await requireRecipients(payload, 'opsAlerts'),
     subject: '⚠️ Zgłoszenie wymaga uwagi - formularz ma niespodziewaną strukturę — Wykończymy',
+    html,
+  })
+}
+
+/**
+ * A landing submission arrived and was stored, but some of its files could not be pulled from the
+ * landing's blob store. The lead is NOT at risk here — that is the whole point of the subject line:
+ * an ops eye must read „przyszło, brakuje zdjęć", not „coś się zepsuło, zgłoszenie przepadło".
+ *
+ * The failed urls are listed because they are still live in the landing's store until its queue row
+ * is deleted, so this mail is a recovery instruction, not just a record.
+ */
+export async function notifyAssetFailure(
+  payload: Payload,
+  context: { submissionId: string; failed: { url: string; reason: string }[]; stored: number },
+): Promise<void> {
+  const failedHtml = context.failed
+    .map((asset) => `<li><code>${escapeHtml(asset.url)}</code> — ${escapeHtml(asset.reason)}</li>`)
+    .join('\n      ')
+
+  const html = `
+    <h2>⚠️ Zgłoszenie zapisane, ale bez części plików</h2>
+    <p><strong>ID zgłoszenia:</strong> ${escapeHtml(context.submissionId)}</p>
+    <p>Zapisane pliki: <strong>${context.stored}</strong>. Nie udało się pobrać
+    <strong>${context.failed.length}</strong>:</p>
+    <ul>
+      ${failedHtml}
+    </ul>
+    <p>Pliki są jeszcze dostępne pod powyższymi adresami — można je pobrać i dodać ręcznie.</p>
+    <p><a href="${FRONTEND_URL}/zgloszenia">Otwórz zgłoszenia</a></p>
+  `
+
+  await payload.sendEmail({
+    to: await requireRecipients(payload, 'opsAlerts'),
+    subject: '⚠️ Zgłoszenie bez części plików — Wykończymy',
     html,
   })
 }

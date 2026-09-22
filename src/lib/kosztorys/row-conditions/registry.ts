@@ -1,5 +1,5 @@
 import { overrideValueFor, subcontractorPrice } from '@/lib/kosztorys/calc'
-import { PLANE_LABELS } from '@/lib/kosztorys/constants'
+import { planeViewSuffix } from '@/lib/kosztorys/constants'
 import { ALL_PLANE_PRICE_KEYS, planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
 import type { RowConditionCtxT, RowConditionT } from '@/lib/kosztorys/row-conditions/types'
 import { measureDiscrepancy, rowTotalQtyDone } from '@/lib/kosztorys/settlement-rows'
@@ -37,6 +37,11 @@ const ALL_PRICE_COLUMNS: readonly string[] = ['price', ...ALL_PLANE_PRICE_KEYS]
 // diagnostic is pressed, so the id is shared between the registry and the column assembly.
 export const MEASURE_DIVERGED_CONDITION_ID = 'measure-diverged'
 
+// Named because the „Porównaj z katalogiem prac" window engages them by id — its „Pokaż w rozpisce"
+// buttons are the same gesture as picking the row from the „Problemy" menu.
+export const CATALOGUE_DIVERGENCE_CONDITION_ID = 'catalogue-price-divergence'
+export const CATALOGUE_MISSING_CONDITION_ID = 'catalogue-missing'
+
 // The rabat pair, named because the menu drops it under a global rabat — the same call the grid makes
 // for the rabat COLUMNS (column-config.ts' DISCOUNT_COLUMN_IDS). Kept beside the entries rather
 // than restated in the menu, so adding a third rabat condition cannot leave the two lists disagreeing.
@@ -71,10 +76,13 @@ function settledAtPercentRate(
   )
 }
 
+// Names the gesture that closes it, in the words the grid uses for it: the fix is switching the
+// column „Źródło ceny wykonawcy" to „kwota stała", not typing a number into some other cell — and
+// „wpisz ręcznie" sent the owner looking for a field that does not exist.
 const percentRateProblemLabel = (plane: ToolPlaneT, count: number) =>
   `Stawki wykonawców liczone według formuły — ta inwestycja ma materiały wliczone w robociznę, ` +
-  `więc stawki liczone ze współczynnika będą zawyżone i powinny być wpisane ręcznie ` +
-  `(widok ${PLANE_LABELS[plane].toLowerCase()}, ${count})`
+  `więc stawki liczone ze współczynnika będą zawyżone; ustaw „Źródło ceny wykonawcy" na „kwota stała" ` +
+  `(${count})`
 
 /**
  * Every rule-based way the editor hides a row, in display order. Text search is deliberately not
@@ -146,7 +154,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   // pricing, which is exactly the mistake „Zwiń puste sekcje" made with unpriced sections.
   {
     id: 'manual-rate-w-tools',
-    label: `ze stawką wykonawcy z kwoty stałej w widoku ${PLANE_LABELS.w_tools.toLowerCase()}`,
+    label: 'ze stawką wykonawcy z kwoty stałej' + planeViewSuffix('w_tools'),
     sectionLabel: null,
     kind: 'filter',
     plane: 'w_tools',
@@ -155,7 +163,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   },
   {
     id: 'formula-rate-w-tools',
-    label: `ze stawką wykonawcy „auto" w widoku ${PLANE_LABELS.w_tools.toLowerCase()}`,
+    label: 'ze stawką wykonawcy „auto"' + planeViewSuffix('w_tools'),
     sectionLabel: null,
     kind: 'filter',
     plane: 'w_tools',
@@ -164,7 +172,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   },
   {
     id: 'manual-rate-own-tools',
-    label: `ze stawką wykonawcy z kwoty stałej w widoku ${PLANE_LABELS.own_tools.toLowerCase()}`,
+    label: 'ze stawką wykonawcy z kwoty stałej' + planeViewSuffix('own_tools'),
     sectionLabel: null,
     kind: 'filter',
     plane: 'own_tools',
@@ -173,7 +181,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   },
   {
     id: 'formula-rate-own-tools',
-    label: `ze stawką wykonawcy „auto" w widoku ${PLANE_LABELS.own_tools.toLowerCase()}`,
+    label: 'ze stawką wykonawcy „auto"' + planeViewSuffix('own_tools'),
     sectionLabel: null,
     kind: 'filter',
     plane: 'own_tools',
@@ -223,6 +231,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     // away — that is the bug „Zwiń puste sekcje" had.
     sectionLabel: null,
     kind: 'diagnostic',
+    problemGroup: 'client-price',
     tone: 'defect',
     // The executed quantity alongside the price cells: engaging a problem that says „praca wykonana"
     // and showing no column carrying that work leaves the claim unverifiable on screen.
@@ -236,6 +245,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'bez ceny j.m. i bez wykonanej pracy',
     sectionLabel: null,
     kind: 'diagnostic',
+    problemGroup: 'client-price',
     tone: 'defect',
     revealsColumns: ALL_PRICE_COLUMNS,
     // The only hand-typed price; the subcontractor planes derive from it through the coefficients.
@@ -252,6 +262,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     // Folding a whole sekcja because its prices diverge would hide the very wycena being questioned.
     sectionLabel: null,
     kind: 'diagnostic',
+    problemGroup: 'client-price',
     tone: 'worklist',
     // A whole sentence rather than „Pozycje …": the subject is the praca, not the pozycja, and the
     // pozycje are what you get to look at once you press it.
@@ -262,6 +273,34 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     revealsColumns: ALL_PRICE_COLUMNS,
     matches: (row, ctx) => ctx.divergentPriceRowIds.has(row.id),
   },
+  // The two katalog verdicts. „worklist" for the same reason as the row above: the cennik is a
+  // reference, not a law — a rozpiska is allowed to price a praca its own way — so both rows name
+  // work to look through. Kept apart because they differ in what there is to show: a rozjazd liczb
+  // is read in the price columns, a praca the cennik never heard of has nothing to reveal.
+  {
+    id: CATALOGUE_DIVERGENCE_CONDITION_ID,
+    label: 'z innymi liczbami niż w katalogu prac',
+    sectionLabel: null,
+    kind: 'diagnostic',
+    problemGroup: 'catalogue',
+    tone: 'worklist',
+    problemLabel: (count) => `Inne liczby niż w katalogu prac (${count})`,
+    // Every price column, like the divergence row above: the cena j.m. is assembled on „Inwestor"
+    // only, so naming it alone would reveal nothing from a subcontractor view — where the derived
+    // stawka is the disagreement's only visible trace.
+    revealsColumns: ALL_PRICE_COLUMNS,
+    matches: (row, ctx) => ctx.catalogueRowIds?.divergent.has(row.id) ?? false,
+  },
+  {
+    id: CATALOGUE_MISSING_CONDITION_ID,
+    label: 'spoza katalogu prac',
+    sectionLabel: null,
+    kind: 'diagnostic',
+    problemGroup: 'catalogue',
+    tone: 'worklist',
+    problemLabel: (count) => `Brak w katalogu prac (${count})`,
+    matches: (row, ctx) => ctx.catalogueRowIds?.missing.has(row.id) ?? false,
+  },
   {
     id: MEASURE_DIVERGED_CONDITION_ID,
     // „do rozpisania", not „z rozjazdem": the reference figure exists only where an old sheet was
@@ -270,6 +309,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'z pomiarem do rozpisania na etapy',
     sectionLabel: null,
     kind: 'diagnostic',
+    problemGroup: 'scope-stages',
     tone: 'worklist',
     matches: (row, ctx) => measureDiscrepancy(row, ctx.stages) != null,
   },
@@ -281,6 +321,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'z wykonaną pracą bez przedmiaru',
     sectionLabel: null,
     kind: 'diagnostic',
+    problemGroup: 'scope-stages',
     tone: 'defect',
     // The przedmiar alone: it is the missing cell, and it is where the fix is typed.
     revealsColumns: ['plannedQty'],
@@ -289,9 +330,9 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   // One entry per plane rather than one asking about the active view: a price exists on both planes for
   // every row, so a problem on the plane you are not looking at is still a problem, and one entry
   // asking about the active view would never surface the other crew's.
-  // „zbyt wysoką", naming the direction the guard actually refuses (owner, 2026-08-17): a stawka above
-  // 80% of the client price. The guard's other branch — a negative stawka — is not that, but it is
-  // typo-shaped rather than a real state of the kosztorys, so it rides along unnamed instead of
+  // „zbyt wysoką", naming the direction the guard flags (owner, 2026-08-17): a stawka over the
+  // ceiling share of the client price. The guard's other branch — a negative stawka — is not that, but
+  // it is typo-shaped rather than a real state of the kosztorys, so it rides along unnamed instead of
   // costing the label its one clear meaning.
   //
   // „w widoku …", not „— …": the plane IS a view here, and the label names where the stawka is
@@ -299,20 +340,22 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   // it, so the reader sees the judged number without switching the view out from under a click.
   {
     id: 'overpriced-w-tools',
-    label: `ze zbyt wysoką stawką wykonawcy w widoku ${PLANE_LABELS.w_tools.toLowerCase()}`,
+    label: 'ze zbyt wysoką stawką wykonawcy' + planeViewSuffix('w_tools'),
     sectionLabel: null,
     kind: 'diagnostic',
+    problemGroup: 'subcontractor-rate-w-tools',
     tone: 'defect',
     plane: 'w_tools',
     revealsColumns: priceColumnsFor('w_tools'),
-    // The guard, not a restatement of the 80% rule: the filter and the red cell must never disagree.
+    // The guard, not a restatement of the ceiling: the filter and the red cell must never disagree.
     matches: (row) => checkSubcontractorPrice(row, 'w_tools') != null,
   },
   {
     id: 'overpriced-own-tools',
-    label: `ze zbyt wysoką stawką wykonawcy w widoku ${PLANE_LABELS.own_tools.toLowerCase()}`,
+    label: 'ze zbyt wysoką stawką wykonawcy' + planeViewSuffix('own_tools'),
     sectionLabel: null,
     kind: 'diagnostic',
+    problemGroup: 'subcontractor-rate-own-tools',
     tone: 'defect',
     plane: 'own_tools',
     revealsColumns: priceColumnsFor('own_tools'),
@@ -329,9 +372,10 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   // absence too it would be counted twice in the „Problemy" list and chased twice in the grid.
   {
     id: 'no-w-tools-price',
-    label: `bez ceny wykonawcy w widoku ${PLANE_LABELS.w_tools.toLowerCase()}`,
+    label: 'bez ceny wykonawcy' + planeViewSuffix('w_tools'),
     sectionLabel: null,
     kind: 'diagnostic',
+    problemGroup: 'subcontractor-rate-w-tools',
     tone: 'defect',
     plane: 'w_tools',
     revealsColumns: priceColumnsFor('w_tools'),
@@ -339,9 +383,10 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   },
   {
     id: 'no-own-tools-price',
-    label: `bez ceny wykonawcy w widoku ${PLANE_LABELS.own_tools.toLowerCase()}`,
+    label: 'bez ceny wykonawcy' + planeViewSuffix('own_tools'),
     sectionLabel: null,
     kind: 'diagnostic',
+    problemGroup: 'subcontractor-rate-own-tools',
     tone: 'defect',
     plane: 'own_tools',
     revealsColumns: priceColumnsFor('own_tools'),
@@ -358,9 +403,10 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   // everywhere else the count is zero and the row never renders.
   {
     id: 'material-percent-rate-w-tools',
-    label: `ze stawką wykonawcy od ceny z materiałem w widoku ${PLANE_LABELS.w_tools.toLowerCase()}`,
+    label: 'ze stawką wykonawcy od ceny z materiałem' + planeViewSuffix('w_tools'),
     sectionLabel: null,
     kind: 'diagnostic',
+    problemGroup: 'subcontractor-rate-w-tools',
     tone: 'defect',
     plane: 'w_tools',
     revealsColumns: priceColumnsFor('w_tools'),
@@ -369,9 +415,10 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   },
   {
     id: 'material-percent-rate-own-tools',
-    label: `ze stawką wykonawcy od ceny z materiałem w widoku ${PLANE_LABELS.own_tools.toLowerCase()}`,
+    label: 'ze stawką wykonawcy od ceny z materiałem' + planeViewSuffix('own_tools'),
     sectionLabel: null,
     kind: 'diagnostic',
+    problemGroup: 'subcontractor-rate-own-tools',
     tone: 'defect',
     plane: 'own_tools',
     revealsColumns: priceColumnsFor('own_tools'),

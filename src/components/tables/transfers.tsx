@@ -76,7 +76,7 @@ const allColumns = [
   col.accessor('investmentName', {
     id: 'investment',
     header: 'Inwestycja',
-    meta: { minWidth: 'min-w-40', printValue: (row) => row.investmentName },
+    meta: { minWidth: 'min-w-56', printValue: (row) => row.investmentName },
     cell: (info) => {
       const id = info.row.original.investmentId
       const name = info.getValue()

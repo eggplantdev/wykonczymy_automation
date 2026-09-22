@@ -230,6 +230,13 @@ zgłaszało tam 30 prac spoza katalogu.
       **Test disposition:** no automated test — this is fixture drift in a live, shared template
       that multiple people/sessions edit, not a code defect. The matching/fold logic these checks
       exercise is unit-covered (`catalogue-key*.test.ts`, `clean-description.test.ts`).
+      **Re-confirmed 2026-09-21 on staging/preview itself** (this fixture now exists there too —
+      `kosztorys_presets` id 4 carries 1 row after today's fresh prod-dump restore, so the earlier
+      "absent on preview" blocker above no longer applies): zero-click „Porównaj z katalogiem prac"
+      on `/szablony/4` now reports **41** prac spoza katalogu (63 "inne liczby") — drifted further
+      still from the 5 seen on the prior local pass. Confirms this keeps moving with the shared
+      fixture's content, not a one-off local artifact; the **Needs human** call above stands
+      unchanged.
 - [ ] **„Popraw literówki" change count and the „only `klp`→`kpl`" claim have also drifted, but the
       button itself is correct and idempotent** — clicking it on investment 151's current data
       changes **88** rows (37 description-only, 65 unit-only, some overlapping), not the 24 checks
@@ -247,6 +254,12 @@ poprawy z 202 przejrzanych"`; (3) driving the actual button in the browser and d
       against current content, or reset the fixture to match what they describe.
       **Test disposition:** no automated test — fixture drift, not a defect; `cleanDescription` and
       `cleanUnit` are unit-tested directly.
+      **Re-confirmed 2026-09-21 on staging/preview itself** — driving the real "Popraw literówki"
+      menu item on `/szablony/4` there changed exactly **88** `kosztorys_items` rows for
+      investment 151 (`updated_at` diff confirmed by direct SQL against `DB_POSTGRES_URL_PREVIEW`),
+      an immediate second click changed **0** more, and no `klp` unit remains anywhere in that
+      investment's items (`kpl` present, `klp` absent) — the same shape as the local-pass finding
+      above, reproduced independently on preview with the identical 88-row count.
 - [x] **`m2` → `m²` w j.m. nie pochodzi z tej zmiany** — check 5 mówi „poza `klp` → `kpl`", a na
       dzisiejszym fixturze przycisk przepisuje 65 j.m., prawie wyłącznie `m2` → `m²`. To reguła
       z `src/lib/kosztorys/clean-unit.ts`, która weszła commitem `bfb1b337` („Popraw literówki"
@@ -328,13 +341,15 @@ behavior/visual change. Verified against staging
       **Test disposition:** no automated test — a CSS layout defect only a real layout engine can
       see (jsdom has none); an e2e visual check would be the right layer if one is ever authored, and
       a DOM/jsdom spec would assert nothing real.
-- [ ] **"Typ wydatku inwestycyjnego" filter-option label clips in the "Typ" popover on `/` — likely
-      pre-existing.** Minor, cosmetic; noted for completeness per the "never skip a problem because
-      out of scope" rule, not chased further this pass since it's a label-length/wrap issue unrelated
-      to the files EX-787 touched.
-      **Needs human:** low priority — confirm whether it reproduced before `b744a3b1` (not done this
-      pass) and decide if it's worth fixing now or filing.
-      **Test disposition:** no automated test — cosmetic label wrap, not a behavior defect.
+- [x] **"Typ wydatku inwestycyjnego" filter-option label clips in the "Typ" popover on `/` — could not
+      reproduce, dismissed.** Re-checked 2026-09-21 on staging (`/`, Transakcje filters) at desktop
+      (1440px) and mobile (390px, matching `sm` breakpoint): both the "Typ" popover and the "Typ
+      wydatku inwestycyjnego" popover render every option label in full at both widths — no clipping
+      or truncation of any list item text (confirmed via screenshot at each width). The only truncation
+      seen anywhere was the mobile **trigger button** itself ("Typ wydatku inwest…", expected CSS
+      ellipsis on a narrow button, not the popover content the finding named). Dismissing as
+      not-reproducible rather than filing.
+      **Test disposition:** no automated test — could not reproduce, nothing to guard.
 
 # Zamknięte — indeks
 
@@ -442,3 +457,126 @@ Pełne dowody, verbatim: `context/archive/manual-checks/2026-09-15-pelny-rejestr
 | kosztorys-section-menu-split — akcje sekcji na pasku, akcje pracy na wierszu                                             | 18/18 | 2026-09-14           |
 | transfers-server-sort — sortowanie tabeli transakcji na serwerze (2026-09-15, EX-777)                                    | 13/13 | 2026-09-15           |
 | rwd-mobile — RWD na telefonie: nawigacja, dodawanie i pokazywanie transakcji (2026-09-16, EX-785)                        | 7/7   | 2026-09-16           |
+
+## EX-802 — lead-delivery (wykonczymy half, 2026-09-21)
+
+Sprawdzenia na bazie testowej (5435). Webhook wymaga `LANDING_WEBHOOK_SECRET` i
+`LANDING_BLOB_HOST` w `.env`; kontrakt koperty: `context/reference/landing-intake-contract.md`.
+
+- [x] `/admin` → Media: kolumna „Rodzaj" jest widoczna i filtruje listę — zweryfikowano 2026-09-21 na
+      stagingu. Kolumna widoczna w tabeli z opcjami sortowania; „Dodaj filtr" domyślnie proponuje pole
+      „Rodzaj" z wartościami Faktura/Projekt/Zdjęcie/Inne — wybranie „Faktura" zmienia URL na
+      `where[kind][equals]=faktura` i zwraca „Nie znaleziono Pliki" zamiast pełnej listy 1600 wierszy,
+      co potwierdza że filtr faktycznie działa. Pusty wynik jest stanem danych, nie defektem: SQL na
+      `DB_POSTGRES_URL_PREVIEW` potwierdza `kind` jest `NULL` dla wszystkich 1600 wierszy — kolumna
+      jeszcze nie jest zasilana na tej bazie (webhook z landingu jeszcze nic tam nie zapisał).
+- [ ] Skasowanie faktury podpiętej pod transakcję jest odrzucone czytelnym polskim komunikatem
+- [ ] Inwestycja pokazuje podpięte pliki w `/admin` po akcji dodania
+- [ ] Dodanie trzech zdjęć + PDF z karty inwestycji — pojawiają się bez przeładowania
+- [ ] Dodanie zdjęcia przy tworzeniu nowej inwestycji — leży na jej karcie
+- [ ] Pasek miniatur nie przewija się w poziomie przy 375px
+- [ ] Zdjęcie HEIC z iPhone'a konwertuje się i wgrywa
+- [ ] W `/admin` zgłoszenie z Facebooka nie pokazuje trzech pól landingowych, zgłoszenie z landingu pokazuje
+- [ ] Podpisany POST JSON z `curl`, wskazujący realny URL bloba, tworzy zgłoszenie razem z plikami
+- [ ] Ten sam request powtórzony nie tworzy niczego i nie wysyła maila
+- [ ] Request z `assets[].url` spoza hosta z allowlisty jest odrzucony i alertuje
+- [ ] Request z podmienionym body jest odrzucony (403)
+- [ ] Promocja zgłoszenia z landingu od początku do końca — karta nowej inwestycji pokazuje zdjęcia klienta
+- [ ] Zgłoszenie po promocji jest „Skontaktowano" i podaje link do inwestycji zamiast przycisku
+- [ ] Odznaka nieprzeczytanych zgłoszeń w nawigacji spada o jeden
+
+## EX-802 — investment-assets-dialog (galeria bez miniatur, 2026-09-21)
+
+Zastępuje sprawdzenie „Pasek miniatur nie przewija się w poziomie przy 375px" z sekcji
+lead-delivery — na karcie inwestycji nie ma już paska miniatur (został tylko u leada).
+
+- [x] Inwestycja bez plików nie pokazuje w sekcji żadnego przycisku — dodać można tylko z „Edytuj inwestycję"
+- [x] Przycisk „Zdjęcia i pliki (N)" ma szerokość swojej treści, nie całej kolumny
+- [x] Podgląd przy N ≥ 1 ma „Dodaj kolejne", które dokłada plik bez wychodzenia z karty
+- [x] Po dodaniu pliku licznik „Zdjęcia i pliki (N)" rośnie bez przeładowania strony
+- [x] Podgląd otwiera plik, „Pobierz" zapisuje go pod właściwą nazwą, „Drukuj" otwiera podgląd wydruku
+- [x] Przy 2+ plikach „Pobierz wszystkie" daje zip o nazwie zaczynającej się od `pliki-`, nie `faktury-`
+- [x] Stopka podglądu przy 2+ plikach mówi „Usuń ten plik" + „Usuń wszystkie"; przy jednym pliku samo
+      „Usuń", bez „Usuń wszystkie" — nigdzie nie pada słowo „faktura"
+- [x] „Usuń" pyta o potwierdzenie i po potwierdzeniu plik znika z podglądu
+- [x] W obu dialogach („Nowa inwestycja" i „Edytuj inwestycję") „Status" i „Zdjęcia i pliki" stoją
+      w jednym wierszu, a przy zwężonym oknie wracają jedno pod drugie
+- [x] „Edytuj inwestycję" → „Dodaj zdjęcia lub pliki" → wybór pliku dodaje go natychmiast (toast), dialog w dialogu działa
+- [x] Zamknięcie formularza edycji przez „Anuluj" nie usuwa dodanego pliku
+- [x] Formularz „Nowa inwestycja" dalej zbiera pliki po staremu i zapisuje je razem z inwestycją
+- [x] Podgląd i dodawanie faktury w tabeli transferów działa jak przed zmianą (tytuły, pager)
+
+## katalog-problems — rozjazdy z katalogiem prac jako problemy edytora (2026-09-21)
+
+Na inwestycji z niepustą rozpiską (np. po `INV=6 … seed-kosztorys.ts`), edytor `kosztorys_v2`.
+
+- [x] Wejście na edytor bez otwierania żadnego okna: „Problemy" pokazują „Inne liczby niż w katalogu prac (N)" i „Brak w katalogu prac (M)"
+- [x] Zmiana ceny j.m. na zgodną z katalogiem zmniejsza licznik „Inne liczby…" natychmiast, bez zapisu i bez przeładowania
+- [x] Liczby w oknie „Porównaj z katalogiem prac" i w menu „Problemy" są identyczne, także po niezapisanych zmianach
+- [x] Okno otwiera się od razu z liczbami — nie pokazuje „Porównuję z katalogiem…"
+- [x] „Pokaż w rozpisce" w obu blokach zamyka okno i zawęża siatkę do właściwego zbioru pozycji
+- [x] Zawężenie na „Inne liczby…" odsłania kolumny cenowe, nawet jeśli były odznaczone w wyborze kolumn — zweryfikowano 2026-09-21 na stagingu (inw. 137, widok „Inwestor", zawężenie włączone): nagłówek siatki niesie „Cena j.m. netto" obok obu stawek podwykonawców.
+- [x] „Dodaj do katalogu" na pracy spoza cennika zmniejsza licznik „Brak w katalogu" bez utraty niezapisanych wierszy
+- [x] Podgląd szablonu / tryb tylko-do-odczytu: raport widoczny, brak „Dodaj do katalogu", „Edytuj w katalogu" i „Pokaż w rozpisce" (zweryfikowano na zablokowanej inwestycji — status `completed`, inw. 106 — `readOnly = preview || locked`; klient-facing „Widok inwestora"/`/podglad-inwestora` nie renderuje paska „Problemy" wcale, więc ta ścieżka nie dotyczy tego checka)
+
+### Findings — 2026-09-21
+
+- [x] ~~**Zawężenie na „Inne liczby niż w katalogu prac" nie odsłania bazowej kolumny „Cena j.m. netto" na widoku inwestora.**~~ **Fałszywy alarm — odrzucone 2026-09-21.** Pomiar był robiony na widoku **„Z narzędziami"**, nie „Inwestor" (przełącznik widoku cen to `role="radio"`; w chwili obserwacji „Z narzędziami" miało `data-state="on"`). Na widoku podwykonawcy bazowa „Cena j.m. netto" **nie jest w ogóle składana** — `kosztorys-v2-columns.tsx` daje `view === 'client' ? [price, ...plany] : plany` — więc nie ma czego odsłaniać, i to jest projekt, nie defekt; dokładnie dlatego warunek odsłania WSZYSTKIE kolumny cenowe (komentarz przy `revealsColumns` w `row-conditions/registry.ts`). Dwa dowody: (1) spec na `buildV2Columns` z `view: 'client'`, `isHidden: () => true` i `revealedColumnIds` z `columnsRevealedBy([CATALOGUE_DIVERGENCE_CONDITION_ID])` przepuszcza `price` — miał czerwienić, jest zielony; (2) ta sama siatka na stagingu po przełączeniu na „Inwestor" niesie w nagłówku „Cena j.m. netto". `keep()` w `column-selection.ts` jest poprawne: bramka `PRZEDMIAR_ANCHORED_COLUMNS` działa tylko przy `view !== 'client'`, a `price` siedzi w `AXIS_EXEMPT_COLUMNS`, więc `axisAllows` zawsze przepuszcza. **Bez zmian w kodzie i bez regresji** — nie ma defektu do przykrycia.
+
+## catalogue-compare-bulk-update — hurtowa aktualizacja rozpiski z katalogu (2026-09-21)
+
+Inwestycja z niepustą rozpiską i rozjazdami wobec katalogu (w lokalnym dumpie: inw. 151), okno
+„Porównaj z katalogiem prac" w edytorze `kosztorys_v2`.
+
+- [ ] Nie ma już wiersza „Malowanie sufitu w kolor — Stawka bez narzędzi: 14,88 zł / 14,88 zł / −0,01 zł", a licznik różnic spada o jeden
+- [ ] Wiersze, gdzie katalog nie podaje stawki, mają w kolumnie „Katalog" słowo „auto", nie złotówki; ich „Różnica" jest szara
+- [ ] Licznik „Problemy" rośnie dokładnie o tyle wierszy „zamrożona ↔ auto o tej samej kwocie", ile widać w raporcie, i żaden wiersz nie zniknął
+- [ ] Zaznaczenie pojedynczej liczby i „Aktualizuj kosztorys (1)" zmienia dokładnie tę jedną liczbę, wiersz znika z raportu, okno zostaje otwarte, licznik „Pokaż N różnic" maleje o jeden
+- [ ] Zaznaczenie wszystkiego i zapis zostawia blok „Inne liczby niż w katalogu" pusty
+- [ ] Sortowanie i filtry ustawione w rozpisce przed otwarciem okna przeżywają zapis (siatka się nie remountuje)
+- [ ] W „Wersje" jest wpis z chwili tuż przed zapisem, a przywrócenie go cofa cały hurt
+- [ ] Aktualizacja wiersza, gdzie katalog mówi „auto", kasuje nadpisanie — praca liczy się z globalnego współczynnika i na siatce pokazuje cenę pochodną
+- [ ] Zaznaczenie stawki, która po scaleniu przekracza 65 % ceny, pokazuje znacznik przy wierszu jeszcze przed zapisem; odznaczenie znacznik gasi
+- [ ] Praca „Montaż syfonów (kpl)" pokazuje kandydata „Montaż syfonów (szt)" z komunikatem o j.m. („ta sama nazwa, inna j.m."), nie o nazwie
+- [ ] Kliknięcie kandydata przepisuje opis i j.m.; praca znika z „Brak w katalogu" i pojawia się w „Inne liczby niż w katalogu" (albo w „Zgodne z katalogiem")
+- [ ] „inny…" otwiera wyszukiwarkę po całym katalogu i wybór z niej działa tak samo
+- [ ] Ceny pracy nie zmieniają się przy przyjęciu nazwy
+- [ ] Tryb tylko-do-odczytu: raport i kandydaci widoczni jako tekst, brak checkboxów, przycisku „Aktualizuj kosztorys" i klikalnych kandydatów
+
+## fullscreen-zoom-preview
+
+Sprawdzone na staging (deploy `e5ae5ee5`, Playwright, 1440×900 i 375×812), 2026-09-21.
+
+### Phase 1: Pełny ekran
+
+- [x] Okno zajmuje cały ekran na 1440-tce; obrazek dopasowany, bez pasa pustki pod spodem.
+- [x] Poniżej 768 px nic się nie zmieniło — płachta jak dotąd.
+- [x] PDF w `<iframe>` wypełnia okno. — geometria zgodna (1392×714 w oknie 1440×900); samego
+      renderu PDF nie da się ocenić w headless shell, który nie ma czytnika PDF.
+
+### Phase 2: Zoom na obrazku
+
+- [x] Kółko, pinch i dwuklik przybliżają; przeciąganie przesuwa kadr. — kółko do 8×, dwuklik do
+      1,7×, przeciąganie przesuwa kadr; pinch niesprawdzalny bez dotyku.
+- [x] „Dopasuj" wraca do 1× z dowolnego kadru.
+- [x] Chevron na następny plik otwiera go w 1×, wycentrowany.
+- [x] Przy PDF-ie nie ma przycisków zoomu.
+- [x] Wydruk, „Pobierz wszystkie" i „Usuń plik" dalej dotyczą właściwej strony. — zestaw przycisków
+      i tytuł („2/2") zgadzają się ze stroną; usuwania nie klikałem, bo na preview DB kasuje
+      prawdziwą fakturę.
+
+### Phase 3: Oryginał przy powiększeniu
+
+- [x] W Network po pierwszym powiększeniu leci żądanie na URL Bloba, nie na `/_next/image`.
+- [x] Rzut ze zgłoszenia jest w powiększeniu czytelny (linie wymiarowe), nie rozmyty.
+- [x] Przy `unoptimized` z góry (podgląd niewysłanego jeszcze pliku) nic się nie psuje.
+
+### Po slice review (globalna jakość obrazków)
+
+- [x] Miniatury w `media-strip` i logo w topbarze wyglądają poprawnie i nie sypią 400 w Network
+- [x] Po powiększeniu na wolnym łączu nie ma długiej pustki bez żadnego sygnału, a gdy oryginał
+      nie wczyta się — widać, że coś poszło nie tak. — **było zepsute**: podmiana `src` gasiła
+      rendition, więc przez cały czas pobierania (6 s na dławionym łączu) i na zawsze przy błędzie
+      okno było puste, bez spinnera i komunikatu. Naprawione w `zoomable-preview-image.tsx`
+      (spinner na czas pobierania oryginału, powrót do renditionu + komunikat przy błędzie),
+      regresję pilnuje spec w `invoice-preview-dialog.test.tsx`.

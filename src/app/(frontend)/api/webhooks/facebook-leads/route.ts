@@ -3,7 +3,7 @@ import { revalidateTag } from 'next/cache'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { serverEnv } from '@/lib/env/server'
-import { CACHE_TAGS } from '@/lib/cache/tags'
+import { CACHE_TAGS, EXPIRE_NOW } from '@/lib/cache/tags'
 import { verifySignature } from '@/lib/leads/verify-signature'
 import { fetchLead } from '@/lib/leads/fetch-lead'
 import { fetchForm, type LeadFormT } from '@/lib/leads/fetch-form'
@@ -38,7 +38,12 @@ export async function POST(request: NextRequest) {
   const raw = await request.text()
 
   if (
-    !verifySignature(raw, request.headers.get('x-hub-signature-256'), serverEnv.META_APP_SECRET)
+    !verifySignature(
+      raw,
+      request.headers.get('x-hub-signature-256'),
+      serverEnv.META_APP_SECRET,
+      'meta',
+    )
   ) {
     console.warn('[facebook-leads] Signature verification failed — rejecting')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -119,7 +124,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  if (captured > 0) revalidateTag(CACHE_TAGS.leads, 'default')
+  if (captured > 0) revalidateTag(CACHE_TAGS.leads, EXPIRE_NOW)
 
   // Non-200 tells Meta to retry, so only a recoverable error reaches it — a malformed body already
   // acked 200 above, since retrying can't fix it.

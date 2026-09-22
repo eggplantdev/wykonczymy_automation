@@ -8,7 +8,7 @@ import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 // Wstawianie prac z katalogu, against the REAL DB and asserting the PERSISTED rows. Three things
 // are invisible from the return value and all three have bitten this codebase before: N rows must
 // get N DISTINCT display_orders (insertItems remaps RETURNING ids by (section_id, display_order)
-// and degrades to positional on a tie), both stawki must land as FROZEN amounts, and the 80%
+// and degrades to positional on a tie), both stawki must land as FROZEN amounts, and the 65%
 // ceiling must warn without refusing the write.
 //
 // Same mock surface as the sibling action specs: requireAuth needs a request/cookie we lack in node,
@@ -154,7 +154,7 @@ describe.skipIf(!ENV_READY)('insertCatalogueItemsAction (DB)', () => {
     expect(Number(row.planned_qty)).toBe(0)
   })
 
-  it('praca „auto" ląduje bez nadpisania i nie budzi pułapu 80%', async () => {
+  it('praca „auto" ląduje bez nadpisania i nie budzi pułapu 65%', async () => {
     const sectionId = await createSection()
     const id = await createCatalogueItem(`Auto ${suffix}`, {
       clientPrice: 100,
@@ -187,7 +187,7 @@ describe.skipIf(!ENV_READY)('insertCatalogueItemsAction (DB)', () => {
     ])
   })
 
-  it('stawka ponad 80% ceny klienta wchodzi i wraca jako ostrzeżenie', async () => {
+  it('stawka ponad 65% ceny klienta wchodzi i wraca jako ostrzeżenie', async () => {
     const sectionId = await createSection()
     const id = await createCatalogueItem(`Droga ${suffix}`, {
       clientPrice: 100,

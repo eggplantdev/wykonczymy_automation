@@ -3,7 +3,8 @@ import { resolveId } from '@/lib/utils/resolve-id'
 import type { TransferTypeT, PaymentMethodT, VatPlaneT } from '@/lib/constants/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import type { MediaInfoT } from '@/lib/queries/media'
-import { resolveInvoiceFiles, type InvoiceFieldT } from '@/lib/invoices/invoice-field'
+import { resolveInvoiceFiles } from '@/lib/invoices/invoice-field'
+import type { UploadFieldT } from '@/lib/media/upload-field'
 import type { TransferRowT } from '@/types/transfers'
 
 type NameMapT = Map<number, string>
@@ -58,7 +59,7 @@ export type TransferDocT = {
   worker?: RelationIdT
   createdBy?: RelationIdT
   createdAt: string
-  invoice?: InvoiceFieldT
+  invoice?: UploadFieldT
   invoiceNote?: string | null
   cancelled?: boolean | null
   settled?: boolean | null

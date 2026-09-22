@@ -7,6 +7,7 @@ import {
   pickComboOption,
   refreshReferenceData,
   runSeedScript,
+  settleWrite,
   uniqueAmount,
   waitForHydration,
 } from './helpers'
@@ -85,7 +86,12 @@ async function readDepositRows(page: Page): Promise<DepositRowT[]> {
     .locator('div[style*="grid-template-columns"]')
     .filter({ hasText: 'Forma wpłaty' })
     .first()
-  await grid.waitFor()
+  // An investment with no wpłaty renders „Brak wpłat." and no grid at all, which is a reading this
+  // spec asserts („Popraw" leaves none behind) — waiting for the grid there would spend the whole
+  // budget proving the empty state is empty.
+  const empty = page.getByText('Brak wpłat.')
+  await expect(grid.or(empty).first()).toBeVisible()
+  if (await empty.isVisible()) return []
   return grid.evaluate((node) => {
     const cells = Array.from(node.children) as HTMLElement[]
     const rows: DepositRowT[] = []
@@ -120,7 +126,9 @@ test('a cash deposit on a gross-settled investment is warned about, then persist
 
   const confirm = page.getByRole('alertdialog')
   await expect(confirm).toContainText('Ta wpłata nie policzy się w rozliczeniu')
-  await confirm.getByRole('button', { name: 'Zapisz mimo to' }).click()
+  // Awaited to the action's response, not to the dialog closing: the submit is fire-and-forget over
+  // an optimistic store, so `openSummary`'s navigation below would abort the write it reads back.
+  await settleWrite(page, () => confirm.getByRole('button', { name: 'Zapisz mimo to' }).click())
   // The form dialog closes only on a successful action — the owner's „yes" reached the write.
   await expect(dialog).toBeHidden()
 
@@ -177,7 +185,7 @@ test('a transfer on a net-settled investment is flagged but never stops to ask',
   // After the brutto, because typing it suggests a netto at the investment's stawka — the faktura's
   // own netto is what gets stored, so it is typed last and overwrites the suggestion.
   await dialog.getByLabel('Kwota netto z faktury (PLN)').fill(net.toFixed(2))
-  await dialog.getByRole('button', { name: 'Dodaj', exact: true }).click()
+  await settleWrite(page, () => dialog.getByRole('button', { name: 'Dodaj', exact: true }).click())
 
   // The form dialog cannot close while a confirm is unanswered, so its closing IS the proof that
   // none was raised — and it is a wait, not a snapshot, so it cannot pass by looking too early.

@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { parseDecimalInput } from '@/lib/utils/parse-decimal-input'
 
 // A blank „Cena j.m." must be refused HERE rather than by the domain schema below: `Number('')` is 0,
-// so it would otherwise save a 0 zł pozycja — and a 0 zł cena also silences the 80% ceiling for that
+// so it would otherwise save a 0 zł pozycja — and a 0 zł cena also silences the ceiling for that
 // row, since a share of nothing has no value to show. Validating the string means the owner gets
 // „jest wymagana" under the field he left empty, instead of the domain layer's „musi być liczbą"
 // (true of a NaN, nonsense about a blank) arriving as a toast after the write was already attempted.

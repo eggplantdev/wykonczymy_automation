@@ -2,10 +2,12 @@ import { test, expect, type Page } from '@playwright/test'
 import { formatNet } from '@/lib/kosztorys/format'
 import {
   collapseSummaryPanel,
-  expandSummaryPanel,
+  commitCellValue,
   editorCell,
+  expandSummaryPanel,
   readListingFigure,
   seedReconInvestments,
+  settleWrite,
   type ReconSeedT,
 } from './helpers'
 
@@ -41,9 +43,11 @@ async function setStageQty(page: Page, investmentId: number, qty: number): Promi
   await collapseSummaryPanel(page)
 
   const cell = await editorCell(page, 'Etap 1')
-  await cell.click()
-  await cell.locator('input').fill(String(qty))
-  await page.keyboard.press('Enter')
+  // The autosave is debounced and the panel below recomputes from the grid's own state, so the panel
+  // alone cannot tell „the server has it" from „the grid thinks so". The action's response can.
+  await settleWrite(page, async () => {
+    await commitCellValue(cell, String(qty))
+  })
 
   // The write is a server action fired from the grid. Confirm it landed HERE — otherwise a listing
   // that never moved could mean the edit never happened, and the spec would blame the cache.

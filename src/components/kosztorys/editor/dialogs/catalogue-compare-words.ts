@@ -6,6 +6,13 @@ import { itemNoun } from '@/lib/kosztorys/counted-nouns'
 // to depart from the cennik, and a report that called that an error would be lying about which of
 // the two is the authority.
 
+// Why there is no report at all. Two reasons reach this line and they send the owner to two
+// different places, so „brak katalogu" over an empty rozpiska would be a false lead.
+export const emptyReportReason = (catalogueSize: number) =>
+  catalogueSize === 0
+    ? 'Brak katalogu prac do porównania.'
+    : 'Ten kosztorys nie ma jeszcze pozycji do porównania.'
+
 export const matchingVerdict = (count: number) =>
   count === 0
     ? 'Żadna praca nie zgadza się z katalogiem co do wszystkich trzech liczb.'

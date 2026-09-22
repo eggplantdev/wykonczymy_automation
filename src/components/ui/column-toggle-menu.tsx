@@ -77,7 +77,7 @@ export function ColumnToggleMenu({
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className={cn('gap-1.5', className)}>
+          <Button variant="outline" size="sm" className={className}>
             <Settings2 />
             {badgeCount > 0 ? `Kolumny (${badgeCount})` : 'Kolumny'}
           </Button>

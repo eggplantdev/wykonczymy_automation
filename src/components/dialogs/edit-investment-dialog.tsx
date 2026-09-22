@@ -43,6 +43,7 @@ export function EditInvestmentDialog({ investment, showLabel }: EditInvestmentDi
           onSubmitSuccess={onSubmitSuccess}
           keepOpen={keepOpen}
           persistDraft={false}
+          assetsInvestmentId={investment.id}
         />
       )}
     </FormDialog>

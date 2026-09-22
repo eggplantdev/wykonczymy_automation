@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-// Form-input layer: every field is a string as the HTML controls produce them.
+// Form-input layer: every field is a string, as the HTML controls produce them.
 export const investmentFormSchema = z.object({
   name: z.string().min(1, 'Nazwa jest wymagana'),
   address: z.string(),
@@ -31,6 +31,12 @@ export const investmentSchema = investmentFormSchema.extend({
   contactPerson: z.string().optional().default(''),
   notes: z.string().optional().default(''),
   review: z.string().optional().default(''),
+  // Not a form value — no control collects it. The files are uploaded before submit and the ids
+  // ride in on the action call (`submitWithInvoicePages`), so only the domain layer knows the field.
+  assets: z.array(z.number()).optional().default([]),
 })
 
-export type InvestmentFormDataT = z.infer<typeof investmentSchema>
+// `z.input`, not `z.infer`: `assets` is supplied by the submit wrapper rather than by the form, so
+// a caller must be allowed to omit it. The action re-parses with `investmentSchema`, which is where
+// the defaults land.
+export type InvestmentFormDataT = z.input<typeof investmentSchema>

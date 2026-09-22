@@ -13,8 +13,8 @@ import { waitForHydration } from './helpers'
  */
 export async function mintShareToken(page: Page, investmentId: number): Promise<string> {
   await page.goto(`/inwestycje/${investmentId}/kosztorys_v2`)
-  // „Udostępnij" lives in „Widok inwestora", not „Opcje" — serving the client is its own menu.
-  const investorMenu = page.getByRole('button', { name: 'Widok inwestora' })
+  // „Udostępnij" lives in „Inwestor", not „Opcje" — serving the client is its own menu.
+  const investorMenu = page.getByRole('button', { name: 'Inwestor' })
   await investorMenu.waitFor()
   await waitForHydration(investorMenu)
   await investorMenu.click()

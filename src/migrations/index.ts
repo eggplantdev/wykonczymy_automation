@@ -88,6 +88,9 @@ import * as migration_20260914_0_add_szablon_investment_status from './20260914_
 import * as migration_20260914_1_szablon_workshop_constraints from './20260914_1_szablon_workshop_constraints'
 import * as migration_20260914_2_snapshot_template_preset from './20260914_2_snapshot_template_preset'
 import * as migration_20260915_0_transactions_amount_sort_index from './20260915_0_transactions_amount_sort_index'
+import * as migration_20260921_0_media_kind from './20260921_0_media_kind'
+import * as migration_20260921_1_investments_assets from './20260921_1_investments_assets'
+import * as migration_20260921_2_leads_landing from './20260921_2_leads_landing'
 
 export const migrations = [
   {
@@ -539,5 +542,20 @@ export const migrations = [
     up: migration_20260915_0_transactions_amount_sort_index.up,
     down: migration_20260915_0_transactions_amount_sort_index.down,
     name: '20260915_0_transactions_amount_sort_index',
+  },
+  {
+    up: migration_20260921_0_media_kind.up,
+    down: migration_20260921_0_media_kind.down,
+    name: '20260921_0_media_kind',
+  },
+  {
+    up: migration_20260921_1_investments_assets.up,
+    down: migration_20260921_1_investments_assets.down,
+    name: '20260921_1_investments_assets',
+  },
+  {
+    up: migration_20260921_2_leads_landing.up,
+    down: migration_20260921_2_leads_landing.down,
+    name: '20260921_2_leads_landing',
   },
 ]

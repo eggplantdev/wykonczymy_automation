@@ -1799,3 +1799,222 @@ is the test of the test, and skipping it is how a decorative assertion gets comm
   (`unzip trace.zip`, parse `test.trace` for the API call timeline and the RSC payloads under
   `resources/`) which records what actually ran.
 - **Applies to**: every long E2E run in a tree more than one agent writes to.
+
+## An x86_64 package manager hands Rosetta down the WHOLE process tree — so `pnpm test:e2e` ran the browser emulated, and every hydration wait in the suite was measuring the emulator
+
+- **Context**: 32 E2E specs, authored and code-reviewed, that could not be brought to green. Tests took
+  2–5 minutes each, `waitForHydration` regularly gave up after its full 20 s, and `investment-lock`
+  failed deterministically because `collapseSummaryPanel` dispatched a click at a button React had not
+  claimed yet.
+- **Problem**: pnpm on this machine is the x86_64 `@pnpm/exe` build (`npm_config_user_agent` →
+  `pnpm/10.27.0 … darwin x64`), so it runs under Rosetta. macOS propagates that binary preference to
+  every descendant, and Google Chrome is a universal binary — so the renderer launched **translated**,
+  even though the `node` in between is arm64-only and reports `process.arch === 'arm64'`. Measured on
+  one machine, seconds apart: `Code Type: ARM64` vs `X86-64 (translated)`, a bare JS loop 303 ms vs
+  1211 ms, `domInteractive` on the editor 86 ms vs 6477 ms, hydration 0,3 s vs 20 s. `investment-lock`
+  then went from a 1,4-minute failure to an 11,9-second pass with no change to the spec.
+- **Rule**: when a browser suite is uniformly slow, measure INSIDE the browser before tuning the suite.
+  A pure CPU loop in `page.evaluate` and `vmmap --summary <renderer pid> | grep 'Code Type'` separate
+  „our page is heavy" from „the renderer is emulated" in one command each. `e2e/chrome-arm64.sh` pins
+  Chrome with `arch -arm64` so the fix holds whoever invokes Playwright.
+- **Applies to**: any universal-binary tool spawned under a translated parent on Apple Silicon — and to
+  the whole class of „the harness is slow" conclusions, three of which this cost us: the 3000×1400
+  viewport and the trace screenshots were both measured innocent (difference inside the noise), and the
+  server was never implicated at all — TTFB stayed at 20–500 ms throughout a run whose every action
+  took ten seconds.
+
+## An optimistic UI plus a fire-and-forget server action means the DOM is never evidence of a write — and a `page.reload()` taken on it ABORTS the write it meant to verify
+
+- **Context**: nine of thirteen E2E failures left after the Rosetta fix, all the same shape: the spec
+  performed a write, saw the UI change, reloaded, and found the old value. `kosztorys-deletes` was the
+  worked example — the row vanished on click, and after the reload it was back.
+- **Problem**: the app is optimistic in two layers. The grid drops a deleted row before the action is
+  sent, a typed cell is committed to the visible state 700 ms of autosave debounce before its POST
+  exists at all, and `useFormSubmit`'s optimistic branch closes the dialog and hands the action to a
+  store that nobody awaits. So „the row is gone" / „the cell says 150" is a statement about the user's
+  intent, never about Postgres. Reloading on that signal does two harmful things at once: it **aborts**
+  the in-flight action's request (trace: one `next-action` POST at `time=-1ms`, the delete 671 ms long
+  against a reload issued 489 ms after the click), and it renders the new document from a read that
+  raced the write — which the grid then keeps forever, because it seeds its rows into `useState` at
+  mount and a later `router.refresh()` cannot correct an already-mounted grid. The suite only ever
+  passed because the emulated browser lost every one of those races.
+- **Rule**: wait for the WRITE, not for its paint. `settleWrite` (`e2e/helpers.ts`) registers a
+  `page.waitForResponse` on the action's POST — Next marks every one with a `next-action` header —
+  **before** running the write, which is what lets it cover an autosave that has not been sent yet, and
+  the response's arrival is the proof: Next flushes an action's headers only once the action function
+  has returned. Await the response, never `response.finished()` unbounded — some actions leave their
+  RSC stream open long after the write landed and two specs spent 5 and 6 minutes there.
+- **Applies to**: every E2E write in this app, and to any optimistic UI. The tell is a spec that
+  reloads or navigates right after an interaction and reads back a figure.
+
+## `expect(...).toPass()` never ABORTS the attempt it is waiting on — so one inner call left on the default timeout turns a retry loop into a single attempt
+
+- **Context**: the last failure of the E2E suite after the Rosetta and optimistic-write fixes. A
+  30-second `toPass` loop around „click the Podsumowanie toggle until the panel reports `open`" failed
+  with `Timeout 30000ms exceeded while waiting on the predicate` — and the trace showed the loop had
+  run **once**. The dispatched click was still waiting for its locator when the loop's deadline passed,
+  1,6 s into the test, and the page it was waiting on was healthy again a second later.
+- **Problem**: `toPass` polls the callback, but it cannot cancel a call already in flight — it waits
+  for the callback to return before deciding whether to retry. Every Playwright call inside it carries
+  the config's own `actionTimeout` / default (45 s here), which is LONGER than the loop. So the first
+  attempt owns the whole budget, the retry the loop exists for never happens, and the report blames the
+  predicate rather than the one call that hung. The failure mode is invisible in the source: the code
+  reads like „try this fifteen times".
+- **Rule**: inside a `toPass`, every inner call gets an explicit timeout a small fraction of the loop's
+  — `getAttribute(name, { timeout: 2_000 })`, `dispatchEvent('click', undefined, { timeout: 2_000 })`,
+  `click({ timeout: 2_000 })`. Then a transient absence costs one attempt instead of the test. The
+  three loops in `e2e/helpers.ts` (`settleSummaryPanel`, `openTransferFilters`, `pickKosztorysOption`)
+  are the pattern.
+- **Applies to**: any Playwright retry wrapper, and to the same shape elsewhere — a timeout nested
+  inside a shorter timeout is a lie unless the inner one is the smaller of the two.
+
+## A link prefetch can re-poison an `unstable_cache` entry AFTER the action expired its tag — so a write's own `router.refresh()` legitimately renders pre-write data
+
+- **Context**: two `invoice-ingest` specs failed in a loaded full-suite run and passed alone. The row
+  kept offering „Dodaj fakturę" after an upload that had demonstrably landed: `media` held the file and
+  `transactions_rels` linked it to the transaction, yet the RSC payload of the upload's own
+  `router.refresh()` carried `"invoices":[]` for that row — and a plain curl of the same page a minute
+  later showed the faktura.
+- **Problem**: the list read is an `unstable_cache` entry (`findTransfersRaw`, tag `CACHE_TAGS.transfers`)
+  and `protectedAction` expires that tag with `updateTag` when the action returns. A **prefetch** whose
+  server render began BEFORE the write finishes afterwards and writes its stale rows into the entry —
+  i.e. after the invalidation, so the invalidation does not cover it. The refresh then reads a freshly
+  poisoned entry, and the row keeps its pre-write face until something else invalidates the tag. Next's
+  link prefetching makes this reachable by a user, not only by a test: hover a link, save, look back.
+- **Rule**: never treat a write's own `router.refresh()` as proof in a test — assert after „Odśwież
+  dane" (`refreshData` in `e2e/helpers.ts`), which is `revalidatePath('/', 'layout')` and clears every
+  entry at once. In the product this is a real, if narrow, race; the honest fix is a cache whose write
+  is rejected when the entry's tag was invalidated after the render began, which `unstable_cache` does
+  not offer — filed as **EX-808**.
+- **Applies to**: every cached read behind a tag-invalidated mutation — the tell is „it's in the DB but
+  the page says otherwise, and one more navigation fixes it".
+
+## An exit animation keeps content mounted, so `toBeVisible()` passes on a section that is already closing — a blind toggle click bought this test a 200 ms window it won by 1 ms
+
+- **Context**: `client-share`'s investor-expenses test, the last failure of the suite. It failed at the
+  final assertion with the „Lista wydatków" section collapsed in the snapshot, although every earlier
+  assertion against the same content had passed.
+- **Problem**: the spec clicked the section's trigger to „open" it. `CollapsibleSection` is
+  `defaultOpen` — so the click CLOSED it. Radix keeps `Collapsible.Content` mounted for the duration of
+  the exit animation, and ours is `collapse-up 200ms`; the trace shows the six assertions that followed
+  finishing **199 ms** after the click. The test had always been winning that race by a millisecond,
+  and a loaded machine lost it. Everything downstream — a click logged as done that nothing received,
+  „element was detached from the DOM" on the download button — was this one fact in disguise.
+- **Rule**: never blind-click a toggle to reach a state. Read the state (`aria-expanded`) and click
+  only when it disagrees, then assert the state before using the content. A bare `toBeVisible()` on
+  animated content answers „is it on screen now", never „will it still be there".
+- **Applies to**: every Radix disclosure in the suite, and to any assertion made inside an exit
+  animation's window.
+
+## A click issued while React is tearing a dialog down is accepted, reported as done, and dropped
+
+- **Context**: `transfer-sum-tile` opened the „Wydatek" dialog twice; the second one never appeared and
+  the spec spent its whole 45 s waiting for a title that would never render.
+- **Rule**: a trigger clicked right after a dialog closed needs an idempotent bounded retry, not a
+  longer wait — `openExpenseDialog` (`e2e/helpers.ts`) loops „if the title isn't up, click again",
+  every inner call bounded at 2 s per the `toPass` lesson above.
+- **Applies to**: any second interaction with a control whose neighbour just unmounted.
+
+## A „wait for the write" that matches by shape resolves on the WRONG write when several are in flight
+
+- **Context**: `kosztorys-grid-writes` typed three cells without awaiting each save — deliberately, so
+  their 500 ms debounces overlap, which is the coalescing the test measures — and wrapped only the last
+  one in `settleWrite`. After the reload, cell two read 0.
+- **Problem**: `settleWrite` resolves on the first response whose request carries a `next-action`
+  header, and in a burst that is an EARLIER cell's save. The trace is unambiguous: three cells typed,
+  **one** POST (cell one's debounce, firing 500 ms after its Enter), the reload taken 100 ms after that
+  response, and the two debounces still pending killed by the unmount — `useDebouncedSave` clears every
+  pending timer on teardown. Two of the three values never left the browser. It passed most of the time
+  only because a faster run let more debounces fire before the reload.
+- **Rule**: when writes overlap, wait for **as many** responses as writes, not for „a" response —
+  `settleWrites(page, count, …)` in `e2e/helpers.ts` counts them. A matcher that cannot tell two
+  in-flight writes apart is a coin flip, not a wait.
+- **Applies to**: every burst write in the suite, and to `waitForResponse` predicates generally — match
+  on something that identifies THIS request, or count.
+
+## `revalidateTag(tag, 'default')` degraded every cache bust outside a Server Action to stale-while-revalidate
+
+- **Context**: two of the last full-suite failures (`invoice-ingest`, `notification-recipients`) had the
+  written value sitting in Postgres while the page rendered its pre-write face. Chasing the second one
+  into `next@16`'s source turned up the cause of the first.
+- **Problem**: `revalidateTag`'s second argument is a **cacheLife profile**, not a severity. A named
+  profile sets the tag's `expired` stamp to `now + profile.expire` — `0xfffffffe` seconds for `'default'`,
+  a year for `'max'` — and the filesystem cache handler drops an `unstable_cache` entry only when that
+  stamp is already in the **past** (`areTagsExpired`). What the profile does set usefully is `stale`, and
+  `unstable_cache` **does** honour that: it serves the stale value and queues a background recompute. So
+  the profile bought stale-while-revalidate, not invalidation — the read right after the write saw
+  pre-write rows, the next one was fresh.
+  On most of the 22 call sites that was invisible, and the reason matters: the Server Action that caused
+  the write had already called `updateTag` on the same tags in the same request, so the hook's call was
+  redundant. **The app was not broken for six months.** It bit exactly where no action runs — a faktura
+  uploaded through `/api/upload-file`, a Route Handler whose only invalidation is the `media` afterChange
+  hook, so the first read-back still rendered „Dodaj fakturę" over a `transactions_rels` row that existed.
+- **Rule**: outside a Server Action, pass `EXPIRE_NOW` (`{ expire: 0 }`, `src/lib/cache/tags.ts`) — the
+  form that expires on the spot, i.e. what `updateTag` does without its Server-Action-only restriction.
+  Inside an action, `updateTag` still wins: it also re-renders the calling route.
+  **`expire: 0` is welded to that re-render**, which is the trap on the way out of this one:
+  `revalidate()` ends with `if (!profile || cacheLife?.expire === 0) store.pathWasRevalidated = …`, and
+  that flag is what streams a fresh render of the calling route back in the action response. So
+  `EXPIRE_NOW` inside a Server Action silently reverts EX-597's `deferRefresh` — 90-193 ms per debounced
+  editor autosave. `EXPIRE_NEXT` (`{ expire: 1 }`) is the deferred twin: non-zero leaves the flag unset,
+  and one second is past before the next request for another route arrives, so the entry is a hard miss.
+- **Applies to**: every `revalidateTag` call in the repo. The bare one-argument form is deprecated in
+  Next 16 and its replacement is NOT the profile the deprecation warning suggests.
+- **How it hid**: nothing throws, nothing logs, and the cheaper layers can't see it — a unit test mocks
+  `next/cache` and asserts the call was made, which it was. Worse, the obvious spec is a **tautology**:
+  import the constant the impl passes and assert against it, and every value passes, including the two
+  that break the branch. Pin the literal. Only a browser reading a real render after a real write can
+  tell "invalidated" from "said the word invalidate".
+
+## A poisoned `unstable_cache` entry is not stale — it is valid forever, and only another expiry dislodges it
+
+- **Context**: EX-808, seen again twice in a full-suite run. The suite is single-worker and serial, so
+  the concurrency is the app's own: the sidebar prefetches ~20 routes after every navigation and every
+  action, and those renders run alongside the write.
+- **Problem**: a render that started before a write commits, and finishes after that write expired the
+  tag, writes its pre-write rows back into the entry stamped with **its own** finish time. That stamp is
+  later than the expiry, so `areTagsExpired` says fresh. Reloading, navigating and retrying the
+  assertion all read the same poisoned entry — there is nothing in `unstable_cache` to compare against,
+  so the entry outlives the fact it contradicts.
+- **Rule**: a spec that reads what a write persisted retries **the invalidation**, not the read —
+  `refreshUntil` (`e2e/helpers.ts`) re-runs „Odśwież dane" until the read agrees. In the product the
+  same fact means a user can be shown a permanently stale figure; the entries carry no `revalidate`, so
+  nothing self-heals.
+- **Applies to**: every `unstable_cache` read in the app under concurrent traffic.
+
+## An open Radix menu hides the whole page from `getByRole` — and a page-level Enter is how it opened
+
+- **Context**: `kosztorys-global-discount-overrides` failed once in three, on a different test of the
+  file each run, always on `expect(podsumowanie toggle).toBeEnabled()` — a control 30 s and several
+  steps away from the real mistake.
+- **Problem**: the specs typed into a grid cell as `cell.click()` → `input.fill()` →
+  `page.keyboard.press('Enter')`. A page-level press is delivered to `document.activeElement`, and the
+  editor moves focus out from under the test: an autosave's `router.refresh()` re-renders the grid, the
+  input unmounts, and focus falls back to whatever Radix last restored it to — the discount-type menu's
+  trigger, one cell over. Enter opened that menu, and Radix marks everything outside an open menu
+  `aria-hidden`, so the accessibility tree the failure snapshot shows is three menu items and nothing
+  else. Every later `getByRole` reports „element(s) not found" about a button that is on screen.
+- **Rule**: aim the key at the element, not at the page — `locator.press()` re-resolves and re-focuses
+  first, so it cannot land on a stale focus target. `commitCellValue` (`e2e/helpers.ts`) is that edit.
+  A page-level press is right only where no element should receive it, e.g. proving a locked cell
+  refuses keystrokes.
+- **Applies to**: any `page.keyboard` use following an interaction that can trigger a re-render — which,
+  in an editor with debounced autosave, is all of them.
+
+## Read a view/mode switcher's state from its own control, never from a nearby label
+
+- **Context**: any QA pass or E2E that drives a surface with more than one mode — the kosztorys v2
+  grid's „Inwestor / Z narzędziami / Bez narzędzi" radio group above all, where the assembled column
+  set differs per view.
+- **Problem**: 2026-09-21 a manual pass on staging (inw. 137) read the active view off a nearby
+  dropdown trigger captioned „Widok inwestora" while the grid actually stood on „Z narzędziami", and
+  wrote up a confident defect — „zawężenie nie odsłania kolumn cenowych" — complete with file, line
+  and a suspect constant in `column-selection.ts`. Nothing was broken: the bare `price` column is
+  assembled **only** on the client view (`kosztorys-v2-columns.tsx`), so on „Z narzędziami" there is
+  no column for the reveal to un-hide. The write-up cost ~1 h to disprove, twice over.
+- **Rule**: read mode state from the control that holds it — `data-state="checked"` / `aria-checked`
+  on the `role="radio"` item — and re-read it after every switch; a button's caption is not state.
+  And before writing up a defect with a file and a line, falsify it at the cheapest layer that can
+  answer: a throwaway unit spec on the pure function you are accusing (here `selectV2Columns`) takes
+  minutes and either kills the finding or turns it into a red test.
+- **Applies to**: verify, verify-manual-checks, 10x-e2e, impl-review.

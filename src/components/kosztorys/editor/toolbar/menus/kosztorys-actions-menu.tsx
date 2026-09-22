@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronDown, History, Redo2, SheetIcon, Undo2 } from 'lucide-react'
+import { History, Redo2, Settings, SheetIcon, Undo2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -12,7 +12,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
-import { KosztorysActionsProvider } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-body'
 import { CleanItemTextsMenuItem } from '@/components/kosztorys/editor/actions/clean-item-texts-action'
 import { SaveVersionMenuItem } from '@/components/kosztorys/editor/actions/save-version-action'
@@ -20,7 +19,6 @@ import { ClearKosztorysMenuItem } from '@/components/kosztorys/editor/actions/cl
 import { SavePresetMenuItem } from '@/components/kosztorys/editor/actions/save-preset-action'
 import { ReloadPresetMenuItem } from '@/components/kosztorys/editor/actions/reload-preset-action'
 import { SheetCompareMenuItem } from '@/components/kosztorys/editor/actions/sheet-compare-action'
-import { CatalogueCompareMenuItem } from '@/components/kosztorys/editor/actions/catalogue-compare-action'
 import { KosztorysInvestorMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-investor-menu'
 import { SaveVersionDialog } from '@/components/kosztorys/editor/dialogs/save-version-dialog'
 import { ClearKosztorysDialog } from '@/components/kosztorys/editor/dialogs/clear-kosztorys-dialog'
@@ -47,13 +45,13 @@ export function KosztorysActionsMenu() {
   } = useKosztorysEditorContext()
 
   return (
-    <KosztorysActionsProvider>
+    <>
       <KosztorysInvestorMenu />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button size="sm" variant="outline">
+            <Settings />
             Opcje
-            <ChevronDown />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-80">
@@ -62,7 +60,7 @@ export function KosztorysActionsMenu() {
               a snapshot is a write and the server refuses it. „Porównaj z arkuszem" goes with them:
               it refreshes the stored Pomiar in the same pass, so it reads like a comparison and
               writes like an import. What survives is what only READS: saving a szablon off the
-              kosztorys, and the katalog comparison. */}
+              kosztorys. */}
           {!readOnly && (
             <>
               <DropdownMenuItem onSelect={undo} disabled={!canUndo}>
@@ -107,9 +105,6 @@ export function KosztorysActionsMenu() {
           <DropdownMenuLabel>Szablony</DropdownMenuLabel>
           <SavePresetMenuItem />
           {!readOnly && <ReloadPresetMenuItem />}
-          <DropdownMenuSeparator />
-          <DropdownMenuLabel>Katalog prac</DropdownMenuLabel>
-          <CatalogueCompareMenuItem />
           {/* Both entries can only answer „Inwestycja nie ma kosztorysu." without a linked sheet, and
               both write, so the whole section goes under the lock. */}
           {!readOnly && hasSheet && (
@@ -136,6 +131,6 @@ export function KosztorysActionsMenu() {
       <ClearKosztorysDialog />
       <KosztorysClientViewDialog />
       <KosztorysShareDialog />
-    </KosztorysActionsProvider>
+    </>
   )
 }

@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
-import { collapseSummaryPanel, editorCell, waitForHydration } from './helpers'
+import { collapseSummaryPanel, editorCell, settleWrite, waitForHydration } from './helpers'
 
 // EX-769 — the zamek on a zakończona inwestycja. Every gate it is made of is already unit-tested on
 // its own: the kosztorys action wrapper (`kosztorys-lock.test.ts` even asserts the rows are left
@@ -40,15 +40,20 @@ async function setStatus(page: Page, status: string): Promise<void> {
   }
   await select.click()
   await page.getByRole('option', { name: status, exact: true }).click()
-  await dialog.getByRole('button', { name: 'Zapisz', exact: true }).click()
+  const save = dialog.getByRole('button', { name: 'Zapisz', exact: true })
 
   // Closing is a one-way door for everyone but właściciel/admin, so it is staged behind a warning —
   // and the warning is part of the contract: the person is told what they give up BEFORE the write,
-  // not by a refusal afterwards.
+  // not by a refusal afterwards. Whichever button ends up firing it, the write is awaited to its
+  // response: the submit is fire-and-forget over an optimistic store, so the caller's next `goto`
+  // would abort the very status change it is about to read back.
   if (status === 'Zakończona') {
+    await save.click()
     const confirm = page.getByRole('alertdialog')
     await expect(confirm).toContainText('tylko do odczytu')
-    await confirm.getByRole('button', { name: 'Zakończ' }).click()
+    await settleWrite(page, () => confirm.getByRole('button', { name: 'Zakończ' }).click())
+  } else {
+    await settleWrite(page, () => save.click())
   }
   await expect(dialog).toBeHidden()
 }
@@ -71,6 +76,25 @@ test.afterAll(async ({ browser }) => {
   }
 })
 
+// The read-only banner, reloaded until it agrees — in BOTH directions, which is why this is one
+// helper and not two polls: the status rides on `fetchReferenceData`, whose invalidated entry is
+// still served once (see the route's own note), so exactly one stale render is expected on locking
+// AND on unlocking, and neither is the regression.
+//
+// The reload is bounded because `expect.poll` cannot abort a call already in flight: one left on the
+// 90 s `navigationTimeout` would hold the poll well past its own deadline.
+async function reloadUntilBanner(page: Page, want: 'present' | 'gone'): Promise<void> {
+  const banner = page.getByRole('status').filter({ hasText: 'tylko do odczytu' })
+  const agrees = async () => (await banner.count()) > 0 === (want === 'present')
+  await expect
+    .poll(async () => {
+      if (await agrees()) return true
+      await page.reload({ timeout: 15_000 })
+      return agrees()
+    })
+    .toBe(true)
+}
+
 test('closing an investment locks the editor and the pickers, and reopening it gives them back', async ({
   page,
 }) => {
@@ -85,14 +109,7 @@ test('closing an investment locks the editor and the pickers, and reopening it g
   // paint: the status rides on `fetchReferenceData`, whose invalidated entry is still served once
   // (see the route's own note), so exactly one stale render is expected and is not the regression.
   await openEditor(page)
-  const lockedBanner = page.getByRole('status').filter({ hasText: 'tylko do odczytu' })
-  await expect
-    .poll(async () => {
-      if (await lockedBanner.count()) return true
-      await page.reload()
-      return lockedBanner.count().then((count) => count > 0)
-    })
-    .toBe(true)
+  await reloadUntilBanner(page, 'present')
   await expect(page.getByRole('button', { name: 'Dodaj' })).toHaveCount(0)
 
   // Clicking a cell opens no editor. The column set stays the owner's own, which is what separates a
@@ -141,7 +158,7 @@ test('closing an investment locks the editor and the pickers, and reopening it g
   // status write that revalidates nothing leaves the editor read-only until the cache ages out.
   await setStatus(page, 'Aktywna')
   await openEditor(page)
-  await expect(page.getByRole('status').filter({ hasText: 'tylko do odczytu' })).toHaveCount(0)
+  await reloadUntilBanner(page, 'gone')
   await expect(page.getByRole('button', { name: 'Dodaj' })).toBeVisible()
   const reopened = await editorCell(page, 'Przedmiar')
   await reopened.click()

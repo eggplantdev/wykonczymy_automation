@@ -1,6 +1,13 @@
 import { test, expect, type Locator, type Page } from '@playwright/test'
 import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
-import { openEditor, refreshReferenceData, rowCell, runSeedScript } from './helpers'
+import {
+  commitCellValue,
+  openEditor,
+  refreshReferenceData,
+  rowCell,
+  runSeedScript,
+  settleWrite,
+} from './helpers'
 
 // EX-525 — unit-covered elsewhere (`use-undo-redo.test.ts`). Only a browser proves undo is a WRITE
 // (a reload tells a real revert from a local-only one), a keystroke run coalesces into one command
@@ -20,26 +27,12 @@ const QTY_COLUMN = COLUMN_LABELS.plannedQty
 // Seeded przedmiary, all distinct so a reverted one cannot be read off a neighbour by accident.
 const SEEDED_QTY = { 'Praca pierwsza': '11', 'Praca druga': '22', 'Praca trzecia': '33' }
 
-// `next-action` marks a server action's POST; `networkidle` never settles here. An undo is a write
-// like any edit, so reloading before the reply would race the value it's about to replace.
-function serverAction(page: Page): Promise<unknown> {
-  return page.waitForResponse(
-    (response) =>
-      response.request().method() === 'POST' &&
-      response.request().headers()['next-action'] !== undefined,
-  )
-}
-
 const qtyCell = (page: Page, row: string): Promise<Locator> => rowCell(page, row, QTY_COLUMN)
 
 // The cell renders an `EditableCellInput`, so the figure lives in `value`, never a text node.
 async function typeQty(page: Page, row: string, value: string): Promise<void> {
   const cell = await qtyCell(page, row)
-  await cell.click()
-  const settled = serverAction(page)
-  await cell.locator('input').fill(value)
-  await page.keyboard.press('Enter')
-  await settled
+  await settleWrite(page, () => commitCellValue(cell, value))
 }
 
 async function expectQty(page: Page, row: string, value: string): Promise<void> {
@@ -64,12 +57,14 @@ async function closeOptionsMenu(page: Page): Promise<void> {
   await expect(optionsMenu(page)).toHaveCount(0)
 }
 
+// An undo is a write like any edit, so reloading before its reply would race the value it is about
+// to replace — hence `settleWrite` rather than waiting on the menu closing.
 async function runStackCommand(page: Page, command: RegExp): Promise<void> {
   await openOptionsMenu(page)
-  const settled = serverAction(page)
-  await optionsMenuItem(page, command).click()
-  await expect(optionsMenu(page)).toHaveCount(0)
-  await settled
+  await settleWrite(page, async () => {
+    await optionsMenuItem(page, command).click()
+    await expect(optionsMenu(page)).toHaveCount(0)
+  })
 }
 
 const UNDO = /^Cofnij/
@@ -126,17 +121,21 @@ test('seria znaków to jedno cofnięcie, a „Opcje" pokazują, jak głęboki je
   // Character by character, not `fill`: coalescing (UNDO_COALESCE_MS) only shows up when each key
   // is its own `onChange` — `fill` fires one event and would pass even without coalescing.
   const cell = await qtyCell(page, 'Praca pierwsza')
-  await cell.click()
-  const settled = serverAction(page)
-  // Enter opens edit mode without typing, avoiding the race where a first keystroke is lost to the
-  // grid before the input gets focus. Delay stays under UNDO_COALESCE_MS so all land in one buffer.
-  await page.keyboard.press('Enter')
-  await expect(cell.locator('input')).toBeFocused()
-  await page.keyboard.press('ControlOrMeta+a')
-  await page.keyboard.type('1234', { delay: 80 })
-  await expect(cell.locator('input')).toHaveValue('1234')
-  await page.keyboard.press('Enter')
-  await settled
+  await settleWrite(page, async () => {
+    await cell.click()
+    // Enter opens edit mode without typing, avoiding the race where a first keystroke is lost to the
+    // grid before the input gets focus. Delay stays under UNDO_COALESCE_MS so all land in one buffer.
+    await page.keyboard.press('Enter')
+    await expect(cell.locator('input')).toBeFocused()
+    await page.keyboard.press('ControlOrMeta+a')
+    await page.keyboard.type('1234', { delay: 80 })
+    await expect(cell.locator('input')).toHaveValue('1234')
+    // Locator-scoped, unlike the two presses above: `page.keyboard` delivers to whatever
+    // `document.activeElement` is at that instant, and the grid steals focus on its own schedule, so
+    // the commit was the press that went missing. The presses above WANT the page-level form — they
+    // run before the input exists, or drive the coalescing this spec measures.
+    await cell.locator('input').press('Enter')
+  })
   await expectQty(page, 'Praca pierwsza', '1234')
 
   // The buffer only closes after a pause in typing — an undo before that would revert an empty series.
@@ -168,9 +167,7 @@ test('Cmd+Z w trakcie edycji komórki należy do inputa, a po jej zakończeniu �
   await expectQty(page, 'Praca pierwsza', '99')
 
   await page.keyboard.press('Escape')
-  const settled = serverAction(page)
-  await page.keyboard.press('Meta+z')
-  await settled
+  await settleWrite(page, () => page.keyboard.press('Meta+z'))
   await expectQty(page, 'Praca pierwsza', SEEDED_QTY['Praca pierwsza'])
 })
 
@@ -181,14 +178,14 @@ test('cofnięcie przesunięcia wiersza przywraca display_order po przeładowaniu
   const seededOrder = ['Praca pierwsza', 'Praca druga', 'Praca trzecia']
   await expect.poll(() => itemOrder(page)).toEqual(seededOrder)
 
-  const settled = serverAction(page)
-  await page
-    .locator('.dsg-row')
-    .filter({ hasText: 'Praca pierwsza' })
-    .getByRole('button', { name: 'Akcje wiersza' })
-    .click()
-  await page.getByRole('menuitem', { name: 'Przesuń w dół', exact: true }).click()
-  await settled
+  await settleWrite(page, async () => {
+    await page
+      .locator('.dsg-row')
+      .filter({ hasText: 'Praca pierwsza' })
+      .getByRole('button', { name: 'Akcje wiersza' })
+      .click()
+    await page.getByRole('menuitem', { name: 'Przesuń w dół', exact: true }).click()
+  })
   await expect
     .poll(() => itemOrder(page))
     .toEqual(['Praca druga', 'Praca pierwsza', 'Praca trzecia'])

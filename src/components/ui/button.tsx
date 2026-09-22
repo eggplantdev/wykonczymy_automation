@@ -56,12 +56,35 @@ const buttonVariants = cva(
   },
 )
 
+// The animated accents from globals.css. A list rather than a cva variant because they compose —
+// `['comet', 'breathe']` is a legitimate answer a single-choice variant could not express.
+// `motion-safe:` rather than a `prefers-reduced-motion` block in globals.css: `!` puts the literal
+// token `gradient-border-comet!` in the class attribute, so a hand-written `.gradient-border-comet`
+// rule matches nothing. Dropping the utility under reduced motion falls back to the `ai` variant's
+// resting border and halo, which is the intended still state anyway. The `!` beats that resting
+// `gradient-border`; `breathe` adds a layer rather than replacing one, so it needs none.
+const BUTTON_ANIMATION_CLASSES = {
+  comet: 'motion-safe:gradient-border-comet!',
+  breathe: 'motion-safe:neon-glow-duo-breathe',
+} as const
+
+type ButtonAnimationT = keyof typeof BUTTON_ANIMATION_CLASSES
+
 type ButtonPropsT = React.ComponentProps<'button'> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
+    animations?: ButtonAnimationT[]
   }
 
-function Button({ className, variant, size, align, asChild = false, ...props }: ButtonPropsT) {
+function Button({
+  className,
+  variant,
+  size,
+  align,
+  animations,
+  asChild = false,
+  ...props
+}: ButtonPropsT) {
   const Comp = asChild ? Slot : 'button'
 
   return (
@@ -69,11 +92,15 @@ function Button({ className, variant, size, align, asChild = false, ...props }: 
       data-slot="button"
       data-variant={variant}
       data-size={size}
-      className={cn(buttonVariants({ variant, size, align, className }))}
+      className={cn(
+        buttonVariants({ variant, size, align }),
+        animations?.map((animation) => BUTTON_ANIMATION_CLASSES[animation]),
+        className,
+      )}
       {...props}
     />
   )
 }
 
 export { Button, buttonVariants }
-export type { ButtonPropsT }
+export type { ButtonAnimationT, ButtonPropsT }

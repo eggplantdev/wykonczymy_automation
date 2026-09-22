@@ -1,7 +1,6 @@
 'use client'
 
-import { Check, RefreshCw, RotateCcw, TriangleAlert } from 'lucide-react'
-import { Fragment } from 'react'
+import { RefreshCw, RotateCcw, TriangleAlert } from 'lucide-react'
 import {
   FilterTriggerButton,
   TOOLBAR_FILTER_TRIGGER_CLASS,
@@ -14,10 +13,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { DropdownCheckGroups } from '@/components/ui/dropdown-check-groups'
+import { CatalogueCompareMenuItem } from '@/components/kosztorys/editor/actions/catalogue-compare-action'
 import { problemsMenuModel } from '@/components/kosztorys/editor/toolbar/menus/problems-menu-model'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { PROBLEM_IDS } from '@/lib/kosztorys/problem-conditions'
-import { cn } from '@/lib/utils/cn'
 
 /**
  * „Co jest tu zepsute" — its own trigger rather than a group inside „Filtry", because it is not the
@@ -51,28 +51,28 @@ export function KosztorysProblemsMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         {/* The toolbar's shared filter trigger, same as „Filtry" and every filter on the transfers
-            side: „(n)" for how many of its own filters are on, and the app's own active styling when
-            one is. Only the tone and the triangle are this menu's — they are what the button says
-            that the others don't. */}
+            side, minus the „(n)": one problem narrows at a time, so the count could only ever be 1 and
+            the active styling already says that. Only the tone and the triangle are this menu's —
+            they are what the button says that the others don't. */}
         <FilterTriggerButton
           active={Boolean(engaged)}
           tone="destructive"
           icon={TriangleAlert}
-          iconPosition="right"
           className={TOOLBAR_FILTER_TRIGGER_CLASS}
         >
-          {engaged ? 'Problemy (1)' : 'Problemy'}
+          Problemy
         </FilterTriggerButton>
       </DropdownMenuTrigger>
-      {/* „Pozycje ze zbyt wysoką stawką wykonawcy w widoku z narzędziami (1)" is a sentence, not
-          a label: at the default width every row wrapped to three or four lines. */}
-      <DropdownMenuContent align="end" className="w-96">
+      {/* Every row is a sentence, not a label: at the default width they wrapped to three or four
+          lines each. */}
+      <DropdownMenuContent align="end" className="w-112">
         {/* A poprawiona pozycja is held in place while it is being fixed, so something has to say
             „skończyłem, przelicz to teraz" — and that gesture is this, not toggling the problem off
             and on again to get the same effect sideways. Shown only while one is engaged, because
             with nothing narrowed there is nothing being held to release. */}
         {engaged && (
           <>
+            <DropdownMenuLabel>Zawężenie</DropdownMenuLabel>
             {/* The engaged problem is turned off by picking it again, which is a gesture you have to
                 already know; this says it out loud. Scoped to the problems — the sekcje folds and the
                 „Filtry" toggles are that menu's to undo, and a reset here that reached them would
@@ -84,7 +84,6 @@ export function KosztorysProblemsMenu() {
               <RotateCcw />
               Zresetuj filtry
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={refreshProblemRows}>
               <RefreshCw />
               Odśwież — ukryj poprawione
@@ -92,16 +91,18 @@ export function KosztorysProblemsMenu() {
             <DropdownMenuSeparator />
           </>
         )}
-        <DropdownMenuLabel>Pokaż tylko to, co wymaga poprawki</DropdownMenuLabel>
-        {problemToggles.map((toggle, index) => (
-          <Fragment key={toggle.id}>
-            {index > 0 && <DropdownMenuSeparator />}
-            <DropdownMenuItem onSelect={() => toggleConditionExclusive(toggle.id, PROBLEM_IDS)}>
-              <Check className={cn('shrink-0', toggle.active ? 'opacity-100' : 'opacity-0')} />
-              <span className="whitespace-normal">{toggle.label}</span>
-            </DropdownMenuItem>
-          </Fragment>
-        ))}
+        {/* Grouped by the part of the rozpiska the fix happens in, and headed by the shared primitive,
+            so the headings sit at the same level as the „Sekcje" menu's beside it. */}
+        <DropdownCheckGroups
+          items={problemToggles}
+          onSelect={(id) => toggleConditionExclusive(id, PROBLEM_IDS)}
+        />
+        {/* The rows above narrow the rozpiska to one problem at a time; this opens the whole katalog
+            report they are counted from, praca by praca, with the „Dodaj / Edytuj w katalogu" writes
+            the grid has no room for. It reads as the last step of the same question, which is why it
+            left „Opcje" — there it sat under a heading of its own, next to szablony and arkusz. */}
+        <DropdownMenuSeparator />
+        <CatalogueCompareMenuItem />
       </DropdownMenuContent>
     </DropdownMenu>
   )

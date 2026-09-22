@@ -2,19 +2,23 @@
 
 import { Dialog, DialogTrigger, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { MediaStrip } from '@/components/media/media-strip'
+import { ASSET_PREVIEW_LABELS } from '@/components/media/preview-labels'
 import type { LeadAnswerT } from '@/types/leads'
+import type { MediaFileT } from '@/types/media'
 
 type LeadAnswersDialogPropsT = {
   name: string
   formName: string
   answers: LeadAnswerT[]
+  assets: MediaFileT[]
 }
 
-export function LeadAnswersDialog({ name, formName, answers }: LeadAnswersDialogPropsT) {
+export function LeadAnswersDialog({ name, formName, answers, assets }: LeadAnswersDialogPropsT) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" disabled={answers.length === 0}>
+        <Button variant="outline" size="xs" disabled={answers.length === 0 && assets.length === 0}>
           Szczegóły
         </Button>
       </DialogTrigger>
@@ -31,6 +35,17 @@ export function LeadAnswersDialog({ name, formName, answers }: LeadAnswersDialog
             </div>
           ))}
         </dl>
+
+        {assets.length > 0 && (
+          <section className="mt-4 space-y-2">
+            <h3 className="text-muted-foreground text-sm font-medium">Załączniki</h3>
+            <MediaStrip
+              files={assets}
+              labels={ASSET_PREVIEW_LABELS}
+              sizes="(max-width: 767.98px) 31vw, (max-width: 1023.98px) 110px, 75px"
+            />
+          </section>
+        )}
       </DialogContent>
     </Dialog>
   )

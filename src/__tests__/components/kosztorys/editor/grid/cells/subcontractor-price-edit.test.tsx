@@ -16,7 +16,7 @@ const PriceCell = PRICE_COLUMN.component as React.ComponentType<Record<string, u
 
 const ROW = pricingRow()
 
-const REFUSAL = /nie może przekroczyć 80%/
+const OVER_CEILING = /przekracza 65%/
 
 // dsg recycles a cell onto whichever row scrolled into its slot without remounting it. `rowId` is
 // which row is under the caret now; both stay readable so a draft settling on the wrong one shows.
@@ -65,41 +65,50 @@ function renderCell(props: Parameters<typeof CellHost>[0] = {}) {
 
 beforeEach(() => vi.clearAllMocks())
 
-// Keystrokes commit as they go, so „9" is already on the row by the time the „0" pushes the price
-// over the ceiling. Walking away must not leave that prefix standing as the price someone chose.
 describe('Cena wykonawcy — wartość ponad sufitem', () => {
-  it('przywraca cenę sprzed edycji i mówi o tym', async () => {
+  it('zostaje w wierszu i ostrzega zamiast cofać', async () => {
     const { user, input } = renderCell()
 
     await user.clear(input)
     await user.type(input, '90')
     await user.tab()
 
-    expect(stored(1)).toBe('auto')
+    expect(stored(1)).toBe('90')
     expect(toastMessage).toHaveBeenCalledWith(
-      expect.stringContaining('przywrócono'),
-      'error',
+      expect.stringMatching(OVER_CEILING),
+      'warning',
       expect.any(Number),
     )
   })
 
-  it('tłumaczy odmowę w miejscu, w którym user pisze — bez najeżdżania myszą', async () => {
+  it('ogłasza przekroczenie raz, na wyjściu z komórki, a nie przy każdym klawiszu', async () => {
+    const { user, input } = renderCell()
+
+    await user.clear(input)
+    await user.type(input, '90')
+    expect(toastMessage).not.toHaveBeenCalled()
+
+    await user.tab()
+    expect(toastMessage).toHaveBeenCalledTimes(1)
+  })
+
+  it('tłumaczy przekroczenie w miejscu, w którym user pisze — bez najeżdżania myszą', async () => {
     const { user, input } = renderCell()
 
     await user.clear(input)
     await user.type(input, '90')
 
-    expect(screen.getAllByText(REFUSAL).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(OVER_CEILING).length).toBeGreaterThan(0)
   })
 
   it('przyjmuje cenę dokładnie na suficie', async () => {
     const { user, input } = renderCell()
 
     await user.clear(input)
-    await user.type(input, '80')
+    await user.type(input, '65')
     await user.tab()
 
-    expect(stored(1)).toBe('80')
+    expect(stored(1)).toBe('65')
     expect(toastMessage).not.toHaveBeenCalled()
   })
 })
@@ -118,18 +127,39 @@ describe('Cena wykonawcy — wyjścia z edycji', () => {
     expect(toastMessage).not.toHaveBeenCalled()
   })
 
+  // Rows are virtualized, so scrolling the edited row out unmounts the input and no blur ever fires.
+  // Since the ceiling stopped refusing, that cleanup settle can announce a COMMIT — a price that was
+  // written and would otherwise scroll away with nobody told it breached.
+  it('ogłasza ostrzeżenie, gdy komórka znika bez blura', async () => {
+    const { user, input, unmount } = renderCell()
+
+    await user.clear(input)
+    await user.type(input, '90')
+    expect(stored(1)).toBe('90')
+    expect(toastMessage).not.toHaveBeenCalled()
+
+    unmount()
+
+    expect(toastMessage).toHaveBeenCalledTimes(1)
+    expect(toastMessage).toHaveBeenCalledWith(
+      expect.stringMatching(OVER_CEILING),
+      'warning',
+      expect.any(Number),
+    )
+  })
+
   it('zatwierdza Enterem dokładnie raz i oddaje komórkę siatce', async () => {
     const { user, input } = renderCell()
 
     await user.clear(input)
-    await user.type(input, '70{Enter}')
+    await user.type(input, '60{Enter}')
 
-    expect(stored(1)).toBe('70')
+    expect(stored(1)).toBe('60')
     expect(stopEditing).toHaveBeenCalledWith({ nextRow: true })
     expect(toastMessage).not.toHaveBeenCalled()
 
     await user.tab()
-    expect(stored(1)).toBe('70')
+    expect(stored(1)).toBe('60')
     expect(toastMessage).not.toHaveBeenCalled()
   })
 })
@@ -154,7 +184,7 @@ describe('Cena wykonawcy — wiersz podmieniony pod kursorem', () => {
 // at that position unmounts the subtree — i.e. the input being typed into — one keystroke after the
 // price crosses the ceiling.
 describe('Cena wykonawcy — werdykt w trakcie pisania', () => {
-  it('nie przemontowuje inputa, gdy odmowa pojawia się pod palcami', async () => {
+  it('nie przemontowuje inputa, gdy werdykt pojawia się pod palcami', async () => {
     const { user, input } = renderCell()
 
     await user.clear(input)
@@ -170,11 +200,11 @@ describe('Cena wykonawcy — werdykt w trakcie pisania', () => {
 // A breach can arrive from outside these columns (a lowered client price, a raised mnożnik), so the
 // cell carries the standing verdict too — the sentence, not just a red figure.
 describe('Cena wykonawcy — stojący werdykt', () => {
-  it('odsłania zdanie, gdy siatka wchodzi w odrzuconą komórkę', () => {
+  it('odsłania zdanie, gdy siatka wchodzi w oflagowaną komórkę', () => {
     const { rerender } = render(<CellHost override={90} focus={false} />)
-    expect(screen.queryAllByText(REFUSAL)).toHaveLength(0)
+    expect(screen.queryAllByText(OVER_CEILING)).toHaveLength(0)
 
     rerender(<CellHost override={90} focus />)
-    expect(screen.getAllByText(REFUSAL).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(OVER_CEILING).length).toBeGreaterThan(0)
   })
 })

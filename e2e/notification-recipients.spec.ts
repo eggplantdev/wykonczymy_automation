@@ -1,5 +1,5 @@
 import { test, expect, type Locator, type Page } from '@playwright/test'
-import { waitForHydration } from './helpers'
+import { refreshUntil, waitForHydration } from './helpers'
 
 // EX-741 — who receives each notification stream. The stake is not a form: it is mail going to the
 // real employee addresses that `db:import` spreads into every environment, so a list that silently
@@ -35,11 +35,14 @@ function card(page: Page, title: string) {
     .last()
 }
 
-async function readList(page: Page, stream: StreamT): Promise<string[]> {
+async function readList(page: Page, stream: StreamT, timeout?: number): Promise<string[]> {
   const { path, title } = CARDS[stream]
-  await page.goto(path)
+  // `timeout` bounds the navigation too, not just the wait: callers pass it because they run inside
+  // a retry loop, and a `goto` left on the 90 s `navigationTimeout` would blow that loop's budget on
+  // one attempt regardless of how short the wait below is.
+  await page.goto(path, { timeout })
   const section = card(page, title)
-  await section.waitFor()
+  await section.waitFor({ timeout })
   return (await section.locator('li').allTextContents()).map((text) => text.trim())
 }
 
@@ -65,6 +68,15 @@ async function save(page: Page, dialog: Locator): Promise<void> {
 
 const uniqueAddress = (prefix: string) => `${prefix}-${Date.now()}@wykonczymy.test`
 
+// Every read that follows a save goes through here. The action expires the list's cache tag, but a
+// render already in flight can refill that entry with pre-write rows and stamp it with its own
+// finish time — which is later than the expiry, so the entry looks fresh and a plain „navigate and
+// read" is served the old list indefinitely. `refreshUntil` re-expires until the read agrees.
+const expectList = (page: Page, stream: StreamT, expected: string[]) =>
+  // `readList` is bounded so the retry actually retries: a read left on the default 45 s
+  // `actionTimeout` would burn `refreshUntil`'s whole 90 s budget on two attempts.
+  refreshUntil(page, async () => expect(await readList(page, stream, 5_000)).toEqual(expected))
+
 test('adding and removing one recipient leaves the other three streams untouched', async ({
   page,
 }) => {
@@ -83,7 +95,7 @@ test('adding and removing one recipient leaves the other three streams untouched
 
   // Read after a full reload rather than off the optimistic re-render: what matters is that the
   // address was PERSISTED, and an optimistic list would show it either way.
-  expect(await readList(page, 'fleetDigest')).toEqual([...fleetBefore, address])
+  await expectList(page, 'fleetDigest', [...fleetBefore, address])
 
   // The read-modify-write, stated as three readings. Without these the test would pass just as
   // green on a save that wiped the other three lists.
@@ -100,7 +112,7 @@ test('adding and removing one recipient leaves the other three streams untouched
   await removeDialog.getByRole('button', { name: 'Usuń odbiorcę' }).last().click()
   await save(page, removeDialog)
 
-  expect(await readList(page, 'fleetDigest')).toEqual(fleetBefore)
+  await expectList(page, 'fleetDigest', fleetBefore)
 })
 
 test('the same address typed twice is stored once', async ({ page }) => {
@@ -119,7 +131,7 @@ test('the same address typed twice is stored once', async ({ page }) => {
   }
   await save(page, dialog)
 
-  expect(await readList(page, 'opsAlerts')).toEqual([...opsAlertsBefore, address])
+  await expectList(page, 'opsAlerts', [...opsAlertsBefore, address])
   // Two cards sit on this one page and are saved by the same action — the sibling is the nearest
   // thing a bad write would take with it.
   expect(await readList(page, 'newLead')).toEqual(newLeadBefore)
@@ -128,5 +140,5 @@ test('the same address typed twice is stored once', async ({ page }) => {
   const cleanup = await openEditor(page, 'opsAlerts')
   await cleanup.getByRole('button', { name: 'Usuń odbiorcę' }).last().click()
   await save(page, cleanup)
-  expect(await readList(page, 'opsAlerts')).toEqual(opsAlertsBefore)
+  await expectList(page, 'opsAlerts', opsAlertsBefore)
 })

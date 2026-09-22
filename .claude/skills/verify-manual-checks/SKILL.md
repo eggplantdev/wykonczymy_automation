@@ -261,7 +261,7 @@ closes it. Reserve frame-by-frame instrumentation (`MutationObserver`, rAF sampl
 is genuinely timing-dependent. Fighting a virtualized grid with ad-hoc JS to catch a non-event is the
 anti-pattern this exists to stop (see `lessons.md` → "Driving react-datasheet-grid in a QA pass").
 
-### Two traps that have each cost a pass ~30 minutes
+### Three traps that have each cost a pass half an hour or more
 
 - **Never click a control that reaches the real `window.print()`.** The native print dialog is a
   modal the automated browser cannot dismiss: every subsequent `browser_*` call hangs until the
@@ -273,6 +273,12 @@ anti-pattern this exists to stop (see `lessons.md` → "Driving react-datasheet-
 - **Tick each box the moment you settle it; never batch the writes to the end.** A pass that holds a
   dozen verified boxes in its head and then wedges loses all of it. The registry file is the pass's
   only durable output — treat every settled box as a write, immediately.
+- **Read a mode/view switcher's state from its own control, not from a nearby caption.** The kosztorys
+  grid's view lives on the `role="radio"` items (`data-state="checked"` / `aria-checked`); the dropdown
+  beside it captioned „Widok inwestora" is a button, not state. A 2026-09-21 pass measured „Z
+  narzędziami" believing it was on „Inwestor" and filed a defect over a column the code assembles on
+  the client view only. Re-read the radio after every switch — and before writing up a defect with a
+  file and a line, falsify it with a throwaway unit spec on the function you are accusing.
 
 ## Step 2 — Fix obvious bugs on the spot
 

@@ -15,6 +15,12 @@ export const PLANE_LABELS: Record<ToolPlaneT, string> = {
   own_tools: 'Bez narzędzi',
 }
 
+// The tail a row-condition label carries when the figure it judges only exists in one view. One
+// source because it is both written (the registry builds labels with it) and REMOVED again (the
+// „Problemy" menu, whose heading already names the view) — two literals would drift apart silently.
+export const planeViewSuffix = (plane: ToolPlaneT) =>
+  ` w widoku ${PLANE_LABELS[plane].toLowerCase()}`
+
 // The three figures of the subcontractor settlement, named once. The headline block reads them as row
 // labels and the per-worker table as column headers — the same three amounts, so a reader must never
 // have to work out that „Należne" and „Suma wykonanej pracy" were the same thing.
@@ -23,6 +29,15 @@ export const SUBCONTRACTOR_FIGURE_LABELS = {
   payouts: 'Zaliczki (wypłaty)',
   remaining: 'Pozostało do wypłaty',
 } as const
+
+// One tone for every ceiling breach, on all three surfaces that draw one (cell, katalog share,
+// global mnożnik). A breach is written, not refused, but it is still the thing the owner scans for —
+// and a second colour for „accepted but wrong" would only ask the reader to learn which red means what.
+export const FLAGGED_TONE = 'text-destructive font-medium'
+
+// Longer than toastMessage's default 2s: these fire as the user's eyes are already moving on, and
+// they report a figure that was just committed.
+export const NOTICE_MS = 5000
 
 // Default subcontractor markup coefficients for an investment — the single source for both the
 // Payload column `defaultValue` (src/collections/investments.ts) and the query fallback

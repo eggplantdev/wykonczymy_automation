@@ -30,6 +30,7 @@ import { getPayload } from 'payload'
 import type { Where } from 'payload'
 import config from '../payload.config'
 import { PREVIEW_BLOB_STORE_ID, PROD_BLOB_STORE_ID } from '../lib/env/schema'
+import { MEDIA_RELATIONS, mediaReferenceWhere } from '@/lib/media/relating-collections'
 
 const run = promisify(execFile)
 
@@ -184,16 +185,14 @@ async function fetchBlob(url: string, init?: RequestInit) {
   return fetch(url, { ...init, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) })
 }
 
-// BOTH upload relations: a HEIC hanging off `vehicle-inspections.attachments` would count 0 before
-// and 0 after, passing verification green with its link dropped.
+// EVERY upload relation, from the registry: a HEIC hanging off a relation this missed would count
+// 0 before and 0 after, passing verification green with its link dropped.
 async function countLinkedDocuments(payload: PayloadT, mediaId: number) {
-  const counts = await Promise.all([
-    payload.count({ collection: 'transactions', where: { invoice: { equals: mediaId } } }),
-    payload.count({
-      collection: 'vehicle-inspections',
-      where: { attachments: { equals: mediaId } },
-    }),
-  ])
+  const counts = await Promise.all(
+    MEDIA_RELATIONS.map(({ collection, field }) =>
+      payload.count({ collection, where: mediaReferenceWhere(field, mediaId) }),
+    ),
+  )
   return counts.reduce((total, { totalDocs }) => total + totalDocs, 0)
 }
 

@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { getWorkshopView } from '@/lib/queries/presets'
 import { getKosztorysTree } from '@/lib/queries/kosztorys'
+import { getWorkCatalogue } from '@/lib/queries/work-catalogue'
 import { requireManagementPage } from '@/lib/auth/require-management-page'
 import { KosztorysEditorV2 } from '@/components/kosztorys/editor/kosztorys-editor-v2'
 import { PageWrapper } from '@/components/ui/page-wrapper'
@@ -28,7 +29,10 @@ export default async function TemplateWorkshopPage({ params }: DynamicPagePropsT
     )
   }
 
-  const tree = await getKosztorysTree(workshop.investmentId)
+  const [tree, workCatalogue] = await Promise.all([
+    getKosztorysTree(workshop.investmentId),
+    getWorkCatalogue(),
+  ])
 
   return (
     <KosztorysEditorV2
@@ -36,6 +40,7 @@ export default async function TemplateWorkshopPage({ params }: DynamicPagePropsT
       tree={tree}
       investmentName={workshop.presetName}
       templatePresetId={presetId}
+      workCatalogue={workCatalogue}
       materialsGrossBase={0}
       materialsNetBilled={0}
       materialsBreakdown={[]}

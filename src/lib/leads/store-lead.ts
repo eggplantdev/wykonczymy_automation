@@ -3,11 +3,14 @@ import type { Lead } from '@/payload-types'
 import type { LeadFieldT, LeadFormQuestionT } from './lead-schema'
 
 export type StoreLeadInputT = {
-  source: 'facebook_lead_ads' | 'website_form'
+  source: 'facebook_lead_ads' | 'website_form' | 'landing_form'
   externalId?: string
   email?: string
   name?: string
   phone?: string
+  address?: string
+  scope?: string
+  area?: string
   rawData: LeadFieldT[]
   formQuestions?: LeadFormQuestionT[]
   formId?: string
@@ -16,7 +19,10 @@ export type StoreLeadInputT = {
 }
 
 /** The already-stored sibling for this `(source, externalId)`, or undefined. */
-async function findExisting(payload: Payload, input: StoreLeadInputT): Promise<Lead | undefined> {
+async function findStoredLead(
+  payload: Payload,
+  input: Pick<StoreLeadInputT, 'source' | 'externalId'>,
+): Promise<Lead | undefined> {
   if (!input.externalId) return undefined
   const existing = await payload.find({
     collection: 'leads',
@@ -51,7 +57,7 @@ export async function storeLead(
   input: StoreLeadInputT,
   options?: { skipRevalidation?: boolean },
 ): Promise<{ lead: Lead; created: boolean }> {
-  const existing = await findExisting(payload, input)
+  const existing = await findStoredLead(payload, input)
   if (existing) return { lead: existing, created: false }
 
   const data = {
@@ -60,6 +66,9 @@ export async function storeLead(
     email: input.email,
     name: input.name,
     phone: input.phone,
+    address: input.address,
+    scope: input.scope,
+    area: input.area,
     rawData: input.rawData,
     formQuestions: input.formQuestions,
     formId: input.formId,
@@ -82,7 +91,7 @@ export async function storeLead(
   } catch (err) {
     // Lost the unique-index race with a concurrent redelivery? The winner's row
     // now exists — return it. Otherwise this is a real failure; let it propagate.
-    const winner = await findExisting(payload, input)
+    const winner = await findStoredLead(payload, input)
     if (winner) return { lead: winner, created: false }
     throw err
   }

@@ -26,7 +26,8 @@ const MISSING_INVESTMENT_ID = 99_999_999
 async function readGridRow(grid: Locator, label: string): Promise<Record<string, string>> {
   const row = await grid.evaluate((node, rowLabel) => {
     const element = node as HTMLElement
-    const columns = element.style.gridTemplateColumns.trim().split(/\s+/).length
+    // Computed, not the inline value — `readSummaryFigures` in `helpers.ts` documents why.
+    const columns = getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length
     const cells = Array.from(element.children).map((cell) =>
       (cell.textContent ?? '').replace(/\s+/g, ' ').trim(),
     )

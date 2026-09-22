@@ -1,3 +1,4 @@
+import type { ProblemGroupIdT } from '@/lib/kosztorys/problem-groups'
 import type { KosztorysStageT, KosztorysV2RowT, ToolPlaneT } from '@/lib/kosztorys/types'
 
 export type RowConditionCtxT = {
@@ -22,6 +23,14 @@ export type RowConditionCtxT = {
   // computed the slow way. So a host that skips it stays correct and only pays what it paid before —
   // which is why the spec fixtures and single-shot callers do not carry one.
   qtyDoneByRowId?: ReadonlyMap<number, number>
+  // The two katalog verdicts, precomputed per pozycja one floor up — same reason as
+  // `divergentPriceRowIds`: the question is about the whole rozpiska read against the cennik, and
+  // every `matches` here sees one row.
+  //
+  // Optional, unlike the money guard above: a host with no cennik (the podglądy, the spec fixtures)
+  // has nothing to compare against, and „no katalog" must read as „no counter" rather than as
+  // „the cennik is empty", which would report every single praca as missing from it.
+  catalogueRowIds?: { divergent: ReadonlySet<number>; missing: ReadonlySet<number> }
 }
 
 // 'client' is a third kind, not a third mechanism: it hides like a filter, but it is engaged by the
@@ -64,5 +73,9 @@ export type RowConditionT = {
   // investment-wide fact is unreadable as a bare noun phrase. Takes the count because it owns the
   // whole row: the plane rides in the same parentheses, and a second pair after it read as a typo.
   problemLabel?: (count: number) => string
+  // Which heading the „Problemy" menu files the row under. Diagnostics only — a filter never reaches
+  // that menu. A diagnostic that names none is left OUT of the list entirely rather than dropped into
+  // an „Inne" bucket, so a forgotten category is a missing row a spec catches, not a silent orphan.
+  problemGroup?: ProblemGroupIdT
   matches: (row: KosztorysV2RowT, ctx: RowConditionCtxT) => boolean
 }

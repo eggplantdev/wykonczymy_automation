@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronDown } from 'lucide-react'
+import { Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -21,8 +21,8 @@ export function KosztorysInvestorMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button size="sm" variant="outline">
-          Widok inwestora
-          <ChevronDown />
+          <Eye />
+          Inwestor
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">

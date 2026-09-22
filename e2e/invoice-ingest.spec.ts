@@ -11,6 +11,7 @@ import {
   createInvestmentExpense,
   EXPENSE_REGISTER,
   openExpenseDialog,
+  refreshUntil,
   waitForHydration,
 } from './helpers'
 
@@ -109,9 +110,11 @@ test('HEIC z pickera edycji przelewu zapisuje się jako JPG (EX-732)', async ({ 
   // A raw HEIC riding through would leave „paragon.heic" here, which is precisely the bug: Blob
   // stores it, and every browser but Safari then renders a broken image forever.
   // The extension is the whole of EX-732.
-  await expect(
-    rowOf(page, description).getByRole('button', { name: previewOf('paragon') }),
-  ).toBeVisible()
+  await refreshUntil(page, () =>
+    expect(
+      rowOf(page, description).getByRole('button', { name: previewOf('paragon') }),
+    ).toBeVisible({ timeout: 5_000 }),
+  )
 })
 
 test('nieczytelny HEIC i plik ponad 4 MB nie wchodzą do formularza (EX-460)', async ({ page }) => {
@@ -182,10 +185,11 @@ test('okno „Dodaj fakturę" w tabeli przyjmuje kilka stron naraz (EX-663)', as
 
   await expect(page.getByText('Faktura dodana')).toBeVisible({ timeout: 60_000 })
 
-  // Both pages reached the action as ONE invoice, in pick order, and the cell learned of it through
-  // router.refresh() with no reload of ours.
+  // Both pages reached the action as ONE invoice, in pick order. Read through „Odśwież dane" rather
+  // than off the upload's own `router.refresh()` — see `refreshUntil`: that refresh can be served a
+  // cache entry a concurrent render re-poisoned, and the cell then keeps saying „Dodaj fakturę".
   const preview = rowOf(page, description).getByRole('button', { name: previewOf('paragon-a') })
-  await expect(preview).toBeVisible()
+  await refreshUntil(page, () => expect(preview).toBeVisible({ timeout: 5_000 }))
   await preview.click()
 
   // Filtered by a pattern, not by page 1's name: the filter is re-evaluated on every assertion, and

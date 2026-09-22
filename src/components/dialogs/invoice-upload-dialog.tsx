@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { FileInput } from '@/components/ui/file-input'
 
 type InvoiceUploadDialogPropsT = {
+  title?: string
   open: boolean
   onOpenChange: (open: boolean) => void
   onFiles: (files: File[]) => void
@@ -14,7 +15,12 @@ type InvoiceUploadDialogPropsT = {
  * room the table cell cannot spare, so it closes the moment it has files and hands the upload back
  * to the cell, which owns the pending state.
  */
-export function InvoiceUploadDialog({ open, onOpenChange, onFiles }: InvoiceUploadDialogPropsT) {
+export function InvoiceUploadDialog({
+  title = 'Dodaj fakturę',
+  open,
+  onOpenChange,
+  onFiles,
+}: InvoiceUploadDialogPropsT) {
   function handlePicked(e: React.ChangeEvent<HTMLInputElement>) {
     const picked = [...(e.target.files ?? [])]
     if (picked.length === 0) return
@@ -26,7 +32,7 @@ export function InvoiceUploadDialog({ open, onOpenChange, onFiles }: InvoiceUplo
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
-        <DialogHeader title="Dodaj fakturę" />
+        <DialogHeader title={title} />
         <FileInput multiple onChange={handlePicked} className="h-28 flex-col" />
       </DialogContent>
     </Dialog>

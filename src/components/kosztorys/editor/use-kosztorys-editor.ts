@@ -95,7 +95,11 @@ import {
   updateItemFieldAction,
   updateSectionFieldAction,
 } from '@/lib/actions/kosztorys'
+import { applyCatalogueToKosztorysAction } from '@/lib/actions/work-catalogue'
+import { buildCatalogueComparison } from '@/lib/kosztorys/work-catalogue/build-catalogue-comparison'
 import type { ItemPatchT, KosztorysTreeT, KosztorysV2RowT } from '@/lib/kosztorys/types'
+import type { SeedConflictFieldT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
+import { toastMessage } from '@/lib/utils/toast'
 import type { WorkerRefT } from '@/types/reference-data'
 
 type ArgsT = {
@@ -115,6 +119,9 @@ type ArgsT = {
   workers?: WorkerRefT[]
   // Gate on the overpaid-crew problem (EX-708). Defaults false for client-share, which counts none.
   hasSettledMaterial?: boolean
+  // The whole cennik, for the two katalog problems. Absent on the podglądy, where its absence is
+  // what switches both rows off — an empty array would mean „nothing is in the cennik".
+  workCatalogue?: WorkCatalogueItemT[]
   // Reseed-the-whole-tree path for a write that returns NOT_FOUND. Absent on the read-only body.
   onStaleTree?: () => Promise<void>
 }
@@ -136,6 +143,7 @@ export function useKosztorysEditor({
   undoRedo,
   workers,
   hasSettledMaterial = false,
+  workCatalogue,
   onStaleTree,
 }: ArgsT) {
   // Interaction, split from disclosure: `preview` decides what a client is SHOWN, this decides whether
@@ -363,6 +371,34 @@ export function useKosztorysEditor({
     [preview, rows],
   )
 
+  // The whole rozpiska read against the cennik, once per committed change — the same comparison the
+  // „Porównaj z katalogiem prac" window renders, so the counters and the window can never disagree.
+  // Hand-written memo: the compiler quietly bails in this file (EX-496), and this is the one call
+  // here whose cost is worth a dependency list. The coefficients come from a ROW, not from `tree`:
+  // the owner changes them mid-session and the settings hook patches them onto the rows (which is
+  // where it reads them back from too), while `tree` still carries what the server last served.
+  //
+  // Hints are deliberately NOT attached here: scoring every praca against every cennik opis is
+  // seconds, not milliseconds, and belongs where somebody is reading them (the window).
+  const catalogueComparison = useMemo(() => {
+    if (preview || !workCatalogue || rows.length === 0) return null
+    return buildCatalogueComparison(rows, workCatalogue, {
+      wToolsCoeff: rows[0].globalWToolsCoeff,
+      ownToolsCoeff: rows[0].globalOwnToolsCoeff,
+    })
+  }, [preview, rows, workCatalogue])
+
+  const catalogueRowIds = useMemo(
+    () =>
+      catalogueComparison
+        ? {
+            divergent: new Set(catalogueComparison.diffs.map((diff) => diff.itemId)),
+            missing: new Set(catalogueComparison.missing.map((row) => row.itemId)),
+          }
+        : undefined,
+    [catalogueComparison],
+  )
+
   // Six conditions and a full set of counters ask for this ~2.6× per pozycja, each re-summing the same
   // ten stage columns — ~2ms of the ~5ms these memos spend on 1000 pozycji, on every committed keystroke.
   const qtyDoneByRowId = useMemo(() => qtyDoneByRow(rows, stages), [rows, stages])
@@ -377,11 +413,20 @@ export function useKosztorysEditor({
       hasSettledMaterial,
       divergentPriceRowIds: divergentPriceIds,
       qtyDoneByRowId,
+      catalogueRowIds,
     }
     return ROW_CONDITIONS.map(
       (condition) => [condition.id, preview ? 0 : countMatching(rows, condition.id, ctx)] as const,
     )
-  }, [preview, rows, stages, hasSettledMaterial, divergentPriceIds, qtyDoneByRowId])
+  }, [
+    preview,
+    rows,
+    stages,
+    hasSettledMaterial,
+    divergentPriceIds,
+    qtyDoneByRowId,
+    catalogueRowIds,
+  ])
   // Over the view's own etapy: a subcontractor view already drops plane-less etapy, so counting the raw
   // list would offer a filter that can only empty the stage block. Asymmetric with the price conditions
   // by design — a price exists on both planes, an etap belongs to one.
@@ -480,6 +525,7 @@ export function useKosztorysEditor({
             hasSettledMaterial,
             divergentPriceRowIds: divergentPriceIds,
             qtyDoneByRowId,
+            catalogueRowIds,
           })
         : rows,
     [
@@ -490,6 +536,7 @@ export function useKosztorysEditor({
       hasSettledMaterial,
       divergentPriceIds,
       qtyDoneByRowId,
+      catalogueRowIds,
     ],
   )
 
@@ -510,6 +557,7 @@ export function useKosztorysEditor({
       hasSettledMaterial,
       divergentPriceRowIds: divergentPriceIds,
       qtyDoneByRowId,
+      catalogueRowIds,
     }
     return new Map(
       // Skipping a non-lifting condition saves a full pass per row for a `Map` entry the menu never reads,
@@ -519,7 +567,15 @@ export function useKosztorysEditor({
         sectionIdsWhereAllMatch(rows, condition.id, ctx),
       ]),
     )
-  }, [preview, rows, stages, hasSettledMaterial, divergentPriceIds, qtyDoneByRowId])
+  }, [
+    preview,
+    rows,
+    stages,
+    hasSettledMaterial,
+    divergentPriceIds,
+    qtyDoneByRowId,
+    catalogueRowIds,
+  ])
 
   // Problems only: the latch's other half („Odśwież — ukryj poprawione") renders only while a problem is
   // engaged, so latching under a „Prace" filter would hold rows with no way to release them. Out under
@@ -543,6 +599,7 @@ export function useKosztorysEditor({
       hasSettledMaterial,
       divergentPriceRowIds: divergentPriceIds,
       qtyDoneByRowId,
+      catalogueRowIds,
       latchedRowIds: latch?.ids,
     })
     if (latch) for (const row of next) latch.ids.add(row.id)
@@ -557,6 +614,7 @@ export function useKosztorysEditor({
     hasSettledMaterial,
     divergentPriceIds,
     qtyDoneByRowId,
+    catalogueRowIds,
     latch,
   ])
   const ordinalByRowId = useMemo(() => baseOrdinals(documentRows), [documentRows])
@@ -1022,6 +1080,73 @@ export function useKosztorysEditor({
     handleSetSectionField(sectionId, 'sectionName', name, 'Zmiana nazwy sekcji')
   }
 
+  /**
+   * „Aktualizuj kosztorys" from the katalog window: the ticked liczby are pulled out of the cennik
+   * and written onto the rozpiska in one go.
+   *
+   * Patched from what the ACTION returns rather than optimistically — unlike the rabat bulk-apply,
+   * the client does not know the values it is asking for. They are read from the cennik server-side
+   * (that is what stops a tampered payload pricing a praca), so there is nothing to show until the
+   * write answers, and nothing to revert if it doesn't.
+   *
+   * `patchRows`, never a refresh: `rows` is a mount-frozen seed, and `catalogueComparison` is a memo
+   * over `rows`, so the report and the „Problemy" counters shrink in the same render — the window
+   * stays open and the sort and filters the owner set to find these prace survive.
+   */
+  async function handleApplyCatalogueToItems(
+    selections: { itemId: number; fields: SeedConflictFieldT[] }[],
+  ): Promise<boolean> {
+    let res
+    try {
+      res = await applyCatalogueToKosztorysAction(investmentId, selections)
+    } catch {
+      // A transport-level failure throws client-side, bypassing the result contract — without this
+      // the whole editor hits its error boundary over one failed bulk write.
+      toastMessage('Nie udało się zaktualizować kosztorysu', 'warning', 4000)
+      return false
+    }
+    if (!res.success) {
+      toastMessage(res.error, 'warning', 4000)
+      return false
+    }
+    const patchById = new Map(res.data.map(({ itemId, ...values }) => [itemId, values] as const))
+    patchRows(
+      (r) => patchById.has(r.id),
+      (r) => ({ ...r, ...patchById.get(r.id) }),
+    )
+    return true
+  }
+
+  /**
+   * Accepting a „może chodzi o…" candidate: the praca takes the cennik's opis AND j.m.
+   *
+   * Both or neither — the klucz is the pair, so writing the nazwa alone moves the praca from one
+   * „brak w katalogu" to another and the gesture looks like it did nothing. Prices are deliberately
+   * untouched: this settles what the praca is CALLED, and what it costs is the next, separate
+   * decision — the one the „Inne liczby" block it now lands in is for.
+   */
+  async function handleAcceptCatalogueName(
+    itemId: number,
+    name: { description: string; unit: string },
+  ): Promise<boolean> {
+    const before = rowsRef.current.find((r) => r.id === itemId)
+    patchRows(
+      (r) => r.id === itemId,
+      (r) => ({ ...r, description: name.description, unit: name.unit }),
+    )
+    const res = await updateItemFieldAction(itemId, name)
+    if (!res.success) {
+      if (before)
+        patchRows(
+          (r) => r.id === itemId,
+          (r) => ({ ...r, description: before.description, unit: before.unit }),
+        )
+      toastMessage(res.error, 'warning', 4000)
+      return false
+    }
+    return true
+  }
+
   // The markup coefficients are denormalized on every row but changed OUTSIDE the grid, and
   // router.refresh() won't pick them up — `rows` is a mount-frozen useState seed, so without this patch
   // the „Cena" column shows the stale value until a reload.
@@ -1148,6 +1273,14 @@ export function useKosztorysEditor({
     investorImpactConfirm,
     subcontractorDue,
     marginForecastByPlane,
+    // The one comparison against the cennik: the „Problemy" counters and the „Porównaj z katalogiem
+    // prac" window both read it, so the two can never show different numbers. `null` = no cennik on
+    // this surface.
+    catalogueComparison,
+    // The cennik itself, for the one thing the comparison deliberately leaves out: the „może chodzi
+    // o…" guesses, which are O(pozycje × katalog) and so belong to the opened window, not to a memo
+    // that runs on every keystroke.
+    workCatalogue,
     laborCostsNet,
     // toolbar / panel state
     setView,
@@ -1180,6 +1313,8 @@ export function useKosztorysEditor({
     handleMaterialsNetRateChange,
     handleGlobalDiscountChange,
     handleApplyPercentDiscount,
+    handleApplyCatalogueToItems,
+    handleAcceptCatalogueName,
     // undo/redo (stack lives in the shell; consumed by the toolbar + keyboard). Both flush a
     // still-buffering edit burst first, so an undo pops the just-typed edit (correct LIFO) rather
     // than an older command that the un-pushed burst is sitting in front of.

@@ -93,6 +93,15 @@ export const Investments: CollectionConfig = {
       type: 'textarea',
       label: { en: 'Review', pl: 'Opinia' },
     },
+    // Photos and documents of the site itself — the same `media` rows a promoted lead arrived with,
+    // which is why promotion re-points them instead of re-uploading.
+    {
+      name: 'assets',
+      type: 'upload',
+      relationTo: 'media',
+      hasMany: true,
+      label: { en: 'Photos and files', pl: 'Zdjęcia i pliki' },
+    },
     {
       name: 'status',
       type: 'select',

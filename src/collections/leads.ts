@@ -5,7 +5,14 @@ import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/re
 const SOURCE_OPTIONS = [
   { label: { en: 'Facebook Lead Ads', pl: 'Facebook Lead Ads' }, value: 'facebook_lead_ads' },
   { label: { en: 'Website form', pl: 'Formularz WWW' }, value: 'website_form' },
+  { label: { en: 'Landing page form', pl: 'Strona docelowa' }, value: 'landing_form' },
 ] as const
+
+// The landing's form asks for these; Facebook Lead Ads cannot carry them, so on such a lead the
+// field would be a permanently empty row in /admin.
+const hideForFacebook = {
+  condition: (data: { source?: string }) => data?.source !== 'facebook_lead_ads',
+}
 
 const CONTACT_STATUS_OPTIONS = [
   { label: { en: 'Pending', pl: 'Oczekuje' }, value: 'new' },
@@ -64,6 +71,42 @@ export const Leads: CollectionConfig = {
       name: 'phone',
       type: 'text',
       label: { en: 'Phone', pl: 'Telefon' },
+    },
+    {
+      name: 'address',
+      type: 'text',
+      label: { en: 'Address', pl: 'Adres' },
+      admin: hideForFacebook,
+    },
+    {
+      name: 'scope',
+      type: 'text',
+      label: { en: 'Scope', pl: 'Zakres prac' },
+      admin: hideForFacebook,
+    },
+    // Text, not a number: the form invites a range („30–60 m²"), which no numeric column holds.
+    {
+      name: 'area',
+      type: 'text',
+      label: { en: 'Area', pl: 'Metraż' },
+      admin: hideForFacebook,
+    },
+    {
+      name: 'assets',
+      type: 'upload',
+      relationTo: 'media',
+      hasMany: true,
+      label: { en: 'Photos and files', pl: 'Zdjęcia i pliki' },
+      admin: hideForFacebook,
+    },
+    // Written only by the promotion action — the pointer back to what this zgłoszenie became.
+    {
+      name: 'investment',
+      type: 'relationship',
+      relationTo: 'investments',
+      hasMany: false,
+      label: { en: 'Investment', pl: 'Inwestycja' },
+      admin: { readOnly: true },
     },
     {
       name: 'rawData',

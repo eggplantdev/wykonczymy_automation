@@ -60,21 +60,46 @@ export type CatalogueSavePreviewT = {
   existing: WorkCatalogueItemT | null
 }
 
+// A rozjazd is a difference of RODZAJ as much as of kwota: a frozen złotówka against a katalog that
+// declines to name a stawka („auto") disagrees even when the two land on the same number, and the
+// column has to say „auto" rather than print a kwota nobody typed. Flags, not `number | null`, so
+// `delta` stays a number — an „auto" side compares as the kwota it implies for THIS inwestycja,
+// which is the only sensible input to a difference. „Cena j.m." is never „auto".
 export type CatalogueFigureDiffT = {
   label: string
+  // What the zaznaczenie and the wire carry — the Polish etykieta is for the reader only, and keying
+  // a selection off it would put a display string in a payload.
+  field: SeedConflictFieldT
   kosztorys: number
   catalogue: number
   delta: number
+  kosztorysIsAuto: boolean
+  catalogueIsAuto: boolean
 }
 
 export type CataloguePriceDiffT = {
   itemId: number
   description: string
   unit: string
+  // The rozpiska's own cena j.m., carried even when it agrees with the cennik: the 65 % ceiling is
+  // measured against it, and a praca that differs only on a stawka has no „Cena j.m." figure to read
+  // it from.
+  clientPrice: number
   figures: CatalogueFigureDiffT[]
   // The largest of this praca's rozbieżności — what the list sorts by, so the biggest money is read
   // first rather than found.
   maxDelta: number
+}
+
+// A „może chodzi o…" candidate. It carries the cennik row whole rather than its opis, because the
+// three closest names are routinely the SAME name — 168 prace in the local dataset differ from their
+// candidate only by j.m. — so the j.m. and the cena are what actually tell two candidates apart.
+export type CatalogueHintT = {
+  id: number
+  description: string
+  unit: string
+  clientPrice: number
+  score: number
 }
 
 export type CatalogueMissingT = {
@@ -82,11 +107,18 @@ export type CatalogueMissingT = {
   section: string
   description: string
   unit: string
-  // The closest cennik opis, or nothing. DISPLAY ONLY — this never matches, never prices anything
-  // and never decides which kubełek a praca lands in; it exists so „brak w katalogu" on a praca that
-  // IS there under a slightly different name is recognisable as such.
-  hint: string | null
+  // The closest cennik opisy, best first, or an empty list. A candidate is clickable — accepting one
+  // rewrites the praca's NAME — but it still never matches, never prices anything and never decides
+  // which kubełek a praca lands in: accepting is a write the owner makes, not a match this found.
+  hints: CatalogueHintT[]
 }
+
+// What the hurtowy zapis actually wrote, shaped as the patch the grid applies to its rows — only the
+// liczby that were ticked are present, and a stawka taken from a katalogowe „auto" arrives as an
+// explicit `null`, because dropping the nadpisanie IS the write.
+export type AppliedCatalogueValueT = { itemId: number } & Partial<
+  Pick<KosztorysItemT, 'clientPrice' | 'wToolsOverrideValue' | 'ownToolsOverrideValue'>
+>
 
 export type CatalogueComparisonT = {
   matching: number

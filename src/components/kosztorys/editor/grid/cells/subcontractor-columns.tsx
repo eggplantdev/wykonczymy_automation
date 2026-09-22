@@ -8,6 +8,7 @@ import { roundToCents } from '@/lib/utils/round-to-cents'
 import { overrideValueFor, viewPrice } from '@/lib/kosztorys/calc'
 import { checkSubcontractorPrice } from '@/lib/kosztorys/subcontractor-price-guard'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
+import { FLAGGED_TONE } from '@/lib/kosztorys/constants'
 import { modeChange, subcontractorPolicy } from '@/lib/kosztorys/subcontractor-price-edit'
 import { cellPaste } from '@/lib/kosztorys/cell-edit'
 import { useCellDraft } from '@/components/kosztorys/editor/grid/cells/use-cell-draft'
@@ -41,9 +42,6 @@ type SubcontractorCellDataT = {
 
 const cellData = (view: ToolPlaneT): SubcontractorCellDataT => ({ view })
 
-// The guard has one verdict — refused — which is the alarm the rest of the app spells „destructive".
-const REFUSED_TONE = 'text-destructive font-medium'
-
 // `kosztorys-cell-input-body` (globals.css) keeps this wrapper geometrically invisible: the grid
 // shapes a cell's direct span into the wrapping, clipping, margined box that read-only TEXT needs,
 // and an input pushed through that box sits a few pixels off the same figure in the cell next door.
@@ -52,9 +50,10 @@ const CELL_WRAPPER = 'kosztorys-cell-input-body size-full'
 // A derived price carries the float tail of client × coeff; the cell edits grosze, not the tail.
 const priceText = (value: number): string => decimalText(roundToCents(value))
 
-// The refusal explains itself where the user is typing rather than in a corner toast, mirroring the
-// blocked-action tooltip in kosztorys-row-actions-menu.tsx. `open` is forced while a rejection stands
-// because nobody hovers a cell they are typing into.
+// The verdict explains itself where the user is typing rather than in a corner toast, mirroring the
+// blocked-action tooltip in kosztorys-row-actions-menu.tsx. `open` is forced while a REFUSAL stands
+// because nobody hovers a cell they are typing into. A warning does not force it: that value was
+// written, so the red figure carries it until the settle toast names it.
 //
 // The tree shape NEVER varies with `message`: returning bare children when there is nothing to say
 // would change the element type at this position the moment a verdict appears, and React answers a
@@ -113,13 +112,12 @@ function SubcontractorPriceCell({
   const inherited = overrideValueFor(rowData, view) === null
   // A live rejection outranks the standing verdict: it describes the value on screen, which the row
   // has not accepted.
-  const message = edit.blockReason ?? checkSubcontractorPrice(rowData, view)
+  const message = edit.blockReason ?? checkSubcontractorPrice(rowData, view)?.message ?? null
 
   const body = (
     <EditableCellInput
       {...edit.inputProps}
-      // The row carries no price of its own, it is showing the one the investment default derives.
-      className={message ? REFUSED_TONE : inherited ? 'text-muted-foreground italic' : undefined}
+      className={message ? FLAGGED_TONE : inherited ? 'text-muted-foreground italic' : undefined}
       value={edit.draft ?? priceText(viewPrice(rowData, view))}
       focus={focus}
     />

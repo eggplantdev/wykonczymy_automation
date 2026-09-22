@@ -10,6 +10,7 @@ import { fetchFilteredByType, fetchCategoryBreakdowns } from '@/lib/queries/tran
 import { deriveFinancials } from '@/lib/db/investment-financials'
 import { calculateMargin } from '@/lib/db/calculate-margin'
 import { InvestmentSummaryPanel } from '@/components/investments/investment-summary-panel'
+import { InvestmentAssetsSection } from '@/components/investments/investment-assets-section'
 import { StatsVersionToggle } from '@/components/investments/stats-version-toggle'
 import { parseStatsVersion, STATS_VERSION_PARAM } from '@/lib/constants/stats-version'
 import { buildTransferFilters, statsWhereFrom } from '@/lib/queries/transfer-filters'
@@ -87,6 +88,12 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
         <OpenKosztorysV2Button investmentId={investmentId} />
       </div>
       <InfoList items={infoFields.filter((f) => f.value)} />
+
+      {/* Its own boundary: the gallery's read is independent of everything above it, so it must not
+          hold back the page the way an awaited fetch here would. */}
+      <Suspense fallback={null}>
+        <InvestmentAssetsSection investmentId={investmentId} />
+      </Suspense>
 
       {/* Anchored here rather than inside either reading's block: the two readings render different
           trees, so a toggle living inside them moves under the cursor on every switch. */}

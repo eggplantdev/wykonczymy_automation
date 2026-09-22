@@ -29,6 +29,8 @@ const baseEnv = {
   META_PAGE_ACCESS_TOKEN: 'x',
   META_PAGE_ID: 'x',
   WPFORMS_WEBHOOK_SECRET: 'x',
+  LANDING_WEBHOOK_SECRET: 'x',
+  LANDING_BLOB_HOST: 'landing-assets.public.blob.vercel-storage.com',
   LEADS_REPLY_FROM: 'reply@example.com',
   GOOGLE_SERVICE_ACCOUNT_JSON: JSON.stringify({
     client_email: 'sa@example.iam.gserviceaccount.com',
