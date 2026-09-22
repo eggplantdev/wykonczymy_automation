@@ -21,10 +21,14 @@ import { KosztorysViewMenu } from '@/components/kosztorys/editor/toolbar/kosztor
 import { KosztorysFiltersMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-filters-menu'
 import { KosztorysSectionsMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-sections-menu'
 import { KosztorysProblemsMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-problems-menu'
+import { InvestmentAssetsControl } from '@/components/investments/investment-assets-control'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import type { KosztorysEditorDataT } from '@/lib/kosztorys/types'
 import { cn } from '@/lib/utils/cn'
 
-export function KosztorysEditorToolbar() {
+type KosztorysEditorToolbarPropsT = Pick<KosztorysEditorDataT, 'investmentId' | 'assets'>
+
+export function KosztorysEditorToolbar({ investmentId, assets }: KosztorysEditorToolbarPropsT) {
   const { search, setSearch, view, setView, subtotals, readOnly, isWorkshop } =
     useKosztorysEditorContext()
   // Phone only — both groups below are `sm:contents`, so from 768 up this flag stops mattering.
@@ -94,6 +98,9 @@ export function KosztorysEditorToolbar() {
             {/* The workbench has a closed column list (WORKSHOP_VISIBLE_COLUMNS), so the picker
                 would steer an empty list, and the money/layer axes describe columns it has not. */}
             {!isWorkshop && <KosztorysViewMenu />}
+            {/* The gate stands here, not in the control: the control is shared with the investment
+                card, where `assets` is required. `undefined` = a surface with no gallery at all. */}
+            {assets && <InvestmentAssetsControl investmentId={investmentId} assets={assets} />}
           </div>
         </div>
       </div>

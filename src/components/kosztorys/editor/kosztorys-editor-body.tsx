@@ -101,6 +101,7 @@ export function KosztorysEditorBody({
   onStaleTree,
   workers,
   workCatalogue,
+  assets,
   ...panelData
 }: PropsT) {
   // A rozliczony wydatek means material was folded into robocizna, which is what makes a pozycja
@@ -389,7 +390,7 @@ export function KosztorysEditorBody({
               </header>
             ) : (
               <>
-                <KosztorysEditorToolbar />
+                <KosztorysEditorToolbar investmentId={investmentId} assets={assets} />
                 {/* Without this the editor just looks broken — cells refuse focus and nothing says why.
                   Never under the preview: the client's document knows nothing of our statuses. */}
                 {locked && <KosztorysLockedBanner />}

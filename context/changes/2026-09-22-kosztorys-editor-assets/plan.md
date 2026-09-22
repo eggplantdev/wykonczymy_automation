@@ -362,14 +362,14 @@ Uruchomić **raz**, po ostatniej fazie:
 
 #### Automated
 
-- [x] 1.1 Spec sekcji przechodzi bez zmian zachowania
-- [x] 1.2 Spec pola w formularzu przechodzi
+- [x] 1.1 Spec sekcji przechodzi bez zmian zachowania — 495816eb
+- [x] 1.2 Spec pola w formularzu przechodzi — 495816eb
 
 ### Phase 2: Podpięcie kontrolki do edytora kosztorysu v2
 
 #### Automated
 
-- [ ] 2.1 Spec bramki toolbara przechodzi
+- [x] 2.1 Spec bramki toolbara przechodzi
 
 ### Phase 3: Domknięcie dokumentacji i backlogu
 

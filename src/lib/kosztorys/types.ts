@@ -6,6 +6,7 @@ import type { STAGE_QTY_PREFIX } from '@/lib/kosztorys/stage-keys'
 import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import type { InvestmentFinancialsT, MaterialsBreakdownRowT } from '@/types/investment-financials'
+import type { MediaFileT } from '@/types/media'
 import type { WorkerRefT } from '@/types/reference-data'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import type {
@@ -174,6 +175,10 @@ export type KosztorysEditorDataT = {
   // The whole cennik, for the in-browser comparison behind the katalog problems. Optional for the
   // reason spelled out on `RowConditionCtxT.catalogueRowIds`: the preview surfaces carry none.
   workCatalogue?: WorkCatalogueItemT[]
+  // The investment's „Zdjęcia i pliki", so the toolbar can mount the card's gallery. `undefined`
+  // means „this surface has no gallery" (the szablon workbench, both shares); `[]` means the
+  // investment simply has no files yet.
+  assets?: MediaFileT[]
 }
 
 // --- v2 variant (react-datasheet-grid): a flat row with stages flattened

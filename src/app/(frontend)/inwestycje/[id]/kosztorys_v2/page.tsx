@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { parseInvestmentId } from '@/lib/queries/investment-id'
 import { getKosztorysTree } from '@/lib/queries/kosztorys'
 import { getWorkCatalogue } from '@/lib/queries/work-catalogue'
+import { fetchInvestmentAssets } from '@/lib/queries/investment-assets'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import {
   fetchPayoutTransactionsForInvestment,
@@ -54,6 +55,9 @@ export default async function InvestmentKosztorysV2Page({
   // The whole cennik, so the editor can classify every praca against it in the browser — the
   // katalog problems' counter has to be true before anyone opens the comparison window.
   const workCataloguePromise = getWorkCatalogue()
+  // „Zdjęcia i pliki" of the investment — the same gallery the investment card shows, mounted in
+  // the toolbar. Cached on `investment:<id>`, so an upload from either surface invalidates it.
+  const assetsPromise = fetchInvestmentAssets(investmentId)
   const [
     tree,
     financialsSource,
@@ -61,6 +65,7 @@ export default async function InvestmentKosztorysV2Page({
     depositTransactions,
     materialTransactions,
     workCatalogue,
+    assets,
   ] = await Promise.all([
     treePromise,
     financialsPromise,
@@ -68,10 +73,11 @@ export default async function InvestmentKosztorysV2Page({
     depositTxPromise,
     materialTxPromise,
     workCataloguePromise,
+    assetsPromise,
   ])
   console.log(
-    `[PERF] kosztorys_v2/${investmentId} 6-fetch fan-out ${elapsed()}ms ` +
-      `(tree + financials source + 3 transaction lists + work catalogue)`,
+    `[PERF] kosztorys_v2/${investmentId} 7-fetch fan-out ${elapsed()}ms ` +
+      `(tree + financials source + 3 transaction lists + work catalogue + assets)`,
   )
   const { financials, materialsBreakdown, settledBreakdown } = deriveWholeInvestmentFinancials(
     financialsSource,
@@ -98,6 +104,7 @@ export default async function InvestmentKosztorysV2Page({
       materialTransactions={materialTransactions}
       workers={refData.workers}
       workCatalogue={workCatalogue}
+      assets={assets}
       hasSheet={investment.hasSheet}
       locked={isLockedStatus(investment.status)}
     />
