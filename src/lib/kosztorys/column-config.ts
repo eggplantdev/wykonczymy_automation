@@ -243,7 +243,12 @@ export const PREVIEW_VISIBLE_COLUMNS: ReadonlySet<string> = new Set(
 // is a COMPUTED column, netto × the row's VAT — and a preset's `settings` are retained but ignored
 // on apply, so that VAT is the workbench's own and never travels to the next budowa. The figure
 // would therefore be right on this screen and wrong everywhere the szablon is used.
+//
+// `actions` is on the list despite carrying nothing to the next budowa: the grid runs `lockRows`, so
+// the „Akcje" menu is the only route to usuń / przesuń / wstaw a pozycja. This list reads as "what a
+// szablon carries", which is why a column that is pure affordance was missed once already.
 export const WORKSHOP_VISIBLE_COLUMNS: ReadonlySet<string> = new Set([
+  'actions',
   'sectionName',
   'description',
   'unit',
