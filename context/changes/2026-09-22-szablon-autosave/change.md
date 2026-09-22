@@ -35,6 +35,8 @@ Cel: szablon ma zapisywać się sam, analogicznie do kosztorysu na inwestycji.
   nie per kosztorys), więc wybór zrobiony na inwestycji nie wycieka do warsztatu.
   **Picker kolumn znika w warsztacie jako konsekwencja**, nie jako mechanizm: samo schowanie go
   przy dzisiejszych domyślnych ustawieniach zostawiłoby komplet pól-pułapek bez możliwości ich zdjęcia.
+  **„Akcje" zostaje** — siatka stoi na `lockRows`, więc to menu jest jedyną drogą do usunięcia,
+  przestawienia i wstawienia pozycji, a belka sekcji ma w tej samej kolumnie swoje „…".
 - **Komentarz jest jedynym wyjątkiem w drugą stronę** — zostaje w siatce i szablon zaczyna go nieść
   (dziś jest wycinany przy serializacji). Uwaga o samej pracy („cena zawiera transport") przenosi się
   na każdą kolejną budowę; Przedmiar, rabat i etapy nie.

@@ -100,6 +100,17 @@ Linear: MCP osiągalny, projekt „Wykonczymy" (P-EX-5, zespół Ex-plant).
       Źródło ceny wykonawcy ×2 plany, Komentarz.
       test: TDD · unit — trzy specy w `workshop-columns.test.ts`: kolumna jest dla obu planów,
       stawki nie ma, i wyjątek nie wycieka na zwykły widok klienta.
+- [x] 🔴 CRITICAL · fixed · user · `src/lib/kosztorys/column-config.ts:WORKSHOP_VISIBLE_COLUMNS` ·
+      **F7** — z warsztatu wypadła kolumna „Akcje". Allowlista jest listą tego, co szablon **niesie**,
+      a „Akcje" nie niesie niczego — więc nie została dopisana. Tylko że siatka stoi na `lockRows`,
+      więc to menu jest jedyną drogą do „Usuń pozycję" / „Wstaw powyżej|poniżej" / „Przesuń" /
+      „Zapisz pozycję do katalogu prac", a w tej samej kolumnie siedzi „…" belki sekcji
+      (`sectionHeaderSlot` → slot `actions`), czyli także zmiana nazwy, kolejności, koloru i kasowanie
+      sekcji. W efekcie w warsztacie dało się tylko dopisywać i edytować — nic nie dało się usunąć
+      ani przestawić. `actions` dopisane na początek listy; komentarz przy stałej mówi teraz, że
+      wisi tam jako afordancja, nie jako dana.
+      test: test-driven debugging · unit — nowy spec w `workshop-columns.test.ts` („keeps the
+      row-actions column…"), czerwony przed poprawką.
 - [x] fixed · comment-noise · reszta zgłoszeń audytu — zastosowana w kroku 2. Klastry duplikacji
       zwinięte na `src/lib/constants/preset-mirror.ts`: po co dławik (`PRESET_MIRROR_THROTTLE_SECONDS`)
       i po co domknięcie ogona (`PRESET_MIRROR_IDLE_FLUSH_MS`) stoją teraz raz, przy stałych;
