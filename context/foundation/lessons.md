@@ -2104,3 +2104,25 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   specs for a stub of it in the same commit and check which of the two kinds each one is; both fail
   without naming the cause, and one of them fails only sometimes.
 - **Applies to**: 10x-plan, 10x-implement, impl-review, /simplify, any Blob/media cleanup path.
+
+## Parallel Payload creates on Neon lose rows while answering 200 — serialize the write, keep the bytes parallel
+
+- **Context**: prod 2026-09-22, 18:25–18:35. A bulk expense with more than one invoice failed on
+  `transactions_rels_media_id_fkey`. The uploader ran `UPLOAD_CONCURRENCY = 4` two-hop uploads
+  (browser PUT to Blob, then `POST /api/media`) and handed the returned ids to
+  `createBulkTransferAction`.
+- **Problem**: every overlapping `POST /api/media` answered with a `doc.id`, but only one row
+  committed — Payload logged „Failed to persist upload data for collection media document N:
+  NotFound". Concurrent Payload writes on `db-vercel-postgres` share a session, so the others
+  vanish **after** reporting success. The client had no way to see it; the next write (the FK
+  insert) was the first to fail, which pointed the diagnosis at migrations. The local docker
+  Postgres never reproduced it, and neither can a spec — both see the queue, not Neon.
+  `delete-unreferenced-media.ts` already documented the same hazard for deletes; nothing carried it
+  over to creates.
+- **Rule**: on this stack, never let two Payload writes overlap — not on the server, and not from
+  the browser either (`Promise.all` / a concurrency pool over `/api/*` counts). Split the slow part
+  from the write: `uploadMediaFromClient` keeps the Blob PUT parallel and chains only the row create
+  through the page-wide queue in `createMediaRow`. A success response from a Payload write is not
+  proof the row exists; verify a Neon concurrency fix on staging, not locally. The queue covers one
+  tab only — two users uploading at once can still collide (EX-855, the server-side fix).
+- **Applies to**: 10x-plan, 10x-implement, impl-review, any code that fans out Payload writes.

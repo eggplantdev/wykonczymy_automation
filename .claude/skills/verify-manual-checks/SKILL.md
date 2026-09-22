@@ -118,13 +118,16 @@ replaces it:
   absent from an older build is a stale deploy, not a finding.
 - **Login — there is no stored staging credential, and this is what cost a previous pass its first
   half-hour.** `ADMIN`/`PASS` in `.env` are dead, the OWNER rows in the preview DB
-  (`admin@…`, `bartek@…`, `qa-gate@wykonczymy.test`, `verify-owner-ex748@…`) have no password written
-  down anywhere, and **`src/scripts/seed-e2e-user.ts` refuses to run** against a non-localhost host on
+  have no password written down anywhere, and **`src/scripts/seed-e2e-user.ts` refuses to run** against a non-localhost host on
   purpose (it would plant a committed plaintext password in a remote DB — don't defeat that guard).
-  The route that works: a throwaway Local-API script that **resets the password of the existing**
-  `qa-gate@wykonczymy.test` OWNER to a freshly generated secret, run with `DB_POSTGRES_URL` overridden
-  to the preview URL. Reset the standing QA user rather than creating a new one — every pass that
-  minted its own left another OWNER row behind. Three details or it fails:
+  The route that works: a throwaway Local-API script that **resets the password of an existing
+  `*.test` OWNER** to a freshly generated secret, run with `DB_POSTGRES_URL` overridden to the preview
+  URL. **Look the account up first — don't trust a name written here:** the preview DB is re-restored
+  from prod dumps, so a QA user minted on it vanishes with the next restore (`qa-gate@wykonczymy.test`,
+  named here until 2026-09-22, is gone; `verify-owner-ex748@wykonczymy.test` is the one present then):
+  `psql "$DB_POSTGRES_URL_PREVIEW" -Atc "select email from users where role='OWNER' and email like '%.test'"`.
+  Create one only when that returns nothing — every pass that minted its own while one existed left
+  another OWNER row behind. Three details or it fails:
   - the script must live **under `src/scripts/`** (the `@payload-config` alias doesn't resolve from a
     scratchpad path) and wrap its body in an `async main()` (tsx transpiles to CJS — top-level `await`
     is a build error);
