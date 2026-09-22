@@ -8,8 +8,13 @@ import { useTotalsPanelOpen } from '@/components/kosztorys/summary/hooks/use-tot
 // Owns the overlay geometry, nothing of what is displayed — that all lives in SummaryPanelContent, so
 // the investment page can mount the same content without inheriting the editor's bottom-anchored
 // collapsible.
-export function KosztorysTotalsPanel(props: ComponentProps<typeof SummaryPanelContent>) {
-  const [open, setOpen] = useTotalsPanelOpen()
+// `hasRows` is required on purpose: it picks which localStorage key this panel and its toggle bind
+// to, so a call site that forgot it would silently drive a different key than the button next to it.
+export function KosztorysTotalsPanel({
+  hasRows,
+  ...props
+}: ComponentProps<typeof SummaryPanelContent> & { hasRows: boolean }) {
+  const [open, setOpen] = useTotalsPanelOpen(hasRows)
 
   return (
     <Collapsible.Root

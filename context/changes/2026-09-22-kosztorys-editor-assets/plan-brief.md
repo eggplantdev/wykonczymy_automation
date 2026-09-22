@@ -25,14 +25,14 @@ W warsztacie szablonów kontrolki nie ma; w podglądzie klienta nie ma całego t
 
 ## Podjęte decyzje
 
-| Decyzja | Wybór | Dlaczego | Źródło |
-|---|---|---|---|
-| Miejsce | Prawa grupa toolbara edytora | Menu odpada — `DropdownMenuContent` odmontowuje dzieci, więc nie utrzyma dialogów galerii | Research |
-| Współdzielenie | Wydzielić `InvestmentAssetsControl`, chrom `<section>`/`<h2>` zostaje na karcie | Jedna implementacja, zero rozjazdu nazewnictwa i zachowania | Plan (rozmowa) |
-| Dane | Siódme zapytanie w istniejącym `Promise.all` | Odczyt jest cache'owany i nie może dostać `'use server'` (wołają go komponenty serwerowe) | Research |
-| Bramka | `{assets && …}` u wołającego, nie `return null` w kontrolce | Kontrolka jest współdzielona z kartą, gdzie `assets` jest wymagane — osłabienie kontraktu byłoby regresją tamtej powierzchni | Plan |
-| EX-832 | Zostaje w backlogu, dostaje dopisek o trzecim pisarzu | Wyścig realny, ale cichy i mało prawdopodobny przy pięciu użytkownikach | Rozmowa |
-| Kontekst edytora | Nietknięty — prop idzie wprost do toolbara | Zakaz z AGENTS.md (regresja perf EX-496) | AGENTS.md |
+| Decyzja          | Wybór                                                                           | Dlaczego                                                                                                                     | Źródło         |
+| ---------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| Miejsce          | Prawa grupa toolbara edytora                                                    | Menu odpada — `DropdownMenuContent` odmontowuje dzieci, więc nie utrzyma dialogów galerii                                    | Research       |
+| Współdzielenie   | Wydzielić `InvestmentAssetsControl`, chrom `<section>`/`<h2>` zostaje na karcie | Jedna implementacja, zero rozjazdu nazewnictwa i zachowania                                                                  | Plan (rozmowa) |
+| Dane             | Siódme zapytanie w istniejącym `Promise.all`                                    | Odczyt jest cache'owany i nie może dostać `'use server'` (wołają go komponenty serwerowe)                                    | Research       |
+| Bramka           | `{assets && …}` u wołającego, nie `return null` w kontrolce                     | Kontrolka jest współdzielona z kartą, gdzie `assets` jest wymagane — osłabienie kontraktu byłoby regresją tamtej powierzchni | Plan           |
+| EX-832           | Zostaje w backlogu, dostaje dopisek o trzecim pisarzu                           | Wyścig realny, ale cichy i mało prawdopodobny przy pięciu użytkownikach                                                      | Rozmowa        |
+| Kontekst edytora | Nietknięty — prop idzie wprost do toolbara                                      | Zakaz z AGENTS.md (regresja perf EX-496)                                                                                     | AGENTS.md      |
 
 ## Zakres
 
@@ -58,11 +58,11 @@ kosztorys_v2/page.tsx ──(7. zapytanie: fetchInvestmentAssets)──► Koszt
 
 ## Fazy
 
-| Faza | Co dowozi | Główne ryzyko |
-|---|---|---|
-| 1. Wydzielenie kontrolki | `InvestmentAssetsControl` używany przez kartę | Zgubienie spinnera uploadu, który dziś wisi w nagłówku sekcji |
-| 2. Podpięcie do edytora | Galeria w toolbarze + bramka + spec | Montaż toolbara w jsdom wymaga providera kontekstu, którego nikt jeszcze nie budował |
-| 3. Domknięcie dokumentacji | `manual-checks.md`, komentarz do EX-832 | Linear MCP może być nieosiągalny — wtedy mówimy to wprost |
+| Faza                       | Co dowozi                                     | Główne ryzyko                                                                        |
+| -------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------ |
+| 1. Wydzielenie kontrolki   | `InvestmentAssetsControl` używany przez kartę | Zgubienie spinnera uploadu, który dziś wisi w nagłówku sekcji                        |
+| 2. Podpięcie do edytora    | Galeria w toolbarze + bramka + spec           | Montaż toolbara w jsdom wymaga providera kontekstu, którego nikt jeszcze nie budował |
+| 3. Domknięcie dokumentacji | `manual-checks.md`, komentarz do EX-832       | Linear MCP może być nieosiągalny — wtedy mówimy to wprost                            |
 
 **Warunek wstępny:** niezacommitowane odwrócenie pustego stanu w drzewie roboczym musi zostać.
 **Rozmiar:** jedna sesja, trzy fazy.

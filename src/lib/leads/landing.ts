@@ -36,6 +36,7 @@ export const landingSubmissionSchema = z.object({
   address: z.string().optional(),
   scope: z.string().optional(),
   area: z.string().optional(),
+  timing: z.string().optional(),
   message: z.string().optional(),
   rawData: z.array(leadFieldSchema).optional(),
   formQuestions: z.array(formQuestionSchema).optional(),
@@ -53,6 +54,7 @@ const TYPED_ANSWERS = [
   ['address', 'Adres'],
   ['scope', 'Zakres prac'],
   ['area', 'Metraż'],
+  ['timing', 'Termin rozpoczęcia prac'],
   ['message', 'Wiadomość'],
 ] as const
 

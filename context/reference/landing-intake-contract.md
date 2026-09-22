@@ -42,16 +42,16 @@ refuse a request either side sends to the wrong endpoint, which it otherwise wav
 Strict on what identifies a submission, permissive on the rest: the landing may add a question
 without a coordinated deploy here, and an unknown field is ignored rather than rejected.
 
-| Field                                 | Required | Notes                                                                                 |
-| ------------------------------------- | -------- | ------------------------------------------------------------------------------------- |
-| `submissionId`                        | yes      | uuid, one per submission — this is what makes a replay idempotent                     |
-| `submittedAt`                         | no       | ISO 8601                                                                              |
-| `formId`, `formName`                  | no       | recorded as-is                                                                        |
-| `name`, `email`, `phone`              | no       | the standard three                                                                    |
-| `address`, `scope`, `area`, `message` | no       | the landing's typed answers; `area` is text, because the form invites a range         |
-| `rawData`                             | no       | `{ name, values[] }[]` — when omitted, the typed answers above become the answer list |
-| `formQuestions`                       | no       | `{ key, label, type? }[]` — key→label for the answers modal                           |
-| `assets`                              | no       | `{ url, filename, contentType, size }[]`, at most **15**                              |
+| Field                                           | Required | Notes                                                                                                                       |
+| ----------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `submissionId`                                  | yes      | uuid, one per submission — this is what makes a replay idempotent                                                           |
+| `submittedAt`                                   | no       | ISO 8601                                                                                                                    |
+| `formId`, `formName`                            | no       | recorded as-is                                                                                                              |
+| `name`, `email`, `phone`                        | no       | the standard three                                                                                                          |
+| `address`, `scope`, `area`, `timing`, `message` | no       | the landing's typed answers; `area` and `timing` are text, because the form invites a range ("30–60 m²", "jak najszybciej") |
+| `rawData`                                       | no       | `{ name, values[] }[]` — when omitted, the typed answers above become the answer list                                       |
+| `formQuestions`                                 | no       | `{ key, label, type? }[]` — key→label for the answers modal                                                                 |
+| `assets`                                        | no       | `{ url, filename, contentType, size }[]`, at most **15**                                                                    |
 
 Schema and mapping: `src/lib/leads/landing.ts`. Fixture: `src/__tests__/fixtures/landing-submission.ts`.
 

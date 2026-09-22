@@ -490,7 +490,8 @@ Sprawdzenia na bazie testowej (5435). Webhook wymaga `LANDING_WEBHOOK_SECRET` i
 Zastępuje sprawdzenie „Pasek miniatur nie przewija się w poziomie przy 375px" z sekcji
 lead-delivery — na karcie inwestycji nie ma już paska miniatur (został tylko u leada).
 
-- [x] Inwestycja bez plików nie pokazuje w sekcji żadnego przycisku — dodać można tylko z „Edytuj inwestycję"
+- ~~Inwestycja bez plików nie pokazuje w sekcji żadnego przycisku~~ — zachowanie odwrócone przy
+  kosztorys-editor-assets (2026-09-22); nowe brzmienie czeka na weryfikację w sekcji tej zmiany
 - [x] Przycisk „Zdjęcia i pliki (N)" ma szerokość swojej treści, nie całej kolumny
 - [x] Podgląd przy N ≥ 1 ma „Dodaj kolejne", które dokłada plik bez wychodzenia z karty
 - [x] Po dodaniu pliku licznik „Zdjęcia i pliki (N)" rośnie bez przeładowania strony
@@ -571,3 +572,47 @@ otwarte wcześniej. Dławik lustra to 10 s, domknięcie ogona 15 s bezczynności
 - [ ] Po przełączeniu w „Wersje" jest wpis „Przed wczytaniem: <nazwa>" i przywrócenie go wraca do stanu sprzed
 - [ ] „Wyczyść szablon" czyści rozpiskę, a „Wczytaj" (wersje) wraca do stanu sprzed wyczyszczenia
 - [ ] Edycja kosztorysu na zwykłej inwestycji nie rusza żadnego szablonu na liście („Zmieniono" bez zmian)
+
+## kosztorys-editor-assets — galeria assetów w edytorze kosztorysu v2 (2026-09-22)
+
+Ta sama kontrolka co na karcie inwestycji. Jej miejsce w edytorze przejęła zakładka „Inwestycja"
+(sekcja `zakladka-inwestycja-w-panelu` niżej) — sprawdzenia dotyczące toolbara są tam, w nowym
+miejscu kontrolki.
+
+- [ ] Usunięcie pliku ze stopki podglądu w edytorze znika też z karty inwestycji po przejściu na nią
+- [ ] `/k/<token>` i `/podglad-inwestora/<id>`: nie ma toolbara, więc i galerii
+- [ ] Zakończona („Zakończona") inwestycja: dodawanie plików z edytora dalej działa
+- [ ] Karta inwestycji po refaktorze zachowuje się jak przed nim; przy trwającym uploadzie do
+      niepustej galerii widać spinner obok przycisku
+- [ ] Inwestycja bez plików pokazuje na karcie przycisk „Dodaj zdjęcia lub pliki" — pusty stan JEST
+      afordancją, a nie zniknięciem sekcji (odwraca sprawdzenie z sekcji EX-802)
+- [ ] Usunięcie OSTATNIEGO pliku: pusty stan wraca z napisem „Dodaj zdjęcia lub pliki", ani przez
+      chwilę nie „Przesyłanie..." (bramka odrzuciła tę pomyłkę — sprawdzenie na oczy)
+- [ ] „Edytuj inwestycję" → pole „Zdjęcia i pliki": przycisk wygląda jak przed wydzieleniem
+      `UploadButton` (wyrównanie do lewej, ta sama wysokość)
+
+## zakladka-inwestycja-w-panelu — zakładka „Inwestycja" w panelu Podsumowanie (2026-09-22)
+
+Dane inwestycji (notatki/zakres prac, kontakt, adres, status) i przeniesiona tu Dokumentacja;
+panel montuje się także na pustym kosztorysie.
+
+- [ ] Inwestycja bez kosztorysu: panel zamontowany, ale zwinięty; `EmptyState` z „Pobierz z arkusza
+      Google…" w pełni widoczny i klikalny
+- [ ] Na tej samej inwestycji kliknięcie „Podsumowanie" otwiera panel, a zakładka „Inwestycja" ma
+      pełną treść wraz z Dokumentacją
+- [ ] Powrót na inwestycję z kosztorysem otwiera panel zgodnie z wcześniejszą preferencją (nie
+      została nadpisana przez otwarcie na pustym)
+- [ ] Podgląd inwestora dla pustego kosztorysu: przełącznik „Podsumowanie" nieaktywny, a panel w
+      ogóle się nie montuje — także wtedy, gdy wcześniej rozwinięto panel na pustym kosztorysie
+      w edytorze (ten sam origin, ten sam klucz localStorage)
+- [ ] Zakładka „Inwestycja" stoi jako ostatnia, za „Marżą", i pokazuje komplet pól karty inwestycji;
+      puste pola są odfiltrowane
+- [ ] „Edytuj inwestycję" stoi w jednym rzędzie z „Dokumentacją", zapisuje i odświeża dane bez
+      opuszczania edytora
+- [ ] Karta inwestycji (`/inwestycje/<id>`) pokazuje ten sam komplet pól co zakładka — po wyjęciu
+      listy do jednego budowniczego
+- [ ] Dokumentacja w zakładce: wgranie pliku, podgląd, usunięcie; licznik rośnie bez ręcznego
+      odświeżenia, a siatka nie gubi stanu (brak remountu)
+- [ ] `/inwestycje/<id>/kosztorys_v2`: w toolbarze siatki NIE MA już przycisku „Dokumentacja"
+- [ ] `/szablony/<id>`: warsztat nie pokazuje zakładki „Inwestycja" ani żadnego przycisku plików
+- [ ] `/k/<token>` i `/podglad-inwestora/<id>`: pięć zakładek, bez „Inwestycji"

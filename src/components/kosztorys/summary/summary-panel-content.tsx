@@ -14,6 +14,7 @@ import { SummaryOverviewTab } from '@/components/kosztorys/summary/tabs/summary-
 import { SummaryExpensesTab } from '@/components/kosztorys/summary/tabs/summary-expenses-tab'
 import { SubcontractorSummary } from '@/components/kosztorys/summary/blocks/subcontractor-summary'
 import { SummaryMarginTab } from '@/components/kosztorys/summary/tabs/summary-margin-tab'
+import { SummaryInvestmentTab } from '@/components/kosztorys/summary/tabs/summary-investment-tab'
 import { allowedSummaryViews } from '@/components/kosztorys/summary/allowed-summary-views'
 import { SummaryScrollRegion } from '@/components/ui/summary-grid'
 import { SummaryInvestmentSettings } from '@/components/kosztorys/summary/summary-investment-settings'
@@ -27,7 +28,8 @@ import { type KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
 import type { KosztorysStageT, ToolPlaneT } from '@/lib/kosztorys/types'
 import type { MarginForecastT } from '@/lib/kosztorys/margin-forecast'
 import type { SectionSliceInputT } from '@/lib/kosztorys/chart-slices'
-import type { WorkerRefT } from '@/types/reference-data'
+import type { InvestmentRefT, WorkerRefT } from '@/types/reference-data'
+import type { MediaFileT } from '@/types/media'
 import type {
   PayoutTransactionRowT,
   DepositTransactionRowT,
@@ -40,6 +42,7 @@ const SUMMARY_VIEW_OPTIONS: OptionT<SummaryViewT>[] = [
   { value: 'stages', label: 'Robocizna' },
   { value: 'subcontractors', label: 'Podwykonawcy' },
   { value: 'margin', label: 'Marża' },
+  { value: 'investment', label: 'Inwestycja' },
 ]
 
 const ALL_SUMMARY_VIEWS = SUMMARY_VIEW_OPTIONS.map((option) => option.value)
@@ -130,6 +133,11 @@ type PropsT = {
   // tab is kept off the client by `preview` below, on the render side where every other client/owner
   // difference is decided.
   financials?: InvestmentFinancialsT
+  // Both carry the contract `KosztorysEditorDataT` spells out: `undefined` means this surface has no
+  // investment / no gallery at all, which is what drops the „Inwestycja" tab and the „Dokumentacja"
+  // button out of it.
+  investment?: InvestmentRefT
+  assets?: MediaFileT[]
 }
 
 // Deliberately holds no shell: the editor wraps it in a bottom-anchored Collapsible overlay, the
@@ -169,6 +177,8 @@ export function SummaryPanelContent({
   sectionSubtotals,
   marginForecastByPlane,
   financials,
+  investment,
+  assets,
 }: PropsT) {
   // Which view the panel shows — driven solely by the top toggle, fully independent of the grid's
   // price view (that only governs the grid columns now). „Podwykonawcy" is owner-only, so it drops out
@@ -182,6 +192,7 @@ export function SummaryPanelContent({
   const allowedViews = allowedSummaryViews(views, {
     preview,
     hasMarginInputs: financials !== undefined && subcontractorDue !== undefined,
+    hasInvestmentInfo: investment !== undefined,
   })
   const viewOptions = SUMMARY_VIEW_OPTIONS.filter((option) => allowedViews.includes(option.value))
   const view: SummaryViewT = allowedViews.includes(summaryView)
@@ -326,6 +337,9 @@ export function SummaryPanelContent({
                 subcontractor={toSettlement(subcontractorDue)}
                 forecastByPlane={marginForecastByPlane}
               />
+            )}
+            {view === 'investment' && investment && (
+              <SummaryInvestmentTab investment={investment} assets={assets} />
             )}
           </div>
         )}

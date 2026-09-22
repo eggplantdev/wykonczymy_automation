@@ -10,16 +10,19 @@ import { cn } from '@/lib/utils/cn'
 // it, or the panel gets stuck in whatever state localStorage remembered.
 // `size` is caller-chosen: the owner's toolbar packs it into a dense `sm` row, while the client
 // view's header carries only two controls and needs this one to read as the primary way in.
-// `disabled` on an empty kosztorys, where the body mounts no panel at all: without it the chevron
-// would flip open over a screen where nothing opened.
+// `disabled` belongs to the client view, whose panel is not mounted at all on an empty kosztorys.
+// `hasRows` is required — it picks the localStorage key, and a call site that omitted it would bind
+// to a different key than the panel it opens.
 export function KosztorysTotalsPanelToggle({
   size = 'sm',
   disabled = false,
+  hasRows,
 }: {
   size?: 'sm' | 'default' | 'lg'
   disabled?: boolean
+  hasRows: boolean
 }) {
-  const [totalsOpen, setTotalsOpen] = useTotalsPanelOpen()
+  const [totalsOpen, setTotalsOpen] = useTotalsPanelOpen(hasRows)
 
   return (
     <Button

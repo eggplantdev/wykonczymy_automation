@@ -1,3 +1,4 @@
+import type { ComponentProps } from 'react'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
@@ -6,6 +7,7 @@ import { SummaryPanelContent } from '@/components/kosztorys/summary/summary-pane
 import { ZERO_FINANCIALS } from '@/types/investment-financials'
 import type { SubcontractorDueByPlaneT } from '@/lib/kosztorys/subcontractor-due'
 import type { KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
+import type { InvestmentRefT } from '@/types/reference-data'
 
 // The kosztorys reading the host resolved, deliberately nowhere near the transactions figures below:
 // a „Marża" tab reading `financials` again prints 999 999, naming the plane it fell back to.
@@ -36,7 +38,23 @@ const SUBCONTRACTOR_DUE: SubcontractorDueByPlaneT = {
   byWorker: new Map(),
 }
 
-function renderPanel() {
+const INVESTMENT: InvestmentRefT = {
+  id: 1,
+  name: 'Inwestycja testowa',
+  status: 'active',
+  address: 'ul. Wiosenna 4',
+  phone: '500100200',
+  email: 'kontakt@przyklad.test',
+  contactPerson: 'Anna Kowalska',
+  notes: 'Zakres prac: kuchnia i łazienka.',
+  review: '',
+  hasSheet: false,
+  materialsNetRate: null,
+  settlementMode: 'NET',
+  vatRate: 0.23,
+}
+
+function renderPanel(overrides: Partial<ComponentProps<typeof SummaryPanelContent>> = {}) {
   render(
     <SummaryPanelContent
       investmentId={1}
@@ -56,6 +74,7 @@ function renderPanel() {
       subcontractorDue={SUBCONTRACTOR_DUE}
       showPies={false}
       showTransactionLists={false}
+      {...overrides}
     />,
   )
   return userEvent.setup()
@@ -99,5 +118,30 @@ describe('SummaryPanelContent — „Marża" and the block above it read one pla
     // Both surfaces quote the rabat the host resolved — the pair is what EX-677 was about.
     expect(overview).toContain('5 000,00')
     expect(margin).toContain('5 000,00')
+  })
+})
+
+describe('SummaryPanelContent — zakładka „Inwestycja"', () => {
+  it('stoi jako ostatnia i pokazuje notatki, gdy rekord dotarł', async () => {
+    const user = renderPanel({ investment: INVESTMENT })
+
+    const tabs = screen.getAllByRole('radio').map((tab) => tab.textContent)
+    expect(tabs.at(-1)).toBe('Inwestycja')
+
+    await user.click(screen.getByRole('radio', { name: 'Inwestycja' }))
+    expect(screen.getByText(INVESTMENT.notes)).toBeInTheDocument()
+  })
+
+  it('nie istnieje bez rekordu inwestycji', () => {
+    renderPanel()
+
+    expect(screen.queryByRole('radio', { name: 'Inwestycja' })).not.toBeInTheDocument()
+  })
+
+  // An internal note is not for the inwestor — same reason „Podwykonawcy" is withheld.
+  it('nie istnieje w dokumencie klienta, nawet gdy rekord dotarł', () => {
+    renderPanel({ investment: INVESTMENT, preview: true })
+
+    expect(screen.queryByRole('radio', { name: 'Inwestycja' })).not.toBeInTheDocument()
   })
 })

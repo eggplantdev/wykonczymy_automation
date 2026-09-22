@@ -101,6 +101,8 @@ export function KosztorysEditorBody({
   onStaleTree,
   workers,
   workCatalogue,
+  assets,
+  investment,
   ...panelData
 }: PropsT) {
   // A rozliczony wydatek means material was folded into robocizna, which is what makes a pozycja
@@ -384,7 +386,11 @@ export function KosztorysEditorBody({
                 <div className="ml-auto flex shrink-0 items-center gap-2">
                   {/* The panel's open state is persisted per person, not per view, so without this the
                   client view inherits whatever the toolbar last left and can never fold it back. */}
-                  <KosztorysTotalsPanelToggle size="lg" disabled={subtotals.length === 0} />
+                  <KosztorysTotalsPanelToggle
+                    size="lg"
+                    disabled={subtotals.length === 0}
+                    hasRows={subtotals.length > 0}
+                  />
                 </div>
               </header>
             ) : (
@@ -523,15 +529,18 @@ export function KosztorysEditorBody({
                 )}
               {/* An opaque overlay over the WHOLE grid area, not a flex track: open, the summary takes the
               editor's screen and the grid keeps its full height underneath rather than being squeezed
-              into what is left. Which is why it is not mounted over an empty kosztorys — the panel is
-              open by default, its figures are all zeros there, and it would paint them over the only
-              way in („Pobierz z arkusza Google…"), on exactly the first screen a new investment shows.
-              The stored preference is untouched: it applies again the moment there are rows. */}
-              {subtotals.length > 0 && (
+              into what is left. For the owner it mounts whatever the row count, because „Inwestycja"
+              has something to say on an empty kosztorys. The client document keeps the row gate: it
+              has no such tab, and its toggle is `disabled` there, so a panel left open would be a
+              full-height sheet of zeros nobody could fold away. */}
+              {(!preview || subtotals.length > 0) && (
                 <KosztorysTotalsPanel
+                  hasRows={subtotals.length > 0}
                   {...panelData}
                   investmentId={investmentId}
                   investmentName={investmentName}
+                  investment={investment}
+                  assets={assets}
                   depositTransactions={depositTransactions}
                   stages={stages}
                   stageTotals={stageTotals}

@@ -2,10 +2,17 @@ import { describe, expect, it } from 'vitest'
 import { allowedSummaryViews } from '@/components/kosztorys/summary/allowed-summary-views'
 import type { SummaryViewT } from '@/components/kosztorys/summary/hooks/use-summary-view'
 
-const ALL: SummaryViewT[] = ['summary', 'expenses', 'stages', 'subcontractors', 'margin']
+const ALL: SummaryViewT[] = [
+  'summary',
+  'expenses',
+  'stages',
+  'subcontractors',
+  'margin',
+  'investment',
+]
 
-const OWNER = { preview: false, hasMarginInputs: true }
-const CLIENT = { preview: true, hasMarginInputs: true }
+const OWNER = { preview: false, hasMarginInputs: true, hasInvestmentInfo: true }
+const CLIENT = { preview: true, hasMarginInputs: true, hasInvestmentInfo: true }
 
 describe('allowedSummaryViews', () => {
   it('właściciel widzi wszystko, co host oferuje', () => {
@@ -19,11 +26,23 @@ describe('allowedSummaryViews', () => {
   })
 
   it('bez kompletu liczb „Marża" znika, a „Podwykonawcy" zostaje', () => {
-    expect(allowedSummaryViews(ALL, { preview: false, hasMarginInputs: false })).toEqual([
-      'summary',
-      'expenses',
-      'stages',
-      'subcontractors',
-    ])
+    expect(
+      allowedSummaryViews(ALL, {
+        preview: false,
+        hasMarginInputs: false,
+        hasInvestmentInfo: true,
+      }),
+    ).toEqual(['summary', 'expenses', 'stages', 'subcontractors', 'investment'])
+  })
+
+  // The szablon workbench prices rows that belong to no investment — the tab would render nothing.
+  it('bez rekordu inwestycji „Inwestycja" znika, reszta zostaje', () => {
+    expect(
+      allowedSummaryViews(ALL, {
+        preview: false,
+        hasMarginInputs: true,
+        hasInvestmentInfo: false,
+      }),
+    ).toEqual(['summary', 'expenses', 'stages', 'subcontractors', 'margin'])
   })
 })

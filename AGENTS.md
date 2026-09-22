@@ -118,6 +118,25 @@ pnpm generate:types  # regenerate src/payload-types.ts (gitignored — never `gi
 docker compose up -d  # local Postgres on port 5433
 ```
 
+### The suites are serialized machine-wide
+
+Every heavy script (`test`, `test:integration`, `test:parity`, `test:coverage`, `test:e2e`,
+`test:e2e:warm`) and the pre-push unit leg run under `scripts/with-test-lock.sh`, which delegates
+to the global `with-test-lock` tool (`~/.local/bin`). The mutex is a `mkdir` on the fixed path
+`/tmp/dev-test-suite.lock`, so it spans **other checkouts, worktrees and repos** on this laptop —
+that is the point: several agents share these 8 cores, and two suites at once take 5x as long as
+one (97s → 483s, measured 2026-09-22), fail specs on the clock alone, and make the machine
+unusable. A second run waits and says whose hold it is waiting on; a dead holder's lock is taken
+over automatically. `NO_TEST_LOCK=1` skips it, and a nested call inherits the parent's hold, so
+pre-push's four legs don't queue behind themselves.
+
+**A `pnpm exec vitest run <file>` is deliberately NOT locked** — a single spec is seconds of one
+core, and queueing it behind someone's full suite is the cost the lock exists to avoid. Reach for
+the whole suite once, at the end of a run.
+
+Timeouts in `vitest.config.ts` are raised above the 5s default (node 15s, dom 20s) for the same
+contention: the limit is there to catch a hung spec, not to measure how busy the laptop was.
+
 ### Seeding kosztorys test data (local dev DB)
 
 Two one-off scripts populate an investment's kosztorys with test rows (each wipes that

@@ -1,11 +1,11 @@
 ---
 change_id: kosztorys-editor-assets
 title: Zdjęcia i pliki inwestycji dostępne z poziomu edytora kosztorysu v2
-status: planned
+status: implemented
 created: 2026-09-22
 updated: 2026-09-22
 archived_at: null
-branch: null
+branch: kosztorys-editor-assets
 worktree: null
 ---
 
