@@ -211,7 +211,7 @@ Po ostatniej fazie, raz: `pnpm typecheck` · `pnpm lint` · `pnpm test` · `pnpm
 
 #### Automated
 
-- [ ] 5.1 `manual-checks.md:468` opisuje stan po zmianie
-- [ ] 5.2 Wpis w `lessons.md` o oryginałach w Blobie poprawiony, nie dopisany obok
-- [ ] 5.3 Komentarz przy `serverActions.bodySizeLimit` sprawdzony
-- [ ] 5.4 Bramka całodrzewiowa zielona
+- [x] 5.1 `manual-checks.md:468` opisuje stan po zmianie
+- [x] 5.2 Wpis w `lessons.md` o oryginałach w Blobie poprawiony, nie dopisany obok
+- [x] 5.3 Komentarz przy `serverActions.bodySizeLimit` sprawdzony
+- [x] 5.4 Bramka całodrzewiowa zielona

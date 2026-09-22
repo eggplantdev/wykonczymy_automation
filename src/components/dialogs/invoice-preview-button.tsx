@@ -60,8 +60,8 @@ export function InvoicePreviewButton({
           onRemove={onRemove && ((invoice) => onRemove(invoice, closePreview))}
           onRemoveAll={onRemoveAll && (() => onRemoveAll(closePreview))}
           planMarker={planMarker}
-          // Stored file is already ingest-compressed (≤1920px, q0.6) — skip the Next optimizer
-          // and its cold-start round-trip; serve straight from the Blob CDN.
+          // Stored file is already ingest-compressed to one of the upload profiles — skip the Next
+          // optimizer and its cold-start round-trip; serve straight from the Blob CDN.
           unoptimized
         />
       )}

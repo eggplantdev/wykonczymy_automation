@@ -351,6 +351,24 @@ behavior/visual change. Verified against staging
       not-reproducible rather than filing.
       **Test disposition:** no automated test — could not reproduce, nothing to guard.
 
+## kosz-plikow — kosz plików zamiast natychmiastowego kasowania z Bloba (2026-09-22)
+
+Zamiatacz kasuje dopiero po siedmiu dniach, więc **pełnej pętli nie da się odhaczyć w jednym
+przebiegu** — kroki 4–5 wymagają albo cofnięcia `detached_at` SQL-em na bazie testowej, albo powrotu
+za tydzień. To nie jest blokada, tylko kształt sprawdzenia.
+
+- [ ] Usunięcie pliku z galerii inwestycji pyta o potwierdzenie zdaniem o koszu i siedmiu dniach — nigdzie nie pada „bezpowrotnie"
+- [ ] To samo zdanie w komórce faktury na transferach i przy plikach zgłoszenia
+- [ ] Po usunięciu plik znika z galerii, a jego bajty **nadal otwierają się** spod URL-a z Bloba
+- [ ] „Kosz (N)" pojawia się przy galerii dopiero, gdy coś w nim leży; przy pustym koszu nie ma przycisku
+- [ ] „Przywróć" wraca plik do galerii, a licznik kosza spada o jeden
+- [ ] Wgrywanie i przywracanie nie da się odpalić równocześnie (jedno rozbraja drugie)
+- [ ] Po cofnięciu `detached_at` o osiem dni i ręcznym wywołaniu `/api/cron/cleanup` plik znika z `media` i z Bloba, a odpowiedź niesie rozbicie `{ recorded, healed, deleted, failed }`
+- [ ] Drugi przebieg crona pod rząd kasuje zero i nie rusza ocalałych
+- [ ] Skasowanie inwestycji z plikami: pliki trafiają do kosza z pustą prowenancją przy najbliższym przebiegu crona
+- [ ] Skasowanie wydatku z fakturą kasuje fakturę **od razu** — bez kosza (świadomy wyjątek)
+- [ ] Usunięcie pliku w panelu Payloada, gdy plik leży w koszu, przechodzi bez odmowy
+
 # Zamknięte — indeks
 
 Jedna linia na slice, **wszystkie 94** — liczby są policzone z pełnego rejestru sprzed przycięcia.
@@ -469,7 +487,9 @@ Sprawdzenia na bazie testowej (5435). Webhook wymaga `LANDING_WEBHOOK_SECRET` i
       `where[kind][equals]=faktura` i zwraca „Nie znaleziono Pliki" zamiast pełnej listy 1600 wierszy,
       co potwierdza że filtr faktycznie działa. Pusty wynik jest stanem danych, nie defektem: SQL na
       `DB_POSTGRES_URL_PREVIEW` potwierdza `kind` jest `NULL` dla wszystkich 1600 wierszy — kolumna
-      jeszcze nie jest zasilana na tej bazie (webhook z landingu jeszcze nic tam nie zapisał).
+      jeszcze nie była wtedy zasilana na tej bazie (webhook z landingu jeszcze nic tam nie zapisał).
+      Od EX-829 panel nie jest jedyną drogą: aplikacja zapisuje `kind = 'projekt'` sama — przy
+      wgrywaniu (pole „To jest rzut lub projekt") i z galerii asetów („Oznacz jako rzut").
 - [ ] Skasowanie faktury podpiętej pod transakcję jest odrzucone czytelnym polskim komunikatem
 - [ ] Inwestycja pokazuje podpięte pliki w `/admin` po akcji dodania
 - [ ] Dodanie trzech zdjęć + PDF z karty inwestycji — pojawiają się bez przeładowania
