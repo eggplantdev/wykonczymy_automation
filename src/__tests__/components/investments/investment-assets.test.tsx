@@ -56,13 +56,16 @@ describe('InvestmentAssets', () => {
     isUploading.mockReturnValue(false)
   })
 
-  // Adding starts in the preview or in the „Edytuj inwestycję" dialog, so an empty section has
-  // nothing to offer — the preview button would open an empty dialog and there is no „Dodaj" here.
-  it('renders no control at all when the investment has no files', () => {
+  // The section used to disappear entirely without files, which hid the only in-page way to add one
+  // behind the „Edytuj inwestycję" dialog. The empty state IS the affordance.
+  it('offers the picker when the investment has no files, and no empty preview', async () => {
+    const user = userEvent.setup()
     renderGallery([])
 
     expect(previewButton()).not.toBeInTheDocument()
-    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Dodaj zdjęcia lub pliki' }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
   it('renders no thumbnail — the count is the whole summary', () => {

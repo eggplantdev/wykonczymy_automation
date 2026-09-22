@@ -362,8 +362,8 @@ Uruchomić **raz**, po ostatniej fazie:
 
 #### Automated
 
-- [ ] 1.1 Spec sekcji przechodzi bez zmian zachowania
-- [ ] 1.2 Spec pola w formularzu przechodzi
+- [x] 1.1 Spec sekcji przechodzi bez zmian zachowania
+- [x] 1.2 Spec pola w formularzu przechodzi
 
 ### Phase 2: Podpięcie kontrolki do edytora kosztorysu v2
 
