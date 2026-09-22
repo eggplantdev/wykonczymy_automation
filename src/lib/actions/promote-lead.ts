@@ -47,11 +47,12 @@ export async function promoteLeadAction(
       const { id, warning } = await createInvestment(payload, { ...parsed.data, assets })
 
       // After the investment exists, so a failure here leaves a lead that can be promoted again
-      // rather than one pointing at nothing.
+      // rather than one pointing at nothing. `contactStatus` is untouched: it records whether a
+      // human reached out to this person, which promotion says nothing about.
       await payload.update({
         collection: 'leads',
         id: leadId,
-        data: { investment: id, contactStatus: 'contacted' },
+        data: { investment: id },
         overrideAccess: true,
       })
 
