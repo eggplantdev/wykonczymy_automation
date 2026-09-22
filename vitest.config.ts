@@ -62,6 +62,11 @@ export default defineConfig({
           globals: true,
           include: ['src/__tests__/**/*.test.ts'],
           css: false,
+          // Three times the default. Same reason as the dom project below, milder: a WASM decode or
+          // a Google-client spec that finishes in well under a second alone still blew past 5s while
+          // a second agent saturated the machine. The limit is there to catch a hung spec, not to
+          // measure how busy the laptop was.
+          testTimeout: 15_000,
         },
       },
       {
@@ -75,6 +80,11 @@ export default defineConfig({
           environment: 'jsdom',
           setupFiles: ['./src/__tests__/setup/dom.ts'],
           css: false,
+          // Four times the default 5s. A jsdom spec that takes ~400ms alone stretches 8-15x when 49
+          // of them share 8 cores with the node project, and it was the timeout — not a broken
+          // assertion — that made three specs alternate red between whole-suite runs. Costs nothing
+          // on a green run: the limit only fires on a spec that is genuinely stuck.
+          testTimeout: 20_000,
         },
       },
     ],
