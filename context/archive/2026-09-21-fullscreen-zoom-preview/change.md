@@ -1,10 +1,10 @@
 ---
 change_id: fullscreen-zoom-preview
 title: Pełnoekranowy podgląd z zoomem w InvoicePreviewDialog
-status: implemented
+status: archived
 created: 2026-09-21
-updated: 2026-09-21
-archived_at: null
+updated: 2026-09-22
+archived_at: 2026-09-22T04:53:56Z
 branch: null
 worktree: null
 ---
@@ -106,3 +106,17 @@ wrapper na samym obrazku, który o paginacji nic nie wie.
   (2480×3508) ląduje na dysku jako **763×1080** — i to bezpowrotnie, przed wysyłką. Dla załączników
   **ze zgłoszenia** oryginał jest cały (tyle, ile zostawił z niego landing), więc to właśnie tam
   zoom coś daje — i tam `quality={50}` @ 848 px było jedyną realną stratą.
+
+## Domknięcie (archiwizacja 2026-09-22)
+
+`plan.md` i `plan-brief.md` skasowane — całe ich uzasadnienie stoi już wyżej w tym pliku (odrzucenie
+Swipera, pełny ekran jako problem desktopowy, dwie warstwy źródła, reset przez `key`), a reszta była
+choreografią faz. `git show 95dab801^:context/changes/2026-09-21-fullscreen-zoom-preview/plan.md`.
+
+`review-gate.md` przycięty — findingi `fixed` usunięte, zostały `dismissed` / `dropped` / `skipped`.
+
+Wniosek o kompresji na wejściu (oryginał w Blobie jest oryginałem tylko dla plików z landingu)
+wyniesiony do `context/foundation/lessons.md`.
+
+Progres (fazy → commity): 1 `549bac78` · 2–3 `6f6bdd5c` · poprawki z przeglądu `4477195e`
+· pusty kadr przy pobieraniu oryginału `6766f56b`.

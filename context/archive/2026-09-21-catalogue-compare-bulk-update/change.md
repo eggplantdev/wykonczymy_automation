@@ -1,10 +1,10 @@
 ---
 change_id: catalogue-compare-bulk-update
 title: Hurtowa aktualizacja rozpiski z katalogu prac w oknie porównania
-status: implemented
+status: archived
 created: 2026-09-21
-updated: 2026-09-21
-archived_at: null
+updated: 2026-09-22
+archived_at: 2026-09-22T04:53:56Z
 branch: catalogue-compare-bulk-update
 worktree: null
 ---
@@ -57,5 +57,32 @@ wziąć auto. Ustalone:
   (wariant „13,60 zł → auto" z pustą różnicą odrzucony z tego powodu).
 
 Skala zmierzona prawdziwą funkcją porównania na lokalnej bazie (14 kosztorysów, 4464 pozycje) —
-szczegóły i metodyka w `research.md`. Inwestycja 151: 63 prace / 138 różnic, z czego 6 „rozpiska
+metodyka w skasowanym przy archiwizacji `research.md` (`git show 2673dcba^:context/changes/2026-09-21-catalogue-compare-bulk-update/research.md`). Inwestycja 151: 63 prace / 138 różnic, z czego 6 „rozpiska
 zamrożona ↔ katalog auto" i 9 „rozpiska auto ↔ katalog kwota".
+
+## Domknięcie (archiwizacja 2026-09-22)
+
+`plan.md`, `plan-brief.md` i `research.md` skasowane przy archiwizacji — ich treść albo weszła do
+kodu, albo miała już swój dom (`roundToCents` i „casty przy `NULL` w paczce" w docblokach,
+pułapka migawki przez cache'owaną warstwę w `lessons.md`, `patchRows` + `prevById` tamże). Sięgnij po
+nie przez `git show 2673dcba^:context/changes/2026-09-21-catalogue-compare-bulk-update/<plik>`.
+Nowa lekcja o progu równym połowie jednostki wyświetlania wyniesiona do `context/foundation/lessons.md`.
+
+**Nie było bramki review** (`/slice-review-gate` nigdy nie przebiegła dla tej zmiany) i **14 checków
+manualnych zostaje nieodhaczonych** w `context/foundation/manual-checks.md` — sekcja
+„catalogue-compare-bulk-update" żyje dalej jako otwarta praca, mimo archiwizacji folderu.
+
+Trzy rozstrzygnięcia właściciela, które nadpisały rekomendację i nie widać ich w kodzie:
+
+- **Trzy kawałki w jednej zmianie**, wbrew rekomendacji rozbicia — właściciel chciał zobaczyć
+  i przetestować całość naraz.
+- **Checkbox przy każdej pojedynczej liczbie, nie tylko przy pracy**, wbrew rekomendacji „tylko per
+  praca".
+- **Bez okna potwierdzenia** — przy pracy partiami potwierdzenie staje się odruchem, który niczego nie
+  chroni; zamiast niego licznik na przycisku i automatyczna wersja przed zapisem.
+
+Świadomie poza zakresem, do zakomunikowania właścicielowi: zmiana opisu przy przyjęciu kandydata
+**rozłącza pozycję od jej bliźniaka w arkuszu** przy następnym „Porównaj z arkuszem".
+
+Progres (fazy → commity): 1 `b8dd0158` · 2 `18092f87` · 3 `3d028a8b` · 4 `fe0763d4` · 5 `87f26bba`
+· epilog `2673dcba`.

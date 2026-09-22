@@ -26,26 +26,12 @@ standing rule forbids that unprompted. Manual verification is therefore still ow
 
 <!-- [box] · [severity, bug-finding checks only] · disposition · `source` · `file:line` · what — why -->
 
-- [x] 🟡 WARNING · fixed · `code-review` + `simplify/altitude` · `src/components/kosztorys/editor/toolbar/kosztorys-global-settings.tsx` ·
-      the global mnożnik `DecimalField`s hard-refused above 0,65 via `max={MAX_CLIENT_SHARE}`, and
-      `DecimalField` rejects out-of-range **silently** (snaps back, no commit, no message) — the one
-      surface where the old refuse-tier survived, and the loudest of the three since it said nothing at
-      all. Came in with `91fb43a8`, the era when the ceiling refused everywhere; the 2026-09-20
-      loosening turned the CELL into a warning and left this behind. **Depth note from the altitude
-      pass:** the clamp also hollowed out the new warn tier — with the mnożnik capped, an „auto" row
-      could no longer derive a price above the ceiling from anything the app let a user type, so the
-      guard's auto-plane warn branch (the one `subcontractor-price-guard.test.ts` exercises at
-      `globalWToolsCoeff: 0.9`) was reachable only from legacy rows already in the DB.
-      **Owner ruled it 2026-09-21** — verbatim: „The cap was only suppose to exist as a warning / no
-      silent rewrites". Applied: `max` dropped; `isCoeffOverCeiling` + `coeffCeilingWarning` added to
-      `subcontractor-price-guard.ts` (its own sentence, because a mnożnik breach is every „auto"
-      pozycja, not one); a local `CoeffField` colours a standing breach `text-destructive font-medium`
-      and toasts once on commit; the tooltip's last line now reads „wolno, ale na czerwono".
-      `min={0}` kept — a negative mnożnik is a typo, not a deal.
-      test: TDD · unit(dom) — new `src/__tests__/components/kosztorys/editor/toolbar/kosztorys-global-settings.test.tsx`,
-      4 specs: 0,9 commits + exactly one warning toast; 0,65 commits silently; negative still refused;
-      a standing breach renders red before anyone touches it. Instrument validated — loosening `min`
-      to `-5` made the negative spec fail, so it is not passing on a parse failure.
+**Przycięte przy archiwizacji (2026-09-22).** Wszystkie findingi `fixed` usunięte — trwałym zapisem
+naprawy jest jej commit, a nie wiersz w ledgerze; co przeżywa, to negatywna przestrzeń, której git nie
+utrzyma: co świadomie **odrzucono**, **porzucono**, **odłożono** albo **wyniesiono do Lineara**. Stan
+sprzed przycięcia (obie sekcje razem): **16 fixed, 3 filed, 8 dismissed, 7 dropped, 3 skipped ·
+0 otwartych.**
+
 - [x] filed EX-819 · `owner ruling 2026-09-21` · `src/components/ui/decimal-field.tsx:85-94` +
       `src/components/kosztorys/summary/tabs/summary-expenses-tab.tsx:109` +
       `src/components/kosztorys/summary/materials-net-pricing-control.tsx:65` ·
@@ -82,56 +68,13 @@ standing rule forbids that unprompted. Manual verification is therefore still ow
       **Filed EX-820** (2026-09-21) with the three options — leave it, split the two tiers, or move
       the warn tier off the alarm — plus the dead `RowConditionT.tone` field as related cleanup.
 
-- [x] 🔴 CRITICAL · fixed · `structure-scatter` · `src/components/tables/work-catalogue.tsx` ·
-      the katalog table re-derived the ceiling as `rate / clientPrice > 0.65`, carrying no tolerance —
-      so cena 100,01 zł against stawka 65,01 zł came out red there and clean in the rozpiska. Reachable
-      at ordinary grosz precision. Collapsed onto a new exported `isOverCeiling` in the guard.
-      test: no automated test — the two sites now share one function; the guard's own tolerance cases
-      already cover the comparison.
-- [x] 🟡 WARNING · fixed · `code-review` · `context/reference/kosztorys-editor-domain-notes.md` ·
-      the rabat bullet still claimed the subcontractor ceiling rolls back and drops pastes — false
-      since this change. Corrected, and a `### Sufit ceny podwykonawcy — 65%, ostrzeżenie (2026-09-20)`
-      section added.
 - [x] 🟡 WARNING · dismissed · `structure-scatter` + `module-cohesion` · `src/lib/kosztorys/work-catalogue/append-catalogue-items.ts` ·
       "the verdict's severity is discarded at the server seam". Verified unreachable: `money()` enforces
       `.min(0)` at **both** the form layer (`moneyIssue`) and the domain layer (`z.number().min(0)`), so
       the only refusing verdict cannot fire on that path.
-- [x] 🔵 OBSERVATION · fixed · `code-review` · `src/components/kosztorys/editor/grid/cells/use-cell-draft.ts:88` ·
-      the unmount settle can now announce a **commit** (a warned price scrolled out of view by the row
-      virtualizer), a path no spec covered — previously it could only announce a rollback.
-      test: TDD · unit (dom project) — `ogłasza ostrzeżenie, gdy komórka znika bez blura` in
-      `subcontractor-price-edit.test.tsx`: asserts silence before `unmount()`, exactly one `'warning'`
-      toast after it, and the value standing at 90.
 - [x] 🔵 OBSERVATION · dismissed · `code-review` · `src/lib/kosztorys/cell-edit.ts` (`cellPaste`) ·
       a pasted over-ceiling price lands with no toast. Intended: paste has no settle, and the red cell
       it leaves behind is visible at paste time.
-- [x] 🔵 OBSERVATION · fixed · `code-review` + `structure-scatter` · `src/components/kosztorys/editor/dialogs/add-items-from-catalogue-dialog.tsx` ·
-      the same guard sentence rendered amber from a cell and red from the katalog dialog. Both toasts
-      `'error'` → `'warning'`.
-- [x] fixed · `simplify` (altitude + simplification converged) · `src/lib/kosztorys/cell-edit.ts:40` ·
-      `CellKeystrokeT.commit` carried a `warning` field that **no consumer read** — `useCellDraft`
-      drops it, and the only reader was `cellSettle`, which had produced it itself two lines earlier.
-      Dropped from the union; `cellSettle` now asks `policy.guard?.(result.row)` directly. "Announce
-      once on settle" stops being a comment and becomes the type: a warning is not expressible on a
-      keystroke result, so nobody can toast one per keypress. Also un-loosened the specs that had been
-      downgraded `toEqual` → `toMatchObject` to tolerate the field.
-- [x] fixed · `simplify` (simplification) · `src/components/tables/work-catalogue.tsx` ·
-      the two share columns were copy-paste twins naming their plane **twice** each (accessor +
-      `isOverCeiling` argument), and the `cell:` lines had grown past printWidth 100. One
-      `shareColumn(field, id, tools)` factory called twice; ids stay literal so a search for
-      `wToolsShare` still finds the column the stored visibility map names. The win is the duplicated
-      field name: a copy-paste that updated only the accessor would render the w-tools verdict on the
-      own-tools column, and both figures look plausible.
-- [x] fixed · `simplify` (reuse) · `src/lib/kosztorys/subcontractor-price-guard.ts:77`, `src/components/tables/work-catalogue.tsx:46` ·
-      both sites hand-built the ceiling percent as `${MAX_CLIENT_SHARE * 100}%` beside an existing
-      `formatPercent`. Identical output today (`0.65 * 100` is exact), but the module's own
-      `ratePercent` docblock documents the `0.29 * 100 → 28.999…` trap for the next value.
-- [x] fixed · `simplify` (simplification) · `src/__tests__/lib/kosztorys/subcontractor-price-edit.test.ts` ·
-      two specs called `settle('-50', flat(60), 'w_tools', entry)` and one asserted a strict subset of
-      the other. Deleted the subset, moved its „-" -hold rationale onto the survivor. (Worth knowing:
-      with the ceiling downgraded to `warn`, this policy can no longer produce a `blocked` rollback
-      _with_ a written row — the only refusal left is a negative, whose „-" prefix is held, never
-      committed. That combination now lives only in the rabat policy's spec.)
 - [x] dismissed · `structure-scatter` · `src/lib/kosztorys/row-conditions/registry.ts:305,316` ·
       **supersedes the Step-1 "needs a third `tone`" finding.** `RowConditionT.tone` is declared in
       `row-conditions/types.ts:51` and written 12× in the registry, and read **nowhere** in the app —
@@ -160,16 +103,6 @@ view)` with `checkSubcontractorPrice` as the thin message wrapper is the right s
 - [x] skipped · `module-cohesion` · `src/lib/kosztorys/discount-edit.ts` ·
       `DiscountTypeSwitchT` could consolidate with its neighbours. Pre-existing, untouched by this
       change, large enough to deserve its own review.
-- [x] fixed · `comment-noise` · `append-catalogue-items.ts:44`, `work-catalogue-item-schema.ts:5`, `registry.ts:292` ·
-      three prose sites still said **80%** — stale since commit `0476ac25` lowered the ceiling to 65%.
-      Corrected, keeping the dated `(owner, 2026-08-17)` ruling intact.
-- [x] fixed · `comment-noise` · `cell-edit.ts` (header), `use-cell-draft.ts`, `subcontractor-columns.tsx`, `discount-edit.ts` ·
-      the module header and four comments described a one-tier refuse-only machine. Header rewritten to
-      cover both verdicts; the `keep`-branch, `inherited` and duplicated-rule comments deleted; the
-      `forceOpen` comment now says why a warning does _not_ force the tooltip open.
-- [x] fixed · `comment-noise` · 6 specs under `src/__tests__/` ·
-      13 Polish comments restating their own `it`/`describe` titles deleted, 2 trimmed, and
-      `subcontractor-columns.test.tsx:67` rewritten to say why the fixture sits away from the derived rate.
 - [x] dropped · `simplify` (simplification) · `src/__tests__/lib/kosztorys/cell-edit.test.ts:19,25` ·
       the `capped` / `warned` stand-in policies could come from one factory. Params would equal the
       code — a 3-line factory to replace two 4-line literals that differ by two string constants.
@@ -190,38 +123,9 @@ Re-gated `subcontractor-price-guard.ts`, `kosztorys-global-settings.tsx` and the
 `kosztorys-global-settings.test.tsx` — two read-only agents (correctness / quality), then the fixes.
 The 17 files last touched 2026-09-20 were NOT re-reviewed: they are unchanged since the pass above.
 
-- [x] 🟡 WARNING · fixed · `code-review` · `src/components/kosztorys/editor/toolbar/kosztorys-global-settings.tsx:53` ·
-      **the fix above introduced a phantom write.** `DecimalField.commitOnBlur`
-      (`ui/decimal-field.tsx:85-95`) re-parses `e.target.value` on EVERY blur and never compares it to
-      the value it was given, so it commits whether or not anything was typed. While `max={0.65}` was
-      there a stored 0,9 was out of range and the blur snapped back silently; dropping `max` turned
-      that same blur into a real commit. Concrete: mnożnik already at 0,9, owner clicks into
-      „Z narzędziami" to READ it and tabs out → a 5-second toast about a change nobody made, an
-      `updateInvestmentCoeffsAction` round-trip, and a „Zmiana współczynnika" entry on the undo stack.
-      Tab through both fields, get two of each. Fixed with an `if (n === value) return` guard in
-      `CoeffField` — which also stops the pre-existing no-op save on an in-range value. Deliberately
-      local, not in `DecimalField`: other consumers may rely on a re-commit, and that is EX-819's call.
-      test: test-driven-debugging · unit(dom) — `milczy, gdy mnożnik ponad sufitem tylko przechodzi
     przez focus` asserts silence on a bare focus-pass. Written red first: it failed with exactly one
       „Mnożnik 0,9 przekracza 65%…" toast, then went green on the guard.
-- [x] 🔵 OBSERVATION · fixed · `code-review` · `…/kosztorys-global-settings.test.tsx:57` ·
-      the negative-mnożnik spec asserted only that the commit did not fire, so it would pass just as
-      well if `user.type` had silently failed or the field were disabled. Added the snap-back assertion
-      (`toHaveValue('0.6')`) and the absent toast, pinning `min` as the actual reason for the refusal.
-- [x] fixed · `reuse` · `src/lib/kosztorys/constants.ts` (new `FLAGGED_TONE`, `NOTICE_MS`) ·
-      this change declared `FLAGGED_TONE = 'text-destructive font-medium'` **twice under one name**
-      (`subcontractor-columns.tsx:47`, `kosztorys-global-settings.tsx:24`) and inline a third time
-      (`work-catalogue.tsx:31`), and `COEFF_NOTICE_MS = 5000` as a second copy of `CELL_NOTICE_MS`
-      (`use-cell-draft.ts:7`) with the same rationale paraphrased twice. All three ceiling surfaces now
-      read one tone and one duration from `constants.ts`. Fleet's two `text-destructive font-medium`
-      sites left alone — different domain, not this constant.
-- [x] fixed · `comment-noise` · `subcontractor-price-guard.ts`, `kosztorys-global-settings.tsx`, the new spec ·
-      the 2026-09-21 owner ruling about the mnożnik's missing `max` was written out **three times** —
-      guard docblock, component comment, spec `describe` comment — and two docblock openers restated
-      their own signatures (`What is wrong with this row's…`, `The ceiling in PLN — named by…`). Also
-      `Not a revival of the old amber tier` justified the code by what it isn't. Kept one copy of each
-      dated ruling, rewrote the amber-tier note as the forward-looking rule it actually encodes, and
-      moved the `min={0}` rationale down to the `min={0}` line.
+
 - [x] dismissed · `reuse` · `subcontractor-price-guard.ts:64` ·
       "`coeffCeilingWarning` returns `string | null` while its sibling returns `CellVerdictT | null`,
       and `'warning'` is hardcoded at the call site." The shape difference is the point: the coeff has

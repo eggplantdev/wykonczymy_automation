@@ -2018,3 +2018,45 @@ is the test of the test, and skipping it is how a decorative assertion gets comm
   answer: a throwaway unit spec on the pure function you are accusing (here `selectV2Columns`) takes
   minutes and either kills the finding or turns it into a red test.
 - **Applies to**: verify, verify-manual-checks, 10x-e2e, impl-review.
+
+## A tolerance set to exactly HALF the smallest unit is decided by float residue, not by the rule you wrote
+
+- **Context**: `MONEY_TOLERANCE = 0.005` (`src/lib/kosztorys/calc.ts:15`, 11 call sites) — half a
+  grosz — read as „ignore anything under a grosz". `buildCatalogueComparison`'s `figure()` is where it
+  finally showed: „Porównaj z katalogiem prac" printed **14,88 zł against 14,88 zł with a −0,01 zł
+  difference**, on inw. 151, 2026-09-21.
+- **Problem**: the two sides were 14,875 and 14,88. That is a gap of exactly the threshold, so the
+  comparison's verdict turns on `>` versus `>=` **and** on binary noise — 14,88 has no exact binary
+  representation, so the subtraction lands ~4e-16 above the epsilon and the row is reported. The
+  display never had this problem, because `formatPLN` rounds (`format-currency.ts:8`); so the report
+  compares one pair of numbers and shows the reader a different pair. A threshold exactly equal to
+  half the display unit guarantees a population of rows where the two disagree — here 13 of 3794.
+- **Rule**: don't compare raw figures against an epsilon when the reader is shown rounded ones —
+  **round both sides to the display unit and compare for exact equality**: `roundToCents(a) !==
+roundToCents(b)`. Its docblock already says so („Round before COMPARING two such figures… Never
+  round mid-calculation"), and the repo had three precedents before this bug
+  (`reconciliation.ts:36-40`, `investments.tsx:205-210`, `settlement-groups.ts:54,68`). An epsilon
+  is for comparing quantities with no canonical display unit — `QTY_TOLERANCE`
+  (`settlement-rows.ts:91`) is that axis, and its docblock forbids importing the money rule.
+  General form: **whenever a tolerance equals half the granularity of what the user sees, it is not a
+  tolerance — it is a coin flip on the last bit.**
+- **Applies to**: code-review, 10x-plan, impl-review, any reconciliation or comparison surface.
+
+## The "original" in Blob is only original for files the LANDING uploaded — the app destroys it before the request leaves the browser
+
+- **Context**: fullscreen-zoom-preview (2026-09-21). The zoom layer swaps `next/image`'s rendition
+  for the raw Blob URL on first zoom, so a rzut or plan attached to a zgłoszenie becomes readable at
+  magnification. The obvious reading — „Blob holds the original, so zoom always pays" — is wrong for
+  half the app's files.
+- **Problem**: anything uploaded **through the app** goes through `compressImage`
+  (`src/lib/utils/compress-image.ts`, `q = 0.6`, box `1920×1080`) before the POST. A portrait A4 scan
+  lands in Blob as 763×1080, irreversibly. `fetchLandingAsset` streams a landing attachment without
+  compression or scaling, so only those files keep their pixels. Reaching for the „original" on an
+  app-uploaded file fetches a bigger transfer and recovers no detail — the work is spent, the win
+  isn't there. `MAX_UPLOAD_BYTES = 4 MB` rests on Vercel's request-body limit, which is why the
+  compression is there and why loosening it is its own change, not a knob.
+- **Rule**: before designing anything that promises to „go back to the original" — zoom, print,
+  re-crop, OCR, download-full — establish **which ingest path produced the file**. An ingest that
+  compresses is a one-way door: the original never existed server-side, so no download path can
+  restore it. Name the paths that keep the bytes and scope the feature's payoff to those.
+- **Applies to**: 10x-plan, 10x-research, impl-review, any media/preview feature.
