@@ -21,7 +21,6 @@ import {
   insertDirectionSchema,
   moveOrderSchema,
   moveRowOneStep,
-  nextSectionDisplayOrder,
   renumberDisplayOrder,
   renumberDisplayOrderSchema,
   resolveInsertSlot,
@@ -322,8 +321,9 @@ export async function clearKosztorysAction(investmentId: number): Promise<Action
   )
 }
 
-// Appends a section at the end, WITH its first blank item — see createSectionWithFirstItem for why
-// the pair is one call (and one round trip for the client) rather than two actions.
+// Prepends a section at the TOP, WITH its first blank item — see createSectionWithFirstItem for why
+// the pair is one call (and one round trip for the client) rather than two actions. The shift and
+// the create share one transaction: a double-fired add would otherwise land two sections on 0.
 export async function addSectionAction(
   investmentId: number,
 ): Promise<ActionResultT<CreatedSectionWithItemT>> {
@@ -331,11 +331,13 @@ export async function addSectionAction(
     'addSectionAction',
     { investmentId },
     async ({ payload }) => {
-      const db = await getDb(payload)
-      const displayOrder = await nextSectionDisplayOrder(db, investmentId)
       const created = await withPayloadTransaction(
         payload,
-        (req) => createSectionWithFirstItem(payload, { investmentId, displayOrder, req }),
+        async (req) => {
+          const txDb = await getDb(payload, req)
+          await shiftDisplayOrderFrom(txDb, 'kosztorys-sections', investmentId, 0)
+          return createSectionWithFirstItem(payload, { investmentId, displayOrder: 0, req })
+        },
         { skipRevalidation: true },
       )
       return { success: true, data: created }

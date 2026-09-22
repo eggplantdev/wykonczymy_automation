@@ -957,7 +957,7 @@ export function useKosztorysEditor({
     }
     const row = buildNewSectionRow(res.data.section.id, res.data.item)
     prevById.current.set(row.id, row)
-    setRows((rs) => applyAddItem(rs, row))
+    setRows((rs) => [row, ...rs])
     return res.data.section.id
   }
 
