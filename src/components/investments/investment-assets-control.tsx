@@ -8,6 +8,7 @@ import { InvoiceUploadDialog } from '@/components/dialogs/invoice-upload-dialog'
 import { InvoicePreviewTrigger } from '@/components/dialogs/invoice-preview-trigger'
 import { ASSET_PREVIEW_LABELS } from '@/components/media/preview-labels'
 import { useInvestmentAssetsRemoval } from '@/hooks/use-investment-assets-removal'
+import { usePlanMarker } from '@/hooks/use-plan-marker'
 import {
   INVESTMENT_ASSETS_UPLOAD_TITLE,
   useInvestmentAssetsUpload,
@@ -24,6 +25,7 @@ export function InvestmentAssetsControl({ investmentId, assets }: InvestmentAsse
   const { isUploading, uploadFiles } = useInvestmentAssetsUpload(investmentId)
   const { visibleFiles, handleRemove, handleRemoveAll, isRemoving, removalConfirm } =
     useInvestmentAssetsRemoval(investmentId, assets)
+  const planMarker = usePlanMarker(visibleFiles)
 
   // `setUploadField` is a read-modify-write, so an upload and a removal that overlap write back each
   // other's pre-change list — dropping the new file from the investment and leaking its media row.
@@ -53,6 +55,7 @@ export function InvestmentAssetsControl({ investmentId, assets }: InvestmentAsse
             onAdd={isBusy ? undefined : openUpload}
             onRemove={isBusy ? undefined : handleRemove}
             onRemoveAll={!isBusy && visibleFiles.length > 1 ? handleRemoveAll : undefined}
+            planMarker={planMarker}
           />
         ) : (
           <InvoicePreviewTrigger

@@ -1,7 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { InvoicePreviewDialog } from '@/components/dialogs/invoice-preview-dialog'
+import {
+  InvoicePreviewDialog,
+  type InvoicePreviewDialogPropsT,
+} from '@/components/dialogs/invoice-preview-dialog'
 import {
   InvoicePreviewTrigger,
   type InvoicePreviewTriggerPropsT,
@@ -19,6 +22,7 @@ type InvoicePreviewButtonPropsT = {
   onAdd?: (closePreview: () => void) => void
   onRemove?: (invoice: InvoiceFileT, closePreview: () => void) => void
   onRemoveAll?: (closePreview: () => void) => void
+  planMarker?: InvoicePreviewDialogPropsT['planMarker']
 } & Pick<InvoicePreviewTriggerPropsT, 'ariaLabel' | 'variant' | 'className'>
 
 export function InvoicePreviewButton({
@@ -28,6 +32,7 @@ export function InvoicePreviewButton({
   onAdd,
   onRemove,
   onRemoveAll,
+  planMarker,
   ariaLabel,
   variant,
   className,
@@ -54,6 +59,7 @@ export function InvoicePreviewButton({
           onAdd={onAdd && (() => onAdd(closePreview))}
           onRemove={onRemove && ((invoice) => onRemove(invoice, closePreview))}
           onRemoveAll={onRemoveAll && (() => onRemoveAll(closePreview))}
+          planMarker={planMarker}
           // Stored file is already ingest-compressed (≤1920px, q0.6) — skip the Next optimizer
           // and its cold-start round-trip; serve straight from the Blob CDN.
           unoptimized

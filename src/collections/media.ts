@@ -62,7 +62,7 @@ export const Media: CollectionConfig = {
   access: {
     read: () => true,
     create: isAdminOrOwnerOrManager,
-    update: isAdminOrOwner,
+    update: isAdminOrOwnerOrManager,
     delete: isAdminOrOwner,
   },
   fields: [

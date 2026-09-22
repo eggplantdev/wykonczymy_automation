@@ -13,7 +13,11 @@ export type MediaKindT = (typeof MEDIA_KINDS)[number]
  *
  * Cross-cutting: produced by the investment and lead queries, consumed by `MediaStrip`.
  */
-export type MediaFileT = InvoiceFileT & { id: number; thumbnailUrl: string | null }
+export type MediaFileT = InvoiceFileT & {
+  id: number
+  thumbnailUrl: string | null
+  kind: MediaKindT | null
+}
 
 /**
  * What a preview surface calls the files it is showing. Every field is required so a new caller

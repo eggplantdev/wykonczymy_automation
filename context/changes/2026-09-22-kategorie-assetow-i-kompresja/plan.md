@@ -202,10 +202,10 @@ Po ostatniej fazie, raz: `pnpm typecheck` · `pnpm lint` · `pnpm test` · `pnpm
 
 #### Automated
 
-- [ ] 4.1 Akcja `protectedAction()` zapisująca `kind` istniejącemu plikowi
-- [ ] 4.2 `media.access.update` poluzowane do `isAdminOrOwnerOrManager`
-- [ ] 4.3 Akcja dostępna przy pliku w galerii asetów
-- [ ] 4.4 Spec integracyjny: zapis `kind` + odmowa dla EMPLOYEE
+- [x] 4.1 Akcja `protectedAction()` zapisująca `kind` istniejącemu plikowi
+- [x] 4.2 `media.access.update` poluzowane do `isAdminOrOwnerOrManager`
+- [x] 4.3 Akcja dostępna przy pliku w galerii asetów
+- [x] 4.4 Spec integracyjny: zapis `kind` + odmowa dla EMPLOYEE
 
 ### Faza 5: Domknięcie
 

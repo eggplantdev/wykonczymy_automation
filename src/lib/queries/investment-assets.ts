@@ -5,7 +5,7 @@ import config from '@payload-config'
 import { CACHE_TAGS, entityTag } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/get-db'
 import { perfStart } from '@/lib/perf'
-import type { MediaFileT } from '@/types/media'
+import type { MediaFileT, MediaKindT } from '@/types/media'
 
 /**
  * One investment's `assets`, in attachment order. Not folded into `fetchReferenceData` on purpose:
@@ -17,7 +17,7 @@ export async function fetchInvestmentAssets(investmentId: number): Promise<Media
       const elapsed = perfStart()
       const db = await getDb(await getPayload({ config }))
       const { rows } = await db.execute(sql`
-        SELECT m.id, m.url, m.filename, m.mime_type, m.sizes_thumbnail_url
+        SELECT m.id, m.url, m.filename, m.mime_type, m.sizes_thumbnail_url, m.kind
         FROM investments_rels r
         JOIN media m ON m.id = r.media_id
         WHERE r.parent_id = ${investmentId} AND r.path = 'assets'
@@ -35,6 +35,7 @@ export async function fetchInvestmentAssets(investmentId: number): Promise<Media
           filename: (row.filename as string) ?? null,
           mimeType: (row.mime_type as string) ?? null,
           thumbnailUrl: (row.sizes_thumbnail_url as string) ?? null,
+          kind: (row.kind as MediaKindT) ?? null,
         }))
     },
     ['investment-assets', String(investmentId)],

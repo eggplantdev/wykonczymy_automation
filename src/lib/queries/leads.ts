@@ -71,6 +71,7 @@ async function resolveLeadAssets(
           filename: doc.filename ?? null,
           mimeType: doc.mimeType ?? null,
           thumbnailUrl: doc.sizes?.thumbnail?.url ?? null,
+          kind: doc.kind ?? null,
         },
       ]),
   )

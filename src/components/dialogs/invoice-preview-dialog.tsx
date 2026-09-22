@@ -11,7 +11,15 @@ import { isImageMime, isPdfMime, isPreviewableMime } from '@/lib/media/mime'
 import { splitExtension } from '@/lib/utils/append-short-id'
 import { openPrintWindow, printThenClose } from '@/lib/utils/print-window'
 import { today } from '@/lib/utils/date'
-import { ChevronLeft, ChevronRight, Download, Plus, Printer, Trash2 } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  DraftingCompass,
+  Plus,
+  Printer,
+  Trash2,
+} from 'lucide-react'
 import { INVOICE_PREVIEW_LABELS } from '@/components/media/preview-labels'
 import type { InvoiceFileT } from '@/types/transfers'
 import type { PreviewLabelsT } from '@/types/media'
@@ -24,7 +32,7 @@ const ZoomablePreviewImage = dynamic(
   { ssr: false },
 )
 
-type InvoicePreviewDialogPropsT = {
+export type InvoicePreviewDialogPropsT = {
   invoices: InvoiceFileT[]
   initialIndex?: number
   labels?: PreviewLabelsT
@@ -33,6 +41,15 @@ type InvoicePreviewDialogPropsT = {
   onAdd?: () => void
   onRemove?: (invoice: InvoiceFileT) => void
   onRemoveAll?: () => void
+  /**
+   * Marking „to jest rzut" after the fact. One prop rather than a callback plus a predicate,
+   * because the button needs both halves to say anything true — offering „Oznacz" on a file that
+   * is already oznaczony is how a second click looks like the first one failed.
+   */
+  planMarker?: {
+    isMarked: (invoice: InvoiceFileT) => boolean
+    onMark: (invoice: InvoiceFileT) => void
+  }
   // next/image can't run the optimizer on a local blob: URL (not-yet-uploaded file) — serve it raw.
   unoptimized?: boolean
 }
@@ -46,6 +63,7 @@ export function InvoicePreviewDialog({
   onAdd,
   onRemove,
   onRemoveAll,
+  planMarker,
   unoptimized,
 }: InvoicePreviewDialogPropsT) {
   // Removing the last page must not leave the pager pointing past the end.
@@ -209,6 +227,16 @@ export function InvoicePreviewDialog({
             <Button variant="destructive" onClick={onRemoveAll}>
               <Trash2 />
               {labels.removeAll}
+            </Button>
+          )}
+          {planMarker && active && (
+            <Button
+              variant="outline"
+              disabled={planMarker.isMarked(active)}
+              onClick={() => planMarker.onMark(active)}
+            >
+              <DraftingCompass />
+              {planMarker.isMarked(active) ? 'Oznaczony jako rzut' : 'Oznacz jako rzut'}
             </Button>
           )}
           {onAdd && (
